@@ -1,0 +1,27 @@
+// src/core/components/index.ts
+
+export { default as Button } from './Button/Button'
+export type { ButtonVariant, ButtonSize } from './Button/Button'
+
+export { default as Input } from './Input/Input'
+export type { InputSize } from './Input/Input'
+
+export { default as Select } from './Select/Select'
+export type { SelectSize } from './Select/Select'
+
+export { default as Modal } from './Modal'
+export { default as BtnBack } from './BtnBack'
+export { default as Accordion } from './Accordion'
+export { default as ToggleSwitch } from './ToggleSwitch'
+export { default as Tooltip } from './Tooltip'
+export { default as AnalisiBadge } from './AnalisiBadge'
+export { default as GaugeArc } from './GaugeArc'
+export { default as PageHeader } from './PageHeader'
+export { default as AlertBanner } from './AlertBanner'
+export { default as FormActions } from './FormActions'
+export { default as Card } from './Card'
+export { default as FormGrid } from './FormGrid'
+export { default as FilterToolbar } from './FilterToolbar'
+export { default as StatusBadge } from './StatusBadge'
+export { default as Tabs } from './Tabs'
+export { default as Pagination } from './Pagination'

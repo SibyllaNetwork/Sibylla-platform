@@ -1,0 +1,262 @@
+@use '../../../../../styles/tokens' as *
+
+.prod-view__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 14px
+
+.prod-view__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.prod-view__sub
+  font-size: 12px
+  color: $text-disabled
+  margin-top: 2px
+
+.prod-view__btn-new
+  gap: 7px
+
+.prod-view__filters
+  display: grid
+  grid-template-columns: 1fr 180px 180px 180px
+  gap: 10px
+  margin-bottom: 14px
+
+.prod-view__search
+  display: flex
+  align-items: center
+  gap: 7px
+  height: 32px
+  padding: 0 10px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #F8FAFC
+
+.prod-view__select
+  // align with search height via sib-select default
+
+.prod-view__empty
+  padding: 32px 0
+  text-align: center
+  font-size: 13px
+  color: $text-disabled
+
+.prod-view__table
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 10px
+  overflow: hidden
+
+.prod-view__thead
+  display: grid
+  grid-template-columns: 130px 1.4fr 1.1fr 90px 1.2fr 60px 80px 170px 70px
+  padding: 8px 14px
+  background: #F8FAFC
+  border-bottom: 0.5px solid $border
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.4px
+  gap: 8px
+
+.prod-view__row
+  display: grid
+  grid-template-columns: 130px 1.4fr 1.1fr 90px 1.2fr 60px 80px 170px 70px
+  padding: 11px 14px
+  align-items: center
+  gap: 8px
+  border-bottom: 0.5px solid $border
+  transition: background 0.1s
+
+  &:last-child
+    border-bottom: none
+
+  &:hover
+    background: #F8FCFF
+
+.prod-view__barcode
+  display: flex
+  align-items: center
+  gap: 6px
+  font-family: monospace
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+
+.prod-view__barcode-ico
+  font-size: 14px
+  color: $primary
+
+.prod-view__cell-name
+  min-width: 0
+
+.prod-view__name
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.prod-view__desc
+  font-size: 11px
+  color: $text-disabled
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+  margin-top: 1px
+
+.prod-view__cell
+  font-size: 12px
+  color: $text-active
+  min-width: 0
+
+  &--right
+    text-align: right
+    font-weight: 600
+
+.prod-view__primary
+  font-size: 12px
+  color: $text-active
+  font-weight: 600
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.prod-view__muted
+  font-size: 11px
+  color: $text-disabled
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+  margin-top: 1px
+
+.prod-view__markets
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.prod-view__market-chip
+  font-size: 11px
+  font-weight: 500
+  color: var(--mercato-color, var(--color-primary))
+  background: rgba(0, 0, 0, 0.04)
+  border: 1px solid var(--mercato-color, var(--color-primary))
+  border-radius: 5px
+  padding: 2px 7px
+  display: inline-flex
+  align-items: center
+  gap: 5px
+
+  strong
+    font-weight: 700
+
+.prod-view__no-market
+  font-size: 11px
+  color: $text-disabled
+  font-style: italic
+
+.prod-view__state
+  font-size: 10px
+  font-weight: 600
+  border-radius: 4px
+  padding: 3px 8px
+  border: none
+  cursor: pointer
+  color: $text-disabled
+  background: #F0F0F0
+  transition: all 0.15s
+
+  &--on
+    color: $success
+    background: $success-light
+
+.prod-view__cell-publish
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 4px
+  min-width: 0
+
+.prod-view__pub-badge
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  font-size: 10px
+  font-weight: 600
+  padding: 2px 7px
+  border-radius: 5px
+  border: 1px solid transparent
+  text-transform: uppercase
+  letter-spacing: 0.3px
+
+  &--on
+    color: $success
+    background: $success-light
+    border-color: $success-light
+
+  &--draft
+    color: $text-disabled
+    background: #F0F0F0
+    border-color: #E5E5E5
+
+.prod-view__pub-btn
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 10px
+  font-weight: 600
+  padding: 4px 8px
+  border-radius: 5px
+  cursor: pointer
+  border: 1px solid transparent
+  transition: all 0.15s
+  white-space: nowrap
+
+  &--on
+    color: $white
+    background: $success
+    border-color: $success
+
+    &:hover
+      filter: brightness(1.05)
+
+  &--off
+    color: $warning
+    background: $warning-light
+    border-color: $warning-light
+
+    &:hover
+      background: $warning
+      color: $white
+      border-color: $warning
+
+.prod-view__row-actions
+  display: flex
+  gap: 4px
+  justify-content: flex-end
+
+.prod-view__icon-btn
+  width: 26px
+  height: 26px
+  background: none
+  border: 1px solid $border
+  border-radius: 6px
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: all 0.15s
+
+  &--edit:hover
+    border-color: $blue
+    background: $blue-light
+
+  &--del:hover
+    border-color: $error
+    background: $error-light

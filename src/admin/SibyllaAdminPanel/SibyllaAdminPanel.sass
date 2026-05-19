@@ -1,0 +1,139 @@
+@use '../../styles/tokens' as *
+
+// ─── Shell ────────────────────────────────────────────────────────────────────
+.sap
+  display: flex
+  flex-direction: column
+  height: 100%
+  position: relative
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  overflow: hidden
+
+.sap__view
+  flex: 1
+  display: flex
+  min-height: 0
+
+.sap__main
+  flex: 1
+  display: flex
+  flex-direction: column
+  background: $white
+  overflow: hidden
+  min-width: 0
+
+.sap__body
+  flex: 1
+  overflow: auto
+  padding: 20px
+
+  // Quando contiene la Console Agorà (che ha shell interna), togliamo padding
+  // e overflow per lasciarle gestire layout/scroll.
+  &--flush
+    padding: 0
+    overflow: hidden
+    display: flex
+    flex-direction: column
+
+    & > div
+      flex: 1
+      min-height: 0
+
+// ─── Top bar (brand + switcher modalità) — il bordo perimetrale è su .sap,
+//     qui resta solo la separazione inferiore con il view sottostante ──────
+.sap__topbar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 16px
+  padding: 10px 20px
+  background: $white
+  border-bottom: 0.5px solid $border
+  flex-shrink: 0
+
+.sap__brand
+  display: flex
+  align-items: center
+  gap: 10px
+  min-width: 0
+
+.sap__brand-mark
+  width: 30px
+  height: 30px
+  border-radius: 8px
+  background: $primary-100
+  color: $primary
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+
+.sap__brand-text
+  display: flex
+  flex-direction: column
+  gap: 1px
+  line-height: 1.1
+
+.sap__brand-title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.sap__brand-sub
+  font-size: 10px
+  color: $text-disabled
+
+.sap__mode-switch
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  padding: 3px
+  background: #F1F5F9
+  border: 1px solid $border
+  border-radius: 999px
+
+.sap__mode-btn
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 6px 14px
+  background: transparent
+  border: 0
+  border-radius: 999px
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  cursor: pointer
+  transition: background 0.15s ease, color 0.15s ease
+
+  &:hover
+    color: $primary
+
+  &--active,
+  &--active:hover
+    background: $primary
+    color: white
+
+// ─── Platform mode: header pagina (titolo + sottotitolo, niente tab) ─────────
+.sap__page-head
+  padding: 14px 20px
+  border-bottom: 0.5px solid $border
+  background: #F8FAFC
+  flex-shrink: 0
+
+.sap__page-title
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 700
+  color: $primary
+
+.sap__page-subtitle
+  font-size: 12px
+  color: $text-disabled
+  margin-top: 2px

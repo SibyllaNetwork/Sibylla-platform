@@ -1,0 +1,461 @@
+// ─── CALENDARIO STRATEGIE ─────────────────────────────────────────────────────
+// Layout: filtri orizzontali + status bar + (sidebar strategie | griglia mensile).
+// La sidebar scala a N strategie con ricerca + filtro per Tipo calendario.
+@use '../../../../styles/tokens' as *
+
+.cal-strategie
+
+  // ── Filtri (riga unica, allineata in basso) ─────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+    margin-bottom: 12px
+
+  &__filter
+    min-width: 160px
+
+    &--struttura
+      min-width: 200px
+
+  &__filters-spacer
+    flex: 1 1 auto
+    min-width: 0
+
+  &__btn
+    height: 36px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    white-space: nowrap
+
+    i
+      font-size: 12px
+
+  // ── Status bar contestuale ──────────────────────────────────────────────────
+  &__statusbar
+    display: flex
+    align-items: center
+    gap: 8px
+    background: $primary-50
+    border: 0.5px solid $primary-200
+    border-radius: 8px
+    padding: 8px 14px
+    margin-bottom: 12px
+    font-size: 12px
+    color: $text-active
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  &__statusbar-icon
+    font-size: 14px
+    color: $primary
+
+    &--erase
+      color: $warning
+
+  &__statusbar-dot
+    width: 14px
+    height: 14px
+    border-radius: 50%
+    background: var(--day-color, #{$primary})
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18)
+    flex-shrink: 0
+
+  &__statusbar-sep
+    margin: 0 8px
+    color: $text-disabled
+
+  &__statusbar-meta
+    color: $text-inactive
+
+  &__statusbar-total
+    margin-left: auto
+    color: $text-inactive
+    font-weight: 600
+    font-size: 11px
+    white-space: nowrap
+
+  // ── Layout a due colonne ────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: 260px minmax(0, 1fr)
+    gap: 14px
+    align-items: start
+
+    @media (max-width: 1100px)
+      grid-template-columns: 1fr
+
+  // ── Sidebar strategie ───────────────────────────────────────────────────────
+  &__sidebar
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-xl
+    overflow: hidden
+    display: flex
+    flex-direction: column
+    position: sticky
+    top: 12px
+    max-height: calc(100vh - 140px)
+
+    @media (max-width: 1100px)
+      position: static
+      max-height: none
+
+  &__sidebar-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 12px 14px
+    border-bottom: 0.5px solid $border
+
+  &__sidebar-title
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__sidebar-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 24px
+    height: 20px
+    padding: 0 7px
+    border-radius: 10px
+    background: $bg
+    border: 0.5px solid $border
+    font-size: 11px
+    font-weight: 700
+    color: $text-inactive
+
+  &__sidebar-search
+    padding: 10px 12px
+    border-bottom: 0.5px solid $border
+
+  &__sidebar-list
+    overflow-y: auto
+    flex: 1 1 auto
+    padding: 6px 6px 8px
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    &::-webkit-scrollbar
+      width: 4px
+
+    &::-webkit-scrollbar-thumb
+      background: $primary-300
+      border-radius: 2px
+
+  &__sidebar-empty
+    padding: 18px 14px
+    text-align: center
+    font-size: 12px
+    color: $text-disabled
+
+    strong
+      color: $text-inactive
+
+  // ── Singolo item strategia ──────────────────────────────────────────────────
+  &__strat
+    --strat-color: #{$primary}
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 9px 10px
+    border-radius: 8px
+    border: 1px solid transparent
+    background: transparent
+    cursor: pointer
+    text-align: left
+    width: 100%
+    transition: $transition-fast
+    position: relative
+
+    &:hover:not(.cal-strategie__strat--active)
+      background: $bg
+
+    &--active
+      background: $primary-50
+      border-color: $primary-200
+
+      &::before
+        content: ''
+        position: absolute
+        left: 0
+        top: 8px
+        bottom: 8px
+        width: 3px
+        border-radius: 0 3px 3px 0
+        background: var(--strat-color)
+
+  &__strat-dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    background: var(--strat-color)
+    flex-shrink: 0
+    margin-top: 4px
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04)
+
+  &__strat-body
+    flex: 1 1 auto
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__strat-name
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    line-height: 1.3
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+    .cal-strategie__strat--active &
+      color: $primary
+      font-weight: 700
+
+  &__strat-desc
+    font-size: 10px
+    color: $text-disabled
+    line-height: 1.3
+    overflow: hidden
+    text-overflow: ellipsis
+    display: -webkit-box
+    -webkit-line-clamp: 1
+    -webkit-box-orient: vertical
+
+  &__strat-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 22px
+    height: 20px
+    padding: 0 6px
+    border-radius: 10px
+    background: var(--strat-color)
+    color: $white
+    font-size: 10px
+    font-weight: 700
+    flex-shrink: 0
+    margin-top: 1px
+
+  // ── Footer sidebar (azioni) ─────────────────────────────────────────────────
+  &__sidebar-footer
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 6px
+    padding: 10px 12px
+    border-top: 0.5px solid $border
+    background: $bg
+
+  &__sidebar-save
+    grid-column: 1 / -1
+    height: 36px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+
+    i
+      font-size: 12px
+
+  &__tool
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    height: 32px
+    padding: 0 10px
+    border-radius: 6px
+    border: 1.5px solid $border
+    background: $white
+    color: $text-inactive
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: $transition-fast
+
+    i
+      font-size: 12px
+
+    &:hover:not(:disabled)
+      border-color: $primary
+      color: $primary
+
+    &:disabled
+      opacity: 0.5
+      cursor: not-allowed
+
+    &--active
+      border-color: $warning
+      background: $warning-light
+      color: $warning
+
+      &:hover:not(:disabled)
+        border-color: $warning
+        color: $warning
+
+  // ── Content / griglia mesi ──────────────────────────────────────────────────
+  &__content
+    min-width: 0
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 1600px)
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+
+    @media (max-width: 1280px)
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
+    @media (max-width: 720px)
+      grid-template-columns: 1fr
+
+  &__empty
+    background: $white
+    border: 0.5px dashed $border
+    border-radius: $radius-xl
+    padding: 28px
+    text-align: center
+    font-size: 13px
+    color: $text-disabled
+
+  // ── Card singolo mese ───────────────────────────────────────────────────────
+  &__month
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-xl
+    padding: 12px
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__month-header
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding: 2px 4px 6px
+    border-bottom: 0.5px solid $border
+
+  &__month-name
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+    text-transform: capitalize
+
+  &__month-year
+    font-family: $font-body
+    font-size: 11px
+    color: $text-disabled
+    font-weight: 600
+    letter-spacing: 0.5px
+
+  &__weekdays
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 4px
+
+  &__weekday
+    text-align: center
+    font-family: $font-body
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    letter-spacing: 0.4px
+
+    &--we
+      color: $primary-400
+
+  &__days
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 4px
+
+  // ── Cella giorno ────────────────────────────────────────────────────────────
+  &__day
+    --day-color: transparent
+    position: relative
+    aspect-ratio: 1 / 1
+    border: 1px solid transparent
+    border-radius: 8px
+    background: $bg
+    color: $text-active
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    padding: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &:hover:not(:disabled):not(.cal-strategie__day--empty)
+      border-color: $primary
+      transform: translateY(-1px)
+      box-shadow: 0 2px 6px rgba(32, 71, 105, 0.12)
+
+    &:focus-visible
+      outline: 2px solid $link
+      outline-offset: 1px
+
+    &--empty
+      background: transparent
+      border-color: transparent
+      cursor: default
+      pointer-events: none
+
+    &--we
+      background: $primary-50
+      color: $text-inactive
+
+    &--today
+      border-color: $link
+
+      &::after
+        content: ''
+        position: absolute
+        bottom: 3px
+        left: 50%
+        transform: translateX(-50%)
+        width: 4px
+        height: 4px
+        border-radius: 50%
+        background: $link
+
+    &--assigned
+      background: var(--day-color)
+      color: $white
+      border-color: transparent
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18)
+
+      &:hover:not(:disabled)
+        filter: brightness(1.06)
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22)
+
+      &.cal-strategie__day--today::after
+        background: $white
+
+    &--readonly
+      cursor: default
+
+      &:hover
+        transform: none
+        box-shadow: none
+        border-color: transparent
+
+  &__day-num
+    line-height: 1

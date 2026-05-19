@@ -1,0 +1,39 @@
+// ─── ORGANIGRAMMA ─────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.organigramma
+  // ── Card segnaposto (in attesa dell'implementazione reale) ──────────────────
+  &__stub
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-xl
+    padding: 48px
+    text-align: center
+
+  &__stub-badge
+    width: 52px
+    height: 52px
+    border-radius: 14px
+    background: rgba($blue, 0.09)
+    display: flex
+    align-items: center
+    justify-content: center
+    margin: 0 auto 16px
+
+  &__stub-dot
+    width: 14px
+    height: 14px
+    border-radius: $radius-full
+    background: $blue
+
+  &__stub-title
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 600
+    color: $primary
+    margin: 0 0 $space-sm
+
+  &__stub-msg
+    font-size: 13px
+    color: $text-inactive
+    margin: 0

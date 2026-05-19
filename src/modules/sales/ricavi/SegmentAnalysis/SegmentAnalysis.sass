@@ -1,0 +1,174 @@
+// ─── SEGMENT ANALYSIS ─────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.segment-analysis
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 200px
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+
+    .sib-input
+      width: 140px
+
+    span
+      color: $text-inactive
+
+  &__visualizza
+    i
+      margin-right: 6px
+
+  // ── Cards top (3 col) ──────────────────────────────────────────────────────
+  &__cards
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr
+    gap: 16px
+
+    @media (max-width: 1280px)
+      grid-template-columns: 1fr
+
+  &__card
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 12px
+    min-height: 360px
+
+    &--globe
+      align-items: center
+      justify-content: center
+
+  &__card-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    text-align: center
+
+  &__globe
+    width: 100%
+    max-width: 320px
+    height: auto
+
+  // ── Trend section ──────────────────────────────────────────────────────────
+  &__trend
+    display: grid
+    grid-template-columns: 30px 1fr 320px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+    @media (max-width: 1280px)
+      grid-template-columns: 30px 1fr
+      .segment-analysis__trend-side
+        grid-column: 1 / -1
+        border-left: none
+        border-top: 1px solid $border
+
+  &__side-tags
+    display: flex
+    flex-direction: column
+
+  &__side-tag
+    background: $primary
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 11px
+    letter-spacing: 1.5px
+    padding: 8px 4px
+    writing-mode: vertical-rl
+    text-orientation: mixed
+    transform: rotate(180deg)
+    flex: 1
+    display: flex
+    align-items: center
+    justify-content: center
+
+    &--alt
+      background: $primary-700
+
+  &__trend-body
+    padding: 16px
+
+  &__trend-side
+    padding: 16px
+    border-left: 1px solid $border
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__legend
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 16px
+    margin-top: 4px
+    margin-bottom: 8px
+
+  &__legend-item
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+
+  &__legend-dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+
+  &__svg
+    width: 100%
+    height: auto
+
+  &__avg
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-wrap: wrap
+    gap: 16px
+    padding: 12px
+    background: $bg
+    border-radius: 6px
+    font-size: 13px
+    margin-top: auto
+
+    strong
+      color: $primary
+
+  &__empty
+    text-align: center
+    padding: 60px 24px
+    color: $text-inactive

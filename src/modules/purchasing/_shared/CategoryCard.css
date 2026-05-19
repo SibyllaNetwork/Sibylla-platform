@@ -1,0 +1,103 @@
+.category-card {
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+
+.category-card__inner {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: border-color 0.2s;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.category-card:hover .category-card__inner {
+  border-color: #cfcfcf;
+}
+
+.category-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.category-card__icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.5rem;
+  background: #f5f8fa;
+  color: #204769;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.category-card:hover .category-card__icon {
+  background: #204769;
+  color: #ffffff;
+}
+
+.category-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  background: #204769;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.category-card:hover .category-card__badge {
+  background: #2d5a7f;
+}
+
+.category-card__title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.375;
+  color: #204769;
+  margin: 0 0 0.5rem;
+  min-height: 2.75rem;
+}
+
+.category-card__desc {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  line-height: 1.38;
+  color: #5c5c5c;
+  margin: 0 0 1rem;
+  min-height: 2.25rem;
+}
+
+.category-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #204769;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  line-height: 1.38;
+  transition: gap 0.2s;
+}
+
+.category-card:hover .category-card__link {
+  gap: 0.75rem;
+}

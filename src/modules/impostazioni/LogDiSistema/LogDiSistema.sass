@@ -1,0 +1,121 @@
+@use "sass:color"
+
+$primary: #204769
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$bg-zebra: #f3f8fb
+
+.log-sistema
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__search
+    width: min(360px, 100%)
+
+  // ── Tabella ──────────────────────────────────────────────────────
+  &__table
+    .log-sistema__th-toggle
+      width: 40px
+
+  &__row
+    cursor: pointer
+    transition: background 0.15s
+
+    &:hover
+      background: $bg-soft
+
+    &--open
+      background: $bg-soft
+
+      td
+        border-bottom-color: transparent
+
+  &__td-toggle
+    width: 40px
+    color: $primary
+    text-align: center
+
+  &__user
+    display: inline-flex
+    align-items: center
+    gap: 10px
+
+  &__avatar
+    width: 32px
+    height: 32px
+    border-radius: 999px
+    background: $bg-zebra
+    color: $primary
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 14px
+    flex-shrink: 0
+
+  // ── Riga di dettaglio ────────────────────────────────────────────
+  &__detail-row
+    background: $bg-soft
+
+    > td
+      padding: 8px 12px 16px
+
+  &__events
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+    thead th
+      background: $bg-zebra
+      padding: 8px 12px
+      text-align: left
+      font-size: 11px
+      font-weight: 700
+      color: $muted
+      text-transform: uppercase
+      letter-spacing: 0.04em
+      border-bottom: 1px solid $border
+
+    tbody td
+      padding: 8px 12px
+      color: $ink
+      border-bottom: 1px solid $border
+
+    tbody tr:last-child td
+      border-bottom: none
+
+    tbody tr:nth-child(even)
+      background: $bg-soft
+
+  &__empty-events
+    margin: 0
+    padding: 12px
+    background: white
+    border: 1px dashed $border-strong
+    border-radius: 8px
+    color: $muted
+    font-size: 12px
+    text-align: center
+
+  // ── Pagination ────────────────────────────────────────────────────
+  &__pagination
+    display: flex
+    justify-content: space-between
+    align-items: center
+    flex-wrap: wrap
+    gap: 12px
+    margin-top: 4px
+
+  &__pagination-info
+    font-size: 12px
+    color: $muted

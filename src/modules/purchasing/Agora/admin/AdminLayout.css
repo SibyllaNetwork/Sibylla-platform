@@ -1,0 +1,81 @@
+/* ============================================================
+   Agorà Admin Console — layout integrato in SibyllaAdminPanel
+   Sub-tab orizzontale stile Sibylla + body scrollabile.
+   ============================================================ */
+
+.aac {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #ffffff;
+}
+
+.aac__tabs {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 0.5px solid var(--color-border, #cfcfcf);
+  background: #f8fafc;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.aac__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 16px;
+  background: none;
+  border: 0;
+  border-bottom: 2.5px solid transparent;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-inactive);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  margin-bottom: -1px;
+}
+
+.aac__tab:hover {
+  color: var(--color-primary);
+}
+
+.aac__tab--active {
+  border-bottom-color: var(--color-primary);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.aac__tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  font-size: 13px;
+}
+
+.aac__tab-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  margin-left: 4px;
+  background: var(--color-alert-50, #fff3e0);
+  color: var(--color-alert-700, #f57d03);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 999px;
+}
+
+.aac__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+}

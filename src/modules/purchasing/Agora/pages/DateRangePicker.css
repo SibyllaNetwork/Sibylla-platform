@@ -1,0 +1,94 @@
+@reference '../../styles/tailwind.css';
+
+.date-range {
+  @apply relative;
+}
+
+.date-range__trigger {
+  @apply w-full inline-flex items-center gap-2 rounded-control border border-border bg-surface cursor-pointer text-left font-sans font-normal transition-colors;
+  padding: 0.5rem 0.75rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-active);
+}
+
+.date-range__trigger:hover {
+  border-color: var(--color-text-inactive);
+}
+
+.date-range__trigger:focus {
+  outline: none;
+  @apply bg-surface-subtle;
+  border-color: var(--color-primary);
+}
+
+.date-range__trigger-icon {
+  @apply text-text-inactive;
+}
+
+.date-range__placeholder {
+  @apply text-text-inactive;
+}
+
+.date-range__backdrop {
+  @apply fixed inset-0 z-40;
+}
+
+.date-range__pop {
+  @apply absolute left-0 z-50 rounded-card border border-border-soft bg-surface p-4;
+  top: calc(100% + 0.5rem);
+}
+
+.date-range-picker {
+  @apply font-sans;
+}
+
+.date-range-picker .rdp-months {
+  justify-content: center;
+}
+
+.date-range-picker .rdp-caption {
+  @apply flex items-center justify-center font-heading font-semibold text-primary mb-4;
+}
+
+.date-range-picker .rdp-nav {
+  @apply flex gap-2;
+}
+
+.date-range-picker .rdp-nav_button {
+  @apply size-8 rounded-control flex items-center justify-center transition-colors;
+}
+
+.date-range-picker .rdp-nav_button:hover {
+  @apply bg-primary-100;
+}
+
+.date-range-picker .rdp-head_cell {
+  @apply font-bold uppercase text-text-inactive;
+  font-size: 0.75rem;
+}
+
+.date-range-picker .rdp-day {
+  @apply size-10 rounded-control font-semibold text-text-active transition-colors;
+  font-size: 0.875rem;
+}
+
+.date-range-picker .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  @apply bg-primary-100 text-primary;
+}
+
+.date-range-picker .rdp-day_selected {
+  @apply bg-primary text-text-negative font-bold;
+}
+
+.date-range-picker .rdp-day_range_middle {
+  @apply bg-primary-100 text-primary font-semibold;
+}
+
+.date-range-picker .rdp-day_disabled {
+  @apply text-text-disabled cursor-not-allowed opacity-50;
+}
+
+.date-range-picker .rdp-day_today:not(.rdp-day_selected) {
+  @apply font-bold text-primary bg-primary-50;
+}

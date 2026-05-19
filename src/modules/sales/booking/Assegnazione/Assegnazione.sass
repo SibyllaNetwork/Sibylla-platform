@@ -1,0 +1,211 @@
+// ─── MIXER ASSEGNAZIONE ───────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.assegnazione
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: $space-lg
+    flex-wrap: wrap
+    margin-bottom: 20px
+
+  &__filter
+    display: flex
+    flex-direction: column
+    gap: $space-xs
+
+  &__filter-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-active
+
+  // ── Layout due colonne ────────────────────────────────────────────────────────
+  &__body
+    display: grid
+    grid-template-columns: 1fr 340px
+    gap: $space-xl
+    align-items: start
+
+  // ── Tabella assegnazione ──────────────────────────────────────────────────────
+  &__table-card
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-lg
+    overflow: hidden
+
+  &__card-title
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+    padding: 14px 18px
+    border-bottom: 1px solid $border
+    margin: 0
+    background: #F8FAFC
+    text-align: center
+
+  &__table-wrap
+    overflow-x: auto
+    max-height: 600px
+    overflow-y: auto
+
+    &::-webkit-scrollbar
+      width: 4px
+
+    &::-webkit-scrollbar-thumb
+      background: $primary-200
+      border-radius: 2px
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+
+  &__th
+    padding: 9px 12px
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    background: #F8FAFC
+    border-bottom: 1px solid $border
+    text-align: left
+    white-space: nowrap
+    position: sticky
+    top: 0
+    z-index: 1
+
+  &__tr
+    cursor: pointer
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &--selected
+      background: $primary-50
+
+      td
+        color: $primary
+
+    td
+      padding: 10px 12px
+      border-bottom: 0.5px solid $border
+      color: $text-active
+      font-size: 12px
+
+  &__camera-num
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 13px
+
+  &__stato-badge
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 10px
+    font-weight: 600
+    border-radius: $radius-sm
+    padding: 2px 7px
+
+    &--attivo
+      background: $success-light
+      color: $success
+
+    &--opzionata
+      background: $warning-light
+      color: $warning
+
+    &--vuoto
+      background: $primary-50
+      color: $text-disabled
+
+  &__action-btn
+    background: none
+    border: none
+    cursor: pointer
+    padding: 4px
+    border-radius: 5px
+    display: inline-flex
+    transition: background 0.1s
+
+    &:hover
+      background: $primary-100
+
+  // ── Pannello dettaglio ────────────────────────────────────────────────────────
+  &__detail-panel
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-lg
+    overflow: hidden
+    position: sticky
+    top: 0
+
+  &__detail-title
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+    padding: 14px 18px
+    border-bottom: 1px solid $border
+    margin: 0
+    background: #F8FAFC
+    text-align: center
+
+  &__detail-empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    padding: 48px 24px
+    gap: 12px
+    color: $text-disabled
+    font-size: 13px
+    text-align: center
+
+  &__detail-body
+    padding: $space-lg
+
+  &__detail-grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: $space-sm $space-lg
+
+  &__detail-item
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+  &__detail-label
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__detail-value
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+    &--normal
+      font-weight: 400
+      color: $text-active
+
+  &__back-arrow
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: $space-md $space-lg
+    border-top: 0.5px solid $border
+    color: $link
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: background 0.1s
+
+    &:hover
+      background: $link-light

@@ -1,0 +1,143 @@
+// ─── ANALISI BOOKING ──────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.analisi-booking
+
+  // ── Filtri ──────────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: $space-lg
+    flex-wrap: wrap
+    margin-bottom: 20px
+
+  &__filter
+    display: flex
+    flex-direction: column
+    gap: $space-xs
+
+  &__filter-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-active
+
+  // ── Layout principale ────────────────────────────────────────────────────────
+  &__body
+    display: grid
+    grid-template-columns: 1fr 1.4fr
+    gap: $space-xl
+    align-items: start
+
+  // ── Tabella ─────────────────────────────────────────────────────────────────
+  &__table-wrap
+    overflow-x: auto
+    border: 0.5px solid $border
+    border-radius: $radius-lg
+    background: $white
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 13px
+
+  &__th
+    padding: 10px 16px
+    text-align: left
+    font-size: 11px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    border-bottom: 1px solid $border
+    background: #F8FAFC
+    white-space: nowrap
+
+    &--right
+      text-align: right
+
+  &__td
+    padding: 11px 16px
+    color: $text-active
+    border-bottom: 0.5px solid $border
+    vertical-align: middle
+
+    &--right
+      text-align: right
+
+    &--name
+      font-weight: 500
+      color: $primary
+
+  &__tr
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &--total
+      background: #F8FAFC
+      font-weight: 700
+
+      td
+        border-bottom: none
+        color: $primary
+        font-weight: 700
+
+  &__riempimento
+    display: flex
+    align-items: center
+    gap: 5px
+    justify-content: flex-end
+
+  &__trend-up
+    color: $success
+    font-size: 10px
+
+  &__trend-down
+    color: $error
+    font-size: 10px
+
+  // ── Grafici ──────────────────────────────────────────────────────────────────
+  &__chart-wrap
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-lg
+    padding: $space-lg
+
+  &__chart-title
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    margin: 0 0 $space-md
+
+  &__chart-legend
+    display: flex
+    gap: $space-lg
+    margin-bottom: $space-md
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  &__legend-line
+    width: 24px
+    height: 2px
+    border-radius: 1px
+
+    &--capacity
+      border-top: 2px dashed #E74C3C
+
+    &--sold
+      background: #9DD7E8
+
+  &__chart-area
+    width: 100%
+    height: 260px
+
+  &__chart-label
+    font-size: 9px
+    fill: $text-disabled

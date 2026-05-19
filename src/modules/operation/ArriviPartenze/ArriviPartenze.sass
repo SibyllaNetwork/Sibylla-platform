@@ -1,0 +1,240 @@
+// ─── ARRIVI E PARTENZE ────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.arrivi-partenze
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 12px
+  font-size: 13px
+
+  // BtnBack non deve stirarsi
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Bar layout (riga unica con left/right groups) ──────────────────────────
+  &__bar
+    display: flex
+    justify-content: space-between
+    align-items: center
+    flex-wrap: nowrap
+    gap: 12px
+    margin-top: 4px
+
+    &--info
+      background: $bg
+      border: 1px solid $border
+      border-radius: 6px
+      padding: 8px 12px
+
+  &__bar-left,
+  &__bar-right
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: nowrap
+
+  // ── Form fields a larghezza fissa (non full-width) ─────────────────────────
+  &__search-field
+    position: relative
+    width: 200px
+    flex-shrink: 0
+
+    .sib-input
+      padding-right: 32px
+      width: 100%
+
+  &__search-icon
+    position: absolute
+    right: 12px
+    top: 50%
+    transform: translateY(-50%)
+    color: $text-inactive
+    font-size: 13px
+    pointer-events: none
+
+  &__select
+    width: 180px
+    flex-shrink: 0
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+    flex-shrink: 0
+
+    .sib-input
+      width: 130px
+
+    span
+      color: $text-inactive
+
+  // ── Stats (badge informativi) ──────────────────────────────────────────────
+  &__stats
+    display: inline-flex
+    flex-wrap: nowrap
+    align-items: center
+    gap: 16px
+
+  &__stat
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+    white-space: nowrap
+
+    i
+      color: $primary
+      font-size: 12px
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  &__exports
+    display: inline-flex
+    gap: 4px
+
+  // ── Tabella arrivi ─────────────────────────────────────────────────────────
+  &__table
+
+    thead th
+      vertical-align: middle
+
+    .arrivi-partenze__th-center,
+    .arrivi-partenze__th-sub
+      text-align: center
+
+    .arrivi-partenze__th-sub
+      i
+        font-size: 14px
+        color: $primary
+
+  &__td-center
+    text-align: center
+
+  &__pren-badge
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: $primary-50
+    color: $primary
+    padding: 3px 8px
+    border-radius: 4px
+    font-weight: 600
+    font-size: 12px
+
+    i
+      font-size: 11px
+
+  &__filter-ico,
+  &__sort-ico
+    margin-left: 6px
+    color: $text-inactive
+    font-size: 11px
+    cursor: pointer
+
+    &:hover
+      color: $primary
+
+  &__vip
+    color: $warning
+
+  &__stato
+    display: inline-block
+    padding: 3px 10px
+    border-radius: 12px
+    font-size: 11px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+    &--confermata
+      background: rgba(0, 112, 53, 0.12)
+      color: $success
+
+    &--opzionata
+      background: rgba(245, 125, 3, 0.14)
+      color: $warning
+
+    &--in
+      background: rgba(92, 156, 212, 0.14)
+      color: $link
+
+    &--annullata
+      background: rgba(255, 97, 110, 0.14)
+      color: $error
+
+
+// ─── COL FILTER (popup multi-select su intestazione tabella) ──────────────────
+.ap-colfilter
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+    line-height: 1
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 200px
+    max-height: 320px
+    overflow-y: auto
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    font-weight: 400
+    color: $text-active
+
+    &:hover
+      background: $primary-50
+
+    .sib-checkbox
+      flex-shrink: 0

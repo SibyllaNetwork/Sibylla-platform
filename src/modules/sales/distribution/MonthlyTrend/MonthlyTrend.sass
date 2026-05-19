@@ -1,0 +1,169 @@
+// ─── MONTHLY TREND ────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.monthly-trend
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    flex-wrap: nowrap
+    gap: 12px
+    margin-top: 8px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex-shrink: 0
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 200px
+
+    &--sm
+      width: 110px
+
+  &__visualizza
+    margin-left: 4px
+
+    i
+      margin-right: 6px
+
+  &__cards
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 16px
+
+    @media (max-width: 1280px)
+      grid-template-columns: 1fr
+      gap: 16px
+
+  &__card
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 12px
+    min-height: 320px
+
+    &--donut
+      align-items: center
+
+  &__card-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    text-align: center
+
+  &__card-foot
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    font-size: 11px
+    color: $text-inactive
+    margin-top: 4px
+
+  &__donut-row
+    display: flex
+    align-items: center
+    gap: 16px
+    width: 100%
+    justify-content: center
+
+  &__donut-labels-left,
+  &__donut-labels-right
+    display: flex
+    flex-direction: column
+    gap: 8px
+    font-size: 11px
+    color: $text-inactive
+
+  &__donut-labels-left
+    text-align: right
+
+  &__donut-totals
+    display: flex
+    justify-content: space-between
+    width: 100%
+    margin-top: 8px
+    padding-top: 12px
+    border-top: 1px solid $border
+
+  &__small-label
+    font-size: 11px
+    color: $text-inactive
+
+  &__small-value
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+
+  &__legend-dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    display: inline-block
+
+  // ── Trend section ──────────────────────────────────────────────────────────
+  &__trend-section
+    display: flex
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+  &__side-tag
+    background: $primary
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 11px
+    letter-spacing: 2px
+    padding: 16px 6px
+    writing-mode: vertical-rl
+    text-orientation: mixed
+    transform: rotate(180deg)
+    display: flex
+    align-items: center
+    justify-content: center
+
+  &__trend-body
+    flex: 1
+    padding: 16px
+
+  &__trend-header
+    display: flex
+    flex-wrap: wrap
+    gap: 24px
+    align-items: baseline
+    margin-bottom: 8px
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+
+  &__delta
+    &--pos strong
+      color: $success
+
+    &--neg strong
+      color: $error

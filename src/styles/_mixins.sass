@@ -1,0 +1,83 @@
+// ─── MIXINS ───────────────────────────────────────────────────────────────────
+@use 'tokens' as *
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+=flex-center
+  display: flex
+  align-items: center
+  justify-content: center
+
+=flex-between
+  display: flex
+  align-items: center
+  justify-content: space-between
+
+=flex-col
+  display: flex
+  flex-direction: column
+
+// ── Card base ─────────────────────────────────────────────────────────────────
+=card($radius: $radius-lg)
+  background: $white
+  border-radius: $radius
+  border: 1px solid $primary-200
+  overflow: hidden
+
+// ── Card header ───────────────────────────────────────────────────────────────
+=card-header
+  background: $primary
+  color: $white
+  padding: 8px 12px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+=tooltip
+  position: absolute
+  bottom: calc(100% + 7px)
+  left: 50%
+  transform: translateX(-50%)
+  background: $primary
+  color: $white
+  border-radius: $radius-md
+  padding: 4px 9px
+  font-size: 11px
+  font-family: $font-body
+  white-space: nowrap
+  z-index: 200
+  box-shadow: $shadow-lg
+  pointer-events: none
+
+  &::after
+    content: ''
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    border-left: 5px solid transparent
+    border-right: 5px solid transparent
+    border-top: 5px solid $primary
+
+// ── Sticky colonna sinistra ────────────────────────────────────────────────────
+=sticky-col
+  position: sticky
+  left: 0
+  z-index: 5
+
+// ── Testo troncato ────────────────────────────────────────────────────────────
+=truncate
+  overflow: hidden
+  white-space: nowrap
+  text-overflow: ellipsis
+
+// ── Scrollbar custom ──────────────────────────────────────────────────────────
+=custom-scrollbar
+  &::-webkit-scrollbar
+    width: 4px
+    height: 4px
+  &::-webkit-scrollbar-track
+    background: $primary-50
+  &::-webkit-scrollbar-thumb
+    background: $primary-300
+    border-radius: 2px

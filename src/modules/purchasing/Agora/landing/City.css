@@ -1,0 +1,18 @@
+/* =====================================================================
+   CITY — skyline ancorato in basso
+   ===================================================================== */
+.landing-city-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  z-index: 3;
+  pointer-events: none;
+}
+.landing-city-img {
+  display: block;
+  width: 100vw;
+  height: auto;
+  user-select: none;
+}

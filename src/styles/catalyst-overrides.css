@@ -1,0 +1,125 @@
+/* catalyst-overrides.css
+   Adatta i componenti Catalyst al Design System Sibylla
+   Altezza campi: 34px — Font: 13px Open Sans */
+
+/* ── Input ───────────────────────────────────────────────────────────────── */
+[data-slot="control"] input,
+[data-slot="control"] select,
+[data-slot="control"] textarea {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  color: #4a4d53;
+  border-color: #cfcfcf;
+  border-radius: 6px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+  height: 34px;
+  line-height: 34px;
+}
+
+[data-slot="control"] textarea {
+  height: auto;
+  line-height: 1.5;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* ── Select chevron padding ──────────────────────────────────────────────── */
+[data-slot="control"] select {
+  padding-right: 36px;
+}
+
+/* ── Focus ring ──────────────────────────────────────────────────────────── */
+[data-slot="control"]:focus-within::after {
+  --tw-ring-color: #5c9cd4 !important;
+}
+
+/* ── Invalid / error border ─────────────────────────────────────────────── */
+[data-slot="control"] input[data-invalid],
+[data-slot="control"] select[data-invalid],
+[data-slot="control"] textarea[data-invalid] {
+  border-color: #ff616e !important;
+}
+
+/* ── Wrapper height ──────────────────────────────────────────────────────── */
+[data-slot="control"]:not(:has(textarea)):not(:has([data-slot="icon"])) {
+  height: 34px;
+}
+
+[data-slot="control"]:has([data-slot="icon"]) {
+  height: auto;
+  min-height: 34px;
+  position: relative;
+}
+
+[data-slot="control"] [data-slot="icon"] {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #4a4d53;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+[data-slot="control"] button[data-slot="icon"] {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+/* ── Before pseudo (inset shadow layer) ─────────────────────────────────── */
+[data-slot="control"]::before {
+  border-radius: 5px;
+}
+
+/* ── Icon dentro InputGroup ──────────────────────────────────────────────── */
+[data-slot="control"] [data-slot="icon"] {
+  font-size: 13px;
+  color: #4a4d53;
+}
+
+/* ── Label ───────────────────────────────────────────────────────────────── */
+[data-slot="label"] {
+  font-family: 'Open Sans', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #4a4d53 !important;
+  line-height: 1 !important;
+  margin-bottom: 2px !important;
+}
+/* ── Error message ───────────────────────────────────────────────────────── */
+[data-slot="error"] {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px !important;
+  color: #ff616e !important;
+}
+
+/* ── Description / hint ─────────────────────────────────────────────────── */
+[data-slot="description"] {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px !important;
+  color: #6e7175 !important;
+}
+
+/* ── Checkbox ────────────────────────────────────────────────────────────── */
+[data-slot="control"].group {
+  height: auto;
+}
+
+/* ── Switch ──────────────────────────────────────────────────────────────── */
+[data-slot="control"][role="switch"] {
+  height: 20px !important;
+  width: 35px !important;
+}
+/* ── InputGroup wrapper ──────────────────────────────────────────────────── */
+[data-slot="control"]:has([data-slot="icon"]) {
+  height: auto;
+  min-height: 34px;
+}
+/* ── Field spacing ───────────────────────────────────────────────────────── */
+[data-slot=label]+[data-slot=control] {
+  margin-top: 2px !important;
+}

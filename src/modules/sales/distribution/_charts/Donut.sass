@@ -1,0 +1,64 @@
+// ─── DONUT CHART ──────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.donut
+  position: relative
+  display: inline-block
+
+  &__svg
+    display: block
+
+  &__center
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    text-align: center
+    pointer-events: none
+
+  &__center-label
+    font-size: 12px
+    color: $text-inactive
+
+  &__center-value
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 22px
+    line-height: 1.1
+
+  &__center-sublabel
+    margin-top: 6px
+    font-size: 12px
+    color: $text-inactive
+
+  &__center-subvalue
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 18px
+    line-height: 1.1
+
+.donut-legend
+  display: flex
+  flex-wrap: wrap
+  justify-content: center
+  gap: 14px
+  margin-top: 10px
+
+  &__item
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 11px
+    color: $text-active
+
+  &__dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__pct
+    font-weight: 600
+    color: $primary

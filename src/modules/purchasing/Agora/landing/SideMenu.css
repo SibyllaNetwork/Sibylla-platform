@@ -1,0 +1,16 @@
+/* =====================================================================
+   SIDE MENU — colonna a sinistra coi 3 cerchi
+   ===================================================================== */
+.side-menu {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 22vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 2vh 0;
+  z-index: 20;
+}

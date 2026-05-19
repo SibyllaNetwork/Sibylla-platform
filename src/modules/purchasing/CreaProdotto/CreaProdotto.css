@@ -1,0 +1,41 @@
+/* Pagina "Crea prodotto" — riusa le classi .prod-modal__* per le sezioni
+   del form, ma con layout di pagina (senza overlay).
+   Volutamente block layout: il BtnBack porta già il proprio margin-bottom
+   (mb-3.5 da sib-btn--back) e non deve essere stretched da flex. */
+
+.crea-prodotto__form {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #cfcfcf);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 1rem;
+  max-width: 980px;
+}
+
+/* Le righe a griglia ereditate dal modal usano min-width: auto sui figli, che
+   in contesto pagina con larghezze variabili può causare overflow orizzontale
+   (es. la riga del barcode che "spinge" fuori la colonna Stato). Forziamo
+   minmax(0, 1fr) per consentire ai contenuti di restringersi. */
+.crea-prodotto__form .prod-modal__barcode-row,
+.crea-prodotto__form .prod-modal__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.crea-prodotto__form .prod-modal__grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.crea-prodotto__form .prod-modal__barcode-field,
+.crea-prodotto__form .prod-modal__attivo,
+.crea-prodotto__form .prod-modal__field {
+  min-width: 0;
+}
+
+/* Su viewport stretti la riga del barcode passa a una colonna sola, così il
+   blocco Stato resta sempre completamente visibile. */
+@media (max-width: 640px) {
+  .crea-prodotto__form .prod-modal__barcode-row,
+  .crea-prodotto__form .prod-modal__grid,
+  .crea-prodotto__form .prod-modal__grid--4 {
+    grid-template-columns: 1fr;
+  }
+}

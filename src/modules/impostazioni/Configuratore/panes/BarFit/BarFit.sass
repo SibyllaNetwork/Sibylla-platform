@@ -1,0 +1,146 @@
+// ─── B.A.R / F.I.T. ───────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.bar-fit
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    justify-content: space-between
+    align-items: center
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__bar
+    display: flex
+    align-items: flex-end
+    gap: 24px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__radio-group
+    display: flex
+    gap: 12px
+    height: 36px
+    align-items: center
+
+  &__radio-item
+    display: flex
+    align-items: center
+    gap: 6px
+    cursor: pointer
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+
+    th, td
+      padding: 8px 12px
+      text-align: left
+      border-bottom: 1px solid $border
+
+    th
+      background: $primary-50
+      color: $primary
+      font-size: 12px
+      font-weight: 600
+
+  &__row-actions
+    display: flex
+    gap: 4px
+
+  &__modal-backdrop
+    position: fixed
+    inset: 0
+    background: rgba(0,0,0,0.4)
+    display: flex
+    align-items: center
+    justify-content: center
+    z-index: 100
+
+  &__modal
+    background: white
+    border-radius: 12px
+    padding: 24px
+    width: 95vw
+    max-width: 1200px
+    max-height: 90vh
+    overflow: hidden
+    display: flex
+    flex-direction: column
+    gap: 12px
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2)
+
+  &__modal-header
+    display: flex
+    justify-content: space-between
+    align-items: center
+    h3
+      margin: 0
+      font-family: $font-heading
+      color: $primary
+
+  &__close
+    background: none
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    font-size: 18px
+
+  &__hint
+    margin: 0
+    color: $text-inactive
+    font-size: 13px
+
+  &__matrix-wrap
+    overflow: auto
+    max-height: 500px
+
+  &__matrix
+    width: 100%
+    border-collapse: collapse
+
+    th, td
+      padding: 6px 8px
+      border-bottom: 1px solid $border
+      text-align: center
+
+    th
+      background: $primary-50
+      color: $primary
+      font-size: 11px
+      font-weight: 600
+      white-space: nowrap
+
+  &__row-label
+    font-weight: 600
+    text-align: left
+    white-space: nowrap
+
+  &__cell
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__input
+    width: 70px
+
+  &__modal-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 8px

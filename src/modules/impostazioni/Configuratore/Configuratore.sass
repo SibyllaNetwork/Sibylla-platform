@@ -1,0 +1,125 @@
+// ─── CONFIGURATORE ────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.configuratore
+  padding: 0
+
+  &__layout
+    display: grid
+    grid-template-columns: 280px 1fr
+    gap: 24px
+    margin-top: 16px
+    align-items: stretch
+
+  &__sidebar
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 12px 0
+    max-height: calc(100vh - 220px)
+    overflow-y: auto
+
+  &__sidebar-title
+    padding: 4px 16px 12px
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__list
+    list-style: none
+    margin: 0
+    padding: 0
+
+  &__group
+    border-bottom: 1px solid $border
+    list-style: none
+
+    &:last-child
+      border-bottom: none
+
+  &__group-header
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 12px 16px
+    border: none
+    background: transparent
+    color: $primary
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    text-align: left
+    user-select: none
+
+    &:hover
+      background: $primary-50
+
+    &--open
+      background: $primary-50
+
+  &__group-icon
+    width: 18px
+    color: $primary
+    font-size: 14px
+
+  &__group-items
+    list-style: none
+    margin: 0
+    padding: 4px 0 8px
+    background: $bg
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 8px 16px 8px 32px
+    font-size: 13px
+    color: $text-active
+    cursor: pointer
+    user-select: none
+    transition: background-color 0.15s ease, color 0.15s ease
+
+    &:hover
+      background: $primary-100
+      color: $primary
+
+    &--active
+      background: $primary-100
+      color: $primary
+      font-weight: 600
+
+      .configuratore__icon
+        color: $primary
+
+  &__icon
+    width: 16px
+    color: $text-inactive
+    font-size: 13px
+
+  &__chevron
+    margin-left: auto
+    transition: transform 0.2s ease
+    font-size: 11px
+
+    &--open
+      transform: rotate(180deg)
+
+  &__pane
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 24px
+    min-height: 400px
+
+  &__empty
+    color: $text-inactive
+    font-size: 14px
+    text-align: center
+    padding: 80px 24px

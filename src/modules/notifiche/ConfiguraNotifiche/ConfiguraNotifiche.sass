@@ -1,0 +1,207 @@
+@use '../../../styles/tokens' as *
+
+// ─── Saved banner ─────────────────────────────────────────────────────────────
+.cn-saved-banner
+  margin-bottom: 16px
+
+.cn-saved-text
+  font-size: 13px
+  color: $success
+  font-weight: 600
+
+// ─── Two-column layout ────────────────────────────────────────────────────────
+.cn-layout
+  display: flex
+  gap: 16px
+  align-items: flex-start
+
+.cn-card--generali
+  flex: 0 0 62%
+
+.cn-right-col
+  flex: 1
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.cn-card
+  background: $white
+  border-radius: 12px
+  border: 0.5px solid $border
+  overflow: hidden
+
+.cn-card__header
+  padding: 14px 18px
+  border-bottom: 0.5px solid $border
+  background: #F8FAFC
+
+.cn-card__title
+  font-family: Poppins, sans-serif
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+  margin: 0
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+.cn-table-scroll
+  overflow-x: auto
+
+.cn-table
+  border-collapse: collapse
+  width: 100%
+  min-width: 520px
+
+.cn-table__head-row
+  border-bottom: 1.5px solid $border
+
+.cn-table__th-label
+  padding: 10px 16px
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-align: left
+  letter-spacing: 0.2px
+
+.cn-table__col-hdr
+  padding: 10px 0
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-align: center
+  letter-spacing: 0.2px
+  white-space: nowrap
+  min-width: 90px
+
+  &--right
+    text-align: right
+    padding-right: 16px
+    min-width: auto
+
+.cn-table__row
+  transition: background 0.1s
+
+  &--border
+    border-bottom: 0.5px solid $border
+
+.cn-table__td-label
+  padding: 10px 16px
+  font-size: 12px
+  color: $text-active
+  white-space: nowrap
+
+  &--pad
+    padding: 11px 16px
+
+.cn-table__td-center
+  text-align: center
+  padding: 10px 0
+
+.cn-table__td-gg
+  padding: 8px 0
+
+.cn-table__td-right
+  padding: 11px 16px
+  text-align: right
+
+.cn-table__chk-wrap
+  display: flex
+  justify-content: center
+
+  &--right
+    justify-content: flex-end
+
+// ─── Checkbox ─────────────────────────────────────────────────────────────────
+.cn-chk
+  width: 18px
+  height: 18px
+  border-radius: 4px
+  border: 2px solid $border
+  background: transparent
+  display: flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  transition: all 0.15s
+  flex-shrink: 0
+
+  &--checked
+    border-color: $primary
+    background: $primary
+
+.cn-chk__ico
+  font-size: 9px
+  color: #fff
+
+// ─── Number spinner ───────────────────────────────────────────────────────────
+.cn-spinner
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 4px
+
+.cn-spinner__input
+  width: 52px
+  text-align: center
+
+.cn-spinner__btns
+  display: flex
+  flex-direction: column
+  gap: 1px
+
+.cn-spinner__btn
+  width: 16px
+  height: 13px
+  background: none
+  border: 1px solid $border
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  padding: 0
+
+  &:hover
+    background: #F0F5FF
+
+  &--up
+    border-radius: 3px 3px 0 0
+
+  &--down
+    border-radius: 0 0 3px 3px
+    border-top: none
+
+.cn-spinner__dash
+  font-size: 11px
+  color: $text-disabled
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+.cn-footer
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 20px
+
+.cn-footer__cancel
+  background: transparent
+  border: 1.5px solid $border
+  border-radius: 8px
+  padding: 9px 28px
+  font-size: 13px
+  font-weight: 600
+  color: $text-inactive
+  cursor: pointer
+  transition: border-color 0.15s
+
+.cn-footer__save
+  background: $primary
+  border: none
+  border-radius: 8px
+  padding: 9px 32px
+  font-size: 13px
+  font-weight: 700
+  color: #fff
+  cursor: pointer
+  display: flex
+  align-items: center
+  gap: 7px
+  transition: background 0.15s

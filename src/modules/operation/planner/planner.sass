@@ -1,0 +1,682 @@
+// ─── PLANNER ──────────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+// ═══ SHELL PAGINA ═════════════════════════════════════════════════════════════
+.planner
+  background: $bg
+  border-radius: $radius-page
+  display: flex
+  flex-direction: column
+  height: 100%
+  overflow: hidden
+  font-family: $font-body
+
+  &__header
+    padding: 20px 24px 0
+
+  &__title
+    font-family: $font-heading
+    font-size: 24px
+    font-weight: 700
+    color: $primary
+    margin: 8px 0 2px
+
+  &__subtitle
+    font-family: $font-body
+    font-size: 13px
+    color: $text-inactive
+    margin: 0 0 14px
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+    padding-bottom: 10px
+    border-bottom: 1px solid $primary-200
+
+  &__filter-group
+    display: flex
+    flex-direction: column
+
+  &__filter-label
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 600
+    color: $text-active
+    margin-bottom: 3px
+    display: block
+
+  &__search-wrap
+    position: relative
+
+  &__search-icon
+    position: absolute
+    right: 8px
+    top: 50%
+    transform: translateY(-50%)
+    color: $text-disabled
+    pointer-events: none
+
+  &__search-input
+    height: 36px
+    padding: 0 32px 0 10px
+    border-radius: $radius-md
+    border: 1.5px solid $primary-200
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+    background: $white
+    width: 150px
+    outline: none
+    transition: $transition-fast
+
+    &:focus
+      border-color: $primary
+
+  &__date-input
+    height: 36px
+    padding: 0 8px
+    border-radius: $radius-md
+    border: 1.5px solid $primary-200
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+    background: $white
+    outline: none
+    transition: $transition-fast
+
+    &:focus
+      border-color: $primary
+
+  &__floor-btns
+    display: flex
+    gap: 4px
+
+  &__floor-btn
+    width: 34px
+    height: 36px
+    border-radius: $radius-md
+    border: 1.5px solid $primary-200
+    background: $white
+    color: $text-inactive
+    cursor: pointer
+    font-family: $font-body
+    font-size: 13px
+    font-weight: 600
+    transition: $transition-fast
+
+    &--active
+      border-color: $primary
+      background: $primary
+      color: $white
+
+  &__checkboxes
+    display: flex
+    flex-direction: column
+    gap: 5px
+
+  &__checkbox-label
+    display: flex
+    align-items: center
+    gap: 6px
+    cursor: pointer
+    font-family: $font-body
+    font-size: 12px
+    user-select: none
+
+  &__checkbox-box
+    width: 14px
+    height: 14px
+    border-radius: $radius-sm
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    transition: $transition-fast
+
+  &__spacer
+    flex: 1
+
+  &__occupazione
+    padding: 5px 0
+    font-family: $font-body
+    font-size: 11px
+    color: $text-disabled
+
+  &__body
+    flex: 1
+    display: flex
+    overflow: hidden
+    padding: 0 24px 20px
+
+// ═══ HOTEL VISUALIZATION ══════════════════════════════════════════════════════
+.hotel-viz
+  width: 195px
+  min-width: 195px
+  overflow-y: auto
+  overflow-x: hidden
+  background: $primary
+  border-radius: $radius-xl 0 0 $radius-xl
+  padding: 10px 8px
+  display: flex
+  flex-direction: column
+  gap: 5px
+  +custom-scrollbar
+
+  &__header
+    text-align: center
+    margin-bottom: 2px
+
+  &__title
+    color: rgba($white, 0.9)
+    font-family: $font-heading
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.5px
+
+  &__subtitle
+    color: $primary-300
+    font-family: $font-body
+    font-size: 9px
+    margin-top: 1px
+
+  &__floor
+    background: rgba($white, 0.08)
+    border-radius: 8px
+    padding: 6px 6px 5px
+
+  &__floor-header
+    display: flex
+    justify-content: space-between
+    align-items: center
+    margin-bottom: 4px
+
+  &__floor-name
+    color: $primary-300
+    font-family: $font-body
+    font-size: 9px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__floor-count
+    color: rgba($white, 0.4)
+    font-family: $font-body
+    font-size: 8px
+
+  &__rooms
+    display: flex
+    flex-wrap: wrap
+    gap: 3px
+
+  &__room
+    width: 18px
+    height: 14px
+    border-radius: 3px
+    border: 1px solid rgba($white, 0.2)
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      border: 2px solid $white
+      transform: scale(1.35)
+
+    &--occupata
+      box-shadow: 0 0 5px rgba(122, 21, 21, 0.5)
+
+  &__floor-stats
+    margin-top: 4px
+    color: rgba($white, 0.3)
+    font-family: $font-body
+    font-size: 8px
+
+  &__legend
+    background: rgba($white, 0.05)
+    border-radius: $radius-md
+    padding: 6px 5px
+    margin-top: 2px
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 4px
+    margin-bottom: 3px
+
+  &__legend-dot
+    width: 8px
+    height: 8px
+    border-radius: 2px
+    flex-shrink: 0
+
+  &__legend-label
+    color: $primary-300
+    font-family: $font-body
+    font-size: 9px
+    text-transform: capitalize
+
+// ═══ ACTION BUTTONS ═══════════════════════════════════════════════════════════
+.action-buttons
+  display: flex
+  gap: 5px
+
+  &__item
+    position: relative
+
+    &:hover .action-buttons__tooltip
+      opacity: 1
+
+    &:hover .btn-icon
+      border-color: $primary
+      background: $primary-50
+      color: $primary
+      box-shadow: $shadow-md
+
+  &__tooltip
+    +tooltip
+    opacity: 0
+    transition: opacity 0.15s
+
+// ═══ TIMELINE ═════════════════════════════════════════════════════════════════
+.timeline
+  flex: 1
+  overflow: auto
+  position: relative
+  border-right: 1px solid $primary-200
+  +custom-scrollbar
+
+  &__header
+    position: sticky
+    top: 0
+    z-index: 10
+    display: flex
+    background: $white
+    border-bottom: 2px solid $primary-200
+
+  &__room-col-header
+    min-width: 186px
+    background: $white
+    border-right: 1px solid $primary-200
+    padding: 8px 12px
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    +sticky-col
+    z-index: 11
+
+  &__day-header
+    min-width: 88px
+    width: 88px
+    text-align: center
+    padding: 5px 0
+    border-right: 1px solid $primary-100
+
+    &--today
+      background: rgba($link, 0.12)
+
+    &--weekend
+      background: rgba($primary, 0.04)
+
+  &__day-num
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+
+    &--today
+      color: $link
+
+  &__day-month
+    font-family: $font-body
+    font-size: 10px
+    color: $text-disabled
+
+    &--today
+      color: $link
+
+  &__today-line
+    position: absolute
+    top: 46px
+    bottom: 0
+    width: 2px
+    background: rgba($link, 0.3)
+    z-index: 4
+    pointer-events: none
+
+  &__floor-header
+    background: $primary
+    color: $white
+    height: 30px
+    display: flex
+    align-items: center
+    padding-left: 12px
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    position: sticky
+    top: 46px
+    z-index: 8
+
+  &__row
+    display: flex
+    height: 46px
+    border-bottom: 1px solid $primary-100
+    position: relative
+    background: $white
+
+    &--odd
+      background: $bg
+
+  &__room-label
+    min-width: 186px
+    border-right: 1px solid $primary-200
+    padding: 4px 12px
+    display: flex
+    flex-direction: column
+    justify-content: center
+    +sticky-col
+
+    .timeline__row--odd &
+      background: $bg
+
+    .timeline__row:not(.timeline__row--odd) &
+      background: $white
+
+  &__room-num-wrap
+    display: flex
+    align-items: center
+    gap: 5px
+
+  &__room-dot
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__room-number
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+
+  &__room-type
+    font-family: $font-body
+    font-size: 10px
+    color: $text-disabled
+    padding-left: 12px
+    max-width: 160px
+    +truncate
+
+  &__day-grid
+    flex: 1
+    position: relative
+
+  &__cell
+    position: absolute
+    top: 0
+    height: 100%
+    width: 88px
+    border-right: 1px solid $primary-100
+
+    &--today
+      background: rgba($link, 0.05)
+
+    &--weekend
+      background: rgba($primary, 0.025)
+
+    &--free
+      cursor: pointer
+
+    &--occupied
+      cursor: default
+
+  &__status-icon
+    position: absolute
+    top: 0
+    height: 100%
+    width: 88px
+    display: flex
+    align-items: center
+    justify-content: center
+    color: $text-disabled
+    font-size: 13px
+    pointer-events: none
+    z-index: 3
+
+  &__bar
+    position: absolute
+    height: 28px
+    top: 50%
+    transform: translateY(-50%)
+    display: flex
+    align-items: center
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 700
+    white-space: nowrap
+    overflow: hidden
+    cursor: pointer
+    transition: filter 0.15s
+    box-sizing: border-box
+    z-index: 1
+
+    &--selected
+      z-index: 2
+      filter: brightness(1.2)
+      outline: 2px solid rgba($white, 0.6)
+      outline-offset: -2px
+
+    &__question
+      margin-right: 4px
+      opacity: 0.8
+
+    &__name
+      +truncate
+
+// ═══ INFO PANEL ═══════════════════════════════════════════════════════════════
+.info-panel
+  width: 230px
+  min-width: 230px
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding-left: 8px
+  overflow-y: auto
+  +custom-scrollbar
+
+  &__card
+    +card
+
+  &__card-header
+    +card-header
+
+  &__card-body
+    padding: 10px 12px
+    font-family: $font-body
+    font-size: 12px
+
+  &__empty
+    color: $text-inactive
+    text-align: center
+    line-height: 1.6
+    margin: 8px 0
+
+  &__status-badge
+    display: flex
+    align-items: center
+    gap: 6px
+    margin-bottom: 4px
+    padding: 4px 6px
+    background: $primary-50
+    border-radius: $radius-md
+
+  &__status-dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+
+  &__status-label
+    color: $text-active
+    font-weight: 600
+    text-transform: capitalize
+
+  &__rows
+    display: flex
+    flex-direction: column
+    gap: 5px
+
+  &__row
+    display: flex
+    justify-content: space-between
+    border-bottom: 1px solid $primary-100
+    padding-bottom: 4px
+
+  &__row-key
+    color: $text-disabled
+    font-size: 11px
+
+  &__row-val
+    color: $text-active
+    font-weight: 600
+
+  &__pend-header
+    width: 100%
+    background: $primary
+    color: $white
+    border: none
+    cursor: pointer
+    padding: 8px 12px
+    display: flex
+    justify-content: space-between
+    align-items: center
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-700
+
+  &__pend-body
+    padding: 8px 12px
+    font-family: $font-body
+    font-size: 12px
+
+  &__pend-count
+    color: $text-inactive
+    margin-bottom: 5px
+
+    b
+      color: $primary
+
+  &__pend-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 5px 0
+    border-top: 1px solid $primary-100
+
+  &__pend-num
+    color: $primary
+    font-weight: 700
+
+  &__pend-meta
+    display: flex
+    align-items: center
+    gap: 4px
+    color: $text-inactive
+    font-size: 11px
+
+// ═══ LEGENDA MODAL ════════════════════════════════════════════════════════════
+.legenda-modal
+  padding: 4px 0
+  min-width: 220px
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 7px 0
+    border-bottom: 1px solid $primary-100
+
+    &:last-child
+      border-bottom: none
+
+  &__dot
+    width: 20px
+    height: 20px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__label
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+
+// ═══ PREN MODAL ═══════════════════════════════════════════════════════════════
+.pren-modal
+  padding: 4px 0
+
+  &__subtitle
+    font-family: $font-body
+    font-size: 13px
+    color: $text-inactive
+    margin-bottom: 14px
+
+  &__scroll
+    overflow-x: auto
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-family: $font-body
+    font-size: 13px
+
+    thead tr
+      border-bottom: 2px solid $primary-100
+
+    tbody tr
+      border-bottom: 1px solid $primary-100
+
+    th
+      padding: 7px 10px
+      text-align: left
+      color: $text-inactive
+      font-weight: 700
+      font-size: 12px
+
+    td
+      padding: 10px
+
+  &__td-booking
+    color: $primary
+    font-weight: 700
+
+  &__td-guest
+    color: $text-active
+
+  &__td-dates
+    color: $text-inactive
+    white-space: nowrap
+
+  &__td-agency
+    color: $text-inactive
+
+  &__action-btn
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    background: none
+    border: none
+    color: $link
+    cursor: pointer
+    font-family: $font-body
+    font-size: 13px
+    font-weight: 700
+    padding: 0
+
+    &:hover
+      text-decoration: underline

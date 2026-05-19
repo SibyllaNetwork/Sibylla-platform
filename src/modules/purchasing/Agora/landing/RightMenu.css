@@ -1,0 +1,30 @@
+/* =====================================================================
+   RIGHT MENU — singola bolla "Dashboard" sul lato destro della landing.
+   Riusa MenuCircle ma con animazione di entrata speculare (da destra).
+   ===================================================================== */
+.right-menu {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 22vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2vh 0;
+  z-index: 20;
+}
+
+/* Entrata da destra invece che da sinistra */
+.right-menu .menu-circle-wrap .menu-circle {
+  transform: translateX(160px) scale(0.7) rotate(25deg);
+  animation: landingMenuEnterRight 1.4s cubic-bezier(.2,.7,.2,1) forwards;
+  animation-delay: 0.7s;
+}
+
+@keyframes landingMenuEnterRight {
+  0%   { opacity: 0; transform: translateX(160px) scale(0.7) rotate(25deg); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
+}

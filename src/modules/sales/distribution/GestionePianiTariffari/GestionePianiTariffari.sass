@@ -1,0 +1,479 @@
+// ─── DISTRIBUTION ────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+// ═══ GESTIONE PIANI TARIFFARI ════════════════════════════════════════════════
+.piani
+
+  // ── Categoria accordion ──────────────────────────────────────────────────────
+  &__categoria
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+    margin-bottom: 12px
+
+  &__cat-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 12px 16px
+    cursor: pointer
+    transition: background 0.1s
+    user-select: none
+
+    &:hover
+      background: $bg
+
+  &__cat-left
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__cat-badge
+    width: 28px
+    height: 28px
+    border-radius: 8px
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 12px
+    font-weight: 800
+    font-family: $font-heading
+
+  &__cat-name
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+
+  &__cat-count
+    font-size: 11px
+    font-weight: 600
+    background: $bg
+    border: 0.5px solid $border
+    border-radius: 5px
+    padding: 2px 8px
+    color: $text-disabled
+
+  &__cat-pct
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+
+  &__add-btn
+    display: flex
+    align-items: center
+    gap: 5px
+    background: transparent
+    border: none
+    cursor: pointer
+    font-size: 12px
+    font-weight: 600
+    padding: 6px 10px
+    border-radius: 6px
+    transition: $transition-fast
+
+  &__chevron
+    transition: transform 0.2s
+    flex-shrink: 0
+
+    &--open
+      transform: rotate(0deg)
+
+    &--closed
+      transform: rotate(-90deg)
+
+  // ── Piano table ───────────────────────────────────────────────────────────────
+  &__table-head
+    display: grid
+    padding: 8px 16px
+    background: #F8FAFC
+    border-top: 0.5px solid $border
+    border-bottom: 0.5px solid $border
+
+  &__th
+    font-size: 10px
+    font-weight: 700
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__piano-row
+    display: grid
+    padding: 10px 16px
+    border-bottom: 0.5px solid $border
+    align-items: center
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &:last-child
+      border-bottom: none
+
+  &__piano-name
+    font-size: 13px
+    color: $text-active
+    font-weight: 500
+
+  &__piano-value
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__piano-date
+    font-size: 12px
+    color: $text-inactive
+
+  &__piano-actions
+    display: flex
+    gap: 4px
+    justify-content: flex-end
+
+  &__action-btn
+    width: 28px
+    height: 28px
+    border-radius: 6px
+    border: none
+    background: transparent
+    cursor: pointer
+    display: flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &--edit:hover
+      background: $link-light
+
+    &--delete:hover
+      background: $error-light
+
+  &__empty
+    padding: 16px
+    text-align: center
+    font-size: 12px
+    color: $text-disabled
+
+// ═══ MAGGIORAZIONI E PROMOZIONI ═══════════════════════════════════════════════
+.promo
+
+  &__filters
+    margin-bottom: 20px
+    display: flex
+    align-items: center
+    gap: 10px
+    flex-wrap: wrap
+
+  &__search-wrap
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 10px
+    border: 1.5px solid $border
+    border-radius: 7px
+    background: $bg
+    flex: 0 0 180px
+    transition: border-color 0.15s
+
+    &:focus-within
+      border-color: $link
+
+  &__search-input
+    flex: 1
+    border: none
+    outline: none
+    font-size: 12px
+    color: $text-active
+    background: transparent
+    font-family: $font-body
+
+  &__search-clear
+    background: none
+    border: none
+    cursor: pointer
+    padding: 0
+    display: flex
+
+  &__table-wrap
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__table-scroll
+    overflow-x: auto
+
+  &__table
+    border-collapse: collapse
+    width: 100%
+    min-width: 700px
+
+  &__thead-row
+    background: #F8FAFC
+
+  &__th
+    padding: 10px 12px
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    text-align: left
+    white-space: nowrap
+    border-bottom: 1.5px solid $border
+
+  &__row
+    border-bottom: 0.5px solid $border
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &:last-child
+      border-bottom: none
+
+  &__td
+    padding: 10px 12px
+    font-size: 12px
+    color: $text-active
+    vertical-align: middle
+    white-space: nowrap
+
+  &__sconto-badge
+    font-size: 12px
+    font-weight: 700
+    border-radius: 5px
+    padding: 3px 8px
+
+    &--positive
+      color: $success
+      background: $success-light
+
+    &--negative
+      color: $error
+      background: $error-light
+
+  &__row-actions
+    display: flex
+    gap: 4px
+    justify-content: flex-end
+
+  &__action-btn
+    width: 28px
+    height: 28px
+    border-radius: 6px
+    border: 1px solid $border
+    background: transparent
+    cursor: pointer
+    display: flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &--edit:hover
+      border-color: $link
+      background: $link-light
+
+    &--copy:hover
+      border-color: $primary
+      background: $primary-100
+
+    &--delete:hover
+      border-color: $error
+      background: $error-light
+
+// ═══ TARIFFE DISPONIBILITÀ ════════════════════════════════════════════════════
+.tariffe
+
+  // ── Toolbar ─────────────────────────────────────────────────────────────────
+  &__toolbar
+    margin-bottom: 12px
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+
+  &__toolbar-btn
+    display: flex
+    align-items: center
+    gap: 6px
+    height: 30px
+    padding: 0 12px
+    border-radius: 7px
+    border: 1.5px solid $border
+    background: $white
+    cursor: pointer
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    white-space: nowrap
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary
+      color: $primary
+
+    &--danger
+      border-color: #E74C3C
+      color: #E74C3C
+
+      &:hover
+        background: #FFF0F0
+
+    &--primary
+      background: $primary
+      border-color: $primary
+      color: $white
+
+      &:hover
+        background: $primary-700
+
+  &__toolbar-divider
+    width: 1px
+    height: 20px
+    background: $border
+    margin: 0 2px
+    flex-shrink: 0
+
+  // ── Grid ─────────────────────────────────────────────────────────────────────
+  &__grid-wrap
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__grid-scroll
+    overflow-x: auto
+    overflow-y: auto
+    max-height: 65vh
+
+    &::-webkit-scrollbar
+      width: 4px
+      height: 4px
+
+    &::-webkit-scrollbar-thumb
+      background: $primary-300
+      border-radius: 2px
+
+  &__grid-table
+    border-collapse: separate
+    border-spacing: 0
+    min-width: 900px
+    width: 100%
+
+  // ── Header day ───────────────────────────────────────────────────────────────
+  &__head-corner
+    background: #F8FAFC
+    border-bottom: 1.5px solid $border
+    border-right: 1px solid $border
+    position: sticky
+    top: 0
+    left: 0
+    z-index: 4
+
+  &__head-day
+    padding: 6px 2px
+    font-size: 10px
+    font-weight: 700
+    color: $text-active
+    text-align: center
+    background: #F8FAFC
+    border-bottom: 1.5px solid $border
+    border-right: 0.5px solid #E8EBF0
+    position: sticky
+    top: 0
+    z-index: 3
+    white-space: nowrap
+
+    &--wd
+      font-size: 8px
+      color: $text-disabled
+      font-weight: 400
+
+    &--weekend
+      background: #F0F4F8
+
+  // ── Room label cell ───────────────────────────────────────────────────────────
+  &__room-label
+    padding: 4px 10px
+    background: #F8FAFC
+    border-bottom: 0.5px solid $border
+    border-right: 1px solid $border
+    vertical-align: middle
+    position: sticky
+    left: 0
+    z-index: 2
+    white-space: nowrap
+
+  &__room-name
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__room-sub
+    font-size: 10px
+    color: $text-disabled
+
+  // ── Data cell ────────────────────────────────────────────────────────────────
+  &__cell
+    padding: 3px 2px
+    text-align: center
+    border-bottom: 0.5px solid $border
+    border-right: 0.5px solid #E8EBF0
+    vertical-align: middle
+    cursor: pointer
+
+    &--empty
+      background: repeating-linear-gradient(-45deg, #F5F5F5, #F5F5F5 3px, #EBEBEB 3px, #EBEBEB 4px)
+      cursor: default
+
+    &--closed
+      background: $error-light
+
+    &--weekend
+      background: rgba($primary, 0.025)
+
+  &__cell-inner
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 1px
+
+  &__cell-rate
+    font-size: 10px
+    font-weight: 700
+    color: $primary
+    white-space: nowrap
+
+  &__cell-avail
+    font-size: 9px
+    color: $text-inactive
+
+  &__cell-dot
+    width: 6px
+    height: 6px
+    border-radius: 50%
+
+    &--open
+      background: $success-mid
+
+    &--closed
+      background: $error
+
+  // ── Legend ───────────────────────────────────────────────────────────────────
+  &__legend
+    display: flex
+    align-items: center
+    gap: 14px
+    margin-top: 10px
+    flex-wrap: wrap
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    color: $text-inactive

@@ -1,0 +1,131 @@
+@use '../../../styles/tokens' as *
+
+.csidebar
+  width: 268px
+  flex-shrink: 0
+  border-right: 1px solid $border
+  display: flex
+  flex-direction: column
+  background: $white
+  border-radius: 12px 0 0 12px
+  overflow: hidden
+
+.csidebar__head
+  padding: 16px 14px 10px
+  border-bottom: 0.5px solid $border
+  flex-shrink: 0
+
+.csidebar__head-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 10px
+
+.csidebar__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.csidebar__subtitle
+  font-size: 10px
+  color: $text-disabled
+
+.csidebar__status-dot
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  background: $success-mid
+
+.csidebar__search
+  display: flex
+  align-items: center
+  gap: 6px
+  height: 32px
+  padding: 0 8px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #F8FAFC
+
+.csidebar__list
+  flex: 1
+  overflow-y: auto
+
+.csidebar__item
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 10px 14px
+  cursor: pointer
+  background: transparent
+  border-left: 3px solid transparent
+  transition: all 0.13s
+
+  &:hover
+    background: #F5F8FC
+
+  &--active,
+  &--active:hover
+    background: $primary-100
+    border-left-color: $primary
+
+.csidebar__avatar
+  width: 32px
+  height: 32px
+  border-radius: 8px
+  background: $primary-100
+  color: $primary
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+  font-size: 11px
+  font-weight: 700
+
+  &--active
+    background: $primary
+    color: #fff
+
+.csidebar__meta
+  flex: 1
+  min-width: 0
+
+.csidebar__name
+  font-size: 12px
+  font-weight: 500
+  color: $text-active
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+  &--active
+    font-weight: 700
+    color: $primary
+
+.csidebar__type
+  font-size: 10px
+  color: $text-disabled
+
+.csidebar__state
+  font-size: 9px
+  font-weight: 600
+  border-radius: 4px
+  padding: 2px 6px
+  flex-shrink: 0
+
+  &--attivo
+    color: $success
+    background: $success-light
+
+  &--sospeso
+    color: #E07B39
+    background: $warning-light
+
+.csidebar__foot
+  padding: 10px 14px
+  border-top: 0.5px solid $border
+  flex-shrink: 0
+
+.csidebar__new
+  width: 100%
+  gap: 6px

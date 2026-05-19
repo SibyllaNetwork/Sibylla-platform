@@ -1,0 +1,242 @@
+@use '../../../../../styles/tokens' as *
+
+.forn-view__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 14px
+
+.forn-view__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.forn-view__sub
+  font-size: 12px
+  color: $text-disabled
+  margin-top: 2px
+
+.forn-view__btn-new
+  gap: 7px
+
+.forn-view__filters
+  display: flex
+  gap: 10px
+  margin-bottom: 14px
+
+.forn-view__search
+  flex: 1
+  display: flex
+  align-items: center
+  gap: 7px
+  height: 32px
+  padding: 0 10px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #F8FAFC
+
+.forn-view__macro-filter
+  width: 240px
+  flex-shrink: 0
+
+.forn-view__empty
+  padding: 32px 0
+  text-align: center
+  font-size: 13px
+  color: $text-disabled
+
+.forn-view__table
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 10px
+  overflow: hidden
+
+.forn-view__thead
+  display: grid
+  grid-template-columns: 2.2fr 1.4fr 1.4fr 1.6fr 80px 170px 80px
+  padding: 8px 14px
+  background: #F8FAFC
+  border-bottom: 0.5px solid $border
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.4px
+
+.forn-view__row
+  display: grid
+  grid-template-columns: 2.2fr 1.4fr 1.4fr 1.6fr 80px 170px 80px
+  padding: 11px 14px
+  align-items: center
+  gap: 8px
+  border-bottom: 0.5px solid $border
+  transition: background 0.1s
+
+  &:last-child
+    border-bottom: none
+
+  &:hover
+    background: #F8FCFF
+
+.forn-view__cell-name
+  display: flex
+  align-items: center
+  gap: 10px
+  min-width: 0
+
+.forn-view__avatar
+  width: 32px
+  height: 32px
+  border-radius: 8px
+  background: $primary-100
+  color: $primary
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 11px
+  font-weight: 700
+  flex-shrink: 0
+
+.forn-view__name-block
+  min-width: 0
+
+.forn-view__name
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.forn-view__desc
+  font-size: 11px
+  color: $text-disabled
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.forn-view__cell
+  min-width: 0
+
+.forn-view__cat
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.forn-view__macro
+  font-size: 10px
+  color: $text-disabled
+  margin-top: 2px
+
+.forn-view__primary
+  font-size: 12px
+  color: $text-active
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.forn-view__muted
+  font-size: 11px
+  color: $text-disabled
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.forn-view__cell-count
+  text-align: center
+
+.forn-view__count
+  display: inline-block
+  min-width: 28px
+  font-size: 12px
+  font-weight: 700
+  color: $blue
+  background: $blue-light
+  border-radius: 5px
+  padding: 3px 8px
+
+.forn-view__cell-publish
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 4px
+  min-width: 0
+
+.forn-view__pub-badge
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  font-size: 10px
+  font-weight: 600
+  padding: 2px 7px
+  border-radius: 5px
+  border: 1px solid transparent
+  text-transform: uppercase
+  letter-spacing: 0.3px
+
+  &--on
+    color: $success
+    background: $success-light
+    border-color: $success-light
+
+  &--draft
+    color: $text-disabled
+    background: #F0F0F0
+    border-color: #E5E5E5
+
+.forn-view__pub-btn
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 10px
+  font-weight: 600
+  padding: 4px 8px
+  border-radius: 5px
+  cursor: pointer
+  border: 1px solid transparent
+  transition: all 0.15s
+  white-space: nowrap
+
+  &--on
+    color: $white
+    background: $success
+    border-color: $success
+
+    &:hover
+      filter: brightness(1.05)
+
+  &--off
+    color: $warning
+    background: $warning-light
+    border-color: $warning-light
+
+    &:hover
+      background: $warning
+      color: $white
+      border-color: $warning
+
+.forn-view__row-actions
+  display: flex
+  gap: 4px
+  justify-content: flex-end
+
+.forn-view__icon-btn
+  width: 28px
+  height: 28px
+  background: none
+  border: 1px solid $border
+  border-radius: 6px
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: all 0.15s
+
+  &--edit:hover
+    border-color: $blue
+    background: $blue-light
+
+  &--del:hover
+    border-color: $error
+    background: $error-light

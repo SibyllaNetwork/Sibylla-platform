@@ -1,0 +1,105 @@
+@use '../../../../styles/tokens' as *
+
+.utenti-tab__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 14px
+
+.utenti-tab__table
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 10px
+  overflow: hidden
+  margin-bottom: 16px
+
+.utenti-tab__empty
+  padding: 28px 16px
+  text-align: center
+  font-size: 12px
+  color: $text-disabled
+
+.utenti-tab__row
+  display: grid
+  grid-template-columns: 1fr 1.5fr 1fr auto
+  padding: 11px 16px
+  align-items: center
+  gap: 12px
+  transition: background 0.1s
+
+  &:hover
+    background: #F8FCFF
+
+  &--bordered
+    border-bottom: 0.5px solid $border
+
+.utenti-tab__name
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.utenti-tab__email
+  font-size: 12px
+  color: $blue
+
+.utenti-tab__role
+  font-size: 12px
+  color: $text-inactive
+
+.utenti-tab__actions
+  display: flex
+  align-items: center
+  gap: 8px
+
+.utenti-tab__state
+  font-size: 10px
+  font-weight: 600
+  border-radius: 4px
+  padding: 2px 7px
+  color: $text-disabled
+  background: #F0F0F0
+
+  &--on
+    color: $success
+    background: $success-light
+
+.utenti-tab__del
+  background: none
+  border: none
+  cursor: pointer
+  padding: 4px
+  border-radius: 5px
+  display: flex
+
+  &:hover
+    background: $error-light
+
+.utenti-tab__add
+  background: #F8FAFC
+  border-radius: 10px
+  border: 0.5px solid $border
+  padding: 14px 16px
+
+.utenti-tab__add-title
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 10px
+
+.utenti-tab__add-grid
+  display: grid
+  grid-template-columns: 1fr 1.5fr 1fr auto
+  gap: 10px
+  align-items: flex-end
+
+.utenti-tab__label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: 4px
+
+.utenti-tab__add-btn
+  height: 36px
+  white-space: nowrap

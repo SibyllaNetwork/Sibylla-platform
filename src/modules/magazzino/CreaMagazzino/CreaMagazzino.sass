@@ -1,0 +1,195 @@
+@use "sass:color"
+
+$primary: #204769
+$primary-soft: #2d5a7f
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+
+.crea-mag
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Toolbar ───────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    justify-content: space-between
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__filters
+    display: flex
+    gap: 12px
+    align-items: flex-end
+    flex-wrap: wrap
+
+  &__btn-create
+    height: 38px
+
+  // ── Empty state ───────────────────────────────────────────────────
+  &__empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 12px
+    padding: 60px 20px
+    background: $bg-soft
+    border: 1px dashed $border-strong
+    border-radius: 12px
+    color: $muted
+    text-align: center
+
+    > i
+      font-size: 48px
+      color: $primary
+      opacity: 0.5
+
+    p
+      margin: 0
+      font-size: 14px
+      max-width: 480px
+      line-height: 1.5
+
+  // ── Modali condivise ──────────────────────────────────────────────
+  &__backdrop
+    position: fixed
+    inset: 0
+    background: rgba(17, 24, 39, 0.55)
+    z-index: 60
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 16px
+
+  &__modal
+    background: white
+    border: 1px solid $border
+    border-radius: 14px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
+    width: min(520px, 100%)
+    max-height: calc(100vh - 32px)
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+
+  &__modal-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 18px 22px 12px
+    border-bottom: 1px solid $border
+
+  &__modal-title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 1.125rem
+    color: $primary
+
+  &__modal-body
+    padding: 16px 22px
+    display: flex
+    flex-direction: column
+    gap: 14px
+    overflow-y: auto
+    flex: 1
+
+  &__modal-foot
+    padding: 14px 22px
+    border-top: 1px solid $border
+    background: white
+
+  // ── Field group ───────────────────────────────────────────────────
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__field-label
+    font-size: 11px
+    font-weight: 700
+    color: $primary
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  &__req
+    color: #dc2626
+    margin-left: 2px
+
+  &__strutture
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 10px 12px
+    background: $bg-soft
+    border: 1px solid $border
+    border-radius: 8px
+
+  &__static
+    margin: 4px 0 0
+    padding: 6px 10px
+    background: $bg-soft
+    border: 1px solid $border
+    border-radius: 6px
+    color: $ink
+    font-size: 13px
+    min-height: 30px
+
+  &__hint-link
+    margin: 4px 0 0
+    font-size: 12px
+    color: $muted
+
+  &__link-btn
+    border: none
+    background: transparent
+    color: $primary
+    font: inherit
+    font-weight: 700
+    cursor: pointer
+    padding: 0
+    text-decoration: underline
+
+  // ── Tipo movimento (radio buttons) ───────────────────────────────
+  &__tipo
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+
+  &__tipo-btn
+    display: inline-flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 6px
+    padding: 14px
+    background: white
+    border: 2px solid $border
+    border-radius: 10px
+    color: $muted
+    font-family: inherit
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: border-color 0.15s, background 0.15s, color 0.15s
+
+    i
+      font-size: 22px
+
+    &:hover
+      border-color: $primary
+      color: $primary
+
+    &--active
+      border-color: $primary
+      background: $bg-soft
+      color: $primary

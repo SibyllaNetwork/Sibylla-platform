@@ -1,0 +1,202 @@
+// ─── BUTTONS ──────────────────────────────────────────────────────────────────
+// Tutti i bottoni del design system Sibylla.
+// Modifica questo file per aggiornare stili, dimensioni e varianti.
+//
+// VARIANTI:
+//   .btn-primary    — azione principale (sfondo pieno blu)
+//   .btn-secondary  — azione secondaria (outline blu)
+//   .btn-ghost      — azione terziaria (testo, no bordo)
+//   .btn-danger     — azione distruttiva (rosso)
+//   .btn-icon       — solo icona (quadrato)
+//   .btn-back       — navigazione indietro
+//   .toolbar-btn    — bottone in toolbar (outline grigio → blu on hover)
+//
+// MODIFICATORI DIMENSIONE:
+//   --sm  height 28px
+//   --md  height 34px
+//   (default) height 40px
+
+@use 'tokens' as *
+
+// ── Mixin base ────────────────────────────────────────────────────────────────
+=btn-reset
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: $space-sm
+  border: none
+  border-radius: $radius-md
+  font-family: $font-body
+  font-weight: 600
+  cursor: pointer
+  transition: $transition-fast
+  text-decoration: none
+  white-space: nowrap
+  flex-shrink: 0
+
+  &:disabled
+    cursor: not-allowed
+    opacity: 0.55
+
+// ══ PRIMARY ═══════════════════════════════════════════════════════════════════
+.btn-primary
+  +btn-reset
+  height: 40px
+  padding: 0 $space-xl
+  font-size: 14px
+  background: $primary
+  color: $text-negative
+
+  &:hover:not(:disabled)
+    background: $primary-700
+
+  &:active:not(:disabled)
+    background: $primary-800
+
+  // Dimensioni
+  &--md
+    height: 36px
+    padding: 0 $space-lg
+    font-size: 12px
+
+  &--sm
+    height: 28px
+    padding: 0 $space-md
+    font-size: 11px
+
+// ══ SECONDARY ═════════════════════════════════════════════════════════════════
+.btn-secondary
+  +btn-reset
+  height: 40px
+  padding: 0 $space-xl
+  font-size: 14px
+  background: transparent
+  color: $primary
+  border: 1.5px solid $primary
+
+  &:hover:not(:disabled)
+    background: $primary-50
+
+  &:active:not(:disabled)
+    background: $primary-100
+
+  &:disabled
+    color: $text-disabled
+    border-color: $text-disabled
+
+  &--md
+    height: 36px
+    padding: 0 $space-lg
+    font-size: 12px
+
+  &--sm
+    height: 28px
+    padding: 0 $space-md
+    font-size: 11px
+
+// ══ GHOST ═════════════════════════════════════════════════════════════════════
+// Testo solo, nessun bordo — per azioni terziarie
+.btn-ghost
+  +btn-reset
+  height: 40px
+  padding: 0 $space-lg
+  font-size: 14px
+  background: transparent
+  color: $link
+  border: none
+
+  &:hover:not(:disabled)
+    background: $link-light
+
+  &:disabled
+    color: $text-disabled
+
+  &--md
+    height: 36px
+    font-size: 12px
+
+  &--sm
+    height: 28px
+    font-size: 11px
+
+// ══ DANGER ════════════════════════════════════════════════════════════════════
+// Azioni distruttive (elimina, annulla, revoca)
+.btn-danger
+  +btn-reset
+  height: 34px
+  padding: 0 $space-lg
+  font-size: 12px
+  background: $error
+  color: $text-negative
+
+  &:hover:not(:disabled)
+    background: $error-dark
+
+  &--outline
+    background: transparent
+    color: $error
+    border: 1.5px solid $error
+
+    &:hover:not(:disabled)
+      background: $error-light
+      border-color: $error-dark
+
+// ══ ICON BUTTON ═══════════════════════════════════════════════════════════════
+// Solo icona, dimensione quadrata
+.btn-icon
+  +btn-reset
+  width: 36px
+  height: 36px
+  padding: 0
+  background: $white
+  border: 1.5px solid $border
+  color: $primary-600
+
+  &:hover:not(:disabled)
+    border-color: $primary
+    background: $primary-50
+    color: $primary
+    box-shadow: $shadow-md
+
+  &--active
+    background: $primary
+    color: $text-negative
+    border-color: $primary
+
+  &--sm
+    width: 28px
+    height: 28px
+
+// ══ BACK BUTTON ═══════════════════════════════════════════════════════════════
+// Navigazione — torna indietro
+.btn-back
+  +btn-reset
+  height: 32px
+  padding: 0 $space-md
+  font-size: 12px
+  background: transparent
+  border: 1px solid $border
+  border-radius: 7px
+  color: $text-inactive
+  margin-bottom: 14px
+
+  &:hover:not(:disabled)
+    background: $white
+    color: $primary
+    border-color: $primary-300
+
+// ══ TOOLBAR BUTTON ════════════════════════════════════════════════════════════
+// Bottone in toolbar/header — outline grigio, hover blu
+.toolbar-btn
+  +btn-reset
+  height: 36px
+  padding: 0 $space-md
+  font-size: 13px
+  font-weight: 600
+  background: $white
+  border: 1.5px solid $border
+  color: $text-active
+
+  &:hover:not(:disabled)
+    border-color: $primary
+    color: $primary

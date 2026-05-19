@@ -1,0 +1,67 @@
+// ─── COLORS ───────────────────────────────────────────────────────────────────
+// Sorgente unica dei colori del design system Sibylla.
+//
+// I valori qui sono CSS custom properties (--color-*) definite in _themes.sass
+// Le variabili SASS ($primary, ecc.) qui ne sono solo alias, così il codice
+// esistente continua a funzionare, ma tutto diventa tematizzabile runtime
+// cambiando l'attributo [data-theme] sull'elemento <html>.
+
+// ── 1. Palette primaria ────────────────────────────────────────────────────────
+$primary:       var(--color-primary)
+$primary-900:   var(--color-primary-900)
+$primary-800:   var(--color-primary-800)
+$primary-700:   var(--color-primary-700)
+$primary-600:   var(--color-primary-600)
+$primary-500:   var(--color-primary-500)
+$primary-400:   var(--color-primary-400)
+$primary-300:   var(--color-primary-300)
+$primary-200:   var(--color-primary-200)
+$primary-100:   var(--color-primary-100)
+$primary-50:    var(--color-primary-50)
+
+// ── 2. Testo ──────────────────────────────────────────────────────────────────
+$text-active:   var(--color-text-active)
+$text-inactive: var(--color-text-inactive)
+$text-disabled: var(--color-text-disabled)
+$text-negative: var(--color-text-negative)
+
+// ── 3. Link e accento ─────────────────────────────────────────────────────────
+$link:          var(--color-link)
+$link-light:    var(--color-link-light)
+$blue:          var(--color-link)
+$blue-light:    var(--color-link-light)
+$accent:        var(--color-accent)
+
+// ── 4. Feedback ───────────────────────────────────────────────────────────────
+$success:       var(--color-success)
+$success-light: var(--color-success-light)
+$success-mid:   var(--color-success-mid)
+$error:         var(--color-error)
+$error-dark:    var(--color-error-dark)
+$error-light:   var(--color-error-light)
+$warning:       var(--color-warning)
+$warning-light: var(--color-warning-light)
+
+// ── 5. Backgrounds e bordi ────────────────────────────────────────────────────
+$bg:            var(--color-bg)
+$white:         var(--color-surface)
+$border:        var(--color-border)
+
+// ── 6. Stati prenotazione (Planner / Tableau) ─────────────────────────────────
+// Non tematizzati — sono codici semantici di stato.
+$stato-confermata:   #7A1515
+$stato-opzione:      #C69520
+$stato-noshow:       #7B5EA7
+$stato-checkin:      #1A6B3C
+$stato-checkin-p:    #2E9959
+$stato-checkout:     #CFCFCF
+$stato-manutenzione: #B8B8B8
+$stato-pulizia:      #9DD7E8
+
+// ── 7. Stati camera ───────────────────────────────────────────────────────────
+$cam-libera:        #00CF86
+$cam-occupata:      #7A1515
+$cam-checkout:      #CFCFCF
+$cam-manutenzione:  #F57D03
+$cam-pulizia:       #9DD7E8
+$cam-prenotata:     #C69520

@@ -1,0 +1,733 @@
+// ─── PRICING ──────────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+// ═══ SCREENING OPEN PRICE ════════════════════════════════════════════════════
+.screening
+
+  &__layout
+    display: flex
+    gap: 16px
+    align-items: flex-start
+
+  // ── Filter bar ───────────────────────────────────────────────────────────────
+  &__filters
+    margin-bottom: 14px
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+  // ── Loading overlay ───────────────────────────────────────────────────────────
+  &__loading
+    position: fixed
+    inset: 0
+    z-index: 200
+    background: rgba($primary, 0.55)
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 16px
+    backdrop-filter: blur(4px)
+
+  &__loading-spinner
+    width: 44px
+    height: 44px
+    border: 4px solid rgba($white, 0.25)
+    border-top-color: $white
+    border-radius: 50%
+    animation: spin 0.75s linear infinite
+
+  &__loading-text
+    color: $white
+    font-size: 14px
+    font-weight: 600
+    font-family: $font-heading
+
+  // ── Mini calendar ─────────────────────────────────────────────────────────────
+  &__cal-wrap
+    width: 340px
+    flex-shrink: 0
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__cal-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 12px 14px
+    border-bottom: 1px solid $border
+    background: #F8FAFC
+
+  &__cal-title
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__cal-scroll
+    overflow-x: auto
+
+  &__cal-table
+    border-collapse: collapse
+    min-width: 500px
+    width: 100%
+
+  &__cal-th-month
+    padding: 6px 10px
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    background: #F8FAFC
+    border-right: 1px solid $border
+    white-space: nowrap
+
+  &__cal-th-day
+    padding: 6px 0
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-align: center
+    background: #F8FAFC
+    border-bottom: 1px solid $border
+    border-right: 0.5px solid #E8EBF0
+
+  &__cal-td-empty
+    border-right: 0.5px solid #E8EBF0
+    background: repeating-linear-gradient(-45deg, #F5F5F5, #F5F5F5 3px, #EBEBEB 3px, #EBEBEB 4px)
+
+  &__cal-dot-cell
+    padding: 4px 1px
+    text-align: center
+    border-right: 0.5px solid #E8EBF0
+
+  &__cal-dot
+    width: 15px
+    height: 15px
+    border-radius: 50%
+    margin: 0 auto
+    transition: transform 0.1s
+
+    &:hover
+      transform: scale(1.3)
+
+    &--active
+      background: #E74C3C
+      box-shadow: 0 1px 4px rgba(#E74C3C, 0.33)
+
+    &--inactive
+      background: #D1D5DB
+
+  // ── Main table ───────────────────────────────────────────────────────────────
+  &__table-wrap
+    flex: 1
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+    min-width: 0
+
+  &__table
+    border-collapse: collapse
+    width: 100%
+    min-width: 500px
+
+  &__thead
+    background: #F8FAFC
+    border-bottom: 1.5px solid $border
+
+  &__th
+    padding: 9px 10px
+    font-size: 11px
+    font-weight: 700
+    color: $text-disabled
+    text-align: left
+    white-space: nowrap
+    letter-spacing: 0.2px
+
+  &__th--right
+    text-align: right
+
+  &__row
+    border-bottom: 0.5px solid $border
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &:last-child
+      border-bottom: none
+
+  &__td
+    padding: 8px 10px
+    font-size: 12px
+    color: $text-active
+    vertical-align: middle
+
+  &__td--nowrap
+    white-space: nowrap
+
+  &__td--right
+    text-align: right
+
+  &__ai-btn
+    display: flex
+    align-items: center
+    gap: 5px
+    background: none
+    border: none
+    cursor: pointer
+    padding: 0
+    margin-left: auto
+    transition: opacity 0.15s
+
+    &:hover
+      opacity: 0.7
+
+  &__ai-value
+    font-size: 12px
+    font-weight: 700
+    color: #E74C3C
+    white-space: nowrap
+
+  // ── Pagination ───────────────────────────────────────────────────────────────
+  &__pagination
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 4px
+    padding: 10px 14px
+    border-top: 0.5px solid $border
+
+// ═══ PRICING BENCHMARK ═══════════════════════════════════════════════════════
+.benchmark
+
+  &__layout
+    display: flex
+    gap: 16px
+    align-items: flex-start
+
+  // ── Filter bar ───────────────────────────────────────────────────────────────
+  &__filters
+    margin-bottom: 14px
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+  // ── View selector ────────────────────────────────────────────────────────────
+  &__view-btns
+    display: flex
+    gap: 8px
+    margin-bottom: 14px
+
+  &__view-btn
+    display: flex
+    align-items: center
+    gap: 6px
+    padding: 7px 14px
+    border-radius: 8px
+    cursor: pointer
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    border: 1.5px solid $border
+    background: $white
+    transition: $transition-fast
+
+    &--active
+      border-color: $primary
+      background: $primary-100
+      color: $primary
+
+  // ── Map / search panel ───────────────────────────────────────────────────────
+  &__search-panel
+    width: 280px
+    flex-shrink: 0
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__search-header
+    padding: 12px 14px
+    border-bottom: 0.5px solid $border
+    background: #F8FAFC
+
+  &__search-title
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    margin-bottom: 8px
+
+  &__map-placeholder
+    background: $primary-50
+    border-radius: 8px
+    height: 140px
+    display: flex
+    align-items: center
+    justify-content: center
+    margin-bottom: 10px
+    position: relative
+    overflow: hidden
+
+  &__hotel-list
+    max-height: 220px
+    overflow-y: auto
+
+  &__hotel-item
+    padding: 10px 14px
+    border-bottom: 0.5px solid $border
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &:last-child
+      border-bottom: none
+
+  &__hotel-add-btn
+    width: 26px
+    height: 26px
+    border-radius: 5px
+    border: 1.5px solid $primary
+    background: transparent
+    cursor: pointer
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    transition: $transition-fast
+
+    &:hover:not(:disabled)
+      background: $primary-100
+
+    &:disabled
+      border-color: $border
+      opacity: 0.35
+      cursor: default
+
+  // ── Monitoring panel ─────────────────────────────────────────────────────────
+  &__monitor-panel
+    flex: 1
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+    min-width: 0
+
+  &__monitor-header
+    padding: 12px 16px
+    border-bottom: 1px solid $border
+
+  &__monitor-title
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+    margin-bottom: 10px
+
+  &__monitor-your-hotel
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 6px 0
+    border-bottom: 0.5px solid $border
+
+  &__monitor-list
+    max-height: 210px
+    overflow-y: auto
+
+  &__monitor-item
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 8px 16px
+    border-bottom: 0.5px solid $border
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &:last-child
+      border-bottom: none
+
+  &__monitor-delete
+    background: none
+    border: none
+    cursor: pointer
+    padding: 3px
+    border-radius: 5px
+    display: flex
+    transition: background 0.1s
+
+    &:hover
+      background: $error-light
+
+  &__monitor-link-btn
+    padding: 4px 9px
+    border: 1.5px solid #E74C3C
+    border-radius: 6px
+    background: transparent
+    cursor: pointer
+    display: flex
+    align-items: center
+    gap: 4px
+    transition: background 0.1s
+
+    &:hover
+      background: #FFF0F0
+
+  // ── Chart controls ────────────────────────────────────────────────────────────
+  &__chart-controls
+    padding: 10px 14px
+    border-top: 0.5px solid $border
+    display: flex
+    align-items: center
+    gap: 6px
+    flex-wrap: wrap
+
+  &__period-btn
+    display: flex
+    align-items: center
+    gap: 3px
+    min-width: 32px
+    height: 26px
+    padding: 0 4px
+    border-radius: 5px
+    cursor: pointer
+    font-size: 10px
+    font-weight: 700
+    justify-content: center
+    transition: $transition-fast
+
+    &--active
+      border-color: $primary
+      background: $primary-100
+      color: $primary
+
+    &:not(.benchmark__period-btn--active)
+      border: 1.5px solid $border
+      background: transparent
+      color: $text-active
+      border-color: $border
+
+  &__info-btn
+    margin-left: auto
+    border: none
+    cursor: pointer
+    padding: 0
+    display: flex
+    border-radius: 50%
+    width: 22px
+    height: 22px
+    align-items: center
+    justify-content: center
+
+  // ── Legend ───────────────────────────────────────────────────────────────────
+  &__legend
+    display: flex
+    flex-wrap: wrap
+    gap: 5px 12px
+    margin-top: 6px
+    padding-left: 44px
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__legend-line
+    width: 16px
+    height: 2.5px
+    border-radius: 1px
+
+  &__legend-label
+    font-size: 9px
+    color: $text-disabled
+
+  // ─── Root ─────────────────────────────────────────────────────────────────────
+.screening__root
+  position: relative
+
+// ─── Loading overlay ──────────────────────────────────────────────────────────
+.screening__loading-overlay
+  position: fixed
+  inset: 0
+  z-index: 90
+  background: rgba(236,238,242,0.92)
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 20px
+
+.screening__loading-gear
+  position: absolute
+  opacity: 0.12
+  animation: spin linear infinite
+
+@keyframes spin
+  from
+    transform: rotate(0deg)
+  to
+    transform: rotate(360deg)
+
+.screening__loading-card
+  background: #fff
+  border-radius: 20px
+  padding: 32px 40px
+  max-width: 460px
+  text-align: center
+  box-shadow: 0 20px 60px rgba(32,71,105,0.15)
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 16px
+
+.screening__loading-dots
+  display: flex
+  gap: 6px
+  align-items: center
+
+.screening__loading-dot
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  background: $primary
+  animation: bounce 1.2s ease-in-out infinite
+
+.screening__loading-text
+  font-size: 13px
+  color: $text-inactive
+  margin: 0
+  line-height: 1.7
+  font-style: italic
+
+// ─── Filters ──────────────────────────────────────────────────────────────────
+.screening__filters-row
+  display: flex
+  align-items: flex-end
+  justify-content: space-between
+  margin-bottom: 16px
+  gap: 12px
+  flex-wrap: wrap
+
+.screening__filters-left
+  display: flex
+  gap: 16px
+  align-items: flex-end
+  flex-wrap: wrap
+
+.screening__select--struttura
+  width: 138px
+
+.screening__date-input
+  width: 148px
+
+// ─── Main layout ──────────────────────────────────────────────────────────────
+.screening__layout
+  display: flex
+  gap: 14px
+  align-items: flex-start
+
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+.screening__cal-wrap
+  flex: 0 0 57%
+  background: $white
+  border-radius: 12px
+  border: 0.5px solid $border
+  overflow: hidden
+  min-width: 0
+
+.screening__cal-scroll
+  overflow-x: auto
+
+.screening__cal-table
+  border-collapse: collapse
+  min-width: 520px
+
+.screening__cal-th-giorni
+  padding: 8px 10px
+  font-size: 11px
+  font-weight: 700
+  color: $text-active
+  background: #F8FAFC
+  border-bottom: 1.5px solid $border
+  border-right: 1px solid $border
+  min-width: 72px
+  text-align: left
+  white-space: nowrap
+
+.screening__cal-th-day
+  padding: 7px 0
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  text-align: center
+  background: #F8FAFC
+  border-bottom: 1.5px solid $border
+  width: 22px
+
+  &--border
+    border-right: 0.5px solid #E8EBF0
+
+.screening__cal-row--border
+  border-bottom: 0.5px solid $border
+
+.screening__cal-td-month
+  padding: 6px 10px
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  background: #F8FAFC
+  border-right: 1px solid $border
+  white-space: nowrap
+
+.screening__cal-td-empty
+  background: repeating-linear-gradient(-45deg,#F5F5F5,#F5F5F5 3px,#EBEBEB 3px,#EBEBEB 4px)
+
+  &--border
+    border-right: 0.5px solid #E8EBF0
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+.screening__table-scroll
+  overflow-x: auto
+
+.screening__th-with-filter
+  display: flex
+  align-items: center
+  gap: 3px
+
+.screening__filter-ico
+  font-size: 9px
+  color: $text-disabled
+
+.screening__th--ai
+  color: #E74C3C
+
+.screening__th--checkbox
+  width: 28px
+
+.screening__checkbox
+  accent-color: $primary
+  width: 12px
+  height: 12px
+  cursor: pointer
+
+.screening__td--center
+  text-align: center
+
+// ─── AI button ────────────────────────────────────────────────────────────────
+.screening__ai-ico
+  font-size: 14px
+  color: #E74C3C
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+.screening__page-nums
+  display: flex
+  gap: 4px
+  align-items: center
+
+.screening__page-ellipsis
+  padding: 0 4px
+  color: $text-disabled
+  font-size: 13px
+
+.screening__page-btn
+  width: 32px
+  height: 32px
+  border-radius: 6px
+  border: 1.5px solid $border
+  background: transparent
+  color: $text-active
+  font-size: 13px
+  font-weight: 400
+  cursor: pointer
+  transition: all 0.13s
+
+  &--active
+    border-color: $primary
+    background: $primary
+    color: #fff
+    font-weight: 700
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+.screening__modal-title
+  font-family: Poppins, sans-serif
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 4px
+
+.screening__modal-subtitle
+  font-size: 12px
+  color: $text-inactive
+  margin: 0 0 10px
+
+.screening__modal-nav
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 6px
+  margin-bottom: 10px
+
+.screening__modal-nav-label
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.screening__modal-legend
+  display: flex
+  align-items: center
+  gap: 14px
+  margin-bottom: 10px
+  justify-content: center
+
+.screening__legend-item
+  display: flex
+  align-items: center
+  gap: 5px
+
+.screening__legend-dot
+  width: 22px
+  height: 12px
+  border-radius: 3px
+  border: 2px solid transparent
+
+.screening__legend-label
+  font-size: 11px
+  color: $text-active
+
+.screening__modal-bar
+  margin-top: 10px
+  padding: 8px 14px
+  background: $blue-light
+  border-radius: 8px
+  display: flex
+  align-items: center
+  gap: 16px
+  flex-wrap: wrap
+
+.screening__modal-bar-date
+  font-size: 11px
+  color: $text-disabled
+
+.screening__modal-bar-date-val
+  font-weight: 600
+  color: $primary
+
+.screening__modal-bar-str
+  font-size: 11px
+  color: $link
+
+.screening__modal-bar-ai
+  font-size: 11px
+  color: #E91E63
+
+.screening__modal-bar-ly
+  font-size: 11px
+  color: #CE93D8

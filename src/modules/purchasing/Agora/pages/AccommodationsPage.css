@@ -1,0 +1,71 @@
+@reference '../../styles/tailwind.css';
+
+.accommodations__filters {
+  @apply mb-8 rounded-card border border-border-soft bg-surface p-6;
+}
+
+.accommodations__filters-grid {
+  @apply grid grid-cols-1 gap-5;
+}
+
+@media (min-width: 640px) {
+  .accommodations__filters-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .accommodations__filters-grid {
+    @apply grid-cols-4;
+  }
+}
+
+.accommodations__filters-cta {
+  @apply mt-6 flex justify-end;
+}
+
+.accommodations__results-head {
+  @apply mb-6 flex flex-wrap items-end justify-between gap-4;
+}
+
+.accommodations__results-count {
+  @apply mt-1;
+}
+
+.accommodations__sort {
+  @apply flex items-center gap-3;
+}
+
+.accommodations__sort-label {
+  @apply whitespace-nowrap;
+}
+
+.accommodations__sort-select {
+  @apply min-w-56;
+}
+
+.accommodations__empty {
+  @apply rounded-card border border-border-soft bg-surface py-16 text-center;
+}
+
+.accommodations__grid {
+  @apply grid grid-cols-1 gap-6;
+}
+
+@media (min-width: 640px) {
+  .accommodations__grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .accommodations__grid {
+    @apply grid-cols-3;
+  }
+}
+
+@media (min-width: 1536px) {
+  .accommodations__grid {
+    @apply grid-cols-4;
+  }
+}

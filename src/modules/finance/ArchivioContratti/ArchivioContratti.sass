@@ -1,0 +1,134 @@
+@use "sass:color"
+
+$primary: #204769
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$bg-zebra: #f3f8fb
+
+.archivio
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Top action bar ────────────────────────────────────────────────
+  &__top
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    flex-wrap: wrap
+
+  &__top-btn
+    height: 38px
+
+  // ── Tabella ───────────────────────────────────────────────────────
+  &__table
+    .archivio__th-center
+      text-align: center
+
+    .archivio__td-center
+      text-align: center
+
+  &__row--inactive
+    td
+      color: #d1d5db
+
+    .sib-btn--icon,
+    .archivio__contact-btn
+      opacity: 0.4
+
+  // ── Contatti (icone documento + busta) ───────────────────────────
+  &__contacts
+    display: inline-flex
+    gap: 6px
+
+  &__contact-btn
+    width: 30px
+    height: 30px
+    border: none
+    background: transparent
+    border-radius: 6px
+    color: $primary
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 16px
+    transition: background 0.15s, color 0.15s
+
+    &:hover
+      background: $bg-soft
+
+  // ── Azioni ────────────────────────────────────────────────────────
+  &__row-actions
+    display: inline-flex
+    gap: 4px
+
+  &__btn-validated
+    color: #10b981
+
+  &__btn-has-notes
+    color: $primary
+    background: $bg-soft
+
+  // ── Riga espansa: note inline ───────────────────────────────────
+  &__notes-row
+    background: $bg-soft
+
+    > td
+      padding: 12px 16px
+      border-bottom: 2px solid $border
+
+  &__notes
+    display: flex
+    align-items: center
+    gap: 12px
+    flex-wrap: wrap
+
+  &__notes-label
+    display: flex
+    align-items: center
+    gap: 10px
+    flex: 1
+    min-width: 240px
+    font-weight: 700
+    color: $primary
+    font-size: 13px
+
+  &__notes-input
+    flex: 1
+    height: 38px
+    padding: 0 12px
+    background: white
+    border: 1px solid $border-strong
+    border-radius: 6px
+    font: inherit
+    font-weight: 400
+    color: $ink
+
+    &:focus
+      outline: none
+      border-color: $primary
+      box-shadow: 0 0 0 2px rgba(32, 71, 105, 0.15)
+
+  &__notes-actions
+    display: inline-flex
+    gap: 8px
+
+  // ── Pagination ────────────────────────────────────────────────────
+  &__pagination
+    display: flex
+    justify-content: space-between
+    align-items: center
+    flex-wrap: wrap
+    gap: 12px
+    margin-top: 4px
+
+  &__pagination-info
+    font-size: 12px
+    color: $muted

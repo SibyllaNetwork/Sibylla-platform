@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* ── Form: text input ─────────────────────────────────────────────── */
+  .sib-input {
+    @apply w-full h-9 px-3 border-[1.5px] border-line rounded-field
+           text-[13px] text-ink bg-white font-opensans outline-none box-border
+           text-ellipsis overflow-hidden whitespace-nowrap
+           focus:border-link;
+  }
+  .sib-input--lg {
+    @apply h-10;
+  }
+  .sib-input--dense {
+    @apply h-[34px] text-xs;
+  }
+  .sib-input--error {
+    @apply border-error focus:border-error;
+  }
+
+  /* ── Form: select ─────────────────────────────────────────────────── */
+  .sib-select {
+    @apply w-full h-9 px-3 pr-8 border-[1.5px] border-line rounded-field
+           text-[13px] text-ink bg-white font-opensans outline-none box-border
+           text-ellipsis overflow-hidden whitespace-nowrap
+           appearance-none bg-no-repeat focus:border-link;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E");
+    background-position: right 8px center;
+  }
+  .sib-select--dense {
+    @apply h-[34px] text-xs;
+  }
+
+  /* ── Form: search input (transparent, inside search bars) ────────── */
+  .sib-search-input {
+    @apply flex-1 border-none outline-none text-[11px] text-ink bg-transparent font-opensans;
+  }
+
+  /* ── Form: checkbox ───────────────────────────────────────────────── */
+  .sib-checkbox {
+    @apply accent-primary w-3.5 h-3.5 cursor-pointer;
+  }
+  .sib-checkbox--sm {
+    @apply w-3 h-3;
+  }
+
+  /* ── Form: radio ──────────────────────────────────────────────────── */
+  .sib-radio {
+    @apply accent-primary cursor-pointer;
+  }
+
+  /* ── Form: date range inner inputs (inside DateRangeField) ───────── */
+  .sib-date-range-inner {
+    @apply border-none outline-none bg-transparent text-[11px] text-ink
+           font-opensans w-[68px] shrink-0 cursor-pointer p-0;
+  }
+  .sib-date-range-inner::-webkit-calendar-picker-indicator {
+    @apply opacity-0 absolute;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     BUTTONS
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* ── Base ──────────────────────────────────────────────────────── */
+  .sib-btn {
+    @apply inline-flex items-center justify-center gap-1.5
+           h-9 px-4 rounded-field
+           text-[13px] font-semibold font-opensans
+           cursor-pointer whitespace-nowrap shrink-0
+           transition-all duration-150 ease-in-out
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* ── Primary (sfondo pieno) ────────────────────────────────────── */
+  .sib-btn--primary {
+    @apply bg-primary border-[1.5px] border-primary text-white
+           hover:enabled:bg-primary-800
+           active:enabled:bg-primary-800;
+  }
+
+  /* ── Secondary (outline) ───────────────────────────────────────── */
+  .sib-btn--secondary {
+    @apply bg-transparent border-[1.5px] border-primary text-primary
+           hover:enabled:bg-primary-50
+           active:enabled:bg-primary-100;
+  }
+
+  /* ── Ghost (solo testo) ────────────────────────────────────────── */
+  .sib-btn--ghost {
+    @apply bg-transparent border-[1.5px] border-transparent text-link
+           hover:enabled:bg-link-light;
+  }
+
+  /* ── Toolbar (outline grigio → blu on hover) ───────────────────── */
+  .sib-btn--toolbar {
+    @apply bg-white border-[1.5px] border-line text-ink
+           hover:enabled:border-primary hover:enabled:text-primary;
+  }
+
+  /* ── Danger ────────────────────────────────────────────────────── */
+  .sib-btn--danger {
+    @apply bg-error border-[1.5px] border-error text-white
+           hover:enabled:bg-error-dark;
+  }
+  .sib-btn--danger-outline {
+    @apply bg-transparent border-[1.5px] border-error text-error
+           hover:enabled:bg-error-light;
+  }
+
+  /* ── Icon (quadrato, solo icona) ───────────────────────────────── */
+  .sib-btn--icon {
+    @apply w-9 h-9 p-0 bg-white border-[1.5px] border-line text-ink-muted
+           hover:enabled:border-primary hover:enabled:bg-primary-50 hover:enabled:text-primary;
+  }
+
+  /* ── Back (navigazione indietro) ───────────────────────────────── */
+  .sib-btn--back {
+    @apply bg-transparent border border-line text-ink-muted !h-8 px-3 text-xs mb-3.5
+           hover:enabled:bg-white hover:enabled:text-primary hover:enabled:border-primary-300;
+  }
+
+  /* ── Dimensioni ────────────────────────────────────────────────── */
+  .sib-btn--lg {
+    @apply h-10 px-5 text-sm;
+  }
+  .sib-btn--sm {
+    @apply h-7 px-3 text-[11px];
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     TABELLE / LISTE
+     ══════════════════════════════════════════════════════════════════ */
+
+  .sib-table-wrap {
+    @apply bg-white border border-line rounded-field overflow-x-auto mb-5;
+  }
+
+  .sib-table {
+    @apply w-full text-[13px] font-opensans border-collapse;
+  }
+  .sib-table thead tr {
+    @apply bg-canvas;
+  }
+  .sib-table th {
+    @apply text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-ink-muted
+           border-b border-line whitespace-nowrap;
+  }
+  .sib-table td {
+    @apply px-3 py-2.5 align-middle text-ink border-b border-line;
+  }
+  .sib-table tbody tr:hover {
+    @apply bg-canvas;
+  }
+  .sib-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .sib-empty {
+    @apply text-center py-8 text-ink-muted text-[12px];
+  }
+
+  .sib-empty-state {
+    @apply bg-white border border-line rounded-field px-6 py-10 text-center text-ink-muted text-[13px];
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     CELLE — modificatori semantici
+     ══════════════════════════════════════════════════════════════════ */
+  .sib-cell--muted   { @apply text-ink-muted; }
+  .sib-cell--success { @apply text-success-dark font-semibold; }
+  .sib-cell--error   { @apply text-error-dark font-semibold; }
+  .sib-cell--warning { @apply text-warning font-semibold; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     STAT CARDS
+     ══════════════════════════════════════════════════════════════════ */
+  .sib-stats-row {
+    @apply grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5;
+  }
+  .sib-stat-card {
+    @apply bg-white border border-line rounded-field px-4 py-3;
+  }
+  .sib-stat-card__label {
+    @apply text-[11px] font-bold uppercase tracking-wide text-ink-muted mb-1;
+  }
+  .sib-stat-card__value {
+    @apply text-[20px] font-bold font-poppins text-primary;
+  }
+  .sib-stat-card__value--success { @apply text-success-dark; }
+  .sib-stat-card__value--error   { @apply text-error-dark; }
+  .sib-stat-card__value--warning { @apply text-warning; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     PROGRESS BAR (utilizzo / soglie)
+     ══════════════════════════════════════════════════════════════════ */
+  .sib-progress {
+    @apply w-full h-1.5 bg-canvas rounded-full overflow-hidden mb-1;
+  }
+  .sib-progress__bar {
+    @apply h-full rounded-full transition-all duration-300;
+  }
+  .sib-progress__bar--success { @apply bg-success; }
+  .sib-progress__bar--warning { @apply bg-warning; }
+  .sib-progress__bar--error   { @apply bg-error; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     LAYOUT helper
+     ══════════════════════════════════════════════════════════════════ */
+  .sib-section-title {
+    @apply text-[14px] font-bold font-poppins text-primary mt-6 mb-3;
+  }
+  .sib-section-spacer {
+    @apply h-3;
+  }
+}

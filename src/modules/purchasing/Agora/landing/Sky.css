@@ -1,0 +1,120 @@
+/* =====================================================================
+   SKY — cielo notturno + stelle + shooting stars
+   ===================================================================== */
+.landing-sky {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 90% 80% at 50% 35%,
+    #1a2a55 0%,
+    #122046 45%,
+    #0d1838 75%,
+    #0b1530 100%
+  );
+  z-index: 1;
+}
+.landing-sky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 22% 28%, rgba(80, 120, 200, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 78% 22%, rgba(120, 90, 180, 0.07) 0%, transparent 38%),
+    radial-gradient(circle at 48% 18%, rgba(180, 180, 220, 0.05) 0%, transparent 30%);
+  pointer-events: none;
+}
+
+/* Stars layer */
+.landing-stars-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.landing-stars-layer.is-dim .landing-star {
+  opacity: 0.4;
+}
+
+/* Star base */
+.landing-star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  will-change: opacity, transform;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.55);
+}
+
+/* Twinkle animations */
+@keyframes landingTwinkleA {
+  0%, 100% { opacity: 0.25; transform: translate(-50%, -50%) scale(0.85); }
+  50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.15); }
+}
+@keyframes landingTwinkleB {
+  0%, 100% { opacity: 0.5;  transform: translate(-50%, -50%) scale(1); }
+  35%      { opacity: 0.15; transform: translate(-50%, -50%) scale(0.7); }
+  70%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.1); }
+}
+@keyframes landingTwinkleC {
+  0%, 100% { opacity: 0.4;  transform: translate(-50%, -50%) scale(0.9); }
+  25%      { opacity: 0.9;  transform: translate(-50%, -50%) scale(1.05); }
+  50%      { opacity: 0.3;  transform: translate(-50%, -50%) scale(0.85); }
+  75%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.2); }
+}
+@keyframes landingTwinkleD {
+  0%, 100% { opacity: 0.7;  transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 0.95; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+.landing-star.s-a { animation: landingTwinkleA 3.4s ease-in-out infinite; }
+.landing-star.s-b { animation: landingTwinkleB 4.8s ease-in-out infinite; }
+.landing-star.s-c { animation: landingTwinkleC 5.6s ease-in-out infinite; }
+.landing-star.s-d { animation: landingTwinkleD 7.2s ease-in-out infinite; }
+
+/* Feature stars con cross-flare */
+.landing-star.feature {
+  width: 4px;
+  height: 4px;
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.9),
+    0 0 16px rgba(180, 200, 255, 0.5),
+    0 0 28px rgba(120, 160, 255, 0.25);
+}
+.landing-star.feature::before,
+.landing-star.feature::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.landing-star.feature::before { width: 26px; height: 1px; }
+.landing-star.feature::after  { width: 1px;  height: 26px; }
+
+/* Shooting stars */
+.landing-shooting-star {
+  position: absolute;
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+  z-index: 2;
+  opacity: 0;
+  transform: rotate(-12deg);
+  animation: landingShoot 9s ease-in infinite;
+}
+.landing-shooting-star.s2 {
+  animation-delay: 4.5s;
+  top: 28%;
+  left: 20%;
+}
+.landing-shooting-star.s1 {
+  top: 14%;
+  left: 60%;
+}
+@keyframes landingShoot {
+  0%, 88% { opacity: 0; transform: translateX(0) translateY(0) rotate(-12deg); }
+  90%     { opacity: 1; }
+  100%    { opacity: 0; transform: translateX(-220px) translateY(46px) rotate(-12deg); }
+}

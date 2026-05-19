@@ -1,0 +1,964 @@
+@reference '../../styles/tailwind.css';
+
+/* =====================================================================
+   DYNAMIC PACKAGES PAGE
+   ===================================================================== */
+.dp-page {
+  @apply flex flex-col gap-8 pb-12;
+}
+
+/* ---- Two-column workspace (controls + visualization) ---- */
+.dp-workspace {
+  @apply grid grid-cols-1 gap-6;
+}
+@media (min-width: 1024px) {
+  .dp-workspace {
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+    align-items: stretch;
+  }
+}
+.dp-controls {
+  @apply flex flex-col gap-6 min-w-0;
+}
+.dp-workspace__viz {
+  @apply min-w-0 flex;
+}
+.dp-workspace__viz > * {
+  flex: 1;
+}
+
+/* ---- Step header (numbered) ---- */
+.dp-step {
+  @apply flex flex-col gap-3;
+}
+.dp-step__head {
+  @apply flex items-center gap-3;
+}
+.dp-step__num {
+  @apply inline-flex size-7 items-center justify-center rounded-full bg-primary font-heading font-bold text-text-negative text-p1;
+}
+.dp-step__hint {
+  @apply mt-1;
+}
+
+/* ---- Categories grid ---- */
+.dp-cat-grid {
+  @apply grid grid-cols-1 gap-3 mt-2 items-start;
+}
+@media (min-width: 640px) {
+  .dp-cat-grid { @apply grid-cols-2; }
+}
+
+.dp-cat {
+  @apply rounded-card border border-border-soft bg-surface overflow-hidden transition-shadow;
+}
+.dp-cat:hover {
+  @apply shadow-md;
+}
+.dp-cat--has-selection {
+  @apply border-link;
+  box-shadow: inset 0 0 0 1px var(--color-link);
+}
+.dp-cat--expanded {
+  @apply shadow-md;
+}
+
+.dp-cat__header {
+  @apply flex w-full items-center gap-3 px-4 py-3 text-left cursor-pointer transition-colors;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  appearance: none;
+}
+.dp-cat__header:hover {
+  @apply bg-surface-subtle;
+}
+.dp-cat__icon {
+  @apply inline-flex size-10 shrink-0 items-center justify-center rounded-control bg-primary text-text-negative text-[20px];
+}
+.dp-cat--has-selection .dp-cat__icon {
+  @apply bg-link;
+}
+.dp-cat__titles {
+  @apply flex flex-1 min-w-0 flex-col;
+}
+.dp-cat__title {
+  @apply font-heading font-bold text-h3 text-primary;
+}
+.dp-cat__count {
+  @apply font-sans text-p6 text-link;
+}
+.dp-cat__chev {
+  @apply text-text-inactive text-[16px] shrink-0;
+}
+
+.dp-cat__body {
+  @apply flex flex-wrap gap-2 px-4 pb-4 pt-1 border-t border-border-soft;
+}
+
+/* ---- Subcategory chips ---- */
+.dp-chip {
+  @apply inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-p1 text-text-active transition-colors cursor-pointer;
+  font: inherit;
+  appearance: none;
+}
+.dp-chip:hover {
+  @apply border-link text-link;
+}
+.dp-chip__icon {
+  @apply text-[14px] leading-none;
+}
+.dp-chip--active {
+  @apply bg-primary text-text-negative border-primary;
+}
+.dp-chip--active:hover {
+  @apply bg-link border-link text-text-negative;
+}
+.dp-chip__check {
+  @apply text-[10px] ml-0.5;
+}
+
+/* ---- Stay details: date range + location + guests + budget ---- */
+.dp-stay {
+  @apply grid grid-cols-2 gap-3 mt-2;
+}
+@media (min-width: 640px) {
+  .dp-stay { @apply grid-cols-4; }
+}
+
+/* Grid-span modifiers applied to <Field>. The base styling (flex column,
+   gap 1.5) is provided by the DS Field component itself. */
+.dp-field--wide { grid-column: span 2; }
+.dp-field--full { grid-column: 1 / -1; }
+
+/* Stepper — coerente con DS Input: 40px / border 1px / rounded-control */
+.dp-stepper {
+  display: inline-grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: stretch;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background: var(--color-surface);
+  transition: border-color 0.15s ease;
+}
+.dp-stepper:hover {
+  border-color: var(--color-primary);
+}
+.dp-stepper__btn {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  padding: 0;
+  appearance: none;
+}
+.dp-stepper__btn:hover:not(:disabled) {
+  background: var(--color-link-soft);
+}
+.dp-stepper__btn:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.dp-stepper__value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--color-text-active);
+  font-size: 14px;
+  border-inline: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+/* ---- Budget slider wrapper (now lives inside the package details block) ---- */
+.dp-budget {
+  @apply flex flex-col gap-1 w-full;
+}
+.dp-budget__scale {
+  @apply flex justify-between font-sans text-p6 text-text-inactive;
+}
+
+/* ---- Action bar ---- */
+.dp-actions {
+  @apply flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-border-soft;
+}
+
+/* ---- Results section ---- */
+.dp-results {
+  @apply flex flex-col gap-4;
+}
+.dp-voucher-grid {
+  @apply grid grid-cols-1 gap-5;
+}
+@media (min-width: 768px) {
+  .dp-voucher-grid { @apply grid-cols-2; }
+}
+@media (min-width: 1280px) {
+  .dp-voucher-grid { @apply grid-cols-3; }
+}
+
+/* ---- Voucher card (ticket style) ---- */
+.dp-voucher {
+  @apply relative flex bg-surface rounded-card border border-border-soft overflow-hidden;
+  box-shadow: 0 6px 18px rgba(32, 71, 105, 0.08);
+}
+
+/* Stato acquistato: bordo + stub verde confirm */
+.dp-voucher--purchased {
+  border-color: var(--color-confirm-200);
+}
+.dp-voucher--purchased .dp-voucher__stub {
+  background: var(--color-confirm-50);
+}
+.dp-voucher--purchased .dp-voucher__stub::before,
+.dp-voucher--purchased .dp-voucher__stub::after {
+  background: var(--color-surface-muted);
+  border-color: var(--color-confirm-200);
+}
+.dp-voucher--purchased .dp-voucher__price {
+  color: var(--color-confirm-700);
+}
+
+.dp-voucher__title-row {
+  @apply flex items-start justify-between gap-3 flex-wrap;
+}
+.dp-voucher__badge {
+  @apply inline-flex items-center gap-1 rounded-full bg-confirm-50 text-confirm-700 px-2 py-1;
+  font-family: var(--font-heading);
+  font-size: var(--text-p6);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.dp-voucher__badge--cart {
+  background: var(--color-alert-50);
+  color: var(--color-alert-700);
+}
+
+/* In-cart parked voucher: leggero accent arancione sul bordo */
+.dp-voucher--in-cart {
+  border-color: var(--color-alert-200);
+}
+.dp-voucher--in-cart .dp-voucher__stub {
+  background: var(--color-alert-50);
+}
+
+.dp-voucher__stub-actions {
+  @apply flex flex-col gap-1.5 w-full mt-1;
+}
+.dp-voucher__main {
+  @apply flex flex-1 flex-col gap-3 p-4;
+}
+.dp-voucher__head {
+  @apply flex flex-col gap-1;
+}
+.dp-voucher__services {
+  @apply flex flex-wrap gap-2;
+}
+.dp-voucher__service {
+  @apply inline-flex items-center rounded-control bg-surface-subtle text-text-active text-p6 px-2 py-1 border border-border-soft;
+}
+.dp-voucher__service strong {
+  @apply font-heading font-bold text-primary mr-1;
+}
+
+.dp-voucher__meta {
+  @apply flex items-center justify-between gap-3 mt-auto pt-2 border-t border-dashed border-border;
+  @apply font-sans text-p1 text-text-inactive;
+}
+.dp-voucher__code {
+  @apply font-heading font-bold text-primary tracking-wider;
+}
+
+.dp-voucher__actions {
+  @apply flex flex-wrap items-center gap-2 mt-auto pt-3 border-t border-dashed border-border;
+}
+.dp-voucher__remove {
+  @apply inline-flex size-7 shrink-0 items-center justify-center rounded-control text-text-inactive transition-colors cursor-pointer;
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  appearance: none;
+  align-self: center;
+}
+.dp-voucher__remove:hover {
+  @apply bg-danger-50 text-danger-900;
+}
+
+/* Right "stub" — perforated divider + price column */
+.dp-voucher__stub {
+  @apply relative flex flex-col items-center justify-center gap-2 px-5 py-4 bg-surface-subtle text-center min-w-[140px];
+  border-left: 2px dashed var(--color-border);
+}
+.dp-voucher__stub::before,
+.dp-voucher__stub::after {
+  content: '';
+  position: absolute;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-soft);
+}
+.dp-voucher__stub::before { top: -8px; }
+.dp-voucher__stub::after { bottom: -8px; }
+
+.dp-voucher__price-label {
+  @apply font-sans text-p6 text-text-inactive uppercase tracking-wider;
+}
+.dp-voucher__price {
+  @apply font-heading font-bold text-h2 text-primary leading-none;
+}
+.dp-voucher__meta-line {
+  @apply font-sans text-p1 text-text-inactive flex items-center gap-1;
+}
+
+/* ---- Service Constellation ----
+   Sempre visibile: si compone man mano che selezioni i servizi (linee +
+   nodi su orbita attorno al hub Sibylla). Durante phase='drawing' partono
+   anche i data pulse come spinner. */
+.dp-eco {
+  @apply flex flex-col items-center gap-4 w-full h-full rounded-card border border-border-soft bg-surface;
+  padding: 20px 24px 24px;
+  box-shadow: 0 4px 18px rgba(32, 71, 105, 0.06);
+}
+.dp-eco__stage {
+  width: 100%;
+  aspect-ratio: 1.6 / 1;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(92, 156, 212, 0.12) 0%, transparent 58%);
+}
+
+.dp-eco__status {
+  @apply font-heading font-semibold text-primary;
+  font-size: var(--text-p1);
+  letter-spacing: 0.04em;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.dp-eco__status i {
+  color: var(--color-link);
+}
+
+/* (stage geometry now defined above with aspect-ratio) */
+.dp-eco__stage {
+  position: relative;
+}
+
+.dp-eco__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Radial rails from Sibylla hub to each service node */
+.dp-eco__rail {
+  stroke: var(--color-border);
+  stroke-width: 0.45;
+  stroke-linecap: round;
+}
+
+/* Data pulse dot, animated via SVG animateMotion from hub → service */
+.dp-eco__pulse {
+  fill: var(--color-link);
+  filter: drop-shadow(0 0 1.4px var(--color-link)) drop-shadow(0 0 2.5px rgba(92, 156, 212, 0.55));
+}
+
+/* Sibylla central hub */
+.dp-eco__core {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-text-negative);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  box-shadow:
+    0 0 0 4px var(--color-surface),
+    0 0 0 5px var(--color-primary),
+    0 8px 24px rgba(32, 71, 105, 0.3);
+}
+.dp-eco__core > i {
+  font-size: 20px;
+  line-height: 1;
+}
+.dp-eco__core::before,
+.dp-eco__core::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 1px solid var(--color-link);
+  pointer-events: none;
+  opacity: 0;
+  animation: dpCorePulse 2.2s ease-out infinite;
+}
+.dp-eco__core::after { animation-delay: 1.1s; }
+@keyframes dpCorePulse {
+  0%   { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.dp-eco__core-label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Service nodes — small navy dots */
+.dp-eco__star {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  pointer-events: none;
+  z-index: 2;
+  animation: dpStarAppear 0.4s cubic-bezier(0.5, 1.6, 0.4, 1) var(--appear-delay, 0s) backwards;
+}
+@keyframes dpStarAppear {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* Recap dei servizi connessi — riempie l'altezza rimanente del pannello */
+.dp-eco__summary {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+  min-height: 0;
+}
+.dp-eco__summary-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-p6);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-inactive);
+}
+.dp-eco__summary-empty {
+  font-family: var(--font-sans);
+  font-size: var(--text-p1);
+  color: var(--color-text-inactive);
+  font-style: italic;
+}
+.dp-eco__summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.dp-eco__summary-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: var(--text-p1);
+  color: var(--color-text-active);
+}
+.dp-eco__summary-cat {
+  font-family: var(--font-heading);
+  font-size: var(--text-p6);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  min-width: 0;
+}
+.dp-eco__summary-name {
+  font-weight: 500;
+}
+
+/* Labels under each node */
+.dp-eco__label {
+  position: absolute;
+  transform: translate(-50%, 12px);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-active);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  animation: dpLabelFade 0.4s ease-out var(--appear-delay, 0s) forwards;
+}
+@keyframes dpLabelFade {
+  to { opacity: 1; }
+}
+
+/* ---- Parking ---- */
+.dp-parking {
+  @apply flex flex-col gap-4 mt-2 p-4 rounded-card bg-surface-subtle border border-border-soft;
+}
+.dp-parking__head {
+  @apply flex items-center justify-between gap-3;
+}
+.dp-parking__icon {
+  @apply inline-flex size-8 items-center justify-center rounded-control bg-primary text-text-negative text-[16px] mr-2;
+}
+.dp-parking__counts {
+  @apply inline-flex items-center gap-2;
+}
+.dp-parking__count {
+  @apply inline-flex min-w-[28px] h-7 items-center justify-center rounded-full bg-primary text-text-negative font-heading font-bold text-p6 px-3;
+}
+.dp-parking__count--saved {
+  @apply bg-primary;
+}
+.dp-parking__count--purchased {
+  @apply bg-confirm-200 text-primary;
+}
+.dp-empty {
+  @apply italic;
+}
+
+/* ---- Voucher details modal ---- */
+.dp-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 21, 48, 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+  animation: dpModalFadeIn 0.2s ease-out;
+}
+@keyframes dpModalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.dp-modal__box {
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(11, 21, 48, 0.3);
+  animation: dpModalScaleIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes dpModalScaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dp-modal__head {
+  @apply flex items-start justify-between gap-4;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.dp-modal__head-text {
+  @apply flex flex-col gap-1 min-w-0;
+}
+.dp-modal__title {
+  @apply font-heading font-bold text-primary;
+  font-size: var(--text-h2);
+  line-height: var(--text-h2--line-height);
+  margin: 0;
+}
+.dp-modal__code {
+  @apply font-heading font-bold text-primary;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-soft);
+  padding: 2px 8px;
+  border-radius: var(--radius-control);
+  align-self: flex-start;
+}
+.dp-modal__close {
+  @apply inline-flex size-9 items-center justify-center rounded-full text-text-inactive cursor-pointer shrink-0;
+  background: transparent;
+  border: 0;
+  font-size: 16px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.dp-modal__close:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-active);
+}
+
+.dp-modal__body {
+  @apply flex flex-col gap-5;
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+.dp-modal__section {
+  @apply flex flex-col gap-2;
+}
+.dp-modal__section-title {
+  @apply font-heading font-bold text-text-inactive;
+  font-size: var(--text-p6);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.dp-modal__dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-p1);
+}
+.dp-modal__dl dt {
+  font-weight: 600;
+  color: var(--color-text-inactive);
+}
+.dp-modal__dl dd {
+  color: var(--color-text-active);
+  margin: 0;
+}
+.dp-modal__dd--empty {
+  color: var(--color-text-inactive);
+  font-style: italic;
+}
+
+.dp-modal__services {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dp-modal__service-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dp-modal__service-cat {
+  @apply font-heading font-bold text-primary;
+  font-size: var(--text-h4);
+}
+.dp-modal__service-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 4px;
+}
+.dp-modal__service-items li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: var(--text-p1);
+  color: var(--color-text-active);
+}
+.dp-modal__service-items > li > i {
+  color: var(--color-confirm-700);
+  font-size: 11px;
+  margin-top: 4px;
+  shrink: 0;
+}
+.dp-modal__service-line {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.dp-modal__service-name {
+  font-weight: 600;
+  color: var(--color-text-active);
+}
+.dp-modal__service-meta {
+  font-size: 12px;
+  color: var(--color-text-inactive);
+  font-family: var(--font-sans);
+}
+
+.dp-modal__foot {
+  @apply flex items-center justify-between gap-4 flex-wrap;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--color-border-soft);
+}
+.dp-modal__price {
+  @apply flex flex-col;
+}
+.dp-modal__price-label {
+  @apply font-sans text-p6 text-text-inactive;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dp-modal__price-value {
+  @apply font-heading font-bold text-primary;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.dp-modal__actions {
+  @apply flex items-center gap-2;
+}
+
+/* ---- Voucher print template (formal layout) ---- */
+.voucher-print {
+  display: none; /* hidden on screen, only visible while printing */
+}
+@media print {
+  body * { visibility: hidden !important; }
+  .voucher-print,
+  .voucher-print * { visibility: visible !important; }
+  .voucher-print {
+    display: block !important;
+    position: absolute !important;
+    inset: 0;
+    padding: 24mm 18mm;
+    background: #fff;
+    color: #1a1a1a;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+}
+
+.voucher-print__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #204769;
+  margin-bottom: 18px;
+}
+.voucher-print__brand {
+  font-family: 'Poppins', sans-serif;
+  font-size: 26pt;
+  font-weight: 700;
+  color: #204769;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+.voucher-print__type {
+  font-size: 9pt;
+  color: #6e7175;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 4px 0 0;
+}
+.voucher-print__code-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  border: 1px solid #204769;
+  border-radius: 6px;
+  padding: 8px 14px;
+  min-width: 160px;
+}
+.voucher-print__code-label {
+  font-size: 8pt;
+  color: #6e7175;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.voucher-print__code {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16pt;
+  font-weight: 700;
+  color: #204769;
+  letter-spacing: 0.04em;
+}
+
+.voucher-print__title-block {
+  margin-bottom: 18px;
+}
+.voucher-print__title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 20pt;
+  font-weight: 700;
+  color: #204769;
+  margin: 0 0 4px;
+}
+.voucher-print__desc {
+  font-size: 11pt;
+  color: #4a4d53;
+  margin: 0;
+}
+
+.voucher-print__section {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #cfcfcf;
+}
+.voucher-print__h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6e7175;
+  margin: 0 0 8px;
+}
+
+.voucher-print__dl {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 11pt;
+}
+.voucher-print__dl dt {
+  font-weight: 600;
+  color: #6e7175;
+}
+.voucher-print__dl dd {
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.voucher-print__services {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.voucher-print__service-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.voucher-print__service-cat {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  color: #204769;
+  letter-spacing: 0.02em;
+}
+.voucher-print__service-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.voucher-print__service-items li {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid #cfcfcf;
+  padding-left: 10px;
+}
+.voucher-print__service-name {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.voucher-print__service-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 10pt;
+  color: #6e7175;
+}
+
+.voucher-print__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 16px;
+  background: #f8fcff;
+  border: 1px solid #204769;
+  border-radius: 6px;
+  margin-bottom: 18px;
+}
+.voucher-print__total-label {
+  font-size: 10pt;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6e7175;
+}
+.voucher-print__total-value {
+  font-family: 'Poppins', sans-serif;
+  font-size: 20pt;
+  font-weight: 700;
+  color: #204769;
+}
+
+.voucher-print__foot {
+  font-size: 9pt;
+  color: #6e7175;
+  border-top: 1px solid #cfcfcf;
+  padding-top: 10px;
+}
+.voucher-print__foot p {
+  margin: 2px 0;
+}
+.voucher-print__foot strong {
+  color: #4a4d53;
+}
+.voucher-print__issued {
+  margin-top: 8px !important;
+  font-style: italic;
+}
+
+/* ---- Cart shortcut banner (visible when cart has items) ---- */
+.dp-cart-banner {
+  @apply flex flex-col gap-4 rounded-card border border-alert-200 bg-alert-50 px-4 py-3;
+}
+@media (min-width: 768px) {
+  .dp-cart-banner {
+    @apply flex-row items-center justify-between;
+  }
+}
+.dp-cart-banner__info {
+  @apply flex items-center gap-3 min-w-0;
+}
+.dp-cart-banner__icon {
+  @apply inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-alert-700 text-white text-[18px];
+}
+.dp-cart-banner__text {
+  @apply flex flex-col leading-tight min-w-0;
+}
+.dp-cart-banner__title {
+  font-family: var(--font-heading);
+  font-size: var(--text-p2);
+  font-weight: 700;
+  color: var(--color-text);
+}
+.dp-cart-banner__total {
+  font-size: var(--text-p4);
+  color: var(--color-text-muted);
+}
+.dp-cart-banner__actions {
+  @apply flex flex-wrap items-center gap-2;
+}

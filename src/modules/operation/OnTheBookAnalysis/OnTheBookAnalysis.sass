@@ -1,0 +1,172 @@
+// ─── ON THE BOOK ANALYSIS ─────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.otb-analysis
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 200px
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+
+    .sib-input
+      width: 140px
+
+    span
+      color: $text-inactive
+
+  &__visualizza
+    i
+      margin-right: 6px
+
+  &__info
+    margin-left: auto
+
+  // ── Stats ───────────────────────────────────────────────────────────────────
+  &__stats
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+    align-items: center
+
+    @media (max-width: 1100px)
+      grid-template-columns: 1fr
+
+  &__previsione
+    display: flex
+    align-items: center
+    gap: 16px
+
+  &__previsione-tile
+    background: $primary
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 18px
+    padding: 12px 20px
+    border-radius: 6px
+    min-width: 130px
+    text-align: center
+
+  &__previsione-text
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__stat-label
+    font-size: 12px
+    color: $text-inactive
+
+  &__stat-foot
+    font-size: 11px
+    color: $text-inactive
+
+  &__stat-value
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 16px
+
+  &__small-stats
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr
+    gap: 16px
+    justify-self: end
+
+    @media (max-width: 800px)
+      grid-template-columns: 1fr
+
+  &__small-stat
+    display: flex
+    flex-direction: column
+    gap: 4px
+    text-align: left
+
+  // ── Trend ───────────────────────────────────────────────────────────────────
+  &__trend
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 16px
+
+  &__legend
+    display: flex
+    justify-content: center
+    gap: 24px
+    margin-bottom: 8px
+    font-size: 12px
+    color: $text-active
+
+  &__dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    display: inline-block
+    margin-right: 6px
+    vertical-align: middle
+
+  &__svg
+    width: 100%
+    height: auto
+
+  // ── Bottom cards ────────────────────────────────────────────────────────────
+  &__bottom
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+
+    @media (max-width: 1100px)
+      grid-template-columns: 1fr
+
+  &__card
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__card-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    text-align: center
+
+  &__scroll
+    max-height: 280px
+    overflow-y: auto
+
+    &::-webkit-scrollbar
+      width: 6px
+
+    &::-webkit-scrollbar-thumb
+      background: $border
+      border-radius: 3px

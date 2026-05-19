@@ -1,0 +1,83 @@
+// ─── STAGIONALITA ─────────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.stagionalita
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__filters
+    display: flex
+    gap: 24px
+    align-items: flex-end
+    flex-wrap: wrap
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__radio-group
+    display: flex
+    gap: 16px
+    align-items: center
+    height: 36px
+
+  &__radio-item
+    display: flex
+    align-items: center
+    gap: 6px
+    cursor: pointer
+
+  &__header
+    display: grid
+    grid-template-columns: 220px 220px 200px 120px
+    gap: 16px
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    margin-top: 8px
+
+  &__rows
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__row
+    display: grid
+    grid-template-columns: 220px 220px 200px 120px
+    gap: 16px
+    align-items: center
+
+  &__date-cell
+    display: flex
+    align-items: center
+    gap: 6px
+
+  &__day
+    width: 60px
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 8px
+
+    .sib-btn i
+      margin-right: 4px

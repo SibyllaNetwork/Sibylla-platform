@@ -1,0 +1,332 @@
+@use '../../../styles/tokens' as *
+
+// ─── Top actions ──────────────────────────────────────────────────────────────
+.paf__top-actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  margin-bottom: 20px
+
+.paf__action-btn
+  display: flex
+  align-items: center
+  gap: 7px
+  background: $white
+  border: 1.5px solid $border
+  border-radius: 8px
+  padding: 8px 14px
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+  transition: all 0.15s
+
+// ─── Success banner ───────────────────────────────────────────────────────────
+.paf__success-banner
+  margin-bottom: 16px
+
+.paf__success-text
+  font-size: 13px
+  color: $success
+  font-weight: 600
+
+// ─── Main grid ────────────────────────────────────────────────────────────────
+.paf__grid
+  display: grid
+  grid-template-columns: 300px minmax(0,1fr)
+  gap: 20px
+  align-items: start
+
+.paf__left-col
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.paf__card
+  background: $white
+  border-radius: 12px
+  border: 0.5px solid $border
+  padding: 20px
+
+.paf__movimenti-card
+  padding: 20px
+
+// ─── Saldo ────────────────────────────────────────────────────────────────────
+.paf__saldo-label
+  font-size: 12px
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  margin-bottom: 6px
+
+.paf__saldo-row
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 8px
+
+.paf__saldo-amount
+  font-family: Poppins, sans-serif
+  font-size: 32px
+  font-weight: 700
+  color: $primary
+
+.paf__vcc-btn
+  display: flex
+  align-items: center
+  gap: 6px
+  background: $blue-light
+  border: 1px solid rgba(92,156,212,0.2)
+  border-radius: 7px
+  padding: 7px 12px
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $link
+  white-space: nowrap
+
+// ─── Ricarica ─────────────────────────────────────────────────────────────────
+.paf__ricarica-title
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+  margin-bottom: 4px
+
+.paf__ricarica-subtitle
+  font-size: 11px
+  color: $text-inactive
+  margin-bottom: 16px
+
+.paf__section-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+  margin-bottom: 10px
+
+.paf__tagli-grid
+  display: grid
+  grid-template-columns: 1fr 1fr 1fr
+  gap: 8px
+  margin-bottom: 16px
+
+.paf__taglio-label
+  display: flex
+  align-items: center
+  padding: 8px 10px
+  border-radius: 7px
+  border: 1.5px solid $border
+  background: transparent
+  cursor: pointer
+  font-size: 12px
+  font-weight: 400
+  color: $text-active
+  transition: all 0.15s
+
+  &--active
+    border-color: $primary
+    background: $primary-100
+    font-weight: 600
+    color: $primary
+
+.paf__radio-hidden
+  display: none
+
+.paf__altro-wrap
+  margin-bottom: 16px
+
+.paf__metodi-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px
+  margin-bottom: 20px
+
+.paf__metodo-label
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 10px 12px
+  border-radius: 7px
+  border: 1.5px solid $border
+  background: transparent
+  cursor: pointer
+  font-size: 12px
+  font-weight: 400
+  color: $text-active
+  transition: all 0.15s
+
+  &--active
+    border-color: $primary
+    background: $primary-100
+    font-weight: 600
+    color: $primary
+
+.paf__metodo-ico
+  font-size: 16px
+
+.paf__ricarica-btn
+  width: 100%
+  height: 42px
+  background: $primary
+  border: none
+  border-radius: 8px
+  font-size: 13px
+  font-weight: 700
+  color: #fff
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+
+  &--loading
+    background: $primary-500
+    cursor: not-allowed
+
+.paf__spinner
+  font-size: 16px
+  color: #fff
+  animation: paf-spin 1s linear infinite
+
+@keyframes paf-spin
+  from
+    transform: rotate(0deg)
+  to
+    transform: rotate(360deg)
+
+// ─── Movimenti ────────────────────────────────────────────────────────────────
+.paf__movimenti-header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 16px
+
+.paf__movimenti-title
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+
+.paf__movimenti-actions
+  display: flex
+  gap: 6px
+
+.paf__movimenti-btn
+  background: $bg
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 5px 10px
+  cursor: pointer
+  font-size: 11px
+  color: $text-inactive
+
+.paf__mov-head
+  display: grid
+  grid-template-columns: 1fr 1.6fr 0.8fr 0.7fr 1.2fr 0.7fr
+  padding: 8px 12px
+  background: #FAFBFC
+  border-radius: 8px 8px 0 0
+  border: 0.5px solid $border
+  border-bottom: none
+
+.paf__mov-head-cell
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.5px
+
+.paf__mov-body
+  border: 0.5px solid $border
+  border-radius: 0 0 8px 8px
+  overflow: hidden
+
+.paf__mov-row
+  display: grid
+  grid-template-columns: 1fr 1.6fr 0.8fr 0.7fr 1.2fr 0.7fr
+  padding: 11px 12px
+  align-items: center
+
+  &--border
+    border-bottom: 0.5px solid $border
+
+.paf__mov-id
+  font-size: 12px
+  font-weight: 600
+  color: $link
+
+.paf__mov-data
+  font-size: 12px
+  color: $text-inactive
+
+.paf__mov-importo
+  font-size: 12px
+  font-weight: 600
+
+  &--pos
+    color: $success
+
+  &--neg
+    color: $error
+
+.paf__mov-cell
+  font-size: 12px
+  color: $text-inactive
+
+// ─── Badge ────────────────────────────────────────────────────────────────────
+.paf__badge
+  font-size: 11px
+  font-weight: 600
+  border-radius: 4px
+  padding: 2px 8px
+
+  &--ok
+    color: $success
+    background: $success-light
+
+  &--pending
+    color: $warning
+    background: $warning-light
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+.paf__pagination
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 6px
+  margin-top: 16px
+
+.paf__pag-nav
+  display: flex
+  align-items: center
+  gap: 4px
+  background: transparent
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 5px 12px
+  cursor: pointer
+  font-size: 12px
+  color: $text-active
+
+  &--disabled
+    color: $text-disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.paf__pag-btn
+  width: 32px
+  height: 32px
+  border-radius: 6px
+  border: 1px solid $border
+  background: transparent
+  color: $text-active
+  font-size: 13px
+  font-weight: 400
+  cursor: pointer
+
+  &--active
+    border-color: $primary
+    background: $primary
+    color: #fff
+    font-weight: 600

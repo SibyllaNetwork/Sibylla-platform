@@ -1,0 +1,138 @@
+// ─── PREFERENCES MENU ─────────────────────────────────────────────────────────
+// Pulsante icona in topbar + dropdown con scelta della modalità di
+// visualizzazione (classica vs. a tab).
+@use '../styles/tokens' as *
+
+.prefs-menu
+  position: relative
+  display: flex
+  align-items: center
+  flex-shrink: 0
+
+  &__trigger
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 6px
+    display: flex
+    align-items: center
+    border-radius: 8px
+    transition: background 0.15s
+
+    &:hover,
+    &--open
+      background: rgba(255, 255, 255, 0.12)
+
+  // ── Dropdown ───────────────────────────────────────────────────────────────
+  &__dropdown
+    position: absolute
+    top: calc(100% + 8px)
+    right: 0
+    width: 300px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    box-shadow: $shadow-lg
+    padding: 8px
+    z-index: 300
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__title
+    font-family: $font-body
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.5px
+    padding: 6px 8px 0
+
+  &__subtitle
+    font-family: $font-body
+    font-size: 11px
+    color: $text-inactive
+    padding: 2px 8px 8px
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 12px
+    width: 100%
+    padding: 10px 8px
+    background: transparent
+    border: none
+    border-radius: $radius-md
+    cursor: pointer
+    text-align: left
+    transition: background 0.12s
+
+    &:hover
+      background: $primary-50
+
+    &--active
+      background: $primary-50
+
+  // ── Anteprime grafiche delle modalità ──────────────────────────────────────
+  &__preview
+    width: 44px
+    height: 36px
+    border-radius: $radius-sm
+    border: 1px solid $border
+    background: #F8FAFC
+    flex-shrink: 0
+    position: relative
+    overflow: hidden
+    display: flex
+    flex-direction: column
+
+  &__preview-tabs
+    display: flex
+    gap: 2px
+    padding: 3px 3px 0
+    background: $primary
+    height: 12px
+    align-items: flex-end
+
+  &__preview-tab
+    flex: 1
+    height: 8px
+    background: rgba($white, 0.25)
+    border-radius: 2px 2px 0 0
+
+    &--active
+      background: $white
+
+  &__preview-page
+    flex: 1
+    background: $white
+    margin: 3px
+
+    &--full
+      margin: 6px
+      background: $white
+      border-top: 4px solid $primary
+
+  &__item-text
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__item-label
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__item-desc
+    font-family: $font-body
+    font-size: 11px
+    color: $text-inactive
+    line-height: 1.35
+
+  &__check
+    font-size: 11px
+    color: $primary
+    flex-shrink: 0

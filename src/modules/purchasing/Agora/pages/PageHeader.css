@@ -1,0 +1,24 @@
+@reference './../../styles/tailwind.css';
+
+.page-header {
+  @apply mb-8;
+}
+
+/* Il back button usa le classi standard Sibylla (sib-btn sib-btn--back).
+   Margin-bottom è già impostato da `sib-btn--back` (mb-3.5) — nessun override. */
+
+.page-header__row {
+  @apply flex flex-wrap items-start justify-between gap-6;
+}
+
+.page-header__titles {
+  @apply min-w-0;
+}
+
+.page-header__subtitle {
+  @apply mt-2;
+}
+
+.page-header__actions {
+  @apply flex flex-wrap gap-3;
+}

@@ -1,0 +1,192 @@
+@use '../../../../styles/tokens' as *
+
+// ─── Filter bar ───────────────────────────────────────────────────────────────
+.promo__filters
+  display: flex
+  align-items: flex-end
+  gap: 12px
+  flex-wrap: wrap
+
+.promo__filter-col
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.promo__search-wrap
+  display: flex
+  align-items: center
+  gap: 6px
+  height: 34px
+  min-height: 34px
+  max-height: 34px
+  overflow: hidden
+  border: 1px solid #cfcfcf
+  border-radius: 6px
+  padding: 0 10px
+  background: #fff
+  width: 180px
+  box-sizing: border-box
+  &:focus-within
+    border-color: #5c9cd4
+
+.promo__search-ico
+  font-size: 13px
+  color: #a9aaad
+  flex-shrink: 0
+
+.promo__search-input
+  flex: 1
+  border: none
+  outline: none
+  font-size: 13px
+  color: #4a4d53
+  font-family: 'Open Sans', sans-serif
+  background: transparent
+  &::placeholder
+    color: #a9aaad
+
+.promo__search-clear
+  background: none
+  border: none
+  cursor: pointer
+  padding: 0
+  display: flex
+  align-items: center
+
+.promo__filter-group
+  display: flex
+  align-items: center
+  gap: 6px
+
+.promo__filter-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  white-space: nowrap
+
+.promo__select--mercato
+  width: 100px
+  height: 34px
+
+.promo__date-input
+  width: 136px
+  height: 34px
+  font-size: 11px
+
+.promo__reset-btn
+  font-size: 11px
+  color: $text-inactive
+
+.promo__result-count
+  font-size: 11px
+  color: $text-disabled
+
+.promo__new-btn
+  margin-left: auto
+
+// ─── Table cells ──────────────────────────────────────────────────────────────
+.promo__th--right
+  text-align: right
+
+.promo__th--center
+  text-align: center
+
+.promo__td--empty
+  text-align: center
+  color: $text-disabled
+  padding: 32px 0
+
+.promo__td--num
+  text-align: center
+  color: $text-disabled
+  font-weight: 600
+
+.promo__td--nome
+  font-weight: 600
+  color: $primary
+
+.promo__td--muted
+  color: $text-disabled
+
+.promo__td--right
+  text-align: right
+
+// ─── Delete modal ─────────────────────────────────────────────────────────────
+.promo__delete-modal
+  text-align: center
+  padding: 8px 0
+
+.promo__delete-ico-wrap
+  width: 52px
+  height: 52px
+  border-radius: 50%
+  background: $error-light
+  display: flex
+  align-items: center
+  justify-content: center
+  margin: 0 auto 16px
+
+.promo__delete-ico
+  font-size: 22px
+  color: $error
+
+.promo__delete-title
+  font-family: Poppins, sans-serif
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 8px
+
+.promo__delete-text
+  font-size: 13px
+  color: $text-inactive
+  margin: 0 0 24px
+  line-height: 1.6
+
+.promo__delete-name
+  color: $primary
+
+.promo__delete-hint
+  font-size: 11px
+  color: $text-disabled
+
+.promo__delete-actions
+  display: flex
+  gap: 10px
+  justify-content: center
+
+.promo__delete-confirm-btn
+  background: $error
+  border: none
+  border-radius: 8px
+  padding: 9px 28px
+  font-size: 13px
+  font-weight: 700
+  color: #fff
+  cursor: pointer
+  display: flex
+  align-items: center
+  gap: 7px
+  transition: background 0.15s
+
+// ─── Create/edit modal ────────────────────────────────────────────────────────
+.promo__modal-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.promo__nome-input
+
+.promo__modal-select
+
+.promo__partners-select
+  height: 90px
+  padding: 4px 8px
+
+.promo__partners-hint
+  font-size: 10px
+  color: $text-disabled
+  margin-top: 3px
+
+.promo__modal-actions
+  margin-top: 0

@@ -1,0 +1,222 @@
+import React, { useState, useRef, useEffect } from 'react'
+import T from '../../../../core/tokens'
+import Ico from '../../../../core/icons/Ico'
+import BtnBack from '../../../../core/components/BtnBack'
+import PageHeader from '../../../../core/components/PageHeader'
+import { SelectField } from '../../../../core/components/form'
+import './AnalisiBooking.sass'
+
+// ── Mock data ─────────────────────────────────────────────────────────────────
+const OPERATORI = [
+  { id: 'tot', nome: 'Tour Operator Test', produzione: 17000.64, riempimento: 16.27, trend: 'up', giorniExtra: 0, servizi: 0 },
+  { id: 'ota', nome: 'Booking.com',         produzione:  8400.00, riempimento:  9.80, trend: 'up', giorniExtra: 2, servizi: 1 },
+  { id: 'dir', nome: 'Prenotazione diretta',produzione: 12300.00, riempimento: 14.50, trend: 'down', giorniExtra: 0, servizi: 3 },
+]
+
+const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
+const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
+const CATEGORIE = ['Tutte','Standard','Superior','Suite']
+
+// Genera dati giornalieri mock per il grafico
+function genChartData(mese: number, anno: number, capienza: number) {
+  const giorni = new Date(anno, mese, 0).getDate()
+  const data: { giorno: string; vendute: number }[] = []
+  for (let d = 1; d <= giorni; d++) {
+    const label = `${String(d).padStart(2,'0')}/${String(mese).padStart(2,'0')}/${anno}`
+    const peak = d >= 7 && d <= 10 ? capienza : d >= 15 && d <= 17 ? Math.round(capienza * 0.24) : Math.round(Math.random() * capienza * 0.15)
+    data.push({ giorno: label, vendute: peak })
+  }
+  return data
+}
+
+// ── Chart SVG semplice ────────────────────────────────────────────────────────
+function LineChart({ data, capienza }: { data: { giorno: string; vendute: number }[], capienza: number }) {
+  const W = 660; const H = 240; const PL = 36; const PR = 10; const PT = 10; const PB = 50
+  const chartW = W - PL - PR
+  const chartH = H - PT - PB
+  const maxY = Math.ceil(capienza * 1.15)
+  const n = data.length
+
+  const toX = (i: number) => PL + (i / (n - 1)) * chartW
+  const toY = (v: number) => PT + chartH - (v / maxY) * chartH
+
+  const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(d.vendute).toFixed(1)}`).join(' ')
+  const areaPath = linePath + ` L${toX(n - 1).toFixed(1)},${(PT + chartH).toFixed(1)} L${PL},${(PT + chartH).toFixed(1)} Z`
+
+  // Y axis ticks
+  const yTicks = [0, 5, 10, 15, 20, 25, Math.ceil(capienza * 1.1)].filter(v => v <= maxY)
+
+  // X axis labels — ogni 5 giorni
+  const xLabels = data.filter((_, i) => i % 4 === 0 || i === n - 1)
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      {/* Grid lines */}
+      {yTicks.map(v => (
+        <g key={v}>
+          <line x1={PL} y1={toY(v)} x2={W - PR} y2={toY(v)} stroke={T.border} strokeWidth={0.5} />
+          <text x={PL - 4} y={toY(v) + 3} textAnchor="end" fontSize={9} fill={T.textDisabled}>{v}</text>
+        </g>
+      ))}
+
+      {/* Capienza massima — dashed red */}
+      <line x1={PL} y1={toY(capienza)} x2={W - PR} y2={toY(capienza)}
+        stroke="#E74C3C" strokeWidth={1.5} strokeDasharray="6 4" />
+
+      {/* Area fill */}
+      <path d={areaPath} fill="#9DD7E8" fillOpacity={0.35} />
+
+      {/* Line */}
+      <path d={linePath} fill="none" stroke="#5C9CD4" strokeWidth={1.8} />
+
+      {/* X labels */}
+      {xLabels.map((d, i) => {
+        const idx = data.indexOf(d)
+        return (
+          <text key={i} x={toX(idx)} y={H - 8} textAnchor="middle"
+            fontSize={8.5} fill={T.textDisabled}
+            transform={`rotate(-40, ${toX(idx)}, ${H - 8})`}>
+            {d.giorno.slice(0, 5)}
+          </text>
+        )
+      })}
+
+      {/* Y axis label */}
+      <text x={10} y={PT + chartH / 2} textAnchor="middle" fontSize={9} fill={T.textDisabled}
+        transform={`rotate(-90, 10, ${PT + chartH / 2})`}>Quantità</text>
+    </svg>
+  )
+}
+
+// ── Componente principale ─────────────────────────────────────────────────────
+export default function AnalisiBooking({ navigate }: { navigate: (p: string) => void }) {
+  const [mese,      setMese]      = useState(4)
+  const [anno,      setAnno]      = useState(2026)
+  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  const [categoria, setCategoria] = useState('Tutte')
+
+  const capienza  = 25
+  const chartData = genChartData(mese, anno, capienza)
+
+  const totale = {
+    produzione:   OPERATORI.reduce((s, o) => s + o.produzione, 0),
+    riempimento:  OPERATORI.reduce((s, o) => s + o.riempimento, 0) / OPERATORI.length,
+    giorniExtra:  OPERATORI.reduce((s, o) => s + o.giorniExtra, 0),
+    servizi:      OPERATORI.reduce((s, o) => s + o.servizi, 0),
+  }
+
+  return (
+    <div className="analisi-booking">
+      <BtnBack onClick={() => navigate('home')} />
+
+      <PageHeader title="Analisi booking" subtitle="Dashboard su revenue, tasso di occupazione, giorni extra e servizi venduti"/>
+
+      {/* ── Filtri ── */}
+      <div className="analisi-booking__filters">
+        <SelectField
+          label="Mese"
+          name="mese"
+          className="w-[130px]"
+          value={mese}
+          onChange={e => setMese(+e.target.value)}
+          options={MESI.map((m, i) => ({ value: i + 1, label: m }))}
+        />
+        <SelectField
+          label="Anno"
+          name="anno"
+          className="w-[90px]"
+          value={anno}
+          onChange={e => setAnno(+e.target.value)}
+          options={[2024, 2025, 2026, 2027].map(y => ({ value: y, label: String(y) }))}
+        />
+        <SelectField
+          label="Struttura"
+          name="struttura"
+          className="w-[180px]"
+          value={struttura}
+          onChange={e => setStruttura(e.target.value)}
+          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+        />
+        <SelectField
+          label="Categoria"
+          name="categoria"
+          className="w-[110px]"
+          value={categoria}
+          onChange={e => setCategoria(e.target.value)}
+          options={CATEGORIE.map(c => ({ value: c, label: c }))}
+        />
+      </div>
+
+      {/* ── Body ── */}
+      <div className="analisi-booking__body">
+
+        {/* Tabella */}
+        <div className="analisi-booking__table-wrap">
+          <table className="analisi-booking__table">
+            <thead>
+              <tr>
+                <th className="analisi-booking__th">Nome</th>
+                <th className="analisi-booking__th analisi-booking__th--right">Produzione</th>
+                <th className="analisi-booking__th analisi-booking__th--right">Riempimento</th>
+                <th className="analisi-booking__th analisi-booking__th--right">Giorni extra</th>
+                <th className="analisi-booking__th analisi-booking__th--right">Servizi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {OPERATORI.map(op => (
+                <tr key={op.id} className="analisi-booking__tr">
+                  <td className="analisi-booking__td analisi-booking__td--name">{op.nome}</td>
+                  <td className="analisi-booking__td analisi-booking__td--right">
+                    {op.produzione.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
+                  </td>
+                  <td className="analisi-booking__td analisi-booking__td--right">
+                    <div className="analisi-booking__riempimento">
+                      {op.riempimento.toFixed(2)} %
+                      <Ico n={op.trend === 'up' ? 'chart-line' : 'minus'} s={11}
+                        c={op.trend === 'up' ? T.success : T.error} />
+                    </div>
+                  </td>
+                  <td className="analisi-booking__td analisi-booking__td--right">{op.giorniExtra}</td>
+                  <td className="analisi-booking__td analisi-booking__td--right">{op.servizi}</td>
+                </tr>
+              ))}
+              <tr className="analisi-booking__tr analisi-booking__tr--total">
+                <td className="analisi-booking__td">Totale</td>
+                <td className="analisi-booking__td analisi-booking__td--right">
+                  <strong>{totale.produzione.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</strong>
+                </td>
+                <td className="analisi-booking__td analisi-booking__td--right">
+                  <div className="analisi-booking__riempimento">
+                    <strong>{totale.riempimento.toFixed(2)} %</strong>
+                    <Ico n="chart-line" s={11} c={T.success} />
+                  </div>
+                </td>
+                <td className="analisi-booking__td analisi-booking__td--right"><strong>{totale.giorniExtra}</strong></td>
+                <td className="analisi-booking__td analisi-booking__td--right"><strong>{totale.servizi}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Grafico */}
+        <div className="analisi-booking__chart-wrap">
+          <div className="analisi-booking__chart-title">Riempimento mensile totale</div>
+          <div className="analisi-booking__chart-legend">
+            <div className="analisi-booking__legend-item">
+              <div className="analisi-booking__legend-line analisi-booking__legend-line--capacity" />
+              Capienza Massima ({capienza} camere)
+            </div>
+            <div className="analisi-booking__legend-item">
+              <div className="analisi-booking__legend-line analisi-booking__legend-line--sold" />
+              Camere Vendute
+            </div>
+          </div>
+          <div className="analisi-booking__chart-area">
+            <LineChart data={chartData} capienza={capienza} />
+          </div>
+        </div>
+
+      </div>
+    </div>
+  )
+}

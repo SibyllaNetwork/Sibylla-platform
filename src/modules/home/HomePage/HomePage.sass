@@ -1,0 +1,288 @@
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+.home
+
+  // ── Hero (Timone + Onda) ──────────────────────────────────────────────────
+  &__hero
+    position: relative
+    width: calc(100% + 48px)
+    margin-left: -24px
+    margin-right: -24px
+    margin-top: -24px
+    height: calc(100vh - 64px)
+    display: flex
+    align-items: center
+    justify-content: center
+    overflow: hidden
+
+  &__hero-content
+    position: relative
+    z-index: 2
+
+  &__timone
+    width: 650px
+    height: 650px
+    min-width: 650px
+    min-height: 650px
+    object-fit: cover
+    transform: scale(1.5)
+    transform-origin: center center
+    filter: drop-shadow(0 16px 48px rgba(32, 71, 105, 0.2))
+
+  &__timone-placeholder
+    width: 650px
+    height: 650px
+    display: flex
+    align-items: center
+    justify-content: center
+
+  &__wave
+    position: absolute
+    bottom: 0
+    left: 0
+    right: 0
+    z-index: 1
+    line-height: 0
+    cursor: pointer
+
+    svg
+      width: 100%
+      height: 350px
+      display: block
+      transform: scale(1.5)
+      transform-origin: bottom center
+
+    // Animazione onde al click
+    &--animate svg path
+      animation: waveMove 2s ease-in-out
+
+    &--animate svg path:nth-child(1)
+      animation-delay: 0s
+
+    &--animate svg path:nth-child(2)
+      animation-delay: 0.15s
+
+    &--animate svg path:nth-child(3)
+      animation-delay: 0.3s
+
+  @keyframes waveMove
+    0%
+      transform: translateY(0)
+    25%
+      transform: translateY(-18px)
+    50%
+      transform: translateY(10px)
+    75%
+      transform: translateY(-6px)
+    100%
+      transform: translateY(0)
+
+  // ── Header ──────────────────────────────────────────────────────────────────
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-size: 24px
+    font-weight: 600
+    color: $primary
+    line-height: 1.2
+
+  &__date
+    margin: 4px 0 0
+    font-size: 13px
+    color: $text-inactive
+
+  // ── KPI grid ────────────────────────────────────────────────────────────────
+  &__kpis
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 12px
+    margin-bottom: 20px
+
+  &__kpi
+    background: $white
+    border-radius: 10px
+    border: 0.5px solid $border
+    padding: 16px 18px
+    transition: all 0.15s
+    cursor: default
+
+    &:hover
+      box-shadow: 0 4px 12px rgba(32, 71, 105, 0.1)
+      transform: translateY(-1px)
+
+  &__kpi-label
+    font-size: 10px
+    color: $text-inactive
+    margin-bottom: 8px
+    text-transform: uppercase
+    letter-spacing: 0.5px
+
+  &__kpi-value
+    font-size: 22px
+    font-weight: 600
+    color: $primary
+    font-family: $font-heading
+    line-height: 1.1
+
+  &__kpi-delta
+    margin-top: 6px
+    font-size: 12px
+    font-weight: 600
+
+    &--up
+      color: $success
+
+    &--down
+      color: $error
+
+    &--neutral
+      color: $text-inactive
+
+  // ── Main grid (moduli + notifiche) ───────────────────────────────────────────
+  &__grid
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 290px
+    gap: 16px
+    margin-bottom: 16px
+
+  // ── Card base ────────────────────────────────────────────────────────────────
+  &__card
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    padding: 20px
+
+  &__card-title
+    font-size: 11px
+    font-weight: 700
+    color: $primary
+    margin-bottom: 14px
+    text-transform: uppercase
+    letter-spacing: 0.6px
+    font-family: $font-heading
+
+  // ── Moduli grid ──────────────────────────────────────────────────────────────
+  &__modules
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 10px
+
+  &__module
+    background: #FAFBFC
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 14px 12px
+    cursor: pointer
+    transition: all 0.15s
+
+    &:hover
+      transform: translateY(-1px)
+      // border-color e background dinamici — gestiti inline
+
+  &__module-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    margin-bottom: 8px
+    // background gestito inline (colore modulo)
+
+  &__module-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-active
+    line-height: 1.3
+
+  &__module-status
+    display: flex
+    align-items: center
+    gap: 4px
+    margin-top: 5px
+
+  &__module-status-dot
+    width: 5px
+    height: 5px
+    border-radius: 50%
+    background: $success-mid
+
+  &__module-status-text
+    font-size: 10px
+    color: $text-disabled
+
+  // ── Notifiche ────────────────────────────────────────────────────────────────
+  &__alert
+    display: flex
+    gap: 10px
+    padding: 10px 0
+    border-bottom: 0.5px solid $border
+    align-items: flex-start
+    cursor: pointer
+    transition: background 0.12s
+
+    &:last-child
+      border-bottom: none
+
+    &:hover
+      background: $bg
+
+  &__alert-icon
+    width: 26px
+    height: 26px
+    border-radius: 7px
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    // background gestito inline
+
+  &__alert-dot
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    // background gestito inline
+
+  &__alert-text
+    font-size: 12px
+    color: $text-active
+    line-height: 1.4
+
+  // ── Feed attività ────────────────────────────────────────────────────────────
+  &__feed-item
+    display: flex
+    align-items: center
+    gap: 14px
+    padding: 9px 6px
+    border-bottom: 0.5px solid $border
+    cursor: pointer
+    transition: background 0.12s
+
+    &:last-child
+      border-bottom: none
+
+    &:hover
+      background: $bg
+
+  &__feed-dot
+    width: 6px
+    height: 6px
+    border-radius: 50%
+    flex-shrink: 0
+    // background gestito inline
+
+  &__feed-mod
+    font-size: 11px
+    font-weight: 600
+    flex-shrink: 0
+    // color gestito inline
+
+  &__feed-action
+    font-size: 12px
+    color: $text-active
+    flex: 1
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__feed-time
+    font-size: 11px
+    color: $text-disabled
+    flex-shrink: 0

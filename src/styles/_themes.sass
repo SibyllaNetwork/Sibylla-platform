@@ -1,0 +1,287 @@
+// ─── THEMES ───────────────────────────────────────────────────────────────────
+// Definizione delle CSS custom properties per ciascun tema.
+// Il tema attivo viene selezionato dal valore dell'attributo `data-theme`
+// sull'elemento <html>, gestito da src/store/useThemeStore.ts.
+//
+// Temi disponibili:
+//   [data-theme="classic"]    → versione originale Sibylla (blu navy + oro)
+//   [data-theme="editorial"]  → hospitality editoriale (serif, avorio, oro)
+//   [data-theme="swiss"]      → minimal svizzero (Inter, bianco, bordi neri)
+//   [data-theme="terracotta"] → mediterraneo caldo (terracotta, sabbia, verde oliva)
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  CLASSIC — tema di default (equivalente al look Sibylla originario)
+// ══════════════════════════════════════════════════════════════════════════════
+:root,
+[data-theme="classic"]
+  // ── Palette primaria
+  --color-primary:       #204769
+  --color-primary-900:   #204769
+  --color-primary-800:   #1a3a56
+  --color-primary-700:   #43617c
+  --color-primary-600:   #58738b
+  --color-primary-500:   #8399ab
+  --color-primary-400:   #9cacbb
+  --color-primary-300:   #b3c1cc
+  --color-primary-200:   #ccd5dd
+  --color-primary-100:   #e6eaee
+  --color-primary-50:    #f2f5f6
+
+  // ── Testo
+  --color-text-active:   #4A4D53
+  --color-text-inactive: #6E7175
+  --color-text-disabled: #A9AAAD
+  --color-text-negative: #FFFFFF
+
+  // ── Link e accento
+  --color-link:          #5C9CD4
+  --color-link-light:    #EBF4FB
+  --color-accent:        #C9A84C
+
+  // ── Feedback
+  --color-success:       #007035
+  --color-success-light: #E4F8EE
+  --color-success-mid:   #00CF86
+  --color-error:         #FF616E
+  --color-error-dark:    #D10011
+  --color-error-light:   #FFEAEF
+  --color-warning:       #F57D03
+  --color-warning-light: #FFF3E0
+
+  // ── Superfici
+  --color-bg:            #F8FCFF
+  --color-surface:       #FFFFFF
+  --color-border:        #DBDBDB
+
+  // ── Tipografia
+  --font-heading: 'Poppins', sans-serif
+  --font-body:    'Open Sans', sans-serif
+
+  // ── Radii
+  --radius-sm:   4px
+  --radius-md:   6px
+  --radius-lg:   10px
+  --radius-xl:   12px
+  --radius-page: 15px
+
+  // ── Ombre
+  --shadow-sm: 0 1px 4px rgba(32, 71, 105, 0.08)
+  --shadow-md: 0 2px 8px rgba(32, 71, 105, 0.15)
+  --shadow-lg: 0 4px 16px rgba(32, 71, 105, 0.18)
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  EDITORIAL — hospitality italiana, serif display, palette desaturata
+// ══════════════════════════════════════════════════════════════════════════════
+// Direzione: Instrument Serif per titoli, Inter per body, fondo avorio,
+//            oro caldo protagonista, blu ridotto a neutro scuro.
+// Obiettivo: sensazione di brand editoriale / rivista di settore hotel.
+[data-theme="editorial"]
+  // ── Palette primaria: navy → neutro scuro molto desaturato
+  --color-primary:       #2C2A26
+  --color-primary-900:   #2C2A26
+  --color-primary-800:   #3A3834
+  --color-primary-700:   #4E4B46
+  --color-primary-600:   #6A665F
+  --color-primary-500:   #8A857C
+  --color-primary-400:   #A39E94
+  --color-primary-300:   #BDB8AE
+  --color-primary-200:   #D4D0C7
+  --color-primary-100:   #E8E4DB
+  --color-primary-50:    #F2EEE5
+
+  --color-text-active:   #2C2A26
+  --color-text-inactive: #6A665F
+  --color-text-disabled: #A39E94
+  --color-text-negative: #FAF7F2
+
+  // Oro come link/accento
+  --color-link:          #A7894A
+  --color-link-light:    #F1E8D4
+  --color-accent:        #C9A84C
+
+  --color-success:       #4A6B3C
+  --color-success-light: #EAF0E1
+  --color-success-mid:   #7B9A62
+  --color-error:         #B44842
+  --color-error-dark:    #8A332E
+  --color-error-light:   #F5E2E0
+  --color-warning:       #C27D2E
+  --color-warning-light: #F6EBD9
+
+  // Avorio al posto del bianco sporco
+  --color-bg:            #FAF7F2
+  --color-surface:       #FFFFFF
+  --color-border:        #D8D3C7
+
+  --font-heading: 'Instrument Serif', 'Fraunces', Georgia, serif
+  --font-body:    'Inter', 'Helvetica Neue', sans-serif
+
+  // Radii piccoli e coerenti
+  --radius-sm:   2px
+  --radius-md:   3px
+  --radius-lg:   4px
+  --radius-xl:   6px
+  --radius-page: 8px
+
+  // Ombre più nette, meno diffuse
+  --shadow-sm: 0 1px 0 rgba(44, 42, 38, 0.08)
+  --shadow-md: 0 1px 0 rgba(44, 42, 38, 0.12), 0 4px 8px rgba(44, 42, 38, 0.04)
+  --shadow-lg: 0 2px 0 rgba(44, 42, 38, 0.14), 0 8px 20px rgba(44, 42, 38, 0.06)
+
+// Applicazione: titoli in serif, body in Inter
+[data-theme="editorial"] h1,
+[data-theme="editorial"] h2,
+[data-theme="editorial"] h3,
+[data-theme="editorial"] .h1,
+[data-theme="editorial"] .h2,
+[data-theme="editorial"] .h3,
+[data-theme="editorial"] .page-header__title,
+[data-theme="editorial"] .section-title
+  font-family: 'Instrument Serif', 'Fraunces', Georgia, serif
+  letter-spacing: -0.01em
+  font-weight: 400
+
+[data-theme="editorial"] body
+  font-family: 'Inter', 'Helvetica Neue', sans-serif
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SWISS — minimal svizzero, Linear-like, bordi netti, zero ombre
+// ══════════════════════════════════════════════════════════════════════════════
+// Direzione: Inter Tight, bianco puro, neri veri, radii quasi nulli,
+//            niente ombre, nessun glassmorphism.
+// Obiettivo: serietà da tool professionale nordico.
+[data-theme="swiss"]
+  --color-primary:       #0A0A0A
+  --color-primary-900:   #0A0A0A
+  --color-primary-800:   #1A1A1A
+  --color-primary-700:   #2A2A2A
+  --color-primary-600:   #404040
+  --color-primary-500:   #6B6B6B
+  --color-primary-400:   #8A8A8A
+  --color-primary-300:   #B0B0B0
+  --color-primary-200:   #D4D4D4
+  --color-primary-100:   #EAEAEA
+  --color-primary-50:    #F5F5F5
+
+  --color-text-active:   #0A0A0A
+  --color-text-inactive: #5A5A5A
+  --color-text-disabled: #A0A0A0
+  --color-text-negative: #FFFFFF
+
+  --color-link:          #0A0A0A
+  --color-link-light:    #F0F0F0
+  --color-accent:        #FF4D00
+
+  --color-success:       #0A7040
+  --color-success-light: #E8F5EE
+  --color-success-mid:   #2AAB6B
+  --color-error:         #D00030
+  --color-error-dark:    #900020
+  --color-error-light:   #FBE5EA
+  --color-warning:       #A05000
+  --color-warning-light: #FAEEE0
+
+  --color-bg:            #FFFFFF
+  --color-surface:       #FFFFFF
+  --color-border:        #0A0A0A
+
+  --font-heading: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif
+  --font-body:    'Inter', 'Helvetica Neue', sans-serif
+
+  --radius-sm:   0
+  --radius-md:   2px
+  --radius-lg:   2px
+  --radius-xl:   2px
+  --radius-page: 0
+
+  --shadow-sm: none
+  --shadow-md: none
+  --shadow-lg: none
+
+[data-theme="swiss"] body
+  font-family: 'Inter', 'Helvetica Neue', sans-serif
+  letter-spacing: -0.005em
+
+[data-theme="swiss"] h1,
+[data-theme="swiss"] h2,
+[data-theme="swiss"] h3,
+[data-theme="swiss"] .h1,
+[data-theme="swiss"] .h2,
+[data-theme="swiss"] .h3,
+[data-theme="swiss"] .page-header__title,
+[data-theme="swiss"] .section-title
+  font-family: 'Inter Tight', 'Inter', 'Helvetica Neue', sans-serif
+  letter-spacing: -0.02em
+  font-weight: 600
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  TERRACOTTA — mediterraneo caldo, IBM Plex Serif, palette terra
+// ══════════════════════════════════════════════════════════════════════════════
+// Direzione: terra/sabbia/verde oliva, IBM Plex Serif titoli + Plex Sans body.
+// Obiettivo: identità calda italiana/mediterranea, anti-SaaS.
+[data-theme="terracotta"]
+  --color-primary:       #8B3A1F
+  --color-primary-900:   #5C2713
+  --color-primary-800:   #8B3A1F
+  --color-primary-700:   #A14A2B
+  --color-primary-600:   #B8643E
+  --color-primary-500:   #C88769
+  --color-primary-400:   #D6A793
+  --color-primary-300:   #E4C2B3
+  --color-primary-200:   #EED6CC
+  --color-primary-100:   #F5E5DD
+  --color-primary-50:    #FAF1EC
+
+  --color-text-active:   #3D2416
+  --color-text-inactive: #6E5849
+  --color-text-disabled: #A8958A
+  --color-text-negative: #FBF4EB
+
+  // Verde oliva come link, oro bruciato come accento
+  --color-link:          #5A6B2D
+  --color-link-light:    #EEF1DE
+  --color-accent:        #D4923A
+
+  --color-success:       #4A6B2D
+  --color-success-light: #EEF1DE
+  --color-success-mid:   #7B9A4E
+  --color-error:         #B03A2E
+  --color-error-dark:    #7A2317
+  --color-error-light:   #F5DFD8
+  --color-warning:       #C67722
+  --color-warning-light: #F7E4CC
+
+  --color-bg:            #FBF4EB
+  --color-surface:       #FFFEFA
+  --color-border:        #D9C8B4
+
+  --font-heading: 'IBM Plex Serif', Georgia, serif
+  --font-body:    'IBM Plex Mono', 'IBM Plex Sans', 'Inter', sans-serif
+
+  --radius-sm:   3px
+  --radius-md:   4px
+  --radius-lg:   6px
+  --radius-xl:   8px
+  --radius-page: 10px
+
+  --shadow-sm: 0 1px 2px rgba(92, 39, 19, 0.08)
+  --shadow-md: 0 2px 6px rgba(92, 39, 19, 0.12)
+  --shadow-lg: 0 6px 20px rgba(92, 39, 19, 0.16)
+
+[data-theme="terracotta"] body
+  font-family: 'IBM Plex Mono', 'IBM Plex Sans', monospace
+
+[data-theme="terracotta"] h1,
+[data-theme="terracotta"] h2,
+[data-theme="terracotta"] h3,
+[data-theme="terracotta"] .h1,
+[data-theme="terracotta"] .h2,
+[data-theme="terracotta"] .h3,
+[data-theme="terracotta"] .page-header__title,
+[data-theme="terracotta"] .section-title
+  font-family: 'IBM Plex Serif', Georgia, serif
+  font-weight: 500

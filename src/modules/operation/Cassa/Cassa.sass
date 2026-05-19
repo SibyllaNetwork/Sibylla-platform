@@ -1,0 +1,263 @@
+@use "sass:color"
+
+$primary: #204769
+$primary-soft: #2d5a7f
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$bg-zebra: #f3f8fb
+
+.cassa
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__top-actions
+    display: inline-flex
+    gap: 8px
+    flex-wrap: wrap
+
+  &__search
+    display: flex
+    flex-direction: column
+    gap: 4px
+    width: min(360px, 100%)
+
+  &__search-label
+    font-size: 11px
+    font-weight: 600
+    color: $ink
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  // ── Section ──────────────────────────────────────────────────────
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin-top: 4px
+
+  &__section-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 12px
+    flex-wrap: wrap
+
+  &__section-title
+    margin: 0
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 16px
+    color: $primary
+
+    i
+      color: $primary
+
+  &__empty
+    padding: 32px 16px
+    text-align: center
+    color: $muted
+    font-size: 14px
+    background: $bg-soft
+    border: 1px dashed $border-strong
+    border-radius: 10px
+
+  // ── Export buttons ──────────────────────────────────────────────
+  &__exports
+    display: inline-flex
+    gap: 6px
+
+  &__export-btn
+    display: inline-flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+    padding: 4px 10px
+    background: transparent
+    border: none
+    color: $primary
+    cursor: pointer
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+    i
+      font-size: 18px
+
+    &:hover:not(:disabled)
+      color: $primary-soft
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  // ── Tabella movimenti ──────────────────────────────────────────
+  &__table
+    .cassa__th-num,
+    .cassa__td-num
+      text-align: right
+      white-space: nowrap
+
+  &__user
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__avatar
+    width: 28px
+    height: 28px
+    border-radius: 999px
+    background: $bg-zebra
+    color: $primary
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 12px
+
+  // ── Riepilogo totali ───────────────────────────────────────────
+  &__totals
+    display: grid
+    grid-template-columns: 1fr
+    gap: 16px
+    padding: 12px 0
+
+    @media (min-width: 900px)
+      grid-template-columns: 1fr 1fr
+
+  &__totals-card
+    background: $bg-zebra
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: hidden
+
+  &__totals-title
+    margin: 0
+    padding: 10px 14px
+    text-align: center
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 14px
+    color: $primary
+    background: $bg-zebra
+    border-bottom: 1px solid $border
+
+  &__totals-table
+    width: 100%
+    border-collapse: collapse
+    background: white
+
+    tbody td
+      padding: 10px 14px
+      font-size: 13px
+      color: $ink
+      border-bottom: 1px solid $border
+
+      &.cassa__td-num
+        text-align: right
+        font-weight: 600
+
+    tbody tr:last-child td
+      border-bottom: none
+
+  // ── Field label (manuale per modale) ──────────────────────────
+  &__field-label
+    display: block
+    margin-bottom: 4px
+    font-size: 11px
+    font-weight: 600
+    color: $ink
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  // ── Modali condivise ──────────────────────────────────────────
+  &__backdrop
+    position: fixed
+    inset: 0
+    background: rgba(17, 24, 39, 0.55)
+    z-index: 60
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 16px
+
+  &__modal
+    background: white
+    border: 1px solid $border
+    border-radius: 14px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
+    width: min(560px, 100%)
+    max-height: calc(100vh - 32px)
+    display: flex
+    flex-direction: column
+    overflow: hidden
+
+  &__modal-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 16px 22px 12px
+    border-bottom: 1px solid $border
+
+  &__modal-title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 1.125rem
+    color: $primary
+
+  &__modal-body
+    padding: 18px 22px
+    display: flex
+    flex-direction: column
+    gap: 14px
+    overflow-y: auto
+    flex: 1
+
+  &__modal-foot
+    padding: 14px 22px
+    border-top: 1px solid $border
+    background: white
+    display: flex
+    justify-content: flex-end
+
+  &__modal-text
+    margin: 0
+    color: $muted
+    font-size: 13px
+    text-align: center
+    line-height: 1.5
+
+  &__modal-table
+    width: 100%
+    border-collapse: collapse
+
+    thead th
+      padding: 10px
+      font-weight: 700
+      color: $primary
+      font-size: 12px
+      text-align: center
+      border-bottom: 1px solid $border
+
+      &.cassa__th-num
+        text-align: right
+
+    tbody td
+      padding: 14px 10px
+      font-size: 13px
+      color: $ink
+      text-align: center
+
+      &.cassa__td-num
+        text-align: right
+        font-weight: 700

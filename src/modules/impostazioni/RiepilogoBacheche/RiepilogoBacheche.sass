@@ -1,0 +1,430 @@
+@use "sass:color"
+
+$primary: #204769
+$primary-soft: #2d5a7f
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$accent: #f5b400
+$orange: #f59e0b
+$orange-soft: #fed7aa
+$blue-soft: #dbeafe
+
+.riep-bach
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr
+    gap: 16px
+
+    @media (min-width: 1024px)
+      grid-template-columns: 1fr 1fr
+
+  &__channel
+    display: flex
+    flex-direction: column
+    gap: 12px
+    background: white
+    border: 1px solid $border
+    border-radius: 12px
+    padding: 16px
+
+    &--b2b
+      background: linear-gradient(180deg, $blue-soft 0%, white 30%)
+
+    &--b2c
+      background: linear-gradient(180deg, $orange-soft 0%, white 30%)
+
+  &__channel-head
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 12px
+    flex-wrap: wrap
+
+  &__channel-actions
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+
+  &__channel-title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    font-size: 1rem
+    color: $primary
+
+  &__channel-subtitle
+    margin: 2px 0 0
+    color: $muted
+    font-size: 12px
+
+  &__badge
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    padding: 4px 10px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: 0.04em
+    text-transform: uppercase
+
+    &--b2b
+      background: $primary
+      color: white
+
+    &--b2c
+      background: $orange
+      color: white
+
+  &__preview-wrap
+    display: flex
+    justify-content: center
+    padding: 4px 0
+
+  // ── Foto ─────────────────────────────────────────────────────────
+  &__photo-area
+    position: relative
+    width: 100%
+    aspect-ratio: 16 / 10
+
+  &__photo
+    width: 100%
+    height: 100%
+    display: flex
+    align-items: center
+    justify-content: center
+    background: linear-gradient(135deg, #cfe0ee 0%, #8db4d4 60%, #5c8fb4 100%)
+    color: rgba(255, 255, 255, 0.85)
+
+    i
+      font-size: 64px
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18))
+
+  &__photo-img
+    width: 100%
+    height: 100%
+    object-fit: cover
+    display: block
+
+  &__photo-edit
+    position: absolute
+    bottom: 8px
+    left: 8px
+    right: 8px
+    display: inline-flex
+    gap: 6px
+    flex-wrap: wrap
+    background: rgba(255, 255, 255, 0.92)
+    padding: 6px
+    border-radius: 8px
+
+  &__stars
+    display: inline-flex
+    gap: 2px
+    color: $accent
+    font-size: 12px
+
+  &__star--off
+    color: $border-strong
+
+  // ── Card B2B (Agorà) ──────────────────────────────────────────────
+  &__cardb2b
+    width: 100%
+    max-width: 320px
+    background: white
+    border: 1px solid $border
+    border-radius: 12px
+    overflow: hidden
+    box-shadow: 0 4px 16px rgba(32, 71, 105, 0.08)
+
+  &__cardb2b-fav
+    position: absolute
+    top: 10px
+    right: 10px
+    width: 32px
+    height: 32px
+    border-radius: 999px
+    border: none
+    background: rgba(255, 255, 255, 0.92)
+    color: $primary
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 14px
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12)
+
+    &:hover
+      background: white
+
+  &__cardb2b-body
+    padding: 12px 14px 14px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cardb2b-name
+    margin: 4px 0 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 16px
+    color: $primary
+    line-height: 1.25
+
+  &__cardb2b-addr
+    margin: 0
+    color: $muted
+    font-size: 12px
+    display: inline-flex
+    align-items: center
+    gap: 4px
+
+    i
+      color: $primary
+
+  &__cardb2b-camera
+    margin: 4px 0 0
+    color: $ink
+    font-size: 13px
+    font-weight: 700
+
+  &__cardb2b-sep
+    border: none
+    border-top: 1px solid $border
+    margin: 10px 0
+
+  &__cardb2b-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+  &__cardb2b-from
+    display: block
+    font-size: 11px
+    color: $muted
+
+  &__cardb2b-price
+    display: block
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 22px
+    color: $primary
+    line-height: 1.1
+
+  // ── Card B2C (Network) ────────────────────────────────────────────
+  &__cardb2c
+    width: 100%
+    max-width: 340px
+    background: white
+    border: 1px solid $border
+    border-radius: 14px
+    overflow: hidden
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.10)
+
+  &__cardb2c-actions
+    position: absolute
+    top: 10px
+    right: 10px
+    display: inline-flex
+    gap: 6px
+
+  &__cardb2c-iconbtn
+    width: 32px
+    height: 32px
+    border-radius: 999px
+    border: none
+    background: rgba(255, 255, 255, 0.92)
+    color: $ink
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 14px
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12)
+
+    &:hover
+      background: white
+
+  &__cardb2c-body
+    padding: 14px 16px 16px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__cardb2c-region
+    color: $muted
+    font-size: 12px
+    font-weight: 500
+
+  &__cardb2c-name
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 18px
+    color: $ink
+    line-height: 1.25
+
+  &__cardb2c-sub
+    margin: 0
+    color: $muted
+    font-size: 13px
+    line-height: 1.4
+
+  &__cardb2c-price
+    margin: 6px 0 0
+    color: $orange
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 16px
+
+  // ── Bottoni Prenota ───────────────────────────────────────────────
+  &__btn-prenota
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    padding: 9px 16px
+    border-radius: 8px
+    border: none
+    font-family: inherit
+    font-size: 13px
+    font-weight: 700
+    cursor: pointer
+    transition: background 0.15s
+
+    &--blue
+      background: $primary
+      color: white
+
+      &:hover
+        background: $primary-soft
+
+    &--orange
+      background: $orange
+      color: white
+
+      &:hover
+        background: color.adjust($orange, $lightness: -6%)
+
+    &--full
+      width: 100%
+      margin-top: 4px
+      padding: 11px 16px
+      border-radius: 999px
+
+  // ── Stelle editabili ──────────────────────────────────────────────
+  &__stars--edit
+    gap: 4px
+
+  &__star-btn
+    background: none
+    border: none
+    cursor: pointer
+    color: $border-strong
+    font-size: 14px
+    padding: 2px
+
+    &--filled
+      color: $accent
+
+  // ── Input inline ──────────────────────────────────────────────────
+  &__inline-input
+    width: 100%
+    background: white
+    border: 1px solid $border-strong
+    border-radius: 6px
+    padding: 4px 8px
+    font: inherit
+    color: $ink
+    box-sizing: border-box
+
+    &:focus
+      outline: none
+      border-color: $primary
+      box-shadow: 0 0 0 2px rgba(32, 71, 105, 0.15)
+
+  &__inline-textarea
+    margin-top: 8px
+    resize: vertical
+    min-height: 64px
+    font-size: 13px
+    line-height: 1.4
+
+  &__price-edit
+    display: inline-flex
+    align-items: baseline
+    gap: 4px
+
+  &__price-input
+    width: 80px
+    text-align: right
+    font: inherit
+
+  &__cardb2-descr
+    margin: 8px 0 0
+    color: $muted
+    font-size: 12px
+    line-height: 1.5
+    white-space: pre-wrap
+
+  // ── Sezione descrizione (legacy, non usata) ───────────────────────
+  &__descr
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__descr-empty
+    width: 100%
+    text-align: left
+    background: white
+    border: 1px dashed $border-strong
+    border-radius: 10px
+    padding: 10px 12px
+    cursor: pointer
+    color: $muted
+    font-family: inherit
+    font-size: 13px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+    &:hover
+      border-color: $primary
+      color: $primary
+
+  &__descr-add
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $primary
+    font-weight: 600
+
+  &__descr-label
+    font-size: 11px
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    color: $muted
+    font-weight: 700
+
+  &__descr-text
+    color: $ink
+    font-size: 13px
+    line-height: 1.5
+    white-space: pre-wrap
+
+  &__descr-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px

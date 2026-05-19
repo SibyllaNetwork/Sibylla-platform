@@ -1,0 +1,96 @@
+@use '../../../styles/tokens' as *
+
+.mtree__nested
+  padding-left: 16px
+
+.mtree__item
+  // wrapper for tree node + nested children
+
+.mtree__row
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 5px 8px
+  border-radius: 6px
+  transition: background 0.1s
+
+  &:hover
+    background: #F0F5FF
+
+.mtree__checkbox
+  width: 16px
+  height: 16px
+  border-radius: 4px
+  border: 2px solid $border
+  background: transparent
+  display: flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  flex-shrink: 0
+  transition: all 0.15s
+
+  &--all
+    border-color: $primary
+    background: $primary
+
+  &--some
+    border-color: #8399ab
+    background: #e6eaee
+
+.mtree__indeterminate
+  width: 7px
+  height: 2px
+  background: #8399ab
+  border-radius: 1px
+
+.mtree__label-wrap
+  display: flex
+  align-items: center
+  gap: 6px
+  flex: 1
+  min-width: 0
+
+.mtree__label
+  font-family: $font-body
+  color: $text-inactive
+
+  &--depth-0
+    font-size: 13px
+    font-weight: 700
+    font-family: $font-heading
+
+  &--depth-1
+    font-size: 12px
+    font-weight: 400
+
+  &--depth-2
+    font-size: 11px
+    font-weight: 400
+
+  &--active
+    color: $primary
+
+  &--depth-1.mtree__label--active
+    font-weight: 500
+
+  &--depth-2.mtree__label--active
+    font-weight: 500
+
+.mtree__count
+  font-size: 9px
+  color: $text-disabled
+  background: #F0F3F6
+  border-radius: 3px
+  padding: 1px 5px
+  flex-shrink: 0
+
+.mtree__dot
+  width: 5px
+  height: 5px
+  border-radius: 50%
+  background: $text-disabled
+  flex-shrink: 0
+
+  &--active
+    background: $primary

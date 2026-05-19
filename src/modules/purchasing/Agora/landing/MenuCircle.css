@@ -1,0 +1,157 @@
+/* =====================================================================
+   MENU CIRCLE — versione "classica" / sobria
+   Tolti: glass blur, glow, anelli rotanti, orbitanti, pulse, ingresso
+   con scale+rotate, label uppercase letterspaced.
+   ===================================================================== */
+.menu-circle-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-circle {
+  position: relative;
+  width: 18vh;
+  height: 18vh;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fff;
+  text-decoration: none;
+  isolation: isolate;
+  /* button reset */
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  opacity: 0;
+  transform: translateX(-160px) scale(0.7) rotate(-25deg);
+  animation: landingMenuEnter 1.4s cubic-bezier(.2,.7,.2,1) forwards;
+}
+.menu-circle.is-disabled {
+  cursor: not-allowed;
+}
+.menu-circle-wrap:nth-child(1) .menu-circle { animation-delay: 0.5s; }
+.menu-circle-wrap:nth-child(2) .menu-circle { animation-delay: 0.85s; }
+.menu-circle-wrap:nth-child(3) .menu-circle { animation-delay: 1.2s; }
+
+@keyframes landingMenuEnter {
+  0%   { opacity: 0; transform: translateX(-160px) scale(0.7) rotate(-25deg); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
+}
+
+/* Halo classico: anello caldo esterno che appare su hover/active */
+.menu-circle::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 220, 170, 0);
+  pointer-events: none;
+  transition: border-color 0.55s ease, transform 0.55s ease;
+}
+.menu-circle:hover::before,
+.menu-circle.active::before {
+  border-color: rgba(255, 220, 170, 0.5);
+  transform: scale(1.06);
+}
+
+/* Frame SVG: solo cerchio esterno + interno, niente archi/orbitanti */
+.menu-circle .mc-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.menu-circle .mc-frame .ring-outer {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.2;
+  transition: stroke 0.45s ease, stroke-width 0.45s ease;
+}
+.menu-circle .mc-frame .ring-inner {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 0.6;
+  transition: stroke 0.45s ease;
+}
+
+/* Sfondo solido scuro, senza blur né radial gradient */
+.menu-circle .mc-bg {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #142544;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  z-index: -1;
+  transition: background 0.45s ease, box-shadow 0.45s ease;
+}
+
+/* Hover / active: luce dall'alto, anelli più brillanti, niente neon glow */
+.menu-circle:hover .mc-bg,
+.menu-circle.active .mc-bg {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 240, 200, 0.18) 0%, transparent 55%),
+    #1f3b6d;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.18),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.35);
+}
+.menu-circle:hover .mc-frame .ring-outer,
+.menu-circle.active .mc-frame .ring-outer {
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 1.6;
+}
+.menu-circle:hover .mc-frame .ring-inner,
+.menu-circle.active .mc-frame .ring-inner {
+  stroke: rgba(255, 230, 190, 0.55);
+}
+
+/* Icon centrale */
+.menu-circle .mc-icon {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5vh;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.9);
+  transition: color 0.4s ease, transform 0.4s ease;
+}
+.menu-circle:hover .mc-icon,
+.menu-circle.active .mc-icon {
+  color: #fff;
+  transform: translateX(-50%) translateY(-2px) scale(1.06);
+}
+
+/* Etichetta sotto al cerchio — serif classica */
+.menu-circle .mc-label {
+  position: absolute;
+  bottom: 22%;
+  left: 0;
+  right: 0;
+  font-family: 'Cinzel', 'Times New Roman', Georgia, serif;
+  font-size: clamp(10px, 1.45vh, 16px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.15;
+  padding: 0 1.4vh;
+  transition: color 0.4s ease, letter-spacing 0.4s ease;
+}
+.menu-circle:hover .mc-label,
+.menu-circle.active .mc-label {
+  color: #ffeac2;
+  letter-spacing: 0.09em;
+}
+
+/* Allineamento label per le costellazioni a 1-2 righe */
+.menu-circle[data-cons="cons-annunci"] .mc-label,
+.menu-circle[data-cons="cons-accademia"] .mc-label {
+  transform: translateY(-10px);
+}

@@ -1,0 +1,27 @@
+/* =====================================================================
+   AdminPageHeader
+   ===================================================================== */
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.admin-page-header__text h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--color-text-active);
+}
+.admin-page-header__text p {
+  font-size: 13px;
+  color: var(--color-text-inactive);
+  margin: 0;
+}
+.admin-page-header__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

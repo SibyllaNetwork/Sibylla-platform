@@ -1,0 +1,260 @@
+// ─── NOTIFICHE ────────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+// ── Centro Notifiche ──────────────────────────────────────────────────────────
+.notifiche
+
+  &__error
+    background: #FFF6EE
+    border: 1px solid #E07B3933
+    color: #B0541F
+    border-radius: 8px
+    padding: 10px 14px
+    font-size: 12px
+    margin-bottom: 12px
+
+  &__top-bar
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    margin-bottom: 16px
+
+  &__actions
+    display: flex
+    gap: 8px
+
+  &__configure-btn
+    display: flex
+    align-items: center
+    gap: 6px
+    background: $primary
+    border: none
+    border-radius: 8px
+    padding: 8px 16px
+    cursor: pointer
+    font-size: 12px
+    font-weight: 600
+    color: $white
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-700
+
+  // ── Filter bar ───────────────────────────────────────────────────────────────
+  &__filters
+    margin-bottom: 20px
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__filter-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-active
+    display: block
+    margin-bottom: 4px
+
+  &__search-wrap
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 10px
+    border: 1.5px solid $border
+    border-radius: 7px
+    background: $white
+    transition: border-color 0.15s
+    flex: 1
+
+    &:focus-within
+      border-color: $link
+
+  &__search-input
+    flex: 1
+    border: none
+    outline: none
+    font-size: 12px
+    color: $text-active
+    font-family: $font-body
+    background: transparent
+
+  &__search-clear
+    background: none
+    border: none
+    cursor: pointer
+    padding: 0
+    display: flex
+
+  &__count
+    font-size: 12px
+    color: $text-disabled
+
+  // ── Notification groups ───────────────────────────────────────────────────────
+  &__groups
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__group
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__group-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 12px 18px
+    cursor: pointer
+    background: #F8FAFC
+    transition: background 0.1s
+
+    &:hover
+      background: #F0F5FA
+
+    &--collapsed
+      border-bottom: none
+
+    &--expanded
+      border-bottom: 0.5px solid $border
+
+  &__group-left
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__group-icon
+    font-size: 16px
+
+  &__group-label
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+
+  &__group-badge
+    min-width: 20px
+    height: 20px
+    border-radius: 10px
+    background: $error
+    color: $white
+    font-size: 10px
+    font-weight: 700
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 0 5px
+
+  &__group-chevron
+    transition: transform 0.2s
+
+    &--collapsed
+      transform: rotate(-90deg)
+
+  // ── Notification row ──────────────────────────────────────────────────────────
+  &__row
+    display: flex
+    gap: 14px
+    padding: 14px 18px
+    cursor: pointer
+    transition: background 0.1s
+
+    &:hover
+      background: #F5F9FF
+
+    &--unread
+      background: #FAFCFF
+
+    &:not(:last-child)
+      border-bottom: 0.5px solid $border
+
+  &__row-icon
+    width: 36px
+    height: 36px
+    border-radius: 10px
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    // background e border gestiti inline
+
+  &__row-content
+    flex: 1
+    min-width: 0
+
+  &__row-top
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 4px
+
+  &__row-title-wrap
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+  &__unread-dot
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: $link
+    flex-shrink: 0
+
+  &__row-title
+    font-size: 13px
+    font-weight: 500
+    color: $primary
+    line-height: 1.3
+
+    &--unread
+      font-weight: 700
+
+  &__sev-badge
+    font-size: 10px
+    font-weight: 600
+    border-radius: 5px
+    padding: 2px 7px
+    flex-shrink: 0
+    white-space: nowrap
+    // colors gestiti inline
+
+  &__row-date
+    flex-shrink: 0
+    text-align: right
+
+  &__date-main
+    font-size: 11px
+    font-weight: 600
+    color: $text-disabled
+    white-space: nowrap
+
+  &__date-time
+    font-size: 10px
+    color: $text-disabled
+
+  &__row-ref
+    font-size: 11px
+    color: $text-disabled
+    margin-bottom: 3px
+
+  &__row-text
+    font-size: 12px
+    color: $text-inactive
+    margin: 0
+    line-height: 1.5
+
+  // ── Empty state ───────────────────────────────────────────────────────────────
+  &__empty
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    padding: 48px 24px
+    text-align: center
+
+  &__empty-text
+    font-size: 14px
+    color: $text-disabled
+    margin-top: 12px

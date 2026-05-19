@@ -1,0 +1,865 @@
+@use '../../../../styles/tokens' as *
+
+// ─── StopSalesModal ───────────────────────────────────────────────────────────
+.ss-modal__overlay
+  position: fixed
+  inset: 0
+  z-index: 300
+  background: rgba(0,0,0,0.45)
+  display: flex
+  align-items: center
+  justify-content: center
+
+.ss-modal__box
+  background: $white
+  border-radius: 16px
+  width: 520px
+  max-width: 95vw
+  box-shadow: 0 24px 64px rgba(32,71,105,0.22)
+  overflow: hidden
+
+.ss-modal__header
+  background: linear-gradient(135deg,#E74C3C,#C0392B)
+  padding: 20px 24px
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+
+.ss-modal__title
+  font-family: Poppins, sans-serif
+  font-size: 20px
+  font-weight: 700
+  color: #fff
+  margin: 0 0 4px
+
+.ss-modal__desc
+  font-size: 12px
+  color: rgba(255,255,255,0.75)
+  margin: 0
+
+.ss-modal__close
+  background: rgba(255,255,255,0.15)
+  border: none
+  border-radius: 8px
+  cursor: pointer
+  padding: 6px
+  display: flex
+
+.ss-modal__body
+  padding: 20px 24px
+
+.ss-modal__struttura
+  margin-bottom: 16px
+
+.ss-modal__struttura-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-disabled
+  margin-bottom: 2px
+
+.ss-modal__struttura-val
+  font-size: 16px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+
+.ss-modal__all-label
+  display: flex
+  align-items: center
+  gap: 8px
+  cursor: pointer
+  margin-bottom: 14px
+  padding: 10px 14px
+  background: #FFF5F5
+  border-radius: 8px
+  border: 1px solid rgba(231,76,60,0.13)
+
+.ss-modal__all-text
+  font-size: 13px
+  font-weight: 600
+  color: #E74C3C
+
+.ss-modal__checkbox
+  accent-color: $primary
+  width: 13px
+  height: 13px
+
+.ss-modal__checkbox--red
+  accent-color: #E74C3C
+  width: 14px
+  height: 14px
+
+.ss-modal__partners-wrap
+  border: 1px solid $border
+  border-radius: 10px
+  overflow: hidden
+  margin-bottom: 20px
+
+.ss-modal__partners-hdr
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  padding: 8px 14px
+  border-bottom: 0.5px solid $border
+  background: #F8FAFC
+
+.ss-modal__sel-all-label
+  display: flex
+  align-items: center
+  gap: 6px
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.ss-modal__partners-list
+  max-height: 160px
+  overflow: auto
+
+.ss-modal__partner-row
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 10px 14px
+  cursor: pointer
+  border-bottom: 0.5px solid $border
+  transition: background 0.1s
+
+  &:hover
+    background: #F8FCFF
+
+  &:last-child
+    border-bottom: none
+
+.ss-modal__partner-name
+  font-size: 13px
+  color: $text-active
+
+.ss-modal__periods
+  margin-bottom: 20px
+
+.ss-modal__periods-title
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 10px
+  font-family: Poppins, sans-serif
+
+.ss-modal__period-row
+  display: flex
+  align-items: center
+  gap: 8px
+  margin-bottom: 8px
+
+.ss-modal__period-inputs
+  flex: 1
+  display: flex
+  align-items: center
+  gap: 6px
+  height: 36px
+  padding: 0 10px
+  border: 1.5px solid $border
+  border-radius: 8px
+  background: $white
+
+.ss-modal__date-input
+  border: none
+  outline: none
+  font-size: 12px
+  color: $text-active
+  background: transparent
+  font-family: 'Open Sans', sans-serif
+  width: 100px
+
+.ss-modal__date-sep
+  color: $text-disabled
+  font-size: 12px
+
+.ss-modal__remove-btn
+  background: none
+  border: none
+  cursor: pointer
+  padding: 4px
+  display: flex
+
+.ss-modal__add-btn
+  display: flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: none
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $link
+  padding: 0
+  margin-top: 4px
+
+.ss-modal__invia-btn
+  background: #E74C3C
+  border: none
+  border-radius: 8px
+  padding: 9px 28px
+  font-size: 13px
+  font-weight: 700
+  color: #fff
+  cursor: pointer
+
+  &:hover
+    background: #C0392B
+
+// ─── FiltroModal ──────────────────────────────────────────────────────────────
+.fm-modal__overlay
+  position: fixed
+  inset: 0
+  z-index: 300
+  background: rgba(0,0,0,0.45)
+  display: flex
+  align-items: center
+  justify-content: center
+
+.fm-modal__box
+  background: $white
+  border-radius: 16px
+  width: 580px
+  max-width: 95vw
+  max-height: 90vh
+  box-shadow: 0 24px 64px rgba(32,71,105,0.22)
+  overflow: hidden
+  display: flex
+  flex-direction: column
+
+.fm-modal__header
+  background: $primary
+  padding: 18px 24px
+  display: flex
+  align-items: center
+  justify-content: space-between
+  flex-shrink: 0
+
+.fm-modal__title
+  font-family: Poppins, sans-serif
+  font-size: 18px
+  font-weight: 700
+  color: #fff
+  margin: 0
+
+.fm-modal__close
+  background: rgba(255,255,255,0.15)
+  border: none
+  border-radius: 8px
+  cursor: pointer
+  padding: 6px
+  display: flex
+
+.fm-modal__tabs
+  display: flex
+  border-bottom: 1.5px solid $border
+  background: #F8FAFC
+  flex-shrink: 0
+
+.fm-modal__tab
+  flex: 1
+  padding: 12px 0
+  background: none
+  border: none
+  border-bottom: 2.5px solid transparent
+  font-size: 14px
+  font-weight: 500
+  color: $text-inactive
+  cursor: pointer
+  font-family: Poppins, sans-serif
+
+  &--active
+    border-bottom-color: $primary
+    font-weight: 700
+    color: $primary
+
+.fm-modal__body
+  flex: 1
+  overflow: auto
+  padding: 20px 24px
+
+.fm-modal__dates
+  display: flex
+  gap: 8px
+  margin-bottom: 20px
+
+.fm-modal__date-field
+  flex: 1
+
+.fm-modal__section
+  background: #F8FAFC
+  border-radius: 10px
+  border: 0.5px solid $border
+  padding: 14px 16px
+  margin-bottom: 16px
+
+.fm-modal__section-hdr
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 10px
+
+.fm-modal__section-title
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+
+.fm-modal__sel-all
+  display: flex
+  align-items: center
+  gap: 6px
+  cursor: pointer
+  font-size: 12px
+  color: $text-active
+
+.fm-modal__check-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px
+
+.fm-modal__check-label
+  display: flex
+  align-items: center
+  gap: 8px
+  cursor: pointer
+  font-size: 12px
+  color: $text-active
+  font-weight: 400
+
+  &--sel
+    color: $primary
+    font-weight: 600
+
+.fm-modal__radio-row
+  display: flex
+  gap: 16px
+
+.fm-modal__radio-label
+  display: flex
+  align-items: center
+  gap: 6px
+  cursor: pointer
+  font-size: 13px
+  color: $text-active
+  font-weight: 400
+
+  &--sel
+    color: $primary
+    font-weight: 600
+
+.fm-modal__check-inline
+  display: flex
+  align-items: center
+  gap: 8px
+
+.fm-modal__inline-text
+  font-size: 12px
+  color: $text-active
+  font-weight: 400
+
+  &--bold
+    font-weight: 600
+
+.fm-modal__footer
+  padding: 14px 24px
+  border-top: 0.5px solid $border
+  flex-shrink: 0
+  background: #F8FAFC
+  margin-top: 0
+
+// ─── Toggle ───────────────────────────────────────────────────────────────────
+.tariffe__toggle
+  width: 36px
+  height: 20px
+  border-radius: 10px
+  background: #CBD5E1
+  cursor: pointer
+  position: relative
+  transition: background 0.2s
+  flex-shrink: 0
+
+  &--on
+    background: $link
+
+.tariffe__toggle-knob
+  position: absolute
+  top: 2px
+  left: 2px
+  width: 16px
+  height: 16px
+  border-radius: 50%
+  background: #fff
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2)
+  transition: left 0.2s
+
+  .tariffe__toggle--on &
+    left: 18px
+
+// ─── Toolbar ──────────────────────────────────────────────────────────────────
+.tariffe__toolbar-group
+  display: flex
+  align-items: center
+  gap: 6px
+
+.tariffe__toolbar-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  white-space: nowrap
+
+  &--nowrap
+    white-space: nowrap
+
+.tariffe__toolbar-select
+  width: 140px
+
+.tariffe__toolbar-date
+  width: 120px
+
+.tariffe__radio-label
+  display: flex
+  align-items: center
+  gap: 4px
+  cursor: pointer
+  font-size: 12px
+  color: $text-active
+
+.tariffe__toolbar--no-mb
+  margin-bottom: 0
+
+.tariffe__toolbar-btn--ml-auto
+  margin-left: auto
+
+// Toolbar button mode variants
+.tariffe__toolbar-btn--apri
+  background: #F0FFF4 !important
+  border-color: #16A34A !important
+  color: #16A34A !important
+
+.tariffe__toolbar-btn--chiudi
+  background: #FFF5F5 !important
+  border-color: #DC2626 !important
+  color: #DC2626 !important
+
+// ─── Mode bar ─────────────────────────────────────────────────────────────────
+.tariffe__mode-bar
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 7px 14px
+  border-radius: 0 0 8px 8px
+  margin-bottom: 14px
+  border-width: 1px
+  border-style: solid
+
+  &--apri
+    background: #F0FFF4
+    border-color: rgba(22,163,74,0.2)
+    color: #16A34A
+
+  &--chiudi
+    background: #FFF5F5
+    border-color: rgba(220,38,38,0.2)
+    color: #DC2626
+
+.tariffe__mode-text
+  font-size: 12px
+  font-weight: 600
+
+.tariffe__mode-exit
+  margin-left: auto
+  background: none
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 2px 10px
+  cursor: pointer
+  font-size: 11px
+  color: $text-inactive
+  font-weight: 600
+
+// ─── Grid ─────────────────────────────────────────────────────────────────────
+.tariffe__table
+  border-collapse: collapse
+  width: 100%
+
+.tariffe__thead-row
+  background: #F8FAFC
+  border-bottom: 1.5px solid $border
+
+.tariffe__th-label
+  padding: 10px 16px
+  text-align: left
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+  border-right: 1px solid $border
+
+.tariffe__th-date
+  padding: 6px 4px
+  text-align: center
+  background: #F8FAFC
+
+  &--we
+    background: #F0F5FF
+
+  &--border
+    border-right: 0.5px solid #E8EBF0
+
+.tariffe__th-day
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+
+  &--we
+    color: $link
+
+.tariffe__th-name
+  font-size: 9px
+  color: $text-disabled
+  margin-top: 1px
+
+.tariffe__th-occ
+  font-size: 9px
+  font-weight: 600
+  color: $text-disabled
+  margin-top: 2px
+
+  &--high
+    color: $success
+
+  &--mid
+    color: #E07B39
+
+.tariffe__th-expand
+  padding: 6px 4px
+  text-align: center
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+
+// ─── Rows ─────────────────────────────────────────────────────────────────────
+.tariffe__tr-cam
+  border-bottom: 0.5px solid $border
+  background: $white
+
+  &.tariffe__tr--even
+    background: #FAFCFF
+
+.tariffe__td-label
+  padding: 8px 12px
+  border-right: 1px solid $border
+
+.tariffe__cam-info
+  display: flex
+  align-items: center
+  gap: 8px
+
+.tariffe__cam-dot
+  width: 10px
+  height: 10px
+  border-radius: 50%
+  flex-shrink: 0
+
+.tariffe__cam-name
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+  letter-spacing: 0.3px
+
+// ─── Cell ─────────────────────────────────────────────────────────────────────
+.tariffe__td-cell
+  padding: 6px 4px
+  text-align: center
+  background: $white
+  transition: background 0.15s
+  position: relative
+
+  &--even
+    background: #FAFCFF
+
+  &--we
+    background: #F8FBFF
+
+  &--stopped
+    background: #FFF0F0
+
+  &--aperta
+    background: #F0FFF4
+
+  &--chiusa
+    background: #FFF5F5
+
+  &--border
+    border-right: 0.5px solid #E8EBF0
+
+  &--clickable
+    cursor: pointer
+
+.tariffe__cell-top
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 3px
+  margin-bottom: 3px
+
+.tariffe__bar-badge
+  font-size: 9px
+  font-weight: 700
+  color: $primary
+  background: rgba(32,71,105,0.08)
+  border-radius: 3px
+  padding: 1px 4px
+  white-space: nowrap
+
+.tariffe__info-wrap
+  position: relative
+  display: inline-flex
+
+.tariffe__info-btn
+  background: none
+  border: none
+  cursor: help
+  padding: 0
+  display: flex
+  align-items: center
+
+.tariffe__stop-btn
+  background: none
+  border: none
+  cursor: pointer
+  padding: 0
+  display: flex
+  align-items: center
+
+.tariffe__cell-stop
+  font-size: 12px
+  font-weight: 700
+  color: #E74C3C
+
+.tariffe__price-select
+  width: 100%
+  font-size: 11px
+  font-weight: 700
+  background: transparent
+  border: none
+  outline: none
+  cursor: pointer
+  text-align: center
+  appearance: none
+  font-family: 'Open Sans', sans-serif
+  padding-right: 12px
+
+// ─── Tooltip ──────────────────────────────────────────────────────────────────
+.tariffe__tooltip
+  position: fixed
+  transform: translateX(-50%) translateY(-100%)
+  z-index: 200
+  background: $white
+  border-radius: 10px
+  box-shadow: 0 8px 24px rgba(32,71,105,0.18)
+  border: 0.5px solid $border
+  padding: 12px 14px
+  min-width: 180px
+  pointer-events: none
+  top: -8px
+
+.tariffe__tooltip-title
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 8px
+  font-family: Poppins, sans-serif
+
+.tariffe__tooltip-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  margin-bottom: 6px
+
+.tariffe__tooltip-left
+  display: flex
+  align-items: center
+  gap: 6px
+
+.tariffe__tooltip-icon
+  width: 18px
+  height: 18px
+  border-radius: 4px
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 9px
+  font-weight: 800
+  color: #fff
+
+.tariffe__tooltip-label
+  font-size: 12px
+  color: $text-active
+
+.tariffe__tooltip-right
+  display: flex
+  align-items: center
+  gap: 6px
+
+.tariffe__tooltip-bar-wrap
+  width: 60px
+  height: 4px
+  border-radius: 2px
+  background: #E5E7EB
+  overflow: hidden
+
+.tariffe__tooltip-bar
+  height: 100%
+  border-radius: 2px
+
+.tariffe__tooltip-val
+  font-size: 12px
+  font-weight: 700
+  min-width: 16px
+  text-align: right
+
+.tariffe__tooltip-arrow
+  position: absolute
+  top: 100%
+  left: 50%
+  transform: translateX(-50%)
+  width: 0
+  height: 0
+  border-left: 5px solid transparent
+  border-right: 5px solid transparent
+  border-top: 5px solid $border
+
+// ─── Expand button ────────────────────────────────────────────────────────────
+.tariffe__td-expand
+  text-align: center
+  padding: 6px 4px
+
+.tariffe__expand-btn
+  width: 24px
+  height: 24px
+  border-radius: 50%
+  border: 1.5px solid $border
+  background: $white
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  margin: 0 auto
+  transition: all 0.15s
+
+  &:hover
+    border-color: $primary
+
+  &--active
+    background: $primary
+    border-color: $primary
+
+// ─── Inventory rows ───────────────────────────────────────────────────────────
+.tariffe__tr-inv
+  border-bottom: 0.5px solid #E8EBF0
+  background: #F5F8FC
+
+  &--even
+    background: #F8FAFC
+
+.tariffe__tr-avail
+  border-bottom: 1.5px solid $border
+  background: #F5F8FC
+
+  &--even
+    background: #F2F6FB
+
+  &--exp
+    border-bottom: 0.5px solid #E8EBF0
+
+.tariffe__td-sublabel
+  padding: 4px 12px 4px 30px
+  border-right: 1px solid $border
+
+.tariffe__inv-info
+  display: flex
+  align-items: center
+  gap: 8px
+
+.tariffe__inv-text
+  font-size: 10px
+  color: $text-disabled
+
+.tariffe__inv-badge
+  font-size: 11px
+  font-weight: 700
+  border-radius: 5px
+  padding: 1px 7px
+
+.tariffe__td-inv-val
+  padding: 4px 0
+  text-align: center
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+
+  &--border
+    border-right: 0.5px solid #E8EBF0
+
+.tariffe__td-avail
+  padding: 4px 0
+  text-align: center
+
+.tariffe__avail-num
+  font-size: 11px
+  font-weight: 700
+
+// ─── Expanded rows ────────────────────────────────────────────────────────────
+.tariffe__tr-exp
+  border-bottom: 0.5px solid #E8EBF0
+  background: #EEF3FA
+
+  &--last
+    border-bottom: 1.5px solid $border
+
+.tariffe__exp-label
+  font-size: 10px
+  font-weight: 600
+  color: $primary
+
+.tariffe__td-occ
+  padding: 6px 2px
+  text-align: center
+
+.tariffe__occ-cell
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 3px
+
+.tariffe__occ-num
+  font-size: 10px
+  font-weight: 700
+
+.tariffe__occ-pct
+  font-size: 9px
+  color: $text-disabled
+
+// ─── Legend ───────────────────────────────────────────────────────────────────
+.tariffe__legend-item--ml
+  margin-left: 8px
+
+.tariffe__legend-dot
+  width: 10px
+  height: 10px
+  border-radius: 50%
+
+  &--aperta
+    border-radius: 2px
+    background: #F0FFF4
+    border: 1px solid rgba(22,163,74,0.33)
+
+  &--chiusa
+    border-radius: 2px
+    background: #FFF5F5
+    border: 1px solid rgba(220,38,38,0.33)

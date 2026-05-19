@@ -1,0 +1,377 @@
+// ─── CONTI CAMERA ─────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.conti-camera
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // Banner stampante fiscale
+  &__stampante
+    background: rgba(245, 198, 50, 0.18)
+    border-bottom: 1px solid rgba(245, 198, 50, 0.55)
+    color: $text-active
+    text-align: center
+    font-size: 12px
+    padding: 4px 12px
+    margin: -6px -16px 0
+    font-style: italic
+
+  // ── Section title ─────────────────────────────────────────────────────────
+  &__section-title
+    margin: 4px 0 0 0
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 15px
+    color: $primary
+
+  // ── Detail card ───────────────────────────────────────────────────────────
+  &__detail-card
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 12px 14px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__detail-row
+    display: grid
+    grid-template-columns: repeat(9, 1fr)
+    gap: 16px
+
+    @media (max-width: 1300px)
+      grid-template-columns: repeat(5, 1fr)
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__field-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-active
+
+  &__field-value
+    font-size: 13px
+    color: $primary
+    font-weight: 500
+
+  // ── Layout 2 colonne ──────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 24px
+
+    @media (max-width: 1200px)
+      grid-template-columns: 1fr
+
+  &__col
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__table
+
+    thead th
+      vertical-align: middle
+      font-weight: 600
+
+    tbody tr
+      &.conti-camera__row--alt
+        background: rgba(143, 184, 200, 0.10)
+
+    .conti-camera__th-check
+      width: 60px
+      text-align: center
+
+    .conti-camera__th-num,
+    .conti-camera__td-num
+      text-align: right
+      white-space: nowrap
+
+  &__chevron
+    margin-left: 4px
+    color: $text-inactive
+    font-size: 10px
+
+  &__info-ico
+    margin-left: 6px
+    color: $link
+    font-size: 11px
+    cursor: help
+
+  &__row-actions
+    display: inline-flex
+    gap: 2px
+
+  &__icon-danger
+    color: $error
+
+  // ── Bar bottoni addebiti ─────────────────────────────────────────────────
+  &__bar
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px
+    background: $bg
+    border: 1px solid $border
+    border-radius: 6px
+    padding: 8px 12px
+
+    .sib-btn--primary
+      background: $text-inactive
+      border-color: $text-inactive
+      opacity: 0.95
+
+      &:hover
+        opacity: 1
+
+  &__total
+    margin-left: auto
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  &__total-row
+    text-align: left
+    font-size: 13px
+    color: $text-active
+    padding: 4px 0
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  // ── Estratto conto dropdown ──────────────────────────────────────────────
+  &__estratto
+    position: relative
+
+  &__estratto-overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__estratto-menu
+    position: absolute
+    top: calc(100% + 4px)
+    left: 0
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    min-width: 200px
+    padding: 4px
+    display: flex
+    flex-direction: column
+
+    button
+      background: transparent
+      border: none
+      text-align: left
+      padding: 8px 12px
+      font-size: 13px
+      color: $text-active
+      cursor: pointer
+      border-radius: 4px
+
+      &:hover
+        background: $primary-50
+        color: $primary
+
+
+// ─── MODALI CONTI CAMERA ─────────────────────────────────────────────────────
+.cc-modal
+  background: white
+  border-radius: 10px
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25)
+  width: 100%
+  max-height: 90vh
+  display: flex
+  flex-direction: column
+  overflow: hidden
+
+  &__overlay
+    position: fixed
+    inset: 0
+    background: rgba(0,0,0,0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    z-index: 100
+    padding: 24px
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 16px 20px
+    border-bottom: 1px solid $border
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 17px
+      color: $primary
+
+  &__close
+    background: transparent
+    border: none
+    color: $text-inactive
+    font-size: 18px
+    cursor: pointer
+    padding: 4px 8px
+    line-height: 1
+
+    &:hover
+      color: $primary
+
+  &__body
+    padding: 18px 20px
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__totale
+    margin: 0
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  &__subtitle
+    margin: 0
+    font-size: 13px
+    color: $text-active
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+    .sib-input,
+    .sib-select
+      width: 100%
+
+    &--narrow
+      max-width: 130px
+
+    &--medium
+      min-width: 160px
+      flex: 1
+
+    &--xs
+      max-width: 90px
+
+  &__grid
+    display: grid
+    gap: 14px
+
+    &--2
+      grid-template-columns: 1fr 1fr
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+    align-items: flex-end
+
+  &__detail-row
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 14px
+    padding: 12px 14px
+    background: $bg
+    border: 1px solid $border
+    border-radius: 6px
+
+    @media (max-width: 1000px)
+      grid-template-columns: repeat(4, 1fr)
+
+  &__frazionato
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+    align-items: flex-end
+
+  &__amount
+    position: relative
+    display: flex
+    align-items: center
+
+    .sib-input
+      padding-right: 26px
+      text-align: right
+      width: 100%
+
+    span
+      position: absolute
+      right: 10px
+      color: $text-inactive
+      font-size: 13px
+      pointer-events: none
+
+  &__table-wrap
+    max-height: 360px
+    overflow-y: auto
+    border: 1px solid $border
+    border-radius: 6px
+
+  &__table
+    th, td
+      font-size: 12px
+
+    .cc-modal__th-check
+      width: 50px
+      text-align: center
+
+    .cc-modal__th-num,
+    .cc-modal__td-num
+      text-align: right
+      white-space: nowrap
+
+    .cc-modal__td-center
+      text-align: center
+
+  &__totale-row
+    text-align: right
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 6px
+
+    .sib-btn--danger
+      background: $error
+      color: white
+      border-color: $error
+
+      &:hover
+        opacity: 0.9

@@ -1,0 +1,553 @@
+// ─── STRATEGIE ────────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.strategia
+
+  // ── Filter bar ───────────────────────────────────────────────────────────────
+  &__filters
+    margin-bottom: 20px
+
+  &__filter-row
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
+  &__filter-group
+    display: flex
+    gap: 12px
+    align-items: flex-end
+    flex-wrap: wrap
+
+  &__filter-actions
+    display: flex
+    gap: 8px
+    align-items: center
+    flex-shrink: 0
+
+  // ── Color picker ─────────────────────────────────────────────────────────────
+  &__color-btn
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 36px
+    padding: 0 32px 0 12px
+    border: 1.5px solid $border
+    border-radius: 6px
+    background: $white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E") no-repeat right 8px center
+    cursor: pointer
+    font-size: 13px
+    color: $text-disabled
+    font-family: $font-body
+    min-width: 148px
+    transition: $transition-fast
+
+    &--open
+      border-color: $primary
+
+    &--selected
+      color: $text-active
+
+  &__color-swatch
+    width: 14px
+    height: 14px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__color-picker
+    position: absolute
+    top: calc(100% + 6px)
+    left: 0
+    z-index: 20
+    background: $white
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 12px
+    box-shadow: 0 8px 24px rgba(32, 71, 105, 0.12)
+    display: grid
+    grid-template-columns: repeat(5, 1fr)
+    gap: 8px
+    min-width: 180px
+
+  &__color-option
+    width: 28px
+    height: 28px
+    border-radius: 50%
+    border: 3px solid transparent
+    cursor: pointer
+    outline: none
+    transition: transform 0.1s
+
+    &:hover
+      transform: scale(1.15)
+
+    &--active
+      border-color: $primary
+
+  // ── Matrix table ─────────────────────────────────────────────────────────────
+  &__matrix-wrap
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__matrix-scroll
+    overflow-x: auto
+    overflow-y: visible
+
+  &__matrix-table
+    border-collapse: collapse
+    width: 100%
+    min-width: 900px
+
+  &__matrix-th
+    padding: 14px 12px
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+    text-align: center
+    background: $white
+    border-bottom: 1.5px solid $border
+
+    &:not(:last-child)
+      border-right: 1px solid $border
+
+  &__occ-cell
+    background: $primary
+    padding: 8px 6px
+    text-align: center
+    vertical-align: middle
+    border-bottom: 1px solid rgba($white, 0.15)
+
+    &:last-of-type
+      border-bottom: none
+
+  &__occ-top
+    font-size: 13px
+    font-weight: 600
+    color: rgba($white, 0.8)
+    line-height: 1.2
+
+  &__occ-bot
+    font-size: 13px
+    font-weight: 600
+    color: rgba($white, 0.8)
+    line-height: 1.2
+
+  &__bar-cell
+    padding: 10px 12px
+    border-bottom: 1px solid $border
+    transition: background 0.15s
+
+    &:not(:last-child)
+      border-right: 1px solid $border
+
+    &:hover
+      background: #F0F7FF
+
+    &--filled
+      background: #F8FCFF
+
+      &:hover
+        background: #F0F7FF
+
+  // ── Sidebar strategie (ModificaStrategia) ─────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: 240px minmax(0, 1fr)
+    gap: 16px
+    align-items: start
+
+  &__sidebar
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__sidebar-header
+    padding: 12px 14px
+    border-bottom: 0.5px solid $border
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+  &__sidebar-title
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__sidebar-count
+    font-size: 11px
+    color: $text-disabled
+    background: $bg
+    border: 0.5px solid $border
+    border-radius: 5px
+    padding: 2px 8px
+
+  &__strat-item
+    padding: 10px 14px
+    cursor: pointer
+    display: flex
+    align-items: center
+    gap: 10px
+    border-bottom: 0.5px solid $border
+    transition: background 0.1s
+
+    &:hover:not(.strategia__strat-item--active)
+      background: $bg
+
+    &--active
+      background: $primary-50
+      border-left: 3px solid $primary
+
+    &:last-child
+      border-bottom: none
+
+  &__strat-dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__strat-name
+    font-size: 12px
+    font-weight: 500
+    color: $text-active
+    flex: 1
+    overflow: hidden
+    white-space: nowrap
+    text-overflow: ellipsis
+
+    .strategia__strat-item--active &
+      font-weight: 600
+      color: $primary
+
+  &__strat-tipo
+    font-size: 10px
+    color: $text-disabled
+
+  // ── Guida modal ──────────────────────────────────────────────────────────────
+  &__guida-config
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    margin-bottom: 20px
+    padding: 12px 16px
+    background: $bg
+    border-radius: 8px
+    border: 0.5px solid $border
+
+  &__guida-table-wrap
+    border: 0.5px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+  &__guida-table-head
+    background: #F8FAFC
+    border-bottom: 0.5px solid $border
+    padding: 8px 0
+    text-align: center
+    font-size: 11px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+    text-transform: uppercase
+    letter-spacing: 0.6px
+
+  &__guida-table
+    border-collapse: collapse
+    width: 100%
+    min-width: 560px
+
+  &__guida-th
+    padding: 9px 12px
+    font-size: 11px
+    font-weight: 700
+    color: $text-active
+    border-bottom: 0.5px solid $border
+    white-space: nowrap
+
+    &:not(:last-child)
+      border-right: 0.5px solid $border
+
+    &--occ
+      text-align: left
+
+    &--val
+      text-align: center
+
+  &__guida-row
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+  &__guida-td-occ
+    padding: 8px 14px
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+    border-right: 0.5px solid $border
+    white-space: nowrap
+
+  &__guida-td
+    padding: 6px 8px
+    border-right: 0.5px solid $border
+    text-align: center
+
+    &:last-child
+      border-right: none
+
+  &__guida-input
+    width: 100%
+    height: 30px
+    padding: 0 6px
+    border: 1px solid $border
+    border-radius: 5px
+    font-size: 12px
+    color: $text-disabled
+    background: transparent
+    font-family: $font-body
+    outline: none
+    text-align: center
+
+    &--filled
+      font-weight: 600
+      color: $primary
+
+    &:focus
+      border-color: $link
+
+  // ─── Selettore strategie ──────────────────────────────────────────────────────
+.strat__selector-wrap
+  background: $white
+  border-radius: 10px
+  border: 0.5px solid $border
+  padding: 14px 16px
+  margin-bottom: 12px
+
+.strat__selector-filter-row
+  display: flex
+  align-items: center
+  gap: 12px
+  margin-bottom: 12px
+  flex-wrap: wrap
+
+.strat__filter-title
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+  white-space: nowrap
+
+.strat__filter-item
+  display: flex
+  align-items: center
+  gap: 5px
+
+  &--relative
+    position: relative
+
+.strat__form-label--inline
+  margin-bottom: 0
+
+.strat__select--tipo
+  width: 110px
+
+.strat__clear-color-btn
+  width: 24px
+  height: 24px
+
+.strat__color-picker-grid
+  grid-template-columns: repeat(4,1fr)
+  min-width: 160px
+
+.strat__filter-count
+  font-size: 11px
+  color: $text-disabled
+
+// ─── Strategy cards ───────────────────────────────────────────────────────────
+.strat__cards-row
+  display: flex
+  gap: 10px
+  flex-wrap: wrap
+
+.strat__cards-empty
+  font-size: 12px
+  color: $text-disabled
+  padding: 12px 0
+
+.strat__card-btn
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 10px 16px
+  border-radius: 9px
+  border: 2px solid $border
+  background: $bg
+  cursor: pointer
+  transition: all 0.15s
+  text-align: left
+
+.strat__card-ico
+  width: 32px
+  height: 32px
+  border-radius: 8px
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+
+.strat__card-name
+  font-size: 12px
+  font-weight: 700
+  line-height: 1.2
+
+.strat__card-tipo
+  font-size: 10px
+  color: $text-disabled
+  margin-top: 2px
+
+.strat__card-check
+  margin-left: 4px
+
+// ─── Filter bar selects ───────────────────────────────────────────────────────
+.strat__select--cat
+  width: 78px
+
+.strat__select--struttura
+  width: 158px
+
+.strat__select--stagione
+  width: 148px
+
+// ─── Nome strategia row ───────────────────────────────────────────────────────
+.strat__nome-row
+  display: flex
+  align-items: center
+  gap: 6px
+
+.strat__nome-dot
+  width: 12px
+  height: 12px
+  border-radius: 50%
+  flex-shrink: 0
+
+.strat__nome-input
+  width: 190px
+
+// ─── Tipo/Colore display ──────────────────────────────────────────────────────
+.strat__tipo-display
+  height: 34px
+  padding: 0 12px
+  border: 1.5px solid $border
+  border-radius: 7px
+  font-size: 12px
+  color: $text-active
+  background: #F8FAFC
+  display: flex
+  align-items: center
+  font-family: 'Open Sans', sans-serif
+
+.strat__colore-display
+  height: 34px
+  padding: 0 12px
+  border: 1.5px solid $border
+  border-radius: 7px
+  font-size: 12px
+  color: $text-active
+  display: flex
+  align-items: center
+  gap: 8px
+  font-family: 'Open Sans', sans-serif
+
+// ─── Matrix ───────────────────────────────────────────────────────────────────
+.strat__matrix-th-empty
+  background: $white
+  border-bottom: 1.5px solid $border
+  border-right: 1px solid $border
+
+.strat__vertical-label-cell
+  border-right: 1px solid $border
+  background: #F8FAFC
+  text-align: center
+  vertical-align: middle
+  padding: 8px 4px
+
+.strat__vertical-label-inner
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 10px
+  height: 100%
+
+.strat__vertical-text
+  writing-mode: vertical-rl
+  text-orientation: mixed
+  transform: rotate(180deg)
+  font-size: 9px
+  font-weight: 700
+  color: $primary
+  letter-spacing: 1.8px
+  text-transform: uppercase
+  white-space: nowrap
+
+.strat__range-cell
+  padding: 14px 10px
+  text-align: center
+  vertical-align: middle
+
+.strat__range-top
+  font-size: 13px
+  font-weight: 700
+  color: #fff
+  line-height: 1.2
+
+.strat__range-arrow-wrap
+  margin: 6px auto
+  display: flex
+  justify-content: center
+
+.strat__range-arrow
+  font-size: 14px
+  color: rgba(255,255,255,0.7)
+
+.strat__range-bot
+  font-size: 13px
+  font-weight: 600
+  color: rgba(255,255,255,0.8)
+  line-height: 1.2
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+.strat__modal-header
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  margin-bottom: 16px
+
+.strat__modal-title
+  font-family: Poppins, sans-serif
+  font-size: 18px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 4px
+
+.strat__modal-subtitle
+  font-size: 12px
+  color: $text-inactive
+  margin: 0
+
+// ─── Guida ────────────────────────────────────────────────────────────────────
+.strat__guida-base-wrap
+  flex: 1
+  max-width: 240px
+
+.strat__guida-scroll
+  overflow-x: auto
+
+.strat__guida-thead-row
+  background: #F8FAFC

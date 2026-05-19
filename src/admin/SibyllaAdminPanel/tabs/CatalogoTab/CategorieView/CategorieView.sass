@@ -1,0 +1,133 @@
+@use '../../../../../styles/tokens' as *
+
+.cat-view__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 16px
+
+.cat-view__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.cat-view__sub
+  font-size: 12px
+  color: $text-disabled
+  margin-top: 2px
+
+.cat-view__btn-new
+  gap: 7px
+
+.cat-view__search
+  display: flex
+  align-items: center
+  gap: 7px
+  height: 32px
+  padding: 0 10px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #F8FAFC
+  margin-bottom: 14px
+
+.cat-view__empty
+  padding: 32px 0
+  text-align: center
+  font-size: 13px
+  color: $text-disabled
+
+.cat-view__grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+  gap: 12px
+
+.cat-view__card
+  display: flex
+  align-items: flex-start
+  gap: 12px
+  padding: 14px
+  background: $white
+  border: 1.5px solid $border
+  border-radius: 10px
+  transition: all 0.15s
+
+  &:hover
+    border-color: $primary
+
+.cat-view__icon
+  width: 40px
+  height: 40px
+  border-radius: 8px
+  background: $primary-100
+  color: $primary
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+  font-size: 18px
+
+.cat-view__body
+  flex: 1
+  min-width: 0
+
+.cat-view__name
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  font-family: $font-heading
+  margin-bottom: 2px
+
+.cat-view__desc
+  font-size: 11px
+  color: $text-disabled
+  margin-bottom: 6px
+  line-height: 1.4
+
+.cat-view__meta
+  display: flex
+  align-items: center
+  gap: 6px
+  flex-wrap: wrap
+
+.cat-view__macro
+  font-size: 10px
+  font-weight: 600
+  color: $primary
+  background: rgba($primary, 0.07)
+  border-radius: 4px
+  padding: 2px 7px
+
+.cat-view__count
+  font-size: 10px
+  font-weight: 600
+  color: $blue
+  background: $blue-light
+  border-radius: 4px
+  padding: 2px 7px
+
+.cat-view__actions
+  display: flex
+  flex-direction: column
+  gap: 4px
+  flex-shrink: 0
+
+.cat-view__icon-btn
+  width: 28px
+  height: 28px
+  background: none
+  border: 1px solid $border
+  border-radius: 6px
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: all 0.15s
+
+  &--edit:hover
+    border-color: $blue
+    background: $blue-light
+
+  &--del:hover
+    border-color: $error
+    background: $error-light

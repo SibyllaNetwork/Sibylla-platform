@@ -1,0 +1,94 @@
+// ─── FASCE D'ETA ──────────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.fasce-eta
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    color: $primary
+    font-weight: 600
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    max-width: 280px
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__row
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 24px
+
+  &__group
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__group-title
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__check
+    color: $success
+    font-size: 11px
+
+  &__range
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__lbl
+    font-size: 12px
+    color: $text-inactive
+
+  &__short
+    width: 60px
+
+  &__perc
+    display: flex
+    align-items: center
+    gap: 6px
+    color: $text-inactive
+
+  &__adulti
+    display: flex
+    align-items: center
+    gap: 16px
+    flex-wrap: wrap
+
+  &__select
+    width: 140px
+
+  &__adulto
+    display: flex
+    align-items: center
+    gap: 6px
+
+  &__actions
+    display: flex
+    justify-content: flex-end

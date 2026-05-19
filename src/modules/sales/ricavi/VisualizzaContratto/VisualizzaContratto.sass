@@ -1,0 +1,138 @@
+// ─── VISUALIZZA CONTRATTO ─────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.visualizza-contratto
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 12px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__section
+    background: white
+
+  &__sec-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 14px 0
+    border-bottom: 1px solid $border
+    cursor: pointer
+    user-select: none
+
+  &__sec-title
+    margin: 0
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 18px
+    display: inline-flex
+    align-items: center
+    gap: 10px
+
+    i
+      color: $primary
+
+  &__toggle
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    font-size: 16px
+    padding: 6px
+    border-radius: 4px
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+  &__sec-body
+    padding: 18px 0
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  // ── Read field grid ────────────────────────────────────────────────────────
+  &__row
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr
+    gap: 24px
+    align-items: start
+
+    &--4
+      grid-template-columns: 1fr 1fr 1fr 1fr
+
+      @media (max-width: 1100px)
+        grid-template-columns: 1fr 1fr
+
+    &--5
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr
+
+      @media (max-width: 1280px)
+        grid-template-columns: 1fr 1fr 1fr
+
+    &--full
+      grid-template-columns: 1fr
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__field-label
+    font-size: 12px
+    color: $primary
+    font-weight: 600
+
+  &__field-value
+    display: inline-flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    font-size: 14px
+    color: $text-active
+
+  &__field-ico
+    color: $text-inactive
+    font-size: 13px
+
+  // ── Tables (Camere / Tariffe) ──────────────────────────────────────────────
+  &__table
+
+    th
+      text-align: center
+      white-space: nowrap
+
+    td
+      text-align: center
+      vertical-align: middle
+
+  &__td-c
+    text-align: center
+
+  &__file
+    color: $error
+    font-size: 16px
+
+  &__icon-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    padding: 6px
+    border-radius: 4px
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+  &__flag
+    width: 18px
+    height: 13px
+    object-fit: cover
+    border-radius: 2px
+    box-shadow: 0 0 1px rgba(0,0,0,0.25)
+    vertical-align: middle

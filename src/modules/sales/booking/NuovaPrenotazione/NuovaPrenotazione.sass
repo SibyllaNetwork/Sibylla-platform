@@ -1,0 +1,566 @@
+@use '../../../../styles/tokens' as *
+
+// ─── Card wrapper ─────────────────────────────────────────────────────────────
+.prenota__card
+  background: $white
+  border-radius: 12px
+  border: 0.5px solid $border
+  overflow: hidden
+
+.prenota__tabs
+  display: flex
+  border-bottom: 1.5px solid $border
+
+.prenota__tab
+  padding: 10px 20px
+  font-size: 13px
+  font-weight: 600
+  font-family: $font-body
+  color: $text-inactive
+  background: transparent
+  border: none
+  border-bottom: 2px solid transparent
+  cursor: pointer
+  transition: color 0.15s, border-color 0.15s
+
+  &--active
+    color: $primary
+    border-bottom-color: $primary
+
+  &:hover:not(.prenota__tab--active)
+    color: $text-active
+
+.prenota__body
+  padding: 24px
+
+// ─── Tab content layouts ──────────────────────────────────────────────────────
+.prenota__tab-content
+  display: flex
+  flex-direction: column
+  gap: 20px
+
+.prenota__grid-2
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 20px
+
+.prenota__section--col
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+// ─── Counter component ────────────────────────────────────────────────────────
+.prenota__counter
+  display: flex
+  align-items: center
+  gap: 5px
+
+.prenota__counter-btn
+  width: 24px
+  height: 24px
+  border-radius: 5px
+  border: 1px solid $border
+  background: $white
+  cursor: pointer
+  font-size: 14px
+  color: $text-active
+  display: flex
+  align-items: center
+  justify-content: center
+
+.prenota__counter-input
+  width: 52px
+  height: 30px
+  text-align: center
+  border: 1.5px solid $border
+  border-radius: 6px
+  font-size: 13px
+  color: $text-active
+  font-family: 'Open Sans', sans-serif
+  outline: none
+  background: $white
+
+// ─── ServRow ──────────────────────────────────────────────────────────────────
+.prenota__serv-name-cell
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 8px 12px
+
+.prenota__serv-add
+  width: 18px
+  height: 18px
+  border-radius: 50%
+  border: 1.5px solid $link
+  background: transparent
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  color: $link
+  font-size: 13px
+
+.prenota__serv-name
+  font-size: 13px
+  color: $text-active
+
+.prenota__serv-price
+  font-size: 13px
+  text-align: right
+  color: $text-active
+  padding: 8px 12px
+
+.prenota__serv-qty-cell
+  text-align: right
+  padding: 8px 12px
+
+.prenota__serv-qty-input
+  width: 52px
+  height: 28px
+  text-align: center
+  border: 1px solid $border
+  border-radius: 5px
+  font-size: 12px
+  font-family: 'Open Sans', sans-serif
+  outline: none
+
+.prenota__serv-total
+  font-size: 13px
+  font-weight: 500
+  text-align: right
+  color: $text-active
+  padding: 8px 12px
+
+// ─── ServTable footer ─────────────────────────────────────────────────────────
+.prenota__serv-footer
+  border-top: 1px solid $border
+  background: #F8FAFC
+
+.prenota__serv-footer-label
+  font-size: 12px
+  font-weight: 700
+  color: $text-active
+  text-align: right
+  padding: 8px 12px
+
+.prenota__serv-footer-val
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  text-align: right
+  padding: 8px 12px
+
+// ─── Date row ─────────────────────────────────────────────────────────────────
+.prenota__date-row
+  display: flex
+  align-items: center
+  gap: 8px
+  flex-wrap: wrap
+
+  &--mb
+    margin-bottom: 14px
+
+.prenota__date-input
+  width: 138px
+  height: 30px
+  font-size: 12px
+
+.prenota__date-sep
+  color: $text-disabled
+
+.prenota__field-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+  min-width: 40px
+
+  &--nowrap
+    white-space: nowrap
+    min-width: auto
+
+// ─── Counters row ─────────────────────────────────────────────────────────────
+.prenota__counters-row
+  display: flex
+  align-items: center
+  gap: 14px
+  flex-wrap: wrap
+
+.prenota__counter-item
+  display: flex
+  align-items: center
+  gap: 6px
+
+.prenota__counter-sublabel
+  font-size: 10px
+  color: $text-disabled
+
+.prenota__counter-field
+  width: 64px
+  height: 30px
+  font-size: 12px
+  text-align: center
+
+// ─── Suppl / Personalizza ─────────────────────────────────────────────────────
+.prenota__suppl-wrap
+  position: relative
+
+.prenota__suppl-row
+  display: flex
+  align-items: center
+  gap: 8px
+
+.prenota__suppl-label
+  font-size: 12px
+  color: $text-inactive
+
+.prenota__suppl-sublabel
+  font-size: 11px
+  color: $text-disabled
+
+.prenota__suppl-count
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.prenota__personalizza-popup
+  position: absolute
+  top: 110%
+  left: 0
+  z-index: 30
+  background: $white
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 16px
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12)
+  min-width: 200px
+
+.prenota__room-row
+  margin-bottom: 10px
+
+.prenota__room-info
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 4px
+
+.prenota__room-type
+  font-size: 12px
+  color: $text-active
+  text-transform: capitalize
+  font-weight: 500
+
+.prenota__room-price
+  font-size: 11px
+  color: $text-disabled
+
+.prenota__room-controls
+  display: flex
+  align-items: center
+  gap: 10px
+
+.prenota__room-btn
+  width: 24px
+  height: 24px
+  border-radius: 5px
+  border: 1px solid $border
+  background: $white
+  cursor: pointer
+  font-size: 15px
+  display: flex
+  align-items: center
+  justify-content: center
+  color: $text-active
+
+.prenota__room-qty
+  font-size: 14px
+  font-weight: 600
+  color: $primary
+  min-width: 20px
+  text-align: center
+
+.prenota__room-subtotal
+  font-size: 11px
+  color: $text-active
+  margin-left: 2px
+
+.prenota__suppl-total
+  border-top: 1px solid $border
+  padding-top: 8px
+  margin-top: 4px
+  display: flex
+  justify-content: space-between
+
+.prenota__suppl-total-label
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+
+.prenota__suppl-total-val
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+
+// ─── Status / checkboxes ──────────────────────────────────────────────────────
+.prenota__status-row
+  display: flex
+  align-items: center
+  gap: 16px
+
+  &--mb
+    margin-bottom: 10px
+
+.prenota__check-label
+  display: flex
+  align-items: center
+  gap: 6px
+  cursor: pointer
+
+.prenota__checkbox
+  width: 13px
+  height: 13px
+  accent-color: $primary
+
+.prenota__check-text
+  font-size: 13px
+  color: $text-active
+
+.prenota__status-dot
+  width: 9px
+  height: 9px
+  border-radius: 50%
+
+  &--green
+    background: $success-mid
+
+  &--red
+    background: $error
+
+.prenota__arrangiamento-select
+  width: 120px
+
+// ─── Radio group ──────────────────────────────────────────────────────────────
+.prenota__radio-row
+  display: flex
+  gap: 16px
+
+.prenota__radio-label
+  display: flex
+  align-items: center
+  gap: 6px
+  cursor: pointer
+  font-size: 13px
+  color: $text-active
+  font-weight: 400
+
+  &--active
+    color: $primary
+    font-weight: 600
+
+.prenota__radio
+  accent-color: $primary
+
+// ─── Nationality grid ─────────────────────────────────────────────────────────
+.prenota__naz-grid
+  display: grid
+  grid-template-columns: 160px 1fr
+  gap: 12px
+
+// ─── Importo bar ──────────────────────────────────────────────────────────────
+.prenota__importo-text
+  font-size: 13px
+  color: $text-active
+
+.prenota__importo-total
+  display: flex
+  align-items: center
+  gap: 6px
+
+.prenota__importo-amount
+  font-size: 16px
+  font-weight: 700
+  color: $primary
+
+// ─── Individuale specific ─────────────────────────────────────────────────────
+.prenota__sm-select
+  width: 80px
+  height: 30px
+  font-size: 12px
+
+.prenota__city-select
+  width: 100px
+  height: 30px
+  font-size: 12px
+
+.prenota__status-flex
+  display: flex
+  align-items: flex-start
+  gap: 24px
+  flex-wrap: wrap
+
+.prenota__status-col
+  flex: 1
+
+.prenota__section-sublabel
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.4px
+  margin-bottom: 8px
+
+.prenota__scadenza-row
+  display: flex
+  align-items: center
+  gap: 10px
+  flex-wrap: wrap
+
+.prenota__persons-input
+  width: 60px
+  height: 30px
+  font-size: 12px
+
+.prenota__prov-row
+  display: flex
+  gap: 16px
+  margin-bottom: 10px
+
+.prenota__agenzia-row
+  display: flex
+  align-items: center
+  gap: 8px
+
+.prenota__cognome-input
+  max-width: 300px
+
+// ─── Step 2 summary ───────────────────────────────────────────────────────────
+.prenota__summary-grid
+  display: grid
+  grid-template-columns: 1fr 1fr 1fr 1fr
+  gap: 16px
+
+.prenota__summary-item
+  text-align: center
+
+.prenota__summary-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-disabled
+  margin-bottom: 6px
+
+.prenota__summary-val
+  font-size: 14px
+  font-weight: 600
+  color: $primary
+  border: 1.5px solid $border
+  border-radius: 7px
+  padding: 7px 10px
+  background: #F8FAFC
+
+// ─── Listini ─────────────────────────────────────────────────────────────────
+.prenota__listini-box
+  border: 1px solid $border
+  border-radius: 10px
+  overflow: hidden
+
+.prenota__listini-hdr
+  padding: 12px 16px
+  background: #F8FAFC
+  border-bottom: 0.5px solid $border
+
+.prenota__listini-title
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+
+.prenota__listini-empty
+  padding: 40px 16px
+  text-align: center
+
+.prenota__listini-empty-text
+  font-size: 13px
+  color: $text-disabled
+  margin: 0
+
+// ─── Step navigation ─────────────────────────────────────────────────────────
+.prenota__step-nav
+  display: flex
+  justify-content: space-between
+  gap: 10px
+
+.prenota__step-back
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: transparent
+  border: 1.5px solid $border
+  border-radius: 6px
+  padding: 0 12px
+  height: 36px
+  cursor: pointer
+  font-size: 13px
+  font-weight: 600
+  color: $text-inactive
+  font-family: $font-body
+  transition: border-color 0.15s, color 0.15s
+
+  &:hover
+    border-color: $primary
+    color: $primary
+
+// ─── Services table ──────────────────────────────────────────────────────────
+.prenota__serv-table
+  border: 0.5px solid $border
+  border-radius: 8px
+  overflow: hidden
+
+.prenota__serv-head,
+.prenota__serv-row,
+.prenota__serv-footer
+  display: grid
+  grid-template-columns: 1fr 90px 90px 90px
+  align-items: center
+
+.prenota__serv-head
+  background: #F8FAFC
+  border-bottom: 0.5px solid $border
+
+.prenota__serv-row
+  border-bottom: 0.5px solid $border
+
+  &:last-child
+    border-bottom: none
+
+.prenota__serv-th
+  padding: 8px 12px
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.3px
+
+  &--right
+    text-align: right
+
+// ─── Importo bar ─────────────────────────────────────────────────────────────
+.prenota__importo-bar
+  display: flex
+  align-items: center
+  gap: 20px
+  padding: 12px 16px
+  background: $primary-50
+  border-radius: 8px
+  border: 0.5px solid $primary-200
+
+// ─── Status dot modifiers ────────────────────────────────────────────────────
+.prenota__status-dot--green
+  background: $success-mid
+
+.prenota__status-dot--red
+  background: $error
+
+.prenota__status-row--mb
+  margin-bottom: 10px
+
+.prenota__field-label--nowrap
+  white-space: nowrap

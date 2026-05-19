@@ -1,0 +1,77 @@
+@reference '../../styles/tailwind.css';
+
+.hotel-card {
+  @apply overflow-hidden rounded-card border border-border-soft bg-surface transition-colors;
+}
+
+.hotel-card:hover {
+  @apply border-primary;
+}
+
+.hotel-card__media {
+  @apply relative h-56 overflow-hidden;
+}
+
+.hotel-card__image {
+  @apply h-full w-full object-cover transition duration-500;
+}
+
+.hotel-card:hover .hotel-card__image {
+  @apply scale-105;
+}
+
+.hotel-card__fav {
+  @apply absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border-0 bg-white/90 backdrop-blur transition-colors cursor-pointer text-text-inactive;
+}
+
+.hotel-card__fav:hover {
+  @apply bg-white;
+}
+
+.hotel-card__fav--active {
+  @apply text-danger-300;
+}
+
+.hotel-card__body {
+  @apply p-5;
+}
+
+.hotel-card__stars {
+  @apply mb-2 flex gap-1 text-[14px];
+}
+
+.hotel-card__star {
+  @apply text-alert-200;
+}
+
+.hotel-card__star--dim {
+  @apply text-primary-200;
+}
+
+.hotel-card__title {
+  @apply mb-1;
+}
+
+.hotel-card__location {
+  @apply mb-3 inline-flex items-center gap-1.5;
+}
+
+.hotel-card__location-icon {
+  @apply text-text-disabled;
+}
+
+.hotel-card__rooms {
+  @apply mb-4;
+}
+
+.hotel-card__footer {
+  @apply flex items-end justify-between border-t border-border-soft pt-4;
+}
+
+.hotel-card__price-label {
+  @apply font-normal text-text-inactive;
+}
+
+.hotel-card__price {
+  @apply mt-1;
+}

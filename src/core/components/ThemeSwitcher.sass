@@ -1,0 +1,145 @@
+// ─── THEME SWITCHER ───────────────────────────────────────────────────────────
+// Pulsante + dropdown montato nella topbar per cambiare tema.
+// Gli stili sono scritti per stare bene su qualsiasi sfondo di topbar
+// (navy classico, nero caldo editoriale, nero svizzero, terracotta).
+
+@use '../../styles/tokens' as *
+
+.theme-switcher
+  position: relative
+  display: flex
+  align-items: center
+  flex-shrink: 0
+
+  &__trigger
+    display: flex
+    align-items: center
+    gap: 8px
+    background: rgba(255, 255, 255, 0.08)
+    border: 1px solid rgba(255, 255, 255, 0.14)
+    border-radius: 8px
+    padding: 5px 10px 5px 8px
+    cursor: pointer
+    color: rgba(255, 255, 255, 0.85)
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 600
+    transition: background 0.15s, border-color 0.15s
+
+    &:hover
+      background: rgba(255, 255, 255, 0.14)
+      border-color: rgba(255, 255, 255, 0.22)
+
+  &__swatch-group
+    display: inline-flex
+    align-items: center
+    gap: 2px
+
+  &__dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    display: inline-block
+
+  &__label
+    letter-spacing: 0.2px
+
+  &__chev
+    font-size: 8px
+    opacity: 0.6
+    transition: transform 0.2s
+
+    &--open
+      transform: rotate(180deg)
+
+  // ── Dropdown ────────────────────────────────────────────────────────────────
+  &__menu
+    position: absolute
+    top: calc(100% + 8px)
+    right: 0
+    width: 260px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    box-shadow: $shadow-lg
+    padding: 8px
+    z-index: 300
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__menu-title
+    font-family: $font-body
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.5px
+    padding: 6px 8px 8px
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 8px 8px
+    background: transparent
+    border: none
+    border-radius: $radius-md
+    cursor: pointer
+    text-align: left
+    transition: background 0.12s
+
+    &:hover
+      background: $primary-50
+
+    &--active
+      background: $primary-50
+
+  &__item-preview
+    width: 36px
+    height: 28px
+    border-radius: $radius-sm
+    border: 1px solid $border
+    position: relative
+    flex-shrink: 0
+    overflow: hidden
+
+  &__preview-bar
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    height: 8px
+
+  &__preview-dot
+    position: absolute
+    bottom: 4px
+    right: 4px
+    width: 6px
+    height: 6px
+    border-radius: 50%
+
+  &__item-text
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__item-label
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__item-desc
+    font-family: $font-body
+    font-size: 11px
+    color: $text-inactive
+    line-height: 1.35
+
+  &__check
+    font-size: 11px
+    color: $primary
+    flex-shrink: 0

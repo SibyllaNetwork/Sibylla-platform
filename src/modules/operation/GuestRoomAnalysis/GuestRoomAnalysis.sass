@@ -1,0 +1,157 @@
+// ─── GUEST & ROOM ANALYSIS ────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.grm-analysis
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 200px
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+
+    .sib-input
+      width: 140px
+
+    span
+      color: $text-inactive
+
+  &__visualizza
+    i
+      margin-right: 6px
+
+  &__info
+    margin-left: auto
+
+  // ── Layout 2 colonne ───────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: 360px 1fr
+    gap: 24px
+
+    @media (max-width: 1100px)
+      grid-template-columns: 1fr
+
+  &__col
+    display: flex
+    flex-direction: column
+    gap: 24px
+
+    &--charts
+      gap: 16px
+
+  // ── Donut blocks ───────────────────────────────────────────────────────────
+  &__donut-block
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    position: relative
+
+  &__donut-label
+    font-size: 11px
+    color: $text-inactive
+
+    &--top
+      align-self: flex-start
+
+    &--bottom
+      align-self: flex-end
+
+  &__center-ico
+    font-size: 22px
+    color: $primary
+    margin-bottom: 6px
+    display: block
+
+  &__kpis
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+
+  &__kpi
+    text-align: center
+
+  &__kpi-label
+    font-size: 13px
+    color: $text-active
+
+  &__kpi-value
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 18px
+
+  // ── Chart cards ────────────────────────────────────────────────────────────
+  &__chart-card
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 14px
+    display: flex
+    flex-direction: column
+    gap: 10px
+    position: relative
+
+  &__chart-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+
+  &__chart-title
+    margin: 0
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 14px
+    color: $primary
+
+  &__dettaglio
+    background: $primary
+    color: white
+    font-size: 11px
+    letter-spacing: 1px
+    padding: 4px 14px
+
+  &__chart-legend
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 16px
+    font-size: 12px
+    color: $text-active
+
+  &__sw
+    width: 10px
+    height: 10px
+    border-radius: 2px
+    display: inline-block
+    margin-right: 6px
+    vertical-align: middle
+
+  &__svg
+    width: 100%
+    height: auto

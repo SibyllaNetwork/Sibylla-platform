@@ -1,0 +1,161 @@
+@use '../../../../styles/tokens' as *
+
+.mod-tab__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 16px
+
+.mod-tab__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.mod-tab__sub
+  font-size: 12px
+  color: $text-disabled
+  margin-top: 2px
+
+.mod-tab__btn-new
+  gap: 7px
+
+.mod-tab__assigned
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 10px 14px
+  background: $blue-light
+  border: 1px solid rgba($blue, 0.13)
+  border-radius: 8px
+  margin-bottom: 14px
+  flex-wrap: wrap
+
+.mod-tab__assigned-name
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.mod-tab__chip
+  font-size: 11px
+  font-weight: 600
+  color: $blue
+  background: $white
+  border: 1px solid rgba($blue, 0.27)
+  border-radius: 5px
+  padding: 2px 8px
+  display: flex
+  align-items: center
+  gap: 5px
+
+.mod-tab__chip-close
+  background: none
+  border: none
+  cursor: pointer
+  padding: 0
+  display: flex
+
+.mod-tab__assigned-count
+  font-size: 11px
+  color: $text-disabled
+
+.mod-tab__list
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.mod-tab__card
+  display: flex
+  align-items: center
+  gap: 14px
+  background: $white
+  border: 1.5px solid $border
+  border-radius: 10px
+  padding: 14px 18px
+  transition: all 0.15s
+
+  &--assigned
+    background: $primary-100
+    border-color: $primary
+
+.mod-tab__check
+  width: 20px
+  height: 20px
+  border-radius: 5px
+  border: 2px solid $border
+  background: transparent
+  display: flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  flex-shrink: 0
+  transition: all 0.15s
+
+  &--on
+    border-color: $primary
+    background: $primary
+
+.mod-tab__body
+  flex: 1
+  min-width: 0
+
+.mod-tab__head-row
+  display: flex
+  align-items: center
+  gap: 8px
+  margin-bottom: 3px
+
+.mod-tab__name
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+
+  &--on
+    color: $primary
+
+.mod-tab__pages-badge
+  font-size: 10px
+  font-weight: 600
+  color: $primary
+  background: rgba($primary, 0.07)
+  border-radius: 4px
+  padding: 2px 8px
+
+.mod-tab__assigned-badge
+  font-size: 10px
+  font-weight: 600
+  color: $success
+  background: $success-light
+  border-radius: 4px
+  padding: 2px 7px
+
+.mod-tab__desc
+  font-size: 12px
+  color: $text-disabled
+
+.mod-tab__row-actions
+  display: flex
+  align-items: center
+  gap: 6px
+  flex-shrink: 0
+
+.mod-tab__icon-btn
+  width: 30px
+  height: 30px
+  background: none
+  border: 1px solid $border
+  border-radius: 7px
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: all 0.15s
+
+  &--edit:hover
+    border-color: $blue
+    background: $blue-light
+
+  &--del:hover
+    border-color: $error
+    background: $error-light

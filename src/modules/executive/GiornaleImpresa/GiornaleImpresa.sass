@@ -1,0 +1,319 @@
+// ─── GIORNALE IMPRESA ─────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.giornale
+
+  &__top-bar
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    margin-bottom: 16px
+
+  &__live-btn
+    display: flex
+    align-items: center
+    gap: 7px
+    background: $error
+    border: none
+    border-radius: 8px
+    padding: 9px 18px
+    cursor: pointer
+    font-size: 13px
+    font-weight: 700
+    color: $white
+    flex-shrink: 0
+    margin-top: 4px
+
+  &__live-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: rgba($white, 0.85)
+
+  &__struttura-bar
+    display: flex
+    align-items: center
+    gap: 10px
+    margin-bottom: 14px
+
+  &__struttura-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+
+  // ── Tabs ────────────────────────────────────────────────────────────────────
+  &__tabs
+    display: flex
+    gap: 6px
+    margin-bottom: 20px
+    flex-wrap: wrap
+
+  &__tab
+    padding: 7px 14px
+    border-radius: 7px
+    border: 1.5px solid $border
+    background: $white
+    color: $text-inactive
+    font-size: 12px
+    font-weight: 400
+    cursor: pointer
+    transition: $transition-fast
+
+    &--active
+      border-color: $primary
+      color: $primary
+      font-weight: 700
+      box-shadow: inset 0 -2px 0 $primary
+
+  // ── Panel header ────────────────────────────────────────────────────────────
+  &__panel-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 11px 16px
+    border-bottom: 0.5px solid $border
+    background: #F8FCFF
+
+  &__panel-title
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+
+  &__panel-sdly
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    letter-spacing: 0.5px
+
+  // ── Stats row ───────────────────────────────────────────────────────────────
+  &__stat-row
+    display: grid
+    grid-template-columns: 1fr auto auto
+    padding: 8px 16px
+    border-bottom: 0.5px solid $border
+    align-items: center
+    gap: 10px
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+    &:last-of-type
+      border-bottom: none
+
+  &__stat-label
+    font-size: 12px
+    color: $text-active
+
+  &__stat-val
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    text-align: right
+
+  &__stat-delta
+    font-size: 12px
+    color: $text-disabled
+    min-width: 18px
+    text-align: right
+
+  &__panel-footer
+    padding: 9px 16px
+    border-top: 0.5px solid $border
+    display: flex
+    justify-content: flex-end
+
+  &__panel-link
+    display: flex
+    align-items: center
+    gap: 5px
+    background: transparent
+    border: none
+    cursor: pointer
+    font-size: 12px
+    color: $link
+    font-weight: 600
+
+  // ── Info card header ─────────────────────────────────────────────────────────
+  &__info-header
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 11px 16px
+    border-bottom: 0.5px solid $border
+    background: #F8FCFF
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+
+  // ── Almanacco ───────────────────────────────────────────────────────────────
+  &__almanacco-body
+    display: flex
+    gap: 14px
+    padding: 16px
+
+  &__almanacco-date
+    flex-shrink: 0
+    background: $error
+    border-radius: 10px
+    overflow: hidden
+    width: 62px
+    text-align: center
+
+  &__almanacco-day-name
+    background: #c0392b
+    padding: 3px 0
+    font-size: 9px
+    font-weight: 700
+    color: $white
+    text-transform: uppercase
+    letter-spacing: 0.5px
+
+  &__almanacco-day-num
+    padding: 8px 0 2px
+    font-family: $font-heading
+    font-size: 26px
+    font-weight: 700
+    color: $white
+    line-height: 1
+
+  &__almanacco-month
+    padding: 0 0 8px
+    font-size: 10px
+    font-weight: 600
+    color: rgba($white, 0.9)
+
+  &__almanacco-text-title
+    font-size: 11px
+    font-weight: 700
+    color: $primary
+    margin-bottom: 5px
+
+  &__almanacco-text
+    font-size: 11px
+    color: $text-inactive
+    line-height: 1.5
+    margin: 0 0 10px
+
+  &__almanacco-link
+    display: flex
+    align-items: center
+    gap: 5px
+    background: transparent
+    border: none
+    cursor: pointer
+    font-size: 11px
+    color: $link
+    font-weight: 600
+    padding: 0
+
+  // ── Empty panel ─────────────────────────────────────────────────────────────
+  &__empty
+    padding: 32px 16px
+    text-align: center
+    font-size: 12px
+    color: $text-disabled
+
+    // ─── Aggiungi in fondo a giornale.sass ───────────────────────────────────────
+
+.giornale__title
+  font-family: Poppins, sans-serif
+  font-size: 24px
+  font-weight: 600
+  color: $primary
+  margin: 0 0 4px
+
+.giornale__subtitle
+  font-size: 12px
+  color: $text-inactive
+  margin: 0
+  max-width: 620px
+  line-height: 1.5
+
+// ─── Grids ───────────────────────────────────────────────────────────────────
+.giornale__stats-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 16px
+  margin-bottom: 16px
+
+.giornale__info-grid
+  display: grid
+  grid-template-columns: 1fr 1fr 1fr
+  gap: 16px
+  margin-bottom: 16px
+
+.giornale__bottom-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 16px
+
+// ─── Card base ────────────────────────────────────────────────────────────────
+.giornale__card
+  background: $white
+  border-radius: 12px
+  border: 0.5px solid $border
+  overflow: hidden
+
+.giornale__stat-panel
+  @extend .giornale__card
+
+// ─── Almanacco ────────────────────────────────────────────────────────────────
+.giornale__almanacco-content
+  flex: 1
+
+// ─── Meteo ────────────────────────────────────────────────────────────────────
+.giornale__meteo-body
+  padding: 16px
+
+.giornale__meteo-desc
+  font-size: 11px
+  color: $text-inactive
+  margin: 0 0 14px
+  line-height: 1.5
+
+.giornale__meteo-row
+  display: flex
+  align-items: center
+  gap: 16px
+
+.giornale__meteo-icon
+  font-size: 44px
+  color: $warning
+
+.giornale__meteo-city
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 1px
+  margin-bottom: 2px
+
+.giornale__meteo-temp
+  font-family: Poppins, sans-serif
+  font-size: 30px
+  font-weight: 700
+  color: $primary
+  line-height: 1
+
+// ─── Eventi ──────────────────────────────────────────────────────────────────
+.giornale__eventi-body
+  padding: 16px
+
+.giornale__event-item
+  font-size: 12px
+  color: $text-active
+  padding: 7px 0
+  line-height: 1.4
+
+  &--border
+    border-bottom: 0.5px solid $border
+
+    .giornale__struttura-select
+  width: 200px
+

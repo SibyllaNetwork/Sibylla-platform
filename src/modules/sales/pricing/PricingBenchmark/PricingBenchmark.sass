@@ -1,0 +1,199 @@
+@use '../../../../styles/tokens' as *
+
+// ─── Stars ────────────────────────────────────────────────────────────────────
+.benchmark__no-rating
+  font-size: 10px
+  color: $text-disabled
+  font-style: italic
+
+.benchmark__stars
+  display: flex
+  gap: 1px
+
+// ─── Filters ──────────────────────────────────────────────────────────────────
+.benchmark__filters
+  display: flex
+  align-items: flex-end
+  justify-content: space-between
+  margin-bottom: 14px
+  gap: 12px
+  flex-wrap: wrap
+
+.benchmark__filters-left
+  display: flex
+  gap: 14px
+  align-items: flex-end
+  flex-wrap: wrap
+
+.benchmark__search-input
+  width: 148px
+
+.benchmark__select--paese
+  width: 84px
+
+.benchmark__select--struttura
+  width: 110px
+
+// ─── Main layout ──────────────────────────────────────────────────────────────
+.benchmark__layout
+  display: flex
+  gap: 14px
+  align-items: flex-start
+
+// ─── Map panel ────────────────────────────────────────────────────────────────
+.benchmark__map-panel
+  flex: 0 0 57%
+  border-radius: 12px
+  border: 0.5px solid $border
+  overflow: hidden
+  display: flex
+  min-height: 500px
+
+.benchmark__map
+  flex: 1
+  position: relative
+  overflow: hidden
+  min-height: 500px
+
+.benchmark__map-marker
+  position: absolute
+  transform: translate(-50%,-50%)
+  z-index: 2
+  cursor: pointer
+
+.benchmark__map-pin
+  width: 22px
+  height: 22px
+  border-radius: 50%
+  background: #E07B39
+  border: 2.5px solid #fff
+  display: flex
+  align-items: center
+  justify-content: center
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3)
+  font-size: 9px
+  font-weight: 700
+  color: #fff
+  transition: transform 0.1s
+
+// ─── Hotel list ───────────────────────────────────────────────────────────────
+.benchmark__hotel-list
+  width: 222px
+  max-height: 500px
+  overflow: auto
+  background: $white
+  border-left: 1px solid $border
+  flex-shrink: 0
+
+.benchmark__hotel-item-inner
+  display: flex
+  align-items: flex-start
+  gap: 6px
+
+.benchmark__hotel-info
+  flex: 1
+  min-width: 0
+
+.benchmark__hotel-name
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  line-height: 1.3
+  margin-top: 3px
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.benchmark__hotel-addr
+  font-size: 9.5px
+  color: $text-disabled
+  margin-top: 2px
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+// ─── Monitor panel ────────────────────────────────────────────────────────────
+.benchmark__your-hotel-name
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+
+.benchmark__your-hotel-label
+  display: flex
+  align-items: center
+  gap: 5px
+
+.benchmark__your-hotel-text
+  font-size: 11px
+  color: $text-inactive
+
+.benchmark__monitor-empty
+  padding: 20px 16px
+  text-align: center
+  font-size: 12px
+  color: $text-disabled
+
+.benchmark__monitor-item-name
+  font-size: 12px
+  color: $text-active
+
+.benchmark__monitor-item-actions
+  display: flex
+  align-items: center
+  gap: 8px
+  flex-shrink: 0
+
+// ─── Chart controls ───────────────────────────────────────────────────────────
+.benchmark__chart-close-btn
+  background: none
+  border: none
+  cursor: pointer
+  padding: 2px
+  display: flex
+
+.benchmark__chart-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+
+.benchmark__info-btn
+  background: rgba(92,156,212,0.09)
+  border-radius: 4px
+  padding: 3px 5px
+  display: flex
+  align-items: center
+
+// ─── Chart wrap ───────────────────────────────────────────────────────────────
+.benchmark__chart-wrap
+  padding: 4px 10px 8px
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+.benchmark__modal-title
+  font-family: Poppins, sans-serif
+  font-size: 16px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 14px
+
+.benchmark__modal-text
+  font-size: 13px
+  color: $text-active
+  margin: 0 0 24px
+  text-align: center
+  line-height: 1.5
+
+.benchmark__modal-actions
+  display: flex
+  justify-content: center
+  gap: 12px
+
+.benchmark__modal-confirm
+  padding: 9px 28px
+  border: 1.5px solid #E74C3C
+  border-radius: 7px
+  background: transparent
+  font-size: 13px
+  font-weight: 600
+  color: #E74C3C
+  cursor: pointer
+  transition: background 0.15s

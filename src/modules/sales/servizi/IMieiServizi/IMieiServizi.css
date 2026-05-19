@@ -1,0 +1,203 @@
+/* ============================================================
+   IMieiServizi — gemella di ListaProdotti per i servizi
+   ============================================================ */
+
+.miei-servizi__warn {
+  padding: 10px 14px;
+  background: var(--color-alert-50, #fff3e0);
+  border: 1px solid var(--color-alert-200, #ffcc81);
+  color: var(--color-alert-700, #f57d03);
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.miei-servizi__count {
+  font-size: 12px;
+  color: var(--color-text-disabled);
+  margin-bottom: 8px;
+}
+
+.miei-servizi__empty {
+  padding: 28px;
+  text-align: center;
+  background: #f7f9fc;
+  border: 1px dashed var(--color-border, #cfcfcf);
+  border-radius: 10px;
+  color: var(--color-text-disabled);
+  font-size: 13px;
+}
+
+.miei-servizi__table {
+  table-layout: auto;
+}
+
+.miei-servizi__name {
+  font-weight: 600;
+  color: var(--color-text-active);
+  font-size: 13px;
+}
+.miei-servizi__sub {
+  font-size: 11px;
+  color: var(--color-text-disabled);
+}
+
+.miei-servizi__price {
+  font-weight: 600;
+  color: var(--color-text-active);
+}
+.miei-servizi__price--off {
+  color: var(--color-text-disabled);
+  font-weight: 400;
+}
+
+.miei-servizi__row--off {
+  opacity: 0.65;
+}
+
+.miei-servizi__th-actions,
+.miei-servizi__cell-actions {
+  width: 92px;
+  text-align: right;
+  white-space: nowrap;
+}
+.miei-servizi__cell-actions > * + * {
+  margin-left: 6px;
+}
+
+.miei-servizi__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  border: 1px solid var(--color-border, #cfcfcf);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.miei-servizi__icon-btn:hover { border-color: var(--color-primary); }
+.miei-servizi__icon-btn--danger:hover { border-color: var(--color-error, #d10011); }
+
+/* === Toggle switch attivo/disattivo ============================== */
+.miei-servizi__switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.miei-servizi__switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.miei-servizi__switch-slider {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.miei-servizi__switch-slider::before {
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.miei-servizi__switch input:checked + .miei-servizi__switch-slider {
+  background: var(--color-primary);
+}
+.miei-servizi__switch input:checked + .miei-servizi__switch-slider::before {
+  transform: translateX(16px);
+}
+
+/* === Paginazione footer ============================================ */
+.miei-servizi__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid var(--color-border, #cfcfcf);
+  border-radius: 10px;
+}
+
+.miei-servizi__pagination-info {
+  font-size: 12px;
+  color: var(--color-text-inactive);
+}
+.miei-servizi__pagination-info strong {
+  color: var(--color-text-active);
+  font-weight: 700;
+}
+
+.miei-servizi__pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.miei-servizi__pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  background: #fff;
+  border: 1px solid var(--color-border, #cfcfcf);
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-active);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.miei-servizi__pagination-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.miei-servizi__pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.miei-servizi__pagination-btn--active,
+.miei-servizi__pagination-btn--active:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.miei-servizi__pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  color: var(--color-text-disabled);
+  font-size: 14px;
+}
+
+.miei-servizi__pagination-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-inactive);
+}
+.miei-servizi__pagination-size .sib-select {
+  width: 72px;
+}

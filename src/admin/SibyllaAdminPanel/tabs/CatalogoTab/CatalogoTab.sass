@@ -1,0 +1,91 @@
+@use '../../../../styles/tokens' as *
+
+.cat-tab__banner
+  display: flex
+  align-items: flex-start
+  gap: 10px
+  padding: 10px 14px
+  background: rgba($primary, 0.07)
+  border: 1px solid rgba($primary, 0.18)
+  border-radius: 8px
+  margin-bottom: 14px
+
+.cat-tab__banner-text
+  font-size: 12px
+  color: $text-active
+  line-height: 1.5
+
+  strong
+    color: $primary
+
+  em
+    font-style: normal
+    font-weight: 600
+    color: $primary
+
+.cat-tab__counters
+  display: grid
+  grid-template-columns: repeat(4, 1fr)
+  gap: 10px
+  margin-bottom: 14px
+
+.cat-tab__counter
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 12px 14px
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 10px
+
+.cat-tab__counter-ico
+  font-size: 22px
+  color: $primary
+
+.cat-tab__counter-value
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 700
+  color: $primary
+  line-height: 1
+
+.cat-tab__counter-label
+  font-size: 11px
+  color: $text-disabled
+  margin-top: 3px
+
+.cat-tab__subtabs
+  display: flex
+  gap: 0
+  border-bottom: 1px solid $border
+  margin-bottom: 14px
+
+.cat-tab__subtab
+  display: flex
+  align-items: center
+  gap: 7px
+  padding: 8px 18px
+  background: none
+  border: none
+  border-bottom: 2.5px solid transparent
+  font-size: 13px
+  font-weight: 500
+  color: $text-inactive
+  cursor: pointer
+  font-family: $font-heading
+  margin-bottom: -1px
+  transition: all 0.15s
+
+  &:hover
+    color: $primary
+
+  &--active
+    border-bottom-color: $primary
+    font-weight: 700
+    color: $primary
+
+.cat-tab__subtab-ico
+  font-size: 13px
+
+.cat-tab__panel
+  // wrapper

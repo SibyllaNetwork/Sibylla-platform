@@ -1,0 +1,192 @@
+// ─── TYPOGRAPHY ───────────────────────────────────────────────────────────────
+// Stili tipografici del design system Sibylla.
+// Modifica questo file per aggiornare heading, body, label e caption.
+//
+// STRUTTURA:
+//   1. Heading  — h1–h4, page-title, section-title
+//   2. Body     — body-lg, body-md, body-sm
+//   3. Label    — form-label, form-hint, form-error
+//   4. Caption  — meta, badge-text, tag-text
+//   5. Utility  — classi helper applicabili a qualsiasi elemento
+
+@use 'tokens' as *
+
+// ══ 1. HEADING ════════════════════════════════════════════════════════════════
+
+.h1, h1
+  font-family: $font-heading
+  font-size: 28px
+  font-weight: 700
+  color: $primary
+  line-height: 1.25
+  margin: 0
+
+.h2, h2
+  font-family: $font-heading
+  font-size: 22px
+  font-weight: 700
+  color: $primary
+  line-height: 1.3
+  margin: 0
+
+.h3, h3
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 600
+  color: $primary
+  line-height: 1.35
+  margin: 0
+
+.h4, h4
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 600
+  color: $primary
+  line-height: 1.4
+  margin: 0
+
+// Heading di pagina (usato in BtnBack + titolo + sottotitolo)
+.page-header
+  margin-bottom: 20px
+
+  &__title
+    font-family: $font-heading
+    font-size: 24px
+    font-weight: 600
+    color: $primary
+    margin: 0 0 4px
+
+  &__subtitle
+    font-size: 13px
+    color: $text-inactive
+    margin: 0
+
+// Titolo di sezione (card header, pannello)
+.section-title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+// ══ 2. BODY ═══════════════════════════════════════════════════════════════════
+
+.body-lg
+  font-family: $font-body
+  font-size: 15px
+  font-weight: 400
+  color: $text-active
+  line-height: 1.6
+
+.body-md
+  font-family: $font-body
+  font-size: 13px
+  font-weight: 400
+  color: $text-active
+  line-height: 1.5
+
+.body-sm
+  font-family: $font-body
+  font-size: 12px
+  font-weight: 400
+  color: $text-inactive
+  line-height: 1.5
+
+// ══ 3. LABEL ══════════════════════════════════════════════════════════════════
+
+// Label sopra un campo form
+.form-label
+  font-family: $font-body
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: $space-xs
+
+// Testo hint sotto un campo
+.form-hint
+  font-family: $font-body
+  font-size: 11px
+  font-weight: 400
+  color: $text-disabled
+  margin-top: 3px
+
+// Testo errore sotto un campo
+.form-error-text
+  font-family: $font-body
+  font-size: 11px
+  font-weight: 500
+  color: $error
+  margin-top: 3px
+
+// ══ 4. CAPTION ════════════════════════════════════════════════════════════════
+
+// Meta info (date, orari, riferimenti)
+.meta
+  font-family: $font-body
+  font-size: 11px
+  font-weight: 400
+  color: $text-disabled
+
+// Testo uppercase per intestazioni tabella / sezione
+.overline
+  font-family: $font-body
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.5px
+
+// ══ 5. UTILITY ════════════════════════════════════════════════════════════════
+
+.text-primary
+  color: $primary
+
+.text-active
+  color: $text-active
+
+.text-inactive
+  color: $text-inactive
+
+.text-disabled
+  color: $text-disabled
+
+.text-error
+  color: $error
+
+.text-success
+  color: $success
+
+.text-warning
+  color: $warning
+
+.text-link
+  color: $link
+
+.font-heading
+  font-family: $font-heading
+
+.font-body
+  font-family: $font-body
+
+.fw-400
+  font-weight: 400
+
+.fw-500
+  font-weight: 500
+
+.fw-600
+  font-weight: 600
+
+.fw-700
+  font-weight: 700
+
+.text-center
+  text-align: center
+
+.text-right
+  text-align: right
+
+.truncate
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap

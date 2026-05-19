@@ -1,0 +1,172 @@
+// ─── FEEDBACK ─────────────────────────────────────────────────────────────────
+// Componenti di feedback visivo del design system Sibylla.
+// Modifica questo file per aggiornare badge, alert, banner e spinner.
+//
+// ELEMENTI:
+//   .badge          — etichetta colorata inline (stato, tipo)
+//   .alert-banner   — banner pieno-larghezza (success/error/warning/info)
+//   .esito-badge    — badge KPI (positivo/negativo con freccia)
+//   .spinner        — loading indicator
+//   .empty-state    — placeholder sezione vuota
+
+@use 'tokens' as *
+
+// ══ BADGE ═════════════════════════════════════════════════════════════════════
+// Etichetta colorata compatta — stato, tipo, categoria
+.badge
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  border-radius: $radius-sm
+  padding: 2px 8px
+  font-family: $font-body
+  font-size: 10px
+  font-weight: 600
+  white-space: nowrap
+  line-height: 1.4
+
+  // Varianti semantiche
+  &--success
+    background: $success-light
+    color: $success
+
+  &--error
+    background: $error-light
+    color: $error
+
+  &--warning
+    background: $warning-light
+    color: $warning
+
+  &--info
+    background: $link-light
+    color: $link
+
+  &--neutral
+    background: $primary-100
+    color: $primary
+
+  &--disabled
+    background: #F0F0F0
+    color: $text-disabled
+
+  // Dimensione media
+  &--md
+    font-size: 11px
+    padding: 3px 10px
+
+// ══ ALERT BANNER ══════════════════════════════════════════════════════════════
+// Banner orizzontale — feedback di sistema, conferme, errori
+.alert-banner
+  display: flex
+  align-items: center
+  gap: $space-sm
+  border-radius: $radius-lg
+  padding: 10px $space-lg
+  margin-bottom: $space-lg
+  font-family: $font-body
+  font-size: 13px
+  font-weight: 600
+
+  &--success
+    background: $success-light
+    border: 1px solid rgba($success, 0.2)
+    color: $success
+
+  &--error
+    background: $error-light
+    border: 1px solid rgba($error, 0.2)
+    color: $error
+
+  &--warning
+    background: $warning-light
+    border: 1px solid rgba($warning, 0.2)
+    color: $warning
+
+  &--info
+    background: $link-light
+    border: 1px solid rgba($link, 0.2)
+    color: $link
+
+// ══ ESITO BADGE ═══════════════════════════════════════════════════════════════
+// KPI con freccia direzionale (su/giù)
+.esito-badge
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  border-radius: $radius-sm
+  padding: 3px 8px
+  font-size: 11px
+  font-weight: 700
+
+  &--up
+    background: $success-light
+    color: $success
+
+  &--down
+    background: $error-light
+    color: $error
+
+  &--neutral
+    background: $primary-100
+    color: $primary
+
+// ══ SPINNER ═══════════════════════════════════════════════════════════════════
+// Loading indicator rotante
+.spinner
+  display: inline-block
+  width: 20px
+  height: 20px
+  border: 2.5px solid $primary-200
+  border-top-color: $primary
+  border-radius: 50%
+  animation: spin 0.75s linear infinite
+
+  &--sm
+    width: 14px
+    height: 14px
+    border-width: 2px
+
+  &--lg
+    width: 32px
+    height: 32px
+    border-width: 3px
+
+  &--white
+    border-color: rgba($white, 0.3)
+    border-top-color: $white
+
+@keyframes spin
+  to
+    transform: rotate(360deg)
+
+// ══ EMPTY STATE ═══════════════════════════════════════════════════════════════
+// Placeholder per sezione senza dati
+.empty-state
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  padding: $space-2xl $space-xl
+  text-align: center
+  gap: $space-sm
+
+  &__icon
+    color: $text-disabled
+    opacity: 0.5
+    margin-bottom: $space-xs
+
+  &__title
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $text-inactive
+    margin: 0
+
+  &__text
+    font-family: $font-body
+    font-size: 13px
+    color: $text-disabled
+    margin: 0
+    line-height: 1.5
+    max-width: 300px

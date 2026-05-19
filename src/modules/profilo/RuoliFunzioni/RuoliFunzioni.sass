@@ -1,0 +1,350 @@
+@use '../../../styles/tokens' as *
+
+// ─── Banner ───────────────────────────────────────────────────────────────────
+.go__banner
+  margin-bottom: 16px
+
+// NB: colori ereditati dal parent .alert-banner--success / --error — non
+//     hardcodare qui, altrimenti il banner di errore mostrerebbe l'icona verde.
+.go__banner-ico
+  font-size: 16px
+
+.go__banner-text
+  font-size: 13px
+  font-weight: 600
+
+// ─── Top actions ──────────────────────────────────────────────────────────────
+.go__top-actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  margin-bottom: 16px
+
+.go__action-btn
+  gap: 7px
+  padding: 8px 16px
+
+.go__action-ico
+  font-size: 14px
+
+// ─── Info table ───────────────────────────────────────────────────────────────
+.go__info-wrap
+  background: $white
+  border-radius: 10px
+  border: 0.5px solid $border
+  overflow: hidden
+  margin-bottom: 20px
+
+.go__info-head
+  display: grid
+  grid-template-columns: 0.9fr 0.8fr 1fr 0.8fr 2fr 1.8fr 0.5fr 1.6fr
+  background: #FAFBFC
+  border-bottom: 1px solid $border
+
+.go__info-hcell
+  padding: 10px 12px
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.4px
+
+  &--border
+    border-right: 0.5px solid $border
+
+.go__info-body
+  display: grid
+  grid-template-columns: 0.9fr 0.8fr 1fr 0.8fr 2fr 1.8fr 0.5fr 1.6fr
+
+.go__info-cell
+  padding: 12px 12px
+  font-size: 12px
+  color: $text-active
+  display: flex
+  align-items: center
+
+  &--border
+    border-right: 0.5px solid $border
+
+.go__info-val--bold
+  font-weight: 500
+
+.go__info-val--sm
+  font-size: 11px
+
+.go__info-val--link
+  color: $link
+  font-size: 11px
+
+.go__info-multistruttura
+  display: flex
+  align-items: center
+  gap: 6px
+
+// ─── Icona info nella cella Tipologia (trigger del tooltip strutture) ────────
+.go__multistruttura-ico
+  font-size: 13px
+  color: $text-inactive
+  cursor: help
+
+// ─── Contenuto del tooltip con elenco strutture configurate ──────────────────
+// Vive dentro il box scuro del componente Tooltip: colori ereditano (fff).
+.go__strutture-tooltip
+  &-title
+    font-weight: 600
+    font-size: 11px
+    margin-bottom: 6px
+    opacity: 0.75
+
+  &-list
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &-item
+    padding: 2px 0
+    font-size: 11px
+    font-weight: 500
+    display: flex
+    align-items: center
+    gap: 6px
+
+  &-bullet
+    width: 4px
+    height: 4px
+    border-radius: 50%
+    background: #fff
+    opacity: 0.6
+    flex-shrink: 0
+
+// ─── File input nascosto (trigger via click sul bottone "Inserisci logo") ────
+.go__file-input
+  display: none
+
+.go__logo-placeholder
+  width: 28px
+  height: 28px
+  border-radius: 7px
+  background: $success-light
+  display: flex
+  align-items: center
+  justify-content: center
+  overflow: hidden
+
+  // Variante con immagine caricata — fondo trasparente, la foto riempie il box
+  &--filled
+    background: transparent
+
+.go__logo-dot
+  width: 12px
+  height: 12px
+  border-radius: 3px
+  background: $success
+
+.go__logo-img
+  width: 100%
+  height: 100%
+  object-fit: contain
+  border-radius: 7px
+
+// ─── Two-column grid ──────────────────────────────────────────────────────────
+.go__grid
+  display: grid
+  grid-template-columns: 1fr 1.4fr
+  gap: 16px
+  margin-bottom: 20px
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.go__card
+  background: $white
+  border-radius: 10px
+  border: 0.5px solid $border
+  overflow: hidden
+
+.go__card-header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 13px 16px
+  border-bottom: 0.5px solid $border
+
+  &--simple
+    justify-content: flex-start
+
+.go__card-title
+  font-family: Poppins, sans-serif
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+// ─── Add role button ──────────────────────────────────────────────────────────
+.go__add-role-btn
+  display: flex
+  align-items: center
+  gap: 5px
+  background: transparent
+  border: none
+  cursor: pointer
+  font-size: 12px
+  color: $link
+  font-weight: 600
+  padding: 4px 8px
+  border-radius: 6px
+  transition: background 0.15s
+
+  &:hover
+    background: $blue-light
+
+.go__add-role-ico
+  font-size: 13px
+  color: $link
+
+// ─── Column headers ───────────────────────────────────────────────────────────
+.go__col-hcell
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.4px
+
+.go__ruoli-head
+  display: grid
+  grid-template-columns: 1fr 1.6fr 36px
+  padding: 8px 16px
+  background: #FAFBFC
+  border-bottom: 0.5px solid $border
+
+.go__assoc-head
+  display: grid
+  grid-template-columns: 1.3fr 1fr 1fr
+  padding: 8px 16px
+  background: #FAFBFC
+  border-bottom: 0.5px solid $border
+
+// ─── Ruoli rows ───────────────────────────────────────────────────────────────
+.go__ruoli-row
+  display: grid
+  grid-template-columns: 1fr 1.6fr 36px
+  padding: 9px 16px
+  align-items: center
+  gap: 8px
+  transition: background 0.1s
+
+  &:hover
+    background: #F8FCFF
+
+  &--border
+    border-bottom: 0.5px solid $border
+
+.go__ruoli-name
+  font-size: 13px
+  color: $text-active
+  font-weight: 500
+
+.go__select
+  height: 34px
+  font-size: 12px
+  width: 100%
+
+.go__delete-btn
+  background: none
+  border: none
+  cursor: pointer
+  padding: 5px
+  border-radius: 5px
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: background 0.15s
+
+  &:hover
+    background: $error-light
+
+.go__delete-ico
+  font-size: 14px
+  color: $error
+
+// ─── Assoc rows ───────────────────────────────────────────────────────────────
+.go__assoc-row
+  display: grid
+  grid-template-columns: 1.3fr 1fr 1fr
+  padding: 8px 16px
+  align-items: center
+  gap: 10px
+  transition: background 0.1s
+
+  &:hover
+    background: #F8FCFF
+
+  &--border
+    border-bottom: 0.5px solid $border
+
+.go__assoc-user
+  display: flex
+  align-items: center
+  gap: 9px
+
+.go__avatar
+  width: 28px
+  height: 28px
+  border-radius: 50%
+  border: 1px solid transparent
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 9px
+  font-weight: 700
+  flex-shrink: 0
+
+.go__assoc-name
+  font-size: 12px
+  color: $text-active
+  font-weight: 500
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+.go__footer
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+
+.go__footer-cancel
+  background: transparent
+  border: 1.5px solid $border
+  border-radius: 7px
+  padding: 9px 22px
+  font-size: 13px
+  color: $text-inactive
+  cursor: pointer
+  font-weight: 600
+
+.go__footer-save
+  background: $primary
+  border: none
+  border-radius: 7px
+  padding: 9px 28px
+  font-size: 13px
+  color: #fff
+  cursor: pointer
+  font-weight: 600
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+.go__modal-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.go__modal-input
+  width: 100%
+  height: 40px
+
+.go__modal-actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+
+.go__modal-save--disabled
+  opacity: 0.5
+  cursor: not-allowed

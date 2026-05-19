@@ -1,0 +1,279 @@
+// ─── PRENOTAZIONI IDS + CALENDARIO TARIFFE ───────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+// ═══ PRENOTAZIONI IDS ════════════════════════════════════════════════════════
+.ids
+
+  &__accordion
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+    margin-bottom: 12px
+
+  &__hotel-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 16px 20px
+    cursor: pointer
+    user-select: none
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+  &__hotel-left
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__hotel-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    transition: background 0.2s
+
+  &__hotel-name
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+
+  &__hotel-count
+    font-size: 11px
+    color: $text-disabled
+    background: #F0F5FA
+    border-radius: 5px
+    padding: 2px 8px
+    font-weight: 600
+
+  &__chevron
+    transition: transform 0.22s
+
+    &--open
+      transform: rotate(0deg)
+
+    &--closed
+      transform: rotate(-90deg)
+
+  &__import-header
+    display: grid
+    grid-template-columns: 1fr 1fr
+    padding: 9px 20px 9px 40px
+    background: #F8FAFC
+    border-bottom: 0.5px solid $border
+    border-top: 0.5px solid $border
+
+  &__import-th
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+    &--right
+      text-align: right
+
+  &__import-row
+    display: grid
+    grid-template-columns: 1fr 1fr
+    padding: 12px 20px 12px 40px
+    align-items: center
+    transition: background 0.1s
+
+    &:hover
+      background: #F8FCFF
+
+  &__import-date
+    font-size: 13px
+    color: $text-active
+
+  &__import-val
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+    text-align: right
+
+  &__hotel-footer
+    display: grid
+    grid-template-columns: 1fr 1fr
+    padding: 10px 20px 10px 40px
+    border-top: 1px solid $border
+
+  &__hotel-total-label
+    font-size: 12px
+    font-weight: 700
+    color: $link
+
+  &__hotel-total-val
+    font-size: 13px
+    font-weight: 700
+    color: $link
+    text-align: right
+
+  &__global-footer
+    background: $white
+    border-radius: 10px
+    border: 0.5px solid $border
+    padding: 14px 20px
+    display: grid
+    grid-template-columns: 1fr 1fr
+    align-items: center
+
+  &__global-label
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+
+  &__global-val
+    font-size: 20px
+    font-weight: 700
+    color: $primary
+    text-align: right
+    font-family: $font-heading
+
+// ═══ CALENDARIO TARIFFE ══════════════════════════════════════════════════════
+.cal-tariffe
+
+  &__toolbar
+    margin-bottom: 20px
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+  &__cam-indicator
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-bottom: 16px
+
+  &__cam-line
+    flex: 1
+    height: 1px
+
+  &__month-grid
+    display: flex
+    flex-direction: column
+    gap: 24px
+
+  &__month-card
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__month-header
+    padding: 12px 18px
+    border-bottom: 1px solid $border
+    background: #F8FAFC
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__month-title
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: $primary
+    margin: 0
+
+  &__month-year
+    font-size: 13px
+    color: $text-disabled
+
+  &__month-scroll
+    overflow-x: auto
+
+  &__month-table
+    border-collapse: collapse
+    width: 100%
+    min-width: 700px
+
+  &__day-th
+    padding: 7px 4px
+    font-size: 11px
+    font-weight: 700
+    text-align: center
+    border-bottom: 1px solid $border
+
+    &:not(:last-child)
+      border-right: 0.5px solid #E8EBF0
+
+    &--weekend
+      color: $link
+
+    &--weekday
+      color: $primary
+
+  &__day-cell
+    padding: 0
+    vertical-align: top
+    cursor: pointer
+    transition: background 0.1s
+
+    &:not(:last-child)
+      border-right: 0.5px solid #E8EBF0
+
+    &--empty
+      background: repeating-linear-gradient(-45deg, #F5F5F5, #F5F5F5 4px, #EBEBEB 4px, #EBEBEB 5px)
+
+    &--weekend
+      background: #F8FBFF
+
+      &:hover
+        background: #EEF5FF
+
+    &--weekday
+      background: $white
+
+      &:hover
+        background: #F8FCFF
+
+  &__day-num
+    text-align: right
+    padding: 4px 6px 2px
+    font-size: 11px
+    font-weight: 600
+
+    &--weekend
+      color: $link
+
+    &--weekday
+      color: $text-disabled
+
+  &__day-price
+    padding: 2px 6px
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 2px
+
+  &__day-occ
+    margin: 2px 4px 4px
+    padding: 2px 4px
+    border-radius: 4px
+    text-align: right
+
+  &__legend
+    display: flex
+    align-items: center
+    gap: 16px
+    margin-top: 16px
+    flex-wrap: wrap
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 6px
+
+  &__legend-swatch
+    width: 14px
+    height: 10px
+    border-radius: 3px
+
+  &__legend-label
+    font-size: 11px
+    color: $text-inactive

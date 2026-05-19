@@ -1,0 +1,93 @@
+export type ClientStato = 'attivo' | 'sospeso'
+
+export type TipologiaCategoria =
+  | 'hotel'
+  | 'bnb'
+  | 'appartamenti'
+  | 'case-vacanze'
+  | 'ostello'
+  | 'studentato'
+  | 'ristorante'
+  | 'bar'
+  | 'centro-sportivo'
+
+export interface Cliente {
+  id: number
+  nome: string
+  categoria: TipologiaCategoria
+  classificazione: string  // es. "3★" / "Resort" / "Boutique" / "Luxury" / "Agriturismo" — vuota se non applicabile
+  citta: string
+  camere: number
+  valuta: string
+  lingua: string
+  stato: ClientStato
+  email: string
+  tel: string
+}
+
+export interface Modulo {
+  id: string
+  label: string
+  desc: string
+  pages: string[]
+}
+
+export interface Ruolo {
+  id: string
+  nome: string
+  desc: string
+  colore: string
+}
+
+export type FnType = 'completo' | 'lettura' | 'nascosta'
+
+export interface UserRow {
+  id: number
+  nome: string
+  email: string
+  ruolo: string
+  attivo: boolean
+}
+
+export interface NewClientForm {
+  nome: string
+  categoria: TipologiaCategoria
+  classificazione: string
+  citta: string
+  camere: string
+  email: string
+}
+
+export interface MasterForm {
+  nome: string
+  cognome: string
+  email: string
+  telefono: string
+  ruolo: string
+}
+
+export interface ModuloForm {
+  nome: string
+  desc: string
+  pagesSet: Set<string>
+}
+
+export interface RuoloForm {
+  nome: string
+  desc: string
+  colore: string
+}
+
+export type AdminTab =
+  | 'struttura'
+  | 'moduli'
+  | 'pacchetti'
+  | 'ruoli'
+  | 'funzioni'
+  | 'utenti'
+
+/** Sezione di "Configurazione piattaforma" (modalità separata dalla gestione clienti). */
+export type PlatformSection = 'catalogo' | 'agora-console'
+
+/** Due modalità top-level del pannello admin: gestione clienti vs configurazione piattaforma. */
+export type AdminMode = 'clients' | 'platform'

@@ -1,0 +1,257 @@
+// ─── LAYOUT ───────────────────────────────────────────────────────────────────
+// Topbar + dropdown di ricerca.
+//
+// NOTE: Sidebar e NavItem sono ora implementati in Tailwind direttamente nei
+//       componenti (src/layout/Sidebar.tsx, src/layout/NavItem.tsx). I blocchi
+//       .sidebar e .nav-item__* sono stati rimossi da questo file.
+@use 'tokens' as *
+
+// ═══ TOPBAR ═══════════════════════════════════════════════════════════════════
+.topbar
+  height: 64px
+  background: $primary
+  display: flex
+  align-items: center
+  padding: 0 16px
+  gap: 8px
+  flex-shrink: 0
+
+  // ── Hamburger mobile ────────────────────────────────────────────────────────
+  &__hamburger
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 6px
+    display: flex
+    align-items: center
+    border-radius: 8px
+    flex-shrink: 0
+    transition: background 0.15s
+
+    &:hover
+      background: rgba(255, 255, 255, 0.1)
+
+  // ── Breadcrumbs ─────────────────────────────────────────────────────────────
+  &__crumbs
+    display: flex
+    align-items: center
+    gap: 5px
+    flex: 1
+    min-width: 0
+    overflow: hidden
+
+  &__crumb-home
+    background: none
+    border: none
+    cursor: pointer
+    display: flex
+    align-items: center
+    padding: 0
+
+  &__crumb-item
+    display: flex
+    align-items: center
+    gap: 5px
+
+  &__crumb-btn
+    background: none
+    border: none
+    cursor: pointer
+    padding: 0
+    font-size: 12px
+    font-family: $font-body
+    white-space: nowrap
+
+    &--last
+      color: rgba(255, 255, 255, 0.9)
+      font-weight: 500
+
+    &--prev
+      color: rgba(255, 255, 255, 0.45)
+      font-weight: 400
+
+    &:hover
+      color: $white
+
+  // ── Favorites area ──────────────────────────────────────────────────────────
+  &__favorites
+    position: relative
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__fav-btn
+    font-size: 11px
+    font-weight: 600
+    color: rgba(255, 255, 255, 0.8)
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 5px 8px
+    border-radius: 6px
+    white-space: nowrap
+    transition: background 0.15s
+
+    &:hover,
+    &--active
+      background: rgba(255, 255, 255, 0.12)
+
+  &__fav-page
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 5px
+    border-radius: 6px
+    display: flex
+    align-items: center
+    transition: background 0.15s
+
+    &:hover
+      background: rgba(255, 255, 255, 0.12)
+
+  // ── Divisore ────────────────────────────────────────────────────────────────
+  &__divider
+    width: 1px
+    height: 20px
+    background: rgba(255, 255, 255, 0.15)
+    margin: 0 2px
+    flex-shrink: 0
+
+  // ── Icon buttons ────────────────────────────────────────────────────────────
+  &__icon-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 6px
+    display: flex
+    align-items: center
+    border-radius: 8px
+    transition: background 0.15s
+
+    &:hover
+      background: rgba(255, 255, 255, 0.1)
+
+    &--active
+      background: rgba(255, 255, 255, 0.15)
+
+      &:hover
+        background: rgba(255, 255, 255, 0.2)
+
+  // ── Search ──────────────────────────────────────────────────────────────────
+  &__search
+    display: flex
+    align-items: center
+    gap: 8px
+    background: rgba(255, 255, 255, 0.08)
+    border: 1px solid rgba(255, 255, 255, 0.12)
+    border-radius: 8px
+    padding: 6px 12px
+
+    &:focus-within
+      background: rgba(255, 255, 255, 0.12)
+      border-color: rgba(255, 255, 255, 0.25)
+
+  &__search-input
+    background: transparent
+    border: none
+    outline: none
+    color: rgba(255, 255, 255, 0.75)
+    font-size: 12px
+    width: 130px
+    font-family: $font-body
+
+    &::placeholder
+      color: rgba(255, 255, 255, 0.4)
+
+  // Override per la search input nella topbar — la classe globale
+  // .sib-search-input applica text-ink (scuro) che è invisibile su navy.
+  .sib-search-input
+    color: rgba(255, 255, 255, 0.85)
+
+    &::placeholder
+      color: rgba(255, 255, 255, 0.4)
+
+// ─── SEARCH DROPDOWN ──────────────────────────────────────────────────────────
+.topbar__search-wrap
+  position: relative
+
+.topbar__search-dropdown
+  position: absolute
+  top: calc(100% + 10px)
+  right: 0
+  width: 380px
+  background: $primary-800
+  border: 1px solid rgba(255, 255, 255, 0.12)
+  border-radius: 12px
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4)
+  z-index: 200
+  overflow: hidden
+
+.topbar__search-header
+  padding: 8px 14px 6px
+  font-size: 10px
+  font-weight: 700
+  color: rgba(255, 255, 255, 0.35)
+  text-transform: uppercase
+  letter-spacing: 0.5px
+
+.topbar__search-item
+  display: flex
+  align-items: center
+  gap: 10px
+  width: 100%
+  padding: 9px 14px
+  background: transparent
+  border: none
+  cursor: pointer
+  text-align: left
+  transition: background 0.1s
+
+  &:hover,
+  &--selected
+    background: rgba(255, 255, 255, 0.08)
+
+.topbar__search-item-ico
+  width: 30px
+  height: 30px
+  border-radius: 7px
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+
+.topbar__search-item-text
+  flex: 1
+  min-width: 0
+
+.topbar__search-item-label
+  font-size: 13px
+  font-weight: 500
+  color: rgba(255, 255, 255, 0.9)
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.topbar__search-item-path
+  font-size: 11px
+  color: rgba(255, 255, 255, 0.4)
+  margin-top: 2px
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.topbar__search-empty
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 20px 14px
+  font-size: 13px
+  color: rgba(255, 255, 255, 0.4)
+
+.topbar__search-footer
+  display: flex
+  gap: 14px
+  padding: 8px 14px
+  border-top: 1px solid rgba(255, 255, 255, 0.08)
+  font-size: 10px
+  color: rgba(255, 255, 255, 0.25)

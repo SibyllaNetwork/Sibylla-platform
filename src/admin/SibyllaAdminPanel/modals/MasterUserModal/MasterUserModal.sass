@@ -1,0 +1,190 @@
+@use '../../../../styles/tokens' as *
+
+.mum
+  // wrapper
+
+.mum__head
+  display: flex
+  align-items: flex-start
+  gap: 14px
+  margin-bottom: 20px
+
+.mum__head-ico
+  width: 44px
+  height: 44px
+  border-radius: 12px
+  background: rgba($primary, 0.08)
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+
+.mum__title
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 4px
+
+.mum__sub
+  font-size: 12px
+  color: $text-inactive
+  margin: 0
+  line-height: 1.5
+
+.mum__warning
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 8px 12px
+  background: #FFF8E7
+  border: 1px solid rgba(#F59E0B, 0.2)
+  border-radius: 8px
+  margin-bottom: 16px
+
+.mum__warning-text
+  font-size: 12px
+  font-weight: 600
+  color: #92400E
+
+.mum__form
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.mum__row-2
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 12px
+
+.mum__label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: 4px
+
+.mum__preview
+  background: #F8FAFC
+  border: 1px solid $border
+  border-radius: 8px
+  padding: 12px 14px
+
+.mum__preview-title
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  margin-bottom: 8px
+
+.mum__preview-body
+  font-size: 12px
+  color: $text-active
+  line-height: 1.7
+
+.mum__placeholder
+  color: $text-disabled
+
+.mum__email
+  margin-top: 8px
+  padding: 10px 12px
+  background: $white
+  border-radius: 6px
+  border: 0.5px solid $border
+  font-size: 11px
+  color: $text-inactive
+  line-height: 1.8
+
+.mum__actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 4px
+
+.mum__send
+  padding: 10px 28px
+  display: flex
+  align-items: center
+  gap: 8px
+
+.mum__spinner
+  font-size: 14px
+  color: #fff
+  animation: mum-spin 1s linear infinite
+
+@keyframes mum-spin
+  from
+    transform: rotate(0deg)
+  to
+    transform: rotate(360deg)
+
+// ─── Success state ────────────────────────────────────────────────────────────
+.mum--success
+  text-align: center
+  padding: 12px 0
+
+.mum__success-ico
+  width: 64px
+  height: 64px
+  border-radius: 50%
+  background: $success-light
+  display: flex
+  align-items: center
+  justify-content: center
+  margin: 0 auto 16px
+
+.mum__success-title
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 8px
+
+.mum__success-text
+  font-size: 13px
+  color: $text-inactive
+  margin: 0 0 6px
+  line-height: 1.6
+
+.mum__success-mail
+  font-size: 12px
+  color: $text-disabled
+  margin: 0 0 24px
+
+  strong
+    color: $blue
+
+.mum__summary
+  background: #F8FAFC
+  border: 1px solid $border
+  border-radius: 8px
+  padding: 12px 16px
+  margin-bottom: 24px
+  text-align: left
+
+.mum__summary-title
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  margin-bottom: 8px
+
+.mum__summary-row
+  display: grid
+  grid-template-columns: 120px 1fr
+  gap: 8px
+  margin-bottom: 5px
+
+.mum__summary-key
+  font-size: 12px
+  color: $text-disabled
+
+.mum__summary-val
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.mum__cta
+  padding: 10px 36px

@@ -1,0 +1,337 @@
+@use '../../../styles/tokens' as *
+
+.mov-barcode
+  // wrapper
+
+// ─── Counters ─────────────────────────────────────────────────────────────────
+.mov-barcode__counters
+  display: grid
+  grid-template-columns: repeat(3, 1fr)
+  gap: 10px
+  margin-bottom: 18px
+
+.mov-barcode__counter
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 12px 14px
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 10px
+
+.mov-barcode__counter-ico
+  font-size: 22px
+  color: $primary
+
+.mov-barcode__counter-value
+  font-family: $font-heading
+  font-size: 16px
+  font-weight: 700
+  color: $primary
+  line-height: 1.2
+
+.mov-barcode__counter-label
+  font-size: 11px
+  color: $text-disabled
+  margin-top: 3px
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+.mov-barcode__layout
+  display: grid
+  grid-template-columns: 1.4fr 1fr
+  gap: 18px
+
+  @media (max-width: 1180px)
+    grid-template-columns: 1fr
+
+// ─── Form ─────────────────────────────────────────────────────────────────────
+.mov-barcode__form
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 12px
+  padding: 18px
+
+.mov-barcode__form-title
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 4px
+
+.mov-barcode__hint
+  font-size: 12px
+  color: $text-disabled
+  margin-bottom: 16px
+
+.mov-barcode__field
+  margin-bottom: 12px
+
+.mov-barcode__label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: 4px
+
+.mov-barcode__bcode
+  display: flex
+  align-items: center
+  gap: 0
+  border: 1.5px solid $primary
+  border-radius: 7px
+  background: $primary-100
+  padding: 0 12px
+  height: 44px
+
+.mov-barcode__bcode-ico
+  font-size: 20px
+  color: $primary
+  margin-right: 10px
+
+.mov-barcode__bcode-text
+  flex: 1
+  border: none
+  background: transparent
+  height: 40px
+  font-family: monospace
+  font-size: 16px
+  font-weight: 700
+  color: $primary
+  letter-spacing: 1px
+
+  &:focus
+    outline: none
+
+.mov-barcode__inline-err
+  font-size: 11px
+  color: $error
+  margin-top: 4px
+
+// ─── Card prodotto trovato ───────────────────────────────────────────────────
+.mov-barcode__product-card
+  background: $success-light
+  border: 1px solid rgba($success, 0.3)
+  border-radius: 8px
+  padding: 12px 14px
+  margin-bottom: 14px
+
+.mov-barcode__product-head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  gap: 12px
+
+.mov-barcode__product-name
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.mov-barcode__product-meta
+  font-size: 11px
+  color: $text-inactive
+  margin-top: 2px
+
+.mov-barcode__giacenza
+  font-size: 11px
+  font-weight: 600
+  color: $primary
+  background: $white
+  border: 1px solid rgba($primary, 0.15)
+  border-radius: 5px
+  padding: 4px 10px
+  white-space: nowrap
+
+  strong
+    font-size: 14px
+    margin-left: 4px
+
+.mov-barcode__warn
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  margin-top: 8px
+  font-size: 11px
+  font-weight: 600
+  color: $warning
+  background: $warning-light
+  border-radius: 5px
+  padding: 3px 8px
+
+.mov-barcode__not-found
+  display: flex
+  align-items: center
+  gap: 8px
+  background: #F8FAFC
+  border: 0.5px dashed $border
+  border-radius: 8px
+  padding: 10px 14px
+  margin-bottom: 14px
+  font-size: 12px
+  color: $text-disabled
+
+// ─── Riga 3-col tipo / qty / magazzino ───────────────────────────────────────
+.mov-barcode__row-3
+  display: grid
+  grid-template-columns: 1.6fr 0.8fr 1fr
+  gap: 10px
+  margin-bottom: 12px
+
+.mov-barcode__seg
+  display: flex
+  gap: 0
+  height: 36px
+  border: 1.5px solid $border
+  border-radius: 7px
+  overflow: hidden
+  background: $white
+
+.mov-barcode__seg-btn
+  flex: 1
+  background: $white
+  border: none
+  border-right: 1px solid $border
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  transition: all 0.15s
+
+  &:last-child
+    border-right: none
+
+  &:hover
+    background: #F0F5FF
+
+  &--on
+    color: #fff
+
+  &--entrata.mov-barcode__seg-btn--on
+    background: $success
+    border-color: $success
+
+  &--uscita.mov-barcode__seg-btn--on
+    background: $error
+    border-color: $error
+
+  &--rettifica.mov-barcode__seg-btn--on
+    background: $primary
+    border-color: $primary
+
+// ─── Feedback ─────────────────────────────────────────────────────────────────
+.mov-barcode__feedback
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 9px 14px
+  border-radius: 8px
+  font-size: 12px
+  font-weight: 600
+  margin-bottom: 12px
+
+  &--success
+    background: $success-light
+    color: $success
+
+  &--error
+    background: $error-light
+    color: $error
+
+  &--info
+    background: $blue-light
+    color: $blue
+
+.mov-barcode__actions
+  display: flex
+  justify-content: flex-end
+
+// ─── Storico ──────────────────────────────────────────────────────────────────
+.mov-barcode__history
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 12px
+  padding: 18px
+
+.mov-barcode__history-title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 12px
+
+.mov-barcode__empty
+  padding: 32px 0
+  text-align: center
+  font-size: 12px
+  color: $text-disabled
+
+.mov-barcode__list
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.mov-barcode__entry
+  display: grid
+  grid-template-columns: 70px 1fr 70px
+  align-items: center
+  gap: 10px
+  padding: 9px 12px
+  background: #F8FAFC
+  border: 0.5px solid $border
+  border-radius: 8px
+  border-left: 3px solid $border
+
+  &--entrata
+    border-left-color: $success
+
+  &--uscita
+    border-left-color: $error
+
+  &--rettifica
+    border-left-color: $primary
+
+.mov-barcode__entry-when
+  text-align: left
+  font-size: 10px
+
+.mov-barcode__entry-date
+  font-weight: 600
+  color: $text-active
+
+.mov-barcode__entry-time
+  color: $text-disabled
+
+.mov-barcode__entry-name
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.mov-barcode__entry-meta
+  font-size: 10px
+  color: $text-disabled
+  margin-top: 1px
+
+.mov-barcode__entry-bar
+  font-family: monospace
+
+.mov-barcode__entry-note
+  margin-left: 4px
+
+.mov-barcode__entry-qty
+  text-align: right
+  font-family: monospace
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+
+.mov-barcode__entry--entrata .mov-barcode__entry-sign
+  color: $success
+
+.mov-barcode__entry--uscita .mov-barcode__entry-sign
+  color: $error
+
+.mov-barcode__entry--rettifica .mov-barcode__entry-sign
+  color: $primary

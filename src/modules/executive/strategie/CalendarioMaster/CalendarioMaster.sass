@@ -1,0 +1,272 @@
+// ─── CALENDARIO MASTER ────────────────────────────────────────────────────────
+// Layout simmetrico a Calendario Strategie: filtri + legenda + griglia di
+// mini-calendari mensili. Ogni giorno mostra 3 stripe colorate per i layer
+// Tariffarie / Distributive / Gruppi e una tooltip ricca al rollover.
+@use '../../../../styles/tokens' as *
+
+.cal-master
+
+  // ── Filtri ──────────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+    margin-bottom: 12px
+
+  &__filter
+    min-width: 160px
+
+    &--struttura
+      min-width: 200px
+
+  &__filters-spacer
+    flex: 1 1 auto
+    min-width: 0
+
+  &__btn
+    height: 36px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    white-space: nowrap
+
+    i
+      font-size: 12px
+
+  // ── Legenda layer ───────────────────────────────────────────────────────────
+  &__legend
+    display: flex
+    align-items: center
+    gap: 16px
+    flex-wrap: wrap
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-xl
+    padding: 10px 14px
+    margin-bottom: 12px
+    font-size: 12px
+
+  &__legend-label
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    margin-right: 4px
+
+  &__legend-item
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $text-active
+    font-weight: 600
+
+    i
+      font-size: 12px
+      color: $text-inactive
+
+  // Mini-cella che illustra la posizione della banda corrispondente
+  // dentro il giorno (top / middle / bottom).
+  &__legend-pos
+    width: 14px
+    height: 18px
+    border-radius: 3px
+    background: $bg
+    border: 0.5px solid $border
+    overflow: hidden
+    display: flex
+    flex-direction: column
+    flex-shrink: 0
+
+    > span
+      flex: 1 1 0
+      background: $primary-100
+
+    &--0 > span:nth-child(1)
+      background: $primary
+
+    &--1 > span:nth-child(2)
+      background: $primary
+
+    &--2 > span:nth-child(3)
+      background: $primary
+
+  &__legend-hint
+    margin-left: auto
+    color: $text-disabled
+    font-size: 11px
+    font-style: italic
+
+  // ── Griglia mesi ────────────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 1280px)
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
+    @media (max-width: 720px)
+      grid-template-columns: 1fr
+
+  &__empty
+    background: $white
+    border: 0.5px dashed $border
+    border-radius: $radius-xl
+    padding: 28px
+    text-align: center
+    font-size: 13px
+    color: $text-disabled
+
+  // ── Card mese ───────────────────────────────────────────────────────────────
+  &__month
+    background: $white
+    border: 0.5px solid $border
+    border-radius: $radius-xl
+    padding: 12px
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__month-header
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding: 2px 4px 6px
+    border-bottom: 0.5px solid $border
+
+  &__month-name
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+    text-transform: capitalize
+
+  &__month-year
+    font-family: $font-body
+    font-size: 11px
+    color: $text-disabled
+    font-weight: 600
+    letter-spacing: 0.5px
+
+  &__weekdays
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 4px
+
+  &__weekday
+    text-align: center
+    font-family: $font-body
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    letter-spacing: 0.4px
+
+    &--we
+      color: $primary-400
+
+  &__days
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 4px
+
+  // ── Cella giorno ────────────────────────────────────────────────────────────
+  // Layout: header con numero del giorno sopra, sotto 3 bande spesse
+  // (Tariffarie/Distributive/Gruppi) che riempiono la cella e ne rendono
+  // immediatamente leggibile lo stato di applicazione.
+  &__day
+    position: relative
+    background: $white
+    border: 1px solid $border
+    border-radius: 8px
+    min-height: 56px
+    display: flex
+    flex-direction: column
+    overflow: hidden
+    cursor: default
+    transition: $transition-fast
+
+    &:hover:not(.cal-master__day--empty)
+      border-color: $primary
+      box-shadow: 0 2px 8px rgba(32, 71, 105, 0.18)
+      transform: translateY(-1px)
+
+    &:focus-visible
+      outline: 2px solid $link
+      outline-offset: 1px
+
+    &--empty
+      background: transparent
+      border-color: transparent
+      pointer-events: none
+
+    &--we .cal-master__day-head
+      background: $primary-50
+
+    &--today
+      border-color: $link
+      box-shadow: 0 0 0 1px $link inset
+
+    &--idle .cal-master__band
+      opacity: 0.85
+
+  &__day-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 3px 6px
+    height: 18px
+    background: $bg
+    border-bottom: 0.5px solid $border
+    flex-shrink: 0
+
+  &__day-num
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 700
+    color: $text-active
+    line-height: 1
+
+  &__day-today
+    width: 5px
+    height: 5px
+    border-radius: 50%
+    background: $link
+
+  &__bands
+    display: flex
+    flex-direction: column
+    flex: 1 1 auto
+
+  &__band
+    --day-color: #{$primary-100}
+    flex: 1 1 0
+    min-height: 11px
+    background: $primary-100
+    display: flex
+    align-items: center
+    justify-content: center
+    transition: background 0.12s
+    position: relative
+
+    &::after
+      content: ''
+      position: absolute
+      left: 0
+      right: 0
+      bottom: 0
+      height: 0.5px
+      background: rgba(255, 255, 255, 0.5)
+
+    &:last-child::after
+      display: none
+
+    &--on
+      background: var(--day-color)
+
+      .cal-master__band-ico
+        color: rgba(255, 255, 255, 0.9)
+
+  &__band-ico
+    font-size: 8px
+    color: rgba(255, 255, 255, 0.5)
+    line-height: 1

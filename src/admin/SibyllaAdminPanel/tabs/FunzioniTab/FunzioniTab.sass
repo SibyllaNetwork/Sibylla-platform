@@ -1,0 +1,278 @@
+@use '../../../../styles/tokens' as *
+
+.fn-tab
+  display: flex
+  gap: 14px
+  min-height: 400px
+
+// ─── Lista ruoli ──────────────────────────────────────────────────────────────
+.fn-tab__list
+  width: 210px
+  flex-shrink: 0
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.fn-tab__list-title
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  margin-bottom: 4px
+
+.fn-tab__empty-list
+  padding: 20px 0
+  font-size: 12px
+  color: $text-disabled
+  text-align: center
+
+.fn-tab__link
+  background: none
+  border: none
+  cursor: pointer
+  font-size: 12px
+  color: $blue
+  font-weight: 600
+  padding: 0
+  margin-top: 4px
+
+.fn-tab__list-item
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 10px 12px
+  border-radius: 8px
+  cursor: pointer
+  background: transparent
+  border: 1.5px solid $border
+  transition: all 0.13s
+
+  &--active
+    background: $primary-100
+    border-color: $primary
+
+.fn-tab__list-avatar
+  width: 28px
+  height: 28px
+  border-radius: 7px
+  background: var(--ruolo-color, var(--color-primary))
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+
+.fn-tab__list-label
+  font-size: 12px
+  font-weight: 500
+  color: $text-active
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+  &--active
+    font-weight: 700
+    color: $primary
+
+// ─── Contenuto destra ─────────────────────────────────────────────────────────
+.fn-tab__content
+  flex: 1
+  min-width: 0
+
+.fn-tab__placeholder
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  height: 100%
+  gap: 10px
+  color: $text-disabled
+
+.fn-tab__placeholder-text
+  font-size: 13px
+  margin: 0
+
+.fn-tab__header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 12px
+  gap: 10px
+  flex-wrap: wrap
+
+.fn-tab__header-left
+  display: flex
+  align-items: center
+  gap: 8px
+
+.fn-tab__header-avatar
+  width: 28px
+  height: 28px
+  border-radius: 7px
+  background: var(--ruolo-color, var(--color-primary))
+  display: flex
+  align-items: center
+  justify-content: center
+
+.fn-tab__header-name
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.fn-tab__header-sub
+  font-size: 11px
+  color: $text-disabled
+
+.fn-tab__header-actions
+  display: flex
+  gap: 6px
+  flex-wrap: wrap
+
+.fn-tab__bulk-btn
+  display: flex
+  align-items: center
+  gap: 5px
+  height: 28px
+  padding: 0 10px
+  background: $white
+  border: 1.5px solid $border
+  border-radius: 6px
+  cursor: pointer
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  transition: all 0.15s
+
+  &:hover
+    border-color: $primary
+    color: $primary
+
+.fn-tab__search
+  display: flex
+  align-items: center
+  gap: 7px
+  height: 32px
+  padding: 0 10px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #F8FAFC
+  margin-bottom: 12px
+
+.fn-tab__search-clear
+  background: none
+  border: none
+  cursor: pointer
+  padding: 0
+  display: flex
+
+.fn-tab__empty-pages
+  padding: 32px 0
+  text-align: center
+  font-size: 13px
+  color: $text-disabled
+
+// ─── Matrice ──────────────────────────────────────────────────────────────────
+.fn-tab__matrix
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.fn-tab__group
+  background: $white
+  border: 0.5px solid $border
+  border-radius: 10px
+  overflow: hidden
+
+.fn-tab__group-head
+  padding: 8px 14px
+  background: #F8FAFC
+  border-bottom: 0.5px solid $border
+  display: flex
+  align-items: center
+  justify-content: space-between
+
+.fn-tab__group-name
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  font-family: $font-heading
+
+.fn-tab__group-count
+  font-size: 10px
+  color: $text-disabled
+
+.fn-tab__col-head
+  display: grid
+  grid-template-columns: 1fr repeat(3, 110px)
+  padding: 6px 14px
+  background: #FAFBFC
+  border-bottom: 0.5px solid $border
+
+.fn-tab__col-head-cell
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.3px
+  text-align: center
+
+  &:first-child
+    text-align: left
+
+  &--completo
+    color: $success
+
+  &--lettura
+    color: $blue
+
+  &--nascosta
+    color: $text-disabled
+
+.fn-tab__row
+  display: grid
+  grid-template-columns: 1fr repeat(3, 110px)
+  padding: 9px 14px
+  align-items: center
+  transition: background 0.1s
+
+  &:hover
+    background: #F8FCFF
+
+  &--bordered
+    border-bottom: 0.5px solid $border
+
+.fn-tab__row-label
+  font-size: 12px
+  color: $text-active
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.fn-tab__radio-cell
+  display: flex
+  justify-content: center
+
+.fn-tab__radio
+  width: 20px
+  height: 20px
+  border-radius: 50%
+  border: 2px solid $border
+  background: transparent
+  display: flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  transition: all 0.15s
+
+  &--on.fn-tab__radio--completo
+    border-color: $success
+    background: $success
+
+  &--on.fn-tab__radio--lettura
+    border-color: $blue
+    background: $blue
+
+  &--on.fn-tab__radio--nascosta
+    border-color: $text-disabled
+    background: $text-disabled

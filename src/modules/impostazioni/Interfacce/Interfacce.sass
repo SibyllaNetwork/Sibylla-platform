@@ -1,0 +1,227 @@
+@use "sass:color"
+
+$primary: #204769
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$bg-zebra: #f3f8fb
+$success: #10b981
+$warning: #f59e0b
+$danger: #dc2626
+
+.interfacce
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Tabella ──────────────────────────────────────────────────────
+  &__table
+    .interfacce__th-toggle
+      width: 40px
+
+    .interfacce__th-name
+      width: 320px
+      text-align: center
+
+    .interfacce__th-status
+      width: 140px
+      text-align: center
+
+  &__row
+    cursor: pointer
+    transition: background 0.15s
+
+    &:hover
+      background: $bg-soft
+
+    &--open
+      background: $bg-soft
+
+      td
+        border-bottom-color: transparent
+
+  &__td-toggle
+    color: $primary
+    text-align: center
+
+  &__td-name
+    text-align: center
+
+  // ── Logo immagine (Clearbit) ────────────────────────────────────
+  &__logo-img-wrap
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    height: 36px
+    max-width: 200px
+
+  &__logo-img
+    max-height: 36px
+    max-width: 200px
+    width: auto
+    object-fit: contain
+    display: block
+
+  // ── Logo testuale (fallback dei brand) ──────────────────────────
+  &__logo
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 14px
+    letter-spacing: 0.04em
+    color: $primary
+
+    &--alyante
+      color: #d62b2b
+      font-weight: 800
+
+    &--verticalbooking
+      color: $primary
+      font-weight: 800
+
+    &--hqrevenue
+      color: #1e40af
+      font-style: italic
+
+    &--syselicat
+      color: #b91c1c
+      font-weight: 800
+
+    &--gamma
+      color: $ink
+      font-weight: 700
+      font-style: italic
+
+    &--sojern
+      color: #f97316
+      font-weight: 800
+      letter-spacing: 0.06em
+
+    &--travco
+      color: #be123c
+      font-weight: 800
+
+    &--g2travel
+      color: #0ea5e9
+
+    &--italcamel
+      color: #1e3a8a
+      font-style: italic
+
+    &--avoris
+      color: #1e40af
+      font-weight: 700
+
+    &--agoda
+      color: #6366f1
+      letter-spacing: 0.18em
+
+    &--ratehawk
+      color: #f59e0b
+      font-weight: 700
+      font-style: italic
+
+  // ── Semaforo ─────────────────────────────────────────────────────
+  &__lights
+    display: inline-flex
+    gap: 6px
+    align-items: center
+    justify-content: center
+
+  &__light
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    height: 22px
+    font-size: 18px
+    color: $border-strong
+    opacity: 0.4
+
+    &--active
+      opacity: 1
+
+    &--ok
+      &.interfacce__light--active
+        color: $success
+
+    &--warn
+      &.interfacce__light--active
+        color: $warning
+
+    &--err
+      &.interfacce__light--active
+        color: $danger
+
+  // ── Riga dettaglio ───────────────────────────────────────────────
+  &__detail-row
+    background: $bg-soft
+
+    > td
+      padding: 8px 12px 16px
+
+  &__sub-table
+    width: 100%
+    border-collapse: collapse
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+    tr
+      border-bottom: 1px solid $border
+
+      &:last-child
+        border-bottom: none
+
+    td
+      padding: 10px 14px
+      font-size: 13px
+
+  &__sub-section
+    font-weight: 700
+    color: $primary
+    width: 30%
+    background: $bg-zebra
+
+  &__sub-detail
+    color: $ink
+
+  &__sub-pill
+    display: inline-flex
+    align-items: center
+    padding: 3px 10px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 700
+    color: $muted
+    background: $bg-zebra
+
+    &--ok
+      background: #d1fae5
+      color: #065f46
+
+    &--warning
+      background: #fef3c7
+      color: #92400e
+
+    &--error
+      background: #fee2e2
+      color: #991b1b
+
+  &__no-details
+    margin: 0
+    padding: 12px
+    color: $muted
+    font-size: 12px
+    text-align: center
+    background: white
+    border: 1px dashed $border-strong
+    border-radius: 8px

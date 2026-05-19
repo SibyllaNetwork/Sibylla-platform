@@ -1,0 +1,105 @@
+@reference '../../../styles/tailwind.css';
+
+.ds-slider {
+  @apply flex items-center gap-3 w-full h-10;
+}
+
+.ds-slider__track-wrap {
+  @apply relative flex-1 h-[18px] flex items-center;
+}
+
+/* the visible rail behind the native input */
+.ds-slider__track-wrap::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-border);
+  pointer-events: none;
+}
+
+/* the fill, driven by --ds-slider-progress set inline */
+.ds-slider__track-wrap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  width: var(--ds-slider-progress, 0%);
+  pointer-events: none;
+}
+
+/* the native input sits on top, transparent — just the thumb is visible */
+.ds-slider__input {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.ds-slider__input:focus {
+  outline: none;
+}
+
+/* Hide native track (we draw our own via ::before / ::after) */
+.ds-slider__input::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+  border: none;
+}
+.ds-slider__input::-moz-range-track {
+  height: 4px;
+  background: transparent;
+  border: none;
+}
+
+/* Thumb — Webkit */
+.ds-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  margin-top: -6px;
+  cursor: grab;
+  transition: box-shadow 0.15s;
+}
+.ds-slider__input:focus::-webkit-slider-thumb,
+.ds-slider__input:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-link) 25%, transparent);
+}
+.ds-slider__input:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+/* Thumb — Firefox */
+.ds-slider__input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  cursor: grab;
+}
+
+.ds-slider__value {
+  @apply font-heading font-semibold text-sm text-primary whitespace-nowrap min-w-12 text-right;
+}

@@ -1,0 +1,300 @@
+// ─── FORESIGHT REVENUE ────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.foresight
+
+  // ── Toolbar ─────────────────────────────────────────────────────────────────
+  &__toolbar
+    margin-bottom: 16px
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+  &__eraser-btn
+    display: flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 30px
+    background: $white
+    border: 1.5px solid $border
+    border-radius: 7px
+    cursor: pointer
+    flex-shrink: 0
+    align-self: flex-end
+    transition: $transition-fast
+
+    &:hover:not(.foresight__eraser-btn--active)
+      border-color: $warning
+
+    &--active
+      background: #FFF7ED
+      border-color: $warning
+
+  &__toolbar-actions
+    margin-left: auto
+    display: flex
+    gap: 8px
+    align-self: flex-end
+
+  &__crea-btn
+    display: flex
+    align-items: center
+    gap: 6px
+    background: $white
+    border: 1.5px solid $primary
+    border-radius: 8px
+    padding: 7px 16px
+    cursor: pointer
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-100
+
+  &__salva-btn
+    display: flex
+    align-items: center
+    gap: 6px
+    background: $primary
+    border: none
+    border-radius: 8px
+    padding: 7px 16px
+    cursor: pointer
+    font-size: 12px
+    font-weight: 700
+    color: $white
+    transition: background 0.15s
+
+    &:hover
+      background: $primary-700
+
+  // ── Year block ───────────────────────────────────────────────────────────────
+  &__year-block
+    margin-bottom: 24px
+
+  &__year-label
+    display: flex
+    align-items: center
+    gap: 10px
+    margin-bottom: 12px
+
+  &__year-badge
+    background: $primary
+    border-radius: 6px
+    padding: 3px 12px
+    font-size: 12px
+    font-weight: 700
+    color: $white
+    font-family: $font-heading
+
+  &__year-line
+    flex: 1
+    height: 1px
+    background: rgba($primary, 0.2)
+
+  // ── Month grid ───────────────────────────────────────────────────────────────
+  &__month-wrap
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+    margin-bottom: 12px
+
+  &__month-scroll
+    overflow-x: auto
+
+  &__month-table
+    border-collapse: collapse
+
+  &__month-label-cell
+    padding: 8px 12px
+    text-align: left
+    border-right: 1px solid $border
+
+  &__month-badge
+    background: $primary
+    border-radius: 5px
+    padding: 2px 8px
+    font-size: 11px
+    font-weight: 700
+    color: $white
+
+  &__day-th
+    padding: 5px 2px
+    text-align: center
+    border-right: 0.5px solid #E8EBF0
+
+    &--weekend
+      background: #EEF5FF
+
+  &__day-name
+    font-size: 9px
+    font-weight: 600
+
+  &__day-num
+    font-size: 10px
+    font-weight: 700
+
+  &__price-cell
+    padding: 4px 2px
+    text-align: center
+    border-right: 0.5px solid #E8EBF0
+
+    &--weekend
+      background: #F5F9FF
+
+  &__price-dot
+    width: 36px
+    height: 36px
+    border-radius: 50%
+    margin: 0 auto
+    display: flex
+    align-items: center
+    justify-content: center
+    cursor: pointer
+    transition: transform 0.1s, box-shadow 0.1s
+
+    &:hover
+      transform: scale(1.12)
+
+  &__price-text
+    font-size: 8px
+    font-weight: 700
+    line-height: 1.1
+    text-align: center
+
+  // ── Legend ───────────────────────────────────────────────────────────────────
+  &__legend
+    display: flex
+    align-items: center
+    gap: 12px
+    margin-top: 8px
+    flex-wrap: wrap
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    color: $text-inactive
+
+  &__legend-dot
+    width: 14px
+    height: 14px
+    border-radius: 50%
+
+    // ─── Toolbar ──────────────────────────────────────────────────────────────────
+.foresight__date-input
+  width: 120px
+
+.foresight__select--struttura
+  width: 148px
+  height: 30px
+
+.foresight__select--bar
+  width: 110px
+  height: 30px
+
+.foresight__tipo-group
+  display: flex
+  align-items: center
+  gap: 10px
+  height: 30px
+
+.foresight__tipo-label
+  display: flex
+  align-items: center
+  gap: 5px
+  cursor: pointer
+  font-size: 12px
+
+.foresight__tipo-radio
+  accent-color: $primary
+
+// ─── Grid ─────────────────────────────────────────────────────────────────────
+.foresight__month-table
+  border-collapse: collapse
+
+.foresight__thead-row
+  background: #F8FAFC
+  border-bottom: 1px solid $border
+
+.foresight__month-full-cell
+  padding: 6px 12px
+  border-right: 1px solid $border
+  font-size: 11px
+  color: $text-disabled
+  white-space: nowrap
+
+// ─── Legend ───────────────────────────────────────────────────────────────────
+.foresight__legend-title
+  font-size: 11px
+  color: $text-disabled
+  font-weight: 600
+
+// ─── Confirm modal ────────────────────────────────────────────────────────────
+.foresight__modal-overlay
+  position: fixed
+  inset: 0
+  z-index: 300
+  background: rgba(0,0,0,0.45)
+  display: flex
+  align-items: center
+  justify-content: center
+
+.foresight__modal-box
+  background: $white
+  border-radius: 16px
+  width: 460px
+  max-width: 95vw
+  box-shadow: 0 24px 64px rgba(32,71,105,0.22)
+  padding: 28px 32px
+  text-align: center
+
+.foresight__modal-ico-wrap
+  width: 56px
+  height: 56px
+  border-radius: 50%
+  background: #FFF7ED
+  border: 2px solid rgba(245,166,35,0.2)
+  display: flex
+  align-items: center
+  justify-content: center
+  margin: 0 auto 16px
+
+.foresight__modal-ico
+  font-size: 28px
+  color: $warning
+
+.foresight__modal-title
+  font-family: Poppins, sans-serif
+  font-size: 18px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 10px
+
+.foresight__modal-text
+  font-size: 13px
+  color: $text-active
+  margin: 0 0 24px
+  line-height: 1.6
+
+.foresight__modal-actions
+  display: flex
+  justify-content: center
+  gap: 12px
+
+.foresight__modal-confirm-btn
+  background: #E74C3C
+  border: none
+  border-radius: 8px
+  padding: 9px 28px
+  font-size: 13px
+  font-weight: 700
+  color: #fff
+  cursor: pointer
+  transition: background 0.15s

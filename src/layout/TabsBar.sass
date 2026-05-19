@@ -1,0 +1,106 @@
+// ─── TABS BAR ─────────────────────────────────────────────────────────────────
+// Barra dei tab persistenti mostrata sopra il contenuto della pagina quando
+// la modalità di visualizzazione è impostata su "tabs". Ogni pagina visitata
+// viene aggiunta come tab e l'utente può tornarci con un click.
+//
+// La barra prende il border-top-left-radius (24px) che normalmente sta sul
+// content area, così la curva contro la sidebar resta al posto giusto e
+// non si vede una doppia curva sotto i tab.
+@use '../styles/tokens' as *
+
+.tabs-bar
+  display: flex
+  align-items: stretch
+  background: $primary-50
+  border-bottom: 1px solid $border
+  border-left: 1px solid #C5CDD7
+  padding: 0 12px
+  flex-shrink: 0
+  overflow: hidden
+  min-height: 26px
+
+  &__list
+    display: flex
+    gap: 2px
+    overflow-x: auto
+    overflow-y: hidden
+    padding: 3px 0 0
+    flex: 1
+    align-items: flex-end
+
+    &::-webkit-scrollbar
+      height: 3px
+
+    &::-webkit-scrollbar-thumb
+      background: rgba(0, 0, 0, 0.15)
+      border-radius: 2px
+
+  &__tab
+    display: flex
+    align-items: center
+    gap: 5px
+    padding: 3px 5px 3px 9px
+    background: transparent
+    border: 1px solid transparent
+    border-bottom: none
+    border-radius: 6px 6px 0 0
+    cursor: pointer
+    color: $text-inactive
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 500
+    line-height: 1
+    max-width: 200px
+    white-space: nowrap
+    user-select: none
+    position: relative
+    transition: background 0.12s, color 0.12s, border-color 0.12s
+
+    &:hover
+      background: rgba($primary, 0.06)
+      color: $text-active
+
+    // Tab attiva: stesso colore della pagina, in continuità visiva con essa
+    // (il pseudo ::after copre la border-bottom della barra in modo che la
+    // linea sotto la tab "si interrompa" e la pagina e la tab appaiano fuse).
+    &--active
+      background: $bg
+      color: $primary
+      font-weight: 600
+      border-color: $border
+
+      &:hover
+        background: $bg
+
+      &::after
+        content: ''
+        position: absolute
+        left: -1px
+        right: -1px
+        bottom: -1px
+        height: 2px
+        background: $bg
+        z-index: 1
+
+  &__tab-label
+    overflow: hidden
+    text-overflow: ellipsis
+    max-width: 160px
+
+  &__tab-close
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 13px
+    height: 13px
+    border: none
+    background: transparent
+    border-radius: 50%
+    cursor: pointer
+    color: inherit
+    opacity: 0.45
+    transition: background 0.12s, opacity 0.12s
+
+    &:hover
+      background: rgba(0, 0, 0, 0.08)
+      opacity: 1

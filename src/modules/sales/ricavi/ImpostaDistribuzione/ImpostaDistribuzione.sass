@@ -1,0 +1,319 @@
+// ─── IMPOSTA DISTRIBUZIONE ────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.imposta-dist
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__alert
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    background: rgba(255, 97, 110, 0.12)
+    color: $error-dark
+    padding: 8px 12px
+    border-radius: 6px
+    font-size: 12px
+    font-weight: 600
+
+  &__alert-close
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $error-dark
+    padding: 2px 6px
+
+  &__bar
+    display: flex
+    justify-content: space-between
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 220px
+
+  &__invita
+    i
+      margin-right: 6px
+
+  // ── Grid 3 colonne ──────────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr
+    gap: 16px
+
+    @media (max-width: 1280px)
+      grid-template-columns: 1fr 1fr
+
+    @media (max-width: 900px)
+      grid-template-columns: 1fr
+
+  &__col
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__sezione
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 12px
+
+  &__section-title
+    margin: 0 0 8px
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 16px
+
+  &__verifica
+    display: flex
+    align-items: center
+    gap: 6px
+    color: $success
+    font-size: 11px
+    margin-bottom: 8px
+    padding: 4px 6px
+    background: rgba(0, 112, 53, 0.08)
+    border-radius: 4px
+
+    i
+      font-size: 14px
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    table-layout: fixed
+    font-size: 12px
+
+    th
+      font-size: 10px
+      font-weight: 600
+      color: $text-inactive
+      text-align: center
+      padding: 6px 4px
+      line-height: 1.3
+      border-bottom: 1px solid $border
+
+    th:nth-child(1)
+      width: auto
+
+    th:nth-child(2),
+    th:nth-child(3)
+      width: 80px
+
+    th:nth-child(4)
+      width: 96px
+
+    tbody tr
+      height: 32px
+
+    td
+      padding: 6px 4px
+      border-bottom: 1px solid rgba(219,219,219,0.5)
+      color: $text-active
+      vertical-align: middle
+
+    tr:last-child td
+      border-bottom: none
+
+  &__td-c
+    text-align: center
+
+  &__euro
+    color: $border
+    font-weight: 700
+    margin-right: 1px
+
+    &--on
+      color: $warning
+
+  &__bandiere
+    display: inline-flex
+    justify-content: center
+    align-items: center
+    flex-wrap: wrap
+    gap: 2px
+    min-height: 14px
+    vertical-align: middle
+
+  &__bandiera
+    width: 16px
+    height: 11px
+    object-fit: cover
+    border-radius: 1px
+    box-shadow: 0 0 1px rgba(0,0,0,0.25)
+    display: inline-block
+    flex-shrink: 0
+    vertical-align: middle
+
+  // ── Strutture ricettive ─────────────────────────────────────────────────────
+  &__filtro-strutture
+    display: flex
+    align-items: center
+    gap: 16px
+    font-size: 12px
+    color: $text-active
+    padding: 8px 0
+    border-bottom: 1px solid $border
+
+  &__seleziona-label
+    margin-left: auto
+    color: $text-inactive
+    font-weight: 600
+
+  &__strutture-list
+    display: flex
+    flex-direction: column
+
+  &__struttura-row
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: 8px 4px
+    border-bottom: 1px solid rgba(219,219,219,0.5)
+    cursor: pointer
+    font-size: 12px
+
+    &:hover
+      background: $bg
+
+  &__stars
+    display: inline-flex
+    gap: 2px
+
+  &__star
+    color: $border
+    font-size: 12px
+
+    &--on
+      color: $warning
+
+  // ── Cluster form ────────────────────────────────────────────────────────────
+  &__cluster-form
+    margin-top: 12px
+
+  &__cluster-row
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__cluster-label
+    font-size: 13px
+    color: $primary
+    font-weight: 600
+
+    + .sib-input
+      flex: 1
+
+  &__cluster-title
+    margin: 16px 0 8px
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 16px
+
+  &__cluster-list
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__cluster-item
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 8px 12px
+    background: $primary-50
+    border-radius: 6px
+    color: $primary
+    font-weight: 600
+
+    i
+      color: $accent
+
+  // ── Modal: Invita utente ────────────────────────────────────────────────────
+  &__modal-backdrop
+    position: fixed
+    inset: 0
+    background: rgba(0,0,0,0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    z-index: 100
+
+  &__modal
+    background: white
+    border-radius: 12px
+    padding: 24px
+    width: 460px
+    max-width: 92vw
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2)
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__modal-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 18px
+      color: $primary
+
+  &__modal-close
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    font-size: 18px
+    line-height: 1
+
+  &__modal-sub
+    margin: 0
+    font-size: 13px
+    color: $text-inactive
+    line-height: 1.5
+
+  &__modal-field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
+
+  &__req
+    color: $error
+    margin-left: 2px
+
+  &__modal-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 6px
+
+    .sib-btn
+      min-width: 110px

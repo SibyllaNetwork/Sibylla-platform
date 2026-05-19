@@ -1,0 +1,298 @@
+// ─── NOTIF MENU ───────────────────────────────────────────────────────────────
+@use '../styles/tokens' as *
+
+// ── Trigger button ────────────────────────────────────────────────────────────
+.notif-trigger
+  position: relative
+  display: inline-flex
+
+  &__btn
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 6px
+    display: flex
+    align-items: center
+    border-radius: 8px
+    transition: background 0.15s
+
+    &:hover
+      background: rgba($white, 0.1)
+
+    &--active
+      background: rgba($white, 0.15)
+
+  // Badge — posizionato in basso a destra dell'icona, non sopra
+  &__badge
+    position: absolute
+    bottom: 2px
+    right: 2px
+    min-width: 15px
+    height: 15px
+    background: $error
+    border-radius: 8px
+    border: 1.5px solid $primary
+    font-size: 8px
+    font-weight: 700
+    color: $white
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 0 3px
+    pointer-events: none
+    line-height: 1
+
+// ── Dropdown ──────────────────────────────────────────────────────────────────
+.notif-panel
+  position: absolute
+  right: 0
+  top: calc(100% + 10px)
+  width: 400px
+  background: $white
+  border-radius: 14px
+  box-shadow: 0 16px 48px rgba(32, 71, 105, 0.2)
+  border: 0.5px solid $border
+  z-index: 100
+  overflow: hidden
+
+  // Animazione apertura
+  animation: notif-open 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)
+  transform-origin: top right
+
+@keyframes notif-open
+  from
+    opacity: 0
+    transform: scale(0.92) translateY(-6px)
+  to
+    opacity: 1
+    transform: scale(1) translateY(0)
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.notif-header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 14px 18px
+  border-bottom: 0.5px solid $border
+  background: #F8FAFC
+
+  &__left
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__title
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+    margin: 0
+
+  &__unread
+    font-size: 11px
+    font-weight: 700
+    background: $error
+    color: $white
+    border-radius: 10px
+    padding: 2px 8px
+
+  &__actions
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__mark-btn
+    background: none
+    border: none
+    cursor: pointer
+    font-size: 11px
+    font-weight: 600
+    color: $link
+    padding: 4px 8px
+    border-radius: 6px
+    transition: background 0.1s
+
+    &:hover
+      background: $link-light
+
+  &__close
+    background: none
+    border: none
+    cursor: pointer
+    padding: 4px
+    border-radius: 6px
+    display: flex
+    transition: background 0.1s
+
+    &:hover
+      background: $primary-100
+
+// ── Filtri tab ────────────────────────────────────────────────────────────────
+.notif-tabs
+  display: flex
+  border-bottom: 0.5px solid $border
+  background: $white
+  padding: 0 18px
+
+  &__tab
+    background: none
+    border: none
+    border-bottom: 2px solid transparent
+    padding: 9px 12px
+    font-size: 12px
+    font-weight: 500
+    color: $text-inactive
+    cursor: pointer
+    transition: color 0.15s
+    margin-bottom: -1px
+
+    &--active
+      border-bottom-color: $primary
+      color: $primary
+      font-weight: 700
+
+// ── Lista notifiche ───────────────────────────────────────────────────────────
+.notif-list
+  max-height: 380px
+  overflow-y: auto
+
+  &::-webkit-scrollbar
+    width: 4px
+
+  &::-webkit-scrollbar-thumb
+    background: $primary-200
+    border-radius: 2px
+
+// ── Singola notifica ──────────────────────────────────────────────────────────
+.notif-item
+  display: flex
+  gap: 12px
+  padding: 13px 18px
+  border-bottom: 0.5px solid $border
+  cursor: pointer
+  transition: background 0.1s
+  position: relative
+
+  &:last-child
+    border-bottom: none
+
+  &:hover
+    background: #F8FCFF
+
+  &--unread
+    background: #F0F7FF
+
+    &:hover
+      background: #E8F3FF
+
+  // Dot "non letto"
+  &__dot
+    position: absolute
+    top: 16px
+    left: 7px
+    width: 5px
+    height: 5px
+    border-radius: 50%
+    background: $link
+
+  &__icon-wrap
+    width: 36px
+    height: 36px
+    border-radius: 10px
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+
+  &__body
+    flex: 1
+    min-width: 0
+
+  &__top
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 8px
+    margin-bottom: 3px
+
+  &__title
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    line-height: 1.3
+
+    &--warning
+      color: #E07B39
+
+    &--error
+      color: $error
+
+  &__date
+    font-size: 10px
+    color: $text-disabled
+    white-space: nowrap
+    flex-shrink: 0
+    margin-top: 1px
+
+  &__ref
+    font-size: 10px
+    color: $text-disabled
+    margin-bottom: 2px
+
+  &__text
+    font-size: 12px
+    color: $text-inactive
+    margin: 0
+    line-height: 1.4
+    // Tronca a 2 righe
+    display: -webkit-box
+    -webkit-line-clamp: 2
+    -webkit-box-orient: vertical
+    overflow: hidden
+
+  &__sev-badge
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    font-size: 10px
+    font-weight: 600
+    border-radius: 4px
+    padding: 1px 6px
+    margin-top: 4px
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+.notif-empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  padding: 32px 20px
+  gap: 8px
+
+  &__text
+    font-size: 13px
+    color: $text-disabled
+    margin: 0
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+.notif-footer
+  padding: 12px 18px
+  border-top: 0.5px solid $border
+  background: #F8FAFC
+
+  &__btn
+    width: 100%
+    background: $white
+    border: 1.5px solid $border
+    border-radius: 8px
+    padding: 9px 0
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+    transition: all 0.15s
+
+    &:hover
+      border-color: $primary
+      color: $primary
+      background: $primary-50

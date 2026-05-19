@@ -1,0 +1,325 @@
+// ─── PROFILO ──────────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+// ── Page header ───────────────────────────────────────────────────────────────
+.page-header
+  margin-bottom: 24px
+
+  &__title
+    font-family: $font-heading
+    font-size: 24px
+    font-weight: 600
+    color: $primary
+    margin: 0 0 4px
+
+  &__subtitle
+    font-size: 13px
+    color: $text-inactive
+    margin: 0
+
+// ── Alert banner (saved / error) ──────────────────────────────────────────────
+.alert-banner
+  display: flex
+  align-items: center
+  gap: 10px
+  border-radius: 8px
+  padding: 10px 16px
+  margin-bottom: 16px
+  font-size: 13px
+  font-weight: 600
+
+  &--success
+    background: $success-light
+    border: 1px solid rgba($success, 0.2)
+    color: $success
+
+  &--error
+    background: $error-light
+    border: 1px solid rgba($error, 0.2)
+    color: $error
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.tabs
+  display: flex
+  gap: 0
+  border-bottom: 1px solid $border
+  margin-bottom: 24px
+
+  &__btn
+    background: transparent
+    border: none
+    border-bottom: 2px solid transparent
+    padding: 10px 20px
+    font-size: 13px
+    font-weight: 400
+    color: $text-inactive
+    cursor: pointer
+    margin-bottom: -1px
+    transition: $transition-fast
+
+    &--active
+      border-bottom-color: $primary
+      font-weight: 600
+      color: $primary
+
+    &:hover:not(.tabs__btn--active)
+      color: $primary-600
+
+// ── Form grid ─────────────────────────────────────────────────────────────────
+.form-grid
+  &--2
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+    margin-bottom: 16px
+
+  &--3
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr
+    gap: 16px
+    margin-bottom: 16px
+
+.form-group
+  margin-bottom: 14px
+
+.form-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: 5px
+
+.form-actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 24px
+
+// ── Avatar ────────────────────────────────────────────────────────────────────
+.avatar-upload
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 12px
+
+  &__circle
+    position: relative
+    width: 120px
+    height: 120px
+    border-radius: 50%
+    border: 2px solid $border
+    background: $link-light
+    cursor: pointer
+    overflow: hidden
+    transition: $transition-fast
+
+    &:hover .avatar-upload__overlay
+      opacity: 1
+
+  &__initials
+    width: 60px
+    height: 60px
+    border-radius: 50%
+    background: $link
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 22px
+    font-weight: 700
+    color: $white
+
+  &__overlay
+    position: absolute
+    inset: 0
+    background: rgba($primary, 0.6)
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 4px
+    opacity: 0
+    transition: opacity 0.2s
+
+    span
+      font-size: 10px
+      color: $white
+      font-weight: 600
+
+  &__hint
+    font-size: 11px
+    color: $text-disabled
+    text-align: center
+    line-height: 1.4
+
+// ── Card ─────────────────────────────────────────────────────────────────────
+.form-card
+  background: $white
+  border-radius: 12px
+  border: 0.5px solid $border
+  padding: 24px
+
+  &__title
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    margin: 0 0 16px
+
+// ── Scadenzario ───────────────────────────────────────────────────────────────
+.scadenzario
+
+  &__toolbar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 14px
+    gap: 12px
+    flex-wrap: wrap
+
+  &__month
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: $primary
+    white-space: nowrap
+
+  &__controls
+    display: flex
+    align-items: center
+    gap: 6px
+
+  &__create-btn
+    display: flex
+    align-items: center
+    gap: 6px
+    background: $white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 7px 14px
+    cursor: pointer
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    white-space: nowrap
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary
+      color: $primary
+
+  &__nav-btn
+    width: 32px
+    height: 32px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: 1px solid $border
+    border-radius: 7px
+    background: $white
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary
+      background: $primary-100
+
+  &__grid
+    background: $white
+    border-radius: 12px
+    border: 0.5px solid $border
+    overflow: hidden
+
+  &__weekdays
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+
+  &__weekday
+    padding: 11px 12px 10px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    border-bottom: 1px solid $border
+
+    &:not(:last-child)
+      border-right: 0.5px solid $border
+
+  &__cells
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+
+  &__cell
+    min-height: 95px
+    padding: 6px 8px
+    border-bottom: 0.5px solid $border
+
+    &:not(:last-child)
+      border-right: 0.5px solid $border
+
+    &--today
+      background: $link-light
+
+    &--outside
+      background: #F2F2F2
+      background-image: repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.04) 5px, rgba(0,0,0,0.04) 10px)
+
+    &--past
+      background-image: repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(0,0,0,0.025) 6px, rgba(0,0,0,0.025) 12px)
+
+  &__cell-num
+    font-size: 13px
+    font-weight: 400
+    color: $text-active
+
+    &--today
+      font-weight: 700
+      color: $primary
+
+    &--outside
+      color: $text-disabled
+
+  &__today-badge
+    font-size: 9px
+    font-weight: 700
+    color: $primary
+    text-transform: uppercase
+    letter-spacing: 0.5px
+
+  &__event
+    border-radius: 3px
+    padding: 2px 5px
+    font-size: 11px
+    font-weight: 500
+    margin-bottom: 2px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    cursor: pointer
+    transition: opacity 0.12s
+
+    &:hover
+      opacity: 0.7
+
+  &__more
+    font-size: 10px
+    color: $text-disabled
+    padding: 1px 5px
+
+  &__legend
+    display: flex
+    align-items: center
+    gap: 16px
+    margin-top: 12px
+
+  &__legend-item
+    display: flex
+    align-items: center
+    gap: 5px
+
+  &__legend-dot
+    width: 10px
+    height: 10px
+    border-radius: 2px
+
+  &__legend-label
+    font-size: 11px
+    color: $text-inactive

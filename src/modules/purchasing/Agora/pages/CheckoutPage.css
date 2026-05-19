@@ -1,0 +1,224 @@
+@reference '../../styles/tailwind.css';
+
+.checkout__grid {
+  @apply grid grid-cols-1 gap-6;
+}
+
+@media (min-width: 1024px) {
+  .checkout__grid {
+    grid-template-columns: 2fr 1fr;
+    @apply gap-8 items-start;
+  }
+}
+
+/* Form */
+.checkout__form {
+  @apply flex flex-col gap-6;
+}
+
+.checkout__section {
+  @apply rounded-card border border-border-soft bg-surface p-6;
+}
+
+.checkout__section-title {
+  @apply mb-5;
+}
+
+.checkout__fields {
+  @apply grid grid-cols-1 gap-5;
+}
+
+@media (min-width: 640px) {
+  .checkout__fields {
+    @apply grid-cols-2;
+  }
+}
+
+.checkout__field--full {
+  @apply sm:col-span-2;
+}
+
+.checkout__textarea {
+  @apply block w-full rounded-control border border-border bg-surface font-sans text-sm text-text-active p-3 transition-colors resize-y;
+}
+
+.checkout__textarea:focus {
+  @apply outline-none border-primary;
+}
+
+.checkout__payment-methods {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .checkout__payment-methods {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.checkout__payment-method {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  background: #ffffff;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.checkout__payment-method:hover {
+  border-color: #cfcfcf;
+}
+
+.checkout__payment-method.is-selected {
+  border-color: #204769;
+  background: #f0f5f8;
+  box-shadow: 0 0 0 1px #204769;
+}
+
+.checkout__payment-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkout__payment-method-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: #f3f4f6;
+  color: #204769;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.checkout__payment-method.is-selected .checkout__payment-method-icon {
+  background: #204769;
+  color: #ffffff;
+}
+
+.checkout__payment-method-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.checkout__payment-method-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #204769;
+}
+
+.checkout__payment-method-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.checkout__payment-method-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: transparent;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.checkout__payment-method.is-selected .checkout__payment-method-check {
+  color: #16a34a;
+}
+
+.checkout__actions {
+  @apply flex justify-end;
+}
+
+/* Summary */
+.checkout__summary {
+  @apply rounded-card border border-border-soft bg-surface p-6 flex flex-col gap-3;
+  position: sticky;
+  top: 6rem;
+}
+
+.checkout__summary-title {
+  @apply mb-2;
+}
+
+.checkout__summary-items {
+  @apply flex flex-col gap-4;
+}
+
+.checkout__summary-item {
+  @apply flex items-center gap-3;
+}
+
+.checkout__summary-image {
+  @apply h-12 w-12 shrink-0 rounded-control object-cover border border-border-soft;
+}
+
+.checkout__summary-info {
+  @apply flex flex-1 flex-col min-w-0;
+}
+
+.checkout__summary-name {
+  @apply m-0 font-sans font-semibold text-sm text-text-active truncate;
+}
+
+.checkout__summary-calc {
+  @apply m-0 font-sans text-xs text-text-inactive;
+}
+
+.checkout__summary-total {
+  @apply m-0 font-heading font-semibold text-sm text-primary whitespace-nowrap;
+}
+
+.checkout__summary-divider {
+  @apply border-0 border-t border-border-soft m-0;
+}
+
+.checkout__summary-row {
+  @apply flex items-center justify-between gap-3;
+}
+
+.checkout__summary-row > span {
+  @apply font-sans text-sm text-text-active;
+}
+
+.checkout__summary-row--success > span:last-child {
+  @apply text-confirm-700 font-semibold;
+}
+
+.checkout__summary-total {
+  @apply flex items-center justify-between gap-3;
+}
+
+.checkout__summary-total-value {
+  @apply font-heading font-bold text-primary text-xl;
+}
+
+/* Success */
+.checkout-success {
+  @apply flex flex-col items-center justify-center text-center rounded-card border border-border-soft bg-surface py-16 px-6 gap-3;
+}
+
+.checkout-success__icon {
+  @apply inline-flex size-20 items-center justify-center rounded-full bg-confirm-50 text-confirm-700 text-3xl mb-3;
+}
+
+.checkout-success__code {
+  @apply font-heading text-primary;
+}

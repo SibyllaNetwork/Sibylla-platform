@@ -1,0 +1,27 @@
+/* =====================================================================
+   VideoPlayer — frame 16:9 responsivo, montato on-demand
+   ===================================================================== */
+.video-player {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #000;
+  border-radius: 0; /* il container parent può applicare il radius */
+}
+
+.video-player--iframe,
+.video-player--native {
+  width: 100%;
+  height: 100%;
+}
+
+.video-player--missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  background: linear-gradient(135deg, #2c3a6b 0%, #4f63a4 100%);
+  border-radius: inherit;
+}

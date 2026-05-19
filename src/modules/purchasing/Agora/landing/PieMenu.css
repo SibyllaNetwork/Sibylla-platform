@@ -1,0 +1,123 @@
+/* =====================================================================
+   PIE MENU — sotto-voci a ventaglio verso destra
+   ===================================================================== */
+.pie-menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 5;
+  --pie-radius: 17vh;
+}
+
+.pie-menu__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10vh;
+  height: 10vh;
+  margin: -5vh 0 0 -5vh;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 220, 170, 0.6);
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 240, 200, 0.16) 0%, transparent 55%),
+    #1d3a6f;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3vh;
+  padding: 0;
+  font-family: inherit;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.18),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.35),
+    0 6px 22px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 220, 170, 0.22),
+    0 0 26px rgba(255, 210, 150, 0.28);
+  /* STATO CHIUSO — annidate dietro alla bolla, "richiuse a petalo" */
+  opacity: 0;
+  transform:
+    rotate(var(--angle, 0deg))
+    translateX(0)
+    rotate(calc(var(--angle, 0deg) * -1))
+    scale(0.3)
+    rotate(45deg);
+  pointer-events: none;
+  filter: blur(2px);
+  /* CHIUSURA — veloce e netta */
+  transition:
+    transform 0.3s cubic-bezier(.4, 0, .9, .5),
+    opacity 0.22s ease-in,
+    filter 0.25s ease-in,
+    background 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.pie-menu__item:nth-child(1) { --angle: -55deg; }
+.pie-menu__item:nth-child(2) { --angle: 0deg; }
+.pie-menu__item:nth-child(3) { --angle: 55deg; }
+
+/* APERTURA — sboccio a molla con overshoot, staggered */
+.pie-menu.is-open .pie-menu__item {
+  opacity: 1;
+  pointer-events: auto;
+  filter: blur(0);
+  transform:
+    rotate(var(--angle))
+    translateX(var(--pie-radius))
+    rotate(calc(var(--angle) * -1))
+    scale(1)
+    rotate(0deg);
+  transition:
+    transform 0.75s cubic-bezier(.34, 1.56, .64, 1),
+    opacity 0.45s ease-out,
+    filter 0.4s ease-out,
+    background 0.35s ease,
+    border-color 0.35s ease;
+  transition-delay: calc(var(--i) * 110ms);
+}
+
+.pie-menu__item:hover,
+.pie-menu__item:focus-visible {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 245, 210, 0.24) 0%, transparent 55%),
+    #264a85;
+  border-color: rgba(255, 235, 195, 0.95);
+  outline: none;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -8px 20px rgba(0, 0, 0, 0.45),
+    0 8px 28px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 230, 190, 0.45),
+    0 0 36px rgba(255, 210, 150, 0.45);
+}
+
+.pie-menu__icon {
+  font-size: 2.6vh;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1;
+}
+.pie-menu__item:hover .pie-menu__icon,
+.pie-menu__item:focus-visible .pie-menu__icon {
+  color: #fff;
+}
+
+.pie-menu__label {
+  font-family: 'Cinzel', 'Times New Roman', Georgia, serif;
+  font-size: clamp(8px, 1.05vh, 11px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  line-height: 1.05;
+  padding: 0 0.6vh;
+}
+.pie-menu__item:hover .pie-menu__label,
+.pie-menu__item:focus-visible .pie-menu__label {
+  color: #ffeac2;
+}

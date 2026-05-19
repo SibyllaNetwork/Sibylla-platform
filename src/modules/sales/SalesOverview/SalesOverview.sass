@@ -1,0 +1,384 @@
+// ─── SALES OVERVIEW ───────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.sales-overview
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 200px
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+
+    .sib-input
+      width: 140px
+
+    span
+      color: $text-inactive
+
+  &__visualizza
+    i
+      margin-right: 6px
+
+  &__info
+    margin-left: auto
+
+  // ── Stats row ───────────────────────────────────────────────────────────────
+  &__stats
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr 360px
+    gap: 12px
+
+    @media (max-width: 1280px)
+      grid-template-columns: 1fr 1fr
+
+  &__stat-card
+    display: flex
+    align-items: center
+    gap: 14px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 14px
+
+  &__stat-ico
+    background: $primary
+    color: white
+    width: 36px
+    height: 36px
+    border-radius: 8px
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 16px
+    flex-shrink: 0
+
+  &__stat-body
+    flex: 1
+    text-align: center
+
+  &__stat-label
+    font-size: 12px
+    color: $text-inactive
+
+  &__stat-value
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 22px
+    line-height: 1.1
+
+    &--pos
+      color: $success
+
+    &--neg
+      color: $error
+
+  &__stat-foot
+    font-size: 11px
+    color: $text-inactive
+    margin-top: 4px
+
+  // ── Bookings table ──────────────────────────────────────────────────────────
+  &__bookings
+    display: flex
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+  &__bookings-tag
+    background: $primary
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 11px
+    letter-spacing: 1.5px
+    padding: 8px 6px
+    writing-mode: vertical-rl
+    text-orientation: mixed
+    transform: rotate(180deg)
+    display: flex
+    align-items: center
+    justify-content: center
+
+  &__bookings-table
+    flex: 1
+    border-collapse: collapse
+    font-size: 12px
+
+    th
+      text-align: center
+      padding: 8px 6px
+      color: $text-inactive
+      font-weight: 600
+      border-bottom: 1px solid $border
+      font-size: 11px
+
+    td
+      text-align: center
+      padding: 8px 6px
+      border-bottom: 1px solid rgba(219,219,219,0.4)
+
+    td:first-child
+      font-weight: 600
+      color: $primary
+
+    tr:last-child td
+      border-bottom: none
+
+  &__bookings-row--today
+    background: $primary-50
+
+  // ── Trend ───────────────────────────────────────────────────────────────────
+  &__trend
+    display: grid
+    grid-template-columns: 220px 1fr 32px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+  &__trend-side
+    background: $primary
+    color: white
+    padding: 18px 18px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__trend-value
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 24px
+
+  &__trend-label
+    font-size: 13px
+    opacity: 0.8
+
+  &__trend-foot
+    font-size: 11px
+    opacity: 0.7
+    margin-top: 4px
+
+  &__trend-body
+    padding: 16px
+
+  &__trend-legend
+    display: flex
+    justify-content: center
+    gap: 24px
+    margin-bottom: 8px
+    font-size: 12px
+    color: $text-active
+
+  &__dot
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    display: inline-block
+    margin-right: 6px
+
+  &__trend-tags
+    display: flex
+    flex-direction: column
+
+  &__side-tag
+    background: $primary-700
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 10px
+    letter-spacing: 1.5px
+    padding: 8px 4px
+    writing-mode: vertical-rl
+    text-orientation: mixed
+    transform: rotate(180deg)
+    flex: 1
+    display: flex
+    align-items: center
+    justify-content: center
+
+    &--alt
+      background: $primary
+
+  &__svg
+    width: 100%
+    height: auto
+
+  // ── Bottom: segments + KPIs ────────────────────────────────────────────────
+  &__bottom
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+
+    @media (max-width: 1100px)
+      grid-template-columns: 1fr
+
+  &__segments-card
+    display: flex
+    gap: 16px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 16px
+
+  &__segments-icon
+    width: 50px
+    height: 50px
+    border-radius: 50%
+    background: $primary-50
+    color: $primary
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 22px
+    flex-shrink: 0
+
+  &__segments-body
+    flex: 1
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__seg-bars
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__seg-row
+    display: grid
+    grid-template-columns: 80px 1fr
+    align-items: center
+    gap: 8px
+
+  &__seg-label
+    font-size: 12px
+    text-align: right
+    color: $text-active
+    font-weight: 600
+
+  &__seg-track
+    position: relative
+    height: 16px
+    background: $bg
+    border-radius: 3px
+
+  &__seg-bar
+    position: absolute
+    top: 0
+    left: 0
+    height: 100%
+    border-radius: 3px
+
+    &--total
+      background: #1F4E5F
+      z-index: 2
+      height: 8px
+      top: 0
+
+    &--ly
+      background: #A0A4AA
+      z-index: 1
+      height: 8px
+      top: 8px
+
+  &__seg-bullet
+    position: absolute
+    top: -2px
+    bottom: -2px
+    width: 4px
+    background: #1F2E55
+    border-radius: 2px
+    transform: translateX(-50%)
+    z-index: 3
+
+  &__segments-legend
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 16px
+    margin-top: 4px
+    font-size: 11px
+    color: $text-active
+
+  &__sw
+    width: 12px
+    height: 12px
+    border-radius: 2px
+    display: inline-block
+    margin-right: 6px
+    vertical-align: middle
+
+  // ── KPI cards (right column) ───────────────────────────────────────────────
+  &__kpi-list
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__kpi-card
+    display: flex
+    align-items: center
+    gap: 14px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 14px 16px
+
+  &__kpi-icon
+    width: 44px
+    height: 44px
+    border-radius: 50%
+    background: $primary-50
+    color: $primary
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 18px
+    flex-shrink: 0
+
+  &__kpi-text
+    flex: 1
+
+  &__kpi-label
+    font-size: 12px
+    color: $text-inactive
+
+  &__kpi-value
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 18px
+    line-height: 1.1
+
+  &__kpi-foot
+    font-size: 11px
+    color: $text-inactive
+    margin-top: 2px
+
+  &__sparkline
+    flex-shrink: 0

@@ -1,0 +1,196 @@
+// ─── CORE COMPONENTS ──────────────────────────────────────────────────────────
+// Modal, BtnBack, Accordion, ToggleSwitch, Tooltip, AnalisiBadge, GaugeArc
+@use 'tokens' as *
+
+// ═══ MODAL ════════════════════════════════════════════════════════════════════
+.modal
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 100
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 16px
+
+  &__backdrop
+    position: absolute
+    inset: 0
+    background: rgba(0, 0, 0, 0.35)
+    backdrop-filter: blur(3px)
+
+  &__box
+    position: relative
+    width: 100%
+    background: $white
+    border-radius: 16px
+    box-shadow: 0 20px 60px rgba(32, 71, 105, 0.2)
+    padding: 24px
+
+    &--sm
+      max-width: 360px
+
+    &--md
+      max-width: 480px
+
+    &--lg
+      max-width: 600px
+
+    &--xl
+      max-width: 780px
+
+  &__header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 20px
+
+  &__title
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 600
+    color: $primary
+    margin: 0
+
+  &__close
+    background: none
+    border: none
+    cursor: pointer
+    padding: 4px
+    display: flex
+    align-items: center
+    color: $text-disabled
+    border-radius: $radius-md
+    transition: $transition-fast
+
+    &:hover
+      color: $text-active
+      background: $primary-50
+
+// ═══ BTN BACK ═════════════════════════════════════════════════════════════════
+.btn-back
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: transparent
+  border: 1px solid $border
+  border-radius: 7px
+  padding: 6px 12px
+  cursor: pointer
+  color: $text-inactive
+  font-size: 12px
+  font-family: $font-body
+  margin-bottom: 14px
+  transition: $transition-fast
+
+  &:hover
+    background: $white
+    color: $primary
+
+// ═══ ACCORDION ════════════════════════════════════════════════════════════════
+.accordion
+  overflow: hidden
+  transition: max-height 0.4s ease
+
+  &--closed
+    max-height: 0
+    transition: max-height 0.2s ease
+
+  &--open
+    max-height: 9999px
+
+// ═══ TOGGLE SWITCH ════════════════════════════════════════════════════════════
+.toggle-switch
+  border-radius: 999px
+  position: relative
+  transition: background 0.2s
+  flex-shrink: 0
+
+  &--on
+    background: $primary
+
+  &--off
+    background: $border
+
+  &--disabled
+    opacity: 0.5
+    cursor: not-allowed !important
+
+  &__knob
+    position: absolute
+    top: 2px
+    border-radius: 50%
+    background: $white
+    transition: left 0.2s
+
+// ═══ TOOLTIP ══════════════════════════════════════════════════════════════════
+.tooltip
+  position: relative
+  display: inline-flex
+
+  &__box
+    position: absolute
+    bottom: calc(100% + 6px)
+    left: 50%
+    transform: translateX(-50%)
+    background: #1E293B
+    color: $white
+    font-size: 11px
+    font-weight: 500
+    font-family: $font-body
+    padding: 5px 10px
+    border-radius: 6px
+    white-space: nowrap
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2)
+    z-index: 100
+    pointer-events: none
+
+    &::after
+      content: ''
+      position: absolute
+      top: 100%
+      left: 50%
+      transform: translateX(-50%)
+      border-left: 5px solid transparent
+      border-right: 5px solid transparent
+      border-top: 5px solid #1E293B
+
+// ═══ ANALISI BADGE ════════════════════════════════════════════════════════════
+.analisi-badge
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  border-radius: 6px
+  padding: 4px 8px
+
+  &--success
+    background: $success-light
+
+  &--warning
+    background: $warning-light
+
+  &__text
+    font-size: 10px
+    font-weight: 600
+    white-space: nowrap
+
+    .analisi-badge--success &
+      color: $success
+
+    .analisi-badge--warning &
+      color: $warning
+
+// ═══ GAUGE ARC ════════════════════════════════════════════════════════════════
+.gauge-arc
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 1px
+  width: 38px
+
+  &__label
+    font-size: 6px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.3px
+    white-space: nowrap

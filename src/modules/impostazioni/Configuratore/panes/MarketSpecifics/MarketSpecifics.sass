@@ -1,0 +1,65 @@
+// ─── MARKET SPECIFICS ─────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.market-specifics
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__header
+    display: grid
+    grid-template-columns: 240px 200px
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__list
+    display: flex
+    flex-direction: column
+
+  &__row
+    display: grid
+    grid-template-columns: 240px 200px
+    align-items: center
+    padding: 8px 0
+    border-bottom: 1px solid $border
+
+  &__naz
+    display: flex
+    align-items: center
+    gap: 12px
+    font-weight: 600
+    color: $text-active
+
+  &__flag
+    font-size: 20px
+    line-height: 1
+
+  &__cell
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__input
+    width: 80px
+
+  &__unit
+    color: $text-inactive
+    font-size: 12px
+
+  &__actions
+    display: flex
+    justify-content: center
+    margin-top: 12px

@@ -1,0 +1,470 @@
+// ─── OSPITI IN CASA ───────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.ospiti-casa
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 12px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Bar layout ────────────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    justify-content: space-between
+    align-items: flex-end
+    flex-wrap: nowrap
+    gap: 12px
+    margin-top: 4px
+
+    &--info
+      align-items: center
+      background: $bg
+      border: 1px solid $border
+      border-radius: 6px
+      padding: 8px 12px
+
+  &__bar-left
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: nowrap
+
+  &__bar-right
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: nowrap
+    padding-bottom: 2px
+
+  // ── Form fields (standard) ───────────────────────────────────────────────
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+    &--grow
+      width: 260px
+      flex-shrink: 0
+
+  &__select
+    width: 140px
+    flex-shrink: 0
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+    flex-shrink: 0
+
+    .sib-input
+      width: 130px
+
+    span
+      color: $text-inactive
+
+  &__search-field
+    position: relative
+    flex-shrink: 0
+    width: 100%
+
+    .sib-input
+      padding-right: 32px
+      width: 100%
+
+  &__search-icon
+    position: absolute
+    right: 12px
+    top: 50%
+    transform: translateY(-50%)
+    color: $text-inactive
+    font-size: 13px
+    pointer-events: none
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  &__stats
+    display: inline-flex
+    flex-wrap: nowrap
+    align-items: center
+    gap: 16px
+
+  &__stat
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+    white-space: nowrap
+
+    i
+      color: $primary
+      font-size: 12px
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__table
+
+    thead th
+      vertical-align: middle
+
+    .ospiti-casa__th-center
+      text-align: center
+
+  &__td-center
+    text-align: center
+
+  &__col-ico
+    margin-left: 6px
+    color: $text-inactive
+    font-size: 11px
+    cursor: pointer
+
+    &:hover
+      color: $primary
+
+  &__pren-badge
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: $primary-50
+    color: $primary
+    padding: 3px 8px
+    border-radius: 4px
+    font-weight: 600
+    font-size: 12px
+
+    i
+      font-size: 11px
+
+  &__ospite-cell
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__vip
+    color: $warning
+    font-size: 11px
+
+  &__note-ico
+    color: $link
+    font-size: 13px
+
+  &__actions
+    display: inline-flex
+    gap: 2px
+
+  &__row-icons
+    display: inline-flex
+    gap: 2px
+    justify-content: center
+
+  // ── Pagination ────────────────────────────────────────────────────────────
+  &__pagination
+    display: flex
+    justify-content: space-between
+    align-items: center
+    flex-wrap: wrap
+    gap: 12px
+    margin-top: 4px
+
+  &__pagination-info
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  &__modal-overlay
+    position: fixed
+    inset: 0
+    background: rgba(0,0,0,0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    z-index: 100
+    padding: 24px
+
+  &__modal
+    background: white
+    border-radius: 10px
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25)
+    width: 100%
+    max-width: 760px
+    max-height: 90vh
+    display: flex
+    flex-direction: column
+    overflow: hidden
+
+  &__modal-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 14px 18px
+    border-bottom: 1px solid $border
+    background: $bg
+
+    h3
+      margin: 0
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      font-family: $font-heading
+      font-weight: 600
+      font-size: 15px
+      color: $primary
+
+      i
+        color: $warning
+
+  &__modal-body
+    padding: 16px 18px
+    overflow-y: auto
+
+  &__modal-msg
+    margin: 0 0 12px 0
+    color: $text-active
+    font-size: 13px
+
+  &__modal-table
+    th, td
+      font-size: 12px
+
+  &__modal-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 12px 18px
+    border-top: 1px solid $border
+    background: $bg
+
+
+// ─── ANAGRAFICA MODAL ────────────────────────────────────────────────────────
+.oc-anag
+  max-width: 760px
+
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__grid
+    display: grid
+    gap: 14px
+
+    &--2
+      grid-template-columns: 1fr 1fr
+
+    &--3
+      grid-template-columns: 1fr 1fr auto
+
+    &--4
+      grid-template-columns: 1fr 1fr 1fr 1fr
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+    position: relative
+
+    label
+      font-size: 11px
+      font-weight: 600
+      color: $text-active
+
+    .sib-input,
+    .sib-select
+      width: 100%
+
+    &--ok
+      .sib-input,
+      .sib-select
+        border-color: $primary
+        padding-right: 28px
+
+  &__check
+    position: absolute
+    right: 8px
+    bottom: 9px
+    color: $primary
+    font-size: 12px
+    pointer-events: none
+
+    &--textarea
+      bottom: 8px
+      right: 8px
+      top: auto
+
+  &__textarea
+    resize: vertical
+    min-height: 56px
+    padding-right: 28px
+    font-family: inherit
+
+  &__file
+    display: inline-flex
+    align-items: center
+    border: 1px solid $border
+    border-radius: 6px
+    padding: 6px 10px
+    cursor: pointer
+    background: white
+    color: $text-active
+    font-size: 12px
+
+    &:hover
+      border-color: $primary
+
+  &__acquisisci
+    align-self: flex-start
+
+  &__check-row
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: end
+    font-size: 13px
+    color: $text-active
+    padding-bottom: 6px
+
+
+// ─── COL SEARCH (popup ricerca su intestazione) ──────────────────────────────
+.oc-colsearch
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+    line-height: 1
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 220px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    padding: 10px 12px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__title
+    font-size: 12px
+    color: $text-inactive
+    font-weight: 600
+
+  &__input
+    width: 100%
+
+
+// ─── COL FILTER POPUP ────────────────────────────────────────────────────────
+.oc-colfilter
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+    line-height: 1
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 200px
+    max-height: 320px
+    overflow-y: auto
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    font-weight: 400
+    color: $text-active
+
+    &:hover
+      background: $primary-50
+
+    .sib-checkbox
+      flex-shrink: 0
+
+  &__opt-ico
+    color: $primary
+    font-size: 14px
+    width: 16px
+    text-align: center

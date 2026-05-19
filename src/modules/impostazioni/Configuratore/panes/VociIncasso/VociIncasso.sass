@@ -1,0 +1,120 @@
+// ─── VOCI INCASSO ─────────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.voci-incasso
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__form
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+    align-items: flex-end
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex: 1
+    min-width: 140px
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__short
+    width: 100px
+
+  &__cell
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__add
+    margin-bottom: 0
+    height: 36px
+
+    i
+      margin-right: 6px
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+
+    th, td
+      padding: 8px 12px
+      text-align: left
+      border-bottom: 1px solid $border
+
+    th
+      background: $primary-50
+      color: $primary
+      font-size: 12px
+      font-weight: 600
+
+  &__empty
+    text-align: center
+    color: $text-inactive
+    padding: 24px
+    font-style: italic
+
+  &__section-title
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 12px 0 0
+    font-family: $font-heading
+    color: $primary
+    font-size: 16px
+
+  &__toggle
+    height: 36px
+    display: inline-flex
+    align-items: center
+    cursor: pointer
+    position: relative
+
+    input
+      position: absolute
+      opacity: 0
+      width: 0
+      height: 0
+
+      &:checked + .voci-incasso__slider
+        background: $primary
+
+        &:before
+          transform: translateX(20px)
+
+  &__slider
+    width: 44px
+    height: 22px
+    background: $border
+    border-radius: 11px
+    position: relative
+    transition: background 0.2s
+
+    &:before
+      content: ""
+      width: 18px
+      height: 18px
+      background: white
+      border-radius: 50%
+      position: absolute
+      top: 2px
+      left: 2px
+      transition: transform 0.2s
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2)

@@ -1,0 +1,70 @@
+// ─── LISTINI INDIVIDUALI ──────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.listini-gruppi
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__filters
+    display: flex
+    flex-wrap: wrap
+    gap: 16px
+    align-items: flex-end
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 140px
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__header
+    display: grid
+    grid-template-columns: 1fr 1fr
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    margin-top: 8px
+
+  &__divider
+    border: none
+    border-top: 1px solid $border
+    margin: 0
+
+  &__row
+    display: grid
+    grid-template-columns: 1fr 1fr
+    align-items: center
+
+  &__cell
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__input
+    width: 100px
+
+  &__unit
+    color: $text-inactive
+    font-size: 12px
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    margin-top: 8px

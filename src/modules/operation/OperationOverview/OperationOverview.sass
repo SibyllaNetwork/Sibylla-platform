@@ -1,0 +1,268 @@
+// ─── OPERATION OVERVIEW ───────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.op-overview
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__select
+    width: 200px
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+
+    .sib-input
+      width: 140px
+
+    span
+      color: $text-inactive
+
+  &__visualizza
+    i
+      margin-right: 6px
+
+  &__info
+    margin-left: auto
+
+  &__stats
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+
+  &__manut
+    display: flex
+    align-items: center
+    gap: 14px
+
+  &__manut-tile
+    background: $primary
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 18px
+    padding: 12px 20px
+    border-radius: 6px
+    min-width: 110px
+    text-align: center
+
+  &__manut-text
+    display: flex
+    flex-direction: column
+
+  &__manut-label
+    color: $text-active
+    font-weight: 600
+
+  &__manut-foot
+    font-size: 11px
+    color: $text-inactive
+
+  &__indispon
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px 20px
+    border-top: 2px solid $border
+
+    span
+      color: $text-inactive
+
+    strong
+      background: $primary
+      color: white
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 18px
+      padding: 8px 16px
+      border-radius: 6px
+
+  // ── Trend + donut ──────────────────────────────────────────────────────────
+  &__trend-row
+    display: grid
+    grid-template-columns: 1fr 32px 280px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+
+    @media (max-width: 1100px)
+      grid-template-columns: 1fr
+
+  &__trend-card
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__card-title
+    margin: 0
+    font-family: $font-heading
+    font-weight: 600
+    color: $primary
+    font-size: 14px
+    text-align: center
+
+  &__svg
+    width: 100%
+
+  &__legend
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 16px
+    font-size: 12px
+    color: $text-active
+
+  &__dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    display: inline-block
+    margin-right: 6px
+
+  &__side-tag
+    background: $primary
+    color: white
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 10px
+    letter-spacing: 1.5px
+    padding: 8px 4px
+    writing-mode: vertical-rl
+    text-orientation: mixed
+    transform: rotate(180deg)
+    display: flex
+    align-items: center
+    justify-content: center
+
+    &--alt
+      background: $primary-700
+
+  &__donut-card
+    background: $primary
+    color: white
+    padding: 16px
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+
+    .op-overview__card-title
+      color: white
+
+  &__hint
+    margin: 0
+    font-size: 11px
+    color: rgba(255,255,255,0.7)
+
+  // ── Bottom split ───────────────────────────────────────────────────────────
+  &__bottom
+    display: grid
+    grid-template-columns: 32px 1fr 1fr 32px
+    background: $primary
+    border-radius: 8px
+    overflow: hidden
+    color: white
+
+    @media (max-width: 1100px)
+      grid-template-columns: 32px 1fr 32px
+      .op-overview__segnalazioni
+        grid-column: 1 / -1
+        background: $primary-700
+
+  &__rooms
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+    .op-overview__card-title
+      color: white
+
+  &__rooms-select
+    width: 200px
+    background: white
+    color: $primary
+
+  &__rooms-title
+    margin-top: 6px
+
+  &__rooms-empty
+    margin: 0
+    color: rgba(255,255,255,0.85)
+    font-size: 13px
+
+  &__segnalazioni
+    padding: 16px
+    background: white
+    color: $text-active
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+    .op-overview__card-title
+      color: $primary
+      text-align: left
+
+  &__seg-row
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__seg-head
+    display: flex
+    align-items: center
+    gap: 8px
+    font-weight: 600
+
+    i
+      color: $primary
+
+  &__seg-name
+    flex: 1
+    color: $primary
+
+  &__seg-count
+    color: $primary
+    font-weight: 700
+
+  &__seg-bar
+    height: 8px
+    background: $bg
+    border-radius: 4px
+    overflow: hidden
+
+  &__seg-fill
+    height: 100%
+    background: $primary
+    transition: width 0.3s ease
+
+  &__seg-axis
+    display: flex
+    justify-content: space-between
+    font-size: 10px
+    color: $text-inactive

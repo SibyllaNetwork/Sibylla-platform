@@ -1,0 +1,216 @@
+@use '../../../../styles/tokens' as *
+
+.prod-modal__head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  margin-bottom: 14px
+
+.prod-modal__title
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 4px
+
+.prod-modal__sub
+  font-size: 12px
+  color: $text-disabled
+  margin: 0
+
+.prod-modal__close
+  background: none
+  border: none
+  cursor: pointer
+  padding: 4px
+
+.prod-modal__section
+  background: #F8FAFC
+  border: 0.5px solid $border
+  border-radius: 10px
+  padding: 12px 14px
+  margin-bottom: 12px
+
+.prod-modal__section-title
+  font-size: 11px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  margin-bottom: 10px
+
+.prod-modal__barcode-row
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 12px
+  align-items: flex-start
+
+.prod-modal__barcode-field
+  // wrapper
+
+.prod-modal__barcode-input
+  display: flex
+  align-items: center
+  gap: 0
+  border: 1px solid $border
+  border-radius: 7px
+  background: $white
+  padding: 0 4px 0 10px
+  height: 36px
+
+.prod-modal__barcode-ico
+  font-size: 14px
+  color: $primary
+  margin-right: 8px
+
+.prod-modal__barcode-text
+  flex: 1
+  border: none
+  background: transparent
+  height: 32px
+  font-family: monospace
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+  letter-spacing: 0.5px
+
+  &:focus
+    outline: none
+
+.prod-modal__barcode-gen
+  display: flex
+  align-items: center
+  gap: 5px
+  height: 28px
+  padding: 0 10px
+  background: $blue-light
+  border: 1px solid rgba($blue, 0.2)
+  border-radius: 5px
+  cursor: pointer
+  font-size: 11px
+  font-weight: 600
+  color: $blue
+  flex-shrink: 0
+
+  &:hover
+    background: rgba($blue, 0.13)
+
+.prod-modal__error
+  font-size: 11px
+  color: $error
+  margin-top: 4px
+
+.prod-modal__hint
+  font-size: 11px
+  color: $success
+  margin-top: 4px
+
+.prod-modal__attivo
+  display: flex
+  flex-direction: column
+
+.prod-modal__toggle
+  display: flex
+  align-items: center
+  gap: 8px
+  height: 36px
+  font-size: 12px
+  color: $text-active
+  cursor: pointer
+
+.prod-modal__grid
+  display: grid
+  gap: 10px
+
+  &--2
+    grid-template-columns: 1fr 1fr
+
+  &--4
+    grid-template-columns: repeat(4, 1fr)
+
+.prod-modal__field
+  // wrapper
+
+.prod-modal__label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: 4px
+
+.prod-modal__textarea
+  height: auto
+  resize: vertical
+  padding: 8px 10px
+  font-family: $font-body
+
+.prod-modal__section-hint
+  font-size: 12px
+  color: $text-disabled
+  margin: 0 0 10px
+  line-height: 1.5
+
+.prod-modal__market
+  background: $white
+  border: 1.5px solid $border
+  border-radius: 9px
+  padding: 12px 14px
+  margin-bottom: 10px
+  transition: all 0.15s
+
+  &:last-child
+    margin-bottom: 0
+
+  &--on
+    border-color: var(--mercato-color, var(--color-primary))
+    background: rgba(0, 0, 0, 0)
+
+.prod-modal__market-toggle
+  display: flex
+  align-items: center
+  gap: 8px
+  cursor: pointer
+  font-family: $font-heading
+
+.prod-modal__market-name
+  font-size: 14px
+  font-weight: 700
+  color: var(--mercato-color, var(--color-primary))
+
+.prod-modal__market-desc
+  font-size: 11px
+  color: $text-disabled
+  margin: 4px 0 8px 22px
+  line-height: 1.4
+
+.prod-modal__market-price
+  margin-left: 22px
+  margin-top: 8px
+
+.prod-modal__market-price-row
+  display: flex
+  align-items: center
+  gap: 12px
+
+.prod-modal__market-input
+  width: 140px
+
+.prod-modal__margine
+  font-size: 11px
+  font-weight: 600
+  border-radius: 4px
+  padding: 3px 8px
+
+  &--pos
+    color: $success
+    background: $success-light
+
+  &--neg
+    color: $error
+    background: $error-light
+
+.prod-modal__actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 4px

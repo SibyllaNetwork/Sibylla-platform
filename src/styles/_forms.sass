@@ -1,0 +1,270 @@
+// ─── FORMS ────────────────────────────────────────────────────────────────────
+// Tutti gli elementi form del design system Sibylla.
+// Modifica questo file per aggiornare input, select, checkbox, toggle.
+//
+// ELEMENTI:
+//   .field          — input testo standard
+//   .field-textarea — textarea
+//   .select         — select con freccia custom
+//   .checkbox       — checkbox custom
+//   .radio-group    — gruppo radio button
+//   .toggle-switch  — switch on/off
+//
+// STATI: --error, --disabled, :focus, :hover
+// DIMENSIONI: --dense (height 30px), --sm (height 28px)
+
+@use 'tokens' as *
+
+// ── Freccia SVG per select ────────────────────────────────────────────────────
+$_arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236E7175' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+
+// ── Mixin base campo ──────────────────────────────────────────────────────────
+=field-base
+  height: 34px
+  padding: 0 $space-md
+  border: 1.5px solid $border
+  border-radius: $radius-md
+  font-family: $font-body
+  font-size: 13px
+  font-weight: 400
+  color: $text-active
+  background: $white
+  outline: none
+  transition: $transition-fast
+  width: 100%
+  box-sizing: border-box
+
+  &::placeholder
+    color: $text-disabled
+
+  &:hover:not(:disabled):not(:focus)
+    border-color: $primary-400
+
+  &:focus
+    border-color: $primary
+    box-shadow: 0 0 0 3px rgba($primary, 0.08)
+
+// ══ FIELD — INPUT TESTO ═══════════════════════════════════════════════════════
+.field
+  +field-base
+
+  &--dense
+    height: 34px
+    font-size: 12px
+
+  &--sm
+    height: 28px
+    font-size: 11px
+
+  &--error
+    border-color: $error
+
+    &:focus
+      box-shadow: 0 0 0 3px rgba($error, 0.1)
+
+  &:disabled, &--disabled
+    color: $text-disabled
+    background: $primary-50
+    cursor: not-allowed
+
+// ══ TEXTAREA ══════════════════════════════════════════════════════════════════
+.field-textarea
+  +field-base
+  height: auto
+  padding: $space-sm $space-md
+  resize: vertical
+  min-height: 80px
+  line-height: 1.5
+
+// ══ SELECT ════════════════════════════════════════════════════════════════════
+.select
+  +field-base
+  appearance: none
+  padding-right: 28px
+  cursor: pointer
+  background-image: $_arrow
+  background-repeat: no-repeat
+  background-position: right 8px center
+
+  &--dense
+    height: 34px
+    font-size: 12px
+
+  &--sm
+    height: 28px
+    font-size: 11px
+
+  &--error
+    border-color: $error
+
+  &:disabled
+    color: $text-disabled
+    background-color: $primary-50
+    cursor: not-allowed
+
+// ══ CHECKBOX ══════════════════════════════════════════════════════════════════
+.checkbox
+  display: inline-flex
+  align-items: center
+  gap: $space-sm
+  cursor: pointer
+  user-select: none
+
+  &__box
+    width: 16px
+    height: 16px
+    border-radius: $radius-sm
+    border: 1.5px solid $border
+    background: $white
+    display: flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    transition: $transition-fast
+
+    &--checked
+      background: $primary
+      border-color: $primary
+
+    &--error
+      border-color: $error
+
+      &.checkbox__box--checked
+        background: $error
+
+  &__label
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+
+  &:hover &__box:not(&__box--checked)
+    border-color: $primary-400
+
+// ══ RADIO GROUP ═══════════════════════════════════════════════════════════════
+.radio-group
+  display: flex
+  gap: $space-lg
+  flex-wrap: wrap
+
+.radio-item
+  display: inline-flex
+  align-items: center
+  gap: $space-sm
+  cursor: pointer
+  user-select: none
+
+  input[type='radio']
+    width: 16px
+    height: 16px
+    accent-color: $primary
+    cursor: pointer
+
+  &__label
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+
+// ══ TOGGLE SWITCH ══════════════════════════════════════════════════════════════
+// Wrapper cliccabile — lo stato on/off si gestisce via classi --on / --off
+.toggle-switch
+  display: inline-flex
+  align-items: center
+  gap: $space-sm
+  cursor: pointer
+  user-select: none
+
+  &__track
+    position: relative
+    border-radius: 999px
+    transition: background 0.2s
+    flex-shrink: 0
+
+    // Dimensione default
+    width: 36px
+    height: 20px
+
+    &--on
+      background: $primary
+
+    &--off
+      background: $border
+
+    &--disabled
+      opacity: 0.5
+      cursor: not-allowed
+
+  &__knob
+    position: absolute
+    top: 2px
+    width: 16px
+    height: 16px
+    border-radius: 50%
+    background: $white
+    transition: left 0.2s
+    box-shadow: $shadow-sm
+
+    .toggle-switch__track--on &
+      left: calc(100% - 18px)
+
+    .toggle-switch__track--off &
+      left: 2px
+
+  &__label
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+
+// ══ DATE INPUT ════════════════════════════════════════════════════════════════
+// Wrapper per due date picker affiancati (dal / al)
+.date-range
+  display: flex
+  align-items: center
+  gap: $space-sm
+  height: 36px
+  padding: 0 $space-md
+  border: 1.5px solid $border
+  border-radius: $radius-md
+  background: $white
+  transition: $transition-fast
+
+  &:focus-within
+    border-color: $primary
+
+  &__input
+    border: none
+    outline: none
+    font-family: $font-body
+    font-size: 12px
+    color: $text-active
+    background: transparent
+    width: 110px
+
+  &__sep
+    color: $text-disabled
+    font-size: 12px
+    flex-shrink: 0
+
+// ══ FORM GRID ═════════════════════════════════════════════════════════════════
+// Layout a colonne per form
+.form-grid
+  display: grid
+  gap: $space-lg
+
+  &--2
+    grid-template-columns: 1fr 1fr
+
+  &--3
+    grid-template-columns: 1fr 1fr 1fr
+
+  &--4
+    grid-template-columns: repeat(4, 1fr)
+
+  &--auto
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
+
+// Azioni form (bottoni in fondo)
+.form-actions
+  display: flex
+  justify-content: flex-end
+  gap: $space-sm
+  margin-top: $space-lg

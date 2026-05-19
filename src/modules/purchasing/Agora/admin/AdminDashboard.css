@@ -1,0 +1,152 @@
+/* =====================================================================
+   AdminDashboard — overview con KPI e sezioni
+   ===================================================================== */
+.admin-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.admin-dash__head h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--color-text-active);
+}
+.admin-dash__head p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-inactive);
+}
+
+/* ── KPI ───────────────────────────────────────────────────────────── */
+.admin-dash__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.admin-kpi {
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 2px rgba(11, 21, 48, 0.04);
+}
+.admin-kpi__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.admin-kpi--primary  .admin-kpi__icon { background: #e8f1f9; color: #204769; }
+.admin-kpi--warning  .admin-kpi__icon { background: #fff3e0; color: #b06d00; }
+.admin-kpi--success  .admin-kpi__icon { background: #e4f8ee; color: #007035; }
+.admin-kpi--muted    .admin-kpi__icon { background: #eef0f3; color: #5a6273; }
+
+.admin-kpi__body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.admin-kpi__value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-active);
+  font-variant-numeric: tabular-nums;
+}
+.admin-kpi__label {
+  font-size: 13px;
+  color: var(--color-text-active);
+  margin-top: 2px;
+}
+.admin-kpi__hint {
+  font-size: 11px;
+  color: var(--color-text-inactive);
+  margin-top: 4px;
+}
+
+/* ── Sections grid ─────────────────────────────────────────────────── */
+.admin-dash__sections h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-active);
+  margin: 0 0 12px;
+}
+
+.admin-dash__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.admin-section-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 14px;
+  padding: 18px;
+  text-decoration: none;
+  color: var(--color-text-active);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-section-card:hover {
+  border-color: #204769;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11, 21, 48, 0.08);
+}
+.admin-section-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f0f5f8;
+  color: #204769;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.admin-section-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+.admin-section-card p {
+  font-size: 12px;
+  color: var(--color-text-inactive);
+  margin: 0;
+  line-height: 1.45;
+}
+.admin-section-card__cta {
+  margin-top: 8px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #204769;
+}
+.admin-section-card--disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.admin-section-card--disabled:hover {
+  border-color: var(--color-border-soft);
+  transform: none;
+  box-shadow: none;
+}
+.admin-section-card__cta--disabled {
+  color: var(--color-text-inactive);
+}

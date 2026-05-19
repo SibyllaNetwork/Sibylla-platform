@@ -1,0 +1,546 @@
+.quotes-page__new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #204769;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #204769;
+  border-radius: 0.5rem;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.quotes-page__new:hover {
+  background: #2d5a7f;
+  border-color: #2d5a7f;
+}
+
+.quotes-page__stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .quotes-page__stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.quote-stat {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.quote-stat:hover {
+  border-color: #cfcfcf;
+}
+
+.quote-stat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.quote-stat__label {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #5c5c5c;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.quote-stat__icon {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.quote-stat__value {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.75rem;
+  line-height: 2rem;
+  color: #204769;
+  margin: 0;
+}
+
+.quotes-page__filter-tabs {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.quotes-page__filter-tabs-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.quotes-page__filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.quotes-page__filter-tab:hover {
+  background: #e5e7eb;
+}
+
+.quotes-page__filter-tab--active {
+  background: #204769;
+  color: #ffffff;
+}
+
+.quotes-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* === GRID VIEW (compact, 2 colonne) === */
+.quotes-page__list--grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .quotes-page__list--grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quote-empty {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.quote-empty__icon {
+  color: #d1d5db;
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.quote-empty__text {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.quote-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.quote-card:hover {
+  border-color: #cfcfcf;
+}
+
+.quote-card__head {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.quote-card__head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.quote-card__info {
+  flex: 1;
+}
+
+.quote-card__id-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.quote-card__id {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #1f2937;
+  margin: 0;
+}
+
+.quote-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.quote-card__status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+}
+
+.quote-card__status--draft {
+  background: #f3f4f6;
+  color: #374151;
+}
+.quote-card__status--draft .quote-card__status-dot { background: #6b7280; }
+
+.quote-card__status--sent {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.quote-card__status--sent .quote-card__status-dot { background: #3b82f6; }
+
+.quote-card__status--received {
+  background: #ffedd5;
+  color: #c2410c;
+}
+.quote-card__status--received .quote-card__status-dot { background: #f97316; }
+
+.quote-card__status--accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+.quote-card__status--accepted .quote-card__status-dot { background: #22c55e; }
+
+.quote-card__client {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #374151;
+  margin: 0 0 0.25rem;
+}
+
+.quote-card__subject {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0;
+}
+
+.quote-card__totals {
+  text-align: right;
+}
+
+.quote-card__amount {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #204769;
+  margin: 0;
+}
+
+.quote-card__iva {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.quote-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #6b7280;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quote-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.quote-card__items-section {
+  padding: 1.5rem;
+  background: #f9fafb;
+}
+
+.quote-card__items-title {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #374151;
+  margin: 0 0 0.75rem;
+}
+
+.quote-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quote-card__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.quote-card__item-desc {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #1f2937;
+  margin: 0 0 0.125rem;
+}
+
+.quote-card__item-calc {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.6875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.quote-card__item-total {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.quote-card__totals-summary {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quote-card__totals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+.quote-card__totals-row--grand {
+  padding-top: 0.5rem;
+  border-top: 1px solid #d1d5db;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #1f2937;
+}
+
+.quote-card__totals-row--grand .quote-card__totals-value {
+  color: #204769;
+}
+
+.quote-card__notes {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 0.375rem;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.75rem;
+  color: #374151;
+}
+
+.quote-card__actions {
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.quote-btn:hover {
+  background: #f3f4f6;
+}
+
+.quote-btn--primary {
+  background: #204769;
+  border-color: #204769;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.quote-btn--primary:hover {
+  background: #2d5a7f;
+  border-color: #2d5a7f;
+}
+
+.quote-btn--warning {
+  background: #f97316;
+  border-color: #f97316;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.quote-btn--warning:hover {
+  background: #ea580c;
+  border-color: #ea580c;
+}
+
+.quote-btn--success {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.quote-btn--success:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.quote-btn--danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.quote-btn--danger:hover {
+  background: #fee2e2;
+}
+
+.quote-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.quote-modal__dialog {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  max-width: 42rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.quote-modal__head {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+}
+
+.quote-modal__title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin: 0;
+}
+
+.quote-modal__close {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.quote-modal__close:hover {
+  background: #f3f4f6;
+}
+
+.quote-modal__body {
+  padding: 1.5rem;
+}
+
+.quote-modal__text {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0 0 1rem;
+}
+
+.quote-modal__cta {
+  width: 100%;
+  padding: 0.75rem;
+  background: #204769;
+  color: #ffffff;
+  border: 1px solid #204769;
+  border-radius: 0.5rem;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.quote-modal__cta:hover {
+  background: #2d5a7f;
+  border-color: #2d5a7f;
+}

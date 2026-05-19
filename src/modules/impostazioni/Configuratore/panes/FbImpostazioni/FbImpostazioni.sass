@@ -1,0 +1,34 @@
+// ─── FB IMPOSTAZIONI ──────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.fb-impostazioni
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 12px
+    padding: 80px 24px
+    color: $text-inactive
+    border: 1px dashed $border
+    border-radius: 8px
+    text-align: center
+
+    i
+      font-size: 40px
+      color: $primary-300

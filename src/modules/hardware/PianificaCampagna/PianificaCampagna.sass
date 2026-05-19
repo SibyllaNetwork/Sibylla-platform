@@ -1,0 +1,254 @@
+@use "sass:color"
+
+$primary: #204769
+$primary-soft: #2d5a7f
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$bg-zebra: #f3f8fb
+$success: #10b981
+$danger: #dc2626
+
+.pianif
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__layout
+    display: grid
+    grid-template-columns: 1fr
+    gap: 24px
+    align-items: start
+
+    @media (min-width: 1280px)
+      grid-template-columns: 1.6fr 1fr 0.6fr
+
+    @media (min-width: 1024px) and (max-width: 1279px)
+      grid-template-columns: 1.4fr 1fr
+
+  // ── Planner ──────────────────────────────────────────────────────
+  &__planner
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 16px
+    color: $primary
+
+  &__date-range
+    display: flex
+    gap: 12px
+    flex-wrap: wrap
+
+    > div
+      max-width: 180px
+
+  // ── Tabella ──────────────────────────────────────────────────────
+  &__table-wrap
+    overflow-x: auto
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+
+    thead th
+      background: $primary
+      color: white
+      padding: 8px 10px
+      font-weight: 700
+      font-size: 11px
+      text-align: left
+      white-space: nowrap
+
+      &.pianif__th-num
+        text-align: right
+
+    tbody td
+      padding: 6px 8px
+      border-bottom: 1px solid $border
+      vertical-align: middle
+
+    tbody tr:nth-child(even)
+      background: $bg-zebra
+
+    .sib-input,
+    .sib-select
+      padding: 4px 8px
+      font-size: 12px
+      height: 30px
+
+  &__td-date
+    color: $primary
+    font-weight: 600
+    white-space: nowrap
+
+  &__td-num
+    text-align: right
+    white-space: nowrap
+
+  &__td-muted
+    color: $muted
+
+  &__sub-arrow
+    display: inline-flex
+    width: 100%
+    justify-content: flex-end
+    color: $primary
+    font-size: 14px
+    padding-right: 6px
+
+  &__row--unavailable
+    background: $bg-soft  !important
+
+  &__td-conflict
+    color: $success
+    font-style: italic
+    font-size: 12px
+    padding: 8px 10px
+
+  &__td-conflict-amt
+    color: $success
+    font-weight: 700
+
+  // ── Upload button ────────────────────────────────────────────────
+  &__upload-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 5px 12px
+    background: white
+    border: 1px solid $border-strong
+    border-radius: 4px
+    color: $ink
+    font-size: 12px
+    cursor: pointer
+    transition: border-color 0.15s, background 0.15s
+
+    &:hover
+      border-color: $primary
+      background: $bg-soft
+
+    i
+      color: $muted
+
+  // ── Azioni riga ──────────────────────────────────────────────────
+  &__row-actions
+    display: inline-flex
+    gap: 4px
+
+  &__action
+    width: 26px
+    height: 26px
+    border: none
+    background: transparent
+    border-radius: 4px
+    color: $muted
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 12px
+    transition: background 0.15s, color 0.15s
+
+    &:hover
+      background: $bg-soft
+      color: $primary
+
+  // ── Totale + procedi ─────────────────────────────────────────────
+  &__total-label
+    text-align: right
+    font-weight: 700
+    color: $primary
+    font-size: 13px
+    padding: 10px 12px
+
+  &__total-amount
+    color: $primary
+    font-weight: 700
+    font-size: 14px
+    padding: 10px 12px
+
+  &__procedi-row
+    display: flex
+    justify-content: center
+    padding-top: 8px
+
+  &__procedi
+    height: 38px
+    padding: 0 32px
+
+  // ── Posizione scelta ─────────────────────────────────────────────
+  &__pos-section
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__pos-title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 16px
+    color: $primary
+
+  &__pos-name
+    margin: 6px 0 0
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+    color: $primary
+
+    strong
+      font-weight: 700
+
+  &__pos-name-btn
+    margin: 6px 0 0
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+    color: $primary
+    background: transparent
+    border: none
+    padding: 0
+    cursor: pointer
+    text-align: left
+
+    strong
+      font-weight: 700
+
+    &:hover
+      text-decoration: underline
+
+  &__pos-addr
+    margin: 0 0 10px
+    color: $muted
+    font-size: 13px
+
+  &__pos-photo
+    border-radius: 12px
+    overflow: hidden
+    border: 1px solid $border
+    aspect-ratio: 4 / 3
+    background: $bg-soft
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+      display: block
+
+  // ── Colonna totem ────────────────────────────────────────────────
+  &__totem-col
+    display: flex
+    justify-content: center
+    align-items: flex-start
+
+    @media (max-width: 1279px)
+      grid-column: 1 / -1

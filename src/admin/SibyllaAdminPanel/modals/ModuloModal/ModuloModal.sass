@@ -1,0 +1,85 @@
+@use '../../../../styles/tokens' as *
+
+.mod-modal__head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  margin-bottom: 16px
+
+.mod-modal__title
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+  margin: 0 0 4px
+
+.mod-modal__sub
+  font-size: 12px
+  color: $text-disabled
+  margin: 0
+
+.mod-modal__close
+  background: none
+  border: none
+  cursor: pointer
+  padding: 4px
+
+.mod-modal__row
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 12px
+  margin-bottom: 14px
+
+.mod-modal__label
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  display: block
+  margin-bottom: 4px
+
+.mod-modal__pages-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 8px
+
+.mod-modal__pages-title
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+
+.mod-modal__pages-count
+  font-weight: 400
+  color: $text-disabled
+
+.mod-modal__pages-actions
+  display: flex
+  gap: 8px
+
+.mod-modal__sel-btn
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  background: #F0F3F6
+  border: none
+  border-radius: 5px
+  padding: 3px 10px
+  cursor: pointer
+
+  &--all
+    color: $primary
+    background: $primary-100
+
+.mod-modal__tree-wrap
+  background: #F8FAFC
+  border-radius: 10px
+  border: 0.5px solid $border
+  padding: 10px 14px
+  max-height: 320px
+  overflow: auto
+  margin-bottom: 16px
+
+.mod-modal__actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px

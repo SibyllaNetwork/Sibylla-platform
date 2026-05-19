@@ -1,0 +1,49 @@
+/* =====================================================================
+   LANDING PAGE — Stage fullscreen
+   ===================================================================== */
+.landing-stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0b1530;
+  font-family: 'Inter', system-ui, sans-serif;
+  /* font-size reset deterministico: la pagina usa rem in pochi punti e per
+     lo più vh/vw/clamp, ma forziamo la base per evitare differenze con la
+     shell Sibylla che applica un font-size custom al body. */
+  font-size: 16px;
+  line-height: 1.4;
+  color: #fff;
+  /* z-index alto: copre Topbar (z<=30) e overlay mobile di Sibylla (z=40). */
+  z-index: 1000;
+}
+
+/* Reset box-sizing su tutti i discendenti.
+   IMPORTANTE: non forzare `font-family: inherit` universalmente, altrimenti
+   si rompono i tag <i class="fa-*"> di FontAwesome (il glifo, prima che il
+   kit sostituisca l'<i> con uno <svg>, dipende dal font-family proprietario). */
+.landing-stage,
+.landing-stage * {
+  box-sizing: border-box;
+}
+
+/* Bottoni/form interni alla landing: ereditano la tipografia della stage,
+   ma le icone FA contenute al loro interno mantengono il proprio font (vedi
+   regola di esclusione). */
+.landing-stage button,
+.landing-stage input,
+.landing-stage select,
+.landing-stage textarea {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+/* Nessuna regola custom sui tag <i.fa-*> / <svg.svg-inline--fa>: il loro
+   font-family è già impostato dal CSS del kit FontAwesome (caricato in
+   index.html) con specificità sufficiente a prevalere sull'eredità Inter
+   dei bottoni/contenitori che li ospitano. Sovrascriverli qui (anche con
+   `revert`) farebbe sparire i glifi in modalità webfont. */

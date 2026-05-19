@@ -1,0 +1,256 @@
+// ─── SEGNALAZIONI ─────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.segnal
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    justify-content: space-between
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+    margin-top: 4px
+
+  &__bar-left
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+  &__bar-right
+    display: flex
+    align-items: center
+    gap: 8px
+    padding-bottom: 2px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+    .sib-input,
+    .sib-select
+      width: 100%
+
+  &__select
+    width: 180px
+
+  &__date-range
+    display: flex
+    align-items: center
+    gap: 6px
+
+    .sib-input
+      width: 145px
+
+    span
+      color: $text-inactive
+
+  // ── Tabella ──────────────────────────────────────────────────────────────
+  &__table
+    thead th
+      vertical-align: middle
+      font-weight: 600
+
+  &__head-only
+    margin-bottom: 0
+
+    thead th
+      font-weight: 600
+
+  &__th-sortable
+    cursor: pointer
+    user-select: none
+
+    &:hover
+      .segnal__sort-ico
+        color: $primary
+
+  &__sort-ico
+    margin-left: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  &__status
+    display: inline-block
+    padding: 3px 10px
+    border-radius: 12px
+    font-size: 11px
+    font-weight: 600
+    text-transform: uppercase
+
+    &--aperta
+      background: rgba(245, 125, 3, 0.14)
+      color: $warning
+
+    &--in-lavorazione
+      background: rgba(92, 156, 212, 0.14)
+      color: $link
+
+    &--risolta
+      background: rgba(0, 112, 53, 0.12)
+      color: $success
+
+    &--annullata
+      background: rgba(255, 97, 110, 0.14)
+      color: $error
+
+  &__empty
+    text-align: center
+    color: $text-inactive
+    padding: 80px 0
+    font-size: 14px
+
+  &__pagination
+    display: flex
+    justify-content: center
+    margin-top: 4px
+
+  // ── Modal ────────────────────────────────────────────────────────────────
+  &__modal-overlay
+    position: fixed
+    inset: 0
+    background: rgba(0,0,0,0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    z-index: 100
+    padding: 24px
+
+  &__modal
+    background: white
+    border-radius: 10px
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25)
+    width: 100%
+    max-width: 720px
+    display: flex
+    flex-direction: column
+    overflow: hidden
+
+  &__modal-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: 18px 22px
+    border-bottom: 1px solid $border
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 18px
+      color: $primary
+
+  &__modal-close
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 16px
+
+    &:hover
+      color: $primary
+
+  &__modal-body
+    padding: 18px 22px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__modal-grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 14px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  &__textarea
+    resize: vertical
+    min-height: 90px
+    font-family: inherit
+
+  &__modal-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 14px 22px 18px
+
+
+// ─── COL FILTER POPUP ────────────────────────────────────────────────────────
+.sg-colfilter
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+
+    &:hover
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 200px
+    background: white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+
+    &:hover
+      background: $primary-50

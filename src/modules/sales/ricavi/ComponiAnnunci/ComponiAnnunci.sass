@@ -1,0 +1,166 @@
+// ─── COMPONI ANNUNCI ──────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.componi-annunci
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Filtri top ──────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: 12px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+  &__radio-group
+    display: flex
+    gap: 16px
+    align-items: center
+    height: 36px
+    padding: 0 12px
+    background: $bg
+    border: 1px solid $border
+    border-radius: 6px
+
+  &__radio
+    display: flex
+    align-items: center
+    gap: 6px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+
+  &__avanti
+    margin-left: 4px
+
+  // ── 2 colonne ───────────────────────────────────────────────────────────────
+  &__columns
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+
+    @media (max-width: 1280px)
+      grid-template-columns: 1fr
+
+  &__col
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__col-title
+    margin: 0
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 18px
+
+  &__table
+    th
+      white-space: nowrap
+
+  &__edit-cell
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__edit-ico
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+  &__edit-input
+    width: 100%
+    min-width: 100px
+    height: 28px
+    font-size: 12px
+
+  // ── Bacheca specific ────────────────────────────────────────────────────────
+  &__periodo
+    white-space: nowrap
+
+    i
+      color: $text-inactive
+      font-size: 11px
+      margin-right: 6px
+
+  &__tipologia
+    font-weight: 600
+    color: $text-active
+    margin-right: 6px
+
+  &__star
+    color: $warning
+    font-size: 13px
+
+    &--off
+      color: $border
+
+  &__td-c
+    text-align: center
+
+  &__file
+    color: $error
+    font-size: 16px
+
+  &__icon-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    padding: 4px
+
+    &:hover
+      color: $error
+
+  &__pubblica-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $success
+    font-size: 16px
+    padding: 4px
+
+    &:hover
+      transform: translateX(2px)
+
+  &__pubblicato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: $success
+    font-weight: 600
+    font-size: 12px
+
+    i
+      font-size: 14px
+
+  // ── Bottom actions ──────────────────────────────────────────────────────────
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 8px

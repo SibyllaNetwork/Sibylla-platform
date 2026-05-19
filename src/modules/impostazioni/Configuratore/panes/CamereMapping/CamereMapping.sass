@@ -1,0 +1,48 @@
+// ─── CAMERE MAPPING ───────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.camere-mapping
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    i
+      font-size: 11px
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 12px
+    padding: 80px 24px
+    color: $text-inactive
+    text-align: center
+
+    i
+      font-size: 40px
+      color: $primary-300
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+
+    th, td
+      padding: 8px 12px
+      text-align: left
+      border-bottom: 1px solid $border
+
+    th
+      background: $primary-50
+      color: $primary
+      font-size: 12px
+      font-weight: 600

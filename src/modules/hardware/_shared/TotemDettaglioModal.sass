@@ -1,0 +1,196 @@
+@use "sass:color"
+
+$primary: #204769
+$ink: #111827
+$muted: #4b5563
+$border: #e5e7eb
+$border-strong: #d1d5db
+$bg-soft: #f8fcff
+$bg-zebra: #f3f8fb
+$success: #10b981
+$danger: #dc2626
+
+.totem-dett
+  &__backdrop
+    position: fixed
+    inset: 0
+    background: rgba(17, 24, 39, 0.55)
+    z-index: 70
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 16px
+
+  &__modal
+    background: white
+    border: 1px solid $border
+    border-radius: 14px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
+    padding: 18px 22px 20px
+    width: min(700px, 100%)
+    max-height: calc(100vh - 32px)
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+    padding-bottom: 10px
+    border-bottom: 1px solid $border
+
+  &__title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 18px
+    color: $primary
+
+  &__body
+    display: grid
+    grid-template-columns: 1fr
+    gap: 18px
+
+    @media (min-width: 640px)
+      grid-template-columns: 1.2fr 1fr
+
+  // ── Spec list ────────────────────────────────────────────────────
+  &__specs
+    margin: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+    font-size: 13px
+
+  &__spec
+    display: flex
+    gap: 6px
+    align-items: baseline
+
+    dt
+      margin: 0
+      font-weight: 700
+      color: $primary
+      min-width: 130px
+
+    dd
+      margin: 0
+      color: $ink
+
+    &--row
+      align-items: center
+
+  &__section
+    margin: 6px 0 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 13px
+    color: $primary
+
+  &__status
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    font-size: 18px
+
+    &--on
+      color: $success
+
+    &--off
+      color: $danger
+
+  // ── Mockup device ────────────────────────────────────────────────
+  &__device
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+
+  &__mockup
+    display: flex
+    flex-direction: column
+    align-items: center
+    width: 200px
+    max-width: 100%
+
+  &__mockup-screen
+    width: 100%
+    aspect-ratio: 9 / 16
+    background: linear-gradient(180deg, #f3f4f6 0%, #d1d5db 100%)
+    border: 8px solid #1f2937
+    border-radius: 14px 14px 4px 4px
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18)
+    display: flex
+    align-items: center
+    justify-content: center
+    overflow: hidden
+
+  &__mockup-content
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    padding: 14px
+
+  &__mockup-headline
+    font-family: 'Poppins', sans-serif
+    font-weight: 800
+    font-size: 22px
+    line-height: 1
+    color: $ink
+    text-align: center
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  &__mockup-image
+    width: 90px
+    height: 70px
+    background: linear-gradient(135deg, #fde68a 0%, #f59e0b 60%, #b45309 100%)
+    border-radius: 10px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    color: white
+    font-size: 38px
+    box-shadow: 0 4px 10px rgba(180, 83, 9, 0.30)
+
+  &__mockup-base
+    width: 130px
+    background: linear-gradient(180deg, #1f2937 0%, #0f172a 100%)
+    border-radius: 0 0 10px 10px
+    padding: 10px
+    display: flex
+    align-items: center
+    justify-content: center
+    margin-top: -2px
+    box-shadow: 0 8px 14px rgba(0, 0, 0, 0.20)
+
+  &__mockup-sensor
+    width: 36px
+    height: 36px
+    background: white
+    border-radius: 6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    color: $ink
+    font-size: 18px
+
+  &__device-caption
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    color: $primary
+    font-size: 12px
+    text-align: center
+
+  &__foot
+    display: flex
+    justify-content: flex-start
+    padding-top: 10px
+    border-top: 1px solid $border
