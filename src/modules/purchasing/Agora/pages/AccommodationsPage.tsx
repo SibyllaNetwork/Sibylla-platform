@@ -144,7 +144,6 @@ export function AccommodationsPage() {
       <PageHeader
         title="Strutture Ricettive"
         subtitle="Cerca e prenota il soggiorno perfetto per te"
-        hideBack
       />
 
       <section aria-label="Filtri di ricerca" className="accommodations__filters">
