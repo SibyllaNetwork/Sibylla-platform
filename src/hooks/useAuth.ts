@@ -8,7 +8,11 @@ import {
 import { getPageList } from '../services/pages.service';
 import { AuthUser, PageItem } from '../types';
 
-const BYPASS_AUTH = process.env.REACT_APP_BYPASS_AUTH === '1';
+// TODO: rimuovere quando il BE è esposto pubblicamente.
+// Per l'anteprima su Vercel forziamo il bypass dell'autenticazione (l'utente
+// entra come DEV_USER) — il proxy ASP.NET Core di Auth/signin non è raggiungibile
+// dal browser remoto, quindi la login reale fallirebbe comunque.
+const BYPASS_AUTH = true;
 
 const DEV_USER: AuthUser = {
   id_azienda: 1,
