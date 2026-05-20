@@ -69,6 +69,10 @@
     &:focus-within
       border-color: $link
 
+  &__search-icon
+    color: $text-disabled
+    font-size: 13px
+
   &__search-input
     flex: 1
     border: none
@@ -84,6 +88,8 @@
     cursor: pointer
     padding: 0
     display: flex
+    color: $text-disabled
+    font-size: 12px
 
   &__count
     font-size: 12px
@@ -125,7 +131,12 @@
     gap: 10px
 
   &__group-icon
-    font-size: 16px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    color: $primary
+    font-size: 15px
 
   &__group-label
     font-family: $font-heading
@@ -148,6 +159,9 @@
 
   &__group-chevron
     transition: transform 0.2s
+    color: $text-disabled
+    font-size: 13px
+    display: inline-flex
 
     &--collapsed
       transform: rotate(-90deg)
@@ -221,9 +235,12 @@
     white-space: nowrap
     // colors gestiti inline
 
-  &__row-date
+  &__row-meta
     flex-shrink: 0
-    text-align: right
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 2px
 
   &__date-main
     font-size: 11px
@@ -234,6 +251,33 @@
   &__date-time
     font-size: 10px
     color: $text-disabled
+
+  &__row-actions
+    display: inline-flex
+    gap: 2px
+    margin-top: 2px
+
+  &__row-action-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 3px 6px
+    border-radius: 6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    color: $text-inactive
+    transition: background 0.12s, color 0.12s
+
+    i
+      font-size: 13px
+
+    &:hover
+      background: $primary-50
+
+    &--active
+      background: $primary-50
+      color: $primary
 
   &__row-ref
     font-size: 11px
@@ -246,6 +290,58 @@
     margin: 0
     line-height: 1.5
 
+  // ── Accordion dettaglio notifica ───────────────────────────────────
+  &__row-detail
+    margin-top: 10px
+    padding: 12px 14px
+    background: #F8FAFC
+    border: 0.5px solid $border
+    border-radius: 8px
+    animation: notifiche-detail-open 0.18s ease-out
+
+  &__detail-grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px 16px
+    margin: 0
+
+  &__detail-item
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+    &--wide
+      grid-column: 1 / -1
+
+    dt
+      font-size: 10px
+      font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      color: $text-disabled
+
+    dd
+      margin: 0
+      font-size: 12px
+      color: $text-active
+      line-height: 1.4
+
+  &__detail-actions
+    display: flex
+    justify-content: flex-end
+    margin-top: 10px
+    gap: 8px
+
+@keyframes notifiche-detail-open
+  from
+    opacity: 0
+    transform: translateY(-4px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+.notifiche
+
   // ── Empty state ───────────────────────────────────────────────────────────────
   &__empty
     background: $white
@@ -253,6 +349,10 @@
     border: 0.5px solid $border
     padding: 48px 24px
     text-align: center
+
+  &__empty-icon
+    font-size: 32px
+    color: $text-disabled
 
   &__empty-text
     font-size: 14px

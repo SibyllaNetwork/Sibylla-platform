@@ -58,6 +58,76 @@ $bg-soft: #f8fcff
       max-width: 480px
       line-height: 1.5
 
+  // ── Tabella movimenti ─────────────────────────────────────────────
+  &__movimenti
+    background: #fff
+    border: 1px solid $border
+    border-radius: 12px
+    overflow: hidden
+
+  &__movimenti-table
+    width: 100%
+    border-collapse: collapse
+    font-size: 13px
+
+    th, td
+      padding: 10px 12px
+      text-align: left
+      vertical-align: middle
+      border-bottom: 1px solid $border
+
+    th
+      font-size: 11px
+      font-weight: 600
+      font-family: 'Open Sans', sans-serif
+      color: $ink
+      background: $bg-soft
+      text-transform: none
+      letter-spacing: 0
+
+    tbody tr:last-child td
+      border-bottom: none
+
+    tbody tr:hover
+      background: $bg-soft
+
+  &__col-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__mono
+    font-family: monospace
+    font-size: 12px
+    color: $muted
+
+  &__note-cell
+    color: $muted
+    max-width: 220px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__tag
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 3px 8px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 600
+    line-height: 1
+
+    i
+      font-size: 11px
+
+    &--entrata
+      background: rgba(34, 197, 94, 0.12)
+      color: #15803d
+
+    &--uscita
+      background: rgba(239, 68, 68, 0.12)
+      color: #b91c1c
+
   // ── Modali condivise ──────────────────────────────────────────────
   &__backdrop
     position: fixed
@@ -116,10 +186,9 @@ $bg-soft: #f8fcff
 
   &__field-label
     font-size: 11px
-    font-weight: 700
-    color: $primary
-    text-transform: uppercase
-    letter-spacing: 0.04em
+    font-weight: 600
+    font-family: 'Open Sans', sans-serif
+    color: $ink
 
   &__req
     color: #dc2626

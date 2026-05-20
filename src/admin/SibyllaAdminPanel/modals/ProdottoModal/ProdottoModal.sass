@@ -51,34 +51,52 @@
 .prod-modal__barcode-input
   display: flex
   align-items: center
-  gap: 0
+  gap: 6px
   border: 1px solid $border
   border-radius: 7px
   background: $white
   padding: 0 4px 0 10px
   height: 36px
+  box-sizing: border-box
+  min-width: 0
+  overflow: hidden
+
+  &--armed
+    border-color: $blue
+    box-shadow: 0 0 0 2px rgba($blue, 0.15)
 
 .prod-modal__barcode-ico
   font-size: 14px
   color: $primary
-  margin-right: 8px
+  margin-right: 4px
+  flex-shrink: 0
 
 .prod-modal__barcode-text
   flex: 1
+  min-width: 0
+  width: auto
   border: none
   background: transparent
   height: 32px
+  padding: 0
   font-family: monospace
   font-size: 13px
   font-weight: 600
   color: $text-active
   letter-spacing: 0.5px
+  box-sizing: border-box
 
   &:focus
     outline: none
 
+  &::placeholder
+    color: $text-disabled
+    font-family: $font-body
+    letter-spacing: 0
+
+.prod-modal__barcode-scan,
 .prod-modal__barcode-gen
-  display: flex
+  display: inline-flex
   align-items: center
   gap: 5px
   height: 28px
@@ -91,9 +109,15 @@
   font-weight: 600
   color: $blue
   flex-shrink: 0
+  white-space: nowrap
 
   &:hover
     background: rgba($blue, 0.13)
+
+.prod-modal__barcode-scan[aria-pressed="true"]
+  background: $blue
+  color: $white
+  border-color: $blue
 
 .prod-modal__error
   font-size: 11px

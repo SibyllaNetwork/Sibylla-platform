@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import T from '../../../core/tokens'
-import Ico from '../../../core/icons/Ico'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import Tooltip from '../../../core/components/Tooltip'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import './CentroNotifiche.sass'
 
@@ -30,14 +29,14 @@ const FALLBACK: NotificaUI[] = [
 ]
 
 const groups = [
-  { id:'oggi',        label:'Oggi',        icon:'📅' },
-  { id:'mese-scorso', label:'Mese scorso', icon:'🗓' },
-  { id:'precedenti',  label:'Precedenti',  icon:'📁' },
+  { id:'oggi',        label:'Oggi',        icon:'fa-calendar-day'   },
+  { id:'mese-scorso', label:'Mese scorso', icon:'fa-calendar-days'  },
+  { id:'precedenti',  label:'Precedenti',  icon:'fa-folder-open'    },
 ]
 
 const sevLabel: Record<string,string> = { error:'Errore', warning:'Avviso', info:'Info' }
-const sevColor: Record<string,string> = { error:T.error, warning:'#E07B39', info:T.primary }
-const sevBg:    Record<string,string> = { error:'#FFF0F0', warning:'#FFF6EE', info:T.blueLight }
+const sevColor: Record<string,string> = { error:'var(--color-error)', warning:'#E07B39', info:'var(--color-primary)' }
+const sevBg:    Record<string,string> = { error:'#FFF0F0', warning:'#FFF6EE', info:'var(--color-link-light)' }
 
 const WEEKDAYS = ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
 const MONTHS = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC']
@@ -85,9 +84,13 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const [tipoFilter, setTipoFilter] = useState('Tutte')
   const [search,     setSearch]     = useState('')
   const [collapsed,  setCollapsed]  = useState<Set<string>>(new Set())
+  const [expanded,   setExpanded]   = useState<Set<number>>(new Set())
   const [items,      setItems]      = useState<NotificaUI[]>(FALLBACK)
   const [loaded,     setLoaded]     = useState(false)
   const [error,      setError]      = useState<string | null>(null)
+
+  const toggleExpand = (id: number) =>
+    setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
 
   useEffect(() => {
     let cancelled = false
@@ -147,13 +150,11 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
         <div className="notifiche__actions">
           {unreadCount > 0 && (
             <button className="sib-btn sib-btn--secondary" onClick={markAllRead}>
-              <Ico n="check" s={13} c="currentColor" /> Segna tutte lette
+              <i className="fa-light fa-check" aria-hidden="true" /> Segna tutte lette
             </button>
           )}
           <button className="notifiche__configure-btn" onClick={() => navigate('configura-notifiche')}>
-            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
-            </svg>
+            <i className="fa-light fa-gear" aria-hidden="true" />
             Configura notifiche
           </button>
         </div>
@@ -170,9 +171,13 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
         <div style={{ flex: 1 }}>
           <span className="text-[11px] font-semibold font-opensans text-ink block mb-1">Ricerca</span>
           <div className="notifiche__search-wrap">
-            <Ico n="search" s={13} c={T.textDisabled} />
+            <i className="fa-light fa-magnifying-glass notifiche__search-icon" aria-hidden="true" />
             <input className="sib-search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca notifica..." />
-            {search && <button className="notifiche__search-clear" onClick={() => setSearch('')}><Ico n="x" s={12} c={T.textDisabled} /></button>}
+            {search && (
+              <button className="notifiche__search-clear" onClick={() => setSearch('')} aria-label="Pulisci ricerca">
+                <i className="fa-light fa-xmark" aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
         <div style={{ alignSelf: 'flex-end', height: 34, display: 'flex', alignItems: 'center' }}>
@@ -195,17 +200,20 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                 onClick={() => toggleGroup(group.id)}
               >
                 <div className="notifiche__group-left">
-                  <span className="notifiche__group-icon">{group.icon}</span>
+                  <span className="notifiche__group-icon">
+                    <i className={`fa-light ${group.icon}`} aria-hidden="true" />
+                  </span>
                   <span className="notifiche__group-label">{group.label}</span>
                   {groupUnread > 0 && <span className="notifiche__group-badge">{groupUnread}</span>}
                 </div>
                 <div className={`notifiche__group-chevron ${isCollapsed ? 'notifiche__group-chevron--collapsed' : ''}`}>
-                  <Ico n="chevd" s={13} c={T.textDisabled} />
+                  <i className="fa-light fa-chevron-down" aria-hidden="true" />
                 </div>
               </div>
 
-              {!isCollapsed && items.map((n, i) => {
+              {!isCollapsed && items.map((n) => {
                 const isRead = readSet.has(n.id)
+                const isOpen = expanded.has(n.id)
                 const c  = sevColor[n.sev]
                 const bg = sevBg[n.sev]
                 return (
@@ -215,7 +223,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                     onClick={() => markRead(n.id)}
                   >
                     <div className="notifiche__row-icon" style={{ background: bg, border: `1px solid ${c}22` }}>
-                      <Ico n="bell" s={17} c={c} />
+                      <i className="fa-light fa-bell" style={{ color: c, fontSize: 17 }} aria-hidden="true" />
                     </div>
                     <div className="notifiche__row-content">
                       <div className="notifiche__row-top">
@@ -226,13 +234,86 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                             {sevLabel[n.sev]}
                           </span>
                         </div>
-                        <div className="notifiche__row-date">
+                        <div className="notifiche__row-meta">
                           <div className="notifiche__date-main">{n.date}</div>
                           <div className="notifiche__date-time">{n.time}</div>
+                          <div className="notifiche__row-actions" onClick={e => e.stopPropagation()}>
+                            <Tooltip text="Apri chat">
+                              <button
+                                type="button"
+                                className="notifiche__row-action-btn"
+                                onClick={() => navigate(`chat-notifica/${n.id}`)}
+                                aria-label="Apri chat con il mittente"
+                                style={{ color: c }}
+                              >
+                                <i className="fa-light fa-comments" aria-hidden="true" />
+                              </button>
+                            </Tooltip>
+                            <Tooltip text={isOpen ? 'Chiudi dettaglio' : 'Apri dettaglio'}>
+                              <button
+                                type="button"
+                                className={'notifiche__row-action-btn' + (isOpen ? ' notifiche__row-action-btn--active' : '')}
+                                onClick={() => toggleExpand(n.id)}
+                                aria-expanded={isOpen}
+                                aria-controls={`notif-detail-${n.id}`}
+                                aria-label={isOpen ? 'Nascondi dettaglio' : 'Mostra dettaglio'}
+                              >
+                                <i className={'fa-light ' + (isOpen ? 'fa-eye-slash' : 'fa-eye')} aria-hidden="true" />
+                              </button>
+                            </Tooltip>
+                          </div>
                         </div>
                       </div>
                       {n.ref  && <div className="notifiche__row-ref">{n.ref}</div>}
                       {n.text && <p className="notifiche__row-text">{n.text}</p>}
+
+                      {isOpen && (
+                        <div
+                          id={`notif-detail-${n.id}`}
+                          className="notifiche__row-detail"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <dl className="notifiche__detail-grid">
+                            <div className="notifiche__detail-item">
+                              <dt>ID notifica</dt>
+                              <dd>#{n.id}</dd>
+                            </div>
+                            <div className="notifiche__detail-item">
+                              <dt>Tipologia</dt>
+                              <dd>{sevLabel[n.sev]}</dd>
+                            </div>
+                            <div className="notifiche__detail-item">
+                              <dt>Ricevuta il</dt>
+                              <dd>{n.date}{n.time ? ` · ${n.time}` : ''}</dd>
+                            </div>
+                            <div className="notifiche__detail-item">
+                              <dt>Stato</dt>
+                              <dd>{isRead ? 'Letta' : 'Non letta'}</dd>
+                            </div>
+                            {n.ref && (
+                              <div className="notifiche__detail-item notifiche__detail-item--wide">
+                                <dt>Riferimento</dt>
+                                <dd>{n.ref}</dd>
+                              </div>
+                            )}
+                            {n.text && (
+                              <div className="notifiche__detail-item notifiche__detail-item--wide">
+                                <dt>Descrizione</dt>
+                                <dd>{n.text}</dd>
+                              </div>
+                            )}
+                          </dl>
+                          <div className="notifiche__detail-actions">
+                            <button
+                              type="button"
+                              className="sib-btn sib-btn--secondary"
+                              onClick={() => navigate(`chat-notifica/${n.id}`)}
+                            >
+                              <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
@@ -243,7 +324,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
 
         {filtered.length === 0 && (
           <div className="notifiche__empty">
-            <Ico n="bell" s={32} c={T.textDisabled} />
+            <i className="fa-light fa-bell notifiche__empty-icon" aria-hidden="true" />
             <p className="notifiche__empty-text">Nessuna notifica trovata</p>
           </div>
         )}

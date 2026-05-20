@@ -32,6 +32,19 @@ interface Prodotto {
   giacenza: number
 }
 
+interface Movimento {
+  id: string
+  magazzinoId: string
+  prodottoId: string
+  prodottoNome: string
+  prodottoCodice: string
+  collocazione: string
+  quantita: number
+  tipo: 'entrata' | 'uscita'
+  note?: string
+  data: string
+}
+
 const STRUTTURE: Struttura[] = [
   { id: 'ciao',     nome: 'ciao' },
   { id: 'grim',     nome: "Grim's Hotel" },
@@ -57,6 +70,7 @@ export default function CreaMagazzino({
   const [strutturaId, setStrutturaId] = useState<string>('azzurro')
   const [magazzini, setMagazzini]     = useState<Magazzino[]>([])
   const [magazzinoId, setMagazzinoId] = useState<string>('')
+  const [movimenti, setMovimenti]     = useState<Movimento[]>([])
 
   const [createOpen, setCreateOpen] = useState<boolean>(!!autoOpen)
   const [moveOpen,   setMoveOpen]   = useState(false)
@@ -67,11 +81,17 @@ export default function CreaMagazzino({
 
   const strutturaName = STRUTTURE.find(s => s.id === strutturaId)?.nome ?? ''
   const magazziniDisp = magazzini.filter(m => m.strutture.includes(strutturaName))
+  const movimentiDisp = movimenti.filter(m => m.magazzinoId === magazzinoId)
 
   function saveMagazzino(m: Magazzino) {
     setMagazzini(prev => [...prev, m])
     setMagazzinoId(m.id)
     setCreateOpen(false)
+  }
+
+  function saveMovimento(m: Movimento) {
+    setMovimenti(prev => [m, ...prev])
+    setMoveOpen(false)
   }
 
   return (
@@ -117,25 +137,61 @@ export default function CreaMagazzino({
         </button>
       </div>
 
-      <div className="crea-mag__empty">
-        <i className="fa-light fa-boxes-stacked" aria-hidden="true" />
-        <p>
-          {magazzinoId
-            ? 'Non sono presenti movimenti per questo magazzino.'
-            : magazziniDisp.length === 0
-              ? 'Nessun magazzino configurato per questa struttura. Crea il primo per iniziare.'
-              : 'Seleziona un magazzino dalla tendina per visualizzarne i movimenti.'}
-        </p>
-        {magazziniDisp.length === 0 && (
-          <button
-            type="button"
-            className="sib-btn sib-btn--primary"
-            onClick={() => setCreateOpen(true)}
-          >
-            <i className="fa-light fa-circle-plus" /> Crea il primo magazzino
-          </button>
-        )}
-      </div>
+      {magazzinoId && movimentiDisp.length > 0 ? (
+        <div className="crea-mag__movimenti">
+          <table className="crea-mag__movimenti-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Prodotto</th>
+                <th>Cod. prodotto</th>
+                <th>Collocazione</th>
+                <th>Tipo</th>
+                <th className="crea-mag__col-num">Quantità</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movimentiDisp.map(m => (
+                <tr key={m.id}>
+                  <td>{new Date(m.data).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                  <td>{m.prodottoNome}</td>
+                  <td className="crea-mag__mono">{m.prodottoCodice}</td>
+                  <td>{m.collocazione}</td>
+                  <td>
+                    <span className={'crea-mag__tag crea-mag__tag--' + m.tipo}>
+                      <i className={'fa-light ' + (m.tipo === 'entrata' ? 'fa-cart-arrow-down' : 'fa-cart-flatbed')} />
+                      {m.tipo === 'entrata' ? 'In entrata' : 'In uscita'}
+                    </span>
+                  </td>
+                  <td className="crea-mag__col-num">{m.tipo === 'entrata' ? '+' : '−'}{m.quantita}</td>
+                  <td className="crea-mag__note-cell">{m.note ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="crea-mag__empty">
+          <i className="fa-light fa-boxes-stacked" aria-hidden="true" />
+          <p>
+            {magazzinoId
+              ? 'Non sono presenti movimenti per questo magazzino.'
+              : magazziniDisp.length === 0
+                ? 'Nessun magazzino configurato per questa struttura. Crea il primo per iniziare.'
+                : 'Seleziona un magazzino dalla tendina per visualizzarne i movimenti.'}
+          </p>
+          {magazziniDisp.length === 0 && (
+            <button
+              type="button"
+              className="sib-btn sib-btn--primary"
+              onClick={() => setCreateOpen(true)}
+            >
+              <i className="fa-light fa-circle-plus" /> Crea il primo magazzino
+            </button>
+          )}
+        </div>
+      )}
 
       {createOpen && (
         <NuovoMagazzinoModal
@@ -150,8 +206,10 @@ export default function CreaMagazzino({
         <NuovoMovimentoModal
           prodotti={PRODOTTI}
           collocazioni={magazzini.find(m => m.id === magazzinoId)?.collocazioni ?? []}
-          onSave={() => setMoveOpen(false)}
+          magazzinoId={magazzinoId}
+          onSave={saveMovimento}
           onClose={() => setMoveOpen(false)}
+          navigate={navigate}
         />
       )}
     </div>
@@ -254,12 +312,14 @@ function NuovoMagazzinoModal({
 
 // ─── Modale Nuovo movimento ──────────────────────────────────────────
 function NuovoMovimentoModal({
-  prodotti, collocazioni, onSave, onClose,
+  prodotti, collocazioni, magazzinoId, onSave, onClose, navigate,
 }: {
   prodotti: Prodotto[]
   collocazioni: string[]
-  onSave: () => void
+  magazzinoId: string
+  onSave: (m: Movimento) => void
   onClose: () => void
+  navigate: (p: string) => void
 }) {
   const [prodottoId, setProdottoId] = useState('')
   const [colloc, setColloc]         = useState('')
@@ -269,6 +329,22 @@ function NuovoMovimentoModal({
 
   const prodotto = prodotti.find(p => p.id === prodottoId)
   const canSave = !!prodotto && !!colloc && quantita > 0
+
+  function handleSave() {
+    if (!prodotto || !canSave) return
+    onSave({
+      id: `mov-${Date.now()}`,
+      magazzinoId,
+      prodottoId: prodotto.id,
+      prodottoNome: prodotto.nome,
+      prodottoCodice: prodotto.codice,
+      collocazione: colloc,
+      quantita,
+      tipo,
+      note: note.trim() || undefined,
+      data: new Date().toISOString(),
+    })
+  }
 
   return (
     <div className="crea-mag__backdrop" onClick={onClose}>
@@ -292,7 +368,11 @@ function NuovoMovimentoModal({
               options={prodotti.map(p => ({ value: p.id, label: p.nome }))}
             />
             <p className="crea-mag__hint-link">
-              Se il prodotto non è presente: <button type="button" className="crea-mag__link-btn">Crea prodotto</button>
+              Se il prodotto non è presente: <button
+                type="button"
+                className="crea-mag__link-btn"
+                onClick={() => { onClose(); navigate('crea-prodotto') }}
+              >Crea prodotto</button>
             </p>
           </div>
 
@@ -358,7 +438,7 @@ function NuovoMovimentoModal({
         <footer className="crea-mag__modal-foot">
           <FormActions
             onCancel={onClose}
-            onConfirm={onSave}
+            onConfirm={handleSave}
             confirmLabel="Salva"
             confirmIcon="fa-floppy-disk"
             confirmDisabled={!canSave}

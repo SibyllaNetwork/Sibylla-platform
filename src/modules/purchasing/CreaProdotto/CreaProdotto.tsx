@@ -1,7 +1,15 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import FormGrid from '../../../core/components/FormGrid'
+import FormActions from '../../../core/components/FormActions'
 import Ico from '../../../core/icons/Ico'
+import {
+  InputField,
+  SelectField,
+  TextareaField,
+  ToggleSwitch,
+} from '../../../core/components/form'
 import { UNITA_MISURA_OPTIONS } from '../../../admin/SibyllaAdminPanel/catalogo/mockData'
 import { generateEAN13, isValidEAN13 } from '../../../admin/SibyllaAdminPanel/catalogo/helpers'
 import { MERCATI } from '../../../admin/SibyllaAdminPanel/catalogo/types'
@@ -9,8 +17,7 @@ import type {
   Prodotto, ProdottoForm, UnitaMisura,
 } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import { useCatalogoStore } from '../../../store/useCatalogoStore'
-import '../../../admin/SibyllaAdminPanel/modals/ProdottoModal/ProdottoModal.sass'
-import './CreaProdotto.css'
+import './CreaProdotto.sass'
 
 const EMPTY_FORM: ProdottoForm = {
   barcode: '', nome: '', descrizione: '', categoriaId: '', fornitoreId: '',
@@ -26,6 +33,14 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
   const isBarcodeUsed = useCatalogoStore(s => s.isBarcodeUsed)
 
   const [form, setForm] = useState<ProdottoForm>(EMPTY_FORM)
+  const [scannerArmed, setScannerArmed] = useState(false)
+  const barcodeInputRef = useRef<HTMLInputElement>(null)
+
+  const armScanner = () => {
+    setScannerArmed(true)
+    barcodeInputRef.current?.focus()
+    barcodeInputRef.current?.select()
+  }
 
   const set = <K extends keyof ProdottoForm>(k: K, v: ProdottoForm[K]) =>
     setForm({ ...form, [k]: v })
@@ -92,6 +107,9 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
 
   const handleCancel = () => navigate('area-merceologica')
 
+  const categorieOpts = categorie.map(c => ({ value: c.id, label: c.nome }))
+  const fornitoriOpts = fornitori.map(f => ({ value: f.id, label: f.nome }))
+
   return (
     <div className="crea-prodotto">
       <BtnBack onClick={handleCancel} />
@@ -100,212 +118,245 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
         subtitle="Il barcode è la chiave per la lettura nel magazzino in entrata e uscita"
       />
 
-      <div className="prod-modal crea-prodotto__form">
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Identificazione</div>
-          <div className="prod-modal__barcode-row">
-            <div className="prod-modal__barcode-field">
-              <label className="prod-modal__label">Barcode (EAN-13) *</label>
-              <div className="prod-modal__barcode-input">
-                <i className="fa-duotone fa-barcode prod-modal__barcode-ico" />
-                <input
-                  value={form.barcode}
-                  onChange={e => set('barcode', e.target.value.replace(/\D/g, '').slice(0, 13))}
-                  className="sib-input prod-modal__barcode-text"
-                  placeholder="13 cifre numeriche"
-                  inputMode="numeric"
-                  maxLength={13}
-                />
-                <button
-                  type="button"
-                  className="prod-modal__barcode-gen"
-                  onClick={() => set('barcode', generateEAN13())}
-                  title="Genera barcode EAN-13"
-                >
-                  <Ico n="bar" s={12} c="var(--color-link)" /> Genera
-                </button>
-              </div>
-              {barcodeError && <div className="prod-modal__error">{barcodeError}</div>}
-              {!barcodeError && barcodeTrim && (
-                <div className="prod-modal__hint">EAN-13 valido — pronto per la lettura</div>
-              )}
-            </div>
-            <div className="prod-modal__attivo">
-              <label className="prod-modal__label">Stato</label>
-              <label className="prod-modal__toggle">
-                <input
-                  type="checkbox"
-                  checked={form.attivo}
-                  onChange={e => set('attivo', e.target.checked)}
-                  className="sib-checkbox"
-                />
-                <span>{form.attivo ? 'Attivo (visibile ai clienti)' : 'Disattivo (nascosto)'}</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Anagrafica prodotto</div>
-          <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Nome prodotto *">
-              <input value={form.nome} onChange={e => set('nome', e.target.value)} className="sib-input" placeholder="Es. Olio EVO 1L" />
-            </Field>
-            <Field label="URL immagine">
-              <input value={form.immagineUrl} onChange={e => set('immagineUrl', e.target.value)} className="sib-input" placeholder="https://..." />
-            </Field>
-          </div>
-          <Field label="Descrizione">
-            <textarea
-              value={form.descrizione}
-              onChange={e => set('descrizione', e.target.value)}
-              className="sib-input prod-modal__textarea"
-              rows={2}
-              placeholder="Descrizione, formato, caratteristiche..."
-            />
-          </Field>
-        </div>
-
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Classificazione e fornitura</div>
-          <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Categoria *">
-              <select value={form.categoriaId} onChange={e => set('categoriaId', e.target.value)} className="sib-select">
-                <option value="">Seleziona categoria...</option>
-                {categorie.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-              </select>
-            </Field>
-            <Field label="Fornitore *">
-              <select value={form.fornitoreId} onChange={e => set('fornitoreId', e.target.value)} className="sib-select">
-                <option value="">Seleziona fornitore...</option>
-                {fornitori.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}
-              </select>
-            </Field>
-          </div>
-        </div>
-
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Prezzo base e magazzino</div>
-          <div className="prod-modal__grid prod-modal__grid--4">
-            <Field label="Prezzo base / acquisto (€) *">
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">Identificazione</h3>
+        <FormGrid cols={2}>
+          <div className="crea-prodotto__field">
+            <label
+              htmlFor="prod-barcode"
+              className="text-[11px] font-semibold font-opensans text-ink"
+            >
+              Barcode (EAN-13)<span className="text-error ml-0.5">*</span>
+            </label>
+            <div
+              className={'crea-prodotto__barcode' + (scannerArmed ? ' crea-prodotto__barcode--armed' : '')}
+            >
+              <i className="fa-duotone fa-barcode crea-prodotto__barcode-ico" />
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.prezzoBase}
-                onChange={e => set('prezzoBase', e.target.value)}
-                className="sib-input"
-                placeholder="0,00"
+                id="prod-barcode"
+                ref={barcodeInputRef}
+                value={form.barcode}
+                onChange={e => set('barcode', e.target.value.replace(/\D/g, '').slice(0, 13))}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    setScannerArmed(false)
+                    barcodeInputRef.current?.blur()
+                  }
+                }}
+                onBlur={() => setScannerArmed(false)}
+                className="crea-prodotto__barcode-text"
+                placeholder={scannerArmed ? 'In attesa di lettura…' : '13 cifre numeriche'}
+                inputMode="numeric"
+                maxLength={13}
               />
-            </Field>
-            <Field label="Unità di misura">
-              <select
-                value={form.unita}
-                onChange={e => set('unita', e.target.value as UnitaMisura)}
-                className="sib-select"
+              <button
+                type="button"
+                className="crea-prodotto__barcode-action"
+                onClick={armScanner}
+                title="Inserisci barcode tramite lettore"
+                aria-pressed={scannerArmed}
               >
-                {UNITA_MISURA_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Quantità per unità">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.quantitaUnita}
-                onChange={e => set('quantitaUnita', e.target.value)}
-                className="sib-input"
-                placeholder="1"
-              />
-            </Field>
-            <Field label="Scorta minima">
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={form.scortaMinima}
-                onChange={e => set('scortaMinima', e.target.value)}
-                className="sib-input"
-                placeholder="0"
-              />
-            </Field>
+                <i className="fa-light fa-barcode-read" aria-hidden="true" /> Lettore
+              </button>
+              <button
+                type="button"
+                className="crea-prodotto__barcode-action"
+                onClick={() => set('barcode', generateEAN13())}
+                title="Genera barcode EAN-13"
+              >
+                <Ico n="bar" s={12} c="var(--color-link)" /> Genera
+              </button>
+            </div>
+            {barcodeError && (
+              <span className="text-[11px] font-opensans text-error">
+                <i className="fa-light fa-circle-exclamation mr-1" aria-hidden="true" />
+                {barcodeError}
+              </span>
+            )}
+            {!barcodeError && barcodeTrim && (
+              <span className="text-[11px] font-opensans text-ink-muted">
+                EAN-13 valido — pronto per la lettura
+              </span>
+            )}
           </div>
-        </div>
+          <div className="crea-prodotto__field">
+            <span className="text-[11px] font-semibold font-opensans text-ink">Stato</span>
+            <ToggleSwitch
+              checked={form.attivo}
+              onChange={v => set('attivo', v)}
+              label={form.attivo ? 'Attivo (visibile ai clienti)' : 'Disattivo (nascosto)'}
+            />
+          </div>
+        </FormGrid>
+      </section>
 
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Mercati di vendita *</div>
-          <p className="prod-modal__section-hint">
-            Abilita uno o entrambi i marketplace e imposta il prezzo di vendita. Il margine è calcolato sul prezzo base.
-          </p>
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">Anagrafica prodotto</h3>
+        <FormGrid cols={2}>
+          <InputField
+            name="nome"
+            label="Nome prodotto"
+            required
+            value={form.nome}
+            onChange={e => set('nome', e.target.value)}
+            placeholder="Es. Olio EVO 1L"
+          />
+          <InputField
+            name="immagineUrl"
+            label="URL immagine"
+            value={form.immagineUrl}
+            onChange={e => set('immagineUrl', e.target.value)}
+            placeholder="https://..."
+          />
+        </FormGrid>
+        <TextareaField
+          name="descrizione"
+          label="Descrizione"
+          rows={2}
+          value={form.descrizione}
+          onChange={e => set('descrizione', e.target.value)}
+          placeholder="Descrizione, formato, caratteristiche..."
+          className="crea-prodotto__textarea"
+        />
+      </section>
 
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">Classificazione e fornitura</h3>
+        <FormGrid cols={2}>
+          <SelectField
+            name="categoria"
+            label="Categoria"
+            required
+            value={form.categoriaId}
+            onChange={e => set('categoriaId', e.target.value)}
+            placeholder="Seleziona categoria..."
+            options={categorieOpts}
+          />
+          <SelectField
+            name="fornitore"
+            label="Fornitore"
+            required
+            value={form.fornitoreId}
+            onChange={e => set('fornitoreId', e.target.value)}
+            placeholder="Seleziona fornitore..."
+            options={fornitoriOpts}
+          />
+        </FormGrid>
+      </section>
+
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">Prezzo base e magazzino</h3>
+        <FormGrid cols={4}>
+          <InputField
+            name="prezzoBase"
+            label="Prezzo base / acquisto (€)"
+            required
+            type="number"
+            step={0.01}
+            min={0}
+            value={form.prezzoBase}
+            onChange={e => set('prezzoBase', e.target.value)}
+            placeholder="0,00"
+          />
+          <SelectField
+            name="unita"
+            label="Unità di misura"
+            value={form.unita}
+            onChange={e => set('unita', e.target.value as UnitaMisura)}
+            options={UNITA_MISURA_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+          />
+          <InputField
+            name="quantitaUnita"
+            label="Quantità per unità"
+            type="number"
+            step={0.01}
+            min={0}
+            value={form.quantitaUnita}
+            onChange={e => set('quantitaUnita', e.target.value)}
+            placeholder="1"
+          />
+          <InputField
+            name="scortaMinima"
+            label="Scorta minima"
+            type="number"
+            step={1}
+            min={0}
+            value={form.scortaMinima}
+            onChange={e => set('scortaMinima', e.target.value)}
+            placeholder="0"
+          />
+        </FormGrid>
+      </section>
+
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">
+          Mercati di vendita<span className="text-error ml-0.5">*</span>
+        </h3>
+        <p className="crea-prodotto__hint">
+          Abilita uno o entrambi i marketplace e imposta il prezzo di vendita. Il margine è calcolato sul prezzo base.
+        </p>
+
+        <div className="crea-prodotto__mercati">
           {MERCATI.map(m => {
-            const enabled  = m.id === 'agora' ? form.agoraAbilitato : form.networkAbilitato
+            const enabled   = m.id === 'agora' ? form.agoraAbilitato : form.networkAbilitato
             const prezzoStr = m.id === 'agora' ? form.agoraPrezzo : form.networkPrezzo
             const prezzoN   = parseFloat(prezzoStr) || 0
             const marginePct = enabled ? margine(prezzoN) : null
-            const cls = `prod-modal__market${enabled ? ' prod-modal__market--on' : ''}`
             const setEn = (v: boolean) => m.id === 'agora' ? set('agoraAbilitato', v) : set('networkAbilitato', v)
             const setPr = (v: string) => m.id === 'agora' ? set('agoraPrezzo', v) : set('networkPrezzo', v)
             return (
-              <div key={m.id} className={cls} style={{ ['--mercato-color' as any]: m.colore }}>
-                <label className="prod-modal__market-toggle">
-                  <input
-                    type="checkbox"
-                    checked={enabled}
-                    onChange={e => setEn(e.target.checked)}
-                    className="sib-checkbox"
-                  />
-                  <span className="prod-modal__market-name">{m.label}</span>
-                </label>
-                <div className="prod-modal__market-desc">{m.descrizione}</div>
+              <div
+                key={m.id}
+                className={'crea-prodotto__mercato' + (enabled ? ' crea-prodotto__mercato--on' : '')}
+                style={{ ['--mercato-color' as any]: m.colore }}
+              >
+                <ToggleSwitch
+                  checked={enabled}
+                  onChange={setEn}
+                  label={m.label}
+                  description={m.descrizione}
+                />
                 {enabled && (
-                  <div className="prod-modal__market-price">
-                    <label className="prod-modal__label">Prezzo vendita {m.label} (€) *</label>
-                    <div className="prod-modal__market-price-row">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={prezzoStr}
-                        onChange={e => setPr(e.target.value)}
-                        className="sib-input prod-modal__market-input"
-                        placeholder="0,00"
-                      />
-                      {marginePct !== null && (
-                        <span className={`prod-modal__margine prod-modal__margine--${marginePct >= 0 ? 'pos' : 'neg'}`}>
-                          {marginePct >= 0 ? '+' : ''}{marginePct.toFixed(1)}% margine
-                        </span>
-                      )}
-                    </div>
+                  <div className="crea-prodotto__mercato-prezzo">
+                    <InputField
+                      name={`prezzo-${m.id}`}
+                      label={`Prezzo vendita ${m.label} (€)`}
+                      required
+                      type="number"
+                      step={0.01}
+                      min={0.01}
+                      value={prezzoStr}
+                      onChange={e => setPr(e.target.value)}
+                      placeholder="0,00"
+                    />
+                    {marginePct !== null && (
+                      <span className={'crea-prodotto__margine crea-prodotto__margine--' + (marginePct >= 0 ? 'pos' : 'neg')}>
+                        {marginePct >= 0 ? '+' : ''}{marginePct.toFixed(1)}% margine
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
             )
           })}
-
-          {noMercatoSelezionato && (
-            <div className="prod-modal__error">Almeno un mercato deve essere abilitato</div>
-          )}
         </div>
 
-        <div className="prod-modal__actions">
-          <button className="sib-btn sib-btn--toolbar" onClick={handleCancel}>Annulla</button>
-          <button className="sib-btn sib-btn--primary" disabled={disabled} onClick={handleConfirm}>
-            Crea prodotto
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+        {noMercatoSelezionato && (
+          <span className="text-[11px] font-opensans text-error">
+            <i className="fa-light fa-circle-exclamation mr-1" aria-hidden="true" />
+            Almeno un mercato deve essere abilitato
+          </span>
+        )}
+      </section>
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="prod-modal__field">
-      <label className="prod-modal__label">{label}</label>
-      {children}
+      <FormActions
+        onCancel={handleCancel}
+        onConfirm={handleConfirm}
+        confirmLabel="Crea prodotto"
+        confirmIcon="fa-floppy-disk"
+        confirmDisabled={disabled}
+      />
     </div>
   )
 }

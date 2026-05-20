@@ -1,0 +1,163 @@
+// CreaProdotto — pagina full-page conforme allo standard form
+// (sib-section-title + FormGrid + InputField/SelectField/ToggleSwitch).
+// Stili custom solo per il campo Barcode composito e per le card Mercati.
+
+@use '../../../styles/tokens' as *
+
+.crea-prodotto
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Box-card di sezione ───────────────────────────────────────────
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 16px 18px
+    background: $white
+    border: 1px solid $border
+    border-radius: 12px
+
+  &__section-title
+    margin-top: 0
+    margin-bottom: 4px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__hint
+    margin: -4px 0 4px
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Campo Barcode (composito: icona + input + lettore + genera) ──
+  &__barcode
+    display: flex
+    align-items: center
+    gap: 6px
+    border: 1.5px solid $border
+    border-radius: 6px
+    background: $white
+    padding: 0 4px 0 10px
+    height: 36px
+    box-sizing: border-box
+    min-width: 0
+    overflow: hidden
+
+    &:focus-within
+      border-color: $blue
+
+    &--armed
+      border-color: $blue
+      box-shadow: 0 0 0 2px rgba($blue, 0.15)
+
+  &__barcode-ico
+    font-size: 14px
+    color: $primary
+    flex-shrink: 0
+
+  &__barcode-text
+    flex: 1
+    min-width: 0
+    width: auto
+    border: none
+    background: transparent
+    height: 32px
+    padding: 0
+    font-family: monospace
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    letter-spacing: 0.5px
+    box-sizing: border-box
+
+    &:focus
+      outline: none
+
+    &::placeholder
+      color: $text-disabled
+      font-family: 'Open Sans', sans-serif
+      letter-spacing: 0
+
+  &__barcode-action
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 28px
+    padding: 0 10px
+    background: $blue-light
+    border: 1px solid rgba($blue, 0.2)
+    border-radius: 5px
+    cursor: pointer
+    font-size: 11px
+    font-weight: 600
+    color: $blue
+    flex-shrink: 0
+    white-space: nowrap
+
+    &:hover
+      background: rgba($blue, 0.13)
+
+    &[aria-pressed="true"]
+      background: $blue
+      color: $white
+      border-color: $blue
+
+  // ── Textarea descrizione (compatta a 2 righe) ─────────────────────
+  &__textarea
+    textarea
+      min-height: 56px
+
+  // ── Mercati di vendita ────────────────────────────────────────────
+  &__mercati
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__mercato
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 10px
+    background: $white
+    transition: border-color 0.15s, background 0.15s
+
+    &--on
+      border-color: var(--mercato-color, $blue)
+      background: rgba($blue, 0.03)
+
+  &__mercato-prezzo
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+    > div:first-child
+      flex: 1
+      min-width: 200px
+
+  &__margine
+    height: 36px
+    display: inline-flex
+    align-items: center
+    padding: 0 10px
+    border-radius: 6px
+    font-size: 12px
+    font-weight: 600
+    white-space: nowrap
+
+    &--pos
+      background: rgba(34, 197, 94, 0.12)
+      color: #15803d
+
+    &--neg
+      background: rgba(239, 68, 68, 0.12)
+      color: #b91c1c

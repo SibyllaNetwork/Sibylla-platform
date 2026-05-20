@@ -83,7 +83,7 @@ export default function ProdottoModal({
                 <input
                   value={form.barcode}
                   onChange={e => set('barcode', e.target.value.replace(/\D/g, '').slice(0, 13))}
-                  className="sib-input prod-modal__barcode-text"
+                  className="prod-modal__barcode-text"
                   placeholder="13 cifre numeriche"
                   inputMode="numeric"
                   maxLength={13}
