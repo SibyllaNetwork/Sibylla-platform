@@ -1,125 +1,274 @@
 // ─── CONFIGURATORE ────────────────────────────────────────────────────────────
 @use '../../../styles/tokens' as *
 
+$cfg-radius: 6px
+$cfg-radius-sm: 7px
+$cfg-border-strong: #cdd3db
+$cfg-text-muted: #6b7785
+$cfg-text-disabled: #9aa3af
+$cfg-hover: #f0f4f9
+
 .configuratore
   padding: 0
+  display: flex
+  flex-direction: column
+  gap: 12px
 
-  &__layout
+  // ── Header (BtnBack a sinistra, titoli centrati, spacer a destra) ──────────
+  &__header
     display: grid
-    grid-template-columns: 280px 1fr
-    gap: 24px
-    margin-top: 16px
-    align-items: stretch
+    grid-template-columns: 1fr auto 1fr
+    align-items: start
+    gap: 16px
 
-  &__sidebar
-    background: white
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 12px 0
-    max-height: calc(100vh - 220px)
-    overflow-y: auto
-
-  &__sidebar-title
-    padding: 4px 16px 12px
-    font-family: $font-heading
-    font-size: 13px
-    font-weight: 600
-    color: $primary
-    text-transform: uppercase
-    letter-spacing: 0.4px
-    border-bottom: 1px solid $border
-    margin-bottom: 4px
-
-  &__list
-    list-style: none
-    margin: 0
-    padding: 0
-
-  &__group
-    border-bottom: 1px solid $border
-    list-style: none
-
-    &:last-child
-      border-bottom: none
-
-  &__group-header
-    width: 100%
+  &__header-left
+    justify-self: start
     display: flex
     align-items: center
-    gap: 10px
-    padding: 12px 16px
-    border: none
-    background: transparent
-    color: $primary
-    font-family: $font-heading
-    font-size: 13px
+
+  &__header-center
+    text-align: center
+
+  &__header-right
+    // mirror del back btn per centratura simmetrica (grid 1fr/auto/1fr)
+    min-width: 0
+
+  &__title
+    font-size: 24px
     font-weight: 600
+    line-height: 1.2
+    color: var(--color-primary)
+    margin: 0
+
+  &__subtitle
+    font-size: 13px
+    color: $cfg-text-muted
+    margin: 3px 0 0
+
+  // ── Layout body ────────────────────────────────────────────────────────────
+  &__layout
+    flex: 1
+    display: grid
+    grid-template-columns: 280px 1fr
+    gap: 14px
+    min-height: 0
+
+    @media (max-width: 1100px)
+      grid-template-columns: 240px 1fr
+
+  // ── Sidebar ────────────────────────────────────────────────────────────────
+  &__sidebar
+    background: $white
+    border: 1px solid $border
+    border-radius: $cfg-radius
+    display: flex
+    flex-direction: column
+    overflow: hidden
+    min-height: 0
+    max-height: calc(100vh - 180px)
+
+  &__sidebar-head
+    padding: 10px 10px 8px
+    border-bottom: 1px solid $border
+
+  &__crumb
+    display: flex
+    align-items: center
+    gap: 8px
+    width: 100%
+    background: transparent
+    border: none
+    border-radius: $cfg-radius
+    padding: 6px 8px
+    margin-bottom: 8px
     cursor: pointer
+    font-family: inherit
+    font-size: 12.5px
+    font-weight: 500
+    color: var(--color-primary)
     text-align: left
-    user-select: none
+    transition: background 0.12s
 
     &:hover
-      background: $primary-50
+      background: $cfg-hover
 
-    &--open
-      background: $primary-50
+  &__crumb-arrow
+    font-size: 12px
+    flex-shrink: 0
 
-  &__group-icon
-    width: 18px
-    color: $primary
-    font-size: 14px
+  &__crumb-sep
+    color: $cfg-text-muted
+    font-weight: 400
+    margin: 0 2px
 
-  &__group-items
-    list-style: none
-    margin: 0
-    padding: 4px 0 8px
-    background: $bg
+  &__crumb-current
+    color: $text-active
+    font-weight: 500
+
+  &__search
+    display: flex
+    align-items: center
+    gap: 7px
+    border: 1px solid $border
+    border-radius: $cfg-radius-sm
+    padding: 0 10px
+    height: 32px
+    background: $white
+    transition: border-color 0.15s, box-shadow 0.15s
+
+    &:focus-within
+      border-color: var(--color-primary)
+      box-shadow: 0 0 0 3px rgba(27, 61, 95, 0.08)
+
+  &__search-icon
+    color: $cfg-text-muted
+    font-size: 12px
+    flex-shrink: 0
+
+  &__search-input
+    border: none
+    outline: none
+    flex: 1
+    font-family: inherit
+    font-size: 12px
+    background: transparent
+    color: $text-active
+    width: 100%
+
+    &::placeholder
+      color: $cfg-text-disabled
+
+  &__list
+    flex: 1
+    padding: 6px
+    overflow-y: auto
+    min-height: 0
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+    &::-webkit-scrollbar
+      width: 6px
+    &::-webkit-scrollbar-thumb
+      background: $cfg-border-strong
+      border-radius: 3px
+    &::-webkit-scrollbar-track
+      background: transparent
+
+  &__empty-list
+    padding: 20px 12px
+    text-align: center
+    color: $cfg-text-muted
+    font-size: 12px
 
   &__item
     display: flex
     align-items: center
-    gap: 10px
-    padding: 8px 16px 8px 32px
-    font-size: 13px
-    color: $text-active
+    gap: 9px
+    padding: 4px 9px
+    border-radius: $cfg-radius
     cursor: pointer
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    background: transparent
+    border: none
+    text-align: left
     user-select: none
-    transition: background-color 0.15s ease, color 0.15s ease
+    line-height: 1.25
+    min-height: 24px
+    transition: background 0.12s, color 0.12s
+    width: 100%
 
     &:hover
-      background: $primary-100
-      color: $primary
+      background: $cfg-hover
 
     &--active
-      background: $primary-100
-      color: $primary
-      font-weight: 600
+      background: var(--color-primary-50, #e8f0f9)
+      color: var(--color-primary)
+      font-weight: 500
 
-      .configuratore__icon
-        color: $primary
+      .configuratore__item-icon
+        color: var(--color-primary)
 
-  &__icon
-    width: 16px
-    color: $text-inactive
-    font-size: 13px
-
-  &__chevron
-    margin-left: auto
-    transition: transform 0.2s ease
-    font-size: 11px
-
-    &--open
-      transform: rotate(180deg)
-
-  &__pane
-    background: white
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 24px
-    min-height: 400px
-
-  &__empty
-    color: $text-inactive
-    font-size: 14px
+  &__item-icon
+    color: $cfg-text-muted
+    font-size: 12px
+    width: 14px
     text-align: center
-    padding: 80px 24px
+    flex-shrink: 0
+
+  &__item-label
+    flex: 1
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  // F&B category row in lista principale
+  &__item--category
+    margin-top: 6px
+    padding-top: 8px
+    border-top: 1px solid $border
+    border-radius: 0 0 $cfg-radius $cfg-radius
+    font-weight: 500
+    min-height: 30px
+
+  &__badge
+    background: $bg
+    color: $cfg-text-muted
+    font-size: 10.5px
+    padding: 1px 7px
+    border-radius: 10px
+    margin-left: auto
+    border: 1px solid $border
+    font-weight: 500
+
+  &__item-chev
+    color: $cfg-text-muted
+    font-size: 10px
+    margin-left: 4px
+
+  // Sub-page: voci con più respiro
+  &__sidebar--subpage
+    .configuratore__item
+      min-height: 30px
+      padding: 6px 9px
+      font-size: 13px
+
+  // ── Pane principale ───────────────────────────────────────────────────────
+  &__pane
+    background: $white
+    border: 1px solid $border
+    border-radius: $cfg-radius
+    padding: 18px 22px
+    overflow-y: auto
+    min-height: 0
+    max-height: calc(100vh - 180px)
+
+    &::-webkit-scrollbar
+      width: 6px
+    &::-webkit-scrollbar-thumb
+      background: $cfg-border-strong
+      border-radius: 3px
+    &::-webkit-scrollbar-track
+      background: transparent
+
+  &__pane-head
+    display: flex
+    align-items: center
+    gap: 10px
+    margin-bottom: 4px
+
+  &__pane-title
+    font-size: 18px
+    font-weight: 600
+    color: var(--color-primary)
+    margin: 0
+
+  &__placeholder
+    padding-top: 4px
+
+  &__placeholder-desc
+    color: $cfg-text-muted
+    font-size: 12.5px
+    margin: 0

@@ -1,7 +1,11 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
-import { GROUPS, type ConfiguratoreId } from './configuratoriList'
+import {
+  MAIN_ITEMS,
+  FNB_ITEMS,
+  type ConfiguratoreId,
+  type ConfiguratoreItem,
+} from './configuratoriList'
 import './Configuratore.sass'
 
 import ScaglioniOccupazione   from './panes/ScaglioniOccupazione/ScaglioniOccupazione'
@@ -26,82 +30,131 @@ import VincoloMatriosca       from './panes/VincoloMatriosca/VincoloMatriosca'
 import FasceEta               from './panes/FasceEta/FasceEta'
 import VociIncasso            from './panes/VociIncasso/VociIncasso'
 import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
-import FbImpostazioni         from './panes/FbImpostazioni/FbImpostazioni'
 import FbVociMenu             from './panes/FbVociMenu/FbVociMenu'
 import FbCreaMenu             from './panes/FbCreaMenu/FbCreaMenu'
 import FbListaMenu            from './panes/FbListaMenu/FbListaMenu'
 import FbAllergeni            from './panes/FbAllergeni/FbAllergeni'
-import FbGestioneCosti        from './panes/FbGestioneCosti/FbGestioneCosti'
 
-/**
- * Pagina Configuratore — sidebar interna raggruppata in macro-aree
- * collassabili (Occupazione, Tariffe, Booking, Struttura, Contabilità, F&B).
- */
+const DEFAULT_ID: ConfiguratoreId = 'scaglioni-occupazione'
+
 export default function Configuratore({ navigate }: { navigate: (p: string) => void }) {
-  const [activeId, setActiveId] = useState<ConfiguratoreId | null>(null)
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {}
-    for (const g of GROUPS) init[g.id] = !!g.defaultOpen
-    return init
-  })
+  const [activeId, setActiveId] = useState<ConfiguratoreId>(DEFAULT_ID)
+  const [subpage, setSubpage]   = useState(false)
+  const [query, setQuery]       = useState('')
 
-  const toggleGroup = (id: string) => setOpenGroups((p) => ({ ...p, [id]: !p[id] }))
+  const sourceItems = subpage ? FNB_ITEMS : MAIN_ITEMS
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return sourceItems
+    return sourceItems.filter(it => it.label.toLowerCase().includes(q))
+  }, [sourceItems, query])
+
+  const activeLabel = useMemo(() => {
+    const all: ConfiguratoreItem[] = [...MAIN_ITEMS, ...FNB_ITEMS]
+    return all.find(it => it.id === activeId)?.label ?? ''
+  }, [activeId])
+
+  const openFnb = () => {
+    setSubpage(true)
+    setQuery('')
+  }
+  const backToMain = () => {
+    setSubpage(false)
+    setQuery('')
+  }
 
   return (
     <div className="configuratore">
-      <BtnBack onClick={() => navigate('home')} />
-      <PageHeader title="Configuratore" subtitle="Personalizza il sistema per una gestione efficiente e su misura" />
+      <header className="configuratore__header">
+        <div className="configuratore__header-left">
+          <BtnBack onClick={() => navigate('home')} />
+        </div>
+        <div className="configuratore__header-center">
+          <h1 className="configuratore__title">Configuratore</h1>
+          <p className="configuratore__subtitle">
+            Personalizza il sistema per una gestione efficiente e su misura
+          </p>
+        </div>
+        <div className="configuratore__header-right" />
+      </header>
 
       <div className="configuratore__layout">
-        <aside className="configuratore__sidebar">
-          <div className="configuratore__sidebar-title">Lista configuratori</div>
+        <aside className={'configuratore__sidebar' + (subpage ? ' configuratore__sidebar--subpage' : '')}>
+          <div className="configuratore__sidebar-head">
+            {subpage && (
+              <button
+                type="button"
+                className="configuratore__crumb"
+                onClick={backToMain}
+                aria-label="Torna alla lista configuratori"
+              >
+                <i className="fa-light fa-arrow-left configuratore__crumb-arrow" />
+                <span>Tutti i configuratori</span>
+                <span className="configuratore__crumb-sep">/</span>
+                <span className="configuratore__crumb-current">F&amp;B</span>
+              </button>
+            )}
 
-          <ul className="configuratore__list">
-            {GROUPS.map((group) => {
-              const open = openGroups[group.id]
-              return (
-                <li key={group.id} className="configuratore__group">
+            <div className="configuratore__search">
+              <i className="fa-light fa-magnifying-glass configuratore__search-icon" aria-hidden="true" />
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={subpage ? 'Cerca in F&B...' : 'Cerca...'}
+                className="configuratore__search-input"
+                aria-label="Cerca configuratore"
+              />
+            </div>
+          </div>
+
+          <div className="configuratore__list">
+            {filtered.length === 0 ? (
+              <div className="configuratore__empty-list">Nessun risultato</div>
+            ) : (
+              <>
+                {filtered.map(item => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={'configuratore__item' + (activeId === item.id ? ' configuratore__item--active' : '')}
+                    onClick={() => setActiveId(item.id)}
+                  >
+                    <i className={`fa-light fa-${item.icon} configuratore__item-icon`} aria-hidden="true" />
+                    <span className="configuratore__item-label">{item.label}</span>
+                  </button>
+                ))}
+
+                {!subpage && !query.trim() && (
                   <button
                     type="button"
-                    className={'configuratore__group-header' + (open ? ' configuratore__group-header--open' : '')}
-                    onClick={() => toggleGroup(group.id)}
+                    className="configuratore__item configuratore__item--category"
+                    onClick={openFnb}
                   >
-                    <i className={`fa-light fa-${group.icon} configuratore__group-icon`} />
-                    <span>{group.label}</span>
-                    <i className={'fa-light fa-chevron-down configuratore__chevron' + (open ? ' configuratore__chevron--open' : '')} />
+                    <i className="fa-light fa-utensils configuratore__item-icon" aria-hidden="true" />
+                    <span className="configuratore__item-label">Food &amp; Beverage</span>
+                    <span className="configuratore__badge">{FNB_ITEMS.length}</span>
+                    <i className="fa-light fa-chevron-right configuratore__item-chev" aria-hidden="true" />
                   </button>
-
-                  {open && (
-                    <ul className="configuratore__group-items">
-                      {group.items.map((item) => (
-                        <li
-                          key={item.id}
-                          className={'configuratore__item' + (activeId === item.id ? ' configuratore__item--active' : '')}
-                          onClick={() => setActiveId(item.id)}
-                        >
-                          <i className={`fa-light fa-${item.icon} configuratore__icon`} />
-                          <span>{item.label}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+                )}
+              </>
+            )}
+          </div>
         </aside>
 
         <section className="configuratore__pane">
-          <PaneSwitch id={activeId} />
+          <div className="configuratore__pane-head">
+            <h2 className="configuratore__pane-title">{activeLabel}</h2>
+          </div>
+          <PaneSwitch id={activeId} label={activeLabel} />
         </section>
       </div>
     </div>
   )
 }
 
-function PaneSwitch({ id }: { id: ConfiguratoreId | null }) {
-  if (!id) return <div className="configuratore__empty">Seleziona un configuratore dalla lista a sinistra.</div>
-
+function PaneSwitch({ id, label }: { id: ConfiguratoreId; label: string }) {
   switch (id) {
     case 'scaglioni-occupazione':    return <ScaglioniOccupazione />
     case 'finestre-prenotazione':    return <FinestrePrenotazione />
@@ -125,11 +178,20 @@ function PaneSwitch({ id }: { id: ConfiguratoreId | null }) {
     case 'fasce-eta':                return <FasceEta />
     case 'voci-incasso':             return <VociIncasso />
     case 'configura-outlet':         return <ConfiguraOutlet />
-    case 'fb-impostazioni':          return <FbImpostazioni />
     case 'fb-voci-menu':             return <FbVociMenu />
     case 'fb-crea-menu':             return <FbCreaMenu />
     case 'fb-lista-menu':            return <FbListaMenu />
     case 'fb-allergeni':             return <FbAllergeni />
-    case 'fb-gestione-costi':        return <FbGestioneCosti />
+    default:                         return <PlaceholderPane label={label} />
   }
+}
+
+function PlaceholderPane({ label }: { label: string }) {
+  return (
+    <div className="configuratore__placeholder">
+      <p className="configuratore__placeholder-desc">
+        Configurazione di {label.toLowerCase()}.
+      </p>
+    </div>
+  )
 }

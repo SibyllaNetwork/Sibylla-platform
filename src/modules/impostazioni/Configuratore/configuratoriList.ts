@@ -1,37 +1,45 @@
 /**
- * Lista dei configuratori, raggruppati in macro-aree collassabili nella
- * sidebar interna del Configuratore.
+ * Lista dei configuratori — singola lista piatta (MAIN_ITEMS) + lista
+ * Food & Beverage (FNB_ITEMS) accessibile come sotto-pagina dalla sidebar.
  */
 
 export type ConfiguratoreId =
+  // Main
+  | 'camere-mapping'
+  | 'mapping-segmento-mercato'
+  | 'bar-fit'
+  | 'bottom-rate'
+  | 'fasce-eta'
+  | 'stagionalita'
   | 'scaglioni-occupazione'
   | 'finestre-prenotazione'
   | 'richieste-extra'
-  | 'stagionalita'
-  | 'personalizza-struttura'
-  | 'camere-mapping'
-  | 'overbooking-limit'
   | 'buffer-presenze'
-  | 'mapping-segmento-mercato'
+  | 'overbooking-limit'
+  | 'vincolo-matriosca'
+  | 'arrangiamenti'
+  | 'contratti'
   | 'lotti-mapping'
+  | 'market-specifics'
   | 'listini-individuali'
   | 'listini-gruppi'
   | 'politiche-prenotazione'
-  | 'contratti'
-  | 'market-specifics'
-  | 'bar-fit'
-  | 'arrangiamenti'
-  | 'bottom-rate'
-  | 'vincolo-matriosca'
-  | 'fasce-eta'
   | 'voci-incasso'
   | 'configura-outlet'
-  | 'fb-impostazioni'
+  | 'personalizza-struttura'
+  // F&B
+  | 'fb-categorie'
   | 'fb-voci-menu'
   | 'fb-crea-menu'
   | 'fb-lista-menu'
+  | 'fb-tipi-menu'
+  | 'fb-web-menu'
+  | 'fb-menu-giorno'
   | 'fb-allergeni'
-  | 'fb-gestione-costi'
+  | 'fb-arrangiamenti'
+  | 'fb-categoria-ospite'
+  | 'fb-stampanti'
+  | 'fb-service-monitor'
 
 export interface ConfiguratoreItem {
   id: ConfiguratoreId
@@ -40,86 +48,42 @@ export interface ConfiguratoreItem {
   icon: string
 }
 
-export interface ConfiguratoreGroup {
-  id: string
-  label: string
-  /** Icona del gruppo. */
-  icon: string
-  items: ConfiguratoreItem[]
-  /** Aperto di default? */
-  defaultOpen?: boolean
-}
+export const MAIN_ITEMS: ConfiguratoreItem[] = [
+  { id: 'camere-mapping',           label: 'Mapping camere',         icon: 'bed' },
+  { id: 'mapping-segmento-mercato', label: 'Mapping segmenti',       icon: 'bullseye-arrow' },
+  { id: 'bar-fit',                  label: 'B.A.R / F.I.T.',         icon: 'chart-line' },
+  { id: 'bottom-rate',              label: 'Bottom rate',            icon: 'arrow-down-to-line' },
+  { id: 'fasce-eta',                label: "Fasce d'età",            icon: 'user-group' },
+  { id: 'stagionalita',             label: 'Stagionalità',           icon: 'sun' },
+  { id: 'scaglioni-occupazione',    label: 'Scaglioni occupazione',  icon: 'chart-bar' },
+  { id: 'finestre-prenotazione',    label: 'Finestre prenotazione',  icon: 'calendar-clock' },
+  { id: 'richieste-extra',          label: 'Richieste extra',        icon: 'plus-large' },
+  { id: 'buffer-presenze',          label: 'Buffer presenze',        icon: 'shield-halved' },
+  { id: 'overbooking-limit',        label: 'Overbooking limit',      icon: 'triangle-exclamation' },
+  { id: 'vincolo-matriosca',        label: 'Vincolo matriosca',      icon: 'layer-group' },
+  { id: 'arrangiamenti',            label: 'Arrangiamenti',          icon: 'box' },
+  { id: 'contratti',                label: 'Contratti',              icon: 'file-contract' },
+  { id: 'lotti-mapping',            label: 'Lotti mapping',          icon: 'cubes-stacked' },
+  { id: 'market-specifics',         label: 'Market specifics',       icon: 'globe' },
+  { id: 'listini-individuali',      label: 'Listini individuali',    icon: 'user' },
+  { id: 'listini-gruppi',           label: 'Listini gruppi',         icon: 'users' },
+  { id: 'politiche-prenotazione',   label: 'Politiche prenotazione', icon: 'clipboard-list' },
+  { id: 'voci-incasso',             label: 'Voci incasso',           icon: 'receipt' },
+  { id: 'configura-outlet',         label: 'Configura Outlet',       icon: 'shop' },
+  { id: 'personalizza-struttura',   label: 'Personalizza struttura', icon: 'house-medical' },
+]
 
-export const GROUPS: ConfiguratoreGroup[] = [
-  {
-    id: 'occupazione',
-    label: 'Occupazione & Disponibilità',
-    icon: 'bed-front',
-    defaultOpen: true,
-    items: [
-      { id: 'scaglioni-occupazione', label: 'Scaglioni occupazione', icon: 'file-pen' },
-      { id: 'finestre-prenotazione', label: 'Finestre prenotazione', icon: 'calendar-check' },
-      { id: 'buffer-presenze',       label: 'Buffer presenze',       icon: 'layer-group' },
-      { id: 'overbooking-limit',     label: 'Overbooking limit',     icon: 'chart-line-up' },
-      { id: 'camere-mapping',        label: 'Camere mapping',        icon: 'bed-front' },
-      { id: 'lotti-mapping',         label: 'Lotti mapping',         icon: 'cube' },
-      { id: 'vincolo-matriosca',     label: 'Vincolo matriosca',     icon: 'circles-overlap' },
-    ],
-  },
-  {
-    id: 'tariffe',
-    label: 'Tariffe & Prezzi',
-    icon: 'tag',
-    items: [
-      { id: 'listini-individuali', label: 'Listini individuali', icon: 'square-list' },
-      { id: 'listini-gruppi',      label: 'Listini gruppi',      icon: 'rectangle-list' },
-      { id: 'bottom-rate',         label: 'Bottom rate',         icon: 'ranking-star' },
-      { id: 'bar-fit',             label: 'B.A.R / F.I.T.',      icon: 'bars' },
-      { id: 'stagionalita',        label: 'Stagionalità',        icon: 'sun-cloud' },
-      { id: 'fasce-eta',           label: "Fasce d'età",         icon: 'family' },
-      { id: 'market-specifics',    label: 'Market specifics',    icon: 'store' },
-    ],
-  },
-  {
-    id: 'booking',
-    label: 'Booking & Politiche',
-    icon: 'calendar-check',
-    items: [
-      { id: 'politiche-prenotazione',   label: 'Politiche di prenotazione',   icon: 'hotel-circle-info' },
-      { id: 'richieste-extra',          label: 'Richieste extra',             icon: 'hand-holding-circle-dollar' },
-      { id: 'arrangiamenti',            label: 'Arrangiamenti',               icon: 'bell-concierge' },
-      { id: 'mapping-segmento-mercato', label: 'Mapping segmento di mercato', icon: 'map-location-dot' },
-    ],
-  },
-  {
-    id: 'struttura',
-    label: 'Struttura & Outlet',
-    icon: 'hotel',
-    items: [
-      { id: 'personalizza-struttura', label: 'Personalizza struttura', icon: 'hotel' },
-      { id: 'configura-outlet',       label: 'Configura Outlet',       icon: 'house-building' },
-    ],
-  },
-  {
-    id: 'contabilita',
-    label: 'Contabilità & Contratti',
-    icon: 'file-contract',
-    items: [
-      { id: 'contratti',    label: 'Contratti',    icon: 'file-contract' },
-      { id: 'voci-incasso', label: 'Voci Incasso', icon: 'receipt' },
-    ],
-  },
-  {
-    id: 'food-beverage',
-    label: 'Food & Beverage',
-    icon: 'burger-glass',
-    items: [
-      { id: 'fb-impostazioni',   label: 'Impostazioni',   icon: 'gear' },
-      { id: 'fb-voci-menu',      label: 'Voci Menu',      icon: 'list' },
-      { id: 'fb-crea-menu',      label: 'Crea Menu',      icon: 'plus' },
-      { id: 'fb-lista-menu',     label: 'Lista Menu',     icon: 'rectangle-list' },
-      { id: 'fb-allergeni',      label: 'Allergeni',      icon: 'wheat' },
-      { id: 'fb-gestione-costi', label: 'Gestione costi', icon: 'coins' },
-    ],
-  },
+export const FNB_ITEMS: ConfiguratoreItem[] = [
+  { id: 'fb-categorie',         label: 'Categorie',        icon: 'tags' },
+  { id: 'fb-voci-menu',         label: 'Voci menu',        icon: 'list' },
+  { id: 'fb-crea-menu',         label: 'Crea menu',        icon: 'plus' },
+  { id: 'fb-lista-menu',        label: 'Lista menu',       icon: 'list-ul' },
+  { id: 'fb-tipi-menu',         label: 'Tipi menu',        icon: 'layer-group' },
+  { id: 'fb-web-menu',          label: 'Web menu',         icon: 'globe' },
+  { id: 'fb-menu-giorno',       label: 'Menu del giorno',  icon: 'calendar-day' },
+  { id: 'fb-allergeni',         label: 'Allergeni',        icon: 'leaf' },
+  { id: 'fb-arrangiamenti',     label: 'Arrangiamenti',    icon: 'box' },
+  { id: 'fb-categoria-ospite',  label: 'Categoria ospite', icon: 'user-tag' },
+  { id: 'fb-stampanti',         label: 'Stampanti',        icon: 'print' },
+  { id: 'fb-service-monitor',   label: 'Service monitor',  icon: 'display' },
 ]
