@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import T from '../core/tokens'
 import Ico from '../core/icons/Ico'
+import { useChatStore } from '../store/useChatStore'
 import './notif.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
 type Sev    = 'error' | 'warning' | 'info'
-type Origin = 'platform' | 'to'
+type Origin = 'platform' | 'tableau' | 'agora'
 
 interface Notif {
   id:     number
@@ -20,21 +21,23 @@ interface Notif {
 
 // ── Dati mock ─────────────────────────────────────────────────────────────────
 const INIT_DATA: Notif[] = [
-  { id:100, sev:'info',    origin:'platform', title:'Report Pickup disponibile',         text:'Il report Pickup settimanale è pronto da consultare.',                          ref:'',           date:'Oggi 15:10',  read:false },
-  { id:101, sev:'warning', origin:'platform', title:'Segnalazione presa in carico',       text:'',                                                                              ref:'',           date:'Oggi 14:32',  read:false },
-  { id:102, sev:'info',    origin:'to',       title:'Richiesta extra da TO',              text:'Nuova richiesta extra da TO: Sibylla.',                                         ref:'',           date:'Oggi 12:08',  read:false },
-  { id:1,   sev:'error',   origin:'to',       title:'Annullamento prenotazione da TO',    text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'',           date:'26 Mar 12:31', read:true },
-  { id:2,   sev:'warning', origin:'platform', title:'Segnalazione presa in carico',       text:'',                                                                              ref:'',           date:'17 Mar 15:53', read:true },
-  { id:3,   sev:'info',    origin:'to',       title:'Richiesta extra da TO',              text:'Nuova richiesta extra da TO: Tour Operator Test.',                              ref:'ID: 014474', date:'19 Feb 09:15', read:true },
-  { id:4,   sev:'warning', origin:'to',       title:'Richiesta extra',                    text:'La prenotazione 2026014463 è passata in Extra a...',                            ref:'',           date:'19 Feb 09:14', read:true },
+  { id:100, sev:'info',    origin:'platform', title:'Report Pickup disponibile',           text:'Il report Pickup settimanale è pronto da consultare.',                          ref:'',           date:'Oggi 15:10',  read:false },
+  { id:101, sev:'warning', origin:'platform', title:'Segnalazione presa in carico',         text:'',                                                                              ref:'',           date:'Oggi 14:32',  read:false },
+  { id:102, sev:'info',    origin:'tableau',  title:'Richiesta extra da Tableau',           text:'Nuova richiesta extra da Tableau: Sibylla.',                                    ref:'',           date:'Oggi 12:08',  read:false },
+  { id:103, sev:'info',    origin:'agora',    title:'Nuova prenotazione da Agora',          text:'Ricevuta prenotazione 2026/014510 dal canale Agora.',                           ref:'ID: 014510', date:'Oggi 11:42',  read:false },
+  { id:1,   sev:'error',   origin:'tableau',  title:'Annullamento prenotazione da Tableau', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'',           date:'26 Mar 12:31', read:true },
+  { id:2,   sev:'warning', origin:'platform', title:'Segnalazione presa in carico',         text:'',                                                                              ref:'',           date:'17 Mar 15:53', read:true },
+  { id:3,   sev:'info',    origin:'tableau',  title:'Richiesta extra da Tableau',           text:'Nuova richiesta extra da Tableau: Tour Operator Test.',                         ref:'ID: 014474', date:'19 Feb 09:15', read:true },
+  { id:4,   sev:'warning', origin:'tableau',  title:'Richiesta extra',                      text:'La prenotazione 2026014463 è passata in Extra a...',                            ref:'',           date:'19 Feb 09:14', read:true },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 // Il colore primario della notifica (icona, badge, accenti) deriva dall'origine
-// della richiesta: Platform → blu, TO (Tour Operator) → verde #206953.
+// della richiesta: Platform → blu, Tableau → verde, Agora → oro.
 const ORIGIN_CONFIG: Record<Origin, { bg: string; color: string; label: string }> = {
   platform: { bg: '#E8EEF4', color: '#204769', label: 'Platform' },
-  to:       { bg: '#E6F2EC', color: '#206953', label: 'TO'       },
+  tableau:  { bg: '#E6F2EC', color: '#206953', label: 'Tableau'  },
+  agora:    { bg: '#FAF1D7', color: '#A87D0F', label: 'Agora'    },
 }
 
 const SEV_LABEL: Record<Sev, string> = {
@@ -43,13 +46,14 @@ const SEV_LABEL: Record<Sev, string> = {
   info:    'Info',
 }
 
-type TabFilter = 'all' | 'unread' | 'platform' | 'to'
+type TabFilter = 'all' | 'unread' | 'platform' | 'tableau' | 'agora'
 
 export default function NotifMenu({ navigate }: { navigate: (p: string) => void }) {
   const [open,    setOpen]    = useState(false)
   const [tab,     setTab]     = useState<TabFilter>('all')
   const [notifs,  setNotifs]  = useState<Notif[]>(INIT_DATA)
   const ref = useRef<HTMLDivElement>(null)
+  const selectChatFromNotif = useChatStore(s => s.selectFromNotif)
 
   const unreadCount = notifs.filter(n => !n.read).length
 
@@ -68,7 +72,8 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   const filtered = notifs.filter(n => {
     if (tab === 'unread')   return !n.read
     if (tab === 'platform') return n.origin === 'platform'
-    if (tab === 'to')       return n.origin === 'to'
+    if (tab === 'tableau')  return n.origin === 'tableau'
+    if (tab === 'agora')    return n.origin === 'agora'
     return true
   })
 
@@ -76,7 +81,8 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
     { id: 'all',      label: 'Tutte' },
     { id: 'unread',   label: `Non lette${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
     { id: 'platform', label: 'Platform' },
-    { id: 'to',       label: 'TO' },
+    { id: 'tableau',  label: 'Tableau' },
+    { id: 'agora',    label: 'Agora' },
   ]
 
   return (
@@ -174,7 +180,8 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                           style={{ color: cfg.color }}
                           onClick={e => {
                             e.stopPropagation()
-                            navigate(`chat-notifica/${n.id}`)
+                            selectChatFromNotif(n.id)
+                            navigate('chat')
                             setOpen(false)
                           }}
                         >
