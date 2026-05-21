@@ -32,7 +32,7 @@ export default function LottiMapping() {
     let cancelled = false
     apiFetchSibylla<Data>('configura/GetLottiMapping', { method: 'POST', body: {} })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { /* silent */ })
     return () => { cancelled = true }
   }, [])
 
@@ -43,7 +43,7 @@ export default function LottiMapping() {
 
   const save = async () => {
     setSaving(true)
-    try { await apiFetchSibylla('configura/SetLottiMapping', { method: 'POST', body: data }) } catch {}
+    try { await apiFetchSibylla('configura/SetLottiMapping', { method: 'POST', body: data }) } catch { /* silent */ }
     setSaving(false)
   }
 
@@ -56,36 +56,69 @@ export default function LottiMapping() {
       <div className="lotti-mapping__filters">
         <div className="lotti-mapping__field">
           <label>Struttura</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
+          <select
+            className="sib-select sib-select--dense"
+            value={data.StrutturaId ?? ''}
+            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          >
             <option value="">Hotel Tutorial</option>
             {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
           </select>
         </div>
         <div className="lotti-mapping__field">
           <label>Tipologia</label>
-          <select className="sib-select" value={data.Tipologia} onChange={(e) => setData({ ...data, Tipologia: e.target.value as any })}>
+          <select
+            className="sib-select sib-select--dense"
+            value={data.Tipologia}
+            onChange={(e) => setData({ ...data, Tipologia: e.target.value as Data['Tipologia'] })}
+          >
             <option value="Individuali">Individuali</option>
             <option value="Gruppi">Gruppi</option>
           </select>
         </div>
       </div>
 
-      <div className="lotti-mapping__header">
-        <span>Tipologie lotti</span><span>Tipologia base</span><span>Numero camere</span>
+      <div className="lotti-mapping__table-wrap">
+        <table className="lotti-mapping__table">
+          <thead>
+            <tr>
+              <th>Tipologie lotti</th>
+              <th>Tipologia base</th>
+              <th className="lotti-mapping__th--num">Numero camere</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rows.map((r, i) => (
+              <tr key={i}>
+                <td className="lotti-mapping__td--name">{r.tipo}</td>
+                <td>{r.tipologia}</td>
+                <td>
+                  <span className="lotti-mapping__cell">
+                    <input
+                      type="number"
+                      className="sib-input sib-input--dense lotti-mapping__input"
+                      value={r.camere}
+                      onChange={(e) => update(i, Number(e.target.value) || 0)}
+                      aria-label={`Numero camere ${r.tipo} ${r.tipologia}`}
+                    />
+                    <span className="lotti-mapping__unit">n°</span>
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      {data.rows.map((r, i) => (
-        <div className="lotti-mapping__row" key={i}>
-          <span>{r.tipo}</span>
-          <span>{r.tipologia}</span>
-          <div className="lotti-mapping__cell">
-            <input type="number" className="sib-input lotti-mapping__input" value={r.camere} onChange={(e) => update(i, Number(e.target.value) || 0)} />
-            <span className="lotti-mapping__unit">n°</span>
-          </div>
-        </div>
-      ))}
 
       <div className="lotti-mapping__actions">
-        <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>
+        <button
+          type="button"
+          className="sib-btn sib-btn--primary"
+          onClick={save}
+          disabled={saving}
+        >
+          Salva
+        </button>
       </div>
     </div>
   )

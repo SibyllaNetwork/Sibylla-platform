@@ -1,5 +1,6 @@
 // ─── LOTTI MAPPING ────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 .lotti-mapping
   display: flex
@@ -12,46 +13,50 @@
     align-items: center
     gap: 8px
     color: $text-inactive
+
     i
       font-size: 11px
+
     strong
-      color: $primary
+      color: var(--color-primary)
       font-weight: 600
 
   &__filters
     display: flex
-    gap: 24px
+    gap: 18px
     align-items: flex-end
     flex-wrap: wrap
-    margin-bottom: 8px
 
   &__field
     display: flex
     flex-direction: column
-    gap: 6px
+    gap: 4px
+
     label
       font-size: 12px
       color: $text-inactive
       font-weight: 600
 
-  &__header
-    display: grid
-    grid-template-columns: 200px 200px 200px
-    gap: 16px
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
+  &__table-wrap
+    @include paneShared.pane-table-wrap
 
-  &__row
-    display: grid
-    grid-template-columns: 200px 200px 200px
-    gap: 16px
-    align-items: center
+  &__table
+    @include paneShared.pane-table-base
+
+    th
+      white-space: nowrap
+
+  &__th--num
+    width: 180px
+
+  &__td--name
+    font-weight: 600
+    color: $text-active
 
   &__cell
-    display: flex
+    display: inline-flex
     align-items: center
-    gap: 4px
+    gap: 6px
 
   &__input
     width: 80px
