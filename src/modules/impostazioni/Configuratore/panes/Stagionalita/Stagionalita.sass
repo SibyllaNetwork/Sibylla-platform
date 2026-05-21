@@ -1,10 +1,11 @@
 // ─── STAGIONALITA ─────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 .stagionalita
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 12px
   font-size: 13px
 
   &__breadcrumb
@@ -12,22 +13,25 @@
     align-items: center
     gap: 8px
     color: $text-inactive
+
     i
       font-size: 11px
+
     strong
-      color: $primary
+      color: var(--color-primary)
       font-weight: 600
 
   &__filters
     display: flex
-    gap: 24px
+    gap: 18px
     align-items: flex-end
     flex-wrap: wrap
 
   &__field
     display: flex
     flex-direction: column
-    gap: 6px
+    gap: 4px
+
     label
       font-size: 12px
       color: $text-inactive
@@ -35,9 +39,9 @@
 
   &__radio-group
     display: flex
-    gap: 16px
+    gap: 14px
     align-items: center
-    height: 36px
+    height: 34px
 
   &__radio-item
     display: flex
@@ -45,39 +49,41 @@
     gap: 6px
     cursor: pointer
 
-  &__header
-    display: grid
-    grid-template-columns: 220px 220px 200px 120px
-    gap: 16px
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-    margin-top: 8px
+  &__table-wrap
+    @include paneShared.pane-table-wrap
 
-  &__rows
-    display: flex
-    flex-direction: column
-    gap: 8px
+  &__table
+    @include paneShared.pane-table-base
 
-  &__row
-    display: grid
-    grid-template-columns: 220px 220px 200px 120px
-    gap: 16px
-    align-items: center
+    th
+      white-space: nowrap
+
+  &__th--actions
+    width: 80px
+    text-align: right
+
+  &__td--actions
+    text-align: right
 
   &__date-cell
-    display: flex
+    display: inline-flex
     align-items: center
     gap: 6px
 
   &__day
-    width: 60px
+    width: 64px
+
+  &__month
+    min-width: 130px
+
+  &__stagione
+    min-width: 160px
 
   &__actions
     display: flex
     justify-content: flex-end
     gap: 8px
-    margin-top: 8px
+    margin-top: 4px
 
     .sib-btn i
       margin-right: 4px

@@ -13,12 +13,20 @@ interface Data {
   adulto1: number; adulto2: number; adulto3: number
 }
 
+type FasciaKey = 'Infanti' | 'Bambini' | 'Ragazzi'
+
+const FASCE: { key: FasciaKey; label: string; icon: string }[] = [
+  { key: 'Infanti', label: 'Infanti', icon: 'baby'   },
+  { key: 'Bambini', label: 'Bambini', icon: 'child'  },
+  { key: 'Ragazzi', label: 'Ragazzi', icon: 'person' },
+]
+
 const FALLBACK: Data = {
   Strutture: [], StrutturaId: null,
-  Infanti: { da: 0, a: 0, perc: 0, attiva: true },
-  Bambini: { da: 0, a: 0, perc: 0, attiva: true },
-  Ragazzi: { da: 0, a: 0, perc: 0, attiva: true },
-  numAdultiExtra: 0, adulto1: 0, adulto2: 0, adulto3: 0,
+  Infanti: { da: 0, a: 4,  perc: 100, attiva: true  },
+  Bambini: { da: 5, a: 12, perc: 50,  attiva: true  },
+  Ragazzi: { da: 0, a: 0,  perc: 0,   attiva: false },
+  numAdultiExtra: 3, adulto1: 20, adulto2: 30, adulto3: 40,
 }
 
 export default function FasceEta() {
@@ -29,40 +37,18 @@ export default function FasceEta() {
     let cancelled = false
     apiFetchSibylla<Data>('configura/GetFasceEta', { method: 'POST', body: {} })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { /* silent */ })
     return () => { cancelled = true }
   }, [])
 
-  const updateFascia = (key: 'Infanti'|'Bambini'|'Ragazzi', f: Partial<Fascia>) => {
+  const updateFascia = (key: FasciaKey, f: Partial<Fascia>) => {
     setData({ ...data, [key]: { ...data[key], ...f } })
   }
 
   const save = async () => {
     setSaving(true)
-    try { await apiFetchSibylla('configura/SetFasceEta', { method: 'POST', body: data }) } catch {}
+    try { await apiFetchSibylla('configura/SetFasceEta', { method: 'POST', body: data }) } catch { /* silent */ }
     setSaving(false)
-  }
-
-  const renderFascia = (label: string, key: 'Infanti'|'Bambini'|'Ragazzi', icon: string) => {
-    const f = data[key]
-    return (
-      <div className="fasce-eta__group">
-        <div className="fasce-eta__group-title">
-          {label} <i className="fa-light fa-check fasce-eta__check" />
-        </div>
-        <div className="fasce-eta__range">
-          <span className="fasce-eta__lbl">Da</span>
-          <input type="number" className="sib-input fasce-eta__short" value={f.da || ''} placeholder="0" onChange={(e) => updateFascia(key, { da: Number(e.target.value) || 0 })} />
-          <span className="fasce-eta__lbl">a</span>
-          <input type="number" className="sib-input fasce-eta__short" value={f.a || ''} placeholder="0" onChange={(e) => updateFascia(key, { a: Number(e.target.value) || 0 })} />
-        </div>
-        <div className="fasce-eta__perc">
-          <i className={`fa-light fa-${icon}`} />
-          <input type="number" className="sib-input fasce-eta__short" value={f.perc || ''} placeholder="-" onChange={(e) => updateFascia(key, { perc: Number(e.target.value) || 0 })} />
-          <span>%</span>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -70,39 +56,134 @@ export default function FasceEta() {
       <div className="fasce-eta__breadcrumb">
         Configuratore <i className="fa-light fa-chevron-right" /> <strong>Fasce d'età</strong>
       </div>
+
       <h3 className="fasce-eta__title">Variazione del prezzo rispetto a fascia di età adulti</h3>
-      <div className="fasce-eta__field">
-        <label>Struttura</label>
-        <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-          <option value="">Hotel Siracusa</option>
-          {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-        </select>
+
+      <div className="fasce-eta__filters">
+        <div className="fasce-eta__field">
+          <label>Struttura</label>
+          <select
+            className="sib-select sib-select--dense"
+            value={data.StrutturaId ?? ''}
+            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          >
+            <option value="">Hotel Tutorial</option>
+            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
+          </select>
+        </div>
       </div>
 
-      <div className="fasce-eta__row">
-        {renderFascia('Infanti', 'Infanti', 'baby')}
-        {renderFascia('Bambini', 'Bambini', 'child')}
-        {renderFascia('Ragazzi', 'Ragazzi', 'person')}
+      <div className="fasce-eta__table-wrap">
+        <table className="fasce-eta__table">
+          <thead>
+            <tr>
+              <th>Fascia</th>
+              <th className="fasce-eta__th--num">Da</th>
+              <th className="fasce-eta__th--num">A</th>
+              <th className="fasce-eta__th--num">Percentuale</th>
+              <th className="fasce-eta__th--center">Attiva</th>
+            </tr>
+          </thead>
+          <tbody>
+            {FASCE.map(({ key, label, icon }) => {
+              const f = data[key]
+              return (
+                <tr key={key}>
+                  <td className="fasce-eta__td--name">
+                    <span className="fasce-eta__name">
+                      <i className={`fa-light fa-${icon}`} aria-hidden="true" />
+                      <span>{label}</span>
+                    </span>
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      className="sib-input sib-input--dense fasce-eta__short"
+                      value={f.da}
+                      disabled={!f.attiva}
+                      onChange={(e) => updateFascia(key, { da: Number(e.target.value) || 0 })}
+                      aria-label={`${label} da`}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      className="sib-input sib-input--dense fasce-eta__short"
+                      value={f.a}
+                      disabled={!f.attiva}
+                      onChange={(e) => updateFascia(key, { a: Number(e.target.value) || 0 })}
+                      aria-label={`${label} a`}
+                    />
+                  </td>
+                  <td>
+                    <span className="fasce-eta__cell">
+                      <input
+                        type="number"
+                        className="sib-input sib-input--dense fasce-eta__short"
+                        value={f.perc}
+                        disabled={!f.attiva}
+                        onChange={(e) => updateFascia(key, { perc: Number(e.target.value) || 0 })}
+                        aria-label={`${label} percentuale`}
+                      />
+                      <span className="fasce-eta__unit">%</span>
+                    </span>
+                  </td>
+                  <td className="fasce-eta__td--center">
+                    <input
+                      type="checkbox"
+                      className="sib-checkbox"
+                      checked={f.attiva}
+                      onChange={(e) => updateFascia(key, { attiva: e.target.checked })}
+                      aria-label={`${label} attiva`}
+                    />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
 
       <div className="fasce-eta__adulti">
-        <label className="fasce-eta__lbl">Adulti extra</label>
-        <select className="sib-select fasce-eta__select" value={data.numAdultiExtra} onChange={(e) => setData({ ...data, numAdultiExtra: Number(e.target.value) })}>
-          <option value={0}>Nessuno</option><option value={1}>1</option><option value={2}>2</option><option value={3}>3</option>
-        </select>
-        {data.numAdultiExtra >= 1 && (
-          <div className="fasce-eta__adulto"><span>Adulto 1</span><input type="number" className="sib-input fasce-eta__short" value={data.adulto1} onChange={(e) => setData({ ...data, adulto1: Number(e.target.value) || 0 })} /><span>%</span></div>
-        )}
-        {data.numAdultiExtra >= 2 && (
-          <div className="fasce-eta__adulto"><span>Adulto 2</span><input type="number" className="sib-input fasce-eta__short" value={data.adulto2} onChange={(e) => setData({ ...data, adulto2: Number(e.target.value) || 0 })} /><span>%</span></div>
-        )}
-        {data.numAdultiExtra >= 3 && (
-          <div className="fasce-eta__adulto"><span>Adulto 3</span><input type="number" className="sib-input fasce-eta__short" value={data.adulto3} onChange={(e) => setData({ ...data, adulto3: Number(e.target.value) || 0 })} /><span>%</span></div>
-        )}
+        <div className="fasce-eta__field">
+          <label>Adulti extra</label>
+          <select
+            className="sib-select sib-select--dense fasce-eta__select-adulti"
+            value={data.numAdultiExtra}
+            onChange={(e) => setData({ ...data, numAdultiExtra: Number(e.target.value) })}
+          >
+            <option value={0}>Nessuno</option>
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+          </select>
+        </div>
+        {[1, 2, 3].map((n) => data.numAdultiExtra >= n && (
+          <div className="fasce-eta__field" key={n}>
+            <label>Adulto {n}</label>
+            <span className="fasce-eta__cell">
+              <input
+                type="number"
+                className="sib-input sib-input--dense fasce-eta__short"
+                value={data[`adulto${n}` as 'adulto1' | 'adulto2' | 'adulto3']}
+                onChange={(e) => setData({ ...data, [`adulto${n}`]: Number(e.target.value) || 0 })}
+                aria-label={`Adulto ${n} percentuale`}
+              />
+              <span className="fasce-eta__unit">%</span>
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="fasce-eta__actions">
-        <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>
+        <button
+          type="button"
+          className="sib-btn sib-btn--primary"
+          onClick={save}
+          disabled={saving}
+        >
+          Salva
+        </button>
       </div>
     </div>
   )
