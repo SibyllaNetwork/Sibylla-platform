@@ -63,19 +63,39 @@ export default function BottomRate() {
       </div>
 
       <table className="bottom-rate__table">
-        <thead><tr><th>Nome</th><th>Camera di riferimento</th><th>Bottom rate (prezzo minimo per camera)</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th className="bottom-rate__th--center">Camera di riferimento</th>
+            <th className="bottom-rate__th--price">Bottom rate (prezzo minimo per camera)</th>
+          </tr>
+        </thead>
         <tbody>
           {data.rows.map((r) => (
             <tr key={r.id}>
               <td>{r.nome}</td>
               <td className="bottom-rate__center">
-                <input type="radio" className="sib-radio" checked={r.isRef} onChange={() => setRef(r.id)} name="bottom-rate-ref" />
+                <input
+                  type="radio"
+                  className="sib-radio"
+                  checked={r.isRef}
+                  onChange={() => setRef(r.id)}
+                  name="bottom-rate-ref"
+                  aria-label={`Camera di riferimento ${r.nome}`}
+                />
               </td>
-              <td>
-                <div className="bottom-rate__cell">
-                  <input type="number" step="0.01" className="sib-input" value={r.bottomRate} onChange={(e) => updatePrezzo(r.id, Number(e.target.value) || 0)} />
-                  <span>€</span>
-                </div>
+              <td className="bottom-rate__td--price">
+                <span className="bottom-rate__cell">
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="sib-input sib-input--dense bottom-rate__price-input"
+                    value={r.bottomRate}
+                    onChange={(e) => updatePrezzo(r.id, Number(e.target.value) || 0)}
+                    aria-label={`Bottom rate ${r.nome}`}
+                  />
+                  <span className="bottom-rate__unit">€</span>
+                </span>
               </td>
             </tr>
           ))}

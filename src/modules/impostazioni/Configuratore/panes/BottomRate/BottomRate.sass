@@ -36,13 +36,30 @@
   &__table
     @include paneShared.pane-table-base
 
+  &__th--center
+    text-align: center !important
+
+  &__th--price
+    width: 240px
+    text-align: right !important
+
   &__center
     text-align: center
 
+  &__td--price
+    text-align: right
+
   &__cell
-    display: flex
+    display: inline-flex
     align-items: center
     gap: 4px
+
+  &__price-input
+    width: 110px
+
+  &__unit
+    color: $text-inactive
+    font-size: 12px
 
   &__actions
     display: flex
