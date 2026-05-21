@@ -1,96 +1,219 @@
 // ─── RICHIESTE EXTRA ──────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
 
+$re-input-h: 28px
+$re-tag-w: 84px
+$re-num-w: 84px
+$re-actions-w: 200px
+$re-muted: #6b7785
+$re-row-divider: #eef0f3
+$re-ok-bg: #e9eef4
+$re-ok-fg: #2c4d70
+$re-ko-bg: #fbeeee
+$re-ko-fg: #a83232
+
 .richieste-extra
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 12px
   font-size: 13px
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
-
+  // ── Filtri ────────────────────────────────────────────────────────────────
   &__filters
     display: flex
-    gap: 24px
+    gap: 18px
     align-items: flex-end
     flex-wrap: wrap
 
   &__field
     display: flex
     flex-direction: column
-    gap: 6px
+    gap: 4px
+
     label
-      font-size: 12px
-      color: $text-inactive
+      font-size: 11px
+      color: $re-muted
       font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.3px
+
+  &__select
+    height: $re-input-h
+    min-width: 160px
+    font-size: 12.5px
+    padding: 0 26px 0 8px
 
   &__radio-group
     display: flex
-    gap: 16px
+    gap: 14px
     align-items: center
-    height: 36px
+    height: $re-input-h
 
   &__radio-item
     display: flex
     align-items: center
-    gap: 6px
-    font-size: 13px
+    gap: 5px
+    font-size: 12.5px
     cursor: pointer
 
-  &__header
-    display: grid
-    grid-template-columns: 100px 1fr 100px 100px 200px
-    gap: 12px
-    padding: 0 4px
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__table
+    display: flex
+    flex-direction: column
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
 
-  &__row
+  // Layout colonne (variante Opzionata: con colonna "A")
+  &__head, &__row
     display: grid
-    grid-template-columns: 100px 1fr 100px 100px 200px
+    grid-template-columns: $re-tag-w 1fr $re-num-w $re-num-w $re-actions-w
     gap: 12px
+    padding: 5px 10px
     align-items: center
 
-    &--garantita
-      grid-template-columns: 100px 1fr 100px 200px
+  &.richieste-extra--garantita
+    .richieste-extra__head, .richieste-extra__row
+      grid-template-columns: $re-tag-w 1fr $re-num-w $re-actions-w
 
-    &--rifiuta
-      margin-top: 8px
+  &__head
+    background: $bg
+    border-bottom: 1px solid $border
+    font-size: 10.5px
+    font-weight: 600
+    color: $re-muted
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    padding: 6px 10px
+
+    &--actions
+      justify-self: end
+
+  &__row
+    border-bottom: 1px solid $re-row-divider
+
+    &:hover
+      background: rgba(0, 0, 0, 0.015)
+
+    &--last
+      background: $bg
+      border-top: 1px solid $border
+      border-bottom: none
+      padding: 6px 10px
+
+      &:hover
+        background: $bg
+
+  &__tag
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    height: $re-input-h
+    padding: 0 10px
+    border-radius: 5px
+    font-size: 11.5px
+    font-weight: 600
+    text-transform: none
+    letter-spacing: 0.2px
+    border: 1px solid transparent
+
+    &--ok
+      background: $re-ok-bg
+      color: $re-ok-fg
+      border-color: rgba(44, 77, 112, 0.15)
+
+    &--ko
+      background: $re-ko-bg
+      color: $re-ko-fg
+      border-color: rgba(168, 50, 50, 0.15)
 
   &__cell
     display: flex
     align-items: center
     gap: 4px
 
-  &__short
-    width: 70px
+  &__input
+    height: $re-input-h
+    width: 64px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 6px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    outline: none
+    background: $white
+    transition: border-color 0.12s
+
+    &:focus
+      border-color: var(--color-primary)
+
+    &:disabled
+      background: $bg
+      color: $re-muted
+
+    &--name
+      width: 100%
 
   &__unit
-    color: $text-inactive
-    font-size: 12px
-
-  &__rows
-    display: flex
-    flex-direction: column
-    gap: 8px
+    color: $re-muted
+    font-size: 11.5px
+    min-width: 14px
 
   &__row-actions
     display: flex
-    flex-direction: column
-    align-items: flex-start
+    align-items: center
+    gap: 10px
+    justify-self: end
+
+    &--save
+      gap: 6px
+
+  &__act
+    display: inline-flex
+    align-items: center
     gap: 4px
-    .sib-btn
-      font-size: 12px
-      padding: 4px 8px
-      i
-        margin-right: 4px
+    background: transparent
+    border: none
+    padding: 2px 4px
+    border-radius: 4px
+    cursor: pointer
+    font-family: inherit
+    font-size: 11.5px
+    font-weight: 500
+    color: var(--color-primary)
+    transition: background 0.12s, opacity 0.12s
+
+    i
+      font-size: 10px
+
+    &:hover
+      background: rgba(27, 61, 95, 0.06)
+
+    &--del
+      color: $re-muted
+      font-weight: 400
+
+      &:hover
+        color: $error
+        background: rgba(232, 73, 73, 0.06)
+
+  &__save
+    height: $re-input-h
+    padding: 0 14px
+    background: var(--color-primary)
+    color: white
+    border: none
+    border-radius: 5px
+    font-family: inherit
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: opacity 0.15s
+
+    &:hover
+      opacity: 0.9
+
+    &:disabled
+      opacity: 0.6
+      cursor: not-allowed

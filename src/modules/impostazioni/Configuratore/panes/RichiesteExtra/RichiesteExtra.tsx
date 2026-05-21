@@ -38,7 +38,7 @@ export default function RichiesteExtra() {
 
   const isOpzionata = data.Tipologia === 'Opzionata'
 
-  const update = (i: number, field: keyof Regola, v: any) => {
+  const update = (i: number, field: keyof Regola, v: Regola[keyof Regola]) => {
     const next = [...data.options]
     next[i] = { ...next[i], [field]: v }
     setData({ ...data, options: next })
@@ -48,20 +48,22 @@ export default function RichiesteExtra() {
 
   const save = async () => {
     setSaving(true)
-    try { await apiFetchSibylla('configura/SetRichiesteExtra', { method: 'POST', body: data }) } catch {}
+    try { await apiFetchSibylla('configura/SetRichiesteExtra', { method: 'POST', body: data }) } catch { /* silent */ }
     setSaving(false)
   }
 
-  return (
-    <div className="richieste-extra">
-      <div className="richieste-extra__breadcrumb">
-        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Richieste extra</strong>
-      </div>
+  const variantClass = isOpzionata ? '' : ' richieste-extra--garantita'
 
+  return (
+    <div className={`richieste-extra${variantClass}`}>
       <div className="richieste-extra__filters">
         <div className="richieste-extra__field">
           <label>Strutture</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
+          <select
+            className="sib-select richieste-extra__select"
+            value={data.StrutturaId ?? ''}
+            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          >
             <option value="">Hotel Tutorial</option>
             {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
           </select>
@@ -70,53 +72,112 @@ export default function RichiesteExtra() {
           <label>Tipologia</label>
           <div className="richieste-extra__radio-group">
             <label className="richieste-extra__radio-item">
-              <input type="radio" className="sib-radio" checked={isOpzionata} onChange={() => setData({ ...data, Tipologia: 'Opzionata' })} />
+              <input
+                type="radio"
+                className="sib-radio"
+                checked={isOpzionata}
+                onChange={() => setData({ ...data, Tipologia: 'Opzionata' })}
+              />
               <span>Opzionata</span>
             </label>
             <label className="richieste-extra__radio-item">
-              <input type="radio" className="sib-radio" checked={!isOpzionata} onChange={() => setData({ ...data, Tipologia: 'Garantita' })} />
+              <input
+                type="radio"
+                className="sib-radio"
+                checked={!isOpzionata}
+                onChange={() => setData({ ...data, Tipologia: 'Garantita' })}
+              />
               <span>Garantita</span>
             </label>
           </div>
         </div>
       </div>
 
-      <div className="richieste-extra__header">
-        <span>Condizione</span>
-        <span>Nome</span>
-        {isOpzionata && <span>A</span>}
-        <span>Fee Extra</span>
-        <span />
-      </div>
+      <div className="richieste-extra__table" role="table">
+        <div className="richieste-extra__head" role="row">
+          <span role="columnheader">Condizione</span>
+          <span role="columnheader">Nome</span>
+          {isOpzionata && <span role="columnheader">A</span>}
+          <span role="columnheader">Fee Extra</span>
+          <span role="columnheader" className="richieste-extra__head--actions">Azioni</span>
+        </div>
 
-      <div className="richieste-extra__rows">
         {data.options.map((row, i) => (
-          <div className={`richieste-extra__row ${isOpzionata ? '' : 'richieste-extra__row--garantita'}`} key={i}>
-            <button type="button" className="sib-btn sib-btn--secondary" disabled>Accetta</button>
-            <input type="text" className="sib-input" value={row.Nome} onChange={(e) => update(i, 'Nome', e.target.value)} />
+          <div className="richieste-extra__row" key={i} role="row">
+            <span className="richieste-extra__tag richieste-extra__tag--ok">Accetta</span>
+            <input
+              type="text"
+              className="richieste-extra__input richieste-extra__input--name"
+              value={row.Nome}
+              onChange={(e) => update(i, 'Nome', e.target.value)}
+              aria-label={`Nome regola ${i + 1}`}
+            />
             {isOpzionata && (
               <div className="richieste-extra__cell">
-                <input type="number" className="sib-input richieste-extra__short" value={row.giorni} onChange={(e) => update(i, 'giorni', Number(e.target.value) || 0)} />
+                <input
+                  type="number"
+                  className="richieste-extra__input"
+                  value={row.giorni}
+                  onChange={(e) => update(i, 'giorni', Number(e.target.value) || 0)}
+                  aria-label={`Giorni regola ${i + 1}`}
+                />
                 <span className="richieste-extra__unit">gg</span>
               </div>
             )}
             <div className="richieste-extra__cell">
-              <input type="number" step="0.01" className="sib-input richieste-extra__short" value={row.fee} onChange={(e) => update(i, 'fee', Number(e.target.value) || 0)} />
+              <input
+                type="number"
+                step="0.01"
+                className="richieste-extra__input"
+                value={row.fee}
+                onChange={(e) => update(i, 'fee', Number(e.target.value) || 0)}
+                aria-label={`Fee extra regola ${i + 1}`}
+              />
               <span className="richieste-extra__unit">€</span>
             </div>
             <div className="richieste-extra__row-actions">
-              <button type="button" className="sib-btn sib-btn--ghost" onClick={addRow}><i className="fa-light fa-plus" /> Aggiungi regola</button>
-              {i > 0 && <button type="button" className="sib-btn sib-btn--ghost" onClick={() => delRow(i)}><i className="fa-light fa-trash" /> Elimina</button>}
+              <button type="button" className="richieste-extra__act" onClick={addRow} title="Aggiungi una regola">
+                <i className="fa-light fa-plus" />
+                <span>Aggiungi</span>
+              </button>
+              {i > 0 && (
+                <button
+                  type="button"
+                  className="richieste-extra__act richieste-extra__act--del"
+                  onClick={() => delRow(i)}
+                  title="Elimina questa regola"
+                >
+                  <i className="fa-light fa-trash" />
+                  <span>Elimina</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
 
-        <div className={`richieste-extra__row richieste-extra__row--rifiuta ${isOpzionata ? '' : 'richieste-extra__row--garantita'}`}>
-          <button type="button" className="sib-btn sib-btn--danger" disabled>Rifiuta</button>
-          <input type="text" className="sib-input" disabled />
-          {isOpzionata && <input type="text" className="sib-input richieste-extra__short" disabled />}
-          <input type="text" className="sib-input richieste-extra__short" value="null" disabled readOnly />
-          <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>
+        <div className="richieste-extra__row richieste-extra__row--last" role="row">
+          <span className="richieste-extra__tag richieste-extra__tag--ko">Rifiuta</span>
+          <input type="text" className="richieste-extra__input richieste-extra__input--name" disabled aria-label="Rifiuta (nome)" />
+          {isOpzionata && (
+            <div className="richieste-extra__cell">
+              <input type="text" className="richieste-extra__input" disabled aria-label="Rifiuta (giorni)" />
+            </div>
+          )}
+          <div className="richieste-extra__cell">
+            <input
+              type="text"
+              className="richieste-extra__input"
+              value="null"
+              disabled
+              readOnly
+              aria-label="Rifiuta (fee)"
+            />
+          </div>
+          <div className="richieste-extra__row-actions richieste-extra__row-actions--save">
+            <button type="button" className="richieste-extra__save" onClick={save} disabled={saving}>
+              {saving ? 'Salvataggio…' : 'Salva'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

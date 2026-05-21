@@ -1,47 +1,104 @@
 // ─── BUFFER PRESENZE ──────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
 
+$bp-input-h: 28px
+$bp-row-h: 40px
+$bp-num-w: 180px
+$bp-muted: #6b7785
+$bp-row-divider: #eef0f3
+
 .buffer-presenze
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 12px
   font-size: 13px
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
+  &__table-wrap
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
+    max-width: 760px
 
   &__table
     width: 100%
     border-collapse: collapse
 
     th, td
-      padding: 8px 12px
-      text-align: left
-      border-bottom: 1px solid $border
+      padding: 0 12px
+      vertical-align: middle
+      border-bottom: 1px solid $bp-row-divider
+      height: $bp-row-h
+      box-sizing: border-box
 
     th
-      background: $primary-50
-      color: $primary
-      font-size: 12px
+      background: $bg
+      color: $bp-muted
+      font-size: 10.5px
       font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      text-align: left
+      border-bottom: 1px solid $border
+      height: 32px
+
+    tr:last-child td
+      border-bottom: none
+
+    tbody tr:hover
+      background: rgba(0, 0, 0, 0.015)
+
+  &__th--name
+    width: auto
+
+  &__th--num
+    width: $bp-num-w
+    text-align: left
+
+  &__th--toggle
+    width: 160px
+    text-align: left
+
+  &__td
+    color: $text-active
+    line-height: 1.2
+
+    &--name
+      font-weight: 500
+
+    &--num
+      width: $bp-num-w
+
+    &--toggle
+      width: 160px
 
   &__input
+    height: $bp-input-h
     width: 80px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 8px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    background: $white
+    outline: none
+    transition: border-color 0.12s
 
+    &:focus
+      border-color: var(--color-primary)
+
+    &:disabled
+      background: $bg
+      color: $bp-muted
+
+  // ── Toggle ────────────────────────────────────────────────────────────────
   &__toggle
     display: inline-flex
     align-items: center
     gap: 8px
     cursor: pointer
     position: relative
+    user-select: none
 
     input
       position: absolute
@@ -50,40 +107,59 @@
       height: 0
 
       &:checked + .buffer-presenze__slider
-        background: $primary
+        background: var(--color-primary)
 
         &:before
-          transform: translateX(20px)
+          transform: translateX(16px)
 
   &__slider
-    width: 44px
-    height: 22px
+    width: 36px
+    height: 20px
     background: $border
-    border-radius: 11px
+    border-radius: 10px
     position: relative
     transition: background 0.2s
 
     &:before
       content: ""
-      width: 18px
-      height: 18px
+      width: 16px
+      height: 16px
       background: white
       border-radius: 50%
       position: absolute
       top: 2px
       left: 2px
       transition: transform 0.2s
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2)
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2)
 
   &__toggle-text
     font-size: 11px
     font-weight: 600
-    color: $text-inactive
+    color: $bp-muted
     min-width: 24px
+    letter-spacing: 0.3px
 
+  // ── Save ──────────────────────────────────────────────────────────────────
   &__actions
     display: flex
     justify-content: flex-end
 
-    .sib-btn
-      min-width: 100px
+  &__save
+    height: $bp-input-h
+    padding: 0 16px
+    background: var(--color-primary)
+    color: white
+    border: none
+    border-radius: 5px
+    font-family: inherit
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: opacity 0.15s
+
+    &:hover
+      opacity: 0.9
+
+    &:disabled
+      opacity: 0.6
+      cursor: not-allowed

@@ -1,71 +1,191 @@
 // ─── ARRANGIAMENTI ────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
 
+$arr-input-h: 28px
+$arr-row-h: 40px
+$arr-num-w: 110px
+$arr-check-w: 76px
+$arr-muted: #6b7785
+$arr-row-divider: #eef0f3
+
 .arrangiamenti
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 12px
   font-size: 13px
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
-
+  // ── Filtri ────────────────────────────────────────────────────────────────
   &__filters
     display: flex
-    gap: 24px
+    gap: 18px
     align-items: flex-end
     flex-wrap: wrap
 
   &__field
     display: flex
     flex-direction: column
-    gap: 6px
+    gap: 4px
+
     label
-      font-size: 12px
-      color: $text-inactive
+      font-size: 11px
+      color: $arr-muted
       font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.3px
+
+  &__select
+    height: $arr-input-h
+    min-width: 140px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 26px 0 8px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    background-color: $white
+    outline: none
+
+    &:focus
+      border-color: var(--color-primary)
+
+    &--inline
+      width: 100%
+      min-width: 0
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__table-wrap
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
 
   &__table
     width: 100%
     border-collapse: collapse
+    table-layout: auto
 
     th, td
-      padding: 8px 10px
-      text-align: left
-      border-bottom: 1px solid $border
+      padding: 0 10px
       vertical-align: middle
+      border-bottom: 1px solid $arr-row-divider
+      height: $arr-row-h
+      box-sizing: border-box
 
     th
-      background: $primary-50
-      color: $primary
-      font-size: 12px
+      background: $bg
+      color: $arr-muted
+      font-size: 10.5px
+      font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      text-align: left
+      border-bottom: 1px solid $border
+      height: 32px
+
+    tr:last-child td
+      border-bottom: none
+
+    tbody tr:hover
+      background: rgba(0, 0, 0, 0.015)
+
+  &__th--name
+    width: 22%
+    min-width: 180px
+
+  &__th--num
+    width: $arr-num-w
+    text-align: left
+
+  &__th--center
+    width: $arr-check-w
+    text-align: center
+
+  &__td
+    line-height: 1
+    color: $text-active
+
+    &--name
       font-weight: 600
 
+    &--num
+      width: $arr-num-w
+
+    &--center
+      text-align: center
+      width: $arr-check-w
+
   &__name
-    display: flex
+    display: inline-flex
     align-items: center
     gap: 8px
-    font-weight: 600
+    line-height: $arr-input-h
+
+    i
+      color: $arr-muted
+      font-size: 14px
+      width: 16px
+      text-align: center
 
   &__cell
-    display: flex
+    display: inline-flex
     align-items: center
     gap: 4px
 
-  &__short
-    width: 80px
+  &__input
+    height: $arr-input-h
+    width: 64px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 6px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    background: $white
+    outline: none
+    transition: border-color 0.12s
 
-  &__center
-    text-align: center
+    &:focus
+      border-color: var(--color-primary)
 
+  &__unit
+    color: $arr-muted
+    font-size: 11.5px
+    min-width: 10px
+
+  &__checkbox
+    width: 16px
+    height: 16px
+    accent-color: var(--color-primary)
+    cursor: pointer
+    vertical-align: middle
+    margin: 0
+
+  &__dash
+    color: $arr-muted
+    font-size: 13px
+    display: inline-block
+    line-height: $arr-input-h
+
+  // ── Actions ───────────────────────────────────────────────────────────────
   &__actions
     display: flex
     justify-content: flex-end
+
+  &__save
+    height: $arr-input-h
+    padding: 0 16px
+    background: var(--color-primary)
+    color: white
+    border: none
+    border-radius: 5px
+    font-family: inherit
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: opacity 0.15s
+
+    &:hover
+      opacity: 0.9
+
+    &:disabled
+      opacity: 0.6
+      cursor: not-allowed
