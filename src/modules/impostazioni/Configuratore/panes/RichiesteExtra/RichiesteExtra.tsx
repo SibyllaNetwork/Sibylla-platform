@@ -56,6 +56,10 @@ export default function RichiesteExtra() {
 
   return (
     <div className={`richieste-extra${variantClass}`}>
+      <div className="richieste-extra__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Richieste extra</strong>
+      </div>
+
       <div className="richieste-extra__filters">
         <div className="richieste-extra__field">
           <label>Strutture</label>

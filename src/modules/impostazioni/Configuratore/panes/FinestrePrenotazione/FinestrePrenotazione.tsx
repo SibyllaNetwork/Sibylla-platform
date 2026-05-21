@@ -59,6 +59,10 @@ export default function FinestrePrenotazione() {
 
   return (
     <div className="finestre-prenotazione">
+      <div className="finestre-prenotazione__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Finestre prenotazione</strong>
+      </div>
+
       <div className="finestre-prenotazione__filters">
         <div className="finestre-prenotazione__field">
           <label>Strutture</label>

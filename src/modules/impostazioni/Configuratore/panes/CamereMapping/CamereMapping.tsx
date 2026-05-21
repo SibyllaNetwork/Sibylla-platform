@@ -24,6 +24,9 @@ export default function CamereMapping() {
   if (!data.configured) {
     return (
       <div className="camere-mapping">
+        <div className="camere-mapping__breadcrumb">
+          Configuratore <i className="fa-light fa-chevron-right" /> <strong>Mapping camere</strong>
+        </div>
         <div className="camere-mapping__empty">
           <i className="fa-light fa-bed-front" />
           <p>Per visualizzare la pagina è necessario configurare il mapping delle camere</p>
@@ -35,7 +38,7 @@ export default function CamereMapping() {
   return (
     <div className="camere-mapping">
       <div className="camere-mapping__breadcrumb">
-        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Camere mapping</strong>
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Mapping camere</strong>
       </div>
       <table className="camere-mapping__table">
         <thead><tr><th>Tipo Sibylla</th><th>Tipo Hotel</th></tr></thead>

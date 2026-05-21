@@ -53,6 +53,10 @@ export default function ScaglioniOccupazione() {
 
   return (
     <div className="scaglioni-occupazione">
+      <div className="scaglioni-occupazione__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Scaglioni occupazione</strong>
+      </div>
+
       <div className="scaglioni-occupazione__filters">
         <div className="scaglioni-occupazione__field">
           <label>Strutture</label>

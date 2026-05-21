@@ -62,6 +62,10 @@ export default function BarFit() {
 
   return (
     <div className="bar-fit">
+      <div className="bar-fit__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>B.A.R / F.I.T.</strong>
+      </div>
+
       <div className="bar-fit__filters">
         <div className="bar-fit__field">
           <label>Strutture</label>

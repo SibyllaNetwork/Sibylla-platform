@@ -36,6 +36,10 @@ export default function BufferPresenze() {
 
   return (
     <div className="buffer-presenze">
+      <div className="buffer-presenze__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Buffer presenze</strong>
+      </div>
+
       <div className="buffer-presenze__table-wrap">
         <table className="buffer-presenze__table">
           <thead>

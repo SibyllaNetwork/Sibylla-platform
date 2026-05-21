@@ -12,6 +12,19 @@ $so-row-divider: #eef0f3
   gap: 12px
   font-size: 13px
 
+  &__breadcrumb
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+
+    i
+      font-size: 11px
+
+    strong
+      color: var(--color-primary)
+      font-weight: 600
+
   // ── Filtri (Strutture + Tipologia) su una riga ────────────────────────────
   &__filters
     display: flex
@@ -58,7 +71,6 @@ $so-row-divider: #eef0f3
     border: 1px solid $border
     border-radius: 6px
     overflow: hidden
-    max-width: 480px
 
   &__head
     display: grid
