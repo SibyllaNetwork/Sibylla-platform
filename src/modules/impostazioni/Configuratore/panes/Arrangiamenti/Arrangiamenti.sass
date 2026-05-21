@@ -4,8 +4,9 @@
 
 $arr-input-h: 28px
 $arr-row-h: 40px
-$arr-num-w: 110px
-$arr-check-w: 76px
+$arr-num-w: 150px
+$arr-check-w: 72px
+$arr-pasto-w: 120px
 $arr-muted: #6b7785
 $arr-row-divider: #eef0f3
 
@@ -75,17 +76,24 @@ $arr-row-divider: #eef0f3
   &__table
     @include paneShared.pane-table-base
 
+    th
+      white-space: nowrap
+
   &__th--name
-    width: 22%
+    width: auto
     min-width: 180px
 
   &__th--num
     width: $arr-num-w
     text-align: left
+    white-space: nowrap
 
   &__th--center
     width: $arr-check-w
     text-align: center
+
+  &__th--pasto
+    width: $arr-pasto-w
 
   &__td
     line-height: 1

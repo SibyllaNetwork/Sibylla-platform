@@ -99,8 +99,8 @@ export default function Arrangiamenti() {
               <th className="arrangiamenti__th--center">Colazione</th>
               <th className="arrangiamenti__th--center">Pranzo</th>
               <th className="arrangiamenti__th--center">Cena</th>
-              <th>Inizia con</th>
-              <th>Finisci con</th>
+              <th className="arrangiamenti__th--pasto">Inizia con</th>
+              <th className="arrangiamenti__th--pasto">Finisci con</th>
             </tr>
           </thead>
           <tbody>
