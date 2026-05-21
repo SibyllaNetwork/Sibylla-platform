@@ -85,29 +85,39 @@ export default function MarketSpecifics() {
         Configuratore <i className="fa-light fa-chevron-right" /> <strong>Market specifics</strong>
       </div>
 
-      <div className="market-specifics__header">
-        <span>Nazionalità</span>
-        <span>Scontistica</span>
-      </div>
-      <div className="market-specifics__list">
-        {pageItems.map((n) => (
-          <div className="market-specifics__row" key={n.id}>
-            <div className="market-specifics__naz">
-              <span className="market-specifics__flag">{n.flagEmoji}</span>
-              <span>{n.nome}</span>
-            </div>
-            <div className="market-specifics__cell">
-              <input
-                type="number"
-                className="sib-input sib-input--dense market-specifics__input"
-                value={n.sconto}
-                onChange={(e) => update(n.id, Number(e.target.value) || 0)}
-                aria-label={`Scontistica ${n.nome}`}
-              />
-              <span className="market-specifics__unit">%</span>
-            </div>
-          </div>
-        ))}
+      <div className="market-specifics__table-wrap">
+        <table className="market-specifics__table">
+          <thead>
+            <tr>
+              <th>Nazionalità</th>
+              <th className="market-specifics__th--sconto">Scontistica</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pageItems.map((n) => (
+              <tr key={n.id}>
+                <td className="market-specifics__td--naz">
+                  <span className="market-specifics__naz">
+                    <span className="market-specifics__flag">{n.flagEmoji}</span>
+                    <span>{n.nome}</span>
+                  </span>
+                </td>
+                <td>
+                  <span className="market-specifics__cell">
+                    <input
+                      type="number"
+                      className="sib-input sib-input--dense market-specifics__input"
+                      value={n.sconto}
+                      onChange={(e) => update(n.id, Number(e.target.value) || 0)}
+                      aria-label={`Scontistica ${n.nome}`}
+                    />
+                    <span className="market-specifics__unit">%</span>
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="market-specifics__footer">
