@@ -64,6 +64,7 @@ import GrigliaDisponibilitaEstesa  from '../modules/sales/booking/GrigliaDisponi
 import Assegnazione                from '../modules/sales/booking/Assegnazione/Assegnazione';
 import CentroNotifiche             from '../modules/notifiche/CentroNotifiche/CentroNotifiche';
 import ConfiguraNotifiche          from '../modules/notifiche/ConfiguraNotifiche/ConfiguraNotifiche';
+import Chat                        from '../modules/chat/Chat/Chat';
 import SibyllaAdminPanel           from '../admin/SibyllaAdminPanel/SibyllaAdminPanel';
 import Planner                     from '../modules/operation/planner';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
@@ -169,6 +170,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'pricing-benchmark')     return <PricingBenchmark navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;
+  if (page === 'chat')                  return <Chat navigate={navigate}/>;
   if (page === 'tariffe-disp')          return <TariffeDisponibilita navigate={navigate}/>;
   if (page === 'piani-tar')             return <GestionePianiTariffari navigate={navigate}/>;
   if (page === 'maggiorazioni')         return <MaggiorazioniPromozioni navigate={navigate}/>;

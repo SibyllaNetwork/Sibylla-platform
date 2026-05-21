@@ -137,6 +137,32 @@
       &:hover
         background: rgba(255, 255, 255, 0.2)
 
+    &--chat
+      position: relative
+
+  &__chat-icon
+    font-size: 18px
+    color: rgba(255, 255, 255, 0.80)
+
+  &__chat-badge
+    position: absolute
+    bottom: 2px
+    right: 2px
+    min-width: 15px
+    height: 15px
+    background: $error
+    border-radius: 8px
+    border: 1.5px solid $primary
+    font-size: 8px
+    font-weight: 700
+    color: $white
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 0 3px
+    pointer-events: none
+    line-height: 1
+
   // ── Search ──────────────────────────────────────────────────────────────────
   &__search
     display: flex

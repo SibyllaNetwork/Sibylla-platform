@@ -7,6 +7,7 @@ import Tooltip from '../core/components/Tooltip'
 import PreferencesMenu from './PreferencesMenu'
 import MENU from '../navigation/menu'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
+import { useChatStore } from '../store/useChatStore'
 
 interface Props {
   crumbs          : any[]
@@ -31,6 +32,8 @@ export default function Topbar({
   crumbs, isMobile, sideOpen, setSideOpen, navigate,
   favorites, toggleFavorite, showFavPanel, setShowFavPanel, currentPage,
 }: Props) {
+  const chatUnread = useChatStore(s => s.conversations.reduce((acc, c) => acc + c.unreadCount, 0))
+
   const [query,    setQuery]    = useState('')
   const [results,  setResults]  = useState<SearchResult[]>([])
   const [selIdx,   setSelIdx]   = useState(-1)
@@ -183,6 +186,18 @@ export default function Topbar({
       </button>
       <button className="topbar__icon-btn" onClick={() => navigate('portafoglio-aziendale')} title="Portafoglio aziendale">
         <Ico n="database" s={18} c={C.normal} />
+      </button>
+      <button
+        className="topbar__icon-btn topbar__icon-btn--chat"
+        onClick={() => navigate('chat')}
+        title="Chat"
+      >
+        <i className="fa-light fa-comments topbar__chat-icon" aria-hidden="true" />
+        {chatUnread > 0 && (
+          <span className="topbar__chat-badge">
+            {chatUnread > 99 ? '99+' : chatUnread}
+          </span>
+        )}
       </button>
       <button className="topbar__icon-btn" onClick={() => navigate('gest-acquisti')} title="Acquisti">
         <Ico n="cart" s={18} c={C.normal} />

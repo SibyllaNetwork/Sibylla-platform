@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Tooltip from '../../../core/components/Tooltip'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
+import { useChatStore } from '../../../store/useChatStore'
 import './CentroNotifiche.sass'
 
 interface NotificaUI {
@@ -91,6 +92,12 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
 
   const toggleExpand = (id: number) =>
     setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+
+  const selectChatFromNotif = useChatStore(s => s.selectFromNotif)
+  const openChat = (notifId: number) => {
+    selectChatFromNotif(notifId)
+    navigate('chat')
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -242,7 +249,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                               <button
                                 type="button"
                                 className="notifiche__row-action-btn"
-                                onClick={() => navigate(`chat-notifica/${n.id}`)}
+                                onClick={() => openChat(n.id)}
                                 aria-label="Apri chat con il mittente"
                                 style={{ color: c }}
                               >
@@ -307,7 +314,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                             <button
                               type="button"
                               className="sib-btn sib-btn--secondary"
-                              onClick={() => navigate(`chat-notifica/${n.id}`)}
+                              onClick={() => openChat(n.id)}
                             >
                               <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
                             </button>
