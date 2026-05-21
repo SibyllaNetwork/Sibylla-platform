@@ -81,19 +81,21 @@ export default function VociIncasso() {
         </button>
       </div>
 
-      <table className="voci-incasso__table">
-        <thead><tr><th>Codice Incasso</th><th>Descrizione</th><th>Gruppo</th><th>Commissioni</th><th>Cod. Fel</th><th>Cod. Scel</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.voci.length === 0
-            ? <tr><td colSpan={7} className="voci-incasso__empty">Nessuna voce di incasso configurata.</td></tr>
-            : data.voci.map((v) => (
-              <tr key={v.id}>
-                <td>{v.codice}</td><td>{v.descrizione}</td><td>{v.gruppo}</td><td>{v.commissioni}%</td><td>{v.codFel}</td><td>{v.codScel}</td>
-                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className="voci-incasso__table-wrap">
+        <table className="voci-incasso__table">
+          <thead><tr><th>Codice Incasso</th><th>Descrizione</th><th>Gruppo</th><th>Commissioni</th><th>Cod. Fel</th><th>Cod. Scel</th><th>Azioni</th></tr></thead>
+          <tbody>
+            {data.voci.length === 0
+              ? <tr><td colSpan={7} className="voci-incasso__empty">Nessuna voce di incasso configurata.</td></tr>
+              : data.voci.map((v) => (
+                <tr key={v.id}>
+                  <td>{v.codice}</td><td>{v.descrizione}</td><td>{v.gruppo}</td><td>{v.commissioni}%</td><td>{v.codFel}</td><td>{v.codScel}</td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
 
       <h3 className="voci-incasso__section-title"><i className="fa-light fa-clock-rotate-left" /> Scadenze Sospesi</h3>
       <div className="voci-incasso__form">
@@ -115,19 +117,21 @@ export default function VociIncasso() {
       </div>
 
       <h3 className="voci-incasso__section-title"><i className="fa-light fa-clock-rotate-left" /> Scadenze Sospesi configurate</h3>
-      <table className="voci-incasso__table">
-        <thead><tr><th>Descrizione</th><th>Giorni</th><th>Fine Mese</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.scadenze.length === 0
-            ? <tr><td colSpan={4} className="voci-incasso__empty">Nessuna scadenza configurata.</td></tr>
-            : data.scadenze.map((s) => (
-              <tr key={s.id}>
-                <td>{s.descrizione}</td><td>{s.giorni}</td><td>{s.fineMese ? 'Sì' : 'No'}</td>
-                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className="voci-incasso__table-wrap">
+        <table className="voci-incasso__table">
+          <thead><tr><th>Descrizione</th><th>Giorni</th><th>Fine Mese</th><th>Azioni</th></tr></thead>
+          <tbody>
+            {data.scadenze.length === 0
+              ? <tr><td colSpan={4} className="voci-incasso__empty">Nessuna scadenza configurata.</td></tr>
+              : data.scadenze.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.descrizione}</td><td>{s.giorni}</td><td>{s.fineMese ? 'Sì' : 'No'}</td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

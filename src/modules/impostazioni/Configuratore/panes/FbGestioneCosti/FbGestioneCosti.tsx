@@ -52,22 +52,24 @@ export default function FbGestioneCosti() {
         <button type="button" className="sib-btn sib-btn--primary" onClick={add}><i className="fa-light fa-plus" /> Aggiungi</button>
       </div>
 
-      <table className="fb-gestione-costi__table">
-        <thead><tr><th /><th>Descrizione</th><th>Importo</th><th>Frequenza</th><th>Costo Mensile Stimato (€)</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.costi.length === 0
-            ? <tr><td colSpan={6} className="fb-gestione-costi__empty">Nessun costo configurato.</td></tr>
-            : data.costi.map((c, i) => (
-              <tr key={c.id}>
-                <td>{i + 1}</td><td>{c.descrizione}</td>
-                <td>{c.importo.toFixed(2).replace('.', ',')} €</td>
-                <td>{c.frequenza}</td>
-                <td>{(c.importo / DIV[c.frequenza]).toFixed(2).replace('.', ',')}</td>
-                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className="fb-gestione-costi__table-wrap">
+        <table className="fb-gestione-costi__table">
+          <thead><tr><th /><th>Descrizione</th><th>Importo</th><th>Frequenza</th><th>Costo Mensile Stimato (€)</th><th>Azioni</th></tr></thead>
+          <tbody>
+            {data.costi.length === 0
+              ? <tr><td colSpan={6} className="fb-gestione-costi__empty">Nessun costo configurato.</td></tr>
+              : data.costi.map((c, i) => (
+                <tr key={c.id}>
+                  <td>{i + 1}</td><td>{c.descrizione}</td>
+                  <td>{c.importo.toFixed(2).replace('.', ',')} €</td>
+                  <td>{c.frequenza}</td>
+                  <td>{(c.importo / DIV[c.frequenza]).toFixed(2).replace('.', ',')}</td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

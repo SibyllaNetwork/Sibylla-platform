@@ -54,23 +54,25 @@ export default function PolitichePrenotazione() {
         </button>
       </div>
 
-      <table className="politiche-prenotazione__table">
-        <thead><tr><th>Nome</th><th>Descrizione</th><th>Prenotazione</th><th>Cancellazione</th><th>Mancato arrivo</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.Politiche.map((p) => (
-            <tr key={p.Id}>
-              <td>{p.Nome}</td><td>{p.Descrizione}</td>
-              <td>{p.PagamentoAllaPrenotazione ? 'Sì' : 'No'}</td>
-              <td>{p.PoliticaCancellazioneAbilitata ? 'Sì' : 'No'}</td>
-              <td>{p.PenaleMancatoArrivoAbilitata ? `${p.PenaleMancatoArrivoPercentuale.toFixed(2).replace('.', ',')}%` : 'Nessuna'}</td>
-              <td className="politiche-prenotazione__actions-cell">
-                <button type="button" className="sib-btn sib-btn--icon" onClick={() => setEditing({ ...p })}><i className="fa-light fa-pen" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="politiche-prenotazione__table-wrap">
+        <table className="politiche-prenotazione__table">
+          <thead><tr><th>Nome</th><th>Descrizione</th><th>Prenotazione</th><th>Cancellazione</th><th>Mancato arrivo</th><th>Azioni</th></tr></thead>
+          <tbody>
+            {data.Politiche.map((p) => (
+              <tr key={p.Id}>
+                <td>{p.Nome}</td><td>{p.Descrizione}</td>
+                <td>{p.PagamentoAllaPrenotazione ? 'Sì' : 'No'}</td>
+                <td>{p.PoliticaCancellazioneAbilitata ? 'Sì' : 'No'}</td>
+                <td>{p.PenaleMancatoArrivoAbilitata ? `${p.PenaleMancatoArrivoPercentuale.toFixed(2).replace('.', ',')}%` : 'Nessuna'}</td>
+                <td className="politiche-prenotazione__actions-cell">
+                  <button type="button" className="sib-btn sib-btn--icon" onClick={() => setEditing({ ...p })}><i className="fa-light fa-pen" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {editing && (
         <div className="politiche-prenotazione__modal-backdrop" onClick={() => setEditing(null)}>

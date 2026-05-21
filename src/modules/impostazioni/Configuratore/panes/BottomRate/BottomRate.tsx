@@ -62,6 +62,7 @@ export default function BottomRate() {
         </div>
       </div>
 
+      <div className="bottom-rate__table-wrap">
       <table className="bottom-rate__table">
         <thead>
           <tr>
@@ -101,6 +102,7 @@ export default function BottomRate() {
           ))}
         </tbody>
       </table>
+      </div>
 
       <div className="bottom-rate__actions">
         <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>

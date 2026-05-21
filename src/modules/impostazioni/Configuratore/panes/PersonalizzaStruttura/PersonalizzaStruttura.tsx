@@ -72,7 +72,7 @@ export default function PersonalizzaStruttura() {
 
       <h3 className="personalizza-struttura__title">Riepilogo assegnazioni</h3>
 
-      <table className="personalizza-struttura__table">
+      <div className="personalizza-struttura__table-wrap"><table className="personalizza-struttura__table">
         <thead>
           <tr>
             <th>Struttura</th><th>Località</th><th>Descrizione</th><th>Codice</th><th>Azioni</th>
@@ -92,7 +92,7 @@ export default function PersonalizzaStruttura() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </div>
   )
 }

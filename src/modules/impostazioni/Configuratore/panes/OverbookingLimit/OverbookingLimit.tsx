@@ -49,19 +49,21 @@ export default function OverbookingLimit() {
         </button>
       </div>
 
-      <table className="overbooking-limit__table">
-        <thead><tr><th>Tipologia camera</th><th>Periodo</th><th>OverBooking limit</th><th>Protection</th><th /></tr></thead>
-        <tbody>
-          {data.rows.length === 0 ? (
-            <tr><td colSpan={5} className="overbooking-limit__empty">Nessuna regola configurata.</td></tr>
-          ) : data.rows.map((r) => (
-            <tr key={r.id}>
-              <td>{r.tipologia}</td><td>{r.periodo}</td><td>{r.limit}%</td><td>{r.protection}%</td>
-              <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="overbooking-limit__table-wrap">
+        <table className="overbooking-limit__table">
+          <thead><tr><th>Tipologia camera</th><th>Periodo</th><th>OverBooking limit</th><th>Protection</th><th /></tr></thead>
+          <tbody>
+            {data.rows.length === 0 ? (
+              <tr><td colSpan={5} className="overbooking-limit__empty">Nessuna regola configurata.</td></tr>
+            ) : data.rows.map((r) => (
+              <tr key={r.id}>
+                <td>{r.tipologia}</td><td>{r.periodo}</td><td>{r.limit}%</td><td>{r.protection}%</td>
+                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {open && (
         <div className="overbooking-limit__modal-backdrop" onClick={() => setOpen(false)}>

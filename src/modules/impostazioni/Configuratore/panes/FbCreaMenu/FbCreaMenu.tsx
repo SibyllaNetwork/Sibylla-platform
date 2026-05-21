@@ -70,24 +70,26 @@ export default function FbCreaMenu() {
         <button type="button" className="sib-btn sib-btn--primary"><i className="fa-light fa-plus" /> Aggiungi</button>
       </div>
 
-      <table className="fb-crea-menu__table">
-        <thead><tr><th /><th>Nome</th><th>Descrizione</th><th>Food cost</th><th>Prezzo</th><th>Margine</th><th>Gruppo</th><th /></tr></thead>
-        <tbody>
-          {data.piatti.map((p) => (
-            <tr key={p.id}>
-              <td><input type="checkbox" className="sib-checkbox" checked={p.selected ?? false} onChange={() => toggle(p.id)} /></td>
-              <td>{p.nome}</td><td>{p.descrizione}</td>
-              <td>{p.foodCost.toFixed(2).replace('.', ',')} €</td>
-              <td>{p.prezzo.toFixed(2).replace('.', ',')} €</td>
-              <td>{p.margine}%</td><td>{p.gruppo}</td>
-              <td className="fb-crea-menu__row-actions">
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="fb-crea-menu__table-wrap">
+        <table className="fb-crea-menu__table">
+          <thead><tr><th /><th>Nome</th><th>Descrizione</th><th>Food cost</th><th>Prezzo</th><th>Margine</th><th>Gruppo</th><th /></tr></thead>
+          <tbody>
+            {data.piatti.map((p) => (
+              <tr key={p.id}>
+                <td><input type="checkbox" className="sib-checkbox" checked={p.selected ?? false} onChange={() => toggle(p.id)} /></td>
+                <td>{p.nome}</td><td>{p.descrizione}</td>
+                <td>{p.foodCost.toFixed(2).replace('.', ',')} €</td>
+                <td>{p.prezzo.toFixed(2).replace('.', ',')} €</td>
+                <td>{p.margine}%</td><td>{p.gruppo}</td>
+                <td className="fb-crea-menu__row-actions">
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div className="fb-crea-menu__actions">
         <button type="button" className="sib-btn sib-btn--primary">Salva</button>

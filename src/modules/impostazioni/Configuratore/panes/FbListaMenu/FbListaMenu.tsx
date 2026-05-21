@@ -38,25 +38,27 @@ export default function FbListaMenu() {
         Configuratore <i className="fa-light fa-chevron-right" /> Food &amp; Beverage <i className="fa-light fa-chevron-right" /> <strong>Lista Menu</strong>
       </div>
 
-      <table className="fb-lista-menu__table">
-        <thead><tr><th>Nome</th><th>Data creazione</th><th>Dettagli</th><th>Allergeni</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.menus.map((m) => (
-            <tr key={m.id}>
-              <td>{m.nome}</td><td>{fmt(m.dataCreazione)}</td><td>{m.dettagli}</td>
-              <td>
-                <i className={`fa-solid fa-thumbs-${m.ok ? 'up' : 'down'} fb-lista-menu__thumb fb-lista-menu__thumb--${m.ok ? 'ok' : 'ko'}`} />
-              </td>
-              <td className="fb-lista-menu__row-actions">
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-eye" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-book-open" /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="fb-lista-menu__table-wrap">
+        <table className="fb-lista-menu__table">
+          <thead><tr><th>Nome</th><th>Data creazione</th><th>Dettagli</th><th>Allergeni</th><th>Azioni</th></tr></thead>
+          <tbody>
+            {data.menus.map((m) => (
+              <tr key={m.id}>
+                <td>{m.nome}</td><td>{fmt(m.dataCreazione)}</td><td>{m.dettagli}</td>
+                <td>
+                  <i className={`fa-solid fa-thumbs-${m.ok ? 'up' : 'down'} fb-lista-menu__thumb fb-lista-menu__thumb--${m.ok ? 'ok' : 'ko'}`} />
+                </td>
+                <td className="fb-lista-menu__row-actions">
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-eye" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-book-open" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div className="fb-lista-menu__pagination">
         <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-chevron-left" /> Indietro</button>

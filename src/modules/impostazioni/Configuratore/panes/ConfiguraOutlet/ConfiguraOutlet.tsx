@@ -48,7 +48,7 @@ export default function ConfiguraOutlet() {
 
       <h3 className="configura-outlet__section-title">Configura Sale</h3>
       <button type="button" className="sib-btn sib-btn--secondary configura-outlet__add"><i className="fa-light fa-circle-plus" /> Aggiungi Sala</button>
-      <table className="configura-outlet__table">
+      <div className="configura-outlet__table-wrap"><table className="configura-outlet__table">
         <thead><tr><th /><th>Nome</th><th>Tavoli</th><th>Pax</th><th>Azioni</th></tr></thead>
         <tbody>
           {data.sale.map((s) => (
@@ -67,7 +67,7 @@ export default function ConfiguraOutlet() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
 
       <h3 className="configura-outlet__section-title configura-outlet__section-title--toggle">
         Turni
@@ -92,7 +92,7 @@ export default function ConfiguraOutlet() {
             <button type="button" className="sib-btn sib-btn--secondary configura-outlet__add"><i className="fa-light fa-circle-plus" /> Aggiungi Turno</button>
           </div>
 
-          <table className="configura-outlet__table">
+          <div className="configura-outlet__table-wrap"><table className="configura-outlet__table">
             <thead><tr><th /><th>Nome</th><th>Dalle</th><th>Alle</th><th>Servizio</th><th>Sale</th><th>Azioni</th></tr></thead>
             <tbody>
               {data.turni.map((t) => (
@@ -112,7 +112,7 @@ export default function ConfiguraOutlet() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </>
       )}
     </div>

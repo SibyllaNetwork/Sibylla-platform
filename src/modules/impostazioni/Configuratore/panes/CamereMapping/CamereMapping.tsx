@@ -40,14 +40,16 @@ export default function CamereMapping() {
       <div className="camere-mapping__breadcrumb">
         Configuratore <i className="fa-light fa-chevron-right" /> <strong>Mapping camere</strong>
       </div>
-      <table className="camere-mapping__table">
-        <thead><tr><th>Tipo Sibylla</th><th>Tipo Hotel</th></tr></thead>
-        <tbody>
-          {data.rows.map((r, i) => (
-            <tr key={i}><td>{r.tipoSibylla}</td><td>{r.tipoHotel}</td></tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="camere-mapping__table-wrap">
+        <table className="camere-mapping__table">
+          <thead><tr><th>Tipo Sibylla</th><th>Tipo Hotel</th></tr></thead>
+          <tbody>
+            {data.rows.map((r, i) => (
+              <tr key={i}><td>{r.tipoSibylla}</td><td>{r.tipoHotel}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

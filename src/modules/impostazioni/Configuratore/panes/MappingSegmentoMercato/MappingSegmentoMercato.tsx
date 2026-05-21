@@ -68,7 +68,7 @@ export default function MappingSegmentoMercato() {
           ))}
         </div>
       ) : (
-        <table className="mapping-segmento__table">
+        <div className="mapping-segmento__table-wrap"><table className="mapping-segmento__table">
           <thead><tr><th>Segmenti hotel</th><th>Segmenti Sibylla</th><th /></tr></thead>
           <tbody>
             {data.segmentiHotel.map((h) => (
@@ -90,7 +90,7 @@ export default function MappingSegmentoMercato() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
 
       {data.isPms && (

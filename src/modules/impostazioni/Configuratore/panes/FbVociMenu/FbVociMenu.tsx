@@ -92,19 +92,21 @@ export default function FbVociMenu() {
         <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-circle-plus" /> Aggiungi</button>
       </div>
 
-      <table className="fb-voci-menu__table">
-        <thead><tr><th>Nome</th><th>Gruppo</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.voci.length === 0
-            ? <tr><td colSpan={3} className="fb-voci-menu__empty">Nessuna voce di menu configurata.</td></tr>
-            : data.voci.map((v) => (
-              <tr key={v.id}>
-                <td>{v.nome}</td><td>{v.gruppo}</td>
-                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className="fb-voci-menu__table-wrap">
+        <table className="fb-voci-menu__table">
+          <thead><tr><th>Nome</th><th>Gruppo</th><th>Azioni</th></tr></thead>
+          <tbody>
+            {data.voci.length === 0
+              ? <tr><td colSpan={3} className="fb-voci-menu__empty">Nessuna voce di menu configurata.</td></tr>
+              : data.voci.map((v) => (
+                <tr key={v.id}>
+                  <td>{v.nome}</td><td>{v.gruppo}</td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
