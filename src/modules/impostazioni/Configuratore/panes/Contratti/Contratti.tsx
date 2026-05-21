@@ -103,7 +103,7 @@ export default function Contratti() {
           aria-label="Aggiungi contratto"
           title="Aggiungi contratto"
         >
-          <i className="fa-light fa-plus" />
+          <i className="fa-light fa-circle-plus" />
         </button>
       </div>
 

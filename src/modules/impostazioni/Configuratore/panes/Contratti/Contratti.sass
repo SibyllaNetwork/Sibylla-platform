@@ -92,22 +92,23 @@ $c-row-divider: #eef0f3
   &__add
     width: $c-input-h
     height: $c-input-h
-    border-radius: 50%
-    border: 1px solid var(--color-primary)
-    background: $white
+    border: none
+    background: transparent
     color: var(--color-primary)
     display: inline-flex
     align-items: center
     justify-content: center
     cursor: pointer
     align-self: end
-    transition: background 0.12s
+    padding: 0
+    transition: opacity 0.12s
 
     i
-      font-size: 13px
+      font-size: 22px
+      line-height: 1
 
     &:hover
-      background: rgba(27, 61, 95, 0.06)
+      opacity: 0.75
 
   // ── Tabs ─────────────────────────────────────────────────────────────────
   &__tabs
