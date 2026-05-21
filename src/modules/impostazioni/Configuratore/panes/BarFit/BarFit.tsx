@@ -128,13 +128,13 @@ export default function BarFit() {
                 <td className="bar-fit__td bar-fit__td--actions">
                   <button
                     type="button"
-                    className="sib-btn sib-btn--icon sib-btn--sm bar-fit__icon-btn"
+                    className="sib-btn sib-btn--icon"
                     aria-label={`Visualizza ${modeLabel} ${b.id}`}
                     onClick={() => setViewId(b.id)}
                   >
                     <i className="fa-light fa-eye" />
                   </button>
-                  <button type="button" className="sib-btn sib-btn--icon sib-btn--sm bar-fit__icon-btn bar-fit__icon-btn--del" aria-label="Elimina">
+                  <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina">
                     <i className="fa-light fa-trash" />
                   </button>
                 </td>

@@ -162,10 +162,10 @@ export default function Contratti() {
                         />
                       </td>
                       <td className="contratti__td contratti__td--actions">
-                        <button type="button" className="sib-btn sib-btn--icon sib-btn--sm contratti__icon-btn" title="Modifica" aria-label="Modifica">
+                        <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica">
                           <i className="fa-light fa-pen" />
                         </button>
-                        <button type="button" className="sib-btn sib-btn--icon sib-btn--sm contratti__icon-btn contratti__icon-btn--del" title="Elimina" aria-label="Elimina">
+                        <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina">
                           <i className="fa-light fa-trash" />
                         </button>
                       </td>
