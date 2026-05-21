@@ -1,5 +1,6 @@
 // ─── VINCOLO MATRIOSCA ────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 $vm-input-h: 28px
 $vm-row-h: 40px
@@ -59,32 +60,7 @@ $vm-row-divider: #eef0f3
     overflow: hidden
 
   &__table
-    width: 100%
-    border-collapse: collapse
-
-    th, td
-      padding: 0 12px
-      vertical-align: middle
-      border-bottom: 1px solid $vm-row-divider
-      height: $vm-row-h
-      box-sizing: border-box
-
-    th
-      background: $bg
-      color: $vm-muted
-      font-size: 10.5px
-      font-weight: 600
-      text-transform: uppercase
-      letter-spacing: 0.4px
-      text-align: left
-      border-bottom: 1px solid $border
-      height: 32px
-
-    tr:last-child td
-      border-bottom: none
-
-    tbody tr:hover
-      background: rgba(0, 0, 0, 0.015)
+    @include paneShared.pane-table-base
 
   &__th--name
     width: 200px

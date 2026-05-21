@@ -1,5 +1,6 @@
 // ─── B.A.R / F.I.T. ───────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 $bf-input-h: 28px
 $bf-row-h: 36px
@@ -106,28 +107,7 @@ $bf-row-divider: #eef0f3
     overflow: hidden
 
   &__table
-    width: 100%
-    border-collapse: collapse
-
-    th, td
-      padding: 4px 10px
-      vertical-align: middle
-      border-bottom: 1px solid $bf-row-divider
-      box-sizing: border-box
-
-    th
-      padding: 6px 10px
-      background: $bg
-      color: $bf-muted
-      font-size: 10.5px
-      font-weight: 600
-      text-transform: uppercase
-      letter-spacing: 0.4px
-      text-align: left
-      border-bottom: 1px solid $border
-
-    tr:last-child td
-      border-bottom: none
+    @include paneShared.pane-table-base
 
   &__th--id
     width: 70%

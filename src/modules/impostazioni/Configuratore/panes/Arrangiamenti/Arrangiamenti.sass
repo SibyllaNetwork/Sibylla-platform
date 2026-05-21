@@ -1,5 +1,6 @@
 // ─── ARRANGIAMENTI ────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 $arr-input-h: 28px
 $arr-row-h: 40px
@@ -72,33 +73,7 @@ $arr-row-divider: #eef0f3
     overflow: hidden
 
   &__table
-    width: 100%
-    border-collapse: collapse
-    table-layout: auto
-
-    th, td
-      padding: 0 10px
-      vertical-align: middle
-      border-bottom: 1px solid $arr-row-divider
-      height: $arr-row-h
-      box-sizing: border-box
-
-    th
-      background: $bg
-      color: $arr-muted
-      font-size: 10.5px
-      font-weight: 600
-      text-transform: uppercase
-      letter-spacing: 0.4px
-      text-align: left
-      border-bottom: 1px solid $border
-      height: 32px
-
-    tr:last-child td
-      border-bottom: none
-
-    tbody tr:hover
-      background: rgba(0, 0, 0, 0.015)
+    @include paneShared.pane-table-base
 
   &__th--name
     width: 22%

@@ -1,5 +1,6 @@
 // ─── CONTRATTI ────────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 $c-input-h: 32px
 $c-row-h: 40px
@@ -161,35 +162,7 @@ $c-row-divider: #eef0f3
     overflow: hidden
 
   &__table
-    width: 100%
-    border-collapse: collapse
-
-    th, td
-      padding: 0 12px
-      vertical-align: middle
-      border-bottom: 1px solid $c-row-divider
-      height: $c-row-h
-      box-sizing: border-box
-
-    th
-      background: $bg
-      color: $c-muted
-      font-size: 10.5px
-      font-weight: 600
-      text-transform: uppercase
-      letter-spacing: 0.4px
-      text-align: left
-      border-bottom: 1px solid $border
-      height: 32px
-
-    tbody tr:nth-child(odd) td
-      background: rgba(27, 61, 95, 0.02)
-
-    tbody tr:hover td
-      background: rgba(27, 61, 95, 0.05)
-
-    tr:last-child td
-      border-bottom: none
+    @include paneShared.pane-table-base
 
   &__th--id
     width: 60px

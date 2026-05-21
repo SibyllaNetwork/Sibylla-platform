@@ -1,5 +1,6 @@
 // ─── BUFFER PRESENZE ──────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 $bp-input-h: 28px
 $bp-row-h: 40px
@@ -32,32 +33,7 @@ $bp-row-divider: #eef0f3
     overflow: hidden
 
   &__table
-    width: 100%
-    border-collapse: collapse
-
-    th, td
-      padding: 0 12px
-      vertical-align: middle
-      border-bottom: 1px solid $bp-row-divider
-      height: $bp-row-h
-      box-sizing: border-box
-
-    th
-      background: $bg
-      color: $bp-muted
-      font-size: 10.5px
-      font-weight: 600
-      text-transform: uppercase
-      letter-spacing: 0.4px
-      text-align: left
-      border-bottom: 1px solid $border
-      height: 32px
-
-    tr:last-child td
-      border-bottom: none
-
-    tbody tr:hover
-      background: rgba(0, 0, 0, 0.015)
+    @include paneShared.pane-table-base
 
   &__th--name
     width: auto
