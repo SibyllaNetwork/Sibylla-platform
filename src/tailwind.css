@@ -5,7 +5,7 @@
 @layer components {
   /* ── Form: text input ─────────────────────────────────────────────── */
   .sib-input {
-    @apply w-full h-9 px-3 border-[1.5px] border-line rounded-field
+    @apply w-full h-9 px-3 border border-line rounded-field
            text-[13px] text-ink bg-white font-opensans outline-none box-border
            text-ellipsis overflow-hidden whitespace-nowrap
            focus:border-link;
@@ -22,7 +22,7 @@
 
   /* ── Form: select ─────────────────────────────────────────────────── */
   .sib-select {
-    @apply w-full h-9 px-3 pr-8 border-[1.5px] border-line rounded-field
+    @apply w-full h-9 px-3 pr-8 border border-line rounded-field
            text-[13px] text-ink bg-white font-opensans outline-none box-border
            text-ellipsis overflow-hidden whitespace-nowrap
            appearance-none bg-no-repeat focus:border-link;
@@ -76,43 +76,43 @@
 
   /* ── Primary (sfondo pieno) ────────────────────────────────────── */
   .sib-btn--primary {
-    @apply bg-primary border-[1.5px] border-primary text-white
+    @apply bg-primary border border-primary text-white
            hover:enabled:bg-primary-800
            active:enabled:bg-primary-800;
   }
 
   /* ── Secondary (outline) ───────────────────────────────────────── */
   .sib-btn--secondary {
-    @apply bg-transparent border-[1.5px] border-primary text-primary
+    @apply bg-transparent border border-primary text-primary
            hover:enabled:bg-primary-50
            active:enabled:bg-primary-100;
   }
 
   /* ── Ghost (solo testo) ────────────────────────────────────────── */
   .sib-btn--ghost {
-    @apply bg-transparent border-[1.5px] border-transparent text-link
+    @apply bg-transparent border border-transparent text-link
            hover:enabled:bg-link-light;
   }
 
   /* ── Toolbar (outline grigio → blu on hover) ───────────────────── */
   .sib-btn--toolbar {
-    @apply bg-white border-[1.5px] border-line text-ink
+    @apply bg-white border border-line text-ink
            hover:enabled:border-primary hover:enabled:text-primary;
   }
 
   /* ── Danger ────────────────────────────────────────────────────── */
   .sib-btn--danger {
-    @apply bg-error border-[1.5px] border-error text-white
+    @apply bg-error border border-error text-white
            hover:enabled:bg-error-dark;
   }
   .sib-btn--danger-outline {
-    @apply bg-transparent border-[1.5px] border-error text-error
+    @apply bg-transparent border border-error text-error
            hover:enabled:bg-error-light;
   }
 
   /* ── Icon (quadrato, solo icona) ───────────────────────────────── */
   .sib-btn--icon {
-    @apply w-9 h-9 p-0 bg-white border-[1.5px] border-line text-ink-muted
+    @apply w-9 h-9 p-0 bg-white border border-line text-ink-muted
            hover:enabled:border-primary hover:enabled:bg-primary-50 hover:enabled:text-primary;
   }
 

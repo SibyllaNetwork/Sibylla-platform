@@ -1,5 +1,6 @@
 // ─── POLITICHE PRENOTAZIONE ───────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
+@use '../_paneShared' as paneShared
 
 .politiche-prenotazione
   display: flex
@@ -19,19 +20,7 @@
       font-weight: 600
 
   &__table
-    width: 100%
-    border-collapse: collapse
-
-    th, td
-      padding: 8px 12px
-      text-align: left
-      border-bottom: 1px solid $border
-
-    th
-      background: $primary-50
-      color: $primary
-      font-size: 12px
-      font-weight: 600
+    @include paneShared.pane-table-base
 
   &__actions-cell
     display: flex

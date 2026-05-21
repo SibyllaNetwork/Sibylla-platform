@@ -116,7 +116,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
                   <div
                     className="planner__checkbox-box"
                     style={{
-                      border: `1.5px solid ${color}`,
+                      border: `1px solid ${color}`,
                       background: val ? color : 'transparent',
                     }}
                   >

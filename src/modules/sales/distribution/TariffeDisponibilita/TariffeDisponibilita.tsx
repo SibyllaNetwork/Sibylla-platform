@@ -73,7 +73,7 @@ function StopSalesModal({ struttura, onClose }: { struttura:string; onClose:()=>
             <div className="text-[11px] font-semibold text-ink mb-2">Black-out date</div>
             {periods.map((p,i)=>(
               <div key={i} className="flex items-center gap-2 mb-2">
-                <div className="flex-1 flex items-center gap-1.5 h-9 px-2.5 border-[1.5px] border-line rounded-field bg-white">
+                <div className="flex-1 flex items-center gap-1.5 h-9 px-2.5 border-[1px] border-line rounded-field bg-white">
                   <i className="fa-duotone fa-calendar text-[12px] text-ink-subtle" aria-hidden="true"/>
                   <input type="date" value={p.from} onChange={e=>updPeriod(i,'from',e.target.value)} className="sib-date-range-inner"/>
                   <span className="text-ink-subtle text-[10px] select-none">–</span>

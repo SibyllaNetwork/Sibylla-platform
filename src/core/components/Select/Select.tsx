@@ -26,7 +26,7 @@ interface SelectProps {
 
 const sizeClasses: Record<SelectSize, string> = {
   standard: 'h-10 pl-3 pr-9 text-sm border-2',
-  dense:    'h-[30px] pl-2.5 pr-[30px] text-[13px] border-[1.5px]',
+  dense:    'h-[30px] pl-2.5 pr-[30px] text-[13px] border-[1px]',
 }
 
 export default function Select({

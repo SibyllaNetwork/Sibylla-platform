@@ -8,7 +8,7 @@ function Logo() {
       </svg>
       <div style={{lineHeight:1}}>
         <span style={{fontFamily:"Poppins,sans-serif",fontSize:15,fontWeight:700,color:"#fff",letterSpacing:"-0.2px"}}>Sibylla</span>
-        <span style={{fontFamily:"'Open Sans',sans-serif",fontSize:13,fontWeight:300,color:"#d1e0e8",letterSpacing:"1.5px",marginLeft:5}}>Platform</span>
+        <span style={{fontFamily:"'Open Sans',sans-serif",fontSize:13,fontWeight:300,color:"#d1e0e8",letterSpacing:"1px",marginLeft:5}}>Platform</span>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ const LegendaModal: React.FC<Props> = ({ onClose }) => (
             className="legenda-modal__dot"
             style={{
               background: it.bg,
-              border: it.border ? `1.5px solid ${it.border}` : 'none',
+              border: it.border ? `1px solid ${it.border}` : 'none',
             }}
           />
           <span className="legenda-modal__label">{it.label}</span>

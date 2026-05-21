@@ -84,7 +84,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
               </button>
             )
           })}
-          <div style={{ borderLeft: '1.5px solid #D1D5DB', height: 22, marginLeft: 4, marginBottom: 4, alignSelf: 'center' }} />
+          <div style={{ borderLeft: '1px solid #D1D5DB', height: 22, marginLeft: 4, marginBottom: 4, alignSelf: 'center' }} />
         </div>
 
         {/* Date */}

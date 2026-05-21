@@ -112,7 +112,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
                   <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderBottom:`0.5px solid ${T.border}`,background:'#FAFCFF'}}>
                     <Tooltip text="Aggiungi piano">
                       <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
-                        style={{width:26,height:26,borderRadius:6,border:`1.5px solid ${cat.color}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}
+                        style={{width:26,height:26,borderRadius:6,border:`1px solid ${cat.color}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}
                         onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.background=`${cat.color}18`} onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.background='transparent'}>
                         <i className="fa-duotone fa-plus text-[12px] text-primary" aria-hidden="true"/>
                       </button>
@@ -138,7 +138,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
                     <div className="piani__empty">
                       <p style={{margin:'0 0 12px'}}>Nessun piano tariffario per questa categoria</p>
                       <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
-                        style={{display:'inline-flex',alignItems:'center',gap:6,background:'transparent',border:`1.5px solid ${cat.color}`,borderRadius:7,padding:'7px 18px',cursor:'pointer',fontSize:12,fontWeight:600,color:cat.color}}
+                        style={{display:'inline-flex',alignItems:'center',gap:6,background:'transparent',border:`1px solid ${cat.color}`,borderRadius:7,padding:'7px 18px',cursor:'pointer',fontSize:12,fontWeight:600,color:cat.color}}
                         onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.background=`${cat.color}12`} onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.background='transparent'}>
                         Aggiungi piano {cat.label}
                       </button>

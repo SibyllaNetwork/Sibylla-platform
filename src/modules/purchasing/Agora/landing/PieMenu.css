@@ -20,7 +20,7 @@
   height: 10vh;
   margin: -5vh 0 0 -5vh;
   border-radius: 50%;
-  border: 1.5px solid rgba(255, 220, 170, 0.6);
+  border: 1px solid rgba(255, 220, 170, 0.6);
   background:
     radial-gradient(circle at 50% 20%, rgba(255, 240, 200, 0.16) 0%, transparent 55%),
     #1d3a6f;

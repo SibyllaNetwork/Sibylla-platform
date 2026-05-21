@@ -16,7 +16,7 @@ export default function GenericPage({item,page,modColor,navigate}:any) {
         </div>
         <h2 style={{fontFamily:"Poppins,sans-serif",fontSize:18,fontWeight:600,color:T.primary,margin:"0 0 8px"}}>{label}</h2>
         <p style={{fontSize:13,color:T.textInactive,margin:"0 0 24px"}}>Questa pagina sarà sviluppata nel prossimo sprint.</p>
-        <button onClick={()=>navigate("home")} style={{background:"transparent",border:"1.5px solid "+T.border,borderRadius:8,padding:"8px 20px",fontSize:13,color:T.textInactive,cursor:"pointer"}}
+        <button onClick={()=>navigate("home")} style={{background:"transparent",border:"1px solid "+T.border,borderRadius:8,padding:"8px 20px",fontSize:13,color:T.textInactive,cursor:"pointer"}}
           onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background=T.white;(e.currentTarget as HTMLButtonElement).style.color=T.primary;(e.currentTarget as HTMLButtonElement).style.borderColor=T.primary;}}
           onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";(e.currentTarget as HTMLButtonElement).style.color=T.textInactive;(e.currentTarget as HTMLButtonElement).style.borderColor=T.border;}}>
           ← Torna alla home

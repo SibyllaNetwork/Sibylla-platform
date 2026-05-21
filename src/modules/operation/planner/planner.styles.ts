@@ -55,7 +55,7 @@ export const selectStyle: React.CSSProperties = {
   height      : 36,
   padding     : '0 28px 0 10px',
   borderRadius: 6,
-  border      : `1.5px solid ${C.p200}`,
+  border      : `1px solid ${C.p200}`,
   fontFamily  : 'Poppins, sans-serif',
   fontSize    : 13,
   color       : C.text1,

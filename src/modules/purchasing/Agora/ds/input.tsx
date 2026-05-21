@@ -9,7 +9,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
 }
 
 /* Sibylla text field.
-   Standard: 40px, 2px border. Dense: 30px, 1.5px border.
+   Standard: 40px, 2px border. Dense: 30px, 1px border.
    Radius 6px. Bg white. Border #CFCFCF. Hint/icon #4A4D53.
    Focused: fill #F8FCFF (surface-subtle).
    Error: border #FF616E. Disabled: text #DBDBDB fill #FFF. */
