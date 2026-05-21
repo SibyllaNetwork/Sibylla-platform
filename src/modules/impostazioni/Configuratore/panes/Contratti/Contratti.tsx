@@ -55,7 +55,7 @@ export default function Contratti() {
           <label>Nome contratto</label>
           <input
             type="text"
-            className="contratti__input"
+            className="sib-input sib-input--dense contratti__input"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
           />
@@ -63,7 +63,7 @@ export default function Contratti() {
         <div className="contratti__field">
           <label>Tipologia</label>
           <select
-            className="contratti__input contratti__input--select"
+            className="sib-select sib-select--dense contratti__input contratti__input--select"
             value={tipologia}
             onChange={(e) => setTipologia(Number(e.target.value))}
           >
@@ -74,7 +74,7 @@ export default function Contratti() {
           <label>Data</label>
           <input
             type="text"
-            className="contratti__input"
+            className="sib-input sib-input--dense contratti__input"
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             placeholder="gg/mm/aaaa - gg/mm/aaaa"
@@ -152,16 +152,16 @@ export default function Contratti() {
                       <td className="contratti__td contratti__td--center">
                         <input
                           type="checkbox"
-                          className="contratti__checkbox"
+                          className="sib-checkbox contratti__checkbox"
                           defaultChecked={r.AnnunciBacheca}
                           aria-label={`Annunci Bacheca contratto ${r.Id}`}
                         />
                       </td>
                       <td className="contratti__td contratti__td--actions">
-                        <button type="button" className="contratti__icon-btn" title="Modifica" aria-label="Modifica">
+                        <button type="button" className="sib-btn sib-btn--icon sib-btn--sm contratti__icon-btn" title="Modifica" aria-label="Modifica">
                           <i className="fa-light fa-pen" />
                         </button>
-                        <button type="button" className="contratti__icon-btn contratti__icon-btn--del" title="Elimina" aria-label="Elimina">
+                        <button type="button" className="sib-btn sib-btn--icon sib-btn--sm contratti__icon-btn contratti__icon-btn--del" title="Elimina" aria-label="Elimina">
                           <i className="fa-light fa-trash" />
                         </button>
                       </td>

@@ -14,37 +14,6 @@ $cfg-hover: #f0f4f9
   flex-direction: column
   gap: 12px
 
-  // ── Header (BtnBack a sinistra, titoli centrati, spacer a destra) ──────────
-  &__header
-    display: grid
-    grid-template-columns: 1fr auto 1fr
-    align-items: start
-    gap: 16px
-
-  &__header-left
-    justify-self: start
-    display: flex
-    align-items: center
-
-  &__header-center
-    text-align: center
-
-  &__header-right
-    // mirror del back btn per centratura simmetrica (grid 1fr/auto/1fr)
-    min-width: 0
-
-  &__title
-    font-size: 24px
-    font-weight: 600
-    line-height: 1.2
-    color: var(--color-primary)
-    margin: 0
-
-  &__subtitle
-    font-size: 13px
-    color: $cfg-text-muted
-    margin: 3px 0 0
-
   // ── Layout body ────────────────────────────────────────────────────────────
   &__layout
     flex: 1

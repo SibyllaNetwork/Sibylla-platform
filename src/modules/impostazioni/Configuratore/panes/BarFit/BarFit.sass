@@ -354,3 +354,58 @@ $bf-row-divider: #eef0f3
 
       &:hover
         opacity: 0.9
+
+  // ── Modale Dettaglio (sola lettura) ───────────────────────────────────────
+  &__modal--view
+    width: min(960px, 100%)
+
+  &__view-body
+    padding: 4px 22px 22px
+
+  &__view-table
+    width: 100%
+    border-collapse: separate
+    border-spacing: 0
+
+    thead th
+      padding: 8px 12px
+      background: transparent
+      color: var(--color-primary)
+      font-size: 12px
+      font-weight: 700
+      text-align: center
+      letter-spacing: 0.2px
+      border-bottom: 1px solid $border
+
+    tbody td
+      padding: 10px 12px
+      border-bottom: 1px solid $bf-row-divider
+
+    tbody tr:nth-child(odd) td
+      background: rgba(27, 61, 95, 0.04)
+
+    tr:last-child td
+      border-bottom: none
+
+  &__view-th--name
+    text-align: left !important
+    width: 30%
+
+  &__view-th--icon
+    width: 23%
+
+    i
+      font-size: 17px
+      color: var(--color-primary)
+
+  &__view-td
+    color: $text-active
+    font-size: 13px
+
+    &--name
+      text-align: left
+      font-weight: 500
+
+    &--num
+      text-align: center
+      font-variant-numeric: tabular-nums

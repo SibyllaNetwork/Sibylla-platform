@@ -61,7 +61,7 @@ export default function Arrangiamenti() {
         <div className="arrangiamenti__field">
           <label>Struttura</label>
           <select
-            className="arrangiamenti__select"
+            className="sib-select sib-select--dense arrangiamenti__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -72,7 +72,7 @@ export default function Arrangiamenti() {
         <div className="arrangiamenti__field">
           <label>Segmento</label>
           <select
-            className="arrangiamenti__select"
+            className="sib-select sib-select--dense arrangiamenti__select"
             value={data.Segmento}
             onChange={(e) => setData({ ...data, Segmento: e.target.value as Data['Segmento'] })}
           >
@@ -116,7 +116,7 @@ export default function Arrangiamenti() {
                       <span className="arrangiamenti__cell">
                         <input
                           type="number"
-                          className="arrangiamenti__input"
+                          className="sib-input sib-input--dense arrangiamenti__input"
                           value={a.costo}
                           onChange={(e) => update(a.id, 'costo', Number(e.target.value) || 0)}
                           aria-label={`Costo ${a.nome}`}
@@ -131,7 +131,7 @@ export default function Arrangiamenti() {
                       <span className="arrangiamenti__cell">
                         <input
                           type="number"
-                          className="arrangiamenti__input"
+                          className="sib-input sib-input--dense arrangiamenti__input"
                           value={a.importo}
                           onChange={(e) => update(a.id, 'importo', Number(e.target.value) || 0)}
                           aria-label={`Importo ${a.nome}`}
@@ -145,7 +145,7 @@ export default function Arrangiamenti() {
                     {ro ? <span className="arrangiamenti__dash">—</span> : (
                       <input
                         type="checkbox"
-                        className="arrangiamenti__checkbox"
+                        className="sib-checkbox arrangiamenti__checkbox"
                         checked={a.attivo}
                         onChange={(e) => update(a.id, 'attivo', e.target.checked)}
                         aria-label={`Attivo ${a.nome}`}
@@ -157,7 +157,7 @@ export default function Arrangiamenti() {
                     {ro ? <span className="arrangiamenti__dash">—</span> : (
                       <input
                         type="checkbox"
-                        className="arrangiamenti__checkbox"
+                        className="sib-checkbox arrangiamenti__checkbox"
                         checked={a.colazione}
                         onChange={(e) => update(a.id, 'colazione', e.target.checked)}
                         aria-label={`Colazione ${a.nome}`}
@@ -169,7 +169,7 @@ export default function Arrangiamenti() {
                     {ro ? <span className="arrangiamenti__dash">—</span> : (
                       <input
                         type="checkbox"
-                        className="arrangiamenti__checkbox"
+                        className="sib-checkbox arrangiamenti__checkbox"
                         checked={a.pranzo}
                         onChange={(e) => update(a.id, 'pranzo', e.target.checked)}
                         aria-label={`Pranzo ${a.nome}`}
@@ -181,7 +181,7 @@ export default function Arrangiamenti() {
                     {ro ? <span className="arrangiamenti__dash">—</span> : (
                       <input
                         type="checkbox"
-                        className="arrangiamenti__checkbox"
+                        className="sib-checkbox arrangiamenti__checkbox"
                         checked={a.cena}
                         onChange={(e) => update(a.id, 'cena', e.target.checked)}
                         aria-label={`Cena ${a.nome}`}
@@ -192,7 +192,7 @@ export default function Arrangiamenti() {
                   <td className="arrangiamenti__td">
                     {ro ? <span className="arrangiamenti__dash">—</span> : (
                       <select
-                        className="arrangiamenti__select arrangiamenti__select--inline"
+                        className="sib-select sib-select--dense arrangiamenti__select arrangiamenti__select--inline"
                         value={a.iniziaCon}
                         onChange={(e) => update(a.id, 'iniziaCon', e.target.value as Pasto)}
                       >
@@ -204,7 +204,7 @@ export default function Arrangiamenti() {
                   <td className="arrangiamenti__td">
                     {ro ? <span className="arrangiamenti__dash">—</span> : (
                       <select
-                        className="arrangiamenti__select arrangiamenti__select--inline"
+                        className="sib-select sib-select--dense arrangiamenti__select arrangiamenti__select--inline"
                         value={a.finisciCon}
                         onChange={(e) => update(a.id, 'finisciCon', e.target.value as Pasto)}
                       >
@@ -222,7 +222,7 @@ export default function Arrangiamenti() {
       <div className="arrangiamenti__actions">
         <button
           type="button"
-          className="arrangiamenti__save"
+          className="sib-btn sib-btn--primary"
           onClick={save}
           disabled={saving}
         >

@@ -54,7 +54,7 @@ export default function BufferPresenze() {
                 <td className="buffer-presenze__td buffer-presenze__td--num">
                   <input
                     type="number"
-                    className="buffer-presenze__input"
+                    className="sib-input sib-input--dense buffer-presenze__input"
                     value={r.capienzaMaggiorata || ''}
                     disabled={!r.bufferOn}
                     onChange={(e) => update(r.id, 'capienzaMaggiorata', Number(e.target.value) || 0)}
@@ -83,7 +83,7 @@ export default function BufferPresenze() {
       <div className="buffer-presenze__actions">
         <button
           type="button"
-          className="buffer-presenze__save"
+          className="sib-btn sib-btn--primary"
           onClick={save}
           disabled={saving}
         >

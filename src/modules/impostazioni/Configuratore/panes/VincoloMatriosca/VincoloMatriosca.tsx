@@ -53,7 +53,7 @@ export default function VincoloMatriosca() {
       <div className="vincolo-matriosca__field">
         <label>Struttura</label>
         <select
-          className="vincolo-matriosca__select"
+          className="sib-select sib-select--dense vincolo-matriosca__select"
           value={data.StrutturaId ?? ''}
           onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
         >
@@ -87,7 +87,7 @@ export default function VincoloMatriosca() {
                   <td className="vincolo-matriosca__td vincolo-matriosca__td--actions">
                     <button
                       type="button"
-                      className="vincolo-matriosca__action-btn"
+                      className="sib-btn sib-btn--primary sib-btn--sm vincolo-matriosca__action-btn"
                       onClick={() => setEditingId(r.id)}
                     >
                       {configured ? 'Modifica' : 'Configura'}
@@ -203,14 +203,14 @@ function EquivalenzeModal({ row, allRows, onClose, onSave }: ModalProps) {
         <footer className="vincolo-matriosca__modal-foot">
           <button
             type="button"
-            className="vincolo-matriosca__btn vincolo-matriosca__btn--secondary"
+            className="sib-btn sib-btn--secondary"
             onClick={onClose}
           >
             Chiudi
           </button>
           <button
             type="button"
-            className="vincolo-matriosca__btn vincolo-matriosca__btn--primary"
+            className="sib-btn sib-btn--primary"
             onClick={() => onSave(configured)}
           >
             Salva

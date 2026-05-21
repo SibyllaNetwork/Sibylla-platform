@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
+import PageHeader from '../../../core/components/PageHeader'
 import {
   MAIN_ITEMS,
   FNB_ITEMS,
@@ -66,18 +67,11 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="configuratore">
-      <header className="configuratore__header">
-        <div className="configuratore__header-left">
-          <BtnBack onClick={() => navigate('home')} />
-        </div>
-        <div className="configuratore__header-center">
-          <h1 className="configuratore__title">Configuratore</h1>
-          <p className="configuratore__subtitle">
-            Personalizza il sistema per una gestione efficiente e su misura
-          </p>
-        </div>
-        <div className="configuratore__header-right" />
-      </header>
+      <BtnBack onClick={() => navigate('home')} />
+      <PageHeader
+        title="Configuratore"
+        subtitle="Personalizza il sistema per una gestione efficiente e su misura"
+      />
 
       <div className="configuratore__layout">
         <aside className={'configuratore__sidebar' + (subpage ? ' configuratore__sidebar--subpage' : '')}>

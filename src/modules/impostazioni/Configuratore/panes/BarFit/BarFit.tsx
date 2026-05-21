@@ -48,6 +48,7 @@ const FALLBACK: Data = {
 export default function BarFit() {
   const [data, setData] = useState<Data>(FALLBACK)
   const [open, setOpen] = useState(false)
+  const [viewId, setViewId] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -65,7 +66,7 @@ export default function BarFit() {
         <div className="bar-fit__field">
           <label>Strutture</label>
           <select
-            className="bar-fit__select"
+            className="sib-select sib-select--dense bar-fit__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -80,6 +81,7 @@ export default function BarFit() {
             <label className="bar-fit__radio-item">
               <input
                 type="radio"
+                className="sib-radio"
                 checked={data.Modalita === 'BAR'}
                 onChange={() => setData({ ...data, Modalita: 'BAR' })}
               />
@@ -88,6 +90,7 @@ export default function BarFit() {
             <label className="bar-fit__radio-item">
               <input
                 type="radio"
+                className="sib-radio"
                 checked={data.Modalita === 'FIT'}
                 onChange={() => setData({ ...data, Modalita: 'FIT' })}
               />
@@ -98,7 +101,7 @@ export default function BarFit() {
 
         <button
           type="button"
-          className="bar-fit__create-btn"
+          className="sib-btn sib-btn--secondary bar-fit__create-btn"
           onClick={() => setOpen(true)}
         >
           <i className="fa-light fa-circle-plus" />
@@ -119,10 +122,15 @@ export default function BarFit() {
               <tr key={b.id}>
                 <td className="bar-fit__td bar-fit__td--id">{b.id}</td>
                 <td className="bar-fit__td bar-fit__td--actions">
-                  <button type="button" className="bar-fit__icon-btn" aria-label="Visualizza">
+                  <button
+                    type="button"
+                    className="sib-btn sib-btn--icon sib-btn--sm bar-fit__icon-btn"
+                    aria-label={`Visualizza ${modeLabel} ${b.id}`}
+                    onClick={() => setViewId(b.id)}
+                  >
                     <i className="fa-light fa-eye" />
                   </button>
-                  <button type="button" className="bar-fit__icon-btn bar-fit__icon-btn--del" aria-label="Elimina">
+                  <button type="button" className="sib-btn sib-btn--icon sib-btn--sm bar-fit__icon-btn bar-fit__icon-btn--del" aria-label="Elimina">
                     <i className="fa-light fa-trash" />
                   </button>
                 </td>
@@ -140,6 +148,14 @@ export default function BarFit() {
             // TODO: chiamata API SetBarFit con matrix
             setOpen(false)
           }}
+        />
+      )}
+
+      {viewId != null && (
+        <DettaglioBarModal
+          modeLabel={modeLabel}
+          id={viewId}
+          onClose={() => setViewId(null)}
         />
       )}
     </div>
@@ -205,7 +221,7 @@ function CreaBarModal({ modeLabel, onClose, onSave }: ModalProps) {
                           <input
                             type="number"
                             step="0.01"
-                            className="bar-fit__matrix-input"
+                            className="sib-input sib-input--dense bar-fit__matrix-input"
                             value={matrix[tipo]?.[c.key] ?? ''}
                             onChange={(e) => set(tipo, c.key, Number(e.target.value) || 0)}
                             aria-label={`${tipo} ${c.label}`}
@@ -226,19 +242,96 @@ function CreaBarModal({ modeLabel, onClose, onSave }: ModalProps) {
         <footer className="bar-fit__modal-foot">
           <button
             type="button"
-            className="bar-fit__btn bar-fit__btn--secondary"
+            className="sib-btn sib-btn--secondary"
             onClick={onClose}
           >
             Annulla
           </button>
           <button
             type="button"
-            className="bar-fit__btn bar-fit__btn--primary"
+            className="sib-btn sib-btn--primary"
             onClick={() => onSave(matrix)}
           >
             Salva
           </button>
         </footer>
+      </div>
+    </div>
+  )
+}
+
+// ─── Dettaglio (sola lettura) ───────────────────────────────────────────────
+interface DettaglioRow {
+  tipo: string
+  individuale: number | null
+  gruppo: number | null
+  bambini: number | null
+}
+
+const DETTAGLIO_DEMO: DettaglioRow[] = [
+  { tipo: 'Tripla Classic',                     individuale: null,   gruppo: null,   bambini: null },
+  { tipo: 'DUS',                                individuale: 143.00, gruppo: null,   bambini: null },
+  { tipo: 'Singola Classic',                    individuale: 110.00, gruppo: 110.00, bambini: null },
+  { tipo: 'Doppia Classic',                     individuale: 172.00, gruppo: 172.00, bambini: null },
+  { tipo: 'Matrimoniale convertibile in Tripla',individuale: 80.00,  gruppo: 90.00,  bambini: 0.00 },
+  { tipo: 'Matrimoniale Superior',              individuale: 100.00, gruppo: 150.00, bambini: 0.00 },
+]
+
+interface DettaglioProps {
+  modeLabel: string
+  id: number
+  onClose: () => void
+}
+
+function DettaglioBarModal({ modeLabel, id, onClose }: DettaglioProps) {
+  const fmt = (v: number | null) => v == null ? '' : v.toFixed(2).replace('.', ',')
+
+  return (
+    <div className="bar-fit__backdrop" onClick={onClose} role="presentation">
+      <div
+        className="bar-fit__modal bar-fit__modal--view"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bar-fit-view-title"
+      >
+        <header className="bar-fit__modal-head">
+          <h3 className="bar-fit__modal-title" id="bar-fit-view-title">
+            Dettaglio {modeLabel} n: {id}
+          </h3>
+          <button type="button" className="bar-fit__close" onClick={onClose} aria-label="Chiudi">
+            <i className="fa-light fa-xmark" />
+          </button>
+        </header>
+
+        <div className="bar-fit__view-body">
+          <table className="bar-fit__view-table">
+            <thead>
+              <tr>
+                <th className="bar-fit__view-th--name">{modeLabel}</th>
+                <th className="bar-fit__view-th--icon" aria-label="Individuale">
+                  <i className="fa-light fa-user" />
+                </th>
+                <th className="bar-fit__view-th--icon" aria-label="Gruppo">
+                  <i className="fa-light fa-user-group" />
+                </th>
+                <th className="bar-fit__view-th--icon" aria-label="Bambini">
+                  <i className="fa-light fa-baby-carriage" />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {DETTAGLIO_DEMO.map((r) => (
+                <tr key={r.tipo}>
+                  <td className="bar-fit__view-td bar-fit__view-td--name">{r.tipo}</td>
+                  <td className="bar-fit__view-td bar-fit__view-td--num">{fmt(r.individuale)}</td>
+                  <td className="bar-fit__view-td bar-fit__view-td--num">{fmt(r.gruppo)}</td>
+                  <td className="bar-fit__view-td bar-fit__view-td--num">{fmt(r.bambini)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

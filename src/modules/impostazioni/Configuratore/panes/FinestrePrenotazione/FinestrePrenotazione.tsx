@@ -63,7 +63,7 @@ export default function FinestrePrenotazione() {
         <div className="finestre-prenotazione__field">
           <label>Strutture</label>
           <select
-            className="sib-select finestre-prenotazione__select"
+            className="sib-select sib-select--dense finestre-prenotazione__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -109,7 +109,7 @@ export default function FinestrePrenotazione() {
             <div className="finestre-prenotazione__cell">
               <input
                 type="number"
-                className="finestre-prenotazione__input"
+                className="sib-input sib-input--dense finestre-prenotazione__input"
                 value={row.from}
                 onChange={(e) => update(i, 'from', Number(e.target.value) || 0)}
                 disabled={i === 0}
@@ -120,7 +120,7 @@ export default function FinestrePrenotazione() {
             <div className="finestre-prenotazione__cell">
               <input
                 type="number"
-                className="finestre-prenotazione__input"
+                className="sib-input sib-input--dense finestre-prenotazione__input"
                 value={row.to}
                 onChange={(e) => update(i, 'to', Number(e.target.value) || 0)}
                 aria-label={`A giorni finestra ${i + 1}`}
@@ -156,7 +156,7 @@ export default function FinestrePrenotazione() {
           <div className="finestre-prenotazione__cell">
             <input
               type="number"
-              className="finestre-prenotazione__input"
+              className="sib-input sib-input--dense finestre-prenotazione__input"
               value={lastTo}
               disabled
               aria-label="Da giorni finestra finale"
@@ -166,7 +166,7 @@ export default function FinestrePrenotazione() {
           <div className="finestre-prenotazione__cell">
             <input
               type="text"
-              className="finestre-prenotazione__input finestre-prenotazione__input--wide"
+              className="sib-input sib-input--dense finestre-prenotazione__input finestre-prenotazione__input--wide"
               value="In Poi"
               disabled
               readOnly
@@ -176,7 +176,7 @@ export default function FinestrePrenotazione() {
           <div className="finestre-prenotazione__row-actions finestre-prenotazione__row-actions--save">
             <button
               type="button"
-              className="finestre-prenotazione__save"
+              className="sib-btn sib-btn--primary"
               onClick={save}
               disabled={saving}
             >

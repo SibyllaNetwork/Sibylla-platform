@@ -60,7 +60,7 @@ export default function RichiesteExtra() {
         <div className="richieste-extra__field">
           <label>Strutture</label>
           <select
-            className="sib-select richieste-extra__select"
+            className="sib-select sib-select--dense richieste-extra__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -107,7 +107,7 @@ export default function RichiesteExtra() {
             <span className="richieste-extra__tag richieste-extra__tag--ok">Accetta</span>
             <input
               type="text"
-              className="richieste-extra__input richieste-extra__input--name"
+              className="sib-input sib-input--dense richieste-extra__input richieste-extra__input--name"
               value={row.Nome}
               onChange={(e) => update(i, 'Nome', e.target.value)}
               aria-label={`Nome regola ${i + 1}`}
@@ -116,7 +116,7 @@ export default function RichiesteExtra() {
               <div className="richieste-extra__cell">
                 <input
                   type="number"
-                  className="richieste-extra__input"
+                  className="sib-input sib-input--dense richieste-extra__input"
                   value={row.giorni}
                   onChange={(e) => update(i, 'giorni', Number(e.target.value) || 0)}
                   aria-label={`Giorni regola ${i + 1}`}
@@ -128,7 +128,7 @@ export default function RichiesteExtra() {
               <input
                 type="number"
                 step="0.01"
-                className="richieste-extra__input"
+                className="sib-input sib-input--dense richieste-extra__input"
                 value={row.fee}
                 onChange={(e) => update(i, 'fee', Number(e.target.value) || 0)}
                 aria-label={`Fee extra regola ${i + 1}`}
@@ -157,16 +157,16 @@ export default function RichiesteExtra() {
 
         <div className="richieste-extra__row richieste-extra__row--last" role="row">
           <span className="richieste-extra__tag richieste-extra__tag--ko">Rifiuta</span>
-          <input type="text" className="richieste-extra__input richieste-extra__input--name" disabled aria-label="Rifiuta (nome)" />
+          <input type="text" className="sib-input sib-input--dense richieste-extra__input richieste-extra__input--name" disabled aria-label="Rifiuta (nome)" />
           {isOpzionata && (
             <div className="richieste-extra__cell">
-              <input type="text" className="richieste-extra__input" disabled aria-label="Rifiuta (giorni)" />
+              <input type="text" className="sib-input sib-input--dense richieste-extra__input" disabled aria-label="Rifiuta (giorni)" />
             </div>
           )}
           <div className="richieste-extra__cell">
             <input
               type="text"
-              className="richieste-extra__input"
+              className="sib-input sib-input--dense richieste-extra__input"
               value="null"
               disabled
               readOnly
@@ -174,7 +174,7 @@ export default function RichiesteExtra() {
             />
           </div>
           <div className="richieste-extra__row-actions richieste-extra__row-actions--save">
-            <button type="button" className="richieste-extra__save" onClick={save} disabled={saving}>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>
               {saving ? 'Salvataggio…' : 'Salva'}
             </button>
           </div>

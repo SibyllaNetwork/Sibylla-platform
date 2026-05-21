@@ -57,7 +57,7 @@ export default function ScaglioniOccupazione() {
         <div className="scaglioni-occupazione__field">
           <label>Strutture</label>
           <select
-            className="sib-select scaglioni-occupazione__select"
+            className="sib-select sib-select--dense scaglioni-occupazione__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -103,7 +103,7 @@ export default function ScaglioniOccupazione() {
             <div className="scaglioni-occupazione__cell">
               <input
                 type="number"
-                className="scaglioni-occupazione__input"
+                className="sib-input sib-input--dense scaglioni-occupazione__input"
                 value={row.from}
                 onChange={(e) => updateRow(i, 'from', Number(e.target.value) || 0)}
                 disabled={i === 0}
@@ -114,7 +114,7 @@ export default function ScaglioniOccupazione() {
             <div className="scaglioni-occupazione__cell">
               <input
                 type="number"
-                className="scaglioni-occupazione__input"
+                className="sib-input sib-input--dense scaglioni-occupazione__input"
                 value={row.to}
                 onChange={(e) => updateRow(i, 'to', Number(e.target.value) || 0)}
                 aria-label={`Al scaglione ${i + 1}`}
