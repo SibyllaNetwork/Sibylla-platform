@@ -50,6 +50,10 @@ export default function VincoloMatriosca() {
 
   return (
     <div className="vincolo-matriosca">
+      <div className="vincolo-matriosca__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Vincolo matriosca</strong>
+      </div>
+
       <div className="vincolo-matriosca__field">
         <label>Struttura</label>
         <select

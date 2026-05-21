@@ -50,6 +50,10 @@ export default function Contratti() {
 
   return (
     <div className="contratti">
+      <div className="contratti__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Contratti</strong>
+      </div>
+
       <div className="contratti__filters">
         <div className="contratti__field">
           <label>Nome contratto</label>

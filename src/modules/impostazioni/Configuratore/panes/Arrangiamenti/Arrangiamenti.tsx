@@ -57,6 +57,10 @@ export default function Arrangiamenti() {
 
   return (
     <div className="arrangiamenti">
+      <div className="arrangiamenti__breadcrumb">
+        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Arrangiamenti</strong>
+      </div>
+
       <div className="arrangiamenti__filters">
         <div className="arrangiamenti__field">
           <label>Struttura</label>

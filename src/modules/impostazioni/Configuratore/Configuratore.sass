@@ -13,6 +13,13 @@ $cfg-hover: #f0f4f9
   display: flex
   flex-direction: column
   gap: 12px
+  align-items: flex-start
+
+  // Le sezioni che devono occupare tutta la larghezza si autodichiarano
+  > .page-header,
+  > &__layout
+    align-self: stretch
+    width: 100%
 
   // ── Layout body ────────────────────────────────────────────────────────────
   &__layout
@@ -226,7 +233,7 @@ $cfg-hover: #f0f4f9
     display: flex
     align-items: center
     gap: 10px
-    margin-bottom: 4px
+    margin-bottom: 10px
 
   &__pane-title
     font-size: 18px
