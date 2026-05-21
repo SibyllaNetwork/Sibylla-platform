@@ -1,13 +1,34 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
 import './BarFit.sass'
 
 const TIPI_CAMERA = [
-  'Singola Classic','Doppia Classic','Doppia Economy','Tripla Classic',
-  'Matrimoniale convertibile in Tripla','Matrimoniale Economy','Matrimoniale Classic',
-  'Doppia convertibile in Quadrupla','Doppia convertibile in Tripla',
+  'Singola Classic',
+  'Doppia Classic',
+  'Doppia Economy',
+  'Tripla Classic',
+  'Matrimoniale convertibile in Tripla',
+  'Matrimoniale Economy',
+  'Matrimoniale Classic',
+  'Doppia convertibile in Quadrupla',
+  'Doppia convertibile in Tripla',
 ]
-const COLONNE = ['Best available rate (B.A.R.)','Adulto 1','Adulto 2','Adulto 3','Adulto 4','Adulto extra','Bambino 1','Bambino 2','Bambino 3','Infanti']
+
+const COLONNE = [
+  { key: 'bar',     label: 'Best available rate (B.A.R.)' },
+  { key: 'ad1',     label: 'Adulto 1'      },
+  { key: 'ad2',     label: 'Adulto 2'      },
+  { key: 'ad3',     label: 'Adulto 3'      },
+  { key: 'ad4',     label: 'Adulto 4'      },
+  { key: 'adext',   label: 'Adulto extra'  },
+  { key: 'bb1',     label: 'Bambino 1'     },
+  { key: 'bb2',     label: 'Bambino 2'     },
+  { key: 'bb3',     label: 'Bambino 3'     },
+  { key: 'inf',     label: 'Infanti'       },
+] as const
+
+type ColKey = typeof COLONNE[number]['key']
+type Matrix = Record<string, Partial<Record<ColKey, number>>>
 
 interface Item { id: number }
 interface Data {
@@ -17,7 +38,12 @@ interface Data {
   bars: Item[]
 }
 
-const FALLBACK: Data = { Strutture: [], StrutturaId: null, Modalita: 'BAR', bars: Array.from({ length: 10 }, (_, i) => ({ id: i + 1 })) }
+const FALLBACK: Data = {
+  Strutture: [],
+  StrutturaId: null,
+  Modalita: 'BAR',
+  bars: Array.from({ length: 10 }, (_, i) => ({ id: i + 1 })),
+}
 
 export default function BarFit() {
   const [data, setData] = useState<Data>(FALLBACK)
@@ -27,91 +53,193 @@ export default function BarFit() {
     let cancelled = false
     apiFetchSibylla<Data>('configura/GetBarFit', { method: 'POST', body: {} })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { /* silent */ })
     return () => { cancelled = true }
   }, [])
 
+  const modeLabel = data.Modalita === 'BAR' ? 'B.A.R.' : 'F.I.T.'
+
   return (
     <div className="bar-fit">
-      <div className="bar-fit__breadcrumb">
-        <span>Configuratore <i className="fa-light fa-chevron-right" /> <strong>B.A.R / F.I.T.</strong></span>
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setOpen(true)}>
-          <i className="fa-light fa-circle-plus" /> Crea {data.Modalita === 'BAR' ? 'B.A.R.' : 'F.I.T.'}
-        </button>
-      </div>
-
-      <div className="bar-fit__bar">
+      <div className="bar-fit__filters">
         <div className="bar-fit__field">
           <label>Strutture</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Hotel Siracusa</option>
+          <select
+            className="bar-fit__select"
+            value={data.StrutturaId ?? ''}
+            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          >
+            <option value="">Hotel Tutorial</option>
             {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
           </select>
         </div>
-        <div className="bar-fit__radio-group">
-          <label className="bar-fit__radio-item">
-            <input type="radio" className="sib-radio" checked={data.Modalita === 'BAR'} onChange={() => setData({ ...data, Modalita: 'BAR' })} />
-            <span>B.A.R.</span>
-          </label>
-          <label className="bar-fit__radio-item">
-            <input type="radio" className="sib-radio" checked={data.Modalita === 'FIT'} onChange={() => setData({ ...data, Modalita: 'FIT' })} />
-            <span>F.I.T.</span>
-          </label>
-        </div>
-      </div>
 
-      <table className="bar-fit__table">
-        <thead><tr><th>{data.Modalita === 'BAR' ? 'B.A.R.' : 'F.I.T.'}</th><th>Azioni</th></tr></thead>
-        <tbody>
-          {data.bars.map((b) => (
-            <tr key={b.id}>
-              <td>{b.id}</td>
-              <td className="bar-fit__row-actions">
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-eye" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {open && (
-        <div className="bar-fit__modal-backdrop" onClick={() => setOpen(false)}>
-          <div className="bar-fit__modal" onClick={(e) => e.stopPropagation()}>
-            <div className="bar-fit__modal-header">
-              <h3>Crea {data.Modalita === 'BAR' ? 'B.A.R.' : 'F.I.T.'}</h3>
-              <button type="button" className="bar-fit__close" onClick={() => setOpen(false)}><i className="fa-light fa-xmark" /></button>
-            </div>
-            <p className="bar-fit__hint">Imposta una nuova best available rate che garantisce coerenza e competitività</p>
-            <div className="bar-fit__matrix-wrap">
-              <table className="bar-fit__matrix">
-                <thead>
-                  <tr>{COLONNE.map((c) => <th key={c}>{c}</th>)}</tr>
-                </thead>
-                <tbody>
-                  {TIPI_CAMERA.map((tc) => (
-                    <tr key={tc}>
-                      <td className="bar-fit__row-label">{tc}</td>
-                      {COLONNE.slice(1).map((c) => (
-                        <td key={c}>
-                          <div className="bar-fit__cell">
-                            <input type="number" className="sib-input bar-fit__input" />
-                            <span>€</span>
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="bar-fit__modal-actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setOpen(false)}>Annulla</button>
-              <button type="button" className="sib-btn sib-btn--primary">Salva</button>
-            </div>
+        <div className="bar-fit__field">
+          <label>Tipologia</label>
+          <div className="bar-fit__radio-group">
+            <label className="bar-fit__radio-item">
+              <input
+                type="radio"
+                checked={data.Modalita === 'BAR'}
+                onChange={() => setData({ ...data, Modalita: 'BAR' })}
+              />
+              <span>B.A.R.</span>
+            </label>
+            <label className="bar-fit__radio-item">
+              <input
+                type="radio"
+                checked={data.Modalita === 'FIT'}
+                onChange={() => setData({ ...data, Modalita: 'FIT' })}
+              />
+              <span>F.I.T.</span>
+            </label>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="bar-fit__create-btn"
+          onClick={() => setOpen(true)}
+        >
+          <i className="fa-light fa-circle-plus" />
+          <span>Crea {modeLabel}</span>
+        </button>
+      </div>
+
+      <div className="bar-fit__table-wrap">
+        <table className="bar-fit__table">
+          <thead>
+            <tr>
+              <th className="bar-fit__th--id">{modeLabel}</th>
+              <th className="bar-fit__th--actions">Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.bars.map((b) => (
+              <tr key={b.id}>
+                <td className="bar-fit__td bar-fit__td--id">{b.id}</td>
+                <td className="bar-fit__td bar-fit__td--actions">
+                  <button type="button" className="bar-fit__icon-btn" aria-label="Visualizza">
+                    <i className="fa-light fa-eye" />
+                  </button>
+                  <button type="button" className="bar-fit__icon-btn bar-fit__icon-btn--del" aria-label="Elimina">
+                    <i className="fa-light fa-trash" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {open && (
+        <CreaBarModal
+          modeLabel={modeLabel}
+          onClose={() => setOpen(false)}
+          onSave={async (_matrix) => {
+            // TODO: chiamata API SetBarFit con matrix
+            setOpen(false)
+          }}
+        />
       )}
+    </div>
+  )
+}
+
+interface ModalProps {
+  modeLabel: string
+  onClose: () => void
+  onSave: (matrix: Matrix) => void | Promise<void>
+}
+
+function CreaBarModal({ modeLabel, onClose, onSave }: ModalProps) {
+  const [matrix, setMatrix] = useState<Matrix>({})
+
+  const set = (tipo: string, key: ColKey, v: number) => {
+    setMatrix(prev => ({
+      ...prev,
+      [tipo]: { ...prev[tipo], [key]: v },
+    }))
+  }
+
+  const headers = useMemo(() => COLONNE, [])
+
+  return (
+    <div className="bar-fit__backdrop" onClick={onClose} role="presentation">
+      <div
+        className="bar-fit__modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bar-fit-modal-title"
+      >
+        <header className="bar-fit__modal-head">
+          <h3 className="bar-fit__modal-title" id="bar-fit-modal-title">Crea {modeLabel}</h3>
+          <button type="button" className="bar-fit__close" onClick={onClose} aria-label="Chiudi">
+            <i className="fa-light fa-xmark" />
+          </button>
+        </header>
+
+        <div className="bar-fit__modal-body">
+          <p className="bar-fit__hint">
+            Imposta una nuova best available rate che garantisce coerenza e competitività
+          </p>
+
+          <div className="bar-fit__matrix-wrap">
+            <table className="bar-fit__matrix">
+              <thead>
+                <tr>
+                  <th className="bar-fit__matrix-th--row" />
+                  {headers.map(c => (
+                    <th key={c.key} className="bar-fit__matrix-th">{c.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {TIPI_CAMERA.map(tipo => (
+                  <tr key={tipo}>
+                    <td className="bar-fit__matrix-row-label">{tipo}</td>
+                    {headers.map(c => (
+                      <td key={c.key} className="bar-fit__matrix-cell">
+                        <span className="bar-fit__cell">
+                          <input
+                            type="number"
+                            step="0.01"
+                            className="bar-fit__matrix-input"
+                            value={matrix[tipo]?.[c.key] ?? ''}
+                            onChange={(e) => set(tipo, c.key, Number(e.target.value) || 0)}
+                            aria-label={`${tipo} ${c.label}`}
+                          />
+                          <span className="bar-fit__unit">€</span>
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bar-fit__modal-bar" aria-hidden="true" />
+
+        <footer className="bar-fit__modal-foot">
+          <button
+            type="button"
+            className="bar-fit__btn bar-fit__btn--secondary"
+            onClick={onClose}
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
+            className="bar-fit__btn bar-fit__btn--primary"
+            onClick={() => onSave(matrix)}
+          >
+            Salva
+          </button>
+        </footer>
+      </div>
     </div>
   )
 }

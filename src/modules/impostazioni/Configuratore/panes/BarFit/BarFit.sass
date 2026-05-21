@@ -1,146 +1,356 @@
 // ─── B.A.R / F.I.T. ───────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
 
+$bf-input-h: 28px
+$bf-row-h: 36px
+$bf-muted: #6b7785
+$bf-row-divider: #eef0f3
+
 .bar-fit
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 14px
   font-size: 13px
 
-  &__breadcrumb
+  // ── Filtri + bottone Crea ─────────────────────────────────────────────────
+  &__filters
     display: flex
-    justify-content: space-between
-    align-items: center
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
-
-  &__bar
-    display: flex
+    gap: 18px
     align-items: flex-end
-    gap: 24px
+    flex-wrap: wrap
 
   &__field
     display: flex
     flex-direction: column
-    gap: 6px
+    gap: 4px
+
     label
-      font-size: 12px
-      color: $text-inactive
+      font-size: 11px
+      color: $bf-muted
       font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.3px
+
+  &__select
+    height: $bf-input-h
+    min-width: 160px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 26px 0 8px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    background: $white
+    outline: none
+
+    &:focus
+      border-color: var(--color-primary)
 
   &__radio-group
     display: flex
-    gap: 12px
-    height: 36px
+    gap: 14px
     align-items: center
+    height: $bf-input-h
 
   &__radio-item
     display: flex
     align-items: center
-    gap: 6px
+    gap: 5px
+    font-size: 12.5px
+    color: $text-active
     cursor: pointer
+
+    input
+      accent-color: var(--color-primary)
+
+  &__create-btn
+    height: $bf-input-h
+    margin-left: auto
+    padding: 0 14px
+    background: $white
+    color: var(--color-primary)
+    border: 1px solid var(--color-primary)
+    border-radius: 5px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: inherit
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: background 0.12s
+
+    i
+      font-size: 13px
+
+    &:hover
+      background: rgba(27, 61, 95, 0.06)
+
+  // ── Tabella elenco ────────────────────────────────────────────────────────
+  &__table-wrap
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
+    max-width: 520px
 
   &__table
     width: 100%
     border-collapse: collapse
 
     th, td
-      padding: 8px 12px
-      text-align: left
-      border-bottom: 1px solid $border
+      padding: 0 14px
+      vertical-align: middle
+      border-bottom: 1px solid $bf-row-divider
+      height: $bf-row-h
+      box-sizing: border-box
 
     th
-      background: $primary-50
-      color: $primary
-      font-size: 12px
+      background: $bg
+      color: $bf-muted
+      font-size: 10.5px
       font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      text-align: center
+      border-bottom: 1px solid $border
+      height: 32px
 
-  &__row-actions
-    display: flex
-    gap: 4px
+    tbody tr:nth-child(odd) td
+      background: rgba(27, 61, 95, 0.02)
 
-  &__modal-backdrop
+    tbody tr:hover td
+      background: rgba(27, 61, 95, 0.05)
+
+    tr:last-child td
+      border-bottom: none
+
+  &__th--id
+    width: 70%
+    text-align: center
+
+  &__th--actions
+    width: 30%
+    text-align: center
+
+  &__td
+    color: $text-active
+    font-size: 12.5px
+    text-align: center
+
+    &--id
+      font-weight: 500
+
+    &--actions
+      text-align: center
+      white-space: nowrap
+
+  &__icon-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    background: transparent
+    border: none
+    color: $bf-muted
+    cursor: pointer
+    border-radius: 4px
+    transition: background 0.12s, color 0.12s
+    margin: 0 2px
+
+    i
+      font-size: 13px
+
+    &:hover
+      background: rgba(27, 61, 95, 0.08)
+      color: var(--color-primary)
+
+    &--del:hover
+      background: rgba(232, 73, 73, 0.08)
+      color: $error
+
+  // ── Modale Crea B.A.R. ────────────────────────────────────────────────────
+  &__backdrop
     position: fixed
     inset: 0
-    background: rgba(0,0,0,0.4)
+    background: rgba(15, 25, 40, 0.45)
     display: flex
     align-items: center
     justify-content: center
-    z-index: 100
+    z-index: 1000
+    padding: 20px
 
   &__modal
-    background: white
-    border-radius: 12px
-    padding: 24px
-    width: 95vw
-    max-width: 1200px
+    width: min(1120px, 100%)
     max-height: 90vh
-    overflow: hidden
+    background: $white
+    border-radius: 10px
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25)
     display: flex
     flex-direction: column
-    gap: 12px
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2)
+    overflow: hidden
 
-  &__modal-header
+  &__modal-head
     display: flex
-    justify-content: space-between
     align-items: center
-    h3
-      margin: 0
-      font-family: $font-heading
-      color: $primary
+    justify-content: space-between
+    padding: 18px 22px 8px
+    gap: 12px
+
+  &__modal-title
+    margin: 0
+    font-size: 20px
+    font-weight: 700
+    color: var(--color-primary)
 
   &__close
-    background: none
+    background: transparent
     border: none
+    color: $bf-muted
     cursor: pointer
-    color: $text-inactive
-    font-size: 18px
+    width: 28px
+    height: 28px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 5px
+    transition: background 0.12s
+
+    i
+      font-size: 16px
+
+    &:hover
+      background: rgba(0, 0, 0, 0.05)
+
+  &__modal-body
+    display: grid
+    grid-template-columns: 160px 1fr
+    gap: 18px
+    padding: 6px 22px 14px
+    overflow: hidden
 
   &__hint
     margin: 0
-    color: $text-inactive
-    font-size: 13px
+    color: $bf-muted
+    font-size: 12.5px
+    line-height: 1.45
+    align-self: start
 
   &__matrix-wrap
     overflow: auto
-    max-height: 500px
+    max-height: 50vh
+    border: 1px solid $border
+    border-radius: 6px
 
   &__matrix
     width: 100%
-    border-collapse: collapse
+    border-collapse: separate
+    border-spacing: 0
+    table-layout: auto
 
     th, td
       padding: 6px 8px
-      border-bottom: 1px solid $border
-      text-align: center
+      vertical-align: middle
+      border-bottom: 1px solid $bf-row-divider
+      background: $white
 
-    th
-      background: $primary-50
-      color: $primary
-      font-size: 11px
+    thead th
+      background: $bg
+      color: $bf-muted
+      font-size: 10.5px
       font-weight: 600
-      white-space: nowrap
+      text-transform: uppercase
+      letter-spacing: 0.3px
+      text-align: center
+      border-bottom: 1px solid $border
+      position: sticky
+      top: 0
+      z-index: 1
+      white-space: normal
+      line-height: 1.2
+      min-width: 78px
 
-  &__row-label
+    tr:last-child td
+      border-bottom: none
+
+    tbody tr:hover td
+      background: rgba(27, 61, 95, 0.025)
+
+  &__matrix-th--row
+    min-width: 200px
+    text-align: left !important
+
+  &__matrix-row-label
     font-weight: 600
+    color: $text-active
     text-align: left
-    white-space: nowrap
+    white-space: normal
+    min-width: 200px
+    line-height: 1.25
+    font-size: 12px
+
+  &__matrix-cell
+    text-align: center
 
   &__cell
-    display: flex
+    display: inline-flex
     align-items: center
     gap: 4px
 
-  &__input
-    width: 70px
+  &__matrix-input
+    height: $bf-input-h
+    width: 74px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 6px
+    font-family: inherit
+    font-size: 12px
+    color: $text-active
+    background: $white
+    outline: none
+    transition: border-color 0.12s
 
-  &__modal-actions
+    &:focus
+      border-color: var(--color-primary)
+
+  &__unit
+    color: $bf-muted
+    font-size: 11.5px
+
+  // Striscia navy decorativa sotto la matrice (come da screenshot)
+  &__modal-bar
+    height: 4px
+    background: var(--color-primary)
+    margin: 0 22px
+
+  &__modal-foot
     display: flex
     justify-content: flex-end
-    gap: 8px
-    margin-top: 8px
+    gap: 10px
+    padding: 14px 22px 18px
+
+  &__btn
+    height: 34px
+    padding: 0 22px
+    border-radius: 5px
+    font-family: inherit
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: opacity 0.15s, background 0.12s
+
+    &--secondary
+      background: $white
+      color: var(--color-primary)
+      border: 1px solid var(--color-primary)
+
+      &:hover
+        background: rgba(27, 61, 95, 0.04)
+
+    &--primary
+      background: var(--color-primary)
+      color: white
+      border: none
+
+      &:hover
+        opacity: 0.9
