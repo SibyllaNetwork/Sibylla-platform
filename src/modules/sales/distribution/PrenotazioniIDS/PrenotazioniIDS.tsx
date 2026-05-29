@@ -73,7 +73,7 @@ export default function PrenotazioniIDS({ navigate }: { navigate: (p: string) =>
                     <div className="ids__import-th ids__import-th--right">Prenotazioni</div>
                   </div>
                   {rows.map((row, ri) => (
-                    <div key={ri} className="ids__import-row" style={{ borderBottom: ri < rows.length - 1 ? `0.5px solid ${T.border}` : 'none' }}>
+                    <div key={ri} className="ids__import-row" style={{ borderBottom: ri < rows.length - 1 ? `1px solid ${T.border}` : 'none' }}>
                       <div className="ids__import-date">{row.data}</div>
                       <div className="ids__import-val">{row.prenotazioni}</div>
                     </div>

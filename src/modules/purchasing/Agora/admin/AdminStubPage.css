@@ -2,7 +2,7 @@
    AdminStubPage — placeholder centrato con feature list
    ===================================================================== */
 .admin-stub__card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: 14px;
   padding: 36px 28px;
@@ -20,7 +20,7 @@
   height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #e8f1f9 0%, #d8eaf5 100%);
-  color: #204769;
+  color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -65,7 +65,7 @@
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
-  color: #204769;
+  color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

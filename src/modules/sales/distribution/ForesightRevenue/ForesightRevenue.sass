@@ -29,7 +29,7 @@
       border-color: $warning
 
     &--active
-      background: #FFF7ED
+      background: var(--color-warning-light)
       border-color: $warning
 
   &__toolbar-actions
@@ -94,13 +94,13 @@
   &__year-line
     flex: 1
     height: 1px
-    background: rgba($primary, 0.2)
+    background: alpha($primary, 0.2)
 
   // ── Month grid ───────────────────────────────────────────────────────────────
   &__month-wrap
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
     margin-bottom: 12px
 
@@ -126,7 +126,7 @@
   &__day-th
     padding: 5px 2px
     text-align: center
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
     &--weekend
       background: #EEF5FF
@@ -142,7 +142,7 @@
   &__price-cell
     padding: 4px 2px
     text-align: center
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
     &--weekend
       background: #F5F9FF
@@ -220,7 +220,7 @@
   border-collapse: collapse
 
 .foresight__thead-row
-  background: #F8FAFC
+  background: var(--color-bg)
   border-bottom: 1px solid $border
 
 .foresight__month-full-cell
@@ -259,7 +259,7 @@
   width: 56px
   height: 56px
   border-radius: 50%
-  background: #FFF7ED
+  background: var(--color-warning-light)
   border: 2px solid rgba(245,166,35,0.2)
   display: flex
   align-items: center

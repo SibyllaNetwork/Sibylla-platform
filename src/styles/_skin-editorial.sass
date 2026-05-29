@@ -1,0 +1,615 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// SKIN "PRO" — [data-theme="editorial"]
+// ─────────────────────────────────────────────────────────────────────────────
+// Look CRM moderno light-mode (Linear / Attio / Notion).
+//   • Topbar e sidenav su grigio molto chiaro #F4F4F5 (entrambi allineati)
+//   • Tutto testo/icone scuri sui due surface chiari
+//   • Accento indigo #5E6AD2 per highlights / pill attivi / bottoni
+//   • Content area bianco "sporco" #FEFEFE
+//   • Niente gradient/glow — solo ring 1px + drop sottile
+// ═════════════════════════════════════════════════════════════════════════════
+
+[data-theme="editorial"]
+  --pro-text:         #1F2328
+  --pro-text-muted:   #656D76
+  --pro-text-dim:     #8B949E
+  --pro-accent:       #5E6AD2
+  --pro-accent-hover: #4F58B8
+  --pro-accent-soft:  rgba(94, 106, 210, 0.10)
+  --pro-accent-ring:  rgba(94, 106, 210, 0.18)
+  --pro-surface-nav:  #F4F4F5
+  --pro-surface-hover: #EAEAEB
+  --pro-border:       #E5E5E5
+  --pro-border-soft:  #EFEFEF
+  // Ombra esterna leggera in due livelli (Linear/Attio): drop close + drop wide
+  --pro-shadow-card:  0 1px 2px rgba(15, 17, 23, 0.05), 0 4px 12px -2px rgba(15, 17, 23, 0.06)
+  --pro-shadow-hover: 0 2px 4px rgba(15, 17, 23, 0.06), 0 12px 24px -4px rgba(15, 17, 23, 0.10)
+
+
+// ─── SIDENAV — light gray surface, dark text ────────────────────────────────
+[data-theme="editorial"] .app__sidebar
+  background: var(--pro-surface-nav) !important
+  color: var(--pro-text) !important
+  border-right: 1px solid var(--pro-border)
+  font-family: 'Inter', sans-serif
+
+  // Tailwind white text overrides → scuro su chiaro
+  .text-white
+    color: var(--pro-text) !important
+
+  .text-white\/40, .text-white\/45, .text-white\/55
+    color: var(--pro-text-dim) !important
+
+  .text-white\/60, .text-white\/65, .text-white\/70
+    color: var(--pro-text-muted) !important
+
+  .text-white\/80, .text-white\/85, .text-white\/90
+    color: var(--pro-text) !important
+
+  .text-white\/30, .text-white\/35
+    color: var(--pro-text-dim) !important
+
+  .border-white\/\[0\.08\],
+  .border-t,
+  .border-b
+    border-color: var(--pro-border) !important
+
+  .bg-white\/10,
+  .bg-white\/\[0\.05\],
+  .bg-white\/\[0\.08\],
+  .bg-white\/\[0\.10\],
+  .bg-white\/\[0\.04\]
+    background: rgba(15, 17, 23, 0.04) !important
+
+  .hover\:bg-white\/\[0\.05\]:hover,
+  .hover\:bg-white\/\[0\.08\]:hover,
+  .hover\:bg-white\/10:hover,
+  .hover\:bg-white\/20:hover
+    background: var(--pro-accent-soft) !important
+    color: var(--pro-accent) !important
+
+  // Avatar utente: accent indigo (resta su sfondo chiaro)
+  .bg-link
+    background: var(--pro-accent) !important
+    color: #FFFFFF !important
+    box-shadow: none
+
+  // Icone Ico passate via style inline: forziamo color con !important
+  i, svg
+    color: var(--pro-text-muted) !important
+
+  *:not(i):not(svg)
+    font-family: 'Inter', sans-serif !important
+    letter-spacing: -0.005em
+
+  // Voci di menu
+  .nav-item
+    border-radius: 6px !important
+    background: transparent !important
+    padding: 6px 10px
+    margin: 1px 8px
+    transition: background 0.12s, color 0.12s
+    color: var(--pro-text-muted) !important
+    position: relative
+
+    &:hover
+      background: rgba(15, 17, 23, 0.04) !important
+      color: var(--pro-text) !important
+
+  // Item attivo: bg indigo-soft + barra accent + testo dark
+  .nav-item--active
+    background: var(--pro-accent-soft) !important
+    color: var(--pro-accent) !important
+    font-weight: 600
+
+    .nav-item__label
+      color: var(--pro-accent) !important
+
+    i, svg
+      color: var(--pro-accent) !important
+
+    &::before
+      content: ''
+      position: absolute
+      left: 0
+      top: 6px
+      bottom: 6px
+      width: 2px
+      background: var(--pro-accent)
+      border-radius: 0 2px 2px 0
+
+  .nav-item--has-active
+    color: var(--pro-text) !important
+    font-weight: 500
+
+
+// ─── TOPBAR — light gray surface, dark text ─────────────────────────────────
+[data-theme="editorial"] .topbar
+  background: var(--pro-surface-nav) !important
+  color: var(--pro-text)
+  border-bottom: 1px solid var(--pro-border)
+  height: 52px
+  padding: 0 16px
+
+  // Tutte le icone Ico passate via `c={C.bright/normal/muted}` → dark gray
+  i
+    color: var(--pro-text-muted) !important
+
+  // Breadcrumb in dark
+  .topbar__crumb-btn,
+  .topbar__crumb-btn--last,
+  .topbar__crumb-btn--prev
+    font-family: 'Inter', sans-serif !important
+    font-weight: 500 !important
+    color: var(--pro-text) !important
+    letter-spacing: -0.005em
+    font-size: 13px
+
+  .topbar__crumb-btn--prev
+    color: var(--pro-text-muted) !important
+    font-weight: 400 !important
+
+  .topbar__crumb-item i.fa-chevron-right
+    color: var(--pro-text-dim) !important
+    opacity: 1
+
+  .topbar__crumb-home
+    background: transparent !important
+
+    &:hover
+      background: rgba(15, 17, 23, 0.04) !important
+      border-radius: 6px
+
+  // Hamburger mobile
+  .topbar__hamburger
+    background: transparent !important
+
+    &:hover
+      background: rgba(15, 17, 23, 0.04) !important
+
+  // I miei preferiti
+  .topbar__fav-btn
+    background: var(--color-surface) !important
+    border: 1px solid var(--pro-border) !important
+    color: var(--pro-text) !important
+    border-radius: 6px
+    font-size: 12px
+    font-weight: 500
+    padding: 5px 12px
+
+    &:hover
+      border-color: var(--pro-text-muted) !important
+      background: var(--color-surface) !important
+
+    &--active
+      background: var(--pro-accent-soft) !important
+      border-color: var(--pro-accent) !important
+      color: var(--pro-accent) !important
+
+  .topbar__fav-page
+    background: transparent !important
+
+    &:hover
+      background: rgba(15, 17, 23, 0.04) !important
+
+  .topbar__divider
+    background: var(--pro-border) !important
+    width: 1px
+    height: 20px
+
+  .topbar__icon-btn
+    color: var(--pro-text-muted) !important
+    border-radius: 6px !important
+    width: 32px
+    height: 32px
+
+    &:hover
+      background: rgba(15, 17, 23, 0.05) !important
+      color: var(--pro-text) !important
+
+    i
+      color: inherit !important
+
+  .topbar__icon-btn--active
+    background: var(--pro-accent-soft) !important
+    color: var(--pro-accent) !important
+
+    i
+      color: var(--pro-accent) !important
+
+  // Chat badge
+  .topbar__chat-icon
+    color: var(--pro-text-muted) !important
+
+  .topbar__chat-badge
+    background: #CF222E !important
+    color: #fff
+    border-color: var(--pro-surface-nav) !important
+    box-shadow: 0 0 0 2px var(--pro-surface-nav)
+
+  // Search field
+  .topbar__search
+    background: var(--color-surface) !important
+    border: 1px solid var(--pro-border) !important
+    border-radius: 6px
+    padding: 5px 10px
+
+    &:focus-within
+      border-color: var(--pro-accent) !important
+      background: var(--color-surface) !important
+      box-shadow: 0 0 0 3px var(--pro-accent-ring)
+
+    i
+      color: var(--pro-text-muted) !important
+
+    .sib-search-input,
+    .topbar__search-input
+      color: var(--pro-text) !important
+      font-family: 'Inter', sans-serif
+
+      &::placeholder
+        color: var(--pro-text-dim) !important
+        font-weight: 400
+
+  // Search dropdown: tema chiaro
+  .topbar__search-dropdown
+    background: var(--color-surface) !important
+    border: 1px solid var(--pro-border) !important
+    box-shadow: 0 0 0 1px rgba(15, 17, 23, 0.06), 0 12px 32px rgba(15, 17, 23, 0.10)
+
+  .topbar__search-header
+    color: var(--pro-text-dim) !important
+
+  .topbar__search-item
+    &:hover,
+    &--selected
+      background: rgba(15, 17, 23, 0.04) !important
+
+  .topbar__search-item-label
+    color: var(--pro-text) !important
+
+  .topbar__search-item-path
+    color: var(--pro-text-muted) !important
+
+  .topbar__search-empty
+    color: var(--pro-text-muted) !important
+
+  .topbar__search-footer
+    color: var(--pro-text-dim) !important
+    border-top-color: var(--pro-border) !important
+
+  // Skin switch su surface chiaro
+  .topbar__skin-switch
+    background: var(--color-surface) !important
+    border: 1px solid var(--pro-border) !important
+
+    &:hover
+      background: var(--color-surface) !important
+      border-color: var(--pro-text-muted) !important
+
+  .topbar__skin-switch-label
+    color: var(--pro-text-muted) !important
+
+  .topbar__skin-switch--on .topbar__skin-switch-label--on,
+  .topbar__skin-switch:not(.topbar__skin-switch--on) .topbar__skin-switch-label--off
+    color: var(--pro-text) !important
+    font-weight: 700
+
+  .topbar__skin-switch-track
+    background: #D4D4D8 !important
+
+  .topbar__skin-switch--on .topbar__skin-switch-track
+    background: var(--pro-accent) !important
+
+
+// ─── Content area: bianco "sporco" ──────────────────────────────────────────
+[data-theme="editorial"] .app__content
+  background: #FEFEFE !important
+  border-top-left-radius: 0
+  padding: 24px 28px
+
+[data-theme="editorial"] .app__content--with-tabs
+  box-shadow: none
+  border-left: 1px solid var(--pro-border)
+
+
+// ─── Page Header ────────────────────────────────────────────────────────────
+[data-theme="editorial"] .page-header__title
+  font-family: 'Inter Tight', 'Inter', sans-serif
+  font-weight: 600
+  letter-spacing: -0.022em
+  font-size: 24px
+  color: var(--pro-text)
+
+[data-theme="editorial"] .page-header__subtitle
+  font-family: 'Inter', sans-serif
+  color: var(--pro-text-muted)
+  font-size: 13.5px
+  font-weight: 400
+
+
+// ─── BtnBack ────────────────────────────────────────────────────────────────
+[data-theme="editorial"] .sib-btn--back
+  background: var(--color-surface) !important
+  border: 1px solid var(--pro-border) !important
+  color: var(--pro-text-muted) !important
+  border-radius: 6px !important
+  font-size: 12px
+  font-weight: 500
+  padding: 4px 10px !important
+
+  &:hover
+    background: #FEFEFE !important
+    color: var(--pro-text) !important
+    border-color: var(--pro-text-muted) !important
+
+
+// ─── Bottoni ────────────────────────────────────────────────────────────────
+[data-theme="editorial"] .sib-btn--primary
+  background: var(--pro-accent) !important
+  border: 1px solid var(--pro-accent) !important
+  color: #FFFFFF !important
+  border-radius: 6px !important
+  font-family: 'Inter', sans-serif
+  font-weight: 500
+  font-size: 13px
+  letter-spacing: -0.005em
+  box-shadow: none
+
+  &:hover
+    background: var(--pro-accent-hover) !important
+    border-color: var(--pro-accent-hover) !important
+
+[data-theme="editorial"] .sib-btn--ghost,
+[data-theme="editorial"] .sib-btn--toolbar
+  background: var(--color-surface) !important
+  border: 1px solid var(--pro-border) !important
+  color: var(--pro-text) !important
+  border-radius: 6px !important
+  font-family: 'Inter', sans-serif
+  font-weight: 500
+  font-size: 13px
+
+  &:hover
+    background: #FEFEFE !important
+    border-color: var(--pro-text-muted) !important
+
+
+// ─── Tabelle ────────────────────────────────────────────────────────────────
+[data-theme="editorial"] .sib-table-wrap
+  background: var(--color-surface) !important
+  border: 1px solid var(--pro-border) !important
+  border-radius: 6px
+  box-shadow: var(--pro-shadow-card)
+  overflow: hidden
+
+[data-theme="editorial"] .sib-table
+  thead th
+    background: #F3F5FF !important
+    color: var(--pro-text-muted) !important
+    border-bottom: 1px solid var(--pro-border)
+    text-transform: uppercase
+    letter-spacing: 0.06em
+    font-family: 'Inter', sans-serif
+    font-weight: 600
+
+
+// ─── Tabelle generiche: thead background uniforme su tutte le pagine ────────
+// Catch-all per le tabelle module-specifiche (strutt-prop__table, gest-servizi
+// __table, ecc.) che non usano la classe .sib-table.
+[data-theme="editorial"] table thead th,
+[data-theme="editorial"] table thead tr
+  background: #F3F5FF !important
+    font-size: 10.5px
+    padding: 10px 14px
+
+  tbody tr
+    border-bottom: 1px solid var(--pro-border-soft)
+    transition: background 0.12s
+
+    &:hover
+      background: #FAFAFB
+
+    &:last-child
+      border-bottom: none
+
+  tbody td
+    font-family: 'Inter', sans-serif
+    font-size: 13px
+    color: var(--pro-text)
+    padding: 10px 14px
+
+
+// ─── Input / Select ─────────────────────────────────────────────────────────
+[data-theme="editorial"] .sib-input,
+[data-theme="editorial"] .sib-select
+  background: var(--color-surface) !important
+  border: 1px solid #B7B7B7 !important
+  border-radius: 6px
+  font-family: 'Inter', sans-serif
+  font-size: 13px
+  box-shadow: 0 1px 2px rgba(15, 17, 23, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.50)
+
+  &:focus
+    outline: none
+    border-color: var(--pro-accent) !important
+    box-shadow: 0 0 0 3px var(--pro-accent-ring), 0 1px 2px rgba(15, 17, 23, 0.05)
+
+
+// ─── Counter cards ──────────────────────────────────────────────────────────
+[data-theme="editorial"] .strutt-prop__counter,
+[data-theme="editorial"] .cnp-view__counter,
+[data-theme="editorial"] .strutt-tab__counter
+  background: var(--color-surface) !important
+  border: none !important
+  border-radius: 12px
+  box-shadow: var(--pro-shadow-card)
+  transition: box-shadow 0.18s
+
+  &:hover
+    box-shadow: var(--pro-shadow-hover)
+
+
+// ─── Switch ON → indigo ─────────────────────────────────────────────────────
+[data-theme="editorial"] .strutt-prop__switch input:checked + .strutt-prop__switch-slider,
+[data-theme="editorial"] .strutt-tab__switch input:checked + .strutt-tab__switch-slider,
+[data-theme="editorial"] .gest-servizi__switch input:checked + .gest-servizi__switch-slider
+  background: var(--pro-accent)
+
+
+// ─── Modal ──────────────────────────────────────────────────────────────────
+[data-theme="editorial"] .modal__backdrop
+  background: rgba(15, 17, 23, 0.40)
+
+[data-theme="editorial"] .modal__box
+  background: var(--color-surface) !important
+  border-radius: 12px
+  box-shadow: 0 0 0 1px rgba(15, 17, 23, 0.08), 0 12px 32px rgba(15, 17, 23, 0.18)
+
+
+// ─── Sub-tab containers (tutti i nav tab della piattaforma) ─────────────────
+// Tutti i contenitori "tab/sub-tab" pill condividono lo stesso look: bianco
+// + bordo 1px + radius 6px.
+[data-theme="editorial"] .strutt-tab-wrap__subtabs,
+[data-theme="editorial"] .cat-tab__subtabs,
+[data-theme="editorial"] .srv-admin-tab__subtabs
+  background: var(--color-surface) !important
+  border: 1px solid var(--pro-border) !important
+  border-radius: 6px !important
+  padding: 3px
+  display: inline-flex
+  gap: 2px
+  width: fit-content
+  box-shadow: none !important
+
+[data-theme="editorial"] .strutt-tab-wrap__subtab,
+[data-theme="editorial"] .cat-tab__subtab,
+[data-theme="editorial"] .srv-admin-tab__subtab
+  border-bottom: none !important
+  border-radius: 6px !important
+  padding: 5px 12px
+
+  &:hover
+    color: var(--pro-text)
+    background: #FEFEFE
+
+  &.strutt-tab-wrap__subtab--active,
+  &.cat-tab__subtab--active,
+  &.srv-admin-tab__subtab--active
+    background: var(--pro-accent) !important
+    color: #FFFFFF !important
+    border-color: transparent !important
+
+
+// ─── ClientHeader tabs (admin → cliente) ────────────────────────────────────
+[data-theme="editorial"] .chead__tabs
+  border: 1px solid var(--pro-border)
+  border-radius: 6px
+  padding: 3px
+  display: inline-flex
+  gap: 2px
+  background: var(--color-surface)
+  width: fit-content
+
+
+// ─── Preview modal canale tabs ──────────────────────────────────────────────
+[data-theme="editorial"] .strprev-modal__tabs
+  border: 1px solid var(--pro-border)
+  border-radius: 6px
+  padding: 4px
+  background: var(--color-surface)
+
+
+// ─── Cards ──────────────────────────────────────────────────────────────────
+[data-theme="editorial"] .strutt-card,
+[data-theme="editorial"] .cnp-card
+  background: var(--color-surface) !important
+  border: none !important
+  border-radius: 12px
+  box-shadow: var(--pro-shadow-card)
+  transition: box-shadow 0.18s
+
+  &:hover
+    box-shadow: var(--pro-shadow-hover)
+
+
+// ─── Page toolbar ───────────────────────────────────────────────────────────
+[data-theme="editorial"] .page-toolbar
+  background: var(--color-surface)
+  border: 1px solid var(--pro-border)
+  border-radius: 8px
+  padding: 8px 10px
+  box-shadow: none
+
+
+// ─── .sap shadow (solo Pro) ─────────────────────────────────────────────────
+[data-theme="editorial"] .sap
+  box-shadow: var(--shadow-card-base)
+
+
+// ─── CARD SHADOW UNIFORME (solo Pro) ────────────────────────────────────────
+// Tutte le card della piattaforma in modalità Pro condividono la stessa
+// ombra leggera definita come --shadow-card-base nel blocco [data-theme="editorial"].
+// Lista esplicita dei selettori per evitare falsi positivi su sotto-elementi
+// BEM (es. card__title, card-icon, ecc.).
+[data-theme="editorial"] .academy-course-detail__cta-card,
+[data-theme="editorial"] .academy-course-detail__header-card,
+[data-theme="editorial"] .academy-hub-card,
+[data-theme="editorial"] .academy-new-ad__sub-card,
+[data-theme="editorial"] .academy-new-ad__type-card,
+[data-theme="editorial"] .academy-personnel-detail__cta-card,
+[data-theme="editorial"] .academy-personnel-detail__header-card,
+[data-theme="editorial"] .admin-section-card,
+[data-theme="editorial"] .admin-stub__card,
+[data-theme="editorial"] .announcement-card,
+[data-theme="editorial"] .announcements-mgmt__form-card,
+[data-theme="editorial"] .biz__cal-card,
+[data-theme="editorial"] .biz__date-card,
+[data-theme="editorial"] .cat-view__card,
+[data-theme="editorial"] .category-card,
+[data-theme="editorial"] .category-info-card,
+[data-theme="editorial"] .class-card,
+[data-theme="editorial"] .cn-card,
+[data-theme="editorial"] .cnp-card,
+[data-theme="editorial"] .course-card,
+[data-theme="editorial"] .cq-card,
+[data-theme="editorial"] .dam-card,
+[data-theme="editorial"] .dash-card,
+[data-theme="editorial"] .el-card,
+[data-theme="editorial"] .el-hero__card,
+[data-theme="editorial"] .form-card,
+[data-theme="editorial"] .giornale__card,
+[data-theme="editorial"] .go__card,
+[data-theme="editorial"] .gp-card,
+[data-theme="editorial"] .hotel-card,
+[data-theme="editorial"] .match-card,
+[data-theme="editorial"] .mod-tab__card,
+[data-theme="editorial"] .mov-barcode__product-card,
+[data-theme="editorial"] .my-listing-card,
+[data-theme="editorial"] .paf__card,
+[data-theme="editorial"] .paf__movimenti-card,
+[data-theme="editorial"] .personnel-card,
+[data-theme="editorial"] .prenota__card,
+[data-theme="editorial"] .product-card,
+[data-theme="editorial"] .quote-card,
+[data-theme="editorial"] .screening__loading-card,
+[data-theme="editorial"] .srv-card,
+[data-theme="editorial"] .stat-card,
+[data-theme="editorial"] .strutt-card,
+[data-theme="editorial"] .supplier-card,
+[data-theme="editorial"] .rounded-card
+  box-shadow: var(--shadow-card-base) !important
+
+
+// ─── Form input/select shadow (solo Pro) ────────────────────────────────────
+[data-theme="editorial"] .sib-input,
+[data-theme="editorial"] .sib-select,
+[data-theme="editorial"] .field,
+[data-theme="editorial"] .select
+  box-shadow: 0 1px 2px rgba(15, 17, 23, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.50) !important
+
+[data-theme="editorial"] .sib-input:focus,
+[data-theme="editorial"] .sib-select:focus,
+[data-theme="editorial"] .field:focus,
+[data-theme="editorial"] .select:focus
+  box-shadow: 0 0 0 3px var(--pro-accent-ring), 0 1px 2px rgba(15, 17, 23, 0.05) !important

@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 $success: #10b981
 $danger: #dc2626
@@ -126,7 +126,7 @@ $danger: #dc2626
     align-items: center
     gap: 6px
     padding: 5px 12px
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border-strong
     border-radius: 4px
     color: $ink

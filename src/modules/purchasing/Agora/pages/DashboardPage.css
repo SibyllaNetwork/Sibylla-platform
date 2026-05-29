@@ -228,7 +228,7 @@
   left: 2px;
   width: 14px;
   height: 14px;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 50%;
   transition: transform 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -417,7 +417,7 @@
 /* ---- Print stylesheet for PDF export ---- */
 @media print {
   body.is-printing-dashboard {
-    background: #fff !important;
+    background: var(--color-surface) !important;
   }
   body.is-printing-dashboard .app-sidebar,
   body.is-printing-dashboard .app-header,
@@ -433,7 +433,7 @@
   }
   body.is-printing-dashboard .dash-card {
     box-shadow: none !important;
-    border: 1px solid #cfcfcf !important;
+    border: 1px solid var(--color-border) !important;
     break-inside: avoid;
   }
   body.is-printing-dashboard .dash-chart { height: 200px !important; }

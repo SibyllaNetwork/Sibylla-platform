@@ -8,7 +8,7 @@
   &__categoria
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
     margin-bottom: 12px
 
@@ -49,7 +49,7 @@
     font-size: 11px
     font-weight: 600
     background: $bg
-    border: 0.5px solid $border
+    border: 1px solid $border
     border-radius: 5px
     padding: 2px 8px
     color: $text-disabled
@@ -89,9 +89,9 @@
   &__table-head
     display: grid
     padding: 8px 16px
-    background: #F8FAFC
-    border-top: 0.5px solid $border
-    border-bottom: 0.5px solid $border
+    background: var(--color-bg)
+    border-top: 1px solid $border
+    border-bottom: 1px solid $border
 
   &__th
     font-size: 10px
@@ -103,12 +103,12 @@
   &__piano-row
     display: grid
     padding: 10px 16px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
     align-items: center
     transition: background 0.1s
 
     &:hover
-      background: #F8FCFF
+      background: var(--color-bg)
 
     &:last-child
       border-bottom: none
@@ -200,7 +200,7 @@
   &__table-wrap
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
 
   &__table-scroll
@@ -212,7 +212,7 @@
     min-width: 700px
 
   &__thead-row
-    background: #F8FAFC
+    background: var(--color-bg)
 
   &__th
     padding: 10px 12px
@@ -226,11 +226,11 @@
     border-bottom: 1px solid $border
 
   &__row
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
     transition: background 0.1s
 
     &:hover
-      background: #F8FCFF
+      background: var(--color-bg)
 
     &:last-child
       border-bottom: none
@@ -317,11 +317,11 @@
       color: $primary
 
     &--danger
-      border-color: #E74C3C
+      border-color: var(--color-border)
       color: #E74C3C
 
       &:hover
-        background: #FFF0F0
+        background: var(--color-error-light)
 
     &--primary
       background: $primary
@@ -342,7 +342,7 @@
   &__grid-wrap
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
 
   &__grid-scroll
@@ -366,7 +366,7 @@
 
   // ── Header day ───────────────────────────────────────────────────────────────
   &__head-corner
-    background: #F8FAFC
+    background: var(--color-bg)
     border-bottom: 1px solid $border
     border-right: 1px solid $border
     position: sticky
@@ -380,9 +380,9 @@
     font-weight: 700
     color: $text-active
     text-align: center
-    background: #F8FAFC
+    background: var(--color-bg)
     border-bottom: 1px solid $border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
     position: sticky
     top: 0
     z-index: 3
@@ -399,8 +399,8 @@
   // ── Room label cell ───────────────────────────────────────────────────────────
   &__room-label
     padding: 4px 10px
-    background: #F8FAFC
-    border-bottom: 0.5px solid $border
+    background: var(--color-bg)
+    border-bottom: 1px solid $border
     border-right: 1px solid $border
     vertical-align: middle
     position: sticky
@@ -421,20 +421,20 @@
   &__cell
     padding: 3px 2px
     text-align: center
-    border-bottom: 0.5px solid $border
-    border-right: 0.5px solid #E8EBF0
+    border-bottom: 1px solid $border
+    border-right: 1px solid var(--color-border)
     vertical-align: middle
     cursor: pointer
 
     &--empty
-      background: repeating-linear-gradient(-45deg, #F5F5F5, #F5F5F5 3px, #EBEBEB 3px, #EBEBEB 4px)
+      background: repeating-linear-gradient(-45deg, var(--color-bg), var(--color-bg) 3px, #EBEBEB 3px, #EBEBEB 4px)
       cursor: default
 
     &--closed
       background: $error-light
 
     &--weekend
-      background: rgba($primary, 0.025)
+      background: alpha($primary, 0.025)
 
   &__cell-inner
     display: flex

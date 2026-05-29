@@ -134,12 +134,12 @@
   &--stripe-green
     border-radius: 3px
     background: repeating-linear-gradient(-45deg,#5A8A3C,#5A8A3C 2px,rgba(255,255,255,0.4) 2px,rgba(255,255,255,0.4) 4px)
-    border: 1px solid #5A8A3C
+    border: 1px solid var(--color-border)
 
   &--stripe-red
     border-radius: 3px
     background: repeating-linear-gradient(-45deg,#E74C3C,#E74C3C 2px,rgba(255,255,255,0.4) 2px,rgba(255,255,255,0.4) 4px)
-    border: 1px solid #E74C3C
+    border: 1px solid var(--color-border)
 
   &--ghost
     border-radius: 3px
@@ -164,7 +164,7 @@
   display: flex
   align-items: stretch
   background: $white
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-radius: 12px
   overflow: hidden
   min-height: 520px
@@ -174,13 +174,13 @@
   width: 22px
   flex-shrink: 0
   border: none
-  background: #F8FAFC
+  background: var(--color-bg)
   cursor: pointer
   display: flex
   align-items: center
   justify-content: center
-  border-left: 0.5px solid $border
-  border-right: 0.5px solid $border
+  border-left: 1px solid $border
+  border-right: 1px solid $border
   transition: background 0.15s
 
   &:hover
@@ -188,11 +188,11 @@
 
   &--left
     border-radius: 12px 0 0 12px
-    border-right: 0.5px solid $border
+    border-right: 1px solid $border
 
   &--right
     border-radius: 0 12px 12px 0
-    border-left: 0.5px solid $border
+    border-left: 1px solid $border
 
 // ─── Left panel ───────────────────────────────────────────────────────────────
 .tableau__left-panel
@@ -209,7 +209,7 @@
   gap: 6px
   padding: 10px 10px 8px
   border-bottom: 1px solid $border
-  background: #F8FAFC
+  background: var(--color-bg)
 
 .tableau__allotment-label
   font-size: 12px
@@ -246,7 +246,7 @@
   grid-template-columns: 80px 1fr
   gap: 6px
   padding: 7px 0
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
 
 .tableau__detail-key
   font-size: 9px
@@ -283,7 +283,7 @@
   display: flex
   justify-content: space-around
   padding: 10px 0
-  border-top: 0.5px solid $border
+  border-top: 1px solid $border
   margin-top: 6px
 
 .tableau__detail-action-btn
@@ -408,14 +408,14 @@
   font-size: 9px
   font-weight: 600
   text-align: center
-  border-right: 0.5px solid $border
+  border-right: 1px solid $border
   flex-shrink: 0
 
 .tableau__day-num
   padding: 3px 0
   font-size: 11px
   text-align: center
-  border-right: 0.5px solid $border
+  border-right: 1px solid $border
   flex-shrink: 0
 
 .tableau__rows
@@ -426,11 +426,11 @@
 .tableau__row
   display: flex
   height: 64px
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
 
 .tableau__grid-cell
   flex: 1
-  border-right: 0.5px solid $border
+  border-right: 1px solid $border
   transition: background 0.1s
 
 .tableau__today-marker
@@ -484,4 +484,4 @@
   font-weight: 600
   text-align: center
   padding: 3px 0
-  border-right: 0.5px solid $border
+  border-right: 1px solid $border

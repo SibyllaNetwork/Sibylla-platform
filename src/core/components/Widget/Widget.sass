@@ -1,0 +1,76 @@
+@use '../../../styles/tokens' as *
+
+.widget
+  background: $white
+  border: 1px solid $border
+  border-radius: 8px
+  display: flex
+  flex-direction: column
+  overflow: hidden
+  transition: box-shadow 0.15s, border-color 0.15s
+
+  &--drag-over
+    border-color: $primary
+    box-shadow: 0 0 0 2px var(--color-primary-100)
+
+.widget__header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 9px 12px
+  border-bottom: 1px solid $border
+  background: $bg
+  cursor: grab
+  user-select: none
+
+  &:active
+    cursor: grabbing
+
+.widget--collapsed .widget__header
+  border-bottom: none
+
+.widget__title
+  margin: 0
+  font-size: 11px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  font-family: $font-body
+
+.widget__actions
+  display: flex
+  align-items: center
+  gap: 4px
+
+.widget__action
+  width: 22px
+  height: 22px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: transparent
+  border: none
+  border-radius: 4px
+  color: $text-inactive
+  font-size: 12px
+  cursor: pointer
+  transition: background 0.12s, color 0.12s
+
+  &:hover
+    background: var(--color-primary-50)
+    color: $primary
+
+  &--drag
+    cursor: grab
+    font-size: 11px
+
+    &:active
+      cursor: grabbing
+
+.widget__body
+  padding: 14px
+  flex: 1 1 auto
+
+  &--flush
+    padding: 0

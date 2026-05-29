@@ -13,6 +13,7 @@
 
 import { create } from 'zustand'
 import type { Mercato } from '../admin/SibyllaAdminPanel/catalogo/types'
+import type { MercatoServizio, TipoServizio } from '../modules/purchasing/Servizi/servizi-types'
 
 export interface ProductCartItem {
   kind: 'product'
@@ -48,16 +49,36 @@ export interface StayCartItem {
   camere: string
 }
 
-export type CartItem = ProductCartItem | StayCartItem
+export interface ServiceCartItem {
+  kind: 'service'
+  id: string                 // unique cart-line id (srv-id + booking signature)
+  servizioId: string
+  tipo: TipoServizio
+  nome: string
+  citta: string
+  immagineUrl: string
+  prezzoUnitario: number     // cristallizzato al listino selezionato
+  mercato: MercatoServizio
+  durata: string
+  quantita: number           // moltiplicatore (persone | giorni | ore | gruppi)
+  unitaPrezzo: string        // etichetta del moltiplicatore (es. "persone", "giorni")
+  // Dettagli specifici della prenotazione, key/value, dipendono dal tipo.
+  // Tenuti come record string per uniformità nel render del carrello.
+  prenotazione: Record<string, string>
+}
+
+export type CartItem = ProductCartItem | StayCartItem | ServiceCartItem
 
 interface CartState {
   items: CartItem[]
 
   addProduct: (item: Omit<ProductCartItem, 'kind' | 'quantita'>, quantita: number) => void
   addStay:    (item: Omit<StayCartItem, 'kind'>) => void
+  addService: (item: Omit<ServiceCartItem, 'kind'>) => void
   removeItem: (id: string) => void
   updateProductQuantita: (id: string, quantita: number) => void
   updateStayNotti:       (id: string, notti: number) => void
+  updateServiceQuantita: (id: string, quantita: number) => void
   clearCart: () => void
 
   totaleItems: () => number
@@ -103,6 +124,24 @@ export const useCartStore = create<CartState>((set, get) => ({
       return { items: [...s.items, { kind: 'stay', ...item }] }
     }),
 
+  addService: (item) =>
+    set((s) => {
+      const existing = s.items.find(
+        (i) => i.kind === 'service' && i.id === item.id,
+      )
+      if (existing) {
+        // stessa identica prenotazione (id già "firmato"): aumenta quantità
+        return {
+          items: s.items.map((i) =>
+            i.kind === 'service' && i.id === item.id
+              ? { ...i, quantita: i.quantita + item.quantita }
+              : i,
+          ),
+        }
+      }
+      return { items: [...s.items, { kind: 'service', ...item }] }
+    }),
+
   removeItem: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
 
   updateProductQuantita: (id, quantita) => {
@@ -127,12 +166,26 @@ export const useCartStore = create<CartState>((set, get) => ({
     }))
   },
 
+  updateServiceQuantita: (id, quantita) => {
+    if (quantita <= 0) {
+      set((s) => ({ items: s.items.filter((i) => i.id !== id) }))
+      return
+    }
+    set((s) => ({
+      items: s.items.map((i) =>
+        i.kind === 'service' && i.id === id ? { ...i, quantita } : i,
+      ),
+    }))
+  },
+
   clearCart: () => set({ items: [] }),
 
   totaleItems: () => {
     let count = 0
     for (const it of get().items) {
-      count += it.kind === 'product' ? it.quantita : 1
+      if (it.kind === 'product')      count += it.quantita
+      else if (it.kind === 'service') count += it.quantita
+      else                            count += 1
     }
     return count
   },
@@ -140,8 +193,9 @@ export const useCartStore = create<CartState>((set, get) => ({
   totalePrezzo: () => {
     let price = 0
     for (const it of get().items) {
-      if (it.kind === 'product') price += it.prezzoUnitario * it.quantita
-      else price += it.prezzoPerNotte * it.notti
+      if (it.kind === 'product')      price += it.prezzoUnitario * it.quantita
+      else if (it.kind === 'stay')    price += it.prezzoPerNotte * it.notti
+      else if (it.kind === 'service') price += it.prezzoUnitario * it.quantita
     }
     return price
   },

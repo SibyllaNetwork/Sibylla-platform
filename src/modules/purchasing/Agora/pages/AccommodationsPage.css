@@ -69,3 +69,65 @@
     @apply grid-cols-4;
   }
 }
+
+/* ─── View toggle (grid / list) ──────────────────────────────────────────── */
+.accommodations__results-controls {
+  @apply flex items-center gap-3;
+}
+
+.accommodations__view-toggle {
+  @apply inline-flex items-center bg-surface border border-border-soft rounded-md p-0.5 gap-0.5;
+}
+
+.accommodations__view-btn {
+  @apply inline-flex items-center justify-center w-7 h-7 rounded
+         text-ink-muted bg-transparent border-0 cursor-pointer transition-colors;
+}
+
+.accommodations__view-btn:hover {
+  @apply text-ink bg-canvas;
+}
+
+.accommodations__view-btn--active {
+  @apply bg-primary text-white;
+}
+
+.accommodations__view-btn--active:hover {
+  @apply bg-primary text-white;
+}
+
+/* ─── List mode ─────────────────────────────────────────────────────────── */
+.accommodations__grid--list {
+  grid-template-columns: 1fr !important;
+}
+
+.accommodations__grid--list .hotel-card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.accommodations__grid--list .hotel-card__media {
+  width: 280px;
+  min-width: 280px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.accommodations__grid--list .hotel-card__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .accommodations__grid--list .hotel-card {
+    flex-direction: column;
+  }
+  .accommodations__grid--list .hotel-card__media {
+    width: 100%;
+    min-width: 0;
+    aspect-ratio: 16 / 10;
+  }
+}

@@ -1,0 +1,189 @@
+// ─── DETTAGLIO PRENOTAZIONI MODAL ─────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+$dp-row-divider: #eef0f3
+
+.det-pren
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  &__meta
+    margin: -4px 0 0
+    font-size: 12.5px
+    color: $primary
+    font-weight: 600
+
+  &__chip
+    align-self: flex-start
+    background: $primary-50
+    color: $primary
+    font-size: 10.5px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    padding: 4px 10px
+    border-radius: 999px
+
+  &__info
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px 14px
+    border-radius: 8px
+    background: $primary-50
+    border: 1px solid $primary-100
+
+  &__info-icon
+    width: 36px
+    height: 36px
+    border-radius: 8px
+    background: $primary
+    color: $white
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+
+    i
+      font-size: 16px
+
+  &__info-text
+    margin: 0
+    font-size: 12.5px
+    color: $text-inactive
+    line-height: 1.5
+
+  &__table-wrap
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
+    max-height: 380px
+    overflow-y: auto
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 13px
+
+    th, td
+      padding: 6px 10px
+      text-align: left
+      border-bottom: 1px solid $dp-row-divider
+      vertical-align: middle
+
+    th
+      background: $bg
+      color: $text-inactive
+      font-size: 10.5px
+      font-weight: 600
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      border-bottom: 1px solid $border
+      white-space: nowrap
+
+    tbody tr:last-child td
+      border-bottom: none
+
+  &__num
+    text-align: center
+    width: 80px
+
+  &__action-col
+    width: 220px
+
+  &__id
+    font-weight: 600
+    color: $text-active
+
+  &__cliente
+    color: $text-active
+
+  &__dates
+    display: flex
+    flex-direction: column
+    gap: 1px
+    color: $text-active
+    font-size: 12.5px
+
+  &__action
+    padding: 4px 10px
+
+  &__suggest-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    width: 100%
+    min-height: 32px
+    padding: 6px 12px
+    background: $primary
+    color: $white
+    border: 1px solid $primary
+    border-radius: 6px
+    font: inherit
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: background 0.15s ease
+
+    i
+      font-size: 12px
+
+    &:hover
+      background: $primary-800
+
+  &__suggest
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__suggest-label
+    font-size: 10px
+    font-weight: 600
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    white-space: nowrap
+
+  &__select
+    flex: 1
+    min-width: 0
+    height: 28px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 8px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    background: $white
+    outline: none
+    transition: border-color 0.12s ease
+
+    &:focus
+      border-color: $primary
+
+  &__confirm
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 28px
+    border: 1px solid $success
+    background: $success
+    color: $white
+    border-radius: 5px
+    cursor: pointer
+    transition: background 0.15s ease
+
+    i
+      font-size: 12px
+
+    &:hover
+      filter: brightness(0.95)
+
+  &__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 4px

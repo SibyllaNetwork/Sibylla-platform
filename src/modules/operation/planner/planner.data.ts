@@ -51,7 +51,15 @@ export const PIANI_DATA: Piano[] = [
 
 // ── Prenotazioni mock ──────────────────────────────────────────────────────────
 export const PRENS: Pren[] = [
-  { id:'p1',  booking:'15080', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'1',   agenzia:'Sibylla', segmento:'Gruppi' },
+  { id:'p1',  booking:'15080', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'1',   agenzia:'Tui Italia', segmento:'Gruppi',
+    cliente:'Mario Giordani', statoCheckIn:'In attesa', persone:112, adulti:0, bambini:0, neonati:0, animali:0, camere:57, arrangiamento:'RO',
+    dettaglioCamere:[
+      { numero:'102', piano:'Primo Piano', nome:'SGL CLASSICA',         tipoAssegnato:'Singola', tipoRichiesto:'Singola Classic', statoCheckIn:'In attesa' },
+      { numero:'304', piano:'Terzo Piano', nome:'MATRIMONIALE ECONOMY', tipoAssegnato:'Doppia',  tipoRichiesto:'Doppia Classic', statoCheckIn:'In attesa' },
+      { numero:'305', piano:'Terzo Piano', nome:'MATRIMONIALE ECONOMY', tipoAssegnato:'Doppia',  tipoRichiesto:'Doppia Classic', statoCheckIn:'In attesa' },
+      { numero:'307', piano:'Terzo Piano', nome:'MATRIMONIALE CLASSIC', tipoAssegnato:'Doppia',  tipoRichiesto:'Doppia Classic', statoCheckIn:'In attesa' },
+      { numero:'308', piano:'Terzo Piano', nome:'DOPPIA CLASSIC',       tipoAssegnato:'Doppia',  tipoRichiesto:'Doppia Classic', statoCheckIn:'In attesa' },
+    ] },
   { id:'p2',  booking:'15081', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'1' },
   { id:'p3',  booking:'15082', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'101', agenzia:'Sibylla', segmento:'Gruppi' },
   { id:'p4',  booking:'15083', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'101' },

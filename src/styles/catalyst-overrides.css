@@ -8,8 +8,8 @@
 [data-slot="control"] textarea {
   font-family: 'Open Sans', sans-serif;
   font-size: 13px;
-  color: #4a4d53;
-  border-color: #cfcfcf;
+  color: var(--color-text-active);
+  border-color: var(--color-border);
   border-radius: 6px;
   padding-top: 0;
   padding-bottom: 0;
@@ -40,7 +40,7 @@
 [data-slot="control"] input[data-invalid],
 [data-slot="control"] select[data-invalid],
 [data-slot="control"] textarea[data-invalid] {
-  border-color: #ff616e !important;
+  border-color: var(--color-border) !important;
 }
 
 /* ── Wrapper height ──────────────────────────────────────────────────────── */
@@ -59,7 +59,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 13px;
-  color: #4a4d53;
+  color: var(--color-text-active);
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -78,7 +78,7 @@
 /* ── Icon dentro InputGroup ──────────────────────────────────────────────── */
 [data-slot="control"] [data-slot="icon"] {
   font-size: 13px;
-  color: #4a4d53;
+  color: var(--color-text-active);
 }
 
 /* ── Label ───────────────────────────────────────────────────────────────── */
@@ -86,7 +86,7 @@
   font-family: 'Open Sans', sans-serif !important;
   font-size: 12px !important;
   font-weight: 600 !important;
-  color: #4a4d53 !important;
+  color: var(--color-text-active) !important;
   line-height: 1 !important;
   margin-bottom: 2px !important;
 }
@@ -101,7 +101,7 @@
 [data-slot="description"] {
   font-family: 'Open Sans', sans-serif;
   font-size: 11px !important;
-  color: #6e7175 !important;
+  color: var(--color-text-inactive) !important;
 }
 
 /* ── Checkbox ────────────────────────────────────────────────────────────── */

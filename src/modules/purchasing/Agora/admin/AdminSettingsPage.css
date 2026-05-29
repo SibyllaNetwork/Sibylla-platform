@@ -17,13 +17,13 @@
   border: 1px solid;
 }
 .admin-settings__feedback--ok {
-  background: #e4f8ee;
-  border-color: #b7e4cd;
+  background: var(--color-success-light);
+  border-color: var(--color-border);
   color: #007035;
 }
 .admin-settings__feedback--err {
   background: #ffeaef;
-  border-color: #ffcad1;
+  border-color: var(--color-border);
   color: #d10011;
 }
 .admin-settings__feedback button {
@@ -37,7 +37,7 @@
 .admin-settings__feedback button:hover { opacity: 1; }
 
 .admin-settings__group {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border-soft);
   border-radius: 14px;
   padding: 20px 22px;
@@ -60,7 +60,7 @@
   line-height: 1.5;
 }
 .admin-settings__hint code {
-  background: #f0f5f8;
+  background: var(--color-bg);
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 11px;
@@ -90,8 +90,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #f0f5f8;
-  color: #204769;
+  background: var(--color-bg);
+  color: var(--color-primary);
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 12px;
@@ -124,8 +124,8 @@
   border: 1px solid var(--color-border-soft);
 }
 .admin-settings__btn--ghost:hover {
-  border-color: #204769;
-  color: #204769;
+  border-color: var(--color-border);
+  color: var(--color-primary);
 }
 .admin-settings__btn--danger {
   background: #d10011;

@@ -20,6 +20,7 @@ import RuoliTab from './tabs/RuoliTab/RuoliTab'
 import FunzioniTab from './tabs/FunzioniTab/FunzioniTab'
 import UtentiTab from './tabs/UtentiTab/UtentiTab'
 import CatalogoTab from './tabs/CatalogoTab/CatalogoTab'
+import ServiziAdminTab from '../../modules/purchasing/Servizi/ServiziAdminTab'
 import AgoraShell from '../../modules/purchasing/Agora/AgoraShell'
 import Ico from '../../core/icons/Ico'
 import NewClientModal from './modals/NewClientModal/NewClientModal'
@@ -639,6 +640,9 @@ export default function SibyllaAdminPanel(_props: Props) {
                     onToggleProdottoPubblicato={toggleProdottoPubblicato}
                   />
                 )}
+                {platformSection === 'servizi' && (
+                  <ServiziAdminTab />
+                )}
                 {platformSection === 'agora-console' && (
                   <AgoraShell initialPath="/admin" />
                 )}
@@ -811,7 +815,8 @@ function AdminTopBar({ mode, onModeChange }: AdminTopBarProps) {
    ──────────────────────────────────────────────────────────────────────────── */
 const PLATFORM_SECTION_META: Record<PlatformSection, { title: string; subtitle: string }> = {
   'catalogo':      { title: 'Catalogo merceologico', subtitle: 'Categorie, fornitori e prodotti pubblicati sui mercati' },
-  'agora-console': { title: 'Piattaforma admin',     subtitle: 'Contenuti e impostazioni del sub-sistema Agorà' },
+  'servizi':       { title: 'Servizi',               subtitle: 'Escursioni, noleggi, eventi e altri servizi con listini Agorà / B2B / B2C' },
+  'agora-console': { title: 'Piattaforma admin',     subtitle: 'Strutture, contenuti e impostazioni dei canali Agorà / B2B / B2C' },
 }
 
 function PlatformHeader({ section }: { section: PlatformSection }) {

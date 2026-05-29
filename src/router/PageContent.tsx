@@ -44,6 +44,7 @@ import OspitiInCasa                from '../modules/operation/OspitiInCasa/Ospit
 import ContiCamera                 from '../modules/operation/ContiCamera/ContiCamera';
 import EmissioneDocumenti          from '../modules/operation/EmissioneDocumenti/EmissioneDocumenti';
 import ContiAperti                 from '../modules/operation/ContiAperti/ContiAperti';
+import MovimentiSoggiorno           from '../modules/operation/MovimentiSoggiorno/MovimentiSoggiorno';
 import ContiChiusi                 from '../modules/operation/ContiChiusi/ContiChiusi';
 import ContiPassanti               from '../modules/operation/ContiPassanti/ContiPassanti';
 import NuovoContoPassante          from '../modules/operation/NuovoContoPassante/NuovoContoPassante';
@@ -52,6 +53,8 @@ import AssegnazioniIncarichi       from '../modules/operation/AssegnazioniIncari
 import MaintenanceAnalysis         from '../modules/operation/MaintenanceAnalysis/MaintenanceAnalysis';
 import OrdineServizio              from '../modules/operation/OrdineServizio/OrdineServizio';
 import AreaMerceologica            from '../modules/purchasing/AreaMerceologica/AreaMerceologica';
+import DettaglioAreaMerceologica   from '../modules/purchasing/AreaMerceologica/DettaglioAreaMerceologica';
+import Servizi                     from '../modules/purchasing/Servizi/Servizi';
 import CreaProdotto                from '../modules/purchasing/CreaProdotto/CreaProdotto';
 import ListaProdotti               from '../modules/purchasing/ListaProdotti/ListaProdotti';
 import GestioneAnnunci             from '../modules/purchasing/GestioneAnnunci/GestioneAnnunci';
@@ -132,6 +135,7 @@ const AGORA_PAGEID_TO_PATH: Record<string, string> = {
   'agora-announcements':     '/announcements',
   'agora-announcements-manage': '/announcements/manage',
   'agora-group-purchases':   '/group-purchases',
+  'agora-cart':              '/cart',
   // Alias dei pageId Sibylla legacy che ora puntano alla pagina Agorà.
   'acquisti-rete':           '/group-purchases',
   'crea-acquisto':           '/group-purchases',
@@ -211,6 +215,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'conti-camera')          return <ContiCamera navigate={navigate}/>;
   if (page === 'emissione-documenti')   return <EmissioneDocumenti navigate={navigate}/>;
   if (page === 'conti-aperti')          return <ContiAperti navigate={navigate}/>;
+  if (page === 'movimenti-soggiorno')   return <MovimentiSoggiorno navigate={navigate}/>;
   if (page === 'conti-chiusi')          return <ContiChiusi navigate={navigate}/>;
   if (page === 'conti-passanti')        return <ContiPassanti navigate={navigate}/>;
   if (page === 'nuovo-conto-passante')  return <NuovoContoPassante navigate={navigate}/>;
@@ -219,6 +224,11 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'maintenance-analysis')  return <MaintenanceAnalysis navigate={navigate}/>;
   if (page === 'ordine-servizio')       return <OrdineServizio navigate={navigate}/>;
   if (page === 'area-merceologica')     return <AreaMerceologica navigate={navigate}/>;
+  if (page.startsWith('dettaglio-area-merceologica:')) {
+    const categoriaId = page.slice('dettaglio-area-merceologica:'.length);
+    return <DettaglioAreaMerceologica navigate={navigate} categoriaId={categoriaId} key={page}/>;
+  }
+  if (page === 'servizi-acquisto')      return <Servizi navigate={navigate}/>;
   if (page === 'crea-prodotto')         return <CreaProdotto navigate={navigate}/>;
   if (page === 'lista-prodotti')        return <ListaProdotti navigate={navigate}/>;
   if (page === 'lista-fornitori')       return <Forniture navigate={navigate}/>;
@@ -273,8 +283,12 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'gestione-utenti')       return <GestioneUtenti navigate={navigate}/>;
 
   // ── Sub-app Agorà (pagine portate da Newagora) ──
+  // Niente `key={page}` qui: vogliamo che AgoraShell PERSISTA fra le diverse
+  // sub-rotte (la sua CartProvider tiene lo stato del carrello).
+  // PathSync internamente reagisce al cambio di `initialPath` e naviga il
+  // MemoryRouter alla nuova sub-rotta senza unmount.
   if (page in AGORA_PAGEID_TO_PATH) {
-    return <AgoraShell initialPath={AGORA_PAGEID_TO_PATH[page]} navigate={navigate} key={page} />;
+    return <AgoraShell initialPath={AGORA_PAGEID_TO_PATH[page]} navigate={navigate} />;
   }
 
   // ── Tutte le altre pagine portate da platform/Razor (~150) ──

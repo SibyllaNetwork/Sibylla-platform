@@ -22,7 +22,7 @@
     position: fixed
     inset: 0
     z-index: 200
-    background: rgba($primary, 0.55)
+    background: alpha($primary, 0.55)
     display: flex
     flex-direction: column
     align-items: center
@@ -33,7 +33,7 @@
   &__loading-spinner
     width: 44px
     height: 44px
-    border: 4px solid rgba($white, 0.25)
+    border: 4px solid alpha($white, 0.25)
     border-top-color: $white
     border-radius: 50%
     animation: spin 0.75s linear infinite
@@ -50,7 +50,7 @@
     flex-shrink: 0
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
 
   &__cal-header
@@ -59,7 +59,7 @@
     justify-content: space-between
     padding: 12px 14px
     border-bottom: 1px solid $border
-    background: #F8FAFC
+    background: var(--color-bg)
 
   &__cal-title
     font-family: $font-heading
@@ -80,7 +80,7 @@
     font-size: 12px
     font-weight: 700
     color: $primary
-    background: #F8FAFC
+    background: var(--color-bg)
     border-right: 1px solid $border
     white-space: nowrap
 
@@ -90,18 +90,18 @@
     font-weight: 700
     color: $text-disabled
     text-align: center
-    background: #F8FAFC
+    background: var(--color-bg)
     border-bottom: 1px solid $border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
   &__cal-td-empty
-    border-right: 0.5px solid #E8EBF0
-    background: repeating-linear-gradient(-45deg, #F5F5F5, #F5F5F5 3px, #EBEBEB 3px, #EBEBEB 4px)
+    border-right: 1px solid var(--color-border)
+    background: repeating-linear-gradient(-45deg, var(--color-bg), var(--color-bg) 3px, #EBEBEB 3px, #EBEBEB 4px)
 
   &__cal-dot-cell
     padding: 4px 1px
     text-align: center
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
   &__cal-dot
     width: 15px
@@ -125,7 +125,7 @@
     flex: 1
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
     min-width: 0
 
@@ -135,7 +135,7 @@
     min-width: 500px
 
   &__thead
-    background: #F8FAFC
+    background: var(--color-bg)
     border-bottom: 1px solid $border
 
   &__th
@@ -151,11 +151,11 @@
     text-align: right
 
   &__row
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
     transition: background 0.1s
 
     &:hover
-      background: #F8FCFF
+      background: var(--color-bg)
 
     &:last-child
       border-bottom: none
@@ -199,7 +199,7 @@
     justify-content: center
     gap: 4px
     padding: 10px 14px
-    border-top: 0.5px solid $border
+    border-top: 1px solid $border
 
 // ═══ PRICING BENCHMARK ═══════════════════════════════════════════════════════
 .benchmark
@@ -248,13 +248,13 @@
     flex-shrink: 0
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
 
   &__search-header
     padding: 12px 14px
-    border-bottom: 0.5px solid $border
-    background: #F8FAFC
+    border-bottom: 1px solid $border
+    background: var(--color-bg)
 
   &__search-title
     font-family: $font-heading
@@ -280,11 +280,11 @@
 
   &__hotel-item
     padding: 10px 14px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
     transition: background 0.1s
 
     &:hover
-      background: #F8FCFF
+      background: var(--color-bg)
 
     &:last-child
       border-bottom: none
@@ -315,7 +315,7 @@
     flex: 1
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
     min-width: 0
 
@@ -335,7 +335,7 @@
     align-items: center
     justify-content: space-between
     padding: 6px 0
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
   &__monitor-list
     max-height: 210px
@@ -346,11 +346,11 @@
     align-items: center
     justify-content: space-between
     padding: 8px 16px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
     transition: background 0.1s
 
     &:hover
-      background: #F8FCFF
+      background: var(--color-bg)
 
     &:last-child
       border-bottom: none
@@ -369,7 +369,7 @@
 
   &__monitor-link-btn
     padding: 4px 9px
-    border: 1px solid #E74C3C
+    border: 1px solid var(--color-border)
     border-radius: 6px
     background: transparent
     cursor: pointer
@@ -379,12 +379,12 @@
     transition: background 0.1s
 
     &:hover
-      background: #FFF0F0
+      background: var(--color-error-light)
 
   // ── Chart controls ────────────────────────────────────────────────────────────
   &__chart-controls
     padding: 10px 14px
-    border-top: 0.5px solid $border
+    border-top: 1px solid $border
     display: flex
     align-items: center
     gap: 6px
@@ -477,7 +477,7 @@
     transform: rotate(360deg)
 
 .screening__loading-card
-  background: #fff
+  background: var(--color-surface)
   border-radius: 20px
   padding: 32px 40px
   max-width: 460px
@@ -539,7 +539,7 @@
   flex: 0 0 57%
   background: $white
   border-radius: 12px
-  border: 0.5px solid $border
+  border: 1px solid $border
   overflow: hidden
   min-width: 0
 
@@ -555,7 +555,7 @@
   font-size: 11px
   font-weight: 700
   color: $text-active
-  background: #F8FAFC
+  background: var(--color-bg)
   border-bottom: 1px solid $border
   border-right: 1px solid $border
   min-width: 72px
@@ -568,30 +568,30 @@
   font-weight: 600
   color: $text-active
   text-align: center
-  background: #F8FAFC
+  background: var(--color-bg)
   border-bottom: 1px solid $border
   width: 22px
 
   &--border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
 .screening__cal-row--border
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
 
 .screening__cal-td-month
   padding: 6px 10px
   font-size: 12px
   font-weight: 700
   color: $primary
-  background: #F8FAFC
+  background: var(--color-bg)
   border-right: 1px solid $border
   white-space: nowrap
 
 .screening__cal-td-empty
-  background: repeating-linear-gradient(-45deg,#F5F5F5,#F5F5F5 3px,#EBEBEB 3px,#EBEBEB 4px)
+  background: repeating-linear-gradient(-45deg,var(--color-bg),var(--color-bg) 3px,#EBEBEB 3px,#EBEBEB 4px)
 
   &--border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
 // ─── Table ────────────────────────────────────────────────────────────────────
 .screening__table-scroll

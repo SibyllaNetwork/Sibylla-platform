@@ -3,9 +3,9 @@
 $primary: #204769
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 
 .log-sistema
@@ -70,7 +70,7 @@ $bg-zebra: #f3f8fb
     width: 100%
     border-collapse: collapse
     font-size: 12px
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 8px
     overflow: hidden
@@ -100,7 +100,7 @@ $bg-zebra: #f3f8fb
   &__empty-events
     margin: 0
     padding: 12px
-    background: white
+    background: var(--color-surface)
     border: 1px dashed $border-strong
     border-radius: 8px
     color: $muted

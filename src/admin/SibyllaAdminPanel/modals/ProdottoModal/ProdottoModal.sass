@@ -25,8 +25,8 @@
   padding: 4px
 
 .prod-modal__section
-  background: #F8FAFC
-  border: 0.5px solid $border
+  background: var(--color-bg)
+  border: 1px solid $border
   border-radius: 10px
   padding: 12px 14px
   margin-bottom: 12px
@@ -63,7 +63,7 @@
 
   &--armed
     border-color: $blue
-    box-shadow: 0 0 0 2px rgba($blue, 0.15)
+    box-shadow: 0 0 0 2px alpha($blue, 0.15)
 
 .prod-modal__barcode-ico
   font-size: 14px
@@ -102,7 +102,7 @@
   height: 28px
   padding: 0 10px
   background: $blue-light
-  border: 1px solid rgba($blue, 0.2)
+  border: 1px solid alpha($blue, 0.2)
   border-radius: 5px
   cursor: pointer
   font-size: 11px
@@ -112,7 +112,7 @@
   white-space: nowrap
 
   &:hover
-    background: rgba($blue, 0.13)
+    background: alpha($blue, 0.13)
 
 .prod-modal__barcode-scan[aria-pressed="true"]
   background: $blue

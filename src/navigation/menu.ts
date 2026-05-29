@@ -133,6 +133,7 @@ const MENU:any[]=[
           {id:"area-merceologica",label:"Area merceologica",page:"area-merceologica"},
           {id:"lista-fornitori",label:"Lista fornitori",page:"lista-fornitori"},
         ]},
+        {id:"servizi",label:"Servizi",icon:"fa-concierge-bell",page:"servizi-acquisto"},
         {id:"contratti-acquisto",label:"Contratti di acquisto",children:[
           {id:"miei-contratti-a",label:"I miei contratti",page:"miei-contratti-a"},
           {id:"inserisci-contratto-a",label:"Inserisci contratto",page:"inserisci-contratto-a"},

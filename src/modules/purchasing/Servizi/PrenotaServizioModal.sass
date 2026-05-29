@@ -1,0 +1,147 @@
+.prn-modal
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 14px 18px 18px
+
+  .prn-modal__head
+    display: flex
+    gap: 14px
+    align-items: stretch
+
+    @media (max-width: 600px)
+      flex-direction: column
+
+  .prn-modal__img
+    width: 160px
+    height: 110px
+    object-fit: cover
+    border-radius: 6px
+    flex-shrink: 0
+
+    @media (max-width: 600px)
+      width: 100%
+      height: 140px
+
+  .prn-modal__head-info
+    flex: 1 1 auto
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .prn-modal__type-badge
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 4px 9px
+    border-radius: 999px
+    background-color: var(--type-color, var(--color-primary))
+    color: #fff
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    line-height: 1
+
+  .prn-modal__head-city
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: var(--color-text-inactive)
+    margin: 0
+
+  .prn-modal__head-desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-primary)
+    margin: 0
+
+  // ─── Form ────────────────────────────────────────────────────────────────
+  .prn-modal__form-grid
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px 14px
+
+    @media (max-width: 600px)
+      grid-template-columns: 1fr
+
+  .prn-modal__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .prn-modal__label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .prn-modal__req
+    color: var(--color-error, #c0392b)
+
+  .prn-modal__input
+    width: 100%
+
+  .prn-modal__qty-row
+    display: flex
+    flex-direction: column
+    gap: 4px
+    max-width: 200px
+
+  .prn-modal__input--qty
+    max-width: 120px
+
+  .prn-modal__error
+    background: rgba(192, 57, 43, 0.08)
+    color: var(--color-error, #c0392b)
+    border: 1px solid rgba(192, 57, 43, 0.2)
+    border-radius: 6px
+    padding: 8px 12px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+
+  // ─── Footer (totale + azioni) ────────────────────────────────────────────
+  .prn-modal__footer
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 14px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)
+
+    @media (max-width: 600px)
+      flex-direction: column
+      align-items: stretch
+
+  .prn-modal__total
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  .prn-modal__total-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .prn-modal__total-amount
+    font-family: 'Poppins', sans-serif
+    font-size: 22px
+    font-weight: 700
+    color: var(--color-primary)
+
+  .prn-modal__total-detail
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  .prn-modal__actions
+    display: inline-flex
+    gap: 8px
+
+    @media (max-width: 600px)
+      justify-content: space-between
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 6px

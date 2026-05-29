@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import Ico from '../../../../core/icons/Ico'
+import Pagination from '../../../../core/components/Pagination'
 import { PageToolbar, type ViewMode } from '../../../purchasing/_shared/PageToolbar'
 import ConfirmDeleteModal from '../../../../admin/SibyllaAdminPanel/modals/ConfirmDeleteModal/ConfirmDeleteModal'
 import { apiFetchSibylla } from '../../../../services/api'
@@ -318,96 +319,5 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
         onConfirm={confirmDelete}
       />
     </div>
-  )
-}
-
-/* ============================================================
-   Pagination — stesso pattern di Lista prodotti
-   ============================================================ */
-
-interface PaginationProps {
-  page: number
-  totalPages: number
-  pageStart: number
-  pageEnd: number
-  total: number
-  pageSize: number
-  onPageChange: (p: number) => void
-  onPageSizeChange: (s: number) => void
-}
-
-function Pagination({
-  page, totalPages, pageStart, pageEnd, total, pageSize, onPageChange, onPageSizeChange,
-}: PaginationProps) {
-  const pages: Array<number | 'ellipsis'> = useMemo(() => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1)
-    const out: Array<number | 'ellipsis'> = []
-    out.push(1)
-    const winStart = Math.max(2, page - 1)
-    const winEnd = Math.min(totalPages - 1, page + 1)
-    if (winStart > 2) out.push('ellipsis')
-    for (let i = winStart; i <= winEnd; i++) out.push(i)
-    if (winEnd < totalPages - 1) out.push('ellipsis')
-    out.push(totalPages)
-    return out
-  }, [page, totalPages])
-
-  const go = (p: number) => onPageChange(Math.min(Math.max(1, p), totalPages))
-
-  return (
-    <nav className="miei-servizi__pagination" aria-label="Paginazione servizi">
-      <div className="miei-servizi__pagination-info">
-        Mostra <strong>{pageStart + 1}</strong>–<strong>{pageEnd}</strong> di <strong>{total}</strong>
-      </div>
-
-      <div className="miei-servizi__pagination-controls">
-        <button
-          type="button"
-          className="miei-servizi__pagination-btn"
-          onClick={() => go(page - 1)}
-          disabled={page <= 1}
-          aria-label="Pagina precedente"
-        >
-          <i className="fa-duotone fa-chevron-left text-[11px]" aria-hidden="true" />
-        </button>
-
-        {pages.map((p, idx) =>
-          p === 'ellipsis' ? (
-            <span key={`e-${idx}`} className="miei-servizi__pagination-ellipsis">…</span>
-          ) : (
-            <button
-              key={p}
-              type="button"
-              className={`miei-servizi__pagination-btn miei-servizi__pagination-btn--num${p === page ? ' miei-servizi__pagination-btn--active' : ''}`}
-              onClick={() => go(p)}
-              aria-current={p === page ? 'page' : undefined}
-            >
-              {p}
-            </button>
-          ),
-        )}
-
-        <button
-          type="button"
-          className="miei-servizi__pagination-btn"
-          onClick={() => go(page + 1)}
-          disabled={page >= totalPages}
-          aria-label="Pagina successiva"
-        >
-          <i className="fa-duotone fa-chevron-right text-[11px]" aria-hidden="true" />
-        </button>
-      </div>
-
-      <label className="miei-servizi__pagination-size">
-        Righe per pagina
-        <select
-          className="sib-select sib-select--dense"
-          value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-        >
-          {PAGE_SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </label>
-    </nav>
   )
 }

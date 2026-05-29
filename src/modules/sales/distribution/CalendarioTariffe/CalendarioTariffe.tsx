@@ -148,8 +148,8 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
                     {weeks.map((week,wi) => (
                       <tr key={wi}>
                         {week.map((day,di) => {
-                          const br = di<6?'0.5px solid #E8EBF0':'none'
-                          const bb = wi<weeks.length-1?`0.5px solid ${T.border}`:'none'
+                          const br = di<6?'1px solid #E8EBF0':'none'
+                          const bb = wi<weeks.length-1?`1px solid ${T.border}`:'none'
                           if (!day) return <td key={di} className="cal-tariffe__day-cell cal-tariffe__day-cell--empty" style={{borderRight:br,borderBottom:bb}}/>
                           const isWE  = di>=5
                           const price = priceMap[`${cam.id}-${year}-${month}-${day}`]??0

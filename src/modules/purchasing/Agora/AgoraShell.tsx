@@ -54,6 +54,7 @@ import { AdminVideosPage } from './admin/AdminVideosPage';
 import { AdminSettingsPage } from './admin/AdminSettingsPage';
 import { AdminPackagesPage } from './admin/AdminPackagesPage';
 import { AdminStubPage } from './admin/AdminStubPage';
+import StruttureTab from '../../../admin/SibyllaAdminPanel/tabs/StruttureTab/StruttureTab';
 
 interface AgoraShellProps {
   initialPath?: string;
@@ -111,17 +112,7 @@ function AgoraRoutes() {
           }
         />
         <Route path="packages" element={<AdminPackagesPage />} />
-        <Route
-          path="accommodations"
-          element={
-            <AdminStubPage
-              title="Strutture"
-              subtitle="Anagrafica network"
-              icon="bed"
-              description="Anagrafica strutture ricettive abilitate al network."
-            />
-          }
-        />
+        <Route path="accommodations" element={<StruttureTab />} />
         <Route
           path="users"
           element={

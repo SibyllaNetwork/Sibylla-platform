@@ -39,7 +39,7 @@
     align-items: center
     gap: 8px
     background: $primary-50
-    border: 0.5px solid $primary-200
+    border: 1px solid $primary-200
     border-radius: 8px
     padding: 8px 14px
     margin-bottom: 12px
@@ -92,7 +92,7 @@
   // ── Sidebar strategie ───────────────────────────────────────────────────────
   &__sidebar
     background: $white
-    border: 0.5px solid $border
+    border: 1px solid $border
     border-radius: $radius-xl
     overflow: hidden
     display: flex
@@ -110,7 +110,7 @@
     align-items: center
     justify-content: space-between
     padding: 12px 14px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
   &__sidebar-title
     font-family: $font-heading
@@ -127,14 +127,14 @@
     padding: 0 7px
     border-radius: 10px
     background: $bg
-    border: 0.5px solid $border
+    border: 1px solid $border
     font-size: 11px
     font-weight: 700
     color: $text-inactive
 
   &__sidebar-search
     padding: 10px 12px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
   &__sidebar-list
     overflow-y: auto
@@ -254,7 +254,7 @@
     grid-template-columns: 1fr 1fr
     gap: 6px
     padding: 10px 12px
-    border-top: 0.5px solid $border
+    border-top: 1px solid $border
     background: $bg
 
   &__sidebar-save
@@ -325,7 +325,7 @@
 
   &__empty
     background: $white
-    border: 0.5px dashed $border
+    border: 1px dashed $border
     border-radius: $radius-xl
     padding: 28px
     text-align: center
@@ -335,19 +335,20 @@
   // ── Card singolo mese ───────────────────────────────────────────────────────
   &__month
     background: $white
-    border: 0.5px solid $border
+    border: 1px solid $border
     border-radius: $radius-xl
     padding: 12px
     display: flex
     flex-direction: column
     gap: 8px
+    box-shadow: 0 1px 2px rgba(15, 17, 23, 0.04), 0 8px 24px -4px rgba(15, 17, 23, 0.08)
 
   &__month-header
     display: flex
     align-items: baseline
     justify-content: space-between
     padding: 2px 4px 6px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
   &__month-name
     font-family: $font-heading

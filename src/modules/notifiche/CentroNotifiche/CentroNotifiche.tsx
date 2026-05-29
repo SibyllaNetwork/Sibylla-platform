@@ -6,6 +6,19 @@ import { getNotifiche, type NotificaDto } from '../../../services/notifiche.serv
 import { useChatStore } from '../../../store/useChatStore'
 import './CentroNotifiche.sass'
 
+interface ExtraBookingInfo {
+  bookingId: string
+  nazionalita: string
+  checkIn: string
+  checkOut: string
+  stato: string
+  camere: number
+  persone: number
+  tipologia: string
+  pernotto: number
+  servizi: number
+}
+
 interface NotificaUI {
   id: number
   sev: 'error' | 'warning' | 'info'
@@ -16,16 +29,22 @@ interface NotificaUI {
   time: string
   group: 'oggi' | 'mese-scorso' | 'precedenti'
   read: boolean
+  extra?: ExtraBookingInfo
 }
+
+const fmtEUR = (n: number) =>
+  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(n)
 
 const FALLBACK: NotificaUI[] = [
   { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false },
-  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Sibylla.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false },
+  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false,
+    extra: { bookingId:'0001/015161', nazionalita:'ITA', checkIn:'sab 25/04/2026', checkOut:'lun 27/04/2026', stato:'Opzionata', camere:50, persone:110, tipologia:'Studenti', pernotto:10600, servizi:0 } },
   { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-scorso', read:true  },
   { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-scorso', read:true  },
   { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true },
   { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true },
-  { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'ID: 014474', date:'19 Feb', time:'09:15', group:'precedenti', read:true },
+  { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'19 Feb', time:'09:15', group:'precedenti', read:true,
+    extra: { bookingId:'0001/014474', nazionalita:'GER', checkIn:'ven 19/02/2026', checkOut:'dom 21/02/2026', stato:'Confermata', camere:12, persone:24, tipologia:'Famiglie', pernotto:4200, servizi:350 } },
   { id:4,   sev:'warning', title:'richiesta extra', text:'La prenotazione 2026014463 è passata in Extra a...', ref:'', date:'19 Feb', time:'09:14', group:'precedenti', read:true },
 ]
 
@@ -36,8 +55,6 @@ const groups = [
 ]
 
 const sevLabel: Record<string,string> = { error:'Errore', warning:'Avviso', info:'Info' }
-const sevColor: Record<string,string> = { error:'var(--color-error)', warning:'#E07B39', info:'var(--color-primary)' }
-const sevBg:    Record<string,string> = { error:'#FFF0F0', warning:'#FFF6EE', info:'var(--color-link-light)' }
 
 const WEEKDAYS = ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
 const MONTHS = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC']
@@ -82,16 +99,13 @@ function adaptNotifica(n: NotificaDto): NotificaUI {
 }
 
 export default function CentroNotifiche({ navigate }: { navigate: (p: string) => void }) {
-  const [tipoFilter, setTipoFilter] = useState('Tutte')
-  const [search,     setSearch]     = useState('')
-  const [collapsed,  setCollapsed]  = useState<Set<string>>(new Set())
-  const [expanded,   setExpanded]   = useState<Set<number>>(new Set())
-  const [items,      setItems]      = useState<NotificaUI[]>(FALLBACK)
-  const [loaded,     setLoaded]     = useState(false)
-  const [error,      setError]      = useState<string | null>(null)
-
-  const toggleExpand = (id: number) =>
-    setExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const [tipoFilter,  setTipoFilter]  = useState('Tutte')
+  const [search,      setSearch]      = useState('')
+  const [collapsed,   setCollapsed]   = useState<Set<string>>(new Set())
+  const [items,       setItems]       = useState<NotificaUI[]>(FALLBACK)
+  const [loaded,      setLoaded]      = useState(false)
+  const [error,       setError]       = useState<string | null>(null)
+  const [selectedId,  setSelectedId]  = useState<number | null>(null)
 
   const selectChatFromNotif = useChatStore(s => s.selectFromNotif)
   const openChat = (notifId: number) => {
@@ -133,11 +147,18 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const markAllRead  = () => setReadSet(new Set(allNotifications.map(n => n.id)))
   const unreadCount  = allNotifications.filter(n => !readSet.has(n.id)).length
 
+  const selectNotif = (id: number) => {
+    setSelectedId(id)
+    markRead(id)
+  }
+
   const filtered = allNotifications.filter(n => {
     const matchTipo   = tipoFilter === 'Tutte' || sevLabel[n.sev] === tipoFilter
     const matchSearch = !search || n.title.toLowerCase().includes(search.toLowerCase()) || n.text.toLowerCase().includes(search.toLowerCase())
     return matchTipo && matchSearch
   })
+
+  const selectedNotif = selectedId == null ? null : allNotifications.find(n => n.id === selectedId) ?? null
 
   return (
     <div>
@@ -170,16 +191,16 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       {/* Filter bar */}
       <div className="notifiche__filters">
         <div>
-          <span className="text-[11px] font-semibold font-opensans text-ink block mb-1">Tipo notifica</span>
-          <select className="sib-select w-[130px]" value={tipoFilter} onChange={e => setTipoFilter(e.target.value)}>
+          <span className="notifiche__filter-label">Tipo notifica</span>
+          <select className="sib-select notifiche__filter-select" value={tipoFilter} onChange={e => setTipoFilter(e.target.value)}>
             {['Tutte','Errore','Avviso','Info'].map(o => <option key={o}>{o}</option>)}
           </select>
         </div>
-        <div style={{ flex: 1 }}>
-          <span className="text-[11px] font-semibold font-opensans text-ink block mb-1">Ricerca</span>
+        <div className="notifiche__filter-search">
+          <span className="notifiche__filter-label">Ricerca</span>
           <div className="notifiche__search-wrap">
             <i className="fa-light fa-magnifying-glass notifiche__search-icon" aria-hidden="true" />
-            <input className="sib-search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca notifica..." />
+            <input className="sib-search-input notifiche__search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca notifica..." />
             {search && (
               <button className="notifiche__search-clear" onClick={() => setSearch('')} aria-label="Pulisci ricerca">
                 <i className="fa-light fa-xmark" aria-hidden="true" />
@@ -187,154 +208,221 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
             )}
           </div>
         </div>
-        <div style={{ alignSelf: 'flex-end', height: 34, display: 'flex', alignItems: 'center' }}>
+        <div className="notifiche__filter-count">
           <span className="notifiche__count">{filtered.length} risultat{filtered.length === 1 ? 'o' : 'i'}</span>
         </div>
       </div>
 
-      {/* Groups */}
-      <div className="notifiche__groups">
-        {groups.map(group => {
-          const items       = filtered.filter(n => n.group === group.id)
-          if (items.length === 0) return null
-          const isCollapsed  = collapsed.has(group.id)
-          const groupUnread  = items.filter(n => !readSet.has(n.id)).length
+      {/* Split layout: list (left) | detail (right) */}
+      <div className="notifiche__split">
+        <section className="notifiche__list-col" aria-label="Elenco notifiche">
+          <div className="notifiche__groups">
+            {groups.map(group => {
+              const groupItems  = filtered.filter(n => n.group === group.id)
+              if (groupItems.length === 0) return null
+              const isCollapsed = collapsed.has(group.id)
+              const groupUnread = groupItems.filter(n => !readSet.has(n.id)).length
 
-          return (
-            <div key={group.id} className="notifiche__group">
-              <div
-                className={`notifiche__group-header ${isCollapsed ? 'notifiche__group-header--collapsed' : 'notifiche__group-header--expanded'}`}
-                onClick={() => toggleGroup(group.id)}
-              >
-                <div className="notifiche__group-left">
-                  <span className="notifiche__group-icon">
-                    <i className={`fa-light ${group.icon}`} aria-hidden="true" />
-                  </span>
-                  <span className="notifiche__group-label">{group.label}</span>
-                  {groupUnread > 0 && <span className="notifiche__group-badge">{groupUnread}</span>}
-                </div>
-                <div className={`notifiche__group-chevron ${isCollapsed ? 'notifiche__group-chevron--collapsed' : ''}`}>
-                  <i className="fa-light fa-chevron-down" aria-hidden="true" />
-                </div>
-              </div>
-
-              {!isCollapsed && items.map((n) => {
-                const isRead = readSet.has(n.id)
-                const isOpen = expanded.has(n.id)
-                const c  = sevColor[n.sev]
-                const bg = sevBg[n.sev]
-                return (
+              return (
+                <div key={group.id} className="notifiche__group">
                   <div
-                    key={n.id}
-                    className={`notifiche__row ${!isRead ? 'notifiche__row--unread' : ''}`}
-                    onClick={() => markRead(n.id)}
+                    className={`notifiche__group-header ${isCollapsed ? 'notifiche__group-header--collapsed' : 'notifiche__group-header--expanded'}`}
+                    onClick={() => toggleGroup(group.id)}
                   >
-                    <div className="notifiche__row-icon" style={{ background: bg, border: `1px solid ${c}22` }}>
-                      <i className="fa-light fa-bell" style={{ color: c, fontSize: 17 }} aria-hidden="true" />
+                    <div className="notifiche__group-left">
+                      <span className="notifiche__group-icon">
+                        <i className={`fa-light ${group.icon}`} aria-hidden="true" />
+                      </span>
+                      <span className="notifiche__group-label">{group.label}</span>
+                      {groupUnread > 0 && <span className="notifiche__group-badge">{groupUnread}</span>}
                     </div>
-                    <div className="notifiche__row-content">
-                      <div className="notifiche__row-top">
-                        <div className="notifiche__row-title-wrap">
-                          {!isRead && <div className="notifiche__unread-dot" />}
-                          <span className={`notifiche__row-title ${!isRead ? 'notifiche__row-title--unread' : ''}`}>{n.title}</span>
-                          <span className="notifiche__sev-badge" style={{ color: c, background: bg, border: `1px solid ${c}33` }}>
-                            {sevLabel[n.sev]}
-                          </span>
-                        </div>
-                        <div className="notifiche__row-meta">
-                          <div className="notifiche__date-main">{n.date}</div>
-                          <div className="notifiche__date-time">{n.time}</div>
-                          <div className="notifiche__row-actions" onClick={e => e.stopPropagation()}>
-                            <Tooltip text="Apri chat">
-                              <button
-                                type="button"
-                                className="notifiche__row-action-btn"
-                                onClick={() => openChat(n.id)}
-                                aria-label="Apri chat con il mittente"
-                                style={{ color: c }}
-                              >
-                                <i className="fa-light fa-comments" aria-hidden="true" />
-                              </button>
-                            </Tooltip>
-                            <Tooltip text={isOpen ? 'Chiudi dettaglio' : 'Apri dettaglio'}>
-                              <button
-                                type="button"
-                                className={'notifiche__row-action-btn' + (isOpen ? ' notifiche__row-action-btn--active' : '')}
-                                onClick={() => toggleExpand(n.id)}
-                                aria-expanded={isOpen}
-                                aria-controls={`notif-detail-${n.id}`}
-                                aria-label={isOpen ? 'Nascondi dettaglio' : 'Mostra dettaglio'}
-                              >
-                                <i className={'fa-light ' + (isOpen ? 'fa-eye-slash' : 'fa-eye')} aria-hidden="true" />
-                              </button>
-                            </Tooltip>
-                          </div>
-                        </div>
-                      </div>
-                      {n.ref  && <div className="notifiche__row-ref">{n.ref}</div>}
-                      {n.text && <p className="notifiche__row-text">{n.text}</p>}
-
-                      {isOpen && (
-                        <div
-                          id={`notif-detail-${n.id}`}
-                          className="notifiche__row-detail"
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <dl className="notifiche__detail-grid">
-                            <div className="notifiche__detail-item">
-                              <dt>ID notifica</dt>
-                              <dd>#{n.id}</dd>
-                            </div>
-                            <div className="notifiche__detail-item">
-                              <dt>Tipologia</dt>
-                              <dd>{sevLabel[n.sev]}</dd>
-                            </div>
-                            <div className="notifiche__detail-item">
-                              <dt>Ricevuta il</dt>
-                              <dd>{n.date}{n.time ? ` · ${n.time}` : ''}</dd>
-                            </div>
-                            <div className="notifiche__detail-item">
-                              <dt>Stato</dt>
-                              <dd>{isRead ? 'Letta' : 'Non letta'}</dd>
-                            </div>
-                            {n.ref && (
-                              <div className="notifiche__detail-item notifiche__detail-item--wide">
-                                <dt>Riferimento</dt>
-                                <dd>{n.ref}</dd>
-                              </div>
-                            )}
-                            {n.text && (
-                              <div className="notifiche__detail-item notifiche__detail-item--wide">
-                                <dt>Descrizione</dt>
-                                <dd>{n.text}</dd>
-                              </div>
-                            )}
-                          </dl>
-                          <div className="notifiche__detail-actions">
-                            <button
-                              type="button"
-                              className="sib-btn sib-btn--secondary"
-                              onClick={() => openChat(n.id)}
-                            >
-                              <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                    <div className={`notifiche__group-chevron ${isCollapsed ? 'notifiche__group-chevron--collapsed' : ''}`}>
+                      <i className="fa-light fa-chevron-down" aria-hidden="true" />
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          )
-        })}
 
-        {filtered.length === 0 && (
-          <div className="notifiche__empty">
-            <i className="fa-light fa-bell notifiche__empty-icon" aria-hidden="true" />
-            <p className="notifiche__empty-text">Nessuna notifica trovata</p>
+                  {!isCollapsed && groupItems.map((n) => {
+                    const isRead     = readSet.has(n.id)
+                    const isSelected = selectedId === n.id
+                    return (
+                      <div
+                        key={n.id}
+                        className={
+                          'notifiche__row'
+                          + (!isRead ? ' notifiche__row--unread' : '')
+                          + (isSelected ? ' notifiche__row--selected' : '')
+                        }
+                        onClick={() => selectNotif(n.id)}
+                      >
+                        <div className="notifiche__row-icon" data-sev={n.sev}>
+                          <i className="fa-light fa-bell" aria-hidden="true" />
+                        </div>
+                        <div className="notifiche__row-content">
+                          <div className="notifiche__row-top">
+                            <div className="notifiche__row-title-wrap">
+                              {!isRead && <div className="notifiche__unread-dot" />}
+                              <span className={`notifiche__row-title ${!isRead ? 'notifiche__row-title--unread' : ''}`}>{n.title}</span>
+                              <span className="notifiche__sev-badge" data-sev={n.sev}>
+                                {sevLabel[n.sev]}
+                              </span>
+                            </div>
+                            <div className="notifiche__row-meta">
+                              <div className="notifiche__date-main">{n.date}</div>
+                              <div className="notifiche__date-time">{n.time}</div>
+                            </div>
+                          </div>
+                          {n.ref  && <div className="notifiche__row-ref">{n.ref}</div>}
+                          {n.text && <p className="notifiche__row-text">{n.text}</p>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+
+            {filtered.length === 0 && (
+              <div className="notifiche__empty">
+                <i className="fa-light fa-bell notifiche__empty-icon" aria-hidden="true" />
+                <p className="notifiche__empty-text">Nessuna notifica trovata</p>
+              </div>
+            )}
           </div>
-        )}
+        </section>
+
+        <aside className="notifiche__detail-col" aria-label="Dettaglio notifica">
+          {selectedNotif ? (
+            <article className="notifiche__detail-panel" key={selectedNotif.id}>
+              <header className="notifiche__detail-head">
+                <div className="notifiche__detail-title-wrap">
+                  <h3 className="notifiche__detail-title">{selectedNotif.title}</h3>
+                  <span className="notifiche__sev-badge" data-sev={selectedNotif.sev}>
+                    {sevLabel[selectedNotif.sev]}
+                  </span>
+                </div>
+                <Tooltip text="Chiudi dettaglio">
+                  <button
+                    type="button"
+                    className="notifiche__detail-close"
+                    onClick={() => setSelectedId(null)}
+                    aria-label="Chiudi dettaglio"
+                  >
+                    <i className="fa-light fa-xmark" aria-hidden="true" />
+                  </button>
+                </Tooltip>
+              </header>
+
+              {selectedNotif.text && (
+                <p className="notifiche__detail-lead">{selectedNotif.text}</p>
+              )}
+
+              {selectedNotif.extra ? (
+                <>
+                  <dl className="notifiche__detail-list">
+                    <div className="notifiche__detail-list-row">
+                      <dt>ID</dt>
+                      <dd>{selectedNotif.extra.bookingId}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Nazionalità</dt>
+                      <dd>{selectedNotif.extra.nazionalita}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Check-in</dt>
+                      <dd>{selectedNotif.extra.checkIn}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Check-out</dt>
+                      <dd>{selectedNotif.extra.checkOut}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Stato</dt>
+                      <dd>{selectedNotif.extra.stato}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Camere</dt>
+                      <dd>{selectedNotif.extra.camere}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Persone</dt>
+                      <dd>{selectedNotif.extra.persone}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Tipologia</dt>
+                      <dd>{selectedNotif.extra.tipologia}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Pernott.</dt>
+                      <dd>{fmtEUR(selectedNotif.extra.pernotto)}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Servizi</dt>
+                      <dd>{fmtEUR(selectedNotif.extra.servizi)}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row notifiche__detail-list-row--total">
+                      <dt>Totale</dt>
+                      <dd>{fmtEUR(selectedNotif.extra.pernotto + selectedNotif.extra.servizi)}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="notifiche__detail-actions">
+                    <button
+                      type="button"
+                      className="sib-btn sib-btn--primary"
+                      onClick={() => { /* TODO: hook to gestione prenotazione extra */ }}
+                    >
+                      Gestione della prenotazione extra
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <dl className="notifiche__detail-grid">
+                    <div className="notifiche__detail-item">
+                      <dt>ID notifica</dt>
+                      <dd>#{selectedNotif.id}</dd>
+                    </div>
+                    <div className="notifiche__detail-item">
+                      <dt>Tipologia</dt>
+                      <dd>{sevLabel[selectedNotif.sev]}</dd>
+                    </div>
+                    <div className="notifiche__detail-item">
+                      <dt>Ricevuta il</dt>
+                      <dd>{selectedNotif.date}{selectedNotif.time ? ` · ${selectedNotif.time}` : ''}</dd>
+                    </div>
+                    <div className="notifiche__detail-item">
+                      <dt>Stato</dt>
+                      <dd>{readSet.has(selectedNotif.id) ? 'Letta' : 'Non letta'}</dd>
+                    </div>
+                    {selectedNotif.ref && (
+                      <div className="notifiche__detail-item notifiche__detail-item--wide">
+                        <dt>Riferimento</dt>
+                        <dd>{selectedNotif.ref}</dd>
+                      </div>
+                    )}
+                  </dl>
+
+                  <div className="notifiche__detail-actions">
+                    <button
+                      type="button"
+                      className="sib-btn sib-btn--secondary"
+                      onClick={() => openChat(selectedNotif.id)}
+                    >
+                      <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
+                    </button>
+                  </div>
+                </>
+              )}
+            </article>
+          ) : (
+            <div className="notifiche__detail-empty">
+              <i className="fa-light fa-envelope-open notifiche__detail-empty-icon" aria-hidden="true" />
+              <p className="notifiche__detail-empty-text">
+                Seleziona una notifica per visualizzarne il dettaglio
+              </p>
+            </div>
+          )}
+        </aside>
       </div>
     </div>
   )

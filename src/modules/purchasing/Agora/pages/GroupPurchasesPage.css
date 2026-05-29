@@ -6,8 +6,8 @@
 }
 
 .group-purchases__stat {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1.25rem;
   text-align: center;
@@ -18,7 +18,7 @@
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 2rem;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0 0 0.25rem;
 }
 
@@ -44,7 +44,7 @@
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   white-space: nowrap;
-  background: #f3f4f6;
+  background: var(--color-bg);
   color: #374151;
   border: none;
   cursor: pointer;
@@ -55,7 +55,7 @@
 }
 
 .group-purchases__tab:hover {
-  background: #e5e7eb;
+  background: var(--color-border);
 }
 
 .group-purchases__tab--active {
@@ -117,8 +117,8 @@
 }
 
 .gp-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   overflow: hidden;
   transition: border-color 0.2s;
@@ -127,7 +127,7 @@
 }
 
 .gp-card:hover {
-  border-color: #cfcfcf;
+  border-color: var(--color-border);
 }
 
 .gp-card__image-wrap {
@@ -165,19 +165,19 @@
 .gp-card__badge-status--active {
   background: #dbeafe;
   color: #1d4ed8;
-  border-color: #bfdbfe;
+  border-color: var(--color-border);
 }
 
 .gp-card__badge-status--closing {
-  background: #ffedd5;
+  background: var(--color-warning-light);
   color: #c2410c;
-  border-color: #fed7aa;
+  border-color: var(--color-border);
 }
 
 .gp-card__badge-status--completed {
   background: #dcfce7;
   color: #15803d;
-  border-color: #bbf7d0;
+  border-color: var(--color-border);
 }
 
 .gp-card__badge-discount {
@@ -188,7 +188,7 @@
   background: #ef4444;
   color: #ffffff;
   border-radius: 999px;
-  border: 1px solid #ef4444;
+  border: 1px solid var(--color-border);
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
@@ -246,12 +246,12 @@
 
 .gp-card__progress-value {
   font-weight: 700;
-  color: #204769;
+  color: var(--color-primary);
 }
 
 .gp-card__progress {
   width: 100%;
-  background: #e5e7eb;
+  background: var(--color-border);
   border-radius: 999px;
   height: 0.625rem;
   overflow: hidden;
@@ -292,8 +292,8 @@
 .gp-progress-100 { width: 100%; }
 
 .gp-card__prices {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -316,7 +316,7 @@
 .gp-card__prices-regular {
   font-family: 'Open Sans', sans-serif;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   text-decoration: line-through;
   margin: 0;
 }
@@ -369,7 +369,7 @@
   padding: 0.75rem;
   background: #204769;
   color: #ffffff;
-  border: 1px solid #204769;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
@@ -381,7 +381,7 @@
 
 .gp-card__cta:hover {
   background: #2d5a7f;
-  border-color: #2d5a7f;
+  border-color: var(--color-border);
 }
 
 .gp-card__near-msg {
@@ -401,7 +401,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1.5rem;
-  color: #1f2937;
+  color: var(--color-text-active);
   margin: 0 0 1.5rem;
 }
 
@@ -418,8 +418,8 @@
 }
 
 .gp-step {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1.5rem;
 }
@@ -443,7 +443,7 @@
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
   font-size: 1rem;
-  color: #1f2937;
+  color: var(--color-text-active);
   margin: 0 0 0.5rem;
 }
 
@@ -469,7 +469,7 @@
   padding: 24px;
 }
 .gp-modal__box {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 14px;
   width: 100%;
   max-width: 640px;
@@ -485,7 +485,7 @@
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--color-border, #cfcfcf);
-  background: #f8fafc;
+  background: var(--color-bg);
 }
 .gp-modal__head h2 {
   font-family: var(--font-heading);
@@ -546,7 +546,7 @@
   padding: 0 10px;
   border: 1px solid var(--color-border, #cfcfcf);
   border-radius: 7px;
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-text-active);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;

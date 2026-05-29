@@ -38,7 +38,7 @@
 /* Star base */
 .landing-star {
   position: absolute;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   will-change: opacity, transform;

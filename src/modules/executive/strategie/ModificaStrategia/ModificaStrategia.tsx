@@ -314,9 +314,9 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               <tbody>
                 {GUIDA_ROWS.map((occ,ri) => (
                   <tr key={ri} className="strategia__guida-row">
-                    <td className="strategia__guida-td-occ" style={{borderBottom: ri < GUIDA_ROWS.length-1 ? `0.5px solid ${T.border}` : 'none'}}>{occ}</td>
+                    <td className="strategia__guida-td-occ" style={{borderBottom: ri < GUIDA_ROWS.length-1 ? `1px solid ${T.border}` : 'none'}}>{occ}</td>
                     {GUIDA_COLS.map((_,ci) => (
-                      <td key={ci} className="strategia__guida-td" style={{borderBottom: ri < GUIDA_ROWS.length-1 ? `0.5px solid ${T.border}` : 'none'}}>
+                      <td key={ci} className="strategia__guida-td" style={{borderBottom: ri < GUIDA_ROWS.length-1 ? `1px solid ${T.border}` : 'none'}}>
                         <input type="number"
                           className={`sib-input sib-input--dense strategia__guida-input ${guidaVals[ri][ci] > 0 ? 'strategia__guida-input--filled' : ''}`}
                           value={guidaVals[ri][ci]} onChange={e => setGuidaCell(ri, ci, parseFloat(e.target.value)||0)}

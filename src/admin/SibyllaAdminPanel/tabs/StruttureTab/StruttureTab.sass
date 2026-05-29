@@ -1,0 +1,439 @@
+.strutt-prop
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  // Full-width mode: la pagina rompe il padding del contenitore AdminLayout
+  // (`.aac__body` con `padding: 20px`).
+  // Approccio 1: il parent `.aac__body` viene ridotto a padding 0 quando
+  // contiene .strutt-prop--fullwidth (CSS :has, supportato dai browser recenti).
+  // Approccio 2 (fallback): margin negativa + width calc per i browser senza :has.
+  &.strutt-prop--fullwidth
+    box-sizing: border-box
+    padding: 12px 16px
+    background: var(--color-surface)
+    min-height: 100%
+    width: 100%
+
+  // ─── Counters strip ──────────────────────────────────────────────────────
+  .strutt-prop__counters
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px
+
+    @media (min-width: 700px)
+      grid-template-columns: repeat(5, 1fr)
+
+  .strutt-prop__counter
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    display: flex
+    align-items: center
+    gap: 12px
+
+  .strutt-prop__counter-ico
+    color: var(--color-primary)
+    font-size: 22px
+    flex-shrink: 0
+
+  .strutt-prop__counter-value
+    font-family: 'Poppins', sans-serif
+    font-size: 18px
+    font-weight: 700
+    color: var(--color-primary)
+    line-height: 1.1
+
+  .strutt-prop__counter-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  // ─── Counter + empty ────────────────────────────────────────────────────
+  .strutt-prop__count
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    margin: 4px 0 0
+
+  .strutt-prop__empty
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 15px
+    color: #5c5c5c
+
+  // ─── Tabella ─────────────────────────────────────────────────────────────
+  .strutt-prop__table
+    width: 100%
+
+    th, td
+      padding: 6px 8px
+
+  .strutt-prop__class-cell
+    font-weight: 700
+    color: #c79a35
+    white-space: nowrap
+
+  .strutt-prop__th-actions
+    text-align: right
+
+  .strutt-prop__row--off
+    opacity: 0.55
+
+  .strutt-prop__thumb
+    width: 40px
+    height: 40px
+    border-radius: 6px
+    overflow: hidden
+    background: var(--color-bg)
+    display: flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  .strutt-prop__name
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-primary)
+
+  .strutt-prop__sub
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  .strutt-prop__num
+    font-variant-numeric: tabular-nums
+
+  .strutt-prop__tipo-badge
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 3px 8px
+    border-radius: 6px
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-primary)
+    white-space: nowrap
+
+  // ─── Switch ──────────────────────────────────────────────────────────────
+  .strutt-prop__switch
+    position: relative
+    display: inline-block
+    width: 30px
+    height: 16px
+    cursor: pointer
+
+    input
+      opacity: 0
+      width: 0
+      height: 0
+
+      &:checked + .strutt-prop__switch-slider
+        background: var(--color-primary)
+
+      &:checked + .strutt-prop__switch-slider::before
+        transform: translateX(14px)
+
+  .strutt-prop__switch-slider
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    background: #cbd5e1
+    border-radius: 999px
+    transition: background 0.18s
+
+    &::before
+      content: ''
+      position: absolute
+      top: 2px
+      left: 2px
+      width: 12px
+      height: 12px
+      background: var(--color-surface)
+      border-radius: 50%
+      transition: transform 0.18s
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1)
+
+  // ─── Pill canali Sibylla Network + bottone anteprima ─────────────────────
+  .strutt-prop__canali
+    display: inline-flex
+    gap: 6px
+    flex-wrap: wrap
+
+  .strutt-prop__canale-group
+    display: inline-flex
+    align-items: center
+    gap: 2px
+
+  .strutt-prop__canale-pill
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    height: 22px
+    padding: 0 8px
+    border-radius: 999px 0 0 999px
+    background: transparent
+    border: 1px solid var(--canale-color, #ccc)
+    border-right: none
+    color: var(--canale-color, var(--color-text-inactive))
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 700
+    letter-spacing: 0.05em
+    cursor: pointer
+    transition: background 0.15s, color 0.15s
+    opacity: 0.55
+    white-space: nowrap
+
+    &:hover
+      opacity: 0.85
+
+  .strutt-prop__canale-pill--on
+    background: var(--canale-color, var(--color-primary))
+    color: #fff
+    opacity: 1
+
+  .strutt-prop__canale-preview
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    height: 22px
+    border-radius: 0 999px 999px 0
+    border: 1px solid var(--canale-color, #ccc)
+    border-left: 1px solid rgba(0,0,0,0.08)
+    background: var(--color-surface)
+    color: var(--canale-color, var(--color-text-inactive))
+    cursor: pointer
+    font-size: 11px
+    flex-shrink: 0
+    transition: all 0.15s
+
+    i
+      font-size: 11px
+
+    &:hover
+      background: var(--canale-color, var(--color-primary))
+      color: #fff
+
+  // ─── Icone azioni ────────────────────────────────────────────────────────
+  .strutt-prop__cell-actions
+    text-align: right
+    white-space: nowrap
+
+  .strutt-prop__icon-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    margin-left: 4px
+    transition: all 0.15s
+
+    &:hover
+      background: var(--color-bg)
+      border-color: var(--color-primary)
+
+  .strutt-prop__icon-btn--danger:hover
+    border-color: var(--color-error, #c0392b)
+
+
+  // ─── Card grid view ──────────────────────────────────────────────────────
+  .strutt-prop__grid
+    display: grid
+    grid-template-columns: 1fr
+    gap: 14px
+
+    @media (min-width: 900px)
+      grid-template-columns: repeat(2, 1fr)
+
+    @media (min-width: 1400px)
+      grid-template-columns: repeat(3, 1fr)
+
+.strutt-card
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  overflow: hidden
+  display: flex
+  flex-direction: column
+  transition: border-color 0.18s, box-shadow 0.18s
+
+  &:hover
+    border-color: var(--color-border)
+    box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06)
+
+  &.strutt-card--off
+    opacity: 0.6
+
+.strutt-card__logo
+  position: relative
+  width: 100%
+  aspect-ratio: 16 / 9
+  background: var(--color-bg)
+  display: flex
+  align-items: center
+  justify-content: center
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+.strutt-card__class-badge
+  position: absolute
+  top: 10px
+  right: 10px
+  padding: 3px 8px
+  border-radius: 999px
+  background: rgba(0,0,0,0.65)
+  color: #fff
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+
+.strutt-card__body
+  padding: 12px 14px 6px
+  display: flex
+  flex-direction: column
+  gap: 6px
+  flex: 1 1 auto
+
+.strutt-card__tipo
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+  color: var(--color-text-inactive)
+  text-transform: uppercase
+  letter-spacing: 0.04em
+
+.strutt-card__title
+  font-family: 'Poppins', sans-serif
+  font-size: 15px
+  font-weight: 600
+  color: var(--color-primary)
+  margin: 0
+  line-height: 1.3
+
+.strutt-card__location
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-inactive)
+  margin: 0
+
+.strutt-card__desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  line-height: 1.5
+  color: var(--color-text-inactive)
+  margin: 4px 0 0
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.strutt-card__meta
+  margin: 8px 0 0
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 4px 12px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11.5px
+
+  > div
+    display: flex
+    flex-direction: column
+
+  dt
+    font-weight: 600
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    font-size: 10px
+    letter-spacing: 0.04em
+    margin: 0
+
+  dd
+    margin: 0
+    color: var(--color-text-primary)
+
+.strutt-card__canali
+  display: inline-flex
+  gap: 4px
+  flex-wrap: wrap
+  margin: 8px 0 0
+
+.strutt-card__actions
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 10px 14px 12px
+  border-top: 1px solid var(--color-border)
+  background: var(--color-bg)
+
+  .sib-btn
+    display: inline-flex
+    align-items: center
+    gap: 5px
+
+.strutt-card__icon-btn
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 28px
+  height: 28px
+  border-radius: 4px
+  border: 1px solid var(--color-border)
+  background: var(--color-surface)
+  cursor: pointer
+  transition: all 0.15s
+
+  &:hover
+    background: var(--color-bg)
+
+.strutt-card__icon-btn--danger:hover
+  border-color: var(--color-error, #c0392b)
+
+
+// ──────────────────────────────────────────────────────────────────────────
+// Override del parent .aac__body (AdminLayout) per garantire la full-width
+// quando contiene la pagina Strutture proprie.
+// Usa CSS :has() per "alzarsi" al parent senza modificarne lo SASS originale.
+// ──────────────────────────────────────────────────────────────────────────
+.aac__body:has(.strutt-prop--fullwidth)
+  padding: 0 !important
+
+// Fallback per browser senza supporto a :has().
+@supports not selector(:has(*))
+  .strutt-prop.strutt-prop--fullwidth
+    margin: -20px
+    width: calc(100% + 40px)
+    min-height: calc(100% + 40px)

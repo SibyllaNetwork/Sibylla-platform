@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 $success: #10b981
 $danger: #dc2626
@@ -194,7 +194,7 @@ $orange-deep: #ea580c
     height: 360px
     border-radius: 22px
     background: linear-gradient(160deg, #1f2937 0%, #0f172a 100%)
-    border: 8px solid #111827
+    border: 8px solid var(--color-border)
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.30)
     display: flex
     align-items: flex-start

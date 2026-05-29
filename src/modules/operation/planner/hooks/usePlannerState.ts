@@ -22,18 +22,49 @@ export function usePlannerState(navigate: (page: string) => void) {
   const [showAssegnare,   setShowAssegnare]   = useState(false);
   const [showAllocare,    setShowAllocare]    = useState(false);
 
+  // ── Prenotazioni (mutabili) + Parcheggio ──────────────────────────────────────
+  const [prens,          setPrens]          = useState<Pren[]>(PRENS);
+  const [parkedIds,      setParkedIds]      = useState<string[]>([]);
+  const [showParcheggio, setShowParcheggio] = useState(false);
+  const [showRiepilogo,  setShowRiepilogo]  = useState(false);
+
   // ── Derived ──────────────────────────────────────────────────────────────────
   const startDate = useMemo(() => parseDt(startDateStr), [startDateStr]);
 
-  const filteredPrens = useMemo(() => {
-    if (!cerca.trim()) return PRENS;
+  const matchSearch = useCallback((p: Pren) => {
+    if (!cerca.trim()) return true;
     const q = cerca.toLowerCase();
-    return PRENS.filter(p =>
-      p.nominativo.toLowerCase().includes(q) ||
+    return p.nominativo.toLowerCase().includes(q) ||
       p.booking.toLowerCase().includes(q) ||
-      p.numeroCamera.toLowerCase().includes(q)
-    );
+      p.numeroCamera.toLowerCase().includes(q);
   }, [cerca]);
+
+  // In calendario: prenotazioni non parcheggiate (+ ricerca)
+  const filteredPrens = useMemo(
+    () => prens.filter(p => !parkedIds.includes(p.id) && matchSearch(p)),
+    [prens, parkedIds, matchSearch]
+  );
+  // Nel parcheggio
+  const parkedPrens = useMemo(
+    () => prens.filter(p => parkedIds.includes(p.id)),
+    [prens, parkedIds]
+  );
+
+  // ── Azioni Parcheggio / spostamento ───────────────────────────────────────────
+  const parkBooking = useCallback((id: string) => {
+    setParkedIds(prev => (prev.includes(id) ? prev : [...prev, id]));
+    setShowParcheggio(true);
+    setSelectedBooking(null);
+  }, []);
+
+  // Assegna una prenotazione a una camera (e la toglie dal parcheggio se c'era)
+  const assignBookingToRoom = useCallback((id: string, numeroCamera: string) => {
+    setPrens(prev => prev.map(p => (p.id === id ? { ...p, numeroCamera } : p)));
+    setParkedIds(prev => prev.filter(x => x !== id));
+  }, []);
+
+  const toggleParcheggio = useCallback(() => setShowParcheggio(v => !v), []);
+  const toggleRiepilogo  = useCallback(() => setShowRiepilogo(v => !v), []);
 
   // ── Actions ──────────────────────────────────────────────────────────────────
   const togglePiano = (id: number) =>
@@ -56,10 +87,14 @@ export function usePlannerState(navigate: (page: string) => void) {
     filtroConf, setFiltroConf,
     filtroOpz, setFiltroOpz,
     filteredPrens,
+    parkedPrens,
     selectedBooking, setSelectedBooking,
     showLegenda,   setShowLegenda,
     showAssegnare, setShowAssegnare,
     showAllocare,  setShowAllocare,
+    showParcheggio, setShowParcheggio, toggleParcheggio,
+    showRiepilogo, toggleRiepilogo,
+    parkBooking, assignBookingToRoom,
     handleEmptyClick,
   };
 }

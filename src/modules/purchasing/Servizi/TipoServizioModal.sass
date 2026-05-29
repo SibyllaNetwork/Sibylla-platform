@@ -1,0 +1,233 @@
+.tipo-modal
+  padding: 14px 18px 18px
+  display: flex
+  flex-direction: column
+  gap: 16px
+  max-height: 80vh
+  overflow-y: auto
+
+  .tipo-modal__section
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .tipo-modal__section-title
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    margin: 0
+    padding-bottom: 6px
+    border-bottom: 1px solid var(--color-border)
+
+  .tipo-modal__hint
+    color: var(--color-text-disabled)
+    font-weight: 400
+    font-style: italic
+    margin-left: 4px
+
+  .tipo-modal__grid
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px 14px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .tipo-modal__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .tipo-modal__field--full
+    grid-column: 1 / -1
+
+  .tipo-modal__field--check
+    justify-content: flex-end
+    padding-bottom: 4px
+
+  .tipo-modal__label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .tipo-modal__check
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-primary)
+    cursor: pointer
+
+    input
+      width: 14px
+      height: 14px
+
+  // ─── Icona ───────────────────────────────────────────────────────────────
+  .tipo-modal__icon-row
+    display: flex
+    align-items: center
+    gap: 10px
+
+  .tipo-modal__icon-input
+    flex: 1 1 auto
+
+  .tipo-modal__icon-preview
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 40px
+    height: 40px
+    border-radius: 8px
+    background-color: var(--type-color, var(--color-primary))
+    color: #fff
+    font-size: 18px
+    flex-shrink: 0
+
+  .tipo-modal__icon-suggest
+    display: flex
+    flex-wrap: wrap
+    gap: 4px
+    margin-top: 4px
+
+  .tipo-modal__icon-chip
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border-radius: 6px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-text-inactive)
+    cursor: pointer
+    transition: all 0.15s
+    font-size: 14px
+
+    &:hover
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+  .tipo-modal__icon-chip--active
+    background: var(--color-primary)
+    border-color: var(--color-primary)
+    color: #fff
+
+    &:hover
+      color: #fff
+
+  // ─── Palette ─────────────────────────────────────────────────────────────
+  .tipo-modal__palette
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px
+
+  .tipo-modal__swatch
+    width: 28px
+    height: 28px
+    border-radius: 50%
+    background-color: var(--type-color, var(--color-primary))
+    border: 2px solid transparent
+    cursor: pointer
+    transition: transform 0.12s, border-color 0.12s
+    padding: 0
+
+    &:hover
+      transform: scale(1.05)
+
+  .tipo-modal__swatch--active
+    border-color: var(--color-border)
+    box-shadow: 0 0 0 2px var(--color-text-primary)
+
+  .tipo-modal__color-input
+    width: 32px
+    height: 32px
+    border: 1px solid var(--color-border)
+    border-radius: 6px
+    background: var(--color-surface)
+    cursor: pointer
+    padding: 2px
+
+  // ─── Lista campi del form ───────────────────────────────────────────────
+  .tipo-modal__fields-list
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .tipo-modal__field-row
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 10px 12px
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .tipo-modal__field-row-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+  .tipo-modal__field-row-idx
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-primary)
+    background: rgba(92, 156, 212, 0.10)
+    padding: 2px 8px
+    border-radius: 999px
+
+  .tipo-modal__field-row-controls
+    display: inline-flex
+    gap: 4px
+
+  .tipo-modal__row-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 24px
+    height: 24px
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    color: var(--color-text-inactive)
+    font-size: 11px
+
+    &:hover:not(:disabled)
+      background: var(--color-bg)
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .tipo-modal__row-btn--danger:hover:not(:disabled)
+    border-color: var(--color-error, #c0392b)
+    color: var(--color-error, #c0392b)
+
+  .tipo-modal__field-row-grid
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 8px 12px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .tipo-modal__add-field
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  // ─── Footer ──────────────────────────────────────────────────────────────
+  .tipo-modal__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)

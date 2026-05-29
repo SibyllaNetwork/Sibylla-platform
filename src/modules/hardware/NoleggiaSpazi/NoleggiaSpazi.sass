@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 $success: #10b981
 $success-soft: #34d399
@@ -91,7 +91,7 @@ $success-soft: #34d399
       vertical-align: middle
 
     thead th
-      background: white
+      background: var(--color-surface)
       padding: 4px 6px
       font-weight: 700
       text-align: center
@@ -121,7 +121,7 @@ $success-soft: #34d399
     width: 22px
     height: 22px
     text-align: center
-    background: white
+    background: var(--color-surface)
 
   // ── Pallino selezione ────────────────────────────────────────────
   &__dot

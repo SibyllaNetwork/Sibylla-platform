@@ -5,6 +5,7 @@ import BtnBack from '../../../core/components/BtnBack';
 import { InputField } from '../../../core/components/form';
 import AlertBanner from '../../../core/components/AlertBanner'
 import PageHeader from '../../../core/components/PageHeader'
+import Pagination from '../../../core/components/Pagination'
 import './PortafoglioAziendale.sass'
 
 export default function PortafoglioAziendale({navigate}:{navigate:(p:string)=>void}) {
@@ -180,20 +181,7 @@ export default function PortafoglioAziendale({navigate}:{navigate:(p:string)=>vo
           </div>
 
           <div className="paf__pagination">
-            <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}
-              className={`paf__pag-nav ${page===1?'paf__pag-nav--disabled':''}`}>
-              <Ico n="back" s={12} c="currentColor"/> Indietro
-            </button>
-            {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
-              <button key={n} onClick={()=>setPage(n)}
-                className={`paf__pag-btn ${page===n?'paf__pag-btn--active':''}`}>
-                {n}
-              </button>
-            ))}
-            <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages}
-              className={`paf__pag-nav ${page===totalPages?'paf__pag-nav--disabled':''}`}>
-              Avanti <Ico n="chevr" s={12} c="currentColor"/>
-            </button>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         </div>
       </div>

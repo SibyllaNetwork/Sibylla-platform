@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
 import ProdottoModal from '../../../admin/SibyllaAdminPanel/modals/ProdottoModal/ProdottoModal'
 import ConfirmDeleteModal from '../../../admin/SibyllaAdminPanel/modals/ConfirmDeleteModal/ConfirmDeleteModal'
+import ProdottoPreviewModal from './ProdottoPreviewModal'
 import { UNITA_MISURA_OPTIONS } from '../../../admin/SibyllaAdminPanel/catalogo/mockData'
 import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import type {
@@ -54,6 +56,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState<ProdottoForm>(EMPTY_FORM)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [previewing, setPreviewing] = useState<Prodotto | null>(null)
 
   const categoriaById  = (id: string) => categorie.find(c => c.id === id)
   const fornitoreById  = (id: string) => fornitori.find(f => f.id === id)
@@ -301,6 +304,15 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
                       <button
                         type="button"
                         className="lista-prodotti__icon-btn"
+                        title="Anteprima"
+                        aria-label="Anteprima prodotto"
+                        onClick={() => setPreviewing(p)}
+                      >
+                        <Ico n="eye" s={13} c="var(--color-text-inactive)" />
+                      </button>
+                      <button
+                        type="button"
+                        className="lista-prodotti__icon-btn"
                         title="Modifica"
                         onClick={() => openEdit(p)}
                       >
@@ -355,101 +367,14 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
         onClose={() => setDeletingId(null)}
         onConfirm={confirmDelete}
       />
+
+      <ProdottoPreviewModal
+        open={previewing !== null}
+        prodotto={previewing}
+        categorie={categorie}
+        fornitori={fornitori}
+        onClose={() => setPreviewing(null)}
+      />
     </div>
-  )
-}
-
-/* ============================================================
-   Pagination — footer paginazione standardizzato
-   ============================================================ */
-
-interface PaginationProps {
-  page: number
-  totalPages: number
-  pageStart: number
-  pageEnd: number
-  total: number
-  pageSize: number
-  onPageChange: (p: number) => void
-  onPageSizeChange: (s: number) => void
-}
-
-function Pagination({
-  page, totalPages, pageStart, pageEnd, total, pageSize, onPageChange, onPageSizeChange,
-}: PaginationProps) {
-  // Costruzione della lista di pagine da renderizzare con ellissi.
-  const pages: Array<number | 'ellipsis'> = useMemo(() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1)
-    }
-    const out: Array<number | 'ellipsis'> = []
-    const push = (v: number | 'ellipsis') => out.push(v)
-    push(1)
-    const winStart = Math.max(2, page - 1)
-    const winEnd = Math.min(totalPages - 1, page + 1)
-    if (winStart > 2) push('ellipsis')
-    for (let i = winStart; i <= winEnd; i++) push(i)
-    if (winEnd < totalPages - 1) push('ellipsis')
-    push(totalPages)
-    return out
-  }, [page, totalPages])
-
-  const go = (p: number) => onPageChange(Math.min(Math.max(1, p), totalPages))
-
-  return (
-    <nav className="lp-pagination" aria-label="Paginazione prodotti">
-      <div className="lp-pagination__info">
-        Mostra <strong>{pageStart + 1}</strong>–<strong>{pageEnd}</strong> di <strong>{total}</strong>
-      </div>
-
-      <div className="lp-pagination__controls">
-        <button
-          type="button"
-          className="lp-pagination__btn"
-          onClick={() => go(page - 1)}
-          disabled={page <= 1}
-          aria-label="Pagina precedente"
-        >
-          <i className="fa-duotone fa-chevron-left text-[11px]" aria-hidden="true" />
-        </button>
-
-        {pages.map((p, idx) =>
-          p === 'ellipsis' ? (
-            <span key={`e-${idx}`} className="lp-pagination__ellipsis">…</span>
-          ) : (
-            <button
-              key={p}
-              type="button"
-              className={`lp-pagination__btn lp-pagination__btn--num${p === page ? ' lp-pagination__btn--active' : ''}`}
-              onClick={() => go(p)}
-              aria-current={p === page ? 'page' : undefined}
-            >
-              {p}
-            </button>
-          ),
-        )}
-
-        <button
-          type="button"
-          className="lp-pagination__btn"
-          onClick={() => go(page + 1)}
-          disabled={page >= totalPages}
-          aria-label="Pagina successiva"
-        >
-          <i className="fa-duotone fa-chevron-right text-[11px]" aria-hidden="true" />
-        </button>
-      </div>
-
-      <label className="lp-pagination__size">
-        Righe per pagina
-        <select
-          className="sib-select sib-select--dense"
-          value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-        >
-          {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </label>
-    </nav>
   )
 }

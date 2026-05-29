@@ -14,6 +14,8 @@ import {
   modificaPassword,
   type UserInfo,
 } from '../../../services/user.service'
+import { useThemeStore } from '../../../store/useThemeStore'
+import { useViewModeStore } from '../../../store/useViewModeStore'
 
 export default function ModificaProfilo({ navigate }: { navigate: (p: string) => void }) {
   const [form, setForm] = useState({
@@ -25,6 +27,19 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
   const [emailValid,  setEmailValid]  = useState(true)
   const [saved,       setSaved]       = useState(false)
   const [activeTab,   setActiveTab]   = useState('profilo')
+
+  // Tema (Standard ↔ Dark) e modalità di visualizzazione (classica ↔ tab)
+  const theme     = useThemeStore(s => s.theme)
+  const setTheme  = useThemeStore(s => s.setTheme)
+  const isDark    = theme === 'dark'
+  const viewMode  = useViewModeStore(s => s.mode)
+  const setMode   = useViewModeStore(s => s.setMode)
+  const clearTabs = useViewModeStore(s => s.clearTabs)
+  const selectViewMode = (m: 'classic' | 'tabs') => {
+    if (m === viewMode) return
+    setMode(m)
+    if (m === 'classic') clearTabs()
+  }
   const [pwForm,      setPwForm]      = useState({ current: '', next: '', confirm: '' })
   const [pwError,     setPwError]     = useState('')
   const [pwSaved,     setPwSaved]     = useState(false)
@@ -130,7 +145,7 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
             <p className="avatar-upload__hint">JPG, PNG o GIF<br />Max 2MB</p>
           </div>
 
-          <div>
+          <div className="space-y-4">
           <FormGrid>
               <InputField name="nome" label="Nome" value={form.nome} onChange={e => set('nome', e.target.value)} />
               <InputField name="cognome" label="Cognome" value={form.cognome} onChange={e => set('cognome', e.target.value)} />
@@ -158,7 +173,7 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
               <SelectField name="sesso" label="Sesso" value={form.sesso} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => set('sesso', e.target.value)} options={genders.map(g => ({ value: g, label: g }))} />
               <SelectField name="nazionalita" label="Nazionalità" value={form.nazionalita} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => set('nazionalita', e.target.value)} options={countries.map(c => ({ value: c, label: c }))} />
             </FormGrid>
-            <div className="mb-4">
+            <div>
               <InputField name="indirizzo" label="Indirizzo" value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} />
             </div>
             <FormActions onCancel={() => navigate('home')} onConfirm={handleSave} confirmLabel="Salva modifiche"/>
@@ -193,7 +208,59 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
 
       {/* ── Preferenze ───────────────────────────────────────────────────────── */}
       {activeTab === 'preferenze' && (
-        <div className="max-w-[520px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start max-w-[920px]">
+          {/* Aspetto — tema Standard / Dark */}
+          <div className="form-card">
+            <h3 className="form-card__title">Aspetto</h3>
+            <p className="prefs-pane__hint">Scegli il tema dell'interfaccia.</p>
+            <div className="prefs-pane__options">
+              {([
+                { id: 'classic', active: !isDark, label: 'Standard', desc: 'Tema chiaro Sibylla', icon: 'sun' },
+                { id: 'dark',    active: isDark,  label: 'Dark',     desc: 'Tema scuro professionale', icon: 'moon' },
+              ] as const).map(o => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`prefs-pane__option${o.active ? ' prefs-pane__option--active' : ''}`}
+                  onClick={() => setTheme(o.id === 'dark' ? 'dark' : 'classic')}
+                >
+                  <i className={`fa-light fa-${o.icon} prefs-pane__option-ico`} aria-hidden="true" />
+                  <span className="prefs-pane__option-text">
+                    <span className="prefs-pane__option-label">{o.label}</span>
+                    <span className="prefs-pane__option-desc">{o.desc}</span>
+                  </span>
+                  {o.active && <i className="fa-solid fa-check prefs-pane__option-check" aria-hidden="true" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Visualizzazione — pagina singola / a tab */}
+          <div className="form-card">
+            <h3 className="form-card__title">Visualizzazione</h3>
+            <p className="prefs-pane__hint">Scegli come mostrare le pagine dell'applicazione.</p>
+            <div className="prefs-pane__options">
+              {([
+                { id: 'classic', label: 'Classica', desc: 'Una pagina alla volta, navigazione standard.', icon: 'window-maximize' },
+                { id: 'tabs',    label: 'A tab',    desc: 'Tab in cima per passare velocemente tra le sezioni.', icon: 'table-columns' },
+              ] as const).map(o => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`prefs-pane__option${viewMode === o.id ? ' prefs-pane__option--active' : ''}`}
+                  onClick={() => selectViewMode(o.id)}
+                >
+                  <i className={`fa-light fa-${o.icon} prefs-pane__option-ico`} aria-hidden="true" />
+                  <span className="prefs-pane__option-text">
+                    <span className="prefs-pane__option-label">{o.label}</span>
+                    <span className="prefs-pane__option-desc">{o.desc}</span>
+                  </span>
+                  {viewMode === o.id && <i className="fa-solid fa-check prefs-pane__option-check" aria-hidden="true" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="form-card">
             <h3 className="form-card__title">Lingua e formato</h3>
 {[

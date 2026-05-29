@@ -9,7 +9,7 @@
 
 .utenti-tab__table
   background: $white
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-radius: 10px
   overflow: hidden
   margin-bottom: 16px
@@ -29,10 +29,10 @@
   transition: background 0.1s
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
   &--bordered
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
 .utenti-tab__name
   font-size: 13px
@@ -58,7 +58,7 @@
   border-radius: 4px
   padding: 2px 7px
   color: $text-disabled
-  background: #F0F0F0
+  background: var(--color-bg)
 
   &--on
     color: $success
@@ -76,9 +76,9 @@
     background: $error-light
 
 .utenti-tab__add
-  background: #F8FAFC
+  background: var(--color-bg)
   border-radius: 10px
-  border: 0.5px solid $border
+  border: 1px solid $border
   padding: 14px 16px
 
 .utenti-tab__add-title

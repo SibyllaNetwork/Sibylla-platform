@@ -109,8 +109,8 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
               <div key={idx}
                 className={`scadenzario__cell ${todayCell?'scadenzario__cell--today':outside?'scadenzario__cell--outside':past?'scadenzario__cell--past':''}`}
                 style={{
-                  borderRight:  col<6 ? `0.5px solid ${T.border}` : 'none',
-                  borderBottom: !isLast ? `0.5px solid ${T.border}` : 'none',
+                  borderRight:  col<6 ? `1px solid ${T.border}` : 'none',
+                  borderBottom: !isLast ? `1px solid ${T.border}` : 'none',
                 }}>
                 <div className="scadenzario__cell-top">
                   <span className={`scadenzario__cell-num ${todayCell?'scadenzario__cell-num--today':outside?'scadenzario__cell-num--outside':''}`}>

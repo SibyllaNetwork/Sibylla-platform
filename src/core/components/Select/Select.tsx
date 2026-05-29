@@ -49,7 +49,7 @@ export default function Select({
   const selectCls = [
     'w-full font-opensans font-normal text-ink bg-white rounded-field outline-none appearance-none cursor-pointer box-border transition-[border-color] duration-150 ease-in-out',
     'border-[#CFCFCF]',
-    'hover:enabled:border-[#BBBDBF]',
+    'hover:enabled:border-[#CFCFCF]',
     'focus:enabled:border-ink',
     'disabled:text-line disabled:border-[#CFCFCF] disabled:bg-white disabled:cursor-not-allowed',
     sizeClasses[size],

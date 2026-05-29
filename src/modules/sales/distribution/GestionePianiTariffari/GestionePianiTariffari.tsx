@@ -81,7 +81,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
       </FilterToolbar>
 
       {/* Accordion categorie */}
-      <div style={{background:T.white,borderRadius:12,border:`0.5px solid ${T.border}`,overflow:'hidden'}}>
+      <div style={{background:T.white,borderRadius:12,border:`1px solid ${T.border}`,overflow:'hidden'}}>
         {CATEGORIE.map((cat,ci) => {
           const isExp = expanded.has(cat.id)
           const items = piani[cat.id] || []
@@ -109,7 +109,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
               </div>
               {isExp && (
                 <div>
-                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderBottom:`0.5px solid ${T.border}`,background:'#FAFCFF'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderBottom:`1px solid ${T.border}`,background:'#FAFCFF'}}>
                     <Tooltip text="Aggiungi piano">
                       <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
                         style={{width:26,height:26,borderRadius:6,border:`1px solid ${cat.color}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}
@@ -119,7 +119,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
                     </Tooltip>
                   </div>
                   {items.length > 0 && (
-                    <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1.2fr 100px',padding:'8px 16px',background:'#F8FAFC',borderBottom:`0.5px solid ${T.border}`}}>
+                    <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1.2fr 100px',padding:'8px 16px',background:'#F8FAFC',borderBottom:`1px solid ${T.border}`}}>
                       {['Nome','Valore','Scadenza','Azioni'].map((h,i)=><div key={i} style={{fontSize:10,fontWeight:700,color:T.textDisabled,textTransform:'uppercase',letterSpacing:'0.4px',textAlign:i===3?'center':'left'}}>{h}</div>)}
                     </div>
                   )}

@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 
 .cassa
@@ -154,7 +154,7 @@ $bg-zebra: #f3f8fb
   &__totals-table
     width: 100%
     border-collapse: collapse
-    background: white
+    background: var(--color-surface)
 
     tbody td
       padding: 10px 14px
@@ -191,7 +191,7 @@ $bg-zebra: #f3f8fb
     padding: 16px
 
   &__modal
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 14px
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
@@ -226,7 +226,7 @@ $bg-zebra: #f3f8fb
   &__modal-foot
     padding: 14px 22px
     border-top: 1px solid $border
-    background: white
+    background: var(--color-surface)
     display: flex
     justify-content: flex-end
 

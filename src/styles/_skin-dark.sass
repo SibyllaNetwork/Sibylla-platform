@@ -1,0 +1,91 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// SKIN "DARK" — [data-theme="dark"]
+// ─────────────────────────────────────────────────────────────────────────────
+// Dark mode professionale (slate + accento blu). I token sono in _themes.sass.
+// Qui stanno gli override per i componenti che usano colori chiari hardcoded
+// (classi utility bg-white/text-ink e poche superfici comuni). NB: alcuni
+// componenti con hex hardcoded nei propri .css (es. sub-app Agora) potrebbero
+// richiedere una rifinitura dedicata — questa è la base v1.
+@use 'tokens' as *
+
+// ─── Chrome scuro: sidebar/topbar usano bg = --color-primary (ora accento
+//     chiaro), quindi qui li ri-scuriamo a slate profondo ────────────────────
+[data-theme="dark"] .topbar,
+[data-theme="dark"] .app__sidebar
+  background: $primary-800
+
+// ─── Titoli che usano il colore primario → testo chiaro ─────────────────────
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] .h1,
+[data-theme="dark"] .h2,
+[data-theme="dark"] .h3,
+[data-theme="dark"] .page-header__title,
+[data-theme="dark"] .section-title
+  color: $text-active
+
+// ─── Superfici chiare utility → superficie scura ────────────────────────────
+[data-theme="dark"] .bg-white
+  background-color: $white
+
+// ─── Tabelle ─────────────────────────────────────────────────────────────────
+[data-theme="dark"] .sib-table-wrap
+  background: $white
+  border-color: $border
+
+[data-theme="dark"] .sib-table thead tr,
+[data-theme="dark"] .sib-table th
+  background: $bg
+  color: $text-inactive
+
+[data-theme="dark"] .sib-table td
+  color: $text-active
+  border-color: $border
+
+[data-theme="dark"] .sib-table tbody tr:hover
+  background: $bg
+
+// ─── Form: campi su superficie scura ────────────────────────────────────────
+[data-theme="dark"] .sib-input,
+[data-theme="dark"] .sib-select,
+[data-theme="dark"] .field,
+[data-theme="dark"] .select,
+[data-theme="dark"] .field-textarea,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select
+  background-color: $white
+  color: $text-active
+  border-color: $border
+
+  &::placeholder
+    color: $text-disabled
+
+// La freccia SVG del .sib-select è scura: schiarirla in dark
+[data-theme="dark"] .sib-select
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%239AA2AE' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E")
+
+// ─── Bottoni pieni: in dark il primary userebbe l'accento chiaro (testo bianco
+//     a basso contrasto) → blu più profondo. Idem danger. ──────────────────────
+[data-theme="dark"] .sib-btn--primary
+  background: #2F6DB5
+  border-color: #2F6DB5
+  color: #FFFFFF
+
+  &:hover:not(:disabled)
+    background: #3B7CC8
+    border-color: #3B7CC8
+
+[data-theme="dark"] .sib-btn--danger
+  background: #C2333F
+  border-color: #C2333F
+  color: #FFFFFF
+
+  &:hover:not(:disabled)
+    background: #D8404D
+    border-color: #D8404D
+
+// ─── Scrollbar chiara del content → scura ───────────────────────────────────
+[data-theme="dark"] .content-scroll::-webkit-scrollbar-thumb
+  background: alpha($text-inactive, 0.35)

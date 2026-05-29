@@ -23,7 +23,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { to: '/admin/videos',        label: 'E-learning',     icon: 'circle-play'                 },
   { to: '/admin/announcements', label: 'Annunci',        icon: 'bullhorn',   comingSoon: true },
   { to: '/admin/packages',      label: 'Pacchetti',      icon: 'box'                         },
-  { to: '/admin/accommodations',label: 'Strutture',      icon: 'bed',        comingSoon: true },
+  { to: '/admin/accommodations',label: 'Strutture',      icon: 'bed'                         },
   { to: '/admin/users',         label: 'Utenti',         icon: 'users-gear', comingSoon: true },
   { to: '/admin/settings',      label: 'Impostazioni',   icon: 'gear'                        },
 ];

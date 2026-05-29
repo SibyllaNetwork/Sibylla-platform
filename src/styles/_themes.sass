@@ -35,9 +35,11 @@
   --color-text-negative: #FFFFFF
 
   // ── Link e accento
+  // --color-focus-ring = anello di focus dei campi form (border accento + ring)
   --color-link:          #5C9CD4
   --color-link-light:    #EBF4FB
   --color-accent:        #C9A84C
+  --color-focus-ring:    rgba(92, 156, 212, 0.25)
 
   // ── Feedback
   --color-success:       #007035
@@ -50,9 +52,12 @@
   --color-warning-light: #FFF3E0
 
   // ── Superfici
+  // --color-content-bg = sfondo pagine (bianco su skin Std); distinto dal canvas
+  // off-white --color-bg usato dagli header di tabella.
   --color-bg:            #F8FCFF
+  --color-content-bg:    #FFFFFF
   --color-surface:       #FFFFFF
-  --color-border:        #DBDBDB
+  --color-border:        #CFD4DA
 
   // ── Tipografia
   --font-heading: 'Poppins', sans-serif
@@ -72,65 +77,72 @@
 
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  EDITORIAL — hospitality italiana, serif display, palette desaturata
+//  PRO — Modern CRM (Linear/Attio/Notion style), dark slate + indigo accent
 // ══════════════════════════════════════════════════════════════════════════════
-// Direzione: Instrument Serif per titoli, Inter per body, fondo avorio,
-//            oro caldo protagonista, blu ridotto a neutro scuro.
-// Obiettivo: sensazione di brand editoriale / rivista di settore hotel.
+// Direzione: Inter ovunque, sfondo content #F7F7F5, topbar + sidenav unificati
+// in dark slate #1B1D23, accento indigo #5E6AD2 per bottoni/highlights.
+// Obiettivo: look CRM 2025 professionale senza decorazioni gratuite.
 [data-theme="editorial"]
-  // ── Palette primaria: navy → neutro scuro molto desaturato
-  --color-primary:       #2C2A26
-  --color-primary-900:   #2C2A26
-  --color-primary-800:   #3A3834
-  --color-primary-700:   #4E4B46
-  --color-primary-600:   #6A665F
-  --color-primary-500:   #8A857C
-  --color-primary-400:   #A39E94
-  --color-primary-300:   #BDB8AE
-  --color-primary-200:   #D4D0C7
-  --color-primary-100:   #E8E4DB
-  --color-primary-50:    #F2EEE5
+  // ── Palette: --color-primary serve sia per topbar che sidenav (stessa var)
+  --color-primary:       #1B1D23
+  --color-primary-900:   #1B1D23
+  --color-primary-800:   #232631
+  --color-primary-700:   #2A2E3A
+  --color-primary-600:   #3F3F46
+  --color-primary-500:   #52525B
+  --color-primary-400:   #71717A
+  --color-primary-300:   #A1A1AA
+  --color-primary-200:   #D4D4D8
+  --color-primary-100:   #E4E4E7
+  --color-primary-50:    #F4F4F5
 
-  --color-text-active:   #2C2A26
-  --color-text-inactive: #6A665F
-  --color-text-disabled: #A39E94
-  --color-text-negative: #FAF7F2
+  --color-text-active:   #1F2328
+  --color-text-inactive: #656D76
+  --color-text-disabled: #8B949E
+  --color-text-negative: #FFFFFF
 
-  // Oro come link/accento
-  --color-link:          #A7894A
-  --color-link-light:    #F1E8D4
-  --color-accent:        #C9A84C
+  // Indaco come accento (Linear/Attio signature)
+  --color-link:          #5E6AD2
+  --color-link-light:    #ECEEFB
+  --color-focus-ring:    rgba(94, 106, 210, 0.18)
+  --color-accent:        #5E6AD2
 
-  --color-success:       #4A6B3C
-  --color-success-light: #EAF0E1
-  --color-success-mid:   #7B9A62
-  --color-error:         #B44842
-  --color-error-dark:    #8A332E
-  --color-error-light:   #F5E2E0
-  --color-warning:       #C27D2E
-  --color-warning-light: #F6EBD9
+  --color-success:       #1A7F37
+  --color-success-light: #DCFCE7
+  --color-success-mid:   #2EA043
+  --color-error:         #CF222E
+  --color-error-dark:    #A40E26
+  --color-error-light:   #FFEBE9
+  --color-warning:       #BF8700
+  --color-warning-light: #FFF8C5
 
-  // Avorio al posto del bianco sporco
-  --color-bg:            #FAF7F2
+  // Bianco "sporco" per il content + true white per le surfaces
+  --color-bg:            #FEFEFE
+  --color-content-bg:    #FEFEFE
   --color-surface:       #FFFFFF
-  --color-border:        #D8D3C7
+  --color-border:        #B7B7B7
 
-  --font-heading: 'Instrument Serif', 'Fraunces', Georgia, serif
-  --font-body:    'Inter', 'Helvetica Neue', sans-serif
+  // Ombra standard Pro per .sap e tutte le card della piattaforma
+  --shadow-card-base:    0 1px 2px rgba(15, 17, 23, 0.04), 0 8px 24px -4px rgba(15, 17, 23, 0.08)
 
-  // Radii piccoli e coerenti
-  --radius-sm:   2px
-  --radius-md:   3px
-  --radius-lg:   4px
-  --radius-xl:   6px
-  --radius-page: 8px
+  --font-heading: 'Inter Tight', 'Inter', sans-serif
+  --font-body:    'Inter', sans-serif
 
-  // Ombre più nette, meno diffuse
-  --shadow-sm: 0 1px 0 rgba(44, 42, 38, 0.08)
-  --shadow-md: 0 1px 0 rgba(44, 42, 38, 0.12), 0 4px 8px rgba(44, 42, 38, 0.04)
-  --shadow-lg: 0 2px 0 rgba(44, 42, 38, 0.14), 0 8px 20px rgba(44, 42, 38, 0.06)
+  // Radii medi (Notion-like)
+  --radius-sm:   4px
+  --radius-md:   6px
+  --radius-lg:   8px
+  --radius-xl:   12px
+  --radius-page: 12px
 
-// Applicazione: titoli in serif, body in Inter
+  --shadow-sm: 0 1px 0 rgba(15, 17, 23, 0.04)
+  --shadow-md: 0 0 0 1px rgba(15, 17, 23, 0.06), 0 1px 2px rgba(15, 17, 23, 0.04)
+  --shadow-lg: 0 0 0 1px rgba(15, 17, 23, 0.08), 0 4px 12px rgba(15, 17, 23, 0.06)
+
+// Tipografia: Inter Tight sui titoli, Inter sul body
+[data-theme="editorial"] body
+  font-family: 'Inter', sans-serif
+
 [data-theme="editorial"] h1,
 [data-theme="editorial"] h2,
 [data-theme="editorial"] h3,
@@ -139,12 +151,9 @@
 [data-theme="editorial"] .h3,
 [data-theme="editorial"] .page-header__title,
 [data-theme="editorial"] .section-title
-  font-family: 'Instrument Serif', 'Fraunces', Georgia, serif
-  letter-spacing: -0.01em
-  font-weight: 400
-
-[data-theme="editorial"] body
-  font-family: 'Inter', 'Helvetica Neue', sans-serif
+  font-family: 'Inter Tight', 'Inter', sans-serif
+  letter-spacing: -0.022em
+  font-weight: 600
 
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -164,13 +173,14 @@
   --color-primary-300:   #B0B0B0
   --color-primary-200:   #D4D4D4
   --color-primary-100:   #EAEAEA
-  --color-primary-50:    #F5F5F5
+  --color-primary-50:    #F8FCFF
 
   --color-text-active:   #0A0A0A
   --color-text-inactive: #5A5A5A
   --color-text-disabled: #A0A0A0
   --color-text-negative: #FFFFFF
 
+  --color-focus-ring:    rgba(10, 10, 10, 0.15)
   --color-link:          #0A0A0A
   --color-link-light:    #F0F0F0
   --color-accent:        #FF4D00
@@ -185,6 +195,7 @@
   --color-warning-light: #FAEEE0
 
   --color-bg:            #FFFFFF
+  --color-content-bg:    #FFFFFF
   --color-surface:       #FFFFFF
   --color-border:        #0A0A0A
 
@@ -245,6 +256,7 @@
   --color-link:          #5A6B2D
   --color-link-light:    #EEF1DE
   --color-accent:        #D4923A
+  --color-focus-ring:    rgba(90, 107, 45, 0.2)
 
   --color-success:       #4A6B2D
   --color-success-light: #EEF1DE
@@ -256,6 +268,7 @@
   --color-warning-light: #F7E4CC
 
   --color-bg:            #FBF4EB
+  --color-content-bg:    #FBF4EB
   --color-surface:       #FFFEFA
   --color-border:        #D9C8B4
 
@@ -285,3 +298,58 @@
 [data-theme="terracotta"] .section-title
   font-family: 'IBM Plex Serif', Georgia, serif
   font-weight: 500
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  DARK — tema scuro professionale (slate + accento blu)
+// ══════════════════════════════════════════════════════════════════════════════
+// Solo token colore + ombre; radii/font ereditano da :root.
+// Le rifiniture per i componenti con colori hardcoded stanno in _skin-dark.sass.
+[data-theme="dark"]
+  // ── Primary = colore brand/emphasis (testo valori/titoli + bottoni).
+  // In dark è un blu LEGGIBILE su fondo scuro; le superfici chrome (sidebar/
+  // topbar) che usano questo token come sfondo sono ri-scurite in _skin-dark.sass.
+  --color-primary:       #6F9BCB
+  --color-primary-900:   #11151C
+  --color-primary-800:   #161B24
+  --color-primary-700:   #1F2733
+  --color-primary-600:   #28303D
+  --color-primary-500:   #3A4453
+  --color-primary-400:   #525D6E
+  --color-primary-300:   #6B7686
+  --color-primary-200:   #8B95A3
+  --color-primary-100:   #AAB2BD
+  --color-primary-50:    #232C3A
+
+  // ── Testo
+  --color-text-active:   #E6E8EC
+  --color-text-inactive: #9AA2AE
+  --color-text-disabled: #5E6675
+  --color-text-negative: #FFFFFF
+
+  // ── Link e accento
+  --color-link:          #6BA6E0
+  --color-link-light:    #1B2B3B
+  --color-accent:        #D4B45E
+  --color-focus-ring:    rgba(107, 166, 224, 0.3)
+
+  // ── Feedback (varianti -light come tinte scure)
+  --color-success:       #34D399
+  --color-success-light: #11271F
+  --color-success-mid:   #00CF86
+  --color-error:         #FF6B78
+  --color-error-dark:    #FF8A93
+  --color-error-light:   #2A1518
+  --color-warning:       #F5A623
+  --color-warning-light: #2A2012
+
+  // ── Superfici
+  --color-bg:            #12151B
+  --color-content-bg:    #0E1116
+  --color-surface:       #1A1E26
+  --color-border:        #2B313D
+
+  // ── Ombre (scure)
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40)
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.50)
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55)

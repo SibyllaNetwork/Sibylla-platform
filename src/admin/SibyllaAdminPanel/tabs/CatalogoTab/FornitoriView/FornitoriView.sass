@@ -34,7 +34,7 @@
   padding: 0 10px
   border: 1px solid $border
   border-radius: 7px
-  background: #F8FAFC
+  background: var(--color-bg)
 
 .forn-view__macro-filter
   width: 240px
@@ -48,7 +48,7 @@
 
 .forn-view__table
   background: $white
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-radius: 10px
   overflow: hidden
 
@@ -56,8 +56,8 @@
   display: grid
   grid-template-columns: 2.2fr 1.4fr 1.4fr 1.6fr 80px 170px 80px
   padding: 8px 14px
-  background: #F8FAFC
-  border-bottom: 0.5px solid $border
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
   font-size: 10px
   font-weight: 700
   color: $text-disabled
@@ -70,14 +70,14 @@
   padding: 11px 14px
   align-items: center
   gap: 8px
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
   transition: background 0.1s
 
   &:last-child
     border-bottom: none
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
 .forn-view__cell-name
   display: flex
@@ -182,8 +182,8 @@
 
   &--draft
     color: $text-disabled
-    background: #F0F0F0
-    border-color: #E5E5E5
+    background: var(--color-bg)
+    border-color: var(--color-border)
 
 .forn-view__pub-btn
   display: inline-flex

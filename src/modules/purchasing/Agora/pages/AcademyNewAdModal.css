@@ -21,7 +21,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1.25rem 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--color-border);
   border-radius: 0.5rem;
   cursor: pointer;
   text-align: center;
@@ -41,18 +41,18 @@
 }
 
 .academy-new-ad__type-card.is-active {
-  border-color: #204769;
-  background: #f0f5f8;
+  border-color: var(--color-border);
+  background: var(--color-bg);
 }
 
 .academy-new-ad__type-card.is-active .fa-light {
-  color: #204769;
+  color: var(--color-primary);
 }
 
 .academy-new-ad__type-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #204769;
+  color: var(--color-primary);
 }
 
 .academy-new-ad__sub-card {
@@ -61,14 +61,14 @@
   align-items: flex-start;
   gap: 0.25rem;
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
   font-family: 'Open Sans', sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-active);
 }
 
 .academy-new-ad__sub-card input[type='radio'] {
@@ -78,15 +78,15 @@
 }
 
 .academy-new-ad__sub-card.is-active {
-  border-color: #204769;
-  background: #f0f5f8;
-  color: #204769;
+  border-color: var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-primary);
 }
 
 .academy-new-ad__sub-hint {
   font-size: 0.75rem;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--color-text-inactive);
 }
 
 .academy-new-ad__sub-card.is-active .academy-new-ad__sub-hint {

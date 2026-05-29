@@ -1,0 +1,164 @@
+.tipi-servizio
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  .tipi-servizio__head
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 14px
+    flex-wrap: wrap
+
+  .tipi-servizio__hint
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+    margin: 0
+    max-width: 720px
+
+  .tipi-servizio__empty
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 15px
+    color: #5c5c5c
+
+  .tipi-servizio__table
+    width: 100%
+
+  .tipi-servizio__th-actions
+    text-align: right
+
+  // ─── Cell content ────────────────────────────────────────────────────────
+  .tipi-servizio__icon-chip
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border-radius: 8px
+    background-color: var(--type-color, var(--color-primary))
+    color: #fff
+    font-size: 14px
+
+  .tipi-servizio__name
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-primary)
+
+  .tipi-servizio__sub
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  .tipi-servizio__swatch
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    background-color: var(--type-color, var(--color-primary))
+    border: 1px solid rgba(0,0,0,0.08)
+
+  .tipi-servizio__id
+    font-family: 'JetBrains Mono', 'Menlo', monospace
+    font-size: 11px
+    background: var(--color-bg)
+    padding: 2px 6px
+    border-radius: 4px
+    color: var(--color-text-primary)
+
+  .tipi-servizio__fields
+    display: flex
+    flex-wrap: wrap
+    gap: 4px
+    max-width: 380px
+
+  .tipi-servizio__field-tag
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    padding: 2px 8px
+    border-radius: 999px
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-text-primary)
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+
+  .tipi-servizio__field-tag--date
+    background: rgba(92, 156, 212, 0.10)
+    border-color: rgba(92, 156, 212, 0.25)
+    color: #2c6a99
+
+  .tipi-servizio__field-tag--time
+    background: rgba(110, 91, 174, 0.10)
+    border-color: rgba(110, 91, 174, 0.25)
+    color: #5a4b9e
+
+  .tipi-servizio__field-tag--number
+    background: rgba(46, 141, 89, 0.10)
+    border-color: rgba(46, 141, 89, 0.25)
+    color: #1f6c44
+
+  .tipi-servizio__field-tag--text
+    background: rgba(122, 98, 48, 0.10)
+    border-color: rgba(122, 98, 48, 0.25)
+    color: #614e26
+
+  .tipi-servizio__field-tag--select
+    background: rgba(224, 123, 57, 0.10)
+    border-color: rgba(224, 123, 57, 0.25)
+    color: #b85e2a
+
+  .tipi-servizio__field-req
+    color: var(--color-error, #c0392b)
+
+  .tipi-servizio__count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 28px
+    height: 22px
+    padding: 0 8px
+    border-radius: 999px
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    font-family: 'Open Sans', sans-serif
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-primary)
+
+  // ─── Azioni ─────────────────────────────────────────────────────────────
+  .tipi-servizio__cell-actions
+    text-align: right
+    white-space: nowrap
+
+  .tipi-servizio__icon-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    margin-left: 4px
+    transition: all 0.15s
+
+    &:hover
+      background: var(--color-bg)
+      border-color: var(--color-primary)
+
+  .tipi-servizio__icon-btn--danger:hover
+    border-color: var(--color-error, #c0392b)

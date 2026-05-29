@@ -405,7 +405,7 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
                   return (
                     <div key={d} className="tableau__giacenza-cell" style={{
                       color: val<0?T.error:val===0?T.warning:T.textActive,
-                      borderBottom: gi===0?`0.5px solid ${T.border}`:'none',
+                      borderBottom: gi===0?`1px solid ${T.border}`:'none',
                       background: isToday_(d)?`${T.blue}08`:isWeekend(d)?'#FAFBFF':'transparent',
                     }}>
                       {val}

@@ -30,12 +30,12 @@
 
   &--success
     background: $success-light
-    border: 1px solid rgba($success, 0.2)
+    border: 1px solid alpha($success, 0.2)
     color: $success
 
   &--error
     background: $error-light
-    border: 1px solid rgba($error, 0.2)
+    border: 1px solid alpha($error, 0.2)
     color: $error
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@
   &__overlay
     position: absolute
     inset: 0
-    background: rgba($primary, 0.6)
+    background: alpha($primary, 0.6)
     display: flex
     flex-direction: column
     align-items: center
@@ -154,7 +154,7 @@
 .form-card
   background: $white
   border-radius: 12px
-  border: 0.5px solid $border
+  border: 1px solid $border
   padding: 24px
 
   &__title
@@ -225,7 +225,7 @@
   &__grid
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
 
   &__weekdays
@@ -240,7 +240,7 @@
     border-bottom: 1px solid $border
 
     &:not(:last-child)
-      border-right: 0.5px solid $border
+      border-right: 1px solid $border
 
   &__cells
     display: grid
@@ -249,10 +249,10 @@
   &__cell
     min-height: 95px
     padding: 6px 8px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
     &:not(:last-child)
-      border-right: 0.5px solid $border
+      border-right: 1px solid $border
 
     &--today
       background: $link-light
@@ -352,7 +352,7 @@
 // ─── Calendar grid ────────────────────────────────────────────────────────────
 .scadenzario__weekday
   &--border
-    border-right: 0.5px solid $border
+    border-right: 1px solid $border
 
 .scadenzario__cell-top
   display: flex
@@ -393,7 +393,7 @@
   &--border
     padding-bottom: 14px
     margin-bottom: 14px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
   &--grid2
     display: grid

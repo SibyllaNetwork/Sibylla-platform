@@ -109,6 +109,8 @@ const FA_MAP: Record<string, string> = {
   'house-pen':   'fa-house',
   'building-circle': 'fa-building-circle-check',
   'arrows-rotate':   'fa-arrows-rotate',
+  'concierge-bell':  'fa-bell-concierge',
+  'list-check':      'fa-list-check',
 }
 
 export default function Ico({ n, s = 20, c = '#fff', c2, w = 'duotone' }: IcoProps) {

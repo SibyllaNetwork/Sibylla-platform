@@ -4,8 +4,7 @@
 
 // ═══ SHELL PAGINA ═════════════════════════════════════════════════════════════
 .planner
-  background: $bg
-  border-radius: $radius-page
+  background: $white
   display: flex
   flex-direction: column
   height: 100%
@@ -13,7 +12,7 @@
   font-family: $font-body
 
   &__header
-    padding: 20px 24px 0
+    padding: 0
 
   &__title
     font-family: $font-heading
@@ -149,28 +148,174 @@
     flex: 1
     display: flex
     overflow: hidden
-    padding: 0 24px 20px
+    padding: 0
+
+  // Colonna centrale: parcheggio (sopra) + timeline (sotto)
+  &__center
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    overflow: hidden
+
+  // Pulsante Parcheggio (toolbar) — stesso stile degli altri icon-button
+  &__park-btn
+    position: relative
+
+    &--active
+      border-color: $primary
+      background: $primary-50
+      color: $primary
+
+  &__park-ico
+    width: 16px
+    height: 16px
+    border-radius: 999px
+    border: 1.5px solid currentColor
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-family: $font-heading
+    font-size: 9px
+    font-weight: 700
+    line-height: 1
+
+  &__park-badge
+    position: absolute
+    top: -3px
+    right: -3px
+    min-width: 16px
+    height: 16px
+    padding: 0 4px
+    border-radius: 999px
+    background: $accent
+    color: $primary-900
+    font-family: $font-body
+    font-size: 10px
+    font-weight: 700
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+  // Tooltip prenotazione (rollover)
+  &__bar-tip
+    position: fixed
+    z-index: 1000
+    pointer-events: none
+    background: #1E293B
+    color: $white
+    border-radius: 8px
+    padding: 8px 14px
+    font-family: $font-body
+    font-size: 11.5px
+    line-height: 1.55
+    text-align: center
+    white-space: nowrap
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3)
+
+  &__bar-tip-row
+    & + &
+      margin-top: 1px
+
+// ═══ PARCHEGGIO ════════════════════════════════════════════════════════════════
+.parcheggio
+  flex-shrink: 0
+  margin-bottom: 10px
+  border: 1px solid $primary-200
+  border-radius: $radius-lg
+  background: $white
+  box-shadow: $shadow-sm
+  overflow: hidden
+  max-height: 240px
+  display: flex
+  flex-direction: column
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 8px 12px
+    border-bottom: 1px solid $primary-100
+
+  &__title
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__title-ico
+    width: 18px
+    height: 18px
+    border-radius: 999px
+    border: 1.5px solid $primary
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 10px
+    font-weight: 700
+
+  &__close
+    background: none
+    border: none
+    cursor: pointer
+    font-size: 20px
+    line-height: 1
+    color: $text-inactive
+    padding: 0 4px
+
+    &:hover
+      color: $primary
+
+  &__grid
+    flex: 1
+    overflow: auto
+    position: relative
+    +custom-scrollbar
+
+  &__ref
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__empty
+    padding: 22px 16px
+    text-align: center
+    font-family: $font-body
+    font-size: 12px
+    color: $text-disabled
 
 // ═══ HOTEL VISUALIZATION ══════════════════════════════════════════════════════
 .hotel-viz
+  position: relative
   width: 195px
   min-width: 195px
-  overflow-y: auto
-  overflow-x: hidden
   background: $primary
   border-radius: $radius-xl 0 0 $radius-xl
-  padding: 10px 8px
+  overflow: hidden
   display: flex
   flex-direction: column
-  gap: 5px
-  +custom-scrollbar
+
+  &__scroll
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+    overflow-x: hidden
+    padding: 10px 8px
+    display: flex
+    flex-direction: column
+    gap: 5px
+    +custom-scrollbar
 
   &__header
     text-align: center
     margin-bottom: 2px
 
   &__title
-    color: rgba($white, 0.9)
+    color: alpha($white, 0.9)
     font-family: $font-heading
     font-size: 10px
     font-weight: 700
@@ -183,8 +328,212 @@
     font-size: 9px
     margin-top: 1px
 
+  &__hint
+    text-align: center
+    color: alpha($white, 0.4)
+    font-family: $font-body
+    font-size: 9px
+    font-style: italic
+    margin: -2px 0 4px
+
+  // Tooltip camera (hover)
+  &__tip
+    position: fixed
+    z-index: 1000
+    pointer-events: none
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: #1E293B
+    color: #fff
+    border: 1px solid alpha($white, 0.12)
+    border-radius: 6px
+    padding: 4px 8px
+    font-family: $font-body
+    font-size: 10px
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)
+    white-space: nowrap
+
+  &__tip-num
+    font-weight: 700
+
+  &__tip-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__tip-state
+    color: alpha($white, 0.8)
+
+  // ── Spaccato assonometrico esploso (data-driven) ──────────────────────────
+  &__iso
+    display: block
+    width: 100%
+    height: auto
+    margin: 2px 0 8px
+    fill: none
+    stroke-linejoin: round
+    stroke-linecap: round
+
+  // Sagoma dell'edificio (hotel)
+  &__iso-wall
+    stroke: alpha($white, 0.22)
+    stroke-width: 0.8
+
+    &--left
+      fill: alpha($white, 0.07)
+
+    &--right
+      fill: alpha($white, 0.12)
+
+  &__iso-roof
+    fill: alpha($white, 0.16)
+    stroke: alpha($white, 0.28)
+    stroke-width: 0.9
+
+  &__iso-edge
+    stroke: alpha($white, 0.3)
+    stroke-width: 1
+
+  &__iso-base
+    fill: alpha($white, 0.16)
+    stroke: alpha($white, 0.28)
+    stroke-width: 0.8
+
+  // Finestre sulle facciate
+  &__iso-window
+    fill: alpha($white, 0.26)
+    stroke: alpha($white, 0.55)
+    stroke-width: 0.8
+
+  &__iso-band
+    fill: none
+    stroke: alpha($white, 0.09)
+    stroke-width: 0.8
+
+  // Solaio (spessore del plate)
+  &__iso-slab
+    fill: alpha($white, 0.14)
+    stroke: alpha($white, 0.22)
+    stroke-width: 0.6
+
+  // Cella camera (fill = colore stato via attributo)
+  &__iso-cell
+    stroke: alpha($white, 0.45)
+    stroke-width: 0.7
+
+  // Base del piano: bianco con leggera trasparenza (le camere sopra restano piene)
+  &__iso-platetop
+    fill: alpha($white, 0.5)
+    stroke: alpha($white, 0.55)
+    stroke-width: 0.8
+
+  // Linee di griglia del piano
+  &__iso-grid
+    stroke: alpha($primary, 0.28)
+    stroke-width: 0.5
+
+  // Plate piano terra (vuoto, chiaro come in reference)
+  &__iso-ground
+    fill: alpha($white, 0.92)
+    stroke: alpha($white, 0.6)
+    stroke-width: 0.8
+
+  // Badge numerato del piano (gutter sinistro)
+  &__iso-badge
+    fill: alpha($white, 0.12)
+    stroke: alpha($white, 0.35)
+    stroke-width: 1
+
+  &__iso-badge-num
+    fill: alpha($white, 0.92)
+    font-family: $font-heading
+    font-size: 10px
+    font-weight: 700
+    text-anchor: middle
+    dominant-baseline: central
+
+  &__iso-leader
+    stroke: alpha($white, 0.2)
+    stroke-width: 0.8
+
+  // Reception (lobby piano terra)
+  &__rcp-rug
+    fill: alpha($primary, 0.12)
+    stroke: none
+
+  &__rcp-top
+    fill: #CBA06A
+    stroke: alpha(#000000, 0.18)
+    stroke-width: 0.4
+
+  &__rcp-side
+    fill: #A77F4C
+    stroke: alpha(#000000, 0.18)
+    stroke-width: 0.4
+
+  &__rcp-body
+    stroke: $primary
+    stroke-width: 4
+    stroke-linecap: round
+
+  &__rcp-head
+    fill: #E8C9A0
+    stroke: alpha(#000000, 0.15)
+    stroke-width: 0.4
+
+  // Poltrone (upholstery slate-blue)
+  &__rcpc-top
+    fill: #6E8A9C
+    stroke: alpha(#000000, 0.18)
+    stroke-width: 0.4
+
+  &__rcpc-side
+    fill: #54707F
+    stroke: alpha(#000000, 0.18)
+    stroke-width: 0.4
+
+  // Vaso pianta (terracotta)
+  &__rcppot-top
+    fill: #C57A4A
+    stroke: alpha(#000000, 0.18)
+    stroke-width: 0.4
+
+  &__rcppot-side
+    fill: #9E5C34
+    stroke: alpha(#000000, 0.18)
+    stroke-width: 0.4
+
+  &__rcp-leaf
+    fill: #3FA56B
+    stroke: #2F7E50
+    stroke-width: 0.4
+
+  // Piano cliccabile: evidenziazione hover / selezione
+  &__iso-floor
+    &.is-clickable
+      cursor: pointer
+
+  &__iso-floor-outline
+    fill: none
+    stroke: transparent
+    stroke-width: 1.5
+    transition: stroke $motion-fast $motion-ease
+
+  &__iso-floor.is-clickable:hover &__iso-floor-outline,
+  &__iso-floor.is-clickable:focus-visible &__iso-floor-outline
+    stroke: $accent
+
+  &__iso-floor.is-selected &__iso-floor-outline
+    stroke: $accent
+    stroke-width: 2
+
+  &__iso-floor.is-clickable:focus
+    outline: none
+
   &__floor
-    background: rgba($white, 0.08)
+    background: alpha($white, 0.08)
     border-radius: 8px
     padding: 6px 6px 5px
 
@@ -203,7 +552,7 @@
     letter-spacing: 0.4px
 
   &__floor-count
-    color: rgba($white, 0.4)
+    color: alpha($white, 0.4)
     font-family: $font-body
     font-size: 8px
 
@@ -216,7 +565,7 @@
     width: 18px
     height: 14px
     border-radius: 3px
-    border: 1px solid rgba($white, 0.2)
+    border: 1px solid alpha($white, 0.2)
     cursor: pointer
     transition: $transition-fast
 
@@ -229,12 +578,12 @@
 
   &__floor-stats
     margin-top: 4px
-    color: rgba($white, 0.3)
+    color: alpha($white, 0.3)
     font-family: $font-body
     font-size: 8px
 
   &__legend
-    background: rgba($white, 0.05)
+    background: alpha($white, 0.05)
     border-radius: $radius-md
     padding: 6px 5px
     margin-top: 2px
@@ -315,10 +664,10 @@
     border-right: 1px solid $primary-100
 
     &--today
-      background: rgba($link, 0.12)
+      background: alpha($link, 0.12)
 
     &--weekend
-      background: rgba($primary, 0.04)
+      background: alpha($primary, 0.04)
 
   &__day-num
     font-family: $font-heading
@@ -342,7 +691,7 @@
     top: 46px
     bottom: 0
     width: 2px
-    background: rgba($link, 0.3)
+    background: alpha($link, 0.3)
     z-index: 4
     pointer-events: none
 
@@ -422,10 +771,10 @@
     border-right: 1px solid $primary-100
 
     &--today
-      background: rgba($link, 0.05)
+      background: alpha($link, 0.05)
 
     &--weekend
-      background: rgba($primary, 0.025)
+      background: alpha($primary, 0.025)
 
     &--free
       cursor: pointer
@@ -458,15 +807,18 @@
     font-weight: 700
     white-space: nowrap
     overflow: hidden
-    cursor: pointer
+    cursor: grab
     transition: filter 0.15s
+
+    &:active
+      cursor: grabbing
     box-sizing: border-box
     z-index: 1
 
     &--selected
       z-index: 2
       filter: brightness(1.2)
-      outline: 2px solid rgba($white, 0.6)
+      outline: 2px solid alpha($white, 0.6)
       outline-offset: -2px
 
     &__question
@@ -475,6 +827,91 @@
 
     &__name
       +truncate
+
+  // ── Riepilogo footer (sticky, collassabile) ──────────────────────────────
+  &__summary
+    position: sticky
+    bottom: 0
+    left: 0
+    z-index: 12
+    background: $white
+    border-top: 1px solid $primary-200
+    box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.06)
+
+  &__summary-panel
+    max-height: 0
+    overflow: hidden
+    transition: max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1)
+
+    &.is-open
+      max-height: 150px
+
+  &__summary-row
+    display: flex
+    align-items: stretch
+    border-top: 1px solid $primary-100
+
+  &__summary-label
+    +sticky-col
+    width: 186px
+    min-width: 186px
+    padding: 0 12px
+    display: flex
+    align-items: center
+    background: $primary-50
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    line-height: 1.2
+
+  &__summary-cells
+    position: relative
+    height: 30px
+
+  &__summary-cell
+    position: absolute
+    top: 0
+    width: 88px
+    height: 100%
+    display: flex
+    align-items: center
+    justify-content: center
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 700
+    color: $text-active
+
+  &__summary-toggle
+    display: block
+    width: 100%
+    padding: 0
+    background: $primary-50
+    border: none
+    cursor: pointer
+    text-align: left
+
+    &:hover
+      background: $primary-100
+
+  &__summary-toggle-label
+    +sticky-col
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 7px 14px
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    color: $primary
+
+  &__summary-chevron
+    transition: transform 0.32s ease
+
+    &.is-open
+      transform: rotate(180deg)
 
 // ═══ INFO PANEL ═══════════════════════════════════════════════════════════════
 .info-panel
@@ -504,43 +941,120 @@
     line-height: 1.6
     margin: 8px 0
 
-  &__status-badge
-    display: flex
-    align-items: center
-    gap: 6px
-    margin-bottom: 4px
-    padding: 4px 6px
-    background: $primary-50
-    border-radius: $radius-md
-
-  &__status-dot
-    width: 10px
-    height: 10px
-    border-radius: 50%
-
-  &__status-label
-    color: $text-active
-    font-weight: 600
-    text-transform: capitalize
-
-  &__rows
+  // ── Campo etichetta/valore ──
+  &__f
     display: flex
     flex-direction: column
-    gap: 5px
+    gap: 1px
+    margin-bottom: 10px
 
-  &__row
-    display: flex
-    justify-content: space-between
-    border-bottom: 1px solid $primary-100
-    padding-bottom: 4px
-
-  &__row-key
+  &__f-k
     color: $text-disabled
-    font-size: 11px
+    font-size: 9.5px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.4px
 
-  &__row-val
+  &__f-v
     color: $text-active
+    font-size: 13px
     font-weight: 600
+
+    b
+      font-weight: 700
+
+  &__grid2
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 4px 10px
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__stato-dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    flex-shrink: 0
+
+  &__people
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__people-sub
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    color: $text-inactive
+    font-size: 11px
+    font-weight: 400
+
+  &__dettaglio
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    background: none
+    border: none
+    cursor: pointer
+    color: $link
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 600
+    padding: 0
+    margin-top: 2px
+
+    &:hover
+      text-decoration: underline
+
+  &__actions
+    display: flex
+    gap: 6px
+    margin-top: 12px
+
+  &__act-btn
+    width: 34px
+    height: 34px
+    border-radius: $radius-md
+    border: none
+    background: $primary
+    color: $white
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 13px
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-800
+
+  &__note
+    margin-top: 10px
+    display: flex
+    flex-direction: column
+    gap: 8px
+    animation: info-note-in 0.25s ease
+
+  &__note-area
+    width: 100%
+    min-height: 70px
+    resize: vertical
+    border: 1px solid $border
+    border-radius: $radius-md
+    padding: 8px
+    font-family: $font-body
+    font-size: 12px
+    outline: none
+
+    &:focus
+      border-color: $link
+
+  &__pend-seg
+    color: $text-inactive
+    font-size: 11px
 
   &__pend-header
     width: 100%
@@ -680,3 +1194,423 @@
 
     &:hover
       text-decoration: underline
+
+// ─── DETTAGLIO PIANO (overlay frontale animato) ────────────────────────────────
+.floor-detail
+  position: absolute
+  inset: 0
+  z-index: 5
+  background: $primary
+  padding: 10px 9px
+  display: flex
+  flex-direction: column
+  gap: 8px
+  overflow-y: auto
+  +custom-scrollbar
+  transform-origin: 50% 30%
+  animation: floor-detail-in 420ms cubic-bezier(0.22, 1, 0.36, 1)
+  perspective: 800px
+
+  &__back
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    background: alpha($white, 0.1)
+    border: 1px solid alpha($white, 0.15)
+    border-radius: $radius-md
+    color: alpha($white, 0.85)
+    font-family: $font-body
+    font-size: 9px
+    font-weight: 600
+    padding: 4px 8px
+    cursor: pointer
+    transition: background $motion-fast $motion-ease
+
+    &:hover
+      background: alpha($white, 0.18)
+
+  &__title
+    color: alpha($white, 0.95)
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 700
+
+  &__sub
+    color: $primary-300
+    font-family: $font-body
+    font-size: 9px
+    margin-top: -4px
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 6px
+    margin-top: 2px
+
+  &__room
+    display: flex
+    gap: 6px
+    background: alpha($white, 0.08)
+    border: 1px solid alpha($white, 0.1)
+    border-radius: 7px
+    padding: 6px
+    overflow: hidden
+    animation: floor-card-in 320ms $motion-ease both
+    @for $i from 1 through 12
+      &:nth-child(#{$i})
+        animation-delay: #{180 + ($i - 1) * 35}ms
+
+  &__room-bar
+    width: 3px
+    border-radius: 2px
+    flex-shrink: 0
+
+  &__room-body
+    display: flex
+    flex-direction: column
+    gap: 1px
+    min-width: 0
+
+  &__room-num
+    color: alpha($white, 0.95)
+    font-family: $font-body
+    font-size: 10px
+    font-weight: 700
+
+  &__room-type
+    color: alpha($white, 0.5)
+    font-family: $font-body
+    font-size: 8px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__room-state
+    font-family: $font-body
+    font-size: 8.5px
+    font-weight: 600
+    margin-top: 1px
+
+@keyframes floor-detail-in
+  from
+    opacity: 0
+    transform: perspective(800px) rotateX(-52deg) translateY(26px) scale(0.9)
+  60%
+    opacity: 1
+  to
+    opacity: 1
+    transform: perspective(800px) rotateX(0) translateY(0) scale(1)
+
+@keyframes floor-card-in
+  from
+    opacity: 0
+    transform: translateY(9px) scale(0.97)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+@keyframes info-note-in
+  from
+    opacity: 0
+    transform: translateY(-6px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+// ═══ MODALI PRENOTAZIONE ════════════════════════════════════════════════════════
+.dett-camere
+  font-family: $font-body
+
+  &__intro
+    font-size: 15px
+    color: $text-active
+    margin-bottom: 12px
+
+  &__topbar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 14px
+
+  &__hotel
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    margin-top: 18px
+
+.gestisci-date
+  font-family: $font-body
+
+  &__hint
+    color: $primary
+    font-size: 13px
+    font-weight: 600
+    margin: 0 0 14px
+
+  &__range
+    display: flex
+    align-items: center
+    gap: 10px
+    margin-bottom: 18px
+
+  &__sep
+    color: $text-disabled
+
+  &__confirm
+    width: 100%
+
+.sposta-pren
+  font-family: $font-body
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+  &__label
+    font-size: 13px
+    color: $text-active
+    font-weight: 600
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 6px
+
+.annulla-pren
+  font-family: $font-body
+
+  p
+    color: $text-active
+    font-size: 13px
+    line-height: 1.5
+    margin: 0 0 16px
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+// ── Modifica prenotazione (form grande) ──
+.mod-pren
+  font-family: $font-body
+  display: flex
+  flex-direction: column
+  gap: 14px
+  max-height: 72vh
+  overflow-y: auto
+  +custom-scrollbar
+
+  &__tabs
+    display: flex
+    align-items: center
+    gap: 8px
+    border-bottom: 1px solid $border
+
+  &__tab
+    background: none
+    border: none
+    border-bottom: 2px solid transparent
+    padding: 8px 14px
+    cursor: pointer
+    font-family: $font-body
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+
+    &.is-active
+      color: $primary
+      border-bottom-color: $primary
+
+  &__tabs-icons
+    margin-left: auto
+    display: flex
+    gap: 6px
+
+  &__top
+    display: grid
+    grid-template-columns: 1fr 1.2fr
+    gap: 12px
+
+  &__box
+    border: 1px solid $border
+    border-radius: $radius-md
+    padding: 12px
+
+  &__date
+    font-size: 12px
+    color: $text-active
+    margin-bottom: 10px
+
+  &__grid2
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+    margin-bottom: 10px
+
+  &__field
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+
+    .sib-input
+      width: 70px
+
+  &__field-col
+    display: flex
+    flex-direction: column
+    gap: 4px
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    margin-bottom: 10px
+
+  &__field-inline
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+
+  &__field-grow
+    flex: 1
+
+  &__btns
+    display: flex
+    gap: 8px
+    margin-bottom: 10px
+
+  &__radios
+    display: flex
+    gap: 16px
+    font-size: 12px
+
+    label
+      display: inline-flex
+      align-items: center
+      gap: 5px
+      cursor: pointer
+
+  &__hotel-tag
+    display: inline-block
+    background: $primary
+    color: $white
+    font-size: 11px
+    font-weight: 600
+    padding: 3px 8px
+    border-radius: 4px
+    margin-bottom: 8px
+
+  &__types-head, &__extra-head
+    display: grid
+    grid-template-columns: 1fr 70px 90px
+    gap: 8px
+    font-size: 10.5px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.3px
+    color: $text-inactive
+    margin-bottom: 6px
+
+  &__type-row
+    display: grid
+    grid-template-columns: 16px 1fr 70px 90px
+    align-items: center
+    gap: 8px
+    margin-bottom: 6px
+
+  &__grid-ag
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 16px
+    margin-bottom: 10px
+
+  &__stato-arr
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__stato
+    display: flex
+    gap: 16px
+    font-size: 12px
+
+    label
+      display: inline-flex
+      align-items: center
+      gap: 5px
+
+  &__dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    display: inline-block
+
+    &--green
+      background: $success-mid
+
+    &--red
+      background: $error
+
+  &__extra-head
+    grid-template-columns: 1fr 90px 90px
+
+  &__extra-row
+    font-size: 12.5px
+    color: $text-active
+    padding: 5px 0
+    border-top: 1px solid $primary-100
+
+    i
+      color: $link
+      margin-right: 6px
+
+  &__extra-tot
+    text-align: right
+    font-size: 12px
+    color: $text-inactive
+    margin-top: 8px
+
+  &__naz
+    display: flex
+    align-items: center
+    gap: 16px
+
+  &__totals
+    display: flex
+    flex-wrap: wrap
+    gap: 18px
+    padding: 12px
+    background: $primary-50
+    border-radius: $radius-md
+
+  &__total
+    display: flex
+    flex-direction: column
+    font-size: 12px
+    color: $text-inactive
+
+    b
+      color: $primary
+      font-size: 13px
+
+  &__footer
+    display: flex
+    align-items: center
+    justify-content: space-between
+    border-top: 1px solid $border
+    padding-top: 12px
+
+  &__footer-right
+    display: flex
+    gap: 8px

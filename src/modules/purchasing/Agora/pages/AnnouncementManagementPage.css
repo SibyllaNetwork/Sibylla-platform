@@ -49,8 +49,8 @@
 }
 
 .announcements-mgmt__panel {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   overflow: hidden;
 }
@@ -63,14 +63,14 @@
 
 .announcements-mgmt__panel-head {
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .announcements-mgmt__panel-title {
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1.25rem;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -97,12 +97,12 @@
 .announcements-mgmt__empty-icon {
   width: 4rem;
   height: 4rem;
-  background: #f3f4f6;
+  background: var(--color-bg);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--color-text-disabled);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
@@ -111,7 +111,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1rem;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0 0 0.5rem;
 }
 
@@ -128,8 +128,8 @@
 }
 
 .announcements-mgmt__thead {
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .announcements-mgmt__th {
@@ -148,24 +148,24 @@
 }
 
 .announcements-mgmt__row {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .announcements-mgmt__row:hover {
-  background: #f9fafb;
+  background: var(--color-bg);
 }
 
 .announcements-mgmt__row--selected {
-  background: #eff6ff;
+  background: var(--color-link-light);
 }
 
 .announcements-mgmt__td {
   padding: 1rem 1.5rem;
   font-family: 'Open Sans', sans-serif;
   font-size: 0.875rem;
-  color: #111827;
+  color: var(--color-text-active);
 }
 
 .announcements-mgmt__td--center {
@@ -174,7 +174,7 @@
 
 .announcements-mgmt__structure {
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0;
 }
 
@@ -190,9 +190,9 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background: #f0fdf4;
+  background: var(--color-success-light);
   color: #15803d;
-  border: 1px solid #bbf7d0;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   font-family: 'Open Sans', sans-serif;
   font-weight: 600;
@@ -216,12 +216,12 @@
 }
 
 .announcements-mgmt__row-action:hover {
-  background: #f0fdf4;
+  background: var(--color-success-light);
 }
 
 .announcements-mgmt__row-action--published {
   color: #16a34a;
-  background: #f0fdf4;
+  background: var(--color-success-light);
   cursor: default;
 }
 
@@ -230,7 +230,7 @@
 }
 
 .announcements-mgmt__row-action--danger:hover {
-  background: #fef2f2;
+  background: var(--color-error-light);
 }
 
 .announcements-mgmt__panel-body {
@@ -238,8 +238,8 @@
 }
 
 .contract-doc {
-  background: #ffffff;
-  border: 2px solid #d1d5db;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 2rem;
   min-height: 50rem;
@@ -250,7 +250,7 @@
 
 .contract-doc__head {
   text-align: center;
-  border-bottom: 2px solid #111827;
+  border-bottom: 2px solid var(--color-border);
   padding-bottom: 1.5rem;
 }
 
@@ -258,7 +258,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 1.75rem;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0 0 0.5rem;
 }
 
@@ -270,7 +270,7 @@
 }
 
 .contract-doc__number {
-  background: #f3f4f6;
+  background: var(--color-bg);
   padding: 1rem;
   border-radius: 0.5rem;
 }
@@ -289,7 +289,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 1.125rem;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0;
 }
 
@@ -303,10 +303,10 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1.125rem;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0 0 0.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #d1d5db;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .contract-doc__fields {
@@ -329,7 +329,7 @@
   font-family: 'Open Sans', sans-serif;
   font-weight: 600;
   font-size: 0.875rem;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0;
 }
 
@@ -337,7 +337,7 @@
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
   font-size: 1rem;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0;
 }
 
@@ -361,16 +361,16 @@
   gap: 2rem;
   padding-top: 2rem;
   margin-top: 1rem;
-  border-top: 2px solid #d1d5db;
+  border-top: 2px solid var(--color-border);
 }
 
 .contract-doc__signature-line {
-  border-bottom: 2px solid #9ca3af;
+  border-bottom: 2px solid var(--color-border);
   height: 4rem;
 }
 
 .contract-placeholder {
-  background: #f9fafb;
+  background: var(--color-bg);
   border-radius: 0.5rem;
   padding: 3rem;
   text-align: center;
@@ -384,12 +384,12 @@
 .contract-placeholder__icon {
   width: 5rem;
   height: 5rem;
-  background: #e5e7eb;
+  background: var(--color-border);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--color-text-disabled);
   margin-bottom: 1rem;
   font-size: 1.75rem;
 }
@@ -398,7 +398,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1rem;
-  color: #111827;
+  color: var(--color-text-active);
   margin: 0 0 0.5rem;
 }
 

@@ -1,0 +1,108 @@
+.strprev-modal
+  display: flex
+  flex-direction: column
+  padding: 0
+  max-height: 88vh
+
+  // ─── Tabs canale ────────────────────────────────────────────────────────
+  .strprev-modal__tabs
+    display: flex
+    gap: 6px
+    padding: 14px 18px 0
+    border-bottom: 1px solid var(--color-border)
+    flex-wrap: wrap
+
+  .strprev-modal__tab
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 3px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-bottom: 1px solid transparent
+    border-radius: 8px 8px 0 0
+    padding: 8px 14px
+    cursor: pointer
+    transition: all 0.15s
+    margin-bottom: -1.5px
+    min-width: 200px
+
+    &:hover
+      border-color: var(--canale-color, var(--color-primary))
+
+  .strprev-modal__tab--active
+    border-color: var(--canale-color, var(--color-primary))
+    border-bottom-color: #fff
+    background: var(--color-surface)
+    box-shadow: 0 -2px 0 var(--canale-color, var(--color-primary)) inset
+
+  .strprev-modal__tab-dot
+    display: none
+
+  .strprev-modal__tab-label
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    font-weight: 700
+    color: var(--canale-color, var(--color-primary))
+
+  .strprev-modal__tab-dest
+    font-family: 'Open Sans', sans-serif
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  .strprev-modal__tab-status
+    display: inline-block
+    margin-top: 2px
+    padding: 1px 7px
+    border-radius: 999px
+    font-family: 'Open Sans', sans-serif
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.05em
+    background: var(--color-bg)
+    color: var(--color-text-inactive)
+
+  .strprev-modal__tab-status--on
+    background: var(--canale-color, var(--color-primary))
+    color: #fff
+    opacity: 0.85
+
+  // ─── Hint ────────────────────────────────────────────────────────────────
+  .strprev-modal__hint
+    display: inline-flex
+    align-items: flex-start
+    gap: 8px
+    margin: 12px 18px 0
+    padding: 8px 12px
+    background: rgba(92, 156, 212, 0.08)
+    border: 1px solid rgba(92, 156, 212, 0.25)
+    border-radius: 6px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-primary)
+
+    i
+      color: #2c6a99
+      margin-top: 2px
+
+    em
+      font-style: italic
+      color: #b03020
+      margin-left: 4px
+
+  // ─── Stage ───────────────────────────────────────────────────────────────
+  .strprev-modal__stage
+    flex: 1 1 auto
+    overflow-y: auto
+    padding: 18px
+    background: linear-gradient(180deg, #f5f8fa 0%, #fff 100%)
+    min-height: 300px
+
+  // ─── Footer ──────────────────────────────────────────────────────────────
+  .strprev-modal__footer
+    display: flex
+    justify-content: flex-end
+    padding: 12px 18px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-surface)

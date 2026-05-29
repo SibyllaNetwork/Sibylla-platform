@@ -10,7 +10,7 @@ export default function GenericPage({item,page,modColor,navigate}:any) {
         <h1 style={{margin:0,fontFamily:"Poppins,sans-serif",fontSize:24,fontWeight:600,color:T.primary}}>{label}</h1>
         <p style={{margin:"4px 0 0",fontSize:13,color:T.textInactive}}>Hotel Noto — Sibylla Platform</p>
       </div>
-      <div style={{background:T.white,borderRadius:12,border:"0.5px solid "+T.border,padding:48,textAlign:"center"}}>
+      <div style={{background:T.white,borderRadius:12,border:"1px solid "+T.border,padding:48,textAlign:"center"}}>
         <div style={{width:52,height:52,borderRadius:14,background:(modColor||T.blue)+"18",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
           <div style={{width:14,height:14,borderRadius:"50%",background:modColor||T.blue}}/>
         </div>

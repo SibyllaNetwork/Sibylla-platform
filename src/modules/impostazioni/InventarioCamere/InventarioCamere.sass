@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $danger: #dc2626
 
 .inv-camere
@@ -27,7 +27,7 @@ $danger: #dc2626
   &__card
     display: flex
     flex-direction: column
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 10px
     overflow: hidden
@@ -104,7 +104,7 @@ $danger: #dc2626
     gap: 8px
     padding: 8px 10px
     border-top: 1px solid $border
-    background: white
+    background: var(--color-surface)
     min-height: 44px
 
   &__num
@@ -114,7 +114,7 @@ $danger: #dc2626
     min-width: 36px
     height: 28px
     padding: 0 8px
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border-strong
     border-radius: 999px
     font-family: 'Poppins', sans-serif
@@ -154,7 +154,7 @@ $danger: #dc2626
   &__drawer
     width: min(820px, 60%)
     height: 100%
-    background: white
+    background: var(--color-surface)
     box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18)
     display: flex
     flex-direction: column
@@ -201,7 +201,7 @@ $danger: #dc2626
   &__drawer-footer
     border-top: 1px solid $border
     padding: 14px 24px
-    background: white
+    background: var(--color-surface)
 
   &__hint
     margin: -6px 0 0
@@ -230,7 +230,7 @@ $danger: #dc2626
 
     &:hover
       border-color: $primary
-      background: color.adjust($bg-soft, $lightness: -2%)
+      background: color-mix(in srgb, #{$bg-soft}, #000 3%)
 
     i
       font-size: 28px
@@ -240,12 +240,12 @@ $danger: #dc2626
       cursor: default
       padding: 0
       border-style: solid
-      background: white
+      background: var(--color-surface)
       overflow: hidden
 
       &:hover
         border-color: $border-strong
-        background: white
+        background: var(--color-surface)
 
   &__dropzone-title
     font-size: 13px
@@ -332,7 +332,7 @@ $danger: #dc2626
 
     &:hover
       border-color: $primary
-      background: color.adjust($bg-soft, $lightness: -2%)
+      background: color-mix(in srgb, #{$bg-soft}, #000 3%)
 
 @keyframes inv-camere-fade-in
   from

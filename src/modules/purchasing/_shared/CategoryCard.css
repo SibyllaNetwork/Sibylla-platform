@@ -7,8 +7,8 @@
 }
 
 .category-card__inner {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1.5rem;
   transition: border-color 0.2s;
@@ -17,7 +17,7 @@
 }
 
 .category-card:hover .category-card__inner {
-  border-color: #cfcfcf;
+  border-color: var(--color-border);
 }
 
 .category-card__head {
@@ -31,8 +31,8 @@
   width: 4rem;
   height: 4rem;
   border-radius: 0.5rem;
-  background: #f5f8fa;
-  color: #204769;
+  background: var(--color-bg);
+  color: var(--color-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +71,7 @@
   font-weight: 600;
   font-size: 1rem;
   line-height: 1.375;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0 0 0.5rem;
   min-height: 2.75rem;
 }
@@ -90,7 +90,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #204769;
+  color: var(--color-primary);
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
   font-size: 0.8125rem;

@@ -52,7 +52,7 @@ export default function Input({
     'w-full font-opensans font-normal text-ink bg-white rounded-field outline-none box-border transition-[border-color] duration-150 ease-in-out',
     'border-[#CFCFCF]',
     'placeholder:text-ink-muted placeholder:font-normal',
-    'hover:enabled:not(:read-only):border-[#BBBDBF]',
+    'hover:enabled:not(:read-only):border-[#CFCFCF]',
     'focus:enabled:border-ink',
     'disabled:text-line disabled:border-[#CFCFCF] disabled:bg-white disabled:cursor-not-allowed disabled:placeholder:text-line',
     sizeClasses[size],

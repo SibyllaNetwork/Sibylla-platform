@@ -18,6 +18,12 @@ const SECTIONS: SectionItem[] = [
     icon: 'layers',
   },
   {
+    id: 'servizi',
+    label: 'Servizi',
+    description: 'Escursioni, noleggi, eventi — listini Agorà / B2B / B2C',
+    icon: 'concierge-bell',
+  },
+  {
     id: 'agora-console',
     label: 'Piattaforma admin',
     description: 'Contenuti e impostazioni dell\'Agorà',

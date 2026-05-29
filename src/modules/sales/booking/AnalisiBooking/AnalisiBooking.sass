@@ -31,7 +31,7 @@
   // ── Tabella ─────────────────────────────────────────────────────────────────
   &__table-wrap
     overflow-x: auto
-    border: 0.5px solid $border
+    border: 1px solid $border
     border-radius: $radius-lg
     background: $white
 
@@ -49,7 +49,7 @@
     text-transform: uppercase
     letter-spacing: 0.4px
     border-bottom: 1px solid $border
-    background: #F8FAFC
+    background: var(--color-bg)
     white-space: nowrap
 
     &--right
@@ -58,7 +58,7 @@
   &__td
     padding: 11px 16px
     color: $text-active
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
     vertical-align: middle
 
     &--right
@@ -72,10 +72,10 @@
     transition: background 0.1s
 
     &:hover
-      background: #F8FCFF
+      background: var(--color-bg)
 
     &--total
-      background: #F8FAFC
+      background: var(--color-bg)
       font-weight: 700
 
       td
@@ -100,7 +100,7 @@
   // ── Grafici ──────────────────────────────────────────────────────────────────
   &__chart-wrap
     background: $white
-    border: 0.5px solid $border
+    border: 1px solid $border
     border-radius: $radius-lg
     padding: $space-lg
 
@@ -129,7 +129,7 @@
     border-radius: 1px
 
     &--capacity
-      border-top: 2px dashed #E74C3C
+      border-top: 2px dashed var(--color-border)
 
     &--sold
       background: #9DD7E8

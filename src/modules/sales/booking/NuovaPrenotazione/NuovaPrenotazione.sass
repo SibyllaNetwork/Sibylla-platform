@@ -1,566 +1,663 @@
 @use '../../../../styles/tokens' as *
 
-// ─── Card wrapper ─────────────────────────────────────────────────────────────
-.prenota__card
-  background: $white
-  border-radius: 12px
-  border: 0.5px solid $border
-  overflow: hidden
-
-.prenota__tabs
+// ─── Page wrapper ────────────────────────────────────────────────────────────
+.np-page
   display: flex
-  border-bottom: 1px solid $border
+  flex-direction: column
+  gap: 16px
 
-.prenota__tab
-  padding: 10px 20px
-  font-size: 13px
-  font-weight: 600
-  font-family: $font-body
+  > .sib-btn--back
+    align-self: flex-start
+
+// ─── Toolbar (tabs + icon buttons) ───────────────────────────────────────────
+.np-toolbar
+  display: flex
+  align-items: center
+  justify-content: flex-start
+  gap: 14px
+  flex-wrap: wrap
+
+.np-toolbar-icons
+  display: flex
+  align-items: center
+  gap: 6px
+
+.np-icon-btn
+  width: 32px
+  height: 32px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: $white
+  border: 1px solid $border
+  border-radius: 6px
   color: $text-inactive
+  cursor: pointer
+  font-size: 13px
+  transition: border-color 0.12s, color 0.12s, background 0.12s
+
+  &:hover
+    border-color: $primary
+    color: $primary
+    background: var(--color-primary-50)
+
+// ─── Columns layout ──────────────────────────────────────────────────────────
+.np-columns
+  display: grid
+  grid-template-columns: 1.05fr 1fr 1fr
+  gap: 14px
+  align-items: start
+
+  @media (max-width: 1100px)
+    grid-template-columns: 1fr 1fr
+
+  @media (max-width: 720px)
+    grid-template-columns: 1fr
+
+.np-column
+  display: flex
+  flex-direction: column
+  gap: 14px
+  min-height: 60px
+
+// ─── Generic form row inside widget body ─────────────────────────────────────
+.np-row
+  display: flex
+  gap: 12px
+  align-items: flex-end
+  flex-wrap: wrap
+
+  > *
+    flex: 1 1 0
+    min-width: 0
+
+  &--baseline
+    align-items: flex-end
+
+.np-w-num
+  flex: 0 0 90px
+
+// ─── Form label (standard) ───────────────────────────────────────────────────
+.np-label
+  font-size: 12px
+  color: $text-inactive
+  font-weight: 600
+  margin-bottom: 4px
+  display: block
+
+// ─── Checkbox/radio rows ─────────────────────────────────────────────────────
+.np-checks-row
+  display: flex
+  gap: 16px
+  flex-wrap: wrap
+  align-items: center
+  min-height: 30px
+
+.np-check
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 13px
+  color: $text-active
+  cursor: pointer
+
+.np-dot
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  display: inline-block
+
+  &--ok
+    background: $success-mid
+
+  &--ko
+    background: $error
+
+.np-cap
+  text-transform: uppercase
+  letter-spacing: 0.3px
+  font-size: 11px
+  font-weight: 600
+
+// ─── Radio block (label + group) ─────────────────────────────────────────────
+.np-radio-block
+  display: flex
+  flex-direction: column
+  flex: 1 1 auto
+
+// ─── Hotel tabs (group) ──────────────────────────────────────────────────────
+.np-hotels-tabs
+  display: flex
+  gap: 18px
+  border-bottom: 1px solid $border
+  margin-bottom: 4px
+
+.np-hotels-tab
   background: transparent
   border: none
-  border-bottom: 2px solid transparent
+  padding: 6px 0
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
   cursor: pointer
-  transition: color 0.15s, border-color 0.15s
+  border-bottom: 2px solid transparent
+  transition: color 0.12s, border-color 0.12s
 
   &--active
     color: $primary
     border-bottom-color: $primary
 
-  &:hover:not(.prenota__tab--active)
+  &:hover:not(.np-hotels-tab--active)
     color: $text-active
 
-.prenota__body
-  padding: 24px
-
-// ─── Tab content layouts ──────────────────────────────────────────────────────
-.prenota__tab-content
-  display: flex
-  flex-direction: column
-  gap: 20px
-
-.prenota__grid-2
-  display: grid
-  grid-template-columns: 1fr 1fr
-  gap: 20px
-
-.prenota__section--col
-  display: flex
-  flex-direction: column
-  gap: 14px
-
-// ─── Counter component ────────────────────────────────────────────────────────
-.prenota__counter
-  display: flex
-  align-items: center
-  gap: 5px
-
-.prenota__counter-btn
-  width: 24px
-  height: 24px
-  border-radius: 5px
-  border: 1px solid $border
-  background: $white
-  cursor: pointer
-  font-size: 14px
-  color: $text-active
-  display: flex
-  align-items: center
-  justify-content: center
-
-.prenota__counter-input
-  width: 52px
-  height: 30px
-  text-align: center
+// ─── Standard table (allineato a feedback_sibylla_table_standard) ────────────
+.np-table
+  width: 100%
+  border-collapse: collapse
+  font-size: 12.5px
   border: 1px solid $border
   border-radius: 6px
-  font-size: 13px
-  color: $text-active
-  font-family: 'Open Sans', sans-serif
-  outline: none
-  background: $white
-
-// ─── ServRow ──────────────────────────────────────────────────────────────────
-.prenota__serv-name-cell
-  display: flex
-  align-items: center
-  gap: 8px
-  padding: 8px 12px
-
-.prenota__serv-add
-  width: 18px
-  height: 18px
-  border-radius: 50%
-  border: 1px solid $link
-  background: transparent
-  cursor: pointer
-  display: flex
-  align-items: center
-  justify-content: center
-  color: $link
-  font-size: 13px
-
-.prenota__serv-name
-  font-size: 13px
-  color: $text-active
-
-.prenota__serv-price
-  font-size: 13px
-  text-align: right
-  color: $text-active
-  padding: 8px 12px
-
-.prenota__serv-qty-cell
-  text-align: right
-  padding: 8px 12px
-
-.prenota__serv-qty-input
-  width: 52px
-  height: 28px
-  text-align: center
-  border: 1px solid $border
-  border-radius: 5px
-  font-size: 12px
-  font-family: 'Open Sans', sans-serif
-  outline: none
-
-.prenota__serv-total
-  font-size: 13px
-  font-weight: 500
-  text-align: right
-  color: $text-active
-  padding: 8px 12px
-
-// ─── ServTable footer ─────────────────────────────────────────────────────────
-.prenota__serv-footer
-  border-top: 1px solid $border
-  background: #F8FAFC
-
-.prenota__serv-footer-label
-  font-size: 12px
-  font-weight: 700
-  color: $text-active
-  text-align: right
-  padding: 8px 12px
-
-.prenota__serv-footer-val
-  font-size: 13px
-  font-weight: 700
-  color: $primary
-  text-align: right
-  padding: 8px 12px
-
-// ─── Date row ─────────────────────────────────────────────────────────────────
-.prenota__date-row
-  display: flex
-  align-items: center
-  gap: 8px
-  flex-wrap: wrap
-
-  &--mb
-    margin-bottom: 14px
-
-.prenota__date-input
-  width: 138px
-  height: 30px
-  font-size: 12px
-
-.prenota__date-sep
-  color: $text-disabled
-
-.prenota__field-label
-  font-size: 12px
-  font-weight: 600
-  color: $text-active
-  min-width: 40px
-
-  &--nowrap
-    white-space: nowrap
-    min-width: auto
-
-// ─── Counters row ─────────────────────────────────────────────────────────────
-.prenota__counters-row
-  display: flex
-  align-items: center
-  gap: 14px
-  flex-wrap: wrap
-
-.prenota__counter-item
-  display: flex
-  align-items: center
-  gap: 6px
-
-.prenota__counter-sublabel
-  font-size: 10px
-  color: $text-disabled
-
-.prenota__counter-field
-  width: 64px
-  height: 30px
-  font-size: 12px
-  text-align: center
-
-// ─── Suppl / Personalizza ─────────────────────────────────────────────────────
-.prenota__suppl-wrap
-  position: relative
-
-.prenota__suppl-row
-  display: flex
-  align-items: center
-  gap: 8px
-
-.prenota__suppl-label
-  font-size: 12px
-  color: $text-inactive
-
-.prenota__suppl-sublabel
-  font-size: 11px
-  color: $text-disabled
-
-.prenota__suppl-count
-  font-size: 13px
-  font-weight: 600
-  color: $text-active
-
-.prenota__personalizza-popup
-  position: absolute
-  top: 110%
-  left: 0
-  z-index: 30
-  background: $white
-  border: 1px solid $border
-  border-radius: 10px
-  padding: 16px
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12)
-  min-width: 200px
-
-.prenota__room-row
-  margin-bottom: 10px
-
-.prenota__room-info
-  display: flex
-  align-items: center
-  justify-content: space-between
-  margin-bottom: 4px
-
-.prenota__room-type
-  font-size: 12px
-  color: $text-active
-  text-transform: capitalize
-  font-weight: 500
-
-.prenota__room-price
-  font-size: 11px
-  color: $text-disabled
-
-.prenota__room-controls
-  display: flex
-  align-items: center
-  gap: 10px
-
-.prenota__room-btn
-  width: 24px
-  height: 24px
-  border-radius: 5px
-  border: 1px solid $border
-  background: $white
-  cursor: pointer
-  font-size: 15px
-  display: flex
-  align-items: center
-  justify-content: center
-  color: $text-active
-
-.prenota__room-qty
-  font-size: 14px
-  font-weight: 600
-  color: $primary
-  min-width: 20px
-  text-align: center
-
-.prenota__room-subtotal
-  font-size: 11px
-  color: $text-active
-  margin-left: 2px
-
-.prenota__suppl-total
-  border-top: 1px solid $border
-  padding-top: 8px
-  margin-top: 4px
-  display: flex
-  justify-content: space-between
-
-.prenota__suppl-total-label
-  font-size: 11px
-  font-weight: 700
-  color: $primary
-
-.prenota__suppl-total-val
-  font-size: 11px
-  font-weight: 700
-  color: $primary
-
-// ─── Status / checkboxes ──────────────────────────────────────────────────────
-.prenota__status-row
-  display: flex
-  align-items: center
-  gap: 16px
-
-  &--mb
-    margin-bottom: 10px
-
-.prenota__check-label
-  display: flex
-  align-items: center
-  gap: 6px
-  cursor: pointer
-
-.prenota__checkbox
-  width: 13px
-  height: 13px
-  accent-color: $primary
-
-.prenota__check-text
-  font-size: 13px
-  color: $text-active
-
-.prenota__status-dot
-  width: 9px
-  height: 9px
-  border-radius: 50%
-
-  &--green
-    background: $success-mid
-
-  &--red
-    background: $error
-
-.prenota__arrangiamento-select
-  width: 120px
-
-// ─── Radio group ──────────────────────────────────────────────────────────────
-.prenota__radio-row
-  display: flex
-  gap: 16px
-
-.prenota__radio-label
-  display: flex
-  align-items: center
-  gap: 6px
-  cursor: pointer
-  font-size: 13px
-  color: $text-active
-  font-weight: 400
-
-  &--active
-    color: $primary
-    font-weight: 600
-
-.prenota__radio
-  accent-color: $primary
-
-// ─── Nationality grid ─────────────────────────────────────────────────────────
-.prenota__naz-grid
-  display: grid
-  grid-template-columns: 160px 1fr
-  gap: 12px
-
-// ─── Importo bar ──────────────────────────────────────────────────────────────
-.prenota__importo-text
-  font-size: 13px
-  color: $text-active
-
-.prenota__importo-total
-  display: flex
-  align-items: center
-  gap: 6px
-
-.prenota__importo-amount
-  font-size: 16px
-  font-weight: 700
-  color: $primary
-
-// ─── Individuale specific ─────────────────────────────────────────────────────
-.prenota__sm-select
-  width: 80px
-  height: 30px
-  font-size: 12px
-
-.prenota__city-select
-  width: 100px
-  height: 30px
-  font-size: 12px
-
-.prenota__status-flex
-  display: flex
-  align-items: flex-start
-  gap: 24px
-  flex-wrap: wrap
-
-.prenota__status-col
-  flex: 1
-
-.prenota__section-sublabel
-  font-size: 11px
-  font-weight: 700
-  color: $text-disabled
-  text-transform: uppercase
-  letter-spacing: 0.4px
-  margin-bottom: 8px
-
-.prenota__scadenza-row
-  display: flex
-  align-items: center
-  gap: 10px
-  flex-wrap: wrap
-
-.prenota__persons-input
-  width: 60px
-  height: 30px
-  font-size: 12px
-
-.prenota__prov-row
-  display: flex
-  gap: 16px
-  margin-bottom: 10px
-
-.prenota__agenzia-row
-  display: flex
-  align-items: center
-  gap: 8px
-
-.prenota__cognome-input
-  max-width: 300px
-
-// ─── Step 2 summary ───────────────────────────────────────────────────────────
-.prenota__summary-grid
-  display: grid
-  grid-template-columns: 1fr 1fr 1fr 1fr
-  gap: 16px
-
-.prenota__summary-item
-  text-align: center
-
-.prenota__summary-label
-  font-size: 11px
-  font-weight: 600
-  color: $text-disabled
-  margin-bottom: 6px
-
-.prenota__summary-val
-  font-size: 14px
-  font-weight: 600
-  color: $primary
-  border: 1px solid $border
-  border-radius: 7px
-  padding: 7px 10px
-  background: #F8FAFC
-
-// ─── Listini ─────────────────────────────────────────────────────────────────
-.prenota__listini-box
-  border: 1px solid $border
-  border-radius: 10px
   overflow: hidden
 
-.prenota__listini-hdr
-  padding: 12px 16px
-  background: #F8FAFC
-  border-bottom: 0.5px solid $border
+  th, td
+    padding: 4px 10px
+    vertical-align: middle
+    border-bottom: 1px solid #eef0f3
+    text-align: left
+    box-sizing: border-box
+    color: $text-active
 
-.prenota__listini-title
-  font-size: 13px
-  font-weight: 700
+  th
+    padding: 6px 10px
+    background: $bg
+    color: $text-inactive
+    font-size: 10.5px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    border-bottom: 1px solid $border
+
+  tr:last-child td
+    border-bottom: none
+
+  &--full
+    border: none
+    border-radius: 0
+
+    th:first-child, td:first-child
+      padding-left: 14px
+
+    th:last-child, td:last-child
+      padding-right: 14px
+
+.np-cell-input
+  width: 100%
+  height: 28px
+  padding: 0 6px
+  font-size: 12.5px
+  border-radius: 5px
+
+  &--num
+    max-width: 110px
+
+.np-amt
+  font-weight: 600
   color: $primary
-  font-family: Poppins, sans-serif
+  text-align: right
 
-.prenota__listini-empty
-  padding: 40px 16px
-  text-align: center
-
-.prenota__listini-empty-text
-  font-size: 13px
-  color: $text-disabled
-  margin: 0
-
-// ─── Step navigation ─────────────────────────────────────────────────────────
-.prenota__step-nav
+// ─── Toolbar interna al widget (es. Anagrafica ospiti) ──────────────────────
+.np-ospiti-toolbar
   display: flex
-  justify-content: space-between
-  gap: 10px
+  justify-content: flex-end
+  padding: 10px 14px 6px
 
-.prenota__step-back
+.np-link-add
+  background: transparent
+  border: none
+  padding: 0
+  font-size: 12px
+  font-weight: 500
+  color: $primary
+  cursor: pointer
   display: inline-flex
   align-items: center
   gap: 6px
+
+  &:hover
+    color: $primary-700
+
+  i
+    font-size: 10px
+
+// ─── Colonna azioni (icone edit/trash di fine riga) ─────────────────────────
+.np-col-actions
+  width: 1%
+  white-space: nowrap
+  text-align: right
+  padding-right: 14px !important
+
+.np-row-action
   background: transparent
+  border: none
+  padding: 4px
+  cursor: pointer
+  color: $text-inactive
+  font-size: 13px
+  border-radius: 4px
+  transition: color 0.12s, background 0.12s
+
+  & + &
+    margin-left: 4px
+
+  &:hover
+    color: $primary
+    background: var(--color-primary-50)
+
+  &--danger:hover
+    color: $error
+    background: rgba(220, 38, 38, 0.08)
+
+// ─── "+ Aggiungi" footer row ─────────────────────────────────────────────────
+.np-add-row
+  width: 100%
+  background: transparent
+  border: 1px dashed $border
+  border-radius: 6px
+  padding: 6px 10px
+  margin-top: 8px
+  font-size: 12px
+  font-weight: 500
+  color: $primary
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 6px
+  transition: background 0.12s, border-color 0.12s
+
+  &:hover
+    background: rgba(27, 61, 95, 0.04)
+    border-color: $primary
+
+  i
+    font-size: 10px
+
+// ─── EXTRA INCLUSI ───────────────────────────────────────────────────────────
+.np-extra-list
+  list-style: none
+  padding: 0
+  margin: 0
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.np-extra-btn
+  width: 100%
+  background: var(--color-primary-50)
   border: 1px solid $border
   border-radius: 6px
-  padding: 0 12px
-  height: 36px
-  cursor: pointer
+  padding: 8px 12px
   font-size: 13px
-  font-weight: 600
-  color: $text-inactive
-  font-family: $font-body
-  transition: border-color 0.15s, color 0.15s
+  font-weight: 500
+  color: $text-active
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  transition: background 0.12s, border-color 0.12s
 
   &:hover
     border-color: $primary
+    background: var(--color-primary-100)
+
+  i
     color: $primary
+    font-size: 14px
 
-// ─── Services table ──────────────────────────────────────────────────────────
-.prenota__serv-table
-  border: 0.5px solid $border
+.np-extra-popup
+  margin-top: 12px
+  padding: 12px
+  background: $white
+  border: 1px solid $border
   border-radius: 8px
-  overflow: hidden
+  display: flex
+  flex-direction: column
+  gap: 10px
 
-.prenota__serv-head,
-.prenota__serv-row,
-.prenota__serv-footer
-  display: grid
-  grid-template-columns: 1fr 90px 90px 90px
-  align-items: center
-
-.prenota__serv-head
-  background: #F8FAFC
-  border-bottom: 0.5px solid $border
-
-.prenota__serv-row
-  border-bottom: 0.5px solid $border
-
-  &:last-child
-    border-bottom: none
-
-.prenota__serv-th
-  padding: 8px 12px
-  font-size: 11px
-  font-weight: 700
-  color: $text-disabled
-  text-transform: uppercase
-  letter-spacing: 0.3px
-
-  &--right
-    text-align: right
-
-// ─── Importo bar ─────────────────────────────────────────────────────────────
-.prenota__importo-bar
+.np-extra-popup-head
   display: flex
   align-items: center
-  gap: 20px
-  padding: 12px 16px
-  background: $primary-50
+  justify-content: space-between
+  font-size: 12px
+  font-weight: 700
+  color: $text-active
+
+.np-extra-popup-close
+  background: transparent
+  border: none
+  color: $text-inactive
+  cursor: pointer
+  padding: 4px
+
+  &:hover
+    color: $error
+
+.np-extra-popup-actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  margin-top: 4px
+
+.np-extra-total
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 6px
+  margin-top: 10px
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    color: $primary
+    font-weight: 700
+
+// ─── Footer totali ────────────────────────────────────────────────────────────
+.np-footer
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 16px
+  padding: 14px 16px
+  background: $white
+  border: 1px solid $border
   border-radius: 8px
-  border: 0.5px solid $primary-200
+  flex-wrap: wrap
 
-// ─── Status dot modifiers ────────────────────────────────────────────────────
-.prenota__status-dot--green
-  background: $success-mid
+.np-totals
+  display: flex
+  align-items: baseline
+  gap: 28px
 
-.prenota__status-dot--red
-  background: $error
+.np-total
+  display: flex
+  flex-direction: column
+  gap: 2px
 
-.prenota__status-row--mb
-  margin-bottom: 10px
+.np-total-label
+  font-size: 10.5px
+  font-weight: 600
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.4px
 
-.prenota__field-label--nowrap
-  white-space: nowrap
+.np-total-val
+  font-size: 16px
+  font-weight: 600
+  color: $text-active
+  font-family: $font-body
+
+.np-total--strong .np-total-val
+  color: $primary
+  font-weight: 700
+
+.np-footer-actions
+  display: flex
+  gap: 8px
+
+// ─── Modale "Modifica importo globale" ───────────────────────────────────────
+.modimp
+  display: flex
+  flex-direction: column
+  gap: 20px
+
+.modimp__head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  gap: 16px
+  margin-bottom: 4px
+
+.modimp__head-text
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.modimp__title
+  margin: 0
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+
+.modimp__subtitle
+  margin: 0
+  font-size: 12.5px
+  color: $text-inactive
+  line-height: 1.4
+
+.modimp__close
+  background: none
+  border: none
+  cursor: pointer
+  padding: 6px
+  border-radius: $radius-md
+  color: $text-disabled
+  transition: $transition-fast
+
+  &:hover
+    color: $text-active
+    background: $primary-50
+
+.modimp__body
+  display: flex
+  flex-direction: column
+  gap: 20px
+
+// ─── Section blocks ──────────────────────────────────────────────────────────
+.modimp__section
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.modimp__section-head
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 12px
+
+.modimp__section-title
+  margin: 0
+  font-size: 11px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.5px
+
+.modimp__section-meta
+  font-size: 11px
+  color: $text-disabled
+
+// ─── Toggle row ──────────────────────────────────────────────────────────────
+.modimp__toggle-row
+  display: flex
+  align-items: flex-start
+  gap: 12px
+  padding: 12px 14px
+  background: $bg
+  border: 1px solid $border
+  border-radius: 8px
+
+.modimp__toggle-label
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+.modimp__toggle-title
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.modimp__toggle-hint
+  font-size: 11.5px
+  color: $text-inactive
+  line-height: 1.4
+
+// ─── Pannello attivo (apparire on toggle) ────────────────────────────────────
+.modimp__panel
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 14px
+  background: var(--color-primary-50)
+  border: 1px solid var(--color-primary-200)
+  border-radius: 8px
+
+.modimp__panel-row
+  display: flex
+  align-items: center
+  gap: 14px
+  flex-wrap: wrap
+
+.modimp__panel-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  min-width: 86px
+
+// ─── Segmented control libero / percentuale ──────────────────────────────────
+.modimp__segmented
+  display: inline-flex
+  background: $white
+  border: 1px solid $border
+  border-radius: 7px
+  padding: 2px
+  gap: 2px
+
+.modimp__seg
+  position: relative
+  padding: 5px 12px
+  border-radius: 5px
+  font-size: 12px
+  font-weight: 500
+  color: $text-inactive
+  cursor: pointer
+  transition: background 0.12s, color 0.12s
+  user-select: none
+
+  input
+    position: absolute
+    opacity: 0
+    pointer-events: none
+
+  &:hover:not(.modimp__seg--on)
+    color: $text-active
+
+  &--on
+    background: $primary
+    color: $white
+    font-weight: 600
+
+// ─── Amount input con suffisso ───────────────────────────────────────────────
+.modimp__amount-wrap
+  position: relative
+  display: inline-flex
+  align-items: center
+
+.modimp__amount
+  width: 130px
+  height: 32px
+  padding-right: 28px
+  text-align: right
+  font-weight: 600
+
+.modimp__amount-suffix
+  position: absolute
+  right: 10px
+  font-size: 12px
+  color: $text-inactive
+  pointer-events: none
+
+.modimp__listino
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    color: $text-active
+    font-weight: 600
+
+.modimp__panel-actions
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  border-top: 1px dashed var(--color-primary-200)
+  padding-top: 10px
+
+// ─── Tabella prezzi (allargata e curata) ─────────────────────────────────────
+.modimp__table-wrap
+  border: 1px solid $border
+  border-radius: 8px
+  overflow: hidden
+  background: $white
+
+  .np-table
+    border: none
+    border-radius: 0
+
+.modimp__th-right,
+.modimp__td-right
+  text-align: right
+  padding-right: 14px !important
+
+.modimp__row--editing
+  background: var(--color-primary-50)
+
+// ─── Edit inline cella totale ────────────────────────────────────────────────
+.modimp__inline-edit
+  display: inline-flex
+  align-items: center
+  position: relative
+
+.modimp__inline-input
+  width: 110px
+  height: 28px
+  padding-right: 24px
+  text-align: right
+  font-weight: 600
+
+  & + .modimp__amount-suffix
+    right: 8px
+
+// ─── Riga totale soggiorno ──────────────────────────────────────────────────
+.modimp__totals-bar
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 12px
+  padding: 10px 14px
+  background: $bg
+  border: 1px solid $border
+  border-radius: 8px
+
+.modimp__totals-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.4px
+
+.modimp__totals-val
+  font-size: 16px
+  font-weight: 700
+  color: $primary
+  font-family: $font-body
+
+// ─── Footer modale ───────────────────────────────────────────────────────────
+.modimp__foot
+  border-top: 1px solid $border
+  padding-top: 16px
+
+// ─── Action button "ok" / row action ─────────────────────────────────────────
+.np-row-action--ok
+  &:hover
+    color: $success-mid
+    background: rgba(34, 197, 94, 0.08)

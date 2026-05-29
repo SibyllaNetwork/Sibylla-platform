@@ -156,7 +156,7 @@
   padding: 0 10px
   border: 1px solid $border
   border-radius: 7px
-  background: #F8FAFC
+  background: var(--color-bg)
   margin-bottom: 12px
 
 .fn-tab__search-clear
@@ -180,14 +180,14 @@
 
 .fn-tab__group
   background: $white
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-radius: 10px
   overflow: hidden
 
 .fn-tab__group-head
   padding: 8px 14px
-  background: #F8FAFC
-  border-bottom: 0.5px solid $border
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
   display: flex
   align-items: center
   justify-content: space-between
@@ -206,8 +206,8 @@
   display: grid
   grid-template-columns: 1fr repeat(3, 110px)
   padding: 6px 14px
-  background: #FAFBFC
-  border-bottom: 0.5px solid $border
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
 
 .fn-tab__col-head-cell
   font-size: 10px
@@ -237,10 +237,10 @@
   transition: background 0.1s
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
   &--bordered
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
 .fn-tab__row-label
   font-size: 12px

@@ -55,7 +55,7 @@
 
     &--armed
       border-color: $blue
-      box-shadow: 0 0 0 2px rgba($blue, 0.15)
+      box-shadow: 0 0 0 2px alpha($blue, 0.15)
 
   &__barcode-ico
     font-size: 14px
@@ -92,7 +92,7 @@
     height: 28px
     padding: 0 10px
     background: $blue-light
-    border: 1px solid rgba($blue, 0.2)
+    border: 1px solid alpha($blue, 0.2)
     border-radius: 5px
     cursor: pointer
     font-size: 11px
@@ -102,7 +102,7 @@
     white-space: nowrap
 
     &:hover
-      background: rgba($blue, 0.13)
+      background: alpha($blue, 0.13)
 
     &[aria-pressed="true"]
       background: $blue
@@ -132,7 +132,7 @@
 
     &--on
       border-color: var(--mercato-color, $blue)
-      background: rgba($blue, 0.03)
+      background: alpha($blue, 0.03)
 
   &__mercato-prezzo
     display: flex

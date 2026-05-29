@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 
 .forniture
   display: flex
@@ -30,7 +30,7 @@ $bg-soft: #f8fcff
     align-items: center
     gap: 8px
     padding: 8px 14px
-    background: white
+    background: var(--color-surface)
     color: $muted
     border: 1px solid $border
     border-radius: 999px
@@ -86,7 +86,7 @@ $bg-soft: #f8fcff
   &__card
     display: flex
     flex-direction: column
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 12px
     overflow: hidden
@@ -277,7 +277,7 @@ $bg-soft: #f8fcff
     gap: 14px
 
   &__detail-card
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 12px
     padding: 16px
@@ -356,8 +356,8 @@ $bg-soft: #f8fcff
       align-items: center
       gap: 8px
       padding: 6px 10px
-      background: #f0fdf4
-      border: 1px solid #bbf7d0
+      background: var(--color-success-light)
+      border: 1px solid var(--color-border)
       border-radius: 8px
       color: #166534
       font-size: 13px
@@ -401,9 +401,9 @@ $bg-soft: #f8fcff
 
   &__history-badge
     padding: 6px 14px
-    background: #eff6ff
+    background: var(--color-link-light)
     color: $primary
-    border: 1px solid #dbeafe
+    border: 1px solid var(--color-border)
     border-radius: 999px
     font-weight: 600
     font-size: 12px
@@ -434,7 +434,7 @@ $bg-soft: #f8fcff
     flex-direction: column
     gap: 6px
     padding: 12px
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 10px
     transition: box-shadow 0.15s, transform 0.15s

@@ -3,7 +3,7 @@
    (mb-3.5 da sib-btn--back). */
 
 .crea-servizio__form {
-  background: #ffffff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border, #cfcfcf);
   border-radius: 12px;
   padding: 16px;

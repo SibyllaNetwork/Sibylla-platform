@@ -12,15 +12,15 @@
 }
 
 .stat-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1.25rem;
   transition: border-color 0.2s;
 }
 
 .stat-card:hover {
-  border-color: #cfcfcf;
+  border-color: var(--color-border);
 }
 
 .stat-card__head {
@@ -52,7 +52,7 @@
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 2rem;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0 0 0.25rem;
 }
 
@@ -61,7 +61,7 @@
   font-weight: 400;
   font-size: 0.6875rem;
   line-height: 0.875rem;
-  color: #9ca3af;
+  color: var(--color-text-disabled);
   margin: 0;
 }
 
@@ -151,8 +151,8 @@
 
 /* === EMPTY STATE === */
 .categories-page__empty {
-  background: #ffffff;
-  border: 1px dashed #cbd5e1;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
   border-radius: 0.5rem;
   padding: 2.5rem 1.5rem;
   text-align: center;

@@ -18,8 +18,8 @@
 }
 
 .academy-personnel-detail__header-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   padding: 1.5rem;
 }
@@ -43,12 +43,12 @@
 }
 
 .academy-personnel-detail__status--aperto {
-  background: #ecfdf5;
+  background: var(--color-success-light);
   color: #047857;
 }
 
 .academy-personnel-detail__status--chiuso {
-  background: #fef2f2;
+  background: var(--color-error-light);
   color: #b91c1c;
 }
 
@@ -81,7 +81,7 @@
 .academy-personnel-detail__meta > i,
 .academy-personnel-detail__meta .fa-regular,
 .academy-personnel-detail__meta .fa-light {
-  color: #204769;
+  color: var(--color-primary);
   font-size: 1rem;
   margin-top: 0.125rem;
 }
@@ -92,19 +92,19 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   margin-bottom: 0.125rem;
 }
 
 .academy-personnel-detail__meta-value {
   display: block;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-active);
 }
 
 .academy-personnel-detail__section {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   padding: 1.5rem;
 }
@@ -113,7 +113,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0 0 0.75rem;
 }
 
@@ -157,8 +157,8 @@
 }
 
 .academy-personnel-detail__cta-card {
-  background: #ffffff;
-  border: 1px solid #204769;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   padding: 1.5rem;
   display: flex;
@@ -180,7 +180,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0;
 }
 
@@ -192,7 +192,7 @@
 }
 
 .academy-personnel-detail__contact {
-  background: #f8fafc;
+  background: var(--color-bg);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   font-size: 0.8125rem;
@@ -202,19 +202,19 @@
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   font-weight: 600;
   margin: 0 0 0.25rem;
 }
 
 .academy-personnel-detail__contact-name {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-active);
   margin: 0 0 0.125rem;
 }
 
 .academy-personnel-detail__contact-email {
-  color: #6b7280;
+  color: var(--color-text-inactive);
   margin: 0;
   word-break: break-all;
 }
@@ -227,7 +227,7 @@
   padding: 0.75rem 1.25rem;
   background: #204769;
   color: #ffffff;
-  border: 1px solid #204769;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 0.875rem;
@@ -237,12 +237,12 @@
 
 .academy-personnel-detail__cta-btn:hover:not(:disabled) {
   background: #2d5a7f;
-  border-color: #2d5a7f;
+  border-color: var(--color-border);
 }
 
 .academy-personnel-detail__cta-btn:disabled {
   background: #cbd5e1;
-  border-color: #cbd5e1;
+  border-color: var(--color-border);
   cursor: not-allowed;
 }
 
@@ -257,7 +257,7 @@
   text-align: center;
   padding: 4rem 1rem;
   font-family: 'Open Sans', sans-serif;
-  color: #6b7280;
+  color: var(--color-text-inactive);
 }
 
 .academy-personnel-detail__back {

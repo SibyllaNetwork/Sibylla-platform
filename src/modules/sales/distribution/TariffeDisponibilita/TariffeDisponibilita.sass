@@ -70,7 +70,7 @@
   cursor: pointer
   margin-bottom: 14px
   padding: 10px 14px
-  background: #FFF5F5
+  background: var(--color-error-light)
   border-radius: 8px
   border: 1px solid rgba(231,76,60,0.13)
 
@@ -100,8 +100,8 @@
   align-items: center
   justify-content: flex-end
   padding: 8px 14px
-  border-bottom: 0.5px solid $border
-  background: #F8FAFC
+  border-bottom: 1px solid $border
+  background: var(--color-bg)
 
 .ss-modal__sel-all-label
   display: flex
@@ -122,11 +122,11 @@
   gap: 10px
   padding: 10px 14px
   cursor: pointer
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
   transition: background 0.1s
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
   &:last-child
     border-bottom: none
@@ -255,7 +255,7 @@
 .fm-modal__tabs
   display: flex
   border-bottom: 1px solid $border
-  background: #F8FAFC
+  background: var(--color-bg)
   flex-shrink: 0
 
 .fm-modal__tab
@@ -289,9 +289,9 @@
   flex: 1
 
 .fm-modal__section
-  background: #F8FAFC
+  background: var(--color-bg)
   border-radius: 10px
-  border: 0.5px solid $border
+  border: 1px solid $border
   padding: 14px 16px
   margin-bottom: 16px
 
@@ -365,9 +365,9 @@
 
 .fm-modal__footer
   padding: 14px 24px
-  border-top: 0.5px solid $border
+  border-top: 1px solid $border
   flex-shrink: 0
-  background: #F8FAFC
+  background: var(--color-bg)
   margin-top: 0
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
@@ -391,7 +391,7 @@
   width: 16px
   height: 16px
   border-radius: 50%
-  background: #fff
+  background: var(--color-surface)
   box-shadow: 0 1px 3px rgba(0,0,0,0.2)
   transition: left 0.2s
 
@@ -435,13 +435,13 @@
 
 // Toolbar button mode variants
 .tariffe__toolbar-btn--apri
-  background: #F0FFF4 !important
-  border-color: #16A34A !important
+  background: var(--color-success-light) !important
+  border-color: var(--color-border) !important
   color: #16A34A !important
 
 .tariffe__toolbar-btn--chiudi
-  background: #FFF5F5 !important
-  border-color: #DC2626 !important
+  background: var(--color-error-light) !important
+  border-color: var(--color-border) !important
   color: #DC2626 !important
 
 // ─── Mode bar ─────────────────────────────────────────────────────────────────
@@ -456,12 +456,12 @@
   border-style: solid
 
   &--apri
-    background: #F0FFF4
+    background: var(--color-success-light)
     border-color: rgba(22,163,74,0.2)
     color: #16A34A
 
   &--chiudi
-    background: #FFF5F5
+    background: var(--color-error-light)
     border-color: rgba(220,38,38,0.2)
     color: #DC2626
 
@@ -486,7 +486,7 @@
   width: 100%
 
 .tariffe__thead-row
-  background: #F8FAFC
+  background: var(--color-bg)
   border-bottom: 1px solid $border
 
 .tariffe__th-label
@@ -501,13 +501,13 @@
 .tariffe__th-date
   padding: 6px 4px
   text-align: center
-  background: #F8FAFC
+  background: var(--color-bg)
 
   &--we
-    background: #F0F5FF
+    background: var(--color-link-light)
 
   &--border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
 .tariffe__th-day
   font-size: 11px
@@ -543,11 +543,11 @@
 
 // ─── Rows ─────────────────────────────────────────────────────────────────────
 .tariffe__tr-cam
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
   background: $white
 
   &.tariffe__tr--even
-    background: #FAFCFF
+    background: var(--color-bg)
 
 .tariffe__td-label
   padding: 8px 12px
@@ -579,22 +579,22 @@
   position: relative
 
   &--even
-    background: #FAFCFF
+    background: var(--color-bg)
 
   &--we
     background: #F8FBFF
 
   &--stopped
-    background: #FFF0F0
+    background: var(--color-error-light)
 
   &--aperta
-    background: #F0FFF4
+    background: var(--color-success-light)
 
   &--chiusa
-    background: #FFF5F5
+    background: var(--color-error-light)
 
   &--border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
   &--clickable
     cursor: pointer
@@ -661,7 +661,7 @@
   background: $white
   border-radius: 10px
   box-shadow: 0 8px 24px rgba(32,71,105,0.18)
-  border: 0.5px solid $border
+  border: 1px solid $border
   padding: 12px 14px
   min-width: 180px
   pointer-events: none
@@ -710,7 +710,7 @@
   width: 60px
   height: 4px
   border-radius: 2px
-  background: #E5E7EB
+  background: var(--color-border)
   overflow: hidden
 
 .tariffe__tooltip-bar
@@ -761,21 +761,21 @@
 
 // ─── Inventory rows ───────────────────────────────────────────────────────────
 .tariffe__tr-inv
-  border-bottom: 0.5px solid #E8EBF0
-  background: #F5F8FC
+  border-bottom: 1px solid var(--color-border)
+  background: var(--color-bg)
 
   &--even
-    background: #F8FAFC
+    background: var(--color-bg)
 
 .tariffe__tr-avail
   border-bottom: 1px solid $border
-  background: #F5F8FC
+  background: var(--color-bg)
 
   &--even
     background: #F2F6FB
 
   &--exp
-    border-bottom: 0.5px solid #E8EBF0
+    border-bottom: 1px solid var(--color-border)
 
 .tariffe__td-sublabel
   padding: 4px 12px 4px 30px
@@ -804,7 +804,7 @@
   color: $text-active
 
   &--border
-    border-right: 0.5px solid #E8EBF0
+    border-right: 1px solid var(--color-border)
 
 .tariffe__td-avail
   padding: 4px 0
@@ -816,7 +816,7 @@
 
 // ─── Expanded rows ────────────────────────────────────────────────────────────
 .tariffe__tr-exp
-  border-bottom: 0.5px solid #E8EBF0
+  border-bottom: 1px solid var(--color-border)
   background: #EEF3FA
 
   &--last
@@ -856,10 +856,10 @@
 
   &--aperta
     border-radius: 2px
-    background: #F0FFF4
+    background: var(--color-success-light)
     border: 1px solid rgba(22,163,74,0.33)
 
   &--chiusa
     border-radius: 2px
-    background: #FFF5F5
+    background: var(--color-error-light)
     border: 1px solid rgba(220,38,38,0.33)

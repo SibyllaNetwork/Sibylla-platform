@@ -1,0 +1,343 @@
+.servizi
+
+  .servizi__cart-btn
+    position: relative
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  .servizi__cart-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 18px
+    height: 18px
+    padding: 0 5px
+    border-radius: 9px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 11px
+    font-weight: 600
+    line-height: 1
+
+  // ─── Filtri rapidi sempre visibili ───────────────────────────────────────
+  .servizi__quick-filters
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    margin-bottom: 14px
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  .servizi__qf-row
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .servizi__qf-row--inline
+    flex-direction: row
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: 12px
+
+  .servizi__qf-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .servizi__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  .servizi__chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 10px
+    border-radius: 999px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-text-inactive)
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: all 0.18s
+
+    i
+      font-size: 13px
+
+    &:hover
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+  .servizi__chip--active
+    background: var(--color-primary)
+    border-color: var(--color-primary)
+    color: #fff
+
+    &:hover
+      color: #fff
+
+  .servizi__qf-field
+    display: flex
+    flex-direction: column
+    gap: 4px
+    min-width: 130px
+
+    span
+      font-family: 'Open Sans', sans-serif
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-text-inactive)
+
+  .servizi__qf-field--num
+    min-width: 90px
+
+  // ─── Conteggio + empty ───────────────────────────────────────────────────
+  .servizi__count
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: var(--color-text-inactive)
+    margin: 0 0 12px
+
+    strong
+      color: var(--color-primary)
+      font-weight: 700
+
+  .servizi__empty
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 15px
+    color: #5c5c5c
+
+  // ─── Griglia ─────────────────────────────────────────────────────────────
+  // Modalità grid: 1/2/3 colonne secondo viewport.
+  // Modalità list: 1 colonna piena, card orientata in riga (immagine | corpo | buy).
+  .servizi__grid
+    display: grid
+    grid-template-columns: 1fr
+    gap: 14px
+
+    &:not(.servizi__grid--list)
+      @media (min-width: 900px)
+        grid-template-columns: repeat(2, 1fr)
+
+      @media (min-width: 1400px)
+        grid-template-columns: repeat(3, 1fr)
+
+    &.servizi__grid--list
+      grid-template-columns: 1fr
+
+      .srv-card
+        flex-direction: row
+        align-items: stretch
+
+      .srv-card__image-wrap
+        width: 220px
+        min-width: 220px
+        aspect-ratio: 1 / 1
+
+      .srv-card__body
+        flex: 1 1 auto
+        min-width: 0
+
+      .srv-card__buy
+        width: 240px
+        min-width: 240px
+        border-top: none
+        border-left: 1px solid var(--color-border)
+
+      @media (max-width: 700px)
+        // su mobile la modalità list collassa di nuovo a card verticale
+        .srv-card
+          flex-direction: column
+
+        .srv-card__image-wrap
+          width: 100%
+          min-width: 0
+          aspect-ratio: 16 / 10
+
+        .srv-card__buy
+          width: 100%
+          min-width: 0
+          border-top: 1px solid var(--color-border)
+          border-left: none
+
+  // ─── Card servizio ───────────────────────────────────────────────────────
+  .srv-card
+    display: flex
+    flex-direction: column
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    overflow: hidden
+    transition: border-color 0.18s, box-shadow 0.18s
+
+    &:hover
+      border-color: var(--color-border)
+      box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06)
+
+  .srv-card__image-wrap
+    position: relative
+    width: 100%
+    aspect-ratio: 16 / 10
+    background: var(--color-bg)
+    overflow: hidden
+
+  .srv-card__image
+    width: 100%
+    height: 100%
+    object-fit: cover
+    display: block
+
+  .srv-card__type-badge
+    position: absolute
+    top: 10px
+    left: 10px
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 4px 9px
+    border-radius: 999px
+    background-color: var(--type-color, var(--color-primary))
+    color: #fff
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    line-height: 1
+    box-shadow: 0 1px 4px rgba(0,0,0,0.18)
+
+  .srv-card__body
+    padding: 14px 16px 12px
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex: 1 1 auto
+
+  .srv-card__title
+    font-family: 'Poppins', sans-serif
+    font-size: 15px
+    font-weight: 600
+    color: var(--color-primary)
+    margin: 0
+    line-height: 1.3
+
+  .srv-card__city
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: var(--color-text-inactive)
+    margin: 0
+    display: inline-flex
+    align-items: center
+    gap: 5px
+
+  .srv-card__desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    line-height: 1.5
+    color: var(--color-text-inactive)
+    margin: 4px 0 0
+    display: -webkit-box
+    -webkit-line-clamp: 3
+    -webkit-box-orient: vertical
+    overflow: hidden
+
+  .srv-card__tags
+    list-style: none
+    padding: 0
+    margin: 6px 0 0
+    display: flex
+    flex-wrap: wrap
+    gap: 4px
+
+  .srv-card__tag
+    background: var(--color-bg)
+    color: var(--color-text-inactive)
+    border-radius: 4px
+    padding: 2px 7px
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 600
+
+  .srv-card__meta
+    margin: 8px 0 0
+    display: flex
+    flex-direction: column
+    gap: 3px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+
+  .srv-card__meta-row
+    display: flex
+    gap: 8px
+    align-items: baseline
+
+    dt
+      flex: 0 0 90px
+      color: var(--color-text-inactive)
+      font-weight: 600
+
+    dd
+      margin: 0
+      color: var(--color-text-primary)
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      flex-wrap: wrap
+
+  .srv-card__supplier-site
+    color: var(--color-text-inactive)
+    font-size: 11.5px
+    text-decoration: underline
+
+    &:hover
+      color: var(--color-primary)
+
+  // ─── Sezione acquisto ───────────────────────────────────────────────────
+  .srv-card__buy
+    padding: 12px 16px 14px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-bg)
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .srv-card__price-block
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  .srv-card__price-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .srv-card__price
+    font-family: 'Poppins', sans-serif
+    font-size: 22px
+    font-weight: 700
+    color: var(--color-primary)
+    line-height: 1.1
+
+  .srv-card__price-note
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    color: var(--color-text-disabled)
+    font-style: italic
+
+  .srv-card__cta
+    width: 100%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px

@@ -1,5 +1,4 @@
 import React from 'react'
-import './Button.sass'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
 export type ButtonSize = 'lg' | 'md' | 'sm'
@@ -8,7 +7,7 @@ interface ButtonProps {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
-  icon?: string            // nome icona FA (es. "plus", "trash") — usa fa-duotone
+  icon?: string            // nome icona FA (es. "plus", "trash") — reso con fa-light
   iconPosition?: 'left' | 'right'
   disabled?: boolean
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
@@ -17,6 +16,20 @@ interface ButtonProps {
   className?: string
   title?: string
   fullWidth?: boolean
+}
+
+// Wrapper ergonomico sopra la classe canonica `.sib-btn` (unica fonte di verità
+// per lo stile dei bottoni — vedi src/tailwind.css). Mantiene retro-compatibilità
+// con l'API esistente (variant/size/loading/icon).
+const VARIANT: Record<ButtonVariant, string> = {
+  primary:   'sib-btn--primary',
+  secondary: 'sib-btn--secondary',
+  tertiary:  'sib-btn--ghost',
+}
+const SIZE: Record<ButtonSize, string> = {
+  lg: 'sib-btn--lg',
+  md: '',
+  sm: 'sib-btn--sm',
 }
 
 export default function Button({
@@ -33,26 +46,16 @@ export default function Button({
   title,
   fullWidth = false,
 }: ButtonProps) {
-  const iconSize = size === 'lg' ? 14 : 12
-
   const classes = [
-    'btn',
-    `btn--${variant}`,
-    `btn--${size}`,
-    loading ? 'btn--loading' : '',
-    fullWidth ? 'btn--full' : '',
+    'sib-btn',
+    VARIANT[variant],
+    SIZE[size],
+    loading ? 'sib-btn--loading' : '',
+    fullWidth ? 'w-full' : '',
     className,
-  ]
-    .filter(Boolean)
-    .join(' ')
+  ].filter(Boolean).join(' ')
 
-  const iconEl = icon ? (
-    <i className={`fa-duotone fa-${icon}`} style={{ fontSize: iconSize }} aria-hidden="true" />
-  ) : null
-
-  const spinnerEl = (
-    <i className="fa-duotone fa-spinner btn__spinner" style={{ fontSize: iconSize }} aria-hidden="true" />
-  )
+  const iconEl = icon ? <i className={`fa-light fa-${icon}`} aria-hidden="true" /> : null
 
   return (
     <button
@@ -63,18 +66,9 @@ export default function Button({
       title={title}
       aria-busy={loading}
     >
-      {loading ? (
-        <>
-          {spinnerEl}
-          {children && <span>{children}</span>}
-        </>
-      ) : (
-        <>
-          {icon && iconPosition === 'left' && iconEl}
-          {children && <span>{children}</span>}
-          {icon && iconPosition === 'right' && iconEl}
-        </>
-      )}
+      {icon && iconPosition === 'left' && iconEl}
+      {children}
+      {icon && iconPosition === 'right' && iconEl}
     </button>
   )
 }

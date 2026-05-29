@@ -30,12 +30,12 @@
 
   &--success
     background: $success-light
-    border: 1px solid rgba($success, 0.2)
+    border: 1px solid alpha($success, 0.2)
     color: $success
 
   &--error
     background: $error-light
-    border: 1px solid rgba($error, 0.2)
+    border: 1px solid alpha($error, 0.2)
     color: $error
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@
   &__overlay
     position: absolute
     inset: 0
-    background: rgba($primary, 0.6)
+    background: alpha($primary, 0.6)
     display: flex
     flex-direction: column
     align-items: center
@@ -155,7 +155,7 @@
 .form-card
   background: $white
   border-radius: 12px
-  border: 0.5px solid $border
+  border: 1px solid $border
   padding: 24px
 
   &__title
@@ -164,6 +164,67 @@
     font-weight: 600
     color: $primary
     margin: 0 0 16px
+
+// ── Preferenze: opzioni tema / visualizzazione ────────────────────────────────
+.prefs-pane
+  &__hint
+    font-size: 12px
+    color: $text-inactive
+    margin: -8px 0 14px
+
+  &__options
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 12px
+    width: 100%
+    text-align: left
+    padding: 12px 14px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-md
+    cursor: pointer
+    transition: border-color $motion-fast $motion-ease, box-shadow $motion-fast $motion-ease
+
+    &:hover
+      border-color: $primary-400
+
+    &--active
+      border-color: $link
+      box-shadow: 0 0 0 3px $focus-ring
+
+  &__option-ico
+    font-size: 18px
+    color: $primary
+    width: 22px
+    text-align: center
+    flex-shrink: 0
+
+  &__option-text
+    display: flex
+    flex-direction: column
+    gap: 2px
+    flex: 1
+    min-width: 0
+
+  &__option-label
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__option-desc
+    font-size: 11.5px
+    color: $text-inactive
+    line-height: 1.4
+
+  &__option-check
+    color: $link
+    font-size: 13px
+    flex-shrink: 0
 
 // ── Scadenzario ───────────────────────────────────────────────────────────────
 .scadenzario
@@ -226,7 +287,7 @@
   &__grid
     background: $white
     border-radius: 12px
-    border: 0.5px solid $border
+    border: 1px solid $border
     overflow: hidden
 
   &__weekdays
@@ -241,7 +302,7 @@
     border-bottom: 1px solid $border
 
     &:not(:last-child)
-      border-right: 0.5px solid $border
+      border-right: 1px solid $border
 
   &__cells
     display: grid
@@ -250,10 +311,10 @@
   &__cell
     min-height: 95px
     padding: 6px 8px
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
     &:not(:last-child)
-      border-right: 0.5px solid $border
+      border-right: 1px solid $border
 
     &--today
       background: $link-light

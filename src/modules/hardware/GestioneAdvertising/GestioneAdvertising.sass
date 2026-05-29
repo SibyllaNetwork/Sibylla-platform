@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 
 .adv
@@ -179,7 +179,7 @@ $bg-zebra: #f3f8fb
     justify-content: center
     min-width: 36px
     padding: 4px 10px
-    background: white
+    background: var(--color-surface)
     border: 1px solid $primary
     border-radius: 4px
     color: $primary
@@ -204,7 +204,7 @@ $bg-zebra: #f3f8fb
     justify-content: center
 
   &__modal
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 12px
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18)

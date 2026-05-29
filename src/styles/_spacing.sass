@@ -29,5 +29,11 @@ $shadow-md:  var(--shadow-md)
 $shadow-lg:  var(--shadow-lg)
 
 // ── Transizioni ───────────────────────────────────────────────────────────────
-$transition-fast:   all 0.12s ease
-$transition-normal: all 0.2s ease
+// Durata/easing condivisi: usare $motion-fast per stati interattivi (hover/focus),
+// $motion-base per spostamenti/elevazioni. Rispettano prefers-reduced-motion (vedi
+// la media query globale in _components.sass).
+$motion-fast:   150ms
+$motion-base:   200ms
+$motion-ease:   cubic-bezier(0.4, 0, 0.2, 1)
+$transition-fast:   all $motion-fast $motion-ease
+$transition-normal: all $motion-base $motion-ease

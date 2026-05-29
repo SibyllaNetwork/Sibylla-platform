@@ -1,0 +1,88 @@
+// ─── ATTENZIONE CAPIENZA MODAL ───────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.att-cap
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 12px
+  text-align: center
+  padding: 4px 6px 0
+
+  &__icon
+    align-self: center
+    width: 72px
+    height: 72px
+    border-radius: 50%
+    background: $warning-light
+    color: $warning
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    margin: 4px 0 6px
+
+    i
+      font-size: 34px
+
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: $primary
+
+  &__text
+    margin: 0
+    font-size: 12.5px
+    color: $text-inactive
+    line-height: 1.5
+
+  &__list
+    display: flex
+    flex-direction: column
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
+    text-align: left
+    margin-top: 4px
+
+  &__row
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 10px 14px
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: none
+
+  &__hotel
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__meta
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px
+    font-size: 12px
+
+  &__meta-label
+    color: $text-inactive
+    font-weight: 600
+
+  &__meta-val
+    color: $text-active
+    font-weight: 600
+
+  &__sep
+    width: 1px
+    height: 12px
+    background: $border
+    margin: 0 4px
+
+  &__footer
+    display: flex
+    justify-content: flex-end
+    padding-top: 4px

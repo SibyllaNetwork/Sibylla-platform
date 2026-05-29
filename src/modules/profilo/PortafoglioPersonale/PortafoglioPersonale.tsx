@@ -4,6 +4,7 @@ import BtnBack from '../../../core/components/BtnBack';
 import { InputField } from '../../../core/components/form';
 import AlertBanner from '../../../core/components/AlertBanner'
 import PageHeader from '../../../core/components/PageHeader'
+import Pagination from '../../../core/components/Pagination'
 import './PortafoglioPersonale.sass'
 
 export default function PortafoglioPersonale({navigate}:{navigate:(p:string)=>void}) {
@@ -52,13 +53,6 @@ export default function PortafoglioPersonale({navigate}:{navigate:(p:string)=>vo
   const esitoBadge = (esito:string) => (
     <span className={`paf__badge ${esito==="OK"?'paf__badge--ok':'paf__badge--pending'}`}>{esito}</span>
   );
-
-  const getPages = ():((number|'...')[]) => {
-    if(totalPages<=5) return Array.from({length:totalPages},(_,i)=>i+1);
-    if(pg<=3)          return [1,2,3,'...',totalPages];
-    if(pg>=totalPages-2) return [1,'...',totalPages-2,totalPages-1,totalPages];
-    return [1,'...',pg-1,pg,pg+1,'...',totalPages];
-  };
 
   return (
     <div>
@@ -176,22 +170,7 @@ export default function PortafoglioPersonale({navigate}:{navigate:(p:string)=>vo
           </div>
 
           <div className="paf__pagination">
-            <button onClick={()=>setPg(p=>Math.max(1,p-1))} disabled={pg===1}
-              className={`paf__pag-nav ${pg===1?'paf__pag-nav--disabled':''}`}>
-              <Ico n="back" s={12} c="currentColor"/> Indietro
-            </button>
-            {getPages().map((n,i)=>
-              n==="..."
-                ? <span key={`e${i}`} className="paf__pag-ellipsis">…</span>
-                : <button key={n} onClick={()=>setPg(n as number)}
-                    className={`paf__pag-btn ${pg===n?'paf__pag-btn--active':''}`}>
-                    {n}
-                  </button>
-            )}
-            <button onClick={()=>setPg(p=>Math.min(totalPages,p+1))} disabled={pg===totalPages}
-              className={`paf__pag-nav ${pg===totalPages?'paf__pag-nav--disabled':''}`}>
-              Avanti <Ico n="chevr" s={12} c="currentColor"/>
-            </button>
+            <Pagination page={pg} totalPages={totalPages} onPageChange={setPg} />
           </div>
         </div>
       </div>

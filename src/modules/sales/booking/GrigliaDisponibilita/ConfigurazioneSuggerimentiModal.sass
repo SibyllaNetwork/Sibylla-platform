@@ -1,0 +1,135 @@
+// ─── CONFIGURAZIONE SUGGERIMENTI MODAL ───────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.cfg-sugg
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  &__subtitle
+    margin: -4px 0 0
+    font-size: 12.5px
+    color: $text-inactive
+    line-height: 1.45
+
+  &__chip
+    align-self: flex-start
+    background: $primary-50
+    color: $primary
+    font-size: 10.5px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    padding: 4px 10px
+    border-radius: 999px
+
+  &__warning
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 10px 14px
+    border-radius: 8px
+    background: $warning-light
+    border: 1px solid rgba(245, 125, 3, 0.18)
+    color: $warning
+    font-size: 12.5px
+    font-weight: 500
+    line-height: 1.45
+
+    i
+      font-size: 14px
+      margin-top: 2px
+
+  &__list
+    display: flex
+    flex-direction: column
+    border: 1px solid $border
+    border-radius: 6px
+    overflow: hidden
+    max-height: 360px
+    overflow-y: auto
+
+  &__row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    padding: 8px 12px
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: none
+
+  &__hotel
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__hotel-nome
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__hotel-meta
+    font-size: 11px
+    color: $text-inactive
+
+    &.is-custom
+      color: $success
+
+  &__actions
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__field-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__input
+    height: 28px
+    width: 64px
+    border: 1px solid $border
+    border-radius: 5px
+    padding: 0 6px
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    text-align: center
+    outline: none
+    transition: border-color 0.12s ease
+
+    &:focus
+      border-color: $primary
+
+  &__save
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 28px
+    border: 1px solid $border
+    border-radius: 5px
+    background: $white
+    color: $primary
+    cursor: pointer
+    transition: all 0.15s ease
+
+    i
+      font-size: 12px
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+    &.is-saved
+      border-color: $success
+      background: $success-light
+      color: $success
+
+  &__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 4px

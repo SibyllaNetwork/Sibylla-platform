@@ -140,6 +140,28 @@
     &--chat
       position: relative
 
+    &--cart
+      position: relative
+
+  &__cart-badge
+    position: absolute
+    bottom: 2px
+    right: 2px
+    min-width: 15px
+    height: 15px
+    background: $accent
+    border-radius: 8px
+    border: 1px solid $primary
+    font-size: 8px
+    font-weight: 700
+    color: $white
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 0 3px
+    pointer-events: none
+    line-height: 1
+
   &__chat-icon
     font-size: 18px
     color: rgba(255, 255, 255, 0.80)
@@ -281,3 +303,59 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08)
   font-size: 10px
   color: rgba(255, 255, 255, 0.25)
+
+
+// ─── Skin switch (Std ↔ Pro) ─────────────────────────────────────────────────
+.topbar__skin-switch
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: rgba(255, 255, 255, 0.08)
+  border: 1px solid rgba(255, 255, 255, 0.18)
+  border-radius: 999px
+  padding: 4px 8px
+  cursor: pointer
+  transition: background 0.15s, border-color 0.15s
+  flex-shrink: 0
+
+  &:hover
+    background: rgba(255, 255, 255, 0.14)
+    border-color: rgba(255, 255, 255, 0.30)
+
+.topbar__skin-switch-label
+  font-family: 'Open Sans', sans-serif
+  font-size: 9.5px
+  font-weight: 700
+  letter-spacing: 0.08em
+  color: rgba(255, 255, 255, 0.45)
+  transition: color 0.15s
+
+.topbar__skin-switch:not(.topbar__skin-switch--on) .topbar__skin-switch-label--off
+  color: #fff
+
+.topbar__skin-switch--on .topbar__skin-switch-label--on
+  color: #fff
+
+.topbar__skin-switch-track
+  position: relative
+  width: 26px
+  height: 14px
+  border-radius: 999px
+  background: rgba(255, 255, 255, 0.20)
+  transition: background 0.2s
+
+.topbar__skin-switch--on .topbar__skin-switch-track
+  background: var(--color-accent, #C9A84C)
+
+.topbar__skin-switch-thumb
+  position: absolute
+  top: 1px
+  left: 1px
+  width: 12px
+  height: 12px
+  border-radius: 50%
+  background: var(--color-surface)
+  transition: transform 0.2s ease
+
+.topbar__skin-switch--on .topbar__skin-switch-thumb
+  transform: translateX(12px)

@@ -4,10 +4,10 @@ import MenuIco from '../core/icons/MenuIco'
 import NotifMenu from './NotifMenu'
 import FavoritesPanel from './FavoritesPanel'
 import Tooltip from '../core/components/Tooltip'
-import PreferencesMenu from './PreferencesMenu'
 import MENU from '../navigation/menu'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
+import { useCartStore } from '../store/useCartStore'
 
 interface Props {
   crumbs          : any[]
@@ -33,6 +33,7 @@ export default function Topbar({
   favorites, toggleFavorite, showFavPanel, setShowFavPanel, currentPage,
 }: Props) {
   const chatUnread = useChatStore(s => s.conversations.reduce((acc, c) => acc + c.unreadCount, 0))
+  const cartCount = useCartStore(s => s.totaleItems())
 
   const [query,    setQuery]    = useState('')
   const [results,  setResults]  = useState<SearchResult[]>([])
@@ -199,8 +200,17 @@ export default function Topbar({
           </span>
         )}
       </button>
-      <button className="topbar__icon-btn" onClick={() => navigate('gest-acquisti')} title="Acquisti">
+      <button
+        className="topbar__icon-btn topbar__icon-btn--cart"
+        onClick={() => navigate(cartCount > 0 ? 'agora-cart' : 'gest-acquisti')}
+        title={cartCount > 0 ? `Carrello (${cartCount})` : 'Acquisti'}
+      >
         <Ico n="cart" s={18} c={C.normal} />
+        {cartCount > 0 && (
+          <span className="topbar__cart-badge">
+            {cartCount > 99 ? '99+' : cartCount}
+          </span>
+        )}
       </button>
 
       {/* ── Search ── */}
@@ -277,8 +287,7 @@ export default function Topbar({
         )}
       </div>
 
-      {/* ── Preferenze visualizzazione ── */}
-      <PreferencesMenu />
+      {/* Preferenze tema e visualizzazione spostate in Profilo › Modifica profilo › Preferenze */}
 
       {/* ── Admin ── */}
       <Tooltip text="Sibylla Admin Panel">

@@ -29,8 +29,8 @@ function ContextMenu({ x, y, pageId, label, favorites, onToggle, onClose }: {
   }, [onClose])
 
   return (
-    <div ref={ref} style={{ position: 'fixed', left: x, top: y, zIndex: 300, background: T.white, borderRadius: 8, boxShadow: '0 4px 24px rgba(0,0,0,0.16)', border: `0.5px solid ${T.border}`, minWidth: 216, overflow: 'hidden' }}>
-      <div style={{ padding: '7px 14px 5px', fontSize: 10, fontWeight: 700, color: T.textDisabled, textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: `0.5px solid ${T.border}` }}>{label}</div>
+    <div ref={ref} style={{ position: 'fixed', left: x, top: y, zIndex: 300, background: T.white, borderRadius: 8, boxShadow: '0 4px 24px rgba(0,0,0,0.16)', border: `1px solid ${T.border}`, minWidth: 216, overflow: 'hidden' }}>
+      <div style={{ padding: '7px 14px 5px', fontSize: 10, fontWeight: 700, color: T.textDisabled, textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: `1px solid ${T.border}` }}>{label}</div>
       <div
         onClick={() => { onToggle(pageId); onClose() }}
         style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 0.1s' }}
@@ -70,8 +70,8 @@ function AvatarMenu({ navigate }: { navigate: (p: string) => void }) {
         <Ico n="chevd" s={10} c="rgba(255,255,255,0.4)"/>
       </button>
       {open && (
-        <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 200, background: T.white, borderRadius: 12, boxShadow: '0 8px 32px rgba(32,71,105,0.15)', border: `0.5px solid ${T.border}`, overflow: 'hidden', zIndex: 50 }}>
-          <div style={{ padding: '10px 14px', borderBottom: `0.5px solid ${T.border}` }}>
+        <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 200, background: T.white, borderRadius: 12, boxShadow: '0 8px 32px rgba(32,71,105,0.15)', border: `1px solid ${T.border}`, overflow: 'hidden', zIndex: 50 }}>
+          <div style={{ padding: '10px 14px', borderBottom: `1px solid ${T.border}` }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: T.primary }}>Luca H.</div>
             <div style={{ fontSize: 11, color: T.textDisabled }}>Hotel Noto</div>
           </div>
@@ -83,7 +83,7 @@ function AvatarMenu({ navigate }: { navigate: (p: string) => void }) {
             <div
               key={i}
               onClick={() => { setOpen(false); if (item.page) navigate(item.page) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', cursor: 'pointer', color: item.danger ? T.error : T.textActive, borderTop: i === 2 ? `0.5px solid ${T.border}` : 'none' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', cursor: 'pointer', color: item.danger ? T.error : T.textActive, borderTop: i === 2 ? `1px solid ${T.border}` : 'none' }}
               onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = item.danger ? T.errorLight : '#F8FCFF'}
               onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
             >

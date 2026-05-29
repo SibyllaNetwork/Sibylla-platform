@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import Pagination from '../../../../../core/components/Pagination'
 import './FbListaMenu.sass'
 
 interface Menu { id: number; nome: string; dataCreazione: string; dettagli: string; ok: boolean }
@@ -17,6 +18,7 @@ const FALLBACK: Data = {
 
 export default function FbListaMenu() {
   const [data, setData] = useState<Data>(FALLBACK)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     let cancelled = false
@@ -61,11 +63,7 @@ export default function FbListaMenu() {
       </div>
 
       <div className="fb-lista-menu__pagination">
-        <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-chevron-left" /> Indietro</button>
-        {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((n) => (
-          <button key={n} type="button" className={`sib-btn ${n === data.page ? 'sib-btn--primary' : 'sib-btn--secondary'}`}>{n}</button>
-        ))}
-        <button type="button" className="sib-btn sib-btn--secondary">Avanti <i className="fa-light fa-chevron-right" /></button>
+        <Pagination page={page} totalPages={data.totalPages} onPageChange={setPage} />
       </div>
     </div>
   )

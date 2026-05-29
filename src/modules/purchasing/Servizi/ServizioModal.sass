@@ -1,0 +1,136 @@
+.srv-modal
+  padding: 14px 18px 18px
+  display: flex
+  flex-direction: column
+  gap: 16px
+  max-height: 80vh
+  overflow-y: auto
+
+  .srv-modal__section
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .srv-modal__section-title
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    margin: 0
+    padding-bottom: 6px
+    border-bottom: 1px solid var(--color-border)
+
+  .srv-modal__grid
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px 14px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .srv-modal__grid--3
+    grid-template-columns: repeat(3, 1fr)
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .srv-modal__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .srv-modal__field--full
+    grid-column: 1 / -1
+
+  .srv-modal__label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .srv-modal__hint
+    color: var(--color-text-disabled)
+    font-weight: 400
+    font-style: italic
+    margin-left: 4px
+
+  // ─── Selettore tipi ──────────────────────────────────────────────────────
+  .srv-modal__type-grid
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  .srv-modal__type-chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 10px
+    border-radius: 999px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-text-inactive)
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: all 0.18s
+
+    i
+      font-size: 13px
+
+    &:hover
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+  .srv-modal__type-chip--active
+    background: var(--color-primary)
+    border-color: var(--color-primary)
+    color: #fff
+
+    &:hover
+      color: #fff
+
+  // ─── Listini con colori distintivi ───────────────────────────────────────
+  .srv-modal__price-field
+    border-radius: 6px
+    padding: 8px 10px
+    border: 1px solid transparent
+
+  .srv-modal__price-field--agora
+    background: rgba(224, 123, 57, 0.08)
+    border-color: rgba(224, 123, 57, 0.25)
+
+  .srv-modal__price-field--b2b
+    background: rgba(92, 156, 212, 0.08)
+    border-color: rgba(92, 156, 212, 0.25)
+
+  .srv-modal__price-field--b2c
+    background: rgba(46, 141, 89, 0.08)
+    border-color: rgba(46, 141, 89, 0.25)
+
+  // ─── Toggles ─────────────────────────────────────────────────────────────
+  .srv-modal__toggles
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .srv-modal__toggle
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-primary)
+    cursor: pointer
+
+    input
+      width: 14px
+      height: 14px
+
+  // ─── Footer ──────────────────────────────────────────────────────────────
+  .srv-modal__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)

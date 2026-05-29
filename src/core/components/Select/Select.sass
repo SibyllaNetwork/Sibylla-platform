@@ -28,8 +28,8 @@
   font-size: 14px
   font-weight: 400
   color: $text-active
-  background: #FFFFFF
-  border: 2px solid #CFCFCF
+  background: var(--color-surface)
+  border: 2px solid var(--color-border)
   border-radius: $radius-md
   outline: none
   appearance: none
@@ -42,15 +42,15 @@
   padding-right: 36px
 
   &:hover:not(:disabled)
-    border-color: #BBBDBF
+    border-color: var(--color-border)
 
   &:focus:not(:disabled)
     border-color: $text-active
 
   &:disabled
     color: #DBDBDB
-    border-color: #CFCFCF
-    background: #FFFFFF
+    border-color: var(--color-border)
+    background: var(--color-surface)
     cursor: not-allowed
 
 // ─── Sizes ────────────────────────────────────────────────────────────────────

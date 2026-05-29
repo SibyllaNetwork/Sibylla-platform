@@ -1,0 +1,243 @@
+.prod-prev
+  display: flex
+  flex-direction: column
+  gap: 18px
+  padding: 4px 0 0
+
+  // ─── Hero ─────────────────────────────────────────────────────────────────
+  .prod-prev__hero
+    display: grid
+    grid-template-columns: 160px 1fr
+    gap: 18px
+
+    @media (max-width: 600px)
+      grid-template-columns: 1fr
+
+  .prod-prev__image
+    width: 100%
+    aspect-ratio: 1 / 1
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    overflow: hidden
+    display: flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  .prod-prev__image-placeholder
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  .prod-prev__hero-info
+    display: flex
+    flex-direction: column
+    gap: 8px
+    min-width: 0
+
+  .prod-prev__title
+    font-family: 'Poppins', sans-serif
+    font-size: 18px
+    font-weight: 600
+    color: var(--color-primary)
+    margin: 0
+    line-height: 1.2
+
+  .prod-prev__sub
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    flex-wrap: wrap
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  .prod-prev__barcode
+    font-family: 'JetBrains Mono', 'Menlo', monospace
+    font-size: 11.5px
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    padding: 2px 7px
+    border-radius: 4px
+    color: var(--color-text-primary)
+
+  .prod-prev__unit
+    font-weight: 600
+
+  .prod-prev__desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    line-height: 1.5
+    color: var(--color-text-primary)
+    margin: 4px 0 0
+
+  // Status pill (attivo / pubblicato)
+  .prod-prev__status-row
+    display: inline-flex
+    gap: 6px
+    margin-top: 4px
+    flex-wrap: wrap
+
+  .prod-prev__pill
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 3px 9px
+    border-radius: 999px
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: 0.03em
+
+  .prod-prev__pill-dot
+    width: 6px
+    height: 6px
+    border-radius: 50%
+
+  .prod-prev__pill--on
+    background: rgba(46, 141, 89, 0.10)
+    color: #1f6c44
+
+    .prod-prev__pill-dot
+      background: #2E8D59
+
+  .prod-prev__pill--off
+    background: rgba(95, 95, 95, 0.10)
+    color: #555
+
+    .prod-prev__pill-dot
+      background: #888
+
+  // ─── Sezioni ──────────────────────────────────────────────────────────────
+  .prod-prev__section
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .prod-prev__section-title
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.06em
+    color: var(--color-text-inactive)
+    margin: 0
+    padding-bottom: 6px
+    border-bottom: 1px solid var(--color-border)
+
+  // ─── Anagrafica grid ─────────────────────────────────────────────────────
+  .prod-prev__meta
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 8px 18px
+    margin: 0
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+
+    @media (max-width: 600px)
+      grid-template-columns: 1fr
+
+    > div
+      display: flex
+      flex-direction: column
+      gap: 2px
+
+    dt
+      font-size: 10.5px
+      font-weight: 600
+      color: var(--color-text-disabled)
+      text-transform: uppercase
+      letter-spacing: 0.05em
+      margin: 0
+
+    dd
+      margin: 0
+      color: var(--color-text-primary)
+      font-weight: 500
+
+      code
+        font-family: 'JetBrains Mono', 'Menlo', monospace
+        font-size: 11.5px
+        background: var(--color-bg)
+        padding: 1px 6px
+        border-radius: 4px
+
+  // ─── Prezzi grid ─────────────────────────────────────────────────────────
+  .prod-prev__prices
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 10px
+
+    @media (max-width: 600px)
+      grid-template-columns: 1fr
+
+  .prod-prev__price-card
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+  .prod-prev__price-card--base
+    background: var(--color-bg)
+
+  .prod-prev__price-card--agora
+    border-color: rgba(224, 123, 57, 0.30)
+    background: rgba(224, 123, 57, 0.04)
+
+  .prod-prev__price-card--network
+    border-color: rgba(92, 156, 212, 0.30)
+    background: rgba(92, 156, 212, 0.04)
+
+  .prod-prev__price-card--off
+    opacity: 0.55
+
+  .prod-prev__price-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.06em
+    color: var(--color-text-inactive)
+
+  .prod-prev__price-value
+    font-family: 'Poppins', sans-serif
+    font-size: 22px
+    font-weight: 700
+    color: var(--color-primary)
+    line-height: 1.1
+
+  .prod-prev__price-note,
+  .prod-prev__price-markup
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  .prod-prev__price-markup
+    font-weight: 600
+    color: #007035
+
+  .prod-prev__price-disabled
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    font-style: italic
+    color: var(--color-text-disabled)
+
+  // ─── Footer ──────────────────────────────────────────────────────────────
+  .prod-prev__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding-top: 10px
+    border-top: 1px solid var(--color-border)

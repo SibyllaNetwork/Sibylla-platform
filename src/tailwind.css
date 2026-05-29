@@ -8,7 +8,9 @@
     @apply w-full h-9 px-3 border border-line rounded-field
            text-[13px] text-ink bg-white font-opensans outline-none box-border
            text-ellipsis overflow-hidden whitespace-nowrap
-           focus:border-link;
+           transition-[border-color,box-shadow] duration-150
+           hover:border-primary-400
+           focus-visible:border-link focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)];
   }
   .sib-input--lg {
     @apply h-10;
@@ -17,7 +19,8 @@
     @apply h-[34px] text-xs;
   }
   .sib-input--error {
-    @apply border-error focus:border-error;
+    @apply border-error focus-visible:border-error
+           focus-visible:shadow-[0_0_0_3px_var(--color-error-light)];
   }
 
   /* ── Form: select ─────────────────────────────────────────────────── */
@@ -25,7 +28,10 @@
     @apply w-full h-9 px-3 pr-8 border border-line rounded-field
            text-[13px] text-ink bg-white font-opensans outline-none box-border
            text-ellipsis overflow-hidden whitespace-nowrap
-           appearance-none bg-no-repeat focus:border-link;
+           appearance-none bg-no-repeat
+           transition-[border-color,box-shadow] duration-150
+           hover:border-primary-400
+           focus-visible:border-link focus-visible:shadow-[0_0_0_3px_var(--color-focus-ring)];
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E");
     background-position: right 8px center;
   }
@@ -66,12 +72,54 @@
 
   /* ── Base ──────────────────────────────────────────────────────── */
   .sib-btn {
-    @apply inline-flex items-center justify-center gap-1.5
+    @apply relative inline-flex items-center justify-center gap-1.5
            h-9 px-4 rounded-field
            text-[13px] font-semibold font-opensans
            cursor-pointer whitespace-nowrap shrink-0
-           transition-all duration-150 ease-in-out
+           transition-[background-color,border-color,box-shadow,transform,color] duration-150 ease-in-out
+           focus:outline-none
            disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  /* Focus ring coerente con i campi form (solo da tastiera) */
+  .sib-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+  }
+  /* Feedback di pressione */
+  .sib-btn:active:not(:disabled) {
+    transform: translateY(0.5px);
+  }
+  /* Elevazione leggera sui bottoni pieni */
+  .sib-btn--primary,
+  .sib-btn--danger {
+    box-shadow: var(--shadow-sm);
+  }
+  .sib-btn--primary:hover:not(:disabled),
+  .sib-btn--danger:hover:not(:disabled) {
+    box-shadow: var(--shadow-md);
+  }
+  /* Stato loading: testo nascosto + spinner centrato */
+  .sib-btn--loading {
+    @apply pointer-events-none;
+    color: transparent !important;
+  }
+  .sib-btn--loading::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: sib-btn-spin 0.6s linear infinite;
+  }
+  /* Spinner scuro sui bottoni non pieni */
+  .sib-btn--secondary.sib-btn--loading::after,
+  .sib-btn--toolbar.sib-btn--loading::after,
+  .sib-btn--ghost.sib-btn--loading::after,
+  .sib-btn--back.sib-btn--loading::after,
+  .sib-btn--icon.sib-btn--loading::after {
+    border-color: var(--color-primary);
+    border-top-color: transparent;
   }
 
   /* ── Primary (sfondo pieno) ────────────────────────────────────── */
@@ -139,14 +187,15 @@
   }
 
   .sib-table {
-    @apply w-full text-[13px] font-opensans border-collapse;
+    @apply w-full text-[13px] font-opensans border-collapse [font-variant-numeric:tabular-nums];
   }
   .sib-table thead tr {
     @apply bg-canvas;
   }
   .sib-table th {
     @apply text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-ink-muted
-           border-b border-line whitespace-nowrap;
+           border-b border-line whitespace-nowrap
+           sticky top-0 z-[2] bg-canvas;
   }
   .sib-table td {
     @apply px-3 py-2.5 align-middle text-ink border-b border-line;
@@ -215,4 +264,9 @@
   .sib-section-spacer {
     @apply h-3;
   }
+}
+
+/* Spinner per .sib-btn--loading */
+@keyframes sib-btn-spin {
+  to { transform: rotate(360deg); }
 }

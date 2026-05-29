@@ -9,6 +9,7 @@ const PREVIEWS: Record<Theme, { primary: string; surface: string; accent: string
   editorial:  { primary: '#2C2A26', surface: '#FAF7F2', accent: '#C9A84C', text: '#2C2A26' },
   swiss:      { primary: '#0A0A0A', surface: '#FFFFFF', accent: '#FF4D00', text: '#0A0A0A' },
   terracotta: { primary: '#8B3A1F', surface: '#FBF4EB', accent: '#D4923A', text: '#3D2416' },
+  dark:       { primary: '#1B2330', surface: '#1A1E26', accent: '#6BA6E0', text: '#E6E8EC' },
 }
 
 export default function ThemeSwitcher() {

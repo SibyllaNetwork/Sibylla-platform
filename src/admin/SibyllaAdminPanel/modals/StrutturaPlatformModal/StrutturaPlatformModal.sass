@@ -1,0 +1,763 @@
+.str-modal
+  display: flex
+  flex-direction: column
+  max-height: 85vh
+  padding: 0
+
+  // ─── Nav sezioni a sinistra ─────────────────────────────────────────────
+  .str-modal__nav
+    display: flex
+    gap: 2px
+    padding: 10px 14px 0
+    border-bottom: 1px solid var(--color-border)
+    overflow-x: auto
+
+  .str-modal__nav-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: transparent
+    border: none
+    border-bottom: 2px solid transparent
+    padding: 8px 14px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    cursor: pointer
+    transition: color 0.15s, border-color 0.15s
+    margin-bottom: -1px
+    white-space: nowrap
+
+    &:hover
+      color: var(--color-primary)
+
+  .str-modal__nav-ico
+    font-size: 13px
+
+  .str-modal__nav-btn--active
+    color: var(--color-primary)
+    border-bottom-color: var(--color-primary)
+
+  .str-modal__body
+    overflow-y: auto
+    padding: 16px 18px
+    flex: 1 1 auto
+    min-height: 360px
+
+  .str-modal__section
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  .str-modal__grid
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px 14px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .str-modal__grid--3
+    grid-template-columns: repeat(3, 1fr)
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .str-modal__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .str-modal__field--full
+    grid-column: 1 / -1
+
+  .str-modal__label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .str-modal__hint-text
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+    margin: 0 0 4px
+
+  .str-modal__empty-mini
+    background: var(--color-bg)
+    border: 1px dashed var(--color-border)
+    border-radius: 6px
+    padding: 18px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  // ─── Hero foto principale ───────────────────────────────────────────────
+  .str-modal__hero
+    display: grid
+    grid-template-columns: 1fr 220px
+    gap: 14px
+    align-items: end
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .str-modal__hero-preview
+    width: 100%
+    aspect-ratio: 16 / 9
+    border-radius: 8px
+    overflow: hidden
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  .str-modal__hero-placeholder
+    width: 100%
+    height: 100%
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 6px
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  // ─── Galleria ───────────────────────────────────────────────────────────
+  .str-modal__gallery
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .str-modal__gallery-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 14px
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 5px
+
+  .str-modal__gallery-list
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .str-modal__gallery-row
+    display: grid
+    grid-template-columns: 56px 1fr 32px
+    gap: 8px
+    align-items: center
+
+  .str-modal__gallery-thumb
+    width: 56px
+    height: 40px
+    border-radius: 4px
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    overflow: hidden
+    display: flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  .str-modal__gallery-remove
+    width: 30px
+    height: 30px
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      border-color: var(--color-error, #c0392b)
+
+  // ─── Camere ─────────────────────────────────────────────────────────────
+  .str-modal__camere-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 14px
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 5px
+
+  .str-modal__camere
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .str-modal__camera
+    display: grid
+    grid-template-columns: 120px 1fr 36px
+    gap: 12px
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 10px 12px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .str-modal__camera-thumb
+    width: 120px
+    aspect-ratio: 1 / 1
+    border-radius: 6px
+    background: var(--color-bg)
+    overflow: hidden
+    display: flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    @media (max-width: 700px)
+      width: 100%
+      aspect-ratio: 16 / 9
+
+  .str-modal__camera-body
+    min-width: 0
+
+  .str-modal__camera-remove
+    width: 30px
+    height: 30px
+    align-self: start
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      border-color: var(--color-error, #c0392b)
+
+  // Box prezzi colorati per canale
+  .str-modal__price-field
+    border-radius: 6px
+    padding: 6px 8px
+    border: 1px solid transparent
+
+  .str-modal__price-field--agora
+    background: rgba(32, 71, 105, 0.08)
+    border-color: rgba(32, 71, 105, 0.30)
+
+  .str-modal__price-field--b2b
+    background: rgba(92, 156, 212, 0.08)
+    border-color: rgba(92, 156, 212, 0.25)
+
+  .str-modal__price-field--b2c
+    background: rgba(240, 133, 38, 0.08)
+    border-color: rgba(240, 133, 38, 0.30)
+
+  // ─── Tab canali ─────────────────────────────────────────────────────────
+  .str-modal__canali-nav
+    display: flex
+    gap: 6px
+    flex-wrap: wrap
+    padding: 4px 0 10px
+    border-bottom: 1px solid var(--color-border)
+    margin-bottom: 12px
+
+  .str-modal__canale-tab
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 8px 14px
+    border-radius: 8px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    cursor: pointer
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    transition: all 0.15s
+
+    &:hover
+      border-color: var(--canale-color, var(--color-primary))
+      color: var(--color-text-primary)
+
+  .str-modal__canale-tab--active
+    background: var(--canale-color, var(--color-primary))
+    border-color: var(--canale-color, var(--color-primary))
+    color: #fff
+
+    .str-modal__canale-dot
+      background: var(--color-surface)
+
+    .str-modal__canale-flavor
+      color: rgba(255,255,255,0.85)
+
+  .str-modal__canale-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: var(--canale-color, var(--color-primary))
+
+  .str-modal__canale-flavor
+    font-size: 10.5px
+    font-weight: 500
+    font-style: italic
+    color: var(--color-text-disabled)
+    margin-left: 4px
+
+  .str-modal__canale-config
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin-bottom: 14px
+
+  .str-modal__canale-destinazione
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 8px 12px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 6px
+    border-left: 3px solid var(--canale-color, var(--color-primary))
+
+  .str-modal__canale-destinazione-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 700
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    letter-spacing: 0.05em
+
+  .str-modal__canale-destinazione-value
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--canale-color, var(--color-primary))
+    flex-wrap: wrap
+
+  .str-modal__canale-destinazione-url
+    font-family: 'JetBrains Mono', 'Menlo', monospace
+    font-size: 11px
+    background: var(--color-bg)
+    padding: 2px 7px
+    border-radius: 4px
+    color: var(--color-text-inactive)
+    font-weight: 500
+    letter-spacing: 0
+
+  .str-modal__canale-tab-label
+    font-weight: 700
+
+  // ─── Preview wrapper ────────────────────────────────────────────────────
+  .str-modal__preview-wrap
+    background: linear-gradient(180deg, #f5f8fa 0%, #fff 100%)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 14px
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .str-modal__preview-head
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: 'Open Sans', sans-serif
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  // ─── Arrangiamenti chips ────────────────────────────────────────────────
+  .str-modal__arr-chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  .str-modal__arr-chip
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 48px
+    height: 30px
+    padding: 0 10px
+    border-radius: 999px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    color: var(--color-text-inactive)
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: 0.05em
+    cursor: pointer
+    transition: all 0.15s
+
+    &:hover
+      border-color: var(--color-primary)
+      color: var(--color-primary)
+
+  .str-modal__arr-chip--active
+    background: var(--color-primary)
+    border-color: var(--color-primary)
+    color: #fff
+
+    &:hover
+      color: #fff
+
+  .str-modal__toggle
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-primary)
+    cursor: pointer
+
+    input
+      width: 14px
+      height: 14px
+
+  // ─── Footer ──────────────────────────────────────────────────────────────
+  .str-modal__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 12px 18px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-surface)
+
+
+// ────────────────────────────────────────────────────────────────────────────
+// PREVIEW PLATFORM (Agorà / B2B) — UI compatta stile piattaforma Sibylla
+// ────────────────────────────────────────────────────────────────────────────
+.str-preview.str-preview--platform
+  display: flex
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  overflow: hidden
+  max-width: 720px
+
+  @media (max-width: 700px)
+    flex-direction: column
+
+.str-preview__img-wrap
+  position: relative
+  width: 240px
+  min-width: 240px
+  aspect-ratio: 16 / 10
+  background: var(--color-bg)
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+  @media (max-width: 700px)
+    width: 100%
+
+.str-preview__img-placeholder
+  width: 100%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-disabled)
+
+.str-preview__badge
+  position: absolute
+  top: 10px
+  left: 10px
+  padding: 3px 9px
+  border-radius: 999px
+  background: var(--canale-color, var(--color-primary))
+  color: #fff
+  font-family: 'Open Sans', sans-serif
+  font-size: 10.5px
+  font-weight: 700
+  letter-spacing: 0.05em
+
+.str-preview__destination
+  position: absolute
+  bottom: 10px
+  left: 10px
+  padding: 3px 9px
+  border-radius: 4px
+  background: rgba(0,0,0,0.65)
+  color: #fff
+  font-family: 'Open Sans', sans-serif
+  font-size: 10.5px
+  font-weight: 500
+  max-width: calc(100% - 20px)
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.str-preview__body
+  padding: 14px 16px
+  flex: 1 1 auto
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.str-preview__head
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 10px
+
+.str-preview__title
+  font-family: 'Poppins', sans-serif
+  font-size: 16px
+  font-weight: 600
+  color: var(--color-primary)
+  margin: 0
+
+.str-preview__stars
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 700
+  color: #c79a35
+  white-space: nowrap
+
+.str-preview__city
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-inactive)
+  margin: 0
+
+.str-preview__tag
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-style: italic
+  color: var(--color-primary)
+  margin: 0
+
+.str-preview__desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-primary)
+  margin: 4px 0 0
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.str-preview__cta-row
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-top: 6px
+
+.str-preview__price
+  font-family: 'Poppins', sans-serif
+  font-size: 16px
+  font-weight: 700
+  color: var(--color-primary)
+
+  small
+    font-weight: 500
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+.str-preview__btn-platform
+  display: inline-flex
+  align-items: center
+  padding: 6px 14px
+  background: var(--color-primary)
+  color: #fff
+  border-radius: 6px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 600
+
+
+// ────────────────────────────────────────────────────────────────────────────
+// PREVIEW CONSUMER (B2C) — UI stile sibyllanetwork.com (OTA-like)
+// ────────────────────────────────────────────────────────────────────────────
+.str-preview.str-preview--consumer
+  background: var(--color-surface)
+  border-radius: 14px
+  overflow: hidden
+  max-width: 760px
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.10)
+
+.str-preview-c__hero
+  position: relative
+  width: 100%
+  aspect-ratio: 16 / 9
+  background: #1a2233
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+.str-preview-c__hero-placeholder
+  width: 100%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  color: #6f7a8c
+  font-family: 'Open Sans', sans-serif
+
+.str-preview-c__hero-overlay
+  position: absolute
+  bottom: 0
+  left: 0
+  right: 0
+  padding: 26px 24px 20px
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%)
+  color: #fff
+  display: flex
+  flex-direction: column
+  gap: 3px
+
+.str-preview-c__stars
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 700
+  color: #ffd166
+  letter-spacing: 0.05em
+
+.str-preview-c__title
+  font-family: 'Poppins', sans-serif
+  font-size: 26px
+  font-weight: 700
+  margin: 0
+  line-height: 1.1
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4)
+
+.str-preview-c__city
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  margin: 0
+  opacity: 0.95
+
+.str-preview-c__tag
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  font-weight: 500
+  font-style: italic
+  margin: 6px 0 0
+  color: #ffe5cc
+
+.str-preview-c__gallery
+  display: grid
+  grid-template-columns: repeat(5, 1fr)
+  gap: 4px
+  padding: 4px
+
+.str-preview-c__gallery-thumb
+  width: 100%
+  aspect-ratio: 1 / 1
+  background: var(--color-bg)
+  overflow: hidden
+  cursor: pointer
+  transition: transform 0.15s
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+  &:hover
+    transform: scale(1.02)
+
+.str-preview-c__body
+  padding: 18px 22px 20px
+
+.str-preview-c__desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 14px
+  line-height: 1.55
+  color: #1a2233
+  margin: 0
+
+.str-preview-c__locality
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  line-height: 1.55
+  color: #485466
+  margin: 10px 0 0
+  padding-top: 10px
+  border-top: 1px solid var(--color-border)
+
+  strong
+    color: #1a2233
+    font-weight: 700
+
+.str-preview-c__cta
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-top: 16px
+  padding-top: 14px
+  border-top: 1px solid var(--color-border)
+  gap: 12px
+
+  > div
+    display: flex
+    flex-direction: column
+
+.str-preview-c__price-label
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  color: #6f7a8c
+  text-transform: uppercase
+  letter-spacing: 0.05em
+
+.str-preview-c__price
+  font-family: 'Poppins', sans-serif
+  font-size: 26px
+  font-weight: 700
+  color: #1a2233
+
+  small
+    font-size: 13px
+    font-weight: 500
+    color: #6f7a8c
+
+.str-preview-c__btn
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  padding: 12px 28px
+  background: linear-gradient(135deg, #F08526 0%, #D26A0A 100%)
+  color: #fff
+  border-radius: 999px
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  font-weight: 600
+  box-shadow: 0 4px 14px rgba(240, 133, 38, 0.30)
+  letter-spacing: 0.02em

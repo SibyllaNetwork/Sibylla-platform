@@ -153,7 +153,7 @@
       transform: translateX(-50%)
       border-left: 5px solid transparent
       border-right: 5px solid transparent
-      border-top: 5px solid #1E293B
+      border-top: 5px solid var(--color-border)
 
 // ═══ ANALISI BADGE ════════════════════════════════════════════════════════════
 .analisi-badge
@@ -194,3 +194,122 @@
     text-transform: uppercase
     letter-spacing: 0.3px
     white-space: nowrap
+
+// ═══ CARD SHADOW ══════════════════════════════════════════════════════════════
+// Ombra leggera di default su tutte le "card" bespoke delle pagine, per dare
+// profondità ora che lo sfondo è bianco. Usa il token --shadow-sm (reattivo al
+// tema: la skin Swiss resta volutamente flat).
+//
+// I selettori matchano la RADICE della card per parola finale (card/kpi/stat/
+// panel), così coprono sia la sintassi BEM (foo__card) sia il trattino singolo
+// (category-card, stat-card). I tre pattern per parola gestiscono: classe ultima
+// (`$="card"`), classe non ultima (`*="card "`) e modificatore (`*="card--"`).
+// I figli (foo-card__head, foo-card__icon) finiscono per "head"/"icon" → esclusi.
+// Caricata prima dei .sass dei moduli: una pagina può sovrascrivere con la propria
+// box-shadow.
+[class$="card"],
+[class*="card "],
+[class*="card--"],
+[class$="kpi"],
+[class*="kpi "],
+[class*="kpi--"],
+[class$="stat"],
+[class*="stat "],
+[class*="stat--"],
+[class$="panel"],
+[class*="panel "],
+[class*="panel--"]
+  box-shadow: var(--shadow-sm)
+
+// ═══ HOVER LIFT — card cliccabili ═════════════════════════════════════════════
+// Solo elementi interattivi (a/button) che SONO una card: lieve sollevamento +
+// ombra di un gradino. Le card statiche (div) restano ferme.
+a:is([class$="card"], [class*="card "], [class*="card--"]),
+button:is([class$="card"], [class*="card "], [class*="card--"])
+  transition: transform $motion-base $motion-ease, box-shadow $motion-base $motion-ease
+
+  &:hover
+    transform: translateY(-1px)
+    box-shadow: $shadow-md
+
+  &:active
+    transform: translateY(0)
+    transition-duration: $motion-fast
+
+// ═══ NUMERI TABULARI ══════════════════════════════════════════════════════════
+// Allineamento professionale dei numeri in tabelle e valori KPI. tabular-nums
+// agisce solo sulle cifre: innocuo sul testo.
+table,
+[class$="value"],
+[class*="value "],
+[class*="value--"]
+  font-variant-numeric: tabular-nums
+
+// ═══ EMPTY STATE ══════════════════════════════════════════════════════════════
+.empty-state
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 10px
+  padding: 48px 24px
+  text-align: center
+
+  &__icon
+    font-size: 32px
+    color: $text-disabled
+    margin-bottom: 4px
+
+  &__title
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 600
+    color: $text-active
+
+  &__subtitle
+    font-size: 13px
+    color: $text-inactive
+    max-width: 360px
+    line-height: 1.5
+
+  &__action
+    margin-top: 8px
+
+// ═══ SKELETON LOADER ══════════════════════════════════════════════════════════
+.skeleton
+  display: block
+  position: relative
+  overflow: hidden
+  background: alpha($primary, 0.08)
+  border-radius: $radius-sm
+
+  &::after
+    content: ''
+    position: absolute
+    inset: 0
+    transform: translateX(-100%)
+    background: linear-gradient(90deg, transparent, alpha($white, 0.65), transparent)
+    animation: skeleton-shimmer 1.4s ease-in-out infinite
+
+  &--text
+    height: 0.8em
+    margin: 0.2em 0
+    border-radius: 4px
+
+  &--circle
+    border-radius: 50%
+
+@keyframes skeleton-shimmer
+  100%
+    transform: translateX(100%)
+
+// ═══ REDUCED MOTION ═══════════════════════════════════════════════════════════
+// Accessibilità: chi ha richiesto meno animazioni le vede ridotte al minimo.
+@media (prefers-reduced-motion: reduce)
+  *, *::before, *::after
+    animation-duration: 0.01ms !important
+    animation-iteration-count: 1 !important
+    transition-duration: 0.01ms !important
+    scroll-behavior: auto !important
+
+

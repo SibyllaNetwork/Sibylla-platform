@@ -1,0 +1,396 @@
+// ─── Preview Platform (Agorà / B2B) ─────────────────────────────────────────
+.sp-prev.sp-prev--platform
+  display: flex
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  overflow: hidden
+  width: 100%
+
+  @media (max-width: 700px)
+    flex-direction: column
+
+.sp-prev__img-wrap
+  position: relative
+  width: 280px
+  min-width: 280px
+  aspect-ratio: 16 / 10
+  background: var(--color-bg)
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+  @media (max-width: 700px)
+    width: 100%
+
+.sp-prev__img-placeholder
+  width: 100%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-disabled)
+
+.sp-prev__badge
+  position: absolute
+  top: 10px
+  left: 10px
+  padding: 3px 9px
+  border-radius: 999px
+  background: var(--canale-color, var(--color-primary))
+  color: #fff
+  font-family: 'Open Sans', sans-serif
+  font-size: 10.5px
+  font-weight: 700
+  letter-spacing: 0.05em
+
+.sp-prev__destination
+  position: absolute
+  bottom: 10px
+  left: 10px
+  padding: 3px 9px
+  border-radius: 4px
+  background: rgba(0,0,0,0.65)
+  color: #fff
+  font-family: 'Open Sans', sans-serif
+  font-size: 10.5px
+  font-weight: 500
+  max-width: calc(100% - 20px)
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.sp-prev__body
+  padding: 14px 16px
+  flex: 1 1 auto
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.sp-prev__head
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 10px
+
+.sp-prev__title
+  font-family: 'Poppins', sans-serif
+  font-size: 16px
+  font-weight: 600
+  color: var(--color-primary)
+  margin: 0
+
+.sp-prev__stars
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 700
+  color: #c79a35
+  white-space: nowrap
+
+.sp-prev__city
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-inactive)
+  margin: 0
+
+.sp-prev__tag
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-style: italic
+  color: var(--color-primary)
+  margin: 0
+
+.sp-prev__desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 12.5px
+  color: var(--color-text-primary)
+  margin: 4px 0 0
+
+.sp-prev__rooms
+  list-style: none
+  padding: 0
+  margin: 6px 0 0
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.sp-prev__room
+  display: flex
+  justify-content: space-between
+  align-items: center
+  gap: 10px
+  padding: 6px 10px
+  background: var(--color-bg)
+  border-radius: 4px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+
+.sp-prev__room-name
+  font-weight: 600
+  color: var(--color-text-primary)
+
+.sp-prev__room-price
+  font-weight: 600
+  color: var(--color-primary)
+
+.sp-prev__cta-row
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-top: 8px
+
+.sp-prev__price
+  font-family: 'Poppins', sans-serif
+  font-size: 16px
+  font-weight: 700
+  color: var(--color-primary)
+
+  small
+    font-weight: 500
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+.sp-prev__btn-platform
+  display: inline-flex
+  align-items: center
+  padding: 7px 16px
+  background: var(--color-primary)
+  color: #fff
+  border-radius: 6px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 600
+
+
+// ─── Preview Consumer (B2C) — stile sibyllanetwork.com ──────────────────────
+.sp-prev.sp-prev--consumer
+  background: var(--color-surface)
+  border-radius: 14px
+  overflow: hidden
+  width: 100%
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.10)
+
+.sp-prev-c__hero
+  position: relative
+  width: 100%
+  aspect-ratio: 21 / 9
+  background: #1a2233
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+.sp-prev-c__hero-placeholder
+  width: 100%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  color: #6f7a8c
+  font-family: 'Open Sans', sans-serif
+
+.sp-prev-c__hero-overlay
+  position: absolute
+  bottom: 0
+  left: 0
+  right: 0
+  padding: 26px 24px 22px
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.75) 100%)
+  color: #fff
+  display: flex
+  flex-direction: column
+  gap: 3px
+
+.sp-prev-c__stars
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 700
+  color: #ffd166
+  letter-spacing: 0.05em
+
+.sp-prev-c__title
+  font-family: 'Poppins', sans-serif
+  font-size: 28px
+  font-weight: 700
+  margin: 0
+  line-height: 1.1
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4)
+
+.sp-prev-c__city
+  font-family: 'Open Sans', sans-serif
+  font-size: 14px
+  margin: 2px 0 0
+  opacity: 0.95
+
+.sp-prev-c__tag
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  font-weight: 500
+  font-style: italic
+  margin: 6px 0 0
+  color: #ffe5cc
+
+.sp-prev-c__gallery
+  display: grid
+  grid-template-columns: repeat(5, 1fr)
+  gap: 4px
+  padding: 4px
+
+.sp-prev-c__gallery-thumb
+  width: 100%
+  aspect-ratio: 1 / 1
+  background: var(--color-bg)
+  overflow: hidden
+  cursor: pointer
+  transition: transform 0.15s
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+  &:hover
+    transform: scale(1.02)
+
+.sp-prev-c__body
+  padding: 18px 22px 22px
+
+.sp-prev-c__desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 14px
+  line-height: 1.55
+  color: #1a2233
+  margin: 0
+
+.sp-prev-c__locality
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  line-height: 1.55
+  color: #485466
+  margin: 12px 0 0
+  padding-top: 12px
+  border-top: 1px solid var(--color-border)
+
+  strong
+    color: #1a2233
+    font-weight: 700
+
+.sp-prev-c__rooms
+  margin: 18px 0 0
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.sp-prev-c__rooms-title
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  color: #6f7a8c
+
+.sp-prev-c__room
+  display: grid
+  grid-template-columns: 80px 1fr auto
+  gap: 12px
+  align-items: center
+  padding: 10px
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  background: var(--color-bg)
+
+  img
+    width: 80px
+    height: 80px
+    border-radius: 6px
+    object-fit: cover
+
+.sp-prev-c__room-info
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+.sp-prev-c__room-name
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  font-weight: 600
+  color: #1a2233
+
+.sp-prev-c__room-desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 12.5px
+  color: #485466
+
+.sp-prev-c__room-meta
+  font-family: 'Open Sans', sans-serif
+  font-size: 11.5px
+  color: #6f7a8c
+  margin-top: 4px
+
+.sp-prev-c__room-price
+  font-family: 'Poppins', sans-serif
+  font-size: 18px
+  font-weight: 700
+  color: #1a2233
+
+  small
+    font-size: 11px
+    font-weight: 500
+    color: #6f7a8c
+
+.sp-prev-c__room-price-off
+  font-size: 11.5px
+  font-weight: 500
+  color: #c0392b
+  font-style: italic
+  font-family: 'Open Sans', sans-serif
+
+.sp-prev-c__cta
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-top: 18px
+  padding-top: 14px
+  border-top: 1px solid var(--color-border)
+  gap: 12px
+
+  > div
+    display: flex
+    flex-direction: column
+
+.sp-prev-c__price-label
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  color: #6f7a8c
+  text-transform: uppercase
+  letter-spacing: 0.05em
+
+.sp-prev-c__price
+  font-family: 'Poppins', sans-serif
+  font-size: 28px
+  font-weight: 700
+  color: #1a2233
+
+  small
+    font-size: 14px
+    font-weight: 500
+    color: #6f7a8c
+
+.sp-prev-c__btn
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  padding: 14px 32px
+  background: linear-gradient(135deg, #F08526 0%, #D26A0A 100%)
+  color: #fff
+  border-radius: 999px
+  font-family: 'Poppins', sans-serif
+  font-size: 15px
+  font-weight: 600
+  box-shadow: 0 4px 14px rgba(240, 133, 38, 0.30)
+  letter-spacing: 0.02em

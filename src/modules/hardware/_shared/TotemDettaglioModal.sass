@@ -3,9 +3,9 @@
 $primary: #204769
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 $success: #10b981
 $danger: #dc2626
@@ -22,7 +22,7 @@ $danger: #dc2626
     padding: 16px
 
   &__modal
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 14px
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
@@ -122,7 +122,7 @@ $danger: #dc2626
     width: 100%
     aspect-ratio: 9 / 16
     background: linear-gradient(180deg, #f3f4f6 0%, #d1d5db 100%)
-    border: 8px solid #1f2937
+    border: 8px solid var(--color-border)
     border-radius: 14px 14px 4px 4px
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18)
     display: flex
@@ -173,7 +173,7 @@ $danger: #dc2626
   &__mockup-sensor
     width: 36px
     height: 36px
-    background: white
+    background: var(--color-surface)
     border-radius: 6px
     display: inline-flex
     align-items: center

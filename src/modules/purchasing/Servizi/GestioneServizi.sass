@@ -1,0 +1,142 @@
+.gest-servizi
+
+  .gest-servizi__count
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    margin: 4px 0 12px
+
+  .gest-servizi__empty
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 15px
+    color: #5c5c5c
+
+  // ─── Tabella ─────────────────────────────────────────────────────────────
+  .gest-servizi__table
+    width: 100%
+
+  .gest-servizi__th-actions
+    text-align: right
+
+  .gest-servizi__row--off
+    opacity: 0.55
+
+  .gest-servizi__thumb
+    width: 40px
+    height: 40px
+    border-radius: 4px
+    overflow: hidden
+    background: var(--color-bg)
+    display: flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  .gest-servizi__name
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-primary)
+
+  .gest-servizi__sub
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  .gest-servizi__type-badge
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 3px 8px
+    border-radius: 999px
+    background-color: var(--type-color, var(--color-primary))
+    color: #fff
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 600
+    line-height: 1
+    white-space: nowrap
+
+  .gest-servizi__date-cell
+    font-family: 'Open Sans', sans-serif
+    font-size: 11.5px
+    color: var(--color-text-primary)
+
+  .gest-servizi__date-sep
+    color: var(--color-text-disabled)
+
+  // ─── Switch ──────────────────────────────────────────────────────────────
+  .gest-servizi__switch
+    position: relative
+    display: inline-block
+    width: 30px
+    height: 16px
+    cursor: pointer
+
+    input
+      opacity: 0
+      width: 0
+      height: 0
+
+      &:checked + .gest-servizi__switch-slider
+        background: var(--color-primary)
+
+      &:checked + .gest-servizi__switch-slider::before
+        transform: translateX(14px)
+
+  .gest-servizi__switch-slider
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    background: #cbd5e1
+    border-radius: 999px
+    transition: background 0.18s
+
+    &::before
+      content: ''
+      position: absolute
+      top: 2px
+      left: 2px
+      width: 12px
+      height: 12px
+      background: var(--color-surface)
+      border-radius: 50%
+      transition: transform 0.18s
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1)
+
+  // ─── Icone azioni ────────────────────────────────────────────────────────
+  .gest-servizi__cell-actions
+    text-align: right
+    white-space: nowrap
+
+  .gest-servizi__icon-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    margin-left: 4px
+    transition: all 0.15s
+
+    &:hover
+      background: var(--color-bg)
+      border-color: var(--color-primary)
+
+  .gest-servizi__icon-btn--danger:hover
+    border-color: var(--color-error, #c0392b)

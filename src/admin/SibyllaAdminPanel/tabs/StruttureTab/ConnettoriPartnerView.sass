@@ -1,0 +1,342 @@
+.cnp-view
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  // ─── Counters ───────────────────────────────────────────────────────────
+  .cnp-view__counters
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px
+
+    @media (min-width: 700px)
+      grid-template-columns: repeat(4, 1fr)
+
+  .cnp-view__counter
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    display: flex
+    align-items: center
+    gap: 12px
+
+  .cnp-view__counter--alert
+    border-color: rgba(192, 57, 43, 0.25)
+    background: rgba(192, 57, 43, 0.04)
+
+    .cnp-view__counter-ico
+      color: var(--color-error, #c0392b)
+
+  .cnp-view__counter-ico
+    color: var(--color-primary)
+    font-size: 22px
+    flex-shrink: 0
+
+  .cnp-view__counter-value
+    font-family: 'Poppins', sans-serif
+    font-size: 18px
+    font-weight: 700
+    color: var(--color-primary)
+    line-height: 1.1
+
+  .cnp-view__counter-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  .cnp-view__count
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    margin: 4px 0 0
+
+  .cnp-view__empty
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 15px
+    color: #5c5c5c
+
+  // ─── Lista card ──────────────────────────────────────────────────────────
+  .cnp-view__list
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+.cnp-card
+  display: grid
+  grid-template-columns: 56px 1fr 240px
+  gap: 14px
+  align-items: center
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  padding: 14px
+  transition: border-color 0.18s, box-shadow 0.18s
+
+  &:hover
+    border-color: var(--color-border)
+    box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06)
+
+  &.cnp-card--off
+    opacity: 0.6
+
+  @media (max-width: 900px)
+    grid-template-columns: 56px 1fr
+    .cnp-card__actions
+      grid-column: 1 / -1
+      justify-content: flex-end
+
+.cnp-card__provider
+  width: 56px
+  height: 56px
+  border-radius: 10px
+  background-color: var(--provider-color, var(--color-primary))
+  color: #fff
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 22px
+
+.cnp-card__body
+  display: flex
+  flex-direction: column
+  gap: 6px
+  min-width: 0
+
+.cnp-card__head
+  display: flex
+  align-items: baseline
+  gap: 10px
+  flex-wrap: wrap
+
+.cnp-card__title
+  font-family: 'Poppins', sans-serif
+  font-size: 14px
+  font-weight: 600
+  color: var(--color-primary)
+  margin: 0
+
+.cnp-card__provider-badge
+  padding: 2px 8px
+  border-radius: 999px
+  background: transparent
+  border: 1px solid var(--provider-color, #ccc)
+  color: var(--provider-color, var(--color-text-inactive))
+  font-family: 'Open Sans', sans-serif
+  font-size: 10.5px
+  font-weight: 700
+  letter-spacing: 0.04em
+
+.cnp-card__desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  line-height: 1.4
+  color: var(--color-text-inactive)
+  margin: 0
+
+.cnp-card__meta-row
+  display: inline-flex
+  flex-wrap: wrap
+  gap: 12px
+  margin-top: 2px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11.5px
+
+.cnp-card__meta-item
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  color: var(--color-text-inactive)
+
+  i
+    font-size: 11px
+
+.cnp-card__sync
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  padding: 2px 8px
+  border-radius: 999px
+  font-weight: 600
+  font-size: 11px
+  letter-spacing: 0.03em
+
+.cnp-card__sync-dot
+  width: 7px
+  height: 7px
+  border-radius: 50%
+
+.cnp-card__sync--ok
+  background: rgba(46, 141, 89, 0.10)
+  color: #1f6c44
+
+  .cnp-card__sync-dot
+    background: #2E8D59
+
+.cnp-card__sync--errore
+  background: rgba(192, 57, 43, 0.10)
+  color: #b03020
+
+  .cnp-card__sync-dot
+    background: #c0392b
+
+.cnp-card__sync--in-corso
+  background: rgba(92, 156, 212, 0.10)
+  color: #2c6a99
+
+  .cnp-card__sync-dot
+    background: #5C9CD4
+    animation: cnpPulse 1.2s ease-in-out infinite
+
+.cnp-card__sync--mai-eseguito
+  background: rgba(95, 95, 95, 0.10)
+  color: #555
+
+  .cnp-card__sync-dot
+    background: #888
+
+@keyframes cnpPulse
+  0%, 100%
+    transform: scale(1)
+    opacity: 1
+  50%
+    transform: scale(1.35)
+    opacity: 0.6
+
+.cnp-card__sync-msg
+  font-family: 'Open Sans', sans-serif
+  font-size: 11.5px
+  font-style: italic
+  color: var(--color-text-inactive)
+  margin: 4px 0 0
+
+  &.cnp-card__sync-msg--errore
+    color: #b03020
+
+.cnp-card__canali-row
+  display: flex
+  align-items: center
+  gap: 10px
+  margin-top: 4px
+  flex-wrap: wrap
+
+.cnp-card__canali-label
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+  color: var(--color-text-inactive)
+  text-transform: uppercase
+  letter-spacing: 0.04em
+
+.cnp-card__canali
+  display: inline-flex
+  gap: 4px
+  flex-wrap: wrap
+
+.cnp-card__canale-pill
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  padding: 3px 9px
+  border-radius: 999px
+  background: transparent
+  border: 1px solid var(--canale-color, #ccc)
+  color: var(--canale-color, var(--color-text-inactive))
+  font-family: 'Open Sans', sans-serif
+  font-size: 10.5px
+  font-weight: 700
+  letter-spacing: 0.05em
+  cursor: pointer
+  transition: background 0.15s, color 0.15s
+  opacity: 0.5
+
+  &:hover
+    opacity: 0.85
+
+.cnp-card__canale-pill--on
+  background: var(--canale-color, var(--color-primary))
+  color: #fff
+  opacity: 1
+
+.cnp-card__canale-markup
+  font-weight: 500
+  opacity: 0.85
+
+.cnp-card__actions
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  flex-wrap: wrap
+  justify-content: flex-end
+
+.cnp-card__switch
+  position: relative
+  display: inline-block
+  width: 30px
+  height: 16px
+  cursor: pointer
+
+  input
+    opacity: 0
+    width: 0
+    height: 0
+
+    &:checked + .cnp-card__switch-slider
+      background: var(--color-primary)
+
+    &:checked + .cnp-card__switch-slider::before
+      transform: translateX(14px)
+
+.cnp-card__switch-slider
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background: #cbd5e1
+  border-radius: 999px
+  transition: background 0.18s
+
+  &::before
+    content: ''
+    position: absolute
+    top: 2px
+    left: 2px
+    width: 12px
+    height: 12px
+    background: var(--color-surface)
+    border-radius: 50%
+    transition: transform 0.18s
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1)
+
+.cnp-card__action-btn
+  display: inline-flex
+  align-items: center
+  gap: 5px
+
+.cnp-card__icon-btn
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 28px
+  height: 28px
+  border-radius: 4px
+  border: 1px solid var(--color-border)
+  background: var(--color-surface)
+  cursor: pointer
+  transition: all 0.15s
+
+  &:hover
+    background: var(--color-bg)
+
+.cnp-card__icon-btn--danger:hover
+  border-color: var(--color-error, #c0392b)

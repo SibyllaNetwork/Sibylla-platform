@@ -5,7 +5,7 @@
   background: #204769;
   color: #ffffff;
   padding: 0.75rem 1.5rem;
-  border: 1px solid #204769;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
@@ -16,7 +16,7 @@
 
 .quotes-page__new:hover {
   background: #2d5a7f;
-  border-color: #2d5a7f;
+  border-color: var(--color-border);
 }
 
 .quotes-page__stats {
@@ -33,15 +33,15 @@
 }
 
 .quote-stat {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1.25rem;
   transition: border-color 0.2s;
 }
 
 .quote-stat:hover {
-  border-color: #cfcfcf;
+  border-color: var(--color-border);
 }
 
 .quote-stat__head {
@@ -63,7 +63,7 @@
 }
 
 .quote-stat__icon {
-  color: #9ca3af;
+  color: var(--color-text-disabled);
   font-size: 0.875rem;
 }
 
@@ -72,13 +72,13 @@
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 2rem;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0;
 }
 
 .quotes-page__filter-tabs {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -96,7 +96,7 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  background: #f3f4f6;
+  background: var(--color-bg);
   color: #374151;
   border: none;
   white-space: nowrap;
@@ -108,7 +108,7 @@
 }
 
 .quotes-page__filter-tab:hover {
-  background: #e5e7eb;
+  background: var(--color-border);
 }
 
 .quotes-page__filter-tab--active {
@@ -136,8 +136,8 @@
 }
 
 .quote-empty {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   padding: 3rem;
   text-align: center;
@@ -152,25 +152,25 @@
 .quote-empty__text {
   font-family: 'Open Sans', sans-serif;
   font-size: 1rem;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   margin: 0;
 }
 
 .quote-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   overflow: hidden;
   transition: border-color 0.2s;
 }
 
 .quote-card:hover {
-  border-color: #cfcfcf;
+  border-color: var(--color-border);
 }
 
 .quote-card__head {
   padding: 1.5rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .quote-card__head-row {
@@ -196,7 +196,7 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 1.125rem;
-  color: #1f2937;
+  color: var(--color-text-active);
   margin: 0;
 }
 
@@ -218,7 +218,7 @@
 }
 
 .quote-card__status--draft {
-  background: #f3f4f6;
+  background: var(--color-bg);
   color: #374151;
 }
 .quote-card__status--draft .quote-card__status-dot { background: #6b7280; }
@@ -230,7 +230,7 @@
 .quote-card__status--sent .quote-card__status-dot { background: #3b82f6; }
 
 .quote-card__status--received {
-  background: #ffedd5;
+  background: var(--color-warning-light);
   color: #c2410c;
 }
 .quote-card__status--received .quote-card__status-dot { background: #f97316; }
@@ -264,14 +264,14 @@
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 1.5rem;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0;
 }
 
 .quote-card__iva {
   font-family: 'Open Sans', sans-serif;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   margin: 0;
 }
 
@@ -279,7 +279,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   font-family: 'Open Sans', sans-serif;
   font-size: 0.75rem;
   flex-wrap: wrap;
@@ -293,7 +293,7 @@
 
 .quote-card__items-section {
   padding: 1.5rem;
-  background: #f9fafb;
+  background: var(--color-bg);
 }
 
 .quote-card__items-title {
@@ -315,8 +315,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
 }
 
@@ -324,14 +324,14 @@
   font-family: 'Open Sans', sans-serif;
   font-weight: 600;
   font-size: 0.8125rem;
-  color: #1f2937;
+  color: var(--color-text-active);
   margin: 0 0 0.125rem;
 }
 
 .quote-card__item-calc {
   font-family: 'Open Sans', sans-serif;
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   margin: 0;
 }
 
@@ -339,13 +339,13 @@
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
   font-size: 0.875rem;
-  color: #1f2937;
+  color: var(--color-text-active);
 }
 
 .quote-card__totals-summary {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -362,22 +362,22 @@
 
 .quote-card__totals-row--grand {
   padding-top: 0.5rem;
-  border-top: 1px solid #d1d5db;
+  border-top: 1px solid var(--color-border);
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 1.125rem;
-  color: #1f2937;
+  color: var(--color-text-active);
 }
 
 .quote-card__totals-row--grand .quote-card__totals-value {
-  color: #204769;
+  color: var(--color-primary);
 }
 
 .quote-card__notes {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
+  background: var(--color-link-light);
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
   font-family: 'Open Sans', sans-serif;
   font-size: 0.75rem;
@@ -386,8 +386,8 @@
 
 .quote-card__actions {
   padding: 1rem 1.5rem;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -406,59 +406,59 @@
   font-size: 0.8125rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #374151;
 }
 
 .quote-btn:hover {
-  background: #f3f4f6;
+  background: var(--color-bg);
 }
 
 .quote-btn--primary {
   background: #204769;
-  border-color: #204769;
+  border-color: var(--color-border);
   color: #ffffff;
   font-weight: 700;
 }
 
 .quote-btn--primary:hover {
   background: #2d5a7f;
-  border-color: #2d5a7f;
+  border-color: var(--color-border);
 }
 
 .quote-btn--warning {
   background: #f97316;
-  border-color: #f97316;
+  border-color: var(--color-border);
   color: #ffffff;
   font-weight: 700;
 }
 
 .quote-btn--warning:hover {
   background: #ea580c;
-  border-color: #ea580c;
+  border-color: var(--color-border);
 }
 
 .quote-btn--success {
   background: #22c55e;
-  border-color: #22c55e;
+  border-color: var(--color-border);
   color: #ffffff;
   font-weight: 700;
 }
 
 .quote-btn--success:hover {
   background: #16a34a;
-  border-color: #16a34a;
+  border-color: var(--color-border);
 }
 
 .quote-btn--danger {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--color-error-light);
+  border-color: var(--color-border);
   color: #dc2626;
 }
 
 .quote-btn--danger:hover {
-  background: #fee2e2;
+  background: var(--color-error-light);
 }
 
 .quote-modal {
@@ -473,8 +473,8 @@
 }
 
 .quote-modal__dialog {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   max-width: 42rem;
   width: 100%;
@@ -484,27 +484,27 @@
 
 .quote-modal__head {
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  background: #ffffff;
+  background: var(--color-surface);
 }
 
 .quote-modal__title {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 1.5rem;
-  color: #1f2937;
+  color: var(--color-text-active);
   margin: 0;
 }
 
 .quote-modal__close {
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: var(--color-text-inactive);
   padding: 0.5rem;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -512,7 +512,7 @@
 }
 
 .quote-modal__close:hover {
-  background: #f3f4f6;
+  background: var(--color-bg);
 }
 
 .quote-modal__body {
@@ -531,7 +531,7 @@
   padding: 0.75rem;
   background: #204769;
   color: #ffffff;
-  border: 1px solid #204769;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   font-family: 'Open Sans', sans-serif;
   font-weight: 700;
@@ -542,5 +542,5 @@
 
 .quote-modal__cta:hover {
   background: #2d5a7f;
-  border-color: #2d5a7f;
+  border-color: var(--color-border);
 }

@@ -30,6 +30,15 @@ export interface Piano {
   camere: Camera[];
 }
 
+export interface RoomDetail {
+  numero: string;
+  piano: string;
+  nome: string;
+  tipoAssegnato: string;
+  tipoRichiesto: string;
+  statoCheckIn: string;
+}
+
 export interface Pren {
   id: string;
   booking: string;
@@ -40,6 +49,18 @@ export interface Pren {
   numeroCamera: string;
   agenzia?: string;
   segmento?: string;
+  // ── Dettagli estesi (opzionali) per il pannello Info ──
+  cliente?: string;
+  statoCheckIn?: string;
+  persone?: number;
+  adulti?: number;
+  bambini?: number;
+  neonati?: number;
+  animali?: number;
+  camere?: number;
+  arrangiamento?: string;
+  note?: string;
+  dettaglioCamere?: RoomDetail[];
 }
 
 export interface PrenPendente {

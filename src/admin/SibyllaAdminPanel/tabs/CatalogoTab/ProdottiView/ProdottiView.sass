@@ -34,7 +34,7 @@
   padding: 0 10px
   border: 1px solid $border
   border-radius: 7px
-  background: #F8FAFC
+  background: var(--color-bg)
 
 .prod-view__select
   // align with search height via sib-select default
@@ -47,7 +47,7 @@
 
 .prod-view__table
   background: $white
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-radius: 10px
   overflow: hidden
 
@@ -55,8 +55,8 @@
   display: grid
   grid-template-columns: 130px 1.4fr 1.1fr 90px 1.2fr 60px 80px 170px 70px
   padding: 8px 14px
-  background: #F8FAFC
-  border-bottom: 0.5px solid $border
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
   font-size: 10px
   font-weight: 700
   color: $text-disabled
@@ -70,14 +70,14 @@
   padding: 11px 14px
   align-items: center
   gap: 8px
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
   transition: background 0.1s
 
   &:last-child
     border-bottom: none
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
 .prod-view__barcode
   display: flex
@@ -169,7 +169,7 @@
   border: none
   cursor: pointer
   color: $text-disabled
-  background: #F0F0F0
+  background: var(--color-bg)
   transition: all 0.15s
 
   &--on
@@ -202,8 +202,8 @@
 
   &--draft
     color: $text-disabled
-    background: #F0F0F0
-    border-color: #E5E5E5
+    background: var(--color-bg)
+    border-color: var(--color-border)
 
 .prod-view__pub-btn
   display: inline-flex

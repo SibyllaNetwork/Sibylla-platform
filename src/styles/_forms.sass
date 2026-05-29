@@ -40,9 +40,9 @@ $_arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width
   &:hover:not(:disabled):not(:focus)
     border-color: $primary-400
 
-  &:focus
-    border-color: $primary
-    box-shadow: 0 0 0 3px rgba($primary, 0.08)
+  &:focus-visible
+    border-color: $link
+    box-shadow: 0 0 0 3px $focus-ring
 
 // ══ FIELD — INPUT TESTO ═══════════════════════════════════════════════════════
 .field
@@ -59,8 +59,9 @@ $_arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width
   &--error
     border-color: $error
 
-    &:focus
-      box-shadow: 0 0 0 3px rgba($error, 0.1)
+    &:focus-visible
+      border-color: $error
+      box-shadow: 0 0 0 3px $error-light
 
   &:disabled, &--disabled
     color: $text-disabled
@@ -228,7 +229,8 @@ $_arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width
   transition: $transition-fast
 
   &:focus-within
-    border-color: $primary
+    border-color: $link
+    box-shadow: 0 0 0 3px $focus-ring
 
   &__input
     border: none

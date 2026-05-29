@@ -1,128 +1,388 @@
 // ─── GRIGLIA DISPONIBILITÀ ────────────────────────────────────────────────────
+// Standard tabella canonico Sibylla: bordi 1px, header bg muted uppercase 10.5px,
+// righe padding 4px 10px, niente zebra, divider righe #eef0f3.
 @use '../../../../styles/tokens' as *
 
-.griglia-disp
+$gd-row-divider: #eef0f3
+$gd-day-divider: $border
 
-  // ── Toolbar ─────────────────────────────────────────────────────────────────
+.griglia-disp
+  display: flex
+  flex-direction: column
+  align-items: stretch
+
+  // BtnBack — larghezza intrinseca, allineato a sinistra sopra il titolo
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── KPI hero strip ────────────────────────────────────────────────────────
+  &__kpis
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 12px
+    margin-bottom: 18px
+
+    @media (max-width: 900px)
+      grid-template-columns: repeat(2, 1fr)
+
+  &__kpi
+    position: relative
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 14px 16px
+    background: $white
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: hidden
+    transition: all 0.18s ease
+
+    &::before
+      content: ''
+      position: absolute
+      left: 0
+      top: 0
+      bottom: 0
+      width: 3px
+      background: $primary
+
+    &:hover
+      box-shadow: 0 6px 18px rgba(32, 71, 105, 0.08)
+      transform: translateY(-1px)
+
+    &--primary
+      &::before
+        background: $primary
+
+      .griglia-disp__kpi-icon
+        background: $primary-50
+        color: $primary
+
+    &--warn
+      &::before
+        background: $warning
+
+      .griglia-disp__kpi-icon
+        background: $warning-light
+        color: $warning
+
+    &--accent
+      &::before
+        background: #6C4FB0
+
+      .griglia-disp__kpi-icon
+        background: rgba(108, 79, 176, 0.10)
+        color: #6C4FB0
+
+  &__kpi-icon
+    flex-shrink: 0
+    width: 40px
+    height: 40px
+    border-radius: 10px
+    background: $primary-50
+    color: $primary
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    i
+      font-size: 18px
+
+  &__kpi-body
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+
+  &__kpi-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__kpi-value
+    font-family: $font-heading
+    font-size: 22px
+    font-weight: 700
+    color: $primary
+    line-height: 1.1
+
+  &__kpi-trend
+    font-size: 11px
+    color: $text-inactive
+
+  // ── Toolbar ───────────────────────────────────────────────────────────────
   &__toolbar
     display: flex
     align-items: flex-end
     justify-content: space-between
+    gap: 16px
     flex-wrap: wrap
-    gap: $space-md
+    margin-bottom: 16px
 
   &__filters
     display: flex
     align-items: flex-end
-    gap: $space-lg
+    gap: 16px
     flex-wrap: wrap
-    margin-bottom: 20px
 
-  &__filter
-    display: flex
-    flex-direction: column
-    gap: $space-xs
-
-  &__filter-label
-    font-size: 11px
-    font-weight: 600
-    color: $text-active
-
-  &__export-btns
-    display: flex
-    gap: $space-sm
-
-  &__export-btn
-    width: 34px
-    height: 34px
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-md
+  &__export
     display: flex
     align-items: center
-    justify-content: center
+    gap: 8px
+
+  // ── Suggerimenti (toggle + gear) ──────────────────────────────────────────
+  &__suggerimenti
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__sugg-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__sugg-row
+    display: flex
+    align-items: center
+    gap: 10px
+    height: 36px
+
+  &__switch
+    position: relative
+    width: 36px
+    height: 20px
+    border-radius: 999px
+    border: none
     cursor: pointer
-    transition: all 0.15s
+    background: $border
+    transition: background 0.18s ease
+    padding: 0
+
+    &.is-on
+      background: $primary
+
+  &__switch-thumb
+    position: absolute
+    top: 2px
+    left: 2px
+    width: 16px
+    height: 16px
+    border-radius: 50%
+    background: $white
+    box-shadow: 0 1px 2px rgba(0,0,0,0.18)
+    transition: transform 0.18s ease
+
+    .griglia-disp__switch.is-on &
+      transform: translateX(16px)
+
+  &__gear-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 30px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    color: $text-inactive
+    cursor: pointer
+    transition: all 0.15s ease
+
+    i
+      font-size: 13px
+
+    &:hover:not(:disabled)
+      border-color: $primary
+      color: $primary
+      background: $primary-50
+
+    &:disabled
+      opacity: 0.45
+      cursor: not-allowed
+
+  // Bottone PDF grafico — chart-line icon + label "PDF"
+  &__pdf-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 30px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    color: $text-inactive
+    cursor: pointer
+    font-family: inherit
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: 0.4px
+    text-transform: uppercase
+    transition: all 0.15s ease
+
+    i
+      font-size: 13px
 
     &:hover
       border-color: $primary
+      color: $primary
       background: $primary-50
 
-  // ── Tabella scrollabile ──────────────────────────────────────────────────────
+  // ── Tabella ───────────────────────────────────────────────────────────────
   &__table-wrap
-    overflow-x: auto
-    border: 0.5px solid $border
-    border-radius: $radius-lg
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: auto
     background: $white
+    box-shadow: 0 2px 10px rgba(32, 71, 105, 0.04)
 
   &__table
-    border-collapse: collapse
-    font-size: 13px
-    min-width: 900px
     width: 100%
+    min-width: 1100px
+    border-collapse: separate
+    border-spacing: 0
+    font-size: 13px
+
+  &__th-row
+    background: $bg
 
   &__th
-    padding: 10px 14px
-    font-size: 10px
-    font-weight: 700
-    color: $text-disabled
+    padding: 6px 10px
+    background: $bg
+    color: $text-inactive
+    font-size: 10.5px
+    font-weight: 600
     text-transform: uppercase
     letter-spacing: 0.4px
-    background: #F8FAFC
     border-bottom: 1px solid $border
-    white-space: nowrap
     text-align: center
+    white-space: nowrap
+    vertical-align: middle
+    position: relative
 
-    &--left
+    &--struct
       text-align: left
+      min-width: 210px
+      position: sticky
+      left: 0
+      z-index: 3
+      background: $bg
+      border-right: 1px solid $border
 
-    &--date
-      background: $primary-50
-      color: $primary
-      font-size: 12px
-      border-left: 2px solid $primary-200
-      padding: 8px 12px
+    &--day
+      border-left: 1px solid $gd-day-divider
+      padding: 8px 10px
 
-  &__th-icon-wrap
-    display: flex
+      &.is-weekend .griglia-disp__day-chip
+        color: $primary
+        font-weight: 700
+
+    &--sub
+      padding: 4px 10px 6px
+
+    &--day-start
+      border-left: 1px solid $gd-day-divider
+
+  &__day-head
+    display: inline-flex
     flex-direction: column
     align-items: center
-    gap: 3px
+    gap: 2px
+
+  // Day-chip: testuale, allineato allo standard header ($text-inactive, uppercase, 10.5px, ls 0.4px)
+  &__day-chip
+    font-size: 10.5px
+    font-weight: 600
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__day-date
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-active
+    text-transform: none
+    letter-spacing: 0
+
+  &__th-stack
+    display: inline-flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+
+    i
+      font-size: 12px
+      color: $text-inactive
+
+  &__tr
+    transition: background 0.12s ease
+
+    // Riga speciale (totale): bianca, separata solo con border-top più marcato
+    &--total td
+      font-weight: 700
+      color: $primary
+      border-top: 2px solid $border
+      background: $white
 
   &__td
-    padding: 10px 14px
+    padding: 6px 10px
     color: $text-active
-    border-bottom: 0.5px solid $border
     text-align: center
     white-space: nowrap
+    border-bottom: 1px solid $gd-row-divider
+    vertical-align: middle
+    background: $white
 
-    &--left
+    &--struct
       text-align: left
       font-weight: 500
       color: $primary
+      position: sticky
+      left: 0
+      z-index: 2
+      border-right: 1px solid $border
 
-    &--border-left
-      border-left: 2px solid $primary-200
+    &--day-start
+      border-left: 1px solid $gd-day-divider
 
-    &--muted
-      color: $text-inactive
-      font-size: 12px
-
-  &__tr
-    transition: background 0.1s
-
-    &:hover
-      background: #F8FCFF
-
-    &--total
-      background: $primary-100
+    &.is-negative
+      color: $error
       font-weight: 700
 
-      td
-        color: $primary
-        border-bottom: none
+  // ultime righe senza bordo inferiore
+  tbody tr:last-child &__td
+    border-bottom: none
 
-  &__stop-badge
+  // ── Hotel cell ────────────────────────────────────────────────────────────
+  &__hotel
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__hotel-ico
+    flex-shrink: 0
+    width: 18px
+    text-align: center
+    font-size: 15px
+    color: $primary
+
+  &__hotel-name
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__hotel--total .griglia-disp__hotel-name
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    font-size: 12px
+
+  &__buffer-plus
+    color: $success
+    font-weight: 600
+    font-size: 12px
+
+  &__stop
     display: inline-flex
     align-items: center
     justify-content: center
@@ -132,7 +392,33 @@
     border-radius: 50%
     color: $error
 
-  &__buffer-plus
-    color: $success
-    font-weight: 600
+    i
+      font-size: 10px
+
+  // Chip rosso cliccabile per celle negative
+  &__neg-chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: $error-light
+    border: 1px solid rgba(232, 73, 73, 0.25)
+    border-radius: 999px
+    padding: 2px 10px
+    cursor: pointer
+    color: $error
+    font: inherit
+    font-weight: 700
     font-size: 12px
+    transition: all 0.15s ease
+
+    i
+      font-size: 10px
+      color: $error
+
+    &:hover
+      background: $error
+      color: $white
+      border-color: $error
+
+      i
+        color: $white

@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import { useCartStore } from '../../../../store/useCartStore';
 
 /* Cart can hold two item kinds. Use the `kind` discriminator to branch UI. */
 
@@ -73,7 +74,54 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  // Hydration: leggi gli stay items dal global Zustand store all'avvio.
+  // Serve perché AgoraShell viene rimontato quando l'utente navigato fuori e
+  // rientra (es. Topbar cart icon → /cart). Il global store sopravvive.
+  const initialFromGlobal: CartItem[] = useCartStore.getState().items
+    .flatMap((it) => it.kind === 'stay' ? [{
+      kind: 'stay' as const,
+      id: it.id,
+      name: it.nome,
+      location: it.location,
+      image: it.immagineUrl,
+      pricePerNight: it.prezzoPerNotte,
+      nights: it.notti,
+      adults: it.adulti,
+      children: it.bambini,
+      checkIn: it.checkIn,
+      checkOut: it.checkOut,
+      stars: it.stelle,
+      rooms: it.camere,
+    }] : [])
+
+  const [items, setItems] = useState<CartItem[]>(initialFromGlobal);
+
+  // Subscription: ogni volta che il global store cambia, ri-sincronizza
+  // gli stay items nel context (additions globali avvengono in altri flussi).
+  useEffect(() => {
+    return useCartStore.subscribe((state) => {
+      const stayItemsGlobal: StayCartItem[] = state.items
+        .flatMap((it) => it.kind === 'stay' ? [{
+          kind: 'stay' as const,
+          id: it.id,
+          name: it.nome,
+          location: it.location,
+          image: it.immagineUrl,
+          pricePerNight: it.prezzoPerNotte,
+          nights: it.notti,
+          adults: it.adulti,
+          children: it.bambini,
+          checkIn: it.checkIn,
+          checkOut: it.checkOut,
+          stars: it.stelle,
+          rooms: it.camere,
+        }] : [])
+      setItems((prev) => {
+        const nonStay = prev.filter((i) => i.kind !== 'stay')
+        return [...nonStay, ...stayItemsGlobal]
+      })
+    })
+  }, [])
 
   const addProduct: CartContextType['addProduct'] = (item, quantity) => {
     setItems((prev) => {
@@ -117,6 +165,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeItem: CartContextType['removeItem'] = (id) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
+    // sync al global store: rimuovi anche lì se è uno stay
+    useCartStore.getState().removeItem(id);
   };
 
   const updateQuantity: CartContextType['updateQuantity'] = (id, quantity) => {
@@ -137,9 +187,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) =>
       prev.map((i) => (i.kind === 'stay' && i.id === id ? { ...i, nights } : i)),
     );
+    // sync al global store
+    useCartStore.getState().updateStayNotti(id, nights);
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => {
+    setItems([]);
+    useCartStore.getState().clearCart();
+  };
 
   const { totalItems, totalPrice } = useMemo(() => {
     let count = 0;

@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 
 .crea-mag
   display: flex
@@ -60,7 +60,7 @@ $bg-soft: #f8fcff
 
   // ── Tabella movimenti ─────────────────────────────────────────────
   &__movimenti
-    background: #fff
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 12px
     overflow: hidden
@@ -140,7 +140,7 @@ $bg-soft: #f8fcff
     padding: 16px
 
   &__modal
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 14px
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
@@ -176,7 +176,7 @@ $bg-soft: #f8fcff
   &__modal-foot
     padding: 14px 22px
     border-top: 1px solid $border
-    background: white
+    background: var(--color-surface)
 
   // ── Field group ───────────────────────────────────────────────────
   &__field
@@ -241,7 +241,7 @@ $bg-soft: #f8fcff
     justify-content: center
     gap: 6px
     padding: 14px
-    background: white
+    background: var(--color-surface)
     border: 2px solid $border
     border-radius: 10px
     color: $muted

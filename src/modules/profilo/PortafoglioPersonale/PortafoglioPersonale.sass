@@ -36,7 +36,7 @@
 .paf__card
   background: $white
   border-radius: 12px
-  border: 0.5px solid $border
+  border: 1px solid $border
   padding: 20px
 
 .paf__movimenti-card
@@ -218,9 +218,9 @@
   display: grid
   grid-template-columns: 1fr 1.6fr 0.8fr 0.7fr 1.2fr 0.7fr
   padding: 8px 12px
-  background: #FAFBFC
+  background: var(--color-bg)
   border-radius: 8px 8px 0 0
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-bottom: none
 
   &--pers
@@ -234,7 +234,7 @@
   letter-spacing: 0.5px
 
 .paf__mov-body
-  border: 0.5px solid $border
+  border: 1px solid $border
   border-radius: 0 0 8px 8px
   overflow: hidden
 
@@ -246,13 +246,13 @@
   transition: background 0.1s
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
   &--pers
     grid-template-columns: 1fr 1.6fr 0.9fr 0.7fr 1.2fr 0.7fr
 
   &--border
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
 .paf__mov-id
   font-size: 12px

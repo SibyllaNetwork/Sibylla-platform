@@ -3,9 +3,9 @@
 $primary: #204769
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
 $success: #10b981
 $warning: #f59e0b
@@ -170,7 +170,7 @@ $danger: #dc2626
   &__sub-table
     width: 100%
     border-collapse: collapse
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 8px
     overflow: hidden
@@ -209,11 +209,11 @@ $danger: #dc2626
       color: #065f46
 
     &--warning
-      background: #fef3c7
+      background: var(--color-warning-light)
       color: #92400e
 
     &--error
-      background: #fee2e2
+      background: var(--color-error-light)
       color: #991b1b
 
   &__no-details
@@ -222,6 +222,6 @@ $danger: #dc2626
     color: $muted
     font-size: 12px
     text-align: center
-    background: white
+    background: var(--color-surface)
     border: 1px dashed $border-strong
     border-radius: 8px

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
+import EmptyState from '../../../core/components/EmptyState'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
@@ -268,7 +269,13 @@ export default function ContiAperti({ navigate }: { navigate: (p: string) => voi
           </thead>
           <tbody>
             {pageRows.length === 0 ? (
-              <tr><td colSpan={8} className="sib-empty">Nessun soggiorno per i criteri selezionati.</td></tr>
+              <tr><td colSpan={8}>
+                <EmptyState
+                  icon="bed-front"
+                  title="Nessun soggiorno trovato"
+                  subtitle="Non ci sono soggiorni per i criteri selezionati. Prova a modificare la ricerca o l'intervallo di date."
+                />
+              </td></tr>
             ) : pageRows.map((r) => (
               <React.Fragment key={r.id}>
                 <tr className={selSoggiorni.has(r.id) ? 'mov-sog__row mov-sog__row--sel' : 'mov-sog__row'}>

@@ -4,9 +4,9 @@ $primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: #e5e7eb
-$border-strong: #d1d5db
-$bg-soft: #f8fcff
+$border: var(--color-border)
+$border-strong: var(--color-border)
+$bg-soft: var(--color-bg)
 
 .ins-contr
   display: flex
@@ -17,7 +17,7 @@ $bg-soft: #f8fcff
     align-self: flex-start
 
   &__section
-    background: white
+    background: var(--color-surface)
     border: 1px solid $border
     border-radius: 12px
     overflow: hidden
@@ -29,7 +29,7 @@ $bg-soft: #f8fcff
         cursor: not-allowed
 
         &:hover
-          background: white
+          background: var(--color-surface)
 
   &__sec-head
     display: flex
@@ -115,7 +115,7 @@ $bg-soft: #f8fcff
     border: 1px solid $border-strong
     border-radius: 6px
     overflow: hidden
-    background: white
+    background: var(--color-surface)
     height: 36px
 
   &__file-btn
@@ -186,4 +186,4 @@ $bg-soft: #f8fcff
     color: #dc2626
 
     &:hover
-      background: #fef2f2
+      background: var(--color-error-light)

@@ -50,7 +50,9 @@ export default function Sidebar({
   useEffect(() => { if (!sideOpen) setStructOpen(false) }, [sideOpen])
 
   const rootClass = clsx(
-    'flex flex-col overflow-hidden bg-primary-900 text-white',
+    // Allineato alla topbar: stessa CSS variable `--color-primary` per
+    // garantire identico background fra sidenav e header su tutti i temi.
+    'app__sidebar flex flex-col overflow-hidden bg-primary text-white',
     isMobile
       ? [
           'fixed top-0 h-screen w-[272px] min-w-[272px] z-50 transition-[left] duration-300 ease-sidebar',

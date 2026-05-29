@@ -9,7 +9,7 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ title, headerRight, children, className = '', noPadding = false }) => (
-  <div className={`bg-white rounded-card border-[0.5px] border-line overflow-hidden ${className}`}>
+  <div className={`bg-white rounded-card border border-line overflow-hidden ${className}`}>
     {(title || headerRight) && (
       <div className="flex items-center justify-between px-4 py-3 border-b border-line">
         {title && <h3 className="text-[13px] font-bold font-poppins text-primary">{title}</h3>}

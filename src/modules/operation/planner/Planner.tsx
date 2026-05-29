@@ -1,22 +1,28 @@
 // ─── Planner ──────────────────────────────────────────────────────────────────
-import React from 'react';
+import React, { useState } from 'react';
 import BtnBack from '../../../core/components/BtnBack';
 
-import { PlannerProps } from './planner.types';
+import { PlannerProps, Pren } from './planner.types';
 import { CAM_CLR } from './planner.styles';
-import { STRUTTURE, PIANI_DATA, PENDING_DA, PENDING_AL, parseDt } from './planner.data';
+import { STRUTTURE, PIANI_DATA, PENDING_DA, PENDING_AL, parseDt, diffDays } from './planner.data';
 import { usePlannerState } from './hooks/usePlannerState';
 
 import HotelVisualization from './components/HotelVisualization';
 import Timeline           from './components/Timeline';
+import Parcheggio         from './components/Parcheggio';
 import InfoPanel          from './components/InfoPanel';
 import ActionButtons      from './components/ActionButtons';
 import LegendaModal       from './components/LegendaModal';
 import PrenModal          from './components/PrenModal';
 import './planner.sass';
 
+const fmtDate = (s: string) =>
+  parseDt(s).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
 const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
   const s = usePlannerState(navigate);
+  const [barTip, setBarTip] = useState<{ pren: Pren; x: number; y: number } | null>(null);
+  const onBarHover = (pren: Pren | null, x: number, y: number) => setBarTip(pren ? { pren, x, y } : null);
 
   return (
     <>
@@ -90,13 +96,13 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
             <div className="planner__filter-group">
               <label className="planner__filter-label">Piani</label>
               <div className="planner__floor-btns">
-                {PIANI_DATA.map(p => (
+                {PIANI_DATA.filter(p => p.id !== 0).map(p => (
                   <button
                     key={p.id}
                     className={`planner__floor-btn${s.activePiani.includes(p.id) ? ' planner__floor-btn--active' : ''}`}
                     onClick={() => s.togglePiano(p.id)}
                   >
-                    {p.id + 1}
+                    {p.id}
                   </button>
                 ))}
               </div>
@@ -133,6 +139,21 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
             <div className="planner__spacer" />
 
+            {/* ── Parcheggio (sospensione prenotazioni) ── */}
+            <div className="action-buttons__item">
+              <button
+                type="button"
+                className={`sib-btn sib-btn--icon planner__park-btn${s.showParcheggio ? ' planner__park-btn--active' : ''}`}
+                onClick={s.toggleParcheggio}
+              >
+                <span className="planner__park-ico">P</span>
+                {s.parkedPrens.length > 0 && (
+                  <span className="planner__park-badge">{s.parkedPrens.length}</span>
+                )}
+              </button>
+              <div className="action-buttons__tooltip">Parcheggio</div>
+            </div>
+
             <ActionButtons
               onLegenda={() => s.setShowLegenda(true)}
               onNuova={() => navigate('nuova-prenotazione')}
@@ -148,20 +169,39 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
         {/* ── BODY ────────────────────────────────────────────────────────── */}
         <div className="planner__body">
           <HotelVisualization piani={PIANI_DATA} activePiani={s.activePiani} />
-          <Timeline
-            piani={PIANI_DATA}
-            prenotazioni={s.filteredPrens}
-            startDate={s.startDate}
-            numDays={s.intervallo}
-            filtroConf={s.filtroConf}
-            filtroOpz={s.filtroOpz}
-            activePiani={s.activePiani}
-            onSelect={s.setSelectedBooking}
-            selectedId={s.selectedBooking?.id ?? null}
-            onEmpty={s.handleEmptyClick}
-          />
+          <div className="planner__center">
+            {s.showParcheggio && (
+              <Parcheggio
+                parked={s.parkedPrens}
+                startDate={s.startDate}
+                numDays={s.intervallo}
+                onClose={() => s.setShowParcheggio(false)}
+                onParkDrop={s.parkBooking}
+                onSelect={s.setSelectedBooking}
+                selectedId={s.selectedBooking?.id ?? null}
+                onBarHover={onBarHover}
+              />
+            )}
+            <Timeline
+              piani={PIANI_DATA}
+              prenotazioni={s.filteredPrens}
+              startDate={s.startDate}
+              numDays={s.intervallo}
+              filtroConf={s.filtroConf}
+              filtroOpz={s.filtroOpz}
+              activePiani={s.activePiani}
+              onSelect={s.setSelectedBooking}
+              selectedId={s.selectedBooking?.id ?? null}
+              onEmpty={s.handleEmptyClick}
+              onAssign={s.assignBookingToRoom}
+              showRiepilogo={s.showRiepilogo}
+              onToggleRiepilogo={s.toggleRiepilogo}
+              onBarHover={onBarHover}
+            />
+          </div>
           <InfoPanel
             selected={s.selectedBooking}
+            struttura={s.struttura}
             pendingDa={PENDING_DA}
             pendingAl={PENDING_AL}
             onOpenAssegnare={() => s.setShowAssegnare(true)}
@@ -189,6 +229,17 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
           onClose={() => s.setShowAllocare(false)}
           actionLabel="Alloca"
         />
+      )}
+
+      {/* ── Tooltip prenotazione (rollover) ──────────────────────────────────── */}
+      {barTip && (
+        <div className="planner__bar-tip" style={{ left: barTip.x + 14, top: barTip.y + 14 }}>
+          <div className="planner__bar-tip-row">Agenzia: {barTip.pren.agenzia || '-'}</div>
+          <div className="planner__bar-tip-row">Cliente: {barTip.pren.nominativo}</div>
+          <div className="planner__bar-tip-row">Data In: {fmtDate(barTip.pren.checkIn)}</div>
+          <div className="planner__bar-tip-row">Data Out: {fmtDate(barTip.pren.checkOut)}</div>
+          <div className="planner__bar-tip-row">Giorni Prenotati: {diffDays(parseDt(barTip.pren.checkIn), parseDt(barTip.pren.checkOut))}</div>
+        </div>
       )}
     </>
   );

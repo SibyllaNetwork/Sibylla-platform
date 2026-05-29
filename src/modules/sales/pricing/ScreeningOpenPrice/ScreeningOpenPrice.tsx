@@ -4,6 +4,7 @@ import Ico from '../../../../core/icons/Ico'
 import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
 import PageHeader from '../../../../core/components/PageHeader'
+import Pagination from '../../../../core/components/Pagination'
 import './ScreeningOpenPrice.sass'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 
@@ -85,12 +86,6 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
   }
 
   const PER=10, total=Math.ceil(data.length/PER), pageData=data.slice((pg-1)*PER,pg*PER)
-  const getPages = ():((number|'...')[]) => {
-    if (total<=7) return Array.from({length:total},(_,i)=>i+1)
-    const pages:((number|'...')[])=[1]; if(pg>3)pages.push('...')
-    for(let i=Math.max(2,pg-1);i<=Math.min(total-1,pg+1);i++)pages.push(i)
-    if(pg<total-2)pages.push('...'); pages.push(total); return pages
-  }
   const getChart = (row:any) => Array.from({length:15},(_,i)=>{ const s=(row.id*7+i*13)%100; return{lbl:`2026-04-${String(7+i).padStart(2,'0')}`,str:Math.max(0,20+(s%160)),ai:Math.max(0,40+(s%50)),ly:Math.max(0,s%15)} })
 
   return (
@@ -242,21 +237,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
             </table>
           </div>
           <div className="screening__pagination">
-            <button className="sib-btn sib-btn--secondary sib-btn--sm" onClick={()=>setPg(p=>Math.max(1,p-1))} disabled={pg===1}>
-              <Ico n="back" s={11} c="currentColor"/> Indietro
-            </button>
-            <div className="screening__page-nums">
-              {getPages().map((n,i)=>typeof n==='string'
-                ? <span key={`e${i}`} className="screening__page-ellipsis">…</span>
-                : <button key={n} onClick={()=>setPg(n as number)}
-                    className={`screening__page-btn ${pg===n?'screening__page-btn--active':''}`}>
-                    {n}
-                  </button>
-              )}
-            </div>
-            <button className="sib-btn sib-btn--secondary sib-btn--sm" onClick={()=>setPg(p=>Math.min(total,p+1))} disabled={pg===total}>
-              Avanti <Ico n="chevr" s={11} c="currentColor"/>
-            </button>
+            <Pagination page={pg} totalPages={total} onPageChange={setPg} />
           </div>
         </div>
       </div>

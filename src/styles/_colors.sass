@@ -28,6 +28,7 @@ $text-negative: var(--color-text-negative)
 // ── 3. Link e accento ─────────────────────────────────────────────────────────
 $link:          var(--color-link)
 $link-light:    var(--color-link-light)
+$focus-ring:    var(--color-focus-ring)
 $blue:          var(--color-link)
 $blue-light:    var(--color-link-light)
 $accent:        var(--color-accent)
@@ -46,6 +47,13 @@ $warning-light: var(--color-warning-light)
 $bg:            var(--color-bg)
 $white:         var(--color-surface)
 $border:        var(--color-border)
+
+// ── 5b. Helper trasparenza ────────────────────────────────────────────────────
+// I token sono CSS custom properties (var(--color-*)), NON colori SASS: per questo
+// `rgba($primary, 0.1)` compila in CSS invalido. Usare invece `alpha($primary, 0.1)`
+// che produce un color-mix valido e tematizzabile.
+@function alpha($color, $a)
+  @return color-mix(in srgb, #{$color} #{$a * 100%}, transparent)
 
 // ── 6. Stati prenotazione (Planner / Tableau) ─────────────────────────────────
 // Non tematizzati — sono codici semantici di stato.

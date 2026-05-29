@@ -18,12 +18,17 @@ interface Props {
   onSelect     : (p: Pren | null) => void;
   selectedId   : string | null;
   onEmpty      : (cam: Camera, date: Date) => void;
+  onAssign?    : (id: string, numeroCamera: string) => void;
+  showRiepilogo?    : boolean;
+  onToggleRiepilogo?: () => void;
+  onBarHover?  : (pren: Pren | null, clientX: number, clientY: number) => void;
 }
 
 const Timeline: React.FC<Props> = ({
   piani, prenotazioni, startDate, numDays,
   filtroConf, filtroOpz, activePiani,
-  onSelect, selectedId, onEmpty,
+  onSelect, selectedId, onEmpty, onAssign,
+  showRiepilogo, onToggleRiepilogo, onBarHover,
 }) => {
   const days = useMemo(
     () => Array.from({ length: numDays }, (_, i) => addDays(startDate, i)),
@@ -84,6 +89,26 @@ const Timeline: React.FC<Props> = ({
   const isToday  = (d: Date) => d.getTime() === today.getTime();
   const isWE     = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
   const todayOff = diffDays(startDate, today);
+
+  // ── Riepilogo per giorno (footer collassabile) ───────────────────────────────
+  const allCamere = useMemo(() => visible.flatMap(p => p.camere), [visible]);
+  const totalCamere = allCamere.length;
+  const manutCount = useMemo(() => allCamere.filter(c => c.stato === 'manutenzione').length, [allCamere]);
+  const summary = useMemo(() => days.map(d => {
+    const occ = prenotazioni.filter(p => {
+      const ci = parseDt(p.checkIn); const co = parseDt(p.checkOut);
+      return d >= ci && d < co;
+    });
+    const opz = occ.filter(p => p.stato === 'opzione').length;
+    const impegni = occ.length + manutCount;
+    return { residua: totalCamere - impegni, impegni, opz };
+  }), [days, prenotazioni, manutCount, totalCamere]);
+
+  const summaryRows = [
+    { key: 'residua' as const, label: `Disponibilità Residua (${totalCamere} Camere)` },
+    { key: 'impegni' as const, label: 'Totale Impegni (Conf.+Opz.+Manutenzione)' },
+    { key: 'opz' as const,     label: 'Opzionale' },
+  ];
 
   return (
     <div className="timeline">
@@ -146,6 +171,12 @@ const Timeline: React.FC<Props> = ({
                 <div
                   className="timeline__day-grid"
                   style={{ minWidth: DAY_W * numDays }}
+                  onDragOver={onAssign ? (e) => e.preventDefault() : undefined}
+                  onDrop={onAssign ? (e) => {
+                    e.preventDefault();
+                    const id = e.dataTransfer.getData('text/plain');
+                    if (id) onAssign(id, cam.numero);
+                  } : undefined}
                 >
                   {/* Celle di sfondo */}
                   {days.map((d, di) => {
@@ -190,6 +221,11 @@ const Timeline: React.FC<Props> = ({
                         key={pren.id}
                         className={`timeline__bar${bp.selected ? ' timeline__bar--selected' : ''}`}
                         style={bp.style}
+                        draggable={!!onAssign}
+                        onDragStart={onAssign ? (e) => { e.dataTransfer.setData('text/plain', pren.id); e.dataTransfer.effectAllowed = 'move'; onBarHover?.(null, 0, 0); } : undefined}
+                        onMouseEnter={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
+                        onMouseMove={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
+                        onMouseLeave={onBarHover ? () => onBarHover(null, 0, 0) : undefined}
                         onClick={e => { e.stopPropagation(); onSelect(pren.id === selectedId ? null : pren); }}
                       >
                         {pren.stato === 'opzione' && (
@@ -205,6 +241,37 @@ const Timeline: React.FC<Props> = ({
           })}
         </div>
       ))}
+
+      {/* ── Riepilogo (footer sticky collassabile) ──────────────────────────── */}
+      {onToggleRiepilogo && (
+        <div className="timeline__summary">
+          <div className={`timeline__summary-panel${showRiepilogo ? ' is-open' : ''}`}>
+            {summaryRows.map(row => (
+              <div key={row.key} className="timeline__summary-row">
+                <div className="timeline__summary-label">{row.label}</div>
+                <div className="timeline__summary-cells" style={{ minWidth: DAY_W * numDays }}>
+                  {summary.map((sg, di) => (
+                    <div key={di} className="timeline__summary-cell" style={{ left: di * DAY_W }}>
+                      {sg[row.key]}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="timeline__summary-toggle" onClick={onToggleRiepilogo} aria-expanded={showRiepilogo}>
+            <span className="timeline__summary-toggle-label">
+              <svg
+                className={`timeline__summary-chevron${showRiepilogo ? ' is-open' : ''}`}
+                viewBox="0 0 16 16" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2}
+              >
+                <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Riepilogo disponibilità
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

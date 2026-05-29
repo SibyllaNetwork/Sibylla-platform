@@ -1,396 +1,773 @@
-import { bookingStore } from '../../../../core/bookingStore'
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useMemo, useState } from 'react'
 import T from '../../../../core/tokens'
-import Ico from '../../../../core/icons/Ico'
+import { bookingStore } from '../../../../core/bookingStore'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
-import './NuovaPrenotazione.sass'
-import FormActions from '../../../../core/components/FormActions'
 import Tabs from '../../../../core/components/Tabs'
-import FormGrid from '../../../../core/components/FormGrid'
-import { InputField, SelectField, DateRangeField, DatePickerField } from '../../../../core/components/form'
+import Modal from '../../../../core/components/Modal'
+import Ico from '../../../../core/icons/Ico'
+import ToggleSwitch from '../../../../core/components/ToggleSwitch'
+import { Button } from '../../../../core/components'
+import FormActions from '../../../../core/components/FormActions'
+import Widget from '../../../../core/components/Widget/Widget'
+import { InputField, SelectField, DateRangeField, DatePickerField, TextareaField } from '../../../../core/components/form'
+import { useWidgetLayout } from '../../../../core/hooks/useWidgetLayout'
+import './NuovaPrenotazione.sass'
 
-const SERVIZI     = [{nome:'Breakfast',prezzo:13},{nome:'Breakfast Delivery Box',prezzo:9},{nome:'Dinner',prezzo:29},{nome:'Dinner Delivery Box',prezzo:18}]
-const IND_SERVIZI = [{nome:'Breakfast',prezzo:13},{nome:'Breakfast Delivery Box',prezzo:9},{nome:'Dinner',prezzo:29},{nome:'Dinner Delivery Box',prezzo:18},{nome:'Lunch',prezzo:25},{nome:'Lunch Delivery Box',prezzo:10}]
-const TARIFFA     = 48.50
-const ROOM_PRICES: Record<string,number> = {singola:20,doppia:20,matrimoniale:20,tripla:30}
-const TODAY       = new Date().toISOString().split('T')[0]
+const TODAY        = new Date().toISOString().split('T')[0]
+const NAZIONALITA  = ['ITALIA','FRANCIA','GERMANIA','SPAGNA','REGNO UNITO','STATI UNITI']
+const ARRANGIAMENTI = ['RO','BB','HB','FB','AI']
+const REPARTI      = ['Manutenzione','Pulizie','Reception','Cucina','SPA']
+const PAGAMENTI    = ['Contanti','Carta di credito','Bonifico','Assegno']
+const HOTELS       = ['Hotel Tudorial','Hotel Azzurro Mare']
+const TIPI_CAMERA  = [
+  { v: '53', l: '53 | Doppia classic' },
+  { v: '54', l: '54 | Doppia superior' },
+  { v: '55', l: '55 | Tripla' },
+  { v: '56', l: '56 | Singola' },
+]
+const EXTRA_SERVIZI = [
+  { id: 'transfer',   label: 'Transfer' },
+  { id: 'petsitting', label: 'Pet sitting' },
+  { id: 'escursione', label: 'Escursione' },
+  { id: 'pulizie',    label: 'Pulizie extra' },
+  { id: 'deposito',   label: 'Deposito bagagli' },
+  { id: 'pranzo',     label: 'Pranzo al sacco' },
+  { id: 'tolettatura',label: 'Tolettatura' },
+]
 
-const Counter = ({value,onChange}:{value:number;onChange:(v:number)=>void}) => (
-  <div className="prenota__counter">
-    <button onClick={()=>onChange(Math.max(0,value-1))} className="prenota__counter-btn">−</button>
-    <input type="number" value={value} onChange={e=>onChange(Math.max(0,parseInt(e.target.value)||0))} className="sib-input w-[60px] h-[30px] text-center"/>
-    <button onClick={()=>onChange(value+1)} className="prenota__counter-btn">+</button>
-  </div>
-)
+interface CameraRow { tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string }
+interface CameraGruppoRow { tipo: string; persone: number; nCamera: string }
+interface OspiteRow { nome: string; cognome: string; dataNascita: string; paese: string; sesso: string; nCamera: string; dataArrivo: string }
+interface ExtraAggiunto { id: string; servizio: string; quando: string; quantita: number; intestatario: string; camera: string; importo: number; descrizione: string }
+interface PrezzoRow { giorno: string; camera: string; arrangiamento: string; piani: string; promozioni: string; totale: number; listino: number }
 
-const ServRow = ({s,qty,onQtyChange}:{s:{nome:string;prezzo:number};qty:number;onQtyChange:(v:number)=>void}) => (
-  <div className="prenota__serv-row">
-    <div className="prenota__serv-name-cell">
-      <button onClick={()=>onQtyChange(qty+1)} className="prenota__serv-add">+</button>
-      <span className="prenota__serv-name">{s.nome}</span>
-    </div>
-    <div className="prenota__serv-price">{s.prezzo.toFixed(2).replace('.',',')} €</div>
-    <div className="prenota__serv-qty-cell">
-      <input type="number" value={qty} min={0} onChange={e=>onQtyChange(Math.max(0,parseInt(e.target.value)||0))} className="sib-input w-[52px] h-7 text-xs text-center"/>
-    </div>
-    <div className="prenota__serv-total">{(qty*s.prezzo).toFixed(2).replace('.',',')} €</div>
-  </div>
-)
+const initRow = (n=''): CameraRow      => ({ tipo: '53', adulti: 2, ragazzi: 0, bambini: 0, infanti: 0, nCamera: n })
+const initGr  = (n='', p=2): CameraGruppoRow => ({ tipo: '53', persone: p, nCamera: n })
+const initOsp = (): OspiteRow          => ({ nome: '', cognome: '', dataNascita: '', paese: '', sesso: '', nCamera: '', dataArrivo: '' })
 
-const ServTable = ({servizi,qty,setQty,totale}:{servizi:typeof SERVIZI;qty:Record<string,number>;setQty:any;totale:number}) => (
-  <div className="prenota__serv-table">
-    <div className="prenota__serv-head">
-      {['Servizi inclusi','Prezzo','Quantità','Totale'].map((h,i)=><div key={i} className={`prenota__serv-th ${i>0?'prenota__serv-th--right':''}`}>{h}</div>)}
-    </div>
-    {servizi.map((s,i)=><ServRow key={i} s={s} qty={qty[s.nome]||0} onQtyChange={v=>setQty((prev:any)=>({...prev,[s.nome]:v}))}/>)}
-    <div className="prenota__serv-footer">
-      <div/><div/>
-      <div className="prenota__serv-footer-label">Totale servizi:</div>
-      <div className="prenota__serv-footer-val">{totale.toFixed(2).replace('.',',')} €</div>
-    </div>
-  </div>
-)
-
-const NAZIONALITA = ['ITALIA','FRANCIA','GERMANIA','SPAGNA','REGNO UNITO','STATI UNITI']
+// ── Layout default per i due tab ───────────────────────────────────────────────
+const LAYOUT_IND = [
+  ['soggiorno','stato','agenzia','prezzi'],
+  ['extra'],
+  ['altre','note-reparto','anticipi'],
+]
+const LAYOUT_GR  = [
+  ['soggiorno-gr','stato-gr','dati-gr'],
+  ['extra'],
+  ['altre','note-reparto','anticipi'],
+]
 
 export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>void }) {
-  const [activeTab,        setActiveTab]        = useState<'gruppo'|'individuale'>('gruppo')
-  const [indStep,          setIndStep]          = useState<1|2>(1)
-  const [showPersonalizza, setShowPersonalizza] = useState(false)
-  const [roomCounts,       setRoomCounts]       = useState<Record<string,number>>({singola:0,doppia:0,matrimoniale:0,tripla:0})
-  const [servQty,          setServQty]          = useState<Record<string,number>>({})
-  const [indServQty,       setIndServQty]       = useState<Record<string,number>>({})
-  const persRef = useRef<HTMLDivElement>(null)
+  const [activeTab, setActiveTab] = useState<'gruppo'|'individuale'>('individuale')
 
-  const [form, setForm] = useState({dataInizio:TODAY,dataFine:TODAY,camere:6,persone:12,confermata:false,extra:false,arrangiamento:'BB',tipoGruppo:'Studenti' as 'Adulti'|'Studenti',nomeGruppo:'',nomeCapoGruppo:'',emailCapoGruppo:'',nazionalita:'ITALIA',note:''})
-  const [indForm, setIndForm] = useState({dal:TODAY,al:TODAY,camere:0,adulti:2,ragazzi:0,bambini:0,arrangiamento:'RO',citta:'Roma',opzione:true,confermata:false,scadenza:'',personeConf:'',b2b:true,dirette:false,agenzia:'',nome:'',cognome:'',email:'',nazionalita:'ITALIA',note:''})
+  const layoutInd = useMemo(() => LAYOUT_IND, [])
+  const layoutGr  = useMemo(() => LAYOUT_GR,  [])
 
-  useEffect(() => {
-    const h=(e:MouseEvent)=>{if(persRef.current&&!persRef.current.contains(e.target as Node))setShowPersonalizza(false)}
-    document.addEventListener('mousedown',h); return ()=>document.removeEventListener('mousedown',h)
-  }, [])
+  const indLayout = useWidgetLayout('nuova-prenotazione.individuale', layoutInd)
+  const grLayout  = useWidgetLayout('nuova-prenotazione.gruppo',      layoutGr)
 
-  const totaleServizi    = SERVIZI.reduce((a,s)=>a+(servQty[s.nome]||0)*s.prezzo, 0)
-  const indTotaleServizi = IND_SERVIZI.reduce((a,s)=>a+(indServQty[s.nome]||0)*s.prezzo, 0)
-  const totaleSuppl      = Object.entries(roomCounts).reduce((a,[t,q])=>a+(ROOM_PRICES[t]||0)*q, 0)
-  const importo          = TARIFFA*form.persone+totaleServizi
-  const adjustRoom       = (t:string, d:number) => setRoomCounts(prev=>({...prev,[t]:Math.max(0,(prev[t]||0)+d)}))
+  // ── State form ───────────────────────────────────────────────────────────────
+  const [form, setForm] = useState({
+    dal: TODAY, al: TODAY,
+    camere: 1, persone: 1,
+    confermata: true, opzione: false,
+    scadenza: '', arrangiamento: 'BB',
+    segmento: { b2b: true, dirette: false, b2c: false, corporate: false },
+    agenzia: '', rifEsterno: '', cliente: '', email: '',
+    nazionalita: 'ITALIA', notePrenotazione: '',
+    reparto: 'Manutenzione', notaReparto: '',
+    tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
+    metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
+  })
+
+  const [grForm, setGrForm] = useState({
+    dal: TODAY, al: TODAY,
+    camere: 4, persone: 10,
+    tipologiaOspiti: 'adulti' as 'adulti' | 'studenti',
+    hotel: HOTELS[0],
+    confermata: true, opzione: false,
+    scadenza: '', personeConf: 2, arrangiamento: 'RO',
+    agenzia: '', nomeGruppo: '', nomeCapoGruppo: '', emailCapoGruppo: '',
+    nazionalita: 'ITALIA', notePrenotazione: '',
+    reparto: 'Manutenzione', notaReparto: '',
+    tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
+    metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
+  })
+
+  const [camereInd, setCamereInd] = useState<CameraRow[]>([initRow('103')])
+  const [camereGr,  setCamereGr]  = useState<CameraGruppoRow[]>([
+    initGr('103', 2), initGr('103', 3), initGr('103', 0), initGr('103', 1),
+  ])
+  const [ospiti,    setOspiti]    = useState<OspiteRow[]>([initOsp(), initOsp(), initOsp(), initOsp()])
+
+  const [extra,        setExtra]        = useState<ExtraAggiunto[]>([])
+  const [extraOpenId,  setExtraOpenId]  = useState<string | null>(null)
+  const [extraDraft,   setExtraDraft]   = useState<Omit<ExtraAggiunto,'id'>>({
+    servizio: '', quando: TODAY, quantita: 1, intestatario: '', camera: '103', importo: 0, descrizione: '',
+  })
+
+  // ── Dettaglio prezzi (condiviso fra widget e modale "Modifica importo globale") ─
+  const [prezzi, setPrezzi] = useState<PrezzoRow[]>([
+    { giorno: TODAY, camera: 'Singola Classic', arrangiamento: '0,00 €', piani: '', promozioni: '', totale: 260.41, listino: 260.41 },
+  ])
+
+  // ── Stato modale "Modifica importo globale" ─────────────────────────────────
+  const [importoModalOpen, setImportoModalOpen] = useState(false)
+  const [modGlobalActive,  setModGlobalActive]  = useState(false)
+  const [modGlobalMode,    setModGlobalMode]    = useState<'libero'|'percentuale'>('libero')
+  const [modGlobalValue,   setModGlobalValue]   = useState<number>(260.41)
+  const [editRowIdx,       setEditRowIdx]       = useState<number|null>(null)
+  const [editRowValue,     setEditRowValue]     = useState<number>(0)
+
+  // ── Totali ────────────────────────────────────────────────────────────────────
+  const totaleSoggiorno = prezzi.reduce((a, r) => a + r.totale, 0)
+  const totaleServizi   = extra.reduce((a, e) => a + e.importo * e.quantita, 0)
+  const totale          = totaleSoggiorno + totaleServizi
+
+  // ── Render helpers ───────────────────────────────────────────────────────────
+  const setSegmento = (k: keyof typeof form.segmento) =>
+    setForm(f => ({ ...f, segmento: { ...f.segmento, [k]: !f.segmento[k] } }))
+
+  const updCamera = (i: number, p: Partial<CameraRow>) =>
+    setCamereInd(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
+
+  const updCameraGr = (i: number, p: Partial<CameraGruppoRow>) =>
+    setCamereGr(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
+
+  const updOspite = (i: number, p: Partial<OspiteRow>) =>
+    setOspiti(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
+
+  const openExtraDraft = (servizio: string) => {
+    setExtraOpenId(servizio)
+    setExtraDraft({ servizio, quando: form.dal, quantita: 1, intestatario: '', camera: '103', importo: 0, descrizione: '' })
+  }
+
+  const confirmExtra = () => {
+    setExtra(prev => [...prev, { id: Date.now().toString(), ...extraDraft }])
+    setExtraOpenId(null)
+  }
+
+  const startEditRow = (i: number) => {
+    setEditRowIdx(i)
+    setEditRowValue(prezzi[i].totale)
+  }
+
+  const confirmEditRow = () => {
+    if (editRowIdx === null) return
+    setPrezzi(prev => prev.map((r, idx) => idx === editRowIdx ? { ...r, totale: editRowValue } : r))
+    setEditRowIdx(null)
+  }
+
+  const cancelEditRow = () => setEditRowIdx(null)
+
+  const applyModGlobal = () => {
+    setPrezzi(prev => prev.map(r => {
+      if (modGlobalMode === 'libero')      return { ...r, totale: modGlobalValue }
+      const pct = modGlobalValue / 100
+      return { ...r, totale: +(r.listino * (1 + pct)).toFixed(2) }
+    }))
+    setModGlobalActive(false)
+  }
+
+  const resetModGlobal = () => {
+    setPrezzi(prev => prev.map(r => ({ ...r, totale: r.listino })))
+    setModGlobalActive(false)
+  }
+
+  // ── Widgets renderer ─────────────────────────────────────────────────────────
+  const renderIndWidget = (id: string) => {
+    const collapsed = indLayout.collapsed.has(id)
+    const isOver    = indLayout.overId === id
+    const common = {
+      id, collapsed, isDragOver: isOver,
+      onToggleCollapse: indLayout.toggleCollapse,
+      onDragStart:      indLayout.handleDragStart,
+      onDragOver:       indLayout.handleDragOver,
+      onDrop:           indLayout.handleDrop,
+      onDragEnd:        indLayout.handleDragEnd,
+    }
+
+    switch (id) {
+      case 'soggiorno': return (
+        <Widget key={id} {...common} title="Soggiorno">
+          <div className="np-row">
+            <DateRangeField
+              nameFrom="dal" nameTo="al" label="Date"
+              valueFrom={form.dal} valueTo={form.al}
+              onChangeFrom={e=>setForm(f=>({...f,dal:e.target.value}))}
+              onChangeTo={e=>setForm(f=>({...f,al:e.target.value}))}
+            />
+            <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
+            <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+          </div>
+          <table className="np-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Tipologia camera</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th>
+              </tr>
+            </thead>
+            <tbody>
+              {camereInd.map((c, i) => (
+                <tr key={i}>
+                  <td>{i+1}</td>
+                  <td>
+                    <select className="sib-input np-cell-input" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
+                      {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                    </select>
+                  </td>
+                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCamera(i,{adulti:+e.target.value||0})}/></td>
+                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCamera(i,{ragazzi:+e.target.value||0})}/></td>
+                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCamera(i,{bambini:+e.target.value||0})}/></td>
+                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCamera(i,{infanti:+e.target.value||0})}/></td>
+                  <td><input type="text"   className="sib-input np-cell-input np-cell-input--num" value={c.nCamera} onChange={e=>updCamera(i,{nCamera:e.target.value})}/></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button type="button" className="np-add-row" onClick={()=>setCamereInd(p=>[...p, initRow()])}>
+            <i className="fa-light fa-plus" /> Aggiungi camera
+          </button>
+        </Widget>
+      )
+
+      case 'stato': return (
+        <Widget key={id} {...common} title="Stato & classificazione">
+          <span className="np-label">Stato</span>
+          <div className="np-checks-row">
+            <label className="np-check">
+              <input type="checkbox" className="sib-checkbox" checked={form.confermata} onChange={e=>setForm(f=>({...f,confermata:e.target.checked}))}/>
+              <span className="np-dot np-dot--ok" /> Confermata
+            </label>
+            <label className="np-check">
+              <input type="checkbox" className="sib-checkbox" checked={form.opzione} onChange={e=>setForm(f=>({...f,opzione:e.target.checked}))}/>
+              <span className="np-dot np-dot--ko" /> Opzione
+            </label>
+          </div>
+          <div className="np-row">
+            <DatePickerField name="scadenza" label="Scadenza" value={form.scadenza} onChange={e=>setForm(f=>({...f,scadenza:e.target.value}))}/>
+            <SelectField name="arrangiamento" label="Arrangiamento" value={form.arrangiamento} onChange={e=>setForm(f=>({...f,arrangiamento:e.target.value}))} options={ARRANGIAMENTI.map(o=>({value:o,label:o}))}/>
+          </div>
+          <span className="np-label">Segmento di mercato</span>
+          <div className="np-checks-row">
+            {(Object.keys(form.segmento) as (keyof typeof form.segmento)[]).map(k=>(
+              <label key={k} className="np-check">
+                <input type="checkbox" className="sib-checkbox" checked={form.segmento[k]} onChange={()=>setSegmento(k)}/>
+                <span className="np-cap">{k.toUpperCase()}</span>
+              </label>
+            ))}
+          </div>
+        </Widget>
+      )
+
+      case 'agenzia': return (
+        <Widget key={id} {...common} title="Agenzia & cliente">
+          <div className="np-row">
+            <InputField name="agenzia"    label="Agenzia"      value={form.agenzia}    onChange={e=>setForm(f=>({...f,agenzia:e.target.value}))}/>
+            <InputField name="rifEsterno" label="Rif. esterno" value={form.rifEsterno} onChange={e=>setForm(f=>({...f,rifEsterno:e.target.value}))}/>
+          </div>
+          <div className="np-row">
+            <InputField name="cliente" label="Cliente" value={form.cliente} onChange={e=>setForm(f=>({...f,cliente:e.target.value}))}/>
+            <InputField name="email"   label="E-mail"  type="email" value={form.email}   onChange={e=>setForm(f=>({...f,email:e.target.value}))}/>
+          </div>
+        </Widget>
+      )
+
+      case 'prezzi': return (
+        <Widget key={id} {...common} title="Dettaglio prezzi">
+          <table className="np-table">
+            <thead>
+              <tr><th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th>Totale</th></tr>
+            </thead>
+            <tbody>
+              {prezzi.map((r, i) => (
+                <tr key={i}>
+                  <td>{new Date(r.giorno).toLocaleDateString('it-IT')}</td>
+                  <td>{r.camera}</td>
+                  <td>{r.arrangiamento}</td>
+                  <td>{r.piani}</td>
+                  <td>{r.promozioni}</td>
+                  <td className="np-amt">{r.totale.toFixed(2).replace('.',',')} €</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Widget>
+      )
+
+      case 'extra': return renderExtraInclusiWidget(common)
+      case 'altre': return renderAltreInfoWidget(common, false)
+      case 'note-reparto': return renderNoteRepartoWidget(common, false)
+      case 'anticipi': return renderAnticipiWidget(common, false)
+      default: return null
+    }
+  }
+
+  const renderGrWidget = (id: string) => {
+    const collapsed = grLayout.collapsed.has(id)
+    const isOver    = grLayout.overId === id
+    const common = {
+      id, collapsed, isDragOver: isOver,
+      onToggleCollapse: grLayout.toggleCollapse,
+      onDragStart:      grLayout.handleDragStart,
+      onDragOver:       grLayout.handleDragOver,
+      onDrop:           grLayout.handleDrop,
+      onDragEnd:        grLayout.handleDragEnd,
+    }
+
+    switch (id) {
+      case 'soggiorno-gr': return (
+        <Widget key={id} {...common} title="Soggiorno gruppo">
+          <div className="np-row">
+            <DateRangeField
+              nameFrom="dal" nameTo="al" label="Date"
+              valueFrom={grForm.dal} valueTo={grForm.al}
+              onChangeFrom={e=>setGrForm(f=>({...f,dal:e.target.value}))}
+              onChangeTo={e=>setGrForm(f=>({...f,al:e.target.value}))}
+            />
+            <InputField name="camere"  label="Camere"  type="number" value={grForm.camere}  onChange={e=>setGrForm(f=>({...f,camere:+e.target.value||0}))}  className="np-w-num"/>
+            <InputField name="persone" label="Persone" type="number" value={grForm.persone} onChange={e=>setGrForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+          </div>
+          <div className="np-row np-row--baseline">
+            <div className="np-radio-block">
+              <span className="np-label">Tipologia ospiti</span>
+              <div className="np-checks-row">
+                {(['adulti','studenti'] as const).map(t=>(
+                  <label key={t} className="np-check">
+                    <input type="radio" name="tipologiaOspiti" className="sib-radio" checked={grForm.tipologiaOspiti===t} onChange={()=>setGrForm(f=>({...f,tipologiaOspiti:t}))}/>
+                    <span style={{textTransform:'capitalize'}}>{t}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-grid-2" /> Alloca</button>
+            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-user-plus" /> Assegna</button>
+          </div>
+          <div className="np-hotels-tabs">
+            {HOTELS.map(h=>(
+              <button key={h} type="button" className={`np-hotels-tab ${grForm.hotel===h?'np-hotels-tab--active':''}`} onClick={()=>setGrForm(f=>({...f,hotel:h}))}>{h}</button>
+            ))}
+          </div>
+          <table className="np-table">
+            <thead>
+              <tr><th>#</th><th>Tipologia camera</th><th>Persone</th><th>N. Camera</th></tr>
+            </thead>
+            <tbody>
+              {camereGr.map((c, i)=>(
+                <tr key={i}>
+                  <td><i className="fa-light fa-bed-front" /> {i+1}</td>
+                  <td>
+                    <select className="sib-input np-cell-input" value={c.tipo} onChange={e=>updCameraGr(i,{tipo:e.target.value})}>
+                      {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                    </select>
+                  </td>
+                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.persone} onChange={e=>updCameraGr(i,{persone:+e.target.value||0})}/></td>
+                  <td><input type="text"   className="sib-input np-cell-input np-cell-input--num" value={c.nCamera} onChange={e=>updCameraGr(i,{nCamera:e.target.value})}/></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button type="button" className="np-add-row" onClick={()=>setCamereGr(p=>[...p, initGr()])}>
+            <i className="fa-light fa-plus" /> Aggiungi camera
+          </button>
+        </Widget>
+      )
+
+      case 'stato-gr': return (
+        <Widget key={id} {...common} title="Stato & opzioni">
+          <span className="np-label">Stato</span>
+          <div className="np-checks-row">
+            <label className="np-check">
+              <input type="checkbox" className="sib-checkbox" checked={grForm.confermata} onChange={e=>setGrForm(f=>({...f,confermata:e.target.checked}))}/>
+              <span className="np-dot np-dot--ok" /> Confermata
+            </label>
+            <label className="np-check">
+              <input type="checkbox" className="sib-checkbox" checked={grForm.opzione} onChange={e=>setGrForm(f=>({...f,opzione:e.target.checked}))}/>
+              <span className="np-dot np-dot--ko" /> Opzione
+            </label>
+          </div>
+          <div className="np-row">
+            <DatePickerField name="scadenza" label="Scadenza" value={grForm.scadenza} onChange={e=>setGrForm(f=>({...f,scadenza:e.target.value}))}/>
+            <InputField name="personeConf" label="Persone conf." type="number" value={grForm.personeConf} onChange={e=>setGrForm(f=>({...f,personeConf:+e.target.value||0}))} className="np-w-num"/>
+            <SelectField name="arrangiamento" label="Arrangiamento" value={grForm.arrangiamento} onChange={e=>setGrForm(f=>({...f,arrangiamento:e.target.value}))} options={ARRANGIAMENTI.map(o=>({value:o,label:o}))}/>
+          </div>
+        </Widget>
+      )
+
+      case 'dati-gr': return (
+        <Widget key={id} {...common} title="Dati gruppo">
+          <InputField name="agenzia" label="Agenzia" value={grForm.agenzia} onChange={e=>setGrForm(f=>({...f,agenzia:e.target.value}))}/>
+          <div className="np-row">
+            <InputField name="nomeGruppo"     label="Nome gruppo"      value={grForm.nomeGruppo}     onChange={e=>setGrForm(f=>({...f,nomeGruppo:e.target.value}))}/>
+            <InputField name="nomeCapoGruppo" label="Nome capo gruppo" value={grForm.nomeCapoGruppo} onChange={e=>setGrForm(f=>({...f,nomeCapoGruppo:e.target.value}))}/>
+          </div>
+          <InputField name="emailCapoGruppo" type="email" label="E-mail capo gruppo" value={grForm.emailCapoGruppo} onChange={e=>setGrForm(f=>({...f,emailCapoGruppo:e.target.value}))}/>
+        </Widget>
+      )
+
+      case 'extra': return renderExtraInclusiWidget(common)
+      case 'altre': return renderAltreInfoWidget(common, true)
+      case 'note-reparto': return renderNoteRepartoWidget(common, true)
+      case 'anticipi': return renderAnticipiWidget(common, true)
+      default: return null
+    }
+  }
+
+  function renderExtraInclusiWidget(common: any) {
+    return (
+      <Widget key="extra" {...common} title="Extra inclusi">
+        <ul className="np-extra-list">
+          {EXTRA_SERVIZI.map(s => (
+            <li key={s.id}>
+              <button type="button" className="np-extra-btn" onClick={()=>openExtraDraft(s.label)}>
+                <i className="fa-light fa-circle-plus" /> {s.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {extraOpenId && (
+          <div className="np-extra-popup">
+            <div className="np-extra-popup-head">
+              <span>Aggiungi: {extraDraft.servizio}</span>
+              <button type="button" className="np-extra-popup-close" onClick={()=>setExtraOpenId(null)} aria-label="Chiudi"><i className="fa-light fa-xmark" /></button>
+            </div>
+            <div className="np-row">
+              <DatePickerField name="quando" label="Quando" value={extraDraft.quando} onChange={e=>setExtraDraft(d=>({...d,quando:e.target.value}))}/>
+              <InputField name="quantita" label="Quantità" type="number" value={extraDraft.quantita} onChange={e=>setExtraDraft(d=>({...d,quantita:+e.target.value||0}))} className="np-w-num"/>
+            </div>
+            <InputField name="intestatario" label="Intestatario" value={extraDraft.intestatario} onChange={e=>setExtraDraft(d=>({...d,intestatario:e.target.value}))}/>
+            <div className="np-row">
+              <SelectField name="camera" label="Camera" value={extraDraft.camera} onChange={e=>setExtraDraft(d=>({...d,camera:e.target.value}))} options={['103','104','105'].map(o=>({value:o,label:o}))}/>
+              <InputField name="importo" label="Importo (€)" type="number" value={extraDraft.importo} onChange={e=>setExtraDraft(d=>({...d,importo:+e.target.value||0}))}/>
+            </div>
+            <TextareaField name="descrizione" label="Descrizione" value={extraDraft.descrizione} onChange={e=>setExtraDraft(d=>({...d,descrizione:e.target.value}))} rows={2} placeholder="Note opzionali"/>
+            <div className="np-extra-popup-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={()=>setExtraOpenId(null)}>Indietro</button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={confirmExtra}><i className="fa-light fa-plus" /> Aggiungi</button>
+            </div>
+          </div>
+        )}
+
+        <div className="np-extra-total">
+          <span>Totale servizi:</span>
+          <strong>{totaleServizi.toFixed(2).replace('.',',')} €</strong>
+        </div>
+      </Widget>
+    )
+  }
+
+  function renderAltreInfoWidget(common: any, isGr: boolean) {
+    const f = isGr ? grForm : form
+    const setF = isGr ? setGrForm : setForm
+    return (
+      <Widget key="altre" {...common} title="Altre informazioni">
+        <SelectField name="nazionalita" label="Nazionalità" value={f.nazionalita} onChange={e=>setF((v:any)=>({...v,nazionalita:e.target.value}))} options={NAZIONALITA.map(o=>({value:o,label:o}))}/>
+        <TextareaField name="notePrenotazione" label="Note prenotazione" value={f.notePrenotazione} onChange={e=>setF((v:any)=>({...v,notePrenotazione:e.target.value}))} rows={3}/>
+      </Widget>
+    )
+  }
+
+  function renderNoteRepartoWidget(common: any, isGr: boolean) {
+    const f = isGr ? grForm : form
+    const setF = isGr ? setGrForm : setForm
+    return (
+      <Widget key="note-reparto" {...common} title="Note di reparto">
+        <SelectField name="reparto" label="Reparto" value={f.reparto} onChange={e=>setF((v:any)=>({...v,reparto:e.target.value}))} options={REPARTI.map(o=>({value:o,label:o}))}/>
+        <TextareaField name="notaReparto" label="Nota" value={f.notaReparto} onChange={e=>setF((v:any)=>({...v,notaReparto:e.target.value}))} rows={3} placeholder="Inserisci una nota per il reparto selezionato"/>
+      </Widget>
+    )
+  }
+
+  function renderAnticipiWidget(common: any, isGr: boolean) {
+    const f = isGr ? grForm : form
+    const setF = isGr ? setGrForm : setForm
+    return (
+      <Widget key="anticipi" {...common} title="Anticipi">
+        <span className="np-label">Tipo</span>
+        <div className="np-checks-row">
+          {(['caparra','acconto'] as const).map(t=>(
+            <label key={t} className="np-check">
+              <input type="radio" name={`tipoAnticipo-${isGr?'gr':'ind'}`} className="sib-radio" checked={f.tipoAnticipo===t} onChange={()=>setF((v:any)=>({...v,tipoAnticipo:t}))}/>
+              <span style={{textTransform:'capitalize'}}>{t}</span>
+            </label>
+          ))}
+        </div>
+        <div className="np-row">
+          <SelectField name="metodoPagamento" label="Metodo di pagamento" value={f.metodoPagamento} onChange={e=>setF((v:any)=>({...v,metodoPagamento:e.target.value}))} options={PAGAMENTI.map(o=>({value:o,label:o}))}/>
+          <InputField name="importoAnticipo" label="Importo totale" type="number" value={f.importoAnticipo} onChange={e=>setF((v:any)=>({...v,importoAnticipo:+e.target.value||0}))}/>
+        </div>
+        <label className="np-check">
+          <input type="checkbox" className="sib-checkbox" checked={f.ripartizioneAuto} onChange={e=>setF((v:any)=>({...v,ripartizioneAuto:e.target.checked}))}/>
+          Ripartizione automatica
+        </label>
+      </Widget>
+    )
+  }
+
+  // ── Save handler ─────────────────────────────────────────────────────────────
+  const handleSalva = () => {
+    if (activeTab === 'individuale') {
+      const sd = new Date(form.dal), ed = new Date(form.al)
+      bookingStore.pending = {
+        id: Date.now(),
+        nome: form.cliente || 'Nuova prenotazione',
+        startDay: sd.getDate(), endDay: ed.getDate(),
+        startMonth: sd.getMonth(), startYear: sd.getFullYear(),
+        row: 0, colore: form.confermata ? T.successMid : T.error,
+        camere: form.camere, persone: form.persone, importo: totale,
+      }
+    } else {
+      const sd = new Date(grForm.dal), ed = new Date(grForm.al)
+      bookingStore.pending = {
+        id: Date.now(),
+        nome: grForm.nomeGruppo || 'Gruppo',
+        startDay: sd.getDate(), endDay: ed.getDate(),
+        startMonth: sd.getMonth(), startYear: sd.getFullYear(),
+        row: 0, colore: grForm.confermata ? T.successMid : T.blue,
+        camere: grForm.camere, persone: grForm.persone, importo: totale,
+      }
+    }
+    navigate('tableau-book')
+  }
+
+  const activeLayout = activeTab === 'individuale' ? indLayout : grLayout
+  const renderWidget = activeTab === 'individuale' ? renderIndWidget : renderGrWidget
 
   return (
-    <div>
+    <div className="np-page">
       <BtnBack onClick={() => navigate('tableau-book')} />
-      <PageHeader title="Nuova prenotazione" subtitle="Inserisci i dati per creare una nuova prenotazione nel tableau"/>
+      <PageHeader title="Nuova prenotazione" subtitle="Compila i campi per inserire una nuova prenotazione nel sistema" />
 
-      <div className="prenota__card">
+      <div className="np-toolbar">
         <Tabs
           tabs={[{id:'gruppo',label:'Gruppo'},{id:'individuale',label:'Individuale'}]}
           active={activeTab}
           onChange={id=>setActiveTab(id as 'gruppo'|'individuale')}
-          className="px-5"
         />
-
-        <div className="prenota__body">
-          {/* ── TAB GRUPPO ── */}
-          {activeTab==='gruppo' && (
-            <div className="prenota__tab-content">
-              <div className="prenota__grid-2">
-                {/* Dates + rooms */}
-                <div className="prenota__section prenota__section--col">
-                  <DateRangeField
-                    nameFrom="dataInizio"
-                    nameTo="dataFine"
-                    label="Date"
-                    valueFrom={form.dataInizio}
-                    valueTo={form.dataFine}
-                    onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,dataInizio:e.target.value}))}
-                    onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,dataFine:e.target.value}))}
-                  />
-                  <div className="prenota__counters-row">
-                    <div className="prenota__counter-item">
-                      <span className="prenota__field-label">Camere <span className="prenota__counter-sublabel">(Totali)</span>:</span>
-                      <Counter value={form.camere} onChange={v=>setForm(f=>({...f,camere:v}))}/>
-                    </div>
-                    <div className="prenota__counter-item">
-                      <span className="prenota__field-label">Persone:</span>
-                      <Counter value={form.persone} onChange={v=>setForm(f=>({...f,persone:v}))}/>
-                    </div>
-                  </div>
-                  <div className="prenota__suppl-wrap" ref={persRef}>
-                    <div className="prenota__suppl-row">
-                      <span className="prenota__suppl-label">In suppl:</span>
-                      <span className="prenota__suppl-sublabel">(Capo gruppo)</span>
-                      <span className="prenota__suppl-count">{Object.values(roomCounts).reduce((a,b)=>a+b,0)}</span>
-                      <button className={`prenota__personalizza-btn ${showPersonalizza?'prenota__personalizza-btn--open':''}`} onClick={()=>setShowPersonalizza(v=>!v)}>Personalizza</button>
-                    </div>
-                    {showPersonalizza && (
-                      <div className="prenota__personalizza-popup">
-                        {Object.keys(roomCounts).map(type=>(
-                          <div key={type} className="prenota__room-row">
-                            <div className="prenota__room-info">
-                              <span className="prenota__room-type">{type}</span>
-                              <span className="prenota__room-price">{ROOM_PRICES[type]},00 €</span>
-                            </div>
-                            <div className="prenota__room-controls">
-                              <button onClick={()=>adjustRoom(type,-1)} className="prenota__room-btn">−</button>
-                              <span className="prenota__room-qty">{roomCounts[type]}</span>
-                              <button onClick={()=>adjustRoom(type,1)} className="prenota__room-btn">+</button>
-                              <span className="prenota__room-subtotal">{((roomCounts[type]||0)*ROOM_PRICES[type]).toFixed(2).replace('.',',')} €</span>
-                            </div>
-                          </div>
-                        ))}
-                        {totaleSuppl>0 && (
-                          <div className="prenota__suppl-total">
-                            <span className="prenota__suppl-total-label">Totale:</span>
-                            <span className="prenota__suppl-total-val">{totaleSuppl.toFixed(2).replace('.',',')} € Suppl: {totaleSuppl.toFixed(2).replace('.',',')} €</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="flex flex-col gap-3.5">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[11px] font-semibold font-opensans text-ink">Stato</span>
-                    <div className="flex items-center gap-4 h-9">
-                      <label className="flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans text-ink">
-                        <input type="checkbox" checked={form.confermata} onChange={e=>setForm(v=>({...v,confermata:e.target.checked}))} className="sib-checkbox"/>
-                        <div className="w-2 h-2 rounded-full bg-success shrink-0"/> Confermata
-                      </label>
-                      <label className="flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans text-ink">
-                        <input type="checkbox" checked={form.extra} onChange={e=>setForm(v=>({...v,extra:e.target.checked}))} className="sib-checkbox"/>
-                        Extra
-                      </label>
-                    </div>
-                  </div>
-                  <SelectField
-                    name="arrangiamento"
-                    label="Arrangiamento"
-                    value={form.arrangiamento}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,arrangiamento:e.target.value}))}
-                    options={['RO','BB','HB','FB','AI'].map(o => ({ value: o, label: o }))}
-                    className="w-36"
-                  />
-                </div>
-              </div>
-
-              {/* Group data */}
-              <div className="flex flex-col gap-3.5">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold font-opensans text-ink">Tipo Gruppo</span>
-                  <div className="flex items-center gap-4 h-9">
-                    {(['Adulti','Studenti'] as const).map(t=>(
-                      <label key={t} className={`flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans ${form.tipoGruppo===t?'text-primary font-semibold':'text-ink'}`}>
-                        <input type="radio" checked={form.tipoGruppo===t} onChange={()=>setForm(v=>({...v,tipoGruppo:t}))} className="sib-radio"/>{t}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <InputField
-                  name="nomeGruppo"
-                  label="Nome Gruppo"
-                  value={form.nomeGruppo}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nomeGruppo:e.target.value}))}
-                />
-                <FormGrid>
-                  <InputField
-                    name="nomeCapoGruppo"
-                    label="Nome Capo Gruppo"
-                    value={form.nomeCapoGruppo}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nomeCapoGruppo:e.target.value}))}
-                  />
-                  <InputField
-                    name="emailCapoGruppo"
-                    label="Email Capo Gruppo"
-                    type="email"
-                    value={form.emailCapoGruppo}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,emailCapoGruppo:e.target.value}))}
-                  />
-                </FormGrid>
-                <FormGrid>
-                  <SelectField
-                    name="nazionalita"
-                    label="Nazionalità"
-                    value={form.nazionalita}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,nazionalita:e.target.value}))}
-                    options={NAZIONALITA.map(o => ({ value: o, label: o }))}
-                  />
-                  <InputField
-                    name="note"
-                    label="Note"
-                    value={form.note}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,note:e.target.value}))}
-                  />
-                </FormGrid>
-              </div>
-
-              <ServTable servizi={SERVIZI} qty={servQty} setQty={setServQty} totale={totaleServizi}/>
-
-              <div className="prenota__importo-bar">
-                <span className="prenota__importo-text">Tariffa: <strong>{TARIFFA.toFixed(2).replace('.',',')} € a persona</strong></span>
-                <span className="prenota__importo-text">Servizi: <strong>{totaleServizi.toFixed(2).replace('.',',')} €</strong></span>
-                <div className="prenota__importo-total">
-                  <span className="prenota__importo-text">Importo:</span>
-                  <span className="prenota__importo-amount">{importo.toFixed(2).replace('.',',')} €</span>
-                </div>
-              </div>
-
-              <FormActions onCancel={()=>navigate('tableau-book')} onConfirm={()=>{
-                  const startD=new Date(form.dataInizio), endD=new Date(form.dataFine)
-                  bookingStore.pending={id:Date.now(),nome:form.nomeGruppo||'Nuova prenotazione',startDay:startD.getDate(),endDay:endD.getDate(),startMonth:startD.getMonth(),startYear:startD.getFullYear(),row:0,colore:form.confermata?T.successMid:T.blue,camere:form.camere,persone:form.persone,importo}
-                  navigate('tableau-book')
-                }} confirmLabel="Carica"/>
-            </div>
-          )}
-
-          {/* ── TAB INDIVIDUALE ── */}
-          {activeTab==='individuale' && (
-            <div>
-              {indStep===1 && (
-                <div className="prenota__tab-content">
-                  {/* Date + Counters — tutti con label + h-9 allineati */}
-                  <div className="flex items-end gap-3 flex-wrap">
-                    <DateRangeField
-                      nameFrom="dal"
-                      nameTo="al"
-                      label="Date"
-                      valueFrom={indForm.dal}
-                      valueTo={indForm.al}
-                      onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,dal:e.target.value}))}
-                      onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,al:e.target.value}))}
-                    />
-                    {[{l:'Camere',k:'camere'},{l:'Adulti',k:'adulti'},{l:'Ragazzi',k:'ragazzi'},{l:'Bambini',k:'bambini'}].map(({l,k})=>(
-                      <div key={k} className="flex flex-col gap-1">
-                        <span className="text-[11px] font-semibold font-opensans text-ink">{l}</span>
-                        <input type="number" className="sib-input w-[60px] text-center" value={(indForm as any)[k]} onChange={e=>setIndForm(v=>({...v,[k]:Math.max(0,parseInt(e.target.value)||0)}))}/>
-                      </div>
-                    ))}
-                    <SelectField
-                      name="arrangiamento"
-                      label="Arrangiamento"
-                      value={indForm.arrangiamento}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIndForm(v=>({...v,arrangiamento:e.target.value}))}
-                      options={['RO','BB','HB','FB','AI'].map(o => ({ value: o, label: o }))}
-                      className="w-[100px]"
-                    />
-                    <SelectField
-                      name="citta"
-                      label="Città"
-                      value={indForm.citta}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIndForm(v=>({...v,citta:e.target.value}))}
-                      options={['Roma','Milano','Napoli','Firenze','Torino','Bologna','Venezia'].map(o => ({ value: o, label: o }))}
-                      className="w-[110px]"
-                    />
-                  </div>
-
-                  {/* Stato + Provenienza */}
-                  <FormGrid>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-semibold font-opensans text-ink">Stato</span>
-                        <div className="flex items-center gap-4 h-9">
-                          <label className="flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans text-ink">
-                            <input type="checkbox" checked={indForm.opzione} onChange={e=>setIndForm(v=>({...v,opzione:e.target.checked}))} className="sib-checkbox"/>
-                            <div className="w-2 h-2 rounded-full bg-error shrink-0"/> Opzione
-                          </label>
-                          <label className="flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans text-ink">
-                            <input type="checkbox" checked={indForm.confermata} onChange={e=>setIndForm(v=>({...v,confermata:e.target.checked}))} className="sib-checkbox"/>
-                            <div className="w-2 h-2 rounded-full bg-success shrink-0"/> Confermata
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex items-end gap-3">
-                        <DatePickerField
-                          name="scadenza"
-                          label="Scadenza"
-                          value={indForm.scadenza}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,scadenza:e.target.value}))}
-                          className="w-[138px]"
-                        />
-                        <InputField
-                          name="personeConf"
-                          label="Persone conf."
-                          type="number"
-                          value={indForm.personeConf}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,personeConf:e.target.value}))}
-                          className="w-[70px]"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-semibold font-opensans text-ink">Provenienza</span>
-                        <div className="flex items-center gap-4 h-9">
-                          {[{k:'b2b',l:'B2B'},{k:'dirette',l:'Dirette'}].map(({k,l})=>(
-                            <label key={k} className="flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans text-ink">
-                              <input type="checkbox" checked={(indForm as any)[k]} onChange={e=>setIndForm(v=>({...v,[k]:e.target.checked}))} className="sib-checkbox"/>
-                              {l}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <InputField
-                        name="agenzia"
-                        label="Agenzia"
-                        value={indForm.agenzia}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,agenzia:e.target.value}))}
-                      />
-                    </div>
-                  </FormGrid>
-
-                  {/* Anagrafica */}
-                  <div className="flex flex-col gap-3.5">
-                    <FormGrid>
-                      <InputField name="nome" label="Nome" value={indForm.nome} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,nome:e.target.value}))}/>
-                      <InputField name="email" label="Email" type="email" value={indForm.email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,email:e.target.value}))}/>
-                    </FormGrid>
-                    <InputField name="cognome" label="Cognome" value={indForm.cognome} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,cognome:e.target.value}))} className="max-w-[300px]"/>
-                    <FormGrid>
-                      <SelectField name="nazionalita" label="Nazionalità" value={indForm.nazionalita} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIndForm(v=>({...v,nazionalita:e.target.value}))} options={NAZIONALITA.map(o => ({ value: o, label: o }))}/>
-                      <InputField name="note" label="Note" value={indForm.note} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIndForm(v=>({...v,note:e.target.value}))}/>
-                    </FormGrid>
-                  </div>
-
-                  <ServTable servizi={IND_SERVIZI} qty={indServQty} setQty={setIndServQty} totale={indTotaleServizi}/>
-
-                  <div className="flex justify-end gap-2">
-                    <button className="sib-btn sib-btn--secondary" onClick={()=>navigate('tableau-book')}>Annulla</button>
-                    <button className="sib-btn sib-btn--primary" onClick={()=>setIndStep(2)}>Prossimo <Ico n="chevr" s={13} c="#fff"/></button>
-                  </div>
-                </div>
-              )}
-
-              {indStep===2 && (
-                <div className="prenota__tab-content">
-                  <div className="flex gap-6 flex-wrap">
-                    {[{l:'Dal',v:indForm.dal},{l:'Al',v:indForm.al},{l:'N° persone',v:indForm.adulti},{l:'Arrangiamento',v:indForm.arrangiamento==='RO'?'Room Only':indForm.arrangiamento==='BB'?'Bed & Breakfast':indForm.arrangiamento==='HB'?'Half Board':indForm.arrangiamento==='FB'?'Full Board':'All Inclusive'}].map((item,i)=>(
-                      <div key={i}>
-                        <div className="text-[11px] font-semibold text-ink-subtle mb-0.5">{item.l}</div>
-                        <div className="text-[13px] font-bold text-primary font-poppins">{item.v}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {['Listini Dinamici','Listini Statici'].map(title=>(
-                    <div key={title} className="prenota__listini-box">
-                      <div className="prenota__listini-hdr"><span className="prenota__listini-title">{title}</span></div>
-                      <div className="prenota__listini-empty"><p className="prenota__listini-empty-text">Nessuna Offerta dai {title} per questa prenotazione</p></div>
-                    </div>
-                  ))}
-                  <div className="flex justify-between gap-2">
-                    <button className="sib-btn sib-btn--toolbar" onClick={()=>setIndStep(1)}><Ico n="back" s={13} c="currentColor"/> Indietro</button>
-                    <button className="sib-btn sib-btn--primary" onClick={()=>{
-                      bookingStore.pending={id:Date.now(),nome:`${indForm.cognome} ${indForm.nome}`.trim()||'Individuale',startDay:new Date(indForm.dal).getDate(),endDay:new Date(indForm.al).getDate(),startMonth:new Date(indForm.dal).getMonth(),startYear:new Date(indForm.dal).getFullYear(),row:0,colore:indForm.confermata?T.successMid:T.error,camere:indForm.camere,persone:indForm.adulti,importo:indTotaleServizi}
-                      navigate('tableau-book')
-                    }}>Salva come bozza</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+        <div className="np-toolbar-icons">
+          <button type="button" className="np-icon-btn" aria-label="Modifica importo globale" onClick={()=>setImportoModalOpen(true)}><i className="fa-light fa-circle-info" /></button>
+          <button type="button" className="np-icon-btn" aria-label="Foto"><i className="fa-light fa-camera" /></button>
+          <button type="button" className="np-icon-btn" aria-label="Documento"><i className="fa-light fa-file-lines" /></button>
         </div>
       </div>
+
+      <div className="np-columns">
+        {activeLayout.layout.map((col, ci) => (
+          <div
+            key={ci}
+            className="np-column"
+            onDragOver={(e)=>{ e.preventDefault() }}
+            onDrop={(e)=>activeLayout.handleColumnDrop(e, ci)}
+          >
+            {col.map(id => renderWidget(id))}
+          </div>
+        ))}
+      </div>
+
+      <Widget id="ospiti" title="Anagrafica ospiti" bodyClassName="widget__body--flush">
+        <div className="np-ospiti-toolbar">
+          <button type="button" className="np-link-add" onClick={()=>setOspiti(p=>[...p, initOsp()])}>
+            <i className="fa-light fa-plus" /> Aggiungi ospite
+          </button>
+        </div>
+        <table className="np-table np-table--full">
+          <thead>
+            <tr>
+              <th>Nome</th><th>Cognome</th><th>Data di nascita</th><th>Paese di nascita</th><th>Sesso</th><th>N. Camera</th><th>Data di arrivo</th><th className="np-col-actions" aria-label="Azioni" />
+            </tr>
+          </thead>
+          <tbody>
+            {ospiti.map((o, i)=>(
+              <tr key={i}>
+                <td><input type="text" className="sib-input np-cell-input" value={o.nome}        onChange={e=>updOspite(i,{nome:e.target.value})}/></td>
+                <td><input type="text" className="sib-input np-cell-input" value={o.cognome}     onChange={e=>updOspite(i,{cognome:e.target.value})}/></td>
+                <td><input type="date" className="sib-input np-cell-input" value={o.dataNascita} onChange={e=>updOspite(i,{dataNascita:e.target.value})}/></td>
+                <td>
+                  <select className="sib-input np-cell-input" value={o.paese} onChange={e=>updOspite(i,{paese:e.target.value})}>
+                    <option value="">—</option>
+                    {NAZIONALITA.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </td>
+                <td>
+                  <select className="sib-input np-cell-input" value={o.sesso} onChange={e=>updOspite(i,{sesso:e.target.value})}>
+                    <option value="">—</option><option value="M">M</option><option value="F">F</option>
+                  </select>
+                </td>
+                <td>
+                  <select className="sib-input np-cell-input" value={o.nCamera} onChange={e=>updOspite(i,{nCamera:e.target.value})}>
+                    <option value="">—</option><option value="103">103</option><option value="104">104</option>
+                  </select>
+                </td>
+                <td><input type="date" className="sib-input np-cell-input" value={o.dataArrivo} onChange={e=>updOspite(i,{dataArrivo:e.target.value})}/></td>
+                <td className="np-col-actions">
+                  <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica">
+                    <i className="fa-light fa-pen-to-square" />
+                  </button>
+                  <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>setOspiti(prev => prev.filter((_, idx) => idx !== i))}>
+                    <i className="fa-light fa-trash" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Widget>
+
+      <footer className="np-footer">
+        <div className="np-totals">
+          <div className="np-total">
+            <span className="np-total-label">Soggiorno</span>
+            <span className="np-total-val">{totaleSoggiorno.toFixed(2).replace('.',',')} €</span>
+          </div>
+          <div className="np-total">
+            <span className="np-total-label">Servizi</span>
+            <span className="np-total-val">{totaleServizi.toFixed(2).replace('.',',')} €</span>
+          </div>
+          <div className="np-total np-total--strong">
+            <span className="np-total-label">Totale</span>
+            <span className="np-total-val">{totale.toFixed(2).replace('.',',')} €</span>
+          </div>
+        </div>
+        <div className="np-footer-actions">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={()=>navigate('tableau-book')}>Annulla</button>
+          <button type="button" className="sib-btn sib-btn--primary"   onClick={handleSalva}>Salva</button>
+        </div>
+      </footer>
+
+      <Modal open={importoModalOpen} onClose={()=>{ setImportoModalOpen(false); setEditRowIdx(null) }} size="xl">
+        <div className="modimp">
+          <header className="modimp__head">
+            <div className="modimp__head-text">
+              <h2 className="modimp__title">Modifica importo globale</h2>
+              <p className="modimp__subtitle">Sovrascrivi gli importi del soggiorno con un valore fisso o una variazione percentuale dal listino.</p>
+            </div>
+            <button className="modimp__close" onClick={()=>{ setImportoModalOpen(false); setEditRowIdx(null) }} aria-label="Chiudi">
+              <Ico n="x" s={18} c="currentColor" />
+            </button>
+          </header>
+
+          <div className="modimp__body">
+            <section className="modimp__section">
+              <div className="modimp__toggle-row">
+                <ToggleSwitch checked={modGlobalActive} onChange={setModGlobalActive} />
+                <div className="modimp__toggle-label">
+                  <span className="modimp__toggle-title">Applica modifica globale</span>
+                  <span className="modimp__toggle-hint">Calcola in automatico tutti gli importi delle righe sottostanti.</span>
+                </div>
+              </div>
+
+              {modGlobalActive && (
+                <div className="modimp__panel">
+                  <div className="modimp__panel-row">
+                    <span className="modimp__panel-label">Modalità</span>
+                    <div className="modimp__segmented">
+                      <label className={`modimp__seg ${modGlobalMode==='libero'?'modimp__seg--on':''}`}>
+                        <input type="radio" name="modGlobalMode" checked={modGlobalMode==='libero'} onChange={()=>setModGlobalMode('libero')} />
+                        Importo libero
+                      </label>
+                      <label className={`modimp__seg ${modGlobalMode==='percentuale'?'modimp__seg--on':''}`}>
+                        <input type="radio" name="modGlobalMode" checked={modGlobalMode==='percentuale'} onChange={()=>setModGlobalMode('percentuale')} />
+                        Percentuale
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="modimp__panel-row">
+                    <span className="modimp__panel-label">{modGlobalMode==='libero' ? 'Importo' : 'Variazione'}</span>
+                    <div className="modimp__amount-wrap">
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="sib-input modimp__amount"
+                        value={modGlobalValue}
+                        onChange={e=>setModGlobalValue(+e.target.value||0)}
+                      />
+                      <span className="modimp__amount-suffix">{modGlobalMode==='libero' ? '€' : '%'}</span>
+                    </div>
+                    <span className="modimp__listino">Listino: <strong>{prezzi[0]?.listino.toFixed(2).replace('.',',')} €</strong></span>
+                  </div>
+
+                  <div className="modimp__panel-actions">
+                    <Button variant="secondary" size="sm" onClick={resetModGlobal}>Ripristina listino</Button>
+                    <Button variant="primary"   size="sm" icon="check" onClick={applyModGlobal}>Applica a tutte le righe</Button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section className="modimp__section">
+              <header className="modimp__section-head">
+                <h3 className="modimp__section-title">Dettaglio prezzi</h3>
+                <span className="modimp__section-meta">{prezzi.length} righ{prezzi.length===1?'a':'e'}</span>
+              </header>
+              <div className="modimp__table-wrap">
+                <table className="np-table">
+                  <thead>
+                    <tr>
+                      <th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th className="modimp__th-right">Totale</th><th className="np-col-actions" aria-label="Azioni" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prezzi.map((r, i) => (
+                      <tr key={i} className={editRowIdx===i ? 'modimp__row--editing' : ''}>
+                        <td>{new Date(r.giorno).toLocaleDateString('it-IT')}</td>
+                        <td>{r.camera}</td>
+                        <td>{r.arrangiamento}</td>
+                        <td>{r.piani || '—'}</td>
+                        <td>{r.promozioni || '—'}</td>
+                        <td className="modimp__td-right">
+                          {editRowIdx === i ? (
+                            <div className="modimp__inline-edit">
+                              <input
+                                type="number"
+                                step="0.01"
+                                autoFocus
+                                className="sib-input modimp__inline-input"
+                                value={editRowValue}
+                                onChange={e=>setEditRowValue(+e.target.value||0)}
+                                onKeyDown={e=>{ if(e.key==='Enter') confirmEditRow(); if(e.key==='Escape') cancelEditRow() }}
+                              />
+                              <span className="modimp__amount-suffix">€</span>
+                            </div>
+                          ) : (
+                            <span className="np-amt">{r.totale.toFixed(2).replace('.',',')} €</span>
+                          )}
+                        </td>
+                        <td className="np-col-actions">
+                          {editRowIdx === i ? (
+                            <>
+                              <button type="button" className="np-row-action np-row-action--ok" aria-label="Conferma" onClick={confirmEditRow}><i className="fa-light fa-check" /></button>
+                              <button type="button" className="np-row-action" aria-label="Annulla" onClick={cancelEditRow}><i className="fa-light fa-xmark" /></button>
+                            </>
+                          ) : (
+                            <button type="button" className="np-row-action" aria-label="Modifica" onClick={()=>startEditRow(i)}>
+                              <i className="fa-light fa-pen-to-square" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="modimp__totals-bar">
+                <span className="modimp__totals-label">Totale soggiorno</span>
+                <span className="modimp__totals-val">{totaleSoggiorno.toFixed(2).replace('.',',')} €</span>
+              </div>
+            </section>
+          </div>
+
+          <footer className="modimp__foot">
+            <FormActions
+              cancelLabel="Annulla"
+              confirmLabel="Salva modifiche"
+              onCancel={()=>{ setImportoModalOpen(false); setEditRowIdx(null) }}
+              onConfirm={()=>{ setImportoModalOpen(false); setEditRowIdx(null) }}
+            />
+          </footer>
+        </div>
+      </Modal>
     </div>
   )
 }

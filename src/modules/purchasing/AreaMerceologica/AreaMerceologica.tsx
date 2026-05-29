@@ -5,29 +5,31 @@ import Ico from '../../../core/icons/Ico'
 import { Icon } from '../_shared/Icon'
 import { CategoryCard } from '../_shared/CategoryCard'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
+import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import './AreaMerceologica.css'
 
 interface CategoryEntry {
   id: number
+  catId: string                 // id del store: 'newa-cat-N'
   name: string
   icon: string
   count: number
   description: string
 }
 
-const CATEGORIES: CategoryEntry[] = [
-  { id: 1,  name: 'Alimenti, Ristorazione e Buoni Pasto',     icon: 'utensils',           count: 24, description: 'Fornitori di prodotti alimentari e servizi di ristorazione' },
-  { id: 2,  name: 'Energia, Carburanti e Lubrificanti',       icon: 'bolt',               count: 18, description: 'Servizi energetici, carburanti e lubrificanti industriali' },
-  { id: 3,  name: 'Cancelleria, Carta e Consumabili',         icon: 'file-lines',         count: 32, description: 'Materiale da ufficio, carta e prodotti consumabili' },
-  { id: 4,  name: 'Informatica, Elettronica e Macchinari',    icon: 'display',            count: 45, description: 'Hardware, software e attrezzature tecnologiche' },
-  { id: 5,  name: 'Editoria, Eventi e Comunicazione',         icon: 'shirt',              count: 15, description: 'Servizi editoriali, organizzazione eventi e comunicazione' },
-  { id: 6,  name: 'Lavori di Manutenzione',                   icon: 'wrench',             count: 28, description: 'Servizi di manutenzione ordinaria e straordinaria' },
-  { id: 7,  name: 'Idraulica, Edilizia e Materiale Elettrico',icon: 'bed',                count: 36, description: 'Materiali edili, idraulici ed elettrici' },
-  { id: 8,  name: 'Attrezzature e Impianti',                  icon: 'gear',               count: 22, description: 'Attrezzature tecniche e impiantistica industriale' },
-  { id: 9,  name: 'Monouso, Pulizie e Igiene',                icon: 'spray-can-sparkles', count: 41, description: 'Prodotti monouso, detergenti e igiene professionale' },
-  { id: 10, name: 'Rifiuti e Riciclo',                        icon: 'boxes-stacked',      count: 12, description: 'Gestione rifiuti e servizi di riciclaggio' },
-  { id: 11, name: 'Ricerca, Welfare e Benefit',               icon: 'briefcase',          count: 19, description: 'Servizi di welfare aziendale e benefit per dipendenti' },
-  { id: 12, name: 'Arredi, Complementi ed Elettrodomestici',  icon: 'truck',              count: 27, description: "Arredamento, complementi d'arredo ed elettrodomestici" },
+const CATEGORIES_META: Array<Omit<CategoryEntry, 'count'>> = [
+  { id: 1,  catId: 'newa-cat-1',  name: 'Alimenti, Ristorazione e Buoni Pasto',     icon: 'utensils',           description: 'Fornitori di prodotti alimentari e servizi di ristorazione' },
+  { id: 2,  catId: 'newa-cat-2',  name: 'Energia, Carburanti e Lubrificanti',       icon: 'bolt',               description: 'Servizi energetici, carburanti e lubrificanti industriali' },
+  { id: 3,  catId: 'newa-cat-3',  name: 'Cancelleria, Carta e Consumabili',         icon: 'file-lines',         description: 'Materiale da ufficio, carta e prodotti consumabili' },
+  { id: 4,  catId: 'newa-cat-4',  name: 'Informatica, Elettronica e Macchinari',    icon: 'display',            description: 'Hardware, software e attrezzature tecnologiche' },
+  { id: 5,  catId: 'newa-cat-5',  name: 'Editoria, Eventi e Comunicazione',         icon: 'shirt',              description: 'Servizi editoriali, organizzazione eventi e comunicazione' },
+  { id: 6,  catId: 'newa-cat-6',  name: 'Lavori di Manutenzione',                   icon: 'wrench',             description: 'Servizi di manutenzione ordinaria e straordinaria' },
+  { id: 7,  catId: 'newa-cat-7',  name: 'Idraulica, Edilizia e Materiale Elettrico',icon: 'bed',                description: 'Materiali edili, idraulici ed elettrici' },
+  { id: 8,  catId: 'newa-cat-8',  name: 'Attrezzature e Impianti',                  icon: 'gear',               description: 'Attrezzature tecniche e impiantistica industriale' },
+  { id: 9,  catId: 'newa-cat-9',  name: 'Monouso, Pulizie e Igiene',                icon: 'spray-can-sparkles', description: 'Prodotti monouso, detergenti e igiene professionale' },
+  { id: 10, catId: 'newa-cat-10', name: 'Rifiuti e Riciclo',                        icon: 'boxes-stacked',      description: 'Gestione rifiuti e servizi di riciclaggio' },
+  { id: 11, catId: 'newa-cat-11', name: 'Ricerca, Welfare e Benefit',               icon: 'briefcase',          description: 'Servizi di welfare aziendale e benefit per dipendenti' },
+  { id: 12, catId: 'newa-cat-12', name: 'Arredi, Complementi ed Elettrodomestici',  icon: 'truck',              description: "Arredamento, complementi d'arredo ed elettrodomestici" },
 ]
 
 const STATS: Array<{ icon: string; value: string; label: string; hint: string }> = [
@@ -51,10 +53,23 @@ const DEFAULT_MIN_COUNT = 0
 const MIN_COUNT_MAX = 50
 
 export default function AreaMerceologica({ navigate }: { navigate: (p: string) => void }) {
+  const prodotti  = useCatalogoStore(s => s.prodotti)
+  const fornitori = useCatalogoStore(s => s.fornitori)
+
   const [view, setView] = useState<ViewMode>('grid')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT)
   const [minCount, setMinCount] = useState<number>(DEFAULT_MIN_COUNT)
+
+  const CATEGORIES: CategoryEntry[] = useMemo(() => {
+    return CATEGORIES_META.map((meta) => {
+      const prodCount = prodotti.filter(p => p.categoriaId === meta.catId && p.mercati.agora.abilitato).length
+      const fornCount = fornitori.filter(f => f.categoriaId === meta.catId).length
+      // Conteggio mostrato in badge: prodotti se ce ne sono, altrimenti fornitori
+      const count = prodCount > 0 ? prodCount : fornCount
+      return { ...meta, count }
+    })
+  }, [prodotti, fornitori])
 
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -69,7 +84,7 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
         case 'count-desc': return b.count - a.count
       }
     })
-  }, [search, sortBy, minCount])
+  }, [CATEGORIES, search, sortBy, minCount])
 
   const filtersDirty = sortBy !== DEFAULT_SORT || minCount !== DEFAULT_MIN_COUNT
   const resetFilters = () => { setSortBy(DEFAULT_SORT); setMinCount(DEFAULT_MIN_COUNT) }
@@ -168,7 +183,7 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
               icon={category.icon}
               count={category.count}
               description={category.description}
-              onClick={() => navigate('lista-fornitori')}
+              onClick={() => navigate(`dettaglio-area-merceologica:${category.catId}`)}
             />
           ))}
         </div>

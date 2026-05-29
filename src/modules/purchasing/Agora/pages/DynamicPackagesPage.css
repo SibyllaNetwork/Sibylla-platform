@@ -744,7 +744,7 @@
     position: absolute !important;
     inset: 0;
     padding: 24mm 18mm;
-    background: #fff;
+    background: var(--color-surface);
     color: #1a1a1a;
     font-family: 'Open Sans', system-ui, sans-serif;
     font-size: 11pt;
@@ -757,20 +757,20 @@
   justify-content: space-between;
   align-items: flex-start;
   padding-bottom: 16px;
-  border-bottom: 2px solid #204769;
+  border-bottom: 2px solid var(--color-border);
   margin-bottom: 18px;
 }
 .voucher-print__brand {
   font-family: 'Poppins', sans-serif;
   font-size: 26pt;
   font-weight: 700;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0;
   letter-spacing: 0.02em;
 }
 .voucher-print__type {
   font-size: 9pt;
-  color: #6e7175;
+  color: var(--color-text-inactive);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin: 4px 0 0;
@@ -779,14 +779,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border: 1px solid #204769;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 8px 14px;
   min-width: 160px;
 }
 .voucher-print__code-label {
   font-size: 8pt;
-  color: #6e7175;
+  color: var(--color-text-inactive);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -794,7 +794,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 16pt;
   font-weight: 700;
-  color: #204769;
+  color: var(--color-primary);
   letter-spacing: 0.04em;
 }
 
@@ -805,19 +805,19 @@
   font-family: 'Poppins', sans-serif;
   font-size: 20pt;
   font-weight: 700;
-  color: #204769;
+  color: var(--color-primary);
   margin: 0 0 4px;
 }
 .voucher-print__desc {
   font-size: 11pt;
-  color: #4a4d53;
+  color: var(--color-text-active);
   margin: 0;
 }
 
 .voucher-print__section {
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px dashed #cfcfcf;
+  border-bottom: 1px dashed var(--color-border);
 }
 .voucher-print__h3 {
   font-family: 'Poppins', sans-serif;
@@ -825,7 +825,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6e7175;
+  color: var(--color-text-inactive);
   margin: 0 0 8px;
 }
 
@@ -838,7 +838,7 @@
 }
 .voucher-print__dl dt {
   font-weight: 600;
-  color: #6e7175;
+  color: var(--color-text-inactive);
 }
 .voucher-print__dl dd {
   color: #1a1a1a;
@@ -862,7 +862,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 10pt;
   font-weight: 700;
-  color: #204769;
+  color: var(--color-primary);
   letter-spacing: 0.02em;
 }
 .voucher-print__service-items {
@@ -876,7 +876,7 @@
 .voucher-print__service-items li {
   display: flex;
   flex-direction: column;
-  border-left: 2px solid #cfcfcf;
+  border-left: 2px solid var(--color-border);
   padding-left: 10px;
 }
 .voucher-print__service-name {
@@ -888,7 +888,7 @@
   display: flex;
   flex-direction: column;
   font-size: 10pt;
-  color: #6e7175;
+  color: var(--color-text-inactive);
 }
 
 .voucher-print__total {
@@ -896,8 +896,8 @@
   justify-content: space-between;
   align-items: baseline;
   padding: 12px 16px;
-  background: #f8fcff;
-  border: 1px solid #204769;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   margin-bottom: 18px;
 }
@@ -905,26 +905,26 @@
   font-size: 10pt;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6e7175;
+  color: var(--color-text-inactive);
 }
 .voucher-print__total-value {
   font-family: 'Poppins', sans-serif;
   font-size: 20pt;
   font-weight: 700;
-  color: #204769;
+  color: var(--color-primary);
 }
 
 .voucher-print__foot {
   font-size: 9pt;
-  color: #6e7175;
-  border-top: 1px solid #cfcfcf;
+  color: var(--color-text-inactive);
+  border-top: 1px solid var(--color-border);
   padding-top: 10px;
 }
 .voucher-print__foot p {
   margin: 2px 0;
 }
 .voucher-print__foot strong {
-  color: #4a4d53;
+  color: var(--color-text-active);
 }
 .voucher-print__issued {
   margin-top: 8px !important;

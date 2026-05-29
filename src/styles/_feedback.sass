@@ -47,7 +47,7 @@
     color: $primary
 
   &--disabled
-    background: #F0F0F0
+    background: var(--color-bg)
     color: $text-disabled
 
   // Dimensione media
@@ -70,22 +70,22 @@
 
   &--success
     background: $success-light
-    border: 1px solid rgba($success, 0.2)
+    border: 1px solid alpha($success, 0.2)
     color: $success
 
   &--error
     background: $error-light
-    border: 1px solid rgba($error, 0.2)
+    border: 1px solid alpha($error, 0.2)
     color: $error
 
   &--warning
     background: $warning-light
-    border: 1px solid rgba($warning, 0.2)
+    border: 1px solid alpha($warning, 0.2)
     color: $warning
 
   &--info
     background: $link-light
-    border: 1px solid rgba($link, 0.2)
+    border: 1px solid alpha($link, 0.2)
     color: $link
 
 // ══ ESITO BADGE ═══════════════════════════════════════════════════════════════
@@ -133,7 +133,7 @@
     border-width: 3px
 
   &--white
-    border-color: rgba($white, 0.3)
+    border-color: alpha($white, 0.3)
     border-top-color: $white
 
 @keyframes spin

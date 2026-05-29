@@ -31,14 +31,14 @@
 .go__info-wrap
   background: $white
   border-radius: 10px
-  border: 0.5px solid $border
+  border: 1px solid $border
   overflow: hidden
   margin-bottom: 20px
 
 .go__info-head
   display: grid
   grid-template-columns: 0.9fr 0.8fr 1fr 0.8fr 2fr 1.8fr 0.5fr 1.6fr
-  background: #FAFBFC
+  background: var(--color-bg)
   border-bottom: 1px solid $border
 
 .go__info-hcell
@@ -50,7 +50,7 @@
   letter-spacing: 0.4px
 
   &--border
-    border-right: 0.5px solid $border
+    border-right: 1px solid $border
 
 .go__info-body
   display: grid
@@ -64,7 +64,7 @@
   align-items: center
 
   &--border
-    border-right: 0.5px solid $border
+    border-right: 1px solid $border
 
 .go__info-val--bold
   font-weight: 500
@@ -113,7 +113,7 @@
     width: 4px
     height: 4px
     border-radius: 50%
-    background: #fff
+    background: var(--color-surface)
     opacity: 0.6
     flex-shrink: 0
 
@@ -158,7 +158,7 @@
 .go__card
   background: $white
   border-radius: 10px
-  border: 0.5px solid $border
+  border: 1px solid $border
   overflow: hidden
 
 .go__card-header
@@ -166,7 +166,7 @@
   align-items: center
   justify-content: space-between
   padding: 13px 16px
-  border-bottom: 0.5px solid $border
+  border-bottom: 1px solid $border
 
   &--simple
     justify-content: flex-start
@@ -211,15 +211,15 @@
   display: grid
   grid-template-columns: 1fr 1.6fr 36px
   padding: 8px 16px
-  background: #FAFBFC
-  border-bottom: 0.5px solid $border
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
 
 .go__assoc-head
   display: grid
   grid-template-columns: 1.3fr 1fr 1fr
   padding: 8px 16px
-  background: #FAFBFC
-  border-bottom: 0.5px solid $border
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
 
 // ─── Ruoli rows ───────────────────────────────────────────────────────────────
 .go__ruoli-row
@@ -231,10 +231,10 @@
   transition: background 0.1s
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
   &--border
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
 .go__ruoli-name
   font-size: 13px
@@ -274,10 +274,10 @@
   transition: background 0.1s
 
   &:hover
-    background: #F8FCFF
+    background: var(--color-bg)
 
   &--border
-    border-bottom: 0.5px solid $border
+    border-bottom: 1px solid $border
 
 .go__assoc-user
   display: flex

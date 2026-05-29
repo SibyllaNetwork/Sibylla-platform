@@ -12,17 +12,12 @@ import { Select } from '../ds/select';
 import { Label } from '../ds/label';
 import { Field } from '../ds/field';
 import { Slider } from '../ds/slider';
+import { useStrutturaPlatformStore } from '../../../../store/useStrutturaPlatformStore';
+import { useCartStore } from '../../../../store/useCartStore';
+import type { Struttura } from '../../../../admin/SibyllaAdminPanel/strutture/types';
 import './AccommodationsPage.css';
-import imgHotelArchimede from '../assets/MainContent/59e37e59d307da05a5844465dd8360c15951d0fd.png';
-import imgHotelPresidente from '../assets/MainContent/34d52f1e0275b76c9d86ab63f6fc377694fede06.png';
-import imgHotelContinental from '../assets/MainContent/cb6d4163ea1e7d5f34170476bd23e27f638bea8d.png';
-import imgHotelBernini from '../assets/MainContent/afcbaab315fe8ce142d6e70be92ffcd004a92ff1.png';
-import imgHotelRoma from '../assets/MainContent/86ae17e1a354ac2cd4f4790cbed8127730aa7837.png';
-import imgHotelQuirinale from '../assets/MainContent/9c85d59cd7b8d7a55688231bc762611d82017d1a.png';
-import imgHotelDesArtistes from '../assets/MainContent/2af089a2ff6ce44ab50015fe67678e0195dce0d8.png';
-import imgGrandHotelPlaza from '../assets/MainContent/6f9b1ffe80604512d221111bf9cc722732e61c44.png';
 
-type AccommodationCategory = 'hotel' | 'resort' | 'b&b' | 'agriturismo';
+type AccommodationCategory = 'hotel' | 'resort' | 'b&b' | 'agriturismo' | 'villa' | 'apartment' | 'ostello' | 'rifugio' | 'outlet';
 
 interface Accommodation {
   id: string;
@@ -37,19 +32,39 @@ interface Accommodation {
   category: AccommodationCategory;
 }
 
-const ACCOMMODATIONS: Accommodation[] = [
-  { id: 'archimede',    name: 'Hotel Archimede',    location: 'Via della Repubblica, Roma',    city: 'Roma',    province: 'RM', stars: 4, image: imgHotelArchimede,    rooms: '1 camera singola', price: 135, category: 'hotel' },
-  { id: 'presidente',   name: 'Hotel Presidente',   location: 'Piazza della Vittoria, Milano', city: 'Milano',  province: 'MI', stars: 4, image: imgHotelPresidente,   rooms: '1 camera singola', price: 195, category: 'hotel' },
-  { id: 'continental',  name: 'Hotel Continental',  location: 'Corso Italia, Torino',           city: 'Torino',  province: 'TO', stars: 4, image: imgHotelContinental,  rooms: '1 camera singola', price: 255, category: 'hotel' },
-  { id: 'bernini',      name: 'Hotel Bernini',      location: 'Via Garibaldi, Napoli',          city: 'Napoli',  province: 'NA', stars: 4, image: imgHotelBernini,      rooms: '1 camera singola', price: 235, category: 'hotel' },
-  { id: 'roma',         name: 'Hotel Roma',         location: 'Via della Villa, Roma',          city: 'Roma',    province: 'RM', stars: 5, image: imgHotelRoma,         rooms: '1 camera singola', price: 350, category: 'resort' },
-  { id: 'quirinale',    name: 'Hotel Quirinale',    location: 'Via Nazionale, Roma',            city: 'Roma',    province: 'RM', stars: 5, image: imgHotelQuirinale,    rooms: '1 camera singola', price: 405, category: 'resort' },
-  { id: 'des-artistes', name: 'Hotel des Artistes', location: 'Via della Vittoria, Firenze',    city: 'Firenze', province: 'FI', stars: 5, image: imgHotelDesArtistes,  rooms: '1 camera singola', price: 422, category: 'resort' },
-  { id: 'plaza',        name: 'Grand Hotel Plaza',  location: 'Piazza della Libertà, Venezia',  city: 'Venezia', province: 'VE', stars: 5, image: imgGrandHotelPlaza,   rooms: '1 camera singola', price: 555, category: 'resort' },
-];
+// ─── Mapping Struttura → Accommodation (modello di vista) ───────────────────
+// Convertiamo le strutture pubblicate sul canale Agorà nel modello consumato
+// dalla HotelCard. Il prezzo mostrato è il MINIMO `prezzoAgora` fra le tipologie
+// di camera. Le stelle sono parsate dal label `5★L` / `5★` / ecc.
+const parseStars = (c: string): number => {
+  const n = parseInt(c.replace(/[^\d]/g, ''), 10)
+  return Number.isFinite(n) ? n : 0
+}
 
-const CITIES = Array.from(new Set(ACCOMMODATIONS.map((a) => a.city))).sort();
-const PROVINCES = Array.from(new Set(ACCOMMODATIONS.map((a) => a.province))).sort();
+const formatRooms = (s: Struttura): string => {
+  if (s.tipologieCamere.length === 0) return s.camere > 0 ? `${s.camere} camere disponibili` : 'Su richiesta'
+  if (s.tipologieCamere.length === 1) return s.tipologieCamere[0].nome
+  return `${s.tipologieCamere.length} tipologie · da ${s.tipologieCamere[0].nome}`
+}
+
+const minPrezzoAgora = (s: Struttura): number => {
+  const valori = s.tipologieCamere.map(t => t.prezzoAgora).filter(p => p > 0)
+  if (valori.length === 0) return 0
+  return Math.min(...valori)
+}
+
+const strutturaToAccommodation = (s: Struttura): Accommodation => ({
+  id: s.id,
+  name: s.nome,
+  location: `${s.indirizzo}, ${s.citta}`,
+  city: s.citta,
+  province: s.provincia,
+  stars: parseStars(s.classificazione),
+  image: s.fotoPrincipale || s.logoUrl,
+  rooms: formatRooms(s),
+  price: minPrezzoAgora(s),
+  category: s.tipo as AccommodationCategory,
+})
 
 const CATEGORIES: Array<{ id: AccommodationCategory | 'all'; label: string }> = [
   { id: 'all',         label: 'Tutte le categorie' },
@@ -91,6 +106,9 @@ function computeNights(start: string, end: string): number {
 
 export function AccommodationsPage() {
   const { addStay } = useCart();
+  const addStayGlobal = useCartStore((s) => s.addStay);
+  const strutture = useStrutturaPlatformStore((s) => s.strutture);
+
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [city, setCity] = useState('');
   const [province, setProvince] = useState('');
@@ -99,11 +117,34 @@ export function AccommodationsPage() {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [category, setCategory] = useState<AccommodationCategory | 'all'>('all');
-  const [budgetMax, setBudgetMax] = useState<number>(500);
+  const [budgetMax, setBudgetMax] = useState<number>(1500);
   const [sort, setSort] = useState('recommended');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+
+  // ─── Strutture pubblicate sul canale Agorà ─────────────────────────────
+  // Solo le strutture attive E con `canali.agora.pubblicata = true` finiscono
+  // in vetrina. Il toggle nell'admin (Sibylla Admin → Piattaforma admin →
+  // Strutture → Strutture proprie → pill "Agorà") agisce direttamente su questo.
+  const ACCOMMODATIONS = useMemo<Accommodation[]>(
+    () =>
+      strutture
+        .filter((s) => s.attiva && s.canali.agora.pubblicata)
+        .map(strutturaToAccommodation),
+    [strutture],
+  );
+
+  const CITIES = useMemo(
+    () => Array.from(new Set(ACCOMMODATIONS.map((a) => a.city))).sort(),
+    [ACCOMMODATIONS],
+  );
+  const PROVINCES = useMemo(
+    () => Array.from(new Set(ACCOMMODATIONS.map((a) => a.province).filter(Boolean))).sort(),
+    [ACCOMMODATIONS],
+  );
 
   const handleBook = (a: Accommodation) => {
     const nights = computeNights(startDate, endDate);
+    // Cart locale AgoraShell (per la pagina /cart interna)
     addStay({
       id: a.id,
       name: a.name,
@@ -118,6 +159,21 @@ export function AccommodationsPage() {
       stars: a.stars,
       rooms: a.rooms,
     });
+    // Cart globale Sibylla (per il badge nella topbar e altre pagine)
+    addStayGlobal({
+      id: a.id,
+      nome: a.name,
+      location: a.location,
+      immagineUrl: a.image,
+      prezzoPerNotte: a.price,
+      notti: nights,
+      adulti: adults,
+      bambini: children,
+      checkIn: startDate || null,
+      checkOut: endDate || null,
+      stelle: a.stars,
+      camere: a.rooms,
+    });
     setJustAddedId(a.id);
     setTimeout(() => setJustAddedId((prev) => (prev === a.id ? null : prev)), 2000);
   };
@@ -127,7 +183,8 @@ export function AccommodationsPage() {
       if (city && a.city !== city) return false;
       if (province && a.province !== province) return false;
       if (category !== 'all' && a.category !== category) return false;
-      if (a.price > budgetMax) return false;
+      // Le strutture senza prezzo pubblicato passano comunque il filtro budget.
+      if (a.price > 0 && a.price > budgetMax) return false;
       return true;
     });
 
@@ -137,7 +194,7 @@ export function AccommodationsPage() {
       case 'stars-desc': return [...list].sort((a, b) => b.stars - a.stars);
       default:           return list;
     }
-  }, [city, province, category, budgetMax, sort]);
+  }, [ACCOMMODATIONS, city, province, category, budgetMax, sort]);
 
   return (
     <Layout>
@@ -206,8 +263,8 @@ export function AccommodationsPage() {
           <FilterField label="Budget Max">
             <Slider
               min={0}
-              max={500}
-              step={10}
+              max={2000}
+              step={50}
               value={budgetMax}
               onChange={(e) => setBudgetMax(Number(e.target.value))}
               formatValue={(v) => `€ ${v}`}
@@ -232,27 +289,54 @@ export function AccommodationsPage() {
             </P3>
           </div>
 
-          <div className="accommodations__sort">
-            <Label className="accommodations__sort-label">Ordina per</Label>
-            <Select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              inputSize="dense"
-              className="accommodations__sort-select"
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.id} value={o.id}>{o.label}</option>
-              ))}
-            </Select>
+          <div className="accommodations__results-controls">
+            <div className="accommodations__view-toggle" role="group" aria-label="Modalità di visualizzazione">
+              <button
+                type="button"
+                className={`accommodations__view-btn${view === 'grid' ? ' accommodations__view-btn--active' : ''}`}
+                onClick={() => setView('grid')}
+                title="Griglia"
+                aria-pressed={view === 'grid'}
+              >
+                <Icon family="regular" name="grid-2" />
+              </button>
+              <button
+                type="button"
+                className={`accommodations__view-btn${view === 'list' ? ' accommodations__view-btn--active' : ''}`}
+                onClick={() => setView('list')}
+                title="Lista"
+                aria-pressed={view === 'list'}
+              >
+                <Icon family="regular" name="list" />
+              </button>
+            </div>
+
+            <div className="accommodations__sort">
+              <Label className="accommodations__sort-label">Ordina per</Label>
+              <Select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                inputSize="dense"
+                className="accommodations__sort-select"
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.id} value={o.id}>{o.label}</option>
+                ))}
+              </Select>
+            </div>
           </div>
         </div>
 
         {filtered.length === 0 ? (
           <div className="accommodations__empty">
-            <P3>Nessuna struttura trovata con i filtri selezionati</P3>
+            <P3>
+              {ACCOMMODATIONS.length === 0
+                ? 'Nessuna struttura pubblicata su Agorà. Vai in Sibylla Admin → Piattaforma admin → Strutture e attiva il canale Agorà.'
+                : 'Nessuna struttura trovata con i filtri selezionati'}
+            </P3>
           </div>
         ) : (
-          <div className="accommodations__grid">
+          <div className={`accommodations__grid${view === 'list' ? ' accommodations__grid--list' : ''}`}>
             {filtered.map((a) => (
               <HotelCard
                 key={a.id}

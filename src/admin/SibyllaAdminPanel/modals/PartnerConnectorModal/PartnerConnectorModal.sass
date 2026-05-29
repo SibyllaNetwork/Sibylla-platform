@@ -1,0 +1,430 @@
+.pc-modal
+  display: flex
+  flex-direction: column
+  max-height: 85vh
+  padding: 0
+
+  // ─── Nav sezioni ─────────────────────────────────────────────────────────
+  .pc-modal__nav
+    display: flex
+    gap: 2px
+    padding: 10px 14px 0
+    border-bottom: 1px solid var(--color-border)
+    overflow-x: auto
+
+  .pc-modal__nav-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: transparent
+    border: none
+    border-bottom: 2px solid transparent
+    padding: 8px 14px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    cursor: pointer
+    transition: color 0.15s, border-color 0.15s
+    margin-bottom: -1px
+    white-space: nowrap
+
+    &:hover
+      color: var(--color-primary)
+
+  .pc-modal__nav-ico
+    font-size: 13px
+
+  .pc-modal__nav-btn--active
+    color: var(--color-primary)
+    border-bottom-color: var(--color-primary)
+
+  .pc-modal__body
+    overflow-y: auto
+    padding: 16px 18px
+    flex: 1 1 auto
+    min-height: 380px
+
+  .pc-modal__section
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  .pc-modal__grid
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 10px 14px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .pc-modal__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .pc-modal__field--full
+    grid-column: 1 / -1
+
+  .pc-modal__label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  .pc-modal__hint
+    color: var(--color-text-disabled)
+    font-weight: 400
+    font-style: italic
+
+  .pc-modal__hint-text
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+    margin: 0
+    line-height: 1.5
+
+    code
+      font-family: 'JetBrains Mono', 'Menlo', monospace
+      font-size: 11px
+      background: var(--color-bg)
+      padding: 1px 5px
+      border-radius: 3px
+
+  .pc-modal__empty-mini
+    background: var(--color-bg)
+    border: 1px dashed var(--color-border)
+    border-radius: 6px
+    padding: 16px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  .pc-modal__toggle
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    color: var(--color-text-primary)
+    cursor: pointer
+
+    input
+      width: 14px
+      height: 14px
+
+  // ─── Provider grid (cards) ───────────────────────────────────────────────
+  .pc-modal__provider-grid
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 8px
+
+    @media (max-width: 700px)
+      grid-template-columns: repeat(2, 1fr)
+
+  .pc-modal__provider-card
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+    padding: 10px 12px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    cursor: pointer
+    transition: all 0.15s
+    text-align: left
+
+    &:hover
+      border-color: var(--provider-color, var(--color-primary))
+
+  .pc-modal__provider-card--active
+    border-color: var(--provider-color, var(--color-primary))
+    background: rgba(0,0,0,0.02)
+    box-shadow: inset 0 0 0 1px var(--provider-color, var(--color-primary))
+
+  .pc-modal__provider-icon
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border-radius: 8px
+    background-color: var(--provider-color, var(--color-primary))
+    color: #fff
+    font-size: 14px
+
+  .pc-modal__provider-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-text-primary)
+
+  .pc-modal__provider-desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-inactive)
+    line-height: 1.3
+
+  // ─── Test button ─────────────────────────────────────────────────────────
+  .pc-modal__test-btn
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  // ─── Sync info box ───────────────────────────────────────────────────────
+  .pc-modal__sync-info
+    grid-column: 1 / -1
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 12px
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+    > div
+      display: flex
+      flex-direction: column
+      gap: 4px
+
+  .pc-modal__sync-msg-box
+    grid-column: 1 / -1
+
+  .pc-modal__sync-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  .pc-modal__sync-state
+    font-family: 'Open Sans', sans-serif
+    font-size: 12.5px
+    font-weight: 600
+    text-transform: capitalize
+
+  .pc-modal__sync-state--ok
+    color: #1f6c44
+
+  .pc-modal__sync-state--errore
+    color: #b03020
+
+  .pc-modal__sync-state--in-corso
+    color: #2c6a99
+
+  .pc-modal__sync-state--mai-eseguito
+    color: #666
+
+  // ─── Mapping campi ───────────────────────────────────────────────────────
+  .pc-modal__mapping-head
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 14px
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 5px
+      flex-shrink: 0
+
+  .pc-modal__mapping-list
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .pc-modal__mapping-header
+    display: grid
+    grid-template-columns: 1fr 24px 1fr 1fr 30px
+    gap: 8px
+    align-items: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 10.5px
+    font-weight: 700
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    padding: 0 6px
+
+    @media (max-width: 700px)
+      display: none
+
+  .pc-modal__mapping-row
+    display: grid
+    grid-template-columns: 1fr 24px 1fr 1fr 30px
+    gap: 8px
+    align-items: center
+
+    @media (max-width: 700px)
+      grid-template-columns: 1fr
+
+  .pc-modal__mapping-arrow
+    text-align: center
+    color: var(--color-text-disabled)
+    font-weight: 700
+
+    @media (max-width: 700px)
+      display: none
+
+  .pc-modal__mapping-remove
+    width: 30px
+    height: 30px
+    border-radius: 4px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      border-color: var(--color-error, #c0392b)
+
+  // ─── Canali grid ─────────────────────────────────────────────────────────
+  .pc-modal__canali-grid
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 12px
+
+    @media (max-width: 900px)
+      grid-template-columns: 1fr
+
+  .pc-modal__canale-card
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 12px 14px
+    display: flex
+    flex-direction: column
+    gap: 8px
+    opacity: 0.65
+    transition: all 0.18s
+
+  .pc-modal__canale-card--on
+    opacity: 1
+    border-color: var(--canale-color, var(--color-primary))
+    background: var(--color-surface)
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.04)
+
+  .pc-modal__canale-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+
+  .pc-modal__canale-name
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    font-weight: 700
+    color: var(--canale-color, var(--color-primary))
+
+  .pc-modal__canale-flavor
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-style: italic
+    color: var(--color-text-inactive)
+
+  .pc-modal__canale-desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+    margin: 0 0 4px
+
+  // Switch generico
+  .pc-modal__switch
+    position: relative
+    display: inline-block
+    width: 32px
+    height: 18px
+    cursor: pointer
+
+    input
+      opacity: 0
+      width: 0
+      height: 0
+
+      &:checked + .pc-modal__switch-slider
+        background: var(--canale-color, var(--color-primary))
+
+      &:checked + .pc-modal__switch-slider::before
+        transform: translateX(14px)
+
+  .pc-modal__switch-slider
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    background: #cbd5e1
+    border-radius: 999px
+    transition: background 0.18s
+
+    &::before
+      content: ''
+      position: absolute
+      top: 2px
+      left: 2px
+      width: 14px
+      height: 14px
+      background: var(--color-surface)
+      border-radius: 50%
+      transition: transform 0.18s
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15)
+
+  // ─── Override UI ─────────────────────────────────────────────────────────
+  .pc-modal__color-row
+    display: flex
+    gap: 8px
+    align-items: center
+
+  .pc-modal__color-input
+    width: 36px
+    height: 36px
+    padding: 2px
+    border: 1px solid var(--color-border)
+    border-radius: 6px
+    background: var(--color-surface)
+    cursor: pointer
+
+  .pc-modal__override-preview
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 14px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .pc-modal__override-preview-label
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+  .pc-modal__override-preview-badge
+    align-self: flex-start
+    padding: 3px 10px
+    border-radius: 999px
+    background: var(--provider-color, var(--color-primary))
+    color: #fff
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: 0.04em
+
+  // ─── Footer ──────────────────────────────────────────────────────────────
+  .pc-modal__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 12px 18px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-surface)
