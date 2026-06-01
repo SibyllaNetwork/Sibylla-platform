@@ -322,7 +322,7 @@ function SezioneCorporate({
   return (
     <div className="imposta-dist__sezione">
       <h3 className="imposta-dist__section-title">{label}</h3>
-      <table className="imposta-dist__table">
+      <table className="sib-table imposta-dist__table">
         <thead>
           <tr>
             <th />
@@ -368,7 +368,7 @@ function SezioneGenerica({
           <span>Verifica aderenza Budget dei ricavi</span>
         </div>
       )}
-      <table className="imposta-dist__table">
+      <table className="sib-table imposta-dist__table">
         <thead>
           <tr>
             <th />

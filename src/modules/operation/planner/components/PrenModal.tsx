@@ -17,8 +17,8 @@ const PrenModal: React.FC<Props> = ({ title, subtitle, items, onClose, actionLab
   <Modal open={true} onClose={onClose} title={title}>
     <div className="pren-modal">
       <p className="pren-modal__subtitle">{subtitle}</p>
-      <div className="pren-modal__scroll">
-        <table className="pren-modal__table">
+      <div className="pren-modal__scroll sib-table-wrap">
+        <table className="sib-table pren-modal__table">
           <thead>
             <tr>
               {['#','Nominativo','Date','Agenzia','Tipologia','Segmento','Camera'].map(h => (

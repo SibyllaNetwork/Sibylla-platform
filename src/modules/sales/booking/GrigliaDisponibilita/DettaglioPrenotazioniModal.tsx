@@ -69,7 +69,7 @@ export default function DettaglioPrenotazioniModal({ open, onClose, data }: Prop
         </div>
 
         <div className="det-pren__table-wrap">
-          <table className="det-pren__table">
+          <table className="sib-table det-pren__table">
             <thead>
               <tr>
                 <th>Identificativo</th>

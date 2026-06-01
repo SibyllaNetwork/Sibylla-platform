@@ -139,7 +139,7 @@ export default function CreaMagazzino({
 
       {magazzinoId && movimentiDisp.length > 0 ? (
         <div className="crea-mag__movimenti">
-          <table className="crea-mag__movimenti-table">
+          <table className="sib-table crea-mag__movimenti-table">
             <thead>
               <tr>
                 <th>Data</th>

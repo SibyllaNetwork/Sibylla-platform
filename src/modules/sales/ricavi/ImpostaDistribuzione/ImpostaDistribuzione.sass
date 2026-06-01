@@ -97,20 +97,9 @@
     i
       font-size: 14px
 
+  // Base th/td forniti da .sib-table; qui solo larghezze/centratura colonne
   &__table
-    width: 100%
-    border-collapse: collapse
     table-layout: fixed
-    font-size: 12px
-
-    th
-      font-size: 10px
-      font-weight: 600
-      color: $text-inactive
-      text-align: center
-      padding: 6px 4px
-      line-height: 1.3
-      border-bottom: 1px solid $border
 
     th:nth-child(1)
       width: auto
@@ -122,19 +111,15 @@
     th:nth-child(4)
       width: 96px
 
+    // header colonne checkbox/capacità centrati (override left di .sib-table th)
+    th:nth-child(n+2)
+      text-align: center
+
     tbody tr
       height: 32px
 
-    td
-      padding: 6px 4px
-      border-bottom: 1px solid rgba(219,219,219,0.5)
-      color: $text-active
-      vertical-align: middle
-
-    tr:last-child td
-      border-bottom: none
-
-  &__td-c
+  // Centratura celle sotto .sib-table per vincere su .sib-table td
+  .sib-table &__td-c
     text-align: center
 
   &__euro

@@ -364,36 +364,15 @@
 }
 
 /* ---- Table ---- */
-.dash-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: var(--font-sans);
-  font-size: var(--text-p1);
-}
-.dash-table thead th {
-  text-align: left;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: var(--text-p6);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-inactive);
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border-soft);
-}
-.dash-table tbody td {
-  padding: 12px;
-  color: var(--color-text-active);
-  border-bottom: 1px dashed var(--color-border-soft);
-}
-.dash-table tbody tr:last-child td { border-bottom: none; }
-.dash-table tbody tr:hover { background: var(--color-surface-subtle); }
-.dash-table__num {
+/* deroga consapevole: bordo riga dashed (look "voucher recenti") */
+.sib-table.dash-table tbody td { border-bottom: 1px dashed var(--color-border-soft); }
+.sib-table.dash-table tbody tr:last-child td { border-bottom: none; }
+.sib-table .dash-table__num {
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-.dash-table__title {
+.sib-table .dash-table__title {
   font-weight: 600;
   color: var(--color-primary);
 }

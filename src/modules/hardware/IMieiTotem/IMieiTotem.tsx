@@ -46,7 +46,8 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
       <div className="totem__layout">
         <section className="totem__list-section">
           <h3 className="totem__list-title">I miei Totem</h3>
-          <table className="totem__table">
+          <div className="sib-table-wrap">
+          <table className="sib-table totem__table">
             <thead>
               <tr>
                 <th>Posizione</th>
@@ -117,6 +118,7 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
               ))}
             </tbody>
           </table>
+          </div>
         </section>
 
         <TotemAgoraCta />

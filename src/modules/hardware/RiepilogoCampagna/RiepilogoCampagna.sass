@@ -75,35 +75,11 @@ $danger: #dc2626
       min-width: 110px
 
   // ── Tabella ─────────────────────────────────────────────────────
-  &__table
-    width: 100%
-    border-collapse: collapse
-    font-size: 12px
-
-    thead th
-      background: $primary
-      color: white
-      padding: 8px 10px
-      font-weight: 700
-      font-size: 11px
-      text-align: left
-      white-space: nowrap
-
-    tbody td
-      padding: 8px 10px
-      border-bottom: 1px solid $border
-      vertical-align: middle
-
-    tbody tr:last-child td
-      border-bottom: none
-
-    tbody tr:nth-child(even)
-      background: $bg-zebra
-
-  &__th-center
-    text-align: center
-
-  &__td-center
+  // Base standardizzata su .sib-table (tailwind.css): header muted uppercase,
+  // niente navy, niente zebra. Qui restano solo gli override locali.
+  // gli override di allineamento devono battere `.sib-table th/td` (0,1,1)
+  .sib-table &__th-center,
+  .sib-table &__td-center
     text-align: center
 
   &__td-date

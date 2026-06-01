@@ -140,7 +140,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
         <div className="maint-an__side-label">DETTAGLIO</div>
         <div className="maint-an__section-content">
           <div className="maint-an__section-title">Dettaglio interventi</div>
-          <table className="maint-an__matrix">
+          <table className="sib-table maint-an__matrix">
             <thead>
               <tr>
                 <th>Reparto/Intervento</th>

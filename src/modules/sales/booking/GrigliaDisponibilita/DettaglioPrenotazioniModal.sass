@@ -1,8 +1,6 @@
 // ─── DETTAGLIO PRENOTAZIONI MODAL ─────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
 
-$dp-row-divider: #eef0f3
-
 .det-pren
   display: flex
   flex-direction: column
@@ -61,36 +59,16 @@ $dp-row-divider: #eef0f3
     max-height: 380px
     overflow-y: auto
 
-  &__table
-    width: 100%
-    border-collapse: collapse
-    font-size: 13px
-
-    th, td
-      padding: 6px 10px
-      text-align: left
-      border-bottom: 1px solid $dp-row-divider
-      vertical-align: middle
-
-    th
-      background: $bg
-      color: $text-inactive
-      font-size: 10.5px
-      font-weight: 600
-      text-transform: uppercase
-      letter-spacing: 0.4px
-      border-bottom: 1px solid $border
-      white-space: nowrap
-
-    tbody tr:last-child td
-      border-bottom: none
-
+  // Base th/td forniti da .sib-table; qui solo larghezze/centratura colonne
   &__num
-    text-align: center
     width: 80px
 
   &__action-col
     width: 220px
+
+  // Centratura celle numeriche sotto .sib-table (vince su .sib-table th/td)
+  .sib-table &__num
+    text-align: center
 
   &__id
     font-weight: 600

@@ -60,7 +60,8 @@ export default function GestioneAdvertising({ navigate }: { navigate: (p: string
           <h3 className="adv__section-title adv__section-title--small">
             Dettaglio località: <strong>{selectedCity}</strong>
           </h3>
-          <table className="adv__table">
+          <div className="sib-table-wrap">
+          <table className="sib-table adv__table">
             <thead>
               <tr>
                 <th>Spazi disponibili</th>
@@ -114,6 +115,7 @@ export default function GestioneAdvertising({ navigate }: { navigate: (p: string
               ))}
             </tbody>
           </table>
+          </div>
         </section>
 
         {/* ── Destra: CTA Agorà ─────────────────────────────── */}

@@ -96,33 +96,7 @@
   overflow: hidden;
 }
 
-.admin-videos__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 13px;
-  color: var(--color-text-active);
-}
-.admin-videos__table thead th {
-  background: #f5f8fb;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-inactive);
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--color-border-soft);
-}
-.admin-videos__table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--color-border-soft);
-  vertical-align: middle;
-}
-.admin-videos__table tbody tr:last-child td {
-  border-bottom: 0;
-}
-.admin-videos__col-actions {
+.sib-table .admin-videos__col-actions {
   width: 96px;
   text-align: right;
   white-space: nowrap;
@@ -209,7 +183,7 @@
   color: #d10011;
 }
 
-.admin-videos__empty {
+.sib-table .admin-videos__empty {
   padding: 32px;
   text-align: center;
   color: var(--color-text-inactive);
@@ -428,7 +402,7 @@
 .admin-videos__badge--muted { background: #eef0f3; color: #5a6273; }
 
 /* Colonna azioni: ora ospita 3 bottoni */
-.admin-videos__col-actions { width: 140px; }
+.sib-table .admin-videos__col-actions { width: 140px; }
 
 .admin-videos__icon-btn--publish { color: #007035; border-color: var(--color-border); }
 .admin-videos__icon-btn--publish:hover { border-color: var(--color-border); color: #007035; }

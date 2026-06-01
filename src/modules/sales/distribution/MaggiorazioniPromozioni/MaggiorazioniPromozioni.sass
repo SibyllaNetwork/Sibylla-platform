@@ -98,18 +98,19 @@
   margin-left: auto
 
 // ─── Table cells ──────────────────────────────────────────────────────────────
-.promo__th--right
+// Modificatori sotto .sib-table per vincere su .sib-table th/td (0,1,1)
+.sib-table .promo__th--right, .sib-table .promo__td--right
   text-align: right
 
-.promo__th--center
+.sib-table .promo__th--center
   text-align: center
 
-.promo__td--empty
+.sib-table .promo__td--empty
   text-align: center
   color: $text-disabled
   padding: 32px 0
 
-.promo__td--num
+.sib-table .promo__td--num
   text-align: center
   color: $text-disabled
   font-weight: 600
@@ -118,11 +119,8 @@
   font-weight: 600
   color: $primary
 
-.promo__td--muted
+.sib-table .promo__td--muted
   color: $text-disabled
-
-.promo__td--right
-  text-align: right
 
 // ─── Delete modal ─────────────────────────────────────────────────────────────
 .promo__delete-modal

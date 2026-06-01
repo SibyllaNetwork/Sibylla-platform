@@ -496,7 +496,7 @@ export function DashboardPage() {
                 Vedi tutti <Icon family="light" name="arrow-right" />
               </button>
             </div>
-            <table className="dash-table">
+            <table className="sib-table dash-table">
               <thead>
                 <tr>
                   <th>Codice</th>

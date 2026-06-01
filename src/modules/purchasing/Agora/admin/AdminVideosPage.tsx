@@ -211,7 +211,7 @@ export function AdminVideosPage() {
         </div>
 
         <div className="admin-videos__table-wrap">
-          <table className="admin-videos__table">
+          <table className="sib-table admin-videos__table">
             <thead>
               <tr>
                 <th>Anteprima</th>

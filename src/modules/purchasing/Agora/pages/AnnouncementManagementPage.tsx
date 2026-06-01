@@ -289,7 +289,7 @@ export function AnnouncementManagementPage() {
             </div>
           ) : (
             <div>
-              <table className="announcements-mgmt__table">
+              <table className="sib-table announcements-mgmt__table">
                 <thead className="announcements-mgmt__thead">
                   <tr>
                     <th className="announcements-mgmt__th">Periodo</th>

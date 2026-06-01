@@ -58,26 +58,7 @@
       background: $primary-200
       border-radius: 2px
 
-  &__table
-    width: 100%
-    border-collapse: collapse
-    font-size: 12px
-
-  &__th
-    padding: 9px 12px
-    font-size: 10px
-    font-weight: 700
-    color: $text-disabled
-    text-transform: uppercase
-    letter-spacing: 0.4px
-    background: var(--color-bg)
-    border-bottom: 1px solid $border
-    text-align: left
-    white-space: nowrap
-    position: sticky
-    top: 0
-    z-index: 1
-
+  // Base table/th/td forniti da .sib-table; qui solo selezione/hover riga
   &__tr
     cursor: pointer
     transition: background 0.1s
@@ -90,12 +71,6 @@
 
       td
         color: $primary
-
-    td
-      padding: 10px 12px
-      border-bottom: 1px solid $border
-      color: $text-active
-      font-size: 12px
 
   &__camera-num
     font-family: $font-heading

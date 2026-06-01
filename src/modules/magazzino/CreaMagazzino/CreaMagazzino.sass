@@ -62,32 +62,8 @@ $muted: #4b5563
     border-radius: 12px
     overflow: hidden
 
-  &__movimenti-table
-    width: 100%
-    border-collapse: collapse
-    font-size: 13px
-
-    th, td
-      padding: 10px 12px
-      text-align: left
-      vertical-align: middle
-      border-bottom: 1px solid $border
-
-    th
-      font-size: 11px
-      font-weight: 600
-      font-family: 'Open Sans', sans-serif
-      color: $ink
-      background: $bg
-      text-transform: none
-      letter-spacing: 0
-
-    tbody tr:last-child td
-      border-bottom: none
-
-    tbody tr:hover
-      background: $bg
-
+  // Tabella movimenti: base standardizzata su .sib-table (tailwind.css).
+  // Qui restano solo gli override di colonna/cella specifici.
   &__col-num
     text-align: right
     font-variant-numeric: tabular-nums

@@ -168,9 +168,9 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
           </span>
         )
         return (
-          <div className="promo__table-wrap">
+          <div className="promo__table-wrap sib-table-wrap">
             <div className="promo__table-scroll">
-              <table className="promo__table">
+              <table className="sib-table promo__table">
                 <thead>
                   {/* Header row — sortable */}
                   <tr className="promo__thead-row">

@@ -122,7 +122,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
         <div className="assegnazione__table-card">
           <h2 className="assegnazione__card-title">Assegnazione automatica</h2>
           <div className="assegnazione__table-wrap">
-            <table className="assegnazione__table">
+            <table className="sib-table assegnazione__table">
               <thead>
                 <tr>
                   <th className="assegnazione__th">Camera</th>

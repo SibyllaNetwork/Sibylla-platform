@@ -61,7 +61,8 @@ export default function RiepilogoCampagna({ navigate }: { navigate: (p: string) 
             </div>
           </div>
 
-          <table className="riep-camp__table">
+          <div className="sib-table-wrap">
+          <table className="sib-table riep-camp__table">
             <thead>
               <tr>
                 <th>Data</th>
@@ -115,6 +116,7 @@ export default function RiepilogoCampagna({ navigate }: { navigate: (p: string) 
               ))}
             </tbody>
           </table>
+          </div>
 
           <div className="riep-camp__panel-actions">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('pianifica-campagna')}>

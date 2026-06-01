@@ -41,38 +41,13 @@ $orange-deep: #ea580c
     font-size: 16px
     color: $primary
 
-  &__table
-    width: 100%
-    border-collapse: collapse
-    font-size: 13px
-
-    thead th
-      padding: 10px 12px
-      font-weight: 700
-      color: $primary
-      text-align: left
-      font-size: 12px
-      border-bottom: 1px solid $border
-
-    tbody td
-      padding: 10px 12px
-      color: $ink
-      border-bottom: 1px solid $border
-      vertical-align: middle
-
-    tbody tr:last-child td
-      border-bottom: none
-
-  &__th-center
-    text-align: center
-
   &__th-stack
     display: inline-flex
     flex-direction: column
     align-items: center
     gap: 4px
 
-  &__td-center
+  .sib-table &__th-center, .sib-table &__td-center
     text-align: center
 
   &__pos

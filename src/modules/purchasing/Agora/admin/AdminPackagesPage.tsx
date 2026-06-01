@@ -519,7 +519,8 @@ function ThemesSection() {
       {themes.length === 0 ? (
         <div className="admin-pkg__empty">Nessun tema configurato.</div>
       ) : (
-        <table className="admin-pkg__table">
+        <div className="sib-table-wrap">
+        <table className="sib-table admin-pkg__table">
           <thead>
             <tr>
               <th>Nome</th>
@@ -560,6 +561,7 @@ function ThemesSection() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {editing !== null && (
