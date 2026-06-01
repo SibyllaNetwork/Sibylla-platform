@@ -16,9 +16,10 @@
     gap: $space-xs
 
   &__filter-label
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
-    color: $text-active
+    color: $text-inactive
+    line-height: 1.2
 
   // ── Layout due colonne ────────────────────────────────────────────────────────
   &__body
@@ -102,6 +103,22 @@
     color: $primary
     font-size: 13px
 
+  &__tipo-badge
+    font-family: $font-heading
+    font-size: 11px
+    font-weight: 700
+    background: $primary-100
+    color: $primary
+    border-radius: 4px
+    padding: 2px 7px
+
+  &__checkin
+    color: var(--checkin-color)
+
+  &__dash
+    color: $text-disabled
+    font-size: 11px
+
   &__stato-badge
     display: inline-flex
     align-items: center
@@ -179,6 +196,9 @@
     flex-direction: column
     gap: 3px
 
+    &--full
+      grid-column: 1 / -1
+
   &__detail-label
     font-size: 10px
     font-weight: 700
@@ -194,6 +214,9 @@
     &--normal
       font-weight: 400
       color: $text-active
+
+    &--warning
+      color: $warning
 
   &__back-arrow
     display: flex

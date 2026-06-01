@@ -5,6 +5,7 @@ import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
 import { InputField, SelectField, DatePickerField, CheckboxField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './TurniPersonale.sass'
 
 /**
  * Turni del personale — replica `Views/HumanResource/Turnazione.cshtml`.
@@ -525,14 +526,13 @@ function WeekGrid({
   return (
     <div className="bg-white border border-line rounded-field overflow-hidden">
       {/* header giorni */}
-      <div className="grid border-b border-line bg-canvas" style={{ gridTemplateColumns: '240px repeat(7, 1fr)' }}>
+      <div className="grid border-b border-line bg-canvas turni__week-grid" >
         <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-ink-muted">Dipendente</div>
         {days.map((d, i) => {
           const isToday = isoDate(d) === todayIso
           return (
             <div key={i}
-              className={`px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-center border-l border-line ${isToday ? 'text-primary' : 'text-ink-muted'}`}
-              style={isToday ? { backgroundColor: '#FFF4D6', borderTop: '2px solid #F1B33F' } : undefined}
+              className={`px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-center border-l border-line ${isToday ? 'text-primary turni__day-head--today' : 'text-ink-muted'}`}
             >
               {GIORNI_SETT[i]} {d.getDate()}/{String(d.getMonth() + 1).padStart(2, '0')}
               {isToday && <span className="ml-1 text-[9px] uppercase">• Oggi</span>}
@@ -543,7 +543,7 @@ function WeekGrid({
 
       {/* righe dipendenti */}
       {dipendenti.map((dip) => (
-        <div key={dip.id} className="grid border-b border-line last:border-b-0" style={{ gridTemplateColumns: '240px repeat(7, 1fr)' }}>
+        <div key={dip.id} className="grid border-b border-line last:border-b-0 turni__week-grid">
           <DipendenteCell dip={dip} />
           {days.map((d, i) => {
             const giorno = isoDate(d)
@@ -552,8 +552,7 @@ function WeekGrid({
             const ass  = assenzeDelGiorno(dip.id, giorno)
             return (
               <div key={i}
-                className="px-1.5 py-1.5 border-l border-line min-h-[60px] flex flex-col gap-1"
-                style={isToday ? { backgroundColor: '#FFFBEB' } : undefined}
+                className={`px-1.5 py-1.5 border-l border-line min-h-[60px] flex flex-col gap-1 ${isToday ? 'turni__cell--today' : ''}`}
               >
                 {trni.map((t) => <TurnoBadge key={t.id} turno={t} />)}
                 {ass.map((a) => <AssenzaBadge key={a.id} assenza={a} />)}
@@ -590,13 +589,13 @@ function MonthGrid({
   return (
     <div className="bg-white border border-line rounded-field overflow-hidden">
       {/* header giorni settimana */}
-      <div className="grid border-b border-line bg-canvas" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div className="grid border-b border-line bg-canvas turni__month-grid">
         {GIORNI_SETT.map((g) => (
           <div key={g} className="px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-ink-muted text-center border-l border-line first:border-l-0">{g}</div>
         ))}
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <div className="grid turni__month-grid">
         {blanks.map((_, i) => <div key={`b-${i}`} className="min-h-[120px] border-r border-b border-line bg-canvas/40" />)}
         {days.map((d, i) => {
           const giorno = isoDate(d)
@@ -604,8 +603,7 @@ function MonthGrid({
           const dow = (d.getDay() + 6) % 7
           return (
             <div key={i}
-              className={`min-h-[120px] p-2 border-r border-b border-line text-[11px] flex flex-col gap-1 ${dow === 6 ? 'bg-canvas/30' : ''}`}
-              style={isToday ? { backgroundColor: '#FFFBEB', boxShadow: 'inset 0 2px 0 0 #F1B33F' } : undefined}
+              className={`min-h-[120px] p-2 border-r border-b border-line text-[11px] flex flex-col gap-1 ${dow === 6 ? 'bg-canvas/30' : ''} ${isToday ? 'turni__month-cell--today' : ''}`}
             >
               <div className={`mb-1 flex items-center gap-1 ${isToday ? 'font-bold text-primary' : 'font-bold text-ink'}`}>
                 {isToday && (
@@ -664,24 +662,15 @@ function DipendenteCell({ dip }: { dip: Dipendente }) {
 function TurnoBadge({ turno, compact, dipNome }: { turno: Turno; compact?: boolean; dipNome?: string }) {
   const f = FASCE[turno.fascia]
   const isMulti = turno.strutture.length > 1
-  const baseStyle: React.CSSProperties = isMulti
-    ? {
-        background: `repeating-linear-gradient(135deg, ${f.bg} 0 8px, #FFFFFF 8px 12px)`,
-        borderLeft: `3px double ${f.bd}`,
-        borderTop: `1px solid ${f.bd}`,
-        borderRight: `1px solid ${f.bd}`,
-        borderBottom: `1px solid ${f.bd}`,
-      }
-    : { background: f.bg, borderLeft: `3px solid ${f.bd}`, borderTop: `1px solid ${f.bd}40`, borderRight: `1px solid ${f.bd}40`, borderBottom: `1px solid ${f.bd}40` }
 
   return (
     <div
-      className="rounded text-[11px] px-1.5 py-1 leading-tight"
-      style={baseStyle}
+      className={`rounded text-[11px] px-1.5 py-1 leading-tight turni__badge ${isMulti ? 'turni__badge--multi' : ''}`}
+      style={{ '--badge-bg': f.bg, '--badge-bd': f.bd } as React.CSSProperties}
       title={`${f.label} ${f.range} — ${turno.strutture.join(' + ')}${isMulti ? ' (multi-struttura)' : ''}`}
     >
       <div className="font-bold text-ink flex items-center gap-1">
-        {isMulti && <i className="fa-solid fa-link text-[9px]" style={{ color: f.bd }} />}
+        {isMulti && <i className="fa-solid fa-link text-[9px] turni__badge-ico" />}
         {compact ? `${dipNome ?? ''} ${f.label.slice(0, 3)}.` : `${f.label} ${f.range}`}
       </div>
       <div className="text-[10px] text-ink-muted truncate">
@@ -695,12 +684,12 @@ function AssenzaBadge({ assenza, compact, dipNome }: { assenza: Assenza; compact
   const a = ASSENZE[assenza.tipo]
   return (
     <div
-      className="rounded text-[11px] px-1.5 py-1 leading-tight"
-      style={{ background: a.bg, borderLeft: `3px solid ${a.bd}`, borderTop: `1px solid ${a.bd}40`, borderRight: `1px solid ${a.bd}40`, borderBottom: `1px solid ${a.bd}40` }}
+      className="rounded text-[11px] px-1.5 py-1 leading-tight turni__badge"
+      style={{ '--badge-bg': a.bg, '--badge-bd': a.bd } as React.CSSProperties}
       title={`${a.label}${assenza.tipo === 'permesso' ? ` ${assenza.ora_da ?? ''}–${assenza.ora_a ?? ''}` : ''}`}
     >
       <div className="font-bold text-ink flex items-center gap-1">
-        <i className={`fa-duotone ${a.icon} text-[10px]`} style={{ color: a.bd }} />
+        <i className={`fa-duotone ${a.icon} text-[10px] turni__badge-ico`} />
         {compact ? `${dipNome ?? ''} ${a.label.slice(0, 3)}.` : a.label}
         {assenza.tipo === 'permesso' && (
           <span className="text-[10px] text-ink-muted ml-1">{assenza.ora_da}–{assenza.ora_a}</span>
@@ -716,23 +705,17 @@ function Legend() {
       <span className="font-bold text-ink uppercase tracking-wide">Legenda</span>
       {(Object.keys(FASCE) as FasciaTurno[]).map((k) => (
         <div key={k} className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: FASCE[k].bg, borderLeft: `3px solid ${FASCE[k].bd}` }} />
+          <span className="inline-block w-3 h-3 rounded-sm turni__legend-sw" style={{ '--badge-bg': FASCE[k].bg, '--badge-bd': FASCE[k].bd } as React.CSSProperties} />
           {FASCE[k].label} ({FASCE[k].range})
         </div>
       ))}
       <div className="flex items-center gap-1.5">
-        <span
-          className="inline-block w-3 h-3 rounded-sm"
-          style={{
-            background: 'repeating-linear-gradient(135deg, #E5EDF8 0 4px, #FFFFFF 4px 6px)',
-            borderLeft: '3px double #2D70B8',
-          }}
-        />
+        <span className="inline-block w-3 h-3 rounded-sm turni__legend-sw turni__legend-sw--multi" />
         Multi-struttura
       </div>
       {(Object.keys(ASSENZE) as TipoAssenza[]).map((k) => (
         <div key={k} className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: ASSENZE[k].bg, borderLeft: `3px solid ${ASSENZE[k].bd}` }} />
+          <span className="inline-block w-3 h-3 rounded-sm turni__legend-sw" style={{ '--badge-bg': ASSENZE[k].bg, '--badge-bd': ASSENZE[k].bd } as React.CSSProperties} />
           {ASSENZE[k].label}
         </div>
       ))}

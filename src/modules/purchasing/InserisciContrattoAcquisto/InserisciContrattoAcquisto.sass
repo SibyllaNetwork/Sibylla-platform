@@ -1,12 +1,9 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 
 .ins-contr
   display: flex
@@ -41,7 +38,7 @@ $bg-soft: var(--color-bg)
     transition: background 0.15s
 
     &:hover
-      background: $bg-soft
+      background: $bg
 
   &__sec-title
     margin: 0
@@ -67,7 +64,7 @@ $bg-soft: var(--color-bg)
     gap: 4px
     margin-left: 12px
     padding: 3px 10px
-    background: $bg-soft
+    background: $bg
     border: 1px solid $border
     border-radius: 999px
     color: $muted
@@ -99,9 +96,10 @@ $bg-soft: var(--color-bg)
     gap: 4px
 
   &__label
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
-    color: $ink
+    color: $muted
+    line-height: 1.2
     font-family: 'Open Sans', sans-serif
 
   &__req
@@ -112,7 +110,7 @@ $bg-soft: var(--color-bg)
   &__file
     display: inline-flex
     align-items: stretch
-    border: 1px solid $border-strong
+    border: 1px solid $border
     border-radius: 6px
     overflow: hidden
     background: var(--color-surface)
@@ -156,7 +154,7 @@ $bg-soft: var(--color-bg)
     font-size: 14px
 
     &:hover:not(:disabled)
-      background: $bg-soft
+      background: $bg
 
     &:disabled
       opacity: 0.4
@@ -169,8 +167,8 @@ $bg-soft: var(--color-bg)
     text-align: center
     color: $muted
     font-size: 13px
-    background: $bg-soft
-    border: 1px dashed $border-strong
+    background: $bg
+    border: 1px dashed $border
     border-radius: 8px
 
   // ── Riga con bottone azione (rimuovi) ────────────────────────────

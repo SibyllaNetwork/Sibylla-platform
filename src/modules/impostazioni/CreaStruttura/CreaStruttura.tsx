@@ -208,6 +208,7 @@ export default function CreaStruttura({
         }
       >
         <div className="crea-struttura__search">
+          <label className="crea-struttura__search-label" htmlFor="search">Cerca</label>
           <SearchField
             placeholder="Cerca per nome o città"
             value={search}

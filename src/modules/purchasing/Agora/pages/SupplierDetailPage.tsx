@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -242,7 +243,7 @@ export function SupplierDetailPage() {
     <Layout>
       <section
         className="supplier-detail__hero"
-        style={{ backgroundImage: `url(${supplier.image})` }}
+        style={{ '--hero-image': `url(${supplier.image})` } as CSSProperties}
       >
         <div className="supplier-detail__hero-overlay" />
         <div className="supplier-detail__hero-inner">

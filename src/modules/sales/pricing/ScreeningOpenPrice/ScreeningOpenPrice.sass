@@ -469,12 +469,24 @@
   position: absolute
   opacity: 0.12
   animation: spin linear infinite
+  top: var(--gear-top)
+  bottom: var(--gear-bottom)
+  left: var(--gear-left)
+  right: var(--gear-right)
+  animation-duration: var(--gear-dur)
+  animation-direction: var(--gear-dir)
 
 @keyframes spin
   from
     transform: rotate(0deg)
   to
     transform: rotate(360deg)
+
+@keyframes bounce
+  0%, 80%, 100%
+    transform: translateY(0)
+  40%
+    transform: translateY(-6px)
 
 .screening__loading-card
   background: var(--color-surface)
@@ -499,6 +511,7 @@
   border-radius: 50%
   background: $primary
   animation: bounce 1.2s ease-in-out infinite
+  animation-delay: var(--dot-delay)
 
 .screening__loading-text
   font-size: 13px
@@ -621,6 +634,10 @@
 .screening__td--center
   text-align: center
 
+.screening__td--delta
+  color: var(--delta-color)
+  font-weight: 600
+
 // ─── AI button ────────────────────────────────────────────────────────────────
 .screening__ai-ico
   font-size: 14px
@@ -652,7 +669,7 @@
   &--active
     border-color: $primary
     background: $primary
-    color: #fff
+    color: $white
     font-weight: 700
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
@@ -697,6 +714,8 @@
   height: 12px
   border-radius: 3px
   border: 2px solid transparent
+  background: var(--legend-dot-bg)
+  border-color: var(--legend-dot-border)
 
 .screening__legend-label
   font-size: 11px

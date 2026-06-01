@@ -1,13 +1,10 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
-$success: #10b981
+$status-ok: #10b981
 $danger: #dc2626
 
 .totem-dett
@@ -99,7 +96,7 @@ $danger: #dc2626
     font-size: 18px
 
     &--on
-      color: $success
+      color: $status-ok
 
     &--off
       color: $danger

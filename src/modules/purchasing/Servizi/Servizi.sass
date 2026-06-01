@@ -1,3 +1,5 @@
+@use '../../../styles/tokens' as *
+
 .servizi
 
   .servizi__cart-btn
@@ -15,7 +17,7 @@
     padding: 0 5px
     border-radius: 9px
     background: var(--color-primary)
-    color: #fff
+    color: $white
     font-size: 11px
     font-weight: 600
     line-height: 1
@@ -78,10 +80,10 @@
   .servizi__chip--active
     background: var(--color-primary)
     border-color: var(--color-primary)
-    color: #fff
+    color: $white
 
     &:hover
-      color: #fff
+      color: $white
 
   .servizi__qf-field
     display: flex
@@ -209,7 +211,7 @@
     padding: 4px 9px
     border-radius: 999px
     background-color: var(--type-color, var(--color-primary))
-    color: #fff
+    color: $white
     font-family: 'Open Sans', sans-serif
     font-size: 11px
     font-weight: 600

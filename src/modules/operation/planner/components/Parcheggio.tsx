@@ -42,12 +42,12 @@ const Parcheggio: React.FC<Props> = ({ parked, startDate, numDays, onClose, onPa
           ? 'polygon(0% 0%,calc(100% - 12px) 0%,100% 50%,calc(100% - 12px) 100%,0% 100%)'
           : 'none';
     return {
-      left: ld * DAY_W,
-      width: Math.max(20, (rd - ld) * DAY_W - 2),
-      background: clr.bg,
-      color: clr.text,
-      clipPath: clip,
-      paddingLeft: sL ? 16 : 10,
+      '--bar-left':     `${ld * DAY_W}px`,
+      '--bar-width':    `${Math.max(20, (rd - ld) * DAY_W - 2)}px`,
+      '--bar-bg':       clr.bg,
+      '--bar-color':    clr.text,
+      '--bar-clip':     clip,
+      '--bar-pad-left': sL ? '16px' : '10px',
     } as React.CSSProperties;
   };
 
@@ -89,12 +89,12 @@ const Parcheggio: React.FC<Props> = ({ parked, startDate, numDays, onClose, onPa
                 <div className="timeline__room-label">
                   <div className="parcheggio__ref">#{pren.booking}</div>
                 </div>
-                <div className="timeline__day-grid" style={{ minWidth: DAY_W * numDays }}>
+                <div className="timeline__day-grid" style={{ '--grid-min-w': `${DAY_W * numDays}px` } as React.CSSProperties}>
                   {days.map((d, di) => (
                     <div
                       key={di}
                       className={`timeline__cell timeline__cell--free${isWE(d) ? ' timeline__cell--weekend' : ''}`}
-                      style={{ left: di * DAY_W }}
+                      style={{ '--cell-left': `${di * DAY_W}px` } as React.CSSProperties}
                     />
                   ))}
                   {bp && (

@@ -211,7 +211,7 @@ function Panel({ data, onChange, expanded, onToggleExpand }: PanelProps) {
               <div
                 className="alloc-risorse__bar"
                 key={p.id}
-                style={{ left: `${left}%`, width: `${width}%`, top }}
+                style={{ '--bar-left': `${left}%`, '--bar-width': `${width}%`, '--bar-top': `${top}px` } as React.CSSProperties}
                 title={`Prenotazione #${p.id}`}
               >
                 <span className="alloc-risorse__bar-badge">{p.badge}</span>

@@ -1,3 +1,5 @@
+@use '../../../styles/tokens' as *
+
 .tipi-servizio
   display: flex
   flex-direction: column
@@ -30,6 +32,9 @@
   .tipi-servizio__table
     width: 100%
 
+  .tipi-servizio__th-icon
+    width: 48px
+
   .tipi-servizio__th-actions
     text-align: right
 
@@ -42,7 +47,7 @@
     height: 32px
     border-radius: 8px
     background-color: var(--type-color, var(--color-primary))
-    color: #fff
+    color: $white
     font-size: 14px
 
   .tipi-servizio__name

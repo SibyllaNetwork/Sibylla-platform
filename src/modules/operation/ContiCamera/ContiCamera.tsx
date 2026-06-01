@@ -656,7 +656,7 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
 function ModalShell({ title, onClose, maxWidth = 600, children }: { title: string; onClose: () => void; maxWidth?: number; children: React.ReactNode }) {
   return (
     <div className="cc-modal__overlay" onClick={onClose}>
-      <div className="cc-modal" style={{ maxWidth }} onClick={(e) => e.stopPropagation()}>
+      <div className="cc-modal" style={{ '--modal-max-w': `${maxWidth}px` } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
         <div className="cc-modal__head">
           <h3>{title}</h3>
           <button type="button" className="cc-modal__close" aria-label="Chiudi" onClick={onClose}>

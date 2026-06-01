@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from './Layout';
 import { PageHeader } from './PageHeader';
@@ -377,7 +377,7 @@ function FeaturedVideo({
     <article className="el-hero__card">
       <div
         className="el-hero__thumb"
-        style={{ background: CATEGORY_GRADIENT[video.category] }}
+        style={{ '--thumb-bg': CATEGORY_GRADIENT[video.category] } as CSSProperties}
       >
         <span className="el-hero__bg-icon" aria-hidden="true">
           <Icon family="light" name={cat?.icon ?? 'play'} />
@@ -445,7 +445,7 @@ function VideoCard({ video, onSelect }: VideoCardProps) {
     <button type="button" className="el-card" onClick={onSelect}>
       <div
         className="el-card__thumb"
-        style={{ background: CATEGORY_GRADIENT[video.category] }}
+        style={{ '--thumb-bg': CATEGORY_GRADIENT[video.category] } as CSSProperties}
       >
         <span className="el-card__bg-icon" aria-hidden="true">
           <Icon family="light" name={cat?.icon ?? 'play'} />

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import T from '../../../core/tokens'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { DatePickerField, InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './RegistroPresenze.sass'
 
 /**
  * Registro presenze — replica `Views/Impostazioni/Presenze.cshtml`.
@@ -132,18 +132,18 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
           options={[{ value: 'Hotel Tutorial', label: 'Hotel Tutorial' }, { value: 'Hotel Noto', label: 'Hotel Noto' }]} />
         <SelectField name="reparto" label="Reparto" value={reparto} onChange={(e) => setReparto(e.target.value)}
           options={[{ value: 'Tutti i reparti', label: 'Tutti i reparti' }, ...reparti.map((r) => ({ value: r, label: r }))]} />
-        <InputField name="ricerca" label="Ricerca" placeholder="Cerca" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <InputField name="ricerca" label="Cerca" placeholder="Cerca" value={search} onChange={(e) => setSearch(e.target.value)} />
 
         <div className="ml-auto flex items-center gap-3">
           <button className="sib-btn sib-btn--icon" title="Giorno precedente" onClick={() => nudgeDate(-1)}>
-            <i className="fa-duotone fa-angles-left" style={{ fontSize: 13, color: T.textActive }} />
+            <i className="fa-duotone fa-angles-left reg-presenze__toolbar-ico" />
           </button>
           <button className="sib-btn sib-btn--ghost" onClick={goToday}>Oggi</button>
           <button className="sib-btn sib-btn--icon" title="Giorno successivo" onClick={() => nudgeDate(1)}>
-            <i className="fa-duotone fa-angles-right" style={{ fontSize: 13, color: T.textActive }} />
+            <i className="fa-duotone fa-angles-right reg-presenze__toolbar-ico" />
           </button>
           <button className="sib-btn sib-btn--icon" title="Legenda">
-            <i className="fa-duotone fa-circle-info" style={{ fontSize: 14, color: T.blue }} />
+            <i className="fa-duotone fa-circle-info reg-presenze__info-ico" />
           </button>
         </div>
       </div>
@@ -153,11 +153,10 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
       </div>
 
       <div className="bg-white border border-line rounded-field overflow-hidden">
-        <div className="grid items-center text-[11px] font-bold uppercase tracking-wide text-ink-muted bg-canvas px-4 py-2"
-             style={{ gridTemplateColumns: '220px 60px 1fr' }}>
+        <div className="grid items-center text-[11px] font-bold uppercase tracking-wide text-ink-muted bg-canvas px-4 py-2 reg-presenze__head-row">
           <div>Nome</div>
           <div>Reparto</div>
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(24, 1fr)' }}>
+          <div className="grid reg-presenze__hours-grid">
             {HOURS.map((h) => (
               <div key={h} className="text-[11px] text-center">{String(h).padStart(2, '0')}:00</div>
             ))}
@@ -166,8 +165,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
 
         {filtered.map((d) => (
           <div key={d.id}
-               className="grid items-center px-4 py-3 border-t border-line"
-               style={{ gridTemplateColumns: '220px 60px 1fr', minHeight: 64 }}>
+               className="grid items-center px-4 py-3 border-t border-line reg-presenze__row">
             <div className="flex items-center gap-2.5 min-w-0">
               {d.avatar ? (
                 <img src={d.avatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
@@ -180,21 +178,21 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
                 {d.nome} {d.cognome}
               </div>
               <button className="text-ink-muted hover:text-primary" title="Esporta XLS">
-                <i className="fa-duotone fa-file-excel" style={{ fontSize: 13 }} />
+                <i className="fa-duotone fa-file-excel reg-presenze__xls-ico" />
               </button>
               <button className="text-ink-muted hover:text-primary" title="Modifica">
-                <i className="fa-duotone fa-pen" style={{ fontSize: 12 }} />
+                <i className="fa-duotone fa-pen reg-presenze__pen-ico" />
               </button>
             </div>
 
             <div className="text-primary" title={d.reparto}>
-              <i className={`fa-duotone ${d.reparto_icon === 'cuoco' ? 'fa-utensils' : d.reparto_icon === 'manutentore' ? 'fa-screwdriver-wrench' : 'fa-bell-concierge'}`} style={{ fontSize: 18 }} />
+              <i className={`fa-duotone ${d.reparto_icon === 'cuoco' ? 'fa-utensils' : d.reparto_icon === 'manutentore' ? 'fa-screwdriver-wrench' : 'fa-bell-concierge'} reg-presenze__reparto-ico`} />
             </div>
 
             <div className="relative h-9 bg-canvas rounded">
-              <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateColumns: 'repeat(96, 1fr)' }}>
+              <div className="absolute inset-0 grid pointer-events-none reg-presenze__tl-grid">
                 {Array.from({ length: 96 }).map((_, i) => (
-                  <div key={i} className="border-l" style={{ borderColor: i % 4 === 0 ? '#DBDBDB' : '#F0F0F0' }} />
+                  <div key={i} className={`border-l reg-presenze__tl-tick ${i % 4 === 0 ? 'reg-presenze__tl-tick--major' : ''}`} />
                 ))}
               </div>
               {d.segmenti.map((s, i) => {
@@ -203,10 +201,10 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
                 const c = COLORI_TIPO[s.tipo]
                 return (
                   <div key={i}
-                       className="absolute top-1.5 bottom-1.5 rounded-sm overflow-hidden"
-                       style={{ left: `${left}%`, width: `${width}%`, background: c.bg, borderLeft: `3px solid ${c.border}` }}
+                       className="absolute top-1.5 bottom-1.5 rounded-sm overflow-hidden reg-presenze__segment"
+                       style={{ '--seg-left': `${left}%`, '--seg-width': `${width}%`, '--seg-bg': c.bg, '--seg-border': c.border } as React.CSSProperties}
                        title={`${c.label}${s.note ? ' — ' + s.note : ''}`}>
-                    <div className="text-[10px] font-semibold px-1.5 py-0.5 truncate" style={{ color: c.border }}>
+                    <div className="text-[10px] font-semibold px-1.5 py-0.5 truncate reg-presenze__segment-label">
                       {c.label}
                     </div>
                   </div>
@@ -226,7 +224,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
       <div className="flex items-center gap-4 mt-4 text-[12px] text-ink-muted">
         {(Object.keys(COLORI_TIPO) as SegmentoTipo[]).map((k) => (
           <div key={k} className="flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded-sm" style={{ background: COLORI_TIPO[k].bg, borderLeft: `3px solid ${COLORI_TIPO[k].border}` }} />
+            <span className="inline-block w-3 h-3 rounded-sm reg-presenze__legend-dot" style={{ '--leg-bg': COLORI_TIPO[k].bg, '--leg-border': COLORI_TIPO[k].border } as React.CSSProperties} />
             {COLORI_TIPO[k].label}
           </div>
         ))}

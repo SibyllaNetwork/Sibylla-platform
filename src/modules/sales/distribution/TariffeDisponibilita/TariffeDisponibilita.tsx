@@ -119,7 +119,7 @@ function FiltroModal({ cameras, dateFrom, onClose }: { cameras:any[]; dateFrom:s
       <div className="fm-modal__box" onClick={e=>e.stopPropagation()}>
         <div className="fm-modal__header">
           <h2 className="fm-modal__title">Filtri & Impostazioni</h2>
-          <button onClick={onClose} className="fm-modal__close"><i className="fa-duotone fa-xmark" style={{fontSize:16,color:"#fff"}} aria-hidden="true"/></button>
+          <button onClick={onClose} className="fm-modal__close"><i className="fa-duotone fa-xmark fm-modal__close-ico" aria-hidden="true"/></button>
         </div>
         <div className="fm-modal__tabs">
           {([['disp','Disponibilità'],['tariffe','Tariffe']] as const).map(([k,label])=>(
@@ -267,7 +267,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
     </div>
   )
   const LockIco = ({open=false}:{open?:boolean}) => (
-    <i className={`fa-duotone ${open?'fa-lock-open':'fa-lock'}`} style={{fontSize:13}} aria-hidden="true"/>
+    <i className={`fa-duotone ${open?'fa-lock-open':'fa-lock'} tariffe__lock-ico`} aria-hidden="true"/>
   )
 
   return (
@@ -328,7 +328,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
               </button>
             </Tooltip>
             <button className="sib-btn sib-btn--toolbar" onClick={()=>navigate('calendario-tariffe')}>
-              <i className="fa-duotone fa-calendar" style={{fontSize:13}} aria-hidden="true"/> Calendario
+              <i className="fa-duotone fa-calendar tariffe__toolbar-ico" aria-hidden="true"/> Calendario
             </button>
           </div>
         </div>
@@ -339,7 +339,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
               <i className="fa-duotone fa-ban text-[13px]" aria-hidden="true"/> Stop sales
             </button>
             <button className="sib-btn sib-btn--primary" onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),3000)}}>
-              <i className="fa-duotone fa-check" style={{fontSize:12,color:'#fff'}} aria-hidden="true"/> Salva e invia
+              <i className="fa-duotone fa-check tariffe__btn-check-ico" aria-hidden="true"/> Salva e invia
             </button>
           </div>
         </div>
@@ -358,11 +358,11 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
       {/* Grid */}
       <div className="tariffe__grid-wrap">
         <div className="tariffe__grid-scroll">
-          <table className="tariffe__table" style={{minWidth:labelW+numDays*colW}}>
+          <table className="tariffe__table tariffe__table-sized" style={{ '--table-min-w': `${labelW+numDays*colW}px` } as React.CSSProperties}>
             <colgroup>
-              <col style={{width:labelW}}/>
-              {dates.map((_,i)=><col key={i} style={{width:colW}}/>)}
-              <col style={{width:50}}/>
+              <col className="tariffe__col--label"/>
+              {dates.map((_,i)=><col key={i} className="tariffe__col--day" style={{ '--col-w': `${colW}px` } as React.CSSProperties}/>)}
+              <col className="tariffe__col--expand"/>
             </colgroup>
             <thead>
               <tr className="tariffe__thead-row">
@@ -388,7 +388,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                     <tr className={`tariffe__tr-cam ${ci%2===0?'tariffe__tr--even':''}`}>
                       <td className="tariffe__td-label">
                         <div className="tariffe__cam-info">
-                          <div className="tariffe__cam-dot" style={{background:cam.colore}}/>
+                          <div className="tariffe__cam-dot tariffe__cam-dot--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}/>
                           <Toggle on={cam.enabled} onChange={()=>toggleCamera(cam.id)}/>
                           <span className="tariffe__cam-name">{cam.label}</span>
                         </div>
@@ -411,22 +411,22 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                                 onMouseEnter={e=>{const r=(e.currentTarget as HTMLElement).getBoundingClientRect();setTooltip({camId:cam.id,dk,x:r.left+r.width/2,y:r.top})}}
                                 onMouseLeave={()=>setTooltip(null)}>
                                 <button onClick={e=>e.stopPropagation()} className="tariffe__info-btn">
-                                  <i className="fa-duotone fa-circle-info" style={{fontSize:13,color:T.blue}} aria-hidden="true"/>
+                                  <i className="fa-duotone fa-circle-info tariffe__info-ico" aria-hidden="true"/>
                                 </button>
                                 {tooltip?.camId===cam.id&&tooltip?.dk===dk&&(
-                                  <div className="tariffe__tooltip" style={{left:tooltip.x,top:(tooltip.y??0)-8}}>
+                                  <div className="tariffe__tooltip tariffe__tooltip--positioned" style={{ '--tt-x': `${tooltip.x}px`, '--tt-y': `${tooltip.y ?? 0}px` } as React.CSSProperties}>
                                     <div className="tariffe__tooltip-title">Disponibilità per settore</div>
                                     {getSectorDisp(cam.id,dk).map(s=>(
-                                      <div key={s.label} className="tariffe__tooltip-row">
+                                      <div key={s.label} className="tariffe__tooltip-row" style={{ '--sector-color': s.color } as React.CSSProperties}>
                                         <div className="tariffe__tooltip-left">
-                                          <div className="tariffe__tooltip-icon" style={{background:s.color}}>{s.icon}</div>
+                                          <div className="tariffe__tooltip-icon tariffe__tooltip-icon--dyn">{s.icon}</div>
                                           <span className="tariffe__tooltip-label">{s.label}</span>
                                         </div>
                                         <div className="tariffe__tooltip-right">
                                           <div className="tariffe__tooltip-bar-wrap">
-                                            <div className="tariffe__tooltip-bar" style={{width:`${Math.min(100,s.value*20)}%`,background:s.color}}/>
+                                            <div className="tariffe__tooltip-bar tariffe__tooltip-bar--dyn" style={{ '--bar-w': `${Math.min(100,s.value*20)}%` } as React.CSSProperties}/>
                                           </div>
-                                          <span className="tariffe__tooltip-val" style={{color:s.color}}>{s.value}</span>
+                                          <span className="tariffe__tooltip-val tariffe__tooltip-val--dyn">{s.value}</span>
                                         </div>
                                       </div>
                                     ))}
@@ -435,13 +435,13 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                                 )}
                               </div>
                               <button onClick={e=>{e.stopPropagation();setStopSales(prev=>{const n=new Set(prev);n.has(k)?n.delete(k):n.add(k);return n})}} className="tariffe__stop-btn" title={stopped?'Rimuovi stop':'Stop sales'}>
-                                <i className="fa-duotone fa-hourglass" style={{fontSize:12,color:stopped?'#E74C3C':T.textDisabled}} aria-hidden="true"/>
+                                <i className={`fa-duotone fa-hourglass tariffe__stop-ico ${stopped?'tariffe__stop-ico--active':''}`} aria-hidden="true"/>
                               </button>
-                              {status && <i className={`fa-duotone ${status==='aperta'?'fa-lock-open':'fa-lock'}`} style={{fontSize:11,color:status==='aperta'?'#16A34A':'#DC2626'}} aria-hidden="true"/>}
+                              {status && <i className={`fa-duotone ${status==='aperta'?'fa-lock-open':'fa-lock'} tariffe__status-ico tariffe__status-ico--${status}`} aria-hidden="true"/>}
                             </div>
                             {stopped
                               ? <div className="tariffe__cell-stop">STOP</div>
-                              : <select onClick={e=>e.stopPropagation()} defaultValue={price.toFixed(2)} className="sib-select bg-transparent border-none text-center font-bold text-[11px]" style={{color:status==='chiusa'?'#DC2626':status==='aperta'?'#16A34A':cam.colore}}>
+                              : <select onClick={e=>e.stopPropagation()} defaultValue={price.toFixed(2)} className={`sib-select bg-transparent border-none text-center font-bold text-[11px] tariffe__price-select-ext tariffe__price-select-ext--${status==='chiusa'?'chiusa':status==='aperta'?'aperta':'default'}`} style={{ '--cam-color': cam.colore } as React.CSSProperties}>
                                   {[price*0.85,price*0.90,price*0.95,price,price*1.05,price*1.10,price*1.15].map(p=><option key={p} value={p.toFixed(2)}>{p.toFixed(2).replace('.',',')} €</option>)}
                                 </select>
                             }
@@ -450,7 +450,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                       })}
                       <td className="tariffe__td-expand">
                         <button onClick={()=>toggleExpand(cam.id)} className={`tariffe__expand-btn ${isExp?'tariffe__expand-btn--active':''}`}>
-                          <i className={`fa-duotone fa-plus`} style={{fontSize:12,color:isExp?'#fff':T.primary}} aria-hidden="true"/>
+                          <i className="fa-duotone fa-plus tariffe__expand-ico" aria-hidden="true"/>
                         </button>
                       </td>
                     </tr>
@@ -458,7 +458,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                       <td className="tariffe__td-sublabel">
                         <div className="tariffe__inv-info">
                           <span className="tariffe__inv-text">Inventario</span>
-                          <span className="tariffe__inv-badge" style={{background:`${cam.colore}18`,color:cam.colore}}>{cam.unitLabel}</span>
+                          <span className="tariffe__inv-badge tariffe__inv-badge--dyn" style={{ '--cam-color': cam.colore, '--cam-badge-bg': `${cam.colore}18` } as React.CSSProperties}>{cam.unitLabel}</span>
                         </div>
                       </td>
                       {dates.map((_,di)=><td key={di} className={`tariffe__td-inv-val ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>{cam.inventario}</td>)}
@@ -468,8 +468,9 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                       <td className="tariffe__td-sublabel"><span className="tariffe__inv-text">Disponibili alla vendita</span></td>
                       {dates.map((d,di)=>{
                         const disp=dispMap[`${cam.id}-${fmt(d)}`]??0
+                        const dispMod=disp===0?'zero':disp<=2?'low':'ok'
                         return <td key={di} className={`tariffe__td-avail ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>
-                          <span style={{color:disp===0?T.error:disp<=2?T.warning:T.success}} className="tariffe__avail-num">{disp}</span>
+                          <span className={`tariffe__avail-num tariffe__avail-num--${dispMod}`}>{disp}</span>
                         </td>
                       })}
                       <td/>
@@ -481,11 +482,11 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                           {dates.map((d,di)=>{
                             const {occ,inv,pct}=getOccupate(cam.id,fmt(d))
                             const color=pct>=90?T.error:pct>=50?'#E07B39':T.success
-                            return <td key={di} className={`tariffe__td-occ ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>
+                            return <td key={di} className={`tariffe__td-occ ${di<dates.length-1?'tariffe__td-inv-val--border':''}`} style={{ '--occ-color': color } as React.CSSProperties}>
                               <div className="tariffe__occ-cell">
-                                <i className="fa-duotone fa-bed" style={{fontSize:14,color}} aria-hidden="true"/>
+                                <i className="fa-duotone fa-bed tariffe__bed-ico" aria-hidden="true"/>
                                 <div>
-                                  <div className="tariffe__occ-num" style={{color}}>{occ} / {inv}</div>
+                                  <div className="tariffe__occ-num tariffe__occ-num--dyn">{occ} / {inv}</div>
                                   <div className="tariffe__occ-pct">{pct}%</div>
                                 </div>
                               </div>
@@ -497,8 +498,9 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
                           <td className="tariffe__td-sublabel"><span className="tariffe__exp-label">Residuo sui canali</span></td>
                           {dates.map((d,di)=>{
                             const disp=dispMap[`${cam.id}-${fmt(d)}`]??0,residuo=Math.min(99,Math.max(0,disp))
+                            const resMod=residuo===0?'res-zero':residuo<=10?'res-low':'res-ok'
                             return <td key={di} className={`tariffe__td-avail ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>
-                              <span style={{color:residuo===0?T.textDisabled:residuo<=10?T.warning:T.blue}} className="tariffe__avail-num">{residuo}</span>
+                              <span className={`tariffe__avail-num tariffe__avail-num--${resMod}`}>{residuo}</span>
                             </td>
                           })}
                           <td/>
@@ -514,7 +516,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p:string
       </div>
 
       <div className="tariffe__legend">
-        {cameras.map(c=><div key={c.id} className="tariffe__legend-item"><div className="tariffe__legend-dot" style={{background:c.colore}}/><span>{c.label}</span></div>)}
+        {cameras.map(c=><div key={c.id} className="tariffe__legend-item"><div className="tariffe__legend-dot tariffe__legend-dot--dyn" style={{ '--legend-dot-bg': c.colore } as React.CSSProperties}/><span>{c.label}</span></div>)}
         <div className="tariffe__legend-item tariffe__legend-item--ml">
           <div className="tariffe__legend-dot tariffe__legend-dot--aperta"/><span>Aperta</span>
         </div>

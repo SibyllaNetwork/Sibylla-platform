@@ -147,12 +147,11 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                     <td>{cam.nome}</td>
                     <td>{cam.tipo}</td>
                     <td>
-                      <span style={{ fontFamily: 'Poppins,sans-serif', fontSize: 11, fontWeight: 700,
-                        background: T.primary100, color: T.primary, borderRadius: 4, padding: '2px 7px' }}>
+                      <span className="assegnazione__tipo-badge">
                         {cam.tipoRichiesto}
                       </span>
                     </td>
-                    <td style={{ color: cam.checkIn === 'Sì' ? T.success : T.textDisabled }}>
+                    <td className="assegnazione__checkin" style={{ '--checkin-color': cam.checkIn === 'Sì' ? T.success : T.textDisabled } as React.CSSProperties}>
                       {cam.checkIn}
                     </td>
                     <td>
@@ -160,7 +159,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                         ? <span className={`assegnazione__stato-badge assegnazione__stato-badge--attivo`}>
                             {cam.stato}
                           </span>
-                        : <span style={{ color: T.textDisabled, fontSize: 11 }}>—</span>
+                        : <span className="assegnazione__dash">—</span>
                       }
                     </td>
                     <td>
@@ -221,12 +220,12 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                   <div className="assegnazione__detail-item">
                     <span className="assegnazione__detail-label">Nome</span>
                     <span className="assegnazione__detail-value--normal assegnazione__detail-value">
-                      {prenotazione.nome || <span style={{ color: T.textDisabled }}>—</span>}
+                      {prenotazione.nome || <span className="assegnazione__dash">—</span>}
                     </span>
                   </div>
                   <div className="assegnazione__detail-item">
                     <span className="assegnazione__detail-label">Stato</span>
-                    <span className="assegnazione__detail-value" style={{ color: T.warning }}>
+                    <span className="assegnazione__detail-value assegnazione__detail-value--warning">
                       {prenotazione.stato}
                     </span>
                   </div>
@@ -238,7 +237,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                     <span className="assegnazione__detail-label">Data opt</span>
                     <span className="assegnazione__detail-value--normal assegnazione__detail-value">{prenotazione.dataOpt}</span>
                   </div>
-                  <div className="assegnazione__detail-item" style={{ gridColumn: '1 / -1' }}>
+                  <div className="assegnazione__detail-item assegnazione__detail-item--full">
                     <span className="assegnazione__detail-label">Camera assegnata</span>
                     <span className="assegnazione__detail-value">{selectedCamera?.numero}</span>
                   </div>

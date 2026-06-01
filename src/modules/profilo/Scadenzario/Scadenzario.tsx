@@ -84,7 +84,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
           </button>
           {[{icon:'fa-chevron-left',fn:()=>setCurDate(new Date(yr,mo-1,1))},{icon:'fa-chevron-right',fn:()=>setCurDate(new Date(yr,mo+1,1))}].map((btn,i)=>(
             <button key={i} className="scadenzario__nav-btn" onClick={btn.fn}>
-              <i className={`fa-duotone ${btn.icon}`} style={{fontSize:13,color:T.textActive}} aria-hidden="true"/>
+              <i className={`fa-duotone ${btn.icon} scadenzario__nav-ico`} aria-hidden="true"/>
             </button>
           ))}
         </div>
@@ -107,11 +107,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
             const isLast    = idx>=35
             return (
               <div key={idx}
-                className={`scadenzario__cell ${todayCell?'scadenzario__cell--today':outside?'scadenzario__cell--outside':past?'scadenzario__cell--past':''}`}
-                style={{
-                  borderRight:  col<6 ? `1px solid ${T.border}` : 'none',
-                  borderBottom: !isLast ? `1px solid ${T.border}` : 'none',
-                }}>
+                className={`scadenzario__cell ${col<6?'scadenzario__cell--border-r':''} ${!isLast?'scadenzario__cell--border-b':''} ${todayCell?'scadenzario__cell--today':outside?'scadenzario__cell--outside':past?'scadenzario__cell--past':''}`}>
                 <div className="scadenzario__cell-top">
                   <span className={`scadenzario__cell-num ${todayCell?'scadenzario__cell-num--today':outside?'scadenzario__cell-num--outside':''}`}>
                     {cell.day}
@@ -121,7 +117,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
                 {dayEvs.slice(0,3).map((ev,ei)=>(
                   <div key={ei}
                     className="scadenzario__event"
-                    style={{background:`${ev.color}18`,borderLeft:`3px solid ${ev.color}`,color:ev.color}}
+                    style={{'--ev-color':ev.color} as React.CSSProperties}
                     onClick={e=>{e.stopPropagation();setSelectedEvent(ev)}}>
                     {ev.title}
                   </div>
@@ -137,7 +133,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
       <div className="scadenzario__legend">
         {[{color:T.blue,label:'Personale'},{color:'#9B59B6',label:'Reparto'},{color:T.error,label:'Scadenza'},{color:T.warning,label:'Revisione'},{color:'#5A8A3C',label:'Operativo'}].map(l=>(
           <div key={l.label} className="scadenzario__legend-item">
-            <div className="scadenzario__legend-dot" style={{background:l.color}}/>
+            <div className="scadenzario__legend-dot" style={{'--dot-color':l.color} as React.CSSProperties}/>
             <span className="scadenzario__legend-label">{l.label}</span>
           </div>
         ))}
@@ -151,10 +147,10 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
               <h2 className="scad-det__title">Dettaglio evento</h2>
               <div className="scad-det__header-actions">
                 <button className="sib-btn sib-btn--icon" onClick={()=>{setExtraEvents(p=>p.filter(e=>e!==selectedEvent));setSelectedEvent(null)}}>
-                  <i className="fa-duotone fa-trash" style={{fontSize:15,color:T.error}} aria-hidden="true"/>
+                  <i className="fa-duotone fa-trash scad-det__icon-del" aria-hidden="true"/>
                 </button>
                 <button className="sib-btn sib-btn--icon" onClick={()=>setSelectedEvent(null)}>
-                  <i className="fa-duotone fa-xmark" style={{fontSize:16,color:T.textDisabled}} aria-hidden="true"/>
+                  <i className="fa-duotone fa-xmark scad-det__icon-close" aria-hidden="true"/>
                 </button>
               </div>
             </div>

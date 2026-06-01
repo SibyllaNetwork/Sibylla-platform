@@ -112,8 +112,8 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
           </button>
         </>
       }>
-        <div className="flex flex-col gap-1 w-44">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Cerca</span>
+        <div className="promo__search-col">
+          <label className="promo__search-label" htmlFor="filtNome">Cerca</label>
           <SearchField
             name="filtNome"
             value={filtNome}

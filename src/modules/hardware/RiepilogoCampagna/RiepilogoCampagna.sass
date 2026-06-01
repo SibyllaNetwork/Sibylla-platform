@@ -1,15 +1,12 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
-$success: #10b981
-$warning: #f59e0b
+$status-ok: #10b981
+$status-warn: #f59e0b
 $danger: #dc2626
 
 .riep-camp
@@ -69,7 +66,7 @@ $danger: #dc2626
 
     span
       padding: 6px 10px
-      background: $bg-soft
+      background: $bg
       border: 1px solid $border
       border-radius: 6px
       font-size: 13px
@@ -136,20 +133,20 @@ $danger: #dc2626
     transition: background 0.15s
 
     &:hover
-      background: $bg-soft
+      background: $bg
 
   // ── Status ──────────────────────────────────────────────────────
   &__status
     font-size: 16px
 
     &--ok
-      color: $success
+      color: $status-ok
 
     &--blocked
       color: $danger
 
     &--pending
-      color: $warning
+      color: $status-warn
 
   // ── Azioni riga ────────────────────────────────────────────────
   &__row-actions
@@ -170,7 +167,7 @@ $danger: #dc2626
     font-size: 12px
 
     &:hover
-      background: $bg-soft
+      background: $bg
       color: $primary
 
   &__panel-actions
@@ -229,7 +226,7 @@ $danger: #dc2626
     overflow: hidden
     border: 1px solid $border
     aspect-ratio: 4 / 3
-    background: $bg-soft
+    background: $bg
 
     img
       width: 100%

@@ -18,6 +18,7 @@ import FormGrid from '../../core/components/FormGrid'
 import FormActions from '../../core/components/FormActions'
 import { InputField, SelectField, DatePickerField, TextareaField, CheckboxField } from '../../core/components/form'
 import { apiFetchSibylla } from '../../services/api'
+import './RazorScaffold.sass'
 
 export interface ScaffoldColumn<T = any> {
   key: keyof T | string
@@ -401,7 +402,7 @@ export function DashboardPage({ pageId, razorPath, apiPath, title, subtitle, kpi
             ))}
           </div>
           <div className="bg-white border border-line rounded-field p-6 text-center text-ink-muted">
-            <i className="fa-duotone fa-chart-line" style={{ fontSize: 32 }} aria-hidden="true" />
+            <i className="fa-duotone fa-chart-line scaffold-chart-icon" aria-hidden="true" />
             <p className="mt-2 text-[13px]">Grafico interattivo collegato all'endpoint backend.</p>
           </div>
         </>
@@ -424,13 +425,13 @@ export function EmbedPage({ razorPath, title, subtitle, embedUrl, onBack }: Embe
     <div data-razor-source={razorPath}>
       {onBack && <BtnBack onClick={onBack} />}
       <PageHeader title={title} subtitle={subtitle} />
-      <div className="bg-white border border-line rounded-field overflow-hidden" style={{ height: 'calc(100vh - 220px)', minHeight: 480 }}>
+      <div className="bg-white border border-line rounded-field overflow-hidden scaffold-embed">
         {embedUrl ? (
           <iframe title={title} src={embedUrl} className="w-full h-full border-0" />
         ) : (
           <div className="h-full flex items-center justify-center text-ink-muted">
             <div className="text-center">
-              <i className="fa-duotone fa-chart-line" style={{ fontSize: 36 }} aria-hidden="true" />
+              <i className="fa-duotone fa-chart-line scaffold-chart-icon--lg" aria-hidden="true" />
               <p className="mt-2">Report embed pronto: collega l'URL del backend per visualizzarlo.</p>
             </div>
           </div>

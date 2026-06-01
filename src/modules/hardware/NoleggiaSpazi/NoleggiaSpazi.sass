@@ -1,15 +1,12 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
-$success: #10b981
-$success-soft: #34d399
+$status-ok: #10b981
+$status-ok-soft: #34d399
 
 .noleggia
   display: flex
@@ -136,17 +133,17 @@ $success-soft: #34d399
     vertical-align: middle
 
     &--off
-      background: $border-strong
+      background: $border
 
       &:hover:not(:disabled)
-        background: $success-soft
+        background: $status-ok-soft
         transform: scale(1.15)
 
     &--on
-      background: $success
+      background: $status-ok
 
       &:hover:not(:disabled)
-        background: color.adjust($success, $lightness: -8%)
+        background: color.adjust($status-ok, $lightness: -8%)
         transform: scale(1.15)
 
     &--invalid
@@ -231,7 +228,7 @@ $success-soft: #34d399
     overflow: hidden
     border: 1px solid $border
     aspect-ratio: 4 / 3
-    background: $bg-soft
+    background: $bg
 
     img
       width: 100%

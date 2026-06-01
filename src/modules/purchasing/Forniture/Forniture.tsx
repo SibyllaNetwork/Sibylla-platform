@@ -371,6 +371,7 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
 
       <FilterToolbar>
         <div className="forniture__search">
+          <label className="forniture__search-label" htmlFor="search">Cerca</label>
           <SearchField
             placeholder="Cerca fornitori per nome, città o regione…"
             value={search}
@@ -448,7 +449,7 @@ function SupplierDetail({ s, onBack }: { s: Supplier; onBack: () => void }) {
     <div className="forniture">
       <section
         className="forniture__hero"
-        style={{ backgroundImage: `url(${s.image})` }}
+        style={{ '--hero-image': `url(${s.image})` } as React.CSSProperties}
       >
         <div className="forniture__hero-overlay" />
         <div className="forniture__hero-inner">

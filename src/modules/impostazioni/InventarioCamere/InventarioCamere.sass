@@ -1,12 +1,9 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $danger: #dc2626
 
 .inv-camere
@@ -81,7 +78,7 @@ $danger: #dc2626
   &__card-img
     position: relative
     aspect-ratio: 4 / 3
-    background: $bg-soft
+    background: $bg
 
   &__preview
     width: 100%
@@ -115,7 +112,7 @@ $danger: #dc2626
     height: 28px
     padding: 0 8px
     background: var(--color-surface)
-    border: 1px solid $border-strong
+    border: 1px solid $border
     border-radius: 999px
     font-family: 'Poppins', sans-serif
     font-weight: 600
@@ -219,8 +216,8 @@ $danger: #dc2626
     width: 100%
     min-height: 160px
     padding: 20px
-    background: $bg-soft
-    border: 2px dashed $border-strong
+    background: $bg
+    border: 2px dashed $border
     border-radius: 10px
     cursor: pointer
     color: $primary
@@ -230,7 +227,7 @@ $danger: #dc2626
 
     &:hover
       border-color: $primary
-      background: color-mix(in srgb, #{$bg-soft}, #000 3%)
+      background: color-mix(in srgb, #{$bg}, #000 3%)
 
     i
       font-size: 28px
@@ -244,7 +241,7 @@ $danger: #dc2626
       overflow: hidden
 
       &:hover
-        border-color: $border-strong
+        border-color: $border
         background: var(--color-surface)
 
   &__dropzone-title
@@ -283,7 +280,7 @@ $danger: #dc2626
     aspect-ratio: 4 / 3
     border-radius: 8px
     overflow: hidden
-    background: $bg-soft
+    background: $bg
     border: 1px solid $border
 
     img
@@ -318,8 +315,8 @@ $danger: #dc2626
     align-items: center
     justify-content: center
     gap: 4px
-    background: $bg-soft
-    border: 2px dashed $border-strong
+    background: $bg
+    border: 2px dashed $border
     border-radius: 8px
     cursor: pointer
     color: $primary
@@ -332,7 +329,7 @@ $danger: #dc2626
 
     &:hover
       border-color: $primary
-      background: color-mix(in srgb, #{$bg-soft}, #000 3%)
+      background: color-mix(in srgb, #{$bg}, #000 3%)
 
 @keyframes inv-camere-fade-in
   from

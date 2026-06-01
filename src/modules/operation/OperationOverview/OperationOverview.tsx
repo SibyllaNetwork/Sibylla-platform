@@ -143,10 +143,10 @@ export default function OperationOverview({ navigate }: { navigate: (p: string) 
           <h3 className="op-overview__card-title">Occupate vs in manutenzione</h3>
           <TrendChart points={data.trend} />
           <div className="op-overview__legend">
-            <span><span className="op-overview__dot" style={{ background: '#A0A4AA' }} /> Capienza</span>
-            <span><span className="op-overview__dot" style={{ background: '#1F4E5F' }} /> Occupate</span>
-            <span><span className="op-overview__dot" style={{ background: '#F59E0B' }} /> Occupate Forecast</span>
-            <span><span className="op-overview__dot" style={{ background: '#3FA8E0' }} /> In Manutenzione</span>
+            <span><span className="op-overview__dot op-overview__dot--capienza" /> Capienza</span>
+            <span><span className="op-overview__dot op-overview__dot--occupate" /> Occupate</span>
+            <span><span className="op-overview__dot op-overview__dot--forecast" /> Occupate Forecast</span>
+            <span><span className="op-overview__dot op-overview__dot--manut" /> In Manutenzione</span>
           </div>
         </div>
 
@@ -195,7 +195,7 @@ export default function OperationOverview({ navigate }: { navigate: (p: string) 
                 <span className="op-overview__seg-count">{h.open}</span>
               </div>
               <div className="op-overview__seg-bar">
-                <div className="op-overview__seg-fill" style={{ width: `${(h.open / Math.max(1, h.total)) * 100}%` }} />
+                <div className="op-overview__seg-fill" style={{ '--fill-w': `${(h.open / Math.max(1, h.total)) * 100}%` } as React.CSSProperties} />
               </div>
               <div className="op-overview__seg-axis">
                 <span>0</span>
@@ -231,7 +231,7 @@ function TrendChart({ points }: { points: ChartPoint[] }) {
   const xLabelStep = Math.max(1, Math.floor(points.length / 12))
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="op-overview__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="op-overview__svg op-overview__svg--h280">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (maxY / ticks) * i
         const y = yPos(v)

@@ -1,12 +1,9 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 
 .crea-mag
   display: flex
@@ -41,8 +38,8 @@ $bg-soft: var(--color-bg)
     justify-content: center
     gap: 12px
     padding: 60px 20px
-    background: $bg-soft
-    border: 1px dashed $border-strong
+    background: $bg
+    border: 1px dashed $border
     border-radius: 12px
     color: $muted
     text-align: center
@@ -81,7 +78,7 @@ $bg-soft: var(--color-bg)
       font-weight: 600
       font-family: 'Open Sans', sans-serif
       color: $ink
-      background: $bg-soft
+      background: $bg
       text-transform: none
       letter-spacing: 0
 
@@ -89,7 +86,7 @@ $bg-soft: var(--color-bg)
       border-bottom: none
 
     tbody tr:hover
-      background: $bg-soft
+      background: $bg
 
   &__col-num
     text-align: right
@@ -185,10 +182,11 @@ $bg-soft: var(--color-bg)
     gap: 6px
 
   &__field-label
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
     font-family: 'Open Sans', sans-serif
-    color: $ink
+    color: $muted
+    line-height: 1.2
 
   &__req
     color: #dc2626
@@ -199,14 +197,14 @@ $bg-soft: var(--color-bg)
     flex-direction: column
     gap: 6px
     padding: 10px 12px
-    background: $bg-soft
+    background: $bg
     border: 1px solid $border
     border-radius: 8px
 
   &__static
     margin: 4px 0 0
     padding: 6px 10px
-    background: $bg-soft
+    background: $bg
     border: 1px solid $border
     border-radius: 6px
     color: $ink
@@ -260,5 +258,5 @@ $bg-soft: var(--color-bg)
 
     &--active
       border-color: $primary
-      background: $bg-soft
+      background: $bg
       color: $primary

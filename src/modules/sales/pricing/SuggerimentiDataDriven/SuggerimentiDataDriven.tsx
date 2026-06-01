@@ -29,13 +29,13 @@ const Donut = ({ label, value, pct=0 }: { label:string; value:string; pct?:numbe
   const cx=56, cy=56, r=44, sw=10, circ=+(2*Math.PI*r).toFixed(2), dash=+((pct/100)*circ).toFixed(2)
   return (
     <div className="ddg__donut-wrap">
-      <div style={{ position:'relative', width:112, height:112 }}>
+      <div className="ddg__donut-svg-wrap">
         <svg width={112} height={112} viewBox="0 0 112 112">
           <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E5E7EB" strokeWidth={sw}/>
           {pct>0 && <circle cx={cx} cy={cy} r={r} fill="none" stroke="#9CA3AF" strokeWidth={sw} strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform={`rotate(-90,${cx},${cy})`}/>}
         </svg>
-        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <span style={{ fontSize:pct===0?16:14, fontWeight:700, color:'#4A4D53', textAlign:'center', padding:'0 8px', lineHeight:1.2 }}>{value}</span>
+        <div className="ddg__donut-center">
+          <span className={`ddg__donut-value ${pct===0?'ddg__donut-value--lg':''}`}>{value}</span>
         </div>
       </div>
       <span className="ddg__donut-label">{label}</span>
@@ -84,7 +84,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
               </button>
             )
           })}
-          <div style={{ borderLeft: '1px solid #D1D5DB', height: 22, marginLeft: 4, marginBottom: 4, alignSelf: 'center' }} />
+          <div className="ddg__tabs-divider" />
         </div>
 
         {/* Date */}
@@ -101,13 +101,13 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
             <div className="ddg__sales-body">
               <div className="ddg__seg-table">
                 <div className="ddg__seg-title">Vendite per segmenti</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', flex: 1 }}>
+                <table className="ddg__seg-tbl">
                   <tbody>
                     {SEGMENTS.map(s => (
                       <tr key={s.label} className="ddg__seg-row">
-                        <td style={{ fontSize:13, color:'#4A4D53', padding:'5px 0' }}>{s.label}</td>
-                        <td style={{ fontSize:13, color:'#4A4D53', textAlign:'right', padding:'5px 10px' }}>{s.value}</td>
-                        <td style={{ fontSize:13, color:'#4A4D53', textAlign:'right', padding:'5px 0', whiteSpace:'nowrap' }}>{s.pct}</td>
+                        <td className="ddg__seg-cell">{s.label}</td>
+                        <td className="ddg__seg-cell ddg__seg-cell--val">{s.value}</td>
+                        <td className="ddg__seg-cell ddg__seg-cell--pct">{s.pct}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -171,15 +171,15 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     </tr>
                   ))}
                   <tr>
-                    <td className="ddg__pickup-td" style={{ color: '#9CA3AF' }}>–</td>
+                    <td className="ddg__pickup-td ddg__pickup-td--muted">–</td>
                     <td className="ddg__pickup-td" />
-                    <td className="ddg__pickup-td ddg__pickup-td--right" style={{ color: '#9CA3AF' }}>–– –</td>
+                    <td className="ddg__pickup-td ddg__pickup-td--right ddg__pickup-td--muted">–– –</td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
                     <td colSpan={2} className="ddg__pickup-footer-td">Totale</td>
-                    <td className="ddg__pickup-footer-td" style={{ textAlign: 'right' }}>0,00 €</td>
+                    <td className="ddg__pickup-footer-td ddg__pickup-footer-td--right">0,00 €</td>
                   </tr>
                 </tfoot>
               </table>

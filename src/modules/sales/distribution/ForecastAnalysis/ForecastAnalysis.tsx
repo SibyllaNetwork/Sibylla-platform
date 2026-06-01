@@ -138,7 +138,7 @@ export default function ForecastAnalysis({ navigate }: { navigate: (p: string) =
           <h3 className="forecast-analysis__card-title">Ranking per segmento</h3>
           <HBars bars={data.rankSegmenti} labelWidth={70} />
           <div className="forecast-analysis__card-foot">
-            <span className="forecast-analysis__legend-dot" style={{ background: '#5DC3E0' }} /> Vendite totali
+            <span className="forecast-analysis__legend-dot forecast-analysis__legend-dot--sales" /> Vendite totali
           </div>
         </div>
 

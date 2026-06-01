@@ -41,10 +41,11 @@
 
   &__filter-label
     font-family: $font-body
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
-    color: $text-active
-    margin-bottom: 3px
+    color: $text-inactive
+    line-height: 1.2
+    margin-bottom: 4px
     display: block
 
   &__search-wrap
@@ -134,6 +135,14 @@
     justify-content: center
     flex-shrink: 0
     transition: $transition-fast
+    border: 1px solid var(--cb-color)
+    background: transparent
+
+    &--on
+      background: var(--cb-color)
+
+  &__checkbox-text
+    color: var(--cb-color)
 
   &__spacer
     flex: 1
@@ -200,6 +209,8 @@
   // Tooltip prenotazione (rollover)
   &__bar-tip
     position: fixed
+    left: var(--tip-left)
+    top: var(--tip-top)
     z-index: 1000
     pointer-events: none
     background: #1E293B
@@ -339,13 +350,15 @@
   // Tooltip camera (hover)
   &__tip
     position: fixed
+    left: var(--tip-left)
+    top: var(--tip-top)
     z-index: 1000
     pointer-events: none
     display: inline-flex
     align-items: center
     gap: 6px
     background: #1E293B
-    color: #fff
+    color: $white
     border: 1px solid alpha($white, 0.12)
     border-radius: 6px
     padding: 4px 8px
@@ -362,6 +375,7 @@
     height: 8px
     border-radius: 50%
     flex-shrink: 0
+    background: var(--dot-bg)
 
   &__tip-state
     color: alpha($white, 0.8)
@@ -599,6 +613,7 @@
     height: 8px
     border-radius: 2px
     flex-shrink: 0
+    background: var(--dot-bg)
 
   &__legend-label
     color: $primary-300
@@ -688,6 +703,7 @@
 
   &__today-line
     position: absolute
+    left: var(--today-left)
     top: 46px
     bottom: 0
     width: 2px
@@ -744,6 +760,7 @@
     height: 7px
     border-radius: 50%
     flex-shrink: 0
+    background: var(--dot-bg)
 
   &__room-number
     font-family: $font-heading
@@ -762,9 +779,11 @@
   &__day-grid
     flex: 1
     position: relative
+    min-width: var(--grid-min-w)
 
   &__cell
     position: absolute
+    left: var(--cell-left)
     top: 0
     height: 100%
     width: 88px
@@ -784,6 +803,7 @@
 
   &__status-icon
     position: absolute
+    left: var(--icon-left)
     top: 0
     height: 100%
     width: 88px
@@ -797,6 +817,12 @@
 
   &__bar
     position: absolute
+    left: var(--bar-left)
+    width: var(--bar-width)
+    background: var(--bar-bg)
+    color: var(--bar-color)
+    clip-path: var(--bar-clip)
+    padding-left: var(--bar-pad-left)
     height: 28px
     top: 50%
     transform: translateY(-50%)
@@ -868,9 +894,11 @@
   &__summary-cells
     position: relative
     height: 30px
+    min-width: var(--grid-min-w)
 
   &__summary-cell
     position: absolute
+    left: var(--cell-left)
     top: 0
     width: 88px
     height: 100%
@@ -978,6 +1006,7 @@
     height: 9px
     border-radius: 50%
     flex-shrink: 0
+    background: var(--dot-bg)
 
   &__people
     display: inline-flex
@@ -1124,6 +1153,10 @@
     height: 20px
     border-radius: 50%
     flex-shrink: 0
+    background: var(--dot-bg)
+
+    &--bordered
+      border: 1px solid var(--dot-bd)
 
   &__label
     font-family: $font-body
@@ -1265,6 +1298,7 @@
     width: 3px
     border-radius: 2px
     flex-shrink: 0
+    background: var(--room-clr)
 
   &__room-body
     display: flex
@@ -1291,6 +1325,7 @@
     font-size: 8.5px
     font-weight: 600
     margin-top: 1px
+    color: var(--room-clr)
 
 @keyframes floor-detail-in
   from
@@ -1375,9 +1410,10 @@
   gap: 10px
 
   &__label
-    font-size: 13px
-    color: $text-active
+    font-size: 12px
+    color: $text-inactive
     font-weight: 600
+    line-height: 1.2
 
   &__actions
     display: flex

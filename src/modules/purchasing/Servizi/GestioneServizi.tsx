@@ -241,7 +241,7 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
           <table className="sib-table gest-servizi__table">
             <thead>
               <tr>
-                <th style={{ width: 56 }}></th>
+                <th className="gest-servizi__th-thumb"></th>
                 <th>Servizio</th>
                 <th>Tipo</th>
                 <th>Città</th>

@@ -1,3 +1,5 @@
+@use '../../../styles/tokens' as *
+
 .tipo-modal
   padding: 14px 18px 18px
   display: flex
@@ -82,7 +84,7 @@
     height: 40px
     border-radius: 8px
     background-color: var(--type-color, var(--color-primary))
-    color: #fff
+    color: $white
     font-size: 18px
     flex-shrink: 0
 
@@ -113,10 +115,10 @@
   .tipo-modal__icon-chip--active
     background: var(--color-primary)
     border-color: var(--color-primary)
-    color: #fff
+    color: $white
 
     &:hover
-      color: #fff
+      color: $white
 
   // ─── Palette ─────────────────────────────────────────────────────────────
   .tipo-modal__palette

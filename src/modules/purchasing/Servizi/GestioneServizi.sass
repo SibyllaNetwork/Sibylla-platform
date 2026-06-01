@@ -1,3 +1,5 @@
+@use '../../../styles/tokens' as *
+
 .gest-servizi
 
   .gest-servizi__count
@@ -20,6 +22,9 @@
   // ─── Tabella ─────────────────────────────────────────────────────────────
   .gest-servizi__table
     width: 100%
+
+  .gest-servizi__th-thumb
+    width: 56px
 
   .gest-servizi__th-actions
     text-align: right
@@ -60,7 +65,7 @@
     padding: 3px 8px
     border-radius: 999px
     background-color: var(--type-color, var(--color-primary))
-    color: #fff
+    color: $white
     font-family: 'Open Sans', sans-serif
     font-size: 10.5px
     font-weight: 600

@@ -247,7 +247,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
           <table className="sib-table lista-prodotti__table">
             <thead>
               <tr>
-                <th style={{ width: 56 }}></th>
+                <th className="lista-prodotti__th-thumb"></th>
                 <th>Prodotto</th>
                 <th>Categoria</th>
                 <th>Fornitore</th>

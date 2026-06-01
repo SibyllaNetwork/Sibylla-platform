@@ -164,9 +164,9 @@ export default function GuestRoomAnalysis({ navigate }: { navigate: (p: string) 
               <button type="button" className="sib-btn sib-btn--primary sib-btn--sm grm-analysis__dettaglio">DETTAGLIO</button>
             </div>
             <div className="grm-analysis__chart-legend">
-              <span><span className="grm-analysis__sw" style={{ background: '#1F4E5F' }} /> Camere occupate</span>
-              <span><span className="grm-analysis__sw" style={{ background: '#F59E0B' }} /> Camere occupate (forecast)</span>
-              <span><span className="grm-analysis__sw" style={{ background: '#A0A4AA' }} /> Camere occupate LY</span>
+              <span><span className="grm-analysis__sw grm-analysis__sw--ty" /> Camere occupate</span>
+              <span><span className="grm-analysis__sw grm-analysis__sw--forecast" /> Camere occupate (forecast)</span>
+              <span><span className="grm-analysis__sw grm-analysis__sw--ly" /> Camere occupate LY</span>
             </div>
             <SmoothAreaChart points={data.trendCamera} />
           </div>
@@ -174,9 +174,9 @@ export default function GuestRoomAnalysis({ navigate }: { navigate: (p: string) 
           <div className="grm-analysis__chart-card">
             <h3 className="grm-analysis__chart-title">Trend ospiti</h3>
             <div className="grm-analysis__chart-legend">
-              <span><span className="grm-analysis__sw" style={{ background: '#1F4E5F' }} /> Numero ospiti</span>
-              <span><span className="grm-analysis__sw" style={{ background: '#F59E0B' }} /> Numero ospiti (forecast)</span>
-              <span><span className="grm-analysis__sw" style={{ background: '#A0A4AA' }} /> Numero ospiti LY</span>
+              <span><span className="grm-analysis__sw grm-analysis__sw--ty" /> Numero ospiti</span>
+              <span><span className="grm-analysis__sw grm-analysis__sw--forecast" /> Numero ospiti (forecast)</span>
+              <span><span className="grm-analysis__sw grm-analysis__sw--ly" /> Numero ospiti LY</span>
             </div>
             <SmoothAreaChart points={data.trendOspiti} />
           </div>
@@ -212,7 +212,7 @@ function SmoothAreaChart({ points }: { points: SeriePoint[] }) {
   const xLabelStep = Math.max(1, Math.floor(points.length / 5))
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="grm-analysis__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="grm-analysis__svg grm-analysis__svg--h240">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (maxY / ticks) * i
         const y = yPos(v)

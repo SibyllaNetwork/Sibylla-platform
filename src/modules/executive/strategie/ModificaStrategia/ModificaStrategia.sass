@@ -291,15 +291,23 @@
     font-weight: 600
     color: $primary
     border-right: 1px solid $border
+    border-bottom: 1px solid $border
     white-space: nowrap
+
+    &--last
+      border-bottom: none
 
   &__guida-td
     padding: 6px 8px
     border-right: 1px solid $border
+    border-bottom: 1px solid $border
     text-align: center
 
     &:last-child
       border-right: none
+
+    &--last
+      border-bottom: none
 
   &__guida-input
     width: 100%
@@ -504,7 +512,7 @@
 .strat__range-top
   font-size: 13px
   font-weight: 700
-  color: #fff
+  color: $white
   line-height: 1.2
 
 .strat__range-arrow-wrap
@@ -551,3 +559,81 @@
 
 .strat__guida-thead-row
   background: var(--color-bg)
+
+// ─── Inline-style replacements ────────────────────────────────────────────────
+.strategia__color-swatch--dyn
+  background: var(--swatch-color)
+
+.strategia__color-option--dyn
+  background: var(--option-color)
+
+.strat__card-btn--dyn
+  border-color: var(--strat-border)
+  background: var(--strat-bg)
+
+  &:hover
+    border-color: var(--strat-color)
+
+.strat__card-ico--dyn
+  background: var(--strat-color)
+
+.strat__card-name--dyn
+  color: var(--strat-name-color)
+
+.strat__nome-dot--dyn
+  background: var(--dot-color)
+
+.strat__colore-display--dyn
+  border-color: var(--display-border)
+  background: var(--display-bg)
+
+.strategia__matrix-wrap--dyn
+  border-top: 3px solid var(--strat-color)
+
+.strat__matrix-col--ico
+  width: 46px
+
+.strat__matrix-col--range
+  width: 88px
+
+.strategia__matrix-th--last
+  border-right: none !important
+
+.strat__range-cell--dyn
+  background: var(--strat-color)
+  border-right: 1px solid rgba(255,255,255,0.15)
+  border-bottom: 1px solid rgba(255,255,255,0.15)
+
+  &.strat__range-cell--last
+    border-bottom: none
+
+.strategia__bar-cell--dyn
+  background: var(--color-surface)
+
+  &.strategia__bar-cell--filled
+    background: var(--bar-bg)
+
+  &.strategia__bar-cell--last-col
+    border-right: none
+
+  &.strategia__bar-cell--last-row
+    border-bottom: none
+
+.strategia__bar-select
+  color: var(--color-text-disabled)
+  font-weight: 400
+  border-color: var(--color-border)
+
+  &--filled
+    color: var(--strat-color)
+    font-weight: 600
+    border-color: var(--strat-border-soft)
+
+  &:focus
+    border-color: var(--strat-color)
+
+.strategia__guida-td-occ--last
+  border-bottom: none
+
+.strategia__guida-td--last
+  border-bottom: none

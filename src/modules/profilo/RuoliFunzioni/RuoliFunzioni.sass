@@ -288,7 +288,9 @@
   width: 28px
   height: 28px
   border-radius: 50%
-  border: 1px solid transparent
+  background: color-mix(in srgb, var(--avatar-color) 13%, transparent)
+  border: 1px solid color-mix(in srgb, var(--avatar-color) 27%, transparent)
+  color: var(--avatar-color)
   display: flex
   align-items: center
   justify-content: center
@@ -326,7 +328,7 @@
   border-radius: 7px
   padding: 9px 28px
   font-size: 13px
-  color: #fff
+  color: $white
   cursor: pointer
   font-weight: 600
 

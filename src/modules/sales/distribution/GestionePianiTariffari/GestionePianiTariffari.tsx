@@ -81,50 +81,50 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
       </FilterToolbar>
 
       {/* Accordion categorie */}
-      <div style={{background:T.white,borderRadius:12,border:`1px solid ${T.border}`,overflow:'hidden'}}>
-        {CATEGORIE.map((cat,ci) => {
+      <div className="piani__wrap">
+        {CATEGORIE.map((cat) => {
           const isExp = expanded.has(cat.id)
           const items = piani[cat.id] || []
+          const catVars = { '--cat-color': cat.color, '--cat-color-hover': `${cat.color}18`, '--cat-color-hover-soft': `${cat.color}12` } as React.CSSProperties
           return (
-            <div key={cat.id} style={{borderBottom:ci<CATEGORIE.length-1?`1px solid ${T.border}`:'none'}}>
+            <div key={cat.id} className="piani__cat">
               <div className="piani__cat-header" onClick={()=>toggleExpand(cat.id)}>
                 <div className="piani__cat-left">
                   <CatIco color={cat.color}/>
-                  <span style={{fontSize:13,fontWeight:700,color:cat.color,fontFamily:'Poppins,sans-serif'}}>{cat.label}</span>
+                  <span className="piani__cat-label" style={catVars}>{cat.label}</span>
                   <select defaultValue={cat.tipo} onClick={e=>e.stopPropagation()} className="sib-select sib-select--dense w-[54px]">
                     <option>B</option><option>R</option><option>N</option>
                   </select>
                   {cat.hasPct && (
-                    <div style={{display:'flex',alignItems:'center',gap:4}} onClick={e=>e.stopPropagation()}>
+                    <div className="piani__cat-pct-wrap" onClick={e=>e.stopPropagation()}>
                       <input type="number" value={pctVals[cat.id]||'0'} onChange={e=>setPctVals(p=>({...p,[cat.id]:e.target.value}))}
                         className="sib-input sib-input--dense w-[64px] text-center"/>
-                      <span style={{fontSize:11,fontWeight:600,color:T.textInactive}}>%</span>
+                      <span className="piani__cat-pct-sign">%</span>
                     </div>
                   )}
                 </div>
-                <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
+                <div className="piani__cat-actions">
                   <span className="piani__cat-count">{items.length} pian{items.length===1?'o':'i'}</span>
                   <div className={`piani__chevron ${isExp?'piani__chevron--open':'piani__chevron--closed'}`}><i className="fa-duotone fa-chevron-down text-[13px] text-ink-subtle" aria-hidden="true"/></div>
                 </div>
               </div>
               {isExp && (
                 <div>
-                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderBottom:`1px solid ${T.border}`,background:'#FAFCFF'}}>
+                  <div className="piani__add-row">
                     <Tooltip text="Aggiungi piano">
                       <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
-                        style={{width:26,height:26,borderRadius:6,border:`1px solid ${cat.color}`,background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}
-                        onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.background=`${cat.color}18`} onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.background='transparent'}>
+                        className="piani__add-circle" style={catVars}>
                         <i className="fa-duotone fa-plus text-[12px] text-primary" aria-hidden="true"/>
                       </button>
                     </Tooltip>
                   </div>
                   {items.length > 0 && (
-                    <div style={{display:'grid',gridTemplateColumns:'2fr 1.2fr 1.2fr 100px',padding:'8px 16px',background:'#F8FAFC',borderBottom:`1px solid ${T.border}`}}>
-                      {['Nome','Valore','Scadenza','Azioni'].map((h,i)=><div key={i} style={{fontSize:10,fontWeight:700,color:T.textDisabled,textTransform:'uppercase',letterSpacing:'0.4px',textAlign:i===3?'center':'left'}}>{h}</div>)}
+                    <div className="piani__piano-list-head">
+                      {['Nome','Valore','Scadenza','Azioni'].map((h,i)=><div key={i} className={`piani__piano-list-th ${i===3?'piani__piano-list-th--center':''}`}>{h}</div>)}
                     </div>
                   )}
                   {items.map((piano) => (
-                    <div key={piano.id} className="piani__piano-row" style={{gridTemplateColumns:'2fr 1.2fr 1.2fr 100px'}}>
+                    <div key={piano.id} className="piani__piano-row piani__piano-row--cols">
                       <div className="piani__piano-name">{piano.nome}</div>
                       <div className="piani__piano-value">{piano.valore}</div>
                       <div className="piani__piano-date">{piano.scadenza}</div>
@@ -136,10 +136,9 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
                   ))}
                   {items.length === 0 && (
                     <div className="piani__empty">
-                      <p style={{margin:'0 0 12px'}}>Nessun piano tariffario per questa categoria</p>
+                      <p className="piani__empty-p">Nessun piano tariffario per questa categoria</p>
                       <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
-                        style={{display:'inline-flex',alignItems:'center',gap:6,background:'transparent',border:`1px solid ${cat.color}`,borderRadius:7,padding:'7px 18px',cursor:'pointer',fontSize:12,fontWeight:600,color:cat.color}}
-                        onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.background=`${cat.color}12`} onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.background='transparent'}>
+                        className="piani__empty-btn" style={catVars}>
                         Aggiungi piano {cat.label}
                       </button>
                     </div>
@@ -158,23 +157,25 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
           <p className="text-xs text-link font-medium">Configurazione necessaria per la gestione del pricing</p>
         </div>
         <div className="border border-line rounded-card overflow-hidden">
-          {([{id:'BAR',label:'BAR',color:T.blue},{id:'FIT',label:'FIT',color:'#5A8A3C'},{id:'Gruppi',label:'Gruppi',color:'#C4A820'}] as any[]).map((cat,i,arr)=>(
+          {([{id:'BAR',label:'BAR',color:T.blue},{id:'FIT',label:'FIT',color:'#5A8A3C'},{id:'Gruppi',label:'Gruppi',color:'#C4A820'}] as any[]).map((cat,i,arr)=>{
+            const isNone = cameraRef[cat.id]==='Nessuna selezione'
+            return (
             <div key={cat.id} className={`grid grid-cols-[1fr_48px_120px] items-center gap-3 px-4 py-3.5 ${i<arr.length-1?'border-b border-line':''} ${i%2===0?'bg-white':'bg-canvas'}`}>
-              <select value={cameraRef[cat.id]} onChange={e=>setCameraRef(prev=>({...prev,[cat.id]:e.target.value}))} className="sib-select w-full" style={{color:cameraRef[cat.id]==='Nessuna selezione'?T.textDisabled:T.primary}}>
+              <select value={cameraRef[cat.id]} onChange={e=>setCameraRef(prev=>({...prev,[cat.id]:e.target.value}))} className={`sib-select w-full piani__camera-select ${isNone?'piani__camera-select--none':'piani__camera-select--set'}`}>
                 {CAMERE.map(c=><option key={c}>{c}</option>)}
               </select>
               <div className="flex items-center justify-center">
-                {cameraRef[cat.id]==='Nessuna selezione'
+                {isNone
                   ?<i className="fa-duotone fa-link-slash text-ink-subtle text-lg" aria-hidden="true"/>
                   :<i className="fa-duotone fa-link text-primary text-lg" aria-hidden="true"/>
                 }
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-field border border-line" style={{background:i%2===0?'#F8FAFC':T.white}}>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-field border border-line piani__camera-label" style={{ '--row-bg': i%2===0?'#F8FAFC':T.white, '--cat-color': cat.color } as React.CSSProperties}>
                 <CatIco color={cat.color}/>
-                <span className="text-[13px] font-bold font-poppins" style={{color:cat.color}}>{cat.label}</span>
+                <span className="text-[13px] font-bold font-poppins piani__camera-label-text">{cat.label}</span>
               </div>
             </div>
-          ))}
+          )})}
         </div>
         <FormActions onCancel={()=>setShowCameraModal(false)} onConfirm={()=>setShowCameraModal(false)}/>
       </Modal>

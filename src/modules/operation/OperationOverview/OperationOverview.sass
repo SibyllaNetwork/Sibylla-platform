@@ -129,6 +129,9 @@
   &__svg
     width: 100%
 
+    &--h280
+      height: 280px
+
   &__legend
     display: flex
     flex-wrap: wrap
@@ -143,6 +146,18 @@
     border-radius: 50%
     display: inline-block
     margin-right: 6px
+
+    &--capienza
+      background: #A0A4AA
+
+    &--occupate
+      background: #1F4E5F
+
+    &--forecast
+      background: #F59E0B
+
+    &--manut
+      background: #3FA8E0
 
   &__side-tag
     background: $primary
@@ -258,6 +273,7 @@
 
   &__seg-fill
     height: 100%
+    width: var(--fill-w)
     background: $primary
     transition: width 0.3s ease
 

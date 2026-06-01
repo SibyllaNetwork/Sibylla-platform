@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './SchedineAlloggiati.sass'
 
 /**
  * Schedine alloggiati — replica `Views/FrontOffice/SchedineAlloggiati.cshtml`.
@@ -122,7 +123,7 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
                   <td>{s.nazionalita}</td>
                   <td>{s.data_check_in}</td>
                   <td>
-                    <span className="font-bold text-[12px] uppercase tracking-wide" style={{ color: meta.color }}>
+                    <span className="font-bold text-[12px] uppercase tracking-wide schedine__stato" style={{ '--stato-color': meta.color } as React.CSSProperties}>
                       {meta.label}
                     </span>
                   </td>

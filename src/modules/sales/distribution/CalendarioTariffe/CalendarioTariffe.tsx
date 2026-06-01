@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import T from '../../../../core/tokens'
 import BtnBack from '../../../../core/components/BtnBack'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHeader from '../../../../core/components/PageHeader'
@@ -98,23 +97,23 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
           className="cal-tariffe__select--camera"
         />
         <button className="sib-btn sib-btn--toolbar cal-tariffe__vista-btn" onClick={()=>navigate('tariffe-disp')}>
-          <i className="fa-duotone fa-calendar" style={{fontSize:13}} aria-hidden="true"/>
+          <i className="fa-duotone fa-calendar cal-tariffe__btn-cal-ico" aria-hidden="true"/>
           Vista griglia
         </button>
         <button className="sib-btn sib-btn--primary" onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),3000)}}>
-          <i className="fa-duotone fa-check" style={{fontSize:12,color:'#fff'}} aria-hidden="true"/> Salva e invia
+          <i className="fa-duotone fa-check cal-tariffe__btn-check-ico" aria-hidden="true"/> Salva e invia
         </button>
       </div>
 
       {/* ── Camera indicator ────────────────────────────────────────── */}
       <div className="cal-tariffe__cam-indicator">
-        <div className="cal-tariffe__cam-dot" style={{background:cam.colore}}/>
-        <span className="cal-tariffe__cam-label" style={{color:cam.colore}}>{cam.label}</span>
-        <div className="cal-tariffe__cam-line" style={{background:`${cam.colore}33`}}/>
+        <div className="cal-tariffe__cam-dot cal-tariffe__cam-dot--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}/>
+        <span className="cal-tariffe__cam-label cal-tariffe__cam-label--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}>{cam.label}</span>
+        <div className="cal-tariffe__cam-line cal-tariffe__cam-line--dyn" style={{ '--cam-line-bg': `${cam.colore}33` } as React.CSSProperties}/>
       </div>
 
       {/* ── Month grid ──────────────────────────────────────────────── */}
-      <div className="cal-tariffe__month-grid">
+      <div className="cal-tariffe__month-grid" style={{ '--cam-color': cam.colore } as React.CSSProperties}>
         {months.map(({year,month}) => {
           const dim     = getDIM(year,month)
           const firstWD = getWD(year,month,1)
@@ -134,7 +133,7 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
               </div>
               <div className="cal-tariffe__month-scroll">
                 <table className="cal-tariffe__month-table">
-                  <colgroup>{Array.from({length:7},(_,i)=><col key={i} style={{width:`${100/7}%`}}/>)}</colgroup>
+                  <colgroup>{Array.from({length:7},(_,i)=><col key={i} className="cal-tariffe__month-col"/>)}</colgroup>
                   <thead>
                     <tr className="cal-tariffe__thead-row">
                       {DAYS_IT.map((d,i)=>(
@@ -145,34 +144,33 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
                     </tr>
                   </thead>
                   <tbody>
-                    {weeks.map((week,wi) => (
+                    {weeks.map((week,wi) => {
+                      const lastRow = wi === weeks.length-1
+                      return (
                       <tr key={wi}>
                         {week.map((day,di) => {
-                          const br = di<6?'1px solid #E8EBF0':'none'
-                          const bb = wi<weeks.length-1?`1px solid ${T.border}`:'none'
-                          if (!day) return <td key={di} className="cal-tariffe__day-cell cal-tariffe__day-cell--empty" style={{borderRight:br,borderBottom:bb}}/>
+                          if (!day) return <td key={di} className={`cal-tariffe__day-cell cal-tariffe__day-cell--empty ${lastRow?'cal-tariffe__day-cell--last-row':''}`}/>
                           const isWE  = di>=5
                           const price = priceMap[`${cam.id}-${year}-${month}-${day}`]??0
                           const occ   = occMap[`${year}-${month}-${day}`]??0
                           return (
                             <td key={di}
-                              className={`cal-tariffe__day-cell ${isWE?'cal-tariffe__day-cell--weekend':'cal-tariffe__day-cell--weekday'}`}
-                              style={{borderRight:br,borderBottom:bb}}>
+                              className={`cal-tariffe__day-cell ${isWE?'cal-tariffe__day-cell--weekend':'cal-tariffe__day-cell--weekday'} ${lastRow?'cal-tariffe__day-cell--last-row':''}`}>
                               <div className={`cal-tariffe__day-num ${isWE?'cal-tariffe__day-num--weekend':'cal-tariffe__day-num--weekday'}`}>{day}</div>
                               <div className="cal-tariffe__day-price">
-                                <span className="cal-tariffe__day-price-val" style={{color:cam.colore}}>
+                                <span className="cal-tariffe__day-price-val cal-tariffe__day-price-val--dyn">
                                   {price.toFixed(2).replace('.',',')} €
                                 </span>
-                                <i className="fa-duotone fa-chevron-down cal-tariffe__price-chevron" style={{color:cam.colore}} aria-hidden="true"/>
+                                <i className="fa-duotone fa-chevron-down cal-tariffe__price-chevron cal-tariffe__price-chevron--dyn" aria-hidden="true"/>
                               </div>
-                              <div className="cal-tariffe__day-occ" style={{background:occBg(occ)}}>
-                                <span className="cal-tariffe__day-occ-val" style={{color:occColor(occ)}}>{occ},0%</span>
+                              <div className="cal-tariffe__day-occ cal-tariffe__day-occ--dyn" style={{ '--occ-bg': occBg(occ), '--occ-color': occColor(occ) } as React.CSSProperties}>
+                                <span className="cal-tariffe__day-occ-val cal-tariffe__day-occ-val--dyn">{occ},0%</span>
                               </div>
                             </td>
                           )
                         })}
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
@@ -185,7 +183,7 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
       <div className="cal-tariffe__legend">
         {LEGEND_OCC.map(l=>(
           <div key={l.label} className="cal-tariffe__legend-item">
-            <div className="cal-tariffe__legend-swatch" style={{background:l.bg,borderColor:l.c}}/>
+            <div className="cal-tariffe__legend-swatch cal-tariffe__legend-swatch--dyn" style={{ '--leg-bg': l.bg, '--leg-border': l.c } as React.CSSProperties}/>
             <span className="cal-tariffe__legend-label">{l.label}</span>
           </div>
         ))}

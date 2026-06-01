@@ -88,7 +88,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               className={`strategia__color-btn ${showColorPicker?'strategia__color-btn--open':''} ${coloreFilter?'strategia__color-btn--selected':''}`}
               onClick={() => setShowColorPicker(v => !v)}>
               {coloreFilter
-                ? <><div className="strategia__color-swatch" style={{background:coloreFilter}}/>{COLORS.find(c => c.val === coloreFilter)?.label}</>
+                ? <><div className="strategia__color-swatch strategia__color-swatch--dyn" style={{ '--swatch-color': coloreFilter } as React.CSSProperties}/>{COLORS.find(c => c.val === coloreFilter)?.label}</>
                 : 'Tutti i colori'}
               <Ico n="chevd" s={9} c={T.textDisabled}/>
             </button>
@@ -101,8 +101,8 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               <div className="strategia__color-picker strat__color-picker-grid">
                 {COLORS.map(c => (
                   <button key={c.val}
-                    className={`strategia__color-option ${coloreFilter === c.val ? 'strategia__color-option--active' : ''}`}
-                    style={{background:c.val}} title={c.label}
+                    className={`strategia__color-option strategia__color-option--dyn ${coloreFilter === c.val ? 'strategia__color-option--active' : ''}`}
+                    style={{ '--option-color': c.val } as React.CSSProperties} title={c.label}
                     onClick={() => { setColoreFilter(c.val); setShowColorPicker(false) }}/>
                 ))}
               </div>
@@ -121,18 +121,18 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               const isSel = s.id === selectedId
               return (
                 <button key={s.id} onClick={() => loadStrat(s)}
-                  className={`strat__card-btn ${isSel ? 'strat__card-btn--selected' : ''}`}
+                  className={`strat__card-btn strat__card-btn--dyn ${isSel ? 'strat__card-btn--selected' : ''}`}
                   style={{
-                    borderColor: isSel ? s.colore : T.border,
-                    background:  isSel ? `${s.colore}12` : T.bg,
-                  }}
-                  onMouseEnter={e => { if (!isSel) (e.currentTarget as HTMLButtonElement).style.borderColor = s.colore }}
-                  onMouseLeave={e => { if (!isSel) (e.currentTarget as HTMLButtonElement).style.borderColor = T.border }}>
-                  <div className="strat__card-ico" style={{background:s.colore}}>
+                    '--strat-color': s.colore,
+                    '--strat-border': isSel ? s.colore : T.border,
+                    '--strat-bg': isSel ? `${s.colore}12` : T.bg,
+                    '--strat-name-color': isSel ? s.colore : T.textActive,
+                  } as React.CSSProperties}>
+                  <div className="strat__card-ico strat__card-ico--dyn">
                     <Ico n={tipoIcon(s.tipo)} s={16} c="#fff"/>
                   </div>
                   <div>
-                    <div className="strat__card-name" style={{color: isSel ? s.colore : T.textActive}}>{s.nome}</div>
+                    <div className="strat__card-name strat__card-name--dyn">{s.nome}</div>
                     <div className="strat__card-tipo">{s.tipo}</div>
                   </div>
                   {isSel && <div className="strat__card-check"><Ico n="check" s={14} c={s.colore}/></div>}
@@ -169,7 +169,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
             </div>
             <div>
               <div className="strat__nome-row">
-                <div className="strat__nome-dot" style={{background:current.colore}}/>
+                <div className="strat__nome-dot strat__nome-dot--dyn" style={{ '--dot-color': current.colore } as React.CSSProperties}/>
                 <InputField
                   name="nomeEdit"
                   value={nomeEdit}
@@ -184,8 +184,8 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
             </div>
             <div>
               <label className="text-[11px] font-semibold font-opensans text-ink">Colore strategia</label>
-              <div className="strat__colore-display" style={{borderColor:`${current.colore}44`, background:`${current.colore}10`}}>
-                <div className="strat__nome-dot" style={{background:current.colore}}/>
+              <div className="strat__colore-display strat__colore-display--dyn" style={{ '--display-border': `${current.colore}44`, '--display-bg': `${current.colore}10` } as React.CSSProperties}>
+                <div className="strat__nome-dot strat__nome-dot--dyn" style={{ '--dot-color': current.colore } as React.CSSProperties}/>
                 {COLORS.find(c => c.val === current.colore)?.label || current.colore}
               </div>
             </div>
@@ -205,19 +205,19 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
       </div>
 
       {/* ── Matrix ──────────────────────────────────────────────────────── */}
-      <div className="strategia__matrix-wrap" style={{borderTop:`3px solid ${current.colore}`}}>
+      <div className="strategia__matrix-wrap strategia__matrix-wrap--dyn" style={{ '--strat-color': current.colore } as React.CSSProperties}>
         <div className="strategia__matrix-scroll">
           <table className="strategia__matrix-table">
             <colgroup>
-              <col style={{width:46}}/>
-              <col style={{width:88}}/>
+              <col className="strat__matrix-col--ico"/>
+              <col className="strat__matrix-col--range"/>
               {COLS.map((_,i) => <col key={i}/>)}
             </colgroup>
             <thead>
               <tr>
                 <th colSpan={2} className="strat__matrix-th-empty"/>
                 {COLS.map((col,i) => (
-                  <th key={i} className="strategia__matrix-th" style={{borderRight: i < COLS.length-1 ? `1px solid ${T.border}` : 'none'}}>{col}</th>
+                  <th key={i} className={`strategia__matrix-th ${i === COLS.length-1 ? 'strategia__matrix-th--last' : ''}`}>{col}</th>
                 ))}
               </tr>
             </thead>
@@ -232,34 +232,27 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
                       </div>
                     </td>
                   )}
-                  <td className="strat__range-cell" style={{background:current.colore, borderRight:`1px solid rgba(255,255,255,0.15)`, borderBottom: ri < ROWS.length-1 ? `1px solid rgba(255,255,255,0.15)` : 'none'}}>
+                  <td className={`strat__range-cell strat__range-cell--dyn ${ri === ROWS.length-1 ? 'strat__range-cell--last' : ''}`} style={{ '--strat-color': current.colore } as React.CSSProperties}>
                     <div className="strat__range-top">{range.top}</div>
                     <div className="strat__range-arrow-wrap">
                       <i className="fa-duotone fa-arrows-up-down strat__range-arrow" aria-hidden="true"/>
                     </div>
                     <div className="strat__range-bot">{range.bot}</div>
                   </td>
-                  {COLS.map((_,ci) => (
+                  {COLS.map((_,ci) => {
+                    const filled = !!bars[ri]?.[ci]
+                    return (
                     <td key={ci}
-                      className={`strategia__bar-cell ${bars[ri]?.[ci] ? 'strategia__bar-cell--filled' : ''}`}
-                      style={{
-                        borderRight:  ci < COLS.length-1 ? `1px solid ${T.border}` : 'none',
-                        borderBottom: ri < ROWS.length-1 ? `1px solid ${T.border}` : 'none',
-                        background:   bars[ri]?.[ci] ? `${current.colore}0A` : T.white,
-                      }}>
+                      className={`strategia__bar-cell strategia__bar-cell--dyn ${filled ? 'strategia__bar-cell--filled' : ''} ${ci === COLS.length-1 ? 'strategia__bar-cell--last-col' : ''} ${ri === ROWS.length-1 ? 'strategia__bar-cell--last-row' : ''}`}
+                      style={{ '--bar-bg': `${current.colore}0A` } as React.CSSProperties}>
                       <select value={bars[ri]?.[ci] || ''} onChange={e => setCell(ri, ci, e.target.value)}
-                        className="sib-select w-full" style={{
-                          color:       bars[ri]?.[ci] ? current.colore : T.textDisabled,
-                          fontWeight:  bars[ri]?.[ci] ? 600 : 400,
-                          borderColor: bars[ri]?.[ci] ? `${current.colore}66` : T.border,
-                        }}
-                        onFocus={e => (e.target.style.borderColor = current.colore)}
-                        onBlur={e  => (e.target.style.borderColor = bars[ri]?.[ci] ? `${current.colore}66` : T.border)}>
+                        className={`sib-select w-full strategia__bar-select ${filled ? 'strategia__bar-select--filled' : ''}`}
+                        style={{ '--strat-color': current.colore, '--strat-border-soft': `${current.colore}66` } as React.CSSProperties}>
                         <option value="">Seleziona Bar</option>
                         {BARS.map(b => <option key={b} value={b}>{b}</option>)}
                       </select>
                     </td>
-                  ))}
+                  )})}
                 </tr>
               ))}
             </tbody>
@@ -312,11 +305,13 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
                 </tr>
               </thead>
               <tbody>
-                {GUIDA_ROWS.map((occ,ri) => (
+                {GUIDA_ROWS.map((occ,ri) => {
+                  const lastRow = ri === GUIDA_ROWS.length-1
+                  return (
                   <tr key={ri} className="strategia__guida-row">
-                    <td className="strategia__guida-td-occ" style={{borderBottom: ri < GUIDA_ROWS.length-1 ? `1px solid ${T.border}` : 'none'}}>{occ}</td>
+                    <td className={`strategia__guida-td-occ ${lastRow ? 'strategia__guida-td-occ--last' : ''}`}>{occ}</td>
                     {GUIDA_COLS.map((_,ci) => (
-                      <td key={ci} className="strategia__guida-td" style={{borderBottom: ri < GUIDA_ROWS.length-1 ? `1px solid ${T.border}` : 'none'}}>
+                      <td key={ci} className={`strategia__guida-td ${lastRow ? 'strategia__guida-td--last' : ''}`}>
                         <input type="number"
                           className={`sib-input sib-input--dense strategia__guida-input ${guidaVals[ri][ci] > 0 ? 'strategia__guida-input--filled' : ''}`}
                           value={guidaVals[ri][ci]} onChange={e => setGuidaCell(ri, ci, parseFloat(e.target.value)||0)}
@@ -324,7 +319,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
                       </td>
                     ))}
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>

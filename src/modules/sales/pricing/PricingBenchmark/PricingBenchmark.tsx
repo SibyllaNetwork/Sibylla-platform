@@ -72,7 +72,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
       className={`sib-btn ${activeView===view ? 'sib-btn--primary' : 'sib-btn--toolbar'}`}
       onClick={()=>setActiveView(view)}
     >
-      <i className={`fa-duotone ${icon}`} style={{fontSize:13}} aria-hidden="true"/>
+      <i className={`fa-duotone ${icon} benchmark__view-ico`} aria-hidden="true"/>
       {label}
     </button>
   )
@@ -105,7 +105,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
         <div className="benchmark__map-panel">
           {/* Map */}
           <div className="benchmark__map">
-            <svg style={{position:'absolute',inset:0,width:'100%',height:'100%'}} viewBox="0 0 420 500" preserveAspectRatio="xMidYMid slice">
+            <svg className="benchmark__map-svg" viewBox="0 0 420 500" preserveAspectRatio="xMidYMid slice">
               <rect width="420" height="500" fill="#EDE8E1"/>
               <ellipse cx="170" cy="110" rx="90" ry="70" fill="#C8D8A0"/>
               <rect x="330" y="40" width="80" height="60" rx="6" fill="#D0DC9E"/>
@@ -117,7 +117,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
               ))}
             </svg>
             {HOTELS.map((h,i)=>(
-              <div key={i} title={h.name} className="benchmark__map-marker" style={{left:`${h.mx}%`,top:`${h.my}%`}}>
+              <div key={i} title={h.name} className="benchmark__map-marker" style={{ '--marker-left': `${h.mx}%`, '--marker-top': `${h.my}%` } as React.CSSProperties}>
                 <div className="benchmark__map-pin"
                   onMouseEnter={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1.2)'}
                   onMouseLeave={e=>(e.currentTarget as HTMLDivElement).style.transform='scale(1)'}>
@@ -140,7 +140,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
                       <div className="benchmark__hotel-addr">{h.addr}</div>
                     </div>
                     <button className="benchmark__hotel-add-btn" onClick={()=>handleAdd(h)} disabled={alreadyAdded}>
-                      <i className={`fa-duotone fa-plus`} style={{fontSize:12,color:alreadyAdded?T.textDisabled:T.primary}} aria-hidden="true"/>
+                      <i className="fa-duotone fa-plus benchmark__hotel-add-ico" style={{ '--add-ico-color': alreadyAdded?T.textDisabled:T.primary } as React.CSSProperties} aria-hidden="true"/>
                     </button>
                   </div>
                 </div>
@@ -156,7 +156,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
             <div className="benchmark__monitor-your-hotel">
               <span className="benchmark__your-hotel-name">{struttura}</span>
               <div className="benchmark__your-hotel-label">
-                <i className="fa-duotone fa-building" style={{fontSize:14,color:T.textInactive}} aria-hidden="true"/>
+                <i className="fa-duotone fa-building benchmark__your-hotel-ico" aria-hidden="true"/>
                 <span className="benchmark__your-hotel-text">Il tuo hotel</span>
               </div>
             </div>
@@ -171,10 +171,10 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
                 <span className="benchmark__monitor-item-name">{hotel}</span>
                 <div className="benchmark__monitor-item-actions">
                   <button className="benchmark__monitor-delete" onClick={()=>handleRemove(hotel)}>
-                    <i className="fa-duotone fa-trash" style={{fontSize:13,color:T.textDisabled}} aria-hidden="true"/>
+                    <i className="fa-duotone fa-trash benchmark__monitor-delete-ico" aria-hidden="true"/>
                   </button>
                   <button className="benchmark__monitor-link-btn">
-                    <i className="fa-duotone fa-link" style={{fontSize:14,color:'#E74C3C'}} aria-hidden="true"/>
+                    <i className="fa-duotone fa-link benchmark__monitor-link-ico" aria-hidden="true"/>
                   </button>
                 </div>
               </div>
@@ -183,11 +183,11 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
 
           <div className="benchmark__chart-controls">
             <button className="benchmark__chart-close-btn">
-              <i className="fa-duotone fa-xmark" style={{fontSize:13,color:T.textDisabled}} aria-hidden="true"/>
+              <i className="fa-duotone fa-xmark benchmark__chart-close-ico" aria-hidden="true"/>
             </button>
             {([30,60,90] as const).map(p=>(
               <button key={p} className={`benchmark__period-btn ${activePeriod===p?'benchmark__period-btn--active':''}`} onClick={()=>setActivePeriod(p)}>
-                <i className="fa-duotone fa-calendar" style={{fontSize:8}} aria-hidden="true"/>
+                <i className="fa-duotone fa-calendar benchmark__period-ico" aria-hidden="true"/>
                 {p}
               </button>
             ))}
@@ -195,7 +195,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
               {activeView==='brand'?'Brand reputation (Booking)':'Pricing'}
             </span>
             <div className="benchmark__info-btn">
-              <i className="fa-duotone fa-circle-info" style={{fontSize:12,color:T.blue}} aria-hidden="true"/>
+              <i className="fa-duotone fa-circle-info benchmark__info-ico" aria-hidden="true"/>
             </div>
           </div>
 
@@ -205,7 +205,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
               <div className="benchmark__legend">
                 {monitoring.map((h,i)=>(
                   <div key={h} className="benchmark__legend-item">
-                    <div className="benchmark__legend-line" style={{background:MCOLS[i%MCOLS.length]}}/>
+                    <div className="benchmark__legend-line" style={{ '--legend-line-bg': MCOLS[i%MCOLS.length] } as React.CSSProperties}/>
                     <span className="benchmark__legend-label">{h.length>16?h.slice(0,15)+'…':h}</span>
                   </div>
                 ))}

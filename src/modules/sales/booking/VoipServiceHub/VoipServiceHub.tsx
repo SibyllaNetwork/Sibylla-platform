@@ -159,15 +159,19 @@ export default function VoipServiceHub({ navigate }: { navigate: (p: string) => 
 
       <div className="voip-hub__interni-header">
         <h2 className="voip-hub__section-title">Interni</h2>
-        <div className="voip-hub__search">
-          <input
-            type="search"
-            className="sib-input"
-            placeholder="Cerca"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <i className="fa-light fa-magnifying-glass voip-hub__search-icon" />
+        <div className="voip-hub__search-field">
+          <label className="voip-hub__search-label" htmlFor="voip-search">Cerca</label>
+          <div className="voip-hub__search">
+            <input
+              id="voip-search"
+              type="search"
+              className="sib-input"
+              placeholder="Cerca"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <i className="fa-light fa-magnifying-glass voip-hub__search-icon" />
+          </div>
         </div>
         <button type="button" className="sib-btn sib-btn--icon voip-hub__interni-toggle" title="Mostra/nascondi" aria-label="Mostra/nascondi">
           <i className="fa-light fa-eye" />

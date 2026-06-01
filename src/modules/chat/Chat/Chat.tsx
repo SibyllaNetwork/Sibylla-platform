@@ -176,24 +176,28 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
       <div className="chat__layout">
         {/* ─── Sidebar conversazioni ─── */}
         <aside className="chat__sidebar">
-          <div className="chat__search">
-            <i className="fa-light fa-magnifying-glass" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder="Cerca conversazione…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                type="button"
-                className="chat__search-clear"
-                onClick={() => setSearch('')}
-                aria-label="Pulisci"
-              >
-                <i className="fa-light fa-xmark" aria-hidden="true" />
-              </button>
-            )}
+          <div className="chat__search-field">
+            <label className="chat__search-label" htmlFor="chat-search">Cerca</label>
+            <div className="chat__search">
+              <i className="fa-light fa-magnifying-glass" aria-hidden="true" />
+              <input
+                id="chat-search"
+                type="text"
+                placeholder="Cerca conversazione…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="chat__search-clear"
+                  onClick={() => setSearch('')}
+                  aria-label="Pulisci"
+                >
+                  <i className="fa-light fa-xmark" aria-hidden="true" />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="chat__conv-list">
@@ -213,7 +217,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
                     className={'chat__conv' + (active ? ' chat__conv--active' : '')}
                     onClick={() => select(c.id)}
                   >
-                    <div className="chat__avatar" style={{ background: color }}>
+                    <div className="chat__avatar" style={{ '--chat-color': color } as React.CSSProperties}>
                       {initials(c.userName)}
                       {c.online && <span className="chat__avatar-dot" />}
                     </div>
@@ -225,12 +229,12 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
                       <div className="chat__conv-bottom">
                         <span className="chat__conv-preview">{c.lastPreview ?? '—'}</span>
                         {c.unreadCount > 0 && (
-                          <span className="chat__conv-badge" style={{ background: color }}>
+                          <span className="chat__conv-badge" style={{ '--chat-color': color } as React.CSSProperties}>
                             {c.unreadCount > 99 ? '99+' : c.unreadCount}
                           </span>
                         )}
                       </div>
-                      <span className="chat__conv-origin" style={{ color, borderColor: `${color}40` }}>
+                      <span className="chat__conv-origin" style={{ '--chat-color': color } as React.CSSProperties}>
                         {c.origin === 'platform' ? 'Platform' : 'TO'}
                       </span>
                     </div>
@@ -253,7 +257,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
             <>
               <header className="chat__header">
                 <div className="chat__header-info">
-                  <div className="chat__avatar chat__avatar--md" style={{ background: selectedColor }}>
+                  <div className="chat__avatar chat__avatar--md" style={{ '--chat-color': selectedColor } as React.CSSProperties}>
                     {initials(selected.userName)}
                     {selected.online && <span className="chat__avatar-dot" />}
                   </div>
@@ -265,7 +269,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
                         : <>Ultimo accesso: {selected.lastSeen ?? '—'}</>
                       }
                       <span className="chat__header-sep">·</span>
-                      <span style={{ color: selectedColor, fontWeight: 600 }}>
+                      <span className="chat__header-role" style={{ '--chat-color': selectedColor } as React.CSSProperties}>
                         {selected.userRole}
                       </span>
                     </span>
@@ -314,7 +318,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
                         >
                           <div
                             className="chat__bubble"
-                            style={mine ? { background: selectedColor } : undefined}
+                            style={mine ? ({ '--chat-color': selectedColor } as React.CSSProperties) : undefined}
                           >
                             {m.attachments.length > 0 && (
                               <div className="chat__atts">
@@ -475,7 +479,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
                   className="chat__send"
                   onClick={handleSend}
                   disabled={!draft.trim() && pending.length === 0}
-                  style={{ background: selectedColor }}
+                  style={{ '--chat-color': selectedColor } as React.CSSProperties}
                   aria-label="Invia messaggio"
                 >
                   <i className="fa-light fa-paper-plane" aria-hidden="true" />

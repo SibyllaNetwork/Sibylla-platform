@@ -155,6 +155,18 @@
     align-items: center
     justify-content: center
 
+  &--color
+    background: var(--legend-dot-bg)
+
+.tableau__legend-ico
+  &--ghost
+    font-size: 8px
+    color: $text-disabled
+
+  &--hat
+    font-size: 10px
+    color: $primary
+
 .tableau__legend-label
   font-size: 12px
   color: $text-active
@@ -286,6 +298,10 @@
   border-top: 1px solid $border
   margin-top: 6px
 
+.tableau__detail-user-ico
+  font-size: 18px
+  color: $primary
+
 .tableau__detail-action-btn
   width: 34px
   height: 34px
@@ -341,7 +357,7 @@
 .tableau__totali-title
   font-size: 12px
   font-weight: 700
-  color: #fff
+  color: $white
   letter-spacing: 0.5px
 
 .tableau__totali-chevron
@@ -404,19 +420,26 @@
   display: flex
 
 .tableau__day-header
+  flex: 1
   padding: 3px 0
   font-size: 9px
   font-weight: 600
   text-align: center
   border-right: 1px solid $border
   flex-shrink: 0
+  color: var(--day-color)
+  background: var(--day-bg)
 
 .tableau__day-num
+  flex: 1
   padding: 3px 0
   font-size: 11px
   text-align: center
   border-right: 1px solid $border
   flex-shrink: 0
+  font-weight: var(--day-weight)
+  color: var(--day-color)
+  background: var(--day-bg)
 
 .tableau__rows
   position: relative
@@ -432,11 +455,14 @@
   flex: 1
   border-right: 1px solid $border
   transition: background 0.1s
+  background: var(--cell-bg)
+  cursor: var(--cell-cursor)
 
 .tableau__today-marker
   position: absolute
   top: 0
   bottom: 0
+  left: var(--marker-left)
   width: 2px
   background: #E74C3C
   z-index: 6
@@ -458,11 +484,18 @@
   padding: 0 8px
   cursor: pointer
   pointer-events: all
+  top: var(--block-top)
+  left: var(--block-left)
+  width: var(--block-width)
+  height: var(--block-height)
+  background: var(--block-bg)
+  border: var(--block-border)
+  box-shadow: var(--block-shadow)
 
 .tableau__booking-name
   font-size: 10px
   font-weight: 700
-  color: #fff
+  color: $white
   white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
@@ -485,3 +518,6 @@
   text-align: center
   padding: 3px 0
   border-right: 1px solid $border
+  color: var(--giac-color)
+  border-bottom: var(--giac-border)
+  background: var(--giac-bg)

@@ -1,14 +1,11 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
-$success: #10b981
+$status-ok: #10b981
 $danger: #dc2626
 $orange: #f59e0b
 $orange-deep: #ea580c
@@ -133,7 +130,7 @@ $orange-deep: #ea580c
     font-size: 18px
 
     &--on
-      color: $success
+      color: $status-ok
 
     &--off
       color: $danger
@@ -154,7 +151,7 @@ $orange-deep: #ea580c
     transition: background 0.15s
 
     &:hover
-      background: $bg-soft
+      background: $bg
 
   // ── CTA Agorà (destra) ────────────────────────────────────────────
   &__cta-section

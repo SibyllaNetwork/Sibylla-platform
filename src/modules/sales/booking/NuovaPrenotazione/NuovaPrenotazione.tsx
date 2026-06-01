@@ -335,7 +335,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 {(['adulti','studenti'] as const).map(t=>(
                   <label key={t} className="np-check">
                     <input type="radio" name="tipologiaOspiti" className="sib-radio" checked={grForm.tipologiaOspiti===t} onChange={()=>setGrForm(f=>({...f,tipologiaOspiti:t}))}/>
-                    <span style={{textTransform:'capitalize'}}>{t}</span>
+                    <span className="np-capitalize">{t}</span>
                   </label>
                 ))}
               </div>
@@ -489,7 +489,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           {(['caparra','acconto'] as const).map(t=>(
             <label key={t} className="np-check">
               <input type="radio" name={`tipoAnticipo-${isGr?'gr':'ind'}`} className="sib-radio" checked={f.tipoAnticipo===t} onChange={()=>setF((v:any)=>({...v,tipoAnticipo:t}))}/>
-              <span style={{textTransform:'capitalize'}}>{t}</span>
+              <span className="np-capitalize">{t}</span>
             </label>
           ))}
         </div>

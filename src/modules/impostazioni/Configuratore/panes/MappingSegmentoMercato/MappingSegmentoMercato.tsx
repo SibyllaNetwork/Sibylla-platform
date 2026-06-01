@@ -142,7 +142,7 @@ export default function MappingSegmentoMercato() {
               <div className="mapping-segmento__progress-bar">
                 <div
                   className="mapping-segmento__progress-bar-fill"
-                  style={{ width: `${stats.total === 0 ? 0 : (stats.mapped / stats.total) * 100}%` }}
+                  style={{ '--fill': `${stats.total === 0 ? 0 : (stats.mapped / stats.total) * 100}%` } as React.CSSProperties}
                 />
               </div>
             </div>

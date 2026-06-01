@@ -38,6 +38,20 @@
     gap: 8px
     align-self: flex-end
 
+  &__eraser-ico
+    font-size: 14px
+
+    &--dyn
+      color: var(--eraser-color)
+
+  &__crea-ico
+    font-size: 13px
+    color: $primary
+
+  &__salva-ico
+    font-size: 13px
+    color: $white
+
   &__crea-btn
     display: flex
     align-items: center
@@ -135,9 +149,15 @@
     font-size: 9px
     font-weight: 600
 
+    &--dyn
+      color: var(--day-name-color)
+
   &__day-num
     font-size: 10px
     font-weight: 700
+
+    &--dyn
+      color: var(--day-num-color)
 
   &__price-cell
     padding: 4px 2px
@@ -161,11 +181,20 @@
     &:hover
       transform: scale(1.12)
 
+    &--dyn
+      background: var(--dot-bg)
+      box-shadow: var(--dot-shadow)
+      cursor: var(--dot-cursor)
+      opacity: var(--dot-opacity)
+
   &__price-text
     font-size: 8px
     font-weight: 700
     line-height: 1.1
     text-align: center
+
+    &--dyn
+      color: var(--price-text-color)
 
   // ── Legend ───────────────────────────────────────────────────────────────────
   &__legend
@@ -186,6 +215,9 @@
     width: 14px
     height: 14px
     border-radius: 50%
+
+    &--dyn
+      background: var(--legend-dot-bg)
 
     // ─── Toolbar ──────────────────────────────────────────────────────────────────
 .foresight__date-input
@@ -212,12 +244,25 @@
   cursor: pointer
   font-size: 12px
 
+  &--dyn
+    font-weight: var(--tipo-weight)
+    color: var(--tipo-color)
+
 .foresight__tipo-radio
   accent-color: $primary
 
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 .foresight__month-table
   border-collapse: collapse
+
+  &--dyn
+    min-width: var(--month-min-w)
+
+.foresight__col--label
+  width: 80px
+
+.foresight__col--day
+  width: 42px
 
 .foresight__thead-row
   background: var(--color-bg)
@@ -295,6 +340,9 @@
   padding: 9px 28px
   font-size: 13px
   font-weight: 700
-  color: #fff
+  color: $white
   cursor: pointer
   transition: background 0.15s
+
+  &:hover
+    background: #C0392B

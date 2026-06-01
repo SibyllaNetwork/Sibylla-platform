@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './CabinaControllo.sass'
 
 /**
  * Cabina di controllo — replica `Views/Budget/CabinaControllo.cshtml`.
@@ -171,26 +172,15 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
           </thead>
           <tbody>
             {SEZIONI.map((sez) => {
-              const titleColor =
-                sez.variant === 'costi' ? '#1B7F4F'
-                : '#0F2C4A'
-              const voceBg =
-                sez.variant === 'ricavi'  ? '#EAF2FB'
-                : sez.variant === 'costi' ? '#E8F6EE'
-                : '#EAF2FB'
-              const totaleBg =
-                sez.variant === 'ricavi'  ? '#CFE2F5'
-                : sez.variant === 'costi' ? '#BFE8CF'
-                : '#CFE2F5'
               return (
               <React.Fragment key={sez.key}>
                 <tr>
-                  <td colSpan={1 + months.length * 4} className="!py-3 !font-bold !uppercase tracking-wide text-[12px]" style={{ color: titleColor }}>
+                  <td colSpan={1 + months.length * 4} className={`!py-3 !font-bold !uppercase tracking-wide text-[12px] cabina__title cabina__title--${sez.variant}`}>
                     {sez.title}
                   </td>
                 </tr>
                 {sez.rows.map((r) => (
-                  <tr key={r.key} style={{ backgroundColor: r.type === 'totale' ? totaleBg : voceBg }}>
+                  <tr key={r.key} className={`cabina__row cabina__row--${sez.variant} cabina__row--${r.type === 'totale' ? 'totale' : 'voce'}`}>
                     <td className={`text-right pr-4 ${r.type === 'totale' ? '!font-bold' : ''}`}>{r.label}</td>
                     {months.flatMap((m) => {
                       const cell = data[r.key]?.[m] ?? {}

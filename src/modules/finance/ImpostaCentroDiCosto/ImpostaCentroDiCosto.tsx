@@ -7,6 +7,7 @@ import StatusBadge from '../../../core/components/StatusBadge'
 import Tabs from '../../../core/components/Tabs'
 import { InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './ImpostaCentroDiCosto.sass'
 
 /**
  * Imposta centro di costo — replica `Views/Finance/ImpostaCentroDiCosto.cshtml`.
@@ -110,7 +111,7 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
                   <td>€ {c.budget_mensile?.toLocaleString('it-IT')}</td>
                   <td>
                     <div className="sib-progress">
-                      <div className={`sib-progress__bar sib-progress__bar--${utilizzoTone(c.utilizzo_percentuale ?? 0)}`} style={{ width: `${c.utilizzo_percentuale ?? 0}%` }} />
+                      <div className={`sib-progress__bar sib-progress__bar--${utilizzoTone(c.utilizzo_percentuale ?? 0)} icc__bar`} style={{ '--bar-w': `${c.utilizzo_percentuale ?? 0}%` } as React.CSSProperties} />
                     </div>
                     <span className="sib-cell--muted">{c.utilizzo_percentuale ?? 0}% utilizzato</span>
                   </td>

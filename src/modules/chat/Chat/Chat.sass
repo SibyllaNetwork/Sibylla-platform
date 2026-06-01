@@ -31,12 +31,24 @@
     background: var(--color-bg)
     overflow: hidden
 
+  &__search-field
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 10px 12px
+    border-bottom: 1px solid $border
+    background: $white
+
+  &__search-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    line-height: 1.2
+
   &__search
     display: flex
     align-items: center
     gap: 8px
-    padding: 10px 12px
-    border-bottom: 1px solid $border
     background: $white
 
     i
@@ -152,6 +164,7 @@
     min-width: 18px
     height: 18px
     border-radius: 9px
+    background: var(--chat-color)
     color: $white
     font-size: 10px
     font-weight: 700
@@ -171,6 +184,8 @@
     padding: 1px 6px
     border-radius: 3px
     border: 1px solid
+    color: var(--chat-color)
+    border-color: color-mix(in srgb, var(--chat-color) 25%, transparent)
     background: transparent
     margin-top: 4px
     align-self: flex-start
@@ -197,6 +212,7 @@
     width: 38px
     height: 38px
     border-radius: 50%
+    background: var(--chat-color)
     color: $white
     font-size: 13px
     font-weight: 700
@@ -284,6 +300,10 @@
     display: inline-flex
     align-items: center
     gap: 5px
+
+  &__header-role
+    color: var(--chat-color)
+    font-weight: 600
 
   &__header-sep
     color: $border
@@ -396,6 +416,7 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04)
 
     .chat__msg--mine &
+      background: var(--chat-color)
       color: $white
       border: none
       border-top-left-radius: 12px
@@ -577,7 +598,7 @@
     height: 36px
     border-radius: 8px
     border: none
-    background: $primary
+    background: var(--chat-color)
     color: $white
     cursor: pointer
     display: inline-flex

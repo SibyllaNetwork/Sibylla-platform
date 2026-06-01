@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { DayPicker, type DateRange } from 'react-day-picker'
+import { format, parseISO } from 'date-fns'
+import { it } from 'date-fns/locale'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
+import 'react-day-picker/dist/style.css'
 import './ArriviPartenze.sass'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -94,6 +99,8 @@ type ColFilterKey = 'agenzia' | 'azione' | 'statoPren'
 const AZIONI_ALL: AzioneStato[] = ['Check-in completo', 'Check-in parziale', 'Check-in da fare', 'No Show']
 const STATI_ALL: StatoPren[]    = ['Confermata', 'Opzionata', 'In attesa', 'Annullata']
 
+const REPORT_SERVIZIO_OPTIONS = ['Colazione', 'Pranzo', 'Cena', 'Bar', 'Spa'] as const
+
 export default function ArriviPartenze({ navigate }: { navigate: (p: string) => void }) {
   const today = todayISO()
   const [data, setData] = useState<Data>(FALLBACK)
@@ -101,6 +108,29 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
   const [searchPart, setSearchPart] = useState('')
   const [dataDa, setDataDa] = useState(today)
   const [dataA, setDataA] = useState(today)
+  const [reportMenuOpen, setReportMenuOpen] = useState(false)
+  const [dateRangeOpen, setDateRangeOpen] = useState(false)
+
+  const stampaPromemoriaServizio = (servizio: string) => {
+    // TODO: hook a stampa promemoria servizio
+    // params: strutturaId, dataDa, dataA, servizio
+    window.print()
+    setReportMenuOpen(false)
+  }
+
+  const selectedRange: DateRange | undefined = dataDa
+    ? { from: parseISO(dataDa), to: dataA ? parseISO(dataA) : undefined }
+    : undefined
+
+  const handleRangeSelect = (r: DateRange | undefined) => {
+    setDataDa(r?.from ? format(r.from, 'yyyy-MM-dd') : '')
+    setDataA(r?.to   ? format(r.to,   'yyyy-MM-dd') : '')
+    if (r?.from && r?.to) setDateRangeOpen(false)
+  }
+
+  const dateRangeLabel = dataDa
+    ? `${format(parseISO(dataDa), 'dd/MM/yyyy')} – ${dataA ? format(parseISO(dataA), 'dd/MM/yyyy') : '…'}`
+    : 'Seleziona periodo'
 
   // Column filters (multi-select)
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
@@ -186,59 +216,162 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
         subtitle="Gestione e monitoraggio del flusso giornaliero dei check-in"
       />
 
-      <div className="arrivi-partenze__bar">
-        <div className="arrivi-partenze__bar-left">
-          <div className="arrivi-partenze__search-field">
-            <input
-              type="search"
-              className="sib-input"
-              placeholder="Cerca"
-              value={searchArr}
-              onChange={(e) => setSearchArr(e.target.value)}
-            />
-            <i className="fa-light fa-magnifying-glass arrivi-partenze__search-icon" />
-          </div>
+      <div className="arrivi-partenze__toolbar">
+        {/* Filtri sx */}
+        <div className="arrivi-partenze__field arrivi-partenze__field--search">
+          <input
+            type="search"
+            className="sib-input arrivi-partenze__search-input"
+            placeholder="Cerca"
+            value={searchArr}
+            onChange={(e) => setSearchArr(e.target.value)}
+          />
+          <i className="fa-light fa-magnifying-glass arrivi-partenze__search-icon" />
+        </div>
 
+        <div className="arrivi-partenze__field">
+          <label className="arrivi-partenze__label" htmlFor="ap-strutture">Strutture</label>
           <select
+            id="ap-strutture"
             className="sib-select arrivi-partenze__select"
-            aria-label="Strutture"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           >
             {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
           </select>
-
-          <div className="arrivi-partenze__date-range">
-            <input type="date" className="sib-input" aria-label="Data da" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-            <span>-</span>
-            <input type="date" className="sib-input" aria-label="Data a" value={dataA} onChange={(e) => setDataA(e.target.value)} />
-          </div>
         </div>
 
-        <div className="arrivi-partenze__bar-right">
-          <button type="button" className="sib-btn sib-btn--primary sib-btn--sm">
-            <i className="fa-light fa-key" /> Check-in libero
+        <div className="arrivi-partenze__field arrivi-partenze__field--date">
+          <label className="arrivi-partenze__label" htmlFor="ap-date-range">Data</label>
+          <button
+            id="ap-date-range"
+            type="button"
+            className="arrivi-partenze__date-range"
+            onClick={() => setDateRangeOpen((o) => !o)}
+            aria-haspopup="dialog"
+            aria-expanded={dateRangeOpen}
+          >
+            <span className="arrivi-partenze__date-range-label">{dateRangeLabel}</span>
+            <i className="fa-light fa-calendar arrivi-partenze__date-icon" aria-hidden="true" />
           </button>
-          <button type="button" className="sib-btn sib-btn--primary sib-btn--sm">
-            <i className="fa-light fa-calendar-days" /> Planner operativo
-          </button>
-          <button type="button" className="sib-btn sib-btn--primary sib-btn--sm">
-            <i className="fa-light fa-house" /> Ospiti in casa
-          </button>
-        </div>
-      </div>
 
-      <div className="arrivi-partenze__bar arrivi-partenze__bar--info">
+          {dateRangeOpen && (
+            <>
+              <div
+                className="arrivi-partenze__date-overlay"
+                onClick={() => setDateRangeOpen(false)}
+              />
+              <div
+                className="arrivi-partenze__date-popover"
+                role="dialog"
+                aria-label="Seleziona intervallo date"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DayPicker
+                  mode="range"
+                  numberOfMonths={2}
+                  pagedNavigation
+                  weekStartsOn={1}
+                  locale={it}
+                  selected={selectedRange}
+                  onSelect={handleRangeSelect}
+                  defaultMonth={selectedRange?.from ?? new Date()}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Azioni rapide (icona) */}
+        <div className="arrivi-partenze__toolbar-icons">
+          <Tooltip text="Check-in libero">
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-in libero">
+              <i className="fa-light fa-calendar-clock" aria-hidden="true" />
+            </button>
+          </Tooltip>
+          <Tooltip text="Planner operativo">
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Planner operativo" onClick={() => navigate('planner')}>
+              <i className="fa-light fa-building" aria-hidden="true" />
+            </button>
+          </Tooltip>
+          <Tooltip text="Ospiti in casa">
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Ospiti in casa" onClick={() => navigate('ospiti-in-casa')}>
+              <i className="fa-light fa-house" aria-hidden="true" />
+            </button>
+          </Tooltip>
+        </div>
+
+        {/* Stats inline */}
         <div className="arrivi-partenze__stats">
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-user" /> Presenze: <strong>{totPresenze}</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-bed-front" /> Camere: <strong>{totCamere}</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-users" /> Gruppi: <strong>{pctGruppi}%</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-user-check" /> Individuali: <strong>{pctIndividuali}%</strong></span>
+          <span className="arrivi-partenze__stat"><i className="fa-light fa-user" aria-hidden="true" /> Presenze: <strong>{totPresenze}</strong></span>
+          <span className="arrivi-partenze__stat"><i className="fa-light fa-bed-front" aria-hidden="true" /> Camere: <strong>{totCamere}</strong></span>
+          <span className="arrivi-partenze__stat"><i className="fa-light fa-users" aria-hidden="true" /> Gruppi: <strong>{pctGruppi}%</strong></span>
+          <span className="arrivi-partenze__stat"><i className="fa-light fa-user-check" aria-hidden="true" /> Individuali: <strong>{pctIndividuali}%</strong></span>
         </div>
-        <div className="arrivi-partenze__exports">
-          <button type="button" className="sib-btn sib-btn--icon" title="Grafico" aria-label="Grafico"><i className="fa-light fa-chart-line" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF"><i className="fa-light fa-file-pdf" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS"><i className="fa-light fa-file-excel" /></button>
+
+        {/* Report servizio (stampa promemoria del giorno) + export tabella (dx) */}
+        <div className="arrivi-partenze__toolbar-right">
+          <div className="arrivi-partenze__report-menu">
+            <button
+              type="button"
+              className="sib-btn sib-btn--primary arrivi-partenze__report-btn"
+              onClick={() => setReportMenuOpen((o) => !o)}
+              aria-haspopup="menu"
+              aria-expanded={reportMenuOpen}
+            >
+              <i className="fa-light fa-print" aria-hidden="true" />
+              Stampa promemoria
+              <i className="fa-light fa-chevron-down arrivi-partenze__report-btn-chevron" aria-hidden="true" />
+            </button>
+
+            {reportMenuOpen && (
+              <>
+                <div
+                  className="arrivi-partenze__report-menu-overlay"
+                  onClick={() => setReportMenuOpen(false)}
+                />
+                <div
+                  className="arrivi-partenze__report-menu-list"
+                  role="menu"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="arrivi-partenze__report-menu-heading">
+                    Scegli il servizio
+                  </div>
+                  {REPORT_SERVIZIO_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      role="menuitem"
+                      className="arrivi-partenze__report-menu-item"
+                      onClick={() => stampaPromemoriaServizio(opt)}
+                    >
+                      <i className="fa-light fa-print" aria-hidden="true" />
+                      <span>Stampa promemoria di <strong>{opt}</strong></span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="arrivi-partenze__toolbar-icons">
+            <Tooltip text="Grafico">
+              <button type="button" className="sib-btn sib-btn--icon" aria-label="Grafico">
+                <i className="fa-light fa-chart-line" aria-hidden="true" />
+              </button>
+            </Tooltip>
+            <Tooltip text="Esporta PDF">
+              <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF">
+                <i className="fa-light fa-file-pdf" aria-hidden="true" />
+              </button>
+            </Tooltip>
+            <Tooltip text="Esporta XLS">
+              <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS">
+                <i className="fa-light fa-file-excel" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          </div>
         </div>
       </div>
 
@@ -337,10 +470,10 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
 
       <div className="arrivi-partenze__bar">
         <div className="arrivi-partenze__bar-left">
-          <div className="arrivi-partenze__search-field">
+          <div className="arrivi-partenze__field arrivi-partenze__field--search">
             <input
               type="search"
-              className="sib-input"
+              className="sib-input arrivi-partenze__search-input"
               placeholder="Cerca"
               value={searchPart}
               onChange={(e) => setSearchPart(e.target.value)}

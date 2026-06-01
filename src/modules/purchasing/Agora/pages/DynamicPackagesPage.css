@@ -380,6 +380,8 @@
 /* Sibylla central hub */
 .dp-eco__core {
   position: absolute;
+  left: var(--core-left);
+  top: var(--core-top);
   width: 72px;
   height: 72px;
   border-radius: 50%;
@@ -427,6 +429,8 @@
 /* Service nodes — small navy dots */
 .dp-eco__star {
   position: absolute;
+  left: var(--star-left);
+  top: var(--star-top);
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -503,6 +507,8 @@
 /* Labels under each node */
 .dp-eco__label {
   position: absolute;
+  left: var(--label-left);
+  top: var(--label-top);
   transform: translate(-50%, 12px);
   font-family: var(--font-sans);
   font-size: 11px;

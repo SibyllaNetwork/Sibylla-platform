@@ -4,7 +4,11 @@
 @use '../../../../styles/tokens' as *
 
 .master-tip
+  --tip-x: 0px
+  --tip-y: 0px
   position: fixed
+  left: var(--tip-x)
+  top: var(--tip-y)
   z-index: 9999
   pointer-events: none
   transform: translate(-50%, calc(-100% - 10px))

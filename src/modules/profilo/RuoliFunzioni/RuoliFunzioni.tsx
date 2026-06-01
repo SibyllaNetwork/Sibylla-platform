@@ -194,7 +194,7 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
             <div key={i}
               className={`go__assoc-row ${i<assoc.length-1?'go__assoc-row--border':''}`}>
               <div className="go__assoc-user">
-                <div className="go__avatar" style={{background:`${a.color}22`, borderColor:`${a.color}44`, color:a.color}}>
+                <div className="go__avatar" style={{'--avatar-color':a.color} as React.CSSProperties}>
                   {a.initials}
                 </div>
                 <span className="go__assoc-name">{a.nome}</span>

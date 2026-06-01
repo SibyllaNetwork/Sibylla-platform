@@ -21,8 +21,8 @@ export default function StrategyTooltip({ tip }: { tip: StrategyTooltipState }) 
       className="strat-tip"
       role="tooltip"
       style={{
-        left:           tip.x,
-        top:            tip.y,
+        '--tip-x':      `${tip.x}px`,
+        '--tip-y':      `${tip.y}px`,
         '--day-color':  tip.strat.colore,
       } as React.CSSProperties}
     >

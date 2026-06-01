@@ -181,7 +181,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
               <i className="fa-light fa-check" aria-hidden="true" /> Segna tutte lette
             </button>
           )}
-          <button className="notifiche__configure-btn" onClick={() => navigate('configura-notifiche')}>
+          <button className="sib-btn sib-btn--primary" onClick={() => navigate('configura-notifiche')}>
             <i className="fa-light fa-gear" aria-hidden="true" />
             Configura notifiche
           </button>
@@ -197,7 +197,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
           </select>
         </div>
         <div className="notifiche__filter-search">
-          <span className="notifiche__filter-label">Ricerca</span>
+          <span className="notifiche__filter-label">Cerca</span>
           <div className="notifiche__search-wrap">
             <i className="fa-light fa-magnifying-glass notifiche__search-icon" aria-hidden="true" />
             <input className="sib-search-input notifiche__search-input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca notifica..." />

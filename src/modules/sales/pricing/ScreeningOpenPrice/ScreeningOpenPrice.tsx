@@ -90,22 +90,24 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
 
   return (
     <div className="screening__root">
-      <style>{`@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}`}</style>
-
       {loading && (
         <div className="screening__loading-overlay">
           {([{top:30,left:30,size:80,dur:8,rev:false},{top:50,right:50,size:60,dur:12,rev:true},{bottom:40,left:80,size:70,dur:10,rev:false},{bottom:50,right:30,size:90,dur:7,rev:true}] as any[]).map((g,i)=>(
             <div key={i} className="screening__loading-gear" style={{
-              top:g.top, bottom:g.bottom, left:g.left, right:g.right,
-              animationDuration:`${g.dur}s`, animationDirection:g.rev?'reverse':'normal',
-            }}>
+              '--gear-top':    g.top    != null ? `${g.top}px`    : 'auto',
+              '--gear-bottom': g.bottom != null ? `${g.bottom}px` : 'auto',
+              '--gear-left':   g.left   != null ? `${g.left}px`   : 'auto',
+              '--gear-right':  g.right  != null ? `${g.right}px`  : 'auto',
+              '--gear-dur':    `${g.dur}s`,
+              '--gear-dir':    g.rev ? 'reverse' : 'normal',
+            } as React.CSSProperties}>
               <Ico n="gear" s={g.size} c="#5C9CD4"/>
             </div>
           ))}
           <div className="screening__loading-card">
             <div className="screening__loading-dots">
               {[0,1,2].map(i=>(
-                <div key={i} className="screening__loading-dot" style={{animationDelay:`${i*0.2}s`}}/>
+                <div key={i} className="screening__loading-dot" style={{ '--dot-delay': `${i*0.2}s` } as React.CSSProperties}/>
               ))}
             </div>
             <p className="screening__loading-text">
@@ -227,7 +229,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
                         <span className="screening__ai-value">{row.aiS}</span>
                       </button>
                     </td>
-                    <td className="screening__td screening__td--nowrap" style={{color:row.del<0?T.error:T.success,fontWeight:600}}>{row.delS}</td>
+                    <td className="screening__td screening__td--nowrap screening__td--delta" style={{ '--delta-color': row.del<0?T.error:T.success } as React.CSSProperties}>{row.delS}</td>
                     <td className="screening__td screening__td--center">
                       <input type="checkbox" checked={selected.has(row.id)} onChange={e=>{const s=new Set(selected);e.target.checked?s.add(row.id):s.delete(row.id);setSelected(s)}} className="sib-checkbox sib-checkbox--sm"/>
                     </td>
@@ -262,7 +264,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
               <div className="screening__modal-legend">
                 {[{c:'#5C9CD4',bg:'#5C9CD422',l:'Strategie Pricing'},{c:'#E91E63',bg:'#E91E6322',l:'AI'},{c:'#CE93D8',bg:'#CE93D822',l:'LY'}].map(leg=>(
                   <div key={leg.l} className="screening__legend-item">
-                    <div className="screening__legend-dot" style={{background:leg.bg, borderColor:leg.c}}/>
+                    <div className="screening__legend-dot" style={{ '--legend-dot-bg': leg.bg, '--legend-dot-border': leg.c } as React.CSSProperties}/>
                     <span className="screening__legend-label">{leg.l}</span>
                   </div>
                 ))}

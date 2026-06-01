@@ -203,6 +203,15 @@
     display: inline-block
     margin-right: 6px
 
+    &--ly
+      background: #A0A4AA
+
+    &--rev
+      background: #1F4E5F
+
+    &--forecast
+      background: #F59E0B
+
   &__trend-tags
     display: flex
     flex-direction: column
@@ -229,6 +238,9 @@
   &__svg
     width: 100%
     height: auto
+
+    &--trend
+      height: 320px
 
   // ── Bottom: segments + KPIs ────────────────────────────────────────────────
   &__bottom
@@ -294,6 +306,7 @@
     left: 0
     height: 100%
     border-radius: 3px
+    width: var(--seg-bar-w)
 
     &--total
       background: #1F4E5F
@@ -311,6 +324,7 @@
     position: absolute
     top: -2px
     bottom: -2px
+    left: var(--seg-bullet-left)
     width: 4px
     background: #1F2E55
     border-radius: 2px
@@ -333,6 +347,15 @@
     display: inline-block
     margin-right: 6px
     vertical-align: middle
+
+    &--total
+      background: #1F4E5F
+
+    &--ly
+      background: #A0A4AA
+
+    &--budget
+      background: #1F2E55
 
   // ── KPI cards (right column) ───────────────────────────────────────────────
   &__kpi-list

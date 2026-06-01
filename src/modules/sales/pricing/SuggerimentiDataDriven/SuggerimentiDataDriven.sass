@@ -1,5 +1,6 @@
 // ─── SUGGERIMENTI DATA DRIVEN ────────────────────────────────────────────────
 // Pagina full-screen con sfondo grigio-carta
+@use '../../../../styles/tokens' as *
 
 .ddg
   position: fixed
@@ -80,7 +81,7 @@
     animation: ddg-pulse 1.5s ease-in-out infinite
 
   &__live-text
-    color: #fff
+    color: $white
     font-weight: 800
     font-size: 16px
     letter-spacing: 0.8px
@@ -300,6 +301,61 @@
     color: var(--color-text-active)
     padding: 10px 0
     border-top: 2px solid var(--color-border)
+
+// ─── Inline-style migration ───────────────────────────────────────────────
+.ddg__tabs-divider
+  border-left: 1px solid #D1D5DB
+  height: 22px
+  margin-left: 4px
+  margin-bottom: 4px
+  align-self: center
+
+.ddg__donut-svg-wrap
+  position: relative
+  width: 112px
+  height: 112px
+
+.ddg__donut-center
+  position: absolute
+  inset: 0
+  display: flex
+  align-items: center
+  justify-content: center
+
+.ddg__donut-value
+  font-size: 14px
+  font-weight: 700
+  color: var(--color-text-active)
+  text-align: center
+  padding: 0 8px
+  line-height: 1.2
+
+  &--lg
+    font-size: 16px
+
+.ddg__seg-tbl
+  width: 100%
+  border-collapse: collapse
+  flex: 1
+
+.ddg__seg-cell
+  font-size: 13px
+  color: var(--color-text-active)
+  padding: 5px 0
+
+  &--val
+    text-align: right
+    padding: 5px 10px
+
+  &--pct
+    text-align: right
+    white-space: nowrap
+
+.ddg__pickup-td--muted
+  color: #9CA3AF
+
+.ddg__pickup-footer-td--right
+  text-align: right
 
 @keyframes ddg-pulse
   0%, 100%

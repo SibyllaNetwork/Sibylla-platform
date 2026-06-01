@@ -162,7 +162,7 @@ export default function MonthlyTrend({ navigate }: { navigate: (p: string) => vo
           <h3 className="monthly-trend__card-title">Ranking segmento</h3>
           <HBars bars={data.rankSegmenti} labelWidth={70} />
           <div className="monthly-trend__card-foot">
-            <span className="monthly-trend__legend-dot" style={{ background: '#5DC3E0' }} /> Vendite totali
+            <span className="monthly-trend__legend-dot monthly-trend__legend-dot--sales" /> Vendite totali
           </div>
         </div>
 

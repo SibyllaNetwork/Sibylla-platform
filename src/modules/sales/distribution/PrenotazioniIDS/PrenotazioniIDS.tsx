@@ -35,7 +35,7 @@ export default function PrenotazioniIDS({ navigate }: { navigate: (p: string) =>
       <PageHeader title="Prenotazioni IDS" subtitle="Visione centralizzata per monitoraggio in tempo reale delle prenotazioni ricevute dai canali di distribuzione online"/>
 
       {/* Filtri */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+      <div className="ids__filters">
         <div>
           <label className="text-[11px] font-semibold font-opensans text-ink">Struttura</label>
           <select className="sib-select sib-select--dense w-[180px]" value={struttura} onChange={e => setStruttura(e.target.value)}>
@@ -55,10 +55,10 @@ export default function PrenotazioniIDS({ navigate }: { navigate: (p: string) =>
           const isExp      = expanded.has(hotel)
           const totaleHotel = rows.reduce((s, r) => s + r.prenotazioni, 0)
           return (
-            <div key={hotel} style={{ borderBottom: hi < visibleHotels.length - 1 ? `1px solid ${T.border}` : 'none' }}>
+            <div key={hotel} className="ids__hotel-group ids__hotel-group--dyn" style={{ '--hotel-border': hi < visibleHotels.length - 1 ? `1px solid ${T.border}` : 'none' } as React.CSSProperties}>
               <div className="ids__hotel-row" onClick={() => toggleExp(hotel)}>
                 <div className="ids__hotel-left">
-                  <div className="ids__hotel-dot" style={{ background: isExp ? T.blue : T.border }} />
+                  <div className="ids__hotel-dot ids__hotel-dot--dyn" style={{ '--hotel-dot-bg': isExp ? T.blue : T.border } as React.CSSProperties} />
                   <span className="ids__hotel-name">{hotel}</span>
                   {isExp && <span className="ids__hotel-count">{totaleHotel} prenotazioni</span>}
                 </div>
@@ -73,12 +73,12 @@ export default function PrenotazioniIDS({ navigate }: { navigate: (p: string) =>
                     <div className="ids__import-th ids__import-th--right">Prenotazioni</div>
                   </div>
                   {rows.map((row, ri) => (
-                    <div key={ri} className="ids__import-row" style={{ borderBottom: ri < rows.length - 1 ? `1px solid ${T.border}` : 'none' }}>
+                    <div key={ri} className="ids__import-row ids__import-row--dyn" style={{ '--row-border': ri < rows.length - 1 ? `1px solid ${T.border}` : 'none' } as React.CSSProperties}>
                       <div className="ids__import-date">{row.data}</div>
                       <div className="ids__import-val">{row.prenotazioni}</div>
                     </div>
                   ))}
-                  <div className="ids__hotel-footer" style={{ background: `${T.blue}08` }}>
+                  <div className="ids__hotel-footer">
                     <div className="ids__hotel-total-label">Totale {hotel}</div>
                     <div className="ids__hotel-total-val">{totaleHotel}</div>
                   </div>

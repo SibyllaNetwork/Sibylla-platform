@@ -28,8 +28,8 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
     const ico = METEO_ICO[type] || 'fa-circle';
     return (
       <div className="analisi__meteo-cell">
-        <i className={`fa-duotone ${ico}`} style={{fontSize:size, color:col}} aria-hidden="true"/>
-        {temp && <span className="analisi__meteo-temp" style={{color:col}}>{temp}</span>}
+        <i className={`fa-duotone ${ico} analisi__meteo-ico`} style={{'--meteo-size':`${size}px`, '--meteo-col':col} as React.CSSProperties} aria-hidden="true"/>
+        {temp && <span className="analisi__meteo-temp" style={{'--meteo-col':col} as React.CSSProperties}>{temp}</span>}
       </div>
     );
   };
@@ -44,15 +44,15 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
   const EvIco = ({type}:{type:string}) => {
     const col = EV_COL[type] || T.textDisabled;
     const ico = EV_ICO[type] || 'fa-calendar';
-    return <i className={`fa-duotone ${ico}`} style={{fontSize:14, color:col}} aria-hidden="true"/>;
+    return <i className={`fa-duotone ${ico} analisi__ev-ico`} style={{'--ev-col':col} as React.CSSProperties} aria-hidden="true"/>;
   };
 
   // ── TH / TD ─────────────────────────────────────────────────────────────────
   const TH = ({ch,align="left",colSpan=1,last=false}:{ch?:React.ReactNode;align?:string;colSpan?:number;last?:boolean}) => (
-    <th colSpan={colSpan} className={`analisi__th ${last?'analisi__th--last':''}`} style={{textAlign:align as any}}>{ch}</th>
+    <th colSpan={colSpan} className={`analisi__th ${last?'analisi__th--last':''}`} style={{'--cell-align':align} as React.CSSProperties}>{ch}</th>
   );
   const TD = ({ch,align="left",last=false,className=""}:{ch?:React.ReactNode;align?:string;last?:boolean;className?:string}) => (
-    <td className={`analisi__td ${last?'analisi__td--last':''} ${className}`} style={{textAlign:align as any}}>{ch}</td>
+    <td className={`analisi__td ${last?'analisi__td--last':''} ${className}`} style={{'--cell-align':align} as React.CSSProperties}>{ch}</td>
   );
 
   const PKL   = ["1d","7d","30d","60d","90d"];
@@ -175,7 +175,8 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
                 return (
                   <React.Fragment key={i}>
                     <tr
-                      style={{background:bg,transition:"background 0.1s"}}
+                      className="analisi__row"
+                      style={{'--row-bg':bg} as React.CSSProperties}
                       onMouseEnter={e=>{if(!isExp)(e.currentTarget as HTMLTableRowElement).style.background="#F8FCFF";}}
                       onMouseLeave={e=>{(e.currentTarget as HTMLTableRowElement).style.background=bg;}}
                     >
@@ -195,7 +196,7 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
                       <TD align="right" className="analisi__td--sm" ch={row.adr}/>
                       {row.pickup.map((n,j)=>(
                         <TD key={j} align="center" ch={
-                          <span style={{fontSize:12,fontWeight:n>0?700:400,color:n>0?T.primary:T.textDisabled}}>{n}</span>
+                          <span className={`analisi__pickup-cell ${n>0?'analisi__pickup-cell--active':''}`}>{n}</span>
                         }/>
                       ))}
                       <TD ch={<AnalisiBadge type={row.analisi.type} text={row.analisi.text}/>}/>
@@ -203,10 +204,9 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
                       <TD align="center" ch={
                         <div className="analisi__disp-cell">
                           <span className="analisi__disp-num">{row.disp}</span>
-                          <i className="fa-duotone fa-bed" style={{fontSize:13,color:T.textDisabled}} aria-hidden="true"/>
+                          <i className="fa-duotone fa-bed analisi__disp-bed" aria-hidden="true"/>
                           <i
-                            className={`fa-duotone ${row.dispTrend==='up'?'fa-arrow-trend-up':'fa-arrow-trend-down'}`}
-                            style={{fontSize:10,color:row.dispTrend==='up'?T.success:T.error}}
+                            className={`fa-duotone ${row.dispTrend==='up'?'fa-arrow-trend-up':'fa-arrow-trend-down'} analisi__disp-trend analisi__disp-trend--${row.dispTrend}`}
                             aria-hidden="true"
                           />
                         </div>
@@ -255,7 +255,7 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
                               {([{label:"%",val:row.pct,c:T.textActive},{label:"Revenue",val:row.rev+" €",c:T.success},{label:"ADR",val:row.adr+" €",c:T.primary}] as {label:string;val:string;c:string}[]).map(item=>(
                                 <div key={item.label} className="analisi__kpi-item">
                                   <div className="analisi__kpi-label">{item.label}</div>
-                                  <div className="analisi__kpi-val" style={{color:item.c}}>{item.val}</div>
+                                  <div className="analisi__kpi-val" style={{'--kpi-col':item.c} as React.CSSProperties}>{item.val}</div>
                                 </div>
                               ))}
                             </div>
@@ -267,7 +267,7 @@ export default function AnalisiDistribuzione({navigate}:{navigate:(p:string)=>vo
                                 {PKL.map((lbl,j)=>(
                                   <div key={j} className="analisi__pickup-item">
                                     <div className="analisi__pickup-item-lbl">{lbl}</div>
-                                    <div className="analisi__pickup-item-val" style={{fontWeight:row.pickup[j]>0?700:400,color:row.pickup[j]>0?T.primary:T.textDisabled}}>{row.pickup[j]}</div>
+                                    <div className={`analisi__pickup-item-val ${row.pickup[j]>0?'analisi__pickup-item-val--active':''}`}>{row.pickup[j]}</div>
                                   </div>
                                 ))}
                               </div>

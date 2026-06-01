@@ -67,6 +67,10 @@
   opacity: 0.65;
 }
 
+.lista-prodotti__th-thumb {
+  width: 56px;
+}
+
 .lista-prodotti__th-actions,
 .lista-prodotti__cell-actions {
   width: 92px;

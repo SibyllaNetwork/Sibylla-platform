@@ -85,10 +85,10 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
           <label className="text-[11px] font-semibold font-opensans text-ink">Tipo</label>
           <div className="foresight__tipo-group">
             {(['bar','fit'] as const).map(t=>(
-              <label key={t} className="foresight__tipo-label" style={{
-                fontWeight: tipoBar===t ? 700 : 400,
-                color:      tipoBar===t ? T.primary : T.textActive,
-              }}>
+              <label key={t} className="foresight__tipo-label foresight__tipo-label--dyn" style={{
+                '--tipo-weight': tipoBar===t ? 700 : 400,
+                '--tipo-color':  tipoBar===t ? T.primary : T.textActive,
+              } as React.CSSProperties}>
                 <input type="radio" checked={tipoBar===t}
                   onChange={()=>{
                     if (t!==tipoBar&&erasedCells.size>0) { setPendingTipo(t); setShowConfirmModal(true) }
@@ -108,15 +108,15 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
         </div>
         <Tooltip text="Gomma — cancella tariffe assegnate">
           <button className={`foresight__eraser-btn ${eraseMode?'foresight__eraser-btn--active':''}`} onClick={()=>setEraseMode(v=>!v)}>
-            <i className="fa-duotone fa-eraser" style={{fontSize:14, color: eraseMode?T.warning:T.textInactive}} aria-hidden="true"/>
+            <i className="fa-duotone fa-eraser foresight__eraser-ico foresight__eraser-ico--dyn" style={{'--eraser-color': eraseMode?T.warning:T.textInactive} as React.CSSProperties} aria-hidden="true"/>
           </button>
         </Tooltip>
         <div className="foresight__toolbar-actions">
           <button className="foresight__crea-btn">
-            <i className="fa-duotone fa-plus" style={{fontSize:13,color:T.primary}} aria-hidden="true"/> Crea B.A.R.
+            <i className="fa-duotone fa-plus foresight__crea-ico" aria-hidden="true"/> Crea B.A.R.
           </button>
           <button className="foresight__salva-btn" onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),3000)}}>
-            <i className="fa-duotone fa-floppy-disk" style={{fontSize:13,color:'#fff'}} aria-hidden="true"/> Salva
+            <i className="fa-duotone fa-floppy-disk foresight__salva-ico" aria-hidden="true"/> Salva
           </button>
         </div>
       </div>
@@ -133,10 +133,10 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
             return (
               <div key={`${y}-${m}`} className="foresight__month-wrap">
                 <div className="foresight__month-scroll">
-                  <table className="foresight__month-table" style={{minWidth:dim*42+100}}>
+                  <table className="foresight__month-table foresight__month-table--dyn" style={{'--month-min-w':`${dim*42+100}px`} as React.CSSProperties}>
                     <colgroup>
-                      <col style={{width:80}}/>
-                      {Array.from({length:dim},(_,i)=><col key={i} style={{width:42}}/>)}
+                      <col className="foresight__col--label"/>
+                      {Array.from({length:dim},(_,i)=><col key={i} className="foresight__col--day"/>)}
                     </colgroup>
                     <thead>
                       <tr className="foresight__thead-row">
@@ -147,8 +147,8 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
                           const day=i+1, wd=getWD(y,m,day), we=wd>=5
                           return (
                             <th key={i} className={`foresight__day-th ${we?'foresight__day-th--weekend':''}`}>
-                              <div className="foresight__day-name" style={{color:we?T.blue:T.textDisabled}}>{DAYS_IT[wd]}</div>
-                              <div className="foresight__day-num"  style={{color:we?T.blue:T.primary}}>{day}</div>
+                              <div className="foresight__day-name foresight__day-name--dyn" style={{'--day-name-color':we?T.blue:T.textDisabled} as React.CSSProperties}>{DAYS_IT[wd]}</div>
+                              <div className="foresight__day-num foresight__day-num--dyn"  style={{'--day-num-color':we?T.blue:T.primary} as React.CSSProperties}>{day}</div>
                             </th>
                           )
                         })}
@@ -162,15 +162,15 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
                           const we=isWE(y,m,day), k=`${y}-${m}-${day}`, erased=erasedCells.has(k)
                           return (
                             <td key={i} className={`foresight__price-cell ${we?'foresight__price-cell--weekend':''}`}>
-                              <div className="foresight__price-dot"
+                              <div className="foresight__price-dot foresight__price-dot--dyn"
                                 style={{
-                                  background:  erased?'#D1D5DB':we?`${bg}dd`:bg,
-                                  boxShadow:   erased?'none':`0 1px 3px ${bg}66`,
-                                  cursor:      eraseMode?'cell':'pointer',
-                                  opacity:     eraseMode?0.85:1,
-                                }}
+                                  '--dot-bg':      erased?'#D1D5DB':we?`${bg}dd`:bg,
+                                  '--dot-shadow':  erased?'none':`0 1px 3px ${bg}66`,
+                                  '--dot-cursor':  eraseMode?'cell':'pointer',
+                                  '--dot-opacity': eraseMode?0.85:1,
+                                } as React.CSSProperties}
                                 onClick={()=>toggleCell(y,m,day)}>
-                                <span className="foresight__price-text" style={{color:erased?'#9CA3AF':text}}>
+                                <span className="foresight__price-text foresight__price-text--dyn" style={{'--price-text-color':erased?'#9CA3AF':text} as React.CSSProperties}>
                                   {erased?'–':price.toFixed(2).replace('.',',')}
                                 </span>
                               </div>
@@ -192,7 +192,7 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
         <span className="foresight__legend-title">Legenda:</span>
         {LEGEND_ITEMS.map(l=>(
           <div key={l.label} className="foresight__legend-item">
-            <div className="foresight__legend-dot" style={{background:l.bg}}/>
+            <div className="foresight__legend-dot foresight__legend-dot--dyn" style={{'--legend-dot-bg':l.bg} as React.CSSProperties}/>
             {l.label}
           </div>
         ))}
@@ -210,8 +210,6 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
             <div className="foresight__modal-actions">
               <button className="sib-btn sib-btn--secondary" onClick={()=>setShowConfirmModal(false)}>Annulla</button>
               <button className="foresight__modal-confirm-btn"
-                onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.background='#C0392B'}
-                onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.background='#E74C3C'}
                 onClick={()=>{if(pendingTipo)setTipoBar(pendingTipo);setErasedCells(new Set());setShowConfirmModal(false);setPendingTipo(null)}}>
                 Procedi
               </button>

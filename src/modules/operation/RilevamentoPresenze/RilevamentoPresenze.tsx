@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './RilevamentoPresenze.sass'
 
 /**
  * Rilevamento presenze — replica `Views/FrontOffice/RilevamentoPresenze.cshtml`.
@@ -160,7 +161,7 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
               <tr key={`${r.id ?? i}-${r.nazione}`}>
                 <td>
                   <span className="inline-flex items-center gap-2">
-                    <span style={{ fontSize: 16 }}>{flagEmoji(r.iso2)}</span>
+                    <span className="rilev-presenze__flag">{flagEmoji(r.iso2)}</span>
                     <span>{r.nazione}</span>
                   </span>
                 </td>

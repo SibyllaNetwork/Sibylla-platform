@@ -55,3 +55,49 @@
 .cal-tariffe__day-occ-val
   font-size: 10px
   font-weight: 700
+
+// ─── Inline-style replacements ────────────────────────────────────────────────
+.cal-tariffe__btn-cal-ico
+  font-size: 13px
+
+.cal-tariffe__btn-check-ico
+  font-size: 12px
+  color: $white
+
+.cal-tariffe__cam-dot--dyn
+  background: var(--cam-color)
+
+.cal-tariffe__cam-label--dyn
+  color: var(--cam-color)
+
+.cal-tariffe__cam-line--dyn
+  background: var(--cam-line-bg)
+
+.cal-tariffe__month-col
+  width: calc(100% / 7)
+
+.cal-tariffe__day-cell--last-row
+  border-bottom: none
+
+.cal-tariffe__day-cell
+  &:not(.cal-tariffe__day-cell--last-row)
+    border-bottom: 1px solid $border
+
+  &:not(:last-child)
+    border-right: 1px solid #E8EBF0
+
+.cal-tariffe__day-price-val--dyn
+  color: var(--cam-color)
+
+.cal-tariffe__price-chevron--dyn
+  color: var(--cam-color)
+
+.cal-tariffe__day-occ--dyn
+  background: var(--occ-bg)
+
+.cal-tariffe__day-occ-val--dyn
+  color: var(--occ-color)
+
+.cal-tariffe__legend-swatch--dyn
+  background: var(--leg-bg)
+  border: 1px solid var(--leg-border)

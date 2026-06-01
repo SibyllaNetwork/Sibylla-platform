@@ -65,6 +65,7 @@
 .el-hero__thumb {
   @apply relative w-full overflow-hidden;
   aspect-ratio: 16 / 9;
+  background: var(--thumb-bg);
 }
 .el-hero__bg-icon {
   @apply absolute inset-0 flex items-center justify-center text-white;
@@ -199,6 +200,7 @@
 .el-card__thumb {
   @apply relative w-full overflow-hidden rounded-card;
   aspect-ratio: 16 / 9;
+  background: var(--thumb-bg);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .el-card__bg-icon {

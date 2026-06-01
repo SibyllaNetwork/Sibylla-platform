@@ -23,6 +23,9 @@
     color: $text-active
     text-align: right
 
+    &--dyn
+      min-width: var(--hbars-label-w)
+
   &__track
     flex: 1
     height: 28px
@@ -36,6 +39,10 @@
     border-radius: 4px
     min-width: 2px
     transition: width 0.3s ease
+
+    &--dyn
+      width: var(--hbars-bar-w)
+      background: var(--hbars-bar-bg)
 
   &__value
     font-size: 12px
@@ -51,3 +58,6 @@
     color: $text-inactive
     padding-top: 4px
     border-top: 1px solid $border
+
+    &--dyn
+      margin-left: var(--hbars-axis-ml)

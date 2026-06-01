@@ -1,6 +1,7 @@
 import React from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import './SysadminIndex.sass'
 
 /**
  * Sysadmin index — replica `Views/SYSADMIN/index.cshtml`.
@@ -32,10 +33,10 @@ export default function SysadminIndex({ navigate }: { navigate: (p: string) => v
             className="bg-white border border-line rounded-field p-4 text-left hover:border-primary transition-colors"
           >
             <div
-              className="inline-flex items-center justify-center w-10 h-10 rounded-full mb-2"
-              style={{ background: `${tile.color}18`, color: tile.color }}
+              className="sysadmin-tile__icon inline-flex items-center justify-center w-10 h-10 rounded-full mb-2"
+              style={{ '--tile-color': tile.color } as React.CSSProperties}
             >
-              <i className={`fa-duotone ${tile.icon}`} style={{ fontSize: 18 }} />
+              <i className={`fa-duotone ${tile.icon} sysadmin-tile__icon-glyph`} />
             </div>
             <div className="text-[14px] font-bold font-poppins text-primary">{tile.title}</div>
             <div className="text-[12px] text-ink-muted">{tile.subtitle}</div>

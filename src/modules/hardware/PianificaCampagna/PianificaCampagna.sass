@@ -1,14 +1,11 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
-$success: #10b981
+$status-ok: #10b981
 $danger: #dc2626
 
 .pianif
@@ -108,16 +105,16 @@ $danger: #dc2626
     padding-right: 6px
 
   &__row--unavailable
-    background: $bg-soft  !important
+    background: $bg  !important
 
   &__td-conflict
-    color: $success
+    color: $status-ok
     font-style: italic
     font-size: 12px
     padding: 8px 10px
 
   &__td-conflict-amt
-    color: $success
+    color: $status-ok
     font-weight: 700
 
   // ── Upload button ────────────────────────────────────────────────
@@ -127,7 +124,7 @@ $danger: #dc2626
     gap: 6px
     padding: 5px 12px
     background: var(--color-surface)
-    border: 1px solid $border-strong
+    border: 1px solid $border
     border-radius: 4px
     color: $ink
     font-size: 12px
@@ -136,7 +133,7 @@ $danger: #dc2626
 
     &:hover
       border-color: $primary
-      background: $bg-soft
+      background: $bg
 
     i
       color: $muted
@@ -161,7 +158,7 @@ $danger: #dc2626
     transition: background 0.15s, color 0.15s
 
     &:hover
-      background: $bg-soft
+      background: $bg
       color: $primary
 
   // ── Totale + procedi ─────────────────────────────────────────────
@@ -236,7 +233,7 @@ $danger: #dc2626
     overflow: hidden
     border: 1px solid $border
     aspect-ratio: 4 / 3
-    background: $bg-soft
+    background: $bg
 
     img
       width: 100%

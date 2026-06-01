@@ -120,11 +120,8 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
                   onClick={() => set(!val)}
                 >
                   <div
-                    className="planner__checkbox-box"
-                    style={{
-                      border: `1px solid ${color}`,
-                      background: val ? color : 'transparent',
-                    }}
+                    className={`planner__checkbox-box${val ? ' planner__checkbox-box--on' : ''}`}
+                    style={{ '--cb-color': color } as React.CSSProperties}
                   >
                     {val && (
                       <svg viewBox="0 0 10 10" width={9} height={9} fill="none" stroke="white" strokeWidth={1.8}>
@@ -132,7 +129,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
                       </svg>
                     )}
                   </div>
-                  <span style={{ color }}>{label}</span>
+                  <span className="planner__checkbox-text" style={{ '--cb-color': color } as React.CSSProperties}>{label}</span>
                 </label>
               ))}
             </div>
@@ -233,7 +230,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
       {/* ── Tooltip prenotazione (rollover) ──────────────────────────────────── */}
       {barTip && (
-        <div className="planner__bar-tip" style={{ left: barTip.x + 14, top: barTip.y + 14 }}>
+        <div className="planner__bar-tip" style={{ '--tip-left': `${barTip.x + 14}px`, '--tip-top': `${barTip.y + 14}px` } as React.CSSProperties}>
           <div className="planner__bar-tip-row">Agenzia: {barTip.pren.agenzia || '-'}</div>
           <div className="planner__bar-tip-row">Cliente: {barTip.pren.nominativo}</div>
           <div className="planner__bar-tip-row">Data In: {fmtDate(barTip.pren.checkIn)}</div>

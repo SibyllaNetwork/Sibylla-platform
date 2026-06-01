@@ -289,6 +289,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
           </header>
 
           <div className="cal-strategie__sidebar-search">
+            <label className="cal-strategie__search-label" htmlFor="cercaStrategia">Cerca</label>
             <SearchField
               name="cercaStrategia"
               placeholder="Cerca strategia…"

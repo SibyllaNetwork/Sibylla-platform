@@ -202,9 +202,9 @@ export default function SalesOverview({ navigate }: { navigate: (p: string) => v
         </div>
         <div className="sales-overview__trend-body">
           <div className="sales-overview__trend-legend">
-            <span><span className="sales-overview__dot" style={{ background: '#A0A4AA' }} /> Revenue LY</span>
-            <span><span className="sales-overview__dot" style={{ background: '#1F4E5F' }} /> Revenue</span>
-            <span><span className="sales-overview__dot" style={{ background: '#F59E0B' }} /> Forecast</span>
+            <span><span className="sales-overview__dot sales-overview__dot--ly" /> Revenue LY</span>
+            <span><span className="sales-overview__dot sales-overview__dot--rev" /> Revenue</span>
+            <span><span className="sales-overview__dot sales-overview__dot--forecast" /> Forecast</span>
           </div>
           <TrendChart points={data.trend} />
         </div>
@@ -223,9 +223,9 @@ export default function SalesOverview({ navigate }: { navigate: (p: string) => v
           <div className="sales-overview__segments-body">
             <SegmentBars bars={data.segmenti} />
             <div className="sales-overview__segments-legend">
-              <span><span className="sales-overview__sw" style={{ background: '#1F4E5F' }} /> Grand Total</span>
-              <span><span className="sales-overview__sw" style={{ background: '#A0A4AA' }} /> Grand Total LY</span>
-              <span><span className="sales-overview__sw" style={{ background: '#1F2E55' }} /> Budget</span>
+              <span><span className="sales-overview__sw sales-overview__sw--total" /> Grand Total</span>
+              <span><span className="sales-overview__sw sales-overview__sw--ly" /> Grand Total LY</span>
+              <span><span className="sales-overview__sw sales-overview__sw--budget" /> Budget</span>
             </div>
           </div>
         </div>
@@ -291,7 +291,7 @@ function TrendChart({ points }: { points: TrendPoint[] }) {
   const xLabelStep = Math.max(1, Math.floor(points.length / 15))
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="sales-overview__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="sales-overview__svg sales-overview__svg--trend">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (maxY / ticks) * i
         const y = yPos(v)
@@ -343,9 +343,9 @@ function SegmentBars({ bars }: { bars: SegmentBar[] }) {
           <div className="sales-overview__seg-row" key={i}>
             <span className="sales-overview__seg-label">{b.label}</span>
             <div className="sales-overview__seg-track">
-              <div className="sales-overview__seg-bar sales-overview__seg-bar--total" style={{ width: `${totalPct}%` }} />
-              <div className="sales-overview__seg-bar sales-overview__seg-bar--ly"    style={{ width: `${lyPct}%` }} />
-              <div className="sales-overview__seg-bullet" style={{ left: `${budgetPct}%` }} />
+              <div className="sales-overview__seg-bar sales-overview__seg-bar--total" style={{ '--seg-bar-w': `${totalPct}%` } as React.CSSProperties} />
+              <div className="sales-overview__seg-bar sales-overview__seg-bar--ly"    style={{ '--seg-bar-w': `${lyPct}%` } as React.CSSProperties} />
+              <div className="sales-overview__seg-bullet" style={{ '--seg-bullet-left': `${budgetPct}%` } as React.CSSProperties} />
             </div>
           </div>
         )

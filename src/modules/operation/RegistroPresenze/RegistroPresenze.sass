@@ -1,0 +1,51 @@
+// ─── REGISTRO PRESENZE ────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.reg-presenze__toolbar-ico
+  font-size: 13px
+  color: $text-active
+
+.reg-presenze__info-ico
+  font-size: 14px
+  color: $link
+
+.reg-presenze__xls-ico
+  font-size: 13px
+
+.reg-presenze__pen-ico
+  font-size: 12px
+
+.reg-presenze__reparto-ico
+  font-size: 18px
+
+.reg-presenze__head-row
+  grid-template-columns: 220px 60px 1fr
+
+.reg-presenze__hours-grid
+  grid-template-columns: repeat(24, 1fr)
+
+.reg-presenze__row
+  grid-template-columns: 220px 60px 1fr
+  min-height: 64px
+
+.reg-presenze__tl-grid
+  grid-template-columns: repeat(96, 1fr)
+
+.reg-presenze__tl-tick
+  border-color: #F0F0F0
+
+  &--major
+    border-color: #DBDBDB
+
+.reg-presenze__segment
+  left: var(--seg-left)
+  width: var(--seg-width)
+  background: var(--seg-bg)
+  border-left: 3px solid var(--seg-border)
+
+.reg-presenze__segment-label
+  color: var(--seg-border)
+
+.reg-presenze__legend-dot
+  background: var(--leg-bg)
+  border-left: 3px solid var(--leg-border)

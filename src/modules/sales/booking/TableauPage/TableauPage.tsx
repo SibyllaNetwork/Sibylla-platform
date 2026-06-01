@@ -88,14 +88,14 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
       dot = <div className="tableau__legend-dot tableau__legend-dot--stripe-red"/>
     else if (item.color === 'ghost')
       dot = <div className="tableau__legend-dot tableau__legend-dot--ghost">
-        <i className="fa-duotone fa-ban" style={{fontSize:8,color:T.textDisabled}} aria-hidden="true"/>
+        <i className="fa-duotone fa-ban tableau__legend-ico tableau__legend-ico--ghost" aria-hidden="true"/>
       </div>
     else if (item.color === 'hat')
       dot = <div className="tableau__legend-dot tableau__legend-dot--hat">
-        <i className="fa-duotone fa-graduation-cap" style={{fontSize:10,color:T.primary}} aria-hidden="true"/>
+        <i className="fa-duotone fa-graduation-cap tableau__legend-ico tableau__legend-ico--hat" aria-hidden="true"/>
       </div>
     else
-      dot = <div className="tableau__legend-dot" style={{background:item.color}}/>
+      dot = <div className="tableau__legend-dot tableau__legend-dot--color" style={{ '--legend-dot-bg': item.color } as React.CSSProperties}/>
 
     return (
       <div className="tableau__legend-row">
@@ -263,7 +263,7 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
                 </div>
                 <div className="tableau__detail-actions">
                   {[
-                    <i key="user" className="fa-duotone fa-user" style={{fontSize:18,color:T.primary}} aria-hidden="true"/>,
+                    <i key="user" className="fa-duotone fa-user tableau__detail-user-ico" aria-hidden="true"/>,
                     <Ico key="refresh" n="refresh" s={18} c={T.primary}/>,
                     <Ico key="lock"    n="lock"    s={18} c={T.primary}/>,
                   ].map((ico,i)=>(
@@ -325,10 +325,9 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
             <div className="tableau__day-names">
               {days.map(d=>(
                 <div key={d} className="tableau__day-header" style={{
-                  flex:1,
-                  color: isToday_(d)?'#fff':isWeekend(d)?T.blue:T.textDisabled,
-                  background: isToday_(d)?T.primary:isWeekend(d)?'#F2F7FF':'transparent',
-                }}>
+                  '--day-color': isToday_(d)?'#fff':isWeekend(d)?T.blue:T.textDisabled,
+                  '--day-bg':    isToday_(d)?T.primary:isWeekend(d)?'#F2F7FF':'transparent',
+                } as React.CSSProperties}>
                   {getDayName(d)}
                 </div>
               ))}
@@ -336,11 +335,10 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
             <div className="tableau__day-nums">
               {days.map(d=>(
                 <div key={d} className="tableau__day-num" style={{
-                  flex:1,
-                  fontWeight: isToday_(d)?700:500,
-                  color: isToday_(d)?'#fff':isWeekend(d)?T.blue:T.textActive,
-                  background: isToday_(d)?T.primary:isWeekend(d)?'#F2F7FF':'transparent',
-                }}>
+                  '--day-weight': isToday_(d)?700:500,
+                  '--day-color':  isToday_(d)?'#fff':isWeekend(d)?T.blue:T.textActive,
+                  '--day-bg':     isToday_(d)?T.primary:isWeekend(d)?'#F2F7FF':'transparent',
+                } as React.CSSProperties}>
                   {d}
                 </div>
               ))}
@@ -352,8 +350,8 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
             {/* Today marker */}
             {todayCol && (
               <div className="tableau__today-marker" style={{
-                left:`calc(${(todayCol-1)*COL_W_NUM}% + ${COL_W_NUM/2}% - 1px)`,
-              }}/>
+                '--marker-left': `calc(${(todayCol-1)*COL_W_NUM}% + ${COL_W_NUM/2}% - 1px)`,
+              } as React.CSSProperties}/>
             )}
 
             {ROWS.map((row,ri)=>(
@@ -363,9 +361,9 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
                   return (
                     <div key={d} className="tableau__grid-cell"
                       style={{
-                        background: isToday_(d)?`${T.blue}10`:isWeekend(d)?'#FAFBFF':hov?'#D6EAFF':'transparent',
-                        cursor: past?'default':'pointer',
-                      }}
+                        '--cell-bg':     isToday_(d)?`${T.blue}10`:isWeekend(d)?'#FAFBFF':hov?'#D6EAFF':'transparent',
+                        '--cell-cursor': past?'default':'pointer',
+                      } as React.CSSProperties}
                       onMouseEnter={()=>!past&&setHovCell({row:ri,day:d})}
                       onMouseLeave={()=>setHovCell(null)}
                       onClick={()=>{if(!past)navigate('nuova-prenotazione')}}
@@ -380,14 +378,14 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
               {bookings.map(b=>(
                 <div key={b.id} className="tableau__booking-block"
                   style={{
-                    top: b.row*ROW_H+12,
-                    left:`calc(${(b.startDay-1)*COL_W_NUM}% + 2px)`,
-                    width:`calc(${(b.endDay-b.startDay+1)*COL_W_NUM}% - 6px)`,
-                    height: ROW_H-24,
-                    background:`repeating-linear-gradient(-45deg,${b.colore}99,${b.colore}99 4px,${b.colore}55 4px,${b.colore}55 8px)`,
-                    border:`2px solid ${b.colore}`,
-                    boxShadow:`0 2px 6px ${b.colore}33`,
-                  }}
+                    '--block-top':    `${b.row*ROW_H+12}px`,
+                    '--block-left':   `calc(${(b.startDay-1)*COL_W_NUM}% + 2px)`,
+                    '--block-width':  `calc(${(b.endDay-b.startDay+1)*COL_W_NUM}% - 6px)`,
+                    '--block-height': `${ROW_H-24}px`,
+                    '--block-bg':     `repeating-linear-gradient(-45deg,${b.colore}99,${b.colore}99 4px,${b.colore}55 4px,${b.colore}55 8px)`,
+                    '--block-border': `2px solid ${b.colore}`,
+                    '--block-shadow': `0 2px 6px ${b.colore}33`,
+                  } as React.CSSProperties}
                   onClick={()=>setSelectedBooking(b)}
                 >
                   <span className="tableau__booking-name">{b.nome}</span>
@@ -404,10 +402,10 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
                   const g=getGiacenza(d), val=positive?g:g-ALLOTMENT
                   return (
                     <div key={d} className="tableau__giacenza-cell" style={{
-                      color: val<0?T.error:val===0?T.warning:T.textActive,
-                      borderBottom: gi===0?`1px solid ${T.border}`:'none',
-                      background: isToday_(d)?`${T.blue}08`:isWeekend(d)?'#FAFBFF':'transparent',
-                    }}>
+                      '--giac-color':  val<0?T.error:val===0?T.warning:T.textActive,
+                      '--giac-border': gi===0?`1px solid ${T.border}`:'none',
+                      '--giac-bg':     isToday_(d)?`${T.blue}08`:isWeekend(d)?'#FAFBFF':'transparent',
+                    } as React.CSSProperties}>
                       {val}
                     </div>
                   )

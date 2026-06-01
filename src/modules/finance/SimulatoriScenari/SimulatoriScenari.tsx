@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import Modal from '../../../core/components/Modal'
 import { InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import './SimulatoriScenari.sass'
 
 /**
  * Simulatori scenari — replica `Views/Budget/SimulatoreScenari.cshtml`.
@@ -171,7 +172,7 @@ export default function SimulatoriScenari({ navigate }: { navigate: (p: string) 
             <div className="grid grid-cols-3 gap-2 mt-4 text-[11px]">
               {SEGMENTI.map((s) => (
                 <div key={s.key} className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-3 rounded-sm" style={{ background: s.color }} />
+                  <span className="inline-block w-3 h-3 rounded-sm sim-scenari__swatch" style={{ '--swatch-color': s.color } as React.CSSProperties} />
                   <span>{s.label}</span>
                 </div>
               ))}
@@ -487,11 +488,8 @@ function CartesianBarChart({ dati, variante = 'ricavi' }: { dati: PuntoChart[] }
   return (
     <div className="flex items-stretch gap-2">
       {/* Y-axis label ruotata, fuori dal grafico a sinistra */}
-      <div className="flex items-center justify-center shrink-0" style={{ width: 18 }}>
-        <span
-          className="text-[10px] text-ink-muted whitespace-nowrap"
-          style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}
-        >
+      <div className="flex items-center justify-center shrink-0 sim-scenari__yaxis">
+        <span className="text-[10px] text-ink-muted whitespace-nowrap sim-scenari__yaxis-label">
           Percentuale %
         </span>
       </div>

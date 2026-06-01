@@ -94,7 +94,7 @@ export default function TipiServizioView() {
           <table className="sib-table tipi-servizio__table">
             <thead>
               <tr>
-                <th style={{ width: 48 }}>Icona</th>
+                <th className="tipi-servizio__th-icon">Icona</th>
                 <th>Tipo</th>
                 <th>ID</th>
                 <th>Campi form</th>

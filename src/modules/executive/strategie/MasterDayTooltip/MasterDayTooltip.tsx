@@ -24,7 +24,7 @@ export default function MasterDayTooltip({ tip }: { tip: MasterDayTooltipState }
     <div
       className="master-tip"
       role="tooltip"
-      style={{ left: tip.x, top: tip.y } as React.CSSProperties}
+      style={{ '--tip-x': `${tip.x}px`, '--tip-y': `${tip.y}px` } as React.CSSProperties}
     >
       <div className="master-tip__date">
         <i className="fa-duotone fa-calendar-day" aria-hidden="true"/>

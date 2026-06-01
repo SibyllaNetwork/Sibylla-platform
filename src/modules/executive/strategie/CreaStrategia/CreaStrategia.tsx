@@ -272,7 +272,7 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
           <span className="crea-strat__identity-progress-label">BAR assegnate</span>
           <span className="crea-strat__identity-progress-val">{filledCount} / {totalCells}</span>
           <div className="crea-strat__identity-progress-bar">
-            <span style={{ width: `${(filledCount / totalCells) * 100}%` } as React.CSSProperties}/>
+            <span style={{ '--fill-w': `${(filledCount / totalCells) * 100}%` } as React.CSSProperties}/>
           </div>
         </div>
       </div>

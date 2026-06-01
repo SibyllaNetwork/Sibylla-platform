@@ -35,11 +35,11 @@ export function HBars({ bars, showAxis = false, ticks = 5, labelWidth = 90 }: HB
           const pct = (b.value / safeMax) * 100
           return (
             <div className="hbars__row" key={i}>
-              <span className="hbars__label" style={{ minWidth: labelWidth }}>{b.label}</span>
+              <span className="hbars__label hbars__label--dyn" style={{ '--hbars-label-w': `${labelWidth}px` } as React.CSSProperties}>{b.label}</span>
               <span className="hbars__track">
                 <span
-                  className="hbars__bar"
-                  style={{ width: `${Math.max(0.5, pct)}%`, background: b.color }}
+                  className="hbars__bar hbars__bar--dyn"
+                  style={{ '--hbars-bar-w': `${Math.max(0.5, pct)}%`, '--hbars-bar-bg': b.color } as React.CSSProperties}
                 />
               </span>
               <span className="hbars__value">{(b.format ?? defaultFmt)(b.value)}</span>
@@ -49,7 +49,7 @@ export function HBars({ bars, showAxis = false, ticks = 5, labelWidth = 90 }: HB
       </div>
 
       {showAxis && (
-        <div className="hbars__axis" style={{ marginLeft: labelWidth + 8 }}>
+        <div className="hbars__axis hbars__axis--dyn" style={{ '--hbars-axis-ml': `${labelWidth + 8}px` } as React.CSSProperties}>
           {Array.from({ length: ticks + 1 }, (_, i) => {
             const v = (max / ticks) * i
             return <span key={i} className="hbars__tick">{defaultFmt(v)}</span>

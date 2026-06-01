@@ -8,7 +8,7 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
 }
 
 /* Sibylla select — same shell as Input, with an explicit chevron.
-   Forces appearance:none across browsers via inline style belt-and-suspenders. */
+   Native chevron suppressed via the `appearance-none` utility class. */
 export const Select = forwardRef(function Select(
   { inputSize = 'standard', invalid, className, children, disabled, style, ...rest }: SelectProps,
   ref: React.ForwardedRef<HTMLSelectElement>,
@@ -19,10 +19,10 @@ export const Select = forwardRef(function Select(
         ref={ref}
         disabled={disabled}
         aria-invalid={invalid || undefined}
-        style={{ WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none', ...style }}
+        style={style}
         className={clsx(
           // layout
-          'block w-full rounded-control bg-surface font-sans text-[14px] leading-5 text-text-active cursor-pointer',
+          'appearance-none block w-full rounded-control bg-surface font-sans text-[14px] leading-5 text-text-active cursor-pointer',
           'pl-3 pr-10',
           // size (border 1px always)
           inputSize === 'standard' ? 'h-10 border' : 'h-[30px] border',

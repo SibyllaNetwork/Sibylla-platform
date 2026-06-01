@@ -23,9 +23,10 @@
     gap: 5px
 
 .analisi__filter-label
-  font-size: 11px
+  font-size: 12px
   font-weight: 600
-  color: $text-active
+  color: $text-inactive
+  line-height: 1.2
   white-space: nowrap
 
 // ─── Field (select / date input) ─────────────────────────────────────────────
@@ -141,6 +142,7 @@
   font-size: 9px
   font-weight: 700
   color: $text-disabled
+  text-align: var(--cell-align, left)
   text-transform: uppercase
   letter-spacing: 0.35px
   white-space: nowrap
@@ -183,6 +185,7 @@
   padding: 8px 5px
   font-size: 12px
   color: $text-active
+  text-align: var(--cell-align, left)
   vertical-align: middle
   border-bottom: 1px solid $border
   border-right: 1px solid $border
@@ -249,6 +252,34 @@
   font-weight: 600
   font-size: 12px
 
+.analisi__disp-bed
+  font-size: 13px
+  color: $text-disabled
+
+.analisi__disp-trend
+  font-size: 10px
+
+  &--up
+    color: $success
+
+  &--down
+    color: $error
+
+// ─── Pickup cells (inline table) ──────────────────────────────────────────────
+.analisi__pickup-cell
+  font-size: 12px
+  font-weight: 400
+  color: $text-disabled
+
+  &--active
+    font-weight: 700
+    color: $primary
+
+// ─── Row background (dynamic) ─────────────────────────────────────────────────
+.analisi__row
+  background: var(--row-bg, transparent)
+  transition: background 0.1s
+
 // ─── MeteoCell ────────────────────────────────────────────────────────────────
 .analisi__meteo-cell
   display: flex
@@ -256,9 +287,18 @@
   align-items: center
   gap: 1px
 
+.analisi__meteo-ico
+  font-size: var(--meteo-size)
+  color: var(--meteo-col)
+
+.analisi__ev-ico
+  font-size: 14px
+  color: var(--ev-col)
+
 .analisi__meteo-temp
   font-size: 9px
   font-weight: 700
+  color: var(--meteo-col)
 
 // ─── Expanded row ─────────────────────────────────────────────────────────────
 .analisi__exp-row
@@ -346,6 +386,7 @@
   font-weight: 700
   font-family: Poppins, sans-serif
   line-height: 1.2
+  color: var(--kpi-col)
 
 // ─── Expanded: pickup ─────────────────────────────────────────────────────────
 .analisi__pickup-row
@@ -364,6 +405,12 @@
 .analisi__pickup-item-val
   font-size: 15px
   font-family: Poppins, sans-serif
+  font-weight: 400
+  color: $text-disabled
+
+  &--active
+    font-weight: 700
+    color: $primary
 
 .analisi__pickup-note
   display: flex

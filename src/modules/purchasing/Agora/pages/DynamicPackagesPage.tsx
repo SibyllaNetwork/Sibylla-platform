@@ -999,7 +999,7 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
         {/* Central Sibylla hub — the "computer" */}
         <div
           className="dp-eco__core"
-          style={{ left: pctX(cx), top: pctY(cy) }}
+          style={{ '--core-left': pctX(cx), '--core-top': pctY(cy) } as CSSProperties}
         >
           <Icon family="light" name="microchip" />
           <span className="dp-eco__core-label">Sibylla</span>
@@ -1012,8 +1012,8 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
             className="dp-eco__star"
             style={
               {
-                left: pctX(p.x),
-                top: pctY(p.y),
+                ['--star-left' as string]: pctX(p.x),
+                ['--star-top' as string]: pctY(p.y),
                 ['--appear-delay' as string]: `${i * 0.06}s`,
               } as CSSProperties
             }
@@ -1027,8 +1027,8 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
             className="dp-eco__label"
             style={
               {
-                left: pctX(p.x),
-                top: pctY(p.y),
+                ['--label-left' as string]: pctX(p.x),
+                ['--label-top' as string]: pctY(p.y),
                 ['--appear-delay' as string]: `${i * 0.06 + 0.08}s`,
               } as CSSProperties
             }

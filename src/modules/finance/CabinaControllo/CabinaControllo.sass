@@ -1,0 +1,28 @@
+@use '../../../styles/tokens' as *
+
+// ─── Titoli di sezione ────────────────────────────────────────────────────────
+// Palette di sezione (ricavi/margine = blu, costi = verde): nessun token
+// equivalente, valori canonici della Cabina di controllo.
+.cabina__title
+  &--ricavi,
+  &--margine
+    color: #0F2C4A
+
+  &--costi
+    color: #1B7F4F
+
+// ─── Righe voce / totale per variante ─────────────────────────────────────────
+.cabina__row
+  &--ricavi.cabina__row--voce,
+  &--margine.cabina__row--voce
+    background-color: #EAF2FB
+
+  &--ricavi.cabina__row--totale,
+  &--margine.cabina__row--totale
+    background-color: #CFE2F5
+
+  &--costi.cabina__row--voce
+    background-color: #E8F6EE
+
+  &--costi.cabina__row--totale
+    background-color: #BFE8CF

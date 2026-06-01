@@ -22,11 +22,8 @@ const LegendaModal: React.FC<Props> = ({ onClose }) => (
       {ITEMS.map((it, i) => (
         <div key={i} className="legenda-modal__item">
           <div
-            className="legenda-modal__dot"
-            style={{
-              background: it.bg,
-              border: it.border ? `1px solid ${it.border}` : 'none',
-            }}
+            className={`legenda-modal__dot${it.border ? ' legenda-modal__dot--bordered' : ''}`}
+            style={{ '--dot-bg': it.bg, '--dot-bd': it.border || 'transparent' } as React.CSSProperties}
           />
           <span className="legenda-modal__label">{it.label}</span>
         </div>

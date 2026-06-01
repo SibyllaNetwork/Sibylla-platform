@@ -36,11 +36,11 @@ const FloorDetail: React.FC<Props> = ({ piano, onClose }) => {
       <div className="floor-detail__grid">
         {piano.camere.map(cam => (
           <div key={cam.numero} className="floor-detail__room">
-            <span className="floor-detail__room-bar" style={{ background: CAM_CLR[cam.stato] }} />
+            <span className="floor-detail__room-bar" style={{ '--room-clr': CAM_CLR[cam.stato] } as React.CSSProperties} />
             <div className="floor-detail__room-body">
               <span className="floor-detail__room-num">Cam. {cam.numero}</span>
               <span className="floor-detail__room-type">{cam.tipo}</span>
-              <span className="floor-detail__room-state" style={{ color: CAM_CLR[cam.stato] }}>
+              <span className="floor-detail__room-state" style={{ '--room-clr': CAM_CLR[cam.stato] } as React.CSSProperties}>
                 {STATO_LABEL[cam.stato]}
               </span>
             </div>

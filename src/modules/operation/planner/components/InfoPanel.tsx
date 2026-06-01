@@ -88,7 +88,7 @@ const InfoPanel: React.FC<Props> = ({ selected, struttura, pendingDa, pendingAl,
 
               <div className="info-panel__grid2">
                 <Field k="Stato">
-                  <span className="info-panel__stato"><span className="info-panel__stato-dot" style={{ background: clr!.bg }} />{STATO_LABEL[selected.stato] ?? selected.stato}</span>
+                  <span className="info-panel__stato"><span className="info-panel__stato-dot" style={{ '--dot-bg': clr!.bg } as React.CSSProperties} />{STATO_LABEL[selected.stato] ?? selected.stato}</span>
                 </Field>
                 <Field k="Cliente">{selected.cliente || '—'}</Field>
                 <Field k="In/Out"><b>{dm(selected.checkIn)} / {dm(selected.checkOut)}</b></Field>

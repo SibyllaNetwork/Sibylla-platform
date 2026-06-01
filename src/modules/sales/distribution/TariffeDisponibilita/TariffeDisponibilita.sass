@@ -29,7 +29,7 @@
   font-family: Poppins, sans-serif
   font-size: 20px
   font-weight: 700
-  color: #fff
+  color: $white
   margin: 0 0 4px
 
 .ss-modal__desc
@@ -202,7 +202,7 @@
   padding: 9px 28px
   font-size: 13px
   font-weight: 700
-  color: #fff
+  color: $white
   cursor: pointer
 
   &:hover
@@ -241,7 +241,7 @@
   font-family: Poppins, sans-serif
   font-size: 18px
   font-weight: 700
-  color: #fff
+  color: $white
   margin: 0
 
 .fm-modal__close
@@ -695,7 +695,7 @@
   justify-content: center
   font-size: 9px
   font-weight: 800
-  color: #fff
+  color: $white
 
 .tariffe__tooltip-label
   font-size: 12px
@@ -854,6 +854,9 @@
   height: 10px
   border-radius: 50%
 
+  &--dyn
+    background: var(--legend-dot-bg)
+
   &--aperta
     border-radius: 2px
     background: var(--color-success-light)
@@ -863,3 +866,113 @@
     border-radius: 2px
     background: var(--color-error-light)
     border: 1px solid rgba(220,38,38,0.33)
+
+// ─── Inline-style replacements ────────────────────────────────────────────────
+.fm-modal__close-ico
+  font-size: 16px
+  color: $white
+
+.tariffe__lock-ico
+  font-size: 13px
+
+.tariffe__toolbar-ico
+  font-size: 13px
+
+.tariffe__btn-check-ico
+  font-size: 12px
+  color: $white
+
+.tariffe__info-ico
+  font-size: 13px
+  color: var(--color-link)
+
+.tariffe__stop-ico
+  font-size: 12px
+  color: var(--color-text-disabled)
+
+  &--active
+    color: #E74C3C
+
+.tariffe__status-ico
+  font-size: 11px
+
+  &--aperta
+    color: #16A34A
+
+  &--chiusa
+    color: #DC2626
+
+.tariffe__price-select-ext
+  &--aperta
+    color: #16A34A
+
+  &--chiusa
+    color: #DC2626
+
+  &--default
+    color: var(--cam-color)
+
+.tariffe__expand-ico
+  font-size: 12px
+  color: var(--color-primary)
+
+  .tariffe__expand-btn--active &
+    color: $white
+
+.tariffe__avail-num--zero
+  color: var(--color-error)
+
+.tariffe__avail-num--low
+  color: var(--color-warning)
+
+.tariffe__avail-num--ok
+  color: var(--color-success)
+
+.tariffe__avail-num--res-zero
+  color: var(--color-text-disabled)
+
+.tariffe__avail-num--res-low
+  color: var(--color-warning)
+
+.tariffe__avail-num--res-ok
+  color: var(--color-link)
+
+.tariffe__bed-ico
+  font-size: 14px
+  color: var(--occ-color)
+
+.tariffe__occ-num--dyn
+  color: var(--occ-color)
+
+.tariffe__col--label
+  width: 220px
+
+.tariffe__col--day
+  width: var(--col-w)
+
+.tariffe__col--expand
+  width: 50px
+
+.tariffe__table-sized
+  min-width: var(--table-min-w)
+
+.tariffe__cam-dot--dyn
+  background: var(--cam-color)
+
+.tariffe__tooltip--positioned
+  left: var(--tt-x)
+  top: calc(var(--tt-y) - 8px)
+
+.tariffe__tooltip-icon--dyn
+  background: var(--sector-color)
+
+.tariffe__tooltip-bar--dyn
+  width: var(--bar-w)
+  background: var(--sector-color)
+
+.tariffe__tooltip-val--dyn
+  color: var(--sector-color)
+
+.tariffe__inv-badge--dyn
+  background: var(--cam-badge-bg)
+  color: var(--cam-color)

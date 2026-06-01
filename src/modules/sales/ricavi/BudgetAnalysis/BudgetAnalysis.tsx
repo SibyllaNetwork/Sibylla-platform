@@ -132,8 +132,8 @@ export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => 
           </div>
 
           <div className="budget-analysis__legend">
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw" style={{ background: '#204769' }} /> Revenue</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw" style={{ background: '#A22A2A' }} /> Costi</span>
+            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--revenue" /> Revenue</span>
+            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--costi" /> Costi</span>
             <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--dashed" /> Profitto</span>
             <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--line" /> Profit Line</span>
           </div>
@@ -168,9 +168,9 @@ export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => 
           </div>
 
           <div className="budget-analysis__legend">
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot" style={{ background: '#F57D03' }} /> {kpiView.toUpperCase()} TY</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot" style={{ background: '#F57D03', opacity: 0.5 }} /> {kpiView.toUpperCase()} Forecast</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot" style={{ background: '#A0A4AA' }} /> {kpiView.toUpperCase()} LY</span>
+            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot budget-analysis__dot--ty" /> {kpiView.toUpperCase()} TY</span>
+            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot budget-analysis__dot--forecast" /> {kpiView.toUpperCase()} Forecast</span>
+            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot budget-analysis__dot--ly" /> {kpiView.toUpperCase()} LY</span>
           </div>
 
           <KpiChart data={data.kpi} />
@@ -211,7 +211,7 @@ function BudgetChart({ data, view }: { data: MonthData[]; view: BudgetView }) {
   }))
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="budget-analysis__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="budget-analysis__svg budget-analysis__svg--budget">
       {/* Y grid */}
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (maxY / ticks) * i
@@ -293,7 +293,7 @@ function KpiChart({ data }: { data: KpiPoint[] }) {
     data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xPos(i)} ${yPos(d[key])}`).join(' ')
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="budget-analysis__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="budget-analysis__svg budget-analysis__svg--kpi">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = minY + (range / ticks) * i
         const y = yPos(v)

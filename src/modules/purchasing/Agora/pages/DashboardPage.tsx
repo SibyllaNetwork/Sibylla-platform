@@ -342,11 +342,11 @@ export function DashboardPage() {
             </div>
             <div className="dash-legend">
               <span className="dash-legend__item">
-                <span className="dash-legend__dot" style={{ background: '#5c9cd4' }} />
+                <span className="dash-legend__dot dash-legend__dot--views" />
                 Visualizzazioni
               </span>
               <span className="dash-legend__item">
-                <span className="dash-legend__dot" style={{ background: '#c87f00' }} />
+                <span className="dash-legend__dot dash-legend__dot--purchases" />
                 Acquisti
               </span>
               {compare && (
@@ -414,7 +414,10 @@ export function DashboardPage() {
             <ul className="dash-pie-legend">
               {CATEGORY_DIST.map((c) => (
                 <li key={c.name}>
-                  <span className="dash-pie-legend__dot" style={{ background: c.color }} />
+                  <span
+                    className="dash-pie-legend__dot"
+                    style={{ '--dot-bg': c.color } as React.CSSProperties}
+                  />
                   <span>{c.name}</span>
                   <span className="dash-pie-legend__val">{c.value}</span>
                 </li>
@@ -466,10 +469,12 @@ export function DashboardPage() {
                     <span className="dash-region__bar">
                       <span
                         className="dash-region__fill"
-                        style={{
-                          width: `${(r.count / max) * 100}%`,
-                          background: `linear-gradient(90deg, ${r.color}, ${r.color}dd)`,
-                        }}
+                        style={
+                          {
+                            '--bar-w': `${(r.count / max) * 100}%`,
+                            '--bar-color': r.color,
+                          } as React.CSSProperties
+                        }
                       />
                     </span>
                     <span className="dash-region__count">{r.count}</span>
@@ -558,7 +563,10 @@ function KpiTile({ kpi, onClick }: { kpi: Kpi; onClick?: () => void }) {
     <>
       <div className="dash-kpi__top">
         <span className="dash-kpi__label">{kpi.label}</span>
-        <span className="dash-kpi__dot" style={{ background: ACCENT_COLOR[kpi.accent] }} />
+        <span
+          className="dash-kpi__dot"
+          style={{ '--dot-bg': ACCENT_COLOR[kpi.accent] } as React.CSSProperties}
+        />
       </div>
       <span className="dash-kpi__value">{kpi.value}</span>
       <div className="dash-kpi__bottom">
@@ -610,7 +618,7 @@ function GoalCard({ goal }: { goal: Goal }) {
       <span className="dash-goal__bar">
         <span
           className={`dash-goal__fill dash-goal__fill--${tier}`}
-          style={{ width: `${pct}%` }}
+          style={{ '--bar-w': `${pct}%` } as React.CSSProperties}
         />
       </span>
     </div>

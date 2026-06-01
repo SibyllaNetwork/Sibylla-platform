@@ -217,7 +217,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
             <div className="maint-an__bars-area">
               {data.personale.map((p, i) => (
                 <div key={i} className="maint-an__bar-row">
-                  <div className="maint-an__bar" style={{ height: `${(p.interventi / maxBar) * 100}%` }} />
+                  <div className="maint-an__bar" style={{ '--bar-h': `${(p.interventi / maxBar) * 100}%` } as React.CSSProperties} />
                   <div className="maint-an__bar-label">{p.nominativo}</div>
                 </div>
               ))}

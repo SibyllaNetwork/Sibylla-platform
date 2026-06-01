@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from './Layout';
 import { PageHeader } from './PageHeader';
@@ -193,7 +193,7 @@ export function AcademyCoursesPage() {
                     <div className="course-card__seats-bar">
                       <div
                         className="course-card__seats-fill"
-                        style={{ width: `${seatsPercent}%` }}
+                        style={{ '--bar-w': `${seatsPercent}%` } as CSSProperties}
                       />
                     </div>
                   </div>

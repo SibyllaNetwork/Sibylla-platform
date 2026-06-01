@@ -149,10 +149,10 @@ export default function OnTheBookAnalysis({ navigate }: { navigate: (p: string) 
       {/* ─── Trend chart ─────────────────────────────────────────────────────── */}
       <div className="otb-analysis__trend">
         <div className="otb-analysis__legend">
-          <span><span className="otb-analysis__dot" style={{ background: '#A0A4AA' }} /> Produzione</span>
-          <span><span className="otb-analysis__dot" style={{ background: '#1A1A1A' }} /> Forecast Totale</span>
-          <span><span className="otb-analysis__dot" style={{ background: '#CFD9E3' }} /> Forecast garantito</span>
-          <span><span className="otb-analysis__dot" style={{ background: '#E0E7EE' }} /> Forecast opzionato</span>
+          <span><span className="otb-analysis__dot otb-analysis__dot--produzione" /> Produzione</span>
+          <span><span className="otb-analysis__dot otb-analysis__dot--forecast-tot" /> Forecast Totale</span>
+          <span><span className="otb-analysis__dot otb-analysis__dot--forecast-gar" /> Forecast garantito</span>
+          <span><span className="otb-analysis__dot otb-analysis__dot--forecast-opz" /> Forecast opzionato</span>
         </div>
         <TrendChart points={data.trend} />
       </div>
@@ -228,7 +228,7 @@ function TrendChart({ points }: { points: TrendPoint[] }) {
   }
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="otb-analysis__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="otb-analysis__svg otb-analysis__svg--h360">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (maxY / ticks) * i
         const y = yPos(v)

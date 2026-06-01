@@ -179,7 +179,7 @@ export default function SegmentAnalysis({ navigate }: { navigate: (p: string) =>
           <div className="segment-analysis__legend">
             {Object.entries(SEG_COLORS).map(([seg, color]) => (
               <span key={seg} className="segment-analysis__legend-item">
-                <span className="segment-analysis__legend-dot" style={{ background: color }} />
+                <span className="segment-analysis__legend-dot" style={{ '--legend-dot-bg': color } as React.CSSProperties} />
                 {seg}
               </span>
             ))}
@@ -249,7 +249,7 @@ function MultiLineChart({ points, colors }: { points: RevenueTrendPoint[]; color
   const xLabelStep = Math.max(1, Math.floor(points.length / 8))
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="segment-analysis__svg" style={{ height: H }}>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="segment-analysis__svg segment-analysis__svg--trend">
       {Array.from({ length: ticks + 1 }, (_, i) => {
         const v = (maxY / ticks) * i
         const y = yPos(v)

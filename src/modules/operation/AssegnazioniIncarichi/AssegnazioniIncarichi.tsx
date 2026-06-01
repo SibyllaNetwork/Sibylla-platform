@@ -225,7 +225,7 @@ export default function AssegnazioniIncarichi({ navigate }: { navigate: (p: stri
             </select>
           </div>
           <div className="ass-inc__field">
-            <label>Ricerca</label>
+            <label>Cerca</label>
             <div className="ass-inc__search">
               <input type="search" className="sib-input" placeholder="Cerca" value={search} onChange={(e) => setSearch(e.target.value)} />
               <i className="fa-light fa-magnifying-glass ass-inc__search-ico" />

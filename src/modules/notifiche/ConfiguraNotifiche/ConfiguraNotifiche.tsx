@@ -131,10 +131,10 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
                           />
                           <div className="cn-spinner__btns">
                             <button onClick={()=>setGg(ri,(r.gg??0)+1)} className="cn-spinner__btn cn-spinner__btn--up">
-                              <i className="fa-solid fa-chevron-up" style={{fontSize:6,color:T.textDisabled}} aria-hidden="true"/>
+                              <i className="fa-solid fa-chevron-up cn-spinner__chevron" aria-hidden="true"/>
                             </button>
                             <button onClick={()=>setGg(ri,Math.max(0,(r.gg??0)-1))} className="cn-spinner__btn cn-spinner__btn--down">
-                              <i className="fa-solid fa-chevron-down" style={{fontSize:6,color:T.textDisabled}} aria-hidden="true"/>
+                              <i className="fa-solid fa-chevron-down cn-spinner__chevron" aria-hidden="true"/>
                             </button>
                           </div>
                         </div>

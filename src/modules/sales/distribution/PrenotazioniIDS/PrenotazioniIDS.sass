@@ -4,6 +4,16 @@
 // ═══ PRENOTAZIONI IDS ════════════════════════════════════════════════════════
 .ids
 
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    margin-bottom: 24px
+    flex-wrap: wrap
+
+  &__hotel-group--dyn
+    border-bottom: var(--hotel-border)
+
   &__accordion
     background: $white
     border-radius: 12px
@@ -33,6 +43,9 @@
     height: 8px
     border-radius: 50%
     transition: background 0.2s
+
+    &--dyn
+      background: var(--hotel-dot-bg)
 
   &__hotel-name
     font-family: $font-heading
@@ -85,6 +98,9 @@
     &:hover
       background: var(--color-bg)
 
+    &--dyn
+      border-bottom: var(--row-border)
+
   &__import-date
     font-size: 13px
     color: $text-active
@@ -100,6 +116,7 @@
     grid-template-columns: 1fr 1fr
     padding: 10px 20px 10px 40px
     border-top: 1px solid $border
+    background: $blue-light
 
   &__hotel-total-label
     font-size: 12px

@@ -60,12 +60,12 @@ export function AreaTrend({
     <div className="area-trend">
       <div className="area-trend__legend">
         <span className="area-trend__legend-item">
-          <span className="area-trend__legend-dot" style={{ background: primaryColor }} />
+          <span className="area-trend__legend-dot area-trend__legend-dot--dyn" style={{ '--legend-dot-bg': primaryColor } as React.CSSProperties} />
           {primaryLabel}
         </span>
         {secondary && (
           <span className="area-trend__legend-item">
-            <span className="area-trend__legend-dot" style={{ background: secondaryColor }} />
+            <span className="area-trend__legend-dot area-trend__legend-dot--dyn" style={{ '--legend-dot-bg': secondaryColor } as React.CSSProperties} />
             {secondaryLabel ?? ''}
           </span>
         )}
@@ -74,8 +74,8 @@ export function AreaTrend({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="area-trend__svg"
-        style={{ height }}
+        className="area-trend__svg area-trend__svg--dyn"
+        style={{ '--svg-h': `${height}px` } as React.CSSProperties}
       >
         {/* Y grid + labels */}
         {Array.from({ length: yTicks + 1 }, (_, i) => {

@@ -1,12 +1,9 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 
 .forniture
   display: flex
@@ -18,6 +15,15 @@ $bg-soft: var(--color-bg)
 
   &__search
     width: min(380px, 100%)
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__search-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    line-height: 1.2
 
   // ── Macro aree (tabs/chip ibride con icona) ───────────────────────
   &__macros
@@ -175,7 +181,7 @@ $bg-soft: var(--color-bg)
     display: inline-flex
     align-items: center
     padding: 2px 8px
-    background: $bg-soft
+    background: $bg
     color: $primary
     border: 1px solid $border
     border-radius: 999px
@@ -201,6 +207,7 @@ $bg-soft: var(--color-bg)
     border-radius: 12px
     overflow: hidden
     min-height: 320px
+    background-image: var(--hero-image)
     background-size: cover
     background-position: center
     color: white
@@ -421,7 +428,7 @@ $bg-soft: var(--color-bg)
     text-align: center
     color: $muted
     font-size: 13px
-    background: $bg-soft
+    background: $bg
     border-radius: 8px
 
   &__products-grid
@@ -447,7 +454,7 @@ $bg-soft: var(--color-bg)
     aspect-ratio: 4 / 3
     overflow: hidden
     border-radius: 6px
-    background: $bg-soft
+    background: $bg
 
     img
       width: 100%

@@ -86,7 +86,7 @@ export function DonutLegend({ slices, total }: { slices: DonutSlice[]; total: nu
         const pct = total > 0 ? ((Math.max(0, s.value) / total) * 100) : 0
         return (
           <span key={i} className="donut-legend__item">
-            <span className="donut-legend__dot" style={{ background: s.color }} />
+            <span className="donut-legend__dot donut-legend__dot--dyn" style={{ '--legend-dot-bg': s.color } as React.CSSProperties} />
             <span className="donut-legend__label">{s.label}</span>
             <span className="donut-legend__pct">{pct.toFixed(2).replace('.', ',')}%</span>
           </span>

@@ -1,14 +1,11 @@
 @use "sass:color"
+@use '../../../styles/tokens' as *
 
-$primary: #204769
 $primary-soft: #2d5a7f
 $ink: #111827
 $muted: #4b5563
-$border: var(--color-border)
-$border-strong: var(--color-border)
-$bg-soft: var(--color-bg)
 $bg-zebra: #f3f8fb
-$accent: #f5b400
+$star-gold: #f5b400
 $danger: #dc2626
 
 .crea-struttura
@@ -22,6 +19,15 @@ $danger: #dc2626
   // ── Toolbar ────────────────────────────────────────────────────────
   &__search
     width: min(360px, 100%)
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__search-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    line-height: 1.2
 
   &__chip-filters
     display: inline-flex
@@ -88,11 +94,11 @@ $danger: #dc2626
   &__cat-stars
     display: inline-flex
     gap: 2px
-    color: $accent
+    color: $star-gold
     font-size: 13px
 
   &__cat-empty
-    color: $accent
+    color: $star-gold
     opacity: 0.55
 
   &__pms-icon
@@ -202,14 +208,14 @@ $danger: #dc2626
 
   &__rating-star
     cursor: pointer
-    color: $border-strong
+    color: $border
     font-size: 18px
     background: none
     border: none
     padding: 2px
 
     &--filled
-      color: $accent
+      color: $star-gold
 
   // ── Tabella piani ──────────────────────────────────────────────────
   &__floors
@@ -224,7 +230,7 @@ $danger: #dc2626
     background: var(--color-surface)
 
     thead th
-      background: $bg-soft
+      background: $bg
       padding: 8px 10px
       font-weight: 700
       color: $muted
@@ -263,7 +269,7 @@ $danger: #dc2626
     font-size: 12px
 
   &__totale-row
-    background: $bg-soft
+    background: $bg
     font-weight: 700
 
     td
@@ -321,7 +327,7 @@ $danger: #dc2626
     align-items: center
     justify-content: center
     padding: 24px
-    background: $bg-soft
+    background: $bg
     border: 1px solid $border
     border-radius: 10px
 
@@ -401,7 +407,7 @@ $danger: #dc2626
     display: inline-flex
     align-items: center
     justify-content: center
-    background: $bg-soft
+    background: $bg
     border-radius: 12px
     color: $primary
     font-size: 28px

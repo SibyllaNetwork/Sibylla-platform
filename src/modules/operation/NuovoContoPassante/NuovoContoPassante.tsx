@@ -111,7 +111,7 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
           options={[]}
         />
         <div className="nuovo-cp__search-field">
-          <span className="nuovo-cp__search-label">Cerca anticipi</span>
+          <span className="nuovo-cp__search-label">Cerca</span>
           <SearchField
             placeholder="Cerca per importo o data..."
             value={cercaAnticipo}

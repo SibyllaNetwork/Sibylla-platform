@@ -4,6 +4,7 @@
   position: relative;
   margin: -2rem -2rem 2rem;
   overflow: hidden;
+  background-image: var(--hero-image);
   background-size: cover;
   background-position: center;
 }

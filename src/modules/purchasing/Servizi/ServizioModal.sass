@@ -1,3 +1,5 @@
+@use '../../../styles/tokens' as *
+
 .srv-modal
   padding: 14px 18px 18px
   display: flex
@@ -85,10 +87,10 @@
   .srv-modal__type-chip--active
     background: var(--color-primary)
     border-color: var(--color-primary)
-    color: #fff
+    color: $white
 
     &:hover
-      color: #fff
+      color: $white
 
   // ─── Listini con colori distintivi ───────────────────────────────────────
   .srv-modal__price-field

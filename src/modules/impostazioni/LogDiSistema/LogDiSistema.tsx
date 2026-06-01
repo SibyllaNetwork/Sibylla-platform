@@ -196,6 +196,7 @@ export default function LogDiSistema({ navigate }: { navigate: (p: string) => vo
 
       <FilterToolbar>
         <div className="log-sistema__search">
+          <label className="log-sistema__search-label" htmlFor="search">Cerca</label>
           <SearchField
             placeholder="Cerca utente o email…"
             value={search}

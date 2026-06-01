@@ -85,7 +85,8 @@
 .form-label
   font-size: 12px
   font-weight: 600
-  color: $text-active
+  color: $text-inactive
+  line-height: 1.2
   display: block
   margin-bottom: 5px
 
@@ -249,10 +250,12 @@
   &__cell
     min-height: 95px
     padding: 6px 8px
-    border-bottom: 1px solid $border
 
-    &:not(:last-child)
+    &--border-r
       border-right: 1px solid $border
+
+    &--border-b
+      border-bottom: 1px solid $border
 
     &--today
       background: $link-light
@@ -294,6 +297,9 @@
     white-space: nowrap
     cursor: pointer
     transition: opacity 0.12s
+    background: color-mix(in srgb, var(--ev-color) 9%, transparent)
+    border-left: 3px solid var(--ev-color)
+    color: var(--ev-color)
 
     &:hover
       opacity: 0.7
@@ -318,6 +324,7 @@
     width: 10px
     height: 10px
     border-radius: 2px
+    background: var(--dot-color)
 
   &__legend-label
     font-size: 11px
@@ -349,6 +356,10 @@
 .scadenzario__create-ico
   font-size: 14px
 
+.scadenzario__nav-ico
+  font-size: 13px
+  color: $text-active
+
 // ─── Calendar grid ────────────────────────────────────────────────────────────
 .scadenzario__weekday
   &--border
@@ -360,13 +371,15 @@
   justify-content: space-between
   margin-bottom: 3px
 
-// ─── Event dot styles (dynamic bg kept inline) ───────────────────────────────
-// background, borderLeft, color rimangono inline — dipendono da ev.color
-
-// ─── Legend dot (dynamic bg kept inline) ─────────────────────────────────────
-// background rimane inline — dipende da l.color
-
 // ─── Detail modal ─────────────────────────────────────────────────────────────
+.scad-det__icon-del
+  font-size: 15px
+  color: $error
+
+.scad-det__icon-close
+  font-size: 16px
+  color: $text-disabled
+
 .scad-det__header
   display: flex
   align-items: center

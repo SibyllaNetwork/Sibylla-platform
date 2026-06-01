@@ -74,12 +74,12 @@ const Timeline: React.FC<Props> = ({
 
     return {
       style: {
-        left:       ld * DAY_W,
-        width:      Math.max(20, (rd - ld) * DAY_W - 2),
-        background: clr.bg,
-        color:      clr.text,
-        clipPath:   clip,
-        paddingLeft: sL ? 16 : 10,
+        '--bar-left':    `${ld * DAY_W}px`,
+        '--bar-width':   `${Math.max(20, (rd - ld) * DAY_W - 2)}px`,
+        '--bar-bg':      clr.bg,
+        '--bar-color':   clr.text,
+        '--bar-clip':    clip,
+        '--bar-pad-left': sL ? '16px' : '10px',
       } as React.CSSProperties,
       shapeClass,
       selected: selectedId === pren.id,
@@ -139,7 +139,7 @@ const Timeline: React.FC<Props> = ({
       {todayOff >= 0 && todayOff < numDays && (
         <div
           className="timeline__today-line"
-          style={{ left: ROOM_W + todayOff * DAY_W + DAY_W / 2 }}
+          style={{ '--today-left': `${ROOM_W + todayOff * DAY_W + DAY_W / 2}px` } as React.CSSProperties}
         />
       )}
 
@@ -160,7 +160,7 @@ const Timeline: React.FC<Props> = ({
                   <div className="timeline__room-num-wrap">
                     <div
                       className="timeline__room-dot"
-                      style={{ background: CAM_CLR[cam.stato] }}
+                      style={{ '--dot-bg': CAM_CLR[cam.stato] } as React.CSSProperties}
                     />
                     <span className="timeline__room-number">{cam.numero}</span>
                   </div>
@@ -170,7 +170,7 @@ const Timeline: React.FC<Props> = ({
                 {/* Griglia giorni */}
                 <div
                   className="timeline__day-grid"
-                  style={{ minWidth: DAY_W * numDays }}
+                  style={{ '--grid-min-w': `${DAY_W * numDays}px` } as React.CSSProperties}
                   onDragOver={onAssign ? (e) => e.preventDefault() : undefined}
                   onDrop={onAssign ? (e) => {
                     e.preventDefault();
@@ -194,7 +194,7 @@ const Timeline: React.FC<Props> = ({
                           isWE(d)    ? 'timeline__cell--weekend'  : '',
                           occupied   ? 'timeline__cell--occupied' : 'timeline__cell--free',
                         ].join(' ')}
-                        style={{ left: di * DAY_W }}
+                        style={{ '--cell-left': `${di * DAY_W}px` } as React.CSSProperties}
                         onClick={() => { if (!occupied) onEmpty(cam, d); }}
                       />
                     );
@@ -202,12 +202,12 @@ const Timeline: React.FC<Props> = ({
 
                   {/* Icone stato camera */}
                   {cam.stato === 'manutenzione' && days.map((_, di) => (
-                    <div key={`mx${di}`} className="timeline__status-icon" style={{ left: di * DAY_W }}>
+                    <div key={`mx${di}`} className="timeline__status-icon" style={{ '--icon-left': `${di * DAY_W}px` } as React.CSSProperties}>
                       🔧
                     </div>
                   ))}
                   {cam.stato === 'pulizia' && days.map((_, di) => (
-                    <div key={`px${di}`} className="timeline__status-icon" style={{ left: di * DAY_W }}>
+                    <div key={`px${di}`} className="timeline__status-icon" style={{ '--icon-left': `${di * DAY_W}px` } as React.CSSProperties}>
                       ✦
                     </div>
                   ))}
@@ -249,9 +249,9 @@ const Timeline: React.FC<Props> = ({
             {summaryRows.map(row => (
               <div key={row.key} className="timeline__summary-row">
                 <div className="timeline__summary-label">{row.label}</div>
-                <div className="timeline__summary-cells" style={{ minWidth: DAY_W * numDays }}>
+                <div className="timeline__summary-cells" style={{ '--grid-min-w': `${DAY_W * numDays}px` } as React.CSSProperties}>
                   {summary.map((sg, di) => (
-                    <div key={di} className="timeline__summary-cell" style={{ left: di * DAY_W }}>
+                    <div key={di} className="timeline__summary-cell" style={{ '--cell-left': `${di * DAY_W}px` } as React.CSSProperties}>
                       {sg[row.key]}
                     </div>
                   ))}

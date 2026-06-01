@@ -53,7 +53,7 @@ const HotelVisualization: React.FC<Props> = ({ piani, activePiani }) => {
           <div key={st} className="hotel-viz__legend-item">
             <div
               className="hotel-viz__legend-dot"
-              style={{ background: CAM_CLR[st] }}
+              style={{ '--dot-bg': CAM_CLR[st] } as React.CSSProperties}
             />
             <span className="hotel-viz__legend-label">{st}</span>
           </div>
@@ -65,9 +65,9 @@ const HotelVisualization: React.FC<Props> = ({ piani, activePiani }) => {
       {selPiano && <FloorDetail piano={selPiano} onClose={() => setSelId(null)} />}
 
       {tip && (
-        <div className="hotel-viz__tip" style={{ left: tip.x + 14, top: tip.y + 14 }}>
+        <div className="hotel-viz__tip" style={{ '--tip-left': `${tip.x + 14}px`, '--tip-top': `${tip.y + 14}px` } as React.CSSProperties}>
           <span className="hotel-viz__tip-num">Cam. {tip.cam.numero}</span>
-          <span className="hotel-viz__tip-dot" style={{ background: CAM_CLR[tip.cam.stato] }} />
+          <span className="hotel-viz__tip-dot" style={{ '--dot-bg': CAM_CLR[tip.cam.stato] } as React.CSSProperties} />
           <span className="hotel-viz__tip-state">{STATO_LABEL[tip.cam.stato]}</span>
         </div>
       )}
