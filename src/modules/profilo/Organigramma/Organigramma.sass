@@ -1,39 +1,522 @@
 // ─── ORGANIGRAMMA ─────────────────────────────────────────────────────────────
+// Editor visuale dell'organigramma: colonne sorgente (Ruolo / Profilo) a sinistra,
+// canvas ad albero a destra con drag&drop. I colori ruolo/profilo sono valori
+// d'illustrazione passati via custom property.
 @use '../../../styles/tokens' as *
 
-.organigramma
-  // ── Card segnaposto (in attesa dell'implementazione reale) ──────────────────
-  &__stub
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-xl
-    padding: 48px
-    text-align: center
+.org
+  &__saved
+    margin-bottom: 12px
 
-  &__stub-badge
-    width: 52px
-    height: 52px
-    border-radius: 14px
-    background: alpha($blue, 0.09)
+  // ── Toolbar azioni (PDF / Salva) ────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-bottom: 12px
+
+  // ── Layout generale ─────────────────────────────────────────────────────────
+  &__layout
+    display: flex
+    gap: 16px
+    align-items: stretch
+
+  // ── Sidebar sinistra ────────────────────────────────────────────────────────
+  &__sidebar
+    display: flex
+    gap: 12px
+    flex: none
+
+    &--collapsed
+      width: 40px
+
+  &__expand-all
+    width: 40px
+    align-self: stretch
     display: flex
     align-items: center
     justify-content: center
-    margin: 0 auto 16px
-
-  &__stub-dot
-    width: 14px
-    height: 14px
-    border-radius: $radius-full
-    background: $blue
-
-  &__stub-title
-    font-family: $font-heading
-    font-size: 18px
-    font-weight: 600
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-xl
     color: $primary
-    margin: 0 0 $space-sm
+    cursor: pointer
+    transition: $transition-fast
 
-  &__stub-msg
-    font-size: 13px
+    &:hover
+      background: $primary-50
+
+  &__col
+    width: 210px
+    display: flex
+    flex-direction: column
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-xl
+    overflow: hidden
+
+    &--collapsed
+      width: 44px
+
+  &__col-expand
+    flex: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 14px 0
+    background: none
+    border: none
+    cursor: pointer
+    color: $primary
+    font-size: 12px
+    font-weight: 700
+
+    span
+      writing-mode: vertical-rl
+      letter-spacing: 0.5px
+
+  &__col-title
+    padding: 12px 14px
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+    border-bottom: 1px solid $border
+
+  &__col-list
+    flex: 1
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 12px
+    overflow-y: auto
+    max-height: 560px
+
+  &__col-collapse
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    padding: 9px
+    background: $bg
+    border: none
+    border-top: 1px solid $border
+    cursor: pointer
+    font-size: 11px
+    font-weight: 600
     color: $text-inactive
+    transition: $transition-fast
+
+    &:hover
+      color: $primary
+
+  // ── Chip sorgente: Ruolo ──
+  &__src-ruolo
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 8px 10px
+    border-radius: $radius-md
+    border: 1px solid $border
+    border-left: 4px solid var(--c)
+    background: $white
+    cursor: grab
+    transition: $transition-fast
+
+    &:hover
+      box-shadow: $shadow-sm
+
+    &:active
+      cursor: grabbing
+
+  &__src-sigla
+    flex: none
+    min-width: 38px
+    height: 24px
+    padding: 0 6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: $radius-md
+    font-size: 11px
+    font-weight: 700
+    color: $white
+    background: var(--c)
+
+  &__src-nome
+    font-size: 12px
+    color: $text-active
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  // ── Chip sorgente: Profilo ──
+  &__src-prof
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 7px 10px
+    border-radius: $radius-md
+    border: 1px solid $border
+    background: $white
+    cursor: grab
+    transition: $transition-fast
+
+    &:hover
+      box-shadow: $shadow-sm
+
+    &:active
+      cursor: grabbing
+
+  // Avatar profilo: icona (o iniziali) su disco colorato (come in Ruoli & funzioni)
+  &__avatar
+    flex: none
+    width: 22px
+    height: 22px
+    border-radius: 50%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 10px
+    font-weight: 700
+    color: $white
+    background: var(--c)
+
+    i
+      font-size: 12px
+
+  // ── Canvas / area stampabile ──────────────────────────────────────────────────
+  &__main
+    flex: 1
+    min-width: 0
+
+  &__print-area
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-xl
+    overflow: hidden
+
+  &__logo-bar
+    display: flex
+    align-items: center
+    gap: 14px
+    padding: 12px 16px
+    border-bottom: 1px solid $border
+
+  &__logo
+    width: 96px
+    height: 48px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: 1px dashed $border
+    border-radius: $radius-md
+    cursor: pointer
+    overflow: hidden
+
+    img
+      max-width: 100%
+      max-height: 100%
+      object-fit: contain
+
+  &__logo-ph
+    font-size: 11px
+    color: $text-disabled
+
+  &__company
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 700
+    color: $primary
+
+  &__canvas
+    min-height: 460px
+    padding: 28px 20px 40px
+    overflow: auto
+
+  &__hint
+    height: 400px
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 14px
+    color: $text-disabled
+    border: 2px dashed $border
+    border-radius: $radius-xl
+
+  // ── Albero (connettori CSS) ───────────────────────────────────────────────────
+  &__tree
+    display: flex
+    justify-content: center
+    min-width: max-content
+    margin: 0 auto
+    padding: 0
+    list-style: none
+
+  &__tree ul
+    display: flex
+    justify-content: center
+    position: relative
+    padding-top: 26px
+    list-style: none
     margin: 0
+
+  &__tree li
+    list-style: none
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+    padding: 26px 14px 0
+
+  // connettori solo per i nodi figli (dentro un ul annidato)
+  &__tree ul li::before,
+  &__tree ul li::after
+    content: ''
+    position: absolute
+    top: 0
+    right: 50%
+    width: 50%
+    height: 26px
+    border-top: 2px solid $border
+
+  &__tree ul li::after
+    right: auto
+    left: 50%
+    border-left: 2px solid $border
+
+  &__tree ul li:only-child::before,
+  &__tree ul li:only-child::after
+    display: none
+
+  &__tree ul li:first-child::before,
+  &__tree ul li:last-child::after
+    border: 0
+
+  &__tree ul li:last-child::before
+    border-right: 2px solid $border
+    border-radius: 0 8px 0 0
+
+  &__tree ul li:first-child::after
+    border-radius: 8px 0 0 0
+
+  &__tree ul::before
+    content: ''
+    position: absolute
+    top: 0
+    left: 50%
+    height: 26px
+    border-left: 2px solid $border
+
+  // ── Blocco nodo ───────────────────────────────────────────────────────────────
+  &__node
+    position: relative
+    width: 208px
+    background: $white
+    border: 1px solid $border
+    border-left: 4px solid var(--node-color)
+    border-radius: $radius-lg
+    box-shadow: $shadow-sm
+    cursor: grab
+    transition: $transition-fast
+
+    &:hover
+      box-shadow: $shadow-md
+
+    &:active
+      cursor: grabbing
+
+    // radice Amministratore: evidenziata e non eliminabile
+    &--admin
+      box-shadow: 0 0 0 1px $primary-100, $shadow-sm
+      cursor: default
+
+  &__node-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 6px
+    padding: 9px 11px
+    background: color-mix(in srgb, var(--node-color) 6%, transparent)
+    border-bottom: 1px solid $border
+
+  &__node-role
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__node-edit
+    flex: 1
+    min-width: 0
+    border: 1px solid $primary
+    border-radius: 5px
+    padding: 2px 6px
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+    outline: none
+
+  &__node-actions
+    display: flex
+    gap: 2px
+    flex: none
+
+    button
+      width: 22px
+      height: 22px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      border: none
+      background: none
+      border-radius: 5px
+      cursor: pointer
+      font-size: 11px
+      color: $text-inactive
+      transition: $transition-fast
+
+      &:hover
+        background: $primary-50
+        color: $primary
+
+  &__node-profili
+    display: flex
+    flex-direction: column
+    gap: 5px
+    padding: 9px 10px
+
+  &__node-empty
+    font-size: 11px
+    font-style: italic
+    color: $text-disabled
+
+  &__node-chip
+    display: flex
+    align-items: center
+    gap: 6px
+    padding: 4px 6px
+    border-radius: $radius-sm
+    background: color-mix(in srgb, var(--c) 10%, transparent)
+
+  &__node-chip-name
+    flex: 1
+    font-size: 12px
+    color: $text-active
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__node-chip-x
+    flex: none
+    width: 18px
+    height: 18px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    background: none
+    border-radius: 4px
+    cursor: pointer
+    font-size: 10px
+    color: $text-inactive
+
+    &:hover
+      color: $error
+
+  // ── Aggiunta rapida pari livello / sotto-livello ──
+  &__node-add
+    display: flex
+    border-top: 1px dashed $border
+
+  &__node-add-btn
+    flex: 1
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 5px
+    padding: 7px 4px
+    background: none
+    border: none
+    cursor: pointer
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    transition: $transition-fast
+
+    &:first-child
+      border-right: 1px dashed $border
+
+    i
+      font-size: 10px
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+    &--on
+      background: $primary
+      color: $white
+
+      &:hover
+        background: $primary
+        color: $white
+
+  &__role-menu
+    position: absolute
+    top: calc(100% + 6px)
+    left: 50%
+    transform: translateX(-50%)
+    z-index: 20
+    width: 210px
+    max-height: 240px
+    overflow-y: auto
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    box-shadow: $shadow-lg
+    padding: 6px
+
+  &__role-menu-title
+    padding: 6px 8px
+    font-size: 11px
+    font-weight: 700
+    color: $text-inactive
+
+  &__role-menu-item
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 7px 8px
+    background: none
+    border: none
+    border-radius: $radius-md
+    cursor: pointer
+    font-size: 12px
+    color: $text-active
+    text-align: left
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-50
+
+// ── Stampa / PDF: mostra solo l'area organigramma ──────────────────────────────
+@media print
+  body
+    visibility: hidden
+
+  .org__print-area,
+  .org__print-area *
+    visibility: visible
+
+  .org__print-area
+    position: absolute
+    left: 0
+    top: 0
+    width: 100%
+    border: none

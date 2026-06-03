@@ -1,0 +1,56 @@
+// ─── ICONA PICKER ─────────────────────────────────────────────────────────────
+// Selettore icona profilo (gruppi Maschile / Femminile) usato in Ruoli & funzioni.
+@use '../../styles/tokens' as *
+
+.icona-picker
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  &__group-title
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    margin-bottom: 8px
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(5, 1fr)
+    gap: 8px
+
+  &__item
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding: 12px 6px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-md
+    cursor: pointer
+    color: $text-active
+    transition: $transition-fast
+
+    i
+      font-size: 22px
+      color: $primary
+
+    span
+      font-size: 10px
+      color: $text-inactive
+      text-align: center
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+    &--on
+      border-color: $primary
+      box-shadow: 0 0 0 1px $primary inset
+      background: $primary-50
+
+  &__footer
+    display: flex
+    justify-content: flex-end
+    border-top: 1px solid $border
+    padding-top: 14px

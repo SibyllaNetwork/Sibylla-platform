@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import T from '../../../core/tokens';
 import BtnBack from '../../../core/components/BtnBack';
 import Modal from '../../../core/components/Modal';
 import Tooltip from '../../../core/components/Tooltip';
@@ -8,12 +7,18 @@ import PageHeader from '../../../core/components/PageHeader'
 import './RuoliFunzioni.sass'
 import { InputField, SelectField } from '../../../core/components/form'
 import { useOrgStore } from '../../../store/useOrgStore'
+import { useRuoliStore } from '../../../store/useRuoliStore'
+import IconaPicker from '../../../core/components/IconaPicker'
 
 export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
-  const [ruoli,    setRuoli]    = useState([{nome:"Operation",funzione:""},{nome:"Prova",funzione:""},{nome:"Prova",funzione:""},{nome:"Ruoloooo",funzione:""}]);
-  const [assoc,    setAssoc]    = useState([{nome:"Operatore Tutorial",initials:"OT",color:"#9B59B6",ruolo:"",contratto:""},{nome:"Andrea G Test",initials:"AG",color:T.blue,ruolo:"",contratto:""},{nome:"Test Test",initials:"TT",color:T.textDisabled,ruolo:"",contratto:""},{nome:"Sicilia Andrea",initials:"SA",color:"#E07B39",ruolo:"",contratto:""},{nome:"Gianpaolo Armeni",initials:"GA",color:"#5A8A3C",ruolo:"",contratto:""},{nome:"Ali Aslan",initials:"AA",color:T.primary,ruolo:"",contratto:""},{nome:"Massimo Belloni",initials:"MB",color:"#C4A820",ruolo:"",contratto:""},{nome:"Marco Campo",initials:"MC",color:"#E07B39",ruolo:"",contratto:""}]);
+  // Ruoli e profili sono condivisi (store) così l'Organigramma li importa come impostati qui
+  const ruoli = useRuoliStore(s => s.ruoli);
+  const setRuoli = useRuoliStore(s => s.setRuoli);
+  const assoc = useRuoliStore(s => s.profili);
+  const setAssoc = useRuoliStore(s => s.setProfili);
   const [showModal,setShowModal] = useState(false);
   const [newRuolo, setNewRuolo]  = useState("");
+  const [iconPickerFor, setIconPickerFor] = useState<number|null>(null);
   const [saved,    setSaved]     = useState(false);
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [logoError,   setLogoError]   = useState<string | null>(null);
@@ -169,10 +174,10 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
                 name={`funzione-${i}`}
                 placeholder="Seleziona funzione"
                 value={r.funzione}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRuoli(prev => prev.map((item,j) => j===i ? {...item, funzione: e.target.value} : item))}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRuoli(ruoli.map((item,j) => j===i ? {...item, funzione: e.target.value} : item))}
                 options={funzioni.map(f => ({ value: f, label: f }))}
               />
-              <button onClick={()=>setRuoli(prev=>prev.filter((_,j)=>j!==i))}
+              <button onClick={()=>setRuoli(ruoli.filter((_,j)=>j!==i))}
                 className="go__delete-btn">
                 <i className="fa-duotone fa-trash go__delete-ico" aria-hidden="true"/>
               </button>
@@ -194,23 +199,25 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
             <div key={i}
               className={`go__assoc-row ${i<assoc.length-1?'go__assoc-row--border':''}`}>
               <div className="go__assoc-user">
-                <div className="go__avatar" style={{'--avatar-color':a.color} as React.CSSProperties}>
-                  {a.initials}
-                </div>
+                <button type="button" className="go__avatar go__avatar--btn"
+                  style={{'--avatar-color':a.color} as React.CSSProperties}
+                  title="Scegli icona profilo" onClick={()=>setIconPickerFor(i)}>
+                  {a.icona ? <i className={`fa-light ${a.icona}`} aria-hidden="true"/> : a.initials}
+                </button>
                 <span className="go__assoc-name">{a.nome}</span>
               </div>
               <SelectField
                 name={`ruolo-${i}`}
                 placeholder="Seleziona Ruolo"
                 value={a.ruolo}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAssoc(prev => prev.map((item,j) => j===i ? {...item, ruolo: e.target.value} : item))}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAssoc(assoc.map((item,j) => j===i ? {...item, ruolo: e.target.value} : item))}
                 options={ruoli.map(r => ({ value: r.nome, label: r.nome }))}
               />
                <SelectField
                 name={`contratto-${i}`}
                 placeholder="Seleziona Contratto"
                 value={a.contratto}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAssoc(prev => prev.map((item,j) => j===i ? {...item, contratto: e.target.value} : item))}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setAssoc(assoc.map((item,j) => j===i ? {...item, contratto: e.target.value} : item))}
                 options={contratti.map(c => ({ value: c, label: c }))}
               />
             </div>
@@ -236,7 +243,7 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
           <div className="go__modal-actions">
             <button onClick={()=>{setShowModal(false);setNewRuolo("");}} className="sib-btn sib-btn--secondary">Annulla</button>
             <button
-              onClick={()=>{if(newRuolo.trim()){setRuoli(p=>[...p,{nome:newRuolo.trim(),funzione:""}]);setNewRuolo("");setShowModal(false);}}}
+              onClick={()=>{if(newRuolo.trim()){setRuoli([...ruoli,{nome:newRuolo.trim(),funzione:""}]);setNewRuolo("");setShowModal(false);}}}
               disabled={!newRuolo.trim()}
               className={`sib-btn sib-btn--primary ${!newRuolo.trim()?'go__modal-save--disabled':''}`}>
               Aggiungi
@@ -244,6 +251,14 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
           </div>
         </div>
       </Modal>
+
+      {/* ── Selettore icona profilo ──────────────────────────────────── */}
+      <IconaPicker
+        open={iconPickerFor !== null}
+        value={iconPickerFor !== null ? assoc[iconPickerFor]?.icona : undefined}
+        onClose={()=>setIconPickerFor(null)}
+        onSelect={(fa)=>{ if(iconPickerFor !== null) setAssoc(assoc.map((a,j)=> j===iconPickerFor ? {...a, icona: fa ?? undefined} : a)) }}
+      />
     </div>
   );
 }
