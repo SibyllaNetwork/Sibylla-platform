@@ -169,12 +169,11 @@
 .scadenzario
 
   &__toolbar
-    display: flex
+    display: grid
+    grid-template-columns: 1fr auto 1fr
     align-items: center
-    justify-content: space-between
     margin-bottom: 14px
     gap: 12px
-    flex-wrap: wrap
 
   &__month
     font-family: $font-heading
@@ -186,26 +185,8 @@
   &__controls
     display: flex
     align-items: center
+    justify-self: end
     gap: 6px
-
-  &__create-btn
-    display: flex
-    align-items: center
-    gap: 6px
-    background: $white
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 7px 14px
-    cursor: pointer
-    font-size: 13px
-    font-weight: 600
-    color: $text-active
-    white-space: nowrap
-    transition: $transition-fast
-
-    &:hover
-      border-color: $primary
-      color: $primary
 
   &__nav-btn
     width: 32px
@@ -222,6 +203,14 @@
     &:hover
       border-color: $primary
       background: $primary-100
+
+    // variante "Oggi": larghezza intrinseca con testo
+    &--today
+      width: auto
+      padding: 0 14px
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
 
   &__grid
     background: $white
@@ -266,6 +255,13 @@
 
     &--past
       background-image: repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(0,0,0,0.025) 6px, rgba(0,0,0,0.025) 12px)
+
+    // giorno senza eventi: cliccabile per creare un nuovo evento
+    &--clickable
+      cursor: pointer
+
+      &:hover
+        background: $link-light
 
   &__cell-num
     font-size: 13px
@@ -353,9 +349,6 @@
   accent-color: $primary
   cursor: pointer
 
-.scadenzario__create-ico
-  font-size: 14px
-
 .scadenzario__nav-ico
   font-size: 13px
   color: $text-active
@@ -437,6 +430,51 @@
   flex-direction: column
   gap: 14px
 
+// Nome evento: input a sola riga di base (stile sottolineato)
+.scad-create__name
+  border: none
+  border-bottom: 1px solid $border
+  border-radius: 0
+  padding: 4px 2px
+  font-size: 15px
+  color: $text-active
+  background: transparent
+  outline: none
+  transition: $transition-fast
+
+  &::placeholder
+    color: $text-disabled
+
+  &:focus
+    border-bottom-color: $primary
+
+// Etichetta di gruppo (es. "Giornate") allineata alle label dei campi form
+.scad-create__sublabel
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  margin-bottom: 6px
+
+.scad-create__radio-row
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 28px
+
+.scad-create__inline
+  display: flex
+  align-items: center
+  gap: 12px
+
+.scad-create__inline-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  white-space: nowrap
+
+  & + .sib-input
+    flex: 1
+
 .scad-create__date-row
   display: grid
   grid-template-columns: 1fr 1fr
@@ -447,4 +485,208 @@
   justify-content: flex-end
   gap: 10px
   margin-top: 4px
+
+// ─── Switch vista (Giorno / Settimana / Mese / Anno) ───────────────────────────
+// Segmented control unito, centrato nella toolbar; attiva = fill navy pieno
+.scadenzario__view-switch
+  display: inline-flex
+  justify-self: center
+  border: 1px solid $border
+  border-radius: 8px
+  overflow: hidden
+
+.scadenzario__view-btn
+  padding: 6px 14px
+  font-size: 13px
+  font-weight: 600
+  color: $text-inactive
+  background: $white
+  border: none
+  cursor: pointer
+  transition: $transition-fast
+
+  &:not(:last-child)
+    border-right: 1px solid $border
+
+  &:hover
+    color: $primary
+
+  &--active
+    background: $primary
+    color: $white
+
+  &--active:hover
+    color: $white
+
+// ─── Vista Settimana ───────────────────────────────────────────────────────────
+.scadenzario__weekday--today
+  color: $primary
+
+.scadenzario__week-row
+  display: grid
+  grid-template-columns: repeat(7, 1fr)
+
+.scadenzario__week-cell
+  min-height: 340px
+  padding: 8px
+
+.scadenzario__week-empty
+  font-size: 12px
+  color: $text-disabled
+  text-align: center
+  margin-top: 8px
+
+.scadenzario__event-time
+  font-weight: 700
+
+// ─── Vista Giorno ──────────────────────────────────────────────────────────────
+.scadenzario__day
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  overflow: hidden
+
+.scadenzario__day-empty
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+  padding: 40px
+  text-align: center
+  font-size: 13px
+  color: $text-inactive
+
+  &--clickable
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      background: $link-light
+      color: $primary
+
+.scadenzario__day-row
+  display: flex
+  align-items: center
+  gap: 16px
+  padding: 14px 18px
+  cursor: pointer
+  border-left: 4px solid var(--ev-color)
+  transition: $transition-fast
+
+  &:not(:last-child)
+    border-bottom: 1px solid $border
+
+  &:hover
+    background: $link-light
+
+.scadenzario__day-time
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+  min-width: 52px
+
+.scadenzario__day-title
+  flex: 1
+  font-size: 14px
+  color: $text-active
+
+.scadenzario__day-reparto
+  font-size: 12px
+  color: $text-inactive
+
+// ─── Vista Anno (mini-calendari mensili, stile Calendario master) ──────────────
+.scadenzario__year
+  display: grid
+  grid-template-columns: repeat(4, minmax(0,1fr))
+  gap: 12px
+
+  @media (max-width: 1280px)
+    grid-template-columns: repeat(3, minmax(0,1fr))
+
+  @media (max-width: 900px)
+    grid-template-columns: repeat(2, minmax(0,1fr))
+
+.scadenzario__mini
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  padding: 10px
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.scadenzario__mini-head
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  padding: 0 2px 6px
+  border-bottom: 1px solid $border
+  cursor: pointer
+
+  &:hover .scadenzario__mini-name
+    color: $primary
+
+.scadenzario__mini-name
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+
+.scadenzario__mini-year
+  font-size: 10px
+  font-weight: 600
+  letter-spacing: 0.5px
+  color: $text-disabled
+
+.scadenzario__mini-weekdays,
+.scadenzario__mini-days
+  display: grid
+  grid-template-columns: repeat(7, 1fr)
+  gap: 2px
+
+.scadenzario__mini-wd
+  text-align: center
+  font-size: 9px
+  font-weight: 700
+  color: $text-disabled
+
+.scadenzario__mini-day
+  position: relative
+  min-height: 26px
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 2px
+  padding: 2px 0
+  border: none
+  background: transparent
+  border-radius: 5px
+  cursor: pointer
+  transition: $transition-fast
+
+  &:hover:not(.scadenzario__mini-day--empty)
+    background: $primary-50
+
+  &--empty
+    pointer-events: none
+
+  &--today
+    background: $link-light
+
+.scadenzario__mini-num
+  font-size: 10px
+  line-height: 1
+  color: $text-active
+
+.scadenzario__mini-dots
+  display: flex
+  gap: 2px
+  height: 4px
+
+.scadenzario__mini-dot
+  width: 4px
+  height: 4px
+  border-radius: 50%
+  background: var(--ev-color)
 

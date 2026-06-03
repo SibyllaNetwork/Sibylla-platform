@@ -4,7 +4,7 @@ import Modal from '../../../core/components/Modal'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import './Scadenzario.sass'
-import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
+import { InputField, SelectField, DatePickerField, RadioGroup } from '../../../core/components/form'
 
 type CalEvent = {
   day: number; month: number; year: number; title: string; color: string;
@@ -14,10 +14,11 @@ type CalEvent = {
 export default function Scadenzario({ navigate }: { navigate: (p:string) => void }) {
   const today = new Date()
   const [filter,        setFilter]        = useState<'personale'|'reparto'|'tutti'>('tutti')
-  const [curDate,       setCurDate]       = useState(new Date(today.getFullYear(), today.getMonth(), 1))
+  const [view,          setView]          = useState<'giorno'|'settimana'|'mese'|'anno'>('mese')
+  const [curDate,       setCurDate]       = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate()))
   const [showModal,     setShowModal]     = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalEvent|null>(null)
-  const [newEv,         setNewEv]         = useState({ titolo:'', tipologia:'', reparto:'', dataInizio:'', oraInizio:'00:00' })
+  const [newEv,         setNewEv]         = useState({ titolo:'', tipologia:'', reparto:'', giornate:'singola', visibilita:'pubblico', dataInizio:'', oraInizio:'00:00', promemoria:'', insiemeA:'Mario' })
   const [extraEvents,   setExtraEvents]   = useState<CalEvent[]>([])
 
   const yr = curDate.getFullYear(), mo = curDate.getMonth()
@@ -47,9 +48,90 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
     {day:23,month:mo,year:yr,title:'Manutenzione camere',    color:'#9B59B6',tipo:'reparto',   tipologia:'Appuntamento', reparto:'Operation',         ora:'08:00',creatoDa:'Luca H.'},
     {day:28,month:mo,year:yr,title:'Chiusura periodo',       color:T.accent, tipo:'personale', tipologia:'Scadenza',     reparto:'Finance',           ora:'17:00',creatoDa:'Luca H.'},
   ]
-  const allEvents    = [...defaultEvents,...extraEvents]
+  // Eventi sparsi su tutto l'anno (oltre a quelli del mese corrente) per dare
+  // senso alla vista "Anno" e alle navigazioni temporali
+  const spreadEvents: CalEvent[] = [
+    {day:9, month:0, year:yr, title:'Rinnovo licenze software', color:T.warning, tipo:'reparto',   tipologia:'Scadenza', reparto:'Finance',           ora:'09:00', creatoDa:'Luca H.'},
+    {day:21,month:1, year:yr, title:'Audit qualità',            color:'#9B59B6', tipo:'reparto',   tipologia:'Riunione', reparto:'Operation',         ora:'11:00', creatoDa:'Luca H.'},
+    {day:14,month:3, year:yr, title:'Fiera del turismo',        color:'#5A8A3C', tipo:'personale', tipologia:'Evento',   reparto:'Sales & Marketing', ora:'10:00', creatoDa:'Luca H.'},
+    {day:7, month:6, year:yr, title:'Inventario semestrale',    color:T.error,   tipo:'reparto',   tipologia:'Scadenza', reparto:'Purchasing',        ora:'08:30', creatoDa:'Luca H.'},
+    {day:19,month:8, year:yr, title:'Formazione staff',         color:'#9B59B6', tipo:'reparto',   tipologia:'Riunione', reparto:'Human Resources',   ora:'15:00', creatoDa:'Luca H.'},
+    {day:3, month:10,year:yr, title:'Budget anno prossimo',     color:T.warning, tipo:'reparto',   tipologia:'Riunione', reparto:'Finance',           ora:'14:00', creatoDa:'Luca H.'},
+    {day:27,month:11,year:yr, title:'Chiusura bilancio',        color:T.error,   tipo:'personale', tipologia:'Scadenza', reparto:'Finance',           ora:'17:00', creatoDa:'Luca H.'},
+  ]
+  const allEvents    = [...defaultEvents,...spreadEvents,...extraEvents]
   const filtered     = allEvents.filter(e => filter==='tutti'||e.tipo===filter)
   const eventsForDay = (d:number,t:string) => t!=='current'?[]:filtered.filter(e=>e.day===d&&e.month===mo&&e.year===yr)
+
+  // ── Supporto viste Giorno / Settimana / Mese / Anno ──
+  const curDay   = curDate.getDate()
+  const dowMon   = (d:Date) => (d.getDay()+6)%7   // 0 = Lunedì
+  const weekStart = (()=>{ const d=new Date(yr,mo,curDay); d.setDate(d.getDate()-dowMon(d)); return d })()
+  const weekDays  = Array.from({length:7},(_,i)=>{ const d=new Date(weekStart); d.setDate(weekStart.getDate()+i); return d })
+  const eventsOn  = (d:Date) => filtered.filter(e=>e.day===d.getDate()&&e.month===d.getMonth()&&e.year===d.getFullYear())
+  const isSameDay = (a:Date,b:Date) => a.getDate()===b.getDate()&&a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()
+
+  const headerLabel =
+    view==='anno'      ? `${yr}` :
+    view==='mese'      ? `${MONTHS[mo]} ${yr}` :
+    view==='settimana' ? `${weekDays[0].getDate()} ${MONTHS[weekDays[0].getMonth()].slice(0,3)} – ${weekDays[6].getDate()} ${MONTHS[weekDays[6].getMonth()].slice(0,3)} ${weekDays[6].getFullYear()}` :
+                         `${DAYS[dowMon(new Date(yr,mo,curDay))]} ${curDay} ${MONTHS[mo]} ${yr}`
+
+  const shiftDate = (dir:number) => {
+    const d = new Date(yr,mo,curDay)
+    if (view==='giorno')        d.setDate(d.getDate()+dir)
+    else if (view==='settimana')d.setDate(d.getDate()+7*dir)
+    else if (view==='mese')     d.setMonth(d.getMonth()+dir)
+    else                        d.setFullYear(d.getFullYear()+dir)
+    return d
+  }
+
+  // Mini-calendario di un mese per la vista Anno (stile "Calendario master")
+  const WD_ABBR = ['L','M','M','G','V','S','D']
+  const renderMiniMonth = (mIdx:number) => {
+    const dimM = getDIM(yr,mIdx), firstM = getFirst(yr,mIdx)
+    const cellsM: (number|null)[] = []
+    for (let i=0;i<firstM;i++) cellsM.push(null)
+    for (let d=1;d<=dimM;d++) cellsM.push(d)
+    return (
+      <div key={mIdx} className="scadenzario__mini">
+        <div className="scadenzario__mini-head" onClick={()=>{ setCurDate(new Date(yr,mIdx,1)); setView('mese') }}>
+          <span className="scadenzario__mini-name">{MONTHS[mIdx]}</span>
+          <span className="scadenzario__mini-year">{yr}</span>
+        </div>
+        <div className="scadenzario__mini-weekdays">
+          {WD_ABBR.map((w,i)=><span key={i} className="scadenzario__mini-wd">{w}</span>)}
+        </div>
+        <div className="scadenzario__mini-days">
+          {cellsM.map((d,i)=>{
+            if (d===null) return <span key={i} className="scadenzario__mini-day scadenzario__mini-day--empty" aria-hidden="true"/>
+            const date = new Date(yr,mIdx,d)
+            const evs  = eventsOn(date)
+            const td   = isSameDay(date,today)
+            return (
+              <button key={i} type="button"
+                className={`scadenzario__mini-day ${td?'scadenzario__mini-day--today':''}`}
+                title={evs.length?`${evs.length} ${evs.length===1?'evento':'eventi'}`:undefined}
+                onClick={()=>{ setCurDate(date); setView('giorno') }}>
+                <span className="scadenzario__mini-num">{d}</span>
+                {evs.length>0 && (
+                  <span className="scadenzario__mini-dots">
+                    {evs.slice(0,3).map((ev,ei)=>(
+                      <span key={ei} className="scadenzario__mini-dot" style={{'--ev-color':ev.color} as React.CSSProperties}/>
+                    ))}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  const fmtISO = (d:Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+  // Apre la modale "Aggiungi Evento"; se passato un giorno, lo precompila come data
+  const openCreate = (d?:Date) => { setNewEv(v=>({...v, dataInizio: d?fmtISO(d):'' })); setShowModal(true) }
 
   const handleSave = () => {
     if (!newEv.titolo||!newEv.dataInizio) return
@@ -57,7 +139,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
     const color = newEv.reparto?(repartoColors[newEv.reparto]||T.blue):(tipologiaColors[newEv.tipologia]||T.blue)
     setExtraEvents(p=>[...p,{day:dt.getDate(),month:dt.getMonth(),year:dt.getFullYear(),title:newEv.titolo,color,tipo:'personale',tipologia:newEv.tipologia||'Evento',reparto:newEv.reparto,ora:newEv.oraInizio,creatoDa:'Luca H.'}])
     setShowModal(false)
-    setNewEv({titolo:'',tipologia:'',reparto:'',dataInizio:'',oraInizio:'00:00'})
+    setNewEv({titolo:'',tipologia:'',reparto:'',giornate:'singola',visibilita:'pubblico',dataInizio:'',oraInizio:'00:00',promemoria:'',insiemeA:'Mario'})
   }
 
   return (
@@ -68,7 +150,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div className="scadenzario__toolbar">
         <div className="scadenzario__toolbar-left">
-          <span className="scadenzario__month">{MONTHS[mo]} {yr}</span>
+          <span className="scadenzario__month">{headerLabel}</span>
           <div className="scadenzario__filter-group">
             {(['personale','reparto','tutti'] as const).map(f=>(
               <label key={f} className="scadenzario__filter-label">
@@ -78,19 +160,27 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
             ))}
           </div>
         </div>
-        <div className="scadenzario__controls">
-          <button className="scadenzario__create-btn" onClick={()=>setShowModal(true)}>
-            <i className="fa-duotone fa-plus scadenzario__create-ico" aria-hidden="true"/> Crea Evento
-          </button>
-          {[{icon:'fa-chevron-left',fn:()=>setCurDate(new Date(yr,mo-1,1))},{icon:'fa-chevron-right',fn:()=>setCurDate(new Date(yr,mo+1,1))}].map((btn,i)=>(
-            <button key={i} className="scadenzario__nav-btn" onClick={btn.fn}>
-              <i className={`fa-duotone ${btn.icon} scadenzario__nav-ico`} aria-hidden="true"/>
-            </button>
+        <div className="scadenzario__view-switch">
+          {([['giorno','Giorno'],['settimana','Settimana'],['mese','Mese'],['anno','Anno']] as const).map(([v,lab])=>(
+            <button key={v} className={`scadenzario__view-btn ${view===v?'scadenzario__view-btn--active':''}`} onClick={()=>setView(v)}>{lab}</button>
           ))}
+        </div>
+        <div className="scadenzario__controls">
+          <button className="sib-btn sib-btn--primary" onClick={()=>openCreate()}>
+            <i className="fa-light fa-circle-plus" aria-hidden="true"/> Crea Evento
+          </button>
+          <button className="scadenzario__nav-btn" onClick={()=>setCurDate(shiftDate(-1))} aria-label="Precedente">
+            <i className="fa-duotone fa-angles-left scadenzario__nav-ico" aria-hidden="true"/>
+          </button>
+          <button className="scadenzario__nav-btn scadenzario__nav-btn--today" onClick={()=>setCurDate(new Date(today.getFullYear(),today.getMonth(),today.getDate()))}>Oggi</button>
+          <button className="scadenzario__nav-btn" onClick={()=>setCurDate(shiftDate(1))} aria-label="Successivo">
+            <i className="fa-duotone fa-angles-right scadenzario__nav-ico" aria-hidden="true"/>
+          </button>
         </div>
       </div>
 
-      {/* ── Calendar grid ───────────────────────────────────────────── */}
+      {/* ── Vista MESE ──────────────────────────────────────────────── */}
+      {view==='mese' && (
       <div className="scadenzario__grid">
         <div className="scadenzario__weekdays">
           {DAYS.map((d,i)=>(
@@ -105,9 +195,11 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
             const dayEvs    = eventsForDay(cell.day,cell.type)
             const col       = idx%7
             const isLast    = idx>=35
+            const canCreate = cell.type==='current' && dayEvs.length===0
             return (
               <div key={idx}
-                className={`scadenzario__cell ${col<6?'scadenzario__cell--border-r':''} ${!isLast?'scadenzario__cell--border-b':''} ${todayCell?'scadenzario__cell--today':outside?'scadenzario__cell--outside':past?'scadenzario__cell--past':''}`}>
+                className={`scadenzario__cell ${col<6?'scadenzario__cell--border-r':''} ${!isLast?'scadenzario__cell--border-b':''} ${todayCell?'scadenzario__cell--today':outside?'scadenzario__cell--outside':past?'scadenzario__cell--past':''} ${canCreate?'scadenzario__cell--clickable':''}`}
+                onClick={()=>{ if(canCreate) openCreate(new Date(yr,mo,cell.day)) }}>
                 <div className="scadenzario__cell-top">
                   <span className={`scadenzario__cell-num ${todayCell?'scadenzario__cell-num--today':outside?'scadenzario__cell-num--outside':''}`}>
                     {cell.day}
@@ -128,6 +220,67 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
           })}
         </div>
       </div>
+      )}
+
+      {/* ── Vista SETTIMANA ─────────────────────────────────────────── */}
+      {view==='settimana' && (
+      <div className="scadenzario__grid">
+        <div className="scadenzario__weekdays">
+          {weekDays.map((d,i)=>(
+            <div key={i} className={`scadenzario__weekday ${i<6?'scadenzario__weekday--border':''} ${isSameDay(d,today)?'scadenzario__weekday--today':''}`}>
+              {DAYS[i].slice(0,3)} {d.getDate()}
+            </div>
+          ))}
+        </div>
+        <div className="scadenzario__week-row">
+          {weekDays.map((d,i)=>{
+            const evs = eventsOn(d).sort((a,b)=>(a.ora||'').localeCompare(b.ora||''))
+            const canCreate = evs.length===0
+            return (
+              <div key={i}
+                className={`scadenzario__week-cell ${i<6?'scadenzario__cell--border-r':''} ${isSameDay(d,today)?'scadenzario__cell--today':''} ${canCreate?'scadenzario__cell--clickable':''}`}
+                onClick={()=>{ if(canCreate) openCreate(d) }}>
+                {canCreate && <div className="scadenzario__week-empty">—</div>}
+                {evs.map((ev,ei)=>(
+                  <div key={ei} className="scadenzario__event" style={{'--ev-color':ev.color} as React.CSSProperties} onClick={e=>{e.stopPropagation();setSelectedEvent(ev)}}>
+                    {ev.ora && <span className="scadenzario__event-time">{ev.ora}</span>} {ev.title}
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      )}
+
+      {/* ── Vista GIORNO ────────────────────────────────────────────── */}
+      {view==='giorno' && (() => {
+        const d = new Date(yr,mo,curDay)
+        const evs = eventsOn(d).sort((a,b)=>(a.ora||'').localeCompare(b.ora||''))
+        return (
+          <div className="scadenzario__day">
+            {evs.length===0
+              ? <div className="scadenzario__day-empty scadenzario__day-empty--clickable" onClick={()=>openCreate(d)}>
+                  <i className="fa-light fa-circle-plus" aria-hidden="true"/> Nessun evento — clicca per aggiungerne uno
+                </div>
+              : evs.map((ev,ei)=>(
+                  <div key={ei} className="scadenzario__day-row" style={{'--ev-color':ev.color} as React.CSSProperties} onClick={()=>setSelectedEvent(ev)}>
+                    <span className="scadenzario__day-time">{ev.ora||'—'}</span>
+                    <span className="scadenzario__day-title">{ev.title}</span>
+                    {ev.reparto && <span className="scadenzario__day-reparto">{ev.reparto}</span>}
+                  </div>
+                ))
+            }
+          </div>
+        )
+      })()}
+
+      {/* ── Vista ANNO (mini-calendari, stile Calendario master) ────── */}
+      {view==='anno' && (
+        <div className="scadenzario__year">
+          {MONTHS.map((_,mIdx)=>renderMiniMonth(mIdx))}
+        </div>
+      )}
 
       {/* ── Legend ──────────────────────────────────────────────────── */}
       <div className="scadenzario__legend">
@@ -182,31 +335,52 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
 
       {/* ── Create event modal ──────────────────────────────────────── */}
       <Modal open={showModal} onClose={()=>setShowModal(false)} title="Aggiungi Evento" size="md">
-<div className="scad-create__form">
-          <InputField
-            name="titolo"
-            placeholder="Nome dell'evento"
+        <div className="scad-create__form">
+          <input
+            className="scad-create__name"
+            placeholder="Inserisci il nome dell'evento"
             value={newEv.titolo}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEv(v => ({ ...v, titolo: e.target.value }))}
+            onChange={e => setNewEv(v => ({ ...v, titolo: e.target.value }))}
           />
           <SelectField
             name="tipologia"
-            placeholder="Tipologia"
+            label="Tipologia di evento"
+            placeholder="Seleziona evento"
             value={newEv.tipologia}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewEv(v => ({ ...v, tipologia: e.target.value }))}
             options={['Evento','Scadenza','Promemoria','Riunione','Appuntamento'].map(t => ({ value: t, label: t }))}
           />
           <SelectField
             name="reparto"
-            placeholder="Reparto"
+            label="Reparto"
+            placeholder="Seleziona reparto"
             value={newEv.reparto}
-       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewEv(v => ({ ...v, reparto: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewEv(v => ({ ...v, reparto: e.target.value }))}
             options={['Executive','Sales & Marketing','Operation','Purchasing','Human Resources','Finance'].map(r => ({ value: r, label: r }))}
           />
+
+          <div>
+            <div className="scad-create__sublabel">Giornate</div>
+            <div className="scad-create__radio-row">
+              <RadioGroup
+                name="giornate"
+                value={newEv.giornate}
+                onChange={v => setNewEv(s => ({ ...s, giornate: v }))}
+                options={[{ value:'singola', label:'Singola' }, { value:'multiple', label:'Multiple' }]}
+              />
+              <RadioGroup
+                name="visibilita"
+                value={newEv.visibilita}
+                onChange={v => setNewEv(s => ({ ...s, visibilita: v }))}
+                options={[{ value:'pubblico', label:'Pubblico' }, { value:'solocon', label:'Solo con' }, { value:'privato', label:'Privato' }]}
+              />
+            </div>
+          </div>
+
           <div className="scad-create__date-row">
             <DatePickerField
               name="dataInizio"
-              label="Data"
+              label="Data inizio"
               required
               type="date"
               value={newEv.dataInizio}
@@ -214,12 +388,29 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
             />
             <DatePickerField
               name="oraInizio"
-              label="Ora"
+              label="Ora inizio"
               type="time"
               value={newEv.oraInizio}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEv(v => ({ ...v, oraInizio: e.target.value }))}
             />
           </div>
+
+          <InputField
+            name="promemoria"
+            placeholder="Inserisci promemoria"
+            value={newEv.promemoria}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEv(v => ({ ...v, promemoria: e.target.value }))}
+          />
+
+          <div className="scad-create__inline">
+            <span className="scad-create__inline-label">Evento insieme a:</span>
+            <input
+              className="sib-input"
+              value={newEv.insiemeA}
+              onChange={e => setNewEv(v => ({ ...v, insiemeA: e.target.value }))}
+            />
+          </div>
+
           <div className="scad-create__actions">
             <button className="sib-btn sib-btn--secondary" onClick={() => setShowModal(false)}>Annulla</button>
             <button className="sib-btn sib-btn--primary" onClick={handleSave} disabled={!newEv.titolo || !newEv.dataInizio}>Salva</button>
