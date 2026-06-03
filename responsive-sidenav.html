@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sidenav responsiva — demo portabile</title>
+
+<!-- ============================================================= -->
+<!-- ==  SEZIONE 1 · CSS                                         == -->
+<!-- ============================================================= -->
+<style>
+  /* ---- Variabili: regola qui breakpoint, larghezze, colori ---- */
+  :root {
+    --breakpoint: 1600px;   /* sotto questa larghezza la sidenav diventa drawer */
+    --side-open:  260px;    /* larghezza sidebar aperta (desktop) */
+    --side-rail:  64px;     /* larghezza sidebar collassata a icone (desktop) */
+    --side-drawer:272px;    /* larghezza drawer su mobile */
+    --topbar-h:   64px;
+    --primary:    #204769;  /* navy della shell */
+    --primary-2:  #1a3a56;
+    --content-bg: #f4f8fb;
+    --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: system-ui, "Segoe UI", sans-serif; }
+
+  /* ---- Shell: sidebar + main affiancate ---- */
+  .app {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--primary);
+  }
+
+  /* main occupa lo spazio lasciato dalla sidebar */
+  .app__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;            /* evita overflow dei figli (tabelle larghe, ecc.) */
+  }
+
+  .app__content {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+    background: var(--content-bg);
+    border-top-left-radius: 24px;
+  }
+
+  /* ---- Overlay scuro dietro al drawer (solo mobile) ---- */
+  .app__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 40;             /* sotto la sidebar (z-index 50) */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease);
+  }
+  .app.is-mobile.side-open .app__overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* =========================================================== */
+  /*  SIDEBAR — il cuore dell'effetto è tutto qui                */
+  /* =========================================================== */
+  .app__sidebar {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--primary);
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* --- DESKTOP: figlio flex, larghezza animata aperta <-> rail icone --- */
+  .app:not(.is-mobile) .app__sidebar {
+    width: var(--side-open);
+    transition: width 0.2s var(--ease);
+  }
+  .app:not(.is-mobile):not(.side-open) .app__sidebar {
+    width: var(--side-rail);   /* collassata: solo icone */
+  }
+
+  /* --- MOBILE: drawer fuori dal flusso, scivola da sinistra sopra il contenuto --- */
+  .app.is-mobile .app__sidebar {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    width: var(--side-drawer);
+    z-index: 50;
+    left: -300px;              /* nascosta off-canvas */
+    box-shadow: none;
+    transition: left 0.3s var(--ease);
+  }
+  .app.is-mobile.side-open .app__sidebar {
+    left: 0;                   /* aperta: entra in scena */
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.55);
+  }
+
+  /* ---- Header sidebar ---- */
+  .side__header {
+    height: var(--topbar-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    flex-shrink: 0;
+  }
+  .side__logo { font-weight: 700; font-size: 16px; white-space: nowrap; }
+  .side__btn {
+    background: transparent; border: 0; color: #fff; cursor: pointer;
+    opacity: .6; padding: 6px; border-radius: 8px; line-height: 0;
+    transition: opacity .15s, background .15s;
+  }
+  .side__btn:hover { opacity: 1; background: rgba(255,255,255,.1); }
+
+  /* ---- Voci di navigazione ---- */
+  .side__nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px; color: rgba(255,255,255,.85);
+    cursor: pointer; white-space: nowrap;
+    border: 0; background: transparent; width: 100%; text-align: left;
+    font-size: 14px; transition: background .15s;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.08); }
+  .nav-item.active { background: rgba(255,255,255,.14); color: #fff; }
+  .nav-item__icon {
+    width: 24px; height: 24px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.12); border-radius: 6px; font-size: 12px;
+  }
+  /* quando la sidebar è collassata (rail) nascondi le etichette e centra le icone */
+  .app:not(.is-mobile):not(.side-open) .nav-item { justify-content: center; padding: 10px 0; }
+  .app:not(.is-mobile):not(.side-open) .nav-item__label,
+  .app:not(.is-mobile):not(.side-open) .side__logo { display: none; }
+
+  /* bottone "espandi" visibile solo quando è collassata su desktop */
+  .side__expand { display: none; padding: 10px 0; }
+  .app:not(.is-mobile):not(.side-open) .side__expand {
+    display: flex; justify-content: center;
+  }
+
+  /* ---- Topbar ---- */
+  .topbar {
+    height: var(--topbar-h);
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+  .topbar__hamburger {
+    display: none;            /* visibile solo in mobile (vedi regola sotto) */
+    background: transparent; border: 0; color: #fff; cursor: pointer;
+    padding: 6px; border-radius: 8px; line-height: 0; transition: background .15s;
+  }
+  .topbar__hamburger:hover { background: rgba(255,255,255,.1); }
+  .app.is-mobile .topbar__hamburger { display: flex; }
+  .topbar__title { font-weight: 600; }
+
+  /* ---- Icona hamburger animata (☰ -> ✕) ---- */
+  .hamburger { position: relative; width: 22px; height: 16px; }
+  .hamburger span {
+    position: absolute; left: 0; width: 100%; height: 2px;
+    background: #fff; border-radius: 2px;
+    transition: transform 0.3s var(--ease), opacity 0.2s var(--ease);
+  }
+  .hamburger span:nth-child(1) { top: 0; }
+  .hamburger span:nth-child(2) { top: 7px; }
+  .hamburger span:nth-child(3) { top: 14px; }
+  /* quando la sidebar è aperta, le barre diventano una X */
+  .app.side-open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .app.side-open .hamburger span:nth-child(2) { opacity: 0; }
+  .app.side-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ---- Solo per rendere visibile la demo del contenuto ---- */
+  .demo-card {
+    background: #fff; border: 1px solid #d8e2ea; border-radius: 12px;
+    padding: 20px; margin-bottom: 16px; color: #243; line-height: 1.5;
+  }
+  .demo-card h2 { margin: 0 0 8px; font-size: 16px; }
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================= -->
+<!-- ==  SEZIONE 2 · HTML (struttura)                            == -->
+<!-- ============================================================= -->
+<!-- La classe `side-open` su .app controlla apertura/chiusura.    -->
+<!-- La classe `is-mobile` viene aggiunta/rimossa dal JS al resize. -->
+<div class="app side-open" id="app">
+
+  <!-- overlay (compare solo su mobile + sidebar aperta) -->
+  <div class="app__overlay" id="overlay"></div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="app__sidebar">
+    <div class="side__header">
+      <span class="side__logo">Sibylla</span>
+      <!-- chiudi/collassa su desktop · chiudi drawer su mobile -->
+      <button class="side__btn" id="btnClose" aria-label="Chiudi menu">&#9776;</button>
+    </div>
+
+    <!-- espandi (solo sidebar collassata su desktop) -->
+    <button class="side__btn side__expand" id="btnExpand" aria-label="Espandi menu">&#9776;</button>
+
+    <nav class="side__nav" id="nav">
+      <button class="nav-item active"><span class="nav-item__icon">D</span><span class="nav-item__label">Dashboard</span></button>
+      <button class="nav-item"><span class="nav-item__icon">P</span><span class="nav-item__label">Prenotazioni</span></button>
+      <button class="nav-item"><span class="nav-item__icon">C</span><span class="nav-item__label">Calendario</span></button>
+      <button class="nav-item"><span class="nav-item__icon">M</span><span class="nav-item__label">Magazzino</span></button>
+      <button class="nav-item"><span class="nav-item__icon">R</span><span class="nav-item__label">Report</span></button>
+      <button class="nav-item"><span class="nav-item__icon">I</span><span class="nav-item__label">Impostazioni</span></button>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="app__main">
+    <header class="topbar">
+      <!-- hamburger: compare solo sotto il breakpoint -->
+      <button class="topbar__hamburger" id="btnHamburger" aria-label="Apri menu">
+        <span class="hamburger"><span></span><span></span><span></span></span>
+      </button>
+      <span class="topbar__title">Pannello</span>
+    </header>
+
+    <main class="app__content">
+      <div class="demo-card">
+        <h2>Sidenav responsiva</h2>
+        <p>Restringi la finestra sotto il breakpoint (default <strong>1600px</strong>):
+           la sidenav esce dal flusso, diventa un drawer a scomparsa con overlay e il
+           contenuto recupera tutto lo spazio. Sopra il breakpoint il bottone &#9776;
+           collassa la sidebar a sola-icona.</p>
+      </div>
+      <div class="demo-card"><p>Contenuto di esempio…</p></div>
+      <div class="demo-card"><p>Contenuto di esempio…</p></div>
+    </main>
+  </div>
+
+</div>
+
+<!-- ============================================================= -->
+<!-- ==  SEZIONE 3 · JavaScript (logica)                        == -->
+<!-- ============================================================= -->
+<script>
+(function () {
+  // breakpoint letto dalla CSS variable (così CSS e JS restano allineati)
+  var BREAKPOINT = parseInt(
+    getComputedStyle(document.documentElement).getPropertyValue('--breakpoint'), 10
+  ) || 1600;
+
+  var app       = document.getElementById('app');
+  var overlay   = document.getElementById('overlay');
+  var hamburger = document.getElementById('btnHamburger');
+  var btnClose  = document.getElementById('btnClose');
+  var btnExpand = document.getElementById('btnExpand');
+  var nav       = document.getElementById('nav');
+
+  // apertura/chiusura = presenza della classe `side-open` su .app
+  function setOpen(open) { app.classList.toggle('side-open', open); }
+  function isOpen()      { return app.classList.contains('side-open'); }
+
+  // applica lo stato mobile/desktop in base alla larghezza
+  function applyMode() {
+    var mobile = window.innerWidth < BREAKPOINT;
+    app.classList.toggle('is-mobile', mobile);
+    // entrando in mobile, chiudi la sidebar per liberare spazio
+    if (mobile) setOpen(false);
+    else        setOpen(true);   // tornando desktop, riaprila (rimuovi se non vuoi)
+  }
+
+  // --- eventi ---
+  hamburger.addEventListener('click', function () { setOpen(!isOpen()); });
+  btnClose .addEventListener('click', function () { setOpen(false); });
+  btnExpand.addEventListener('click', function () { setOpen(true); });
+  overlay  .addEventListener('click', function () { setOpen(false); });
+
+  // su mobile, cliccando una voce si naviga e si richiude il drawer
+  nav.addEventListener('click', function (e) {
+    var item = e.target.closest('.nav-item');
+    if (!item) return;
+    nav.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+    item.classList.add('active');
+    if (app.classList.contains('is-mobile')) setOpen(false);
+  });
+
+  // click fuori dalla sidebar = chiudi (vale anche su desktop -> collassa a rail).
+  // Escludiamo i bottoni-toggle, che gestiscono già l'apertura da soli.
+  document.addEventListener('click', function (e) {
+    if (!isOpen()) return;
+    if (e.target.closest('.app__sidebar')) return;      // click dentro la sidebar
+    if (e.target.closest('.topbar__hamburger')) return; // gestito dal suo handler
+    if (e.target.closest('#btnExpand')) return;         // gestito dal suo handler
+    setOpen(false);
+  });
+
+  // ESC chiude
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setOpen(false);
+  });
+
+  window.addEventListener('resize', applyMode);
+  applyMode(); // stato iniziale
+})();
+</script>
+
+</body>
+</html>

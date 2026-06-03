@@ -7,9 +7,10 @@ interface Props {
   title?   : string
   children : React.ReactNode
   size?    : 'sm' | 'md' | 'lg' | 'xl'
+  className?: string   // skin opzionale applicata a .modal__box
 }
 
-function Modal({ open, onClose, title, children, size = 'md' }: Props) {
+function Modal({ open, onClose, title, children, size = 'md', className = '' }: Props) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     if (open) window.addEventListener('keydown', h)
@@ -21,7 +22,7 @@ function Modal({ open, onClose, title, children, size = 'md' }: Props) {
   return (
     <div className="modal__overlay">
       <div className="modal__backdrop" onClick={onClose} />
-      <div className={`modal__box modal__box--${size}`}>
+      <div className={`modal__box modal__box--${size} ${className}`}>
         {title && (
           <div className="modal__header">
             <h2 className="modal__title">{title}</h2>

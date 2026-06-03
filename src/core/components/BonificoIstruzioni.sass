@@ -1,0 +1,46 @@
+// ─── ISTRUZIONI BONIFICO ──────────────────────────────────────────────────────
+// Contenuto della modale "Ricarica con Bonifico": riepilogo ordine + filigrana
+// (icona banca) sullo sfondo.
+@use '../../styles/tokens' as *
+
+.bonifico
+  position: relative
+  overflow: hidden
+
+  &__watermark
+    position: absolute
+    top: 10px
+    right: -10px
+    font-size: 230px
+    line-height: 1
+    color: $border
+    opacity: 0.6
+    pointer-events: none
+    z-index: 0
+
+  &__intro,
+  &__row,
+  &__outro
+    position: relative
+    z-index: 1
+    font-size: 14px
+    color: $text-active
+
+  &__intro
+    margin: 0 0 18px
+    line-height: 1.5
+
+  &__row
+    margin: 0 0 12px
+    line-height: 1.5
+
+    strong
+      font-weight: 700
+
+  &__importo
+    color: $error
+    font-weight: 700
+
+  &__outro
+    margin: 18px 0 0
+    line-height: 1.5

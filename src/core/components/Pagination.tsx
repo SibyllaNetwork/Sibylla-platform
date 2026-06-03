@@ -28,10 +28,15 @@ const Pagination: React.FC<PaginationProps> = ({
     return [1, '...', page - 1, page, page + 1, '...', totalPages]
   }
 
+  const navBtn =
+    'flex items-center gap-1.5 px-3 h-8 rounded-field text-xs font-semibold font-opensans ' +
+    'bg-primary-100 text-ink hover:bg-primary-200 cursor-pointer transition-colors duration-150 ' +
+    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary-100'
+
   const controlsInner = (
     <>
       <button
-        className="sib-btn sib-btn--secondary sib-btn--sm"
+        className={navBtn}
         onClick={() => onPageChange(Math.max(1, page - 1))}
         disabled={page === 1}
       >
@@ -39,15 +44,15 @@ const Pagination: React.FC<PaginationProps> = ({
       </button>
       {getPages().map((n, i) =>
         n === '...' ? (
-          <span key={`e${i}`} className="px-1 text-xs text-ink-subtle">...</span>
+          <span key={`e${i}`} className="px-1 text-xs font-semibold text-ink-muted">...</span>
         ) : (
           <button
             key={n}
             onClick={() => onPageChange(n)}
-            className={`w-7 h-7 rounded-field text-xs font-semibold font-opensans cursor-pointer transition-colors duration-150 ${
+            className={`w-8 h-8 rounded-field text-xs font-semibold font-opensans cursor-pointer transition-colors duration-150 ${
               page === n
                 ? 'bg-primary text-white'
-                : 'bg-white border border-line text-ink hover:border-primary hover:text-primary'
+                : 'bg-primary-100 text-ink hover:bg-primary-200'
             }`}
           >
             {n}
@@ -55,7 +60,7 @@ const Pagination: React.FC<PaginationProps> = ({
         )
       )}
       <button
-        className="sib-btn sib-btn--secondary sib-btn--sm"
+        className={navBtn}
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
       >

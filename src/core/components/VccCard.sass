@@ -1,0 +1,91 @@
+// ─── VCC CARD ─────────────────────────────────────────────────────────────────
+// Illustrazione carta di credito Sibylla (fronte + retro) mostrata nella modale
+// "La tua carta di credito". I colori sono valori d'illustrazione (gradiente
+// navy/teal, oro del chip): non esistono token equivalenti, quindi sono letterali.
+@use '../../styles/tokens' as *
+
+.vcc
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 18px
+
+  &__face
+    position: relative
+    width: 100%
+    max-width: 400px
+    // proporzioni dell'SVG sorgente (497.2 × 315.2)
+    aspect-ratio: 497.2 / 315.2
+    border-radius: 16px
+    overflow: hidden
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28)
+
+  // ── Fronte ──────────────────────────────────────────────────────────────────
+  // Sfondo: SVG completo della carta (gradiente navy/teal + chip + logo +
+  // marchio "Sibylla"). Sopra sovrapponiamo solo i dati dinamici (numero, scadenza).
+  &__face--front
+    padding: 20px 24px 26px
+    color: $white
+    display: flex
+    flex-direction: column
+    justify-content: flex-end
+    background-color: #0d2238
+    background-image: url('https://testing-portal.sibyllaconsulting.com/media/pms/card-front-1.svg')
+    background-size: cover
+    background-position: center
+    background-repeat: no-repeat
+
+  &__details
+    text-align: center
+
+  &__number
+    font-family: $font-heading
+    font-size: 23px
+    font-weight: 600
+    letter-spacing: 3px
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45)
+
+  &__expiry
+    margin-top: 6px
+    font-size: 18px
+    letter-spacing: 2px
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45)
+
+  // ── Retro ───────────────────────────────────────────────────────────────────
+  &__face--back
+    background: linear-gradient(180deg, #2278a8 0%, #16557f 42%, #0e3f63 100%)
+
+  &__stripe
+    position: absolute
+    top: 9%
+    left: 0
+    right: 0
+    height: 22%
+    background: linear-gradient(180deg, #0b0f14 0%, #1b242d 100%)
+
+  &__signature
+    position: absolute
+    top: 44%
+    left: 6%
+    right: 6%
+    height: 20%
+    border-radius: 4px
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    padding: 0 10px
+    overflow: hidden
+    // pattern di sicurezza obliquo
+    background: repeating-linear-gradient(115deg, #ffffff 0 7px, #eef1f4 7px 14px)
+
+  &__cvv
+    position: relative
+    z-index: 1
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 18px
+    letter-spacing: 1px
+    color: #1a1a1a
+    background: $white
+    padding: 2px 9px
+    border-radius: 2px
