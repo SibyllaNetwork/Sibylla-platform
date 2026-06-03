@@ -3,11 +3,12 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { useRuoliStore } from '../../../store/useRuoliStore'
+import { avatarUrl } from '../../../core/avatar'
 import './Organigramma.sass'
 
 // ── Modello dati ──────────────────────────────────────────────────────────────
 interface Ruolo   { id: string; nome: string; sigla: string; colore: string }
-interface Profilo { id: string; nome: string; initials: string; colore: string; icona?: string }
+interface Profilo { id: string; nome: string; initials: string; colore: string; seed?: string }
 interface Nodo    { id: string; parentId: string | null; ruolo: Ruolo; profili: Profilo[] }
 
 // Ruolo radice fisso: Amministratore — sempre presente, non eliminabile
@@ -27,7 +28,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const ruoliCfg   = useRuoliStore(s => s.ruoli)
   const profiliCfg = useRuoliStore(s => s.profili)
   const RUOLI: Ruolo[]   = ruoliCfg.map((r, i)   => ({ id: `r-${i}`, nome: r.nome, sigla: siglaDa(r.nome), colore: ROLE_PALETTE[i % ROLE_PALETTE.length] }))
-  const PROFILI: Profilo[] = profiliCfg.map((p, i) => ({ id: `p-${i}`, nome: p.nome, initials: p.initials, colore: p.color, icona: p.icona }))
+  const PROFILI: Profilo[] = profiliCfg.map((p, i) => ({ id: `p-${i}`, nome: p.nome, initials: p.initials, colore: p.color, seed: p.seed }))
 
   // Si parte dal ruolo Amministratore (radice non eliminabile)
   const [nodi, setNodi] = useState<Nodo[]>([
@@ -156,7 +157,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
               : n.profili.map(p => (
                   <span key={p.id} className="org__node-chip" style={{ '--c': p.colore } as React.CSSProperties}>
                     <span className="org__avatar" style={{ '--c': p.colore } as React.CSSProperties}>
-                      {p.icona ? <i className={`fa-light ${p.icona}`} aria-hidden="true"/> : p.initials}
+                      <img src={avatarUrl(p.seed || p.nome)} alt={p.nome}/>
                     </span>
                     <span className="org__node-chip-name">{p.nome}</span>
                     <button type="button" className="org__node-chip-x" title="Rimuovi" onClick={() => rimuoviProfilo(n.id, p.id)}>
@@ -264,7 +265,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
                     <div key={p.id} className="org__src-prof" draggable
                       onDragStart={e => dragStart(e, 'profilo', p.id)}>
                       <span className="org__avatar" style={{ '--c': p.colore } as React.CSSProperties}>
-                        {p.icona ? <i className={`fa-light ${p.icona}`} aria-hidden="true"/> : p.initials}
+                        <img src={avatarUrl(p.seed || p.nome)} alt={p.nome}/>
                       </span>
                       <span className="org__src-nome">{p.nome}</span>
                     </div>

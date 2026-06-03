@@ -8,7 +8,8 @@ import './RuoliFunzioni.sass'
 import { InputField, SelectField } from '../../../core/components/form'
 import { useOrgStore } from '../../../store/useOrgStore'
 import { useRuoliStore } from '../../../store/useRuoliStore'
-import IconaPicker from '../../../core/components/IconaPicker'
+import AvatarPicker from '../../../core/components/AvatarPicker'
+import { avatarUrl } from '../../../core/avatar'
 
 export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
   // Ruoli e profili sono condivisi (store) così l'Organigramma li importa come impostati qui
@@ -201,8 +202,8 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
               <div className="go__assoc-user">
                 <button type="button" className="go__avatar go__avatar--btn"
                   style={{'--avatar-color':a.color} as React.CSSProperties}
-                  title="Scegli icona profilo" onClick={()=>setIconPickerFor(i)}>
-                  {a.icona ? <i className={`fa-light ${a.icona}`} aria-hidden="true"/> : a.initials}
+                  title="Scegli avatar" onClick={()=>setIconPickerFor(i)}>
+                  <img className="go__avatar-img" src={avatarUrl(a.seed || a.nome)} alt={a.nome}/>
                 </button>
                 <span className="go__assoc-name">{a.nome}</span>
               </div>
@@ -252,12 +253,13 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
         </div>
       </Modal>
 
-      {/* ── Selettore icona profilo ──────────────────────────────────── */}
-      <IconaPicker
+      {/* ── Selettore avatar profilo (Notionists) ────────────────────── */}
+      <AvatarPicker
         open={iconPickerFor !== null}
-        value={iconPickerFor !== null ? assoc[iconPickerFor]?.icona : undefined}
+        base={iconPickerFor !== null ? assoc[iconPickerFor]?.nome ?? '' : ''}
+        value={iconPickerFor !== null ? assoc[iconPickerFor]?.seed : undefined}
         onClose={()=>setIconPickerFor(null)}
-        onSelect={(fa)=>{ if(iconPickerFor !== null) setAssoc(assoc.map((a,j)=> j===iconPickerFor ? {...a, icona: fa ?? undefined} : a)) }}
+        onSelect={(seed)=>{ if(iconPickerFor !== null) setAssoc(assoc.map((a,j)=> j===iconPickerFor ? {...a, seed} : a)) }}
       />
     </div>
   );

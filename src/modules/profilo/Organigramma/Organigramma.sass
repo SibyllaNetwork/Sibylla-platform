@@ -169,22 +169,22 @@
     &:active
       cursor: grabbing
 
-  // Avatar profilo: icona (o iniziali) su disco colorato (come in Ruoli & funzioni)
+  // Avatar profilo: immagine a colori (seed) su disco con tinta tenue del profilo
   &__avatar
     flex: none
-    width: 22px
-    height: 22px
+    width: 26px
+    height: 26px
     border-radius: 50%
+    overflow: hidden
     display: inline-flex
     align-items: center
     justify-content: center
-    font-size: 10px
-    font-weight: 700
-    color: $white
-    background: var(--c)
+    background: color-mix(in srgb, var(--c) 14%, white)
 
-    i
-      font-size: 12px
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
 
   // ── Canvas / area stampabile ──────────────────────────────────────────────────
   &__main
