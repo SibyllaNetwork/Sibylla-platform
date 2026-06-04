@@ -709,15 +709,23 @@
   grid-template-columns: repeat(7, 1fr)
   gap: 2px
 
+.scadenzario__mini-weekdays
+  margin-bottom: 5px
+  padding: 4px 0
+  background: $primary-50
+  border-radius: 6px
+
 .scadenzario__mini-wd
   text-align: center
-  font-size: 9px
+  font-size: 10px
   font-weight: 700
-  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.3px
+  color: $primary
 
 .scadenzario__mini-day
   position: relative
-  min-height: 26px
+  min-height: 30px
   display: flex
   flex-direction: column
   align-items: center
@@ -740,7 +748,7 @@
     background: $link-light
 
 .scadenzario__mini-num
-  font-size: 10px
+  font-size: 12px
   line-height: 1
   color: $text-active
 
