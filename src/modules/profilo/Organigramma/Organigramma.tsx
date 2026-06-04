@@ -50,6 +50,8 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
 
   // ── Modalità modifica: i pulsanti "+ livello" si vedono solo qui (nascosti dopo il salvataggio) ──
   const [editMode, setEditMode] = useState(true)
+  // Nodo selezionato: bersaglio del doppio-click su ruolo/profilo
+  const [selId, setSelId] = useState<string | null>(null)
   // ── Modifiche non salvate: blocca il cambio pagina con conferma ──
   const [dirty,  setDirty]  = useState(false)
   const [leaveTo, setLeaveTo] = useState<string | null>(null)   // pagina di destinazione in attesa
@@ -90,7 +92,10 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const aggiungiNodo = (ruoloId: string, parentId: string | null) => {
     const ruolo = RUOLI.find(r => r.id === ruoloId)
     if (!ruolo) return
-    setNodi(p => [...p, { id: newId(), parentId, ruolo, profili: [] }])
+    const id = newId()
+    setNodi(p => [...p, { id, parentId, ruolo, profili: [] }])
+    setSelId(id)            // seleziona il nuovo nodo (comodo per inserimenti a catena)
+    setEditMode(true)
     markDirty()
   }
   const aggiungiProfilo = (nodoId: string, profiloId: string) => {
@@ -100,7 +105,14 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
       n.id === nodoId && !n.profili.some(x => x.id === prof.id)
         ? { ...n, profili: [...n.profili, prof] }
         : n))
+    setEditMode(true)
     markDirty()
+  }
+  // Doppio-click su un profilo: lo assegna a un ruolo VUOTO (il selezionato se vuoto, altrimenti il primo vuoto)
+  const assegnaProfiloDblClick = (profiloId: string) => {
+    const selVuoto = selId ? nodi.find(n => n.id === selId && n.profili.length === 0) : undefined
+    const target = selVuoto?.id ?? nodi.find(n => n.profili.length === 0)?.id
+    if (target) aggiungiProfilo(target, profiloId)
   }
   const sposta = (nodoId: string, nuovoParent: string | null) => {
     if (nodoId === nuovoParent) return
@@ -207,12 +219,16 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
           onDragStart={e => { e.stopPropagation(); dragStart(e, 'nodo', n.id) }}
           onDragOver={allowDrop}
           onDrop={e => onNodoDrop(e, n.id)}>
-          <div className="org__node-card">
+          <div className={`org__node-card ${selId === n.id ? 'org__node-card--sel' : ''}`}
+            onClick={e => { e.stopPropagation(); setSelId(n.id) }}
+            title="Clicca per selezionare; poi doppio-click su un ruolo/profilo per inserirlo qui">
             <span className="org__node-avatar">
               <span className="org__node-avatar-inner">
-                {n.profili[0]
-                  ? <img src={avatarUrl(n.profili[0].seed || n.profili[0].nome)} alt={n.profili[0].nome}/>
-                  : <span className="org__node-avatar-sigla">{n.ruolo.sigla}</span>}
+                {n.profili.length >= 2
+                  ? <i className="fa-light fa-users org__node-avatar-multi" title={`${n.profili.length} profili`} aria-label={`${n.profili.length} profili`}/>
+                  : n.profili[0]
+                    ? <img src={avatarUrl(n.profili[0].seed || n.profili[0].nome)} alt={n.profili[0].nome}/>
+                    : <span className="org__node-avatar-sigla">{n.ruolo.sigla}</span>}
               </span>
             </span>
             <div className="org__node-body">
@@ -340,7 +356,9 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
                 <div className="org__col-list">
                   {PROFILI.map(p => (
                     <div key={p.id} className="org__src-prof" draggable
-                      onDragStart={e => dragStart(e, 'profilo', p.id)}>
+                      onDragStart={e => dragStart(e, 'profilo', p.id)}
+                      onDoubleClick={() => assegnaProfiloDblClick(p.id)}
+                      title="Trascina su un box, oppure doppio-click per assegnarlo a un ruolo vuoto (quello selezionato)">
                       <span className="org__avatar" style={{ '--c': p.colore } as React.CSSProperties}>
                         <img src={avatarUrl(p.seed || p.nome)} alt={p.nome}/>
                       </span>
@@ -367,7 +385,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
               <span className="org__company">Organigramma</span>
             </div>
 
-            <div className="org__canvas" onDragOver={allowDrop} onDrop={onCanvasDrop} onClick={() => setAddMenu(null)}>
+            <div className="org__canvas" onDragOver={allowDrop} onDrop={onCanvasDrop} onClick={() => { setAddMenu(null); setSelId(null) }}>
               {radici.length === 0
                 ? <div className="org__hint">Trascina un <strong>ruolo</strong> qui per creare il primo blocco</div>
                 : <ul className="org__tree">{radici.map(renderNodo)}</ul>}

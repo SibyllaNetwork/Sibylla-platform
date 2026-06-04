@@ -396,6 +396,10 @@
     box-shadow: 0 0 0 1px $primary-100, 0 6px 16px color-mix(in srgb, var(--node-color) 18%, transparent)
     cursor: default
 
+  // nodo selezionato (bersaglio del doppio-click profilo): anello evidenziato
+  &__node-card--sel
+    box-shadow: 0 0 0 2px $primary, 0 6px 16px color-mix(in srgb, var(--node-color) 22%, transparent)
+
   // Anello avatar: spesso anello sfumato (donut) col colore ruolo attorno alla foto
   &__node-avatar
     flex: none
@@ -430,6 +434,11 @@
     font-size: 13px
     font-weight: 800
     letter-spacing: 0.3px
+    color: color-mix(in srgb, var(--node-color) 70%, black)
+
+  // avatar neutro (più profili nello stesso ruolo): icona gruppo, senza genere
+  &__node-avatar-multi
+    font-size: 19px
     color: color-mix(in srgb, var(--node-color) 70%, black)
 
   &__node-body
