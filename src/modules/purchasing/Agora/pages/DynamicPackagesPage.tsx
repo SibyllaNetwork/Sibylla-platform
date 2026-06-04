@@ -8,6 +8,7 @@ import { Input } from '../ds/input';
 import { Label } from '../ds/label';
 import { Field } from '../ds/field';
 import { H3, P3 } from '../ds/typography';
+import { LocationMap } from './LocationMap';
 import {
   useVoucherParking,
   type VoucherPackage,
@@ -114,6 +115,7 @@ export function DynamicPackagesPage() {
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
   const [location, setLocation] = useState<string>('');
+  const [mapOpen, setMapOpen] = useState(false);
   const [adults, setAdults] = useState<number>(params.defaultAdults);
   const [children, setChildren] = useState<number>(params.defaultChildren);
   const [results, setResults] = useState<VoucherPackage[]>([]);
@@ -185,8 +187,8 @@ export function DynamicPackagesPage() {
   const handleSearch = () => {
     setAnalyzed(1000 + selectedServices.length * 24 + loadingCats.length * 37);
     setConstellationPhase('drawing');
-    // Single continuous trace ~1.8s + small buffer for the warm-tint transition.
-    const drawDuration = 2000;
+    // Tempo di analisi più lungo per far apprezzare l'animazione delle card categorie.
+    const drawDuration = 4200;
     drawTimerRef.current = window.setTimeout(() => {
       const stay: VoucherStay = {
         dateFrom: dateFrom || undefined,
@@ -326,33 +328,58 @@ export function DynamicPackagesPage() {
               <div className="dp-stay">
                 <Field>
                   <Label htmlFor="dp-date-from">Dal</Label>
-                  <Input
-                    id="dp-date-from"
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                  />
+                  <div className="dp-ifield">
+                    <Icon family="light" name="calendar-day" className="dp-ifield__icon" aria-hidden="true" />
+                    <Input
+                      id="dp-date-from"
+                      type="date"
+                      className="dp-ifield__input"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                    />
+                  </div>
                 </Field>
                 <Field>
                   <Label htmlFor="dp-date-to">Al</Label>
-                  <Input
-                    id="dp-date-to"
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    min={dateFrom || undefined}
-                  />
+                  <div className="dp-ifield">
+                    <Icon family="light" name="calendar-day" className="dp-ifield__icon" aria-hidden="true" />
+                    <Input
+                      id="dp-date-to"
+                      type="date"
+                      className="dp-ifield__input"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      min={dateFrom || undefined}
+                    />
+                  </div>
                 </Field>
                 <Field className="dp-field--wide">
                   <Label htmlFor="dp-location">Località</Label>
-                  <Input
+                  <button
+                    type="button"
                     id="dp-location"
-                    type="text"
-                    placeholder="es. Roma, Toscana, Lago di Garda…"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
+                    className="dp-ifield dp-locbtn"
+                    aria-expanded={mapOpen}
+                    onClick={() => setMapOpen((o) => !o)}
+                  >
+                    <Icon family="light" name="location-dot" className="dp-ifield__icon" aria-hidden="true" />
+                    <span className={`dp-locbtn__value${location ? '' : ' is-placeholder'}`}>
+                      {location || 'Scegli sulla mappa…'}
+                    </span>
+                    <Icon family="light" name="chevron-down" className="dp-locbtn__chev" aria-hidden="true" />
+                  </button>
                 </Field>
+                {mapOpen && (
+                  <div className="dp-field--full">
+                    <LocationMap
+                      value={location}
+                      onSelect={({ region, province }) => {
+                        setLocation(province ? `${province} (${region})` : region);
+                        if (province) setMapOpen(false);
+                      }}
+                    />
+                  </div>
+                )}
                 <Field>
                   <Label>Adulti</Label>
                   <Stepper value={adults} min={1} max={params.maxAdults} onChange={setAdults} />
@@ -431,24 +458,23 @@ export function DynamicPackagesPage() {
         </div>
 
         {constellationPhase === 'drawing' && (
-          <section className="dp-loading" aria-live="polite">
-            <div className="dp-loading__scene">
-              <span className="dp-loading__plane" aria-hidden="true">
-                <Icon family="solid" name="plane-up" />
-              </span>
-              <div className="dp-loading__cards">
-                {(loadingCats.length ? loadingCats : [{ id: 'x', title: 'Servizi', icon: 'box' }]).map((c, i) => (
-                  <span key={c.id} className="dp-loading__card" style={{ '--i': i } as React.CSSProperties} title={c.title} aria-hidden="true">
-                    <Icon family="solid" name={c.icon} />
-                  </span>
-                ))}
+          <section className="dp-loading" aria-live="polite" role="status">
+            <div className="dp-loading__panel">
+              <div className="dp-loading__scene">
+                <div className="dp-loading__cards">
+                  {(loadingCats.length ? loadingCats : [{ id: 'x', title: 'Servizi', icon: 'box' }]).map((c, i) => (
+                    <span key={c.id} className="dp-loading__card" style={{ '--i': i } as React.CSSProperties} title={c.title} aria-hidden="true">
+                      <Icon family="solid" name={c.icon} />
+                    </span>
+                  ))}
+                </div>
               </div>
+              <div className="dp-loading__text">
+                <strong>Stiamo analizzando oltre {analyzed.toLocaleString('it-IT')} fornitori…</strong>
+                <span>Generiamo per te i pacchetti migliori in base alle categorie scelte</span>
+              </div>
+              <div className="dp-loading__bar" aria-hidden="true"><span /></div>
             </div>
-            <div className="dp-loading__text">
-              <strong>Stiamo analizzando oltre {analyzed.toLocaleString('it-IT')} fornitori…</strong>
-              <span>Generiamo per te i pacchetti migliori in base alle categorie scelte</span>
-            </div>
-            <div className="dp-loading__bar" aria-hidden="true"><span /></div>
           </section>
         )}
 

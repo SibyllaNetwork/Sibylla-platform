@@ -1,0 +1,119 @@
+/* =====================================================================
+   LOCATION MAP — selettore località a mappa (Italia → regione → province)
+   Ispirato al picker "Dove" di sibyllanetwork.com.
+   ===================================================================== */
+.locmap {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card, 16px);
+  background: var(--color-surface);
+  padding: 12px;
+}
+
+.locmap__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 38px;
+  margin-bottom: 6px;
+}
+.locmap__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-inactive);
+}
+.locmap__crumb {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+/* "Cambia regione" — pill accentata come sul sito */
+.locmap__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--color-accent, #f2941f);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(242, 148, 31, 0.35);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.locmap__back:hover {
+  filter: brightness(1.05);
+}
+.locmap__back:active {
+  transform: translateY(1px);
+}
+
+.locmap__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 460px;
+}
+
+/* ---- Livello 1: regioni ---- */
+.locmap__region {
+  fill: var(--color-surface-subtle, #f4f7fb);
+  stroke: var(--color-link, #2d70b8);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill 0.15s ease;
+  vector-effect: non-scaling-stroke;
+}
+.locmap__region:hover,
+.locmap__region.is-hover {
+  fill: var(--color-link-soft, #dceaf7);
+}
+
+/* ---- Livello 2: province della regione scelta ---- */
+.locmap__prov {
+  fill: var(--color-primary, #1f3b6d);
+  fill-opacity: 0.82;
+  stroke: #fff;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill-opacity 0.15s ease;
+  vector-effect: non-scaling-stroke;
+}
+.locmap__prov:hover {
+  fill-opacity: 1;
+}
+
+/* ---- Tooltip nome regione/provincia ---- */
+.locmap__tip {
+  position: absolute;
+  transform: translate(-50%, -140%);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e6eb);
+  box-shadow: 0 4px 12px rgba(20, 40, 80, 0.18);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary, #1f3b6d);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.locmap__selected {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-inactive);
+}
+.locmap__selected strong {
+  color: var(--color-primary);
+}
