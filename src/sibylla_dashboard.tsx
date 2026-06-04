@@ -8,6 +8,7 @@ import { useAuth } from './hooks/useAuth'
 import { buildCrumbs, findByPage } from './navigation/menuHelpers'
 import MENU from './navigation/menu'
 import { useViewModeStore } from './store/useViewModeStore'
+import { useNavGuard } from './store/useNavGuard'
 import { useLoadStrutture } from './hooks/useLoadStrutture'
 import T from './core/tokens'
 import Ico from './core/icons/Ico'
@@ -127,6 +128,9 @@ export default function App() {
   }
 
   const navigate = (page: string) => {
+    // Una pagina con modifiche non salvate può bloccare il cambio pagina
+    const guard = useNavGuard.getState().guard
+    if (guard && !guard(page)) return
     setCurrentPage(page)
     if (isMobile) setSideOpen(false)
     if (viewMode === 'tabs') {

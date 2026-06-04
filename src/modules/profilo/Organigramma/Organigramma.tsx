@@ -1,8 +1,10 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
+import Modal from '../../../core/components/Modal'
 import { useRuoliStore } from '../../../store/useRuoliStore'
+import { useNavGuard } from '../../../store/useNavGuard'
 import { avatarUrl } from '../../../core/avatar'
 import './Organigramma.sass'
 
@@ -45,6 +47,24 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const [logo,    setLogo]    = useState<string | null>(null)
   const [pdfBusy, setPdfBusy] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)   // area esportata nel PDF
+
+  // ── Modalità modifica: i pulsanti "+ livello" si vedono solo qui (nascosti dopo il salvataggio) ──
+  const [editMode, setEditMode] = useState(true)
+  // ── Modifiche non salvate: blocca il cambio pagina con conferma ──
+  const [dirty,  setDirty]  = useState(false)
+  const [leaveTo, setLeaveTo] = useState<string | null>(null)   // pagina di destinazione in attesa
+  const setGuard = useNavGuard(s => s.setGuard)
+  const markDirty = () => setDirty(true)   // chiamato dagli handler che modificano la struttura
+
+  // Registra il guard: se ci sono modifiche, blocca la navigazione e mostra la modale
+  useEffect(() => {
+    setGuard((page) => {
+      if (!dirty) return true
+      setLeaveTo(page)
+      return false
+    })
+    return () => setGuard(null)
+  }, [dirty, setGuard])
   // menu "scegli ruolo" per aggiungere un pari livello / sotto-livello con un click
   const [addMenu, setAddMenu] = useState<{ nodoId: string; mode: 'sibling' | 'child' } | null>(null)
 
@@ -71,6 +91,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
     const ruolo = RUOLI.find(r => r.id === ruoloId)
     if (!ruolo) return
     setNodi(p => [...p, { id: newId(), parentId, ruolo, profili: [] }])
+    markDirty()
   }
   const aggiungiProfilo = (nodoId: string, profiloId: string) => {
     const prof = PROFILI.find(p => p.id === profiloId)
@@ -79,11 +100,13 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
       n.id === nodoId && !n.profili.some(x => x.id === prof.id)
         ? { ...n, profili: [...n.profili, prof] }
         : n))
+    markDirty()
   }
   const sposta = (nodoId: string, nuovoParent: string | null) => {
     if (nodoId === nuovoParent) return
     if (nuovoParent && discendentiIds(nodoId).includes(nuovoParent)) return  // niente cicli
     setNodi(p => p.map(n => n.id === nodoId ? { ...n, parentId: nuovoParent } : n))
+    markDirty()
   }
 
   const onCanvasDrop = (e: React.DragEvent) => {
@@ -105,13 +128,16 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
     if (id === 'admin') return  // il ruolo Amministratore non è eliminabile
     const toRemove = new Set([id, ...discendentiIds(id)])
     setNodi(p => p.filter(n => !toRemove.has(n.id)))
+    markDirty()
   }
-  const rimuoviProfilo = (nodoId: string, profiloId: string) =>
+  const rimuoviProfilo = (nodoId: string, profiloId: string) => {
     setNodi(p => p.map(n => n.id === nodoId ? { ...n, profili: n.profili.filter(x => x.id !== profiloId) } : n))
+    markDirty()
+  }
 
   const startEdit = (n: Nodo) => { setEditId(n.id); setEditVal(n.ruolo.nome) }
   const commitEdit = () => {
-    if (editId) setNodi(p => p.map(n => n.id === editId ? { ...n, ruolo: { ...n.ruolo, nome: editVal.trim() || n.ruolo.nome } } : n))
+    if (editId) { setNodi(p => p.map(n => n.id === editId ? { ...n, ruolo: { ...n.ruolo, nome: editVal.trim() || n.ruolo.nome } } : n)); markDirty() }
     setEditId(null); setEditVal('')
   }
 
@@ -119,11 +145,26 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
     const f = e.target.files?.[0]
     if (!f || !f.type.startsWith('image/')) return
     const reader = new FileReader()
-    reader.onload = () => setLogo(reader.result as string)
+    reader.onload = () => { setLogo(reader.result as string); markDirty() }
     reader.readAsDataURL(f)
   }
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+  // Salvataggio: blocca le modifiche (nasconde i "+ livello") solo se l'organigramma è
+  // configurato; col solo blocco di default i pulsanti restano per poterlo costruire.
+  const handleSave = () => {
+    setSaved(true); setDirty(false)
+    if (nodi.length > 1) setEditMode(false)
+    setTimeout(() => setSaved(false), 3000)
+  }
+
+  // Risolve la modale "modifiche non salvate": salva (o no) e prosegue verso la pagina richiesta
+  const confirmLeave = (save: boolean) => {
+    const dest = leaveTo
+    setLeaveTo(null)
+    if (save) handleSave()
+    setGuard(null)            // sblocca: la prossima navigate procede
+    if (dest) navigate(dest)
+  }
 
   // Scarica l'organigramma come PDF: snapshot dell'area stampabile → immagine → PDF.
   // I controlli interattivi (modifica/elimina/aggiungi/menu) sono esclusi dallo snapshot.
@@ -196,12 +237,13 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
               </div>
             </div>
             <div className="org__node-actions">
-              <button type="button" title="Rinomina" onClick={() => startEdit(n)}><i className="fa-light fa-pen"/></button>
+              <button type="button" title="Rinomina" onClick={() => { setEditMode(true); startEdit(n) }}><i className="fa-light fa-pen"/></button>
               {!isAdmin && <button type="button" title="Elimina" onClick={() => rimuoviNodo(n.id)}><i className="fa-light fa-trash"/></button>}
             </div>
           </div>
 
-          {/* Aggiunta rapida pari livello / sotto-livello */}
+          {/* Aggiunta rapida pari livello / sotto-livello (solo in modalità modifica) */}
+          {editMode && (
           <div className="org__node-add">
             <button type="button"
               className={`org__node-add-btn ${addMenu?.nodoId === n.id && addMenu.mode === 'sibling' ? 'org__node-add-btn--on' : ''}`}
@@ -214,8 +256,9 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
               <i className="fa-light fa-plus"/> Sotto-livello
             </button>
           </div>
+          )}
 
-          {addMenu?.nodoId === n.id && (
+          {editMode && addMenu?.nodoId === n.id && (
             <div className="org__role-menu" onClick={e => e.stopPropagation()}>
               <div className="org__role-menu-title">
                 {addMenu.mode === 'sibling' ? 'Pari livello — scegli il ruolo' : 'Sotto-livello — scegli il ruolo'}
@@ -246,11 +289,11 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
 
       {/* ── Azioni in alto a destra ─────────────────────────────────── */}
       <div className="org__toolbar">
+        <button type="button" className={`sib-btn sib-btn--icon ${editMode ? 'org__edit-btn--on' : ''}`} title="Modifica organigramma" aria-label="Modifica organigramma" aria-pressed={editMode} onClick={() => setEditMode(true)}>
+          <i className="fa-light fa-pen"/>
+        </button>
         <button type="button" className="sib-btn sib-btn--icon" title="Scarica PDF" aria-label="Scarica PDF" onClick={handlePdf} disabled={pdfBusy}>
           <i className={pdfBusy ? 'fa-light fa-spinner-third fa-spin' : 'fa-light fa-file-pdf'}/>
-        </button>
-        <button type="button" className="sib-btn sib-btn--icon" title="Salva modifiche" aria-label="Salva modifiche" onClick={handleSave}>
-          <i className="fa-light fa-floppy-disk"/>
         </button>
       </div>
 
@@ -332,6 +375,27 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
           </div>
         </div>
       </div>
+
+      {/* ── Salvataggio: bottone prominente, attivo solo con modifiche ── */}
+      <div className="org__footer">
+        <button type="button" className="sib-btn sib-btn--primary org__save-btn" onClick={handleSave} disabled={!dirty}>
+          <i className="fa-light fa-floppy-disk"/>
+          {dirty ? 'Salva organigramma' : 'Organigramma salvato'}
+        </button>
+      </div>
+
+      {/* Modale: modifiche non salvate prima di cambiare pagina */}
+      <Modal open={leaveTo !== null} onClose={() => setLeaveTo(null)} title="Modifiche non salvate" size="sm">
+        <p className="org__leave-text">
+          Hai modifiche non salvate all'organigramma. Vuoi salvarle prima di cambiare pagina?
+          <br />Se esci senza salvare, la struttura impostata andrà persa.
+        </p>
+        <div className="org__leave-actions">
+          <button type="button" className="sib-btn sib-btn--ghost" onClick={() => setLeaveTo(null)}>Annulla</button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => confirmLeave(false)}>Esci senza salvare</button>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => confirmLeave(true)}>Salva ed esci</button>
+        </div>
+      </Modal>
     </div>
   )
 }

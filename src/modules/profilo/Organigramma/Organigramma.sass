@@ -8,6 +8,34 @@
   &__saved
     margin-bottom: 12px
 
+  // ── Toolbar: matita "modifica" attiva ──
+  &__edit-btn--on
+    border-color: $primary
+    color: $primary
+    background: $primary-50
+
+  // ── Footer: salvataggio organigramma (standard, allineato a destra) ──
+  &__footer
+    display: flex
+    justify-content: flex-end
+    margin-top: 20px
+
+  &__save-btn
+    gap: 6px
+
+  // ── Modale "modifiche non salvate" ──
+  &__leave-text
+    margin: 0 0 18px
+    font-size: 13px
+    line-height: 1.5
+    color: $text-active
+
+  &__leave-actions
+    display: flex
+    justify-content: flex-end
+    flex-wrap: wrap
+    gap: 8px
+
   // ── Toolbar azioni (PDF / Salva) ────────────────────────────────────────────
   &__toolbar
     display: flex
@@ -266,7 +294,7 @@
     display: flex
     justify-content: center
     position: relative
-    padding-top: 26px
+    padding-top: 28px
     list-style: none
     margin: 0
 
@@ -276,9 +304,10 @@
     display: flex
     flex-direction: column
     align-items: center
-    padding: 26px 14px 0
+    padding: 28px 14px 0
 
   // connettori solo per i nodi figli (dentro un ul annidato)
+  // height = padding-top ⇒ la linea è tangente al box figlio (lo tocca)
   &__tree ul li::before,
   &__tree ul li::after
     content: ''
@@ -286,7 +315,7 @@
     top: 0
     right: 50%
     width: 50%
-    height: 26px
+    height: 28px
     border-top: 2px solid $border
 
   &__tree ul li::after
@@ -309,13 +338,18 @@
   &__tree ul li:first-child::after
     border-radius: 8px 0 0 0
 
+  // linea verticale dal padre: parte 6px sotto il box (clear dell'ombra) fino alla barra
   &__tree ul::before
     content: ''
     position: absolute
-    top: 0
+    top: 6px
     left: 50%
-    height: 26px
+    height: 22px
     border-left: 2px solid $border
+
+  // figlio singolo: niente barra, la linea verticale scende tangente al box figlio
+  &__tree ul:has(> li:only-child)::before
+    height: 50px
 
   // ── Blocco nodo — stile "capsula" ─────────────────────────────────────────────
   // Anello avatar col colore del ruolo + corpo a pillola; ombra "a strato" dietro.
