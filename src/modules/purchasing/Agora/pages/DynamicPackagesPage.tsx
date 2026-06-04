@@ -152,6 +152,12 @@ export function DynamicPackagesPage() {
     return out;
   }, [selectedServices, CATEGORIES]);
 
+  // Mappa "id categoria → icona" per i nodi della costellazione.
+  const categoryIcons = useMemo(
+    () => Object.fromEntries(CATEGORIES.map((c) => [c.id, c.icon])) as Record<string, string>,
+    [CATEGORIES],
+  );
+
   const toggleCat = (id: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -453,6 +459,8 @@ export function DynamicPackagesPage() {
             <ServiceConstellation
               services={selectedServices}
               phase={constellationPhase}
+              categoryIcons={categoryIcons}
+              onRemove={toggleSub}
             />
           </aside>
         </div>
@@ -1001,12 +1009,28 @@ function pctY(y: number): string {
 interface ServiceConstellationProps {
   services: VoucherService[];
   phase: ConstellationPhase;
+  /** Mappa id-categoria → nome icona FontAwesome, per i nodi e il recap. */
+  categoryIcons: Record<string, string>;
+  /** Rimuove un servizio (id sotto-categoria) cliccando il nodo. */
+  onRemove: (subId: string) => void;
 }
 
-function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
+function ServiceConstellation({ services, phase, categoryIcons, onRemove }: ServiceConstellationProps) {
   const positions = useMemo(() => computePositions(services), [services]);
+  const [hovered, setHovered] = useState<string | null>(null);
   const cx = VIEWBOX_W / 2;
   const cy = VIEWBOX_H / 2;
+
+  // Recap raggruppato per categoria (con conteggio + icona).
+  const groups = useMemo(() => {
+    const map = new Map<string, { label: string; icon: string; items: VoucherService[] }>();
+    for (const s of services) {
+      const g = map.get(s.categoryId);
+      if (g) g.items.push(s);
+      else map.set(s.categoryId, { label: s.categoryLabel, icon: categoryIcons[s.categoryId] ?? 'box', items: [s] });
+    }
+    return Array.from(map.values());
+  }, [services, categoryIcons]);
 
   const status =
     phase === 'drawing'
@@ -1034,7 +1058,7 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
           {positions.map((p) => (
             <line
               key={`rail-${p.service.id}`}
-              className="dp-eco__rail"
+              className={`dp-eco__rail${hovered === p.service.id ? ' is-hot' : ''}`}
               x1={cx}
               y1={cy}
               x2={p.x}
@@ -1074,11 +1098,12 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
           <span className="dp-eco__core-label">Sibylla</span>
         </div>
 
-        {/* Service nodes on the orbit */}
+        {/* Service nodes on the orbit — ora con icona categoria + rimozione */}
         {positions.map((p, i) => (
-          <span
-            key={`star-${p.service.id}`}
-            className="dp-eco__star"
+          <button
+            type="button"
+            key={`node-${p.service.id}`}
+            className={`dp-eco__node${hovered === p.service.id ? ' is-hover' : ''}`}
             style={
               {
                 ['--star-left' as string]: pctX(p.x),
@@ -1086,14 +1111,22 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
                 ['--appear-delay' as string]: `${i * 0.06}s`,
               } as CSSProperties
             }
-          />
+            title={`${p.service.categoryLabel} · ${p.service.label} — clic per rimuovere`}
+            aria-label={`Rimuovi ${p.service.label}`}
+            onMouseEnter={() => setHovered(p.service.id)}
+            onMouseLeave={() => setHovered((h) => (h === p.service.id ? null : h))}
+            onClick={() => onRemove(p.service.id)}
+          >
+            <Icon family="light" name={categoryIcons[p.service.categoryId] ?? 'box'} className="dp-eco__node-icon" />
+            <Icon family="solid" name="xmark" className="dp-eco__node-x" />
+          </button>
         ))}
 
         {/* Labels */}
         {positions.map((p, i) => (
           <div
             key={`lbl-${p.service.id}`}
-            className="dp-eco__label"
+            className={`dp-eco__label${hovered === p.service.id ? ' is-hot' : ''}`}
             style={
               {
                 ['--label-left' as string]: pctX(p.x),
@@ -1107,6 +1140,22 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
         ))}
       </div>
 
+      {/* Metriche live — alza il valore percepito */}
+      <div className="dp-eco__metrics" aria-hidden={positions.length === 0}>
+        <div className="dp-eco__metric">
+          <span className="dp-eco__metric-num">{positions.length}</span>
+          <span className="dp-eco__metric-lbl">{positions.length === 1 ? 'servizio' : 'servizi'}</span>
+        </div>
+        <div className="dp-eco__metric">
+          <span className="dp-eco__metric-num">{groups.length}</span>
+          <span className="dp-eco__metric-lbl">{groups.length === 1 ? 'categoria' : 'categorie'}</span>
+        </div>
+        <div className="dp-eco__metric">
+          <span className="dp-eco__metric-num">∞</span>
+          <span className="dp-eco__metric-lbl">combinazioni</span>
+        </div>
+      </div>
+
       <div className="dp-eco__summary">
         <p className="dp-eco__summary-title">Servizi collegati</p>
         {positions.length === 0 ? (
@@ -1115,10 +1164,27 @@ function ServiceConstellation({ services, phase }: ServiceConstellationProps) {
           </p>
         ) : (
           <ul className="dp-eco__summary-list">
-            {positions.map((p) => (
-              <li key={`sum-${p.service.id}`} className="dp-eco__summary-item">
-                <span className="dp-eco__summary-cat">{p.service.categoryLabel}</span>
-                <span className="dp-eco__summary-name">{p.service.label}</span>
+            {groups.map((g) => (
+              <li key={`grp-${g.label}`} className="dp-eco__group">
+                <span className="dp-eco__group-head">
+                  <span className="dp-eco__group-icon"><Icon family="light" name={g.icon} /></span>
+                  <span className="dp-eco__group-name">{g.label}</span>
+                  <span className="dp-eco__group-count">{g.items.length}</span>
+                </span>
+                <span className="dp-eco__group-tags">
+                  {g.items.map((s) => (
+                    <button
+                      type="button"
+                      key={`tag-${s.id}`}
+                      className="dp-eco__tag"
+                      title="Rimuovi servizio"
+                      onClick={() => onRemove(s.id)}
+                    >
+                      {s.label}
+                      <Icon family="solid" name="xmark" />
+                    </button>
+                  ))}
+                </span>
               </li>
             ))}
           </ul>
