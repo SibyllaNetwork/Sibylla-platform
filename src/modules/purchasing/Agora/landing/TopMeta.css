@@ -23,19 +23,6 @@
   gap: 24px;
   align-items: center;
 }
-.landing-top-meta__pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #d8b25e;
-  box-shadow: 0 0 10px #d8b25e;
-  animation: landingTopMetaPulse 2.6s ease-in-out infinite;
-}
-@keyframes landingTopMetaPulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.35; }
-}
-
 @media (max-width: 720px) {
   .landing-top-meta {
     padding: 14px 18px;

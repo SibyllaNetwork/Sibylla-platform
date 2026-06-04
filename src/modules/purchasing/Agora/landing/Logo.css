@@ -6,7 +6,7 @@
   top: calc(18% - 100px);
   left: calc(50% + 40px);
   transform: translateX(-50%);
-  width: 44%;
+  width: 39.6%; /* -10% rispetto al 44% precedente */
   z-index: 5;
   filter: drop-shadow(0 6px 40px rgba(180, 200, 255, 0.22));
 }
@@ -19,6 +19,6 @@
 @media (max-width: 720px) {
   .landing-logo-agora {
     top: 28%;
-    width: 60%;
+    width: 54%;
   }
 }

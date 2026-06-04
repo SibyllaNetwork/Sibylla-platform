@@ -57,7 +57,6 @@ export function MenuCircle({
       >
         <svg className="mc-frame" viewBox="0 0 100 100" aria-hidden="true">
           <circle className="ring-outer" cx="50" cy="50" r="48" />
-          <circle className="ring-inner" cx="50" cy="50" r="42" />
         </svg>
         <div className="mc-bg" />
         <span className="mc-icon" aria-hidden="true">

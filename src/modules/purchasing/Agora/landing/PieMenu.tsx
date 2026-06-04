@@ -1,12 +1,13 @@
 import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from '../ds/icon';
+import { Icon, type IconFamily } from '../ds/icon';
 import './PieMenu.css';
 
 export interface PieMenuItem {
   id: string;
   label: string;
   icon: string;
+  iconFamily?: IconFamily;
   to: string;
 }
 
@@ -34,7 +35,7 @@ export function PieMenu({ items, isOpen }: PieMenuProps) {
           }}
         >
           <span className="pie-menu__icon" aria-hidden="true">
-            <Icon family="light" name={item.icon} />
+            <Icon family={item.iconFamily ?? 'light'} name={item.icon} />
           </span>
           <span className="pie-menu__label">{item.label}</span>
         </button>

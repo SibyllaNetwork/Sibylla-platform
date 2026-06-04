@@ -968,3 +968,105 @@
 .dp-cart-banner__actions {
   @apply flex flex-wrap items-center gap-2;
 }
+
+/* =====================================================================
+   LOADING "analisi fornitori" — scena animata per categoria + header risultati
+   ===================================================================== */
+.dp-loading {
+  margin-top: 28px;
+  padding: 30px 24px 26px;
+  border: 1px solid var(--color-border, #e2e6eb);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(45,112,184,0.06), var(--color-surface, #fff));
+  text-align: center;
+}
+.dp-loading__scene {
+  position: relative;
+  height: 104px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.dp-loading__plane {
+  position: absolute;
+  top: 8px;
+  font-size: 28px;
+  color: var(--color-link, #2d70b8);
+  animation: dpPlaneFly 2s ease-in-out infinite;
+}
+@keyframes dpPlaneFly {
+  0%   { left: -8%;  transform: translateY(2px) rotate(10deg); opacity: 0; }
+  18%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { left: 100%; transform: translateY(-12px) rotate(10deg); opacity: 0; }
+}
+.dp-loading__cards {
+  position: absolute;
+  bottom: 4px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dp-loading__card {
+  width: 50px; height: 50px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e2e6eb);
+  box-shadow: 0 4px 14px rgba(20, 40, 80, 0.10);
+  font-size: 20px;
+  color: var(--color-primary, #1f3b6d);
+  opacity: 0;
+  transform: translateY(16px) scale(0.8);
+  animation: dpCardPop 0.6s ease forwards, dpCardFloat 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.22s + 0.2s), calc(var(--i) * 0.22s + 0.8s);
+}
+@keyframes dpCardPop {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.8); }
+  60%  { opacity: 1; transform: translateY(-4px) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dpCardFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+.dp-loading__text strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary, #1f3b6d);
+}
+.dp-loading__text span {
+  font-size: 13px;
+  color: var(--color-text-inactive, #6b7785);
+}
+.dp-loading__bar {
+  margin: 16px auto 0;
+  width: min(420px, 80%);
+  height: 4px;
+  border-radius: 99px;
+  background: var(--color-border, #e2e6eb);
+  overflow: hidden;
+}
+.dp-loading__bar span {
+  display: block;
+  height: 100%;
+  width: 38%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--color-link, #2d70b8), var(--color-primary, #1f3b6d));
+  animation: dpBarSlide 1.4s ease-in-out infinite;
+}
+@keyframes dpBarSlide {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(300%); }
+}
+
+/* Header risultati — stile "abbiamo analizzato N fornitori" */
+.dp-results__head { margin-bottom: 14px; }
+.dp-results__meta {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-inactive, #6b7785);
+}
+.dp-results__meta strong { color: var(--color-primary, #1f3b6d); font-weight: 700; }

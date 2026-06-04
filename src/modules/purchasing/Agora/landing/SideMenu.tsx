@@ -25,9 +25,9 @@ const ITEMS: MenuItem[] = [
     id: 'cons-annunci',
     title: 'Tradezone',
     to: '/announcements',
-    icon: <Icon family="light" name="scale-balanced" />,
+    icon: <Icon family="regular" name="display-chart-up" />,
     subItems: [
-      { id: 'sub-annunci', label: 'Annunci', icon: 'bullhorn', to: '/announcements' },
+      { id: 'sub-annunci', label: 'Annunci', icon: 'megaphone', iconFamily: 'regular', to: '/announcements' },
       { id: 'sub-acquisti', label: 'Acquisti di Rete', icon: 'users', to: '/group-purchases' },
       { id: 'sub-match', label: 'Match Zone', icon: 'circle-nodes', to: '/match-zone' },
     ],
@@ -36,13 +36,13 @@ const ITEMS: MenuItem[] = [
     id: 'cons-strutture',
     title: 'Pacchetti dinamici',
     to: '/dynamic-packages',
-    icon: <Icon family="light" name="compass" />,
+    icon: <Icon family="regular" name="boxes-packing" />,
   },
   {
     id: 'cons-accademia',
     title: 'E-learning',
     to: '/elearning',
-    icon: <Icon family="light" name="book-open" />,
+    icon: <Icon family="regular" name="head-side-gear" />,
   },
 ];
 

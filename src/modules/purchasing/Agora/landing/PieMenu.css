@@ -108,10 +108,10 @@
 }
 
 .pie-menu__label {
-  font-family: 'Cinzel', 'Times New Roman', Georgia, serif;
+  font-family: 'Poppins', system-ui, sans-serif; /* font standard Platform */
   font-size: clamp(8px, 1.05vh, 11px);
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.92);
   text-align: center;
   line-height: 1.05;

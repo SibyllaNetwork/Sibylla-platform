@@ -117,6 +117,7 @@ export function DynamicPackagesPage() {
   const [adults, setAdults] = useState<number>(params.defaultAdults);
   const [children, setChildren] = useState<number>(params.defaultChildren);
   const [results, setResults] = useState<VoucherPackage[]>([]);
+  const [analyzed, setAnalyzed] = useState(0);   // n. fornitori "analizzati" (mostrato nei risultati)
   const [printingId, setPrintingId] = useState<string | null>(null);
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [constellationPhase, setConstellationPhase] = useState<ConstellationPhase>('idle');
@@ -135,6 +136,19 @@ export function DynamicPackagesPage() {
         })),
     [selectedSubs, SUB_INDEX],
   );
+
+  // Categorie distinte tra i servizi scelti — alimentano l'animazione di caricamento
+  const loadingCats = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { id: string; title: string; icon: string }[] = [];
+    for (const s of selectedServices) {
+      if (seen.has(s.categoryId)) continue;
+      seen.add(s.categoryId);
+      const cat = CATEGORIES.find((c) => c.id === s.categoryId);
+      out.push({ id: s.categoryId, title: s.categoryLabel, icon: cat?.icon ?? 'box' });
+    }
+    return out;
+  }, [selectedServices, CATEGORIES]);
 
   const toggleCat = (id: string) =>
     setExpanded((prev) => {
@@ -169,6 +183,7 @@ export function DynamicPackagesPage() {
   );
 
   const handleSearch = () => {
+    setAnalyzed(1000 + selectedServices.length * 24 + loadingCats.length * 37);
     setConstellationPhase('drawing');
     // Single continuous trace ~1.8s + small buffer for the warm-tint transition.
     const drawDuration = 2000;
@@ -415,9 +430,37 @@ export function DynamicPackagesPage() {
           </aside>
         </div>
 
+        {constellationPhase === 'drawing' && (
+          <section className="dp-loading" aria-live="polite">
+            <div className="dp-loading__scene">
+              <span className="dp-loading__plane" aria-hidden="true">
+                <Icon family="solid" name="plane-up" />
+              </span>
+              <div className="dp-loading__cards">
+                {(loadingCats.length ? loadingCats : [{ id: 'x', title: 'Servizi', icon: 'box' }]).map((c, i) => (
+                  <span key={c.id} className="dp-loading__card" style={{ '--i': i } as React.CSSProperties} title={c.title} aria-hidden="true">
+                    <Icon family="solid" name={c.icon} />
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="dp-loading__text">
+              <strong>Stiamo analizzando oltre {analyzed.toLocaleString('it-IT')} fornitori…</strong>
+              <span>Generiamo per te i pacchetti migliori in base alle categorie scelte</span>
+            </div>
+            <div className="dp-loading__bar" aria-hidden="true"><span /></div>
+          </section>
+        )}
+
         {results.length > 0 && (
           <section className="dp-results">
-            <H3>Pacchetti suggeriti</H3>
+            <header className="dp-results__head">
+              <H3>I migliori pacchetti per te</H3>
+              <p className="dp-results__meta">
+                Abbiamo analizzato <strong>{analyzed.toLocaleString('it-IT')}</strong> fornitori e questi sono i{' '}
+                <strong>{results.length}</strong> pacchetti migliori che riusciamo a generare per te.
+              </p>
+            </header>
             <div className="dp-voucher-grid">
               {results.map((pkg) => (
                 <VoucherCard
