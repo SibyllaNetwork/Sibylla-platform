@@ -43,6 +43,8 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   const [editVal, setEditVal] = useState('')
   const [saved,   setSaved]   = useState(false)
   const [logo,    setLogo]    = useState<string | null>(null)
+  const [pdfBusy, setPdfBusy] = useState(false)
+  const printRef = useRef<HTMLDivElement>(null)   // area esportata nel PDF
   // menu "scegli ruolo" per aggiungere un pari livello / sotto-livello con un click
   const [addMenu, setAddMenu] = useState<{ nodoId: string; mode: 'sibling' | 'child' } | null>(null)
 
@@ -122,7 +124,33 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
   }
 
   const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 3000) }
-  const handlePdf  = () => window.print()
+
+  // Scarica l'organigramma come PDF: snapshot dell'area stampabile → immagine → PDF.
+  // I controlli interattivi (modifica/elimina/aggiungi/menu) sono esclusi dallo snapshot.
+  const handlePdf = async () => {
+    const node = printRef.current
+    if (!node || pdfBusy) return
+    setPdfBusy(true)
+    try {
+      const [{ toPng }, { jsPDF }] = await Promise.all([import('html-to-image'), import('jspdf')])
+      const skip = ['org__node-actions', 'org__node-add', 'org__role-menu', 'org__node-person-x', 'org__node-empty']
+      const w = node.offsetWidth, h = node.offsetHeight
+      const dataUrl = await toPng(node, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+        width: w, height: h,
+        filter: (el: HTMLElement) => !(el.classList && skip.some(c => el.classList.contains(c))),
+      })
+      const pdf = new jsPDF({ orientation: w >= h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] })
+      pdf.addImage(dataUrl, 'PNG', 0, 0, w, h)
+      pdf.save('organigramma.pdf')
+    } catch (err) {
+      console.error('Errore nella generazione del PDF', err)
+    } finally {
+      setPdfBusy(false)
+    }
+  }
 
   // ── Render ricorsivo nodo ──
   const renderNodo = (n: Nodo) => {
@@ -138,33 +166,39 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
           onDragStart={e => { e.stopPropagation(); dragStart(e, 'nodo', n.id) }}
           onDragOver={allowDrop}
           onDrop={e => onNodoDrop(e, n.id)}>
-          <div className="org__node-head">
-            {editing
-              ? <input
-                  className="org__node-edit" autoFocus value={editVal}
-                  onChange={e => setEditVal(e.target.value)}
-                  onBlur={commitEdit}
-                  onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') { setEditId(null); setEditVal('') } }}/>
-              : <span className="org__node-role">{n.ruolo.nome}</span>}
+          <div className="org__node-card">
+            <span className="org__node-avatar">
+              <span className="org__node-avatar-inner">
+                {n.profili[0]
+                  ? <img src={avatarUrl(n.profili[0].seed || n.profili[0].nome)} alt={n.profili[0].nome}/>
+                  : <span className="org__node-avatar-sigla">{n.ruolo.sigla}</span>}
+              </span>
+            </span>
+            <div className="org__node-body">
+              {editing
+                ? <input
+                    className="org__node-edit" autoFocus value={editVal}
+                    onChange={e => setEditVal(e.target.value)}
+                    onBlur={commitEdit}
+                    onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') { setEditId(null); setEditVal('') } }}/>
+                : <span className="org__node-role">{n.ruolo.nome}</span>}
+              <div className="org__node-people">
+                {n.profili.length === 0
+                  ? <span className="org__node-empty">Trascina qui un profilo</span>
+                  : n.profili.map(p => (
+                      <span key={p.id} className="org__node-person" title={p.nome}>
+                        <span className="org__node-person-name">{p.nome}</span>
+                        <button type="button" className="org__node-person-x" title="Rimuovi" onClick={() => rimuoviProfilo(n.id, p.id)}>
+                          <i className="fa-light fa-xmark"/>
+                        </button>
+                      </span>
+                    ))}
+              </div>
+            </div>
             <div className="org__node-actions">
               <button type="button" title="Rinomina" onClick={() => startEdit(n)}><i className="fa-light fa-pen"/></button>
               {!isAdmin && <button type="button" title="Elimina" onClick={() => rimuoviNodo(n.id)}><i className="fa-light fa-trash"/></button>}
             </div>
-          </div>
-          <div className="org__node-profili">
-            {n.profili.length === 0
-              ? <span className="org__node-empty">Trascina qui un profilo</span>
-              : n.profili.map(p => (
-                  <span key={p.id} className="org__node-chip" style={{ '--c': p.colore } as React.CSSProperties}>
-                    <span className="org__avatar" style={{ '--c': p.colore } as React.CSSProperties}>
-                      <img src={avatarUrl(p.seed || p.nome)} alt={p.nome}/>
-                    </span>
-                    <span className="org__node-chip-name">{p.nome}</span>
-                    <button type="button" className="org__node-chip-x" title="Rimuovi" onClick={() => rimuoviProfilo(n.id, p.id)}>
-                      <i className="fa-light fa-xmark"/>
-                    </button>
-                  </span>
-                ))}
           </div>
 
           {/* Aggiunta rapida pari livello / sotto-livello */}
@@ -212,8 +246,8 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
 
       {/* ── Azioni in alto a destra ─────────────────────────────────── */}
       <div className="org__toolbar">
-        <button type="button" className="sib-btn sib-btn--icon" title="Scarica PDF" aria-label="Scarica PDF" onClick={handlePdf}>
-          <i className="fa-light fa-file-pdf"/>
+        <button type="button" className="sib-btn sib-btn--icon" title="Scarica PDF" aria-label="Scarica PDF" onClick={handlePdf} disabled={pdfBusy}>
+          <i className={pdfBusy ? 'fa-light fa-spinner-third fa-spin' : 'fa-light fa-file-pdf'}/>
         </button>
         <button type="button" className="sib-btn sib-btn--icon" title="Salva modifiche" aria-label="Salva modifiche" onClick={handleSave}>
           <i className="fa-light fa-floppy-disk"/>
@@ -281,7 +315,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
 
         {/* Canvas organigramma (area stampabile per il PDF) */}
         <div className="org__main">
-          <div className="org__print-area">
+          <div className="org__print-area" ref={printRef}>
             <div className="org__logo-bar">
               <label className="org__logo" title="Carica il logo dell'impresa">
                 {logo ? <img src={logo} alt="Logo impresa"/> : <span className="org__logo-ph">Logo impresa</span>}

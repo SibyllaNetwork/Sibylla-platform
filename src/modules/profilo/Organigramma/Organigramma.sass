@@ -86,14 +86,16 @@
 
   &__col-list
     flex: 1
+    min-height: 0
     display: flex
     flex-direction: column
     gap: 8px
     padding: 12px
     overflow-y: auto
-    max-height: 560px
 
   &__col-collapse
+    flex: none
+    margin-top: auto
     display: flex
     align-items: center
     justify-content: center
@@ -112,37 +114,43 @@
       color: $primary
 
   // ── Chip sorgente: Ruolo ──
+  // Niente linguetta laterale: l'identità del ruolo è data dal badge sigla.
   &__src-ruolo
     display: flex
     align-items: center
-    gap: 8px
-    padding: 8px 10px
-    border-radius: $radius-md
+    gap: 9px
+    padding: 7px 10px 7px 8px
+    border-radius: $radius-lg
     border: 1px solid $border
-    border-left: 4px solid var(--c)
     background: $white
     cursor: grab
     transition: $transition-fast
 
     &:hover
+      border-color: color-mix(in srgb, var(--c) 45%, $border)
+      background: color-mix(in srgb, var(--c) 5%, $white)
       box-shadow: $shadow-sm
 
     &:active
       cursor: grabbing
 
+  // Badge sigla condiviso (chip sorgente + nodo): quadrotto colorato con lettere
   &__src-sigla
     flex: none
-    min-width: 38px
-    height: 24px
-    padding: 0 6px
+    min-width: 34px
+    height: 28px
+    padding: 0 7px
     display: inline-flex
     align-items: center
     justify-content: center
-    border-radius: $radius-md
+    border-radius: 9px
+    font-family: $font-heading
     font-size: 11px
-    font-weight: 700
+    font-weight: 800
+    letter-spacing: 0.4px
     color: $white
-    background: var(--c)
+    background: linear-gradient(150deg, color-mix(in srgb, var(--c) 78%, white) 0%, var(--c) 65%)
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 35%, transparent), 0 1px 2px color-mix(in srgb, var(--c) 35%, transparent)
 
   &__src-nome
     font-size: 12px
@@ -309,112 +317,149 @@
     height: 26px
     border-left: 2px solid $border
 
-  // ── Blocco nodo ───────────────────────────────────────────────────────────────
+  // ── Blocco nodo — stile "capsula" ─────────────────────────────────────────────
+  // Anello avatar col colore del ruolo + corpo a pillola; ombra "a strato" dietro.
   &__node
     position: relative
-    width: 208px
-    background: $white
-    border: 1px solid $border
-    border-left: 4px solid var(--node-color)
-    border-radius: $radius-lg
-    box-shadow: $shadow-sm
+    display: flex
+    flex-direction: column
+    align-items: stretch
+    width: 284px
+
+  &__node-card
+    position: relative
+    z-index: 0
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 7px 18px 7px 7px
+    background: linear-gradient(135deg, color-mix(in srgb, var(--node-color) 10%, $white) 0%, color-mix(in srgb, var(--node-color) 3%, $white) 100%)
+    border: 1px solid color-mix(in srgb, var(--node-color) 20%, $border)
+    border-radius: 999px
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--node-color) 16%, transparent)
     cursor: grab
     transition: $transition-fast
 
+    // ombra "a strato": capsula a tinta tenue del colore ruolo, sfalsata dietro
+    &::before
+      content: ''
+      position: absolute
+      inset: 0
+      border-radius: inherit
+      background: linear-gradient(135deg, color-mix(in srgb, var(--node-color) 48%, $white) 0%, color-mix(in srgb, var(--node-color) 28%, $white) 100%)
+      transform: translate(5px, 6px)
+      z-index: -1
+
     &:hover
-      box-shadow: $shadow-md
+      box-shadow: 0 10px 22px color-mix(in srgb, var(--node-color) 26%, transparent)
+      transform: translateY(-1px)
 
     &:active
       cursor: grabbing
 
-    // radice Amministratore: evidenziata e non eliminabile
-    &--admin
-      box-shadow: 0 0 0 1px $primary-100, $shadow-sm
-      cursor: default
+  // radice Amministratore: evidenziata e non eliminabile
+  &__node--admin &__node-card
+    box-shadow: 0 0 0 1px $primary-100, 0 6px 16px color-mix(in srgb, var(--node-color) 18%, transparent)
+    cursor: default
 
-  &__node-head
-    display: flex
+  // Anello avatar: spesso anello sfumato (donut) col colore ruolo attorno alla foto
+  &__node-avatar
+    flex: none
+    width: 60px
+    height: 60px
+    margin-left: -3px
+    border-radius: 50%
+    display: inline-flex
     align-items: center
-    justify-content: space-between
-    gap: 6px
-    padding: 9px 11px
-    background: color-mix(in srgb, var(--node-color) 6%, transparent)
-    border-bottom: 1px solid $border
+    justify-content: center
+    background: linear-gradient(140deg, color-mix(in srgb, var(--node-color) 45%, white) 0%, var(--node-color) 55%, color-mix(in srgb, var(--node-color) 78%, black) 100%)
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--node-color) 45%, transparent)
+
+  &__node-avatar-inner
+    width: 46px
+    height: 46px
+    border-radius: 50%
+    overflow: hidden
+    background: $white
+    border: 2px solid $white
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  &__node-avatar-sigla
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 800
+    letter-spacing: 0.3px
+    color: color-mix(in srgb, var(--node-color) 70%, black)
+
+  &__node-body
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 3px
+    padding: 7px 14px
+    border-radius: 14px
+    background: linear-gradient(135deg, color-mix(in srgb, var(--node-color) 16%, $white) 0%, color-mix(in srgb, var(--node-color) 6%, $white) 100%)
 
   &__node-role
     font-family: $font-heading
-    font-size: 13px
+    font-size: 12px
     font-weight: 700
-    color: $primary
+    letter-spacing: 0.3px
+    text-transform: uppercase
+    color: color-mix(in srgb, var(--node-color) 68%, black)
     overflow: hidden
     text-overflow: ellipsis
     white-space: nowrap
 
   &__node-edit
-    flex: 1
-    min-width: 0
+    width: 100%
     border: 1px solid $primary
-    border-radius: 5px
+    border-radius: 6px
     padding: 2px 6px
-    font-size: 13px
+    font-size: 12px
     font-weight: 700
     color: $text-active
     outline: none
 
-  &__node-actions
-    display: flex
-    gap: 2px
-    flex: none
-
-    button
-      width: 22px
-      height: 22px
-      display: inline-flex
-      align-items: center
-      justify-content: center
-      border: none
-      background: none
-      border-radius: 5px
-      cursor: pointer
-      font-size: 11px
-      color: $text-inactive
-      transition: $transition-fast
-
-      &:hover
-        background: $primary-50
-        color: $primary
-
-  &__node-profili
+  &__node-people
     display: flex
     flex-direction: column
-    gap: 5px
-    padding: 9px 10px
+    gap: 1px
 
   &__node-empty
     font-size: 11px
     font-style: italic
     color: $text-disabled
 
-  &__node-chip
+  // Profilo assegnato: nome in evidenza (niente chip), con × per rimuovere
+  &__node-person
     display: flex
     align-items: center
-    gap: 6px
-    padding: 4px 6px
-    border-radius: $radius-sm
-    background: color-mix(in srgb, var(--c) 10%, transparent)
+    gap: 4px
+    max-width: 100%
 
-  &__node-chip-name
+  &__node-person-name
     flex: 1
-    font-size: 12px
+    min-width: 0
+    font-size: 12.5px
+    font-weight: 600
     color: $text-active
     overflow: hidden
     text-overflow: ellipsis
     white-space: nowrap
 
-  &__node-chip-x
+  &__node-person-x
     flex: none
-    width: 18px
-    height: 18px
+    width: 16px
+    height: 16px
     display: inline-flex
     align-items: center
     justify-content: center
@@ -424,47 +469,75 @@
     cursor: pointer
     font-size: 10px
     color: $text-inactive
+    opacity: 0
+    transition: $transition-fast
 
     &:hover
       color: $error
 
+  &__node-person:hover &__node-person-x
+    opacity: 1
+
+  &__node-actions
+    flex: none
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    button
+      width: 22px
+      height: 22px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      border: none
+      background: none
+      border-radius: 6px
+      cursor: pointer
+      font-size: 12px
+      color: $text-inactive
+      transition: $transition-fast
+
+      &:hover
+        color: $primary
+
   // ── Aggiunta rapida pari livello / sotto-livello ──
+  // Chip a pillola compatti, centrati sotto il nodo; hover leggero (contorno/colore)
   &__node-add
     display: flex
-    border-top: 1px dashed $border
+    justify-content: center
+    gap: 8px
+    margin-top: 9px
 
   &__node-add-btn
-    flex: 1
+    width: 118px
     display: inline-flex
     align-items: center
     justify-content: center
-    gap: 5px
-    padding: 7px 4px
-    background: none
-    border: none
+    gap: 6px
+    padding: 5px 10px
+    border-radius: 999px
+    border: 1px solid $border
+    background: $white
     cursor: pointer
     font-size: 11px
     font-weight: 600
     color: $text-inactive
     transition: $transition-fast
 
-    &:first-child
-      border-right: 1px dashed $border
-
     i
       font-size: 10px
+      color: color-mix(in srgb, var(--node-color) 60%, $text-inactive)
 
     &:hover
-      background: $primary-50
+      border-color: color-mix(in srgb, var(--node-color) 55%, $border)
       color: $primary
+      box-shadow: $shadow-sm
 
     &--on
-      background: $primary
-      color: $white
-
-      &:hover
-        background: $primary
-        color: $white
+      border-color: var(--node-color)
+      color: $primary
+      background: color-mix(in srgb, var(--node-color) 10%, $white)
 
   &__role-menu
     position: absolute
@@ -504,6 +577,18 @@
 
     &:hover
       background: $primary-50
+
+// ── Dark mode: contrasto su capsule scure ─────────────────────────────────────
+// In tema scuro la capsula è scura: titolo schiarito e icone azioni chiare.
+[data-theme="dark"]
+  .org__node-role
+    color: color-mix(in srgb, var(--node-color) 48%, white)
+
+  .org__node-actions button
+    color: color-mix(in srgb, #fff 78%, transparent)
+
+    &:hover
+      color: #fff
 
 // ── Stampa / PDF: mostra solo l'area organigramma ──────────────────────────────
 @media print
