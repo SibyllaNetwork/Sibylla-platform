@@ -265,8 +265,32 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   const [openAssenza, setOpenAssenza] = useState(false)
   // Modale modifica blocco (tasto destro su turno/assenza)
   const [editing, setEditing] = useState<{ kind: 'turno'; data: Turno } | { kind: 'assenza'; data: Assenza } | null>(null)
+  // Conflitto turno: lo spostamento finisce su un orario già assegnato a un altro dipendente → propone scambio
+  const [conflict, setConflict] = useState<{ nuovo: Turno; originale: Turno; altro: Turno } | null>(null)
 
-  function salvaTurnoMod(t: Turno)   { setTurni((prev) => prev.map((x) => (x.id === t.id ? t : x))); setEditing(null) }
+  function salvaTurnoMod(t: Turno) {
+    const originale = turni.find((x) => x.id === t.id)
+    // stesso giorno + stessa fascia su un altro dipendente = orario già assegnato
+    const altro = turni.find((x) => x.id !== t.id && x.id_dipendente !== t.id_dipendente && x.data === t.data && x.fascia === t.fascia)
+    if (altro && originale && (originale.data !== t.data || originale.fascia !== t.fascia)) {
+      setConflict({ nuovo: t, originale, altro })
+      setEditing(null)
+      return
+    }
+    setTurni((prev) => prev.map((x) => (x.id === t.id ? t : x)))
+    setEditing(null)
+  }
+
+  function confermaScambio() {
+    if (!conflict) return
+    const { nuovo, originale, altro } = conflict
+    setTurni((prev) => prev.map((x) => {
+      if (x.id === nuovo.id) return nuovo                                                  // turno editato → nuovo orario
+      if (x.id === altro.id) return { ...altro, data: originale.data, fascia: originale.fascia }  // l'altro prende il vecchio orario
+      return x
+    }))
+    setConflict(null)
+  }
   function salvaAssenzaMod(a: Assenza) { setAssenze((prev) => prev.map((x) => (x.id === a.id ? a : x))); setEditing(null) }
   function eliminaBlocco() {
     if (!editing) return
@@ -374,6 +398,28 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
       <CreaTurnoModal open={openTurno} onClose={() => setOpenTurno(false)} dipendenti={dipendenti} defaultData={isoDate(rangeStart)} onSave={creaTurno} />
       <CreaAssenzaModal open={openAssenza} onClose={() => setOpenAssenza(false)} dipendenti={dipendenti} defaultData={isoDate(rangeStart)} onSave={creaAssenza} />
       <ModificaBloccoModal editing={editing} dipendenti={dipendenti} onClose={() => setEditing(null)} onSaveTurno={salvaTurnoMod} onSaveAssenza={salvaAssenzaMod} onDelete={eliminaBlocco} />
+
+      <Modal open={!!conflict} onClose={() => setConflict(null)} title="Conflitto di turno" size="sm">
+        {conflict && (() => {
+          const altroDip = dipendenti.find((d) => d.id === conflict.altro.id_dipendente)
+          const editDip  = dipendenti.find((d) => d.id === conflict.nuovo.id_dipendente)
+          const f = FASCE[conflict.nuovo.fascia]
+          const dataLabel = conflict.nuovo.data.split('-').reverse().join('/')
+          return (
+            <div className="flex flex-col gap-4">
+              <p className="text-[13px] leading-relaxed text-ink">
+                L'orario <strong>{f.label} ({f.range})</strong> del <strong>{dataLabel}</strong> è già assegnato a{' '}
+                <strong>{altroDip?.cognome} {altroDip?.nome}</strong>. Vuoi <strong>scambiare i turni</strong> tra{' '}
+                {editDip?.cognome} {editDip?.nome} e {altroDip?.cognome} {altroDip?.nome}?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button className="sib-btn sib-btn--secondary" onClick={() => setConflict(null)}>Annulla</button>
+                <button className="sib-btn sib-btn--primary" onClick={confermaScambio}><i className="fa-light fa-arrow-right-arrow-left" /> Scambia turni</button>
+              </div>
+            </div>
+          )
+        })()}
+      </Modal>
     </div>
   )
 }
@@ -410,7 +456,7 @@ function CreaTurnoModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Crea turno" size="md">
-      <div className="p-5 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {error && <AlertBanner type="error">{error}</AlertBanner>}
 
         <SelectField name="dipendente" label="Dipendente" value={String(idDip)} onChange={(e) => setIdDip(Number(e.target.value))}
@@ -428,7 +474,7 @@ function CreaTurnoModal({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[11px] font-semibold font-opensans text-ink">
+          <label className="text-[12px] font-semibold text-ink-muted">
             Strutture {isMulti && <span className="text-link ml-1">(turno multi-struttura)</span>}
           </label>
           <div className="grid grid-cols-2 gap-2 border border-line rounded-field p-3">
@@ -484,7 +530,7 @@ function CreaAssenzaModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Crea assenza" size="md">
-      <div className="p-5 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {error && <AlertBanner type="error">{error}</AlertBanner>}
 
         <SelectField name="dipendente" label="Dipendente" value={String(idDip)} onChange={(e) => setIdDip(Number(e.target.value))}
@@ -575,7 +621,7 @@ function ModificaBloccoModal({
   return (
     <Modal open={!!editing} onClose={onClose} title={isTurno ? 'Modifica turno' : 'Modifica assenza'} size="md">
       {editing && (
-        <div className="p-5 flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           {error && <AlertBanner type="error">{error}</AlertBanner>}
 
           {dip && (
@@ -659,12 +705,12 @@ function WeekGrid({
     <div className="bg-white border border-line rounded-field overflow-hidden">
       {/* header giorni */}
       <div className="grid border-b border-line bg-canvas turni__week-grid" >
-        <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-ink-muted">Dipendente</div>
+        <div className="px-3 py-2 text-[12px] font-semibold text-ink-muted">Dipendente</div>
         {days.map((d, i) => {
           const isToday = isoDate(d) === todayIso
           return (
             <div key={i}
-              className={`px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-center border-l border-line ${isToday ? 'text-primary turni__day-head--today' : 'text-ink-muted'}`}
+              className={`px-3 py-2 text-[12px] font-semibold text-center border-l border-line ${isToday ? 'text-primary turni__day-head--today' : 'text-ink-muted'}`}
             >
               {GIORNI_SETT[i]} {d.getDate()}/{String(d.getMonth() + 1).padStart(2, '0')}
               {isToday && <span className="ml-1 text-[9px] uppercase">• Oggi</span>}
@@ -725,7 +771,7 @@ function MonthGrid({
       {/* header giorni settimana */}
       <div className="grid border-b border-line bg-canvas turni__month-grid">
         {GIORNI_SETT.map((g) => (
-          <div key={g} className="px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-ink-muted text-center border-l border-line first:border-l-0">{g}</div>
+          <div key={g} className="px-3 py-2 text-[12px] font-semibold text-ink-muted text-center border-l border-line first:border-l-0">{g}</div>
         ))}
       </div>
 

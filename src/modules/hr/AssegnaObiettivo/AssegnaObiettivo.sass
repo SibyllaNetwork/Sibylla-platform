@@ -1,0 +1,82 @@
+// ─── ASSEGNA OBIETTIVO ────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+// Header colonna ordinabile (Anno)
+.assegna-ob__th-sort
+  cursor: pointer
+  user-select: none
+
+  &:hover
+    color: $primary
+
+// Filtro a imbuto standard (replica del pattern oc-colfilter)
+.assegna-ob__cf
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &-btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+    line-height: 1
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &-overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &-popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 200px
+    max-height: 320px
+    overflow-y: auto
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &-title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &-option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    font-weight: 400
+    color: $text-active
+
+    &:hover
+      background: $primary-50
+
+    .sib-checkbox
+      flex-shrink: 0
