@@ -263,6 +263,17 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
   // Modali create
   const [openTurno, setOpenTurno] = useState(false)
   const [openAssenza, setOpenAssenza] = useState(false)
+  // Modale modifica blocco (tasto destro su turno/assenza)
+  const [editing, setEditing] = useState<{ kind: 'turno'; data: Turno } | { kind: 'assenza'; data: Assenza } | null>(null)
+
+  function salvaTurnoMod(t: Turno)   { setTurni((prev) => prev.map((x) => (x.id === t.id ? t : x))); setEditing(null) }
+  function salvaAssenzaMod(a: Assenza) { setAssenze((prev) => prev.map((x) => (x.id === a.id ? a : x))); setEditing(null) }
+  function eliminaBlocco() {
+    if (!editing) return
+    if (editing.kind === 'turno') setTurni((prev) => prev.filter((x) => x.id !== editing.data.id))
+    else                          setAssenze((prev) => prev.filter((x) => x.id !== editing.data.id))
+    setEditing(null)
+  }
 
   async function creaTurno(input: { id_dipendente: number; data: string; fascia: FasciaTurno; strutture: string[] }) {
     const newTurno: Turno = { id: Date.now(), ...input }
@@ -291,10 +302,6 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
     <div>
       <BtnBack onClick={() => navigate('home')} />
       <PageHeader title="Turni del personale" subtitle="Pianificazione settimanale e mensile dei turni, con gestione assenze e turni multi-struttura" />
-
-      {error && loaded && (
-        <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>
-      )}
 
       {/* Toolbar filtri */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-4">
@@ -355,8 +362,10 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
 
       {/* Calendario */}
       {view === 'settimana'
-        ? <WeekGrid days={days} dipendenti={dipendentiFiltered} turniDelGiorno={turniDelGiorno} assenzeDelGiorno={assenzeDelGiorno} />
-        : <MonthGrid days={days} dipendenti={dipendentiFiltered} turniDelGiorno={turniDelGiorno} assenzeDelGiorno={assenzeDelGiorno} />}
+        ? <WeekGrid days={days} dipendenti={dipendentiFiltered} turniDelGiorno={turniDelGiorno} assenzeDelGiorno={assenzeDelGiorno}
+            onEditTurno={(t) => setEditing({ kind: 'turno', data: t })} onEditAssenza={(a) => setEditing({ kind: 'assenza', data: a })} />
+        : <MonthGrid days={days} dipendenti={dipendentiFiltered} turniDelGiorno={turniDelGiorno} assenzeDelGiorno={assenzeDelGiorno}
+            onEditTurno={(t) => setEditing({ kind: 'turno', data: t })} onEditAssenza={(a) => setEditing({ kind: 'assenza', data: a })} />}
 
       {/* Legenda */}
       <Legend />
@@ -364,6 +373,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
       {/* Modali create */}
       <CreaTurnoModal open={openTurno} onClose={() => setOpenTurno(false)} dipendenti={dipendenti} defaultData={isoDate(rangeStart)} onSave={creaTurno} />
       <CreaAssenzaModal open={openAssenza} onClose={() => setOpenAssenza(false)} dipendenti={dipendenti} defaultData={isoDate(rangeStart)} onSave={creaAssenza} />
+      <ModificaBloccoModal editing={editing} dipendenti={dipendenti} onClose={() => setEditing(null)} onSaveTurno={salvaTurnoMod} onSaveAssenza={salvaAssenzaMod} onDelete={eliminaBlocco} />
     </div>
   )
 }
@@ -511,16 +521,138 @@ function CreaAssenzaModal({
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// Modale Modifica blocco (turno o assenza) — tasto destro su un blocco
+// ──────────────────────────────────────────────────────────────────────
+
+function ModificaBloccoModal({
+  editing, dipendenti, onClose, onSaveTurno, onSaveAssenza, onDelete,
+}: {
+  editing: { kind: 'turno'; data: Turno } | { kind: 'assenza'; data: Assenza } | null
+  dipendenti: Dipendente[]
+  onClose: () => void
+  onSaveTurno: (t: Turno) => void
+  onSaveAssenza: (a: Assenza) => void
+  onDelete: () => void
+}) {
+  const [data, setData] = useState('')
+  const [fascia, setFascia] = useState<FasciaTurno>('mattina')
+  const [strutture, setStrutture] = useState<Record<string, boolean>>({})
+  const [tipo, setTipo] = useState<TipoAssenza>('ferie')
+  const [oraDa, setOraDa] = useState('09:00')
+  const [oraA, setOraA] = useState('13:00')
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!editing) return
+    setData(editing.data.data)
+    setError(null)
+    if (editing.kind === 'turno') {
+      setFascia(editing.data.fascia)
+      setStrutture(Object.fromEntries(editing.data.strutture.map((s) => [s, true])))
+    } else {
+      setTipo(editing.data.tipo)
+      setOraDa(editing.data.ora_da ?? '09:00')
+      setOraA(editing.data.ora_a ?? '13:00')
+    }
+  }, [editing])
+
+  const dip = editing ? dipendenti.find((d) => d.id === editing.data.id_dipendente) : undefined
+
+  function handleSave() {
+    if (!editing) return
+    if (editing.kind === 'turno') {
+      const sel = Object.entries(strutture).filter(([, v]) => v).map(([k]) => k)
+      if (!sel.length) { setError('Seleziona almeno una struttura'); return }
+      onSaveTurno({ ...editing.data, data, fascia, strutture: sel })
+    } else {
+      if (tipo === 'permesso' && (!oraDa || !oraA)) { setError('Specifica l’intervallo orario del permesso'); return }
+      onSaveAssenza({ ...editing.data, data, tipo, ora_da: tipo === 'permesso' ? oraDa : undefined, ora_a: tipo === 'permesso' ? oraA : undefined })
+    }
+  }
+
+  const isTurno = editing?.kind === 'turno'
+
+  return (
+    <Modal open={!!editing} onClose={onClose} title={isTurno ? 'Modifica turno' : 'Modifica assenza'} size="md">
+      {editing && (
+        <div className="p-5 flex flex-col gap-4">
+          {error && <AlertBanner type="error">{error}</AlertBanner>}
+
+          {dip && (
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-primary-100 text-primary text-[11px] font-bold flex items-center justify-center shrink-0">
+                {dip.nome[0]}{dip.cognome[0]}
+              </div>
+              <div className="text-[13px] font-semibold text-ink">{dip.cognome} {dip.nome} <span className="text-ink-muted font-normal">— {dip.reparto}</span></div>
+            </div>
+          )}
+
+          <DatePickerField name="data" label="Data" value={data} onChange={(e) => setData(e.target.value)} />
+
+          {isTurno ? (
+            <>
+              <SelectField name="fascia" label="Fascia turno" value={fascia} onChange={(e) => setFascia(e.target.value as FasciaTurno)}
+                options={[
+                  { value: 'mattina',    label: 'Mattina (07–13)' },
+                  { value: 'pomeriggio', label: 'Pomeriggio (13–22)' },
+                  { value: 'notte',      label: 'Notte (22–07)' },
+                ]}
+              />
+              <div className="flex flex-col gap-2">
+                <label className="text-[12px] font-semibold font-opensans text-ink-muted">Strutture</label>
+                <div className="grid grid-cols-2 gap-2 border border-line rounded-field p-3">
+                  {STRUTTURE.map((s) => (
+                    <CheckboxField key={s} name={`ms-${s}`} label={s} checked={!!strutture[s]} onChange={(e) => setStrutture((prev) => ({ ...prev, [s]: e.target.checked }))} />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <SelectField name="tipoMod" label="Tipo assenza" value={tipo} onChange={(e) => setTipo(e.target.value as TipoAssenza)}
+                options={[
+                  { value: 'ferie',    label: 'Ferie' },
+                  { value: 'permesso', label: 'Permesso' },
+                  { value: 'malattia', label: 'Malattia' },
+                ]}
+              />
+              {tipo === 'permesso' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField name="oraDaMod" label="Ora inizio" type="text" value={oraDa} onChange={(e) => setOraDa(e.target.value)} placeholder="HH:mm" />
+                  <InputField name="oraAMod"  label="Ora fine"   type="text" value={oraA}  onChange={(e) => setOraA(e.target.value)}  placeholder="HH:mm" />
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex items-center justify-between mt-2 pt-4 border-t border-line">
+            <button className="sib-btn sib-btn--danger-outline" onClick={onDelete}>
+              <i className="fa-light fa-trash" /> Elimina
+            </button>
+            <div className="flex gap-3">
+              <button className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+              <button className="sib-btn sib-btn--primary" onClick={handleSave}>Salva modifiche</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // Vista Settimana — riga per dipendente, 7 colonne giorno
 // ──────────────────────────────────────────────────────────────────────
 
 function WeekGrid({
-  days, dipendenti, turniDelGiorno, assenzeDelGiorno,
+  days, dipendenti, turniDelGiorno, assenzeDelGiorno, onEditTurno, onEditAssenza,
 }: {
   days: Date[]
   dipendenti: Dipendente[]
   turniDelGiorno: (idDip: number, giorno: string) => Turno[]
   assenzeDelGiorno: (idDip: number, giorno: string) => Assenza[]
+  onEditTurno: (t: Turno) => void
+  onEditAssenza: (a: Assenza) => void
 }) {
   const todayIso = isoDate(new Date())
   return (
@@ -554,8 +686,8 @@ function WeekGrid({
               <div key={i}
                 className={`px-1.5 py-1.5 border-l border-line min-h-[60px] flex flex-col gap-1 ${isToday ? 'turni__cell--today' : ''}`}
               >
-                {trni.map((t) => <TurnoBadge key={t.id} turno={t} />)}
-                {ass.map((a) => <AssenzaBadge key={a.id} assenza={a} />)}
+                {trni.map((t) => <TurnoBadge key={t.id} turno={t} onEdit={onEditTurno} />)}
+                {ass.map((a) => <AssenzaBadge key={a.id} assenza={a} onEdit={onEditAssenza} />)}
               </div>
             )
           })}
@@ -574,12 +706,14 @@ function WeekGrid({
 // ──────────────────────────────────────────────────────────────────────
 
 function MonthGrid({
-  days, dipendenti, turniDelGiorno, assenzeDelGiorno,
+  days, dipendenti, turniDelGiorno, assenzeDelGiorno, onEditTurno, onEditAssenza,
 }: {
   days: Date[]
   dipendenti: Dipendente[]
   turniDelGiorno: (idDip: number, giorno: string) => Turno[]
   assenzeDelGiorno: (idDip: number, giorno: string) => Assenza[]
+  onEditTurno: (t: Turno) => void
+  onEditAssenza: (a: Assenza) => void
 }) {
   const todayIso = isoDate(new Date())
   // Pad iniziale per allineare col lunedì
@@ -621,8 +755,8 @@ function MonthGrid({
                   if (!trni.length && !ass.length) return null
                   return (
                     <div key={dip.id} className="flex flex-col gap-0.5">
-                      {trni.map((t) => <TurnoBadge key={t.id} turno={t} compact dipNome={`${dip.cognome} ${dip.nome[0]}.`} />)}
-                      {ass.map((a) => <AssenzaBadge key={a.id} assenza={a} compact dipNome={`${dip.cognome} ${dip.nome[0]}.`} />)}
+                      {trni.map((t) => <TurnoBadge key={t.id} turno={t} compact dipNome={`${dip.cognome} ${dip.nome[0]}.`} onEdit={onEditTurno} />)}
+                      {ass.map((a) => <AssenzaBadge key={a.id} assenza={a} compact dipNome={`${dip.cognome} ${dip.nome[0]}.`} onEdit={onEditAssenza} />)}
                     </div>
                   )
                 })}
@@ -659,7 +793,7 @@ function DipendenteCell({ dip }: { dip: Dipendente }) {
   )
 }
 
-function TurnoBadge({ turno, compact, dipNome }: { turno: Turno; compact?: boolean; dipNome?: string }) {
+function TurnoBadge({ turno, compact, dipNome, onEdit }: { turno: Turno; compact?: boolean; dipNome?: string; onEdit?: (t: Turno) => void }) {
   const f = FASCE[turno.fascia]
   const isMulti = turno.strutture.length > 1
 
@@ -667,7 +801,8 @@ function TurnoBadge({ turno, compact, dipNome }: { turno: Turno; compact?: boole
     <div
       className={`rounded text-[11px] px-1.5 py-1 leading-tight turni__badge ${isMulti ? 'turni__badge--multi' : ''}`}
       style={{ '--badge-bg': f.bg, '--badge-bd': f.bd } as React.CSSProperties}
-      title={`${f.label} ${f.range} — ${turno.strutture.join(' + ')}${isMulti ? ' (multi-struttura)' : ''}`}
+      title={`${f.label} ${f.range} — ${turno.strutture.join(' + ')}${isMulti ? ' (multi-struttura)' : ''} · tasto destro per modificare`}
+      onContextMenu={(e) => { e.preventDefault(); onEdit?.(turno) }}
     >
       <div className="font-bold text-ink flex items-center gap-1">
         {isMulti && <i className="fa-solid fa-link text-[9px] turni__badge-ico" />}
@@ -680,13 +815,14 @@ function TurnoBadge({ turno, compact, dipNome }: { turno: Turno; compact?: boole
   )
 }
 
-function AssenzaBadge({ assenza, compact, dipNome }: { assenza: Assenza; compact?: boolean; dipNome?: string }) {
+function AssenzaBadge({ assenza, compact, dipNome, onEdit }: { assenza: Assenza; compact?: boolean; dipNome?: string; onEdit?: (a: Assenza) => void }) {
   const a = ASSENZE[assenza.tipo]
   return (
     <div
       className="rounded text-[11px] px-1.5 py-1 leading-tight turni__badge"
       style={{ '--badge-bg': a.bg, '--badge-bd': a.bd } as React.CSSProperties}
-      title={`${a.label}${assenza.tipo === 'permesso' ? ` ${assenza.ora_da ?? ''}–${assenza.ora_a ?? ''}` : ''}`}
+      title={`${a.label}${assenza.tipo === 'permesso' ? ` ${assenza.ora_da ?? ''}–${assenza.ora_a ?? ''}` : ''} · tasto destro per modificare`}
+      onContextMenu={(e) => { e.preventDefault(); onEdit?.(assenza) }}
     >
       <div className="font-bold text-ink flex items-center gap-1">
         <i className={`fa-duotone ${a.icon} text-[10px] turni__badge-ico`} />

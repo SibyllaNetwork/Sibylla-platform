@@ -191,58 +191,40 @@
 .reg-presenze__segment-label
   color: var(--seg-border)
 
-// Toggle estensione vista (Giorno / Settimana / Mese / Anno)
-.reg-presenze__vista
+// Legenda: popover che si apre al passaggio del mouse accanto al pulsante "i"
+.reg-presenze__legend-pop-wrap
+  position: relative
   display: inline-flex
-  height: 36px
+
+.reg-presenze__legend-pop
+  position: absolute
+  top: calc(100% + 8px)
+  right: 0
+  z-index: 60
+  min-width: 200px
+  padding: 12px 14px
+  background: $white
   border: 1px solid $border
   border-radius: $radius-md
-  overflow: hidden
-  background: $white
+  box-shadow: $shadow-lg
+  opacity: 0
+  visibility: hidden
+  transform: translateY(-4px)
+  transition: opacity 0.15s, transform 0.15s, visibility 0.15s
 
-.reg-presenze__vista-btn
-  padding: 0 12px
-  border: none
-  background: $white
-  color: $text-inactive
+.reg-presenze__legend-pop-wrap:hover .reg-presenze__legend-pop,
+.reg-presenze__legend-pop-wrap:focus-within .reg-presenze__legend-pop
+  opacity: 1
+  visibility: visible
+  transform: translateY(0)
+
+.reg-presenze__legend-pop-title
+  font-family: $font-heading
   font-size: 12px
-  font-weight: 600
-  cursor: pointer
-  transition: $transition-fast
+  font-weight: 700
+  color: $primary
+  margin-bottom: 8px
 
-  & + &
-    border-left: 1px solid $border
-
-  &:hover:not(.reg-presenze__vista-btn--on)
-    color: $primary
-    background: $primary-50
-
-  &--on
-    background: $primary
-    color: $white
-
-// Griglia periodi (viste Settimana / Mese / Anno): celle stato per periodo
-.reg-presenze__period-grid
-  display: grid
-  grid-template-columns: repeat(var(--pcols), 1fr)
-  gap: 3px
-
-.reg-presenze__period-head
-  text-align: center
-  font-size: 10px
-  font-weight: 600
-  color: $text-disabled
-  white-space: nowrap
-  overflow: hidden
-  text-overflow: ellipsis
-
-.reg-presenze__period-cell
-  height: 26px
-  border-radius: 4px
-  background: var(--pc-bg)
-  border-left: 3px solid var(--pc-border)
-
-// Legenda (dentro la modale)
 .reg-presenze__legend-list
   display: flex
   flex-direction: column

@@ -97,7 +97,6 @@ function fmtIntestazione(d: Date): string {
   return `${GIORNI[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} ${d.getFullYear()}`
 }
 
-type VistaPeriodo = 'giorno' | 'settimana' | 'mese' | 'anno'
 type TipoAssenza = 'ferie' | 'rol' | 'malattia' | 'straordinario'
 
 const hhmmToMin = (s: string): number => { const [h, m] = s.split(':').map(Number); return (h || 0) * 60 + (m || 0) }
@@ -114,48 +113,24 @@ function inserisciPermesso(segmenti: SegmentoPresenza[], start: number, end: num
   out.push({ tipo: 'permesso', start_min: start, end_min: end, note: note || 'ROL' })
   return out.sort((a, b) => a.start_min - b.start_min)
 }
-const WD3 = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM']
-const MESI3 = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC']
 
-function startOfWeekMonday(d: Date): Date {
-  const x = new Date(d)
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
-  x.setHours(0, 0, 0, 0)
-  return x
-}
-
-// Stato di presenza giornaliero (mock deterministico finché non c'è il backend per periodi estesi)
-function statoGiorno(dipId: number, d: Date): SegmentoTipo {
-  if (d.getDay() === 0) return 'assenza'   // domenica = riposo
-  const seed = (dipId * 7 + d.getDate() * 3 + d.getMonth()) % 12
-  if (seed === 0 || seed === 1) return 'ferie'
-  if (seed === 2) return 'permesso'
-  if (seed === 3) return 'pausa'
-  return 'presente'
-}
-
-interface Periodo { key: string; label: string; date: Date }
-
-function periodiPerVista(vista: VistaPeriodo, d: Date): Periodo[] {
-  if (vista === 'settimana') {
-    const mon = startOfWeekMonday(d)
-    return Array.from({ length: 7 }, (_, i) => {
-      const dd = new Date(mon); dd.setDate(mon.getDate() + i)
-      return { key: dd.toISOString().slice(0, 10), label: `${WD3[i]} ${dd.getDate()}`, date: dd }
-    })
-  }
-  if (vista === 'mese') {
-    const y = d.getFullYear(), m = d.getMonth(), dim = new Date(y, m + 1, 0).getDate()
-    return Array.from({ length: dim }, (_, i) => {
-      const dd = new Date(y, m, i + 1)
-      return { key: dd.toISOString().slice(0, 10), label: String(i + 1), date: dd }
-    })
-  }
-  if (vista === 'anno') {
-    const y = d.getFullYear()
-    return Array.from({ length: 12 }, (_, i) => ({ key: `m${i}`, label: MESI3[i], date: new Date(y, i, 15) }))
-  }
-  return []
+// Presenze del giorno (mock deterministico per dipendente+data): ogni giorno ha le sue presenze.
+function segmentiGiorno(dipId: number, d: Date): SegmentoPresenza[] {
+  const dow = d.getDay()
+  if (dow === 0) return [{ tipo: 'assenza', start_min: 0, end_min: 24 * 60, note: 'Riposo' }]   // domenica
+  const seed = (dipId * 7 + d.getDate() * 3 + d.getMonth()) % 14
+  if (seed === 0) return [{ tipo: 'ferie',   start_min: 0, end_min: 24 * 60, note: 'Ferie' }]
+  if (seed === 1) return [{ tipo: 'assenza', start_min: 0, end_min: 24 * 60, note: 'Malattia' }]
+  const mattina = seed % 2 === 0
+  const start = mattina ? 7 : 13          // turno mattina o pomeriggio
+  const end   = mattina ? 16 : 22
+  const base: SegmentoPresenza[] = [
+    { tipo: 'presente', start_min: start * 60,            end_min: (start + 5) * 60 },
+    { tipo: 'pausa',    start_min: (start + 5) * 60,      end_min: (start + 5) * 60 + 60 },
+    { tipo: 'presente', start_min: (start + 5) * 60 + 60, end_min: end * 60 },
+  ]
+  if (seed === 4) return inserisciPermesso(base, (start + 7) * 60, (start + 8) * 60, 'ROL')   // un permesso pomeridiano
+  return base
 }
 
 export default function RegistroPresenze({ navigate }: { navigate: (p: string) => void }) {
@@ -167,16 +142,18 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
   const [items, setItems] = useState<DipendenteRow[]>(FALLBACK)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showLegend, setShowLegend] = useState(false)
   const [contact, setContact] = useState<{ dip: DipendenteRow; x: number; y: number } | null>(null)
-  const [vista, setVista] = useState<VistaPeriodo>('giorno')
   const [saved, setSaved] = useState(false)
+  // Modifiche manuali per (dipendente|giorno): sovrascrivono le presenze generate
+  const [edits, setEdits] = useState<Record<string, SegmentoPresenza[]>>({})
   // Modale modifica presenza (tasto destro su una riga)
   const [editRow, setEditRow] = useState<DipendenteRow | null>(null)
   const [form, setForm] = useState({ entrata: '', uscita: '', tipo: '' as '' | TipoAssenza, dal: '', al: '', puc: '', note: '' })
   const [pucError, setPucError] = useState('')
 
-  const periodi = useMemo(() => periodiPerVista(vista, date), [vista, date])
+  // Presenze del giorno selezionato per un dipendente: override manuale oppure generate deterministicamente
+  const segGiorno = (d: DipendenteRow): SegmentoPresenza[] =>
+    edits[`${d.id}|${dataIso}`] ?? segmentiGiorno(d.id, date)
 
   const dataIso = date.toISOString().slice(0, 10)
 
@@ -208,7 +185,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
   function goToday() { setDate(new Date()) }
 
   function openEdit(d: DipendenteRow) {
-    const pres = d.segmenti.filter((s) => s.tipo === 'presente')
+    const pres = segGiorno(d).filter((s) => s.tipo === 'presente')
     setForm({
       entrata: pres.length ? minToHHMM(Math.min(...pres.map((s) => s.start_min))) : '09:00',
       uscita:  pres.length ? minToHHMM(Math.max(...pres.map((s) => s.end_min)))   : '18:00',
@@ -223,19 +200,39 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
     if (form.tipo === 'malattia' && !/^\d{9,10}$/.test(form.puc.trim())) {
       setPucError('Il codice PUC deve avere 9–10 cifre'); return
     }
-    setItems((prev) => prev.map((d) => {
-      if (d.id !== editRow.id) return d
-      let segmenti = d.segmenti
-      if (form.tipo === 'ferie')              segmenti = [{ tipo: 'ferie',    start_min: 0, end_min: 24 * 60, note: form.note || 'Ferie' }]
-      else if (form.tipo === 'malattia')      segmenti = [{ tipo: 'assenza',  start_min: 0, end_min: 24 * 60, note: `Malattia — PUC ${form.puc.trim()}` }]
-      else if (form.tipo === 'rol')           segmenti = inserisciPermesso(d.segmenti, hhmmToMin(form.entrata || '09:00'), hhmmToMin(form.uscita || '13:00'), form.note || 'ROL')
-      else if (form.tipo === 'straordinario') segmenti = [{ tipo: 'presente', start_min: hhmmToMin(form.entrata || '09:00'), end_min: hhmmToMin(form.uscita || '20:00'), note: 'Straordinario' }]
-      else if (form.entrata && form.uscita)   segmenti = [{ tipo: 'presente', start_min: hhmmToMin(form.entrata), end_min: hhmmToMin(form.uscita) }]
-      return { ...d, segmenti }
-    }))
+    const cur = segGiorno(editRow)
+    let segmenti = cur
+    if (form.tipo === 'ferie')              segmenti = [{ tipo: 'ferie',    start_min: 0, end_min: 24 * 60, note: form.note || 'Ferie' }]
+    else if (form.tipo === 'malattia')      segmenti = [{ tipo: 'assenza',  start_min: 0, end_min: 24 * 60, note: `Malattia — PUC ${form.puc.trim()}` }]
+    else if (form.tipo === 'rol')           segmenti = inserisciPermesso(cur, hhmmToMin(form.entrata || '09:00'), hhmmToMin(form.uscita || '13:00'), form.note || 'ROL')
+    else if (form.tipo === 'straordinario') segmenti = [{ tipo: 'presente', start_min: hhmmToMin(form.entrata || '09:00'), end_min: hhmmToMin(form.uscita || '20:00'), note: 'Straordinario' }]
+    else if (form.entrata && form.uscita)   segmenti = [{ tipo: 'presente', start_min: hhmmToMin(form.entrata), end_min: hhmmToMin(form.uscita) }]
+    setEdits((prev) => ({ ...prev, [`${editRow.id}|${dataIso}`]: segmenti }))
     setEditRow(null)
     setSaved(true)
     window.setTimeout(() => setSaved(false), 3000)
+  }
+
+  // Scarica un .xls (tabella HTML, apribile da Excel) con le presenze del giorno per il dipendente
+  function exportXls(d: DipendenteRow) {
+    const righe = segGiorno(d)
+      .map((s) => `<tr><td>${COLORI_TIPO[s.tipo].label}</td><td>${minToHHMM(s.start_min)}</td><td>${minToHHMM(s.end_min)}</td><td>${s.note ?? ''}</td></tr>`)
+      .join('')
+    const html =
+      `<html><head><meta charset="utf-8"></head><body>` +
+      `<h3>Registro presenze — ${d.nome} ${d.cognome}</h3>` +
+      `<p>Reparto: ${d.reparto} — ${fmtIntestazione(date)}</p>` +
+      `<table border="1" cellspacing="0" cellpadding="4"><thead><tr><th>Stato</th><th>Dalle</th><th>Alle</th><th>Note</th></tr></thead>` +
+      `<tbody>${righe}</tbody></table></body></html>`
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `presenze_${d.cognome}_${dataIso}.xls`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -258,19 +255,6 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
         <InputField name="ricerca" label="Cerca" placeholder="Cerca" value={search} onChange={(e) => setSearch(e.target.value)} />
 
         <div className="ml-auto flex items-center gap-3">
-          <div className="reg-presenze__vista" role="group" aria-label="Estensione vista">
-            {([['giorno', 'Giorno'], ['settimana', 'Settimana'], ['mese', 'Mese'], ['anno', 'Anno']] as const).map(([v, lab]) => (
-              <button
-                key={v}
-                type="button"
-                className={`reg-presenze__vista-btn ${vista === v ? 'reg-presenze__vista-btn--on' : ''}`}
-                aria-pressed={vista === v}
-                onClick={() => setVista(v)}
-              >
-                {lab}
-              </button>
-            ))}
-          </div>
           <button className="sib-btn sib-btn--icon" title="Giorno precedente" onClick={() => nudgeDate(-1)}>
             <i className="fa-duotone fa-angles-left reg-presenze__toolbar-ico" />
           </button>
@@ -278,9 +262,22 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
           <button className="sib-btn sib-btn--icon" title="Giorno successivo" onClick={() => nudgeDate(1)}>
             <i className="fa-duotone fa-angles-right reg-presenze__toolbar-ico" />
           </button>
-          <button className="sib-btn sib-btn--icon" title="Legenda" aria-label="Legenda" onClick={() => setShowLegend(true)}>
-            <i className="fa-light fa-circle-info reg-presenze__toolbar-ico" />
-          </button>
+          <div className="reg-presenze__legend-pop-wrap">
+            <button className="sib-btn sib-btn--icon" aria-label="Legenda">
+              <i className="fa-light fa-circle-info reg-presenze__toolbar-ico" />
+            </button>
+            <div className="reg-presenze__legend-pop" role="tooltip">
+              <div className="reg-presenze__legend-pop-title">Legenda</div>
+              <div className="reg-presenze__legend-list">
+                {(Object.keys(COLORI_TIPO) as SegmentoTipo[]).map((k) => (
+                  <div key={k} className="reg-presenze__legend-item">
+                    <span className="reg-presenze__legend-dot" style={{ '--leg-bg': COLORI_TIPO[k].bg, '--leg-border': COLORI_TIPO[k].border } as React.CSSProperties} />
+                    <span>{COLORI_TIPO[k].label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -292,19 +289,11 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
         <div className="grid items-center text-[12px] font-semibold text-ink-muted bg-canvas px-4 py-2.5 reg-presenze__head-row">
           <div>Nome</div>
           <div className="text-center">Reparto</div>
-          {vista === 'giorno' ? (
-            <div className="grid reg-presenze__hours-grid">
-              {HOURS.map((h) => (
-                <div key={h} className="text-[11px] text-center">{String(h).padStart(2, '0')}:00</div>
-              ))}
-            </div>
-          ) : (
-            <div className="reg-presenze__period-grid" style={{ '--pcols': periodi.length } as React.CSSProperties}>
-              {periodi.map((pr) => (
-                <div key={pr.key} className="reg-presenze__period-head">{pr.label}</div>
-              ))}
-            </div>
-          )}
+          <div className="grid reg-presenze__hours-grid">
+            {HOURS.map((h) => (
+              <div key={h} className="text-[11px] text-center">{String(h).padStart(2, '0')}:00</div>
+            ))}
+          </div>
         </div>
 
         {filtered.map((d) => (
@@ -312,24 +301,26 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
                className="grid items-center px-4 py-3 border-t border-line reg-presenze__row"
                onContextMenu={(e) => { e.preventDefault(); openEdit(d) }}
                title="Tasto destro per modificare la presenza">
-            <div className="flex items-center gap-2.5 min-w-0 reg-presenze__name"
-                 onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setContact({ dip: d, x: r.left, y: r.bottom }) }}
-                 onMouseLeave={() => setContact(null)}>
-              {d.avatar ? (
-                <img src={d.avatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-primary-100 text-primary text-[11px] font-bold flex items-center justify-center shrink-0">
-                  {d.nome[0]}{d.cognome[0]}
+            <div className="flex items-center gap-2.5 min-w-0 reg-presenze__name">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 reg-presenze__name-id"
+                   onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setContact({ dip: d, x: r.left, y: r.bottom }) }}
+                   onMouseLeave={() => setContact(null)}>
+                {d.avatar ? (
+                  <img src={d.avatar} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-primary-100 text-primary text-[11px] font-bold flex items-center justify-center shrink-0">
+                    {d.nome[0]}{d.cognome[0]}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1 truncate text-[13px] font-semibold text-ink">
+                  {d.nome} {d.cognome}
                 </div>
-              )}
-              <div className="min-w-0 flex-1 truncate text-[13px] font-semibold text-ink">
-                {d.nome} {d.cognome}
               </div>
               <div className="reg-presenze__name-actions">
-                <button className="reg-presenze__name-action" title="Esporta XLS" aria-label="Esporta XLS">
+                <button className="reg-presenze__name-action" title="Esporta XLS" aria-label="Esporta XLS" onClick={() => exportXls(d)}>
                   <i className="fa-light fa-file-excel" />
                 </button>
-                <button className="reg-presenze__name-action" title="Modifica" aria-label="Modifica">
+                <button className="reg-presenze__name-action" title="Modifica" aria-label="Modifica" onClick={() => openEdit(d)}>
                   <i className="fa-light fa-pen" />
                 </button>
               </div>
@@ -339,43 +330,28 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
               <i className={`fa-light ${repartoIcon(d.reparto)} reg-presenze__reparto-ico`} />
             </div>
 
-            {vista === 'giorno' ? (
-              <div className="relative h-9 bg-canvas rounded">
-                <div className="absolute inset-0 grid pointer-events-none reg-presenze__tl-grid">
-                  {Array.from({ length: 96 }).map((_, i) => (
-                    <div key={i} className={`border-l reg-presenze__tl-tick ${i % 4 === 0 ? 'reg-presenze__tl-tick--major' : ''}`} />
-                  ))}
-                </div>
-                {d.segmenti.map((s, i) => {
-                  const left  = (s.start_min / (24 * 60)) * 100
-                  const width = ((s.end_min - s.start_min) / (24 * 60)) * 100
-                  const c = COLORI_TIPO[s.tipo]
-                  return (
-                    <div key={i}
-                         className="absolute top-1.5 bottom-1.5 rounded-sm overflow-hidden reg-presenze__segment"
-                         style={{ '--seg-left': `${left}%`, '--seg-width': `${width}%`, '--seg-bg': c.bg, '--seg-border': c.border } as React.CSSProperties}
-                         title={`${c.label}${s.note ? ' — ' + s.note : ''}`}>
-                      <div className="text-[10px] font-semibold px-1.5 py-0.5 truncate reg-presenze__segment-label">
-                        {c.label}
-                      </div>
+            <div className="relative h-9 bg-canvas rounded">
+              <div className="absolute inset-0 grid pointer-events-none reg-presenze__tl-grid">
+                {Array.from({ length: 96 }).map((_, i) => (
+                  <div key={i} className={`border-l reg-presenze__tl-tick ${i % 4 === 0 ? 'reg-presenze__tl-tick--major' : ''}`} />
+                ))}
+              </div>
+              {segGiorno(d).map((s, i) => {
+                const left  = (s.start_min / (24 * 60)) * 100
+                const width = ((s.end_min - s.start_min) / (24 * 60)) * 100
+                const c = COLORI_TIPO[s.tipo]
+                return (
+                  <div key={i}
+                       className="absolute top-1.5 bottom-1.5 rounded-sm overflow-hidden reg-presenze__segment"
+                       style={{ '--seg-left': `${left}%`, '--seg-width': `${width}%`, '--seg-bg': c.bg, '--seg-border': c.border } as React.CSSProperties}
+                       title={`${c.label}${s.note ? ' — ' + s.note : ''}`}>
+                    <div className="text-[10px] font-semibold px-1.5 py-0.5 truncate reg-presenze__segment-label">
+                      {c.label}
                     </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="reg-presenze__period-grid" style={{ '--pcols': periodi.length } as React.CSSProperties}>
-                {periodi.map((pr) => {
-                  const st = statoGiorno(d.id, pr.date)
-                  const c = COLORI_TIPO[st]
-                  return (
-                    <div key={pr.key}
-                         className="reg-presenze__period-cell"
-                         style={{ '--pc-bg': c.bg, '--pc-border': c.border } as React.CSSProperties}
-                         title={`${pr.label} — ${c.label}`} />
-                  )
-                })}
-              </div>
-            )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         ))}
 
@@ -480,16 +456,6 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
         </div>
       )}
 
-      <Modal open={showLegend} onClose={() => setShowLegend(false)} title="Legenda" size="sm">
-        <div className="reg-presenze__legend-list">
-          {(Object.keys(COLORI_TIPO) as SegmentoTipo[]).map((k) => (
-            <div key={k} className="reg-presenze__legend-item">
-              <span className="reg-presenze__legend-dot" style={{ '--leg-bg': COLORI_TIPO[k].bg, '--leg-border': COLORI_TIPO[k].border } as React.CSSProperties} />
-              <span>{COLORI_TIPO[k].label}</span>
-            </div>
-          ))}
-        </div>
-      </Modal>
     </div>
   )
 }
