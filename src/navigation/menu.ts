@@ -141,11 +141,11 @@ const MENU:any[]=[
         ]},
       ]},
       {id:"agora-purch",label:"Agorà",children:[
+        {id:"agora-dashboard",label:"Dashboard",page:"agora-dashboard"},
         {id:"agora-announcements-manage",label:"Componi annuncio",page:"agora-announcements-manage"},
         {id:"crea-acquisto",label:"Crea acquisto condiviso",page:"crea-acquisto"},
         {id:"agora-accommodations",label:"Strutture ricettive",page:"agora-accommodations"},
         {id:"agora-home",label:"Landing Agorà",page:"agora-home"},
-        {id:"agora-dashboard",label:"Dashboard Agorà",page:"agora-dashboard"},
       ]},
       {id:"gest-magazzino",label:"Gestione del magazzino",children:[
         {id:"crea-magazzino",label:"Crea magazzino",page:"crea-magazzino"},

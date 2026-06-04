@@ -287,7 +287,7 @@ export function DashboardPage() {
     <Layout>
       <div className="dash-page">
         <PageHeader
-          title="Dashboard"
+          title="Dashboard Agorà"
           subtitle="Performance e metriche della piattaforma"
           hideBack
           actions={
