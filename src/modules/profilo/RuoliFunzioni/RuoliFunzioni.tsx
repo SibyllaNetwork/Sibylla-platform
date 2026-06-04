@@ -253,10 +253,9 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
         </div>
       </Modal>
 
-      {/* ── Selettore avatar profilo (Notionists) ────────────────────── */}
+      {/* ── Selettore avatar profilo ─────────────────────────────────── */}
       <AvatarPicker
         open={iconPickerFor !== null}
-        base={iconPickerFor !== null ? assoc[iconPickerFor]?.nome ?? '' : ''}
         value={iconPickerFor !== null ? assoc[iconPickerFor]?.seed : undefined}
         onClose={()=>setIconPickerFor(null)}
         onSelect={(seed)=>{ if(iconPickerFor !== null) setAssoc(assoc.map((a,j)=> j===iconPickerFor ? {...a, seed} : a)) }}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import T from '../../../core/tokens'
 import Modal from '../../../core/components/Modal'
 import BtnBack from '../../../core/components/BtnBack'
@@ -9,6 +9,17 @@ import { InputField, SelectField, DatePickerField, RadioGroup } from '../../../c
 type CalEvent = {
   day: number; month: number; year: number; title: string; color: string;
   tipo: string; tipologia?: string; reparto?: string; ora?: string; creatoDa?: string;
+}
+
+// ── Timeline oraria 24h (viste Giorno / Settimana, stile Google Calendar) ──
+const HOURS   = Array.from({ length: 24 }, (_, h) => h)   // 0..23
+const HOUR_H  = 52                                        // altezza in px di una fascia oraria
+const EVENT_H = HOUR_H - 4                                // blocco evento ≈ 1 ora
+// Minuti dall'inizio giornata per un orario "HH:MM" (default 09:00 se assente)
+const eventMinutes = (ora?: string): number => {
+  if (!ora) return 9 * 60
+  const [h, m] = ora.split(':').map(Number)
+  return (h || 0) * 60 + (m || 0)
 }
 
 export default function Scadenzario({ navigate }: { navigate: (p:string) => void }) {
@@ -130,8 +141,73 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
   }
 
   const fmtISO = (d:Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-  // Apre la modale "Aggiungi Evento"; se passato un giorno, lo precompila come data
-  const openCreate = (d?:Date) => { setNewEv(v=>({...v, dataInizio: d?fmtISO(d):'' })); setShowModal(true) }
+  // Apre la modale "Aggiungi Evento"; precompila data ed (eventuale) ora di inizio
+  const openCreate = (d?:Date, hour?:number) => {
+    setNewEv(v=>({ ...v, dataInizio: d?fmtISO(d):'', oraInizio: hour!=null?`${String(hour).padStart(2,'0')}:00`:v.oraInizio }))
+    setShowModal(true)
+  }
+
+  // ── Timeline oraria (Giorno/Settimana) ──
+  const tlBodyRef = useRef<HTMLDivElement>(null)
+  // All'ingresso nelle viste a timeline porta lo scroll sulla mattina (07:00)
+  useEffect(() => {
+    if ((view==='giorno'||view==='settimana') && tlBodyRef.current) tlBodyRef.current.scrollTop = 7*HOUR_H
+  }, [view, curDate])
+  const nowMin = today.getHours()*60 + today.getMinutes()
+
+  // Click su una colonna giorno → crea evento all'ora cliccata
+  const handleColClick = (e:React.MouseEvent<HTMLDivElement>, d:Date) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const hour = Math.max(0, Math.min(23, Math.floor((e.clientY-rect.top)/HOUR_H)))
+    openCreate(d, hour)
+  }
+
+  // Griglia oraria 24h con eventi posizionati per orario; `days` = 1 (Giorno) o 7 (Settimana)
+  const renderTimeline = (days:Date[]) => {
+    const isWeek = days.length>1   // evidenziazione "oggi" solo in Settimana
+    return (
+    <div className="scad-tl" style={{ '--hour-h': `${HOUR_H}px`, '--cols': days.length } as React.CSSProperties}>
+      <div className="scad-tl__head">
+        <div className="scad-tl__gutter-head"/>
+        {days.map((d,i)=>(
+          <div key={i} className={`scad-tl__day-head ${isWeek&&isSameDay(d,today)?'scad-tl__day-head--today':''}`}>
+            <span className="scad-tl__day-dow">{DAYS[dowMon(d)]}</span>
+            <span className="scad-tl__day-num">{d.getDate()}</span>
+          </div>
+        ))}
+      </div>
+      <div className="scad-tl__body" ref={tlBodyRef}>
+        <div className="scad-tl__gutter">
+          {HOURS.map(h=>(
+            <div key={h} className="scad-tl__hour">
+              <span className="scad-tl__hour-label">{String(h).padStart(2,'0')}:00</span>
+            </div>
+          ))}
+        </div>
+        <div className="scad-tl__cols">
+          {days.map((d,di)=>{
+            const evs = eventsOn(d).sort((a,b)=>(a.ora||'').localeCompare(b.ora||''))
+            const td  = isSameDay(d,today)
+            return (
+              <div key={di} className={`scad-tl__col ${isWeek&&td?'scad-tl__col--today':''}`}
+                onClick={e=>handleColClick(e,d)} title="Clicca per creare un evento">
+                {HOURS.map(h=><div key={h} className="scad-tl__slot"/>)}
+                {td && <div className="scad-tl__now" style={{ '--now-top': `${nowMin/60*HOUR_H}px` } as React.CSSProperties}/>}
+                {evs.map((ev,ei)=>(
+                  <div key={ei} className="scad-tl__event"
+                    style={{ '--ev-color':ev.color, '--ev-top':`${eventMinutes(ev.ora)/60*HOUR_H}px`, '--ev-h':`${EVENT_H}px` } as React.CSSProperties}
+                    onClick={e=>{ e.stopPropagation(); setSelectedEvent(ev) }}>
+                    <span className="scad-tl__event-time">{ev.ora||'—'}</span>
+                    <span className="scad-tl__event-title">{ev.title}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )}
 
   const handleSave = () => {
     if (!newEv.titolo||!newEv.dataInizio) return
@@ -222,58 +298,11 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
       </div>
       )}
 
-      {/* ── Vista SETTIMANA ─────────────────────────────────────────── */}
-      {view==='settimana' && (
-      <div className="scadenzario__grid">
-        <div className="scadenzario__weekdays">
-          {weekDays.map((d,i)=>(
-            <div key={i} className={`scadenzario__weekday ${i<6?'scadenzario__weekday--border':''} ${isSameDay(d,today)?'scadenzario__weekday--today':''}`}>
-              {DAYS[i].slice(0,3)} {d.getDate()}
-            </div>
-          ))}
-        </div>
-        <div className="scadenzario__week-row">
-          {weekDays.map((d,i)=>{
-            const evs = eventsOn(d).sort((a,b)=>(a.ora||'').localeCompare(b.ora||''))
-            const canCreate = evs.length===0
-            return (
-              <div key={i}
-                className={`scadenzario__week-cell ${i<6?'scadenzario__cell--border-r':''} ${isSameDay(d,today)?'scadenzario__cell--today':''} ${canCreate?'scadenzario__cell--clickable':''}`}
-                onClick={()=>{ if(canCreate) openCreate(d) }}>
-                {canCreate && <div className="scadenzario__week-empty">—</div>}
-                {evs.map((ev,ei)=>(
-                  <div key={ei} className="scadenzario__event" style={{'--ev-color':ev.color} as React.CSSProperties} onClick={e=>{e.stopPropagation();setSelectedEvent(ev)}}>
-                    {ev.ora && <span className="scadenzario__event-time">{ev.ora}</span>} {ev.title}
-                  </div>
-                ))}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-      )}
+      {/* ── Vista SETTIMANA (timeline 24h) ──────────────────────────── */}
+      {view==='settimana' && renderTimeline(weekDays)}
 
-      {/* ── Vista GIORNO ────────────────────────────────────────────── */}
-      {view==='giorno' && (() => {
-        const d = new Date(yr,mo,curDay)
-        const evs = eventsOn(d).sort((a,b)=>(a.ora||'').localeCompare(b.ora||''))
-        return (
-          <div className="scadenzario__day">
-            {evs.length===0
-              ? <div className="scadenzario__day-empty scadenzario__day-empty--clickable" onClick={()=>openCreate(d)}>
-                  <i className="fa-light fa-circle-plus" aria-hidden="true"/> Nessun evento — clicca per aggiungerne uno
-                </div>
-              : evs.map((ev,ei)=>(
-                  <div key={ei} className="scadenzario__day-row" style={{'--ev-color':ev.color} as React.CSSProperties} onClick={()=>setSelectedEvent(ev)}>
-                    <span className="scadenzario__day-time">{ev.ora||'—'}</span>
-                    <span className="scadenzario__day-title">{ev.title}</span>
-                    {ev.reparto && <span className="scadenzario__day-reparto">{ev.reparto}</span>}
-                  </div>
-                ))
-            }
-          </div>
-        )
-      })()}
+      {/* ── Vista GIORNO (timeline 24h) ─────────────────────────────── */}
+      {view==='giorno' && renderTimeline([new Date(yr,mo,curDay)])}
 
       {/* ── Vista ANNO (mini-calendari, stile Calendario master) ────── */}
       {view==='anno' && (

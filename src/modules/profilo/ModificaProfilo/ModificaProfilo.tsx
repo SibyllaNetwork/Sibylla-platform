@@ -16,6 +16,8 @@ import {
 } from '../../../services/user.service'
 import { useThemeStore } from '../../../store/useThemeStore'
 import { useViewModeStore } from '../../../store/useViewModeStore'
+import AvatarPicker from '../../../core/components/AvatarPicker'
+import { avatarUrl, defaultAvatarId } from '../../../core/avatar'
 
 export default function ModificaProfilo({ navigate }: { navigate: (p: string) => void }) {
   const [form, setForm] = useState({
@@ -27,6 +29,8 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
   const [emailValid,  setEmailValid]  = useState(true)
   const [saved,       setSaved]       = useState(false)
   const [activeTab,   setActiveTab]   = useState('profilo')
+  const [avatar,      setAvatar]      = useState<string | undefined>(undefined)
+  const [avatarOpen,  setAvatarOpen]  = useState(false)
 
   // Tema (Standard ↔ Dark) e modalità di visualizzazione (classica ↔ tab)
   const theme     = useThemeStore(s => s.theme)
@@ -106,6 +110,8 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
 
   const countries = ['Italia','Francia','Germania','Spagna','Regno Unito','Stati Uniti','Svizzera','Belgio','Paesi Bassi','Austria']
   const genders   = ['Maschio','Femmina','Altro','Preferisco non specificare']
+  // Avatar mostrato: quello scelto dall'utente, altrimenti il default in base al sesso.
+  const effectiveAvatar = avatar ?? defaultAvatarId(form.sesso)
 
 
   return (
@@ -133,16 +139,14 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
       {activeTab === 'profilo' && (
         <div className="grid grid-cols-[200px_minmax(0,1fr)] gap-8 items-start">
           <div className="avatar-upload">
-            <div className="avatar-upload__circle">
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="avatar-upload__initials">LH</div>
-              </div>
+            <button type="button" className="avatar-upload__circle" onClick={() => setAvatarOpen(true)} title="Cambia avatar o foto">
+              <img className="avatar-upload__img" src={avatarUrl(effectiveAvatar)} alt="Avatar profilo" />
               <div className="avatar-upload__overlay">
                 <Ico n="camera" s={20} c="#fff" />
                 <span>Cambia foto</span>
               </div>
-            </div>
-            <p className="avatar-upload__hint">JPG, PNG o GIF<br />Max 2MB</p>
+            </button>
+            <p className="avatar-upload__hint">Scegli un avatar<br />o carica una foto (max 2MB)</p>
           </div>
 
           <div className="space-y-4">
@@ -286,6 +290,14 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
           </div>
         </div>
       )}
+
+      <AvatarPicker
+        open={avatarOpen}
+        value={effectiveAvatar}
+        allowUpload
+        onClose={() => setAvatarOpen(false)}
+        onSelect={(v) => setAvatar(v)}
+      />
     </div>
   )
 }

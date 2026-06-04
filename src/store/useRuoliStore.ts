@@ -5,7 +5,7 @@ import T from '../core/tokens'
 // e importato dall'Organigramma. ⚠️ Dati mock — verranno dal backend.
 
 export interface RuoloRow   { nome: string; funzione: string }
-// `seed` (opzionale) = avatar Notionists scelto; se assente si usa il nome come seed.
+// `seed` (opzionale) = id avatar scelto (es. 'avatar-07'); se assente si deriva dal nome.
 export interface ProfiloRow { nome: string; initials: string; color: string; ruolo: string; contratto: string; seed?: string }
 
 interface RuoliState {
