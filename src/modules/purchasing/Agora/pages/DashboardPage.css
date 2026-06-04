@@ -51,44 +51,70 @@
   color: var(--color-link);
 }
 
-/* ---- KPI tiles ---- */
-.dash-kpis {
+/* ---- Macro-area cards (le 3 sezioni della home) ---- */
+.dash-areas {
   @apply grid grid-cols-1 gap-4;
 }
-@media (min-width: 640px)  { .dash-kpis { @apply grid-cols-2; } }
-@media (min-width: 1024px) { .dash-kpis { @apply grid-cols-4; } }
+@media (min-width: 768px)  { .dash-areas { @apply grid-cols-3; } }
 
-.dash-kpi {
-  @apply flex flex-col gap-2 p-4 rounded-card border border-border-soft bg-surface text-left;
+.dash-area {
+  @apply relative flex flex-col gap-3 p-5 rounded-card border border-border-soft bg-surface text-left;
   appearance: none;
   font: inherit;
   color: inherit;
+  cursor: pointer;
   box-shadow: 0 2px 10px rgba(32, 71, 105, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.dash-kpi--clickable { cursor: pointer; }
-.dash-kpi--clickable:hover {
+.dash-area:hover {
   transform: translateY(-2px);
   border-color: var(--color-link);
-  box-shadow: 0 8px 22px rgba(32, 71, 105, 0.12);
+  box-shadow: 0 10px 26px rgba(32, 71, 105, 0.13);
 }
-.dash-kpi__top { @apply flex items-center justify-between gap-2; }
-.dash-kpi__label { @apply font-sans text-p1 text-text-inactive; }
-.dash-kpi__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--dot-bg); }
-.dash-kpi__value {
+.dash-area__head { @apply flex items-center gap-3; }
+.dash-area__icon {
+  @apply inline-flex size-10 shrink-0 items-center justify-center rounded-control text-text-negative;
+  background: var(--accent, var(--color-primary));
+  font-size: 18px;
+}
+.dash-area__title {
   @apply font-heading font-bold text-primary;
-  font-size: 2rem;
-  line-height: 1;
-  letter-spacing: -0.01em;
+  font-size: var(--text-h3);
 }
-.dash-kpi__bottom { @apply flex items-end justify-between gap-2 mt-1; }
-.dash-kpi__delta {
-  @apply inline-flex items-center gap-1 font-heading font-bold;
+.dash-area__delta {
+  @apply inline-flex items-center gap-1 ml-auto font-heading font-bold;
+  font-size: var(--text-p6);
+}
+.dash-area__delta--pos { color: var(--color-confirm-700); }
+.dash-area__delta--neg { color: var(--color-danger-900); }
+.dash-area__stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.dash-area__stat {
+  @apply flex items-center justify-between gap-3;
+  border-bottom: 1px dashed var(--color-border-soft);
+  padding-bottom: 6px;
+}
+.dash-area__stat:last-child { border-bottom: 0; padding-bottom: 0; }
+.dash-area__stat-label { @apply font-sans text-p1 text-text-inactive; }
+.dash-area__stat-value {
+  @apply inline-flex items-center gap-1.5 font-heading font-bold text-primary;
+  font-size: var(--text-h4);
+  font-variant-numeric: tabular-nums;
+}
+.dash-area__stat--hot .dash-area__stat-value { color: var(--color-alert-700); }
+.dash-area__stat--hot .dash-area__stat-value i { font-size: 12px; }
+.dash-area__spark { display: block; width: 100%; height: 34px; opacity: 0.9; }
+.dash-area__cta {
+  @apply inline-flex items-center gap-1.5 font-sans font-semibold text-link;
   font-size: var(--text-p1);
 }
-.dash-kpi__delta--pos { color: var(--color-confirm-700); }
-.dash-kpi__delta--neg { color: var(--color-danger-900); }
-.dash-kpi__spark { display: block; width: 110px; height: 36px; }
+.dash-area:hover .dash-area__cta { text-decoration: underline; }
 
 /* ---- Goals row ---- */
 .dash-goals {
@@ -155,7 +181,7 @@
 @media (min-width: 1024px) {
   .dash-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: start;
+    align-items: stretch;
   }
 }
 .dash-card {
@@ -363,40 +389,52 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Table ---- */
-/* deroga consapevole: bordo riga dashed (look "voucher recenti") */
-.sib-table.dash-table tbody td { border-bottom: 1px dashed var(--color-border-soft); }
-.sib-table.dash-table tbody tr:last-child td { border-bottom: none; }
-.sib-table .dash-table__num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
+/* ---- Connessioni territoriali (mappa choropleth + classifica) ---- */
+.dash-conn {
+  @apply grid grid-cols-1 gap-5;
+  flex: 1;
+  align-items: center;
 }
-.sib-table .dash-table__title {
-  font-weight: 600;
-  color: var(--color-primary);
+@media (min-width: 640px) {
+  .dash-conn { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
 }
-.dash-code {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--color-primary);
-  background: var(--color-surface-subtle);
-  padding: 2px 6px;
-  border-radius: var(--radius-control);
-  border: 1px solid var(--color-border-soft);
+.dash-conn__map { position: relative; }
+.dash-conn__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 320px;
 }
-
-/* Status pills */
-.dash-pill {
-  @apply inline-flex items-center rounded-full font-heading font-bold;
-  font-size: var(--text-p6);
-  padding: 2px 10px;
-  letter-spacing: 0.04em;
+.dash-conn__region {
+  fill: var(--fill, var(--color-surface-subtle));
+  stroke: var(--color-surface);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.15s ease, filter 0.15s ease;
 }
-.dash-pill--purchased { background: var(--color-confirm-50); color: var(--color-confirm-700); }
-.dash-pill--saved     { background: var(--color-link-soft); color: var(--color-link); }
+.dash-conn__region.is-active { cursor: pointer; }
+.dash-conn__region.is-active:hover {
+  filter: brightness(1.08);
+  stroke: var(--color-primary);
+  stroke-width: 1.5;
+}
+.dash-conn__tip {
+  position: absolute;
+  transform: translate(-50%, -140%);
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 12px rgba(20, 40, 80, 0.18);
+  font-size: 12px;
+  color: var(--color-text-active);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+.dash-conn__tip strong { color: var(--color-primary); }
+.dash-conn__rank { gap: 9px; }
 
 /* ---- Print stylesheet for PDF export ---- */
 @media print {

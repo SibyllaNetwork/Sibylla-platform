@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   Line,
@@ -19,7 +17,8 @@ import {
 import { Layout } from './Layout';
 import { PageHeader } from './PageHeader';
 import { Icon } from '../ds/icon';
-import { H3, P3 } from '../ds/typography';
+import { H3 } from '../ds/typography';
+import { ITALY_VIEWBOX, REGIONS as ITALY_REGIONS } from '../data/italyMap';
 import './DashboardPage.css';
 
 type Range = '7g' | '30g' | '90g' | 'anno';
@@ -94,37 +93,70 @@ function makeSpark(s: number, len = 14, base = 50, amp = 30): SparkPoint[] {
 
 /* ---------- Data ---------- */
 
-type AccentKey =
-  | 'tradezone'
-  | 'pacchetti'
-  | 'match'
-  | 'preventivi'
-  | 'acquisti'
-  | 'elearning';
+type AccentKey = 'tradezone' | 'pacchetti' | 'elearning';
 
 const ACCENT_COLOR: Record<AccentKey, string> = {
   tradezone: '#2e5f8f',
   pacchetti: '#c87f00',
-  match: '#1d8eb8',
-  preventivi: '#8a52b0',
-  acquisti: '#c95e0b',
   elearning: '#4f63a4',
 };
 
-interface Kpi {
-  id: string;
+/* Le tre macro-aree della home Agorà, richiamate in dashboard. */
+interface AreaStat {
   label: string;
   value: string;
-  delta: number;
-  spark: SparkPoint[];
-  accent: AccentKey;
-  href?: string;
+  hot?: boolean;
 }
-const KPI_LIST: Kpi[] = [
-  { id: 'revenue', label: 'Fatturato voucher',         value: '€ 1.840', delta: 24,  spark: makeSpark(1, 14, 40, 28), accent: 'pacchetti', href: '/dynamic-packages' },
-  { id: 'views',   label: 'Visualizzazioni annunci',   value: '487',     delta: 52,  spark: makeSpark(2, 14, 50, 30), accent: 'tradezone', href: '/announcements' },
-  { id: 'match',   label: 'Connessioni Match Zone',    value: '6',       delta: 33,  spark: makeSpark(3, 14, 30, 18), accent: 'match',     href: '/match-zone' },
-  { id: 'conv',    label: 'Tasso conversione voucher', value: '28%',     delta: -3,  spark: makeSpark(4, 14, 45, 20), accent: 'preventivi' },
+interface MacroArea {
+  id: AccentKey;
+  title: string;
+  icon: string;
+  href: string;
+  delta: number;
+  stats: AreaStat[];
+  spark: SparkPoint[];
+}
+const MACRO_AREAS: MacroArea[] = [
+  {
+    id: 'tradezone',
+    title: 'Trade Zone',
+    icon: 'display-chart-up',
+    href: '/announcements',
+    delta: 18,
+    stats: [
+      { label: 'Annunci pubblicati', value: '12' },
+      { label: 'Interazioni ricevute', value: '487' },
+      { label: 'Acquisti di rete', value: '5' },
+      { label: 'Opportunità Match Zone', value: '6', hot: true },
+    ],
+    spark: makeSpark(2, 14, 50, 30),
+  },
+  {
+    id: 'pacchetti',
+    title: 'Pacchetti dinamici',
+    icon: 'boxes-packing',
+    href: '/dynamic-packages',
+    delta: 24,
+    stats: [
+      { label: 'Fatturato voucher', value: '€ 1.840' },
+      { label: 'Voucher generati', value: '28' },
+      { label: 'Tasso conversione', value: '28%' },
+    ],
+    spark: makeSpark(1, 14, 40, 28),
+  },
+  {
+    id: 'elearning',
+    title: 'E-learning',
+    icon: 'head-side-gear',
+    href: '/elearning',
+    delta: 9,
+    stats: [
+      { label: 'Corsi completati', value: '9' },
+      { label: 'Corsi in corso', value: '3' },
+      { label: 'Ore di formazione', value: '24h' },
+    ],
+    spark: makeSpark(5, 14, 35, 16),
+  },
 ];
 
 interface Goal {
@@ -142,63 +174,47 @@ const GOALS: Goal[] = [
   { id: 'g4', label: 'Corsi e-learning',      current: 9,    target: 12,   unit: '',  icon: 'graduation-cap' },
 ];
 
-interface CatFilter {
+/* Filtri del trend: le sezioni di Agorà (non più le categorie voucher). */
+interface AreaFilter {
   id: string;
   label: string;
-  scale: number; // mock scaling factor
+  scale: number;
 }
-const CATEGORY_FILTERS: CatFilter[] = [
-  { id: 'all',        label: 'Tutte',      scale: 1.0 },
-  { id: 'soggiorno',  label: 'Soggiorno',  scale: 0.55 },
-  { id: 'pacchetti',  label: 'Pacchetti',  scale: 0.3 },
-  { id: 'sapori',     label: 'Sapori',     scale: 0.18 },
-  { id: 'esperienze', label: 'Esperienze', scale: 0.12 },
+const AREA_FILTERS: AreaFilter[] = [
+  { id: 'all',        label: 'Tutte',              scale: 1.0 },
+  { id: 'tradezone',  label: 'Trade Zone',         scale: 0.55 },
+  { id: 'pacchetti',  label: 'Pacchetti dinamici', scale: 0.32 },
+  { id: 'elearning',  label: 'E-learning',         scale: 0.18 },
 ];
 
-const CATEGORY_DIST = [
-  { name: 'Soggiorno',  value: 12, color: '#204769' },
-  { name: 'Pacchetti',  value: 8,  color: '#c87f00' },
-  { name: 'Sapori',     value: 5,  color: '#1d8eb8' },
-  { name: 'Esperienze', value: 3,  color: '#8a52b0' },
-];
-
-const REVENUE_BY_CAT = [
-  { name: 'Soggiorno',          value: 1240, color: '#204769' },
-  { name: 'Sapori',             value: 380,  color: '#1d8eb8' },
-  { name: 'Esperienze',         value: 220,  color: '#8a52b0' },
-  { name: 'Prodotti & Servizi', value: 95,   color: '#c95e0b' },
-];
-
-interface Region {
+/* Distribuzione per categoria — sintetizza i due grafici (voucher + fatturato)
+   in un'unica torta filtrabile. */
+interface CatSlice {
   name: string;
-  count: number;
+  voucher: number;
+  fatturato: number;
   color: string;
 }
-const REGIONS: Region[] = [
-  { name: 'Roma',    count: 12, color: '#204769' },
-  { name: 'Milano',  count: 9,  color: '#5c9cd4' },
-  { name: 'Firenze', count: 6,  color: '#1d8eb8' },
-  { name: 'Napoli',  count: 5,  color: '#8a52b0' },
-  { name: 'Venezia', count: 4,  color: '#c87f00' },
-  { name: 'Torino',  count: 3,  color: '#c95e0b' },
-  { name: 'Bologna', count: 2,  color: '#4f63a4' },
+const CATEGORY_DATA: CatSlice[] = [
+  { name: 'Soggiorno',          voucher: 12, fatturato: 1240, color: '#204769' },
+  { name: 'Pacchetti',          voucher: 8,  fatturato: 760,  color: '#c87f00' },
+  { name: 'Sapori',             voucher: 5,  fatturato: 380,  color: '#1d8eb8' },
+  { name: 'Esperienze',         voucher: 3,  fatturato: 220,  color: '#8a52b0' },
+  { name: 'Prodotti & Servizi', voucher: 2,  fatturato: 95,   color: '#c95e0b' },
 ];
 
-interface VoucherRow {
-  code: string;
-  title: string;
-  category: string;
-  date: string;
-  price: number;
-  status: 'purchased' | 'saved';
-}
-const TOP_VOUCHERS: VoucherRow[] = [
-  { code: 'PKD-K7X3A-01', title: 'Pacchetto Romantico',     category: 'Soggiorno',  date: '18 mag', price: 240, status: 'purchased' },
-  { code: 'PKD-K7X3A-03', title: 'Pacchetto Famiglia',      category: 'Soggiorno',  date: '17 mag', price: 360, status: 'purchased' },
-  { code: 'PKD-J2K9P-02', title: 'Pacchetto Gourmet',       category: 'Sapori',     date: '14 mag', price: 320, status: 'purchased' },
-  { code: 'PKD-M4F7E-01', title: 'Avventura Adrenalina',    category: 'Esperienze', date: '11 mag', price: 280, status: 'saved' },
-  { code: 'PKD-N8H2Q-04', title: 'Tour & musei urbano',     category: 'Esperienze', date: '09 mag', price: 180, status: 'purchased' },
-];
+/* Connessioni territoriali per regione (choropleth sulla mappa d'Italia). */
+const CONNECTIONS: Record<string, number> = {
+  Lazio: 12,
+  Lombardia: 9,
+  Toscana: 6,
+  Campania: 5,
+  Veneto: 4,
+  'Emilia-Romagna': 3,
+  Sicilia: 3,
+  Piemonte: 2,
+  Puglia: 2,
+};
 
 /* ---------- Export helpers ---------- */
 
@@ -230,14 +246,21 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const [range, setRange] = useState<Range>('30g');
   const [compare, setCompare] = useState(false);
-  const [activeCat, setActiveCat] = useState<string>('all');
+  const [activeArea, setActiveArea] = useState<string>('all');
+  const [catMetric, setCatMetric] = useState<'voucher' | 'fatturato'>('voucher');
 
-  const catScale =
-    CATEGORY_FILTERS.find((c) => c.id === activeCat)?.scale ?? 1;
+  const areaScale = AREA_FILTERS.find((a) => a.id === activeArea)?.scale ?? 1;
   const perfData = useMemo(
-    () => makePerfData(range, catScale, compare),
-    [range, catScale, compare],
+    () => makePerfData(range, areaScale, compare),
+    [range, areaScale, compare],
   );
+
+  const catTotal = useMemo(
+    () => CATEGORY_DATA.reduce((acc, c) => acc + c[catMetric], 0),
+    [catMetric],
+  );
+  const fmtCat = (v: number) =>
+    catMetric === 'fatturato' ? `€ ${v.toLocaleString('it-IT')}` : `${v}`;
 
   const handleExportCsv = () => {
     const head = compare
@@ -270,21 +293,11 @@ export function DashboardPage() {
           actions={
             <div className="dash-header-actions">
               <div className="dash-export">
-                <button
-                  type="button"
-                  className="dash-export__btn"
-                  onClick={handleExportCsv}
-                  title="Esporta CSV"
-                >
+                <button type="button" className="dash-export__btn" onClick={handleExportCsv} title="Esporta CSV">
                   <Icon family="light" name="file-csv" />
                   CSV
                 </button>
-                <button
-                  type="button"
-                  className="dash-export__btn"
-                  onClick={handleExportPdf}
-                  title="Esporta PDF"
-                >
+                <button type="button" className="dash-export__btn" onClick={handleExportPdf} title="Esporta PDF">
                   <Icon family="light" name="file-pdf" />
                   PDF
                 </button>
@@ -294,238 +307,158 @@ export function DashboardPage() {
           }
         />
 
-        <section className="dash-kpis">
-          {KPI_LIST.map((k) => (
-            <KpiTile
-              key={k.id}
-              kpi={k}
-              onClick={k.href ? () => navigate(k.href!) : undefined}
-            />
+        {/* Le tre macro-aree della home Agorà */}
+        <section className="dash-areas">
+          {MACRO_AREAS.map((a) => (
+            <AreaCard key={a.id} area={a} onClick={() => navigate(a.href)} />
           ))}
         </section>
 
-        <section className="dash-goals">
-          {GOALS.map((g) => (
-            <GoalCard key={g.id} goal={g} />
-          ))}
+        {/* Trend in alto, filtrato per sezione di Agorà */}
+        <section className="dash-card dash-card--full">
+          <div className="dash-card__head">
+            <H3>Andamento per area</H3>
+            <div className="dash-card__head-actions">
+              <div className="dash-chips" role="tablist" aria-label="Filtra per area Agorà">
+                {AREA_FILTERS.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeArea === a.id}
+                    className={`dash-chip${activeArea === a.id ? ' dash-chip--active' : ''}`}
+                    onClick={() => setActiveArea(a.id)}
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+              <label className="dash-toggle">
+                <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} />
+                Confronta periodo
+              </label>
+            </div>
+          </div>
+          <div className="dash-legend">
+            <span className="dash-legend__item">
+              <span className="dash-legend__dot dash-legend__dot--views" />
+              Visualizzazioni
+            </span>
+            <span className="dash-legend__item">
+              <span className="dash-legend__dot dash-legend__dot--purchases" />
+              Acquisti
+            </span>
+            {compare && (
+              <span className="dash-legend__item dash-legend__item--dashed">Periodo precedente</span>
+            )}
+          </div>
+          <div className="dash-chart dash-chart--lg">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={perfData} margin={{ top: 8, right: 12, left: -16, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="grad-views" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#5c9cd4" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#5c9cd4" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="grad-purchases" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#c87f00" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#c87f00" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="#ececf0" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6e7175' }} axisLine={{ stroke: '#cfcfcf' }} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#6e7175' }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 8, border: '1px solid #dbdbdb', fontSize: 12 }}
+                  labelStyle={{ color: '#204769', fontWeight: 700 }}
+                />
+                <Area type="monotone" dataKey="views" name="Visualizzazioni" stroke="#5c9cd4" strokeWidth={2} fill="url(#grad-views)" />
+                <Area type="monotone" dataKey="purchases" name="Acquisti" stroke="#c87f00" strokeWidth={2} fill="url(#grad-purchases)" />
+                {compare && (
+                  <Line type="monotone" dataKey="prevViews" name="Visualizz. precedenti" stroke="#5c9cd4" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
+                )}
+                {compare && (
+                  <Line type="monotone" dataKey="prevPurchases" name="Acquisti precedenti" stroke="#c87f00" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
+                )}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </section>
 
         <div className="dash-grid">
-          {/* Performance area chart — wide */}
-          <section className="dash-card dash-card--wide">
-            <div className="dash-card__head">
-              <H3>Andamento</H3>
-              <div className="dash-card__head-actions">
-                <div className="dash-chips" role="tablist" aria-label="Filtra per categoria">
-                  {CATEGORY_FILTERS.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeCat === c.id}
-                      className={`dash-chip${activeCat === c.id ? ' dash-chip--active' : ''}`}
-                      onClick={() => setActiveCat(c.id)}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-                <label className="dash-toggle">
-                  <input
-                    type="checkbox"
-                    checked={compare}
-                    onChange={(e) => setCompare(e.target.checked)}
-                  />
-                  Confronta periodo
-                </label>
-              </div>
-            </div>
-            <div className="dash-legend">
-              <span className="dash-legend__item">
-                <span className="dash-legend__dot dash-legend__dot--views" />
-                Visualizzazioni
-              </span>
-              <span className="dash-legend__item">
-                <span className="dash-legend__dot dash-legend__dot--purchases" />
-                Acquisti
-              </span>
-              {compare && (
-                <span className="dash-legend__item dash-legend__item--dashed">
-                  Periodo precedente
-                </span>
-              )}
-            </div>
-            <div className="dash-chart dash-chart--lg">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={perfData} margin={{ top: 8, right: 12, left: -16, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="grad-views" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#5c9cd4" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#5c9cd4" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="grad-purchases" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#c87f00" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#c87f00" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="#ececf0" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6e7175' }} axisLine={{ stroke: '#cfcfcf' }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#6e7175' }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: 8, border: '1px solid #dbdbdb', fontSize: 12 }}
-                    labelStyle={{ color: '#204769', fontWeight: 700 }}
-                  />
-                  <Area type="monotone" dataKey="views" name="Visualizzazioni" stroke="#5c9cd4" strokeWidth={2} fill="url(#grad-views)" />
-                  <Area type="monotone" dataKey="purchases" name="Acquisti" stroke="#c87f00" strokeWidth={2} fill="url(#grad-purchases)" />
-                  {compare && (
-                    <Line type="monotone" dataKey="prevViews" name="Visualizz. precedenti" stroke="#5c9cd4" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
-                  )}
-                  {compare && (
-                    <Line type="monotone" dataKey="prevPurchases" name="Acquisti precedenti" stroke="#c87f00" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          {/* Category donut */}
+          {/* Torta categorie unificata (voucher + fatturato) — in alto a sinistra */}
           <section className="dash-card">
             <div className="dash-card__head">
-              <H3>Voucher per categoria</H3>
+              <H3>Per categoria</H3>
+              <div className="dash-chips" role="tablist" aria-label="Metrica per categoria">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={catMetric === 'voucher'}
+                  className={`dash-chip${catMetric === 'voucher' ? ' dash-chip--active' : ''}`}
+                  onClick={() => setCatMetric('voucher')}
+                >
+                  Voucher
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={catMetric === 'fatturato'}
+                  className={`dash-chip${catMetric === 'fatturato' ? ' dash-chip--active' : ''}`}
+                  onClick={() => setCatMetric('fatturato')}
+                >
+                  Fatturato
+                </button>
+              </div>
             </div>
             <div className="dash-chart">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={CATEGORY_DIST} dataKey="value" innerRadius={56} outerRadius={86} paddingAngle={3} stroke="none">
-                    {CATEGORY_DIST.map((c) => (
+                  <Pie data={CATEGORY_DATA} dataKey={catMetric} nameKey="name" innerRadius={56} outerRadius={86} paddingAngle={3} stroke="none">
+                    {CATEGORY_DATA.map((c) => (
                       <Cell key={c.name} fill={c.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #dbdbdb', fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, border: '1px solid #dbdbdb', fontSize: 12 }}
+                    formatter={(value) => [fmtCat(Number(value)), catMetric === 'fatturato' ? 'Fatturato' : 'Voucher'] as [string, string]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="dash-donut__center">
-                <span className="dash-donut__value">
-                  {CATEGORY_DIST.reduce((a, b) => a + b.value, 0)}
-                </span>
-                <span className="dash-donut__label">voucher</span>
+                <span className="dash-donut__value">{fmtCat(catTotal)}</span>
+                <span className="dash-donut__label">{catMetric === 'fatturato' ? 'fatturato' : 'voucher'}</span>
               </div>
             </div>
             <ul className="dash-pie-legend">
-              {CATEGORY_DIST.map((c) => (
+              {CATEGORY_DATA.map((c) => (
                 <li key={c.name}>
-                  <span
-                    className="dash-pie-legend__dot"
-                    style={{ '--dot-bg': c.color } as React.CSSProperties}
-                  />
+                  <span className="dash-pie-legend__dot" style={{ '--dot-bg': c.color } as React.CSSProperties} />
                   <span>{c.name}</span>
-                  <span className="dash-pie-legend__val">{c.value}</span>
+                  <span className="dash-pie-legend__val">{fmtCat(c[catMetric])}</span>
                 </li>
               ))}
             </ul>
           </section>
 
-          {/* Bar chart — fatturato per categoria */}
-          <section className="dash-card">
-            <div className="dash-card__head">
-              <H3>Fatturato per categoria</H3>
-              <span className="dash-card__hint">€</span>
-            </div>
-            <div className="dash-chart">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={REVENUE_BY_CAT} layout="vertical" margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-                  <CartesianGrid stroke="#ececf0" strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11, fill: '#6e7175' }} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: '#4a4d53' }} axisLine={false} tickLine={false} width={130} />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(92, 156, 212, 0.08)' }}
-                    contentStyle={{ borderRadius: 8, border: '1px solid #dbdbdb', fontSize: 12 }}
-                    formatter={(value) => [`€ ${value}`, 'Fatturato'] as [string, string]}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {REVENUE_BY_CAT.map((c, i) => (
-                      <Cell key={i} fill={c.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          {/* Regions widget — wide */}
+          {/* Connessioni territoriali — mappa choropleth */}
           <section className="dash-card dash-card--wide">
             <div className="dash-card__head">
-              <H3>Connessioni per città</H3>
+              <H3>Connessioni territoriali</H3>
               <span className="dash-card__hint">
-                {REGIONS.reduce((a, b) => a + b.count, 0)} totali
+                {Object.values(CONNECTIONS).reduce((a, b) => a + b, 0)} connessioni · {Object.keys(CONNECTIONS).length} regioni
               </span>
             </div>
-            <ul className="dash-regions">
-              {(() => {
-                const max = Math.max(...REGIONS.map((r) => r.count));
-                return REGIONS.map((r) => (
-                  <li key={r.name} className="dash-region">
-                    <span className="dash-region__name">{r.name}</span>
-                    <span className="dash-region__bar">
-                      <span
-                        className="dash-region__fill"
-                        style={
-                          {
-                            '--bar-w': `${(r.count / max) * 100}%`,
-                            '--bar-color': r.color,
-                          } as React.CSSProperties
-                        }
-                      />
-                    </span>
-                    <span className="dash-region__count">{r.count}</span>
-                  </li>
-                ));
-              })()}
-            </ul>
-          </section>
-
-          {/* Top voucher table — full row */}
-          <section className="dash-card dash-card--full">
-            <div className="dash-card__head">
-              <H3>Voucher recenti</H3>
-              <button
-                type="button"
-                className="dash-link"
-                onClick={() => navigate('/dynamic-packages')}
-              >
-                Vedi tutti <Icon family="light" name="arrow-right" />
-              </button>
-            </div>
-            <table className="sib-table dash-table">
-              <thead>
-                <tr>
-                  <th>Codice</th>
-                  <th>Pacchetto</th>
-                  <th>Categoria</th>
-                  <th>Data</th>
-                  <th className="dash-table__num">Prezzo</th>
-                  <th>Stato</th>
-                </tr>
-              </thead>
-              <tbody>
-                {TOP_VOUCHERS.map((v) => (
-                  <tr key={v.code}>
-                    <td><code className="dash-code">{v.code}</code></td>
-                    <td className="dash-table__title">{v.title}</td>
-                    <td>{v.category}</td>
-                    <td>{v.date}</td>
-                    <td className="dash-table__num">€ {v.price}</td>
-                    <td>
-                      <span className={`dash-pill dash-pill--${v.status}`}>
-                        {v.status === 'purchased' ? 'Acquistato' : 'Salvato'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ConnectionsMap />
           </section>
         </div>
+
+        {/* Obiettivi */}
+        <section className="dash-goals">
+          {GOALS.map((g) => (
+            <GoalCard key={g.id} goal={g} />
+          ))}
+        </section>
       </div>
     </Layout>
   );
@@ -555,44 +488,111 @@ function RangeFilter({ value, onChange }: { value: Range; onChange: (r: Range) =
   );
 }
 
-function KpiTile({ kpi, onClick }: { kpi: Kpi; onClick?: () => void }) {
-  const isInteractive = !!onClick;
-  const cls = `dash-kpi${isInteractive ? ' dash-kpi--clickable' : ''}`;
-  const positive = kpi.delta >= 0;
-  const inner = (
-    <>
-      <div className="dash-kpi__top">
-        <span className="dash-kpi__label">{kpi.label}</span>
-        <span
-          className="dash-kpi__dot"
-          style={{ '--dot-bg': ACCENT_COLOR[kpi.accent] } as React.CSSProperties}
-        />
-      </div>
-      <span className="dash-kpi__value">{kpi.value}</span>
-      <div className="dash-kpi__bottom">
-        <span className={`dash-kpi__delta dash-kpi__delta--${positive ? 'pos' : 'neg'}`}>
+function AreaCard({ area, onClick }: { area: MacroArea; onClick: () => void }) {
+  const positive = area.delta >= 0;
+  return (
+    <button type="button" className="dash-area" onClick={onClick}>
+      <div className="dash-area__head">
+        <span className="dash-area__icon" style={{ '--accent': ACCENT_COLOR[area.id] } as React.CSSProperties}>
+          <Icon family="light" name={area.icon} />
+        </span>
+        <span className="dash-area__title">{area.title}</span>
+        <span className={`dash-area__delta dash-area__delta--${positive ? 'pos' : 'neg'}`}>
           <Icon family="solid" name={positive ? 'arrow-trend-up' : 'arrow-trend-down'} />
-          {positive ? '+' : ''}
-          {kpi.delta}%
-        </span>
-        <span className="dash-kpi__spark">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={kpi.spark}>
-              <Line type="monotone" dataKey="y" stroke={ACCENT_COLOR[kpi.accent]} strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          {positive ? '+' : ''}{area.delta}%
         </span>
       </div>
-    </>
+      <ul className="dash-area__stats">
+        {area.stats.map((s) => (
+          <li key={s.label} className={`dash-area__stat${s.hot ? ' dash-area__stat--hot' : ''}`}>
+            <span className="dash-area__stat-label">{s.label}</span>
+            <span className="dash-area__stat-value">
+              {s.hot && <Icon family="solid" name="bolt" />}
+              {s.value}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <span className="dash-area__spark">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={area.spark}>
+            <Line type="monotone" dataKey="y" stroke={ACCENT_COLOR[area.id]} strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </span>
+      <span className="dash-area__cta">
+        Apri sezione <Icon family="light" name="arrow-right" />
+      </span>
+    </button>
   );
-  if (isInteractive) {
-    return (
-      <button type="button" className={cls} onClick={onClick}>
-        {inner}
-      </button>
-    );
-  }
-  return <div className={cls}>{inner}</div>;
+}
+
+function ConnectionsMap() {
+  const [tip, setTip] = useState<{ name: string; count: number; x: number; y: number } | null>(null);
+  const max = Math.max(...Object.values(CONNECTIONS));
+  const ranked = useMemo(
+    () =>
+      Object.entries(CONNECTIONS)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count),
+    [],
+  );
+
+  const fillFor = (name: string): string => {
+    const c = CONNECTIONS[name] ?? 0;
+    if (!c) return 'var(--color-surface-subtle)';
+    const pct = Math.round((0.28 + 0.72 * (c / max)) * 100);
+    return `color-mix(in srgb, var(--color-primary) ${pct}%, var(--color-surface))`;
+  };
+
+  return (
+    <div className="dash-conn">
+      <div className="dash-conn__map">
+        <svg
+          className="dash-conn__svg"
+          viewBox={`0 0 ${ITALY_VIEWBOX.w} ${ITALY_VIEWBOX.h}`}
+          role="img"
+          aria-label="Mappa connessioni territoriali per regione"
+          onMouseLeave={() => setTip(null)}
+        >
+          {ITALY_REGIONS.map((r) => (
+            <path
+              key={r.c}
+              d={r.d}
+              className={`dash-conn__region${CONNECTIONS[r.n] ? ' is-active' : ''}`}
+              style={{ '--fill': fillFor(r.n) } as React.CSSProperties}
+              onMouseMove={(e) => {
+                const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
+                if (!rect) return;
+                setTip({ name: r.n, count: CONNECTIONS[r.n] ?? 0, x: e.clientX - rect.left, y: e.clientY - rect.top });
+              }}
+              onMouseLeave={() => setTip(null)}
+            />
+          ))}
+        </svg>
+        {tip && (
+          <span className="dash-conn__tip" style={{ left: tip.x, top: tip.y } as React.CSSProperties}>
+            <strong>{tip.name}</strong>
+            {tip.count > 0 ? ` · ${tip.count} connessioni` : ' · nessuna'}
+          </span>
+        )}
+      </div>
+      <ul className="dash-regions dash-conn__rank">
+        {ranked.map((r) => (
+          <li key={r.name} className="dash-region">
+            <span className="dash-region__name">{r.name}</span>
+            <span className="dash-region__bar">
+              <span
+                className="dash-region__fill"
+                style={{ '--bar-w': `${(r.count / max) * 100}%`, '--bar-color': 'var(--color-primary)' } as React.CSSProperties}
+              />
+            </span>
+            <span className="dash-region__count">{r.count}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function GoalCard({ goal }: { goal: Goal }) {
