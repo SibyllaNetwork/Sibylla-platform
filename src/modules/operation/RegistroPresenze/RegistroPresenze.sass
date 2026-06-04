@@ -5,27 +5,172 @@
   font-size: 13px
   color: $text-active
 
-.reg-presenze__info-ico
-  font-size: 14px
-  color: $link
+// icone azione (XLS / matita) impilate in verticale a destra del nome
+.reg-presenze__name-actions
+  flex: none
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 6px
 
-.reg-presenze__xls-ico
+// icone azione: dimensione e colore standard, uniformi tra loro
+.reg-presenze__name-action
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 22px
+  height: 20px
+  border: none
+  background: none
+  cursor: pointer
+  font-size: 15px
+  color: $text-inactive
+  transition: $transition-fast
+
+  &:hover
+    color: $primary
+
+// Modale modifica presenza (tasto destro su una riga)
+.presenza-edit
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__row2
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 12px
+
+  &__cards
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+
+  &__card
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 1px
+    padding: 11px 13px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    cursor: pointer
+    text-align: left
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary-400
+
+    &--on
+      border-color: $primary
+      background: $primary-50
+
+    &--malattia &-ico
+      color: $error
+
+    &--malattia.presenza-edit__card--on
+      border-color: $error
+      background: $error-light
+
+  &__card-ico
+    font-size: 16px
+    color: $primary
+    margin-bottom: 3px
+
+  &__card-t
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  &__card-s
+    font-size: 11px
+    color: $text-inactive
+
+  &__hint
+    display: flex
+    align-items: flex-start
+    gap: 6px
+    margin: 2px 0 0
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 4px
+    padding-top: 16px
+    border-top: 1px solid $border
+
+// Tooltip contatti dipendente (fixed → non viene clippata dal contenitore tabella)
+.reg-presenze__contact
+  position: fixed
+  left: var(--cx)
+  top: var(--cy)
+  z-index: 200
+  min-width: 240px
+  max-width: 340px
+  display: flex
+  flex-direction: column
+  gap: 6px
+  padding: 12px 14px
+  background: $white
+  border: 1px solid $border
+  border-radius: $radius-md
+  box-shadow: $shadow-lg
+  pointer-events: none
+
+.reg-presenze__contact-name
+  font-family: $font-heading
   font-size: 13px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 2px
 
-.reg-presenze__pen-ico
+.reg-presenze__contact-row
+  display: flex
+  align-items: center
+  gap: 9px
   font-size: 12px
+  color: $text-active
+
+  i
+    flex: none
+    width: 14px
+    text-align: center
+    color: $text-inactive
+
+// cella Reparto: icona centrata con divisore a sinistra
+.reg-presenze__reparto
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  border-left: 1px solid $border
+  color: $primary
 
 .reg-presenze__reparto-ico
-  font-size: 18px
+  font-size: 20px
 
 .reg-presenze__head-row
-  grid-template-columns: 220px 60px 1fr
+  grid-template-columns: 220px 72px 1fr
 
 .reg-presenze__hours-grid
   grid-template-columns: repeat(24, 1fr)
 
 .reg-presenze__row
-  grid-template-columns: 220px 60px 1fr
+  grid-template-columns: 220px 72px 1fr
   min-height: 64px
 
 .reg-presenze__tl-grid
@@ -46,6 +191,74 @@
 .reg-presenze__segment-label
   color: var(--seg-border)
 
+// Toggle estensione vista (Giorno / Settimana / Mese / Anno)
+.reg-presenze__vista
+  display: inline-flex
+  height: 36px
+  border: 1px solid $border
+  border-radius: $radius-md
+  overflow: hidden
+  background: $white
+
+.reg-presenze__vista-btn
+  padding: 0 12px
+  border: none
+  background: $white
+  color: $text-inactive
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  transition: $transition-fast
+
+  & + &
+    border-left: 1px solid $border
+
+  &:hover:not(.reg-presenze__vista-btn--on)
+    color: $primary
+    background: $primary-50
+
+  &--on
+    background: $primary
+    color: $white
+
+// Griglia periodi (viste Settimana / Mese / Anno): celle stato per periodo
+.reg-presenze__period-grid
+  display: grid
+  grid-template-columns: repeat(var(--pcols), 1fr)
+  gap: 3px
+
+.reg-presenze__period-head
+  text-align: center
+  font-size: 10px
+  font-weight: 600
+  color: $text-disabled
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.reg-presenze__period-cell
+  height: 26px
+  border-radius: 4px
+  background: var(--pc-bg)
+  border-left: 3px solid var(--pc-border)
+
+// Legenda (dentro la modale)
+.reg-presenze__legend-list
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.reg-presenze__legend-item
+  display: flex
+  align-items: center
+  gap: 10px
+  font-size: 13px
+  color: $text-active
+
 .reg-presenze__legend-dot
+  flex: none
+  width: 16px
+  height: 16px
+  border-radius: 4px
   background: var(--leg-bg)
   border-left: 3px solid var(--leg-border)

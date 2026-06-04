@@ -193,7 +193,7 @@
     @apply bg-canvas;
   }
   .sib-table th {
-    @apply text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-ink-muted
+    @apply text-left px-3 py-2.5 text-[12px] font-semibold text-ink-muted
            border-b border-line whitespace-nowrap
            sticky top-0 z-[2] bg-canvas;
   }
