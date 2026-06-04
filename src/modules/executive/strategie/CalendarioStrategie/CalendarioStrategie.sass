@@ -469,3 +469,161 @@
 
   &__day-num
     line-height: 1
+
+  // ── Toggle vista (griglia / righe) ──────────────────────────────────────────
+  &__viewtoggle
+    align-self: flex-end
+    display: inline-flex
+    border: 1px solid $border
+    border-radius: $radius-md
+    overflow: hidden
+    background: $white
+
+  &__viewbtn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 40px
+    height: 40px
+    border: none
+    background: $white
+    color: $text-inactive
+    cursor: pointer
+    font-size: 15px
+    transition: $transition-fast
+
+    & + &
+      border-left: 1px solid $border
+
+    &:hover:not(.cal-strategie__viewbtn--on)
+      color: $primary
+      background: $primary-50
+
+    &--on
+      background: $primary
+      color: $white
+
+  // ── Vista "per righe" (matrice mesi × giorni 1-31) ──────────────────────────
+  // Vista "per righe": colonne flessibili che riempiono tutta la larghezza del blocco
+  // (min 32px per colonna → scroll orizzontale solo se troppo strette).
+  &__rows
+    --rcell-min: 32px
+    --rcell-gap: 5px
+    --rbadge-w: 64px
+    overflow-x: auto
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-xl
+    padding: 14px
+
+  &__rows-inner
+    min-width: 100%
+    display: flex
+    flex-direction: column
+    gap: var(--rcell-gap)
+
+  &__rows-head
+    display: flex
+    align-items: center
+    gap: var(--rcell-gap)
+    margin-bottom: 2px
+
+  &__rows-corner
+    flex: none
+    width: var(--rbadge-w)
+
+  &__rows-nums
+    flex: 1
+    display: grid
+    grid-template-columns: repeat(31, minmax(var(--rcell-min), 1fr))
+    gap: var(--rcell-gap)
+
+  &__rows-daynum
+    text-align: center
+    font-size: 12px
+    font-weight: 700
+    color: $text-disabled
+
+  &__row
+    display: flex
+    align-items: center
+    gap: var(--rcell-gap)
+
+  &__row-badge
+    flex: none
+    width: var(--rbadge-w)
+    align-self: stretch
+    min-height: 44px
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    border-radius: 10px
+    background: $primary
+    color: $white
+
+  &__row-mon
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 800
+    line-height: 1.1
+
+  &__row-yr
+    font-size: 10px
+    font-weight: 600
+    opacity: 0.8
+
+  &__row-days
+    flex: 1
+    display: grid
+    grid-template-columns: repeat(31, minmax(var(--rcell-min), 1fr))
+    gap: var(--rcell-gap)
+
+  &__rcell
+    aspect-ratio: 1 / 1
+    border-radius: 50%
+    border: 1px solid transparent
+    background: $bg
+    color: $text-inactive
+    font-family: $font-body
+    font-size: 10.5px
+    font-weight: 700
+    cursor: pointer
+    padding: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &:hover:not(:disabled)
+      border-color: $primary
+      transform: translateY(-1px)
+
+    &:focus-visible
+      outline: 2px solid $link
+      outline-offset: 1px
+
+    &--we
+      background: $primary-50
+
+    &--today
+      border-color: $link
+
+    &--assigned
+      background: var(--day-color)
+      color: $white
+      border-color: transparent
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18)
+
+    &--readonly
+      cursor: default
+
+      &:hover
+        transform: none
+        border-color: transparent
+
+    &--out
+      background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(15, 17, 23, 0.06) 4px, rgba(15, 17, 23, 0.06) 8px)
+      border-radius: 8px
+      cursor: default
+      pointer-events: none

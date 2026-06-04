@@ -9,7 +9,9 @@ import { STRATEGIES, STRATEGIES_BY_ID, STRUTTURE, TIPI_CALENDARIO, type Strategi
 import './CalendarioStrategie.sass'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
+const MONTH_ABBR  = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC']
 const WEEKDAY_ABBR = ['L','M','M','G','V','S','D']
+const WD3 = ['LUN','MAR','MER','GIO','VEN','SAB','DOM']  // 0 = Lunedì
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const dayKey = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`
@@ -118,6 +120,69 @@ function MonthCard({ year, month, assignments, strategiesById, selectedStrategy,
   )
 }
 
+// Vista "per righe": ogni mese è una riga di celle 1..31 (etichetta giorno settimana)
+function MonthRow({ year, month, assignments, strategiesById, selectedStrategy, eraseMode, onToggleDay, onShowTip }: MonthCardProps) {
+  const dim      = daysInMonth(year, month)
+  const today    = new Date()
+  const todayK   = dayKey(today.getFullYear(), today.getMonth(), today.getDate())
+  const canApply = eraseMode || !!selectedStrategy
+
+  return (
+    <div className="cal-strategie__row">
+      <span className="cal-strategie__row-badge">
+        <span className="cal-strategie__row-mon">{MONTH_ABBR[month]}</span>
+        <span className="cal-strategie__row-yr">{year}</span>
+      </span>
+      <div className="cal-strategie__row-days">
+        {Array.from({ length: 31 }, (_, i) => {
+          const d = i + 1
+          if (d > dim) {
+            return <span key={i} className="cal-strategie__rcell cal-strategie__rcell--out" aria-hidden="true"/>
+          }
+          const k         = dayKey(year, month, d)
+          const stratId   = assignments[k]
+          const strat     = stratId ? strategiesById[stratId] : null
+          const wd        = weekdayIndex(year, month, d)
+          const isWeekend = wd >= 5
+          const isToday   = k === todayK
+          const styleVar  = strat ? ({ '--day-color': strat.colore } as React.CSSProperties) : undefined
+
+          const handleEnter = (e: React.SyntheticEvent<HTMLButtonElement>) => {
+            if (!strat) return
+            const r = e.currentTarget.getBoundingClientRect()
+            onShowTip({ strat, date: new Date(year, month, d), x: r.left + r.width / 2, y: r.top })
+          }
+          const handleLeave = () => onShowTip(null)
+
+          return (
+            <button
+              key={i}
+              type="button"
+              className={clsx(
+                'cal-strategie__rcell',
+                strat     && 'cal-strategie__rcell--assigned',
+                !strat    && isWeekend && 'cal-strategie__rcell--we',
+                isToday   && 'cal-strategie__rcell--today',
+                !canApply && 'cal-strategie__rcell--readonly',
+              )}
+              style={styleVar}
+              aria-label={strat ? `${d} — ${strat.nome}` : `${d}`}
+              disabled={!canApply}
+              onClick={() => canApply && onToggleDay(k)}
+              onMouseEnter={handleEnter}
+              onMouseLeave={handleLeave}
+              onFocus={handleEnter}
+              onBlur={handleLeave}
+            >
+              {WD3[wd]}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function CalendarioStrategie({ navigate }: { navigate: (p: string) => void }) {
   const initRange = useMemo(defaultRange, [])
 
@@ -131,6 +196,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
   const [search,           setSearch]           = useState('')
   const [assignments,      setAssignments]      = useState<Record<string, string>>({})
   const [tip,              setTip]              = useState<StrategyTooltipState | null>(null)
+  const [calView,          setCalView]          = useState<'grid' | 'rows'>('grid')
 
   const strategiesById = STRATEGIES_BY_ID
 
@@ -233,6 +299,27 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
         />
 
         <div className="cal-strategie__filters-spacer" aria-hidden="true"/>
+
+        <div className="cal-strategie__viewtoggle" role="group" aria-label="Visualizzazione calendario">
+          <button
+            type="button"
+            className={clsx('cal-strategie__viewbtn', calView === 'grid' && 'cal-strategie__viewbtn--on')}
+            aria-pressed={calView === 'grid'}
+            title="Vista calendari"
+            onClick={() => setCalView('grid')}
+          >
+            <i className="fa-light fa-grid-2" aria-hidden="true"/>
+          </button>
+          <button
+            type="button"
+            className={clsx('cal-strategie__viewbtn', calView === 'rows' && 'cal-strategie__viewbtn--on')}
+            aria-pressed={calView === 'rows'}
+            title="Vista per righe"
+            onClick={() => setCalView('rows')}
+          >
+            <i className="fa-light fa-list" aria-hidden="true"/>
+          </button>
+        </div>
 
         <button
           type="button"
@@ -373,7 +460,11 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
         </aside>
 
         <div className="cal-strategie__content">
-          {months.length > 0 ? (
+          {months.length === 0 ? (
+            <div className="cal-strategie__empty">
+              Periodo non valido — controlla le date selezionate.
+            </div>
+          ) : calView === 'grid' ? (
             <div className="cal-strategie__grid">
               {months.map(({ year, month }) => (
                 <MonthCard
@@ -390,8 +481,30 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
               ))}
             </div>
           ) : (
-            <div className="cal-strategie__empty">
-              Periodo non valido — controlla le date selezionate.
+            <div className="cal-strategie__rows">
+              <div className="cal-strategie__rows-inner">
+                <div className="cal-strategie__rows-head">
+                  <span className="cal-strategie__rows-corner" aria-hidden="true"/>
+                  <div className="cal-strategie__rows-nums">
+                    {Array.from({ length: 31 }, (_, i) => (
+                      <span key={i} className="cal-strategie__rows-daynum">{i + 1}</span>
+                    ))}
+                  </div>
+                </div>
+                {months.map(({ year, month }) => (
+                  <MonthRow
+                    key={`${year}-${month}`}
+                    year={year}
+                    month={month}
+                    assignments={assignments}
+                    strategiesById={strategiesById}
+                    selectedStrategy={activeStrategy}
+                    eraseMode={eraseMode}
+                    onToggleDay={handleToggleDay}
+                    onShowTip={setTip}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
