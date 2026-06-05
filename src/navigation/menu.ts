@@ -140,8 +140,7 @@ const MENU:any[]=[
           {id:"crea-azienda-a",label:"Crea nuova azienda",page:"crea-struttura"},
         ]},
       ]},
-      {id:"agora-purch",label:"Agorà",children:[
-        {id:"agora-dashboard",label:"Dashboard",page:"agora-dashboard"},
+      {id:"agora-purch",label:"Agorà",page:"agora-dashboard",children:[
         {id:"agora-announcements-manage",label:"Componi annuncio",page:"agora-announcements-manage"},
         {id:"crea-acquisto",label:"Crea acquisto condiviso",page:"crea-acquisto"},
         {id:"agora-accommodations",label:"Strutture ricettive",page:"agora-accommodations"},
