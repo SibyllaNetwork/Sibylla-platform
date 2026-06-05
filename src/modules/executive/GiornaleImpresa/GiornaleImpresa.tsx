@@ -1,9 +1,23 @@
 import React, { useState } from 'react'
 import T from '../../../core/tokens'
 import Ico from '../../../core/icons/Ico'
+import MenuIco from '../../../core/icons/MenuIco'
 import BtnBack from '../../../core/components/BtnBack'
+import { Tabs } from '../../../core/components'
 import { SelectField } from '../../../core/components/form'
+import MENU from '../../../navigation/menu'
 import './GiornaleImpresa.sass'
+
+// Meta (icona + titolo) delle card custom della Panoramica
+const CUSTOM_META: Record<string, { icon: string; title: string; sdly?: boolean }> = {
+  numeri:     { icon:'bar',       title:'I numeri di oggi', sdly:true },
+  almanacco:  { icon:'calendar',  title:'Almanacco' },
+  meteo:      { icon:'cloud-sun', title:'Meteo' },
+  eventi:     { icon:'bell',      title:'Eventi in città' },
+  turni:      { icon:'clock',     title:'Turni di oggi' },
+  compleanni: { icon:'star',      title:'Compleanni di oggi' },
+}
+const cardTitle = (card: any) => card.type === 'page' ? card.label : (CUSTOM_META[card.id]?.title ?? card.id)
 
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const WDAYS  = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato']
@@ -22,12 +36,188 @@ const ORBIT = [
   { id: 'vip',        label: 'Ospiti VIP', icon: 'star'     },
   { id: 'eventi',     label: 'Eventi',     icon: 'bell'     },
   { id: 'numeri',     label: 'I numeri',   icon: 'bar'      },
-  { id: 'meteo',      label: 'Meteo',      icon: 'wheel'    },
+  { id: 'meteo',      label: 'Meteo',      icon: 'cloud-sun' },
 ]
 
-// ── Sezioni riposizionabili (vista estesa) — il primo box (tabella) è escluso ──
-const EXT_SECTIONS = ['almanacco', 'meteo', 'eventi', 'turni', 'compleanni'] as const
-type ExtId = typeof EXT_SECTIONS[number]
+// ── Card per tab (vista estesa) ─────────────────────────────────────────────
+// Panoramica = widget dashboard dedicati (renderExtCard).
+// Gli altri tab elencano le SEZIONI DEL MENU del modulo Impresa corrispondente:
+// ogni gruppo di primo livello del modulo diventa una card con le pagine navigabili.
+const impresaModule = (modId: string) => {
+  const imp = (MENU as any[]).find(m => m.id === 'impresa')
+  return imp?.children?.find((c: any) => c.id === modId)
+}
+const leafPages = (node: any, acc: any[] = []): any[] => {
+  if (node.page) acc.push({ page: node.page, label: node.label, id: node.id })
+  if (node.children) node.children.forEach((c: any) => leafPages(c, acc))
+  return acc
+}
+// Catalogo: una card per ARGOMENTO (pagina) del modulo, con la sua sezione.
+const pageCatalog = (modId: string) => {
+  const out: any[] = []
+  ;(impresaModule(modId)?.children ?? []).forEach((group: any) => {
+    leafPages(group).forEach((leaf: any) => {
+      out.push({
+        id: `${modId}:${out.length}`,
+        type: 'page',
+        page: leaf.page,
+        label: leaf.label,
+        section: group.label,
+        groupId: group.id,
+        nodeId: leaf.id,
+      })
+    })
+  })
+  return out
+}
+
+const TAB_CARDS: Record<string, any[]> = {
+  panoramica: [
+    { id:'numeri', type:'custom' }, { id:'almanacco', type:'custom' },
+    { id:'meteo', type:'custom' }, { id:'eventi', type:'custom' },
+    { id:'turni', type:'custom' }, { id:'compleanni', type:'custom' },
+  ],
+  vendite:   pageCatalog('sales'),
+  gestione:  pageCatalog('finance'),
+  acquisti:  pageCatalog('purchasing'),
+  operativa: pageCatalog('operation'),
+  personale: pageCatalog('hr'),
+}
+
+// Di default pubblica solo le prime 6 card per sezione; le altre restano
+// disponibili nella personalizzazione.
+const DEFAULT_VISIBLE = 6
+
+// ── Mini-visualizzazioni (senza librerie) ───────────────────────────────────
+const cssVar = (k: string, v: string) => ({ [k]: v } as React.CSSProperties)
+
+const vKpis = (items: any[]) => (
+  <div className="giornale__kpis">
+    {items.map((k, i) => (
+      <div key={i} className="giornale__kpi">
+        <div className="giornale__kpi-val">{k.val}</div>
+        <div className="giornale__kpi-label">{k.label}</div>
+        {k.delta && <div className={`giornale__kpi-delta ${String(k.delta).startsWith('-') ? 'giornale__kpi-delta--neg' : ''}`}>{k.delta}</div>}
+      </div>
+    ))}
+  </div>
+)
+const vBars = (items: any[]) => (
+  <div className="giornale__bars">
+    {items.map((b, i) => (
+      <div key={i} className="giornale__bar-row">
+        <span className="giornale__bar-label">{b.label}</span>
+        <span className="giornale__bar-track"><span className="giornale__bar-fill" style={cssVar('--w', `${b.pct}%`)} /></span>
+        <span className="giornale__bar-pct">{b.pct}%</span>
+      </div>
+    ))}
+  </div>
+)
+const vCols = (items: any[]) => (
+  <div className="giornale__cols">
+    {items.map((c, i) => (
+      <div key={i} className="giornale__col">
+        <span className="giornale__col-track"><span className="giornale__col-bar" style={cssVar('--h', `${c.pct}%`)} /></span>
+        <span className="giornale__col-label">{c.label}</span>
+      </div>
+    ))}
+  </div>
+)
+const vDonut = (value: number, label?: string) => {
+  const r = 26, c = 2 * Math.PI * r
+  return (
+    <div className="giornale__donut">
+      <svg className="giornale__donut-svg" viewBox="0 0 64 64">
+        <circle className="giornale__donut-bg" cx="32" cy="32" r={r} />
+        <circle className="giornale__donut-fg" cx="32" cy="32" r={r} strokeDasharray={c} strokeDashoffset={c * (1 - value / 100)} />
+      </svg>
+      <div className="giornale__donut-val">{value}%</div>
+      {label && <div className="giornale__donut-cap">{label}</div>}
+    </div>
+  )
+}
+const vSpark = (data: number[], caption?: string) => {
+  const max = Math.max(...data), min = Math.min(...data), span = (max - min) || 1
+  const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${28 - ((v - min) / span) * 24}`).join(' ')
+  return (
+    <div className="giornale__spark-wrap">
+      <svg className="giornale__spark" viewBox="0 0 100 28" preserveAspectRatio="none">
+        <polyline className="giornale__spark-line" points={pts} vectorEffect="non-scaling-stroke" />
+      </svg>
+      {caption && <div className="giornale__spark-cap">{caption}</div>}
+    </div>
+  )
+}
+const vList = (items: any[]) => (
+  <div className="giornale__mini-list">
+    {items.map((it, i) => (
+      <div key={i} className="giornale__mini-li">
+        <div className="giornale__mini-li-body">
+          <div className="giornale__mini-li-main">{it.main}</div>
+          {it.sub && <div className="giornale__mini-li-sub">{it.sub}</div>}
+        </div>
+        {it.val && <div className="giornale__mini-li-val">{it.val}</div>}
+      </div>
+    ))}
+  </div>
+)
+const renderBlock = (b: any, i: number) => {
+  switch (b.kind) {
+    case 'kpis':  return <React.Fragment key={i}>{vKpis(b.data)}</React.Fragment>
+    case 'bars':  return <React.Fragment key={i}>{vBars(b.data)}</React.Fragment>
+    case 'cols':  return <React.Fragment key={i}>{vCols(b.data)}</React.Fragment>
+    case 'donut': return <React.Fragment key={i}>{vDonut(b.value, b.label)}</React.Fragment>
+    case 'spark': return <React.Fragment key={i}>{vSpark(b.data, b.caption)}</React.Fragment>
+    case 'list':  return <React.Fragment key={i}>{vList(b.data)}</React.Fragment>
+    default:      return null
+  }
+}
+
+// Riepilogo dati per pagina (le voci pubblicate di default + altre comuni)
+const SUMMARIES: Record<string, any[]> = {
+  // Vendite
+  'analisi-dist-sales': [{kind:'bars', data:[{label:'Booking.com',pct:38},{label:'Diretto',pct:24},{label:'Expedia',pct:18},{label:'Agenzie',pct:12},{label:'Altri',pct:8}]}],
+  'crea-strategia':      [{kind:'kpis', data:[{label:'Attive',val:'6'},{label:'Bozze',val:'2'},{label:'Concluse',val:'14'}]}],
+  'calendario-strategie':[{kind:'cols', data:[{label:'Gen',pct:40},{label:'Feb',pct:55},{label:'Mar',pct:60},{label:'Apr',pct:72},{label:'Mag',pct:80},{label:'Giu',pct:95}]}],
+  'calendario-master':   [{kind:'cols', data:[{label:'Set',pct:35},{label:'Ott',pct:50},{label:'Nov',pct:62},{label:'Dic',pct:88},{label:'Gen',pct:70},{label:'Feb',pct:58}]}],
+  'sugg-data-driven':    [{kind:'donut', value:62, label:'Adozione'}],
+  'screening-open':      [{kind:'bars', data:[{label:'Sotto mercato',pct:34},{label:'In linea',pct:48},{label:'Sopra',pct:18}]}],
+  // Controllo gestione (Finance)
+  'budget-costi':        [{kind:'bars', data:[{label:'Personale',pct:38},{label:'Acquisti',pct:24},{label:'Energia',pct:14},{label:'Manutenz.',pct:12},{label:'Marketing',pct:12}]}],
+  'centro-costo':        [{kind:'kpis', data:[{label:'Centri',val:'8'},{label:'Allocato',val:'92%'}]}],
+  'cost-analysis':       [{kind:'cols', data:[{label:'Gen',pct:62},{label:'Feb',pct:58},{label:'Mar',pct:66},{label:'Apr',pct:60},{label:'Mag',pct:54},{label:'Giu',pct:50}]}],
+  'finance-overview':    [{kind:'kpis', data:[{label:'Ricavi',val:'142k€',delta:'+8%'},{label:'Costi',val:'68k€'},{label:'Margine',val:'52%'},{label:'EBITDA',val:'41k€',delta:'+5%'}]}],
+  'decision-tree':       [{kind:'donut', value:71, label:'Confidenza'}],
+  'incoming-analysis':   [{kind:'spark', data:[12,18,15,22,28,24,31], caption:'Incoming · ultimi 7 gg'}],
+  // Acquisti
+  'area-merceologica':   [{kind:'bars', data:[{label:'Food',pct:42},{label:'Beverage',pct:21},{label:'Pulizie',pct:14},{label:'Manutenz.',pct:13},{label:'Energia',pct:10}]}],
+  'lista-fornitori':     [{kind:'kpis', data:[{label:'Fornitori',val:'18'},{label:'Attivi',val:'14'},{label:'Nuovi',val:'2'}]}],
+  'servizi-acquisto':    [{kind:'kpis', data:[{label:'Servizi',val:'23'},{label:'In corso',val:'5'}]}],
+  'miei-contratti-a':    [{kind:'list', data:[{main:'Enel Energia',sub:'Scade tra 18 gg',val:'attivo'},{main:'Lavasecco Sud',sub:'Scade tra 32 gg',val:'attivo'},{main:'OtisCare',sub:'Scade tra 54 gg',val:'attivo'}]}],
+  'inserisci-contratto-a':[{kind:'kpis', data:[{label:'Bozze',val:'3'},{label:'Da firmare',val:'1'}]}],
+  'crea-struttura':      [{kind:'kpis', data:[{label:'Strutture',val:'10'},{label:'Outlet',val:'24'}]}],
+  // Operativa
+  'planner':             [{kind:'kpis', data:[{label:'Camere occ.',val:'41'},{label:'Arrivi',val:'18'},{label:'Partenze',val:'14'}]}],
+  'assegnazione-board':  [{kind:'bars', data:[{label:'Assegnate',pct:78},{label:'Da assegnare',pct:22}]}],
+  'on-the-book':         [{kind:'cols', data:[{label:'L',pct:40},{label:'M',pct:52},{label:'M',pct:66},{label:'G',pct:60},{label:'V',pct:80},{label:'S',pct:95},{label:'D',pct:70}]}],
+  'op-overview':         [{kind:'donut', value:85, label:'Occupazione'}],
+  'guest-room':          [{kind:'kpis', data:[{label:'Ospiti',val:'72'},{label:'Camere',val:'48'},{label:'Rating',val:'4.6'}]}],
+  'acquisti-servizi':    [{kind:'kpis', data:[{label:'Richieste',val:'9'},{label:'Approvate',val:'6'}]}],
+  // Personale
+  'registro-presenze':   [{kind:'donut', value:92, label:'Presenza'}],
+  'turni-personale':     [{kind:'cols', data:[{label:'L',pct:80},{label:'M',pct:75},{label:'M',pct:90},{label:'G',pct:85},{label:'V',pct:95},{label:'S',pct:60},{label:'D',pct:45}]}],
+  'crea-anagrafica':     [{kind:'kpis', data:[{label:'Dipendenti',val:'34'},{label:'Nuovi/mese',val:'2'}]}],
+  'archivio-personale':  [{kind:'kpis', data:[{label:'Schede',val:'34'},{label:'Attive',val:'31'},{label:'Cessate',val:'3'}]}],
+  'profile-analysis':    [{kind:'bars', data:[{label:'F&B',pct:35},{label:'Housekeeping',pct:26},{label:'Reception',pct:24},{label:'Manutenz.',pct:9},{label:'Direzione',pct:6}]}],
+  'assegna-obiettivo':   [{kind:'kpis', data:[{label:'Obiettivi',val:'12'},{label:'Raggiunti',val:'7'},{label:'In corso',val:'5'}]}],
+}
+const hashNum = (s: string, lo: number, hi: number) => {
+  let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return lo + h % (hi - lo + 1)
+}
+// Riepilogo per una card pagina: specifico se presente, altrimenti generico
+const summaryFor = (card: any) =>
+  SUMMARIES[card.nodeId] ?? [{ kind:'donut', value: hashNum(card.nodeId ?? card.id, 48, 92), label:'Andamento' }]
 
 export default function GiornaleImpresa({ navigate }: { navigate: (p: string) => void }) {
   const today     = new Date()
@@ -40,12 +230,12 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   // vista sintetica
   const [active, setActive] = useState(0)
 
-  // vista estesa
-  const [order, setOrder]       = useState<ExtId[]>([...EXT_SECTIONS])
+  // vista estesa — ordine delle card per ciascun tab (riordinabile col drag)
+  const [orders, setOrders] = useState<Record<string, string[]>>(() =>
+    Object.fromEntries(Object.entries(TAB_CARDS).map(([k, cards]) => [k, cards.slice(0, DEFAULT_VISIBLE).map((c: any) => c.id)]))
+  )
   const [editMode, setEditMode] = useState(false)
-  const [dragId, setDragId]     = useState<ExtId | null>(null)
-
-  const fmtDay = (d: Date) => `${WDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`
+  const [dragId, setDragId]     = useState<string | null>(null)
 
   // striscia settimana centrata su oggi (3 giorni prima/dopo)
   const weekStrip = Array.from({ length: 7 }, (_, i) => {
@@ -77,10 +267,36 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   ]
 
   const eventi = [
-    'Roma Creativa 365 – Cultura tutto l\'anno',
-    'Stagione del Teatro dell\'Opera di Roma',
-    'Mostra "Tesori dei Faraoni"',
+    { data:'05', mese:'GIU', titolo:'Roma Creativa 365 – Cultura tutto l\'anno', luogo:'Roma · Centro' },
+    { data:'07', mese:'GIU', titolo:'Stagione del Teatro dell\'Opera', luogo:'Roma · Teatro Costanzi' },
+    { data:'12', mese:'GIU', titolo:'Mostra "Tesori dei Faraoni"', luogo:'Roma · Scuderie del Quirinale' },
+    { data:'18', mese:'GIU', titolo:'Festival del Gusto Mediterraneo', luogo:'Ostia · Lungomare' },
+    { data:'24', mese:'GIU', titolo:'Notte Bianca dei Musei', luogo:'Roma · Centro storico' },
   ]
+  const turni = [
+    { orario:'07–15', nome:'Maria Rossi',   ruolo:'Reception' },
+    { orario:'08–16', nome:'Luca Bianchi',  ruolo:'Sala ristorante' },
+    { orario:'15–23', nome:'Sara Verdi',    ruolo:'Reception' },
+    { orario:'16–00', nome:'Marco Neri',    ruolo:'Cucina' },
+    { orario:'23–07', nome:'Anna Conti',    ruolo:'Night audit' },
+  ]
+  const compleanni = [
+    { nome:'Giulia Ferrari', ruolo:'Housekeeping', eta:'34' },
+    { nome:'Davide Russo',   ruolo:'F&B Manager',  eta:'41' },
+    { nome:'Chiara Galli',   ruolo:'Reception',    eta:'28' },
+  ]
+  const meteoForecast = [
+    { g:'Sab', icon:'fa-cloud-sun',           t:'21°' },
+    { g:'Dom', icon:'fa-sun',                 t:'24°' },
+    { g:'Lun', icon:'fa-cloud-showers-heavy', t:'18°' },
+    { g:'Mar', icon:'fa-cloud-sun',           t:'22°' },
+  ]
+  const almanaccoFatti = [
+    '1889 — Apre al pubblico la Tour Eiffel',
+    '1953 — Prima scalata dell\'Everest',
+    '1962 — Primo collegamento TV transatlantico',
+  ]
+  const initials = (n: string) => n.split(' ').map(w => w[0]).join('').slice(0, 2)
   const vip = [
     { nome:'Famiglia Conti',   nota:'Suite Belvedere · check-in 15:00' },
     { nome:'Dott. M. Ferrara', nota:'Late check-out · allergie segnalate' },
@@ -156,7 +372,8 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
           <div className="giornale__stage-list">
             {eventi.map((ev, i) => (
               <div key={i} className="giornale__stage-list-item">
-                <div className="giornale__stage-list-title">{ev}</div>
+                <div className="giornale__stage-list-title">{ev.titolo}</div>
+                <div className="giornale__stage-list-sub">{ev.data} {ev.mese} · {ev.luogo}</div>
               </div>
             ))}
           </div>
@@ -175,7 +392,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       case 'meteo':
         return (
           <div className="giornale__stage-meteo">
-            <i className="fa-duotone fa-sun giornale__stage-meteo-icon" aria-hidden="true" />
+            <i className="fa-duotone fa-cloud-sun giornale__stage-meteo-icon" aria-hidden="true" />
             <div className="giornale__stage-meteo-temp">19°</div>
             <div className="giornale__stage-meteo-city">MILANO</div>
             <p className="giornale__stage-note">
@@ -189,12 +406,28 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   }
 
   // ── Card riposizionabili (vista estesa) ─────────────────────────────────────
-  function renderExtCard(id: ExtId) {
+  function renderExtCard(id: string) {
     switch (id) {
+      case 'numeri':
+        return (
+          <>
+            <div className="giornale__merged-row giornale__merged-row--head">
+              <div className="giornale__merged-label">Indicatore</div>
+              <div className="giornale__merged-val">Ieri</div>
+              <div className="giornale__merged-val">Oggi</div>
+            </div>
+            {statsRows.map((row, i) => (
+              <div key={i} className="giornale__merged-row">
+                <div className="giornale__merged-label">{row.label}</div>
+                <div className="giornale__merged-val giornale__merged-val--ieri">{row.ieri}</div>
+                <div className="giornale__merged-val">{row.oggi}</div>
+              </div>
+            ))}
+          </>
+        )
       case 'almanacco':
         return (
           <>
-            <div className="giornale__info-header"><Ico n="calendar" s={13} c={T.primary} />Almanacco</div>
             <div className="giornale__almanacco-body">
               <div className="giornale__almanacco-date">
                 <div className="giornale__almanacco-day-name">{WDAYS[today.getDay()]}</div>
@@ -209,20 +442,39 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                 </button>
               </div>
             </div>
+            <div className="giornale__alm-facts">
+              <div className="giornale__alm-facts-title">Accadde oggi</div>
+              {almanaccoFatti.map((f, i) => (
+                <div key={i} className="giornale__alm-fact">{f}</div>
+              ))}
+            </div>
           </>
         )
       case 'meteo':
         return (
           <>
-            <div className="giornale__info-header"><Ico n="wheel" s={13} c={T.primary} />Meteo</div>
             <div className="giornale__meteo-body">
-              <p className="giornale__meteo-desc">Velature sparse. Soleggiato per il resto del giorno. Folate di vento fino a 3,6 km/h.</p>
               <div className="giornale__meteo-row">
-                <i className="fa-duotone fa-sun giornale__meteo-icon" aria-hidden="true" />
+                <i className="fa-duotone fa-cloud-sun giornale__meteo-icon" aria-hidden="true" />
                 <div>
                   <div className="giornale__meteo-city">MILANO</div>
                   <div className="giornale__meteo-temp">19°</div>
                 </div>
+              </div>
+              <p className="giornale__meteo-desc">Velature sparse. Soleggiato per il resto del giorno.</p>
+              <div className="giornale__meteo-stats">
+                <div><span>Umidità</span><strong>54%</strong></div>
+                <div><span>Vento</span><strong>3,6 km/h</strong></div>
+                <div><span>Precip.</span><strong>10%</strong></div>
+              </div>
+              <div className="giornale__meteo-forecast">
+                {meteoForecast.map((d, i) => (
+                  <div key={i} className="giornale__meteo-fc">
+                    <span className="giornale__meteo-fc-day">{d.g}</span>
+                    <i className={`fa-duotone ${d.icon} giornale__meteo-fc-icon`} aria-hidden="true" />
+                    <span className="giornale__meteo-fc-temp">{d.t}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </>
@@ -230,10 +482,15 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       case 'eventi':
         return (
           <>
-            <div className="giornale__info-header"><Ico n="bell" s={13} c={T.primary} />Eventi</div>
-            <div className="giornale__eventi-body">
+            <div className="giornale__list">
               {eventi.map((ev, i) => (
-                <div key={i} className={`giornale__event-item ${i < eventi.length - 1 ? 'giornale__event-item--border' : ''}`}>{ev}</div>
+                <div key={i} className="giornale__ev">
+                  <div className="giornale__ev-date"><strong>{ev.data}</strong>{ev.mese}</div>
+                  <div className="giornale__ev-body">
+                    <div className="giornale__ev-title">{ev.titolo}</div>
+                    <div className="giornale__ev-loc">{ev.luogo}</div>
+                  </div>
+                </div>
               ))}
             </div>
           </>
@@ -241,15 +498,34 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       case 'turni':
         return (
           <>
-            <div className="giornale__info-header"><Ico n="clock" s={13} c={T.primary} />Turni di oggi</div>
-            <div className="giornale__empty"><p>Non ci sono turni per oggi.</p></div>
+            <div className="giornale__list">
+              {turni.map((t, i) => (
+                <div key={i} className="giornale__shift">
+                  <span className="giornale__shift-time">{t.orario}</span>
+                  <div className="giornale__shift-body">
+                    <div className="giornale__shift-name">{t.nome}</div>
+                    <div className="giornale__shift-role">{t.ruolo}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </>
         )
       case 'compleanni':
         return (
           <>
-            <div className="giornale__info-header"><Ico n="star" s={13} c={T.primary} />Oggi è il compleanno di</div>
-            <div className="giornale__empty"><p>Non ci sono compleanni.</p></div>
+            <div className="giornale__list">
+              {compleanni.map((c, i) => (
+                <div key={i} className="giornale__bday">
+                  <span className="giornale__bday-avatar">{initials(c.nome)}</span>
+                  <div className="giornale__bday-body">
+                    <div className="giornale__bday-name">{c.nome}</div>
+                    <div className="giornale__bday-role">{c.ruolo} · compie {c.eta} anni</div>
+                  </div>
+                  <i className="fa-duotone fa-cake-candles giornale__bday-cake" aria-hidden="true" />
+                </div>
+              ))}
+            </div>
           </>
         )
       default:
@@ -257,17 +533,37 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
     }
   }
 
-  // ── Drag & drop (vista estesa) ──────────────────────────────────────────────
-  const handleDrop = (targetId: ExtId) => {
+  // ── Corpo card (l'header con le azioni è reso dal wrapper) ──────────────────
+  function renderCard(card: any) {
+    if (card.type === 'custom') return renderExtCard(card.id)
+    if (card.type === 'page') return (
+      <div className="giornale__page-body">
+        <div className="giornale__summary">
+          {summaryFor(card).map((b: any, i: number) => renderBlock(b, i))}
+        </div>
+        <button className="giornale__page-open" onClick={() => navigate(card.page)}>
+          Apri pagina <Ico n="arrow-right" s={12} c={T.primary} />
+        </button>
+      </div>
+    )
+    return null
+  }
+
+  // ── Gestione card: riordino, comprimi, elimina, aggiungi ────────────────────
+  const handleDrop = (targetId: string) => {
     if (!dragId || dragId === targetId) return
-    setOrder(prev => {
-      const next = prev.filter(x => x !== dragId)
-      const idx  = next.indexOf(targetId)
-      next.splice(idx, 0, dragId)
-      return next
+    setOrders(prev => {
+      const cur  = prev[activeTab] ?? []
+      const next = cur.filter(x => x !== dragId)
+      next.splice(next.indexOf(targetId), 0, dragId)
+      return { ...prev, [activeTab]: next }
     })
     setDragId(null)
   }
+  const removeCard = (id: string) =>
+    setOrders(p => ({ ...p, [activeTab]: (p[activeTab] ?? []).filter(x => x !== id) }))
+  const addCard = (id: string) =>
+    setOrders(p => (p[activeTab] ?? []).includes(id) ? p : { ...p, [activeTab]: [...(p[activeTab] ?? []), id] })
 
   return (
     <div className="giornale">
@@ -363,7 +659,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                 onClick={() => setActive(i)}
               >
                 <span className="giornale__node-circle">
-                  <Ico n={node.icon} s={20} c={i === active ? T.white : T.primary} />
+                  <Ico n={node.icon} s={38} c={T.primary} />
                 </span>
                 <span className="giornale__node-label">{node.label}</span>
               </button>
@@ -412,14 +708,8 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       {/* ───────────────────────── VISTA ESTESA ───────────────────────── */}
       {viewMode === 'estesa' && (
         <>
-          {/* Tabs */}
-          <div className="giornale__tabs">
-            {tabs.map(tab => (
-              <button key={tab.id} className={`giornale__tab ${activeTab === tab.id ? 'giornale__tab--active' : ''}`} onClick={() => setActiveTab(tab.id)}>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Tab di sistema per la categoria */}
+          <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
           {/* Toolbar personalizzazione */}
           <div className="giornale__ext-toolbar">
@@ -432,49 +722,63 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
             </button>
           </div>
 
-          {/* Primo box: tabella unica Ieri / Oggi (fisso, non trascinabile) */}
-          <div className="giornale__card giornale__merged">
-            <div className="giornale__panel-header">
-              <div className="giornale__panel-title"><Ico n="bar" s={14} c={T.primary} />I numeri – {fmtDay(today)}</div>
-              <span className="giornale__panel-sdly">S.D.L.Y.</span>
-            </div>
-            <div className="giornale__merged-row giornale__merged-row--head">
-              <div className="giornale__merged-label">Indicatore</div>
-              <div className="giornale__merged-val">Ieri</div>
-              <div className="giornale__merged-val">Oggi</div>
-            </div>
-            {statsRows.map((row, i) => (
-              <div key={i} className="giornale__merged-row">
-                <div className="giornale__merged-label">{row.label}</div>
-                <div className="giornale__merged-val giornale__merged-val--ieri">{row.ieri}</div>
-                <div className="giornale__merged-val">{row.oggi}</div>
+          {/* Pannello "aggiungi/rimuovi sezioni" (dalle voci di menu della categoria) */}
+          {editMode && (
+            <div className="giornale__add-panel">
+              <div className="giornale__add-title">Sezioni disponibili</div>
+              <div className="giornale__add-chips">
+                {TAB_CARDS[activeTab].map((c: any) => {
+                  const shown = (orders[activeTab] ?? []).includes(c.id)
+                  return (
+                    <button
+                      key={c.id}
+                      className={`giornale__add-chip ${shown ? 'giornale__add-chip--on' : ''}`}
+                      onClick={() => shown ? removeCard(c.id) : addCard(c.id)}
+                    >
+                      <Ico n={shown ? 'check' : 'plus'} s={11} c={shown ? T.white : T.primary} />
+                      {cardTitle(c)}
+                    </button>
+                  )
+                })}
               </div>
-            ))}
-            <div className="giornale__panel-footer">
-              <button className="giornale__panel-link" onClick={() => navigate('tariffe-disp')}>
-                Distribuzione di rete <Ico n="chevr" s={11} c={T.blue} />
-              </button>
             </div>
-          </div>
+          )}
 
-          {/* Sezioni riposizionabili (drag & drop) */}
+          {/* Card del tab selezionato — riposizionabili, comprimibili, eliminabili */}
           <div className={`giornale__ext-grid ${editMode ? 'giornale__ext-grid--edit' : ''}`}>
-            {order.map(id => (
-              <div
-                key={id}
-                className={`giornale__card giornale__ext-card ${dragId === id ? 'giornale__ext-card--dragging' : ''}`}
-                draggable={editMode}
-                onDragStart={() => editMode && setDragId(id)}
-                onDragEnd={() => setDragId(null)}
-                onDragOver={e => { if (editMode) e.preventDefault() }}
-                onDrop={() => editMode && handleDrop(id)}
-              >
-                {editMode && (
-                  <span className="giornale__drag-handle"><Ico n="dots-v" s={14} c={T.primary} /></span>
-                )}
-                {renderExtCard(id)}
-              </div>
-            ))}
+            {(orders[activeTab] ?? []).map(id => {
+              const card = TAB_CARDS[activeTab].find((c: any) => c.id === id)
+              if (!card) return null
+              const meta = CUSTOM_META[card.id]
+              return (
+                <div
+                  key={id}
+                  className={`giornale__card giornale__ext-card ${dragId === id ? 'giornale__ext-card--dragging' : ''}`}
+                  draggable={editMode}
+                  onDragStart={() => editMode && setDragId(id)}
+                  onDragEnd={() => setDragId(null)}
+                  onDragOver={e => { if (editMode) e.preventDefault() }}
+                  onDrop={() => editMode && handleDrop(id)}
+                >
+                  <div className="giornale__card-bar">
+                    <div className="giornale__card-bar-title">
+                      {card.type === 'page'
+                        ? <MenuIco id={card.nodeId} s={15} c={T.primary} />
+                        : <Ico n={meta?.icon ?? 'bar'} s={13} c={T.primary} />}
+                      <span className="giornale__card-bar-label">{cardTitle(card)}</span>
+                      {meta?.sdly && <span className="giornale__merged-sdly">S.D.L.Y.</span>}
+                    </div>
+                    <div className="giornale__card-actions">
+                      <button className="giornale__card-act giornale__card-act--del" title="Elimina" onClick={() => removeCard(id)}>
+                        <Ico n="x" s={13} c={T.textInactive} />
+                      </button>
+                      {editMode && <span className="giornale__card-act giornale__card-drag"><Ico n="dots-v" s={13} c={T.primary} /></span>}
+                    </div>
+                  </div>
+                  <div className="giornale__card-body">{renderCard(card)}</div>
+                </div>
+              )
+            })}
           </div>
         </>
       )}

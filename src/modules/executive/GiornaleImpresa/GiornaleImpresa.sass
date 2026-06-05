@@ -609,8 +609,8 @@
   width: 88px
   height: 88px
   border-radius: 50%
-  border: 1.5px solid $border
-  background: $white
+  border: 1.5px solid alpha($primary, 0.22)
+  background: linear-gradient(165deg, $primary-100, $white)
   display: flex
   align-items: center
   justify-content: center
@@ -635,9 +635,9 @@
 // sfera attiva: gradiente, alone, anello pulsante (niente float)
 .giornale__node--active
   .giornale__node-circle
-    background: linear-gradient(135deg, $primary, alpha($primary, 0.76))
+    background: linear-gradient(165deg, $primary-200, $primary-50)
     border-color: $primary
-    box-shadow: 0 14px 34px alpha($primary, 0.45)
+    box-shadow: 0 14px 34px alpha($primary, 0.38)
     animation: none
 
   .giornale__node-circle::after
@@ -883,16 +883,20 @@
     border-color: $primary
     color: $white
 
-// ── Tabella unica Ieri / Oggi ──────────────────────────────────────────────────
-.giornale__merged
-  margin-bottom: 16px
+// ── Tabella "I numeri" Ieri / Oggi (compatta, dentro card di griglia) ──────────
+.giornale__merged-sdly
+  margin-left: auto
+  font-size: 9px
+  font-weight: 700
+  color: $text-disabled
+  letter-spacing: 0.5px
 
 .giornale__merged-row
   display: grid
   grid-template-columns: 1fr auto auto
   align-items: center
-  gap: 24px
-  padding: 8px 16px
+  gap: 10px
+  padding: 6px 14px
   border-bottom: 1px solid $border
 
   &--head
@@ -900,22 +904,22 @@
 
     .giornale__merged-val,
     .giornale__merged-label
-      font-size: 10px
+      font-size: 9px
       font-weight: 700
       color: $text-disabled
       text-transform: uppercase
       letter-spacing: 0.5px
 
 .giornale__merged-label
-  font-size: 12px
+  font-size: 11.5px
   color: $text-active
 
 .giornale__merged-val
-  font-size: 12px
+  font-size: 11.5px
   font-weight: 600
   color: $text-active
   text-align: right
-  min-width: 72px
+  min-width: 46px
 
   &--ieri
     color: $text-inactive
@@ -925,11 +929,19 @@
 .giornale__ext-grid
   display: grid
   grid-template-columns: 1fr 1fr 1fr
+  grid-auto-rows: 1fr
   gap: 16px
 
 .giornale__ext-card
   position: relative
+  display: flex
+  flex-direction: column
   transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s
+
+.giornale__card-body
+  flex: 1
+  display: flex
+  flex-direction: column
 
 .giornale__ext-grid--edit .giornale__ext-card
   border-color: $primary
@@ -942,16 +954,529 @@
 .giornale__ext-card--dragging
   opacity: 0.5
 
-.giornale__drag-handle
-  position: absolute
-  top: 10px
-  right: 10px
-  z-index: 2
+// ── Barra superiore della card (titolo + azioni) ───────────────────────────────
+.giornale__card-bar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 8px
+  padding: 9px 10px 9px 16px
+  border-bottom: 1px solid $border
+  background: var(--color-bg)
+
+.giornale__card-bar-title
+  display: flex
+  align-items: center
+  gap: 8px
+  min-width: 0
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+
+.giornale__card-bar-label
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.giornale__card-actions
+  display: flex
+  align-items: center
+  gap: 1px
+  flex-shrink: 0
+
+.giornale__card-act
   display: flex
   align-items: center
   justify-content: center
-  width: 24px
-  height: 24px
+  width: 26px
+  height: 26px
   border-radius: 6px
-  background: var(--color-bg)
+  border: none
+  background: transparent
+  cursor: pointer
+  transition: background 0.15s
+
+  &:hover
+    background: alpha($primary, 0.10)
+
+  &--del:hover
+    background: alpha($error, 0.12)
+
+.giornale__card-drag
+  cursor: grab
+
+// ── Pannello "aggiungi/rimuovi sezioni" (Personalizza) ─────────────────────────
+.giornale__add-panel
+  border: 1px dashed alpha($primary, 0.35)
+  border-radius: 12px
+  background: alpha($primary, 0.04)
+  padding: 12px 14px
+  margin-bottom: 16px
+
+.giornale__add-title
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  color: $text-disabled
+  margin-bottom: 9px
+
+.giornale__add-chips
+  display: flex
+  flex-wrap: wrap
+  gap: 7px
+
+.giornale__add-chip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 6px 12px
+  border-radius: 20px
   border: 1px solid $border
+  background: $white
+  color: $text-active
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  transition: $transition-fast
+
+  &:hover
+    border-color: $primary
+
+  &--on
+    background: $primary
+    border-color: $primary
+    color: $white
+
+// ── Contenuti card vista estesa ────────────────────────────────────────────────
+.giornale__list
+  padding: 6px 16px 14px
+
+// Card "argomento" (una pagina): riepilogo dati + apri pagina
+.giornale__page-body
+  flex: 1
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 14px 16px
+
+.giornale__summary
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.giornale__page-open
+  align-self: flex-start
+  margin-top: auto
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 7px 13px
+  border-radius: 8px
+  border: none
+  background: alpha($primary, 0.10)
+  color: $primary
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  transition: $transition-fast
+
+  &:hover
+    background: alpha($primary, 0.18)
+
+// ── Mini-visualizzazioni ───────────────────────────────────────────────────────
+// KPI
+.giornale__kpis
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px
+
+.giornale__kpi
+  display: flex
+  flex-direction: column
+  gap: 1px
+  background: var(--color-bg)
+  border-radius: 9px
+  padding: 9px 10px
+
+.giornale__kpi-val
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 700
+  color: $primary
+  line-height: 1.1
+
+.giornale__kpi-label
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.3px
+  color: $text-disabled
+
+.giornale__kpi-delta
+  font-size: 10px
+  font-weight: 700
+  color: $success
+
+  &--neg
+    color: $error
+
+// Barre orizzontali
+.giornale__bars
+  display: flex
+  flex-direction: column
+  gap: 9px
+
+.giornale__bar-row
+  display: grid
+  grid-template-columns: 88px 1fr 34px
+  align-items: center
+  gap: 9px
+
+.giornale__bar-label
+  font-size: 11px
+  color: $text-active
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.giornale__bar-track
+  height: 8px
+  border-radius: 5px
+  background: var(--color-bg)
+  overflow: hidden
+
+.giornale__bar-fill
+  display: block
+  height: 100%
+  width: var(--w)
+  border-radius: 5px
+  background: linear-gradient(90deg, $primary, $primary-400)
+
+.giornale__bar-pct
+  font-size: 11px
+  font-weight: 600
+  color: $text-active
+  text-align: right
+
+// Colonne (trend)
+.giornale__cols
+  display: flex
+  align-items: flex-end
+  gap: 6px
+  height: 92px
+
+.giornale__col
+  flex: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 5px
+  height: 100%
+
+.giornale__col-track
+  flex: 1
+  width: 100%
+  display: flex
+  align-items: flex-end
+
+.giornale__col-bar
+  width: 100%
+  height: var(--h)
+  border-radius: 5px 5px 0 0
+  background: linear-gradient(180deg, $primary-400, $primary)
+
+.giornale__col-label
+  font-size: 9px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+
+// Donut
+.giornale__donut
+  position: relative
+  width: 120px
+  align-self: center
+  text-align: center
+
+.giornale__donut-svg
+  width: 120px
+  height: 120px
+  transform: rotate(-90deg)
+
+.giornale__donut-bg
+  fill: none
+  stroke: var(--color-bg)
+  stroke-width: 6
+
+.giornale__donut-fg
+  fill: none
+  stroke: $primary
+  stroke-width: 6
+  stroke-linecap: round
+
+.giornale__donut-val
+  position: absolute
+  top: 44px
+  left: 0
+  right: 0
+  font-family: $font-heading
+  font-size: 22px
+  font-weight: 700
+  color: $primary
+
+.giornale__donut-cap
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  margin-top: 2px
+
+// Sparkline
+.giornale__spark-wrap
+  display: flex
+  flex-direction: column
+  gap: 7px
+
+.giornale__spark
+  width: 100%
+  height: 48px
+
+.giornale__spark-line
+  fill: none
+  stroke: $primary
+  stroke-width: 2
+  stroke-linejoin: round
+  stroke-linecap: round
+
+.giornale__spark-cap
+  font-size: 11px
+  color: $text-inactive
+
+// Mini lista
+.giornale__mini-list
+  display: flex
+  flex-direction: column
+
+.giornale__mini-li
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 7px 0
+  border-bottom: 1px solid $border
+
+  &:last-child
+    border-bottom: none
+
+.giornale__mini-li-body
+  flex: 1
+  min-width: 0
+
+.giornale__mini-li-main
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.giornale__mini-li-sub
+  font-size: 11px
+  color: $text-inactive
+
+.giornale__mini-li-val
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+  white-space: nowrap
+
+// Almanacco — fatti storici
+.giornale__alm-facts
+  border-top: 1px solid $border
+  padding: 12px 16px 14px
+
+.giornale__alm-facts-title
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.4px
+  color: $text-disabled
+  margin-bottom: 6px
+
+.giornale__alm-fact
+  font-size: 11px
+  color: $text-inactive
+  line-height: 1.4
+  padding: 3px 0
+
+// Meteo — dettagli + previsioni
+.giornale__meteo-stats
+  display: flex
+  gap: 8px
+  margin: 14px 0
+
+  div
+    flex: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+    background: var(--color-bg)
+    border-radius: 9px
+    padding: 8px 4px
+
+  span
+    font-size: 9px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    color: $text-disabled
+
+  strong
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+.giornale__meteo-forecast
+  display: flex
+  gap: 6px
+  border-top: 1px solid $border
+  padding-top: 12px
+
+.giornale__meteo-fc
+  flex: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 5px
+
+.giornale__meteo-fc-day
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  color: $text-inactive
+
+.giornale__meteo-fc-icon
+  font-size: 20px
+  --fa-primary-color: #{$primary}
+  --fa-secondary-color: #{$warning}
+
+.giornale__meteo-fc-temp
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+// Eventi — data + luogo
+.giornale__ev
+  display: flex
+  gap: 11px
+  padding: 9px 0
+  border-bottom: 1px solid $border
+
+  &:last-child
+    border-bottom: none
+
+.giornale__ev-date
+  flex-shrink: 0
+  width: 44px
+  text-align: center
+  background: var(--color-bg)
+  border-radius: 8px
+  padding: 5px 0
+  font-size: 10px
+  font-weight: 700
+  color: $primary
+  line-height: 1.2
+
+  strong
+    display: block
+    font-family: $font-heading
+    font-size: 16px
+    line-height: 1
+
+.giornale__ev-body
+  min-width: 0
+
+.giornale__ev-title
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+  line-height: 1.3
+
+.giornale__ev-loc
+  font-size: 11px
+  color: $text-inactive
+  margin-top: 2px
+
+// Turni — orario + persona
+.giornale__shift
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 9px 0
+  border-bottom: 1px solid $border
+
+  &:last-child
+    border-bottom: none
+
+.giornale__shift-time
+  flex-shrink: 0
+  font-size: 10px
+  font-weight: 700
+  color: $primary
+  background: alpha($primary, 0.10)
+  border-radius: 6px
+  padding: 5px 8px
+  white-space: nowrap
+
+.giornale__shift-body
+  flex: 1
+  min-width: 0
+
+.giornale__shift-name
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.giornale__shift-role
+  font-size: 11px
+  color: $text-inactive
+
+// Compleanni — avatar + ruolo
+.giornale__bday
+  display: flex
+  align-items: center
+  gap: 11px
+  padding: 10px 0
+  border-bottom: 1px solid $border
+
+  &:last-child
+    border-bottom: none
+
+.giornale__bday-avatar
+  flex-shrink: 0
+  width: 36px
+  height: 36px
+  border-radius: 50%
+  display: flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, $primary-200, $primary-50)
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+
+.giornale__bday-body
+  flex: 1
+  min-width: 0
+
+.giornale__bday-name
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.giornale__bday-role
+  font-size: 11px
+  color: $text-inactive
+
+.giornale__bday-cake
+  font-size: 16px
+  --fa-primary-color: #{$primary}
+  --fa-secondary-color: #{$warning}

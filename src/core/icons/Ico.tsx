@@ -74,6 +74,7 @@ const FA_MAP: Record<string, string> = {
   'tag':      'fa-tag',
   'calendar': 'fa-calendar-days',
   'clock':    'fa-clock',
+  'cloud-sun': 'fa-cloud-sun',
   'phone':    'fa-phone',
   'email':    'fa-envelope',
   'globe':    'fa-globe',
