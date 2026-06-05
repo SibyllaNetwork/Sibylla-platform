@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
+import { DateRangeField } from '../../../core/components/form'
 import './ContiChiusi.sass'
 
 interface ContoChiuso {
@@ -81,14 +82,16 @@ export default function ContiChiusi({ navigate }: { navigate: (p: string) => voi
           </select>
         </div>
 
-        <div className="conti-chiusi__field">
-          <label>Periodo</label>
-          <div className="conti-chiusi__date-range">
-            <input type="date" className="sib-input" aria-label="Data da" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-            <span>-</span>
-            <input type="date" className="sib-input" aria-label="Data a" value={dataA} onChange={(e) => setDataA(e.target.value)} />
-          </div>
-        </div>
+        <DateRangeField
+          className="conti-chiusi__field"
+          nameFrom="dataDa"
+          nameTo="dataA"
+          label="Periodo"
+          valueFrom={dataDa}
+          valueTo={dataA}
+          onChangeFrom={(e) => setDataDa(e.target.value)}
+          onChangeTo={(e) => setDataA(e.target.value)}
+        />
 
         <div className="conti-chiusi__field conti-chiusi__field--grow">
           <label>Cerca</label>

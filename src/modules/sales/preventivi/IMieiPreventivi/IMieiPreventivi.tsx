@@ -4,7 +4,7 @@ import PageHeader from '../../../../core/components/PageHeader'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
 import StatusBadge from '../../../../core/components/StatusBadge'
-import { InputField, SelectField, DatePickerField } from '../../../../core/components/form'
+import { InputField, SelectField, DateRangeField } from '../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../services/api'
 
 /**
@@ -73,8 +73,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
       <FilterToolbar>
         <InputField name="search" label="Ricerca" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Numero o cliente" />
         <SelectField name="stato" label="Stato" value={stato} onChange={(e) => setStato(e.target.value)} options={STATI.map((s) => ({ value: s, label: s }))} />
-        <DatePickerField name="data_da" label="Da" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-        <DatePickerField name="data_a"  label="A"  value={dataA}  onChange={(e) => setDataA(e.target.value)} />
+        <DateRangeField nameFrom="data_da" nameTo="data_a" label="Periodo" valueFrom={dataDa} valueTo={dataA} onChangeFrom={(e) => setDataDa(e.target.value)} onChangeTo={(e) => setDataA(e.target.value)} />
         <button className="sib-btn sib-btn--primary" onClick={() => navigate('crea-preventivo')}>
           <i className="fa-duotone fa-plus" /> Crea preventivo
         </button>

@@ -3,6 +3,7 @@ import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
 import { HBars } from '../../distribution/_charts/HBars'
+import { DateRangeField } from '../../../../core/components/form'
 import './SegmentAnalysis.sass'
 
 interface RankItem { label: string; value: number; color: string }
@@ -133,12 +134,15 @@ export default function SegmentAnalysis({ navigate }: { navigate: (p: string) =>
           </select>
         </div>
         <div className="segment-analysis__field">
-          <label>Intervallo</label>
-          <div className="segment-analysis__date-range">
-            <input type="date" className="sib-input" aria-label="Data da" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />
-            <span>-</span>
-            <input type="date" className="sib-input" aria-label="Data a" value={data.dataA} onChange={(e) => setData({ ...data, dataA: e.target.value })} />
-          </div>
+          <DateRangeField
+            nameFrom="dataDa"
+            nameTo="dataA"
+            label="Intervallo"
+            valueFrom={data.dataDa}
+            valueTo={data.dataA}
+            onChangeFrom={(e) => setData({ ...data, dataDa: e.target.value })}
+            onChangeTo={(e) => setData({ ...data, dataA: e.target.value })}
+          />
         </div>
         <button type="button" className="sib-btn sib-btn--primary segment-analysis__visualizza">
           <i className="fa-light fa-chart-line" /> Visualizza

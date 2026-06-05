@@ -1,532 +1,807 @@
-import React, { useState } from 'react'
-import T from '../../../../core/tokens'
+import React, { useMemo, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
-import Tooltip from '../../../../core/components/Tooltip'
-import './TariffeDisponibilita.sass'
-import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHeader from '../../../../core/components/PageHeader'
-import FormActions from '../../../../core/components/FormActions'
-import { SelectField, DatePickerField } from '../../../../core/components/form'
+import AlertBanner from '../../../../core/components/AlertBanner'
+import Modal from '../../../../core/components/Modal'
+import Tabs from '../../../../core/components/Tabs'
+import { SelectField, DatePickerField, DateRangeField } from '../../../../core/components/form'
+import Ico from '../../../../core/icons/Ico'
+import './TariffeDisponibilita.sass'
 
-function StopSalesModal({ struttura, onClose }: { struttura:string; onClose:()=>void }) {
-  const PARTNERS = ['TRAVCO','Booking.com','Expedia','HRS','Agoda']
-  const [selAll,      setSelAll]      = useState(false)
-  const [selPartners, setSelPartners] = useState<Set<string>>(new Set())
-  const [stopTutte,   setStopTutte]   = useState(false)
-  const [periods,     setPeriods]     = useState([{from:'',to:''}])
+// ─── DATI DI ESEMPIO ──────────────────────────────────────────────────────────
+const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 
-  const toggleP    = (p:string) => setSelPartners(prev=>{const n=new Set(prev);n.has(p)?n.delete(p):n.add(p);return n})
-  const toggleAll  = () => { const next=!selAll; setSelAll(next); setSelPartners(next?new Set(PARTNERS):new Set()) }
-  const addPeriod  = () => setPeriods(prev=>[...prev,{from:'',to:''}])
-  const updPeriod  = (i:number, f:'from'|'to', v:string) => setPeriods(prev=>prev.map((p,pi)=>pi===i?{...p,[f]:v}:p))
-  const removePeriod = (i:number) => setPeriods(prev=>prev.filter((_,pi)=>pi!==i))
+const STRUTTURE = ['Hotel Tutorial', 'Residence Mare', 'Villa Aurora', 'B&B Centro']
+
+const INTERVALLI = [
+  { v: '14', label: '2 settimane', days: 14 },
+  { v: '30', label: '1 mese',      days: 30 },
+  { v: '90', label: '3 mesi',      days: 90 },
+]
+
+interface Camera { id: string; nome: string; unit: number; base: number; riferimento?: boolean }
+const CAMERE: Camera[] = [
+  { id: 'sng', nome: 'SINGOLA CLASSIC',        unit: 12, base: 140 },
+  { id: 'dbl', nome: 'DOPPIA CLASSIC',         unit: 18, base: 165 },
+  { id: 'tpl', nome: 'TRIPLA CLASSIC',         unit: 8,  base: 175, riferimento: true },
+  { id: 'mat', nome: 'MATRIMONIALE SUPERIOR',  unit: 10, base: 160 },
+  { id: 'qud', nome: 'QUADRUPLA',              unit: 6,  base: 250 },
+]
+
+const CANALI = ['Booking.com', 'Expedia', 'Airbnb', 'Sito diretto', 'Hotelbeds']
+const PARTNER = ['TRAVCO', 'Hotelbeds', 'GTA', 'WebBeds', 'Restel']
+const REF_ROOM = CAMERE.find(r => r.riferimento)
+const ME_CANALI = ['Tutti', 'OTA', 'Network (B2C)', 'Agorà (B2B)']
+const titleCase = (s: string) => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+
+// Finestra fissa di giorni visibili: cambiando intervallo NON si rimpiccioliscono
+// le celle, ma si scorre il range con le frecce avanti/indietro.
+const PAGE = 14
+
+// ─── HELPER DETERMINISTICI ──────────────────────────────────────────────────────
+function seedOf(id: string, n: number) {
+  let h = 2166136261
+  const s = id + '#' + n
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) }
+  return h >>> 0
+}
+function rnd(id: string, n: number) { return (seedOf(id, n) % 1000) / 1000 }
+function priceOf(room: Camera, n: number) { return room.base + Math.round(rnd(room.id, n) * 60) - 12 }
+function dispOf(room: Camera, n: number) { return Math.max(0, room.unit - Math.floor(rnd(room.id, n + 99) * (room.unit + 1))) }
+function alloOf(room: Camera, n: number) { return 1 + (seedOf(room.id, n + 5) % 6) }
+function isClosed(room: Camera, n: number) { return rnd(room.id, n + 7) > 0.93 }
+function isPartial(room: Camera, n: number) { return !isClosed(room, n) && rnd(room.id, n + 31) > 0.87 }
+function occDay(n: number) {
+  let tot = 0, occ = 0
+  CAMERE.forEach(r => { tot += r.unit; occ += (r.unit - dispOf(r, n)) })
+  return tot ? (occ / tot) * 100 : 0
+}
+function occupateOf(room: Camera, n: number) { return seedOf(room.id, n + 17) % (room.unit + 1) }
+function batteryFor(pct: number): { ico: string; col: string } {
+  if (pct < 5)  return { ico: 'battery-empty', col: 'var(--color-error)' }
+  if (pct < 30) return { ico: 'battery-low',   col: 'var(--color-error)' }
+  if (pct < 55) return { ico: 'battery-mid',   col: 'var(--color-warning)' }
+  if (pct < 80) return { ico: 'battery-high',  col: 'var(--color-success)' }
+  return { ico: 'battery-full', col: 'var(--color-success)' }
+}
+
+function addDays(iso: string, d: number) {
+  const dt = new Date(iso + 'T00:00:00')
+  dt.setDate(dt.getDate() + d)
+  return dt
+}
+const fmtPrice = (n: number) => n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+
+const UTENTI = ['Mario Rossi', 'Sistema', 'Anna Verdi', 'Luca Bianchi']
+interface HistRow { tipo: string; valore: string; canale: string; data: string; utente: string; errore: string }
+function histOf(room: Camera, n: number): HistRow[] {
+  const s = seedOf(room.id, n)
+  const gg = String(10 + (s % 18)).padStart(2, '0')
+  const hh = String(8 + (s % 11)).padStart(2, '0')
+  const mm = String(s % 60).padStart(2, '0')
+  const rows: HistRow[] = [
+    { tipo: 'tariffa', valore: priceOf(room, n).toFixed(2), canale: '', data: `${gg}/02 - ${hh}:${mm}`, utente: UTENTI[s % UTENTI.length], errore: '' },
+  ]
+  if (s % 2 === 0) {
+    rows.push({ tipo: 'disponibilità', valore: String(alloOf(room, n)), canale: 'Booking.com', data: `${gg}/02 - 0${(s % 7)}:${mm}`, utente: UTENTI[(s + 1) % UTENTI.length], errore: '' })
+  }
+  return rows
+}
+
+// ─── CHECKBOX STILE VERCEL ──────────────────────────────────────────────────────
+function VCheck({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="td-vcheck">
+      <input type="checkbox" checked={checked} onChange={onChange} />
+      <span className="td-vcheck__box">{checked && <Ico n="check" s={11} c="#fff" w="solid" />}</span>
+      <span className="td-vcheck__label">{label}</span>
+    </label>
+  )
+}
+
+// ─── RADIO + PICKER (helper Market Engine) ──────────────────────────────────────
+function MeRadio({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
+  return (
+    <label className="me2__radio">
+      <input type="radio" checked={checked} onChange={onChange} />
+      <span className="me2__radio-dot" />
+      <span>{label}</span>
+    </label>
+  )
+}
+
+function CanaliPicker({ value, onToggle }: { value: Record<string, boolean>; onToggle: (c: string) => void }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div className="me2__picker">
+      <button className="me2__picker-toggle" onClick={() => setOpen(o => !o)}>
+        Seleziona Canali <Ico n={open ? 'minus-circle' : 'plus'} s={14} c="var(--color-primary)" w="regular" />
+      </button>
+      {open && (
+        <div className="me2__picker-list">
+          {ME_CANALI.map(c => <VCheck key={c} label={c} checked={!!value[c]} onChange={() => onToggle(c)} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── MARKET ENGINE MODAL ──────────────────────────────────────────────────────
+function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [tab, setTab] = useState('disp')
+  const [dal, setDal] = useState('2026-06-05')
+  const [al, setAl]   = useState('2026-06-05')
+
+  // Tipo camera
+  const [selRooms, setSelRooms] = useState<Record<string, boolean>>({})
+  const allRooms = CAMERE.every(r => selRooms[r.id])
+  const toggleAllRooms = () => { const v = !allRooms; setSelRooms(Object.fromEntries(CAMERE.map(r => [r.id, v]))) }
+  const toggleRoom = (id: string) => setSelRooms(s => ({ ...s, [id]: !s[id] }))
+
+  // Operazioni — Disponibilità
+  const [impDisp, setImpDisp] = useState(true)
+  const [mercato, setMercato] = useState('')
+  const [dispCanali, setDispCanali] = useState<Record<string, boolean>>(() => Object.fromEntries(ME_CANALI.map(c => [c, true])))
+  // Restrizioni
+  const [impRestr, setImpRestr] = useState(true)
+  const [restrAz, setRestrAz] = useState<'apri' | 'chiudi'>('chiudi')
+  const [checkMode, setCheckMode] = useState<'' | 'in' | 'out'>('')
+  const [strutture, setStrutture] = useState<Record<string, boolean>>({})
+  const [struOpen, setStruOpen] = useState(false)
+  // Minimum-LOS
+  const [impLos, setImpLos] = useState(false)
+  const [losScope, setLosScope] = useState<'tutti' | 'sel'>('tutti')
+  const [losVal, setLosVal] = useState(1)
+
+  // Tariffe
+  const [tariffeCanali, setTariffeCanali] = useState<Record<string, boolean>>(() => Object.fromEntries(ME_CANALI.map(c => [c, true])))
+  const barOptions = useMemo(
+    () => (REF_ROOM ? Array.from(new Set(Array.from({ length: 30 }, (_, i) => priceOf(REF_ROOM, i)))).sort((a, b) => a - b) : []),
+    [])
+  const [prezzi, setPrezzi] = useState<Record<string, number>>({})
+  const tariffeRooms = CAMERE.filter(r => selRooms[r.id]).length ? CAMERE.filter(r => selRooms[r.id]) : CAMERE
 
   return (
-    <div className="fixed inset-0 z-[300] bg-black/40 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-card w-[480px] max-w-[95vw] shadow-[0_16px_48px_rgba(32,71,105,0.18)]" onClick={e=>e.stopPropagation()}>
-        {/* Header */}
-        <div className="px-5 pt-5 pb-4 flex items-start justify-between">
-          <div>
-            <h2 className="font-poppins text-[17px] font-bold text-primary">Stop Sales</h2>
-            <p className="text-xs text-ink-muted mt-0.5">Seleziona i partner e il periodo di black-out</p>
-          </div>
-          <button className="sib-btn sib-btn--icon w-7 h-7" onClick={onClose}>
-            <i className="fa-duotone fa-xmark text-[14px]" aria-hidden="true"/>
-          </button>
+    <Modal open={open} onClose={onClose} title="Market Engine" size="lg" className="me-modal">
+      <Tabs
+        tabs={[{ id: 'disp', label: 'Disponibilità' }, { id: 'tariffe', label: 'Tariffe' }]}
+        active={tab}
+        onChange={setTab}
+        className="me-modal__tabs"
+      />
+
+      <div className="me-modal__body me2">
+        {/* Intervallo date */}
+        <div className="me2__dates">
+          <DatePickerField name="me-dal" label="Dal" value={dal} onChange={e => setDal(e.target.value)} />
+          <DatePickerField name="me-al"  label="Al"  value={al}  onChange={e => setAl(e.target.value)} />
         </div>
 
-        <div className="border-t border-line mx-5"/>
+        {tab === 'disp' ? (
+          <>
+            {/* Tipo camera */}
+            <section className="me2__card">
+              <header className="me2__card-head">
+                <h4 className="me2__card-title">Tipo camera</h4>
+                <VCheck label="Seleziona tutte" checked={allRooms} onChange={toggleAllRooms} />
+              </header>
+              <div className="me2__rooms">
+                {CAMERE.map(r => (
+                  <VCheck key={r.id} label={`${titleCase(r.nome)} *`} checked={!!selRooms[r.id]} onChange={() => toggleRoom(r.id)} />
+                ))}
+              </div>
+              <p className="me2__warn"><Ico n="alert" s={12} c="var(--color-error)" w="solid" /> ATTENZIONE — Codice mancante</p>
+            </section>
 
-        {/* Body */}
-        <div className="px-5 py-4 flex flex-col gap-4">
-          {/* Struttura */}
-          <div>
-            <div className="text-[11px] font-semibold text-ink-subtle mb-0.5">Struttura</div>
-            <div className="text-[13px] font-bold text-primary font-poppins">{struttura}</div>
-          </div>
-
-          {/* Stop tutte */}
-          <label className="flex items-center gap-2 cursor-pointer px-3 py-2 bg-canvas rounded-field border border-line">
-            <input type="checkbox" checked={stopTutte} onChange={()=>setStopTutte(v=>!v)} className="sib-checkbox"/>
-            <span className="text-[13px] font-semibold text-ink">Stop a tutte le strutture</span>
-          </label>
-
-          {/* Partners */}
-          <div className="border border-line rounded-field overflow-hidden">
-            <div className="flex items-center justify-end px-3 py-1.5 border-b border-line bg-canvas">
-              <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-ink">
-                <input type="checkbox" checked={selAll} onChange={toggleAll} className="sib-checkbox sib-checkbox--sm"/> Seleziona tutti
-              </label>
-            </div>
-            <div className="max-h-36 overflow-auto">
-              {PARTNERS.map(p=>(
-                <label key={p} className="flex items-center gap-2.5 px-3 py-2 cursor-pointer border-b border-line last:border-b-0 hover:bg-canvas transition-colors">
-                  <input type="checkbox" checked={selPartners.has(p)} onChange={()=>toggleP(p)} className="sib-checkbox sib-checkbox--sm"/>
-                  <span className="text-[13px] text-ink">{p}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Periodi */}
-          <div>
-            <div className="text-[11px] font-semibold text-ink mb-2">Black-out date</div>
-            {periods.map((p,i)=>(
-              <div key={i} className="flex items-center gap-2 mb-2">
-                <div className="flex-1 flex items-center gap-1.5 h-9 px-2.5 border-[1px] border-line rounded-field bg-white">
-                  <i className="fa-duotone fa-calendar text-[12px] text-ink-subtle" aria-hidden="true"/>
-                  <input type="date" value={p.from} onChange={e=>updPeriod(i,'from',e.target.value)} className="sib-date-range-inner"/>
-                  <span className="text-ink-subtle text-[10px] select-none">–</span>
-                  <input type="date" value={p.to} onChange={e=>updPeriod(i,'to',e.target.value)} className="sib-date-range-inner"/>
-                </div>
-                {periods.length>1 && (
-                  <button onClick={()=>removePeriod(i)} className="sib-btn sib-btn--icon w-7 h-7">
-                    <i className="fa-duotone fa-xmark text-[12px]" aria-hidden="true"/>
-                  </button>
+            {/* Operazioni */}
+            <section className="me2__card me2__ops">
+              <div className="me2__op">
+                <VCheck label="Imposta Disponibilità" checked={impDisp} onChange={() => setImpDisp(v => !v)} />
+                {impDisp && (
+                  <div className="me2__op-body">
+                    <label className="me2__inline-field">Mercato <input type="text" className="sib-input me2__mercato" value={mercato} onChange={e => setMercato(e.target.value)} /></label>
+                    <CanaliPicker value={dispCanali} onToggle={c => setDispCanali(p => ({ ...p, [c]: !p[c] }))} />
+                  </div>
                 )}
               </div>
+
+              <div className="me2__op">
+                <VCheck label="Imposta Restrizioni" checked={impRestr} onChange={() => setImpRestr(v => !v)} />
+                {impRestr && (
+                  <div className="me2__op-body">
+                    <div className="me2__radios-col">
+                      <MeRadio label="Apri"   checked={restrAz === 'apri'}   onChange={() => setRestrAz('apri')} />
+                      <MeRadio label="Chiudi" checked={restrAz === 'chiudi'} onChange={() => setRestrAz('chiudi')} />
+                    </div>
+                    <div className="me2__radios-col">
+                      <MeRadio label="Chiudi check-in"  checked={checkMode === 'in'}  onChange={() => setCheckMode(m => m === 'in' ? '' : 'in')} />
+                      <MeRadio label="Chiudi check-out" checked={checkMode === 'out'} onChange={() => setCheckMode(m => m === 'out' ? '' : 'out')} />
+                    </div>
+                    <div className="me2__picker">
+                      <button className="me2__picker-toggle" onClick={() => setStruOpen(o => !o)}>
+                        Seleziona Strutture <Ico n={struOpen ? 'minus-circle' : 'plus'} s={14} c="var(--color-primary)" w="regular" />
+                      </button>
+                      {struOpen && (
+                        <div className="me2__picker-list">
+                          {STRUTTURE.map(s => <VCheck key={s} label={s} checked={!!strutture[s]} onChange={() => setStrutture(p => ({ ...p, [s]: !p[s] }))} />)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="me2__op">
+                <VCheck label="Imposta Minimum-LOS" checked={impLos} onChange={() => setImpLos(v => !v)} />
+                {impLos && (
+                  <div className="me2__op-body">
+                    <label className="me2__inline-field">Notti minime <input type="number" className="sib-input me2__los" min={1} max={30} value={losVal} onChange={e => setLosVal(parseInt(e.target.value, 10) || 1)} /></label>
+                    <div className="me2__radios-col">
+                      <MeRadio label="Tutti i canali"     checked={losScope === 'tutti'} onChange={() => setLosScope('tutti')} />
+                      <MeRadio label="Canali selezionati" checked={losScope === 'sel'}   onChange={() => setLosScope('sel')} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            {/* Tariffe per camera (BAR di riferimento) */}
+            <section className="me2__card">
+              <h4 className="me2__card-title">Tariffe per tipo camera</h4>
+              <div className="me2__tariffe">
+                {tariffeRooms.map(r => {
+                  const cur = prezzi[r.id] ?? priceOf(r, 0)
+                  const opts = barOptions.includes(cur) ? barOptions : [cur, ...barOptions].sort((a, b) => a - b)
+                  return (
+                    <div key={r.id} className="me2__tariffa">
+                      <span className="me2__tariffa-room">{titleCase(r.nome)}</span>
+                      <select className="me2__price-select" value={cur} onChange={e => setPrezzi(p => ({ ...p, [r.id]: Number(e.target.value) }))}>
+                        {opts.map(p => <option key={p} value={p}>{fmtPrice(p)}</option>)}
+                      </select>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className="me2__card">
+              <CanaliPicker value={tariffeCanali} onToggle={c => setTariffeCanali(p => ({ ...p, [c]: !p[c] }))} />
+            </section>
+          </>
+        )}
+      </div>
+
+      <div className="me-modal__footer">
+        <button className="sib-btn sib-btn--ghost" onClick={onClose}>Annulla</button>
+        <button className="sib-btn sib-btn--primary" onClick={onClose}>Salva</button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── STOP SALES MODAL ───────────────────────────────────────────────────────────
+function StopSalesModal({ open, onClose, struttura }: { open: boolean; onClose: () => void; struttura: string }) {
+  const [allStrutture, setAllStrutture] = useState(false)
+  const [sel, setSel] = useState<Record<string, boolean>>({})
+  const [periodi, setPeriodi] = useState<string[]>([''])
+
+  const allSel = PARTNER.every(p => sel[p])
+  const toggleAll = () => { const v = !allSel; setSel(Object.fromEntries(PARTNER.map(p => [p, v]))) }
+  const togglePartner = (p: string) => setSel(s => ({ ...s, [p]: !s[p] }))
+  const setPeriodo = (i: number, v: string) => setPeriodi(arr => arr.map((d, k) => (k === i ? v : d)))
+  const addPeriodo = () => setPeriodi(arr => [...arr, ''])
+
+  return (
+    <Modal open={open} onClose={onClose} title="Stop sales" size="md" className="me-modal">
+      <div className="me-modal__body td-stop">
+        <p className="td-stop__sub">Seleziona i partner a cui notificare lo stop vendite per il periodo selezionato</p>
+
+        <div className="td-stop__ref">
+          <span className="td-stop__ref-lbl">Struttura di riferimento</span>
+          <span className="td-stop__ref-val">{struttura}</span>
+        </div>
+
+        <VCheck label="Stop a tutte le strutture" checked={allStrutture} onChange={() => setAllStrutture(v => !v)} />
+
+        <div className="td-stop__box">
+          <div className="td-stop__box-head">
+            <VCheck label="Seleziona tutti" checked={allSel} onChange={toggleAll} />
+          </div>
+          <div className="td-stop__partners">
+            {PARTNER.map(p => (
+              <VCheck key={p} label={p} checked={!!sel[p]} onChange={() => togglePartner(p)} />
             ))}
-            <button onClick={addPeriod} className="flex items-center gap-1.5 bg-transparent border-none cursor-pointer text-[12px] font-semibold text-link p-0 mt-1">
-              <i className="fa-duotone fa-plus text-[13px]" aria-hidden="true"/> Aggiungi periodo
+          </div>
+        </div>
+
+        <div className="td-stop__blackout">
+          <span className="td-stop__lbl">Seleziona periodo Black-out date</span>
+          <div className="td-stop__periodi">
+            {periodi.map((d, i) => (
+              <input
+                key={i}
+                type="date"
+                className="sib-input td-stop__date"
+                value={d}
+                onChange={e => setPeriodo(i, e.target.value)}
+                aria-label={`Black-out date ${i + 1}`}
+              />
+            ))}
+            <button className="td-stop__add" onClick={addPeriodo}>
+              <Ico n="plus" s={14} c="var(--color-primary)" w="regular" /> Aggiungi periodo
             </button>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-line px-5 py-3.5">
-          <FormActions onCancel={onClose} onConfirm={onClose} confirmLabel="Conferma"/>
-        </div>
       </div>
-    </div>
+
+      <div className="me-modal__footer">
+        <button className="sib-btn sib-btn--ghost" onClick={onClose}>Annulla</button>
+        <button className="sib-btn sib-btn--primary" onClick={onClose}>Invia</button>
+      </div>
+    </Modal>
   )
 }
 
-function FiltroModal({ cameras, dateFrom, onClose }: { cameras:any[]; dateFrom:string; onClose:()=>void }) {
-  const [tab,       setTab]       = useState<'disp'|'tariffe'>('disp')
-  const [filtFrom,  setFiltFrom]  = useState(dateFrom)
-  const [filtTo,    setFiltTo]    = useState(dateFrom)
-  const [selTutte,  setSelTutte]  = useState(false)
-  const [selCamere, setSelCamere] = useState<Set<string>>(new Set())
-  const [impDisp,   setImpDisp]   = useState(false)
-  const [azioneDisp,setAzioneDisp]= useState<'apri'|'chiudi'>('apri')
-  const [selCanali, setSelCanali] = useState<Set<string>>(new Set())
-  const CANALI = ['Booking.com','Expedia','HRS','Agoda','Diretta']
-  const toggleCam    = (id:string) => setSelCamere(prev=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n})
-  const toggleCanale = (c:string)  => setSelCanali(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n})
+// ─── PAGINA ─────────────────────────────────────────────────────────────────────
+export default function TariffeDisponibilita({ navigate }: { navigate: (p: string) => void }) {
+  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  const [vista, setVista]         = useState<'singola' | 'multi'>('singola')
+  const [da, setDa]               = useState('2026-06-05')
+  const [a, setA]                 = useState('2026-06-18')
+  const [interv, setInterv]       = useState('14')
+  const [pageStart, setPageStart] = useState(0)
+  const [dir, setDir]             = useState<'next' | 'prev'>('next')
+  const [attive, setAttive]       = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(CAMERE.map(c => [c.id, true])))
+  const [meOpen, setMeOpen]       = useState(false)
+  const [stopOpen, setStopOpen]   = useState(false)
+  const [saved, setSaved]         = useState(false)
+  const [pop, setPop]             = useState<{ kind: 'info' | 'hist'; x: number; y: number; room: Camera; n: number } | null>(null)
+  const [allot, setAllot]         = useState<Record<string, number>>({})
+  const [mprice, setMprice]       = useState<Record<string, number>>({})
+  const [expanded, setExpanded]   = useState<Record<string, boolean>>({})
+  const [mode, setMode]           = useState<null | 'chiudi' | 'apri'>(null)
+  const [manual, setManual]       = useState<Record<string, boolean>>({})
 
-  return (
-    <div className="fm-modal__overlay" onClick={onClose}>
-      <div className="fm-modal__box" onClick={e=>e.stopPropagation()}>
-        <div className="fm-modal__header">
-          <h2 className="fm-modal__title">Filtri & Impostazioni</h2>
-          <button onClick={onClose} className="fm-modal__close"><i className="fa-duotone fa-xmark fm-modal__close-ico" aria-hidden="true"/></button>
-        </div>
-        <div className="fm-modal__tabs">
-          {([['disp','Disponibilità'],['tariffe','Tariffe']] as const).map(([k,label])=>(
-            <button key={k} onClick={()=>setTab(k)} className={`fm-modal__tab ${tab===k?'fm-modal__tab--active':''}`}>{label}</button>
-          ))}
-        </div>
-        <div className="fm-modal__body">
-          <div className="fm-modal__dates">
-            <div className="fm-modal__date-field">
-              <DatePickerField name="filtFrom" label="Da" value={filtFrom} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFiltFrom(e.target.value)}/>
-            </div>
-            <div className="fm-modal__date-field">
-              <DatePickerField name="filtTo" label="A" value={filtTo} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFiltTo(e.target.value)}/>
-            </div>
-          </div>
-          {tab==='disp' && (
-            <>
-              <div className="fm-modal__section">
-                <div className="fm-modal__section-hdr">
-                  <span className="fm-modal__section-title">Tipo camera</span>
-                  <label className="fm-modal__sel-all">
-                    <input type="checkbox" checked={selTutte} onChange={()=>{const next=!selTutte;setSelTutte(next);setSelCamere(next?new Set(cameras.map((c:any)=>c.id)):new Set())}} className="sib-checkbox sib-checkbox--sm"/>
-                    Seleziona tutte
-                  </label>
-                </div>
-                <div className="fm-modal__check-grid">
-                  {cameras.map((c:any)=>(
-                    <label key={c.id} className={`fm-modal__check-label ${selCamere.has(c.id)?'fm-modal__check-label--sel':''}`}>
-                      <input type="checkbox" checked={selCamere.has(c.id)} onChange={()=>toggleCam(c.id)} className="sib-checkbox sib-checkbox--sm"/>{c.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="fm-modal__section">
-                <div className="fm-modal__section-title">Azione disponibilità</div>
-                <div className="fm-modal__radio-row">
-                  {(['apri','chiudi'] as const).map(a=>(
-                    <label key={a} className={`fm-modal__radio-label ${azioneDisp===a?'fm-modal__radio-label--sel':''}`}>
-                      <input type="radio" checked={azioneDisp===a} onChange={()=>setAzioneDisp(a)} className="sib-radio"/>{a.charAt(0).toUpperCase()+a.slice(1)}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <label className="fm-modal__check-inline">
-                <input type="checkbox" checked={impDisp} onChange={()=>setImpDisp(v=>!v)} className="sib-checkbox sib-checkbox--sm"/>
-                <span className={impDisp?'fm-modal__inline-text--bold':'fm-modal__inline-text'}>Imposta disponibilità</span>
-              </label>
-            </>
-          )}
-          {tab==='tariffe' && (
-            <>
-              <div className="fm-modal__section">
-                <div className="fm-modal__section-hdr">
-                  <span className="fm-modal__section-title">Tipo camera</span>
-                  <label className="fm-modal__sel-all">
-                    <input type="checkbox" checked={selTutte} onChange={()=>{const next=!selTutte;setSelTutte(next);setSelCamere(next?new Set(cameras.map((c:any)=>c.id)):new Set())}} className="sib-checkbox sib-checkbox--sm"/> Seleziona tutte
-                  </label>
-                </div>
-                <div className="fm-modal__check-grid">
-                  {cameras.map((c:any)=>(
-                    <label key={c.id} className={`fm-modal__check-label ${selCamere.has(c.id)?'fm-modal__check-label--sel':''}`}>
-                      <input type="checkbox" checked={selCamere.has(c.id)} onChange={()=>toggleCam(c.id)} className="sib-checkbox sib-checkbox--sm"/>{c.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div className="fm-modal__section">
-                <div className="fm-modal__section-title">Seleziona Canali</div>
-                <div className="fm-modal__check-grid">
-                  {CANALI.map(c=>(
-                    <label key={c} className={`fm-modal__check-label ${selCanali.has(c)?'fm-modal__check-label--sel':''}`}>
-                      <input type="checkbox" checked={selCanali.has(c)} onChange={()=>toggleCanale(c)} className="sib-checkbox sib-checkbox--sm"/>{c}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-        <FormActions onCancel={onClose} onConfirm={onClose} className="fm-modal__footer"/>
-      </div>
-    </div>
-  )
-}
-
-export default function TariffeDisponibilita({ navigate }: { navigate: (p:string)=>void }) {
-  const today = new Date()
-  const fmt   = (d:Date) => d.toISOString().split('T')[0]
-  const [struttura,       setStruttura]       = useState('Hotel Noto')
-  const [dateFrom,        setDateFrom]        = useState(fmt(today))
-  const [intervallo,      setIntervallo]      = useState<1|2|3>(2)
-  const [saved,           setSaved]           = useState(false)
-  const [stopSales,       setStopSales]       = useState<Set<string>>(new Set())
-  const [expanded,        setExpanded]        = useState<Set<string>>(new Set())
-  const [mode,            setMode]            = useState<null|'apri'|'chiudi'>(null)
-  const [cellStatus,      setCellStatus]      = useState<Record<string,'aperta'|'chiusa'>>({}
-  )
-  const [tooltip,         setTooltip]         = useState<{camId:string;dk:string;x:number;y:number}|null>(null)
-  const [showStopModal,   setShowStopModal]   = useState(false)
-  const [showFiltroModal, setShowFiltroModal] = useState(false)
-
-  const STRUTTURE  = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Hotel Siracusa']
-  const DAYS_IT    = ['dom','lun','mar','mer','gio','ven','sab']
-  const MONTHS_IT  = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic']
-  const numDays    = intervallo===1?7:intervallo===2?14:21
-  const dates      = Array.from({length:numDays},(_,i)=>{const d=new Date(dateFrom+'T00:00:00');d.setDate(d.getDate()+i);return d})
-  const fmtCol     = (d:Date) => `${d.getDate()} ${MONTHS_IT[d.getMonth()]}`
-  const fmtDay     = (d:Date) => DAYS_IT[d.getDay()]
-  const isWE       = (d:Date) => d.getDay()===0||d.getDay()===6
-
-  type Camera = {id:string;label:string;enabled:boolean;inventario:number;unitLabel:string;colore:string}
-  const [cameras, setCameras] = useState<Camera[]>([
-    {id:'singola',  label:'SINGOLA CLASSIC',                        enabled:true, inventario:4,  unitLabel:'12 Unità', colore:'#E07B39'},
-    {id:'doppia',   label:'DOPPIA CLASSIC',                         enabled:true, inventario:53, unitLabel:'53 Unità', colore:'#5C9CD4'},
-    {id:'tripla',   label:'TRIPLA CLASSIC',                         enabled:true, inventario:1,  unitLabel:'1 Unità',  colore:'#5A8A3C'},
-    {id:'matsuper', label:'MATRIMONIALE SUPERIOR',                  enabled:true, inventario:0,  unitLabel:'0 Unità',  colore:'#9B59B6'},
-    {id:'matconv',  label:'MATRIMONIALE CONVERTIBILE IN QUADRUPLA', enabled:true, inventario:0,  unitLabel:'0 Unità',  colore:'#C4A820'},
-  ])
-  const toggleCamera = (id:string) => setCameras(prev=>prev.map(c=>c.id===id?{...c,enabled:!c.enabled}:c))
-  const toggleExpand = (id:string) => setExpanded(prev=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n})
-  const toggleMode   = (m:'apri'|'chiudi') => setMode(prev=>prev===m?null:m)
-  const handleCellClick = (camId:string,dk:string) => { if (!mode) return; setCellStatus(prev=>({...prev,[`${camId}-${dk}`]:mode==='apri'?'aperta':'chiusa'})) }
-
-  const base:Record<string,number> = {singola:268.3,doppia:323.27,tripla:378.82,matsuper:373.16,matconv:250}
-  const [priceMap] = useState(()=>{const m:Record<string,number>={};cameras.forEach(cam=>{dates.forEach(d=>{const seed=(d.getDate()*17+(d.getMonth()+1)*11)%100;const we=isWE(d)?1.15:1;const occ=seed>30?1:0.43;m[`${cam.id}-${fmt(d)}`]=Math.round(base[cam.id]*we*occ*100)/100;});});return m;})
-  const [occMap]   = useState(()=>{const m:Record<string,number>={};dates.forEach(d=>{const seed=(d.getDate()*13+(d.getMonth()+1)*7)%100;m[fmt(d)]=20+seed;});return m;})
-  const [dispMap]  = useState(()=>{const m:Record<string,number>={};cameras.forEach(cam=>{dates.forEach(d=>{const seed=(d.getDate()*cam.inventario+7)%Math.max(cam.inventario,1);m[`${cam.id}-${fmt(d)}`]=Math.max(0,cam.inventario-seed);});});return m;})
-  const [barMap]   = useState(()=>{const m:Record<string,number>={};cameras.forEach(cam=>{dates.forEach(d=>{m[`${cam.id}-${fmt(d)}`]=(d.getDate()%3)+1;});});return m;})
-
-  const getSectorDisp = (camId:string,dk:string) => {
-    const tot=dispMap[`${camId}-${dk}`]??0,sib=Math.min(tot,Math.floor(tot*0.4)),net=Math.min(tot-sib,Math.floor(tot*0.3)),ago=tot-sib-net
-    return [{label:'Sibylla',icon:'S',color:T.primary,value:sib},{label:'Network (B2C)',icon:'N',color:'#5A8A3C',value:net},{label:'Agora (B2B)',icon:'A',color:'#9B59B6',value:ago}]
+  const toggleExpand = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }))
+  const toggleMode = (m: 'chiudi' | 'apri') => setMode(cur => (cur === m ? null : m))
+  // chiusura effettiva = override manuale, altrimenti valore deterministico
+  const closedOf = (room: Camera, n: number) => {
+    const k = `${room.id}-${n}`
+    return k in manual ? manual[k] : isClosed(room, n)
   }
-  const getOccupate = (camId:string,dk:string) => {
-    const inv=cameras.find(c=>c.id===camId)?.inventario??0,disp=dispMap[`${camId}-${dk}`]??0,occ=Math.max(0,inv-disp),pct=inv>0?Math.round(occ/inv*100):0
-    return {occ,inv,pct}
+  const partialOf = (room: Camera, n: number) => !closedOf(room, n) && isPartial(room, n)
+  const onCellClick = (room: Camera, n: number) => {
+    if (!mode) return
+    setManual(p => ({ ...p, [`${room.id}-${n}`]: mode === 'chiudi' }))
   }
 
-  const colW   = numDays<=7?100:numDays<=14?84:68
-  const labelW = 220
+  const allotVal = (room: Camera, n: number) => allot[`${room.id}-${n}`] ?? alloOf(room, n)
+  const setAllotVal = (room: Camera, n: number, v: number) =>
+    setAllot(p => ({ ...p, [`${room.id}-${n}`]: Math.max(0, v) }))
+  const priceVal = (room: Camera, n: number) => mprice[`${room.id}-${n}`] ?? priceOf(room, n)
+  const setPriceVal = (room: Camera, n: number, v: number) =>
+    setMprice(p => ({ ...p, [`${room.id}-${n}`]: v }))
 
-  const Toggle = ({on,onChange}:{on:boolean;onChange:()=>void}) => (
-    <div onClick={e=>{e.stopPropagation();onChange()}} className={`tariffe__toggle ${on?'tariffe__toggle--on':''}`}>
-      <div className="tariffe__toggle-knob"/>
-    </div>
-  )
-  const LockIco = ({open=false}:{open?:boolean}) => (
-    <i className={`fa-duotone ${open?'fa-lock-open':'fa-lock'} tariffe__lock-ico`} aria-hidden="true"/>
-  )
+  const showPop = (kind: 'info' | 'hist', e: React.MouseEvent, room: Camera, n: number) => {
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setPop({ kind, x: r.left + r.width / 2, y: r.top, room, n })
+  }
+  const hidePop = () => setPop(null)
+
+  const totalDays = INTERVALLI.find(i => i.v === interv)?.days ?? 14
+  const maxStart  = Math.max(0, totalDays - PAGE)
+
+  const cols = useMemo(() => {
+    const size = Math.min(PAGE, totalDays)
+    return Array.from({ length: size }, (_, k) => {
+      const abs = pageStart + k
+      const dt = addDays(da, abs)
+      const dow = dt.getDay()
+      return { i: abs, day: dt.getDate(), mon: MONTHS_IT[dt.getMonth()], weekend: dow === 0 || dow === 6 }
+    })
+  }, [da, totalDays, pageStart])
+
+  // larghezza minima della tabella → sotto questa soglia il wrap scrolla,
+  // sopra le colonne giorno si dividono lo spazio in parti uguali (full-width)
+  const minW = 240 + cols.length * 64 + (vista === 'singola' ? 60 : 0)
+
+  // Prezzi BAR di riferimento (camera di riferimento) sulla finestra visibile
+  const barPrices = useMemo(() => {
+    if (!REF_ROOM) return [] as number[]
+    return Array.from(new Set(cols.map(c => priceOf(REF_ROOM, c.i)))).sort((a, b) => a - b)
+  }, [cols])
+
+  // passo di scorrimento (1 settimana) → movimenti più fluidi/granulari del range
+  const STEP = 7
+  const changeInterv = (v: string) => { setInterv(v); setPageStart(0) }
+  const prevPage = () => { setDir('prev'); setPageStart(s => Math.max(0, s - STEP)) }
+  const nextPage = () => { setDir('next'); setPageStart(s => Math.min(maxStart, s + STEP)) }
+
+
+  const toggleCamera = (id: string) => setAttive(p => ({ ...p, [id]: !p[id] }))
+  const salva = () => { setSaved(true); window.setTimeout(() => setSaved(false), 3000) }
 
   return (
-    <div>
+    <div className="td">
       <BtnBack onClick={() => navigate('home')} />
-      <PageHeader title="Gestione disponibilità e tariffe" subtitle="Controllo di tariffe e disponibilità in base alle strutture, giorni e intervalli settimanali"/>
+      <PageHeader
+        title="Tariffe e disponibilità"
+        subtitle="Controllo di tariffe e disponibilità in base alle strutture, giorni e intervalli settimanali"
+      />
 
       {saved && <AlertBanner type="success">Modifiche salvate e inviate con successo</AlertBanner>}
 
-      {/* Toolbar */}
-      <div className={`flex items-end gap-3 mb-4 flex-wrap ${mode?'mb-0':''}`}>
+      {/* ── Toolbar ──────────────────────────────────────────────────── */}
+      <div className="td__toolbar">
         <SelectField
           name="struttura"
           label="Struttura"
           value={struttura}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
+          onChange={e => setStruttura(e.target.value)}
           options={STRUTTURE.map(s => ({ value: s, label: s }))}
-          className="tariffe__toolbar-select"
+          className="td__f td__f--struttura"
         />
-        <DatePickerField
-          name="dateFrom"
-          label="Da"
-          value={dateFrom}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateFrom(e.target.value)}
-          className="tariffe__toolbar-date"
+
+        {/* Vista: Singola struttura (default) / Multistruttura */}
+        <SelectField
+          name="vista"
+          label="Vista"
+          value={vista}
+          onChange={e => setVista(e.target.value as 'singola' | 'multi')}
+          options={[
+            { value: 'singola', label: 'Singola struttura' },
+            { value: 'multi',   label: 'Multistruttura' },
+          ]}
+          className="td__f td__f--vista"
         />
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink whitespace-nowrap">Seleziona intervallo</span>
-          <div className="flex items-center gap-4 h-9">
-            {([1,2,3] as const).map(n=>(
-              <label key={n} className="flex items-center gap-1.5 cursor-pointer text-xs font-opensans text-ink">
-                <input type="radio" checked={intervallo===n} onChange={()=>setIntervallo(n)} className="sib-radio"/>{n} settiman{n===1?'a':'e'}
-              </label>
+
+        <DateRangeField
+          nameFrom="da"
+          nameTo="a"
+          label="Periodo"
+          valueFrom={da}
+          valueTo={a}
+          onChangeFrom={e => setDa(e.target.value)}
+          onChangeTo={e => setA(e.target.value)}
+          onChange={() => setPageStart(0)}
+          className="td__f"
+        />
+
+        <div className="td__f">
+          <span className="td__lbl">Seleziona intervallo</span>
+          <div className="td__seg">
+            {INTERVALLI.map(it => (
+              <button
+                key={it.v}
+                className={`td__seg-btn ${interv === it.v ? 'td__seg-btn--on' : ''}`}
+                onClick={() => changeInterv(it.v)}
+              >{it.label}</button>
             ))}
           </div>
         </div>
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
-          <div className="flex items-center gap-2 h-9">
-            <Tooltip text="Prevede l'apertura di tutti i canali">
-              <button className={`sib-btn ${mode==='apri'?'tariffe__toolbar-btn--apri':'sib-btn--toolbar'}`} onClick={()=>toggleMode('apri')}>
-                <LockIco open/> Apri
-              </button>
-            </Tooltip>
-            <Tooltip text="Prevede la chiusura di tutti i canali">
-              <button className={`sib-btn ${mode==='chiudi'?'tariffe__toolbar-btn--chiudi':'sib-btn--toolbar'}`} onClick={()=>toggleMode('chiudi')}>
-                <LockIco/> Chiudi
-              </button>
-            </Tooltip>
-            <Tooltip text="Modifiche rapide">
-              <button className="sib-btn sib-btn--icon" onClick={()=>setShowFiltroModal(true)}>
-                <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              </button>
-            </Tooltip>
-            <Tooltip text="Pianificazione tariffaria di lungo periodo">
-              <button className="sib-btn sib-btn--icon" onClick={()=>navigate('foresight-revenue')}>
-                <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-              </button>
-            </Tooltip>
-            <button className="sib-btn sib-btn--toolbar" onClick={()=>navigate('calendario-tariffe')}>
-              <i className="fa-duotone fa-calendar tariffe__toolbar-ico" aria-hidden="true"/> Calendario
+
+        <div className="td__toolbar-actions">
+          <div className="td__legend-info">
+            <button className="td__legend-btn" aria-label="Legenda colori">
+              <Ico n="info" s={18} c="var(--color-primary)" w="solid" />
             </button>
+            <div className="td__legend-pop" role="tooltip">
+              <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--closed" /> Chiusura totale</span>
+              <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--partial" /> Chiusura parziale</span>
+              <span className="td__leg-item"><Ico n="star" s={12} c="var(--color-warning)" w="solid" /> Camera di riferimento</span>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col gap-1 ml-auto">
-          <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
-          <div className="flex items-center gap-2 h-9">
-            <button className="sib-btn sib-btn--toolbar" onClick={()=>setShowStopModal(true)}>
-              <i className="fa-duotone fa-ban text-[13px]" aria-hidden="true"/> Stop sales
-            </button>
-            <button className="sib-btn sib-btn--primary" onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),3000)}}>
-              <i className="fa-duotone fa-check tariffe__btn-check-ico" aria-hidden="true"/> Salva e invia
-            </button>
-          </div>
+          <button
+            className={`sib-btn sib-btn--toolbar td__btn ${mode === 'apri' ? 'td__btn--mode-apri' : ''}`}
+            onClick={() => toggleMode('apri')}
+            aria-pressed={mode === 'apri'}
+          >
+            <Ico n="unlock" s={13} c="currentColor" w="solid" /> Apri
+          </button>
+          <button
+            className={`sib-btn sib-btn--toolbar td__btn ${mode === 'chiudi' ? 'td__btn--mode-chiudi' : ''}`}
+            onClick={() => toggleMode('chiudi')}
+            aria-pressed={mode === 'chiudi'}
+          >
+            <Ico n="lock" s={13} c="currentColor" w="solid" /> Chiudi
+          </button>
+          <button className="sib-btn sib-btn--toolbar td__btn td__btn--me" onClick={() => setMeOpen(true)}>
+            <Ico n="sliders" s={14} c="currentColor" w="solid" /> Market Engine
+          </button>
+          <button className="sib-btn sib-btn--toolbar td__btn" onClick={() => navigate('calendario-tariffe')}>
+            <Ico n="calendar" s={13} c="currentColor" /> Calendario
+          </button>
+          <button className="sib-btn sib-btn--danger-outline td__btn" onClick={() => setStopOpen(true)}>
+            STOP sales
+          </button>
+          <button className="sib-btn sib-btn--primary td__btn" onClick={salva}>
+            <Ico n="send" s={13} c="currentColor" w="solid" /> Salva e invia
+          </button>
         </div>
       </div>
 
-      {mode && (
-        <div className={`tariffe__mode-bar tariffe__mode-bar--${mode}`}>
-          <LockIco open={mode==='apri'}/>
-          <span className="tariffe__mode-text">
-            Modalità <strong>{mode==='apri'?'APERTURA':'CHIUSURA'}</strong> attiva — clicca sulle celle per {mode==='apri'?'aprire':'chiudere'} la disponibilità
-          </span>
-          <button onClick={()=>setMode(null)} className="tariffe__mode-exit">Esci</button>
-        </div>
-      )}
+      {/* ── Griglia ──────────────────────────────────────────────────── */}
+      <div className="td__grid-outer">
+        {/* Frecce in overlay sui bordi della tabella — la disabilitata sparisce */}
+        {pageStart > 0 && (
+          <button className="td__nav-arrow td__nav-arrow--prev" onClick={prevPage} aria-label="Giorni precedenti">
+            <Ico n="back" s={16} c="currentColor" w="solid" />
+          </button>
+        )}
+        {pageStart < maxStart && (
+          <button className="td__nav-arrow td__nav-arrow--next" onClick={nextPage} aria-label="Giorni successivi">
+            <Ico n="chevr" s={16} c="currentColor" w="solid" />
+          </button>
+        )}
 
-      {/* Grid */}
-      <div className="tariffe__grid-wrap">
-        <div className="tariffe__grid-scroll">
-          <table className="tariffe__table tariffe__table-sized" style={{ '--table-min-w': `${labelW+numDays*colW}px` } as React.CSSProperties}>
-            <colgroup>
-              <col className="tariffe__col--label"/>
-              {dates.map((_,i)=><col key={i} className="tariffe__col--day" style={{ '--col-w': `${colW}px` } as React.CSSProperties}/>)}
-              <col className="tariffe__col--expand"/>
-            </colgroup>
-            <thead>
-              <tr className="tariffe__thead-row">
-                <th className="tariffe__th-label">Tipo camera</th>
-                {dates.map((d,i)=>{
-                  const we=isWE(d), occ=occMap[fmt(d)]??0
-                  return (
-                    <th key={i} className={`tariffe__th-date ${we?'tariffe__th-date--we':''} ${i<dates.length-1?'tariffe__th-date--border':''}`}>
-                      <div className={`tariffe__th-day ${we?'tariffe__th-day--we':''}`}>{fmtCol(d)}</div>
-                      <div className="tariffe__th-name">{fmtDay(d)}</div>
-                      <div className={`tariffe__th-occ ${occ>=80?'tariffe__th-occ--high':occ>=50?'tariffe__th-occ--mid':''}`}>{occ}%</div>
-                    </th>
-                  )
-                })}
-                <th className="tariffe__th-expand">Espandi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cameras.map((cam,ci) => {
-                const isExp=expanded.has(cam.id)
-                return (
-                  <React.Fragment key={cam.id}>
-                    <tr className={`tariffe__tr-cam ${ci%2===0?'tariffe__tr--even':''}`}>
-                      <td className="tariffe__td-label">
-                        <div className="tariffe__cam-info">
-                          <div className="tariffe__cam-dot tariffe__cam-dot--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}/>
-                          <Toggle on={cam.enabled} onChange={()=>toggleCamera(cam.id)}/>
-                          <span className="tariffe__cam-name">{cam.label}</span>
-                        </div>
+        <div className="td__grid-wrap">
+          <div className="td__grid-anim" key={pageStart} data-dir={dir}>
+            <table
+              className={`td__grid ${vista === 'multi' ? 'td__grid--multi' : ''} ${mode ? `td__grid--mode td__grid--mode-${mode}` : ''}`}
+              style={{ '--min-w': `${minW}px` } as React.CSSProperties}
+            >
+          <colgroup>
+            <col className="td__col-room" />
+            {cols.map(c => <col key={c.i} className="td__col-day" />)}
+            {vista === 'singola' && <col className="td__col-exp" />}
+          </colgroup>
+          <thead>
+            <tr>
+              <th className="td__th td__th--room">Tipo camera</th>
+              {cols.map(c => (
+                <th key={c.i} className={`td__th td__th--day ${c.weekend ? 'td__th--weekend' : ''}`}>
+                  <span className="td__th-day">{c.day}<small> {c.mon}</small></span>
+                  <span className="td__th-occ"><Ico n="building" s={10} c="var(--color-text-inactive)" w="duotone" /> {occDay(c.i).toFixed(1)}%</span>
+                </th>
+              ))}
+              {vista === 'singola' && <th className="td__th td__th--exp">Espandi</th>}
+            </tr>
+          </thead>
+
+          {CAMERE.map(room => {
+            const on = attive[room.id]
+            const isExp = !!expanded[room.id]
+            const cls = [
+              'td__room',
+              room.riferimento ? 'td__room--ref' : '',
+              on ? '' : 'td__room--off',
+              isExp ? 'td__room--exp' : '',
+            ].join(' ')
+            return (
+              <tbody key={room.id} className={cls}>
+                {vista === 'multi' ? (
+                  /* ── Vista Multistruttura: cella unica colore-stato + prezzo centrato ── */
+                  <tr className="td__r td__r--multi">
+                    <td className="td__cl td__cl--multi">
+                      <div className="td__mname">
+                        <Ico n="bed" s={16} c="var(--color-text-inactive)" />
+                        <span className="td__room-name">
+                          {room.riferimento && <Ico n="star" s={12} c="var(--color-warning)" w="solid" />}
+                          {room.nome}
+                        </span>
+                        <button
+                          className={`td__toggle ${on ? 'td__toggle--on' : ''}`}
+                          onClick={() => toggleCamera(room.id)}
+                          role="switch"
+                          aria-checked={on}
+                          aria-label={on ? 'Disattiva camera' : 'Attiva camera'}
+                        ><span className="td__toggle-knob" /></button>
+                      </div>
+                      <div className="td__minv">
+                        Inventario <span className="td__unit">{room.unit} Unità</span>
+                      </div>
+                    </td>
+                    {cols.map(c => {
+                      const closed = closedOf(room, c.i)
+                      const partial = partialOf(room, c.i)
+                      const st = closed ? 'td__mcell--closed' : partial ? 'td__mcell--partial' : 'td__mcell--open'
+                      const cur = priceVal(room, c.i)
+                      const opts = barPrices.includes(cur) ? barPrices : [cur, ...barPrices].sort((a, b) => a - b)
+                      return (
+                        <td key={c.i} className={`td__mcell ${st}`} onClick={() => onCellClick(room, c.i)}>
+                          {closed
+                            ? <span className="td__mprice td__mprice--muted">{fmtPrice(cur)}</span>
+                            : (
+                              <select
+                                className="td__mprice-select"
+                                value={cur}
+                                onChange={e => setPriceVal(room, c.i, Number(e.target.value))}
+                                aria-label="Prezzo (BAR di riferimento)"
+                              >
+                                {opts.map(p => <option key={p} value={p}>{fmtPrice(p)}</option>)}
+                              </select>
+                            )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ) : (<>
+                {/* Riga 1 — nome camera + box allotment */}
+                <tr className="td__r td__r--allot">
+                  <td className="td__cl td__cl--name">
+                    <Ico n="bed" s={16} c="var(--color-text-inactive)" />
+                    <span className="td__room-name">
+                      {room.riferimento && <Ico n="star" s={12} c="var(--color-warning)" w="solid" />}
+                      {room.nome}
+                    </span>
+                    <button
+                      className={`td__toggle ${on ? 'td__toggle--on' : ''}`}
+                      onClick={() => toggleCamera(room.id)}
+                      role="switch"
+                      aria-checked={on}
+                      aria-label={on ? 'Disattiva camera' : 'Attiva camera'}
+                    ><span className="td__toggle-knob" /></button>
+                  </td>
+                  {cols.map(c => {
+                    const closed = closedOf(room, c.i)
+                    const partial = partialOf(room, c.i)
+                    return (
+                      <td key={c.i} className={`td__cell td__cell--allot ${closed ? 'td__cell--closed' : ''} ${partial ? 'td__cell--partial' : ''}`} onClick={() => onCellClick(room, c.i)}>
+                        {closed && <Ico n="lock" s={15} c="#fff" w="solid" />}
+                        {!closed && (
+                          <div className="td__cell-top">
+                            <input
+                              type="number"
+                              className="td__allot"
+                              value={allotVal(room, c.i)}
+                              min={0}
+                              onChange={e => setAllotVal(room, c.i, parseInt(e.target.value, 10) || 0)}
+                              aria-label="Camere da inviare"
+                            />
+                            <span
+                              className="td__info"
+                              onMouseEnter={e => showPop('info', e, room, c.i)}
+                              onMouseLeave={hidePop}
+                            ><Ico n="info" s={14} c="var(--color-primary)" w="solid" /></span>
+                            <button
+                              className="td__hourglass"
+                              aria-label="Storico modifiche"
+                              onMouseEnter={e => showPop('hist', e, room, c.i)}
+                              onMouseLeave={hidePop}
+                            ><Ico n="hourglass" s={12} c="#D94F9C" w="solid" /></button>
+                          </div>
+                        )}
                       </td>
-                      {dates.map((d,di) => {
-                        const dk=fmt(d), k=`${cam.id}-${dk}`, price=priceMap[k]??0, bar=barMap[k]??1
-                        const stopped=stopSales.has(k), status=cellStatus[k], we=isWE(d)
-                        let cellMod=''
-                        if(stopped) cellMod='tariffe__td-cell--stopped'
-                        else if(status==='aperta') cellMod='tariffe__td-cell--aperta'
-                        else if(status==='chiusa') cellMod='tariffe__td-cell--chiusa'
-                        else if(we) cellMod='tariffe__td-cell--we'
-                        else if(ci%2===0) cellMod='tariffe__td-cell--even'
+                    )
+                  })}
+                  {vista === 'singola' && (
+                    <td className="td__cell-exp" rowSpan={isExp ? 5 : 3}>
+                      <button
+                        className="td__exp-btn"
+                        aria-label={isExp ? 'Comprimi' : 'Espandi'}
+                        aria-expanded={isExp}
+                        onClick={() => toggleExpand(room.id)}
+                      ><Ico n={isExp ? 'minus-circle' : 'plus'} s={26} c="var(--color-primary)" w="regular" /></button>
+                    </td>
+                  )}
+                </tr>
+
+                {/* Riga 2 — Inventario + prezzo */}
+                <tr className="td__r td__r--inv">
+                  <td className="td__cl td__cl--sub">
+                    Inventario <span className="td__unit">{room.unit} Unità</span>
+                  </td>
+                  {cols.map(c => {
+                    const closed = closedOf(room, c.i)
+                    const partial = partialOf(room, c.i)
+                    return (
+                      <td key={c.i} className={`td__cell td__cell--price ${closed ? 'td__cell--closed td__cell--muted' : ''} ${partial ? 'td__cell--partial' : ''}`} onClick={() => onCellClick(room, c.i)}>
+                        <span className="td__price">{fmtPrice(priceOf(room, c.i))}</span>
+                      </td>
+                    )
+                  })}
+                </tr>
+
+                {/* Riga 3 — Disponibili alla vendita */}
+                <tr className="td__r td__r--disp">
+                  <td className="td__cl td__cl--sub">
+                    <Ico n="send" s={11} c="var(--color-text-inactive)" w="light" /> Disponibili alla vendita
+                  </td>
+                  {cols.map(c => {
+                    const closed = closedOf(room, c.i)
+                    const d = closed ? 0 : dispOf(room, c.i)
+                    return (
+                      <td key={c.i} className="td__cell td__cell--disp" onClick={() => onCellClick(room, c.i)}>
+                        <span className={d === 0 ? 'td__disp-zero' : ''}>{d}</span>
+                      </td>
+                    )
+                  })}
+                </tr>
+
+                {/* Righe accordion (Espandi) ───────────────────────────── */}
+                {isExp && (
+                  <>
+                    {/* Riga 4 — Occupate */}
+                    <tr className="td__r td__r--occ">
+                      <td className="td__cl td__cl--occ">Occupate</td>
+                      {cols.map(c => {
+                        const occ = occupateOf(room, c.i)
+                        const pct = room.unit ? (occ / room.unit) * 100 : 0
+                        const bat = batteryFor(pct)
                         return (
-                          <td key={di} onClick={()=>handleCellClick(cam.id,dk)}
-                            className={`tariffe__td-cell ${cellMod} ${di<dates.length-1?'tariffe__td-cell--border':''} ${mode?'tariffe__td-cell--clickable':''}`}>
-                            <div className="tariffe__cell-top">
-                              <span className="tariffe__bar-badge">BAR{bar}</span>
-                              <div className="tariffe__info-wrap"
-                                onMouseEnter={e=>{const r=(e.currentTarget as HTMLElement).getBoundingClientRect();setTooltip({camId:cam.id,dk,x:r.left+r.width/2,y:r.top})}}
-                                onMouseLeave={()=>setTooltip(null)}>
-                                <button onClick={e=>e.stopPropagation()} className="tariffe__info-btn">
-                                  <i className="fa-duotone fa-circle-info tariffe__info-ico" aria-hidden="true"/>
-                                </button>
-                                {tooltip?.camId===cam.id&&tooltip?.dk===dk&&(
-                                  <div className="tariffe__tooltip tariffe__tooltip--positioned" style={{ '--tt-x': `${tooltip.x}px`, '--tt-y': `${tooltip.y ?? 0}px` } as React.CSSProperties}>
-                                    <div className="tariffe__tooltip-title">Disponibilità per settore</div>
-                                    {getSectorDisp(cam.id,dk).map(s=>(
-                                      <div key={s.label} className="tariffe__tooltip-row" style={{ '--sector-color': s.color } as React.CSSProperties}>
-                                        <div className="tariffe__tooltip-left">
-                                          <div className="tariffe__tooltip-icon tariffe__tooltip-icon--dyn">{s.icon}</div>
-                                          <span className="tariffe__tooltip-label">{s.label}</span>
-                                        </div>
-                                        <div className="tariffe__tooltip-right">
-                                          <div className="tariffe__tooltip-bar-wrap">
-                                            <div className="tariffe__tooltip-bar tariffe__tooltip-bar--dyn" style={{ '--bar-w': `${Math.min(100,s.value*20)}%` } as React.CSSProperties}/>
-                                          </div>
-                                          <span className="tariffe__tooltip-val tariffe__tooltip-val--dyn">{s.value}</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                    <div className="tariffe__tooltip-arrow"/>
-                                  </div>
-                                )}
-                              </div>
-                              <button onClick={e=>{e.stopPropagation();setStopSales(prev=>{const n=new Set(prev);n.has(k)?n.delete(k):n.add(k);return n})}} className="tariffe__stop-btn" title={stopped?'Rimuovi stop':'Stop sales'}>
-                                <i className={`fa-duotone fa-hourglass tariffe__stop-ico ${stopped?'tariffe__stop-ico--active':''}`} aria-hidden="true"/>
-                              </button>
-                              {status && <i className={`fa-duotone ${status==='aperta'?'fa-lock-open':'fa-lock'} tariffe__status-ico tariffe__status-ico--${status}`} aria-hidden="true"/>}
+                          <td key={c.i} className="td__cell td__cell--occ">
+                            <div className="td__occ">
+                              <Ico n={bat.ico} s={16} c={bat.col} w="solid" />
+                              <span className="td__occ-nums">
+                                <span className="td__occ-o">{occ}</span>
+                                <span className="td__occ-t">{room.unit}</span>
+                              </span>
+                              <span className="td__occ-pct">{pct.toFixed(2).replace('.', ',')}%</span>
                             </div>
-                            {stopped
-                              ? <div className="tariffe__cell-stop">STOP</div>
-                              : <select onClick={e=>e.stopPropagation()} defaultValue={price.toFixed(2)} className={`sib-select bg-transparent border-none text-center font-bold text-[11px] tariffe__price-select-ext tariffe__price-select-ext--${status==='chiusa'?'chiusa':status==='aperta'?'aperta':'default'}`} style={{ '--cam-color': cam.colore } as React.CSSProperties}>
-                                  {[price*0.85,price*0.90,price*0.95,price,price*1.05,price*1.10,price*1.15].map(p=><option key={p} value={p.toFixed(2)}>{p.toFixed(2).replace('.',',')} €</option>)}
-                                </select>
-                            }
                           </td>
                         )
                       })}
-                      <td className="tariffe__td-expand">
-                        <button onClick={()=>toggleExpand(cam.id)} className={`tariffe__expand-btn ${isExp?'tariffe__expand-btn--active':''}`}>
-                          <i className="fa-duotone fa-plus tariffe__expand-ico" aria-hidden="true"/>
-                        </button>
-                      </td>
                     </tr>
-                    <tr className={`tariffe__tr-inv ${ci%2===0?'tariffe__tr-inv--even':''}`}>
-                      <td className="tariffe__td-sublabel">
-                        <div className="tariffe__inv-info">
-                          <span className="tariffe__inv-text">Inventario</span>
-                          <span className="tariffe__inv-badge tariffe__inv-badge--dyn" style={{ '--cam-color': cam.colore, '--cam-badge-bg': `${cam.colore}18` } as React.CSSProperties}>{cam.unitLabel}</span>
-                        </div>
-                      </td>
-                      {dates.map((_,di)=><td key={di} className={`tariffe__td-inv-val ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>{cam.inventario}</td>)}
-                      <td/>
+
+                    {/* Riga 5 — Residuo sui canali */}
+                    <tr className="td__r td__r--resid">
+                      <td className="td__cl td__cl--sub">Residuo sui canali</td>
+                      {cols.map(c => (
+                        <td key={c.i} className="td__cell td__cell--resid">––</td>
+                      ))}
                     </tr>
-                    <tr className={`tariffe__tr-avail ${isExp?'tariffe__tr-avail--exp':''} ${ci%2===0?'tariffe__tr-avail--even':''}`}>
-                      <td className="tariffe__td-sublabel"><span className="tariffe__inv-text">Disponibili alla vendita</span></td>
-                      {dates.map((d,di)=>{
-                        const disp=dispMap[`${cam.id}-${fmt(d)}`]??0
-                        const dispMod=disp===0?'zero':disp<=2?'low':'ok'
-                        return <td key={di} className={`tariffe__td-avail ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>
-                          <span className={`tariffe__avail-num tariffe__avail-num--${dispMod}`}>{disp}</span>
-                        </td>
-                      })}
-                      <td/>
-                    </tr>
-                    {isExp && (
-                      <>
-                        <tr className="tariffe__tr-exp">
-                          <td className="tariffe__td-sublabel"><span className="tariffe__exp-label">Occupate</span></td>
-                          {dates.map((d,di)=>{
-                            const {occ,inv,pct}=getOccupate(cam.id,fmt(d))
-                            const color=pct>=90?T.error:pct>=50?'#E07B39':T.success
-                            return <td key={di} className={`tariffe__td-occ ${di<dates.length-1?'tariffe__td-inv-val--border':''}`} style={{ '--occ-color': color } as React.CSSProperties}>
-                              <div className="tariffe__occ-cell">
-                                <i className="fa-duotone fa-bed tariffe__bed-ico" aria-hidden="true"/>
-                                <div>
-                                  <div className="tariffe__occ-num tariffe__occ-num--dyn">{occ} / {inv}</div>
-                                  <div className="tariffe__occ-pct">{pct}%</div>
-                                </div>
-                              </div>
-                            </td>
-                          })}
-                          <td/>
-                        </tr>
-                        <tr className="tariffe__tr-exp tariffe__tr-exp--last">
-                          <td className="tariffe__td-sublabel"><span className="tariffe__exp-label">Residuo sui canali</span></td>
-                          {dates.map((d,di)=>{
-                            const disp=dispMap[`${cam.id}-${fmt(d)}`]??0,residuo=Math.min(99,Math.max(0,disp))
-                            const resMod=residuo===0?'res-zero':residuo<=10?'res-low':'res-ok'
-                            return <td key={di} className={`tariffe__td-avail ${di<dates.length-1?'tariffe__td-inv-val--border':''}`}>
-                              <span className={`tariffe__avail-num tariffe__avail-num--${resMod}`}>{residuo}</span>
-                            </td>
-                          })}
-                          <td/>
-                        </tr>
-                      </>
-                    )}
-                  </React.Fragment>
-                )
-              })}
+                  </>
+                )}
+                </>)}
+              </tbody>
+            )
+          })}
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Popover info — disponibilità per verticale */}
+      {pop?.kind === 'info' && (
+        <div className="td__pop td__pop--info" style={{ '--x': `${pop.x}px`, '--y': `${pop.y}px` } as React.CSSProperties}>
+          <span className="td__pop-row">
+            <Ico n="infinity" s={14} c="var(--color-primary)" w="solid" />
+            <span className="td__pop-lbl">Sibylla</span>
+            <b>{allotVal(pop.room, pop.n)}</b>
+          </span>
+          <span className="td__pop-row">
+            <Ico n="globe" s={14} c="var(--color-primary)" w="solid" />
+            <span className="td__pop-lbl">Network (B2C)</span>
+            <b>–</b>
+          </span>
+          <span className="td__pop-row">
+            <Ico n="landmark" s={14} c="var(--color-primary)" w="solid" />
+            <span className="td__pop-lbl">Agorà (B2B)</span>
+            <b>–</b>
+          </span>
+        </div>
+      )}
+
+      {/* Popover clessidra — storico modifiche */}
+      {pop?.kind === 'hist' && (
+        <div className="td__pop td__pop--hist" style={{ '--x': `${pop.x}px`, '--y': `${pop.y}px` } as React.CSSProperties}>
+          <table className="td__hist">
+            <thead>
+              <tr>
+                <th>Tipo</th><th>Valore</th><th>Canale</th><th>Data modifica</th><th>Utente</th><th>Errore</th>
+              </tr>
+            </thead>
+            <tbody>
+              {histOf(pop.room, pop.n).map((r, i) => (
+                <tr key={i}>
+                  <td>{r.tipo}</td>
+                  <td>{r.valore}</td>
+                  <td>{r.canale || '—'}</td>
+                  <td>{r.data}</td>
+                  <td>{r.utente}</td>
+                  <td>{r.errore || '—'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </div>
+      )}
 
-      <div className="tariffe__legend">
-        {cameras.map(c=><div key={c.id} className="tariffe__legend-item"><div className="tariffe__legend-dot tariffe__legend-dot--dyn" style={{ '--legend-dot-bg': c.colore } as React.CSSProperties}/><span>{c.label}</span></div>)}
-        <div className="tariffe__legend-item tariffe__legend-item--ml">
-          <div className="tariffe__legend-dot tariffe__legend-dot--aperta"/><span>Aperta</span>
-        </div>
-        <div className="tariffe__legend-item">
-          <div className="tariffe__legend-dot tariffe__legend-dot--chiusa"/><span>Chiusa</span>
-        </div>
-      </div>
-
-      {showStopModal   && <StopSalesModal struttura={struttura} onClose={()=>setShowStopModal(false)}/>}
-      {showFiltroModal && <FiltroModal cameras={cameras} dateFrom={dateFrom} onClose={()=>setShowFiltroModal(false)}/>}
+      <MarketEngineModal open={meOpen} onClose={() => setMeOpen(false)} />
+      <StopSalesModal open={stopOpen} onClose={() => setStopOpen(false)} struttura={struttura} />
     </div>
   )
 }

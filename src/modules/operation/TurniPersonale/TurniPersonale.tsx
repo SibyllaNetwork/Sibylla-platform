@@ -3,7 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
-import { InputField, SelectField, DatePickerField, CheckboxField } from '../../../core/components/form'
+import { InputField, SelectField, DatePickerField, DateRangeField, CheckboxField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './TurniPersonale.sass'
 
@@ -545,10 +545,7 @@ function CreaAssenzaModal({
           ]}
         />
 
-        <div className="grid grid-cols-2 gap-3">
-          <DatePickerField name="dataDa" label="Data inizio" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-          <DatePickerField name="dataA"  label="Data fine"   value={dataA}  onChange={(e) => setDataA(e.target.value)} />
-        </div>
+        <DateRangeField nameFrom="dataDa" nameTo="dataA" label="Periodo" valueFrom={dataDa} valueTo={dataA} onChangeFrom={(e) => setDataDa(e.target.value)} onChangeTo={(e) => setDataA(e.target.value)} />
 
         {tipo === 'permesso' && (
           <div className="grid grid-cols-2 gap-3">

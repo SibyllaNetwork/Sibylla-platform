@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
+import { DateRangeField } from '../../../core/components/form'
 import './AssegnazioniIncarichi.sass'
 
 const PAGE_SIZE = 12
@@ -197,12 +198,15 @@ export default function AssegnazioniIncarichi({ navigate }: { navigate: (p: stri
       <div className="ass-inc__bar">
         <div className="ass-inc__bar-left">
           <div className="ass-inc__field">
-            <label>Data</label>
-            <div className="ass-inc__date-range">
-              <input type="date" className="sib-input" aria-label="Data da" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-              <span>-</span>
-              <input type="date" className="sib-input" aria-label="Data a" value={dataA} onChange={(e) => setDataA(e.target.value)} />
-            </div>
+            <DateRangeField
+              nameFrom="dataDa"
+              nameTo="dataA"
+              label="Data"
+              valueFrom={dataDa}
+              valueTo={dataA}
+              onChangeFrom={(e) => setDataDa(e.target.value)}
+              onChangeTo={(e) => setDataA(e.target.value)}
+            />
           </div>
           <div className="ass-inc__field">
             <label>Reparto</label>

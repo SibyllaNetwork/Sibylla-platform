@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
+import { DateRangeField } from '../../../core/components/form'
 import './OspitiInCasa.sass'
 
 const PAGE_SIZE = 10
@@ -219,14 +220,16 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
             </select>
           </div>
 
-          <div className="ospiti-casa__field">
-            <label>Periodo</label>
-            <div className="ospiti-casa__date-range">
-              <input type="date" className="sib-input" aria-label="Data da" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-              <span>-</span>
-              <input type="date" className="sib-input" aria-label="Data a" value={dataA} onChange={(e) => setDataA(e.target.value)} />
-            </div>
-          </div>
+          <DateRangeField
+            className="ospiti-casa__field"
+            nameFrom="dataDa"
+            nameTo="dataA"
+            label="Periodo"
+            valueFrom={dataDa}
+            valueTo={dataA}
+            onChangeFrom={(e) => setDataDa(e.target.value)}
+            onChangeTo={(e) => setDataA(e.target.value)}
+          />
 
           <div className="ospiti-casa__field ospiti-casa__field--grow">
             <label>Cerca</label>

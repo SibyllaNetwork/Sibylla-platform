@@ -3,7 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
-import { DatePickerField, InputField, SelectField } from '../../../core/components/form'
+import { DatePickerField, DateRangeField, InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './RegistroPresenze.sass'
 
@@ -411,8 +411,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
 
             {(form.tipo === 'ferie' || form.tipo === 'malattia') && (
               <div className="presenza-edit__row2">
-                <DatePickerField name="dal" label="Dal giorno" type="date" value={form.dal} onChange={(e) => setForm((f) => ({ ...f, dal: e.target.value }))} />
-                <DatePickerField name="al"  label="Al giorno"  type="date" value={form.al}  onChange={(e) => setForm((f) => ({ ...f, al: e.target.value }))} />
+                <DateRangeField nameFrom="dal" nameTo="al" label="Periodo" valueFrom={form.dal} valueTo={form.al} onChangeFrom={(e) => setForm((f) => ({ ...f, dal: e.target.value }))} onChangeTo={(e) => setForm((f) => ({ ...f, al: e.target.value }))} />
               </div>
             )}
 

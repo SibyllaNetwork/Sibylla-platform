@@ -1,0 +1,53 @@
+// ─── DATE RANGE FIELD ──────────────────────────────────────────────────────────
+// Standard di piattaforma: Date Range Picker a due calendari affiancati.
+@use '../../../styles/tokens' as *
+
+.sib-daterange
+  position: relative
+
+  &__val
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 90
+
+  &__pop
+    position: absolute
+    top: calc(100% + 6px)
+    left: 0
+    z-index: 100
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    box-shadow: $shadow-lg
+    padding: $space-sm
+
+    .rdp
+      --rdp-accent-color: #{$primary}
+      --rdp-background-color: #{alpha($primary, 0.12)}
+      margin: 0
+      font-size: 13px
+
+    // titoli mese — meno "pesanti"
+    .rdp-caption_label
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
+
+    // intestazioni giorni settimana — più leggere
+    .rdp-head_cell
+      font-size: 11px
+      font-weight: 500
+      color: $text-inactive
+      text-transform: none
+
+    .rdp-day_selected, .rdp-day_range_start, .rdp-day_range_end
+      background: $primary
+      color: #fff
+
+    .rdp-day_range_middle
+      background: alpha($primary, 0.12)
+      color: $text-active

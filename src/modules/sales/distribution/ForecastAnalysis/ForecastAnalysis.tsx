@@ -5,6 +5,7 @@ import { apiFetchSibylla } from '../../../../services/api'
 import { Donut, DonutLegend } from '../_charts/Donut'
 import { HBars } from '../_charts/HBars'
 import { AreaTrend, type SeriesPoint } from '../_charts/AreaTrend'
+import { DateRangeField } from '../../../../core/components/form'
 import './ForecastAnalysis.sass'
 
 interface RankItem { label: string; value: number; color: string }
@@ -102,12 +103,15 @@ export default function ForecastAnalysis({ navigate }: { navigate: (p: string) =
           </select>
         </div>
         <div className="forecast-analysis__field">
-          <label>Date</label>
-          <div className="forecast-analysis__date-range">
-            <input type="date" className="sib-input" aria-label="Data da" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />
-            <span>-</span>
-            <input type="date" className="sib-input" aria-label="Data a" value={data.dataA} onChange={(e) => setData({ ...data, dataA: e.target.value })} />
-          </div>
+          <DateRangeField
+            nameFrom="dataDa"
+            nameTo="dataA"
+            label="Date"
+            valueFrom={data.dataDa}
+            valueTo={data.dataA}
+            onChangeFrom={(e) => setData({ ...data, dataDa: e.target.value })}
+            onChangeTo={(e) => setData({ ...data, dataA: e.target.value })}
+          />
         </div>
         <button type="button" className="sib-btn sib-btn--primary forecast-analysis__visualizza">
           <i className="fa-light fa-chart-line" /> Visualizza

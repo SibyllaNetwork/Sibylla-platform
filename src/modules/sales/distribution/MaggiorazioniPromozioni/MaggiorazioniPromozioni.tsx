@@ -7,7 +7,7 @@ import './MaggiorazioniPromozioni.sass'
 import FormActions from '../../../../core/components/FormActions'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
 import FormGrid from '../../../../core/components/FormGrid'
-import { InputField, SelectField, DatePickerField, SearchField } from '../../../../core/components/form'
+import { InputField, SelectField, DatePickerField, DateRangeField, SearchField } from '../../../../core/components/form'
 
 type Promo = {id:number;nome:string;periodoPromo:string;periodoPrenot:string;mercato:string;segmento:string;struttura:string;partners:string;blackout:string;sconto:number}
 
@@ -282,14 +282,24 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
             error={!form.nome && showModal ? 'Campo obbligatorio' : undefined}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nome:e.target.value}))}
           />
-          <FormGrid>
-            <DatePickerField name="periodoPromoFrom" label="Promozione — Da" value={form.periodoPromoFrom} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoFrom:e.target.value}))}/>
-            <DatePickerField name="periodoPromoTo" label="Promozione — A" value={form.periodoPromoTo} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoTo:e.target.value}))}/>
-          </FormGrid>
-          <FormGrid>
-            <DatePickerField name="periodoPrenotFrom" label="Prenotabilità — Da" value={form.periodoPrenotFrom} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotFrom:e.target.value}))}/>
-            <DatePickerField name="periodoPrenotTo" label="Prenotabilità — A" value={form.periodoPrenotTo} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotTo:e.target.value}))}/>
-          </FormGrid>
+          <DateRangeField
+            nameFrom="periodoPromoFrom"
+            nameTo="periodoPromoTo"
+            label="Periodo promozione"
+            valueFrom={form.periodoPromoFrom}
+            valueTo={form.periodoPromoTo}
+            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoFrom:e.target.value}))}
+            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoTo:e.target.value}))}
+          />
+          <DateRangeField
+            nameFrom="periodoPrenotFrom"
+            nameTo="periodoPrenotTo"
+            label="Periodo prenotabilità"
+            valueFrom={form.periodoPrenotFrom}
+            valueTo={form.periodoPrenotTo}
+            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotFrom:e.target.value}))}
+            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotTo:e.target.value}))}
+          />
           <FormGrid cols={3}>
             <SelectField name="mercato" label="Mercato" value={form.mercato} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,mercato:e.target.value}))} options={['Libero','B2C','B2B','Corporate'].map(o => ({ value: o, label: o }))}/>
             <SelectField name="segmento" label="Segmento" value={form.segmento} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,segmento:e.target.value}))} options={['Dirette','B2C','B2B','Gruppi','Corporate'].map(o => ({ value: o, label: o }))}/>

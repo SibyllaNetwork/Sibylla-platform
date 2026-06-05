@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHeader from '../../../../core/components/PageHeader'
@@ -54,6 +54,16 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
     for (let mo=0; mo<12; mo++) for (let d=1; d<=31; d++) m[`2026-${mo}-${d}`]=(d*13+(mo+1)*7)%100
     return m
   })
+
+  // Prezzi BAR di riferimento (camera "tripla") → select su ogni prezzo esposto
+  const REF_CAM = 'tripla'
+  const barPrices = useMemo(() => {
+    const set = new Set<number>()
+    Object.entries(priceMap).forEach(([k,v]) => { if (k.startsWith(`${REF_CAM}-`)) set.add(v) })
+    return Array.from(set).sort((a,b)=>a-b)
+  }, [priceMap])
+  const [priceOverride, setPriceOverride] = useState<Record<string,number>>({})
+  const priceVal = (key:string) => priceOverride[key] ?? (priceMap[key]??0)
 
   const months: Array<{year:number;month:number}> = []
   {
@@ -151,17 +161,23 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
                         {week.map((day,di) => {
                           if (!day) return <td key={di} className={`cal-tariffe__day-cell cal-tariffe__day-cell--empty ${lastRow?'cal-tariffe__day-cell--last-row':''}`}/>
                           const isWE  = di>=5
-                          const price = priceMap[`${cam.id}-${year}-${month}-${day}`]??0
+                          const pkey  = `${cam.id}-${year}-${month}-${day}`
+                          const price = priceVal(pkey)
+                          const opts  = barPrices.includes(price) ? barPrices : [price, ...barPrices].sort((a,b)=>a-b)
                           const occ   = occMap[`${year}-${month}-${day}`]??0
                           return (
                             <td key={di}
                               className={`cal-tariffe__day-cell ${isWE?'cal-tariffe__day-cell--weekend':'cal-tariffe__day-cell--weekday'} ${lastRow?'cal-tariffe__day-cell--last-row':''}`}>
                               <div className={`cal-tariffe__day-num ${isWE?'cal-tariffe__day-num--weekend':'cal-tariffe__day-num--weekday'}`}>{day}</div>
                               <div className="cal-tariffe__day-price">
-                                <span className="cal-tariffe__day-price-val cal-tariffe__day-price-val--dyn">
-                                  {price.toFixed(2).replace('.',',')} €
-                                </span>
-                                <i className="fa-duotone fa-chevron-down cal-tariffe__price-chevron cal-tariffe__price-chevron--dyn" aria-hidden="true"/>
+                                <select
+                                  className="cal-tariffe__price-select cal-tariffe__day-price-val--dyn"
+                                  value={price}
+                                  onChange={e=>setPriceOverride(p=>({...p,[pkey]:Number(e.target.value)}))}
+                                  aria-label="Prezzo (BAR di riferimento)"
+                                >
+                                  {opts.map(p=><option key={p} value={p}>{p.toFixed(2).replace('.',',')} €</option>)}
+                                </select>
                               </div>
                               <div className="cal-tariffe__day-occ cal-tariffe__day-occ--dyn" style={{ '--occ-bg': occBg(occ), '--occ-color': occColor(occ) } as React.CSSProperties}>
                                 <span className="cal-tariffe__day-occ-val cal-tariffe__day-occ-val--dyn">{occ},0%</span>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
-import { DatePickerField, SelectField } from '../../../core/components/form'
+import { DatePickerField, DateRangeField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './RilevamentoPresenze.sass'
 
@@ -99,11 +99,7 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
           <button className="sib-btn sib-btn--icon" title="Esporta XML">
             <i className="fa-duotone fa-file-code" />
           </button>
-          <div className="flex items-end gap-1">
-            <DatePickerField name="periodoDa" label=" " value={periodoDa} onChange={(e) => setPeriodoDa(e.target.value)} />
-            <span className="self-center pb-2 text-ink-muted">–</span>
-            <DatePickerField name="periodoA"  label=" " value={periodoA}  onChange={(e) => setPeriodoA(e.target.value)} />
-          </div>
+          <DateRangeField nameFrom="periodoDa" nameTo="periodoA" label="Periodo" valueFrom={periodoDa} valueTo={periodoA} onChangeFrom={(e) => setPeriodoDa(e.target.value)} onChangeTo={(e) => setPeriodoA(e.target.value)} />
           <button className="sib-btn sib-btn--icon" title="Scarica report">
             <i className="fa-duotone fa-download" />
           </button>

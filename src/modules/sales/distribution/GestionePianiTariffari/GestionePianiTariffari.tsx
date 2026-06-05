@@ -9,7 +9,7 @@ import './GestionePianiTariffari.sass'
 import FormActions from '../../../../core/components/FormActions'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
 import FormGrid from '../../../../core/components/FormGrid'
-import { InputField, SelectField, DatePickerField } from '../../../../core/components/form'
+import { InputField, SelectField, DateRangeField } from '../../../../core/components/form'
 
 const CATEGORIE = [
   {id:'BAR',    label:'BAR',    tipo:'B', color:T.blue,    hasPct:false},
@@ -192,8 +192,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p:stri
           </FormGrid>
           <FormGrid cols={3}>
             <InputField name="arrangiamento" label="Arrangiamento" value={form.arrangiamento} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,arrangiamento:e.target.value}))}/>
-            <DatePickerField name="dataInizio" label="Data inizio" value={form.dataInizio} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,dataInizio:e.target.value}))}/>
-            <DatePickerField name="dataFine" label="Data fine" value={form.dataFine} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,dataFine:e.target.value}))}/>
+            <DateRangeField nameFrom="dataInizio" nameTo="dataFine" label="Periodo" valueFrom={form.dataInizio} valueTo={form.dataFine} onChangeFrom={(e) => setForm(v=>({...v,dataInizio:e.target.value}))} onChangeTo={(e) => setForm(v=>({...v,dataFine:e.target.value}))}/>
           </FormGrid>
           <FormGrid>
             <InputField name="giorni" label="Giorni" type="number" value={form.giorni} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,giorni:e.target.value}))}/>

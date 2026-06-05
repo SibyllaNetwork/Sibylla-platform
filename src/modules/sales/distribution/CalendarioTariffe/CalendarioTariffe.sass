@@ -51,6 +51,31 @@
 .cal-tariffe__price-chevron
   font-size: 8px
 
+// Select prezzo (apre la lista dei prezzi BAR di riferimento)
+.cal-tariffe__price-select
+  appearance: none
+  -webkit-appearance: none
+  border: none
+  background: transparent
+  font-size: 11px
+  font-weight: 700
+  white-space: nowrap
+  cursor: pointer
+  text-align: center
+  text-align-last: center
+  padding: 1px 14px 1px 4px
+  border-radius: 4px
+  // chevron inline (colore = currentColor → eredita il colore dinamico camera)
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")
+  background-repeat: no-repeat
+  background-position: right 2px center
+  background-size: 10px
+  &:hover
+    background-color: rgba(0,0,0,0.04)
+  &:focus
+    outline: none
+    box-shadow: 0 0 0 2px rgba(92,156,212,0.35)
+
 // ─── Day occupancy ────────────────────────────────────────────────────────────
 .cal-tariffe__day-occ-val
   font-size: 10px

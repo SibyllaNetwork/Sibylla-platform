@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
+import { DateRangeField } from '../../../../core/components/form'
 import './BudgetAnalysis.sass'
 
 type BudgetView = 'revenue' | 'cost' | 'profit'
@@ -94,12 +95,15 @@ export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => 
           </select>
         </div>
         <div className="budget-analysis__field">
-          <label>Date</label>
-          <div className="budget-analysis__date-range">
-            <input type="date" className="sib-input" aria-label="Data da" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />
-            <span>-</span>
-            <input type="date" className="sib-input" aria-label="Data a" value={data.dataA} onChange={(e) => setData({ ...data, dataA: e.target.value })} />
-          </div>
+          <DateRangeField
+            nameFrom="dataDa"
+            nameTo="dataA"
+            label="Date"
+            valueFrom={data.dataDa}
+            valueTo={data.dataA}
+            onChangeFrom={(e) => setData({ ...data, dataDa: e.target.value })}
+            onChangeTo={(e) => setData({ ...data, dataA: e.target.value })}
+          />
         </div>
         <button type="button" className="sib-btn sib-btn--primary budget-analysis__visualizza">
           <i className="fa-light fa-chart-line" /> Visualizza

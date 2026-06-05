@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
+import { DateRangeField } from '../../../core/components/form'
 import './MaintenanceAnalysis.sass'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -101,14 +102,16 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
             {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
           </select>
         </div>
-        <div className="maint-an__field">
-          <label>Intervallo</label>
-          <div className="maint-an__date-range">
-            <input type="date" className="sib-input" aria-label="Data da" value={dataDa} onChange={(e) => setDataDa(e.target.value)} />
-            <span>-</span>
-            <input type="date" className="sib-input" aria-label="Data a" value={dataA} onChange={(e) => setDataA(e.target.value)} />
-          </div>
-        </div>
+        <DateRangeField
+          className="maint-an__field"
+          nameFrom="dataDa"
+          nameTo="dataA"
+          label="Intervallo"
+          valueFrom={dataDa}
+          valueTo={dataA}
+          onChangeFrom={(e) => setDataDa(e.target.value)}
+          onChangeTo={(e) => setDataA(e.target.value)}
+        />
         <button type="button" className="sib-btn sib-btn--primary maint-an__visualizza">
           <i className="fa-light fa-chart-line" /> Visualizza
         </button>
