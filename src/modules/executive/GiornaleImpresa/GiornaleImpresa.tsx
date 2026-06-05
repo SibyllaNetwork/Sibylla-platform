@@ -7,6 +7,13 @@ import './GiornaleImpresa.sass'
 
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const WDAYS  = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato']
+const WDAYS_SHORT = ['D','L','M','M','G','V','S']
+
+// Posizioni delle sfere (%) — sincronizzate con .giornale__node--pN nel .sass
+const NODE_POS = [
+  { x: 50, y: 6 }, { x: 89, y: 27 }, { x: 89, y: 73 },
+  { x: 50, y: 94 }, { x: 11, y: 73 }, { x: 11, y: 27 },
+]
 
 // ── Sezioni orbitanti (vista sintetica), ordinate in senso orario dall'alto ──
 const ORBIT = [
@@ -39,6 +46,11 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   const [dragId, setDragId]     = useState<ExtId | null>(null)
 
   const fmtDay = (d: Date) => `${WDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`
+
+  // striscia settimana centrata su oggi (3 giorni prima/dopo)
+  const weekStrip = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() - 3 + i); return d
+  })
 
   const strutture = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare','Palazzo Storico']
   const tabs = [
@@ -75,9 +87,27 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
     { nome:'Gruppo Aurora',    nota:'Tavolo riservato ristorante 20:30' },
   ]
   const news = [
-    { fonte:'Il Sole 24 Ore', tempo:'2h', titolo:'Turismo, presenze in crescita del 6% nel trimestre' },
-    { fonte:'Travel Daily',   tempo:'4h', titolo:'Nuove rotte aeree verso il Sud Italia per l\'estate' },
-    { fonte:'HotelMag',       tempo:'6h', titolo:'Revenue management: l\'AI cambia le tariffe dinamiche' },
+    {
+      cat:'Economia', fonte:'Il Sole 24 Ore', tempo:'2h',
+      img:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=70&auto=format&fit=crop',
+      titolo:'Turismo, presenze in crescita del 6% nel trimestre',
+      testo:'Il comparto ricettivo italiano chiude il trimestre con un incremento delle presenze trainato dal turismo internazionale e dall\'allungamento della stagione nelle località costiere.',
+    },
+    {
+      cat:'Trasporti', fonte:'Travel Daily', tempo:'4h',
+      img:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=70&auto=format&fit=crop',
+      titolo:'Nuove rotte aeree verso il Sud Italia per l\'estate',
+    },
+    {
+      cat:'Tecnologia', fonte:'HotelMag', tempo:'6h',
+      img:'https://images.unsplash.com/photo-1541370976299-4d24ebbc9077?w=400&q=70&auto=format&fit=crop',
+      titolo:'Revenue management: l\'AI cambia le tariffe dinamiche',
+    },
+    {
+      cat:'Mercato', fonte:'Largo Consumo', tempo:'8h',
+      img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=70&auto=format&fit=crop',
+      titolo:'Food & Beverage, i consumi premium trainano i ricavi',
+    },
   ]
 
   // ── Contenuto dello stage centrale (vista sintetica) ───────────────────────
@@ -85,16 +115,24 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
     switch (id) {
       case 'calendario':
         return (
-          <div className="giornale__stage-calendar">
-            <div className="giornale__cal-block">
-              <div className="giornale__cal-day-name">{WDAYS[today.getDay()]}</div>
-              <div className="giornale__cal-day-num">{today.getDate()}</div>
-              <div className="giornale__cal-month">{MONTHS[today.getMonth()]}</div>
+          <div className="giornale__cal">
+            <div className="giornale__cal-hero">
+              <span className="giornale__cal-weekday">{WDAYS[today.getDay()]}</span>
+              <span className="giornale__cal-num">{today.getDate()}</span>
+              <span className="giornale__cal-monthyear">{MONTHS[today.getMonth()]} {today.getFullYear()}</span>
             </div>
-            <p className="giornale__stage-note">
-              Accadde nel mese di {MONTHS[today.getMonth()]}: un mese di contrasti, tra piogge che
-              bagnano l'anima e giornate di sole che la illuminano.
-            </p>
+            <div className="giornale__cal-week">
+              {weekStrip.map((d, i) => (
+                <div key={i} className={`giornale__cal-wday ${d.getDate() === today.getDate() ? 'giornale__cal-wday--today' : ''}`}>
+                  <span className="giornale__cal-wday-l">{WDAYS_SHORT[d.getDay()]}</span>
+                  <span className="giornale__cal-wday-n">{d.getDate()}</span>
+                </div>
+              ))}
+            </div>
+            <div className="giornale__cal-insight">
+              <Ico n="info" s={12} c={T.primary} />
+              <span>Accadde nel mese di {MONTHS[today.getMonth()]}: un mese di contrasti, tra sole e pioggia.</span>
+            </div>
             <button className="giornale__stage-link" onClick={() => navigate('scadenzario')}>
               Scadenzario <Ico n="chevr" s={11} c={T.blue} />
             </button>
@@ -277,6 +315,19 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       {viewMode === 'sintetica' && (
         <>
           <div className="giornale__ring">
+            {/* Orbita ellittica + raggi verso il centro */}
+            <svg className="giornale__orbit" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <ellipse className="giornale__orbit-ring" cx="50" cy="50" rx="39" ry="44" vectorEffect="non-scaling-stroke" />
+              {ORBIT.map((_, i) => (
+                <line
+                  key={i}
+                  className={`giornale__spoke ${i === active ? 'giornale__spoke--active' : ''}`}
+                  x1="50" y1="50" x2={NODE_POS[i].x} y2={NODE_POS[i].y}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+            </svg>
+
             <button
               className="giornale__ring-arrow giornale__ring-arrow--prev"
               onClick={() => setActive(a => (a - 1 + ORBIT.length) % ORBIT.length)}
@@ -319,16 +370,40 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
             ))}
           </div>
 
-          {/* News in basso */}
+          {/* News in basso — sezione editoriale */}
           <div className="giornale__news">
-            <div className="giornale__news-head"><Ico n="bar" s={13} c={T.primary} />News</div>
-            <div className="giornale__news-list">
-              {news.map((n, i) => (
-                <div key={i} className="giornale__news-item">
-                  <div className="giornale__news-meta">{n.fonte} · {n.tempo}</div>
-                  <div className="giornale__news-title">{n.titolo}</div>
+            <div className="giornale__news-head">
+              <span className="giornale__news-head-title"><Ico n="bar" s={14} c={T.primary} />News &amp; comunicazione</span>
+              <button className="giornale__news-all" onClick={() => navigate('scadenzario')}>
+                Tutte le news <Ico n="chevr" s={11} c={T.blue} />
+              </button>
+            </div>
+            <div className="giornale__news-grid">
+              {/* articolo in evidenza */}
+              <article className="giornale__news-feat">
+                <div className="giornale__news-feat-media" style={{ '--img': `url(${news[0].img})` } as React.CSSProperties}>
+                  <span className="giornale__news-cat">{news[0].cat}</span>
                 </div>
-              ))}
+                <div className="giornale__news-feat-body">
+                  <h3 className="giornale__news-feat-title">{news[0].titolo}</h3>
+                  <p className="giornale__news-feat-text">{news[0].testo}</p>
+                  <div className="giornale__news-meta">{news[0].fonte} · {news[0].tempo} fa</div>
+                </div>
+              </article>
+
+              {/* lista secondaria con thumbnail */}
+              <div className="giornale__news-list">
+                {news.slice(1).map((n, i) => (
+                  <article key={i} className="giornale__news-item">
+                    <div className="giornale__news-thumb" style={{ '--img': `url(${n.img})` } as React.CSSProperties} />
+                    <div className="giornale__news-item-body">
+                      <span className="giornale__news-cat giornale__news-cat--sm">{n.cat}</span>
+                      <h4 className="giornale__news-item-title">{n.titolo}</h4>
+                      <div className="giornale__news-meta">{n.fonte} · {n.tempo} fa</div>
+                    </div>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </>

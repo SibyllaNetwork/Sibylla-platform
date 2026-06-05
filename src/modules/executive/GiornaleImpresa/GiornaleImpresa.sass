@@ -282,9 +282,51 @@
 .giornale__ring
   position: relative
   width: 100%
-  max-width: 760px
-  height: 440px
-  margin: 0 auto 18px
+  max-width: 900px
+  height: 560px
+  margin: 4px auto 22px
+
+// alone radiale dietro lo stage
+.giornale__ring::before
+  content: ''
+  position: absolute
+  top: 50%
+  left: 50%
+  width: 480px
+  height: 480px
+  transform: translate(-50%, -50%)
+  border-radius: 50%
+  background: radial-gradient(circle, alpha($primary, 0.12) 0%, transparent 68%)
+  pointer-events: none
+  z-index: 0
+
+// orbita ellittica + raggi (SVG)
+.giornale__orbit
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  z-index: 1
+  pointer-events: none
+  overflow: visible
+
+.giornale__orbit-ring
+  fill: none
+  stroke: alpha($primary, 0.20)
+  stroke-dasharray: 3 7
+
+.giornale__spoke
+  stroke: alpha($primary, 0.12)
+  transition: stroke 0.3s
+
+  &--active
+    stroke: alpha($primary, 0.55)
+    stroke-dasharray: 5 5
+    animation: giornale-dash 0.9s linear infinite
+
+@keyframes giornale-dash
+  to
+    stroke-dashoffset: -20
 
 // ── Stage centrale ──────────────────────────────────────────────────────────────
 .giornale__stage
@@ -292,23 +334,24 @@
   top: 50%
   left: 50%
   transform: translate(-50%, -50%)
-  width: 300px
-  height: 300px
+  width: 336px
+  height: 336px
   background: $white
   border: 1px solid $border
-  border-radius: 18px
-  box-shadow: 0 10px 30px alpha(#000, 0.07)
+  border-radius: 22px
+  box-shadow: 0 20px 50px alpha($primary, 0.18), 0 4px 14px alpha(#000, 0.06)
   display: flex
   flex-direction: column
   overflow: hidden
+  z-index: 3
 
 .giornale__stage-head
   display: flex
   align-items: center
-  gap: 8px
-  padding: 12px 16px
+  gap: 9px
+  padding: 13px 18px
   border-bottom: 1px solid $border
-  background: var(--color-bg)
+  background: linear-gradient(135deg, alpha($primary, 0.12), alpha($primary, 0.02))
   font-family: $font-heading
   font-size: 13px
   font-weight: 700
@@ -328,43 +371,101 @@
     opacity: 1
     transform: translateY(0)
 
-// contenuti stage
-.giornale__stage-calendar
+// contenuti stage — calendario smart
+.giornale__cal
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.giornale__cal-hero
+  position: relative
   display: flex
   flex-direction: column
   align-items: center
+  width: 100%
+  border-radius: 16px
+  padding: 14px
   text-align: center
-  gap: 12px
-
-.giornale__cal-block
-  background: $error
-  border-radius: 12px
+  color: $white
+  background: linear-gradient(135deg, #e74c3c, #c0392b)
+  box-shadow: 0 12px 26px alpha(#c0392b, 0.32)
   overflow: hidden
-  width: 88px
-  text-align: center
 
-.giornale__cal-day-name
-  background: #c0392b
-  padding: 4px 0
-  font-size: 10px
+.giornale__cal-hero::before
+  content: ''
+  position: absolute
+  top: -44px
+  right: -34px
+  width: 128px
+  height: 128px
+  border-radius: 50%
+  background: alpha($white, 0.10)
+
+.giornale__cal-weekday
+  position: relative
+  font-size: 11px
   font-weight: 700
-  color: $white
+  letter-spacing: 1.5px
   text-transform: uppercase
-  letter-spacing: 0.5px
+  opacity: 0.9
 
-.giornale__cal-day-num
-  padding: 10px 0 2px
+.giornale__cal-num
+  position: relative
   font-family: $font-heading
-  font-size: 40px
+  font-size: 48px
   font-weight: 700
-  color: $white
-  line-height: 1
+  line-height: 1.05
 
-.giornale__cal-month
-  padding: 0 0 8px
+.giornale__cal-monthyear
+  position: relative
   font-size: 12px
   font-weight: 600
-  color: alpha($white, 0.9)
+  opacity: 0.92
+
+.giornale__cal-week
+  display: flex
+  gap: 4px
+  width: 100%
+
+.giornale__cal-wday
+  flex: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 3px
+  padding: 7px 0
+  border-radius: 10px
+  transition: background 0.2s
+
+.giornale__cal-wday-l
+  font-size: 9px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+
+.giornale__cal-wday-n
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+
+.giornale__cal-wday--today
+  background: $primary
+  box-shadow: 0 6px 14px alpha($primary, 0.4)
+
+  .giornale__cal-wday-l, .giornale__cal-wday-n
+    color: $white
+
+.giornale__cal-insight
+  display: flex
+  align-items: flex-start
+  gap: 8px
+  font-size: 11px
+  color: $text-inactive
+  line-height: 1.45
+  text-align: left
+  background: var(--color-bg)
+  border-radius: 10px
+  padding: 9px 11px
 
 .giornale__stage-note
   font-size: 11px
@@ -465,9 +566,9 @@
   position: absolute
   top: 50%
   transform: translate(-50%, -50%)
-  z-index: 3
-  width: 40px
-  height: 40px
+  z-index: 4
+  width: 46px
+  height: 46px
   border-radius: 50%
   border: 1px solid $border
   background: $white
@@ -475,120 +576,230 @@
   display: flex
   align-items: center
   justify-content: center
-  box-shadow: 0 4px 12px alpha(#000, 0.08)
+  box-shadow: 0 6px 18px alpha($primary, 0.14)
   transition: $transition-fast
 
   &:hover
     border-color: $primary
     background: var(--color-bg)
+    box-shadow: 0 10px 24px alpha($primary, 0.28)
 
   &--prev
-    left: calc(50% - 178px)
+    left: calc(50% - 212px)
 
   &--next
-    left: calc(50% + 178px)
+    left: calc(50% + 212px)
 
 // ── Sfere orbitanti ──────────────────────────────────────────────────────────
 .giornale__node
   position: absolute
   transform: translate(-50%, -50%)
+  z-index: 2
   display: flex
   flex-direction: column
   align-items: center
-  gap: 6px
+  gap: 8px
   background: transparent
   border: none
   cursor: pointer
-  width: 84px
+  width: 104px
 
 .giornale__node-circle
-  width: 64px
-  height: 64px
+  position: relative
+  width: 88px
+  height: 88px
   border-radius: 50%
   border: 1.5px solid $border
   background: $white
   display: flex
   align-items: center
   justify-content: center
-  box-shadow: 0 4px 12px alpha(#000, 0.06)
-  transition: $transition-fast
+  box-shadow: 0 8px 20px alpha(#000, 0.09)
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s
+  animation: giornale-float 5s ease-in-out infinite
 
 .giornale__node-label
-  font-size: 11px
+  font-size: 12px
   font-weight: 600
   color: $text-inactive
   white-space: nowrap
+  transition: color 0.2s
 
 .giornale__node:hover .giornale__node-circle
   border-color: $primary
-  transform: scale(1.06)
+  box-shadow: 0 12px 28px alpha($primary, 0.30)
 
+.giornale__node:hover .giornale__node-label
+  color: $primary
+
+// sfera attiva: gradiente, alone, anello pulsante (niente float)
 .giornale__node--active
   .giornale__node-circle
-    background: $primary
+    background: linear-gradient(135deg, $primary, alpha($primary, 0.76))
     border-color: $primary
-    transform: scale(1.12)
-    box-shadow: 0 6px 18px alpha($primary, 0.4)
+    box-shadow: 0 14px 34px alpha($primary, 0.45)
+    animation: none
+
+  .giornale__node-circle::after
+    content: ''
+    position: absolute
+    inset: -7px
+    border-radius: 50%
+    border: 2px solid alpha($primary, 0.5)
+    animation: giornale-pulse 1.8s ease-out infinite
 
   .giornale__node-label
     color: $primary
     font-weight: 700
 
-// posizioni (senso orario dall'alto)
+@keyframes giornale-float
+  0%, 100%
+    transform: translateY(0)
+  50%
+    transform: translateY(-8px)
+
+@keyframes giornale-pulse
+  0%
+    transform: scale(1)
+    opacity: 0.7
+  100%
+    transform: scale(1.5)
+    opacity: 0
+
+// posizioni (senso orario dall'alto) + delay di fluttuazione sfalsato
 .giornale__node--p0
   left: 50%
-  top: 7%
+  top: 6%
+  .giornale__node-circle
+    animation-delay: 0s
 
 .giornale__node--p1
-  left: 88%
-  top: 29%
+  left: 89%
+  top: 27%
+  .giornale__node-circle
+    animation-delay: 0.7s
 
 .giornale__node--p2
-  left: 88%
-  top: 71%
+  left: 89%
+  top: 73%
+  .giornale__node-circle
+    animation-delay: 1.4s
 
 .giornale__node--p3
   left: 50%
-  top: 93%
+  top: 94%
+  .giornale__node-circle
+    animation-delay: 2.1s
 
 .giornale__node--p4
-  left: 12%
-  top: 71%
+  left: 11%
+  top: 73%
+  .giornale__node-circle
+    animation-delay: 2.8s
 
 .giornale__node--p5
-  left: 12%
-  top: 29%
+  left: 11%
+  top: 27%
+  .giornale__node-circle
+    animation-delay: 3.5s
 
 // ── News ──────────────────────────────────────────────────────────────────────
 .giornale__news
   background: $white
   border: 1px solid $border
-  border-radius: 12px
+  border-radius: 14px
   overflow: hidden
+  margin-top: 48px
 
 .giornale__news-head
   display: flex
   align-items: center
-  gap: 8px
-  padding: 11px 16px
+  justify-content: space-between
+  padding: 12px 18px
   border-bottom: 1px solid $border
   background: var(--color-bg)
+
+.giornale__news-head-title
+  display: flex
+  align-items: center
+  gap: 9px
   font-family: $font-heading
   font-size: 13px
   font-weight: 700
   color: $primary
 
-.giornale__news-list
-  display: grid
-  grid-template-columns: 1fr 1fr 1fr
-  gap: 0
+.giornale__news-all
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  background: transparent
+  border: none
+  cursor: pointer
+  font-size: 12px
+  font-weight: 600
+  color: $link
 
-.giornale__news-item
-  padding: 14px 16px
+.giornale__news-grid
+  display: grid
+  grid-template-columns: 1.4fr 1fr
+
+// ── articolo in evidenza ──
+.giornale__news-feat
+  display: flex
+  flex-direction: column
   border-right: 1px solid $border
 
-  &:last-child
-    border-right: none
+.giornale__news-feat-media
+  position: relative
+  height: 210px
+  background-image: var(--img), linear-gradient(135deg, $primary, #c0392b)
+  background-size: cover
+  background-position: center
+
+.giornale__news-cat
+  position: absolute
+  top: 12px
+  left: 12px
+  padding: 4px 11px
+  border-radius: 20px
+  background: alpha(#000, 0.55)
+  color: $white
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.6px
+  backdrop-filter: blur(4px)
+
+  &--sm
+    position: static
+    align-self: flex-start
+    background: alpha($primary, 0.12)
+    color: $primary
+    backdrop-filter: none
+
+.giornale__news-feat-body
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding: 14px 18px 16px
+
+.giornale__news-feat-title
+  margin: 0
+  font-family: $font-heading
+  font-size: 16px
+  font-weight: 700
+  color: $text-active
+  line-height: 1.3
+
+.giornale__news-feat-text
+  margin: 0
+  font-size: 12px
+  color: $text-inactive
+  line-height: 1.55
+  display: -webkit-box
+  -webkit-line-clamp: 3
+  -webkit-box-orient: vertical
+  overflow: hidden
 
 .giornale__news-meta
   font-size: 10px
@@ -596,12 +807,51 @@
   color: $text-disabled
   text-transform: uppercase
   letter-spacing: 0.5px
-  margin-bottom: 5px
 
-.giornale__news-title
-  font-size: 12px
+// ── lista secondaria ──
+.giornale__news-list
+  display: flex
+  flex-direction: column
+
+.giornale__news-item
+  display: flex
+  gap: 12px
+  padding: 12px 16px
+  border-bottom: 1px solid $border
+  cursor: pointer
+  transition: background 0.15s
+
+  &:last-child
+    border-bottom: none
+
+  &:hover
+    background: var(--color-bg)
+
+.giornale__news-thumb
+  flex-shrink: 0
+  width: 88px
+  height: 66px
+  border-radius: 9px
+  background-image: var(--img), linear-gradient(135deg, $primary, #c0392b)
+  background-size: cover
+  background-position: center
+
+.giornale__news-item-body
+  display: flex
+  flex-direction: column
+  gap: 5px
+  min-width: 0
+
+.giornale__news-item-title
+  margin: 0
+  font-size: 12.5px
+  font-weight: 600
   color: $text-active
-  line-height: 1.4
+  line-height: 1.35
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA ESTESA — tabella unica + drag & drop
