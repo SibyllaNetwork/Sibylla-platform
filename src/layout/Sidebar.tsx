@@ -216,6 +216,43 @@ export default function Sidebar({
         ))}
       </nav>
 
+      {/* ── Launcher S.S.P.I ────────────────────────────────────────────────
+          In fondo alla sidebar. Quando la pagina è aperta, il link diventa il
+          ritorno alla home della piattaforma ("Gestisci impresa"). */}
+      {(() => {
+        const onSspi = currentPage === 'sspi'
+        const label  = onSspi ? 'Gestisci impresa (Sibylla platform)' : 'S.S.P.I. (Social Sustainable Profitable Index)'
+        return (
+          <button
+            type="button"
+            onClick={() => navigate(onSspi ? 'home' : 'sspi')}
+            title={!sideOpen ? label : undefined}
+            className={clsx(
+              'group border-t border-white/[0.08] flex items-center cursor-pointer transition-colors duration-150',
+              sideOpen ? 'gap-3 px-4 py-3' : 'justify-center py-3',
+              onSspi ? 'bg-white/[0.06]' : 'hover:bg-white/[0.05]',
+            )}
+          >
+            <span className={clsx(
+              'w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 transition-colors duration-150',
+              onSspi ? 'bg-success/20 text-success' : 'bg-white/[0.06] text-white/70 group-hover:text-white',
+            )}>
+              <Ico n={onSspi ? 'wheel' : 'leaf'} s={16} c="currentColor" />
+            </span>
+            {sideOpen && (
+              <span className="min-w-0 text-left">
+                <span className="block text-[12px] font-semibold text-white/90 font-poppins leading-tight truncate">
+                  {onSspi ? 'Gestisci impresa' : 'S.S.P.I.'}
+                </span>
+                <span className="block text-[9.5px] text-white/35 truncate">
+                  {onSspi ? 'Torna alla piattaforma' : 'Social Sustainable Profitable Index'}
+                </span>
+              </span>
+            )}
+          </button>
+        )
+      })()}
+
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <div className="py-2.5 border-t border-white/[0.08] flex items-center justify-center gap-2">
         <div className="w-1.5 h-1.5 rounded-full bg-success" />

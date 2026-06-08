@@ -121,6 +121,12 @@ const FA_MAP: Record<string, string> = {
   'arrows-rotate':   'fa-arrows-rotate',
   'concierge-bell':  'fa-bell-concierge',
   'list-check':      'fa-list-check',
+  'leaf':            'fa-leaf',
+  'recycle':         'fa-recycle',
+  'trend-up':        'fa-arrow-trend-up',
+  'trend-down':      'fa-arrow-trend-down',
+  'gauge':           'fa-gauge-high',
+  'bullseye':        'fa-bullseye',
 }
 
 export default function Ico({ n, s = 20, c = '#fff', c2, w = 'duotone' }: IcoProps) {

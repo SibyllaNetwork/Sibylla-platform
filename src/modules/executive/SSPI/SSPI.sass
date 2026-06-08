@@ -1,0 +1,670 @@
+// ─── S.S.P.I — Social Sustainable Profitable Index ────────────────────────────
+@use '../../../styles/tokens' as *
+
+.sspi
+  position: relative
+  // Riempie sempre l'area di contenuto (adattivo a topbar/tabs): evita strisce
+  // scoperte in fondo a prescindere dall'altezza effettiva del viewport.
+  min-height: 100%
+
+  // ── Onde di sfondo: al vivo fino ai margini sx/dx (sfonda il padding 24px
+  //    del content area) e fino in fondo alla pagina ─────────────────────────
+  // width esplicita: l'<svg> è un elemento replaced, con sola left/right userebbe
+  // la propria proporzione intrinseca (viewBox) invece di stirarsi a tutta larghezza.
+  &__wave
+    position: absolute
+    left: -24px
+    bottom: -26px
+    width: calc(100% + 48px)
+    height: clamp(360px, 54vh, 640px)
+    z-index: 0
+    pointer-events: none
+    display: block
+
+  // Tre tonalità: dal navy platform (fronte, più scuro) a tinte più chiare dietro.
+  &__wave-1
+    fill: alpha($primary, 0.28)
+
+  &__wave-2
+    fill: alpha($primary, 0.55)
+
+  &__wave-3
+    fill: $primary
+
+  // ── Barra superiore ──────────────────────────────────────────────────────
+  &__topbar
+    position: relative
+    z-index: 2
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    flex-wrap: wrap
+    gap: 16px
+    margin-bottom: 8px
+
+  &__title
+    font-size: 30px
+    font-weight: 800
+    letter-spacing: 1px
+    color: $primary
+    margin: 0
+    line-height: 1.1
+
+  &__subtitle
+    font-size: 13px
+    font-weight: 500
+    color: $text-inactive
+    margin: 4px 0 0
+
+  &__controls
+    display: flex
+    align-items: center
+    gap: 10px
+    flex-wrap: wrap
+
+  // selettore anno
+  &__year
+    display: flex
+    align-items: center
+    gap: 2px
+    background: $white
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 3px
+
+  &__year-btn
+    width: 26px
+    height: 26px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 6px
+    background: transparent
+    color: $primary
+    cursor: pointer
+    transition: background 0.15s
+    &:hover:not(:disabled)
+      background: alpha($primary, 0.08)
+    &:disabled
+      color: $text-disabled
+      cursor: not-allowed
+
+  &__year-val
+    min-width: 48px
+    text-align: center
+    font-size: 14px
+    font-weight: 700
+    color: $text-active
+
+  // selettore quarter
+  &__quarters
+    display: flex
+    background: $white
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 3px
+    gap: 2px
+
+  &__q
+    min-width: 38px
+    padding: 6px 10px
+    border: none
+    border-radius: 6px
+    background: transparent
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: all 0.15s
+    &:hover
+      color: $primary
+    &--active
+      background: $primary
+      color: $white
+
+  &__today,
+  &__export
+    display: flex
+    align-items: center
+    gap: 7px
+    height: 36px
+    padding: 0 14px
+    border-radius: 9px
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: all 0.15s
+
+  &__today
+    background: $white
+    border: 1px solid $border
+    color: $primary
+    &:hover
+      border-color: $primary
+
+  &__export
+    background: $primary
+    border: 1px solid $primary
+    color: $white
+    &:hover:not(:disabled)
+      background: $primary-700
+    &:disabled
+      opacity: 0.6
+      cursor: wait
+
+  // ── Stage orbitale ───────────────────────────────────────────────────────
+  &__stage
+    position: relative
+    z-index: 1
+    width: 100%
+    height: clamp(560px, 64vh, 760px)
+    margin-top: 8px
+
+  // connettori SSPI → KPI (SVG full-bleed)
+  &__links
+    position: absolute
+    inset: 0
+    pointer-events: none
+    z-index: 1
+    overflow: visible
+
+  &__link
+    fill: none
+    stroke-width: 2
+    stroke-linecap: round
+    stroke-dasharray: 1
+    stroke-dashoffset: 1
+    opacity: 0
+    transition: stroke-width 0.2s ease, opacity 0.2s ease
+    &.is-hot
+      stroke-width: 4
+      opacity: 1 !important
+    &.is-dim
+      opacity: 0.14 !important
+
+  .is-in &__link
+    animation: sspi-draw 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards
+    animation-delay: calc(0.15s + var(--i) * 0.1s)
+
+  @keyframes sspi-draw
+    0%
+      stroke-dashoffset: 1
+      opacity: 0
+    25%
+      opacity: 1
+    100%
+      stroke-dashoffset: 0
+      opacity: 0.85
+
+  // scintilla che percorre il connettore
+  &__spark
+    filter: drop-shadow(0 0 4px currentColor)
+
+
+  // ── Hub centrale: TIMONE ─────────────────────────────────────────────────
+  &__hub
+    position: absolute
+    left: 50%
+    top: 50%
+    transform: translate(-50%, -50%)
+    width: clamp(340px, 37vw, 460px)
+    height: clamp(340px, 37vw, 460px)
+    z-index: 3
+    display: flex
+    align-items: center
+    justify-content: center
+
+  &__helm
+    position: absolute
+    inset: 0
+    width: 100%
+    height: 100%
+    overflow: visible
+
+  // cerchione + maniglie (colore dinamico nero→verde via currentColor)
+  &__helm-wheel
+    transition: color 1.4s ease
+    filter: drop-shadow(0 6px 18px alpha(#000, 0.18))
+
+  &__helm-rim
+    fill: none
+    stroke: currentColor
+    stroke-width: 13
+
+  &__helm-rim-in
+    fill: none
+    stroke: alpha($white, 0.30)
+    stroke-width: 2
+
+  &__helm-handle
+    fill: currentColor
+
+  // anelli KPI concentrici
+  &__helm-track
+    fill: none
+    stroke: alpha($primary, 0.08)
+    stroke-width: var(--w)
+    pointer-events: none
+    transition: opacity 0.25s
+    &.is-dim
+      opacity: 0.4
+
+  &__helm-fill
+    fill: none
+    stroke-width: var(--w)
+    stroke-linecap: round
+    pointer-events: none
+    transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1), stroke-width 0.25s ease, opacity 0.25s ease, filter 0.25s ease
+    &.is-hot
+      stroke-width: calc(var(--w) + 6)
+      filter: drop-shadow(0 0 8px currentColor)
+    &.is-dim
+      opacity: 0.18
+
+  &__helm-dot
+    filter: drop-shadow(0 0 3px currentColor)
+    pointer-events: none
+    transition: r 0.25s ease, opacity 0.25s ease
+    &.is-dim
+      opacity: 0.18
+
+  // area trasparente per rendere facile il rollover sull'anello
+  &__helm-hit
+    fill: none
+    stroke: transparent
+    stroke-width: 18
+    pointer-events: stroke
+    cursor: pointer
+
+  &__helm-core
+    fill: $white
+    stroke: alpha($primary, 0.12)
+    stroke-width: 1.5
+    filter: drop-shadow(0 2px 8px alpha(#000, 0.12))
+
+  &__hub-content
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    z-index: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    text-align: center
+    gap: 2px
+    pointer-events: none
+    width: clamp(120px, 14vw, 170px)
+
+  &__hub-inner
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 2px
+    animation: sspi-swap 0.35s cubic-bezier(0.22, 1, 0.36, 1)
+
+  @keyframes sspi-swap
+    from
+      opacity: 0
+      transform: translateY(7px) scale(0.92)
+    to
+      opacity: 1
+      transform: none
+
+  &__hub-kpi
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 3px
+
+  &__hub-kpi-ico
+    width: 38px
+    height: 38px
+    display: flex
+    align-items: center
+    justify-content: center
+    border-radius: 11px
+    background: alpha($primary, 0.05)
+    border: 1px solid var(--accent)
+    margin-bottom: 2px
+
+  &__hub-kpi-val
+    font-size: clamp(34px, 4.4vw, 46px)
+    font-weight: 800
+    line-height: 1
+    color: var(--accent)
+    i
+      font-size: 0.42em
+      font-weight: 700
+      margin-left: 1px
+      font-style: normal
+
+  &__hub-kpi-label
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  &__hub-kpi-hint
+    font-size: 10px
+    font-weight: 600
+    color: $text-disabled
+
+  &__hub-label
+    font-size: 14px
+    font-weight: 700
+    letter-spacing: 4px
+    color: $text-inactive
+
+  &__hub-value
+    font-size: clamp(40px, 5vw, 54px)
+    font-weight: 800
+    line-height: 1
+    color: var(--ring, $primary)
+    i
+      font-size: 0.4em
+      font-weight: 700
+      margin-left: 2px
+      font-style: normal
+
+  &__hub-period
+    font-size: 12px
+    font-weight: 600
+    color: $text-disabled
+    margin-top: 2px
+
+  // ── Box KPI orbitanti ────────────────────────────────────────────────────
+  &__node
+    position: absolute
+    transform: translate(-50%, -50%)
+    z-index: 2
+    display: flex
+    align-items: center
+    gap: 12px
+    width: clamp(190px, 18vw, 230px)
+    padding: 12px 14px
+    border-radius: 14px
+    background: $white
+    border: 1px solid $border
+    box-shadow: 0 6px 22px alpha(#000, 0.07)
+    cursor: pointer
+    text-align: left
+    opacity: 0
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s
+
+  .is-in &__node
+    animation: sspi-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards
+    animation-delay: calc(0.35s + var(--i) * 0.1s)
+
+  @keyframes sspi-pop
+    0%
+      opacity: 0
+      transform: translate(-50%, -50%) scale(0.82)
+    100%
+      opacity: 1
+      transform: translate(-50%, -50%) scale(1)
+
+  &__node:hover,
+  &__node.is-hot
+    border-color: var(--accent)
+    box-shadow: 0 12px 32px alpha(#000, 0.16)
+    // mantiene il centraggio aggiungendo un lieve sollevamento
+    transform: translate(-50%, calc(-50% - 3px)) !important
+    .sspi__node-go
+      opacity: 1
+      transform: translateX(0)
+
+  &__node.is-dim
+    opacity: 0.45 !important
+
+  &__node-gauge
+    position: relative
+    width: 52px
+    height: 52px
+    flex-shrink: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    svg
+      position: absolute
+      inset: 0
+      width: 100%
+      height: 100%
+      transform: rotate(-90deg)
+
+  &__node-track
+    fill: none
+    stroke: alpha($primary, 0.10)
+    stroke-width: 4
+
+  &__node-fill
+    fill: none
+    stroke: var(--accent)
+    stroke-width: 4
+    stroke-linecap: round
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1)
+
+  &__node-body
+    display: flex
+    flex-direction: column
+    min-width: 0
+    flex: 1
+
+  &__node-val
+    font-size: 22px
+    font-weight: 800
+    color: $text-active
+    line-height: 1
+    i
+      font-size: 0.5em
+      font-weight: 700
+      font-style: normal
+      color: $text-inactive
+      margin-left: 1px
+
+  &__node-label
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-inactive
+    margin-top: 3px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__node-go
+    flex-shrink: 0
+    color: var(--accent)
+    opacity: 0
+    transform: translateX(-4px)
+    transition: opacity 0.2s, transform 0.2s
+
+  // ── Responsive: sotto i 1100px il layout orbitale collassa in griglia ────
+  @media (max-width: 1100px)
+    &__stage
+      height: auto
+      padding: 24px 0 8px
+      display: flex
+      flex-direction: column
+      align-items: center
+      gap: 20px
+    &__links
+      display: none
+    &__wave
+      display: none
+    &__hub
+      position: relative
+      left: auto
+      top: auto
+      transform: none
+      width: 240px
+      height: 240px
+    &__node
+      position: relative !important
+      left: auto !important
+      top: auto !important
+      transform: none !important
+      width: min(420px, 92%)
+      animation: sspi-fade 0.5s ease forwards !important
+    &__node:hover
+      transform: none !important
+
+  @keyframes sspi-fade
+    from
+      opacity: 0
+      transform: translateY(10px)
+    to
+      opacity: 1
+      transform: translateY(0)
+
+
+// ════════════════════════════════════════════════════════════════════════
+// Modale dettaglio KPI (skin applicata a .modal__box via className)
+// ════════════════════════════════════════════════════════════════════════
+.sspi-modal
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 14px
+    padding: 20px 22px 16px
+    border-bottom: 1px solid $border
+    position: relative
+
+  &__icon
+    width: 46px
+    height: 46px
+    flex-shrink: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    border-radius: 12px
+    background: alpha($primary, 0.06)
+    border: 1px solid var(--accent)
+
+  &__head-text
+    flex: 1
+    min-width: 0
+
+  &__title
+    font-size: 19px
+    font-weight: 700
+    color: $text-active
+    margin: 0
+
+  &__desc
+    font-size: 12.5px
+    color: $text-inactive
+    margin: 3px 0 0
+
+  &__score
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 4px
+    margin-right: 32px
+
+  &__score-val
+    font-size: 30px
+    font-weight: 800
+    color: var(--accent)
+    line-height: 1
+    i
+      font-size: 0.45em
+      font-weight: 700
+      font-style: normal
+      margin-left: 1px
+
+  &__delta
+    display: flex
+    align-items: center
+    gap: 4px
+    font-size: 12px
+    font-weight: 700
+    padding: 2px 8px
+    border-radius: 20px
+    &--pos
+      color: $success
+      background: alpha($success, 0.12)
+    &--neg
+      color: $error
+      background: alpha($error, 0.12)
+
+  &__close
+    position: absolute
+    top: 16px
+    right: 16px
+    width: 30px
+    height: 30px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 8px
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    transition: background 0.15s
+    &:hover
+      background: alpha($primary, 0.08)
+
+  &__period
+    padding: 12px 22px 0
+    font-size: 12px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.5px
+
+  &__grid
+    display: grid
+    grid-template-columns: 1.15fr 1fr
+    gap: 18px
+    padding: 14px 22px
+
+  &__panel
+    min-width: 0
+
+  &__panel-title
+    display: flex
+    align-items: center
+    gap: 7px
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+    margin: 0 0 10px
+
+  &__chart
+    height: 230px
+    width: 100%
+
+  &__table
+    width: 100%
+    td:nth-child(2),
+    td:nth-child(3),
+    th:nth-child(2),
+    th:nth-child(3)
+      text-align: right
+
+  &__td-pos
+    color: $success
+    font-weight: 700
+
+  &__td-neg
+    color: $error
+    font-weight: 700
+
+  &__comment
+    padding: 4px 22px 22px
+    p
+      font-size: 13.5px
+      line-height: 1.6
+      color: $text-inactive
+      margin: 0
+      strong
+        color: $text-active
+
+  @media (max-width: 760px)
+    &__grid
+      grid-template-columns: 1fr
