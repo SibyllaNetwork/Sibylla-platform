@@ -10,39 +10,14 @@ import {
   TextareaField,
   CheckboxField,
 } from '../../../core/components/form'
+import { useCatalogoStore } from '../../../store/useCatalogoStore'
+import type { Magazzino, Movimento } from '../../../store/useCatalogoStore'
+import type { Prodotto } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import './CreaMagazzino.sass'
 
 interface Struttura {
   id: string
   nome: string
-}
-
-interface Magazzino {
-  id: string
-  nome: string
-  strutture: string[]
-  collocazioni: string[]
-  note?: string
-}
-
-interface Prodotto {
-  id: string
-  codice: string
-  nome: string
-  giacenza: number
-}
-
-interface Movimento {
-  id: string
-  magazzinoId: string
-  prodottoId: string
-  prodottoNome: string
-  prodottoCodice: string
-  collocazione: string
-  quantita: number
-  tipo: 'entrata' | 'uscita'
-  note?: string
-  data: string
 }
 
 const STRUTTURE: Struttura[] = [
@@ -53,13 +28,6 @@ const STRUTTURE: Struttura[] = [
   { id: 'test',     nome: 'test' },
 ]
 
-const PRODOTTI: Prodotto[] = [
-  { id: 'p1', codice: 'ZFGT6KC', nome: 'Pastetta',                  giacenza: 12 },
-  { id: 'p2', codice: 'A1B2C3D', nome: 'Olio EVO 1L',               giacenza: 24 },
-  { id: 'p3', codice: 'X9Y8Z7W', nome: 'Vino bianco IGT',           giacenza: 30 },
-  { id: 'p4', codice: 'M5N6O7P', nome: 'Detergente piatti 5L',      giacenza: 6 },
-]
-
 export default function CreaMagazzino({
   navigate,
   autoOpen,
@@ -67,10 +35,15 @@ export default function CreaMagazzino({
   navigate: (p: string) => void
   autoOpen?: boolean
 }) {
+  const magazzini         = useCatalogoStore(s => s.magazzini)
+  const addMagazzino      = useCatalogoStore(s => s.addMagazzino)
+  const movimenti         = useCatalogoStore(s => s.movimenti)
+  const registraMovimento = useCatalogoStore(s => s.registraMovimento)
+  const prodotti          = useCatalogoStore(s => s.prodotti)
+  const giacenza          = useCatalogoStore(s => s.giacenza)
+
   const [strutturaId, setStrutturaId] = useState<string>('azzurro')
-  const [magazzini, setMagazzini]     = useState<Magazzino[]>([])
   const [magazzinoId, setMagazzinoId] = useState<string>('')
-  const [movimenti, setMovimenti]     = useState<Movimento[]>([])
 
   const [createOpen, setCreateOpen] = useState<boolean>(!!autoOpen)
   const [moveOpen,   setMoveOpen]   = useState(false)
@@ -82,15 +55,16 @@ export default function CreaMagazzino({
   const strutturaName = STRUTTURE.find(s => s.id === strutturaId)?.nome ?? ''
   const magazziniDisp = magazzini.filter(m => m.strutture.includes(strutturaName))
   const movimentiDisp = movimenti.filter(m => m.magazzinoId === magazzinoId)
+  const prodottoById  = (id: string) => prodotti.find(p => p.id === id)
 
-  function saveMagazzino(m: Magazzino) {
-    setMagazzini(prev => [...prev, m])
-    setMagazzinoId(m.id)
+  function saveMagazzino(m: Omit<Magazzino, 'id'>) {
+    const created = addMagazzino(m)
+    setMagazzinoId(created.id)
     setCreateOpen(false)
   }
 
-  function saveMovimento(m: Movimento) {
-    setMovimenti(prev => [m, ...prev])
+  function saveMovimento(m: Omit<Movimento, 'id' | 'ts'>) {
+    registraMovimento(m)
     setMoveOpen(false)
   }
 
@@ -152,22 +126,25 @@ export default function CreaMagazzino({
               </tr>
             </thead>
             <tbody>
-              {movimentiDisp.map(m => (
-                <tr key={m.id}>
-                  <td>{new Date(m.data).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                  <td>{m.prodottoNome}</td>
-                  <td className="crea-mag__mono">{m.prodottoCodice}</td>
-                  <td>{m.collocazione}</td>
-                  <td>
-                    <span className={'crea-mag__tag crea-mag__tag--' + m.tipo}>
-                      <i className={'fa-light ' + (m.tipo === 'entrata' ? 'fa-cart-arrow-down' : 'fa-cart-flatbed')} />
-                      {m.tipo === 'entrata' ? 'In entrata' : 'In uscita'}
-                    </span>
-                  </td>
-                  <td className="crea-mag__col-num">{m.tipo === 'entrata' ? '+' : '−'}{m.quantita}</td>
-                  <td className="crea-mag__note-cell">{m.note ?? '—'}</td>
-                </tr>
-              ))}
+              {movimentiDisp.map(m => {
+                const p = prodottoById(m.prodottoId)
+                return (
+                  <tr key={m.id}>
+                    <td>{new Date(m.ts).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                    <td>{p?.nome ?? '—'}</td>
+                    <td className="crea-mag__mono">{m.barcode || p?.barcode || '—'}</td>
+                    <td>{m.collocazione || '—'}</td>
+                    <td>
+                      <span className={'crea-mag__tag crea-mag__tag--' + m.tipo}>
+                        <i className={'fa-light ' + (m.tipo === 'entrata' ? 'fa-cart-arrow-down' : 'fa-cart-flatbed')} />
+                        {m.tipo === 'entrata' ? 'In entrata' : 'In uscita'}
+                      </span>
+                    </td>
+                    <td className="crea-mag__col-num">{m.tipo === 'uscita' ? '−' : '+'}{m.quantita}</td>
+                    <td className="crea-mag__note-cell">{m.note || '—'}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -204,7 +181,8 @@ export default function CreaMagazzino({
 
       {moveOpen && (
         <NuovoMovimentoModal
-          prodotti={PRODOTTI}
+          prodotti={prodotti}
+          giacenzaFn={(id) => giacenza(id, magazzinoId)}
           collocazioni={magazzini.find(m => m.id === magazzinoId)?.collocazioni ?? []}
           magazzinoId={magazzinoId}
           onSave={saveMovimento}
@@ -222,7 +200,7 @@ function NuovoMagazzinoModal({
 }: {
   strutture: Struttura[]
   defaultStruttura: string
-  onSave: (m: Magazzino) => void
+  onSave: (m: Omit<Magazzino, 'id'>) => void
   onClose: () => void
 }) {
   const [nome, setNome]                 = useState('')
@@ -239,7 +217,6 @@ function NuovoMagazzinoModal({
   function handleSave() {
     if (!canSave) return
     onSave({
-      id: `m-${Date.now()}`,
       nome: nome.trim(),
       strutture: selStrutture,
       collocazioni: collocazione.split(',').map(c => c.trim()).filter(Boolean),
@@ -312,12 +289,13 @@ function NuovoMagazzinoModal({
 
 // ─── Modale Nuovo movimento ──────────────────────────────────────────
 function NuovoMovimentoModal({
-  prodotti, collocazioni, magazzinoId, onSave, onClose, navigate,
+  prodotti, giacenzaFn, collocazioni, magazzinoId, onSave, onClose, navigate,
 }: {
   prodotti: Prodotto[]
+  giacenzaFn: (prodottoId: string) => number
   collocazioni: string[]
   magazzinoId: string
-  onSave: (m: Movimento) => void
+  onSave: (m: Omit<Movimento, 'id' | 'ts'>) => void
   onClose: () => void
   navigate: (p: string) => void
 }) {
@@ -333,16 +311,14 @@ function NuovoMovimentoModal({
   function handleSave() {
     if (!prodotto || !canSave) return
     onSave({
-      id: `mov-${Date.now()}`,
       magazzinoId,
       prodottoId: prodotto.id,
-      prodottoNome: prodotto.nome,
-      prodottoCodice: prodotto.codice,
+      barcode: prodotto.barcode,
       collocazione: colloc,
       quantita,
       tipo,
-      note: note.trim() || undefined,
-      data: new Date().toISOString(),
+      operatore: '',
+      note: note.trim(),
     })
   }
 
@@ -379,11 +355,11 @@ function NuovoMovimentoModal({
           <FormGrid cols={2}>
             <div>
               <span className="crea-mag__field-label">Cod. prodotto</span>
-              <p className="crea-mag__static">{prodotto?.codice ?? '—'}</p>
+              <p className="crea-mag__static">{prodotto?.barcode ?? '—'}</p>
             </div>
             <div>
               <span className="crea-mag__field-label">Giacenza magazzino</span>
-              <p className="crea-mag__static">{prodotto ? `${prodotto.giacenza} pz` : '—'}</p>
+              <p className="crea-mag__static">{prodotto ? `${giacenzaFn(prodotto.id)} pz` : '—'}</p>
             </div>
           </FormGrid>
 

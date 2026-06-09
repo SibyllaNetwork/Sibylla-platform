@@ -19,6 +19,7 @@ const EMPTY_FORM: ProdottoForm = {
   prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
   agoraAbilitato: false, agoraPrezzo: '',
   networkAbilitato: true, networkPrezzo: '',
+  parametri: [],
 }
 
 type SortKey = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'cat-asc'
@@ -135,6 +136,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
       agoraPrezzo: p.mercati.agora.prezzoVendita ? String(p.mercati.agora.prezzoVendita) : '',
       networkAbilitato: p.mercati.network.abilitato,
       networkPrezzo: p.mercati.network.prezzoVendita ? String(p.mercati.network.prezzoVendita) : '',
+      parametri: p.parametri ?? [],
     })
     setShowModal(true)
   }
@@ -171,6 +173,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
         agora:   { abilitato: form.agoraAbilitato,   prezzoVendita: form.agoraAbilitato ? agoraPr : 0 },
         network: { abilitato: form.networkAbilitato, prezzoVendita: form.networkAbilitato ? networkPr : 0 },
       },
+      parametri: form.parametri,
     }
     if (editing) updateProdotto(editing.id, data)
     else addProdotto(data)

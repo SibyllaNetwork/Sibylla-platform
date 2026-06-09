@@ -21,8 +21,18 @@ export interface Movimento {
   tipo: TipoMovimento
   quantita: number        // sempre positiva; il segno è dato da `tipo`
   magazzinoId: string     // riferimento al magazzino di destinazione/origine (può essere '')
+  collocazione?: string   // collocazione fisica dentro il magazzino (es. "Scaffale A")
   operatore: string       // ex. email/username — vuoto se non noto
   note: string
+}
+
+// ─── Magazzini ────────────────────────────────────────────────────────────────
+export interface Magazzino {
+  id: string
+  nome: string
+  strutture: string[]     // nomi delle strutture servite
+  collocazioni: string[]  // collocazioni fisiche disponibili
+  note?: string
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -31,6 +41,7 @@ interface CatalogoState {
   fornitori: Fornitore[]
   prodotti:  Prodotto[]
   movimenti: Movimento[]
+  magazzini: Magazzino[]
 
   // ── Categorie CRUD ─────────────────────────────────────────────────────────
   addCategoria:    (c: Omit<Categoria, 'id'>) => Categoria
@@ -50,6 +61,10 @@ interface CatalogoState {
   toggleProdottoAttivo: (id: string) => void
   toggleProdottoPubblicato: (id: string) => void
 
+  // ── Magazzini CRUD ─────────────────────────────────────────────────────────
+  addMagazzino:    (m: Omit<Magazzino, 'id'>) => Magazzino
+  removeMagazzino: (id: string) => void
+
   // ── Movimenti / lookup barcode ─────────────────────────────────────────────
   registraMovimento: (m: Omit<Movimento, 'id' | 'ts'>) => Movimento
   prodottoByBarcode: (barcode: string) => Prodotto | undefined
@@ -64,6 +79,7 @@ export const useCatalogoStore = create<CatalogoState>((set, get) => ({
   fornitori: FORNITORI_INIT,
   prodotti:  PRODOTTI_INIT,
   movimenti: [],
+  magazzini: [],
 
   // ─── Categorie ───────────────────────────────────────────────────────────
   addCategoria: (c) => {
@@ -103,6 +119,15 @@ export const useCatalogoStore = create<CatalogoState>((set, get) => ({
     set(s => ({ prodotti: s.prodotti.map(x => x.id === id ? { ...x, attivo: !x.attivo } : x) })),
   toggleProdottoPubblicato: (id) =>
     set(s => ({ prodotti: s.prodotti.map(x => x.id === id ? { ...x, pubblicato: !x.pubblicato } : x) })),
+
+  // ─── Magazzini ───────────────────────────────────────────────────────────
+  addMagazzino: (m) => {
+    const created: Magazzino = { id: newId('mag'), ...m }
+    set(s => ({ magazzini: [...s.magazzini, created] }))
+    return created
+  },
+  removeMagazzino: (id) =>
+    set(s => ({ magazzini: s.magazzini.filter(m => m.id !== id) })),
 
   // ─── Movimenti ───────────────────────────────────────────────────────────
   registraMovimento: (m) => {

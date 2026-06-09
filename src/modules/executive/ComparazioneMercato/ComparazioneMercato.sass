@@ -1,0 +1,633 @@
+// ComparazioneMercato — raffronto competitor su pricing e brand reputation.
+// Mappa stilizzata (no dipendenze esterne) + lista candidati + monitoraggio + grafico.
+
+@use '../../../styles/tokens' as *
+
+.cm
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__header
+    text-align: center
+
+  // ── Barra filtri + toggle metrica ──────────────────────────────────
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cap
+    width: 120px
+
+  &__metrics
+    display: flex
+    gap: 10px
+
+  &__metric-btn
+    appearance: none
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 38px
+    padding: 0 16px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    cursor: pointer
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+    i
+      color: $primary
+
+    &:hover
+      border-color: $primary
+
+    &--active
+      background: $blue-light
+      border-color: $blue
+
+      i
+        color: $blue
+
+  // ── Corpo a due colonne ────────────────────────────────────────────
+  &__body
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 18px
+    align-items: start
+
+    @media (max-width: 1280px)
+      grid-template-columns: 1fr
+
+  // ── Esplora: mappa + candidati ─────────────────────────────────────
+  &__explore
+    display: grid
+    grid-template-columns: 1.6fr 1fr
+    border: 1px solid $border
+    border-radius: 12px
+    overflow: hidden
+    background: $white
+    height: 560px
+
+  &__map
+    position: relative
+    overflow: hidden
+    background: #E8E6DF
+
+  &__map-park
+    position: absolute
+    background: #CFE0C3
+    border-radius: 18px
+
+    &--1
+      width: 34%
+      height: 26%
+      top: 6%
+      right: 6%
+      transform: rotate(-8deg)
+
+    &--2
+      width: 26%
+      height: 22%
+      bottom: 8%
+      left: 8%
+      transform: rotate(6deg)
+
+  &__map-river
+    position: absolute
+    top: -10%
+    left: 38%
+    width: 60px
+    height: 130%
+    background: #AFC9E0
+    transform: rotate(22deg)
+    opacity: 0.85
+
+  &__map-road
+    position: absolute
+    background: #FBFAF7
+
+    &--h1
+      top: 30%
+      left: 0
+      width: 100%
+      height: 9px
+
+    &--h2
+      top: 62%
+      left: 0
+      width: 100%
+      height: 7px
+
+    &--v1
+      top: 0
+      left: 22%
+      width: 8px
+      height: 100%
+
+    &--d1
+      top: 20%
+      left: -5%
+      width: 120%
+      height: 7px
+      transform: rotate(28deg)
+
+  &__pin
+    position: absolute
+    transform: translate(-50%, -100%)
+    color: $error
+    font-size: 20px
+    cursor: pointer
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35))
+    transition: transform 0.12s
+
+    &:hover
+      transform: translate(-50%, -110%) scale(1.12)
+
+  &__map-ctrl
+    position: absolute
+    width: 32px
+    height: 32px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    cursor: pointer
+    color: $text-active
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      color: $primary
+
+  &__map-expand
+    top: 12px
+    right: 12px
+
+  &__map-zoom
+    position: absolute
+    bottom: 14px
+    right: 12px
+    display: flex
+    flex-direction: column
+
+    button
+      width: 32px
+      height: 32px
+      border: 1px solid $border
+      background: $white
+      cursor: pointer
+      color: $text-active
+
+      &:first-child
+        border-radius: 6px 6px 0 0
+      &:last-child
+        border-radius: 0 0 6px 6px
+        border-top: none
+
+      &:hover
+        color: $primary
+
+  &__map-attr
+    position: absolute
+    bottom: 4px
+    left: 8px
+    font-size: 10px
+    color: $text-inactive
+
+  // ── Lista candidati ────────────────────────────────────────────────
+  &__candidates
+    border-left: 1px solid $border
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+
+  &__loading
+    flex: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 14px
+    padding: 24px
+    text-align: center
+
+    p
+      font-size: 13px
+      color: $text-inactive
+
+  &__spinner
+    width: 46px
+    height: 46px
+    border-radius: 50%
+    border: 4px solid #E6D9A8
+    border-top-color: #C4A820
+    animation: cm-spin 0.8s linear infinite
+
+  &__cand
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    padding: 12px 14px
+    border-bottom: 1px solid $border
+
+    &:hover
+      background: var(--color-bg)
+
+  &__cand-info
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+
+  &__cand-nome
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+
+  &__cand-addr
+    font-size: 12px
+    color: $text-inactive
+
+  &__cand-add
+    flex-shrink: 0
+    width: 34px
+    height: 34px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    cursor: pointer
+    color: $primary
+    font-size: 15px
+
+    &:hover:not(:disabled)
+      border-color: $primary
+      background: $blue-light
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  // ── Monitoraggio ───────────────────────────────────────────────────
+  &__monitor
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__monitor-title
+    font-family: 'Poppins', sans-serif
+    font-size: 18px
+    font-weight: 600
+    color: $primary
+    margin: 0
+
+  &__monitor-box
+    border: 1px solid $border
+    border-radius: 12px
+    background: $white
+    overflow: hidden
+
+  &__monitor-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 14px 16px
+    border-bottom: 1px solid $border
+
+  &__monitor-mine
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+
+  &__monitor-mine-tag
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    color: $text-inactive
+
+  &__monitor-list
+    display: flex
+    flex-direction: column
+
+  &__monitor-empty
+    padding: 16px
+    font-size: 13px
+    color: $text-inactive
+    text-align: center
+
+  &__monitor-row
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 10px 16px
+    border-bottom: 1px solid $border
+
+    &:last-child
+      border-bottom: none
+
+    &:hover
+      background: var(--color-bg)
+
+  &__monitor-nome
+    flex: 1
+    font-size: 14px
+    color: $text-active
+
+  &__chip
+    width: 92px
+    height: 30px
+    border: 1.5px solid $error
+    border-radius: 16px
+    background: $white
+    cursor: pointer
+    color: $error
+    font-size: 14px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      background: rgba(214, 69, 69, 0.08)
+
+    &--ok
+      border-color: $success
+      color: $success
+
+      &:hover
+        background: rgba(90, 138, 60, 0.10)
+
+  &__check
+    display: inline-flex
+    align-items: center
+
+    input
+      width: 16px
+      height: 16px
+      cursor: pointer
+
+  &__monitor-del
+    width: 28px
+    height: 28px
+    border: none
+    background: transparent
+    cursor: pointer
+    color: $text-disabled
+    font-size: 14px
+
+    &:hover
+      color: $error
+
+  // ── Toolbar grafico ────────────────────────────────────────────────
+  &__chart-toolbar
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 4px 2px
+
+  &__chart-ic
+    width: 30px
+    height: 30px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    cursor: pointer
+    color: $text-active
+
+    &:hover
+      color: $primary
+
+  &__days
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 30px
+    padding: 0 8px
+    border: none
+    background: transparent
+    cursor: pointer
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+
+    i
+      font-size: 13px
+
+    &:hover
+      color: $primary
+
+    &--active
+      color: $primary
+      text-decoration: underline
+      text-underline-offset: 4px
+
+  &__chart-metric
+    margin-left: 6px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__chart-info
+    margin-left: auto
+    color: $primary
+    font-size: 16px
+    display: inline-flex
+    cursor: help
+
+  // ── Grafico ────────────────────────────────────────────────────────
+  &__chart
+    position: relative
+    border: 1px solid $border
+    border-radius: 12px
+    background: $white
+    padding: 10px 12px 24px
+
+  &__chart-ylab
+    position: absolute
+    top: 50%
+    left: -2px
+    transform: rotate(-90deg)
+    transform-origin: left center
+    font-size: 11px
+    color: $text-inactive
+
+  &__chart-xlab
+    display: block
+    text-align: center
+    font-size: 11px
+    color: $text-inactive
+    margin-top: 2px
+
+// ── Spinner keyframes ─────────────────────────────────────────────────
+@keyframes cm-spin
+  to
+    transform: rotate(360deg)
+
+// ── Stelle ─────────────────────────────────────────────────────────────
+.cm-stars
+  display: inline-flex
+  gap: 2px
+  color: #E5A50A
+  font-size: 12px
+
+// ── Modali ──────────────────────────────────────────────────────────────
+.cm-modal__overlay
+  position: fixed
+  inset: 0
+  z-index: 200
+  display: flex
+  align-items: center
+  justify-content: center
+  padding: 24px
+  background: rgba(0, 0, 0, 0.4)
+  backdrop-filter: blur(3px)
+
+.cm-modal
+  width: 100%
+  max-width: 640px
+  background: $white
+  border-radius: 14px
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28)
+  overflow: hidden
+
+  &--sm
+    max-width: 460px
+
+.cm-modal__head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  gap: 12px
+  padding: 18px 22px 6px
+
+.cm-modal__title
+  font-family: 'Poppins', sans-serif
+  font-size: 19px
+  font-weight: 600
+  color: $text-active
+  margin: 0
+
+.cm-modal__title-hl
+  color: $primary
+
+.cm-modal__close
+  appearance: none
+  border: none
+  background: transparent
+  cursor: pointer
+  font-size: 18px
+  color: $text-disabled
+
+  &:hover
+    color: $text-active
+
+.cm-modal__body
+  padding: 8px 22px 18px
+
+.cm-modal__q
+  font-size: 14px
+  color: $text-active
+  text-align: center
+  margin: 14px 0
+
+.cm-modal__sub
+  font-size: 13px
+  color: $text-inactive
+  margin: 0 0 16px
+
+.cm-modal__foot
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  padding: 14px 22px 20px
+
+  &--center
+    justify-content: center
+
+.cm-map-grid
+  display: grid
+  grid-template-columns: 1fr 1.2fr auto
+  align-items: center
+  gap: 10px 18px
+
+  &__h
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+    padding-bottom: 4px
+    border-bottom: 1px solid $border
+
+  &__cam
+    font-size: 14px
+    color: $text-active
+
+  &__state
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 13px
+    color: $text-disabled
+
+    &--ok
+      color: $success
+      font-weight: 600
+
+  &__todo
+    font-style: italic
+
+// ── Bottoni modale ───────────────────────────────────────────────────────
+.cm-btn
+  appearance: none
+  height: 38px
+  padding: 0 22px
+  border-radius: 8px
+  cursor: pointer
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  font-weight: 600
+  border: 1.5px solid transparent
+
+  &--outline
+    background: $white
+    border-color: $primary
+    color: $primary
+
+    &:hover
+      background: $blue-light
+
+  &--danger-outline
+    background: $white
+    border-color: $error
+    color: $error
+
+    &:hover
+      background: rgba(214, 69, 69, 0.08)
+
+  &--primary
+    background: $primary
+    color: $white
+
+    &:hover
+      filter: brightness(1.08)

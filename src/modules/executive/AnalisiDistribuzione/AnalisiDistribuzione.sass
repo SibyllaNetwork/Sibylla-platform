@@ -1,11 +1,8 @@
 @use '../../../styles/tokens' as *
 
-// ─── Page title ────────────────────────────────────────────────────────────────
-.analisi__page-title
-  font-size: 21px !important
-  margin: 0 0 3px !important
-
 // ─── Filter bar ──────────────────────────────────────────────────────────────
+// Lo spazio sottotitolo→form è quello standard di .page-header (margin-bottom 20px),
+// uguale a tutte le altre pagine.
 .analisi__filter-bar
   display: flex
   align-items: flex-end
@@ -133,6 +130,9 @@
   &--last
     border-right: none
 
+  &--center
+    text-align: center
+
 .analisi__td
   padding: 10px 8px
   font-size: 13px
@@ -145,6 +145,9 @@
 
   &--last
     border-right: none
+
+  &--center
+    text-align: center
 
 // ─── Header pickup (calendario + numero) ──────────────────────────────────────
 .analisi__pk-head
@@ -170,14 +173,15 @@
   font-weight: 700
   color: $text-inactive
 
-// ─── Header Analisi (↔ elasticità) ────────────────────────────────────────────
-.analisi__an-head
-  display: inline-flex
-  align-items: center
-  gap: 6px
-
-.analisi__an-head-ico
-  font-size: 14px
+// ─── Header Analisi → simbolo elasticità della domanda (ε) ────────────────────
+.analisi__eps
+  display: block
+  text-align: center
+  font-family: 'Georgia', 'Times New Roman', serif
+  font-style: italic
+  font-size: 22px
+  font-weight: 700
+  line-height: 1
   color: $primary
   cursor: help
 
@@ -189,26 +193,25 @@
   &:hover
     background: $primary-50
 
-  &--expanded,
-  &--expanded:hover
-    background: $primary-100
-
-.analisi__expand-btn
-  display: flex
+// Pulsante "Confronta LY" (prima colonna)
+.analisi__ly-btn
+  display: inline-flex
   align-items: center
   justify-content: center
-  background: none
-  border: none
+  gap: 6px
+  width: 30px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 7px
+  background: $white
   cursor: pointer
-  padding: 2px
-  border-radius: 4px
-  transition: transform 0.2s, background 0.15s
+  color: $primary
+  font-size: 14px
+  transition: border-color 0.15s, background 0.15s
 
   &:hover
-    background: $primary-100
-
-  &--open
-    transform: rotate(180deg)
+    border-color: $primary
+    background: $primary-50
 
 .analisi__date-cell
   font-size: 13px
@@ -223,6 +226,17 @@
 .analisi__meteo-ico
   font-size: 20px
   color: $primary
+
+.analisi__meteo-cell
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 2px
+
+.analisi__meteo-temp
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
 
 .analisi__nd
   font-size: 12px
@@ -285,7 +299,7 @@
   cursor: default
 
 .analisi__an-icon
-  font-size: 18px
+  font-size: 20px
 
 .analisi__an-text
   font-size: 11px
@@ -457,3 +471,276 @@
   &--active
     font-weight: 700
     color: $primary
+
+// ─── Riquadro evento (hover sull'icona) ──────────────────────────────────────
+.analisi__ev-cell
+  position: relative
+  display: inline-flex
+
+.analisi__ev-pop
+  position: absolute
+  top: calc(100% + 6px)
+  left: 50%
+  transform: translateX(-50%)
+  z-index: 30
+  display: none
+  width: 232px
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16)
+  overflow: hidden
+  text-align: left
+
+.analisi__ev-cell:hover .analisi__ev-pop
+  display: block
+
+.analisi__ev-pop-media
+  position: relative
+  display: block
+  height: 112px
+  background: var(--color-bg)
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+.analisi__ev-pop-ph
+  display: flex
+  align-items: center
+  justify-content: center
+  height: 100%
+  font-size: 34px
+  color: $text-disabled
+
+.analisi__ev-pop-tag
+  position: absolute
+  left: 8px
+  bottom: 8px
+  padding: 2px 9px
+  border-radius: 11px
+  background: rgba(30, 41, 59, 0.85)
+  color: $white
+  font-family: 'Open Sans', sans-serif
+  font-size: 10px
+  font-weight: 600
+
+.analisi__ev-pop-body
+  display: block
+  padding: 11px 13px
+
+.analisi__ev-pop-name
+  display: block
+  font-family: 'Poppins', sans-serif
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+  margin-bottom: 8px
+
+.analisi__ev-pop-info
+  display: flex
+  align-items: center
+  gap: 7px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: $text-inactive
+  margin-bottom: 3px
+
+  i
+    width: 14px
+    color: $primary
+    text-align: center
+
+// Variante meteo del riquadro: icona grande al posto della foto + temperatura
+.analisi__meteo-pop-media
+  display: flex
+  align-items: center
+  justify-content: center
+  background: $primary-50
+
+  i
+    font-size: 46px
+    color: $primary
+
+.analisi__meteo-pop-temp
+  display: block
+  font-family: 'Poppins', sans-serif
+  font-size: 22px
+  font-weight: 700
+  color: $primary
+  margin-bottom: 8px
+
+// Valore "Suggerimenti accolti" cliccabile (apre la modale)
+.analisi__sugg-link
+  appearance: none
+  border: none
+  background: transparent
+  cursor: pointer
+  font-family: inherit
+  font-size: 13px
+  font-weight: 600
+  color: $link
+  text-decoration: underline
+  text-underline-offset: 2px
+  padding: 0
+
+  &:hover
+    color: $primary
+
+// ─── Confronta LY: box con istogramma TY vs LY ───────────────────────────────
+.analisi__ly-cell
+  position: relative
+  display: inline-flex
+
+.analisi__ly-cell:hover .analisi__ly-btn
+  border-color: $primary
+  background: $primary-50
+
+.analisi__ly-cell:hover .analisi__ly-pop
+  display: block
+
+.analisi__ly-pop
+  position: absolute
+  top: calc(100% + 6px)
+  left: 0
+  z-index: 30
+  display: none
+  width: 340px
+  padding: 12px 14px
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16)
+  text-align: left
+
+.analisi__ly-pop-title
+  display: block
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  margin-bottom: 8px
+
+.analisi__ly-chart
+  width: 100%
+
+.analisi__ly-legend
+  display: flex
+  gap: 16px
+  margin-top: 8px
+
+.analisi__ly-leg
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  color: $text-inactive
+
+.analisi__ly-dot
+  width: 9px
+  height: 9px
+  border-radius: 2px
+
+  &--ty
+    background: #204769
+
+  &--ly
+    background: #C3C9D0
+
+// ─── Tooltip Stagionalità (lista periodi) ─────────────────────────────────────
+.analisi__stag-tip
+  display: block
+  text-align: left
+
+.analisi__stag-tip-row
+  display: block
+  line-height: 1.7
+  white-space: nowrap
+
+  &::before
+    content: '•  '
+
+// Paginazione tabella (max 5 righe per pagina)
+.analisi__pagination
+  margin-top: 14px
+  justify-content: center
+
+// ─── Box notti/entrate (hover sul valore notti pickup) ───────────────────────
+.analisi__pk-notti-cell
+  position: relative
+  display: inline-flex
+
+.analisi__pk-notti-pop
+  position: absolute
+  top: calc(100% + 8px)
+  left: 0
+  z-index: 40
+  display: none
+  width: 320px
+  max-height: 420px
+  overflow-y: auto
+  padding: 12px 14px
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18)
+
+.analisi__pk-notti-cell:hover .analisi__pk-notti-pop
+  display: block
+
+.analisi__pk-notti-title
+  display: block
+  font-family: 'Poppins', sans-serif
+  font-size: 13px
+  font-weight: 600
+  color: $primary
+  margin-bottom: 8px
+
+.analisi__pk-notti-table
+  width: 100%
+  border-collapse: collapse
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+
+  th
+    text-align: left
+    font-weight: 600
+    color: $text-inactive
+    padding: 4px 6px
+    border-bottom: 1px solid $border
+
+  th:nth-child(2), th:nth-child(3),
+  td:nth-child(2), td:nth-child(3)
+    text-align: right
+
+  td
+    padding: 4px 6px
+    color: $text-active
+    border-bottom: 1px solid #eef0f3
+
+  tfoot td
+    font-weight: 700
+    border-top: 1px solid $border
+    border-bottom: none
+
+.analisi__pk-notti-tot td
+  color: $primary
+
+// ─── HoverCard (box informativo in portal, position:fixed, no clipping) ───────
+.analisi__hc-trig
+  display: inline-flex
+  cursor: default
+
+.analisi__hc
+  position: fixed
+  z-index: 9999
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18)
+  overflow: hidden
+
+.analisi__hc-pad
+  padding: 12px 14px

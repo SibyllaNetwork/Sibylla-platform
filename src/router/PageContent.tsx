@@ -13,6 +13,7 @@ import IMieiBusinessPage           from '../modules/executive/IMieiBusinessPage/
 import GiornaleImpresa             from '../modules/executive/GiornaleImpresa/GiornaleImpresa';
 import SSPI                        from '../modules/executive/SSPI/SSPI';
 import AnalisiDistribuzione        from '../modules/executive/AnalisiDistribuzione/AnalisiDistribuzione';
+import ComparazioneMercato         from '../modules/executive/ComparazioneMercato/ComparazioneMercato';
 import CreaStrategia               from '../modules/executive/strategie/CreaStrategia/CreaStrategia';
 import ModificaStrategia           from '../modules/executive/strategie/ModificaStrategia/ModificaStrategia';
 import CalendarioStrategie         from '../modules/executive/strategie/CalendarioStrategie/CalendarioStrategie';
@@ -200,6 +201,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'allocazione-risorse')   return <AllocazioneRisorse navigate={navigate}/>;
   if (page === 'voip')                  return <VoipServiceHub navigate={navigate}/>;
   if (page === 'imposta-dist')          return <ImpostaDistribuzione navigate={navigate}/>;
+  if (page === 'comparazione-mercato')  return <ComparazioneMercato navigate={navigate}/>;
   if (page === 'componi-annunci')       return <ComponiAnnunci navigate={navigate}/>;
   if (page === 'budget-analysis')       return <BudgetAnalysis navigate={navigate}/>;
   if (page === 'segment-analysis')      return <SegmentAnalysis navigate={navigate}/>;

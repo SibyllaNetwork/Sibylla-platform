@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react'
-import T from '../tokens'
 
 interface TooltipProps {
   text?:     string
@@ -34,7 +33,7 @@ export default function Tooltip({ text, content, children, position = 'top' }: T
   const boxStyle: React.CSSProperties = {
     position:    'fixed',
     zIndex:      9999,
-    background:  T.primary,
+    background:  '#1E293B',
     color:       '#fff',
     fontSize:    11,
     fontWeight:  500,

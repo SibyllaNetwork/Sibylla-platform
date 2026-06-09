@@ -145,6 +145,7 @@ export default function SibyllaAdminPanel(_props: Props) {
     prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
     agoraAbilitato: false, agoraPrezzo: '',
     networkAbilitato: true, networkPrezzo: '',
+    parametri: [],
   })
   const [deleteProdottoId, setDeleteProdottoId] = useState<string | null>(null)
 
@@ -447,6 +448,7 @@ export default function SibyllaAdminPanel(_props: Props) {
       prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
       agoraAbilitato: false, agoraPrezzo: '',
       networkAbilitato: true, networkPrezzo: '',
+      parametri: [],
     })
     setShowProdottoModal(true)
   }
@@ -470,6 +472,7 @@ export default function SibyllaAdminPanel(_props: Props) {
       agoraPrezzo: p.mercati.agora.prezzoVendita ? String(p.mercati.agora.prezzoVendita) : '',
       networkAbilitato: p.mercati.network.abilitato,
       networkPrezzo: p.mercati.network.prezzoVendita ? String(p.mercati.network.prezzoVendita) : '',
+      parametri: p.parametri ?? [],
     })
     setShowProdottoModal(true)
   }
@@ -505,6 +508,7 @@ export default function SibyllaAdminPanel(_props: Props) {
         agora:   { abilitato: prodottoForm.agoraAbilitato,   prezzoVendita: prodottoForm.agoraAbilitato ? agoraPr : 0 },
         network: { abilitato: prodottoForm.networkAbilitato, prezzoVendita: prodottoForm.networkAbilitato ? networkPr : 0 },
       },
+      parametri: prodottoForm.parametri,
     }
     if (editingProdotto) {
       updateProdotto(editingProdotto.id, data)

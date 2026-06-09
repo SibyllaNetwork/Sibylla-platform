@@ -1,37 +1,20 @@
 import React from 'react'
 
-const CFG: Record<string, { color: string; label: string; pct: number }> = {
-  'very-high': { color: '#EF5350', label: 'VERY HIGH', pct: 0.95 },
-  'high':      { color: '#FF7043', label: 'HIGH',      pct: 0.70 },
-  'medium':    { color: '#FFC107', label: 'MEDIUM',    pct: 0.50 },
-  'low':       { color: '#66BB6A', label: 'LOW',       pct: 0.30 },
-  'very-low':  { color: '#42A5F5', label: 'VERY LOW',  pct: 0.08 },
+// Indicatore a barra orizzontale a 3 livelli: Basso / Medio / Alto.
+// Usato per Market demand e Occupancy nell'Analisi della distribuzione.
+const CFG: Record<string, { label: string; pct: number }> = {
+  'basso': { label: 'Basso', pct: 0.34 },
+  'medio': { label: 'Medio', pct: 0.67 },
+  'alto':  { label: 'Alto',  pct: 1 },
 }
 
 const GaugeArc = ({ level }: { level: string }) => {
-  const { color, label, pct } = CFG[level] || CFG['medium']
-  const cx = 18, cy = 18, r = 13
-  const θ  = Math.PI * (1 - pct)
-  const ex = +(cx + r * Math.cos(θ)).toFixed(2)
-  const ey = +(cy - r * Math.sin(θ)).toFixed(2)
-
+  const lv = CFG[level] ? level : 'medio'
+  const cfg = CFG[lv]
   return (
-    <div className="gauge-arc">
-      <svg width={38} height={20} viewBox="0 0 38 20">
-        <path
-          d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${cx + r} ${cy}`}
-          fill="none" stroke="#E8EAED" strokeWidth="3.5" strokeLinecap="round"
-        />
-        {pct > 0.02 && (
-          <path
-            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${ex} ${ey}`}
-            fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round"
-          />
-        )}
-      </svg>
-      <span className="gauge-arc__label" style={{ color }}>
-        {label}
-      </span>
+    <div className={`gauge-bar gauge-bar--${lv}`} style={{ ['--w' as any]: `${Math.round(cfg.pct * 100)}%` }}>
+      <span className="gauge-bar__track"><span className="gauge-bar__fill" /></span>
+      <span className="gauge-bar__label">{cfg.label}</span>
     </div>
   )
 }

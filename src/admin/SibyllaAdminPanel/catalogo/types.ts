@@ -38,6 +38,19 @@ export interface ProdottoMercato {
 
 export type ProdottoMercati = Record<Mercato, ProdottoMercato>
 
+// ─── Parametri personalizzati del prodotto ───────────────────────────────────
+// Permettono di descrivere un prodotto con attributi liberi e tipizzati
+// (es. Colore=Rosso, Peso=1,5 kg, Bio=sì, Scadenza=2026-12-31).
+export type ParametroTipo = 'text' | 'number' | 'select' | 'checkbox' | 'date'
+
+export interface ProdottoParametro {
+  tipo: ParametroTipo
+  nome: string          // etichetta del parametro (es. "Colore", "Peso")
+  valore: string        // valore impostato per questo prodotto
+  unita?: string        // unità di misura opzionale (solo number, es. "kg")
+  opzioni?: string[]    // valori ammessi (solo select)
+}
+
 export interface Prodotto {
   id: string
   barcode: string
@@ -55,6 +68,7 @@ export interface Prodotto {
   attivo: boolean
   mercati: ProdottoMercati
   pubblicato: boolean
+  parametri?: ProdottoParametro[]   // attributi personalizzati (opzionali)
 }
 
 export interface CategoriaForm {
@@ -101,6 +115,7 @@ export interface ProdottoForm {
   agoraPrezzo: string
   networkAbilitato: boolean
   networkPrezzo: string
+  parametri: ProdottoParametro[]
 }
 
 export const MERCATI: Array<{ id: Mercato; label: string; descrizione: string; colore: string }> = [

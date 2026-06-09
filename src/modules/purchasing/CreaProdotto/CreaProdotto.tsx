@@ -15,7 +15,7 @@ import { getCategoria } from '../../../admin/SibyllaAdminPanel/catalogo/classifi
 import { generateEAN13, isValidEAN13 } from '../../../admin/SibyllaAdminPanel/catalogo/helpers'
 import { MERCATI } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import type {
-  Prodotto, ProdottoForm, UnitaMisura,
+  Prodotto, ProdottoForm, UnitaMisura, ProdottoParametro, ParametroTipo,
 } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import './CreaProdotto.sass'
@@ -25,17 +25,40 @@ const EMPTY_FORM: ProdottoForm = {
   prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
   agoraAbilitato: false, agoraPrezzo: '',
   networkAbilitato: true, networkPrezzo: '',
+  parametri: [],
 }
+
+// ── Builder parametri personalizzati ───────────────────────────────────────
+const PARAM_TIPO_LABELS: Record<ParametroTipo, string> = {
+  text: 'Testo', number: 'Numero', select: 'Scelta', checkbox: 'Sì/No', date: 'Data',
+}
+
+// Parametri pronti all'uso per le tipologie di prodotto più comuni
+const PRESET_PARAMS: Array<{ label: string; param: ProdottoParametro }> = [
+  { label: 'Marca',     param: { tipo: 'text',     nome: 'Marca',      valore: '' } },
+  { label: 'Colore',    param: { tipo: 'select',   nome: 'Colore',     valore: '', opzioni: ['Rosso', 'Blu', 'Verde', 'Nero', 'Bianco'] } },
+  { label: 'Taglia',    param: { tipo: 'select',   nome: 'Taglia',     valore: '', opzioni: ['XS', 'S', 'M', 'L', 'XL'] } },
+  { label: 'Materiale', param: { tipo: 'text',     nome: 'Materiale',  valore: '' } },
+  { label: 'Peso',      param: { tipo: 'number',   nome: 'Peso',       valore: '', unita: 'kg' } },
+  { label: 'Bio',       param: { tipo: 'checkbox', nome: 'Biologico',  valore: 'false' } },
+  { label: 'Scadenza',  param: { tipo: 'date',     nome: 'Scadenza',   valore: '' } },
+]
 
 export default function CreaProdotto({ navigate }: { navigate: (p: string) => void }) {
   const categorie = useCatalogoStore(s => s.categorie)
   const fornitori = useCatalogoStore(s => s.fornitori)
+  const magazzini = useCatalogoStore(s => s.magazzini)
   const addProdotto = useCatalogoStore(s => s.addProdotto)
+  const registraMovimento = useCatalogoStore(s => s.registraMovimento)
   const isBarcodeUsed = useCatalogoStore(s => s.isBarcodeUsed)
 
   const [form, setForm] = useState<ProdottoForm>(EMPTY_FORM)
   const [scannerArmed, setScannerArmed] = useState(false)
   const barcodeInputRef = useRef<HTMLInputElement>(null)
+
+  // Assegnazione opzionale a un magazzino esistente (creato in "Movimenti scorte")
+  const [magAssign, setMagAssign] = useState({ magazzinoId: '', collocazione: '', quantita: '' })
+  const magSel = magazzini.find(m => m.id === magAssign.magazzinoId)
 
   const armScanner = () => {
     setScannerArmed(true)
@@ -45,6 +68,20 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
 
   const set = <K extends keyof ProdottoForm>(k: K, v: ProdottoForm[K]) =>
     setForm({ ...form, [k]: v })
+
+  // ── Builder parametri personalizzati ───────────────────────────────────────
+  const addParam = (preset?: ProdottoParametro) =>
+    set('parametri', [...form.parametri, preset ? { ...preset } : { tipo: 'text', nome: '', valore: '' }])
+  const updParam = (i: number, patch: Partial<ProdottoParametro>) =>
+    set('parametri', form.parametri.map((p, idx) => idx === i ? { ...p, ...patch } : p))
+  const rmParam = (i: number) =>
+    set('parametri', form.parametri.filter((_, idx) => idx !== i))
+  const moveParam = (i: number, dir: -1 | 1) => {
+    const n = [...form.parametri]; const j = i + dir
+    if (j < 0 || j >= n.length) return
+    ;[n[i], n[j]] = [n[j], n[i]]
+    set('parametri', n)
+  }
 
   const barcodeTrim = form.barcode.trim()
   const barcodeFormatOk = isValidEAN13(barcodeTrim)
@@ -104,8 +141,24 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
         agora:   { abilitato: form.agoraAbilitato,   prezzoVendita: form.agoraAbilitato ? agoraPrezzoN : 0 },
         network: { abilitato: form.networkAbilitato, prezzoVendita: form.networkAbilitato ? networkPrezzoN : 0 },
       },
+      parametri: form.parametri.filter(p => p.nome.trim()),
     }
-    addProdotto(data)
+    const creato = addProdotto(data)
+
+    // Inserimento diretto in magazzino (movimento di entrata) se selezionato
+    const qtaIniziale = parseFloat(magAssign.quantita)
+    if (magSel && qtaIniziale > 0) {
+      registraMovimento({
+        prodottoId: creato.id,
+        barcode: creato.barcode,
+        tipo: 'entrata',
+        quantita: qtaIniziale,
+        magazzinoId: magSel.id,
+        collocazione: magAssign.collocazione || magSel.collocazioni[0] || '',
+        operatore: '',
+        note: 'Carico iniziale alla creazione del prodotto',
+      })
+    }
     navigate('area-merceologica')
   }
 
@@ -317,6 +370,156 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
             placeholder="0"
           />
         </FormGrid>
+      </section>
+
+      {/* ── Inserimento diretto in magazzino ─────────────────────────────── */}
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">Inserisci in magazzino</h3>
+        <p className="crea-prodotto__hint">
+          Carica subito una giacenza iniziale in un magazzino già configurato. Genera un movimento di entrata.
+        </p>
+
+        {magazzini.length === 0 ? (
+          <div className="crea-prodotto__mag-empty">
+            <i className="fa-light fa-boxes-stacked" aria-hidden="true" />
+            <span>
+              Nessun magazzino configurato.{' '}
+              <button type="button" className="crea-prodotto__link-btn" onClick={() => navigate('crea-magazzino')}>
+                Crea un magazzino
+              </button>{' '}
+              in «Movimenti scorte» per abilitare l'inserimento.
+            </span>
+          </div>
+        ) : (
+          <FormGrid cols={3}>
+            <SelectField
+              name="magazzino"
+              label="Magazzino"
+              value={magAssign.magazzinoId}
+              onChange={e => setMagAssign({ magazzinoId: e.target.value, collocazione: '', quantita: magAssign.quantita })}
+              placeholder="Nessuno (non caricare)"
+              options={magazzini.map(m => ({ value: m.id, label: m.nome }))}
+            />
+            <SelectField
+              name="collocazione"
+              label="Collocazione"
+              value={magAssign.collocazione}
+              onChange={e => setMagAssign({ ...magAssign, collocazione: e.target.value })}
+              placeholder={magSel ? 'Seleziona collocazione...' : 'Seleziona prima il magazzino'}
+              options={(magSel?.collocazioni ?? []).map(c => ({ value: c, label: c }))}
+            />
+            <InputField
+              name="quantitaIniziale"
+              label="Quantità iniziale"
+              type="number"
+              step={1}
+              min={0}
+              value={magAssign.quantita}
+              onChange={e => setMagAssign({ ...magAssign, quantita: e.target.value })}
+              placeholder="0"
+            />
+          </FormGrid>
+        )}
+      </section>
+
+      {/* ── Parametri personalizzati ─────────────────────────────────────── */}
+      <section className="crea-prodotto__section">
+        <h3 className="sib-section-title crea-prodotto__section-title">Parametri personalizzati</h3>
+        <p className="crea-prodotto__hint">
+          Aggiungi attributi liberi e tipizzati per descrivere il prodotto (colore, taglia, peso, scadenza, certificazioni…).
+          Ogni prodotto può avere parametri diversi.
+        </p>
+
+        <div className="crea-prodotto__presets">
+          {PRESET_PARAMS.map(p => (
+            <button key={p.label} type="button" className="crea-prodotto__preset" onClick={() => addParam(p.param)}>
+              <i className="fa-light fa-plus" aria-hidden="true" /> {p.label}
+            </button>
+          ))}
+        </div>
+
+        {form.parametri.length === 0 ? (
+          <div className="crea-prodotto__params-empty">
+            Nessun parametro: usa i pulsanti qui sopra o «Aggiungi parametro».
+          </div>
+        ) : (
+          <div className="crea-prodotto__params">
+            {form.parametri.map((p, i) => (
+              <div key={i} className="crea-prodotto__param">
+                <div className="crea-prodotto__param-head">
+                  <span className="crea-prodotto__param-idx">#{i + 1}</span>
+                  <div className="crea-prodotto__param-ctrls">
+                    <button type="button" onClick={() => moveParam(i, -1)} disabled={i === 0} title="Sposta su"><i className="fa-light fa-chevron-up" /></button>
+                    <button type="button" onClick={() => moveParam(i, 1)} disabled={i === form.parametri.length - 1} title="Sposta giù"><i className="fa-light fa-chevron-down" /></button>
+                    <button type="button" className="crea-prodotto__param-del" onClick={() => rmParam(i)} title="Elimina parametro"><i className="fa-light fa-trash-can" /></button>
+                  </div>
+                </div>
+                <div className="crea-prodotto__param-grid">
+                  <div className="crea-prodotto__pfield">
+                    <span className="crea-prodotto__plabel">Tipo</span>
+                    <select className="sib-select" value={p.tipo} onChange={e => updParam(i, { tipo: e.target.value as ParametroTipo })}>
+                      {(Object.keys(PARAM_TIPO_LABELS) as ParametroTipo[]).map(k => <option key={k} value={k}>{PARAM_TIPO_LABELS[k]}</option>)}
+                    </select>
+                  </div>
+                  <div className="crea-prodotto__pfield">
+                    <span className="crea-prodotto__plabel">Nome parametro</span>
+                    <input className="sib-input" value={p.nome} onChange={e => updParam(i, { nome: e.target.value })} placeholder="es. Colore, Peso…" />
+                  </div>
+
+                  {/* Valore — dipende dal tipo */}
+                  {p.tipo === 'text' && (
+                    <div className="crea-prodotto__pfield crea-prodotto__pfield--wide">
+                      <span className="crea-prodotto__plabel">Valore</span>
+                      <input className="sib-input" value={p.valore} onChange={e => updParam(i, { valore: e.target.value })} placeholder="Valore" />
+                    </div>
+                  )}
+                  {p.tipo === 'number' && (
+                    <>
+                      <div className="crea-prodotto__pfield">
+                        <span className="crea-prodotto__plabel">Valore</span>
+                        <input type="number" className="sib-input" value={p.valore} onChange={e => updParam(i, { valore: e.target.value })} placeholder="0" />
+                      </div>
+                      <div className="crea-prodotto__pfield crea-prodotto__pfield--sm">
+                        <span className="crea-prodotto__plabel">Unità</span>
+                        <input className="sib-input" value={p.unita ?? ''} onChange={e => updParam(i, { unita: e.target.value })} placeholder="kg, cm…" />
+                      </div>
+                    </>
+                  )}
+                  {p.tipo === 'date' && (
+                    <div className="crea-prodotto__pfield">
+                      <span className="crea-prodotto__plabel">Valore</span>
+                      <input type="date" className="sib-input" value={p.valore} onChange={e => updParam(i, { valore: e.target.value })} />
+                    </div>
+                  )}
+                  {p.tipo === 'checkbox' && (
+                    <label className="crea-prodotto__param-check">
+                      <input type="checkbox" checked={p.valore === 'true'} onChange={e => updParam(i, { valore: e.target.checked ? 'true' : 'false' })} /> Sì
+                    </label>
+                  )}
+                  {p.tipo === 'select' && (
+                    <>
+                      <div className="crea-prodotto__pfield">
+                        <span className="crea-prodotto__plabel">Valore</span>
+                        <select className="sib-select" value={p.valore} onChange={e => updParam(i, { valore: e.target.value })}>
+                          <option value="">—</option>
+                          {(p.opzioni ?? []).map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                      <div className="crea-prodotto__pfield crea-prodotto__pfield--wide">
+                        <span className="crea-prodotto__plabel">Opzioni <em>(separate da virgola)</em></span>
+                        <input className="sib-input" value={(p.opzioni ?? []).join(', ')} onChange={e => updParam(i, { opzioni: e.target.value.split(',').map(o => o.trim()).filter(Boolean) })} placeholder="es. Rosso, Blu, Verde" />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button type="button" className="sib-btn sib-btn--ghost crea-prodotto__add-param" onClick={() => addParam()}>
+          <i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi parametro
+        </button>
       </section>
 
       <section className="crea-prodotto__section">

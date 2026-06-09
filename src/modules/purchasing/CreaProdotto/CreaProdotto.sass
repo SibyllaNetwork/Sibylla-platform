@@ -161,3 +161,159 @@
     &--neg
       background: rgba(239, 68, 68, 0.12)
       color: #b91c1c
+
+  // ── Inserisci in magazzino ────────────────────────────────────────
+  &__mag-empty
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 14px 16px
+    border: 1px dashed $border
+    border-radius: 8px
+    font-size: 13px
+    color: $text-inactive
+
+    i
+      font-size: 18px
+      color: $text-disabled
+      flex-shrink: 0
+
+  &__link-btn
+    appearance: none
+    border: none
+    background: transparent
+    padding: 0
+    cursor: pointer
+    font-size: 13px
+    font-weight: 600
+    color: $link
+    text-decoration: underline
+
+    &:hover
+      color: $primary
+
+  // ── Parametri personalizzati (builder) ────────────────────────────
+  &__presets
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__preset
+    appearance: none
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 12px
+    border: 1px dashed $border
+    border-radius: 20px
+    background: var(--color-bg)
+    cursor: pointer
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+    &:hover
+      border-color: $primary
+      border-style: solid
+
+  &__params-empty
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: $text-disabled
+    padding: 14px
+    border: 1px dashed $border
+    border-radius: 8px
+    text-align: center
+
+  &__params
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__param
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 12px 14px
+    background: var(--color-bg)
+
+  &__param-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 10px
+
+  &__param-idx
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 700
+    color: $text-disabled
+
+  &__param-ctrls
+    display: inline-flex
+    gap: 4px
+
+    button
+      width: 26px
+      height: 26px
+      border: 1px solid $border
+      border-radius: 6px
+      background: $white
+      cursor: pointer
+      color: $text-inactive
+      font-size: 12px
+
+      &:hover:not(:disabled)
+        border-color: $primary
+        color: $primary
+
+      &:disabled
+        opacity: 0.4
+        cursor: not-allowed
+
+  &__param-del:hover:not(:disabled)
+    border-color: $error
+    color: $error
+
+  &__param-grid
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: 12px
+
+  &__pfield
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 0 0 160px
+
+    &--wide
+      flex: 1 1 260px
+
+    &--sm
+      flex: 0 0 100px
+
+  &__plabel
+    font-size: 11px
+    font-weight: 600
+    font-family: 'Open Sans', sans-serif
+    color: $text-active
+
+    em
+      font-weight: 400
+      font-style: italic
+      color: $text-inactive
+
+  &__param-check
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 38px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: $text-active
+    cursor: pointer
+
+  &__add-param
+    align-self: flex-start
+    margin-top: 4px

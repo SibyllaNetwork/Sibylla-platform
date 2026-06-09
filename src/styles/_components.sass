@@ -181,19 +181,46 @@
       color: $warning
 
 // ═══ GAUGE ARC ════════════════════════════════════════════════════════════════
-.gauge-arc
+.gauge-bar
   display: flex
   flex-direction: column
-  align-items: center
-  gap: 1px
-  width: 38px
+  gap: 4px
+  min-width: 72px
+
+  &__track
+    height: 7px
+    border-radius: 4px
+    background: #E8EAED
+    overflow: hidden
+
+  &__fill
+    display: block
+    height: 100%
+    width: var(--w)
+    border-radius: 4px
 
   &__label
-    font-size: 6px
+    font-size: 10px
     font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.3px
-    white-space: nowrap
+    text-align: center
+
+  &--basso
+    .gauge-bar__fill
+      background: $success
+    .gauge-bar__label
+      color: $success
+
+  &--medio
+    .gauge-bar__fill
+      background: $warning
+    .gauge-bar__label
+      color: $warning
+
+  &--alto
+    .gauge-bar__fill
+      background: $error
+    .gauge-bar__label
+      color: $error
 
 // ═══ CARD SHADOW ══════════════════════════════════════════════════════════════
 // Ombra leggera di default su tutte le "card" bespoke delle pagine, per dare

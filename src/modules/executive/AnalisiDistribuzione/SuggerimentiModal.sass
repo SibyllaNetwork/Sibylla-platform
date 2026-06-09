@@ -1,0 +1,159 @@
+@use '../../../styles/tokens' as *
+
+.sugg-modal__overlay
+  position: fixed
+  inset: 0
+  z-index: 200
+  display: flex
+  align-items: center
+  justify-content: center
+  padding: 24px
+  background: rgba(0, 0, 0, 0.4)
+  backdrop-filter: blur(3px)
+
+.sugg-modal
+  width: 100%
+  max-width: 1180px
+  max-height: 90vh
+  display: flex
+  flex-direction: column
+  background: $white
+  border-radius: 16px
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28)
+  overflow: hidden
+
+.sugg-modal__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 20px 24px
+  border-bottom: 1px solid $border
+
+.sugg-modal__title
+  font-family: 'Poppins', sans-serif
+  font-size: 20px
+  font-weight: 600
+  color: $primary
+  margin: 0
+
+.sugg-modal__close
+  appearance: none
+  border: none
+  background: transparent
+  cursor: pointer
+  font-size: 18px
+  color: $text-disabled
+  padding: 4px
+
+  &:hover
+    color: $text-active
+
+.sugg-modal__body
+  padding: 18px 24px 24px
+  overflow-y: auto
+
+.sugg-modal__sec
+  margin-bottom: 18px
+
+  &:last-child
+    margin-bottom: 0
+
+.sugg-modal__sec-title
+  display: flex
+  align-items: center
+  gap: 8px
+  font-family: 'Poppins', sans-serif
+  font-size: 15px
+  font-weight: 600
+  color: $primary
+  margin: 0 0 8px
+
+  i
+    font-size: 14px
+    color: $primary
+
+.sugg-modal__card
+  display: flex
+  align-items: center
+  gap: 24px
+  border: 1px solid $border
+  border-radius: 12px
+  padding: 18px 20px
+  min-height: 120px
+
+.sugg-modal__empty
+  flex: 1
+  text-align: center
+  font-family: 'Open Sans', sans-serif
+  font-size: 14px
+  color: $text-inactive
+
+.sugg-modal__chart
+  position: relative
+  flex: 1 1 auto
+  min-width: 0
+
+.sugg-modal__ylab
+  position: absolute
+  top: -2px
+  left: 4px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  z-index: 1
+
+.sugg-modal__aside
+  flex: 0 0 240px
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.sugg-modal__aside-title
+  font-family: 'Open Sans', sans-serif
+  font-size: 15px
+  font-weight: 600
+  color: $text-active
+
+.sugg-modal__aside-sub
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.sugg-modal__legend
+  display: flex
+  align-items: center
+  gap: 7px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: $text-inactive
+  margin-top: 4px
+
+.sugg-modal__dot
+  width: 9px
+  height: 9px
+  border-radius: 50%
+  flex: 0 0 auto
+
+  &--navy
+    background: #204769
+  &--orange
+    background: #E07B39
+  &--green
+    background: #5A8A3C
+  &--purple
+    background: #9B59B6
+
+.sugg-modal__aside-foot
+  margin-top: 14px
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  font-weight: 700
+  color: $text-active
+
+// Tooltip pickup (centrato) — reso nel box del componente Tooltip
+.analisi__pk-tip
+  display: block
+  text-align: center
+  line-height: 1.45
