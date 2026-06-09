@@ -28,11 +28,13 @@ const ICON_SUGGESTIONS = [
 ]
 
 const KIND_LABELS: Record<FormFieldKind, string> = {
-  'date':   'Data',
-  'time':   'Ora',
-  'number': 'Numero',
-  'text':   'Testo',
-  'select': 'Scelta',
+  'date':     'Data',
+  'time':     'Ora',
+  'number':   'Numero',
+  'text':     'Testo',
+  'select':   'Scelta',
+  'checkbox': 'Sì/No',
+  'document': 'Documento',
 }
 
 const slugify = (s: string): string =>

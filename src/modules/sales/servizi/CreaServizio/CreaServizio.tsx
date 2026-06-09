@@ -1,150 +1,216 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
-import '../../../../admin/SibyllaAdminPanel/modals/ProdottoModal/ProdottoModal.sass'
-import './CreaServizio.css'
+import FormGrid from '../../../../core/components/FormGrid'
+import FormActions from '../../../../core/components/FormActions'
+import { InputField, SelectField, TextareaField, ToggleSwitch, DateRangeField } from '../../../../core/components/form'
+import { Icon } from '../../../purchasing/_shared/Icon'
+import { useServiziStore } from '../../../../store/useServiziStore'
+import { useNotificheServiziStore } from '../../../../store/useNotificheServiziStore'
+import type { Servizio, FormFieldSpec, FormFieldKind } from '../../../purchasing/Servizi/servizi-types'
+import './CreaServizio.sass'
 
-/* Aree merceologiche disponibili per i servizi. */
 const AREE: string[] = [
-  'Servizi di Alloggio',
-  'Ristorazione e Cibo',
-  'Servizi per il Benessere e la Salute',
-  'Intrattenimento e Ricreazione',
-  'Tecnologia e Comunicazione',
-  'Servizi per Riunioni e Conferenze',
-  'Servizi per Famiglie e Bambini',
-  'Servizi per Animali Domestici',
-  'Servizi di Informazione e Assistenza',
-  'Altro',
-  'Esperienze',
-  'Trasferimenti',
-  'Ristoranti per gruppi',
-  'Facchinaggio',
-  'Delivery',
+  'Servizi di Alloggio', 'Ristorazione e Cibo', 'Servizi per il Benessere e la Salute',
+  'Intrattenimento e Ricreazione', 'Tecnologia e Comunicazione', 'Servizi per Riunioni e Conferenze',
+  'Servizi per Famiglie e Bambini', 'Servizi per Animali Domestici', 'Servizi di Informazione e Assistenza',
+  'Altro', 'Esperienze', 'Trasferimenti', 'Ristoranti per gruppi', 'Facchinaggio', 'Delivery',
 ]
 
-/* Classi di servizio. */
 const CLASSI: string[] = [
-  'NCC',
-  'Taxi',
-  'Adrenalina',
-  'Tours',
-  'Fitness',
-  'Facchinaggio',
-  'Servizio di ascensori e rampe per disabili',
-  'Servizio di assistenza per ospiti con mobilità ridotta',
-  'Servizio di sicurezza 24 ore su 24',
-  'Servizio di sorveglianza video',
-  'Servizio di estintori e dispositivi anti-incendio',
-  'Servizio di ciotole e cibo per animali domestici',
-  'Servizio di pet-sitting',
-  'Servizio di babysitter',
-  'Servizio di attività per bambini',
-  'Servizio di attrezzature audiovisive',
-  'Servizio di organizzazione eventi e conferenze',
-  'Servizio di videoconferenza',
-  'Servizio di assistenza tecnica',
-  'Servizio di noleggio dispositivi elettronici',
-  'Servizio di intrattenimento serale',
-  'Servizio di noleggio DVD o giochi da tavolo',
-  'Servizio di escursioni e tour guidati',
-  'Servizio di prenotazione di biglietti per spettacoli e attrazioni locali',
-  'Servizio di palestra e fitness center',
-  'Servizio di piscina e jacuzzi',
-  'Servizio di sauna e bagno turco',
-  'Servizio di medico o infermiere di guardia',
+  'NCC', 'Taxi', 'Adrenalina', 'Tours', 'Fitness', 'Facchinaggio',
+  'Servizio di assistenza per ospiti con mobilità ridotta', 'Servizio di sicurezza 24 ore su 24',
+  'Servizio di babysitter', 'Servizio di attività per bambini', 'Servizio di organizzazione eventi e conferenze',
+  'Servizio di videoconferenza', 'Servizio di assistenza tecnica', 'Servizio di intrattenimento serale',
+  'Servizio di escursioni e tour guidati', 'Servizio di palestra e fitness center',
+  'Servizio di piscina e jacuzzi', 'Servizio di sauna e bagno turco',
 ]
 
-/* Marketplace di vendita: gli stessi 2 (b2c / b2b) mostrati come card. */
-interface MercatoServizio {
-  id: 'b2c' | 'b2b'
-  label: string
-  descrizione: string
-  colore: string
+const COMMISSIONE_MIN = 3.5
+
+// Tipi di campo per il builder dei campi di prenotazione (per-servizio)
+const KIND_LABELS_SRV: Record<FormFieldKind, string> = {
+  date: 'Data', time: 'Orario', number: 'Numero', text: 'Testo',
+  select: 'Scelta', checkbox: 'Sì/No', document: 'Documento',
 }
-const MERCATI: MercatoServizio[] = [
-  { id: 'b2c', label: 'B2C', descrizione: 'Vendita diretta al cliente finale (es. ospite della struttura)', colore: '#E07B39' },
-  { id: 'b2b', label: 'B2B', descrizione: 'Vendita ad aziende e operatori della rete Sibylla',           colore: '#5C9CD4' },
+
+// Campi pronti all'uso per le tipologie più comuni di servizio turistico
+const PRESET_CAMPI: Array<{ label: string; field: Omit<FormFieldSpec, 'name'> }> = [
+  { label: 'Data',        field: { kind: 'date',     label: 'Data',                  required: true } },
+  { label: 'Orario',      field: { kind: 'time',     label: 'Orario',                required: true } },
+  { label: 'Età minima',  field: { kind: 'number',   label: 'Età',                   min: 18, required: true } },
+  { label: 'N° persone',  field: { kind: 'number',   label: 'Numero persone',        min: 1, required: true } },
+  { label: 'Posto/Settore', field: { kind: 'select', label: 'Posto', options: ['Standard', 'VIP'] } },
+  { label: 'Documento',   field: { kind: 'document', label: "Documento d'identità",  required: true } },
+  { label: 'Consenso',    field: { kind: 'checkbox', label: 'Accetto le condizioni', required: true } },
 ]
+
+const newFieldName = () => 'c' + Math.random().toString(36).slice(2, 7)
 
 interface FormState {
+  visibilita: 'pubblico' | 'privato'
   area: string
   classe: string
   nome: string
+  indirizzo: string
+  logoUrl: string
+  fotoUrl: string
   descrizione: string
+  prezzo: string            // prezzo base B2C (€)
+  commissione: string       // % (min 3,5)
+  distB2c: boolean
+  distB2b: boolean
+  incrementoB2b: string     // % di incremento da B2C a B2B
   codArticolo: string
-  b2cAbilitato: boolean
-  prezzoB2c: string
-  b2bAbilitato: boolean
-  prezzoB2b: string
   quantitaMin: string
   quantitaMax: string
   sconto1: string
   sconto2: string
   sconto3: string
-  commissione: string
-  active: boolean
-  defaultFlag: boolean
-  fullAddress: string
-  pubblico: boolean
+  attivo: boolean
+  disponibileDal: string
+  disponibileAl: string
+  adultiMax: string
+  bambiniMax: string
+  campiPrenotazione: FormFieldSpec[]
 }
 
 const EMPTY_FORM: FormState = {
-  area: '',
-  classe: '',
-  nome: '',
-  descrizione: '',
-  codArticolo: '',
-  b2cAbilitato: false,
-  prezzoB2c: '',
-  b2bAbilitato: true,
-  prezzoB2b: '',
-  quantitaMin: '0',
-  quantitaMax: '0',
-  sconto1: '',
-  sconto2: '',
-  sconto3: '',
-  commissione: '',
-  active: true,
-  defaultFlag: false,
-  fullAddress: '',
-  pubblico: false,
+  visibilita: 'pubblico',
+  area: '', classe: '', nome: '', indirizzo: '', logoUrl: '', fotoUrl: '', descrizione: '',
+  prezzo: '', commissione: String(COMMISSIONE_MIN),
+  distB2c: true, distB2b: true, incrementoB2b: '10',
+  codArticolo: '', quantitaMin: '0', quantitaMax: '0', sconto1: '', sconto2: '', sconto3: '',
+  attivo: true,
+  disponibileDal: '', disponibileAl: '', adultiMax: '20', bambiniMax: '10',
+  campiPrenotazione: [],
 }
 
-export default function CreaServizio({ navigate }: { navigate: (p: string) => void }) {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+function servizioToForm(s: Servizio): FormState {
+  return {
+    visibilita: s.visibilita ?? 'pubblico',
+    area: s.area ?? '',
+    classe: s.classe ?? '',
+    nome: s.nome,
+    indirizzo: s.indirizzo ?? '',
+    logoUrl: s.logoUrl ?? '',
+    fotoUrl: s.immagineUrl ?? '',
+    descrizione: s.descrizione ?? '',
+    prezzo: s.prezzoB2C ? String(s.prezzoB2C) : '',
+    commissione: s.commissione != null ? String(s.commissione) : String(COMMISSIONE_MIN),
+    distB2c: s.distribuzioneB2c ?? true,
+    distB2b: s.distribuzioneB2b ?? true,
+    incrementoB2b: s.incrementoB2bPct != null ? String(s.incrementoB2bPct) : '10',
+    codArticolo: s.codArticolo ?? '',
+    quantitaMin: s.quantitaMin != null ? String(s.quantitaMin) : '0',
+    quantitaMax: s.quantitaMax != null ? String(s.quantitaMax) : '0',
+    sconto1: s.sconto1 != null ? String(s.sconto1) : '',
+    sconto2: s.sconto2 != null ? String(s.sconto2) : '',
+    sconto3: s.sconto3 != null ? String(s.sconto3) : '',
+    attivo: s.attivo,
+    disponibileDal: s.disponibileDal ?? '',
+    disponibileAl: s.disponibileAl ?? '',
+    adultiMax: s.adultiMax != null ? String(s.adultiMax) : '20',
+    bambiniMax: s.bambiniMax != null ? String(s.bambiniMax) : '10',
+    campiPrenotazione: s.campiPrenotazione ?? [],
+  }
+}
 
-  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
-    setForm((f) => ({ ...f, [k]: v }))
+const round2 = (n: number) => Math.round(n * 100) / 100
 
-  const prezzoB2cN = parseFloat(form.prezzoB2c)
-  const prezzoB2bN = parseFloat(form.prezzoB2b)
+export default function CreaServizio({ navigate, servizioId }: { navigate: (p: string) => void; servizioId?: string }) {
+  const servizi       = useServiziStore(s => s.servizi)
+  const addServizio   = useServiziStore(s => s.addServizio)
+  const updateServizio = useServiziStore(s => s.updateServizio)
+  const pushNotifica  = useNotificheServiziStore(s => s.push)
 
-  const noMercatoSelezionato = !form.b2cAbilitato && !form.b2bAbilitato
-  const b2cPrezzoInvalido = form.b2cAbilitato && (!form.prezzoB2c || isNaN(prezzoB2cN) || prezzoB2cN <= 0)
-  const b2bPrezzoInvalido = form.b2bAbilitato && (!form.prezzoB2b || isNaN(prezzoB2bN) || prezzoB2bN <= 0)
+  const editing = servizioId ? servizi.find(s => s.id === servizioId) : undefined
+  const [form, setForm] = useState<FormState>(editing ? servizioToForm(editing) : EMPTY_FORM)
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }))
+
+  // ── Builder campi di prenotazione (per-servizio) ───────────────────────────
+  const addCampo = (preset?: Omit<FormFieldSpec, 'name'>) =>
+    set('campiPrenotazione', [...form.campiPrenotazione, { name: newFieldName(), ...(preset ?? { kind: 'text', label: 'Nuovo campo' }) }])
+  const updCampo = (i: number, patch: Partial<FormFieldSpec>) =>
+    set('campiPrenotazione', form.campiPrenotazione.map((f, idx) => idx === i ? { ...f, ...patch } : f))
+  const rmCampo = (i: number) =>
+    set('campiPrenotazione', form.campiPrenotazione.filter((_, idx) => idx !== i))
+  const moveCampo = (i: number, dir: -1 | 1) => {
+    const n = [...form.campiPrenotazione]; const j = i + dir
+    if (j < 0 || j >= n.length) return
+    ;[n[i], n[j]] = [n[j], n[i]]
+    set('campiPrenotazione', n)
+  }
+
+  const prezzoN      = parseFloat(form.prezzo)
+  const commissioneN = parseFloat(form.commissione)
+  const incrementoN  = parseFloat(form.incrementoB2b)
+
+  const prezzoB2b = useMemo(() => {
+    if (!form.distB2b || isNaN(prezzoN) || prezzoN <= 0) return null
+    const inc = isNaN(incrementoN) ? 0 : incrementoN
+    return round2(prezzoN * (1 + inc / 100))
+  }, [form.distB2b, prezzoN, incrementoN])
+
+  const noCanale = !form.distB2c && !form.distB2b
+  const commissioneInvalida = isNaN(commissioneN) || commissioneN < COMMISSIONE_MIN
+  const incrementoInvalido = form.distB2b && (form.incrementoB2b === '' || isNaN(incrementoN) || incrementoN < 0)
 
   const disabled =
-    !form.nome.trim() ||
-    !form.area ||
-    !form.classe ||
-    noMercatoSelezionato ||
-    b2cPrezzoInvalido ||
-    b2bPrezzoInvalido
-
-  // Margine calcolato sul prezzo B2B (prezzo di costo per la rete) rispetto
-  // al prezzo finale B2C.
-  const margineB2c = (() => {
-    if (!form.b2cAbilitato || !form.b2bAbilitato) return null
-    if (!prezzoB2bN || prezzoB2bN <= 0 || !prezzoB2cN) return null
-    return (((prezzoB2cN - prezzoB2bN) / prezzoB2bN) * 100)
-  })()
+    !form.nome.trim() || !form.area || !form.classe ||
+    !form.prezzo || isNaN(prezzoN) || prezzoN <= 0 ||
+    commissioneInvalida || noCanale || incrementoInvalido
 
   const handleCancel = () => navigate('i-miei-servizi')
 
   const handleSave = () => {
     if (disabled) return
-    // TODO: persistere su BE/store quando definito.
+    const data: Omit<Servizio, 'id'> = {
+      tipo: 'attrazione',
+      nome: form.nome.trim(),
+      descrizione: form.descrizione,
+      citta: '',
+      paese: 'Italia',
+      immagineUrl: form.fotoUrl,
+      logoUrl: form.logoUrl,
+      indirizzo: form.indirizzo,
+      disponibileDal: form.disponibileDal,
+      disponibileAl: form.disponibileAl,
+      adultiMax: parseInt(form.adultiMax) || 0,
+      bambiniMax: parseInt(form.bambiniMax) || 0,
+      pricingMode: 'per-persona',
+      prezzoAgora: prezzoN,
+      prezzoB2C: prezzoN,
+      prezzoB2B: prezzoB2b ?? prezzoN,
+      durata: '',
+      caratteristiche: [],
+      attivo: form.attivo,
+      pubblicato: false,
+      stato: 'in-attesa',
+      motivazioneRifiuto: undefined,
+      visibilita: form.visibilita,
+      area: form.area,
+      classe: form.classe,
+      incrementoB2bPct: isNaN(incrementoN) ? 0 : incrementoN,
+      commissione: commissioneN,
+      distribuzioneB2c: form.distB2c,
+      distribuzioneB2b: form.distB2b,
+      quantitaMin: parseInt(form.quantitaMin) || 0,
+      quantitaMax: parseInt(form.quantitaMax) || 0,
+      sconto1: parseFloat(form.sconto1) || 0,
+      sconto2: parseFloat(form.sconto2) || 0,
+      sconto3: parseFloat(form.sconto3) || 0,
+      codArticolo: form.codArticolo,
+      campiPrenotazione: form.campiPrenotazione.filter(f => f.label.trim()),
+    }
+
+    if (editing) {
+      updateServizio(editing.id, data)
+      pushNotifica({ destinatario: 'supporto', tipo: 'richiesta', servizioId: editing.id, servizioNome: data.nome, ts: Date.now() })
+    } else {
+      const created = addServizio(data)
+      pushNotifica({ destinatario: 'supporto', tipo: 'richiesta', servizioId: created.id, servizioNome: data.nome, ts: Date.now() })
+    }
     navigate('i-miei-servizi')
   }
 
@@ -152,260 +218,252 @@ export default function CreaServizio({ navigate }: { navigate: (p: string) => vo
     <div className="crea-servizio">
       <BtnBack onClick={handleCancel} />
       <PageHeader
-        title="Crea servizio"
-        subtitle="Definisci area, classe e mercati di vendita del nuovo servizio"
+        title={editing ? 'Modifica servizio' : 'Crea servizio'}
+        subtitle="Configura il tuo servizio: andrà in verifica al supporto Sibylla prima della pubblicazione"
       />
 
-      <div className="prod-modal crea-servizio__form">
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Identificazione</div>
-          <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Cod. articolo">
-              <input
-                value={form.codArticolo}
-                onChange={(e) => set('codArticolo', e.target.value)}
-                className="sib-input"
-                placeholder="Inserisci codice articolo"
-              />
-            </Field>
-            <div className="prod-modal__attivo">
-              <label className="prod-modal__label">Stato</label>
-              <label className="prod-modal__toggle">
-                <input
-                  type="checkbox"
-                  checked={form.active}
-                  onChange={(e) => set('active', e.target.checked)}
-                  className="sib-checkbox"
-                />
-                <span>{form.active ? 'Attivo (visibile ai clienti)' : 'Disattivo (nascosto)'}</span>
-              </label>
+      {editing?.stato === 'rifiutato' && editing.motivazioneRifiuto && (
+        <div className="crea-servizio__rejected">
+          <Icon family="regular" name="circle-xmark" />
+          <div>
+            <strong>Servizio rifiutato.</strong> Motivazione del supporto Sibylla: «{editing.motivazioneRifiuto}».
+            Apporta le correzioni e ri-sottoponi il servizio per una nuova verifica.
+          </div>
+        </div>
+      )}
+
+      {/* ── Visibilità & classificazione ─────────────────────────────────── */}
+      <section className="crea-servizio__section">
+        <h3 className="sib-section-title">Pubblicazione e classificazione</h3>
+        <FormGrid cols={3}>
+          <div className="crea-servizio__field">
+            <span className="crea-servizio__label">Visibilità</span>
+            <div className="crea-servizio__radio-row">
+              {(['pubblico', 'privato'] as const).map(v => (
+                <label key={v} className="crea-servizio__radio">
+                  <input type="radio" name="visibilita" checked={form.visibilita === v} onChange={() => set('visibilita', v)} className="sib-radio" />
+                  {v === 'pubblico' ? 'Pubblico' : 'Privato'}
+                </label>
+              ))}
             </div>
           </div>
-        </div>
+          <SelectField name="area" label="Area" required value={form.area}
+            onChange={e => set('area', e.target.value)} placeholder="Seleziona area..."
+            options={AREE.map(a => ({ value: a, label: a }))} />
+          <SelectField name="classe" label="Classe" required value={form.classe}
+            onChange={e => set('classe', e.target.value)} placeholder="Seleziona classe..."
+            options={CLASSI.map(c => ({ value: c, label: c }))} />
+        </FormGrid>
+      </section>
 
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Anagrafica servizio</div>
-          <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Nome servizio *">
-              <input
-                value={form.nome}
-                onChange={(e) => set('nome', e.target.value)}
-                className="sib-input"
-                placeholder="Es. Transfer aeroporto"
-              />
-            </Field>
-            <Field label="Full address">
-              <input
-                value={form.fullAddress}
-                onChange={(e) => set('fullAddress', e.target.value)}
-                className="sib-input"
-                placeholder="Indirizzo completo del servizio (se applicabile)"
-              />
-            </Field>
+      {/* ── Il tuo servizio ──────────────────────────────────────────────── */}
+      <section className="crea-servizio__section">
+        <h3 className="sib-section-title">Il tuo servizio</h3>
+        <FormGrid cols={2}>
+          <InputField name="nome" label="Nome" required value={form.nome}
+            onChange={e => set('nome', e.target.value)} placeholder="Es. Transfer aeroporto" />
+          <InputField name="indirizzo" label="Indirizzo" value={form.indirizzo}
+            onChange={e => set('indirizzo', e.target.value)} placeholder="Indirizzo del servizio (se applicabile)" />
+        </FormGrid>
+
+        <FormGrid cols={2}>
+          <div className="crea-servizio__field">
+            <span className="crea-servizio__label">Logo</span>
+            <div className="crea-servizio__media">
+              <span className="crea-servizio__media-preview crea-servizio__media-preview--logo">
+                {form.logoUrl ? <img src={form.logoUrl} alt="logo" /> : <Icon family="light" name="image" />}
+              </span>
+              <input className="sib-input" value={form.logoUrl} onChange={e => set('logoUrl', e.target.value)} placeholder="URL del logo" />
+            </div>
           </div>
-          <Field label="Descrizione">
-            <textarea
-              value={form.descrizione}
-              onChange={(e) => set('descrizione', e.target.value)}
-              className="sib-input prod-modal__textarea"
-              rows={2}
-              placeholder="Descrizione, dettagli, condizioni..."
-            />
-          </Field>
-        </div>
-
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Classificazione</div>
-          <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Area *">
-              <select
-                value={form.area}
-                onChange={(e) => set('area', e.target.value)}
-                className="sib-select"
-              >
-                <option value="">Seleziona area...</option>
-                {AREE.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
-            </Field>
-            <Field label="Classe servizio *">
-              <select
-                value={form.classe}
-                onChange={(e) => set('classe', e.target.value)}
-                className="sib-select"
-              >
-                <option value="">Seleziona classe...</option>
-                {CLASSI.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </Field>
+          <div className="crea-servizio__field">
+            <span className="crea-servizio__label">Foto</span>
+            <div className="crea-servizio__media">
+              <span className="crea-servizio__media-preview">
+                {form.fotoUrl ? <img src={form.fotoUrl} alt="foto" /> : <Icon family="light" name="image" />}
+              </span>
+              <input className="sib-input" value={form.fotoUrl} onChange={e => set('fotoUrl', e.target.value)} placeholder="URL della foto" />
+            </div>
           </div>
+        </FormGrid>
+
+        <TextareaField name="descrizione" label="Descrizione" rows={3} value={form.descrizione}
+          onChange={e => set('descrizione', e.target.value)} placeholder="Descrizione, dettagli, condizioni..." />
+
+        <FormGrid cols={2}>
+          <InputField name="prezzo" label="Prezzo (€)" required type="number" step={0.01} min={0}
+            value={form.prezzo} onChange={e => set('prezzo', e.target.value)} placeholder="0,00"
+            hint="Prezzo base al cliente finale (B2C)" />
+          <InputField name="commissione" label="Commissione (%)" required type="number" step={0.1} min={COMMISSIONE_MIN}
+            value={form.commissione} onChange={e => set('commissione', e.target.value)} placeholder="3,5"
+            hint={`Minimo ${COMMISSIONE_MIN.toString().replace('.', ',')}%`}
+            error={form.commissione !== '' && commissioneInvalida ? `La commissione minima è ${COMMISSIONE_MIN.toString().replace('.', ',')}%` : undefined} />
+        </FormGrid>
+      </section>
+
+      {/* ── Disponibilità e capienza ─────────────────────────────────────── */}
+      <section className="crea-servizio__section">
+        <h3 className="sib-section-title">Disponibilità e capienza</h3>
+        <p className="crea-servizio__hint">
+          Periodo in cui il servizio è prenotabile e numero massimo di persone per prenotazione
+          (usati per mostrare e filtrare il servizio nel catalogo).
+        </p>
+        <FormGrid cols={3}>
+          <DateRangeField
+            nameFrom="disponibileDal"
+            nameTo="disponibileAl"
+            label="Periodo di disponibilità"
+            valueFrom={form.disponibileDal}
+            valueTo={form.disponibileAl}
+            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => set('disponibileDal', e.target.value)}
+            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => set('disponibileAl', e.target.value)}
+          />
+          <InputField name="adultiMax" label="Capienza adulti" type="number" min={0}
+            value={form.adultiMax} onChange={e => set('adultiMax', e.target.value)} placeholder="20"
+            hint="Max adulti per prenotazione" />
+          <InputField name="bambiniMax" label="Capienza bambini" type="number" min={0}
+            value={form.bambiniMax} onChange={e => set('bambiniMax', e.target.value)} placeholder="10" />
+        </FormGrid>
+      </section>
+
+      {/* ── Configuratore: distribuzione ─────────────────────────────────── */}
+      <section className="crea-servizio__section">
+        <h3 className="sib-section-title">Distribuzione servizio</h3>
+        <p className="crea-servizio__hint">Scegli i canali di distribuzione e l'incremento del prezzo da B2C a B2B.</p>
+
+        <div className="crea-servizio__dist">
+          <ToggleSwitch checked={form.distB2c} onChange={v => set('distB2c', v)} label="B2C" description="Vendita diretta al cliente finale" />
+          <ToggleSwitch checked={form.distB2b} onChange={v => set('distB2b', v)} label="B2B" description="Vendita ad aziende e operatori della rete" />
         </div>
 
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Quantità</div>
-          <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Quantità minima">
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={form.quantitaMin}
-                onChange={(e) => set('quantitaMin', e.target.value)}
-                className="sib-input"
-                placeholder="0"
-              />
-            </Field>
-            <Field label="Quantità massima">
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={form.quantitaMax}
-                onChange={(e) => set('quantitaMax', e.target.value)}
-                className="sib-input"
-                placeholder="0 (= illimitata)"
-              />
-            </Field>
+        {form.distB2b && (
+          <FormGrid cols={2}>
+            <InputField name="incrementoB2b" label="Incremento % da B2C a B2B" required type="number" step={0.5} min={0}
+              value={form.incrementoB2b} onChange={e => set('incrementoB2b', e.target.value)} placeholder="10" />
+            <div className="crea-servizio__field">
+              <span className="crea-servizio__label">Prezzo B2B calcolato</span>
+              <div className="crea-servizio__derived">{prezzoB2b != null ? `€ ${prezzoB2b.toFixed(2)}` : '—'}</div>
+            </div>
+          </FormGrid>
+        )}
+
+        {noCanale && <div className="crea-servizio__error">Seleziona almeno un canale di distribuzione</div>}
+      </section>
+
+      {/* ── Campi di prenotazione (per-servizio) ─────────────────────────── */}
+      <section className="crea-servizio__section">
+        <h3 className="sib-section-title">Campi di prenotazione</h3>
+        <p className="crea-servizio__hint">
+          Definisci i campi che il cliente dovrà compilare per prenotare/acquistare questo servizio
+          (data, orario, età, posto, documento, consenso…). Ogni tipo di servizio può avere campi diversi.
+        </p>
+
+        <div className="crea-servizio__presets">
+          {PRESET_CAMPI.map(p => (
+            <button key={p.label} type="button" className="crea-servizio__preset" onClick={() => addCampo(p.field)}>
+              <Icon family="regular" name="plus" /> {p.label}
+            </button>
+          ))}
+        </div>
+
+        {form.campiPrenotazione.length === 0 ? (
+          <div className="crea-servizio__campi-empty">
+            Nessun campo richiesto: usa i pulsanti qui sopra o «Aggiungi campo».
           </div>
-        </div>
-
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Mercati di vendita *</div>
-          <p className="prod-modal__section-hint">
-            Abilita uno o entrambi i canali (B2C / B2B) e imposta il prezzo di vendita.
-          </p>
-
-          {MERCATI.map((m) => {
-            const enabled = m.id === 'b2c' ? form.b2cAbilitato : form.b2bAbilitato
-            const prezzoStr = m.id === 'b2c' ? form.prezzoB2c : form.prezzoB2b
-            const cls = `prod-modal__market${enabled ? ' prod-modal__market--on' : ''}`
-            const setEn = (v: boolean) =>
-              m.id === 'b2c' ? set('b2cAbilitato', v) : set('b2bAbilitato', v)
-            const setPr = (v: string) =>
-              m.id === 'b2c' ? set('prezzoB2c', v) : set('prezzoB2b', v)
-            return (
-              <div key={m.id} className={cls} style={{ ['--mercato-color' as any]: m.colore }}>
-                <label className="prod-modal__market-toggle">
-                  <input
-                    type="checkbox"
-                    checked={enabled}
-                    onChange={(e) => setEn(e.target.checked)}
-                    className="sib-checkbox"
-                  />
-                  <span className="prod-modal__market-name">{m.label}</span>
-                </label>
-                <div className="prod-modal__market-desc">{m.descrizione}</div>
-                {enabled && (
-                  <div className="prod-modal__market-price">
-                    <label className="prod-modal__label">Prezzo {m.label} (€) *</label>
-                    <div className="prod-modal__market-price-row">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={prezzoStr}
-                        onChange={(e) => setPr(e.target.value)}
-                        className="sib-input prod-modal__market-input"
-                        placeholder="0,00"
-                      />
-                      {m.id === 'b2c' && margineB2c !== null && (
-                        <span className={`prod-modal__margine prod-modal__margine--${margineB2c >= 0 ? 'pos' : 'neg'}`}>
-                          {margineB2c >= 0 ? '+' : ''}{margineB2c.toFixed(1)}% margine vs B2B
-                        </span>
-                      )}
-                    </div>
+        ) : (
+          <div className="crea-servizio__campi">
+            {form.campiPrenotazione.map((f, i) => (
+              <div key={i} className="crea-servizio__campo">
+                <div className="crea-servizio__campo-head">
+                  <span className="crea-servizio__campo-idx">#{i + 1}</span>
+                  <div className="crea-servizio__campo-ctrls">
+                    <button type="button" onClick={() => moveCampo(i, -1)} disabled={i === 0} title="Sposta su"><Icon family="regular" name="chevron-up" /></button>
+                    <button type="button" onClick={() => moveCampo(i, 1)} disabled={i === form.campiPrenotazione.length - 1} title="Sposta giù"><Icon family="regular" name="chevron-down" /></button>
+                    <button type="button" className="crea-servizio__campo-del" onClick={() => rmCampo(i)} title="Elimina campo"><Icon family="regular" name="trash-can" /></button>
                   </div>
-                )}
+                </div>
+                <div className="crea-servizio__campo-grid">
+                  <div className="crea-servizio__field">
+                    <span className="crea-servizio__label">Tipo</span>
+                    <select className="sib-select" value={f.kind} onChange={e => updCampo(i, { kind: e.target.value as FormFieldKind })}>
+                      {(Object.keys(KIND_LABELS_SRV) as FormFieldKind[]).map(k => <option key={k} value={k}>{KIND_LABELS_SRV[k]}</option>)}
+                    </select>
+                  </div>
+                  <div className="crea-servizio__field">
+                    <span className="crea-servizio__label">Etichetta</span>
+                    <input className="sib-input" value={f.label} onChange={e => updCampo(i, { label: e.target.value })} placeholder="es. Data, Età, Posto…" />
+                  </div>
+                  <label className="crea-servizio__campo-check">
+                    <input type="checkbox" checked={!!f.required} onChange={e => updCampo(i, { required: e.target.checked })} /> Obbligatorio
+                  </label>
+
+                  {f.kind === 'number' && (
+                    <>
+                      <div className="crea-servizio__field">
+                        <span className="crea-servizio__label">Min</span>
+                        <input type="number" className="sib-input" value={f.min ?? ''} onChange={e => updCampo(i, { min: e.target.value === '' ? undefined : parseInt(e.target.value, 10) })} />
+                      </div>
+                      <div className="crea-servizio__field">
+                        <span className="crea-servizio__label">Max</span>
+                        <input type="number" className="sib-input" value={f.max ?? ''} onChange={e => updCampo(i, { max: e.target.value === '' ? undefined : parseInt(e.target.value, 10) })} />
+                      </div>
+                    </>
+                  )}
+                  {f.kind === 'text' && (
+                    <div className="crea-servizio__field crea-servizio__field--wide">
+                      <span className="crea-servizio__label">Placeholder</span>
+                      <input className="sib-input" value={f.placeholder ?? ''} onChange={e => updCampo(i, { placeholder: e.target.value })} />
+                    </div>
+                  )}
+                  {f.kind === 'select' && (
+                    <div className="crea-servizio__field crea-servizio__field--wide">
+                      <span className="crea-servizio__label">Opzioni <em>(separate da virgola)</em></span>
+                      <input className="sib-input" value={(f.options ?? []).join(', ')} onChange={e => updCampo(i, { options: e.target.value.split(',').map(o => o.trim()).filter(Boolean) })} placeholder="es. Standard, VIP" />
+                    </div>
+                  )}
+                </div>
               </div>
-            )
-          })}
-
-          {noMercatoSelezionato && (
-            <div className="prod-modal__error">Almeno un mercato deve essere abilitato</div>
-          )}
-        </div>
-
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Sconti e commissione</div>
-          <div className="prod-modal__grid prod-modal__grid--4">
-            <Field label="Sconto 1 (%)">
-              <input
-                type="number" step="0.01" min="0" max="100"
-                value={form.sconto1}
-                onChange={(e) => set('sconto1', e.target.value)}
-                className="sib-input"
-                placeholder="0,00"
-              />
-            </Field>
-            <Field label="Sconto 2 (%)">
-              <input
-                type="number" step="0.01" min="0" max="100"
-                value={form.sconto2}
-                onChange={(e) => set('sconto2', e.target.value)}
-                className="sib-input"
-                placeholder="0,00"
-              />
-            </Field>
-            <Field label="Sconto 3 (%)">
-              <input
-                type="number" step="0.01" min="0" max="100"
-                value={form.sconto3}
-                onChange={(e) => set('sconto3', e.target.value)}
-                className="sib-input"
-                placeholder="0,00"
-              />
-            </Field>
-            <Field label="Commissione (%)">
-              <input
-                type="number" step="0.01" min="0" max="100"
-                value={form.commissione}
-                onChange={(e) => set('commissione', e.target.value)}
-                className="sib-input"
-                placeholder="0,00"
-              />
-            </Field>
+            ))}
           </div>
-        </div>
+        )}
 
-        <div className="prod-modal__section">
-          <div className="prod-modal__section-title">Pubblicazione</div>
-          <div className="crea-servizio__flags">
-            <label className="prod-modal__toggle">
-              <input
-                type="checkbox"
-                checked={form.defaultFlag}
-                onChange={(e) => set('defaultFlag', e.target.checked)}
-                className="sib-checkbox"
-              />
-              <span>Default — proposto automaticamente quando applicabile</span>
-            </label>
-            <label className="prod-modal__toggle">
-              <input
-                type="checkbox"
-                checked={form.pubblico}
-                onChange={(e) => set('pubblico', e.target.checked)}
-                className="sib-checkbox"
-              />
-              <span>Pubblico — visibile anche fuori dalla rete Sibylla</span>
-            </label>
+        <button type="button" className="sib-btn sib-btn--ghost crea-servizio__add-campo" onClick={() => addCampo()}>
+          <Icon family="regular" name="plus" /> Aggiungi campo
+        </button>
+      </section>
+
+      {/* ── Avanzate ─────────────────────────────────────────────────────── */}
+      <section className="crea-servizio__section">
+        <h3 className="sib-section-title">Impostazioni avanzate</h3>
+        <FormGrid cols={4}>
+          <InputField name="codArticolo" label="Cod. articolo" value={form.codArticolo}
+            onChange={e => set('codArticolo', e.target.value)} placeholder="Opzionale" />
+          <InputField name="quantitaMin" label="Quantità minima" type="number" min={0}
+            value={form.quantitaMin} onChange={e => set('quantitaMin', e.target.value)} placeholder="0" />
+          <InputField name="quantitaMax" label="Quantità massima" type="number" min={0}
+            value={form.quantitaMax} onChange={e => set('quantitaMax', e.target.value)} placeholder="0 (= illimitata)" />
+          <div className="crea-servizio__field">
+            <span className="crea-servizio__label">Stato</span>
+            <ToggleSwitch checked={form.attivo} onChange={v => set('attivo', v)} label={form.attivo ? 'Attivo' : 'Disattivo'} />
           </div>
-        </div>
+        </FormGrid>
+        <FormGrid cols={3}>
+          <InputField name="sconto1" label="Sconto 1 (%)" type="number" step={0.01} min={0} max={100}
+            value={form.sconto1} onChange={e => set('sconto1', e.target.value)} placeholder="0,00" />
+          <InputField name="sconto2" label="Sconto 2 (%)" type="number" step={0.01} min={0} max={100}
+            value={form.sconto2} onChange={e => set('sconto2', e.target.value)} placeholder="0,00" />
+          <InputField name="sconto3" label="Sconto 3 (%)" type="number" step={0.01} min={0} max={100}
+            value={form.sconto3} onChange={e => set('sconto3', e.target.value)} placeholder="0,00" />
+        </FormGrid>
+      </section>
 
-        <div className="prod-modal__actions">
-          <button className="sib-btn sib-btn--toolbar" onClick={handleCancel}>Annulla</button>
-          <button className="sib-btn sib-btn--primary" disabled={disabled} onClick={handleSave}>
-            Crea servizio
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="prod-modal__field">
-      <label className="prod-modal__label">{label}</label>
-      {children}
+      <FormActions
+        onCancel={handleCancel}
+        onConfirm={handleSave}
+        confirmLabel={editing ? 'Ri-sottometti per approvazione' : 'Invia per approvazione'}
+        confirmIcon="fa-paper-plane"
+        confirmDisabled={disabled}
+      />
     </div>
   )
 }

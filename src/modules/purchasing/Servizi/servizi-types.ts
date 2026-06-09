@@ -17,7 +17,10 @@ export interface TipoServizioMeta {
 }
 
 // Kind ammessi per i campi del form di prenotazione.
-export type FormFieldKind = 'date' | 'time' | 'number' | 'text' | 'select'
+//   number  → con min/max permette anche vincoli tipo "età minima/massima"
+//   checkbox→ consenso / opzione sì-no
+//   document→ richiesta di caricamento documento (es. documento d'identità)
+export type FormFieldKind = 'date' | 'time' | 'number' | 'text' | 'select' | 'checkbox' | 'document'
 
 export interface FormFieldSpec {
   kind: FormFieldKind
@@ -75,6 +78,39 @@ export interface Servizio {
 
   attivo:     boolean
   pubblicato: boolean
+
+  // ── Crea servizio (lato cliente) + workflow di approvazione ────────────────
+  stato?: StatoServizio             // assente = considerato 'approvato' (seed)
+  motivazioneRifiuto?: string       // valorizzata quando stato = 'rifiutato'
+  visibilita?: 'pubblico' | 'privato'
+  area?: string
+  classe?: string
+  indirizzo?: string
+  logoUrl?: string
+  incrementoB2bPct?: number         // % di incremento da B2C a B2B
+  commissione?: number              // commissione % (minimo 3,5)
+  distribuzioneB2c?: boolean
+  distribuzioneB2b?: boolean
+  quantitaMin?: number
+  quantitaMax?: number
+  sconto1?: number
+  sconto2?: number
+  sconto3?: number
+  codArticolo?: string
+
+  // Campi di prenotazione/acquisto DEFINITI PER QUESTO SERVIZIO. Se presenti,
+  // hanno priorità sui formFields del tipo: permettono di personalizzare
+  // completamente il form (data, orario, età, posto, documento, consenso…).
+  campiPrenotazione?: FormFieldSpec[]
+}
+
+// Stato del flusso di approvazione del servizio creato da un cliente.
+export type StatoServizio = 'in-attesa' | 'approvato' | 'rifiutato'
+
+export const STATO_SERVIZIO_META: Record<StatoServizio, { label: string; tone: 'warn' | 'ok' | 'ko'; icon: string }> = {
+  'in-attesa': { label: 'In attesa di approvazione', tone: 'warn', icon: 'fa-clock' },
+  'approvato': { label: 'Approvato',                  tone: 'ok',   icon: 'fa-circle-check' },
+  'rifiutato': { label: 'Rifiutato',                  tone: 'ko',   icon: 'fa-circle-xmark' },
 }
 
 export interface ServizioForm {

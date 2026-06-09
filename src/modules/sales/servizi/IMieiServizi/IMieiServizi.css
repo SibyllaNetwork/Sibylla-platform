@@ -201,3 +201,46 @@
 .miei-servizi__pagination-size .sib-select {
   width: 72px;
 }
+
+/* ── Workflow approvazione ───────────────────────────────────────────────── */
+.miei-servizi__banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-inactive);
+}
+.miei-servizi__banner i { margin-right: 6px; color: var(--color-warning); }
+.miei-servizi__banner--ko { color: var(--color-error); }
+.miei-servizi__banner--ko i { color: var(--color-error); }
+
+.miei-servizi__motivo {
+  margin-top: 4px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px;
+  color: var(--color-error);
+  line-height: 1.4;
+}
+.miei-servizi__motivo i { margin-right: 4px; }
+
+.miei-servizi__stato {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 11px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.miei-servizi__stato--warn { background: var(--color-warning-light); color: var(--color-warning); }
+.miei-servizi__stato--ok   { background: var(--color-success-light); color: var(--color-success); }
+.miei-servizi__stato--ko   { background: var(--color-error-light);   color: var(--color-error); }

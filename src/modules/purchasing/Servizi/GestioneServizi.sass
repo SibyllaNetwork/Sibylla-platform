@@ -145,3 +145,68 @@
 
   .gest-servizi__icon-btn--danger:hover
     border-color: var(--color-error, #c0392b)
+
+// ─── Workflow approvazione ──────────────────────────────────────────────────
+.gest-servizi__pending
+  margin-left: 12px
+  appearance: none
+  border: 1px solid $warning
+  background: $warning-light
+  color: $warning
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 600
+  padding: 3px 10px
+  border-radius: 11px
+  cursor: pointer
+
+  i
+    margin-right: 5px
+
+.gest-servizi__stato
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 3px 9px
+  border-radius: 11px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+  white-space: nowrap
+
+  &--warn
+    background: $warning-light
+    color: $warning
+  &--ok
+    background: $success-light
+    color: $success
+  &--ko
+    background: $error-light
+    color: $error
+
+.gest-servizi__icon-btn--ok:hover
+  border-color: $success
+
+.gest-servizi__reject-title
+  font-family: 'Poppins', sans-serif
+  font-size: 16px
+  font-weight: 600
+  color: $text-active
+  margin: 0 0 8px
+
+.gest-servizi__reject-sub
+  font-family: 'Open Sans', sans-serif
+  font-size: 13px
+  color: $text-inactive
+  line-height: 1.45
+  margin: 0 0 12px
+
+.gest-servizi__reject-text
+  width: 100%
+  resize: vertical
+
+.gest-servizi__reject-actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 14px

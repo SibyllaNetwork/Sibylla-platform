@@ -10,6 +10,10 @@ interface ServiziState {
   removeServizio: (id: string) => void
   toggleAttivo:     (id: string) => void
   togglePubblicato: (id: string) => void
+
+  // ── Workflow di approvazione (supporto Sibylla) ────────────────────────────
+  approvaServizio: (id: string) => void
+  rifiutaServizio: (id: string, motivazione: string) => void
 }
 
 const newId = () => `srv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
@@ -30,4 +34,13 @@ export const useServiziStore = create<ServiziState>((set) => ({
     set(state => ({ servizi: state.servizi.map(s => s.id === id ? { ...s, attivo: !s.attivo } : s) })),
   togglePubblicato: (id) =>
     set(state => ({ servizi: state.servizi.map(s => s.id === id ? { ...s, pubblicato: !s.pubblicato } : s) })),
+
+  approvaServizio: (id) =>
+    set(state => ({ servizi: state.servizi.map(s => s.id === id
+      ? { ...s, stato: 'approvato', pubblicato: true, motivazioneRifiuto: undefined }
+      : s) })),
+  rifiutaServizio: (id, motivazione) =>
+    set(state => ({ servizi: state.servizi.map(s => s.id === id
+      ? { ...s, stato: 'rifiutato', pubblicato: false, motivazioneRifiuto: motivazione }
+      : s) })),
 }))

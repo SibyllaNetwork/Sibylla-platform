@@ -1,0 +1,233 @@
+@use '../../../../styles/tokens' as *
+
+.crea-servizio
+
+  .crea-servizio__section
+    background: $white
+    border: 1px solid $border
+    border-radius: 12px
+    padding: 18px 20px
+    margin-bottom: 16px
+
+    .sib-section-title
+      margin: 0 0 14px
+
+  // riusa lo stesso spacing fra le FormGrid impilate
+  .crea-servizio__section > .grid + .grid,
+  .crea-servizio__section > .grid + .crea-servizio__dist
+    margin-top: 12px
+
+  .crea-servizio__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .crea-servizio__label
+    font-size: 11px
+    font-weight: 600
+    font-family: 'Open Sans', sans-serif
+    color: $text-active
+
+  // ── Visibilità ──────────────────────────────────────────────────────────────
+  .crea-servizio__radio-row
+    display: flex
+    align-items: center
+    gap: 18px
+    height: 38px
+
+  .crea-servizio__radio
+    display: flex
+    align-items: center
+    gap: 6px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+
+  // ── Logo / Foto ───────────────────────────────────────────────────────────
+  .crea-servizio__media
+    display: flex
+    align-items: center
+    gap: 10px
+
+  .crea-servizio__media-preview
+    flex: 0 0 auto
+    width: 44px
+    height: 44px
+    border-radius: 8px
+    border: 1px solid $border
+    background: var(--color-bg)
+    display: flex
+    align-items: center
+    justify-content: center
+    overflow: hidden
+    color: $text-disabled
+    font-size: 18px
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    &--logo
+      border-radius: 50%
+
+  // ── Distribuzione ─────────────────────────────────────────────────────────
+  .crea-servizio__hint
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: $text-inactive
+    margin: 0 0 12px
+
+  .crea-servizio__dist
+    display: flex
+    flex-direction: column
+    gap: 10px
+    margin-bottom: 12px
+
+  .crea-servizio__derived
+    height: 38px
+    display: flex
+    align-items: center
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 7px
+    background: var(--color-bg)
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  .crea-servizio__error
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: $error
+    margin-top: 8px
+
+  // ── Banner servizio rifiutato ───────────────────────────────────────────────
+  .crea-servizio__rejected
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    background: var(--color-error-light)
+    border: 1px solid var(--color-error)
+    border-radius: 10px
+    padding: 12px 14px
+    margin-bottom: 16px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    line-height: 1.45
+    color: $text-active
+
+    i
+      color: $error
+      font-size: 16px
+      margin-top: 1px
+
+  // ── Builder campi di prenotazione ───────────────────────────────────────────
+  .crea-servizio__presets
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+    margin-bottom: 14px
+
+  .crea-servizio__preset
+    appearance: none
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 12px
+    border: 1px dashed $border
+    border-radius: 20px
+    background: var(--color-bg)
+    cursor: pointer
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+    &:hover
+      border-color: $primary
+      border-style: solid
+
+  .crea-servizio__campi-empty
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: $text-disabled
+    padding: 14px
+    border: 1px dashed $border
+    border-radius: 8px
+    text-align: center
+
+  .crea-servizio__campi
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .crea-servizio__campo
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 12px 14px
+    background: var(--color-bg)
+
+  .crea-servizio__campo-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 10px
+
+  .crea-servizio__campo-idx
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    font-weight: 700
+    color: $text-disabled
+
+  .crea-servizio__campo-ctrls
+    display: inline-flex
+    gap: 4px
+
+    button
+      width: 26px
+      height: 26px
+      border: 1px solid $border
+      border-radius: 6px
+      background: $white
+      cursor: pointer
+      color: $text-inactive
+      font-size: 12px
+
+      &:hover:not(:disabled)
+        border-color: $primary
+        color: $primary
+
+      &:disabled
+        opacity: 0.4
+        cursor: not-allowed
+
+  .crea-servizio__campo-del:hover:not(:disabled)
+    border-color: $error
+    color: $error
+
+  .crea-servizio__campo-grid
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: 12px
+
+    .crea-servizio__field
+      flex: 0 0 160px
+
+    .crea-servizio__field--wide
+      flex: 1 1 260px
+
+  .crea-servizio__campo-check
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 38px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: $text-active
+    cursor: pointer
+
+  .crea-servizio__add-campo
+    margin-top: 12px

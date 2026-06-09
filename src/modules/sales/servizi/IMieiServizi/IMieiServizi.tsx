@@ -5,33 +5,14 @@ import Ico from '../../../../core/icons/Ico'
 import Pagination from '../../../../core/components/Pagination'
 import { PageToolbar, type ViewMode } from '../../../purchasing/_shared/PageToolbar'
 import ConfirmDeleteModal from '../../../../admin/SibyllaAdminPanel/modals/ConfirmDeleteModal/ConfirmDeleteModal'
-import { apiFetchSibylla } from '../../../../services/api'
+import { useServiziStore } from '../../../../store/useServiziStore'
+import { STATO_SERVIZIO_META, type StatoServizio } from '../../../purchasing/Servizi/servizi-types'
 import './IMieiServizi.css'
 
 /**
- * I miei servizi — replica `Views/Servizi/Servizi.cshtml` con look-and-feel
- * allineato a Lista prodotti (PageToolbar, tabella, toggle, paginazione).
+ * I miei servizi — catalogo servizi della struttura (da useServiziStore), con
+ * stato del workflow di approvazione, modifica/ri-sottomissione ed eliminazione.
  */
-
-interface Servizio {
-  id: number
-  nome: string
-  descrizione: string
-  prezzo_b2b: number
-  prezzo_b2c: number
-  classe: string
-  area: string
-  attivo: boolean
-}
-
-const FALLBACK: Servizio[] = [
-  { id: 1, nome: 'Colazione',          descrizione: 'Buffet incluso',     prezzo_b2c: 15, prezzo_b2b: 12, classe: 'F&B',         area: 'Ristorazione e Cibo',                  attivo: true  },
-  { id: 2, nome: 'Spa - Massaggio 60', descrizione: 'Massaggio relax',     prezzo_b2c: 80, prezzo_b2b: 65, classe: 'Fitness',     area: 'Servizi per il Benessere e la Salute', attivo: true  },
-  { id: 3, nome: 'Transfer aeroporto', descrizione: 'A/R berlina',         prezzo_b2c: 60, prezzo_b2b: 50, classe: 'NCC',         area: 'Trasferimenti',                        attivo: true  },
-  { id: 4, nome: 'Tour cantina',       descrizione: 'Visita+degustazione', prezzo_b2c: 45, prezzo_b2b: 38, classe: 'Tours',       area: 'Intrattenimento e Ricreazione',        attivo: false },
-  { id: 5, nome: 'Babysitter sera',    descrizione: 'Servizio 4h',         prezzo_b2c: 50, prezzo_b2b: 40, classe: 'Servizio di babysitter', area: 'Servizi per Famiglie e Bambini',   attivo: true  },
-  { id: 6, nome: 'Facchinaggio',       descrizione: 'Trasporto bagagli',   prezzo_b2c: 12, prezzo_b2b: 9,  classe: 'Facchinaggio', area: 'Facchinaggio',                         attivo: true  },
-]
 
 type SortKey = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'classe-asc'
 
@@ -44,104 +25,71 @@ const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
 ]
 
 const DEFAULT_SORT: SortKey = 'name-asc'
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const
 const DEFAULT_PAGE_SIZE = 25
 
+const statoOf = (s: { stato?: StatoServizio }): StatoServizio => s.stato ?? 'approvato'
+
 export default function IMieiServizi({ navigate }: { navigate: (p: string) => void }) {
-  const [items, setItems] = useState<Servizio[]>(FALLBACK)
-  const [, setLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const servizi      = useServiziStore(s => s.servizi)
+  const toggleAttivo = useServiziStore(s => s.toggleAttivo)
+  const removeServizio = useServiziStore(s => s.removeServizio)
 
   const [view, setView] = useState<ViewMode>('list')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT)
   const [classeFilter, setClasseFilter] = useState<string>('')
   const [areaFilter, setAreaFilter] = useState<string>('')
+  const [statoFilter, setStatoFilter] = useState<'' | StatoServizio>('')
 
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
   const [page, setPage] = useState<number>(1)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    apiFetchSibylla<Servizio[]>('servizi/GetServizi', { method: 'POST', body: {} })
-      .then((d) => {
-        if (cancelled) return
-        // Normalizzazione campi mancanti (BE legacy senza area)
-        const norm = (d || []).map((s, i) => ({
-          id: s.id ?? i + 1,
-          nome: s.nome ?? '',
-          descrizione: s.descrizione ?? '',
-          prezzo_b2b: Number(s.prezzo_b2b) || 0,
-          prezzo_b2c: Number(s.prezzo_b2c) || 0,
-          classe: s.classe ?? '',
-          area: s.area ?? '',
-          attivo: s.attivo ?? true,
-        }))
-        if (norm.length > 0) setItems(norm)
-        setLoaded(true)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        setError(err?.message ?? 'Errore')
-        setLoaded(true)
-      })
-    return () => { cancelled = true }
-  }, [])
+  const aree = useMemo(() => Array.from(new Set(servizi.map(s => s.area).filter(Boolean) as string[])).sort(), [servizi])
+  const classi = useMemo(() => Array.from(new Set(servizi.map(s => s.classe).filter(Boolean) as string[])).sort(), [servizi])
 
-  const classi = useMemo(
-    () => Array.from(new Set(items.map((s) => s.classe).filter(Boolean))).sort(),
-    [items],
-  )
-  const aree = useMemo(
-    () => Array.from(new Set(items.map((s) => s.area).filter(Boolean))).sort(),
-    [items],
-  )
+  const inAttesa = servizi.filter(s => statoOf(s) === 'in-attesa').length
+  const rifiutati = servizi.filter(s => statoOf(s) === 'rifiutato').length
 
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const filtered = items.filter((s) => {
+    const filtered = servizi.filter((s) => {
       if (classeFilter && s.classe !== classeFilter) return false
       if (areaFilter && s.area !== areaFilter) return false
+      if (statoFilter && statoOf(s) !== statoFilter) return false
       if (!q) return true
       return (
         s.nome.toLowerCase().includes(q) ||
-        s.descrizione.toLowerCase().includes(q) ||
-        s.classe.toLowerCase().includes(q) ||
-        s.area.toLowerCase().includes(q)
+        (s.descrizione ?? '').toLowerCase().includes(q) ||
+        (s.classe ?? '').toLowerCase().includes(q) ||
+        (s.area ?? '').toLowerCase().includes(q)
       )
     })
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name-asc':    return a.nome.localeCompare(b.nome)
         case 'name-desc':   return b.nome.localeCompare(a.nome)
-        case 'classe-asc':  return a.classe.localeCompare(b.classe) || a.nome.localeCompare(b.nome)
-        case 'price-asc':   return a.prezzo_b2c - b.prezzo_b2c
-        case 'price-desc':  return b.prezzo_b2c - a.prezzo_b2c
+        case 'classe-asc':  return (a.classe ?? '').localeCompare(b.classe ?? '') || a.nome.localeCompare(b.nome)
+        case 'price-asc':   return a.prezzoB2C - b.prezzoB2C
+        case 'price-desc':  return b.prezzoB2C - a.prezzoB2C
       }
     })
-  }, [items, search, sortBy, classeFilter, areaFilter])
+  }, [servizi, search, sortBy, classeFilter, areaFilter, statoFilter])
 
-  const filtersDirty = sortBy !== DEFAULT_SORT || classeFilter !== '' || areaFilter !== ''
-  const resetFilters = () => { setSortBy(DEFAULT_SORT); setClasseFilter(''); setAreaFilter('') }
+  const filtersDirty = sortBy !== DEFAULT_SORT || classeFilter !== '' || areaFilter !== '' || statoFilter !== ''
+  const resetFilters = () => { setSortBy(DEFAULT_SORT); setClasseFilter(''); setAreaFilter(''); setStatoFilter('') }
 
-  // Paginazione
   const total = displayed.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
-
-  useEffect(() => { setPage(1) }, [search, sortBy, classeFilter, areaFilter, pageSize])
+  useEffect(() => { setPage(1) }, [search, sortBy, classeFilter, areaFilter, statoFilter, pageSize])
   useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
-
   const pageStart = (page - 1) * pageSize
   const pageEnd = Math.min(pageStart + pageSize, total)
   const paged = displayed.slice(pageStart, pageEnd)
 
-  const toggleAttivo = (id: number) =>
-    setItems(items.map((s) => (s.id === id ? { ...s, attivo: !s.attivo } : s)))
-
   const confirmDelete = () => {
     if (deletingId == null) return
-    setItems(items.filter((s) => s.id !== deletingId))
+    removeServizio(deletingId)
     setDeletingId(null)
   }
 
@@ -150,12 +98,13 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
       <BtnBack onClick={() => navigate('home')} />
       <PageHeader
         title="I miei servizi"
-        subtitle="Catalogo dei servizi della tua struttura, con modifica e gestione dei prezzi"
+        subtitle="Catalogo dei servizi della tua struttura, con stato di approvazione e gestione dei prezzi"
       />
 
-      {error && (
-        <div className="miei-servizi__warn">
-          Backend non raggiungibile — mostro dati di esempio. ({error})
+      {(inAttesa > 0 || rifiutati > 0) && (
+        <div className="miei-servizi__banner">
+          {inAttesa > 0 && <span><i className="fa-duotone fa-clock" /> {inAttesa} in attesa di approvazione</span>}
+          {rifiutati > 0 && <span className="miei-servizi__banner--ko"><i className="fa-duotone fa-circle-xmark" /> {rifiutati} rifiutati — leggi la motivazione e ri-sottoponi</span>}
         </div>
       )}
 
@@ -166,11 +115,7 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
         filtersDirty={filtersDirty}
         onResetFilters={resetFilters}
         extraActions={
-          <button
-            type="button"
-            className="sib-btn sib-btn--primary"
-            onClick={() => navigate('crea-servizio')}
-          >
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('crea-servizio')}>
             <Ico n="plus" s={12} c="#fff" />
             Crea servizio
           </button>
@@ -182,38 +127,31 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
               <div className="page-toolbar__filter-options">
                 {SORT_OPTIONS.map((opt) => (
                   <label key={opt.value} className="page-toolbar__filter-option">
-                    <input
-                      type="radio"
-                      name="servizi-sortBy"
-                      value={opt.value}
-                      checked={sortBy === opt.value}
-                      onChange={() => setSortBy(opt.value)}
-                    />
+                    <input type="radio" name="servizi-sortBy" value={opt.value} checked={sortBy === opt.value} onChange={() => setSortBy(opt.value)} />
                     <span>{opt.label}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
-
+            <fieldset className="page-toolbar__filter-section">
+              <legend className="page-toolbar__filter-label">Stato</legend>
+              <select className="sib-select" value={statoFilter} onChange={(e) => setStatoFilter(e.target.value as '' | StatoServizio)}>
+                <option value="">Tutti gli stati</option>
+                <option value="in-attesa">In attesa di approvazione</option>
+                <option value="approvato">Approvato</option>
+                <option value="rifiutato">Rifiutato</option>
+              </select>
+            </fieldset>
             <fieldset className="page-toolbar__filter-section">
               <legend className="page-toolbar__filter-label">Area</legend>
-              <select
-                className="sib-select"
-                value={areaFilter}
-                onChange={(e) => setAreaFilter(e.target.value)}
-              >
+              <select className="sib-select" value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
                 <option value="">Tutte le aree</option>
                 {aree.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
             </fieldset>
-
             <fieldset className="page-toolbar__filter-section">
               <legend className="page-toolbar__filter-label">Classe</legend>
-              <select
-                className="sib-select"
-                value={classeFilter}
-                onChange={(e) => setClasseFilter(e.target.value)}
-              >
+              <select className="sib-select" value={classeFilter} onChange={(e) => setClasseFilter(e.target.value)}>
                 <option value="">Tutte le classi</option>
                 {classi.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -223,7 +161,7 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
       />
 
       <div className="miei-servizi__count">
-        {total} servizi{total !== items.length && ` su ${items.length}`}
+        {total} servizi{total !== servizi.length && ` su ${servizi.length}`}
       </div>
 
       {total === 0 ? (
@@ -238,61 +176,50 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
                 <th>Classe</th>
                 <th>Prezzo B2C</th>
                 <th>Prezzo B2B</th>
-                <th>Stato</th>
+                <th>Approvazione</th>
+                <th>Attivo</th>
                 <th className="miei-servizi__th-actions">Azioni</th>
               </tr>
             </thead>
             <tbody>
-              {paged.map((s) => (
-                <tr key={s.id} className={s.attivo ? '' : 'miei-servizi__row--off'}>
-                  <td>
-                    <div className="miei-servizi__name">{s.nome}</div>
-                    {s.descrizione && (
-                      <div className="miei-servizi__sub">{s.descrizione}</div>
-                    )}
-                  </td>
-                  <td>{s.area || '—'}</td>
-                  <td>{s.classe || '—'}</td>
-                  <td>
-                    {s.prezzo_b2c > 0
-                      ? <span className="miei-servizi__price">€ {s.prezzo_b2c.toFixed(2)}</span>
-                      : <span className="miei-servizi__price miei-servizi__price--off">—</span>}
-                  </td>
-                  <td>
-                    {s.prezzo_b2b > 0
-                      ? <span className="miei-servizi__price">€ {s.prezzo_b2b.toFixed(2)}</span>
-                      : <span className="miei-servizi__price miei-servizi__price--off">—</span>}
-                  </td>
-                  <td>
-                    <label className="miei-servizi__switch" title={s.attivo ? 'Disattiva' : 'Attiva'}>
-                      <input
-                        type="checkbox"
-                        checked={s.attivo}
-                        onChange={() => toggleAttivo(s.id)}
-                      />
-                      <span className="miei-servizi__switch-slider" />
-                    </label>
-                  </td>
-                  <td className="miei-servizi__cell-actions">
-                    <button
-                      type="button"
-                      className="miei-servizi__icon-btn"
-                      title="Modifica"
-                      onClick={() => navigate('crea-servizio')}
-                    >
-                      <Ico n="edit" s={13} c="var(--color-text-inactive)" />
-                    </button>
-                    <button
-                      type="button"
-                      className="miei-servizi__icon-btn miei-servizi__icon-btn--danger"
-                      title="Elimina"
-                      onClick={() => setDeletingId(s.id)}
-                    >
-                      <Ico n="trash" s={13} c="var(--color-text-inactive)" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {paged.map((s) => {
+                const st = statoOf(s)
+                const meta = STATO_SERVIZIO_META[st]
+                return (
+                  <tr key={s.id} className={s.attivo ? '' : 'miei-servizi__row--off'}>
+                    <td>
+                      <div className="miei-servizi__name">{s.nome}</div>
+                      {s.descrizione && <div className="miei-servizi__sub">{s.descrizione}</div>}
+                      {st === 'rifiutato' && s.motivazioneRifiuto && (
+                        <div className="miei-servizi__motivo"><i className="fa-duotone fa-comment-dots" /> {s.motivazioneRifiuto}</div>
+                      )}
+                    </td>
+                    <td>{s.area || '—'}</td>
+                    <td>{s.classe || '—'}</td>
+                    <td>{s.prezzoB2C > 0 ? <span className="miei-servizi__price">€ {s.prezzoB2C.toFixed(2)}</span> : <span className="miei-servizi__price miei-servizi__price--off">—</span>}</td>
+                    <td>{s.prezzoB2B > 0 ? <span className="miei-servizi__price">€ {s.prezzoB2B.toFixed(2)}</span> : <span className="miei-servizi__price miei-servizi__price--off">—</span>}</td>
+                    <td>
+                      <span className={`miei-servizi__stato miei-servizi__stato--${meta.tone}`}>
+                        <i className={`fa-duotone ${meta.icon}`} /> {meta.label}
+                      </span>
+                    </td>
+                    <td>
+                      <label className="miei-servizi__switch" title={s.attivo ? 'Disattiva' : 'Attiva'}>
+                        <input type="checkbox" checked={s.attivo} onChange={() => toggleAttivo(s.id)} />
+                        <span className="miei-servizi__switch-slider" />
+                      </label>
+                    </td>
+                    <td className="miei-servizi__cell-actions">
+                      <button type="button" className="miei-servizi__icon-btn" title={st === 'rifiutato' ? 'Modifica e ri-sottometti' : 'Modifica'} onClick={() => navigate(`crea-servizio:${s.id}`)}>
+                        <Ico n="edit" s={13} c="var(--color-text-inactive)" />
+                      </button>
+                      <button type="button" className="miei-servizi__icon-btn miei-servizi__icon-btn--danger" title="Elimina" onClick={() => setDeletingId(s.id)}>
+                        <Ico n="trash" s={13} c="var(--color-text-inactive)" />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -300,21 +227,15 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
 
       {total > 0 && (
         <Pagination
-          page={page}
-          totalPages={totalPages}
-          pageStart={pageStart}
-          pageEnd={pageEnd}
-          total={total}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
+          page={page} totalPages={totalPages} pageStart={pageStart} pageEnd={pageEnd}
+          total={total} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize}
         />
       )}
 
       <ConfirmDeleteModal
         open={deletingId !== null}
         title="Elimina servizio"
-        itemName={items.find((s) => s.id === deletingId)?.nome || ''}
+        itemName={servizi.find((s) => s.id === deletingId)?.nome || ''}
         onClose={() => setDeletingId(null)}
         onConfirm={confirmDelete}
       />

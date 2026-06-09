@@ -5,12 +5,16 @@ import Ico from '../../../core/icons/Ico'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
 import ConfirmDeleteModal from '../../../admin/SibyllaAdminPanel/modals/ConfirmDeleteModal/ConfirmDeleteModal'
+import Modal from '../../../core/components/Modal'
 import { useServiziStore } from '../../../store/useServiziStore'
 import { useTipiServizioStore } from '../../../store/useTipiServizioStore'
+import { useNotificheServiziStore } from '../../../store/useNotificheServiziStore'
 import {
+  STATO_SERVIZIO_META,
   type Servizio,
   type ServizioForm,
   type TipoServizio,
+  type StatoServizio,
 } from './servizi-types'
 import ServizioModal from './ServizioModal'
 import './GestioneServizi.sass'
@@ -107,6 +111,9 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
   const removeServizio   = useServiziStore(s => s.removeServizio)
   const toggleAttivo     = useServiziStore(s => s.toggleAttivo)
   const togglePubblicato = useServiziStore(s => s.togglePubblicato)
+  const approvaServizio  = useServiziStore(s => s.approvaServizio)
+  const rifiutaServizio  = useServiziStore(s => s.rifiutaServizio)
+  const pushNotifica     = useNotificheServiziStore(s => s.push)
 
   const [view, setView] = useState<ViewMode>('list')
   const [search, setSearch] = useState('')
@@ -117,11 +124,30 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
   const [editing, setEditing] = useState<Servizio | null>(null)
   const [form, setForm] = useState<ServizioForm>(EMPTY_FORM)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [statoFilter, setStatoFilter] = useState<'' | StatoServizio>('')
+  const [rejectTarget, setRejectTarget] = useState<Servizio | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+
+  const statoOf = (s: Servizio): StatoServizio => s.stato ?? 'approvato'
+  const pendingCount = servizi.filter(s => statoOf(s) === 'in-attesa').length
+
+  const approva = (s: Servizio) => {
+    approvaServizio(s.id)
+    pushNotifica({ destinatario: 'cliente', tipo: 'approvato', servizioId: s.id, servizioNome: s.nome, ts: Date.now() })
+  }
+  const confirmReject = () => {
+    if (!rejectTarget || !rejectReason.trim()) return
+    rifiutaServizio(rejectTarget.id, rejectReason.trim())
+    pushNotifica({ destinatario: 'cliente', tipo: 'rifiutato', servizioId: rejectTarget.id, servizioNome: rejectTarget.nome, motivazione: rejectReason.trim(), ts: Date.now() })
+    setRejectTarget(null)
+    setRejectReason('')
+  }
 
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase()
     const filtered = servizi.filter(s => {
       if (tipoFilter && s.tipo !== tipoFilter) return false
+      if (statoFilter && (s.stato ?? 'approvato') !== statoFilter) return false
       if (!q) return true
       return (
         s.nome.toLowerCase().includes(q) ||
@@ -139,10 +165,10 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
         case 'price-desc': return b.prezzoAgora - a.prezzoAgora
       }
     })
-  }, [servizi, search, sortBy, tipoFilter])
+  }, [servizi, search, sortBy, tipoFilter, statoFilter])
 
-  const filtersDirty = sortBy !== DEFAULT_SORT || tipoFilter !== ''
-  const resetFilters = () => { setSortBy(DEFAULT_SORT); setTipoFilter('') }
+  const filtersDirty = sortBy !== DEFAULT_SORT || tipoFilter !== '' || statoFilter !== ''
+  const resetFilters = () => { setSortBy(DEFAULT_SORT); setTipoFilter(''); setStatoFilter('') }
 
   const openCreate = () => {
     setEditing(null)
@@ -226,12 +252,27 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
                 ))}
               </select>
             </fieldset>
+
+            <fieldset className="page-toolbar__filter-section">
+              <legend className="page-toolbar__filter-label">Stato approvazione</legend>
+              <select className="sib-select" value={statoFilter} onChange={(e) => setStatoFilter(e.target.value as '' | StatoServizio)}>
+                <option value="">Tutti gli stati</option>
+                <option value="in-attesa">In attesa di approvazione</option>
+                <option value="approvato">Approvato</option>
+                <option value="rifiutato">Rifiutato</option>
+              </select>
+            </fieldset>
           </>
         }
       />
 
       <div className="gest-servizi__count">
         {displayed.length} servizi{displayed.length !== servizi.length && ` su ${servizi.length}`}
+        {pendingCount > 0 && (
+          <button type="button" className="gest-servizi__pending" onClick={() => setStatoFilter('in-attesa')}>
+            <i className="fa-duotone fa-clock" /> {pendingCount} in attesa di approvazione
+          </button>
+        )}
       </div>
 
       {displayed.length === 0 ? (
@@ -251,6 +292,7 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
                 <th>B2C</th>
                 <th>Attivo</th>
                 <th>Pubblicato</th>
+                <th>Stato</th>
                 <th className="gest-servizi__th-actions">Azioni</th>
               </tr>
             </thead>
@@ -300,7 +342,27 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
                         <span className="gest-servizi__switch-slider" />
                       </label>
                     </td>
+                    <td>
+                      {(() => { const m = STATO_SERVIZIO_META[statoOf(s)]; return (
+                        <span
+                          className={`gest-servizi__stato gest-servizi__stato--${m.tone}`}
+                          title={statoOf(s) === 'rifiutato' && s.motivazioneRifiuto ? s.motivazioneRifiuto : undefined}
+                        >
+                          <i className={`fa-duotone ${m.icon}`} /> {m.label}
+                        </span>
+                      ) })()}
+                    </td>
                     <td className="gest-servizi__cell-actions">
+                      {statoOf(s) === 'in-attesa' && (
+                        <>
+                          <button type="button" className="gest-servizi__icon-btn gest-servizi__icon-btn--ok" title="Approva" onClick={() => approva(s)}>
+                            <Ico n="check" s={13} c="var(--color-success)" />
+                          </button>
+                          <button type="button" className="gest-servizi__icon-btn gest-servizi__icon-btn--danger" title="Rifiuta" onClick={() => { setRejectTarget(s); setRejectReason('') }}>
+                            <Ico n="x" s={13} c="var(--color-error)" />
+                          </button>
+                        </>
+                      )}
                       <button
                         type="button"
                         className="gest-servizi__icon-btn"
@@ -342,6 +404,29 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
         onClose={() => setDeletingId(null)}
         onConfirm={confirmDelete}
       />
+
+      <Modal open={rejectTarget !== null} onClose={() => setRejectTarget(null)} size="md">
+        <div className="gest-servizi__reject">
+          <h3 className="gest-servizi__reject-title">Rifiuta servizio</h3>
+          <p className="gest-servizi__reject-sub">
+            Servizio: <strong>{rejectTarget?.nome}</strong>. Indica la motivazione del rifiuto: verrà mostrata al cliente,
+            che potrà correggere e ri-sottoporre il servizio.
+          </p>
+          <textarea
+            className="sib-input gest-servizi__reject-text"
+            rows={4}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="Es. Le foto non rispettano le linee guida: aggiorna l'immagine principale."
+          />
+          <div className="gest-servizi__reject-actions">
+            <button className="sib-btn sib-btn--toolbar" onClick={() => setRejectTarget(null)}>Annulla</button>
+            <button className="sib-btn sib-btn--primary" disabled={!rejectReason.trim()} onClick={confirmReject}>
+              Rifiuta e notifica
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

@@ -1,26 +1,31 @@
 @use '../../../styles/tokens' as *
 
-// ─── Page title override ──────────────────────────────────────────────────────
+// ─── Page title ────────────────────────────────────────────────────────────────
 .analisi__page-title
   font-size: 21px !important
   margin: 0 0 3px !important
 
-// ─── Filter bar ───────────────────────────────────────────────────────────────
+// ─── Filter bar ──────────────────────────────────────────────────────────────
 .analisi__filter-bar
   display: flex
   align-items: flex-end
-  gap: 14px
-  margin-bottom: 12px
+  gap: 16px
+  margin-bottom: 14px
   flex-wrap: wrap
 
 .analisi__filter-group
   display: flex
   align-items: center
-  gap: 5px
+  gap: 6px
 
-  &--ml-auto
-    margin-left: auto
-    gap: 5px
+.analisi__filter-group--col
+  display: flex
+  flex-direction: column
+  gap: 4px
+  justify-content: flex-end
+
+.analisi__filter-group--ml-auto
+  margin-left: auto
 
 .analisi__filter-label
   font-size: 12px
@@ -29,99 +34,76 @@
   line-height: 1.2
   white-space: nowrap
 
-// ─── Field (select / date input) ─────────────────────────────────────────────
-.analisi__field
-  height: 30px
-  padding: 0 22px 0 8px
-  border: 1px solid $border
-  border-radius: 6px
-  font-size: 11px
-  color: $text-active
-  background: $white
-  font-family: 'Open Sans', sans-serif
-  outline: none
-  cursor: pointer
-  appearance: none
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236E7175' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
-  background-repeat: no-repeat
-  background-position: right 5px center
-
-  &--130
-    width: 130px
-
-  &--116
-    width: 116px
-
-.analisi__date-sep
-  color: $text-disabled
-  font-size: 12px
+.analisi__radio-row
+  display: flex
+  align-items: center
+  gap: 16px
+  height: 36px
 
 .analisi__radio-label
   display: flex
   align-items: center
-  gap: 3px
+  gap: 5px
   cursor: pointer
-  font-size: 11px
+  font-size: 13px
   color: $text-active
 
-.analisi__radio
-  accent-color: $primary
-  width: 12px
-  height: 12px
-
-.analisi__filter-btn
+.analisi__filter-actions
   display: flex
+  flex-direction: row
   align-items: center
-  gap: 4px
+  gap: 8px
   height: 36px
-  padding: 0 12px
-  border: 1px solid $border
-  border-radius: 6px
-  background: $white
-  cursor: pointer
-  font-size: 11px
-  font-weight: 600
-  color: $text-active
-  transition: border-color 0.15s, color 0.15s
-
-  &:hover
-    border-color: $primary
-    color: $primary
-
-.analisi__filter-chip
-  display: flex
-  align-items: center
-  gap: 4px
-  height: 36px
-  padding: 0 10px
-  background: var(--color-bg)
-  border: 1px solid $border
-  border-radius: 6px
-  font-size: 11px
-  font-weight: 600
-  color: $text-active
 
 .analisi__icon-btn
   width: 36px
   height: 36px
   border: 1px solid $border
-  border-radius: 6px
+  border-radius: 8px
   background: $white
   cursor: pointer
   display: flex
   align-items: center
   justify-content: center
-  transition: border-color 0.15s
+  font-size: 15px
+  color: $primary
+  transition: border-color 0.15s, background 0.15s
 
   &:hover
     border-color: $primary
+    background: $primary-50
 
-  &--lg
-    width: 30px
-    height: 30px
-    border-radius: 7px
+  &--round
+    border-radius: 50%
 
-// ─── Table wrapper ────────────────────────────────────────────────────────────
+.analisi__pickup
+  display: flex
+  align-items: center
+  gap: 14px
+  height: 36px
+  padding: 0 14px
+  border: 1px solid $border
+  border-radius: 8px
+  background: $white
+
+.analisi__pickup-title
+  font-size: 13px
+  font-weight: 600
+  color: $text-inactive
+
+.analisi__pickup-metric
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+  i
+    color: $primary
+    font-size: 13px
+
+// ─── Table ───────────────────────────────────────────────────────────────────
 .analisi__table-wrap
   background: $white
   border-radius: 12px
@@ -134,58 +116,28 @@
 .analisi__table
   border-collapse: collapse
   width: 100%
-  min-width: 1180px
+  min-width: 1360px
 
-// ─── TH ───────────────────────────────────────────────────────────────────────
 .analisi__th
-  padding: 8px 5px
-  font-size: 9px
-  font-weight: 700
-  color: $text-disabled
-  text-align: var(--cell-align, left)
-  text-transform: uppercase
-  letter-spacing: 0.35px
+  padding: 9px 8px
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  text-align: left
   white-space: nowrap
   background: var(--color-bg)
   border-bottom: 1px solid $border
   border-right: 1px solid $border
+  vertical-align: middle
 
   &--last
     border-right: none
 
-.analisi__th-empty
-  padding: 0
-  background: var(--color-bg)
-  border-bottom: 1px solid $border
-  border-right: 1px solid $border
-
-  &--last
-    border-right: none
-
-.analisi__pickup-th
-  padding: 3px 2px
-  text-align: center
-  background: #EEF2F7
-  border-bottom: 1px solid $border
-  border-right: 1px solid $border
-
-.analisi__pickup-th-inner
-  display: flex
-  flex-direction: column
-  align-items: center
-  gap: 1px
-
-.analisi__pickup-lbl
-  font-size: 8px
-  font-weight: 700
-  color: $text-disabled
-
-// ─── TD ───────────────────────────────────────────────────────────────────────
 .analisi__td
-  padding: 8px 5px
-  font-size: 12px
+  padding: 10px 8px
+  font-size: 13px
   color: $text-active
-  text-align: var(--cell-align, left)
+  text-align: left
   vertical-align: middle
   border-bottom: 1px solid $border
   border-right: 1px solid $border
@@ -194,14 +146,53 @@
   &--last
     border-right: none
 
-  &--sm
-    font-size: 11px
+// ─── Header pickup (calendario + numero) ──────────────────────────────────────
+.analisi__pk-head
+  position: relative
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 24px
+  height: 24px
 
-  &--inactive
-    font-weight: 600
+  i
+    font-size: 22px
     color: $text-inactive
 
-// ─── Row elements ─────────────────────────────────────────────────────────────
+.analisi__pk-head-n
+  position: absolute
+  top: 57%
+  left: 0
+  right: 0
+  transform: translateY(-50%)
+  text-align: center
+  font-size: 8px
+  font-weight: 700
+  color: $text-inactive
+
+// ─── Header Analisi (↔ elasticità) ────────────────────────────────────────────
+.analisi__an-head
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+.analisi__an-head-ico
+  font-size: 14px
+  color: $primary
+  cursor: help
+
+// ─── Row ───────────────────────────────────────────────────────────────────
+.analisi__row
+  background: transparent
+  transition: background 0.12s
+
+  &:hover
+    background: $primary-50
+
+  &--expanded,
+  &--expanded:hover
+    background: $primary-100
+
 .analisi__expand-btn
   display: flex
   align-items: center
@@ -220,54 +211,48 @@
     transform: rotate(180deg)
 
 .analisi__date-cell
-  font-size: 11px
+  font-size: 13px
   font-weight: 600
   color: $primary
 
-.analisi__stag-badge
-  font-size: 9px
-  background: $blue-light
-  color: $link
-  border-radius: 4px
-  padding: 2px 5px
-  font-weight: 600
-  white-space: nowrap
+// ─── Icone celle (FA duotone, standard piattaforma) ───────────────────────────
+.analisi__ev-ico
+  font-size: 20px
+  color: $primary
+
+.analisi__meteo-ico
+  font-size: 20px
+  color: $primary
+
+.analisi__nd
+  font-size: 12px
+  color: $text-disabled
+
+.analisi__stag
+  font-size: 13px
+  color: $text-active
 
 .analisi__pct-val
-  font-weight: 600
-  font-size: 12px
+  font-weight: 700
+  font-size: 13px
 
 .analisi__rev-val
   font-weight: 600
-  color: $success
-  font-size: 12px
+  color: $text-active
 
-.analisi__disp-cell
-  display: flex
-  align-items: center
-  justify-content: center
-  gap: 3px
-
-.analisi__disp-num
-  font-weight: 600
-  font-size: 12px
-
-.analisi__disp-bed
-  font-size: 13px
+.analisi__camera
   color: $text-disabled
 
-.analisi__disp-trend
-  font-size: 10px
+.analisi__sugg
+  font-weight: 600
+  color: $text-active
 
-  &--up
-    color: $success
+.analisi__compset
+  color: $text-disabled
 
-  &--down
-    color: $error
-
-// ─── Pickup cells (inline table) ──────────────────────────────────────────────
+// ─── Pickup cell ─────────────────────────────────────────────────────────────
 .analisi__pickup-cell
-  font-size: 12px
+  font-size: 13px
   font-weight: 400
   color: $text-disabled
 
@@ -275,130 +260,191 @@
     font-weight: 700
     color: $primary
 
-// ─── Row background (dynamic) ─────────────────────────────────────────────────
-.analisi__row
-  background: var(--row-bg, transparent)
-  transition: background 0.1s
-
-// ─── MeteoCell ────────────────────────────────────────────────────────────────
-.analisi__meteo-cell
+// ─── Disponibilità ───────────────────────────────────────────────────────────
+.analisi__disp-cell
   display: flex
+  align-items: center
+  justify-content: flex-start
+  gap: 6px
+
+.analisi__disp-num
+  font-weight: 600
+  font-size: 13px
+
+.analisi__disp-bed
+  font-size: 16px
+  color: $success
+
+// ─── Colonna Analisi (icona + testo, 3 stati) ─────────────────────────────────
+.analisi__an
+  display: inline-flex
   flex-direction: column
   align-items: center
-  gap: 1px
+  gap: 3px
+  text-align: center
+  cursor: default
 
-.analisi__meteo-ico
-  font-size: var(--meteo-size)
-  color: var(--meteo-col)
+.analisi__an-icon
+  font-size: 18px
 
-.analisi__ev-ico
-  font-size: 14px
-  color: var(--ev-col)
+.analisi__an-text
+  font-size: 11px
+  font-weight: 600
+  line-height: 1.25
+  max-width: 110px
 
-.analisi__meteo-temp
-  font-size: 9px
-  font-weight: 700
-  color: var(--meteo-col)
+.analisi__an--aumento
+  color: $success
+
+.analisi__an--valutazione
+  color: $link
+
+.analisi__an--verifica
+  color: $warning
+
+// ─── Pie hover (Revenue / ADR / Occupancy) ────────────────────────────────────
+.analisi__pie-cell
+  position: relative
+  display: inline-flex
+  align-items: center
+  cursor: default
+
+.analisi__pie-pop
+  position: absolute
+  top: calc(100% + 6px)
+  left: 0
+  z-index: 20
+  display: none
+  min-width: 200px
+  padding: 12px
+  background: $white
+  border: 1px solid $border
+  border-radius: 10px
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12)
+
+.analisi__pie-cell:hover .analisi__pie-pop
+  display: block
+
+.analisi__pie-pop-title
+  display: block
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  margin-bottom: 8px
+
+.analisi__pie-pop-body
+  display: flex
+  align-items: center
+  gap: 12px
+
+.analisi__pie-chart
+  position: relative
+  flex: 0 0 auto
+  width: 76px
+  height: 76px
+  border-radius: 50%
+  background: var(--pie)
+
+  &::after
+    content: ''
+    position: absolute
+    inset: 22px
+    border-radius: 50%
+    background: $white
+
+.analisi__pie-legend
+  display: flex
+  flex-direction: column
+  gap: 5px
+  min-width: 96px
+
+.analisi__pie-leg
+  display: flex
+  align-items: center
+  gap: 6px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+
+.analisi__pie-dot
+  flex: 0 0 auto
+  width: 9px
+  height: 9px
+  border-radius: 2px
+  background: var(--dot)
+
+.analisi__pie-leg-lbl
+  color: $text-active
+
+.analisi__pie-leg-val
+  margin-left: auto
+  font-weight: 600
+  color: $text-inactive
 
 // ─── Expanded row ─────────────────────────────────────────────────────────────
 .analisi__exp-row
   padding: 0
-  background: rgba(32,71,105,0.02)
+  background: $bg
   border-bottom: 1px solid $border
 
 .analisi__exp-grid
   display: grid
-  grid-template-columns: 1fr 190px 148px 216px
-  border-top: 1px solid rgba(32,71,105,0.09)
+  grid-template-columns: 200px 280px 1fr
+  border-top: 1px solid $border
   margin-left: 26px
 
 .analisi__exp-col
-  padding: 12px 16px 12px 8px
+  padding: 12px 16px
 
   &--border
     border-right: 1px solid $border
 
 .analisi__exp-label
-  font-size: 9px
+  font-size: 11px
   font-weight: 700
   color: $primary
   text-transform: uppercase
-  letter-spacing: 0.6px
-  margin-bottom: 6px
-
-// ─── Expanded: eventi ─────────────────────────────────────────────────────────
-.analisi__event--mb
+  letter-spacing: 0.4px
   margin-bottom: 8px
 
-.analisi__event-name
-  font-size: 12px
-  font-weight: 600
-  color: $text-active
-  line-height: 1.3
-
-.analisi__event-addr
+.analisi__exp-note
   font-size: 11px
-  color: $text-disabled
-  margin-top: 1px
-
-.analisi__event-time
-  font-size: 10px
-  color: $text-disabled
-  margin-top: 1px
-
-// ─── Expanded: meteo ──────────────────────────────────────────────────────────
-.analisi__meteo-row
-  display: flex
-  align-items: center
-  gap: 10px
-  margin-bottom: 6px
-
-.analisi__meteo-city
-  font-size: 10px
-  font-weight: 600
   color: $text-inactive
-
-.analisi__meteo-big-temp
-  font-family: Poppins, sans-serif
-  font-size: 22px
-  font-weight: 700
-  color: $primary
-  line-height: 1
-
-.analisi__meteo-desc
-  font-size: 10px
-  color: $text-disabled
-  margin: 0
+  margin: 8px 0 0
   line-height: 1.4
 
-// ─── Expanded: riepilogo ──────────────────────────────────────────────────────
 .analisi__kpi-item
-  margin-bottom: 8px
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 12px
+  margin-bottom: 6px
 
 .analisi__kpi-label
-  font-size: 9px
-  color: $text-disabled
-  text-transform: uppercase
-  letter-spacing: 0.3px
+  font-size: 11px
+  color: $text-inactive
 
 .analisi__kpi-val
   font-size: 14px
   font-weight: 700
   font-family: Poppins, sans-serif
-  line-height: 1.2
-  color: var(--kpi-col)
 
-// ─── Expanded: pickup ─────────────────────────────────────────────────────────
+  &--active
+    color: $text-active
+  &--success
+    color: $success
+  &--primary
+    color: $primary
+
 .analisi__pickup-row
   display: flex
-  gap: 12px
-  margin-bottom: 10px
+  gap: 14px
 
 .analisi__pickup-item
   text-align: center
 
 .analisi__pickup-item-lbl
-  font-size: 8px
+  font-size: 9px
   color: $text-disabled
   margin-bottom: 3px
 
@@ -411,31 +457,3 @@
   &--active
     font-weight: 700
     color: $primary
-
-.analisi__pickup-note
-  display: flex
-  align-items: flex-start
-  gap: 5px
-  padding: 6px 8px
-  background: $warning-light
-  border-radius: 6px
-  border: 1px solid rgba(245,125,3,0.13)
-
-.analisi__pickup-note-text
-  font-size: 10px
-  color: $warning
-  font-weight: 600
-  line-height: 1.4
-
-.analisi__filter-group--col
-  display: flex
-  flex-direction: column
-  gap: 4px
-  justify-content: flex-end
-
-.analisi__filter-actions
-  display: flex
-  flex-direction: row
-  align-items: center
-  gap: 8px
-  height: 36px

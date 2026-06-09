@@ -43,6 +43,11 @@ export default function PrenotaServizioModal({
   const addService = useCartStore(s => s.addService)
   const tipoMeta   = useTipiServizioStore(s => s.meta)
 
+  // I campi del form: se il servizio ne definisce di propri (campiPrenotazione)
+  // hanno priorità, altrimenti si usano quelli del tipo di servizio.
+  const campiDi = (s: Servizio): FormFieldSpec[] =>
+    (s.campiPrenotazione && s.campiPrenotazione.length) ? s.campiPrenotazione : tipoMeta(s.tipo).formFields
+
   const [values, setValues] = useState<Record<string, string>>({})
   const [moltiplicatore, setMoltiplicatore] = useState<number>(1)
   const [error, setError] = useState<string>('')
@@ -50,12 +55,12 @@ export default function PrenotaServizioModal({
   useEffect(() => {
     if (servizio && open) {
       const init: Record<string, string> = {}
-      const meta = tipoMeta(servizio.tipo)
-      meta.formFields.forEach(f => {
-        if (f.name === 'adulti')       init.adulti  = String(Math.max(1, adultiPref))
-        else if (f.name === 'bambini') init.bambini = String(bambiniPref)
-        else if (f.kind === 'select')  init[f.name] = (f.options && f.options[0]) || ''
-        else                            init[f.name] = ''
+      campiDi(servizio).forEach(f => {
+        if (f.name === 'adulti')        init.adulti  = String(Math.max(1, adultiPref))
+        else if (f.name === 'bambini')  init.bambini = String(bambiniPref)
+        else if (f.kind === 'select')   init[f.name] = (f.options && f.options[0]) || ''
+        else if (f.kind === 'checkbox') init[f.name] = 'false'
+        else                             init[f.name] = ''
       })
       setValues(init)
       // Default del moltiplicatore in base alla pricing mode
@@ -70,6 +75,7 @@ export default function PrenotaServizioModal({
   }, [servizio, open, adultiPref, bambiniPref])
 
   const meta = useMemo(() => servizio ? tipoMeta(servizio.tipo) : null, [servizio])
+  const campi = useMemo(() => servizio ? campiDi(servizio) : [], [servizio])
 
   if (!servizio || !meta) return null
 
@@ -89,7 +95,11 @@ export default function PrenotaServizioModal({
   }
 
   const validate = (): string => {
-    for (const f of meta.formFields) {
+    for (const f of campi) {
+      if (f.kind === 'checkbox') {
+        if (f.required && values[f.name] !== 'true') return `Conferma "${f.label}"`
+        continue
+      }
       if (f.required && !(values[f.name] || '').trim()) {
         return `Compila il campo "${f.label}"`
       }
@@ -184,6 +194,34 @@ export default function PrenotaServizioModal({
         </select>
       )
     }
+    if (f.kind === 'checkbox') {
+      return (
+        <label className="prn-modal__check">
+          <input
+            type="checkbox"
+            checked={v === 'true'}
+            onChange={(e) => setVal(f.name, e.target.checked ? 'true' : 'false')}
+          />
+          <span>Confermo</span>
+        </label>
+      )
+    }
+    if (f.kind === 'document') {
+      return (
+        <div className="prn-modal__file">
+          <label className="sib-btn sib-btn--ghost prn-modal__file-btn">
+            <Icon family="regular" name="arrow-up-from-bracket" />
+            {v ? 'Cambia documento' : 'Carica documento'}
+            <input
+              type="file"
+              hidden
+              onChange={(e) => setVal(f.name, e.target.files?.[0]?.name || '')}
+            />
+          </label>
+          {v && <span className="prn-modal__file-name">{v}</span>}
+        </div>
+      )
+    }
     return (
       <input
         {...common}
@@ -214,7 +252,7 @@ export default function PrenotaServizioModal({
         </div>
 
         <div className="prn-modal__form-grid">
-          {meta.formFields.map(f => (
+          {campi.map(f => (
             <div key={f.name} className="prn-modal__field">
               <label htmlFor={`prn-field-${f.name}`} className="prn-modal__label">
                 {f.label}

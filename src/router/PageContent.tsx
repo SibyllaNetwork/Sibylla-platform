@@ -261,6 +261,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'monitoraggio-cassa')    return <Cassa navigate={navigate}/>;
   if (page === 'i-miei-servizi')        return <IMieiServizi navigate={navigate}/>;
   if (page === 'crea-servizio')         return <CreaServizio navigate={navigate}/>;
+  if (page.startsWith('crea-servizio:')) return <CreaServizio navigate={navigate} servizioId={page.slice('crea-servizio:'.length)} key={page}/>;
   if (page === 'i-miei-preventivi')     return <IMieiPreventivi navigate={navigate}/>;
   if (page === 'crea-preventivo')       return <CreaPreventivo navigate={navigate}/>;
   if (page === 'centro-costo')          return <ImpostaCentroDiCosto navigate={navigate}/>;
