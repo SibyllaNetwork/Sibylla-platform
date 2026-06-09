@@ -1,194 +1,179 @@
 import React, { useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
-import Ico from '../../../core/icons/Ico'
 import { Icon } from '../_shared/Icon'
-import { CategoryCard } from '../_shared/CategoryCard'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
-import { useCatalogoStore } from '../../../store/useCatalogoStore'
-import './AreaMerceologica.css'
+import { CATEGORIE, areeOf, type Area } from '../../../admin/SibyllaAdminPanel/catalogo/classificazione'
+import './AreaMerceologica.sass'
 
-interface CategoryEntry {
-  id: number
-  catId: string                 // id del store: 'newa-cat-N'
-  name: string
-  icon: string
-  count: number
-  description: string
-}
+type AreaFilter = 'tutte' | Area
 
-const CATEGORIES_META: Array<Omit<CategoryEntry, 'count'>> = [
-  { id: 1,  catId: 'newa-cat-1',  name: 'Alimenti, Ristorazione e Buoni Pasto',     icon: 'utensils',           description: 'Fornitori di prodotti alimentari e servizi di ristorazione' },
-  { id: 2,  catId: 'newa-cat-2',  name: 'Energia, Carburanti e Lubrificanti',       icon: 'bolt',               description: 'Servizi energetici, carburanti e lubrificanti industriali' },
-  { id: 3,  catId: 'newa-cat-3',  name: 'Cancelleria, Carta e Consumabili',         icon: 'file-lines',         description: 'Materiale da ufficio, carta e prodotti consumabili' },
-  { id: 4,  catId: 'newa-cat-4',  name: 'Informatica, Elettronica e Macchinari',    icon: 'display',            description: 'Hardware, software e attrezzature tecnologiche' },
-  { id: 5,  catId: 'newa-cat-5',  name: 'Editoria, Eventi e Comunicazione',         icon: 'shirt',              description: 'Servizi editoriali, organizzazione eventi e comunicazione' },
-  { id: 6,  catId: 'newa-cat-6',  name: 'Lavori di Manutenzione',                   icon: 'wrench',             description: 'Servizi di manutenzione ordinaria e straordinaria' },
-  { id: 7,  catId: 'newa-cat-7',  name: 'Idraulica, Edilizia e Materiale Elettrico',icon: 'bed',                description: 'Materiali edili, idraulici ed elettrici' },
-  { id: 8,  catId: 'newa-cat-8',  name: 'Attrezzature e Impianti',                  icon: 'gear',               description: 'Attrezzature tecniche e impiantistica industriale' },
-  { id: 9,  catId: 'newa-cat-9',  name: 'Monouso, Pulizie e Igiene',                icon: 'spray-can-sparkles', description: 'Prodotti monouso, detergenti e igiene professionale' },
-  { id: 10, catId: 'newa-cat-10', name: 'Rifiuti e Riciclo',                        icon: 'boxes-stacked',      description: 'Gestione rifiuti e servizi di riciclaggio' },
-  { id: 11, catId: 'newa-cat-11', name: 'Ricerca, Welfare e Benefit',               icon: 'briefcase',          description: 'Servizi di welfare aziendale e benefit per dipendenti' },
-  { id: 12, catId: 'newa-cat-12', name: 'Arredi, Complementi ed Elettrodomestici',  icon: 'truck',              description: "Arredamento, complementi d'arredo ed elettrodomestici" },
+const AREA_TABS: Array<{ value: AreaFilter; label: string }> = [
+  { value: 'tutte',    label: 'Tutte' },
+  { value: 'Prodotti', label: 'Prodotti' },
+  { value: 'Servizi',  label: 'Servizi' },
 ]
 
-const STATS: Array<{ icon: string; value: string; label: string; hint: string }> = [
-  { icon: 'layer-group',       value: '12',  label: 'Categorie',        hint: '100% attive' },
-  { icon: 'building',          value: '319', label: 'Fornitori Totali', hint: '+12 questo mese' },
-  { icon: 'file-circle-check', value: '156', label: 'Contratti Attivi', hint: '48,9% del totale' },
-  { icon: 'arrow-trend-up',    value: '89%', label: 'Soddisfazione',    hint: '+5% vs. anno scorso' },
-]
-
-type SortKey = 'name-asc' | 'name-desc' | 'count-desc' | 'count-asc'
+type SortKey = 'name-asc' | 'name-desc' | 'classi-desc' | 'classi-asc'
 
 const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
-  { value: 'name-asc',   label: 'Nome (A → Z)' },
-  { value: 'name-desc',  label: 'Nome (Z → A)' },
-  { value: 'count-desc', label: 'Più fornitori prima' },
-  { value: 'count-asc',  label: 'Meno fornitori prima' },
+  { value: 'name-asc',    label: 'Nome (A → Z)' },
+  { value: 'name-desc',   label: 'Nome (Z → A)' },
+  { value: 'classi-desc', label: 'Più classi prima' },
+  { value: 'classi-asc',  label: 'Meno classi prima' },
 ]
 
 const DEFAULT_SORT: SortKey = 'name-asc'
-const DEFAULT_MIN_COUNT = 0
-const MIN_COUNT_MAX = 50
 
 export default function AreaMerceologica({ navigate }: { navigate: (p: string) => void }) {
-  const prodotti  = useCatalogoStore(s => s.prodotti)
-  const fornitori = useCatalogoStore(s => s.fornitori)
-
   const [view, setView] = useState<ViewMode>('grid')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT)
-  const [minCount, setMinCount] = useState<number>(DEFAULT_MIN_COUNT)
+  const [area, setArea] = useState<AreaFilter>('tutte')
 
-  const CATEGORIES: CategoryEntry[] = useMemo(() => {
-    return CATEGORIES_META.map((meta) => {
-      const prodCount = prodotti.filter(p => p.categoriaId === meta.catId && p.mercati.agora.abilitato).length
-      const fornCount = fornitori.filter(f => f.categoriaId === meta.catId).length
-      // Conteggio mostrato in badge: prodotti se ce ne sono, altrimenti fornitori
-      const count = prodCount > 0 ? prodCount : fornCount
-      return { ...meta, count }
-    })
-  }, [prodotti, fornitori])
+  // ── Statistiche derivate dalla tassonomia ──────────────────────────────────
+  const stats = useMemo(() => {
+    const classi    = CATEGORIE.flatMap(c => c.classi)
+    const tipologie = classi.flatMap(c => c.tipologie)
+    return [
+      { icon: 'layer-group',   value: String(CATEGORIE.length), label: 'Categorie',  hint: '2 aree merceologiche' },
+      { icon: 'sitemap',       value: String(classi.length),    label: 'Classi',      hint: 'in tutte le categorie' },
+      { icon: 'tags',          value: String(tipologie.length), label: 'Tipologie',   hint: 'esempi classificati' },
+      { icon: 'shapes',        value: '2',                      label: 'Aree',        hint: 'Prodotti e Servizi' },
+    ]
+  }, [])
 
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const filtered = CATEGORIES
-      .filter((c) => c.count >= minCount)
-      .filter((c) => q === '' || c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
+    const matchesArea = (c: typeof CATEGORIE[number]) =>
+      area === 'tutte' || c.classi.some(cl => cl.area === area)
+    const matchesQuery = (c: typeof CATEGORIE[number]) => {
+      if (q === '') return true
+      if (c.nome.toLowerCase().includes(q)) return true
+      return c.classi.some(cl =>
+        cl.nome.toLowerCase().includes(q) ||
+        cl.tipologie.some(t => t.toLowerCase().includes(q)),
+      )
+    }
+    const filtered = CATEGORIE.filter(c => matchesArea(c) && matchesQuery(c))
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
-        case 'name-asc':   return a.name.localeCompare(b.name)
-        case 'name-desc':  return b.name.localeCompare(a.name)
-        case 'count-asc':  return a.count - b.count
-        case 'count-desc': return b.count - a.count
+        case 'name-asc':    return a.nome.localeCompare(b.nome)
+        case 'name-desc':   return b.nome.localeCompare(a.nome)
+        case 'classi-asc':  return a.classi.length - b.classi.length
+        case 'classi-desc': return b.classi.length - a.classi.length
       }
     })
-  }, [CATEGORIES, search, sortBy, minCount])
+  }, [search, sortBy, area])
 
-  const filtersDirty = sortBy !== DEFAULT_SORT || minCount !== DEFAULT_MIN_COUNT
-  const resetFilters = () => { setSortBy(DEFAULT_SORT); setMinCount(DEFAULT_MIN_COUNT) }
+  const filtersDirty = sortBy !== DEFAULT_SORT
+  const resetFilters = () => setSortBy(DEFAULT_SORT)
 
   return (
     <div className="area-merceologica">
       <BtnBack onClick={() => navigate('home')} />
       <PageHeader
         title="Area merceologica"
-        subtitle="Seleziona la categoria di prodotti e servizi che ti interessa"
+        subtitle="Esplora la classificazione di prodotti e servizi per categoria, classe e tipologia"
       />
 
+      <div className="am-area-tabs" role="group" aria-label="Filtra per area">
+        {AREA_TABS.map(tab => (
+          <button
+            key={tab.value}
+            type="button"
+            className={`am-area-tabs__btn${area === tab.value ? ' am-area-tabs__btn--active' : ''}`}
+            onClick={() => setArea(tab.value)}
+            aria-pressed={area === tab.value}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <PageToolbar
-        search={{ value: search, onChange: setSearch, placeholder: 'Cerca categoria…' }}
+        search={{ value: search, onChange: setSearch, placeholder: 'Cerca categoria, classe, tipologia…' }}
         view={view}
         onViewChange={setView}
         filtersDirty={filtersDirty}
         onResetFilters={resetFilters}
-        extraActions={
-          <button
-            type="button"
-            className="sib-btn sib-btn--primary"
-            onClick={() => navigate('crea-prodotto')}
-          >
-            <Ico n="plus" s={12} c="#fff" />
-            Crea prodotto
-          </button>
-        }
         filterPanel={
-          <>
-            <fieldset className="page-toolbar__filter-section">
-              <legend className="page-toolbar__filter-label">Ordina per</legend>
-              <div className="page-toolbar__filter-options">
-                {SORT_OPTIONS.map((opt) => (
-                  <label key={opt.value} className="page-toolbar__filter-option">
-                    <input
-                      type="radio"
-                      name="categories-sortBy"
-                      value={opt.value}
-                      checked={sortBy === opt.value}
-                      onChange={() => setSortBy(opt.value)}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <div className="page-toolbar__filter-section">
-              <label htmlFor="filter-min-count" className="page-toolbar__filter-label">
-                Minimo fornitori: <strong>{minCount}</strong>
-              </label>
-              <input
-                id="filter-min-count"
-                type="range"
-                min={0}
-                max={MIN_COUNT_MAX}
-                step={5}
-                value={minCount}
-                onChange={(e) => setMinCount(parseInt(e.target.value, 10))}
-                className="page-toolbar__filter-range"
-              />
-              <div className="page-toolbar__filter-range-ticks">
-                <span>0</span>
-                <span>{MIN_COUNT_MAX}</span>
-              </div>
+          <fieldset className="page-toolbar__filter-section">
+            <legend className="page-toolbar__filter-label">Ordina per</legend>
+            <div className="page-toolbar__filter-options">
+              {SORT_OPTIONS.map((opt) => (
+                <label key={opt.value} className="page-toolbar__filter-option">
+                  <input
+                    type="radio"
+                    name="categories-sortBy"
+                    value={opt.value}
+                    checked={sortBy === opt.value}
+                    onChange={() => setSortBy(opt.value)}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
             </div>
-          </>
+          </fieldset>
         }
       />
 
-      <div className="categories-page__stats">
-        {STATS.map((stat) => (
-          <div key={stat.label} className="stat-card">
-            <div className="stat-card__head">
-              <p className="stat-card__label">{stat.label}</p>
-              <Icon family="duotone" name={stat.icon} className="stat-card__icon" />
+      <div className="am-stats">
+        {stats.map((stat) => (
+          <div key={stat.label} className="am-stat-card">
+            <div className="am-stat-card__head">
+              <p className="am-stat-card__label">{stat.label}</p>
+              <Icon family="duotone" name={stat.icon} className="am-stat-card__icon" />
             </div>
-            <p className="stat-card__value">{stat.value}</p>
-            <p className="stat-card__hint">{stat.hint}</p>
+            <p className="am-stat-card__value">{stat.value}</p>
+            <p className="am-stat-card__hint">{stat.hint}</p>
           </div>
         ))}
       </div>
 
       {displayed.length === 0 ? (
-        <div className="categories-page__empty">
+        <div className="am-empty">
           Nessuna categoria trovata con i filtri selezionati.
         </div>
       ) : (
-        <div className={`categories-page__grid${view === 'list' ? ' categories-page__grid--list' : ''}`}>
-          {displayed.map((category) => (
-            <CategoryCard
-              key={category.id}
-              id={category.id}
-              name={category.name}
-              icon={category.icon}
-              count={category.count}
-              description={category.description}
-              onClick={() => navigate(`dettaglio-area-merceologica:${category.catId}`)}
-            />
-          ))}
+        <div className={`am-grid${view === 'list' ? ' am-grid--list' : ''}`}>
+          {displayed.map((cat) => {
+            const aree = areeOf(cat)
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                className="am-cat-card"
+                onClick={() => navigate(`dettaglio-area-merceologica:${cat.id}`)}
+              >
+                <div className="am-cat-card__head">
+                  <span className="am-cat-card__icon">
+                    <Icon family="light" name={cat.icon} />
+                  </span>
+                  <span className="am-cat-card__badge">{cat.classi.length} classi</span>
+                </div>
+
+                <h3 className="am-cat-card__title">{cat.nome}</h3>
+                <p className="am-cat-card__desc">{cat.classi.map(c => c.nome).join(' · ')}</p>
+
+                <div className="am-cat-card__foot">
+                  <div className="am-cat-card__areas">
+                    {aree.map(a => (
+                      <span key={a} className={`am-area-tag am-area-tag--${a === 'Prodotti' ? 'prodotti' : 'servizi'}`}>
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="am-cat-card__link">
+                    Esplora classi
+                    <Icon family="regular" name="arrow-right" />
+                  </span>
+                </div>
+              </button>
+            )
+          })}
         </div>
       )}
-
     </div>
   )
 }

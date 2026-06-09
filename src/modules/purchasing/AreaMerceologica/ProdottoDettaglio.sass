@@ -1,0 +1,182 @@
+@use '../../../styles/tokens' as *
+
+.prodotto-dettaglio
+
+  .pd__missing
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    color: var(--color-text-inactive)
+
+  .pd__top
+    display: grid
+    grid-template-columns: 1fr
+    gap: 28px
+    margin-top: 8px
+
+    @media (min-width: 900px)
+      grid-template-columns: minmax(0, 420px) 1fr
+
+  .pd__image
+    aspect-ratio: 4 / 3
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    display: flex
+    align-items: center
+    justify-content: center
+    overflow: hidden
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  .pd__image-ph
+    color: var(--color-text-disabled)
+    font-size: 56px
+
+  .pd__crumb
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-disabled)
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    margin-bottom: 8px
+
+  .pd__title
+    font-family: 'Poppins', sans-serif
+    font-size: 26px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0 0 10px
+
+  .pd__desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 14px
+    line-height: 21px
+    color: var(--color-text-inactive)
+    margin: 0 0 20px
+
+  .pd__price-row
+    display: flex
+    align-items: baseline
+    gap: 12px
+    margin-bottom: 20px
+
+  .pd__price
+    font-family: 'Poppins', sans-serif
+    font-size: 28px
+    font-weight: 700
+    color: var(--color-primary)
+
+  .pd__price-note
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: var(--color-text-disabled)
+
+  .pd__buy
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 12px
+    margin-bottom: 14px
+
+  .pd__qty
+    display: inline-flex
+    align-items: center
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    overflow: hidden
+
+  .pd__qty-btn
+    appearance: none
+    border: none
+    background: var(--color-surface)
+    cursor: pointer
+    width: 38px
+    height: 38px
+    color: var(--color-text-active)
+
+    &:hover:not(:disabled)
+      background: var(--color-bg)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .pd__qty-val
+    min-width: 40px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-weight: 600
+    font-size: 14px
+
+  .pd__add,
+  .pd__buy-now
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  .pd__add--ok
+    border-color: var(--color-success)
+    color: var(--color-success)
+
+  .pd__cart-link
+    appearance: none
+    background: transparent
+    border: none
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-link)
+    padding: 0
+
+  .pd__section
+    margin-top: 32px
+
+  .pd__section-title
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0 0 14px
+
+  .pd__specs
+    margin: 0
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    overflow: hidden
+
+  .pd__spec
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    padding: 12px 18px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+
+    &:not(:last-child)
+      border-bottom: 1px solid var(--color-border)
+
+    dt
+      color: var(--color-text-inactive)
+      font-weight: 600
+
+    dd
+      margin: 0
+      color: var(--color-text-active)
+      text-align: right
+
+    code
+      font-family: 'SF Mono', ui-monospace, monospace
+      font-size: 12px

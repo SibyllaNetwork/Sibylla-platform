@@ -55,6 +55,10 @@ import MaintenanceAnalysis         from '../modules/operation/MaintenanceAnalysi
 import OrdineServizio              from '../modules/operation/OrdineServizio/OrdineServizio';
 import AreaMerceologica            from '../modules/purchasing/AreaMerceologica/AreaMerceologica';
 import DettaglioAreaMerceologica   from '../modules/purchasing/AreaMerceologica/DettaglioAreaMerceologica';
+import ClasseProdotti              from '../modules/purchasing/AreaMerceologica/ClasseProdotti';
+import ProdottoDettaglio           from '../modules/purchasing/AreaMerceologica/ProdottoDettaglio';
+import CatalogoCart                from '../modules/purchasing/AreaMerceologica/CatalogoCart';
+import CatalogoCheckout            from '../modules/purchasing/AreaMerceologica/CatalogoCheckout';
 import Servizi                     from '../modules/purchasing/Servizi/Servizi';
 import CreaProdotto                from '../modules/purchasing/CreaProdotto/CreaProdotto';
 import ListaProdotti               from '../modules/purchasing/ListaProdotti/ListaProdotti';
@@ -230,6 +234,16 @@ export default function PageContent({ page, navigate }: Props) {
     const categoriaId = page.slice('dettaglio-area-merceologica:'.length);
     return <DettaglioAreaMerceologica navigate={navigate} categoriaId={categoriaId} key={page}/>;
   }
+  if (page.startsWith('prodotti-classe:')) {
+    const [categoriaId, classeSlug] = page.slice('prodotti-classe:'.length).split('__');
+    return <ClasseProdotti navigate={navigate} categoriaId={categoriaId} classeSlug={classeSlug || ''} key={page}/>;
+  }
+  if (page.startsWith('prodotto:')) {
+    const prodottoId = page.slice('prodotto:'.length);
+    return <ProdottoDettaglio navigate={navigate} prodottoId={prodottoId} key={page}/>;
+  }
+  if (page === 'catalogo-cart')         return <CatalogoCart navigate={navigate}/>;
+  if (page === 'catalogo-checkout')     return <CatalogoCheckout navigate={navigate}/>;
   if (page === 'servizi-acquisto')      return <Servizi navigate={navigate}/>;
   if (page === 'crea-prodotto')         return <CreaProdotto navigate={navigate}/>;
   if (page === 'lista-prodotti')        return <ListaProdotti navigate={navigate}/>;

@@ -2,6 +2,7 @@ import React from 'react'
 import Modal from '../../../../core/components/Modal'
 import Ico from '../../../../core/icons/Ico'
 import { UNITA_MISURA_OPTIONS } from '../../catalogo/mockData'
+import { getCategoria } from '../../catalogo/classificazione'
 import { generateEAN13, isValidEAN13 } from '../../catalogo/helpers'
 import { MERCATI } from '../../catalogo/types'
 import type { Categoria, Fornitore, Prodotto, ProdottoForm, UnitaMisura } from '../../catalogo/types'
@@ -23,6 +24,11 @@ export default function ProdottoModal({
   open, editing, form, setForm, categorie, fornitori, onClose, onConfirm, isBarcodeUsed,
 }: Props) {
   const set = <K extends keyof ProdottoForm>(k: K, v: ProdottoForm[K]) => setForm({ ...form, [k]: v })
+
+  const selCat = getCategoria(form.categoriaId)
+  const selClasse = selCat?.classi.find(c => c.nome === form.classe)
+  const setCategoria = (id: string) => setForm({ ...form, categoriaId: id, classe: '', tipologia: '' })
+  const setClasse    = (nome: string) => setForm({ ...form, classe: nome, tipologia: '' })
 
   const barcodeTrim = form.barcode.trim()
   const barcodeFormatOk = isValidEAN13(barcodeTrim)
@@ -46,6 +52,7 @@ export default function ProdottoModal({
   const disabled =
     !form.nome.trim() ||
     !form.categoriaId ||
+    !form.classe ||
     !form.fornitoreId ||
     !!barcodeError ||
     !form.prezzoBase ||
@@ -142,9 +149,21 @@ export default function ProdottoModal({
           <div className="prod-modal__section-title">Classificazione e fornitura</div>
           <div className="prod-modal__grid prod-modal__grid--2">
             <Field label="Categoria *">
-              <select value={form.categoriaId} onChange={e => set('categoriaId', e.target.value)} className="sib-select">
+              <select value={form.categoriaId} onChange={e => setCategoria(e.target.value)} className="sib-select">
                 <option value="">Seleziona categoria...</option>
                 {categorie.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+            </Field>
+            <Field label="Classe *">
+              <select value={form.classe} onChange={e => setClasse(e.target.value)} className="sib-select" disabled={!selCat}>
+                <option value="">{selCat ? 'Seleziona classe...' : 'Seleziona prima la categoria'}</option>
+                {selCat?.classi.map(c => <option key={c.nome} value={c.nome}>{c.nome}</option>)}
+              </select>
+            </Field>
+            <Field label="Tipologia">
+              <select value={form.tipologia} onChange={e => set('tipologia', e.target.value)} className="sib-select" disabled={!selClasse || selClasse.tipologie.length === 0}>
+                <option value="">{selClasse && selClasse.tipologie.length > 0 ? 'Seleziona tipologia...' : 'Nessuna tipologia'}</option>
+                {selClasse?.tipologie.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </Field>
             <Field label="Fornitore *">

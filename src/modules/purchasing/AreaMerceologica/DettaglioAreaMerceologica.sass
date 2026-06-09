@@ -2,26 +2,6 @@
 
 .dettaglio-area-merceologica
 
-  .dam__cart-btn
-    position: relative
-    display: inline-flex
-    align-items: center
-    gap: 6px
-
-  .dam__cart-count
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    min-width: 18px
-    height: 18px
-    padding: 0 5px
-    border-radius: 9px
-    background: var(--color-primary)
-    color: $white
-    font-size: 11px
-    font-weight: 600
-    line-height: 1
-
   .dam__count
     font-family: 'Open Sans', sans-serif
     font-size: 12px
@@ -37,254 +17,106 @@
     text-align: center
     font-family: 'Open Sans', sans-serif
     font-size: 15px
-    color: #5c5c5c
+    color: var(--color-text-inactive)
 
+  // ── Griglia classi ───────────────────────────────────────────────────────────
   .dam__grid
     display: grid
     grid-template-columns: 1fr
-    gap: 14px
+    gap: 16px
 
-    &:not(.dam__grid--list)
-      @media (min-width: 900px)
-        grid-template-columns: repeat(2, 1fr)
+    @media (min-width: 768px)
+      grid-template-columns: repeat(2, 1fr)
 
-      @media (min-width: 1400px)
-        grid-template-columns: repeat(3, 1fr)
+    @media (min-width: 1100px)
+      grid-template-columns: repeat(3, 1fr)
 
-    &.dam__grid--list
-      grid-template-columns: 1fr
-
-      .dam-card
-        flex-direction: row
-        align-items: stretch
-
-      .dam-card__image-wrap
-        width: 180px
-        min-width: 180px
-        aspect-ratio: 1 / 1
-
-      .dam-card__body
-        flex: 1 1 auto
-        min-width: 0
-
-      .dam-card__buy
-        width: 240px
-        min-width: 240px
-        border-top: none
-        border-left: 1px solid var(--color-border)
-
-      @media (max-width: 700px)
-        .dam-card
-          flex-direction: column
-
-        .dam-card__image-wrap
-          width: 100%
-          min-width: 0
-          aspect-ratio: 16 / 10
-
-        .dam-card__buy
-          width: 100%
-          min-width: 0
-          border-top: 1px solid var(--color-border)
-          border-left: none
-
-  // ─── Card prodotto ──────────────────────────────────────────────────────────
-  .dam-card
-    display: flex
-    flex-direction: column
-    background: var(--color-surface)
-    border: 1px solid var(--color-border)
-    border-radius: 8px
-    overflow: hidden
-    transition: border-color 0.18s, box-shadow 0.18s
-
-    &:hover
-      border-color: var(--color-border)
-      box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06)
-
-  .dam-card__image-wrap
-    width: 100%
-    aspect-ratio: 16 / 10
-    background: var(--color-bg)
-    overflow: hidden
-    display: flex
-    align-items: center
-    justify-content: center
-
-  .dam-card__image
-    width: 100%
-    height: 100%
-    object-fit: cover
-    display: block
-
-  .dam-card__image--placeholder
-    display: flex
-    align-items: center
-    justify-content: center
-
-  .dam-card__body
-    padding: 14px 16px 12px
-    display: flex
-    flex-direction: column
-    gap: 8px
-    flex: 1 1 auto
-
-  .dam-card__title
-    font-family: 'Poppins', sans-serif
-    font-size: 15px
-    font-weight: 600
-    color: var(--color-primary)
-    margin: 0
-    line-height: 1.3
-
-  .dam-card__desc
-    font-family: 'Open Sans', sans-serif
-    font-size: 12.5px
-    line-height: 1.5
-    color: var(--color-text-inactive)
-    margin: 0
-    display: -webkit-box
-    -webkit-line-clamp: 3
-    -webkit-box-orient: vertical
-    overflow: hidden
-
-  .dam-card__meta
-    margin: 6px 0 0
-    display: flex
-    flex-direction: column
-    gap: 3px
-    font-family: 'Open Sans', sans-serif
-    font-size: 12px
-
-  .dam-card__meta-row
-    display: flex
-    gap: 8px
-    align-items: baseline
-
-    dt
-      flex: 0 0 80px
-      color: var(--color-text-inactive)
-      font-weight: 600
-
-    dd
-      margin: 0
-      color: var(--color-text-primary)
-      display: inline-flex
-      align-items: center
-      gap: 8px
-      flex-wrap: wrap
-
-      code
-        font-family: 'JetBrains Mono', 'Menlo', monospace
-        font-size: 11.5px
-        background: var(--color-bg)
-        padding: 1px 5px
-        border-radius: 3px
-
-  .dam-card__supplier-link
-    background: none
-    border: none
-    padding: 0
-    cursor: pointer
-    color: var(--color-primary)
-    font: inherit
-    font-weight: 600
-    display: inline-flex
-    align-items: center
-    gap: 4px
-
-    &:hover
-      text-decoration: underline
-
-  .dam-card__supplier-site
-    color: var(--color-text-inactive)
-    font-size: 11.5px
-    text-decoration: underline
-
-    &:hover
-      color: var(--color-primary)
-
-  // ─── Sezione acquisto ───────────────────────────────────────────────────────
-  .dam-card__buy
-    padding: 12px 16px 14px
-    border-top: 1px solid var(--color-border)
-    background: var(--color-bg)
+  .dam__grid--list
     display: flex
     flex-direction: column
     gap: 10px
 
-  .dam-card__price-block
+  // ── Card classe ───────────────────────────────────────────────────────────
+  .dam-classe-card
+    appearance: none
+    text-align: left
+    cursor: pointer
+    width: 100%
     display: flex
     flex-direction: column
-    gap: 2px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    padding: 18px 20px
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s
 
-  .dam-card__price-label
+    &:hover
+      border-color: var(--color-primary)
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06)
+      transform: translateY(-2px)
+
+  .dam-classe-card__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 12px
+
+  .dam-classe-card__title
+    font-family: 'Poppins', sans-serif
+    font-size: 15px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0
+
+  .dam-classe-card__tipologie
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  .dam-classe-card__tip
+    display: inline-flex
+    align-items: center
+    height: 24px
+    padding: 0 10px
+    border-radius: 6px
+    background: var(--color-bg)
+    border: 1px solid var(--color-border)
     font-family: 'Open Sans', sans-serif
-    font-size: 11px
+    font-size: 12px
+    font-weight: 500
+    color: var(--color-text-active)
+
+  .dam-classe-card__empty
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-style: italic
+    color: var(--color-text-disabled)
+    margin: 0
+
+  .dam-classe-card__foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    margin-top: 14px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)
+
+  .dam-classe-card__count
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
     font-weight: 600
     color: var(--color-text-inactive)
 
-  .dam-card__price
-    font-family: 'Poppins', sans-serif
-    font-size: 22px
-    font-weight: 700
-    color: var(--color-primary)
-    line-height: 1.1
-
-  .dam-card__price-note
-    font-family: 'Open Sans', sans-serif
-    font-size: 10.5px
-    color: var(--color-text-disabled)
-    font-style: italic
-
-  .dam-card__qty
+  .dam-classe-card__link
     display: inline-flex
     align-items: center
-    gap: 0
-    align-self: flex-start
-    border: 1px solid var(--color-border)
-    border-radius: 6px
-    overflow: hidden
-    background: var(--color-surface)
-
-  .dam-card__qty-btn
-    width: 28px
-    height: 28px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    background: var(--color-surface)
-    border: none
-    cursor: pointer
-    color: var(--color-text-primary)
-    transition: background 0.15s
-
-    &:hover:not(:disabled)
-      background: var(--color-bg)
-
-    &:disabled
-      cursor: not-allowed
-      opacity: 0.4
-
-  .dam-card__qty-value
-    min-width: 36px
-    height: 28px
-    display: inline-flex
-    align-items: center
-    justify-content: center
+    gap: 6px
     font-family: 'Open Sans', sans-serif
     font-size: 13px
     font-weight: 600
-    color: var(--color-text-primary)
-    border-left: 1px solid var(--color-border)
-    border-right: 1px solid var(--color-border)
-
-  .dam-card__add
-    width: 100%
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    gap: 6px
-
-  .dam-card__add--ok
-    background: var(--color-success, #2e8d59)
+    color: var(--color-primary)

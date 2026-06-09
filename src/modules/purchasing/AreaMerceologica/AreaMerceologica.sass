@@ -1,0 +1,241 @@
+@use '../../../styles/tokens' as *
+
+.area-merceologica
+
+  // ── Segmented control: filtro Area ──────────────────────────────────────────
+  .am-area-tabs
+    display: inline-flex
+    gap: 4px
+    padding: 4px
+    margin: 0 0 16px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+
+  .am-area-tabs__btn
+    appearance: none
+    border: none
+    background: transparent
+    cursor: pointer
+    padding: 6px 16px
+    border-radius: 7px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    transition: background 0.15s, color 0.15s
+
+    &:hover
+      color: var(--color-text-active)
+
+  .am-area-tabs__btn--active
+    background: var(--color-primary)
+    color: $white
+
+    &:hover
+      color: $white
+
+  // ── Statistiche ─────────────────────────────────────────────────────────────
+  .am-stats
+    margin: 24px 0 32px
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 16px
+
+    @media (min-width: 768px)
+      grid-template-columns: repeat(4, 1fr)
+
+  .am-stat-card
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    padding: 20px
+
+  .am-stat-card__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 16px
+
+  .am-stat-card__label
+    font-family: 'Open Sans', sans-serif
+    font-weight: 600
+    font-size: 12px
+    line-height: 16px
+    color: var(--color-text-inactive)
+    text-transform: uppercase
+    letter-spacing: 0.05em
+    margin: 0
+
+  .am-stat-card__icon
+    color: var(--color-primary)
+    font-size: 28px
+    line-height: 1
+
+  .am-stat-card__value
+    font-family: 'Poppins', sans-serif
+    font-weight: 600
+    font-size: 28px
+    line-height: 32px
+    color: var(--color-primary)
+    margin: 0 0 4px
+
+  .am-stat-card__hint
+    font-family: 'Open Sans', sans-serif
+    font-weight: 400
+    font-size: 11px
+    line-height: 14px
+    color: var(--color-text-disabled)
+    margin: 0
+
+  // ── Griglia categorie ─────────────────────────────────────────────────────
+  .am-grid
+    display: grid
+    grid-template-columns: 1fr
+    gap: 24px
+
+    @media (min-width: 768px)
+      grid-template-columns: repeat(2, 1fr)
+
+    @media (min-width: 1024px)
+      grid-template-columns: repeat(3, 1fr)
+
+  .am-cat-card
+    appearance: none
+    text-align: left
+    cursor: pointer
+    display: flex
+    flex-direction: column
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    padding: 20px
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s
+
+    &:hover
+      border-color: var(--color-primary)
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06)
+      transform: translateY(-2px)
+
+  .am-cat-card__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 14px
+
+  .am-cat-card__icon
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 48px
+    height: 48px
+    border-radius: 12px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 22px
+
+  .am-cat-card__badge
+    display: inline-flex
+    align-items: center
+    height: 24px
+    padding: 0 10px
+    border-radius: 12px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+
+  .am-cat-card__title
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0 0 6px
+
+  .am-cat-card__desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    line-height: 19px
+    color: var(--color-text-inactive)
+    margin: 0 0 16px
+    flex: 1 1 auto
+
+  .am-cat-card__foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+  .am-cat-card__areas
+    display: inline-flex
+    gap: 6px
+
+  .am-cat-card__link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    white-space: nowrap
+
+  // ── List view ───────────────────────────────────────────────────────────────
+  .am-grid--list
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+    .am-cat-card
+      flex-direction: row
+      align-items: center
+      gap: 20px
+      padding: 14px 20px
+
+    .am-cat-card__head
+      margin-bottom: 0
+      gap: 12px
+      flex: 0 0 auto
+
+    .am-cat-card__title
+      margin: 0
+      flex: 0 0 260px
+
+    .am-cat-card__desc
+      margin: 0
+
+    .am-cat-card__foot
+      flex: 0 0 auto
+      margin-left: auto
+
+  // ── Empty state ───────────────────────────────────────────────────────────
+  .am-empty
+    background: var(--color-surface)
+    border: 1px dashed var(--color-border)
+    border-radius: 8px
+    padding: 40px 24px
+    text-align: center
+    font-family: 'Open Sans', sans-serif
+    font-size: 15px
+    color: var(--color-text-inactive)
+
+// ── Tag Area (condiviso griglia + dettaglio) ──────────────────────────────────
+.am-area-tag
+  display: inline-flex
+  align-items: center
+  height: 22px
+  padding: 0 10px
+  border-radius: 11px
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  font-weight: 600
+  letter-spacing: 0.02em
+
+.am-area-tag--prodotti
+  background: var(--color-primary-50)
+  color: var(--color-primary-700)
+
+.am-area-tag--servizi
+  background: var(--color-success-light)
+  color: var(--color-success)

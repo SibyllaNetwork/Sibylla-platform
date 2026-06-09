@@ -11,6 +11,7 @@ import {
   ToggleSwitch,
 } from '../../../core/components/form'
 import { UNITA_MISURA_OPTIONS } from '../../../admin/SibyllaAdminPanel/catalogo/mockData'
+import { getCategoria } from '../../../admin/SibyllaAdminPanel/catalogo/classificazione'
 import { generateEAN13, isValidEAN13 } from '../../../admin/SibyllaAdminPanel/catalogo/helpers'
 import { MERCATI } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import type {
@@ -20,7 +21,7 @@ import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import './CreaProdotto.sass'
 
 const EMPTY_FORM: ProdottoForm = {
-  barcode: '', nome: '', descrizione: '', categoriaId: '', fornitoreId: '',
+  barcode: '', nome: '', descrizione: '', categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
   prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
   agoraAbilitato: false, agoraPrezzo: '',
   networkAbilitato: true, networkPrezzo: '',
@@ -67,6 +68,7 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
   const disabled =
     !form.nome.trim() ||
     !form.categoriaId ||
+    !form.classe ||
     !form.fornitoreId ||
     !!barcodeError ||
     !form.prezzoBase ||
@@ -88,6 +90,8 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
       nome: form.nome,
       descrizione: form.descrizione,
       categoriaId: form.categoriaId,
+      classe: form.classe,
+      tipologia: form.tipologia,
       fornitoreId: form.fornitoreId,
       prezzoBase: prezzoBaseN,
       unita: form.unita,
@@ -109,6 +113,15 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
 
   const categorieOpts = categorie.map(c => ({ value: c.id, label: c.nome }))
   const fornitoriOpts = fornitori.map(f => ({ value: f.id, label: f.nome }))
+
+  // Classi/tipologie a cascata dalla classificazione merceologica
+  const selCat = getCategoria(form.categoriaId)
+  const classeOpts = selCat ? selCat.classi.map(c => ({ value: c.nome, label: c.nome })) : []
+  const selClasse = selCat?.classi.find(c => c.nome === form.classe)
+  const tipologiaOpts = selClasse ? selClasse.tipologie.map(t => ({ value: t, label: t })) : []
+
+  const setCategoria = (id: string) => setForm({ ...form, categoriaId: id, classe: '', tipologia: '' })
+  const setClasse    = (nome: string) => setForm({ ...form, classe: nome, tipologia: '' })
 
   return (
     <div className="crea-prodotto">
@@ -229,9 +242,26 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
             label="Categoria"
             required
             value={form.categoriaId}
-            onChange={e => set('categoriaId', e.target.value)}
+            onChange={e => setCategoria(e.target.value)}
             placeholder="Seleziona categoria..."
             options={categorieOpts}
+          />
+          <SelectField
+            name="classe"
+            label="Classe"
+            required
+            value={form.classe}
+            onChange={e => setClasse(e.target.value)}
+            placeholder={form.categoriaId ? 'Seleziona classe...' : 'Seleziona prima la categoria'}
+            options={classeOpts}
+          />
+          <SelectField
+            name="tipologia"
+            label="Tipologia"
+            value={form.tipologia}
+            onChange={e => set('tipologia', e.target.value)}
+            placeholder={tipologiaOpts.length ? 'Seleziona tipologia...' : 'Nessuna tipologia per questa classe'}
+            options={tipologiaOpts}
           />
           <SelectField
             name="fornitore"

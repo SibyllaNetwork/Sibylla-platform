@@ -15,7 +15,7 @@ import type {
 import './ListaProdotti.css'
 
 const EMPTY_FORM: ProdottoForm = {
-  barcode: '', nome: '', descrizione: '', categoriaId: '', fornitoreId: '',
+  barcode: '', nome: '', descrizione: '', categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
   prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
   agoraAbilitato: false, agoraPrezzo: '',
   networkAbilitato: true, networkPrezzo: '',
@@ -122,6 +122,8 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
       nome: p.nome,
       descrizione: p.descrizione,
       categoriaId: p.categoriaId,
+      classe: p.classe,
+      tipologia: p.tipologia,
       fornitoreId: p.fornitoreId,
       prezzoBase: String(p.prezzoBase),
       unita: p.unita,
@@ -140,7 +142,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
   const confirmEdit = () => {
     const code = form.barcode.trim()
     const prezzoBase = parseFloat(form.prezzoBase)
-    if (!form.nome.trim() || !form.categoriaId || !form.fornitoreId) return
+    if (!form.nome.trim() || !form.categoriaId || !form.classe || !form.fornitoreId) return
     if (!code || isNaN(prezzoBase)) return
     if (isBarcodeUsed(code, editing?.id)) return
     if (!form.agoraAbilitato && !form.networkAbilitato) return
@@ -155,6 +157,8 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
       nome: form.nome,
       descrizione: form.descrizione,
       categoriaId: form.categoriaId,
+      classe: form.classe,
+      tipologia: form.tipologia,
       fornitoreId: form.fornitoreId,
       prezzoBase,
       unita: form.unita,

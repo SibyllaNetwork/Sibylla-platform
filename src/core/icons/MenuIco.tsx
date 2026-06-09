@@ -57,6 +57,8 @@ const MENU_MAP: Record<string, string> = {
 
   // ══ EXECUTIVE (depth 3) ═══════════════════════════════════════════════════
   'i-miei-business':        'fa-building',
+  'i-miei-ristoranti':      'fa-utensils',
+  'executive-overview':     'fa-eye',
   'business-centre':        'fa-buildings',
   'giornale-impresa':       'fa-book-open',
   'analisi-dist-exec':      'fa-chart-column',
@@ -77,6 +79,7 @@ const MENU_MAP: Record<string, string> = {
   'food-beverage':          'fa-utensils',
   'gest-conti':             'fa-file-invoice',
   'gest-movimenti':         'fa-money-bill-transfer',
+  'gest-documenti':         'fa-file-lines',
   'appop':                  'fa-mobile-screen-button',
   'ordine-servizio':        'fa-clipboard-list',
 
@@ -221,6 +224,7 @@ const MENU_MAP: Record<string, string> = {
   'inventario-camere':          'fa-bed-front',
   'crea-outlet':                'fa-store',
   'riepilogo-bacheche':         'fa-clipboard-list',
+  'sale-tavoli':                'fa-chair',
 
   // Impostazioni — Registro di sistema
   'log-sistema':                'fa-list',

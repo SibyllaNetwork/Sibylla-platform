@@ -3,8 +3,8 @@ const MENU:any[]=[
   {id:"profilo",label:"Profilo",icon:"profile",children:[
     {id:"modifica-profilo",label:"Modifica profilo",page:"modifica-profilo"},
     {id:"portafoglio",label:"Portafoglio",children:[
-      {id:"portafoglio-aziendale",label:"Aziendale",page:"portafoglio-aziendale"},
       {id:"portafoglio-personale",label:"Personale",page:"portafoglio-personale"},
+      {id:"portafoglio-aziendale",label:"Aziendale",page:"portafoglio-aziendale"},
     ]},
     {id:"scadenzario",label:"Scadenzario",page:"scadenzario"},
     {id:"gestisci-org",label:"Gestisci organizzazione",children:[
@@ -15,9 +15,10 @@ const MENU:any[]=[
   ]},
   {id:"impresa",label:"Impresa",icon:"wheel",children:[
     {id:"executive",label:"Executive",color:"#5C9CD4",children:[
-      {id:"i-miei-business",label:"I miei business",page:"i-miei-business",children:[
-        {id:"giornale-impresa",label:"Giornale impresa",page:"giornale-impresa"},
-      ]},
+      {id:"i-miei-business",label:"I miei business",page:"i-miei-business"},
+      {id:"i-miei-ristoranti",label:"I miei ristoranti",page:"i-miei-ristoranti"},
+      {id:"executive-overview",label:"Executive overview",page:"executive-overview"},
+      {id:"giornale-impresa",label:"Giornale impresa",page:"giornale-impresa"},
       {id:"business-centre",label:"Business centre",page:"business-centre"},
     ]},
     {id:"sales",label:"Sales & Marketing",color:"#E07B39",children:[
@@ -25,6 +26,7 @@ const MENU:any[]=[
       {id:"gest-strategie",label:"Gestione delle strategie",children:[
         {id:"pianifica-strat",label:"Pianifica strategie",children:[
           {id:"crea-strategia",label:"Crea strategia",page:"crea-strategia"},
+          {id:"modifica-strategia",label:"Modifica strategia",page:"modifica-strategia"},
           {id:"calendario-strategie",label:"Calendario strategie",page:"calendario-strategie"},
         ]},
         {id:"calendario-master",label:"Calendario master",page:"calendario-master"},
@@ -34,7 +36,7 @@ const MENU:any[]=[
         {id:"screening-open",label:"Screening open price",page:"screening-open"},
         {id:"pricing-benchmark",label:"Pricing Benchmark",page:"pricing-benchmark"},
         {id:"pick-up",label:"Pick up",page:"pick-up"},
-        {id:"occ-analysis",label:"OCC Analysis",page:"occ-analysis"},
+        {id:"occ-analysis",label:"Occupancy Analysis",page:"occ-analysis"},
         {id:"adr-analysis",label:"ADR Analysis",page:"adr-analysis"},
       ]},
       {id:"e-distribution",label:"E-distribution",children:[
@@ -119,6 +121,7 @@ const MENU:any[]=[
         {id:"movimenti-attesa",label:"Movimenti in attesa",page:"movimenti-attesa"},
         {id:"movimenti-soggiorno",label:"Movimenti soggiorno",page:"movimenti-soggiorno"},
       ]},
+      {id:"gest-documenti",label:"Gestione documenti",page:"gest-documenti"},
       {id:"appop",label:"AppOp!",children:[
         {id:"stato-camere",label:"Stato Camere",page:"stato-camere"},
         {id:"segnalazioni",label:"Segnalazioni",page:"segnalazioni"},
@@ -128,7 +131,7 @@ const MENU:any[]=[
       {id:"ordine-servizio",label:"Ordine di servizio",page:"ordine-servizio"},
     ]},
     {id:"purchasing",label:"Purchasing",color:"#C4A820",children:[
-      {id:"gest-acquisti",label:"Gestione degli acquisti",children:[
+      {id:"gest-acquisti",label:"Gestione centro acquisti",children:[
         {id:"forniture",label:"Forniture",children:[
           {id:"area-merceologica",label:"Area merceologica",page:"area-merceologica"},
           {id:"lista-fornitori",label:"Lista fornitori",page:"lista-fornitori"},
@@ -175,8 +178,8 @@ const MENU:any[]=[
         {id:"assegna-obiettivo",label:"Assegna obiettivo",page:"assegna-obiettivo"},
         {id:"monitoraggio-perf",label:"Monitoraggio performance",page:"monitoraggio-perf"},
       ]},
-      {id:"hr-overview",label:"HR Overview",page:"hr-overview"},
       {id:"agora-academy",label:"Nuove risorse",page:"agora-academy"},
+      {id:"hr-overview",label:"HR Overview",page:"hr-overview"},
     ]},
     {id:"finance",label:"Finance",color:"#5C9CD4",children:[
       {id:"gest-costi",label:"Gestione dei costi",children:[
@@ -215,8 +218,9 @@ const MENU:any[]=[
     {id:"il-mio-business",label:"Il mio business",children:[
       {id:"crea-struttura",label:"Crea struttura",page:"crea-struttura"},
       {id:"inventario-camere",label:"Inventario camere",page:"inventario-camere"},
-      {id:"crea-outlet",label:"Crea outlet",page:"crea-outlet"},
       {id:"riepilogo-bacheche",label:"Riepilogo bacheche",page:"riepilogo-bacheche"},
+      {id:"crea-outlet",label:"Crea outlet",page:"crea-outlet"},
+      {id:"sale-tavoli",label:"Sale e tavoli",page:"sale-tavoli"},
     ]},
     {id:"gest-notifiche",label:"Gestione delle notifiche",page:"configura-notifiche"},
     {id:"registro-sistema",label:"Registro di sistema",children:[
@@ -231,6 +235,7 @@ const MENU:any[]=[
       ]},
     ]},
   ]},
+  {id:"imt",label:"IMT",icon:"layers",page:"imt"},
 ];
 
 export default MENU;

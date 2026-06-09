@@ -1,0 +1,199 @@
+@use '../../../styles/tokens' as *
+
+.catalogo-checkout
+
+  .ck__layout
+    display: grid
+    grid-template-columns: 1fr
+    gap: 24px
+    align-items: start
+
+    @media (min-width: 900px)
+      grid-template-columns: 1fr 340px
+
+  .ck__section
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    padding: 20px
+    margin-bottom: 16px
+
+  .ck__section-title
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0 0 16px
+
+  .ck__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 14px
+
+  .ck__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    span
+      font-family: 'Open Sans', sans-serif
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-text-inactive)
+
+  .ck__field--full
+    grid-column: 1 / -1
+
+  .ck__textarea
+    resize: vertical
+
+  // ── Pagamento ───────────────────────────────────────────────────────────
+  .ck__pay
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+
+  .ck-pay
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    cursor: pointer
+    transition: border-color 0.15s, background 0.15s
+
+    input
+      display: none
+
+    &:hover
+      border-color: var(--color-primary)
+
+  .ck-pay--on
+    border-color: var(--color-primary)
+    background: var(--color-primary-50)
+
+  .ck-pay__ico
+    font-size: 18px
+    color: var(--color-primary)
+
+  .ck-pay__text
+    display: flex
+    flex-direction: column
+
+  .ck-pay__label
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+
+  .ck-pay__desc
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  // ── Riepilogo ───────────────────────────────────────────────────────────
+  .ck__summary
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    padding: 20px
+
+  .ck__summary-title
+    font-family: 'Poppins', sans-serif
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0 0 14px
+
+  .ck__lines
+    list-style: none
+    margin: 0 0 14px
+    padding: 0
+
+  .ck__line
+    display: flex
+    justify-content: space-between
+    gap: 12px
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: var(--color-text-inactive)
+    padding: 6px 0
+
+    em
+      font-style: normal
+      color: var(--color-text-disabled)
+
+  .ck__line-price
+    color: var(--color-text-active)
+    font-weight: 600
+    white-space: nowrap
+
+  .ck__summary-row
+    display: flex
+    justify-content: space-between
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: var(--color-text-inactive)
+    padding-top: 10px
+    border-top: 1px solid var(--color-border)
+
+  .ck__free
+    color: var(--color-success)
+    font-weight: 600
+
+  .ck__summary-total
+    display: flex
+    justify-content: space-between
+    align-items: baseline
+    font-family: 'Poppins', sans-serif
+    font-size: 18px
+    font-weight: 700
+    color: var(--color-text-active)
+    padding-top: 12px
+    margin-top: 8px
+    border-top: 1px solid var(--color-border)
+
+  .ck__confirm
+    width: 100%
+    justify-content: center
+    margin-top: 16px
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  .ck__hint
+    font-family: 'Open Sans', sans-serif
+    font-size: 11px
+    color: var(--color-text-disabled)
+    text-align: center
+    margin: 8px 0 0
+
+  // ── Success ─────────────────────────────────────────────────────────────
+  .ck__success
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    padding: 56px 24px
+    text-align: center
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 12px
+
+  .ck__success-ico
+    font-size: 48px
+    color: var(--color-success)
+
+  .ck__success-title
+    font-family: 'Poppins', sans-serif
+    font-size: 22px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin: 0
+
+  .ck__success-sub
+    font-family: 'Open Sans', sans-serif
+    font-size: 14px
+    color: var(--color-text-inactive)
+    margin: 0 0 8px

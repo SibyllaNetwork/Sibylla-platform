@@ -141,7 +141,7 @@ export default function SibyllaAdminPanel(_props: Props) {
   const [showProdottoModal, setShowProdottoModal] = useState(false)
   const [editingProdotto, setEditingProdotto] = useState<Prodotto | null>(null)
   const [prodottoForm, setProdottoForm] = useState<ProdottoForm>({
-    barcode: '', nome: '', descrizione: '', categoriaId: '', fornitoreId: '',
+    barcode: '', nome: '', descrizione: '', categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
     prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
     agoraAbilitato: false, agoraPrezzo: '',
     networkAbilitato: true, networkPrezzo: '',
@@ -443,7 +443,7 @@ export default function SibyllaAdminPanel(_props: Props) {
     setEditingProdotto(null)
     setProdottoForm({
       barcode: '', nome: '', descrizione: '',
-      categoriaId: '', fornitoreId: '',
+      categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
       prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
       agoraAbilitato: false, agoraPrezzo: '',
       networkAbilitato: true, networkPrezzo: '',
@@ -457,6 +457,8 @@ export default function SibyllaAdminPanel(_props: Props) {
       nome: p.nome,
       descrizione: p.descrizione,
       categoriaId: p.categoriaId,
+      classe: p.classe,
+      tipologia: p.tipologia,
       fornitoreId: p.fornitoreId,
       prezzoBase: String(p.prezzoBase),
       unita: p.unita,
@@ -474,7 +476,7 @@ export default function SibyllaAdminPanel(_props: Props) {
   const confirmProdotto = () => {
     const code = prodottoForm.barcode.trim()
     const prezzoBase = parseFloat(prodottoForm.prezzoBase)
-    if (!prodottoForm.nome.trim() || !prodottoForm.categoriaId || !prodottoForm.fornitoreId) return
+    if (!prodottoForm.nome.trim() || !prodottoForm.categoriaId || !prodottoForm.classe || !prodottoForm.fornitoreId) return
     if (!code || isNaN(prezzoBase)) return
     if (isBarcodeUsed(code, editingProdotto?.id)) return
     if (!prodottoForm.agoraAbilitato && !prodottoForm.networkAbilitato) return
@@ -489,6 +491,8 @@ export default function SibyllaAdminPanel(_props: Props) {
       nome: prodottoForm.nome,
       descrizione: prodottoForm.descrizione,
       categoriaId: prodottoForm.categoriaId,
+      classe: prodottoForm.classe,
+      tipologia: prodottoForm.tipologia,
       fornitoreId: prodottoForm.fornitoreId,
       prezzoBase,
       unita: prodottoForm.unita,

@@ -1,7 +1,10 @@
 import type { Categoria, Fornitore, Prodotto, UnitaMisura } from './types'
-import { CATEGORY_MAPPING, NEWAGORA_CATEGORIES } from './newagoraSeed'
+import { CATEGORIE, areeOf } from './classificazione'
+import { ean13FromBase } from './helpers'
 
 export const MACRO_AREE = [
+  { id: 'prodotti',        label: 'Prodotti' },
+  { id: 'servizi',         label: 'Servizi' },
   { id: 'vini-bevande',    label: 'Vini e Bevande' },
   { id: 'alimentari',      label: 'Alimentari e Gastronomia' },
   { id: 'prodotti-tipici', label: 'Prodotti Tipici DOP/IGP' },
@@ -36,23 +39,14 @@ export const UNITA_MISURA_OPTIONS: Array<{ value: UnitaMisura; label: string }> 
   { value: 'conf',  label: 'Confezione' },
 ]
 
-// ─── CATEGORIE_INIT ──────────────────────────────────────────────────────────
-// Derivate dal dataset Newagora copiato in newagoraSeed.ts.
-// La descrizione è derivata dalle "classes" della categoria (titoli concatenati).
-export const CATEGORIE_INIT: Categoria[] = Object.entries(NEWAGORA_CATEGORIES)
-  .map(([key, cat]) => {
-    const map = CATEGORY_MAPPING[Number(key)]
-    return {
-      id: map.id,
-      nome: cat.name,
-      icona: map.icona,
-      descrizione: cat.classes.map(c => c.title).join(' · '),
-      macroArea: map.macroArea,
-    }
-  })
+// ─── SEED DERIVATO DALLA CLASSIFICAZIONE ─────────────────────────────────────
+// CATEGORIE / FORNITORI / PRODOTTI demo sono generati dalla tassonomia
+// (Area → Categoria → Classe → Tipologia) in classificazione.ts, così il
+// catalogo, l'inserimento prodotti e il flusso d'acquisto restano allineati.
 
-// helper: slug del nome fornitore (per id stabile)
-function slugifySupplier(name: string): string {
+const round2 = (n: number) => Math.round(n * 100) / 100
+
+function slugify(name: string): string {
   return name
     .toLowerCase()
     .normalize('NFD')
@@ -61,815 +55,101 @@ function slugifySupplier(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+// Nome del fornitore di riferimento per categoria (demo).
+const FORNITORE_PER_CATEGORIA: Record<string, string> = {
+  'alimenti':                     'Granaio del Sud',
+  'soluzioni-energetiche':        'EnerGreen Solutions',
+  'cancelleria-consumo':          'UfficioPiù',
+  'informatica-macchinari':       'TecnoStore Pro',
+  'editoria-eventi-comunicazione':'MediaLab Comunicazione',
+  'lavori-manutenzione':          'Manutenzioni Integrate',
+  'edilizia-impianti':            'EdilCasa Forniture',
+  'attrezzature-abbigliamento':   'SafeWork Equip',
+  'ricerca-welfare-benefit':      'Welfare Partners',
+  'arredi-elettrodomestici':      'CasaDesign Arredi',
+  'bevande':                      'Cantine & Bollicine',
+  'design-manifattura':           'Manifattura Italiana',
+  'sapori':                       'Tavola Tipica',
+  'soggiorni':                    'Ospitalità Network',
+  'esperienze':                   'Experience Maker',
+  'servizi':                      'ServiziPiù',
+}
+
+function macroAreaOf(catId: string): string {
+  const cat = CATEGORIE.find(c => c.id === catId)
+  return cat && areeOf(cat)[0] === 'Servizi' ? 'servizi' : 'prodotti'
+}
+
+// ─── CATEGORIE_INIT ──────────────────────────────────────────────────────────
+export const CATEGORIE_INIT: Categoria[] = CATEGORIE.map((cat) => ({
+  id: cat.id,
+  nome: cat.nome,
+  icona: `fa-${cat.icon}`,
+  descrizione: cat.classi.map(c => c.nome).join(' · '),
+  macroArea: macroAreaOf(cat.id),
+}))
+
 // ─── FORNITORI_INIT ──────────────────────────────────────────────────────────
-// Derivati dal dataset Newagora — un fornitore può comparire in più categorie:
-// la versione "primaria" è la prima occorrenza incontrata nell'iterazione,
-// le altre vengono aggiunte come tag in `caratteristiche`.
-export const FORNITORI_INIT: Fornitore[] = (() => {
-  const byName = new Map<string, Fornitore>()
-  for (const [key, cat] of Object.entries(NEWAGORA_CATEGORIES)) {
-    const map = CATEGORY_MAPPING[Number(key)]
-    for (const supplierName of cat.suppliers) {
-      if (byName.has(supplierName)) {
-        // multi-categoria: aggiungo la categoria come caratteristica informativa
-        const existing = byName.get(supplierName)!
-        if (!existing.caratteristiche.includes(`Anche in: ${cat.name}`)) {
-          existing.caratteristiche.push(`Anche in: ${cat.name}`)
-        }
-        continue
-      }
-      byName.set(supplierName, {
-        id: `newa-forn-${slugifySupplier(supplierName)}`,
-        nome: supplierName,
-        descrizione: `Fornitore presente nel catalogo ${cat.name}`,
-        storia: '',
-        indirizzo: '',
-        citta: '',
-        regione: '',
-        cap: '',
-        telefono: '',
-        email: '',
-        sito: '',
-        annoFondazione: 0,
-        certificazioni: [],
-        caratteristiche: [],
-        categoriaId: map.id,
-        macroArea: map.macroArea,
-        immagineUrl: '',
-        pubblicato: true,
-      })
-    }
+export const FORNITORI_INIT: Fornitore[] = CATEGORIE.map((cat) => {
+  const nome = FORNITORE_PER_CATEGORIA[cat.id] ?? `Fornitore ${cat.nome}`
+  const slug = slugify(nome)
+  return {
+    id: `forn-${cat.id}`,
+    nome,
+    descrizione: `Fornitore di riferimento per ${cat.nome}.`,
+    storia: '',
+    indirizzo: 'Via Roma 1',
+    citta: 'Milano',
+    regione: 'Lombardia',
+    cap: '20100',
+    telefono: '+39 02 0000000',
+    email: `info@${slug}.it`,
+    sito: `www.${slug}.it`,
+    annoFondazione: 2005,
+    certificazioni: [],
+    caratteristiche: areeOf(cat),
+    categoriaId: cat.id,
+    macroArea: macroAreaOf(cat.id),
+    immagineUrl: '',
+    pubblicato: true,
   }
-  return Array.from(byName.values())
-})()
+})
 
 // ─── PRODOTTI_INIT ───────────────────────────────────────────────────────────
-// Prodotti demo agganciati a fornitori reali del seed Newagora.
-// Servono per dimostrare i due mercati Agorà/Network e la lettura via barcode.
-export const PRODOTTI_INIT: Prodotto[] = [
-  {
-    id: 'prod-1',
-    barcode: '8001234567890',
-    nome: 'Pasta di semola di grano duro 500g',
-    descrizione: 'Spaghetti n.5, formato classico, confezione da 500g',
-    categoriaId: 'newa-cat-1',
-    fornitoreId: 'newa-forn-barilla',
-    prezzoBase: 0.78,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=400',
-    scortaMinima: 50,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 1.49 },
-      network: { abilitato: true, prezzoVendita: 1.19 },
-    },
-  },
-  {
-    id: 'prod-2',
-    barcode: '8001234567906',
-    nome: 'Risma carta A4 80g — 500 fogli',
-    descrizione: 'Carta multifunzione 80g/m², adatta per stampanti laser e inkjet',
-    categoriaId: 'newa-cat-3',
-    fornitoreId: 'newa-forn-fabriano',
-    prezzoBase: 3.20,
-    unita: 'conf',
-    quantitaUnita: 500,
-    immagineUrl: 'https://images.unsplash.com/photo-1568667256549-094345857637?w=400',
-    scortaMinima: 10,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: false, prezzoVendita: 0 },
-      network: { abilitato: true,  prezzoVendita: 4.90 },
-    },
-  },
-  {
-    id: 'prod-3',
-    barcode: '8001234567913',
-    nome: 'Detergente disinfettante multiuso 5L',
-    descrizione: 'Detergente igienizzante professionale concentrato per superfici',
-    categoriaId: 'newa-cat-9',
-    fornitoreId: 'newa-forn-lysoform',
-    prezzoBase: 8.50,
-    unita: 'l',
-    quantitaUnita: 5,
-    immagineUrl: 'https://images.unsplash.com/photo-1583947581924-860bda3c6730?w=400',
-    scortaMinima: 6,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true,  prezzoVendita: 13.90 },
-      network: { abilitato: true,  prezzoVendita: 11.50 },
-    },
-  },
-
-  // ─── Cat 1 — Alimenti, Ristorazione e Buoni Pasto ──────────────────────────
-  {
-    id: 'prod-1-olio-carli',
-    barcode: '8001234500001',
-    nome: 'Olio extra vergine di oliva Carli 750ml',
-    descrizione: 'Olio EVO ligure di prima spremitura a freddo, bottiglia 750ml',
-    categoriaId: 'newa-cat-1',
-    fornitoreId: 'newa-forn-carli',
-    prezzoBase: 9.80,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400',
-    scortaMinima: 24,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 14.90 },
-      network: { abilitato: true, prezzoVendita: 12.50 },
-    },
-  },
-  {
-    id: 'prod-1-caffe-molinari',
-    barcode: '8001234500002',
-    nome: 'Caffè in grani Qualità Oro 1kg',
-    descrizione: 'Miscela arabica/robusta torrefatta artigianalmente, confezione 1kg',
-    categoriaId: 'newa-cat-1',
-    fornitoreId: 'newa-forn-molinari',
-    prezzoBase: 12.40,
-    unita: 'kg',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
-    scortaMinima: 20,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 18.50 },
-      network: { abilitato: true, prezzoVendita: 15.90 },
-    },
-  },
-  {
-    id: 'prod-1-spumante-valdo',
-    barcode: '8001234500003',
-    nome: 'Spumante Valdobbiadene Prosecco DOCG 750ml',
-    descrizione: 'Prosecco superiore DOCG extra dry, bottiglia 750ml',
-    categoriaId: 'newa-cat-1',
-    fornitoreId: 'newa-forn-valdobbiaddene',
-    prezzoBase: 6.20,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=400',
-    scortaMinima: 36,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 11.90 },
-      network: { abilitato: true, prezzoVendita: 9.50 },
-    },
-  },
-
-  // ─── Cat 2 — Energia, Carburanti e Lubrificanti ────────────────────────────
-  {
-    id: 'prod-2-olio-castrol',
-    barcode: '8001234500010',
-    nome: 'Olio motore sintetico 5W-40 5L',
-    descrizione: 'Lubrificante full synthetic per motori benzina e diesel, tanica 5L',
-    categoriaId: 'newa-cat-2',
-    fornitoreId: 'newa-forn-castrol',
-    prezzoBase: 28.00,
-    unita: 'l',
-    quantitaUnita: 5,
-    immagineUrl: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=400',
-    scortaMinima: 12,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 42.90 },
-      network: { abilitato: true, prezzoVendita: 35.50 },
-    },
-  },
-  {
-    id: 'prod-2-buono-eni',
-    barcode: '8001234500011',
-    nome: 'Buono carburante Eni 50€',
-    descrizione: 'Voucher elettronico spendibile presso le stazioni di servizio Eni',
-    categoriaId: 'newa-cat-2',
-    fornitoreId: 'newa-forn-eni',
-    prezzoBase: 49.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?w=400',
-    scortaMinima: 50,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 50.00 },
-      network: { abilitato: true, prezzoVendita: 49.50 },
-    },
-  },
-  {
-    id: 'prod-2-energia-enel',
-    barcode: '8001234500012',
-    nome: 'Pacchetto Energia Business 1000 kWh',
-    descrizione: 'Fornitura energia elettrica business a prezzo bloccato 12 mesi',
-    categoriaId: 'newa-cat-2',
-    fornitoreId: 'newa-forn-enel',
-    prezzoBase: 180.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 245.00 },
-      network: { abilitato: true, prezzoVendita: 215.00 },
-    },
-  },
-
-  // ─── Cat 3 — Cancelleria, Carta e Consumabili ──────────────────────────────
-  {
-    id: 'prod-3-penne-bic',
-    barcode: '8001234500020',
-    nome: 'Penne a sfera Bic Cristal blu — 50 pz',
-    descrizione: 'Confezione 50 penne a sfera punta media, inchiostro blu',
-    categoriaId: 'newa-cat-3',
-    fornitoreId: 'newa-forn-bic',
-    prezzoBase: 9.90,
-    unita: 'box',
-    quantitaUnita: 50,
-    immagineUrl: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400',
-    scortaMinima: 5,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 14.90 },
-      network: { abilitato: true, prezzoVendita: 12.50 },
-    },
-  },
-  {
-    id: 'prod-3-toner-hp',
-    barcode: '8001234500021',
-    nome: 'Toner laser HP 26X compatibile',
-    descrizione: 'Cartuccia toner ad alta capacità per stampanti HP LaserJet Pro M402',
-    categoriaId: 'newa-cat-3',
-    fornitoreId: 'newa-forn-hp',
-    prezzoBase: 78.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=400',
-    scortaMinima: 4,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 119.00 },
-      network: { abilitato: true, prezzoVendita: 99.00 },
-    },
-  },
-  {
-    id: 'prod-3-quaderno-buffetti',
-    barcode: '8001234500022',
-    nome: 'Quaderno A4 rigato Buffetti — 100 fogli',
-    descrizione: 'Quaderno a righe con margine, copertina cartonata, formato A4',
-    categoriaId: 'newa-cat-3',
-    fornitoreId: 'newa-forn-buffetti',
-    prezzoBase: 2.10,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400',
-    scortaMinima: 30,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 3.50 },
-      network: { abilitato: true, prezzoVendita: 2.90 },
-    },
-  },
-
-  // ─── Cat 4 — Informatica, Elettronica e Macchinari ─────────────────────────
-  {
-    id: 'prod-4-laptop-dell',
-    barcode: '8001234500030',
-    nome: 'Laptop Dell Latitude 14" i7 16GB',
-    descrizione: 'Notebook business 14" Intel i7 12ª gen, 16GB RAM, SSD 512GB NVMe, Win11 Pro',
-    categoriaId: 'newa-cat-4',
-    fornitoreId: 'newa-forn-dell',
-    prezzoBase: 1280.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
-    scortaMinima: 2,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 1690.00 },
-      network: { abilitato: true, prezzoVendita: 1490.00 },
-    },
-  },
-  {
-    id: 'prod-4-monitor-samsung',
-    barcode: '8001234500031',
-    nome: 'Monitor Samsung 27" 4K UHD',
-    descrizione: 'Display IPS 27" risoluzione 3840×2160, HDR10, ingressi HDMI/DisplayPort',
-    categoriaId: 'newa-cat-4',
-    fornitoreId: 'newa-forn-samsung',
-    prezzoBase: 320.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400',
-    scortaMinima: 4,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 449.00 },
-      network: { abilitato: true, prezzoVendita: 379.00 },
-    },
-  },
-  {
-    id: 'prod-4-switch-cisco',
-    barcode: '8001234500032',
-    nome: 'Switch Cisco Catalyst 24 porte Gigabit',
-    descrizione: 'Switch managed Layer 2 con 24 porte 10/100/1000 + 4 SFP uplink',
-    categoriaId: 'newa-cat-4',
-    fornitoreId: 'newa-forn-cisco',
-    prezzoBase: 850.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400',
-    scortaMinima: 1,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 1190.00 },
-      network: { abilitato: true, prezzoVendita: 990.00 },
-    },
-  },
-
-  // ─── Cat 5 — Editoria, Eventi e Comunicazione ──────────────────────────────
-  {
-    id: 'prod-5-brochure-mondadori',
-    barcode: '8001234500040',
-    nome: 'Stampa brochure A4 4 ante — 500 copie',
-    descrizione: 'Stampa offset patinata 170g, plastificazione opaca, 500 copie pronte in 5 giorni',
-    categoriaId: 'newa-cat-5',
-    fornitoreId: 'newa-forn-mondadori',
-    prezzoBase: 380.00,
-    unita: 'conf',
-    quantitaUnita: 500,
-    immagineUrl: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 540.00 },
-      network: { abilitato: true, prezzoVendita: 450.00 },
-    },
-  },
-  {
-    id: 'prod-5-agenzia-ogilvy',
-    barcode: '8001234500041',
-    nome: 'Agenzia comunicazione — pacchetto mensile',
-    descrizione: 'Servizio full-stack: strategia, social, advertising e content per 1 mese',
-    categoriaId: 'newa-cat-5',
-    fornitoreId: 'newa-forn-ogilvy',
-    prezzoBase: 2800.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 3900.00 },
-      network: { abilitato: true, prezzoVendita: 3200.00 },
-    },
-  },
-  {
-    id: 'prod-5-stand-fmilano',
-    barcode: '8001234500042',
-    nome: 'Allestimento stand fieristico 3×3 m',
-    descrizione: 'Modulo espositivo completo con grafica personalizzata, illuminazione e arredo',
-    categoriaId: 'newa-cat-5',
-    fornitoreId: 'newa-forn-fiera-milano',
-    prezzoBase: 1500.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 2200.00 },
-      network: { abilitato: true, prezzoVendita: 1850.00 },
-    },
-  },
-
-  // ─── Cat 6 — Lavori di Manutenzione ────────────────────────────────────────
-  {
-    id: 'prod-6-ascensore-kone',
-    barcode: '8001234500050',
-    nome: 'Manutenzione ascensore — contratto annuale',
-    descrizione: 'Contratto full service 12 mesi con interventi programmati e reperibilità 24/7',
-    categoriaId: 'newa-cat-6',
-    fornitoreId: 'newa-forn-kone',
-    prezzoBase: 1100.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 1580.00 },
-      network: { abilitato: true, prezzoVendita: 1320.00 },
-    },
-  },
-  {
-    id: 'prod-6-caldaia-vaillant',
-    barcode: '8001234500051',
-    nome: 'Caldaia a condensazione 24kW',
-    descrizione: 'Caldaia murale a gas metano classe A, installazione e collaudo inclusi',
-    categoriaId: 'newa-cat-6',
-    fornitoreId: 'newa-forn-vaillant',
-    prezzoBase: 1450.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400',
-    scortaMinima: 1,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 2100.00 },
-      network: { abilitato: true, prezzoVendita: 1750.00 },
-    },
-  },
-  {
-    id: 'prod-6-pulizie-iss',
-    barcode: '8001234500052',
-    nome: 'Pulizie e sanificazione uffici — 4 ore',
-    descrizione: 'Servizio professionale completo per uffici fino a 200 m², prodotti ecolabel inclusi',
-    categoriaId: 'newa-cat-6',
-    fornitoreId: 'newa-forn-iss',
-    prezzoBase: 95.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 145.00 },
-      network: { abilitato: true, prezzoVendita: 120.00 },
-    },
-  },
-
-  // ─── Cat 7 — Idraulica, Edilizia e Materiale Elettrico ─────────────────────
-  {
-    id: 'prod-7-miscelatore-grohe',
-    barcode: '8001234500060',
-    nome: 'Miscelatore lavabo cromato Grohe Eurosmart',
-    descrizione: 'Rubinetto lavabo a leva singola, finitura cromata, cartuccia 35mm',
-    categoriaId: 'newa-cat-7',
-    fornitoreId: 'newa-forn-grohe',
-    prezzoBase: 84.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?w=400',
-    scortaMinima: 4,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 129.00 },
-      network: { abilitato: true, prezzoVendita: 105.00 },
-    },
-  },
-  {
-    id: 'prod-7-cemento-mapei',
-    barcode: '8001234500061',
-    nome: 'Sacco cemento Mapei 25kg',
-    descrizione: 'Cemento portland tipo II 32,5R per opere strutturali, sacco da 25kg',
-    categoriaId: 'newa-cat-7',
-    fornitoreId: 'newa-forn-mapei',
-    prezzoBase: 6.80,
-    unita: 'pz',
-    quantitaUnita: 25,
-    immagineUrl: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400',
-    scortaMinima: 50,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 11.50 },
-      network: { abilitato: true, prezzoVendita: 9.20 },
-    },
-  },
-  {
-    id: 'prod-7-interruttore-bticino',
-    barcode: '8001234500062',
-    nome: 'Interruttore Living Light BTicino bianco',
-    descrizione: 'Comando luce 1P 10A, serie Living Light, placca esclusa',
-    categoriaId: 'newa-cat-7',
-    fornitoreId: 'newa-forn-bticino',
-    prezzoBase: 3.40,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1565608438257-fac3c27beb36?w=400',
-    scortaMinima: 50,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 6.20 },
-      network: { abilitato: true, prezzoVendita: 4.90 },
-    },
-  },
-
-  // ─── Cat 8 — Attrezzature e Impianti ───────────────────────────────────────
-  {
-    id: 'prod-8-trapano-makita',
-    barcode: '8001234500070',
-    nome: 'Trapano avvitatore Makita 18V con valigetta',
-    descrizione: 'Kit completo trapano percussione 18V con 2 batterie 5Ah, caricatore e valigetta',
-    categoriaId: 'newa-cat-8',
-    fornitoreId: 'newa-forn-makita',
-    prezzoBase: 215.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=400',
-    scortaMinima: 3,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 319.00 },
-      network: { abilitato: true, prezzoVendita: 269.00 },
-    },
-  },
-  {
-    id: 'prod-8-telecamera-hikvision',
-    barcode: '8001234500071',
-    nome: 'Telecamera IP Hikvision 4MP outdoor',
-    descrizione: 'Bullet camera 4MP H.265+, visione notturna 30m, IP67, PoE',
-    categoriaId: 'newa-cat-8',
-    fornitoreId: 'newa-forn-hikvision',
-    prezzoBase: 145.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1557180295-76eee20ae8aa?w=400',
-    scortaMinima: 6,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 219.00 },
-      network: { abilitato: true, prezzoVendita: 179.00 },
-    },
-  },
-  {
-    id: 'prod-8-compressore-atlas',
-    barcode: '8001234500072',
-    nome: 'Compressore aria 100L Atlas Copco',
-    descrizione: 'Compressore portatile a pistoni 3HP, serbatoio 100L, pressione 10 bar',
-    categoriaId: 'newa-cat-8',
-    fornitoreId: 'newa-forn-atlas-copco',
-    prezzoBase: 540.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=400',
-    scortaMinima: 1,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 780.00 },
-      network: { abilitato: true, prezzoVendita: 650.00 },
-    },
-  },
-
-  // ─── Cat 9 — Monouso, Pulizie e Igiene (extra) ─────────────────────────────
-  {
-    id: 'prod-9-carta-tork',
-    barcode: '8001234500080',
-    nome: 'Carta igienica Tork Jumbo 2 veli — cartone 12 rotoli',
-    descrizione: 'Carta igienica industriale Mini Jumbo, 2 veli, ø 19cm, 200m per rotolo',
-    categoriaId: 'newa-cat-9',
-    fornitoreId: 'newa-forn-tork',
-    prezzoBase: 22.40,
-    unita: 'cassa',
-    quantitaUnita: 12,
-    immagineUrl: 'https://images.unsplash.com/photo-1584736286279-75b13d77d5fc?w=400',
-    scortaMinima: 10,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 34.90 },
-      network: { abilitato: true, prezzoVendita: 28.50 },
-    },
-  },
-  {
-    id: 'prod-9-sacchetti-vileda',
-    barcode: '8001234500081',
-    nome: 'Sacchetti spazzatura 100L — confezione 50 pz',
-    descrizione: 'Sacchi neri rinforzati 100L, formato 70×110cm, alta resistenza allo strappo',
-    categoriaId: 'newa-cat-9',
-    fornitoreId: 'newa-forn-vileda',
-    prezzoBase: 11.80,
-    unita: 'conf',
-    quantitaUnita: 50,
-    immagineUrl: 'https://images.unsplash.com/photo-1582538885592-e70a5d7ab3d3?w=400',
-    scortaMinima: 8,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 17.90 },
-      network: { abilitato: true, prezzoVendita: 14.50 },
-    },
-  },
-  {
-    id: 'prod-9-sapone-lysoform',
-    barcode: '8001234500082',
-    nome: 'Sapone liquido mani 5L Lysoform',
-    descrizione: 'Detergente liquido mani con glicerina, formato professionale 5L',
-    categoriaId: 'newa-cat-9',
-    fornitoreId: 'newa-forn-lysoform',
-    prezzoBase: 14.20,
-    unita: 'l',
-    quantitaUnita: 5,
-    immagineUrl: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=400',
-    scortaMinima: 6,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 22.90 },
-      network: { abilitato: true, prezzoVendita: 18.50 },
-    },
-  },
-
-  // ─── Cat 10 — Rifiuti e Riciclo ────────────────────────────────────────────
-  {
-    id: 'prod-10-differenziata-hera',
-    barcode: '8001234500090',
-    nome: 'Raccolta differenziata mensile — utenza business',
-    descrizione: 'Servizio di raccolta porta a porta differenziata per attività commerciali',
-    categoriaId: 'newa-cat-10',
-    fornitoreId: 'newa-forn-hera',
-    prezzoBase: 180.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 245.00 },
-      network: { abilitato: true, prezzoVendita: 210.00 },
-    },
-  },
-  {
-    id: 'prod-10-raee-ecolight',
-    barcode: '8001234500091',
-    nome: 'Smaltimento RAEE — fino a 50kg',
-    descrizione: 'Ritiro e smaltimento certificato di apparecchiature elettroniche, formulario incluso',
-    categoriaId: 'newa-cat-10',
-    fornitoreId: 'newa-forn-ecolight',
-    prezzoBase: 65.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 99.00 },
-      network: { abilitato: true, prezzoVendita: 79.00 },
-    },
-  },
-  {
-    id: 'prod-10-toner-cobat',
-    barcode: '8001234500092',
-    nome: 'Ritiro toner esausti — 1 collo',
-    descrizione: 'Ritiro a domicilio di cartucce e toner usati con rilascio FIR',
-    categoriaId: 'newa-cat-10',
-    fornitoreId: 'newa-forn-cobat',
-    prezzoBase: 28.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 45.00 },
-      network: { abilitato: true, prezzoVendita: 36.00 },
-    },
-  },
-
-  // ─── Cat 11 — Ricerca, Welfare e Benefit ───────────────────────────────────
-  {
-    id: 'prod-11-buoni-edenred',
-    barcode: '8001234500100',
-    nome: 'Buoni pasto elettronici Edenred — 50 buoni da 8€',
-    descrizione: 'Carta elettronica ricaricabile con 50 buoni pasto da 8€ ciascuno, esenti contributi',
-    categoriaId: 'newa-cat-11',
-    fornitoreId: 'newa-forn-edenred',
-    prezzoBase: 400.00,
-    unita: 'conf',
-    quantitaUnita: 50,
-    immagineUrl: 'https://images.unsplash.com/photo-1556742205-e7530469f4eb?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 412.00 },
-      network: { abilitato: true, prezzoVendita: 405.00 },
-    },
-  },
-  {
-    id: 'prod-11-polizza-generali',
-    barcode: '8001234500101',
-    nome: 'Polizza sanitaria dipendenti — quota mensile',
-    descrizione: 'Copertura sanitaria integrativa per dipendente, quota mensile per persona',
-    categoriaId: 'newa-cat-11',
-    fornitoreId: 'newa-forn-generali',
-    prezzoBase: 38.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 58.00 },
-      network: { abilitato: true, prezzoVendita: 48.00 },
-    },
-  },
-  {
-    id: 'prod-11-recruiting-adecco',
-    barcode: '8001234500102',
-    nome: 'Recruiting profilo middle — fee unica',
-    descrizione: 'Servizio di ricerca e selezione, fee one-shot a successo per profilo middle',
-    categoriaId: 'newa-cat-11',
-    fornitoreId: 'newa-forn-adecco',
-    prezzoBase: 2400.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400',
-    scortaMinima: 0,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 3500.00 },
-      network: { abilitato: true, prezzoVendita: 2900.00 },
-    },
-  },
-
-  // ─── Cat 12 — Arredi, Complementi ed Elettrodomestici ──────────────────────
-  {
-    id: 'prod-12-sedia-herman',
-    barcode: '8001234500110',
-    nome: 'Sedia ergonomica Herman Miller Aeron',
-    descrizione: 'Poltrona operativa ergonomica, taglia B, finitura grafite, garanzia 12 anni',
-    categoriaId: 'newa-cat-12',
-    fornitoreId: 'newa-forn-herman-miller',
-    prezzoBase: 950.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=400',
-    scortaMinima: 2,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 1450.00 },
-      network: { abilitato: true, prezzoVendita: 1190.00 },
-    },
-  },
-  {
-    id: 'prod-12-caffe-delonghi',
-    barcode: '8001234500111',
-    nome: 'Macchina caffè De Longhi Magnifica EVO',
-    descrizione: 'Macchina automatica a chicchi, sistema LatteCrema, 7 ricette one-touch',
-    categoriaId: 'newa-cat-12',
-    fornitoreId: 'newa-forn-de-longhi',
-    prezzoBase: 480.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1572119865084-43c285814d63?w=400',
-    scortaMinima: 3,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 699.00 },
-      network: { abilitato: true, prezzoVendita: 579.00 },
-    },
-  },
-  {
-    id: 'prod-12-frigo-electrolux',
-    barcode: '8001234500112',
-    nome: 'Frigorifero combinato Electrolux 350L',
-    descrizione: 'Frigocongelatore combinato A++, No Frost, capacità totale 350L',
-    categoriaId: 'newa-cat-12',
-    fornitoreId: 'newa-forn-electrolux',
-    prezzoBase: 590.00,
-    unita: 'pz',
-    quantitaUnita: 1,
-    immagineUrl: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400',
-    scortaMinima: 1,
-    attivo: true,
-    pubblicato: true,
-    mercati: {
-      agora:   { abilitato: true, prezzoVendita: 849.00 },
-      network: { abilitato: true, prezzoVendita: 710.00 },
-    },
-  },
-]
+// Un prodotto per ogni Tipologia; per le classi senza tipologie, un prodotto
+// che rappresenta la classe stessa.
+export const PRODOTTI_INIT: Prodotto[] = (() => {
+  const out: Prodotto[] = []
+  let counter = 0
+  for (const cat of CATEGORIE) {
+    cat.classi.forEach((classe, cli) => {
+      const tipologie = classe.tipologie.length > 0 ? classe.tipologie : ['']
+      tipologie.forEach((tip, ti) => {
+        counter += 1
+        const prezzoBase = round2(6.9 + ((counter * 7) % 90))
+        out.push({
+          id: `prod-${cat.id}-${cli}-${ti}`,
+          barcode: ean13FromBase(800000000000 + counter),
+          nome: tip || classe.nome,
+          descrizione: `${classe.nome}${tip ? ` · ${tip}` : ''} — ${cat.nome}.`,
+          categoriaId: cat.id,
+          classe: classe.nome,
+          tipologia: tip,
+          fornitoreId: `forn-${cat.id}`,
+          prezzoBase,
+          unita: 'pz',
+          quantitaUnita: 1,
+          immagineUrl: '',
+          scortaMinima: 5,
+          attivo: true,
+          mercati: {
+            agora:   { abilitato: true, prezzoVendita: round2(prezzoBase * 1.35) },
+            network: { abilitato: true, prezzoVendita: round2(prezzoBase * 1.20) },
+          },
+          pubblicato: true,
+        })
+      })
+    })
+  }
+  return out
+})()

@@ -44,6 +44,8 @@ export interface Prodotto {
   nome: string
   descrizione: string
   categoriaId: string
+  classe: string      // classe merceologica (vedi classificazione.ts)
+  tipologia: string   // tipologia merceologica ('' se non specificata)
   fornitoreId: string
   prezzoBase: number  // prezzo di acquisto / listino fornitore
   unita: UnitaMisura
@@ -86,6 +88,8 @@ export interface ProdottoForm {
   nome: string
   descrizione: string
   categoriaId: string
+  classe: string
+  tipologia: string
   fornitoreId: string
   prezzoBase: string
   unita: UnitaMisura
