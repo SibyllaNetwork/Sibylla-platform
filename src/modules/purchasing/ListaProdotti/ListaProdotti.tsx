@@ -16,7 +16,7 @@ import './ListaProdotti.css'
 
 const EMPTY_FORM: ProdottoForm = {
   barcode: '', nome: '', descrizione: '', categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
-  prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
+  prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', foto: [], scortaMinima: '0', attivo: true,
   agoraAbilitato: false, agoraPrezzo: '',
   networkAbilitato: true, networkPrezzo: '',
   parametri: [],
@@ -130,6 +130,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
       unita: p.unita,
       quantitaUnita: String(p.quantitaUnita),
       immagineUrl: p.immagineUrl,
+      foto: p.foto ?? (p.immagineUrl ? [p.immagineUrl] : []),
       scortaMinima: String(p.scortaMinima),
       attivo: p.attivo,
       agoraAbilitato: p.mercati.agora.abilitato,
@@ -166,6 +167,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
       unita: form.unita,
       quantitaUnita: parseFloat(form.quantitaUnita) || 1,
       immagineUrl: form.immagineUrl,
+      foto: form.foto,
       scortaMinima: parseInt(form.scortaMinima) || 0,
       attivo: form.attivo,
       pubblicato: editing?.pubblicato ?? false,

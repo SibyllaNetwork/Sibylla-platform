@@ -114,6 +114,214 @@
     textarea
       min-height: 56px
 
+  // ── Galleria foto prodotto (upload, max 5) ────────────────────────
+  &__label-hint
+    font-weight: 400
+    color: $text-inactive
+
+  &__file-input
+    display: none
+
+  &__gallery
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__thumb
+    position: relative
+    width: 72px
+    height: 72px
+    border-radius: 8px
+    border: 1px solid $border
+    background: var(--color-bg)
+    overflow: hidden
+    flex: 0 0 auto
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    &--add
+      display: flex
+      flex-direction: column
+      align-items: center
+      justify-content: center
+      gap: 2px
+      border-style: dashed
+      cursor: pointer
+      color: $text-disabled
+      font-size: 16px
+
+      span
+        font-size: 10px
+        font-weight: 600
+        font-family: 'Open Sans', sans-serif
+
+      &:hover
+        border-color: $blue
+        color: $blue
+
+  &__thumb-remove
+    position: absolute
+    top: 3px
+    right: 3px
+    width: 18px
+    height: 18px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 50%
+    background: rgba(0, 0, 0, 0.55)
+    color: #fff
+    cursor: pointer
+    font-size: 10px
+
+    &:hover
+      background: $error
+
+  // ── Codice QR ─────────────────────────────────────────────────────
+  &__qr
+    display: flex
+    align-items: center
+    gap: 16px
+    padding: 14px
+    border: 1px dashed $border
+    border-radius: 10px
+    background: var(--color-bg)
+
+  &__qr-box
+    flex: 0 0 auto
+    width: 96px
+    height: 96px
+    border-radius: 8px
+    border: 1px solid $border
+    background: $white
+    display: flex
+    align-items: center
+    justify-content: center
+    overflow: hidden
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: contain
+
+  &__qr-ph
+    font-size: 38px
+    color: $text-disabled
+
+  &__qr-side
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+
+    code
+      font-family: monospace
+      font-size: 11px
+      color: $primary
+
+  &__qr-actions
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+
+  &__qr-clear
+    width: 32px
+    height: 32px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    cursor: pointer
+    color: $text-disabled
+    font-size: 13px
+
+    &:hover
+      border-color: $error
+      color: $error
+
+  // Lettore QR (recupero dati da un QR esistente)
+  &__qr-reader
+    display: flex
+    align-items: center
+    gap: 6px
+    height: 34px
+    padding: 0 4px 0 10px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    box-sizing: border-box
+
+    &:focus-within
+      border-color: $blue
+
+    &--armed
+      border-color: $blue
+      box-shadow: 0 0 0 2px alpha($blue, 0.15)
+
+  &__qr-reader-ico
+    font-size: 14px
+    color: $primary
+    flex-shrink: 0
+
+  &__qr-reader-input
+    flex: 1
+    min-width: 0
+    border: none
+    background: transparent
+    height: 30px
+    padding: 0
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+    color: $text-active
+
+    &:focus
+      outline: none
+
+    &::placeholder
+      color: $text-disabled
+
+  &__qr-reader-btn
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 26px
+    padding: 0 10px
+    background: $blue-light
+    border: 1px solid alpha($blue, 0.2)
+    border-radius: 5px
+    cursor: pointer
+    font-size: 11px
+    font-weight: 600
+    color: $blue
+    flex-shrink: 0
+    white-space: nowrap
+
+    &:hover
+      background: alpha($blue, 0.13)
+
+    &[aria-pressed="true"]
+      background: $blue
+      color: $white
+      border-color: $blue
+
+  &__qr-msg
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 600
+    font-family: 'Open Sans', sans-serif
+
+    &--ok
+      color: $success
+
+    &--info
+      color: $text-inactive
+
   // ── Mercati di vendita ────────────────────────────────────────────
   &__mercati
     display: flex

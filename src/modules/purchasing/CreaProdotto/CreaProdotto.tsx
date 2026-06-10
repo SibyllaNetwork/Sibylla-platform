@@ -22,7 +22,7 @@ import './CreaProdotto.sass'
 
 const EMPTY_FORM: ProdottoForm = {
   barcode: '', nome: '', descrizione: '', categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
-  prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
+  prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', foto: [], scortaMinima: '0', attivo: true,
   agoraAbilitato: false, agoraPrezzo: '',
   networkAbilitato: true, networkPrezzo: '',
   parametri: [],
@@ -44,17 +44,59 @@ const PRESET_PARAMS: Array<{ label: string; param: ProdottoParametro }> = [
   { label: 'Scadenza',  param: { tipo: 'date',     nome: 'Scadenza',   valore: '' } },
 ]
 
+const MAX_FOTO = 5
+
+const QR_API = 'https://api.qrserver.com/v1/create-qr-code/'
+const qrImageUrl = (payload: string) =>
+  `${QR_API}?size=240x240&margin=12&data=${encodeURIComponent(payload)}`
+
+const prodottoToForm = (p: Prodotto): ProdottoForm => ({
+  barcode: p.barcode,
+  nome: p.nome,
+  descrizione: p.descrizione,
+  categoriaId: p.categoriaId,
+  classe: p.classe,
+  tipologia: p.tipologia,
+  fornitoreId: p.fornitoreId,
+  prezzoBase: String(p.prezzoBase),
+  unita: p.unita,
+  quantitaUnita: String(p.quantitaUnita),
+  immagineUrl: p.immagineUrl,
+  foto: p.foto ?? (p.immagineUrl ? [p.immagineUrl] : []),
+  scortaMinima: String(p.scortaMinima),
+  attivo: p.attivo,
+  agoraAbilitato: p.mercati.agora.abilitato,
+  agoraPrezzo: p.mercati.agora.prezzoVendita ? String(p.mercati.agora.prezzoVendita) : '',
+  networkAbilitato: p.mercati.network.abilitato,
+  networkPrezzo: p.mercati.network.prezzoVendita ? String(p.mercati.network.prezzoVendita) : '',
+  parametri: p.parametri ?? [],
+})
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+
 export default function CreaProdotto({ navigate }: { navigate: (p: string) => void }) {
   const categorie = useCatalogoStore(s => s.categorie)
   const fornitori = useCatalogoStore(s => s.fornitori)
   const magazzini = useCatalogoStore(s => s.magazzini)
+  const prodotti = useCatalogoStore(s => s.prodotti)
   const addProdotto = useCatalogoStore(s => s.addProdotto)
   const registraMovimento = useCatalogoStore(s => s.registraMovimento)
   const isBarcodeUsed = useCatalogoStore(s => s.isBarcodeUsed)
 
   const [form, setForm] = useState<ProdottoForm>(EMPTY_FORM)
   const [scannerArmed, setScannerArmed] = useState(false)
+  const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const [qrArmed, setQrArmed] = useState(false)
+  const [qrRead, setQrRead] = useState('')
+  const [qrMsg, setQrMsg] = useState<{ tone: 'ok' | 'info'; text: string } | null>(null)
   const barcodeInputRef = useRef<HTMLInputElement>(null)
+  const qrReadRef = useRef<HTMLInputElement>(null)
 
   // Assegnazione opzionale a un magazzino esistente (creato in "Movimenti scorte")
   const [magAssign, setMagAssign] = useState({ magazzinoId: '', collocazione: '', quantita: '' })
@@ -68,6 +110,51 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
 
   const set = <K extends keyof ProdottoForm>(k: K, v: ProdottoForm[K]) =>
     setForm({ ...form, [k]: v })
+
+  // ── Upload immagini prodotto (galleria, max 5) ──────────────────────────────
+  const onFotoAdd = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const room = MAX_FOTO - form.foto.length
+    const toAdd = Array.from(files).slice(0, Math.max(0, room))
+    const urls = await Promise.all(toAdd.map(fileToDataUrl))
+    setForm(f => ({ ...f, foto: [...f.foto, ...urls].slice(0, MAX_FOTO) }))
+  }
+  const rmFoto = (i: number) =>
+    setForm(f => ({ ...f, foto: f.foto.filter((_, idx) => idx !== i) }))
+
+  // ── QR code prodotto (codifica il barcode, o il nome se assente) ────────────
+  const qrPayload = form.barcode.trim() || form.nome.trim()
+  const generateQr = () => { if (qrPayload) setQrUrl(qrImageUrl(qrPayload)) }
+
+  // ── Lettura QR esistente → recupero dati (come il lettore barcode) ──────────
+  const armQrReader = () => {
+    setQrArmed(true)
+    setQrMsg(null)
+    qrReadRef.current?.focus()
+    qrReadRef.current?.select()
+  }
+  const handleQrRead = (raw: string) => {
+    const v = raw.trim()
+    setQrArmed(false)
+    if (!v) return
+    const match = prodotti.find(p => (p.qrCode && p.qrCode === v) || p.barcode === v || p.nome === v)
+    if (match) {
+      setForm(prodottoToForm(match))
+      setQrUrl(qrImageUrl(match.qrCode || match.barcode || match.nome))
+      setQrMsg({ tone: 'ok', text: `Dati recuperati dal prodotto «${match.nome}»` })
+    } else {
+      const numeric = /^\d+$/.test(v)
+      setForm(f => ({ ...f, barcode: numeric ? v.slice(0, 13) : f.barcode }))
+      setQrUrl(qrImageUrl(v))
+      setQrMsg({
+        tone: 'info',
+        text: numeric
+          ? 'Nessun prodotto con questo QR — valore impostato come barcode'
+          : 'Nessun prodotto con questo QR — QR generato dal contenuto letto',
+      })
+    }
+    setQrRead('')
+  }
 
   // ── Builder parametri personalizzati ───────────────────────────────────────
   const addParam = (preset?: ProdottoParametro) =>
@@ -133,7 +220,9 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
       prezzoBase: prezzoBaseN,
       unita: form.unita,
       quantitaUnita: parseFloat(form.quantitaUnita) || 1,
-      immagineUrl: form.immagineUrl,
+      immagineUrl: form.foto[0] ?? '',
+      foto: form.foto,
+      qrCode: qrUrl ? qrPayload : undefined,
       scortaMinima: parseInt(form.scortaMinima) || 0,
       attivo: form.attivo,
       pubblicato: false,
@@ -255,27 +344,98 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
             />
           </div>
         </FormGrid>
+
+        <div className="crea-prodotto__qr">
+          <div className="crea-prodotto__qr-box">
+            {qrUrl
+              ? <img src={qrUrl} alt="QR code prodotto" />
+              : <i className="fa-light fa-qrcode crea-prodotto__qr-ph" aria-hidden="true" />}
+          </div>
+          <div className="crea-prodotto__qr-side">
+            <span className="text-[11px] font-semibold font-opensans text-ink">Codice QR</span>
+            <p className="crea-prodotto__hint">
+              {qrPayload
+                ? <>Genera un QR specifico per questo prodotto. Codifica: <code>{qrPayload}</code></>
+                : 'Inserisci prima il barcode o il nome del prodotto per generare il QR.'}
+            </p>
+            <div className="crea-prodotto__qr-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={generateQr} disabled={!qrPayload}>
+                <i className="fa-duotone fa-qrcode" aria-hidden="true" /> {qrUrl ? 'Rigenera QR' : 'Genera QR code'}
+              </button>
+              {qrUrl && (
+                <>
+                  <a className="sib-btn sib-btn--ghost" href={qrUrl} download={`qr-${qrPayload}.png`} target="_blank" rel="noopener noreferrer">
+                    <i className="fa-light fa-download" aria-hidden="true" /> Scarica
+                  </a>
+                  <button type="button" className="crea-prodotto__qr-clear" onClick={() => setQrUrl(null)} title="Rimuovi QR">
+                    <i className="fa-light fa-trash-can" aria-hidden="true" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Lettura di un QR esistente per recuperare i dati (come il lettore barcode) */}
+            <div className={'crea-prodotto__qr-reader' + (qrArmed ? ' crea-prodotto__qr-reader--armed' : '')}>
+              <i className="fa-light fa-qrcode crea-prodotto__qr-reader-ico" aria-hidden="true" />
+              <input
+                ref={qrReadRef}
+                className="crea-prodotto__qr-reader-input"
+                value={qrRead}
+                onChange={e => setQrRead(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleQrRead(qrRead) } }}
+                onBlur={() => setQrArmed(false)}
+                placeholder={qrArmed ? 'In attesa di lettura…' : 'Leggi o incolla un QR esistente per recuperare i dati'}
+              />
+              <button type="button" className="crea-prodotto__qr-reader-btn" onClick={armQrReader} aria-pressed={qrArmed}>
+                <i className="fa-light fa-barcode-read" aria-hidden="true" /> Leggi QR
+              </button>
+            </div>
+            {qrMsg && (
+              <span className={'crea-prodotto__qr-msg crea-prodotto__qr-msg--' + qrMsg.tone}>
+                <i className={'fa-light ' + (qrMsg.tone === 'ok' ? 'fa-circle-check' : 'fa-circle-info')} aria-hidden="true" />
+                {qrMsg.text}
+              </span>
+            )}
+          </div>
+        </div>
       </section>
 
       <section className="crea-prodotto__section">
         <h3 className="sib-section-title crea-prodotto__section-title">Anagrafica prodotto</h3>
-        <FormGrid cols={2}>
-          <InputField
-            name="nome"
-            label="Nome prodotto"
-            required
-            value={form.nome}
-            onChange={e => set('nome', e.target.value)}
-            placeholder="Es. Olio EVO 1L"
-          />
-          <InputField
-            name="immagineUrl"
-            label="URL immagine"
-            value={form.immagineUrl}
-            onChange={e => set('immagineUrl', e.target.value)}
-            placeholder="https://..."
-          />
-        </FormGrid>
+        <InputField
+          name="nome"
+          label="Nome prodotto"
+          required
+          value={form.nome}
+          onChange={e => set('nome', e.target.value)}
+          placeholder="Es. Olio EVO 1L"
+        />
+
+        <div className="crea-prodotto__field">
+          <span className="text-[11px] font-semibold font-opensans text-ink">
+            Foto prodotto <span className="crea-prodotto__label-hint">(max {MAX_FOTO})</span>
+          </span>
+          <div className="crea-prodotto__gallery">
+            {form.foto.map((src, i) => (
+              <span key={i} className="crea-prodotto__thumb">
+                <img src={src} alt={`foto ${i + 1}`} />
+                <button type="button" className="crea-prodotto__thumb-remove" onClick={() => rmFoto(i)} title="Rimuovi foto">
+                  <i className="fa-light fa-xmark" aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+            {form.foto.length < MAX_FOTO && (
+              <label className="crea-prodotto__thumb crea-prodotto__thumb--add">
+                <i className="fa-light fa-plus" aria-hidden="true" />
+                <span>Aggiungi</span>
+                <input
+                  type="file" accept="image/*" multiple className="crea-prodotto__file-input"
+                  onChange={e => { onFotoAdd(e.target.files); e.target.value = '' }}
+                />
+              </label>
+            )}
+          </div>
+        </div>
         <TextareaField
           name="descrizione"
           label="Descrizione"

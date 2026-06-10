@@ -87,6 +87,7 @@ export interface Servizio {
   classe?: string
   indirizzo?: string
   logoUrl?: string
+  foto?: string[]                   // galleria immagini del servizio (max 5)
   incrementoB2bPct?: number         // % di incremento da B2C a B2B
   commissione?: number              // commissione % (minimo 3,5)
   distribuzioneB2c?: boolean

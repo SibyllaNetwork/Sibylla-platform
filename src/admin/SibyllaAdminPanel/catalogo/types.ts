@@ -64,6 +64,8 @@ export interface Prodotto {
   unita: UnitaMisura
   quantitaUnita: number
   immagineUrl: string
+  foto?: string[]                   // galleria immagini del prodotto (max 5)
+  qrCode?: string                   // payload codificato nel QR code (es. barcode/identità)
   scortaMinima: number
   attivo: boolean
   mercati: ProdottoMercati
@@ -109,6 +111,7 @@ export interface ProdottoForm {
   unita: UnitaMisura
   quantitaUnita: string
   immagineUrl: string
+  foto: string[]
   scortaMinima: string
   attivo: boolean
   agoraAbilitato: boolean

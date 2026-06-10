@@ -142,7 +142,7 @@ export default function SibyllaAdminPanel(_props: Props) {
   const [editingProdotto, setEditingProdotto] = useState<Prodotto | null>(null)
   const [prodottoForm, setProdottoForm] = useState<ProdottoForm>({
     barcode: '', nome: '', descrizione: '', categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
-    prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
+    prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', foto: [], scortaMinima: '0', attivo: true,
     agoraAbilitato: false, agoraPrezzo: '',
     networkAbilitato: true, networkPrezzo: '',
     parametri: [],
@@ -445,7 +445,7 @@ export default function SibyllaAdminPanel(_props: Props) {
     setProdottoForm({
       barcode: '', nome: '', descrizione: '',
       categoriaId: '', classe: '', tipologia: '', fornitoreId: '',
-      prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', scortaMinima: '0', attivo: true,
+      prezzoBase: '', unita: 'pz', quantitaUnita: '1', immagineUrl: '', foto: [], scortaMinima: '0', attivo: true,
       agoraAbilitato: false, agoraPrezzo: '',
       networkAbilitato: true, networkPrezzo: '',
       parametri: [],
@@ -466,6 +466,7 @@ export default function SibyllaAdminPanel(_props: Props) {
       unita: p.unita,
       quantitaUnita: String(p.quantitaUnita),
       immagineUrl: p.immagineUrl,
+      foto: p.foto ?? (p.immagineUrl ? [p.immagineUrl] : []),
       scortaMinima: String(p.scortaMinima),
       attivo: p.attivo,
       agoraAbilitato: p.mercati.agora.abilitato,
@@ -501,6 +502,7 @@ export default function SibyllaAdminPanel(_props: Props) {
       unita: prodottoForm.unita,
       quantitaUnita: parseFloat(prodottoForm.quantitaUnita) || 1,
       immagineUrl: prodottoForm.immagineUrl,
+      foto: prodottoForm.foto,
       scortaMinima: parseInt(prodottoForm.scortaMinima) || 0,
       attivo: prodottoForm.attivo,
       pubblicato: editingProdotto?.pubblicato ?? false,

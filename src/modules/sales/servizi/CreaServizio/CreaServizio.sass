@@ -71,6 +71,107 @@
     &--logo
       border-radius: 50%
 
+  .crea-servizio__label-hint
+    font-weight: 400
+    color: $text-inactive
+
+  .crea-servizio__file-input
+    display: none
+
+  // Bottone "carica/cambia" (logo)
+  .crea-servizio__upload-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 36px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 6px
+    background: var(--color-surface)
+    cursor: pointer
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+
+    &:hover
+      border-color: $blue
+      color: $blue
+
+  .crea-servizio__media-remove
+    width: 36px
+    height: 36px
+    border: 1px solid $border
+    border-radius: 6px
+    background: var(--color-surface)
+    cursor: pointer
+    color: $text-disabled
+    font-size: 14px
+
+    &:hover
+      border-color: $error
+      color: $error
+
+  // ── Galleria foto (max 5) ──────────────────────────────────────────────────
+  .crea-servizio__gallery
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  .crea-servizio__thumb
+    position: relative
+    width: 72px
+    height: 72px
+    border-radius: 8px
+    border: 1px solid $border
+    background: var(--color-bg)
+    overflow: hidden
+    flex: 0 0 auto
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    &--add
+      display: flex
+      flex-direction: column
+      align-items: center
+      justify-content: center
+      gap: 2px
+      border-style: dashed
+      cursor: pointer
+      color: $text-disabled
+      font-size: 16px
+
+      span
+        font-size: 10px
+        font-weight: 600
+        font-family: 'Open Sans', sans-serif
+
+      &:hover
+        border-color: $blue
+        color: $blue
+
+  .crea-servizio__thumb-remove
+    position: absolute
+    top: 3px
+    right: 3px
+    width: 18px
+    height: 18px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 50%
+    background: rgba(0, 0, 0, 0.55)
+    color: #fff
+    cursor: pointer
+    font-size: 10px
+
+    &:hover
+      background: $error
+
   // ── Distribuzione ─────────────────────────────────────────────────────────
   .crea-servizio__hint
     font-family: 'Open Sans', sans-serif

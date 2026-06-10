@@ -54,7 +54,7 @@ interface FormState {
   nome: string
   indirizzo: string
   logoUrl: string
-  fotoUrl: string
+  foto: string[]
   descrizione: string
   prezzo: string            // prezzo base B2C (€)
   commissione: string       // % (min 3,5)
@@ -77,7 +77,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = {
   visibilita: 'pubblico',
-  area: '', classe: '', nome: '', indirizzo: '', logoUrl: '', fotoUrl: '', descrizione: '',
+  area: '', classe: '', nome: '', indirizzo: '', logoUrl: '', foto: [], descrizione: '',
   prezzo: '', commissione: String(COMMISSIONE_MIN),
   distB2c: true, distB2b: true, incrementoB2b: '10',
   codArticolo: '', quantitaMin: '0', quantitaMax: '0', sconto1: '', sconto2: '', sconto3: '',
@@ -94,7 +94,7 @@ function servizioToForm(s: Servizio): FormState {
     nome: s.nome,
     indirizzo: s.indirizzo ?? '',
     logoUrl: s.logoUrl ?? '',
-    fotoUrl: s.immagineUrl ?? '',
+    foto: s.foto ?? (s.immagineUrl ? [s.immagineUrl] : []),
     descrizione: s.descrizione ?? '',
     prezzo: s.prezzoB2C ? String(s.prezzoB2C) : '',
     commissione: s.commissione != null ? String(s.commissione) : String(COMMISSIONE_MIN),
@@ -118,6 +118,16 @@ function servizioToForm(s: Servizio): FormState {
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 
+const MAX_FOTO = 5
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+
 export default function CreaServizio({ navigate, servizioId }: { navigate: (p: string) => void; servizioId?: string }) {
   const servizi       = useServiziStore(s => s.servizi)
   const addServizio   = useServiziStore(s => s.addServizio)
@@ -127,6 +137,21 @@ export default function CreaServizio({ navigate, servizioId }: { navigate: (p: s
   const editing = servizioId ? servizi.find(s => s.id === servizioId) : undefined
   const [form, setForm] = useState<FormState>(editing ? servizioToForm(editing) : EMPTY_FORM)
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }))
+
+  // ── Upload immagini (logo singolo + galleria foto, max 5) ──────────────────
+  const onLogoChange = async (file: File | undefined) => {
+    if (!file) return
+    set('logoUrl', await fileToDataUrl(file))
+  }
+  const onFotoAdd = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const room = MAX_FOTO - form.foto.length
+    const toAdd = Array.from(files).slice(0, Math.max(0, room))
+    const urls = await Promise.all(toAdd.map(fileToDataUrl))
+    setForm(f => ({ ...f, foto: [...f.foto, ...urls].slice(0, MAX_FOTO) }))
+  }
+  const rmFoto = (i: number) =>
+    setForm(f => ({ ...f, foto: f.foto.filter((_, idx) => idx !== i) }))
 
   // ── Builder campi di prenotazione (per-servizio) ───────────────────────────
   const addCampo = (preset?: Omit<FormFieldSpec, 'name'>) =>
@@ -171,7 +196,8 @@ export default function CreaServizio({ navigate, servizioId }: { navigate: (p: s
       descrizione: form.descrizione,
       citta: '',
       paese: 'Italia',
-      immagineUrl: form.fotoUrl,
+      immagineUrl: form.foto[0] ?? '',
+      foto: form.foto,
       logoUrl: form.logoUrl,
       indirizzo: form.indirizzo,
       disponibileDal: form.disponibileDal,
@@ -273,16 +299,42 @@ export default function CreaServizio({ navigate, servizioId }: { navigate: (p: s
               <span className="crea-servizio__media-preview crea-servizio__media-preview--logo">
                 {form.logoUrl ? <img src={form.logoUrl} alt="logo" /> : <Icon family="light" name="image" />}
               </span>
-              <input className="sib-input" value={form.logoUrl} onChange={e => set('logoUrl', e.target.value)} placeholder="URL del logo" />
+              <label className="crea-servizio__upload-btn">
+                <Icon family="light" name="arrow-up-from-bracket" />
+                {form.logoUrl ? 'Cambia logo' : 'Carica logo'}
+                <input
+                  type="file" accept="image/*" className="crea-servizio__file-input"
+                  onChange={e => { onLogoChange(e.target.files?.[0]); e.target.value = '' }}
+                />
+              </label>
+              {form.logoUrl && (
+                <button type="button" className="crea-servizio__media-remove" onClick={() => set('logoUrl', '')} title="Rimuovi logo">
+                  <Icon family="light" name="trash-can" />
+                </button>
+              )}
             </div>
           </div>
           <div className="crea-servizio__field">
-            <span className="crea-servizio__label">Foto</span>
-            <div className="crea-servizio__media">
-              <span className="crea-servizio__media-preview">
-                {form.fotoUrl ? <img src={form.fotoUrl} alt="foto" /> : <Icon family="light" name="image" />}
-              </span>
-              <input className="sib-input" value={form.fotoUrl} onChange={e => set('fotoUrl', e.target.value)} placeholder="URL della foto" />
+            <span className="crea-servizio__label">Foto <span className="crea-servizio__label-hint">(max {MAX_FOTO})</span></span>
+            <div className="crea-servizio__gallery">
+              {form.foto.map((src, i) => (
+                <span key={i} className="crea-servizio__thumb">
+                  <img src={src} alt={`foto ${i + 1}`} />
+                  <button type="button" className="crea-servizio__thumb-remove" onClick={() => rmFoto(i)} title="Rimuovi foto">
+                    <Icon family="light" name="xmark" />
+                  </button>
+                </span>
+              ))}
+              {form.foto.length < MAX_FOTO && (
+                <label className="crea-servizio__thumb crea-servizio__thumb--add">
+                  <Icon family="light" name="plus" />
+                  <span>Aggiungi</span>
+                  <input
+                    type="file" accept="image/*" multiple className="crea-servizio__file-input"
+                    onChange={e => { onFotoAdd(e.target.files); e.target.value = '' }}
+                  />
+                </label>
+              )}
             </div>
           </div>
         </FormGrid>
