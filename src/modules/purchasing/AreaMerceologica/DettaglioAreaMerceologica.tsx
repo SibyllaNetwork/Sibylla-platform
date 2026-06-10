@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
+import { Breadcrumb } from '../_shared/Breadcrumb'
 import { getCategoria, areeOf, classeSlug, type Area } from '../../../admin/SibyllaAdminPanel/catalogo/classificazione'
 import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import './DettaglioAreaMerceologica.sass'
@@ -72,9 +73,17 @@ export default function DettaglioAreaMerceologica({ navigate, categoriaId }: Pro
   return (
     <div className="dettaglio-area-merceologica">
       <BtnBack onClick={() => navigate('area-merceologica')} />
+      <Breadcrumb
+        navigate={navigate}
+        items={[
+          { label: 'Area merceologica', page: 'area-merceologica' },
+          { label: categoria.nome },
+        ]}
+      />
       <PageHeader
+        eyebrow={`Categoria · ${categoria.classi.length} ${categoria.classi.length === 1 ? 'classe' : 'classi'}`}
         title={categoria.nome}
-        subtitle="Classi e tipologie merceologiche di questa categoria"
+        subtitle="Seleziona una classe per vederne le tipologie e i prodotti acquistabili"
       />
 
       <PageToolbar

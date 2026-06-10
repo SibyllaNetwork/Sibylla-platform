@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import { Icon } from '../_shared/Icon'
+import { Breadcrumb } from '../_shared/Breadcrumb'
 import { getCategoria, classeSlug } from '../../../admin/SibyllaAdminPanel/catalogo/classificazione'
 import { UNITA_MISURA_OPTIONS } from '../../../admin/SibyllaAdminPanel/catalogo/mockData'
 import { useCatalogoStore } from '../../../store/useCatalogoStore'
@@ -82,6 +83,15 @@ export default function ProdottoDettaglio({ navigate, prodottoId }: Props) {
   return (
     <div className="prodotto-dettaglio">
       <BtnBack onClick={() => navigate(backTo)} />
+      <Breadcrumb
+        navigate={navigate}
+        items={[
+          { label: 'Area merceologica', page: 'area-merceologica' },
+          ...(categoria ? [{ label: categoria.nome, page: `dettaglio-area-merceologica:${p.categoriaId}` }] : []),
+          { label: p.classe, page: backTo },
+          { label: p.nome },
+        ]}
+      />
 
       <div className="pd__top">
         <div className="pd__image">

@@ -78,10 +78,51 @@ $muted: #4b5563
   &__macro--active &__macro-count
     background: rgba(255, 255, 255, 0.22)
 
+  // ── Barra conteggio + toggle vista ────────────────────────────────
+  &__listbar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
   &__count
     margin: 0
     color: $muted
     font-size: 13px
+
+  // Toggle vista griglia/righe — uniformato allo standard PageToolbar
+  &__viewtoggle
+    display: inline-flex
+    align-items: stretch
+    gap: 4px
+    height: 35px
+    box-sizing: border-box
+    padding: 3px
+    border: 1px solid $border
+    border-radius: 8px
+    background: var(--color-surface)
+
+  &__viewbtn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    padding: 0
+    border: none
+    border-radius: 4px
+    background: transparent
+    cursor: pointer
+    color: $muted
+    font-size: 14px
+    transition: background 0.2s, color 0.2s
+
+    &:hover
+      background: $bg
+
+    &--active, &--active:hover
+      background: $primary
+      color: white
 
   // ── Grid ──────────────────────────────────────────────────────────
   &__grid
@@ -188,6 +229,104 @@ $muted: #4b5563
     font-size: 10px
     font-weight: 600
 
+  // ── List (vista righe) ────────────────────────────────────────────
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__row
+    display: flex
+    align-items: center
+    gap: 14px
+    width: 100%
+    padding: 10px 14px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 12px
+    cursor: pointer
+    text-align: left
+    font-family: inherit
+    transition: box-shadow 0.15s, border-color 0.15s
+
+    &:hover
+      border-color: $primary
+      box-shadow: 0 4px 14px rgba(32, 71, 105, 0.10)
+
+  &__row-img
+    flex-shrink: 0
+    width: 72px
+    height: 72px
+    border-radius: 10px
+    overflow: hidden
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+      display: block
+
+  &__row-main
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__row-name
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 14px
+    color: $text-active
+
+  &__row-location
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 11px
+    color: $muted
+
+  &__row-desc
+    margin: 2px 0 0
+    color: $muted
+    font-size: 12px
+    line-height: 1.4
+    overflow: hidden
+    text-overflow: ellipsis
+    display: -webkit-box
+    -webkit-line-clamp: 1
+    -webkit-box-orient: vertical
+
+  &__row-tags
+    flex-shrink: 0
+    display: none
+    flex-wrap: wrap
+    gap: 4px
+    max-width: 220px
+
+    @media (min-width: 900px)
+      display: inline-flex
+
+  &__row-meta
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    gap: 14px
+
+  &__row-count
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: $primary
+    font-size: 12px
+    font-weight: 600
+    white-space: nowrap
+
+  &__row-chevron
+    color: $muted
+    font-size: 14px
+
   // ── Pagination ────────────────────────────────────────────────────
   &__pagination
     display: flex
@@ -276,7 +415,7 @@ $muted: #4b5563
     gap: 16px
 
     @media (min-width: 1024px)
-      grid-template-columns: minmax(260px, 1fr) 2fr
+      grid-template-columns: 2fr minmax(260px, 1fr)
 
   &__detail-col
     display: flex

@@ -247,6 +247,7 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
   const [sortBy, setSortBy]         = useState<SortKey>('name-asc')
   const [page, setPage]             = useState(1)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [viewMode, setViewMode]     = useState<'grid' | 'list'>('grid')
 
   // Fornitori pubblicati dallo store (Sibylla Admin) — merge con i seed legacy
   const storeFornitori = useCatalogoStore(s => s.fornitori)
@@ -354,21 +355,6 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
         subtitle="Scopri i partner selezionati per la qualità e l'eccellenza dei loro prodotti"
       />
 
-      <div className="forniture__macros">
-        {MACRO_AREAS.map(a => (
-          <button
-            key={a.id}
-            type="button"
-            className={'forniture__macro' + (macroArea === a.id ? ' forniture__macro--active' : '')}
-            onClick={() => setMacroArea(a.id)}
-          >
-            <i className={`fa-light ${a.icon}`} aria-hidden="true" />
-            <span>{a.label}</span>
-            <span className="forniture__macro-count">{counts[a.id]}</span>
-          </button>
-        ))}
-      </div>
-
       <FilterToolbar>
         <div className="forniture__search">
           <label className="forniture__search-label" htmlFor="search">Cerca</label>
@@ -387,17 +373,62 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
         />
       </FilterToolbar>
 
-      <p className="forniture__count">
-        {filtered.length} fornitori
-        {macroArea !== 'all' && ` in ${MACRO_AREAS.find(a => a.id === macroArea)?.label}`}
-      </p>
+      <div className="forniture__macros">
+        {MACRO_AREAS.map(a => (
+          <button
+            key={a.id}
+            type="button"
+            className={'forniture__macro' + (macroArea === a.id ? ' forniture__macro--active' : '')}
+            onClick={() => setMacroArea(a.id)}
+          >
+            <i className={`fa-light ${a.icon}`} aria-hidden="true" />
+            <span>{a.label}</span>
+            <span className="forniture__macro-count">{counts[a.id]}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="forniture__listbar">
+        <p className="forniture__count">
+          {filtered.length} fornitori
+          {macroArea !== 'all' && ` in ${MACRO_AREAS.find(a => a.id === macroArea)?.label}`}
+        </p>
+        <div className="forniture__viewtoggle" role="group" aria-label="Modalità di visualizzazione">
+          <button
+            type="button"
+            className={'forniture__viewbtn' + (viewMode === 'grid' ? ' forniture__viewbtn--active' : '')}
+            onClick={() => setViewMode('grid')}
+            aria-pressed={viewMode === 'grid'}
+            aria-label="Vista a griglia"
+            title="Vista a griglia"
+          >
+            <i className="fa-light fa-grid-2" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={'forniture__viewbtn' + (viewMode === 'list' ? ' forniture__viewbtn--active' : '')}
+            onClick={() => setViewMode('list')}
+            aria-pressed={viewMode === 'list'}
+            aria-label="Vista a lista"
+            title="Vista a lista"
+          >
+            <i className="fa-light fa-list" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
 
       {pageItems.length === 0 ? (
         <div className="sib-empty-state">Nessun fornitore trovato per questa ricerca.</div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="forniture__grid">
           {pageItems.map(s => (
             <SupplierCard key={s.id} s={s} onClick={() => setSelectedId(s.id)} />
+          ))}
+        </div>
+      ) : (
+        <div className="forniture__list">
+          {pageItems.map(s => (
+            <SupplierRow key={s.id} s={s} onClick={() => setSelectedId(s.id)} />
           ))}
         </div>
       )}
@@ -443,6 +474,35 @@ function SupplierCard({ s, onClick }: { s: Supplier; onClick: () => void }) {
   )
 }
 
+// ─── Riga lista fornitore (vista righe) ───────────────────────────────
+function SupplierRow({ s, onClick }: { s: Supplier; onClick: () => void }) {
+  return (
+    <button type="button" className="forniture__row" onClick={onClick}>
+      <div className="forniture__row-img">
+        <img src={s.image} alt={s.name} loading="lazy" />
+      </div>
+      <div className="forniture__row-main">
+        <h4 className="forniture__row-name">{s.name}</h4>
+        <span className="forniture__row-location">
+          <i className="fa-light fa-location-dot" /> {s.city}, {s.region}
+        </span>
+        <p className="forniture__row-desc">{s.description}</p>
+      </div>
+      <div className="forniture__row-tags">
+        {s.categories.map(c => (
+          <span key={c} className="forniture__card-tag">{c}</span>
+        ))}
+      </div>
+      <div className="forniture__row-meta">
+        <span className="forniture__row-count">
+          <i className="fa-light fa-box-open" /> {s.productsCount} prodotti
+        </span>
+        <i className="fa-light fa-chevron-right forniture__row-chevron" aria-hidden="true" />
+      </div>
+    </button>
+  )
+}
+
 // ─── Pagina dettaglio fornitore ───────────────────────────────────────
 function SupplierDetail({ s, onBack }: { s: Supplier; onBack: () => void }) {
   return (
@@ -465,7 +525,45 @@ function SupplierDetail({ s, onBack }: { s: Supplier; onBack: () => void }) {
       </section>
 
       <div className="forniture__detail-grid">
-        {/* COL SX: contatti / certificazioni / caratteristiche */}
+        {/* COL SX: storia + prodotti */}
+        <div className="forniture__detail-col">
+          <div className="forniture__detail-card forniture__detail-card--lg">
+            <div className="forniture__history-head">
+              <h2 className="forniture__detail-title forniture__detail-title--xl">La nostra storia</h2>
+              <span className="forniture__history-badge">Dal {s.foundedYear}</span>
+            </div>
+            <p className="forniture__history-body">{s.history}</p>
+          </div>
+
+          <div className="forniture__detail-card forniture__detail-card--lg">
+            <h2 className="forniture__detail-title forniture__detail-title--xl">
+              <i className="fa-light fa-box" /> Prodotti in piattaforma
+            </h2>
+            {s.products.length === 0 ? (
+              <div className="forniture__products-empty">
+                Il catalogo di questo fornitore sarà presto disponibile in piattaforma.
+              </div>
+            ) : (
+              <div className="forniture__products-grid">
+                {s.products.map(p => (
+                  <article key={p.id} className="forniture__product-card">
+                    <div className="forniture__product-img">
+                      <img src={p.image} alt={p.name} loading="lazy" />
+                    </div>
+                    <p className="forniture__product-cat">{p.category}</p>
+                    <h3 className="forniture__product-name">{p.name}</h3>
+                    <p className="forniture__product-price">€ {p.price.toFixed(2)}</p>
+                    <button type="button" className="sib-btn sib-btn--primary forniture__product-add">
+                      <i className="fa-light fa-circle-plus" /> Aggiungi al carrello
+                    </button>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* COL DX: contatti / certificazioni / caratteristiche */}
         <div className="forniture__detail-col">
           <div className="forniture__detail-card">
             <h2 className="forniture__detail-title">
@@ -519,44 +617,6 @@ function SupplierDetail({ s, onBack }: { s: Supplier; onBack: () => void }) {
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        {/* COL DX: storia + prodotti */}
-        <div className="forniture__detail-col">
-          <div className="forniture__detail-card forniture__detail-card--lg">
-            <div className="forniture__history-head">
-              <h2 className="forniture__detail-title forniture__detail-title--xl">La nostra storia</h2>
-              <span className="forniture__history-badge">Dal {s.foundedYear}</span>
-            </div>
-            <p className="forniture__history-body">{s.history}</p>
-          </div>
-
-          <div className="forniture__detail-card forniture__detail-card--lg">
-            <h2 className="forniture__detail-title forniture__detail-title--xl">
-              <i className="fa-light fa-box" /> Prodotti in piattaforma
-            </h2>
-            {s.products.length === 0 ? (
-              <div className="forniture__products-empty">
-                Il catalogo di questo fornitore sarà presto disponibile in piattaforma.
-              </div>
-            ) : (
-              <div className="forniture__products-grid">
-                {s.products.map(p => (
-                  <article key={p.id} className="forniture__product-card">
-                    <div className="forniture__product-img">
-                      <img src={p.image} alt={p.name} loading="lazy" />
-                    </div>
-                    <p className="forniture__product-cat">{p.category}</p>
-                    <h3 className="forniture__product-name">{p.name}</h3>
-                    <p className="forniture__product-price">€ {p.price.toFixed(2)}</p>
-                    <button type="button" className="sib-btn sib-btn--primary forniture__product-add">
-                      <i className="fa-light fa-circle-plus" /> Aggiungi al carrello
-                    </button>
-                  </article>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -31,18 +31,6 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT)
   const [area, setArea] = useState<AreaFilter>('tutte')
 
-  // ── Statistiche derivate dalla tassonomia ──────────────────────────────────
-  const stats = useMemo(() => {
-    const classi    = CATEGORIE.flatMap(c => c.classi)
-    const tipologie = classi.flatMap(c => c.tipologie)
-    return [
-      { icon: 'layer-group',   value: String(CATEGORIE.length), label: 'Categorie',  hint: '2 aree merceologiche' },
-      { icon: 'sitemap',       value: String(classi.length),    label: 'Classi',      hint: 'in tutte le categorie' },
-      { icon: 'tags',          value: String(tipologie.length), label: 'Tipologie',   hint: 'esempi classificati' },
-      { icon: 'shapes',        value: '2',                      label: 'Aree',        hint: 'Prodotti e Servizi' },
-    ]
-  }, [])
-
   const displayed = useMemo(() => {
     const q = search.trim().toLowerCase()
     const matchesArea = (c: typeof CATEGORIE[number]) =>
@@ -73,23 +61,10 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
     <div className="area-merceologica">
       <BtnBack onClick={() => navigate('home')} />
       <PageHeader
+        eyebrow="Catalogo · Categorie"
         title="Area merceologica"
-        subtitle="Esplora la classificazione di prodotti e servizi per categoria, classe e tipologia"
+        subtitle="Esplora la classificazione di prodotti e servizi: scegli una categoria per vederne le classi, poi le tipologie e i prodotti"
       />
-
-      <div className="am-area-tabs" role="group" aria-label="Filtra per area">
-        {AREA_TABS.map(tab => (
-          <button
-            key={tab.value}
-            type="button"
-            className={`am-area-tabs__btn${area === tab.value ? ' am-area-tabs__btn--active' : ''}`}
-            onClick={() => setArea(tab.value)}
-            aria-pressed={area === tab.value}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       <PageToolbar
         search={{ value: search, onChange: setSearch, placeholder: 'Cerca categoria, classe, tipologia…' }}
@@ -118,16 +93,17 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
         }
       />
 
-      <div className="am-stats">
-        {stats.map((stat) => (
-          <div key={stat.label} className="am-stat-card">
-            <div className="am-stat-card__head">
-              <p className="am-stat-card__label">{stat.label}</p>
-              <Icon family="duotone" name={stat.icon} className="am-stat-card__icon" />
-            </div>
-            <p className="am-stat-card__value">{stat.value}</p>
-            <p className="am-stat-card__hint">{stat.hint}</p>
-          </div>
+      <div className="am-area-tabs" role="group" aria-label="Filtra per area">
+        {AREA_TABS.map(tab => (
+          <button
+            key={tab.value}
+            type="button"
+            className={`am-area-tabs__btn${area === tab.value ? ' am-area-tabs__btn--active' : ''}`}
+            onClick={() => setArea(tab.value)}
+            aria-pressed={area === tab.value}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 

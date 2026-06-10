@@ -1,0 +1,62 @@
+/* Breadcrumb — percorso gerarchico cliccabile (flusso Area merceologica) */
+
+.am-breadcrumb {
+  margin-bottom: 10px;
+}
+
+.am-breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.am-breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.am-breadcrumb__link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-link);
+  white-space: nowrap;
+}
+
+.am-breadcrumb__link:hover {
+  text-decoration: underline;
+}
+
+.am-breadcrumb__text {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-inactive);
+  white-space: nowrap;
+}
+
+.am-breadcrumb__current {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-active);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.am-breadcrumb__sep {
+  font-size: 10px;
+  color: var(--color-text-disabled);
+}

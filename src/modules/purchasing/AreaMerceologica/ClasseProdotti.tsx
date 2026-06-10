@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
+import { Breadcrumb } from '../_shared/Breadcrumb'
 import { getClasse } from '../../../admin/SibyllaAdminPanel/catalogo/classificazione'
 import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import { useCartStore } from '../../../store/useCartStore'
@@ -105,7 +106,16 @@ export default function ClasseProdotti({ navigate, categoriaId, classeSlug }: Pr
   return (
     <div className="classe-prodotti">
       <BtnBack onClick={() => navigate(`dettaglio-area-merceologica:${categoriaId}`)} />
+      <Breadcrumb
+        navigate={navigate}
+        items={[
+          { label: 'Area merceologica', page: 'area-merceologica' },
+          { label: categoria.nome, page: `dettaglio-area-merceologica:${categoriaId}` },
+          { label: classe.nome },
+        ]}
+      />
       <PageHeader
+        eyebrow={`Classe · ${classe.area}`}
         title={classe.nome}
         subtitle={`${categoria.nome} · prodotti acquistabili su Agorà`}
       />

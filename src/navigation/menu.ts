@@ -235,7 +235,6 @@ const MENU:any[]=[
       ]},
     ]},
   ]},
-  {id:"imt",label:"IMT",icon:"layers",page:"imt"},
 ];
 
 export default MENU;

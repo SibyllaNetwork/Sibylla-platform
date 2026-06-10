@@ -1,0 +1,364 @@
+// CreaPreventivo — pagina full-page: intestatario + specchietto voci di
+// spesa (descrizione · quantità · prezzo unitario · prezzo totale) + IVA.
+// Box-card di sezione conformi allo standard (sib-section-title + FormGrid).
+
+@use '../../../../styles/tokens' as *
+
+.crea-preventivo
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  // ── Barra superiore (Indietro + azioni a destra) ──────────────────
+  &__top
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+  &__top-actions
+    display: flex
+    align-items: center
+    gap: 8px
+
+  // ── Box-card di sezione ───────────────────────────────────────────
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 16px 18px
+    background: $white
+    border: 1px solid $border
+    border-radius: 12px
+
+  &__section-title
+    margin-top: 0
+    margin-bottom: 4px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__label
+    font-size: 11px
+    font-weight: 600
+    font-family: 'Open Sans', sans-serif
+    color: $text-active
+
+  &__note
+    textarea
+      min-height: 56px
+
+  // ── Voci di spesa: intestazione e azioni ──────────────────────────
+  &__voci-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
+  &__voci-actions
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+
+  // ── Picker prodotto/servizio ──────────────────────────────────────
+  &__picker-wrap
+    position: relative
+
+  &__picker
+    position: absolute
+    top: calc(100% + 6px)
+    left: 0
+    z-index: 20
+    width: 340px
+    max-width: 90vw
+    background: $white
+    border: 1px solid $border
+    border-radius: 10px
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
+    padding: 8px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__picker-search
+    width: 100%
+
+  &__picker-list
+    list-style: none
+    margin: 0
+    padding: 0
+    max-height: 280px
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    button
+      display: flex
+      align-items: center
+      gap: 8px
+      width: 100%
+      padding: 7px 8px
+      border: none
+      background: transparent
+      border-radius: 6px
+      cursor: pointer
+      text-align: left
+
+      &:hover
+        background: $bg
+
+  &__picker-tag
+    flex-shrink: 0
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    padding: 2px 6px
+    border-radius: 4px
+
+    &--prodotto
+      background: $blue-light
+      color: $blue
+
+    &--servizio
+      background: $success-light
+      color: $success
+
+  &__picker-name
+    flex: 1
+    min-width: 0
+    font-size: 13px
+    color: $text-active
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__picker-price
+    flex-shrink: 0
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__picker-empty
+    padding: 12px
+    text-align: center
+    font-size: 12px
+    color: $text-disabled
+
+  // ── Tabella editabile (specchietto) ───────────────────────────────
+  &__voci-wrap
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: hidden
+
+  &__voci
+    width: 100%
+    border-collapse: collapse
+    font-family: 'Open Sans', sans-serif
+    font-size: 13px
+
+    thead tr
+      background: $bg
+
+    th
+      text-align: left
+      padding: 9px 12px
+      font-size: 12px
+      font-weight: 600
+      color: $text-inactive
+      border-bottom: 1px solid $border
+      white-space: nowrap
+
+    td
+      padding: 6px 12px
+      border-bottom: 1px solid $border
+      vertical-align: middle
+
+    tbody tr:last-child td
+      border-bottom: 0
+
+  &__col-idx
+    width: 44px
+    text-align: center
+    color: $text-disabled
+    font-weight: 600
+
+  &__col-qta
+    width: 110px
+
+  &__col-num
+    width: 150px
+    text-align: right
+
+  th.crea-preventivo__col-num
+    text-align: right
+
+  &__col-del
+    width: 44px
+    text-align: center
+
+  &__cell-input
+    width: 100%
+    height: 32px
+    border: 1px solid transparent
+    border-radius: 6px
+    background: transparent
+    padding: 0 8px
+    font-family: inherit
+    font-size: 13px
+    color: $text-active
+    box-sizing: border-box
+
+    &:hover
+      border-color: $border
+
+    &:focus
+      outline: none
+      border-color: $blue
+      background: $white
+
+    &--num
+      text-align: right
+      font-variant-numeric: tabular-nums
+
+  &__cell-money
+    display: flex
+    align-items: center
+    gap: 4px
+
+  &__cell-cur
+    flex-shrink: 0
+    font-size: 12px
+    color: $text-disabled
+
+  &__cell-total
+    font-weight: 600
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__row-del
+    width: 28px
+    height: 28px
+    border: 1px solid transparent
+    border-radius: 6px
+    background: transparent
+    cursor: pointer
+    color: $text-disabled
+    font-size: 13px
+
+    &:hover:not(:disabled)
+      border-color: $error
+      color: $error
+
+    &:disabled
+      opacity: 0.35
+      cursor: not-allowed
+
+  &__add-row
+    align-self: flex-start
+
+  // ── Riepilogo totali ──────────────────────────────────────────────
+  &__totali
+    align-self: flex-end
+    width: 320px
+    max-width: 100%
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: hidden
+
+  &__totali-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 10px 14px
+    border-bottom: 1px solid $border
+
+    &:last-child
+      border-bottom: 0
+
+    &--grand
+      background: $bg
+
+      .crea-preventivo__totali-label,
+      .crea-preventivo__totali-val
+        font-size: 15px
+        font-weight: 700
+        color: $primary
+
+  &__totali-label
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+
+  &__totali-val
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  &__iva-input
+    width: 52px
+    height: 28px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    padding: 0 6px
+    text-align: right
+    font-family: 'Open Sans', sans-serif
+    font-size: 12px
+    color: $text-active
+
+    &:focus
+      outline: none
+      border-color: $blue
+
+  &__iva-pct
+    color: $text-disabled
+    font-size: 12px
+
+  // ── Upload file (allega documentazione) ───────────────────────────
+  &__file
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 36px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    cursor: pointer
+    color: $text-disabled
+    font-size: 13px
+
+    &:hover
+      border-color: $blue
+
+    i
+      color: $primary
+
+  &__file-name
+    flex: 1
+    min-width: 0
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+    color: $text-active
+
+  &__file-input
+    display: none
+
+  // ── Azioni finali ─────────────────────────────────────────────────
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px

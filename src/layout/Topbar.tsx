@@ -202,8 +202,8 @@ export default function Topbar({
       </button>
       <button
         className="topbar__icon-btn topbar__icon-btn--cart"
-        onClick={() => navigate(cartCount > 0 ? 'agora-cart' : 'gest-acquisti')}
-        title={cartCount > 0 ? `Carrello (${cartCount})` : 'Acquisti'}
+        onClick={() => navigate('catalogo-cart')}
+        title={cartCount > 0 ? `Carrello (${cartCount})` : 'Carrello'}
       >
         <Ico n="cart" s={18} c={C.normal} />
         {cartCount > 0 && (
