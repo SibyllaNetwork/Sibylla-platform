@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import T from '../../../../core/tokens'
 import { bookingStore } from '../../../../core/bookingStore'
 import BtnBack from '../../../../core/components/BtnBack'
@@ -70,15 +70,20 @@ const editCamereGr = (e: any): CameraGruppoRow[] =>
   e?.dettaglioCamere?.length ? e.dettaglioCamere.map((d: any) => initGr(d.numero, 2)) : [initGr(e?.numeroCamera || '103', e?.persone ?? 2)]
 
 // ── Layout default per i due tab ───────────────────────────────────────────────
+// Ordine di lettura (sinistra→destra, riga per riga): le card seguono la sequenza
+// richiesta; le non nominate (agenzia, prezzi) restano in coda.
+// Individuale: Soggiorno, Stato & classificazione, Anticipi, Extra, Altre info,
+//   Note di reparto, [in coda] Agenzia & cliente, Dettaglio prezzi
 const LAYOUT_IND = [
-  ['soggiorno','stato','agenzia','prezzi'],
-  ['extra'],
-  ['altre','note-reparto','anticipi'],
+  ['soggiorno','extra','agenzia'],
+  ['stato','altre','prezzi'],
+  ['anticipi','note-reparto'],
 ]
+// Gruppo: Soggiorno gruppo, Dati gruppo, Stato & opzioni, Anticipi, Extra, Altre info, Note di reparto
 const LAYOUT_GR  = [
-  ['soggiorno-gr','stato-gr','dati-gr'],
-  ['extra'],
-  ['altre','note-reparto','anticipi'],
+  ['soggiorno-gr','anticipi','note-reparto'],
+  ['dati-gr','extra'],
+  ['stato-gr','altre'],
 ]
 
 
@@ -98,8 +103,9 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const layoutInd = useMemo(() => LAYOUT_IND, [])
   const layoutGr  = useMemo(() => LAYOUT_GR,  [])
 
-  const indLayout = useWidgetLayout('nuova-prenotazione.individuale', layoutInd)
-  const grLayout  = useWidgetLayout('nuova-prenotazione.gruppo',      layoutGr)
+  // .v2 = nuovo ordine di default (invalida i layout salvati col vecchio ordine)
+  const indLayout = useWidgetLayout('nuova-prenotazione.individuale.v2', layoutInd)
+  const grLayout  = useWidgetLayout('nuova-prenotazione.gruppo.v2',      layoutGr)
 
   // ── State form ───────────────────────────────────────────────────────────────
   const [form, setForm] = useState(() => ({
@@ -138,6 +144,35 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     ? editCamereGr(editing)
     : [initGr('103', 2), initGr('103', 3), initGr('103', 0), initGr('103', 1)])
   const [ospiti,    setOspiti]    = useState<OspiteRow[]>([initOsp(), initOsp(), initOsp(), initOsp()])
+
+  // ── Card full-width riordinabili verticalmente (Anagrafica ospiti, Gestione segmenti)
+  // Ordine di default: ospiti (ultima nominata) poi segmenti (non nominata → in coda)
+  const [fullOrder, setFullOrder] = useState<string[]>(['ospiti', 'segmenti'])
+  const fullDragId = useRef<string | null>(null)
+  const [fullOverId, setFullOverId] = useState<string | null>(null)
+  const onFullDragStart = (id: string) => { fullDragId.current = id }
+  const onFullDragOver = (e: React.DragEvent, id: string) => {
+    if (!fullDragId.current || fullDragId.current === id) return
+    e.preventDefault(); setFullOverId(id)
+  }
+  const onFullDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    const src = fullDragId.current; fullDragId.current = null; setFullOverId(null)
+    if (!src || src === targetId) return
+    setFullOrder(prev => {
+      const next = prev.filter(x => x !== src)
+      const idx = next.indexOf(targetId)
+      next.splice(idx, 0, src)
+      return next
+    })
+  }
+  const onFullDragEnd = () => { fullDragId.current = null; setFullOverId(null) }
+  const fullCommon = (id: string) => ({
+    id, isDragOver: fullOverId === id,
+    onDragStart: onFullDragStart, onDragOver: onFullDragOver, onDrop: onFullDrop, onDragEnd: onFullDragEnd,
+  })
+
+  const [ospitiCollapsed, setOspitiCollapsed] = useState(false)
 
   // ── Gestione segmenti (suddivisione del soggiorno in intervalli di date) ──────
   const [segmentiCollapsed, setSegmentiCollapsed] = useState(false)
@@ -495,7 +530,12 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                     </select>
                   </td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.persone} onChange={e=>updCameraGr(i,{persone:+e.target.value||0})}/></td>
-                  <td><input type="text"   className="sib-input np-cell-input np-cell-input--num" value={c.nCamera} onChange={e=>updCameraGr(i,{nCamera:e.target.value})}/></td>
+                  <td>
+                    <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>updCameraGr(i,{nCamera:e.target.value})}>
+                      <option value="">—</option>
+                      {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -551,7 +591,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     const base = segmenti[0]
     return (
       <Widget
-        id="segmenti"
+        key="segmenti"
+        {...fullCommon('segmenti')}
         title="Gestione segmenti"
         collapsed={segmentiCollapsed}
         onToggleCollapse={() => setSegmentiCollapsed(v => !v)}
@@ -613,6 +654,66 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
             </tbody>
           </table>
         </div>
+      </Widget>
+    )
+  }
+
+  function renderOspitiWidget() {
+    return (
+      <Widget key="ospiti" {...fullCommon('ospiti')} title="Anagrafica ospiti" bodyClassName="widget__body--flush" collapsed={ospitiCollapsed} onToggleCollapse={() => setOspitiCollapsed(v => !v)}>
+        <div className="np-ospiti-toolbar">
+          <button type="button" className="np-link-add" onClick={scaricaExcelOspiti}>
+            <i className="fa-light fa-file-excel" /> Scarica Excel
+          </button>
+          <button type="button" className="np-link-add" onClick={scaricaPdfOspiti}>
+            <i className="fa-light fa-file-pdf" /> Scarica PDF
+          </button>
+          <button type="button" className="np-link-add" onClick={()=>setOspiti(p=>[...p, initOsp()])}>
+            <i className="fa-light fa-plus" /> Aggiungi ospite
+          </button>
+        </div>
+        <table className="np-table np-table--full">
+          <thead>
+            <tr>
+              <th>Nome</th><th>Cognome</th><th>Data di nascita</th><th>Paese di nascita</th><th>Sesso</th><th>N. Camera</th><th>Data di arrivo</th><th className="np-col-actions" aria-label="Azioni" />
+            </tr>
+          </thead>
+          <tbody>
+            {ospiti.map((o, i)=>(
+              <tr key={i}>
+                <td><input type="text" className="sib-input np-cell-input" value={o.nome}        onChange={e=>updOspite(i,{nome:e.target.value})}/></td>
+                <td><input type="text" className="sib-input np-cell-input" value={o.cognome}     onChange={e=>updOspite(i,{cognome:e.target.value})}/></td>
+                <td><input type="date" className="sib-input np-cell-input" value={o.dataNascita} onChange={e=>updOspite(i,{dataNascita:e.target.value})}/></td>
+                <td>
+                  <select className="sib-input np-cell-input" value={o.paese} onChange={e=>updOspite(i,{paese:e.target.value})}>
+                    <option value="">—</option>
+                    {NAZIONALITA.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </td>
+                <td>
+                  <select className="sib-input np-cell-input" value={o.sesso} onChange={e=>updOspite(i,{sesso:e.target.value})}>
+                    <option value="">—</option><option value="M">M</option><option value="F">F</option>
+                  </select>
+                </td>
+                <td>
+                  <select className="sib-input np-cell-input" value={o.nCamera} onChange={e=>updOspite(i,{nCamera:e.target.value})}>
+                    <option value="">—</option>
+                    {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </td>
+                <td><input type="date" className="sib-input np-cell-input" value={o.dataArrivo} onChange={e=>updOspite(i,{dataArrivo:e.target.value})}/></td>
+                <td className="np-col-actions">
+                  <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica">
+                    <i className="fa-light fa-pen-to-square" />
+                  </button>
+                  <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>setOspiti(prev => prev.filter((_, idx) => idx !== i))}>
+                    <i className="fa-light fa-trash" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Widget>
     )
   }
@@ -893,8 +994,6 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         </div>
       </div>
 
-      {renderSegmentiWidget()}
-
       <div className="np-columns">
         {activeLayout.layout.map((col, ci) => (
           <div
@@ -908,60 +1007,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         ))}
       </div>
 
-      <Widget id="ospiti" title="Anagrafica ospiti" bodyClassName="widget__body--flush">
-        <div className="np-ospiti-toolbar">
-          <button type="button" className="np-link-add" onClick={scaricaExcelOspiti}>
-            <i className="fa-light fa-file-excel" /> Scarica Excel
-          </button>
-          <button type="button" className="np-link-add" onClick={scaricaPdfOspiti}>
-            <i className="fa-light fa-file-pdf" /> Scarica PDF
-          </button>
-          <button type="button" className="np-link-add" onClick={()=>setOspiti(p=>[...p, initOsp()])}>
-            <i className="fa-light fa-plus" /> Aggiungi ospite
-          </button>
-        </div>
-        <table className="np-table np-table--full">
-          <thead>
-            <tr>
-              <th>Nome</th><th>Cognome</th><th>Data di nascita</th><th>Paese di nascita</th><th>Sesso</th><th>N. Camera</th><th>Data di arrivo</th><th className="np-col-actions" aria-label="Azioni" />
-            </tr>
-          </thead>
-          <tbody>
-            {ospiti.map((o, i)=>(
-              <tr key={i}>
-                <td><input type="text" className="sib-input np-cell-input" value={o.nome}        onChange={e=>updOspite(i,{nome:e.target.value})}/></td>
-                <td><input type="text" className="sib-input np-cell-input" value={o.cognome}     onChange={e=>updOspite(i,{cognome:e.target.value})}/></td>
-                <td><input type="date" className="sib-input np-cell-input" value={o.dataNascita} onChange={e=>updOspite(i,{dataNascita:e.target.value})}/></td>
-                <td>
-                  <select className="sib-input np-cell-input" value={o.paese} onChange={e=>updOspite(i,{paese:e.target.value})}>
-                    <option value="">—</option>
-                    {NAZIONALITA.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </td>
-                <td>
-                  <select className="sib-input np-cell-input" value={o.sesso} onChange={e=>updOspite(i,{sesso:e.target.value})}>
-                    <option value="">—</option><option value="M">M</option><option value="F">F</option>
-                  </select>
-                </td>
-                <td>
-                  <select className="sib-input np-cell-input" value={o.nCamera} onChange={e=>updOspite(i,{nCamera:e.target.value})}>
-                    <option value="">—</option><option value="103">103</option><option value="104">104</option>
-                  </select>
-                </td>
-                <td><input type="date" className="sib-input np-cell-input" value={o.dataArrivo} onChange={e=>updOspite(i,{dataArrivo:e.target.value})}/></td>
-                <td className="np-col-actions">
-                  <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica">
-                    <i className="fa-light fa-pen-to-square" />
-                  </button>
-                  <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>setOspiti(prev => prev.filter((_, idx) => idx !== i))}>
-                    <i className="fa-light fa-trash" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Widget>
+      {/* Card full-width riordinabili verticalmente (trascinamento) */}
+      {fullOrder.map(id => id === 'segmenti' ? renderSegmentiWidget() : renderOspitiWidget())}
 
       <footer className="np-footer">
         <div className="np-totals">
