@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
+import { withFlag } from '../../../core/utils/countryFlags'
 import './EmissioneDocumenti.sass'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -119,7 +120,7 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
         <div className="emissione-doc__field">
           <label>Nazionalità</label>
           <select className="sib-select" value={nazionalita} onChange={(e) => setNazionalita(e.target.value)}>
-            {NAZIONALITA.map((n) => <option key={n} value={n}>{n}</option>)}
+            {NAZIONALITA.map((n) => <option key={n} value={n}>{withFlag(n)}</option>)}
           </select>
         </div>
         <div className="emissione-doc__field">

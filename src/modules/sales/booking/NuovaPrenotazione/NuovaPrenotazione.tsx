@@ -15,6 +15,7 @@ import { useWidgetLayout } from '../../../../core/hooks/useWidgetLayout'
 import { useServiziStore } from '../../../../store/useServiziStore'
 import type { Servizio } from '../../../purchasing/Servizi/servizi-types'
 import { PIANI_DATA } from '../../../operation/planner/planner.data'
+import { withFlag } from '../../../../core/utils/countryFlags'
 import './NuovaPrenotazione.sass'
 
 const TODAY        = new Date().toISOString().split('T')[0]
@@ -687,7 +688,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <td>
                   <select className="sib-input np-cell-input" value={o.paese} onChange={e=>updOspite(i,{paese:e.target.value})}>
                     <option value="">—</option>
-                    {NAZIONALITA.map(p => <option key={p} value={p}>{p}</option>)}
+                    {NAZIONALITA.map(p => <option key={p} value={p}>{withFlag(p)}</option>)}
                   </select>
                 </td>
                 <td>
@@ -788,7 +789,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     const setF = isGr ? setGrForm : setForm
     return (
       <Widget key="altre" {...common} title="Altre informazioni">
-        <SelectField name="nazionalita" label="Nazionalità" value={f.nazionalita} onChange={e=>setF((v:any)=>({...v,nazionalita:e.target.value}))} options={NAZIONALITA.map(o=>({value:o,label:o}))}/>
+        <SelectField name="nazionalita" label="Nazionalità" value={f.nazionalita} onChange={e=>setF((v:any)=>({...v,nazionalita:e.target.value}))} options={NAZIONALITA.map(o=>({value:o,label:withFlag(o)}))}/>
         <TextareaField name="notePrenotazione" label="Note prenotazione" value={f.notePrenotazione} onChange={e=>setF((v:any)=>({...v,notePrenotazione:e.target.value}))} rows={3}/>
       </Widget>
     )

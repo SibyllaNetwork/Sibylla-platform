@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
+import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
 
 /**
@@ -139,7 +140,7 @@ export default function CreaAnagrafica({ navigate }: { navigate: (p: string) => 
             <InputField  name="cap"         label="CAP"                     value={form.cap}         onChange={(e) => set('cap', e.target.value)} />
             <InputField  name="provincia"   label="Provincia"               value={form.provincia}   onChange={(e) => set('provincia', e.target.value)} />
             <SelectField name="nazionalita" label="Nazionalità"             value={form.nazionalita} onChange={(e) => set('nazionalita', e.target.value)}
-              options={NAZIONALITA.map((n) => ({ value: n, label: n }))}
+              options={NAZIONALITA.map((n) => ({ value: n, label: withFlag(n) }))}
             />
           </div>
 

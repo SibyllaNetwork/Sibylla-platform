@@ -109,7 +109,7 @@ const ModificaPrenModal: React.FC<Props> = ({ open, pren, onClose }) => {
         {/* Nazionalità + note */}
         <div className="mod-pren__naz">
           <label className="mod-pren__field-inline"><span>Nazionalità</span>
-            <select className="sib-select sib-select--dense"><option>ITALIA</option></select>
+            <select className="sib-select sib-select--dense"><option>🇮🇹 ITALIA</option></select>
           </label>
           <label className="mod-pren__field-inline mod-pren__field-grow"><span>Note prenotazione</span>
             <input className="sib-input" defaultValue={pren.note ?? ''} />

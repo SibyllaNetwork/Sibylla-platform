@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
 import { DateRangeField } from '../../../core/components/form'
+import { withFlag } from '../../../core/utils/countryFlags'
 import './OspitiInCasa.sass'
 
 const PAGE_SIZE = 10
@@ -548,7 +549,7 @@ function AnagraficaModal({ ospite, onClose }: { ospite: Ospite; onClose: () => v
             <div className={fieldClass(!!form.paeseNascita)}>
               <label>Paese di nascita*</label>
               <select className="sib-select" value={form.paeseNascita} onChange={(e) => set('paeseNascita', e.target.value)}>
-                {PAESI.map((p) => <option key={p} value={p}>{p}</option>)}
+                {PAESI.map((p) => <option key={p} value={p}>{withFlag(p)}</option>)}
               </select>
               {form.paeseNascita && <i className="fa-light fa-check oc-anag__check" />}
             </div>
@@ -564,7 +565,7 @@ function AnagraficaModal({ ospite, onClose }: { ospite: Ospite; onClose: () => v
             <div className={fieldClass(!!form.paeseResidenza)}>
               <label>Paese di residenza*</label>
               <select className="sib-select" value={form.paeseResidenza} onChange={(e) => set('paeseResidenza', e.target.value)}>
-                {PAESI.map((p) => <option key={p} value={p}>{p}</option>)}
+                {PAESI.map((p) => <option key={p} value={p}>{withFlag(p)}</option>)}
               </select>
               {form.paeseResidenza && <i className="fa-light fa-check oc-anag__check" />}
             </div>

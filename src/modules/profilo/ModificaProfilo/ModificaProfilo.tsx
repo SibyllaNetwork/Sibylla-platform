@@ -7,6 +7,7 @@ import './ModificaProfilo.sass'
 import FormActions from '../../../core/components/FormActions'
 import FormGrid from '../../../core/components/FormGrid'
 import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
+import { withFlag } from '../../../core/utils/countryFlags'
 import {
   getInfo,
   modificaEmail,
@@ -175,7 +176,7 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
            <FormGrid cols={3}>
              <DatePickerField name="dataNascita" label="Data di nascita" defaultValue={form.dataNascita} onChange={(e: React.ChangeEvent<HTMLInputElement>) => set('dataNascita', e.target.value)} />
               <SelectField name="sesso" label="Sesso" value={form.sesso} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => set('sesso', e.target.value)} options={genders.map(g => ({ value: g, label: g }))} />
-              <SelectField name="nazionalita" label="Nazionalità" value={form.nazionalita} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => set('nazionalita', e.target.value)} options={countries.map(c => ({ value: c, label: c }))} />
+              <SelectField name="nazionalita" label="Nazionalità" value={form.nazionalita} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => set('nazionalita', e.target.value)} options={countries.map(c => ({ value: c, label: withFlag(c) }))} />
             </FormGrid>
             <div>
               <InputField name="indirizzo" label="Indirizzo" value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} />

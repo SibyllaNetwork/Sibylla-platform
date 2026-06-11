@@ -5,6 +5,7 @@ import AlertBanner from '../../../core/components/AlertBanner'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import StatusBadge from '../../../core/components/StatusBadge'
 import { InputField, SelectField } from '../../../core/components/form'
+import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
 
 /**
@@ -86,7 +87,7 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
           label="Nazionalità"
           value={paese}
           onChange={(e) => setPaese(e.target.value)}
-          options={[{ value: 'Tutti', label: 'Tutti' }, ...paesi.map((p) => ({ value: p, label: p }))]}
+          options={[{ value: 'Tutti', label: 'Tutti' }, ...paesi.map((p) => ({ value: p, label: withFlag(p) }))]}
         />
         <button className="sib-btn sib-btn--primary" onClick={() => navigate('crea-anagrafica')}>
           <i className="fa-duotone fa-plus" /> Nuova anagrafica
