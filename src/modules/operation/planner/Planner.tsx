@@ -203,6 +203,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
             pendingAl={PENDING_AL}
             onOpenAssegnare={() => s.setShowAssegnare(true)}
             onOpenAllocare={() => s.setShowAllocare(true)}
+            navigate={navigate}
           />
         </div>
       </div>

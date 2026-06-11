@@ -10,6 +10,7 @@ interface WidgetProps {
   onDragOver?:       (e: React.DragEvent, id: string) => void
   onDrop?:           (e: React.DragEvent, id: string) => void
   onDragEnd?:        () => void
+  onClose?:          (id: string) => void
   isDragOver?:       boolean
   className?:        string
   bodyClassName?:    string
@@ -25,6 +26,7 @@ export default function Widget({
   onDragOver,
   onDrop,
   onDragEnd,
+  onClose,
   isDragOver        = false,
   className         = '',
   bodyClassName     = '',
@@ -58,6 +60,17 @@ export default function Widget({
             <span className="widget__action widget__action--drag" aria-hidden="true" title="Trascina">
               <i className="fa-light fa-up-down-left-right" />
             </span>
+          )}
+          {onClose && (
+            <button
+              type="button"
+              className="widget__action widget__action--close"
+              aria-label="Chiudi card"
+              title="Chiudi"
+              onClick={() => onClose(id)}
+            >
+              <i className="fa-light fa-xmark" />
+            </button>
           )}
         </div>
       </header>

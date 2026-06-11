@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import T from '../../../../core/tokens'
 import { bookingStore } from '../../../../core/bookingStore'
 import BtnBack from '../../../../core/components/BtnBack'
@@ -12,13 +12,16 @@ import FormActions from '../../../../core/components/FormActions'
 import Widget from '../../../../core/components/Widget/Widget'
 import { InputField, SelectField, DateRangeField, DatePickerField, TextareaField } from '../../../../core/components/form'
 import { useWidgetLayout } from '../../../../core/hooks/useWidgetLayout'
+import { useServiziStore } from '../../../../store/useServiziStore'
+import type { Servizio } from '../../../purchasing/Servizi/servizi-types'
+import { PIANI_DATA } from '../../../operation/planner/planner.data'
 import './NuovaPrenotazione.sass'
 
 const TODAY        = new Date().toISOString().split('T')[0]
 const NAZIONALITA  = ['ITALIA','FRANCIA','GERMANIA','SPAGNA','REGNO UNITO','STATI UNITI']
 const ARRANGIAMENTI = ['RO','BB','HB','FB','AI']
+const CREDIT        = ['NC','HC','FC','HCT']
 const REPARTI      = ['Manutenzione','Pulizie','Reception','Cucina','SPA']
-const PAGAMENTI    = ['Contanti','Carta di credito','Bonifico','Assegno']
 const HOTELS       = ['Hotel Tudorial','Hotel Azzurro Mare']
 const TIPI_CAMERA  = [
   { v: '53', l: '53 | Doppia classic' },
@@ -26,16 +29,12 @@ const TIPI_CAMERA  = [
   { v: '55', l: '55 | Tripla' },
   { v: '56', l: '56 | Singola' },
 ]
-const EXTRA_SERVIZI = [
-  { id: 'transfer',   label: 'Transfer' },
-  { id: 'petsitting', label: 'Pet sitting' },
-  { id: 'escursione', label: 'Escursione' },
-  { id: 'pulizie',    label: 'Pulizie extra' },
-  { id: 'deposito',   label: 'Deposito bagagli' },
-  { id: 'pranzo',     label: 'Pranzo al sacco' },
-  { id: 'tolettatura',label: 'Tolettatura' },
-]
+// Lista camere della struttura (numeri) derivata dai piani del planner
+const CAMERE = PIANI_DATA.flatMap(p => p.camere.map(c => c.numero))
+// Tipologie camera (per la gestione segmenti)
+const TIPOLOGIE_CAMERA = ['Doppia Classic','Doppia Superior','Singola Classic','Tripla Classic','Matrimoniale','Suite']
 
+interface SegmentoRow { id: string; dal: string; al: string; tipo: string; nCamera: string; persone: number; stato: string }
 interface CameraRow { tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string }
 interface CameraGruppoRow { tipo: string; persone: number; nCamera: string }
 interface OspiteRow { nome: string; cognome: string; dataNascita: string; paese: string; sesso: string; nCamera: string; dataArrivo: string }
@@ -45,6 +44,30 @@ interface PrezzoRow { giorno: string; camera: string; arrangiamento: string; pia
 const initRow = (n=''): CameraRow      => ({ tipo: '53', adulti: 2, ragazzi: 0, bambini: 0, infanti: 0, nCamera: n })
 const initGr  = (n='', p=2): CameraGruppoRow => ({ tipo: '53', persone: p, nCamera: n })
 const initOsp = (): OspiteRow          => ({ nome: '', cognome: '', dataNascita: '', paese: '', sesso: '', nCamera: '', dataArrivo: '' })
+
+// ── Modifica prenotazione: mapping dalla prenotazione esistente al form ─────────
+const isGruppo = (e: any) => !!e && /grupp/i.test(e.segmento || '')
+// Sovrascritture comuni dai campi della prenotazione esistente
+const editOverridesInd = (e: any) => !e ? {} : {
+  dal: e.checkIn || TODAY, al: e.checkOut || TODAY,
+  camere: e.camere ?? 1, persone: e.persone ?? 2,
+  confermata: e.stato !== 'opzione', opzione: e.stato === 'opzione',
+  arrangiamento: e.arrangiamento || 'BB',
+  agenzia: e.agenzia || '', cliente: e.cliente || e.nominativo || '',
+  notePrenotazione: e.note || '',
+}
+const editOverridesGr = (e: any) => !e ? {} : {
+  dal: e.checkIn || TODAY, al: e.checkOut || TODAY,
+  camere: e.camere ?? 1, persone: e.persone ?? 2,
+  confermata: e.stato !== 'opzione', opzione: e.stato === 'opzione',
+  arrangiamento: e.arrangiamento || 'RO',
+  agenzia: e.agenzia || '', nomeGruppo: e.nominativo || '',
+  notePrenotazione: e.note || '',
+}
+const editCamere = (e: any): CameraRow[] =>
+  e?.dettaglioCamere?.length ? e.dettaglioCamere.map((d: any) => initRow(d.numero)) : [initRow(e?.numeroCamera || '103')]
+const editCamereGr = (e: any): CameraGruppoRow[] =>
+  e?.dettaglioCamere?.length ? e.dettaglioCamere.map((d: any) => initGr(d.numero, 2)) : [initGr(e?.numeroCamera || '103', e?.persone ?? 2)]
 
 // ── Layout default per i due tab ───────────────────────────────────────────────
 const LAYOUT_IND = [
@@ -58,8 +81,19 @@ const LAYOUT_GR  = [
   ['altre','note-reparto','anticipi'],
 ]
 
+
 export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>void }) {
-  const [activeTab, setActiveTab] = useState<'gruppo'|'individuale'>('individuale')
+  // Modifica prenotazione: cattura una sola volta la prenotazione passata via bookingStore
+  const [editing] = useState<any>(() => bookingStore.editing)
+  const [editId]  = useState<string | null>(() => bookingStore.editing?.booking ?? null)
+  // Azzeramento differito: sopravvive al doppio-mount di StrictMode (entrambe le init leggono il valore)
+  useEffect(() => { const t = setTimeout(() => { bookingStore.editing = null }, 0); return () => clearTimeout(t) }, [])
+
+  const [activeTab, setActiveTab] = useState<'gruppo'|'individuale'>(() => isGruppo(editing) ? 'gruppo' : 'individuale')
+
+  // Servizi disponibili sulla piattaforma (selezionabili come extra)
+  const serviziAll = useServiziStore(s => s.servizi)
+  const serviziDisponibili = useMemo(() => serviziAll.filter(x => x.attivo), [serviziAll])
 
   const layoutInd = useMemo(() => LAYOUT_IND, [])
   const layoutGr  = useMemo(() => LAYOUT_GR,  [])
@@ -68,20 +102,22 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const grLayout  = useWidgetLayout('nuova-prenotazione.gruppo',      layoutGr)
 
   // ── State form ───────────────────────────────────────────────────────────────
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     dal: TODAY, al: TODAY,
     camere: 1, persone: 1,
     confermata: true, opzione: false,
-    scadenza: '', arrangiamento: 'BB',
+    scadenza: '', arrangiamento: 'BB', credit: 'NC',
     segmento: { b2b: true, dirette: false, b2c: false, corporate: false },
     agenzia: '', rifEsterno: '', cliente: '', email: '',
     nazionalita: 'ITALIA', notePrenotazione: '',
     reparto: 'Manutenzione', notaReparto: '',
     tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
     metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
-  })
+    anticipoQuote: [] as number[],
+    ...editOverridesInd(editing),
+  }))
 
-  const [grForm, setGrForm] = useState({
+  const [grForm, setGrForm] = useState(() => ({
     dal: TODAY, al: TODAY,
     camere: 4, persone: 10,
     tipologiaOspiti: 'adulti' as 'adulti' | 'studenti',
@@ -93,16 +129,26 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     reparto: 'Manutenzione', notaReparto: '',
     tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
     metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
-  })
+    anticipoQuote: [] as number[],
+    ...editOverridesGr(editing),
+  }))
 
-  const [camereInd, setCamereInd] = useState<CameraRow[]>([initRow('103')])
-  const [camereGr,  setCamereGr]  = useState<CameraGruppoRow[]>([
-    initGr('103', 2), initGr('103', 3), initGr('103', 0), initGr('103', 1),
-  ])
+  const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow('103')])
+  const [camereGr,  setCamereGr]  = useState<CameraGruppoRow[]>(() => editing
+    ? editCamereGr(editing)
+    : [initGr('103', 2), initGr('103', 3), initGr('103', 0), initGr('103', 1)])
   const [ospiti,    setOspiti]    = useState<OspiteRow[]>([initOsp(), initOsp(), initOsp(), initOsp()])
+
+  // ── Gestione segmenti (suddivisione del soggiorno in intervalli di date) ──────
+  const [segmentiCollapsed, setSegmentiCollapsed] = useState(false)
+  const [segmenti, setSegmenti] = useState<SegmentoRow[]>([
+    { id: 's1', dal: '2026-06-13', al: '2026-06-16', tipo: 'Doppia Classic', nCamera: '105', persone: 2, stato: 'Persistito' },
+    { id: 's2', dal: '2026-06-16', al: '2026-06-18', tipo: 'Doppia Classic', nCamera: '118', persone: 2, stato: 'Persistito' },
+  ])
 
   const [extra,        setExtra]        = useState<ExtraAggiunto[]>([])
   const [extraOpenId,  setExtraOpenId]  = useState<string | null>(null)
+  const [extraEditId,  setExtraEditId]  = useState<string | null>(null)
   const [extraDraft,   setExtraDraft]   = useState<Omit<ExtraAggiunto,'id'>>({
     servizio: '', quando: TODAY, quantita: 1, intestatario: '', camera: '103', importo: 0, descrizione: '',
   })
@@ -126,8 +172,13 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const totale          = totaleSoggiorno + totaleServizi
 
   // ── Render helpers ───────────────────────────────────────────────────────────
+  // Segmento di mercato: selezione singola (radio) — il segmento scelto è true, gli altri false
   const setSegmento = (k: keyof typeof form.segmento) =>
-    setForm(f => ({ ...f, segmento: { ...f.segmento, [k]: !f.segmento[k] } }))
+    setForm(f => ({
+      ...f,
+      segmento: (Object.keys(f.segmento) as (keyof typeof f.segmento)[])
+        .reduce((acc, key) => ({ ...acc, [key]: key === k }), {} as typeof f.segmento),
+    }))
 
   const updCamera = (i: number, p: Partial<CameraRow>) =>
     setCamereInd(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
@@ -138,14 +189,84 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const updOspite = (i: number, p: Partial<OspiteRow>) =>
     setOspiti(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
-  const openExtraDraft = (servizio: string) => {
-    setExtraOpenId(servizio)
-    setExtraDraft({ servizio, quando: form.dal, quantita: 1, intestatario: '', camera: '103', importo: 0, descrizione: '' })
+  // ── Helpers Gestione segmenti ──────────────────────────────────────────────
+  const fmtData = (iso: string) => iso ? new Date(iso).toLocaleDateString('it-IT') : ''
+  const addDays = (iso: string, n: number) => {
+    const d = new Date(iso); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0]
+  }
+  const updSegmento = (i: number, p: Partial<SegmentoRow>) =>
+    setSegmenti(prev => prev.map((s, idx) => idx === i ? { ...s, ...p } : s))
+
+  const addSegmento = () => setSegmenti(prev => {
+    const last = prev[prev.length - 1]
+    const dal = last ? last.al : TODAY
+    return [...prev, {
+      id: Date.now().toString(),
+      dal, al: addDays(dal, 1),
+      tipo: last?.tipo ?? TIPOLOGIE_CAMERA[0],
+      nCamera: last?.nCamera ?? '',
+      persone: last?.persone ?? 2,
+      stato: 'Da salvare',
+    }]
+  })
+
+  const removeSegmento = (id: string) =>
+    setSegmenti(prev => prev.filter(s => s.id !== id))
+
+  // "Segmento unico": elimina tutte le segmentazioni e ripristina lo stato di origine
+  // (un solo segmento che copre l'intero intervallo del soggiorno)
+  const segmentoUnico = () => setSegmenti(prev => {
+    if (!prev.length) return prev
+    const dal = prev.reduce((m, s) => s.dal < m ? s.dal : m, prev[0].dal)
+    const al  = prev.reduce((m, s) => s.al  > m ? s.al  : m, prev[0].al)
+    return [{ ...prev[0], dal, al, stato: 'Da salvare' }]
+  })
+
+  // ── Helpers Anticipi: ripartizione importo per camera ─────────────────────
+  const updQuota = (isGr: boolean, i: number, val: number) => {
+    const rooms = isGr ? camereGr : camereInd
+    const setF = isGr ? setGrForm : setForm
+    setF((v: any) => {
+      const arr = [...(v.anticipoQuote ?? [])]
+      while (arr.length < rooms.length) arr.push(0)
+      arr[i] = val
+      return { ...v, anticipoQuote: arr }
+    })
+  }
+  // Ripartisce l'importo totale in parti uguali fra le camere
+  const redistribuisci = (isGr: boolean) => {
+    const rooms = isGr ? camereGr : camereInd
+    const tot = (isGr ? grForm : form).importoAnticipo
+    const n = rooms.length || 1
+    const each = Math.round((tot / n) * 100) / 100
+    const setF = isGr ? setGrForm : setForm
+    setF((v: any) => ({ ...v, anticipoQuote: rooms.map(() => each) }))
   }
 
+  const openExtraDraft = (s: Servizio) => {
+    setExtraEditId(null)
+    setExtraOpenId(s.id)
+    setExtraDraft({ servizio: s.nome, quando: form.dal, quantita: 1, intestatario: '', camera: '103', importo: s.prezzoB2C, descrizione: s.descrizione })
+  }
+
+  const openExtraEdit = (e: ExtraAggiunto) => {
+    const { id, ...rest } = e
+    setExtraEditId(id)
+    setExtraOpenId(id)
+    setExtraDraft(rest)
+  }
+
+  const removeExtra = (id: string) =>
+    setExtra(prev => prev.filter(e => e.id !== id))
+
   const confirmExtra = () => {
-    setExtra(prev => [...prev, { id: Date.now().toString(), ...extraDraft }])
+    if (extraEditId) {
+      setExtra(prev => prev.map(e => e.id === extraEditId ? { ...e, ...extraDraft } : e))
+    } else {
+      setExtra(prev => [...prev, { id: Date.now().toString(), ...extraDraft }])
+    }
     setExtraOpenId(null)
+    setExtraEditId(null)
   }
 
   const startEditRow = (i: number) => {
@@ -201,6 +322,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
             <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
             <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
           </div>
+          <div className="np-table-scroll">
           <table className="np-table">
             <thead>
               <tr>
@@ -212,7 +334,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <tr key={i}>
                   <td>{i+1}</td>
                   <td>
-                    <select className="sib-input np-cell-input" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
+                    <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
                       {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
                     </select>
                   </td>
@@ -220,11 +342,17 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCamera(i,{ragazzi:+e.target.value||0})}/></td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCamera(i,{bambini:+e.target.value||0})}/></td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCamera(i,{infanti:+e.target.value||0})}/></td>
-                  <td><input type="text"   className="sib-input np-cell-input np-cell-input--num" value={c.nCamera} onChange={e=>updCamera(i,{nCamera:e.target.value})}/></td>
+                  <td>
+                    <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>updCamera(i,{nCamera:e.target.value})}>
+                      <option value="">—</option>
+                      {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
           <button type="button" className="np-add-row" onClick={()=>setCamereInd(p=>[...p, initRow()])}>
             <i className="fa-light fa-plus" /> Aggiungi camera
           </button>
@@ -236,23 +364,28 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           <span className="np-label">Stato</span>
           <div className="np-checks-row">
             <label className="np-check">
-              <input type="checkbox" className="sib-checkbox" checked={form.confermata} onChange={e=>setForm(f=>({...f,confermata:e.target.checked}))}/>
+              <input type="radio" name="stato-ind" className="sib-radio" checked={form.confermata} onChange={()=>setForm(f=>({...f,confermata:true,opzione:false}))}/>
               <span className="np-dot np-dot--ok" /> Confermata
             </label>
             <label className="np-check">
-              <input type="checkbox" className="sib-checkbox" checked={form.opzione} onChange={e=>setForm(f=>({...f,opzione:e.target.checked}))}/>
+              <input type="radio" name="stato-ind" className="sib-radio" checked={form.opzione} onChange={()=>setForm(f=>({...f,confermata:false,opzione:true}))}/>
               <span className="np-dot np-dot--ko" /> Opzione
             </label>
           </div>
+          {form.opzione && (
+            <div className="np-row">
+              <DatePickerField name="scadenza" label="Scadenza opzione" value={form.scadenza} onChange={e=>setForm(f=>({...f,scadenza:e.target.value}))}/>
+            </div>
+          )}
           <div className="np-row">
-            <DatePickerField name="scadenza" label="Scadenza" value={form.scadenza} onChange={e=>setForm(f=>({...f,scadenza:e.target.value}))}/>
             <SelectField name="arrangiamento" label="Arrangiamento" value={form.arrangiamento} onChange={e=>setForm(f=>({...f,arrangiamento:e.target.value}))} options={ARRANGIAMENTI.map(o=>({value:o,label:o}))}/>
+            <SelectField name="credit" label="Credit" value={form.credit} onChange={e=>setForm(f=>({...f,credit:e.target.value}))} options={CREDIT.map(o=>({value:o,label:o}))}/>
           </div>
           <span className="np-label">Segmento di mercato</span>
           <div className="np-checks-row">
             {(Object.keys(form.segmento) as (keyof typeof form.segmento)[]).map(k=>(
               <label key={k} className="np-check">
-                <input type="checkbox" className="sib-checkbox" checked={form.segmento[k]} onChange={()=>setSegmento(k)}/>
+                <input type="radio" name="segmento-ind" className="sib-radio" checked={form.segmento[k]} onChange={()=>setSegmento(k)}/>
                 <span className="np-cap">{k.toUpperCase()}</span>
               </label>
             ))}
@@ -413,24 +546,93 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     }
   }
 
+  function renderSegmentiWidget() {
+    const cameraOpts = Array.from(new Set([...CAMERE, ...segmenti.map(s => s.nCamera).filter(Boolean)]))
+    const base = segmenti[0]
+    return (
+      <Widget
+        id="segmenti"
+        title="Gestione segmenti"
+        collapsed={segmentiCollapsed}
+        onToggleCollapse={() => setSegmentiCollapsed(v => !v)}
+        className="np-seg-widget"
+      >
+        <div className="np-seg-head">
+          <div className="np-seg-summary np-table-scroll">
+            <table className="np-table">
+              <thead>
+                <tr><th>#</th><th>Tipologia</th><th>Camera</th><th>Persone</th><th>Segmenti</th></tr>
+              </thead>
+              <tbody>
+                <tr className="np-seg-summary-row">
+                  <td>1</td>
+                  <td>{base?.tipo ?? '—'}</td>
+                  <td>{base?.nCamera || '—'}</td>
+                  <td>{base?.persone ?? 0}</td>
+                  <td>{segmenti.length} segment{segmenti.length === 1 ? 'o' : 'i'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="np-seg-side">
+            <button type="button" className="np-seg-btn" onClick={addSegmento}>Aggiungi segmento</button>
+            <button type="button" className="np-seg-btn" onClick={segmentoUnico}>Segmento unico</button>
+          </div>
+        </div>
+
+        <div className="np-seg-list np-table-scroll">
+          <table className="np-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Date</th><th>Tipologia</th><th>Camera</th><th>Persone</th><th className="np-col-actions">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {segmenti.map((s, i) => (
+                <tr key={s.id}>
+                  <td><span className="np-seg-num">{i + 1}</span></td>
+                  <td className="np-seg-dates">{fmtData(s.dal)} - {fmtData(s.al)}</td>
+                  <td>
+                    <select className="sib-input np-cell-input np-cell-input--tipo" value={s.tipo} onChange={e=>updSegmento(i,{tipo:e.target.value})}>
+                      {TIPOLOGIE_CAMERA.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <select className="sib-input np-cell-input np-cell-input--room" value={s.nCamera} onChange={e=>updSegmento(i,{nCamera:e.target.value})}>
+                      <option value="">—</option>
+                      {cameraOpts.map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </td>
+                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={s.persone} onChange={e=>updSegmento(i,{persone:+e.target.value||0})}/></td>
+                  <td className="np-col-actions">
+                    <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica"><i className="fa-light fa-pen-to-square" /></button>
+                    <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>removeSegmento(s.id)}><i className="fa-light fa-trash" /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Widget>
+    )
+  }
+
   function renderExtraInclusiWidget(common: any) {
     return (
       <Widget key="extra" {...common} title="Extra inclusi">
-        <ul className="np-extra-list">
-          {EXTRA_SERVIZI.map(s => (
-            <li key={s.id}>
-              <button type="button" className="np-extra-btn" onClick={()=>openExtraDraft(s.label)}>
-                <i className="fa-light fa-circle-plus" /> {s.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SelectField
+          name="extra-servizio"
+          label="Aggiungi servizio"
+          value=""
+          onChange={e => { const s = serviziDisponibili.find(x => x.id === e.target.value); if (s) openExtraDraft(s) }}
+          options={[{ value: '', label: '— Seleziona un servizio —' }, ...serviziDisponibili.map(s => ({ value: s.id, label: s.nome }))]}
+        />
 
         {extraOpenId && (
           <div className="np-extra-popup">
             <div className="np-extra-popup-head">
-              <span>Aggiungi: {extraDraft.servizio}</span>
-              <button type="button" className="np-extra-popup-close" onClick={()=>setExtraOpenId(null)} aria-label="Chiudi"><i className="fa-light fa-xmark" /></button>
+              <span>{extraEditId ? 'Modifica' : 'Aggiungi'}: {extraDraft.servizio}</span>
+              <button type="button" className="np-extra-popup-close" onClick={()=>{setExtraOpenId(null);setExtraEditId(null)}} aria-label="Chiudi"><i className="fa-light fa-xmark" /></button>
             </div>
             <div className="np-row">
               <DatePickerField name="quando" label="Quando" value={extraDraft.quando} onChange={e=>setExtraDraft(d=>({...d,quando:e.target.value}))}/>
@@ -443,10 +645,33 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
             </div>
             <TextareaField name="descrizione" label="Descrizione" value={extraDraft.descrizione} onChange={e=>setExtraDraft(d=>({...d,descrizione:e.target.value}))} rows={2} placeholder="Note opzionali"/>
             <div className="np-extra-popup-actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={()=>setExtraOpenId(null)}>Indietro</button>
-              <button type="button" className="sib-btn sib-btn--primary" onClick={confirmExtra}><i className="fa-light fa-plus" /> Aggiungi</button>
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={()=>{setExtraOpenId(null);setExtraEditId(null)}}>Indietro</button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={confirmExtra}>
+                <i className={extraEditId ? 'fa-light fa-check' : 'fa-light fa-plus'} /> {extraEditId ? 'Salva' : 'Aggiungi'}
+              </button>
             </div>
           </div>
+        )}
+
+        {extra.length > 0 && (
+          <ul className="np-extra-added">
+            {extra.map(e => (
+              <li key={e.id} className="np-extra-added-row">
+                <div className="np-extra-added-info">
+                  <span className="np-extra-added-name">{e.servizio}</span>
+                  <span className="np-extra-added-meta">{e.quantita} × {e.importo.toFixed(2).replace('.',',')} € · {e.quando}</span>
+                </div>
+                <div className="np-extra-added-actions">
+                  <button type="button" className="np-extra-added-edit" onClick={()=>openExtraEdit(e)} aria-label="Modifica extra">
+                    <i className="fa-light fa-pen" />
+                  </button>
+                  <button type="button" className="np-extra-added-del" onClick={()=>removeExtra(e.id)} aria-label="Elimina extra">
+                    <i className="fa-light fa-trash-can" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
 
         <div className="np-extra-total">
@@ -482,31 +707,59 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   function renderAnticipiWidget(common: any, isGr: boolean) {
     const f = isGr ? grForm : form
     const setF = isGr ? setGrForm : setForm
+    const rooms = isGr ? camereGr : camereInd
     return (
       <Widget key="anticipi" {...common} title="Anticipi">
-        <span className="np-label">Tipo</span>
-        <div className="np-checks-row">
-          {(['caparra','acconto'] as const).map(t=>(
-            <label key={t} className="np-check">
-              <input type="radio" name={`tipoAnticipo-${isGr?'gr':'ind'}`} className="sib-radio" checked={f.tipoAnticipo===t} onChange={()=>setF((v:any)=>({...v,tipoAnticipo:t}))}/>
-              <span className="np-capitalize">{t}</span>
-            </label>
-          ))}
+        <div className="np-anticipi-top">
+          <div className="np-checks-row">
+            {(['caparra','acconto'] as const).map(t=>(
+              <label key={t} className="np-check">
+                <input type="radio" name={`tipoAnticipo-${isGr?'gr':'ind'}`} className="sib-radio" checked={f.tipoAnticipo===t} onChange={()=>setF((v:any)=>({...v,tipoAnticipo:t}))}/>
+                <span className="np-capitalize">{t}</span>
+              </label>
+            ))}
+          </div>
+          <span className="np-label np-anticipi-tot-label">Importo totale</span>
+          <input type="number" className="sib-input np-anticipi-tot-input" value={f.importoAnticipo} onChange={e=>setF((v:any)=>({...v,importoAnticipo:+e.target.value||0}))}/>
+          <span className="np-anticipi-eur">€</span>
         </div>
-        <div className="np-row">
-          <SelectField name="metodoPagamento" label="Metodo di pagamento" value={f.metodoPagamento} onChange={e=>setF((v:any)=>({...v,metodoPagamento:e.target.value}))} options={PAGAMENTI.map(o=>({value:o,label:o}))}/>
-          <InputField name="importoAnticipo" label="Importo totale" type="number" value={f.importoAnticipo} onChange={e=>setF((v:any)=>({...v,importoAnticipo:+e.target.value||0}))}/>
-        </div>
-        <label className="np-check">
-          <input type="checkbox" className="sib-checkbox" checked={f.ripartizioneAuto} onChange={e=>setF((v:any)=>({...v,ripartizioneAuto:e.target.checked}))}/>
-          Ripartizione automatica
+
+        <label className="np-check np-anticipi-ripart">
+          <input
+            type="checkbox"
+            className="sib-checkbox"
+            checked={f.ripartizioneAuto}
+            onChange={e=>{ const ck = e.target.checked; setF((v:any)=>({...v,ripartizioneAuto:ck})); if (ck) redistribuisci(isGr) }}
+          />
+          Ripartizione per camera
         </label>
+
+        {!f.ripartizioneAuto && (
+          <div className="np-anticipi-quote">
+            <div className="np-anticipi-quote-head">
+              <span className="np-label">Camera</span>
+              <span className="np-label">Quota</span>
+              <button type="button" className="np-anticipi-redistrib" title="Ripartisci in parti uguali" aria-label="Ripartisci in parti uguali" onClick={()=>redistribuisci(isGr)}>
+                <i className="fa-light fa-arrows-rotate" />
+              </button>
+            </div>
+            {rooms.map((r, i) => (
+              <div key={i} className="np-anticipi-quote-row">
+                <span className="np-anticipi-quote-cam">{r.nCamera || (i + 1)}</span>
+                <div className="np-anticipi-quote-val">
+                  <input type="number" className="sib-input" value={f.anticipoQuote[i] ?? 0} onChange={e=>updQuota(isGr, i, +e.target.value || 0)}/>
+                  <span className="np-anticipi-eur">€</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Widget>
     )
   }
 
   // ── Save handler ─────────────────────────────────────────────────────────────
-  const handleSalva = () => {
+  const handleSalva = (close = true) => {
     if (activeTab === 'individuale') {
       const sd = new Date(form.dal), ed = new Date(form.al)
       bookingStore.pending = {
@@ -528,7 +781,89 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         camere: grForm.camere, persone: grForm.persone, importo: totale,
       }
     }
-    navigate('tableau-book')
+    if (close) navigate('tableau-book')
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────────
+  const downloadBlob = (content: BlobPart, type: string, filename: string) => {
+    const blob = new Blob([content], { type })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = filename
+    document.body.appendChild(a); a.click(); a.remove()
+    URL.revokeObjectURL(url)
+  }
+  const euro = (n: number) => `${n.toFixed(2).replace('.', ',')} €`
+
+  // PDF: riepilogo di tutti i dati della prenotazione
+  const scaricaPdfPrenotazione = async () => {
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const f: any = activeTab === 'individuale' ? form : grForm
+    let y = 16
+    const nl = (n = 7) => { y += n; if (y > 282) { doc.addPage(); y = 16 } }
+    const line = (label: string, val: any) => {
+      doc.setFont('helvetica', 'bold'); doc.text(`${label}:`, 14, y)
+      doc.setFont('helvetica', 'normal'); doc.text(String(val ?? ''), 62, y); nl()
+    }
+    const heading = (t: string) => { nl(4); doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.text(t, 14, y); doc.setFontSize(10); nl(6) }
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold')
+    doc.text(editId ? `Modifica Prenotazione N. ${editId}` : 'Riepilogo prenotazione', 14, y); nl(10)
+    doc.setFontSize(10)
+    heading('Soggiorno')
+    line('Check-in', fmtData(f.dal)); line('Check-out', fmtData(f.al))
+    line('Camere', f.camere); line('Persone', f.persone)
+    line('Arrangiamento', f.arrangiamento)
+    line('Stato', f.confermata ? 'Confermata' : (f.opzione ? 'Opzione' : '—'))
+    heading('Agenzia & cliente')
+    line('Agenzia', f.agenzia || '—')
+    if (activeTab === 'individuale') { line('Cliente', form.cliente || '—'); line('E-mail', form.email || '—') }
+    else { line('Nome gruppo', grForm.nomeGruppo || '—'); line('Capo gruppo', grForm.nomeCapoGruppo || '—') }
+    if (segmenti.length) {
+      heading('Gestione segmenti')
+      segmenti.forEach((s, i) => line(`Segmento ${i + 1}`, `${fmtData(s.dal)} - ${fmtData(s.al)} · ${s.tipo} · cam ${s.nCamera || '—'} · ${s.persone} pax`))
+    }
+    if (extra.length) {
+      heading('Extra inclusi')
+      extra.forEach(e => line(e.servizio, `${e.quantita} × ${euro(e.importo)}`))
+    }
+    heading('Totali')
+    line('Totale soggiorno', euro(totaleSoggiorno))
+    line('Totale servizi', euro(totaleServizi))
+    line('Totale', euro(totale))
+    doc.save(`prenotazione${editId ? '_' + editId : ''}.pdf`)
+  }
+
+  // Rooming list — Excel (tabella HTML apribile da Excel)
+  const scaricaExcelOspiti = () => {
+    const righe = ospiti.map(o =>
+      `<tr><td>${o.nome}</td><td>${o.cognome}</td><td>${o.dataNascita}</td><td>${o.paese}</td><td>${o.sesso}</td><td>${o.nCamera}</td><td>${o.dataArrivo}</td></tr>`
+    ).join('')
+    const html = `<html><head><meta charset="utf-8"></head><body>` +
+      `<h3>Rooming list</h3>` +
+      `<table border="1" cellspacing="0" cellpadding="4"><thead><tr>` +
+      `<th>Nome</th><th>Cognome</th><th>Data di nascita</th><th>Paese di nascita</th><th>Sesso</th><th>N. Camera</th><th>Data di arrivo</th>` +
+      `</tr></thead><tbody>${righe}</tbody></table></body></html>`
+    downloadBlob(html, 'application/vnd.ms-excel', 'rooming-list.xls')
+  }
+
+  // Rooming list — PDF
+  const scaricaPdfOspiti = async () => {
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('Rooming list', 14, 16)
+    doc.setFontSize(9)
+    const cols: [string, number][] = [['Nome', 14], ['Cognome', 45], ['Nascita', 78], ['Paese', 105], ['Sesso', 138], ['Cam.', 152], ['Arrivo', 168]]
+    let y = 26
+    doc.setFont('helvetica', 'bold'); cols.forEach(([t, x]) => doc.text(t, x, y)); y += 5
+    doc.setFont('helvetica', 'normal')
+    ospiti.forEach(o => {
+      if (y > 285) { doc.addPage(); y = 16 }
+      const vals = [o.nome, o.cognome, o.dataNascita, o.paese, o.sesso, o.nCamera, o.dataArrivo]
+      vals.forEach((v, k) => doc.text(String(v || '—'), cols[k][1], y))
+      y += 5
+    })
+    doc.save('rooming-list.pdf')
   }
 
   const activeLayout = activeTab === 'individuale' ? indLayout : grLayout
@@ -537,7 +872,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   return (
     <div className="np-page">
       <BtnBack onClick={() => navigate('tableau-book')} />
-      <PageHeader title="Nuova prenotazione" subtitle="Compila i campi per inserire una nuova prenotazione nel sistema" />
+      <PageHeader
+        title={editId ? `Modifica Prenotazione N. ${editId}` : 'Nuova prenotazione'}
+        subtitle={editId ? 'Modifica i campi della prenotazione e salva per aggiornarla.' : 'Compila i campi per inserire una nuova prenotazione nel sistema'}
+      />
 
       <div className="np-toolbar">
         <Tabs
@@ -546,11 +884,16 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           onChange={id=>setActiveTab(id as 'gruppo'|'individuale')}
         />
         <div className="np-toolbar-icons">
-          <button type="button" className="np-icon-btn" aria-label="Modifica importo globale" onClick={()=>setImportoModalOpen(true)}><i className="fa-light fa-circle-info" /></button>
-          <button type="button" className="np-icon-btn" aria-label="Foto"><i className="fa-light fa-camera" /></button>
-          <button type="button" className="np-icon-btn" aria-label="Documento"><i className="fa-light fa-file-lines" /></button>
+          <button type="button" className="sib-btn sib-btn--secondary np-importo-btn" onClick={scaricaPdfPrenotazione}>
+            <i className="fa-light fa-file-pdf" /> Scarica PDF
+          </button>
+          <button type="button" className="sib-btn sib-btn--primary np-importo-btn" onClick={()=>setImportoModalOpen(true)}>
+            <i className="fa-light fa-money-bill" /> Modifica importo globale
+          </button>
         </div>
       </div>
+
+      {renderSegmentiWidget()}
 
       <div className="np-columns">
         {activeLayout.layout.map((col, ci) => (
@@ -567,6 +910,12 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
       <Widget id="ospiti" title="Anagrafica ospiti" bodyClassName="widget__body--flush">
         <div className="np-ospiti-toolbar">
+          <button type="button" className="np-link-add" onClick={scaricaExcelOspiti}>
+            <i className="fa-light fa-file-excel" /> Scarica Excel
+          </button>
+          <button type="button" className="np-link-add" onClick={scaricaPdfOspiti}>
+            <i className="fa-light fa-file-pdf" /> Scarica PDF
+          </button>
           <button type="button" className="np-link-add" onClick={()=>setOspiti(p=>[...p, initOsp()])}>
             <i className="fa-light fa-plus" /> Aggiungi ospite
           </button>
@@ -631,7 +980,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         </div>
         <div className="np-footer-actions">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={()=>navigate('tableau-book')}>Annulla</button>
-          <button type="button" className="sib-btn sib-btn--primary"   onClick={handleSalva}>Salva</button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={()=>handleSalva(false)}>Salva e prosegui</button>
+          <button type="button" className="sib-btn sib-btn--primary"   onClick={()=>handleSalva(true)}>Salva e chiudi</button>
         </div>
       </footer>
 
@@ -768,6 +1118,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           </footer>
         </div>
       </Modal>
+
     </div>
   )
 }

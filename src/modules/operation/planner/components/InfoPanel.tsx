@@ -8,6 +8,7 @@ import ModificaPrenModal from './ModificaPrenModal';
 import GestisciDateModal from './GestisciDateModal';
 import SpostaPrenModal from './SpostaPrenModal';
 import Modal from '../../../../core/components/Modal';
+import { bookingStore } from '../../../../core/bookingStore';
 
 interface Props {
   selected        : Pren | null;
@@ -16,6 +17,7 @@ interface Props {
   pendingAl       : PrenPendente[];
   onOpenAssegnare : () => void;
   onOpenAllocare  : () => void;
+  navigate?       : (page: string) => void;
 }
 
 const STATO_LABEL: Record<string, string> = {
@@ -61,7 +63,7 @@ const Field: React.FC<{ k: string; children: React.ReactNode }> = ({ k, children
   </div>
 );
 
-const InfoPanel: React.FC<Props> = ({ selected, struttura, pendingDa, pendingAl, onOpenAssegnare, onOpenAllocare }) => {
+const InfoPanel: React.FC<Props> = ({ selected, struttura, pendingDa, pendingAl, onOpenAssegnare, onOpenAllocare, navigate }) => {
   const [modal, setModal] = useState<ModalKey>(null);
   const [noteOpen, setNoteOpen] = useState(false);
   const [note, setNote] = useState('');
@@ -72,6 +74,11 @@ const InfoPanel: React.FC<Props> = ({ selected, struttura, pendingDa, pendingAl,
 
   const handleAct = (key: string) => {
     if (key === 'note') setNoteOpen(v => !v);
+    // "Modifica": apre la pagina prenotazione in modalità modifica (campi precompilati)
+    else if (key === 'modifica' && navigate && selected) {
+      bookingStore.editing = selected;
+      navigate('nuova-prenotazione');
+    }
     else setModal(key as ModalKey);
   };
 
