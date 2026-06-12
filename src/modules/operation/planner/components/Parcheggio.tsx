@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 import { Pren } from '../planner.types';
 import { DAY_W } from '../planner.styles';
 import { addDays, MO } from '../planner.data';
-import { barLayout, demoColorFor } from '../planner.layout';
+import { barLayout, barColor, bookingComms } from '../planner.layout';
 
 interface Props {
   parked     : Pren[];
@@ -26,7 +26,7 @@ const Parcheggio: React.FC<Props> = ({ parked, startDate, numDays, onClose, onPa
   const isWE = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
   // Stessa resa della timeline: prenotazione isolata (nessuna consecutiva → no incavo)
-  const barProps = (pren: Pren) => barLayout(pren, [], startDate, numDays, demoColorFor(pren.id));
+  const barProps = (pren: Pren) => barLayout(pren, [], startDate, numDays, barColor(pren));
 
   const allowDrop = (e: React.DragEvent) => e.preventDefault();
   const handleDrop = (e: React.DragEvent) => {
@@ -89,11 +89,16 @@ const Parcheggio: React.FC<Props> = ({ parked, startDate, numDays, onClose, onPa
                       >
                         {pren.stato === 'opzione' && <span className="timeline__bar__question">?</span>}
                         <span className="timeline__bar__name">{pren.nominativo}</span>
+                        {(() => { const comms = bookingComms(pren); return comms.length > 0 && (
+                          <span className="timeline__bar__comms">
+                            {comms.map(c => <i key={c.key} className={`fa-solid ${c.icon}`} title={c.label} aria-label={c.label} />)}
+                          </span>
+                        ); })()}
                       </div>
                       {bp.showChevrons && (
                         <div
                           className="timeline__bar-chevrons"
-                          style={{ '--chev-left': `${bp.chevronLeft}px`, '--bar-bg': demoColorFor(pren.id) } as React.CSSProperties}
+                          style={{ '--chev-left': `${bp.chevronLeft}px`, '--bar-bg': barColor(pren) } as React.CSSProperties}
                         />
                       )}
                     </>

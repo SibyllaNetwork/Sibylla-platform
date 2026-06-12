@@ -18,6 +18,28 @@ export function demoColorFor(id: string): string {
   return DEMO_COLORS[(i >= 0 ? i : 0) % DEMO_COLORS.length];
 }
 
+// Colore della barra: l'opzionata assume la sua colorazione tipica (oro),
+// le altre il colore demo ciclato.
+export function barColor(pren: Pren): string {
+  if (pren.stato === 'opzione') return '#C69520';
+  return demoColorFor(pren.id);
+}
+
+// ── Comunicazioni della prenotazione ──────────────────────────────────────────
+// Requisiti/stati già presenti, mostrati come icone sulla barra (+ tooltip nativo).
+export interface Comm { key: string; icon: string; label: string; }
+export function bookingComms(pren: Pren): Comm[] {
+  const out: Comm[] = [];
+  if (pren.segmento)              out.push({ key: 'segmento',   icon: 'fa-user-group',        label: `Segmento: ${pren.segmento}` });
+  if (pren.stato === 'checkin')   out.push({ key: 'checkin',    icon: 'fa-circle-check',      label: 'Check-in completo' });
+  if (pren.stato === 'checkin_p') out.push({ key: 'checkin_p',  icon: 'fa-circle-half-stroke',label: 'Check-in parziale' });
+  if (pren.roomingList)           out.push({ key: 'rooming',    icon: 'fa-list-check',        label: 'Rooming list' });
+  if (pren.stato === 'noshow')    out.push({ key: 'noshow',     icon: 'fa-user-xmark',        label: 'No show' });
+  if (pren.stato === 'manutenzione') out.push({ key: 'manut',   icon: 'fa-wrench',            label: 'Manutenzione' });
+  if (pren.stato === 'pulizia')   out.push({ key: 'pulizia',    icon: 'fa-broom',             label: 'Pulizie' });
+  return out;
+}
+
 export interface BarLayout {
   style: CSSProperties;
   shapeClass: string;

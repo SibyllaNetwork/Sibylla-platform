@@ -49,6 +49,7 @@ export interface Pren {
   numeroCamera: string;
   agenzia?: string;
   segmento?: string;
+  roomingList?: boolean;
   // ── Dettagli estesi (opzionali) per il pannello Info ──
   cliente?: string;
   statoCheckIn?: string;

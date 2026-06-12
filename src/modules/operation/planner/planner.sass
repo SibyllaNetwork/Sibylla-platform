@@ -228,6 +228,27 @@
     & + &
       margin-top: 1px
 
+  // Comunicazioni nel tooltip di rollover (icona + significato, allineate a sx)
+  &__bar-tip-comms
+    margin-top: 6px
+    padding-top: 6px
+    border-top: 1px solid alpha($white, 0.18)
+    display: flex
+    flex-direction: column
+    gap: 3px
+    text-align: left
+
+  &__bar-tip-comm
+    display: flex
+    align-items: center
+    gap: 8px
+
+    i
+      width: 14px
+      text-align: center
+      color: $accent
+      flex: none
+
 // ═══ PARCHEGGIO ════════════════════════════════════════════════════════════════
 .parcheggio
   flex-shrink: 0
@@ -947,7 +968,27 @@
 
     &__name
       +truncate
+      flex: 1 1 auto
+      min-width: 0
       text-shadow: 0 1px 2px rgba(15, 23, 42, 0.45)
+
+    // Comunicazioni (segmento, check-in, rooming, no show, manut., pulizie):
+    // flex:none così restano SEMPRE visibili, anche su prenotazioni di 1 giorno
+    // (il nome si tronca per cedere spazio).
+    &__comms
+      flex: none
+      display: inline-flex
+      align-items: center
+      gap: 6px
+      margin-left: 2px
+      padding-left: 7px
+      border-left: 1px solid alpha($white, 0.45)
+      font-size: 13px
+      line-height: 1
+
+      i
+        color: $white
+        text-shadow: 0 0 2px rgba(15, 23, 42, 0.7), 0 1px 1.5px rgba(15, 23, 42, 0.55)
 
   // ── Chevron staccati (decorazione punta, oltre il corpo) ──────────────────
   //  Stesso angolo della punta (run 14 / mezza-altezza 13), piena altezza barra

@@ -6,7 +6,7 @@ import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react'
 import { Piano, Pren, Camera } from '../planner.types';
 import { CAM_CLR, DAY_W, ROOM_W } from '../planner.styles';
 import { parseDt, addDays, diffDays, MO } from '../planner.data';
-import { barLayout, demoColorFor } from '../planner.layout';
+import { barLayout, barColor, bookingComms } from '../planner.layout';
 
 interface Props {
   piani        : Piano[];
@@ -71,7 +71,7 @@ const Timeline: React.FC<Props> = ({
 
   // Layout barra condiviso col Parcheggio (forma/posizione/colore identici)
   const getBarProps = useCallback(
-    (pren: Pren) => barLayout(pren, prenotazioni, startDate, numDays, demoColorFor(pren.id)),
+    (pren: Pren) => barLayout(pren, prenotazioni, startDate, numDays, barColor(pren)),
     [startDate, numDays, prenotazioni]
   );
 
@@ -241,11 +241,16 @@ const Timeline: React.FC<Props> = ({
                             <span className="timeline__bar__question">?</span>
                           )}
                           <span className="timeline__bar__name">{pren.nominativo}</span>
+                          {(() => { const comms = bookingComms(pren); return comms.length > 0 && (
+                            <span className="timeline__bar__comms">
+                              {comms.map(c => <i key={c.key} className={`fa-solid ${c.icon}`} title={c.label} aria-label={c.label} />)}
+                            </span>
+                          ); })()}
                         </div>
                         {bp.showChevrons && (
                           <div
                             className="timeline__bar-chevrons"
-                            style={{ '--chev-left': `${bp.chevronLeft}px`, '--bar-bg': demoColorFor(pren.id) } as React.CSSProperties}
+                            style={{ '--chev-left': `${bp.chevronLeft}px`, '--bar-bg': barColor(pren) } as React.CSSProperties}
                           />
                         )}
                       </React.Fragment>

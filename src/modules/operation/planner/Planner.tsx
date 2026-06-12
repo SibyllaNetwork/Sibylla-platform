@@ -6,6 +6,7 @@ import { PlannerProps, Pren } from './planner.types';
 import { CAM_CLR } from './planner.styles';
 import { STRUTTURE, PIANI_DATA, PENDING_DA, PENDING_AL, parseDt, diffDays } from './planner.data';
 import { usePlannerState } from './hooks/usePlannerState';
+import { bookingComms } from './planner.layout';
 
 import HotelVisualization from './components/HotelVisualization';
 import Timeline           from './components/Timeline';
@@ -230,6 +231,16 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
           <div className="planner__bar-tip-row">Data In: {fmtDate(barTip.pren.checkIn)}</div>
           <div className="planner__bar-tip-row">Data Out: {fmtDate(barTip.pren.checkOut)}</div>
           <div className="planner__bar-tip-row">Giorni Prenotati: {diffDays(parseDt(barTip.pren.checkIn), parseDt(barTip.pren.checkOut))}</div>
+          {bookingComms(barTip.pren).length > 0 && (
+            <div className="planner__bar-tip-comms">
+              {bookingComms(barTip.pren).map(c => (
+                <div key={c.key} className="planner__bar-tip-comm">
+                  <i className={`fa-light ${c.icon}`} aria-hidden="true" />
+                  <span>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

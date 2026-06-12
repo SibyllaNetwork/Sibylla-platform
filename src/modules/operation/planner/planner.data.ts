@@ -51,7 +51,7 @@ export const PIANI_DATA: Piano[] = [
 
 // ── Prenotazioni mock ──────────────────────────────────────────────────────────
 export const PRENS: Pren[] = [
-  { id:'p1',  booking:'15080', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'1',   agenzia:'Tui Italia', segmento:'Gruppi',
+  { id:'p1',  booking:'15080', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'1',   agenzia:'Tui Italia', segmento:'Gruppi', roomingList:true,
     cliente:'Mario Giordani', statoCheckIn:'In attesa', persone:112, adulti:0, bambini:0, neonati:0, animali:0, camere:57, arrangiamento:'RO',
     dettaglioCamere:[
       { numero:'102', piano:'Primo Piano', nome:'SGL CLASSICA',         tipoAssegnato:'Singola', tipoRichiesto:'Singola Classic', statoCheckIn:'In attesa' },
@@ -62,16 +62,16 @@ export const PRENS: Pren[] = [
     ] },
   { id:'p2',  booking:'15081', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'1' },
   // Prenotazione consecutiva: subentra a Patrizio lo stesso giorno (22/04)
-  { id:'p2b', booking:'15081b',nominativo:'Bianchi',            checkIn:'2026-04-22', checkOut:'2026-04-24', stato:'checkin',    numeroCamera:'1' },
+  { id:'p2b', booking:'15081b',nominativo:'Bianchi',            checkIn:'2026-04-22', checkOut:'2026-04-24', stato:'checkin',    numeroCamera:'1', segmento:'Individuali', roomingList:true },
   { id:'p3',  booking:'15082', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'101', agenzia:'Sibylla', segmento:'Gruppi' },
-  { id:'p4',  booking:'15083', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'101' },
+  { id:'p4',  booking:'15083', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'checkin_p',  numeroCamera:'101', segmento:'Individuali', roomingList:true },
   // Camera 103: due prenotazioni CONSECUTIVE (handoff il 17/04)
   { id:'p5',  booking:'15084', nominativo:'Rossi',              checkIn:'2026-04-13', checkOut:'2026-04-17', stato:'confermata', numeroCamera:'103' },
   { id:'p6',  booking:'15085', nominativo:'Verdi',              checkIn:'2026-04-17', checkOut:'2026-04-21', stato:'checkin',    numeroCamera:'103' },
   { id:'p7',  booking:'15086', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'104' },
-  { id:'p8',  booking:'15087', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'104' },
+  { id:'p8',  booking:'15087', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'noshow',     numeroCamera:'104' },
   { id:'p9',  booking:'15088', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'105' },
-  { id:'p10', booking:'15089', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'105' },
+  { id:'p10', booking:'15089', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'checkin',    numeroCamera:'105', roomingList:true },
   { id:'p11', booking:'15090', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'106' },
   { id:'p12', booking:'15091', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'106' },
   { id:'p13', booking:'15092', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'107' },
