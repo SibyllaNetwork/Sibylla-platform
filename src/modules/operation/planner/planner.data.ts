@@ -61,10 +61,13 @@ export const PRENS: Pren[] = [
       { numero:'308', piano:'Terzo Piano', nome:'DOPPIA CLASSIC',       tipoAssegnato:'Doppia',  tipoRichiesto:'Doppia Classic', statoCheckIn:'In attesa' },
     ] },
   { id:'p2',  booking:'15081', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'1' },
+  // Prenotazione consecutiva: subentra a Patrizio lo stesso giorno (22/04)
+  { id:'p2b', booking:'15081b',nominativo:'Bianchi',            checkIn:'2026-04-22', checkOut:'2026-04-24', stato:'checkin',    numeroCamera:'1' },
   { id:'p3',  booking:'15082', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'101', agenzia:'Sibylla', segmento:'Gruppi' },
   { id:'p4',  booking:'15083', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'101' },
-  { id:'p5',  booking:'15084', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'103' },
-  { id:'p6',  booking:'15085', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'103' },
+  // Camera 103: due prenotazioni CONSECUTIVE (handoff il 17/04)
+  { id:'p5',  booking:'15084', nominativo:'Rossi',              checkIn:'2026-04-13', checkOut:'2026-04-17', stato:'confermata', numeroCamera:'103' },
+  { id:'p6',  booking:'15085', nominativo:'Verdi',              checkIn:'2026-04-17', checkOut:'2026-04-21', stato:'checkin',    numeroCamera:'103' },
   { id:'p7',  booking:'15086', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'104' },
   { id:'p8',  booking:'15087', nominativo:'Patrizio',           checkIn:'2026-04-19', checkOut:'2026-04-22', stato:'confermata', numeroCamera:'104' },
   { id:'p9',  booking:'15088', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'105' },

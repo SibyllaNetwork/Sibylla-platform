@@ -644,6 +644,47 @@
     transition: opacity 0.15s
 
 // ═══ TIMELINE ═════════════════════════════════════════════════════════════════
+// Wrapper della timeline: contiene la fascia scrollabile + i pulsanti laterali
+.timeline-wrap
+  flex: 1
+  min-height: 0
+  position: relative
+  display: flex
+  flex-direction: column
+
+  // Pulsanti scroll giorni (pattern piattaforma: circolari, centrati vertical.)
+  &__nav
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    z-index: 20
+    width: 38px
+    height: 38px
+    border-radius: 50%
+    border: 1px solid $primary-200
+    background: $white
+    color: $primary
+    box-shadow: $shadow-lg
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &:hover
+      background: $primary
+      color: $white
+      transform: translateY(-50%) scale(1.08)
+
+    &:active
+      transform: translateY(-50%) scale(0.96)
+
+    // sinistra: all'inizio della fascia giorni (dopo la colonna camere)
+    &--prev
+      left: calc(186px + 8px)
+    &--next
+      right: 10px
+
 .timeline
   flex: 1
   overflow: auto
@@ -656,6 +697,7 @@
     top: 0
     z-index: 10
     display: flex
+    min-width: var(--tl-content-w)
     background: $white
     border-bottom: 2px solid $primary-200
 
@@ -715,9 +757,9 @@
     background: $primary
     color: $white
     height: 30px
+    min-width: var(--tl-content-w)
     display: flex
     align-items: center
-    padding-left: 12px
     font-family: $font-heading
     font-size: 12px
     font-weight: 600
@@ -725,9 +767,16 @@
     top: 46px
     z-index: 8
 
+  // nome del piano: resta visibile a sinistra durante lo scroll orizzontale
+  &__floor-name
+    position: sticky
+    left: 0
+    padding-left: 12px
+
   &__row
     display: flex
     height: 46px
+    min-width: var(--tl-content-w)
     border-bottom: 1px solid $primary-100
     position: relative
     background: $white
@@ -819,40 +868,118 @@
     position: absolute
     left: var(--bar-left)
     width: var(--bar-width)
-    background: var(--bar-bg)
-    color: var(--bar-color)
-    clip-path: var(--bar-clip)
-    padding-left: var(--bar-pad-left)
-    height: 28px
+    height: 26px
     top: 50%
     transform: translateY(-50%)
+    padding-left: var(--bar-pad-left)
+    padding-right: var(--bar-pad-right, 10px)
+    color: var(--bar-color)
+    clip-path: var(--bar-clip)
+    // Sfumatura lineare orizzontale: scuro alla coda → brillante alla punta
+    background: linear-gradient(90deg, color-mix(in srgb, var(--bar-bg), #000 18%) 0%, var(--bar-bg) 55%, color-mix(in srgb, var(--bar-bg), #fff 26%) 100%)
     display: flex
     align-items: center
+    gap: 4px
     font-family: $font-body
     font-size: 11px
     font-weight: 700
+    letter-spacing: 0.1px
     white-space: nowrap
     overflow: hidden
     cursor: grab
-    transition: filter 0.15s
+    box-sizing: border-box
+    z-index: 1
+    filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.28))
+    transition: transform 0.14s ease, filter 0.14s ease
+
+    // Filo di luce sul bordo superiore (rilievo)
+    &::before
+      content: ''
+      position: absolute
+      inset: 0 0 auto 0
+      height: 1px
+      background: alpha($white, 0.5)
+      pointer-events: none
 
     &:active
       cursor: grabbing
-    box-sizing: border-box
-    z-index: 1
 
+    // Rollover senza movimento: solo schiarita (nessun transform)
+    &:hover
+      filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.28)) brightness(1.12)
+      z-index: 3
+
+    // Accento verticale lato check-in (arrivo)
+    &--edge-in::after
+      content: ''
+      position: absolute
+      left: 0
+      top: 0
+      bottom: 0
+      width: 3px
+      background: alpha($white, 0.85)
+      pointer-events: none
+
+    // Sfumatura di continuità quando il soggiorno esce dalla finestra
+    &--cont-left
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 20px)
+      mask-image: linear-gradient(90deg, transparent 0, #000 20px)
+    &--cont-right
+      -webkit-mask-image: linear-gradient(270deg, transparent 0, #000 20px)
+      mask-image: linear-gradient(270deg, transparent 0, #000 20px)
+
+    // Selezione: contorno bianco che segue la forma + alone primario
     &--selected
-      z-index: 2
-      filter: brightness(1.2)
-      outline: 2px solid alpha($white, 0.6)
-      outline-offset: -2px
+      z-index: 4
+      filter: drop-shadow(1.4px 0 0 #fff) drop-shadow(-1.4px 0 0 #fff) drop-shadow(0 1.4px 0 #fff) drop-shadow(0 -1.4px 0 #fff) drop-shadow(0 2px 7px alpha($primary, 0.55))
 
     &__question
-      margin-right: 4px
-      opacity: 0.8
+      flex: none
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      width: 14px
+      height: 14px
+      border-radius: 50%
+      background: alpha($white, 0.28)
+      font-size: 10px
+      font-weight: 800
 
     &__name
       +truncate
+      text-shadow: 0 1px 2px rgba(15, 23, 42, 0.45)
+
+  // ── Chevron staccati (decorazione punta, oltre il corpo) ──────────────────
+  //  Stesso angolo della punta (run 14 / mezza-altezza 13), piena altezza barra
+  //  (26px). Il container parte dall'imbocco della punta (è alto come la barra);
+  //  la punta del corpo arriva fino a x=14, poi 3 chevron con gap 5/3/2px:
+  //  back-arm a x = 5, 8, 10 → tip a x = 19, 22, 24.
+  &__bar-chevrons
+    position: absolute
+    left: var(--chev-left)
+    top: 50%
+    transform: translateY(-50%)
+    width: 28px
+    height: 26px
+    pointer-events: none
+    // sopra le barre (z>1) così, in caso di subentro, i chevron dell'uscente
+    // restano visibili sull'incavo della prenotazione entrante
+    z-index: 2
+    background: linear-gradient(100deg, color-mix(in srgb, var(--bar-bg), #000 6%) 0%, color-mix(in srgb, var(--bar-bg), #fff 18%) 100%)
+    $chev: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 26'%3E%3Cg fill='none' stroke='black' stroke-width='3' stroke-linecap='butt' stroke-linejoin='miter'%3E%3Cpath d='M5 0 L19 13 L5 26'/%3E%3Cpath d='M8 0 L22 13 L8 26'/%3E%3Cpath d='M10 0 L24 13 L10 26'/%3E%3C/g%3E%3C/svg%3E"
+    -webkit-mask-image: url("#{$chev}")
+    mask-image: url("#{$chev}")
+    -webkit-mask-size: 100% 100%
+    mask-size: 100% 100%
+    -webkit-mask-repeat: no-repeat
+    mask-repeat: no-repeat
+    filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.28))
+    transition: transform 0.14s ease, filter 0.14s ease
+
+  // Hover della barra → stessa schiarita anche sui suoi chevron (niente movimento)
+  &__bar:hover + &__bar-chevrons
+    filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.28)) brightness(1.12)
+    z-index: 5
 
   // ── Riepilogo footer (sticky, collassabile) ──────────────────────────────
   &__summary
@@ -954,6 +1081,8 @@
 
   &__card
     +card
+    // non comprimere: la colonna scrolla, così i pulsanti azione non vengono tagliati
+    flex-shrink: 0
 
   &__card-header
     +card-header
@@ -976,12 +1105,12 @@
     gap: 1px
     margin-bottom: 10px
 
+  // Label in case normale (standard piattaforma): 12px, 600, text-inactive
   &__f-k
-    color: $text-disabled
-    font-size: 9.5px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.4px
+    color: $text-inactive
+    font-size: 12px
+    font-weight: 600
+    line-height: 1.2
 
   &__f-v
     color: $text-active

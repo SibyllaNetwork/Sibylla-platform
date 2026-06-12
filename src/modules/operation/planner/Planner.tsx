@@ -136,25 +136,17 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
             <div className="planner__spacer" />
 
-            {/* ── Parcheggio (sospensione prenotazioni) ── */}
-            <div className="action-buttons__item">
-              <button
-                type="button"
-                className={`sib-btn sib-btn--icon planner__park-btn${s.showParcheggio ? ' planner__park-btn--active' : ''}`}
-                onClick={s.toggleParcheggio}
-              >
-                <span className="planner__park-ico">P</span>
-                {s.parkedPrens.length > 0 && (
-                  <span className="planner__park-badge">{s.parkedPrens.length}</span>
-                )}
-              </button>
-              <div className="action-buttons__tooltip">Parcheggio</div>
-            </div>
-
             <ActionButtons
-              onLegenda={() => s.setShowLegenda(true)}
+              onGhost={() => {}}
+              onParcheggio={s.toggleParcheggio}
+              parcheggioActive={s.showParcheggio}
+              parkedCount={s.parkedPrens.length}
               onNuova={() => navigate('nuova-prenotazione')}
-              onIDS={() => navigate('prenotazioni-ids')}
+              onArrivi={() => navigate('arrivi-partenze')}
+              onOspiti={() => navigate('ospiti-in-casa')}
+              onSchedine={() => navigate('schedine')}
+              onRilevamento={() => navigate('rilevamento-presenze')}
+              onLegenda={() => s.setShowLegenda(true)}
             />
           </div>
 
@@ -191,6 +183,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               selectedId={s.selectedBooking?.id ?? null}
               onEmpty={s.handleEmptyClick}
               onAssign={s.assignBookingToRoom}
+              onMove={s.moveBooking}
               showRiepilogo={s.showRiepilogo}
               onToggleRiepilogo={s.toggleRiepilogo}
               onBarHover={onBarHover}

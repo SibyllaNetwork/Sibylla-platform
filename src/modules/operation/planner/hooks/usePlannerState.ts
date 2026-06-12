@@ -3,7 +3,10 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { Pren, Camera } from '../planner.types';
-import { PRENS, parseDt } from '../planner.data';
+import { PRENS, parseDt, addDays } from '../planner.data';
+
+const isoDate = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function usePlannerState(navigate: (page: string) => void) {
 
@@ -63,6 +66,22 @@ export function usePlannerState(navigate: (page: string) => void) {
     setParkedIds(prev => prev.filter(x => x !== id));
   }, []);
 
+  // Sposta una prenotazione nella timeline via drag&drop: cambia camera e/o
+  // trasla le date di `deltaDays` (orizzontale = giorni).
+  const moveBooking = useCallback((id: string, numeroCamera: string, deltaDays: number) => {
+    setPrens(prev => prev.map(p => {
+      if (p.id !== id) return p;
+      if (!deltaDays) return { ...p, numeroCamera };
+      return {
+        ...p,
+        numeroCamera,
+        checkIn:  isoDate(addDays(parseDt(p.checkIn),  deltaDays)),
+        checkOut: isoDate(addDays(parseDt(p.checkOut), deltaDays)),
+      };
+    }));
+    setParkedIds(prev => prev.filter(x => x !== id));
+  }, []);
+
   const toggleParcheggio = useCallback(() => setShowParcheggio(v => !v), []);
   const toggleRiepilogo  = useCallback(() => setShowRiepilogo(v => !v), []);
 
@@ -94,7 +113,7 @@ export function usePlannerState(navigate: (page: string) => void) {
     showAllocare,  setShowAllocare,
     showParcheggio, setShowParcheggio, toggleParcheggio,
     showRiepilogo, toggleRiepilogo,
-    parkBooking, assignBookingToRoom,
+    parkBooking, assignBookingToRoom, moveBooking,
     handleEmptyClick,
   };
 }

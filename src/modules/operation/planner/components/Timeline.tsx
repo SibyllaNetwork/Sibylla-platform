@@ -2,10 +2,11 @@
 // Struttura e layout via className SCSS.
 // Solo left/width/color delle barre e posizioni calcolate restano inline.
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 import { Piano, Pren, Camera } from '../planner.types';
-import { STATO_CLR, CAM_CLR, DAY_W, ROOM_W } from '../planner.styles';
+import { CAM_CLR, DAY_W, ROOM_W } from '../planner.styles';
 import { parseDt, addDays, diffDays, MO } from '../planner.data';
+import { barLayout, demoColorFor } from '../planner.layout';
 
 interface Props {
   piani        : Piano[];
@@ -19,6 +20,7 @@ interface Props {
   selectedId   : string | null;
   onEmpty      : (cam: Camera, date: Date) => void;
   onAssign?    : (id: string, numeroCamera: string) => void;
+  onMove?      : (id: string, numeroCamera: string, deltaDays: number) => void;
   showRiepilogo?    : boolean;
   onToggleRiepilogo?: () => void;
   onBarHover?  : (pren: Pren | null, clientX: number, clientY: number) => void;
@@ -27,9 +29,29 @@ interface Props {
 const Timeline: React.FC<Props> = ({
   piani, prenotazioni, startDate, numDays,
   filtroConf, filtroOpz, activePiani,
-  onSelect, selectedId, onEmpty, onAssign,
+  onSelect, selectedId, onEmpty, onAssign, onMove,
   showRiepilogo, onToggleRiepilogo, onBarHover,
 }) => {
+  const dragEnabled = !!(onMove || onAssign);
+
+  // Scroll orizzontale della fascia giorni con pulsanti laterali
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [nav, setNav] = useState({ prev: false, next: false });
+  const updateNav = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setNav({
+      prev: el.scrollLeft > 4,
+      next: el.scrollLeft < el.scrollWidth - el.clientWidth - 4,
+    });
+  }, []);
+  useEffect(() => { updateNav(); }, [numDays, updateNav]);
+  const scrollDays = (dir: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(DAY_W * 5, el.clientWidth - ROOM_W - 60), behavior: 'smooth' });
+  };
+
   const days = useMemo(
     () => Array.from({ length: numDays }, (_, i) => addDays(startDate, i)),
     [startDate, numDays]
@@ -47,44 +69,11 @@ const Timeline: React.FC<Props> = ({
     return true;
   }), [prenotazioni, filtroConf, filtroOpz]);
 
-  // Solo left/width/background/color/clipPath restano inline — tutto il resto è SCSS
-  const getBarProps = useCallback((pren: Pren) => {
-    const ci   = parseDt(pren.checkIn);
-    const co   = parseDt(pren.checkOut);
-    const endV = addDays(startDate, numDays);
-    if (co <= startDate || ci >= endV) return null;
-
-    const ld   = Math.max(0, diffDays(startDate, ci));
-    const rd   = Math.min(numDays, diffDays(startDate, co));
-    const sL   = ci >= startDate;
-    const sR   = co <= endV;
-    const clr  = STATO_CLR[pren.stato];
-
-    const clip = sL && sR
-      ? 'polygon(10px 0%,calc(100% - 12px) 0%,100% 50%,calc(100% - 12px) 100%,10px 100%,0% 50%)'
-      : sL
-        ? 'polygon(10px 0%,100% 0%,100% 100%,10px 100%,0% 50%)'
-        : sR
-          ? 'polygon(0% 0%,calc(100% - 12px) 0%,100% 50%,calc(100% - 12px) 100%,0% 100%)'
-          : 'none';
-
-    const shapeClass = sL && sR ? 'start-visible'
-      : sL ? 'start-visible end-hidden'
-      : 'start-hidden';
-
-    return {
-      style: {
-        '--bar-left':    `${ld * DAY_W}px`,
-        '--bar-width':   `${Math.max(20, (rd - ld) * DAY_W - 2)}px`,
-        '--bar-bg':      clr.bg,
-        '--bar-color':   clr.text,
-        '--bar-clip':    clip,
-        '--bar-pad-left': sL ? '16px' : '10px',
-      } as React.CSSProperties,
-      shapeClass,
-      selected: selectedId === pren.id,
-    };
-  }, [startDate, numDays, selectedId]);
+  // Layout barra condiviso col Parcheggio (forma/posizione/colore identici)
+  const getBarProps = useCallback(
+    (pren: Pren) => barLayout(pren, prenotazioni, startDate, numDays, demoColorFor(pren.id)),
+    [startDate, numDays, prenotazioni]
+  );
 
   const isToday  = (d: Date) => d.getTime() === today.getTime();
   const isWE     = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
@@ -111,7 +100,22 @@ const Timeline: React.FC<Props> = ({
   ];
 
   return (
-    <div className="timeline">
+    <div className="timeline-wrap">
+      {nav.prev && (
+        <button type="button" className="timeline-wrap__nav timeline-wrap__nav--prev" onClick={() => scrollDays(-1)} aria-label="Giorni precedenti">
+          <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M10 3L5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+      {nav.next && (
+        <button type="button" className="timeline-wrap__nav timeline-wrap__nav--next" onClick={() => scrollDays(1)} aria-label="Giorni successivi">
+          <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2}>
+            <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+    <div className="timeline" ref={scrollRef} onScroll={updateNav} style={{ '--tl-content-w': `${ROOM_W + numDays * DAY_W}px` } as React.CSSProperties}>
 
       {/* ── Header date ─────────────────────────────────────────────────────── */}
       <div className="timeline__header">
@@ -146,7 +150,7 @@ const Timeline: React.FC<Props> = ({
       {/* ── Piani ───────────────────────────────────────────────────────────── */}
       {visible.map(piano => (
         <div key={piano.id}>
-          <div className="timeline__floor-header">{piano.nome}</div>
+          <div className="timeline__floor-header"><span className="timeline__floor-name">{piano.nome}</span></div>
 
           {piano.camere.map((cam, ri) => {
             const camPrens = filtered.filter(p => p.numeroCamera === cam.numero);
@@ -171,11 +175,15 @@ const Timeline: React.FC<Props> = ({
                 <div
                   className="timeline__day-grid"
                   style={{ '--grid-min-w': `${DAY_W * numDays}px` } as React.CSSProperties}
-                  onDragOver={onAssign ? (e) => e.preventDefault() : undefined}
-                  onDrop={onAssign ? (e) => {
+                  onDragOver={dragEnabled ? (e) => e.preventDefault() : undefined}
+                  onDrop={dragEnabled ? (e) => {
                     e.preventDefault();
-                    const id = e.dataTransfer.getData('text/plain');
-                    if (id) onAssign(id, cam.numero);
+                    const data = e.dataTransfer.getData('text/plain');
+                    if (!data) return;
+                    const [id, sx] = data.split('|');
+                    const deltaDays = sx ? Math.round((e.clientX - Number(sx)) / DAY_W) : 0;
+                    if (onMove) onMove(id, cam.numero, deltaDays);
+                    else onAssign?.(id, cam.numero);
                   } : undefined}
                 >
                   {/* Celle di sfondo */}
@@ -216,23 +224,31 @@ const Timeline: React.FC<Props> = ({
                   {camPrens.map(pren => {
                     const bp = getBarProps(pren);
                     if (!bp) return null;
+                    const selected = selectedId === pren.id;
                     return (
-                      <div
-                        key={pren.id}
-                        className={`timeline__bar${bp.selected ? ' timeline__bar--selected' : ''}`}
-                        style={bp.style}
-                        draggable={!!onAssign}
-                        onDragStart={onAssign ? (e) => { e.dataTransfer.setData('text/plain', pren.id); e.dataTransfer.effectAllowed = 'move'; onBarHover?.(null, 0, 0); } : undefined}
-                        onMouseEnter={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
-                        onMouseMove={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
-                        onMouseLeave={onBarHover ? () => onBarHover(null, 0, 0) : undefined}
-                        onClick={e => { e.stopPropagation(); onSelect(pren.id === selectedId ? null : pren); }}
-                      >
-                        {pren.stato === 'opzione' && (
-                          <span className="timeline__bar__question">?</span>
+                      <React.Fragment key={pren.id}>
+                        <div
+                          className={`timeline__bar ${bp.shapeClass}${selected ? ' timeline__bar--selected' : ''}`}
+                          style={bp.style}
+                          draggable={dragEnabled}
+                          onDragStart={dragEnabled ? (e) => { e.dataTransfer.setData('text/plain', `${pren.id}|${e.clientX}`); e.dataTransfer.effectAllowed = 'move'; onBarHover?.(null, 0, 0); } : undefined}
+                          onMouseEnter={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
+                          onMouseMove={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
+                          onMouseLeave={onBarHover ? () => onBarHover(null, 0, 0) : undefined}
+                          onClick={e => { e.stopPropagation(); onSelect(pren.id === selectedId ? null : pren); }}
+                        >
+                          {pren.stato === 'opzione' && (
+                            <span className="timeline__bar__question">?</span>
+                          )}
+                          <span className="timeline__bar__name">{pren.nominativo}</span>
+                        </div>
+                        {bp.showChevrons && (
+                          <div
+                            className="timeline__bar-chevrons"
+                            style={{ '--chev-left': `${bp.chevronLeft}px`, '--bar-bg': demoColorFor(pren.id) } as React.CSSProperties}
+                          />
                         )}
-                        <span className="timeline__bar__name">{pren.nominativo}</span>
-                      </div>
+                      </React.Fragment>
                     );
                   })}
                 </div>
@@ -272,6 +288,7 @@ const Timeline: React.FC<Props> = ({
           </button>
         </div>
       )}
+    </div>
     </div>
   );
 };
