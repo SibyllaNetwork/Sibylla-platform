@@ -78,11 +78,8 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   })
 
   const TABS: { id: TabFilter; label: string }[] = [
-    { id: 'all',      label: 'Tutte' },
-    { id: 'unread',   label: `Non lette${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
-    { id: 'platform', label: 'Platform' },
-    { id: 'tableau',  label: 'Tableau' },
-    { id: 'agora',    label: 'Agora' },
+    { id: 'all',    label: 'Tutte' },
+    { id: 'unread', label: `Non lette${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
   ]
 
   return (
@@ -158,11 +155,8 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                   {!n.read && (
                     <div className="notif-item__dot" style={{ background: cfg.color }} />
                   )}
-                  <div
-                    className="notif-item__icon-wrap"
-                    style={{ background: cfg.bg, border: `1px solid ${cfg.color}22` }}
-                  >
-                    <Ico n="bell" s={16} c={cfg.color} />
+                  <div className="notif-item__icon-wrap">
+                    <Ico n="bell" s={24} c={cfg.color} />
                   </div>
                   <div className="notif-item__body">
                     <div className="notif-item__top">

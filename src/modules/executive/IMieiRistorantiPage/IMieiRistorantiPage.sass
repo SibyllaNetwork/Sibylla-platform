@@ -1,21 +1,21 @@
 @use '../../../styles/tokens' as *
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
-.biz__layout
+.rist__layout
   display: flex
   gap: 0
   align-items: flex-start
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
-.biz__sidebar
+.rist__sidebar
   width: 248px
   flex-shrink: 0
   padding-right: 20px
 
-.biz__sidebar-section
+.rist__sidebar-section
   margin-bottom: 22px
 
-.biz__section-label
+.rist__section-label
   font-size: 10px
   font-weight: 700
   color: $text-inactive
@@ -24,19 +24,19 @@
   margin-bottom: 10px
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
-.biz__cal-card
+.rist__cal-card
   background: $white
   border-radius: 10px
   border: 1px solid $border
   padding: 12px
 
-.biz__cal-nav
+.rist__cal-nav
   display: flex
   align-items: center
   justify-content: space-between
   margin-bottom: 10px
 
-.biz__cal-nav-btn
+.rist__cal-nav-btn
   background: none
   border: none
   cursor: pointer
@@ -48,30 +48,30 @@
   &:hover
     background: $primary-100
 
-.biz__cal-month
+.rist__cal-month
   font-size: 12px
   font-weight: 700
   color: $primary
   font-family: Poppins, sans-serif
 
-.biz__cal-days-hdr
+.rist__cal-days-hdr
   display: grid
   grid-template-columns: repeat(7,1fr)
   margin-bottom: 4px
 
-.biz__cal-day-name
+.rist__cal-day-name
   font-size: 9px
   font-weight: 600
   color: $text-disabled
   text-align: center
   padding: 1px 0
 
-.biz__cal-cells
+.rist__cal-cells
   display: grid
   grid-template-columns: repeat(7,1fr)
   gap: 1px
 
-.biz__cal-cell
+.rist__cal-cell
   text-align: center
   padding: 4px 0
   font-size: 11px
@@ -100,13 +100,13 @@
     color: $text-disabled
     cursor: default
 
-// ─── Business list ────────────────────────────────────────────────────────────
-.biz__list
+// ─── Restaurant list ──────────────────────────────────────────────────────────
+.rist__list
   display: flex
   flex-direction: column
   gap: 2px
 
-.biz__list-item
+.rist__list-item
   display: flex
   align-items: center
   gap: 9px
@@ -124,7 +124,7 @@
     background: $primary-100
     border-color: rgba(32,71,105,0.2)
 
-.biz__list-ico
+.rist__list-ico
   width: 28px
   height: 28px
   border-radius: 7px
@@ -138,10 +138,10 @@
   &--active
     background: $primary
 
-.biz__list-info
+.rist__list-info
   min-width: 0
 
-.biz__list-name
+.rist__list-name
   font-size: 12px
   font-weight: 500
   color: $text-active
@@ -153,22 +153,24 @@
     font-weight: 600
     color: $primary
 
-.biz__list-type
+.rist__list-type
   font-size: 10px
   color: $text-disabled
 
 // ─── Right content ────────────────────────────────────────────────────────────
-.biz__content
+.rist__content
   flex: 1
   min-width: 0
 
-.biz__content-top
+.rist__content-top
   display: flex
   align-items: center
   justify-content: space-between
+  gap: 16px
   margin-bottom: 20px
+  flex-wrap: wrap
 
-.biz__date-card
+.rist__date-card
   display: flex
   align-items: center
   gap: 12px
@@ -177,11 +179,11 @@
   border-radius: 10px
   padding: 12px 18px
 
-.biz__date-ico
+.rist__date-ico
   font-size: 20px
   color: $text-inactive
 
-.biz__date-label
+.rist__date-label
   font-size: 9px
   font-weight: 700
   color: $text-disabled
@@ -189,14 +191,54 @@
   letter-spacing: 0.6px
   margin-bottom: 2px
 
-.biz__date-val
+.rist__date-val
   font-size: 14px
   font-weight: 700
   color: $primary
   font-family: Poppins, sans-serif
 
+// ─── Segmented "Servizio" (specifico ristoranti) ───────────────────────────────
+.rist__servizio
+  display: inline-flex
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 3px
+  background: $white
+
+.rist__servizio-btn
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  padding: 7px 16px
+  border: none
+  background: transparent
+  border-radius: 7px
+  color: $text-inactive
+  font-family: $font-body
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  transition: $transition-fast
+
+  i
+    font-size: 13px
+
+  &:hover:not(&--active)
+    color: $primary
+
+  &--active
+    background: $primary
+    color: $white
+
+// ─── Gruppo a destra: servizio + legenda ────────────────────────────────────────
+.rist__top-right
+  display: flex
+  align-items: center
+  gap: 16px
+  flex-wrap: wrap
+
 // ─── Indicatore Forecast / Production (segmented vivace) ───────────────────────
-@keyframes biz-mode-pulse
+@keyframes rist-mode-pulse
   0%
     box-shadow: 0 0 0 0 rgba(255,255,255,0.7)
   70%
@@ -204,7 +246,7 @@
   100%
     box-shadow: 0 0 0 0 rgba(255,255,255,0)
 
-.biz__mode
+.rist__mode
   display: inline-flex
   align-items: center
   gap: 4px
@@ -213,7 +255,7 @@
   border: 1px solid $border
   border-radius: 999px
 
-.biz__mode-opt
+.rist__mode-opt
   display: inline-flex
   align-items: center
   gap: 8px
@@ -232,47 +274,45 @@
     font-size: 13px
     opacity: 0.55
 
-.biz__mode-dot
+.rist__mode-dot
   width: 9px
   height: 9px
   border-radius: 50%
   flex-shrink: 0
 
-// Dot colorato per tipo quando inattivo
-.biz__mode-opt--forecast .biz__mode-dot
+.rist__mode-opt--forecast .rist__mode-dot
   background: $link
 
-.biz__mode-opt--production .biz__mode-dot
+.rist__mode-opt--production .rist__mode-dot
   background: $success
 
-// ── Stato attivo: pill piena nel colore della modalità, glow e dot pulsante ──
-.biz__mode-opt.is-active
+.rist__mode-opt.is-active
   color: $white
   transform: translateY(-1px)
 
   i
     opacity: 1
 
-  .biz__mode-dot
+  .rist__mode-dot
     background: $white
-    animation: biz-mode-pulse 1.8s ease-out infinite
+    animation: rist-mode-pulse 1.8s ease-out infinite
 
-.biz__mode-opt--forecast.is-active
+.rist__mode-opt--forecast.is-active
   background: linear-gradient(135deg, var(--color-link), color-mix(in srgb, var(--color-link) 62%, white))
   box-shadow: 0 4px 14px color-mix(in srgb, var(--color-link) 45%, transparent)
 
-.biz__mode-opt--production.is-active
+.rist__mode-opt--production.is-active
   background: linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 62%, white))
   box-shadow: 0 4px 14px color-mix(in srgb, var(--color-success) 45%, transparent)
 
-// ─── Filter chips (tipologie di attività) ──────────────────────────────────────
-.biz__chips
+// ─── Filter chips (tipologie di ristorante) ────────────────────────────────────
+.rist__chips
   display: flex
   flex-wrap: wrap
   gap: 8px
   margin-bottom: 14px
 
-.biz__chip
+.rist__chip
   display: inline-flex
   align-items: center
   gap: 7px
@@ -295,10 +335,10 @@
     border-color: $primary
     color: $white
 
-.biz__chip-ico
+.rist__chip-ico
   font-size: 12px
 
-.biz__chip-count
+.rist__chip-count
   display: inline-flex
   align-items: center
   justify-content: center
@@ -311,12 +351,12 @@
   font-size: 10px
   font-weight: 700
 
-  .biz__chip--active &
+  .rist__chip--active &
     background: rgba(255,255,255,0.22)
     color: $white
 
 // ─── Table ────────────────────────────────────────────────────────────────────
-.biz__table-wrap
+.rist__table-wrap
   background: $white
   border-radius: 12px
   border: 2px solid $border
@@ -329,19 +369,19 @@
   &--production
     border-color: $success
 
-.biz__table-top
+.rist__table-top
   display: flex
   align-items: center
   justify-content: space-between
   padding: 14px 20px
   border-bottom: 1px solid $border
 
-.biz__table-title
+.rist__table-title
   font-size: 13px
   font-weight: 600
   color: $primary
 
-.biz__table-count
+.rist__table-count
   font-size: 11px
   font-weight: 600
   color: $text-inactive
@@ -350,14 +390,17 @@
   border-radius: 6px
   padding: 4px 12px
 
-.biz__table-head
+// 7 colonne: RISTORANTE · COPERTI · RICAVI · SCONTRINO · PROFITTO · % · BI
+$rist-grid: 2.2fr 0.8fr 1fr 1fr 1fr 0.7fr 0.45fr
+
+.rist__table-head
   display: grid
-  grid-template-columns: 2.2fr 1fr 1fr 1fr 0.7fr 0.45fr
+  grid-template-columns: $rist-grid
   padding: 9px 20px
   background: var(--color-bg)
   border-bottom: 1px solid $border
 
-.biz__table-hcell
+.rist__table-hcell
   font-size: 10px
   font-weight: 700
   color: $text-inactive
@@ -368,9 +411,9 @@
   &--right
     text-align: right
 
-.biz__table-row
+.rist__table-row
   display: grid
-  grid-template-columns: 2.2fr 1fr 1fr 1fr 0.7fr 0.45fr
+  grid-template-columns: $rist-grid
   padding: 13px 20px
   align-items: center
   cursor: pointer
@@ -386,12 +429,12 @@
   &--border
     border-bottom: 1px solid $border
 
-.biz__row-name-cell
+.rist__row-name-cell
   display: flex
   align-items: center
   gap: 12px
 
-.biz__row-ico
+.rist__row-ico
   width: 32px
   height: 32px
   border-radius: 8px
@@ -405,7 +448,7 @@
   &--active
     background: $primary
 
-.biz__row-name
+.rist__row-name
   font-size: 13px
   font-weight: 600
   color: $text-active
@@ -413,28 +456,44 @@
   &--active
     color: $primary
 
-.biz__row-type
+.rist__row-type
   font-size: 11px
   color: $text-disabled
 
-.biz__row-val
+.rist__row-val
   font-size: 13px
   color: $text-active
   text-align: right
 
-  &--costi
-    color: $error
-    font-weight: 500
+  &--scontrino
+    color: $primary
+    font-weight: 600
 
   &--profitto
     color: $success
     font-weight: 600
 
-.biz__row-val--right
+.rist__row-val--right
   display: flex
   justify-content: flex-end
 
-.biz__perc-badge
+// Badge coperti (specifico ristoranti)
+.rist__coperti-badge
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  background: $primary-100
+  border-radius: 6px
+  padding: 3px 9px
+
+  i
+    font-size: 11px
+    color: $text-inactive
+
+.rist__perc-badge
   font-size: 11px
   font-weight: 700
   color: $success
@@ -442,7 +501,7 @@
   border-radius: 4px
   padding: 3px 9px
 
-.biz__bi-btn
+.rist__bi-btn
   width: 30px
   height: 30px
   border: 1px solid $border
@@ -458,6 +517,6 @@
     border-color: $primary
     background: $primary-100
 
-.biz__bi-ico
+.rist__bi-ico
   font-size: 13px
   color: $text-inactive

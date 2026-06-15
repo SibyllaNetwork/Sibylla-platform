@@ -8,14 +8,25 @@ interface Data {
   StrutturaId: number | null
   Assegnazione1: string
   Assegnazione2: string
+  CheckInDa: string
+  CheckOutFino: string
   rows: Row[]
 }
+
+// Orari selezionabili con intervalli minimi di 30 minuti: 00:00, 00:30, … 23:30
+const TIME_OPTIONS: string[] = Array.from({ length: 48 }, (_, i) => {
+  const h = String(Math.floor(i / 2)).padStart(2, '0')
+  const m = i % 2 === 0 ? '00' : '30'
+  return `${h}:${m}`
+})
 
 const FALLBACK: Data = {
   Strutture: [],
   StrutturaId: null,
   Assegnazione1: 'A',
   Assegnazione2: 'A',
+  CheckInDa: '14:00',
+  CheckOutFino: '10:00',
   rows: [
     { struttura: 'Hotel Archimede', localita: 'Ciampino Aeroporto', descrizione: 'Struttura Ricettiva', codice: 'HA' },
     { struttura: 'Hotel Luce', localita: 'Fiumicino Aeroporto', descrizione: 'Struttura ricettiva', codice: 'HL' },
@@ -66,6 +77,26 @@ export default function PersonalizzaStruttura() {
               <option value="A">A</option><option value="B">B</option><option value="C">C</option>
             </select>
           </div>
+        </div>
+        <div className="personalizza-struttura__field">
+          <label>Da che ora prevedi il check in</label>
+          <select
+            className="sib-select personalizza-struttura__time"
+            value={data.CheckInDa}
+            onChange={(e) => setData({ ...data, CheckInDa: e.target.value })}
+          >
+            {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="personalizza-struttura__field">
+          <label>Fino a che ora è previsto il check out</label>
+          <select
+            className="sib-select personalizza-struttura__time"
+            value={data.CheckOutFino}
+            onChange={(e) => setData({ ...data, CheckOutFino: e.target.value })}
+          >
+            {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
         <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>
       </div>

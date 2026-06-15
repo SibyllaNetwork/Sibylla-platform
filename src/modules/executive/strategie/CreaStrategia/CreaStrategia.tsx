@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef, useEffect } from 'react'
 import clsx from 'clsx'
+import { HexColorPicker, HexColorInput } from 'react-colorful'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import AlertBanner from '../../../../core/components/AlertBanner'
@@ -11,33 +12,32 @@ import './CreaStrategia.sass'
 
 // ── Dataset locali ────────────────────────────────────────────────────────────
 
-type Categoria      = '3 stelle' | '4 stelle' | '5 stelle'
-type TipoStrategia  = 'Individuali' | 'Gruppi'
+type TipoStrategia = 'Individuali' | 'Gruppi'
 
-const CATEGORIE:      Categoria[]     = ['3 stelle', '4 stelle', '5 stelle']
-const TIPI_STRATEGIA: TipoStrategia[] = ['Individuali', 'Gruppi']
+const CATEGORIE = ['-', '3 stelle', '4 stelle', '5 stelle']
 
-interface OccRange   { id: string; label: string; from: number; to: number }
+interface OccRange { id: string; from: number; to: number }
+// Fasce di occupazione struttura — la cella mostra il valore alto (to) sopra
+// e quello basso (from) sotto, separati dalla freccia di intervallo.
 const OCC_RANGES: OccRange[] = [
-  { id: 'occ-200', label: '100 – 200 %', from: 100, to: 200 },
-  { id: 'occ-99',  label: '96 – 99 %',   from: 96,  to: 99  },
-  { id: 'occ-95',  label: '91 – 95 %',   from: 91,  to: 95  },
-  { id: 'occ-90',  label: '86 – 90 %',   from: 86,  to: 90  },
-  { id: 'occ-85',  label: '81 – 85 %',   from: 81,  to: 85  },
-  { id: 'occ-80',  label: '71 – 80 %',   from: 71,  to: 80  },
-  { id: 'occ-70',  label: '61 – 70 %',   from: 61,  to: 70  },
-  { id: 'occ-60',  label: '46 – 60 %',   from: 46,  to: 60  },
-  { id: 'occ-45',  label: '31 – 45 %',   from: 31,  to: 45  },
-  { id: 'occ-30',  label: '0 – 30 %',    from: 0,   to: 30  },
+  { id: 'occ-99', from: 96, to: 99 },
+  { id: 'occ-95', from: 91, to: 95 },
+  { id: 'occ-90', from: 86, to: 90 },
+  { id: 'occ-85', from: 81, to: 85 },
+  { id: 'occ-80', from: 71, to: 80 },
+  { id: 'occ-70', from: 61, to: 70 },
+  { id: 'occ-60', from: 46, to: 60 },
+  { id: 'occ-45', from: 31, to: 45 },
+  { id: 'occ-30', from: 0,  to: 30 },
 ]
 
 interface BookingWin { id: string; label: string; from: number; to: number }
 const BOOKING_WINS: BookingWin[] = [
-  { id: 'win-7',   label: '0 – 7 giorni',     from: 0,  to: 7   },
-  { id: 'win-21',  label: '8 – 21 giorni',    from: 8,  to: 21  },
-  { id: 'win-45',  label: '22 – 45 giorni',   from: 22, to: 45  },
-  { id: 'win-90',  label: '46 – 90 giorni',   from: 46, to: 90  },
-  { id: 'win-365', label: '91 – 365 giorni',  from: 91, to: 365 },
+  { id: 'win-8',   label: '0 – 8 Giorni',    from: 0,  to: 8   },
+  { id: 'win-25',  label: '9 – 25 Giorni',   from: 9,  to: 25  },
+  { id: 'win-47',  label: '26 – 47 Giorni',  from: 26, to: 47  },
+  { id: 'win-80',  label: '48 – 80 Giorni',  from: 48, to: 80  },
+  { id: 'win-250', label: '81 – 250 Giorni', from: 81, to: 250 },
 ]
 
 // Mock BAR — in produzione arriveranno dal backend (service piani tariffari)
@@ -54,13 +54,7 @@ const BARS = [
   { id: 'bar-19', rate: 290.53 }, { id: 'bar-20', rate: 287.66 },
 ]
 const BARS_BY_ID = Object.fromEntries(BARS.map(b => [b.id, b]))
-const formatRate = (r: number) => `€ ${r.toFixed(2).replace('.', ',')}`
-
-const COLORI = [
-  '#204769', '#5C9CD4', '#E07B39', '#5A8A3C', '#C4A820',
-  '#9B59B6', '#E74C3C', '#1ABC9C', '#F39C12', '#E91E63',
-  '#16A085', '#D35400', '#3498DB', '#7B5EA7', '#C0392B',
-]
+const formatRate = (r: number) => `€ ${r.toFixed(2).replace('.', ',')}`
 
 // Guida assistita — calcolo a step occupancy × finestra
 const GUIDA_OCC = ['100 %','95 %','90 %','85 %','80 %','75 %','70 %','60 %','50 %','40 %','30 %']
@@ -68,22 +62,63 @@ const GUIDA_WIN = ['0 – 7','8 – 21','22 – 45','46 – 90','91 – 365']
 
 const STAGIONI = ['Low Season', 'Mid Season', 'High Season', 'Peak Season']
 
+// ── Color picker libero (react-colorful) ───────────────────────────────────────
+// Selezione di un colore arbitrario, senza liste di colori predefiniti.
+function ColorPickerField({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+
+  const preview = value || '#204769'
+
+  return (
+    <div className="crea-strat__color" ref={ref}>
+      <button
+        type="button"
+        className={clsx('crea-strat__color-trigger', open && 'crea-strat__color-trigger--open')}
+        onClick={() => setOpen(o => !o)}
+      >
+        {value
+          ? <><span className="crea-strat__color-dot" style={{ background: value }} aria-hidden="true" /><span className="crea-strat__color-val">{value.toUpperCase()}</span></>
+          : <span className="crea-strat__color-placeholder">Seleziona colore</span>}
+        <i className="fa-light fa-chevron-down crea-strat__color-chevron" aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="crea-strat__color-pop">
+          <HexColorPicker color={preview} onChange={onChange} />
+          <div className="crea-strat__color-hexrow">
+            <span className="crea-strat__color-dot" style={{ background: preview }} aria-hidden="true" />
+            <HexColorInput className="crea-strat__color-input" color={preview} onChange={onChange} prefixed />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Componente ────────────────────────────────────────────────────────────────
 
 export default function CreaStrategia({ navigate }: { navigate: (p: string) => void }) {
-  const [categoria,      setCategoria]      = useState<Categoria>('4 stelle')
+  const [categoria,      setCategoria]      = useState<string>('-')
   const [struttura,      setStruttura]      = useState(STRUTTURE[0])
   const [tipoCalendario, setTipoCalendario] = useState<TipoCalendario>('Tariffe')
   const [tipoStrategia,  setTipoStrategia]  = useState<TipoStrategia>('Individuali')
   const [nome,           setNome]           = useState('')
-  const [colore,         setColore]         = useState<string>(COLORI[0])
+  const [colore,         setColore]         = useState<string>('')
   const [saved,          setSaved]          = useState(false)
+  const [copied,         setCopied]         = useState(false)
   const [touched,        setTouched]        = useState(false)
   const [showGuida,      setShowGuida]      = useState(false)
   const [tipoStagione,   setTipoStagione]   = useState(STAGIONI[0])
   const [cifraBase,      setCifraBase]      = useState('')
 
-  // matrice principale: 10 righe (occupazione) × 5 colonne (finestre) → barId
+  // matrice principale: righe (occupazione) × colonne (finestre) → barId
   const [matrix, setMatrix] = useState<string[][]>(() =>
     OCC_RANGES.map(() => BOOKING_WINS.map(() => '')),
   )
@@ -99,9 +134,6 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
   const setGuidaCell = (r: number, c: number, v: number) =>
     setGuidaVals(prev => prev.map((row, ri) => ri === r ? row.map((cell, ci) => ci === c ? v : cell) : row))
 
-  const filledCount = useMemo(() => matrix.flat().filter(Boolean).length, [matrix])
-  const totalCells  = OCC_RANGES.length * BOOKING_WINS.length
-
   const isValid = nome.trim().length > 0 && !!colore
 
   const handleSave = () => {
@@ -109,6 +141,13 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
     if (!isValid) return
     setSaved(true)
     window.setTimeout(() => setSaved(false), 3000)
+  }
+
+  // Duplica la strategia corrente come base per una nuova bozza.
+  const handleCopy = () => {
+    setNome(n => (n.trim() ? `${n.trim()} - Copia` : 'Nuova strategia - Copia'))
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 3000)
   }
 
   const handleApplyGuida = () => {
@@ -121,12 +160,8 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
     })))
   }
 
-  const handleClearMatrix = () => {
-    if (filledCount === 0) return
-    if (window.confirm('Vuoi azzerare tutte le BAR già assegnate alla matrice?')) {
-      setMatrix(OCC_RANGES.map(() => BOOKING_WINS.map(() => '')))
-    }
-  }
+  const tipoLabel = tipoStrategia === 'Individuali' ? 'INDIVIDUALE' : 'GRUPPI'
+  const tipoIcon  = tipoStrategia === 'Individuali' ? 'fa-user' : 'fa-users'
 
   return (
     <div className="crea-strat">
@@ -137,143 +172,79 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
       />
 
       {saved && <AlertBanner type="success">Strategia salvata con successo</AlertBanner>}
+      {copied && <AlertBanner type="info">Strategia copiata: modifica e salva la nuova bozza</AlertBanner>}
       {touched && !isValid && (
         <AlertBanner type="warning">
           Compila <strong>Nome strategia</strong> e <strong>Colore</strong> per poter salvare.
         </AlertBanner>
       )}
 
-      {/* ── Parametri (riga 1) ─────────────────────────────────────── */}
-      <div className="crea-strat__params">
-        <SelectField
-          name="categoria"
-          label="Categoria"
-          value={categoria}
-          onChange={e => setCategoria(e.target.value as Categoria)}
-          options={CATEGORIE.map(c => ({ value: c, label: c }))}
-          className="crea-strat__field"
-        />
-        <SelectField
-          name="struttura"
-          label="Struttura"
-          value={struttura}
-          onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
-          className="crea-strat__field crea-strat__field--wide"
-        />
-        <SelectField
-          name="tipoCalendario"
-          label="Tipo calendario"
-          value={tipoCalendario}
-          onChange={e => setTipoCalendario(e.target.value as TipoCalendario)}
-          options={TIPI_CALENDARIO.map(t => ({ value: t, label: t }))}
-          className="crea-strat__field"
-        />
-
-        <div className="crea-strat__seg-wrap">
-          <span className="crea-strat__seg-label">Tipo strategia</span>
-          <div className="crea-strat__seg" role="radiogroup" aria-label="Tipo strategia">
-            {TIPI_STRATEGIA.map(t => (
-              <button
-                key={t}
-                type="button"
-                role="radio"
-                aria-checked={tipoStrategia === t}
-                className={clsx('crea-strat__seg-btn', tipoStrategia === t && 'crea-strat__seg-btn--active')}
-                onClick={() => setTipoStrategia(t)}
-              >
-                <i className={`fa-duotone ${t === 'Individuali' ? 'fa-user' : 'fa-users'}`} aria-hidden="true"/>
-                {t}
-              </button>
-            ))}
+      {/* ── Toolbar parametri (riga unica) + azioni ─────────────────── */}
+      <div className="crea-strat__bar">
+        <div className="crea-strat__params">
+          <SelectField
+            name="categoria"
+            label="Categoria"
+            value={categoria}
+            onChange={e => setCategoria(e.target.value)}
+            options={CATEGORIE.map(c => ({ value: c, label: c }))}
+            className="crea-strat__field crea-strat__field--narrow"
+          />
+          <SelectField
+            name="struttura"
+            label="Struttura"
+            value={struttura}
+            onChange={e => setStruttura(e.target.value)}
+            options={STRUTTURE.map(s => ({ value: s, label: s }))}
+            className="crea-strat__field crea-strat__field--wide"
+          />
+          <SelectField
+            name="tipoCalendario"
+            label="Tipo calendario"
+            value={tipoCalendario}
+            onChange={e => setTipoCalendario(e.target.value as TipoCalendario)}
+            options={TIPI_CALENDARIO.map(t => ({ value: t, label: t }))}
+            className="crea-strat__field"
+          />
+          <InputField
+            name="nome"
+            label="Nome strategia"
+            placeholder="Nome della strategia"
+            value={nome}
+            onChange={e => setNome(e.target.value)}
+            error={touched && !nome.trim() ? 'Obbligatorio' : undefined}
+            className="crea-strat__field crea-strat__field--name"
+          />
+          <div className="crea-strat__static">
+            <label className="text-[11px] font-semibold font-opensans text-ink">Tipo strategia</label>
+            <button
+              type="button"
+              className="crea-strat__static-val"
+              title="Clicca per cambiare tipo strategia"
+              onClick={() => setTipoStrategia(t => t === 'Individuali' ? 'Gruppi' : 'Individuali')}
+            >
+              {tipoStrategia}
+            </button>
           </div>
-        </div>
-
-        <InputField
-          name="nome"
-          label="Nome strategia"
-          placeholder="Es. Estate 2026"
-          value={nome}
-          onChange={e => setNome(e.target.value)}
-          error={touched && !nome.trim() ? 'Obbligatorio' : undefined}
-          className="crea-strat__field crea-strat__field--grow"
-        />
-      </div>
-
-      {/* ── Parametri (riga 2: colore + azioni) ───────────────────── */}
-      <div className="crea-strat__params crea-strat__params--row2">
-        <div className="crea-strat__colors-wrap">
-          <span className="crea-strat__colors-label">Colore strategia</span>
-          <div className="crea-strat__colors" role="radiogroup" aria-label="Colore strategia">
-            {COLORI.map(c => (
-              <button
-                key={c}
-                type="button"
-                role="radio"
-                aria-checked={colore === c}
-                aria-label={c}
-                className={clsx('crea-strat__swatch', colore === c && 'crea-strat__swatch--active')}
-                style={{ '--swatch-color': c } as React.CSSProperties}
-                onClick={() => setColore(c)}
-              />
-            ))}
+          <div className="crea-strat__static">
+            <label className="text-[11px] font-semibold font-opensans text-ink">Colore strategia</label>
+            <ColorPickerField value={colore} onChange={setColore} />
           </div>
         </div>
 
         <div className="crea-strat__actions">
-          <button
-            type="button"
-            className="sib-btn sib-btn--secondary crea-strat__btn"
-            onClick={() => setShowGuida(true)}
-          >
+          <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={() => setShowGuida(true)}>
             <i className="fa-duotone fa-wand-magic-sparkles" aria-hidden="true"/>
             Guida assistita smart
           </button>
-          <button
-            type="button"
-            className="sib-btn sib-btn--secondary crea-strat__btn"
-            onClick={handleClearMatrix}
-            disabled={filledCount === 0}
-            title="Azzera tutte le BAR della matrice"
-          >
-            <i className="fa-duotone fa-eraser" aria-hidden="true"/>
-            Azzera matrice
+          <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={handleCopy}>
+            <i className="fa-duotone fa-copy" aria-hidden="true"/>
+            Copia strategia
           </button>
-          <button
-            type="button"
-            className="sib-btn sib-btn--primary crea-strat__btn"
-            onClick={handleSave}
-          >
+          <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={handleSave}>
             <i className="fa-duotone fa-floppy-disk" aria-hidden="true"/>
             Salva
           </button>
-        </div>
-      </div>
-
-      {/* ── Identity card (anteprima strategia) ───────────────────── */}
-      <div
-        className="crea-strat__identity"
-        style={{ '--strat-color': colore } as React.CSSProperties}
-      >
-        <span className="crea-strat__identity-bar" aria-hidden="true"/>
-        <div className="crea-strat__identity-body">
-          <div className="crea-strat__identity-name">{nome || 'Nuova strategia'}</div>
-          <div className="crea-strat__identity-meta">
-            <span><i className="fa-duotone fa-star" aria-hidden="true"/> {categoria}</span>
-            <span><i className="fa-duotone fa-hotel" aria-hidden="true"/> {struttura}</span>
-            <span><i className="fa-duotone fa-tag" aria-hidden="true"/> {tipoCalendario}</span>
-            <span>
-              <i className={`fa-duotone ${tipoStrategia === 'Individuali' ? 'fa-user' : 'fa-users'}`} aria-hidden="true"/>
-              {tipoStrategia}
-            </span>
-          </div>
-        </div>
-        <div className="crea-strat__identity-progress">
-          <span className="crea-strat__identity-progress-label">BAR assegnate</span>
-          <span className="crea-strat__identity-progress-val">{filledCount} / {totalCells}</span>
-          <div className="crea-strat__identity-progress-bar">
-            <span style={{ '--fill-w': `${(filledCount / totalCells) * 100}%` } as React.CSSProperties}/>
-          </div>
         </div>
       </div>
 
@@ -281,11 +252,14 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
       <div className="crea-strat__matrix-wrap">
         <div className="crea-strat__matrix-scroll">
           <table className="crea-strat__matrix" role="grid">
+            <colgroup>
+              <col className="crea-strat__col-vlabel" />
+              <col className="crea-strat__col-occ" />
+              {BOOKING_WINS.map(w => <col key={w.id} />)}
+            </colgroup>
             <thead>
               <tr>
-                <th scope="col" className="crea-strat__th crea-strat__th--corner">
-                  Occupazione &nbsp;\&nbsp; Finestra
-                </th>
+                <th scope="col" className="crea-strat__th-corner" colSpan={2} />
                 {BOOKING_WINS.map(w => (
                   <th key={w.id} scope="col" className="crea-strat__th">{w.label}</th>
                 ))}
@@ -294,8 +268,20 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
             <tbody>
               {OCC_RANGES.map((occ, ri) => (
                 <tr key={occ.id}>
-                  <th scope="row" className="crea-strat__row-head">
-                    <span className="crea-strat__row-head-label">{occ.label}</span>
+                  {ri === 0 && (
+                    <th scope="col" className="crea-strat__vlabel" rowSpan={OCC_RANGES.length}>
+                      <div className="crea-strat__vlabel-inner">
+                        <span className="crea-strat__vlabel-text">Strategia {tipoLabel}</span>
+                        <i className={`fa-duotone ${tipoIcon} crea-strat__vlabel-ico`} aria-hidden="true"/>
+                      </div>
+                    </th>
+                  )}
+                  <th scope="row" className="crea-strat__occ-cell">
+                    <div className="crea-strat__occ">
+                      <span className="crea-strat__occ-val">{occ.to} %</span>
+                      <i className="fa-light fa-arrow-up-arrow-down crea-strat__occ-arrow" aria-hidden="true"/>
+                      <span className="crea-strat__occ-val">{occ.from} %</span>
+                    </div>
                   </th>
                   {BOOKING_WINS.map((win, ci) => {
                     const barId = matrix[ri][ci]
@@ -308,15 +294,14 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
                         <select
                           className="crea-strat__select"
                           value={barId}
-                          aria-label={`BAR per ${occ.label} – ${win.label}`}
+                          aria-label={`BAR per occupazione ${occ.from}–${occ.to}% – ${win.label}`}
                           onChange={e => setCell(ri, ci, e.target.value)}
                         >
-                          <option value="">Seleziona BAR</option>
+                          <option value="">Seleziona Bar</option>
                           {BARS.map(b => (
                             <option key={b.id} value={b.id}>{formatRate(b.rate)}</option>
                           ))}
                         </select>
-                        {bar && <span className="crea-strat__cell-hint" aria-hidden="true">BAR</span>}
                       </td>
                     )
                   })}
@@ -326,12 +311,6 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
           </table>
         </div>
       </div>
-
-      <FormActions
-        onCancel={() => navigate('calendario-strategie')}
-        onConfirm={handleSave}
-        confirmLabel="Salva strategia"
-      />
 
       {/* ── Modal Guida assistita ─────────────────────────────────── */}
       <Modal open={showGuida} onClose={() => setShowGuida(false)} size="xl">

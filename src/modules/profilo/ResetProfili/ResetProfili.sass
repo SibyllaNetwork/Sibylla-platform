@@ -2,38 +2,285 @@
 @use '../../../styles/tokens' as *
 
 .reset-profili
-  // ── Card segnaposto (in attesa dell'implementazione reale) ──────────────────
-  &__stub
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-xl
-    padding: 48px
-    text-align: center
+  // ── Banner conferme/azioni ───────────────────────────────────────────────
+  .rp__banner
+    margin-bottom: 16px
 
-  &__stub-badge
-    width: 52px
-    height: 52px
-    border-radius: 14px
-    background: alpha($blue, 0.09)
+// ─── Barra info amministratore ──────────────────────────────────────────────
+.rp__info-wrap
+  background: $white
+  border-radius: 10px
+  border: 1px solid $border
+  overflow: hidden
+  margin-bottom: 20px
+
+.rp__info-head
+  display: grid
+  grid-template-columns: 1.2fr 0.9fr 1fr 2.4fr 1.6fr 1.8fr
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
+
+.rp__info-hcell
+  padding: 10px 14px
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.4px
+
+  &--border
+    border-right: 1px solid $border
+
+.rp__info-body
+  display: grid
+  grid-template-columns: 1.2fr 0.9fr 1fr 2.4fr 1.6fr 1.8fr
+
+.rp__info-cell
+  padding: 12px 14px
+  font-size: 12px
+  color: $text-active
+  display: flex
+  align-items: center
+  gap: 8px
+
+  &--border
+    border-right: 1px solid $border
+
+.rp__info-usericon
+  font-size: 14px
+  color: $text-inactive
+
+.rp__info-bold
+  font-weight: 600
+
+.rp__info-link
+  color: $link
+
+// ─── Toolbar (ricerca + azioni) ─────────────────────────────────────────────
+.rp__toolbar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 16px
+  margin-bottom: 16px
+
+.rp__search
+  width: 320px
+  max-width: 100%
+
+.rp__toolbar-actions
+  display: flex
+  align-items: center
+  gap: 10px
+
+.rp__btn-icon
+  display: inline-flex
+  align-items: center
+  gap: 8px
+
+// ─── Tabella ────────────────────────────────────────────────────────────────
+.rp__table
+  th.rp__th-actions
+    text-align: right
+
+.rp__row--off
+  opacity: 0.55
+
+.rp__profile
+  display: flex
+  align-items: center
+  gap: 10px
+
+.rp__avatar
+  width: 28px
+  height: 28px
+  border-radius: 50%
+  object-fit: contain
+  background: var(--color-bg)
+  flex-shrink: 0
+
+.rp__no-role
+  color: $text-disabled
+
+// Cella autorizzazioni: ruolo + icona info (tooltip con elenco ruoli)
+.rp__auth
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+.rp__auth-ico
+  font-size: 13px
+  color: $text-inactive
+  cursor: help
+
+// Contenuto tooltip (vive nel box scuro del componente Tooltip: eredita #fff)
+.rp__auth-tooltip
+  &-title
+    font-weight: 600
+    font-size: 11px
+    margin-bottom: 6px
+    opacity: 0.75
+
+  &-list
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &-item
+    padding: 2px 0
+    font-size: 11px
+    font-weight: 500
     display: flex
     align-items: center
-    justify-content: center
-    margin: 0 auto 16px
+    gap: 6px
 
-  &__stub-dot
-    width: 14px
-    height: 14px
-    border-radius: $radius-full
-    background: $blue
+  &-bullet
+    width: 4px
+    height: 4px
+    border-radius: 50%
+    background: var(--color-surface)
+    opacity: 0.6
+    flex-shrink: 0
 
-  &__stub-title
-    font-family: $font-heading
-    font-size: 18px
-    font-weight: 600
-    color: $primary
-    margin: 0 0 $space-sm
+// ─── Azioni di riga ─────────────────────────────────────────────────────────
+.rp__actions
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 4px
 
-  &__stub-msg
-    font-size: 13px
-    color: $text-inactive
-    margin: 0
+.rp__act-btn
+  background: none
+  border: none
+  cursor: pointer
+  width: 30px
+  height: 30px
+  border-radius: 6px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-size: 15px
+  color: $text-inactive
+  transition: background 0.15s, color 0.15s
+
+  &:hover
+    background: $blue-light
+    color: $link
+
+  &--danger:hover
+    background: $error-light
+    color: $error
+
+  &--ok:hover
+    background: $success-light
+    color: $success
+
+// ─── Pager ──────────────────────────────────────────────────────────────────
+.rp__pager
+  display: flex
+  justify-content: center
+  margin-top: 18px
+
+// ─── Modali ─────────────────────────────────────────────────────────────────
+.rp__modal-sub
+  font-size: 13px
+  color: $text-inactive
+  margin: -6px 0 18px
+
+.rp__form
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+.rp__form-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 14px
+
+.rp__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.rp__label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+.rp__modal-actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 4px
+
+.rp__confirm-text
+  font-size: 13px
+  color: $text-active
+  line-height: 1.5
+  margin: -6px 0 18px
+
+// ─── Multiselect ruoli ──────────────────────────────────────────────────────
+.rp__ms
+  position: relative
+  width: 100%
+
+.rp__ms-trigger
+  width: 100%
+  height: 34px
+  padding: 0 32px 0 12px
+  background: $white
+  border: 1px solid $border
+  border-radius: $radius-md
+  font-size: 13px
+  color: $text-active
+  text-align: left
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: space-between
+  position: relative
+  transition: border-color 0.15s
+
+  &:hover
+    border-color: $primary
+
+  &--open
+    border-color: $primary
+
+.rp__ms-placeholder
+  color: $text-disabled
+
+.rp__ms-chevron
+  position: absolute
+  right: 12px
+  font-size: 12px
+  color: $text-inactive
+  pointer-events: none
+
+.rp__ms-menu
+  position: absolute
+  top: calc(100% + 4px)
+  left: 0
+  right: 0
+  background: $white
+  border: 1px solid $border
+  border-radius: $radius-md
+  box-shadow: $shadow-md
+  padding: 6px
+  z-index: 20
+  max-height: 220px
+  overflow-y: auto
+
+.rp__ms-option
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 8px 8px
+  border-radius: 6px
+  font-size: 13px
+  color: $text-active
+  cursor: pointer
+  transition: background 0.1s
+
+  &:hover
+    background: var(--color-bg)

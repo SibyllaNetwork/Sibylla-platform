@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import clsx from 'clsx';
 import T from '../../../core/tokens';
 import Ico from '../../../core/icons/Ico';
 import MenuIco from '../../../core/icons/MenuIco';
@@ -6,11 +7,16 @@ import BtnBack from '../../../core/components/BtnBack';
 import PageHeader from '../../../core/components/PageHeader';
 import './IMieiBusinessPage.sass'
 
+// Previsione di crescita per struttura (moltiplicatore sui ricavi attesi per la
+// data futura selezionata). >1 = trend in crescita, <1 = in calo.
+const FORECAST_FACTOR = [1.08, 0.96, 1.12, 1.03, 1.15, 0.98, 1.06, 1.10, 1.02, 1.07];
+
 export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}) {
   const today   = new Date();
   const [curDate, setCurDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selDay,  setSelDay]  = useState(today.getDate());
   const [selBiz,  setSelBiz]  = useState<number|null>(null);
+  const [activeTypes, setActiveTypes] = useState<string[]>([]);
 
   const yr = curDate.getFullYear(), mo = curDate.getMonth();
   const MONTHS  = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
@@ -40,6 +46,31 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
     {name:"Castello del Vino",   type:"Wine Resort",      ricavi:94100, costi:49780, profitto:44320, perc:47.1},
     {name:"Hotel Firenze Arte",  type:"Design Hotel",     ricavi:81600, costi:42316, profitto:39284, perc:48.2},
   ];
+
+  // Modalità di analisi guidata dalla data: futuro → Forecast, passato/oggi → Production
+  const todayMid   = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const selDateMid = new Date(yr, mo, selDay);
+  const isForecast = selDateMid.getTime() > todayMid.getTime();
+
+  // Valori mostrati: a consuntivo (Production) o proiettati (Forecast).
+  // `idx` = indice originale, stabile per la selezione anche dopo il filtro.
+  const view = businesses.map((b, i) => {
+    if (!isForecast) return { ...b, trend: 0, idx: i };
+    const fcF = FORECAST_FACTOR[i] ?? 1.05;
+    const ricavi   = Math.round(b.ricavi * fcF);
+    const costi    = Math.round(b.costi * (1 + (fcF - 1) * 0.7));
+    const profitto = ricavi - costi;
+    const perc     = ricavi ? (profitto / ricavi) * 100 : 0;
+    const trend    = b.ricavi ? ((ricavi - b.ricavi) / b.ricavi) * 100 : 0;
+    return { ...b, ricavi, costi, profitto, perc, trend, idx: i };
+  });
+
+  // Tipologie di attività (filter chips) + conteggi
+  const tipi = Array.from(new Set(businesses.map(b => b.type)));
+  const countByType = (t: string) => businesses.filter(b => b.type === t).length;
+  const toggleType = (t: string) =>
+    setActiveTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const filtered = activeTypes.length ? view.filter(b => activeTypes.includes(b.type)) : view;
 
   const fmtEur    = (n:number) => `€ ${n.toLocaleString("it-IT")}`;
   const selDate   = new Date(yr, mo, selDay);
@@ -118,7 +149,7 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
         {/* ── Right content ────────────────────────────────────────────── */}
         <div className="biz__content">
 
-          {/* Date + Forecast */}
+          {/* Date + legenda Forecast / Production */}
           <div className="biz__content-top">
             <div className="biz__date-card">
               <i className="fa-duotone fa-calendar biz__date-ico" aria-hidden="true"/>
@@ -127,29 +158,56 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
                 <div className="biz__date-val">{dateStrCap}</div>
               </div>
             </div>
-            <button className="biz__forecast-btn">
-              <div className="biz__forecast-dot"/>
-              Forecast
-            </button>
+            <div className="biz__mode">
+              <span className={clsx('biz__mode-opt biz__mode-opt--forecast', isForecast && 'is-active')}>
+                <span className="biz__mode-dot"/>
+                <i className="fa-duotone fa-arrow-trend-up" aria-hidden="true"/>
+                Forecast
+              </span>
+              <span className={clsx('biz__mode-opt biz__mode-opt--production', !isForecast && 'is-active')}>
+                <span className="biz__mode-dot"/>
+                <i className="fa-duotone fa-circle-check" aria-hidden="true"/>
+                Production
+              </span>
+            </div>
           </div>
 
-          {/* Table */}
-          <div className="biz__table-wrap">
+          {/* Filter chips per tipologia di attività */}
+          <div className="biz__chips">
+            <button
+              className={`biz__chip ${activeTypes.length===0?'biz__chip--active':''}`}
+              onClick={()=>setActiveTypes([])}>
+              <i className="fa-duotone fa-layer-group biz__chip-ico" aria-hidden="true"/>
+              Tutte
+              <span className="biz__chip-count">{businesses.length}</span>
+            </button>
+            {tipi.map(t=>(
+              <button key={t}
+                className={`biz__chip ${activeTypes.includes(t)?'biz__chip--active':''}`}
+                onClick={()=>toggleType(t)}>
+                {t}
+                <span className="biz__chip-count">{countByType(t)}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Table — bordo del colore della modalità attiva (data futura/passata) */}
+          <div className={clsx('biz__table-wrap', isForecast ? 'biz__table-wrap--forecast' : 'biz__table-wrap--production')}>
             <div className="biz__table-top">
               <span className="biz__table-title">Dati del {selDay} {MONTHS[mo].toLowerCase()} {yr}</span>
-              <span className="biz__table-count">{businesses.length} strutture</span>
+              <span className="biz__table-count">{filtered.length} {filtered.length===1?'struttura':'strutture'}</span>
             </div>
             <div className="biz__table-head">
               {["STRUTTURA","RICAVI","COSTI","PROFITTO","%","BI"].map((h,i)=>(
                 <div key={i} className={`biz__table-hcell ${i>0?'biz__table-hcell--right':''}`}>{h}</div>
               ))}
             </div>
-            {businesses.map((b,i)=>{
-              const active = selBiz===i;
+            {filtered.map((b,i)=>{
+              const active = selBiz===b.idx;
               return (
-                <div key={i}
-                  className={`biz__table-row ${active?'biz__table-row--active':''} ${i<businesses.length-1?'biz__table-row--border':''}`}
-                  onClick={()=>setSelBiz(active?null:i)}>
+                <div key={b.idx}
+                  className={`biz__table-row ${active?'biz__table-row--active':''} ${i<filtered.length-1?'biz__table-row--border':''}`}
+                  onClick={()=>setSelBiz(active?null:b.idx)}>
 
                   <div className="biz__row-name-cell">
                     <div className={`biz__row-ico ${active?'biz__row-ico--active':''}`}>

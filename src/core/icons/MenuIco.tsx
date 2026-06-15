@@ -235,6 +235,50 @@ const MENU_MAP: Record<string, string> = {
   'totem':                      'fa-display',
   'i-miei-totem':               'fa-display',
   'gest-advertising':           'fa-rectangle-ad',
+
+  // ══ GIORNALE IMPRESA — pagine foglia senza icona dedicata ═════════════════
+  // Coprono i titoli delle card "page" della vista estesa (tutti i tab),
+  // così MenuIco non ripiega mai sul dot di fallback.
+  // Sales
+  'crea-strategia':             'fa-chess-knight',
+  'modifica-strategia':         'fa-chess',
+  'calendario-strategie':       'fa-calendar-days',
+  'monthly-trend':              'fa-chart-line',
+  'grand-total':                'fa-calculator',
+  'cal-annuale':                'fa-calendar',
+  'piani-tar':                  'fa-money-check-dollar',
+  'maggiorazioni':              'fa-percent',
+  'crea-preventivo':            'fa-file-circle-plus',
+  'i-miei-preventivi':          'fa-file-invoice',
+  'budget-analysis':            'fa-chart-column',
+  'segment-analysis':           'fa-chart-pie',
+  'miei-contratti-v':           'fa-file-contract',
+  'inserisci-contratto-v':      'fa-file-signature',
+  'crea-azienda-v':             'fa-building-circle-plus',
+  // Operation
+  'arrivi-partenze':            'fa-arrows-left-right',
+  'ospiti-in-casa':             'fa-house-user',
+  'anagrafiche-op':             'fa-address-card',
+  'schedine':                   'fa-passport',
+  'rilevamento-presenze':       'fa-user-check',
+  'analisi-occ':                'fa-chart-pie',
+  // Purchasing
+  'servizi':                    'fa-bell-concierge',
+  'crea-azienda-a':             'fa-building-circle-plus',
+  'agora-announcements-manage': 'fa-bullhorn',
+  'crea-acquisto':              'fa-cart-plus',
+  'agora-accommodations':       'fa-hotel',
+  'agora-home':                 'fa-house',
+  'preliminare':                'fa-clipboard-check',
+  'registro-chiusure':          'fa-rectangle-list',
+  'crea-prodotto':              'fa-box',
+  'lista-prodotti':             'fa-boxes-stacked',
+  // HR
+  'agora-academy':              'fa-graduation-cap',
+  // Finance
+  'ledger-analysis':            'fa-book-open',
+  'cashflow':                   'fa-money-bill-wave',
+  'profit-trend':               'fa-arrow-trend-up',
 }
 
 export default function MenuIco({ id, s = 14, c = 'rgba(255,255,255,0.4)', c2, w = 'duotone' }: MenuIcoProps) {

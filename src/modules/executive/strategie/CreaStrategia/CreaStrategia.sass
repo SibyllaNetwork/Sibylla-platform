@@ -1,213 +1,167 @@
 // ─── CREA STRATEGIA ───────────────────────────────────────────────────────────
-// Toolbar parametri (2 righe) + identity card colorata + matrice
-// 10 fasce di occupazione × 5 finestre di prenotazione, ciascuna con un picker BAR.
+// Toolbar parametri (riga unica) + azioni a destra + matrice
+// fasce di occupazione × finestre di prenotazione, ciascuna con un picker BAR.
 @use '../../../../styles/tokens' as *
 
 .crea-strat
 
-  // ── Parametri (toolbar a 2 righe) ───────────────────────────────────────────
+  // ── Toolbar: parametri a sinistra, azioni a destra ──────────────────────────
+  &__bar
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+    margin-bottom: 14px
+
+  // I campi parametri restano SEMPRE su una sola riga (nowrap). Sono le azioni a
+  // passare a capo quando la toolbar è stretta. I campi possono comprimersi.
   &__params
     display: flex
     align-items: flex-end
     gap: 12px
-    flex-wrap: wrap
-    margin-bottom: 10px
-
-    &--row2
-      margin-bottom: 14px
-      align-items: center
+    flex: 1 1 auto
+    flex-wrap: nowrap
+    min-width: 0
 
   &__field
-    min-width: 130px
+    flex: 0 0 130px
+    min-width: 0
+
+    &--narrow
+      flex: 0 0 96px
 
     &--wide
-      min-width: 200px
+      flex: 0 0 160px
 
-    &--grow
-      flex: 1 1 220px
-      min-width: 200px
+    &--name
+      flex: 0 1 200px
 
-  // ── Segmented control: Tipo strategia ───────────────────────────────────────
-  &__seg-wrap
+  // ── Campo "statico" (label + valore) per Tipo strategia / Colore ────────────
+  // La label usa le stesse classi Tailwind di SelectField/InputField, così
+  // questi campi restano allineati agli altri campi form della toolbar.
+  &__static
     display: flex
     flex-direction: column
     gap: 4px
 
-  &__seg-label
-    font-size: 11px
-    font-weight: 600
-    color: $text-active
-    font-family: $font-body
-
-  &__seg
-    display: inline-flex
-    border: 1px solid $border
-    border-radius: 6px
-    padding: 2px
-    background: $white
-    height: 36px
-
-  &__seg-btn
+  &__static-val
+    height: 34px
     display: inline-flex
     align-items: center
-    gap: 6px
-    padding: 0 12px
-    border: none
     background: transparent
-    border-radius: 4px
-    color: $text-inactive
+    border: none
+    padding: 0 2px
     font-family: $font-body
-    font-size: 12px
-    font-weight: 600
-    cursor: pointer
-    transition: $transition-fast
-
-    i
-      font-size: 12px
-
-    &:hover:not(&--active)
-      color: $primary
-
-    &--active
-      background: $primary
-      color: $text-negative
-
-  // ── Color picker inline (chip row) ──────────────────────────────────────────
-  &__colors-wrap
-    display: flex
-    flex-direction: column
-    gap: 4px
-
-  &__colors-label
-    font-size: 11px
+    font-size: 13px
     font-weight: 600
     color: $text-active
-
-  &__colors
-    display: flex
-    align-items: center
-    gap: 6px
-    flex-wrap: wrap
-
-  &__swatch
-    --swatch-color: #{$primary}
-    width: 26px
-    height: 26px
-    border-radius: 50%
-    border: 2px solid transparent
-    background: var(--swatch-color)
     cursor: pointer
-    padding: 0
     transition: $transition-fast
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15)
 
     &:hover
-      transform: scale(1.1)
+      color: $primary
 
-    &--active
-      border-color: $white
-      box-shadow: 0 0 0 2px var(--swatch-color), 0 2px 6px rgba(0, 0, 0, 0.25)
-
-  // ── Azioni (a destra della seconda riga) ────────────────────────────────────
+  // ── Azioni (a destra della toolbar) ─────────────────────────────────────────
   &__actions
     display: flex
-    gap: 8px
-    margin-left: auto
+    gap: 10px
     flex-wrap: wrap
+    flex-shrink: 0
+    margin-left: auto
 
   &__btn
-    height: 36px
+    height: 38px
     display: inline-flex
     align-items: center
-    gap: 6px
+    gap: 7px
     white-space: nowrap
 
     i
-      font-size: 12px
+      font-size: 13px
 
-  // ── Identity card (anteprima strategia) ─────────────────────────────────────
-  &__identity
-    --strat-color: #{$primary}
-    display: flex
-    align-items: stretch
-    gap: 14px
+  // ── Color picker libero (react-colorful) ────────────────────────────────────
+  &__color
+    position: relative
+
+  &__color-trigger
+    height: 34px
+    min-width: 150px
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 0 30px 0 10px
     background: $white
     border: 1px solid $border
-    border-radius: $radius-xl
-    overflow: hidden
-    margin-bottom: 14px
+    border-radius: 6px
+    font-family: $font-body
+    font-size: 13px
+    font-weight: 500
+    color: $text-active
+    cursor: pointer
+    position: relative
+    transition: $transition-fast
 
-  &__identity-bar
-    width: 6px
-    background: var(--strat-color)
+    &:hover, &--open
+      border-color: $primary
+
+  &__color-placeholder
+    color: $text-disabled
+
+  &__color-val
+    letter-spacing: 0.4px
+
+  &__color-dot
+    width: 16px
+    height: 16px
+    border-radius: 50%
     flex-shrink: 0
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12)
 
-  &__identity-body
-    flex: 1 1 auto
-    min-width: 0
-    padding: 10px 14px
-    display: flex
-    flex-direction: column
-    gap: 4px
+  &__color-chevron
+    position: absolute
+    right: 10px
+    font-size: 12px
+    color: $text-inactive
+    pointer-events: none
 
-  &__identity-name
-    font-family: $font-heading
-    font-size: 16px
-    font-weight: 700
-    color: $primary
+  &__color-pop
+    position: absolute
+    top: calc(100% + 6px)
+    left: 0
+    z-index: 30
+    background: $white
+    border: 1px solid $border
+    border-radius: 10px
+    box-shadow: $shadow-md
+    padding: 12px
 
-  &__identity-meta
+    .react-colorful
+      width: 200px
+      height: 160px
+
+  &__color-hexrow
     display: flex
     align-items: center
-    gap: 14px
-    flex-wrap: wrap
-    font-size: 11px
-    color: $text-inactive
+    gap: 8px
+    margin-top: 10px
 
-    span
-      display: inline-flex
-      align-items: center
-      gap: 5px
-
-      i
-        font-size: 11px
-        color: var(--strat-color)
-
-  &__identity-progress
-    display: flex
-    flex-direction: column
-    justify-content: center
-    gap: 4px
-    padding: 10px 16px
-    min-width: 180px
-    border-left: 1px solid $border
-    background: $bg
-
-  &__identity-progress-label
-    font-size: 10px
-    color: $text-disabled
+  &__color-input
+    flex: 1
+    min-width: 0
+    height: 32px
+    border: 1px solid $border
+    border-radius: 6px
+    padding: 0 10px
+    font-family: $font-body
+    font-size: 13px
+    font-weight: 600
+    letter-spacing: 0.4px
     text-transform: uppercase
-    letter-spacing: 0.5px
-    font-weight: 700
+    color: $text-active
 
-  &__identity-progress-val
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 700
-    color: $primary
-
-  &__identity-progress-bar
-    height: 4px
-    border-radius: 2px
-    background: $primary-100
-    overflow: hidden
-
-    > span
-      display: block
-      height: 100%
-      width: var(--fill-w)
-      background: var(--strat-color)
-      transition: width 0.25s ease
+    &:focus
+      outline: none
+      border-color: $primary
 
   // ── Matrice BAR ─────────────────────────────────────────────────────────────
   &__matrix-wrap
@@ -222,93 +176,121 @@
 
   &__matrix
     width: 100%
-    min-width: 880px
-    border-collapse: separate
-    border-spacing: 0
+    min-width: 900px
+    border-collapse: collapse
     table-layout: fixed
 
+  &__col-vlabel
+    width: 48px
+
+  &__col-occ
+    width: 96px
+
+  // Intestazioni colonne (finestre di prenotazione)
   &__th
-    background: $primary-50
+    background: var(--color-bg)
     color: $primary
     font-family: $font-heading
-    font-size: 12px
+    font-size: 13px
     font-weight: 700
     text-align: center
-    padding: 12px 10px
+    padding: 16px 12px
+    border-left: 1px solid $border
     border-bottom: 1px solid $border
-    position: sticky
-    top: 0
-    z-index: 2
 
-    &:not(:last-child)
-      border-right: 1px solid $border
-
-    &--corner
-      background: $primary
-      color: $text-negative
-      text-align: left
-      padding-left: 14px
-      width: 160px
-      position: sticky
-      left: 0
-      z-index: 3
-      font-size: 11px
-      text-transform: uppercase
-      letter-spacing: 0.4px
-
-  &__row-head
-    background: $primary
-    color: $text-negative
-    text-align: center
-    padding: 12px 10px
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12)
-    position: sticky
-    left: 0
-    z-index: 1
-    font-family: $font-heading
-    font-weight: 600
-    font-size: 13px
-
-    tr:last-child &
-      border-bottom: none
-
-  &__row-head-label
-    display: inline-block
-    white-space: nowrap
-
-  &__cell
-    padding: 8px 10px
+  // Angolo in alto a sinistra (sopra label verticale + occupazione)
+  &__th-corner
     background: $white
     border-bottom: 1px solid $border
     border-right: 1px solid $border
-    transition: background 0.12s
-    position: relative
 
-    &:last-child
-      border-right: none
+  // ── Colonna label verticale "STRATEGIA INDIVIDUALE" ─────────────────────────
+  &__vlabel
+    background: $white
+    border-right: 1px solid $border
+    vertical-align: middle
+    text-align: center
+
+  &__vlabel-inner
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 16px
+
+  &__vlabel-text
+    writing-mode: vertical-rl
+    transform: rotate(180deg)
+    text-transform: uppercase
+    font-family: $font-heading
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: 1.5px
+    color: $primary
+
+  &__vlabel-ico
+    font-size: 17px
+    color: $primary
+
+  // ── Blocchi occupazione (riga, navy) ────────────────────────────────────────
+  &__occ-cell
+    padding: 4px
+    background: $white
+    border-right: 1px solid $border
+
+  &__occ
+    height: 100%
+    min-height: 96px
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 6px
+    background: $primary
+    border-radius: 8px
+    padding: 12px 6px
+
+  &__occ-val
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $text-negative
+
+  &__occ-arrow
+    font-size: 13px
+    color: rgba(255, 255, 255, 0.7)
+
+  // ── Celle picker BAR ────────────────────────────────────────────────────────
+  &__cell
+    padding: 10px 12px
+    background: $white
+    border-left: 1px solid $border
+    border-bottom: 1px solid $border
+    vertical-align: middle
+    transition: background 0.12s
 
     tr:last-child > &
       border-bottom: none
 
     &:hover
-      background: $primary-50
+      background: var(--color-bg)
 
     &--filled
       background: rgba(32, 71, 105, 0.04)
 
       &:hover
-        background: $primary-50
+        background: var(--color-bg)
 
   &__select
     width: 100%
-    height: 34px
-    padding: 0 24px 0 10px
+    height: 40px
+    padding: 0 30px 0 14px
     border: 1px solid $border
-    border-radius: 5px
-    background: $white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E") no-repeat right 8px center
+    border-radius: 6px
+    background: $white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E") no-repeat right 10px center
     color: $text-disabled
     font-family: $font-body
-    font-size: 12px
+    font-size: 13px
     font-weight: 500
     appearance: none
     -webkit-appearance: none
@@ -327,16 +309,6 @@
       font-weight: 700
       border-color: $primary
       background-color: $white
-
-  &__cell-hint
-    position: absolute
-    top: 2px
-    right: 6px
-    font-size: 8px
-    font-weight: 700
-    color: $primary
-    letter-spacing: 0.4px
-    pointer-events: none
 
   // ── Modal Guida assistita smart ─────────────────────────────────────────────
   &__modal-head

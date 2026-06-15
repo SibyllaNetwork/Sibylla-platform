@@ -15,8 +15,9 @@ const MENU:any[]=[
   ]},
   {id:"impresa",label:"Impresa",icon:"wheel",children:[
     {id:"executive",label:"Executive",color:"#5C9CD4",children:[
-      {id:"i-miei-business",label:"I miei business",page:"i-miei-business"},
-      {id:"i-miei-ristoranti",label:"I miei ristoranti",page:"i-miei-ristoranti"},
+      {id:"i-miei-business",label:"I miei business",page:"i-miei-business",children:[
+        {id:"i-miei-ristoranti",label:"I miei ristoranti",page:"i-miei-ristoranti"},
+      ]},
       {id:"executive-overview",label:"Executive overview",page:"executive-overview"},
       {id:"giornale-impresa",label:"Giornale impresa",page:"giornale-impresa"},
       {id:"business-centre",label:"Business centre",page:"business-centre"},
