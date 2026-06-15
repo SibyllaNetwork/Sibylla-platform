@@ -96,7 +96,7 @@ const MENU:any[]=[
           {id:"op-overview",label:"Operation overview",page:"op-overview"},
           {id:"guest-room",label:"Guest & Room Analysis",page:"guest-room"},
         ]},
-        {id:"acquisti-servizi",label:"Acquisti servizi",page:"acquisti-servizi"},
+        {id:"acquisti-servizi",label:"Acquisto Servizi",page:"acquisti-servizi"},
         {id:"gest-ospiti",label:"Gestione Ospiti",children:[
           {id:"arrivi-partenze",label:"Arrivi e partenze",page:"arrivi-partenze"},
           {id:"ospiti-in-casa",label:"Ospiti in casa",page:"ospiti-in-casa"},

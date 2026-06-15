@@ -11,6 +11,7 @@ import ResetProfili                from '../modules/profilo/ResetProfili/ResetPr
 import Organigramma                from '../modules/profilo/Organigramma/Organigramma';
 import IMieiBusinessPage           from '../modules/executive/IMieiBusinessPage/IMieiBusinessPage';
 import IMieiRistorantiPage         from '../modules/executive/IMieiRistorantiPage/IMieiRistorantiPage';
+import AcquistoServizi             from '../modules/operation/AcquistoServizi/AcquistoServizi';
 import GiornaleImpresa             from '../modules/executive/GiornaleImpresa/GiornaleImpresa';
 import SSPI                        from '../modules/executive/SSPI/SSPI';
 import AnalisiDistribuzione        from '../modules/executive/AnalisiDistribuzione/AnalisiDistribuzione';
@@ -170,6 +171,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'organigramma')          return <Organigramma navigate={navigate}/>;
   if (page === 'i-miei-business')       return <IMieiBusinessPage navigate={navigate}/>;
   if (page === 'i-miei-ristoranti')     return <IMieiRistorantiPage navigate={navigate}/>;
+  if (page === 'acquisti-servizi')      return <AcquistoServizi navigate={navigate}/>;
   if (page === 'giornale-impresa')      return <GiornaleImpresa navigate={navigate}/>;
   if (page === 'sspi')                  return <SSPI navigate={navigate}/>;
   if (page === 'analisi-dist-exec')     return <AnalisiDistribuzione navigate={navigate}/>;
