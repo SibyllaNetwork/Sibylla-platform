@@ -28,6 +28,9 @@ export type ConfiguratoreId =
   | 'configura-outlet'
   | 'personalizza-struttura'
   // F&B
+  | 'fb-outlet'
+  | 'fb-sale-tavoli'
+  | 'fb-turni'
   | 'fb-categorie'
   | 'fb-voci-menu'
   | 'fb-crea-menu'
@@ -74,6 +77,9 @@ export const MAIN_ITEMS: ConfiguratoreItem[] = [
 ]
 
 export const FNB_ITEMS: ConfiguratoreItem[] = [
+  { id: 'fb-outlet',            label: 'Outlet',           icon: 'store' },
+  { id: 'fb-sale-tavoli',       label: 'Sale e tavoli',    icon: 'chair' },
+  { id: 'fb-turni',             label: 'Turni di servizio', icon: 'clock' },
   { id: 'fb-categorie',         label: 'Categorie',        icon: 'tags' },
   { id: 'fb-voci-menu',         label: 'Voci menu',        icon: 'list' },
   { id: 'fb-crea-menu',         label: 'Crea menu',        icon: 'plus' },

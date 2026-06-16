@@ -25,3 +25,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Outlet Manager — sorgente vendorizzato fuori da src/ (contiene node_modules/venv pesanti)
+/outlet-full
+
+# Export generati (PowerPoint SSPI, ecc.)
+*.pptx

@@ -78,6 +78,9 @@ import ConfiguraNotifiche          from '../modules/notifiche/ConfiguraNotifiche
 import Chat                        from '../modules/chat/Chat/Chat';
 import SibyllaAdminPanel           from '../admin/SibyllaAdminPanel/SibyllaAdminPanel';
 import Planner                     from '../modules/operation/planner';
+// ── Food & Beverage (Outlet Manager — outlet.sibyllanetwork.it) ──
+import OutletShell                 from '../modules/operation/Outlet/OutletShell';
+import type { OutletSubPage }      from '../modules/operation/Outlet/OutletShell';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -301,6 +304,16 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'pianifica-campagna')    return <PianificaCampagna navigate={navigate}/>;
   if (page === 'riepilogo-campagna')    return <RiepilogoCampagna navigate={navigate}/>;
   if (page === 'totem-adv')             return <Totem navigate={navigate}/>;
+  // ── Food & Beverage → Outlet Manager (sub-app vendorizzata) ──
+  // Una sola istanza per i 4 link (niente key): lo stato interno persiste.
+  const FB_PAGES: Record<string, OutletSubPage> = {
+    'gest-comanda': 'gestione',
+    'sala-ristorante': 'sala',
+    'libro-prenotazioni': 'prenotazioni',
+    'ospiti-giorno': 'ospiti',
+  };
+  if (page in FB_PAGES) return <OutletShell initialPage={FB_PAGES[page]}/>;
+
   if (page === 'sysadmin')              return <SysadminIndex navigate={navigate}/>;
   if (page === 'gestione-aziende')      return <GestioneAziende navigate={navigate}/>;
   if (page === 'gestione-utenti')       return <GestioneUtenti navigate={navigate}/>;

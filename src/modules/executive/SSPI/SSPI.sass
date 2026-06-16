@@ -169,37 +169,29 @@
     z-index: 1
     overflow: visible
 
+  // Connettori sobri: linee sottili statiche, nessun glow né animazione in loop.
+  // Un solo fade-in all'ingresso; in hover il collegamento del KPI si evidenzia.
   &__link
     fill: none
-    stroke-width: 2
+    stroke-width: 1.5
     stroke-linecap: round
-    stroke-dasharray: 1
-    stroke-dashoffset: 1
     opacity: 0
-    transition: stroke-width 0.2s ease, opacity 0.2s ease
+    transition: stroke-width 0.18s ease, opacity 0.18s ease
     &.is-hot
-      stroke-width: 4
-      opacity: 1 !important
+      stroke-width: 2.25
+      opacity: 0.95 !important
     &.is-dim
-      opacity: 0.14 !important
+      opacity: 0.08 !important
 
   .is-in &__link
-    animation: sspi-draw 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards
-    animation-delay: calc(0.15s + var(--i) * 0.1s)
+    animation: sspi-link-in 0.5s ease forwards
+    animation-delay: calc(0.1s + var(--i) * 0.07s)
 
-  @keyframes sspi-draw
-    0%
-      stroke-dashoffset: 1
+  @keyframes sspi-link-in
+    from
       opacity: 0
-    25%
-      opacity: 1
-    100%
-      stroke-dashoffset: 0
-      opacity: 0.85
-
-  // scintilla che percorre il connettore
-  &__spark
-    filter: drop-shadow(0 0 4px currentColor)
+    to
+      opacity: 0.38
 
 
   // ── Hub centrale: TIMONE ─────────────────────────────────────────────────

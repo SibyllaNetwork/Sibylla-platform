@@ -78,6 +78,15 @@ function kpiTrend(kpiId: string, year: number, q: number): { label: string; valu
   return out
 }
 
+/* ── Dettaglio componenti di un KPI (deterministico, condiviso modale/PPT) ─── */
+function kpiParts(kpi: Kpi, year: number, qNum: number): { label: string; value: number; delta: number }[] {
+  return kpi.parts.map((p) => {
+    const v = Math.round(20 + seed(strHash(kpi.id + p) + year + qNum) * 80)
+    const d = Math.round((seed(strHash(p + kpi.id) + qNum) - 0.5) * 24)
+    return { label: p, value: v, delta: d }
+  })
+}
+
 /* ── Count-up animato ───────────────────────────────────────────────────── */
 function useCountUp(target: number, duration = 1100): number {
   const [val, setVal] = useState(0)
@@ -228,6 +237,60 @@ export default function SSPI({ navigate }: { navigate: (p: string) => void }) {
       })
       s2.addTable(rows, { x: 0.6, y: 1.2, w: 12.1, colW: [3, 6.6, 2.5], border: { type: 'solid', color: 'DDDDDD', pt: 1 }, fontSize: 13, valign: 'middle', rowH: 0.55 })
 
+      // Slide 3…N — dettaglio dei singoli KPI (composizione + trend + commento)
+      values.forEach(({ kpi, value }) => {
+        const trend = kpiTrend(kpi.id, year, qNum)
+        const prev = trend.length >= 2 ? trend[trend.length - 2].value : value
+        const delta = value - prev
+        const positive = delta >= 0
+        const parts = kpiParts(kpi, year, qNum)
+        const hex = kpi.color.replace('#', '')
+
+        const sd = pptx.addSlide()
+
+        // Banda intestazione colorata col colore del KPI
+        sd.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 1.15, fill: { color: hex } })
+        sd.addText(kpi.label, { x: 0.6, y: 0.16, w: 9, h: 0.5, fontSize: 24, bold: true, color: 'FFFFFF' })
+        sd.addText(kpi.desc, { x: 0.6, y: 0.68, w: 9.5, h: 0.35, fontSize: 12, color: 'EAF2FB' })
+        sd.addText(`${value}${kpi.unit === '%' ? '%' : ''}`, { x: 10.6, y: 0.12, w: 2.1, h: 0.66, fontSize: 32, bold: true, color: 'FFFFFF', align: 'right' })
+        sd.addText(`${positive ? '+' : ''}${delta} pt vs trim. prec.`, { x: 8.6, y: 0.8, w: 4.1, h: 0.28, fontSize: 11, color: 'EAF2FB', align: 'right' })
+
+        // Composizione (tabella, sinistra)
+        sd.addText('Composizione & target', { x: 0.6, y: 1.45, w: 6, h: 0.4, fontSize: 14, bold: true, color: '0E2A47' })
+        const pr: any[] = [[
+          { text: 'Componente', options: { bold: true, color: 'FFFFFF', fill: { color: '0E2A47' } } },
+          { text: 'Valore', options: { bold: true, color: 'FFFFFF', fill: { color: '0E2A47' }, align: 'center' } },
+          { text: 'Δ trim.', options: { bold: true, color: 'FFFFFF', fill: { color: '0E2A47' }, align: 'center' } },
+        ]]
+        parts.forEach(p => pr.push([
+          { text: p.label, options: { color: '333333' } },
+          { text: String(p.value), options: { align: 'center', bold: true } },
+          { text: `${p.delta >= 0 ? '+' : ''}${p.delta}`, options: { align: 'center', color: p.delta >= 0 ? '2E7D32' : 'C62828' } },
+        ]))
+        sd.addTable(pr, { x: 0.6, y: 1.9, w: 6, colW: [3.4, 1.3, 1.3], border: { type: 'solid', color: 'DDDDDD', pt: 1 }, fontSize: 12, valign: 'middle', rowH: 0.5 })
+
+        // Trend (grafico a linea, destra)
+        sd.addText('Trend · ultimi 8 trimestri', { x: 7, y: 1.45, w: 6, h: 0.4, fontSize: 14, bold: true, color: '0E2A47' })
+        sd.addChart(
+          pptx.ChartType.line,
+          [{ name: kpi.label, labels: trend.map(t => t.label), values: trend.map(t => t.value) }],
+          {
+            x: 7, y: 1.9, w: 5.7, h: 3.3,
+            showLegend: false, showTitle: false,
+            chartColors: [hex], lineSize: 2.5, lineSmooth: true,
+            lineDataSymbol: 'circle', lineDataSymbolSize: 5,
+            valAxisMinVal: 0, valAxisMaxVal: 100,
+            catAxisLabelFontSize: 9, valAxisLabelFontSize: 9,
+          },
+        )
+
+        // Commento
+        const comment = `Nel periodo ${quarter} ${year} l'indicatore ${kpi.label} si attesta al ${value}%, ${positive ? 'in crescita' : 'in calo'} di ${Math.abs(delta)} punti rispetto al trimestre precedente. ${positive
+          ? 'Il contributo all’indice SSPI complessivo è positivo: consolidare le azioni in corso.'
+          : 'Il contributo all’indice SSPI complessivo è in flessione: valutare interventi correttivi mirati.'}`
+        sd.addText(comment, { x: 0.6, y: 5.6, w: 12.1, h: 1.4, fontSize: 12, color: '444444', valign: 'top' })
+      })
+
       await pptx.writeFile({ fileName: `SSPI_${year}_${quarter}.pptx` })
     } catch (e) {
       console.error('[SSPI] export PowerPoint fallito', e)
@@ -313,7 +376,7 @@ export default function SSPI({ navigate }: { navigate: (p: string) => void }) {
       {/* ── Stage: hub centrale + box orbitanti + linee animate ──────────── */}
       <div ref={stageRef} className={`sspi__stage ${inView ? 'is-in' : ''}`}>
 
-        {/* Connettori SSPI → KPI: gradiente, glow, disegno animato + scintilla viaggiante */}
+        {/* Connettori SSPI → KPI: linee sottili e sobrie + nodo terminale */}
         {geo && (
           <svg
             className="sspi__links"
@@ -321,48 +384,18 @@ export default function SSPI({ navigate }: { navigate: (p: string) => void }) {
             viewBox={`0 0 ${geo.w} ${geo.h}`}
             aria-hidden="true"
           >
-            <defs>
-              <filter id="sspi-glow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="2.4" result="b" />
-                <feMerge>
-                  <feMergeNode in="b" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              {connectors.map(c => (
-                <linearGradient
-                  key={c.i} id={`sspi-cl-${c.i}`} gradientUnits="userSpaceOnUse"
-                  x1={c.sx} y1={c.sy} x2={c.ex} y2={c.ey}
-                >
-                  <stop offset="0%"  stopColor="var(--color-primary)" stopOpacity="0.12" />
-                  <stop offset="55%" stopColor={c.color} stopOpacity="0.55" />
-                  <stop offset="100%" stopColor={c.color} stopOpacity="0.95" />
-                </linearGradient>
-              ))}
-            </defs>
-
-            <g filter="url(#sspi-glow)">
-              {connectors.map(c => (
+            {connectors.map(c => {
+              const hot = hoveredId === KPIS[c.i].id
+              const dim = hoveredId != null && !hot
+              return (
                 <path
                   key={c.i}
-                  id={`sspi-clp-${c.i}`}
-                  className={`sspi__link${hoveredId === KPIS[c.i].id ? ' is-hot' : ''}${hoveredId != null && hoveredId !== KPIS[c.i].id ? ' is-dim' : ''}`}
+                  className={`sspi__link${hot ? ' is-hot' : ''}${dim ? ' is-dim' : ''}`}
                   d={`M${c.sx},${c.sy} L${c.ex},${c.ey}`}
-                  pathLength={1}
-                  style={{ stroke: `url(#sspi-cl-${c.i})`, '--i': c.i } as React.CSSProperties}
+                  style={{ stroke: c.color, '--i': c.i } as React.CSSProperties}
                 />
-              ))}
-            </g>
-
-            {/* Scintille che viaggiano dall'indice verso ciascun KPI */}
-            {inView && connectors.map(c => (
-              <circle key={c.i} className="sspi__spark" r={3.2} fill={c.color} filter="url(#sspi-glow)">
-                <animateMotion dur="2.6s" begin={`${1 + c.i * 0.2}s`} repeatCount="indefinite" rotate="auto" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
-                  <mpath href={`#sspi-clp-${c.i}`} />
-                </animateMotion>
-                <animate attributeName="opacity" dur="2.6s" begin={`${1 + c.i * 0.2}s`} repeatCount="indefinite" values="0;1;1;0.9;0" keyTimes="0;0.1;0.7;0.9;1" />
-              </circle>
-            ))}
+              )
+            })}
           </svg>
         )}
 
@@ -554,11 +587,7 @@ function KpiDetail({
   const positive = delta >= 0
 
   // tabella di dettaglio: i "parts" con valori derivati
-  const tableRows = kpi.parts.map((p) => {
-    const v = Math.round(20 + seed(strHash(kpi.id + p) + year + qNum) * 80)
-    const d = Math.round((seed(strHash(p + kpi.id) + qNum) - 0.5) * 24)
-    return { label: p, value: v, delta: d }
-  })
+  const tableRows = kpiParts(kpi, year, qNum)
 
   return (
     <Modal open onClose={onClose} size="xl" className="sspi-modal">

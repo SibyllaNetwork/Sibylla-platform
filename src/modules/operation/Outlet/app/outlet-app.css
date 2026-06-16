@@ -1,0 +1,36 @@
+/* Stili minimi della sub-app Outlet Manager (vendorizzata).
+   NON include il reset globale '*{}' né regole su body dell'app originale:
+   quelle inquinerebbero la platform. Le pagine usano stili inline + palette JS
+   (C in components/UI.jsx), quindi qui bastano contenitore, scrollbar e keyframe. */
+
+.outletmgr {
+  height: 100%;
+  min-height: 620px;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Open Sans', 'Segoe UI', system-ui, sans-serif;
+  color: #4A4D53;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.outletmgr > * { flex: 1; min-height: 0; }
+
+/* Variante "documento" per le pagine di configurazione dentro il Configuratore:
+   flusso normale, senza altezza forzata (la pagina scorre nel pane). */
+.outletmgr--doc {
+  display: block;
+  height: auto;
+  min-height: 0;
+}
+.outletmgr--doc > * { flex: none; }
+
+.outletmgr h1, .outletmgr h2, .outletmgr h3 { font-family: 'Poppins', sans-serif; }
+
+.outletmgr .scrollbar-light::-webkit-scrollbar { width: 5px; height: 5px; }
+.outletmgr .scrollbar-light::-webkit-scrollbar-thumb { background: #DBDBDB; border-radius: 3px; }
+.outletmgr .scrollbar-light::-webkit-scrollbar-thumb:hover { background: #A9AAAD; }
+.outletmgr .scrollbar-thin::-webkit-scrollbar { width: 3px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }

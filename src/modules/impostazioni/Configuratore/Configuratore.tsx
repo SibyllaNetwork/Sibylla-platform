@@ -31,10 +31,7 @@ import VincoloMatriosca       from './panes/VincoloMatriosca/VincoloMatriosca'
 import FasceEta               from './panes/FasceEta/FasceEta'
 import VociIncasso            from './panes/VociIncasso/VociIncasso'
 import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
-import FbVociMenu             from './panes/FbVociMenu/FbVociMenu'
-import FbCreaMenu             from './panes/FbCreaMenu/FbCreaMenu'
-import FbListaMenu            from './panes/FbListaMenu/FbListaMenu'
-import FbAllergeni            from './panes/FbAllergeni/FbAllergeni'
+import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConfig'
 
 const DEFAULT_ID: ConfiguratoreId = 'scaglioni-occupazione'
 
@@ -172,11 +169,11 @@ function PaneSwitch({ id, label }: { id: ConfiguratoreId; label: string }) {
     case 'fasce-eta':                return <FasceEta />
     case 'voci-incasso':             return <VociIncasso />
     case 'configura-outlet':         return <ConfiguraOutlet />
-    case 'fb-voci-menu':             return <FbVociMenu />
-    case 'fb-crea-menu':             return <FbCreaMenu />
-    case 'fb-lista-menu':            return <FbListaMenu />
-    case 'fb-allergeni':             return <FbAllergeni />
-    default:                         return <PlaceholderPane label={label} />
+    // Pagine di configurazione Food & Beverage → Outlet Manager (sub-app reale)
+    default:
+      return hasOutletConfig(id)
+        ? <OutletConfig id={id} />
+        : <PlaceholderPane label={label} />
   }
 }
 
