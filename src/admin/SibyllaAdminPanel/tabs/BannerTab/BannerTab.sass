@@ -1,0 +1,901 @@
+@use '../../../../styles/tokens' as *
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Banner generator — galleria formati (sinistra) + dettaglio con anteprima,
+//  configuratore e codice embed (destra).
+// ══════════════════════════════════════════════════════════════════════════════
+
+.bgen
+  display: flex
+  gap: 18px
+  align-items: flex-start
+  min-height: 100%
+
+// ─── Galleria formati ──────────────────────────────────────────────────────────
+.bgen__gallery
+  width: 232px
+  flex-shrink: 0
+  display: flex
+  flex-direction: column
+  gap: 18px
+
+.bgen__group
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.bgen__group-head
+  display: flex
+  align-items: center
+  gap: 7px
+  font-size: 11px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.06em
+  color: $text-inactive
+  padding: 0 4px 2px
+
+.bgen__format
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 10px
+  padding: 9px 12px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+  text-align: left
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $primary-300
+    background: $primary-50
+
+  &--active
+    border-color: $primary
+    background: $primary-50
+
+.bgen__format-name
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.bgen__format-size
+  font-size: 11px
+  color: $text-inactive
+  font-variant-numeric: tabular-nums
+  white-space: nowrap
+
+// ─── Dettaglio ───────────────────────────────────────────────────────────────
+.bgen__detail
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+.bgen__detail-head
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  gap: 16px
+
+.bgen__detail-title
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 600
+  color: $text-active
+
+.bgen__detail-desc
+  font-size: 13px
+  color: $text-inactive
+  margin-top: 2px
+  max-width: 60ch
+
+// Targhetta dimensioni del formato (rettangolare, stile "spec")
+.bgen__size-badge
+  flex-shrink: 0
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace
+  font-size: 11px
+  font-weight: 600
+  font-variant-numeric: tabular-nums
+  letter-spacing: .01em
+  color: $text-inactive
+  background: $bg
+  border: 1px solid $border
+  border-radius: $radius-md
+  padding: 5px 10px
+
+  &::before
+    content: ''
+    width: 11px
+    height: 8px
+    border: 1.5px solid $primary-400
+    border-radius: 2px
+    flex-shrink: 0
+
+// ─── Salvataggio banner ────────────────────────────────────────────────────────
+.bgen__save
+  display: flex
+  align-items: center
+  gap: 8px
+  flex-shrink: 0
+
+.bgen__save-name
+  width: 150px
+
+// ─── Banner salvati (in galleria) ──────────────────────────────────────────────
+.bgen__saved
+  border-top: 1px solid $border
+  padding-top: 16px
+
+.bgen__saved-item
+  display: flex
+  align-items: stretch
+  gap: 4px
+
+.bgen__saved-load
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 1px
+  padding: 7px 10px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+  text-align: left
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $primary-300
+    background: $primary-50
+
+.bgen__saved-name
+  font-size: 12px
+  font-weight: 600
+  color: $text-active
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+  max-width: 100%
+
+.bgen__saved-meta
+  font-size: 10px
+  color: $text-inactive
+
+.bgen__saved-del
+  flex-shrink: 0
+  width: 32px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $error
+    background: $error-light
+
+// ─── Stage di anteprima ────────────────────────────────────────────────────────
+.bgen__stage
+  height: 380px
+  display: flex
+  align-items: center
+  justify-content: center
+  padding: 24px
+  border: 1px solid $border
+  border-radius: $radius-lg
+  background: $bg
+  background-image: radial-gradient(circle, color-mix(in srgb, $primary 8%, transparent) 1px, transparent 1px)
+  background-size: 16px 16px
+  overflow: hidden
+
+.bgen__stage-scale
+  width: 100%
+  display: flex
+  justify-content: center
+  transform: scale(var(--preview-scale, 1))
+  transform-origin: center center
+
+// ─── Colonne configuratore / codice ──────────────────────────────────────────
+.bgen__cols
+  display: grid
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+  gap: 18px
+  align-items: start
+
+  @media (max-width: 1100px)
+    grid-template-columns: 1fr
+
+.bgen__config,
+.bgen__code-pane
+  border: 1px solid $border
+  border-radius: $radius-lg
+  background: $white
+  padding: 16px
+
+.bgen__section-title
+  font-size: 12px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  color: $text-inactive
+  margin: 0 0 12px
+
+  &--spaced
+    margin-top: 20px
+
+.bgen__grid
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 12px
+
+.bgen__field
+  display: flex
+  flex-direction: column
+  gap: 5px
+  margin-bottom: 12px
+
+  &--full
+    grid-column: 1 / -1
+
+.bgen__label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+.bgen__hint-inline
+  font-size: 11px
+  color: $text-inactive
+  line-height: 1.4
+
+.bgen__upload
+  display: flex
+  gap: 8px
+  align-items: center
+
+  .sib-input
+    flex: 1
+    min-width: 0
+
+.bgen__upload-btn
+  position: relative
+  cursor: pointer
+  white-space: nowrap
+  flex-shrink: 0
+
+.bgen__thumb-row
+  display: flex
+  align-items: center
+  gap: 10px
+  margin-top: 6px
+
+.bgen__thumb
+  width: 72px
+  height: 46px
+  object-fit: cover
+  border-radius: $radius-md
+  border: 1px solid $border
+  flex-shrink: 0
+
+.bgen__thumb--logo
+  object-fit: contain
+  background: $primary-50
+  padding: 4px
+
+// ─── Palette colore accento ───────────────────────────────────────────────────
+.bgen__palette
+  display: flex
+  align-items: center
+  gap: 8px
+  flex-wrap: wrap
+
+.bgen__swatch
+  width: 26px
+  height: 26px
+  border-radius: $radius-md
+  border: 2px solid transparent
+  background: var(--sw)
+  cursor: pointer
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08)
+
+  &--active
+    border-color: $text-active
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08), 0 0 0 2px $white
+
+.bgen__color-input
+  width: 34px
+  height: 30px
+  padding: 0
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+
+// Swatch "Automatico"
+.bgen__swatch--auto
+  background: $primary-50
+  color: $text-inactive
+  font-size: 11px
+  font-weight: 700
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  box-shadow: none
+
+// ─── Controllo segmentato (tipo di sfondo) ─────────────────────────────────────
+.bgen__segmented
+  display: inline-flex
+  border: 1px solid $border
+  border-radius: $radius-md
+  overflow: hidden
+
+.bgen__seg
+  padding: 7px 16px
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  background: $white
+  border: none
+  cursor: pointer
+
+  & + .bgen__seg
+    border-left: 1px solid $border
+
+  &--active
+    background: $primary
+    color: #fff
+
+// ─── Selettore immagine di sfondo ──────────────────────────────────────────────
+.bgen__bg-grid
+  display: flex
+  gap: 8px
+  flex-wrap: wrap
+
+.bgen__bg
+  width: 64px
+  height: 44px
+  border-radius: $radius-md
+  border: 2px solid $border
+  background-image: var(--bg-thumb)
+  background-size: cover
+  background-position: center
+  cursor: pointer
+  padding: 0
+  transition: border-color .12s
+
+  &:hover
+    border-color: $primary-300
+
+  &--active
+    border-color: $primary
+    box-shadow: 0 0 0 2px $primary-100
+
+  &--auto
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    background: $primary-50
+
+// ─── Codice ────────────────────────────────────────────────────────────────────
+.bgen__code-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  margin-bottom: 8px
+
+  .bgen__section-title
+    margin: 0
+
+.bgen__copy--done
+  background: $success
+
+.bgen__hint
+  font-size: 12px
+  color: $text-inactive
+  line-height: 1.5
+  margin: 0 0 12px
+
+  code
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace
+    font-size: 11px
+    background: $primary-50
+    padding: 1px 5px
+    border-radius: $radius-sm
+
+.bgen__code
+  margin: 0
+  padding: 12px 14px
+  background: $primary-900
+  color: #E6EAEE
+  border-radius: $radius-md
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace
+  font-size: 11.5px
+  line-height: 1.6
+  white-space: pre-wrap
+  word-break: break-all
+  overflow-x: auto
+
+.bgen__url
+  display: flex
+  flex-direction: column
+  gap: 3px
+  margin-top: 12px
+
+.bgen__url-label
+  font-size: 11px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  color: $text-inactive
+
+.bgen__url-link
+  font-size: 12px
+  color: $link
+  word-break: break-all
+  text-decoration: none
+
+  &:hover
+    text-decoration: underline
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ANTEPRIMA BANNER (facsimile) — usa --bw / --bh / --bv-accent dal componente
+// ══════════════════════════════════════════════════════════════════════════════
+.bgen-pv
+  --bv-ink: #{$text-active}
+  --bv-surface: #fff
+  --bv-muted: #6E7175
+  --bv-border: #E2E6EB
+  box-sizing: border-box
+  width: var(--bw)
+  height: var(--bh)
+  flex-shrink: 0
+  margin: 0 auto
+  border-radius: 12px
+  border: 1px solid var(--bv-border)
+  background: var(--bg-color, var(--bv-surface))
+  color: var(--bv-ink)
+  overflow: hidden
+  font-family: $font-body
+  box-shadow: 0 10px 28px rgba(20, 30, 45, .14)
+  position: relative
+
+  &[data-tema="dark"]
+    --bv-ink: #F4F4F5
+    --bv-surface: #1B1D23
+    --bv-muted: #A1A1AA
+    --bv-border: #34343C
+
+  *
+    box-sizing: border-box
+
+// ─── Logo Sibylla (BannerArt → SibyllaMark, Logo_sibylla_wide.svg) ─────────────
+.bgen-mark
+  display: inline-flex
+  align-items: center
+  flex-shrink: 0
+
+.bgen-mark__img
+  height: var(--logo-h, 22px)
+  width: auto
+  display: block
+  flex-shrink: 0
+
+// Tono scuro (su scena/foto/pillola) → logo Sibylla reso bianco con leggero stacco.
+// Esclude i logo personalizzati, che restano con i loro colori originali.
+.bgen-mark--dark:not(.bgen-mark--custom) .bgen-mark__img
+  filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, .45))
+
+.bgen-mark--custom.bgen-mark--dark .bgen-mark__img
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .45))
+
+// ─── Posizione del logo (data-logo-pos su .bgen-pv) ────────────────────────────
+// Display: allinea il logo nella colonna dei contenuti.
+.bgen-pv--display[data-logo-pos="center"] .bgen-pv__display-inner > .bgen-mark
+  align-self: center
+
+.bgen-pv--display[data-logo-pos="right"] .bgen-pv__display-inner > .bgen-mark
+  align-self: flex-end
+
+// Widget: allinea la testata (logo + slogan).
+.bgen-pv--widget[data-logo-pos="center"] .bgen-pv__widget-head
+  justify-content: center
+
+.bgen-pv--widget[data-logo-pos="right"] .bgen-pv__widget-head
+  justify-content: flex-end
+
+// Card: sposta il logo sovrimpresso alla foto.
+.bgen-pv--card[data-logo-pos="center"] .bgen-pv__photo-brand
+  left: 50%
+  transform: translateX(-50%)
+
+.bgen-pv--card[data-logo-pos="right"] .bgen-pv__photo-brand
+  left: auto
+  right: 14px
+
+// …e in tal caso il badge si sposta a sinistra per non sovrapporsi al logo.
+.bgen-pv--card[data-logo-pos="right"] .bgen-pv__photo-badge
+  right: auto
+  left: 14px
+
+// ─── Foto di sfondo (BannerArt → BannerPhoto) ──────────────────────────────────
+.bgen-pv__photo-bg
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  object-fit: var(--bg-fit, cover)
+  object-position: var(--bg-pos, center)
+  background: var(--bv-surface)
+  display: block
+
+// Scrim per leggibilità del testo sopra la scena
+.bgen-pv__scrim
+  position: absolute
+  inset: 0
+  background: linear-gradient(90deg, rgba(8, 20, 34, .72) 0%, rgba(8, 20, 34, .38) 48%, rgba(8, 20, 34, .12) 100%)
+
+// ─── Watermark / emblema di sfondo (BannerArt → Watermark, Logo_sibylla_key) ───
+.bgen-pv__watermark
+  position: absolute
+  pointer-events: none
+  user-select: none
+  height: 170%
+  width: auto
+  top: 50%
+  right: -5%
+  transform: translateY(-50%)
+  opacity: 0.1
+
+// Sui fondi scuri (scena/foto) l'emblema è bianco
+.bgen-pv--display .bgen-pv__watermark
+  filter: brightness(0) invert(1)
+  opacity: 0.13
+
+.bgen-pv--card .bgen-pv__watermark
+  filter: brightness(0) invert(1)
+  opacity: 0.16
+  height: 150%
+  top: 42%
+  right: -12%
+
+// Widget: emblema oro tenue, con i contenuti sempre sopra
+.bgen-pv--widget
+  .bgen-pv__watermark
+    opacity: 0.06
+    height: 150%
+    right: -2%
+
+  & > *:not(.bgen-pv__watermark)
+    position: relative
+    z-index: 1
+
+// CTA condiviso
+.bgen-pv__cta
+  background: var(--bv-accent)
+  color: #fff
+  border: none
+  border-radius: 8px
+  font-weight: 600
+  font-size: 13px
+  padding: 0 16px
+  height: 38px
+  cursor: default
+  white-space: nowrap
+  flex-shrink: 0
+
+// ─── Widget di ricerca ────────────────────────────────────────────────────────
+.bgen-pv--widget
+  display: flex
+  flex-direction: column
+  gap: 12px
+  padding: 16px
+
+.bgen-pv__widget-head
+  display: flex
+  align-items: center
+  gap: 12px
+  min-width: 0
+
+.bgen-pv__widget-slogan
+  font-family: $font-heading
+  font-weight: 600
+  font-size: 14px
+  line-height: 1.2
+  color: var(--bv-text, var(--bv-ink))
+  min-width: 0
+
+.bgen-pv__widget-body
+  display: flex
+  gap: 8px
+
+.bgen-pv--widget.bgen-pv--horizontal
+  .bgen-pv__widget-body
+    flex-direction: row
+    align-items: center
+
+  .bgen-pv__widget-slogan
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+.bgen-pv--widget.bgen-pv--vertical
+  .bgen-pv__widget-head
+    flex-direction: column
+    align-items: flex-start
+    gap: 10px
+
+  .bgen-pv__widget-slogan
+    font-size: 19px
+
+  .bgen-pv__widget-body
+    flex-direction: column
+
+  .bgen-pv__fields
+    flex-direction: column
+
+  .bgen-pv__cta
+    width: 100%
+
+.bgen-pv__fields
+  flex: 1
+  display: flex
+  gap: 8px
+  min-width: 0
+
+.bgen-pv__field
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  justify-content: center
+  gap: 2px
+  height: 38px
+  padding: 0 12px
+  border: 1px solid var(--bv-border)
+  border-radius: 8px
+  background: var(--bv-surface)
+  overflow: hidden
+
+.bgen-pv__field-label
+  font-size: 9px
+  text-transform: uppercase
+  letter-spacing: .04em
+  color: var(--bv-muted)
+
+.bgen-pv__field-value
+  font-size: 12px
+  font-weight: 600
+  color: var(--bv-ink)
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+// ─── Banner display ────────────────────────────────────────────────────────────
+.bgen-pv--display
+  .bgen-pv__display-inner
+    position: relative
+    height: 100%
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 6px
+    padding: 14px 18px
+
+  .bgen-pv__headline
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 16px
+    line-height: 1.2
+    color: var(--bv-text, #fff)
+    text-shadow: 0 1px 6px rgba(0, 0, 0, .35)
+    max-width: 74%
+
+  .bgen-pv__sub
+    font-size: 12px
+    color: var(--bv-text, rgba(255, 255, 255, .88))
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .35)
+    max-width: 74%
+
+  .bgen-pv__cta
+    align-self: flex-start
+    margin-top: 4px
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .25)
+
+// Leaderboard 728×90 — riga compatta
+.bgen-pv--leaderboard
+  .bgen-pv__display-inner
+    flex-direction: row
+    align-items: center
+    gap: 16px
+    padding: 0 20px
+
+  .bgen-pv__headline
+    font-size: 15px
+    flex: 1
+
+  .bgen-pv__sub
+    display: none
+
+  .bgen-pv__cta
+    margin-top: 0
+    align-self: center
+
+// Skyscraper 160×600 — verticale alto
+.bgen-pv--skyscraper
+  .bgen-pv__display-inner
+    justify-content: flex-start
+    gap: 10px
+    padding: 20px 16px
+
+  .bgen-pv__headline
+    font-size: 18px
+    margin-top: auto
+
+  .bgen-pv__cta
+    align-self: stretch
+    text-align: center
+
+// Mobile 320×50 — striscia minimale
+.bgen-pv--mobile
+  .bgen-pv__display-inner
+    flex-direction: row
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    padding: 0 12px
+
+  .bgen-mark__img
+    --logo-h: 16px
+
+  .bgen-pv__headline
+    font-size: 11px
+    font-weight: 600
+    line-height: 1.15
+    margin: 0
+    max-width: none
+    flex: 1
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  .bgen-pv__sub
+    display: none
+
+  .bgen-pv__cta
+    height: 30px
+    font-size: 12px
+    padding: 0 12px
+    margin-top: 0
+
+// ─── Card offerta ──────────────────────────────────────────────────────────────
+.bgen-pv--card
+  display: flex
+  flex-direction: column
+
+  .bgen-pv__photo
+    position: relative
+    height: 190px
+    flex-shrink: 0
+    overflow: hidden
+
+  .bgen-pv__photo-brand
+    position: absolute
+    top: 14px
+    left: 14px
+    z-index: 1
+
+  .bgen-pv__photo-badge
+    position: absolute
+    top: 14px
+    right: 14px
+    z-index: 1
+    font-size: 11px
+    font-weight: 600
+    color: #fff
+    background: var(--bv-accent)
+    border-radius: $radius-full
+    padding: 4px 11px
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .25)
+
+  .bgen-pv__photo-caption
+    position: absolute
+    left: 14px
+    right: 14px
+    bottom: 12px
+    z-index: 1
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 14px
+    line-height: 1.25
+    color: var(--bv-text, #fff)
+    text-shadow: 0 1px 6px rgba(0, 0, 0, .55)
+
+  .bgen-pv__card-body
+    flex: 1
+    display: flex
+    flex-direction: column
+    // resta sempre su superficie, anche con sfondo a colore pieno
+    background: var(--bv-surface)
+    gap: 7px
+    padding: 16px
+
+  .bgen-pv__card-dest
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 18px
+    color: var(--bv-ink)
+
+  .bgen-pv__card-meta
+    font-size: 12px
+    color: var(--bv-muted)
+
+  .bgen-pv__price
+    display: flex
+    align-items: baseline
+    gap: 5px
+    margin-top: auto
+
+  .bgen-pv__price-from
+    font-size: 12px
+    color: var(--bv-muted)
+
+  .bgen-pv__price-val
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 22px
+    color: var(--bv-ink)
+
+  .bgen-pv__price-unit
+    font-size: 12px
+    color: var(--bv-muted)
+
+  .bgen-pv__cta
+    width: 100%
+    height: 42px
+
+// ─── Smart button / link ──────────────────────────────────────────────────────
+.bgen-pv--link
+  border: none
+  background: transparent
+  box-shadow: none
+  display: flex
+  align-items: center
+  justify-content: center
+
+  .bgen-pv__smart
+    display: inline-flex
+    align-items: center
+    gap: 9px
+    height: 100%
+    padding: 0 22px
+    border: none
+    border-radius: 10px
+    background: var(--bv-accent)
+    color: #fff
+    cursor: default
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--bv-accent) 45%, transparent)
+
+    // logo più compatto nella pillola (il bianco arriva da .bgen-mark--dark)
+    .bgen-mark__img
+      --logo-h: 20px
+
+  .bgen-pv__smart-label
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 15px
+    color: var(--bv-text, #fff)

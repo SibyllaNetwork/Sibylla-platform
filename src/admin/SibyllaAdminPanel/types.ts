@@ -87,7 +87,7 @@ export type AdminTab =
   | 'utenti'
 
 /** Sezione di "Configurazione piattaforma" (modalità separata dalla gestione clienti). */
-export type PlatformSection = 'catalogo' | 'servizi' | 'agora-console'
+export type PlatformSection = 'catalogo' | 'servizi' | 'banner' | 'agora-console'
 
 /** Due modalità top-level del pannello admin: gestione clienti vs configurazione piattaforma. */
 export type AdminMode = 'clients' | 'platform'

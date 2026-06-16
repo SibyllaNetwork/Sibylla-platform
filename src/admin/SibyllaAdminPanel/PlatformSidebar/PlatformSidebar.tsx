@@ -24,6 +24,12 @@ const SECTIONS: SectionItem[] = [
     icon: 'concierge-bell',
   },
   {
+    id: 'banner',
+    label: 'Banner & affiliazione',
+    description: 'Genera banner di prenotazione per siti di terzi',
+    icon: 'share',
+  },
+  {
     id: 'agora-console',
     label: 'Piattaforma admin',
     description: 'Contenuti e impostazioni dell\'Agorà',
