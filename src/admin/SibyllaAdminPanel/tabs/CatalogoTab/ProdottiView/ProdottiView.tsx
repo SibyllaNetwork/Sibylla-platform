@@ -23,6 +23,8 @@ export default function ProdottiView({
   const [categoriaFilter, setCategoriaFilter] = useState('')
   const [fornitoreFilter, setFornitoreFilter] = useState('')
   const [mercatoFilter, setMercatoFilter] = useState<Mercato | ''>('')
+  const [statoFilter, setStatoFilter] = useState<'' | 'attivi' | 'disattivi' | 'pubblicati' | 'non-pubblicati'>('')
+  const [view, setView] = useState<'rows' | 'cards'>('rows')
 
   const categoriaLabel = (id: string) => categorie.find(c => c.id === id)?.nome || '—'
   const fornitoreLabel = (id: string) => fornitori.find(f => f.id === id)?.nome || '—'
@@ -34,12 +36,16 @@ export default function ProdottiView({
       if (categoriaFilter && p.categoriaId !== categoriaFilter) return false
       if (fornitoreFilter && p.fornitoreId !== fornitoreFilter) return false
       if (mercatoFilter && !p.mercati[mercatoFilter].abilitato) return false
+      if (statoFilter === 'attivi' && !p.attivo) return false
+      if (statoFilter === 'disattivi' && p.attivo) return false
+      if (statoFilter === 'pubblicati' && !p.pubblicato) return false
+      if (statoFilter === 'non-pubblicati' && p.pubblicato) return false
       if (!q) return true
       return p.nome.toLowerCase().includes(q) ||
              p.barcode.includes(q) ||
              p.descrizione.toLowerCase().includes(q)
     })
-  }, [prodotti, search, categoriaFilter, fornitoreFilter, mercatoFilter])
+  }, [prodotti, search, categoriaFilter, fornitoreFilter, mercatoFilter, statoFilter])
 
   return (
     <div className="prod-view">
@@ -88,10 +94,93 @@ export default function ProdottiView({
           <option value="">Tutti i mercati</option>
           {MERCATI.map(m => <option key={m.id} value={m.id}>Solo {m.label}</option>)}
         </select>
+        <select
+          value={statoFilter}
+          onChange={e => setStatoFilter(e.target.value as typeof statoFilter)}
+          className="sib-select prod-view__select"
+        >
+          <option value="">Tutti gli stati</option>
+          <option value="attivi">Attivi</option>
+          <option value="disattivi">Disattivi</option>
+          <option value="pubblicati">Pubblicati</option>
+          <option value="non-pubblicati">Non pubblicati</option>
+        </select>
+        <div className="cat-viewtoggle" role="group" aria-label="Visualizzazione">
+          <button type="button" className={`cat-viewtoggle__btn${view === 'cards' ? ' cat-viewtoggle__btn--active' : ''}`} onClick={() => setView('cards')} title="Card" aria-pressed={view === 'cards'}>
+            <i className="fa-duotone fa-grid-2" />
+          </button>
+          <button type="button" className={`cat-viewtoggle__btn${view === 'rows' ? ' cat-viewtoggle__btn--active' : ''}`} onClick={() => setView('rows')} title="Righe" aria-pressed={view === 'rows'}>
+            <i className="fa-duotone fa-list" />
+          </button>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="prod-view__empty">Nessun prodotto trovato.</div>
+      ) : view === 'cards' ? (
+        <div className="prod-view__cards">
+          {filtered.map(p => (
+            <div key={p.id} className="prod-view__card">
+              <div className="prod-view__card-top">
+                <span className="prod-view__barcode">
+                  <i className="fa-duotone fa-barcode prod-view__barcode-ico" />
+                  {p.barcode}
+                </span>
+                <button
+                  className={`prod-view__state${p.attivo ? ' prod-view__state--on' : ''}`}
+                  onClick={() => onToggleAttivo(p.id)}
+                >
+                  {p.attivo ? '● Attivo' : '● Disattivo'}
+                </button>
+              </div>
+              <div className="prod-view__card-name">{p.nome}</div>
+              <div className="prod-view__card-desc">{p.descrizione}</div>
+              <div className="prod-view__card-meta">
+                <span>{categoriaLabel(p.categoriaId)}</span>
+                <span className="prod-view__muted">{fornitoreLabel(p.fornitoreId)}</span>
+              </div>
+              <div className="prod-view__card-price">
+                € {p.prezzoBase.toFixed(2)}
+                <span className="prod-view__muted"> / {p.quantitaUnita} {unitaLabel(p.unita).split(' ')[0].toLowerCase()}</span>
+              </div>
+              <div className="prod-view__markets">
+                {MERCATI.map(m => {
+                  const mk = p.mercati[m.id]
+                  if (!mk.abilitato) return null
+                  return (
+                    <span key={m.id} className="prod-view__market-chip" style={{ ['--mercato-color' as any]: m.colore }}>
+                      {m.label} <strong>€ {mk.prezzoVendita.toFixed(2)}</strong>
+                    </span>
+                  )
+                })}
+                {!p.mercati.agora.abilitato && !p.mercati.network.abilitato && (
+                  <span className="prod-view__no-market">Nessun mercato</span>
+                )}
+              </div>
+              <div className="prod-view__card-foot">
+                {p.pubblicato ? (
+                  <button className="prod-view__pub-btn prod-view__pub-btn--off" onClick={() => onTogglePubblicato(p.id)}>
+                    <Ico n="eye-off" s={11} c="var(--color-warning)" />
+                    Rimuovi pubblicazione
+                  </button>
+                ) : (
+                  <button className="prod-view__pub-btn prod-view__pub-btn--on" onClick={() => onTogglePubblicato(p.id)}>
+                    <Ico n="globe" s={11} c="#fff" />
+                    Pubblica
+                  </button>
+                )}
+                <div className="prod-view__row-actions">
+                  <button className="prod-view__icon-btn prod-view__icon-btn--edit" onClick={() => onEdit(p)} aria-label="Modifica prodotto">
+                    <Ico n="edit" s={13} c="var(--color-link)" />
+                  </button>
+                  <button className="prod-view__icon-btn prod-view__icon-btn--del" onClick={() => onDelete(p.id)} aria-label="Elimina prodotto">
+                    <Ico n="trash" s={13} c="var(--color-error)" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="prod-view__table">
           <div className="prod-view__thead">

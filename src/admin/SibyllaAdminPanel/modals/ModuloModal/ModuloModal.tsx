@@ -6,7 +6,22 @@ import MenuTree from '../../MenuTree/MenuTree'
 import { ALL_PAGES } from '../../constants'
 import { getAllPages } from '../../helpers'
 import type { Modulo, ModuloForm } from '../../types'
+import {
+  ALL_CONFIGURATORE_IDS, FNB_ITEMS, MAIN_ITEMS,
+} from '../../../../modules/impostazioni/Configuratore/configuratoriList'
 import './ModuloModal.sass'
+
+// Albero delle voci del Configuratore, nella stessa forma del MENU dell'app
+// (gruppi con children → voci foglia), così da renderizzarlo con MenuTree.
+const CONFIG_TREE = [{
+  id: 'configuratore',
+  label: 'Configuratore',
+  icon: 'wheel',
+  children: [
+    { id: 'cfg-generali', label: 'Generali',        children: MAIN_ITEMS.map(i => ({ id: i.id, label: i.label, page: i.id })) },
+    { id: 'cfg-fnb',      label: 'Food & Beverage', children: FNB_ITEMS.map(i => ({ id: i.id, label: i.label, page: i.id })) },
+  ],
+}]
 
 interface Props {
   open: boolean
@@ -31,6 +46,20 @@ export default function ModuloModal({ open, editing, form, setForm, onClose, onC
     const allOn = pages.every(pg => s.has(pg))
     pages.forEach(pg => allOn ? s.delete(pg) : s.add(pg))
     setForm({ ...form, pagesSet: s })
+  }
+
+  // ── Voci del Configuratore (Impostazioni) ──────────────────────────────────
+  const toggleConfig = (id: string) => {
+    const s = new Set(form.configItemsSet)
+    s.has(id) ? s.delete(id) : s.add(id)
+    setForm({ ...form, configItemsSet: s })
+  }
+  const toggleConfigGroup = (children: any[]) => {
+    const ids = getAllPages(children)
+    const s = new Set(form.configItemsSet)
+    const allOn = ids.every(i => s.has(i))
+    ids.forEach(i => allOn ? s.delete(i) : s.add(i))
+    setForm({ ...form, configItemsSet: s })
   }
 
   return (
@@ -93,6 +122,38 @@ export default function ModuloModal({ open, editing, form, setForm, onClose, onC
             selected={form.pagesSet}
             onTogglePage={togglePage}
             onToggleGroup={toggleGroup}
+          />
+        </div>
+
+        {/* ── Voci del menu del Configuratore (Impostazioni) ───────────────── */}
+        <div className="mod-modal__pages-head">
+          <div className="mod-modal__pages-title">
+            Voci del Configuratore <span className="mod-modal__pages-count">({form.configItemsSet.size} visibili)</span>
+          </div>
+          <div className="mod-modal__pages-actions">
+            <button
+              className="mod-modal__sel-btn mod-modal__sel-btn--all"
+              onClick={() => setForm({ ...form, configItemsSet: new Set(ALL_CONFIGURATORE_IDS) })}
+            >
+              Seleziona tutto
+            </button>
+            <button
+              className="mod-modal__sel-btn"
+              onClick={() => setForm({ ...form, configItemsSet: new Set() })}
+            >
+              Deseleziona tutto
+            </button>
+          </div>
+        </div>
+        <p className="mod-modal__cfg-hint">
+          Controlla quali voci del menu del Configuratore (sezione Impostazioni) sono visibili per questo modulo.
+        </p>
+        <div className="mod-modal__tree-wrap">
+          <MenuTree
+            items={CONFIG_TREE}
+            selected={form.configItemsSet}
+            onTogglePage={toggleConfig}
+            onToggleGroup={toggleConfigGroup}
           />
         </div>
 

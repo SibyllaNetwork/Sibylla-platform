@@ -5,6 +5,44 @@
 //  configuratore e codice embed (destra).
 // ══════════════════════════════════════════════════════════════════════════════
 
+// Contenitore della sezione con il selettore Banner ↔ Pagina di Booking
+.bgen-wrap
+  display: flex
+  flex-direction: column
+  gap: 18px
+  min-height: 100%
+
+.bgen-switch
+  display: inline-flex
+  align-self: flex-start
+  border: 1px solid $border
+  border-radius: $radius-md
+  overflow: hidden
+  background: $white
+
+.bgen-switch__btn
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 9px 18px
+  font-size: 13px
+  font-weight: 600
+  color: $text-inactive
+  background: $white
+  border: none
+  cursor: pointer
+  transition: background .12s, color .12s
+
+  & + .bgen-switch__btn
+    border-left: 1px solid $border
+
+  &:hover
+    background: $primary-50
+
+  &--active
+    background: $primary-50
+    color: $primary
+
 .bgen
   display: flex
   gap: 18px

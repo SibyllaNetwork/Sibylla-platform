@@ -166,8 +166,8 @@ export function SalePage() {
                   <div style={{fontSize:11,color:C.muted}}>Tavoli: {s.num_tavoli} · Capienza: {s.capienza_max}</div>
                 </div>
                 <div style={{display:"flex",gap:3}}>
-                  <Btn small variant="ghost" onClick={e=>{e.stopPropagation();setFormSala({...s});setModalSala(s);}}>✏</Btn>
-                  <Btn small variant="ghost" onClick={e=>{e.stopPropagation();deleteSala(s);}}>🗑</Btn>
+                  <Btn small variant="ghost" onClick={e=>{e.stopPropagation();setFormSala({...s});setModalSala(s);}}><i className="fa-light fa-pen"/></Btn>
+                  <Btn small variant="ghost" onClick={e=>{e.stopPropagation();deleteSala(s);}}><i className="fa-light fa-trash-can"/></Btn>
                 </div>
               </div>
             </div>
@@ -615,7 +615,7 @@ export function VociMenuPage() {
           <div style={{borderTop:`1px solid ${C.border}`,paddingTop:14}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
               <label style={{fontSize:12,fontWeight:600,color:C.text}}>
-                🖨️ Stampanti <span style={{fontWeight:400,color:"#6b7280"}}>(per outlet e contesto)</span>
+                <i className="fa-light fa-print"/> Stampanti <span style={{fontWeight:400,color:"#6b7280"}}>(per outlet e contesto)</span>
               </label>
               <Btn small variant="secondary" onClick={()=>setForm(p=>({...p,stampanti_config:[...p.stampanti_config,{stampante_id:"",outlet_id:"",contesto:"reparto_produzione"}]}))}>
                 + Aggiungi
@@ -640,10 +640,10 @@ export function VociMenuPage() {
                 </select>
                 <select value={sc.contesto||"reparto_produzione"} onChange={e=>setForm(p=>({...p,stampanti_config:p.stampanti_config.map((x,j)=>j===i?{...x,contesto:e.target.value}:x)}))}
                   style={{flex:2,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"5px 8px",fontSize:12,background:"white"}}>
-                  <option value="reparto_produzione">🍳 Reparto produzione</option>
-                  <option value="chiusura_comanda">🏁 Chiusura comanda</option>
+                  <option value="reparto_produzione"><i className="fa-light fa-utensils"/> Reparto produzione</option>
+                  <option value="chiusura_comanda"><i className="fa-light fa-flag-checkered"/> Chiusura comanda</option>
                 </select>
-                <Btn small variant="danger" onClick={()=>setForm(p=>({...p,stampanti_config:p.stampanti_config.filter((_,j)=>j!==i)}))}>×</Btn>
+                <Btn small variant="danger" onClick={()=>setForm(p=>({...p,stampanti_config:p.stampanti_config.filter((_,j)=>j!==i)}))}><i className="fa-light fa-xmark"/></Btn>
               </div>
             ))}
           </div>
@@ -652,7 +652,7 @@ export function VociMenuPage() {
           <div style={{borderTop:`1px solid ${C.border}`,paddingTop:14}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <label style={{fontSize:12,fontWeight:600,color:C.text}}>
-                📺 Service Monitor <span style={{fontWeight:400,color:"#6b7280"}}>(reparti di destinazione)</span>
+                <i className="fa-light fa-display"/> Service Monitor <span style={{fontWeight:400,color:"#6b7280"}}>(reparti di destinazione)</span>
               </label>
               <div style={{display:"flex",gap:6}}>
                 <Btn small variant="secondary" onClick={()=>setForm(p=>({...p,monitor_config:[...p.monitor_config,{monitor_id:"",tutti_monitor:false}]}))}>
@@ -683,13 +683,11 @@ export function VociMenuPage() {
                   <select value={mc.monitor_id||""} onChange={e=>setForm(p=>({...p,monitor_config:p.monitor_config.map((x,j)=>j===i?{...x,monitor_id:e.target.value}:x)}))}
                     style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"5px 8px",fontSize:12,background:"white"}}>
                     <option value="">— Seleziona monitor —</option>
-                    {(monitors||[]).map(m=>{
-                      const rLabel={cucina:"🍳",bar:"🍹",pasticceria:"🎂",gelateria:"🍦",pizzeria:"🍕",griglia:"🔥",custom:"⚙️"}[m.reparto]||"📺";
-                      return <option key={m.id} value={m.id}>{rLabel} {m.nome}</option>;
+                    {(monitors||[]).map(m=>{                      return <option key={m.id} value={m.id}>{m.nome}</option>;
                     })}
                   </select>
                 )}
-                <Btn small variant="danger" onClick={()=>setForm(p=>({...p,monitor_config:p.monitor_config.filter((_,j)=>j!==i)}))}>✕</Btn>
+                <Btn small variant="danger" onClick={()=>setForm(p=>({...p,monitor_config:p.monitor_config.filter((_,j)=>j!==i)}))}><i className="fa-light fa-xmark"/></Btn>
               </div>
             ))}
           </div>
@@ -716,14 +714,14 @@ export function VociMenuPage() {
                 <input type="number" value={ps.prezzo_override} onChange={e=>updatePrezzo(i,"prezzo_override",e.target.value)}
                   min="0" step="0.50" placeholder="€"
                   style={{flex:1,border:`1.5px solid ${C.border}`,borderRadius:7,padding:"6px 8px",fontSize:12}}/>
-                <Btn small variant="danger" onClick={()=>setForm(p=>({...p,prezzi_speciali:p.prezzi_speciali.filter((_,j)=>j!==i)}))}>×</Btn>
+                <Btn small variant="danger" onClick={()=>setForm(p=>({...p,prezzi_speciali:p.prezzi_speciali.filter((_,j)=>j!==i)}))}><i className="fa-light fa-xmark"/></Btn>
               </div>
             ))}
           </div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10}}>
             <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12,cursor:"pointer",color:C.text}}>
               <input type="checkbox" checked={form.nel_web_menu} onChange={e=>f("nel_web_menu")(e.target.checked)}
-                style={{width:15,height:15}}/> 🌐 Includi nel Web Menu
+                style={{width:15,height:15}}/> <i className="fa-light fa-globe"/> Includi nel Web Menu
             </label>
             <label style={{display:"flex",alignItems:"center",gap:6,fontSize:12,cursor:"pointer",color:C.text}}>
               <input type="checkbox" checked={form.attivo} onChange={e=>f("attivo")(e.target.checked)} style={{accentColor:C.navy}}/>
@@ -857,9 +855,9 @@ export function StampantiPage() {
     ["custom",  "Custom/Altro"],
   ];
   const TIPI = [
-    ["produzione", "🍳 Reparto Produzione (cucina/bar)"],
-    ["fiscale",    "🖨️ Fiscale (scontrino/fattura)"],
-    ["preconto",   "📋 Pre-conto / Estratto conto"],
+    ["produzione", "Reparto Produzione (cucina/bar)"],
+    ["fiscale",    "Fiscale (scontrino/fattura)"],
+    ["preconto",   "Pre-conto / Estratto conto"],
   ];
 
   const open = row => {
@@ -877,13 +875,13 @@ export function StampantiPage() {
     try {
       if (modal==="new") await api.createStampante(payload);
       else               await api.updateStampante(form.id, payload);
-      toast("✓ Salvato"); reload(); setModal(null);
+      toast("Salvato"); reload(); setModal(null);
     } catch(e) { toast(e.message,"error"); }
   };
 
   const remove = row => {
     confirm(`Eliminare "${row?.nome}"?`, async () => {
-      try { await api.deleteStampante(row.id); toast("✓ Eliminata"); reload(); }
+      try { await api.deleteStampante(row.id); toast("Eliminata"); reload(); }
       catch(e) { toast(e.message,"error"); }
     });
   };
@@ -911,8 +909,8 @@ export function StampantiPage() {
     { key:"attiva",     label:"Stato",        render: (val) => <span style={{color:val?"#16a34a":"#9ca3af",fontWeight:600}}>{val?"Attiva":"Inattiva"}</span> },
     { key:"id",         label:"",             render: (_, r) => (
       <div style={{display:"flex",gap:6}}>
-        <Btn size="sm" onClick={()=>open(r)}>✏️ Modifica</Btn>
-        <Btn size="sm" variant="danger" onClick={()=>remove(r)}>🗑</Btn>
+        <Btn size="sm" onClick={()=>open(r)}><i className="fa-light fa-pen"/> Modifica</Btn>
+        <Btn size="sm" variant="danger" onClick={()=>remove(r)}><i className="fa-light fa-trash-can"/></Btn>
       </div>
     )},
   ];
@@ -920,7 +918,7 @@ export function StampantiPage() {
   return (
     <div style={{padding:24,maxWidth:1100,margin:"0 auto"}}>
       <ToastEl/><Dialog/>
-      <PageHeader title="🖨️ Stampanti" subtitle="Gestione stampanti di produzione, fiscali e pre-conto"
+      <PageHeader title="Stampanti" subtitle="Gestione stampanti di produzione, fiscali e pre-conto"
         action={<Btn onClick={()=>open(null)}>+ Nuova stampante</Btn>}/>
 
       {/* Legend */}
@@ -970,7 +968,7 @@ export function StampantiPage() {
             </Field>
             <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:8}}>
               <Btn variant="secondary" onClick={()=>setModal(null)}>Annulla</Btn>
-              <Btn onClick={save}>✓ Salva</Btn>
+              <Btn onClick={save}>Salva</Btn>
             </div>
           </div>
         </Modal>
@@ -984,13 +982,13 @@ export function StampantiPage() {
 // SERVICE MONITOR PAGE
 // ══════════════════════════════════════════════════════════════════════════════
 const REPARTI = [
-  ["cucina",      "🍳 Cucina"],
-  ["bar",         "🍹 Bar"],
-  ["pasticceria", "🎂 Pasticceria"],
-  ["gelateria",   "🍦 Gelateria"],
-  ["pizzeria",    "🍕 Pizzeria"],
-  ["griglia",     "🔥 Griglia"],
-  ["custom",      "⚙️ Custom"],
+  ["cucina",      "Cucina"],
+  ["bar",         "Bar"],
+  ["pasticceria", "Pasticceria"],
+  ["gelateria",   "Gelateria"],
+  ["pizzeria",    "Pizzeria"],
+  ["griglia",     "Griglia"],
+  ["custom",      "Custom"],
 ];
 const PRESET_COLORS = [
   {sfondo:"#1a1a2e",griglia:"#2a2a3e",testo:"#ffffff",header:"#ffffff",label:"Notte"},
@@ -1030,23 +1028,23 @@ export function ServiceMonitorPage() {
       const payload = {...form, outlet_id: form.outlet_id ? parseInt(form.outlet_id) : null};
       if (modal==="new") await api.createMonitor(payload);
       else               await api.updateMonitor(modal.id, payload);
-      toast("✓ Monitor salvato"); setModal(null); reload();
+      toast("Monitor salvato"); setModal(null); reload();
     } catch(e) { toast(e.message,"error"); }
   };
 
   const remove = row => confirm(`Eliminare monitor "${row.nome}"?`, async()=>{
-    try { await api.deleteMonitor(row.id); toast("✓ Eliminato"); reload(); }
+    try { await api.deleteMonitor(row.id); toast("Eliminato"); reload(); }
     catch(e) { toast(e.message,"error"); }
   });
 
   return (
     <div><ToastEl/><Dialog/>
-      <PageHeader title="📺 Service Monitor" subtitle="Monitor KDS per reparti di produzione — cucina, bar, pasticceria"
+      <PageHeader title="Service Monitor" subtitle="Monitor KDS per reparti di produzione — cucina, bar, pasticceria"
         action={<Btn onClick={()=>{setForm(empty);setModal("new");}}>+ Nuovo Monitor</Btn>}/>
 
       {/* Info banner */}
       <div style={{marginBottom:20,padding:"12px 16px",background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,fontSize:12,color:"#1e40af",display:"flex",alignItems:"center",gap:10}}>
-        <span style={{fontSize:20}}>ℹ️</span>
+        <span style={{fontSize:20}}><i className="fa-light fa-circle-info"/></span>
         <div>
           <strong>Come funziona:</strong> ogni monitor genera un URL univoco da impostare su un display/tablet in reparto.
           La pagina si aggiorna automaticamente ogni 15 secondi mostrando le comande attive per quell'outlet.
@@ -1057,7 +1055,7 @@ export function ServiceMonitorPage() {
       {loading && <div style={{textAlign:"center",padding:40,color:"#94a3b8"}}>Caricamento...</div>}
       {!loading && monitors?.length===0 && (
         <div style={{textAlign:"center",padding:60,color:"#94a3b8",fontSize:13}}>
-          <div style={{fontSize:48,marginBottom:12}}>📺</div>
+          <div style={{fontSize:48,marginBottom:12}}><i className="fa-light fa-display"/></div>
           <div>Nessun monitor configurato</div>
           <div style={{fontSize:11,marginTop:4}}>Crea il primo monitor con il pulsante in alto a destra</div>
         </div>
@@ -1078,7 +1076,7 @@ export function ServiceMonitorPage() {
                 </div>
                 <div style={{width:36,height:36,borderRadius:8,border:`2px solid ${m.colore_testo}33`,
                   display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>
-                  {REPARTI.find(([k])=>k===m.reparto)?.[1]?.[0] || "📺"}
+                  <i className={({cucina:"fa-light fa-utensils",bar:"fa-light fa-martini-glass-citrus",pasticceria:"fa-light fa-cake-candles",gelateria:"fa-light fa-ice-cream",pizzeria:"fa-light fa-pizza-slice",griglia:"fa-light fa-fire",custom:"fa-light fa-gear"}[m.reparto])||"fa-light fa-display"}/>
                 </div>
               </div>
               {/* Body */}
@@ -1092,8 +1090,8 @@ export function ServiceMonitorPage() {
                     {m.attivo?"● Attivo":"○ Inattivo"}
                   </span>
                   <div style={{display:"flex",gap:6}}>
-                    <Btn size="sm" onClick={()=>{setForm({...m,outlet_id:m.outlet_id?String(m.outlet_id):""});setModal(m);}}>✏️ Modifica</Btn>
-                    <Btn size="sm" variant="danger" onClick={()=>remove(m)}>🗑</Btn>
+                    <Btn size="sm" onClick={()=>{setForm({...m,outlet_id:m.outlet_id?String(m.outlet_id):""});setModal(m);}}><i className="fa-light fa-pen"/> Modifica</Btn>
+                    <Btn size="sm" variant="danger" onClick={()=>remove(m)}><i className="fa-light fa-trash-can"/></Btn>
                   </div>
                 </div>
                 {/* URL box */}
@@ -1106,12 +1104,12 @@ export function ServiceMonitorPage() {
                         background:copiedId===m.id?"#2d5a7b":"white",
                         color:copiedId===m.id?"white":"#2d5a7b",
                         cursor:"pointer",fontSize:11,fontWeight:700,whiteSpace:"nowrap",transition:"all .2s"}}>
-                      {copiedId===m.id?"✓ Copiato!":"📋 Copia"}
+                      {copiedId===m.id?"✓ Copiato!":"Copia"}
                     </button>
                     <button onClick={()=>window.open(url,"_blank")}
                       style={{flexShrink:0,padding:"5px 10px",borderRadius:6,border:"1px solid #e2e8f0",
                         background:"white",color:"#64748b",cursor:"pointer",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>
-                      🔗 Apri
+                      <i className="fa-light fa-link"/> Apri
                     </button>
                   </div>
                 </div>
@@ -1218,7 +1216,7 @@ export function ServiceMonitorPage() {
           </Field>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:8}}>
             <Btn variant="secondary" onClick={()=>setModal(null)}>Annulla</Btn>
-            <Btn onClick={save}>✓ Salva</Btn>
+            <Btn onClick={save}>Salva</Btn>
           </div>
         </Modal>
       )}
@@ -1292,12 +1290,12 @@ export function WebMenuPage() {
       };
       if (modal==="new") await api.createWebMenu(payload);
       else await api.updateWebMenu(modal.id, payload);
-      toast("✓ Salvato"); setModal(null); reload();
+      toast("Salvato"); setModal(null); reload();
     } catch(e) { toast(e.message,"error"); }
   };
 
   const remove = row => confirm(`Eliminare menu "${row.nome}"?`, async()=>{
-    try { await api.deleteWebMenu(row.id); toast("✓ Eliminato"); reload(); }
+    try { await api.deleteWebMenu(row.id); toast("Eliminato"); reload(); }
     catch(e) { toast(e.message,"error"); }
   });
 
@@ -1334,7 +1332,7 @@ export function WebMenuPage() {
         categoria:cat?.nome||"", allergeni:codici, etichette:"", immagine_url:"" };
     });
     setForm(p=>({...p, voci:[...p.voci, ...nuove]}));
-    toast(`✓ ${nuove.length} voci importate`);
+    toast(`${nuove.length} voci importate`);
   };
   const updateVoce = (i,k,v) => setForm(p=>({...p, voci:p.voci.map((x,j)=>j===i?{...x,[k]:v}:x)}));
   const removeVoce = i => setForm(p=>({...p, voci:p.voci.filter((_,j)=>j!==i)}));
@@ -1369,12 +1367,12 @@ export function WebMenuPage() {
 
   return (
     <div><ToastEl/><Dialog/>
-      <PageHeader title="🌐 Web Menu" subtitle="Menu digitale accessibile via URL e QR code — personalizzabile"
+      <PageHeader title="Web Menu" subtitle="Menu digitale accessibile via URL e QR code — personalizzabile"
         action={<Btn onClick={()=>openModal(null)}>+ Nuovo Menu</Btn>}/>
 
       {/* Info banner */}
       <div style={{marginBottom:20,padding:"12px 16px",background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:10,fontSize:12,color:"#1e40af",display:"flex",gap:10}}>
-        <span style={{fontSize:20}}>📱</span>
+        <span style={{fontSize:20}}><i className="fa-light fa-mobile-screen"/></span>
         <div>I menu web sono accessibili via link diretto o QR code da qualsiasi dispositivo, senza app.
         L'URL viene generato automaticamente: <strong>{baseUrl}/menu/nome-slug</strong></div>
       </div>
@@ -1383,7 +1381,7 @@ export function WebMenuPage() {
       {loading&&<div style={{textAlign:"center",padding:60,color:"#94a3b8"}}>Caricamento...</div>}
       {!loading&&menus.length===0&&(
         <div style={{textAlign:"center",padding:60,color:"#94a3b8"}}>
-          <div style={{fontSize:48,marginBottom:12}}>🌐</div>
+          <div style={{fontSize:48,marginBottom:12}}><i className="fa-light fa-globe"/></div>
           <div>Nessun web menu — crea il primo con il pulsante in alto a destra</div>
         </div>
       )}
@@ -1418,8 +1416,8 @@ export function WebMenuPage() {
                   </span>
                   <span style={{fontSize:11,color:"#64748b"}}>{outletNome}</span>
                   <div style={{display:"flex",gap:5}}>
-                    <Btn size="sm" onClick={()=>openModal(m)}>✏️</Btn>
-                    <Btn size="sm" variant="danger" onClick={()=>remove(m)}>🗑</Btn>
+                    <Btn size="sm" onClick={()=>openModal(m)}><i className="fa-light fa-pen"/></Btn>
+                    <Btn size="sm" variant="danger" onClick={()=>remove(m)}><i className="fa-light fa-trash-can"/></Btn>
                   </div>
                 </div>
                 {/* URL + QR */}
@@ -1431,11 +1429,11 @@ export function WebMenuPage() {
                       style={{padding:"4px 8px",borderRadius:5,border:"1px solid #2d5a7b",
                         background:copiedId===m.id?"#2d5a7b":"white",
                         color:copiedId===m.id?"white":"#2d5a7b",cursor:"pointer",fontSize:10,fontWeight:700}}>
-                      {copiedId===m.id?"✓":"📋"}
+                      {copiedId===m.id?<i className="fa-light fa-check"/>:<i className="fa-light fa-copy"/>}
                     </button>
                     <button onClick={()=>window.open(url,"_blank")}
                       style={{padding:"4px 8px",borderRadius:5,border:"1px solid #e2e8f0",
-                        background:"white",color:"#64748b",cursor:"pointer",fontSize:10}}>🔗</button>
+                        background:"white",color:"#64748b",cursor:"pointer",fontSize:10}}><i className="fa-light fa-link"/></button>
                   </div>
                 </div>
                 {/* QR Code + validity */}
@@ -1446,10 +1444,10 @@ export function WebMenuPage() {
                       onError={e=>{e.target.style.display="none";}}/>
                   </div>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:11,fontWeight:700,color:"#0f172a",marginBottom:2}}>📱 QR Code</div>
-                    {m.servizio&&m.servizio!=="Tutti"&&<div style={{fontSize:10,color:"#2d5a7b",fontWeight:600}}>🍽️ {m.servizio}</div>}
+                    <div style={{fontSize:11,fontWeight:700,color:"#0f172a",marginBottom:2}}><i className="fa-light fa-mobile-screen"/> QR Code</div>
+                    {m.servizio&&m.servizio!=="Tutti"&&<div style={{fontSize:10,color:"#2d5a7b",fontWeight:600}}>{m.servizio}</div>}
                     {(m.data_dal||m.data_al)&&<div style={{fontSize:10,color:"#64748b"}}>
-                      📅 {m.data_dal||"—"} → {m.data_al||"—"}
+                      <i className="fa-light fa-calendar"/> {m.data_dal||"—"} → {m.data_al||"—"}
                     </div>}
                     <div style={{display:"flex",gap:4,marginTop:4}}>
                       <button onClick={()=>window.open(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(menuUrl(m.slug))}`, "_blank")}
@@ -1470,9 +1468,9 @@ export function WebMenuPage() {
         <Modal wide title={modal==="new"?"Nuovo Web Menu":"Modifica Web Menu"} onClose={()=>setModal(null)}>
           {/* Tabs */}
           <div style={{display:"flex",gap:4,marginBottom:16,padding:"4px",background:"#f1f5f9",borderRadius:8,width:"fit-content"}}>
-            {tabBtn("info","📋 Informazioni")}
-            {tabBtn("design","🎨 Design")}
-            {tabBtn("voci","🍽️ Voci Menu")}
+            {tabBtn("info","Informazioni")}
+            {tabBtn("design","Design")}
+            {tabBtn("voci","Voci Menu")}
           </div>
 
           {/* Tab: Informazioni */}
@@ -1498,7 +1496,7 @@ export function WebMenuPage() {
                 <div style={{display:"flex",gap:6,alignItems:"center"}}>
                   <label style={{padding:"5px 12px",borderRadius:6,border:"1.5px solid #2d5a7b",background:"#eff6ff",
                     color:"#2d5a7b",cursor:"pointer",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>
-                    📁 Carica immagine
+                    <i className="fa-light fa-folder-open"/> Carica immagine
                     <input type="file" accept="image/*" style={{display:"none"}}
                       onChange={async e=>{
                         const file=e.target.files?.[0]; if(!file) return;
@@ -1506,7 +1504,7 @@ export function WebMenuPage() {
                       }}/>
                   </label>
                   {form.logo_url&&<img src={form.logo_url} alt="logo" style={{maxHeight:50,borderRadius:4,border:"1px solid #e2e8f0"}}/>}
-                  {form.logo_url&&<button onClick={()=>f("logo_url")("")} style={{border:"none",background:"none",cursor:"pointer",color:"#dc2626",fontSize:18}}>×</button>}
+                  {form.logo_url&&<button onClick={()=>f("logo_url")("")} style={{border:"none",background:"none",cursor:"pointer",color:"#dc2626",fontSize:18}}><i className="fa-light fa-xmark"/></button>}
                 </div>
               </Field>
               <Field label="Note a piede pagina (allergeni, info legali, ecc.)">
@@ -1616,7 +1614,7 @@ export function WebMenuPage() {
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:6}}>
                 <span style={{fontSize:12,color:"#64748b"}}>{form.voci.length} voci totali</span>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  <Btn small variant="secondary" onClick={importDaCatalogo}>⭐ Import. da catalogo</Btn>
+                  <Btn small variant="secondary" onClick={importDaCatalogo}><i className="fa-light fa-star"/> Import. da catalogo</Btn>
                   <Btn small onClick={addVoce}>+ Aggiungi voce</Btn>
                 </div>
               </div>
@@ -1633,12 +1631,12 @@ export function WebMenuPage() {
                       {/* Import from catalog */}
                       <select value={v.voce_menu_id||""} onChange={e=>{if(e.target.value)importVoce(i,e.target.value);}}
                         style={{flex:1,border:"1.5px solid #dbeafe",borderRadius:6,padding:"3px 6px",fontSize:11,background:"#eff6ff",color:"#1e40af"}}>
-                        <option value="">📥 Importa da catalogo...</option>
+                        <option value="">Importa da catalogo...</option>
                         {vociMenu.map(vm=><option key={vm.id} value={vm.id}>{vm.nome_it||vm.nome}</option>)}
                       </select>
-                      <button onClick={()=>moveVoce(i,-1)} style={{border:"none",background:"none",cursor:"pointer",fontSize:14,opacity:i===0?.3:1}}>↑</button>
-                      <button onClick={()=>moveVoce(i,1)} style={{border:"none",background:"none",cursor:"pointer",fontSize:14,opacity:i===form.voci.length-1?.3:1}}>↓</button>
-                      <Btn small variant="danger" onClick={()=>removeVoce(i)}>✕</Btn>
+                      <button onClick={()=>moveVoce(i,-1)} style={{border:"none",background:"none",cursor:"pointer",fontSize:14,opacity:i===0?.3:1}}><i className="fa-light fa-chevron-up"/></button>
+                      <button onClick={()=>moveVoce(i,1)} style={{border:"none",background:"none",cursor:"pointer",fontSize:14,opacity:i===form.voci.length-1?.3:1}}><i className="fa-light fa-chevron-down"/></button>
+                      <Btn small variant="danger" onClick={()=>removeVoce(i)}><i className="fa-light fa-xmark"/></Btn>
                     </div>
                     <FormRow>
                       <Field label="Categoria *" half>
@@ -1673,7 +1671,7 @@ export function WebMenuPage() {
                             }} title="Sincronizza allergeni dal catalogo"
                               style={{flexShrink:0,padding:"4px 8px",borderRadius:6,border:"1px solid #2d5a7b",
                                 background:"#eff6ff",color:"#2d5a7b",cursor:"pointer",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>
-                              🔄 Sync
+                              <i className="fa-light fa-arrows-rotate"/> Sync
                             </button>
                           )}
                         </div>
@@ -1686,7 +1684,7 @@ export function WebMenuPage() {
                       <div style={{display:"flex",gap:6,alignItems:"center"}}>
                         <label style={{padding:"4px 10px",borderRadius:6,border:"1.5px solid #2d5a7b",background:"#eff6ff",
                           color:"#2d5a7b",cursor:"pointer",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>
-                          📁 Carica foto
+                          <i className="fa-light fa-folder-open"/> Carica foto
                           <input type="file" accept="image/*" style={{display:"none"}}
                             onChange={async e=>{
                               const file=e.target.files?.[0]; if(!file) return;
@@ -1694,7 +1692,7 @@ export function WebMenuPage() {
                             }}/>
                         </label>
                         {v.immagine_url&&<img src={v.immagine_url} alt="prev" style={{maxHeight:36,borderRadius:4,border:"1px solid #e2e8f0"}}/>}
-                        {v.immagine_url&&<button onClick={()=>updateVoce(i,"immagine_url","")} style={{border:"none",background:"none",cursor:"pointer",color:"#dc2626",fontSize:16}}>×</button>}
+                        {v.immagine_url&&<button onClick={()=>updateVoce(i,"immagine_url","")} style={{border:"none",background:"none",cursor:"pointer",color:"#dc2626",fontSize:16}}><i className="fa-light fa-xmark"/></button>}
                       </div>
                     </Field>
                   </div>
@@ -1706,9 +1704,9 @@ export function WebMenuPage() {
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16,borderTop:"1px solid #f1f5f9",paddingTop:12}}>
             <Btn variant="secondary" onClick={()=>setModal(null)}>Annulla</Btn>
             {modal!=="new"&&(
-              <Btn variant="secondary" onClick={()=>window.open(menuUrl(modal.slug),"_blank")}>🌐 Apri menu</Btn>
+              <Btn variant="secondary" onClick={()=>window.open(menuUrl(modal.slug),"_blank")}><i className="fa-light fa-globe"/> Apri menu</Btn>
             )}
-            <Btn onClick={save}>✓ Salva</Btn>
+            <Btn onClick={save}>Salva</Btn>
           </div>
         </Modal>
       )}
@@ -1725,7 +1723,7 @@ const qrWalletUrl = (token, size=200) =>
 const sendEmailWallet = async (cliente, wallet, toast) => {
   try {
     await api.sendWalletEmail({wallet_id: wallet.id});
-    if (toast) toast(`✓ Email inviata a ${cliente.email}`);
+    if (toast) toast(`Email inviata a ${cliente.email}`);
   } catch(e) {
     // Fallback a mailto: se SMTP non configurato
     const subject = encodeURIComponent("Il tuo Wallet " + wallet.etichetta);
@@ -1762,8 +1760,8 @@ const sendWhatsAppWallet = (cliente, wallet) => {
 };
 
 const METODI_PAGAMENTO_W = [
-  ["contanti","💵 Contanti"],["pos","💳 POS/Carta"],["bonifico","🏦 Bonifico"],
-  ["amex","🔵 Amex"],["visa","💙 Visa"],["mastercard","🔴 Mastercard"],["altro","📋 Altro"],
+  ["contanti","Contanti"],["pos","POS/Carta"],["bonifico","Bonifico"],
+  ["amex","Amex"],["visa","Visa"],["mastercard","Mastercard"],["altro","Altro"],
 ];
 
 export function WalletPage() {
@@ -1823,12 +1821,12 @@ export function WalletPage() {
         await api.updateCliente(modalCliente.id, payload);
         if(selCliente?.id===modalCliente.id) setSelCliente(prev=>({...prev,...payload}));
       }
-      toast("✓ Salvato"); setModalCliente(null); loadClienti(searchQ);
+      toast("Salvato"); setModalCliente(null); loadClienti(searchQ);
     } catch(e){ toast(e.message,"error"); }
   };
 
   const deleteCliente = c => confirm(`Eliminare "${c.nome} ${c.cognome}"? Tutti i wallet saranno eliminati.`, async()=>{
-    try { await api.deleteCliente(c.id); toast("✓ Eliminato"); loadClienti(searchQ); if(selCliente?.id===c.id){setSelCliente(null);setWallets([]);} }
+    try { await api.deleteCliente(c.id); toast("Eliminato"); loadClienti(searchQ); if(selCliente?.id===c.id){setSelCliente(null);setWallets([]);} }
     catch(e){ toast(e.message,"error"); }
   });
 
@@ -1839,12 +1837,12 @@ export function WalletPage() {
                        saldo_iniziale:parseFloat(formW.saldo_iniziale)||0};
       if(modalWallet==="new") await api.createWallet(payload);
       else await api.updateWallet(modalWallet.id, payload);
-      toast("✓ Wallet salvato"); setModalWallet(null); loadWallets(selCliente.id);
+      toast("Wallet salvato"); setModalWallet(null); loadWallets(selCliente.id);
     } catch(e){ toast(e.message,"error"); }
   };
 
   const deleteWallet = w => confirm(`Eliminare wallet "${w.etichetta}"?`, async()=>{
-    try { await api.deleteWallet(w.id); toast("✓ Eliminato"); loadWallets(selCliente.id); if(selWallet?.id===w.id) setSelWallet(null); }
+    try { await api.deleteWallet(w.id); toast("Eliminato"); loadWallets(selCliente.id); if(selWallet?.id===w.id) setSelWallet(null); }
     catch(e){ toast(e.message,"error"); }
   });
 
@@ -1854,7 +1852,7 @@ export function WalletPage() {
     try {
       const nota = `${METODI_PAGAMENTO_W.find(([k])=>k===metodoRic)?.[1]||metodoRic}${noteRic?` — ${noteRic}`:""}`;
       await api.ricaricaWallet(modalRicarica.id, {importo:imp, note:nota});
-      toast(`✓ Ricarica €${imp.toFixed(2)} effettuata`);
+      toast(`Ricarica €${imp.toFixed(2)} effettuata`);
       setModalRicarica(null); setImportoRic(""); setNoteRic(""); setMetodoRic("contanti");
       loadWallets(selCliente.id);
     } catch(e){ toast(e.message,"error"); }
@@ -1867,7 +1865,7 @@ export function WalletPage() {
 
   return (
     <div style={{height:"100%",display:"flex",flexDirection:"column",gap:0}}><ToastEl/><Dialog/>
-      <PageHeader title="💳 Wallet Clienti" subtitle="Carta monetica virtuale nominativa — ricaricabile con QR code"/>
+      <PageHeader title="Wallet Clienti" subtitle="Carta monetica virtuale nominativa — ricaricabile con QR code"/>
 
       {/* ── LAYOUT 3 COLONNE: clienti | wallet-badge | movimenti ── */}
       <div style={{display:"grid",gridTemplateColumns:"260px 310px 1fr",gap:14,flex:1,overflow:"hidden",padding:"0 0 8px"}}>
@@ -1877,7 +1875,7 @@ export function WalletPage() {
           background:"white",border:"1px solid #e2e8f0",borderRadius:12,padding:12}}>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
             <input value={searchQ} onChange={e=>{setSearchQ(e.target.value);loadClienti(e.target.value);}}
-              placeholder="🔍 Cerca cliente..."
+              placeholder="Cerca cliente..."
               style={{flex:1,border:"1px solid #e2e8f0",borderRadius:8,padding:"7px 10px",fontSize:12,outline:"none"}}/>
             <button onClick={()=>{setFormC({nome:"",cognome:"",email:"",telefono:"",note:"",categoria_cliente_id:""});setModalCliente("new");}}
               style={{flexShrink:0,padding:"7px 12px",borderRadius:8,border:"none",background:"#2d5a7b",color:"white",cursor:"pointer",fontSize:12,fontWeight:700}}>
@@ -1905,9 +1903,9 @@ export function WalletPage() {
                     </div>
                     <div style={{display:"flex",gap:3,flexShrink:0}} onClick={e=>e.stopPropagation()}>
                       <button onClick={()=>{setFormC({...c,categoria_cliente_id:c.categoria_cliente_id||""});setModalCliente(c);}}
-                        style={{width:24,height:24,borderRadius:5,border:"1px solid #e2e8f0",background:"white",cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
+                        style={{width:24,height:24,borderRadius:5,border:"1px solid #e2e8f0",background:"white",cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}><i className="fa-light fa-pen"/></button>
                       <button onClick={()=>deleteCliente(c)}
-                        style={{width:24,height:24,borderRadius:5,border:"1px solid #fecaca",background:"#fef2f2",cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>🗑</button>
+                        style={{width:24,height:24,borderRadius:5,border:"1px solid #fecaca",background:"#fef2f2",cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}><i className="fa-light fa-trash-can"/></button>
                     </div>
                   </div>
                 </div>
@@ -1921,7 +1919,7 @@ export function WalletPage() {
           {!selCliente?(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
               color:"#94a3b8",background:"white",border:"1px solid #e2e8f0",borderRadius:12,gap:10}}>
-              <div style={{fontSize:40}}>💳</div>
+              <div style={{fontSize:40}}><i className="fa-light fa-credit-card"/></div>
               <div style={{fontSize:12}}>Seleziona un cliente</div>
             </div>
           ):(
@@ -2035,12 +2033,12 @@ export function WalletPage() {
                         padding:"8px 12px"}}>
                         <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
                           {[
-                            ["💰 Ricarica","#16a34a","#f0fdf4","#bbf7d0",()=>{setModalRicarica(w);setImportoRic("");setNoteRic("");setMetodoRic("contanti");}],
-                            ["📱 QR","#2d5a7b","#eff6ff","#bfdbfe",()=>setQrModal(w)],
-                            ...(selCliente.email?[["📧 Email","#7c3aed","#f5f3ff","#ddd6fe",()=>sendEmailWallet(selCliente,w,toast)]]:[][Symbol.iterator]?[]:[]),
-                            ...(selCliente.telefono?[["📱 WhatsApp","#16a34a","#f0fdf4","#bbf7d0",()=>sendWhatsAppWallet(selCliente,w)]]:[][Symbol.iterator]?[]:[]),
-                            [w.attivo?"⏸ Disattiva":"▶ Attiva","#64748b","#f8fafc","#e2e8f0",()=>toggleWallet(w)],
-                            ["✏️ Modifica","#374151","white","#e2e8f0",()=>{setFormW({etichetta:w.etichetta,data_scadenza:w.data_scadenza||"",outlet_id:w.outlet_id||"",attivo:w.attivo,metodo_pagamento:"contanti"});setModalWallet(w);}],
+                            ["Ricarica","#16a34a","#f0fdf4","#bbf7d0",()=>{setModalRicarica(w);setImportoRic("");setNoteRic("");setMetodoRic("contanti");}],
+                            ["QR","#2d5a7b","#eff6ff","#bfdbfe",()=>setQrModal(w)],
+                            ...(selCliente.email?[["Email","#7c3aed","#f5f3ff","#ddd6fe",()=>sendEmailWallet(selCliente,w,toast)]]:[][Symbol.iterator]?[]:[]),
+                            ...(selCliente.telefono?[["WhatsApp","#16a34a","#f0fdf4","#bbf7d0",()=>sendWhatsAppWallet(selCliente,w)]]:[][Symbol.iterator]?[]:[]),
+                            [w.attivo?"Disattiva":"Attiva","#64748b","#f8fafc","#e2e8f0",()=>toggleWallet(w)],
+                            ["Modifica","#374151","white","#e2e8f0",()=>{setFormW({etichetta:w.etichetta,data_scadenza:w.data_scadenza||"",outlet_id:w.outlet_id||"",attivo:w.attivo,metodo_pagamento:"contanti"});setModalWallet(w);}],
                             ["🗑","#dc2626","#fef2f2","#fecaca",()=>deleteWallet(w)],
                           ].map(([label,tc,bg,bc,fn])=>(
                             <button key={label} onClick={e=>{e.stopPropagation();fn();}}
@@ -2066,7 +2064,7 @@ export function WalletPage() {
           <div style={{background:"#f8fafc",borderBottom:"1px solid #e2e8f0",padding:"12px 16px",
             display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
             <div>
-              <div style={{fontWeight:800,fontSize:13,color:"#0f172a"}}>📊 Storico dei tuoi movimenti</div>
+              <div style={{fontWeight:800,fontSize:13,color:"#0f172a"}}><i className="fa-light fa-chart-column"/> Storico dei tuoi movimenti</div>
               {selWallet?(
                 <div style={{fontSize:11,color:"#64748b",marginTop:2}}>
                   {selWallet.etichetta}
@@ -2088,7 +2086,7 @@ export function WalletPage() {
           {!selWallet?(
             <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
               color:"#94a3b8",gap:12}}>
-              <div style={{fontSize:48,opacity:.3}}>📋</div>
+              <div style={{fontSize:48,opacity:.3}}><i className="fa-light fa-clipboard-list"/></div>
               <div style={{fontSize:12}}>Seleziona un wallet per visualizzare i movimenti</div>
             </div>
           ):(
@@ -2106,7 +2104,7 @@ export function WalletPage() {
               <div style={{flex:1,overflowY:"auto"}}>
                 {movimenti.length===0&&(
                   <div style={{textAlign:"center",color:"#94a3b8",padding:40,fontSize:12}}>
-                    <div style={{fontSize:32,marginBottom:8,opacity:.4}}>📭</div>
+                    <div style={{fontSize:32,marginBottom:8,opacity:.4}}><i className="fa-light fa-inbox"/></div>
                     Nessun movimento registrato per questo wallet
                   </div>
                 )}
@@ -2170,7 +2168,7 @@ export function WalletPage() {
 
       {/* Modal: Nuovo/Modifica cliente */}
       {modalCliente&&(
-        <Modal title={modalCliente==="new"?"👤 Nuovo Cliente":"✏️ Modifica Cliente"} onClose={()=>setModalCliente(null)}>
+        <Modal title={modalCliente==="new"?"Nuovo Cliente":"Modifica Cliente"} onClose={()=>setModalCliente(null)}>
           <FormRow>
             <Field label="Nome *" half><Input value={formC.nome} onChange={fC("nome")} placeholder="Mario"/></Field>
             <Field label="Cognome" half><Input value={formC.cognome} onChange={fC("cognome")} placeholder="Rossi"/></Field>
@@ -2195,7 +2193,7 @@ export function WalletPage() {
 
       {/* Modal: Nuovo/Modifica wallet */}
       {modalWallet&&(
-        <Modal title={modalWallet==="new"?"💳 Nuovo Wallet":"✏️ Modifica Wallet"} onClose={()=>setModalWallet(null)}>
+        <Modal title={modalWallet==="new"?"Nuovo Wallet":"Modifica Wallet"} onClose={()=>setModalWallet(null)}>
           <FormRow>
             <Field label="Etichetta" half><Input value={formW.etichetta} onChange={fW("etichetta")} placeholder="Soggiorno Luglio"/></Field>
             <Field label="Outlet" half>
@@ -2228,14 +2226,14 @@ export function WalletPage() {
           </FormRow>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:12,paddingTop:10,borderTop:"1px solid #f1f5f9"}}>
             <Btn variant="secondary" onClick={()=>setModalWallet(null)}>Annulla</Btn>
-            <Btn onClick={saveWallet}>✓ Salva</Btn>
+            <Btn onClick={saveWallet}>Salva</Btn>
           </div>
         </Modal>
       )}
 
       {/* Modal: Ricarica */}
       {modalRicarica&&(
-        <Modal title={`💰 Ricarica — ${modalRicarica.etichetta}`} onClose={()=>setModalRicarica(null)}>
+        <Modal title={`Ricarica — ${modalRicarica.etichetta}`} onClose={()=>setModalRicarica(null)}>
           <div style={{textAlign:"center",background:"linear-gradient(135deg,#2d5a7b,#1e3f58)",borderRadius:10,padding:"16px 0",marginBottom:16}}>
             <div style={{fontSize:12,color:"rgba(255,255,255,.6)",marginBottom:4}}>Saldo attuale</div>
             <div style={{fontSize:36,fontWeight:900,color:"white"}}>€{modalRicarica.saldo.toFixed(2)}</div>
@@ -2274,7 +2272,7 @@ export function WalletPage() {
 
       {/* Modal: QR Code */}
       {qrModal&&(
-        <Modal title={`📱 QR Code — ${qrModal.etichetta}`} onClose={()=>setQrModal(null)}>
+        <Modal title={`QR Code — ${qrModal.etichetta}`} onClose={()=>setQrModal(null)}>
           <div style={{textAlign:"center",padding:"8px 0"}}>
             <img src={qrWalletUrl(qrModal.token,220)} alt="QR"
               style={{width:220,height:220,border:"1px solid #e2e8f0",borderRadius:10,margin:"0 auto 14px",display:"block"}}/>
@@ -2282,7 +2280,7 @@ export function WalletPage() {
               {selCliente?.cognome?`${selCliente.cognome} ${selCliente.nome}`:selCliente?.nome}
             </div>
             <div style={{fontSize:28,fontWeight:900,color:"#2d5a7b",marginBottom:4}}>€{qrModal.saldo.toFixed(2)}</div>
-            {qrModal.data_scadenza&&<div style={{fontSize:11,color:"#64748b",marginBottom:10}}>📅 Scade: {qrModal.data_scadenza}</div>}
+            {qrModal.data_scadenza&&<div style={{fontSize:11,color:"#64748b",marginBottom:10}}><i className="fa-light fa-calendar"/> Scade: {qrModal.data_scadenza}</div>}
             <div style={{background:"#f8fafc",borderRadius:8,padding:"8px 12px",
               fontSize:9,color:"#94a3b8",fontFamily:"monospace",wordBreak:"break-all",marginBottom:14,textAlign:"left"}}>
               {qrModal.token}
@@ -2290,24 +2288,24 @@ export function WalletPage() {
             <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
               <button onClick={()=>window.open(qrWalletUrl(qrModal.token,300),"_blank")}
                 style={{padding:"8px 16px",borderRadius:8,border:"1px solid #2d5a7b",background:"#eff6ff",color:"#2d5a7b",cursor:"pointer",fontWeight:700,fontSize:12}}>
-                📥 Scarica QR
+                <i className="fa-light fa-file-import"/> Scarica QR
               </button>
               {selCliente?.email&&(
                 <button onClick={()=>sendEmailWallet(selCliente,qrModal,toast)}
                   style={{padding:"8px 16px",borderRadius:8,border:"1px solid #7c3aed",background:"#f5f3ff",color:"#7c3aed",cursor:"pointer",fontWeight:700,fontSize:12}}>
-                  📧 Invia via Email
+                  <i className="fa-light fa-envelope"/> Invia via Email
                 </button>
               )}
               {selCliente?.telefono&&(
                 <button onClick={()=>sendWhatsAppWallet(selCliente,qrModal)}
                   style={{padding:"8px 16px",borderRadius:8,border:"1px solid #16a34a",background:"#f0fdf4",color:"#16a34a",cursor:"pointer",fontWeight:700,fontSize:12}}>
-                  📱 Invia WhatsApp
+                  <i className="fa-light fa-mobile-screen"/> Invia WhatsApp
                 </button>
               )}
               {mobileWalletCfg?.apple_enabled&&(
                 <a href={api.getApplePass(qrModal.id)} download
                   style={{padding:"8px 16px",borderRadius:8,border:"1px solid #1a1a1a",background:"#1a1a1a",color:"white",cursor:"pointer",fontWeight:700,fontSize:12,textDecoration:"none",display:"inline-block"}}>
-                  🍎 Apple Wallet
+                  <i className="fa-light fa-apple-whole"/> Apple Wallet
                 </a>
               )}
               {mobileWalletCfg?.google_enabled&&(
@@ -2317,7 +2315,7 @@ export function WalletPage() {
                     window.open(r.url,"_blank");
                   }catch(e){toast(e.message,"error");}
                 }} style={{padding:"8px 16px",borderRadius:8,border:"1px solid #1a73e8",background:"#1a73e8",color:"white",cursor:"pointer",fontWeight:700,fontSize:12}}>
-                  🔵 Google Wallet
+                  <i className="fa-light fa-circle"/> Google Wallet
                 </button>
               )}
             </div>
@@ -2376,7 +2374,7 @@ export function ConfigEmailPage() {
     try {
       await api.updateEmailConfig({...form, smtp_port:parseInt(form.smtp_port)||587});
       if (form.smtp_password) setPwdSaved(true);  // new password was sent
-      toast("✓ Configurazione salvata");
+      toast("Configurazione salvata");
     } catch(e){ toast(e.message,"error"); }
     finally { setSaving(false); }
   };
@@ -2386,7 +2384,7 @@ export function ConfigEmailPage() {
     setTesting(true);
     try {
       await api.testEmail({to_email:testEmail});
-      toast(`✓ Email di test inviata a ${testEmail}`);
+      toast(`Email di test inviata a ${testEmail}`);
     } catch(e){ toast("Errore invio: "+e.message,"error"); }
     finally { setTesting(false); }
   };
@@ -2395,16 +2393,16 @@ export function ConfigEmailPage() {
 
   return (
     <div><ToastEl/>
-      <PageHeader title="📧 Configurazione Email" subtitle="Servizio SMTP per invio QR code wallet e notifiche"/>
+      <PageHeader title="Configurazione Email" subtitle="Servizio SMTP per invio QR code wallet e notifiche"/>
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,maxWidth:960}}>
         {/* ── COLONNA SX: Configurazione SMTP ── */}
         <div style={{background:"white",border:"1px solid #e2e8f0",borderRadius:12,padding:20}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-            <h3 style={{margin:0,fontSize:15,fontWeight:800,color:"#0f172a"}}>⚙️ Impostazioni SMTP</h3>
+            <h3 style={{margin:0,fontSize:15,fontWeight:800,color:"#0f172a"}}><i className="fa-light fa-gear"/> Impostazioni SMTP</h3>
             <label style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",fontSize:12}}>
               <input type="checkbox" checked={form.attivo} onChange={e=>setForm(p=>({...p,attivo:e.target.checked}))} style={{width:16,height:16}}/>
-              <span style={{fontWeight:700,color:form.attivo?"#16a34a":"#94a3b8"}}>{form.attivo?"✅ Attivo":"○ Inattivo"}</span>
+              <span style={{fontWeight:700,color:form.attivo?"#16a34a":"#94a3b8"}}>{form.attivo?"Attivo":"○ Inattivo"}</span>
             </label>
           </div>
 
@@ -2458,17 +2456,17 @@ export function ConfigEmailPage() {
                     borderRadius:8,padding:"7px 36px 7px 10px",fontSize:13,outline:"none"}}/>
                 <button onClick={()=>setShowPwd(s=>!s)}
                   style={{position:"absolute",right:6,top:"50%",transform:"translateY(-50%)",border:"none",background:"none",cursor:"pointer",fontSize:14,color:"#94a3b8"}}>
-                  {showPwd?"🙈":"👁"}
+                  {showPwd?<i className="fa-light fa-eye-slash"/>:<i className="fa-light fa-eye"/>}
                 </button>
               </div>
               {pwdSaved&&!form.smtp_password&&(
                 <div style={{fontSize:10,color:"#16a34a",marginTop:3,display:"flex",alignItems:"center",gap:4}}>
-                  ✅ Password salvata nel database — lascia il campo vuoto per mantenerla
+                  <i className="fa-light fa-circle-check"/> Password salvata nel database — lascia il campo vuoto per mantenerla
                 </div>
               )}
               {!pwdSaved&&!form.smtp_password&&(
                 <div style={{fontSize:10,color:"#f59e0b",marginTop:3}}>
-                  ⚠️ Nessuna password salvata
+                  <i className="fa-light fa-triangle-exclamation"/> Nessuna password salvata
                 </div>
               )}
             </Field>
@@ -2484,7 +2482,7 @@ export function ConfigEmailPage() {
           </FormRow>
 
           <div style={{borderTop:"1px solid #f1f5f9",paddingTop:14,marginTop:10,display:"flex",justifyContent:"flex-end"}}>
-            <Btn onClick={save} disabled={saving}>{saving?"⏳ Salvataggio...":"💾 Salva configurazione"}</Btn>
+            <Btn onClick={save} disabled={saving}>{saving?"Salvataggio...":"Salva configurazione"}</Btn>
           </div>
         </div>
 
@@ -2492,21 +2490,21 @@ export function ConfigEmailPage() {
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           {/* Test email */}
           <div style={{background:"white",border:"1px solid #e2e8f0",borderRadius:12,padding:20}}>
-            <h3 style={{margin:"0 0 14px",fontSize:14,fontWeight:800,color:"#0f172a"}}>🧪 Test invio</h3>
+            <h3 style={{margin:"0 0 14px",fontSize:14,fontWeight:800,color:"#0f172a"}}><i className="fa-light fa-flask"/> Test invio</h3>
             <Field label="Indirizzo email di test">
               <Input value={testEmail} onChange={setTestEmail} type="email" placeholder="tuo@email.com"/>
             </Field>
             <div style={{marginTop:10}}>
               <Btn onClick={sendTest} disabled={testing||!form.attivo}>
-                {testing?"⏳ Invio...":form.attivo?"📤 Invia email di test":"⚠️ Attiva prima la configurazione"}
+                {testing?"Invio...":form.attivo?"Invia email di test":"Attiva prima la configurazione"}
               </Btn>
             </div>
-            {!form.attivo&&<p style={{fontSize:11,color:"#f59e0b",marginTop:8}}>⚠️ Attiva la configurazione con il toggle in alto a destra.</p>}
+            {!form.attivo&&<p style={{fontSize:11,color:"#f59e0b",marginTop:8}}><i className="fa-light fa-triangle-exclamation"/> Attiva la configurazione con il toggle in alto a destra.</p>}
           </div>
 
           {/* Note provider */}
           <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:12,padding:16}}>
-            <h4 style={{margin:"0 0 10px",fontSize:12,fontWeight:800,color:"#92400e"}}>💡 Note per Gmail</h4>
+            <h4 style={{margin:"0 0 10px",fontSize:12,fontWeight:800,color:"#92400e"}}><i className="fa-light fa-lightbulb"/> Note per Gmail</h4>
             <p style={{fontSize:11,color:"#78350f",lineHeight:1.7,margin:0}}>
               Gmail richiede una <b>App Password</b> (non la password normale).<br/>
               1. Vai su <b>myaccount.google.com/security</b><br/>
@@ -2518,7 +2516,7 @@ export function ConfigEmailPage() {
 
           {/* Cosa invia */}
           <div style={{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:12,padding:16}}>
-            <h4 style={{margin:"0 0 10px",fontSize:12,fontWeight:800,color:"#1e40af"}}>📬 Cosa viene inviato</h4>
+            <h4 style={{margin:"0 0 10px",fontSize:12,fontWeight:800,color:"#1e40af"}}><i className="fa-light fa-inbox"/> Cosa viene inviato</h4>
             <ul style={{fontSize:11,color:"#1e3a8a",lineHeight:2,margin:0,paddingLeft:16}}>
               <li>QR code del wallet con saldo attuale</li>
               <li>Data di scadenza (se impostata)</li>
@@ -2577,7 +2575,7 @@ export function MobileWalletPage() {
       });
       setSavedFields(saved);
       setForm(prev=>({...prev, apple_cert_pem:"",apple_key_pem:"",apple_wwdr_pem:"",apple_key_password:"",google_service_account:""}));
-      toast("✓ Configurazione salvata");
+      toast("Configurazione salvata");
     } catch(e){ toast(e.message,"error"); }
     setSaving(false);
   };
@@ -2586,13 +2584,13 @@ export function MobileWalletPage() {
     <Field label={label}>
       {savedFields[fieldKey]&&!form[fieldKey]&&(
         <div style={{fontSize:10,color:"#16a34a",marginBottom:4,display:"flex",alignItems:"center",gap:4}}>
-          ✅ File salvato nel database — carica un nuovo file per sostituirlo
+          <i className="fa-light fa-circle-check"/> File salvato nel database — carica un nuovo file per sostituirlo
         </div>
       )}
       <div style={{display:"flex",gap:6,alignItems:"center"}}>
         <label style={{padding:"5px 12px",borderRadius:6,border:"1.5px solid #2d5a7b",background:"#eff6ff",
           color:"#2d5a7b",cursor:"pointer",fontSize:11,fontWeight:700,whiteSpace:"nowrap"}}>
-          📂 Carica file
+          <i className="fa-light fa-folder-open"/> Carica file
           <input type="file" accept={accept} style={{display:"none"}} onChange={e=>{
             const file=e.target.files?.[0]; if(!file) return;
             const reader=new FileReader();
@@ -2601,7 +2599,7 @@ export function MobileWalletPage() {
           }}/>
         </label>
         {form[fieldKey]&&<span style={{fontSize:10,color:"#16a34a"}}>✓ File caricato ({form[fieldKey].length} chars)</span>}
-        {!form[fieldKey]&&!savedFields[fieldKey]&&<span style={{fontSize:10,color:"#f59e0b"}}>⚠️ Nessun file</span>}
+        {!form[fieldKey]&&!savedFields[fieldKey]&&<span style={{fontSize:10,color:"#f59e0b"}}><i className="fa-light fa-triangle-exclamation"/> Nessun file</span>}
       </div>
     </Field>
   );
@@ -2620,11 +2618,11 @@ export function MobileWalletPage() {
 
   return (
     <div style={{maxWidth:900}}><ToastEl/>
-      <PageHeader title="📱 Mobile Wallet" subtitle="Configura Apple Wallet e Google Wallet per i QR code dei wallet clienti"/>
+      <PageHeader title="Mobile Wallet" subtitle="Configura Apple Wallet e Google Wallet per i QR code dei wallet clienti"/>
 
       {/* Prerequisiti banner */}
       <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"12px 16px",marginBottom:20,fontSize:12,color:"#78350f"}}>
-        <b>⚠️ Prerequisiti obbligatori prima della configurazione:</b><br/>
+        <b><i className="fa-light fa-triangle-exclamation"/> Prerequisiti obbligatori prima della configurazione:</b><br/>
         <b>Apple:</b> Account Apple Developer (99$/anno) → <a href="https://developer.apple.com" target="_blank" rel="noreferrer" style={{color:"#2d5a7b"}}>developer.apple.com</a> → Identifiers → Pass Type IDs<br/>
         <b>Google:</b> Google Cloud Console (gratuito) → Wallet API → Service Account → <a href="https://pay.google.com/business/console" target="_blank" rel="noreferrer" style={{color:"#2d5a7b"}}>Google Pay & Wallet Console</a>
       </div>
@@ -2640,11 +2638,11 @@ export function MobileWalletPage() {
         <div style={{background:"white",border:"1px solid #e2e8f0",borderRadius:12,padding:20}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <h3 style={{margin:0,fontSize:15,fontWeight:800,display:"flex",alignItems:"center",gap:8}}>
-              🍎 Apple Wallet — Configurazione
+              <i className="fa-light fa-apple-whole"/> Apple Wallet — Configurazione
             </h3>
             <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:12}}>
               <input type="checkbox" checked={form.apple_enabled} onChange={e=>setForm(p=>({...p,apple_enabled:e.target.checked}))} style={{width:16,height:16}}/>
-              <span style={{fontWeight:700,color:form.apple_enabled?"#16a34a":"#94a3b8"}}>{form.apple_enabled?"✅ Abilitato":"○ Disabilitato"}</span>
+              <span style={{fontWeight:700,color:form.apple_enabled?"#16a34a":"#94a3b8"}}>{form.apple_enabled?"Abilitato":"○ Disabilitato"}</span>
             </label>
           </div>
 
@@ -2678,7 +2676,7 @@ export function MobileWalletPage() {
             <Field label="Password chiave PEM">
               <div style={{position:"relative"}}>
                 {savedFields.apple_key_password&&!form.apple_key_password&&(
-                  <div style={{fontSize:10,color:"#16a34a",marginBottom:4}}>✅ Password salvata</div>
+                  <div style={{fontSize:10,color:"#16a34a",marginBottom:4}}><i className="fa-light fa-circle-check"/> Password salvata</div>
                 )}
                 <Input value={form.apple_key_password} onChange={f("apple_key_password")}
                   placeholder={savedFields.apple_key_password?"★★★ (lascia vuoto per mantenere)":"Password usata durante l'export .p12"}/>
@@ -2687,7 +2685,7 @@ export function MobileWalletPage() {
           </div>
 
           <div style={{marginTop:16,padding:"10px 14px",background:"#eff6ff",borderRadius:8,fontSize:11,color:"#1e40af"}}>
-            💡 <b>Installa dipendenza:</b> <code>pip install cryptography</code> nella cartella backend
+            <i className="fa-light fa-lightbulb"/> <b>Installa dipendenza:</b> <code>pip install cryptography</code> nella cartella backend
           </div>
         </div>
       )}
@@ -2697,11 +2695,11 @@ export function MobileWalletPage() {
         <div style={{background:"white",border:"1px solid #e2e8f0",borderRadius:12,padding:20}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <h3 style={{margin:0,fontSize:15,fontWeight:800,display:"flex",alignItems:"center",gap:8}}>
-              🔵 Google Wallet — Configurazione
+              <i className="fa-light fa-circle"/> Google Wallet — Configurazione
             </h3>
             <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:12}}>
               <input type="checkbox" checked={form.google_enabled} onChange={e=>setForm(p=>({...p,google_enabled:e.target.checked}))} style={{width:16,height:16}}/>
-              <span style={{fontWeight:700,color:form.google_enabled?"#16a34a":"#94a3b8"}}>{form.google_enabled?"✅ Abilitato":"○ Disabilitato"}</span>
+              <span style={{fontWeight:700,color:form.google_enabled?"#16a34a":"#94a3b8"}}>{form.google_enabled?"Abilitato":"○ Disabilitato"}</span>
             </label>
           </div>
 
@@ -2726,11 +2724,11 @@ export function MobileWalletPage() {
 
           <Field label="Service Account JSON (carica il file .json scaricato da Google Cloud)">
             {savedFields.google_service_account&&!form.google_service_account&&(
-              <div style={{fontSize:10,color:"#16a34a",marginBottom:4}}>✅ Service account JSON salvato nel database</div>
+              <div style={{fontSize:10,color:"#16a34a",marginBottom:4}}><i className="fa-light fa-circle-check"/> Service account JSON salvato nel database</div>
             )}
             <label style={{padding:"5px 12px",borderRadius:6,border:"1.5px solid #2d5a7b",background:"#eff6ff",
               color:"#2d5a7b",cursor:"pointer",fontSize:11,fontWeight:700,display:"inline-block"}}>
-              📂 Carica service-account.json
+              <i className="fa-light fa-folder-open"/> Carica service-account.json
               <input type="file" accept=".json" style={{display:"none"}} onChange={e=>{
                 const file=e.target.files?.[0]; if(!file) return;
                 const reader=new FileReader();
@@ -2742,13 +2740,13 @@ export function MobileWalletPage() {
           </Field>
 
           <div style={{marginTop:16,padding:"10px 14px",background:"#eff6ff",borderRadius:8,fontSize:11,color:"#1e40af"}}>
-            💡 <b>Installa dipendenza:</b> <code>pip install PyJWT</code> nella cartella backend
+            <i className="fa-light fa-lightbulb"/> <b>Installa dipendenza:</b> <code>pip install PyJWT</code> nella cartella backend
           </div>
         </div>
       )}
 
       <div style={{display:"flex",justifyContent:"flex-end",marginTop:16}}>
-        <Btn onClick={save} disabled={saving}>{saving?"⏳ Salvataggio...":"💾 Salva configurazione"}</Btn>
+        <Btn onClick={save} disabled={saving}>{saving?"Salvataggio...":"Salva configurazione"}</Btn>
       </div>
     </div>
   );

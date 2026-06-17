@@ -1,6 +1,6 @@
 import React from 'react'
 import Modal from '../../../../core/components/Modal'
-import { CATEGORIE_STRUTTURA } from '../../constants'
+import { CATEGORIE_STRUTTURA, PACCHETTI_INIT } from '../../constants'
 import type { NewClientForm, TipologiaCategoria } from '../../types'
 import './NewClientModal.sass'
 
@@ -17,6 +17,11 @@ export default function NewClientModal({ open, form, setForm, onClose, onConfirm
   const showClassificazione = cat.classificazioni.length > 0
   const showCamere = cat.hasCamere
   const disabled = !form.nome.trim()
+
+  const toggleModulo = (id: string) => {
+    const has = form.moduli.includes(id)
+    setForm({ ...form, moduli: has ? form.moduli.filter(m => m !== id) : [...form.moduli, id] })
+  }
 
   const handleCategoria = (v: TipologiaCategoria) => {
     const next = CATEGORIE_STRUTTURA.find(c => c.id === v)
@@ -97,6 +102,19 @@ export default function NewClientModal({ open, form, setForm, onClose, onConfirm
             className="sib-input"
             placeholder="info@struttura.it"
           />
+        </div>
+
+        <div className="ncm__field">
+          <label className="ncm__label">Moduli sottoscritti</label>
+          <div className="ncm__mods">
+            {PACCHETTI_INIT.map(m => (
+              <label key={m.id} className={`ncm__chip${form.moduli.includes(m.id) ? ' ncm__chip--on' : ''}`} title={m.desc}>
+                <input type="checkbox" checked={form.moduli.includes(m.id)} onChange={() => toggleModulo(m.id)} />
+                {m.label}
+              </label>
+            ))}
+          </div>
+          <span className="ncm__hint">Definiscono il menu che l'account del cliente potrà visualizzare. Vuoto = accesso completo.</span>
         </div>
 
         <div className="ncm__actions">

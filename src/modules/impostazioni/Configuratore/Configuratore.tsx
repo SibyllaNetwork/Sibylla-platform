@@ -7,6 +7,7 @@ import {
   type ConfiguratoreId,
   type ConfiguratoreItem,
 } from './configuratoriList'
+import { useAccessStore, allowedConfiguratoreIds } from '../../../store/useAccessStore'
 import './Configuratore.sass'
 
 import ScaglioniOccupazione   from './panes/ScaglioniOccupazione/ScaglioniOccupazione'
@@ -36,11 +37,25 @@ import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConf
 const DEFAULT_ID: ConfiguratoreId = 'scaglioni-occupazione'
 
 export default function Configuratore({ navigate }: { navigate: (p: string) => void }) {
-  const [activeId, setActiveId] = useState<ConfiguratoreId>(DEFAULT_ID)
-  const [subpage, setSubpage]   = useState(false)
+  // Voci visibili in base al profilo loggato: il modulo Ristoranti mostra solo le
+  // voci Food & Beverage (allowed = null → nessun limite, es. Full Suite/Admin).
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const profiles         = useAccessStore(s => s.profiles)
+  const modules          = useAccessStore(s => s.modules)
+  const allowed = useMemo(() => {
+    if (!currentProfileId) return null
+    const profile = profiles.find(p => p.id === currentProfileId)
+    return profile ? allowedConfiguratoreIds(profile, modules) : null
+  }, [currentProfileId, profiles, modules])
+  const mainItems = useMemo(() => allowed ? MAIN_ITEMS.filter(i => allowed.has(i.id)) : MAIN_ITEMS, [allowed])
+  const fnbItems  = useMemo(() => allowed ? FNB_ITEMS.filter(i => allowed.has(i.id)) : FNB_ITEMS, [allowed])
+  const onlyFnb = mainItems.length === 0 && fnbItems.length > 0
+
+  const [activeId, setActiveId] = useState<ConfiguratoreId>(onlyFnb ? (fnbItems[0]?.id ?? DEFAULT_ID) : DEFAULT_ID)
+  const [subpage, setSubpage]   = useState(onlyFnb)
   const [query, setQuery]       = useState('')
 
-  const sourceItems = subpage ? FNB_ITEMS : MAIN_ITEMS
+  const sourceItems = subpage ? fnbItems : mainItems
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -73,7 +88,7 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
       <div className="configuratore__layout">
         <aside className={'configuratore__sidebar' + (subpage ? ' configuratore__sidebar--subpage' : '')}>
           <div className="configuratore__sidebar-head">
-            {subpage && (
+            {subpage && mainItems.length > 0 && (
               <button
                 type="button"
                 className="configuratore__crumb"
@@ -117,7 +132,7 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
                   </button>
                 ))}
 
-                {!subpage && !query.trim() && (
+                {!subpage && !query.trim() && fnbItems.length > 0 && (
                   <button
                     type="button"
                     className="configuratore__item configuratore__item--category"
@@ -125,7 +140,7 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
                   >
                     <i className="fa-light fa-utensils configuratore__item-icon" aria-hidden="true" />
                     <span className="configuratore__item-label">Food &amp; Beverage</span>
-                    <span className="configuratore__badge">{FNB_ITEMS.length}</span>
+                    <span className="configuratore__badge">{fnbItems.length}</span>
                     <i className="fa-light fa-chevron-right configuratore__item-chev" aria-hidden="true" />
                   </button>
                 )}
@@ -135,9 +150,12 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
         </aside>
 
         <section className="configuratore__pane">
-          <div className="configuratore__pane-head">
-            <h2 className="configuratore__pane-title">{activeLabel}</h2>
-          </div>
+          {/* Le pagine Outlet hanno già il proprio PageHeader: evita il titolo doppio */}
+          {!hasOutletConfig(activeId) && (
+            <div className="configuratore__pane-head">
+              <h2 className="configuratore__pane-title">{activeLabel}</h2>
+            </div>
+          )}
           <PaneSwitch id={activeId} label={activeLabel} />
         </section>
       </div>

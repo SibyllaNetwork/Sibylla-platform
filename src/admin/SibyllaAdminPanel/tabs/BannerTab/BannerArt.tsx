@@ -38,6 +38,27 @@ export function Watermark() {
   return <img className="bgen-pv__watermark" src={logoKey} alt="" aria-hidden="true" />
 }
 
+/**
+ * Logo Sibylla Network: emblema "chiave" oro + wordmark «Sibylla Network».
+ * Replica l'identità di sibyllanetwork.com. Su barra arancio (tone="dark") emblema
+ * e testo diventano bianchi; su fondo chiaro restano oro/scuri.
+ */
+export function SibyllaNetworkMark({ tone = 'light', src, height, wordmark = true }: MarkProps & { wordmark?: boolean }) {
+  const custom = !!src && src.trim() !== ''
+  const cls = `bgen-mark booknet-mark booknet-mark--${tone}${custom ? ' bgen-mark--custom' : ''}`
+  const style = height && height > 0
+    ? ({ '--logo-h': `${height}px` } as React.CSSProperties)
+    : undefined
+  return (
+    <span className={cls}>
+      <img className="bgen-mark__img booknet-mark__key" src={custom ? src : logoKey} alt="Sibylla Network" style={style} />
+      {!custom && wordmark && (
+        <span className="booknet-mark__word"><b>Sibylla</b> Network</span>
+      )}
+    </span>
+  )
+}
+
 /** Foto di sfondo del banner (riempie il contenitore; posizione/ritaglio configurabili). */
 export function BannerPhoto({ src, position = 'center', fit = 'cover' }: {
   src: string

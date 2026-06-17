@@ -55,44 +55,6 @@ export default function CatalogoTab(props: Props) {
         </div>
       </div>
 
-      <div className="cat-tab__counters">
-        <div className="cat-tab__counter">
-          <i className="fa-duotone fa-layer-group cat-tab__counter-ico" />
-          <div>
-            <div className="cat-tab__counter-value">{categorie.length}</div>
-            <div className="cat-tab__counter-label">Categorie</div>
-          </div>
-        </div>
-        <div className="cat-tab__counter">
-          <i className="fa-duotone fa-building cat-tab__counter-ico" />
-          <div>
-            <div className="cat-tab__counter-value">{fornitori.length}</div>
-            <div className="cat-tab__counter-label">Fornitori</div>
-          </div>
-        </div>
-        <div className="cat-tab__counter">
-          <i className="fa-duotone fa-barcode cat-tab__counter-ico" />
-          <div>
-            <div className="cat-tab__counter-value">{prodotti.length}</div>
-            <div className="cat-tab__counter-label">Prodotti</div>
-          </div>
-        </div>
-        <div className="cat-tab__counter">
-          <i className="fa-duotone fa-circle-check cat-tab__counter-ico" />
-          <div>
-            <div className="cat-tab__counter-value">{prodotti.filter(p => p.attivo).length}</div>
-            <div className="cat-tab__counter-label">Attivi</div>
-          </div>
-        </div>
-        <div className="cat-tab__counter">
-          <i className="fa-duotone fa-globe cat-tab__counter-ico" />
-          <div>
-            <div className="cat-tab__counter-value">{prodotti.filter(p => p.pubblicato).length}/{fornitori.filter(f => f.pubblicato).length}</div>
-            <div className="cat-tab__counter-label">Pubblicati (P/F)</div>
-          </div>
-        </div>
-      </div>
-
       <nav className="cat-tab__subtabs" role="tablist">
         {SUB_TABS.map(([id, label, ic]) => {
           const active = subTab === id

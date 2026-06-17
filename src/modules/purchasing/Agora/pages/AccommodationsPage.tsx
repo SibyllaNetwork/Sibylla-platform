@@ -90,7 +90,8 @@ interface FilterFieldProps {
 function FilterField({ label, children, className }: FilterFieldProps) {
   return (
     <Field className={className}>
-      <Label>{label}</Label>
+      {/* Label allo standard piattaforma: 12px, weight 600, colore grigio (text-inactive) */}
+      <Label className="!text-[12px] !font-semibold !leading-4 !text-text-inactive">{label}</Label>
       {children}
     </Field>
   );
@@ -206,7 +207,7 @@ export function AccommodationsPage() {
       <section aria-label="Filtri di ricerca" className="accommodations__filters">
         <div className="accommodations__filters-grid">
           <FilterField label="Seleziona Città">
-            <Select value={city} onChange={(e) => setCity(e.target.value)}>
+            <Select className="accommodations__select" value={city} onChange={(e) => setCity(e.target.value)}>
               <option value="">Tutte</option>
               {CITIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -215,7 +216,7 @@ export function AccommodationsPage() {
           </FilterField>
 
           <FilterField label="Provincia">
-            <Select value={province} onChange={(e) => setProvince(e.target.value)}>
+            <Select className="accommodations__select" value={province} onChange={(e) => setProvince(e.target.value)}>
               <option value="">Tutte</option>
               {PROVINCES.map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -251,6 +252,7 @@ export function AccommodationsPage() {
 
           <FilterField label="Categoria">
             <Select
+              className="accommodations__select"
               value={category}
               onChange={(e) => setCategory(e.target.value as AccommodationCategory | 'all')}
             >

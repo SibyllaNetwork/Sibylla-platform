@@ -1,7 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../services/api";
-import { useToast } from "../components/UI";
-import { Pencil, Eye, Trash2, FileText, ChevronLeft, ChevronRight, ArrowUpDown, Filter, X } from "lucide-react";
+import { useToast, Btn, Modal } from "../components/UI";
+// Icone allineate al sistema Font Awesome della piattaforma (kit FA globale).
+// Wrapper leggeri che mantengono la stessa API delle icone lucide (prop `size`).
+const faIcon = (cls) => function FaIcon({ size, className = "", style, ...p }) {
+  return <i className={`fa-light ${cls} ${className}`.trim()} style={{ fontSize: size, ...style }} {...p} />;
+};
+const Pencil      = faIcon("fa-pen");
+const Eye         = faIcon("fa-eye");
+const Trash2      = faIcon("fa-trash-can");
+const FileText    = faIcon("fa-file-lines");
+const ChevronLeft = faIcon("fa-chevron-left");
+const ChevronRight= faIcon("fa-chevron-right");
+const ArrowUpDown = faIcon("fa-arrows-up-down");
+const Filter      = faIcon("fa-filter");
+const X           = faIcon("fa-xmark");
 
 const NAVY   = "#204769";
 const ACCENT = "#5C9CD4";
@@ -75,143 +88,96 @@ function ModalEdit({ pren, turni, onClose, onSaved, toast }) {
     finally{setDeleting(false);}
   };
 
-  const IS = {width:"100%",border:"1.5px solid #DBDBDB",borderRadius:7,
-    padding:"6px 9px",fontSize:12,outline:"none",fontFamily:"'Open Sans',sans-serif",
-    color:"#374151",boxSizing:"border-box"};
-  const FL = ({children})=>(<div style={{fontSize:10,fontWeight:700,color:"#6E7175",
-    textTransform:"uppercase",letterSpacing:.4,marginBottom:3}}>{children}</div>);
+  const FL = ({children})=>(<div style={{fontSize:12,fontWeight:600,color:"#6E7175",marginBottom:4}}>{children}</div>);
 
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(32,71,105,.5)",zIndex:2000,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:16}}
-      onClick={onClose}>
-      <div style={{background:"white",borderRadius:14,width:"100%",maxWidth:460,
-        overflow:"hidden",boxShadow:"0 16px 48px rgba(32,71,105,.25)"}}
-        onClick={e=>e.stopPropagation()}>
-        {/* Header */}
-        <div style={{background:NAVY,padding:"12px 16px",display:"flex",
-          alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{color:"white",fontWeight:700,fontSize:14,
-            fontFamily:"'Poppins',sans-serif"}}>✏️ Modifica Prenotazione</span>
-          <button onClick={onClose}
-            style={{background:"rgba(255,255,255,.15)",border:"none",color:"white",
-              cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,
-              display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+    <Modal title="Modifica prenotazione" onClose={onClose}>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div style={{background:"#F8FCFF",border:"1px solid #CFD4DA",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#6E7175"}}>
+          <i className="fa-light fa-calendar"/> {fmtDate(pren.data)} · {pren.servizio} · {pren.outlet_nome||""}
         </div>
-        {/* Form */}
-        <div style={{padding:16,display:"flex",flexDirection:"column",gap:10}}>
-          {/* Info sola lettura */}
-          <div style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,
-            padding:"8px 12px",fontSize:11,color:"#64748b"}}>
-            📅 {fmtDate(pren.data)} · {pren.servizio} · {pren.outlet_nome||""}
+        <div>
+          <FL>Nome *</FL>
+          <div style={{display:"flex",gap:6}}>
+            <input value={form.nome} onChange={e=>ff("nome")(e.target.value)} className="sib-input" style={{flex:1}}/>
+            <button type="button" onClick={()=>ff("is_vip")(!form.is_vip)} title="VIP"
+              style={{width:36,flexShrink:0,border:"1px solid "+(form.is_vip?"#f59e0b":"#CFD4DA"),
+                borderRadius:6,background:form.is_vip?"#fffbeb":"white",cursor:"pointer",fontSize:15,color:"#f59e0b"}}>
+              {form.is_vip?<i className="fa-solid fa-star"/>:<i className="fa-light fa-star"/>}
+            </button>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div><FL>Telefono</FL><input value={form.telefono} onChange={e=>ff("telefono")(e.target.value)} className="sib-input"/></div>
+          <div><FL>Coperti</FL><input type="number" min="1" value={form.coperti} onChange={e=>ff("coperti")(e.target.value)} className="sib-input"/></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div>
+            <FL>Turno</FL>
+            <select value={form.turno_id} className="sib-select" onChange={e=>{
+              const t=turni.find(x=>String(x.id)===e.target.value);
+              const s=t?slotsTurno(t):[];
+              setForm(p=>({...p,turno_id:e.target.value,orario:s.includes(p.orario)?p.orario:(s[0]||p.orario)}));
+            }}>
+              <option value="">— Nessuno —</option>
+              {turni.map(t=><option key={t.id} value={t.id}>{t.nome}</option>)}
+            </select>
           </div>
           <div>
-            <FL>Nome *</FL>
-            <div style={{display:"flex",gap:6}}>
-              <input value={form.nome} onChange={e=>ff("nome")(e.target.value)} style={{...IS,flex:1}}/>
-              <button type="button" onClick={()=>ff("is_vip")(!form.is_vip)}
-                style={{width:34,flexShrink:0,border:"1.5px solid "+(form.is_vip?"#f59e0b":"#DBDBDB"),
-                  borderRadius:7,background:form.is_vip?"#fffbeb":"white",cursor:"pointer",fontSize:16}}>
-                {form.is_vip?"⭐":"☆"}
-              </button>
-            </div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <div><FL>Telefono</FL><input value={form.telefono} onChange={e=>ff("telefono")(e.target.value)} style={IS}/></div>
-            <div><FL>Coperti</FL><input type="number" min="1" value={form.coperti} onChange={e=>ff("coperti")(e.target.value)} style={IS}/></div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <div>
-              <FL>Turno</FL>
-              <select value={form.turno_id} style={IS} onChange={e=>{
-                const t=turni.find(x=>String(x.id)===e.target.value);
-                const s=t?slotsTurno(t):[];
-                setForm(p=>({...p,turno_id:e.target.value,orario:s.includes(p.orario)?p.orario:(s[0]||p.orario)}));
-              }}>
-                <option value="">— Nessuno —</option>
-                {turni.map(t=><option key={t.id} value={t.id}>{t.nome}</option>)}
-              </select>
-            </div>
-            <div>
-              <FL>Orario</FL>
-              {slots.length>0
-                ? <select value={form.orario} onChange={e=>ff("orario")(e.target.value)} style={IS}>
-                    {slots.map(s=><option key={s} value={s}>{s}</option>)}
-                  </select>
-                : <input type="time" value={form.orario} onChange={e=>ff("orario")(e.target.value)} style={IS}/>
-              }
-            </div>
-          </div>
-          <div><FL>Note</FL><textarea value={form.note} onChange={e=>ff("note")(e.target.value)} rows={2} style={{...IS,resize:"none"}}/></div>
-          <div style={{display:"flex",gap:8,paddingTop:4}}>
-            <button onClick={del} disabled={deleting}
-              style={{padding:"8px 14px",borderRadius:6,border:"1.5px solid #FF616E",
-                background:"#FFF0F1",color:"#D10011",cursor:"pointer",fontSize:12,fontWeight:600,
-                opacity:deleting?.7:1}}>
-              {deleting?"...":"🗑 Elimina"}
-            </button>
-            <div style={{flex:1}}/>
-            <button onClick={onClose}
-              style={{padding:"8px 18px",borderRadius:6,border:"1.5px solid #DBDBDB",
-                background:"white",cursor:"pointer",fontSize:12,fontWeight:600,color:"#6E7175"}}>
-              Annulla
-            </button>
-            <button onClick={save} disabled={saving}
-              style={{padding:"8px 22px",borderRadius:6,border:"none",
-                background:NAVY,color:"white",cursor:"pointer",fontSize:12,fontWeight:700,opacity:saving?.7:1}}>
-              {saving?"...":"Salva"}
-            </button>
+            <FL>Orario</FL>
+            {slots.length>0
+              ? <select value={form.orario} onChange={e=>ff("orario")(e.target.value)} className="sib-select">
+                  {slots.map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+              : <input type="time" value={form.orario} onChange={e=>ff("orario")(e.target.value)} className="sib-input"/>
+            }
           </div>
         </div>
+        <div><FL>Note</FL><textarea value={form.note} onChange={e=>ff("note")(e.target.value)} rows={2} className="sib-input" style={{height:"auto",resize:"none"}}/></div>
+        <div style={{display:"flex",gap:8,paddingTop:4}}>
+          <Btn variant="danger" onClick={del} disabled={deleting}>{deleting?"...":"Elimina"}</Btn>
+          <div style={{flex:1}}/>
+          <Btn variant="secondary" onClick={onClose}>Annulla</Btn>
+          <Btn variant="primary" onClick={save} disabled={saving}>{saving?"...":"Salva"}</Btn>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
 // ── Modal dettaglio ───────────────────────────────────────────────────────────
 function ModalView({ pren, onClose, onEdit }) {
   const Row = ({label,val})=>val?(
-    <div style={{display:"flex",borderBottom:"1px solid #f1f5f9",padding:"8px 0"}}>
-      <div style={{width:120,fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.3}}>{label}</div>
-      <div style={{fontSize:13,color:"#1e293b",fontWeight:500}}>{val}</div>
+    <div style={{display:"flex",borderBottom:"1px solid #eef2f5",padding:"8px 0"}}>
+      <div style={{width:120,fontSize:12,fontWeight:600,color:"#6E7175"}}>{label}</div>
+      <div style={{fontSize:13,color:"#4A4D53",fontWeight:500}}>{val}</div>
     </div>
   ):null;
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(32,71,105,.5)",zIndex:2000,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}>
-      <div style={{background:"white",borderRadius:14,width:"100%",maxWidth:420,
-        overflow:"hidden",boxShadow:"0 16px 48px rgba(32,71,105,.25)"}} onClick={e=>e.stopPropagation()}>
-        <div style={{background:NAVY,padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{color:"white",fontWeight:700,fontSize:14,fontFamily:"'Poppins',sans-serif"}}>
-            👤 {pren.nome} {pren.is_vip?"⭐":""}
-          </span>
-          <button onClick={onClose} style={{background:"rgba(255,255,255,.15)",border:"none",color:"white",
-            cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
-        </div>
-        <div style={{padding:"4px 16px 16px"}}>
-          <Row label="Data"     val={fmtDate(pren.data)}/>
-          <Row label="Orario"   val={pren.orario}/>
-          <Row label="Coperti"  val={pren.coperti+" pax"}/>
-          <Row label="Servizio" val={pren.servizio}/>
-          <Row label="Turno"    val={pren.turno_nome||"—"}/>
-          <Row label="Sala"     val={pren.sala_nome||"—"}/>
-          <Row label="Tavolo"   val={pren.tavolo_numero||"—"}/>
-          <Row label="Telefono" val={pren.telefono}/>
-          <Row label="Email"    val={pren.email}/>
-          <Row label="Note"     val={pren.note}/>
-          <Row label="Outlet"   val={pren.outlet_nome}/>
-        </div>
-        <div style={{padding:"0 16px 14px",display:"flex",justifyContent:"flex-end",gap:8}}>
-          <button onClick={onClose} style={{padding:"8px 18px",borderRadius:6,border:"1.5px solid #DBDBDB",background:"white",cursor:"pointer",fontSize:12,fontWeight:600,color:"#6E7175"}}>Chiudi</button>
-          <button onClick={()=>{onClose();onEdit(pren);}} style={{padding:"8px 18px",borderRadius:6,border:"none",background:NAVY,color:"white",cursor:"pointer",fontSize:12,fontWeight:700}}>✏️ Modifica</button>
-        </div>
+    <Modal title={`${pren.nome}${pren.is_vip?" ★":""}`} onClose={onClose}>
+      <div>
+        <Row label="Data"     val={fmtDate(pren.data)}/>
+        <Row label="Orario"   val={pren.orario}/>
+        <Row label="Coperti"  val={pren.coperti+" pax"}/>
+        <Row label="Servizio" val={pren.servizio}/>
+        <Row label="Turno"    val={pren.turno_nome||"—"}/>
+        <Row label="Sala"     val={pren.sala_nome||"—"}/>
+        <Row label="Tavolo"   val={pren.tavolo_numero||"—"}/>
+        <Row label="Telefono" val={pren.telefono}/>
+        <Row label="Email"    val={pren.email}/>
+        <Row label="Note"     val={pren.note}/>
+        <Row label="Outlet"   val={pren.outlet_nome}/>
       </div>
-    </div>
+      <div style={{paddingTop:16,display:"flex",justifyContent:"flex-end",gap:8}}>
+        <Btn variant="secondary" onClick={onClose}>Chiudi</Btn>
+        <Btn variant="primary" onClick={()=>{onClose();onEdit(pren);}}><i className="fa-light fa-pen"/> Modifica</Btn>
+      </div>
+    </Modal>
   );
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export function OspitiGiorno() {
+export function OspitiGiorno({ navigate }) {
   const { toast, ToastEl } = useToast();
 
   // Data
@@ -372,7 +338,7 @@ export function OspitiGiorno() {
   const printPDF = () => {
     const rows = filtered.map(p=>`
       <tr>
-        <td>${p.nome}${p.is_vip?' <span style="color:#f59e0b">⭐</span>':''}</td>
+        <td>${p.nome}${p.is_vip?' <span style="color:#f59e0b">★</span>':''}</td>
         <td>${fmtDate(p.data)}</td>
         <td>${p.orario}</td>
         <td>${p.coperti}</td>
@@ -410,17 +376,11 @@ export function OspitiGiorno() {
     w.document.write(html); w.document.close();
   };
 
-  // ── Styles ──────────────────────────────────────────────────────────────────
-  const SEL = {height:34,border:"1.5px solid #e2e8f0",borderRadius:8,
-    padding:"0 10px",fontSize:12,color:"#374151",background:"white",outline:"none",cursor:"pointer"};
-  const INP = {...SEL,padding:"0 10px"};
-
   const SortBtn = ({k,label})=>{
     const active = sortKey===k;
     return (
       <span onClick={()=>sort(k)} style={{cursor:"pointer",display:"inline-flex",alignItems:"center",
-        gap:3,color:active?NAVY:"#64748b",fontWeight:active?700:600,userSelect:"none",
-        fontSize:11,textTransform:"uppercase",letterSpacing:.5}}>
+        gap:4,color:active?NAVY:"#6E7175",fontWeight:600,userSelect:"none",fontSize:12}}>
         {label}
         <ArrowUpDown size={10} style={{opacity:active?1:.4}}/>
       </span>
@@ -431,54 +391,36 @@ export function OspitiGiorno() {
     <Filter size={10} style={{marginLeft:3,opacity:active?1:.3,color:active?ACCENT:"#64748b"}}/>
   );
 
+  const hasAlloc = pren.some(p=>p.tavolo_id!=null);
   return (
-    <div style={{height:"100%",display:"flex",flexDirection:"column",background:"#f2f5f6",overflow:"hidden"}}>
+    <div style={{height:"100%",display:"flex",flexDirection:"column",background:"#fff",overflow:"hidden"}}>
       <ToastEl/>
       {modalView&&<ModalView pren={modalView} onClose={()=>setModalView(null)} onEdit={p=>{setModalView(null);setModalEdit(p);}}/>}
       {modalEdit&&<ModalEdit pren={modalEdit} turni={turni} onClose={()=>setModalEdit(null)} onSaved={load} toast={toast}/>}
 
-      {/* Header */}
-      <div style={{background:NAVY,padding:"0 24px",height:56,display:"flex",
-        alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-        <h1 style={{color:"white",fontSize:18,fontWeight:700,fontFamily:"'Poppins',sans-serif",margin:0}}>
-          Ospiti del Giorno
-        </h1>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {/* Alloca Tavoli */}
-          <button onClick={avviaAllocazione} disabled={allocLoading}
-            title="Alloca tavoli automaticamente per i filtri selezionati"
-            style={{display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:7,
-              border:"1.5px solid rgba(255,255,255,.5)",background:"rgba(255,255,255,.18)",
-              color:"white",cursor:allocLoading?"not-allowed":"pointer",fontSize:12,fontWeight:700,
-              opacity:allocLoading?.7:1,transition:"all .15s"}}
-            onMouseEnter={e=>{if(!allocLoading)e.currentTarget.style.background="rgba(255,255,255,.32)";}}
-            onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,.18)";}}>
-            {allocLoading?"⏳":"🪄"} {allocLoading?"Allocazione...":"Alloca Tavoli"}
+      {/* Header standard piattaforma: BtnBack + titolo grande + sottotitolo */}
+      <div style={{padding:"20px 24px 14px",flexShrink:0}}>
+        {navigate && (
+          <button type="button" className="sib-btn sib-btn--back" style={{marginBottom:14}} onClick={()=>navigate("home")}>
+            <i className="fa-duotone fa-arrow-left" style={{fontSize:12}} aria-hidden="true"/> Indietro
           </button>
-          {/* Reset Allocazione */}
-          {(()=>{
-            const hasAlloc = pren.some(p=>p.tavolo_id!=null);
-            return (
-              <button onClick={hasAlloc?resetAllocazione:undefined} disabled={!hasAlloc||resetLoading}
-                title={hasAlloc?"Annulla assegnazione tavoli per i filtri selezionati":"Nessun tavolo da de-allocare"}
-                style={{display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:7,
-                  border:"1.5px solid "+(hasAlloc?"rgba(255,150,150,.8)":"rgba(255,255,255,.25)"),
-                  background:hasAlloc?"rgba(255,80,80,.25)":"rgba(255,255,255,.06)",
-                  color:hasAlloc?"#fecaca":"rgba(255,255,255,.3)",
-                  cursor:hasAlloc?"pointer":"default",fontSize:12,fontWeight:700,transition:"all .15s"}}
-                onMouseEnter={e=>{if(hasAlloc)e.currentTarget.style.background="rgba(255,80,80,.45)";}}
-                onMouseLeave={e=>{e.currentTarget.style.background=hasAlloc?"rgba(255,80,80,.25)":"rgba(255,255,255,.06)";}}>
-                {resetLoading?"⏳":"✕"} Reset
-              </button>
-            );
-          })()}
-          {/* Stampa PDF */}
-          <button onClick={printPDF}
-            style={{display:"flex",alignItems:"center",gap:6,padding:"6px 16px",borderRadius:7,
-              border:"1.5px solid rgba(255,255,255,.5)",background:"rgba(255,255,255,.12)",
-              color:"white",cursor:"pointer",fontSize:12,fontWeight:700}}>
-            <FileText size={14}/> Stampa PDF
-          </button>
+        )}
+        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
+          <div className="page-header" style={{marginBottom:0}}>
+            <h1 className="page-header__title">Ospiti del giorno</h1>
+            <p className="page-header__subtitle">Prenotazioni e ospiti attesi per la data selezionata</p>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <Btn variant="secondary" onClick={avviaAllocazione} disabled={allocLoading}>
+              {allocLoading?<i className="fa-light fa-hourglass-half"/>:<i className="fa-light fa-wand-magic-sparkles"/>} {allocLoading?"Allocazione…":"Alloca tavoli"}
+            </Btn>
+            <Btn variant="secondary" onClick={hasAlloc?resetAllocazione:undefined} disabled={!hasAlloc||resetLoading}>
+              {resetLoading?<i className="fa-light fa-hourglass-half"/>:<i className="fa-light fa-xmark"/>} Reset
+            </Btn>
+            <Btn variant="secondary" onClick={printPDF}>
+              <i className="fa-light fa-file-lines"/> Stampa PDF
+            </Btn>
+          </div>
         </div>
       </div>
 
@@ -488,22 +430,22 @@ export function OspitiGiorno() {
 
         {/* Data */}
         <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.5}}>Data</label>
-          <input type="date" value={fData} onChange={e=>{setFData(e.target.value);setPage(1);}} style={INP}/>
+          <label style={{fontSize:12,fontWeight:600,color:"#6E7175"}}>Data</label>
+          <input type="date" value={fData} onChange={e=>{setFData(e.target.value);setPage(1);}} className="sib-input"/>
         </div>
 
         {/* Outlet */}
         <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.5}}>Outlet</label>
-          <select value={fOutlet} onChange={e=>{setFOutlet(e.target.value);setPage(1);}} style={SEL}>
+          <label style={{fontSize:12,fontWeight:600,color:"#6E7175"}}>Outlet</label>
+          <select value={fOutlet} onChange={e=>{setFOutlet(e.target.value);setPage(1);}} className="sib-select">
             {outlets.map(o=><option key={o.id} value={o.id}>{o.nome}</option>)}
           </select>
         </div>
 
         {/* Sala */}
         <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.5}}>Sala</label>
-          <select value={fSala} onChange={e=>{setFSala(e.target.value);setPage(1);}} style={SEL}>
+          <label style={{fontSize:12,fontWeight:600,color:"#6E7175"}}>Sala</label>
+          <select value={fSala} onChange={e=>{setFSala(e.target.value);setPage(1);}} className="sib-select">
             <option value="">Tutte</option>
             {sale.map(s=><option key={s.id} value={s.id}>{s.nome}</option>)}
           </select>
@@ -511,8 +453,8 @@ export function OspitiGiorno() {
 
         {/* Servizio */}
         <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.5}}>Servizio</label>
-          <select value={fServizio} onChange={e=>{setFServizio(e.target.value);setFTurno("");setPage(1);}} style={SEL}>
+          <label style={{fontSize:12,fontWeight:600,color:"#6E7175"}}>Servizio</label>
+          <select value={fServizio} onChange={e=>{setFServizio(e.target.value);setFTurno("");setPage(1);}} className="sib-select">
             <option value="">Tutti</option>
             {servizi.map(s=><option key={s} value={s}>{s}</option>)}
           </select>
@@ -520,8 +462,8 @@ export function OspitiGiorno() {
 
         {/* Turno */}
         <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.5}}>Turno</label>
-          <select value={fTurno} onChange={e=>{setFTurno(e.target.value);setPage(1);}} style={SEL}>
+          <label style={{fontSize:12,fontWeight:600,color:"#6E7175"}}>Turno</label>
+          <select value={fTurno} onChange={e=>{setFTurno(e.target.value);setPage(1);}} className="sib-select">
             <option value="">Tutti</option>
             {turniFiltered.map(t=><option key={t.id} value={t.id}>{t.nome}</option>)}
           </select>
@@ -529,10 +471,10 @@ export function OspitiGiorno() {
 
         {/* Nome search */}
         <div style={{display:"flex",flexDirection:"column",gap:3}}>
-          <label style={{fontSize:10,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:.5}}>Cerca ospite</label>
+          <label style={{fontSize:12,fontWeight:600,color:"#6E7175"}}>Cerca ospite</label>
           <div style={{position:"relative"}}>
             <input value={fNome} onChange={e=>{setFNome(e.target.value);setPage(1);}}
-              placeholder="Nome..." style={{...INP,width:160,paddingRight:28}}/>
+              placeholder="Nome..." className="sib-input" style={{width:160,paddingRight:28}}/>
             {fNome&&<button onClick={()=>{setFNome("");setPage(1);}}
               style={{position:"absolute",right:6,top:"50%",transform:"translateY(-50%)",
                 background:"none",border:"none",cursor:"pointer",color:"#94a3b8",padding:0}}>
@@ -550,81 +492,58 @@ export function OspitiGiorno() {
 
       {/* Table */}
       <div style={{flex:1,overflow:"auto",padding:"16px 24px"}}>
-        <div style={{background:"white",borderRadius:12,border:"1px solid #e2e8f0",
-          overflow:"hidden",boxShadow:"0 1px 4px rgba(32,71,105,.06)"}}>
-
-          {/* Table header */}
-          <table style={{width:"100%",borderCollapse:"collapse"}}>
+        <div className="sib-table-wrap">
+          <table className="sib-table">
             <thead>
-              <tr style={{background:"#f8fafc",borderBottom:"2px solid #e2e8f0"}}>
+              <tr>
                 {[
                   {k:"nome",    l:"Ospite"},
                   {k:"data",    l:"Data pren."},
                   {k:"orario",  l:"Orario"},
                   {k:"coperti", l:"Pax"},
                   {k:"sala_nome",l:"Sala"},
-                  {k:null,      l:"Tavolo Assegnato"},
+                  {k:null,      l:"Tavolo assegnato"},
                   {k:"servizio",l:"Servizio"},
                   {k:"turno_nome",l:"Turno"},
                   {k:null,      l:"Note"},
                   {k:null,      l:"Azioni"},
                 ].map(({k,l},i)=>(
-                  <th key={i} style={{padding:"10px 14px",textAlign:"left",fontWeight:700,
-                    fontSize:11,color:"#475569",whiteSpace:"nowrap",
-                    borderRight:i<9?"1px solid #e2e8f0":"none"}}>
-                    {k ? <SortBtn k={k} label={l}/> : <span style={{color:"#475569",fontSize:11,textTransform:"uppercase",letterSpacing:.5,fontWeight:600}}>{l}</span>}
+                  <th key={i}>
+                    {k ? <SortBtn k={k} label={l}/> : l}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {paginated.length===0 ? (
-                <tr><td colSpan={10} style={{padding:40,textAlign:"center",color:"#94a3b8",fontSize:13}}>
+                <tr><td colSpan={10} style={{padding:40,textAlign:"center",color:"#94a3b8"}}>
                   {loading?"Caricamento...":"Nessuna prenotazione trovata"}
                 </td></tr>
-              ) : paginated.map((p,i)=>(
-                <tr key={p.id} style={{borderBottom:"1px solid #f1f5f9",
-                  background:i%2===0?"white":"#fafafa",
-                  transition:"background .1s"}}
-                  onMouseEnter={e=>e.currentTarget.style.background="#eff6ff"}
-                  onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"white":"#fafafa"}>
-                  <td style={{padding:"10px 14px",fontSize:12,fontWeight:600,color:NAVY,borderRight:"1px solid #f1f5f9"}}>
-                    {p.nome}{p.is_vip&&<span style={{marginLeft:5,color:"#f59e0b"}}>⭐</span>}
+              ) : paginated.map((p)=>(
+                <tr key={p.id}>
+                  <td style={{fontWeight:600,color:NAVY}}>
+                    {p.nome}{p.is_vip&&<span style={{marginLeft:5,color:"#f59e0b"}}><i className="fa-light fa-star"/></span>}
                   </td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9"}}>{fmtDate(p.data)}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9"}}>{p.orario}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9",textAlign:"center"}}>{p.coperti}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9"}}>{p.sala_nome||"—"}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9"}}>
+                  <td>{fmtDate(p.data)}</td>
+                  <td>{p.orario}</td>
+                  <td style={{textAlign:"center"}}>{p.coperti}</td>
+                  <td>{p.sala_nome||"—"}</td>
+                  <td>
                     {p.tavolo_id ? (
                       <span style={{background:"#eff6ff",color:NAVY,borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:600}}>
                         T.{String(p.tavolo_id).padStart(3,"0")}
                         {p.tavolo_unito_id&&<span style={{marginLeft:4,color:ACCENT}}>+T.{String(p.tavolo_unito_id).padStart(3,"0")}</span>}
                       </span>
-                    ) : <span style={{color:"#94a3b8",fontSize:11}}>—</span>}
+                    ) : <span style={{color:"#94a3b8"}}>—</span>}
                   </td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9"}}>{p.servizio||"—"}</td>
-                  <td style={{padding:"10px 14px",fontSize:12,color:"#374151",borderRight:"1px solid #f1f5f9"}}>{p.turno_nome||"—"}</td>
-                  <td style={{padding:"10px 14px",fontSize:11,color:"#64748b",borderRight:"1px solid #f1f5f9",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}
+                  <td>{p.servizio||"—"}</td>
+                  <td>{p.turno_nome||"—"}</td>
+                  <td style={{maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",color:"#6E7175"}}
                     title={p.note}>{p.note||""}</td>
-                  <td style={{padding:"8px 14px",whiteSpace:"nowrap"}}>
-                    <div style={{display:"flex",gap:4,justifyContent:"center"}}>
-                      <button onClick={()=>setModalEdit(p)} title="Modifica"
-                        style={{width:28,height:28,border:"1px solid #e2e8f0",borderRadius:6,
-                          background:"white",cursor:"pointer",display:"flex",alignItems:"center",
-                          justifyContent:"center",color:"#475569",transition:"all .1s"}}
-                        onMouseEnter={e=>{e.currentTarget.style.background="#eff6ff";e.currentTarget.style.color=NAVY;}}
-                        onMouseLeave={e=>{e.currentTarget.style.background="white";e.currentTarget.style.color="#475569";}}>
-                        <Pencil size={13}/>
-                      </button>
-                      <button onClick={()=>setModalView(p)} title="Visualizza"
-                        style={{width:28,height:28,border:"1px solid #e2e8f0",borderRadius:6,
-                          background:"white",cursor:"pointer",display:"flex",alignItems:"center",
-                          justifyContent:"center",color:"#475569",transition:"all .1s"}}
-                        onMouseEnter={e=>{e.currentTarget.style.background="#f0fdf4";e.currentTarget.style.color="#16a34a";}}
-                        onMouseLeave={e=>{e.currentTarget.style.background="white";e.currentTarget.style.color="#475569";}}>
-                        <Eye size={13}/>
-                      </button>
+                  <td>
+                    <div style={{display:"flex",gap:4}}>
+                      <Btn small variant="outline" onClick={()=>setModalEdit(p)}><i className="fa-light fa-pen"/></Btn>
+                      <Btn small variant="outline" onClick={()=>setModalView(p)}><i className="fa-light fa-eye"/></Btn>
                     </div>
                   </td>
                 </tr>

@@ -14,6 +14,7 @@ interface Props {
 
 export default function CategorieView({ categorie, countByCategoria, onCreate, onEdit, onDelete }: Props) {
   const [search, setSearch] = useState('')
+  const [view, setView] = useState<'cards' | 'rows'>('cards')
   const macroLabel = (id: string) => MACRO_AREE.find(m => m.id === id)?.label || id
 
   const filtered = useMemo(() => {
@@ -38,18 +39,57 @@ export default function CategorieView({ categorie, countByCategoria, onCreate, o
         </button>
       </div>
 
-      <div className="cat-view__search">
-        <Ico n="search" s={12} c="var(--color-text-disabled)" />
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Cerca categoria..."
-          className="sib-search-input"
-        />
+      <div className="cat-view__filters">
+        <div className="cat-view__search">
+          <Ico n="search" s={12} c="var(--color-text-disabled)" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Cerca categoria..."
+            className="sib-search-input"
+          />
+        </div>
+        <div className="cat-viewtoggle" role="group" aria-label="Visualizzazione">
+          <button type="button" className={`cat-viewtoggle__btn${view === 'cards' ? ' cat-viewtoggle__btn--active' : ''}`} onClick={() => setView('cards')} title="Card" aria-pressed={view === 'cards'}>
+            <i className="fa-duotone fa-grid-2" />
+          </button>
+          <button type="button" className={`cat-viewtoggle__btn${view === 'rows' ? ' cat-viewtoggle__btn--active' : ''}`} onClick={() => setView('rows')} title="Righe" aria-pressed={view === 'rows'}>
+            <i className="fa-duotone fa-list" />
+          </button>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="cat-view__empty">Nessuna categoria trovata.</div>
+      ) : view === 'rows' ? (
+        <div className="cat-view__table">
+          <div className="cat-view__thead">
+            <div>Categoria</div>
+            <div>Descrizione</div>
+            <div>Macro-area</div>
+            <div>Prodotti</div>
+            <div></div>
+          </div>
+          {filtered.map(c => (
+            <div key={c.id} className="cat-view__row">
+              <div className="cat-view__row-name">
+                <span className="cat-view__row-ico"><i className={`fa-duotone ${c.icona}`} /></span>
+                <span className="cat-view__name">{c.nome}</span>
+              </div>
+              <div className="cat-view__row-desc">{c.descrizione}</div>
+              <div><span className="cat-view__macro">{macroLabel(c.macroArea)}</span></div>
+              <div><span className="cat-view__count">{countByCategoria(c.id)}</span></div>
+              <div className="cat-view__actions">
+                <button className="cat-view__icon-btn cat-view__icon-btn--edit" onClick={() => onEdit(c)} aria-label="Modifica categoria">
+                  <Ico n="edit" s={13} c="var(--color-link)" />
+                </button>
+                <button className="cat-view__icon-btn cat-view__icon-btn--del" onClick={() => onDelete(c.id)} aria-label="Elimina categoria">
+                  <Ico n="trash" s={13} c="var(--color-error)" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="cat-view__grid">
           {filtered.map(c => (

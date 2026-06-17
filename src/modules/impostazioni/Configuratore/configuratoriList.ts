@@ -93,3 +93,6 @@ export const FNB_ITEMS: ConfiguratoreItem[] = [
   { id: 'fb-stampanti',         label: 'Stampanti',        icon: 'print' },
   { id: 'fb-service-monitor',   label: 'Service monitor',  icon: 'display' },
 ]
+
+/** Tutti gli id delle voci del Configuratore (Main + F&B) — default "tutte visibili". */
+export const ALL_CONFIGURATORE_IDS: string[] = [...MAIN_ITEMS, ...FNB_ITEMS].map(i => i.id)

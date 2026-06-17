@@ -10,7 +10,7 @@
   flex-direction: column;
   font-family: 'Open Sans', 'Segoe UI', system-ui, sans-serif;
   color: #4A4D53;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 20px;
 }
 
@@ -31,6 +31,47 @@
 .outletmgr .scrollbar-light::-webkit-scrollbar-thumb { background: #DBDBDB; border-radius: 3px; }
 .outletmgr .scrollbar-light::-webkit-scrollbar-thumb:hover { background: #A9AAAD; }
 .outletmgr .scrollbar-thin::-webkit-scrollbar { width: 3px; }
+
+/* ── Allineamento campi form nativi allo standard piattaforma ──────────────────
+   Allinea SOLO i campi raw di ConfigPages (con stile inline). I campi resi dai
+   componenti UI usano già .sib-input/.sib-select della piattaforma e sono esclusi. */
+.outletmgr input[type="text"]:not(.sib-input),
+.outletmgr input[type="number"]:not(.sib-input),
+.outletmgr input[type="search"]:not(.sib-input),
+.outletmgr input[type="email"]:not(.sib-input),
+.outletmgr input[type="tel"]:not(.sib-input),
+.outletmgr input[type="date"]:not(.sib-input),
+.outletmgr input[type="time"]:not(.sib-input),
+.outletmgr input[type="password"]:not(.sib-input),
+.outletmgr input:not([type]):not(.sib-input),
+.outletmgr select:not(.sib-select),
+.outletmgr textarea:not(.sib-input) {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #CFD4DA !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-family: 'Open Sans', sans-serif !important;
+  color: #4A4D53;
+  background-color: #fff;
+  box-sizing: border-box;
+  outline: none;
+}
+.outletmgr select:not(.sib-select) {
+  -webkit-appearance: none; appearance: none;
+  padding-right: 30px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+}
+.outletmgr textarea:not(.sib-input) { height: auto; padding: 8px 12px; min-height: 72px; }
+.outletmgr input:not(.sib-input):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):focus,
+.outletmgr select:not(.sib-select):focus,
+.outletmgr textarea:not(.sib-input):focus {
+  border-color: #5C9CD4 !important;
+  box-shadow: 0 0 0 3px rgba(92,156,212,.25);
+}
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }

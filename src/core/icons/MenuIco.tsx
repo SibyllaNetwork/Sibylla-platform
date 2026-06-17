@@ -107,6 +107,9 @@ const MENU_MAP: Record<string, string> = {
   // ══ IMPOSTAZIONI (depth 3) ════════════════════════════════════════════════
   'configuratore':          'fa-sliders',
   'il-mio-business':        'fa-house',
+  // Gruppi voci Configuratore (usati nell'albero del modale "Modifica modulo")
+  'cfg-generali':           'fa-sliders',
+  'cfg-fnb':                'fa-utensils',
 
   // ══ DEPTH 4 — sotto-sezioni ═══════════════════════════════════════════════
   // Sales — Gestione delle strategie

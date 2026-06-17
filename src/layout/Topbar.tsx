@@ -8,6 +8,7 @@ import MENU from '../navigation/menu'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
+import { useAccessStore } from '../store/useAccessStore'
 
 interface Props {
   crumbs          : any[]
@@ -289,6 +290,16 @@ export default function Topbar({
 
       {/* Preferenze tema e visualizzazione spostate in Profilo › Modifica profilo › Preferenze */}
 
+      {/* ── Profili / accesso ── */}
+      <Tooltip text="Profili & accesso">
+        <button
+          className="topbar__icon-btn"
+          onClick={() => useAccessStore.getState().openAccess()}
+        >
+          <Ico n="user" s={18} c={C.normal} />
+        </button>
+      </Tooltip>
+
       {/* ── Admin ── */}
       <Tooltip text="Sibylla Admin Panel">
         <button
@@ -299,8 +310,8 @@ export default function Topbar({
         </button>
       </Tooltip>
 
-      {/* ── Disconnetti ── */}
-      <button className="topbar__icon-btn" title="Disconnetti">
+      {/* ── Disconnetti (scarica il profilo → menu completo) ── */}
+      <button className="topbar__icon-btn" title="Disconnetti profilo" onClick={() => useAccessStore.getState().logout()}>
         <Ico n="power" s={18} c={C.muted} />
       </button>
 

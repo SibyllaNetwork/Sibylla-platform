@@ -1,13 +1,34 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../services/api";
 import { C, useToast, MiniCalendar, Btn, PillBtn, Modal, Field, Input, Select, FormRow, Badge } from "../components/UI";
-import {
-  ChevronLeft, ChevronRight, Minus, Plus, Trash2, Copy,
-  StickyNote, Wine, Car, X as XIcon, Hotel, Scissors,
-  Receipt, FileText, CreditCard, RefreshCw, Lock,
-  GripVertical, AlignLeft, Send, CheckCircle,
-  BookOpen
-} from "lucide-react";
+// Icone Font Awesome (kit FA globale della piattaforma), stessa API delle icone
+// lucide usate qui (prop size/color). Allinea le icone allo stile Sibylla.
+const faIcon = (cls) => function FaIcon({ size, color, className = "", style, strokeWidth, fill, absoluteStrokeWidth, ...p }) {
+  return <i className={`fa-light ${cls} ${className}`.trim()} style={{ fontSize: size, color, ...style }} {...p} />;
+};
+const ChevronLeft = faIcon("fa-chevron-left");
+const ChevronRight = faIcon("fa-chevron-right");
+const Minus = faIcon("fa-minus");
+const Plus = faIcon("fa-plus");
+const Trash2 = faIcon("fa-trash-can");
+const Copy = faIcon("fa-copy");
+const StickyNote = faIcon("fa-note-sticky");
+const Wine = faIcon("fa-wine-glass");
+const Car = faIcon("fa-car");
+const XIcon = faIcon("fa-xmark");
+const Hotel = faIcon("fa-hotel");
+const Scissors = faIcon("fa-scissors");
+const Receipt = faIcon("fa-receipt");
+const FileText = faIcon("fa-file-lines");
+const CreditCard = faIcon("fa-credit-card");
+const RefreshCw = faIcon("fa-arrows-rotate");
+const Lock = faIcon("fa-lock");
+const GripVertical = faIcon("fa-grip-vertical");
+const AlignLeft = faIcon("fa-align-left");
+const Send = faIcon("fa-paper-plane");
+const CheckCircle = faIcon("fa-circle-check");
+const BookOpen = faIcon("fa-book-open");
+
 
 const ORANGE = "#204769";
 const NAVY   = "#204769";
@@ -148,7 +169,7 @@ function QrScannerWidget({ onScan }) {
   // ── Contesto insicuro: mostra istruzioni ────────────────────────────────
   if (!isSecure) return (
     <div style={{background:"#1e1b4b",border:"1px solid #4338ca",borderRadius:8,padding:"12px 14px",marginBottom:8}}>
-      <div style={{color:"#fbbf24",fontWeight:700,fontSize:12,marginBottom:6}}>🔒 Webcam richiede HTTPS</div>
+      <div style={{color:"#fbbf24",fontWeight:700,fontSize:12,marginBottom:6}}><i className="fa-light fa-lock"/> Webcam richiede HTTPS</div>
       <div style={{color:"rgba(255,255,255,.75)",fontSize:11,lineHeight:1.7,marginBottom:8}}>
         Il browser blocca l'accesso alla webcam su connessioni <b style={{color:"#fca5a5"}}>HTTP</b>.<br/>
         Funziona solo su <b style={{color:"#86efac"}}>HTTPS</b> o da <b style={{color:"#86efac"}}>localhost</b>.
@@ -168,18 +189,18 @@ function QrScannerWidget({ onScan }) {
   if (err) return (
     <div style={{background:"#1e1b4b",border:"1px solid #4338ca",borderRadius:8,padding:"12px 14px",marginBottom:8}}>
       <div style={{color:"#fbbf24",fontWeight:700,fontSize:12,marginBottom:4}}>
-        {errType==="denied"?"🚫 Permesso negato":errType==="busy"?"📷 Webcam occupata":errType==="missing"?"🔍 Webcam non trovata":"⚠️ Errore webcam"}
+        {errType==="denied"?"Permesso negato":errType==="busy"?"Webcam occupata":errType==="missing"?"Webcam non trovata":"Errore webcam"}
       </div>
       <div style={{color:"#fca5a5",fontSize:11,marginBottom:8}}>{err}</div>
       {errType==="denied"&&<div style={{color:"rgba(255,255,255,.6)",fontSize:10,lineHeight:1.6}}>
-        Clicca sull'icona 🔒 / 📷 nella barra degli indirizzi del browser e consenti l'accesso alla fotocamera, poi riprova.
+        Clicca sull'icona <i className="fa-light fa-lock"/> / <i className="fa-light fa-camera"/> nella barra degli indirizzi del browser e consenti l'accesso alla fotocamera, poi riprova.
       </div>}
       {errType==="busy"&&<div style={{color:"rgba(255,255,255,.6)",fontSize:10}}>
         Chiudi le altre applicazioni che usano la webcam (videoconferenze, Teams, Zoom, ecc.) e riprova.
       </div>}
     </div>
   );
-  if (!loaded) return <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:8}}>⏳ Caricamento lettore QR...</div>;
+  if (!loaded) return <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:8}}><i className="fa-light fa-hourglass-half"/> Caricamento lettore QR...</div>;
   return (
     <div style={{position:"relative",borderRadius:8,overflow:"hidden",background:"#000",marginBottom:8}}>
       <video ref={videoRef} muted playsInline style={{width:"100%",maxHeight:180,display:"block",objectFit:"cover"}}/>
@@ -193,7 +214,7 @@ function QrScannerWidget({ onScan }) {
         </div>
       </div>
       <div style={{position:"absolute",bottom:4,width:"100%",textAlign:"center",color:"#f59e0b",fontSize:10,fontWeight:700}}>
-        ▶ Inquadra il QR code nel riquadro
+        <i className="fa-light fa-play"/> Inquadra il QR code nel riquadro
       </div>
     </div>
   );
@@ -232,7 +253,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
   const importoEff   = scontoPerc > 0 ? parseFloat((importoLordo - scontoAbs).toFixed(2)) : importoLordo;
   // ───────────────────────────────────────────────────────────────────────────
 
-  const METODI = [["carta","💳","Carta Credito"],["contanti","💵","Contanti"],["bancomat","🏧","Bancomat"]];
+  const METODI = [["carta","fa-light fa-credit-card","Carta Credito"],["contanti","fa-light fa-money-bill","Contanti"],["bancomat","fa-light fa-money-bill-transfer","Bancomat"]];
   const splitsTotal = splits.reduce((s,p)=>s+parseFloat(p.importo||0),0);
   const splitsResto = importoEff - splitsTotal;
   const canConfirm = step===1 && (
@@ -293,7 +314,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
     }
   };
 
-  const TIPI = [["camera","🏨","Conto Camera"],["passanti","🚶","Conto Passanti"],["scontrino","🖨️","Emetti Scontrino"],["fattura","📄","Emetti Fattura"],["wallet","💳","Wallet Cliente"]];
+  const TIPI = [["camera","fa-light fa-hotel","Conto Camera"],["passanti","fa-light fa-person-walking","Conto Passanti"],["scontrino","fa-light fa-print","Emetti Scontrino"],["fattura","fa-light fa-file-lines","Emetti Fattura"],["wallet","fa-light fa-credit-card","Wallet Cliente"]];
 
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:1100,
@@ -347,7 +368,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                       display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,transition:"all .15s"}}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor="#2d5a7b";e.currentTarget.style.background="#eff6ff";e.currentTarget.style.color="#2d5a7b";}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor="#e5e7eb";e.currentTarget.style.background="white";e.currentTarget.style.color="#374151";}}>
-                    <span style={{fontSize:26}}>{ico}</span>{lab}
+                    <span style={{fontSize:26}}><i className={ico}/></span>{lab}
                   </button>
                 ))}
               </div>
@@ -358,7 +379,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
             <>
               {/* Type badge + change */}
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,padding:"7px 12px",background:"#eff6ff",borderRadius:8}}>
-                <span style={{fontSize:18}}>{TIPI.find(([k])=>k===tipo)?.[1]}</span>
+                <span style={{fontSize:18}}><i className={TIPI.find(([k])=>k===tipo)?.[1]}/></span>
                 <span style={{fontSize:13,fontWeight:600,color:"#2d5a7b"}}>{TIPI.find(([k])=>k===tipo)?.[2]}</span>
                 {!tipoPreselezionato&&<button onClick={()=>{setTipo(null);setStep(0);}} style={{marginLeft:"auto",fontSize:11,color:"#2d5a7b",background:"transparent",border:"none",cursor:"pointer",textDecoration:"underline"}}>cambia</button>}
               </div>
@@ -433,7 +454,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                       style={{width:"100%",padding:"10px",borderRadius:8,border:"2px solid #2d5a7b",
                         background:"#eff6ff",color:"#2d5a7b",cursor:"pointer",fontSize:13,fontWeight:700,
                         display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:8}}>
-                      📷 Scansiona QR con Webcam
+                      <i className="fa-light fa-camera"/> Scansiona QR con Webcam
                     </button>
 
                     {/* Manual token */}
@@ -460,7 +481,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                             setWalletScan(d); setManualToken("");
                           }catch(e){setWalletErr("Errore di connessione");}
                         }} style={{padding:"7px 12px",borderRadius:6,border:"none",background:"#2d5a7b",color:"white",cursor:"pointer",fontWeight:700,fontSize:12}}>
-                          🔍 Verifica
+                          <i className="fa-light fa-magnifying-glass"/> Verifica
                         </button>
                       </div>
                     </div>
@@ -468,7 +489,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                     {/* Webcam modal hint */}
                     {manualToken==="__SCAN__"&&(
                       <div style={{background:"#1a1a2e",borderRadius:10,padding:16,textAlign:"center",marginBottom:8}}>
-                        <div style={{fontSize:32,marginBottom:8}}>📷</div>
+                        <div style={{fontSize:32,marginBottom:8}}><i className="fa-light fa-camera"/></div>
                         <div style={{color:"white",fontWeight:700,fontSize:13,marginBottom:6}}>Scansione QR Webcam</div>
                         <div style={{color:"rgba(255,255,255,.7)",fontSize:11,lineHeight:1.6,marginBottom:12}}>
                           1. Inquadra il QR code nella zona centrale<br/>
@@ -497,16 +518,16 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                   </>)}
 
                   {walletErr&&<div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:6,padding:"8px 12px",fontSize:12,color:"#dc2626",marginBottom:8}}>
-                    ⚠️ {walletErr} <button onClick={()=>{setWalletErr("");setWalletScan(null);setManualToken("");}} style={{marginLeft:8,border:"none",background:"none",cursor:"pointer",color:"#dc2626",fontSize:11}}>✕</button>
+                    <i className="fa-light fa-triangle-exclamation"/> {walletErr} <button onClick={()=>{setWalletErr("");setWalletScan(null);setManualToken("");}} style={{marginLeft:8,border:"none",background:"none",cursor:"pointer",color:"#dc2626",fontSize:11}}>✕</button>
                   </div>}
 
                   {walletScan&&(
                     <div style={{background:"#f0fdf4",border:"2px solid #22c55e",borderRadius:8,padding:"12px 14px"}}>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                         <div>
-                          <div style={{fontWeight:800,fontSize:14,color:"#0f172a"}}>✅ {walletScan.cliente?.cognome||""} {walletScan.cliente?.nome||""}</div>
+                          <div style={{fontWeight:800,fontSize:14,color:"#0f172a"}}><i className="fa-light fa-circle-check"/> {walletScan.cliente?.cognome||""} {walletScan.cliente?.nome||""}</div>
                           <div style={{fontSize:11,color:"#64748b"}}>{walletScan.etichetta}</div>
-                          {walletCat&&<div style={{fontSize:10,color:"#2d5a7b",marginTop:2,fontWeight:600}}>🏷 {walletCat.nome}{walletCat.sconto_perc?` · Sconto ${walletCat.sconto_perc}%`:""}</div>}
+                          {walletCat&&<div style={{fontSize:10,color:"#2d5a7b",marginTop:2,fontWeight:600}}><i className="fa-light fa-tag"/> {walletCat.nome}{walletCat.sconto_perc?` · Sconto ${walletCat.sconto_perc}%`:""}</div>}
                         </div>
                         <div style={{textAlign:"right"}}>
                           <div style={{fontSize:20,fontWeight:900,color:"#16a34a"}}>€{walletScan.saldo.toFixed(2)}</div>
@@ -515,7 +536,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                       </div>
                       {scontoPerc>0&&(
                         <div style={{background:"#fef9c3",border:"1px solid #fde68a",borderRadius:6,padding:"6px 10px",marginBottom:8,fontSize:11,color:"#78350f"}}>
-                          🏷 Sconto applicato: −{scontoPerc}% ({catNomeLabel}) = <b>−€{scontoAbs.toFixed(2)}</b>
+                          <i className="fa-light fa-tag"/> Sconto applicato: −{scontoPerc}% ({catNomeLabel}) = <b>−€{scontoAbs.toFixed(2)}</b>
                           {" · "}Da addebitare: <b style={{color:"#16a34a"}}>€{importoEff.toFixed(2)}</b>
                         </div>
                       )}
@@ -547,7 +568,7 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
                     <div key={i} style={{display:"flex",gap:8,alignItems:"center",marginBottom:8}}>
                       <select value={sp.metodo} onChange={e=>setSplits(s=>s.map((x,j)=>j===i?{...x,metodo:e.target.value}:x))}
                         style={{flex:2,border:"1px solid #d1d5db",borderRadius:6,padding:"7px 10px",fontSize:13,background:"white",outline:"none"}}>
-                        {METODI.map(([k,ico,lab])=><option key={k} value={k}>{ico} {lab}</option>)}
+                        {METODI.map(([k,ico,lab])=><option key={k} value={k}>{lab}</option>)}
                       </select>
                       <input type="number" value={sp.importo} onChange={e=>setSplits(s=>s.map((x,j)=>j===i?{...x,importo:e.target.value}:x))}
                         min="0" step="0.01"
@@ -598,9 +619,9 @@ function ModalPagamento({ importo, righe, tipoPreselezionato, titolo, comanda, o
 function ModalSelRapida({ tavoli, turni, selTurno, noTavoli, selOutlet, onSelect, onClose, hasSale }) {
   const NAVY = "#204769";
   const allTabs = [
-    !noTavoli && hasSale !== false ? ["tavoli","🪑 Tavoli"] : null,
-    turni?.length > 0              ? ["turni", "⏰ Turni"]  : null,
-    ["comande","🧾 Comande"],
+    !noTavoli && hasSale !== false ? ["tavoli","Tavoli"] : null,
+    turni?.length > 0              ? ["turni", "Turni"]  : null,
+    ["comande","Comande"],
   ].filter(Boolean);
   const tabs = allTabs;
   const defaultTab = noTavoli ? (turni?.length>0 ? "turni" : "comande") : "tavoli";
@@ -642,7 +663,7 @@ function ModalSelRapida({ tavoli, turni, selTurno, noTavoli, selOutlet, onSelect
         <div style={{background:NAVY,padding:"14px 20px",display:"flex",
           alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
           <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}>
-            ⚡ Selezione Rapida
+            <i className="fa-light fa-bolt"/> Selezione Rapida
           </span>
           <button onClick={onClose} style={{background:"rgba(255,255,255,.15)",border:"none",
             color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,
@@ -1200,7 +1221,7 @@ table{width:100%;border-collapse:collapse}
 <div style="text-align:center;font-size:11px;margin-top:8px">${selOutlet?.nome||""}</div>
 <br/>
 <button onclick="window.print();setTimeout(()=>window.close(),500)" style="width:100%;padding:8px;cursor:pointer">
-  🖨️ Stampa e chiudi
+  <i className="fa-light fa-print"/> Stampa e chiudi
 </button>
 <script>window.onload=()=>setTimeout(()=>window.print(),300);<\/script>
 </body></html>`;
@@ -1591,14 +1612,14 @@ table{width:100%;border-collapse:collapse}
   };
 
   const toolbar = [
-    {icon:"📋",label:"Note",             action:()=>setShowNote(true)},
-    {icon:"🍷",label:"Carta vini",       action:()=>{}},
-    {icon:"🚕",label:"Taxi",             action:()=>{}},
-    {icon:"🔒",label:"Chiudi cassa",     action:()=>setShowChiudi(true)},
-    {icon:"🏨",label:"Conto camera",     action:()=>{setTipo("conto_camera");setShowChiudi(true);}},
-    {icon:"✂️", label:"Dividi conto",    action:()=>{}},
-    {icon:"📄",label:"Emetti fattura",   action:()=>{setTipo("fattura");setShowChiudi(true);}},
-    {icon:"🖨️",label:"Emetti scontrino", action:()=>{setTipo("scontrino");setShowChiudi(true);}},
+    {icon:"fa-light fa-clipboard-list",label:"Note",             action:()=>setShowNote(true)},
+    {icon:"fa-light fa-wine-glass",label:"Carta vini",       action:()=>{}},
+    {icon:"fa-light fa-taxi",label:"Taxi",             action:()=>{}},
+    {icon:"fa-light fa-lock",label:"Chiudi cassa",     action:()=>setShowChiudi(true)},
+    {icon:"fa-light fa-hotel",label:"Conto camera",     action:()=>{setTipo("conto_camera");setShowChiudi(true);}},
+    {icon:"fa-light fa-scissors", label:"Dividi conto",    action:()=>{}},
+    {icon:"fa-light fa-file-lines",label:"Emetti fattura",   action:()=>{setTipo("fattura");setShowChiudi(true);}},
+    {icon:"fa-light fa-print",label:"Emetti scontrino", action:()=>{setTipo("scontrino");setShowChiudi(true);}},
   ];
 
   const tavoloColor = s => ({
@@ -1607,12 +1628,12 @@ table{width:100%;border-collapse:collapse}
   }[s]||"#A9AAAD");
 
   const chiudiOptions = [
-    {icon:"🖨️", label:"Scontrino",    action:()=>{setTipo("scontrino");   setShowChiudi(true);}},
-    {icon:"💳",  label:"POS / Carta",  action:()=>{setTipo("pos");          setShowChiudi(true);}},
-    {icon:"💵",  label:"Contanti",     action:()=>{setTipo("contanti");     setShowChiudi(true);}},
-    {icon:"🏨",  label:"Camera",       action:()=>{setTipo("conto_camera"); setShowChiudi(true);}},
-    {icon:"📄",  label:"Fattura",      action:()=>{setTipo("fattura");      setShowChiudi(true);}},
-    {icon:"🔒",  label:"Chiudi cassa", action:()=>setShowChiudi(true)},
+    {icon:"fa-light fa-print", label:"Scontrino",    action:()=>{setTipo("scontrino");   setShowChiudi(true);}},
+    {icon:"fa-light fa-credit-card",  label:"POS / Carta",  action:()=>{setTipo("pos");          setShowChiudi(true);}},
+    {icon:"fa-light fa-money-bill",  label:"Contanti",     action:()=>{setTipo("contanti");     setShowChiudi(true);}},
+    {icon:"fa-light fa-hotel",  label:"Camera",       action:()=>{setTipo("conto_camera"); setShowChiudi(true);}},
+    {icon:"fa-light fa-file-lines",  label:"Fattura",      action:()=>{setTipo("fattura");      setShowChiudi(true);}},
+    {icon:"fa-light fa-lock",  label:"Chiudi cassa", action:()=>setShowChiudi(true)},
   ];
 
   return (
@@ -1679,7 +1700,7 @@ table{width:100%;border-collapse:collapse}
           style={{height:28,padding:"0 10px",borderRadius:5,border:"1px solid #d1d5db",
             background:"white",color:"#6b7280",cursor:"pointer",fontSize:11,fontWeight:600,
             display:"flex",alignItems:"center",gap:4}}>
-          🗃 Archivio
+          <i className="fa-light fa-box-archive"/> Archivio
         </button>
         {/* Comanda n° - selezionabile se più comande aperte */}
         <div style={{fontSize:13,color:"#374151",display:"flex",alignItems:"center",gap:5}}>
@@ -1752,7 +1773,7 @@ table{width:100%;border-collapse:collapse}
           style={{width:28,height:28,borderRadius:6,border:"1px solid #d1d5db",
             background:"white",color:"#6b7280",cursor:"pointer",fontSize:14,
             display:"flex",alignItems:"center",justifyContent:"center"}}>
-          ⚡
+          <i className="fa-light fa-bolt"/>
         </button>
         {/* Apri comanda — sempre visibile, crea nuova comanda aggiuntiva */}
         <button onClick={apriComanda} disabled={!noTavoli&&!tavolo}
@@ -1948,11 +1969,11 @@ table{width:100%;border-collapse:collapse}
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
               borderTop:"1px solid rgba(255,255,255,.2)",paddingTop:5,marginTop:5}}>
               <div style={{fontSize:11,color:"rgba(255,255,255,.75)",fontStyle:(tavolo?.nome_pren||comanda?.nome_pren)?"normal":"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:190}}>
-                {(tavolo?.nome_pren||comanda?.nome_pren)?`👤 ${tavolo?.nome_pren||comanda?.nome_pren}`:"Nessun nominativo"}
+                {(tavolo?.nome_pren||comanda?.nome_pren)?`${tavolo?.nome_pren||comanda?.nome_pren}`:"Nessun nominativo"}
               </div>
               <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0,
                 background:"rgba(255,255,255,.18)",borderRadius:6,padding:"2px 10px"}}>
-                <span style={{fontSize:14}}>👥</span>
+                <span style={{fontSize:14}}><i className="fa-light fa-users"/></span>
                 <span style={{fontSize:16,fontWeight:900,color:"white"}}>{copertiComanda}</span>
                 <span style={{fontSize:10,color:"rgba(255,255,255,.6)"}}>pax</span>
               </div>
@@ -2002,7 +2023,7 @@ table{width:100%;border-collapse:collapse}
                         borderBottom:dragOverSep===-1?"2px dashed #f59e0b":"none",
                         display:"flex",alignItems:"center",justifyContent:"center",
                       }}>
-                      {dragOverSep===-1&&<span style={{fontSize:10,fontWeight:700,color:"#92400e"}}>⬆ Sposta a Turno 1</span>}
+                      {dragOverSep===-1&&<span style={{fontSize:10,fontWeight:700,color:"#92400e"}}><i className="fa-light fa-arrow-up"/> Sposta a Turno 1</span>}
                     </div>
                   )}
                   {order.map((item, idx)=>(
@@ -2164,13 +2185,13 @@ table{width:100%;border-collapse:collapse}
                             padding:"9px 0",fontSize:13,fontWeight:700,transition:"all .15s"}}
                           onMouseEnter={e=>{if(canAdvance)e.currentTarget.style.background="#fef3c7";}}
                           onMouseLeave={e=>{if(canAdvance)e.currentTarget.style.background=canAdvance?"#fffbeb":"#f9fafb";}}>
-                          🔔 {canAdvance?`Chiama Turno ${turnoCorrente+2}`:"✓ Tutti i turni chiamati"}
+                          <i className="fa-light fa-bell"/> {canAdvance?`Chiama Turno ${turnoCorrente+2}`:"✓ Tutti i turni chiamati"}
                         </button>
                       )}
                       {inviatoReparti&&comanda&&numTurni>0&&(
                         <div style={{textAlign:"center",fontSize:10,color:"#92400e",
                           background:"#fffbeb",border:"1px solid #fde68a",borderRadius:6,padding:"3px 8px"}}>
-                          🔔 Monitor: Turno {turnoCorrente+1}/{numTurni+1}
+                          <i className="fa-light fa-bell"/> Monitor: Turno {turnoCorrente+1}/{numTurni+1}
                         </div>
                       )}
                     </div>
@@ -2183,7 +2204,7 @@ table{width:100%;border-collapse:collapse}
             {order.length===0&&(
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
                 flex:1,gap:8,color:"#9ca3af",minHeight:100}}>
-                <div style={{fontSize:36,opacity:.3}}>🛒</div>
+                <div style={{fontSize:36,opacity:.3}}><i className="fa-light fa-cart-shopping"/></div>
                 <div style={{fontSize:12}}>Nessuna voce aggiunta</div>
               </div>
             )}
@@ -2197,14 +2218,14 @@ table{width:100%;border-collapse:collapse}
                 style={{flex:1,padding:"5px 8px",borderRadius:6,border:"1px solid #e5e7eb",
                   background:"white",color:"#6b7280",cursor:"pointer",fontSize:10,fontWeight:600,
                   display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
-                📝 Note
+                <i className="fa-light fa-pen-to-square"/> Note
               </button>
               {comanda&&(
                 <button onClick={()=>setShowAnnulla(true)}
                   style={{flex:1,padding:"5px 8px",borderRadius:6,border:"1px solid #fca5a5",
                     background:"#fef2f2",color:"#dc2626",cursor:"pointer",fontSize:10,fontWeight:600,
                     display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
-                  ✕ Annulla
+                  <i className="fa-light fa-xmark"/> Annulla
                 </button>
               )}
             </div>
@@ -2233,7 +2254,7 @@ table{width:100%;border-collapse:collapse}
                   whiteSpace:"nowrap",transition:"all .15s"}}
                 onMouseEnter={e=>{if(comanda)e.currentTarget.style.background="#fde68a";}}
                 onMouseLeave={e=>{if(comanda)e.currentTarget.style.background="#fef9c3";}}>
-                <span style={{fontSize:16,lineHeight:1}}>📋</span>
+                <span style={{fontSize:16,lineHeight:1}}><i className="fa-light fa-clipboard-list"/></span>
                 Pre-conto
               </button>
             </div>
@@ -2248,7 +2269,7 @@ table{width:100%;border-collapse:collapse}
                   display:"flex",flexDirection:"column",alignItems:"center",gap:3,transition:"all .15s"}}
                 onMouseEnter={e=>{if(comanda)e.currentTarget.style.background="#1e3a52";}}
                 onMouseLeave={e=>{if(comanda)e.currentTarget.style.background="#2d5a7b";}}>
-                <span style={{fontSize:18}}>🏁</span>Chiudi comanda
+                <span style={{fontSize:18}}><i className="fa-light fa-flag-checkered"/></span>Chiudi comanda
               </button>
               {/* Dividi conto — inibito se parti uguali già in corso */}
               {(()=>{
@@ -2267,7 +2288,7 @@ table{width:100%;border-collapse:collapse}
                       opacity:hasPartiUguali?0.5:1}}
                     onMouseEnter={e=>{if(canDividi)e.currentTarget.style.background="#f9fafb";}}
                     onMouseLeave={e=>{e.currentTarget.style.background=hasPartiUguali?"#f9fafb":"white";}}>
-                    <span style={{fontSize:18}}>✂️</span>Dividi conto
+                    <span style={{fontSize:18}}><i className="fa-light fa-scissors"/></span>Dividi conto
                   </button>
                 );
               })()}
@@ -2281,7 +2302,7 @@ table{width:100%;border-collapse:collapse}
                   display:"flex",flexDirection:"column",alignItems:"center",gap:3,transition:"all .15s"}}
                 onMouseEnter={e=>{if(comanda)e.currentTarget.style.background="#f9fafb";}}
                 onMouseLeave={e=>{e.currentTarget.style.background="white";}}>
-                <span style={{fontSize:18}}>🔢</span>Dividi parti uguali
+                <span style={{fontSize:18}}><i className="fa-light fa-list-ol"/></span>Dividi parti uguali
               </button>
             </div>
           </div>
@@ -2310,7 +2331,7 @@ table{width:100%;border-collapse:collapse}
           <div style={{background:"white",borderRadius:12,width:"100%",maxWidth:420,overflow:"hidden",
             boxShadow:"0 16px 48px rgba(0,0,0,.18)"}}>
             <div style={{background:"#2d5a7b",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-              <span style={{color:"white",fontWeight:700,fontSize:14}}>📝 Note comanda</span>
+              <span style={{color:"white",fontWeight:700,fontSize:14}}><i className="fa-light fa-pen-to-square"/> Note comanda</span>
               <button onClick={()=>setShowNote(false)} style={{background:"rgba(255,255,255,.2)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
             </div>
             <div style={{padding:16}}>
@@ -2341,7 +2362,7 @@ table{width:100%;border-collapse:collapse}
             <div style={{padding:16}}>
               {inviatoReparti&&(
                 <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"10px 14px",marginBottom:14}}>
-                  <p style={{fontSize:12,fontWeight:700,color:"#92400e",margin:"0 0 6px"}}>⚠️ Comanda già inviata ai reparti di produzione</p>
+                  <p style={{fontSize:12,fontWeight:700,color:"#92400e",margin:"0 0 6px"}}><i className="fa-light fa-triangle-exclamation"/> Comanda già inviata ai reparti di produzione</p>
                   <p style={{fontSize:12,color:"#78350f",margin:0}}>Inserisci il motivo di annullamento</p>
                 </div>
               )}
@@ -2369,7 +2390,7 @@ table{width:100%;border-collapse:collapse}
                     color:inviatoReparti&&!motivoAnnulla.trim()?"#9ca3af":"white",
                     cursor:inviatoReparti&&!motivoAnnulla.trim()?"not-allowed":"pointer",
                     fontSize:13,fontWeight:700}}>
-                  ✕ Conferma annullamento
+                  <i className="fa-light fa-xmark"/> Conferma annullamento
                 </button>
               </div>
             </div>
@@ -2386,7 +2407,7 @@ table{width:100%;border-collapse:collapse}
           <ModalPagamento
             importo={importoParte}
             righe={righePerRicevuta}
-            titolo={`🏁 Chiudi comanda #${comanda?.numero}${chiudiParte?" — Parte selezionata":""}`}
+            titolo={`Chiudi comanda #${comanda?.numero}${chiudiParte?" — Parte selezionata":""}`}
             comanda={comanda}
             outletNome={selOutlet?.nome}
             catClienti={catClienti}
@@ -2444,7 +2465,7 @@ table{width:100%;border-collapse:collapse}
           <div style={{background:"white",borderRadius:12,width:"100%",maxWidth:500,overflow:"hidden",
             boxShadow:"0 16px 48px rgba(0,0,0,.18)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
             <div style={{background:"#2d5a7b",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-              <span style={{color:"white",fontWeight:700,fontSize:14}}>✂️ Dividi conto — seleziona portate</span>
+              <span style={{color:"white",fontWeight:700,fontSize:14}}><i className="fa-light fa-scissors"/> Dividi conto — seleziona portate</span>
               <button onClick={()=>setShowDividi(false)} style={{background:"rgba(255,255,255,.2)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
             </div>
             <div style={{flex:1,overflowY:"auto",padding:14}}>
@@ -2505,7 +2526,7 @@ table{width:100%;border-collapse:collapse}
           <div style={{background:"white",borderRadius:12,width:"100%",maxWidth:460,overflow:"hidden",
             boxShadow:"0 16px 48px rgba(0,0,0,.18)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
             <div style={{background:"#2d5a7b",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-              <span style={{color:"white",fontWeight:700,fontSize:14}}>🔢 Dividi in parti uguali</span>
+              <span style={{color:"white",fontWeight:700,fontSize:14}}><i className="fa-light fa-list-ol"/> Dividi in parti uguali</span>
               <button onClick={()=>setShowDividiParti(false)} style={{background:"rgba(255,255,255,.2)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
             </div>
             <div style={{flex:1,overflowY:"auto",padding:16}}>
@@ -2553,7 +2574,7 @@ table{width:100%;border-collapse:collapse}
                             prezzo: x.prezzo,
                             nome: x.nome,
                           }));
-                          openPagamento(quota, partRighe, `🔢 Parte ${i+1} di ${numParti}`, null, async(details)=>{
+                          openPagamento(quota, partRighe, `Parte ${i+1} di ${numParti}`, null, async(details)=>{
                             const newParte = {tipo:details.tipo, importo:quota, _dividi:true, _parte:i};
                             const newParti = [...partiChiuse, newParte];
                             setPartiChiuse(newParti);
@@ -2619,7 +2640,7 @@ table{width:100%;border-collapse:collapse}
           <div style={{background:"white",borderRadius:12,width:"100%",maxWidth:600,overflow:"hidden",
             boxShadow:"0 16px 48px rgba(0,0,0,.18)",maxHeight:"85vh",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
             <div style={{background:"#2d5a7b",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-              <span style={{color:"white",fontWeight:700,fontSize:14}}>🗃 Archivio comande chiuse — {selOutlet?.nome}</span>
+              <span style={{color:"white",fontWeight:700,fontSize:14}}><i className="fa-light fa-box-archive"/> Archivio comande chiuse — {selOutlet?.nome}</span>
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
                 <button onClick={loadComandeChiuse} style={{background:"rgba(255,255,255,.2)",border:"none",color:"white",cursor:"pointer",fontSize:13,padding:"3px 8px",borderRadius:5,fontWeight:600}}>↻</button>
                 <button onClick={()=>setShowComandeChiuse(false)} style={{background:"rgba(255,255,255,.2)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
@@ -2629,7 +2650,7 @@ table{width:100%;border-collapse:collapse}
               {loadingChiuse&&<div style={{padding:32,textAlign:"center",color:"#9ca3af",fontSize:13}}>Caricamento...</div>}
               {!loadingChiuse&&comandeChiuse.length===0&&(
                 <div style={{padding:40,textAlign:"center",color:"#9ca3af",fontSize:13}}>
-                  <div style={{fontSize:36,marginBottom:8}}>🗃</div>
+                  <div style={{fontSize:36,marginBottom:8}}><i className="fa-light fa-box-archive"/></div>
                   Nessuna comanda chiusa per questo outlet
                 </div>
               )}
@@ -2647,7 +2668,7 @@ table{width:100%;border-collapse:collapse}
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                         <span style={{fontSize:14,fontWeight:700,color:"#2d5a7b"}}>#{c.numero}</span>
                         {c.tipo_chiusura&&<span style={{fontSize:10,fontWeight:600,color:"#16a34a",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"1px 8px"}}>
-                          {[["camera","🏨 Camera"],["passanti","🚶 Passanti"],["scontrino","🖨️ Scontrino"],["fattura","📄 Fattura"],["diviso","🔢 Diviso"]].find(([k])=>k===c.tipo_chiusura)?.[1]||c.tipo_chiusura}
+                          {[["camera","Camera"],["passanti","Passanti"],["scontrino","Scontrino"],["fattura","Fattura"],["diviso","Diviso"]].find(([k])=>k===c.tipo_chiusura)?.[1]||c.tipo_chiusura}
                         </span>}
                         <span style={{fontSize:13,fontWeight:700,color:"#374151",marginLeft:"auto"}}>€{totale.toFixed(2)}</span>
                       </div>

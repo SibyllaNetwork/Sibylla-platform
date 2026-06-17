@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Ico from '../../../../core/icons/Ico'
 import BannerPreview from './BannerPreview'
+import BookingPageTab from './BookingPageTab'
 import {
   ACCENT_PRESETS, BANNER_GROUPS, BG_POSITIONS, DEFAULT_CONFIG, LINGUE, LINK_TYPES,
   LOGO_POSITIONS, VALUTE, buildEmbedCode, buildEmbedUrl, findFormat, isDataUrl, labelsFor,
@@ -45,6 +46,7 @@ function readImageScaled(
 }
 
 export default function BannerTab() {
+  const [view, setView] = useState<'banner' | 'page'>('banner')
   const [selId, setSelId] = useState<string>(BANNER_GROUPS[0].formats[0].id)
   const [config, setConfig] = useState<BannerConfig>(DEFAULT_CONFIG)
   const [copied, setCopied] = useState(false)
@@ -111,9 +113,36 @@ export default function BannerTab() {
   }
 
   return (
-    <div className="bgen">
-      {/* ─── Galleria formati (master) ─────────────────────────────────────── */}
-      <aside className="bgen__gallery" aria-label="Formati banner">
+    <div className="bgen-wrap">
+      <div className="bgen-switch" role="tablist" aria-label="Tipo di contenuto">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'banner'}
+          className={`bgen-switch__btn${view === 'banner' ? ' bgen-switch__btn--active' : ''}`}
+          onClick={() => setView('banner')}
+        >
+          <Ico n="image" s={14} c={view === 'banner' ? 'var(--color-primary)' : 'var(--color-text-inactive)'} />
+          Banner di affiliazione
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'page'}
+          className={`bgen-switch__btn${view === 'page' ? ' bgen-switch__btn--active' : ''}`}
+          onClick={() => setView('page')}
+        >
+          <Ico n="globe" s={14} c={view === 'page' ? 'var(--color-primary)' : 'var(--color-text-inactive)'} />
+          Pagina di Booking
+        </button>
+      </div>
+
+      {view === 'page' ? (
+        <BookingPageTab />
+      ) : (
+        <div className="bgen">
+          {/* ─── Galleria formati (master) ─────────────────────────────────────── */}
+          <aside className="bgen__gallery" aria-label="Formati banner">
         {BANNER_GROUPS.map(g => (
           <div key={g.kind} className="bgen__group">
             <div className="bgen__group-head">
@@ -526,6 +555,8 @@ export default function BannerTab() {
           </section>
         </div>
       </div>
+        </div>
+      )}
     </div>
   )
 }

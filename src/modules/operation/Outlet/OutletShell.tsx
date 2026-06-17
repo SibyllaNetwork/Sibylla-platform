@@ -29,7 +29,7 @@ interface Ctx {
   editPren?: any
 }
 
-export default function OutletShell({ initialPage }: { initialPage: OutletSubPage }) {
+export default function OutletShell({ initialPage, navigate }: { initialPage: OutletSubPage; navigate?: (p: string) => void }) {
   const [page, setPage] = useState<OutletSubPage>(initialPage)
   const [ctx, setCtx] = useState<Ctx>({})
 
@@ -69,7 +69,7 @@ export default function OutletShell({ initialPage }: { initialPage: OutletSubPag
         />
       )}
 
-      {page === 'ospiti' && <OspitiGiorno />}
+      {page === 'ospiti' && <OspitiGiorno navigate={navigate} />}
 
       {page === 'gestione' && (
         <GestioneSala

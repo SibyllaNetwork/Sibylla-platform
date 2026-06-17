@@ -44,6 +44,20 @@
   @apply min-w-56;
 }
 
+/* ─── Select: doppia-chevron standard (.sib-select) al posto della freccia singola ─ */
+.accommodations__select > select,
+.accommodations__sort-select > select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+/* Nasconde la freccia singola (fa-angle-down) del componente DS Select */
+.accommodations__select > span[aria-hidden],
+.accommodations__sort-select > span[aria-hidden] {
+  display: none;
+}
+
 .accommodations__empty {
   @apply rounded-card border border-border-soft bg-surface py-16 text-center;
 }

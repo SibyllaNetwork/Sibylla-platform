@@ -15,6 +15,42 @@
   display: block
   margin-bottom: 4px
 
+.ncm__mods
+  display: flex
+  flex-wrap: wrap
+  gap: 7px
+
+.ncm__chip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 6px 11px
+  border: 1px solid $border
+  border-radius: $radius-full
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  background: $white
+  cursor: pointer
+  transition: border-color .12s, background .12s, color .12s
+
+  input
+    accent-color: $primary
+    width: 13px
+    height: 13px
+    cursor: pointer
+
+  &--on
+    border-color: $primary
+    color: $primary
+    background: $primary-50
+
+.ncm__hint
+  display: block
+  font-size: 11px
+  color: $text-disabled
+  margin-top: 6px
+
 .ncm__actions
   display: flex
   justify-content: flex-end

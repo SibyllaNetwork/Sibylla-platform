@@ -2,13 +2,34 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { printEstrattoConto } from "../services/pdfUtils";
 import { api } from "../services/api";
 import { C, useToast, MiniCalendar, Btn, PillBtn, Modal, Field, Input, Select, FormRow, Badge } from "../components/UI";
-import {
-  ChevronLeft, ChevronRight, Minus, Plus, Trash2, Copy,
-  StickyNote, Wine, Car, X as XIcon, Hotel, Scissors,
-  Receipt, FileText, CreditCard, RefreshCw, Lock,
-  GripVertical, AlignLeft, Send, CheckCircle,
-  BookOpen
-} from "lucide-react";
+// Icone Font Awesome (kit FA globale della piattaforma), stessa API delle icone
+// lucide usate qui (prop size/color). Allinea le icone allo stile Sibylla.
+const faIcon = (cls) => function FaIcon({ size, color, className = "", style, strokeWidth, fill, absoluteStrokeWidth, ...p }) {
+  return <i className={`fa-light ${cls} ${className}`.trim()} style={{ fontSize: size, color, ...style }} {...p} />;
+};
+const ChevronLeft = faIcon("fa-chevron-left");
+const ChevronRight = faIcon("fa-chevron-right");
+const Minus = faIcon("fa-minus");
+const Plus = faIcon("fa-plus");
+const Trash2 = faIcon("fa-trash-can");
+const Copy = faIcon("fa-copy");
+const StickyNote = faIcon("fa-note-sticky");
+const Wine = faIcon("fa-wine-glass");
+const Car = faIcon("fa-car");
+const XIcon = faIcon("fa-xmark");
+const Hotel = faIcon("fa-hotel");
+const Scissors = faIcon("fa-scissors");
+const Receipt = faIcon("fa-receipt");
+const FileText = faIcon("fa-file-lines");
+const CreditCard = faIcon("fa-credit-card");
+const RefreshCw = faIcon("fa-arrows-rotate");
+const Lock = faIcon("fa-lock");
+const GripVertical = faIcon("fa-grip-vertical");
+const AlignLeft = faIcon("fa-align-left");
+const Send = faIcon("fa-paper-plane");
+const CheckCircle = faIcon("fa-circle-check");
+const BookOpen = faIcon("fa-book-open");
+
 
 const ORANGE = "#204769";
 const NAVY   = "#204769";
@@ -242,7 +263,7 @@ function TavoloCard({ t, prenOggi, ctxOpen, onCtxToggle, onOpen, setTooltip, set
                 border:"1.5px solid "+(pren.note?"#F57D03":"#5C9CD4"),
                 display:"flex",alignItems:"center",justifyContent:"center",
                 fontSize:11,lineHeight:1}}>
-                {pren.note?"📋":"👤"}
+                {pren.note?<i className="fa-light fa-clipboard-list"/>:<i className="fa-light fa-user"/>}
               </div>
             </div>
           ) : (
@@ -289,7 +310,7 @@ function TavoloCard({ t, prenOggi, ctxOpen, onCtxToggle, onOpen, setTooltip, set
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
               maxWidth:"100%",marginBottom:2,cursor:"pointer",
               textDecoration:"underline",textDecorationStyle:"dotted"}}>
-            👤 {pren.nome} · {pren.orario}
+            <i className="fa-light fa-user"/> {pren.nome} · {pren.orario}
           </div>
         )}
         {t.tavolo_unito_id && (() => {
@@ -310,7 +331,7 @@ function TavoloCard({ t, prenOggi, ctxOpen, onCtxToggle, onOpen, setTooltip, set
               {partnerPren&&(
                 <div style={{fontSize:8,color:"#5C9CD4",fontWeight:600,
                   overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:130}}>
-                  👤 {partnerPren.nome} · {partnerPren.orario}
+                  <i className="fa-light fa-user"/> {partnerPren.nome} · {partnerPren.orario}
                 </div>
               )}
             </div>
@@ -322,7 +343,7 @@ function TavoloCard({ t, prenOggi, ctxOpen, onCtxToggle, onOpen, setTooltip, set
       <div style={{background:cfg.strip, padding:"5px 6px",
         textAlign:"center", borderTop:"1px solid "+cfg.dot+"25",
         display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
-        {t.pagato&&<span style={{fontSize:10}}>🧾</span>}
+        {t.pagato&&<span style={{fontSize:10}}><i className="fa-light fa-receipt"/></span>}
         <span style={{fontSize:10,fontWeight:700,color:cfg.color}}>
           {t.pagato ? "Pagato" : statusLabel}
         </span>
@@ -340,55 +361,55 @@ function CtxMenu({ t, pren, onClose, turni }) {
 
   if (isPagato) {
     items = [
-      {ic:"📄",lb:"Estratto conto",    act:"estratto",     sep:false},
-      {ic:"🆓",lb:"Libera tavolo",     act:"libera",       sep:true},
+      {ic:"fa-light fa-file-lines",lb:"Estratto conto",    act:"estratto",     sep:false},
+      {ic:"fa-light fa-unlock-keyhole",lb:"Libera tavolo",     act:"libera",       sep:true},
     ];
   } else if (isBloccato) {
     items = [
-      {ic:"🔓",lb:"Sblocca tavolo",    act:"disponibile",  sep:false},
+      {ic:"fa-light fa-unlock",lb:"Sblocca tavolo",    act:"disponibile",  sep:false},
     ];
   } else if (status === "disponibile") {
     items = [
-      {ic:"🧾",lb:"Apri comanda",      act:"gestione",     sep:false},
-      ...(pren?[{ic:"✅",lb:"Check-in ospite",act:"checkin",sep:false}]:[]),
-      {ic:"🔒",lb:"Blocca tavolo",     act:"bloccato",     sep:true},
+      {ic:"fa-light fa-receipt",lb:"Apri comanda",      act:"gestione",     sep:false},
+      ...(pren?[{ic:"fa-light fa-circle-check",lb:"Check-in ospite",act:"checkin",sep:false}]:[]),
+      {ic:"fa-light fa-lock",lb:"Blocca tavolo",     act:"bloccato",     sep:true},
     ];
   } else if (status === "riservato") {
     items = [
-      ...(pren?[{ic:"✅",lb:"Check-in ospite",act:"checkin",sep:false}]:[]),
-      {ic:"🧾",lb:"Apri comanda",      act:"gestione",     sep:false},
-      {ic:"🔀",lb:"Sposta tavolo",     act:"sposta",       sep:false},
-      {ic:"🔗",lb:"Unisci tavolo",     act:"unisci",       sep:false},
-      ...(t.tavolo_unito_id?[{ic:"✂️", lb:"Dividi tavolo",  act:"dividi",       sep:false}]:[]),
-      {ic:"✔", lb:"Segna disponibile", act:"disponibile",  sep:true},
+      ...(pren?[{ic:"fa-light fa-circle-check",lb:"Check-in ospite",act:"checkin",sep:false}]:[]),
+      {ic:"fa-light fa-receipt",lb:"Apri comanda",      act:"gestione",     sep:false},
+      {ic:"fa-light fa-shuffle",lb:"Sposta tavolo",     act:"sposta",       sep:false},
+      {ic:"fa-light fa-link",lb:"Unisci tavolo",     act:"unisci",       sep:false},
+      ...(t.tavolo_unito_id?[{ic:"fa-light fa-scissors", lb:"Dividi tavolo",  act:"dividi",       sep:false}]:[]),
+      {ic:"fa-light fa-check", lb:"Segna disponibile", act:"disponibile",  sep:true},
     ];
   } else if (status === "attesa_ordine") {
     items = [
-      {ic:"🧾",lb:"Gestisci comanda",  act:"gestione",     sep:false},
-      {ic:"🔀",lb:"Sposta tavolo",     act:"sposta",       sep:false},
-      {ic:"🔗",lb:"Unisci tavolo",     act:"unisci",       sep:false},
-      ...(t.tavolo_unito_id?[{ic:"✂️", lb:"Dividi tavolo",  act:"dividi",       sep:false}]:[]),
-      {ic:"✔", lb:"Libera tavolo",     act:"disponibile",  sep:true},
+      {ic:"fa-light fa-receipt",lb:"Gestisci comanda",  act:"gestione",     sep:false},
+      {ic:"fa-light fa-shuffle",lb:"Sposta tavolo",     act:"sposta",       sep:false},
+      {ic:"fa-light fa-link",lb:"Unisci tavolo",     act:"unisci",       sep:false},
+      ...(t.tavolo_unito_id?[{ic:"fa-light fa-scissors", lb:"Dividi tavolo",  act:"dividi",       sep:false}]:[]),
+      {ic:"fa-light fa-check", lb:"Libera tavolo",     act:"disponibile",  sep:true},
     ];
   } else if (status === "occupato") {
     items = [
-      {ic:"🧾",lb:"Gestisci comanda",  act:"gestione",     sep:false},
-      {ic:"📄",lb:"Estratto conto",    act:"estratto",     sep:false},
-      {ic:"🔀",lb:"Sposta tavolo",     act:"sposta",       sep:false},
-      {ic:"🔗",lb:"Unisci tavolo",     act:"unisci",       sep:false},
-      ...(t.tavolo_unito_id?[{ic:"✂️", lb:"Dividi tavolo",   act:"dividi",       sep:false}]:[]),
-      {ic:"💳",lb:"Chiesto conto",     act:"chiesto_conto",sep:true},
-      {ic:"🏁",lb:"Chiudi e paga",     act:"paga",         sep:false},
+      {ic:"fa-light fa-receipt",lb:"Gestisci comanda",  act:"gestione",     sep:false},
+      {ic:"fa-light fa-file-lines",lb:"Estratto conto",    act:"estratto",     sep:false},
+      {ic:"fa-light fa-shuffle",lb:"Sposta tavolo",     act:"sposta",       sep:false},
+      {ic:"fa-light fa-link",lb:"Unisci tavolo",     act:"unisci",       sep:false},
+      ...(t.tavolo_unito_id?[{ic:"fa-light fa-scissors", lb:"Dividi tavolo",   act:"dividi",       sep:false}]:[]),
+      {ic:"fa-light fa-credit-card",lb:"Chiesto conto",     act:"chiesto_conto",sep:true},
+      {ic:"fa-light fa-flag-checkered",lb:"Chiudi e paga",     act:"paga",         sep:false},
     ];
   } else if (status === "chiesto_conto") {
     items = [
-      {ic:"🧾",lb:"Gestisci comanda",  act:"gestione",     sep:false},
-      {ic:"📄",lb:"Estratto conto",    act:"estratto",     sep:false},
-      {ic:"🏁",lb:"Chiudi e paga",     act:"paga",         sep:false},
+      {ic:"fa-light fa-receipt",lb:"Gestisci comanda",  act:"gestione",     sep:false},
+      {ic:"fa-light fa-file-lines",lb:"Estratto conto",    act:"estratto",     sep:false},
+      {ic:"fa-light fa-flag-checkered",lb:"Chiudi e paga",     act:"paga",         sep:false},
     ];
   } else {
     items = [
-      {ic:"✔", lb:"Segna disponibile", act:"disponibile",  sep:false},
+      {ic:"fa-light fa-check", lb:"Segna disponibile", act:"disponibile",  sep:false},
     ];
   }
 
@@ -411,7 +432,7 @@ function CtxMenu({ t, pren, onClose, turni }) {
           </div>
           <div style={{fontSize:10,color:"#6E7175"}}>{t.capienza} posti · {cfg.label}</div>
           {t.totale_oggi>0&&<div style={{fontSize:10,color:"#007035",fontWeight:700,marginTop:1}}>€ {t.totale_oggi.toFixed(2)}</div>}
-          {pren&&<div style={{fontSize:10,color:"#5C9CD4",marginTop:2}}>📋 {pren.nome} · {pren.orario}</div>}
+          {pren&&<div style={{fontSize:10,color:"#5C9CD4",marginTop:2}}><i className="fa-light fa-clipboard-list"/> {pren.nome} · {pren.orario}</div>}
         </div>
         {uniq.map((item,i)=>(
           <span key={item.act}>
@@ -424,7 +445,7 @@ function CtxMenu({ t, pren, onClose, turni }) {
                 fontFamily:"'Open Sans',sans-serif"}}
               onMouseEnter={e=>e.currentTarget.style.background="#f2f5f6"}
               onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-              <span style={{fontSize:14,lineHeight:1,width:18,textAlign:"center"}}>{item.ic}</span>
+              <span style={{fontSize:14,lineHeight:1,width:18,textAlign:"center"}}><i className={item.ic}/></span>
               {item.lb}
             </button>
           </span>
@@ -450,10 +471,10 @@ function ModalNota({ pren, onClose }) {
           alignItems:"center",justifyContent:"space-between"}}>
           <div>
             <div style={{color:"white",fontWeight:700,fontSize:14,
-              fontFamily:"'Poppins',sans-serif"}}>👤 {pren.nome}</div>
+              fontFamily:"'Poppins',sans-serif"}}><i className="fa-light fa-user"/> {pren.nome}</div>
             <div style={{color:"rgba(255,255,255,.7)",fontSize:11,marginTop:2}}>
-              🕐 {pren.orario} · {pren.coperti} pax
-              {pren.is_vip&&<span style={{marginLeft:6}}>⭐ VIP</span>}
+              <i className="fa-light fa-clock"/> {pren.orario} · {pren.coperti} pax
+              {pren.is_vip&&<span style={{marginLeft:6}}><i className="fa-light fa-star"/> VIP</span>}
             </div>
           </div>
           <button onClick={onClose}
@@ -582,7 +603,7 @@ function ModalEditPren({ pren, turni, onClose, onSaved }) {
         <div style={{background:NAVY_LOCAL,padding:"12px 16px",display:"flex",
           alignItems:"center",justifyContent:"space-between"}}>
           <span style={{color:"white",fontWeight:700,fontSize:14,
-            fontFamily:"'Poppins',sans-serif"}}>✏️ Modifica Prenotazione</span>
+            fontFamily:"'Poppins',sans-serif"}}><i className="fa-light fa-pen"/> Modifica Prenotazione</span>
           <button onClick={onClose}
             style={{background:"rgba(255,255,255,.15)",border:"none",color:"white",
               cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,
@@ -600,7 +621,7 @@ function ModalEditPren({ pren, turni, onClose, onSaved }) {
                 style={{width:34,flexShrink:0,border:"1.5px solid "+(form.is_vip?"#f59e0b":"#DBDBDB"),
                   borderRadius:7,background:form.is_vip?"#fffbeb":"white",
                   cursor:"pointer",fontSize:16}}>
-                {form.is_vip?"⭐":"☆"}
+                {form.is_vip?<i className="fa-solid fa-star"/>:<i className="fa-light fa-star"/>}
               </button>
             </div>
           </div>
@@ -652,7 +673,7 @@ function ModalEditPren({ pren, turni, onClose, onSaved }) {
                 border:"1.5px solid #FF616E",background:"#FFF0F1",
                 color:"#D10011",cursor:"pointer",fontSize:12,fontWeight:600,
                 opacity:deleting?.7:1}}>
-              {deleting?"...":"🗑 Elimina"}
+              {deleting?"...":"Elimina"}
             </button>
             <div style={{flex:1}}/>
             <button onClick={onClose}
@@ -710,7 +731,7 @@ function ModalSposta({ tavolo, onClose, onConfirm }) {
       <div style={{background:"white",borderRadius:14,width:460,overflow:"hidden",
         boxShadow:"0 16px 48px rgba(32,71,105,.2)"}}>
         <div style={{background:NAVY,padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}>🔀 Sposta Tavolo {tavolo.numero}</span>
+          <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}><i className="fa-light fa-shuffle"/> Sposta Tavolo {tavolo.numero}</span>
           <button onClick={onClose} style={{background:"rgba(255,255,255,.15)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
         </div>
         <div style={{padding:20}}>
@@ -789,7 +810,7 @@ function ModalUnisci({ tavolo, selSala, selTurno, onClose, onConfirm }) {
         boxShadow:"0 16px 48px rgba(32,71,105,.2)"}}>
         <div style={{background:NAVY,padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}>
-            🔗 Unisci Tavolo {tavolo.numero}
+            <i className="fa-light fa-link"/> Unisci Tavolo {tavolo.numero}
           </span>
           <button onClick={onClose} style={{background:"rgba(255,255,255,.15)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
         </div>
@@ -857,7 +878,7 @@ function ModalPaga({ tavolo, comanda, onClose, onConfirm }) {
       <div style={{background:"white",borderRadius:14,width:380,overflow:"hidden",
         boxShadow:"0 16px 48px rgba(32,71,105,.2)"}}>
         <div style={{background:NAVY,padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}>🏁 Chiudi e Paga – T.{tavolo.numero}</span>
+          <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}><i className="fa-light fa-flag-checkered"/> Chiudi e Paga – T.{tavolo.numero}</span>
           <button onClick={onClose} style={{background:"rgba(255,255,255,.15)",border:"none",color:"white",cursor:"pointer",fontSize:18,width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
         </div>
         <div style={{padding:20}}>
@@ -866,7 +887,7 @@ function ModalPaga({ tavolo, comanda, onClose, onConfirm }) {
             <strong style={{fontSize:18,color:NAVY,marginLeft:8}}>€ {tavolo.totale_oggi?.toFixed(2)||"0.00"}</strong>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
-            {[{v:"scontrino",l:"🖨️ Emetti scontrino"},{v:"fattura",l:"📄 Emetti fattura"},{v:"conto_camera",l:"🏨 Addebita camera"}].map(opt=>(
+            {[{v:"scontrino",l:"Emetti scontrino"},{v:"fattura",l:"Emetti fattura"},{v:"conto_camera",l:"Addebita camera"}].map(opt=>(
               <label key={opt.v} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",
                 borderRadius:8,border:"1.5px solid "+(tipo===opt.v?NAVY:"#DBDBDB"),
                 background:tipo===opt.v?"#f2f5f6":"white",cursor:"pointer",fontSize:13,fontWeight:600,color:"#4A4D53"}}>
@@ -1151,7 +1172,7 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
         });
         const d = await r.json();
         if(!r.ok){toast(d.error||"Errore divisione","error");return;}
-        toast("✂️ Tavolo "+t.numero+" separato");
+        toast("Tavolo "+t.numero+" separato");
         await refresh();
         return;
       }
@@ -1346,7 +1367,7 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
               color:"white",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}
             onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,.2)"}
             onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,.08)"}>
-            📋 Prenotazioni
+            <i className="fa-light fa-clipboard-list"/> Prenotazioni
           </button>
           <button onClick={refresh}
             style={{height:32,padding:"0 14px",borderRadius:6,fontWeight:700,fontSize:11,
@@ -1392,7 +1413,7 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
             {tavoli.length===0 ? (
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",
                 justifyContent:"center",height:"100%",color:"#A9AAAD",gap:10}}>
-                <span style={{fontSize:44}}>🪑</span>
+                <span style={{fontSize:44}}><i className="fa-light fa-chair"/></span>
                 <span style={{fontSize:14,fontFamily:"'Open Sans',sans-serif"}}>Nessun tavolo configurato per questa sala</span>
               </div>
             ) : (
@@ -1538,9 +1559,9 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
             <div style={{fontSize:12,fontWeight:700,color:NAVY,marginBottom:10,
               fontFamily:"'Poppins',sans-serif"}}>Gestione tavoli</div>
             {[
-              {ic:"➕",lb:"Aggiungi tavolo"},
-              {ic:"📍",lb:"Trasferisci tavolo"},
-              {ic:"🔔",lb:"Richiedi servizio al Tavolo"},
+              {ic:"fa-light fa-plus",lb:"Aggiungi tavolo"},
+              {ic:"fa-light fa-location-dot",lb:"Trasferisci tavolo"},
+              {ic:"fa-light fa-bell",lb:"Richiedi servizio al Tavolo"},
             ].map(a=>(
               <button key={a.lb}
                 style={{width:"100%",display:"flex",alignItems:"center",gap:8,
@@ -1549,7 +1570,7 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
                   borderRadius:6,transition:"background .12s",textAlign:"left"}}
                 onMouseEnter={e=>e.currentTarget.style.background="#f2f5f6"}
                 onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                <span style={{fontSize:12}}>{a.ic}</span>{a.lb}
+                <span style={{fontSize:12}}><i className={a.ic}/></span>{a.lb}
               </button>
             ))}
           </div>
@@ -1567,7 +1588,7 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
                     gap:7,marginBottom:6}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:11,fontWeight:700,color:NAVY,overflow:"hidden",
-                        textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.is_vip?"⭐ ":""}{p.nome}</div>
+                        textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.is_vip?"":""}{p.nome}</div>
                       <div style={{fontSize:9,color:"#6E7175"}}>{p.orario} · {p.coperti}pax{tav?` · T${tav.numero}`:""}</div>
                     </div>
                     <button
@@ -1635,11 +1656,11 @@ export function SalaRistorante({ onGestione, initSala, initOutlet, onGoPrenotazi
           fontFamily:"'Open Sans',sans-serif"}}>
           <div style={{fontSize:11,fontWeight:700,color:NAVY,
             marginBottom:4,fontFamily:"'Poppins',sans-serif"}}>
-            👤 {tooltip.pren.nome}
+            <i className="fa-light fa-user"/> {tooltip.pren.nome}
           </div>
           <div style={{fontSize:10,color:"#5C9CD4",fontWeight:600,
             marginBottom:tooltip.pren.note?4:0}}>
-            🕐 {tooltip.pren.orario} · {tooltip.pren.coperti} pax
+            <i className="fa-light fa-clock"/> {tooltip.pren.orario} · {tooltip.pren.coperti} pax
           </div>
           {tooltip.pren.note&&(<>
             <div style={{height:1,background:"#f2f5f6",margin:"4px 0"}}/>

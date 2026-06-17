@@ -17,7 +17,10 @@ export default function MenuTree({ items, selected, onTogglePage, onToggleGroup,
     <div className={depth === 0 ? 'mtree' : 'mtree__nested'}>
       {items.map((item: any) => {
         const hasChildren = (item.children?.length ?? 0) > 0
-        const childPages: string[] = hasChildren ? getAllPages(item.children) : []
+        // Includiamo anche la pagina propria del nodo (nodi che sono gruppo E pagina,
+        // es. "I miei business" / "Agorà"): così il gruppo copre e conteggia anche la
+        // sua pagina, allineando l'albero alle pagine reali della sidenav.
+        const childPages: string[] = hasChildren ? getAllPages([item]) : []
         const allOn = hasChildren
           ? childPages.every(pg => selected.has(pg))
           : selected.has(item.page)
@@ -43,7 +46,7 @@ export default function MenuTree({ items, selected, onTogglePage, onToggleGroup,
             <div className="mtree__row">
               <div
                 className={checkboxClass}
-                onClick={() => hasChildren ? onToggleGroup(item.children) : onTogglePage(item.page)}
+                onClick={() => hasChildren ? onToggleGroup([item]) : onTogglePage(item.page)}
                 role="checkbox"
                 aria-checked={allOn ? 'true' : someOn ? 'mixed' : 'false'}
               >

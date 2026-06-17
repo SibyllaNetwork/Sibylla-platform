@@ -1,0 +1,244 @@
+@use '../../../styles/tokens' as *
+
+// Overlay a tutto schermo della Login profili
+.plogin
+  position: fixed
+  inset: 0
+  z-index: 1000
+  display: flex
+  align-items: center
+  justify-content: center
+  padding: 24px
+  background: rgba(16, 28, 44, .72)
+  backdrop-filter: blur(3px)
+
+.plogin__panel
+  position: relative
+  width: 100%
+  max-width: 860px
+  max-height: 90vh
+  overflow-y: auto
+  background: $white
+  border-radius: $radius-lg
+  border: 1px solid $border
+  box-shadow: 0 30px 80px rgba(8, 16, 28, .45)
+  padding: 28px
+
+.plogin__close
+  position: absolute
+  top: 16px
+  right: 16px
+  background: none
+  border: none
+  cursor: pointer
+  padding: 4px
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+.plogin__head
+  margin-bottom: 20px
+
+.plogin__brand
+  display: flex
+  align-items: baseline
+  gap: 6px
+  margin-bottom: 12px
+
+.plogin__brand-name
+  font-family: $font-heading
+  font-size: 20px
+  font-weight: 800
+  color: $primary
+
+.plogin__brand-suffix
+  font-family: $font-heading
+  font-size: 20px
+  font-weight: 300
+  color: $text-inactive
+
+.plogin__title
+  font-family: $font-heading
+  font-size: 19px
+  font-weight: 700
+  color: $text-active
+  margin: 0 0 4px
+
+.plogin__sub
+  font-size: 13px
+  color: $text-inactive
+  margin: 0
+  max-width: 60ch
+
+// ─── Griglia profili ───────────────────────────────────────────────────────────
+.plogin__grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
+  gap: 12px
+
+.plogin__card
+  position: relative
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 4px
+  padding: 16px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+  text-align: left
+  transition: border-color .12s, background .12s, box-shadow .12s
+
+  &:hover
+    border-color: $primary-300
+    background: $primary-50
+
+  &--active
+    border-color: $primary
+    background: $primary-50
+    box-shadow: 0 0 0 2px $primary-100
+
+  &--full
+    align-items: center
+    justify-content: center
+    text-align: center
+    border-style: dashed
+
+.plogin__avatar
+  width: 40px
+  height: 40px
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: #fff
+  background: $primary
+  margin-bottom: 6px
+
+  &--full
+    background: $primary-400
+
+.plogin__card-name
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+
+.plogin__card-client
+  font-size: 12px
+  color: $text-inactive
+
+.plogin__badges
+  display: flex
+  flex-wrap: wrap
+  gap: 4px
+  margin-top: 8px
+
+.plogin__badge
+  font-size: 10px
+  font-weight: 600
+  color: $primary
+  background: $primary-100
+  border-radius: $radius-sm
+  padding: 2px 7px
+
+.plogin__pages
+  font-size: 11px
+  color: $text-disabled
+  margin-top: 6px
+
+.plogin__del
+  position: absolute
+  top: 8px
+  right: 8px
+  width: 24px
+  height: 24px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: none
+  border-radius: $radius-sm
+  background: transparent
+  cursor: pointer
+  opacity: 0
+  transition: opacity .12s, background .12s
+
+  &:hover
+    background: $error-light
+
+.plogin__card:hover .plogin__del
+  opacity: 1
+
+// ─── Form nuova utenza ──────────────────────────────────────────────────────────
+.plogin__add-toggle
+  margin-top: 18px
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  font-size: 13px
+  font-weight: 600
+  color: $primary
+  background: none
+  border: none
+  cursor: pointer
+
+.plogin__form
+  margin-top: 18px
+  border-top: 1px solid $border
+  padding-top: 18px
+
+.plogin__form-head
+  font-size: 12px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  color: $text-inactive
+  margin-bottom: 12px
+
+.plogin__form-grid
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 10px
+
+.plogin__mods-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  margin: 14px 0 8px
+
+.plogin__mods
+  display: flex
+  flex-wrap: wrap
+  gap: 7px
+
+.plogin__chip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 6px 11px
+  border: 1px solid $border
+  border-radius: $radius-full
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  background: $white
+  cursor: pointer
+  transition: border-color .12s, background .12s, color .12s
+
+  input
+    accent-color: $primary
+    width: 13px
+    height: 13px
+    cursor: pointer
+
+  &--on
+    border-color: $primary
+    color: $primary
+    background: $primary-50
+
+.plogin__form-actions
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  margin-top: 18px

@@ -4,6 +4,8 @@ import Sidebar from './layout/Sidebar'
 import Topbar from './layout/Topbar'
 import TabsBar from './layout/TabsBar'
 import LoginPage from './modules/auth/LoginPage/LoginPage'
+import ProfileLogin from './modules/auth/ProfileLogin/ProfileLogin'
+import { useAccessStore } from './store/useAccessStore'
 import { useAuth } from './hooks/useAuth'
 import { buildCrumbs, findByPage } from './navigation/menuHelpers'
 import MENU from './navigation/menu'
@@ -115,6 +117,10 @@ export default function App() {
   const viewMode = useViewModeStore(s => s.mode)
   const addTab   = useViewModeStore(s => s.addTab)
 
+  // Login profili: overlay e profilo attualmente caricato (menu filtrato).
+  const accessOpen       = useAccessStore(s => s.accessOpen)
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+
   // Carica strutture dell'utente dal backend dopo il login.
   useLoadStrutture(!!user)
 
@@ -165,6 +171,13 @@ export default function App() {
     onResize()
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  // Cambio profilo → torna alla Home (pagina sempre consentita), evitando di
+  // restare su una pagina non più presente nel menu del nuovo contratto.
+  useEffect(() => {
+    setCurrentPage('home')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProfileId])
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (
@@ -233,6 +246,8 @@ export default function App() {
           onClose={() => setCtxMenu(null)}
         />
       )}
+
+      {accessOpen && <ProfileLogin />}
     </div>
   )
 }

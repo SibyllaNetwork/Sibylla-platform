@@ -312,7 +312,7 @@ export default function PageContent({ page, navigate }: Props) {
     'libro-prenotazioni': 'prenotazioni',
     'ospiti-giorno': 'ospiti',
   };
-  if (page in FB_PAGES) return <OutletShell initialPage={FB_PAGES[page]}/>;
+  if (page in FB_PAGES) return <OutletShell initialPage={FB_PAGES[page]} navigate={navigate}/>;
 
   if (page === 'sysadmin')              return <SysadminIndex navigate={navigate}/>;
   if (page === 'gestione-aziende')      return <GestioneAziende navigate={navigate}/>;

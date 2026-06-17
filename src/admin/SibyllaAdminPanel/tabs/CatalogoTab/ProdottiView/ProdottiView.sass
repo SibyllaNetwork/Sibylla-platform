@@ -22,22 +22,29 @@
 
 .prod-view__filters
   display: grid
-  grid-template-columns: 1fr 180px 180px 180px
+  grid-template-columns: minmax(200px, 1fr) 160px 160px 160px 160px auto
+  align-items: center
   gap: 10px
   margin-bottom: 14px
+
+  @media (max-width: 1240px)
+    grid-template-columns: 1fr 1fr
+    .cat-viewtoggle
+      grid-column: 2
+      justify-self: end
 
 .prod-view__search
   display: flex
   align-items: center
   gap: 7px
-  height: 32px
+  height: 36px
   padding: 0 10px
   border: 1px solid $border
   border-radius: 7px
   background: var(--color-bg)
 
 .prod-view__select
-  // align with search height via sib-select default
+  min-width: 0
 
 .prod-view__empty
   padding: 32px 0
@@ -260,3 +267,62 @@
   &--del:hover
     border-color: $error
     background: $error-light
+
+// ─── Vista a card ──────────────────────────────────────────────────────────────
+.prod-view__cards
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
+  gap: 12px
+
+.prod-view__card
+  display: flex
+  flex-direction: column
+  gap: 6px
+  padding: 14px
+  background: $white
+  border: 1px solid $border
+  border-radius: 10px
+
+.prod-view__card-top
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 8px
+
+.prod-view__card-name
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+
+.prod-view__card-desc
+  font-size: 12px
+  color: $text-inactive
+  line-height: 1.4
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.prod-view__card-meta
+  display: flex
+  flex-direction: column
+  font-size: 12px
+  color: $text-active
+  margin-top: 2px
+
+.prod-view__card-price
+  font-family: $font-heading
+  font-weight: 700
+  font-size: 15px
+  color: $primary
+  margin-top: 2px
+
+.prod-view__card-foot
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 8px
+  margin-top: 8px
+  padding-top: 10px
+  border-top: 1px solid $border

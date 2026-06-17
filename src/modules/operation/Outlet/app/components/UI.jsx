@@ -1,4 +1,7 @@
 import { useState } from "react";
+// Componenti reali della piattaforma Sibylla: i primitivi qui sotto li usano
+// così le pagine Outlet sono conformi PER COSTRUZIONE (stessi .sib-* e Modal).
+import SibModal from "../../../../../core/components/Modal";
 
 // ── Sibylla Design System Tokens ─────────────────────────────────────────────
 export const C = {
@@ -37,33 +40,19 @@ export function Toast({ msg, type, onClose }) {
       fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:10,
       boxShadow:"0 8px 24px rgba(32,71,105,.18)",
       fontFamily:"'Open Sans',sans-serif"}}>
-      <span style={{fontSize:16}}>{ok?"✓":"✕"}</span>{msg}
-      <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"inherit",fontSize:18,marginLeft:4,lineHeight:1}}>×</button>
+      <i className={`fa-light ${ok?"fa-circle-check":"fa-circle-xmark"}`} style={{fontSize:16}}/>{msg}
+      <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:"inherit",fontSize:15,marginLeft:4,lineHeight:1}}><i className="fa-light fa-xmark"/></button>
     </div>
   );
 }
 
 // ── Modal ────────────────────────────────────────────────────────────────────
+// Modale = il Modal della piattaforma (stesso overlay/header/close standard).
 export function Modal({ title, onClose, children, wide }) {
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(32,71,105,.45)",zIndex:1000,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:16}}
-      onClick={onClose}>
-      <div style={{background:C.bgCard,borderRadius:15,width:"100%",maxWidth:wide?840:560,
-        maxHeight:"92vh",overflow:"auto",boxShadow:"0 24px 64px rgba(32,71,105,.25)"}}
-        onClick={e=>e.stopPropagation()}>
-        {/* Modal header — primary bg */}
-        <div style={{padding:"16px 22px",background:C.navy,borderRadius:"15px 15px 0 0",
-          display:"flex",alignItems:"center",justifyContent:"space-between",
-          position:"sticky",top:0,zIndex:1}}>
-          <span style={{fontWeight:700,fontSize:15,color:"white",fontFamily:"'Poppins',sans-serif"}}>{title}</span>
-          <button onClick={onClose} style={{background:"rgba(255,255,255,.15)",border:"none",
-            cursor:"pointer",fontSize:16,color:"white",lineHeight:1,
-            width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
-        </div>
-        <div style={{padding:22}}>{children}</div>
-      </div>
-    </div>
+    <SibModal open onClose={onClose} title={title} size={wide ? "xl" : "md"}>
+      {children}
+    </SibModal>
   );
 }
 
@@ -72,7 +61,7 @@ export function Field({ label, required, children, half }) {
   return (
     <div style={{marginBottom:14,width:half?"calc(50% - 6px)":"100%",flexShrink:0}}>
       <label style={{display:"block",fontSize:12,fontWeight:600,
-        color:C.text,marginBottom:5,fontFamily:"'Open Sans',sans-serif"}}>
+        color:C.muted,marginBottom:5,fontFamily:"'Open Sans',sans-serif"}}>
         {label}{required&&<span style={{color:C.red,marginLeft:2}}>*</span>}
       </label>
       {children}
@@ -80,66 +69,33 @@ export function Field({ label, required, children, half }) {
   );
 }
 
-const inputBase = {
-  width:"100%",border:`2px solid ${C.border}`,borderRadius:6,
-  padding:"8px 12px",fontSize:14,boxSizing:"border-box",
-  outline:"none",background:C.bgCard,color:C.text,
-  transition:"border-color .15s",height:40,
-  fontFamily:"'Open Sans',sans-serif",
-};
-
 export function Input({ value, onChange, type="text", placeholder, min, step, disabled }) {
-  return <input value={value??""} onChange={e=>onChange(e.target.value)}
-    type={type} placeholder={placeholder} min={min} step={step} disabled={disabled}
-    style={{...inputBase,opacity:disabled?.6:1}}
-    onFocus={e=>e.target.style.borderColor=C.link}
-    onBlur={e=>e.target.style.borderColor=C.border}/>;
+  return <input className="sib-input" value={value??""} onChange={e=>onChange(e.target.value)}
+    type={type} placeholder={placeholder} min={min} step={step} disabled={disabled}/>;
 }
 
 export function Textarea({ value, onChange, rows=3, placeholder }) {
-  return <textarea value={value??""} onChange={e=>onChange(e.target.value)}
+  return <textarea className="sib-input" value={value??""} onChange={e=>onChange(e.target.value)}
     rows={rows} placeholder={placeholder}
-    style={{...inputBase,resize:"vertical",height:"auto"}}
-    onFocus={e=>e.target.style.borderColor=C.link}
-    onBlur={e=>e.target.style.borderColor=C.border}/>;
+    style={{height:"auto",paddingTop:8,paddingBottom:8,resize:"vertical"}}/>;
 }
 
 export function Select({ value, onChange, children, placeholder }) {
-  return <select value={value??""} onChange={e=>onChange(e.target.value)}
-    style={{...inputBase,cursor:"pointer"}}
-    onFocus={e=>e.target.style.borderColor=C.link}
-    onBlur={e=>e.target.style.borderColor=C.border}>
+  return <select className="sib-select" value={value??""} onChange={e=>onChange(e.target.value)}>
     {placeholder&&<option value="">{placeholder}</option>}
     {children}
   </select>;
 }
 
-// ── Btn — Sibylla button system ───────────────────────────────────────────────
-export function Btn({ children, onClick, variant="primary", type="button", disabled, small, icon }) {
-  const styles = {
-    primary:   { background:C.navy,  color:"white",  border:`1.5px solid ${C.navy}` },
-    secondary: { background:"transparent", color:C.navy, border:`2px solid ${C.navy}` },
-    danger:    { background:"#FFEAEF", color:C.red,  border:`1.5px solid #FF616F` },
-    ghost:     { background:"transparent", color:C.muted, border:"1.5px solid transparent" },
-    outline:   { background:"transparent", color:C.link, border:`1.5px solid ${C.border}` },
-  };
-  const base = styles[variant] || styles.primary;
+// ── Btn — bottone standard di piattaforma (.sib-btn) ──────────────────────────
+const BTN_VARIANT = { primary:"primary", secondary:"secondary", danger:"danger", ghost:"ghost", outline:"secondary" };
+export function Btn({ children, onClick, variant="primary", type="button", disabled, small, size, icon }) {
+  const sm = small || size === "sm";
+  const v = BTN_VARIANT[variant] || "primary";
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      style={{...base, borderRadius:6,
-        padding: small ? "5px 14px" : "8px 24px",
-        fontSize: small ? 11 : 14,
-        fontWeight: 700,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? .5 : 1,
-        display: "inline-flex", alignItems:"center", gap:6,
-        transition:"all .15s", whiteSpace:"nowrap",
-        fontFamily:"'Open Sans',sans-serif",
-        minWidth: small ? 80 : 120,
-      }}
-      onMouseEnter={e=>{ if(!disabled){ e.currentTarget.style.opacity=".85"; e.currentTarget.style.transform="translateY(-1px)"; }}}
-      onMouseLeave={e=>{ e.currentTarget.style.opacity="1"; e.currentTarget.style.transform="none"; }}>
-      {icon&&<span style={{fontSize:14}}>{icon}</span>}{children}
+      className={`sib-btn sib-btn--${v}${sm ? " sib-btn--sm" : ""}`}>
+      {icon && <span>{icon}</span>}{children}
     </button>
   );
 }
@@ -173,41 +129,29 @@ export function DataTable({ cols, rows, onEdit, onDelete, loading, emptyMsg="Nes
   );
   if (!rows.length) return (
     <div style={{textAlign:"center",padding:"60px",color:C.muted,fontSize:13}}>
-      <div style={{fontSize:36,marginBottom:10}}>📭</div>{emptyMsg}
+      <div style={{fontSize:30,marginBottom:10,color:C.disabled}}><i className="fa-light fa-inbox"/></div>{emptyMsg}
     </div>
   );
   return (
-    <div style={{overflowX:"auto",borderRadius:var_radius_lg,border:`1px solid ${C.borderL}`,boxShadow:shadow}}>
-      <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+    <div className="sib-table-wrap" style={{overflowX:"auto"}}>
+      <table className="sib-table">
         <thead>
-          <tr style={{background:C.navy}}>
-            {cols.map(c=>(
-              <th key={c.key} style={{padding:"12px 16px",textAlign:"left",
-                fontWeight:700,color:"white",whiteSpace:"nowrap",
-                fontSize:11,textTransform:"uppercase",letterSpacing:.6,
-                fontFamily:"'Open Sans',sans-serif"}}>
-                {c.label}
-              </th>
-            ))}
-            {(onEdit||onDelete)&&<th style={{padding:"12px 16px",width:90,color:"white",fontSize:11,textTransform:"uppercase",letterSpacing:.6}}>Azioni</th>}
+          <tr>
+            {cols.map(c=>(<th key={c.key}>{c.label}</th>))}
+            {(onEdit||onDelete)&&<th style={{width:90}}>Azioni</th>}
           </tr>
         </thead>
         <tbody>
           {rows.map((row,i)=>(
-            <tr key={row.id||i}
-              style={{borderBottom:`1px solid ${C.borderL}`,background:i%2?"#f8fcff":"white",transition:"background .1s"}}
-              onMouseEnter={e=>e.currentTarget.style.background="#e6eef5"}
-              onMouseLeave={e=>e.currentTarget.style.background=i%2?"#f8fcff":"white"}>
+            <tr key={row.id||i}>
               {cols.map(c=>(
-                <td key={c.key} style={{padding:"11px 16px",color:C.text,verticalAlign:"middle"}}>
-                  {c.render?c.render(row[c.key],row):(row[c.key]??"-")}
-                </td>
+                <td key={c.key}>{c.render?c.render(row[c.key],row):(row[c.key]??"-")}</td>
               ))}
               {(onEdit||onDelete)&&(
-                <td style={{padding:"8px 16px"}}>
+                <td>
                   <div style={{display:"flex",gap:4}}>
-                    {onEdit&&<Btn small variant="outline" onClick={()=>onEdit(row)}>✏</Btn>}
-                    {onDelete&&<Btn small variant="danger" onClick={()=>onDelete(row)}>🗑</Btn>}
+                    {onEdit&&<Btn small variant="outline" onClick={()=>onEdit(row)}><i className="fa-light fa-pen"/></Btn>}
+                    {onDelete&&<Btn small variant="danger" onClick={()=>onDelete(row)}><i className="fa-light fa-trash-can"/></Btn>}
                   </div>
                 </td>
               )}
@@ -218,8 +162,6 @@ export function DataTable({ cols, rows, onEdit, onDelete, loading, emptyMsg="Nes
     </div>
   );
 }
-// fix: cannot use CSS var in JS
-const var_radius_lg = "12px";
 
 // ── PageHeader ────────────────────────────────────────────────────────────────
 export function PageHeader({ title, subtitle, action }) {
@@ -230,8 +172,8 @@ export function PageHeader({ title, subtitle, action }) {
         padding:"0 0 16px",borderBottom:`1px solid ${C.borderL}`,marginBottom:20,
         flexWrap:"wrap",gap:12}}>
         <div>
-          <h1 style={{fontSize:24,fontWeight:600,color:C.navy,margin:0,
-            fontFamily:"'Poppins',sans-serif",lineHeight:"30px"}}>{title}</h1>
+          <h1 style={{fontSize:18,fontWeight:600,color:C.navy,margin:0,
+            fontFamily:"'Poppins',sans-serif",lineHeight:"24px"}}>{title}</h1>
           {subtitle&&<p style={{fontSize:13,color:C.muted,margin:"4px 0 0",fontFamily:"'Open Sans',sans-serif"}}>{subtitle}</p>}
         </div>
         {action}
@@ -276,7 +218,7 @@ export function StatCard({ value, label, color, icon }) {
           letterSpacing:.6,fontFamily:"'Open Sans',sans-serif"}}>{label}</span>
         {icon&&<span style={{fontSize:20}}>{icon}</span>}
       </div>
-      <div style={{fontSize:26,fontWeight:700,color:color||C.navy,
+      <div style={{fontSize:22,fontWeight:700,color:color||C.navy,
         fontFamily:"'Poppins',sans-serif"}}>{value}</div>
     </div>
   );
@@ -291,23 +233,16 @@ export function useConfirm() {
   const [state, setState] = useState(null);
   const confirm = (msg, onOk) => setState({ msg, onOk });
   const Dialog = () => state ? (
-    <div style={{position:"fixed",inset:0,background:"rgba(32,71,105,.45)",zIndex:2000,
-      display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{background:C.bgCard,borderRadius:15,overflow:"hidden",maxWidth:400,width:"100%",
-        boxShadow:"0 16px 48px rgba(32,71,105,.2)"}}>
-        <div style={{background:C.navy,padding:"14px 20px"}}>
-          <span style={{color:"white",fontWeight:700,fontSize:15,fontFamily:"'Poppins',sans-serif"}}>Conferma</span>
-        </div>
-        <div style={{padding:24}}>
-          <div style={{fontSize:18,marginBottom:10}}>⚠️</div>
-          <p style={{fontSize:14,color:C.text,marginBottom:22,lineHeight:1.6}}>{state.msg}</p>
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-            <Btn variant="secondary" onClick={()=>setState(null)}>Annulla</Btn>
-            <Btn variant="danger" onClick={()=>{state.onOk();setState(null);}}>Elimina</Btn>
-          </div>
-        </div>
+    <SibModal open onClose={()=>setState(null)} title="Conferma" size="sm">
+      <div style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:22}}>
+        <span style={{fontSize:20,color:C.amber,marginTop:1}}><i className="fa-light fa-triangle-exclamation"/></span>
+        <p style={{fontSize:13,color:C.text,lineHeight:1.6,margin:0}}>{state.msg}</p>
       </div>
-    </div>
+      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+        <Btn variant="secondary" onClick={()=>setState(null)}>Annulla</Btn>
+        <Btn variant="danger" onClick={()=>{state.onOk();setState(null);}}>Elimina</Btn>
+      </div>
+    </SibModal>
   ) : null;
   return { confirm, Dialog };
 }
@@ -342,12 +277,12 @@ export function MiniCalendar({ sel, onSel }) {
         <button onClick={()=>setView(new Date(yr,mo-1,1))}
           style={{background:"none",border:`1px solid ${C.borderL}`,borderRadius:6,
             width:24,height:24,cursor:"pointer",fontSize:13,color:C.muted,
-            display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+            display:"flex",alignItems:"center",justifyContent:"center"}}><i className="fa-light fa-chevron-left"/></button>
         <span style={{fontSize:12,fontWeight:700,color:C.navy}}>{MONTHS_CAL[mo]} {yr}</span>
         <button onClick={()=>setView(new Date(yr,mo+1,1))}
           style={{background:"none",border:`1px solid ${C.borderL}`,borderRadius:6,
             width:24,height:24,cursor:"pointer",fontSize:13,color:C.muted,
-            display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+            display:"flex",alignItems:"center",justifyContent:"center"}}><i className="fa-light fa-chevron-right"/></button>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
         {DAY_LABELS.map((d,i)=>(

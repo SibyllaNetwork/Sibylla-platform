@@ -30,6 +30,11 @@ export interface Modulo {
   label: string
   desc: string
   pages: string[]
+  /**
+   * Voci del menu del Configuratore (Impostazioni) visibili per questo modulo.
+   * Undefined = tutte visibili (retrocompatibilità con i moduli esistenti).
+   */
+  configuratoreItems?: string[]
 }
 
 export interface Ruolo {
@@ -56,6 +61,8 @@ export interface NewClientForm {
   citta: string
   camere: string
   email: string
+  /** Moduli assegnati al cliente alla creazione (id da PACCHETTI_INIT). */
+  moduli: string[]
 }
 
 export interface MasterForm {
@@ -70,6 +77,8 @@ export interface ModuloForm {
   nome: string
   desc: string
   pagesSet: Set<string>
+  /** Voci del Configuratore visibili (id da configuratoriList). */
+  configItemsSet: Set<string>
 }
 
 export interface RuoloForm {

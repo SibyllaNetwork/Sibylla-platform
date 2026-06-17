@@ -1,13 +1,34 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../services/api";
 import { C, useToast, MiniCalendar, Btn, PillBtn, Modal, Field, Input, Select, FormRow, Badge } from "../components/UI";
-import {
-  ChevronLeft, ChevronRight, Minus, Plus, Trash2, Copy,
-  StickyNote, Wine, Car, X as XIcon, Hotel, Scissors,
-  Receipt, FileText, CreditCard, RefreshCw, Lock,
-  GripVertical, AlignLeft, Send, CheckCircle,
-  BookOpen
-} from "lucide-react";
+// Icone Font Awesome (kit FA globale della piattaforma), stessa API delle icone
+// lucide usate qui (prop size/color). Allinea le icone allo stile Sibylla.
+const faIcon = (cls) => function FaIcon({ size, color, className = "", style, strokeWidth, fill, absoluteStrokeWidth, ...p }) {
+  return <i className={`fa-light ${cls} ${className}`.trim()} style={{ fontSize: size, color, ...style }} {...p} />;
+};
+const ChevronLeft = faIcon("fa-chevron-left");
+const ChevronRight = faIcon("fa-chevron-right");
+const Minus = faIcon("fa-minus");
+const Plus = faIcon("fa-plus");
+const Trash2 = faIcon("fa-trash-can");
+const Copy = faIcon("fa-copy");
+const StickyNote = faIcon("fa-note-sticky");
+const Wine = faIcon("fa-wine-glass");
+const Car = faIcon("fa-car");
+const XIcon = faIcon("fa-xmark");
+const Hotel = faIcon("fa-hotel");
+const Scissors = faIcon("fa-scissors");
+const Receipt = faIcon("fa-receipt");
+const FileText = faIcon("fa-file-lines");
+const CreditCard = faIcon("fa-credit-card");
+const RefreshCw = faIcon("fa-arrows-rotate");
+const Lock = faIcon("fa-lock");
+const GripVertical = faIcon("fa-grip-vertical");
+const AlignLeft = faIcon("fa-align-left");
+const Send = faIcon("fa-paper-plane");
+const CheckCircle = faIcon("fa-circle-check");
+const BookOpen = faIcon("fa-book-open");
+
 
 const ORANGE = "#204769";
 const NAVY   = "#204769";
@@ -234,8 +255,8 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
         turno_id:finalTurnoId,
         tavolo_id:form.tavolo_id?parseInt(form.tavolo_id):null,
         is_vip:form.is_vip||false };
-      if(editPren) { await api.updatePrenotazione(editPren.id,payload); toast("✓ Aggiornata"); }
-      else         { await api.createPrenotazione(payload);              toast("✓ Prenotazione salvata"); }
+      if(editPren) { await api.updatePrenotazione(editPren.id,payload); toast("â Aggiornata"); }
+      else         { await api.createPrenotazione(payload);              toast("â Prenotazione salvata"); }
       cancelEdit(); 
       // Reload both prenotazioni AND tavoli to reflect new riservato status
       await loadPren();
@@ -299,7 +320,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
         body: JSON.stringify({ outlet_id:selOutlet.id, data:todayStr }),
       });
       const res = await r.json();
-      toast(`✓ Rimossi ${res.rimossi} assegnazioni`);
+      toast(`â Rimossi ${res.rimossi} assegnazioni`);
       loadPren();
     } catch(e) { toast(e.message,"error"); }
   };
@@ -357,7 +378,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
       a.href=url; a.download=`prenotazioni_${todayStr}.xlsx`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast("✓ Excel scaricato");
+      toast("â Excel scaricato");
     } catch(e) { toast(e.message,"error"); }
   };
 
@@ -386,14 +407,14 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
           ))}
         </div>
 
-        {/* Vai a Sala — naviga alla sala con servizio e turno correnti */}
+        {/* Vai a Sala â naviga alla sala con servizio e turno correnti */}
         <button
           onClick={e=>{ e.stopPropagation(); if(onGoToSala) onGoToSala(selOutlet, selSala, turniServizio[0]||null); }}
           style={{height:30,padding:"0 14px",borderRadius:6,fontWeight:700,fontSize:12,
             border:"1.5px solid #204769",background:"#204769",cursor:"pointer",
             color:"white",display:"flex",alignItems:"center",gap:6,whiteSpace:"nowrap",
             transition:"all .15s",flexShrink:0,boxShadow:"0 1px 4px rgba(32,71,105,.25)"}}>
-          🍽 Vai a Sala
+          <i className="fa-light fa-utensils"/> Vai a Sala
         </button>
 
         <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:7}}>
@@ -414,7 +435,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
               opacity:allocLoading?.8:1}}
             onMouseEnter={e=>{if(!allocLoading)e.currentTarget.style.background="#2d5f8a";}}
             onMouseLeave={e=>{e.currentTarget.style.background=allocLoading?"#2d5f8a":"#204769";}}>
-            {allocLoading?"⏳":"🪄"} {allocLoading?"Allocazione...":"Alloca Tavoli"}
+            {allocLoading?<i className="fa-light fa-hourglass-half"/>:<i className="fa-light fa-wand-magic-sparkles"/>} {allocLoading?"Allocazione...":"Alloca Tavoli"}
           </button>
           {(()=>{
             const hasAlloc = prenotazioni.some(p=>p.tavolo_id!=null);
@@ -433,7 +454,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                   boxShadow:hasAlloc?"0 1px 4px rgba(220,38,38,.15)":"none"}}
                 onMouseEnter={e=>{if(hasAlloc)e.currentTarget.style.background="#fee2e2";}}
                 onMouseLeave={e=>{e.currentTarget.style.background=hasAlloc?"#fef2f2":"#f9fafb";}}>
-                ✕ Reset
+                <i className="fa-light fa-xmark"/> Reset
               </button>
             );
           })()}
@@ -444,7 +465,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
               fontSize:11,fontWeight:700,color:"#475569",transition:"all .15s"}}
             onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,.22)';}}
             onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,.12)';}}>
-            ⬇ Esporta
+            <i className="fa-light fa-arrow-down"/> Esporta
           </button>
         </div>
       </div>
@@ -464,8 +485,8 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
             {editPren && (
               <div style={{background:"#fff7ed",border:`1px solid ${ORANGE}50`,borderRadius:7,
                 padding:"5px 9px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-                <span style={{fontSize:11,fontWeight:700,color:"#92400e",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>✏️ {editPren.nome}</span>
-                <button onClick={cancelEdit} style={{background:"none",border:"none",cursor:"pointer",color:"#92400e",fontSize:15,flexShrink:0}}>×</button>
+                <span style={{fontSize:11,fontWeight:700,color:"#92400e",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}><i className="fa-light fa-pen"/> {editPren.nome}</span>
+                <button onClick={cancelEdit} style={{background:"none",border:"none",cursor:"pointer",color:"#92400e",fontSize:15,flexShrink:0}}>Ã</button>
               </div>
             )}
 
@@ -484,11 +505,11 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                   ff("turno_id")(newTurnoId);
                 }
               }} style={SS}>
-                <option value="">— Nessun turno —</option>
+                <option value="">â Nessun turno â</option>
                 {turniServizio.map(t=>{
                   const cap=capacita[t.id]; const full=cap?.al_completo&&!editPren;
                   const lbl=cap?.copertura_max>0?`${t.nome} (${cap.prenotati}/${cap.copertura_max})`:t.nome;
-                  return <option key={t.id} value={t.id} disabled={full}>{lbl}{full?" ✗":""}</option>;
+                  return <option key={t.id} value={t.id} disabled={full}>{lbl}{full?" â":""}</option>;
                 })}
               </select>
               {form.turno_id && capacita[parseInt(form.turno_id)]?.copertura_max>0 && (
@@ -537,11 +558,11 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
             <div style={{flexShrink:0}}>
               <FL>Tavolo</FL>
               <select value={form.tavolo_id} onChange={e=>ff("tavolo_id")(e.target.value)} style={SS}>
-                <option value="">— Non assegnato —</option>
+                <option value="">â Non assegnato â</option>
                 {tavoliLiberi.map(t=>{
                   const over = parseInt(form.coperti)||0 > t.capienza;
                   return <option key={t.id} value={t.id} style={{color:over?"#b45309":"inherit"}}>
-                    T.{t.numero} · {t.capienza} pax{over?" ⚠️":""}
+                    T.{t.numero} Â· {t.capienza} pax{over?<>{" "}<i className="fa-light fa-triangle-exclamation"/></>:null}
                   </option>;
                 })}
               </select>
@@ -555,9 +576,9 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                   return (
                     <div style={{background:"#fffbeb",border:"1px solid #F57D03",borderRadius:6,
                       padding:"6px 8px",marginTop:4,fontSize:10,color:"#b45309"}}>
-                      ⚠️ Capienza {selTav.capienza} pax · servono {extra} posti in più
-                      {sugg&&<span style={{fontWeight:700}}> → Unire con T.{sugg.numero} ({sugg.capienza} pax)</span>}
-                      {!sugg&&<span> · Nessun tavolo complementare disponibile</span>}
+                      <i className="fa-light fa-triangle-exclamation"/> Capienza {selTav.capienza} pax Â· servono {extra} posti in piÃ¹
+                      {sugg&&<span style={{fontWeight:700}}> â Unire con T.{sugg.numero} ({sugg.capienza} pax)</span>}
+                      {!sugg&&<span> Â· Nessun tavolo complementare disponibile</span>}
                     </div>
                   );
                 }
@@ -574,7 +595,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                   title="Cliente VIP"
                   style={{width:32,flexShrink:0,border:"1.5px solid " + (form.is_vip ? "#f59e0b" : "#DBDBDB"),
                     borderRadius:7,background:form.is_vip?"#fffbeb":"white",cursor:"pointer",fontSize:16}}>
-                  {form.is_vip?"⭐":"☆"}
+                  {form.is_vip?<i className="fa-solid fa-star"/>:<i className="fa-light fa-star"/>}
                 </button>
               </div>
             </div>
@@ -595,13 +616,13 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                 style={{background:editPren?"#5C9CD4":"#204769",color:"white",border:"none",
                   borderRadius:8,padding:"9px",fontWeight:700,fontSize:12,cursor:"pointer",
                   display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                {editPren?"✏ Aggiorna":<><BookOpen size={12}/>Prenota</>}
+                {editPren?"Aggiorna":<><BookOpen size={12}/>Prenota</>}
               </button>
               {editPren&&(
                 <button onClick={()=>elimina(editPren)}
                   style={{background:"#fef2f2",color:"#dc2626",border:"1px solid #fca5a5",
                     borderRadius:8,padding:"7px",fontWeight:700,fontSize:11,cursor:"pointer"}}>
-                  🗑 Elimina prenotazione
+                  <i className="fa-light fa-trash-can"/> Elimina prenotazione
                 </button>
               )}
             </div>
@@ -613,11 +634,11 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
           <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0,flexWrap:"wrap"}}>
             <span style={{fontWeight:700,fontSize:14,color:NAVY}}>{dayLabel(selDate)}</span>
             <span style={{fontSize:12,color:"#64748b",background:"white",border:"1px solid #e2e8f0",borderRadius:16,padding:"2px 10px"}}>
-              {prenotazioni.length} pren. · {totPax} pax
+              {prenotazioni.length} pren. Â· {totPax} pax
             </span>
             {totVip>0&&(
               <span style={{fontSize:12,background:"#fffbeb",border:"1px solid #fde68a",borderRadius:16,padding:"2px 10px",color:"#92400e",fontWeight:600}}>
-                ⭐ {totVip} VIP
+                <i className="fa-light fa-star"/> {totVip} VIP
               </span>
             )}
 
@@ -641,7 +662,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                     <div style={{padding:"8px 12px",borderBottom:"1px solid #f1f5f9",background:"#f8fafc",flexShrink:0}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:cap?.copertura_max>0?5:0}}>
                         <span style={{fontWeight:700,fontSize:12,color:NAVY}}>{turno.nome}</span>
-                        <span style={{fontSize:10,color:"#64748b"}}>{turno.ora_inizio}–{turno.ora_fine}</span>
+                        <span style={{fontSize:10,color:"#64748b"}}>{turno.ora_inizio}â{turno.ora_fine}</span>
                       </div>
                       {cap?.copertura_max>0&&<CapBar cap={cap} small/>}
                       {pList.length>0&&(
@@ -681,11 +702,11 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
 
       {/* Export modal */}
       {showExport&&(
-        <Modal title="📤 Esporta Lista Ospiti" onClose={()=>setShowExport(false)}>
+        <Modal title="Esporta Lista Ospiti" onClose={()=>setShowExport(false)}>
           <div style={{marginBottom:12,padding:"10px 14px",background:"#f8fafc",borderRadius:8,
             border:"1px solid #e2e8f0",fontSize:13,color:"#475569"}}>
-            <strong>{dayLabel(selDate)}</strong> · {selOutlet?.nome} · {selService}
-            <span style={{marginLeft:8,fontWeight:700,color:NAVY}}>({prenotazioni.length} pren. · {totPax} pax)</span>
+            <strong>{dayLabel(selDate)}</strong> Â· {selOutlet?.nome} Â· {selService}
+            <span style={{marginLeft:8,fontWeight:700,color:NAVY}}>({prenotazioni.length} pren. Â· {totPax} pax)</span>
           </div>
           <div style={{fontSize:11,fontWeight:700,color:"#64748b",marginBottom:8,textTransform:"uppercase",letterSpacing:.5}}>Seleziona turno</div>
           {[{id:null,nome:"Tutti i turni",ora_inizio:"",ora_fine:""},...turniServizio].map(t=>{
@@ -695,17 +716,17 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                 padding:"10px 14px",border:"1px solid #e2e8f0",borderRadius:9,background:"white"}}>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:700,fontSize:13,color:NAVY}}>{t.nome}</div>
-                  {t.ora_inizio&&<div style={{fontSize:11,color:"#64748b"}}>{t.ora_inizio}–{t.ora_fine}{cap?.copertura_max>0?` · ${cap.prenotati}/${cap.copertura_max} pax`:""}</div>}
+                  {t.ora_inizio&&<div style={{fontSize:11,color:"#64748b"}}>{t.ora_inizio}â{t.ora_fine}{cap?.copertura_max>0?` Â· ${cap.prenotati}/${cap.copertura_max} pax`:""}</div>}
                 </div>
                 <button onClick={()=>doExportXLSX(t.id?String(t.id):"")}
                   style={{padding:"6px 12px",borderRadius:6,border:"1px solid #16a34a",background:"#f0fdf4",
                     color:"#16a34a",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
-                  📊 Excel
+                  <i className="fa-light fa-chart-column"/> Excel
                 </button>
                 <button onClick={()=>doExportPDF(t.id?String(t.id):"")} disabled={expLoading}
                   style={{padding:"6px 12px",borderRadius:6,border:`1px solid ${ORANGE}`,background:"#fff7ed",
                     color:"#c2410c",fontSize:11,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
-                  {expLoading?"⏳":"🖨️"} PDF
+                  {expLoading?<i className="fa-light fa-hourglass-half"/>:<i className="fa-light fa-print"/>} PDF
                 </button>
               </div>
             );
@@ -722,7 +743,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
         const allocazioni   = ar.allocazioni   || [];
         const non_allocate  = ar.non_allocate  || [];
         return (
-        <Modal wide title="🪄 Risultato Allocazione Automatica Tavoli" onClose={()=>{setAllocModal(false);setAllocResult(null);}}>
+        <Modal wide title="Risultato Allocazione Automatica Tavoli" onClose={()=>{setAllocModal(false);setAllocResult(null);}}>
           {/* Stats */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
             {[
@@ -740,7 +761,7 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
 
           {allocazioni.length>0&&(
             <div style={{marginBottom:12}}>
-              <div style={{fontSize:12,fontWeight:700,color:NAVY,marginBottom:8}}>✅ Allocazioni effettuate</div>
+              <div style={{fontSize:12,fontWeight:700,color:NAVY,marginBottom:8}}><i className="fa-light fa-circle-check"/> Allocazioni effettuate</div>
               <div style={{maxHeight:240,overflowY:"auto",border:"1px solid #e2e8f0",borderRadius:8,overflow:"hidden"}} className="scrollbar-light">
                 {allocazioni.map((a,i)=>(
                   <div key={i} style={{display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:10,
@@ -752,10 +773,10 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
                     <span style={{fontSize:12,fontWeight:700,color:a.tipo==="unione"?"#7c3aed":"#2563eb",
                       background:a.tipo==="unione"?"#faf5ff":"#eff6ff",
                       borderRadius:6,padding:"2px 8px"}}>
-                      {a.tipo==="unione"?"🔗":"🪑"} T.{a.tavolo}
+                      {a.tipo==="unione"?<i className="fa-light fa-link"/>:<i className="fa-light fa-chair"/>} T.{a.tavolo}
                     </span>
                     <span style={{fontSize:10,color:a.spreco>0?"#94a3b8":"#16a34a"}}>
-                      {a.spreco>0?`+${a.spreco} liberi`:"✓ perfetto"}
+                      {a.spreco>0?`+${a.spreco} liberi`:"â perfetto"}
                     </span>
                   </div>
                 ))}
@@ -765,10 +786,10 @@ export function LibroPrenotazioni({ initEditPren, initOutlet, initSala, initTurn
 
           {non_allocate.length>0&&(
             <div style={{background:"#fef2f2",border:"1px solid #fca5a5",borderRadius:8,padding:"10px 14px"}}>
-              <div style={{fontSize:12,fontWeight:700,color:"#dc2626",marginBottom:6}}>⚠️ Non allocate ({non_allocate.length})</div>
+              <div style={{fontSize:12,fontWeight:700,color:"#dc2626",marginBottom:6}}><i className="fa-light fa-triangle-exclamation"/> Non allocate ({non_allocate.length})</div>
               {non_allocate.map((a,i)=>(
                 <div key={i} style={{fontSize:12,color:"#7f1d1d",marginBottom:2}}>
-                  • {a.nome} ({a.coperti} pax) — {a.motivo}
+                  â¢ {a.nome} ({a.coperti} pax) â {a.motivo}
                 </div>
               ))}
             </div>
@@ -839,10 +860,10 @@ function PrenBadge({p,tavoli,onClick,isActive}){
           display:"flex",alignItems:"center",gap:4,fontSize:11,fontWeight:700,
           color:isActive?"white":"#0f172a",transition:"all .15s",whiteSpace:"nowrap",
           boxShadow:isActive?"0 2px 8px " + accent + "40":"none"}}>
-        {p.is_vip&&<span style={{fontSize:11}}>⭐</span>}
+        {p.is_vip&&<span style={{fontSize:11}}><i className="fa-light fa-star"/></span>}
         <span style={{width:5,height:5,borderRadius:"50%",background:isActive?"rgba(255,255,255,.7)":accent,flexShrink:0}}/>
         <span>{p.nome.split(" ")[0]}</span>
-        <span style={{opacity:.7}}>×{p.coperti}</span>
+        <span style={{opacity:.7}}>Ã{p.coperti}</span>
         {tavolo&&<span style={{fontSize:9,background:"rgba(0,0,0,.08)",borderRadius:3,padding:"0 3px"}}>T{tavolo.numero}</span>}
         {p.tavolo_unito_id&&<span style={{fontSize:9,color:accent,opacity:.8}}>+</span>}
       </div>
@@ -853,17 +874,17 @@ function PrenBadge({p,tavoli,onClick,isActive}){
           width:240,boxShadow:"0 12px 32px rgba(0,0,0,.35)",fontSize:11,lineHeight:1.7}}>
           <div style={{fontWeight:800,fontSize:13,marginBottom:6,display:"flex",alignItems:"center",gap:6,
             borderBottom:"1px solid rgba(255,255,255,.12)",paddingBottom:6}}>
-            {p.is_vip&&<span>⭐</span>}
+            {p.is_vip&&<span><i className="fa-light fa-star"/></span>}
             {p.nome}
             {!p.confermata&&<span style={{marginLeft:"auto",fontSize:9,color:"#fbbf24",background:"rgba(251,191,36,.15)",borderRadius:4,padding:"1px 5px"}}>NON CONF.</span>}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"16px 1fr",gap:"1px 8px"}}>
-            <span style={{opacity:.5}}>👥</span><span><b>{p.coperti}</b> coperti</span>
-            <span style={{opacity:.5}}>🕐</span><span>{p.orario}</span>
-            {tavolo&&<><span style={{opacity:.5}}>🪑</span><span>Tavolo {tavolo.numero}{p.tavolo_unito_id?` + T${tavoli.find(t=>t.id===p.tavolo_unito_id)?.numero||"?"}`:""}</span></>}
-            {p.telefono&&<><span style={{opacity:.5}}>📞</span><span>{p.telefono}</span></>}
-            {p.email&&<><span style={{opacity:.5}}>✉️</span><span style={{wordBreak:"break-all",fontSize:10}}>{p.email}</span></>}
-            {p.note&&<><span style={{opacity:.5}}>📝</span><span style={{opacity:.85}}>{p.note}</span></>}
+            <span style={{opacity:.5}}><i className="fa-light fa-users"/></span><span><b>{p.coperti}</b> coperti</span>
+            <span style={{opacity:.5}}><i className="fa-light fa-clock"/></span><span>{p.orario}</span>
+            {tavolo&&<><span style={{opacity:.5}}><i className="fa-light fa-chair"/></span><span>Tavolo {tavolo.numero}{p.tavolo_unito_id?` + T${tavoli.find(t=>t.id===p.tavolo_unito_id)?.numero||"?"}`:""}</span></>}
+            {p.telefono&&<><span style={{opacity:.5}}><i className="fa-light fa-phone"/></span><span>{p.telefono}</span></>}
+            {p.email&&<><span style={{opacity:.5}}><i className="fa-light fa-envelope"/></span><span style={{wordBreak:"break-all",fontSize:10}}>{p.email}</span></>}
+            {p.note&&<><span style={{opacity:.5}}><i className="fa-light fa-pen-to-square"/></span><span style={{opacity:.85}}>{p.note}</span></>}
           </div>
           <div style={{marginTop:7,fontSize:9,color:"rgba(255,255,255,.3)",textAlign:"center",borderTop:"1px solid rgba(255,255,255,.08)",paddingTop:5}}>
             Clicca per modificare
@@ -874,13 +895,13 @@ function PrenBadge({p,tavoli,onClick,isActive}){
   );
 }
 
-// -- buildPrintHTML — genera HTML completo per stampa in nuova finestra ---------
+// -- buildPrintHTML â genera HTML completo per stampa in nuova finestra ---------
 function buildPrintHTML({lista,totale_pren,totale_coperti,per_orario,turno,outlet,dataTesto,vip}){
   const rows = Object.entries(per_orario).map(([orario,ps])=>`
     <div class="slot-block">
       <div class="slot-header">
-        <span>🕐 ${orario}</span>
-        <span>${ps.length} pren. · ${ps.reduce((s,p)=>s+p.coperti,0)} pax</span>
+        <span><i className="fa-light fa-clock"/> ${orario}</span>
+        <span>${ps.length} pren. Â· ${ps.reduce((s,p)=>s+p.coperti,0)} pax</span>
       </div>
       <table>
         <thead><tr>
@@ -890,14 +911,14 @@ function buildPrintHTML({lista,totale_pren,totale_coperti,per_orario,turno,outle
         </tr></thead>
         <tbody>
           ${ps.map((p,i)=>`<tr class="${p.is_vip?"vip":i%2?"alt":""}">
-            <td style="text-align:center">${p.is_vip?"⭐":""}</td>
+            <td style="text-align:center">${p.is_vip?"★":""}</td>
             <td><strong>${p.nome}</strong></td>
             <td style="text-align:center">${p.coperti}</td>
-            <td style="text-align:center">${p.tavolo_numero||"—"}</td>
-            <td>${p.telefono||"—"}</td>
-            <td>${p.email||"—"}</td>
-            <td>${p.note||"—"}</td>
-            <td style="text-align:center">${p.confermata?"✓":"✗"}</td>
+            <td style="text-align:center">${p.tavolo_numero||"â"}</td>
+            <td>${p.telefono||"â"}</td>
+            <td>${p.email||"â"}</td>
+            <td>${p.note||"â"}</td>
+            <td style="text-align:center">${p.confermata?"â":"â"}</td>
           </tr>`).join("")}
         </tbody>
       </table>
@@ -948,14 +969,14 @@ function buildPrintHTML({lista,totale_pren,totale_coperti,per_orario,turno,outle
     <div class="header-meta">
       <div>
         <h1>${outlet?.nome||""}</h1>
-        <h2>Lista Ospiti — ${dataTesto}${turno?" · "+turno.nome:""}</h2>
+        <h2>Lista Ospiti â ${dataTesto}${turno?" Â· "+turno.nome:""}</h2>
       </div>
       <div class="stamp">Stampato: ${new Date().toLocaleString("it-IT")}</div>
     </div>
     <div class="header-stats">
-      <span>📋 ${totale_pren} prenotazioni</span>
-      <span>👥 ${totale_coperti} coperti totali</span>
-      ${vip>0?`<span>⭐ ${vip} VIP</span>`:""}
+      <span><i className="fa-light fa-clipboard-list"/> ${totale_pren} prenotazioni</span>
+      <span><i className="fa-light fa-users"/> ${totale_coperti} coperti totali</span>
+      ${vip>0?`<span><i className="fa-light fa-star"/> ${vip} VIP</span>`:""}
     </div>
   </div>
 
@@ -966,7 +987,7 @@ function buildPrintHTML({lista,totale_pren,totale_coperti,per_orario,turno,outle
   </div>
 
   <script>
-    // Stampa automatica quando la pagina è pronta
+    // Stampa automatica quando la pagina Ã¨ pronta
     window.onload = function(){ setTimeout(function(){ window.print(); }, 300); };
   </script>
 </body>

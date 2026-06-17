@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
-import { ALL_PAGES, CLIENTS_INIT, PACCHETTI_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel } from './constants'
+import { ALL_PAGES, CLIENTS_INIT, PACCHETTI_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli } from './constants'
 import { getAllPages } from './helpers'
+import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/configuratoriList'
+import { useAccessStore } from '../../store/useAccessStore'
 import type {
   AdminMode, AdminTab, Cliente, FnType, MasterForm, Modulo, ModuloForm,
   NewClientForm, PlatformSection, Ruolo, RuoloForm, UserRow,
@@ -58,7 +60,11 @@ export default function SibyllaAdminPanel(_props: Props) {
 
   const [enabledPages, setEnabledPages] = useState<Record<number, Set<string>>>(() => {
     const init: Record<number, Set<string>> = {}
-    CLIENTS_INIT.forEach(c => { init[c.id] = new Set(ALL_PAGES) })
+    // Pagine abilitate derivate dai moduli assegnati a ciascuna azienda.
+    CLIENTS_INIT.forEach(c => {
+      const mids = ASSIGNED_MODULI_INIT[c.id]
+      init[c.id] = mids ? new Set(pagesForModuli(mids)) : new Set(ALL_PAGES)
+    })
     return init
   })
   const [forms, setForms] = useState<Record<number, Cliente>>(() => {
@@ -70,7 +76,7 @@ export default function SibyllaAdminPanel(_props: Props) {
   const [newUser, setNewUser] = useState<NewUser>({ nome: '', email: '', ruolo: 'Manager' })
 
   const [showNewClient, setShowNewClient] = useState(false)
-  const [newClientForm, setNewClientForm] = useState<NewClientForm>({ nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '20', email: '' })
+  const [newClientForm, setNewClientForm] = useState<NewClientForm>({ nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '20', email: '', moduli: [] })
   const [newClientId, setNewClientId] = useState<number | null>(null)
 
   const [showMasterModal, setShowMasterModal] = useState(false)
@@ -81,12 +87,13 @@ export default function SibyllaAdminPanel(_props: Props) {
   const [moduliList, setModuliList] = useState<Modulo[]>(() => PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })))
   const [assignedModuli, setAssignedModuli] = useState<Record<number, Set<string>>>(() => {
     const init: Record<number, Set<string>> = {}
-    CLIENTS_INIT.forEach(c => { init[c.id] = new Set() })
+    // Moduli pre-assegnati a ciascuna azienda (modificabili dalla tab Moduli).
+    CLIENTS_INIT.forEach(c => { init[c.id] = new Set(ASSIGNED_MODULI_INIT[c.id] || []) })
     return init
   })
   const [showModuloModal, setShowModuloModal] = useState(false)
   const [editingModulo, setEditingModulo] = useState<Modulo | null>(null)
-  const [moduloForm, setModuloForm] = useState<ModuloForm>({ nome: '', desc: '', pagesSet: new Set() })
+  const [moduloForm, setModuloForm] = useState<ModuloForm>({ nome: '', desc: '', pagesSet: new Set(), configItemsSet: new Set() })
   const [deleteModuloId, setDeleteModuloId] = useState<string | null>(null)
 
   const [ruoliMap, setRuoliMap] = useState<Record<number, Ruolo[]>>(() => {
@@ -195,26 +202,37 @@ export default function SibyllaAdminPanel(_props: Props) {
       const allEnabled = new Set<string>()
       moduliList.forEach(m => { if (s.has(m.id)) m.pages.forEach(pg => allEnabled.add(pg)) })
       setEnabledPages(pp => ({ ...pp, [selId]: allEnabled }))
+      // Allinea il profilo di login dell'azienda ai moduli appena variati.
+      const clienteNome = clients.find(c => c.id === selId)?.nome
+      if (clienteNome) useAccessStore.getState().syncClientModules(clienteNome, Array.from(s))
       return { ...prev, [selId]: s }
     })
   }
 
   const openCreateModulo = () => {
     setEditingModulo(null)
-    setModuloForm({ nome: '', desc: '', pagesSet: new Set() })
+    // Nuovo modulo: tutte le voci del Configuratore visibili di default.
+    setModuloForm({ nome: '', desc: '', pagesSet: new Set(), configItemsSet: new Set(ALL_CONFIGURATORE_IDS) })
     setShowModuloModal(true)
   }
   const openEditModulo = (m: Modulo) => {
     setEditingModulo(m)
-    setModuloForm({ nome: m.label, desc: m.desc || '', pagesSet: new Set(m.pages) })
+    setModuloForm({
+      nome: m.label,
+      desc: m.desc || '',
+      pagesSet: new Set(m.pages),
+      // undefined = tutte visibili (moduli creati prima di questa funzione)
+      configItemsSet: new Set(m.configuratoreItems ?? ALL_CONFIGURATORE_IDS),
+    })
     setShowModuloModal(true)
   }
   const confirmModulo = () => {
     if (!moduloForm.nome.trim() || moduloForm.pagesSet.size === 0) return
+    const configuratoreItems = Array.from(moduloForm.configItemsSet)
     if (editingModulo) {
       setModuliList(p => p.map(m =>
         m.id === editingModulo.id
-          ? { ...m, label: moduloForm.nome, desc: moduloForm.desc, pages: Array.from(moduloForm.pagesSet) }
+          ? { ...m, label: moduloForm.nome, desc: moduloForm.desc, pages: Array.from(moduloForm.pagesSet), configuratoreItems }
           : m,
       ))
     } else {
@@ -223,6 +241,7 @@ export default function SibyllaAdminPanel(_props: Props) {
         label: moduloForm.nome,
         desc: moduloForm.desc,
         pages: Array.from(moduloForm.pagesSet),
+        configuratoreItems,
       }])
     }
     setShowModuloModal(false)
@@ -302,16 +321,33 @@ export default function SibyllaAdminPanel(_props: Props) {
       email: newClientForm.email,
       tel: '',
     }
+    // Moduli scelti alla creazione → pagine abilitate + profilo di accesso.
+    const moduli = newClientForm.moduli
+    const modPages = new Set<string>()
+    moduliList.forEach(m => { if (moduli.includes(m.id)) m.pages.forEach(pg => modPages.add(pg)) })
+    const enabled = moduli.length ? modPages : new Set(ALL_PAGES)
+
     setClients(p => [...p, nc])
     setForms(p => ({ ...p, [id]: nc }))
-    setEnabledPages(p => ({ ...p, [id]: new Set(ALL_PAGES) }))
+    setEnabledPages(p => ({ ...p, [id]: enabled }))
     setUsers(p => ({ ...p, [id]: [] }))
     setRuoliMap(p => ({ ...p, [id]: [] }))
-    setAssignedModuli(p => ({ ...p, [id]: new Set() }))
+    setAssignedModuli(p => ({ ...p, [id]: new Set(moduli) }))
+
+    // Crea l'utenza di accesso (profilo) così il cliente è caricabile dalla Login.
+    useAccessStore.getState().addProfile({
+      nome: nc.nome,
+      email: nc.email || `admin@${nc.nome.toLowerCase().replace(/[^a-z0-9]+/g, '')}.it`,
+      password: 'demo',
+      cliente: nc.nome,
+      ruolo: 'Amministratore',
+      moduli: moduli.length ? moduli : ['full-suite'],
+    })
+
     setSelId(id)
     setNewClientId(id)
     setShowNewClient(false)
-    setNewClientForm({ nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '20', email: '' })
+    setNewClientForm({ nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '20', email: '', moduli: [] })
     setMasterForm({ nome: '', cognome: '', email: newClientForm.email, telefono: '', ruolo: 'Amministratore Unico' })
     setMasterSent(false)
     setShowMasterModal(true)

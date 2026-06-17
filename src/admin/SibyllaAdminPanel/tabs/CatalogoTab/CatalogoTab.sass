@@ -23,36 +23,37 @@
     font-weight: 600
     color: $primary
 
-.cat-tab__counters
-  display: grid
-  grid-template-columns: repeat(4, 1fr)
-  gap: 10px
-  margin-bottom: 14px
-
-.cat-tab__counter
-  display: flex
-  align-items: center
-  gap: 12px
-  padding: 12px 14px
-  background: $white
+// ─── Toggle vista card / righe (condiviso fra le viste del catalogo) ──────────
+.cat-viewtoggle
+  display: inline-flex
+  flex-shrink: 0
   border: 1px solid $border
-  border-radius: 10px
+  border-radius: $radius-md
+  overflow: hidden
+  background: $white
 
-.cat-tab__counter-ico
-  font-size: 22px
-  color: $primary
+.cat-viewtoggle__btn
+  width: 34px
+  height: 34px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-size: 14px
+  color: $text-inactive
+  background: $white
+  border: none
+  cursor: pointer
+  transition: background .12s, color .12s
 
-.cat-tab__counter-value
-  font-family: $font-heading
-  font-size: 18px
-  font-weight: 700
-  color: $primary
-  line-height: 1
+  & + .cat-viewtoggle__btn
+    border-left: 1px solid $border
 
-.cat-tab__counter-label
-  font-size: 11px
-  color: $text-disabled
-  margin-top: 3px
+  &:hover
+    color: $primary
+
+  &--active
+    background: $primary
+    color: #fff
 
 .cat-tab__subtabs
   display: flex

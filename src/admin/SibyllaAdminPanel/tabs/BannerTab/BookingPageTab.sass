@@ -1,0 +1,815 @@
+@use '../../../../styles/tokens' as *
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Pagina di Booking — generatore (aside brand + dettaglio con anteprima a tutta
+//  pagina, configuratore e codice embed) e facsimile della pagina (.bookpv).
+//  Riusa le classi .bgen__* (campi, palette, codice) già definite in BannerTab.sass.
+// ══════════════════════════════════════════════════════════════════════════════
+
+.bpage
+  display: flex
+  gap: 18px
+  align-items: flex-start
+  min-height: 100%
+
+// ─── Aside: brand + pagine salvate ─────────────────────────────────────────────
+.bpage__aside
+  width: 232px
+  flex-shrink: 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.bpage__brands
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.bpage__brand
+  display: grid
+  grid-template-columns: auto 1fr
+  grid-template-areas: 'sw name' 'sw tag'
+  align-items: center
+  column-gap: 10px
+  row-gap: 1px
+  padding: 11px 12px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+  text-align: left
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $primary-300
+    background: $primary-50
+
+  &--active
+    border-color: $primary
+    background: $primary-50
+
+.bpage__brand-swatches
+  grid-area: sw
+  display: inline-flex
+  flex-direction: column
+  gap: 3px
+
+.bpage__brand-sw
+  width: 22px
+  height: 11px
+  border-radius: 3px
+  background: var(--sw)
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08)
+
+.bpage__brand-name
+  grid-area: name
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.bpage__brand-tag
+  grid-area: tag
+  font-size: 11px
+  color: $text-inactive
+  line-height: 1.25
+
+.bpage__saved
+  border-top: 1px solid $border
+  padding-top: 12px
+  margin-top: 4px
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+// ─── Barra controlli anteprima ─────────────────────────────────────────────────
+.bpage__preview-bar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 16px
+  flex-wrap: wrap
+
+.bpage__check
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  cursor: pointer
+
+  input
+    accent-color: $primary
+    width: 14px
+    height: 14px
+
+// ─── Stage / device frame ──────────────────────────────────────────────────────
+.bpage__stage
+  height: 600px
+  padding: 16px
+  border: 1px solid $border
+  border-radius: $radius-lg
+  background: $bg
+  background-image: radial-gradient(circle, color-mix(in srgb, $primary 8%, transparent) 1px, transparent 1px)
+  background-size: 16px 16px
+  overflow: auto
+
+.bpage__frame
+  width: var(--device-w, 1200px)
+  margin: 0 auto
+  zoom: var(--preview-zoom, 1)
+  border-radius: $radius-md
+  overflow: hidden
+  box-shadow: 0 14px 40px rgba(20, 30, 45, .18)
+
+// ─── Range / slider del configuratore ──────────────────────────────────────────
+.bpage__range
+  width: 100%
+  accent-color: $primary
+  cursor: pointer
+
+// ─── Campi visibili (chip multi-selezione) ─────────────────────────────────────
+.bpage__fields
+  display: flex
+  flex-wrap: wrap
+  gap: 7px
+
+.bpage__chip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 6px 11px
+  border: 1px solid $border
+  border-radius: $radius-full
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  background: $white
+  cursor: pointer
+  transition: border-color .12s, background .12s, color .12s
+
+  input
+    accent-color: $primary
+    width: 13px
+    height: 13px
+
+  &--on
+    border-color: $primary
+    color: $primary
+    background: $primary-50
+
+// ─── Toggle on/off di sezione ──────────────────────────────────────────────────
+.bpage__switch
+  margin-left: auto
+  width: 34px
+  height: 19px
+  border-radius: $radius-full
+  border: none
+  background: $border
+  position: relative
+  cursor: pointer
+  flex-shrink: 0
+  transition: background .15s
+
+  &--on
+    background: $primary
+
+.bpage__switch-knob
+  position: absolute
+  top: 2px
+  left: 2px
+  width: 15px
+  height: 15px
+  border-radius: 50%
+  background: #fff
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .25)
+  transition: transform .15s
+
+.bpage__switch--on .bpage__switch-knob
+  transform: translateX(15px)
+
+// I section-title con toggle devono distribuire spazio orizzontale (solo qui)
+.bpage__config .bgen__section-title
+  display: flex
+  align-items: center
+
+.bpage__code-pane
+  position: sticky
+  top: 12px
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ANTEPRIMA PAGINA (.bookpv) — usa --accent / --accent2 / --overlay / --page-ink
+// ══════════════════════════════════════════════════════════════════════════════
+.bookpv
+  --pv-surface: #fff
+  --pv-ink: #1B1D23
+  --pv-muted: #6E7175
+  --pv-border: #E4E7EC
+  --pv-bg: #F6F7F9
+  box-sizing: border-box
+  width: 100%
+  background: var(--pv-bg)
+  color: var(--page-ink, var(--pv-ink))
+  font-family: $font-body
+  display: flex
+  flex-direction: column
+
+  *
+    box-sizing: border-box
+
+  &[data-tema="dark"]
+    --pv-surface: #1F2128
+    --pv-ink: #F4F4F5
+    --pv-muted: #A1A1AA
+    --pv-border: #34343C
+    --pv-bg: #14151A
+    color: var(--page-ink, var(--pv-ink))
+
+// Contenitore a larghezza centrata (boxed) o piena
+.bookpv__bar
+  width: 100%
+  max-width: 1180px
+  margin: 0 auto
+  padding: 0 32px
+
+.bookpv--w-full .bookpv__bar
+  max-width: none
+  padding: 0 40px
+
+// ─── Barra utility superiore (identità Sibylla Network) ────────────────────────
+.bookpv__topbar
+  background: var(--accent)
+  color: #fff
+
+.bookpv__topbar-inner
+  display: flex
+  align-items: center
+  gap: 18px
+  height: 40px
+
+.bookpv__wordmark
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 400
+  color: #fff
+  white-space: nowrap
+
+  b
+    font-weight: 800
+
+.bookpv__topbar-tag
+  flex: 1
+  text-align: center
+  font-size: 13px
+  font-weight: 700
+  letter-spacing: .08em
+  text-transform: uppercase
+
+.bookpv__topbar-phone
+  font-size: 13px
+  font-weight: 700
+  white-space: nowrap
+
+// ─── Logo Sibylla Network (emblema chiave oro + wordmark) ──────────────────────
+.booknet-mark
+  display: inline-flex
+  align-items: center
+  gap: 11px
+
+.booknet-mark .booknet-mark__key
+  height: var(--logo-h, 38px)
+  width: auto
+
+.booknet-mark__word
+  font-family: $font-heading
+  font-size: 19px
+  font-weight: 400
+  color: $text-active
+  white-space: nowrap
+
+  b
+    font-weight: 800
+
+// Su barra/footer scuri: emblema e testo bianchi
+.booknet-mark--dark:not(.bgen-mark--custom) .booknet-mark__key
+  filter: brightness(0) invert(1)
+
+.booknet-mark--dark .booknet-mark__word
+  color: #fff
+
+// ─── Header ────────────────────────────────────────────────────────────────────
+.bookpv__header
+  background: var(--pv-surface)
+  border-bottom: 1px solid var(--pv-border)
+
+  .bookpv__bar
+    display: flex
+    align-items: center
+    gap: 24px
+    height: 64px
+
+.bookpv__logo
+  flex-shrink: 0
+
+.bookpv__nav
+  display: flex
+  align-items: center
+  gap: 22px
+  flex: 1
+
+.bookpv__nav-link
+  font-size: 14px
+  font-weight: 600
+  color: var(--pv-muted)
+
+.bookpv__header-cta
+  margin-left: auto
+  font-size: 13px
+  font-weight: 600
+  color: #fff
+  background: var(--accent)
+  border-radius: 8px
+  padding: 9px 18px
+
+// ─── Hero ────────────────────────────────────────────────────────────────────
+.bookpv__hero
+  position: relative
+  background: var(--hero-color, var(--accent))
+  overflow: hidden
+
+  &[data-mode="image"]
+    min-height: 460px
+
+  &[data-mode="color"]
+    min-height: 380px
+
+.bookpv__hero-scrim
+  position: absolute
+  inset: 0
+  background: linear-gradient(180deg, rgba(8, 20, 34, calc(var(--overlay, .55) * .7)) 0%, rgba(8, 20, 34, var(--overlay, .55)) 100%)
+
+.bookpv__hero .bgen-pv__photo-bg
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  object-fit: cover
+  display: block
+
+.bookpv__hero-inner
+  position: relative
+  z-index: 1
+  padding-top: 56px
+  padding-bottom: 40px
+  display: flex
+  flex-direction: column
+  gap: 26px
+
+.bookpv__hero-copy
+  max-width: 720px
+
+.bookpv__hero-title
+  font-family: $font-heading
+  font-weight: 700
+  font-size: 42px
+  line-height: 1.08
+  margin: 0
+  color: #fff
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .35)
+
+.bookpv__hero-sub
+  margin: 12px 0 0
+  font-size: 16px
+  color: rgba(255, 255, 255, .92)
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .35)
+
+// ─── Box di ricerca (standard form pagina «Strutture ricettive») ────────────────
+// Card bianca (rounded-card 15px · border-soft · p-24), griglia 4 colonne, label
+// in grassetto, controlli h40/border 1px/radius 6px, slider a binario sottile,
+// bottone «Cerca Hotel» primary lg con icona, allineato a destra sotto i campi.
+.bookpv-search
+  background: var(--pv-surface)
+  border: 1px solid var(--pv-border)
+  border-radius: 15px
+  padding: 24px
+  box-shadow: 0 18px 44px rgba(15, 25, 40, .18)
+
+  &--flat
+    box-shadow: none
+
+.bookpv__searchbar
+  background: var(--pv-bg)
+  padding: 22px 0
+
+.bookpv-search__title
+  font-family: $font-heading
+  font-weight: 600
+  font-size: 18px
+  color: var(--pv-ink)
+  margin-bottom: 16px
+
+.bookpv-search__grid
+  display: grid
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+  gap: 20px
+
+.bookpv-search__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+  min-width: 0
+
+// Label standard piattaforma: 12px, weight 600, colore grigio (text-inactive)
+.bookpv-search__field-label
+  font-size: 12px
+  font-weight: 600
+  color: var(--pv-muted)
+
+.bookpv-search__control
+  height: 40px
+  display: flex
+  align-items: center
+  padding: 0 12px
+  border: 1px solid var(--pv-border)
+  border-radius: 6px
+  background: var(--pv-surface)
+  color: var(--pv-ink)
+  font-size: 14px
+  font-weight: 400
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+// Select: doppia-chevron standard di .sib-select (stroke #6E7175)
+.bookpv-search__control--select
+  padding-right: 34px
+  background-repeat: no-repeat
+  background-position: right 10px center
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E")
+
+// In dark la chevron va schiarita
+.bookpv[data-tema="dark"] .bookpv-search__control--select
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23A1A1AA' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E")
+
+.bookpv-search__slider
+  display: flex
+  align-items: center
+  gap: 12px
+  height: 40px
+
+.bookpv-search__slider-track
+  flex: 1
+  height: 4px
+  border-radius: 3px
+  background: var(--pv-border)
+  position: relative
+
+.bookpv-search__slider-fill
+  position: absolute
+  left: 0
+  top: 0
+  bottom: 0
+  width: 70%
+  border-radius: 3px
+  background: var(--accent)
+
+  &::after
+    content: ''
+    position: absolute
+    right: -8px
+    top: 50%
+    transform: translateY(-50%)
+    width: 16px
+    height: 16px
+    border-radius: 50%
+    background: var(--accent)
+    border: 2px solid var(--pv-surface)
+    box-shadow: 0 0 0 1px var(--accent)
+
+.bookpv-search__slider-val
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 600
+  color: var(--accent)
+  min-width: 48px
+  text-align: right
+  font-variant-numeric: tabular-nums
+
+// Riga CTA — bottone allineato a destra (filters-cta: mt-6, justify-end)
+.bookpv-search__cta-row
+  display: flex
+  justify-content: flex-end
+  margin-top: 24px
+
+.bookpv-search__cta
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+  min-width: 144px
+  height: 40px
+  padding: 0 24px
+  border: 1px solid transparent
+  border-radius: 6px
+  background: var(--accent)
+  color: #fff
+  font-family: $font-body
+  font-weight: 700
+  font-size: 14px
+  cursor: default
+
+// ─── Risultati ─────────────────────────────────────────────────────────────────
+.bookpv__results
+  padding: 40px 0 48px
+
+.bookpv__results-head
+  display: flex
+  align-items: flex-end
+  justify-content: space-between
+  gap: 18px
+  margin-bottom: 22px
+
+.bookpv__results-title
+  font-family: $font-heading
+  font-weight: 700
+  font-size: 26px
+  margin: 0
+  color: var(--pv-ink)
+
+.bookpv__results-count
+  font-size: 14px
+  color: var(--pv-muted)
+
+.bookpv__results-controls
+  display: flex
+  align-items: center
+  gap: 16px
+
+.bookpv__view-toggle
+  display: inline-flex
+  border: 1px solid var(--pv-border)
+  border-radius: 8px
+  overflow: hidden
+
+.bookpv__view-btn
+  width: 36px
+  height: 34px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-size: 16px
+  color: var(--pv-muted)
+  background: var(--pv-surface)
+
+  & + .bookpv__view-btn
+    border-left: 1px solid var(--pv-border)
+
+  &--active
+    background: var(--accent)
+    color: #fff
+
+.bookpv__sort
+  display: inline-flex
+  align-items: center
+  gap: 8px
+
+.bookpv__sort-label
+  font-size: 13px
+  font-weight: 600
+  color: var(--pv-muted)
+
+.bookpv__sort-select
+  height: 34px
+  min-width: 150px
+
+// ─── Griglia card ──────────────────────────────────────────────────────────────
+.bookpv__grid
+  display: grid
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+  gap: 20px
+
+  &--list
+    grid-template-columns: 1fr
+
+.bookpv--w-full .bookpv__grid
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+
+.bookpv-card
+  display: flex
+  flex-direction: column
+  border: 1px solid var(--pv-border)
+  border-radius: 15px
+  background: var(--pv-surface)
+  overflow: hidden
+
+.bookpv__grid--list .bookpv-card
+  flex-direction: row
+
+.bookpv-card__media
+  position: relative
+  height: 170px
+  flex-shrink: 0
+  overflow: hidden
+
+.bookpv__grid--list .bookpv-card__media
+  width: 240px
+  height: auto
+
+.bookpv-card__media .bgen-pv__photo-bg
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  object-fit: cover
+
+.bookpv-card__fav
+  position: absolute
+  top: 12px
+  right: 12px
+  width: 32px
+  height: 32px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border-radius: 50%
+  background: rgba(255, 255, 255, .9)
+  color: var(--accent)
+  font-size: 15px
+
+.bookpv-card__body
+  flex: 1
+  display: flex
+  flex-direction: column
+  gap: 6px
+  padding: 16px
+
+.bookpv-card__stars
+  display: inline-flex
+  gap: 1px
+  font-size: 13px
+
+.bookpv-card__star
+  color: var(--pv-border)
+
+  &--on
+    color: var(--accent2)
+
+.bookpv-card__title
+  font-family: $font-heading
+  font-weight: 600
+  font-size: 17px
+  color: var(--pv-ink)
+  line-height: 1.2
+
+.bookpv-card__loc
+  font-size: 13px
+  color: var(--pv-muted)
+
+.bookpv-card__rooms
+  font-size: 13px
+  color: var(--pv-muted)
+
+.bookpv-card__meta
+  font-size: 12px
+  color: var(--pv-muted)
+
+.bookpv-card__footer
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 10px
+  margin-top: auto
+  padding-top: 10px
+
+.bookpv-card__price
+  display: flex
+  align-items: baseline
+  gap: 4px
+
+.bookpv-card__price-from
+  font-size: 12px
+  color: var(--pv-muted)
+
+.bookpv-card__price-val
+  font-family: $font-heading
+  font-weight: 700
+  font-size: 20px
+  color: var(--pv-ink)
+
+.bookpv-card__price-unit
+  font-size: 12px
+  color: var(--pv-muted)
+
+.bookpv-card__book
+  font-size: 13px
+  font-weight: 600
+  color: #fff
+  background: var(--accent)
+  border-radius: 8px
+  padding: 9px 16px
+  white-space: nowrap
+
+// ─── Footer ────────────────────────────────────────────────────────────────────
+.bookpv__footer
+  background: #14202E
+  margin-top: auto
+
+.bookpv--sibyllanetwork .bookpv__footer
+  background: #2A1B10
+
+.bookpv__footer-inner
+  display: flex
+  align-items: center
+  gap: 16px
+  padding-top: 26px
+  padding-bottom: 26px
+
+.bookpv__footer-text
+  font-size: 13px
+  color: rgba(255, 255, 255, .82)
+
+.bookpv__footer-by
+  margin-left: auto
+  font-size: 12px
+  color: rgba(255, 255, 255, .6)
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  CONTESTO SITO OSPITANTE (anteprima incorporamento) — header + sidenav finti
+// ══════════════════════════════════════════════════════════════════════════════
+.bookhost
+  background: #EDEFF3
+  font-family: $font-body
+
+.bookhost__topbar
+  height: 46px
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 0 18px
+  background: #fff
+  border-bottom: 1px solid #DcDfE5
+
+.bookhost__brand
+  font-weight: 700
+  font-size: 14px
+  color: #3A4150
+
+.bookhost__dots
+  display: inline-flex
+  gap: 5px
+
+  i
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    background: #C7CCD6
+
+.bookhost__body
+  display: flex
+  align-items: stretch
+
+.bookhost__sidenav
+  width: 180px
+  flex-shrink: 0
+  display: flex
+  flex-direction: column
+  gap: 4px
+  padding: 16px 10px
+  background: #fff
+  border-right: 1px solid #DcDfE5
+
+.bookhost__navitem
+  font-size: 13px
+  font-weight: 600
+  color: #6B7280
+  padding: 9px 12px
+  border-radius: 8px
+
+  &--active
+    background: #EEF1F6
+    color: #2A3140
+
+.bookhost__content
+  flex: 1
+  min-width: 0
+  position: relative
+  padding: 18px
+
+.bookhost__iframe-label
+  position: absolute
+  top: 10px
+  right: 14px
+  z-index: 2
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: .05em
+  color: #fff
+  background: rgba(32, 71, 105, .82)
+  border-radius: $radius-full
+  padding: 3px 9px
+
+.bookhost__content .bookpv
+  border-radius: 12px
+  overflow: hidden
+  border: 1px solid #D4D8E0

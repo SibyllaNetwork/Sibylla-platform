@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import clsx from 'clsx'
 import Ico from '../core/icons/Ico'
 import Logo from './Logo'
 import NavItem from './NavItem'
 import MENU from '../navigation/menu'
+import { filterMenu } from '../navigation/filterMenu'
 import { useOrgStore } from '../store/useOrgStore'
+import { useAccessStore, enabledPagesForProfile } from '../store/useAccessStore'
 
 interface Props {
   sideOpen    : boolean
@@ -32,6 +34,18 @@ export default function Sidebar({
   const setActiveStruttura = useOrgStore(s => s.setActiveStruttura)
 
   const isMultistruttura = tipologia === 'Multistruttura'
+
+  // ── Menu filtrato sul profilo (moduli sottoscritti) ─────────────────────────
+  // currentProfileId = null → menu completo (nessun contratto caricato).
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const profiles         = useAccessStore(s => s.profiles)
+  const modules          = useAccessStore(s => s.modules)
+  const menu = useMemo(() => {
+    if (!currentProfileId) return MENU
+    const profile = profiles.find(p => p.id === currentProfileId)
+    if (!profile) return MENU
+    return filterMenu(MENU as any[], enabledPagesForProfile(profile, modules))
+  }, [currentProfileId, profiles, modules])
 
   const [structOpen, setStructOpen] = useState(false)
   const structRef = useRef<HTMLDivElement>(null)
@@ -199,7 +213,7 @@ export default function Sidebar({
 
       {/* ── Nav ────────────────────────────────────────────────────────────── */}
       <nav className={clsx('flex-1 overflow-y-auto overflow-x-hidden py-2', SCROLLBAR)}>
-        {MENU.map(item => (
+        {menu.map(item => (
           <NavItem
             key={item.id}
             item={item}
