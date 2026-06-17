@@ -12,6 +12,7 @@ const TABS: ReadonlyArray<readonly [AdminTab, string, string]> = [
   ['ruoli',     'Ruoli',     'org'],
   ['funzioni',  'Funzioni',  'gear'],
   ['utenti',    'Utenti',    'profile'],
+  ['associazioni', 'Gestione associazioni', 'link'],
 ] as const
 
 interface Props {

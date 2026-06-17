@@ -3,9 +3,10 @@ import { ALL_PAGES, CLIENTS_INIT, PACCHETTI_INIT, USERS_INIT, RUOLO_COLORS, tipo
 import { getAllPages } from './helpers'
 import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/configuratoriList'
 import { useAccessStore } from '../../store/useAccessStore'
+import { useAdminConfigStore } from '../../store/useAdminConfigStore'
 import type {
   AdminMode, AdminTab, Cliente, FnType, MasterForm, Modulo, ModuloForm,
-  NewClientForm, PlatformSection, Ruolo, RuoloForm, UserRow,
+  NewClientForm, PlatformSection, Ruolo, RuoloForm, UserAssoc, UserRow,
 } from './types'
 import { useCatalogoStore } from '../../store/useCatalogoStore'
 import type {
@@ -21,6 +22,7 @@ import ModuliTab from './tabs/ModuliTab/ModuliTab'
 import RuoliTab from './tabs/RuoliTab/RuoliTab'
 import FunzioniTab from './tabs/FunzioniTab/FunzioniTab'
 import UtentiTab from './tabs/UtentiTab/UtentiTab'
+import AssociazioniTab from './tabs/AssociazioniTab/AssociazioniTab'
 import CatalogoTab from './tabs/CatalogoTab/CatalogoTab'
 import ServiziAdminTab from '../../modules/purchasing/Servizi/ServiziAdminTab'
 import BannerTab from './tabs/BannerTab/BannerTab'
@@ -96,16 +98,13 @@ export default function SibyllaAdminPanel(_props: Props) {
   const [moduloForm, setModuloForm] = useState<ModuloForm>({ nome: '', desc: '', pagesSet: new Set(), configItemsSet: new Set() })
   const [deleteModuloId, setDeleteModuloId] = useState<string | null>(null)
 
-  const [ruoliMap, setRuoliMap] = useState<Record<number, Ruolo[]>>(() => {
-    const init: Record<number, Ruolo[]> = {}
-    CLIENTS_INIT.forEach(c => { init[c.id] = [] })
-    return init
-  })
-  const [funzioniMap, setFunzioniMap] = useState<Record<number, Record<string, Record<string, FnType>>>>(() => {
-    const init: Record<number, Record<string, Record<string, FnType>>> = {}
-    CLIENTS_INIT.forEach(c => { init[c.id] = {} })
-    return init
-  })
+  // Ruoli e matrice funzioni: persistiti (le creazioni si salvano) e pre-popolati.
+  const ruoliMap = useAdminConfigStore(s => s.ruoliMap)
+  const setRuoliMap = useAdminConfigStore(s => s.setRuoliMap)
+  const funzioniMap = useAdminConfigStore(s => s.funzioniMap)
+  const setFunzioniMap = useAdminConfigStore(s => s.setFunzioniMap)
+  const assocMap = useAdminConfigStore(s => s.assocMap)
+  const setAssocMap = useAdminConfigStore(s => s.setAssocMap)
   const [selRuoloId, setSelRuoloId] = useState<string | null>(null)
   const [showRuoloModal, setShowRuoloModal] = useState(false)
   const [editingRuolo, setEditingRuolo] = useState<Ruolo | null>(null)
@@ -165,6 +164,9 @@ export default function SibyllaAdminPanel(_props: Props) {
   const clientRuoli = ruoliMap[selId] || []
   const clientAssigned = assignedModuli[selId] || new Set<string>()
   const clientUsers = users[selId] || []
+  const clientAssoc = assocMap[selId] || {}
+  const setUserAssoc = (userId: number, next: UserAssoc) =>
+    setAssocMap(p => ({ ...p, [selId]: { ...(p[selId] || {}), [userId]: next } }))
 
   const setForm = (k: keyof Cliente, v: any) =>
     setForms(p => ({ ...p, [selId]: { ...p[selId], [k]: v } }))
@@ -653,6 +655,16 @@ export default function SibyllaAdminPanel(_props: Props) {
                     setNewUser={setNewUser}
                     onAdd={addUser}
                     onRemove={removeUser}
+                  />
+                )}
+                {tab === 'associazioni' && (
+                  <AssociazioniTab
+                    client={client}
+                    users={clientUsers}
+                    ruoli={clientRuoli}
+                    strutture={clients.map(c => ({ id: c.id, nome: c.nome }))}
+                    assoc={clientAssoc}
+                    onChange={setUserAssoc}
                   />
                 )}
               </div>

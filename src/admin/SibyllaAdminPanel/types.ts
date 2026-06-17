@@ -94,6 +94,16 @@ export type AdminTab =
   | 'ruoli'
   | 'funzioni'
   | 'utenti'
+  | 'associazioni'
+
+/**
+ * Associazione di un utente: per ciascuna struttura collegata, l'insieme dei ruoli
+ * specifici di quella struttura (un utente può avere ruoli diversi per struttura).
+ */
+export interface UserAssoc {
+  /** strutturaId → id dei ruoli per quella struttura. */
+  strutture: Record<string, string[]>
+}
 
 /** Sezione di "Configurazione piattaforma" (modalità separata dalla gestione clienti). */
 export type PlatformSection = 'catalogo' | 'servizi' | 'banner' | 'agora-console'

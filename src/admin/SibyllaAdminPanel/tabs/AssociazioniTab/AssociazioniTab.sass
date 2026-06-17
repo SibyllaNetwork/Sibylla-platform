@@ -1,0 +1,191 @@
+@use '../../../../styles/tokens' as *
+
+.assoc-tab__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 14px
+
+.assoc-tab__title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+
+.assoc-tab__sub
+  font-size: 12px
+  color: $text-disabled
+  margin-top: 2px
+
+.assoc-tab__empty
+  padding: 32px 0
+  text-align: center
+  font-size: 13px
+  color: $text-disabled
+
+// ─── Card per utente ────────────────────────────────────────────────────────────
+.assoc-tab__list
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.assoc-card
+  background: $white
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 14px 16px
+
+.assoc-card__head
+  display: flex
+  align-items: center
+  gap: 12px
+
+.assoc-card__avatar
+  width: 38px
+  height: 38px
+  border-radius: 50%
+  object-fit: cover
+  border: 1px solid $border
+  flex-shrink: 0
+  background: $primary-50
+
+.assoc-card__user
+  flex: 1
+  min-width: 0
+
+.assoc-card__name
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+
+.assoc-card__mail
+  font-size: 11px
+  color: $text-disabled
+
+.assoc-card__strutture-sel
+  width: 280px
+  flex-shrink: 0
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.assoc-card__sel-label
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+
+.assoc-card__empty
+  margin-top: 12px
+  padding: 14px
+  text-align: center
+  font-size: 12px
+  color: $text-disabled
+  background: var(--color-bg)
+  border-radius: $radius-md
+
+.assoc-card__rows
+  margin-top: 12px
+  border-top: 1px solid $border
+  padding-top: 12px
+
+.assoc-card__rows-head
+  display: grid
+  grid-template-columns: 1fr 1.2fr
+  gap: 14px
+  padding: 0 4px 6px
+  font-size: 10px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.4px
+
+.assoc-card__row
+  display: grid
+  grid-template-columns: 1fr 1.2fr
+  gap: 14px
+  align-items: center
+  padding: 6px 4px
+
+.assoc-card__struttura
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+// ─── Multi-select ───────────────────────────────────────────────────────────────
+.assoc-ms
+  position: relative
+
+.assoc-ms__control
+  width: 100%
+  height: 38px
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 8px
+  padding: 0 12px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    border-color: $primary-300
+
+  &--open
+    border-color: $primary
+    box-shadow: 0 0 0 2px $primary-100
+
+.assoc-ms__value
+  font-size: 13px
+  color: $text-active
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.assoc-ms__placeholder
+  font-size: 13px
+  color: $text-inactive
+
+.assoc-ms__panel
+  position: absolute
+  top: calc(100% + 4px)
+  left: 0
+  right: 0
+  z-index: 30
+  max-height: 240px
+  overflow-y: auto
+  background: $white
+  border: 1px solid $border
+  border-radius: $radius-md
+  box-shadow: 0 12px 28px rgba(20, 30, 45, .16)
+  padding: 5px
+
+.assoc-ms__panel-empty
+  padding: 12px
+  font-size: 12px
+  color: $text-disabled
+  text-align: center
+
+.assoc-ms__opt
+  display: flex
+  align-items: center
+  gap: 9px
+  padding: 8px 10px
+  border-radius: $radius-sm
+  font-size: 13px
+  color: $text-active
+  cursor: pointer
+
+  &:hover
+    background: $primary-50
+
+  input
+    accent-color: $primary
+    width: 15px
+    height: 15px
+    cursor: pointer
+    flex-shrink: 0

@@ -1,7 +1,7 @@
 import MENU from '../../navigation/menu'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
-import type { Cliente, Modulo, TipologiaCategoria, UserRow } from './types'
+import type { Cliente, Modulo, Ruolo, TipologiaCategoria, UserRow } from './types'
 
 export const ALL_PAGES: string[] = getAllPages(MENU as any)
 
@@ -115,6 +115,25 @@ export const RUOLO_COLORS: string[] = [
   '#5C9CD4', '#5A8A3C', '#E07B39', '#9B59B6',
   '#C4A820', '#E74C3C', '#204769', '#1ABC9C',
 ]
+
+// Ruoli di esempio assegnati a ogni azienda cliente, così i tab Ruoli e Funzioni
+// non risultano vuoti. Persistiti via useAdminConfigStore (le creazioni si salvano).
+const RUOLI_TEMPLATE: ReadonlyArray<readonly [string, string, number]> = [
+  ['Amministratore', 'Accesso completo alla struttura',  6],
+  ['Direttore',      'Direzione e supervisione',         0],
+  ['Manager',        'Gestione operativa quotidiana',    2],
+  ['Operatore',      'Operatività di reparto',           1],
+  ['Viewer',         'Sola consultazione',               5],
+]
+
+export const RUOLI_INIT: Record<number, Ruolo[]> = Object.fromEntries(
+  CLIENTS_INIT.map(c => [
+    c.id,
+    RUOLI_TEMPLATE.map(([nome, desc, ci], i) => ({
+      id: `r-${c.id}-${i}`, nome, desc, colore: RUOLO_COLORS[ci],
+    })),
+  ]),
+) as Record<number, Ruolo[]>
 
 export const LINGUA_OPTIONS = ['Italiano', 'English', 'Français', 'Deutsch', 'Español']
 export const VALUTA_OPTIONS = ['EUR', 'USD', 'GBP', 'CHF']
