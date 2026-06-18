@@ -1,15 +1,21 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import {
   ACADEMY_COURSES,
   PERSONNEL_LISTINGS,
   type AcademyCourse,
   type PersonnelListing,
 } from '../data/academy';
+import {
+  approvedCourses,
+  approvedPersonnel,
+  useNuoveRisorseStore,
+} from '../../../../store/useNuoveRisorseStore';
 
 interface AcademyContextType {
-  /** Mock dataset + tutti gli annunci aggiunti dall'utente in sessione */
+  /** Dataset mock + annunci approvati dalla moderazione (visibili al pubblico). */
   personnelListings: PersonnelListing[];
   courses: AcademyCourse[];
+  /** Invia un annuncio alla moderazione (stato iniziale: "Da approvare"). */
   addPersonnelListing: (listing: PersonnelListing) => void;
   addCourse: (course: AcademyCourse) => void;
 }
@@ -17,30 +23,30 @@ interface AcademyContextType {
 const AcademyContext = createContext<AcademyContextType | undefined>(undefined);
 
 export function AcademyProvider({ children }: { children: ReactNode }) {
-  const [extraPersonnel, setExtraPersonnel] = useState<PersonnelListing[]>([]);
-  const [extraCourses, setExtraCourses] = useState<AcademyCourse[]>([]);
+  // Gli annunci utente vivono nello store di moderazione (condiviso + persistito);
+  // qui esponiamo al pubblico solo quelli approvati, uniti al dataset mock.
+  const submissions = useNuoveRisorseStore((s) => s.submissions);
+  const submitPersonnel = useNuoveRisorseStore((s) => s.submitPersonnel);
+  const submitCourse = useNuoveRisorseStore((s) => s.submitCourse);
 
   const personnelListings = useMemo(
-    () => [...extraPersonnel, ...PERSONNEL_LISTINGS],
-    [extraPersonnel],
+    () => [...approvedPersonnel(submissions), ...PERSONNEL_LISTINGS],
+    [submissions],
   );
 
   const courses = useMemo(
-    () => [...extraCourses, ...ACADEMY_COURSES],
-    [extraCourses],
+    () => [...approvedCourses(submissions), ...ACADEMY_COURSES],
+    [submissions],
   );
-
-  const addPersonnelListing = (listing: PersonnelListing) => {
-    setExtraPersonnel((prev) => [listing, ...prev]);
-  };
-
-  const addCourse = (course: AcademyCourse) => {
-    setExtraCourses((prev) => [course, ...prev]);
-  };
 
   return (
     <AcademyContext.Provider
-      value={{ personnelListings, courses, addPersonnelListing, addCourse }}
+      value={{
+        personnelListings,
+        courses,
+        addPersonnelListing: submitPersonnel,
+        addCourse: submitCourse,
+      }}
     >
       {children}
     </AcademyContext.Provider>

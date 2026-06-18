@@ -14,7 +14,7 @@
  *  - I context (Cart/Announcements/Academy/VoucherParking) sono locali alla
  *    sub-app.
  */
-import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
 import { AnnouncementsProvider } from './context/AnnouncementsContext';
@@ -35,6 +35,7 @@ import { SupplierDetailPage } from './pages/SupplierDetailPage';
 import { QuotesPage } from './pages/QuotesPage';
 import { CreateQuotePage } from './pages/CreateQuotePage';
 import { AcademyHubPage } from './pages/AcademyHubPage';
+import { AcademyPolicyPage } from './pages/AcademyPolicyPage';
 import { AcademyPersonnelPage } from './pages/AcademyPersonnelPage';
 import { AcademyPersonnelDetailPage } from './pages/AcademyPersonnelDetailPage';
 import { AcademyCoursesPage } from './pages/AcademyCoursesPage';
@@ -49,11 +50,11 @@ import { MatchZonePage } from './pages/MatchZonePage';
 import { GroupPurchasesPage } from './pages/GroupPurchasesPage';
 
 import { AdminLayout } from './admin/AdminLayout';
-import { AdminDashboard } from './admin/AdminDashboard';
 import { AdminVideosPage } from './admin/AdminVideosPage';
 import { AdminSettingsPage } from './admin/AdminSettingsPage';
 import { AdminPackagesPage } from './admin/AdminPackagesPage';
 import { AdminStubPage } from './admin/AdminStubPage';
+import { AdminNuoveRisorsePage } from './admin/AdminNuoveRisorsePage';
 import StruttureTab from '../../../admin/SibyllaAdminPanel/tabs/StruttureTab/StruttureTab';
 
 interface AgoraShellProps {
@@ -77,6 +78,7 @@ function AgoraRoutes() {
       <Route path="/quotes" element={<QuotesPage />} />
       <Route path="/quotes/create" element={<CreateQuotePage />} />
       <Route path="/academy" element={<AcademyHubPage />} />
+      <Route path="/academy/policy" element={<AcademyPolicyPage />} />
       <Route path="/academy/personnel" element={<AcademyPersonnelPage />} />
       <Route path="/academy/personnel/:id" element={<AcademyPersonnelDetailPage />} />
       <Route path="/academy/courses" element={<AcademyCoursesPage />} />
@@ -92,25 +94,10 @@ function AgoraRoutes() {
 
       {/* ── Console Admin Agorà ────────────────────────────────────────── */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
+        <Route index element={<Navigate to="videos" replace />} />
         <Route path="videos" element={<AdminVideosPage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
-        <Route
-          path="announcements"
-          element={
-            <AdminStubPage
-              title="Annunci"
-              subtitle="Gestione centralizzata bacheca"
-              icon="bullhorn"
-              description="La sezione di gestione annunci sarà disponibile a breve."
-              bullets={[
-                'Pubblicazione e archiviazione annunci',
-                'Filtri per categoria e fornitore',
-                'Audit log delle modifiche',
-              ]}
-            />
-          }
-        />
+        <Route path="announcements" element={<AdminNuoveRisorsePage />} />
         <Route path="packages" element={<AdminPackagesPage />} />
         <Route path="accommodations" element={<StruttureTab />} />
         <Route

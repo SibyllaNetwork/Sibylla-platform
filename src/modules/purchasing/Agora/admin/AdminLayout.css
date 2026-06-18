@@ -73,6 +73,22 @@
   border-radius: 999px;
 }
 
+/* Contatore annunci in attesa di moderazione */
+.aac__tab-pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  margin-left: 6px;
+  background: #d10011;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
 .aac__body {
   flex: 1;
   min-height: 0;

@@ -1,0 +1,120 @@
+/* =====================================================================
+   AcademyPolicyPage — documento Policy per l'inserimento annunci
+   ===================================================================== */
+.academy-policy {
+  max-width: 820px;
+  margin-top: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 2.25rem 2.5rem;
+  font-family: 'Open Sans', system-ui, sans-serif;
+  color: var(--color-text-active);
+  line-height: 1.6;
+}
+
+.academy-policy__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border-soft, var(--color-border));
+}
+.academy-policy__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--color-success-light);
+  color: #007035;
+  font-size: 12px;
+  font-weight: 700;
+}
+.academy-policy__meta-item {
+  font-size: 12px;
+  color: var(--color-text-inactive);
+}
+
+.academy-policy__lead {
+  font-size: 0.95rem;
+  color: var(--color-text-active);
+  margin: 0 0 1.5rem;
+}
+
+.academy-policy__section {
+  margin-bottom: 1.5rem;
+}
+.academy-policy__section h2,
+.academy-policy__refs h2 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #204769;
+  margin: 0 0 0.5rem;
+}
+.academy-policy__section p,
+.academy-policy__refs p {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+}
+.academy-policy__section ul,
+.academy-policy__refs ul {
+  margin: 0 0 0.6rem;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
+.academy-policy__section li,
+.academy-policy__refs li {
+  margin-bottom: 0.4rem;
+}
+.academy-policy a {
+  color: #204769;
+  text-decoration: underline;
+}
+.academy-policy a:hover {
+  color: #2d5a7f;
+}
+
+.academy-policy__refs {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border-soft, var(--color-border));
+}
+.academy-policy__disclaimer {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: var(--color-text-inactive);
+}
+
+.academy-policy__foot {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border-soft, var(--color-border));
+}
+.academy-policy__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-active);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.academy-policy__back:hover {
+  border-color: #204769;
+  color: #204769;
+}
+
+@media (max-width: 640px) {
+  .academy-policy {
+    padding: 1.5rem 1.25rem;
+  }
+}

@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '../ds/icon';
 import { useAcademy } from '../context/AcademyContext';
+import { toast } from '../../../../core/components/Toast/useToast';
+import { useNuoveRisorseStore, type ResourceSubmission } from '../../../../store/useNuoveRisorseStore';
 import type {
   AcademyCourse,
   ContractType,
@@ -18,10 +21,16 @@ type AdType = 'personnel' | 'course';
 interface AcademyNewAdModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Se valorizzato, il modale è in modalità modifica/ri-sottomissione. */
+  editSubmission?: ResourceSubmission | null;
 }
 
-export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
+export function AcademyNewAdModal({ isOpen, onClose, editSubmission }: AcademyNewAdModalProps) {
+  const navigate = useNavigate();
   const { addPersonnelListing, addCourse } = useAcademy();
+  const resubmitPersonnel = useNuoveRisorseStore((s) => s.resubmitPersonnel);
+  const resubmitCourse = useNuoveRisorseStore((s) => s.resubmitCourse);
+  const isEdit = !!editSubmission;
   const [adType, setAdType] = useState<AdType>('personnel');
   const [submitted, setSubmitted] = useState(false);
 
@@ -84,6 +93,30 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
     }
   }, [isOpen]);
 
+  // Prefill in modalità modifica/ri-sottomissione.
+  useEffect(() => {
+    if (!isOpen || !editSubmission) return;
+    if (editSubmission.kind === 'personnel') {
+      const l = editSubmission.listing;
+      setAdType('personnel');
+      setPKind(l.kind);
+      setPTitle(l.title); setPOrg(l.organization); setPCity(l.city); setPRegion(l.region);
+      setPContract(l.contractType); setPWorkMode(l.workMode);
+      setPDescription(l.description); setPRequirements(l.requirements.join('\n'));
+      setPSalary(l.salaryRange ?? '');
+      setPExperience(l.experienceYears != null ? String(l.experienceYears) : '');
+      setPContactName(l.contactName); setPContactEmail(l.contactEmail);
+    } else {
+      const c = editSubmission.course;
+      setAdType('course');
+      setCTitle(c.title); setCCategory(c.category); setCInstructor(c.instructor);
+      setCDescription(c.description); setCSyllabus(c.syllabus.join('\n'));
+      setCMode(c.mode); setCLevel(c.level); setCDuration(String(c.durationHours));
+      setCStart(c.startDate); setCEnd(c.endDate); setCCity(c.city ?? '');
+      setCTotalSeats(String(c.totalSeats)); setCPrice(c.price ? String(c.price) : '');
+    }
+  }, [isOpen, editSubmission]);
+
   if (!isOpen) return null;
 
   const today = new Date().toISOString().split('T')[0];
@@ -92,7 +125,7 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
     e.preventDefault();
     if (adType === 'personnel') {
       const listing: PersonnelListing = {
-        id: `user-p-${Date.now()}`,
+        id: isEdit ? editSubmission!.id : `user-p-${Date.now()}`,
         kind: pKind,
         title: pTitle,
         organization: pOrg,
@@ -112,10 +145,11 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
         contactName: pContactName,
         contactEmail: pContactEmail,
       };
-      addPersonnelListing(listing);
+      if (isEdit) resubmitPersonnel(listing.id, listing);
+      else addPersonnelListing(listing);
     } else {
       const course: AcademyCourse = {
-        id: `user-c-${Date.now()}`,
+        id: isEdit ? editSubmission!.id : `user-c-${Date.now()}`,
         title: cTitle,
         category: cCategory,
         instructor: cInstructor,
@@ -135,8 +169,13 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
         price: cPrice ? Number(cPrice) : 0,
         publishedDate: today,
       };
-      addCourse(course);
+      if (isEdit) resubmitCourse(course.id, course);
+      else addCourse(course);
     }
+    toast.info(
+      'Il tuo annuncio è stato inviato ai moderatori di Sibylla. Appena verificata la conformità alle policy, verrà pubblicato nella sezione Nuove risorse.',
+      'Inviato per la moderazione',
+    );
     setSubmitted(true);
   };
 
@@ -152,12 +191,13 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
       <div className="academy-modal__dialog academy-new-ad__dialog">
         <header className="academy-modal__head">
           <div>
-            <p className="academy-modal__eyebrow">Pubblica annuncio</p>
+            <p className="academy-modal__eyebrow">{isEdit ? 'Modifica e ri-invia' : 'Pubblica annuncio'}</p>
             <h2 id="academy-newad-title" className="academy-modal__title">
-              Nuovo annuncio in Accademia
+              {isEdit ? 'Modifica annuncio' : 'Nuovo annuncio in Accademia'}
             </h2>
             <p className="academy-modal__subtitle">
-              Inserisci un'offerta di lavoro, una candidatura o un corso di formazione
+              Inserisci un'offerta di lavoro, una candidatura o un corso di formazione.
+              Sarà pubblicato dopo la moderazione del supporto Sibylla.
             </p>
           </div>
           <button
@@ -172,10 +212,12 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
 
         {submitted ? (
           <div className="academy-modal__success">
-            <Icon family="regular" name="circle-check" className="academy-modal__success-icon" />
-            <h3 className="academy-modal__success-title">Annuncio pubblicato</h3>
+            <Icon family="regular" name="paper-plane" className="academy-modal__success-icon" />
+            <h3 className="academy-modal__success-title">Inviato ai moderatori</h3>
             <p className="academy-modal__success-text">
-              Il tuo annuncio è stato pubblicato e sarà visibile nella sezione corrispondente.
+              Il tuo annuncio è stato inviato al supporto Sibylla per la moderazione.
+              Appena verificata la conformità alle policy, sarà pubblicato nella sezione
+              Nuove risorse. Puoi seguirne lo stato in «I miei annunci».
             </p>
             <button type="button" className="academy-modal__cta" onClick={onClose}>
               Chiudi
@@ -574,12 +616,26 @@ export function AcademyNewAdModal({ isOpen, onClose }: AcademyNewAdModalProps) {
               </>
             )}
 
+            <p className="academy-modal__policy-note">
+              <Icon family="light" name="shield-check" />
+              <span>
+                Inviando l'annuncio dichiari di aver letto e accettato le{' '}
+                <button
+                  type="button"
+                  className="academy-modal__policy-link"
+                  onClick={() => { onClose(); navigate('/academy/policy'); }}
+                >
+                  Policy di Sibylla per l'inserimento annunci
+                </button>.
+              </span>
+            </p>
+
             <div className="academy-modal__actions">
               <button type="button" className="academy-modal__cancel" onClick={onClose}>
                 Annulla
               </button>
               <button type="submit" className="academy-modal__cta">
-                Pubblica annuncio
+                {isEdit ? 'Ri-invia per la moderazione' : 'Invia per la moderazione'}
               </button>
             </div>
           </form>

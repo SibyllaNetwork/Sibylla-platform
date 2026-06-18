@@ -498,6 +498,12 @@
   --bv-surface: #fff
   --bv-muted: #6E7175
   --bv-border: #E2E6EB
+  // Tipografia configurabile (valori sovrascritti via style dal componente)
+  --bv-font: #{$font-heading}
+  --bv-head-scale: 1
+  --bv-tracking: normal
+  --bv-leading: 1.2
+  --bv-transform: none
   box-sizing: border-box
   width: var(--bw)
   height: var(--bh)
@@ -570,6 +576,44 @@
   right: auto
   left: 14px
 
+// ─── Posizione verticale del blocco testi (display, esclusi i formati a riga) ──
+.bgen-pv--display:not(.bgen-pv--leaderboard):not(.bgen-pv--mobile)[data-valign="top"] .bgen-pv__display-inner
+  justify-content: flex-start
+
+.bgen-pv--display:not(.bgen-pv--leaderboard):not(.bgen-pv--mobile)[data-valign="bottom"] .bgen-pv__display-inner
+  justify-content: flex-end
+
+// ─── Allineamento orizzontale dei testi (display) ──────────────────────────────
+// Il logo resta indipendente (governato da data-logo-pos): ancoriamo esplicitamente
+// anche la posizione "left" così l'allineamento testi non lo trascina.
+.bgen-pv--display[data-logo-pos="left"] .bgen-pv__display-inner > .bgen-mark
+  align-self: flex-start
+
+.bgen-pv--display[data-talign="center"] .bgen-pv__display-inner
+  align-items: center
+  text-align: center
+
+.bgen-pv--display[data-talign="center"] .bgen-pv__headline,
+.bgen-pv--display[data-talign="center"] .bgen-pv__sub,
+.bgen-pv--display[data-talign="center"] .bgen-pv__cta
+  align-self: center
+
+.bgen-pv--display[data-talign="right"] .bgen-pv__display-inner
+  align-items: flex-end
+  text-align: right
+
+.bgen-pv--display[data-talign="right"] .bgen-pv__headline,
+.bgen-pv--display[data-talign="right"] .bgen-pv__sub,
+.bgen-pv--display[data-talign="right"] .bgen-pv__cta
+  align-self: flex-end
+
+// Card: allineamento della caption sovrimpressa alla foto
+.bgen-pv--card[data-talign="center"] .bgen-pv__photo-caption
+  text-align: center
+
+.bgen-pv--card[data-talign="right"] .bgen-pv__photo-caption
+  text-align: right
+
 // ─── Foto di sfondo (BannerArt → BannerPhoto) ──────────────────────────────────
 .bgen-pv__photo-bg
   position: absolute
@@ -581,11 +625,11 @@
   background: var(--bv-surface)
   display: block
 
-// Scrim per leggibilità del testo sopra la scena
+// Scrim/sfumatura per leggibilità del testo sopra la scena (configurabile via --bv-scrim)
 .bgen-pv__scrim
   position: absolute
   inset: 0
-  background: linear-gradient(90deg, rgba(8, 20, 34, .72) 0%, rgba(8, 20, 34, .38) 48%, rgba(8, 20, 34, .12) 100%)
+  background: var(--bv-scrim, linear-gradient(90deg, rgba(8, 20, 34, .72) 0%, rgba(8, 20, 34, .38) 48%, rgba(8, 20, 34, .12) 100%))
 
 // ─── Watermark / emblema di sfondo (BannerArt → Watermark, Logo_sibylla_key) ───
 .bgen-pv__watermark
@@ -650,10 +694,12 @@
   min-width: 0
 
 .bgen-pv__widget-slogan
-  font-family: $font-heading
-  font-weight: 600
-  font-size: 14px
-  line-height: 1.2
+  font-family: var(--bv-font)
+  font-weight: var(--bv-head-weight, 600)
+  font-size: calc(14px * var(--bv-head-scale, 1))
+  line-height: var(--bv-leading, 1.2)
+  letter-spacing: var(--bv-tracking, normal)
+  text-transform: var(--bv-transform, none)
   color: var(--bv-text, var(--bv-ink))
   min-width: 0
 
@@ -678,7 +724,7 @@
     gap: 10px
 
   .bgen-pv__widget-slogan
-    font-size: 19px
+    font-size: calc(19px * var(--bv-head-scale, 1))
 
   .bgen-pv__widget-body
     flex-direction: column
@@ -735,10 +781,12 @@
     padding: 14px 18px
 
   .bgen-pv__headline
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 16px
-    line-height: 1.2
+    font-family: var(--bv-font)
+    font-weight: var(--bv-head-weight, 700)
+    font-size: calc(16px * var(--bv-head-scale, 1))
+    line-height: var(--bv-leading, 1.2)
+    letter-spacing: var(--bv-tracking, normal)
+    text-transform: var(--bv-transform, none)
     color: var(--bv-text, #fff)
     text-shadow: 0 1px 6px rgba(0, 0, 0, .35)
     max-width: 74%
@@ -763,7 +811,7 @@
     padding: 0 20px
 
   .bgen-pv__headline
-    font-size: 15px
+    font-size: calc(15px * var(--bv-head-scale, 1))
     flex: 1
 
   .bgen-pv__sub
@@ -781,7 +829,7 @@
     padding: 20px 16px
 
   .bgen-pv__headline
-    font-size: 18px
+    font-size: calc(18px * var(--bv-head-scale, 1))
     margin-top: auto
 
   .bgen-pv__cta
@@ -801,8 +849,8 @@
     --logo-h: 16px
 
   .bgen-pv__headline
-    font-size: 11px
-    font-weight: 600
+    font-size: calc(11px * var(--bv-head-scale, 1))
+    font-weight: var(--bv-head-weight, 600)
     line-height: 1.15
     margin: 0
     max-width: none
@@ -856,10 +904,12 @@
     right: 14px
     bottom: 12px
     z-index: 1
-    font-family: $font-heading
-    font-weight: 600
-    font-size: 14px
-    line-height: 1.25
+    font-family: var(--bv-font)
+    font-weight: var(--bv-head-weight, 600)
+    font-size: calc(14px * var(--bv-head-scale, 1))
+    line-height: var(--bv-leading, 1.25)
+    letter-spacing: var(--bv-tracking, normal)
+    text-transform: var(--bv-transform, none)
     color: var(--bv-text, #fff)
     text-shadow: 0 1px 6px rgba(0, 0, 0, .55)
 
@@ -873,9 +923,10 @@
     padding: 16px
 
   .bgen-pv__card-dest
-    font-family: $font-heading
-    font-weight: 600
-    font-size: 18px
+    font-family: var(--bv-font)
+    font-weight: var(--bv-head-weight, 600)
+    font-size: calc(18px * var(--bv-head-scale, 1))
+    letter-spacing: var(--bv-tracking, normal)
     color: var(--bv-ink)
 
   .bgen-pv__card-meta
@@ -933,7 +984,9 @@
       --logo-h: 20px
 
   .bgen-pv__smart-label
-    font-family: $font-heading
-    font-weight: 600
-    font-size: 15px
+    font-family: var(--bv-font)
+    font-weight: var(--bv-head-weight, 600)
+    font-size: calc(15px * var(--bv-head-scale, 1))
+    letter-spacing: var(--bv-tracking, normal)
+    text-transform: var(--bv-transform, none)
     color: var(--bv-text, #fff)

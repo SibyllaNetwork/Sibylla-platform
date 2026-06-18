@@ -3,8 +3,9 @@ import Ico from '../../../../core/icons/Ico'
 import BannerPreview from './BannerPreview'
 import BookingPageTab from './BookingPageTab'
 import {
-  ACCENT_PRESETS, BANNER_GROUPS, BG_POSITIONS, DEFAULT_CONFIG, LINGUE, LINK_TYPES,
-  LOGO_POSITIONS, VALUTE, buildEmbedCode, buildEmbedUrl, findFormat, isDataUrl, labelsFor,
+  ACCENT_PRESETS, BANNER_GROUPS, BG_POSITIONS, DEFAULT_CONFIG, FONT_FAMILIES, HEADING_WEIGHTS,
+  LINGUE, LINK_TYPES, LOGO_POSITIONS, SCRIM_STYLES, TEXT_ALIGN_OPTIONS, VALIGN_OPTIONS, VALUTE,
+  buildEmbedCode, buildEmbedUrl, findFormat, isDataUrl, labelsFor,
 } from './bannerData'
 import type { BannerConfig } from './bannerData'
 import { BANNER_BACKGROUNDS, BG_AUTO } from './backgrounds'
@@ -323,6 +324,83 @@ export default function BannerTab() {
               <span className="bgen__hint-inline">"A" = automatico (bianco su foto/scuro, scuro su chiaro).</span>
             </div>
 
+            {/* ─── Tipografia ───────────────────────────────────────── */}
+            <h3 className="bgen__section-title bgen__section-title--spaced">Tipografia</h3>
+            <div className="bgen__field bgen__field--full">
+              <label className="bgen__label" htmlFor="bgen-font">Font dei titoli</label>
+              <select id="bgen-font" className="sib-select" value={config.fontFamily} onChange={e => set('fontFamily', e.target.value)}>
+                {FONT_FAMILIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+              </select>
+            </div>
+            <div className="bgen__grid">
+              <div className="bgen__field">
+                <label className="bgen__label" htmlFor="bgen-fweight">Peso</label>
+                <select id="bgen-fweight" className="sib-select" value={config.headingWeight} onChange={e => set('headingWeight', Number(e.target.value))}>
+                  {HEADING_WEIGHTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <div className="bgen__field">
+                <label className="bgen__label" htmlFor="bgen-fscale">Dimensione</label>
+                <select id="bgen-fscale" className="sib-select" value={config.headingScale} onChange={e => set('headingScale', Number(e.target.value))}>
+                  <option value={0.85}>Compatta</option>
+                  <option value={1}>Normale</option>
+                  <option value={1.15}>Grande</option>
+                  <option value={1.3}>Molto grande</option>
+                  <option value={1.5}>Massima</option>
+                </select>
+              </div>
+              <div className="bgen__field">
+                <label className="bgen__label" htmlFor="bgen-fleading">Interlinea</label>
+                <select id="bgen-fleading" className="sib-select" value={config.lineHeight} onChange={e => set('lineHeight', Number(e.target.value))}>
+                  <option value={1}>Stretta</option>
+                  <option value={1.2}>Normale</option>
+                  <option value={1.4}>Ariosa</option>
+                  <option value={1.6}>Molto ariosa</option>
+                </select>
+              </div>
+              <div className="bgen__field">
+                <label className="bgen__label" htmlFor="bgen-ftracking">Spaziatura lettere</label>
+                <select id="bgen-ftracking" className="sib-select" value={config.letterSpacing} onChange={e => set('letterSpacing', Number(e.target.value))}>
+                  <option value={-0.02}>Compatta</option>
+                  <option value={0}>Normale</option>
+                  <option value={0.04}>Larga</option>
+                  <option value={0.08}>Molto larga</option>
+                  <option value={0.16}>Massima</option>
+                </select>
+              </div>
+            </div>
+            <div className="bgen__field bgen__field--full">
+              <label className="bgen__label">Stile del testo</label>
+              <div className="bgen__segmented">
+                <button type="button" className={`bgen__seg${config.textTransform === 'none' ? ' bgen__seg--active' : ''}`} onClick={() => set('textTransform', 'none')}>Normale</button>
+                <button type="button" className={`bgen__seg${config.textTransform === 'uppercase' ? ' bgen__seg--active' : ''}`} onClick={() => set('textTransform', 'uppercase')}>MAIUSCOLO</button>
+              </div>
+            </div>
+
+            {/* ─── Disposizione dei testi (banner con foto) ─────────── */}
+            {(format.kind === 'display' || format.kind === 'card') && (
+              <>
+                <h3 className="bgen__section-title bgen__section-title--spaced">Disposizione testi</h3>
+                <div className="bgen__grid">
+                  {format.kind === 'display' && (
+                    <div className="bgen__field">
+                      <label className="bgen__label" htmlFor="bgen-valign">Posizione verticale</label>
+                      <select id="bgen-valign" className="sib-select" value={config.contentVAlign} onChange={e => set('contentVAlign', e.target.value as BannerConfig['contentVAlign'])}>
+                        {VALIGN_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div className="bgen__field">
+                    <label className="bgen__label" htmlFor="bgen-talign">Allineamento orizzontale</label>
+                    <select id="bgen-talign" className="sib-select" value={config.textAlign} onChange={e => set('textAlign', e.target.value as BannerConfig['textAlign'])}>
+                      {TEXT_ALIGN_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <span className="bgen__hint-inline">Il logo resta posizionato in modo indipendente dalla sezione Logo.</span>
+              </>
+            )}
+
             {/* ─── Logo ─────────────────────────────────────────────── */}
             <h3 className="bgen__section-title bgen__section-title--spaced">Logo</h3>
             <div className="bgen__field bgen__field--full">
@@ -482,6 +560,56 @@ export default function BannerTab() {
                     </select>
                   </div>
                 </div>
+
+                {(format.kind === 'display' || format.kind === 'card') && (
+                  <>
+                    <div className="bgen__grid">
+                      <div className="bgen__field">
+                        <label className="bgen__label" htmlFor="bgen-scrim">Effetto sfumatura</label>
+                        <select id="bgen-scrim" className="sib-select" value={config.scrimStyle} onChange={e => set('scrimStyle', e.target.value as BannerConfig['scrimStyle'])}>
+                          {SCRIM_STYLES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                      </div>
+                      {config.scrimStyle !== 'none' && (
+                        <div className="bgen__field">
+                          <label className="bgen__label" htmlFor="bgen-scrim-str">Intensità</label>
+                          <select id="bgen-scrim-str" className="sib-select" value={config.scrimStrength} onChange={e => set('scrimStrength', Number(e.target.value))}>
+                            <option value={35}>Leggera</option>
+                            <option value={55}>Media</option>
+                            <option value={72}>Marcata</option>
+                            <option value={88}>Forte</option>
+                            <option value={100}>Piena</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                    {config.scrimStyle !== 'none' && (
+                      <div className="bgen__field bgen__field--full">
+                        <label className="bgen__label">Colore sfumatura</label>
+                        <div className="bgen__palette">
+                          {['#081422', '#000000', '#204769', '#3A1D12', '#1B1D23'].map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              className={`bgen__swatch${config.scrimColor.toLowerCase() === c.toLowerCase() ? ' bgen__swatch--active' : ''}`}
+                              style={{ '--sw': c } as React.CSSProperties}
+                              onClick={() => set('scrimColor', c)}
+                              aria-label={`Sfumatura ${c}`}
+                            />
+                          ))}
+                          <input
+                            type="color"
+                            className="bgen__color-input"
+                            value={config.scrimColor}
+                            onChange={e => set('scrimColor', e.target.value)}
+                            aria-label="Colore sfumatura personalizzato"
+                          />
+                        </div>
+                        <span className="bgen__hint-inline">La sfumatura migliora la leggibilità dei testi sopra la foto.</span>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
 

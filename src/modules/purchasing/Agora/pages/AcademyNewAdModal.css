@@ -92,3 +92,31 @@
 .academy-new-ad__sub-card.is-active .academy-new-ad__sub-hint {
   color: #4b6b85;
 }
+
+/* Nota Policy sopra le azioni del form */
+.academy-modal__policy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4b6b85;
+}
+.academy-modal__policy-note > i {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.academy-modal__policy-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: #204769;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.academy-modal__policy-link:hover {
+  color: #2d5a7f;
+}

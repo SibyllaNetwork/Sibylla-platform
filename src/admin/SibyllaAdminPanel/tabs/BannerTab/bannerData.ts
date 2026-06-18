@@ -135,6 +135,30 @@ export interface BannerConfig {
   bgFit: 'cover' | 'contain'
   /** Colore dei testi/slogan. Vuoto = automatico (bianco su foto/scuro, scuro su chiaro). */
   textColor: string
+  // ── Tipografia ──
+  /** Famiglia tipografica: id in FONT_FAMILIES ('default' = font Sibylla). */
+  fontFamily: string
+  /** Moltiplicatore dimensione titoli/slogan (1 = base del formato). */
+  headingScale: number
+  /** Peso dei titoli/slogan; 0 = automatico (peso predefinito di ogni elemento). */
+  headingWeight: number
+  /** Spaziatura tra le lettere dei titoli, in em (0 = normale). */
+  letterSpacing: number
+  /** Interlinea dei titoli/slogan. */
+  lineHeight: number
+  /** Trasformazione del testo dei titoli. */
+  textTransform: 'none' | 'uppercase'
+  // ── Disposizione testi (banner con foto) ──
+  /** Posizione verticale del blocco di testo (display). */
+  contentVAlign: ContentVAlign
+  /** Allineamento orizzontale dei testi (display/card). */
+  textAlign: TextAlign
+  // ── Sfumatura (velo sopra la foto) ──
+  scrimStyle: ScrimStyle
+  /** Colore base della sfumatura. */
+  scrimColor: string
+  /** Opacità massima della sfumatura, 0–100. */
+  scrimStrength: number
   // ── Link / CTA ──
   linkType: LinkType
   /** URL usato quando linkType === 'custom'. */
@@ -152,6 +176,9 @@ export interface BannerConfig {
 export type LogoPosition = 'left' | 'center' | 'right'
 export type BgPosition = 'center' | 'top' | 'bottom' | 'left' | 'right'
 export type LinkType = 'search' | 'destination' | 'home' | 'custom'
+export type ContentVAlign = 'top' | 'center' | 'bottom'
+export type TextAlign = 'left' | 'center' | 'right'
+export type ScrimStyle = 'ltr' | 'ttb' | 'btt' | 'radial' | 'solid' | 'none'
 
 export const DEFAULT_CONFIG: BannerConfig = {
   destinazione: '',
@@ -170,6 +197,17 @@ export const DEFAULT_CONFIG: BannerConfig = {
   bgPosition: 'center',
   bgFit: 'cover',
   textColor: '',
+  fontFamily: 'default',
+  headingScale: 1,
+  headingWeight: 0,
+  letterSpacing: 0,
+  lineHeight: 1.2,
+  textTransform: 'none',
+  contentVAlign: 'center',
+  textAlign: 'left',
+  scrimStyle: 'ltr',
+  scrimColor: '#081422',
+  scrimStrength: 72,
   linkType: 'search',
   linkUrl: '',
   linkText: '',
@@ -195,6 +233,80 @@ export const LINK_TYPES: ReadonlyArray<readonly [LinkType, string]> = [
 /** true se il valore è caricato localmente (data-URL) e quindi non incorporabile nel codice embed. */
 export function isDataUrl(v: string): boolean {
   return v.trim().startsWith('data:')
+}
+
+// ─── Tipografia ────────────────────────────────────────────────────────────────
+
+export interface FontOption {
+  id: string
+  label: string
+  /** Stack CSS applicato all'anteprima; vuoto = font Sibylla predefinito. */
+  stack: string
+}
+
+export const FONT_FAMILIES: FontOption[] = [
+  { id: 'default', label: 'Predefinito (Sibylla)', stack: '' },
+  { id: 'sans', label: 'Sans moderno', stack: "'Helvetica Neue', Helvetica, Arial, sans-serif" },
+  { id: 'grotesque', label: 'Grottesco', stack: "'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" },
+  { id: 'humanist', label: 'Umanista', stack: "'Optima', 'Gill Sans', 'Avenir Next', sans-serif" },
+  { id: 'serif', label: 'Serif elegante', stack: "Georgia, 'Times New Roman', serif" },
+  { id: 'display', label: 'Serif display', stack: "'Playfair Display', 'Didot', Georgia, serif" },
+  { id: 'geometric', label: 'Geometrico', stack: "'Futura', 'Century Gothic', 'Avenir Next', sans-serif" },
+  { id: 'rounded', label: 'Arrotondato', stack: "'Nunito', 'Avenir Next', 'Segoe UI', sans-serif" },
+  { id: 'mono', label: 'Monospazio', stack: "'SF Mono', ui-monospace, 'Courier New', monospace" },
+]
+
+export function fontStack(id: string): string {
+  return FONT_FAMILIES.find(f => f.id === id)?.stack ?? ''
+}
+
+export const HEADING_WEIGHTS: ReadonlyArray<readonly [number, string]> = [
+  [0, 'Automatico'], [400, 'Normale'], [500, 'Medio'], [600, 'Semigrassetto'], [700, 'Grassetto'], [800, 'Extra'],
+] as const
+
+export const VALIGN_OPTIONS: ReadonlyArray<readonly [ContentVAlign, string]> = [
+  ['top', 'Alto'], ['center', 'Centro'], ['bottom', 'Basso'],
+] as const
+
+export const TEXT_ALIGN_OPTIONS: ReadonlyArray<readonly [TextAlign, string]> = [
+  ['left', 'Sinistra'], ['center', 'Centro'], ['right', 'Destra'],
+] as const
+
+export const SCRIM_STYLES: ReadonlyArray<readonly [ScrimStyle, string]> = [
+  ['ltr', 'Sfumatura orizzontale'], ['ttb', 'Sfumatura dall\'alto'], ['btt', 'Sfumatura dal basso'],
+  ['radial', 'Sfumatura radiale'], ['solid', 'Velo uniforme'], ['none', 'Nessuna'],
+] as const
+
+/** Converte un colore #rrggbb (o #rgb) in rgba() con l'alpha indicato. */
+function hexToRgba(hex: string, alpha: number): string {
+  let h = hex.trim().replace('#', '')
+  if (h.length === 3) h = h.split('').map(c => c + c).join('')
+  const n = parseInt(h, 16)
+  if (h.length !== 6 || Number.isNaN(n)) return `rgba(8, 20, 34, ${alpha})`
+  const r = (n >> 16) & 255
+  const g = (n >> 8) & 255
+  const b = n & 255
+  return `rgba(${r}, ${g}, ${b}, ${Math.round(alpha * 1000) / 1000})`
+}
+
+/** Costruisce il valore CSS della sfumatura (velo) sopra la foto. */
+export function buildScrim(c: BannerConfig): string {
+  if (c.scrimStyle === 'none') return 'none'
+  const a = Math.max(0, Math.min(100, c.scrimStrength)) / 100
+  const at = (alpha: number) => hexToRgba(c.scrimColor, alpha)
+  switch (c.scrimStyle) {
+    case 'solid':
+      return at(a)
+    case 'ttb':
+      return `linear-gradient(180deg, ${at(a)} 0%, ${at(a * 0.5)} 45%, ${at(a * 0.12)} 100%)`
+    case 'btt':
+      return `linear-gradient(0deg, ${at(a)} 0%, ${at(a * 0.45)} 52%, ${at(0)} 100%)`
+    case 'radial':
+      return `radial-gradient(circle at 28% 50%, ${at(a)} 0%, ${at(a * 0.32)} 58%, ${at(0)} 100%)`
+    case 'ltr':
+    default:
+      return `linear-gradient(90deg, ${at(a)} 0%, ${at(a * 0.52)} 48%, ${at(a * 0.16)} 100%)`
+  }
 }
 
 export const LINGUE: ReadonlyArray<readonly [string, string]> = [
@@ -292,6 +404,25 @@ export function buildEmbedUrl(format: BannerFormat, c: BannerConfig): string {
     if (c.bgFit !== 'cover') q.set('bgfit', c.bgFit)
   }
   if (c.textColor.trim()) q.set('textcolor', c.textColor.replace('#', ''))
+
+  // Tipografia
+  if (c.fontFamily !== 'default') q.set('font', c.fontFamily)
+  if (c.headingScale !== 1) q.set('hscale', String(c.headingScale))
+  if (c.headingWeight > 0) q.set('hweight', String(c.headingWeight))
+  if (c.letterSpacing !== 0) q.set('tracking', String(c.letterSpacing))
+  if (c.lineHeight !== 1.2) q.set('leading', String(c.lineHeight))
+  if (c.textTransform !== 'none') q.set('transform', c.textTransform)
+
+  // Disposizione testi (banner con foto)
+  if (c.contentVAlign !== 'center') q.set('valign', c.contentVAlign)
+  if (c.textAlign !== 'left') q.set('talign', c.textAlign)
+
+  // Sfumatura
+  if (c.scrimStyle !== 'ltr') q.set('scrim', c.scrimStyle)
+  if (c.scrimStyle !== 'none') {
+    q.set('scrimcol', c.scrimColor.replace('#', ''))
+    q.set('scrimstr', String(c.scrimStrength))
+  }
 
   // Link / CTA
   q.set('link', c.linkType)

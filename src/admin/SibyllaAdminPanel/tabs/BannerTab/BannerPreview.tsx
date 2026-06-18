@@ -1,6 +1,6 @@
 import React from 'react'
 import type { BannerConfig, BannerFormat } from './bannerData'
-import { labelsFor } from './bannerData'
+import { buildScrim, fontStack, labelsFor } from './bannerData'
 import { BannerPhoto, SibyllaMark, Watermark } from './BannerArt'
 import { resolveBackground } from './backgrounds'
 
@@ -36,12 +36,20 @@ export default function BannerPreview({ format, config }: Props) {
   const colorMode = config.bgMode === 'color'
   const bgSrc = config.bgCustom.trim() || resolveBackground(config.background, format.orientation).src
   const cls = `bgen-pv bgen-pv--${format.kind} bgen-pv--${format.id} bgen-pv--${format.orientation}`
+  const fStack = fontStack(config.fontFamily)
   const styleVars = {
     '--bw': format.width === null ? '100%' : `${format.width}px`,
     '--bh': `${format.height}px`,
     '--bv-accent': config.accent,
     ...(colorMode ? { '--bg-color': config.bgColor } : {}),
     ...(config.textColor.trim() ? { '--bv-text': config.textColor } : {}),
+    ...(fStack ? { '--bv-font': fStack } : {}),
+    '--bv-head-scale': config.headingScale,
+    ...(config.headingWeight > 0 ? { '--bv-head-weight': config.headingWeight } : {}),
+    '--bv-tracking': config.letterSpacing ? `${config.letterSpacing}em` : 'normal',
+    '--bv-leading': config.lineHeight,
+    '--bv-transform': config.textTransform,
+    '--bv-scrim': buildScrim(config),
   } as React.CSSProperties
   const photo = colorMode ? null : <BannerPhoto src={bgSrc} position={config.bgPosition} fit={config.bgFit} />
   const scrim = colorMode ? null : <div className="bgen-pv__scrim" />
@@ -69,9 +77,10 @@ export default function BannerPreview({ format, config }: Props) {
 
   if (format.kind === 'card') {
     return (
-      <div className={cls} data-tema={config.tema} data-logo-pos={config.logoPosition} style={styleVars}>
+      <div className={cls} data-tema={config.tema} data-logo-pos={config.logoPosition} data-talign={config.textAlign} style={styleVars}>
         <div className="bgen-pv__photo">
           {photo}
+          {scrim}
           <Watermark />
           <span className="bgen-pv__photo-brand"><SibyllaMark tone="dark" src={logoSrc} height={logoH} /></span>
           <span className="bgen-pv__photo-badge">{cta || L.bookNow}</span>
@@ -104,7 +113,7 @@ export default function BannerPreview({ format, config }: Props) {
 
   // display — foto a tutto banner, scrim per leggibilità, testo sopra
   return (
-    <div className={cls} data-tema={config.tema} data-logo-pos={config.logoPosition} style={styleVars}>
+    <div className={cls} data-tema={config.tema} data-logo-pos={config.logoPosition} data-valign={config.contentVAlign} data-talign={config.textAlign} style={styleVars}>
       {photo}
       {format.id !== 'mobile' && <Watermark />}
       {scrim}
