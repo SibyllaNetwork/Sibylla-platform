@@ -26,7 +26,7 @@
   flex: 1
   min-height: 0
   overflow-y: auto
-  background: #faf7ef
+  background: var(--color-bg)
   padding: 18px 22px
 
 .ncm__footer
@@ -72,7 +72,7 @@
   gap: 11px
   padding: 12px 16px
   border-bottom: 1px solid $border
-  background: #fbf6ea
+  background: var(--color-bg)
 
 .ncm__ch-ico
   flex-shrink: 0
@@ -82,8 +82,8 @@
   display: inline-flex
   align-items: center
   justify-content: center
-  background: linear-gradient(135deg, #a9863a, #8a6d1f)
-  box-shadow: 0 2px 6px rgba(138, 109, 31, .3)
+  background: $primary
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .18)
 
 .ncm__ch-tx
   display: flex
@@ -524,7 +524,7 @@ thead .ncm__sticky-l, thead .ncm__sticky-n, thead .ncm__sticky-r
   display: inline-flex
   align-items: center
   padding: 0 13px
-  background: #fbf6ea
+  background: var(--color-bg)
   color: $primary
   font-size: 12px
   font-weight: 600

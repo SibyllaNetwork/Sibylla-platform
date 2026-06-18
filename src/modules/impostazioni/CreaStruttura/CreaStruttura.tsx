@@ -16,6 +16,9 @@ import {
   SearchField,
 } from '../../../core/components/form'
 import Ico from '../../../core/icons/Ico'
+import NewClientModal from '../../../admin/SibyllaAdminPanel/modals/NewClientModal/NewClientModal'
+import { EMPTY_NEW_CLIENT } from '../../../admin/SibyllaAdminPanel/constants'
+import type { NewClientForm, TipologiaCategoria } from '../../../admin/SibyllaAdminPanel/types'
 import './CreaStruttura.sass'
 
 type StructureType = 'hotel' | 'bnb' | 'apartment' | 'outlet'
@@ -47,6 +50,15 @@ const TIPO_ICON: Record<StructureType, string> = {
 }
 
 const TYPE_OPTIONS: StructureType[] = ['hotel', 'bnb', 'apartment', 'outlet']
+
+// Mapping tra il tipo scelto nel picker e la "Tipologia struttura" della modale.
+const TYPE_TO_CAT: Record<StructureType, TipologiaCategoria> = {
+  hotel: 'hotel', bnb: 'bnb', apartment: 'appartamenti', outlet: 'ristorante',
+}
+const CAT_TO_TYPE: Record<string, StructureType> = {
+  hotel: 'hotel', bnb: 'bnb', appartamenti: 'apartment', 'case-vacanze': 'apartment',
+  ostello: 'apartment', studentato: 'apartment', ristorante: 'outlet', bar: 'outlet', 'centro-sportivo': 'outlet',
+}
 
 const TIPOLOGIA_STRUTTURA_OPTIONS = [
   { value: 'hotel',       label: 'Hotel' },
@@ -125,6 +137,10 @@ export default function CreaStruttura({
   const [drawerType, setDrawerType] = useState<StructureType | null>(autoOpenType ?? null)
   const [editingRow, setEditingRow] = useState<StructureRow | null>(null)
 
+  // Modale "Nuova struttura" (stessa della sezione admin, UI platform).
+  const [newOpen, setNewOpen] = useState(false)
+  const [newForm, setNewForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
+
   const [confirmDelete,  setConfirmDelete]  = useState<StructureRow | null>(null)
   const [confirmDisable, setConfirmDisable] = useState<StructureRow | null>(null)
   const [qrFor,          setQrFor]          = useState<StructureRow | null>(null)
@@ -161,9 +177,26 @@ export default function CreaStruttura({
   }
   function confirmPicker() {
     if (!pickerSel) return
-    setEditingRow(null)
-    setDrawerType(pickerSel)
+    // Apre la modale "Nuova struttura" con la Tipologia precompilata dalla scelta.
+    setNewForm({ ...EMPTY_NEW_CLIENT, categoria: TYPE_TO_CAT[pickerSel] })
     setPickerOpen(false)
+    setNewOpen(true)
+  }
+  function addStruttura() {
+    const f = newForm
+    if (!f.nome.trim()) return
+    const tipo = CAT_TO_TYPE[f.categoria] || 'hotel'
+    const row: StructureRow = {
+      id: `st-${Date.now()}`,
+      nome: f.nome.trim(),
+      tipo,
+      citta: f.citta,
+      categoria: parseInt(f.classificazione) || 0,
+      pms: f.pms === 'Esterno' ? 'esterno' : 'sibylla',
+      active: true,
+    }
+    setRows(rs => [row, ...rs])
+    setNewOpen(false)
   }
   function openEdit(r: StructureRow) {
     setEditingRow(r)
@@ -474,6 +507,17 @@ export default function CreaStruttura({
           </div>
         </div>
       )}
+
+      {/* ── Modale "Nuova struttura" (stessa della sezione admin, UI platform) ── */}
+      <NewClientModal
+        open={newOpen}
+        title="Nuova struttura"
+        confirmLabel="Crea struttura"
+        form={newForm}
+        setForm={setNewForm}
+        onClose={() => setNewOpen(false)}
+        onConfirm={addStruttura}
+      />
     </div>
   )
 }
