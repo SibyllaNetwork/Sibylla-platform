@@ -15,35 +15,56 @@
   display: block
   margin-bottom: 4px
 
+// Elenco verticale di moduli selezionabili (righe squadrate, niente pillole).
 .ncm__mods
   display: flex
-  flex-wrap: wrap
-  gap: 7px
-
-.ncm__chip
-  display: inline-flex
-  align-items: center
+  flex-direction: column
   gap: 6px
-  padding: 6px 11px
+
+.ncm__mod
+  display: flex
+  align-items: flex-start
+  gap: 10px
+  padding: 9px 12px
   border: 1px solid $border
-  border-radius: $radius-full
-  font-size: 12px
-  font-weight: 600
-  color: $text-inactive
+  border-radius: $radius-md
   background: $white
   cursor: pointer
-  transition: border-color .12s, background .12s, color .12s
+  transition: border-color .12s, background .12s
 
-  input
-    accent-color: $primary
-    width: 13px
-    height: 13px
-    cursor: pointer
+  &:hover
+    border-color: $primary-300
 
   &--on
     border-color: $primary
-    color: $primary
     background: $primary-50
+
+.ncm__mod-check
+  accent-color: $primary
+  width: 15px
+  height: 15px
+  margin-top: 1px
+  flex-shrink: 0
+  cursor: pointer
+
+.ncm__mod-text
+  display: flex
+  flex-direction: column
+  gap: 1px
+  min-width: 0
+
+.ncm__mod-name
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.ncm__mod--on .ncm__mod-name
+  color: $primary
+
+.ncm__mod-desc
+  font-size: 11px
+  color: $text-inactive
+  line-height: 1.35
 
 .ncm__hint
   display: block

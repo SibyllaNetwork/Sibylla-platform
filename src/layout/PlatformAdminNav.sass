@@ -1,0 +1,94 @@
+@use '../styles/tokens' as *
+
+// Menu Amministrazione piattaforma nella sidenav: testi e icone neri sul fondo oro.
+.pa-nav
+  padding: 6px 0
+
+.pa-nav__group
+  & + .pa-nav__group
+    border-top: 1px solid rgba(0, 0, 0, .12)
+
+.pa-nav__head
+  width: 100%
+  display: flex
+  align-items: center
+  gap: 9px
+  padding: 11px 14px
+  background: transparent
+  border: 0
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    background: rgba(0, 0, 0, .06)
+
+.pa-nav__ico
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+
+.pa-nav__label
+  flex: 1
+  min-width: 0
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  color: #2A2208
+
+.pa-nav__chev
+  display: inline-flex
+  align-items: center
+  transition: transform .15s ease
+
+  &--open
+    transform: rotate(180deg)
+
+.pa-nav__items
+  display: flex
+  flex-direction: column
+  padding-bottom: 6px
+
+.pa-nav__item
+  display: block
+  width: 100%
+  text-align: left
+  padding: 8px 14px 8px 39px
+  background: transparent
+  border: 0
+  border-left: 3px solid transparent
+  cursor: pointer
+  font-size: 13px
+  color: #2A2208
+  opacity: .82
+  transition: background .12s, opacity .12s
+
+  &:hover
+    background: rgba(0, 0, 0, .06)
+    opacity: 1
+
+  &--active, &--active:hover
+    background: rgba(255, 255, 255, .5)
+    border-left-color: #2A2208
+    opacity: 1
+    font-weight: 600
+
+// Voce "Sibylla admin" in fondo al menu
+.pa-nav__platform
+  width: 100%
+  display: flex
+  align-items: center
+  gap: 9px
+  padding: 11px 14px
+  margin-top: 4px
+  background: transparent
+  border: 0
+  border-top: 1px solid rgba(0, 0, 0, .12)
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    background: rgba(0, 0, 0, .06)
+
+  &--active, &--active:hover
+    background: rgba(255, 255, 255, .5)

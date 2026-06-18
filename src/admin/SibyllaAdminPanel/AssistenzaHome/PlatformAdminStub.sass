@@ -1,0 +1,34 @@
+@use '../../../styles/tokens' as *
+
+.pa-stub
+  height: 100%
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 10px
+  text-align: center
+  padding: 40px
+  background: var(--color-bg)
+
+.pa-stub__ico
+  width: 56px
+  height: 56px
+  border-radius: 14px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: var(--color-surface)
+  border: 1px solid $border
+
+.pa-stub__title
+  margin: 0
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 700
+  color: $text-active
+
+.pa-stub__sub
+  margin: 0
+  font-size: 13px
+  color: $text-inactive

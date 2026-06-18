@@ -101,6 +101,7 @@ const FA_MAP: Record<string, string> = {
   'archive':     'fa-box-archive',
   'briefcase':   'fa-briefcase',
   'arrow-right': 'fa-arrow-right',
+  'arrow-left':  'fa-arrow-left',
   'sliders':     'fa-sliders',
   'medal':       'fa-trophy',
   'mobile':      'fa-mobile-screen',

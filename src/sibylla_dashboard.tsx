@@ -6,6 +6,7 @@ import TabsBar from './layout/TabsBar'
 import LoginPage from './modules/auth/LoginPage/LoginPage'
 import ProfileLogin from './modules/auth/ProfileLogin/ProfileLogin'
 import { useAccessStore } from './store/useAccessStore'
+import { isPlatformAdminPage } from './navigation/platformAdminMenu'
 import { useAuth } from './hooks/useAuth'
 import { buildCrumbs, findByPage } from './navigation/menuHelpers'
 import MENU from './navigation/menu'
@@ -120,6 +121,9 @@ export default function App() {
   // Login profili: overlay e profilo attualmente caricato (menu filtrato).
   const accessOpen       = useAccessStore(s => s.accessOpen)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const assist           = useAccessStore(s => s.assist)
+  // Modalità admin (oro): include l'angolo curvo gold tra header e sidenav.
+  const adminMode = !!assist || currentPage === 'sibylla-admin' || currentPage === 'assist-admin' || isPlatformAdminPage(currentPage)
 
   // Carica strutture dell'utente dal backend dopo il login.
   useLoadStrutture(!!user)
@@ -208,7 +212,7 @@ export default function App() {
         openCtx={openCtx}
       />
 
-      <div className="app__main">
+      <div className={'app__main' + (adminMode ? ' app__main--admin' : '')}>
         <Topbar
           crumbs={crumbs}
           isMobile={isMobile}

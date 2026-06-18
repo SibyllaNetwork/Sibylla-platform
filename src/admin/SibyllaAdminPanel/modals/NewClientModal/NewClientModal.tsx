@@ -107,12 +107,18 @@ export default function NewClientModal({ open, form, setForm, onClose, onConfirm
         <div className="ncm__field">
           <label className="ncm__label">Moduli sottoscritti</label>
           <div className="ncm__mods">
-            {PACCHETTI_INIT.map(m => (
-              <label key={m.id} className={`ncm__chip${form.moduli.includes(m.id) ? ' ncm__chip--on' : ''}`} title={m.desc}>
-                <input type="checkbox" checked={form.moduli.includes(m.id)} onChange={() => toggleModulo(m.id)} />
-                {m.label}
-              </label>
-            ))}
+            {PACCHETTI_INIT.map(m => {
+              const on = form.moduli.includes(m.id)
+              return (
+                <label key={m.id} className={`ncm__mod${on ? ' ncm__mod--on' : ''}`}>
+                  <input type="checkbox" className="ncm__mod-check" checked={on} onChange={() => toggleModulo(m.id)} />
+                  <span className="ncm__mod-text">
+                    <span className="ncm__mod-name">{m.label}</span>
+                    {m.desc && <span className="ncm__mod-desc">{m.desc}</span>}
+                  </span>
+                </label>
+              )
+            })}
           </div>
           <span className="ncm__hint">Definiscono il menu che l'account del cliente potrà visualizzare. Vuoto = accesso completo.</span>
         </div>

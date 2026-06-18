@@ -1,0 +1,356 @@
+@use '../../../styles/tokens' as *
+
+$gold: #c9a84c
+$gold-dark: #a9863a
+
+// ─── Sibylla System Administration Console — home ─────────────────────────────
+.ahome
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 28px
+  display: flex
+  flex-direction: column
+  gap: 22px
+
+// ── Hero ──
+.ahome__hero
+  position: relative
+  overflow: hidden
+  display: flex
+  align-items: center
+  justify-content: space-between
+  flex-wrap: wrap
+  gap: 24px
+  padding: 26px 28px
+  border-radius: 18px
+  background: linear-gradient(120deg, #fbf6e9 0%, #ffffff 58%)
+  border: 1px solid #efe6cf
+
+.ahome__hero-glow
+  position: absolute
+  top: -60px
+  right: -40px
+  width: 240px
+  height: 240px
+  border-radius: 50%
+  background: radial-gradient(circle, rgba(201, 168, 76, .28) 0%, rgba(201, 168, 76, 0) 70%)
+  pointer-events: none
+
+.ahome__hero-main
+  position: relative
+  display: flex
+  align-items: flex-start
+  gap: 16px
+  min-width: 0
+
+.ahome__hero-mark
+  flex-shrink: 0
+  width: 50px
+  height: 50px
+  border-radius: 14px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
+  box-shadow: 0 8px 20px rgba(169, 134, 58, .35)
+
+.ahome__eyebrow
+  display: inline-block
+  font-size: 11px
+  font-weight: 700
+  letter-spacing: .08em
+  text-transform: uppercase
+  color: $gold-dark
+
+.ahome__title
+  font-family: $font-heading
+  font-size: 23px
+  font-weight: 700
+  color: $text-active
+  margin: 3px 0 0
+  line-height: 1.15
+
+.ahome__subtitle
+  font-size: 13px
+  color: $text-inactive
+  margin: 6px 0 0
+  max-width: 62ch
+
+.ahome__stats
+  position: relative
+  display: flex
+  gap: 10px
+  flex-shrink: 0
+
+.ahome__stat
+  min-width: 78px
+  padding: 12px 14px
+  border-radius: 12px
+  background: #fff
+  border: 1px solid #efe6cf
+  text-align: center
+
+.ahome__stat-val
+  display: block
+  font-family: $font-heading
+  font-size: 24px
+  font-weight: 800
+  color: $gold-dark
+  line-height: 1
+
+.ahome__stat-lbl
+  display: block
+  margin-top: 4px
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+
+// ── Grid opzioni ──
+.ahome__grid
+  display: grid
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr)
+  gap: 20px
+  align-items: start
+
+  @media (max-width: 1000px)
+    grid-template-columns: 1fr
+
+.ahome__card
+  position: relative
+  display: flex
+  flex-direction: column
+  gap: 16px
+  background: #fff
+  border: 1px solid $border
+  border-radius: 16px
+  padding: 22px
+  overflow: hidden
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease
+
+  &::before
+    content: ''
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    height: 4px
+
+  &--clienti::before
+    background: linear-gradient(90deg, $gold 0%, $gold-dark 100%)
+
+  &--platform::before
+    background: linear-gradient(90deg, $primary 0%, #2d5a7f 100%)
+
+  &:hover
+    box-shadow: 0 14px 34px rgba(20, 30, 45, .10)
+    transform: translateY(-2px)
+
+.ahome__card-top
+  display: flex
+  align-items: flex-start
+  gap: 13px
+
+.ahome__card-ico
+  flex-shrink: 0
+  width: 42px
+  height: 42px
+  border-radius: 12px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+
+  &--gold
+    background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
+
+  &--navy
+    background: linear-gradient(135deg, $primary 0%, #2d5a7f 100%)
+
+.ahome__card-title
+  font-family: $font-heading
+  font-size: 16px
+  font-weight: 700
+  color: $text-active
+  margin: 0
+
+.ahome__card-desc
+  font-size: 12.5px
+  color: $text-inactive
+  margin: 3px 0 0
+  line-height: 1.45
+
+// ── Ricerca ──
+.ahome__search
+  display: flex
+  align-items: center
+  gap: 9px
+  height: 42px
+  padding: 0 14px
+  border: 1px solid $border
+  border-radius: 11px
+  background: #fcfcfb
+  transition: border-color .15s, background .15s
+
+  &:focus-within
+    border-color: $gold
+    background: #fff
+
+  input
+    border: 0
+    outline: 0
+    background: transparent
+    flex: 1
+    font-size: 13px
+    color: $text-active
+
+// ── Lista clienti ──
+.ahome__list
+  display: flex
+  flex-direction: column
+  gap: 7px
+  max-height: 360px
+  overflow: auto
+  margin: -2px
+  padding: 2px
+
+.ahome__empty
+  font-size: 13px
+  color: $text-inactive
+  padding: 22px
+  text-align: center
+
+.ahome__client
+  display: flex
+  align-items: center
+  gap: 13px
+  padding: 11px 13px
+  border: 1px solid $border
+  border-radius: 12px
+  background: #fff
+  cursor: pointer
+  text-align: left
+  transition: border-color .15s, box-shadow .15s, transform .12s
+
+  &:hover
+    border-color: $gold
+    box-shadow: 0 6px 16px rgba(201, 168, 76, .18)
+
+  &:hover .ahome__client-go
+    background: $gold
+    color: #fff
+    transform: translateX(2px)
+
+.ahome__client-avatar
+  flex-shrink: 0
+  width: 40px
+  height: 40px
+  border-radius: 11px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: #f6edd6
+  color: $gold-dark
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 800
+
+.ahome__client-meta
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.ahome__client-name
+  font-size: 14px
+  font-weight: 700
+  color: $text-active
+
+.ahome__client-tags
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 6px
+
+.ahome__client-tag
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  font-size: 11px
+  color: $text-inactive
+
+.ahome__client-mod
+  font-size: 10px
+  font-weight: 700
+  letter-spacing: .02em
+  color: $gold-dark
+  background: #f6edd6
+  border-radius: 5px
+  padding: 2px 7px
+
+.ahome__client-go
+  flex-shrink: 0
+  width: 30px
+  height: 30px
+  border-radius: 9px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: #f4f5f7
+  color: $text-inactive
+  transition: background .15s, color .15s, transform .15s
+
+// ── Feature list + CTA piattaforma ──
+.ahome__feat
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+  li
+    display: flex
+    align-items: center
+    gap: 10px
+    font-size: 13px
+    color: $text-active
+
+.ahome__feat-dot
+  flex-shrink: 0
+  width: 19px
+  height: 19px
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: $primary
+
+.ahome__platform-btn
+  display: inline-flex
+  align-items: center
+  gap: 9px
+  align-self: flex-start
+  margin-top: 4px
+  padding: 11px 18px
+  border: 0
+  border-radius: 11px
+  background: $primary
+  color: #fff
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  transition: background .15s, box-shadow .15s
+
+  &:hover
+    background: #2d5a7f
+    box-shadow: 0 8px 20px rgba(32, 71, 105, .25)
+
+.ahome__platform-arrow
+  display: inline-flex
+  align-items: center
+  transition: transform .15s
+
+.ahome__platform-btn:hover .ahome__platform-arrow
+  transform: translateX(3px)

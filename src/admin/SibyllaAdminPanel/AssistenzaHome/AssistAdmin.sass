@@ -1,0 +1,17 @@
+@use '../../../styles/tokens' as *
+
+// L'Admin Panel del cliente viene caricato nella parte centrale: sidenav e
+// header dell'app restano invariate. Riempie l'area contenuti.
+.assist-admin
+  height: 100%
+  min-height: 0
+
+.assist-admin__empty
+  height: 100%
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 14px
+  font-size: 14px
+  color: $text-active

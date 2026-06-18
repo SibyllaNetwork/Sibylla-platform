@@ -39,7 +39,19 @@ import ProdottoModal from './modals/ProdottoModal/ProdottoModal'
 import './SibyllaAdminPanel.sass'
 
 interface Props {
-  navigate: (p: string) => void
+  navigate?: (p: string) => void
+  /** Modalità embedded (dentro la console assistenza): nasconde lo switch e personalizza brand/lista. */
+  embedded?: boolean
+  /** Forza la modalità (clients/platform) e nasconde lo switch top-level. */
+  lockedMode?: AdminMode
+  /** Modalità iniziale senza bloccare lo switch (default 'clients'). */
+  initialMode?: AdminMode
+  /** Sostituisce il brand "Sibylla Admin" nella topbar del pannello. */
+  brandTitle?: string
+  /** Intestazione della colonna clienti (es. nome dell'intestatario del contratto). */
+  clientsTitle?: string
+  /** Limita la lista alle sole strutture indicate (id di CLIENTS_INIT). */
+  structureIds?: number[]
 }
 
 interface NewUser {
@@ -48,17 +60,21 @@ interface NewUser {
   ruolo: string
 }
 
-export default function SibyllaAdminPanel(_props: Props) {
+export default function SibyllaAdminPanel(props: Props) {
+  const { embedded, lockedMode, initialMode, brandTitle, clientsTitle, structureIds } = props
   const [clients, setClients] = useState<Cliente[]>(CLIENTS_INIT)
-  const [selId, setSelId] = useState<number>(1)
+  const [selId, setSelId] = useState<number>(() => structureIds?.[0] ?? 1)
   const [tab, setTab] = useState<AdminTab>('struttura')
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
 
   // Due modalità top-level: gestione clienti vs configurazione piattaforma.
   // Sono completamente indipendenti: ciascuna ha la propria sidebar e contenuti.
-  const [mode, setMode] = useState<AdminMode>('clients')
+  const [mode, setMode] = useState<AdminMode>(lockedMode ?? initialMode ?? 'clients')
   const [platformSection, setPlatformSection] = useState<PlatformSection>('catalogo')
+
+  // Strutture mostrate nella colonna clienti (in embedded = quelle dell'intestatario).
+  const visibleClients = structureIds ? clients.filter(c => structureIds.includes(c.id)) : clients
 
   const [enabledPages, setEnabledPages] = useState<Record<number, Set<string>>>(() => {
     const init: Record<number, Set<string>> = {}
@@ -568,18 +584,25 @@ export default function SibyllaAdminPanel(_props: Props) {
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="sap">
-      <AdminTopBar mode={mode} onModeChange={setMode} />
+      <AdminTopBar
+        mode={mode}
+        onModeChange={setMode}
+        brandTitle={brandTitle}
+        hideSwitch={!!lockedMode}
+      />
 
       <div className="sap__view">
         {mode === 'clients' ? (
           <>
             <ClientsSidebar
-              clients={clients}
+              clients={visibleClients}
               selId={selId}
               search={search}
               onSearch={setSearch}
               onSelect={setSelId}
               onNewClient={() => setShowNewClient(true)}
+              title={clientsTitle}
+              subtitle={embedded ? 'Strutture del cliente' : undefined}
             />
 
             <div className="sap__main">
@@ -837,36 +860,40 @@ const MODE_OPTIONS: ReadonlyArray<readonly [AdminMode, string, string]> = [
 interface AdminTopBarProps {
   mode: AdminMode
   onModeChange: (m: AdminMode) => void
+  brandTitle?: string
+  hideSwitch?: boolean
 }
 
-function AdminTopBar({ mode, onModeChange }: AdminTopBarProps) {
+function AdminTopBar({ mode, onModeChange, brandTitle, hideSwitch }: AdminTopBarProps) {
   return (
     <header className="sap__topbar">
       <div className="sap__brand">
         <span className="sap__brand-mark">S</span>
         <div className="sap__brand-text">
-          <span className="sap__brand-title">Sibylla Admin</span>
+          <span className="sap__brand-title">{brandTitle ?? 'Sibylla Admin'}</span>
           <span className="sap__brand-sub">Pannello di controllo</span>
         </div>
       </div>
 
-      <nav className="sap__mode-switch" role="tablist" aria-label="Modalità">
-        {MODE_OPTIONS.map(([id, label, ico]) => {
-          const active = mode === id
-          return (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={active}
-              className={`sap__mode-btn${active ? ' sap__mode-btn--active' : ''}`}
-              onClick={() => onModeChange(id)}
-            >
-              <Ico n={ico} s={13} c={active ? '#fff' : 'var(--color-text-inactive)'} />
-              {label}
-            </button>
-          )
-        })}
-      </nav>
+      {!hideSwitch && (
+        <nav className="sap__mode-switch" role="tablist" aria-label="Modalità">
+          {MODE_OPTIONS.map(([id, label, ico]) => {
+            const active = mode === id
+            return (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={active}
+                className={`sap__mode-btn${active ? ' sap__mode-btn--active' : ''}`}
+                onClick={() => onModeChange(id)}
+              >
+                <Ico n={ico} s={13} c={active ? '#fff' : 'var(--color-text-inactive)'} />
+                {label}
+              </button>
+            )
+          })}
+        </nav>
+      )}
     </header>
   )
 }

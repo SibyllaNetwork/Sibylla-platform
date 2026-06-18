@@ -77,7 +77,11 @@ import Assegnazione                from '../modules/sales/booking/Assegnazione/A
 import CentroNotifiche             from '../modules/notifiche/CentroNotifiche/CentroNotifiche';
 import ConfiguraNotifiche          from '../modules/notifiche/ConfiguraNotifiche/ConfiguraNotifiche';
 import Chat                        from '../modules/chat/Chat/Chat';
+import AssistenzaHome              from '../admin/SibyllaAdminPanel/AssistenzaHome/AssistenzaHome';
+import AssistAdmin                 from '../admin/SibyllaAdminPanel/AssistenzaHome/AssistAdmin';
+import PlatformAdminStub           from '../admin/SibyllaAdminPanel/AssistenzaHome/PlatformAdminStub';
 import SibyllaAdminPanel           from '../admin/SibyllaAdminPanel/SibyllaAdminPanel';
+import { isPlatformAdminPage, PLATFORM_ADMIN_PLATFORM_PAGE } from '../navigation/platformAdminMenu';
 import Planner                     from '../modules/operation/planner';
 // ── Food & Beverage (Outlet Manager — outlet.sibyllanetwork.it) ──
 import OutletShell                 from '../modules/operation/Outlet/OutletShell';
@@ -222,7 +226,10 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'op-overview')           return <OperationOverview navigate={navigate}/>;
   if (page === 'guest-room')            return <GuestRoomAnalysis navigate={navigate}/>;
   if (page === 'planner')               return <Planner navigate={navigate}/>;
-  if (page === 'sibylla-admin')         return <SibyllaAdminPanel navigate={navigate}/>;
+  if (page === 'sibylla-admin')         return <AssistenzaHome navigate={navigate}/>;
+  if (page === 'assist-admin')          return <AssistAdmin navigate={navigate}/>;
+  if (page === PLATFORM_ADMIN_PLATFORM_PAGE) return <SibyllaAdminPanel initialMode="platform" navigate={navigate}/>;
+  if (isPlatformAdminPage(page))        return <PlatformAdminStub page={page} navigate={navigate}/>;
 
   // ── Pagine portate da platform ──
   if (page === 'anagrafiche-op')        return <Anagrafiche navigate={navigate}/>;

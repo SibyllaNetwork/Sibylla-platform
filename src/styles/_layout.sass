@@ -219,6 +219,50 @@
     &::placeholder
       color: rgba(255, 255, 255, 0.4)
 
+// ─── Modalità admin (oro): testi e icone scuri su header e menu ───────────────
+.topbar--admin
+  .topbar__crumb-btn--last
+    color: #2A2208
+  .topbar__crumb-btn--prev
+    color: rgba(42, 34, 8, .55)
+  .topbar__crumb-btn:hover
+    color: #2A2208
+  .topbar__divider
+    background: rgba(0, 0, 0, .18)
+  .topbar__icon-btn:hover
+    background: rgba(0, 0, 0, .08)
+  .topbar__icon-btn--active
+    background: rgba(0, 0, 0, .12)
+    &:hover
+      background: rgba(0, 0, 0, .16)
+  .topbar__chat-icon
+    color: #2A2208
+  .topbar__hamburger:hover
+    background: rgba(0, 0, 0, .08)
+  .topbar__search
+    background: rgba(0, 0, 0, .06)
+    border-color: rgba(0, 0, 0, .15)
+    &:focus-within
+      background: rgba(0, 0, 0, .09)
+      border-color: rgba(0, 0, 0, .25)
+  .topbar__search-input
+    color: #2A2208
+    &::placeholder
+      color: rgba(42, 34, 8, .5)
+  .sib-search-input
+    color: #2A2208
+    &::placeholder
+      color: rgba(42, 34, 8, .5)
+
+// Menu (sidenav) su oro: testi e icone scuri (#2A2208)
+.app__nav--gold
+  [class*="text-white"]
+    color: #2A2208 !important
+  i
+    color: #2A2208 !important
+  svg
+    color: #2A2208 !important
+
 // ─── SEARCH DROPDOWN ──────────────────────────────────────────────────────────
 .topbar__search-wrap
   position: relative

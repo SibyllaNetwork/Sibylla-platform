@@ -110,3 +110,16 @@ export type PlatformSection = 'catalogo' | 'servizi' | 'banner' | 'agora-console
 
 /** Due modalità top-level del pannello admin: gestione clienti vs configurazione piattaforma. */
 export type AdminMode = 'clients' | 'platform'
+
+/**
+ * Intestatario del contratto (cliente): l'entità che sottoscrive il contratto e
+ * possiede una o più strutture (Cliente). I `moduli` sottoscritti definiscono il
+ * menu che il cliente vede da loggato; `struttureIds` referenzia CLIENTS_INIT.
+ */
+export interface Intestatario {
+  id: string
+  nome: string
+  email?: string
+  moduli: string[]
+  struttureIds: number[]
+}

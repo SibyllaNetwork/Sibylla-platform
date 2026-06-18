@@ -22,12 +22,26 @@ export interface AccessProfile {
   moduli: string[]
 }
 
+/**
+ * Sessione di assistenza: l'admin Sibylla entra nell'app "come" un cliente
+ * (intestatario del contratto). La sidenav/topbar reali si filtrano sui suoi
+ * moduli e assumono il tema oro della console di amministrazione.
+ */
+export interface AssistSession {
+  intestatarioId: string
+  nome: string
+  moduli: string[]
+  struttureIds: number[]
+}
+
 interface AccessState {
   /** Catalogo moduli (id → pagine). Allineato al seed dell'admin (PACCHETTI_INIT). */
   modules: Modulo[]
   profiles: AccessProfile[]
   /** Profilo attualmente caricato; null = menu completo. */
   currentProfileId: string | null
+  /** Sessione di assistenza attiva (admin che impersona un cliente); null = nessuna. */
+  assist: AssistSession | null
   /** Overlay della Login profili aperto. */
   accessOpen: boolean
 
@@ -35,6 +49,9 @@ interface AccessState {
   updateProfile: (id: string, patch: Partial<AccessProfile>) => void
   removeProfile: (id: string) => void
   loginAs: (id: string | null) => void
+  /** Avvia/termina una sessione di assistenza cliente. */
+  startAssist: (s: AssistSession) => void
+  exitAssist: () => void
   /** Verifica credenziali; ritorna il profilo o null. */
   login: (email: string, password: string) => AccessProfile | null
   /** Allinea i moduli dei profili di un'azienda (quando variati nell'admin). */
@@ -68,6 +85,7 @@ export const useAccessStore = create<AccessState>()(
       modules: MODULES,
       profiles: SEED_PROFILES,
       currentProfileId: null,
+      assist: null,
       accessOpen: false,
 
       addProfile: (p) => {
@@ -83,6 +101,8 @@ export const useAccessStore = create<AccessState>()(
           currentProfileId: s.currentProfileId === id ? null : s.currentProfileId,
         })),
       loginAs: (id) => set({ currentProfileId: id, accessOpen: false }),
+      startAssist: (s) => set({ assist: s, accessOpen: false }),
+      exitAssist: () => set({ assist: null }),
       login: (email, password) => {
         const p = get().profiles.find(
           x => x.email.trim().toLowerCase() === email.trim().toLowerCase() && x.password === password,
@@ -101,9 +121,9 @@ export const useAccessStore = create<AccessState>()(
       // Bump versione: rigenera le utenze di test (= admin delle aziende) anche
       // sostituendo eventuali profili persistiti in localStorage.
       version: 3,
-      migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null }),
+      migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null }),
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
-      partialize: (s) => ({ profiles: s.profiles, currentProfileId: s.currentProfileId }),
+      partialize: (s) => ({ profiles: s.profiles, currentProfileId: s.currentProfileId, assist: s.assist }),
     },
   ),
 )
@@ -113,8 +133,13 @@ export const useAccessStore = create<AccessState>()(
  * sottoscritti. La Home è sempre inclusa (landing di piattaforma).
  */
 export function enabledPagesForProfile(profile: AccessProfile, modules: Modulo[]): Set<string> {
+  return enabledPagesForModuli(profile.moduli, modules)
+}
+
+/** Insieme delle pagine abilitate dall'unione dei moduli indicati (Home sempre inclusa). */
+export function enabledPagesForModuli(moduli: string[], modules: Modulo[]): Set<string> {
   const set = new Set<string>(['home'])
-  for (const mid of profile.moduli) {
+  for (const mid of moduli) {
     const m = modules.find(x => x.id === mid)
     if (m) m.pages.forEach(pg => set.add(pg))
   }

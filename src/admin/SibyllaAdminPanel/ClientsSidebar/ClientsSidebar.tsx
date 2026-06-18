@@ -11,9 +11,12 @@ interface Props {
   onSearch: (v: string) => void
   onSelect: (id: number) => void
   onNewClient: () => void
+  /** Intestazione della colonna; in modalità embedded = nome del cliente intestatario. */
+  title?: string
+  subtitle?: string
 }
 
-export default function ClientsSidebar({ clients, selId, search, onSearch, onSelect, onNewClient }: Props) {
+export default function ClientsSidebar({ clients, selId, search, onSearch, onSelect, onNewClient, title = 'Clienti', subtitle = 'Strutture configurabili' }: Props) {
   const filtered = clients.filter(c => c.nome.toLowerCase().includes(search.toLowerCase()))
 
   return (
@@ -21,8 +24,8 @@ export default function ClientsSidebar({ clients, selId, search, onSearch, onSel
       <div className="csidebar__head">
         <div className="csidebar__head-row">
           <div>
-            <div className="csidebar__title">Clienti</div>
-            <div className="csidebar__subtitle">Strutture configurabili</div>
+            <div className="csidebar__title">{title}</div>
+            <div className="csidebar__subtitle">{subtitle}</div>
           </div>
           <div className="csidebar__status-dot" />
         </div>
@@ -60,7 +63,7 @@ export default function ClientsSidebar({ clients, selId, search, onSearch, onSel
       <div className="csidebar__foot">
         <button className="sib-btn sib-btn--primary csidebar__new" onClick={onNewClient}>
           <Ico n="plus" s={12} c="#fff" />
-          Nuovo cliente
+          Nuova struttura
         </button>
       </div>
     </aside>

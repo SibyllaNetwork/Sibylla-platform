@@ -1,7 +1,7 @@
 import MENU from '../../navigation/menu'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
-import type { Cliente, Modulo, Ruolo, TipologiaCategoria, UserRow } from './types'
+import type { Cliente, Intestatario, Modulo, Ruolo, TipologiaCategoria, UserRow } from './types'
 
 export const ALL_PAGES: string[] = getAllPages(MENU as any)
 
@@ -16,6 +16,18 @@ export const CLIENTS_INIT: Cliente[] = [
   { id: 6, nome: 'Case Vacanze Riviera',categoria: 'case-vacanze', classificazione: '',           citta: 'Rimini (RN)',      camere: 12,  valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@casevacanzeriviera.it', tel: '+39 0541 000006' },
   { id: 7, nome: 'Residence Aurora',    categoria: 'appartamenti', classificazione: '',           citta: 'Firenze (FI)',     camere: 24,  valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@residenceaurora.it',  tel: '+39 055 000007'  },
   { id: 8, nome: 'Campus Living Torino',categoria: 'studentato',   classificazione: '',           citta: 'Torino (TO)',      camere: 150, valuta: 'EUR', lingua: 'Italiano', stato: 'attivo',  email: 'info@campuslivingto.it',   tel: '+39 011 000008'  },
+]
+
+// ─── Intestatari del contratto (clienti) → strutture possedute ────────────────
+// Un intestatario sottoscrive il contratto e possiede una o più strutture
+// (CLIENTS_INIT). I `moduli` qui indicati sono quelli del contratto e guidano il
+// menu che il cliente vede da loggato (preview nella console assistenza).
+export const INTESTATARI_INIT: Intestatario[] = [
+  { id: 'int-gar',     nome: 'Gar S.r.l.',         email: 'amministrazione@gar.it',        moduli: ['full-suite'], struttureIds: [1, 2] },
+  { id: 'int-salento', nome: 'Salento Stays',      email: 'info@salentostays.it',          moduli: ['operation'],  struttureIds: [3] },
+  { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristoranti'], struttureIds: [4, 5] },
+  { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['solo-sales'], struttureIds: [6, 7] },
+  { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['executive'],  struttureIds: [8] },
 ]
 
 export interface CategoriaStruttura {

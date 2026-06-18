@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Ico from '../core/icons/Ico'
 import MenuIco from '../core/icons/MenuIco'
 import NotifMenu from './NotifMenu'
@@ -9,6 +9,7 @@ import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
 import { useAccessStore } from '../store/useAccessStore'
+import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 
 interface Props {
   crumbs          : any[]
@@ -23,18 +24,21 @@ interface Props {
   currentPage     : string
 }
 
-const C = {
-  bright: 'rgba(255,255,255,0.95)',
-  normal: 'rgba(255,255,255,0.80)',
-  muted:  'rgba(255,255,255,0.55)',
-}
-
 export default function Topbar({
   crumbs, isMobile, sideOpen, setSideOpen, navigate,
   favorites, toggleFavorite, showFavPanel, setShowFavPanel, currentPage,
 }: Props) {
   const chatUnread = useChatStore(s => s.conversations.reduce((acc, c) => acc + c.unreadCount, 0))
   const cartCount = useCartStore(s => s.totaleItems())
+  // Modalità amministrativa: tema oro + accessi rapidi alla console. Attiva sia
+  // nelle pagine della console (sibylla-admin / assist-admin) sia mentre si
+  // assiste un cliente (impersonazione).
+  const assist = useAccessStore(s => s.assist)
+  const adminMode = !!assist || currentPage === 'sibylla-admin' || currentPage === 'assist-admin' || isPlatformAdminPage(currentPage)
+  // Colori di icone/testo: scuri (#2A2208) sull'oro admin, chiari sul blu standard.
+  const C = adminMode
+    ? { bright: '#2A2208', normal: '#2A2208', muted: 'rgba(42,34,8,0.6)' }
+    : { bright: 'rgba(255,255,255,0.95)', normal: 'rgba(255,255,255,0.80)', muted: 'rgba(255,255,255,0.55)' }
 
   const [query,    setQuery]    = useState('')
   const [results,  setResults]  = useState<SearchResult[]>([])
@@ -118,7 +122,7 @@ export default function Topbar({
   }
 
   return (
-    <div className="topbar">
+    <div className={`topbar${adminMode ? ' topbar--admin' : ''}`} style={adminMode ? { background: '#c9a84c' } : undefined}>
 
       {/* ── Hamburger mobile ── */}
       {isMobile && (
@@ -127,14 +131,51 @@ export default function Topbar({
         </button>
       )}
 
+      {/* ── Console amministrativa: tasto grande verso la Console + uscita ──── */}
+      {adminMode && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 4 }}>
+          <button
+            type="button"
+            onClick={() => navigate('sibylla-admin')}
+            title="Sibylla System Administration Console"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 9,
+              background: '#fff', color: '#2a2208', border: '1px solid rgba(0,0,0,0.15)',
+              borderRadius: 10, padding: '8px 16px', cursor: 'pointer',
+              fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            }}
+          >
+            <Ico n="layers" s={16} c="#c9a84c" />
+            Sibylla System Administration Console
+          </button>
+          <button
+            type="button"
+            onClick={() => { useAccessStore.getState().exitAssist(); navigate('home') }}
+            title="Esci dalla console di amministrazione"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(0,0,0,0.12)', color: '#2a2208', border: 0,
+              borderRadius: 8, padding: '7px 12px', cursor: 'pointer',
+              fontWeight: 600, fontSize: 12, whiteSpace: 'nowrap',
+            }}
+          >
+            <Ico n="power" s={13} c="#2a2208" />
+            Esci assistenza
+          </button>
+        </div>
+      )}
+
       {/* ── Breadcrumbs ── */}
       <div className="topbar__crumbs">
-        <button className="topbar__crumb-home" onClick={() => navigate('home')}>
-          <Ico n="home" s={14} c={C.normal} />
-        </button>
+        {!adminMode && (
+          <button className="topbar__crumb-home" onClick={() => navigate('home')}>
+            <Ico n="home" s={14} c={C.normal} />
+          </button>
+        )}
         {crumbs.slice(1).map((c: any, i: number) => (
           <span key={c.id} className="topbar__crumb-item">
-            <Ico n="chevr" s={12} c="#ffffff" />
+            <Ico n="chevr" s={12} c={C.normal} />
             <button
               className={`topbar__crumb-btn ${i === crumbs.length - 2 ? 'topbar__crumb-btn--last' : 'topbar__crumb-btn--prev'}`}
               onClick={() => {
@@ -148,8 +189,8 @@ export default function Topbar({
         ))}
       </div>
 
-      {/* ── Favorites ── */}
-      {!isMobile && (
+      {/* ── Favorites (nascosti nelle viste admin) ── */}
+      {!isMobile && !adminMode && (
         <div className="topbar__favorites">
           <button
             className={`topbar__fav-btn ${showFavPanel ? 'topbar__fav-btn--active' : ''}`}

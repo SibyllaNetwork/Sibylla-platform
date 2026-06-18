@@ -5,8 +5,11 @@ import Logo from './Logo'
 import NavItem from './NavItem'
 import MENU from '../navigation/menu'
 import { filterMenu } from '../navigation/filterMenu'
+import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
+import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
+import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
-import { useAccessStore, enabledPagesForProfile } from '../store/useAccessStore'
+import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli } from '../store/useAccessStore'
 
 interface Props {
   sideOpen    : boolean
@@ -40,12 +43,34 @@ export default function Sidebar({
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
   const modules          = useAccessStore(s => s.modules)
+  // Sessione di assistenza (admin che impersona un cliente): ha precedenza e
+  // filtra il menu sui moduli del contratto del cliente.
+  const assist           = useAccessStore(s => s.assist)
+  // Console amministrativa (landing): menu completo, nessun dettaglio utente.
+  const onConsole        = currentPage === 'sibylla-admin'
+  // Amministrazione piattaforma: la sidenav mostra il menu dedicato (pagine pa-*).
+  const platformAdmin    = isPlatformAdminPage(currentPage)
+  const adminMode        = !!assist || onConsole || platformAdmin || currentPage === 'assist-admin'
   const menu = useMemo(() => {
+    if (onConsole) return MENU
+    if (assist) return filterMenu(MENU as any[], enabledPagesForModuli(assist.moduli, modules))
     if (!currentProfileId) return MENU
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU
     return filterMenu(MENU as any[], enabledPagesForProfile(profile, modules))
-  }, [currentProfileId, profiles, modules])
+  }, [onConsole, assist, currentProfileId, profiles, modules])
+
+  // Durante l'assistenza lo switcher elenca le strutture del cliente (le stesse
+  // dell'Admin Panel); altrimenti le strutture dell'organizzazione.
+  const assistStrutture = useMemo(
+    () => (assist ? CLIENTS_INIT.filter(c => assist.struttureIds.includes(c.id)).map(c => c.nome) : []),
+    [assist],
+  )
+  const switcherList = assist ? assistStrutture : strutture
+  const showSwitcher = assist ? assistStrutture.length > 0 : (isMultistruttura && strutture.length > 0)
+  const activeStrutt = assist
+    ? (assistStrutture.includes(activeStruttura) ? activeStruttura : assistStrutture[0])
+    : activeStruttura
 
   const [structOpen, setStructOpen] = useState(false)
   const structRef = useRef<HTMLDivElement>(null)
@@ -79,7 +104,7 @@ export default function Sidebar({
   )
 
   return (
-    <div className={rootClass}>
+    <div className={rootClass} style={adminMode ? { background: '#c9a84c' } : undefined}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className={clsx(
@@ -110,7 +135,8 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* ── User (con switcher struttura integrato nella riga ruolo) ───────── */}
+      {/* ── User (nascosto nelle viste admin: nessun dettaglio utente) ───────── */}
+      {!onConsole && !platformAdmin && (
       <div
         ref={structRef}
         className={clsx(
@@ -124,24 +150,30 @@ export default function Sidebar({
 
         {sideOpen && (
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-semibold text-white font-poppins leading-tight">Luca H.</div>
+            <div
+              className="text-[13px] font-semibold font-poppins leading-tight"
+              style={{ color: adminMode ? '#2A2208' : '#fff' }}
+            >
+              Luca H.
+            </div>
 
-            {isMultistruttura && strutture.length > 0 ? (
+            {showSwitcher ? (
               <button
                 type="button"
                 onClick={() => setStructOpen(o => !o)}
                 aria-haspopup="listbox"
                 aria-expanded={structOpen}
+                style={adminMode ? { color: '#2A2208' } : undefined}
                 className={clsx(
                   'group mt-0.5 -mx-1 px-1 py-0.5 rounded-md flex items-center gap-1.5 max-w-full',
                   'text-[10px] cursor-pointer transition-colors duration-150 bg-transparent border-0',
-                  structOpen
-                    ? 'bg-white/[0.08] text-white/80'
-                    : 'text-white/40 hover:bg-white/[0.05] hover:text-white/70',
+                  adminMode
+                    ? (structOpen ? 'bg-black/[0.08]' : 'hover:bg-black/[0.06]')
+                    : (structOpen ? 'bg-white/[0.08] text-white/80' : 'text-white/40 hover:bg-white/[0.05] hover:text-white/70'),
                 )}
               >
                 <span className="truncate min-w-0 text-left">
-                  Amministratore · {activeStruttura}
+                  Amministratore · {activeStrutt}
                 </span>
                 <i
                   className={clsx(
@@ -152,40 +184,48 @@ export default function Sidebar({
                 />
               </button>
             ) : (
-              <div className="mt-0.5 text-[10px] text-white/40">
-                Amministratore{activeStruttura ? ` · ${activeStruttura}` : ''}
+              <div
+                className="mt-0.5 text-[10px]"
+                style={{ color: adminMode ? 'rgba(42,34,8,0.7)' : 'rgba(255,255,255,0.4)' }}
+              >
+                Amministratore{activeStrutt ? ` · ${activeStrutt}` : ''}
               </div>
             )}
           </div>
         )}
 
         {/* Dropdown overlay — non spinge la nav, galleggia sopra */}
-        {sideOpen && isMultistruttura && structOpen && (
+        {sideOpen && showSwitcher && structOpen && (
           <div
             className={clsx(
-              'absolute left-2 right-2 top-full mt-1 z-30',
-              'bg-primary-800 border border-white/[0.12] rounded-lg overflow-hidden',
-              'shadow-[0_12px_32px_rgba(0,0,0,0.4)] max-h-60 overflow-y-auto',
+              'absolute left-2 right-2 top-full mt-1 z-30 rounded-lg overflow-hidden max-h-60 overflow-y-auto',
+              adminMode
+                ? 'bg-white border border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.18)]'
+                : 'bg-primary-800 border border-white/[0.12] shadow-[0_12px_32px_rgba(0,0,0,0.4)]',
               SCROLLBAR,
             )}
             role="listbox"
           >
-            <div className="pt-2 pb-1.5 px-3 text-[10px] font-bold text-white/35 uppercase tracking-[0.5px]">
+            <div
+              className="pt-2 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.5px]"
+              style={{ color: adminMode ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.35)' }}
+            >
               Cambia struttura
             </div>
-            {strutture.map(s => {
-              const active = s === activeStruttura
+            {switcherList.map(s => {
+              const active = s === activeStrutt
               return (
                 <button
                   key={s}
                   role="option"
                   aria-selected={active}
+                  style={adminMode ? { color: '#2A2208' } : undefined}
                   className={clsx(
                     'w-full flex items-center gap-2 py-[9px] px-3 bg-transparent border-0 cursor-pointer',
                     'font-opensans text-xs text-left transition-colors duration-100',
-                    active
-                      ? 'bg-white/[0.06] text-white font-semibold'
-                      : 'text-white/80 hover:bg-white/[0.08]',
+                    adminMode
+                      ? (active ? 'bg-[#f6edd6] font-semibold' : 'hover:bg-black/[0.05]')
+                      : (active ? 'bg-white/[0.06] text-white font-semibold' : 'text-white/80 hover:bg-white/[0.08]'),
                   )}
                   onClick={() => {
                     setActiveStruttura(s)
@@ -193,13 +233,14 @@ export default function Sidebar({
                   }}
                 >
                   <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{s}</span>
-                  {active && <i className="fa-solid fa-check text-[11px] text-link shrink-0" aria-hidden="true" />}
+                  {active && <i className={clsx('fa-solid fa-check text-[11px] shrink-0', adminMode ? 'text-[#a9863a]' : 'text-link')} aria-hidden="true" />}
                 </button>
               )
             })}
           </div>
         )}
       </div>
+      )}
 
       {/* ── Expand button (solo sidebar chiusa desktop) ─────────────────────── */}
       {!sideOpen && !isMobile && (
@@ -212,28 +253,54 @@ export default function Sidebar({
       )}
 
       {/* ── Nav ────────────────────────────────────────────────────────────── */}
-      <nav className={clsx('flex-1 overflow-y-auto overflow-x-hidden py-2', SCROLLBAR)}>
-        {menu.map(item => (
-          <NavItem
-            key={item.id}
-            item={item}
-            depth={1}
-            modColor={null}
-            currentPage={currentPage}
-            navigate={navigate}
-            sideOpen={sideOpen}
-            favorites={favorites}
-            onCtxMenu={openCtx}
-            openId={navOpen}
-            setOpenId={setNavOpen}
-          />
-        ))}
+      <nav className={clsx('flex-1 overflow-y-auto overflow-x-hidden py-2', SCROLLBAR, adminMode && 'app__nav--gold')}>
+        {platformAdmin ? (
+          <PlatformAdminNav currentPage={currentPage} navigate={navigate} />
+        ) : (
+          menu.map(item => (
+            <NavItem
+              key={item.id}
+              item={item}
+              depth={1}
+              modColor={null}
+              currentPage={currentPage}
+              navigate={navigate}
+              sideOpen={sideOpen}
+              favorites={favorites}
+              onCtxMenu={openCtx}
+              openId={navOpen}
+              setOpenId={setNavOpen}
+            />
+          ))
+        )}
       </nav>
 
-      {/* ── Launcher S.S.P.I ────────────────────────────────────────────────
+      {/* ── Voce Admin Panel (durante l'assistenza) — stile uguale alle altre voci ── */}
+      {assist && !onConsole && !platformAdmin && (
+        <button
+          type="button"
+          onClick={() => navigate('assist-admin')}
+          title={!sideOpen ? 'Admin Panel' : undefined}
+          style={{ color: '#2A2208' }}
+          className={clsx(
+            'w-full flex items-center gap-2.5 cursor-pointer border-l-[3px] transition-colors duration-150 font-poppins text-[13px] font-medium',
+            sideOpen ? 'py-[9px] pr-3 pl-4' : 'justify-center py-[9px] px-0',
+            currentPage === 'assist-admin'
+              ? 'border-l-[#2A2208] bg-white/40'
+              : 'border-l-transparent hover:bg-black/[0.06]',
+          )}
+        >
+          <Ico n="layers" s={20} c="#2A2208" />
+          {sideOpen && (
+            <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left">Admin Panel</span>
+          )}
+        </button>
+      )}
+
+      {/* ── Launcher S.S.P.I (nascosto nelle viste admin) ───────────────────
           In fondo alla sidebar. Quando la pagina è aperta, il link diventa il
           ritorno alla home della piattaforma ("Gestisci impresa"). */}
-      {(() => {
+      {!adminMode && (() => {
         const onSspi = currentPage === 'sspi'
         const label  = onSspi ? 'Gestisci impresa (Sibylla platform)' : 'S.S.P.I. (Social Sustainable Profitable Index)'
         return (
