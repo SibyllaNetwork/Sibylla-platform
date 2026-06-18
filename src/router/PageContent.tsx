@@ -51,6 +51,7 @@ import ContiAperti                 from '../modules/operation/ContiAperti/ContiA
 import MovimentiSoggiorno           from '../modules/operation/MovimentiSoggiorno/MovimentiSoggiorno';
 import ContiChiusi                 from '../modules/operation/ContiChiusi/ContiChiusi';
 import ContiPassanti               from '../modules/operation/ContiPassanti/ContiPassanti';
+import ScadenzeIncassi             from '../modules/operation/ScadenzeIncassi/ScadenzeIncassi';
 import NuovoContoPassante          from '../modules/operation/NuovoContoPassante/NuovoContoPassante';
 import Segnalazioni                from '../modules/operation/Segnalazioni/Segnalazioni';
 import AssegnazioniIncarichi       from '../modules/operation/AssegnazioniIncarichi/AssegnazioniIncarichi';
@@ -232,6 +233,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'conti-aperti')          return <ContiAperti navigate={navigate}/>;
   if (page === 'movimenti-soggiorno')   return <MovimentiSoggiorno navigate={navigate}/>;
   if (page === 'conti-chiusi')          return <ContiChiusi navigate={navigate}/>;
+  if (page === 'scadenze-incassi')      return <ScadenzeIncassi navigate={navigate}/>;
   if (page === 'conti-passanti')        return <ContiPassanti navigate={navigate}/>;
   if (page === 'nuovo-conto-passante')  return <NuovoContoPassante navigate={navigate}/>;
   if (page === 'segnalazioni')          return <Segnalazioni navigate={navigate}/>;

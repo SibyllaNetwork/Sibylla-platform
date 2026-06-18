@@ -117,6 +117,7 @@ const MENU:any[]=[
         {id:"conti-passanti",label:"Conti passanti",page:"conti-passanti"},
         {id:"conti-chiusi",label:"Conti chiusi",page:"conti-chiusi"},
       ]},
+      {id:"scadenze-incassi",label:"Scadenze incassi",page:"scadenze-incassi"},
       {id:"gest-movimenti",label:"Gestione Movimenti",children:[
         {id:"cassa",label:"Cassa",page:"cassa"},
         {id:"movimenti-attesa",label:"Movimenti in attesa",page:"movimenti-attesa"},

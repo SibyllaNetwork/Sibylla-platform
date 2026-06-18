@@ -1,0 +1,339 @@
+// ─── SCADENZE INCASSI ─────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.scad-inc
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Banner di avviso scaduti / in scadenza ────────────────────────────────
+  &__alert
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 11px 14px
+    border-radius: 10px
+    background: $warning-light
+    border: 1px solid $warning
+    color: $text-active
+    font-size: 13px
+
+    > i
+      color: $warning
+      font-size: 16px
+      flex-shrink: 0
+
+    strong
+      font-weight: 700
+
+  // ── Toolbar filtri ────────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+    margin-top: 4px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      color: $text-inactive
+      font-weight: 600
+
+    .sib-input
+      width: 100%
+
+    &--grow
+      flex: 1
+      min-width: 320px
+      max-width: 480px
+
+  &__search
+    position: relative
+
+    .sib-input
+      padding-right: 32px
+      width: 100%
+
+  &__search-ico
+    position: absolute
+    right: 12px
+    top: 50%
+    transform: translateY(-50%)
+    color: $text-inactive
+    font-size: 13px
+    pointer-events: none
+
+  // ── Filtri rapidi (chip) ──────────────────────────────────────────────────
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 6px 13px
+    border: 1px solid $border
+    border-radius: 999px
+    background: $white
+    color: $text-inactive
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: border-color .12s, color .12s, background .12s
+
+    &:hover
+      border-color: $primary-300
+      color: $text-active
+
+    &--active
+      border-color: $primary
+      background: $primary-50
+      color: $primary
+
+    &--alarm:not(.scad-inc__chip--active)
+      border-color: $error
+      color: $error
+
+  &__chip-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 18px
+    height: 18px
+    padding: 0 5px
+    border-radius: 999px
+    background: $bg
+    color: inherit
+    font-size: 11px
+    font-weight: 700
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__table
+    thead th
+      vertical-align: middle
+      font-weight: 600
+
+    .scad-inc__th-chev
+      width: 40px
+
+    .scad-inc__th-num
+      text-align: right
+      white-space: nowrap
+
+  &__td-center
+    text-align: center
+
+  &__td-num
+    text-align: right
+    white-space: nowrap
+
+  &__td-nowrap
+    white-space: nowrap
+
+  &__td-strong
+    font-weight: 700
+    color: $text-active
+
+  &__td-residuo
+    font-weight: 700
+
+  &__row
+    &--scaduto
+      background: rgba(209, 0, 17, 0.06)
+
+    &--scadenza
+      background: rgba(245, 125, 3, 0.07)
+
+  &__chev-btn
+    background: transparent
+    border: none
+    color: $primary
+    cursor: pointer
+    font-size: 12px
+    padding: 4px 8px
+    line-height: 1
+
+    &:hover
+      opacity: 0.8
+
+  // ── Badge metodo di pagamento ─────────────────────────────────────────────
+  &__pay
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    white-space: nowrap
+
+    i
+      color: $text-inactive
+      font-size: 13px
+
+  // ── Chip di stato ─────────────────────────────────────────────────────────
+  &__status
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    font-weight: 700
+    border-radius: 6px
+    padding: 3px 9px
+    white-space: nowrap
+
+    i
+      font-size: 11px
+
+    &--ok
+      color: $success
+      background: $success-light
+
+    &--warn
+      color: $warning
+      background: $warning-light
+
+    &--ko
+      color: $error
+      background: $error-light
+
+    &--muted
+      color: $text-inactive
+      background: $bg
+
+  // ── Riga espansa con sub-tabella dei pagamenti ────────────────────────────
+  &__expand-row
+    background: var(--color-surface)
+
+  &__expand-cell
+    padding: 0 0 0 40px
+    background: var(--color-surface)
+
+  &__sub-table
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+    background: var(--color-surface)
+
+    thead th
+      font-weight: 600
+      color: $text-active
+      padding: 8px 12px
+      text-align: left
+      background: var(--color-surface)
+      border-bottom: 1px solid $border
+
+      &.scad-inc__th-num
+        text-align: right
+
+      &.scad-inc__th-actions
+        text-align: right
+        width: 230px
+
+    tbody td
+      padding: 9px 12px
+      color: $text-active
+      border-bottom: 1px dashed $border
+      vertical-align: middle
+
+  &__sub-row
+    &--pagabile
+      cursor: pointer
+
+      &:hover
+        background: rgba(143, 184, 200, 0.12)
+
+  &__pag-desc
+    font-weight: 600
+    display: block
+
+  &__pag-tipo
+    display: block
+    font-size: 10px
+    text-transform: uppercase
+    letter-spacing: .04em
+    color: $text-inactive
+    margin-top: 1px
+
+  &__when
+    display: block
+    font-size: 11px
+    margin-top: 2px
+
+    &--scaduto
+      color: $error
+      font-weight: 700
+
+    &--in-scadenza
+      color: $warning
+      font-weight: 700
+
+    &--pianificato
+      color: $text-inactive
+
+    &--pagato
+      color: $success
+
+  &__td-actions
+    text-align: right
+    white-space: nowrap
+
+    .sib-btn + .sib-btn
+      margin-left: 6px
+
+  &__sollecitato
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__saldato-il
+    font-size: 12px
+    color: $success
+    font-weight: 600
+
+  // ── Footer stats ───────────────────────────────────────────────────────────
+  &__footer
+    display: flex
+    justify-content: space-between
+    align-items: center
+    flex-wrap: wrap
+    gap: 12px
+    margin-top: 4px
+
+  &__stats
+    display: inline-flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 24px
+    font-size: 12px
+    color: $text-active
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  &__stat-ok
+    color: $success !important
+
+  &__stat-due
+    color: $warning !important
+
+  &__stat-ko
+    color: $error !important
+
+  // ── Pagination ───────────────────────────────────────────────────────────
+  &__pagination
+    display: flex
+    justify-content: center
+    margin-top: 4px
