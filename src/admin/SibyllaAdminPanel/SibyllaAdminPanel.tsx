@@ -96,6 +96,10 @@ export default function SibyllaAdminPanel(props: Props) {
   const [showNewClient, setShowNewClient] = useState(false)
   const [newClientForm, setNewClientForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
   const [newClientId, setNewClientId] = useState<number | null>(null)
+  // Form completo della struttura per cliente (dettagli prima tab + modifica inline).
+  const [structForms, setStructForms] = useState<Record<number, NewClientForm>>({})
+  const [editingStruct, setEditingStruct] = useState(false)
+  const [editStructForm, setEditStructForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
 
   const [showMasterModal, setShowMasterModal] = useState(false)
   const [masterSent, setMasterSent] = useState(false)
@@ -184,11 +188,46 @@ export default function SibyllaAdminPanel(props: Props) {
   const setUserAssoc = (userId: number, next: UserAssoc) =>
     setAssocMap(p => ({ ...p, [selId]: { ...(p[selId] || {}), [userId]: next } }))
 
-  const setForm = (k: keyof Cliente, v: any) =>
-    setForms(p => ({ ...p, [selId]: { ...p[selId], [k]: v } }))
-
   const handleSave = () => {
     setClients(p => p.map(c => c.id === selId ? { ...c, ...form } : c))
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  // ─── Struttura: dettaglio completo (prima tab) + modifica ──────────────────
+  // Per i clienti creati con la modale usa il form salvato; per i clienti seed
+  // ne deriva uno dai dati base del Cliente (campi avanzati vuoti).
+  const deriveStruct = (c: Cliente): NewClientForm => ({
+    ...EMPTY_NEW_CLIENT,
+    nome: c.nome,
+    categoria: c.categoria,
+    classificazione: c.classificazione,
+    citta: c.citta,
+    email: c.email || '',
+    telefono: c.tel || '',
+    camere: String(c.camere || 0),
+  })
+  const currentStruct = structForms[selId] || deriveStruct(form)
+  const openEditStruct = () => {
+    setEditStructForm(structForms[selId] || deriveStruct(form))
+    setEditingStruct(true)
+  }
+  const cancelEditStruct = () => setEditingStruct(false)
+  const saveEditStruct = () => {
+    const f = editStructForm
+    if (!f.nome.trim()) return
+    const totale = f.piani.reduce(
+      (tot, p) => tot + Object.values(p.camere).reduce((a, b) => a + (b || 0), 0), 0,
+    )
+    const patch: Partial<Cliente> = {
+      nome: f.nome, categoria: f.categoria, classificazione: f.classificazione,
+      citta: f.citta, email: f.email, tel: f.telefono,
+      camere: totale || parseInt(f.camere) || 0,
+    }
+    setStructForms(p => ({ ...p, [selId]: f }))
+    setForms(p => ({ ...p, [selId]: { ...p[selId], ...patch } }))
+    setClients(p => p.map(c => c.id === selId ? { ...c, ...patch } : c))
+    setEditingStruct(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -351,6 +390,7 @@ export default function SibyllaAdminPanel(props: Props) {
 
     setClients(p => [...p, nc])
     setForms(p => ({ ...p, [id]: nc }))
+    setStructForms(p => ({ ...p, [id]: { ...newClientForm } }))
     setEnabledPages(p => ({ ...p, [id]: enabled }))
     setUsers(p => ({ ...p, [id]: [] }))
     setRuoliMap(p => ({ ...p, [id]: [] }))
@@ -603,7 +643,7 @@ export default function SibyllaAdminPanel(props: Props) {
               selId={selId}
               search={search}
               onSearch={setSearch}
-              onSelect={setSelId}
+              onSelect={(id) => { setSelId(id); setEditingStruct(false) }}
               onNewClient={() => setShowNewClient(true)}
               title={clientsTitle}
               subtitle={embedded ? 'Strutture del cliente' : undefined}
@@ -624,7 +664,15 @@ export default function SibyllaAdminPanel(props: Props) {
 
               <div className="sap__body">
                 {tab === 'struttura' && (
-                  <StrutturaTab form={form} setForm={setForm} onSave={handleSave} />
+                  <StrutturaTab
+                    data={currentStruct}
+                    editing={editingStruct}
+                    draft={editStructForm}
+                    setDraft={setEditStructForm}
+                    onEdit={openEditStruct}
+                    onSave={saveEditStruct}
+                    onCancel={cancelEditStruct}
+                  />
                 )}
                 {tab === 'moduli' && (
                   <PagineTab

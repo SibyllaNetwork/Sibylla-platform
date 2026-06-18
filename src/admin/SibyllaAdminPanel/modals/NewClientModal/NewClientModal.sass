@@ -17,14 +17,17 @@
     background: $white
 
 .ncm
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+// Canvas caldo + scroll: solo dentro la sheet della modale (non in modifica inline).
+.modal__box.ncm-box .ncm
   flex: 1
   min-height: 0
   overflow-y: auto
   background: #faf7ef
   padding: 18px 22px
-  display: flex
-  flex-direction: column
-  gap: 16px
 
 .ncm__footer
   flex-shrink: 0
@@ -34,6 +37,25 @@
   padding: 14px 22px
   border-top: 1px solid $border
   background: $white
+
+// Variante read-only (prima tab del pannello): campi precompilati non editabili.
+.ncm--ro
+  overflow: visible
+  background: transparent
+  padding: 0
+  gap: 14px
+
+  input, select, textarea, button, .ncm__star, .ncm__file, .ncm__radio
+    pointer-events: none
+
+  .ncm__regen
+    display: none
+
+  .sib-input, .sib-select, .ncm__textarea, .ncm__nome-inp, .ncm__mini-inp,
+  .ncm__room-num, .ncm__room-sel, .ncm__room-extra-inp
+    background: #f6f5f1
+    color: $text-active
+    border-color: $border
 
 // ─── Card di sezione ────────────────────────────────────────────────────────
 .ncm__card

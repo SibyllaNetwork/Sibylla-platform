@@ -1,134 +1,40 @@
 import React from 'react'
-import type { Cliente, TipologiaCategoria } from '../../types'
-import { CATEGORIE_STRUTTURA, LINGUA_OPTIONS, VALUTA_OPTIONS } from '../../constants'
+import Ico from '../../../../core/icons/Ico'
+import StructFields from '../../modals/NewClientModal/StructFields'
+import type { NewClientForm } from '../../types'
 import './StrutturaTab.sass'
 
 interface Props {
-  form: Cliente
-  setForm: (k: keyof Cliente, v: any) => void
+  /** Dati completi della struttura selezionata (stessi campi della modale). */
+  data: NewClientForm
+  /** true = modifica inline attiva (campi editabili). */
+  editing: boolean
+  /** Bozza editabile usata mentre `editing` è attivo. */
+  draft: NewClientForm
+  setDraft: (f: NewClientForm) => void
+  onEdit: () => void
   onSave: () => void
+  onCancel: () => void
 }
 
-export default function StrutturaTab({ form, setForm, onSave }: Props) {
-  const cat = CATEGORIE_STRUTTURA.find(c => c.id === form.categoria) || CATEGORIE_STRUTTURA[0]
-  const showClassificazione = cat.classificazioni.length > 0
-  const showCamere = cat.hasCamere
-
-  const handleCategoria = (v: TipologiaCategoria) => {
-    const next = CATEGORIE_STRUTTURA.find(c => c.id === v)
-    setForm('categoria', v)
-    // se la classificazione attuale non è valida per la nuova categoria, la resetto
-    if (next && next.classificazioni.length > 0 && !next.classificazioni.includes(form.classificazione)) {
-      setForm('classificazione', '')
-    }
-    if (next && next.classificazioni.length === 0) setForm('classificazione', '')
-    if (next && !next.hasCamere) setForm('camere', 0)
-  }
-
+export default function StrutturaTab({ data, editing, draft, setDraft, onEdit, onSave, onCancel }: Props) {
   return (
     <div className="strutt-tab">
-      <div className="strutt-tab__grid">
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Nome struttura *</label>
-          <input value={form.nome || ''} onChange={e => setForm('nome', e.target.value)} className="sib-input" />
-        </div>
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Tipologia *</label>
-          <select
-            value={form.categoria}
-            onChange={e => handleCategoria(e.target.value as TipologiaCategoria)}
-            className="sib-select"
-          >
-            {CATEGORIE_STRUTTURA.map(c => (
-              <option key={c.id} value={c.id}>{c.label}</option>
-            ))}
-          </select>
-        </div>
+      <StructFields form={editing ? draft : data} setForm={setDraft} readOnly={!editing} />
+      <div className="strutt-tab__foot">
+        {editing ? (
+          <>
+            <button type="button" className="sib-btn sib-btn--toolbar" onClick={onCancel}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--primary strutt-tab__edit" disabled={!draft.nome.trim()} onClick={onSave}>
+              <Ico n="check" s={14} c="#fff" /> Salva modifica
+            </button>
+          </>
+        ) : (
+          <button type="button" className="sib-btn sib-btn--primary strutt-tab__edit" onClick={onEdit}>
+            <Ico n="edit" s={14} c="#fff" /> Modifica struttura
+          </button>
+        )}
       </div>
-
-      {showClassificazione && (
-        <div className="strutt-tab__grid">
-          <div className="strutt-tab__field">
-            <label className="strutt-tab__label">Classificazione</label>
-            <select
-              value={form.classificazione}
-              onChange={e => setForm('classificazione', e.target.value)}
-              className="sib-select"
-            >
-              <option value="">Nessuna / non applicabile</option>
-              {cat.classificazioni.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="strutt-tab__field" />
-        </div>
-      )}
-
-      <div className="strutt-tab__grid">
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Città</label>
-          <input value={form.citta || ''} onChange={e => setForm('citta', e.target.value)} className="sib-input" />
-        </div>
-        {showCamere ? (
-          <div className="strutt-tab__field">
-            <label className="strutt-tab__label">N° camere / unità</label>
-            <input
-              type="number"
-              value={form.camere || ''}
-              onChange={e => setForm('camere', parseInt(e.target.value) || 0)}
-              className="sib-input"
-            />
-          </div>
-        ) : <div className="strutt-tab__field" />}
-      </div>
-
-      <div className="strutt-tab__grid">
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Email</label>
-          <input value={form.email || ''} onChange={e => setForm('email', e.target.value)} className="sib-input" />
-        </div>
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Telefono</label>
-          <input value={form.tel || ''} onChange={e => setForm('tel', e.target.value)} className="sib-input" />
-        </div>
-      </div>
-      <div className="strutt-tab__grid">
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Lingua</label>
-          <select value={form.lingua || 'Italiano'} onChange={e => setForm('lingua', e.target.value)} className="sib-select">
-            {LINGUA_OPTIONS.map(o => <option key={o}>{o}</option>)}
-          </select>
-        </div>
-        <div className="strutt-tab__field">
-          <label className="strutt-tab__label">Valuta</label>
-          <select value={form.valuta || 'EUR'} onChange={e => setForm('valuta', e.target.value)} className="sib-select">
-            {VALUTA_OPTIONS.map(o => <option key={o}>{o}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="strutt-tab__radio-group">
-        <label className="strutt-tab__label">Stato account</label>
-        <div className="strutt-tab__radios">
-          {(['attivo', 'sospeso'] as const).map(s => {
-            const cls = `strutt-tab__radio${form.stato === s ? ' strutt-tab__radio--active' : ''}`
-            return (
-              <label key={s} className={cls}>
-                <input
-                  type="radio"
-                  checked={form.stato === s}
-                  onChange={() => setForm('stato', s)}
-                  className="sib-radio"
-                />
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </label>
-            )
-          })}
-        </div>
-      </div>
-
-      <button className="sib-btn sib-btn--primary strutt-tab__save" onClick={onSave}>
-        Salva struttura
-      </button>
     </div>
   )
 }
