@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ALL_PAGES, CLIENTS_INIT, PACCHETTI_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli } from './constants'
+import { ALL_PAGES, CLIENTS_INIT, PACCHETTI_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli, EMPTY_NEW_CLIENT } from './constants'
 import { getAllPages } from './helpers'
 import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/configuratoriList'
 import { useAccessStore } from '../../store/useAccessStore'
@@ -94,7 +94,7 @@ export default function SibyllaAdminPanel(props: Props) {
   const [newUser, setNewUser] = useState<NewUser>({ nome: '', email: '', ruolo: 'Manager' })
 
   const [showNewClient, setShowNewClient] = useState(false)
-  const [newClientForm, setNewClientForm] = useState<NewClientForm>({ nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '20', email: '', moduli: [] })
+  const [newClientForm, setNewClientForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
   const [newClientId, setNewClientId] = useState<number | null>(null)
 
   const [showMasterModal, setShowMasterModal] = useState(false)
@@ -326,13 +326,17 @@ export default function SibyllaAdminPanel(props: Props) {
   const handleAddClient = () => {
     if (!newClientForm.nome.trim()) return
     const id = Date.now()
+    // Totale camere = somma di tutte le tipologie su tutti i piani della matrice.
+    const totaleCamere = newClientForm.piani.reduce(
+      (tot, p) => tot + Object.values(p.camere).reduce((a, b) => a + (b || 0), 0), 0,
+    )
     const nc: Cliente = {
       id,
       nome: newClientForm.nome,
       categoria: newClientForm.categoria,
       classificazione: newClientForm.classificazione,
       citta: newClientForm.citta,
-      camere: parseInt(newClientForm.camere) || 20,
+      camere: totaleCamere || parseInt(newClientForm.camere) || 20,
       valuta: 'EUR',
       lingua: 'Italiano',
       stato: 'attivo',
@@ -365,7 +369,7 @@ export default function SibyllaAdminPanel(props: Props) {
     setSelId(id)
     setNewClientId(id)
     setShowNewClient(false)
-    setNewClientForm({ nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '20', email: '', moduli: [] })
+    setNewClientForm({ ...EMPTY_NEW_CLIENT })
     setMasterForm({ nome: '', cognome: '', email: newClientForm.email, telefono: '', ruolo: 'Amministratore Unico' })
     setMasterSent(false)
     setShowMasterModal(true)

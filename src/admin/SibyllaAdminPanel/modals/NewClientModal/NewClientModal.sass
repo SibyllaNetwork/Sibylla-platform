@@ -1,21 +1,555 @@
 @use '../../../../styles/tokens' as *
 
-.ncm
+// ─── Sheet quasi a tutto schermo (alternativa alla piccola modale) ──────────
+.modal__box.ncm-box
+  max-width: 1080px
+  max-height: calc(100vh - 32px)
+  padding: 0
   display: flex
   flex-direction: column
-  gap: 12px
+  overflow: hidden
 
+  .modal__header
+    flex-shrink: 0
+    margin: 0
+    padding: 16px 22px
+    border-bottom: 1px solid $border
+    background: $white
+
+.ncm
+  flex: 1
+  min-height: 0
+  overflow-y: auto
+  background: #faf7ef
+  padding: 18px 22px
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+.ncm__footer
+  flex-shrink: 0
+  display: flex
+  justify-content: flex-end
+  gap: 10px
+  padding: 14px 22px
+  border-top: 1px solid $border
+  background: $white
+
+// ─── Card di sezione ────────────────────────────────────────────────────────
+.ncm__card
+  flex-shrink: 0
+  background: $white
+  border: 1px solid $border
+  border-radius: 14px
+  overflow: hidden
+  box-shadow: 0 1px 2px rgba(32, 71, 105, .04)
+
+.ncm__ch
+  display: flex
+  align-items: center
+  gap: 11px
+  padding: 12px 16px
+  border-bottom: 1px solid $border
+  background: #fbf6ea
+
+.ncm__ch-ico
+  flex-shrink: 0
+  width: 30px
+  height: 30px
+  border-radius: 9px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, #a9863a, #8a6d1f)
+  box-shadow: 0 2px 6px rgba(138, 109, 31, .3)
+
+.ncm__ch-tx
+  display: flex
+  flex-direction: column
+  gap: 1px
+
+  h3
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: #2A2208
+    margin: 0
+
+  p
+    font-size: 11.5px
+    color: $text-inactive
+    margin: 0
+
+.ncm__cb
+  padding: 16px
+
+// ─── Griglia campi ──────────────────────────────────────────────────────────
+.ncm__grid
+  display: grid
+  grid-template-columns: repeat(4, 1fr)
+  gap: 14px 16px
+
+.ncm__f
+  display: flex
+  flex-direction: column
+  gap: 5px
+  min-width: 0
+
+  &--2
+    grid-column: span 2
+
+  &--full
+    grid-column: 1 / -1
+
+  .sib-input, .sib-select
+    height: 40px
+    width: 100%
+
+.ncm__label
+  font-size: 11.5px
+  font-weight: 600
+  color: $text-inactive
+  display: block
+
+  &--mt
+    margin: 16px 0 8px
+
+  &--mb
+    margin-bottom: 8px
+
+.ncm__radios
+  display: flex
+  align-items: center
+  gap: 18px
+  height: 40px
+
+.ncm__radio
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 13px
+  color: $text-active
+  cursor: pointer
+
+  input
+    accent-color: $primary
+
+.ncm__stars
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  height: 40px
+
+.ncm__star
+  background: none
+  border: 0
+  padding: 0
+  font-size: 25px
+  line-height: 1
+  color: #d9d2c2
+  cursor: pointer
+  transition: color .12s, transform .1s
+
+  &:hover
+    color: $primary-300
+    transform: scale(1.08)
+
+  &--on
+    color: $primary
+
+.ncm__textarea
+  width: 100%
+  border: 1px solid $border
+  border-radius: $radius-md
+  padding: 9px 11px
+  font-size: 13px
+  color: $text-active
+  resize: vertical
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+// ─── Matrice camere per piano (dinamica, colonne fisse ai lati) ─────────────
+.ncm__matrix-wrap
+  border: 1px solid $border
+  border-radius: $radius-md
+  overflow-x: auto
+
+.ncm__matrix
+  border-collapse: separate
+  border-spacing: 0
+  width: max-content
+  min-width: 100%
+
+  th, td
+    padding: 6px 8px
+    white-space: nowrap
+    vertical-align: middle
+    border-bottom: 1px solid $border
+
+  thead th
+    background: var(--color-bg)
+    font-size: 11px
+    font-weight: 700
+    color: $primary
+    text-align: center
+    position: sticky
+    top: 0
+    z-index: 1
+
+.ncm__mc
+  text-align: center
+
+// Colonne fisse: Piani (sx), Nome (sx+52), Totale (dx)
+.ncm__sticky-l
+  position: sticky
+  left: 0
+  width: 52px
+  background: $white
+  z-index: 2
+
+.ncm__sticky-n
+  position: sticky
+  left: 52px
+  background: $white
+  z-index: 2
+
+.ncm__sticky-r
+  position: sticky
+  right: 0
+  width: 64px
+  background: $white
+  z-index: 2
+
+thead .ncm__sticky-l, thead .ncm__sticky-n, thead .ncm__sticky-r
+  background: var(--color-bg)
+  z-index: 3
+
+.ncm__pnum
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 24px
+  height: 24px
+  border-radius: 999px
+  background: linear-gradient(135deg, #f0a04b, #e8843c)
+  color: #fff
+  font-size: 12px
+  font-weight: 700
+
+.ncm__nome-inp
+  width: 118px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 8px
+  font-size: 12.5px
+  color: $text-active
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.ncm__mini-inp
+  width: 52px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 4px
+  font-size: 12.5px
+  color: $text-active
+  text-align: center
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.ncm__rowtot
+  font-weight: 700
+  color: $text-active
+
+.ncm__tot-row td
+  background: var(--color-bg)
+  font-weight: 700
+  color: $text-active
+
+.ncm__tot-row .ncm__sticky-l, .ncm__tot-row .ncm__sticky-r
+  background: var(--color-bg)
+
+// ─── Tipologie e posti letto (nome personalizzato + posti) ──────────────────
+.ncm__types
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.ncm__type
+  display: flex
+  align-items: center
+  gap: 16px
+  padding: 10px 14px
+  border: 1px solid $border
+  border-radius: 10px
+  background: #fbfaf6
+  flex-wrap: wrap
+
+.ncm__type-code
+  display: flex
+  flex-direction: column
+  gap: 1px
+  min-width: 92px
+
+.ncm__type-sigla
+  font-size: 13px
+  font-weight: 700
+  color: $primary
+  cursor: default
+
+.ncm__type-def
+  font-size: 10.5px
+  color: $text-inactive
+
+.ncm__type-fields
+  display: flex
+  align-items: flex-end
+  gap: 12px
+  flex: 1
+  flex-wrap: wrap
+
+  .ncm__f
+    flex: 1
+    min-width: 160px
+
+  .ncm__f--narrow
+    flex: 0 0 108px
+    min-width: 108px
+
+  .sib-input
+    height: 38px
+
+// ─── Numerazione camere (config + anteprima editabile) ──────────────────────
+.ncm__numcfg
+  display: flex
+  align-items: flex-end
+  gap: 14px
+  flex-wrap: wrap
+  padding-bottom: 14px
+  margin-bottom: 14px
+  border-bottom: 1px solid $border
+
+  .ncm__f
+    min-width: 150px
+
+  .sib-input, .sib-select
+    height: 38px
+
+.ncm__scheme
+  height: 38px
+  display: inline-flex
+  align-items: center
+  padding: 0 12px
+  border-radius: $radius-md
+  background: $primary-50
+  border: 1px solid $primary-200
+  color: $primary
+  font-size: 13px
+  font-weight: 600
+
+.ncm__regen
+  height: 38px
+  padding: 0 16px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  color: $text-active
+  font-size: 12.5px
+  font-weight: 600
+  cursor: pointer
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $primary-300
+    background: $primary-50
+
+.ncm__floors
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.ncm__floor-h
+  font-size: 12.5px
+  font-weight: 700
+  color: $text-active
+  margin-bottom: 8px
+
+  span
+    font-weight: 500
+    color: $text-inactive
+
+.ncm__tally
+  display: flex
+  flex-wrap: wrap
+  gap: 6px
+  margin-bottom: 9px
+
+.ncm__tag
+  display: inline-flex
+  align-items: center
+  padding: 3px 9px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 700
+  border: 1px solid transparent
+
+  &--ok
+    background: $success-light
+    color: $success
+
+  &--warn
+    background: $warning-light
+    color: $warning
+
+.ncm__rooms
+  display: flex
+  flex-wrap: wrap
+  gap: 8px
+
+.ncm__room
+  display: flex
+  flex-direction: column
+  gap: 4px
+  padding: 7px
+  border: 1px solid $border
+  border-radius: 9px
+  background: #fbfaf6
+
+.ncm__room-num
+  width: 128px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 6px
+  font-size: 13px
+  font-weight: 700
+  color: $text-active
+  text-align: center
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.ncm__room-sel
+  width: 128px
+  height: 28px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 6px
+  font-size: 11.5px
+  font-weight: 600
+  color: $text-active
+  background: $white
+  outline: none
+  cursor: pointer
+
+  &:focus
+    border-color: $primary-300
+
+.ncm__room-extra
+  display: flex
+  align-items: center
+  gap: 4px
+
+.ncm__room-extra-sign
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+
+.ncm__room-extra-inp
+  width: 46px
+  height: 26px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 4px
+  font-size: 12px
+  color: $text-active
+  text-align: center
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.ncm__room-extra-lbl
+  font-size: 10.5px
+  color: $text-inactive
+
+// ─── File picker ─────────────────────────────────────────────────────────────
+.ncm__file
+  display: flex
+  align-items: center
+  height: 40px
+  border: 1px solid $border
+  border-radius: $radius-md
+  overflow: hidden
+  cursor: pointer
+  background: $white
+
+  &:hover
+    border-color: $primary-300
+
+.ncm__file-btn
+  flex-shrink: 0
+  align-self: stretch
+  display: inline-flex
+  align-items: center
+  padding: 0 13px
+  background: #fbf6ea
+  color: $primary
+  font-size: 12px
+  font-weight: 600
+
+.ncm__file-name
+  padding: 0 10px
+  font-size: 12px
+  color: $text-disabled
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+// ─── Caratteristiche (chip selezionabili) ───────────────────────────────────
+.ncm__feats
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+  gap: 8px 12px
+
+.ncm__feat
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 8px 11px
+  border: 1px solid $border
+  border-radius: 9px
+  font-size: 12.5px
+  color: $text-active
+  cursor: pointer
+  transition: border-color .12s, background .12s
+
+  &:hover
+    border-color: $primary-300
+
+  &:has(input:checked)
+    border-color: $primary
+    background: $primary-50
+
+  input
+    accent-color: $primary
+    width: 15px
+    height: 15px
+    flex-shrink: 0
+
+// ─── Moduli sottoscritti (elenco verticale, niente pillole) ─────────────────
 .ncm__field
   // wrapper
 
-.ncm__label
-  font-size: 11px
-  font-weight: 600
-  color: $text-active
-  display: block
-  margin-bottom: 4px
-
-// Elenco verticale di moduli selezionabili (righe squadrate, niente pillole).
 .ncm__mods
   display: flex
   flex-direction: column
@@ -70,10 +604,4 @@
   display: block
   font-size: 11px
   color: $text-disabled
-  margin-top: 6px
-
-.ncm__actions
-  display: flex
-  justify-content: flex-end
-  gap: 10px
-  margin-top: 4px
+  margin-top: 8px

@@ -1,9 +1,19 @@
 import MENU from '../../navigation/menu'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
-import type { Cliente, Intestatario, Modulo, Ruolo, TipologiaCategoria, UserRow } from './types'
+import type { Cliente, Intestatario, Modulo, NewClientForm, Ruolo, TipologiaCategoria, UserRow } from './types'
 
 export const ALL_PAGES: string[] = getAllPages(MENU as any)
+
+/** Stato iniziale della modale "Nuova struttura" (creazione cliente). */
+export const EMPTY_NEW_CLIENT: NewClientForm = {
+  nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '0', email: '', moduli: [],
+  pms: 'Sibylla', tipologiaGruppo: '', numeroPiani: 1, piani: [{ nome: '', camere: {} }],
+  numStart: 1, numDigits: 2, roomOverrides: {}, roomTypes: {}, postiConfig: {}, tipologieNomi: {}, roomExtra: {},
+  indirizzo: '', localita: '', provincia: '', cap: '', nazione: '', telefono: '', piva: '', codiceSdi: '', pec: '',
+  tassaGiornaliera: '',
+  immaginePrincipale: '', logoStruttura: '', gallery: [], breveDescrizione: '', caratteristiche: [],
+}
 
 // Strutture/clienti di test — una per ciascuna tipologia gestita
 // (Hotel, B&B, Ristoranti, Bar, Case Vacanze, Appartamenti, Studentati).

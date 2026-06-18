@@ -54,6 +54,12 @@ export interface UserRow {
   attivo: boolean
 }
 
+/** Riga della matrice camere per piano (chiave = sigla tipologia camera). */
+export interface PianoRow {
+  nome: string
+  camere: Record<string, number>
+}
+
 export interface NewClientForm {
   nome: string
   categoria: TipologiaCategoria
@@ -63,6 +69,39 @@ export interface NewClientForm {
   email: string
   /** Moduli assegnati al cliente alla creazione (id da PACCHETTI_INIT). */
   moduli: string[]
+  // ─── Dati aggiuntivi struttura ───────────────────────────────
+  pms: 'Sibylla' | 'Esterno'
+  tipologiaGruppo: string
+  numeroPiani: number
+  piani: PianoRow[]
+  // Numerazione automatica camere (schema "per piano": piano×10^cifre + progressivo).
+  numStart: number
+  numDigits: number
+  /** Override manuali dei numeri camera, chiave `${pianoIdx}|${slot}`. */
+  roomOverrides: Record<string, string>
+  /** Tipologia assegnata a ciascun numero camera, chiave `${pianoIdx}|${slot}`. */
+  roomTypes: Record<string, string>
+  /** Posti base + aggiunti per tipologia camera (chiave = sigla tipologia). */
+  postiConfig: Record<string, { base: number; extra: number }>
+  /** Nome personalizzato della tipologia (es. "Michelangelo"), chiave = sigla. */
+  tipologieNomi: Record<string, string>
+  /** Posti aggiunti della singola camera fisica, chiave `${pianoIdx}|${slot}`. */
+  roomExtra: Record<string, number>
+  indirizzo: string
+  localita: string
+  provincia: string
+  cap: string
+  nazione: string
+  telefono: string
+  piva: string
+  codiceSdi: string
+  pec: string
+  tassaGiornaliera: string
+  immaginePrincipale: string
+  logoStruttura: string
+  gallery: string[]
+  breveDescrizione: string
+  caratteristiche: string[]
 }
 
 export interface MasterForm {
