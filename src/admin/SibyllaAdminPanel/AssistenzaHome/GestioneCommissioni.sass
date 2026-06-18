@@ -1,0 +1,189 @@
+@use '../../../styles/tokens' as *
+
+.gcm
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-50: #faf5e6
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.gcm__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.gcm__head
+  text-align: center
+  margin: 0 0 22px
+
+.gcm__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.gcm__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.gcm__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 14px
+  flex-wrap: wrap
+
+.gcm__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  span
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  .sib-select
+    height: 40px
+    min-width: 180px
+
+.gcm__btn
+  height: 40px
+  display: inline-flex
+  align-items: center
+  padding: 0 22px
+  border: 0
+  border-radius: 9px
+  background: #8a6d1f
+  color: #fff
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  transition: background .15s
+
+  &:hover
+    background: #6f5615
+
+.gcm__wrap
+  border: 1px solid $border
+
+.gcm__table
+  th, td
+    vertical-align: middle
+
+  .gcm__th-actions
+    text-align: center
+    width: 90px
+
+.gcm__strong
+  font-weight: 600
+  color: $text-active
+
+.gcm__empty
+  text-align: center
+  color: $text-inactive
+  padding: 22px 0
+
+.gcm__actions
+  text-align: center
+  white-space: nowrap
+
+.gcm__icon
+  width: 30px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  margin: 0 2px
+  transition: border-color .12s
+
+  &:hover
+    border-color: $primary-300
+
+// ── Modale "Modifica Comissioni" ──────────────────────────────
+.gcm-modal
+  padding: 4px 2px 2px
+
+  &__section
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: #2A2208
+    margin: 0 0 18px
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 14px 20px
+    margin-bottom: 22px
+
+  &__f
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      font-weight: 600
+      color: $text-inactive
+
+    input
+      height: 44px
+      border: 1px solid $border
+      border-radius: 8px
+      padding: 0 12px
+      font-size: 14px
+      color: $text-active
+      outline: none
+
+      &:focus
+        border-color: $primary-300
+
+  &__ro
+    background: #e9edf2
+    color: $text-inactive !important
+    cursor: not-allowed
+
+  &__btn
+    height: 42px
+    padding: 0 18px
+    border: 0
+    border-radius: 9px
+    background: #8a6d1f
+    color: #fff
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: background .15s
+
+    &:hover:not(:disabled)
+      background: #6f5615
+
+    &:disabled
+      opacity: .5
+      cursor: not-allowed

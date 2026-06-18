@@ -1,0 +1,74 @@
+@use '../../../styles/tokens' as *
+
+.maz
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  // Header/righe tabella (bg-canvas = --color-bg) e paginazione (--color-primary*)
+  // in palette oro invece dell'azzurro di piattaforma.
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+
+.maz__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.maz__head
+  text-align: center
+  margin: 0 0 26px
+
+.maz__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.maz__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.maz__wrap
+  border: 1px solid $border
+
+.maz__table
+  th, td
+    vertical-align: middle
+
+  .maz__th-az
+    text-align: left
+
+  .maz__th-ch
+    text-align: center
+    white-space: nowrap
+
+.maz__az
+  font-weight: 600
+  color: $text-active
+  white-space: nowrap
+
+.maz__cell
+  text-align: center
+
+.maz__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px

@@ -1,0 +1,321 @@
+@use '../../../styles/tokens' as *
+
+.cdp
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  // Header tabella (bg-canvas) e accenti in palette oro invece dell'azzurro.
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.cdp__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.cdp__head
+  text-align: center
+  margin: 0 0 26px
+
+.cdp__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.cdp__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.cdp__toolbar
+  display: flex
+  align-items: center
+  gap: 12px
+  flex-wrap: wrap
+
+.cdp__btn
+  display: inline-flex
+  align-items: center
+  padding: 10px 16px
+  border: 0
+  border-radius: 9px
+  background: #8a6d1f
+  color: #fff
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  white-space: nowrap
+  transition: background .15s
+
+  &:hover
+    background: #6f5615
+
+.cdp__search
+  position: relative
+  display: flex
+  align-items: center
+  flex: 1
+  min-width: 220px
+  max-width: 320px
+
+  input
+    width: 100%
+    height: 40px
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 0 34px 0 13px
+    font-size: 13px
+    color: $text-active
+    outline: none
+
+    &:focus
+      border-color: $primary-300
+
+  > i
+    position: absolute
+    right: 12px
+    pointer-events: none
+
+.cdp__wrap
+  border: 1px solid $border
+  overflow-x: auto
+
+.cdp__table
+  min-width: 1200px
+
+  th, td
+    vertical-align: middle
+    white-space: nowrap
+
+  tbody tr:nth-child(even)
+    background: rgba(201, 168, 76, 0.09)
+
+  .cdp__th-c
+    text-align: center
+
+.cdp__rag
+  font-weight: 600
+  color: $text-active
+
+.cdp__nowrap
+  white-space: nowrap
+
+.cdp__val
+  font-variant-numeric: tabular-nums
+  color: $text-active
+
+.cdp__c
+  text-align: center
+
+.cdp__mini
+  width: 26px
+  height: 26px
+  border: 0
+  background: transparent
+  border-radius: 6px
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  margin-left: 4px
+  transition: background .12s
+
+  &:hover
+    background: rgba(0, 0, 0, .06)
+
+.cdp__actions
+  display: inline-flex
+  align-items: center
+  gap: 2px
+
+.cdp__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px
+
+// ── Modali azioni ──────────────────────────────────────────────
+.cdp-modal
+  padding: 4px 2px 2px
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__textarea
+    width: 100%
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 11px 13px
+    font-size: 13px
+    color: $text-active
+    resize: vertical
+    outline: none
+
+    &:focus
+      border-color: $primary-300
+
+  &__row
+    display: flex
+    gap: 16px
+    flex-wrap: wrap
+
+  &__field
+    flex: 1
+    min-width: 160px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      font-weight: 600
+      color: $text-inactive
+
+    input
+      height: 44px
+      border: 1px solid $border
+      border-radius: 9px
+      padding: 0 13px
+      font-size: 13px
+      color: $text-active
+      outline: none
+
+      &:focus
+        border-color: $primary-300
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 12px 24px
+
+  &__detail
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+    span
+      font-size: 11.5px
+      font-weight: 600
+      color: $text-inactive
+
+    b
+      font-size: 13.5px
+      font-weight: 600
+      color: $text-active
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+
+    th
+      font-size: 12px
+      font-weight: 700
+      color: #2A2208
+      padding: 8px 10px
+      text-align: center
+
+    td
+      font-size: 13px
+      color: $text-active
+      padding: 8px 10px
+      text-align: center
+
+    tbody tr:not(:last-child) td
+      border-bottom: 1px solid $border
+
+    .cdp-modal__tot td
+      font-weight: 700
+      color: #2A2208
+      border-top: 2px solid $border
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__dl
+    width: 44px
+    height: 44px
+    border: 0
+    border-radius: 9px
+    background: #8a6d1f
+    color: #fff
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: background .15s
+
+    &:hover
+      background: #6f5615
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 4px
+
+// ── Form "Modifica Agenzia" (griglia a 3 colonne) ──────────────
+.cdp-ag
+  display: grid
+  grid-template-columns: repeat(3, 1fr)
+  gap: 16px 18px
+
+  &__f
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-size: 12px
+      font-weight: 600
+      color: $text-active
+
+    input
+      height: 42px
+      border: 1px solid $border
+      border-radius: 8px
+      padding: 0 12px
+      font-size: 13px
+      color: $text-active
+      outline: none
+
+      &::placeholder
+        color: $text-disabled
+
+      &:focus
+        border-color: $primary-300
+
+    &--2
+      grid-column: span 2
+
+  &__pair
+    grid-column: 1 / -1
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 18px

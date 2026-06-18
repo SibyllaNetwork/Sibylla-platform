@@ -1,0 +1,96 @@
+@use '../../../styles/tokens' as *
+
+.cdn
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.cdn__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.cdn__head
+  text-align: center
+  margin: 0 0 22px
+
+.cdn__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.cdn__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.cdn__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 16px
+  flex-wrap: wrap
+
+.cdn__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  span
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  .sib-select
+    height: 40px
+    min-width: 180px
+
+.cdn__flat
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 8px
+
+  span
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  input
+    width: 17px
+    height: 17px
+    cursor: pointer
+
+.cdn__placeholder
+  flex: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 12px
+  min-height: 220px
+  color: $text-inactive
+
+  p
+    font-size: 13.5px
+    margin: 0

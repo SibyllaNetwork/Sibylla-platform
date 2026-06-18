@@ -1,0 +1,121 @@
+@use '../../../styles/tokens' as *
+
+.prc
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-50: #faf5e6
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.prc__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.prc__head
+  text-align: center
+  margin: 0 0 22px
+
+.prc__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.prc__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.prc__wrap
+  border: 1px solid $border
+
+.prc__table
+  th, td
+    vertical-align: middle
+
+  tbody td
+    padding-top: 11px
+    padding-bottom: 11px
+
+  tbody tr:nth-child(even)
+    background: rgba(201, 168, 76, 0.09)
+
+  .prc__th-actions
+    width: 90px
+
+.prc__c
+  text-align: center
+
+.prc__name
+  font-weight: 600
+  color: $text-active
+
+.prc__when
+  font-variant-numeric: tabular-nums
+  color: $text-active
+
+.prc__stato
+  display: inline-flex
+  align-items: center
+  font-size: 12px
+  font-weight: 600
+
+  &--running
+    color: $success
+
+  &--paused
+    color: $warning
+
+  &--stopped
+    color: $text-inactive
+
+.prc__actions
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+.prc__btn
+  width: 30px
+  height: 30px
+  border: 0
+  border-radius: 7px
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  transition: filter .15s
+
+  &:hover
+    filter: brightness(.92)
+
+  &--play
+    background: $success
+
+  &--pause
+    background: $warning
+
+  &--stop
+    background: $error
+
+  &--restart
+    background: #8a6d1f

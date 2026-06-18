@@ -3,7 +3,7 @@ import Ico from '../../../core/icons/Ico'
 import { INTESTATARI_INIT, PACCHETTI_INIT } from '../constants'
 import { useAccessStore } from '../../../store/useAccessStore'
 import type { Intestatario } from '../types'
-import { PLATFORM_ADMIN_HOME } from '../../../navigation/platformAdminMenu'
+import { PLATFORM_ADMIN_PLATFORM_PAGE } from '../../../navigation/platformAdminMenu'
 import './AssistenzaHome.sass'
 
 interface Props {
@@ -118,7 +118,7 @@ export default function AssistenzaHome({ navigate }: Props) {
         {/* Amministrazione piattaforma */}
         <section className="ahome__card ahome__card--platform">
           <div className="ahome__card-top">
-            <span className="ahome__card-ico ahome__card-ico--navy"><Ico n="gear" s={20} c="#fff" /></span>
+            <span className="ahome__card-ico ahome__card-ico--platform"><Ico n="gear" s={20} c="#fff" /></span>
             <div className="ahome__card-head">
               <h2 className="ahome__card-title">Amministrazione piattaforma</h2>
               <p className="ahome__card-desc">Funzioni comuni a tutti gli utenti: clienti, commissioni, bookings e configurazioni.</p>
@@ -132,7 +132,7 @@ export default function AssistenzaHome({ navigate }: Props) {
             <li><span className="ahome__feat-dot"><Ico n="check" s={11} c="#fff" /></span> Configurazioni e Sibylla admin</li>
           </ul>
 
-          <button type="button" className="ahome__platform-btn" onClick={() => navigate(PLATFORM_ADMIN_HOME)}>
+          <button type="button" className="ahome__platform-btn" onClick={() => navigate(PLATFORM_ADMIN_PLATFORM_PAGE)}>
             <Ico n="gear" s={14} c="#fff" />
             Apri amministrazione piattaforma
             <span className="ahome__platform-arrow"><Ico n="arrow-right" s={14} c="#fff" /></span>

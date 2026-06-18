@@ -1,0 +1,219 @@
+@use '../../../styles/tokens' as *
+
+.cms
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  // Header/righe tabella e paginazione in palette oro invece dell'azzurro.
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.cms__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.cms__head
+  text-align: center
+  margin: 0 0 22px
+
+.cms__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.cms__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.cms__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 10px
+  flex-wrap: nowrap
+  overflow-x: auto
+  padding-bottom: 2px
+
+  > *
+    flex: 0 0 auto
+
+.cms__push
+  margin-left: auto
+
+.cms__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  span
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    white-space: nowrap
+
+  .sib-select, .sib-input
+    height: 40px
+    min-width: 128px
+
+.cms__btn
+  height: 40px
+  display: inline-flex
+  align-items: center
+  padding: 0 18px
+  border: 0
+  border-radius: 9px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  white-space: nowrap
+  transition: background .15s
+
+  &--apply
+    background: #8a6d1f
+    color: #fff
+
+    &:hover
+      background: #6f5615
+
+  &--ghost
+    background: #e7d4a3
+    color: #6f5615
+
+    &:hover:not(:disabled)
+      background: #ddc98a
+
+    &:disabled
+      opacity: .55
+      cursor: not-allowed
+
+.cms__vcc
+  height: 40px
+  width: 150px
+  min-width: 150px
+
+.cms__icon-btn
+  width: 40px
+  height: 40px
+  border: 0
+  border-radius: 9px
+  background: #8a6d1f
+  color: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  transition: background .15s
+
+  &:hover
+    background: #6f5615
+
+.cms__search
+  position: relative
+  display: flex
+  align-items: center
+  width: 160px
+  min-width: 160px
+
+  input
+    width: 100%
+    height: 40px
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 0 34px 0 13px
+    font-size: 13px
+    color: $text-active
+    outline: none
+
+    &:focus
+      border-color: $primary-300
+
+  > i
+    position: absolute
+    right: 12px
+    pointer-events: none
+
+.cms__wrap
+  border: 1px solid $border
+  overflow-x: auto
+
+.cms__table
+  min-width: 1300px
+
+  th, td
+    vertical-align: middle
+    white-space: nowrap
+
+  tbody td
+    padding-top: 9px
+    padding-bottom: 9px
+
+  tbody tr:nth-child(even)
+    background: rgba(201, 168, 76, 0.09)
+
+.cms__filter-row th
+  background: #fff
+  padding: 6px 8px
+  border-top: 1px solid $border
+
+.cms__cf
+  width: 100%
+  height: 30px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 8px
+  font-size: 12px
+  font-weight: 400
+  color: $text-active
+  background: #fff
+  text-transform: none
+  letter-spacing: 0
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+  &--xs
+    max-width: 70px
+
+.cms__c
+  text-align: center
+
+.cms__strong
+  font-weight: 600
+  color: $text-active
+
+.cms__vcc-tag
+  display: inline-flex
+  align-items: center
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+  &--on
+    color: $success
+
+.cms__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px

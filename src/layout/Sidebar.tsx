@@ -111,9 +111,28 @@ export default function Sidebar({
         'h-16 flex items-center gap-2 shrink-0',
         sideOpen ? 'px-3.5 justify-between' : 'p-0 justify-center',
       )}>
-        {sideOpen && <Logo />}
+        {sideOpen && (adminMode ? (
+          <button
+            type="button"
+            onClick={() => navigate('sibylla-admin')}
+            title="Admin Console — Area riservata assistenza Sibylla"
+            className="min-w-0 flex flex-col bg-transparent border-0 cursor-pointer text-left p-0"
+          >
+            <span className="font-poppins font-extrabold text-[17px] leading-tight" style={{ color: '#2A2208' }}>
+              Admin Console
+            </span>
+            <span className="text-[9.5px] font-bold uppercase tracking-[0.06em] mt-1" style={{ color: 'rgba(42,34,8,0.62)' }}>
+              Area riservata · Sibylla
+            </span>
+          </button>
+        ) : <Logo />)}
         {!sideOpen && !isMobile && (
-          <div className="w-[34px] h-[34px] rounded-full bg-[rgba(162,134,76,0.2)] flex items-center justify-center text-[11px] font-extrabold text-[#a2864c]">
+          <div
+            className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-extrabold"
+            style={adminMode
+              ? { background: '#2A2208', color: '#c9a84c' }
+              : { background: 'rgba(162,134,76,0.2)', color: '#a2864c' }}
+          >
             S
           </div>
         )}
@@ -122,7 +141,7 @@ export default function Sidebar({
             className="bg-transparent border-0 cursor-pointer p-[5px] opacity-60 flex transition-opacity duration-150 text-white hover:opacity-100"
             onClick={() => setSideOpen(false)}
           >
-            <Ico n="menu" s={17} />
+            <Ico n="menu" s={17} c={adminMode ? '#2A2208' : undefined} />
           </button>
         )}
         {isMobile && sideOpen && (
@@ -248,7 +267,7 @@ export default function Sidebar({
           className="bg-transparent border-0 cursor-pointer py-2.5 px-0 flex justify-center text-white/50 transition-colors duration-150 hover:text-white/90"
           onClick={() => setSideOpen(true)}
         >
-          <Ico n="menu" s={17} />
+          <Ico n="menu" s={17} c={adminMode ? '#2A2208' : undefined} />
         </button>
       )}
 

@@ -11,6 +11,31 @@
   border-radius: 12px
   overflow: hidden
 
+// ─── Tema oro amministrazione ─────────────────────────────────────────────────
+// Vale SOLO quando il pannello è dentro la console admin (menu/chrome oro):
+// rimappa la scala "primary" (blu di piattaforma) su una rampa oro, così tutti i
+// pulsanti, le tab attive e gli accenti delle pagine admin si allineano.
+// Fuori dal contesto admin il pannello resta col blu standard.
+.app__main--admin .sap
+  // Canvas/header tabella in tinta calda oro, come le pagine della sezione admin.
+  --color-bg:           #faf6ec
+  --color-primary:      #8a6d1f
+  --color-primary-900:  #5a4510
+  --color-primary-800:  #6f5615
+  --color-primary-700:  #9a7d2f
+  --color-primary-600:  #a9863a
+  --color-primary-500:  #c9a84c
+  --color-primary-400:  #d6bb73
+  --color-primary-300:  #e0cd95
+  --color-primary-200:  #ecdfbb
+  --color-primary-100:  #f3e9cf
+  --color-primary-50:   #faf5e6
+
+  // Icone azione modifica (matita) ed elimina (cestino): grigie, non colorate.
+  i.fa-pen-to-square,
+  i.fa-trash
+    color: var(--color-text-inactive) !important
+
 .sap__view
   flex: 1
   display: flex

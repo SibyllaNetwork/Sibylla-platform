@@ -131,24 +131,9 @@ export default function Topbar({
         </button>
       )}
 
-      {/* ── Console amministrativa: tasto grande verso la Console + uscita ──── */}
+      {/* ── Console amministrativa: uscita (il titolo è nell'header della sidenav) ── */}
       {adminMode && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 4 }}>
-          <button
-            type="button"
-            onClick={() => navigate('sibylla-admin')}
-            title="Sibylla System Administration Console"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 9,
-              background: '#fff', color: '#2a2208', border: '1px solid rgba(0,0,0,0.15)',
-              borderRadius: 10, padding: '8px 16px', cursor: 'pointer',
-              fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-            }}
-          >
-            <Ico n="layers" s={16} c="#c9a84c" />
-            Sibylla System Administration Console
-          </button>
           <button
             type="button"
             onClick={() => { useAccessStore.getState().exitAssist(); navigate('home') }}
@@ -215,7 +200,7 @@ export default function Topbar({
       {!isMobile && <div className="topbar__divider" />}
 
       {/* ── Icon buttons ── */}
-      {!isMobile && (
+      {!isMobile && !adminMode && (
         <button className="topbar__icon-btn" onClick={() => navigate('tariffe-disp')} title="Distribuzione di rete">
           <Ico n="org" s={18} c={C.normal} />
         </button>

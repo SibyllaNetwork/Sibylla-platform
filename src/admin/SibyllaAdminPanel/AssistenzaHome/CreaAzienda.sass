@@ -1,0 +1,396 @@
+@use '../../../styles/tokens' as *
+
+$gold: #c9a84c
+$gold-dark: #a9863a
+$ink: #2A2208
+
+.ca
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 12px 32px 44px
+
+// ── Intestazione ──
+.ca__head
+  text-align: center
+  margin-bottom: 36px
+
+.ca__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.ca__lead
+  font-size: 13px
+  color: $text-inactive
+  margin: 6px 0 0
+
+.ca__body
+  display: flex
+  justify-content: center
+  align-items: flex-start
+  gap: 34px
+
+  @media (max-width: 1080px)
+    flex-direction: column-reverse
+    align-items: stretch
+    gap: 22px
+
+// ── Card form ──
+.ca__card
+  flex: 1
+  max-width: 680px
+  background: #fff
+  border: 1px solid $border
+  border-radius: 16px
+  box-shadow: 0 10px 30px rgba(20, 30, 45, .06)
+  padding: 22px 24px 24px
+  overflow: hidden
+
+.ca__card-head
+  display: flex
+  align-items: flex-start
+  gap: 13px
+
+.ca__card-ico
+  flex-shrink: 0
+  width: 44px
+  height: 44px
+  border-radius: 13px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
+  box-shadow: 0 6px 16px rgba(169, 134, 58, .3)
+
+.ca__eyebrow
+  font-size: 11px
+  font-weight: 700
+  letter-spacing: .07em
+  text-transform: uppercase
+  color: $gold-dark
+
+.ca__heading
+  font-family: $font-heading
+  font-size: 20px
+  font-weight: 700
+  color: $text-active
+  margin: 2px 0 0
+
+.ca__sub
+  font-size: 13px
+  color: $text-inactive
+  margin: 2px 0 0
+
+.ca__progress
+  height: 5px
+  border-radius: 999px
+  background: #efe6cf
+  margin: 16px 0 22px
+  overflow: hidden
+
+  span
+    display: block
+    height: 100%
+    border-radius: 999px
+    background: linear-gradient(90deg, $gold 0%, $gold-dark 100%)
+    transition: width .3s ease
+
+// ── Campi (dimensioni uniformi) ──
+.ca__fields
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+.ca-field
+  min-width: 0
+
+.ca-label
+  display: block
+  font-size: 12.5px
+  font-weight: 600
+  color: $text-active
+  margin-bottom: 6px
+
+.ca-req
+  color: $error
+  font-weight: 700
+
+.ca-input
+  width: 100%
+  height: 44px
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 0 13px
+  font-size: 14px
+  font-family: $font-body
+  color: $text-active
+  background: #fff
+  outline: none
+  transition: border-color .15s, box-shadow .15s
+
+  &:focus
+    border-color: $gold
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, .18)
+
+.ca-textarea
+  height: auto
+  padding: 11px 13px
+  resize: vertical
+  min-height: 84px
+  line-height: 1.5
+
+.ca-row
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr))
+  gap: 14px
+
+.ca-count
+  display: block
+  text-align: right
+  margin-top: 5px
+  font-size: 11.5px
+  color: $text-disabled
+
+  b
+    color: $gold-dark
+    font-weight: 700
+
+// ── Toggle ──
+.ca-toggles
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 10px
+
+  @media (max-width: 560px)
+    grid-template-columns: 1fr
+
+.ca-toggle
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 11px 14px
+  border: 1px solid $border
+  border-radius: 11px
+  background: #fff
+  cursor: pointer
+  user-select: none
+  transition: border-color .12s
+
+  &:hover
+    border-color: $gold
+
+  input
+    position: absolute
+    opacity: 0
+    pointer-events: none
+
+.ca-toggle__track
+  position: relative
+  width: 40px
+  height: 22px
+  border-radius: 999px
+  background: #cbd3df
+  flex-shrink: 0
+  transition: background .15s
+
+.ca-toggle__knob
+  position: absolute
+  top: 3px
+  left: 3px
+  width: 16px
+  height: 16px
+  border-radius: 50%
+  background: #fff
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .18)
+  transition: transform .15s
+
+.ca-toggle input:checked + .ca-toggle__track
+  background: $gold-dark
+
+.ca-toggle input:checked + .ca-toggle__track .ca-toggle__knob
+  transform: translateX(18px)
+
+.ca-toggle__label
+  font-size: 13.5px
+  font-weight: 600
+  color: $text-active
+
+// ── Logo dropzone ──
+.ca-drop
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 100%
+  height: 110px
+  border: 2px dashed $border
+  border-radius: 12px
+  background: #fcfbf7
+  cursor: pointer
+  overflow: hidden
+  transition: border-color .15s, background .15s
+
+  &:hover
+    border-color: $gold
+    background: #faf5e6
+
+.ca-drop__hint
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  font-size: 12.5px
+  color: $text-disabled
+
+.ca-drop__img
+  width: 100%
+  height: 100%
+  object-fit: contain
+
+// ── Navigazione ──
+.ca__nav
+  display: flex
+  justify-content: space-between
+  align-items: center
+  gap: 12px
+  margin-top: 24px
+  padding-top: 18px
+  border-top: 1px solid $border
+
+.ca-btn
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 11px 24px
+  border-radius: 10px
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 600
+  cursor: pointer
+  border: 1px solid transparent
+  transition: background .15s, box-shadow .15s, border-color .15s
+
+  &--primary
+    background: #8a6d1f
+    color: #fff
+
+    &:hover:not(:disabled)
+      background: #6f5615
+      box-shadow: 0 8px 20px rgba(138, 109, 31, .28)
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+  &--ghost
+    background: #fff
+    color: $ink
+    border-color: $border
+
+    &:hover
+      border-color: $gold-dark
+
+// ── Stepper d'impatto ──
+.ca__stepper
+  width: 278px
+  flex-shrink: 0
+  display: flex
+  flex-direction: column
+  background: #fff
+  border: 1px solid $border
+  border-radius: 16px
+  box-shadow: 0 10px 30px rgba(20, 30, 45, .05)
+  padding: 22px 20px
+
+  @media (max-width: 1080px)
+    flex-direction: row
+    width: 100%
+    overflow-x: auto
+
+.ca-step
+  position: relative
+  display: flex
+  align-items: center
+  gap: 14px
+  background: transparent
+  border: 0
+  cursor: pointer
+  padding: 0 0 26px
+  text-align: left
+
+  &:last-child
+    padding-bottom: 0
+
+  &:not(:last-child)::before
+    content: ''
+    position: absolute
+    left: 22px
+    top: 46px
+    bottom: 2px
+    width: 3px
+    border-radius: 2px
+    background: #efe6cf
+
+  &--done:not(:last-child)::before
+    background: $gold-dark
+
+  @media (max-width: 1080px)
+    flex-direction: column
+    padding: 0 30px 0 0
+    gap: 8px
+    min-width: 120px
+
+    &:not(:last-child)::before
+      left: 46px
+      top: 22px
+      bottom: auto
+      right: 4px
+      width: auto
+      height: 3px
+
+.ca-step__node
+  position: relative
+  z-index: 1
+  width: 46px
+  height: 46px
+  border-radius: 50%
+  flex-shrink: 0
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: #fff
+  border: 2px solid $gold
+  transition: background .18s, border-color .18s, transform .18s, box-shadow .18s
+
+.ca-step--active .ca-step__node
+  background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
+  border-color: $gold-dark
+  transform: scale(1.06)
+  box-shadow: 0 0 0 5px rgba(201, 168, 76, .22), 0 6px 16px rgba(169, 134, 58, .32)
+
+.ca-step--done .ca-step__node
+  background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
+  border-color: $gold-dark
+
+.ca-step__meta
+  display: flex
+  flex-direction: column
+  gap: 1px
+  min-width: 0
+
+.ca-step__label
+  font-size: 14px
+  font-weight: 700
+  color: $text-inactive
+  line-height: 1.2
+
+.ca-step__desc
+  font-size: 11px
+  color: $text-disabled
+
+.ca-step--active .ca-step__label
+  color: $ink
+
+.ca-step--done .ca-step__label
+  color: $gold-dark

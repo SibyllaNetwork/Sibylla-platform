@@ -1,0 +1,196 @@
+@use '../../../styles/tokens' as *
+
+.sgn
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-50: #faf5e6
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.sgn__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.sgn__head
+  text-align: center
+  margin: 0 0 22px
+
+.sgn__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.sgn__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.sgn__toolbar
+  display: flex
+  align-items: center
+  gap: 10px
+
+.sgn__search
+  flex: 1
+  max-width: 320px
+
+  input
+    width: 100%
+    height: 40px
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 0 13px
+    font-size: 13px
+    color: $text-active
+    outline: none
+
+    &:focus
+      border-color: $primary-300
+
+.sgn__btn
+  height: 40px
+  display: inline-flex
+  align-items: center
+  padding: 0 20px
+  border: 0
+  border-radius: 9px
+  background: #8a6d1f
+  color: #fff
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  transition: background .15s
+
+  &:hover
+    background: #6f5615
+
+.sgn__wrap
+  border: 1px solid $border
+
+.sgn__table
+  width: 100%
+  table-layout: fixed
+
+  th, td
+    vertical-align: middle
+    white-space: normal
+    padding-left: 4px
+    padding-right: 4px
+
+  th
+    font-size: 11.5px
+    line-height: 1.25
+
+  // Codice / Città / Salva con larghezza fissa; le 14 tariffe si dividono il resto.
+  th:first-child
+    width: 76px
+  th:nth-child(2)
+    width: 112px
+  th:last-child
+    width: 74px
+
+  tbody td
+    padding-top: 9px
+    padding-bottom: 9px
+
+  tbody tr:nth-child(even)
+    background: rgba(201, 168, 76, 0.09)
+
+  .sgn__th-c
+    text-align: center
+
+.sgn__filter-row th
+  background: #fff
+  padding: 6px 4px
+  border-top: 1px solid $border
+
+.sgn__cf
+  width: 100%
+  min-width: 0
+  height: 28px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 6px
+  font-size: 11.5px
+  font-weight: 400
+  color: $text-active
+  background: #fff
+  text-transform: none
+  letter-spacing: 0
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.sgn__cod
+  font-variant-numeric: tabular-nums
+  font-size: 11.5px
+  color: $text-inactive
+  word-break: break-all
+
+.sgn__citta
+  font-weight: 600
+  font-size: 12px
+  color: $text-active
+
+.sgn__cell
+  text-align: center
+
+.sgn__inp
+  width: 100%
+  min-width: 0
+  height: 32px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 6px
+  font-size: 12.5px
+  color: $text-active
+  text-align: right
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.sgn__save
+  width: 100%
+  height: 30px
+  padding: 0 6px
+  border: 1px solid $primary-300
+  border-radius: 7px
+  background: #f3e9cf
+  color: #6f5615
+  font-size: 12px
+  font-weight: 600
+  white-space: nowrap
+  cursor: pointer
+  transition: background .15s
+
+  &:hover
+    background: #e7d4a3
+
+.sgn__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px

@@ -1,0 +1,226 @@
+@use '../../../styles/tokens' as *
+
+.gbf
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.gbf__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.gbf__head
+  text-align: center
+  margin: 0 0 22px
+
+.gbf__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.gbf__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.gbf__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 14px
+  flex-wrap: wrap
+
+.gbf__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  span
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  .sib-select, .sib-input
+    height: 40px
+    min-width: 160px
+
+.gbf__wrap
+  border: 1px solid $border
+  overflow-x: auto
+
+.gbf__table
+  min-width: 1100px
+
+  th, td
+    vertical-align: middle
+    white-space: nowrap
+
+  tbody td
+    padding-top: 9px
+    padding-bottom: 9px
+
+  tbody tr:nth-child(even)
+    background: rgba(201, 168, 76, 0.09)
+
+  .gbf__th-actions
+    text-align: center
+    width: 90px
+
+.gbf__filter-row th
+  background: #fff
+  padding: 6px 8px
+  border-top: 1px solid $border
+
+.gbf__cf
+  width: 100%
+  height: 30px
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 0 8px
+  font-size: 12px
+  font-weight: 400
+  color: $text-active
+  background: #fff
+  text-transform: none
+  letter-spacing: 0
+  outline: none
+
+  &:focus
+    border-color: $primary-300
+
+.gbf__strong
+  font-weight: 600
+  color: $text-active
+
+.gbf__id
+  font-size: 12px
+  color: $text-inactive
+
+  span
+    display: block
+    max-width: 190px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+.gbf__stato
+  display: inline-flex
+  align-items: center
+  font-size: 12px
+  font-weight: 600
+
+  &--pending
+    color: $warning
+
+  &--ok
+    color: $success
+
+.gbf__actions
+  text-align: center
+  white-space: nowrap
+
+.gbf__icon
+  width: 30px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  margin: 0 2px
+  transition: border-color .12s
+
+  &:hover
+    border-color: $primary-300
+
+.gbf__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px
+
+// ── Modali di conferma (Modifica importo / Approva pagamento) ──
+.gbf-modal
+  padding: 6px 2px 2px
+
+  &__q
+    font-size: 14px
+    color: $text-active
+    text-align: center
+    line-height: 1.6
+    margin: 4px 0 22px
+
+    b
+      font-weight: 700
+
+  &__inp
+    width: 120px
+    height: 32px
+    margin: 0 4px
+    border: 0
+    border-bottom: 1.5px solid $border
+    padding: 0 6px
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+    text-align: center
+    outline: none
+
+    &:focus
+      border-bottom-color: $primary-300
+
+  &__actions
+    display: flex
+    justify-content: center
+    gap: 14px
+
+  &__btn
+    min-width: 110px
+    height: 40px
+    border-radius: 9px
+    background: #fff
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: background .15s, color .15s
+
+    &--proceed
+      border: 1.5px solid #e0566b
+      color: #d63d54
+
+      &:hover:not(:disabled)
+        background: #fdeef0
+
+      &:disabled
+        opacity: .5
+        cursor: not-allowed
+
+    &--cancel
+      border: 1.5px solid #1f3d63
+      color: #1f3d63
+
+      &:hover
+        background: #eef2f8

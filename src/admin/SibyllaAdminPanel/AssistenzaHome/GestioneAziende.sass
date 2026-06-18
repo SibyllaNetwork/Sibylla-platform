@@ -1,0 +1,131 @@
+@use '../../../styles/tokens' as *
+
+.gaz
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  // Header/righe tabella (bg-canvas = --color-bg) e paginazione (--color-primary*)
+  // in palette oro invece dell'azzurro di piattaforma.
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+
+.gaz__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.gaz__head
+  text-align: center
+  margin: 0 0 26px
+
+.gaz__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.gaz__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.gaz__toolbar
+  display: flex
+  gap: 10px
+
+.gaz__btn
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 10px 18px
+  border: 0
+  border-radius: 9px
+  background: #8a6d1f
+  color: #fff
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  transition: background .15s
+
+  &:hover
+    background: #6f5615
+
+.gaz__table
+  th, td
+    vertical-align: middle
+
+  .gaz__th-actions
+    text-align: center
+    width: 80px
+
+.gaz__name
+  font-weight: 600
+  color: $text-active
+
+.gaz__logo
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 34px
+  height: 34px
+  border-radius: 8px
+  background: #f3e9cf
+  color: #8a6d1f
+  font-size: 11px
+  font-weight: 700
+
+.gaz__stato
+  display: inline-flex
+  align-items: center
+  font-size: 12px
+  font-weight: 600
+  color: $success
+
+.gaz__pre
+  font-size: 12.5px
+  color: $text-inactive
+
+  &--on
+    color: $success
+    font-weight: 600
+
+.gaz__actions
+  text-align: center
+
+.gaz__icon
+  width: 30px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 7px
+  background: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  transition: border-color .12s
+
+  &:hover
+    border-color: $primary-300
+
+.gaz__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px
