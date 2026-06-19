@@ -141,6 +141,16 @@ export default function StrutturaPlatformModal({
                     placeholder="es. Eternal City Boutique Hotel"
                   />
                 </div>
+                <div className="str-modal__field str-modal__field--full">
+                  <label className="str-modal__label">Ragione sociale</label>
+                  <input
+                    type="text"
+                    className="sib-input"
+                    value={form.ragioneSociale}
+                    onChange={(e) => upd('ragioneSociale', e.target.value)}
+                    placeholder="es. Eternal Hospitality S.r.l."
+                  />
+                </div>
                 <div className="str-modal__field">
                   <label className="str-modal__label">Tipo</label>
                   <select

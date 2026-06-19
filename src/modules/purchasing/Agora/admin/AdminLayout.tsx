@@ -24,7 +24,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { to: '/admin/announcements', label: 'Nuove risorse',  icon: 'bullhorn'                    },
   { to: '/admin/packages',      label: 'Pacchetti',      icon: 'box'                         },
   { to: '/admin/accommodations',label: 'Strutture',      icon: 'bed'                         },
-  { to: '/admin/users',         label: 'Utenti',         icon: 'users-gear', comingSoon: true },
+  { to: '/admin/modules',       label: 'Moduli',         icon: 'layer-group'                 },
   { to: '/admin/settings',      label: 'Impostazioni',   icon: 'gear'                        },
 ];
 

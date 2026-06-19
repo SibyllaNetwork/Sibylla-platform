@@ -34,7 +34,7 @@ const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
 const DEFAULT_SORT: SortKey = 'name-asc'
 
 const EMPTY_FORM: StrutturaForm = {
-  nome: '', tipo: 'hotel', classificazione: '4★', ambito: 'urbano',
+  nome: '', ragioneSociale: '', tipo: 'hotel', classificazione: '4★', ambito: 'urbano',
   indirizzo: '', citta: '', provincia: '', regione: '', cap: '', paese: 'Italia',
   lat: '', lon: '',
   email: '', telefono: '', sito: '', logoUrl: '', descrizione: '',
@@ -57,6 +57,7 @@ const tipoIcon  = (t: TipoStruttura) => TIPI_STRUTTURA.find(x => x.value === t)?
 
 const formToStruttura = (f: StrutturaForm): Omit<Struttura, 'id'> => ({
   nome: f.nome.trim(),
+  ragioneSociale: f.ragioneSociale.trim() || undefined,
   tipo: f.tipo,
   classificazione: f.classificazione,
   ambito: f.ambito,
@@ -97,6 +98,7 @@ const formToStruttura = (f: StrutturaForm): Omit<Struttura, 'id'> => ({
 
 const strutturaToForm = (s: Struttura): StrutturaForm => ({
   nome: s.nome,
+  ragioneSociale: s.ragioneSociale ?? '',
   tipo: s.tipo,
   classificazione: s.classificazione,
   ambito: s.ambito,

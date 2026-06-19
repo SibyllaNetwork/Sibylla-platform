@@ -53,7 +53,7 @@ import { AdminLayout } from './admin/AdminLayout';
 import { AdminVideosPage } from './admin/AdminVideosPage';
 import { AdminSettingsPage } from './admin/AdminSettingsPage';
 import { AdminPackagesPage } from './admin/AdminPackagesPage';
-import { AdminStubPage } from './admin/AdminStubPage';
+import { AdminModulesPage } from './admin/AdminModulesPage';
 import { AdminNuoveRisorsePage } from './admin/AdminNuoveRisorsePage';
 import StruttureTab from '../../../admin/SibyllaAdminPanel/tabs/StruttureTab/StruttureTab';
 
@@ -100,17 +100,7 @@ function AgoraRoutes() {
         <Route path="announcements" element={<AdminNuoveRisorsePage />} />
         <Route path="packages" element={<AdminPackagesPage />} />
         <Route path="accommodations" element={<StruttureTab />} />
-        <Route
-          path="users"
-          element={
-            <AdminStubPage
-              title="Utenti & permessi"
-              subtitle="Accessi e ruoli"
-              icon="users-gear"
-              description="Gestione utenti, ruoli e accessi alla piattaforma."
-            />
-          }
-        />
+        <Route path="modules" element={<AdminModulesPage />} />
       </Route>
     </Routes>
   );

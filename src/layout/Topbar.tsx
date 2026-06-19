@@ -131,9 +131,25 @@ export default function Topbar({
         </button>
       )}
 
-      {/* ── Console amministrativa: uscita (il titolo è nell'header della sidenav) ── */}
+      {/* ── Console amministrativa: home + uscita (il titolo è nell'header della sidenav) ── */}
       {adminMode && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 4 }}>
+          {currentPage !== 'sibylla-admin' && (
+            <button
+              type="button"
+              onClick={() => { useAccessStore.getState().exitAssist(); navigate('sibylla-admin') }}
+              title="Torna alla home della Sibylla System Administration Console"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'rgba(0,0,0,0.06)', color: '#2a2208', border: 0,
+                borderRadius: 8, padding: '7px 12px', cursor: 'pointer',
+                fontWeight: 600, fontSize: 12, whiteSpace: 'nowrap',
+              }}
+            >
+              <Ico n="home" s={13} c="#2a2208" />
+              Home Console
+            </button>
+          )}
           <button
             type="button"
             onClick={() => { useAccessStore.getState().exitAssist(); navigate('home') }}

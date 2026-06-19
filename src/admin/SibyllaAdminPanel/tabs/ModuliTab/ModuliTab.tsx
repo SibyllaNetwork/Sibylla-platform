@@ -9,26 +9,21 @@ interface Props {
   assigned: Set<string>
   enabledCount: number
   onToggleAssign: (moduloId: string) => void
-  onCreate: () => void
   onEdit: (m: Modulo) => void
   onDelete: (id: string) => void
 }
 
 export default function ModuliTab({
   client, modules, assigned, enabledCount,
-  onToggleAssign, onCreate, onEdit, onDelete,
+  onToggleAssign, onEdit, onDelete,
 }: Props) {
   return (
     <div className="mod-tab">
       <div className="mod-tab__head">
         <div>
           <div className="mod-tab__title">Moduli configurati</div>
-          <div className="mod-tab__sub">{modules.length} moduli disponibili</div>
+          <div className="mod-tab__sub">{modules.length} moduli disponibili · creali in «Amministrazione piattaforma → Nuovo modulo»</div>
         </div>
-        <button className="sib-btn sib-btn--primary mod-tab__btn-new" onClick={onCreate}>
-          <Ico n="plus" s={12} c="#fff" />
-          Nuovo modulo
-        </button>
       </div>
 
       {assigned.size > 0 && (

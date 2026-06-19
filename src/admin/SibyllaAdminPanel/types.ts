@@ -62,6 +62,7 @@ export interface PianoRow {
 
 export interface NewClientForm {
   nome: string
+  ragioneSociale: string
   categoria: TipologiaCategoria
   classificazione: string
   citta: string

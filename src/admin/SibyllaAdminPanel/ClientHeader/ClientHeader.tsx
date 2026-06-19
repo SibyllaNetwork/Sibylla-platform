@@ -7,7 +7,7 @@ import './ClientHeader.sass'
    Le tab globali (Catalogo, Console Agorà) sono rese fuori, sopra il header. */
 const TABS: ReadonlyArray<readonly [AdminTab, string, string]> = [
   ['struttura', 'Struttura', 'gear'],
-  ['moduli',    'Pagine',    'menu'],
+  ['moduli',    'Personalizza Moduli', 'menu'],
   ['pacchetti', 'Moduli',    'bar'],
   ['ruoli',     'Ruoli',     'org'],
   ['funzioni',  'Funzioni',  'gear'],

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react'
 import MENU from '../../../navigation/menu'
+import GiornaleImpresaPeek from '../GiornaleImpresaPeek/GiornaleImpresaPeek'
 import './HomePage.sass'
 
 // ── Mappa moduli attivi → file WebM ─────────────────────────────────────────
@@ -56,6 +57,7 @@ export default function HomePage({ navigate }: { navigate: (p: string) => void }
 
   return (
     <div className="home">
+      <GiornaleImpresaPeek navigate={navigate} />
       <div className="home__hero">
         <div className="home__hero-content">
           {timoneUrl ? (

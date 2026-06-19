@@ -150,11 +150,15 @@ export default function StructFields({ form, setForm, readOnly = false }: Props)
               ))}
             </div>
           </div>
-          <div className="ncm__f">
+          <div className="ncm__f ncm__f--2">
             <label className="ncm__label">Nome struttura *</label>
             <input className="sib-input" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Es. Hotel Firenze Arte" />
           </div>
           <div className="ncm__f ncm__f--2">
+            <label className="ncm__label">Ragione sociale</label>
+            <input className="sib-input" value={form.ragioneSociale} onChange={e => setForm({ ...form, ragioneSociale: e.target.value })} placeholder="Es. Hotel Firenze Arte S.r.l." />
+          </div>
+          <div className="ncm__f">
             <label className="ncm__label">Numero piani</label>
             <input className="sib-input" type="number" min={0} max={50} value={form.numeroPiani} onChange={e => setNumeroPiani(parseInt(e.target.value))} />
           </div>

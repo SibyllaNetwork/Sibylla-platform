@@ -47,6 +47,7 @@ export interface TipologiaCamera {
 export interface Struttura {
   id: string
   nome: string
+  ragioneSociale?: string   // denominazione legale dell'intestatario della struttura
   tipo: TipoStruttura
   classificazione: Classificazione
   ambito: AmbitoStruttura
@@ -96,6 +97,7 @@ export interface Struttura {
 
 export interface StrutturaForm {
   nome: string
+  ragioneSociale: string
   tipo: TipoStruttura
   classificazione: Classificazione
   ambito: AmbitoStruttura

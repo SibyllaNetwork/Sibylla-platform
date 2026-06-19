@@ -7,7 +7,7 @@ export const ALL_PAGES: string[] = getAllPages(MENU as any)
 
 /** Stato iniziale della modale "Nuova struttura" (creazione cliente). */
 export const EMPTY_NEW_CLIENT: NewClientForm = {
-  nome: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '0', email: '', moduli: [],
+  nome: '', ragioneSociale: '', categoria: 'hotel', classificazione: '4★', citta: '', camere: '0', email: '', moduli: [],
   pms: 'Sibylla', tipologiaGruppo: '', numeroPiani: 1, piani: [{ nome: '', camere: {} }],
   numStart: 1, numDigits: 2, roomOverrides: {}, roomTypes: {}, postiConfig: {}, tipologieNomi: {}, roomExtra: {},
   indirizzo: '', localita: '', provincia: '', cap: '', nazione: '', telefono: '', piva: '', codiceSdi: '', pec: '',

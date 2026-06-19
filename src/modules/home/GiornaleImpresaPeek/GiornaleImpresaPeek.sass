@@ -1,0 +1,633 @@
+@use '../../../styles/tokens' as *
+
+// ── Anteprima "Giornale impresa" (linguetta in cima alla Home) ──────────────
+// Curva di easing morbida condivisa per apertura/chiusura.
+$ease: cubic-bezier(.22, 1, .36, 1)
+$navy-grad: linear-gradient(120deg, #25557e 0%, #204769 55%, #1a3a56 100%)
+
+.gip
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  z-index: 40
+  display: flex
+  flex-direction: column
+  align-items: flex-end
+  padding-right: 30px
+  pointer-events: none
+
+  @media (max-width: 640px)
+    padding-right: 14px
+
+// ── Backdrop ────────────────────────────────────────────────────────────────
+.gip__backdrop
+  position: fixed
+  inset: 0
+  background: rgba(16, 33, 50, 0)
+  backdrop-filter: blur(0px)
+  transition: background .42s $ease, backdrop-filter .42s $ease
+  pointer-events: none
+  z-index: 1
+
+.gip.is-open .gip__backdrop
+  background: rgba(16, 33, 50, .34)
+  backdrop-filter: blur(2px)
+  pointer-events: auto
+
+// decoro "mappa/pin" sfumato sull'header
+.gip__head-deco
+  position: absolute
+  inset: 0
+  background-image: radial-gradient(circle at 12% 60%, rgba(255, 255, 255, .10) 0 2px, transparent 3px), radial-gradient(circle at 82% 30%, rgba(255, 255, 255, .08) 0 3px, transparent 4px), radial-gradient(circle at 60% 80%, rgba(255, 255, 255, .06) 0 2px, transparent 3px)
+  background-size: cover
+  pointer-events: none
+
+// ── Linguetta "ribbon" (creativa, ancorata a destra) ────────────────────────
+.gip__tab
+  position: relative
+  z-index: 3
+  pointer-events: auto
+  display: inline-flex
+  align-items: center
+  gap: 12px
+  height: 52px
+  padding: 0 18px 0 12px
+  border: 0
+  // forma a "etichetta": angolo in basso a sx smussato, dx arrotondato
+  border-radius: 0 0 6px 18px
+  background: $navy-grad
+  color: #fff
+  cursor: pointer
+  overflow: hidden
+  box-shadow: 0 12px 28px rgba(26, 58, 86, .32)
+  // sottile filo oro in alto
+  border-top: 2px solid var(--color-accent)
+  transition: transform .34s $ease, box-shadow .34s $ease, border-radius .34s $ease
+
+  &::before
+    // riga oro luminosa in basso
+    content: ''
+    position: absolute
+    left: 12px
+    right: 12px
+    bottom: 0
+    height: 2px
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent)
+    opacity: .8
+
+  &:hover
+    transform: translateY(2px)
+    box-shadow: 0 18px 38px rgba(26, 58, 86, .42)
+
+// sheen che attraversa la linguetta
+.gip__tab-shimmer
+  position: absolute
+  top: 0
+  left: -60%
+  width: 45%
+  height: 100%
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .22), transparent)
+  transform: skewX(-18deg)
+  animation: gip-sheen 4.5s ease-in-out infinite
+  pointer-events: none
+
+// badge circolare con anello oro
+.gip__tab-badge
+  position: relative
+  width: 34px
+  height: 34px
+  flex-shrink: 0
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: rgba(255, 255, 255, .10)
+  box-shadow: inset 0 0 0 1.5px rgba(201, 168, 76, .9)
+
+.gip__tab-text
+  position: relative
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  line-height: 1.05
+  text-align: left
+
+.gip__tab-eyebrow
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 9.5px
+  font-weight: 700
+  letter-spacing: .12em
+  text-transform: uppercase
+  color: var(--color-accent)
+
+.gip__tab-livedot
+  width: 6px
+  height: 6px
+  border-radius: 50%
+  background: #ff616e
+  box-shadow: 0 0 0 0 rgba(255, 97, 110, .55)
+  animation: gip-pulse-red 1.8s infinite
+
+.gip__tab-label
+  font-family: $font-heading
+  font-size: 14.5px
+  font-weight: 800
+  letter-spacing: .01em
+
+.gip__tab-chev
+  position: relative
+  display: inline-flex
+  margin-left: 2px
+  transition: transform .42s $ease
+
+.gip.is-open .gip__tab
+  border-radius: 0
+  transform: translateY(0)
+
+.gip.is-open .gip__tab-chev
+  transform: rotate(180deg)
+
+// ── Pannello ──────────────────────────────────────────────────────────────────
+.gip__panel
+  position: relative
+  z-index: 2
+  pointer-events: none
+  width: min(680px, calc(100% - 32px))
+  max-height: calc(100vh - 132px)
+  margin-top: -2px
+  display: flex
+  flex-direction: column
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  border-top: 0
+  border-radius: 0 0 18px 18px
+  box-shadow: 0 30px 70px rgba(16, 33, 50, .30)
+  overflow: hidden
+  transform-origin: top right
+  // stato chiuso
+  opacity: 0
+  transform: translateY(-14px) scaleY(.97)
+  transition: opacity .34s $ease, transform .42s $ease, visibility .42s
+  visibility: hidden
+
+.gip.is-open .gip__panel
+  opacity: 1
+  transform: translateY(0) scaleY(1)
+  visibility: visible
+  pointer-events: auto
+
+// ── Header pannello ───────────────────────────────────────────────────────────
+.gip__head
+  position: relative
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 14px 16px
+  background: $navy-grad
+  color: #fff
+  flex-shrink: 0
+
+.gip__head-main
+  position: relative
+  flex: 1
+  min-width: 0
+
+.gip__head-titlewrap
+  display: flex
+  align-items: center
+  gap: 9px
+
+.gip__head-title
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 800
+  margin: 0
+
+.gip__live
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  height: 19px
+  padding: 0 8px
+  border-radius: 20px
+  background: rgba(255, 255, 255, .14)
+  font-size: 10px
+  font-weight: 700
+  letter-spacing: .08em
+
+.gip__live-dot
+  width: 6px
+  height: 6px
+  border-radius: 50%
+  background: #ff616e
+  animation: gip-pulse-red 1.8s infinite
+
+.gip__head-date
+  position: relative
+  margin-top: 3px
+  font-size: 12px
+  color: #cfe0f0
+  text-transform: capitalize
+
+.gip__head-actions
+  position: relative
+  display: flex
+  align-items: center
+  gap: 8px
+
+.gip__open-btn
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  height: 32px
+  padding: 0 14px
+  border: 0
+  border-radius: 8px
+  background: #fff
+  color: var(--color-primary)
+  font-family: $font-heading
+  font-size: 12.5px
+  font-weight: 700
+  cursor: pointer
+  transition: transform .15s $ease, background .15s
+
+  &:hover
+    background: #eef4fa
+    transform: translateY(-1px)
+
+.gip__close
+  width: 32px
+  height: 32px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 0
+  border-radius: 8px
+  background: rgba(255, 255, 255, .12)
+  cursor: pointer
+  transition: background .15s
+
+  &:hover
+    background: rgba(255, 255, 255, .22)
+
+// ── Body ────────────────────────────────────────────────────────────────────
+.gip__body
+  padding: 16px
+  overflow-y: auto
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+// stagger: ogni sezione entra leggermente dopo l'header
+.gip__sec
+  opacity: 0
+  transform: translateY(10px)
+  transition: opacity .4s $ease, transform .45s $ease
+
+.gip.is-open .gip__sec
+  opacity: 1
+  transform: translateY(0)
+
+.gip.is-open .gip__sec--d1
+  transition-delay: .10s
+.gip.is-open .gip__sec--d2
+  transition-delay: .16s
+.gip.is-open .gip__sec--d3
+  transition-delay: .20s
+.gip.is-open .gip__sec--d4
+  transition-delay: .24s
+.gip.is-open .gip__sec--d5
+  transition-delay: .28s
+
+.gip__sec-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 10px
+
+.gip__sec-title
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  font-family: $font-heading
+  font-size: 13.5px
+  font-weight: 700
+  color: var(--color-text-active)
+
+.gip__sdly
+  font-size: 10.5px
+  font-weight: 700
+  color: var(--color-text-inactive)
+  text-transform: uppercase
+  letter-spacing: .04em
+
+// ── KPI ────────────────────────────────────────────────────────────────────
+.gip__kpis
+  display: grid
+  grid-template-columns: repeat(5, 1fr)
+  gap: 8px
+
+  @media (max-width: 560px)
+    grid-template-columns: repeat(2, 1fr)
+
+.gip__kpi
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 2px
+  padding: 10px
+  border: 1px solid var(--color-border)
+  border-radius: 10px
+  background: linear-gradient(180deg, #fbfdff, #f4f8fc)
+
+.gip__kpi-ico
+  display: inline-flex
+  margin-bottom: 2px
+
+.gip__kpi-val
+  font-family: $font-heading
+  font-size: 17px
+  font-weight: 800
+  color: var(--color-primary)
+  line-height: 1.1
+
+.gip__kpi-label
+  font-size: 10.5px
+  color: var(--color-text-inactive)
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+  max-width: 100%
+
+.gip__kpi-delta
+  display: inline-flex
+  align-items: center
+  gap: 2px
+  margin-top: 3px
+  font-size: 10.5px
+  font-weight: 700
+
+  &.is-pos
+    color: var(--color-success)
+  &.is-neg
+    color: var(--color-error)
+
+// ── Colonne (news / destra) ─────────────────────────────────────────────────
+.gip__cols
+  display: grid
+  grid-template-columns: 1.3fr 1fr
+  gap: 14px
+
+  @media (max-width: 600px)
+    grid-template-columns: 1fr
+
+.gip__col-right
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.gip__card
+  padding: 12px
+  border: 1px solid var(--color-border)
+  border-radius: 12px
+  background: var(--color-surface)
+
+// ── Feature news ──────────────────────────────────────────────────────────────
+.gip__feature
+  border: 1px solid var(--color-border)
+  border-radius: 12px
+  overflow: hidden
+  cursor: pointer
+  background: var(--color-surface)
+  transition: box-shadow .2s $ease, transform .2s $ease
+
+  &:hover
+    box-shadow: 0 10px 24px rgba(16, 33, 50, .12)
+    transform: translateY(-2px)
+
+.gip__feature-media
+  position: relative
+  height: 116px
+  background-image: var(--img)
+  background-size: cover
+  background-position: center
+
+.gip__feature-cat
+  position: absolute
+  top: 8px
+  left: 8px
+  padding: 2px 8px
+  border-radius: 6px
+  background: var(--color-primary)
+  color: #fff
+  font-size: 10px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: .04em
+
+.gip__feature-body
+  padding: 11px 12px 12px
+
+.gip__feature-title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 700
+  color: var(--color-text-active)
+  margin: 0 0 5px
+  line-height: 1.25
+
+.gip__feature-text
+  font-size: 12px
+  color: var(--color-text-inactive)
+  line-height: 1.45
+  margin: 0 0 7px
+  display: -webkit-box
+  -webkit-line-clamp: 3
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.gip__feature-meta
+  font-size: 11px
+  font-weight: 600
+  color: var(--color-link)
+
+// ── Meteo & Eventi ──────────────────────────────────────────────────────────
+.gip__meteo
+  display: flex
+  align-items: center
+  gap: 10px
+  padding-bottom: 10px
+  margin-bottom: 10px
+  border-bottom: 1px solid var(--color-border)
+
+.gip__meteo-icon
+  font-size: 30px
+  --fa-primary-color: #f4b740
+  --fa-secondary-color: #9cc3e6
+
+.gip__meteo-temp
+  font-family: $font-heading
+  font-size: 24px
+  font-weight: 800
+  color: var(--color-text-active)
+
+.gip__meteo-meta
+  display: flex
+  flex-direction: column
+
+.gip__meteo-city
+  font-size: 12.5px
+  font-weight: 700
+  color: var(--color-text-active)
+
+.gip__meteo-desc
+  font-size: 11.5px
+  color: var(--color-text-inactive)
+
+.gip__events
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.gip__event
+  display: flex
+  align-items: center
+  gap: 9px
+
+.gip__event-date
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  width: 38px
+  height: 38px
+  flex-shrink: 0
+  border-radius: 9px
+  background: var(--color-primary-50, #eef4fa)
+  color: var(--color-primary)
+  line-height: 1
+
+  strong
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 800
+  font-size: 9px
+  text-transform: uppercase
+  letter-spacing: .04em
+
+.gip__event-title
+  font-size: 12.5px
+  font-weight: 600
+  color: var(--color-text-active)
+  line-height: 1.2
+
+.gip__event-loc
+  font-size: 11px
+  color: var(--color-text-inactive)
+  margin-top: 1px
+
+// ── Ospiti speciali ────────────────────────────────────────────────────────
+.gip__vips
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.gip__vip
+  display: flex
+  align-items: center
+  gap: 10px
+
+.gip__vip-avatar
+  width: 34px
+  height: 34px
+  flex-shrink: 0
+  border-radius: 50%
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: $navy-grad
+  color: #fff
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 700
+
+.gip__vip-name
+  font-size: 12.5px
+  font-weight: 700
+  color: var(--color-text-active)
+
+.gip__vip-note
+  font-size: 11px
+  color: var(--color-text-inactive)
+  margin-top: 1px
+
+// ── Almanacco ────────────────────────────────────────────────────────────────
+.gip__alm
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 13px 16px
+  border-radius: 12px
+  background: linear-gradient(120deg, #faf6ec, #f6efdc)
+  border: 1px solid #ecdfbe
+
+.gip__alm-quote
+  margin: 0
+  font-size: 13px
+  font-style: italic
+  color: #6f5615
+  line-height: 1.4
+
+.gip__alm-author
+  display: block
+  margin-top: 4px
+  font-size: 11px
+  font-style: normal
+  font-weight: 700
+  letter-spacing: .02em
+
+// ── CTA ────────────────────────────────────────────────────────────────────
+.gip__cta
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+  height: 42px
+  border: 0
+  border-radius: 10px
+  background: $navy-grad
+  color: #fff
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  cursor: pointer
+  transition: filter .15s, transform .15s $ease
+
+  &:hover
+    filter: brightness(1.08)
+    transform: translateY(-1px)
+
+@keyframes gip-pulse-red
+  0%
+    box-shadow: 0 0 0 0 rgba(255, 97, 110, .55)
+  70%
+    box-shadow: 0 0 0 6px rgba(255, 97, 110, 0)
+  100%
+    box-shadow: 0 0 0 0 rgba(255, 97, 110, 0)
+
+@keyframes gip-sheen
+  0%
+    left: -60%
+  35%, 100%
+    left: 120%
+
+// Rispetta la preferenza di ridotta animazione
+@media (prefers-reduced-motion: reduce)
+  .gip__panel, .gip__sec, .gip__tab, .gip__tab-chev, .gip__backdrop
+    transition-duration: .01ms !important
+
+  .gip__tab-shimmer, .gip__tab-livedot, .gip__live-dot
+    animation: none

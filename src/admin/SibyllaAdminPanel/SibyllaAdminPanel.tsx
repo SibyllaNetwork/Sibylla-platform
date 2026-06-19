@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { ALL_PAGES, CLIENTS_INIT, PACCHETTI_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli, EMPTY_NEW_CLIENT } from './constants'
+import { ALL_PAGES, CLIENTS_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli, EMPTY_NEW_CLIENT } from './constants'
 import { getAllPages } from './helpers'
 import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/configuratoriList'
 import { useAccessStore } from '../../store/useAccessStore'
 import { useAdminConfigStore } from '../../store/useAdminConfigStore'
+import { useModuliStore } from '../../store/useModuliStore'
 import type {
   AdminMode, AdminTab, Cliente, FnType, MasterForm, Modulo, ModuloForm,
   NewClientForm, PlatformSection, Ruolo, RuoloForm, UserAssoc, UserRow,
@@ -106,7 +107,11 @@ export default function SibyllaAdminPanel(props: Props) {
   const [masterSending, setMasterSending] = useState(false)
   const [masterForm, setMasterForm] = useState<MasterForm>({ nome: '', cognome: '', email: '', telefono: '', ruolo: 'Amministratore Unico' })
 
-  const [moduliList, setModuliList] = useState<Modulo[]>(() => PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })))
+  // I moduli vivono nello store globale: la creazione avviene nell'Amministrazione
+  // piattaforma (Console Agorà → "Nuovo modulo"); qui si assegnano/modificano.
+  const moduliList      = useModuliStore(s => s.moduli)
+  const updateModuloStore = useModuliStore(s => s.updateModulo)
+  const removeModuloStore = useModuliStore(s => s.removeModulo)
   const [assignedModuli, setAssignedModuli] = useState<Record<number, Set<string>>>(() => {
     const init: Record<number, Set<string>> = {}
     // Moduli pre-assegnati a ciascuna azienda (modificabili dalla tab Moduli).
@@ -266,12 +271,6 @@ export default function SibyllaAdminPanel(props: Props) {
     })
   }
 
-  const openCreateModulo = () => {
-    setEditingModulo(null)
-    // Nuovo modulo: tutte le voci del Configuratore visibili di default.
-    setModuloForm({ nome: '', desc: '', pagesSet: new Set(), configItemsSet: new Set(ALL_CONFIGURATORE_IDS) })
-    setShowModuloModal(true)
-  }
   const openEditModulo = (m: Modulo) => {
     setEditingModulo(m)
     setModuloForm({
@@ -287,25 +286,18 @@ export default function SibyllaAdminPanel(props: Props) {
     if (!moduloForm.nome.trim() || moduloForm.pagesSet.size === 0) return
     const configuratoreItems = Array.from(moduloForm.configItemsSet)
     if (editingModulo) {
-      setModuliList(p => p.map(m =>
-        m.id === editingModulo.id
-          ? { ...m, label: moduloForm.nome, desc: moduloForm.desc, pages: Array.from(moduloForm.pagesSet), configuratoreItems }
-          : m,
-      ))
-    } else {
-      setModuliList(p => [...p, {
-        id: `custom-${Date.now()}`,
+      updateModuloStore(editingModulo.id, {
         label: moduloForm.nome,
         desc: moduloForm.desc,
         pages: Array.from(moduloForm.pagesSet),
         configuratoreItems,
-      }])
+      })
     }
     setShowModuloModal(false)
   }
   const confirmDeleteModulo = () => {
     if (!deleteModuloId) return
-    setModuliList(p => p.filter(m => m.id !== deleteModuloId))
+    removeModuloStore(deleteModuloId)
     setDeleteModuloId(null)
   }
 
@@ -693,7 +685,6 @@ export default function SibyllaAdminPanel(props: Props) {
                     assigned={clientAssigned}
                     enabledCount={enabledCount}
                     onToggleAssign={toggleModuloAssign}
-                    onCreate={openCreateModulo}
                     onEdit={openEditModulo}
                     onDelete={setDeleteModuloId}
                   />
