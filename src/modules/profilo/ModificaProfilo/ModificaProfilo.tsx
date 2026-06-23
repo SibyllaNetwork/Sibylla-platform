@@ -17,6 +17,7 @@ import {
 } from '../../../services/user.service'
 import { useThemeStore } from '../../../store/useThemeStore'
 import { useViewModeStore } from '../../../store/useViewModeStore'
+import { useSectionThemeStore } from '../../../store/useSectionThemeStore'
 import AvatarPicker from '../../../core/components/AvatarPicker'
 import { avatarUrl, defaultAvatarId } from '../../../core/avatar'
 
@@ -40,6 +41,8 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
   const viewMode  = useViewModeStore(s => s.mode)
   const setMode   = useViewModeStore(s => s.setMode)
   const clearTabs = useViewModeStore(s => s.clearTabs)
+  const dissociato = useSectionThemeStore(s => s.dissociato)
+  const setDissociato = useSectionThemeStore(s => s.setDissociato)
   const selectViewMode = (m: 'classic' | 'tabs') => {
     if (m === viewMode) return
     setMode(m)
@@ -67,9 +70,9 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
         setOriginalEmail(info.email ?? null)
         setLoaded(true)
       })
-      .catch((err) => {
+      .catch(() => {
         if (cancelled) return
-        setErrorBanner(`Backend non raggiungibile (${err?.message ?? 'errore'}). Mostro dati di esempio.`)
+        // Backend non raggiungibile: si mostrano i dati di esempio senza avviso.
         setLoaded(true)
       })
     return () => {
@@ -261,6 +264,32 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
                     <span className="prefs-pane__option-desc">{o.desc}</span>
                   </span>
                   {viewMode === o.id && <i className="fa-solid fa-check prefs-pane__option-check" aria-hidden="true" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tema dei prodotti — unificato / dissociato (colori istituzionali) */}
+          <div className="form-card md:col-span-2">
+            <h3 className="form-card__title">Tema dei prodotti</h3>
+            <p className="prefs-pane__hint">Platform, Tableau e Agorà hanno un colore istituzionale. In modalità dissociata ogni pagina (e la barra laterale e l'intestazione) adotta il colore del proprio prodotto.</p>
+            <div className="prefs-pane__options">
+              {([
+                { id: false, label: 'Unificata', desc: 'Un unico colore (Platform) su tutta la piattaforma.', icon: 'object-group' },
+                { id: true,  label: 'Dissociata', desc: 'Ogni prodotto col proprio colore istituzionale.', icon: 'object-ungroup' },
+              ] as const).map((o) => (
+                <button
+                  key={String(o.id)}
+                  type="button"
+                  className={`prefs-pane__option${dissociato === o.id ? ' prefs-pane__option--active' : ''}`}
+                  onClick={() => setDissociato(o.id)}
+                >
+                  <i className={`fa-light fa-${o.icon} prefs-pane__option-ico`} aria-hidden="true" />
+                  <span className="prefs-pane__option-text">
+                    <span className="prefs-pane__option-label">{o.label}</span>
+                    <span className="prefs-pane__option-desc">{o.desc}</span>
+                  </span>
+                  {dissociato === o.id && <i className="fa-solid fa-check prefs-pane__option-check" aria-hidden="true" />}
                 </button>
               ))}
             </div>

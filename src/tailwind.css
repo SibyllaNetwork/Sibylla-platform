@@ -270,3 +270,28 @@
 @keyframes sib-btn-spin {
   to { transform: rotate(360deg); }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA PER SEZIONE (Platform / Tableau / Agorà)
+   Il contenitore pagina riceve data-section + --color-primary inline:
+   qui ricostruiamo la scala primary derivandola dal main color scelto.
+   ══════════════════════════════════════════════════════════════════ */
+[data-section] {
+  --color-primary-900: var(--color-primary);
+  --color-primary-800: color-mix(in srgb, var(--color-primary) 80%, #000);
+  --color-primary-700: color-mix(in srgb, var(--color-primary) 78%, #fff);
+  --color-primary-600: color-mix(in srgb, var(--color-primary) 62%, #fff);
+  --color-primary-500: color-mix(in srgb, var(--color-primary) 50%, #fff);
+  --color-primary-400: color-mix(in srgb, var(--color-primary) 40%, #fff);
+  --color-primary-300: color-mix(in srgb, var(--color-primary) 28%, #fff);
+  --color-primary-200: color-mix(in srgb, var(--color-primary) 18%, #fff);
+  --color-primary-100: color-mix(in srgb, var(--color-primary) 10%, #fff);
+  --color-primary-50:  color-mix(in srgb, var(--color-primary) 6%, #fff);
+}
+
+/* In modalità dissociata gli sfondi neutri (header e righe tabelle, chip,
+   superfici secondarie) seguono il colore del prodotto. Solo in tema chiaro
+   (in dark gli sfondi restano scuri). */
+html:not([data-theme="dark"]) [data-section] {
+  --color-bg: color-mix(in srgb, var(--color-primary) 7%, #fff);
+}

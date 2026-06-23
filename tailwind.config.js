@@ -134,7 +134,8 @@ module.exports = {
         '3xl': '1525px',
       },
       transitionTimingFunction: {
-        'sidebar': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        // Curva morbida (decelerazione dolce) per apertura/chiusura sidenav.
+        'sidebar': 'cubic-bezier(0.32, 0.72, 0, 1)',
       },
     },
   },

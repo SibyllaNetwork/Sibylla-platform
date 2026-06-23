@@ -5,6 +5,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
+import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -158,7 +159,30 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     [richiesteOp],
   )
 
-  const allNotifications = useMemo(() => [...richiesteNotifs, ...items], [richiesteNotifs, items])
+  // Pratiche in attesa oltre la soglia SLA → notifica di sollecito (se attiva nel Configuratore).
+  const pratiche = usePraticheStore((s) => s.pratiche)
+  const slaHours = usePraticheStore((s) => s.slaHours)
+  const notificaSolleciti = usePraticheStore((s) => s.notificaSolleciti)
+  const praticheNotifs: NotificaUI[] = useMemo(() => {
+    if (!notificaSolleciti) return []
+    const nowMs = Date.now()
+    return praticheInRitardo(pratiche, slaHours, nowMs).map((p, i) => ({
+      id: 950000 + i,
+      sev: 'warning',
+      title: 'Sollecito gestione pratica',
+      text: `La pratica "${p.destinazione}" è in attesa da oltre ${slaHours}h: accelera la gestione.`,
+      ref: `Pratica ${p.destinazione}`,
+      date: 'Oggi',
+      time: '',
+      group: 'oggi',
+      read: false,
+    }))
+  }, [pratiche, slaHours, notificaSolleciti])
+
+  const allNotifications = useMemo(
+    () => [...praticheNotifs, ...richiesteNotifs, ...items],
+    [praticheNotifs, richiesteNotifs, items],
+  )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
     [allNotifications]

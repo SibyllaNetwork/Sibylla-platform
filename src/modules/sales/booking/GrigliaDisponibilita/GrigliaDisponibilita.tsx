@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { SelectField, DatePickerField } from '../../../../core/components/form'
@@ -6,6 +6,7 @@ import ConfigurazioneSuggerimentiModal from './ConfigurazioneSuggerimentiModal'
 import DettaglioPrenotazioniModal from './DettaglioPrenotazioniModal'
 import AttenzioneCapienzaModal from './AttenzioneCapienzaModal'
 import { openGuestRoomChartPdf } from './openGuestRoomChartPdf'
+import { exportTableToXls, exportElementToPdf } from './exportGriglia'
 import './GrigliaDisponibilita.sass'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -68,7 +69,11 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
   const [struttura, setStruttura] = useState('Tutte')
   const [periodo,   setPeriodo]   = useState('2026-05-22')
   const [nGiorni,   setNGiorni]   = useState(5)
+  const [bufferOn,  setBufferOn]  = useState(true)
   const [suggerimentiOn, setSuggerimentiOn] = useState(true)
+
+  // Periodi (giorni) applicabili alla timeline.
+  const PERIODI_GIORNI = [5, 10, 15, 20, 30]
 
   const [showConfigSugg, setShowConfigSugg] = useState(false)
   const [dettaglio,      setDettaglio]      = useState<null | { data: Date; strutturaId: string }>(null)
@@ -91,14 +96,63 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
     }),
   }))
 
+  // Disponibilità stanze di un giorno: il buffer (overbooking) viene sommato solo
+  // se attivo. Disattivandolo i valori si ricalcolano e riemergono gli scoperti.
+  const effStanze = (rawStanze: number, buffer: number) => rawStanze + (bufferOn ? buffer : 0)
+
   // Totali per giorno (per la riga TOTALE)
   const totaliGiorno = useMemo(() => giorni.map((_, gi) => ({
-    stanze:  grid.reduce((acc, r) => acc + r.giorni[gi].stanze, 0),
+    stanze:  grid.reduce((acc, r) => acc + effStanze(r.giorni[gi].stanze, r.buffer), 0),
     persone: grid.reduce((acc, r) => acc + r.giorni[gi].persone, 0),
-  })), [grid, giorni])
+  })), [grid, giorni, bufferOn])
   const totLic = grid.reduce((a, r) => a + r.licenza, 0)
   const totBuf = grid.reduce((a, r) => a + r.buffer, 0)
   const totSt  = grid.reduce((a, r) => a + r.stanze, 0)
+
+  // ── Slider orizzontale: frecce in overlay quando i giorni non entrano ────────
+  const tableWrapRef = useRef<HTMLDivElement>(null)
+  const [nav, setNav] = useState({ prev: false, next: false })
+  const updateNav = useCallback(() => {
+    const el = tableWrapRef.current
+    if (!el) return
+    setNav({
+      prev: el.scrollLeft > 4,
+      next: el.scrollLeft < el.scrollWidth - el.clientWidth - 4,
+    })
+  }, [])
+  // Ricontrolla l'overflow al cambio del numero di giorni / filtri e al resize.
+  useEffect(() => {
+    updateNav()
+    window.addEventListener('resize', updateNav)
+    return () => window.removeEventListener('resize', updateNav)
+  }, [nGiorni, struttura, categoria, bufferOn, updateNav])
+  const scrollDays = (dir: number) => {
+    const el = tableWrapRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.8), behavior: 'smooth' })
+  }
+
+  // ── Export XLS / PDF della pagina ────────────────────────────────────────────
+  const tableRef = useRef<HTMLTableElement>(null)
+  const buildExportData = () => {
+    const giorniLabels = giorni.map(g => `${g.getDate()} ${MESI_IT[g.getMonth()]}`)
+    const header = [
+      'Struttura', 'Stanze', 'Licenza', 'Buffer',
+      ...giorniLabels.flatMap(l => [`${l} · Stanze`, `${l} · Persone`]),
+    ]
+    const rows: (string | number)[][] = grid.map(r => [
+      r.nome, r.stanze, r.licenza, `+ ${r.buffer}`,
+      ...r.giorni.flatMap(g => [effStanze(g.stanze, r.buffer), g.persone]),
+    ])
+    rows.push(['Totale', totSt, totLic, `+ ${totBuf}`, ...totaliGiorno.flatMap(t => [t.stanze, t.persone])])
+    return { header, rows }
+  }
+  const fileBase = `griglia-disponibilita_${periodo}`
+  const handleXls = () => {
+    const { header, rows } = buildExportData()
+    exportTableToXls(`${fileBase}.xls`, header, rows, 'Griglia disponibilità')
+  }
+  const handlePdf = () => exportElementToPdf(tableRef.current, `${fileBase}.pdf`, 'Griglia disponibilità')
 
   return (
     <div className="griglia-disp">
@@ -117,7 +171,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
             className="w-[130px]"
             value={categoria}
             onChange={e => setCategoria(e.target.value)}
-            options={['Tutte','Standard','Superior','Suite'].map(c => ({ value: c, label: c }))}
+            options={['Tutte','3 stelle','4 stelle','5 stelle'].map(c => ({ value: c, label: c }))}
           />
           <SelectField
             label="Struttura" name="struttura"
@@ -135,13 +189,23 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
             value={periodo}
             onChange={e => setPeriodo(e.target.value)}
           />
-          <SelectField
-            label="Giorni" name="nGiorni"
-            className="w-[90px]"
-            value={nGiorni}
-            onChange={e => setNGiorni(+e.target.value)}
-            options={[3, 5, 7, 10, 14].map(n => ({ value: n, label: String(n) }))}
-          />
+          {/* Periodo timeline: 5/10/15/20/30 giorni (segmented) */}
+          <div className="griglia-disp__period">
+            <label className="griglia-disp__period-label">Giorni</label>
+            <div className="griglia-disp__seg" role="group" aria-label="Giorni della timeline">
+              {PERIODI_GIORNI.map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`griglia-disp__seg-btn ${nGiorni === n ? 'is-active' : ''}`}
+                  onClick={() => setNGiorni(n)}
+                  aria-pressed={nGiorni === n}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Suggerimenti toggle + gear */}
           <div className="griglia-disp__suggerimenti">
@@ -182,38 +246,73 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
         </div>
 
         <div className="griglia-disp__export">
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta CSV">
-            <i className="fa-light fa-file-csv" aria-hidden="true" />
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS" onClick={handleXls}>
+            <i className="fa-light fa-file-excel" aria-hidden="true" />
           </button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF">
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF" onClick={handlePdf}>
             <i className="fa-light fa-file-pdf" aria-hidden="true" />
           </button>
         </div>
       </div>
 
       {/* ── Tabella ────────────────────────────────────────────────────────── */}
-      <div className="griglia-disp__table-wrap">
-        <table className="griglia-disp__table">
+      <div className="griglia-disp__timeline">
+        {nav.prev && (
+          <button
+            type="button"
+            className="griglia-disp__nav griglia-disp__nav--prev"
+            onClick={() => scrollDays(-1)}
+            aria-label="Giorni precedenti"
+          >
+            <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M10 3L5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+        {nav.next && (
+          <button
+            type="button"
+            className="griglia-disp__nav griglia-disp__nav--next"
+            onClick={() => scrollDays(1)}
+            aria-label="Giorni successivi"
+          >
+            <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+        <div className="griglia-disp__table-wrap" ref={tableWrapRef} onScroll={updateNav}>
+        <table className="griglia-disp__table" ref={tableRef}>
           <thead>
             <tr className="griglia-disp__th-row griglia-disp__th-row--days">
               <th className="griglia-disp__th griglia-disp__th--struct" rowSpan={2}>Struttura</th>
-              <th className="griglia-disp__th" rowSpan={2}>
+              <th className="griglia-disp__th griglia-disp__th--lead" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
                   <i className="fa-light fa-door-closed" aria-hidden="true" />
                   Stanze
                 </span>
               </th>
-              <th className="griglia-disp__th" rowSpan={2}>
+              <th className="griglia-disp__th griglia-disp__th--lead" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
                   <i className="fa-light fa-id-card" aria-hidden="true" />
                   Licenza
                 </span>
               </th>
-              <th className="griglia-disp__th" rowSpan={2}>
+              <th className="griglia-disp__th griglia-disp__th--buffer griglia-disp__th--lead" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
                   <i className="fa-light fa-layer-group" aria-hidden="true" />
                   Buffer
                 </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={bufferOn}
+                  className={`griglia-disp__switch griglia-disp__buffer-switch ${bufferOn ? 'is-on' : ''}`}
+                  onClick={() => setBufferOn(v => !v)}
+                  title={bufferOn ? 'Disabilita buffer' : 'Abilita buffer'}
+                >
+                  <span className="griglia-disp__switch-thumb" />
+                </button>
               </th>
               {giorni.map((g, i) => {
                 const wd = WEEKDAY_SHORT[g.getDay()]
@@ -263,33 +362,36 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
                 </td>
                 <td className="griglia-disp__td">{row.stanze}</td>
                 <td className="griglia-disp__td">{row.licenza}</td>
-                <td className="griglia-disp__td">
+                <td className={`griglia-disp__td ${bufferOn ? '' : 'griglia-disp__td--buffer-off'}`}>
                   {row.stopSales
                     ? <span className="griglia-disp__stop">
                         <i className="fa-light fa-minus" aria-hidden="true" />
                       </span>
                     : <span className="griglia-disp__buffer-plus">+ {row.buffer}</span>}
                 </td>
-                {row.giorni.map((g, i) => (
-                  <React.Fragment key={i}>
-                    <td className={`griglia-disp__td griglia-disp__td--day-start ${g.stanze < 0 ? 'is-negative' : ''}`}>
-                      {g.stanze < 0 && suggerimentiOn ? (
-                        <button
-                          type="button"
-                          className="griglia-disp__neg-chip"
-                          onClick={() => setDettaglio({ data: giorni[i], strutturaId: row.id })}
-                          title="Apri dettaglio prenotazioni"
-                        >
-                          <span>{g.stanze}</span>
-                          <i className="fa-light fa-gear" aria-hidden="true" />
-                        </button>
-                      ) : (
-                        <span>{g.stanze}</span>
-                      )}
-                    </td>
-                    <td className="griglia-disp__td">{g.persone}</td>
-                  </React.Fragment>
-                ))}
+                {row.giorni.map((g, i) => {
+                  const eff = effStanze(g.stanze, row.buffer)
+                  return (
+                    <React.Fragment key={i}>
+                      <td className={`griglia-disp__td griglia-disp__td--day-start ${eff < 0 ? 'is-negative' : ''}`}>
+                        {eff < 0 && suggerimentiOn ? (
+                          <button
+                            type="button"
+                            className="griglia-disp__neg-chip"
+                            onClick={() => setDettaglio({ data: giorni[i], strutturaId: row.id })}
+                            title="Apri dettaglio prenotazioni"
+                          >
+                            <span>{eff}</span>
+                            <i className="fa-light fa-gear" aria-hidden="true" />
+                          </button>
+                        ) : (
+                          <span>{eff}</span>
+                        )}
+                      </td>
+                      <td className="griglia-disp__td">{g.persone}</td>
+                    </React.Fragment>
+                  )
+                })}
               </tr>
             ))}
 
@@ -303,7 +405,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
               </td>
               <td className="griglia-disp__td">{totSt}</td>
               <td className="griglia-disp__td">{totLic}</td>
-              <td className="griglia-disp__td">
+              <td className={`griglia-disp__td ${bufferOn ? '' : 'griglia-disp__td--buffer-off'}`}>
                 <span className="griglia-disp__buffer-plus">+ {totBuf}</span>
               </td>
               {totaliGiorno.map((t, i) => (
@@ -315,6 +417,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* ── Modali ─────────────────────────────────────────────────────────── */}

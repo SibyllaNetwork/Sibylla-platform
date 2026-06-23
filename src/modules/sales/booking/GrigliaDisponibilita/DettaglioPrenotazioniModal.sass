@@ -1,6 +1,11 @@
 // ─── DETTAGLIO PRENOTAZIONI MODAL ─────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
 
+// Modale più larga così la tabella (colonna "Azione") non viene tagliata.
+.modal__box.det-pren-modal
+  max-width: 940px
+  width: 96vw
+
 .det-pren
   display: flex
   flex-direction: column
@@ -55,9 +60,8 @@
   &__table-wrap
     border: 1px solid $border
     border-radius: 6px
-    overflow: hidden
+    overflow: auto
     max-height: 380px
-    overflow-y: auto
 
   // Base th/td forniti da .sib-table; qui solo larghezze/centratura colonne
   &__num

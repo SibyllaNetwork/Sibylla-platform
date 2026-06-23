@@ -77,11 +77,21 @@ const MENU_MAP: Record<string, string> = {
   // ══ OPERATION (depth 3) ═══════════════════════════════════════════════════
   'front-office':           'fa-building-columns',
   'food-beverage':          'fa-utensils',
+  'menu-rist':              'fa-book-open',
+  'tipi-menu':              'fa-list',
+  'categorie-menu':         'fa-layer-group',
+  'voci-menu':              'fa-bowl-food',
+  'menu-giorno':            'fa-calendar-day',
+  'web-menu':               'fa-globe',
+  'turni-fb':               'fa-clock',
   'gest-conti':             'fa-file-invoice',
   'gest-movimenti':         'fa-money-bill-transfer',
   'gest-documenti':         'fa-file-lines',
   'appop':                  'fa-mobile-screen-button',
   'ordine-servizio':        'fa-clipboard-list',
+  // Agorà (children Purchasing nel menu Ristoranti)
+  'gestione-annunci':       'fa-bullhorn',
+  'matchzone':              'fa-handshake',
 
   // ══ PURCHASING (depth 3) ══════════════════════════════════════════════════
   'gest-acquisti':          'fa-bag-shopping',

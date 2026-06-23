@@ -11,6 +11,7 @@ import { useAuth } from './hooks/useAuth'
 import { buildCrumbs, findByPage } from './navigation/menuHelpers'
 import MENU from './navigation/menu'
 import { useViewModeStore } from './store/useViewModeStore'
+import { useSectionThemeStore, sectionForPage, SECTION_COLORS } from './store/useSectionThemeStore'
 import { useNavGuard } from './store/useNavGuard'
 import { useLoadStrutture } from './hooks/useLoadStrutture'
 import T from './core/tokens'
@@ -118,6 +119,13 @@ export default function App() {
   const viewMode = useViewModeStore(s => s.mode)
   const addTab   = useViewModeStore(s => s.addTab)
 
+  // Tema per sezione (Platform / Tableau / Agorà): in modalità dissociata le
+  // pagine Tableau/Agorà adottano il colore istituzionale del prodotto, applicato
+  // a tutta la app (sidenav + header + contenuto). Platform = palette originale.
+  const dissociato = useSectionThemeStore(s => s.dissociato)
+  const section = sectionForPage(currentPage)
+  const sectionOverride = dissociato && section !== 'platform'
+
   // Login profili: overlay e profilo attualmente caricato (menu filtrato).
   const accessOpen       = useAccessStore(s => s.accessOpen)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
@@ -165,11 +173,15 @@ export default function App() {
   const openCtx = (x: number, y: number, pageId: string, label: string) =>
     setCtxMenu({ x, y, pageId, label })
 
+  // La sidenav è aperta di default; si chiude da sola SOLO quando si entra in
+  // modalità compatta da desktop (vera transizione), non al primo caricamento.
+  const prevMobile = useRef(true)
   useEffect(() => {
     const onResize = () => {
       const m = window.innerWidth < 1600
       setIsMobile(m)
-      if (m) setSideOpen(false)
+      if (m && !prevMobile.current) setSideOpen(false)
+      prevMobile.current = m
     }
     window.addEventListener('resize', onResize)
     onResize()
@@ -195,7 +207,11 @@ export default function App() {
 
   // ── App ────────────────────────────────────────────────────────────────────
   return (
-    <div className="app">
+    <div
+      className="app"
+      data-section={sectionOverride ? section : undefined}
+      style={sectionOverride ? ({ ['--color-primary' as string]: SECTION_COLORS[section] } as React.CSSProperties) : undefined}
+    >
       {isMobile && sideOpen && (
         <div className="app__mobile-overlay" onClick={() => setSideOpen(false)} />
       )}

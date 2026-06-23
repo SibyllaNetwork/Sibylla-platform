@@ -1,0 +1,347 @@
+// ─── MARKET LENS ──────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.mklens
+  display: flex
+  flex-direction: column
+  gap: 18px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__empty
+    font-size: 13px
+    color: $text-disabled
+    padding: 24px
+    text-align: center
+    background: $white
+    border: 1px dashed $border
+    border-radius: $radius-lg
+
+  // ── Banner (accesso dal pulsante Accelera) ───────────────────────────────────
+  &__banner
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 11px 14px
+    border-radius: $radius-md
+    background: alpha($primary, 0.07)
+    border: 1px solid alpha($primary, 0.2)
+    font-size: 13px
+    color: $text-active
+
+    i
+      color: $primary
+      font-size: 15px
+
+  // ── Controlli ─────────────────────────────────────────────────────────────────
+  &__controls
+    display: flex
+    align-items: flex-end
+    gap: 20px
+    flex-wrap: wrap
+
+  &__select
+    width: 320px
+    max-width: 100%
+
+  &__fonte
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__fonte-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__seg
+    display: inline-flex
+    height: 36px
+    padding: 3px
+    gap: 2px
+    background: $bg
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__seg-btn
+    min-width: 78px
+    padding: 0 14px
+    border: none
+    border-radius: calc(#{$radius-md} - 3px)
+    background: transparent
+    color: $text-inactive
+    font-size: 13px
+    font-weight: 700
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover:not(.is-active)
+      color: $primary
+      background: alpha($primary, 0.08)
+
+    &.is-active
+      background: $primary
+      color: $white
+      box-shadow: $shadow-sm
+
+  // ── Dettaglio offerta ─────────────────────────────────────────────────────────
+  &__offer
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 14px 16px
+
+  &__offer-head
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 16px
+    padding-bottom: 14px
+    border-bottom: 1px solid $border
+
+  &__offer-assignee
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    color: $text-inactive
+
+  // Dettaglio prezzi dell'offerta
+  &__detail
+    display: grid
+    grid-template-columns: repeat(6, minmax(0, 1fr))
+    gap: 8px 18px
+    margin: 14px 0 0
+
+    @media (max-width: 1000px)
+      grid-template-columns: repeat(3, 1fr)
+
+    @media (max-width: 560px)
+      grid-template-columns: repeat(2, 1fr)
+
+  &__detail-item
+    display: flex
+    flex-direction: column
+    gap: 3px
+    min-width: 0
+
+    dt
+      font-size: 11px
+      font-weight: 600
+      color: $text-inactive
+      text-transform: uppercase
+      letter-spacing: 0.3px
+
+    dd
+      margin: 0
+      font-size: 17px
+      font-weight: 700
+      color: $text-active
+      font-family: $font-heading
+
+  &__detail-strong
+    color: $primary
+
+  &__delta--up
+    color: $error
+  &__delta--down
+    color: $success
+
+  &__offer-dest
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+
+  &__offer-tipo
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    color: $text-inactive
+
+  &__offer-stato
+    margin-left: auto
+    padding: 3px 10px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 700
+
+    &--wait
+      background: alpha($warning, 0.16)
+      color: $warning
+    &--info
+      background: alpha($primary, 0.14)
+      color: $primary
+    &--ok
+      background: alpha($success, 0.14)
+      color: $success
+    &--done
+      background: alpha($text-disabled, 0.16)
+      color: $text-inactive
+
+  &__stars
+    white-space: nowrap
+    color: #E0A500
+    font-size: 13px
+
+    .fa-light
+      color: $border
+
+  // ── Benchmark ─────────────────────────────────────────────────────────────────
+  &__bench
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 18px
+
+  &__bench-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    flex-wrap: wrap
+    gap: 10px
+    margin-bottom: 14px
+
+  &__bench-title
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  &__bench-legend
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+    color: $text-inactive
+
+  &__dot
+    display: inline-block
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    margin-left: 8px
+    margin-right: 2px
+
+    &--me
+      background: $primary
+    &--avg
+      background: $warning
+
+  &__bars
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__bar-row
+    display: grid
+    grid-template-columns: 150px 1fr 76px
+    align-items: center
+    gap: 12px
+
+    &--me
+      .mklens__bar-name
+        color: $primary
+        font-weight: 700
+      .mklens__bar-fill
+        background: $primary
+      .mklens__bar-val
+        color: $primary
+        font-weight: 700
+
+  &__bar-name
+    font-size: 12.5px
+    color: $text-inactive
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__bar-track
+    position: relative
+    height: 18px
+    background: $bg
+    border-radius: 999px
+    overflow: hidden
+
+  &__bar-fill
+    position: absolute
+    left: 0
+    top: 0
+    bottom: 0
+    background: $primary-200
+    border-radius: 999px
+    transition: width 0.3s ease
+
+  // marcatore media mercato dentro il binario
+  &__bar-avg
+    position: absolute
+    top: -3px
+    bottom: -3px
+    width: 0
+    border-left: 2px dashed $warning
+    z-index: 2
+    pointer-events: none
+
+  &__bar-val
+    text-align: right
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+  // ── Insight + Action centre ───────────────────────────────────────────────────
+  &__insight
+    display: flex
+    align-items: center
+    gap: 14px
+    padding: 16px 18px
+    border-radius: $radius-lg
+    border: 1px solid $border
+
+    &--warn
+      background: alpha($warning, 0.07)
+      border-color: alpha($warning, 0.3)
+    &--ok
+      background: alpha($success, 0.07)
+      border-color: alpha($success, 0.3)
+
+  &__insight-icon
+    flex-shrink: 0
+    width: 40px
+    height: 40px
+    border-radius: $radius-md
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 17px
+    color: $white
+
+    .mklens__insight--warn &
+      background: $warning
+    .mklens__insight--ok &
+      background: $success
+
+  &__insight-body
+    flex: 1
+    min-width: 0
+
+  &__insight-title
+    font-size: 14px
+    font-weight: 700
+    color: $text-active
+
+  &__insight-text
+    font-size: 13px
+    color: $text-inactive
+    line-height: 1.5
+    margin-top: 2px
+
+  @media (max-width: 720px)
+    &__insight
+      flex-direction: column
+      align-items: flex-start

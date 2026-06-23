@@ -58,6 +58,11 @@ import AssegnazioniIncarichi       from '../modules/operation/AssegnazioniIncari
 import MaintenanceAnalysis         from '../modules/operation/MaintenanceAnalysis/MaintenanceAnalysis';
 import OrdineServizio              from '../modules/operation/OrdineServizio/OrdineServizio';
 import RichiesteOperative          from '../modules/operation/RichiesteOperative/RichiesteOperative';
+import CreaPratica                 from '../modules/operation/CreaPratica/CreaPratica';
+import MonitoraggioPratiche        from '../modules/operation/MonitoraggioPratiche/MonitoraggioPratiche';
+import MarketLens                  from '../modules/sales/pricing/MarketLens/MarketLens';
+import ActionCentre                from '../modules/sales/pricing/ActionCentre/ActionCentre';
+import LiveDisplay                 from '../modules/executive/LiveDisplay/LiveDisplay';
 import AreaMerceologica            from '../modules/purchasing/AreaMerceologica/AreaMerceologica';
 import DettaglioAreaMerceologica   from '../modules/purchasing/AreaMerceologica/DettaglioAreaMerceologica';
 import ClasseProdotti              from '../modules/purchasing/AreaMerceologica/ClasseProdotti';
@@ -276,6 +281,13 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'maintenance-analysis')  return <MaintenanceAnalysis navigate={navigate}/>;
   if (page === 'ordine-servizio')       return <OrdineServizio navigate={navigate}/>;
   if (page === 'richieste-operative')   return <RichiesteOperative navigate={navigate}/>;
+  if (page === 'crea-pratica')          return <CreaPratica navigate={navigate}/>;
+  if (page === 'monitoraggio-pratiche') return <MonitoraggioPratiche navigate={navigate}/>;
+  if (page === 'live-display')          return <LiveDisplay navigate={navigate}/>;
+  if (page === 'market-lens')           return <MarketLens navigate={navigate}/>;
+  if (page.startsWith('market-lens:'))  return <MarketLens navigate={navigate} praticaId={page.slice('market-lens:'.length)} key={page}/>;
+  if (page === 'action-centre')         return <ActionCentre navigate={navigate}/>;
+  if (page.startsWith('action-centre:')) return <ActionCentre navigate={navigate} praticaId={page.slice('action-centre:'.length)} key={page}/>;
   if (page === 'area-merceologica')     return <AreaMerceologica navigate={navigate}/>;
   if (page.startsWith('dettaglio-area-merceologica:')) {
     const categoriaId = page.slice('dettaglio-area-merceologica:'.length);

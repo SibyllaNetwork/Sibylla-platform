@@ -1,0 +1,679 @@
+// ─── ACTION CENTRE ────────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.actc
+  display: flex
+  flex-direction: column
+  gap: 18px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__empty
+    font-size: 13px
+    color: $text-disabled
+    padding: 24px
+    text-align: center
+    background: $white
+    border: 1px dashed $border
+    border-radius: $radius-lg
+
+  &__banner
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 11px 14px
+    border-radius: $radius-md
+    background: alpha($primary, 0.07)
+    border: 1px solid alpha($primary, 0.2)
+    font-size: 13px
+    color: $text-active
+
+    i
+      color: $primary
+      font-size: 15px
+
+  // ── Box ───────────────────────────────────────────────────────────────────────
+  &__box
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 18px
+    box-shadow: $shadow-sm
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__box-head
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__box-icon
+    flex-shrink: 0
+    width: 38px
+    height: 38px
+    border-radius: $radius-md
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 16px
+
+    &--primary
+      background: alpha($primary, 0.12)
+      color: $primary
+    &--info
+      background: alpha(var(--color-link), 0.12)
+      color: var(--color-link)
+    &--ok
+      background: alpha($success, 0.12)
+      color: $success
+
+  &__box-title
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  &__box-hint
+    font-size: 12.5px
+    color: $text-inactive
+    margin-top: 1px
+
+  &__box-actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12.5px
+    font-weight: 600
+    color: $success
+    margin-right: auto
+
+  &__sub
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  // ── Box 1: markup ──────────────────────────────────────────────────────────
+  &__markup
+    display: grid
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr)
+    gap: 24px
+    align-items: center
+
+    @media (max-width: 820px)
+      grid-template-columns: 1fr
+
+  &__markup-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    margin-bottom: 6px
+
+  &__markup-val
+    font-size: 20px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+
+  &__markup-slider input[type="range"]
+    width: 100%
+    accent-color: var(--color-primary)
+    cursor: pointer
+
+  &__markup-hint
+    margin-top: 8px
+    font-size: 12px
+    color: $text-inactive
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    border: 1px solid $primary
+    background: alpha($primary, 0.08)
+    color: $primary
+    font-weight: 700
+    font-size: 12px
+    border-radius: 999px
+    padding: 2px 9px
+    cursor: pointer
+
+    &:hover
+      background: alpha($primary, 0.16)
+
+  &__markup-figs
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 12px
+
+  &__fig
+    display: flex
+    flex-direction: column
+    gap: 2px
+    padding: 10px 12px
+    background: $bg
+    border: 1px solid $border
+    border-radius: $radius-md
+
+    span
+      font-size: 11px
+      font-weight: 600
+      color: $text-inactive
+      text-transform: uppercase
+      letter-spacing: 0.3px
+
+    strong
+      font-size: 18px
+      font-weight: 700
+      color: $text-active
+      font-family: $font-heading
+
+    &--accent
+      color: $primary
+    &--neg
+      color: $error
+    &--pos
+      color: $success
+
+  // ── Box 2: servizi + pacchetti ───────────────────────────────────────────────
+  &__svc-sugg
+    font-weight: 700
+    color: $primary
+
+  &__trend
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 600
+
+    &--down
+      color: $success
+    &--up
+      color: $error
+    &--eq
+      color: $text-disabled
+
+  &__pkgs
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 820px)
+      grid-template-columns: 1fr
+
+  &__pkg
+    border: 1px solid $border
+    border-radius: $radius-md
+    padding: 14px
+    display: flex
+    flex-direction: column
+    gap: 8px
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary
+      box-shadow: $shadow-sm
+
+  &__pkg-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+
+  &__pkg-name
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  &__pkg-price
+    font-size: 17px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+
+  &__pkg-note
+    font-size: 12px
+    color: $text-inactive
+    line-height: 1.45
+
+  &__pkg-tags
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__pkg-tag
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    background: $bg
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 2px 8px
+
+  // ── Box 3: canali ─────────────────────────────────────────────────────────────
+  &__chan-name
+    font-weight: 700
+    color: $text-active
+
+  &__chan-margin
+    font-weight: 700
+    color: $text-active
+
+  &__chan--best
+    background: alpha($success, 0.06)
+
+  &__best-badge
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    font-weight: 700
+    color: $success
+
+    i
+      font-size: 10px
+
+  // ── Dettaglio preventivo ──────────────────────────────────────────────────────
+  &__detail
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 18px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__select
+    width: 380px
+    max-width: 100%
+
+  &__stars
+    white-space: nowrap
+    color: #E0A500
+    font-size: 13px
+
+    .fa-light
+      color: $border
+
+  &__offer-head
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 16px
+    padding-bottom: 14px
+    border-bottom: 1px solid $border
+
+  &__offer-dest
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+
+  &__offer-tipo, &__offer-assignee
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    color: $text-inactive
+
+  &__offer-stato
+    margin-left: auto
+    padding: 3px 10px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 700
+
+    &--wait
+      background: alpha($warning, 0.16)
+      color: $warning
+    &--info
+      background: alpha($primary, 0.14)
+      color: $primary
+    &--ok
+      background: alpha($success, 0.14)
+      color: $success
+    &--done
+      background: alpha($text-disabled, 0.16)
+      color: $text-inactive
+
+  &__detail-grid
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 8px 18px
+    margin: 0
+
+    @media (max-width: 700px)
+      grid-template-columns: repeat(2, 1fr)
+
+  &__detail-item
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+    dt
+      font-size: 11px
+      font-weight: 600
+      color: $text-inactive
+      text-transform: uppercase
+      letter-spacing: 0.3px
+
+    dd
+      margin: 0
+      font-size: 17px
+      font-weight: 700
+      color: $text-active
+      font-family: $font-heading
+
+  &__detail-strong
+    color: $primary
+
+  // ── Avvio analisi ──────────────────────────────────────────────────────────────
+  &__start
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 18px
+    flex-wrap: wrap
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 22px 24px
+
+  &__start-title
+    font-size: 16px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+    margin-bottom: 4px
+
+  &__start-text p
+    font-size: 13px
+    color: $text-inactive
+    max-width: 560px
+
+  &__start-btn
+    flex-shrink: 0
+
+  // ── Animazione analisi (overlay centrato, sfondo opaco) ────────────────────────
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 1000
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 24px
+    background: rgba(15, 23, 42, 0.55)
+    backdrop-filter: blur(3px)
+    animation: actc-fade 0.2s ease
+
+  &__analyzing
+    display: flex
+    flex-direction: column
+    align-items: center
+    text-align: center
+    gap: 8px
+    width: 100%
+    max-width: 480px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 36px 28px
+    box-shadow: $shadow-lg
+
+  &__radar
+    width: 64px
+    height: 64px
+    border-radius: 50%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 26px
+    color: $primary
+    background: alpha($primary, 0.10)
+    margin-bottom: 6px
+    animation: actc-pulse 1.2s ease-in-out infinite
+
+  &__analyzing-title
+    font-size: 16px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  &__analyzing-sub
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__counters
+    display: flex
+    gap: 28px
+    margin: 14px 0 6px
+    flex-wrap: wrap
+    justify-content: center
+
+  &__counter
+    display: flex
+    flex-direction: column
+
+  &__counter-num
+    font-size: 22px
+    font-weight: 700
+    color: $primary
+    font-family: $font-heading
+    font-variant-numeric: tabular-nums
+
+  &__counter-lbl
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.3px
+
+  &__progress
+    width: 100%
+    max-width: 520px
+    height: 8px
+    border-radius: 999px
+    background: $bg
+    overflow: hidden
+    margin-top: 8px
+
+  &__progress-bar
+    display: block
+    height: 100%
+    border-radius: 999px
+    background: $primary
+    transition: width 0.13s linear
+
+  // ── Markup suggerito (header box) ──────────────────────────────────────────────
+  &__suggested
+    margin-left: auto
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    line-height: 1.05
+
+  &__suggested-num
+    font-size: 24px
+    font-weight: 800
+    color: $primary
+    font-family: $font-heading
+
+  &__suggested-lbl
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.3px
+
+  // ── Risultato analisi (evidenziato, animato) ───────────────────────────────────
+  &__result
+    position: relative
+    overflow: hidden
+    border-radius: $radius-lg
+    padding: 22px 24px
+    color: $white
+    background: linear-gradient(120deg, var(--color-primary), var(--color-primary-700))
+    box-shadow: 0 12px 30px alpha($primary, 0.28)
+    animation: actc-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both
+
+    // alone luminoso che attraversa il blocco
+    &::after
+      content: ''
+      position: absolute
+      top: 0
+      bottom: 0
+      left: -30%
+      width: 40%
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent)
+      transform: skewX(-18deg)
+      animation: actc-sheen 1.6s ease 0.35s 1
+
+  &__result-badge
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 11px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.6px
+    padding: 4px 11px
+    border-radius: 999px
+    background: rgba(255,255,255,0.18)
+
+  &__result-main
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 20px
+    flex-wrap: wrap
+    margin-top: 12px
+
+  &__result-kicker
+    font-size: 19px
+    font-weight: 800
+    font-family: $font-heading
+
+  &__result-desc
+    font-size: 13px
+    margin-top: 2px
+    color: rgba(255,255,255,0.85)
+
+  &__result-value
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    line-height: 1
+    padding-left: 20px
+    border-left: 1px solid rgba(255,255,255,0.25)
+
+  &__result-label
+    font-size: 11px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    color: rgba(255,255,255,0.8)
+
+  &__result-num
+    font-size: 44px
+    font-weight: 800
+    font-family: $font-heading
+    margin: 4px 0 2px
+    animation: actc-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both
+
+  &__result-sub
+    font-size: 12px
+    color: rgba(255,255,255,0.85)
+
+  &__result-actions
+    position: relative
+    z-index: 1
+    margin-top: 16px
+    display: flex
+    justify-content: flex-end
+
+  &__result-btn
+    display: inline-flex
+    align-items: center
+    gap: 9px
+    padding: 11px 20px
+    border: none
+    border-radius: $radius-md
+    background: $white
+    color: $primary
+    font-family: inherit
+    font-size: 14px
+    font-weight: 700
+    cursor: pointer
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18)
+    transition: transform 0.12s ease, box-shadow 0.12s ease
+    animation: actc-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both
+
+    &:hover
+      transform: translateY(-1px)
+      box-shadow: 0 10px 22px rgba(0,0,0,0.24)
+
+    &:active
+      transform: translateY(0)
+
+  &__result-applied
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 700
+    color: $white
+
+    i
+      color: #fff
+
+@keyframes actc-reveal
+  from
+    opacity: 0
+    transform: translateY(14px) scale(0.985)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
+
+@keyframes actc-pop
+  0%
+    opacity: 0
+    transform: scale(0.6)
+  60%
+    transform: scale(1.12)
+  100%
+    opacity: 1
+    transform: scale(1)
+
+@keyframes actc-sheen
+  from
+    left: -40%
+  to
+    left: 130%
+
+@keyframes actc-pulse
+  0%, 100%
+    transform: scale(1)
+    box-shadow: 0 0 0 0 rgba(0,0,0,0)
+  50%
+    transform: scale(1.06)
+    box-shadow: 0 0 0 10px alpha($primary, 0.06)
+
+@keyframes actc-fade
+  from
+    opacity: 0
+  to
+    opacity: 1

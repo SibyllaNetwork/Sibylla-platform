@@ -169,14 +169,9 @@ export default function Topbar({
 
       {/* ── Breadcrumbs ── */}
       <div className="topbar__crumbs">
-        {!adminMode && (
-          <button className="topbar__crumb-home" onClick={() => navigate('home')}>
-            <Ico n="home" s={14} c={C.normal} />
-          </button>
-        )}
         {crumbs.slice(1).map((c: any, i: number) => (
           <span key={c.id} className="topbar__crumb-item">
-            <Ico n="chevr" s={12} c={C.normal} />
+            {i > 0 && <Ico n="chevr" s={12} c={C.normal} />}
             <button
               className={`topbar__crumb-btn ${i === crumbs.length - 2 ? 'topbar__crumb-btn--last' : 'topbar__crumb-btn--prev'}`}
               onClick={() => {

@@ -5,6 +5,7 @@ import Logo from './Logo'
 import NavItem from './NavItem'
 import MENU from '../navigation/menu'
 import MENU_TO from '../navigation/menuTourOperator'
+import MENU_RISTORANTI from '../navigation/menuRistoranti'
 import { filterMenu } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
@@ -54,14 +55,17 @@ export default function Sidebar({
   const adminMode        = !!assist || onConsole || platformAdmin || currentPage === 'assist-admin'
   const menu = useMemo(() => {
     if (onConsole) return MENU
-    // Modulo "Menu Tour Operator": sidenav dedicata (albero diverso, non filtrato).
-    if (assist) return assist.moduli.includes('tour-operator')
-      ? MENU_TO
-      : filterMenu(MENU as any[], enabledPagesForModuli(assist.moduli, modules))
+    // Moduli con sidenav dedicata (albero diverso, non filtrato).
+    if (assist) {
+      if (assist.moduli.includes('tour-operator')) return MENU_TO
+      if (assist.moduli.includes('ristoranti'))    return MENU_RISTORANTI
+      return filterMenu(MENU as any[], enabledPagesForModuli(assist.moduli, modules))
+    }
     if (!currentProfileId) return MENU
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU
     if (profile.moduli.includes('tour-operator')) return MENU_TO
+    if (profile.moduli.includes('ristoranti'))    return MENU_RISTORANTI
     return filterMenu(MENU as any[], enabledPagesForProfile(profile, modules))
   }, [onConsole, assist, currentProfileId, profiles, modules])
 
@@ -99,11 +103,11 @@ export default function Sidebar({
     'app__sidebar flex flex-col overflow-hidden bg-primary text-white',
     isMobile
       ? [
-          'fixed top-0 h-screen w-[272px] min-w-[272px] z-50 transition-[left] duration-300 ease-sidebar',
+          'fixed top-0 h-screen w-[272px] min-w-[272px] z-50 transition-[left] duration-[450ms] ease-sidebar',
           sideOpen ? 'left-0 shadow-[12px_0_40px_rgba(0,0,0,0.95)]' : '-left-[300px] shadow-none',
         ]
       : [
-          'transition-[width,min-width] duration-200 ease-sidebar',
+          'transition-[width,min-width] duration-[420ms] ease-sidebar',
           sideOpen ? 'w-[260px] min-w-[260px]' : 'w-16 min-w-16',
         ],
   )

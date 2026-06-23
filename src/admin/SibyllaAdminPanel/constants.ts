@@ -1,5 +1,6 @@
 import MENU from '../../navigation/menu'
 import MENU_TO from '../../navigation/menuTourOperator'
+import MENU_RISTORANTI from '../../navigation/menuRistoranti'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
 import type { Cliente, Intestatario, Modulo, NewClientForm, Ruolo, TipologiaCategoria, UserRow } from './types'
@@ -74,12 +75,9 @@ const salesPages    = getAllPages(impresa.find((c: any) => c.id === 'sales')?.ch
 const execPages     = getAllPages(impresa.find((c: any) => c.id === 'executive')?.children || [])
 const opPages       = getAllPages(impresa.find((c: any) => c.id === 'operation')?.children || [])
 
-// Profilo (nodo top-level) + Food & Beverage (sotto Operation) + Configuratore
-// (sezione Impostazioni) per il modulo Ristoranti.
-const profiloPages = getAllPages((MENU as any).find((m: any) => m.id === 'profilo')?.children || [])
-const operationChildren = impresa.find((c: any) => c.id === 'operation')?.children || []
-const fbPages      = getAllPages(operationChildren.find((c: any) => c.id === 'food-beverage')?.children || [])
-const ristorantiPages = Array.from(new Set([...profiloPages, ...fbPages, 'configuratore']))
+// Il modulo Ristoranti ha una sidenav dedicata (MENU_RISTORANTI, da ristoranti.xlsx):
+// le pagine abilitate sono tutte e sole quelle del suo albero di menu.
+const ristorantiPages = getAllPages(MENU_RISTORANTI as any)
 
 // Voci F&B del Configuratore — il modulo Ristoranti vede del Configuratore solo queste.
 const FNB_CONFIG_IDS = FNB_ITEMS.map(i => i.id)

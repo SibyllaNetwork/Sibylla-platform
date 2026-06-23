@@ -35,6 +35,47 @@ $gd-day-divider: $border
     align-items: center
     gap: 8px
 
+  // ── Periodo timeline (segmented 5/10/15/20/30) ─────────────────────────────
+  &__period
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__period-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__seg
+    display: inline-flex
+    height: 36px
+    padding: 3px
+    gap: 2px
+    background: $bg
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__seg-btn
+    min-width: 38px
+    padding: 0 10px
+    border: none
+    border-radius: calc(#{$radius-md} - 3px)
+    background: transparent
+    color: $text-inactive
+    font-size: 13px
+    font-weight: 700
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover:not(.is-active)
+      color: $primary
+      background: alpha($primary, 0.08)
+
+    &.is-active
+      background: $primary
+      color: $white
+      box-shadow: $shadow-sm
+
   // ── Suggerimenti (toggle + gear) ──────────────────────────────────────────
   &__suggerimenti
     display: flex
@@ -79,6 +120,16 @@ $gd-day-divider: $border
 
     .griglia-disp__switch.is-on &
       transform: translateX(16px)
+
+  // Toggle Buffer dentro l'intestazione di colonna (sotto la scritta "Buffer")
+  &__buffer-switch
+    display: block
+    margin: 6px auto 0
+
+  // Cella Buffer quando il buffer è disattivato: valore non applicato
+  &__td--buffer-off
+    opacity: 0.45
+    text-decoration: line-through
 
   &__gear-btn
     display: inline-flex
@@ -133,12 +184,49 @@ $gd-day-divider: $border
       background: $primary-50
 
   // ── Tabella ───────────────────────────────────────────────────────────────
+  // Contenitore relativo che ospita lo slider e le frecce in overlay
+  &__timeline
+    position: relative
+
   &__table-wrap
     border: 1px solid $border
     border-radius: 10px
     overflow: auto
     background: $white
     box-shadow: 0 2px 10px rgba(32, 71, 105, 0.04)
+
+  // Frecce di scorrimento giorni (pattern planner: circolari, centrate vertic.)
+  &__nav
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    z-index: 20
+    width: 38px
+    height: 38px
+    border-radius: 50%
+    border: 1px solid $primary-200
+    background: $white
+    color: $primary
+    box-shadow: $shadow-lg
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &:hover
+      background: $primary
+      color: $white
+      transform: translateY(-50%) scale(1.08)
+
+    &:active
+      transform: translateY(-50%) scale(0.96)
+
+    // Ancorata al bordo destro della colonna Struttura (sticky, min-width 210px)
+    &--prev
+      left: calc(210px + 8px)
+    &--next
+      right: 10px
 
   &__table
     width: 100%
@@ -163,6 +251,12 @@ $gd-day-divider: $border
     white-space: nowrap
     vertical-align: middle
     position: relative
+
+    // Intestazioni iniziali (Stanze/Licenza/Buffer): testo+icona allineati in
+    // alto, così combaciano con la label "Buffer" che ha il toggle sotto.
+    &--lead
+      vertical-align: top
+      padding-top: 8px
 
     &--struct
       text-align: left
@@ -221,12 +315,12 @@ $gd-day-divider: $border
   &__tr
     transition: background 0.12s ease
 
-    // Riga speciale (totale): bianca, separata solo con border-top più marcato
+    // Riga speciale (totale): sfondo tenue + border-top più marcato
     &--total td
       font-weight: 700
       color: $primary
       border-top: 2px solid $border
-      background: $white
+      background: alpha($primary, 0.06)
 
   &__td
     padding: 6px 10px

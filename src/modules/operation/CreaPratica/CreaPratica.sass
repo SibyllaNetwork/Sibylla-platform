@@ -1,0 +1,259 @@
+// ─── CREA PRATICA ─────────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.crea-prat
+  display: flex
+  flex-direction: column
+  gap: 20px
+
+  // BtnBack a larghezza intrinseca (contenitore flex-column)
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Layout: form + elenco ────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr)
+    gap: 20px
+    align-items: start
+
+    @media (max-width: 1000px)
+      grid-template-columns: 1fr
+
+  // ── Form ──────────────────────────────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 16px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 20px
+    box-shadow: $shadow-sm
+
+  &__form-head
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__form-num
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 34px
+    height: 34px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: alpha($primary, 0.10)
+    color: $primary
+    font-size: 15px
+
+  &__form-title
+    font-size: 15px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  &__form-hint
+    font-size: 12px
+    color: $text-inactive
+    margin-top: 1px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__row2
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 12px
+
+  // Selettore stelle (categoria)
+  &__starpick
+    display: inline-flex
+    gap: 4px
+
+  &__starbtn
+    background: none
+    border: none
+    cursor: pointer
+    font-size: 20px
+    line-height: 1
+    color: $border
+    transition: $transition-fast
+
+    &:hover
+      color: alpha(#E0A500, 0.7)
+
+    &--on
+      color: #E0A500
+
+  // Segmented tipologia
+  &__seg
+    display: inline-flex
+    border: 1px solid $border
+    border-radius: $radius-md
+    overflow: hidden
+    width: max-content
+
+  &__seg-btn
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 8px 16px
+    background: $white
+    border: none
+    border-right: 1px solid $border
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+
+    &:last-child
+      border-right: none
+
+    &:hover:not(&--active)
+      background: $bg
+
+    &--active
+      background: $primary
+      color: $white
+
+  // ── Messaggi + azioni ─────────────────────────────────────────────────────────
+  &__error, &__ok
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+    font-weight: 600
+    padding: 8px 12px
+    border-radius: $radius-md
+
+  &__error
+    color: $error
+    background: alpha($error, 0.08)
+
+  &__ok
+    color: $success
+    background: alpha($success, 0.10)
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  // ── Elenco / tabella ───────────────────────────────────────────────────────────
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 12px
+    min-width: 0
+
+  &__list-head
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__list-title
+    font-size: 16px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  &__list-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 22px
+    height: 22px
+    padding: 0 7px
+    border-radius: 999px
+    background: $bg
+    border: 1px solid $border
+    color: $text-inactive
+    font-size: 12px
+    font-weight: 700
+
+  // Stelle in tabella
+  &__stars
+    white-space: nowrap
+    color: #E0A500
+    font-size: 12px
+
+    .fa-light
+      color: $border
+
+  &__tipo
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    white-space: nowrap
+
+  // Select di stato inline (eredita .sib-select per chevron standard)
+  &__stato-select
+    height: 30px
+    min-width: 130px
+    font-size: 12px
+    font-weight: 600
+
+    &--wait
+      color: $warning
+    &--info
+      color: var(--color-link)
+    &--ok
+      color: $success
+    &--done
+      color: $text-inactive
+
+  // Colonna profilo / assegnatario
+  &__assignee
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    white-space: nowrap
+
+  &__assignee-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+
+  &__avatars
+    display: inline-flex
+    align-items: center
+
+    .crea-prat__avatar + .crea-prat__avatar
+      margin-left: -8px
+
+  &__avatar
+    width: 26px
+    height: 26px
+    border-radius: $radius-full
+    object-fit: cover
+    background: $bg
+    border: 2px solid $white
+    box-shadow: 0 0 0 1px $border
+
+    &--more
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      margin-left: -8px
+      font-size: 10px
+      font-weight: 700
+      color: $text-inactive
+      background: $bg
+
+  &__data
+    white-space: nowrap
+    color: $text-inactive
+
+  &__td-actions
+    text-align: right
+    white-space: nowrap

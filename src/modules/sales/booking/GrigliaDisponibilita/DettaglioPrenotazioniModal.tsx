@@ -51,7 +51,7 @@ export default function DettaglioPrenotazioniModal({ open, onClose, data }: Prop
   }), [])
 
   return (
-    <Modal open={open} onClose={onClose} size="xl" title="Dettaglio prenotazioni">
+    <Modal open={open} onClose={onClose} size="xl" className="det-pren-modal" title="Dettaglio prenotazioni">
       <div className="det-pren">
         <div className="det-pren__meta">
           {data ? formatHeaderDate(data) : '—'} · {totali.prenotazioni} Prenotazioni · {totali.camere} Camere · {totali.persone} Persone
