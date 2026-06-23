@@ -282,6 +282,23 @@ const MENU_MAP: Record<string, string> = {
   'ledger-analysis':            'fa-book-open',
   'cashflow':                   'fa-money-bill-wave',
   'profit-trend':               'fa-arrow-trend-up',
+  'analisi-scenari-mensili':    'fa-calendar-days',
+
+  // ══ MENU TOUR OPERATOR (voci specifiche) ══════════════════════════════════
+  'le-mie-destinazioni':        'fa-map-location-dot',
+  'action-centre':              'fa-bullseye',
+  'market-lens':                'fa-magnifying-glass-chart',
+  'value-analysis':             'fa-gem',
+  'open-board':                 'fa-table-columns',
+  'magic-tableau':              'fa-wand-magic-sparkles',
+  'efficienza-operativa':       'fa-gauge-high',
+  'servizi-di-rete':            'fa-network-wired',
+  'gest-pratiche':              'fa-folder-open',
+  'crea-pratica':               'fa-folder-plus',
+  'monitoraggio-pratiche':      'fa-folder-tree',
+  'gestione-preventivi':        'fa-file-invoice-dollar',
+  'gest-clienti':               'fa-address-book',
+  'richieste-operative':        'fa-clipboard-list',
 }
 
 export default function MenuIco({ id, s = 14, c = 'rgba(255,255,255,0.4)', c2, w = 'duotone' }: MenuIcoProps) {

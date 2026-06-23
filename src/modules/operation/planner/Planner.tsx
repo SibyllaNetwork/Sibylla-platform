@@ -15,6 +15,15 @@ import InfoPanel          from './components/InfoPanel';
 import ActionButtons      from './components/ActionButtons';
 import LegendaModal       from './components/LegendaModal';
 import PrenModal          from './components/PrenModal';
+import RichiesteOperativeModal from './components/RichiesteOperativeModal';
+import {
+  useRichiesteOperativeStore,
+  richiestePendingCount,
+  bookingsConRichiestaEseguita,
+  bookingsConRichiestaInAttesa,
+  richiesteByBooking,
+  STATO_RICHIESTA_META,
+} from '../../../store/useRichiesteOperativeStore';
 import './planner.sass';
 
 const fmtDate = (s: string) =>
@@ -24,6 +33,13 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
   const s = usePlannerState(navigate);
   const [barTip, setBarTip] = useState<{ pren: Pren; x: number; y: number } | null>(null);
   const onBarHover = (pren: Pren | null, x: number, y: number) => setBarTip(pren ? { pren, x, y } : null);
+
+  // ── Richieste operative dei Tour Operator ──────────────────────────────────
+  const [showRichieste, setShowRichieste] = useState(false);
+  const richieste = useRichiesteOperativeStore((r) => r.richieste);
+  const richiesteEseguite = bookingsConRichiestaEseguita(richieste);
+  const richiesteInAttesa = bookingsConRichiestaInAttesa(richieste);
+  const richiestePending = richiestePendingCount(richieste);
 
   return (
     <>
@@ -147,6 +163,8 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               onOspiti={() => navigate('ospiti-in-casa')}
               onSchedine={() => navigate('schedine')}
               onRilevamento={() => navigate('rilevamento-presenze')}
+              onRichieste={() => setShowRichieste(true)}
+              richiesteCount={richiestePending}
               onLegenda={() => s.setShowLegenda(true)}
             />
           </div>
@@ -183,11 +201,14 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               onSelect={s.setSelectedBooking}
               selectedId={s.selectedBooking?.id ?? null}
               onEmpty={s.handleEmptyClick}
+              onSelectPeriod={s.handleSelectPeriod}
               onAssign={s.assignBookingToRoom}
               onMove={s.moveBooking}
               showRiepilogo={s.showRiepilogo}
               onToggleRiepilogo={s.toggleRiepilogo}
               onBarHover={onBarHover}
+              richiesteEseguite={richiesteEseguite}
+              richiesteInAttesa={richiesteInAttesa}
             />
           </div>
           <InfoPanel
@@ -204,6 +225,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
       {/* ── MODALI ──────────────────────────────────────────────────────────── */}
       {s.showLegenda   && <LegendaModal onClose={() => s.setShowLegenda(false)} />}
+      {showRichieste   && <RichiesteOperativeModal onClose={() => setShowRichieste(false)} />}
       {s.showAssegnare && (
         <PrenModal
           title="Prenotazioni da assegnare"
@@ -241,6 +263,18 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               ))}
             </div>
           )}
+          {richiesteByBooking(richieste, barTip.pren.booking).map(req => (
+            <div key={req.id} className="planner__bar-tip-richiesta">
+              <div className="planner__bar-tip-richiesta-head">
+                <i className="fa-solid fa-bell-concierge" aria-hidden="true" />
+                <span>Richiesta operativa · {STATO_RICHIESTA_META[req.stato].label}</span>
+              </div>
+              <div className="planner__bar-tip-richiesta-desc">{req.descrizione}</div>
+              {req.servizi.length > 0 && (
+                <div className="planner__bar-tip-richiesta-svc">{req.servizi.map(sv => sv.label).join(' · ')}</div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </>

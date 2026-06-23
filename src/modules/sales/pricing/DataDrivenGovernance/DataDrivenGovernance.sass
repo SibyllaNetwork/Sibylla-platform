@@ -1,0 +1,366 @@
+// ─── SUGGERIMENTI DATA DRIVEN ────────────────────────────────────────────────
+// Pagina full-screen con sfondo grigio-carta
+@use '../../../../styles/tokens' as *
+
+.ddg
+  position: fixed
+  inset: 0
+  z-index: 200
+  background: #F4F4F0
+  font-family: 'Open Sans', sans-serif
+  display: flex
+  flex-direction: column
+  overflow: hidden
+
+  // Texture di sfondo
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 49px,rgba(0,0,0,0.025) 49px,rgba(0,0,0,0.025) 50px), repeating-linear-gradient(90deg,transparent,transparent 49px,rgba(0,0,0,0.025) 49px,rgba(0,0,0,0.025) 50px)
+    pointer-events: none
+    z-index: 0
+
+  &__inner
+    position: relative
+    z-index: 1
+    display: flex
+    flex-direction: column
+    height: 100%
+    min-height: 0
+
+  // ── Header ───────────────────────────────────────────────────────────────────
+  &__header
+    padding: 14px 28px
+    display: flex
+    align-items: center
+    justify-content: space-between
+    flex-shrink: 0
+
+  &__title
+    font-size: 30px
+    font-weight: 700
+    color: var(--color-text-active)
+    margin: 0
+    letter-spacing: -0.5px
+
+  &__header-actions
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__home-btn
+    width: 42px
+    height: 42px
+    border-radius: 10px
+    border: 1px solid var(--color-border)
+    background: var(--color-surface)
+    cursor: pointer
+    display: flex
+    align-items: center
+    justify-content: center
+    transition: border-color 0.15s
+
+    &:hover
+      border-color: var(--color-border)
+
+  &__live-badge
+    display: flex
+    align-items: center
+    gap: 8px
+    background: #DC2626
+    border-radius: 8px
+    padding: 9px 20px
+    user-select: none
+
+  &__live-dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    background: rgba(255, 255, 255, 0.9)
+    animation: ddg-pulse 1.5s ease-in-out infinite
+
+  &__live-text
+    color: $white
+    font-weight: 800
+    font-size: 16px
+    letter-spacing: 0.8px
+
+  // ── Tabs ─────────────────────────────────────────────────────────────────────
+  &__tabs
+    border-bottom: 1px solid var(--color-border)
+    padding: 0 28px
+    display: flex
+    align-items: flex-end
+    flex-shrink: 0
+
+  &__tab
+    background: none
+    border: none
+    border-bottom: 2.5px solid transparent
+    padding: 8px 0
+    margin-right: 28px
+    margin-bottom: -1px
+    font-size: 14px
+    font-weight: 500
+    color: var(--color-text-inactive)
+    cursor: pointer
+
+    &--active
+      border-bottom-color: #111827
+      font-weight: 700
+      color: var(--color-text-active)
+
+  // ── Date bar ─────────────────────────────────────────────────────────────────
+  &__date
+    padding: 10px 28px
+    font-size: 24px
+    color: var(--color-text-active)
+    flex-shrink: 0
+
+    b
+      font-weight: 700
+
+  // ── Grid ─────────────────────────────────────────────────────────────────────
+  &__grid
+    flex: 1
+    padding: 0 28px 20px
+    display: grid
+    grid-template-columns: 1.85fr 1fr
+    grid-template-rows: 1fr 1fr
+    gap: 14px
+    min-height: 0
+
+  &__panel
+    background: rgba(255, 255, 255, 0.96)
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    padding: 16px 20px
+    display: flex
+    flex-direction: column
+    gap: 8px
+    overflow: hidden
+    min-height: 0
+
+  &__panel-title
+    font-size: 15px
+    font-weight: 800
+    letter-spacing: 0.7px
+    color: var(--color-text-active)
+    text-transform: uppercase
+    flex-shrink: 0
+
+  // ── Sales Overview ────────────────────────────────────────────────────────────
+  &__sales-body
+    display: flex
+    gap: 20px
+    flex: 1
+    min-height: 0
+
+  &__seg-table
+    min-width: 195px
+    flex-shrink: 0
+    display: flex
+    flex-direction: column
+
+  &__seg-title
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+    margin-bottom: 8px
+
+  &__seg-row
+    border-bottom: 1px solid var(--color-border)
+
+  &__chart-area
+    flex: 1
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__chart-total
+    text-align: right
+    font-size: 12px
+    color: var(--color-text-inactive)
+    margin-bottom: 4px
+    flex-shrink: 0
+
+  &__chart-big
+    font-weight: 800
+    font-size: 26px
+    color: var(--color-text-active)
+
+  &__chart-wrap
+    flex: 1
+    display: flex
+    align-items: flex-end
+    min-height: 0
+
+  // ── Booking IDS ───────────────────────────────────────────────────────────────
+  &__bids-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    flex-shrink: 0
+
+  &__bids-cols
+    display: flex
+    gap: 36px
+
+  &__bids-col-label
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-text-inactive)
+    letter-spacing: 0.5px
+
+  &__bids-list
+    flex: 1
+    overflow: hidden
+
+  &__bids-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 9px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: none
+
+  &__bids-hotel
+    font-size: 13px
+    color: var(--color-text-active)
+
+  &__bids-vals
+    display: flex
+    gap: 52px
+    flex-shrink: 0
+
+  &__bids-dash
+    font-size: 14px
+    color: var(--color-text-disabled)
+    text-align: center
+    min-width: 20px
+
+  // ── KPI ──────────────────────────────────────────────────────────────────────
+  &__kpi-body
+    flex: 1
+    display: flex
+    align-items: center
+    justify-content: space-around
+    gap: 8px
+    min-height: 0
+
+  &__donut-wrap
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    flex: 1
+
+  &__donut-label
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-align: center
+    line-height: 1.3
+
+  // ── Pickup ────────────────────────────────────────────────────────────────────
+  &__pickup-body
+    flex: 1
+    overflow: hidden
+
+  &__pickup-table
+    width: 100%
+    border-collapse: collapse
+
+  &__pickup-th
+    font-size: 12px
+    font-weight: 700
+    color: var(--color-text-inactive)
+    padding: 4px 0 10px
+    letter-spacing: 0.2px
+    text-align: left
+
+    &--right
+      text-align: right
+
+  &__pickup-td
+    font-size: 13px
+    color: var(--color-text-active)
+    padding: 7px 0
+    border-top: 1px solid var(--color-border)
+
+    &--right
+      text-align: right
+      white-space: nowrap
+
+  &__pickup-footer-td
+    font-size: 14px
+    font-weight: 700
+    color: var(--color-text-active)
+    padding: 10px 0
+    border-top: 2px solid var(--color-border)
+
+// ─── Inline-style migration ───────────────────────────────────────────────
+.ddg__tabs-divider
+  border-left: 1px solid #D1D5DB
+  height: 22px
+  margin-left: 4px
+  margin-bottom: 4px
+  align-self: center
+
+.ddg__donut-svg-wrap
+  position: relative
+  width: 112px
+  height: 112px
+
+.ddg__donut-center
+  position: absolute
+  inset: 0
+  display: flex
+  align-items: center
+  justify-content: center
+
+.ddg__donut-value
+  font-size: 14px
+  font-weight: 700
+  color: var(--color-text-active)
+  text-align: center
+  padding: 0 8px
+  line-height: 1.2
+
+  &--lg
+    font-size: 16px
+
+.ddg__seg-tbl
+  width: 100%
+  border-collapse: collapse
+  flex: 1
+
+.ddg__seg-cell
+  font-size: 13px
+  color: var(--color-text-active)
+  padding: 5px 0
+
+  &--val
+    text-align: right
+    padding: 5px 10px
+
+  &--pct
+    text-align: right
+    white-space: nowrap
+
+.ddg__pickup-td--muted
+  color: #9CA3AF
+
+.ddg__pickup-footer-td--right
+  text-align: right
+
+@keyframes ddg-pulse
+  0%, 100%
+    opacity: 1
+    transform: scale(1)
+  50%
+    opacity: 0.5
+    transform: scale(0.85)

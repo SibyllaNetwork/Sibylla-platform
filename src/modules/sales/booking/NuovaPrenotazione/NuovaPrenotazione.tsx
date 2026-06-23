@@ -92,8 +92,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   // Modifica prenotazione: cattura una sola volta la prenotazione passata via bookingStore
   const [editing] = useState<any>(() => bookingStore.editing)
   const [editId]  = useState<string | null>(() => bookingStore.editing?.booking ?? null)
+  // Precompilazione periodo (selezione dal Tableau): date {dal, al}
+  const [prefill] = useState<any>(() => bookingStore.prefill)
   // Azzeramento differito: sopravvive al doppio-mount di StrictMode (entrambe le init leggono il valore)
-  useEffect(() => { const t = setTimeout(() => { bookingStore.editing = null }, 0); return () => clearTimeout(t) }, [])
+  useEffect(() => { const t = setTimeout(() => { bookingStore.editing = null; bookingStore.prefill = null }, 0); return () => clearTimeout(t) }, [])
 
   const [activeTab, setActiveTab] = useState<'gruppo'|'individuale'>(() => isGruppo(editing) ? 'gruppo' : 'individuale')
 
@@ -122,6 +124,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
     anticipoQuote: [] as number[],
     ...editOverridesInd(editing),
+    ...(!editing && prefill ? { dal: prefill.dal, al: prefill.al } : {}),
   }))
 
   const [grForm, setGrForm] = useState(() => ({
@@ -138,6 +141,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
     anticipoQuote: [] as number[],
     ...editOverridesGr(editing),
+    ...(!editing && prefill ? { dal: prefill.dal, al: prefill.al } : {}),
   }))
 
   const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow('103')])

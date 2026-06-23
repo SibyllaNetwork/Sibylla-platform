@@ -1,0 +1,218 @@
+// ─── Gestione preventivi ────────────────────────────────────────────────────
+// Stili pagina lista preventivi (IMieiPreventivi.tsx)
+@use '../../../../styles/tokens' as *
+
+.gest-prev
+  // ── Toolbar filtri ──────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 14px
+    margin-bottom: 20px
+
+  &__toolbar-row
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+    position: relative
+
+    &--search
+      flex: 0 0 280px
+      max-width: 280px
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  // ── Multi-select "Stati preventivo" ─────────────────────────────────────
+  &__multi
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    min-width: 190px
+    height: 38px
+    padding: 0 12px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 6px
+    font-size: 13px
+    color: var(--color-text-active)
+    cursor: pointer
+
+    i
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__multi-ph
+    color: var(--color-text-inactive)
+
+  &__multi-menu
+    position: absolute
+    top: calc(100% + 4px)
+    left: 0
+    z-index: 30
+    min-width: 190px
+    padding: 6px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 6px
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12)
+    display: flex
+    flex-direction: column
+
+  &__multi-item
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 8px
+    font-size: 13px
+    color: var(--color-text-active)
+    border-radius: 4px
+    cursor: pointer
+
+    &:hover
+      background: var(--color-bg)
+
+    input
+      accent-color: var(--color-primary)
+
+  // ── Bottone export XLS ──────────────────────────────────────────────────
+  &__xls
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 38px
+    height: 38px
+    background: var(--color-surface)
+    border: 1px solid var(--color-border)
+    border-radius: 6px
+    color: var(--color-text-inactive)
+    font-size: 17px
+    cursor: pointer
+
+    &:hover
+      color: var(--color-primary)
+      border-color: var(--color-primary)
+
+  &__new
+    height: 38px
+
+  // ── Tabella ─────────────────────────────────────────────────────────────
+  &__table
+    th, td
+      white-space: nowrap
+
+  &__col-check
+    width: 36px
+    text-align: center
+
+    input
+      accent-color: var(--color-primary)
+      cursor: pointer
+
+  &__col-exp
+    width: 30px
+    text-align: center
+
+  &__col-num
+    text-align: right
+
+  &__exp-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    background: none
+    border: none
+    color: var(--color-text-inactive)
+    cursor: pointer
+    font-size: 12px
+
+    i
+      transition: transform 0.15s ease
+
+      &.is-open
+        transform: rotate(180deg)
+
+  // ── Header ordinabile ───────────────────────────────────────────────────
+  &__sort
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: none
+    border: none
+    padding: 0
+    font: inherit
+    color: inherit
+    cursor: pointer
+
+    i
+      font-size: 11px
+
+  // ── Stato (testo, non badge) ────────────────────────────────────────────
+  &__stato
+    font-weight: 700
+
+    &--letto
+      color: var(--color-primary)
+
+    &--bozza
+      color: var(--color-text-active)
+
+  &__scaduto
+    color: var(--color-error)
+    font-weight: 600
+
+  // ── Azioni inline ───────────────────────────────────────────────────────
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 12px
+
+    button
+      background: none
+      border: none
+      padding: 0
+      font-size: 15px
+      color: var(--color-text-inactive)
+      cursor: pointer
+
+      &:hover
+        color: var(--color-primary)
+
+  &__act-del:hover
+    color: var(--color-error) !important
+
+  // ── Riga di dettaglio (espansione) ──────────────────────────────────────
+  &__detail-row td
+    background: var(--color-bg)
+
+  &__detail
+    display: flex
+    flex-wrap: wrap
+    gap: 28px
+    padding: 6px 4px
+
+    div
+      display: flex
+      flex-direction: column
+      gap: 2px
+      font-size: 12.5px
+      color: var(--color-text-active)
+
+    span
+      font-size: 11px
+      font-weight: 600
+      color: var(--color-text-inactive)
+
+  &__pager
+    margin-top: 18px
+    justify-content: center

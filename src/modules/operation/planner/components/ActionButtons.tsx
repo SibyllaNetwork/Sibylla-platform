@@ -13,6 +13,8 @@ interface Props {
   onOspiti       : () => void;
   onSchedine     : () => void;
   onRilevamento  : () => void;
+  onRichieste    : () => void;
+  richiesteCount : number;
   onLegenda      : () => void;
 }
 
@@ -25,6 +27,7 @@ const ActionButtons: React.FC<Props> = (p) => {
     { key: 'ospiti',      label: 'Ospiti in casa',       icon: 'fa-house-user',        onClick: p.onOspiti },
     { key: 'schedine',    label: 'Schedine alloggiati',  icon: 'fa-id-card',           onClick: p.onSchedine },
     { key: 'rilevamento', label: 'Rilevamento presenze', icon: 'fa-bullseye',          onClick: p.onRilevamento },
+    { key: 'richieste',   label: 'Richieste operative',  icon: 'fa-bell-concierge',    onClick: p.onRichieste, badge: p.richiesteCount },
     { key: 'legenda',     label: 'Legenda',              icon: 'fa-circle-info',       onClick: p.onLegenda },
   ];
 
@@ -39,7 +42,7 @@ const ActionButtons: React.FC<Props> = (p) => {
             aria-label={a.label}
           >
             <i className={`fa-light ${a.icon}`} aria-hidden="true" />
-            {a.key === 'parcheggio' && !!a.badge && (
+            {(a.key === 'parcheggio' || a.key === 'richieste') && !!a.badge && (
               <span className="planner__park-badge">{a.badge}</span>
             )}
           </button>

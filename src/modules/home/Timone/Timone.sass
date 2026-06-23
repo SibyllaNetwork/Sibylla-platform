@@ -1,0 +1,157 @@
+// ─── TIMONE ──────────────────────────────────────────────────────────────────
+// Composizione unica (timone.svg, viewBox 605×604.7) iniettata inline: ruota
+// arancio, cerchio navy, 5 frecce, hub bianco e logo Executive — tutto già al
+// suo posto. Qui controlliamo solo: accensione per modulo (filtro sui gruppi
+// #seg-*) e ingresso animato (ruota → frecce in senso orario → resto).
+@use '../../../styles/tokens' as *
+
+$ease: cubic-bezier(.22, 1, .36, 1)
+
+.timone
+  position: relative
+  width: min(620px, 74vmin)
+  height: min(620px, 74vmin)
+  user-select: none
+
+.timone__svg
+  display: block
+  width: 100%
+  height: 100%
+
+// Origine comune al centro ruota per scale/rotazioni in coordinate SVG.
+#t-wheel, #t-disc, #t-hub, #seg-sales, #seg-operation, #seg-purchasing, #seg-hr, #seg-finance
+  transform-box: view-box
+  transform-origin: 302.5px 302.4px
+
+// ── Accensione per modulo: i segmenti spenti sono desaturati e attenuati ────
+#seg-sales, #seg-operation, #seg-purchasing, #seg-hr, #seg-finance
+  transition: filter .5s $ease
+
+.timone.is-dim-sales #seg-sales,
+.timone.is-dim-operation #seg-operation,
+.timone.is-dim-purchasing #seg-purchasing,
+.timone.is-dim-hr #seg-hr,
+.timone.is-dim-finance #seg-finance
+  filter: grayscale(.92) opacity(.3)
+
+// ── Ingresso orchestrato ────────────────────────────────────────────────────
+// 1) la ruota arancio "gira" entrando e si ferma (decelerazione marcata)
+// 2) il cerchio blu emerge con lei
+// 3) le frecce scattano in posizione in senso orario, con piccolo rimbalzo
+// 4) l'hub + la S compaiono con un overshoot, e un'onda di luce attraversa tutto
+$spin: cubic-bezier(.2, .8, .25, 1)
+$snap: cubic-bezier(.3, 1.1, .4, 1)
+$flow: cubic-bezier(.22, 1, .36, 1)
+
+#t-wheel, #t-disc, #t-hub, #seg-sales, #seg-operation, #seg-purchasing, #seg-hr, #seg-finance
+  opacity: 0
+
+// 1) il cuore (hub + S) si accende per primo, con overshoot
+.timone--in #t-hub
+  animation: timone-hub-in .55s $snap both
+// 2) la ruota arriva con slancio (1 giro e mezzo, overshoot e rientro)
+.timone--in #t-wheel
+  animation: timone-wheel-in 1.25s $spin .25s both
+.timone--in #t-disc
+  animation: timone-disc-in 1.05s $spin .35s both
+
+// 3) le frecce si schierano dal centro verso l'esterno, in senso orario —
+//    ingresso morbido e fluido (ease-out, senza rimbalzo)
+.timone--in #seg-sales
+  animation: timone-seg-in .85s $flow .85s both
+.timone--in #seg-operation
+  animation: timone-seg-in .85s $flow .98s both
+.timone--in #seg-purchasing
+  animation: timone-seg-in .85s $flow 1.11s both
+.timone--in #seg-hr
+  animation: timone-seg-in .85s $flow 1.24s both
+.timone--in #seg-finance
+  animation: timone-seg-in .85s $flow 1.37s both
+
+// 4) assestamento finale: micro-rimbalzo dell'intero timone
+.timone--in .timone__svg
+  animation: timone-lock .55s ease-out 2.0s both
+  transform-origin: 50% 50%
+
+// 5) a regime: un riflesso di luce tenue scorre attorno alla ruota, solo sulle
+//    frecce ATTIVE (le disabled restano ferme). Sfasamento per dare il senso
+//    di movimento che gira, non troppo accentuato.
+.timone--live:not(.is-dim-sales) #seg-sales
+  opacity: 1
+  animation: timone-shimmer 3.6s ease-in-out 0s infinite
+.timone--live:not(.is-dim-operation) #seg-operation
+  opacity: 1
+  animation: timone-shimmer 3.6s ease-in-out .72s infinite
+.timone--live:not(.is-dim-purchasing) #seg-purchasing
+  opacity: 1
+  animation: timone-shimmer 3.6s ease-in-out 1.44s infinite
+.timone--live:not(.is-dim-hr) #seg-hr
+  opacity: 1
+  animation: timone-shimmer 3.6s ease-in-out 2.16s infinite
+.timone--live:not(.is-dim-finance) #seg-finance
+  opacity: 1
+  animation: timone-shimmer 3.6s ease-in-out 2.88s infinite
+
+@keyframes timone-hub-in
+  0%
+    opacity: 0
+    transform: scale(0)
+  62%
+    opacity: 1
+    transform: scale(1.16)
+  100%
+    opacity: 1
+    transform: scale(1)
+
+@keyframes timone-wheel-in
+  0%
+    opacity: 0
+    transform: rotate(-540deg) scale(.25)
+  55%
+    opacity: 1
+  82%
+    transform: rotate(12deg) scale(1.04)
+  100%
+    opacity: 1
+    transform: rotate(0) scale(1)
+
+@keyframes timone-disc-in
+  0%
+    opacity: 0
+    transform: scale(.25)
+  100%
+    opacity: 1
+    transform: scale(1)
+
+@keyframes timone-seg-in
+  0%
+    opacity: 0
+    transform: rotate(-38deg) scale(.4)
+  55%
+    opacity: 1
+  100%
+    opacity: 1
+    transform: rotate(0) scale(1)
+
+@keyframes timone-lock
+  0%
+    transform: scale(1)
+  45%
+    transform: scale(1.022)
+  100%
+    transform: scale(1)
+
+@keyframes timone-shimmer
+  0%, 32%
+    filter: brightness(1) saturate(1)
+  54%
+    filter: brightness(1.42) saturate(1.18) drop-shadow(0 0 7px rgba(255, 255, 255, .55))
+  78%, 100%
+    filter: brightness(1) saturate(1)
+
+// ── Rispetta la preferenza di ridotta animazione ─────────────────────────────
+@media (prefers-reduced-motion: reduce)
+  #t-wheel, #t-disc, #t-hub, #seg-sales, #seg-operation, #seg-purchasing, #seg-hr, #seg-finance
+    animation: none !important
+    opacity: 1
+    transform: none

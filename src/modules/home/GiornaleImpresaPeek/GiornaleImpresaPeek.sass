@@ -6,19 +6,18 @@ $ease: cubic-bezier(.22, 1, .36, 1)
 $navy-grad: linear-gradient(120deg, #25557e 0%, #204769 55%, #1a3a56 100%)
 
 .gip
-  position: absolute
-  top: 0
-  left: 0
+  // "al vivo": ancorata al viewport (sopra la scrollbar del content), non al
+  // contenitore che scrolla — altrimenti si ferma al bordo interno della barra.
+  position: fixed
+  top: 64px
   right: 0
+  left: auto
   z-index: 40
   display: flex
   flex-direction: column
   align-items: flex-end
-  padding-right: 30px
+  padding-right: 0
   pointer-events: none
-
-  @media (max-width: 640px)
-    padding-right: 14px
 
 // ── Backdrop ────────────────────────────────────────────────────────────────
 .gip__backdrop
@@ -43,112 +42,88 @@ $navy-grad: linear-gradient(120deg, #25557e 0%, #204769 55%, #1a3a56 100%)
   background-size: cover
   pointer-events: none
 
-// ── Linguetta "ribbon" (creativa, ancorata a destra) ────────────────────────
+// ── Linguetta "chip" (porta già il dato del giorno, ancorata a destra) ───────
 .gip__tab
   position: relative
   z-index: 3
   pointer-events: auto
   display: inline-flex
   align-items: center
-  gap: 12px
-  height: 52px
-  padding: 0 18px 0 12px
-  border: 0
-  // forma a "etichetta": angolo in basso a sx smussato, dx arrotondato
-  border-radius: 0 0 6px 18px
-  background: $navy-grad
-  color: #fff
+  gap: 11px
+  height: 54px
+  padding: 0 15px 0 11px
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  // a filo del bordo destro: arrotondata solo a sinistra
+  border-right: 0
+  border-radius: 14px 0 0 14px
   cursor: pointer
-  overflow: hidden
-  box-shadow: 0 12px 28px rgba(26, 58, 86, .32)
-  // sottile filo oro in alto
-  border-top: 2px solid var(--color-accent)
-  transition: transform .34s $ease, box-shadow .34s $ease, border-radius .34s $ease
-
-  &::before
-    // riga oro luminosa in basso
-    content: ''
-    position: absolute
-    left: 12px
-    right: 12px
-    bottom: 0
-    height: 2px
-    background: linear-gradient(90deg, transparent, var(--color-accent), transparent)
-    opacity: .8
+  box-shadow: -8px 12px 28px rgba(26, 58, 86, .18)
+  // ingresso: scivola da destra al caricamento
+  animation: gip-tab-in .6s $ease .2s backwards
+  transition: transform .26s $ease, box-shadow .26s $ease, border-color .2s
 
   &:hover
-    transform: translateY(2px)
-    box-shadow: 0 18px 38px rgba(26, 58, 86, .42)
+    transform: translateX(-3px)
+    box-shadow: -12px 16px 34px rgba(26, 58, 86, .26)
 
-// sheen che attraversa la linguetta
-.gip__tab-shimmer
-  position: absolute
-  top: 0
-  left: -60%
-  width: 45%
-  height: 100%
-  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .22), transparent)
-  transform: skewX(-18deg)
-  animation: gip-sheen 4.5s ease-in-out infinite
-  pointer-events: none
-
-// badge circolare con anello oro
-.gip__tab-badge
-  position: relative
+// orb con icona e anello oro
+.gip__tab-orb
   width: 34px
   height: 34px
   flex-shrink: 0
-  border-radius: 50%
+  border-radius: 10px
   display: inline-flex
   align-items: center
   justify-content: center
-  background: rgba(255, 255, 255, .10)
+  background: $navy-grad
   box-shadow: inset 0 0 0 1.5px rgba(201, 168, 76, .9)
 
-.gip__tab-text
-  position: relative
+.gip__tab-meta
   display: flex
   flex-direction: column
   align-items: flex-start
-  line-height: 1.05
+  line-height: 1.1
   text-align: left
 
 .gip__tab-eyebrow
   display: inline-flex
   align-items: center
   gap: 5px
-  font-size: 9.5px
+  font-size: 9px
   font-weight: 700
-  letter-spacing: .12em
+  letter-spacing: .1em
   text-transform: uppercase
-  color: var(--color-accent)
+  color: var(--color-text-inactive)
 
 .gip__tab-livedot
-  width: 6px
-  height: 6px
+  width: 5px
+  height: 5px
   border-radius: 50%
   background: #ff616e
   box-shadow: 0 0 0 0 rgba(255, 97, 110, .55)
   animation: gip-pulse-red 1.8s infinite
 
-.gip__tab-label
-  font-family: $font-heading
-  font-size: 14.5px
-  font-weight: 800
-  letter-spacing: .01em
-
-.gip__tab-chev
-  position: relative
+.gip__tab-num
   display: inline-flex
-  margin-left: 2px
-  transition: transform .42s $ease
+  align-items: baseline
+  gap: 5px
+  font-family: $font-heading
+  font-size: 18px
+  font-weight: 800
+  color: var(--color-primary)
+
+.gip__tab-num-sub
+  display: inline-flex
+  align-items: center
+  gap: 2px
+  font-size: 10px
+  font-weight: 700
+  color: var(--color-success)
 
 .gip.is-open .gip__tab
-  border-radius: 0
-  transform: translateY(0)
-
-.gip.is-open .gip__tab-chev
-  transform: rotate(180deg)
+  border-color: var(--color-primary)
+  box-shadow: 0 16px 34px rgba(26, 58, 86, .26)
 
 // ── Pannello ──────────────────────────────────────────────────────────────────
 .gip__panel
@@ -157,14 +132,15 @@ $navy-grad: linear-gradient(120deg, #25557e 0%, #204769 55%, #1a3a56 100%)
   pointer-events: none
   width: min(680px, calc(100% - 32px))
   max-height: calc(100vh - 132px)
-  margin-top: -2px
+  margin-top: 10px
   display: flex
   flex-direction: column
   background: var(--color-surface)
   border: 1px solid var(--color-border)
-  border-top: 0
-  border-radius: 0 0 18px 18px
-  box-shadow: 0 30px 70px rgba(16, 33, 50, .30)
+  border-right: 0
+  // agganciato allo stesso bordo destro della linguetta
+  border-radius: 18px 0 0 18px
+  box-shadow: -10px 30px 70px rgba(16, 33, 50, .30)
   overflow: hidden
   transform-origin: top right
   // stato chiuso
@@ -618,16 +594,22 @@ $navy-grad: linear-gradient(120deg, #25557e 0%, #204769 55%, #1a3a56 100%)
   100%
     box-shadow: 0 0 0 0 rgba(255, 97, 110, 0)
 
-@keyframes gip-sheen
+@keyframes gip-tab-in
   0%
-    left: -60%
-  35%, 100%
-    left: 120%
+    opacity: 0
+    transform: translateX(115%)
+  60%
+    opacity: 1
+  100%
+    transform: translateX(0)
 
 // Rispetta la preferenza di ridotta animazione
 @media (prefers-reduced-motion: reduce)
-  .gip__panel, .gip__sec, .gip__tab, .gip__tab-chev, .gip__backdrop
+  .gip__panel, .gip__sec, .gip__tab, .gip__backdrop
     transition-duration: .01ms !important
 
-  .gip__tab-shimmer, .gip__tab-livedot, .gip__live-dot
+  .gip__tab
+    animation: none
+
+  .gip__tab-livedot, .gip__live-dot
     animation: none

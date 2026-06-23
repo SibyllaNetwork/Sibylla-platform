@@ -4,6 +4,7 @@ import Ico from '../core/icons/Ico'
 import Logo from './Logo'
 import NavItem from './NavItem'
 import MENU from '../navigation/menu'
+import MENU_TO from '../navigation/menuTourOperator'
 import { filterMenu } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
@@ -53,10 +54,14 @@ export default function Sidebar({
   const adminMode        = !!assist || onConsole || platformAdmin || currentPage === 'assist-admin'
   const menu = useMemo(() => {
     if (onConsole) return MENU
-    if (assist) return filterMenu(MENU as any[], enabledPagesForModuli(assist.moduli, modules))
+    // Modulo "Menu Tour Operator": sidenav dedicata (albero diverso, non filtrato).
+    if (assist) return assist.moduli.includes('tour-operator')
+      ? MENU_TO
+      : filterMenu(MENU as any[], enabledPagesForModuli(assist.moduli, modules))
     if (!currentProfileId) return MENU
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU
+    if (profile.moduli.includes('tour-operator')) return MENU_TO
     return filterMenu(MENU as any[], enabledPagesForProfile(profile, modules))
   }, [onConsole, assist, currentProfileId, profiles, modules])
 

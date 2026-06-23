@@ -5,75 +5,49 @@
 
 .td
   // ── Toolbar ──────────────────────────────────────────────────────────────
+  // Niente box contenitore + riga unica: filtri a sinistra, azioni a destra sulla
+  // stessa riga. Sotto soglia scrolla in orizzontale invece di spezzarsi.
   &__toolbar
     display: flex
-    flex-wrap: wrap
+    flex-wrap: nowrap
     align-items: flex-end
-    gap: $space-lg
-    padding: $space-lg
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-lg
+    gap: $space-sm
+    column-gap: 6px
     margin-bottom: $space-lg
+    overflow-x: auto
+    padding-bottom: 2px
 
   &__f
     display: flex
     flex-direction: column
     gap: 5px
+    flex-shrink: 0
 
   &__f--struttura
-    min-width: 170px
+    min-width: 150px
 
   &__f--vista
-    min-width: 160px
+    min-width: 140px
 
-  &__lbl
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-
-  // Segmented control (Vista + Seleziona intervallo)
-  &__seg
-    display: inline-flex
-    align-items: center
-    gap: 3px
-    padding: 3px
-    background: $bg
-    border: 1px solid $border
-    border-radius: $radius-md
-    height: 38px
-
-  &__seg-btn
-    appearance: none
-    border: none
-    background: transparent
-    padding: 0 16px
-    height: 100%
-    border-radius: $radius-sm
-    font-size: 13px
-    font-weight: 500
-    color: $text-inactive
-    cursor: pointer
-    white-space: nowrap
-    transition: $transition-fast
-    // l'hover NON deve toccare il pulsante selezionato (testo resterebbe scuro su navy → "nero")
-    &:hover:not(.td__seg-btn--on)
-      color: $text-active
-
-  &__seg-btn--on
-    background: $primary
-    color: #fff
-    font-weight: 600
-    box-shadow: $shadow-sm
-    &:hover
-      color: #fff
+  &__f--interv
+    min-width: 130px
 
   &__toolbar-actions
     display: flex
-    flex-wrap: wrap
+    flex-wrap: nowrap
     align-items: center
-    gap: 8px
+    gap: 4px
     margin-left: auto
+    flex-shrink: 0
+
+    // Compatta i pulsanti azione per stare su un'unica riga
+    .td__btn
+      padding: 0 8px
+      gap: 5px
+
+    .sib-btn--icon
+      width: 32px
+      height: 32px
 
   &__btn
     display: inline-flex

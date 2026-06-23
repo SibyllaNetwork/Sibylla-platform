@@ -17,6 +17,9 @@ const NUMERI = [
   { icon: 'trend-up',    label: 'Revenue',        val: '5.380 €', delta: '+27%', pos: true },
 ]
 
+// Dato di testa mostrato già sulla linguetta (utile anche da chiusa)
+const OCC = NUMERI.find(n => n.label === 'Occupazione') ?? NUMERI[0]
+
 const FEATURE = {
   cat: 'Economia', fonte: 'Il Sole 24 Ore', tempo: '2h',
   img: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
@@ -61,17 +64,18 @@ export default function GiornaleImpresaPeek({ navigate }: Props) {
         className="gip__tab"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
-        aria-label="Apri l'anteprima del Giornale impresa"
+        aria-label={`Apri l'anteprima del Giornale impresa · occupazione ${OCC.val}`}
       >
-        <span className="gip__tab-shimmer" aria-hidden="true" />
-        <span className="gip__tab-badge">
-          <Ico n="gauge" s={17} c="#fff" />
+        <span className="gip__tab-orb">
+          <Ico n="gauge" s={16} c="#fff" />
         </span>
-        <span className="gip__tab-text">
-          <span className="gip__tab-eyebrow"><span className="gip__tab-livedot" />Live · oggi</span>
-          <span className="gip__tab-label">Giornale impresa</span>
+        <span className="gip__tab-meta">
+          <span className="gip__tab-eyebrow"><span className="gip__tab-livedot" />Giornale · oggi</span>
+          <span className="gip__tab-num">
+            {OCC.val}
+            <span className="gip__tab-num-sub"><Ico n="trend-up" s={9} c={T.success} />occ.</span>
+          </span>
         </span>
-        <span className="gip__tab-chev"><Ico n="chevd" s={14} c="#cfe0f0" /></span>
       </button>
 
       {/* Pannello anteprima */}

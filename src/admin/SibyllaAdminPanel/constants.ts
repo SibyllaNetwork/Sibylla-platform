@@ -1,4 +1,5 @@
 import MENU from '../../navigation/menu'
+import MENU_TO from '../../navigation/menuTourOperator'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
 import type { Cliente, Intestatario, Modulo, NewClientForm, Ruolo, TipologiaCategoria, UserRow } from './types'
@@ -89,6 +90,7 @@ export const PACCHETTI_INIT: Modulo[] = [
   { id: 'executive',   label: 'Executive Only', desc: 'Dashboard e reportistica',         pages: execPages },
   { id: 'operation',   label: 'Operation',      desc: 'Front office, F&B, Movimenti',     pages: opPages },
   { id: 'ristoranti',  label: 'Ristoranti',     desc: 'Profilo completo + Food & Beverage', pages: ristorantiPages, configuratoreItems: FNB_CONFIG_IDS },
+  { id: 'tour-operator', label: 'Menu Tour Operator', desc: 'Sidenav dedicata ai Tour Operator', pages: getAllPages(MENU_TO as any) },
 ]
 
 // ─── Amministratori e moduli per azienda (singola fonte) ──────────────────────
@@ -106,7 +108,7 @@ export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
   1: { nome: 'Maria Rossi',  email: 'maria@hotelnoto.it',          moduli: ['solo-sales'] },
   2: { nome: 'Carlo Verdi',  email: 'carlo@grandhotelroma.it',     moduli: ['full-suite'] },
   3: { nome: 'Anna Conti',   email: 'anna@bbilglicine.it',         moduli: ['operation'] },
-  4: { nome: 'Giulia Neri',  email: 'giulia@trattoriadelporto.it', moduli: ['ristoranti'] },
+  4: { nome: 'Giulia Neri',  email: 'giulia@trattoriadelporto.it', moduli: ['tour-operator'] },
   5: { nome: 'Marco Bruno',  email: 'marco@skyloungebar.it',       moduli: ['ristoranti'] },
   6: { nome: 'Sara Greco',   email: 'sara@casevacanzeriviera.it',  moduli: ['solo-sales'] },
   7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['operation'] },

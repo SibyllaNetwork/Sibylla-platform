@@ -120,7 +120,8 @@ export const useAccessStore = create<AccessState>()(
       name: 'sibylla.access',
       // Bump versione: rigenera le utenze di test (= admin delle aziende) anche
       // sostituendo eventuali profili persistiti in localStorage.
-      version: 3,
+      // v4: Giulia Neri passa al modulo "Menu Tour Operator".
+      version: 4,
       migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null }),
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
       partialize: (s) => ({ profiles: s.profiles, currentProfileId: s.currentProfileId, assist: s.assist }),

@@ -91,19 +91,6 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
     }),
   }))
 
-  // KPI: usa il primo giorno come "oggi" della selezione
-  const kpis = useMemo(() => {
-    const todayIdx = 0
-    const totStanze = grid.reduce((acc, r) => acc + Math.max(r.giorni[todayIdx].stanze, 0), 0)
-    const totPersone = grid.reduce((acc, r) => acc + r.giorni[todayIdx].persone, 0)
-    const inAttenzione = grid.reduce(
-      (acc, r) => acc + (r.giorni.some(g => g.stanze < 0) ? 1 : 0),
-      0,
-    )
-    const sugg = grid.reduce((acc, r) => acc + r.giorni.filter(g => g.stanze < 0).length, 0)
-    return { totStanze, totPersone, inAttenzione, sugg }
-  }, [grid])
-
   // Totali per giorno (per la riga TOTALE)
   const totaliGiorno = useMemo(() => giorni.map((_, gi) => ({
     stanze:  grid.reduce((acc, r) => acc + r.giorni[gi].stanze, 0),
@@ -121,45 +108,6 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
         title="Griglia disponibilità"
         subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo"
       />
-
-      {/* ── KPI hero ──────────────────────────────────────────────────────── */}
-      <div className="griglia-disp__kpis">
-        <div className="griglia-disp__kpi griglia-disp__kpi--primary">
-          <div className="griglia-disp__kpi-icon"><i className="fa-light fa-door-closed" aria-hidden="true" /></div>
-          <div className="griglia-disp__kpi-body">
-            <div className="griglia-disp__kpi-label">Stanze venduto oggi</div>
-            <div className="griglia-disp__kpi-value">{kpis.totStanze}</div>
-            <div className="griglia-disp__kpi-trend">su {totLic} licenze totali</div>
-          </div>
-        </div>
-
-        <div className="griglia-disp__kpi">
-          <div className="griglia-disp__kpi-icon"><i className="fa-light fa-user" aria-hidden="true" /></div>
-          <div className="griglia-disp__kpi-body">
-            <div className="griglia-disp__kpi-label">Persone oggi</div>
-            <div className="griglia-disp__kpi-value">{kpis.totPersone}</div>
-            <div className="griglia-disp__kpi-trend">presenze stimate</div>
-          </div>
-        </div>
-
-        <div className="griglia-disp__kpi griglia-disp__kpi--warn">
-          <div className="griglia-disp__kpi-icon"><i className="fa-light fa-triangle-exclamation" aria-hidden="true" /></div>
-          <div className="griglia-disp__kpi-body">
-            <div className="griglia-disp__kpi-label">Strutture in attenzione</div>
-            <div className="griglia-disp__kpi-value">{kpis.inAttenzione}</div>
-            <div className="griglia-disp__kpi-trend">disponibilità negativa</div>
-          </div>
-        </div>
-
-        <div className="griglia-disp__kpi griglia-disp__kpi--accent">
-          <div className="griglia-disp__kpi-icon"><i className="fa-light fa-wand-magic-sparkles" aria-hidden="true" /></div>
-          <div className="griglia-disp__kpi-body">
-            <div className="griglia-disp__kpi-label">Suggerimenti smart</div>
-            <div className="griglia-disp__kpi-value">{kpis.sugg}</div>
-            <div className="griglia-disp__kpi-trend">spostamenti possibili</div>
-          </div>
-        </div>
-      </div>
 
       {/* ── Toolbar filtri ─────────────────────────────────────────────────── */}
       <div className="griglia-disp__toolbar">

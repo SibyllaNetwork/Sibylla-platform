@@ -470,18 +470,14 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
           className="td__f"
         />
 
-        <div className="td__f">
-          <span className="td__lbl">Seleziona intervallo</span>
-          <div className="td__seg">
-            {INTERVALLI.map(it => (
-              <button
-                key={it.v}
-                className={`td__seg-btn ${interv === it.v ? 'td__seg-btn--on' : ''}`}
-                onClick={() => changeInterv(it.v)}
-              >{it.label}</button>
-            ))}
-          </div>
-        </div>
+        <SelectField
+          name="interv"
+          label="Seleziona intervallo"
+          value={interv}
+          onChange={e => changeInterv(e.target.value)}
+          options={INTERVALLI.map(it => ({ value: it.v, label: it.label }))}
+          className="td__f td__f--interv"
+        />
 
         <div className="td__toolbar-actions">
           <div className="td__legend-info">

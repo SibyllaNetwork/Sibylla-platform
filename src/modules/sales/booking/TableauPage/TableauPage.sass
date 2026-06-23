@@ -181,34 +181,48 @@
   overflow: hidden
   min-height: 520px
 
-// ─── Nav arrows ───────────────────────────────────────────────────────────────
-.tableau__nav-arrow
-  width: 22px
-  flex-shrink: 0
-  border: none
-  background: var(--color-bg)
-  cursor: pointer
+// ─── Timeline wrap + overlay nav (slider orizzontale, pattern planner) ────────
+.tableau__timeline-wrap
+  flex: 1
+  min-width: 0
+  position: relative
   display: flex
+
+.tableau__tl-nav
+  position: absolute
+  top: 50%
+  transform: translateY(-50%)
+  z-index: 20
+  width: 38px
+  height: 38px
+  border-radius: 50%
+  border: 1px solid $primary-200
+  background: $white
+  color: $primary
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.16)
+  cursor: pointer
+  display: inline-flex
   align-items: center
   justify-content: center
-  border-left: 1px solid $border
-  border-right: 1px solid $border
-  transition: background 0.15s
+  transition: background 0.15s, transform 0.15s, color 0.15s
 
   &:hover
-    background: $primary-100
+    background: $primary
+    color: $white
+    transform: translateY(-50%) scale(1.08)
 
-  &--left
-    border-radius: 12px 0 0 12px
-    border-right: 1px solid $border
+  &:active
+    transform: translateY(-50%) scale(0.96)
 
-  &--right
-    border-radius: 0 12px 12px 0
-    border-left: 1px solid $border
+  &--prev
+    left: 8px
+
+  &--next
+    right: 8px
 
 // ─── Left panel ───────────────────────────────────────────────────────────────
 .tableau__left-panel
-  width: 200px
+  width: 244px
   flex-shrink: 0
   border-right: 1px solid $border
   display: flex
@@ -401,15 +415,18 @@
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 .tableau__grid-wrap
   flex: 1
+  min-width: 0
   overflow: auto
   position: relative
   display: flex
   flex-direction: column
+  align-items: flex-start
 
 .tableau__grid-header
   position: sticky
   top: 0
   z-index: 10
+  width: var(--content-w)
   background: $white
   border-bottom: 1px solid $border
 
@@ -420,30 +437,30 @@
   display: flex
 
 .tableau__day-header
-  flex: 1
+  flex: 0 0 var(--col-w)
+  width: var(--col-w)
   padding: 3px 0
   font-size: 9px
   font-weight: 600
   text-align: center
   border-right: 1px solid $border
-  flex-shrink: 0
   color: var(--day-color)
   background: var(--day-bg)
 
 .tableau__day-num
-  flex: 1
+  flex: 0 0 var(--col-w)
+  width: var(--col-w)
   padding: 3px 0
   font-size: 11px
   text-align: center
   border-right: 1px solid $border
-  flex-shrink: 0
   font-weight: var(--day-weight)
   color: var(--day-color)
   background: var(--day-bg)
 
 .tableau__rows
   position: relative
-  width: 100%
+  width: var(--content-w)
   flex: 1
 
 .tableau__row
@@ -452,7 +469,8 @@
   border-bottom: 1px solid $border
 
 .tableau__grid-cell
-  flex: 1
+  flex: 0 0 var(--col-w)
+  width: var(--col-w)
   border-right: 1px solid $border
   transition: background 0.1s
   background: var(--cell-bg)
@@ -476,21 +494,34 @@
   bottom: 0
   pointer-events: none
 
+  // durante la selezione, il trascinamento passa sopra le strisciate esistenti
+  &.is-selecting .tableau__booking-block
+    pointer-events: none
+
 .tableau__booking-block
   position: absolute
-  border-radius: 6px 12px 12px 6px
   display: flex
   align-items: center
-  padding: 0 8px
+  box-sizing: border-box
+  padding-left: var(--block-pad-left, 10px)
+  padding-right: 20px
   cursor: pointer
   pointer-events: all
   top: var(--block-top)
   left: var(--block-left)
   width: var(--block-width)
+  min-width: 30px
   height: var(--block-height)
   background: var(--block-bg)
-  border: var(--block-border)
-  box-shadow: var(--block-shadow)
+  // forma a strisciata: punta-freccia a destra (+ incavo a sinistra se consecutiva)
+  clip-path: var(--block-clip)
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.3))
+  z-index: 1
+  transition: filter 0.14s ease
+
+  &:hover
+    filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.3)) brightness(1.1)
+    z-index: 3
 
 .tableau__booking-name
   font-size: 10px
@@ -501,18 +532,84 @@
   text-overflow: ellipsis
   text-shadow: 0 1px 3px rgba(0,0,0,0.4)
 
+// ── Chevron staccati oltre la punta (come la strisciata del planner) ──────────
+.tableau__booking-chevrons
+  position: absolute
+  left: var(--chev-left)
+  top: var(--chev-top)
+  width: 28px
+  height: var(--chev-h)
+  pointer-events: none
+  z-index: 2
+  background: var(--chev-bg)
+  $tchev: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 40'%3E%3Cg fill='none' stroke='black' stroke-width='3' stroke-linecap='butt' stroke-linejoin='miter'%3E%3Cpath d='M5 0 L19 20 L5 40'/%3E%3Cpath d='M8 0 L22 20 L8 40'/%3E%3Cpath d='M10 0 L24 20 L10 40'/%3E%3C/g%3E%3C/svg%3E"
+  -webkit-mask-image: url("#{$tchev}")
+  mask-image: url("#{$tchev}")
+  -webkit-mask-size: 100% 100%
+  mask-size: 100% 100%
+  -webkit-mask-repeat: no-repeat
+  mask-repeat: no-repeat
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.3))
+
+.tableau__booking-block:hover + .tableau__booking-chevrons
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.3)) brightness(1.1)
+  z-index: 4
+
+// ─── Modale Dettaglio prenotazione ────────────────────────────────────────────
+.tableau__detpren-total
+  font-size: 14px
+  color: $text-active
+  margin-bottom: 14px
+
+  strong
+    color: $primary
+    font-weight: 700
+    margin-left: 4px
+
+.tableau__detpren-subhead
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 10px
+
+.tableau__detpren-subtitle
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.tableau__detpren-pdf
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+  cursor: pointer
+
+  i
+    font-size: 14px
+
+  &:hover
+    text-decoration: underline
+
+.tableau__detpren-tablewrap
+  max-height: 52vh
+  overflow: auto
+
 // ─── Giacenza bar ─────────────────────────────────────────────────────────────
 .tableau__giacenza-bar
   border-top: 2px solid $border
   position: sticky
   bottom: 0
+  width: var(--content-w)
   background: $white
 
 .tableau__giacenza-row
   display: flex
 
 .tableau__giacenza-cell
-  flex: 1
+  flex: 0 0 var(--col-w)
+  width: var(--col-w)
   font-size: 10px
   font-weight: 600
   text-align: center

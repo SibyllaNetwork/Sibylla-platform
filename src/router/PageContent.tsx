@@ -57,6 +57,7 @@ import Segnalazioni                from '../modules/operation/Segnalazioni/Segna
 import AssegnazioniIncarichi       from '../modules/operation/AssegnazioniIncarichi/AssegnazioniIncarichi';
 import MaintenanceAnalysis         from '../modules/operation/MaintenanceAnalysis/MaintenanceAnalysis';
 import OrdineServizio              from '../modules/operation/OrdineServizio/OrdineServizio';
+import RichiesteOperative          from '../modules/operation/RichiesteOperative/RichiesteOperative';
 import AreaMerceologica            from '../modules/purchasing/AreaMerceologica/AreaMerceologica';
 import DettaglioAreaMerceologica   from '../modules/purchasing/AreaMerceologica/DettaglioAreaMerceologica';
 import ClasseProdotti              from '../modules/purchasing/AreaMerceologica/ClasseProdotti';
@@ -211,7 +212,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'piani-tar')             return <GestionePianiTariffari navigate={navigate}/>;
   if (page === 'maggiorazioni')         return <MaggiorazioniPromozioni navigate={navigate}/>;
   if (page === 'prenotazioni-ids')      return <PrenotazioniIDS navigate={navigate}/>;
-  if (page === 'tableau-book')          return <TableauPage navigate={navigate}/>;
+  if (page === 'tableau-book')          return <TableauPage navigate={navigate} key="tableau-book"/>;
+  if (page === 'open-board')            return <TableauPage navigate={navigate} key="open-board" title="Open board" subtitle="Accedi in tempo reale alla disponibilità delle strutture e gestisci l'intero processo di prenotazione da un unico ambiente operativo"/>;
   if (page === 'analisi-booking')       return <AnalisiBooking navigate={navigate}/>;
   if (page === 'griglia-disp')          return <GrigliaDisponibilita navigate={navigate}/>;
   if (page === 'griglia-disp-estesa')   return <GrigliaDisponibilitaEstesa navigate={navigate}/>;
@@ -273,6 +275,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'assegnazioni-incarichi') return <AssegnazioniIncarichi navigate={navigate}/>;
   if (page === 'maintenance-analysis')  return <MaintenanceAnalysis navigate={navigate}/>;
   if (page === 'ordine-servizio')       return <OrdineServizio navigate={navigate}/>;
+  if (page === 'richieste-operative')   return <RichiesteOperative navigate={navigate}/>;
   if (page === 'area-merceologica')     return <AreaMerceologica navigate={navigate}/>;
   if (page.startsWith('dettaglio-area-merceologica:')) {
     const categoriaId = page.slice('dettaglio-area-merceologica:'.length);

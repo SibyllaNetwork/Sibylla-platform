@@ -4,6 +4,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Pren, Camera } from '../planner.types';
 import { PRENS, parseDt, addDays } from '../planner.data';
+import { bookingStore } from '../../../../core/bookingStore';
 
 const isoDate = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -91,7 +92,16 @@ export function usePlannerState(navigate: (page: string) => void) {
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
 
-  const handleEmptyClick = useCallback((_cam: Camera, _date: Date) => {
+  // Click su cella vuota → apre "Nuova prenotazione" precompilata (1 notte).
+  const handleEmptyClick = useCallback((_cam: Camera, date: Date) => {
+    bookingStore.prefill = { dal: isoDate(date), al: isoDate(addDays(date, 1)) };
+    navigate('nuova-prenotazione');
+  }, [navigate]);
+
+  // Trascinamento su più celle → "Nuova prenotazione" col periodo selezionato
+  // (check-in = primo giorno, check-out = giorno dopo l'ultima notte).
+  const handleSelectPeriod = useCallback((_cam: Camera, startDate: Date, endDate: Date) => {
+    bookingStore.prefill = { dal: isoDate(startDate), al: isoDate(addDays(endDate, 1)) };
     navigate('nuova-prenotazione');
   }, [navigate]);
 
@@ -115,5 +125,6 @@ export function usePlannerState(navigate: (page: string) => void) {
     showRiepilogo, toggleRiepilogo,
     parkBooking, assignBookingToRoom, moveBooking,
     handleEmptyClick,
+    handleSelectPeriod,
   };
 }

@@ -1,14 +1,16 @@
 import { bookingStore } from '../../../../core/bookingStore'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
+import Modal from '../../../../core/components/Modal'
 import './TableauPage.sass'
 
 const MONTHS    = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const ALLOTMENT = 25
 const ROW_H     = 64
+const DAY_W     = 46   // larghezza fissa colonna giorno (timeline scrollabile)
 const ROWS      = ['Riga 1','Riga 2','Riga 3','Riga 4','Riga 5','Riga 6','Riga 7','Riga 8']
 
 const LEGENDA: {color:string;label:string}[] = [
@@ -26,9 +28,21 @@ const LEGENDA: {color:string;label:string}[] = [
   {color:'hat',          label:'Studenti'},
 ]
 
-type Booking = {id:number;nome:string;startDay:number;endDay:number;row:number;colore:string;camere:number;persone:number;importo:number}
+type Booking = {id:number;nome:string;startDay:number;endDay:number;row:number;colore:string;camere:number;persone:number;importo:number;mese:number;anno:number}
 
-export default function TableauPage({ navigate }: { navigate: (p:string)=>void }) {
+interface TableauPageProps {
+  navigate: (p:string)=>void
+  /** Titolo/sottotitolo personalizzabili: la pagina "Open board" riusa questa
+      stessa UI/UX cambiando solo l'intestazione. */
+  title?: string
+  subtitle?: string
+}
+
+export default function TableauPage({
+  navigate,
+  title = 'Tableau',
+  subtitle = 'Inserimento e monitoraggio delle prenotazioni individuali e di gruppo',
+}: TableauPageProps) {
   const today = new Date()
   const [anno,            setAnno]            = useState(today.getFullYear())
   const [mese,            setMese]            = useState(today.getMonth())
@@ -36,16 +50,16 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
   const [categoria,       setCategoria]       = useState('')
   const [contratto,       setContratto]       = useState('RaeliHotels')
   const [azienda,         setAzienda]         = useState('Tutte')
-  const [tableauType,     setTableauType]     = useState<'libero'|'vincolato'>('vincolato')
   const [hovCell,         setHovCell]         = useState<{row:number;day:number}|null>(null)
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [showTotali,      setShowTotali]      = useState(true)
   const [showLegenda,     setShowLegenda]     = useState(false)
+  const [showDettaglio,   setShowDettaglio]   = useState(false)
   const [giacenzaMode,    setGiacenzaMode]    = useState('Giacenza per camere')
   const [bookings,        setBookings]        = useState<Booking[]>([
-    {id:1,nome:'Grp Piersalvo 2', startDay:7,  endDay:11, row:0, colore:'#5A8A3C', camere:3, persone:6,  importo:1200},
-    {id:2,nome:'Prova',           startDay:15, endDay:22, row:1, colore:'#C4A820', camere:5, persone:10, importo:3500},
-    {id:3,nome:'test melissa',    startDay:20, endDay:26, row:1, colore:'#5A8A3C', camere:4, persone:8,  importo:2800},
+    {id:1,nome:'Grp Piersalvo 2', startDay:7,  endDay:11, row:0, colore:'#5A8A3C', camere:3, persone:6,  importo:1200, mese:today.getMonth(), anno:today.getFullYear()},
+    {id:2,nome:'Prova',           startDay:15, endDay:20, row:1, colore:'#C4A820', camere:5, persone:10, importo:3500, mese:today.getMonth(), anno:today.getFullYear()},
+    {id:3,nome:'test melissa',    startDay:20, endDay:26, row:1, colore:'#5A8A3C', camere:4, persone:8,  importo:2800, mese:today.getMonth(), anno:today.getFullYear()},
   ])
 
   useEffect(() => {
@@ -55,7 +69,7 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
       setBookings(prev => {
         const usedRows = new Set(prev.map((bk:any)=>bk.row)); let freeRow=0
         while(usedRows.has(freeRow)) freeRow++
-        return [...prev, {...b, row:freeRow}]
+        return [...prev, {...b, row:freeRow, mese: b.startMonth ?? mese, anno: b.startYear ?? anno}]
       })
       bookingStore.pending = null
     }
@@ -67,17 +81,65 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
   const getDayName  = (d:number) => ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][new Date(anno,mese,d).getDay()]
   const isWeekend   = (d:number) => { const w=new Date(anno,mese,d).getDay(); return w===0||w===6 }
   const isToday_    = (d:number) => d===today.getDate()&&mese===today.getMonth()&&anno===today.getFullYear()
-  const isPast      = (d:number) => new Date(anno,mese,d)<new Date(today.getFullYear(),today.getMonth(),today.getDate())
   const todayCol    = (anno===today.getFullYear()&&mese===today.getMonth())?today.getDate():null
   const COL_W_NUM   = 100/dim
-  const getGiacenza = (d:number) => { const used=bookings.filter(b=>d>=b.startDay&&d<=b.endDay).reduce((a,b)=>a+b.camere,0); return ALLOTMENT-used }
+  // Prenotazioni del periodo visualizzato: legate alla data reale (mese/anno),
+  // così scorrendo i mesi compaiono solo nelle loro giornate.
+  const visibleBookings = bookings.filter(b => b.mese===mese && b.anno===anno)
+  const getGiacenza = (d:number) => { const used=visibleBookings.filter(b=>d>=b.startDay&&d<=b.endDay).reduce((a,b)=>a+b.camere,0); return ALLOTMENT-used }
 
-  const totPersone = bookings.reduce((a,b)=>a+b.persone,0)
-  const totCamere  = bookings.reduce((a,b)=>a+b.camere,0)
-  const totImporto = bookings.reduce((a,b)=>a+b.importo,0)
+  const totPersone = visibleBookings.reduce((a,b)=>a+b.persone,0)
+  const totCamere  = visibleBookings.reduce((a,b)=>a+b.camere,0)
+  const totImporto = visibleBookings.reduce((a,b)=>a+b.importo,0)
+
+  // ── Dettaglio prenotazione (modale): ripartizione per notte ─────────────────
+  const fmtEur = (n:number) => n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'
+  const fmtDay = (d:number) => `${String(d).padStart(2,'0')}/${String(mese+1).padStart(2,'0')}/${anno}`
+  const dettaglioRows = selectedBooking
+    ? Array.from({length: Math.max(1, selectedBooking.endDay - selectedBooking.startDay)}, (_,i) => {
+        const nights   = Math.max(1, selectedBooking.endDay - selectedBooking.startDay)
+        const perNight = selectedBooking.importo / nights
+        return { data: fmtDay(selectedBooking.startDay + i), pernotto: perNight, extra: 0, servizi: 0, totale: perNight }
+      })
+    : []
+  const importoComplessivo = dettaglioRows.reduce((a,r)=>a+r.totale, 0)
 
   const prevMonth = () => { if(mese===0){setMese(11);setAnno(a=>Math.max(2023,a-1))}else setMese(m=>m-1) }
   const nextMonth = () => { if(mese===11){setMese(0);setAnno(a=>Math.min(2028,a+1))}else setMese(m=>m+1) }
+
+  // ── Scroll orizzontale timeline (overlay nav, come nel planner) ─────────────
+  const gridRef = useRef<HTMLDivElement>(null)
+  const [tlNav, setTlNav] = useState({prev:false, next:false})
+  const updateTlNav = () => {
+    const el = gridRef.current; if(!el) return
+    setTlNav({ prev: el.scrollLeft > 4, next: el.scrollLeft < el.scrollWidth - el.clientWidth - 4 })
+  }
+  const scrollTl = (dir:number) => {
+    const el = gridRef.current; if(!el) return
+    el.scrollBy({ left: dir * Math.max(DAY_W*5, el.clientWidth - 80), behavior:'smooth' })
+  }
+  useEffect(() => { updateTlNav() }, [anno, mese, dim]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Selezione a trascinamento → prenotazione di periodo ─────────────────────
+  // Trascini su più celle di una riga: al rilascio crei la strisciata per quel
+  // periodo. Click singolo (nessun trascinamento) = apri "Nuova prenotazione".
+  const dragRef = useRef<{row:number;startDay:number;endDay:number}|null>(null)
+  const [dragSel, setDragSel] = useState<{row:number;startDay:number;endDay:number}|null>(null)
+  const startDrag  = (row:number, d:number) => { const s={row,startDay:d,endDay:d}; dragRef.current=s; setDragSel(s) }
+  const extendDrag = (row:number, d:number) => { const c=dragRef.current; if(c && c.row===row && d!==c.endDay){ const s={...c,endDay:d}; dragRef.current=s; setDragSel(s) } }
+  useEffect(() => {
+    const onUp = () => {
+      const s = dragRef.current; dragRef.current=null; setDragSel(null)
+      if(!s) return
+      const start=Math.min(s.startDay,s.endDay), end=Math.max(s.startDay,s.endDay)
+      // apre "Nuova prenotazione" col periodo selezionato già precompilato
+      const iso=(day:number)=>`${anno}-${String(mese+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+      bookingStore.prefill = { dal: iso(start), al: iso(end) }
+      navigate('nuova-prenotazione')
+    }
+    window.addEventListener('mouseup', onUp)
+    return () => window.removeEventListener('mouseup', onUp)
+  }, [mese, anno]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── LegendaItem ─────────────────────────────────────────────────────────────
   const LegendaItem = ({item}:{item:{color:string;label:string}}) => {
@@ -108,24 +170,12 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
   return (
     <div>
       <BtnBack onClick={() => navigate('home')}/>
-      <PageHeader title="Tableau" subtitle="Inserimento e monitoraggio delle prenotazioni individuali e di gruppo"/>
+      <PageHeader title={title} subtitle={subtitle}/>
 
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
       <div className="flex items-end gap-3.5 mb-3 flex-wrap">
-        {/* Tableau type */}
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Tableau</span>
-          <div className="flex items-center gap-3 h-[34px]">
-            {(['libero','vincolato'] as const).map(t=>(
-              <label key={t} className={`flex items-center gap-1.5 cursor-pointer text-xs font-opensans ${tableauType===t?'text-primary font-semibold':'text-ink'}`}>
-                <input type="radio" checked={tableauType===t} onChange={()=>setTableauType(t)} className="sib-radio"/>{t.charAt(0).toUpperCase()+t.slice(1)}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Azienda + Contratto — solo vincolato */}
-        {tableauType==='vincolato' && [{lbl:'Azienda',val:azienda,set:setAzienda,opts:['Tutte','Azienda A','Azienda B'],w:'w-[90px]'},{lbl:'Contratto',val:contratto,set:setContratto,opts:['RaeliHotels','Contratto A'],w:'w-[120px]'}].map(({lbl,val,set,opts,w})=>(
+        {/* Azienda + Contratto */}
+        {[{lbl:'Azienda',val:azienda,set:setAzienda,opts:['Tutte','Azienda A','Azienda B'],w:'w-[90px]'},{lbl:'Contratto',val:contratto,set:setContratto,opts:['RaeliHotels','Contratto A'],w:'w-[120px]'}].map(({lbl,val,set,opts,w})=>(
           <div key={lbl} className="flex flex-col gap-1">
             <span className="text-[11px] font-semibold font-opensans text-ink">{lbl}</span>
             <select className={`sib-select sib-select--dense ${w}`} value={val} onChange={e=>set(e.target.value)}>
@@ -174,26 +224,6 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
           </select>
         </div>
 
-        {/* Bottoni extra — solo libero */}
-        {tableauType==='libero' && (
-          <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
-            <div className="flex items-center gap-1.5">
-              {[
-                {ico:'fa-cubes',label:'Allocazione risorse'},
-                {ico:'fa-grid-2',label:'Griglia disponibilità'},
-                {ico:'fa-shuffle',label:'Assegnazione'},
-                {ico:'fa-chart-bar',label:'Report'},
-              ].map((btn,i)=>(
-                <button key={i} className="sib-btn sib-btn--toolbar" title={btn.label}>
-                  <i className={`fa-duotone ${btn.ico} text-[13px]`} aria-hidden="true"/>
-                  <span className="hidden 3xl:inline">{btn.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Actions — a destra */}
         <div className="flex flex-col gap-1 ml-auto">
           <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
@@ -209,22 +239,11 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
                 </div>
               )}
             </div>
-            {tableauType==='vincolato' ? (
-              [{ico:'fa-arrows-rotate',title:'Aggiorna'},{ico:'fa-pen',title:'Modifica'},{ico:'fa-gear',title:'Impostazioni'}].map((btn,i)=>(
-                <button key={i} className="sib-btn sib-btn--icon" title={btn.title}>
-                  <i className={`fa-duotone ${btn.ico} text-[14px]`} aria-hidden="true"/>
-                </button>
-              ))
-            ) : (
-              <>
-                <button className="sib-btn sib-btn--icon" title="Esporta PDF">
-                  <i className="fa-duotone fa-file-pdf text-[14px]" aria-hidden="true"/>
-                </button>
-                <button className="sib-btn sib-btn--icon" title="Esporta XLS">
-                  <i className="fa-duotone fa-file-excel text-[14px]" aria-hidden="true"/>
-                </button>
-              </>
-            )}
+            {[{ico:'fa-arrows-rotate',title:'Aggiorna'},{ico:'fa-pen',title:'Modifica'},{ico:'fa-gear',title:'Impostazioni'}].map((btn,i)=>(
+              <button key={i} className="sib-btn sib-btn--icon" title={btn.title}>
+                <i className={`fa-duotone ${btn.ico} text-[14px]`} aria-hidden="true"/>
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -245,7 +264,7 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
               <div className="tableau__detail">
                 <div className="tableau__detail-scroll">
                   {[
-                    {l:'ID',       v:<div className="tableau__detail-id-row"><span>2026/{String(selectedBooking.id).padStart(6,'0')}</span><button className="tableau__detail-link">Dettaglio</button></div>},
+                    {l:'ID',       v:<div className="tableau__detail-id-row"><span>2026/{String(selectedBooking.id).padStart(6,'0')}</span><button className="tableau__detail-link" onClick={()=>setShowDettaglio(true)}>Dettaglio</button></div>},
                     {l:'GRUPPO',       v:selectedBooking.nome},
                     {l:'CAPOGRUPPO',   v:'Pierciccio'},
                     {l:'NAZIONALITÀ',  v:'ITA'},
@@ -313,13 +332,22 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
           </div>
         </div>
 
-        {/* Nav arrow left */}
-        <button className="tableau__nav-arrow tableau__nav-arrow--left" onClick={prevMonth}>
-          <Ico n="back" s={16} c={T.primary}/>
-        </button>
+        {/* Timeline scrollabile con overlay nav (come planner) */}
+        <div className="tableau__timeline-wrap">
+          {tlNav.prev && (
+            <button type="button" className="tableau__tl-nav tableau__tl-nav--prev" onClick={()=>scrollTl(-1)} aria-label="Giorni precedenti">
+              <Ico n="back" s={16} c="currentColor"/>
+            </button>
+          )}
+          {tlNav.next && (
+            <button type="button" className="tableau__tl-nav tableau__tl-nav--next" onClick={()=>scrollTl(1)} aria-label="Giorni successivi">
+              <Ico n="chevr" s={16} c="currentColor"/>
+            </button>
+          )}
 
-        {/* Timeline grid */}
-        <div className="tableau__grid-wrap">
+          {/* Timeline grid */}
+          <div className="tableau__grid-wrap" ref={gridRef} onScroll={updateTlNav}
+            style={{ '--content-w': `${dim*DAY_W}px`, '--col-w': `${DAY_W}px` } as React.CSSProperties}>
           {/* Sticky header */}
           <div className="tableau__grid-header">
             <div className="tableau__day-names">
@@ -357,40 +385,68 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
             {ROWS.map((row,ri)=>(
               <div key={row} className="tableau__row">
                 {days.map(d=>{
-                  const past=isPast(d), hov=hovCell?.row===ri&&hovCell?.day===d&&!past
+                  const hov=hovCell?.row===ri&&hovCell?.day===d
+                  const inSel = !!dragSel && dragSel.row===ri && d>=Math.min(dragSel.startDay,dragSel.endDay) && d<=Math.max(dragSel.startDay,dragSel.endDay)
                   return (
                     <div key={d} className="tableau__grid-cell"
                       style={{
-                        '--cell-bg':     isToday_(d)?`${T.blue}10`:isWeekend(d)?'#FAFBFF':hov?'#D6EAFF':'transparent',
-                        '--cell-cursor': past?'default':'pointer',
+                        '--cell-bg':     isToday_(d)?`${T.blue}10`:inSel?'#C7E2FF':isWeekend(d)?'#FAFBFF':hov?'#D6EAFF':'transparent',
+                        '--cell-cursor': 'pointer',
                       } as React.CSSProperties}
-                      onMouseEnter={()=>!past&&setHovCell({row:ri,day:d})}
+                      onMouseDown={e=>{e.preventDefault(); startDrag(ri,d)}}
+                      onMouseEnter={()=>{ extendDrag(ri,d); setHovCell({row:ri,day:d}) }}
                       onMouseLeave={()=>setHovCell(null)}
-                      onClick={()=>{if(!past)navigate('nuova-prenotazione')}}
                     />
                   )
                 })}
               </div>
             ))}
 
-            {/* Booking blocks */}
-            <div className="tableau__bookings-layer">
-              {bookings.map(b=>(
-                <div key={b.id} className="tableau__booking-block"
-                  style={{
-                    '--block-top':    `${b.row*ROW_H+12}px`,
-                    '--block-left':   `calc(${(b.startDay-1)*COL_W_NUM}% + 2px)`,
-                    '--block-width':  `calc(${(b.endDay-b.startDay+1)*COL_W_NUM}% - 6px)`,
-                    '--block-height': `${ROW_H-24}px`,
-                    '--block-bg':     `repeating-linear-gradient(-45deg,${b.colore}99,${b.colore}99 4px,${b.colore}55 4px,${b.colore}55 8px)`,
-                    '--block-border': `2px solid ${b.colore}`,
-                    '--block-shadow': `0 2px 6px ${b.colore}33`,
-                  } as React.CSSProperties}
-                  onClick={()=>setSelectedBooking(b)}
-                >
-                  <span className="tableau__booking-name">{b.nome}</span>
-                </div>
-              ))}
+            {/* Booking blocks — forma a strisciata (punta + chevron) come nel planner */}
+            <div className={`tableau__bookings-layer ${dragSel?'is-selecting':''}`}>
+              {visibleBookings.map(b=>{
+                const ARROW = 14, NOTCH = 14
+                // Regola degli ingombri: il giorno di check-in e di check-out sono
+                // occupati solo a metà (offset F di cella), come nel planner, così
+                // sulla stessa giornata convivono partenza e arrivo.
+                const F = 0.3
+                const leftPct  = (b.startDay - 1 + F) * COL_W_NUM
+                const widthPct = (b.endDay - b.startDay) * COL_W_NUM
+                const rightPct = (b.endDay - 1 + F) * COL_W_NUM
+                // Consecutiva: un'altra prenotazione sulla stessa riga fa check-out
+                // il giorno del check-in di questa → incavo a sinistra.
+                const hasPred = visibleBookings.some(o => o.id!==b.id && o.row===b.row && o.endDay===b.startDay)
+                const clip = hasPred
+                  ? `polygon(0 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%, ${NOTCH}px 50%)`
+                  : `polygon(0 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%)`
+                return (
+                  <React.Fragment key={b.id}>
+                    <div className="tableau__booking-block"
+                      style={{
+                        '--block-top':      `${b.row*ROW_H+12}px`,
+                        '--block-left':     `${leftPct}%`,
+                        '--block-width':    `${widthPct}%`,
+                        '--block-height':   `${ROW_H-24}px`,
+                        '--block-bg':       `repeating-linear-gradient(-45deg,${b.colore}99,${b.colore}99 4px,${b.colore}55 4px,${b.colore}55 8px)`,
+                        '--block-clip':     clip,
+                        '--block-pad-left': hasPred ? `${NOTCH+6}px` : '10px',
+                      } as React.CSSProperties}
+                      onClick={()=>setSelectedBooking(b)}
+                    >
+                      <span className="tableau__booking-name">{b.nome}</span>
+                    </div>
+                    {/* Chevron staccati oltre la punta */}
+                    <div className="tableau__booking-chevrons"
+                      style={{
+                        '--chev-left': `calc(${rightPct}% - ${ARROW}px)`,
+                        '--chev-top':  `${b.row*ROW_H+12}px`,
+                        '--chev-h':    `${ROW_H-24}px`,
+                        '--chev-bg':   b.colore,
+                      } as React.CSSProperties}
+                    />
+                  </React.Fragment>
+                )
+              })}
             </div>
           </div>
 
@@ -413,13 +469,52 @@ export default function TableauPage({ navigate }: { navigate: (p:string)=>void }
               </div>
             ))}
           </div>
+          </div>
         </div>
-
-        {/* Nav arrow right */}
-        <button className="tableau__nav-arrow tableau__nav-arrow--right" onClick={nextMonth}>
-          <Ico n="chevr" s={16} c={T.primary}/>
-        </button>
       </div>
+
+      {/* ── Modale Dettaglio prenotazione ──────────────────────────────────── */}
+      <Modal open={showDettaglio} onClose={()=>setShowDettaglio(false)} title="Dettaglio Prenotazione" size="xl">
+        <div className="tableau__detpren">
+          <div className="tableau__detpren-total">
+            Importo complessivo: <strong>{fmtEur(importoComplessivo)}</strong>
+          </div>
+          <div className="tableau__detpren-subhead">
+            <span className="tableau__detpren-subtitle">Così suddiviso:</span>
+            <button className="tableau__detpren-pdf" title="Esporta in PDF">
+              <i className="fa-duotone fa-file-pdf" aria-hidden="true"/> Esporta Pdf
+            </button>
+          </div>
+          <div className="sib-table-wrap tableau__detpren-tablewrap">
+            <table className="sib-table">
+              <thead>
+                <tr>
+                  <th>Data soggiorno</th>
+                  <th><i className="fa-duotone fa-bed" aria-hidden="true"/> Camere</th>
+                  <th>Numero</th>
+                  <th>Occupanti</th>
+                  <th>Pernotto</th>
+                  <th>Extra</th>
+                  <th>Servizi</th>
+                  <th>Totale pernotto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dettaglioRows.map((r,i)=>(
+                  <tr key={i}>
+                    <td>{r.data}</td>
+                    <td/><td/><td/>
+                    <td>{fmtEur(r.pernotto)}</td>
+                    <td>{fmtEur(r.extra)}</td>
+                    <td>{fmtEur(r.servizi)}</td>
+                    <td>{fmtEur(r.totale)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

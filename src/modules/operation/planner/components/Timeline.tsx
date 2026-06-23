@@ -19,18 +19,24 @@ interface Props {
   onSelect     : (p: Pren | null) => void;
   selectedId   : string | null;
   onEmpty      : (cam: Camera, date: Date) => void;
+  onSelectPeriod?: (cam: Camera, startDate: Date, endDate: Date) => void;
   onAssign?    : (id: string, numeroCamera: string) => void;
   onMove?      : (id: string, numeroCamera: string, deltaDays: number) => void;
   showRiepilogo?    : boolean;
   onToggleRiepilogo?: () => void;
   onBarHover?  : (pren: Pren | null, clientX: number, clientY: number) => void;
+  /** Booking con richiesta operativa eseguita → icona sulla barra. */
+  richiesteEseguite?: Set<string>;
+  /** Booking con richiesta operativa ancora da eseguire → icona "in attesa". */
+  richiesteInAttesa?: Set<string>;
 }
 
 const Timeline: React.FC<Props> = ({
   piani, prenotazioni, startDate, numDays,
   filtroConf, filtroOpz, activePiani,
-  onSelect, selectedId, onEmpty, onAssign, onMove,
+  onSelect, selectedId, onEmpty, onSelectPeriod, onAssign, onMove,
   showRiepilogo, onToggleRiepilogo, onBarHover,
+  richiesteEseguite, richiesteInAttesa,
 }) => {
   const dragEnabled = !!(onMove || onAssign);
 
@@ -59,6 +65,23 @@ const Timeline: React.FC<Props> = ({
   const today = useMemo(() => {
     const t = new Date(); t.setHours(0, 0, 0, 0); return t;
   }, []);
+
+  // ── Selezione a trascinamento → prenotazione di periodo ──────────────────────
+  const selRef = useRef<{ cam: Camera; startDi: number; endDi: number } | null>(null);
+  const [selDrag, setSelDrag] = useState<{ camNumero: string; startDi: number; endDi: number } | null>(null);
+  const startSel  = (cam: Camera, di: number) => { selRef.current = { cam, startDi: di, endDi: di }; setSelDrag({ camNumero: cam.numero, startDi: di, endDi: di }); };
+  const extendSel = (camNumero: string, di: number) => { const c = selRef.current; if (c && c.cam.numero === camNumero && di !== c.endDi) { c.endDi = di; setSelDrag({ camNumero, startDi: c.startDi, endDi: di }); } };
+  useEffect(() => {
+    const onUp = () => {
+      const c = selRef.current; selRef.current = null; setSelDrag(null);
+      if (!c) return;
+      const lo = Math.min(c.startDi, c.endDi), hi = Math.max(c.startDi, c.endDi);
+      if (lo === hi) onEmpty(c.cam, days[lo]);
+      else onSelectPeriod?.(c.cam, days[lo], days[hi]);
+    };
+    window.addEventListener('mouseup', onUp);
+    return () => window.removeEventListener('mouseup', onUp);
+  }, [days, onEmpty, onSelectPeriod]);
   const visible = activePiani.length > 0
     ? piani.filter(p => activePiani.includes(p.id))
     : piani;
@@ -193,6 +216,9 @@ const Timeline: React.FC<Props> = ({
                       const co = parseDt(p.checkOut);
                       return d >= ci && d < co;
                     });
+                    const selecting = !!selDrag && selDrag.camNumero === cam.numero
+                      && di >= Math.min(selDrag.startDi, selDrag.endDi)
+                      && di <= Math.max(selDrag.startDi, selDrag.endDi);
                     return (
                       <div
                         key={di}
@@ -201,9 +227,11 @@ const Timeline: React.FC<Props> = ({
                           isToday(d) ? 'timeline__cell--today'    : '',
                           isWE(d)    ? 'timeline__cell--weekend'  : '',
                           occupied   ? 'timeline__cell--occupied' : 'timeline__cell--free',
+                          selecting  ? 'timeline__cell--selecting' : '',
                         ].join(' ')}
                         style={{ '--cell-left': `${di * DAY_W}px` } as React.CSSProperties}
-                        onClick={() => { if (!occupied) onEmpty(cam, d); }}
+                        onMouseDown={(e) => { if (!occupied) { e.preventDefault(); startSel(cam, di); } }}
+                        onMouseEnter={() => extendSel(cam.numero, di)}
                       />
                     );
                   })}
@@ -241,11 +269,23 @@ const Timeline: React.FC<Props> = ({
                             <span className="timeline__bar__question">?</span>
                           )}
                           <span className="timeline__bar__name">{pren.nominativo}</span>
-                          {(() => { const comms = bookingComms(pren); return comms.length > 0 && (
-                            <span className="timeline__bar__comms">
-                              {comms.map(c => <i key={c.key} className={`fa-solid ${c.icon}`} title={c.label} aria-label={c.label} />)}
-                            </span>
-                          ); })()}
+                          {(() => {
+                            const comms = bookingComms(pren);
+                            const eseguita = richiesteEseguite?.has(pren.booking);
+                            const inAttesa = richiesteInAttesa?.has(pren.booking);
+                            if (comms.length === 0 && !eseguita && !inAttesa) return null;
+                            return (
+                              <span className="timeline__bar__comms">
+                                {comms.map(c => <i key={c.key} className={`fa-solid ${c.icon}`} title={c.label} aria-label={c.label} />)}
+                                {eseguita && (
+                                  <i className="fa-solid fa-bell-concierge timeline__bar__richiesta" title="Richiesta operativa eseguita" aria-label="Richiesta operativa eseguita" />
+                                )}
+                                {!eseguita && inAttesa && (
+                                  <i className="fa-solid fa-bell-concierge timeline__bar__richiesta timeline__bar__richiesta--wait" title="Richiesta operativa da eseguire" aria-label="Richiesta operativa da eseguire" />
+                                )}
+                              </span>
+                            );
+                          })()}
                         </div>
                         {bp.showChevrons && (
                           <div

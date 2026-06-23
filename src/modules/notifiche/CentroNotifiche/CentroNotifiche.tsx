@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import Tooltip from '../../../core/components/Tooltip'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import { useChatStore } from '../../../store/useChatStore'
+import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -131,7 +132,33 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     }
   }, [])
 
-  const allNotifications = items
+  // Richieste operative dei Tour Operator → notifiche "Richiesta operativa da TO".
+  const richiesteOp = useRichiesteOperativeStore((s) => s.richieste)
+  const richiesteNotifs: NotificaUI[] = useMemo(
+    () =>
+      richiesteOp.map((r, i) => {
+        const d = new Date(r.createdAt)
+        const today = new Date()
+        const sameDay = d.toDateString() === today.toDateString()
+        const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+        const group: NotificaUI['group'] = sameDay ? 'oggi' : sameMonth ? 'mese-scorso' : 'precedenti'
+        const extra = r.servizi.length ? ` Extra: ${r.servizi.map((s) => s.label).join(', ')}.` : ''
+        return {
+          id: 900000 + i,
+          sev: 'info',
+          title: 'Richiesta operativa da TO',
+          text: `${r.nominativo} (booking ${r.bookingId}): ${r.descrizione}${extra}`,
+          ref: `Booking ${r.bookingId}`,
+          date: `${WEEKDAYS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}`,
+          time: d.toTimeString().slice(0, 5),
+          group,
+          read: r.stato === 'eseguita',
+        }
+      }),
+    [richiesteOp],
+  )
+
+  const allNotifications = useMemo(() => [...richiesteNotifs, ...items], [richiesteNotifs, items])
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
     [allNotifications]

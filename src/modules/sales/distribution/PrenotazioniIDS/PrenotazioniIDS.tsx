@@ -37,13 +37,13 @@ export default function PrenotazioniIDS({ navigate }: { navigate: (p: string) =>
       {/* Filtri */}
       <div className="ids__filters">
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">Struttura</label>
+          <label className="block mb-1 text-[12px] font-semibold font-opensans text-text-inactive">Struttura</label>
           <select className="sib-select sib-select--dense w-[180px]" value={struttura} onChange={e => setStruttura(e.target.value)}>
             {STRUTTURE.map(s => <option key={s}>{s}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">Data ultima modifica</label>
+          <label className="block mb-1 text-[12px] font-semibold font-opensans text-text-inactive">Data ultima modifica</label>
           <input type="date" className="sib-input sib-input--dense" value={dataUltMod} onChange={e => setDataUltMod(e.target.value)} />
         </div>
       </div>
