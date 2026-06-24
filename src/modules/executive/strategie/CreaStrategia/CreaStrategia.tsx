@@ -216,7 +216,7 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
             className="crea-strat__field crea-strat__field--name"
           />
           <div className="crea-strat__static">
-            <label className="text-[11px] font-semibold font-opensans text-ink">Tipo strategia</label>
+            <label className="text-[12px] font-semibold font-poppins text-primary">Tipo strategia</label>
             <button
               type="button"
               className="crea-strat__static-val"
@@ -227,7 +227,7 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
             </button>
           </div>
           <div className="crea-strat__static">
-            <label className="text-[11px] font-semibold font-opensans text-ink">Colore strategia</label>
+            <label className="text-[12px] font-semibold font-poppins text-primary">Colore strategia</label>
             <ColorPickerField value={colore} onChange={setColore} />
           </div>
         </div>

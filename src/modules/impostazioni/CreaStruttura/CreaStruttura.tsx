@@ -626,7 +626,7 @@ function StrutturaForm({
             <FormGrid cols={2}>
               <InputField name="nome" label="Nome struttura" value={nome} onChange={e => setNome(e.target.value)} />
               <div>
-                <label className="text-[11px] font-semibold font-opensans text-ink mb-1 block">Categoria</label>
+                <label className="text-[12px] font-semibold font-poppins text-primary mb-1 block">Categoria</label>
                 <div className="crea-struttura__rating">
                   {[1, 2, 3, 4, 5].map(n => (
                     <button
@@ -851,7 +851,7 @@ function FileField({
   const inputRef = React.useRef<HTMLInputElement>(null)
   return (
     <div className="crea-struttura__file-field">
-      <label className="text-[11px] font-semibold font-opensans text-ink">
+      <label className="text-[12px] font-semibold font-poppins text-primary">
         {label}
         {optionalLabel && <em className="crea-struttura__label-opt"> {optionalLabel}</em>}
       </label>

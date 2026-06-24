@@ -279,7 +279,7 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
           <div className="crea-prodotto__field">
             <label
               htmlFor="prod-barcode"
-              className="text-[11px] font-semibold font-opensans text-ink"
+              className="text-[12px] font-semibold font-poppins text-primary"
             >
               Barcode (EAN-13)<span className="text-error ml-0.5">*</span>
             </label>
@@ -336,7 +336,7 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
             )}
           </div>
           <div className="crea-prodotto__field">
-            <span className="text-[11px] font-semibold font-opensans text-ink">Stato</span>
+            <span className="text-[12px] font-semibold font-poppins text-primary">Stato</span>
             <ToggleSwitch
               checked={form.attivo}
               onChange={v => set('attivo', v)}
@@ -352,7 +352,7 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
               : <i className="fa-light fa-qrcode crea-prodotto__qr-ph" aria-hidden="true" />}
           </div>
           <div className="crea-prodotto__qr-side">
-            <span className="text-[11px] font-semibold font-opensans text-ink">Codice QR</span>
+            <span className="text-[12px] font-semibold font-poppins text-primary">Codice QR</span>
             <p className="crea-prodotto__hint">
               {qrPayload
                 ? <>Genera un QR specifico per questo prodotto. Codifica: <code>{qrPayload}</code></>
@@ -412,7 +412,7 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
         />
 
         <div className="crea-prodotto__field">
-          <span className="text-[11px] font-semibold font-opensans text-ink">
+          <span className="text-[12px] font-semibold font-poppins text-primary">
             Foto prodotto <span className="crea-prodotto__label-hint">(max {MAX_FOTO})</span>
           </span>
           <div className="crea-prodotto__gallery">

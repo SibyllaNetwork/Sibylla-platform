@@ -109,7 +109,7 @@ export default function GrigliaDisponibilitaEstesa({ navigate }: { navigate: (p:
           />
         </div>
         <div className="flex flex-col gap-1 ml-auto">
-          <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">&nbsp;</span>
           <div className="flex items-center gap-1.5">
             <button className="sib-btn sib-btn--icon" title="Esporta CSV">
               <i className="fa-duotone fa-file-csv text-[14px]" aria-hidden="true"/>

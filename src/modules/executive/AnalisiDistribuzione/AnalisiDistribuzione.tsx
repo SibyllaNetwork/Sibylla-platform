@@ -8,7 +8,27 @@ import Pagination from '../../../core/components/Pagination';
 import Tooltip from '../../../core/components/Tooltip';
 import { SelectField, DateRangeField } from '../../../core/components/form'
 import SuggerimentiModal from './SuggerimentiModal';
+import { useAccessStore } from '../../../store/useAccessStore'
 import './AnalisiDistribuzione.sass'
+
+// Pagina CONDIVISA tra modulo hotel e Tour Operator: doppia visualizzazione di
+// contenuti (il colore è già module-aware via sectionForPage). I TO analizzano
+// la distribuzione per DESTINAZIONE, gli altri moduli per STRUTTURA.
+type DistVariant = 'hotel' | 'to'
+const DIST_VARIANT: Record<DistVariant, { title: string; subtitle: string; selLabel: string; sel: string[] }> = {
+  hotel: {
+    title: 'Analisi della distribuzione',
+    subtitle: 'Esplorazione analitica della distribuzione basata su dati granulari e KPI strategici per guidare decisioni mirate',
+    selLabel: 'Struttura',
+    sel: ['Hotel Archimede', 'Hotel Noto', 'Grand Hotel Roma'],
+  },
+  to: {
+    title: 'Analisi della distribuzione',
+    subtitle: 'Esplorazione analitica della distribuzione delle vendite per destinazione e canale, con KPI strategici per guidare la programmazione',
+    selLabel: 'Destinazione',
+    sel: ['Mar Rosso', 'Maldive', 'Andalusia', 'Grecia & Isole', 'Tour Capitali'],
+  },
+}
 
 // Box informativo all'hover renderizzato in PORTAL (position:fixed) così non
 // viene tagliato dall'overflow della tabella. Il trigger resta inline nella cella.
@@ -250,7 +270,15 @@ function ConfrontaLY({ row }: { row: Row }) {
 }
 
 export default function AnalisiDistribuzione({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura]       = useState('Hotel Archimede');
+  // Variante per modulo (Tour Operator vs hotel/altri).
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const assist           = useAccessStore(s => s.assist)
+  const profiles         = useAccessStore(s => s.profiles)
+  const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
+  const variant: DistVariant = moduli?.includes('tour-operator') ? 'to' : 'hotel'
+  const D = DIST_VARIANT[variant]
+
+  const [struttura, setStruttura]       = useState(D.sel[0]);
   const [dateFrom, setDateFrom]         = useState('2026-06-09');
   const [dateTo, setDateTo]             = useState('2026-07-09');
   const [tipologia, setTipologia]       = useState<'individuale' | 'gruppo'>('individuale');
@@ -321,17 +349,17 @@ export default function AnalisiDistribuzione({ navigate }: { navigate: (p: strin
   return (
     <div className="analisi">
       <BtnBack onClick={() => navigate('home')} />
-      <PageHeader title="Analisi della distribuzione" subtitle="Esplorazione analitica della distribuzione basata su dati granulari e KPI strategici per guidare decisioni mirate" />
+      <PageHeader title={D.title} subtitle={D.subtitle} />
 
       {/* ── Filter bar ──────────────────────────────────────────────────── */}
       <div className="analisi__filter-bar">
         <div className="analisi__filter-group">
           <SelectField
             name="struttura"
-            label="Struttura"
+            label={D.selLabel}
             value={struttura}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-            options={['Hotel Archimede', 'Hotel Noto', 'Grand Hotel Roma'].map(s => ({ value: s, label: s }))}
+            options={D.sel.map(s => ({ value: s, label: s }))}
             className="w-44"
           />
         </div>
@@ -347,7 +375,7 @@ export default function AnalisiDistribuzione({ navigate }: { navigate: (p: strin
           />
         </div>
         <div className="analisi__filter-group--col">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Tipologia</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">Tipologia</span>
           <div className="analisi__radio-row">
             {(['individuale', 'gruppo'] as const).map(s => (
               <label key={s} className="analisi__radio-label">

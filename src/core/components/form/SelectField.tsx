@@ -38,7 +38,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>((
       {label && (
         <label
           htmlFor={id}
-          className="text-[11px] font-semibold font-opensans text-ink"
+          className="text-[12px] font-semibold font-poppins text-primary"
         >
           {label}{required && <span className="text-error ml-0.5">*</span>}
         </label>

@@ -68,21 +68,21 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div className="foresight__toolbar">
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">Dal</label>
+          <label className="text-[12px] font-semibold font-poppins text-primary">Dal</label>
           <input type="date" className="sib-input" value={dateFrom} onChange={e=>setDateFrom(e.target.value)}/>
         </div>
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">Al</label>
+          <label className="text-[12px] font-semibold font-poppins text-primary">Al</label>
           <input type="date" className="sib-input" value={dateTo} onChange={e=>setDateTo(e.target.value)}/>
         </div>
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">Struttura</label>
+          <label className="text-[12px] font-semibold font-poppins text-primary">Struttura</label>
           <select className="sib-select" value={struttura} onChange={e=>setStruttura(e.target.value)}>
             {STRUTTURE.map(s=><option key={s}>{s}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">Tipo</label>
+          <label className="text-[12px] font-semibold font-poppins text-primary">Tipo</label>
           <div className="foresight__tipo-group">
             {(['bar','fit'] as const).map(t=>(
               <label key={t} className="foresight__tipo-label foresight__tipo-label--dyn" style={{
@@ -101,7 +101,7 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
           </div>
         </div>
         <div>
-          <label className="text-[11px] font-semibold font-opensans text-ink">B.A.R.</label>
+          <label className="text-[12px] font-semibold font-poppins text-primary">B.A.R.</label>
           <select className="sib-select" value={barSel} onChange={e=>setBarSel(e.target.value)}>
             {BARS.map(b=><option key={b}>{b}</option>)}
           </select>

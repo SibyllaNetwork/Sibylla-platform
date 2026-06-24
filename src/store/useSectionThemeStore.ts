@@ -29,6 +29,7 @@ export const SECTION_COLORS: Record<Sezione, string> = {
 const TABLEAU_PAGES = new Set<string>([
   'live-display',
   'tableau-book',
+  'open-board',
   'richieste-operative',
   'giornale-impresa',
   'crea-pratica',

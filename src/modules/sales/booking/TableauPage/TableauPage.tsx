@@ -177,7 +177,7 @@ export default function TableauPage({
         {/* Azienda + Contratto */}
         {[{lbl:'Azienda',val:azienda,set:setAzienda,opts:['Tutte','Azienda A','Azienda B'],w:'w-[90px]'},{lbl:'Contratto',val:contratto,set:setContratto,opts:['RaeliHotels','Contratto A'],w:'w-[120px]'}].map(({lbl,val,set,opts,w})=>(
           <div key={lbl} className="flex flex-col gap-1">
-            <span className="text-[11px] font-semibold font-opensans text-ink">{lbl}</span>
+            <span className="text-[12px] font-semibold font-poppins text-primary">{lbl}</span>
             <select className={`sib-select sib-select--dense ${w}`} value={val} onChange={e=>set(e.target.value)}>
               {opts.map(o=><option key={o} value={o}>{o||'Tutte'}</option>)}
             </select>
@@ -186,7 +186,7 @@ export default function TableauPage({
 
         {/* Categoria — sempre visibile */}
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Categoria</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">Categoria</span>
           <select className="sib-select sib-select--dense w-[90px]" value={categoria} onChange={e=>setCategoria(e.target.value)}>
             {['','Standard','Superior','Deluxe'].map(o=><option key={o} value={o}>{o||'Tutte'}</option>)}
           </select>
@@ -194,7 +194,7 @@ export default function TableauPage({
 
         {/* Anno */}
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Anno</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">Anno</span>
           <select className="sib-select sib-select--dense w-[82px]" value={anno} onChange={e=>setAnno(parseInt(e.target.value))}>
             {[2023,2024,2025,2026,2027,2028].map(y=><option key={y}>{y}</option>)}
           </select>
@@ -202,15 +202,15 @@ export default function TableauPage({
 
         {/* Mese */}
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Mese</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">Mese</span>
           <div className="flex items-center gap-1">
-            <button className="sib-btn sib-btn--icon" onClick={prevMonth}>
+            <button className="sib-btn sib-btn--icon h-[34px] w-[34px]" onClick={prevMonth}>
               <i className="fa-duotone fa-chevron-left text-[11px]" aria-hidden="true"/>
             </button>
             <select className="sib-select sib-select--dense w-[100px]" value={mese} onChange={e=>setMese(parseInt(e.target.value))}>
               {MONTHS.map((m,i)=><option key={i} value={i}>{m}</option>)}
             </select>
-            <button className="sib-btn sib-btn--icon" onClick={nextMonth}>
+            <button className="sib-btn sib-btn--icon h-[34px] w-[34px]" onClick={nextMonth}>
               <i className="fa-duotone fa-chevron-right text-[11px]" aria-hidden="true"/>
             </button>
           </div>
@@ -218,7 +218,7 @@ export default function TableauPage({
 
         {/* Struttura */}
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">Struttura</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">Struttura</span>
           <select className="sib-select sib-select--dense w-[148px]" value={struttura} onChange={e=>setStruttura(e.target.value)}>
             {['Hotel Archimede','Hotel Noto','Grand Hotel Roma'].map(s=><option key={s}>{s}</option>)}
           </select>
@@ -226,7 +226,7 @@ export default function TableauPage({
 
         {/* Actions — a destra */}
         <div className="flex flex-col gap-1 ml-auto">
-          <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">&nbsp;</span>
           <div className="flex items-center gap-1.5">
             <div className="relative" onMouseEnter={()=>setShowLegenda(true)} onMouseLeave={()=>setShowLegenda(false)}>
               <button className={`sib-btn sib-btn--icon ${showLegenda?'border-primary bg-primary-50 text-primary':''}`}>

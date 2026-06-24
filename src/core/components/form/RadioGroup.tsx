@@ -26,7 +26,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   const id = useId()
   return (
     <div className={clsx('flex flex-col gap-1', className)}>
-      {label && <span className="text-[11px] font-semibold font-opensans text-ink">{label}</span>}
+      {label && <span className="text-[12px] font-semibold font-poppins text-primary">{label}</span>}
       <div className="flex items-center gap-4 h-9">
         {options.map(opt => (
           <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer text-[13px] font-opensans text-ink">

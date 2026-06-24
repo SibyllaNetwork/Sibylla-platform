@@ -165,7 +165,7 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
             <InputField name="nome" label="Nome obiettivo" value={nome} onChange={(e) => setNome(e.target.value)} />
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold font-opensans text-ink">Tipologia</label>
+              <label className="text-[12px] font-semibold font-poppins text-primary">Tipologia</label>
               <div className="flex items-center gap-4 h-9">
                 <label className="flex items-center gap-1.5 text-[13px] cursor-pointer">
                   <input type="radio" className="sib-radio" name="tipologia" checked={tipologia === 'reparto'}     onChange={() => setTipologia('reparto')} />
@@ -185,7 +185,7 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold font-opensans text-ink">Tipologia vendita</label>
+              <label className="text-[12px] font-semibold font-poppins text-primary">Tipologia vendita</label>
               <div className="flex items-center gap-3 h-9 flex-wrap">
                 <CheckboxField name="prodotti"  label="Prodotti"   checked={vendita.prodotti}  onChange={(e) => setVendita((v) => ({ ...v, prodotti: e.target.checked }))} />
                 <CheckboxField name="servizi"   label="Servizi"    checked={vendita.servizi}   onChange={(e) => setVendita((v) => ({ ...v, servizi: e.target.checked }))} />
@@ -195,7 +195,7 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold font-opensans text-ink">Parametro valutazione</label>
+              <label className="text-[12px] font-semibold font-poppins text-primary">Parametro valutazione</label>
               <div className="flex items-center gap-4 h-9">
                 <label className="flex items-center gap-1.5 text-[13px] cursor-pointer">
                   <input type="radio" className="sib-radio" name="parametro" checked={parametro === 'percentuale'} onChange={() => setParametro('percentuale')} />

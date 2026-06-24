@@ -146,7 +146,7 @@ export default function CreaAnagrafica({ navigate }: { navigate: (p: string) => 
 
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold font-opensans text-ink">Contratto</label>
+              <label className="text-[12px] font-semibold font-poppins text-primary">Contratto</label>
               <button
                 type="button"
                 className="sib-input text-left text-ink-muted truncate"

@@ -354,7 +354,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
         <InputField name="ricerca" label="Ricerca dipendente" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nome, cognome, reparto" />
 
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold font-opensans text-ink">Vista</label>
+          <label className="text-[12px] font-semibold font-poppins text-primary">Vista</label>
           <div className="flex h-9 rounded-field overflow-hidden border border-line">
             <button type="button" className={`flex-1 text-[12px] font-semibold ${view === 'settimana' ? 'bg-primary text-white' : 'bg-white text-ink hover:bg-canvas'}`} onClick={() => setView('settimana')}>Settimana</button>
             <button type="button" className={`flex-1 text-[12px] font-semibold ${view === 'mese'      ? 'bg-primary text-white' : 'bg-white text-ink hover:bg-canvas'}`} onClick={() => setView('mese')}>Mese</button>

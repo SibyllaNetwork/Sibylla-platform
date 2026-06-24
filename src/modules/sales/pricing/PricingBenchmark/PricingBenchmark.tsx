@@ -85,12 +85,12 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
       {/* ── Filters ─────────────────────────────────────────────────── */}
       <div className="benchmark__filters">
         <div className="benchmark__filters-left">
-          <div><label className="text-[11px] font-semibold font-opensans text-ink">Trova hotel:</label><input className="sib-input" value={capSearch} onChange={e=>setCapSearch(e.target.value)} placeholder="CAP o indirizzo..."/></div>
-          <div><label className="text-[11px] font-semibold font-opensans text-ink">Paese</label><select className="sib-select" value={paese} onChange={e=>setPaese(e.target.value)}>{['Italia','Francia','Spagna','Germania'].map(p=><option key={p}>{p}</option>)}</select></div>
-          <div><label className="text-[11px] font-semibold font-opensans text-ink">Strutture</label><select className="sib-select" value={struttura} onChange={e=>setStruttura(e.target.value)}>{['ciao','Hotel Noto','Grand Hotel Roma'].map(s=><option key={s}>{s}</option>)}</select></div>
+          <div><label className="text-[12px] font-semibold font-poppins text-primary">Trova hotel:</label><input className="sib-input" value={capSearch} onChange={e=>setCapSearch(e.target.value)} placeholder="CAP o indirizzo..."/></div>
+          <div><label className="text-[12px] font-semibold font-poppins text-primary">Paese</label><select className="sib-select" value={paese} onChange={e=>setPaese(e.target.value)}>{['Italia','Francia','Spagna','Germania'].map(p=><option key={p}>{p}</option>)}</select></div>
+          <div><label className="text-[12px] font-semibold font-poppins text-primary">Strutture</label><select className="sib-select" value={struttura} onChange={e=>setStruttura(e.target.value)}>{['ciao','Hotel Noto','Grand Hotel Roma'].map(s=><option key={s}>{s}</option>)}</select></div>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold font-opensans text-ink">&nbsp;</span>
+          <span className="text-[12px] font-semibold font-poppins text-primary">&nbsp;</span>
           <div className="flex gap-2 h-9">
             <ViewBtn view="brand"   label="Brand reputation" icon="fa-star"/>
             <ViewBtn view="pricing" label="Pricing"           icon="fa-chart-line"/>

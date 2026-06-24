@@ -77,13 +77,13 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
         <div className="strat__selector-filter-row">
           <span className="strat__filter-title">Filtra strategie</span>
           <div className="strat__filter-item">
-            <span className="text-[11px] font-semibold font-opensans text-ink strat__form-label--inline">Tipo</span>
+            <span className="text-[12px] font-semibold font-poppins text-primary strat__form-label--inline">Tipo</span>
             <select className="sib-select" value={tipoFilter} onChange={e => setTipoFilter(e.target.value)}>
               {['Tutti','Individuali','Gruppi','Mista'].map(o => <option key={o}>{o}</option>)}
             </select>
           </div>
           <div className="strat__filter-item strat__filter-item--relative">
-            <span className="text-[11px] font-semibold font-opensans text-ink strat__form-label--inline">Colore</span>
+            <span className="text-[12px] font-semibold font-poppins text-primary strat__form-label--inline">Colore</span>
             <button
               className={`strategia__color-btn ${showColorPicker?'strategia__color-btn--open':''} ${coloreFilter?'strategia__color-btn--selected':''}`}
               onClick={() => setShowColorPicker(v => !v)}>
@@ -179,11 +179,11 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               </div>
             </div>
             <div>
-              <label className="text-[11px] font-semibold font-opensans text-ink">Tipo strategia</label>
+              <label className="text-[12px] font-semibold font-poppins text-primary">Tipo strategia</label>
               <div className="strat__tipo-display">{current.tipo}</div>
             </div>
             <div>
-              <label className="text-[11px] font-semibold font-opensans text-ink">Colore strategia</label>
+              <label className="text-[12px] font-semibold font-poppins text-primary">Colore strategia</label>
               <div className="strat__colore-display strat__colore-display--dyn" style={{ '--display-border': `${current.colore}44`, '--display-bg': `${current.colore}10` } as React.CSSProperties}>
                 <div className="strat__nome-dot strat__nome-dot--dyn" style={{ '--dot-color': current.colore } as React.CSSProperties}/>
                 {COLORS.find(c => c.val === current.colore)?.label || current.colore}

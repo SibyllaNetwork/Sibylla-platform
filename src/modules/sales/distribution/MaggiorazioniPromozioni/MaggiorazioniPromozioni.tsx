@@ -307,7 +307,7 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
           </FormGrid>
           <FormGrid cols={3}>
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-semibold font-opensans text-ink">Partners</span>
+              <span className="text-[12px] font-semibold font-poppins text-primary">Partners</span>
               <select multiple className="sib-input h-[90px] p-2 resize-none text-xs"
                 value={form.partners?form.partners.split(',').map(s=>s.trim()).filter(Boolean):[]}
                 onChange={e=>{const sel=Array.from(e.target.selectedOptions).map(o=>o.value);setForm(v=>({...v,partners:sel.join(', ')}))}}>

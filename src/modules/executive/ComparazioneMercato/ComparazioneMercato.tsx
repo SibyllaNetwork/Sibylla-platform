@@ -167,7 +167,7 @@ export default function ComparazioneMercato({ navigate }: { navigate: (p: string
       <div className="cm__toolbar">
         <div className="cm__filters">
           <div className="cm__field">
-            <label className="text-[11px] font-semibold font-opensans text-ink" htmlFor="cm-cap">Trova hotel:</label>
+            <label className="text-[12px] font-semibold font-poppins text-primary" htmlFor="cm-cap">Trova hotel:</label>
             <input
               id="cm-cap"
               className="sib-input cm__cap"
