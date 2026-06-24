@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
-import { useLiveDisplayStore, FONTS, fontStack, type SezioneId, type LiveConfig } from '../../../store/useLiveDisplayStore'
+import {
+  useLiveDisplayStore, FONTS, fontStack, CARD_META, CARD_TYPES,
+  type CardType, type ColCount, type Row, type Slot, type CardData, type LiveConfig, type SlotRef,
+} from '../../../store/useLiveDisplayStore'
 import './LiveDisplay.sass'
 
 const IMG = (id: string) => `https://images.unsplash.com/${id}?w=900&q=70&auto=format&fit=crop`
@@ -19,6 +22,7 @@ const COVERS: { id: string; label: string; url: string }[] = [
 const coverUrl = (id: string) => COVERS.find((c) => c.id === id)?.url ?? (id || COVERS[0].url)
 
 const MAX_IMG_BYTES = 3 * 1024 * 1024 // 3 MB
+const eur = (n: number) => `€ ${(n || 0).toLocaleString('it-IT')}`
 
 // Campo immagine riutilizzabile: anteprima + upload (max 3 MB) + URL.
 function ImageField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -55,63 +59,239 @@ function ImageField({ value, onChange }: { value: string; onChange: (v: string) 
   )
 }
 
-// Servizi in evidenza (fissi).
-const SERVIZI = [
-  { label: 'Transfer', icon: 'car' }, { label: 'Spa', icon: 'spa' },
-  { label: 'Ristorante', icon: 'utensils' }, { label: 'Escursioni', icon: 'compass' },
-  { label: 'Eventi', icon: 'ticket' },
-]
-const eur = (n: number) => `€ ${n.toLocaleString('it-IT')}`
-
-// Icona per blocco/sezione (palette e composer drag & drop).
-const SEC_META: Record<SezioneId, string> = {
-  destinazioni: 'images',
-  strutture: 'hotel',
-  servizi: 'bell-concierge',
-  pacchetti: 'box-open',
-  contatti: 'address-book',
+// ─── Anteprima di una card piena (presentazionale) ────────────────────────────
+function SlotCard({ slot, contatti }: { slot: Slot; contatti: LiveConfig['contatti'] }) {
+  const d = slot.data
+  switch (slot.type) {
+    case 'hero':
+      return (
+        <div className={`vt-card vt-card--hero vt-card--hero-${d.align ?? 'left'}`}
+          style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.58)), url(${coverUrl(d.coverId ?? '')})` }}>
+          {d.payoff && <span className="vt-card__payoff">{d.payoff}</span>}
+          <h2 className="vt-card__hero-title">{d.titolo}</h2>
+          {d.sottotitolo && <p className="vt-card__hero-sub">{d.sottotitolo}</p>}
+          {d.ctaLabel && <span className="vt-cta">{d.ctaLabel}</span>}
+        </div>
+      )
+    case 'immagine':
+      return (
+        <div className="vt-card vt-card--photo" style={{ backgroundImage: `url(${d.img})` }}>
+          {d.tag && <span className="vt-card__tag">{d.tag}</span>}
+          <span className="vt-card__photo-info">
+            <strong>{d.nome}</strong>
+            {!!d.da && <span>da {eur(d.da)}</span>}
+          </span>
+        </div>
+      )
+    case 'struttura':
+      return (
+        <div className="vt-card vt-card--struct">
+          <span className="vt-card__struct-img" style={{ backgroundImage: `url(${d.img})` }} />
+          <span className="vt-card__struct-name">{d.nome}</span>
+          <span className="vt-card__struct-meta">{d.citta}</span>
+        </div>
+      )
+    case 'pacchetto':
+      return (
+        <div className="vt-card vt-card--pkg">
+          <strong>{d.nome}</strong>
+          <span className="vt-card__pkg-meta">{d.notti} notti</span>
+          <span className="vt-card__pkg-price">da {eur(d.da ?? 0)}</span>
+          {d.ctaLabel && <span className="vt-cta vt-cta--sm">{d.ctaLabel}</span>}
+        </div>
+      )
+    case 'testo':
+      return (
+        <div className="vt-card vt-card--text">
+          <h3>{d.heading}</h3>
+          <p>{d.body}</p>
+        </div>
+      )
+    case 'servizi':
+      return (
+        <div className="vt-card vt-card--serv">
+          {(d.servizi ?? []).map((sv, i) => (
+            <span key={i} className="vt-card__chip"><i className={`fa-light fa-${sv.icon}`} aria-hidden="true" /> {sv.label}</span>
+          ))}
+        </div>
+      )
+    case 'contatti':
+      return (
+        <div className="vt-card vt-card--contatti">
+          <span><i className="fa-light fa-envelope" aria-hidden="true" /> {contatti.email}</span>
+          <span><i className="fa-light fa-phone" aria-hidden="true" /> {contatti.telefono}</span>
+          <span><i className="fa-light fa-location-dot" aria-hidden="true" /> {contatti.indirizzo}</span>
+        </div>
+      )
+    default:
+      return null
+  }
 }
 
-// Miniatura ricca del blocco (anteprima stilizzata) usata nella palette.
-function BlockMini({ kind, items }: { kind: SezioneId; items: LiveConfig['items'] }) {
-  if (kind === 'destinazioni')
-    return <div className="bm bm--photos">{items.destinazioni.slice(0, 3).map((d) => <span key={d.id} style={{ backgroundImage: `url(${d.img})` }} />)}</div>
-  if (kind === 'strutture')
-    return <div className="bm bm--photos bm--4">{items.strutture.slice(0, 4).map((s) => <span key={s.id} style={{ backgroundImage: `url(${s.img})` }} />)}</div>
-  if (kind === 'servizi')
-    return <div className="bm bm--pills">{[0, 1, 2, 3].map((i) => <span key={i} />)}</div>
-  if (kind === 'pacchetti')
-    return <div className="bm bm--cards">{items.pacchetti.slice(0, 3).map((p) => <span key={p.id}><b /><i /></span>)}</div>
-  return <div className="bm bm--lines">{[0, 1, 2].map((i) => <span key={i} />)}</div>
+// ─── Selettore disposizione riga (1 · 2 · 3 · 4 card) ─────────────────────────
+function RowAdder({ onPick, variant = 'slim' }: { onPick: (c: ColCount) => void; variant?: 'empty' | 'slim' }) {
+  const [open, setOpen] = useState(variant === 'empty')
+  if (!open)
+    return (
+      <button type="button" className="vt-adder vt-adder--slim" onClick={() => setOpen(true)}>
+        <i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi riga
+      </button>
+    )
+  return (
+    <div className={`vt-adder vt-adder--choose${variant === 'empty' ? ' vt-adder--empty' : ''}`}>
+      <span className="vt-adder__label">
+        {variant === 'empty' ? 'La vetrina è vuota — scegli la disposizione della prima riga' : 'Quante card in questa riga?'}
+      </span>
+      <div className="vt-adder__opts">
+        {([1, 2, 3, 4] as ColCount[]).map((n) => (
+          <button key={n} type="button" className="vt-adder__opt" onClick={() => { onPick(n); if (variant !== 'empty') setOpen(false) }}>
+            <span className="vt-adder__diag" data-cols={n}>{Array.from({ length: n }).map((_, i) => <i key={i} />)}</span>
+            <span className="vt-adder__opt-lbl">{n === 1 ? 'Card unica' : `${n} card`}</span>
+          </button>
+        ))}
+      </div>
+      {variant !== 'empty' && (
+        <button type="button" className="vt-adder__cancel" onClick={() => setOpen(false)}>Annulla</button>
+      )}
+    </div>
+  )
+}
+
+// ─── Editor contestuale della card selezionata ───────────────────────────────
+function SlotEditor({ slot, onChange, onClear }: { slot: Slot; onChange: (p: CardData) => void; onClear: () => void }) {
+  const d = slot.data
+  const meta = slot.type ? CARD_META[slot.type] : null
+  const servizi = d.servizi ?? []
+  const setServizio = (i: number, p: Partial<{ label: string; icon: string }>) =>
+    onChange({ servizi: servizi.map((s, j) => (j === i ? { ...s, ...p } : s)) })
+  return (
+    <div className="ld__card ld__card--ctx">
+      <h3 className="ld__card-title">
+        <i className={`fa-light fa-${meta?.icon ?? 'sliders'}`} aria-hidden="true" /> Card · {meta?.label}
+        <button type="button" className="ld__ctx-clear" onClick={onClear} title="Svuota la card">
+          <i className="fa-light fa-trash" aria-hidden="true" /> Svuota
+        </button>
+      </h3>
+
+      {slot.type === 'hero' && <>
+        <label className="ld__field"><span>Payoff</span><input className="sib-input" value={d.payoff ?? ''} onChange={(e) => onChange({ payoff: e.target.value })} /></label>
+        <label className="ld__field"><span>Titolo</span><input className="sib-input" value={d.titolo ?? ''} onChange={(e) => onChange({ titolo: e.target.value })} /></label>
+        <label className="ld__field"><span>Sottotitolo</span><textarea className="sib-input ld__textarea" rows={2} value={d.sottotitolo ?? ''} onChange={(e) => onChange({ sottotitolo: e.target.value })} /></label>
+        <div className="ld__row2">
+          <label className="ld__field"><span>Testo pulsante</span><input className="sib-input" value={d.ctaLabel ?? ''} onChange={(e) => onChange({ ctaLabel: e.target.value })} /></label>
+          <label className="ld__field"><span>Link pulsante</span><input className="sib-input" value={d.ctaUrl ?? ''} onChange={(e) => onChange({ ctaUrl: e.target.value })} /></label>
+        </div>
+        <div className="ld__field">
+          <span>Allineamento</span>
+          <div className="ld__seg">
+            {(['left', 'center'] as const).map((a) => (
+              <button key={a} type="button" className={`ld__seg-btn${(d.align ?? 'left') === a ? ' is-active' : ''}`} onClick={() => onChange({ align: a })}>
+                <i className={`fa-light fa-align-${a}`} aria-hidden="true" /> {a === 'left' ? 'Sinistra' : 'Centro'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="ld__field"><span>Copertina</span>
+          <select className="sib-select" value={COVERS.some((c) => c.id === d.coverId) ? d.coverId : ''} onChange={(e) => onChange({ coverId: e.target.value })}>
+            {COVERS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            {!COVERS.some((c) => c.id === d.coverId) && <option value="">Personalizzata</option>}
+          </select>
+        </label>
+        <label className="ld__field"><span>Copertina personalizzata</span>
+          <ImageField value={coverUrl(d.coverId ?? '')} onChange={(v) => onChange({ coverId: v })} />
+        </label>
+      </>}
+
+      {slot.type === 'immagine' && <>
+        <label className="ld__field"><span>Titolo</span><input className="sib-input" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} /></label>
+        <div className="ld__row2">
+          <label className="ld__field"><span>Tag</span><input className="sib-input" value={d.tag ?? ''} onChange={(e) => onChange({ tag: e.target.value })} /></label>
+          <label className="ld__field"><span>Prezzo da (€)</span><input className="sib-input" type="number" value={d.da ?? 0} onChange={(e) => onChange({ da: Number(e.target.value) || 0 })} /></label>
+        </div>
+        <label className="ld__field"><span>Immagine</span><ImageField value={d.img ?? ''} onChange={(v) => onChange({ img: v })} /></label>
+      </>}
+
+      {slot.type === 'struttura' && <>
+        <div className="ld__row2">
+          <label className="ld__field"><span>Nome</span><input className="sib-input" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} /></label>
+          <label className="ld__field"><span>Città</span><input className="sib-input" value={d.citta ?? ''} onChange={(e) => onChange({ citta: e.target.value })} /></label>
+        </div>
+        <label className="ld__field"><span>Immagine</span><ImageField value={d.img ?? ''} onChange={(v) => onChange({ img: v })} /></label>
+      </>}
+
+      {slot.type === 'pacchetto' && <>
+        <label className="ld__field"><span>Nome</span><input className="sib-input" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} /></label>
+        <div className="ld__row2">
+          <label className="ld__field"><span>Notti</span><input className="sib-input" type="number" value={d.notti ?? 0} onChange={(e) => onChange({ notti: Number(e.target.value) || 0 })} /></label>
+          <label className="ld__field"><span>Prezzo da (€)</span><input className="sib-input" type="number" value={d.da ?? 0} onChange={(e) => onChange({ da: Number(e.target.value) || 0 })} /></label>
+        </div>
+        <div className="ld__row2">
+          <label className="ld__field"><span>Testo pulsante</span><input className="sib-input" value={d.ctaLabel ?? ''} onChange={(e) => onChange({ ctaLabel: e.target.value })} /></label>
+          <label className="ld__field"><span>Link pulsante</span><input className="sib-input" value={d.ctaUrl ?? ''} onChange={(e) => onChange({ ctaUrl: e.target.value })} /></label>
+        </div>
+      </>}
+
+      {slot.type === 'testo' && <>
+        <label className="ld__field"><span>Titolo</span><input className="sib-input" value={d.heading ?? ''} onChange={(e) => onChange({ heading: e.target.value })} /></label>
+        <label className="ld__field"><span>Testo</span><textarea className="sib-input ld__textarea" rows={4} value={d.body ?? ''} onChange={(e) => onChange({ body: e.target.value })} /></label>
+      </>}
+
+      {slot.type === 'servizi' && <>
+        <div className="ld__items">
+          <div className="ld__items-head"><span>Servizi</span>
+            <button type="button" className="ld__add" onClick={() => onChange({ servizi: [...servizi, { label: 'Servizio', icon: 'star' }] })}>
+              <i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi
+            </button>
+          </div>
+          {servizi.map((sv, i) => (
+            <div key={i} className="ld__item-row">
+              <input className="sib-input" placeholder="Etichetta" value={sv.label} onChange={(e) => setServizio(i, { label: e.target.value })} />
+              <input className="sib-input ld__icon-input" placeholder="icona FA" value={sv.icon} onChange={(e) => setServizio(i, { icon: e.target.value })} />
+              <button type="button" className="ld__del" onClick={() => onChange({ servizi: servizi.filter((_, j) => j !== i) })} aria-label="Rimuovi"><i className="fa-light fa-trash" aria-hidden="true" /></button>
+            </div>
+          ))}
+        </div>
+      </>}
+
+      {slot.type === 'contatti' && (
+        <p className="ld__hint">Questa card mostra automaticamente i recapiti impostati in <strong>Contatti & social</strong> qui sotto.</p>
+      )}
+    </div>
+  )
 }
 
 // ─── Pagina builder ─────────────────────────────────────────────────────────
 export default function LiveDisplay({ navigate }: { navigate: (p: string) => void }) {
   const pages = useLiveDisplayStore((s) => s.pages)
   const currentId = useLiveDisplayStore((s) => s.currentId)
-  const { newPage, selectPage, renamePage, deletePage, duplicatePage, setBrand, setTheme, setHero, setContatti, setSocial, setSectionLabel, toggleSection, dropSection, addItem, updateItem, removeItem, reset } = useLiveDisplayStore()
+  const {
+    newPage, selectPage, renamePage, deletePage, duplicatePage,
+    setBrand, setTheme, setContatti, setSocial,
+    addRow, setRowCols, moveRow, removeRow, duplicateRow,
+    setSlotType, updateSlot, clearSlot, reset,
+  } = useLiveDisplayStore()
   const [salvato, setSalvato] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [selected, setSelected] = useState<SlotRef | null>(null)
+  const [picking, setPicking] = useState<SlotRef | null>(null)
 
   const current = pages.find((p) => p.id === currentId) ?? pages[0]
   const config = current.config
-  const { brand, theme, hero, sections, items, contatti, social } = config
+  const { brand, theme, layout, contatti, social } = config
 
   const shareLink = `https://vetrine.sibyllanetwork.it/${current.slug}`
   const copyLink = async () => {
     try { await navigator.clipboard?.writeText(shareLink) } catch { /* no-op */ }
     setCopied(true); window.setTimeout(() => setCopied(false), 2000)
   }
+  const salva = () => { setSalvato(true); window.setTimeout(() => setSalvato(false), 2500) }
 
-  // ── Drag & drop dei blocchi (sezioni) ───────────────────────────────────────
-  const [dragId, setDragId] = useState<SezioneId | null>(null)
-  const [overZone, setOverZone] = useState<string | null>(null)
-  const palette = sections.filter((s) => !s.visible)
-  const onZoneDrop = (beforeId: SezioneId | null) => {
-    if (dragId) dropSection(dragId, beforeId, true)
-    setDragId(null); setOverZone(null)
-  }
-  const visibili = sections.filter((s) => s.visible)
+  // Card selezionata (per l'editor contestuale).
+  const selRow = selected ? layout.find((r) => r.id === selected.rowId) : undefined
+  const selSlot = selRow && selected ? selRow.slots.find((sl) => sl.id === selected.slotId) : undefined
+
+  // Voci di menu derivate dai titoli delle card "Testo".
+  const navLinks = layout.flatMap((r) => r.slots).filter((s) => s.type === 'testo' && s.data.heading).map((s) => s.data.heading as string)
 
   const vars = {
     ['--vt-primary' as string]: theme.primary,
@@ -122,16 +302,73 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
     ['--vt-radius' as string]: `${theme.radius}px`,
   } as React.CSSProperties
 
-  const salva = () => { setSalvato(true); window.setTimeout(() => setSalvato(false), 2500) }
+  // Render di una singola riga con i suoi slot e i tool.
+  const renderRow = (row: Row, idx: number) => (
+    <div className="vt-row" key={row.id} style={{ ['--vt-cols' as string]: row.cols }}>
+      <div className="vt-row__tools">
+        <div className="vt-row__cols">
+          {([1, 2, 3, 4] as ColCount[]).map((n) => (
+            <button key={n} type="button" className={`vt-row__col-btn${row.cols === n ? ' is-active' : ''}`} title={`${n} card`} onClick={() => setRowCols(row.id, n)}>{n}</button>
+          ))}
+        </div>
+        <span className="vt-row__sep" />
+        <button type="button" className="vt-row__tool" title="Sposta su" disabled={idx === 0} onClick={() => moveRow(row.id, -1)}><i className="fa-solid fa-arrow-up" aria-hidden="true" /></button>
+        <button type="button" className="vt-row__tool" title="Sposta giù" disabled={idx === layout.length - 1} onClick={() => moveRow(row.id, 1)}><i className="fa-solid fa-arrow-down" aria-hidden="true" /></button>
+        <button type="button" className="vt-row__tool" title="Duplica riga" onClick={() => duplicateRow(row.id)}><i className="fa-solid fa-copy" aria-hidden="true" /></button>
+        <button type="button" className="vt-row__tool vt-row__tool--danger" title="Elimina riga" onClick={() => { removeRow(row.id); setSelected(null); setPicking(null) }}><i className="fa-solid fa-xmark" aria-hidden="true" /></button>
+      </div>
+      <div className="vt-row__grid">
+        {row.slots.map((slot) => {
+          const isPicking = picking?.rowId === row.id && picking?.slotId === slot.id
+          const isSelected = selected?.rowId === row.id && selected?.slotId === slot.id
+          if (!slot.type)
+            return (
+              <div key={slot.id} className={`vt-slot vt-slot--empty${isPicking ? ' is-picking' : ''}`}>
+                {isPicking ? (
+                  <div className="vt-pick">
+                    <span className="vt-pick__label">Scegli un contenuto</span>
+                    <div className="vt-pick__grid">
+                      {CARD_TYPES.map((t) => (
+                        <button key={t} type="button" className="vt-pick__opt" title={CARD_META[t].hint}
+                          onClick={() => { setSlotType(row.id, slot.id, t); setSelected({ rowId: row.id, slotId: slot.id }); setPicking(null) }}>
+                          <i className={`fa-light fa-${CARD_META[t].icon}`} aria-hidden="true" />
+                          <span>{CARD_META[t].label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <button type="button" className="vt-pick__cancel" onClick={() => setPicking(null)}>Annulla</button>
+                  </div>
+                ) : (
+                  <button type="button" className="vt-slot__add" onClick={() => { setPicking({ rowId: row.id, slotId: slot.id }); setSelected(null) }}>
+                    <i className="fa-light fa-plus" aria-hidden="true" />
+                    <span>Aggiungi contenuto</span>
+                  </button>
+                )}
+              </div>
+            )
+          return (
+            <div key={slot.id} className={`vt-slot vt-slot--filled${isSelected ? ' is-selected' : ''}`}
+              onClick={() => { setSelected({ rowId: row.id, slotId: slot.id }); setPicking(null) }}>
+              <div className="vt-slot__tools">
+                <button type="button" className="vt-slot__tool" title="Modifica" onClick={(e) => { e.stopPropagation(); setSelected({ rowId: row.id, slotId: slot.id }) }}><i className="fa-solid fa-pen" aria-hidden="true" /></button>
+                <button type="button" className="vt-slot__tool" title="Svuota" onClick={(e) => { e.stopPropagation(); clearSlot(row.id, slot.id); if (isSelected) setSelected(null) }}><i className="fa-solid fa-xmark" aria-hidden="true" /></button>
+              </div>
+              <SlotCard slot={slot} contatti={contatti} />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 
   return (
     <div className="ld">
       <BtnBack onClick={() => navigate('home')} />
       <div className="ld__top">
-        <PageHeader title="Live display" subtitle="Crea e personalizza la tua vetrina: layout, colori, font, testi e link" />
+        <PageHeader title="Live display" subtitle="Componi la tua vetrina a griglia: aggiungi righe, scegli la disposizione e riempi le card" />
         <div className="ld__top-actions">
           {salvato && <span className="ld__saved"><i className="fa-light fa-circle-check" aria-hidden="true" /> Pagina pubblicata</span>}
-          <button type="button" className="sib-btn sib-btn--ghost" onClick={reset}><i className="fa-light fa-arrow-rotate-left" aria-hidden="true" /> Ripristina</button>
+          <button type="button" className="sib-btn sib-btn--ghost" onClick={() => { reset(); setSelected(null); setPicking(null) }}><i className="fa-light fa-arrow-rotate-left" aria-hidden="true" /> Svuota vetrina</button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.open(shareLink, '_blank', 'noopener')}><i className="fa-light fa-arrow-up-right-from-square" aria-hidden="true" /> Anteprima</button>
           <button type="button" className="sib-btn sib-btn--primary" onClick={salva}><i className="fa-light fa-cloud-arrow-up" aria-hidden="true" /> Pubblica</button>
         </div>
@@ -141,7 +378,7 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
       <div className="ld__pages">
         <div className="ld__pages-list">
           {pages.map((p) => (
-            <button key={p.id} type="button" className={`ld__page${p.id === currentId ? ' is-active' : ''}`} onClick={() => selectPage(p.id)} title={p.nome}>
+            <button key={p.id} type="button" className={`ld__page${p.id === currentId ? ' is-active' : ''}`} onClick={() => { selectPage(p.id); setSelected(null); setPicking(null) }} title={p.nome}>
               <i className="fa-light fa-window-maximize" aria-hidden="true" /> {p.nome}
             </button>
           ))}
@@ -175,38 +412,19 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
             <label className="ld__field"><span>Dominio / sito</span><input className="sib-input" value={social.sito} onChange={(e) => setSocial({ sito: e.target.value })} /></label>
           </div>
 
-          {/* Hero */}
-          <div className="ld__card">
-            <h3 className="ld__card-title"><i className="fa-light fa-heading" aria-hidden="true" /> Sezione hero</h3>
-            <label className="ld__field"><span>Titolo</span><input className="sib-input" value={hero.titolo} onChange={(e) => setHero({ titolo: e.target.value })} /></label>
-            <label className="ld__field"><span>Sottotitolo</span><textarea className="sib-input ld__textarea" rows={2} value={hero.sottotitolo} onChange={(e) => setHero({ sottotitolo: e.target.value })} /></label>
-            <div className="ld__row2">
-              <label className="ld__field"><span>Testo pulsante</span><input className="sib-input" value={hero.ctaLabel} onChange={(e) => setHero({ ctaLabel: e.target.value })} /></label>
-              <label className="ld__field"><span>Link pulsante</span><input className="sib-input" value={hero.ctaUrl} onChange={(e) => setHero({ ctaUrl: e.target.value })} /></label>
+          {/* Card selezionata (editor contestuale) */}
+          {selSlot ? (
+            <SlotEditor
+              slot={selSlot}
+              onChange={(p) => updateSlot(selected!.rowId, selected!.slotId, p)}
+              onClear={() => { clearSlot(selected!.rowId, selected!.slotId); setSelected(null) }}
+            />
+          ) : (
+            <div className="ld__card ld__card--ctx ld__card--ctx-empty">
+              <h3 className="ld__card-title"><i className="fa-light fa-hand-pointer" aria-hidden="true" /> Contenuto</h3>
+              <p className="ld__hint">Seleziona una card nell'anteprima per modificarne i contenuti, oppure clicca un'area tratteggiata per inserire una nuova card.</p>
             </div>
-            <div className="ld__row2">
-              <div className="ld__field">
-                <span>Allineamento</span>
-                <div className="ld__seg">
-                  {(['left', 'center'] as const).map((a) => (
-                    <button key={a} type="button" className={`ld__seg-btn${hero.align === a ? ' is-active' : ''}`} onClick={() => setHero({ align: a })}>
-                      <i className={`fa-light fa-align-${a}`} aria-hidden="true" /> {a === 'left' ? 'Sinistra' : 'Centro'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <label className="ld__field">
-                <span>Copertina</span>
-                <select className="sib-select" value={COVERS.some((c) => c.id === hero.coverId) ? hero.coverId : ''} onChange={(e) => setHero({ coverId: e.target.value })}>
-                  {COVERS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-                  {!COVERS.some((c) => c.id === hero.coverId) && <option value="">Personalizzata</option>}
-                </select>
-              </label>
-            </div>
-            <label className="ld__field"><span>Copertina personalizzata</span>
-              <ImageField value={coverUrl(hero.coverId)} onChange={(v) => setHero({ coverId: v })} />
-            </label>
-          </div>
+          )}
 
           {/* Aspetto */}
           <div className="ld__card">
@@ -233,86 +451,6 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
             </label>
           </div>
 
-          {/* Layout: palette dei blocchi (trascinabili nell'anteprima) */}
-          <div className="ld__card">
-            <h3 className="ld__card-title"><i className="fa-light fa-table-cells-large" aria-hidden="true" /> Blocchi della vetrina</h3>
-            <p className="ld__hint">Trascina un blocco nelle aree tratteggiate dell'anteprima per inserirlo. Nell'anteprima puoi riordinare e rimuovere i blocchi.</p>
-            {palette.length === 0 ? (
-              <span className="ld__palette-empty">Tutti i blocchi sono nella vetrina.</span>
-            ) : (
-              <div className="ld__tiles">
-                {palette.map((sec) => (
-                  <div
-                    key={sec.id}
-                    className={`ld__tile${dragId === sec.id ? ' is-dragging' : ''}`}
-                    draggable
-                    onDragStart={() => setDragId(sec.id)}
-                    onDragEnd={() => { setDragId(null); setOverZone(null) }}
-                  >
-                    <div className="ld__tile-mini"><BlockMini kind={sec.id} items={items} /></div>
-                    <div className="ld__tile-foot">
-                      <i className="fa-solid fa-grip-vertical" aria-hidden="true" />
-                      <i className={`fa-light fa-${SEC_META[sec.id]}`} aria-hidden="true" />
-                      <span>{sec.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Contenuti: destinazioni / strutture / pacchetti */}
-          <div className="ld__card">
-            <h3 className="ld__card-title"><i className="fa-light fa-images" aria-hidden="true" /> Contenuti</h3>
-            <p className="ld__hint">Aggiungi, modifica e rimuovi destinazioni, strutture e pacchetti (con prezzi e immagini).</p>
-
-            {/* Destinazioni */}
-            <div className="ld__items">
-              <div className="ld__items-head"><span>Destinazioni in evidenza</span><button type="button" className="ld__add" onClick={() => addItem('destinazioni')}><i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi</button></div>
-              {items.destinazioni.map((d) => (
-                <div key={d.id} className="ld__item">
-                  <input className="sib-input" placeholder="Nome" value={d.nome} onChange={(e) => updateItem('destinazioni', d.id, { nome: e.target.value })} />
-                  <div className="ld__item-row">
-                    <input className="sib-input" placeholder="Tag" value={d.tag} onChange={(e) => updateItem('destinazioni', d.id, { tag: e.target.value })} />
-                    <div className="ld__price"><span>€</span><input className="sib-input" type="number" placeholder="da" value={d.da} onChange={(e) => updateItem('destinazioni', d.id, { da: Number(e.target.value) || 0 })} /></div>
-                    <button type="button" className="ld__del" onClick={() => removeItem('destinazioni', d.id)} aria-label="Rimuovi"><i className="fa-light fa-trash" aria-hidden="true" /></button>
-                  </div>
-                  <ImageField value={d.img} onChange={(v) => updateItem('destinazioni', d.id, { img: v })} />
-                </div>
-              ))}
-            </div>
-
-            {/* Strutture */}
-            <div className="ld__items">
-              <div className="ld__items-head"><span>Strutture</span><button type="button" className="ld__add" onClick={() => addItem('strutture')}><i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi</button></div>
-              {items.strutture.map((s) => (
-                <div key={s.id} className="ld__item">
-                  <div className="ld__item-row">
-                    <input className="sib-input" placeholder="Nome" value={s.nome} onChange={(e) => updateItem('strutture', s.id, { nome: e.target.value })} />
-                    <input className="sib-input" placeholder="Città" value={s.citta} onChange={(e) => updateItem('strutture', s.id, { citta: e.target.value })} />
-                    <button type="button" className="ld__del" onClick={() => removeItem('strutture', s.id)} aria-label="Rimuovi"><i className="fa-light fa-trash" aria-hidden="true" /></button>
-                  </div>
-                  <ImageField value={s.img} onChange={(v) => updateItem('strutture', s.id, { img: v })} />
-                </div>
-              ))}
-            </div>
-
-            {/* Pacchetti */}
-            <div className="ld__items">
-              <div className="ld__items-head"><span>Pacchetti</span><button type="button" className="ld__add" onClick={() => addItem('pacchetti')}><i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi</button></div>
-              {items.pacchetti.map((p) => (
-                <div key={p.id} className="ld__item">
-                  <input className="sib-input" placeholder="Nome" value={p.nome} onChange={(e) => updateItem('pacchetti', p.id, { nome: e.target.value })} />
-                  <div className="ld__item-row">
-                    <div className="ld__price"><input className="sib-input" type="number" placeholder="notti" value={p.notti} onChange={(e) => updateItem('pacchetti', p.id, { notti: Number(e.target.value) || 0 })} /><span>notti</span></div>
-                    <div className="ld__price"><span>€</span><input className="sib-input" type="number" placeholder="da" value={p.da} onChange={(e) => updateItem('pacchetti', p.id, { da: Number(e.target.value) || 0 })} /></div>
-                    <button type="button" className="ld__del" onClick={() => removeItem('pacchetti', p.id)} aria-label="Rimuovi"><i className="fa-light fa-trash" aria-hidden="true" /></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Contatti & social */}
           <div className="ld__card">
             <h3 className="ld__card-title"><i className="fa-light fa-address-book" aria-hidden="true" /> Contatti & social</h3>
@@ -336,97 +474,28 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
               <span className="ld__browser-url"><i className="fa-light fa-lock" aria-hidden="true" /> {shareLink.replace(/^https?:\/\//, '')}</span>
             </div>
             <div className="ld__browser-scroll">
-              <div className={`vt${dragId ? ' vt--composing' : ''}`} style={vars}>
+              <div className="vt" style={vars}>
                 {/* Nav */}
                 <header className="vt__nav">
                   <span className="vt__brand">{brand.nome}</span>
-                  <nav className="vt__menu">
-                    {visibili.map((s) => <span key={s.id}>{s.label}</span>)}
-                  </nav>
+                  {navLinks.length > 0 && <nav className="vt__menu">{navLinks.map((l, i) => <span key={i}>{l}</span>)}</nav>}
                 </header>
 
-                {/* Hero */}
-                <section className={`vt__hero vt__hero--${hero.align}`} style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55)), url(${coverUrl(hero.coverId)})` }}>
-                  <span className="vt__hero-payoff">{brand.payoff}</span>
-                  <h1 className="vt__hero-title">{hero.titolo}</h1>
-                  <p className="vt__hero-sub">{hero.sottotitolo}</p>
-                  <a className="vt__cta" href={hero.ctaUrl} target="_blank" rel="noopener noreferrer">{hero.ctaLabel}</a>
-                </section>
-
-                {/* Sezioni in ordine — con aree tratteggiate per il drag & drop */}
-                {visibili.map((sec) => (
-                  <React.Fragment key={sec.id}>
-                    <div
-                      className={`vt__zone${overZone === sec.id ? ' is-over' : ''}`}
-                      onDragOver={(e) => { e.preventDefault(); setOverZone(sec.id) }}
-                      onDragLeave={() => setOverZone((z) => (z === sec.id ? null : z))}
-                      onDrop={(e) => { e.preventDefault(); onZoneDrop(sec.id) }}
-                    >
-                      <span><i className="fa-light fa-plus" aria-hidden="true" /> Rilascia il blocco qui</span>
-                    </div>
-                    <section className="vt__sec vt__sec--editable">
-                      <div className="vt__sec-tools">
-                        <span className="vt__tool vt__tool--grip" draggable onDragStart={() => setDragId(sec.id)} onDragEnd={() => { setDragId(null); setOverZone(null) }} title="Trascina per spostare"><i className="fa-solid fa-grip-vertical" aria-hidden="true" /></span>
-                        <button type="button" className="vt__tool" onClick={() => toggleSection(sec.id)} title="Rimuovi dalla vetrina"><i className="fa-solid fa-xmark" aria-hidden="true" /></button>
-                      </div>
-                      <input className="vt__sec-title vt__title-input" value={sec.label} onChange={(e) => setSectionLabel(sec.id, e.target.value)} aria-label="Titolo sezione" />
-                    {sec.id === 'destinazioni' && (
-                      <div className="vt__grid vt__grid--3">
-                        {items.destinazioni.map((d) => (
-                          <div key={d.id} className="vt__dest" style={{ backgroundImage: `url(${d.img})` }}>
-                            <span className="vt__dest-tag">{d.tag}</span>
-                            <span className="vt__dest-info"><strong>{d.nome}</strong><span>da {eur(d.da)}</span></span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {sec.id === 'strutture' && (
-                      <div className="vt__grid vt__grid--4">
-                        {items.strutture.map((s) => (
-                          <div key={s.id} className="vt__card">
-                            <span className="vt__card-img" style={{ backgroundImage: `url(${s.img})` }} />
-                            <span className="vt__card-name">{s.nome}</span>
-                            <span className="vt__card-meta">{s.citta}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {sec.id === 'servizi' && (
-                      <div className="vt__chips">
-                        {SERVIZI.map((sv) => <span key={sv.label} className="vt__chip"><i className={`fa-light fa-${sv.icon}`} aria-hidden="true" /> {sv.label}</span>)}
-                      </div>
-                    )}
-                    {sec.id === 'pacchetti' && (
-                      <div className="vt__grid vt__grid--3">
-                        {items.pacchetti.map((p) => (
-                          <div key={p.id} className="vt__pkg">
-                            <strong>{p.nome}</strong>
-                            <span className="vt__pkg-meta">{p.notti} notti</span>
-                            <span className="vt__pkg-price">da {eur(p.da)}</span>
-                            <a className="vt__cta vt__cta--sm" href={hero.ctaUrl} target="_blank" rel="noopener noreferrer">Scopri</a>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {sec.id === 'contatti' && (
-                      <div className="vt__contatti">
-                        <span><i className="fa-light fa-envelope" aria-hidden="true" /> {contatti.email}</span>
-                        <span><i className="fa-light fa-phone" aria-hidden="true" /> {contatti.telefono}</span>
-                        <span><i className="fa-light fa-location-dot" aria-hidden="true" /> {contatti.indirizzo}</span>
-                      </div>
-                    )}
-                    </section>
-                  </React.Fragment>
-                ))}
-
-                {/* Area finale: trascina qui per aggiungere in fondo */}
-                <div
-                  className={`vt__zone vt__zone--end${overZone === '__end' ? ' is-over' : ''}${visibili.length === 0 ? ' vt__zone--empty' : ''}`}
-                  onDragOver={(e) => { e.preventDefault(); setOverZone('__end') }}
-                  onDragLeave={() => setOverZone((z) => (z === '__end' ? null : z))}
-                  onDrop={(e) => { e.preventDefault(); onZoneDrop(null) }}
-                >
-                  <span><i className="fa-light fa-arrow-down-to-line" aria-hidden="true" /> {visibili.length === 0 ? 'Trascina qui un blocco per iniziare' : 'Trascina qui per aggiungere in fondo'}</span>
+                {/* Builder a righe */}
+                <div className="vt__builder">
+                  {layout.length === 0 ? (
+                    <RowAdder key="adder-empty" variant="empty" onPick={(c) => addRow(c)} />
+                  ) : (
+                    <>
+                      <RowAdder key="adder-top" onPick={(c) => addRow(c, null)} />
+                      {layout.map((row, idx) => (
+                        <React.Fragment key={row.id}>
+                          {renderRow(row, idx)}
+                          <RowAdder key={`adder-${row.id}`} onPick={(c) => addRow(c, row.id)} />
+                        </React.Fragment>
+                      ))}
+                    </>
+                  )}
                 </div>
 
                 {/* Footer */}

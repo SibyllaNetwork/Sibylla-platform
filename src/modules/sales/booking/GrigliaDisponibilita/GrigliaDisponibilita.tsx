@@ -132,6 +132,29 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
     el.scrollBy({ left: dir * Math.max(280, el.clientWidth * 0.8), behavior: 'smooth' })
   }
 
+  // ── Rotella del mouse → scorrimento orizzontale dei giorni ───────────────────
+  // Listener nativo non-passive (serve preventDefault). Quando c'è overflow e si
+  // può ancora scorrere nella direzione richiesta, la rotella verticale muove i
+  // giorni; ai bordi lascia scorrere la pagina normalmente.
+  useEffect(() => {
+    const el = tableWrapRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      if (!delta) return
+      const atStart = el.scrollLeft <= 0
+      const atEnd   = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1
+      if ((delta > 0 && !atEnd) || (delta < 0 && !atStart)) {
+        el.scrollLeft += delta
+        e.preventDefault()
+        updateNav()
+      }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [updateNav])
+
   // ── Export XLS / PDF della pagina ────────────────────────────────────────────
   const tableRef = useRef<HTMLTableElement>(null)
   const buildExportData = () => {
@@ -286,13 +309,13 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
           <thead>
             <tr className="griglia-disp__th-row griglia-disp__th-row--days">
               <th className="griglia-disp__th griglia-disp__th--struct" rowSpan={2}>Struttura</th>
-              <th className="griglia-disp__th griglia-disp__th--lead" rowSpan={2}>
+              <th className="griglia-disp__th griglia-disp__th--lead griglia-disp__th--stanze" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
                   <i className="fa-light fa-door-closed" aria-hidden="true" />
                   Stanze
                 </span>
               </th>
-              <th className="griglia-disp__th griglia-disp__th--lead" rowSpan={2}>
+              <th className="griglia-disp__th griglia-disp__th--lead griglia-disp__th--licenza" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
                   <i className="fa-light fa-id-card" aria-hidden="true" />
                   Licenza
@@ -360,9 +383,9 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
                     <span className="griglia-disp__hotel-name">{row.nome}</span>
                   </div>
                 </td>
-                <td className="griglia-disp__td">{row.stanze}</td>
-                <td className="griglia-disp__td">{row.licenza}</td>
-                <td className={`griglia-disp__td ${bufferOn ? '' : 'griglia-disp__td--buffer-off'}`}>
+                <td className="griglia-disp__td griglia-disp__td--stanze">{row.stanze}</td>
+                <td className="griglia-disp__td griglia-disp__td--licenza">{row.licenza}</td>
+                <td className={`griglia-disp__td griglia-disp__td--buffer ${bufferOn ? '' : 'griglia-disp__td--buffer-off'}`}>
                   {row.stopSales
                     ? <span className="griglia-disp__stop">
                         <i className="fa-light fa-minus" aria-hidden="true" />
@@ -403,9 +426,9 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
                   <span className="griglia-disp__hotel-name">Totale</span>
                 </div>
               </td>
-              <td className="griglia-disp__td">{totSt}</td>
-              <td className="griglia-disp__td">{totLic}</td>
-              <td className={`griglia-disp__td ${bufferOn ? '' : 'griglia-disp__td--buffer-off'}`}>
+              <td className="griglia-disp__td griglia-disp__td--stanze">{totSt}</td>
+              <td className="griglia-disp__td griglia-disp__td--licenza">{totLic}</td>
+              <td className={`griglia-disp__td griglia-disp__td--buffer ${bufferOn ? '' : 'griglia-disp__td--buffer-off'}`}>
                 <span className="griglia-disp__buffer-plus">+ {totBuf}</span>
               </td>
               {totaliGiorno.map((t, i) => (

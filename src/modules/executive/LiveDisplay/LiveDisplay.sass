@@ -156,6 +156,16 @@
     flex-direction: column
     gap: 11px
 
+    // editor contestuale della card selezionata
+    &--ctx
+      border-color: $primary-200
+      box-shadow: 0 0 0 1px alpha($primary, 0.12), $shadow-sm
+
+    &--ctx-empty
+      border-style: dashed
+      border-color: $border
+      box-shadow: none
+
   &__card-title
     display: flex
     align-items: center
@@ -168,10 +178,33 @@
     i
       color: $primary
 
+  &__ctx-clear
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    border: 1px solid $border
+    background: $white
+    color: $error
+    font-size: 11px
+    font-weight: 600
+    border-radius: 999px
+    padding: 3px 10px
+    cursor: pointer
+    font-family: inherit
+
+    i
+      color: $error
+
+    &:hover
+      border-color: $error
+      background: alpha($error, 0.08)
+
   &__hint
     font-size: 12px
     color: $text-inactive
-    margin-top: -4px
+    margin-top: -2px
+    line-height: 1.5
 
   &__field
     display: flex
@@ -260,131 +293,11 @@
     font-weight: 600
     color: $text-inactive
 
-  // ── Palette blocchi (miniature trascinabili nell'anteprima) ─────────────────
-  &__palette-empty
-    font-size: 12px
-    color: $text-disabled
-    font-style: italic
-
-  &__tiles
-    display: grid
-    grid-template-columns: repeat(2, 1fr)
-    gap: 10px
-
-  &__tile
-    border: 1px solid $border
-    border-radius: $radius-md
-    background: $white
-    overflow: hidden
-    cursor: grab
-    transition: $transition-fast
-
-    &:hover
-      border-color: $primary
-      box-shadow: $shadow-sm
-
-    &.is-dragging
-      opacity: 0.5
-
-  &__tile-mini
-    height: 56px
-    padding: 8px
-    background: $bg
-    border-bottom: 1px solid $border
-    display: flex
-    align-items: center
-
-  &__tile-foot
-    display: flex
-    align-items: center
-    gap: 7px
-    padding: 8px 10px
-    font-size: 12px
-    font-weight: 600
-    color: $text-active
-
-    > .fa-grip-vertical
-      color: $text-disabled
-      font-size: 10px
-
-  // miniature blocchi (.bm)
-  .bm
-    width: 100%
-    display: flex
-    gap: 5px
-    align-items: center
-
-  .bm--photos span
-    flex: 1
-    height: 38px
-    border-radius: 4px
-    background-size: cover
-    background-position: center
-    background-color: $primary-100
-
-  .bm--4 span
-    height: 34px
-
-  .bm--pills
-    flex-wrap: wrap
-
-    span
-      flex: none
-      height: 12px
-      width: 38px
-      border-radius: 999px
-      background: $primary-200
-
-  .bm--cards span
-    flex: 1
-    height: 42px
-    border-radius: 5px
-    border: 1px solid $border
-    background: $white
-    display: flex
-    flex-direction: column
-    justify-content: center
-    gap: 4px
-    padding: 6px
-
-  .bm--cards b
-    height: 6px
-    width: 70%
-    border-radius: 3px
-    background: $primary-200
-
-  .bm--cards i
-    height: 5px
-    width: 45%
-    border-radius: 3px
-    background: $border
-
-  .bm--lines
-    flex-direction: column
-    align-items: stretch
-    gap: 6px
-
-    span
-      height: 8px
-      border-radius: 3px
-      background: $primary-100
-
-      &:nth-child(2)
-        width: 80%
-      &:nth-child(3)
-        width: 60%
-
-  // ── Editor contenuti (destinazioni/strutture/pacchetti) ──────────────────────
+  // ── Editor liste (servizi) ───────────────────────────────────────────────────
   &__items
     display: flex
     flex-direction: column
     gap: 8px
-    padding-top: 6px
-    border-top: 1px dashed $border
-
-    &:first-of-type
-      border-top: none
-      padding-top: 0
 
   &__items-head
     display: flex
@@ -410,29 +323,14 @@
     &:hover
       background: alpha($primary, 0.16)
 
-  &__item
-    display: flex
-    flex-direction: column
-    gap: 6px
-    padding: 8px
-    border: 1px solid $border
-    border-radius: $radius-md
-    background: $bg
-
   &__item-row
     display: flex
     gap: 6px
     align-items: center
 
-  &__price
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    font-size: 12px
-    color: $text-inactive
-
-    .sib-input
-      width: 72px
+  &__icon-input
+    width: 110px
+    flex-shrink: 0
 
   &__del
     width: 32px
@@ -567,190 +465,6 @@
     flex-wrap: wrap
     opacity: 0.85
 
-  &__hero
-    padding: 56px 28px
-    background-size: cover
-    background-position: center
-    color: #fff
-    display: flex
-    flex-direction: column
-    gap: 12px
-
-    &--left
-      align-items: flex-start
-      text-align: left
-    &--center
-      align-items: center
-      text-align: center
-
-  &__hero-payoff
-    font-size: 12px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.6px
-    background: var(--vt-accent)
-    color: #1a1a1a
-    padding: 4px 11px
-    border-radius: 999px
-
-  &__hero-title
-    font-size: 34px
-    font-weight: 800
-    line-height: 1.1
-    max-width: 720px
-
-  &__hero-sub
-    font-size: 15px
-    max-width: 560px
-    opacity: 0.95
-
-  &__cta
-    display: inline-block
-    margin-top: 6px
-    padding: 12px 22px
-    background: var(--vt-primary)
-    color: #fff
-    font-weight: 700
-    font-size: 14px
-    text-decoration: none
-    border-radius: var(--vt-radius)
-
-    &--sm
-      margin-top: 8px
-      padding: 8px 14px
-      font-size: 12px
-
-  &__sec
-    padding: 28px
-
-  &__sec-title
-    font-size: 20px
-    font-weight: 800
-    margin-bottom: 16px
-
-  &__grid
-    display: grid
-    gap: 14px
-
-    &--3
-      grid-template-columns: repeat(3, 1fr)
-    &--4
-      grid-template-columns: repeat(4, 1fr)
-
-    @media (max-width: 620px)
-      grid-template-columns: repeat(2, 1fr) !important
-
-  &__card
-    display: flex
-    flex-direction: column
-    gap: 5px
-
-  &__card-img
-    height: 110px
-    border-radius: var(--vt-radius)
-    background-size: cover
-    background-position: center
-
-  &__card-name
-    font-size: 13px
-    font-weight: 700
-
-  &__card-meta
-    font-size: 12px
-    opacity: 0.7
-
-  &__dest
-    position: relative
-    height: 170px
-    border-radius: var(--vt-radius)
-    background-size: cover
-    background-position: center
-    overflow: hidden
-    display: flex
-    align-items: flex-end
-
-    &::after
-      content: ''
-      position: absolute
-      inset: 0
-      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.65))
-
-  &__dest-tag
-    position: absolute
-    top: 10px
-    left: 10px
-    z-index: 1
-    font-size: 10px
-    font-weight: 700
-    text-transform: uppercase
-    color: #fff
-    background: var(--vt-primary)
-    border-radius: 999px
-    padding: 3px 9px
-
-  &__dest-info
-    position: relative
-    z-index: 1
-    padding: 12px 14px
-    color: #fff
-    display: flex
-    flex-direction: column
-
-    strong
-      font-size: 15px
-    span
-      font-size: 12px
-      opacity: 0.9
-
-  &__chips
-    display: flex
-    flex-wrap: wrap
-    gap: 10px
-
-  &__chip
-    display: inline-flex
-    align-items: center
-    gap: 7px
-    font-size: 13px
-    font-weight: 600
-    padding: 8px 14px
-    border-radius: 999px
-    background: color-mix(in srgb, var(--vt-primary) 10%, transparent)
-    color: var(--vt-primary)
-    border: 1px solid color-mix(in srgb, var(--vt-primary) 25%, transparent)
-
-  &__pkg
-    display: flex
-    flex-direction: column
-    gap: 3px
-    padding: 16px
-    border: 1px solid rgba(0,0,0,0.1)
-    border-radius: var(--vt-radius)
-
-    strong
-      font-size: 15px
-    &-meta
-      font-size: 12px
-      opacity: 0.7
-    &-price
-      font-size: 14px
-      font-weight: 700
-      color: var(--vt-primary)
-
-  &__contatti
-    display: flex
-    flex-wrap: wrap
-    gap: 22px
-    font-size: 14px
-
-    span
-      display: inline-flex
-      align-items: center
-      gap: 8px
-
-    i
-      color: var(--vt-primary)
-
   &__footer
     display: flex
     align-items: center
@@ -765,72 +479,279 @@
     font-size: 16px
     color: var(--vt-primary)
 
-  // ── Aree tratteggiate (drag & drop) nell'anteprima ──────────────────────────
-  &__zone
+  // ── Builder: righe + aree tratteggiate ──────────────────────────────────────
+  &__builder
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 18px
+
+// ── Selettore disposizione riga (1 · 2 · 3 · 4) ───────────────────────────────
+.vt-adder
+  &--slim
     display: flex
     align-items: center
     justify-content: center
-    margin: 0 28px
-    height: 8px
+    gap: 7px
+    width: 100%
+    padding: 7px
     border: 1.5px dashed rgba(0,0,0,0.16)
     border-radius: 10px
-    color: rgba(0,0,0,0.45)
+    background: transparent
+    color: rgba(0,0,0,0.4)
     font-size: 12px
-    overflow: hidden
+    font-weight: 600
+    cursor: pointer
+    opacity: 0.5
     transition: all 0.15s ease
 
-    span
-      opacity: 0
+    &:hover
+      opacity: 1
+      border-color: var(--vt-primary)
+      color: var(--vt-primary)
+      background: color-mix(in srgb, var(--vt-primary) 6%, transparent)
+
+  &--choose
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 12px
+    padding: 18px
+    border: 1.5px dashed var(--vt-primary)
+    border-radius: 14px
+    background: color-mix(in srgb, var(--vt-primary) 5%, transparent)
+
+  &--empty
+    padding: 44px 18px
+
+  &__label
+    font-size: 13px
+    font-weight: 700
+    color: var(--vt-text)
+
+  &__opts
+    display: flex
+    flex-wrap: wrap
+    justify-content: center
+    gap: 12px
+
+  &__opt
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    width: 96px
+    padding: 12px 10px
+    border: 1px solid rgba(0,0,0,0.12)
+    border-radius: 10px
+    background: #fff
+    cursor: pointer
+    transition: all 0.15s ease
+
+    &:hover
+      border-color: var(--vt-primary)
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1)
+      transform: translateY(-2px)
+
+  &__diag
+    display: flex
+    gap: 4px
+    width: 100%
+    height: 34px
+
+    i
+      flex: 1
+      border-radius: 4px
+      background: color-mix(in srgb, var(--vt-primary) 22%, #fff)
+      border: 1px solid color-mix(in srgb, var(--vt-primary) 35%, transparent)
+
+  &__opt-lbl
+    font-size: 12px
+    font-weight: 600
+    color: var(--vt-text)
+
+  &__cancel
+    border: none
+    background: transparent
+    color: rgba(0,0,0,0.45)
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+
+    &:hover
+      color: var(--vt-text)
+
+// ── Riga della vetrina ────────────────────────────────────────────────────────
+.vt-row
+  position: relative
+  border-radius: 12px
+
+  &:hover
+    outline: 1px dashed rgba(0,0,0,0.12)
+    outline-offset: 6px
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(var(--vt-cols), minmax(0, 1fr))
+    gap: 14px
+
+    @media (max-width: 560px)
+      grid-template-columns: 1fr
+
+  // toolbar riga (compare in hover)
+  &__tools
+    position: absolute
+    top: -14px
+    right: 8px
+    z-index: 5
+    display: flex
+    align-items: center
+    gap: 4px
+    padding: 4px
+    border-radius: 8px
+    background: rgba(20,20,20,0.82)
+    box-shadow: 0 6px 18px rgba(0,0,0,0.22)
+    opacity: 0
+    pointer-events: none
+    transition: opacity 0.12s ease
+
+  &:hover &__tools
+    opacity: 1
+    pointer-events: auto
+
+  &__cols
+    display: inline-flex
+    border: 1px solid rgba(255,255,255,0.2)
+    border-radius: 6px
+    overflow: hidden
+
+  &__col-btn
+    width: 24px
+    height: 24px
+    border: none
+    border-right: 1px solid rgba(255,255,255,0.16)
+    background: transparent
+    color: rgba(255,255,255,0.7)
+    font-size: 11px
+    font-weight: 700
+    cursor: pointer
+
+    &:last-child
+      border-right: none
+
+    &.is-active
+      background: var(--vt-primary)
+      color: #fff
+
+  &__sep
+    width: 1px
+    height: 18px
+    background: rgba(255,255,255,0.2)
+
+  &__tool
+    width: 26px
+    height: 26px
+    border: none
+    border-radius: 6px
+    background: transparent
+    color: rgba(255,255,255,0.85)
+    cursor: pointer
+    font-size: 11px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      background: rgba(255,255,255,0.16)
+
+    &:disabled
+      opacity: 0.3
+      cursor: default
+
+    &--danger:hover
+      background: $error
+      color: #fff
+
+// ── Slot (cella) ───────────────────────────────────────────────────────────────
+.vt-slot
+  position: relative
+  min-height: 150px
+
+  // area vuota: tratteggio che segue il perimetro della card
+  &--empty
+    display: flex
+    align-items: stretch
+    border: 2px dashed rgba(0,0,0,0.18)
+    border-radius: var(--vt-radius)
+    background: color-mix(in srgb, var(--vt-primary) 3%, transparent)
+    transition: all 0.15s ease
+
+    &:hover
+      border-color: var(--vt-primary)
+      background: color-mix(in srgb, var(--vt-primary) 7%, transparent)
+
+    &.is-picking
+      border-style: solid
+      border-color: var(--vt-primary)
+      background: #fff
+
+  &__add
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    width: 100%
+    border: none
+    background: transparent
+    color: var(--vt-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    font-family: inherit
+
+    i
+      width: 30px
+      height: 30px
+      border-radius: 50%
       display: inline-flex
       align-items: center
-      gap: 6px
+      justify-content: center
+      background: color-mix(in srgb, var(--vt-primary) 12%, transparent)
+      font-size: 13px
 
-    &.is-over
-      height: 52px
+  // card piena: selezionabile + tool in hover
+  &--filled
+    cursor: pointer
+    border-radius: var(--vt-radius)
+
+    &::after
+      content: ''
+      position: absolute
+      inset: -3px
+      border-radius: calc(var(--vt-radius) + 3px)
+      border: 2px solid transparent
+      pointer-events: none
+      transition: border-color 0.12s ease
+
+    &:hover::after
+      border-color: color-mix(in srgb, var(--vt-primary) 40%, transparent)
+
+    &.is-selected::after
       border-color: var(--vt-primary)
-      background: color-mix(in srgb, var(--vt-primary) 8%, transparent)
-      color: var(--vt-primary)
 
-      span
-        opacity: 1
-
-    &--end
-      margin: 14px 28px 24px
-      height: 44px
-
-      span
-        opacity: 0.6
-
-    &--empty
-      height: 130px
-
-      span
-        opacity: 0.85
-        font-size: 14px
-
-  // durante il drag rivela le aree tra le sezioni
-  &--composing &__zone
-    height: 34px
-    border-color: var(--vt-primary)
-
-    span
-      opacity: 0.7
-
-  // sezioni editabili: tool su hover
-  &__sec--editable
-    position: relative
-
-  &__sec-tools
+  &__tools
     position: absolute
-    top: 12px
-    right: 16px
+    top: 8px
+    right: 8px
+    z-index: 4
     display: flex
-    gap: 6px
+    gap: 5px
     opacity: 0
     transition: opacity 0.12s ease
-    z-index: 3
 
-  &__sec--editable:hover &__sec-tools
+  &--filled:hover &__tools,
+  &--filled.is-selected &__tools
     opacity: 1
 
   &__tool
@@ -846,23 +767,255 @@
     justify-content: center
     font-size: 12px
 
-    &--grip
-      cursor: grab
+    &:hover
+      background: rgba(0,0,0,0.78)
 
-  &__title-input
-    width: 100%
-    border: 1px solid transparent
-    background: transparent
-    font: inherit
-    color: inherit
-    padding: 2px 4px
-    margin: 0 0 16px -4px
-    border-radius: 6px
+// ── Picker del tipo di card (dentro l'area vuota) ─────────────────────────────
+.vt-pick
+  display: flex
+  flex-direction: column
+  gap: 10px
+  width: 100%
+  padding: 14px
+
+  &__label
+    font-size: 12px
+    font-weight: 700
+    color: var(--vt-text)
+    text-align: center
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr))
+    gap: 8px
+
+  &__opt
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 6px
+    padding: 10px 6px
+    border: 1px solid rgba(0,0,0,0.1)
+    border-radius: 9px
+    background: #fff
+    cursor: pointer
+    font-size: 11px
+    font-weight: 600
+    color: var(--vt-text)
+    transition: all 0.12s ease
+
+    i
+      font-size: 16px
+      color: var(--vt-primary)
 
     &:hover
-      border-color: rgba(0,0,0,0.12)
-
-    &:focus
-      outline: none
       border-color: var(--vt-primary)
-      background: rgba(255,255,255,0.6)
+      background: color-mix(in srgb, var(--vt-primary) 7%, #fff)
+
+  &__cancel
+    align-self: center
+    border: none
+    background: transparent
+    color: rgba(0,0,0,0.45)
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+
+    &:hover
+      color: var(--vt-text)
+
+// ── Card di contenuto (anteprima) ─────────────────────────────────────────────
+.vt-card
+  height: 100%
+  display: flex
+  flex-direction: column
+
+  // hero
+  &--hero
+    gap: 10px
+    padding: 36px 28px
+    min-height: 230px
+    justify-content: center
+    background-size: cover
+    background-position: center
+    border-radius: var(--vt-radius)
+    color: #fff
+
+  &--hero-left
+    align-items: flex-start
+    text-align: left
+
+  &--hero-center
+    align-items: center
+    text-align: center
+
+  &__payoff
+    font-size: 11px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.6px
+    background: var(--vt-accent)
+    color: #1a1a1a
+    padding: 4px 11px
+    border-radius: 999px
+
+  &__hero-title
+    font-size: 30px
+    font-weight: 800
+    line-height: 1.12
+    max-width: 720px
+
+  &__hero-sub
+    font-size: 14px
+    max-width: 560px
+    opacity: 0.95
+
+  // immagine / destinazione
+  &--photo
+    position: relative
+    min-height: 200px
+    border-radius: var(--vt-radius)
+    background-size: cover
+    background-position: center
+    overflow: hidden
+    justify-content: flex-end
+
+    &::after
+      content: ''
+      position: absolute
+      inset: 0
+      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.65))
+
+  &__tag
+    position: absolute
+    top: 12px
+    left: 12px
+    z-index: 1
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    color: #fff
+    background: var(--vt-primary)
+    border-radius: 999px
+    padding: 3px 9px
+
+  &__photo-info
+    position: relative
+    z-index: 1
+    padding: 14px 16px
+    color: #fff
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    strong
+      font-size: 16px
+    span
+      font-size: 12px
+      opacity: 0.9
+
+  // struttura
+  &--struct
+    gap: 5px
+
+  &__struct-img
+    height: 130px
+    border-radius: var(--vt-radius)
+    background-size: cover
+    background-position: center
+    background-color: rgba(0,0,0,0.06)
+
+  &__struct-name
+    margin-top: 4px
+    font-size: 14px
+    font-weight: 700
+
+  &__struct-meta
+    font-size: 12px
+    opacity: 0.7
+
+  // pacchetto
+  &--pkg
+    gap: 4px
+    padding: 18px
+    border: 1px solid rgba(0,0,0,0.1)
+    border-radius: var(--vt-radius)
+    align-items: flex-start
+
+    strong
+      font-size: 16px
+
+  &__pkg-meta
+    font-size: 12px
+    opacity: 0.7
+
+  &__pkg-price
+    font-size: 15px
+    font-weight: 700
+    color: var(--vt-primary)
+
+  // testo
+  &--text
+    gap: 8px
+    padding: 22px
+    justify-content: center
+
+    h3
+      font-size: 20px
+      font-weight: 800
+
+    p
+      font-size: 14px
+      line-height: 1.6
+      opacity: 0.85
+
+  // servizi
+  &--serv
+    flex-direction: row
+    flex-wrap: wrap
+    align-content: center
+    gap: 10px
+    padding: 18px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 13px
+    font-weight: 600
+    padding: 8px 14px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--vt-primary) 10%, transparent)
+    color: var(--vt-primary)
+    border: 1px solid color-mix(in srgb, var(--vt-primary) 25%, transparent)
+
+  // contatti
+  &--contatti
+    gap: 12px
+    padding: 22px
+    justify-content: center
+    font-size: 14px
+
+    span
+      display: inline-flex
+      align-items: center
+      gap: 8px
+
+    i
+      color: var(--vt-primary)
+
+// CTA condivisa
+.vt-cta
+  display: inline-block
+  margin-top: 6px
+  padding: 12px 22px
+  background: var(--vt-primary)
+  color: #fff
+  font-weight: 700
+  font-size: 14px
+  border-radius: var(--vt-radius)
+
+  &--sm
+    margin-top: 8px
+    padding: 8px 14px
+    font-size: 12px

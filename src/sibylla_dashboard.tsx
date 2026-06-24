@@ -123,13 +123,22 @@ export default function App() {
   // pagine Tableau/Agorà adottano il colore istituzionale del prodotto, applicato
   // a tutta la app (sidenav + header + contenuto). Platform = palette originale.
   const dissociato = useSectionThemeStore(s => s.dissociato)
-  const section = sectionForPage(currentPage)
-  const sectionOverride = dissociato && section !== 'platform'
 
   // Login profili: overlay e profilo attualmente caricato (menu filtrato).
   const accessOpen       = useAccessStore(s => s.accessOpen)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const assist           = useAccessStore(s => s.assist)
+  const profiles         = useAccessStore(s => s.profiles)
+
+  // Moduli effettivi dell'utente: assist (impersona un cliente) → profilo
+  // caricato → nessun contratto (undefined). Servono a colorare le pagine
+  // CONDIVISE tra moduli: le pagine verdi (Tableau) restano verdi solo per chi
+  // ha il modulo Tour Operator, altrimenti diventano blu Platform.
+  const effectiveModuli = assist
+    ? assist.moduli
+    : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
+  const section = sectionForPage(currentPage, effectiveModuli)
+  const sectionOverride = dissociato && section !== 'platform'
   // Modalità admin (oro): include l'angolo curvo gold tra header e sidenav.
   const adminMode = !!assist || currentPage === 'sibylla-admin' || currentPage === 'assist-admin' || isPlatformAdminPage(currentPage)
 

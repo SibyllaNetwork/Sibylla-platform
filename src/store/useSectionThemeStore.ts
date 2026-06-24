@@ -52,11 +52,24 @@ const AGORA_PAGES = new Set<string>([
   'gestione-annunci',
 ])
 
-/** Sezione (prodotto) a cui appartiene una pagina. */
-export function sectionForPage(page: string): Sezione {
+/**
+ * Sezione (prodotto) a cui appartiene una pagina.
+ *
+ * Alcune pagine sono CONDIVISE tra moduli diversi (es. "Giornale impresa" esiste
+ * sia per le aziende col modulo Tour Operator sia per gli hotel). Le pagine verdi
+ * (Tableau) appartengono al mondo Tour Operator: in modalità dissociata restano
+ * verdi solo se l'utente ha il modulo `tour-operator`; per tutti gli altri moduli
+ * la stessa pagina è blu Platform. Passa `moduli` (i moduli sottoscritti dal
+ * profilo/assist) per applicare la regola; se omesso (nessun contratto caricato)
+ * si usa la sezione istituzionale della pagina.
+ */
+export function sectionForPage(page: string, moduli?: string[]): Sezione {
   // Le pagine con parametri usano "id:param" → considera l'id.
   const base = page.includes(':') ? page.slice(0, page.indexOf(':')) : page
-  if (TABLEAU_PAGES.has(base)) return 'tableau'
+  if (TABLEAU_PAGES.has(base)) {
+    if (moduli && !moduli.includes('tour-operator')) return 'platform'
+    return 'tableau'
+  }
   if (base.startsWith('agora') || AGORA_PAGES.has(base)) return 'agora'
   return 'platform'
 }

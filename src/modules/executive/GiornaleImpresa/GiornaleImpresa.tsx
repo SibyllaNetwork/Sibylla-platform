@@ -6,7 +6,14 @@ import BtnBack from '../../../core/components/BtnBack'
 import { Tabs } from '../../../core/components'
 import { SelectField } from '../../../core/components/form'
 import MENU from '../../../navigation/menu'
+import MENU_TO from '../../../navigation/menuTourOperator'
+import { useAccessStore } from '../../../store/useAccessStore'
 import './GiornaleImpresa.sass'
+
+// La pagina è CONDIVISA tra moduli: i Tour Operator vedono una versione con
+// contenuti propri (pratiche, preventivi, partenze, destinazioni) mentre gli
+// altri moduli vedono la versione standard (hotel/struttura ricettiva).
+type GiornaleVariant = 'hotel' | 'to'
 
 // Meta (icona + titolo) delle card custom della Panoramica
 const CUSTOM_META: Record<string, { icon: string; title: string; sdly?: boolean }> = {
@@ -17,7 +24,6 @@ const CUSTOM_META: Record<string, { icon: string; title: string; sdly?: boolean 
   turni:      { icon:'clock',     title:'Turni di oggi' },
   compleanni: { icon:'star',      title:'Compleanni di oggi' },
 }
-const cardTitle = (card: any) => card.type === 'page' ? card.label : (CUSTOM_META[card.id]?.title ?? card.id)
 
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const WDAYS  = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato']
@@ -29,22 +35,13 @@ const NODE_POS = [
   { x: 50, y: 94 }, { x: 11, y: 73 }, { x: 11, y: 27 },
 ]
 
-// ── Sezioni orbitanti (vista sintetica), ordinate in senso orario dall'alto ──
-const ORBIT = [
-  { id: 'calendario', label: 'Almanacco',  icon: 'calendar' },
-  { id: 'turni',      label: 'Turni',      icon: 'clock'    },
-  { id: 'vip',        label: 'Ospiti VIP', icon: 'star'     },
-  { id: 'eventi',     label: 'Eventi',     icon: 'bell'     },
-  { id: 'numeri',     label: 'I numeri',   icon: 'bar'      },
-  { id: 'meteo',      label: 'Meteo',      icon: 'cloud-sun' },
-]
 
 // ── Card per tab (vista estesa) ─────────────────────────────────────────────
 // Panoramica = widget dashboard dedicati (renderExtCard).
 // Gli altri tab elencano le SEZIONI DEL MENU del modulo Impresa corrispondente:
 // ogni gruppo di primo livello del modulo diventa una card con le pagine navigabili.
-const impresaModule = (modId: string) => {
-  const imp = (MENU as any[]).find(m => m.id === 'impresa')
+const impresaModule = (modId: string, menu: any[]) => {
+  const imp = (menu as any[]).find(m => m.id === 'impresa')
   return imp?.children?.find((c: any) => c.id === modId)
 }
 const leafPages = (node: any, acc: any[] = []): any[] => {
@@ -53,9 +50,9 @@ const leafPages = (node: any, acc: any[] = []): any[] => {
   return acc
 }
 // Catalogo: una card per ARGOMENTO (pagina) del modulo, con la sua sezione.
-const pageCatalog = (modId: string) => {
+const pageCatalog = (modId: string, menu: any[]) => {
   const out: any[] = []
-  ;(impresaModule(modId)?.children ?? []).forEach((group: any) => {
+  ;(impresaModule(modId, menu)?.children ?? []).forEach((group: any) => {
     leafPages(group).forEach((leaf: any) => {
       out.push({
         id: `${modId}:${out.length}`,
@@ -71,18 +68,19 @@ const pageCatalog = (modId: string) => {
   return out
 }
 
-const TAB_CARDS: Record<string, any[]> = {
+// Card per tab, costruite dal menu del modulo corrente (MENU o MENU_TO).
+const buildTabCards = (menu: any[]): Record<string, any[]> => ({
   panoramica: [
     { id:'numeri', type:'custom' }, { id:'almanacco', type:'custom' },
     { id:'meteo', type:'custom' }, { id:'eventi', type:'custom' },
     { id:'turni', type:'custom' }, { id:'compleanni', type:'custom' },
   ],
-  vendite:   pageCatalog('sales'),
-  gestione:  pageCatalog('finance'),
-  acquisti:  pageCatalog('purchasing'),
-  operativa: pageCatalog('operation'),
-  personale: pageCatalog('hr'),
-}
+  vendite:   pageCatalog('sales', menu),
+  gestione:  pageCatalog('finance', menu),
+  acquisti:  pageCatalog('purchasing', menu),
+  operativa: pageCatalog('operation', menu),
+  personale: pageCatalog('hr', menu),
+})
 
 // Di default pubblica solo le prime 6 card per sezione; le altre restano
 // disponibili nella personalizzazione.
@@ -219,11 +217,142 @@ const hashNum = (s: string, lo: number, hi: number) => {
 const summaryFor = (card: any) =>
   SUMMARIES[card.nodeId] ?? [{ kind:'donut', value: hashNum(card.nodeId ?? card.id, 48, 92), label:'Andamento' }]
 
+// ─── Dati variabili per variante (hotel vs Tour Operator) ────────────────────
+interface VariantData {
+  subtitle: string
+  struttureLabel: string
+  strutture: string[]
+  orbit: { id: string; label: string; icon: string }[]
+  statsRows: { label: string; ieri: string; oggi: string }[]
+  eventi: { data: string; mese: string; titolo: string; luogo: string }[]
+  // hotel = turni di servizio · TO = partenze di oggi (stessa forma)
+  turni: { orario: string; nome: string; ruolo: string }[]
+  turniLabel: string
+  turniEmpty: string
+  vip: { nome: string; nota: string }[]
+  vipLabel: string
+  meteoCity: string
+  meteoTemp: string
+}
+
+const VARIANT_DATA: Record<GiornaleVariant, VariantData> = {
+  hotel: {
+    subtitle: 'Centro strategico per il monitoraggio aziendale, che offre una visione complessiva e dettagliata dell\'andamento economico e operativo della struttura',
+    struttureLabel: 'Struttura',
+    strutture: ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare','Palazzo Storico'],
+    orbit: [
+      { id:'calendario', label:'Almanacco',  icon:'calendar' },
+      { id:'turni',      label:'Turni',      icon:'clock'    },
+      { id:'vip',        label:'Ospiti VIP', icon:'star'     },
+      { id:'eventi',     label:'Eventi',     icon:'bell'     },
+      { id:'numeri',     label:'I numeri',   icon:'bar'      },
+      { id:'meteo',      label:'Meteo',      icon:'cloud-sun' },
+    ],
+    statsRows: [
+      {label:'Arrivi',          ieri:'12',      oggi:'18'},
+      {label:'Partenze',        ieri:'9',       oggi:'14'},
+      {label:'Gruppi',          ieri:'40,00%',  oggi:'55,00%'},
+      {label:'Individuali',     ieri:'60,00%',  oggi:'45,00%'},
+      {label:'Camere',          ieri:'34',      oggi:'41'},
+      {label:'Presenze',        ieri:'58',      oggi:'72'},
+      {label:'Occupazione',     ieri:'71,00 %', oggi:'85,00 %'},
+      {label:'Revenue',         ieri:'4.210 €', oggi:'5.380 €'},
+      {label:'Av. Daily Rate',  ieri:'124 €',   oggi:'131 €'},
+      {label:'Av. Daily Guest', ieri:'72 €',    oggi:'81 €'},
+    ],
+    eventi: [
+      { data:'05', mese:'GIU', titolo:'Roma Creativa 365 – Cultura tutto l\'anno', luogo:'Roma · Centro' },
+      { data:'07', mese:'GIU', titolo:'Stagione del Teatro dell\'Opera', luogo:'Roma · Teatro Costanzi' },
+      { data:'12', mese:'GIU', titolo:'Mostra "Tesori dei Faraoni"', luogo:'Roma · Scuderie del Quirinale' },
+      { data:'18', mese:'GIU', titolo:'Festival del Gusto Mediterraneo', luogo:'Ostia · Lungomare' },
+      { data:'24', mese:'GIU', titolo:'Notte Bianca dei Musei', luogo:'Roma · Centro storico' },
+    ],
+    turni: [
+      { orario:'07–15', nome:'Maria Rossi',   ruolo:'Reception' },
+      { orario:'08–16', nome:'Luca Bianchi',  ruolo:'Sala ristorante' },
+      { orario:'15–23', nome:'Sara Verdi',    ruolo:'Reception' },
+      { orario:'16–00', nome:'Marco Neri',    ruolo:'Cucina' },
+      { orario:'23–07', nome:'Anna Conti',    ruolo:'Night audit' },
+    ],
+    turniLabel: 'Turni di oggi',
+    turniEmpty: 'Non ci sono turni per oggi.',
+    vip: [
+      { nome:'Famiglia Conti',   nota:'Suite Belvedere · check-in 15:00' },
+      { nome:'Dott. M. Ferrara', nota:'Late check-out · allergie segnalate' },
+      { nome:'Gruppo Aurora',    nota:'Tavolo riservato ristorante 20:30' },
+    ],
+    vipLabel: 'Ospiti VIP',
+    meteoCity: 'MILANO',
+    meteoTemp: '19°',
+  },
+  to: {
+    subtitle: 'Cabina di regia del tour operator: andamento di pratiche, preventivi e marginalità, con la visione d\'insieme di partenze, destinazioni e partner di rete',
+    struttureLabel: 'Sede operativa',
+    strutture: ['Sede centrale','Filiale Milano','Filiale Roma','Online B2C','Network agenzie'],
+    orbit: [
+      { id:'calendario', label:'Almanacco',     icon:'calendar' },
+      { id:'turni',      label:'Partenze',      icon:'clock'    },
+      { id:'vip',        label:'Clienti VIP',   icon:'star'     },
+      { id:'eventi',     label:'Fiere & eventi', icon:'bell'    },
+      { id:'numeri',     label:'I numeri',      icon:'bar'      },
+      { id:'meteo',      label:'Destinazioni',  icon:'cloud-sun' },
+    ],
+    statsRows: [
+      {label:'Pratiche aperte',     ieri:'22',       oggi:'27'},
+      {label:'Preventivi inviati',  ieri:'14',       oggi:'19'},
+      {label:'Conferme',            ieri:'6',        oggi:'9'},
+      {label:'Opzioni in scadenza', ieri:'4',        oggi:'3'},
+      {label:'Passeggeri',          ieri:'88',       oggi:'126'},
+      {label:'Tasso conversione',   ieri:'38,00 %',  oggi:'44,00 %'},
+      {label:'Fatturato',           ieri:'18.400 €', oggi:'24.900 €'},
+      {label:'Margine medio',       ieri:'16,5 %',   oggi:'18,2 %'},
+      {label:'Ticket medio',        ieri:'1.180 €',  oggi:'1.320 €'},
+      {label:'Pratiche chiuse',     ieri:'5',        oggi:'8'},
+    ],
+    eventi: [
+      { data:'12', mese:'FEB', titolo:'BIT — Borsa Internazionale del Turismo', luogo:'Milano · Allianz MiCo' },
+      { data:'09', mese:'OTT', titolo:'TTG Travel Experience', luogo:'Rimini · Expo Centre' },
+      { data:'21', mese:'MAR', titolo:'ITB — Fiera del turismo', luogo:'Berlino · Messe' },
+      { data:'15', mese:'MAG', titolo:'Roadshow Mar Rosso & Maldive', luogo:'Online · Webinar partner' },
+      { data:'03', mese:'SET', titolo:'Workshop Incoming Sud Italia', luogo:'Napoli · Stazione Marittima' },
+    ],
+    turni: [
+      { orario:'06:40', nome:'Gruppo Marsa Alam',  ruolo:'Volo charter · 28 pax' },
+      { orario:'09:15', nome:'Fam. Bianchi',       ruolo:'Maldive · 2 pax' },
+      { orario:'12:30', nome:'Gruppo Andalusia',   ruolo:'Bus GT · 45 pax' },
+      { orario:'15:50', nome:'Sig. Conte',         ruolo:'New York · 1 pax' },
+      { orario:'21:10', nome:'Viaggio nozze Rossi', ruolo:'Bali · 2 pax' },
+    ],
+    turniLabel: 'Partenze di oggi',
+    turniEmpty: 'Non ci sono partenze per oggi.',
+    vip: [
+      { nome:'Welcome Travel Group', nota:'Top partner · 142 pratiche YTD' },
+      { nome:'Gruppo Aurora Tours',  nota:'Serie partenze estate · alto margine' },
+      { nome:'Dott. M. Ferrara',     nota:'Cliente luxury · proposta Giappone' },
+    ],
+    vipLabel: 'Clienti VIP',
+    meteoCity: 'SHARM EL SHEIKH',
+    meteoTemp: '29°',
+  },
+}
+
 export default function GiornaleImpresa({ navigate }: { navigate: (p: string) => void }) {
   const today     = new Date()
   const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1)
 
-  const [struttura, setStruttura] = useState('Hotel Noto')
+  // Variante: i Tour Operator (modulo `tour-operator`) vedono contenuti propri;
+  // gli altri moduli vedono la versione standard. I moduli effettivi vengono
+  // dall'eventuale sessione di assistenza, altrimenti dal profilo caricato.
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const assist           = useAccessStore(s => s.assist)
+  const profiles         = useAccessStore(s => s.profiles)
+  const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
+  const variant: GiornaleVariant = moduli?.includes('tour-operator') ? 'to' : 'hotel'
+  const D = VARIANT_DATA[variant]
+  // Vista estesa: catalogo card dal menu del modulo corrente (MENU o MENU_TO).
+  const tabCards = React.useMemo(() => buildTabCards(variant === 'to' ? (MENU_TO as any[]) : (MENU as any[])), [variant])
+
+  const [struttura, setStruttura] = useState(D.strutture[0])
   const [activeTab, setActiveTab] = useState('panoramica')
   const [viewMode,  setViewMode]  = useState<'sintetica' | 'estesa'>('sintetica')
 
@@ -232,7 +361,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
 
   // vista estesa — ordine delle card per ciascun tab (riordinabile col drag)
   const [orders, setOrders] = useState<Record<string, string[]>>(() =>
-    Object.fromEntries(Object.entries(TAB_CARDS).map(([k, cards]) => [k, cards.slice(0, DEFAULT_VISIBLE).map((c: any) => c.id)]))
+    Object.fromEntries(Object.entries(tabCards).map(([k, cards]) => [k, cards.slice(0, DEFAULT_VISIBLE).map((c: any) => c.id)]))
   )
   const [editMode, setEditMode] = useState(false)
   const [dragId, setDragId]     = useState<string | null>(null)
@@ -242,7 +371,15 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
     const d = new Date(today); d.setDate(today.getDate() - 3 + i); return d
   })
 
-  const strutture = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare','Palazzo Storico']
+  const strutture = D.strutture
+  const orbit = D.orbit
+  // Titolo card: per il TO "turni"→"Partenze di oggi" ed "eventi"→"Fiere & eventi".
+  const titleFor = (card: any) => {
+    if (card.type === 'page') return card.label
+    if (card.id === 'turni') return D.turniLabel
+    if (variant === 'to' && card.id === 'eventi') return 'Fiere & eventi'
+    return CUSTOM_META[card.id]?.title ?? card.id
+  }
   const tabs = [
     {id:'panoramica',label:'Panoramica impresa'},
     {id:'vendite',   label:'Analisi vendite'},
@@ -253,33 +390,9 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   ]
 
   // Indicatori con valore di ieri e di oggi (tabella unica della vista estesa)
-  const statsRows = [
-    {label:'Arrivi',          ieri:'12',      oggi:'18'},
-    {label:'Partenze',        ieri:'9',       oggi:'14'},
-    {label:'Gruppi',          ieri:'40,00%',  oggi:'55,00%'},
-    {label:'Individuali',     ieri:'60,00%',  oggi:'45,00%'},
-    {label:'Camere',          ieri:'34',      oggi:'41'},
-    {label:'Presenze',        ieri:'58',      oggi:'72'},
-    {label:'Occupazione',     ieri:'71,00 %', oggi:'85,00 %'},
-    {label:'Revenue',         ieri:'4.210 €', oggi:'5.380 €'},
-    {label:'Av. Daily Rate',  ieri:'124 €',   oggi:'131 €'},
-    {label:'Av. Daily Guest', ieri:'72 €',    oggi:'81 €'},
-  ]
-
-  const eventi = [
-    { data:'05', mese:'GIU', titolo:'Roma Creativa 365 – Cultura tutto l\'anno', luogo:'Roma · Centro' },
-    { data:'07', mese:'GIU', titolo:'Stagione del Teatro dell\'Opera', luogo:'Roma · Teatro Costanzi' },
-    { data:'12', mese:'GIU', titolo:'Mostra "Tesori dei Faraoni"', luogo:'Roma · Scuderie del Quirinale' },
-    { data:'18', mese:'GIU', titolo:'Festival del Gusto Mediterraneo', luogo:'Ostia · Lungomare' },
-    { data:'24', mese:'GIU', titolo:'Notte Bianca dei Musei', luogo:'Roma · Centro storico' },
-  ]
-  const turni = [
-    { orario:'07–15', nome:'Maria Rossi',   ruolo:'Reception' },
-    { orario:'08–16', nome:'Luca Bianchi',  ruolo:'Sala ristorante' },
-    { orario:'15–23', nome:'Sara Verdi',    ruolo:'Reception' },
-    { orario:'16–00', nome:'Marco Neri',    ruolo:'Cucina' },
-    { orario:'23–07', nome:'Anna Conti',    ruolo:'Night audit' },
-  ]
+  const statsRows = D.statsRows
+  const eventi = D.eventi
+  const turni = D.turni
   const compleanni = [
     { nome:'Giulia Ferrari', ruolo:'Housekeeping', eta:'34' },
     { nome:'Davide Russo',   ruolo:'F&B Manager',  eta:'41' },
@@ -297,11 +410,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
     '1962 — Primo collegamento TV transatlantico',
   ]
   const initials = (n: string) => n.split(' ').map(w => w[0]).join('').slice(0, 2)
-  const vip = [
-    { nome:'Famiglia Conti',   nota:'Suite Belvedere · check-in 15:00' },
-    { nome:'Dott. M. Ferrara', nota:'Late check-out · allergie segnalate' },
-    { nome:'Gruppo Aurora',    nota:'Tavolo riservato ristorante 20:30' },
-  ]
+  const vip = D.vip
   const news = [
     {
       cat:'Economia', fonte:'Il Sole 24 Ore', tempo:'2h',
@@ -355,7 +464,18 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
           </div>
         )
       case 'turni':
-        return <div className="giornale__stage-empty">Non ci sono turni per oggi.</div>
+        // Hotel: nessun turno (vista vuota). Tour Operator: partenze di oggi.
+        if (variant !== 'to') return <div className="giornale__stage-empty">{D.turniEmpty}</div>
+        return (
+          <div className="giornale__stage-list">
+            {turni.map((t, i) => (
+              <div key={i} className="giornale__stage-list-item">
+                <div className="giornale__stage-list-title">{t.orario} · {t.nome}</div>
+                <div className="giornale__stage-list-sub">{t.ruolo}</div>
+              </div>
+            ))}
+          </div>
+        )
       case 'vip':
         return (
           <div className="giornale__stage-list">
@@ -393,8 +513,8 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
         return (
           <div className="giornale__stage-meteo">
             <i className="fa-duotone fa-cloud-sun giornale__stage-meteo-icon" aria-hidden="true" />
-            <div className="giornale__stage-meteo-temp">19°</div>
-            <div className="giornale__stage-meteo-city">MILANO</div>
+            <div className="giornale__stage-meteo-temp">{D.meteoTemp}</div>
+            <div className="giornale__stage-meteo-city">{D.meteoCity}</div>
             <p className="giornale__stage-note">
               Velature sparse. Soleggiato per il resto del giorno. Folate di vento fino a 3,6 km/h.
             </p>
@@ -457,8 +577,8 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
               <div className="giornale__meteo-row">
                 <i className="fa-duotone fa-cloud-sun giornale__meteo-icon" aria-hidden="true" />
                 <div>
-                  <div className="giornale__meteo-city">MILANO</div>
-                  <div className="giornale__meteo-temp">19°</div>
+                  <div className="giornale__meteo-city">{D.meteoCity}</div>
+                  <div className="giornale__meteo-temp">{D.meteoTemp}</div>
                 </div>
               </div>
               <p className="giornale__meteo-desc">Velature sparse. Soleggiato per il resto del giorno.</p>
@@ -572,9 +692,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
         <div>
           <BtnBack onClick={() => navigate('home')} />
           <h1 className="giornale__title">Giornale impresa</h1>
-          <p className="giornale__subtitle">
-            Centro strategico per il monitoraggio aziendale, che offre una visione complessiva e dettagliata dell'andamento economico e operativo della struttura
-          </p>
+          <p className="giornale__subtitle">{D.subtitle}</p>
         </div>
         <button className="giornale__live-btn" onClick={() => navigate('sugg-data-driven')}>
           <div className="giornale__live-dot" />LIVE
@@ -585,7 +703,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       <div className="giornale__control-bar">
         <SelectField
           name="struttura"
-          label="Struttura"
+          label={D.struttureLabel}
           value={struttura}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
           options={strutture.map(s => ({ value: s, label: s }))}
@@ -614,7 +732,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
             {/* Orbita ellittica + raggi verso il centro */}
             <svg className="giornale__orbit" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <ellipse className="giornale__orbit-ring" cx="50" cy="50" rx="39" ry="44" vectorEffect="non-scaling-stroke" />
-              {ORBIT.map((_, i) => (
+              {orbit.map((_, i) => (
                 <line
                   key={i}
                   className={`giornale__spoke ${i === active ? 'giornale__spoke--active' : ''}`}
@@ -626,7 +744,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
 
             <button
               className="giornale__ring-arrow giornale__ring-arrow--prev"
-              onClick={() => setActive(a => (a - 1 + ORBIT.length) % ORBIT.length)}
+              onClick={() => setActive(a => (a - 1 + orbit.length) % orbit.length)}
               aria-label="Sezione precedente"
             >
               <Ico n="back" s={18} c={T.primary} />
@@ -635,24 +753,24 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
             {/* Stage centrale */}
             <div className="giornale__stage">
               <div className="giornale__stage-head">
-                <Ico n={ORBIT[active].icon} s={14} c={T.primary} />
-                {ORBIT[active].label}
+                <Ico n={orbit[active].icon} s={14} c={T.primary} />
+                {orbit[active].label}
               </div>
-              <div className="giornale__stage-body" key={ORBIT[active].id}>
-                {renderStage(ORBIT[active].id)}
+              <div className="giornale__stage-body" key={orbit[active].id}>
+                {renderStage(orbit[active].id)}
               </div>
             </div>
 
             <button
               className="giornale__ring-arrow giornale__ring-arrow--next"
-              onClick={() => setActive(a => (a + 1) % ORBIT.length)}
+              onClick={() => setActive(a => (a + 1) % orbit.length)}
               aria-label="Sezione successiva"
             >
               <Ico n="chevr" s={18} c={T.primary} />
             </button>
 
             {/* Sfere orbitanti */}
-            {ORBIT.map((node, i) => (
+            {orbit.map((node, i) => (
               <button
                 key={node.id}
                 className={`giornale__node giornale__node--p${i} ${i === active ? 'giornale__node--active' : ''}`}
@@ -727,7 +845,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
             <div className="giornale__add-panel">
               <div className="giornale__add-title">Sezioni disponibili</div>
               <div className="giornale__add-chips">
-                {TAB_CARDS[activeTab].map((c: any) => {
+                {tabCards[activeTab].map((c: any) => {
                   const shown = (orders[activeTab] ?? []).includes(c.id)
                   return (
                     <button
@@ -736,7 +854,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                       onClick={() => shown ? removeCard(c.id) : addCard(c.id)}
                     >
                       <Ico n={shown ? 'check' : 'plus'} s={11} c={shown ? T.white : T.primary} />
-                      {cardTitle(c)}
+                      {titleFor(c)}
                     </button>
                   )
                 })}
@@ -747,7 +865,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
           {/* Card del tab selezionato — riposizionabili, comprimibili, eliminabili */}
           <div className={`giornale__ext-grid ${editMode ? 'giornale__ext-grid--edit' : ''}`}>
             {(orders[activeTab] ?? []).map(id => {
-              const card = TAB_CARDS[activeTab].find((c: any) => c.id === id)
+              const card = tabCards[activeTab].find((c: any) => c.id === id)
               if (!card) return null
               const meta = CUSTOM_META[card.id]
               return (
@@ -765,7 +883,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                       {card.type === 'page'
                         ? <MenuIco id={card.nodeId} s={15} c={T.primary} />
                         : <Ico n={meta?.icon ?? 'bar'} s={13} c={T.primary} />}
-                      <span className="giornale__card-bar-label">{cardTitle(card)}</span>
+                      <span className="giornale__card-bar-label">{titleFor(card)}</span>
                       {meta?.sdly && <span className="giornale__merged-sdly">S.D.L.Y.</span>}
                     </div>
                     <div className="giornale__card-actions">

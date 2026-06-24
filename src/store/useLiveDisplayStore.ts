@@ -2,9 +2,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 // ─── Live display: configurazione della vetrina del Tour Operator ─────────────
-//  La vetrina è profondamente personalizzabile: testi, colori, font, raggio,
-//  ordine e visibilità delle sezioni (impaginazione/posizione), link e contatti.
-//  Tutto persistito così la configurazione resta tra le sessioni.
+//  La vetrina è un builder a griglia: nasce VUOTA e l'utente compone la pagina
+//  aggiungendo RIGHE. Ogni riga ha una disposizione scelta dall'utente
+//  (1 card unica tipo Hero, oppure 2 · 3 · 4 card affiancate) e ciascuno slot
+//  ospita una card di un tipo a scelta (hero, immagine, struttura, pacchetto,
+//  testo, servizi, contatti). Tutto è persistito tra le sessioni.
 
 export type FontKey = 'poppins' | 'sans' | 'serif' | 'mono'
 export const FONTS: { key: FontKey; label: string; stack: string }[] = [
@@ -15,76 +17,92 @@ export const FONTS: { key: FontKey; label: string; stack: string }[] = [
 ]
 export const fontStack = (k: FontKey) => FONTS.find((f) => f.key === k)?.stack ?? FONTS[0].stack
 
-export type SezioneId = 'strutture' | 'servizi' | 'destinazioni' | 'pacchetti' | 'contatti'
-export interface VTSection { id: SezioneId; label: string; visible: boolean }
-
-// Contenuti editabili della vetrina.
-export interface DestItem { id: string; nome: string; tag: string; da: number; img: string }
-export interface StructItem { id: string; nome: string; citta: string; img: string }
-export interface PkgItem { id: string; nome: string; notti: number; da: number }
-export type ItemKind = 'destinazioni' | 'strutture' | 'pacchetti'
-
 const IMG = (id: string) => `https://images.unsplash.com/${id}?w=900&q=70&auto=format&fit=crop`
 const uid = (p: string) => `${p}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e4).toString(36)}`
+
+// ─── Card: le tessere che riempiono gli slot della griglia ────────────────────
+export type CardType = 'hero' | 'immagine' | 'struttura' | 'pacchetto' | 'testo' | 'servizi' | 'contatti'
+
+export interface ServizioVoce { label: string; icon: string }
+
+// Dati di una card: campi opzionali condivisi tra i vari tipi.
+export interface CardData {
+  // hero
+  titolo?: string; sottotitolo?: string; payoff?: string
+  ctaLabel?: string; ctaUrl?: string; align?: 'left' | 'center'; coverId?: string
+  // immagine / struttura
+  nome?: string; tag?: string; citta?: string; img?: string; da?: number
+  // pacchetto
+  notti?: number
+  // testo
+  heading?: string; body?: string
+  // servizi
+  servizi?: ServizioVoce[]
+}
+
+export interface Slot { id: string; type: CardType | null; data: CardData }
+export type ColCount = 1 | 2 | 3 | 4
+export interface Row { id: string; cols: ColCount; slots: Slot[] }
+
+// Etichetta + icona di ciascun tipo di card (picker e tool).
+export const CARD_META: Record<CardType, { label: string; icon: string; hint: string }> = {
+  hero:      { label: 'Hero',      icon: 'image',          hint: 'Copertina con titolo e pulsante' },
+  immagine:  { label: 'Immagine',  icon: 'panorama',       hint: 'Foto con titolo, tag e prezzo' },
+  struttura: { label: 'Struttura', icon: 'hotel',          hint: 'Foto, nome e città' },
+  pacchetto: { label: 'Pacchetto', icon: 'box-open',       hint: 'Nome, notti, prezzo e CTA' },
+  testo:     { label: 'Testo',     icon: 'align-left',     hint: 'Titolo e paragrafo' },
+  servizi:   { label: 'Servizi',   icon: 'bell-concierge', hint: 'Elenco di servizi inclusi' },
+  contatti:  { label: 'Contatti',  icon: 'address-book',   hint: 'Email, telefono e indirizzo' },
+}
+export const CARD_TYPES = Object.keys(CARD_META) as CardType[]
+
+const DEFAULT_SERVIZI: ServizioVoce[] = [
+  { label: 'Transfer', icon: 'car' }, { label: 'Spa', icon: 'spa' },
+  { label: 'Ristorante', icon: 'utensils' }, { label: 'Escursioni', icon: 'compass' },
+  { label: 'Eventi', icon: 'ticket' },
+]
+
+// Dati iniziali per ogni tipo di card appena inserita.
+const CARD_DEFAULTS: Record<CardType, () => CardData> = {
+  hero: () => ({
+    payoff: 'Viaggi su misura',
+    titolo: 'Scopri le tue prossime destinazioni',
+    sottotitolo: 'Catalogo curato di strutture, servizi e pacchetti selezionati per te.',
+    ctaLabel: 'Richiedi un preventivo', ctaUrl: 'https://tuonome.sibyllanetwork.it/contatti',
+    align: 'left', coverId: 'mediterraneo',
+  }),
+  immagine:  () => ({ nome: 'Costiera Amalfitana', tag: 'Mare', da: 690, img: IMG('photo-1533106418989-88406c7cc8ca') }),
+  struttura: () => ({ nome: 'Hotel Continental', citta: 'Roma', img: IMG('photo-1566073771259-6a8506099945') }),
+  pacchetto: () => ({ nome: 'Weekend romantico', notti: 2, da: 320, ctaLabel: 'Scopri', ctaUrl: '#' }),
+  testo:     () => ({ heading: 'La nostra promessa', body: 'Raccontiamo qui in poche righe chi siamo e perché scegliere la nostra agenzia per il prossimo viaggio.' }),
+  servizi:   () => ({ servizi: DEFAULT_SERVIZI.map((s) => ({ ...s })) }),
+  contatti:  () => ({}),
+}
+
+const emptySlot = (): Slot => ({ id: uid('sl'), type: null, data: {} })
+const makeRow = (cols: ColCount): Row => ({ id: uid('row'), cols, slots: Array.from({ length: cols }, emptySlot) })
 
 export interface LiveConfig {
   brand: { nome: string; payoff: string }
   theme: { primary: string; accent: string; bg: string; text: string; font: FontKey; radius: number }
-  hero: { titolo: string; sottotitolo: string; ctaLabel: string; ctaUrl: string; align: 'left' | 'center'; coverId: string }
-  sections: VTSection[]
-  items: { destinazioni: DestItem[]; strutture: StructItem[]; pacchetti: PkgItem[] }
+  layout: Row[]
   contatti: { email: string; telefono: string; indirizzo: string }
   social: { instagram: string; facebook: string; sito: string }
 }
 
+// La vetrina nasce VUOTA: nessuna riga, solo nav + footer e le aree da comporre.
 export const DEFAULT_CONFIG: LiveConfig = {
   brand: { nome: 'Sibylla Travel', payoff: 'Viaggi su misura, esperienze autentiche' },
   theme: { primary: '#206953', accent: '#E0A500', bg: '#ffffff', text: '#1f2937', font: 'poppins', radius: 14 },
-  hero: {
-    titolo: 'Scopri le tue prossime destinazioni',
-    sottotitolo: 'Catalogo curato di strutture, servizi e pacchetti selezionati per te.',
-    ctaLabel: 'Richiedi un preventivo',
-    ctaUrl: 'https://tuonome.sibyllanetwork.it/contatti',
-    align: 'left',
-    coverId: 'mediterraneo',
-  },
-  sections: [
-    { id: 'destinazioni', label: 'Destinazioni in evidenza', visible: true },
-    { id: 'strutture',    label: 'Le nostre strutture',      visible: true },
-    { id: 'servizi',      label: 'Servizi inclusi',          visible: true },
-    { id: 'pacchetti',    label: 'Pacchetti speciali',       visible: true },
-    { id: 'contatti',     label: 'Contattaci',               visible: true },
-  ],
-  items: {
-    destinazioni: [
-      { id: 'd1', nome: 'Costiera Amalfitana', tag: 'Mare',     da: 690, img: IMG('photo-1533106418989-88406c7cc8ca') },
-      { id: 'd2', nome: 'Toscana & Borghi',    tag: 'Cultura',  da: 540, img: IMG('photo-1543429776-2782fc8e1acd') },
-      { id: 'd3', nome: 'Dolomiti',            tag: 'Montagna', da: 720, img: IMG('photo-1464822759023-fed622ff2c3b') },
-    ],
-    strutture: [
-      { id: 's1', nome: 'Hotel Continental', citta: 'Roma',    img: IMG('photo-1566073771259-6a8506099945') },
-      { id: 's2', nome: 'Lungarno Suites',   citta: 'Firenze', img: IMG('photo-1551882547-ff40c63fe5fa') },
-      { id: 's3', nome: 'Galleria Duomo',    citta: 'Milano',  img: IMG('photo-1455587734955-081b22074882') },
-      { id: 's4', nome: 'Laguna Palace',     citta: 'Venezia', img: IMG('photo-1538970272646-f61fabb3a8a2') },
-    ],
-    pacchetti: [
-      { id: 'p1', nome: 'Weekend romantico', notti: 2, da: 320 },
-      { id: 'p2', nome: 'Tour delle città',  notti: 5, da: 890 },
-      { id: 'p3', nome: 'Settimana mare',    notti: 7, da: 1190 },
-    ],
-  },
+  layout: [],
   contatti: { email: 'info@tuonome.it', telefono: '+39 06 1234 567', indirizzo: 'Via Roma 1, Roma' },
   social: { instagram: 'https://instagram.com/tuonome', facebook: 'https://facebook.com/tuonome', sito: 'https://tuonome.sibyllanetwork.it' },
 }
 
-const NEW_ITEM: Record<ItemKind, () => DestItem | StructItem | PkgItem> = {
-  destinazioni: () => ({ id: uid('d'), nome: 'Nuova destinazione', tag: 'Novità', da: 500, img: IMG('photo-1469854523086-cc02fe5d8800') }),
-  strutture:    () => ({ id: uid('s'), nome: 'Nuova struttura', citta: 'Città', img: IMG('photo-1551882547-ff40c63fe5fa') }),
-  pacchetti:    () => ({ id: uid('p'), nome: 'Nuovo pacchetto', notti: 3, da: 600 }),
-}
-
 // Pagina-vetrina salvata: nome, slug (per il link) e configurazione.
 export interface SavedPage { id: string; nome: string; slug: string; config: LiveConfig; updatedAt: number }
+
+export interface SlotRef { rowId: string; slotId: string }
 
 interface LiveDisplayState {
   pages: SavedPage[]
@@ -95,30 +113,37 @@ interface LiveDisplayState {
   renamePage: (id: string, nome: string) => void
   deletePage: (id: string) => void
   duplicatePage: (id: string) => void
-  touch: () => void
-  // editing (operano sulla pagina corrente)
+  // editing globale (pagina corrente)
   setBrand: (patch: Partial<LiveConfig['brand']>) => void
   setTheme: (patch: Partial<LiveConfig['theme']>) => void
-  setHero: (patch: Partial<LiveConfig['hero']>) => void
   setContatti: (patch: Partial<LiveConfig['contatti']>) => void
   setSocial: (patch: Partial<LiveConfig['social']>) => void
-  setSectionLabel: (id: SezioneId, label: string) => void
-  toggleSection: (id: SezioneId) => void
-  /** Drag & drop: posiziona la sezione prima di `beforeId` (o in fondo se null)
-      impostandone la visibilità. */
-  dropSection: (id: SezioneId, beforeId: SezioneId | null, visible: boolean) => void
-  addItem: (kind: ItemKind) => void
-  updateItem: (kind: ItemKind, id: string, patch: Record<string, unknown>) => void
-  removeItem: (kind: ItemKind, id: string) => void
+  // layout a righe
+  addRow: (cols: ColCount, afterRowId?: string | null) => void
+  setRowCols: (rowId: string, cols: ColCount) => void
+  moveRow: (rowId: string, dir: -1 | 1) => void
+  removeRow: (rowId: string) => void
+  duplicateRow: (rowId: string) => void
+  // slot / card
+  setSlotType: (rowId: string, slotId: string, type: CardType) => void
+  updateSlot: (rowId: string, slotId: string, patch: CardData) => void
+  clearSlot: (rowId: string, slotId: string) => void
   reset: () => void
 }
 
-const clone = (c: LiveConfig): LiveConfig => JSON.parse(JSON.stringify(c))
+const clone = <T,>(c: T): T => JSON.parse(JSON.stringify(c))
 const slugify = (s: string) =>
   s.toLowerCase().trim().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'vetrina'
 const newPageObj = (nome: string, config?: LiveConfig): SavedPage => ({
   id: uid('pg'), nome, slug: slugify(nome), config: config ?? clone(DEFAULT_CONFIG), updatedAt: Date.now(),
 })
+
+// Ridimensiona gli slot di una riga preservando il contenuto esistente.
+const resizeSlots = (slots: Slot[], cols: ColCount): Slot[] => {
+  if (slots.length === cols) return slots
+  if (slots.length > cols) return slots.slice(0, cols)
+  return [...slots, ...Array.from({ length: cols - slots.length }, emptySlot)]
+}
 
 export const useLiveDisplayStore = create<LiveDisplayState>()(
   persist(
@@ -127,6 +152,10 @@ export const useLiveDisplayStore = create<LiveDisplayState>()(
       // Aggiorna la config della pagina corrente.
       const patch = (fn: (c: LiveConfig) => LiveConfig) =>
         set((s) => ({ pages: s.pages.map((p) => (p.id === s.currentId ? { ...p, config: fn(p.config), updatedAt: Date.now() } : p)) }))
+      const patchRow = (rowId: string, fn: (r: Row) => Row) =>
+        patch((c) => ({ ...c, layout: c.layout.map((r) => (r.id === rowId ? fn(r) : r)) }))
+      const patchSlot = (rowId: string, slotId: string, fn: (sl: Slot) => Slot) =>
+        patchRow(rowId, (r) => ({ ...r, slots: r.slots.map((sl) => (sl.id === slotId ? fn(sl) : sl)) }))
       return {
         pages: [FIRST],
         currentId: FIRST.id,
@@ -147,43 +176,77 @@ export const useLiveDisplayStore = create<LiveDisplayState>()(
             const p = newPageObj(`${src.nome} (copia)`, clone(src.config))
             return { pages: [...s.pages, p], currentId: p.id }
           }),
-        touch: () => patch((c) => c),
         setBrand: (p) => patch((c) => ({ ...c, brand: { ...c.brand, ...p } })),
         setTheme: (p) => patch((c) => ({ ...c, theme: { ...c.theme, ...p } })),
-        setHero: (p) => patch((c) => ({ ...c, hero: { ...c.hero, ...p } })),
         setContatti: (p) => patch((c) => ({ ...c, contatti: { ...c.contatti, ...p } })),
         setSocial: (p) => patch((c) => ({ ...c, social: { ...c.social, ...p } })),
-        setSectionLabel: (id, label) => patch((c) => ({ ...c, sections: c.sections.map((x) => (x.id === id ? { ...x, label } : x)) })),
-        toggleSection: (id) => patch((c) => ({ ...c, sections: c.sections.map((x) => (x.id === id ? { ...x, visible: !x.visible } : x)) })),
-        dropSection: (id, beforeId, visible) =>
+        addRow: (cols, afterRowId) =>
           patch((c) => {
-            const mapped = c.sections.map((x) => (x.id === id ? { ...x, visible } : x))
-            const moving = mapped.find((x) => x.id === id)
-            if (!moving) return c
-            const rest = mapped.filter((x) => x.id !== id)
-            if (beforeId == null) rest.push(moving)
-            else { const i = rest.findIndex((x) => x.id === beforeId); rest.splice(i < 0 ? rest.length : i, 0, moving) }
-            return { ...c, sections: rest }
+            const row = makeRow(cols)
+            // undefined → in fondo · null → in testa · id → dopo quella riga
+            if (afterRowId === undefined) return { ...c, layout: [...c.layout, row] }
+            if (afterRowId === null) return { ...c, layout: [row, ...c.layout] }
+            const i = c.layout.findIndex((r) => r.id === afterRowId)
+            const layout = [...c.layout]
+            layout.splice(i < 0 ? layout.length : i + 1, 0, row)
+            return { ...c, layout }
           }),
-        addItem: (kind) => patch((c) => ({ ...c, items: { ...c.items, [kind]: [...c.items[kind], NEW_ITEM[kind]() as never] } })),
-        updateItem: (kind, id, p) =>
-          patch((c) => ({ ...c, items: { ...c.items, [kind]: (c.items[kind] as { id: string }[]).map((it) => (it.id === id ? { ...it, ...p } : it)) as never } })),
-        removeItem: (kind, id) =>
-          patch((c) => ({ ...c, items: { ...c.items, [kind]: (c.items[kind] as { id: string }[]).filter((it) => it.id !== id) as never } })),
+        setRowCols: (rowId, cols) => patchRow(rowId, (r) => ({ ...r, cols, slots: resizeSlots(r.slots, cols) })),
+        moveRow: (rowId, dir) =>
+          patch((c) => {
+            const i = c.layout.findIndex((r) => r.id === rowId)
+            const j = i + dir
+            if (i < 0 || j < 0 || j >= c.layout.length) return c
+            const layout = [...c.layout]
+            ;[layout[i], layout[j]] = [layout[j], layout[i]]
+            return { ...c, layout }
+          }),
+        removeRow: (rowId) => patch((c) => ({ ...c, layout: c.layout.filter((r) => r.id !== rowId) })),
+        duplicateRow: (rowId) =>
+          patch((c) => {
+            const i = c.layout.findIndex((r) => r.id === rowId)
+            if (i < 0) return c
+            const src = c.layout[i]
+            const copy: Row = { id: uid('row'), cols: src.cols, slots: src.slots.map((sl) => ({ ...clone(sl), id: uid('sl') })) }
+            const layout = [...c.layout]
+            layout.splice(i + 1, 0, copy)
+            return { ...c, layout }
+          }),
+        setSlotType: (rowId, slotId, type) => patchSlot(rowId, slotId, (sl) => ({ ...sl, type, data: CARD_DEFAULTS[type]() })),
+        updateSlot: (rowId, slotId, p) => patchSlot(rowId, slotId, (sl) => ({ ...sl, data: { ...sl.data, ...p } })),
+        clearSlot: (rowId, slotId) => patchSlot(rowId, slotId, (sl) => ({ ...sl, type: null, data: {} })),
         reset: () => patch(() => clone(DEFAULT_CONFIG)),
       }
     },
     {
       name: 'sibylla.live-display',
-      version: 3,
+      version: 4,
       migrate: (state: any) => {
+        if (!state) return state
         // v1/v2: singola `config` → avvolgi in una pagina.
-        if (state && state.config && !state.pages) {
-          if (!state.config.items) state.config.items = clone(DEFAULT_CONFIG).items
-          const p = newPageObj('Vetrina principale', state.config)
+        if (state.config && !state.pages) {
+          const p = newPageObj('Vetrina principale')
           state.pages = [p]
           state.currentId = p.id
           delete state.config
+        }
+        // v3 → v4: il vecchio modello a sezioni/items non è più valido.
+        //  Si conserva brand/theme/contatti/social, la vetrina riparte VUOTA.
+        if (Array.isArray(state.pages)) {
+          state.pages = state.pages.map((p: any) => {
+            const c = p.config || {}
+            if (!Array.isArray(c.layout)) {
+              const d = clone(DEFAULT_CONFIG)
+              p.config = {
+                brand: c.brand ?? d.brand,
+                theme: c.theme ?? d.theme,
+                layout: [],
+                contatti: c.contatti ?? d.contatti,
+                social: c.social ?? d.social,
+              }
+            }
+            return p
+          })
         }
         return state
       },

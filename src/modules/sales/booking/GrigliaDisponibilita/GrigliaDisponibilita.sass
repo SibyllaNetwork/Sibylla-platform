@@ -10,6 +10,10 @@ $gd-day-divider: $border
   display: flex
   flex-direction: column
   align-items: stretch
+  // Larghezze delle colonne fisse (Struttura + Stanze/Licenza/Buffer): servono a
+  // calcolare gli offset sticky così lo slider agisce SOLO sui giorni.
+  --gd-c1: 210px
+  --gd-w: 78px
 
   // BtnBack — larghezza intrinseca, allineato a sinistra sopra il titolo
   > .sib-btn--back
@@ -126,10 +130,13 @@ $gd-day-divider: $border
     display: block
     margin: 6px auto 0
 
-  // Cella Buffer quando il buffer è disattivato: valore non applicato
+  // Cella Buffer quando il buffer è disattivato: valore non applicato.
+  // L'opacità va sul CONTENUTO (non sulla cella) così, essendo sticky, lo sfondo
+  // resta opaco e i giorni non trasparono sotto.
   &__td--buffer-off
-    opacity: 0.45
-    text-decoration: line-through
+    .griglia-disp__buffer-plus, .griglia-disp__stop
+      opacity: 0.45
+      text-decoration: line-through
 
   &__gear-btn
     display: inline-flex
@@ -194,6 +201,12 @@ $gd-day-divider: $border
     overflow: auto
     background: $white
     box-shadow: 0 2px 10px rgba(32, 71, 105, 0.04)
+    // Scroll orizzontale via rotella + frecce: nascondiamo la scrollbar nativa
+    // così non resta la "riga bianca" sotto il TOTALE (la riga grigia va a filo).
+    scrollbar-width: none
+    -ms-overflow-style: none
+    &::-webkit-scrollbar
+      display: none
 
   // Frecce di scorrimento giorni (pattern planner: circolari, centrate vertic.)
   &__nav
@@ -222,9 +235,9 @@ $gd-day-divider: $border
     &:active
       transform: translateY(-50%) scale(0.96)
 
-    // Ancorata al bordo destro della colonna Struttura (sticky, min-width 210px)
+    // Ancorata al bordo destro del blocco fisso (Struttura + Stanze/Licenza/Buffer)
     &--prev
-      left: calc(210px + 8px)
+      left: calc(var(--gd-c1) + var(--gd-w) * 3 + 8px)
     &--next
       right: 10px
 
@@ -260,11 +273,28 @@ $gd-day-divider: $border
 
     &--struct
       text-align: left
-      min-width: 210px
+      min-width: var(--gd-c1)
+      width: var(--gd-c1)
       position: sticky
       left: 0
       z-index: 3
       background: $bg
+      border-right: 1px solid $border
+
+    // Colonne fisse "capienza": ancorate dopo Struttura, una dietro l'altra.
+    // L'ultima (Buffer) porta il divisore col blocco scorrevole dei giorni.
+    &--stanze, &--licenza, &--buffer
+      position: sticky
+      z-index: 3
+      width: var(--gd-w)
+      min-width: var(--gd-w)
+      background: $bg
+    &--stanze
+      left: var(--gd-c1)
+    &--licenza
+      left: calc(var(--gd-c1) + var(--gd-w))
+    &--buffer
+      left: calc(var(--gd-c1) + var(--gd-w) * 2)
       border-right: 1px solid $border
 
     &--day
@@ -322,6 +352,10 @@ $gd-day-divider: $border
       border-top: 2px solid $border
       background: alpha($primary, 0.06)
 
+    // Le celle fisse del totale devono essere OPACHE (i giorni scorrono sotto)
+    &--total .griglia-disp__td--struct, &--total .griglia-disp__td--stanze, &--total .griglia-disp__td--licenza, &--total .griglia-disp__td--buffer
+      background: $primary-50
+
   &__td
     padding: 6px 10px
     color: $text-active
@@ -338,6 +372,20 @@ $gd-day-divider: $border
       position: sticky
       left: 0
       z-index: 2
+      border-right: 1px solid $border
+
+    // Celle fisse "capienza": stesso ancoraggio degli header, sotto il blocco
+    // dei giorni che scorre.
+    &--stanze, &--licenza, &--buffer
+      position: sticky
+      z-index: 2
+      background: $white
+    &--stanze
+      left: var(--gd-c1)
+    &--licenza
+      left: calc(var(--gd-c1) + var(--gd-w))
+    &--buffer
+      left: calc(var(--gd-c1) + var(--gd-w) * 2)
       border-right: 1px solid $border
 
     &--day-start
