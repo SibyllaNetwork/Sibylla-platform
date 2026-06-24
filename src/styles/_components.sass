@@ -88,16 +88,25 @@
     color: $primary
 
 // ═══ ACCORDION ════════════════════════════════════════════════════════════════
+// Accordion fluido: anima grid-template-rows 0fr↔1fr (altezza reale), con
+// leggera dissolvenza del contenuto. Niente più scatti da max-height fisso.
 .accordion
-  overflow: hidden
-  transition: max-height 0.4s ease
+  display: grid
+  grid-template-rows: 0fr
+  transition: grid-template-rows 0.34s cubic-bezier(.22, 1, .36, 1)
 
-  &--closed
-    max-height: 0
-    transition: max-height 0.2s ease
+  &__inner
+    overflow: hidden
+    min-height: 0
+    opacity: 0
+    transition: opacity 0.2s ease
 
   &--open
-    max-height: 9999px
+    grid-template-rows: 1fr
+
+  &--open &__inner
+    opacity: 1
+    transition: opacity 0.28s ease 0.06s
 
 // ═══ TOGGLE SWITCH ════════════════════════════════════════════════════════════
 .toggle-switch

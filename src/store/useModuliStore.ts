@@ -32,6 +32,7 @@ export const useModuliStore = create<State>()(
       removeModulo: (id) =>
         set(s => ({ moduli: s.moduli.filter(x => x.id !== id) })),
     }),
-    { name: 'sibylla.moduli', version: 1 },
+    // v2: catalogo a 4 moduli (Struttura ricettiva / Tour Operator / Ristorazione / Full).
+    { name: 'sibylla.moduli', version: 2, migrate: () => ({ moduli: PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })) }) },
   ),
 )

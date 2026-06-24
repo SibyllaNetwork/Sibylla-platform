@@ -190,14 +190,15 @@
     display: flex
     align-items: center
     gap: 8px
-    background: rgba(255, 255, 255, 0.08)
-    border: 1px solid rgba(255, 255, 255, 0.12)
+    // Search chiara con testo scuro (richiesta): box bianco anche su header navy
+    background: #fff
+    border: 1px solid rgba(0, 0, 0, 0.12)
     border-radius: 8px
     padding: 6px 12px
 
     &:focus-within
-      background: rgba(255, 255, 255, 0.12)
-      border-color: rgba(255, 255, 255, 0.25)
+      background: #fff
+      border-color: rgba(0, 0, 0, 0.28)
 
   &__search-input
     background: transparent
@@ -211,13 +212,12 @@
     &::placeholder
       color: rgba(255, 255, 255, 0.4)
 
-  // Override per la search input nella topbar — la classe globale
-  // .sib-search-input applica text-ink (scuro) che è invisibile su navy.
+  // Search chiara: testo scuro su box bianco (icona inclusa lato componente).
   .sib-search-input
-    color: rgba(255, 255, 255, 0.85)
+    color: #1f2937
 
     &::placeholder
-      color: rgba(255, 255, 255, 0.4)
+      color: rgba(0, 0, 0, 0.4)
 
 // ─── Modalità admin (oro): testi e icone scuri su header e menu ───────────────
 .topbar--admin

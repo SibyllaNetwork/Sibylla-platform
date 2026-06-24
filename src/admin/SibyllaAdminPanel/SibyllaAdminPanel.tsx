@@ -395,7 +395,7 @@ export default function SibyllaAdminPanel(props: Props) {
       password: 'demo',
       cliente: nc.nome,
       ruolo: 'Amministratore',
-      moduli: moduli.length ? moduli : ['full-suite'],
+      moduli: moduli.length ? moduli : ['struttura-ricettiva'],
     })
 
     setSelId(id)

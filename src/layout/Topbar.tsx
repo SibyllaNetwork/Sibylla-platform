@@ -254,7 +254,7 @@ export default function Topbar({
       {/* ── Search ── */}
       <div className="topbar__search-wrap" ref={wrapRef}>
         <div className="topbar__search">
-          <Ico n="search" s={13} c={C.muted} />
+          <Ico n="search" s={13} c="#6E7175" />
           <input
             ref={inputRef}
             className="sib-search-input"

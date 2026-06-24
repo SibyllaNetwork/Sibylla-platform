@@ -1,11 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import clsx from 'clsx'
 import Ico from '../core/icons/Ico'
-import Logo from './Logo'
 import NavItem from './NavItem'
-import MENU from '../navigation/menu'
-import MENU_TO from '../navigation/menuTourOperator'
-import MENU_RISTORANTI from '../navigation/menuRistoranti'
+import MENU_FULL from '../navigation/menuFull'
 import { filterMenu } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
@@ -40,6 +37,9 @@ export default function Sidebar({
 
   const isMultistruttura = tipologia === 'Multistruttura'
 
+  // Saluto in base all'ora (riga utente: "Buongiorno, <nome>").
+  const greeting = (() => { const h = new Date().getHours(); return h < 13 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera' })()
+
   // ── Menu filtrato sul profilo (moduli sottoscritti) ─────────────────────────
   // currentProfileId = null → menu completo (nessun contratto caricato).
   const currentProfileId = useAccessStore(s => s.currentProfileId)
@@ -53,20 +53,16 @@ export default function Sidebar({
   // Amministrazione piattaforma: la sidenav mostra il menu dedicato (pagine pa-*).
   const platformAdmin    = isPlatformAdminPage(currentPage)
   const adminMode        = !!assist || onConsole || platformAdmin || currentPage === 'assist-admin'
+  // Struttura COMUNE filtrata: si parte sempre da MENU_FULL e si filtra
+  // all'UNIONE delle pagine dei moduli sottoscritti (merge incrementale senza
+  // duplicati). Nessun contratto / console → menu completo.
   const menu = useMemo(() => {
-    if (onConsole) return MENU
-    // Moduli con sidenav dedicata (albero diverso, non filtrato).
-    if (assist) {
-      if (assist.moduli.includes('tour-operator')) return MENU_TO
-      if (assist.moduli.includes('ristoranti'))    return MENU_RISTORANTI
-      return filterMenu(MENU as any[], enabledPagesForModuli(assist.moduli, modules))
-    }
-    if (!currentProfileId) return MENU
+    if (onConsole) return MENU_FULL
+    if (assist) return filterMenu(MENU_FULL as any[], enabledPagesForModuli(assist.moduli, modules))
+    if (!currentProfileId) return MENU_FULL
     const profile = profiles.find(p => p.id === currentProfileId)
-    if (!profile) return MENU
-    if (profile.moduli.includes('tour-operator')) return MENU_TO
-    if (profile.moduli.includes('ristoranti'))    return MENU_RISTORANTI
-    return filterMenu(MENU as any[], enabledPagesForProfile(profile, modules))
+    if (!profile) return MENU_FULL
+    return filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules))
   }, [onConsole, assist, currentProfileId, profiles, modules])
 
   // Durante l'assistenza lo switcher elenca le strutture del cliente (le stesse
@@ -115,11 +111,36 @@ export default function Sidebar({
   return (
     <div className={rootClass} style={adminMode ? { background: '#c9a84c' } : undefined}>
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className={clsx(
-        'h-16 flex items-center gap-2 shrink-0',
-        sideOpen ? 'px-3.5 justify-between' : 'p-0 justify-center',
-      )}>
+      {/* ── Header: hamburger (1° elemento) + select struttura (chiara) ──────── */}
+      <div
+        ref={structRef}
+        className={clsx(
+          'relative h-16 flex items-center gap-2.5 shrink-0',
+          sideOpen ? 'px-3.5' : 'px-0 justify-center',
+        )}
+      >
+        {/* Hamburger: apre/chiude la sidenav */}
+        {!isMobile && (
+          <button
+            type="button"
+            aria-label={sideOpen ? 'Comprimi menu' : 'Espandi menu'}
+            onClick={() => setSideOpen(o => !o)}
+            className="bg-transparent border-0 cursor-pointer p-[5px] opacity-70 flex shrink-0 transition-opacity duration-150 hover:opacity-100"
+            style={{ color: adminMode ? '#2A2208' : '#fff' }}
+          >
+            <Ico n="menu" s={18} c={adminMode ? '#2A2208' : undefined} />
+          </button>
+        )}
+        {isMobile && sideOpen && (
+          <button
+            className="bg-white/10 border-0 cursor-pointer p-1.5 rounded-lg flex items-center shrink-0 hover:bg-white/20"
+            onClick={() => setSideOpen(false)}
+            aria-label="Chiudi menu"
+          >
+            <Ico n="x" s={18} c="rgba(255,255,255,0.8)" />
+          </button>
+        )}
+
         {sideOpen && (adminMode ? (
           <button
             type="button"
@@ -127,117 +148,57 @@ export default function Sidebar({
             title="Admin Console — Area riservata assistenza Sibylla"
             className="min-w-0 flex flex-col bg-transparent border-0 cursor-pointer text-left p-0"
           >
-            <span className="font-poppins font-extrabold text-[17px] leading-tight" style={{ color: '#2A2208' }}>
+            <span className="font-poppins font-extrabold text-[16px] leading-tight" style={{ color: '#2A2208' }}>
               Admin Console
             </span>
-            <span className="text-[9.5px] font-bold uppercase tracking-[0.06em] mt-1" style={{ color: 'rgba(42,34,8,0.62)' }}>
+            <span className="text-[9px] font-bold uppercase tracking-[0.06em] mt-0.5" style={{ color: 'rgba(42,34,8,0.62)' }}>
               Area riservata · Sibylla
             </span>
           </button>
-        ) : <Logo />)}
-        {!sideOpen && !isMobile && (
-          <div
-            className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-[11px] font-extrabold"
-            style={adminMode
-              ? { background: '#2A2208', color: '#c9a84c' }
-              : { background: 'rgba(162,134,76,0.2)', color: '#a2864c' }}
-          >
-            S
-          </div>
-        )}
-        {sideOpen && !isMobile && (
-          <button
-            className="bg-transparent border-0 cursor-pointer p-[5px] opacity-60 flex transition-opacity duration-150 text-white hover:opacity-100"
-            onClick={() => setSideOpen(false)}
-          >
-            <Ico n="menu" s={17} c={adminMode ? '#2A2208' : undefined} />
-          </button>
-        )}
-        {isMobile && sideOpen && (
-          <button
-            className="bg-white/10 border-0 cursor-pointer p-1.5 rounded-lg flex items-center hover:bg-white/20"
-            onClick={() => setSideOpen(false)}
-          >
-            <Ico n="x" s={18} c="rgba(255,255,255,0.8)" />
-          </button>
-        )}
-      </div>
-
-      {/* ── User (nascosto nelle viste admin: nessun dettaglio utente) ───────── */}
-      {!onConsole && !platformAdmin && (
-      <div
-        ref={structRef}
-        className={clsx(
-          'relative flex items-center gap-2.5 border-t border-b border-white/[0.08]',
-          sideOpen ? 'px-4 py-3' : 'px-0 py-3 justify-center',
-        )}
-      >
-        <div className="w-[34px] h-[34px] rounded-full bg-link shrink-0 flex items-center justify-center text-xs font-bold text-white">
-          LH
-        </div>
-
-        {sideOpen && (
-          <div className="min-w-0 flex-1">
-            <div
-              className="text-[13px] font-semibold font-poppins leading-tight"
+        ) : (
+          // Trigger select: solo nome hotel + freccetta (niente box).
+          // Il box bianco compare solo nel dropdown (lista strutture).
+          showSwitcher ? (
+            <button
+              type="button"
+              onClick={() => setStructOpen(o => !o)}
+              aria-haspopup="listbox"
+              aria-expanded={structOpen}
+              className="group min-w-0 flex-1 flex items-center gap-2 bg-transparent border-0 p-0 cursor-pointer text-left"
+            >
+              <span
+                className="truncate min-w-0 text-[14.5px] font-semibold font-poppins leading-tight"
+                style={{ color: adminMode ? '#2A2208' : '#fff' }}
+              >
+                {activeStrutt}
+              </span>
+              <i
+                className={clsx('fa-solid fa-chevron-down text-[10px] shrink-0 transition-transform duration-200', structOpen && 'rotate-180')}
+                style={{ color: adminMode ? 'rgba(42,34,8,0.6)' : 'rgba(255,255,255,0.6)' }}
+                aria-hidden="true"
+              />
+            </button>
+          ) : (
+            <span
+              className="truncate min-w-0 flex-1 text-[14.5px] font-semibold font-poppins leading-tight"
               style={{ color: adminMode ? '#2A2208' : '#fff' }}
             >
-              Luca H.
-            </div>
+              {activeStrutt}
+            </span>
+          )
+        ))}
 
-            {showSwitcher ? (
-              <button
-                type="button"
-                onClick={() => setStructOpen(o => !o)}
-                aria-haspopup="listbox"
-                aria-expanded={structOpen}
-                style={adminMode ? { color: '#2A2208' } : undefined}
-                className={clsx(
-                  'group mt-0.5 -mx-1 px-1 py-0.5 rounded-md flex items-center gap-1.5 max-w-full',
-                  'text-[10px] cursor-pointer transition-colors duration-150 bg-transparent border-0',
-                  adminMode
-                    ? (structOpen ? 'bg-black/[0.08]' : 'hover:bg-black/[0.06]')
-                    : (structOpen ? 'bg-white/[0.08] text-white/80' : 'text-white/40 hover:bg-white/[0.05] hover:text-white/70'),
-                )}
-              >
-                <span className="truncate min-w-0 text-left">
-                  Amministratore · {activeStrutt}
-                </span>
-                <i
-                  className={clsx(
-                    'fa-solid fa-chevron-down text-[8px] shrink-0 transition-transform duration-200',
-                    structOpen && 'rotate-180',
-                  )}
-                  aria-hidden="true"
-                />
-              </button>
-            ) : (
-              <div
-                className="mt-0.5 text-[10px]"
-                style={{ color: adminMode ? 'rgba(42,34,8,0.7)' : 'rgba(255,255,255,0.4)' }}
-              >
-                Amministratore{activeStrutt ? ` · ${activeStrutt}` : ''}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Dropdown overlay — non spinge la nav, galleggia sopra */}
+        {/* Dropdown struttura — chiaro, galleggia sotto l'header */}
         {sideOpen && showSwitcher && structOpen && (
           <div
             className={clsx(
-              'absolute left-2 right-2 top-full mt-1 z-30 rounded-lg overflow-hidden max-h-60 overflow-y-auto',
-              adminMode
-                ? 'bg-white border border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.18)]'
-                : 'bg-primary-800 border border-white/[0.12] shadow-[0_12px_32px_rgba(0,0,0,0.4)]',
+              'absolute left-3 right-3 top-full mt-1 z-30 rounded-lg overflow-hidden max-h-60 overflow-y-auto',
+              'bg-white border border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.18)]',
               SCROLLBAR,
             )}
             role="listbox"
           >
-            <div
-              className="pt-2 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.5px]"
-              style={{ color: adminMode ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.35)' }}
-            >
+            <div className="pt-2 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.5px] text-black/45">
               Cambia struttura
             </div>
             {switcherList.map(s => {
@@ -247,13 +208,10 @@ export default function Sidebar({
                   key={s}
                   role="option"
                   aria-selected={active}
-                  style={adminMode ? { color: '#2A2208' } : undefined}
                   className={clsx(
-                    'w-full flex items-center gap-2 py-[9px] px-3 bg-transparent border-0 cursor-pointer',
+                    'w-full flex items-center gap-2 py-[9px] px-3 bg-transparent border-0 cursor-pointer text-[#1f2937]',
                     'font-opensans text-xs text-left transition-colors duration-100',
-                    adminMode
-                      ? (active ? 'bg-[#f6edd6] font-semibold' : 'hover:bg-black/[0.05]')
-                      : (active ? 'bg-white/[0.06] text-white font-semibold' : 'text-white/80 hover:bg-white/[0.08]'),
+                    active ? 'bg-[#eef4fa] font-semibold' : 'hover:bg-black/[0.04]',
                   )}
                   onClick={() => {
                     setActiveStruttura(s)
@@ -261,23 +219,29 @@ export default function Sidebar({
                   }}
                 >
                   <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{s}</span>
-                  {active && <i className={clsx('fa-solid fa-check text-[11px] shrink-0', adminMode ? 'text-[#a9863a]' : 'text-link')} aria-hidden="true" />}
+                  {active && <i className="fa-solid fa-check text-[11px] shrink-0 text-link" aria-hidden="true" />}
                 </button>
               )
             })}
           </div>
         )}
       </div>
-      )}
 
-      {/* ── Expand button (solo sidebar chiusa desktop) ─────────────────────── */}
-      {!sideOpen && !isMobile && (
-        <button
-          className="bg-transparent border-0 cursor-pointer py-2.5 px-0 flex justify-center text-white/50 transition-colors duration-150 hover:text-white/90"
-          onClick={() => setSideOpen(true)}
-        >
-          <Ico n="menu" s={17} c={adminMode ? '#2A2208' : undefined} />
-        </button>
+      {/* ── Utente: solo saluto + nome + avatar (nascosto nelle viste admin) ─── */}
+      {!onConsole && !platformAdmin && (
+        <div className={clsx(
+          'flex items-center gap-2.5 border-t border-b border-white/[0.08]',
+          sideOpen ? 'px-4 py-3' : 'px-0 py-3 justify-center',
+        )}>
+          <div className="w-[34px] h-[34px] rounded-full bg-link shrink-0 flex items-center justify-center text-xs font-bold text-white">
+            LH
+          </div>
+          {sideOpen && (
+            <div className="min-w-0 flex-1 text-[13px] font-semibold font-poppins leading-tight" style={{ color: adminMode ? '#2A2208' : '#fff' }}>
+              {greeting}, Luca H.
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── Nav ────────────────────────────────────────────────────────────── */}

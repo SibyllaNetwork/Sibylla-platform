@@ -1,6 +1,7 @@
 import MENU from '../../navigation/menu'
 import MENU_TO from '../../navigation/menuTourOperator'
 import MENU_RISTORANTI from '../../navigation/menuRistoranti'
+import MENU_FULL from '../../navigation/menuFull'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
 import type { Cliente, Intestatario, Modulo, NewClientForm, Ruolo, TipologiaCategoria, UserRow } from './types'
@@ -35,11 +36,11 @@ export const CLIENTS_INIT: Cliente[] = [
 // (CLIENTS_INIT). I `moduli` qui indicati sono quelli del contratto e guidano il
 // menu che il cliente vede da loggato (preview nella console assistenza).
 export const INTESTATARI_INIT: Intestatario[] = [
-  { id: 'int-gar',     nome: 'Gar S.r.l.',         email: 'amministrazione@gar.it',        moduli: ['full-suite'], struttureIds: [1, 2] },
-  { id: 'int-salento', nome: 'Salento Stays',      email: 'info@salentostays.it',          moduli: ['operation'],  struttureIds: [3] },
-  { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristoranti'], struttureIds: [4, 5] },
-  { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['solo-sales'], struttureIds: [6, 7] },
-  { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['executive'],  struttureIds: [8] },
+  { id: 'int-gar',     nome: 'Gar S.r.l.',         email: 'amministrazione@gar.it',        moduli: ['full'],                struttureIds: [1, 2] },
+  { id: 'int-salento', nome: 'Salento Stays',      email: 'info@salentostays.it',          moduli: ['struttura-ricettiva'], struttureIds: [3] },
+  { id: 'int-rsud',    nome: 'Ristorazione Sud',   email: 'contratti@ristorazionesud.it',  moduli: ['ristorazione'],        struttureIds: [4, 5] },
+  { id: 'int-riviera', nome: 'Riviera Group',      email: 'admin@rivieragroup.it',         moduli: ['struttura-ricettiva'], struttureIds: [6, 7] },
+  { id: 'int-campus',  nome: 'Campus Italia',      email: 'direzione@campusitalia.it',     moduli: ['struttura-ricettiva', 'ristorazione'], struttureIds: [8] },
 ]
 
 export interface CategoriaStruttura {
@@ -70,25 +71,18 @@ export function tipologiaLabel(c: Cliente): string {
   return cat.label
 }
 
-const impresa = (MENU as any).find((m: any) => m.id === 'impresa')?.children || []
-const salesPages    = getAllPages(impresa.find((c: any) => c.id === 'sales')?.children || [])
-const execPages     = getAllPages(impresa.find((c: any) => c.id === 'executive')?.children || [])
-const opPages       = getAllPages(impresa.find((c: any) => c.id === 'operation')?.children || [])
-
-// Il modulo Ristoranti ha una sidenav dedicata (MENU_RISTORANTI, da ristoranti.xlsx):
-// le pagine abilitate sono tutte e sole quelle del suo albero di menu.
-const ristorantiPages = getAllPages(MENU_RISTORANTI as any)
-
-// Voci F&B del Configuratore — il modulo Ristoranti vede del Configuratore solo queste.
+// Voci F&B del Configuratore — il modulo Ristorazione vede del Configuratore solo queste.
 const FNB_CONFIG_IDS = FNB_ITEMS.map(i => i.id)
 
+// ─── Catalogo moduli della piattaforma ────────────────────────────────────────
+// Ogni modulo definisce un INSIEME DI PAGINE. La struttura comune mostrata è
+// sempre MENU_FULL, filtrata all'UNIONE delle pagine dei moduli sottoscritti
+// (merge incrementale, nessun duplicato). "Full" = unione di tutti i moduli.
 export const PACCHETTI_INIT: Modulo[] = [
-  { id: 'solo-sales',  label: 'Solo Sales',     desc: 'Pricing, E-distribution, Booking', pages: salesPages },
-  { id: 'full-suite',  label: 'Full Suite',     desc: 'Tutti i moduli disponibili',       pages: [...ALL_PAGES] },
-  { id: 'executive',   label: 'Executive Only', desc: 'Dashboard e reportistica',         pages: execPages },
-  { id: 'operation',   label: 'Operation',      desc: 'Front office, F&B, Movimenti',     pages: opPages },
-  { id: 'ristoranti',  label: 'Ristoranti',     desc: 'Profilo completo + Food & Beverage', pages: ristorantiPages, configuratoreItems: FNB_CONFIG_IDS },
-  { id: 'tour-operator', label: 'Menu Tour Operator', desc: 'Sidenav dedicata ai Tour Operator', pages: getAllPages(MENU_TO as any) },
+  { id: 'struttura-ricettiva', label: 'Struttura ricettiva', desc: 'Hotel, B&B, case vacanze, residence, ostelli, studentati', pages: getAllPages(MENU as any) },
+  { id: 'tour-operator',       label: 'Tour Operator',       desc: 'Programmazione, pratiche, preventivi, distribuzione',      pages: getAllPages(MENU_TO as any) },
+  { id: 'ristorazione',        label: 'Ristorazione',        desc: 'Ristoranti, bar — sala, tavoli e Food & Beverage',         pages: getAllPages(MENU_RISTORANTI as any), configuratoreItems: FNB_CONFIG_IDS },
+  { id: 'full',                label: 'Full',                desc: 'Tutti i moduli (unione completa delle pagine)',            pages: getAllPages(MENU_FULL as any) },
 ]
 
 // ─── Amministratori e moduli per azienda (singola fonte) ──────────────────────
@@ -103,14 +97,14 @@ export interface ClientAdminSeed {
 }
 
 export const CLIENT_ADMINS: Record<number, ClientAdminSeed> = {
-  1: { nome: 'Maria Rossi',  email: 'maria@hotelnoto.it',          moduli: ['solo-sales'] },
-  2: { nome: 'Carlo Verdi',  email: 'carlo@grandhotelroma.it',     moduli: ['full-suite'] },
-  3: { nome: 'Anna Conti',   email: 'anna@bbilglicine.it',         moduli: ['operation'] },
+  1: { nome: 'Maria Rossi',  email: 'maria@hotelnoto.it',          moduli: ['struttura-ricettiva'] },
+  2: { nome: 'Carlo Verdi',  email: 'carlo@grandhotelroma.it',     moduli: ['full'] },
+  3: { nome: 'Anna Conti',   email: 'anna@bbilglicine.it',         moduli: ['struttura-ricettiva'] },
   4: { nome: 'Giulia Neri',  email: 'giulia@trattoriadelporto.it', moduli: ['tour-operator'] },
-  5: { nome: 'Marco Bruno',  email: 'marco@skyloungebar.it',       moduli: ['ristoranti'] },
-  6: { nome: 'Sara Greco',   email: 'sara@casevacanzeriviera.it',  moduli: ['solo-sales'] },
-  7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['operation'] },
-  8: { nome: 'Elena Russo',  email: 'elena@campuslivingto.it',     moduli: ['executive'] },
+  5: { nome: 'Marco Bruno',  email: 'marco@skyloungebar.it',       moduli: ['ristorazione'] },
+  6: { nome: 'Sara Greco',   email: 'sara@casevacanzeriviera.it',  moduli: ['struttura-ricettiva'] },
+  7: { nome: 'Paolo Ferri',  email: 'paolo@residenceaurora.it',    moduli: ['struttura-ricettiva'] },
+  8: { nome: 'Elena Russo',  email: 'elena@campuslivingto.it',     moduli: ['struttura-ricettiva', 'ristorazione'] },
 }
 
 // Moduli assegnati per cliente (id → id moduli).
