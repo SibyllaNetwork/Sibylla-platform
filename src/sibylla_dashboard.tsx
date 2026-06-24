@@ -114,7 +114,7 @@ export default function App() {
   const [showFavPanel, setShowFavPanel] = useState(false)
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; pageId: string; label: string } | null>(null)
   const [navOpen, setNavOpen] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1600)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
 
   const viewMode = useViewModeStore(s => s.mode)
   const addTab   = useViewModeStore(s => s.addTab)
@@ -187,7 +187,7 @@ export default function App() {
   const prevMobile = useRef(true)
   useEffect(() => {
     const onResize = () => {
-      const m = window.innerWidth < 1600
+      const m = window.innerWidth < 1024
       setIsMobile(m)
       if (m && !prevMobile.current) setSideOpen(false)
       prevMobile.current = m

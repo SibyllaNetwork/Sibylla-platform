@@ -174,6 +174,7 @@ const MENU_TO:any[]=[
     ]},
   ]},
   {id:"impostazioni",label:"Impostazioni",icon:"gear",children:[
+    {id:"configuratore",label:"Configuratore",page:"configuratore"},
     {id:"gest-notifiche",label:"Gestione delle notifiche",page:"configura-notifiche"},
     {id:"registro-sistema",label:"Registro di sistema",children:[
       {id:"log-sistema",label:"Log di sistema",page:"log-sistema"},

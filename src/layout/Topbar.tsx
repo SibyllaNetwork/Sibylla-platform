@@ -113,7 +113,7 @@ export default function Topbar({
     return (
       <>
         {text.slice(0, idx)}
-        <mark style={{ background: 'rgba(92,156,212,0.35)', color: '#fff', borderRadius: 2, padding: '0 1px' }}>
+        <mark style={{ background: 'rgba(92,156,212,0.30)', color: '#1f2937', fontWeight: 700, borderRadius: 2, padding: '0 1px' }}>
           {text.slice(idx, idx + q.length)}
         </mark>
         {text.slice(idx + q.length)}
@@ -280,7 +280,7 @@ export default function Topbar({
           <div className="topbar__search-dropdown">
             {results.length === 0 ? (
               <div className="topbar__search-empty">
-                <Ico n="search" s={16} c="rgba(255,255,255,0.2)" />
+                <Ico n="search" s={16} c="rgba(0,0,0,0.25)" />
                 <span>Nessun risultato per <strong>"{query}"</strong></span>
               </div>
             ) : (
@@ -311,7 +311,7 @@ export default function Topbar({
                         </div>
                       )}
                     </div>
-                    <Ico n="chevr" s={10} c="rgba(255,255,255,0.3)" />
+                    <Ico n="chevr" s={10} c="rgba(0,0,0,0.3)" />
                   </button>
                 ))}
                 <div className="topbar__search-footer">

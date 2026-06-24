@@ -229,6 +229,7 @@ const MENU_RISTORANTI:any[]=[
     ]},
   ]},
   {id:"impostazioni",label:"Impostazioni",icon:"gear",children:[
+    {id:"configuratore",label:"Configuratore",page:"configuratore"},
     {id:"il-mio-business",label:"Il mio business",children:[
       {id:"crea-struttura",label:"Crea struttura",page:"crea-struttura"},
       {id:"inventario-camere",label:"Inventario camere",page:"inventario-camere"},
