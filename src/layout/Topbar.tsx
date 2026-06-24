@@ -9,6 +9,7 @@ import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
 import { useAccessStore } from '../store/useAccessStore'
+import { useOrgStore } from '../store/useOrgStore'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 
 interface Props {
@@ -46,6 +47,22 @@ export default function Topbar({
   const [open,     setOpen]     = useState(false)
   const inputRef  = useRef<HTMLInputElement>(null)
   const wrapRef   = useRef<HTMLDivElement>(null)
+
+  // Select strutture: mostrato qui (prima della breadcrumb) quando la sidenav è
+  // chiusa — i dati vengono dallo stesso store usato dalla sidebar.
+  const tipologia       = useOrgStore(s => s.tipologia)
+  const strutture       = useOrgStore(s => s.strutture)
+  const activeStruttura = useOrgStore(s => s.activeStruttura)
+  const setActiveStrutt = useOrgStore(s => s.setActiveStruttura)
+  const showStruttSel   = !sideOpen && !adminMode && tipologia === 'Multistruttura' && strutture.length > 0
+  const [struttOpen, setStruttOpen] = useState(false)
+  const struttRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!struttOpen) return
+    const h = (e: MouseEvent) => { if (!struttRef.current?.contains(e.target as Node)) setStruttOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [struttOpen])
 
   // Aggiorna risultati al cambio query
   useEffect(() => {
@@ -164,6 +181,40 @@ export default function Topbar({
             <Ico n="power" s={13} c="#2a2208" />
             Esci assistenza
           </button>
+        </div>
+      )}
+
+      {/* ── Select strutture (solo a sidenav chiusa, prima della breadcrumb) ── */}
+      {showStruttSel && (
+        <div ref={struttRef} className="relative mr-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setStruttOpen(o => !o)}
+            aria-haspopup="listbox" aria-expanded={struttOpen}
+            className="flex items-center gap-2 bg-transparent border-0 p-0 cursor-pointer text-white/90 transition-colors hover:text-white"
+          >
+            <i className="fa-light fa-hotel text-[14px]" aria-hidden="true" />
+            <span className="text-[14px] font-semibold font-poppins max-w-[200px] truncate">{activeStruttura}</span>
+            <i className={`fa-solid fa-chevron-down text-[9px] text-white/60 transition-transform duration-200 ${struttOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
+          {struttOpen && (
+            <div className="absolute left-0 top-full mt-1 z-50 w-56 max-h-60 overflow-y-auto rounded-lg bg-white border border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.18)]" role="listbox">
+              <div className="pt-2 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.5px] text-black/45">Cambia struttura</div>
+              {strutture.map(s => {
+                const active = s === activeStruttura
+                return (
+                  <button
+                    key={s} role="option" aria-selected={active}
+                    onClick={() => { setActiveStrutt(s); setStruttOpen(false) }}
+                    className={`w-full flex items-center gap-2 py-[9px] px-3 text-[#1f2937] font-opensans text-xs text-left transition-colors ${active ? 'bg-[#eef4fa] font-semibold' : 'hover:bg-black/[0.04]'}`}
+                  >
+                    <span className="flex-1 truncate">{s}</span>
+                    {active && <i className="fa-solid fa-check text-[11px] text-link shrink-0" aria-hidden="true" />}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 

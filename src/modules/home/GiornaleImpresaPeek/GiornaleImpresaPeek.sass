@@ -185,8 +185,11 @@ $navy-grad: linear-gradient(120deg, #25557e 0%, #204769 55%, #1a3a56 100%)
 .gip__head-title
   font-family: $font-heading
   font-size: 18px
-  font-weight: 800
+  font-weight: 700
   margin: 0
+  // l'header del peek è sempre navy: forza il bianco contro le regole di tema
+  // [data-theme=...] h2 (specificità maggiore) e gli stili heading globali
+  color: #fff !important
 
 .gip__live
   display: inline-flex

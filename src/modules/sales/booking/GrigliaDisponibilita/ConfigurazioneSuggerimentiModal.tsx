@@ -12,11 +12,13 @@ interface Props {
   open: boolean
   onClose: () => void
   strutture: StrutturaConfig[]
+  onNext?: () => void
+  nextLabel?: string
 }
 
 const DEFAULT_GIORNI = 5
 
-export default function ConfigurazioneSuggerimentiModal({ open, onClose, strutture }: Props) {
+export default function ConfigurazioneSuggerimentiModal({ open, onClose, strutture, onNext, nextLabel }: Props) {
   const [values, setValues] = useState<Record<string, number>>({})
   const [savedFlash, setSavedFlash] = useState<Record<string, boolean>>({})
 
@@ -95,6 +97,11 @@ export default function ConfigurazioneSuggerimentiModal({ open, onClose, struttu
 
         <div className="cfg-sugg__footer">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Chiudi</button>
+          {onNext && (
+            <button type="button" className="sib-btn sib-btn--primary" onClick={onNext}>
+              {nextLabel ?? 'Avanti'} <i className="fa-light fa-arrow-right" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
     </Modal>

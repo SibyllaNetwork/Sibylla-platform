@@ -28,6 +28,7 @@ import GestionePianiTariffari      from '../modules/sales/distribution/GestioneP
 import MaggiorazioniPromozioni     from '../modules/sales/distribution/MaggiorazioniPromozioni/MaggiorazioniPromozioni';
 import PrenotazioniIDS             from '../modules/sales/distribution/PrenotazioniIDS/PrenotazioniIDS';
 import CalendarioTariffe           from '../modules/sales/distribution/CalendarioTariffe/CalendarioTariffe';
+import CalendarioAnnuale           from '../modules/sales/distribution/CalendarioAnnuale/CalendarioAnnuale';
 import ForesightRevenue            from '../modules/sales/distribution/ForesightRevenue/ForesightRevenue';
 import MonthlyTrend                from '../modules/sales/distribution/MonthlyTrend/MonthlyTrend';
 import ForecastAnalysis            from '../modules/sales/distribution/ForecastAnalysis/ForecastAnalysis';
@@ -215,6 +216,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'chat')                  return <Chat navigate={navigate}/>;
   if (page === 'tariffe-disp')          return <TariffeDisponibilita navigate={navigate}/>;
   if (page === 'piani-tar')             return <GestionePianiTariffari navigate={navigate}/>;
+  if (page === 'cal-annuale')           return <CalendarioAnnuale navigate={navigate}/>;
   if (page === 'maggiorazioni')         return <MaggiorazioniPromozioni navigate={navigate}/>;
   if (page === 'prenotazioni-ids')      return <PrenotazioniIDS navigate={navigate}/>;
   if (page === 'tableau-book')          return <TableauPage navigate={navigate} key="tableau-book"/>;

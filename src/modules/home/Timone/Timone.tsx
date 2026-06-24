@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import MENU from '../../../navigation/menu'
 import { useAccessStore, enabledPagesForModuli } from '../../../store/useAccessStore'
+import { useModuliStore } from '../../../store/useModuliStore'
 import { ReactComponent as TimoneSvg } from './timone.svg'
 import './Timone.sass'
 
@@ -41,7 +42,7 @@ export default function Timone() {
   const assist           = useAccessStore(s => s.assist)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
-  const modules          = useAccessStore(s => s.modules)
+  const modules          = useModuliStore(s => s.moduli)
 
   // Moduli attivi: sessione di assistenza > profilo loggato > nessun limite.
   const moduli =

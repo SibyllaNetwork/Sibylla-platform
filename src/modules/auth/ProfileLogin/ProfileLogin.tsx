@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import { useAccessStore, enabledPagesForProfile } from '../../../store/useAccessStore'
+import { useModuliStore } from '../../../store/useModuliStore'
 import './ProfileLogin.sass'
 
 const initials = (nome: string) =>
@@ -13,7 +14,7 @@ const initials = (nome: string) =>
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ProfileLogin() {
   const profiles         = useAccessStore(s => s.profiles)
-  const modules          = useAccessStore(s => s.modules)
+  const modules          = useModuliStore(s => s.moduli)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const loginAs          = useAccessStore(s => s.loginAs)
   const addProfile       = useAccessStore(s => s.addProfile)

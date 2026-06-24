@@ -9,6 +9,7 @@ import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
 import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
 import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli } from '../store/useAccessStore'
+import { useModuliStore } from '../store/useModuliStore'
 
 interface Props {
   sideOpen    : boolean
@@ -44,7 +45,9 @@ export default function Sidebar({
   // currentProfileId = null → menu completo (nessun contratto caricato).
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
-  const modules          = useAccessStore(s => s.modules)
+  // Catalogo moduli LIVE (editabile dall'admin): così modificando un modulo il
+  // menu filtrato della struttura che lo ha assegnato si aggiorna in tempo reale.
+  const modules          = useModuliStore(s => s.moduli)
   // Sessione di assistenza (admin che impersona un cliente): ha precedenza e
   // filtra il menu sui moduli del contratto del cliente.
   const assist           = useAccessStore(s => s.assist)
@@ -115,8 +118,8 @@ export default function Sidebar({
       <div
         ref={structRef}
         className={clsx(
-          'relative h-16 flex items-center gap-2.5 shrink-0',
-          sideOpen ? 'px-3.5' : 'px-0 justify-center',
+          'relative h-16 flex items-center shrink-0',
+          sideOpen ? 'flex-row gap-2.5 px-3.5' : 'justify-center px-0',
         )}
       >
         {/* Hamburger: apre/chiude la sidenav */}
@@ -188,7 +191,7 @@ export default function Sidebar({
           )
         ))}
 
-        {/* Dropdown struttura — chiaro, galleggia sotto l'header */}
+        {/* Dropdown struttura — solo a sidebar aperta (da chiusa è nella topbar) */}
         {sideOpen && showSwitcher && structOpen && (
           <div
             className={clsx(

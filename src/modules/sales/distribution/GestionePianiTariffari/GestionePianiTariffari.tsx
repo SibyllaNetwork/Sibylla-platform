@@ -1,212 +1,260 @@
 import React, { useState } from 'react'
 import T from '../../../../core/tokens'
-import Ico from '../../../../core/icons/Ico'
 import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import PageHeader from '../../../../core/components/PageHeader'
-import './GestionePianiTariffari.sass'
 import FormActions from '../../../../core/components/FormActions'
-import FilterToolbar from '../../../../core/components/FilterToolbar'
-import FormGrid from '../../../../core/components/FormGrid'
-import { InputField, SelectField, DateRangeField } from '../../../../core/components/form'
+import { InputField, SelectField, DatePickerField } from '../../../../core/components/form'
+import './GestionePianiTariffari.sass'
 
-const CATEGORIE = [
-  {id:'BAR',    label:'BAR',    tipo:'B', color:T.blue,    hasPct:false},
-  {id:'FIT',    label:'FIT',    tipo:'R', color:'#5A8A3C', hasPct:true, defaultPct:'6,00'},
-  {id:'Gruppi', label:'Gruppi', tipo:'B', color:'#C4A820', hasPct:true, defaultPct:'0,00'},
+type Sezione = 'BAR' | 'FIT' | 'Gruppi'
+type Piano = {
+  id: number; nome: string; valore: string; scadenza: string
+  arrangiamento: string; politica: string; children: Piano[]
+}
+
+const CATEGORIE: { id: Sezione; label: string; color: string; hasPct?: boolean }[] = [
+  { id: 'BAR',    label: 'BAR',    color: T.blue },
+  { id: 'FIT',    label: 'FIT',    color: '#5A8A3C', hasPct: true },
+  { id: 'Gruppi', label: 'Gruppi', color: '#C4A820', hasPct: true },
 ]
-const CAMERE = ['Nessuna selezione','Singola Classic','Doppia Classic','Tripla Classic','Matrimoniale Superior','Matrimoniale Convertibile']
+const ARRANGIAMENTI = ['RO', 'BB', 'HB', 'FB', 'AI']
+const POLITICHE = ['defaultNessunVincolo', 'NON Rimborsabile', 'Flessibile', 'Moderate', 'Strict']
+const CAMERE = ['Nessuna selezione', 'Singola Classic', 'Doppia Classic', 'Tripla Classic', 'Matrimoniale Superior', 'Matrimoniale Convertibile']
 
-const CatIco = ({color='#5C9CD4'}:{color?:string}) => (
-  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+const CatIco = ({ color = '#5C9CD4' }: { color?: string }) => (
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
   </svg>
 )
 
-type Piano = {id:number;nome:string;valore:string;scadenza:string;arrangiamento:string}
+let _uid = 1000
+const nextId = () => ++_uid
 
-export default function GestionePianiTariffari({ navigate }: { navigate: (p:string)=>void }) {
-  const [struttura,       setStruttura]       = useState('HOTEL LUCE GH')
-  const [showModal,       setShowModal]       = useState(false)
-  const [showCameraModal, setShowCameraModal] = useState(false)
-  const [cameraRef,       setCameraRef]       = useState<Record<string,string>>({BAR:'Doppia Classic',FIT:'Nessuna selezione',Gruppi:'Nessuna selezione'})
-  const [modalCategoria,  setModalCategoria]  = useState<'BAR'|'FIT'|'Gruppi'>('BAR')
-  const [expanded,        setExpanded]        = useState<Set<string>>(new Set(['BAR']))
-  const [editId,          setEditId]          = useState<number|null>(null)
-  const [pctVals,         setPctVals]         = useState<Record<string,string>>({FIT:'6,00',Gruppi:'0,00'})
-  const [form, setForm] = useState({nome:'',scontoPercentuale:'0',arrangiamento:'RO',dataInizio:new Date().toISOString().split('T')[0],dataFine:new Date().toISOString().split('T')[0],giorni:'0',politica:'Flessibile',adv:false,scontoCheck:true,dirette:false,b2c:false})
-  const [piani, setPiani] = useState<Record<string,Piano[]>>({ BAR:[{id:1,nome:'BAr 10%',valore:'10,00 %',scadenza:'13/12/2025',arrangiamento:'RO'}], FIT:[], Gruppi:[] })
+// ── Operazioni ricorsive sull'albero ─────────────────────────────────────────
+const updateNode = (nodes: Piano[], id: number, patch: Partial<Piano>): Piano[] =>
+  nodes.map(n => n.id === id ? { ...n, ...patch } : { ...n, children: updateNode(n.children, id, patch) })
+const addChild = (nodes: Piano[], parentId: number, child: Piano): Piano[] =>
+  nodes.map(n => n.id === parentId ? { ...n, children: [...n.children, child] } : { ...n, children: addChild(n.children, parentId, child) })
+const removeNode = (nodes: Piano[], id: number): Piano[] =>
+  nodes.filter(n => n.id !== id).map(n => ({ ...n, children: removeNode(n.children, id) }))
+const cloneTree = (n: Piano): Piano => ({ ...n, id: nextId(), nome: `${n.nome} (copia)`, children: n.children.map(cloneTree) })
+const insertAfter = (nodes: Piano[], id: number, node: Piano): Piano[] =>
+  nodes.flatMap(n => n.id === id ? [n, node] : [{ ...n, children: insertAfter(n.children, id, node) }])
+const findNode = (nodes: Piano[], id: number): Piano | undefined => {
+  for (const n of nodes) { if (n.id === id) return n; const f = findNode(n.children, id); if (f) return f }
+  return undefined
+}
 
-  const toggleExpand = (id:string) => setExpanded(prev=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n})
-  const openModal = (cat:'BAR'|'FIT'|'Gruppi', piano?:Piano) => {
-    setModalCategoria(cat)
-    if (piano) { setEditId(piano.id); const pct=parseFloat(piano.valore.replace(',','.').replace(' %',''))||0; setForm(f=>({...f,nome:piano.nome,scontoPercentuale:String(pct),arrangiamento:piano.arrangiamento||'RO'}))
-    } else { setEditId(null); setForm({nome:'',scontoPercentuale:'0',arrangiamento:'RO',dataInizio:new Date().toISOString().split('T')[0],dataFine:new Date().toISOString().split('T')[0],giorni:'0',politica:'Flessibile',adv:false,scontoCheck:true,dirette:false,b2c:false}) }
-    setShowModal(true)
+const SEED: Record<Sezione, Piano[]> = {
+  BAR: [{ id: 1, nome: 'test pippo', valore: '5,00 %', scadenza: '24/10/2025', arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [
+    { id: 2, nome: 'asdasd', valore: '7,00 %', scadenza: '16/04/2026', arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [] },
+    { id: 3, nome: 'sda',    valore: '5,00 %', scadenza: '16/04/2026', arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [] },
+  ] }],
+  FIT:    [{ id: 4, nome: 'pino',   valore: '8,00 %', scadenza: '31/03/2026', arrangiamento: 'BB', politica: 'NON Rimborsabile', children: [] }],
+  Gruppi: [{ id: 5, nome: 'gruppo', valore: '6,00 %', scadenza: '23/03/2026', arrangiamento: 'BB', politica: 'NON Rimborsabile', children: [] }],
+}
+
+type EditCtx = { sezione: Sezione; parentId: number | null; parentName?: string; fromTop: boolean; editId: number | null }
+const emptyForm = () => ({
+  nome: '', sconto: '0.0', arrangiamento: 'RO',
+  dataInizio: new Date().toISOString().split('T')[0], dataFine: new Date().toISOString().split('T')[0],
+  giorni: '0', politica: '', adv: false, scontoCheck: true, dirette: true, b2c: true,
+})
+
+export default function GestionePianiTariffari({ navigate }: { navigate: (p: string) => void }) {
+  const [struttura, setStruttura] = useState("Grim's Hotel")
+  const [piani, setPiani] = useState<Record<Sezione, Piano[]>>(SEED)
+  const [expanded, setExpanded] = useState<Set<Sezione>>(new Set<Sezione>(['BAR', 'FIT', 'Gruppi']))
+  const [board, setBoard] = useState<Record<Sezione, string>>({ BAR: 'BB', FIT: 'BB', Gruppi: 'BB' })
+  const [pct, setPct] = useState<Record<Sezione, string>>({ BAR: '0,00', FIT: '1,00', Gruppi: '4,00' })
+  const [cameraRef, setCameraRef] = useState<Record<Sezione, string>>({ BAR: 'Doppia Classic', FIT: 'Nessuna selezione', Gruppi: 'Nessuna selezione' })
+
+  const [showCamera, setShowCamera] = useState(false)
+  const [ctx, setCtx] = useState<EditCtx | null>(null)
+  const [form, setForm] = useState(emptyForm())
+
+  const toggle = (id: Sezione) => setExpanded(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n })
+
+  // Apri modale: dal pulsante in alto (con selettore sezione), dal + di un nodo, o in modifica.
+  const openTop = () => { setCtx({ sezione: 'BAR', parentId: null, fromTop: true, editId: null }); setForm(emptyForm()) }
+  const openChild = (sezione: Sezione, parent: Piano) => { setCtx({ sezione, parentId: parent.id, parentName: parent.nome, fromTop: false, editId: null }); setForm({ ...emptyForm(), arrangiamento: parent.arrangiamento }) }
+  const openEdit = (sezione: Sezione, node: Piano) => {
+    setCtx({ sezione, parentId: null, parentName: node.nome, fromTop: false, editId: node.id })
+    setForm({ ...emptyForm(), nome: node.nome, sconto: node.valore.replace(' %', '').replace(',', '.'), arrangiamento: node.arrangiamento, politica: node.politica })
   }
-  const handleSave = () => {
-    if (!form.nome.trim()) return
-    const scad=form.dataFine?new Date(form.dataFine).toLocaleDateString('it-IT'):'--'
-    const val=`${parseFloat(form.scontoPercentuale||'0').toFixed(2).replace('.',',')} %`
-    if (editId!==null) { setPiani(prev=>({...prev,[modalCategoria]:prev[modalCategoria].map(p=>p.id===editId?{...p,nome:form.nome,valore:val,scadenza:scad,arrangiamento:form.arrangiamento}:p)}))
-    } else { setPiani(prev=>({...prev,[modalCategoria]:[...prev[modalCategoria],{id:Date.now(),nome:form.nome,valore:val,scadenza:scad,arrangiamento:form.arrangiamento}]})); setExpanded(prev=>new Set(Array.from(prev).concat(modalCategoria))) }
-    setShowModal(false)
+
+  const save = () => {
+    if (!ctx || !form.nome.trim()) return
+    const valore = `${(parseFloat(form.sconto.replace(',', '.')) || 0).toFixed(2).replace('.', ',')} %`
+    const scadenza = form.dataFine ? new Date(form.dataFine).toLocaleDateString('it-IT') : '--'
+    const sez = ctx.sezione
+    if (ctx.editId != null) {
+      setPiani(p => ({ ...p, [sez]: updateNode(p[sez], ctx.editId!, { nome: form.nome, valore, scadenza, arrangiamento: form.arrangiamento, politica: form.politica }) }))
+    } else {
+      const node: Piano = { id: nextId(), nome: form.nome, valore, scadenza, arrangiamento: form.arrangiamento, politica: form.politica || 'defaultNessunVincolo', children: [] }
+      setPiani(p => ({ ...p, [sez]: ctx.parentId != null ? addChild(p[sez], ctx.parentId, node) : [...p[sez], node] }))
+      setExpanded(e => new Set<Sezione>([...Array.from(e), sez]))
+    }
+    setCtx(null)
   }
-  const handleDelete = (cat:string, id:number) => setPiani(prev=>({...prev,[cat]:prev[cat].filter(p=>p.id!==id)}))
+  const duplicate = (sez: Sezione, node: Piano) => setPiani(p => ({ ...p, [sez]: insertAfter(p[sez], node.id, cloneTree(node)) }))
+  const del = (sez: Sezione, id: number) => setPiani(p => ({ ...p, [sez]: removeNode(p[sez], id) }))
+
+  // ── Render ricorsivo dei nodi ──────────────────────────────────────────────
+  const renderNodes = (sez: Sezione, nodes: Piano[], depth: number): React.ReactNode =>
+    nodes.map(node => (
+      <React.Fragment key={node.id}>
+        <div className="piani__row">
+          <div className="piani__tree" style={{ paddingLeft: 12 + depth * 30 }}>
+            <Tooltip text="Aggiungi piano figlio">
+              <button type="button" className="piani__add" onClick={() => openChild(sez, node)}>
+                <i className="fa-light fa-plus" aria-hidden="true" />
+              </button>
+            </Tooltip>
+            <span className="piani__tree-line" aria-hidden="true" />
+            <span className="piani__folder" aria-hidden="true">
+              <i className="fa-light fa-folder" />
+              <span className="piani__folder-eur">€</span>
+            </span>
+          </div>
+          <div className="piani__cell piani__cell--name">{node.nome}</div>
+          <div className="piani__cell">{node.valore}</div>
+          <div className="piani__cell">{node.scadenza}</div>
+          <div className="piani__cell">{node.politica}</div>
+          <div className="piani__cell piani__cell--actions">
+            <button type="button" className="sib-btn sib-btn--icon w-7 h-7" title="Modifica" onClick={() => openEdit(sez, node)}><i className="fa-duotone fa-pen text-[13px]" aria-hidden="true" /></button>
+            <button type="button" className="sib-btn sib-btn--icon w-7 h-7" title="Duplica" onClick={() => duplicate(sez, node)}><i className="fa-duotone fa-copy text-[13px]" aria-hidden="true" /></button>
+            <button type="button" className="sib-btn sib-btn--icon w-7 h-7" title="Elimina" onClick={() => del(sez, node.id)}><i className="fa-duotone fa-trash text-[13px]" aria-hidden="true" /></button>
+          </div>
+        </div>
+        {node.children.length > 0 && renderNodes(sez, node.children, depth + 1)}
+      </React.Fragment>
+    ))
 
   return (
-    <div>
+    <div className="piani">
       <BtnBack onClick={() => navigate('home')} />
-      <PageHeader title="Gestione dei piani tariffari" subtitle="Gestisci i piani tariffari in modo smart per offrire prezzi dinamici ottimizzati per ogni segmento di mercato"/>
+      <PageHeader
+        title="Gestione dei piani tariffari"
+        subtitle={'Gestisci i piani tariffari in modo smart per offrire prezzi dinamici ottimizzati per ogni segmento di mercato ed evita "disparity rate" automatizzando i flussi distributivi'}
+      />
 
-      <FilterToolbar actions={
-        <>
-          <button className="sib-btn sib-btn--toolbar" onClick={()=>setShowCameraModal(true)}>
-            <i className="fa-duotone fa-bed text-[14px] text-primary" aria-hidden="true"/> Associa camera
-          </button>
-          <button className="sib-btn sib-btn--primary" onClick={()=>openModal('BAR')}>
-            <i className="fa-duotone fa-plus text-[14px]" aria-hidden="true"/> Aggiungi piano
-          </button>
-        </>
-      }>
+      {/* ── Toolbar ──────────────────────────────────────────────────── */}
+      <div className="piani__toolbar">
         <SelectField
-          name="struttura"
-          label="Strutture"
-          value={struttura}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-          options={['HOTEL LUCE GH','Hotel Noto','Grand Hotel Roma','Villa Bellini'].map(s => ({ value: s, label: s }))}
-          className="w-44"
+          name="struttura" label="Strutture" value={struttura}
+          onChange={e => setStruttura(e.target.value)}
+          options={["Grim's Hotel", 'Hotel Noto', 'Grand Hotel Roma', 'Villa Bellini'].map(s => ({ value: s, label: s }))}
+          className="piani__struttura"
         />
-      </FilterToolbar>
+        <div className="piani__toolbar-spacer" aria-hidden="true" />
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setShowCamera(true)}>
+          <i className="fa-light fa-bed" aria-hidden="true" /> Associa camera di riferimento
+        </button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={openTop}>
+          <i className="fa-light fa-circle-plus" aria-hidden="true" /> Aggiungi piano tariffario
+        </button>
+      </div>
 
-      {/* Accordion categorie */}
-      <div className="piani__wrap">
-        {CATEGORIE.map((cat) => {
+      {/* ── Tabella ad albero ────────────────────────────────────────── */}
+      <div className="piani__table">
+        {CATEGORIE.map(cat => {
           const isExp = expanded.has(cat.id)
-          const items = piani[cat.id] || []
-          const catVars = { '--cat-color': cat.color, '--cat-color-hover': `${cat.color}18`, '--cat-color-hover-soft': `${cat.color}12` } as React.CSSProperties
           return (
-            <div key={cat.id} className="piani__cat">
-              <div className="piani__cat-header" onClick={()=>toggleExpand(cat.id)}>
-                <div className="piani__cat-left">
-                  <CatIco color={cat.color}/>
-                  <span className="piani__cat-label" style={catVars}>{cat.label}</span>
-                  <select defaultValue={cat.tipo} onClick={e=>e.stopPropagation()} className="sib-select sib-select--dense w-[54px]">
-                    <option>B</option><option>R</option><option>N</option>
+            <div className="piani__section" key={cat.id} style={{ ['--cat-color' as string]: cat.color }}>
+              <div className="piani__section-head">
+                <div className="piani__sec-id" onClick={() => toggle(cat.id)}>
+                  <CatIco color={cat.color} />
+                  <span className="piani__sec-label">{cat.label}</span>
+                  <select className="sib-select sib-select--dense piani__sec-board" value={board[cat.id]} onClick={e => e.stopPropagation()} onChange={e => setBoard(b => ({ ...b, [cat.id]: e.target.value }))}>
+                    {ARRANGIAMENTI.map(a => <option key={a}>{a}</option>)}
                   </select>
                   {cat.hasPct && (
-                    <div className="piani__cat-pct-wrap" onClick={e=>e.stopPropagation()}>
-                      <input type="number" value={pctVals[cat.id]||'0'} onChange={e=>setPctVals(p=>({...p,[cat.id]:e.target.value}))}
-                        className="sib-input sib-input--dense w-[64px] text-center"/>
-                      <span className="piani__cat-pct-sign">%</span>
-                    </div>
+                    <span className="piani__sec-pct" onClick={e => e.stopPropagation()}>
+                      <input className="sib-input sib-input--dense" value={pct[cat.id]} onChange={e => setPct(p => ({ ...p, [cat.id]: e.target.value }))} />
+                      <span className="piani__sec-pct-sign">%</span>
+                    </span>
                   )}
+                  <i className={`fa-solid fa-chevron-${isExp ? 'up' : 'down'} piani__sec-chevron`} aria-hidden="true" />
                 </div>
-                <div className="piani__cat-actions">
-                  <span className="piani__cat-count">{items.length} pian{items.length===1?'o':'i'}</span>
-                  <div className={`piani__chevron ${isExp?'piani__chevron--open':'piani__chevron--closed'}`}><i className="fa-duotone fa-chevron-down text-[13px] text-ink-subtle" aria-hidden="true"/></div>
-                </div>
+                <div className="piani__th">Nome</div>
+                <div className="piani__th">Valore</div>
+                <div className="piani__th">Scadenza</div>
+                <div className="piani__th">Politica</div>
+                <div className="piani__th piani__th--center">Azioni</div>
               </div>
               {isExp && (
-                <div>
-                  <div className="piani__add-row">
-                    <Tooltip text="Aggiungi piano">
-                      <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
-                        className="piani__add-circle" style={catVars}>
-                        <i className="fa-duotone fa-plus text-[12px] text-primary" aria-hidden="true"/>
-                      </button>
-                    </Tooltip>
-                  </div>
-                  {items.length > 0 && (
-                    <div className="piani__piano-list-head">
-                      {['Nome','Valore','Scadenza','Azioni'].map((h,i)=><div key={i} className={`piani__piano-list-th ${i===3?'piani__piano-list-th--center':''}`}>{h}</div>)}
-                    </div>
-                  )}
-                  {items.map((piano) => (
-                    <div key={piano.id} className="piani__piano-row piani__piano-row--cols">
-                      <div className="piani__piano-name">{piano.nome}</div>
-                      <div className="piani__piano-value">{piano.valore}</div>
-                      <div className="piani__piano-date">{piano.scadenza}</div>
-                      <div className="piani__piano-actions">
-                        <button className="piani__action-btn piani__action-btn--edit" onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi',piano)}><i className="fa-duotone fa-pen text-[14px] text-primary" aria-hidden="true"/></button>
-                        <button className="piani__action-btn piani__action-btn--delete" onClick={()=>handleDelete(cat.id,piano.id)}><i className="fa-duotone fa-trash text-[14px] text-primary" aria-hidden="true"/></button>
-                      </div>
-                    </div>
-                  ))}
-                  {items.length === 0 && (
-                    <div className="piani__empty">
-                      <p className="piani__empty-p">Nessun piano tariffario per questa categoria</p>
-                      <button onClick={()=>openModal(cat.id as 'BAR'|'FIT'|'Gruppi')}
-                        className="piani__empty-btn" style={catVars}>
-                        Aggiungi piano {cat.label}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                (piani[cat.id].length > 0)
+                  ? renderNodes(cat.id, piani[cat.id], 0)
+                  : <div className="piani__empty">Nessun piano tariffario — usa “Aggiungi piano tariffario”.</div>
               )}
             </div>
           )
         })}
       </div>
 
-      {/* Modal camera */}
-      <Modal open={showCameraModal} onClose={()=>setShowCameraModal(false)} size="md">
-        <div className="mb-5">
-          <h2 className="font-poppins text-[17px] font-bold text-primary mb-1">Seleziona la camera di riferimento</h2>
-          <p className="text-xs text-link font-medium">Configurazione necessaria per la gestione del pricing</p>
-        </div>
-        <div className="border border-line rounded-card overflow-hidden">
-          {([{id:'BAR',label:'BAR',color:T.blue},{id:'FIT',label:'FIT',color:'#5A8A3C'},{id:'Gruppi',label:'Gruppi',color:'#C4A820'}] as any[]).map((cat,i,arr)=>{
-            const isNone = cameraRef[cat.id]==='Nessuna selezione'
+      {/* ── Modale Associa camera ────────────────────────────────────── */}
+      <Modal open={showCamera} onClose={() => setShowCamera(false)} size="md" title="Seleziona la camera di riferimento">
+        <p className="piani__camera-sub">Configurazione necessaria per la gestione del pricing</p>
+        <div className="piani__camera-list">
+          {CATEGORIE.map(cat => {
+            const none = cameraRef[cat.id] === 'Nessuna selezione'
             return (
-            <div key={cat.id} className={`grid grid-cols-[1fr_48px_120px] items-center gap-3 px-4 py-3.5 ${i<arr.length-1?'border-b border-line':''} ${i%2===0?'bg-white':'bg-canvas'}`}>
-              <select value={cameraRef[cat.id]} onChange={e=>setCameraRef(prev=>({...prev,[cat.id]:e.target.value}))} className={`sib-select w-full piani__camera-select ${isNone?'piani__camera-select--none':'piani__camera-select--set'}`}>
-                {CAMERE.map(c=><option key={c}>{c}</option>)}
-              </select>
-              <div className="flex items-center justify-center">
-                {isNone
-                  ?<i className="fa-duotone fa-link-slash text-ink-subtle text-lg" aria-hidden="true"/>
-                  :<i className="fa-duotone fa-link text-primary text-lg" aria-hidden="true"/>
-                }
+              <div className="piani__camera-row" key={cat.id}>
+                <select className="sib-select" value={cameraRef[cat.id]} onChange={e => setCameraRef(c => ({ ...c, [cat.id]: e.target.value }))}>
+                  {CAMERE.map(c => <option key={c}>{c}</option>)}
+                </select>
+                <i className={`fa-light ${none ? 'fa-link-slash' : 'fa-arrows-left-right'} piani__camera-link`} style={{ color: none ? '#9aa3ad' : cat.color }} aria-hidden="true" />
+                <span className="piani__camera-tag" style={{ ['--cat-color' as string]: cat.color }}>
+                  <CatIco color={cat.color} /> {cat.label}
+                </span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-field border border-line piani__camera-label" style={{ '--row-bg': i%2===0?'#F8FAFC':T.white, '--cat-color': cat.color } as React.CSSProperties}>
-                <CatIco color={cat.color}/>
-                <span className="text-[13px] font-bold font-poppins piani__camera-label-text">{cat.label}</span>
-              </div>
-            </div>
-          )})}
+            )
+          })}
         </div>
-        <FormActions onCancel={()=>setShowCameraModal(false)} onConfirm={()=>setShowCameraModal(false)}/>
+        <FormActions onCancel={() => setShowCamera(false)} onConfirm={() => setShowCamera(false)} />
       </Modal>
 
-      {/* Modal piano */}
-      <Modal open={showModal} onClose={()=>setShowModal(false)} title="Aggiungi piano tariffario" size="md">
-        <div className="mb-4 pb-3 border-b border-line">
-          <span className="text-sm font-bold text-primary font-poppins">{modalCategoria} {form.scontoPercentuale||'0'}%</span>
-        </div>
-        <div className="flex flex-col gap-3.5">
-          <FormGrid>
-            <InputField name="nome" label="Nome" required value={form.nome} placeholder="Name" error={!form.nome && showModal ? 'Campo obbligatorio' : undefined} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nome:e.target.value}))}/>
-            <InputField name="scontoPercentuale" label="Sconto Percentuale" type="number" value={form.scontoPercentuale} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,scontoPercentuale:e.target.value}))}/>
-          </FormGrid>
-          <FormGrid cols={3}>
-            <InputField name="arrangiamento" label="Arrangiamento" value={form.arrangiamento} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,arrangiamento:e.target.value}))}/>
-            <DateRangeField nameFrom="dataInizio" nameTo="dataFine" label="Periodo" valueFrom={form.dataInizio} valueTo={form.dataFine} onChangeFrom={(e) => setForm(v=>({...v,dataInizio:e.target.value}))} onChangeTo={(e) => setForm(v=>({...v,dataFine:e.target.value}))}/>
-          </FormGrid>
-          <FormGrid>
-            <InputField name="giorni" label="Giorni" type="number" value={form.giorni} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,giorni:e.target.value}))}/>
-            <SelectField name="politica" label="Politica prenotazioni" value={form.politica} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,politica:e.target.value}))} options={['Flessibile','Non rimborsabile','Moderate','Strict','cicici'].map(o => ({ value: o, label: o }))}/>
-          </FormGrid>
-          <div className="flex items-center gap-5 py-2.5 border-t border-line flex-wrap">
-            {[{k:'adv',l:'ADV'},{k:'scontoCheck',l:'Sconto percentuale'},{k:'dirette',l:'Dirette'},{k:'b2c',l:'B2C'}].map(ch=>(
-              <label key={ch.k} className={`flex items-center gap-1.5 cursor-pointer text-xs font-opensans ${(form as any)[ch.k]?'text-primary font-semibold':'text-ink'}`}>
-                <input type="checkbox" checked={(form as any)[ch.k]} onChange={e=>setForm(v=>({...v,[ch.k]:e.target.checked}))} className="sib-checkbox"/>{ch.l}
-              </label>
-            ))}
+      {/* ── Modale Aggiungi/Modifica piano ───────────────────────────── */}
+      <Modal open={ctx !== null} onClose={() => setCtx(null)} size="md" title={ctx?.editId != null ? 'Modifica piano tariffario' : 'Aggiungi piano tariffario'}>
+        {ctx && (
+          <div className="piani__form">
+            {!ctx.fromTop && ctx.parentName && <div className="piani__form-parent">{ctx.parentName}</div>}
+            <div className="piani__form-grid">
+              {ctx.fromTop && (
+                <SelectField name="sezione" label="Piano Tariffario" value={ctx.sezione}
+                  onChange={e => setCtx(c => c && ({ ...c, sezione: e.target.value as Sezione }))}
+                  options={CATEGORIE.map(c => ({ value: c.id, label: c.label }))} />
+              )}
+              <InputField name="nome" label="Nome" required value={form.nome} placeholder="Name"
+                onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
+              <InputField name="sconto" label="Sconto Percentuale" value={form.sconto}
+                onChange={e => setForm(f => ({ ...f, sconto: e.target.value }))} />
+              <SelectField name="arrangiamento" label="Arrangiamento" value={form.arrangiamento}
+                onChange={e => setForm(f => ({ ...f, arrangiamento: e.target.value }))}
+                options={ARRANGIAMENTI.map(a => ({ value: a, label: a }))} />
+              <DatePickerField name="dataInizio" label="Data inizio" value={form.dataInizio}
+                onChange={e => setForm(f => ({ ...f, dataInizio: e.target.value }))} />
+              <DatePickerField name="dataFine" label="Data fine" value={form.dataFine}
+                onChange={e => setForm(f => ({ ...f, dataFine: e.target.value }))} />
+              <InputField name="giorni" label="Giorni" type="number" value={form.giorni}
+                onChange={e => setForm(f => ({ ...f, giorni: e.target.value }))} />
+              <SelectField name="politica" label="Politica prenotazioni" value={form.politica}
+                onChange={e => setForm(f => ({ ...f, politica: e.target.value }))}
+                options={[{ value: '', label: 'Seleziona' }, ...POLITICHE.map(p => ({ value: p, label: p }))]} />
+            </div>
+            <div className="piani__form-checks">
+              {([['adv', 'ADV'], ['scontoCheck', 'Sconto percentuale'], ['dirette', 'Dirette'], ['b2c', 'B2C']] as const).map(([k, l]) => (
+                <label key={k} className="piani__check">
+                  <input type="checkbox" className="sib-checkbox" checked={(form as any)[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.checked }))} /> {l}
+                </label>
+              ))}
+            </div>
+            <FormActions onCancel={() => setCtx(null)} onConfirm={save} confirmLabel="Salva" confirmDisabled={!form.nome.trim()} />
           </div>
-          <FormActions onCancel={()=>setShowModal(false)} onConfirm={handleSave} confirmDisabled={!form.nome.trim()}/>
-        </div>
+        )}
       </Modal>
     </div>
   )

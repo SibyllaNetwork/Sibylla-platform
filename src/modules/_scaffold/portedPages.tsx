@@ -10,6 +10,7 @@
 
 import React from 'react'
 import { StubPage } from './RazorScaffold'
+import { subtitleForPage } from '../../navigation/pageSubtitles'
 
 interface NavProps { navigate: (p: string) => void }
 
@@ -328,7 +329,7 @@ export function renderPortedPage(pageId: string, navigate: (p: string) => void):
       pageId={def.pageId}
       razorPath={def.razorPath}
       title={def.title}
-      subtitle={def.subtitle}
+      subtitle={def.subtitle ?? subtitleForPage(def.pageId)}
       apiPath={def.apiPath}
       onBack={() => navigate('home')}
     />

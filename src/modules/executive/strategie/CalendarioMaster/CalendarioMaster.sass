@@ -1,273 +1,255 @@
-// ─── CALENDARIO MASTER ────────────────────────────────────────────────────────
-// Layout simmetrico a Calendario Strategie: filtri + legenda + griglia di
-// mini-calendari mensili. Ogni giorno mostra 3 stripe colorate per i layer
-// Tariffarie / Distributive / Gruppi e una tooltip ricca al rollover.
+// ─── CALENDARIO MASTER (matrice mese × giorni) ────────────────────────────────
 @use '../../../../styles/tokens' as *
 
-.cal-master
+.cm
+  display: flex
+  flex-direction: column
+  gap: 14px
+  // larghezze delle colonne-etichetta a sinistra (allineano header e pallini)
+  --cm-badge: 60px
+  --cm-badge-m: 8px
+  --cm-strat: 26px
+  --cm-layer: 150px
+
+  > .sib-btn--back
+    align-self: flex-start
 
   // ── Filtri ──────────────────────────────────────────────────────────────────
   &__filters
     display: flex
     align-items: flex-end
-    gap: 12px
-    flex-wrap: wrap
-    margin-bottom: 12px
-
-  &__filter
-    min-width: 160px
-
-    &--struttura
-      min-width: 200px
-
-  &__filters-spacer
-    flex: 1 1 auto
-    min-width: 0
-
-  &__btn
-    height: 36px
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    white-space: nowrap
-
-    i
-      font-size: 12px
-
-  // ── Legenda layer ───────────────────────────────────────────────────────────
-  &__legend
-    display: flex
-    align-items: center
     gap: 16px
     flex-wrap: wrap
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-xl
-    padding: 10px 14px
-    margin-bottom: 12px
-    font-size: 12px
 
-  &__legend-label
-    font-family: $font-heading
-    font-weight: 700
-    color: $primary
-    margin-right: 4px
+  &__filter-struttura
+    width: 200px
 
-  &__legend-item
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    color: $text-active
-    font-weight: 600
+  &__filters-spacer
+    flex: 1
 
-    i
-      font-size: 12px
-      color: $text-inactive
+  &__btn
+    white-space: nowrap
 
-  // Mini-cella che illustra la posizione della banda corrispondente
-  // dentro il giorno (top / middle / bottom).
-  &__legend-pos
-    width: 14px
-    height: 18px
-    border-radius: 3px
-    background: $bg
-    border: 1px solid $border
-    overflow: hidden
+  // ── Tabella ───────────────────────────────────────────────────────────────────
+  &__table-wrap
+    overflow-x: auto
+
+  &__table
+    min-width: 1180px
     display: flex
     flex-direction: column
-    flex-shrink: 0
-
-    > span
-      flex: 1 1 0
-      background: $primary-100
-
-    &--0 > span:nth-child(1)
-      background: $primary
-
-    &--1 > span:nth-child(2)
-      background: $primary
-
-    &--2 > span:nth-child(3)
-      background: $primary
-
-  &__legend-hint
-    margin-left: auto
-    color: $text-disabled
-    font-size: 11px
-    font-style: italic
-
-  // ── Griglia mesi ────────────────────────────────────────────────────────────
-  &__grid
-    display: grid
-    grid-template-columns: repeat(3, minmax(0, 1fr))
     gap: 12px
 
-    @media (max-width: 1280px)
-      grid-template-columns: repeat(2, minmax(0, 1fr))
-
-    @media (max-width: 720px)
-      grid-template-columns: 1fr
-
-  &__empty
-    background: $white
-    border: 1px dashed $border
-    border-radius: $radius-xl
-    padding: 28px
-    text-align: center
-    font-size: 13px
-    color: $text-disabled
-
-  // ── Card mese ───────────────────────────────────────────────────────────────
-  &__month
-    background: $white
+  // header con i numeri dei giorni (card a sé, resta in alto)
+  &__head
+    display: flex
+    align-items: stretch
     border: 1px solid $border
-    border-radius: $radius-xl
-    padding: 12px
-    display: flex
-    flex-direction: column
-    gap: 8px
-    box-shadow: 0 1px 2px rgba(15, 17, 23, 0.04), 0 8px 24px -4px rgba(15, 17, 23, 0.08)
-
-  &__month-header
-    display: flex
-    align-items: baseline
-    justify-content: space-between
-    padding: 2px 4px 6px
-    border-bottom: 1px solid $border
-
-  &__month-name
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 700
-    color: $primary
-    text-transform: capitalize
-
-  &__month-year
-    font-family: $font-body
-    font-size: 11px
-    color: $text-disabled
-    font-weight: 600
-    letter-spacing: 0.5px
-
-  &__weekdays
-    display: grid
-    grid-template-columns: repeat(7, 1fr)
-    gap: 4px
-
-  &__weekday
-    text-align: center
-    font-family: $font-body
-    font-size: 10px
-    font-weight: 700
-    color: $text-disabled
-    letter-spacing: 0.4px
-
-    &--we
-      color: $primary-400
-
-  &__days
-    display: grid
-    grid-template-columns: repeat(7, 1fr)
-    gap: 4px
-
-  // ── Cella giorno ────────────────────────────────────────────────────────────
-  // Layout: header con numero del giorno sopra, sotto 3 bande spesse
-  // (Tariffarie/Distributive/Gruppi) che riempiono la cella e ne rendono
-  // immediatamente leggibile lo stato di applicazione.
-  &__day
-    position: relative
+    border-radius: $radius-md
+    position: sticky
+    top: 0
+    z-index: 2
     background: $white
-    border: 1px solid $border
-    border-radius: 8px
-    min-height: 56px
-    display: flex
-    flex-direction: column
-    overflow: hidden
-    cursor: default
-    transition: $transition-fast
 
-    &:hover:not(.cal-master__day--empty)
-      border-color: $primary
-      box-shadow: 0 2px 8px rgba(32, 71, 105, 0.18)
-      transform: translateY(-1px)
-
-    &:focus-visible
-      outline: 2px solid $link
-      outline-offset: 1px
-
-    &--empty
-      background: transparent
-      border-color: transparent
-      pointer-events: none
-
-    &--we .cal-master__day-head
-      background: $primary-50
-
-    &--today
-      border-color: $link
-      box-shadow: 0 0 0 1px $link inset
-
-    &--idle .cal-master__band
-      opacity: 0.85
-
-  &__day-head
-    display: flex
-    align-items: center
-    justify-content: space-between
-    padding: 3px 6px
-    height: 18px
-    background: $bg
-    border-bottom: 1px solid $border
+  &__head-gutter
+    // include il margine orizzontale del badge per allineare i numeri ai pallini
+    width: calc(var(--cm-badge) + var(--cm-badge-m) * 2 + var(--cm-strat) + var(--cm-layer))
     flex-shrink: 0
 
-  &__day-num
-    font-family: $font-body
-    font-size: 11px
-    font-weight: 700
-    color: $text-active
-    line-height: 1
+  &__head-days
+    flex: 1
+    display: grid
+    grid-template-columns: repeat(31, minmax(0, 1fr))
 
-  &__day-today
-    width: 5px
-    height: 5px
-    border-radius: 50%
-    background: $link
-
-  &__bands
-    display: flex
-    flex-direction: column
-    flex: 1 1 auto
-
-  &__band
-    --day-color: #{$primary-100}
-    flex: 1 1 0
-    min-height: 11px
-    background: $primary-100
+  &__head-day
     display: flex
     align-items: center
     justify-content: center
-    transition: background 0.12s
+    padding: 10px 0
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  // ── Blocco mese ───────────────────────────────────────────────────────────────
+  &__month
+    display: flex
+    align-items: stretch
+    border: 1px solid $border
+    border-radius: $radius-md
+    overflow: hidden
+    background: $white
+
+  // badge mese a forma di CALENDARIO: linguette + banda anno chiara + corpo mese
+  &__badge
     position: relative
+    width: var(--cm-badge)
+    flex-shrink: 0
+    align-self: center
+    display: flex
+    flex-direction: column
+    margin: calc(var(--cm-badge-m) + 6px) var(--cm-badge-m) var(--cm-badge-m)
+    padding: 0
+    border: none
+    background: transparent
+    cursor: default
+    border-radius: 8px
+    box-shadow: 0 1px 3px rgba(16, 33, 50, 0.18)
+
+    // anelli/linguette in cima
+    &::before, &::after
+      content: ''
+      position: absolute
+      top: -5px
+      width: 4px
+      height: 8px
+      border-radius: 2px
+      background: $primary-700
+      z-index: 1
+
+    &::before
+      left: 33%
+    &::after
+      right: 33%
+
+  &__badge-year
+    background: $link
+    color: $white
+    text-align: center
+    font-size: 9px
+    font-weight: 700
+    letter-spacing: 0.4px
+    padding: 2px 0
+    border-radius: 8px 8px 0 0
+
+  &__badge-month
+    background: $primary
+    color: $white
+    text-align: center
+    font-size: 15px
+    font-weight: 800
+    font-family: $font-heading
+    letter-spacing: 0.5px
+    padding: 7px 0 9px
+    border-radius: 0 0 8px 8px
+
+  // etichetta verticale "Strategie"
+  &__strategie
+    width: var(--cm-strat)
+    flex-shrink: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    background: $bg
+    border-left: 1px solid $border
+    border-right: 1px solid $border
+    writing-mode: vertical-rl
+    transform: rotate(180deg)
+    font-size: 11px
+    font-weight: 700
+    color: $text-inactive
+    letter-spacing: 0.3px
+
+  &__layers
+    flex: 1
+    display: flex
+    flex-direction: column
+
+  &__row
+    display: flex
+    align-items: stretch
+    border-top: 1px solid $border
+
+    &:first-child
+      border-top: none
+
+  &__layer
+    width: var(--cm-layer)
+    flex-shrink: 0
+    display: flex
+    align-items: center
+    gap: 9px
+    padding: 0 14px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+    i
+      font-size: 13px
+      color: $text-inactive
+      width: 15px
+      text-align: center
+
+  &__dots
+    flex: 1
+    display: grid
+    grid-template-columns: repeat(31, minmax(0, 1fr))
+
+  &__cell
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 9px 0
+
+  // ── Pallino ───────────────────────────────────────────────────────────────────
+  &__dot
+    width: 15px
+    height: 15px
+    border-radius: 50%
+    cursor: pointer
+    transition: transform 0.12s ease, box-shadow 0.12s ease
+    outline: none
+
+    &:hover,
+    &:focus-visible
+      transform: scale(1.25)
+      box-shadow: 0 0 0 3px alpha($primary, 0.15)
+
+    // fuori dal periodo selezionato
+    &--out
+      background: #d1d5db
+      cursor: default
+
+      &:hover, &:focus-visible
+        transform: none
+        box-shadow: none
+
+    // in periodo, nessuna strategia applicata
+    &--none
+      background: #111827
+
+    // in periodo, strategia applicata
+    &--on
+      background: #e2b93b
+
+  // ── Tooltip ─────────────────────────────────────────────────────────────────
+  &__tip
+    position: fixed
+    z-index: 1000
+    transform: translate(-50%, calc(-100% - 9px))
+    background: #1f2937
+    color: $white
+    font-size: 12px
+    font-weight: 500
+    padding: 6px 11px
+    border-radius: 7px
+    white-space: nowrap
+    pointer-events: none
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28)
 
     &::after
       content: ''
       position: absolute
-      left: 0
-      right: 0
-      bottom: 0
-      height: 0.5px
-      background: rgba(255, 255, 255, 0.5)
+      top: 100%
+      left: 50%
+      transform: translateX(-50%)
+      border: 5px solid transparent
+      border-top-color: #1f2937
 
-    &:last-child::after
-      display: none
-
-    &--on
-      background: var(--day-color)
-
-      .cal-master__band-ico
-        color: rgba(255, 255, 255, 0.9)
-
-  &__band-ico
-    font-size: 8px
-    color: rgba(255, 255, 255, 0.5)
-    line-height: 1
+  &__empty
+    padding: 40px
+    text-align: center
+    color: $text-inactive
+    font-size: 14px
+    border: 1px dashed $border
+    border-radius: $radius-lg

@@ -16,6 +16,9 @@ interface Props {
   open: boolean
   onClose: () => void
   data: Date | null
+  /** Passo successivo della catena (mostra un bottone primario nel footer). */
+  onNext?: () => void
+  nextLabel?: string
 }
 
 const MOCK_PRENOTAZIONI: Prenotazione[] = [
@@ -33,7 +36,7 @@ function formatHeaderDate(d: Date) {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
-export default function DettaglioPrenotazioniModal({ open, onClose, data }: Props) {
+export default function DettaglioPrenotazioniModal({ open, onClose, data, onNext, nextLabel }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [selezioni, setSelezioni] = useState<Record<string, string>>({})
 
@@ -135,6 +138,11 @@ export default function DettaglioPrenotazioniModal({ open, onClose, data }: Prop
 
         <div className="det-pren__footer">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Chiudi</button>
+          {onNext && (
+            <button type="button" className="sib-btn sib-btn--primary" onClick={onNext}>
+              {nextLabel ?? 'Avanti'} <i className="fa-light fa-arrow-right" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
     </Modal>

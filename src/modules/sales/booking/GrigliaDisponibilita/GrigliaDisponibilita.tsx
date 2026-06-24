@@ -56,9 +56,13 @@ function mockPersone(seed: number, gi: number, stanze: number) {
   const v = ((seed * 53 + gi * 11) % 100) / 100
   return Math.round(stanze * (1.2 + v * 1.1))
 }
+// Scoperti (disponibilità negativa) abbastanza ampi da restare negativi anche
+// col buffer attivo → le chip rosse coi suggerimenti sono visibili di default.
 function mockNegative(struttura: StrutturaRow, gi: number) {
-  if (struttura.id === 'luce' && gi === 4) return { stanze: -1, persone: 15 }
-  if (struttura.id === 'noto' && gi === 2) return { stanze: -11, persone: 37 }
+  if (struttura.id === 'archimede' && gi === 1) return { stanze: -28, persone: 52 }
+  if (struttura.id === 'lazio'     && gi === 3) return { stanze: -13, persone: 19 }
+  if (struttura.id === 'luce'      && gi === 4) return { stanze: -9,  persone: 15 }
+  if (struttura.id === 'noto'      && gi === 2) return { stanze: -34, persone: 37 }
   return null
 }
 
@@ -448,12 +452,17 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
         open={showConfigSugg}
         onClose={() => setShowConfigSugg(false)}
         strutture={STRUTTURE.map(s => ({ id: s.id, nome: s.nome, giorni: s.giorniDefault }))}
+        onNext={() => { setShowConfigSugg(false); setShowCapienza(true) }}
+        nextLabel="Verifica capienza"
       />
 
+      {/* Catena dal click sulla chip rossa: Dettaglio → Configurazione → Capienza */}
       <DettaglioPrenotazioniModal
         open={dettaglio !== null}
         onClose={() => setDettaglio(null)}
         data={dettaglio?.data ?? null}
+        onNext={() => { setDettaglio(null); setShowConfigSugg(true) }}
+        nextLabel="Configura suggerimenti"
       />
 
       <AttenzioneCapienzaModal

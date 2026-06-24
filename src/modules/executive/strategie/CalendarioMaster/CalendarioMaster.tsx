@@ -3,29 +3,28 @@ import clsx from 'clsx'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
-import MasterDayTooltip, { MasterDayTooltipState, MasterLayerEntry } from '../MasterDayTooltip/MasterDayTooltip'
 import { STRATEGIES_BY_TIPO, STRUTTURE, type Strategia, type TipoCalendario } from '../strategieData'
 import './CalendarioMaster.sass'
 
 interface Layer {
-  id:     'tariffarie' | 'distributive' | 'gruppi'
-  label:  string
-  icon:   string
-  tipo:   TipoCalendario
+  id:    'tariffarie' | 'distributive' | 'gruppi'
+  label: string
+  icon:  string
+  tipo:  TipoCalendario
 }
 
 const LAYERS: Layer[] = [
-  { id: 'tariffarie',   label: 'Tariffarie',   icon: 'fa-tag',   tipo: 'Tariffe' },
-  { id: 'distributive', label: 'Distributive', icon: 'fa-bed',   tipo: 'Disponibilità' },
+  { id: 'tariffarie',   label: 'Tariffarie',   icon: 'fa-user',  tipo: 'Tariffe' },
+  { id: 'distributive', label: 'Distributive', icon: 'fa-user',  tipo: 'Disponibilità' },
   { id: 'gruppi',       label: 'Gruppi',       icon: 'fa-users', tipo: 'Richieste Extra' },
 ]
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
-const WEEKDAY_ABBR = ['L','M','M','G','V','S','D']
+const MONTH_ABBR  = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC']
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate()
-const weekdayIndex = (y: number, m: number, d: number) => (new Date(y, m, d).getDay() + 6) % 7
 
 function defaultRange(): { from: string; to: string } {
   const today = new Date()
@@ -37,220 +36,160 @@ function defaultRange(): { from: string; to: string } {
   }
 }
 
-// Mock deterministico: usa un hash integer per assegnare strategie ai giorni in
-// modo riproducibile. Quando arriverà il service backend, sostituire questa
-// funzione con una fetch (struttura, layer, periodo).
+// Mock deterministico: poche giornate con strategia (cluster sparsi), il resto
+// senza. Sostituire con fetch (struttura, layer, periodo) quando ci sarà il BE.
 function pickStrategy(year: number, month: number, day: number, layer: Layer): Strategia | null {
-  const pool   = STRATEGIES_BY_TIPO[layer.tipo]
+  const pool = STRATEGIES_BY_TIPO[layer.tipo]
   if (!pool.length) return null
-  const seed   = year * 10000 + (month + 1) * 100 + day
   const layerOff = layer.id === 'tariffarie' ? 0 : layer.id === 'distributive' ? 13 : 29
-  const h      = (seed * 9301 + layerOff * 49297) % 233280
-  // densità: tariffarie ~85%, distributive ~75%, gruppi ~30%
-  const density = layer.id === 'tariffarie' ? 0.85 : layer.id === 'distributive' ? 0.75 : 0.30
+  const seed = year * 10000 + (month + 1) * 100 + day
+  const h = (seed * 9301 + layerOff * 49297) % 233280
+  // densità bassa: la maggior parte dei giorni resta "nessuna strategia"
+  const density = layer.id === 'gruppi' ? 0.10 : 0.18
   if ((h / 233280) >= density) return null
   return pool[Math.abs(seed + layerOff) % pool.length]
 }
 
-interface MonthCardProps {
-  year:        number
-  month:       number
-  onShowTip:   (tip: MasterDayTooltipState | null) => void
-}
-
-function MonthCard({ year, month, onShowTip }: MonthCardProps) {
-  const dim    = daysInMonth(year, month)
-  const offset = weekdayIndex(year, month, 1)
-  const cells  = offset + dim
-  const rows   = Math.ceil(cells / 7)
-  const today  = new Date()
-  const isToday = (d: number) =>
-    today.getFullYear() === year && today.getMonth() === month && today.getDate() === d
-
-  return (
-    <div className="cal-master__month">
-      <header className="cal-master__month-header">
-        <span className="cal-master__month-name">{MONTH_NAMES[month]}</span>
-        <span className="cal-master__month-year">{year}</span>
-      </header>
-
-      <div className="cal-master__weekdays">
-        {WEEKDAY_ABBR.map((w, i) => (
-          <span key={i} className={clsx('cal-master__weekday', i >= 5 && 'cal-master__weekday--we')}>{w}</span>
-        ))}
-      </div>
-
-      <div className="cal-master__days">
-        {Array.from({ length: rows * 7 }, (_, idx) => {
-          const day = idx - offset + 1
-          if (day < 1 || day > dim) {
-            return <span key={idx} className="cal-master__day cal-master__day--empty" aria-hidden="true"/>
-          }
-          const wdIdx     = idx % 7
-          const isWeekend = wdIdx >= 5
-          const today     = isToday(day)
-          const layerStrats: Array<Strategia | null> = LAYERS.map(l => pickStrategy(year, month, day, l))
-          const hasAny    = layerStrats.some(s => s !== null)
-
-          const handleEnter = (e: React.SyntheticEvent<HTMLDivElement>) => {
-            const r = e.currentTarget.getBoundingClientRect()
-            const layers: MasterLayerEntry[] = LAYERS.map((l, i) => ({
-              label: l.label,
-              icon:  l.icon,
-              strat: layerStrats[i],
-            }))
-            onShowTip({
-              date:   new Date(year, month, day),
-              layers,
-              x:      r.left + r.width / 2,
-              y:      r.top,
-            })
-          }
-          const handleLeave = () => onShowTip(null)
-
-          return (
-            <div
-              key={idx}
-              className={clsx(
-                'cal-master__day',
-                isWeekend && 'cal-master__day--we',
-                today     && 'cal-master__day--today',
-                !hasAny   && 'cal-master__day--idle',
-              )}
-              tabIndex={0}
-              role="button"
-              aria-label={`${day} ${MONTH_NAMES[month]} ${year}`}
-              onMouseEnter={handleEnter}
-              onMouseLeave={handleLeave}
-              onFocus={handleEnter}
-              onBlur={handleLeave}
-            >
-              <div className="cal-master__day-head">
-                <span className="cal-master__day-num">{day}</span>
-                {today && <span className="cal-master__day-today" aria-label="oggi"/>}
-              </div>
-              <div className="cal-master__bands" aria-hidden="true">
-                {LAYERS.map((l, i) => {
-                  const s = layerStrats[i]
-                  return (
-                    <span
-                      key={l.id}
-                      className={clsx(
-                        'cal-master__band',
-                        s && 'cal-master__band--on',
-                      )}
-                      style={s ? ({ '--day-color': s.colore } as React.CSSProperties) : undefined}
-                    >
-                      <i className={`fa-duotone ${l.icon} cal-master__band-ico`} aria-hidden="true"/>
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+type TipState = { text: string; x: number; y: number } | null
 
 export default function CalendarioMaster({ navigate }: { navigate: (p: string) => void }) {
   const initRange = useMemo(defaultRange, [])
-
   const [dateFrom,  setDateFrom]  = useState(initRange.from)
   const [dateTo,    setDateTo]    = useState(initRange.to)
   const [struttura, setStruttura] = useState(STRUTTURE[0])
-  const [tip,       setTip]       = useState<MasterDayTooltipState | null>(null)
+  const [tip,       setTip]       = useState<TipState>(null)
 
-  const months = useMemo(() => {
-    const out: Array<{ year: number; month: number }> = []
+  const { fromDate, toDate, months } = useMemo(() => {
     const s = new Date(dateFrom + 'T00:00:00')
     const e = new Date(dateTo   + 'T00:00:00')
-    if (isNaN(s.getTime()) || isNaN(e.getTime()) || s > e) return out
+    const out: Array<{ year: number; month: number }> = []
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || s > e) return { fromDate: s, toDate: e, months: out }
     let cur = new Date(s.getFullYear(), s.getMonth(), 1)
-    while (cur <= e && out.length < 24) {
+    while (cur <= e && out.length < 36) {
       out.push({ year: cur.getFullYear(), month: cur.getMonth() })
       cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1)
     }
-    return out
+    return { fromDate: s, toDate: e, months: out }
   }, [dateFrom, dateTo])
 
+  const showTip = (e: React.MouseEvent<HTMLElement>, text: string) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setTip({ text, x: r.left + r.width / 2, y: r.top })
+  }
+  const hideTip = () => setTip(null)
+
   return (
-    <div className="cal-master">
-      <BtnBack onClick={() => navigate('home')}/>
+    <div className="cm">
+      <BtnBack onClick={() => navigate('home')} />
       <PageHeader
         title="Calendario master"
-        subtitle="Visione d'insieme delle strategie applicate alle tariffe, alla distribuzione delle camere e alle prenotazioni di gruppo."
+        subtitle="Visione d'insieme delle strategie applicate alle tariffe, alla distribuzione delle camere e alle prenotazioni di gruppo"
       />
 
       {/* ── Filtri ──────────────────────────────────────────────────── */}
-      <div className="cal-master__filters">
-        <DateRangeField
-          nameFrom="dateFrom"
-          nameTo="dateTo"
-          label="Periodo"
-          valueFrom={dateFrom}
-          valueTo={dateTo}
-          onChangeFrom={e => setDateFrom(e.target.value)}
-          onChangeTo={e => setDateTo(e.target.value)}
-        />
+      <div className="cm__filters">
         <SelectField
           name="struttura"
           label="Struttura"
           value={struttura}
           onChange={e => setStruttura(e.target.value)}
           options={STRUTTURE.map(s => ({ value: s, label: s }))}
-          className="cal-master__filter cal-master__filter--struttura"
+          className="cm__filter-struttura"
         />
-
-        <div className="cal-master__filters-spacer" aria-hidden="true"/>
-
-        <button
-          type="button"
-          className="sib-btn sib-btn--primary cal-master__btn"
-          onClick={() => navigate('calendario-strategie')}
-        >
-          <i className="fa-duotone fa-pen" aria-hidden="true"/>
-          Pianifica strategie
+        <DateRangeField
+          nameFrom="dateFrom"
+          nameTo="dateTo"
+          label="Date"
+          valueFrom={dateFrom}
+          valueTo={dateTo}
+          onChangeFrom={e => setDateFrom(e.target.value)}
+          onChangeTo={e => setDateTo(e.target.value)}
+        />
+        <div className="cm__filters-spacer" aria-hidden="true" />
+        <button type="button" className="sib-btn sib-btn--secondary cm__btn" onClick={() => navigate('calendario-strategie')}>
+          <i className="fa-light fa-pen-ruler" aria-hidden="true" /> Pianifica strategie
         </button>
       </div>
 
-      {/* ── Legenda layer ───────────────────────────────────────────── */}
-      <div className="cal-master__legend" role="note">
-        <span className="cal-master__legend-label">Layer visualizzati:</span>
-        {LAYERS.map((l, i) => (
-          <span key={l.id} className="cal-master__legend-item">
-            <span className={`cal-master__legend-pos cal-master__legend-pos--${i}`} aria-hidden="true">
-              <span/><span/><span/>
-            </span>
-            <i className={`fa-duotone ${l.icon}`} aria-hidden="true"/>
-            <span>{l.label}</span>
-          </span>
-        ))}
-        <span className="cal-master__legend-hint">
-          Passa sopra un giorno per vederne il dettaglio
-        </span>
-      </div>
-
-      {/* ── Griglia mesi ────────────────────────────────────────────── */}
+      {/* ── Matrice mese × giorni ───────────────────────────────────── */}
       {months.length > 0 ? (
-        <div className="cal-master__grid">
-          {months.map(({ year, month }) => (
-            <MonthCard
-              key={`${year}-${month}`}
-              year={year}
-              month={month}
-              onShowTip={setTip}
-            />
-          ))}
+        <div className="cm__table-wrap">
+          <div className="cm__table">
+            {/* Header: numeri dei giorni */}
+            <div className="cm__head">
+              <span className="cm__head-gutter" aria-hidden="true" />
+              <div className="cm__head-days">
+                {DAYS.map(d => <span key={d} className="cm__head-day">{d}</span>)}
+              </div>
+            </div>
+
+            {/* Un blocco per mese */}
+            {months.map(({ year, month }) => {
+              const dim = daysInMonth(year, month)
+              return (
+                <div className="cm__month" key={`${year}-${month}`}>
+                  <button
+                    type="button"
+                    className="cm__badge"
+                    onMouseEnter={e => showTip(e, MONTH_NAMES[month])}
+                    onMouseLeave={hideTip}
+                  >
+                    <span className="cm__badge-year">{year}</span>
+                    <span className="cm__badge-month">{MONTH_ABBR[month]}</span>
+                  </button>
+
+                  <span className="cm__strategie">Strategie</span>
+
+                  <div className="cm__layers">
+                    {LAYERS.map(layer => (
+                      <div className="cm__row" key={layer.id}>
+                        <span className="cm__layer">
+                          <i className={`fa-light ${layer.icon}`} aria-hidden="true" />
+                          {layer.label}
+                        </span>
+                        <div className="cm__dots">
+                          {DAYS.map(day => {
+                            if (day > dim) return <span key={day} className="cm__cell" aria-hidden="true" />
+                            const dayDate = new Date(year, month, day)
+                            const inRange = dayDate >= fromDate && dayDate <= toDate
+                            const strat   = inRange ? pickStrategy(year, month, day, layer) : null
+                            const state   = !inRange ? 'out' : strat ? 'on' : 'none'
+                            const tipText = !inRange
+                              ? 'Fuori dal periodo selezionato'
+                              : strat ? strat.nome : 'Nessuna strategia applicata'
+                            return (
+                              <span key={day} className="cm__cell">
+                                <span
+                                  className={clsx('cm__dot', `cm__dot--${state}`)}
+                                  tabIndex={0}
+                                  role="button"
+                                  aria-label={`${day} ${MONTH_NAMES[month]} ${year} · ${layer.label} · ${tipText}`}
+                                  onMouseEnter={e => showTip(e, tipText)}
+                                  onMouseLeave={hideTip}
+                                  onFocus={e => showTip(e as unknown as React.MouseEvent<HTMLElement>, tipText)}
+                                  onBlur={hideTip}
+                                />
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       ) : (
-        <div className="cal-master__empty">
-          Periodo non valido — controlla le date selezionate.
-        </div>
+        <div className="cm__empty">Periodo non valido — controlla le date selezionate.</div>
       )}
 
-      {tip && <MasterDayTooltip tip={tip}/>}
+      {tip && (
+        <div className="cm__tip" style={{ left: tip.x, top: tip.y }} role="tooltip">
+          {tip.text}
+        </div>
+      )}
     </div>
   )
 }

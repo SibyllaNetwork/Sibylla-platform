@@ -8,6 +8,7 @@ import {
   type ConfiguratoreItem,
 } from './configuratoriList'
 import { useAccessStore, allowedConfiguratoreIds } from '../../../store/useAccessStore'
+import { useModuliStore } from '../../../store/useModuliStore'
 import './Configuratore.sass'
 
 import ScaglioniOccupazione   from './panes/ScaglioniOccupazione/ScaglioniOccupazione'
@@ -41,7 +42,7 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
   // voci Food & Beverage (allowed = null → nessun limite, es. Full Suite/Admin).
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
-  const modules          = useAccessStore(s => s.modules)
+  const modules          = useModuliStore(s => s.moduli)
   const allowed = useMemo(() => {
     if (!currentProfileId) return null
     const profile = profiles.find(p => p.id === currentProfileId)

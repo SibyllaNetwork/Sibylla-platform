@@ -1,0 +1,278 @@
+// ─── CALENDARIO ANNUALE (matrice prezzi mese × giorni) ────────────────────────
+@use '../../../../styles/tokens' as *
+
+.ca
+  display: flex
+  flex-direction: column
+  gap: 14px
+  --ca-badge: 56px
+  --ca-badge-m: 8px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Filtri ──────────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+  &__filter-struttura
+    width: 170px
+  &__filter-listino
+    width: 160px
+  &__filter-rate
+    width: 170px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 5px
+
+  &__field-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__radios
+    display: flex
+    align-items: center
+    gap: 16px
+    height: 36px
+
+  &__radio
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+
+  &__eraser
+    width: 36px
+    height: 36px
+    flex-shrink: 0
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    color: $text-inactive
+    cursor: pointer
+    transition: all 0.15s ease
+
+    &:hover
+      border-color: $primary
+      color: $primary
+
+    &--on
+      background: $primary
+      border-color: $primary
+      color: $white
+
+  &__filters-spacer
+    flex: 1
+
+  &__saved
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12.5px
+    font-weight: 600
+    color: $success
+
+  // ── Tabella ───────────────────────────────────────────────────────────────────
+  &__table-wrap
+    overflow-x: auto
+
+  &__table
+    min-width: 1180px
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  // header numeri giorni
+  &__head
+    display: flex
+    align-items: stretch
+    position: sticky
+    top: 0
+    z-index: 2
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__head-gutter
+    width: calc(var(--ca-badge) + var(--ca-badge-m) * 2)
+    flex-shrink: 0
+
+  &__head-days
+    flex: 1
+    display: grid
+    grid-template-columns: repeat(31, minmax(0, 1fr))
+
+  &__head-day
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 9px 0
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+    font-family: $font-heading
+
+  // ── Riga mese ─────────────────────────────────────────────────────────────────
+  &__month
+    display: flex
+    align-items: stretch
+    border: 1px solid $border
+    border-radius: $radius-md
+    overflow: hidden
+    background: $white
+
+  // badge mese a forma di calendario
+  &__badge
+    position: relative
+    width: var(--ca-badge)
+    flex-shrink: 0
+    align-self: center
+    display: flex
+    flex-direction: column
+    margin: calc(var(--ca-badge-m) + 6px) var(--ca-badge-m) var(--ca-badge-m)
+    padding: 0
+    border: none
+    background: transparent
+    cursor: default
+    border-radius: 8px
+    box-shadow: 0 1px 3px rgba(16, 33, 50, 0.18)
+
+    &::before, &::after
+      content: ''
+      position: absolute
+      top: -5px
+      width: 4px
+      height: 8px
+      border-radius: 2px
+      background: $primary-700
+      z-index: 1
+    &::before
+      left: 33%
+    &::after
+      right: 33%
+
+  &__badge-year
+    background: $link
+    color: $white
+    text-align: center
+    font-size: 8.5px
+    font-weight: 700
+    letter-spacing: 0.3px
+    padding: 2px 0
+    border-radius: 8px 8px 0 0
+
+  &__badge-month
+    background: $primary
+    color: $white
+    text-align: center
+    font-size: 14px
+    font-weight: 800
+    font-family: $font-heading
+    letter-spacing: 0.5px
+    padding: 6px 0 8px
+    border-radius: 0 0 8px 8px
+
+  // griglia dei giorni con texture tratteggiata di sfondo
+  &__dots
+    flex: 1
+    display: grid
+    grid-template-columns: repeat(31, minmax(0, 1fr))
+    background-image: repeating-linear-gradient(45deg, rgba(32, 71, 105, 0.05) 0, rgba(32, 71, 105, 0.05) 1px, transparent 1px, transparent 7px)
+
+  &__cell
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 6px 4px
+
+    // giorno inesistente: tratteggio scuro
+    &--void
+      align-self: stretch
+      background-image: repeating-linear-gradient(45deg, $primary 0, $primary 2px, transparent 2px, transparent 8px)
+      opacity: 0.85
+
+  // ── Cerchio giorno ──────────────────────────────────────────────────────────────
+  &__dot
+    width: 38px
+    height: 38px
+    border-radius: 50%
+    display: flex
+    align-items: center
+    justify-content: center
+    cursor: pointer
+    user-select: none
+    background: #c7cdd6
+    color: $white
+    font-size: 11px
+    font-weight: 700
+    font-family: $font-heading
+    transition: transform 0.1s ease, box-shadow 0.1s ease
+
+    &:hover, &:focus-visible
+      outline: none
+      transform: scale(1.08)
+      box-shadow: 0 0 0 3px alpha($primary, 0.18)
+
+    // B.A.R. applicato → blu, mostra il prezzo
+    &--bar
+      background: #1f6f9e
+      font-size: 9.5px
+      letter-spacing: -0.2px
+
+    // F.I.T. applicato → arancio, mostra il prezzo
+    &--fit
+      background: #e6a23c
+      font-size: 9.5px
+      letter-spacing: -0.2px
+
+  // ── Tooltip ─────────────────────────────────────────────────────────────────
+  &__tip
+    position: fixed
+    z-index: 1000
+    transform: translate(-50%, calc(-100% - 9px))
+    background: #1f2937
+    color: $white
+    font-size: 12px
+    font-weight: 600
+    padding: 6px 11px
+    border-radius: 7px
+    white-space: nowrap
+    pointer-events: none
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28)
+
+    &::after
+      content: ''
+      position: absolute
+      top: 100%
+      left: 50%
+      transform: translateX(-50%)
+      border: 5px solid transparent
+      border-top-color: #1f2937
+
+  &__empty
+    padding: 40px
+    text-align: center
+    color: $text-inactive
+    font-size: 14px
+    border: 1px dashed $border
+    border-radius: $radius-lg
+
+  // ── Modale Crea ───────────────────────────────────────────────────────────────
+  &__crea
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__crea-actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
