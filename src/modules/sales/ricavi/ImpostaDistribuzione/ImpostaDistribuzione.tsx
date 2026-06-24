@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
+import { useAccessStore } from '../../../../store/useAccessStore'
+import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
 
 type Capacita = 1 | 2 | 3
@@ -103,6 +105,14 @@ const FALLBACK: Data = {
 }
 
 export default function ImpostaDistribuzione({ navigate }: { navigate: (p: string) => void }) {
+  // Pagina condivisa: i Tour Operator vedono una versione dedicata (distribuzione
+  // per destinazione/struttura/mercato); gli altri moduli la versione standard.
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const assist           = useAccessStore(s => s.assist)
+  const profiles         = useAccessStore(s => s.profiles)
+  const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
+  const isTO = moduli?.includes('tour-operator')
+
   const [data, setData] = useState<Data>(FALLBACK)
   const [invitaOpen, setInvitaOpen] = useState(false)
   const [invita, setInvita] = useState({ azienda: '', email: '', referente: '' })
@@ -146,6 +156,8 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
     if (!data.nomeCluster.trim()) return
     setData({ ...data, cluster: [...data.cluster, data.nomeCluster], nomeCluster: '' })
   }
+
+  if (isTO) return <ImpostaDistribuzioneTO navigate={navigate} />
 
   return (
     <div className="imposta-dist">

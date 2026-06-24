@@ -4,6 +4,8 @@ import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 import Modal from '../../../../core/components/Modal'
+import { useAccessStore } from '../../../../store/useAccessStore'
+import PianificazioneAnnualeTO from './PianificazioneAnnualeTO'
 import './CalendarioAnnuale.sass'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -49,6 +51,14 @@ function seedFit(y: number): Record<string, number> {
 type TipState = { text: string; x: number; y: number } | null
 
 export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) => void }) {
+  // Pagina condivisa: i Tour Operator vedono "Pianificazione annuale" (markup
+  // dinamici); gli altri moduli il "Calendario annuale" standard (tariffe).
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const assist           = useAccessStore(s => s.assist)
+  const profiles         = useAccessStore(s => s.profiles)
+  const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
+  const isTO = moduli?.includes('tour-operator')
+
   const initRange = useMemo(defaultRange, [])
   const initYear = new Date(initRange.from).getFullYear()
   const [dateFrom, setDateFrom] = useState(initRange.from)
@@ -116,6 +126,8 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
   }
 
   const salva = () => { setSalvato(true); window.setTimeout(() => setSalvato(false), 2500) }
+
+  if (isTO) return <PianificazioneAnnualeTO navigate={navigate} />
 
   return (
     <div className="ca">

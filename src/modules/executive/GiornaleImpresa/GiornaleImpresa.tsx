@@ -8,6 +8,7 @@ import { SelectField } from '../../../core/components/form'
 import MENU from '../../../navigation/menu'
 import MENU_TO from '../../../navigation/menuTourOperator'
 import { useAccessStore } from '../../../store/useAccessStore'
+import GiornaleImpresaTO from './GiornaleImpresaTO'
 import './GiornaleImpresa.sass'
 
 // La pagina è CONDIVISA tra moduli: i Tour Operator vedono una versione con
@@ -684,6 +685,9 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
     setOrders(p => ({ ...p, [activeTab]: (p[activeTab] ?? []).filter(x => x !== id) }))
   const addCard = (id: string) =>
     setOrders(p => (p[activeTab] ?? []).includes(id) ? p : { ...p, [activeTab]: [...(p[activeTab] ?? []), id] })
+
+  // I Tour Operator hanno una pagina con layout dedicato.
+  if (variant === 'to') return <GiornaleImpresaTO navigate={navigate} />
 
   return (
     <div className="giornale">

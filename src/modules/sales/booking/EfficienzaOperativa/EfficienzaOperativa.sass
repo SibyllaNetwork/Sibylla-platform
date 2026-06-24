@@ -1,0 +1,523 @@
+// ─── EFFICIENZA OPERATIVA ──────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.eop
+  --eop-c1: 230px
+  --eop-w: 90px
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Toolbar ─────────────────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 20px
+    flex-wrap: wrap
+
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__period, &__suggerimenti
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__period-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  // segmented giorni
+  &__seg
+    display: inline-flex
+    gap: 3px
+    padding: 3px
+    border-radius: $radius-md
+    background: $primary-50
+    border: 1px solid $border
+    height: 36px
+
+  &__seg-btn
+    min-width: 34px
+    border: none
+    border-radius: $radius-sm
+    background: transparent
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      color: $primary
+
+    &.is-active
+      background: $primary
+      color: $white
+
+  // switch suggerimenti
+  &__switch
+    position: relative
+    width: 42px
+    height: 22px
+    border-radius: 999px
+    border: none
+    background: $border
+    cursor: pointer
+    padding: 0
+    transition: $transition-fast
+
+    &.is-on
+      background: $primary
+
+  &__switch-thumb
+    position: absolute
+    top: 2px
+    left: 2px
+    width: 18px
+    height: 18px
+    border-radius: 50%
+    background: $white
+    box-shadow: $shadow-sm
+    transition: $transition-fast
+
+    .eop__switch.is-on &
+      left: 22px
+
+  // pannello efficienza operativa (€/% · configuratore · notifica)
+  &__panel
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 12px 14px
+    border: 1px solid $primary-200
+    border-radius: $radius-lg
+    background: $primary-50
+
+  &__panel-title
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    color: $primary
+
+  &__panel-row
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__mode
+    display: inline-flex
+    border: 1px solid $primary-200
+    border-radius: $radius-md
+    overflow: hidden
+    background: $white
+
+  &__mode-btn
+    width: 34px
+    height: 30px
+    border: none
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 13px
+    transition: $transition-fast
+
+    & + &
+      border-left: 1px solid $primary-200
+
+    &:hover
+      color: $primary
+
+    &.is-on
+      background: $primary
+      color: $white
+
+  &__config-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 30px
+    padding: 0 12px
+    border: 1px solid $primary-200
+    border-radius: $radius-md
+    background: $white
+    color: $primary
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      background: $primary
+      color: $white
+      border-color: $primary
+
+  &__bell
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 30px
+    border-radius: $radius-md
+    font-size: 14px
+    cursor: pointer
+    transition: $transition-fast
+
+    &.is-on
+      color: $white
+      background: $primary
+      border: 1px solid $primary
+
+      &:hover
+        background: $primary-700
+        border-color: $primary-700
+
+    &.is-off
+      color: $text-inactive
+      background: $bg
+      border: 1px solid $border
+
+      &:hover
+        color: $primary
+        border-color: $primary-200
+
+  // ── Griglia ─────────────────────────────────────────────────────────────────
+  &__timeline
+    position: relative
+
+  &__table-wrap
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: auto
+    background: $white
+    box-shadow: 0 2px 10px rgba(32, 71, 105, 0.04)
+    scrollbar-width: none
+    -ms-overflow-style: none
+    &::-webkit-scrollbar
+      display: none
+
+  &__nav
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    z-index: 20
+    width: 38px
+    height: 38px
+    border-radius: 50%
+    border: 1px solid $primary-200
+    background: $white
+    color: $primary
+    box-shadow: $shadow-lg
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &:hover
+      background: $primary
+      color: $white
+      transform: translateY(-50%) scale(1.08)
+
+    &--prev
+      left: calc(var(--eop-c1) + var(--eop-w) + 8px)
+    &--next
+      right: 10px
+
+  &__table
+    width: 100%
+    min-width: 1000px
+    border-collapse: separate
+    border-spacing: 0
+    font-size: 13px
+
+  &__th
+    padding: 8px 10px
+    background: $bg
+    color: $text-inactive
+    font-size: 10.5px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.4px
+    border-bottom: 1px solid $border
+    text-align: center
+    white-space: nowrap
+    vertical-align: middle
+
+    &--struct
+      text-align: left
+      min-width: var(--eop-c1)
+      width: var(--eop-c1)
+      position: sticky
+      left: 0
+      z-index: 3
+      background: $bg
+      border-right: 1px solid $border
+
+    &--camere
+      position: sticky
+      left: var(--eop-c1)
+      z-index: 3
+      width: var(--eop-w)
+      min-width: var(--eop-w)
+      background: $bg
+      border-right: 1px solid $border
+
+    &--day
+      border-left: 1px solid $border
+      &.is-weekend .eop__day-chip
+        color: $primary
+        font-weight: 700
+
+  &__day-head
+    display: inline-flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+
+  &__day-chip
+    font-size: 10.5px
+    font-weight: 600
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__day-date
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-active
+    text-transform: none
+    letter-spacing: 0
+
+  // celle
+  &__tr:hover .eop__td
+    background: alpha($primary, 0.03)
+
+  &__td
+    padding: 9px 10px
+    border-bottom: 1px solid #eef0f3
+    text-align: center
+    font-variant-numeric: tabular-nums
+    color: $text-active
+    background: $white
+
+    &--struct
+      text-align: left
+      position: sticky
+      left: 0
+      z-index: 2
+      background: $white
+      border-right: 1px solid $border
+
+    &--camere
+      position: sticky
+      left: var(--eop-c1)
+      z-index: 2
+      background: $white
+      border-right: 1px solid $border
+      font-weight: 600
+
+    &--day
+      min-width: 92px
+
+    &.has-sugg
+      background: alpha($primary, 0.05)
+
+  &__hotel
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__hotel-ico
+    color: $primary
+    font-size: 15px
+
+  &__hotel-info
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__hotel-name
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__hotel-meta
+    font-size: 11px
+    color: $text-inactive
+
+  &__disp
+    display: block
+    font-size: 13px
+    font-weight: 600
+
+  // chip suggerimento riallocazione
+  &__sugg
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    margin-top: 5px
+    padding: 2px 8px
+    border-radius: 999px
+    border: 1px solid $primary
+    background: $primary-50
+    color: $primary
+    font-size: 11px
+    font-weight: 700
+    cursor: pointer
+    white-space: nowrap
+    transition: $transition-fast
+
+    i
+      font-size: 10px
+
+    &:hover
+      background: $primary
+      color: $white
+
+    &--done
+      border-color: $success
+      background: alpha($success, 0.12)
+      color: $success
+      cursor: default
+
+      &:hover
+        background: alpha($success, 0.12)
+        color: $success
+
+  // finestra giorni
+  &__window
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: flex-start
+    padding: 7px 14px
+    border: 1px dashed $border
+    border-radius: 999px
+    font-size: 12.5px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+    strong
+      color: $text-active
+
+  // ── Riepilogo ottimizzazione ──────────────────────────────────────────────────
+  &__riepilogo
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    box-shadow: $shadow-sm
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__riep-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+  &__riep-title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+
+    i
+      color: $primary
+
+  &__riep-count
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__metrics
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 900px)
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  &__metric
+    display: flex
+    flex-direction: column
+    gap: 5px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $bg
+
+    &--gain
+      border-color: $primary
+      background: $primary-50
+
+  &__metric-lab
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__metric-val
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: $text-active
+
+    i
+      font-size: 11px
+      color: $primary
+
+  &__metric-from
+    color: $text-inactive
+    font-weight: 600
+    font-size: 14px
+
+  &__metric-to
+    color: $primary
+
+  &__metric--gain &__metric-val
+    color: $success
+
+  &__metric-sub
+    font-size: 11px
+    color: $text-inactive
+
+  &__riep-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+    padding-top: 12px
+    border-top: 1px solid $border
+
+  &__riep-note
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary

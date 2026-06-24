@@ -80,6 +80,7 @@ import NuovaPrenotazione           from '../modules/sales/booking/NuovaPrenotazi
 import AnalisiBooking              from '../modules/sales/booking/AnalisiBooking/AnalisiBooking';
 import GrigliaDisponibilita        from '../modules/sales/booking/GrigliaDisponibilita/GrigliaDisponibilita';
 import GrigliaDisponibilitaEstesa  from '../modules/sales/booking/GrigliaDisponibilitaEstesa/GrigliaDisponibilitaEstesa';
+import EfficienzaOperativa         from '../modules/sales/booking/EfficienzaOperativa/EfficienzaOperativa';
 import Assegnazione                from '../modules/sales/booking/Assegnazione/Assegnazione';
 import CentroNotifiche             from '../modules/notifiche/CentroNotifiche/CentroNotifiche';
 import ConfiguraNotifiche          from '../modules/notifiche/ConfiguraNotifiche/ConfiguraNotifiche';
@@ -224,6 +225,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'analisi-booking')       return <AnalisiBooking navigate={navigate}/>;
   if (page === 'griglia-disp')          return <GrigliaDisponibilita navigate={navigate}/>;
   if (page === 'griglia-disp-estesa')   return <GrigliaDisponibilitaEstesa navigate={navigate}/>;
+  if (page === 'efficienza-operativa')  return <EfficienzaOperativa navigate={navigate}/>;
   if (page === 'assegnazione-book')     return <Assegnazione navigate={navigate}/>;
   if (page === 'assegnazione-board')    return <Assegnazione navigate={navigate}/>;
   if (page === 'nuova-prenotazione')    return <NuovaPrenotazione navigate={navigate}/>;

@@ -6,6 +6,7 @@ import { getNotifiche, type NotificaDto } from '../../../services/notifiche.serv
 import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
 import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
+import { useEfficienzaStore, deltaEur, deltaPct } from '../../../store/useEfficienzaStore'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -179,9 +180,39 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     }))
   }, [pratiche, slaHours, notificaSolleciti])
 
+  // Ottimizzazioni dalla pagina "Efficienza operativa" → notifica ricavo (€ o %),
+  // mostrata solo se il flag è attivo nelle impostazioni del Centro notifiche.
+  const ottimizzazioni = useEfficienzaStore((s) => s.ottimizzazioni)
+  const notificaEffOn  = useEfficienzaStore((s) => s.notificaOn)
+  const modalitaEff    = useEfficienzaStore((s) => s.modalita)
+  const efficienzaNotifs: NotificaUI[] = useMemo(() => {
+    if (!notificaEffOn) return []
+    return ottimizzazioni.map((o, i) => {
+      const d = new Date(o.createdAt)
+      const today = new Date()
+      const sameDay = d.toDateString() === today.toDateString()
+      const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
+      const group: NotificaUI['group'] = sameDay ? 'oggi' : sameMonth ? 'mese-scorso' : 'precedenti'
+      const valore = modalitaEff === 'eur'
+        ? `+${fmtEUR(deltaEur(o))}`
+        : `+${deltaPct(o).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+      return {
+        id: 970000 + i,
+        sev: 'info',
+        title: 'Ricavo da ottimizzazione',
+        text: `Riallocate ${o.camere} camere su ${o.struttura} (${o.destinazione}) da ${o.daStruttura}: ${valore} di ricavo.`,
+        ref: o.struttura,
+        date: `${WEEKDAYS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MONTHS[d.getMonth()]}`,
+        time: d.toTimeString().slice(0, 5),
+        group,
+        read: false,
+      }
+    })
+  }, [ottimizzazioni, notificaEffOn, modalitaEff])
+
   const allNotifications = useMemo(
-    () => [...praticheNotifs, ...richiesteNotifs, ...items],
-    [praticheNotifs, richiesteNotifs, items],
+    () => [...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),

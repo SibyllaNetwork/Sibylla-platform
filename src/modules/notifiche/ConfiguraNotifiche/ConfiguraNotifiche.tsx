@@ -5,12 +5,18 @@ import Ico from '../../../core/icons/Ico';
 import BtnBack from '../../../core/components/BtnBack';
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
+import { useEfficienzaStore } from '../../../store/useEfficienzaStore'
 import './ConfiguraNotifiche.sass'
 
 type NotifRow  = {label:string;cn:boolean;email:boolean;scad:boolean;gg:number|null};
 type PersonRow = {label:string;mostra:boolean};
 
+// Riga il cui flag "Centro notifiche" è la sorgente di verità per la notifica
+// "Ricavo da ottimizzazione" (pagina Efficienza operativa).
+const EFF_LABEL = "Ricavo da ottimizzazione";
+
 const GENERALI_INIT:NotifRow[] = [
+  {label:EFF_LABEL,                         cn:true, email:false,scad:false,gg:null},
   {label:"Richiesta prenotazione extra",   cn:true, email:true, scad:false,gg:null},
   {label:"Scadenza opzione",               cn:true, email:true, scad:true, gg:8},
   {label:"Richiesta acquisto lotti",       cn:true, email:true, scad:true, gg:1},
@@ -49,13 +55,22 @@ const CARRELLO_INIT:PersonRow[] = [
 ];
 
 export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void}) {
-  const [rows,     setRows]     = useState<NotifRow[]>(GENERALI_INIT.map(r=>({...r})));
+  const setNotificaEffOn = useEfficienzaStore(s=>s.setNotificaOn);
+
+  const [rows,     setRows]     = useState<NotifRow[]>(
+    ()=>GENERALI_INIT.map(r=>r.label===EFF_LABEL ? {...r, cn:useEfficienzaStore.getState().notificaOn} : {...r}));
   const [person,   setPerson]   = useState<PersonRow[]>(PERSON_INIT.map(r=>({...r})));
   const [carrello, setCarrello] = useState<PersonRow[]>(CARRELLO_INIT.map(r=>({...r})));
   const [saved,    setSaved]    = useState(false);
 
   const toggle  = (ri:number, field:"cn"|"email"|"scad") =>
-    setRows(prev=>prev.map((r,i)=>i===ri?{...r,[field]:!r[field]}:r));
+    setRows(prev=>prev.map((r,i)=>{
+      if(i!==ri) return r;
+      const nv = !r[field];
+      // il flag "Centro notifiche" della riga Ottimizzazione persiste nello store
+      if(field==="cn" && r.label===EFF_LABEL) setNotificaEffOn(nv);
+      return {...r,[field]:nv};
+    }));
   const setGg   = (ri:number, v:number) =>
     setRows(prev=>prev.map((r,i)=>i===ri?{...r,gg:Math.max(0,v)}:r));
   const toggleP = (arr:PersonRow[], set:React.Dispatch<React.SetStateAction<PersonRow[]>>, ri:number) =>

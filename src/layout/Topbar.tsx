@@ -1,14 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import Ico from '../core/icons/Ico'
 import MenuIco from '../core/icons/MenuIco'
 import NotifMenu from './NotifMenu'
 import FavoritesPanel from './FavoritesPanel'
 import Tooltip from '../core/components/Tooltip'
-import MENU from '../navigation/menu'
+import MENU_FULL from '../navigation/menuFull'
+import { filterMenu, applyModuleLabels } from '../navigation/filterMenu'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
-import { useAccessStore } from '../store/useAccessStore'
+import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli } from '../store/useAccessStore'
+import { useModuliStore } from '../store/useModuliStore'
 import { useOrgStore } from '../store/useOrgStore'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 
@@ -36,6 +38,20 @@ export default function Topbar({
   // assiste un cliente (impersonazione).
   const assist = useAccessStore(s => s.assist)
   const adminMode = !!assist || currentPage === 'sibylla-admin' || currentPage === 'assist-admin' || isPlatformAdminPage(currentPage)
+
+  // Menu su cui cercare: stesso albero filtrato della sidenav (MENU_FULL ridotto
+  // ai moduli dell'utente). Così la ricerca trova le pagine dei moduli Tour
+  // Operator / Ristorazione, non solo quelle del menu Struttura ricettiva.
+  const currentProfileId = useAccessStore(s => s.currentProfileId)
+  const profiles         = useAccessStore(s => s.profiles)
+  const modules          = useModuliStore(s => s.moduli)
+  const searchMenuItems = useMemo(() => {
+    if (assist) return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForModuli(assist.moduli, modules)), assist.moduli)
+    if (!currentProfileId) return MENU_FULL
+    const profile = profiles.find(p => p.id === currentProfileId)
+    if (!profile) return MENU_FULL
+    return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli)
+  }, [assist, currentProfileId, profiles, modules])
   // Colori di icone/testo: scuri (#2A2208) sull'oro admin, chiari sul blu standard.
   const C = adminMode
     ? { bright: '#2A2208', normal: '#2A2208', muted: 'rgba(42,34,8,0.6)' }
@@ -66,11 +82,11 @@ export default function Topbar({
 
   // Aggiorna risultati al cambio query
   useEffect(() => {
-    const r = searchMenu(query)
+    const r = searchMenu(query, searchMenuItems)
     setResults(r)
     setSelIdx(-1)
     setOpen(query.length > 0)
-  }, [query])
+  }, [query, searchMenuItems])
 
   // Chiudi cliccando fuori
   useEffect(() => {
@@ -246,7 +262,7 @@ export default function Topbar({
             I miei preferiti
           </button>
           {favorites.slice(0, 5).map(pageId => {
-            const it = findByPage(MENU, pageId)
+            const it = findByPage(MENU_FULL, pageId)
             return it ? (
               <button key={pageId} className="topbar__fav-page" onClick={() => navigate(pageId)} title={it.label}>
                 <MenuIco id={it.id} s={15} c={C.normal} />

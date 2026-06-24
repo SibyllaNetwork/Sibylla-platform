@@ -1,4 +1,4 @@
-import MENU from './menu'
+import MENU_FULL from './menuFull'
 import T from '../core/tokens'
 
 export function findByPage(items: any[], pageId: string): any {
@@ -73,20 +73,26 @@ function walkMenu(
   }
 }
 
-let _allResults: SearchResult[] | null = null
+// Indice ricavato dall'albero di menu passato (default: MENU_FULL = superset di
+// tutti i moduli). Così la ricerca trova anche le pagine dei moduli Tour Operator
+// e Ristorazione, non solo quelle del menu Struttura ricettiva. Il chiamante può
+// passare il menu già filtrato sui moduli dell'utente per restringere i risultati.
+const _resultsCache = new WeakMap<any[], SearchResult[]>()
 
-function getAllResults(): SearchResult[] {
-  if (!_allResults) {
-    _allResults = []
-    walkMenu(MENU, [], _allResults)
+function getAllResults(items: any[]): SearchResult[] {
+  let cached = _resultsCache.get(items)
+  if (!cached) {
+    cached = []
+    walkMenu(items, [], cached)
+    _resultsCache.set(items, cached)
   }
-  return _allResults
+  return cached
 }
 
-export function searchMenu(query: string): SearchResult[] {
+export function searchMenu(query: string, items: any[] = MENU_FULL): SearchResult[] {
   if (!query.trim()) return []
   const q = query.toLowerCase().trim()
-  return getAllResults().filter(r =>
+  return getAllResults(items).filter(r =>
     r.label.toLowerCase().includes(q) ||
     r.path.some(p => p.toLowerCase().includes(q))
   ).slice(0, 8)  // max 8 risultati
@@ -105,7 +111,7 @@ const PARENT_MAP: Record<string, string> = {
 }
 
 export function resolveActivePage(pageId: string): string {
-  const found = findByPage(MENU, pageId)
+  const found = findByPage(MENU_FULL, pageId)
   if (found) return pageId
   return PARENT_MAP[pageId] || pageId
 }

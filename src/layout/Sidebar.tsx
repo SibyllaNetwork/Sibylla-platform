@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import Ico from '../core/icons/Ico'
 import NavItem from './NavItem'
 import MENU_FULL from '../navigation/menuFull'
-import { filterMenu } from '../navigation/filterMenu'
+import { filterMenu, applyModuleLabels } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
 import PlatformAdminNav from './PlatformAdminNav'
@@ -61,11 +61,11 @@ export default function Sidebar({
   // duplicati). Nessun contratto / console → menu completo.
   const menu = useMemo(() => {
     if (onConsole) return MENU_FULL
-    if (assist) return filterMenu(MENU_FULL as any[], enabledPagesForModuli(assist.moduli, modules))
+    if (assist) return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForModuli(assist.moduli, modules)), assist.moduli)
     if (!currentProfileId) return MENU_FULL
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU_FULL
-    return filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules))
+    return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli)
   }, [onConsole, assist, currentProfileId, profiles, modules])
 
   // Durante l'assistenza lo switcher elenca le strutture del cliente (le stesse

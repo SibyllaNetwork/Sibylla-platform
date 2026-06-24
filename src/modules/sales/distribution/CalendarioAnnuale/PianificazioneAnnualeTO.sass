@@ -1,0 +1,484 @@
+// ─── PIANIFICAZIONE ANNUALE — versione Tour Operator ─────────────────────────
+@use '../../../../styles/tokens' as *
+
+.pian
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Toolbar ───────────────────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 20px
+    flex-wrap: wrap
+
+  &__toolbar-actions
+    display: inline-flex
+    gap: 10px
+
+  &__hint
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 9px 13px
+    border-radius: $radius-md
+    background: $primary-50
+    border: 1px solid $primary-200
+    font-size: 12.5px
+    color: $text-active
+
+    i
+      color: $primary
+
+  // ── Stagionalità (pill) ─────────────────────────────────────────────────────────
+  &__season
+    display: inline-flex
+    align-items: center
+    padding: 1px 8px
+    border-radius: 999px
+    font-size: 10.5px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.3px
+
+    &--bassa
+      color: $text-inactive
+      background: alpha($text-inactive, 0.12)
+    &--media
+      color: $primary
+      background: $primary-50
+    &--alta
+      color: $warning
+      background: alpha($warning, 0.15)
+    &--top
+      color: $error
+      background: alpha($error, 0.12)
+
+  // ── Matrice ─────────────────────────────────────────────────────────────────────
+  &__matrix-wrap
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: $white
+    box-shadow: $shadow-sm
+    padding: 12px
+    overflow-x: auto
+
+  &__matrix
+    width: 100%
+    min-width: 720px
+    border-collapse: separate
+    border-spacing: 0
+    font-size: 13px
+
+    th, td
+      border-bottom: 1px solid $border
+      border-right: 1px solid $border
+
+    thead th
+      background: $bg
+      color: $text-inactive
+      font-size: 10.5px
+      font-weight: 700
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      padding: 9px 10px
+      text-align: center
+      border-top: 1px solid $border
+
+      &:first-child
+        border-left: 1px solid $border
+
+  &__corner
+    text-align: left !important
+    position: sticky
+    left: 0
+    z-index: 3
+    min-width: 150px
+
+  &__bw-th
+    white-space: nowrap
+
+  &__month
+    position: sticky
+    left: 0
+    z-index: 2
+    background: $white
+    border-left: 1px solid $border
+    text-align: left
+    padding: 8px 10px
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+  &__month-name
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  // celle markup (heatmap)
+  &__cell
+    text-align: center
+    padding: 8px 10px
+    color: $text-active
+    transition: background 0.15s ease
+
+    &.is-editable
+      cursor: pointer
+
+    &--l1
+      background: alpha($primary, 0.05)
+    &--l2
+      background: alpha($primary, 0.16)
+    &--l3
+      background: alpha($primary, 0.32)
+    &--l4
+      background: alpha($primary, 0.52)
+      color: $white
+    &--l5
+      background: alpha($primary, 0.74)
+      color: $white
+
+  &__cell-val
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+    small
+      font-weight: 600
+      opacity: 0.7
+      margin-left: 1px
+
+  &__cell-input
+    width: 52px
+    border: 1px solid $primary
+    border-radius: $radius-sm
+    padding: 3px 5px
+    font-size: 13px
+    font-weight: 700
+    text-align: center
+    background: $white
+    color: $text-active
+
+  // ── Asse booking window ──────────────────────────────────────────────────────────
+  &__bw-axis
+    display: flex
+    align-items: center
+    gap: 14px
+    margin-top: 12px
+    padding: 10px 12px
+    border-top: 1px dashed $border
+
+  &__bw-axis-label
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    white-space: nowrap
+
+    i
+      color: $primary
+
+  &__bw-axis-track
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+
+  &__bw-dot
+    display: inline-flex
+    align-items: center
+    padding: 3px 11px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $primary-200
+    color: $primary
+    font-size: 11.5px
+    font-weight: 600
+
+  &__bw-arrow
+    color: $border
+    font-size: 11px
+
+  // ── Risultato ─────────────────────────────────────────────────────────────────────
+  &__result
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__markup-box
+    border: 1px solid $primary-200
+    border-radius: $radius-lg
+    background: $white
+    box-shadow: $shadow-sm
+    padding: 16px
+
+  &__markup-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 12px
+
+  &__markup-title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: $primary
+
+    i
+      color: $primary
+
+  &__markup-period
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__markup-list
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 10px
+
+    @media (max-width: 800px)
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  &__markup-item
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 12px 14px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $bg
+
+  &__markup-range
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: $primary
+
+  &__markup-mesi
+    font-size: 11.5px
+    color: $text-inactive
+
+  // doppia visualizzazione
+  &__dual
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: $white
+    box-shadow: $shadow-sm
+    padding: 14px 16px
+
+  &__dual-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 14px
+
+  &__dual-title
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $text-active
+
+  &__seg
+    display: inline-flex
+    gap: 3px
+    padding: 3px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $border
+
+  &__seg-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 14px
+    border: none
+    border-radius: 999px
+    background: transparent
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      color: $primary
+
+    &.is-on
+      background: $primary
+      color: $white
+
+  &__catalogo
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+    gap: 12px
+
+  &__cat-card
+    display: flex
+    flex-direction: column
+    gap: 9px
+    padding: 14px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $bg
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary-200
+      box-shadow: $shadow-sm
+
+  &__cat-top
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+  &__cat-mese
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+
+  &__cat-markup
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 700
+    color: $primary
+
+  &__cat-sample
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      font-size: 10px
+      color: $primary
+
+    strong
+      color: $text-active
+      font-size: 13px
+
+  // ── Wizard (guida assistita) ──────────────────────────────────────────────────────
+  &__modal-backdrop
+    position: fixed
+    inset: 0
+    z-index: 1000
+    background: rgba(15, 30, 47, 0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 24px
+
+  &__modal
+    width: min(720px, 100%)
+    max-height: 90vh
+    overflow-y: auto
+    background: $white
+    border-radius: $radius-lg
+    box-shadow: $shadow-lg
+    padding: 22px
+
+  &__modal-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    margin-bottom: 16px
+
+  &__modal-title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-family: $font-heading
+    font-size: 17px
+    font-weight: 700
+    color: $primary
+
+    i
+      color: $primary
+
+  &__modal-sub
+    margin: 6px 0 0
+    font-size: 12.5px
+    color: $text-inactive
+    line-height: 1.45
+
+  &__modal-close
+    border: none
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 16px
+
+    &:hover
+      color: $text-active
+
+  &__wiz-table
+    width: 100%
+    border-collapse: separate
+    border-spacing: 0
+    font-size: 13px
+
+    th, td
+      border-bottom: 1px solid $border
+      border-right: 1px solid $border
+
+    thead th
+      background: $bg
+      color: $text-inactive
+      font-size: 10.5px
+      font-weight: 700
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      padding: 8px 8px
+      text-align: center
+      border-top: 1px solid $border
+
+      &:first-child
+        border-left: 1px solid $border
+
+  &__wiz-corner
+    text-align: left !important
+    min-width: 130px
+
+  &__wiz-season
+    border-left: 1px solid $border
+    background: $white
+    text-align: left
+    padding: 8px 10px
+
+  &__wiz-input
+    width: 56px
+    border: 1px solid $border
+    border-radius: $radius-sm
+    padding: 4px 6px
+    font-size: 13px
+    font-weight: 700
+    text-align: center
+    background: $white
+    color: $text-active
+
+    &:focus
+      border-color: $primary
+      outline: none
+
+  &__modal-actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 18px

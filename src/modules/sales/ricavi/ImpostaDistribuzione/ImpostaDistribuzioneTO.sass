@@ -1,0 +1,503 @@
+// ─── IMPOSTA DISTRIBUZIONE — versione Tour Operator ──────────────────────────
+@use '../../../../styles/tokens' as *
+
+.impdto
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Avviso budget ─────────────────────────────────────────────────────────────
+  &__alert
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 10px 14px
+    border-radius: $radius-md
+    background: alpha($warning, 0.12)
+    border: 1px solid alpha($warning, 0.4)
+    color: $text-active
+    font-size: 13px
+    font-weight: 600
+
+    i
+      color: $warning
+      margin-right: 6px
+
+  &__alert-close
+    border: none
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 14px
+
+    &:hover
+      color: $text-active
+
+  // ── Filtri ──────────────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
+
+  &__search
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__search-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__search-wrap
+    position: relative
+    display: flex
+    align-items: center
+
+    i
+      position: absolute
+      left: 11px
+      color: $text-inactive
+      font-size: 13px
+      pointer-events: none
+
+    .sib-input
+      width: 240px
+      padding-left: 32px
+
+  // ── Layout: linguette laterali + pannello ─────────────────────────────────────
+  &__layout
+    display: flex
+    align-items: stretch
+    gap: 0
+
+  &__tabs
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding-top: 6px
+    flex-shrink: 0
+
+  &__tab
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 9px
+    width: 50px
+    min-height: 116px
+    padding: 14px 4px
+    border: 1px solid $border
+    border-right: none
+    border-radius: $radius-md 0 0 $radius-md
+    background: $bg
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+
+    i
+      font-size: 15px
+
+    span
+      writing-mode: vertical-rl
+      transform: rotate(180deg)
+      font-size: 12.5px
+      font-weight: 600
+      letter-spacing: 0.3px
+      white-space: nowrap
+
+    &:hover
+      color: $primary
+      background: $primary-50
+
+    &.is-active
+      background: $white
+      color: $primary
+      border-color: $primary-200
+      z-index: 2
+      margin-right: -1px
+
+  &__tab-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 20px
+    height: 18px
+    padding: 0 5px
+    border-radius: 999px
+    background: $primary-50
+    color: $primary
+    font-size: 11px
+    font-weight: 700
+    font-style: normal
+
+    .impdto__tab.is-active &
+      background: $primary
+      color: $white
+
+  &__panel
+    flex: 1
+    min-width: 0
+    border: 1px solid $primary-200
+    border-radius: $radius-lg
+    background: $white
+    box-shadow: $shadow-sm
+    padding: 14px 16px
+    overflow-x: auto
+
+  // ── Tabella strutture ─────────────────────────────────────────────────────────
+  &__table
+    width: 100%
+
+    th, td
+      vertical-align: middle
+
+  &__th-struct-row
+    display: inline-flex
+    align-items: center
+    gap: 10px
+
+  &__filter
+    height: 28px
+    padding: 2px 26px 2px 10px
+    font-size: 12px
+    font-weight: 600
+    text-transform: none
+    letter-spacing: 0
+
+  &__th-c
+    text-align: center
+
+  &__td-c
+    text-align: center
+
+  &__th-sw
+    text-align: right
+    width: 96px
+
+  &__td-sw
+    text-align: right
+
+  &__all-btn
+    border: 1px solid $primary-200
+    background: $primary-50
+    color: $primary
+    font-size: 11px
+    font-weight: 600
+    text-transform: none
+    letter-spacing: 0
+    border-radius: 999px
+    padding: 3px 11px
+    cursor: pointer
+
+    &:hover
+      background: $primary
+      color: $white
+
+  tr.is-selected td
+    background: $primary-50
+
+  &__struct
+    display: flex
+    align-items: center
+    gap: 11px
+
+  &__struct-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 34px
+    height: 34px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: $primary-50
+    color: $primary
+    font-size: 15px
+
+  &__struct-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__struct-name
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__struct-dest
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11.5px
+    color: $text-inactive
+
+    i
+      color: $primary
+      font-size: 10px
+
+  // camere + barra capienza
+  &__camere
+    display: block
+    font-variant-numeric: tabular-nums
+    font-weight: 700
+    font-size: 14px
+    color: $text-active
+
+  &__camere-bar
+    display: block
+    width: 70px
+    height: 5px
+    margin: 4px auto 0
+    border-radius: 999px
+    background: $primary-50
+    overflow: hidden
+
+  &__camere-fill
+    display: block
+    height: 100%
+    width: var(--w, 0%)
+    border-radius: 999px
+    background: linear-gradient(90deg, $primary, $primary-700)
+
+  // stelle
+  &__stars
+    display: inline-flex
+    gap: 2px
+
+  &__star
+    font-size: 12px
+    color: $border
+
+    &--on
+      color: $warning
+
+  // capacità di spesa €€€
+  &__spesa
+    display: inline-flex
+    gap: 2px
+
+  &__euro
+    font-size: 13px
+    font-weight: 700
+    color: $border
+
+    &--on
+      color: $success
+
+  // bandiere
+  &__flags
+    display: inline-flex
+    flex-wrap: wrap
+    gap: 4px
+    align-items: center
+
+  &__flag
+    width: 22px
+    height: 15px
+    object-fit: cover
+    border-radius: 2px
+    border: 1px solid $border
+
+  // switch distribuzione
+  &__switch
+    position: relative
+    width: 42px
+    height: 22px
+    border-radius: 999px
+    border: none
+    background: $border
+    cursor: pointer
+    padding: 0
+    transition: $transition-fast
+
+    &.is-on
+      background: $primary
+
+  &__switch-thumb
+    position: absolute
+    top: 2px
+    left: 2px
+    width: 18px
+    height: 18px
+    border-radius: 50%
+    background: $white
+    box-shadow: $shadow-sm
+    transition: $transition-fast
+
+    .impdto__switch.is-on &
+      left: 22px
+
+  &__empty
+    text-align: center
+    color: $text-inactive
+    font-size: 13px
+    padding: 22px 0
+
+  // ── Vista Cluster ──────────────────────────────────────────────────────────────
+  &__cluster-view
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__cluster-form
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__cluster-hint
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12.5px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  &__cluster-row
+    display: flex
+    align-items: center
+    gap: 10px
+
+    .sib-input
+      max-width: 280px
+
+  &__cluster-grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))
+    gap: 12px
+
+  &__cluster-card
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 14px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $bg
+
+  &__cluster-card-head
+    display: flex
+    align-items: center
+    gap: 9px
+
+    > i
+      color: $primary
+      font-size: 15px
+
+  &__cluster-name
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+
+  &__cluster-del
+    margin-left: auto
+    border: none
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 13px
+
+    &:hover
+      color: $error
+
+  &__cluster-members
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__cluster-chip
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11.5px
+    font-weight: 600
+    color: $text-active
+    background: $white
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 3px 10px
+
+    i
+      color: $primary
+      font-size: 10px
+
+  &__cluster-foot
+    display: flex
+    gap: 16px
+    padding-top: 8px
+    border-top: 1px dashed $border
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+      margin-right: 4px
+
+  // ── Footer: copertura + azioni ──────────────────────────────────────────────────
+  &__footer
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 24px
+    flex-wrap: wrap
+    padding: 14px 18px
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: $white
+    box-shadow: $shadow-sm
+
+  &__coverage
+    flex: 1
+    min-width: 240px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__coverage-top
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    font-size: 13px
+    color: $text-inactive
+
+    strong
+      color: $primary
+      font-family: $font-heading
+      font-size: 15px
+
+  &__coverage-pct
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+
+  &__coverage-bar
+    height: 8px
+    border-radius: 999px
+    background: $primary-50
+    overflow: hidden
+
+  &__coverage-fill
+    display: block
+    height: 100%
+    width: var(--w, 0%)
+    border-radius: 999px
+    background: linear-gradient(90deg, $primary, $primary-700)
+
+  &__coverage-sub
+    font-size: 11.5px
+    color: $text-inactive
+
+    i
+      color: $primary
+      margin: 0 3px 0 0
+
+  &__footer-actions
+    display: inline-flex
+    gap: 10px

@@ -1,0 +1,469 @@
+// ─── GIORNALE IMPRESA — versione Tour Operator ────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.gioto
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Hero di sintesi ───────────────────────────────────────────────────────────
+  &__hero
+    position: relative
+    overflow: hidden
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 24px
+    flex-wrap: wrap
+    padding: 22px 26px
+    border-radius: $radius-lg
+    background: linear-gradient(135deg, $primary 0%, $primary-700 100%)
+    box-shadow: $shadow-sm
+    color: $white
+
+    // bagliore decorativo
+    &::after
+      content: ''
+      position: absolute
+      top: -60px
+      right: -40px
+      width: 260px
+      height: 260px
+      border-radius: 50%
+      background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%)
+      pointer-events: none
+
+  &__hero-main
+    position: relative
+    z-index: 1
+    min-width: 0
+
+  &__hero-eyebrow
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 11.5px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.6px
+    color: rgba(255,255,255,0.85)
+
+  &__hero-title
+    margin: 6px 0 4px
+    font-family: $font-heading
+    font-size: 26px
+    font-weight: 700
+    color: $white
+
+  &__hero-sub
+    margin: 0
+    max-width: 560px
+    font-size: 13px
+    line-height: 1.45
+    color: rgba(255,255,255,0.82)
+
+  &__hero-stats
+    position: relative
+    z-index: 1
+    display: flex
+    gap: 12px
+    flex-wrap: wrap
+
+  &__hero-stat
+    display: flex
+    align-items: center
+    gap: 11px
+    padding: 11px 15px
+    border-radius: $radius-md
+    background: rgba(255,255,255,0.14)
+    border: 1px solid rgba(255,255,255,0.18)
+    backdrop-filter: blur(2px)
+
+    i
+      font-size: 20px
+      color: rgba(255,255,255,0.9)
+
+    strong
+      display: block
+      font-size: 17px
+      font-weight: 700
+      line-height: 1.1
+
+    span
+      font-size: 11px
+      color: rgba(255,255,255,0.8)
+
+  // ── Filtri ─────────────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 24px
+    flex-wrap: wrap
+
+  // segmented control canale
+  &__seg
+    display: inline-flex
+    gap: 3px
+    padding: 3px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $border
+
+  &__seg-btn
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 7px 15px
+    border: none
+    border-radius: 999px
+    background: transparent
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: all 0.18s ease
+
+    i
+      font-size: 13px
+
+    &:hover
+      color: $primary
+
+    &--on
+      background: $primary
+      color: $white
+      box-shadow: $shadow-sm
+
+      &:hover
+        color: $white
+
+  &__contratti
+    width: 240px
+
+  // ── Δ badge ──────────────────────────────────────────────────────────────────────
+  &__delta
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    padding: 2px 8px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 700
+
+    i
+      font-size: 9px
+
+    &--up
+      color: $success
+      background: alpha($success, 0.12)
+
+    &--down
+      color: $error
+      background: alpha($error, 0.12)
+
+  // ── Box generico ─────────────────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+    gap: 16px
+    align-items: start
+
+    @media (max-width: 1000px)
+      grid-template-columns: 1fr
+
+  &__box
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    box-shadow: $shadow-sm
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__box-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 700
+    color: $primary
+
+    i
+      color: $primary
+      margin-right: 7px
+
+  &__bi-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    border: 1px solid $primary-200
+    background: $primary-50
+    color: $primary
+    font-size: 12px
+    font-weight: 600
+    border-radius: 999px
+    padding: 4px 12px
+    cursor: pointer
+    transition: all 0.18s ease
+
+    &:hover
+      background: $primary
+      color: $white
+      border-color: $primary
+
+    i
+      margin: 0
+
+  // ── Riepilogo ieri/oggi ──────────────────────────────────────────────────────────
+  &__riep
+    display: flex
+    flex-direction: column
+
+  &__riep-row
+    display: grid
+    grid-template-columns: 1fr 78px 78px 70px
+    align-items: center
+    padding: 9px 6px
+    border-bottom: 1px solid #eef0f3
+    font-size: 13px
+
+    &:last-child
+      border-bottom: none
+
+    &--head
+      font-size: 11px
+      font-weight: 700
+      text-transform: uppercase
+      letter-spacing: 0.4px
+      color: $text-inactive
+
+      span:not(:first-child)
+        text-align: right
+
+    &--accent
+      background: $primary-50
+      border-radius: $radius-sm
+      margin: 2px 0
+
+      .gioto__riep-label, .gioto__riep-val--oggi
+        color: $primary
+        font-weight: 700
+
+  &__riep-label
+    color: $text-active
+
+  &__riep-val
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+    &--ieri
+      color: $text-inactive
+
+    &--oggi
+      color: $text-active
+      font-weight: 600
+
+  &__riep-d
+    text-align: right
+
+  // ── Giacenza residua ──────────────────────────────────────────────────────────────
+  &__giac
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__giac-row
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__giac-top
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+  &__giac-loc
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+    i
+      color: $primary
+      font-size: 12px
+
+  &__giac-disp
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 700
+    color: $primary
+    font-variant-numeric: tabular-nums
+
+  &__giac-bar
+    height: 7px
+    border-radius: 999px
+    background: $primary-50
+    overflow: hidden
+
+  &__giac-fill
+    display: block
+    height: 100%
+    width: var(--w, 0%)
+    border-radius: 999px
+    background: linear-gradient(90deg, $primary, $primary-700)
+
+  &__giac-strutt
+    display: flex
+    flex-wrap: wrap
+    gap: 5px
+
+  &__giac-chip
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    background: $bg
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 2px 9px
+
+  &__giac-tot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-top: 2px
+    padding-top: 12px
+    border-top: 1px dashed $border
+    font-size: 13px
+    color: $text-inactive
+
+    strong
+      font-family: $font-heading
+      font-size: 17px
+      color: $primary
+
+  // ── Eventi ─────────────────────────────────────────────────────────────────────────
+  &__eventi
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__evento
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 8px
+    border-radius: $radius-md
+    transition: background 0.18s ease
+
+    &:hover
+      background: $primary-50
+
+  &__evento-date
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    width: 46px
+    height: 46px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: linear-gradient(135deg, $primary, $primary-700)
+    color: $white
+    line-height: 1.1
+    font-size: 9px
+    font-weight: 700
+    text-transform: uppercase
+
+    strong
+      font-size: 16px
+
+  &__evento-body
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__evento-titolo
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__evento-luogo
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      font-size: 10px
+
+  // bottiglia di vino → richiesta operativa al planner
+  &__vino
+    display: flex
+    align-items: center
+    gap: 9px
+    margin-top: 4px
+    padding: 11px 13px
+    border: 1px dashed $primary-300
+    border-radius: $radius-md
+    background: alpha($primary, 0.04)
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+    transition: all 0.18s ease
+
+    i
+      color: $primary
+
+    &--on
+      border-style: solid
+      border-color: $primary
+      background: $primary-50
+
+  &__vino-tag
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11.5px
+    font-weight: 600
+    color: $success
+
+    i
+      color: $success
+
+  // ── Conferma AUV ──────────────────────────────────────────────────────────────────
+  &__note-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__note
+    height: auto
+    padding: 9px 11px
+    resize: vertical
+
+  &__auv-actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 12px
+    margin-top: auto
+
+  &__auv-ok
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12.5px
+    font-weight: 600
+    color: $success
