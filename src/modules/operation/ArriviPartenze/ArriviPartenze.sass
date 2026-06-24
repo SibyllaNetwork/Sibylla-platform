@@ -34,6 +34,89 @@
     gap: 8px
     flex-wrap: wrap
 
+  // ── Linguette Arrivi / Partenze ─────────────────────────────────────────────
+  &__tabs
+    display: inline-flex
+    gap: 4px
+    padding: 4px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $border
+    align-self: flex-start
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 8px 18px
+    border: none
+    border-radius: 999px
+    background: transparent
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+
+    i
+      font-size: 14px
+
+    &:hover
+      color: $primary
+
+    &.is-active
+      background: $primary
+      color: $white
+
+  &__tab-count
+    font-style: normal
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 22px
+    height: 19px
+    padding: 0 6px
+    border-radius: 999px
+    background: $white
+    color: $primary
+    font-size: 11.5px
+    font-weight: 700
+
+    .arrivi-partenze__tab.is-active &
+      background: rgba(255, 255, 255, 0.25)
+      color: $white
+
+  // ── Tabella con scroll interno + header sticky (lista lunga compatta) ────────
+  &__scroll
+    max-height: 62vh
+    overflow: auto
+
+    thead th
+      position: sticky
+      top: 0
+      z-index: 2
+
+    // sotto-riga "Ospiti" (icone) della tabella In arrivo: si ancora sotto la 1ª riga
+    thead tr:nth-child(2) th
+      top: 33px
+
+  // ── Paginazione (componente standard) ────────────────────────────────────────
+  &__pager
+    justify-content: flex-end
+    padding: 4px 2px
+
+  // ── Report servizio (select + scarica PDF) ─────────────────────────────────────
+  &__report
+    min-width: 220px
+
+  &__report-row
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    .sib-select
+      min-width: 130px
+
   // ── Toolbar densa "In arrivo" (riga unica wrap-friendly) ───────────────────
   &__toolbar
     display: flex
@@ -51,7 +134,7 @@
 
     &--search
       position: relative
-      width: 200px
+      width: 240px
       flex-shrink: 0
 
       .sib-input
@@ -60,10 +143,14 @@
   &__label
     font-size: 12px
     font-weight: 600
-    color: $text-inactive
+    color: $primary
     line-height: 1.2
 
   // ── Search ──────────────────────────────────────────────────────────────────
+  &__search-wrap
+    position: relative
+    width: 100%
+
   &__search-input
     padding-right: 32px
 
@@ -335,6 +422,12 @@
     .arrivi-partenze__th-sub
       text-align: center
 
+    .arrivi-partenze__th-right
+      text-align: right
+
+    .arrivi-partenze__th-nowrap
+      white-space: nowrap
+
     .arrivi-partenze__th-sub
       i
         font-size: 14px
@@ -350,12 +443,20 @@
     background: $primary-50
     color: $primary
     padding: 3px 8px
+    border: 1px solid transparent
     border-radius: 4px
     font-weight: 600
     font-size: 12px
+    cursor: pointer
+    transition: $transition-fast
 
     i
       font-size: 11px
+
+    &:hover
+      background: $primary
+      color: $white
+      border-color: $primary
 
   &__filter-ico,
   &__sort-ico
@@ -467,3 +568,673 @@
 
     .sib-checkbox
       flex-shrink: 0
+
+// ─── CHECK-IN LIBERO (modale) ────────────────────────────────────────────────────
+.ap-ci
+  width: min(680px, 100%)
+  max-height: 90vh
+  overflow-y: auto
+  background: $white
+  border-radius: $radius-lg
+  box-shadow: $shadow-lg
+  padding: 22px
+
+  &__backdrop
+    position: fixed
+    inset: 0
+    z-index: 1000
+    background: rgba(15, 30, 47, 0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 24px
+
+  &__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    margin-bottom: 18px
+
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-size: 20px
+    font-weight: 700
+    color: $primary
+
+  &__sub
+    margin: 4px 0 0
+    font-size: 13px
+    color: $text-inactive
+
+  &__close
+    border: none
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 18px
+
+    &:hover
+      color: $text-active
+
+  &__form
+    display: flex
+    align-items: flex-end
+    gap: 18px
+    flex-wrap: wrap
+
+  &__date
+    min-width: 230px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    &--note
+      margin-top: 14px
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__arr
+    display: inline-flex
+    gap: 8px
+
+  &__arr-opt
+    width: 42px
+    height: 38px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    color: $text-inactive
+    cursor: pointer
+    font-size: 15px
+    transition: $transition-fast
+
+    &:hover
+      color: $primary
+      border-color: $primary-200
+
+    &.is-on
+      background: $primary
+      color: $white
+      border-color: $primary
+
+  &__rooms
+    margin-top: 16px
+    border: 1px solid $border
+    border-radius: $radius-md
+    overflow: hidden
+
+    .sib-table
+      margin: 0
+
+    tbody tr
+      cursor: pointer
+
+      &:hover
+        background: $primary-50
+
+      &.is-selected
+        background: $primary-50
+
+  &__th-c
+    text-align: center
+
+  &__room
+    display: inline-flex
+    align-items: center
+    gap: 9px
+
+    strong
+      color: $text-active
+
+  &__room-ico
+    color: $primary
+    font-size: 14px
+
+  &__stepper
+    display: inline-flex
+    align-items: stretch
+    gap: 4px
+
+  &__stepper-input
+    width: 56px
+    text-align: center
+    padding: 4px 6px
+
+  &__stepper-btns
+    display: flex
+    flex-direction: column
+
+    button
+      flex: 1
+      width: 22px
+      border: 1px solid $border
+      background: $white
+      color: $text-inactive
+      cursor: pointer
+      font-size: 9px
+      line-height: 1
+      padding: 0
+
+      &:first-child
+        border-radius: $radius-sm $radius-sm 0 0
+        border-bottom: none
+      &:last-child
+        border-radius: 0 0 $radius-sm $radius-sm
+
+      &:hover
+        color: $primary
+
+  &__hint
+    margin: 12px 0 0
+    font-size: 12px
+    color: $text-inactive
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 12px
+    margin-top: 18px
+
+// ─── CHECK IN (dettaglio prenotazione) ───────────────────────────────────────────
+.ap-cki
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__title
+    margin: 0
+    text-align: center
+    font-family: $font-heading
+    font-size: 28px
+    font-weight: 700
+    color: $primary
+
+  &__section
+    margin: 6px 0 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 700
+    color: $text-active
+
+  &__panel
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: $white
+    box-shadow: $shadow-sm
+    padding: 16px
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr))
+    gap: 16px
+
+  &__cell
+    display: flex
+    flex-direction: column
+    gap: 4px
+    min-width: 0
+
+  &__cell-label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__cell-value
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__muted
+    color: $text-inactive
+    font-weight: 400
+
+  &__c
+    text-align: center
+
+  // l'header tabella di base è text-left (.sib-table th): forziamo il centro
+  // anche sull'intestazione così titolo colonna e dati combaciano.
+  th.ap-cki__c
+    text-align: center
+
+  &__rooms
+    width: 100%
+
+  // ── Master–detail: riga camera espandibile + dettaglio ospiti integrato ───────
+  &__exp-th
+    width: 44px
+
+  &__exp
+    text-align: center
+    width: 44px
+
+  &__exp-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 26px
+    height: 26px
+    border: 1px solid $border
+    border-radius: $radius-sm
+    background: $white
+    color: $primary
+    cursor: pointer
+    font-size: 11px
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-50
+      border-color: $primary-200
+
+  &__room-row
+    cursor: pointer
+    transition: background 0.15s ease
+
+    &:hover td
+      background: $primary-50
+
+    &.is-open td
+      background: $primary-50
+      border-bottom-color: transparent
+
+  &__room-tipo
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-weight: 600
+    color: $text-active
+
+    i
+      color: $primary
+
+  &__ospiti-pill
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 2px 10px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $primary-200
+    color: $primary
+    font-size: 12px
+    font-weight: 700
+
+    i
+      font-size: 11px
+
+  // riga di dettaglio: contenitore a tutta larghezza sotto la camera
+  &__detail-row > td
+    background: $primary-50
+
+  &__detail-cell
+    padding: 0 16px 16px !important
+
+  &__detail
+    border: 1px solid $primary-200
+    border-radius: $radius-md
+    background: $white
+    overflow: hidden
+
+  &__detail-head
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 10px 14px
+    background: $primary-50
+    border-bottom: 1px solid $primary-200
+    font-size: 13px
+    color: $text-active
+
+    i
+      color: $primary
+
+    strong
+      color: $primary
+
+  &__detail-count
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 20px
+    height: 18px
+    padding: 0 6px
+    border-radius: 999px
+    background: $primary
+    color: $white
+    font-size: 11px
+    font-weight: 700
+
+  &__guests
+    width: 100%
+
+    thead th
+      background: $white
+
+  // chip stato registrazione
+  &__reg
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 2px 10px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+
+    &--ko
+      color: $error
+      background: alpha($error, 0.1)
+
+    &--ok
+      color: $success
+      background: alpha($success, 0.12)
+
+  &__badge
+    display: inline-flex
+    align-items: center
+    padding: 2px 12px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $primary-200
+    color: $primary
+    font-size: 11.5px
+    font-weight: 600
+
+  &__notreg
+    color: $error
+    font-size: 15px
+
+  &__guest-actions
+    display: inline-flex
+    gap: 4px
+    justify-content: center
+
+// ─── INSERISCI ANAGRAFICA (modale 1/2) ────────────────────────────────────────────
+.ap-anag
+  width: min(860px, 100%)
+  max-height: 92vh
+  overflow-y: auto
+  background: $white
+  border-radius: $radius-lg
+  box-shadow: $shadow-lg
+  padding: 24px
+
+  &__backdrop
+    position: fixed
+    inset: 0
+    z-index: 1000
+    background: rgba(15, 30, 47, 0.45)
+    display: flex
+    align-items: center
+    justify-content: center
+    padding: 24px
+
+  &__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    margin-bottom: 18px
+
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-size: 20px
+    font-weight: 700
+    color: $primary
+
+  &__step
+    color: $text-inactive
+    font-weight: 600
+
+  &__close
+    border: none
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 18px
+
+    &:hover
+      color: $text-active
+
+  &__row
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 14px 18px
+    margin-bottom: 14px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+
+    &--vip
+      justify-content: flex-end
+
+    &--note
+      margin-bottom: 14px
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__control
+    position: relative
+    display: flex
+    align-items: center
+
+    .sib-input
+      width: 100%
+      padding-right: 30px
+
+  &__req
+    position: absolute
+    right: 10px
+    color: $error
+    font-size: 13px
+    pointer-events: none
+
+  .sib-input.is-invalid,
+  .sib-select.is-invalid
+    border-color: $error
+
+  &__file
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 7px
+    height: 38px
+    padding: 0 14px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $white
+    color: $text-active
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary
+      color: $primary
+
+    i
+      color: $primary
+
+  &__check
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+
+    &--esenzione
+      margin-top: 4px
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 12px
+    margin-top: 20px
+
+// Hao booking: colonna dedicata con checkbox + icona chiave (default off).
+.ap-cki
+  &__hao-check
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    cursor: pointer
+
+  &__hao-key
+    font-size: 14px
+    color: $border
+    transition: color 0.15s ease
+
+    &.is-on
+      color: $primary
+
+// icona stato rooming list nella colonna Arrivi
+.arrivi-partenze
+  &__rooming
+    font-size: 16px
+
+    &--ok
+      color: $success
+
+    &--ko
+      color: $warning
+
+// ── Densità + no-wrap tabella In arrivo (recupero spazio orizzontale) ───────────
+.arrivi-partenze
+  &__table
+    thead th, tbody td
+      padding-left: 8px
+      padding-right: 8px
+
+  &__th-right
+    text-align: right
+
+  &__th-nowrap
+    white-space: nowrap
+
+  &__td-right
+    text-align: right
+
+  &__nowrap
+    white-space: nowrap
+
+  // ospiti compatti: adulti / bambini / infanti su una sola riga
+  &__ospiti
+    white-space: nowrap
+
+  &__osp
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    font-variant-numeric: tabular-nums
+
+    & + &
+      margin-left: 9px
+
+    i
+      font-size: 11px
+      color: $text-inactive
+
+// ── Colonna Check-in: icona di stato (azione) ───────────────────────────────────
+.arrivi-partenze
+  &__checkin
+    i
+      font-size: 15px
+
+    &--ok i
+      color: $success
+
+    &--warn i
+      color: $warning
+
+    &--todo i
+      color: $text-inactive
+
+    &--ko i
+      color: $error
+
+// ── Azioni di riga (In partenza) + badge prenotazione statico ───────────────────
+.arrivi-partenze
+  &__row-actions
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    justify-content: center
+
+  &__pren-badge--static
+    cursor: default
+
+    &:hover
+      background: $primary-50
+      color: $primary
+      border-color: transparent
+
+// ── Modale conferma check-out ───────────────────────────────────────────────────
+.arrivi-partenze
+  &__confirm
+    padding: 20px 22px 18px
+
+  &__confirm-text
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    margin: 0
+    font-size: 13.5px
+    color: $text-active
+    line-height: 1.5
+
+  &__confirm-ico
+    color: $primary
+    font-size: 18px
+    margin-top: 1px
+
+  &__confirm-actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 22px
+
+// ── Ordinamento colonna Periodo (Partenze) ──────────────────────────────────────
+.arrivi-partenze
+  &__sortbtn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    border: none
+    background: transparent
+    cursor: pointer
+    font: inherit
+    color: inherit
+    text-transform: inherit
+    letter-spacing: inherit
+
+    &:hover
+      color: $primary
+
+    &.is-on
+      color: $primary
+
+    i
+      font-size: 11px
+
+// icone fascia d'età (un po' più grandi)
+.arrivi-partenze__fascia-ico
+  font-size: 17px
+  color: $primary
