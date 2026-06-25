@@ -1,10 +1,10 @@
 @use "sass:color"
 @use '../../../styles/tokens' as *
 
-$primary-soft: #2d5a7f
-$ink: #111827
-$muted: #4b5563
-$bg-zebra: #f3f8fb
+$primary-soft: $primary-700
+$ink: $text-active
+$muted: $text-inactive
+$bg-zebra: $primary-50
 
 .cassa
   display: flex
@@ -13,6 +13,58 @@ $bg-zebra: #f3f8fb
 
   > .sib-btn--back
     align-self: flex-start
+
+  // ── Tab a linguette (una sezione alla volta) ─────────────────────
+  &__tabs
+    display: inline-flex
+    gap: 4px
+    padding: 4px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $border
+    align-self: flex-start
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 8px 18px
+    border: none
+    border-radius: 999px
+    background: transparent
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+
+    i
+      font-size: 14px
+
+    &:hover
+      color: $primary
+
+    &.is-active
+      background: $primary
+      color: $white
+
+  &__tab-count
+    font-style: normal
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 22px
+    height: 19px
+    padding: 0 6px
+    border-radius: 999px
+    background: $white
+    color: $primary
+    font-size: 11.5px
+    font-weight: 700
+
+    .cassa__tab.is-active &
+      background: rgba(255, 255, 255, 0.25)
+      color: $white
 
   &__top-actions
     display: inline-flex
@@ -72,37 +124,30 @@ $bg-zebra: #f3f8fb
     display: inline-flex
     gap: 6px
 
-  &__export-btn
-    display: inline-flex
-    flex-direction: column
-    align-items: center
-    gap: 2px
-    padding: 4px 10px
-    background: transparent
-    border: none
-    color: $primary
-    cursor: pointer
-    font-size: 10px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.04em
-
-    i
-      font-size: 18px
-
-    &:hover:not(:disabled)
-      color: $primary-soft
-
-    &:disabled
-      opacity: 0.4
-      cursor: not-allowed
-
   // ── Tabella movimenti ──────────────────────────────────────────
   &__table
     .cassa__th-num,
     .cassa__td-num
       text-align: right
       white-space: nowrap
+
+  // ── Icona dettagli soggiorno (rollover) ───────────────────────
+  &__info
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    color: $primary
+    font-size: 15px
+    cursor: help
+    border-radius: 999px
+    transition: $transition-fast
+
+    &:hover,
+    &:focus-visible
+      background: $primary-50
+      outline: none
 
   &__user
     display: inline-flex
@@ -256,3 +301,258 @@ $bg-zebra: #f3f8fb
       &.cassa__td-num
         text-align: right
         font-weight: 700
+
+// ─── Documento fiscale (anteprima stile fattura) ──────────────────────
+.docfisc
+  background: var(--color-surface)
+  border-radius: 16px
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28)
+  width: min(860px, 100%)
+  max-height: calc(100vh - 32px)
+  display: flex
+  flex-direction: column
+  overflow: hidden
+
+  // ── Barra azioni (non stampabile) ──────────────────────────────
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 14px 20px
+    border-bottom: 1px solid $border
+    background: $primary-50
+
+  &__bar-title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 1.05rem
+    color: $primary
+
+  &__bar-actions
+    display: inline-flex
+    gap: 2px
+
+  // ── Foglio fattura ─────────────────────────────────────────────
+  &__sheet
+    overflow-y: auto
+    flex: 1
+    padding: 32px 36px
+
+  &__head
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 24px
+    padding-bottom: 18px
+    margin-bottom: 22px
+    border-bottom: 2px solid $primary
+
+  &__doc-type
+    display: block
+    font-size: 11px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.14em
+    color: $muted
+
+  &__doc-num
+    margin: 2px 0 14px
+    font-family: 'Poppins', sans-serif
+    font-weight: 800
+    font-size: 1.5rem
+    color: $primary
+
+  &__meta
+    margin: 0
+    display: grid
+    gap: 4px
+
+    > div
+      display: flex
+      gap: 8px
+      font-size: 12.5px
+      line-height: 1.5
+
+    dt
+      margin: 0
+      min-width: 96px
+      color: $muted
+      font-weight: 600
+
+    dd
+      margin: 0
+      color: $ink
+      font-weight: 600
+
+  &__head-right
+    text-align: right
+    flex-shrink: 0
+
+  &__brand
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    justify-content: flex-end
+
+  &__brand-key
+    width: 34px
+    height: 30px
+
+  &__brand-name
+    font-family: 'Poppins', sans-serif
+    font-weight: 800
+    font-size: 1.5rem
+    color: $primary
+    letter-spacing: -0.3px
+
+  &__emit
+    margin-top: 6px
+    font-style: normal
+    font-size: 12.5px
+    line-height: 1.6
+    color: $muted
+
+  // ── Tabelle ────────────────────────────────────────────────────
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 12.5px
+
+    thead th
+      padding: 9px 10px
+      text-align: left
+      font-size: 10px
+      font-weight: 700
+      text-transform: uppercase
+      letter-spacing: 0.05em
+      color: $muted
+      border-bottom: 2px solid $border
+
+    tbody td
+      padding: 10px
+      color: $ink
+      border-bottom: 1px solid $border
+
+    tfoot td
+      padding: 12px 10px 0
+      border-top: 2px solid $primary
+      font-weight: 700
+      color: $ink
+
+  &__num
+    text-align: right
+    white-space: nowrap
+
+  &__group td
+    background: $primary-50
+    font-weight: 700
+    color: $primary
+    font-size: 11.5px
+
+  &__grand
+    color: $primary
+    font-size: 14px
+
+  &__sub
+    margin: 26px 0 8px
+    font-size: 11px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.06em
+    color: $primary
+
+  &__table--pay tbody tr:last-child td
+    border-bottom: none
+
+// ─── Movimenti cassa (modale lista scontrini) ─────────────────────────
+.movcassa
+  background: var(--color-surface)
+  border-radius: 16px
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28)
+  width: min(980px, 100%)
+  max-height: calc(100vh - 32px)
+  display: flex
+  flex-direction: column
+  overflow: hidden
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 16px 22px
+    border-bottom: 1px solid $border
+
+  &__bar-title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 1.25rem
+    color: $primary
+
+  &__body
+    overflow-y: auto
+    flex: 1
+    padding: 20px 22px
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__num
+    text-align: right
+    white-space: nowrap
+
+  &__actions
+    display: inline-flex
+    gap: 2px
+
+  &__act--on
+    color: $error
+
+    i
+      color: $error
+
+  &__totals
+    align-self: stretch
+
+// ─── Card dettagli soggiorno (contenuto tooltip light) ────────────────
+.cassa-sgt
+  min-width: 180px
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 8px
+    padding-bottom: 8px
+    margin-bottom: 8px
+    border-bottom: 1px solid $border
+    color: $primary
+    font-weight: 700
+    font-size: 13px
+
+    i
+      font-size: 15px
+
+  &__list
+    margin: 0
+    display: grid
+    gap: 5px
+
+    > div
+      display: flex
+      gap: 8px
+      font-size: 12px
+      line-height: 1.4
+
+    dt
+      margin: 0
+      min-width: 64px
+      color: $primary
+      font-weight: 700
+
+    dd
+      margin: 0
+      color: $ink
+      font-weight: 500

@@ -5,9 +5,10 @@ interface TooltipProps {
   content?:  React.ReactNode
   children:  React.ReactNode
   position?: 'top' | 'bottom' | 'left' | 'right'
+  variant?:  'dark' | 'light'
 }
 
-export default function Tooltip({ text, content, children, position = 'top' }: TooltipProps) {
+export default function Tooltip({ text, content, children, position = 'top', variant = 'dark' }: TooltipProps) {
   const [visible, setVisible] = useState(false)
   const [coords,  setCoords]  = useState({ x: 0, y: 0 })
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -30,18 +31,20 @@ export default function Tooltip({ text, content, children, position = 'top' }: T
   useEffect(() => () => setVisible(false), [])
 
   const hasContent = content !== undefined && content !== null
+  const light = variant === 'light'
   const boxStyle: React.CSSProperties = {
     position:    'fixed',
     zIndex:      9999,
-    background:  '#1E293B',
-    color:       '#fff',
+    background:  light ? '#fff' : '#1E293B',
+    color:       light ? '#1f2937' : '#fff',
+    border:      light ? '1px solid #E2E8F0' : 'none',
     fontSize:    11,
     fontWeight:  500,
-    borderRadius: 6,
-    padding:     hasContent ? '8px 12px' : '5px 10px',
+    borderRadius: light ? 10 : 6,
+    padding:     hasContent ? (light ? '12px 14px' : '8px 12px') : '5px 10px',
     whiteSpace:  hasContent ? 'normal' : 'nowrap',
     pointerEvents: 'none',
-    boxShadow:   '0 4px 12px rgba(32,71,105,0.25)',
+    boxShadow:   light ? '0 8px 24px rgba(32,71,105,0.18)' : '0 4px 12px rgba(32,71,105,0.25)',
     maxWidth:    hasContent ? 320 : 260,
     lineHeight:  1.4,
     ...(position === 'top' && {

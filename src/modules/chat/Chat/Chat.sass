@@ -15,7 +15,6 @@
   &__layout
     display: grid
     grid-template-columns: 320px 1fr
-    gap: 14px
     height: calc(100vh - 220px)
     min-height: 520px
     background: $white
@@ -30,6 +29,39 @@
     border-right: 1px solid $border
     background: var(--color-bg)
     overflow: hidden
+
+  &__sidebar-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    height: 65px
+    padding: 0 12px
+    border-bottom: 1px solid $border
+    background: $white
+
+  &__sidebar-title
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 14px
+    color: $primary
+
+  &__add-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border: none
+    border-radius: 9px
+    background: $primary
+    color: $white
+    cursor: pointer
+    font-size: 14px
+    transition: $transition-fast
+
+    &:hover
+      background: $primary-700
 
   &__search-field
     display: flex
@@ -227,6 +259,13 @@
       height: 42px
       font-size: 15px
 
+  &__avatar-img
+    width: 100%
+    height: 100%
+    border-radius: 50%
+    object-fit: cover
+    display: block
+
   &__avatar-dot
     position: absolute
     bottom: 0
@@ -275,7 +314,8 @@
     display: flex
     align-items: center
     justify-content: space-between
-    padding: 12px 16px
+    height: 65px
+    padding: 0 16px
     border-bottom: 1px solid $border
     background: var(--color-bg)
 
@@ -338,6 +378,114 @@
       color: $primary
 
     &--active
+      background: $primary-50
+      color: $primary
+
+  // ── Menu opzioni (tre puntini) ───────────────────────────────────
+  &__menu-wrap
+    position: relative
+
+  &__menu
+    position: absolute
+    top: calc(100% + 6px)
+    right: 0
+    z-index: 30
+    min-width: 224px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 10px
+    box-shadow: 0 12px 32px rgba(32, 71, 105, 0.18)
+    padding: 6px
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__menu-item
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 9px 10px
+    border: none
+    background: transparent
+    border-radius: 8px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+    text-align: left
+    font-family: 'Open Sans', sans-serif
+
+    i
+      font-size: 14px
+      width: 16px
+      text-align: center
+      color: $text-inactive
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+      i
+        color: $primary
+
+    &--danger
+      color: $error
+
+      i
+        color: $error
+
+      &:hover
+        background: $error-light
+        color: $error
+
+        i
+          color: $error
+
+  &__menu-sep
+    height: 1px
+    background: $border
+    margin: 4px 0
+
+  // ── Barra ricerca messaggi (lente) ───────────────────────────────
+  &__msg-search
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 8px 16px
+    border-bottom: 1px solid $border
+    background: $white
+
+    > i
+      color: $text-disabled
+      font-size: 13px
+
+    input
+      flex: 1
+      border: none
+      outline: none
+      background: transparent
+      font-size: 13px
+      color: $text-active
+      font-family: 'Open Sans', sans-serif
+
+      &::placeholder
+        color: $text-disabled
+
+  &__msg-search-count
+    font-size: 11px
+    color: $text-inactive
+    white-space: nowrap
+
+  &__msg-search-close
+    border: none
+    background: transparent
+    color: $text-disabled
+    cursor: pointer
+    padding: 4px
+    display: inline-flex
+    border-radius: 6px
+
+    &:hover
       background: $primary-50
       color: $primary
 
@@ -678,3 +826,228 @@
   to
     opacity: 1
     transform: translateY(0)
+
+// ─── Modale "Nuovo contatto" (ricerca per email) ──────────────────────
+.chat-add
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 14px
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22)
+  width: min(460px, 100%)
+  display: flex
+  flex-direction: column
+  overflow: hidden
+
+  &__backdrop
+    position: fixed
+    inset: 0
+    background: rgba(17, 24, 39, 0.55)
+    z-index: 60
+    display: flex
+    align-items: flex-start
+    justify-content: center
+    padding: 80px 16px 16px
+
+  &__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+    padding: 18px 20px 14px
+    border-bottom: 1px solid $border
+
+  &__title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 1.125rem
+    color: $primary
+
+  &__sub
+    margin: 4px 0 0
+    font-size: 12.5px
+    color: $text-inactive
+    line-height: 1.4
+
+  &__field
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 16px 20px 0
+    padding: 0 12px
+    height: 42px
+    border: 1px solid $border
+    border-radius: 10px
+    background: $white
+
+    &:focus-within
+      border-color: $primary
+
+    > i
+      color: $text-disabled
+      font-size: 14px
+
+    input
+      flex: 1
+      border: none
+      outline: none
+      background: transparent
+      font-size: 13.5px
+      color: $text-active
+      font-family: 'Open Sans', sans-serif
+
+      &::placeholder
+        color: $text-disabled
+
+  &__clear
+    border: none
+    background: transparent
+    color: $text-disabled
+    cursor: pointer
+    padding: 4px
+    display: inline-flex
+
+    &:hover
+      color: $text-active
+
+  &__result
+    padding: 14px 20px 20px
+    min-height: 96px
+
+  // Card utente trovato
+  &__user
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px
+    border: 1px solid $border
+    border-radius: 12px
+    background: $white
+    cursor: pointer
+    text-align: left
+    transition: $transition-fast
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+  &__avatar
+    position: relative
+    flex-shrink: 0
+    width: 44px
+    height: 44px
+    border-radius: 999px
+    background: $primary
+    color: $white
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-weight: 700
+    font-size: 15px
+
+    &--sm
+      width: 34px
+      height: 34px
+      font-size: 12px
+
+  &__avatar-img
+    width: 100%
+    height: 100%
+    border-radius: 999px
+    object-fit: cover
+    display: block
+
+  &__dot
+    position: absolute
+    right: 0
+    bottom: 0
+    width: 11px
+    height: 11px
+    border-radius: 999px
+    background: $success
+    border: 2px solid $white
+
+  &__user-body
+    display: flex
+    flex-direction: column
+    gap: 1px
+    flex: 1
+    min-width: 0
+
+  &__user-name
+    font-weight: 700
+    font-size: 14px
+    color: $text-active
+
+  &__user-role
+    font-size: 12px
+    color: $primary
+    font-weight: 600
+
+  &__user-email
+    font-size: 12px
+    color: $text-inactive
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__go
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+
+  // Suggerimenti parziali
+  &__suggest
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__suggest-item
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 8px 10px
+    border: none
+    border-radius: 9px
+    background: transparent
+    cursor: pointer
+    text-align: left
+
+    &:hover
+      background: $primary-50
+
+  &__suggest-body
+    display: flex
+    flex-direction: column
+    gap: 1px
+    min-width: 0
+
+  // Stati vuoto / hint
+  &__empty,
+  &__hint
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    text-align: center
+    padding: 20px 12px
+    color: $text-inactive
+
+    i
+      font-size: 22px
+      color: $text-disabled
+
+    p
+      margin: 0
+      font-size: 13px
+      line-height: 1.4

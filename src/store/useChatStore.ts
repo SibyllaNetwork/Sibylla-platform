@@ -25,6 +25,7 @@ export interface Conversation {
   userId:       string
   userName:     string
   userRole:     string
+  azienda:      string
   online:       boolean
   lastSeen?:    string
   origin:       'platform' | 'to'
@@ -32,6 +33,17 @@ export interface Conversation {
   lastPreview?: string
   lastAt?:      string
   pinned?:      boolean
+}
+
+/** Contatto Platform ricercabile per email per avviare una nuova conversazione. */
+export interface DirectoryUser {
+  userId:   string
+  userName: string
+  userRole: string
+  azienda:  string
+  email:    string
+  online:   boolean
+  origin:   'platform' | 'to'
 }
 
 // ── Mock data iniziali ──────────────────────────────────────────────
@@ -48,11 +60,24 @@ const DAYS_AGO = (n: number) => {
 }
 
 const INITIAL_CONVERSATIONS: Conversation[] = [
-  { id:'c1', userId:'u-mr', userName:'Marco Rossi',         userRole:'Operatore Platform',   online:true,  origin:'platform', unreadCount:2, lastPreview:'Buongiorno, ho ricevuto la segnalazione…', lastAt:T(14,32) },
-  { id:'c2', userId:'u-to', userName:'Tour Operator Test',  userRole:'Tour Operator',        online:false, lastSeen:'2 ore fa', origin:'to', unreadCount:1, lastPreview:'Ho una richiesta extra per la prenotazione 2026/014505', lastAt:T(12,15) },
-  { id:'c3', userId:'u-gb', userName:'Giulia Bianchi',      userRole:'Amministratore Hotel', online:true,  origin:'platform', unreadCount:0, lastPreview:'Perfetto, grazie mille!', lastAt:DAYS_AGO(1) },
-  { id:'c4', userId:'u-sn', userName:'Sibylla Network',     userRole:'Tour Operator',        online:false, lastSeen:'ieri',     origin:'to', unreadCount:0, lastPreview:'Possiamo confermare per giovedì?', lastAt:DAYS_AGO(2) },
-  { id:'c5', userId:'u-lf', userName:'Luca Ferraro',        userRole:'Front Office',         online:false, lastSeen:'3 giorni fa', origin:'platform', unreadCount:0, lastPreview:'Documento allegato.', lastAt:DAYS_AGO(5) },
+  { id:'c1', userId:'u-mr', userName:'Marco Rossi',         userRole:'Operatore Platform',   azienda:'Hotel Tutorial',      online:true,  origin:'platform', unreadCount:2, lastPreview:'Buongiorno, ho ricevuto la segnalazione…', lastAt:T(14,32) },
+  { id:'c2', userId:'u-to', userName:'Tour Operator Test',  userRole:'Tour Operator',        azienda:'Viaggi Demo S.r.l.',  online:false, lastSeen:'2 ore fa', origin:'to', unreadCount:1, lastPreview:'Ho una richiesta extra per la prenotazione 2026/014505', lastAt:T(12,15) },
+  { id:'c3', userId:'u-gb', userName:'Giulia Bianchi',      userRole:'Amministratore Hotel', azienda:'Hotel Azzurro Mare',  online:true,  origin:'platform', unreadCount:0, lastPreview:'Perfetto, grazie mille!', lastAt:DAYS_AGO(1) },
+  { id:'c4', userId:'u-sn', userName:'Sibylla Network',     userRole:'Tour Operator',        azienda:'Sibylla Network',     online:false, lastSeen:'ieri',     origin:'to', unreadCount:0, lastPreview:'Possiamo confermare per giovedì?', lastAt:DAYS_AGO(2) },
+  { id:'c5', userId:'u-lf', userName:'Luca Ferraro',        userRole:'Front Office',         azienda:'Hotel Tutorial',      online:false, lastSeen:'3 giorni fa', origin:'platform', unreadCount:0, lastPreview:'Documento allegato.', lastAt:DAYS_AGO(5) },
+]
+
+// Rubrica utenti Platform ricercabili per email (nuova conversazione, stile Teams)
+const DIRECTORY: DirectoryUser[] = [
+  { userId:'u-mr', userName:'Marco Rossi',     userRole:'Operatore Platform',     azienda:'Hotel Tutorial',     email:'marco.rossi@sibyllanetwork.com',     online:true,  origin:'platform' },
+  { userId:'u-gb', userName:'Giulia Bianchi',  userRole:'Amministratore Hotel',   azienda:'Hotel Azzurro Mare', email:'giulia.bianchi@sibyllanetwork.com',  online:true,  origin:'platform' },
+  { userId:'u-lf', userName:'Luca Ferraro',    userRole:'Front Office',           azienda:'Hotel Tutorial',     email:'luca.ferraro@sibyllanetwork.com',    online:false, origin:'platform' },
+  { userId:'u-ar', userName:'Anna Ricci',      userRole:'Revenue Manager',        azienda:'Hotel Lux',          email:'anna.ricci@sibyllanetwork.com',      online:true,  origin:'platform' },
+  { userId:'u-pv', userName:'Paolo Verdi',     userRole:'Direttore di struttura', azienda:'Hotel Lux',          email:'paolo.verdi@sibyllanetwork.com',     online:false, origin:'platform' },
+  { userId:'u-cm', userName:'Chiara Moretti',  userRole:'Housekeeping Manager',   azienda:'Hotel Azzurro Mare', email:'chiara.moretti@sibyllanetwork.com',  online:true,  origin:'platform' },
+  { userId:'u-sg', userName:'Stefano Greco',   userRole:'Manutenzione',           azienda:'Hotel Tutorial',     email:'stefano.greco@sibyllanetwork.com',   online:false, origin:'platform' },
+  { userId:'u-er', userName:'Elena Russo',     userRole:'Marketing',              azienda:'Hotel Lux',          email:'elena.russo@sibyllanetwork.com',     online:true,  origin:'platform' },
+  { userId:'u-dv', userName:'Davide Conti',    userRole:'F&B Manager',            azienda:'Hotel Azzurro Mare', email:'davide.conti@sibyllanetwork.com',    online:false, origin:'platform' },
 ]
 
 const INITIAL_MESSAGES: Record<string, ChatMessage[]> = {
@@ -80,13 +105,18 @@ const INITIAL_MESSAGES: Record<string, ChatMessage[]> = {
 interface ChatState {
   conversations: Conversation[]
   messages:      Record<string, ChatMessage[]>
+  directory:     DirectoryUser[]
   selectedId:    string | null
   hydrated:      boolean
 
   select:        (id: string | null) => void
   selectFromNotif: (notifId: number) => void
+  startConversation: (userId: string) => void
   sendMessage:   (text: string, attachments?: MessageAttachment[]) => void
   markRead:      (conversationId: string) => void
+  markUnread:    (conversationId: string) => void
+  clearMessages: (conversationId: string) => void
+  deleteConversation: (conversationId: string) => void
   totalUnread:   () => number
 }
 
@@ -95,6 +125,7 @@ export const useChatStore = create<ChatState>()(
     (set, get) => ({
       conversations: INITIAL_CONVERSATIONS,
       messages:      INITIAL_MESSAGES,
+      directory:     DIRECTORY,
       selectedId:    'c1',
       hydrated:      false,
 
@@ -114,6 +145,35 @@ export const useChatStore = create<ChatState>()(
         const target = NOTIF_TO_CONV[notifId] ?? get().conversations[0]?.id ?? null
         set({ selectedId: target })
         if (target) get().markRead(target)
+      },
+
+      // Avvia (o riapre) una conversazione con un utente Platform della rubrica.
+      startConversation: (userId) => {
+        const existing = get().conversations.find(c => c.userId === userId)
+        if (existing) {
+          set({ selectedId: existing.id })
+          get().markRead(existing.id)
+          return
+        }
+        const u = get().directory.find(d => d.userId === userId)
+        if (!u) return
+        const id = `c-${Date.now()}`
+        const conv: Conversation = {
+          id,
+          userId:      u.userId,
+          userName:    u.userName,
+          userRole:    u.userRole,
+          azienda:     u.azienda,
+          online:      u.online,
+          origin:      u.origin,
+          unreadCount: 0,
+          lastSeen:    u.online ? undefined : 'di recente',
+        }
+        set((s) => ({
+          conversations: [conv, ...s.conversations],
+          messages:      { ...s.messages, [id]: [] },
+          selectedId:    id,
+        }))
       },
 
       sendMessage: (text, attachments = []) => {
@@ -153,10 +213,48 @@ export const useChatStore = create<ChatState>()(
         }))
       },
 
+      markUnread: (conversationId) => {
+        set((s) => ({
+          conversations: s.conversations.map((c) =>
+            c.id === conversationId ? { ...c, unreadCount: Math.max(1, c.unreadCount) } : c,
+          ),
+        }))
+      },
+
+      clearMessages: (conversationId) => {
+        set((s) => ({
+          messages: { ...s.messages, [conversationId]: [] },
+          conversations: s.conversations.map((c) =>
+            c.id === conversationId ? { ...c, lastPreview: undefined, lastAt: undefined } : c,
+          ),
+        }))
+      },
+
+      deleteConversation: (conversationId) => {
+        set((s) => {
+          const conversations = s.conversations.filter((c) => c.id !== conversationId)
+          const messages = { ...s.messages }
+          delete messages[conversationId]
+          const selectedId = s.selectedId === conversationId
+            ? (conversations[0]?.id ?? null)
+            : s.selectedId
+          return { conversations, messages, selectedId }
+        })
+      },
+
       totalUnread: () => get().conversations.reduce((acc, c) => acc + c.unreadCount, 0),
     }),
     {
       name: 'sibylla.chat',
+      // Bump quando cambia lo schema dei dati seed (es. aggiunta `azienda`):
+      // resetta lo stato persistito ai nuovi seed.
+      version: 1,
+      migrate: () => ({
+        conversations: INITIAL_CONVERSATIONS,
+        messages:      INITIAL_MESSAGES,
+        directory:     DIRECTORY,
+        selectedId:    'c1',
+      }),
       onRehydrateStorage: () => (state) => { if (state) state.hydrated = true },
     },
   ),
