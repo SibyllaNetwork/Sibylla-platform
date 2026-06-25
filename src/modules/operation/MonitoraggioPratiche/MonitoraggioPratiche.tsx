@@ -14,6 +14,7 @@ import {
   type StatoPratica,
   type Assegnazione,
 } from '../../../store/usePraticheStore'
+import { InputField, CheckboxField } from '../../../core/components/form'
 import './MonitoraggioPratiche.sass'
 
 const fmtEur = (n: number) => `€ ${n.toLocaleString('it-IT')}`
@@ -181,7 +182,7 @@ export default function MonitoraggioPratiche({ navigate }: { navigate: (p: strin
 
   return (
     <div className="mon-prat">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Monitoraggio pratiche"
         subtitle="Stato e profilo di gestione di ogni pratica, con tempo di gestione e solleciti automatici oltre la soglia"
@@ -235,14 +236,23 @@ export default function MonitoraggioPratiche({ navigate }: { navigate: (p: strin
           <div className="mon-prat__config-field">
             <label className="mon-prat__config-label">Soglia sollecito</label>
             <div className="mon-prat__config-input">
-              <input type="number" className="sib-input" min={1} value={slaHours} onChange={(e) => setSlaHours(Number(e.target.value) || 1)} />
+              <InputField
+                name="slaHours"
+                type="number"
+                min={1}
+                value={slaHours}
+                onChange={(e) => setSlaHours(Number(e.target.value) || 1)}
+              />
               <span className="mon-prat__config-suffix">ore</span>
             </div>
           </div>
-          <label className="mon-prat__config-toggle">
-            <input type="checkbox" checked={notificaSolleciti} onChange={(e) => setNotificaSolleciti(e.target.checked)} />
-            <span>Notifica di sollecito automatica</span>
-          </label>
+          <CheckboxField
+            className="mon-prat__config-toggle"
+            name="notificaSolleciti"
+            label="Notifica di sollecito automatica"
+            checked={notificaSolleciti}
+            onChange={(e) => setNotificaSolleciti(e.target.checked)}
+          />
           <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => navigate('configuratore')}>
             <i className="fa-light fa-sliders" aria-hidden="true" /> Apri Configuratore
           </button>

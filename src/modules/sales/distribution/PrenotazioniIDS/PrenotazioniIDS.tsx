@@ -3,6 +3,7 @@ import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
+import { SelectField } from '../../../../core/components/form'
 import './PrenotazioniIDS.sass'
 
 type ImportRow = { data: string; prenotazioni: number }
@@ -31,20 +32,22 @@ export default function PrenotazioniIDS({ navigate }: { navigate: (p: string) =>
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Prenotazioni IDS" subtitle="Visione centralizzata per monitoraggio in tempo reale delle prenotazioni ricevute dai canali di distribuzione online"/>
 
       {/* Filtri */}
       <div className="ids__filters">
-        <div>
-          <label className="block mb-1 text-[12px] font-semibold font-opensans text-text-inactive">Struttura</label>
-          <select className="sib-select sib-select--dense w-[180px]" value={struttura} onChange={e => setStruttura(e.target.value)}>
-            {STRUTTURE.map(s => <option key={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block mb-1 text-[12px] font-semibold font-opensans text-text-inactive">Data ultima modifica</label>
-          <input type="date" className="sib-input sib-input--dense" value={dataUltMod} onChange={e => setDataUltMod(e.target.value)} />
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          value={struttura}
+          onChange={e => setStruttura(e.target.value)}
+          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          className="w-[180px]"
+        />
+        <div className="ids__field-raw">
+          <label htmlFor="dataUltMod">Data ultima modifica</label>
+          <input id="dataUltMod" type="date" className="sib-input sib-input--dense" value={dataUltMod} onChange={e => setDataUltMod(e.target.value)} />
         </div>
       </div>
 

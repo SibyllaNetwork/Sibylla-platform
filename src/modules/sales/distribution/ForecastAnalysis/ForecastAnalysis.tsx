@@ -5,7 +5,7 @@ import { apiFetchSibylla } from '../../../../services/api'
 import { Donut, DonutLegend } from '../_charts/Donut'
 import { HBars } from '../_charts/HBars'
 import { AreaTrend, type SeriesPoint } from '../_charts/AreaTrend'
-import { DateRangeField } from '../../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './ForecastAnalysis.sass'
 
 interface RankItem { label: string; value: number; color: string }
@@ -87,21 +87,21 @@ export default function ForecastAnalysis({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="forecast-analysis">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Forecast analysis" subtitle="Analisi comparativa con una visione d'insieme" />
 
       <div className="forecast-analysis__filters">
-        <div className="forecast-analysis__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select forecast-analysis__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Tutte le strutture' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+          className="forecast-analysis__select"
+        />
         <div className="forecast-analysis__field">
           <DateRangeField
             nameFrom="dataDa"

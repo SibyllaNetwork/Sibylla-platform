@@ -82,7 +82,7 @@ export default function ContiPassanti({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="conti-pass">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Conti passanti"
         subtitle="Conti aperti per clienti o agenzie esterne, non collegati a una prenotazione"

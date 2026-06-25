@@ -80,14 +80,14 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="miei-contratti">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Contratti di vendita"
         subtitle="Gestione automatizzata delle anagrafiche e degli accordi commerciali"
       />
 
       <div className="miei-contratti__bar">
-        <div className="miei-contratti__field">
+        <div className="miei-contratti__field miei-contratti__field-raw">
           <label>Cerca</label>
           <div className="miei-contratti__search">
             <input

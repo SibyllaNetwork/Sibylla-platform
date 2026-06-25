@@ -69,7 +69,7 @@ export default function GrigliaDisponibilitaEstesa({ navigate }: { navigate: (p:
 
   return (
     <div className="griglia-estesa">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader title="Griglia disponibilità estesa" subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo"/>
 

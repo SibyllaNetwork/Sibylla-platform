@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
+import { SelectField } from '../../../core/components/form'
 import './OrdineServizio.sass'
 
 interface Data {
@@ -47,7 +48,7 @@ export default function OrdineServizio({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="ord-serv">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Ordine di servizio"
         subtitle="Generazione rapida di ordini di servizio per housekeeping, manutenzione, reception e altri reparti"
@@ -55,20 +56,24 @@ export default function OrdineServizio({ navigate }: { navigate: (p: string) => 
 
       <div className="ord-serv__bar">
         <div className="ord-serv__field">
-          <label>Strutture</label>
-          <select className="sib-select ord-serv__select"
+          <SelectField
+            label="Strutture"
+            name="strutturaId"
+            className="ord-serv__select"
             value={data.StrutturaId}
-            onChange={(e) => setData({ ...data, StrutturaId: Number(e.target.value) })}>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
+            onChange={(e) => setData({ ...data, StrutturaId: Number(e.target.value) })}
+            options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          />
         </div>
         <div className="ord-serv__field">
-          <label>Reparto</label>
-          <select className="sib-select ord-serv__select"
+          <SelectField
+            label="Reparto"
+            name="reparto"
+            className="ord-serv__select"
             value={data.reparto}
-            onChange={(e) => setData({ ...data, reparto: e.target.value })}>
-            {data.reparti.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
+            onChange={(e) => setData({ ...data, reparto: e.target.value })}
+            options={data.reparti.map((r) => ({ value: r, label: r }))}
+          />
         </div>
       </div>
 

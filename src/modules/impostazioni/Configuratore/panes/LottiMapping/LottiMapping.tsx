@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField } from '../../../../../core/components/form'
 import './LottiMapping.sass'
 
 interface Riga { tipo: string; tipologia: string; camere: number }
@@ -54,28 +55,28 @@ export default function LottiMapping() {
       </div>
 
       <div className="lotti-mapping__filters">
-        <div className="lotti-mapping__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select sib-select--dense"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="lotti-mapping__field">
-          <label>Tipologia</label>
-          <select
-            className="sib-select sib-select--dense"
-            value={data.Tipologia}
-            onChange={(e) => setData({ ...data, Tipologia: e.target.value as Data['Tipologia'] })}
-          >
-            <option value="Individuali">Individuali</option>
-            <option value="Gruppi">Gruppi</option>
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="lotti-mapping__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Tutorial' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
+        <SelectField
+          name="tipologia"
+          label="Tipologia"
+          className="lotti-mapping__field"
+          value={data.Tipologia}
+          onChange={(e) => setData({ ...data, Tipologia: e.target.value as Data['Tipologia'] })}
+          options={[
+            { value: 'Individuali', label: 'Individuali' },
+            { value: 'Gruppi', label: 'Gruppi' },
+          ]}
+        />
       </div>
 
       <div className="lotti-mapping__table-wrap">

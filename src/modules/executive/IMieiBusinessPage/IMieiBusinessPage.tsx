@@ -79,7 +79,7 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
 
   return (
     <div>
-      <BtnBack onClick={()=>navigate("home")}/>
+      <BtnBack />
 
       <PageHeader title="I miei business" subtitle="Panoramica delle performance e dei dati finanziari di tutte le tue strutture"/>
 

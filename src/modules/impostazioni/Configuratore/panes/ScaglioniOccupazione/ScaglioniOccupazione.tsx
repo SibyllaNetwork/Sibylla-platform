@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, RadioGroup } from '../../../../../core/components/form'
 import './ScaglioniOccupazione.sass'
 
 interface Scaglione { from: number; to: number }
@@ -58,41 +59,29 @@ export default function ScaglioniOccupazione() {
       </div>
 
       <div className="scaglioni-occupazione__filters">
-        <div className="scaglioni-occupazione__field">
-          <label>Strutture</label>
-          <select
-            className="sib-select sib-select--dense scaglioni-occupazione__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="strutture"
+          label="Strutture"
+          className="scaglioni-occupazione__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Tutorial' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
 
-        <div className="scaglioni-occupazione__field">
-          <label>Tipologia</label>
-          <div className="scaglioni-occupazione__radio-group">
-            <label className="scaglioni-occupazione__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Tipologia === 'Individuali'}
-                onChange={() => setData({ ...data, Tipologia: 'Individuali' })}
-              />
-              <span>Individuali</span>
-            </label>
-            <label className="scaglioni-occupazione__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Tipologia === 'Gruppi'}
-                onChange={() => setData({ ...data, Tipologia: 'Gruppi' })}
-              />
-              <span>Gruppi</span>
-            </label>
-          </div>
-        </div>
+        <RadioGroup
+          name="tipologia"
+          label="Tipologia"
+          className="scaglioni-occupazione__field"
+          value={data.Tipologia}
+          onChange={(val) => setData({ ...data, Tipologia: val as Tipologia })}
+          options={[
+            { value: 'Individuali', label: 'Individuali' },
+            { value: 'Gruppi', label: 'Gruppi' },
+          ]}
+        />
       </div>
 
       <div className="scaglioni-occupazione__table" role="table">

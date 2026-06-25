@@ -65,15 +65,17 @@
   flex-direction: column
   gap: 6px
 
-  span
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-    white-space: nowrap
-
   .sib-select, .sib-input
     height: 40px
     min-width: 128px
+
+// Wrapper per i campi data ancora raw (input nativo type=date): ripristina lo
+// stile della label che prima era condiviso da .cms__field span.
+.cms__field-raw span
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  white-space: nowrap
 
 .cms__btn
   height: 40px

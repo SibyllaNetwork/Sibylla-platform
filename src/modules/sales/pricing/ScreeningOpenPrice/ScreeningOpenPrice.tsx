@@ -117,7 +117,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
         </div>
       )}
 
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title="Screening open price" subtitle="Aumenta l'accuratezza dei suggerimenti attraverso uno screening dedicato per ogni tipologia di camera assegnata a ciascun canale di vendita"/>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}

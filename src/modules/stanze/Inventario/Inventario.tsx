@@ -60,7 +60,7 @@ export default function Inventario({ navigate }: { navigate: (p: string) => void
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Inventario camere" subtitle="Anagrafica delle camere disponibili in struttura" />
 
       {error && loaded && (

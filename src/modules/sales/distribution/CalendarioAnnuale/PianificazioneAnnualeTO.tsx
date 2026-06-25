@@ -137,7 +137,7 @@ export default function PianificazioneAnnualeTO({ navigate }: { navigate: (p: st
 
   return (
     <div className="pian">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader
         title="Pianificazione annuale"

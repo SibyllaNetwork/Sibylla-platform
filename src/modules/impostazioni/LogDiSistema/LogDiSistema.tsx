@@ -188,7 +188,7 @@ export default function LogDiSistema({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="log-sistema">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Log di sistema"
         subtitle="Cronologia accessi ed eventi degli utenti del sistema"

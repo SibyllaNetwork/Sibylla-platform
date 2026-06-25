@@ -57,7 +57,7 @@ export default function Interfacce({ navigate }: { navigate: (p: string) => void
 
   return (
     <div className="interfacce">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Interfacce"
         subtitle="Stato delle integrazioni con i sistemi esterni e ultimo trasferimento dati"

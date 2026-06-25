@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
+import { SelectField, RadioGroup } from '../../../../core/components/form'
 import './ComponiAnnunci.sass'
 
 type Tipo = 'Vendita' | 'Acquisto'
@@ -109,68 +110,84 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="componi-annunci">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Componi annunci" />
 
       <div className="componi-annunci__filters">
         <div className="componi-annunci__field">
-          <label>Tipo</label>
-          <div className="componi-annunci__radio-group">
-            <label className="componi-annunci__radio">
-              <input type="radio" className="sib-radio" checked={data.tipo === 'Vendita'} onChange={() => set('tipo', 'Vendita')} />
-              <span>Vendita</span>
-            </label>
-            <label className="componi-annunci__radio">
-              <input type="radio" className="sib-radio" checked={data.tipo === 'Acquisto'} onChange={() => set('tipo', 'Acquisto')} />
-              <span>Acquisto</span>
-            </label>
-          </div>
+          <RadioGroup
+            label="Tipo"
+            name="tipo"
+            value={data.tipo}
+            onChange={(v) => set('tipo', v as Tipo)}
+            options={[
+              { value: 'Vendita', label: 'Vendita' },
+              { value: 'Acquisto', label: 'Acquisto' },
+            ]}
+          />
         </div>
 
         <div className="componi-annunci__field">
-          <label>Tipologia</label>
-          <div className="componi-annunci__radio-group">
-            <label className="componi-annunci__radio">
-              <input type="radio" className="sib-radio" checked={data.tipologia === 'Struttura'} onChange={() => set('tipologia', 'Struttura')} />
-              <span>Struttura</span>
-            </label>
-            <label className="componi-annunci__radio">
-              <input type="radio" className="sib-radio" checked={data.tipologia === 'Categoria'} onChange={() => set('tipologia', 'Categoria')} />
-              <span>Categoria</span>
-            </label>
-          </div>
+          <RadioGroup
+            label="Tipologia"
+            name="tipologia"
+            value={data.tipologia}
+            onChange={(v) => set('tipologia', v as Tipologia)}
+            options={[
+              { value: 'Struttura', label: 'Struttura' },
+              { value: 'Categoria', label: 'Categoria' },
+            ]}
+          />
         </div>
 
         <div className="componi-annunci__field">
-          <label>Struttura</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => set('StrutturaId', e.target.value ? Number(e.target.value) : null)}>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
+          <SelectField
+            label="Struttura"
+            name="struttura"
+            value={data.StrutturaId ?? ''}
+            onChange={(e) => set('StrutturaId', e.target.value ? Number(e.target.value) : null)}
+            options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          />
         </div>
 
         <div className="componi-annunci__field">
-          <label>Tipo ospiti</label>
-          <select className="sib-select" value={data.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value as Data['tipoOspiti'])}>
-            <option value="Individuali">Individuali</option>
-            <option value="Gruppi">Gruppi</option>
-          </select>
+          <SelectField
+            label="Tipo ospiti"
+            name="tipoOspiti"
+            value={data.tipoOspiti}
+            onChange={(e) => set('tipoOspiti', e.target.value as Data['tipoOspiti'])}
+            options={[
+              { value: 'Individuali', label: 'Individuali' },
+              { value: 'Gruppi', label: 'Gruppi' },
+            ]}
+          />
         </div>
 
         <div className="componi-annunci__field">
-          <label>Tipologia base</label>
-          <select className="sib-select" value={data.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value as Data['tipologiaBase'])}>
-            <option value="base doppia">base doppia</option>
-            <option value="base singola">base singola</option>
-            <option value="base tripla">base tripla</option>
-          </select>
+          <SelectField
+            label="Tipologia base"
+            name="tipologiaBase"
+            value={data.tipologiaBase}
+            onChange={(e) => set('tipologiaBase', e.target.value as Data['tipologiaBase'])}
+            options={[
+              { value: 'base doppia', label: 'base doppia' },
+              { value: 'base singola', label: 'base singola' },
+              { value: 'base tripla', label: 'base tripla' },
+            ]}
+          />
         </div>
 
         <div className="componi-annunci__field">
-          <label>Tipo lotti</label>
-          <select className="sib-select" value={data.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value as Data['tipoLotti'])}>
-            <option value="lotto">lotto</option>
-            <option value="1/2 lotto">1/2 lotto</option>
-          </select>
+          <SelectField
+            label="Tipo lotti"
+            name="tipoLotti"
+            value={data.tipoLotti}
+            onChange={(e) => set('tipoLotti', e.target.value as Data['tipoLotti'])}
+            options={[
+              { value: 'lotto', label: 'lotto' },
+              { value: '1/2 lotto', label: '1/2 lotto' },
+            ]}
+          />
         </div>
 
         <button type="button" className="sib-btn sib-btn--primary componi-annunci__avanti">Avanti</button>

@@ -3,7 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import './OspitiInCasa.sass'
 
@@ -200,7 +200,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="ospiti-casa">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Ospiti in casa"
         subtitle="Elenco degli ospiti attualmente presenti in struttura"
@@ -209,17 +209,14 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
       {/* ─── Toolbar filtri ──────────────────────────────────────────────── */}
       <div className="ospiti-casa__bar">
         <div className="ospiti-casa__bar-left">
-          <div className="ospiti-casa__field">
-            <label>Struttura</label>
-            <select
-              className="sib-select ospiti-casa__select"
-              aria-label="Struttura"
-              value={data.StrutturaId ?? ''}
-              onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-            >
-              {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-            </select>
-          </div>
+          <SelectField
+            className="ospiti-casa__field ospiti-casa__select-field"
+            name="struttura"
+            label="Struttura"
+            value={data.StrutturaId ?? ''}
+            options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          />
 
           <DateRangeField
             className="ospiti-casa__field"

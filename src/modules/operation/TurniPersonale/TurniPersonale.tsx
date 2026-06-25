@@ -324,7 +324,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Turni del personale" subtitle="Pianificazione settimanale e mensile dei turni, con gestione assenze e turni multi-struttura" />
 
       {/* Toolbar filtri */}

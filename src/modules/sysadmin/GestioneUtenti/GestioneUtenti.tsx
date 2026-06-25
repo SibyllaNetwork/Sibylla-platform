@@ -58,7 +58,7 @@ export default function GestioneUtenti({ navigate }: { navigate: (p: string) => 
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Gestione utenti" subtitle="Utenti e permessi della tua organizzazione" />
 
       {error && loaded && (

@@ -96,7 +96,7 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="archivio">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Archivio contratti"
         subtitle="Archivio di tutti i documenti contrattuali attivi e passivi, che consente un facile accesso, monitoraggio e gestione delle scadenze"

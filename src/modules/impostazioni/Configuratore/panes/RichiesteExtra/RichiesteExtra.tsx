@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, RadioGroup } from '../../../../../core/components/form'
 import './RichiesteExtra.sass'
 
 interface Regola { Nome: string; giorni: number; fee: number }
@@ -61,40 +62,25 @@ export default function RichiesteExtra() {
       </div>
 
       <div className="richieste-extra__filters">
-        <div className="richieste-extra__field">
-          <label>Strutture</label>
-          <select
-            className="sib-select sib-select--dense richieste-extra__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="richieste-extra__field">
-          <label>Tipologia</label>
-          <div className="richieste-extra__radio-group">
-            <label className="richieste-extra__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={isOpzionata}
-                onChange={() => setData({ ...data, Tipologia: 'Opzionata' })}
-              />
-              <span>Opzionata</span>
-            </label>
-            <label className="richieste-extra__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={!isOpzionata}
-                onChange={() => setData({ ...data, Tipologia: 'Garantita' })}
-              />
-              <span>Garantita</span>
-            </label>
-          </div>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Strutture"
+          className="richieste-extra__field richieste-extra__select"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[{ value: '', label: 'Hotel Tutorial' }, ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))]}
+        />
+        <RadioGroup
+          name="tipologia"
+          label="Tipologia"
+          className="richieste-extra__field"
+          value={data.Tipologia}
+          onChange={(val) => setData({ ...data, Tipologia: val as Tipologia })}
+          options={[
+            { value: 'Opzionata', label: 'Opzionata' },
+            { value: 'Garantita', label: 'Garantita' },
+          ]}
+        />
       </div>
 
       <div className="richieste-extra__table" role="table">

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { InputField, SelectField } from '../../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../../services/api'
 import './FbVociMenu.sass'
 
@@ -42,48 +43,69 @@ export default function FbVociMenu() {
       </div>
 
       <div className="fb-voci-menu__form">
-        <div className="fb-voci-menu__field"><label>Struttura</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => set('StrutturaId', e.target.value ? Number(e.target.value) : null)}>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="fb-voci-menu__field"><label>I miei Outlet</label>
-          <select className="sib-select" value={data.OutletId ?? ''} onChange={(e) => set('OutletId', e.target.value ? Number(e.target.value) : null)}>
-            <option value="">Seleziona</option>
-            {data.Outlets.map((o) => <option key={o.Id} value={o.Id}>{o.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura" label="Struttura" className="fb-voci-menu__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => set('StrutturaId', e.target.value ? Number(e.target.value) : null)}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+        />
+        <SelectField
+          name="outlet" label="I miei Outlet" className="fb-voci-menu__field"
+          placeholder="Seleziona"
+          value={data.OutletId ?? ''}
+          onChange={(e) => set('OutletId', e.target.value ? Number(e.target.value) : null)}
+          options={data.Outlets.map((o) => ({ value: o.Id, label: o.nome }))}
+        />
       </div>
 
       <div className="fb-voci-menu__form">
-        <div className="fb-voci-menu__field"><label>Lingua</label>
-          <select className="sib-select" value={data.Lingua} onChange={(e) => set('Lingua', e.target.value)}>
-            <option value="">Seleziona</option>
-            <option value="it">Italiano</option><option value="en">English</option><option value="fr">Français</option>
-          </select>
-        </div>
+        <SelectField
+          name="lingua" label="Lingua" className="fb-voci-menu__field"
+          placeholder="Seleziona"
+          value={data.Lingua}
+          onChange={(e) => set('Lingua', e.target.value)}
+          options={[
+            { value: 'it', label: 'Italiano' },
+            { value: 'en', label: 'English' },
+            { value: 'fr', label: 'Français' },
+          ]}
+        />
       </div>
 
       <div className="fb-voci-menu__form">
-        <div className="fb-voci-menu__field"><label>Tipi</label>
-          <select className="sib-select" value={data.Tipo} onChange={(e) => set('Tipo', e.target.value)}>
-            <option value="Food">Food</option><option value="Beverage">Beverage</option>
-          </select>
-        </div>
-        <div className="fb-voci-menu__field"><label>Gruppo</label>
-          <select className="sib-select" value={data.Gruppo} onChange={(e) => set('Gruppo', e.target.value)}>
-            <option value="Antipasti">Antipasti</option><option value="Primi">Primi</option><option value="Secondi">Secondi</option>
-          </select>
-        </div>
-        <div className="fb-voci-menu__field"><label>Prezzo standard</label>
-          <input type="number" step="0.01" className="sib-input" value={data.prezzoStandard} onChange={(e) => set('prezzoStandard', Number(e.target.value) || 0)} />
-        </div>
-        <div className="fb-voci-menu__field"><label>Iva</label>
-          <select className="sib-select" value={data.iva} onChange={(e) => set('iva', e.target.value)}>
-            <option value="IVA 10% - beni e servizi agevolati">IVA 10% - beni e servizi agevolati</option>
-            <option value="IVA 22%">IVA 22%</option>
-          </select>
-        </div>
+        <SelectField
+          name="tipo" label="Tipi" className="fb-voci-menu__field"
+          value={data.Tipo}
+          onChange={(e) => set('Tipo', e.target.value)}
+          options={[
+            { value: 'Food', label: 'Food' },
+            { value: 'Beverage', label: 'Beverage' },
+          ]}
+        />
+        <SelectField
+          name="gruppo" label="Gruppo" className="fb-voci-menu__field"
+          value={data.Gruppo}
+          onChange={(e) => set('Gruppo', e.target.value)}
+          options={[
+            { value: 'Antipasti', label: 'Antipasti' },
+            { value: 'Primi', label: 'Primi' },
+            { value: 'Secondi', label: 'Secondi' },
+          ]}
+        />
+        <InputField
+          name="prezzoStandard" label="Prezzo standard" type="number" step={0.01} className="fb-voci-menu__field"
+          value={data.prezzoStandard}
+          onChange={(e) => set('prezzoStandard', Number(e.target.value) || 0)}
+        />
+        <SelectField
+          name="iva" label="Iva" className="fb-voci-menu__field"
+          value={data.iva}
+          onChange={(e) => set('iva', e.target.value)}
+          options={[
+            { value: 'IVA 10% - beni e servizi agevolati', label: 'IVA 10% - beni e servizi agevolati' },
+            { value: 'IVA 22%', label: 'IVA 22%' },
+          ]}
+        />
       </div>
 
       <h3 className="fb-voci-menu__section-title">Reparti di vendita</h3>

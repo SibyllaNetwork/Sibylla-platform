@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Ico from '../../../core/icons/Ico'
+import { InputField } from '../../../core/components/form'
 import { useAccessStore, enabledPagesForProfile } from '../../../store/useAccessStore'
 import { useModuliStore } from '../../../store/useModuliStore'
 import './ProfileLogin.sass'
@@ -99,10 +100,10 @@ export default function ProfileLogin() {
           <div className="plogin__form">
             <div className="plogin__form-head">Nuova utenza</div>
             <div className="plogin__form-grid">
-              <input className="sib-input" placeholder="Nome e cognome" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
-              <input className="sib-input" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-              <input className="sib-input" placeholder="Cliente / struttura" value={form.cliente} onChange={e => setForm({ ...form, cliente: e.target.value })} />
-              <input className="sib-input" placeholder="Ruolo" value={form.ruolo} onChange={e => setForm({ ...form, ruolo: e.target.value })} />
+              <InputField name="nome" placeholder="Nome e cognome" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
+              <InputField name="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+              <InputField name="cliente" placeholder="Cliente / struttura" value={form.cliente} onChange={e => setForm({ ...form, cliente: e.target.value })} />
+              <InputField name="ruolo" placeholder="Ruolo" value={form.ruolo} onChange={e => setForm({ ...form, ruolo: e.target.value })} />
             </div>
             <div className="plogin__mods-label">Moduli sottoscritti dal contratto</div>
             <div className="plogin__mods">

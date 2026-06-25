@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import { InputField, SelectField, TextareaField } from '../../../core/components/form'
 import {
   useLiveDisplayStore, FONTS, fontStack, CARD_META, CARD_TYPES,
   type CardType, type ColCount, type Row, type Slot, type CardData, type LiveConfig, type SlotRef,
@@ -174,14 +175,14 @@ function SlotEditor({ slot, onChange, onClear }: { slot: Slot; onChange: (p: Car
       </h3>
 
       {slot.type === 'hero' && <>
-        <label className="ld__field"><span>Payoff</span><input className="sib-input" value={d.payoff ?? ''} onChange={(e) => onChange({ payoff: e.target.value })} /></label>
-        <label className="ld__field"><span>Titolo</span><input className="sib-input" value={d.titolo ?? ''} onChange={(e) => onChange({ titolo: e.target.value })} /></label>
-        <label className="ld__field"><span>Sottotitolo</span><textarea className="sib-input ld__textarea" rows={2} value={d.sottotitolo ?? ''} onChange={(e) => onChange({ sottotitolo: e.target.value })} /></label>
+        <InputField className="ld__field" name="hero-payoff" label="Payoff" value={d.payoff ?? ''} onChange={(e) => onChange({ payoff: e.target.value })} />
+        <InputField className="ld__field" name="hero-titolo" label="Titolo" value={d.titolo ?? ''} onChange={(e) => onChange({ titolo: e.target.value })} />
+        <TextareaField className="ld__field" name="hero-sottotitolo" label="Sottotitolo" rows={2} value={d.sottotitolo ?? ''} onChange={(e) => onChange({ sottotitolo: e.target.value })} />
         <div className="ld__row2">
-          <label className="ld__field"><span>Testo pulsante</span><input className="sib-input" value={d.ctaLabel ?? ''} onChange={(e) => onChange({ ctaLabel: e.target.value })} /></label>
-          <label className="ld__field"><span>Link pulsante</span><input className="sib-input" value={d.ctaUrl ?? ''} onChange={(e) => onChange({ ctaUrl: e.target.value })} /></label>
+          <InputField className="ld__field" name="hero-ctaLabel" label="Testo pulsante" value={d.ctaLabel ?? ''} onChange={(e) => onChange({ ctaLabel: e.target.value })} />
+          <InputField className="ld__field" name="hero-ctaUrl" label="Link pulsante" value={d.ctaUrl ?? ''} onChange={(e) => onChange({ ctaUrl: e.target.value })} />
         </div>
-        <div className="ld__field">
+        <div className="ld__field-raw">
           <span>Allineamento</span>
           <div className="ld__seg">
             {(['left', 'center'] as const).map((a) => (
@@ -191,49 +192,52 @@ function SlotEditor({ slot, onChange, onClear }: { slot: Slot; onChange: (p: Car
             ))}
           </div>
         </div>
-        <label className="ld__field"><span>Copertina</span>
-          <select className="sib-select" value={COVERS.some((c) => c.id === d.coverId) ? d.coverId : ''} onChange={(e) => onChange({ coverId: e.target.value })}>
-            {COVERS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-            {!COVERS.some((c) => c.id === d.coverId) && <option value="">Personalizzata</option>}
-          </select>
-        </label>
-        <label className="ld__field"><span>Copertina personalizzata</span>
+        <SelectField
+          className="ld__field" name="hero-coverId" label="Copertina"
+          value={COVERS.some((c) => c.id === d.coverId) ? d.coverId : ''}
+          onChange={(e) => onChange({ coverId: e.target.value })}
+          options={[
+            ...COVERS.map((c) => ({ value: c.id, label: c.label })),
+            ...(!COVERS.some((c) => c.id === d.coverId) ? [{ value: '', label: 'Personalizzata' }] : []),
+          ]}
+        />
+        <label className="ld__field-raw"><span>Copertina personalizzata</span>
           <ImageField value={coverUrl(d.coverId ?? '')} onChange={(v) => onChange({ coverId: v })} />
         </label>
       </>}
 
       {slot.type === 'immagine' && <>
-        <label className="ld__field"><span>Titolo</span><input className="sib-input" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} /></label>
+        <InputField className="ld__field" name="img-nome" label="Titolo" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} />
         <div className="ld__row2">
-          <label className="ld__field"><span>Tag</span><input className="sib-input" value={d.tag ?? ''} onChange={(e) => onChange({ tag: e.target.value })} /></label>
-          <label className="ld__field"><span>Prezzo da (€)</span><input className="sib-input" type="number" value={d.da ?? 0} onChange={(e) => onChange({ da: Number(e.target.value) || 0 })} /></label>
+          <InputField className="ld__field" name="img-tag" label="Tag" value={d.tag ?? ''} onChange={(e) => onChange({ tag: e.target.value })} />
+          <InputField className="ld__field" name="img-da" label="Prezzo da (€)" type="number" value={d.da ?? 0} onChange={(e) => onChange({ da: Number(e.target.value) || 0 })} />
         </div>
-        <label className="ld__field"><span>Immagine</span><ImageField value={d.img ?? ''} onChange={(v) => onChange({ img: v })} /></label>
+        <label className="ld__field-raw"><span>Immagine</span><ImageField value={d.img ?? ''} onChange={(v) => onChange({ img: v })} /></label>
       </>}
 
       {slot.type === 'struttura' && <>
         <div className="ld__row2">
-          <label className="ld__field"><span>Nome</span><input className="sib-input" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} /></label>
-          <label className="ld__field"><span>Città</span><input className="sib-input" value={d.citta ?? ''} onChange={(e) => onChange({ citta: e.target.value })} /></label>
+          <InputField className="ld__field" name="struct-nome" label="Nome" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} />
+          <InputField className="ld__field" name="struct-citta" label="Città" value={d.citta ?? ''} onChange={(e) => onChange({ citta: e.target.value })} />
         </div>
-        <label className="ld__field"><span>Immagine</span><ImageField value={d.img ?? ''} onChange={(v) => onChange({ img: v })} /></label>
+        <label className="ld__field-raw"><span>Immagine</span><ImageField value={d.img ?? ''} onChange={(v) => onChange({ img: v })} /></label>
       </>}
 
       {slot.type === 'pacchetto' && <>
-        <label className="ld__field"><span>Nome</span><input className="sib-input" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} /></label>
+        <InputField className="ld__field" name="pkg-nome" label="Nome" value={d.nome ?? ''} onChange={(e) => onChange({ nome: e.target.value })} />
         <div className="ld__row2">
-          <label className="ld__field"><span>Notti</span><input className="sib-input" type="number" value={d.notti ?? 0} onChange={(e) => onChange({ notti: Number(e.target.value) || 0 })} /></label>
-          <label className="ld__field"><span>Prezzo da (€)</span><input className="sib-input" type="number" value={d.da ?? 0} onChange={(e) => onChange({ da: Number(e.target.value) || 0 })} /></label>
+          <InputField className="ld__field" name="pkg-notti" label="Notti" type="number" value={d.notti ?? 0} onChange={(e) => onChange({ notti: Number(e.target.value) || 0 })} />
+          <InputField className="ld__field" name="pkg-da" label="Prezzo da (€)" type="number" value={d.da ?? 0} onChange={(e) => onChange({ da: Number(e.target.value) || 0 })} />
         </div>
         <div className="ld__row2">
-          <label className="ld__field"><span>Testo pulsante</span><input className="sib-input" value={d.ctaLabel ?? ''} onChange={(e) => onChange({ ctaLabel: e.target.value })} /></label>
-          <label className="ld__field"><span>Link pulsante</span><input className="sib-input" value={d.ctaUrl ?? ''} onChange={(e) => onChange({ ctaUrl: e.target.value })} /></label>
+          <InputField className="ld__field" name="pkg-ctaLabel" label="Testo pulsante" value={d.ctaLabel ?? ''} onChange={(e) => onChange({ ctaLabel: e.target.value })} />
+          <InputField className="ld__field" name="pkg-ctaUrl" label="Link pulsante" value={d.ctaUrl ?? ''} onChange={(e) => onChange({ ctaUrl: e.target.value })} />
         </div>
       </>}
 
       {slot.type === 'testo' && <>
-        <label className="ld__field"><span>Titolo</span><input className="sib-input" value={d.heading ?? ''} onChange={(e) => onChange({ heading: e.target.value })} /></label>
-        <label className="ld__field"><span>Testo</span><textarea className="sib-input ld__textarea" rows={4} value={d.body ?? ''} onChange={(e) => onChange({ body: e.target.value })} /></label>
+        <InputField className="ld__field" name="testo-heading" label="Titolo" value={d.heading ?? ''} onChange={(e) => onChange({ heading: e.target.value })} />
+        <TextareaField className="ld__field" name="testo-body" label="Testo" rows={4} value={d.body ?? ''} onChange={(e) => onChange({ body: e.target.value })} />
       </>}
 
       {slot.type === 'servizi' && <>
@@ -363,7 +367,7 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="ld">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <div className="ld__top">
         <PageHeader title="Live display" subtitle="Componi la tua vetrina a griglia: aggiungi righe, scegli la disposizione e riempi le card" />
         <div className="ld__top-actions">
@@ -385,10 +389,10 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
           <button type="button" className="ld__page-add" onClick={newPage}><i className="fa-light fa-plus" aria-hidden="true" /> Nuova pagina</button>
         </div>
         <div className="ld__pages-bar">
-          <label className="ld__pages-name">
-            <span>Nome pagina</span>
-            <input className="sib-input" value={current.nome} onChange={(e) => renamePage(current.id, e.target.value)} />
-          </label>
+          <InputField
+            className="ld__pages-name" name="page-nome" label="Nome pagina"
+            value={current.nome} onChange={(e) => renamePage(current.id, e.target.value)}
+          />
           <button type="button" className="sib-btn sib-btn--icon" title="Duplica pagina" onClick={() => duplicatePage(current.id)}><i className="fa-light fa-copy" aria-hidden="true" /></button>
           <button type="button" className="sib-btn sib-btn--icon" title="Elimina pagina" onClick={() => deletePage(current.id)} disabled={pages.length <= 1}><i className="fa-light fa-trash" aria-hidden="true" /></button>
           <div className="ld__share">
@@ -407,9 +411,9 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
           {/* Brand */}
           <div className="ld__card">
             <h3 className="ld__card-title"><i className="fa-light fa-store" aria-hidden="true" /> Brand & dominio</h3>
-            <label className="ld__field"><span>Nome vetrina</span><input className="sib-input" value={brand.nome} onChange={(e) => setBrand({ nome: e.target.value })} /></label>
-            <label className="ld__field"><span>Payoff</span><input className="sib-input" value={brand.payoff} onChange={(e) => setBrand({ payoff: e.target.value })} /></label>
-            <label className="ld__field"><span>Dominio / sito</span><input className="sib-input" value={social.sito} onChange={(e) => setSocial({ sito: e.target.value })} /></label>
+            <InputField className="ld__field" name="brand-nome" label="Nome vetrina" value={brand.nome} onChange={(e) => setBrand({ nome: e.target.value })} />
+            <InputField className="ld__field" name="brand-payoff" label="Payoff" value={brand.payoff} onChange={(e) => setBrand({ payoff: e.target.value })} />
+            <InputField className="ld__field" name="brand-sito" label="Dominio / sito" value={social.sito} onChange={(e) => setSocial({ sito: e.target.value })} />
           </div>
 
           {/* Card selezionata (editor contestuale) */}
@@ -441,12 +445,13 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
                 </label>
               ))}
             </div>
-            <label className="ld__field"><span>Font</span>
-              <select className="sib-select" value={theme.font} onChange={(e) => setTheme({ font: e.target.value as typeof theme.font })}>
-                {FONTS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
-              </select>
-            </label>
-            <label className="ld__field"><span>Arrotondamento angoli — {theme.radius}px</span>
+            <SelectField
+              className="ld__field" name="theme-font" label="Font"
+              value={theme.font}
+              onChange={(e) => setTheme({ font: e.target.value as typeof theme.font })}
+              options={FONTS.map((f) => ({ value: f.key, label: f.label }))}
+            />
+            <label className="ld__field-raw"><span>Arrotondamento angoli — {theme.radius}px</span>
               <input type="range" min={0} max={28} value={theme.radius} onChange={(e) => setTheme({ radius: Number(e.target.value) })} />
             </label>
           </div>
@@ -454,14 +459,14 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
           {/* Contatti & social */}
           <div className="ld__card">
             <h3 className="ld__card-title"><i className="fa-light fa-address-book" aria-hidden="true" /> Contatti & social</h3>
-            <label className="ld__field"><span>Email</span><input className="sib-input" value={contatti.email} onChange={(e) => setContatti({ email: e.target.value })} /></label>
+            <InputField className="ld__field" name="contatti-email" label="Email" value={contatti.email} onChange={(e) => setContatti({ email: e.target.value })} />
             <div className="ld__row2">
-              <label className="ld__field"><span>Telefono</span><input className="sib-input" value={contatti.telefono} onChange={(e) => setContatti({ telefono: e.target.value })} /></label>
-              <label className="ld__field"><span>Indirizzo</span><input className="sib-input" value={contatti.indirizzo} onChange={(e) => setContatti({ indirizzo: e.target.value })} /></label>
+              <InputField className="ld__field" name="contatti-telefono" label="Telefono" value={contatti.telefono} onChange={(e) => setContatti({ telefono: e.target.value })} />
+              <InputField className="ld__field" name="contatti-indirizzo" label="Indirizzo" value={contatti.indirizzo} onChange={(e) => setContatti({ indirizzo: e.target.value })} />
             </div>
             <div className="ld__row2">
-              <label className="ld__field"><span>Instagram</span><input className="sib-input" value={social.instagram} onChange={(e) => setSocial({ instagram: e.target.value })} /></label>
-              <label className="ld__field"><span>Facebook</span><input className="sib-input" value={social.facebook} onChange={(e) => setSocial({ facebook: e.target.value })} /></label>
+              <InputField className="ld__field" name="social-instagram" label="Instagram" value={social.instagram} onChange={(e) => setSocial({ instagram: e.target.value })} />
+              <InputField className="ld__field" name="social-facebook" label="Facebook" value={social.facebook} onChange={(e) => setSocial({ facebook: e.target.value })} />
             </div>
           </div>
         </aside>

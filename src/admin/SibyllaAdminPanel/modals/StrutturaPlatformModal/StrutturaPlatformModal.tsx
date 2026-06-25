@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Modal from '../../../../core/components/Modal'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { Icon } from '../../../../modules/purchasing/_shared/Icon'
 import {
   AMBITI,
@@ -131,82 +132,64 @@ export default function StrutturaPlatformModal({
           {section === 'identita' && (
             <section className="str-modal__section">
               <div className="str-modal__grid str-modal__grid--3">
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Nome struttura</label>
-                  <input
-                    type="text"
-                    className="sib-input"
-                    value={form.nome}
-                    onChange={(e) => upd('nome', e.target.value)}
-                    placeholder="es. Eternal City Boutique Hotel"
-                  />
-                </div>
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Ragione sociale</label>
-                  <input
-                    type="text"
-                    className="sib-input"
-                    value={form.ragioneSociale}
-                    onChange={(e) => upd('ragioneSociale', e.target.value)}
-                    placeholder="es. Eternal Hospitality S.r.l."
-                  />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Tipo</label>
-                  <select
-                    className="sib-select"
-                    value={form.tipo}
-                    onChange={(e) => upd('tipo', e.target.value as StrutturaForm['tipo'])}
-                  >
-                    {TIPI_STRUTTURA.map(t => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Classificazione (★)</label>
-                  <select
-                    className="sib-select"
-                    value={form.classificazione}
-                    onChange={(e) => upd('classificazione', e.target.value as StrutturaForm['classificazione'])}
-                  >
-                    {CLASSIFICAZIONI.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Ambito</label>
-                  <select
-                    className="sib-select"
-                    value={form.ambito}
-                    onChange={(e) => upd('ambito', e.target.value as StrutturaForm['ambito'])}
-                  >
-                    {AMBITI.map(a => (
-                      <option key={a.value} value={a.value}>{a.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Descrizione struttura</label>
-                  <textarea
-                    className="sib-input sib-input--area"
-                    rows={3}
-                    value={form.descrizione}
-                    onChange={(e) => upd('descrizione', e.target.value)}
-                    placeholder="Cosa rende speciale la struttura"
-                  />
-                </div>
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Descrizione della località</label>
-                  <textarea
-                    className="sib-input sib-input--area"
-                    rows={3}
-                    value={form.descrizioneLocalita}
-                    onChange={(e) => upd('descrizioneLocalita', e.target.value)}
-                    placeholder="Cosa c'è da vedere nei dintorni, atmosfera, attrazioni vicine"
-                  />
-                </div>
+                <InputField
+                  className="str-modal__field str-modal__field--full"
+                  name="nome"
+                  label="Nome struttura"
+                  value={form.nome}
+                  onChange={(e) => upd('nome', e.target.value)}
+                  placeholder="es. Eternal City Boutique Hotel"
+                />
+                <InputField
+                  className="str-modal__field str-modal__field--full"
+                  name="ragione-sociale"
+                  label="Ragione sociale"
+                  value={form.ragioneSociale}
+                  onChange={(e) => upd('ragioneSociale', e.target.value)}
+                  placeholder="es. Eternal Hospitality S.r.l."
+                />
+                <SelectField
+                  className="str-modal__field"
+                  name="tipo"
+                  label="Tipo"
+                  value={form.tipo}
+                  onChange={(e) => upd('tipo', e.target.value as StrutturaForm['tipo'])}
+                  options={TIPI_STRUTTURA.map(t => ({ value: t.value, label: t.label }))}
+                />
+                <SelectField
+                  className="str-modal__field"
+                  name="classificazione"
+                  label="Classificazione (★)"
+                  value={form.classificazione}
+                  onChange={(e) => upd('classificazione', e.target.value as StrutturaForm['classificazione'])}
+                  options={CLASSIFICAZIONI.map(c => ({ value: c, label: c }))}
+                />
+                <SelectField
+                  className="str-modal__field"
+                  name="ambito"
+                  label="Ambito"
+                  value={form.ambito}
+                  onChange={(e) => upd('ambito', e.target.value as StrutturaForm['ambito'])}
+                  options={AMBITI.map(a => ({ value: a.value, label: a.label }))}
+                />
+                <TextareaField
+                  className="str-modal__field str-modal__field--full"
+                  name="descrizione"
+                  label="Descrizione struttura"
+                  rows={3}
+                  value={form.descrizione}
+                  onChange={(e) => upd('descrizione', e.target.value)}
+                  placeholder="Cosa rende speciale la struttura"
+                />
+                <TextareaField
+                  className="str-modal__field str-modal__field--full"
+                  name="descrizione-localita"
+                  label="Descrizione della località"
+                  rows={3}
+                  value={form.descrizioneLocalita}
+                  onChange={(e) => upd('descrizioneLocalita', e.target.value)}
+                  placeholder="Cosa c'è da vedere nei dintorni, atmosfera, attrazioni vicine"
+                />
               </div>
             </section>
           )}
@@ -217,16 +200,15 @@ export default function StrutturaPlatformModal({
           {section === 'foto' && (
             <section className="str-modal__section">
               <div className="str-modal__hero">
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Foto principale (hero della scheda)</label>
-                  <input
-                    type="url"
-                    className="sib-input"
-                    value={form.fotoPrincipale}
-                    onChange={(e) => upd('fotoPrincipale', e.target.value)}
-                    placeholder="https://…"
-                  />
-                </div>
+                <InputField
+                  className="str-modal__field str-modal__field--full"
+                  name="foto-principale"
+                  label="Foto principale (hero della scheda)"
+                  type="url"
+                  value={form.fotoPrincipale}
+                  onChange={(e) => upd('fotoPrincipale', e.target.value)}
+                  placeholder="https://…"
+                />
                 <div className="str-modal__hero-preview">
                   {form.fotoPrincipale
                     ? <img src={form.fotoPrincipale} alt="Hero" />
@@ -286,43 +268,14 @@ export default function StrutturaPlatformModal({
           {section === 'posizione' && (
             <section className="str-modal__section">
               <div className="str-modal__grid str-modal__grid--3">
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Indirizzo</label>
-                  <input
-                    type="text"
-                    className="sib-input"
-                    value={form.indirizzo}
-                    onChange={(e) => upd('indirizzo', e.target.value)}
-                  />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Città</label>
-                  <input type="text" className="sib-input" value={form.citta} onChange={(e) => upd('citta', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Provincia (sigla)</label>
-                  <input type="text" maxLength={2} className="sib-input" value={form.provincia} onChange={(e) => upd('provincia', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Regione</label>
-                  <input type="text" className="sib-input" value={form.regione} onChange={(e) => upd('regione', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">CAP</label>
-                  <input type="text" className="sib-input" value={form.cap} onChange={(e) => upd('cap', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Paese</label>
-                  <input type="text" className="sib-input" value={form.paese} onChange={(e) => upd('paese', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Latitudine</label>
-                  <input type="number" step="0.0001" className="sib-input" value={form.lat} onChange={(e) => upd('lat', e.target.value)} placeholder="es. 41.8925" />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Longitudine</label>
-                  <input type="number" step="0.0001" className="sib-input" value={form.lon} onChange={(e) => upd('lon', e.target.value)} placeholder="es. 12.4924" />
-                </div>
+                <InputField className="str-modal__field str-modal__field--full" name="indirizzo" label="Indirizzo" value={form.indirizzo} onChange={(e) => upd('indirizzo', e.target.value)} />
+                <InputField className="str-modal__field" name="citta" label="Città" value={form.citta} onChange={(e) => upd('citta', e.target.value)} />
+                <InputField className="str-modal__field" name="provincia" label="Provincia (sigla)" maxLength={2} value={form.provincia} onChange={(e) => upd('provincia', e.target.value)} />
+                <InputField className="str-modal__field" name="regione" label="Regione" value={form.regione} onChange={(e) => upd('regione', e.target.value)} />
+                <InputField className="str-modal__field" name="cap" label="CAP" value={form.cap} onChange={(e) => upd('cap', e.target.value)} />
+                <InputField className="str-modal__field" name="paese" label="Paese" value={form.paese} onChange={(e) => upd('paese', e.target.value)} />
+                <InputField className="str-modal__field" name="lat" label="Latitudine" type="number" step={0.0001} value={form.lat} onChange={(e) => upd('lat', e.target.value)} placeholder="es. 41.8925" />
+                <InputField className="str-modal__field" name="lon" label="Longitudine" type="number" step={0.0001} value={form.lon} onChange={(e) => upd('lon', e.target.value)} placeholder="es. 12.4924" />
               </div>
             </section>
           )}
@@ -333,30 +286,12 @@ export default function StrutturaPlatformModal({
           {section === 'contatti' && (
             <section className="str-modal__section">
               <div className="str-modal__grid">
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Email</label>
-                  <input type="email" className="sib-input" value={form.email} onChange={(e) => upd('email', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Telefono</label>
-                  <input type="tel" className="sib-input" value={form.telefono} onChange={(e) => upd('telefono', e.target.value)} />
-                </div>
-                <div className="str-modal__field str-modal__field--full">
-                  <label className="str-modal__label">Sito web</label>
-                  <input type="url" className="sib-input" value={form.sito} onChange={(e) => upd('sito', e.target.value)} placeholder="es. miastruttura.it" />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Logo (URL)</label>
-                  <input type="url" className="sib-input" value={form.logoUrl} onChange={(e) => upd('logoUrl', e.target.value)} placeholder="https://…" />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">ID cliente</label>
-                  <input type="number" className="sib-input" value={form.clienteId} onChange={(e) => upd('clienteId', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Nome cliente</label>
-                  <input type="text" className="sib-input" value={form.clienteNome} onChange={(e) => upd('clienteNome', e.target.value)} placeholder="Ragione sociale" />
-                </div>
+                <InputField className="str-modal__field" name="email" label="Email" type="email" value={form.email} onChange={(e) => upd('email', e.target.value)} />
+                <InputField className="str-modal__field" name="telefono" label="Telefono" type="tel" value={form.telefono} onChange={(e) => upd('telefono', e.target.value)} />
+                <InputField className="str-modal__field str-modal__field--full" name="sito" label="Sito web" type="url" value={form.sito} onChange={(e) => upd('sito', e.target.value)} placeholder="es. miastruttura.it" />
+                <InputField className="str-modal__field" name="logo-url" label="Logo (URL)" type="url" value={form.logoUrl} onChange={(e) => upd('logoUrl', e.target.value)} placeholder="https://…" />
+                <InputField className="str-modal__field" name="cliente-id" label="ID cliente" type="number" value={form.clienteId} onChange={(e) => upd('clienteId', e.target.value)} />
+                <InputField className="str-modal__field" name="cliente-nome" label="Nome cliente" value={form.clienteNome} onChange={(e) => upd('clienteNome', e.target.value)} placeholder="Ragione sociale" />
               </div>
             </section>
           )}
@@ -392,87 +327,75 @@ export default function StrutturaPlatformModal({
                       </div>
                       <div className="str-modal__camera-body">
                         <div className="str-modal__grid str-modal__grid--3">
-                          <div className="str-modal__field str-modal__field--full">
-                            <label className="str-modal__label">Nome tipologia</label>
-                            <input
-                              type="text"
-                              className="sib-input"
-                              value={c.nome}
-                              onChange={(e) => updCamera(idx, { nome: e.target.value })}
-                            />
-                          </div>
-                          <div className="str-modal__field str-modal__field--full">
-                            <label className="str-modal__label">Descrizione</label>
-                            <input
-                              type="text"
-                              className="sib-input"
-                              value={c.descrizione}
-                              onChange={(e) => updCamera(idx, { descrizione: e.target.value })}
-                            />
-                          </div>
-                          <div className="str-modal__field">
-                            <label className="str-modal__label">Capacità (pax)</label>
-                            <input
-                              type="number" min={1}
-                              className="sib-input"
-                              value={c.capacita}
-                              onChange={(e) => updCamera(idx, { capacita: parseInt(e.target.value || '0', 10) })}
-                            />
-                          </div>
-                          <div className="str-modal__field">
-                            <label className="str-modal__label">Letti</label>
-                            <input
-                              type="text"
-                              className="sib-input"
-                              value={c.letti}
-                              onChange={(e) => updCamera(idx, { letti: e.target.value })}
-                            />
-                          </div>
-                          <div className="str-modal__field">
-                            <label className="str-modal__label">Metratura (m²)</label>
-                            <input
-                              type="number" min={0}
-                              className="sib-input"
-                              value={c.metratura}
-                              onChange={(e) => updCamera(idx, { metratura: parseInt(e.target.value || '0', 10) })}
-                            />
-                          </div>
-                          <div className="str-modal__field str-modal__field--full">
-                            <label className="str-modal__label">Foto camera (URL)</label>
-                            <input
-                              type="url"
-                              className="sib-input"
-                              value={c.immagineUrl}
-                              onChange={(e) => updCamera(idx, { immagineUrl: e.target.value })}
-                            />
-                          </div>
-                          <div className="str-modal__field str-modal__price-field str-modal__price-field--agora">
-                            <label className="str-modal__label">Prezzo Agorà (€/notte)</label>
-                            <input
-                              type="number" step="0.01" min={0}
-                              className="sib-input"
-                              value={c.prezzoAgora}
-                              onChange={(e) => updCamera(idx, { prezzoAgora: parseFloat(e.target.value) || 0 })}
-                            />
-                          </div>
-                          <div className="str-modal__field str-modal__price-field str-modal__price-field--b2b">
-                            <label className="str-modal__label">Prezzo B2B (€/notte)</label>
-                            <input
-                              type="number" step="0.01" min={0}
-                              className="sib-input"
-                              value={c.prezzoB2B}
-                              onChange={(e) => updCamera(idx, { prezzoB2B: parseFloat(e.target.value) || 0 })}
-                            />
-                          </div>
-                          <div className="str-modal__field str-modal__price-field str-modal__price-field--b2c">
-                            <label className="str-modal__label">Prezzo B2C (€/notte)</label>
-                            <input
-                              type="number" step="0.01" min={0}
-                              className="sib-input"
-                              value={c.prezzoB2C}
-                              onChange={(e) => updCamera(idx, { prezzoB2C: parseFloat(e.target.value) || 0 })}
-                            />
-                          </div>
+                          <InputField
+                            className="str-modal__field str-modal__field--full"
+                            name={`camera-nome-${idx}`}
+                            label="Nome tipologia"
+                            value={c.nome}
+                            onChange={(e) => updCamera(idx, { nome: e.target.value })}
+                          />
+                          <InputField
+                            className="str-modal__field str-modal__field--full"
+                            name={`camera-descrizione-${idx}`}
+                            label="Descrizione"
+                            value={c.descrizione}
+                            onChange={(e) => updCamera(idx, { descrizione: e.target.value })}
+                          />
+                          <InputField
+                            className="str-modal__field"
+                            name={`camera-capacita-${idx}`}
+                            label="Capacità (pax)"
+                            type="number" min={1}
+                            value={c.capacita}
+                            onChange={(e) => updCamera(idx, { capacita: parseInt(e.target.value || '0', 10) })}
+                          />
+                          <InputField
+                            className="str-modal__field"
+                            name={`camera-letti-${idx}`}
+                            label="Letti"
+                            value={c.letti}
+                            onChange={(e) => updCamera(idx, { letti: e.target.value })}
+                          />
+                          <InputField
+                            className="str-modal__field"
+                            name={`camera-metratura-${idx}`}
+                            label="Metratura (m²)"
+                            type="number" min={0}
+                            value={c.metratura}
+                            onChange={(e) => updCamera(idx, { metratura: parseInt(e.target.value || '0', 10) })}
+                          />
+                          <InputField
+                            className="str-modal__field str-modal__field--full"
+                            name={`camera-immagine-${idx}`}
+                            label="Foto camera (URL)"
+                            type="url"
+                            value={c.immagineUrl}
+                            onChange={(e) => updCamera(idx, { immagineUrl: e.target.value })}
+                          />
+                          <InputField
+                            className="str-modal__field str-modal__price-field str-modal__price-field--agora"
+                            name={`camera-prezzo-agora-${idx}`}
+                            label="Prezzo Agorà (€/notte)"
+                            type="number" step={0.01} min={0}
+                            value={c.prezzoAgora}
+                            onChange={(e) => updCamera(idx, { prezzoAgora: parseFloat(e.target.value) || 0 })}
+                          />
+                          <InputField
+                            className="str-modal__field str-modal__price-field str-modal__price-field--b2b"
+                            name={`camera-prezzo-b2b-${idx}`}
+                            label="Prezzo B2B (€/notte)"
+                            type="number" step={0.01} min={0}
+                            value={c.prezzoB2B}
+                            onChange={(e) => updCamera(idx, { prezzoB2B: parseFloat(e.target.value) || 0 })}
+                          />
+                          <InputField
+                            className="str-modal__field str-modal__price-field str-modal__price-field--b2c"
+                            name={`camera-prezzo-b2c-${idx}`}
+                            label="Prezzo B2C (€/notte)"
+                            type="number" step={0.01} min={0}
+                            value={c.prezzoB2C}
+                            onChange={(e) => updCamera(idx, { prezzoB2C: parseFloat(e.target.value) || 0 })}
+                          />
                         </div>
                       </div>
                       <button
@@ -551,26 +474,23 @@ export default function StrutturaPlatformModal({
                         />
                         Pubblicata su {cMeta.label}
                       </label>
-                      <div className="str-modal__field str-modal__field--full">
-                        <label className="str-modal__label">Tagline / slogan canale</label>
-                        <input
-                          type="text"
-                          className="sib-input"
-                          value={tag}
-                          onChange={(e) => upd(tagK, e.target.value as any)}
-                          placeholder="Breve frase di lancio specifica per questo canale"
-                        />
-                      </div>
-                      <div className="str-modal__field str-modal__field--full">
-                        <label className="str-modal__label">Note pubblicazione / condizioni</label>
-                        <textarea
-                          className="sib-input sib-input--area"
-                          rows={2}
-                          value={note}
-                          onChange={(e) => upd(noteK, e.target.value as any)}
-                          placeholder="es. cancellazione gratuita fino a 48h, free breakfast incluso, ecc."
-                        />
-                      </div>
+                      <InputField
+                        className="str-modal__field str-modal__field--full"
+                        name="canale-tagline"
+                        label="Tagline / slogan canale"
+                        value={tag}
+                        onChange={(e) => upd(tagK, e.target.value as any)}
+                        placeholder="Breve frase di lancio specifica per questo canale"
+                      />
+                      <TextareaField
+                        className="str-modal__field str-modal__field--full"
+                        name="canale-note"
+                        label="Note pubblicazione / condizioni"
+                        rows={2}
+                        value={note}
+                        onChange={(e) => upd(noteK, e.target.value as any)}
+                        placeholder="es. cancellazione gratuita fino a 48h, free breakfast incluso, ecc."
+                      />
                     </div>
 
                     {/* Preview: Agorà e B2B condividono lo stesso layout
@@ -596,31 +516,16 @@ export default function StrutturaPlatformModal({
           {section === 'config' && (
             <section className="str-modal__section">
               <div className="str-modal__grid str-modal__grid--3">
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Camere totali</label>
-                  <input type="number" min={0} className="sib-input" value={form.camere} onChange={(e) => upd('camere', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Valuta</label>
-                  <input type="text" maxLength={3} className="sib-input" value={form.valuta} onChange={(e) => upd('valuta', e.target.value)} placeholder="EUR" />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Lingua</label>
-                  <input type="text" maxLength={2} className="sib-input" value={form.lingua} onChange={(e) => upd('lingua', e.target.value)} placeholder="it" />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Timezone</label>
-                  <input type="text" className="sib-input" value={form.timezone} onChange={(e) => upd('timezone', e.target.value)} placeholder="Europe/Rome" />
-                </div>
-                <div className="str-modal__field">
-                  <label className="str-modal__label">Tassa di soggiorno (€)</label>
-                  <input type="number" step="0.5" min={0} className="sib-input" value={form.tassaSoggiorno} onChange={(e) => upd('tassaSoggiorno', e.target.value)} />
-                </div>
-                <div className="str-modal__field">
+                <InputField className="str-modal__field" name="camere" label="Camere totali" type="number" min={0} value={form.camere} onChange={(e) => upd('camere', e.target.value)} />
+                <InputField className="str-modal__field" name="valuta" label="Valuta" maxLength={3} value={form.valuta} onChange={(e) => upd('valuta', e.target.value)} placeholder="EUR" />
+                <InputField className="str-modal__field" name="lingua" label="Lingua" maxLength={2} value={form.lingua} onChange={(e) => upd('lingua', e.target.value)} placeholder="it" />
+                <InputField className="str-modal__field" name="timezone" label="Timezone" value={form.timezone} onChange={(e) => upd('timezone', e.target.value)} placeholder="Europe/Rome" />
+                <InputField className="str-modal__field" name="tassa-soggiorno" label="Tassa di soggiorno (€)" type="number" step={0.5} min={0} value={form.tassaSoggiorno} onChange={(e) => upd('tassaSoggiorno', e.target.value)} />
+                <div className="str-modal__field str-modal__field-raw">
                   <label className="str-modal__label">Check-in dalle</label>
                   <input type="time" className="sib-input" value={form.checkInOra} onChange={(e) => upd('checkInOra', e.target.value)} />
                 </div>
-                <div className="str-modal__field">
+                <div className="str-modal__field str-modal__field-raw">
                   <label className="str-modal__label">Check-out entro</label>
                   <input type="time" className="sib-input" value={form.checkOutOra} onChange={(e) => upd('checkOutOra', e.target.value)} />
                 </div>

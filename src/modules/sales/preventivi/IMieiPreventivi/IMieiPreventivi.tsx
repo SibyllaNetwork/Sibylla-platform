@@ -125,7 +125,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="gest-prev">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Gestione preventivi" />
 
       {error && loaded && (

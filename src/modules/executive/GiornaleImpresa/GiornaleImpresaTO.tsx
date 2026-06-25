@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
-import { SelectField } from '../../../core/components/form'
+import { SelectField, TextareaField } from '../../../core/components/form'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
 import './GiornaleImpresaTO.sass'
 
@@ -96,7 +96,7 @@ export default function GiornaleImpresaTO({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="gioto">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       {/* ── Hero di sintesi ─────────────────────────────────────────── */}
       <div className="gioto__hero">
@@ -214,8 +214,12 @@ export default function GiornaleImpresaTO({ navigate }: { navigate: (p: string) 
 
         <div className="gioto__box">
           <div className="gioto__box-head"><span><i className="fa-light fa-clipboard-check" aria-hidden="true" /> Conferma A.U.V.</span></div>
-          <label className="gioto__note-label">Note</label>
-          <textarea className="sib-input gioto__note" rows={4} value={note} onChange={e => setNote(e.target.value)} placeholder="Aggiungi una nota per la conferma…" />
+          <TextareaField
+            name="note" label="Note" rows={4}
+            className="gioto__note"
+            value={note} onChange={e => setNote(e.target.value)}
+            placeholder="Aggiungi una nota per la conferma…"
+          />
           <div className="gioto__auv-actions">
             {confermato && <span className="gioto__auv-ok"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Confermato</span>}
             <button type="button" className="sib-btn sib-btn--primary" onClick={conferma}>

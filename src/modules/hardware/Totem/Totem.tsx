@@ -54,7 +54,7 @@ export default function Totem({ navigate }: { navigate: (p: string) => void }) {
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Totem" subtitle="Hardware self-service in struttura: stato, firmware, posizione" />
 
       {error && loaded && (

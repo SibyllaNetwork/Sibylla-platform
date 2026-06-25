@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, InputField } from '../../../../../core/components/form'
 import './OverbookingLimit.sass'
 
 interface Riga { id: number; tipologia: string; periodo: string; limit: number; protection: number }
@@ -37,13 +38,14 @@ export default function OverbookingLimit() {
       </div>
 
       <div className="overbooking-limit__bar">
-        <div className="overbooking-limit__field">
-          <label>Strutture</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Strutture"
+          className="overbooking-limit__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[{ value: '', label: 'Hotel Tutorial' }, ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))]}
+        />
         <button type="button" className="sib-btn sib-btn--primary" onClick={() => setOpen(true)}>
           <i className="fa-light fa-plus" /> Aggiungi regola
         </button>
@@ -73,26 +75,30 @@ export default function OverbookingLimit() {
               <button type="button" className="overbooking-limit__close" onClick={() => setOpen(false)}><i className="fa-light fa-xmark" /></button>
             </div>
             <div className="overbooking-limit__modal-body">
-              <div className="overbooking-limit__field">
-                <label>Tipologia camera</label>
-                <select className="sib-select" value={draft.tipologia} onChange={(e) => setDraft({ ...draft, tipologia: e.target.value })}>
-                  {TIPI_CAMERA.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="overbooking-limit__field">
-                <label>Periodo</label>
-                <select className="sib-select" value={draft.periodo} onChange={(e) => setDraft({ ...draft, periodo: e.target.value })}>
-                  {PERIODI.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="overbooking-limit__field">
+              <SelectField
+                name="tipologia"
+                label="Tipologia camera"
+                className="overbooking-limit__field"
+                value={draft.tipologia}
+                onChange={(e) => setDraft({ ...draft, tipologia: e.target.value })}
+                options={TIPI_CAMERA.map((t) => ({ value: t, label: t }))}
+              />
+              <SelectField
+                name="periodo"
+                label="Periodo"
+                className="overbooking-limit__field"
+                value={draft.periodo}
+                onChange={(e) => setDraft({ ...draft, periodo: e.target.value })}
+                options={PERIODI.map((p) => ({ value: p, label: p }))}
+              />
+              <div className="overbooking-limit__field-raw">
                 <label>OverBooking limit</label>
                 <div className="overbooking-limit__cell">
                   <input type="number" className="sib-input" value={draft.limit} onChange={(e) => setDraft({ ...draft, limit: Number(e.target.value) || 0 })} />
                   <span>%</span>
                 </div>
               </div>
-              <div className="overbooking-limit__field">
+              <div className="overbooking-limit__field-raw">
                 <label>Protection</label>
                 <div className="overbooking-limit__cell">
                   <input type="number" className="sib-input" value={draft.protection} onChange={(e) => setDraft({ ...draft, protection: Number(e.target.value) || 0 })} />

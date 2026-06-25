@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
 import { HBars } from '../../sales/distribution/_charts/HBars'
+import { SelectField } from '../../../core/components/form'
 import './OnTheBookAnalysis.sass'
 
 interface TrendPoint {
@@ -90,21 +91,25 @@ export default function OnTheBookAnalysis({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="otb-analysis">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="On the book analysis"
         subtitle="Analisi dettagliata delle prenotazioni per ottimizzare occupazione e ricavi"
       />
 
       <div className="otb-analysis__filters">
-        <div className="otb-analysis__field">
-          <label>Struttura</label>
-          <select className="sib-select otb-analysis__select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="otb-analysis__field">
+        <SelectField
+          className="otb-analysis__field otb-analysis__select"
+          label="Struttura"
+          name="struttura"
+          value={data.StrutturaId ?? ''}
+          options={[
+            { value: '', label: 'Tutte le strutture' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+        />
+        <div className="otb-analysis__field-raw">
           <label>Scegli intervallo</label>
           <div className="otb-analysis__date-range">
             <input type="date" className="sib-input" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />

@@ -40,7 +40,7 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
 
   return (
     <div className="totem">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Totem interattivo" />
 
       <div className="totem__layout">

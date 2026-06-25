@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../core/components/form'
 import './MaintenanceAnalysis.sass'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
 
   return (
     <div className="maint-an">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Maintenance analysis"
         subtitle="Monitoraggio e analisi degli interventi di manutenzione per camere e strutture"
@@ -94,14 +94,14 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="maint-an__bar">
-        <div className="maint-an__field">
-          <label>Struttura</label>
-          <select className="sib-select maint-an__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value === '' ? null : Number(e.target.value) })}>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          className="maint-an__field maint-an__select"
+          label="Struttura"
+          name="struttura"
+          value={data.StrutturaId ?? ''}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value === '' ? null : Number(e.target.value) })}
+        />
         <DateRangeField
           className="maint-an__field"
           nameFrom="dataDa"

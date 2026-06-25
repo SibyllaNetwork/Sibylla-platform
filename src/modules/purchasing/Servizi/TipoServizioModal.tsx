@@ -2,6 +2,7 @@ import React from 'react'
 import Modal from '../../../core/components/Modal'
 import Ico from '../../../core/icons/Ico'
 import { Icon } from '../_shared/Icon'
+import { InputField } from '../../../core/components/form'
 import type { TipoServizioMeta, FormFieldSpec, FormFieldKind } from './servizi-types'
 import './TipoServizioModal.sass'
 
@@ -94,30 +95,24 @@ export default function TipoServizioModal({ open, editing, form, setForm, onClos
         <section className="tipo-modal__section">
           <h3 className="tipo-modal__section-title">Identità</h3>
           <div className="tipo-modal__grid">
-            <div className="tipo-modal__field tipo-modal__field--full">
-              <label className="tipo-modal__label">Nome visualizzato</label>
-              <input
-                type="text"
-                className="sib-input"
-                value={form.label}
-                onChange={(e) => onLabelChange(e.target.value)}
-                placeholder="es. Escursione turistica"
-              />
-            </div>
-            <div className="tipo-modal__field tipo-modal__field--full">
-              <label className="tipo-modal__label">
-                ID identificativo
-                {!isCreating && <span className="tipo-modal__hint"> (non modificabile per non spezzare servizi esistenti)</span>}
-              </label>
-              <input
-                type="text"
-                className="sib-input"
-                value={form.id}
-                onChange={(e) => isCreating && upd('id', slugify(e.target.value))}
-                placeholder="es. escursione"
-                readOnly={!isCreating}
-              />
-            </div>
+            <InputField
+              name="label"
+              label="Nome visualizzato"
+              className="tipo-modal__field tipo-modal__field--full"
+              value={form.label}
+              onChange={(e) => onLabelChange(e.target.value)}
+              placeholder="es. Escursione turistica"
+            />
+            <InputField
+              name="id"
+              label="ID identificativo"
+              className="tipo-modal__field tipo-modal__field--full"
+              hint={!isCreating ? 'non modificabile per non spezzare servizi esistenti' : undefined}
+              value={form.id}
+              onChange={(e) => isCreating && upd('id', slugify(e.target.value))}
+              placeholder="es. escursione"
+              readOnly={!isCreating}
+            />
           </div>
         </section>
 
@@ -125,7 +120,7 @@ export default function TipoServizioModal({ open, editing, form, setForm, onClos
         <section className="tipo-modal__section">
           <h3 className="tipo-modal__section-title">Aspetto</h3>
 
-          <div className="tipo-modal__field tipo-modal__field--full">
+          <div className="tipo-modal__field tipo-modal__field-raw tipo-modal__field--full">
             <label className="tipo-modal__label">Icona</label>
             <div className="tipo-modal__icon-row">
               <input
@@ -160,7 +155,7 @@ export default function TipoServizioModal({ open, editing, form, setForm, onClos
             </div>
           </div>
 
-          <div className="tipo-modal__field tipo-modal__field--full">
+          <div className="tipo-modal__field tipo-modal__field-raw tipo-modal__field--full">
             <label className="tipo-modal__label">Colore</label>
             <div className="tipo-modal__palette">
               {PALETTE.map(c => (

@@ -1,6 +1,7 @@
 // ─── ModificaPrenModal ────────────────────────────────────────────────────────
 import React, { useState } from 'react';
 import Modal from '../../../../core/components/Modal';
+import { InputField } from '../../../../core/components/form';
 import { Pren, RoomDetail } from '../planner.types';
 import { fmtDate, parseDt } from '../planner.data';
 
@@ -73,10 +74,12 @@ const ModificaPrenModal: React.FC<Props> = ({ open, pren, onClose }) => {
         {/* Agenzia / stato / arrangiamento */}
         <div className="mod-pren__box">
           <div className="mod-pren__grid-ag">
-            <label className="mod-pren__field-col">
-              <span>Agenzia</span>
-              <input className="sib-input" defaultValue={pren.agenzia ?? ''} />
-            </label>
+            <InputField
+              className="mod-pren__field-col"
+              name="agenzia"
+              label="Agenzia"
+              defaultValue={pren.agenzia ?? ''}
+            />
             <div className="mod-pren__stato-arr">
               <div className="mod-pren__stato">
                 <label><input type="checkbox" defaultChecked={pren.stato === 'confermata'} /> <span className="mod-pren__dot mod-pren__dot--green" /> Confermata</label>
@@ -90,9 +93,9 @@ const ModificaPrenModal: React.FC<Props> = ({ open, pren, onClose }) => {
               </label>
             </div>
           </div>
-          <label className="mod-pren__field-col"><span>Nome Gruppo</span><input className="sib-input" /></label>
-          <label className="mod-pren__field-col"><span>Nome Capo Gruppo</span><input className="sib-input" placeholder="Cerca capo gruppo (min. 3 caratteri)" /></label>
-          <label className="mod-pren__field-col"><span>E-mail Capo Gruppo</span><input className="sib-input" /></label>
+          <InputField className="mod-pren__field-col" name="nomeGruppo" label="Nome Gruppo" />
+          <InputField className="mod-pren__field-col" name="capoGruppo" label="Nome Capo Gruppo" placeholder="Cerca capo gruppo (min. 3 caratteri)" />
+          <InputField className="mod-pren__field-col" name="emailCapoGruppo" label="E-mail Capo Gruppo" />
         </div>
 
         {/* Extra inclusi */}
@@ -111,9 +114,12 @@ const ModificaPrenModal: React.FC<Props> = ({ open, pren, onClose }) => {
           <label className="mod-pren__field-inline"><span>Nazionalità</span>
             <select className="sib-select sib-select--dense"><option>🇮🇹 ITALIA</option></select>
           </label>
-          <label className="mod-pren__field-inline mod-pren__field-grow"><span>Note prenotazione</span>
-            <input className="sib-input" defaultValue={pren.note ?? ''} />
-          </label>
+          <InputField
+            className="mod-pren__field-grow"
+            name="notePrenotazione"
+            label="Note prenotazione"
+            defaultValue={pren.note ?? ''}
+          />
         </div>
 
         {/* Totali */}

@@ -141,6 +141,7 @@
         width: 100%
 
   &__label
+    font-family: 'Poppins', sans-serif
     font-size: 12px
     font-weight: 600
     color: $primary
@@ -164,8 +165,12 @@
     pointer-events: none
 
   // ── Select ──────────────────────────────────────────────────────────────────
+  // wrapper SelectField: la larghezza vive sul contenitore, il <select> la riempie
   &__select
     width: 180px
+
+    .sib-select
+      width: 100%
 
     &--sm
       width: 140px
@@ -1071,17 +1076,10 @@
     i
       color: $primary
 
-  &__check
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    font-size: 13px
-    font-weight: 600
-    color: $text-active
-    cursor: pointer
-
-    &--esenzione
-      margin-top: 4px
+  // checkbox VIP/Esenzione → CheckboxField (rende il proprio layout);
+  // resta solo lo spacing del modificatore "esenzione"
+  &__check--esenzione
+    margin-top: 4px
 
   &__actions
     display: flex

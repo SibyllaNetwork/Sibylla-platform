@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField } from '../../../../../core/components/form'
 import './BottomRate.sass'
 
 interface Cam { id: number; nome: string; isRef: boolean; bottomRate: number }
@@ -48,18 +49,28 @@ export default function BottomRate() {
         Configuratore <i className="fa-light fa-chevron-right" /> <strong>Bottom rate</strong>
       </div>
       <div className="bottom-rate__filters">
-        <div className="bottom-rate__field"><label>Strutture</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Hotel Siracusa</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="bottom-rate__field"><label>Piano tariffario</label>
-          <select className="sib-select" value={data.PianoTariffario} onChange={(e) => setData({ ...data, PianoTariffario: e.target.value })}>
-            <option value="BAR">BAR</option>
-            <option value="FIT">FIT</option>
-          </select>
-        </div>
+        <SelectField
+          name="strutture"
+          label="Strutture"
+          className="bottom-rate__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Siracusa' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
+        <SelectField
+          name="piano-tariffario"
+          label="Piano tariffario"
+          className="bottom-rate__field"
+          value={data.PianoTariffario}
+          onChange={(e) => setData({ ...data, PianoTariffario: e.target.value })}
+          options={[
+            { value: 'BAR', label: 'BAR' },
+            { value: 'FIT', label: 'FIT' },
+          ]}
+        />
       </div>
 
       <div className="bottom-rate__table-wrap">

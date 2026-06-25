@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField } from '../../../../../core/components/form'
 import './Arrangiamenti.sass'
 
 type Pasto = 'colazione' | 'pranzo' | 'cena' | 'nessuno'
@@ -62,30 +63,30 @@ export default function Arrangiamenti() {
       </div>
 
       <div className="arrangiamenti__filters">
-        <div className="arrangiamenti__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select sib-select--dense arrangiamenti__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="arrangiamenti__field">
-          <label>Segmento</label>
-          <select
-            className="sib-select sib-select--dense arrangiamenti__select"
-            value={data.Segmento}
-            onChange={(e) => setData({ ...data, Segmento: e.target.value as Data['Segmento'] })}
-          >
-            <option value="B2B">B2B</option>
-            <option value="B2C">B2C</option>
-            <option value="Gruppi">Gruppi</option>
-            <option value="Dirette">Dirette</option>
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="arrangiamenti__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Tutorial' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
+        <SelectField
+          name="segmento"
+          label="Segmento"
+          className="arrangiamenti__field"
+          value={data.Segmento}
+          onChange={(e) => setData({ ...data, Segmento: e.target.value as Data['Segmento'] })}
+          options={[
+            { value: 'B2B', label: 'B2B' },
+            { value: 'B2C', label: 'B2C' },
+            { value: 'Gruppi', label: 'Gruppi' },
+            { value: 'Dirette', label: 'Dirette' },
+          ]}
+        />
       </div>
 
       <div className="arrangiamenti__table-wrap">

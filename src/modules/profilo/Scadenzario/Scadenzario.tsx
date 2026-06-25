@@ -220,7 +220,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title="Scadenzario" subtitle="Pianifica e monitora scadenze, eventi e promemoria del tuo team"/>
 
       {/* ── Toolbar ─────────────────────────────────────────────────── */}

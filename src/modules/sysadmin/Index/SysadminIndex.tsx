@@ -22,7 +22,7 @@ const TILES: Array<{ page: string; icon: string; title: string; subtitle: string
 export default function SysadminIndex({ navigate }: { navigate: (p: string) => void }) {
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Sysadmin" subtitle="Pannello di amministrazione globale Sibylla" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

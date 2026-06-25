@@ -6,6 +6,7 @@ import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
 import ConfirmDeleteModal from '../../../admin/SibyllaAdminPanel/modals/ConfirmDeleteModal/ConfirmDeleteModal'
 import Modal from '../../../core/components/Modal'
+import { TextareaField } from '../../../core/components/form'
 import { useServiziStore } from '../../../store/useServiziStore'
 import { useTipiServizioStore } from '../../../store/useTipiServizioStore'
 import { useNotificheServiziStore } from '../../../store/useNotificheServiziStore'
@@ -412,8 +413,9 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
             Servizio: <strong>{rejectTarget?.nome}</strong>. Indica la motivazione del rifiuto: verrà mostrata al cliente,
             che potrà correggere e ri-sottoporre il servizio.
           </p>
-          <textarea
-            className="sib-input gest-servizi__reject-text"
+          <TextareaField
+            name="rejectReason"
+            className="gest-servizi__reject-text"
             rows={4}
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}

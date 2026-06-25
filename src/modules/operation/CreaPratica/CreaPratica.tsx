@@ -120,7 +120,7 @@ export default function CreaPratica({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="crea-prat">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Crea pratica"
         subtitle="Crea e categorizza le pratiche per destinazione, categoria, tipologia cliente, budget e markup; assegnale a un profilo o all'intero team"

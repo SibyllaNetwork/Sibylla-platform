@@ -166,7 +166,7 @@ export default function ComparazioneMercato({ navigate }: { navigate: (p: string
       {/* ── Barra filtri + toggle metrica ─────────────────────────────── */}
       <div className="cm__toolbar">
         <div className="cm__filters">
-          <div className="cm__field">
+          <div className="cm__field-raw">
             <label className="text-[12px] font-semibold font-poppins text-primary" htmlFor="cm-cap">Trova hotel:</label>
             <input
               id="cm-cap"

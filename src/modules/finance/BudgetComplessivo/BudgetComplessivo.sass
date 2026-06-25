@@ -1,143 +1,132 @@
-// ─── BUDGET COMPLESSIVO ───────────────────────────────────────────────────────
 @use '../../../styles/tokens' as *
 
-.budget-complessivo
+.bc
   display: flex
   flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+  gap: 14px
 
   > .sib-btn--back
     align-self: flex-start
 
-  &__bar
+  // ── Toolbar ──────────────────────────────────────────────────────
+  &__toolbar
     display: flex
+    align-items: flex-end
     justify-content: space-between
-    align-items: center
-    flex-wrap: nowrap
     gap: 16px
-    margin-top: 4px
+    flex-wrap: wrap
 
-  &__field
+  &__filters
     display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
 
-  &__select
-    width: 200px
+  &__actions
+    display: inline-flex
+    align-items: flex-end
+    gap: 8px
 
-    &--sm
-      width: 110px
+  // ── Slider orizzontale ───────────────────────────────────────────
+  &__timeline
+    position: relative
 
-  &__radio-group
-    display: flex
-    align-items: center
-    gap: 16px
+  &__wrap
+    scrollbar-width: none
+    -ms-overflow-style: none
 
-  &__radio-item
-    display: flex
-    align-items: center
-    gap: 6px
+    &::-webkit-scrollbar
+      display: none
+
+  &__nav
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    z-index: 20
+    width: 34px
+    height: 34px
+    border-radius: 50%
+    border: 1px solid $primary-200
+    background: $white
+    color: $primary
+    box-shadow: $shadow-lg
     cursor: pointer
-    font-size: 13px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
 
-  &__cabina
-    margin-left: auto
+    &:hover
+      background: $primary
+      color: $white
 
-    i
-      margin-right: 6px
+    &--prev
+      left: 238px
 
-  // ── Table ───────────────────────────────────────────────────────────────────
-  &__table-wrap
-    overflow-x: auto
-    border: 1px solid $border
-    border-radius: 8px
-    background: var(--color-surface)
+    &--next
+      right: 6px
 
-  &__table
-    width: 100%
-    border-collapse: separate
-    border-spacing: 0
-    min-width: 1400px
+  // ── Tabella ──────────────────────────────────────────────────────
+  &__pl
+    min-width: max-content
 
-    thead th
-      background: var(--color-surface)
-      color: $primary
-      font-family: $font-heading
-      font-weight: 600
-      font-size: 13px
-      text-align: center
-      padding: 14px 8px
-      border-bottom: 2px solid $border
+    th.bc__num,
+    td.bc__num
+      text-align: right
       white-space: nowrap
 
-  &__col-label
-    text-align: left
-    padding: 10px 14px
-    color: $text-active
-    min-width: 320px
-
-  &__th
-    &--past
-      background: rgba(0,0,0,0.02)
-
-  &__group-row
-    background: var(--color-surface)
-
-    td
-      padding: 14px 14px 6px
-      color: $primary
-      font-size: 13px
-      font-family: $font-heading
-
-  &__voce-row td
-    padding: 6px 8px
+  &__colhead
     text-align: center
-    border-bottom: 1px solid rgba(219, 219, 219, 0.4)
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    background: var(--color-surface)
+    min-width: 110px
+
+    &--past
+      background: rgba(232, 168, 132, 0.10)
 
   &__cell
-    color: $text-active
-    text-align: center
-    font-size: 13px
-
     &--past
-      background: rgba(0,0,0,0.025)
-      color: $text-inactive
+      background: rgba(232, 168, 132, 0.10)
 
-  &__cell-value
-    display: inline-block
-    padding: 4px 8px
-
-  &__input
-    width: 100%
-    max-width: 110px
-    height: 28px
-    border: 1px solid $border
-    border-radius: 4px
-    padding: 0 6px
-    font-size: 12px
-    text-align: right
-    color: $text-active
+  // Prima colonna (voci) — sempre fissa
+  &__voce
+    position: sticky
+    left: 0
+    z-index: 3
+    min-width: 230px
+    text-align: left
     background: var(--color-surface)
-    font-family: $font-body
 
-    &:focus
-      outline: none
-      border-color: $primary
-      box-shadow: 0 0 0 2px rgba(32, 71, 105, 0.12)
+    &--head
+      z-index: 5
+      text-align: center
+      font-weight: 700
+      color: $primary
+      background: var(--color-surface)
 
-  // ── Total / highlighted rows ────────────────────────────────────────────────
-  &__total-row
+  // Angolo "Anno": forza lo sticky in alto-a-sinistra (vince su .sib-table th)
+  &__pl thead th.bc__voce
+    position: sticky
+    left: 0
+    top: 0
+    z-index: 6
+    background: var(--color-surface)
+
+  // Righe di sezione (titolo navy, normal case)
+  &__section-cell
+    padding: 12px 14px
+    font-weight: 700
+    font-size: 13px
+    color: $primary
+    background: var(--color-surface)
+
+  // Righe totale + MOL: evidenziate in azzurro
+  &__row--totale td
+    font-weight: 700
     background: $primary-50
 
-    td
-      padding: 12px 8px
-      text-align: center
-      font-size: 13px
-      color: $primary
-      font-weight: 600
-      border-top: 1px solid $border
-      border-bottom: 1px solid $border
-
-    .budget-complessivo__col-label
-      text-align: left
-      padding-left: 14px
+  // I mesi già trascorsi sono evidenziati (solo sulle voci, non sui totali)
+  &__cell--past
+    background: rgba(232, 168, 132, 0.10)

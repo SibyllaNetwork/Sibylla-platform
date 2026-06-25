@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { InputField, SelectField, ToggleSwitch } from '../../../../../core/components/form'
 import './VociIncasso.sass'
 
 interface Voce { id: number; codice: string; descrizione: string; gruppo: string; commissioni: number; codFel: string; codScel: string }
@@ -46,36 +47,31 @@ export default function VociIncasso() {
       </div>
 
       <div className="voci-incasso__form">
-        <div className="voci-incasso__field"><label>Codice Incasso</label>
-          <input type="text" className="sib-input" value={voce.codice} onChange={(e) => setVoce({ ...voce, codice: e.target.value })} />
-        </div>
-        <div className="voci-incasso__field"><label>Descrizione</label>
-          <input type="text" className="sib-input" value={voce.descrizione} onChange={(e) => setVoce({ ...voce, descrizione: e.target.value })} />
-        </div>
+        <InputField name="codice" label="Codice Incasso" className="voci-incasso__field" value={voce.codice} onChange={(e) => setVoce({ ...voce, codice: e.target.value })} />
+        <InputField name="descrizione" label="Descrizione" className="voci-incasso__field" value={voce.descrizione} onChange={(e) => setVoce({ ...voce, descrizione: e.target.value })} />
       </div>
 
       <div className="voci-incasso__form">
-        <div className="voci-incasso__field"><label>Gruppo</label>
-          <select className="sib-select" value={voce.gruppo} onChange={(e) => setVoce({ ...voce, gruppo: e.target.value })}>
-            <option value="">-- seleziona --</option>
-            {data.gruppi.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
-        </div>
-        <div className="voci-incasso__field"><label>Commissioni</label>
-          <div className="voci-incasso__cell">
-            <input type="number" className="sib-input voci-incasso__short" value={voce.commissioni} onChange={(e) => setVoce({ ...voce, commissioni: Number(e.target.value) || 0 })} />
-            <span>%</span>
-          </div>
-        </div>
-        <div className="voci-incasso__field"><label>Cod. Fel</label>
-          <select className="sib-select" value={voce.codFel} onChange={(e) => setVoce({ ...voce, codFel: e.target.value })}>
-            <option value="">-- seleziona --</option>
-            {data.codiciFel.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="voci-incasso__field"><label>Cod. Scel</label>
-          <input type="text" className="sib-input" value={voce.codScel} onChange={(e) => setVoce({ ...voce, codScel: e.target.value })} />
-        </div>
+        <SelectField
+          name="gruppo"
+          label="Gruppo"
+          className="voci-incasso__field"
+          placeholder="-- seleziona --"
+          value={voce.gruppo}
+          onChange={(e) => setVoce({ ...voce, gruppo: e.target.value })}
+          options={data.gruppi.map((g) => ({ value: g, label: g }))}
+        />
+        <InputField name="commissioni" label="Commissioni" type="number" className="voci-incasso__field voci-incasso__short" iconRight="fa-light fa-percent" value={voce.commissioni} onChange={(e) => setVoce({ ...voce, commissioni: Number(e.target.value) || 0 })} />
+        <SelectField
+          name="codFel"
+          label="Cod. Fel"
+          className="voci-incasso__field"
+          placeholder="-- seleziona --"
+          value={voce.codFel}
+          onChange={(e) => setVoce({ ...voce, codFel: e.target.value })}
+          options={data.codiciFel.map((c) => ({ value: c, label: c }))}
+        />
+        <InputField name="codScel" label="Cod. Scel" className="voci-incasso__field" value={voce.codScel} onChange={(e) => setVoce({ ...voce, codScel: e.target.value })} />
         <button type="button" className="sib-btn sib-btn--primary voci-incasso__add" onClick={addVoce}>
           <i className="fa-light fa-circle-plus" /> Aggiungi
         </button>
@@ -99,17 +95,11 @@ export default function VociIncasso() {
 
       <h3 className="voci-incasso__section-title"><i className="fa-light fa-clock-rotate-left" /> Scadenze Sospesi</h3>
       <div className="voci-incasso__form">
-        <div className="voci-incasso__field"><label>Descrizione sospensione</label>
-          <input type="text" className="sib-input" placeholder="Es. 30 giorni" value={scad.descrizione} onChange={(e) => setScad({ ...scad, descrizione: e.target.value })} />
-        </div>
-        <div className="voci-incasso__field"><label>Valore giorni</label>
-          <input type="number" className="sib-input voci-incasso__short" value={scad.giorni || ''} onChange={(e) => setScad({ ...scad, giorni: Number(e.target.value) || 0 })} />
-        </div>
-        <div className="voci-incasso__field"><label>Fine Mese</label>
-          <label className="voci-incasso__toggle">
-            <input type="checkbox" checked={scad.fineMese} onChange={(e) => setScad({ ...scad, fineMese: e.target.checked })} />
-            <span className="voci-incasso__slider" />
-          </label>
+        <InputField name="scadDescrizione" label="Descrizione sospensione" className="voci-incasso__field" placeholder="Es. 30 giorni" value={scad.descrizione} onChange={(e) => setScad({ ...scad, descrizione: e.target.value })} />
+        <InputField name="scadGiorni" label="Valore giorni" type="number" className="voci-incasso__field voci-incasso__short" value={scad.giorni || ''} onChange={(e) => setScad({ ...scad, giorni: Number(e.target.value) || 0 })} />
+        <div className="voci-incasso__field">
+          <span className="voci-incasso__field-label">Fine Mese</span>
+          <ToggleSwitch checked={scad.fineMese} onChange={(checked) => setScad({ ...scad, fineMese: checked })} />
         </div>
         <button type="button" className="sib-btn sib-btn--primary voci-incasso__add" onClick={addScad}>
           <i className="fa-light fa-circle-plus" /> Aggiungi Scadenza

@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField } from '../../../../core/components/form'
 import BookingPagePreview from './BookingPagePreview'
 import {
   ACCENT_PRESETS, BOOKING_FIELDS, BRAND_LIST, CATEGORIES, DEFAULT_CONFIG, LINGUE, VALUTE,
@@ -191,32 +192,38 @@ export default function BookingPageTab() {
           <section className="bgen__config bpage__config">
             <h3 className="bgen__section-title">Generale</h3>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label">Lingua</label>
-                <select className="sib-select" value={config.lingua} onChange={e => set('lingua', e.target.value)}>
-                  {LINGUE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">Valuta</label>
-                <select className="sib-select" value={config.valuta} onChange={e => set('valuta', e.target.value)}>
-                  {VALUTE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">Tema</label>
-                <select className="sib-select" value={config.tema} onChange={e => set('tema', e.target.value as BookingPageConfig['tema'])}>
-                  <option value="light">Chiaro</option>
-                  <option value="dark">Scuro</option>
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">Larghezza contenuti</label>
-                <select className="sib-select" value={config.contentWidth} onChange={e => set('contentWidth', e.target.value as BookingPageConfig['contentWidth'])}>
-                  <option value="boxed">Incolonnata (max-width)</option>
-                  <option value="full">A tutta pagina</option>
-                </select>
-              </div>
+              <SelectField
+                className="bgen__field"
+                name="bpage-lingua"
+                label="Lingua"
+                value={config.lingua}
+                onChange={e => set('lingua', e.target.value)}
+                options={LINGUE.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bpage-valuta"
+                label="Valuta"
+                value={config.valuta}
+                onChange={e => set('valuta', e.target.value)}
+                options={VALUTE.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bpage-tema"
+                label="Tema"
+                value={config.tema}
+                onChange={e => set('tema', e.target.value as BookingPageConfig['tema'])}
+                options={[{ value: 'light', label: 'Chiaro' }, { value: 'dark', label: 'Scuro' }]}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bpage-content-width"
+                label="Larghezza contenuti"
+                value={config.contentWidth}
+                onChange={e => set('contentWidth', e.target.value as BookingPageConfig['contentWidth'])}
+                options={[{ value: 'boxed', label: 'Incolonnata (max-width)' }, { value: 'full', label: 'A tutta pagina' }]}
+              />
             </div>
 
             <div className="bgen__field bgen__field--full">
@@ -256,25 +263,37 @@ export default function BookingPageTab() {
                   />
                 </div>
                 <div className="bgen__grid">
-                  <div className="bgen__field">
-                    <label className="bgen__label">Dimensione logo</label>
-                    <select className="sib-select" value={config.logoSize} onChange={e => set('logoSize', Number(e.target.value))}>
-                      <option value={0}>Automatica</option>
-                      <option value={20}>Piccolo</option>
-                      <option value={28}>Medio</option>
-                      <option value={36}>Grande</option>
-                      <option value={44}>Extra</option>
-                    </select>
-                  </div>
-                  <div className="bgen__field">
-                    <label className="bgen__label">Bottone in alto a destra</label>
-                    <input className="sib-input" placeholder="Es. Accedi (vuoto = nascosto)" value={config.headerCtaText} onChange={e => set('headerCtaText', e.target.value)} />
-                  </div>
+                  <SelectField
+                    className="bgen__field"
+                    name="bpage-logo-size"
+                    label="Dimensione logo"
+                    value={config.logoSize}
+                    onChange={e => set('logoSize', Number(e.target.value))}
+                    options={[
+                      { value: 0, label: 'Automatica' },
+                      { value: 20, label: 'Piccolo' },
+                      { value: 28, label: 'Medio' },
+                      { value: 36, label: 'Grande' },
+                      { value: 44, label: 'Extra' },
+                    ]}
+                  />
+                  <InputField
+                    className="bgen__field"
+                    name="bpage-header-cta"
+                    label="Bottone in alto a destra"
+                    placeholder="Es. Accedi (vuoto = nascosto)"
+                    value={config.headerCtaText}
+                    onChange={e => set('headerCtaText', e.target.value)}
+                  />
                 </div>
-                <div className="bgen__field bgen__field--full">
-                  <label className="bgen__label">Voci di navigazione</label>
-                  <input className="sib-input" placeholder="Separate da virgola — es. Soggiorni, Esperienze, Offerte" value={config.headerLinks} onChange={e => set('headerLinks', e.target.value)} />
-                </div>
+                <InputField
+                  className="bgen__field bgen__field--full"
+                  name="bpage-header-links"
+                  label="Voci di navigazione"
+                  placeholder="Separate da virgola — es. Soggiorni, Esperienze, Offerte"
+                  value={config.headerLinks}
+                  onChange={e => set('headerLinks', e.target.value)}
+                />
               </>
             )}
 
@@ -285,14 +304,22 @@ export default function BookingPageTab() {
             </h3>
             {config.showHero && (
               <>
-                <div className="bgen__field bgen__field--full">
-                  <label className="bgen__label">Titolo</label>
-                  <input className="sib-input" placeholder="Vuoto = slogan predefinito del brand" value={config.heroTitle} onChange={e => set('heroTitle', e.target.value)} />
-                </div>
-                <div className="bgen__field bgen__field--full">
-                  <label className="bgen__label">Sottotitolo</label>
-                  <input className="sib-input" placeholder="Vuoto = riga servizi predefinita" value={config.heroSubtitle} onChange={e => set('heroSubtitle', e.target.value)} />
-                </div>
+                <InputField
+                  className="bgen__field bgen__field--full"
+                  name="bpage-hero-title"
+                  label="Titolo"
+                  placeholder="Vuoto = slogan predefinito del brand"
+                  value={config.heroTitle}
+                  onChange={e => set('heroTitle', e.target.value)}
+                />
+                <InputField
+                  className="bgen__field bgen__field--full"
+                  name="bpage-hero-subtitle"
+                  label="Sottotitolo"
+                  placeholder="Vuoto = riga servizi predefinita"
+                  value={config.heroSubtitle}
+                  onChange={e => set('heroSubtitle', e.target.value)}
+                />
                 <div className="bgen__field bgen__field--full">
                   <label className="bgen__label">Tipo di sfondo hero</label>
                   <div className="bgen__segmented">
@@ -337,14 +364,22 @@ export default function BookingPageTab() {
             {/* ─── Ricerca ────────────────────────────────────────────────── */}
             <h3 className="bgen__section-title bgen__section-title--spaced">Box di ricerca</h3>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label">Titolo box</label>
-                <input className="sib-input" placeholder="Vuoto = «Trova la tua struttura»" value={config.searchTitle} onChange={e => set('searchTitle', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">Testo bottone Cerca</label>
-                <input className="sib-input" placeholder="Vuoto = «Cerca Hotel»" value={config.searchCtaText} onChange={e => set('searchCtaText', e.target.value)} />
-              </div>
+              <InputField
+                className="bgen__field"
+                name="bpage-search-title"
+                label="Titolo box"
+                placeholder="Vuoto = «Trova la tua struttura»"
+                value={config.searchTitle}
+                onChange={e => set('searchTitle', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bpage-search-cta"
+                label="Testo bottone Cerca"
+                placeholder="Vuoto = «Cerca Hotel»"
+                value={config.searchCtaText}
+                onChange={e => set('searchCtaText', e.target.value)}
+              />
             </div>
             <div className="bgen__field bgen__field--full">
               <label className="bgen__label">Campi visibili</label>
@@ -366,18 +401,23 @@ export default function BookingPageTab() {
             </h3>
             {config.showResults && (
               <>
-                <div className="bgen__field bgen__field--full">
-                  <label className="bgen__label">Titolo sezione</label>
-                  <input className="sib-input" placeholder="Vuoto = «Strutture disponibili»" value={config.resultsTitle} onChange={e => set('resultsTitle', e.target.value)} />
-                </div>
+                <InputField
+                  className="bgen__field bgen__field--full"
+                  name="bpage-results-title"
+                  label="Titolo sezione"
+                  placeholder="Vuoto = «Strutture disponibili»"
+                  value={config.resultsTitle}
+                  onChange={e => set('resultsTitle', e.target.value)}
+                />
                 <div className="bgen__grid">
-                  <div className="bgen__field">
-                    <label className="bgen__label">Vista</label>
-                    <select className="sib-select" value={config.resultsView} onChange={e => set('resultsView', e.target.value as BookingPageConfig['resultsView'])}>
-                      <option value="grid">Griglia</option>
-                      <option value="list">Lista</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    className="bgen__field"
+                    name="bpage-results-view"
+                    label="Vista"
+                    value={config.resultsView}
+                    onChange={e => set('resultsView', e.target.value as BookingPageConfig['resultsView'])}
+                    options={[{ value: 'grid', label: 'Griglia' }, { value: 'list', label: 'Lista' }]}
+                  />
                   <div className="bgen__field">
                     <label className="bgen__label">Card mostrate · {config.resultsCount}</label>
                     <input type="range" min={2} max={12} step={1} value={config.resultsCount} onChange={e => set('resultsCount', Number(e.target.value))} className="bpage__range" />
@@ -393,13 +433,17 @@ export default function BookingPageTab() {
             {/* ─── Layout / incorporamento ────────────────────────────────── */}
             <h3 className="bgen__section-title bgen__section-title--spaced">Layout incorporamento</h3>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label">Altezza iframe</label>
-                <select className="sib-select" value={config.layoutMode} onChange={e => set('layoutMode', e.target.value as BookingPageConfig['layoutMode'])}>
-                  <option value="fullscreen">Full-screen (100vh)</option>
-                  <option value="fixed">Altezza fissa</option>
-                </select>
-              </div>
+              <SelectField
+                className="bgen__field"
+                name="bpage-layout-mode"
+                label="Altezza iframe"
+                value={config.layoutMode}
+                onChange={e => set('layoutMode', e.target.value as BookingPageConfig['layoutMode'])}
+                options={[
+                  { value: 'fullscreen', label: 'Full-screen (100vh)' },
+                  { value: 'fixed', label: 'Altezza fissa' },
+                ]}
+              />
               {config.layoutMode === 'fixed' && (
                 <div className="bgen__field">
                   <label className="bgen__label">Altezza · {config.fixedHeight}px</label>
@@ -414,31 +458,51 @@ export default function BookingPageTab() {
               <Toggle on={config.showFooter} onChange={v => set('showFooter', v)} />
             </h3>
             {config.showFooter && (
-              <div className="bgen__field bgen__field--full">
-                <label className="bgen__label">Testo footer</label>
-                <input className="sib-input" placeholder="Vuoto = testo predefinito del brand" value={config.footerText} onChange={e => set('footerText', e.target.value)} />
-              </div>
+              <InputField
+                className="bgen__field bgen__field--full"
+                name="bpage-footer-text"
+                label="Testo footer"
+                placeholder="Vuoto = testo predefinito del brand"
+                value={config.footerText}
+                onChange={e => set('footerText', e.target.value)}
+              />
             )}
 
             {/* ─── Tracciamento ───────────────────────────────────────────── */}
             <h3 className="bgen__section-title bgen__section-title--spaced">Tracciamento</h3>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label">ID affiliato / partner</label>
-                <input className="sib-input" placeholder="Es. AFF-10234" value={config.affiliateId} onChange={e => set('affiliateId', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">UTM source</label>
-                <input className="sib-input" placeholder="Es. sito-affiliato" value={config.utmSource} onChange={e => set('utmSource', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">UTM medium</label>
-                <input className="sib-input" placeholder="booking-page" value={config.utmMedium} onChange={e => set('utmMedium', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label">UTM campaign</label>
-                <input className="sib-input" placeholder="Es. estate-2026" value={config.utmCampaign} onChange={e => set('utmCampaign', e.target.value)} />
-              </div>
+              <InputField
+                className="bgen__field"
+                name="bpage-affiliate-id"
+                label="ID affiliato / partner"
+                placeholder="Es. AFF-10234"
+                value={config.affiliateId}
+                onChange={e => set('affiliateId', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bpage-utm-source"
+                label="UTM source"
+                placeholder="Es. sito-affiliato"
+                value={config.utmSource}
+                onChange={e => set('utmSource', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bpage-utm-medium"
+                label="UTM medium"
+                placeholder="booking-page"
+                value={config.utmMedium}
+                onChange={e => set('utmMedium', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bpage-utm-campaign"
+                label="UTM campaign"
+                placeholder="Es. estate-2026"
+                value={config.utmCampaign}
+                onChange={e => set('utmCampaign', e.target.value)}
+              />
             </div>
           </section>
 

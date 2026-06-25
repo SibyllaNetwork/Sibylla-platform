@@ -80,7 +80,7 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="configuratore">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Configuratore"
         subtitle="Personalizza il sistema per una gestione efficiente e su misura"

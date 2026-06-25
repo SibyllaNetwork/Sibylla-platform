@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import { InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import { withFlag } from '../../../core/utils/countryFlags'
 import './EmissioneDocumenti.sass'
@@ -82,50 +83,49 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
 
       {/* ─── Documento ─────────────────────────────────────────────────────── */}
       <div className="emissione-doc__field">
-        <label>Documento</label>
-        <select className="sib-select" value={tipoDoc} onChange={(e) => setTipoDoc(e.target.value)}>
-          {TIPI_DOCUMENTO.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        <SelectField
+          label="Documento"
+          name="tipoDoc"
+          value={tipoDoc}
+          options={TIPI_DOCUMENTO.map((t) => ({ value: t, label: t }))}
+          onChange={(e) => setTipoDoc(e.target.value)}
+        />
       </div>
 
       {/* ─── Anagrafica ─────────────────────────────────────────────────────── */}
       <div className="emissione-doc__grid emissione-doc__grid--anag">
         <div className="emissione-doc__field">
-          <label>Nome</label>
-          <input className="sib-input" value={nome} onChange={(e) => setNome(e.target.value)} />
+          <InputField label="Nome" name="nome" value={nome} onChange={(e) => setNome(e.target.value)} />
         </div>
         <div className="emissione-doc__field">
-          <label>Cognome</label>
-          <input className="sib-input" value={cognome} onChange={(e) => setCognome(e.target.value)} />
+          <InputField label="Cognome" name="cognome" value={cognome} onChange={(e) => setCognome(e.target.value)} />
         </div>
         <div className="emissione-doc__field">
-          <label>Indirizzo</label>
-          <input className="sib-input" value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)} />
+          <InputField label="Indirizzo" name="indirizzo" value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)} />
         </div>
         <div className="emissione-doc__field emissione-doc__field--cap">
-          <label>CAP</label>
-          <input className="sib-input" value={cap} onChange={(e) => setCap(e.target.value)} />
+          <InputField label="CAP" name="cap" value={cap} onChange={(e) => setCap(e.target.value)} />
         </div>
         <div className="emissione-doc__field">
-          <label>Città</label>
-          <input className="sib-input" value={citta} onChange={(e) => setCitta(e.target.value)} />
+          <InputField label="Città" name="citta" value={citta} onChange={(e) => setCitta(e.target.value)} />
         </div>
       </div>
 
       <div className="emissione-doc__grid emissione-doc__grid--anag2">
         <div className="emissione-doc__field emissione-doc__field--prov">
-          <label>Provincia</label>
-          <input className="sib-input" value={provincia} onChange={(e) => setProvincia(e.target.value)} />
+          <InputField label="Provincia" name="provincia" value={provincia} onChange={(e) => setProvincia(e.target.value)} />
         </div>
         <div className="emissione-doc__field">
-          <label>Nazionalità</label>
-          <select className="sib-select" value={nazionalita} onChange={(e) => setNazionalita(e.target.value)}>
-            {NAZIONALITA.map((n) => <option key={n} value={n}>{withFlag(n)}</option>)}
-          </select>
+          <SelectField
+            label="Nazionalità"
+            name="nazionalita"
+            value={nazionalita}
+            options={NAZIONALITA.map((n) => ({ value: n, label: withFlag(n) }))}
+            onChange={(e) => setNazionalita(e.target.value)}
+          />
         </div>
         <div className="emissione-doc__field">
-          <label>Codice fiscale</label>
-          <input className="sib-input" value={codiceFiscale} onChange={(e) => setCodiceFiscale(e.target.value)} />
+          <InputField label="Codice fiscale" name="codiceFiscale" value={codiceFiscale} onChange={(e) => setCodiceFiscale(e.target.value)} />
         </div>
       </div>
 
@@ -176,21 +176,25 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
       <h3 className="emissione-doc__section-title">Modalità Incasso</h3>
       <div className="emissione-doc__incasso">
         <div className="emissione-doc__field">
-          <label>Modo di pagamento</label>
-          <select className="sib-select" value={modoPagamento} onChange={(e) => setModoPagamento(e.target.value)}>
-            {MODALITA_PAGAMENTO.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
+          <SelectField
+            label="Modo di pagamento"
+            name="modoPagamento"
+            value={modoPagamento}
+            options={MODALITA_PAGAMENTO.map((m) => ({ value: m, label: m }))}
+            onChange={(e) => setModoPagamento(e.target.value)}
+          />
         </div>
         <div className="emissione-doc__field emissione-doc__field--importo">
-          <label>Importo</label>
-          <div className="emissione-doc__importo-wrap">
-            <input className="sib-input" value={importo} onChange={(e) => setImporto(e.target.value)} />
-            <span className="emissione-doc__currency">€</span>
-          </div>
+          <InputField
+            label="Importo"
+            name="importo"
+            value={importo}
+            iconRight="fa-light fa-euro-sign"
+            onChange={(e) => setImporto(e.target.value)}
+          />
         </div>
         <div className="emissione-doc__field emissione-doc__field--rif">
-          <label>Riferimento</label>
-          <input className="sib-input" placeholder="Riferimento" value={riferimento} onChange={(e) => setRiferimento(e.target.value)} />
+          <InputField label="Riferimento" name="riferimento" placeholder="Riferimento" value={riferimento} onChange={(e) => setRiferimento(e.target.value)} />
         </div>
         <button type="button" className="emissione-doc__add-row" aria-label="Aggiungi modalità di pagamento">
           <i className="fa-light fa-plus" />

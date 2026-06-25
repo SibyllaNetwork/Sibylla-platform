@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Modal from '../../../../core/components/Modal'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { Icon } from '../../../../modules/purchasing/_shared/Icon'
 import { CANALI_VENDITA } from '../../strutture/types'
 import {
@@ -125,26 +126,23 @@ export default function PartnerConnectorModal({
               </div>
 
               <div className="pc-modal__grid">
-                <div className="pc-modal__field pc-modal__field--full">
-                  <label className="pc-modal__label">Nome interno del connettore</label>
-                  <input
-                    type="text"
-                    className="sib-input"
-                    value={form.nome}
-                    onChange={(e) => upd('nome', e.target.value)}
-                    placeholder={`es. ${pm.label} — Italian inventory`}
-                  />
-                </div>
-                <div className="pc-modal__field pc-modal__field--full">
-                  <label className="pc-modal__label">Descrizione</label>
-                  <textarea
-                    className="sib-input sib-input--area"
-                    rows={2}
-                    value={form.descrizione}
-                    onChange={(e) => upd('descrizione', e.target.value)}
-                    placeholder="Scopo del connettore, contenuti previsti"
-                  />
-                </div>
+                <InputField
+                  className="pc-modal__field pc-modal__field--full"
+                  name="nome"
+                  label="Nome interno del connettore"
+                  value={form.nome}
+                  onChange={(e) => upd('nome', e.target.value)}
+                  placeholder={`es. ${pm.label} — Italian inventory`}
+                />
+                <TextareaField
+                  className="pc-modal__field pc-modal__field--full"
+                  name="descrizione"
+                  label="Descrizione"
+                  rows={2}
+                  value={form.descrizione}
+                  onChange={(e) => upd('descrizione', e.target.value)}
+                  placeholder="Scopo del connettore, contenuti previsti"
+                />
                 <label className="pc-modal__toggle pc-modal__field--full">
                   <input
                     type="checkbox"
@@ -163,109 +161,94 @@ export default function PartnerConnectorModal({
           {section === 'endpoint' && (
             <section className="pc-modal__section">
               <div className="pc-modal__grid">
-                <div className="pc-modal__field pc-modal__field--full">
-                  <label className="pc-modal__label">Base URL endpoint</label>
-                  <input
-                    type="url"
-                    className="sib-input"
-                    value={form.baseUrl}
-                    onChange={(e) => upd('baseUrl', e.target.value)}
-                    placeholder={pm.defaultBaseUrl || 'https://api.partner.com/v1'}
-                  />
-                </div>
-                <div className="pc-modal__field pc-modal__field--full">
-                  <label className="pc-modal__label">Modalità autenticazione</label>
-                  <select
-                    className="sib-select"
-                    value={form.authMode}
-                    onChange={(e) => upd('authMode', e.target.value as AuthMode)}
-                  >
-                    {(Object.keys(AUTH_MODE_LABELS) as AuthMode[]).map(m => (
-                      <option key={m} value={m}>{AUTH_MODE_LABELS[m]}</option>
-                    ))}
-                  </select>
-                </div>
+                <InputField
+                  className="pc-modal__field pc-modal__field--full"
+                  name="base-url"
+                  label="Base URL endpoint"
+                  type="url"
+                  value={form.baseUrl}
+                  onChange={(e) => upd('baseUrl', e.target.value)}
+                  placeholder={pm.defaultBaseUrl || 'https://api.partner.com/v1'}
+                />
+                <SelectField
+                  className="pc-modal__field pc-modal__field--full"
+                  name="auth-mode"
+                  label="Modalità autenticazione"
+                  value={form.authMode}
+                  onChange={(e) => upd('authMode', e.target.value as AuthMode)}
+                  options={(Object.keys(AUTH_MODE_LABELS) as AuthMode[]).map(m => ({ value: m, label: AUTH_MODE_LABELS[m] }))}
+                />
 
                 {/* Campi credenziali condizionali al metodo selezionato */}
                 {form.authMode === 'api-key' && (
-                  <div className="pc-modal__field pc-modal__field--full">
-                    <label className="pc-modal__label">API key</label>
-                    <input
-                      type="password"
-                      className="sib-input"
-                      value={form.credApiKey}
-                      onChange={(e) => upd('credApiKey', e.target.value)}
-                      placeholder="••••••••"
-                    />
-                  </div>
+                  <InputField
+                    className="pc-modal__field pc-modal__field--full"
+                    name="cred-api-key"
+                    label="API key"
+                    type="password"
+                    value={form.credApiKey}
+                    onChange={(e) => upd('credApiKey', e.target.value)}
+                    placeholder="••••••••"
+                  />
                 )}
 
                 {form.authMode === 'basic' && (
                   <>
-                    <div className="pc-modal__field">
-                      <label className="pc-modal__label">Username</label>
-                      <input
-                        type="text"
-                        className="sib-input"
-                        value={form.credUsername}
-                        onChange={(e) => upd('credUsername', e.target.value)}
-                      />
-                    </div>
-                    <div className="pc-modal__field">
-                      <label className="pc-modal__label">Password</label>
-                      <input
-                        type="password"
-                        className="sib-input"
-                        value={form.credPassword}
-                        onChange={(e) => upd('credPassword', e.target.value)}
-                      />
-                    </div>
+                    <InputField
+                      className="pc-modal__field"
+                      name="cred-username"
+                      label="Username"
+                      value={form.credUsername}
+                      onChange={(e) => upd('credUsername', e.target.value)}
+                    />
+                    <InputField
+                      className="pc-modal__field"
+                      name="cred-password"
+                      label="Password"
+                      type="password"
+                      value={form.credPassword}
+                      onChange={(e) => upd('credPassword', e.target.value)}
+                    />
                   </>
                 )}
 
                 {form.authMode === 'oauth2' && (
                   <>
-                    <div className="pc-modal__field">
-                      <label className="pc-modal__label">Client ID</label>
-                      <input
-                        type="text"
-                        className="sib-input"
-                        value={form.credClientId}
-                        onChange={(e) => upd('credClientId', e.target.value)}
-                      />
-                    </div>
-                    <div className="pc-modal__field">
-                      <label className="pc-modal__label">Client secret</label>
-                      <input
-                        type="password"
-                        className="sib-input"
-                        value={form.credClientSecret}
-                        onChange={(e) => upd('credClientSecret', e.target.value)}
-                      />
-                    </div>
-                    <div className="pc-modal__field pc-modal__field--full">
-                      <label className="pc-modal__label">Tenant ID (opzionale)</label>
-                      <input
-                        type="text"
-                        className="sib-input"
-                        value={form.credTenantId}
-                        onChange={(e) => upd('credTenantId', e.target.value)}
-                      />
-                    </div>
+                    <InputField
+                      className="pc-modal__field"
+                      name="cred-client-id"
+                      label="Client ID"
+                      value={form.credClientId}
+                      onChange={(e) => upd('credClientId', e.target.value)}
+                    />
+                    <InputField
+                      className="pc-modal__field"
+                      name="cred-client-secret"
+                      label="Client secret"
+                      type="password"
+                      value={form.credClientSecret}
+                      onChange={(e) => upd('credClientSecret', e.target.value)}
+                    />
+                    <InputField
+                      className="pc-modal__field pc-modal__field--full"
+                      name="cred-tenant-id"
+                      label="Tenant ID (opzionale)"
+                      value={form.credTenantId}
+                      onChange={(e) => upd('credTenantId', e.target.value)}
+                    />
                   </>
                 )}
 
                 {form.authMode === 'bearer' && (
-                  <div className="pc-modal__field pc-modal__field--full">
-                    <label className="pc-modal__label">Bearer token</label>
-                    <input
-                      type="password"
-                      className="sib-input"
-                      value={form.credBearerToken}
-                      onChange={(e) => upd('credBearerToken', e.target.value)}
-                      placeholder="••••••••"
-                    />
-                  </div>
+                  <InputField
+                    className="pc-modal__field pc-modal__field--full"
+                    name="cred-bearer-token"
+                    label="Bearer token"
+                    type="password"
+                    value={form.credBearerToken}
+                    onChange={(e) => upd('credBearerToken', e.target.value)}
+                    placeholder="••••••••"
+                  />
                 )}
               </div>
 
@@ -282,18 +265,14 @@ export default function PartnerConnectorModal({
           {section === 'sync' && (
             <section className="pc-modal__section">
               <div className="pc-modal__grid">
-                <div className="pc-modal__field pc-modal__field--full">
-                  <label className="pc-modal__label">Frequenza di sincronizzazione</label>
-                  <select
-                    className="sib-select"
-                    value={form.syncFrequency}
-                    onChange={(e) => upd('syncFrequency', e.target.value as SyncFrequency)}
-                  >
-                    {(Object.keys(SYNC_FREQUENCY_LABELS) as SyncFrequency[]).map(s => (
-                      <option key={s} value={s}>{SYNC_FREQUENCY_LABELS[s]}</option>
-                    ))}
-                  </select>
-                </div>
+                <SelectField
+                  className="pc-modal__field pc-modal__field--full"
+                  name="sync-frequency"
+                  label="Frequenza di sincronizzazione"
+                  value={form.syncFrequency}
+                  onChange={(e) => upd('syncFrequency', e.target.value as SyncFrequency)}
+                  options={(Object.keys(SYNC_FREQUENCY_LABELS) as SyncFrequency[]).map(s => ({ value: s, label: SYNC_FREQUENCY_LABELS[s] }))}
+                />
                 {editing && (
                   <div className="pc-modal__sync-info">
                     <div>
@@ -329,7 +308,7 @@ export default function PartnerConnectorModal({
                 Limita l'inventario importato dal partner ai parametri qui sotto. Lascia un campo vuoto per non applicare quel filtro.
               </p>
               <div className="pc-modal__grid">
-                <div className="pc-modal__field pc-modal__field--full">
+                <div className="pc-modal__field pc-modal__field-raw pc-modal__field--full">
                   <label className="pc-modal__label">Paesi <span className="pc-modal__hint">(ISO codes separati da virgola, es. IT, FR, ES)</span></label>
                   <input
                     type="text"
@@ -338,7 +317,7 @@ export default function PartnerConnectorModal({
                     onChange={(e) => upd('filtriPaesi', e.target.value)}
                   />
                 </div>
-                <div className="pc-modal__field pc-modal__field--full">
+                <div className="pc-modal__field pc-modal__field-raw pc-modal__field--full">
                   <label className="pc-modal__label">Regioni <span className="pc-modal__hint">(separate da virgola)</span></label>
                   <input
                     type="text"
@@ -348,29 +327,25 @@ export default function PartnerConnectorModal({
                     placeholder="es. Toscana, Sicilia, Lazio"
                   />
                 </div>
-                <div className="pc-modal__field">
-                  <label className="pc-modal__label">Tipi di struttura</label>
-                  <input
-                    type="text"
-                    className="sib-input"
-                    value={form.filtriTipi}
-                    onChange={(e) => upd('filtriTipi', e.target.value)}
-                    placeholder="hotel, resort, agriturismo"
-                  />
-                </div>
-                <div className="pc-modal__field">
-                  <label className="pc-modal__label">Classificazione minima</label>
-                  <select
-                    className="sib-select"
-                    value={form.filtriClassMin}
-                    onChange={(e) => upd('filtriClassMin', e.target.value)}
-                  >
-                    <option value="">Nessuna</option>
-                    {['1★', '2★', '3★', '4★', '5★', '5★L'].map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
+                <InputField
+                  className="pc-modal__field"
+                  name="filtri-tipi"
+                  label="Tipi di struttura"
+                  value={form.filtriTipi}
+                  onChange={(e) => upd('filtriTipi', e.target.value)}
+                  placeholder="hotel, resort, agriturismo"
+                />
+                <SelectField
+                  className="pc-modal__field"
+                  name="filtri-class-min"
+                  label="Classificazione minima"
+                  value={form.filtriClassMin}
+                  onChange={(e) => upd('filtriClassMin', e.target.value)}
+                  options={[
+                    { value: '', label: 'Nessuna' },
+                    ...['1★', '2★', '3★', '4★', '5★', '5★L'].map(c => ({ value: c, label: c })),
+                  ]}
+                />
               </div>
             </section>
           )}
@@ -488,29 +463,26 @@ export default function PartnerConnectorModal({
                       </span>
                       <p className="pc-modal__canale-desc">{ch.description}</p>
 
-                      <div className="pc-modal__field">
-                        <label className="pc-modal__label">Markup applicato (%)</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min={0}
-                          className="sib-input"
-                          value={mark}
-                          onChange={(e) => upd(markK as any, e.target.value as any)}
-                          disabled={!abil}
-                        />
-                      </div>
-                      <div className="pc-modal__field">
-                        <label className="pc-modal__label">Tagline override</label>
-                        <input
-                          type="text"
-                          className="sib-input"
-                          value={tag}
-                          onChange={(e) => upd(tagK as any, e.target.value as any)}
-                          disabled={!abil}
-                          placeholder="Opzionale — frase di vetrina canale"
-                        />
-                      </div>
+                      <InputField
+                        className="pc-modal__field"
+                        name={`canale-markup-${ch.id}`}
+                        label="Markup applicato (%)"
+                        type="number"
+                        step={0.5}
+                        min={0}
+                        value={mark}
+                        onChange={(e) => upd(markK as any, e.target.value as any)}
+                        disabled={!abil}
+                      />
+                      <InputField
+                        className="pc-modal__field"
+                        name={`canale-tagline-${ch.id}`}
+                        label="Tagline override"
+                        value={tag}
+                        onChange={(e) => upd(tagK as any, e.target.value as any)}
+                        disabled={!abil}
+                        placeholder="Opzionale — frase di vetrina canale"
+                      />
                     </div>
                   )
                 })}
@@ -528,17 +500,16 @@ export default function PartnerConnectorModal({
                 solo di personalizzare badge e accento colore con il branding del partner.
               </p>
               <div className="pc-modal__grid">
-                <div className="pc-modal__field pc-modal__field--full">
-                  <label className="pc-modal__label">URL logo partner</label>
-                  <input
-                    type="url"
-                    className="sib-input"
-                    value={form.overrideLogoUrl}
-                    onChange={(e) => upd('overrideLogoUrl', e.target.value)}
-                    placeholder="https://…"
-                  />
-                </div>
-                <div className="pc-modal__field">
+                <InputField
+                  className="pc-modal__field pc-modal__field--full"
+                  name="override-logo-url"
+                  label="URL logo partner"
+                  type="url"
+                  value={form.overrideLogoUrl}
+                  onChange={(e) => upd('overrideLogoUrl', e.target.value)}
+                  placeholder="https://…"
+                />
+                <div className="pc-modal__field pc-modal__field-raw">
                   <label className="pc-modal__label">Colore accento</label>
                   <div className="pc-modal__color-row">
                     <input

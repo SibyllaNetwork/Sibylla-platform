@@ -298,7 +298,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="org">
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title="Organigramma" subtitle="Costruisci l'organigramma aziendale trascinando ruoli e profili nel diagramma"/>
 
       {saved && <AlertBanner type="success" className="org__saved">Organigramma salvato con successo</AlertBanner>}

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import FilterToolbar from '../../../core/components/FilterToolbar'
@@ -6,6 +6,7 @@ import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
 import Tooltip from '../../../core/components/Tooltip'
 import StatusBadge from '../../../core/components/StatusBadge'
+import Pagination from '../../../core/components/Pagination'
 import {
   InputField,
   SelectField,
@@ -46,12 +47,54 @@ const STATO_VARIANT: Record<StatoMovimento, 'info' | 'success' | 'warning'> = {
   'Da inviare': 'warning',
 }
 
+// Colonne filtrabili (multi-select per valore distinto)
+const COLS = [
+  { key: 'utente',      label: 'Utente' },
+  { key: 'voceIncasso', label: 'Voce incasso' },
+  { key: 'riferimento', label: 'Riferimento' },
+  { key: 'movimento',   label: 'Movimento' },
+  { key: 'stato',       label: 'Stato' },
+] as const
+type ColKey = typeof COLS[number]['key']
+
+function colValue(m: Movimento, key: ColKey): string {
+  switch (key) {
+    case 'voceIncasso': return m.voceIncasso ?? '-'
+    default:            return String(m[key] ?? '-')
+  }
+}
+
+// Colonne filtrabili nelle Chiusure cassa
+const CHIU_COLS = [
+  { key: 'utente',     label: 'Utente' },
+  { key: 'operazione', label: 'Operazione' },
+  { key: 'stato',      label: 'Stato' },
+] as const
+type ChiuColKey = typeof CHIU_COLS[number]['key']
+
+function chiuColValue(c: Chiusura, key: ChiuColKey): string {
+  return String(c[key] ?? '-')
+}
+
+const STATO_CHIUSURA_VARIANT: Record<StatoChiusura, 'success' | 'error'> = {
+  'Chiusa':    'success',
+  'Annullata': 'error',
+}
+
+const PAGE_SIZE = 10
+
+type StatoChiusura = 'Chiusa' | 'Annullata'
+
 interface Chiusura {
   id: string
   utente: string
+  operazione: string
   dataChiusura: string
-  numMovimenti: number
-  saldo: number
+  stato: StatoChiusura
+  reparto?: string
+  importo: number
+  note?: string
+  movimenti: Movimento[]
 }
 
 type Tab = 'movimenti' | 'chiusure'
@@ -88,6 +131,17 @@ const MOVIMENTI: Movimento[] = [
   { id: '1', utente: 'Mario Rossi', dataDoc: '04/05/2026 11:54:00',                                                              riferimento: 'Front Office', importo: 10, movimento: 'Entrata', stato: 'In coda',    soggiorno: { camera: '410', prenotazione: '15398', ospite: 'Luca Bianchi',   arrivo: '24/06/2026', partenza: '25/06/2026' } },
   { id: '2', utente: 'Mario Rossi', dataDoc: '04/05/2026 11:52:16',                                                              riferimento: 'Front Office', importo: 10, movimento: 'Entrata', stato: 'Da inviare', soggiorno: { camera: '307', prenotazione: '15401', ospite: 'Sara Conti',     arrivo: '23/06/2026', partenza: '26/06/2026' } },
   { id: '3', utente: 'Mario Rossi', dataDoc: '04/05/2026 11:50:26', numeroDoc: 'F 63', voceIncasso: 'Sospeso',                   riferimento: 'Front Office', importo: 55, movimento: 'Entrata', stato: 'Emesso',     soggiorno: { camera: '308', prenotazione: '15398', ospite: 'Luca Bianchi',   arrivo: '24/06/2026', partenza: '25/06/2026' } },
+  { id: '4',  utente: 'Anna Verdi',   dataDoc: '04/05/2026 11:42:10', numeroDoc: 'F 64', voceIncasso: 'Contanti',  riferimento: 'Ristorante',  importo: 32.5,  movimento: 'Entrata', stato: 'Emesso' },
+  { id: '5',  utente: 'Anna Verdi',   dataDoc: '04/05/2026 11:30:05',                     voceIncasso: 'Mancia',    riferimento: 'Bar',         importo: 5,     movimento: 'Entrata', stato: 'In coda' },
+  { id: '6',  utente: 'Luca Ferraro', dataDoc: '04/05/2026 10:58:44', numeroDoc: 'F 65', voceIncasso: 'POS',       riferimento: 'Reception',   importo: 120,   movimento: 'Entrata', stato: 'Da inviare', soggiorno: { camera: '112', prenotazione: '15405', ospite: 'Marco Neri', arrivo: '22/06/2026', partenza: '24/06/2026' } },
+  { id: '7',  utente: 'Luca Ferraro', dataDoc: '04/05/2026 10:41:19',                     voceIncasso: 'Rimborso',  riferimento: 'Reception',   importo: 18,    movimento: 'Uscita',  stato: 'Emesso' },
+  { id: '8',  utente: 'Mario Rossi',  dataDoc: '04/05/2026 10:22:50', numeroDoc: 'F 66', voceIncasso: 'Contanti',  riferimento: 'Front Office',importo: 240,   movimento: 'Entrata', stato: 'In coda' },
+  { id: '9',  utente: 'Giulia Bruno', dataDoc: '04/05/2026 09:58:31', numeroDoc: 'F 67', voceIncasso: 'POS',       riferimento: 'Spa',         importo: 80,    movimento: 'Entrata', stato: 'Emesso' },
+  { id: '10', utente: 'Giulia Bruno', dataDoc: '04/05/2026 09:40:12',                     voceIncasso: 'Spesa',     riferimento: 'Spa',         importo: 22.9,  movimento: 'Uscita',  stato: 'Da inviare' },
+  { id: '11', utente: 'Anna Verdi',   dataDoc: '03/05/2026 19:12:03', numeroDoc: 'F 68', voceIncasso: 'Contanti',  riferimento: 'Ristorante',  importo: 64,    movimento: 'Entrata', stato: 'Emesso' },
+  { id: '12', utente: 'Mario Rossi',  dataDoc: '03/05/2026 18:55:47', numeroDoc: 'F 69', voceIncasso: 'POS',       riferimento: 'Bar',         importo: 15,    movimento: 'Entrata', stato: 'In coda' },
+  { id: '13', utente: 'Luca Ferraro', dataDoc: '03/05/2026 18:30:22',                     voceIncasso: 'Fondo cassa',riferimento: 'Reception',  importo: 200,   movimento: 'Entrata', stato: 'Emesso' },
+  { id: '14', utente: 'Giulia Bruno', dataDoc: '03/05/2026 17:48:09', numeroDoc: 'F 70', voceIncasso: 'Contanti',  riferimento: 'Front Office',importo: 47.5,  movimento: 'Entrata', stato: 'Da inviare' },
 ]
 
 interface MovCassa {
@@ -112,8 +166,91 @@ const MOVIMENTI_CASSA: MovCassa[] = [
 ]
 
 const CHIUSURE: Chiusura[] = [
-  { id: 'c-1', utente: 'Mario Rossi', dataChiusura: '03/05/2026 23:10', numMovimenti: 14, saldo: 1240.5 },
-  { id: 'c-2', utente: 'Anna Verdi',  dataChiusura: '02/05/2026 23:05', numMovimenti:  9, saldo:  870.0 },
+  {
+    id: 'c-1', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '28/05/2026 07:11:26',
+    stato: 'Chiusa', importo: 100,
+    movimenti: [
+      { id: 'k1-1', utente: 'Mario Rossi', dataDoc: '25/05/2026 16:34:35', numeroDoc: 'R-0010/FG 2026', voceIncasso: 'Contanti', riferimento: 'Front Office', importo: 50,  movimento: 'Uscita',  stato: 'Emesso' },
+      { id: 'k1-2', utente: 'Mario Rossi', dataDoc: '25/05/2026 16:33:08', numeroDoc: 'C-0030/FG 2026', voceIncasso: 'Contanti', riferimento: 'Front Office', importo: 150, movimento: 'Entrata', stato: 'Emesso', soggiorno: { camera: '204', prenotazione: '15410', ospite: 'Marta Gallo', arrivo: '24/05/2026', partenza: '25/05/2026' } },
+    ],
+  },
+  {
+    id: 'c-2', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '25/05/2026 14:28:01',
+    stato: 'Chiusa', importo: 321.34,
+    movimenti: [
+      { id: 'k2-1', utente: 'Mario Rossi', dataDoc: '25/05/2026 13:10:00', numeroDoc: 'C-0029/FG 2026', voceIncasso: 'Contanti', riferimento: 'Front Office', importo: 321.34, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-3', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '25/05/2026 07:24:37',
+    stato: 'Chiusa', importo: 949.02,
+    movimenti: [
+      { id: 'k3-1', utente: 'Mario Rossi', dataDoc: '24/05/2026 22:00:00', numeroDoc: 'C-0028/FG 2026', voceIncasso: 'POS',      riferimento: 'Front Office', importo: 949.02, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-4', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '21/05/2026 15:32:27',
+    stato: 'Chiusa', importo: 321.34,
+    movimenti: [
+      { id: 'k4-1', utente: 'Mario Rossi', dataDoc: '21/05/2026 11:00:00', numeroDoc: 'C-0027/FG 2026', voceIncasso: 'Contanti', riferimento: 'Front Office', importo: 321.34, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-5', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '21/05/2026 15:21:33',
+    stato: 'Chiusa', importo: 657.68,
+    movimenti: [
+      { id: 'k5-1', utente: 'Mario Rossi', dataDoc: '20/05/2026 18:00:00', numeroDoc: 'C-0026/FG 2026', voceIncasso: 'POS',      riferimento: 'Ristorante',   importo: 657.68, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-6', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '19/05/2026 15:56:48',
+    stato: 'Chiusa', importo: 18129.42,
+    movimenti: [
+      { id: 'k6-1', utente: 'Mario Rossi', dataDoc: '19/05/2026 09:00:00', numeroDoc: 'C-0025/FG 2026', voceIncasso: 'Bonifico', riferimento: 'Front Office', importo: 18129.42, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-7', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '04/03/2026 13:36:55',
+    stato: 'Chiusa', importo: 3138.55,
+    movimenti: [
+      { id: 'k7-1', utente: 'Mario Rossi', dataDoc: '04/03/2026 10:00:00', numeroDoc: 'C-0024/FG 2026', voceIncasso: 'Contanti', riferimento: 'Front Office', importo: 3138.55, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-8', utente: 'Anna Verdi', operazione: 'Chiusura cassa', dataChiusura: '28/02/2026 23:05:11',
+    stato: 'Chiusa', importo: 540.20, reparto: 'Ristorante',
+    movimenti: [
+      { id: 'k8-1', utente: 'Anna Verdi', dataDoc: '28/02/2026 21:00:00', numeroDoc: 'C-0023/FG 2026', voceIncasso: 'POS', riferimento: 'Ristorante', importo: 540.20, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-9', utente: 'Luca Ferraro', operazione: 'Chiusura cassa', dataChiusura: '27/02/2026 23:02:48',
+    stato: 'Annullata', importo: 88.00,
+    movimenti: [
+      { id: 'k9-1', utente: 'Luca Ferraro', dataDoc: '27/02/2026 20:30:00', numeroDoc: 'C-0022/FG 2026', voceIncasso: 'Contanti', riferimento: 'Bar', importo: 88.00, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-10', utente: 'Giulia Bruno', operazione: 'Chiusura cassa', dataChiusura: '26/02/2026 22:58:30',
+    stato: 'Chiusa', importo: 1290.75, reparto: 'Spa',
+    movimenti: [
+      { id: 'k10-1', utente: 'Giulia Bruno', dataDoc: '26/02/2026 19:00:00', numeroDoc: 'C-0021/FG 2026', voceIncasso: 'POS', riferimento: 'Spa', importo: 1290.75, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-11', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '25/02/2026 23:10:02',
+    stato: 'Chiusa', importo: 415.00,
+    movimenti: [
+      { id: 'k11-1', utente: 'Mario Rossi', dataDoc: '25/02/2026 18:00:00', numeroDoc: 'C-0020/FG 2026', voceIncasso: 'Contanti', riferimento: 'Front Office', importo: 415.00, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
+  {
+    id: 'c-12', utente: 'Anna Verdi', operazione: 'Chiusura cassa', dataChiusura: '24/02/2026 23:01:55',
+    stato: 'Chiusa', importo: 762.40, reparto: 'Ristorante',
+    movimenti: [
+      { id: 'k12-1', utente: 'Anna Verdi', dataDoc: '24/02/2026 21:30:00', numeroDoc: 'C-0019/FG 2026', voceIncasso: 'POS', riferimento: 'Ristorante', importo: 762.40, movimento: 'Entrata', stato: 'Emesso' },
+    ],
+  },
 ]
 
 function fmt(v: number): string {
@@ -133,17 +270,92 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
   const [creaOpen, setCreaOpen]       = useState(false)
   const [movCassaOpen, setMovCassaOpen] = useState(false)
   const [docMov, setDocMov]           = useState<Movimento | null>(null)
+  const [annullaTarget, setAnnullaTarget] = useState<Chiusura | null>(null)
+
+  // ── Filtri di colonna (multi-select) ──────────────────────────────
+  const [colFilters, setColFilters] = useState<Record<ColKey, string[] | null>>({
+    utente: null, voceIncasso: null, riferimento: null, movimento: null, stato: null,
+  })
+  const [openCol, setOpenCol] = useState<ColKey | null>(null)
+
+  const distinct = useMemo(() => {
+    const d = {} as Record<ColKey, string[]>
+    COLS.forEach(c => { d[c.key] = Array.from(new Set(movimenti.map(m => colValue(m, c.key)))) })
+    return d
+  }, [movimenti])
+
+  const toggleColValue = (key: ColKey, value: string) =>
+    setColFilters(prev => {
+      const cur = prev[key] ?? distinct[key]
+      const next = cur.includes(value) ? cur.filter(v => v !== value) : [...cur, value]
+      return { ...prev, [key]: next.length === distinct[key].length ? null : next }
+    })
+  const selectAllCol = (key: ColKey, select: boolean) =>
+    setColFilters(prev => ({ ...prev, [key]: select ? null : [] }))
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return movimenti
-    return movimenti.filter(m =>
-      m.utente.toLowerCase().includes(q) ||
-      (m.numeroDoc ?? '').toLowerCase().includes(q) ||
-      m.riferimento.toLowerCase().includes(q) ||
-      String(m.importo).includes(q)
-    )
-  }, [movimenti, search])
+    return movimenti.filter(m => {
+      const matchSearch = !q ||
+        m.utente.toLowerCase().includes(q) ||
+        (m.numeroDoc ?? '').toLowerCase().includes(q) ||
+        m.riferimento.toLowerCase().includes(q) ||
+        String(m.importo).includes(q)
+      const matchCols = COLS.every(c =>
+        colFilters[c.key] === null || colFilters[c.key]!.includes(colValue(m, c.key)))
+      return matchSearch && matchCols
+    })
+  }, [movimenti, search, colFilters])
+
+  // ── Paginazione Movimenti da chiudere ─────────────────────────────
+  const [movPage, setMovPage] = useState(1)
+  const movTotalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  useEffect(() => { setMovPage(1) }, [search, colFilters])
+  useEffect(() => { if (movPage > movTotalPages) setMovPage(movTotalPages) }, [movPage, movTotalPages])
+  const movPageRows = filtered.slice((movPage - 1) * PAGE_SIZE, (movPage - 1) * PAGE_SIZE + PAGE_SIZE)
+
+  // ── Filtri + paginazione + espansione Chiusure cassa ──────────────
+  const [chiuFilters, setChiuFilters] = useState<Record<ChiuColKey, string[] | null>>({
+    utente: null, operazione: null, stato: null,
+  })
+  const [chiuOpenCol, setChiuOpenCol] = useState<ChiuColKey | null>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  const chiuDistinct = useMemo(() => {
+    const d = {} as Record<ChiuColKey, string[]>
+    CHIU_COLS.forEach(c => { d[c.key] = Array.from(new Set(chiusure.map(k => chiuColValue(k, c.key)))) })
+    return d
+  }, [chiusure])
+
+  const toggleChiuColValue = (key: ChiuColKey, value: string) =>
+    setChiuFilters(prev => {
+      const cur = prev[key] ?? chiuDistinct[key]
+      const next = cur.includes(value) ? cur.filter(v => v !== value) : [...cur, value]
+      return { ...prev, [key]: next.length === chiuDistinct[key].length ? null : next }
+    })
+  const selectAllChiuCol = (key: ChiuColKey, select: boolean) =>
+    setChiuFilters(prev => ({ ...prev, [key]: select ? null : [] }))
+  const toggleExpanded = (id: string) =>
+    setExpanded(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+
+  const filteredChiusure = useMemo(
+    () => chiusure.filter(k => CHIU_COLS.every(c =>
+      chiuFilters[c.key] === null || chiuFilters[c.key]!.includes(chiuColValue(k, c.key)))),
+    [chiusure, chiuFilters],
+  )
+  const chiuGroups = useMemo(
+    () => groupsOf(filteredChiusure.flatMap(c => c.movimenti)),
+    [filteredChiusure],
+  )
+  const [chiuPage, setChiuPage] = useState(1)
+  const chiuTotalPages = Math.max(1, Math.ceil(filteredChiusure.length / PAGE_SIZE))
+  useEffect(() => { setChiuPage(1) }, [chiuFilters])
+  useEffect(() => { if (chiuPage > chiuTotalPages) setChiuPage(chiuTotalPages) }, [chiuPage, chiuTotalPages])
+  const chiuPageRows = filteredChiusure.slice((chiuPage - 1) * PAGE_SIZE, (chiuPage - 1) * PAGE_SIZE + PAGE_SIZE)
 
   const totaleSaldo = useMemo(
     () => filtered.reduce((s, m) => s + (m.movimento === 'Entrata' ? m.importo : -m.importo), 0),
@@ -172,14 +384,21 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
     setMovimenti(prev => [m, ...prev])
     setCreaOpen(false)
   }
+  function confermaAnnullamento() {
+    if (!annullaTarget) return
+    setChiusure(prev => prev.map(c => c.id === annullaTarget.id ? { ...c, stato: 'Annullata' } : c))
+    setAnnullaTarget(null)
+  }
   function confermaChiusura() {
     const now = new Date()
     const nuova: Chiusura = {
       id: `c-${Date.now()}`,
       utente: 'Mario Rossi',
-      dataChiusura: `${now.toLocaleDateString('it-IT')} ${now.toTimeString().slice(0, 5)}`,
-      numMovimenti: filtered.length,
-      saldo: totaleSaldo,
+      operazione: 'Chiusura cassa',
+      dataChiusura: `${now.toLocaleDateString('it-IT')} ${now.toTimeString().slice(0, 8)}`,
+      stato: 'Chiusa',
+      importo: totaleSaldo,
+      movimenti: filtered,
     }
     setChiusure(prev => [nuova, ...prev])
     setMovimenti([])
@@ -196,10 +415,18 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
   function exportPdf() {
     printPdf('Movimenti di cassa', filtered, strutturaName, dateRangeStr, totaleSaldo, groupGruppi, groupVoci)
   }
+  function exportChiuXls(c: Chiusura) {
+    const g = groupsOf(c.movimenti)
+    downloadCsv(`chiusura-${c.id}`, c.movimenti, strutturaName, c.dataChiusura, c.importo, g.gruppi, g.voci)
+  }
+  function exportChiuPdf(c: Chiusura) {
+    const g = groupsOf(c.movimenti)
+    printPdf('Chiusura cassa', c.movimenti, strutturaName, c.dataChiusura, c.importo, g.gruppi, g.voci)
+  }
 
   return (
     <div className="cassa">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Monitoraggio cassa"
         subtitle="Gestione e controllo del flusso di cassa in tempo reale per analizzare le transazioni, controllare il saldo della cassa e prevenire anomalie"
@@ -314,14 +541,54 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
           <table className="sib-table cassa__table">
             <thead>
               <tr>
-                <th>Utente</th>
+                <th>
+                  <ColFilterHeader
+                    label="Utente" options={distinct.utente} selected={colFilters.utente}
+                    open={openCol === 'utente'}
+                    onToggleOpen={() => setOpenCol(o => o === 'utente' ? null : 'utente')}
+                    onToggle={v => toggleColValue('utente', v)}
+                    onSelectAll={s => selectAllCol('utente', s)}
+                  />
+                </th>
                 <th>Data Documento</th>
                 <th>Numero documento</th>
-                <th>Voce incasso</th>
-                <th>Riferimento</th>
+                <th>
+                  <ColFilterHeader
+                    label="Voce incasso" options={distinct.voceIncasso} selected={colFilters.voceIncasso}
+                    open={openCol === 'voceIncasso'}
+                    onToggleOpen={() => setOpenCol(o => o === 'voceIncasso' ? null : 'voceIncasso')}
+                    onToggle={v => toggleColValue('voceIncasso', v)}
+                    onSelectAll={s => selectAllCol('voceIncasso', s)}
+                  />
+                </th>
+                <th>
+                  <ColFilterHeader
+                    label="Riferimento" options={distinct.riferimento} selected={colFilters.riferimento}
+                    open={openCol === 'riferimento'}
+                    onToggleOpen={() => setOpenCol(o => o === 'riferimento' ? null : 'riferimento')}
+                    onToggle={v => toggleColValue('riferimento', v)}
+                    onSelectAll={s => selectAllCol('riferimento', s)}
+                  />
+                </th>
                 <th className="cassa__th-num">Importo</th>
-                <th>Movimento</th>
-                <th>Stato</th>
+                <th>
+                  <ColFilterHeader
+                    label="Movimento" options={distinct.movimento} selected={colFilters.movimento}
+                    open={openCol === 'movimento'}
+                    onToggleOpen={() => setOpenCol(o => o === 'movimento' ? null : 'movimento')}
+                    onToggle={v => toggleColValue('movimento', v)}
+                    onSelectAll={s => selectAllCol('movimento', s)}
+                  />
+                </th>
+                <th>
+                  <ColFilterHeader
+                    label="Stato" options={distinct.stato} selected={colFilters.stato}
+                    open={openCol === 'stato'}
+                    onToggleOpen={() => setOpenCol(o => o === 'stato' ? null : 'stato')}
+                    onToggle={v => toggleColValue('stato', v)}
+                    onSelectAll={s => selectAllCol('stato', s)}
+                  />
+                </th>
                 <th>Dettagli</th>
                 <th>Azioni</th>
               </tr>
@@ -330,7 +597,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
               {filtered.length === 0 && (
                 <tr><td colSpan={10} className="sib-empty">Nessun movimento da chiudere.</td></tr>
               )}
-              {filtered.map(m => (
+              {movPageRows.map(m => (
                 <tr key={m.id}>
                   <td>
                     <span className="cassa__user">
@@ -377,6 +644,8 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
           </table>
         </div>
 
+        <Pagination className="cassa__pager" page={movPage} totalPages={movTotalPages} onPageChange={setMovPage} />
+
         {filtered.length > 0 && (
           <div className="cassa__totals">
             <div className="cassa__totals-card">
@@ -420,41 +689,203 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
             Nessuna chiusura cassa da poter verificare
           </div>
         ) : (
-          <div className="sib-table-wrap">
-            <table className="sib-table cassa__table">
-              <thead>
-                <tr>
-                  <th>Utente</th>
-                  <th>Data chiusura</th>
-                  <th className="cassa__th-num">N° movimenti</th>
-                  <th className="cassa__th-num">Saldo chiusura</th>
-                  <th>Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                {chiusure.map(c => (
-                  <tr key={c.id}>
-                    <td>
-                      <span className="cassa__user">
-                        <span className="cassa__avatar"><i className="fa-light fa-user" /></span>
-                        {c.utente}
-                      </span>
-                    </td>
-                    <td>{c.dataChiusura}</td>
-                    <td className="cassa__td-num">{c.numMovimenti}</td>
-                    <td className="cassa__td-num">{fmt(c.saldo)}</td>
-                    <td>
-                      <Tooltip text="Visualizza">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza">
-                          <i className="fa-light fa-eye" />
-                        </button>
-                      </Tooltip>
-                    </td>
+          <>
+            <div className="sib-table-wrap">
+              <table className="sib-table cassa__table cassa__chiu-table">
+                <thead>
+                  <tr>
+                    <th className="cassa__chev-th" />
+                    <th>
+                      <ColFilterHeader
+                        label="Utente" options={chiuDistinct.utente} selected={chiuFilters.utente}
+                        open={chiuOpenCol === 'utente'}
+                        onToggleOpen={() => setChiuOpenCol(o => o === 'utente' ? null : 'utente')}
+                        onToggle={v => toggleChiuColValue('utente', v)}
+                        onSelectAll={s => selectAllChiuCol('utente', s)}
+                      />
+                    </th>
+                    <th>
+                      <ColFilterHeader
+                        label="Operazione" options={chiuDistinct.operazione} selected={chiuFilters.operazione}
+                        open={chiuOpenCol === 'operazione'}
+                        onToggleOpen={() => setChiuOpenCol(o => o === 'operazione' ? null : 'operazione')}
+                        onToggle={v => toggleChiuColValue('operazione', v)}
+                        onSelectAll={s => selectAllChiuCol('operazione', s)}
+                      />
+                    </th>
+                    <th>Data chiusura</th>
+                    <th>
+                      <ColFilterHeader
+                        label="Stato" options={chiuDistinct.stato} selected={chiuFilters.stato}
+                        open={chiuOpenCol === 'stato'}
+                        onToggleOpen={() => setChiuOpenCol(o => o === 'stato' ? null : 'stato')}
+                        onToggle={v => toggleChiuColValue('stato', v)}
+                        onSelectAll={s => selectAllChiuCol('stato', s)}
+                      />
+                    </th>
+                    <th>Reparto</th>
+                    <th className="cassa__th-num">Importo</th>
+                    <th>Note</th>
+                    <th>Azioni</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredChiusure.length === 0 && (
+                    <tr><td colSpan={9} className="sib-empty">Nessuna chiusura corrisponde ai filtri.</td></tr>
+                  )}
+                  {chiuPageRows.map(c => (
+                    <React.Fragment key={c.id}>
+                      <tr>
+                        <td className="cassa__chev-td">
+                          <button
+                            type="button" className="cassa__chev-btn"
+                            aria-label={expanded.has(c.id) ? 'Comprimi' : 'Espandi'}
+                            aria-expanded={expanded.has(c.id)}
+                            onClick={() => toggleExpanded(c.id)}
+                          >
+                            <i className={`fa-light fa-chevron-${expanded.has(c.id) ? 'up' : 'down'}`} />
+                          </button>
+                        </td>
+                        <td>
+                          <span className="cassa__user">
+                            <span className="cassa__avatar"><i className="fa-light fa-user" /></span>
+                            {c.utente}
+                          </span>
+                        </td>
+                        <td>{c.operazione}</td>
+                        <td>{c.dataChiusura}</td>
+                        <td>
+                          <StatusBadge variant={STATO_CHIUSURA_VARIANT[c.stato]}>{c.stato}</StatusBadge>
+                        </td>
+                        <td className={c.reparto ? '' : 'sib-cell--muted'}>{c.reparto ?? '-'}</td>
+                        <td className="cassa__td-num">{fmt(c.importo)}</td>
+                        <td className={c.note ? '' : 'sib-cell--muted'}>{c.note ?? '-'}</td>
+                        <td>
+                          <span className="cassa__row-actions">
+                            <Tooltip text="Annulla chiusura">
+                              <button
+                                type="button" className="sib-btn sib-btn--icon" aria-label="Annulla chiusura"
+                                onClick={() => setAnnullaTarget(c)}
+                                disabled={c.stato === 'Annullata'}
+                              >
+                                <i className="fa-light fa-ban" />
+                              </button>
+                            </Tooltip>
+                            <Tooltip text="Esporta in Excel">
+                              <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={() => exportChiuXls(c)}>
+                                <i className="fa-light fa-file-excel" />
+                              </button>
+                            </Tooltip>
+                            <Tooltip text="Esporta in PDF">
+                              <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={() => exportChiuPdf(c)}>
+                                <i className="fa-light fa-file-pdf" />
+                              </button>
+                            </Tooltip>
+                          </span>
+                        </td>
+                      </tr>
+                      {expanded.has(c.id) && c.movimenti.length > 0 && (
+                        <tr className="cassa__expand-row">
+                          <td colSpan={9} className="cassa__expand-cell">
+                            <table className="cassa__sub-table">
+                              <thead>
+                                <tr>
+                                  <th>Utente</th>
+                                  <th>Data documento</th>
+                                  <th>Numero documento</th>
+                                  <th>Voce incasso</th>
+                                  <th>Riferimento</th>
+                                  <th className="cassa__th-num">Importo</th>
+                                  <th>Movimento</th>
+                                  <th>Dettagli</th>
+                                  <th>Stato</th>
+                                  <th>Azioni</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {c.movimenti.map(m => (
+                                  <tr key={m.id}>
+                                    <td>
+                                      <span className="cassa__user">
+                                        <span className="cassa__avatar cassa__avatar--sm"><i className="fa-light fa-user" /></span>
+                                        {m.utente}
+                                      </span>
+                                    </td>
+                                    <td>{m.dataDoc}</td>
+                                    <td className={m.numeroDoc ? '' : 'sib-cell--muted'}>{m.numeroDoc ?? '-'}</td>
+                                    <td className={m.voceIncasso ? '' : 'sib-cell--muted'}>{m.voceIncasso ?? '-'}</td>
+                                    <td>{m.riferimento}</td>
+                                    <td className="cassa__td-num">{fmt(m.movimento === 'Uscita' ? -m.importo : m.importo)}</td>
+                                    <td>
+                                      <StatusBadge variant={m.movimento === 'Entrata' ? 'success' : 'warning'}>
+                                        {m.movimento}
+                                      </StatusBadge>
+                                    </td>
+                                    <td>
+                                      {m.soggiorno ? (
+                                        <Tooltip position="left" variant="light" content={<SoggiornoCard s={m.soggiorno} />}>
+                                          <span className="cassa__info" aria-label="Dettagli soggiorno" tabIndex={0}>
+                                            <i className="fa-light fa-circle-info" />
+                                          </span>
+                                        </Tooltip>
+                                      ) : (
+                                        <span className="sib-cell--muted">-</span>
+                                      )}
+                                    </td>
+                                    <td className="sib-cell--muted">-</td>
+                                    <td>
+                                      <Tooltip text="Visualizza documento fiscale">
+                                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza documento fiscale" onClick={() => setDocMov(m)}>
+                                          <i className="fa-light fa-eye" />
+                                        </button>
+                                      </Tooltip>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination className="cassa__pager" page={chiuPage} totalPages={chiuTotalPages} onPageChange={setChiuPage} />
+
+            {filteredChiusure.length > 0 && (
+              <div className="cassa__totals">
+                <div className="cassa__totals-card">
+                  <h4 className="cassa__totals-title">Raggruppamento per gruppi incasso</h4>
+                  <table className="cassa__totals-table">
+                    <tbody>
+                      {chiuGroups.gruppi.map(([k, v]) => (
+                        <tr key={k}>
+                          <td>{k}</td>
+                          <td className="cassa__td-num">{fmt(v)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="cassa__totals-card">
+                  <h4 className="cassa__totals-title">Raggruppamento per voci incasso</h4>
+                  <table className="cassa__totals-table">
+                    <tbody>
+                      {chiuGroups.voci.map(([k, v]) => (
+                        <tr key={k}>
+                          <td>{k}</td>
+                          <td className="cassa__td-num">{fmt(v)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
       )}
@@ -509,6 +940,34 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
       {creaOpen && <CreaMovimentoModal onClose={() => setCreaOpen(false)} onSave={addMovimento} />}
 
       {movCassaOpen && <MovimentiCassaModal struttura={strutturaName} onClose={() => setMovCassaOpen(false)} />}
+
+      {annullaTarget && (
+        <div className="cassa__backdrop" onClick={() => setAnnullaTarget(null)}>
+          <div className="cassa__modal cassa__modal--confirm" onClick={e => e.stopPropagation()}>
+            <header className="cassa__modal-head">
+              <h3 className="cassa__modal-title">Annulla Chiusura Cassa</h3>
+              <Tooltip text="Chiudi">
+                <button type="button" className="sib-btn sib-btn--icon" onClick={() => setAnnullaTarget(null)} aria-label="Chiudi">
+                  <i className="fa-light fa-xmark" />
+                </button>
+              </Tooltip>
+            </header>
+            <div className="cassa__modal-body">
+              <p className="cassa__modal-text">
+                Vuoi procedere con l'annullamento di questa chiusura cassa?
+              </p>
+            </div>
+            <footer className="cassa__modal-foot cassa__modal-foot--center">
+              <button type="button" className="sib-btn sib-btn--primary" onClick={confermaAnnullamento}>
+                Procedi
+              </button>
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setAnnullaTarget(null)}>
+                Annulla
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
 
       {docMov && (
         <DocumentoFiscaleModal
@@ -739,6 +1198,52 @@ function MovimentiCassaModal({ struttura, onClose }: { struttura: string; onClos
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+// ─── Header di colonna con filtro multi-select ────────────────────────
+interface ColFilterHeaderProps {
+  label: string
+  options: string[]
+  selected: string[] | null   // null = nessun filtro (tutti)
+  open: boolean
+  onToggleOpen: () => void
+  onToggle: (value: string) => void
+  onSelectAll: (select: boolean) => void
+}
+function ColFilterHeader({ label, options, selected, open, onToggleOpen, onToggle, onSelectAll }: ColFilterHeaderProps) {
+  const allSelected = selected === null
+  const isChecked = (o: string) => selected === null || selected.includes(o)
+  return (
+    <div className="cassa__cf">
+      <span>{label}</span>
+      <button
+        type="button"
+        className={'cassa__cf-btn' + (selected !== null ? ' cassa__cf-btn--active' : '')}
+        onClick={onToggleOpen}
+        aria-label={`Filtra per ${label}`}
+      >
+        <i className="fa-solid fa-filter" aria-hidden="true" />
+      </button>
+      {open && (
+        <>
+          <div className="cassa__cf-overlay" onClick={onToggleOpen} />
+          <div className="cassa__cf-popup" onClick={e => e.stopPropagation()}>
+            <div className="cassa__cf-title">{label}</div>
+            <label className="cassa__cf-option">
+              <input type="checkbox" className="sib-checkbox" checked={allSelected} onChange={e => onSelectAll(e.target.checked)} />
+              <span>Tutti</span>
+            </label>
+            {options.map(opt => (
+              <label key={opt} className="cassa__cf-option">
+                <input type="checkbox" className="sib-checkbox" checked={isChecked(opt)} onChange={() => onToggle(opt)} />
+                <span>{opt}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1092,6 +1597,18 @@ function parseDateIt(it: string): string {
 }
 
 // ─── Export helpers ───────────────────────────────────────────────────
+function groupsOf(rows: Movimento[]): { gruppi: Array<[string, number]>; voci: Array<[string, number]> } {
+  const voci = new Map<string, number>()
+  const gruppi = new Map<string, number>()
+  for (const m of rows) {
+    const vk = m.voceIncasso || '-'
+    voci.set(vk, (voci.get(vk) ?? 0) + m.importo)
+    const gk = m.voceIncasso ? 'Sospesi' : '-'
+    gruppi.set(gk, (gruppi.get(gk) ?? 0) + m.importo)
+  }
+  return { gruppi: Array.from(gruppi.entries()), voci: Array.from(voci.entries()) }
+}
+
 function csvEscape(v: string | number | undefined | null): string {
   if (v == null) return ''
   const s = String(v)

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../core/components/form'
 import './ContiChiusi.sass'
 
 interface ContoChiuso {
@@ -63,24 +63,21 @@ export default function ContiChiusi({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="conti-chiusi">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Conti chiusi"
         subtitle="Storico dei conti chiusi e fatturati"
       />
 
       <div className="conti-chiusi__bar">
-        <div className="conti-chiusi__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select conti-chiusi__select"
-            aria-label="Struttura"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          className="conti-chiusi__field conti-chiusi__select"
+          name="struttura"
+          label="Struttura"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+        />
 
         <DateRangeField
           className="conti-chiusi__field"
@@ -93,7 +90,7 @@ export default function ContiChiusi({ navigate }: { navigate: (p: string) => voi
           onChangeTo={(e) => setDataA(e.target.value)}
         />
 
-        <div className="conti-chiusi__field conti-chiusi__field--grow">
+        <div className="conti-chiusi__field-raw conti-chiusi__field--grow">
           <label>Cerca</label>
           <div className="conti-chiusi__search">
             <input

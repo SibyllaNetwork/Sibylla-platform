@@ -103,7 +103,7 @@ export default function PortafoglioAziendale({navigate}:{navigate:(p:string)=>vo
 
   return (
     <div>
-      <BtnBack onClick={()=>navigate("home")}/>
+      <BtnBack />
 
       <PageHeader title="Portafoglio aziendale" subtitle="Monitoraggio centralizzato per operazioni vantaggiose, sicure, rapide e connesse al mercato in tempo reale"/>
 

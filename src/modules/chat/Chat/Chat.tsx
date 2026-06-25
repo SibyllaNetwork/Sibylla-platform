@@ -207,7 +207,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
 
   return (
     <div className="chat">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Chat"
         subtitle="Comunica con operatori Platform e Tour Operator"

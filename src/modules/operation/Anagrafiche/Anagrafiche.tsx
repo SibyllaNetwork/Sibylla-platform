@@ -67,7 +67,7 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Anagrafiche" subtitle="Gestisci l'anagrafica completa dei tuoi ospiti" />
 
       {error && loaded && (

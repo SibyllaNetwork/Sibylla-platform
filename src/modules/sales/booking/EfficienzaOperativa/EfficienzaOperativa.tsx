@@ -188,7 +188,7 @@ export default function EfficienzaOperativa({ navigate }: { navigate: (p: string
 
   return (
     <div className="eop">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader
         title="Efficienza operativa"

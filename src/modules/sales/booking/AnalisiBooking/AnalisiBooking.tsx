@@ -107,7 +107,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="analisi-booking">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader title="Analisi booking" subtitle="Dashboard su revenue, tasso di occupazione, giorni extra e servizi venduti"/>
 

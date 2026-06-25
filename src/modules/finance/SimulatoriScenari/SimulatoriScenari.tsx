@@ -121,7 +121,7 @@ export default function SimulatoriScenari({ navigate }: { navigate: (p: string) 
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Simulatori scenari" subtitle="Prova oggi la decisione di domani, senza alcun rischio" />
 
       <div className="flex items-end gap-3 mb-5 flex-wrap">

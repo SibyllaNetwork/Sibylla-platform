@@ -70,7 +70,7 @@ export default function RiepilogoBacheche({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="riep-bach">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Riepilogo bacheche"
         subtitle="Sintesi dei contenuti pubblicati verso il B2C (Network) e il B2B (Agorà)"

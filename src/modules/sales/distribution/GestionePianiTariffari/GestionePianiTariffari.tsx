@@ -5,7 +5,7 @@ import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import PageHeader from '../../../../core/components/PageHeader'
 import FormActions from '../../../../core/components/FormActions'
-import { InputField, SelectField, DatePickerField } from '../../../../core/components/form'
+import { InputField, SelectField, DatePickerField, CheckboxField } from '../../../../core/components/form'
 import './GestionePianiTariffari.sass'
 
 type Sezione = 'BAR' | 'FIT' | 'Gruppi'
@@ -135,7 +135,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p: str
 
   return (
     <div className="piani">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Gestione dei piani tariffari"
         subtitle={'Gestisci i piani tariffari in modo smart per offrire prezzi dinamici ottimizzati per ogni segmento di mercato ed evita "disparity rate" automatizzando i flussi distributivi'}
@@ -247,9 +247,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p: str
             </div>
             <div className="piani__form-checks">
               {([['adv', 'ADV'], ['scontoCheck', 'Sconto percentuale'], ['dirette', 'Dirette'], ['b2c', 'B2C']] as const).map(([k, l]) => (
-                <label key={k} className="piani__check">
-                  <input type="checkbox" className="sib-checkbox" checked={(form as any)[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.checked }))} /> {l}
-                </label>
+                <CheckboxField key={k} name={k} label={l} className="piani__check" checked={(form as any)[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.checked }))} />
               ))}
             </div>
             <FormActions onCancel={() => setCtx(null)} onConfirm={save} confirmLabel="Salva" confirmDisabled={!form.nome.trim()} />

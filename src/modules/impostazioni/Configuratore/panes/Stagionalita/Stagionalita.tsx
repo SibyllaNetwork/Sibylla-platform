@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, RadioGroup } from '../../../../../core/components/form'
 import './Stagionalita.sass'
 
 const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -59,39 +60,25 @@ export default function Stagionalita() {
       </div>
 
       <div className="stagionalita__filters">
-        <div className="stagionalita__field">
-          <label>Contratto</label>
-          <select
-            className="sib-select sib-select--dense"
-            value={data.ListinoId ?? ''}
-            onChange={(e) => setData({ ...data, ListinoId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Listini.map((l) => <option key={l.Id} value={l.Id}>{l.Nome}</option>)}
-          </select>
-        </div>
-        <div className="stagionalita__field">
-          <label>Tipologia</label>
-          <div className="stagionalita__radio-group">
-            <label className="stagionalita__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Tipologia === 'Individuali'}
-                onChange={() => setData({ ...data, Tipologia: 'Individuali' })}
-              />
-              <span>Individuali</span>
-            </label>
-            <label className="stagionalita__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Tipologia === 'Gruppi'}
-                onChange={() => setData({ ...data, Tipologia: 'Gruppi' })}
-              />
-              <span>Gruppi</span>
-            </label>
-          </div>
-        </div>
+        <SelectField
+          name="contratto"
+          label="Contratto"
+          className="stagionalita__field"
+          value={data.ListinoId ?? ''}
+          onChange={(e) => setData({ ...data, ListinoId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Listini.map((l) => ({ value: l.Id, label: l.Nome }))}
+        />
+        <RadioGroup
+          name="tipologia"
+          label="Tipologia"
+          className="stagionalita__field"
+          value={data.Tipologia}
+          onChange={(val) => setData({ ...data, Tipologia: val as Data['Tipologia'] })}
+          options={[
+            { value: 'Individuali', label: 'Individuali' },
+            { value: 'Gruppi', label: 'Gruppi' },
+          ]}
+        />
         <button
           type="button"
           className="sib-btn sib-btn--secondary"

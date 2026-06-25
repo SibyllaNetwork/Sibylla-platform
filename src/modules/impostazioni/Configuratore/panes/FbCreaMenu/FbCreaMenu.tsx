@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { CheckboxField, InputField, SelectField } from '../../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../../services/api'
 import './FbCreaMenu.sass'
 
@@ -39,19 +40,21 @@ export default function FbCreaMenu() {
       </div>
 
       <div className="fb-crea-menu__form">
-        <div className="fb-crea-menu__field"><label>I miei outlet</label>
-          <select className="sib-select" value={data.OutletId ?? ''} onChange={(e) => setData({ ...data, OutletId: e.target.value ? Number(e.target.value) : null })}>
-            {data.Outlets.map((o) => <option key={o.Id} value={o.Id}>{o.nome}</option>)}
-          </select>
-        </div>
-        <div className="fb-crea-menu__field"><label>Nome menu</label>
-          <input type="text" className="sib-input" value={nomeMenu} onChange={(e) => setNomeMenu(e.target.value)} />
-        </div>
-        <label className="fb-crea-menu__check">
-          <input type="checkbox" className="sib-checkbox" checked={menuFisso} onChange={(e) => setMenuFisso(e.target.checked)} />
-          <span>Menu Fisso</span>
-        </label>
-        <div className="fb-crea-menu__field"><label>Prezzo vendita</label>
+        <SelectField
+          name="outlet" label="I miei outlet" className="fb-crea-menu__field"
+          value={data.OutletId ?? ''}
+          onChange={(e) => setData({ ...data, OutletId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Outlets.map((o) => ({ value: o.Id, label: o.nome }))}
+        />
+        <InputField
+          name="nomeMenu" label="Nome menu" className="fb-crea-menu__field"
+          value={nomeMenu} onChange={(e) => setNomeMenu(e.target.value)}
+        />
+        <CheckboxField
+          name="menuFisso" label="Menu Fisso" className="fb-crea-menu__check"
+          checked={menuFisso} onChange={(e) => setMenuFisso(e.target.checked)}
+        />
+        <div className="fb-crea-menu__field-raw"><label>Prezzo vendita</label>
           <div className="fb-crea-menu__price-cell">
             <input type="text" className="sib-input" value={`${totale.toFixed(2).replace('.', ',')} €`} disabled />
             <button type="button" className="sib-btn sib-btn--primary">Crea</button>
@@ -61,12 +64,13 @@ export default function FbCreaMenu() {
       </div>
 
       <div className="fb-crea-menu__form">
-        <div className="fb-crea-menu__field"><label>Piatto</label>
-          <select className="sib-select"><option>Seleziona piatto</option></select>
-        </div>
-        <div className="fb-crea-menu__field"><label>Descrizione</label>
-          <input type="text" className="sib-input" />
-        </div>
+        <SelectField
+          name="piatto" label="Piatto" className="fb-crea-menu__field"
+          placeholder="Seleziona piatto" value="" options={[]}
+        />
+        <InputField
+          name="descrizione" label="Descrizione" className="fb-crea-menu__field"
+        />
         <button type="button" className="sib-btn sib-btn--primary"><i className="fa-light fa-plus" /> Aggiungi</button>
       </div>
 

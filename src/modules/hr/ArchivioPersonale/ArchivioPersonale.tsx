@@ -77,7 +77,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Archivio del personale"
         subtitle="Gestione dei dati anagrafici e contrattuali di tutto il personale, con accesso rapido agli archivi contrattuali e possibilità di creare nuovi profili"

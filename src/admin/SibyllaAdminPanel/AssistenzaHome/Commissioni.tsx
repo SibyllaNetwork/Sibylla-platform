@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
+import { SelectField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import './Commissioni.sass'
 
@@ -106,19 +107,25 @@ export default function Commissioni({ navigate }: Props) {
       </div>
 
       <div className="cms__toolbar">
-        <label className="cms__field">
-          <span>Azienda</span>
-          <select className="sib-select"><option>Tutte le aziende</option>{AZIENDE.map(a => <option key={a}>{a}</option>)}</select>
-        </label>
-        <label className="cms__field">
-          <span>Struttura</span>
-          <select className="sib-select" disabled><option>Tutte le strutture</option></select>
-        </label>
-        <label className="cms__field">
+        <SelectField
+          name="azienda"
+          label="Azienda"
+          className="cms__field"
+          options={[{ value: 'Tutte le aziende', label: 'Tutte le aziende' }, ...AZIENDE.map(a => ({ value: a, label: a }))]}
+        />
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="cms__field"
+          disabled
+          placeholder="Tutte le strutture"
+          options={[]}
+        />
+        <label className="cms__field cms__field-raw">
           <span>Data prenotazione</span>
           <input className="sib-input" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
         </label>
-        <label className="cms__field">
+        <label className="cms__field cms__field-raw">
           <span>Data check-in</span>
           <input className="sib-input" type="date" />
         </label>

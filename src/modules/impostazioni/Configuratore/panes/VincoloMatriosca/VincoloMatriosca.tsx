@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField } from '../../../../../core/components/form'
 import './VincoloMatriosca.sass'
 
 interface Riga { id: number; tipo: string; equivalenti: string[] }
@@ -54,17 +55,17 @@ export default function VincoloMatriosca() {
         Configuratore <i className="fa-light fa-chevron-right" /> <strong>Vincolo matriosca</strong>
       </div>
 
-      <div className="vincolo-matriosca__field">
-        <label>Struttura</label>
-        <select
-          className="sib-select sib-select--dense vincolo-matriosca__select"
-          value={data.StrutturaId ?? ''}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-        >
-          <option value="">Hotel Tutorial</option>
-          {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-        </select>
-      </div>
+      <SelectField
+        name="struttura"
+        label="Struttura"
+        className="vincolo-matriosca__field"
+        value={data.StrutturaId ?? ''}
+        onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+        options={[
+          { value: '', label: 'Hotel Tutorial' },
+          ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+        ]}
+      />
 
       <div className="vincolo-matriosca__table-wrap">
         <table className="vincolo-matriosca__table">

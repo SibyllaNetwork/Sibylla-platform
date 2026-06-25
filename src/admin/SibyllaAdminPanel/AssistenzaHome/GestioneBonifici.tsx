@@ -3,6 +3,7 @@ import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
+import { SelectField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import './GestioneBonifici.sass'
 
@@ -99,13 +100,15 @@ export default function GestioneBonifici({ navigate }: Props) {
       </div>
 
       <div className="gbf__toolbar">
-        <label className="gbf__field">
-          <span>Azienda</span>
-          <select className="sib-select" value={azienda} onChange={e => setAzienda(e.target.value)}>
-            <option value="">Tutti</option>{AZIENDE.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </label>
-        <label className="gbf__field">
+        <SelectField
+          name="azienda"
+          label="Azienda"
+          className="gbf__field"
+          value={azienda}
+          onChange={e => setAzienda(e.target.value)}
+          options={[{ value: '', label: 'Tutti' }, ...AZIENDE.map(a => ({ value: a, label: a }))]}
+        />
+        <label className="gbf__field gbf__field-raw">
           <span>Data</span>
           <input className="sib-input" type="date" value={data} onChange={e => setData(e.target.value)} />
         </label>

@@ -95,7 +95,7 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="miei-servizi">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="I miei servizi"
         subtitle="Catalogo dei servizi della tua struttura, con stato di approvazione e gestione dei prezzi"

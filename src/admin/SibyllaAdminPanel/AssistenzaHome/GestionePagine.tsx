@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
+import { InputField, SelectField, TextareaField, CheckboxField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import {
   useGestionePagineStore, childrenOf, descendantIds,
@@ -317,33 +318,52 @@ export default function GestionePagine({ navigate }: Props) {
               <h2 className="gpag__panel-title">{isNew ? 'Nuova pagina' : 'Modifica pagina'}</h2>
 
               <div className="gpag__section">Dati base</div>
-              <label className="gpag__f">
-                <span>Nome (etichetta menu)</span>
-                <input className="sib-input" value={form.nome} onChange={e => set('nome', e.target.value)} />
-              </label>
-              <label className="gpag__f">
-                <span>Link (collegamento alla pagina)</span>
-                <input className="sib-input" value={form.link} onChange={e => onLinkChange(e.target.value)} placeholder="/Controller/Azione" />
-              </label>
+              <InputField
+                name="nome"
+                label="Nome (etichetta menu)"
+                className="gpag__f"
+                value={form.nome}
+                onChange={e => set('nome', e.target.value)}
+              />
+              <InputField
+                name="link"
+                label="Link (collegamento alla pagina)"
+                className="gpag__f"
+                value={form.link}
+                onChange={e => onLinkChange(e.target.value)}
+                placeholder="/Controller/Azione"
+              />
               {linkedPage && (
                 <div className="gpag__linked">
                   <Ico n="alert" s={14} c="#8a6d1f" />
                   <span>Collegata alla pagina esistente <strong>«{linkedPage.nome}»</strong>: titolo e sottotitolo aggiorneranno quella pagina.</span>
                 </div>
               )}
-              <label className="gpag__f">
-                <span>Titolo {linkedPage ? `(della pagina «${linkedPage.nome}»)` : '(titolo della pagina)'}</span>
-                <input className="sib-input" value={form.titolo} onChange={e => set('titolo', e.target.value)} placeholder="Se vuoto usa il nome" />
-              </label>
-              <label className="gpag__f">
-                <span>Sottotitolo {linkedPage ? `(della pagina «${linkedPage.nome}»)` : '(sottotitolo della pagina)'}</span>
-                <input className="sib-input" value={form.sottotitolo} onChange={e => set('sottotitolo', e.target.value)} placeholder="Opzionale" />
-              </label>
-              <label className="gpag__f">
-                <span>Icona (HTML icona Font Awesome)</span>
-                <textarea className="sib-input gpag__icona" value={form.icona} onChange={e => set('icona', e.target.value)} rows={2}
-                  placeholder='<i class="fa-regular fa-pen modify"></i>' />
-              </label>
+              <InputField
+                name="titolo"
+                label={`Titolo ${linkedPage ? `(della pagina «${linkedPage.nome}»)` : '(titolo della pagina)'}`}
+                className="gpag__f"
+                value={form.titolo}
+                onChange={e => set('titolo', e.target.value)}
+                placeholder="Se vuoto usa il nome"
+              />
+              <InputField
+                name="sottotitolo"
+                label={`Sottotitolo ${linkedPage ? `(della pagina «${linkedPage.nome}»)` : '(sottotitolo della pagina)'}`}
+                className="gpag__f"
+                value={form.sottotitolo}
+                onChange={e => set('sottotitolo', e.target.value)}
+                placeholder="Opzionale"
+              />
+              <TextareaField
+                name="icona"
+                label="Icona (HTML icona Font Awesome)"
+                className="gpag__f gpag__f-icona"
+                value={form.icona}
+                onChange={e => set('icona', e.target.value)}
+                rows={2}
+                placeholder='<i class="fa-regular fa-pen modify"></i>'
+              />
               <div className="gpag__icona-preview">
                 <span className="gpag__icona-preview-lbl">Anteprima</span>
                 <span className="gpag__icona-preview-box" dangerouslySetInnerHTML={{ __html: form.icona || '' }} />
@@ -355,26 +375,38 @@ export default function GestionePagine({ navigate }: Props) {
                 <ParentSelect value={form.parentId} options={parentOptions} onChange={v => set('parentId', v)} />
               </label>
               {!isNew && selId && (
-                <label className="gpag__f">
-                  <span>Ordine</span>
-                  <input className="sib-input" type="number" value={pages.find(p => p.id === selId)?.ordine ?? 0}
-                    onChange={e => updatePage(profilo.id, selId, { ordine: Number(e.target.value) || 0 })} />
-                </label>
+                <InputField
+                  name="ordine"
+                  label="Ordine"
+                  className="gpag__f"
+                  type="number"
+                  value={pages.find(p => p.id === selId)?.ordine ?? 0}
+                  onChange={e => updatePage(profilo.id, selId, { ordine: Number(e.target.value) || 0 })}
+                />
               )}
 
               <div className="gpag__section">Stato</div>
-              <label className="gpag__check">
-                <input type="checkbox" checked={form.visibile} onChange={e => set('visibile', e.target.checked)} />
-                <span>Visibile in menu (pubblicata)</span>
-              </label>
-              <label className="gpag__check">
-                <input type="checkbox" checked={form.productionReady} onChange={e => set('productionReady', e.target.checked)} />
-                <span>Production ready</span>
-              </label>
-              <label className="gpag__check">
-                <input type="checkbox" checked={form.disabilitata} onChange={e => set('disabilitata', e.target.checked)} />
-                <span>Disabilitata</span>
-              </label>
+              <CheckboxField
+                name="visibile"
+                label="Visibile in menu (pubblicata)"
+                className="gpag__check"
+                checked={form.visibile}
+                onChange={e => set('visibile', e.target.checked)}
+              />
+              <CheckboxField
+                name="productionReady"
+                label="Production ready"
+                className="gpag__check"
+                checked={form.productionReady}
+                onChange={e => set('productionReady', e.target.checked)}
+              />
+              <CheckboxField
+                name="disabilitata"
+                label="Disabilitata"
+                className="gpag__check"
+                checked={form.disabilitata}
+                onChange={e => set('disabilitata', e.target.checked)}
+              />
 
               <div className="gpag__panel-actions">
                 <button type="button" className="gpag__btn gpag__btn--primary" onClick={save}>Salva</button>
@@ -449,26 +481,36 @@ function StyleEditor({
   return (
     <div className="gpag-style">
       <div className="gpag-style__grid">
-        <label className="gpag__f">
-          <span>Font</span>
-          <select className="sib-select" value={draft.fontFamily} onChange={e => onChange({ fontFamily: e.target.value as MenuStyle['fontFamily'] })}>
-            <option value="heading">Poppins (heading)</option>
-            <option value="body">Open Sans (body)</option>
-            <option value="mono">Monospace</option>
-          </select>
-        </label>
+        <SelectField
+          name="fontFamily"
+          label="Font"
+          className="gpag__f"
+          value={draft.fontFamily}
+          onChange={e => onChange({ fontFamily: e.target.value as MenuStyle['fontFamily'] })}
+          options={[
+            { value: 'heading', label: 'Poppins (heading)' },
+            { value: 'body', label: 'Open Sans (body)' },
+            { value: 'mono', label: 'Monospace' },
+          ]}
+        />
         <label className="gpag__f">
           <span>Dimensione testo ({draft.fontSize}px)</span>
           <input type="range" min={11} max={20} value={draft.fontSize} onChange={e => onChange({ fontSize: Number(e.target.value) })} />
         </label>
-        <label className="gpag__check">
-          <input type="checkbox" checked={draft.bold} onChange={e => onChange({ bold: e.target.checked })} />
-          <span>Grassetto</span>
-        </label>
-        <label className="gpag__check">
-          <input type="checkbox" checked={draft.uppercase} onChange={e => onChange({ uppercase: e.target.checked })} />
-          <span>Maiuscolo</span>
-        </label>
+        <CheckboxField
+          name="bold"
+          label="Grassetto"
+          className="gpag__check"
+          checked={draft.bold}
+          onChange={e => onChange({ bold: e.target.checked })}
+        />
+        <CheckboxField
+          name="uppercase"
+          label="Maiuscolo"
+          className="gpag__check"
+          checked={draft.uppercase}
+          onChange={e => onChange({ uppercase: e.target.checked })}
+        />
         <label className="gpag__f gpag__f--color">
           <span>Colore testo</span>
           <input type="color" value={draft.colorText} onChange={e => onChange({ colorText: e.target.value })} />

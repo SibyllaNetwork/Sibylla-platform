@@ -7,7 +7,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
 import { Pagination } from '../../../core/components'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, InputField, SelectField, CheckboxField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import 'react-day-picker/dist/style.css'
@@ -428,7 +428,7 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="arrivi-partenze">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader
         title="Arrivi e partenze"
@@ -470,17 +470,14 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
           </div>
         </div>
 
-        <div className="arrivi-partenze__field">
-          <label className="arrivi-partenze__label" htmlFor="ap-strutture">Strutture</label>
-          <select
-            id="ap-strutture"
-            className="sib-select arrivi-partenze__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          label="Strutture"
+          name="ap-strutture"
+          className="arrivi-partenze__field arrivi-partenze__select"
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+        />
 
         <div className="arrivi-partenze__field arrivi-partenze__field--date">
           <label className="arrivi-partenze__label" htmlFor="ap-date-range">Data</label>
@@ -552,18 +549,14 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
 
         {/* Report servizio (stampa promemoria del giorno) + export tabella (dx) */}
         <div className="arrivi-partenze__toolbar-right">
-          <div className="arrivi-partenze__field arrivi-partenze__report">
-            <label className="arrivi-partenze__label" htmlFor="ap-report-serv">Report servizio</label>
-            <select
-              id="ap-report-serv"
-              className="sib-select arrivi-partenze__select"
-              value={reportServizio}
-              onChange={(e) => { const v = e.target.value; if (!v) return; scaricaReportServizio(v); setReportServizio('') }}
-            >
-              <option value="">Scarica report…</option>
-              {REPORT_SERVIZI.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
+          <SelectField
+            label="Report servizio"
+            name="ap-report-serv"
+            className="arrivi-partenze__field arrivi-partenze__report arrivi-partenze__select"
+            options={[{ value: '', label: 'Scarica report…' }, ...REPORT_SERVIZI.map((s) => ({ value: s, label: s }))]}
+            value={reportServizio}
+            onChange={(e) => { const v = e.target.value; if (!v) return; scaricaReportServizio(v); setReportServizio('') }}
+          />
 
           <div className="arrivi-partenze__toolbar-icons">
             <Tooltip text="Scarica previsioni presenze e pasti">
@@ -721,17 +714,14 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
           </div>
         </div>
 
-        <div className="arrivi-partenze__field">
-          <label className="arrivi-partenze__label" htmlFor="ap-strutture-part">Strutture</label>
-          <select
-            id="ap-strutture-part"
-            className="sib-select arrivi-partenze__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          label="Strutture"
+          name="ap-strutture-part"
+          className="arrivi-partenze__field arrivi-partenze__select"
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+        />
 
         <div className="arrivi-partenze__field arrivi-partenze__field--date">
           <label className="arrivi-partenze__label" htmlFor="ap-date-range-part">Data</label>
@@ -1278,20 +1268,26 @@ function AnagraficaModal({ mode, initial, onClose, onSave }: { mode: 'new' | 'ed
             <button type="button" className="ap-anag__file"><i className="fa-light fa-camera" /> Acquisisci</button>
           </div>
           <div className="ap-anag__field ap-anag__field--vip">
-            <label className="ap-anag__check">
-              <input type="checkbox" className="sib-checkbox" checked={f.vip} onChange={e => set('vip', e.target.checked)} /> VIP
-            </label>
+            <CheckboxField label="VIP" name="anag-vip" checked={f.vip} onChange={e => set('vip', e.target.checked)} />
           </div>
         </div>
 
-        <div className="ap-anag__field ap-anag__field--note">
-          <label className="ap-anag__label">Note</label>
-          <input className="sib-input" placeholder="Inserire note aggiuntive" value={f.note} onChange={e => set('note', e.target.value)} />
-        </div>
+        <InputField
+          label="Note"
+          name="anag-note"
+          className="ap-anag__field ap-anag__field--note"
+          placeholder="Inserire note aggiuntive"
+          value={f.note}
+          onChange={e => set('note', e.target.value)}
+        />
 
-        <label className="ap-anag__check ap-anag__check--esenzione">
-          <input type="checkbox" className="sib-checkbox" checked={f.esenzione} onChange={e => set('esenzione', e.target.checked)} /> Esenzione tassa di sogg.
-        </label>
+        <CheckboxField
+          label="Esenzione tassa di sogg."
+          name="anag-esenzione"
+          className="ap-anag__check--esenzione"
+          checked={f.esenzione}
+          onChange={e => set('esenzione', e.target.checked)}
+        />
 
         <div className="ap-anag__actions">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Chiudi</button>
@@ -1353,10 +1349,14 @@ function CheckinLiberoModal({ open, onClose }: { open: boolean; onClose: () => v
             onChange={(f, t) => { setDa(f ? f.toISOString().slice(0, 10) : ''); setA(t ? t.toISOString().slice(0, 10) : '') }}
             className="ap-ci__date"
           />
-          <div className="ap-ci__field">
-            <label className="ap-ci__label">Nome</label>
-            <input className="sib-input" placeholder="inserire nominativo" value={nome} onChange={(e) => setNome(e.target.value)} />
-          </div>
+          <InputField
+            label="Nome"
+            name="ci-nome"
+            className="ap-ci__field"
+            placeholder="inserire nominativo"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+          />
           <div className="ap-ci__field">
             <label className="ap-ci__label">Arrangiamento</label>
             <div className="ap-ci__arr">
@@ -1370,10 +1370,14 @@ function CheckinLiberoModal({ open, onClose }: { open: boolean; onClose: () => v
           </div>
         </div>
 
-        <div className="ap-ci__field ap-ci__field--note">
-          <label className="ap-ci__label">Note</label>
-          <input className="sib-input" placeholder="Inserire note aggiuntive" value={note} onChange={(e) => setNote(e.target.value)} />
-        </div>
+        <InputField
+          label="Note"
+          name="ci-note"
+          className="ap-ci__field ap-ci__field--note"
+          placeholder="Inserire note aggiuntive"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
 
         <div className="ap-ci__rooms">
           <table className="sib-table">

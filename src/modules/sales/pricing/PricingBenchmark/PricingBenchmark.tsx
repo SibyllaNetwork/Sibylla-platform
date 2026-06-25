@@ -3,6 +3,7 @@ import T from '../../../../core/tokens'
 import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
 import PageHeader from '../../../../core/components/PageHeader'
+import { InputField, SelectField } from '../../../../core/components/form'
 import './PricingBenchmark.sass'
 
 const MCOLS  = ['#5C9CD4','#E74C3C','#5A8A3C','#C4A820','#9B59B6','#E07B39','#204769']
@@ -79,15 +80,15 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title="Pricing Benchmark" subtitle="Raffronto con i competitor su pricing e brand reputation"/>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
       <div className="benchmark__filters">
         <div className="benchmark__filters-left">
-          <div><label className="text-[12px] font-semibold font-poppins text-primary">Trova hotel:</label><input className="sib-input" value={capSearch} onChange={e=>setCapSearch(e.target.value)} placeholder="CAP o indirizzo..."/></div>
-          <div><label className="text-[12px] font-semibold font-poppins text-primary">Paese</label><select className="sib-select" value={paese} onChange={e=>setPaese(e.target.value)}>{['Italia','Francia','Spagna','Germania'].map(p=><option key={p}>{p}</option>)}</select></div>
-          <div><label className="text-[12px] font-semibold font-poppins text-primary">Strutture</label><select className="sib-select" value={struttura} onChange={e=>setStruttura(e.target.value)}>{['ciao','Hotel Noto','Grand Hotel Roma'].map(s=><option key={s}>{s}</option>)}</select></div>
+          <InputField name="capSearch" label="Trova hotel:" value={capSearch} onChange={e=>setCapSearch(e.target.value)} placeholder="CAP o indirizzo..." className="benchmark__search-input"/>
+          <SelectField name="paese" label="Paese" value={paese} onChange={e=>setPaese(e.target.value)} options={['Italia','Francia','Spagna','Germania'].map(p=>({value:p,label:p}))} className="benchmark__select--paese"/>
+          <SelectField name="struttura" label="Strutture" value={struttura} onChange={e=>setStruttura(e.target.value)} options={['ciao','Hotel Noto','Grand Hotel Roma'].map(s=>({value:s,label:s}))} className="benchmark__select--struttura"/>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-[12px] font-semibold font-poppins text-primary">&nbsp;</span>

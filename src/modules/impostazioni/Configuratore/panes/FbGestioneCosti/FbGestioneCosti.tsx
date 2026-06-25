@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { InputField, SelectField } from '../../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../../services/api'
 import './FbGestioneCosti.sass'
 
@@ -35,20 +36,22 @@ export default function FbGestioneCosti() {
       </div>
 
       <div className="fb-gestione-costi__form">
-        <div className="fb-gestione-costi__field"><label>Descrizione</label>
-          <input type="text" className="sib-input" value={draft.descrizione} onChange={(e) => setDraft({ ...draft, descrizione: e.target.value })} />
-        </div>
-        <div className="fb-gestione-costi__field"><label>Importo</label>
-          <div className="fb-gestione-costi__cell">
-            <input type="number" step="0.01" className="sib-input" value={draft.importo || ''} onChange={(e) => setDraft({ ...draft, importo: Number(e.target.value) || 0 })} />
-            <span>€</span>
-          </div>
-        </div>
-        <div className="fb-gestione-costi__field"><label>Frequenza</label>
-          <select className="sib-select" value={draft.frequenza} onChange={(e) => setDraft({ ...draft, frequenza: e.target.value as Frequenza })}>
-            {FREQ.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
+        <InputField
+          name="descrizione" label="Descrizione" className="fb-gestione-costi__field"
+          value={draft.descrizione}
+          onChange={(e) => setDraft({ ...draft, descrizione: e.target.value })}
+        />
+        <InputField
+          name="importo" label="Importo" type="number" step={0.01} iconLeft="fa-light fa-euro-sign" className="fb-gestione-costi__field"
+          value={draft.importo || ''}
+          onChange={(e) => setDraft({ ...draft, importo: Number(e.target.value) || 0 })}
+        />
+        <SelectField
+          name="frequenza" label="Frequenza" className="fb-gestione-costi__field"
+          value={draft.frequenza}
+          onChange={(e) => setDraft({ ...draft, frequenza: e.target.value as Frequenza })}
+          options={FREQ.map((f) => ({ value: f, label: f }))}
+        />
         <button type="button" className="sib-btn sib-btn--primary" onClick={add}><i className="fa-light fa-plus" /> Aggiungi</button>
       </div>
 

@@ -1,28 +1,190 @@
 @use '../../../styles/tokens' as *
 
-// ─── Titoli di sezione ────────────────────────────────────────────────────────
-// Palette di sezione (ricavi/margine = blu, costi = verde): nessun token
-// equivalente, valori canonici della Cabina di controllo.
-.cabina__title
-  &--ricavi,
-  &--margine
-    color: #0F2C4A
+.cabina
+  display: flex
+  flex-direction: column
+  gap: 14px
 
-  &--costi
-    color: #1B7F4F
+  > .sib-btn--back
+    align-self: flex-start
 
-// ─── Righe voce / totale per variante ─────────────────────────────────────────
-.cabina__row
-  &--ricavi.cabina__row--voce,
-  &--margine.cabina__row--voce
-    background-color: #EAF2FB
+  // ── Toolbar ──────────────────────────────────────────────────────
+  &__toolbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
 
-  &--ricavi.cabina__row--totale,
-  &--margine.cabina__row--totale
-    background-color: #CFE2F5
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 16px
+    flex-wrap: wrap
 
-  &--costi.cabina__row--voce
-    background-color: #E8F6EE
+  &__actions
+    display: inline-flex
+    gap: 6px
 
-  &--costi.cabina__row--totale
-    background-color: #BFE8CF
+  // ── Slider orizzontale ───────────────────────────────────────────
+  &__timeline
+    position: relative
+
+  &__wrap
+    scrollbar-width: none
+    -ms-overflow-style: none
+
+    &::-webkit-scrollbar
+      display: none
+
+  &__nav
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    z-index: 20
+    width: 34px
+    height: 34px
+    border-radius: 50%
+    border: 1px solid $primary-200
+    background: $white
+    color: $primary
+    box-shadow: $shadow-lg
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+    &:hover
+      background: $primary
+      color: $white
+
+    &--prev
+      left: 238px
+
+    &--next
+      right: 6px
+
+  // ── Conto economico ──────────────────────────────────────────────
+  &__pl
+    min-width: max-content
+
+  // Intestazione colonna (mese / trimestre / anno)
+  &__colhead
+    text-align: center
+    border-left: 1px solid $border
+    font-size: 12px
+    font-weight: 700
+    color: $text-active
+    background: $bg
+    min-width: 150px
+
+  // Cella con le 4 voci in verticale
+  &__cell
+    border-left: 1px solid $border
+    vertical-align: top
+
+  &__metric
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 10px
+    font-size: 12px
+    padding: 1px 0
+
+    & + &
+      border-top: 1px dashed $border
+      padding-top: 3px
+      margin-top: 2px
+
+  &__metric-lbl
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.03em
+    color: $text-inactive
+
+  &__metric-val
+    white-space: nowrap
+    color: $text-active
+
+    &--ly
+      color: $text-inactive
+
+    &--actual
+      font-weight: 700
+
+  // Prima colonna (voci) — sempre fissa
+  &__pl-voce
+    position: sticky
+    left: 0
+    z-index: 3
+    min-width: 230px
+    text-align: left
+    background: var(--color-surface)
+
+    &--head
+      z-index: 5
+      background: $bg
+
+  // Angolo "Voce · anno": forza lo sticky in alto-a-sinistra (vince su .sib-table th)
+  &__pl thead th.cabina__pl-voce
+    position: sticky
+    left: 0
+    top: 0
+    z-index: 6
+    background: $bg
+
+  // Colonna Totale evidenziata
+  &__col-tot
+    background: $primary-50
+
+  // Scostamento colorato
+  &__scost
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    font-weight: 700
+    white-space: nowrap
+
+    i
+      font-size: 10px
+
+    &--pos
+      color: var(--color-success-dark)
+
+    &--neg
+      color: var(--color-error-dark)
+
+    &--neutral
+      color: $text-inactive
+
+  // Righe di sezione
+  &__section-cell
+    padding: 12px 14px
+    font-family: 'Poppins', sans-serif
+    font-weight: 700
+    font-size: 12px
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    background: $bg
+
+    &--ricavi,
+    &--margine
+      color: $primary
+
+    &--costi
+      color: var(--color-success-dark)
+
+  // Righe voce / totale: sfondo opaco anche sulla prima colonna fissa
+  &__row--totale td
+    font-weight: 700
+
+  &__row--ricavi.cabina__row--totale td
+    background: $primary-50
+
+  &__row--costi.cabina__row--totale td
+    background: var(--color-success-light)
+
+  &__row--margine td
+    background: $primary-50

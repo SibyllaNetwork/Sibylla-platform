@@ -119,7 +119,7 @@ export default function Servizi({ navigate }: { navigate: (p: string) => void })
 
   return (
     <div className="servizi">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Servizi"
         subtitle="Acquisto di servizi: escursioni, noleggi, biglietti per eventi, parchi, musei e altro"

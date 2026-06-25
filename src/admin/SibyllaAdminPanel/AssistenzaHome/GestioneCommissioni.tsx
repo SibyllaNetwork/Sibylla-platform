@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
+import { SelectField, InputField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import './GestioneCommissioni.sass'
 
@@ -69,12 +70,14 @@ export default function GestioneCommissioni({ navigate }: Props) {
       </div>
 
       <div className="gcm__toolbar">
-        <label className="gcm__field">
-          <span>Azienda</span>
-          <select className="sib-select" value={azienda} onChange={e => setAzienda(e.target.value)}>
-            <option value="">Tutti</option>{AZIENDE.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </label>
+        <SelectField
+          name="azienda"
+          label="Azienda"
+          className="gcm__field"
+          value={azienda}
+          onChange={e => setAzienda(e.target.value)}
+          options={[{ value: '', label: 'Tutti' }, ...AZIENDE.map(a => ({ value: a, label: a }))]}
+        />
         <button type="button" className="gcm__btn" onClick={openCreate}>Crea commissione</button>
       </div>
 
@@ -114,22 +117,44 @@ export default function GestioneCommissioni({ navigate }: Props) {
         <div className="gcm-modal">
           <h3 className="gcm-modal__section">Informazioni Generali</h3>
           <div className="gcm-modal__grid">
-            <div className="gcm-modal__f">
-              <label>Nome azienda</label>
-              <input className="gcm-modal__ro" value={editRow?.azienda || ''} readOnly />
-            </div>
-            <div className="gcm-modal__f">
-              <label>Segmento</label>
-              <input className="gcm-modal__ro" value={editRow?.segmento || ''} readOnly />
-            </div>
-            <div className="gcm-modal__f">
-              <label>Percentuale comissione</label>
-              <input type="number" min={0} max={100} step={0.5} value={editComm} onChange={e => setEditComm(e.target.value)} />
-            </div>
-            <div className="gcm-modal__f">
-              <label>Percentuale cashback</label>
-              <input type="number" min={0} max={100} step={0.5} value={editCash} onChange={e => setEditCash(e.target.value)} />
-            </div>
+            <InputField
+              name="editAzienda"
+              label="Nome azienda"
+              className="gcm-modal__f gcm-modal__f-ro"
+              value={editRow?.azienda || ''}
+              readOnly
+            />
+            <InputField
+              name="editSegmento"
+              label="Segmento"
+              className="gcm-modal__f gcm-modal__f-ro"
+              value={editRow?.segmento || ''}
+              readOnly
+            />
+            <InputField
+              name="editComm"
+              label="Percentuale comissione"
+              className="gcm-modal__f"
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              iconRight="fa-light fa-percent"
+              value={editComm}
+              onChange={e => setEditComm(e.target.value)}
+            />
+            <InputField
+              name="editCash"
+              label="Percentuale cashback"
+              className="gcm-modal__f"
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              iconRight="fa-light fa-percent"
+              value={editCash}
+              onChange={e => setEditCash(e.target.value)}
+            />
           </div>
           <button type="button" className="gcm-modal__btn" onClick={saveEdit}>Modifica Comissione</button>
         </div>
@@ -139,22 +164,46 @@ export default function GestioneCommissioni({ navigate }: Props) {
         <div className="gcm-modal">
           <h3 className="gcm-modal__section">Informazioni Generali</h3>
           <div className="gcm-modal__grid">
-            <div className="gcm-modal__f">
-              <label>Nome azienda</label>
-              <input value={cName} onChange={e => setCName(e.target.value)} placeholder="Nome azienda" />
-            </div>
-            <div className="gcm-modal__f">
-              <label>Segmento</label>
-              <input value={cSeg} onChange={e => setCSeg(e.target.value)} placeholder="Segmento" />
-            </div>
-            <div className="gcm-modal__f">
-              <label>Percentuale comissione</label>
-              <input type="number" min={0} max={100} step={0.5} value={cComm} onChange={e => setCComm(e.target.value)} />
-            </div>
-            <div className="gcm-modal__f">
-              <label>Percentuale cashback</label>
-              <input type="number" min={0} max={100} step={0.5} value={cCash} onChange={e => setCCash(e.target.value)} />
-            </div>
+            <InputField
+              name="cName"
+              label="Nome azienda"
+              className="gcm-modal__f"
+              value={cName}
+              onChange={e => setCName(e.target.value)}
+              placeholder="Nome azienda"
+            />
+            <InputField
+              name="cSeg"
+              label="Segmento"
+              className="gcm-modal__f"
+              value={cSeg}
+              onChange={e => setCSeg(e.target.value)}
+              placeholder="Segmento"
+            />
+            <InputField
+              name="cComm"
+              label="Percentuale comissione"
+              className="gcm-modal__f"
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              iconRight="fa-light fa-percent"
+              value={cComm}
+              onChange={e => setCComm(e.target.value)}
+            />
+            <InputField
+              name="cCash"
+              label="Percentuale cashback"
+              className="gcm-modal__f"
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              iconRight="fa-light fa-percent"
+              value={cCash}
+              onChange={e => setCCash(e.target.value)}
+            />
           </div>
           <button type="button" className="gcm-modal__btn" disabled={!cName.trim() || !cSeg.trim()} onClick={createComm}>Crea Comissione</button>
         </div>

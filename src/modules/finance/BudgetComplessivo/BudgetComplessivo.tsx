@@ -1,207 +1,156 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
-import { apiFetchSibylla } from '../../../services/api'
+import { SelectField, RadioGroup } from '../../../core/components/form'
 import './BudgetComplessivo.sass'
 
-const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
+/**
+ * Budget complessivo — pianificazione strategica del conto economico, per voce
+ * e per mese (vista annuale, 12 mesi). I mesi già trascorsi sono in sola
+ * lettura; i mesi futuri sono editabili. Totali e MOL sono calcolati.
+ * Prima colonna fissa + slider in stile Cabina di controllo.
+ */
 
-interface Voce {
-  id: string
-  label: string
-  values: number[]   // 12 mesi
-}
+const ANNI = ['2024', '2025', '2026', '2027']
+const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
+const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+const SCENARI = ['Scenario base', 'Scenario ottimistico', 'Scenario prudenziale']
+const MODI = [{ value: 'Diretto', label: 'Diretto' }, { value: 'Simulato', label: 'Simulato' }]
 
-interface Gruppo {
-  id: string
-  label: string
-  voci: Voce[]
-  totale?: Voce
-}
-
-interface Data {
-  Strutture: { Id: number; nome: string }[]
-  StrutturaId: number | null
-  modo: 'Diretto' | 'Simulato'
-  anno: number
-  meseCorrente: number
-  gruppi: Gruppo[]
-  margineOperativoLordo: number[]
-}
-
+type Inputs = Record<'vendite' | 'proventi' | 'fisso' | 'variabile', number[]>
 const ZERO12 = (): number[] => Array(12).fill(0)
+const blankInputs = (): Inputs => ({ vendite: ZERO12(), proventi: ZERO12(), fisso: ZERO12(), variabile: ZERO12() })
 
-const FALLBACK: Data = {
-  Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
-  StrutturaId: 1,
-  modo: 'Diretto',
-  anno: 2026,
-  meseCorrente: 4,
-  gruppi: [
-    {
-      id: 'valore-produzione',
-      label: 'Valore della produzione',
-      voci: [
-        { id: 'rv-vp', label: 'Ricavi delle vendite e delle prestazioni', values: ZERO12() },
-        { id: 'rv-pd', label: 'Ricavi e proventi diversi',                values: ZERO12() },
-      ],
-      totale: { id: 'tot-ricavi', label: 'Totale ricavi', values: ZERO12() },
-    },
-    {
-      id: 'costi-produzione',
-      label: 'Costi della produzione',
-      voci: [
-        { id: 'co-fisso',  label: 'Costo Fisso',     values: ZERO12() },
-        { id: 'co-variab', label: 'Costo Variabile', values: ZERO12() },
-      ],
-      totale: { id: 'tot-costi', label: 'Totale costi', values: ZERO12() },
-    },
-  ],
-  margineOperativoLordo: ZERO12(),
-}
+interface RowCfg { key: string; label: string; input?: boolean; totale?: boolean }
+interface SectionCfg { title: string; variant: 'ricavi' | 'costi'; rows: RowCfg[] }
+
+const SEZIONI: SectionCfg[] = [
+  { title: 'Valore della produzione', variant: 'ricavi', rows: [
+    { key: 'vendite',  label: 'Ricavi delle vendite e delle prestazioni', input: true },
+    { key: 'proventi', label: 'Ricavi e proventi diversi',                input: true },
+    { key: 'totRic',   label: 'Totale ricavi', totale: true },
+  ] },
+  { title: 'Costi della produzione', variant: 'costi', rows: [
+    { key: 'fisso',     label: 'Costo Fisso',     input: true },
+    { key: 'variabile', label: 'Costo Variabile', input: true },
+    { key: 'totCosti',  label: 'Totale costi', totale: true },
+  ] },
+]
 
 function fmtEuro(v: number): string {
-  return `${v.toFixed(2).replace('.', ',')} €`
+  return `${v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
 }
 
 export default function BudgetComplessivo({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const [anno, setAnno] = useState('2026')
+  const [struttura, setStruttura] = useState('Grim’s Hotel')
+  const [modo, setModo] = useState<'Diretto' | 'Simulato'>('Diretto')
+  const [scenario, setScenario] = useState('')
+  const [vals, setVals] = useState<Inputs>(blankInputs)
 
-  useEffect(() => {
-    let cancelled = false
-    apiFetchSibylla<Data>('budget/GetComplessivo', {
-      method: 'POST',
-      body: { strutturaId: data.StrutturaId, modo: data.modo, anno: data.anno },
-    })
-      .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setVals(blankInputs()) }, [anno, struttura, modo])
+
+  // Mesi già trascorsi (read-only) in base all'anno selezionato
+  const now = new Date()
+  const curMonth = Number(anno) < now.getFullYear() ? 12
+    : Number(anno) > now.getFullYear() ? -1
+    : now.getMonth()
+  const isPast = (m: number) => m < curMonth
+
+  const monthVal = useCallback((key: string, m: number): number => {
+    switch (key) {
+      case 'totRic':   return vals.vendite[m] + vals.proventi[m]
+      case 'totCosti': return vals.fisso[m] + vals.variabile[m]
+      case 'mol':      return (vals.vendite[m] + vals.proventi[m]) - (vals.fisso[m] + vals.variabile[m])
+      default:         return (vals as any)[key]?.[m] ?? 0
+    }
+  }, [vals])
+
+  // ── Slider (12 mesi): prima colonna sempre fissa ─────────────────────
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [nav, setNav] = useState({ prev: false, next: false })
+  const updateNav = useCallback(() => {
+    const el = wrapRef.current
+    if (!el) return
+    setNav({ prev: el.scrollLeft > 4, next: el.scrollLeft < el.scrollWidth - el.clientWidth - 4 })
   }, [])
-
-  const annoOptions = Array.from({ length: 7 }, (_, i) => 2024 + i)
-
-  const updateCell = (gIdx: number, vIdx: number, mIdx: number, value: number) => {
-    setData((prev) => ({
-      ...prev,
-      gruppi: prev.gruppi.map((g, gi) =>
-        gi !== gIdx ? g : ({
-          ...g,
-          voci: g.voci.map((v, vi) =>
-            vi !== vIdx ? v : ({ ...v, values: v.values.map((x, xi) => xi === mIdx ? value : x) })
-          ),
-        })
-      ),
-    }))
+  useEffect(() => {
+    updateNav()
+    window.addEventListener('resize', updateNav)
+    return () => window.removeEventListener('resize', updateNav)
+  }, [updateNav])
+  const scrollX = (dir: number) => {
+    const el = wrapRef.current
+    if (el) el.scrollBy({ left: dir * Math.max(360, el.clientWidth * 0.7), behavior: 'smooth' })
   }
 
+  const months = useMemo(() => MESI.map((_, m) => m), [])
+
+  const renderRow = (r: RowCfg, variant: 'ricavi' | 'costi' | 'margine') => (
+    <tr key={r.key} className={`bc__row bc__row--${variant} ${r.totale ? 'bc__row--totale' : ''}`}>
+      <td className="bc__voce">{r.label}</td>
+      {months.map(m => {
+        // Valori a sola lettura; i mesi già trascorsi sono evidenziati
+        const pastCls = isPast(m) && !r.totale ? 'bc__cell--past' : ''
+        return <td key={m} className={`bc__num bc__cell ${pastCls}`}>{fmtEuro(monthVal(r.key, m))}</td>
+      })}
+    </tr>
+  )
+
   return (
-    <div className="budget-complessivo">
-      <BtnBack onClick={() => navigate('home')} />
-      <PageHeader
-        title="Budget complessivo"
-        subtitle="Pianificazione strategica suddivisa per le diverse voci dei ricavi e dei costi"
-      />
+    <div className="bc">
+      <BtnBack />
+      <PageHeader title="Budget complessivo" subtitle="Pianificazione strategica suddivisa per le diverse voci dei ricavi e dei costi" />
 
-      <div className="budget-complessivo__bar">
-        <div className="budget-complessivo__field">
-          <select
-            className="sib-select budget-complessivo__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
+      {/* Toolbar (stile screen: controlli compatti) */}
+      <div className="bc__toolbar">
+        <div className="bc__filters">
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={STRUTTURE.map(s => ({ value: s, label: s }))} className="w-56" />
+          <RadioGroup name="modo" label="Modalità" value={modo} onChange={v => setModo(v as 'Diretto' | 'Simulato')} options={MODI} />
+          {modo === 'Simulato' && (
+            <SelectField name="scenario" label="Scenario" value={scenario} onChange={e => setScenario(e.target.value)} placeholder="Seleziona Scenario" options={SCENARI.map(s => ({ value: s, label: s }))} className="w-52" />
+          )}
+          <SelectField name="anno" label="Anno" value={anno} onChange={e => setAnno(e.target.value)} options={ANNI.map(a => ({ value: a, label: a }))} className="w-24" />
         </div>
-
-        <div className="budget-complessivo__radio-group">
-          <label className="budget-complessivo__radio-item">
-            <input type="radio" className="sib-radio" checked={data.modo === 'Diretto'} onChange={() => setData({ ...data, modo: 'Diretto' })} />
-            <span>Diretto</span>
-          </label>
-          <label className="budget-complessivo__radio-item">
-            <input type="radio" className="sib-radio" checked={data.modo === 'Simulato'} onChange={() => setData({ ...data, modo: 'Simulato' })} />
-            <span>Simulato</span>
-          </label>
+        <div className="bc__actions">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('cabina-controllo')}>
+            <i className="fa-light fa-magnifying-glass-chart" /> Cabina di controllo
+          </button>
         </div>
-
-        <div className="budget-complessivo__field">
-          <select
-            className="sib-select budget-complessivo__select budget-complessivo__select--sm"
-            value={data.anno}
-            onChange={(e) => setData({ ...data, anno: Number(e.target.value) })}
-          >
-            {annoOptions.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </div>
-
-        <button type="button" className="sib-btn sib-btn--secondary budget-complessivo__cabina">
-          <i className="fa-light fa-magnifying-glass" /> Cabina di controllo
-        </button>
       </div>
 
-      <div className="budget-complessivo__table-wrap">
-        <table className="budget-complessivo__table">
-          <thead>
-            <tr>
-              <th className="budget-complessivo__col-label">{data.anno}</th>
-              {MESI.map((m, i) => (
-                <th key={m} className={'budget-complessivo__th' + (i + 1 < data.meseCorrente ? ' budget-complessivo__th--past' : '')}>
-                  {m}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.gruppi.map((g, gi) => (
-              <React.Fragment key={g.id}>
-                <tr className="budget-complessivo__group-row">
-                  <td colSpan={13}><strong>{g.label}</strong></td>
-                </tr>
-                {g.voci.map((v, vi) => (
-                  <tr key={v.id} className="budget-complessivo__voce-row">
-                    <td className="budget-complessivo__col-label">{v.label}</td>
-                    {v.values.map((cell, mi) => {
-                      const past = mi + 1 < data.meseCorrente
-                      return (
-                        <td key={mi} className={'budget-complessivo__cell' + (past ? ' budget-complessivo__cell--past' : '')}>
-                          {past ? (
-                            <span className="budget-complessivo__cell-value">{fmtEuro(cell)}</span>
-                          ) : (
-                            <input
-                              type="number"
-                              step="0.01"
-                              className="budget-complessivo__input"
-                              value={cell || ''}
-                              placeholder="0,00 €"
-                              onChange={(e) => updateCell(gi, vi, mi, Number(e.target.value) || 0)}
-                            />
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
+      {/* Tabella annuale — prima colonna fissa, mesi scorrevoli con lo slider */}
+      <div className="bc__timeline">
+        {nav.prev && (
+          <button type="button" className="bc__nav bc__nav--prev" onClick={() => scrollX(-1)} aria-label="Mesi precedenti"><i className="fa-solid fa-chevron-left" /></button>
+        )}
+        {nav.next && (
+          <button type="button" className="bc__nav bc__nav--next" onClick={() => scrollX(1)} aria-label="Mesi successivi"><i className="fa-solid fa-chevron-right" /></button>
+        )}
+        <div className="sib-table-wrap bc__wrap" ref={wrapRef} onScroll={updateNav}>
+          <table className="sib-table bc__pl">
+            <thead>
+              <tr>
+                <th className="bc__voce bc__voce--head">{anno}</th>
+                {months.map(m => (
+                  <th key={m} className={`bc__num bc__colhead ${isPast(m) ? 'bc__colhead--past' : ''}`}>{MESI[m]}</th>
                 ))}
-                {g.totale && (
-                  <tr className="budget-complessivo__total-row">
-                    <td className="budget-complessivo__col-label"><strong>{g.totale.label}</strong></td>
-                    {g.totale.values.map((cell, mi) => (
-                      <td key={mi} className="budget-complessivo__cell">{fmtEuro(cell)}</td>
-                    ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SEZIONI.map(sez => (
+                <React.Fragment key={sez.variant}>
+                  <tr className="bc__section">
+                    <td className={`bc__voce bc__section-cell bc__section-cell--${sez.variant}`}>{sez.title}</td>
+                    <td colSpan={months.length} className={`bc__section-cell bc__section-cell--${sez.variant}`} />
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
-
-            <tr className="budget-complessivo__total-row">
-              <td className="budget-complessivo__col-label"><strong>Margine Operativo Lordo</strong></td>
-              {data.margineOperativoLordo.map((cell, mi) => (
-                <td key={mi} className="budget-complessivo__cell">{fmtEuro(cell)}</td>
+                  {sez.rows.map(r => renderRow(r, sez.variant))}
+                </React.Fragment>
               ))}
-            </tr>
-          </tbody>
-        </table>
+              {renderRow({ key: 'mol', label: 'Margine Operativo Lordo', totale: true }, 'margine')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

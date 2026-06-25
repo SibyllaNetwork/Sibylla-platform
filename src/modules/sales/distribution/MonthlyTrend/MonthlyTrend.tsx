@@ -5,6 +5,7 @@ import { apiFetchSibylla } from '../../../../services/api'
 import { Donut, DonutLegend } from '../_charts/Donut'
 import { HBars } from '../_charts/HBars'
 import { AreaTrend, type SeriesPoint } from '../_charts/AreaTrend'
+import { SelectField } from '../../../../core/components/form'
 import './MonthlyTrend.sass'
 
 interface RankItem { label: string; value: number; color: string }
@@ -96,41 +97,37 @@ export default function MonthlyTrend({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="monthly-trend">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Monthly analysis" subtitle="Analisi comparativa su base mensile" />
 
       <div className="monthly-trend__filters">
-        <div className="monthly-trend__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select monthly-trend__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="monthly-trend__field">
-          <label>Anno</label>
-          <select
-            className="sib-select monthly-trend__select monthly-trend__select--sm"
-            value={data.anno}
-            onChange={(e) => setData({ ...data, anno: Number(e.target.value) })}
-          >
-            {annoOptions.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </div>
-        <div className="monthly-trend__field">
-          <label>Mese</label>
-          <select
-            className="sib-select monthly-trend__select monthly-trend__select--sm"
-            value={data.mese}
-            onChange={(e) => setData({ ...data, mese: Number(e.target.value) })}
-          >
-            {MESI.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Tutte le strutture' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+          className="monthly-trend__select"
+        />
+        <SelectField
+          name="anno"
+          label="Anno"
+          value={data.anno}
+          onChange={(e) => setData({ ...data, anno: Number(e.target.value) })}
+          options={annoOptions.map((a) => ({ value: a, label: String(a) }))}
+          className="monthly-trend__select monthly-trend__select--sm"
+        />
+        <SelectField
+          name="mese"
+          label="Mese"
+          value={data.mese}
+          onChange={(e) => setData({ ...data, mese: Number(e.target.value) })}
+          options={MESI.map((m, i) => ({ value: i + 1, label: m }))}
+          className="monthly-trend__select monthly-trend__select--sm"
+        />
         <button type="button" className="sib-btn sib-btn--primary monthly-trend__visualizza">
           <i className="fa-light fa-chart-line" /> Visualizza
         </button>

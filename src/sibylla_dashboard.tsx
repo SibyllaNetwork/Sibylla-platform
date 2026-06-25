@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import PageContent from './router/PageContent'
 import Sidebar from './layout/Sidebar'
 import Topbar from './layout/Topbar'
@@ -13,6 +13,7 @@ import MENU from './navigation/menuFull'
 import { useViewModeStore } from './store/useViewModeStore'
 import { useSectionThemeStore, sectionForPage, SECTION_COLORS } from './store/useSectionThemeStore'
 import { useNavGuard } from './store/useNavGuard'
+import { useNavBack } from './store/useNavBack'
 import { useLoadStrutture } from './hooks/useLoadStrutture'
 import T from './core/tokens'
 import Ico from './core/icons/Ico'
@@ -154,16 +155,36 @@ export default function App() {
     return cr?.[cr.length - 1]?.label || page
   }
 
+  // Stack delle pagine visitate, per il "vero" Indietro (pagina precedente).
+  const historyRef = useRef<string[]>([])
+
   const navigate = (page: string) => {
     // Una pagina con modifiche non salvate può bloccare il cambio pagina
     const guard = useNavGuard.getState().guard
     if (guard && !guard(page)) return
-    setCurrentPage(page)
+    setCurrentPage(prev => {
+      if (page !== prev) historyRef.current.push(prev)
+      return page
+    })
     if (isMobile) setSideOpen(false)
     if (viewMode === 'tabs') {
       addTab({ page, label: labelForPage(page) })
     }
   }
+
+  // Torna alla pagina precedente dello stack (fallback: home).
+  const goBack = useCallback(() => {
+    const hist = historyRef.current
+    const target = hist.length ? hist[hist.length - 1] : 'home'
+    const guard = useNavGuard.getState().guard
+    if (guard && !guard(target)) return
+    if (hist.length) hist.pop()
+    setCurrentPage(target)
+    if (isMobile) setSideOpen(false)
+  }, [isMobile])
+
+  // Espone goBack al componente BtnBack (default quando manca un onClick).
+  useEffect(() => { useNavBack.setState({ goBack }) }, [goBack])
 
   // In modalità tabs, assicura che la pagina corrente sia presente fra i tab
   // (es. al primo accesso o appena dopo aver attivato la modalità tabs).

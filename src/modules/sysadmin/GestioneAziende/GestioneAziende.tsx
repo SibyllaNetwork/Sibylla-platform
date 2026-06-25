@@ -59,7 +59,7 @@ export default function GestioneAziende({ navigate }: { navigate: (p: string) =>
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Gestione aziende" subtitle="Pannello sysadmin: aziende clienti registrate sulla piattaforma" />
 
       {error && loaded && (

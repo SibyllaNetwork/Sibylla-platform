@@ -136,7 +136,7 @@ export default function InventarioCamere({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="inv-camere">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Inventario Camere"
         subtitle="Visualizza e gestisci l'allestimento delle camere"

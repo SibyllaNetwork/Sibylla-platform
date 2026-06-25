@@ -348,7 +348,7 @@ export default function AnalisiDistribuzione({ navigate }: { navigate: (p: strin
 
   return (
     <div className="analisi">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title={D.title} subtitle={D.subtitle} />
 
       {/* ── Filter bar ──────────────────────────────────────────────────── */}

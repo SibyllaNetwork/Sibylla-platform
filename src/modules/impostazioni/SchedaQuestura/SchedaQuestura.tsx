@@ -66,7 +66,7 @@ export default function SchedaQuestura({ navigate }: { navigate: (p: string) => 
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Scheda Questura" subtitle="Configurazione invio schedine alloggiati al servizio Alloggiati Web" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}

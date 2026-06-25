@@ -1,5 +1,6 @@
 import React from 'react'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField } from '../../../../core/components/form'
 import { RUOLI_UTENTE } from '../../constants'
 import type { UserRow } from '../../types'
 import './UtentiTab.sass'
@@ -48,34 +49,27 @@ export default function UtentiTab({ users, newUser, setNewUser, onAdd, onRemove 
       <div className="utenti-tab__add">
         <div className="utenti-tab__add-title">Aggiungi utente</div>
         <div className="utenti-tab__add-grid">
-          <div>
-            <label className="utenti-tab__label">Nome</label>
-            <input
-              value={newUser.nome}
-              onChange={e => setNewUser({ ...newUser, nome: e.target.value })}
-              className="sib-input"
-              placeholder="Nome cognome"
-            />
-          </div>
-          <div>
-            <label className="utenti-tab__label">Email</label>
-            <input
-              value={newUser.email}
-              onChange={e => setNewUser({ ...newUser, email: e.target.value })}
-              className="sib-input"
-              placeholder="email@esempio.it"
-            />
-          </div>
-          <div>
-            <label className="utenti-tab__label">Ruolo</label>
-            <select
-              value={newUser.ruolo}
-              onChange={e => setNewUser({ ...newUser, ruolo: e.target.value })}
-              className="sib-select"
-            >
-              {RUOLI_UTENTE.map(r => <option key={r}>{r}</option>)}
-            </select>
-          </div>
+          <InputField
+            name="utente-nome"
+            label="Nome"
+            value={newUser.nome}
+            onChange={e => setNewUser({ ...newUser, nome: e.target.value })}
+            placeholder="Nome cognome"
+          />
+          <InputField
+            name="utente-email"
+            label="Email"
+            value={newUser.email}
+            onChange={e => setNewUser({ ...newUser, email: e.target.value })}
+            placeholder="email@esempio.it"
+          />
+          <SelectField
+            name="utente-ruolo"
+            label="Ruolo"
+            value={newUser.ruolo}
+            onChange={e => setNewUser({ ...newUser, ruolo: e.target.value })}
+            options={RUOLI_UTENTE.map(r => ({ value: r, label: r }))}
+          />
           <button className="sib-btn sib-btn--primary utenti-tab__add-btn" onClick={onAdd}>
             + Aggiungi
           </button>

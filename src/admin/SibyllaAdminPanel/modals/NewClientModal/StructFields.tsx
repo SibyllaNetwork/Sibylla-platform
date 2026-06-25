@@ -1,6 +1,7 @@
 import React from 'react'
 import Ico from '../../../../core/icons/Ico'
 import Tooltip from '../../../../core/components/Tooltip'
+import { InputField, SelectField, RadioGroup, TextareaField } from '../../../../core/components/form'
 import { CATEGORIE_STRUTTURA, PACCHETTI_INIT } from '../../constants'
 import type { NewClientForm, PianoRow, TipologiaCategoria } from '../../types'
 import './NewClientModal.sass'
@@ -125,23 +126,25 @@ export default function StructFields({ form, setForm, readOnly = false }: Props)
     <div className={`ncm${readOnly ? ' ncm--ro' : ''}`}>
       <Card icon="building" title="Informazioni struttura" sub="Dati principali, tipologia e classificazione">
         <div className="ncm__grid">
-          <div className="ncm__f">
-            <label className="ncm__label">PMS</label>
-            <div className="ncm__radios">
-              {(['Sibylla', 'Esterno'] as const).map(p => (
-                <label key={p} className="ncm__radio">
-                  <input type="radio" name="ncm-pms" checked={form.pms === p} onChange={() => setForm({ ...form, pms: p })} />
-                  {p}
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="ncm__f">
-            <label className="ncm__label">Tipologia struttura</label>
-            <select className="sib-select" value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value as TipologiaCategoria })}>
-              {CATEGORIE_STRUTTURA.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-            </select>
-          </div>
+          <RadioGroup
+            className="ncm__f"
+            name="ncm-pms"
+            label="PMS"
+            value={form.pms}
+            onChange={val => setForm({ ...form, pms: val as NewClientForm['pms'] })}
+            options={[
+              { value: 'Sibylla', label: 'Sibylla' },
+              { value: 'Esterno', label: 'Esterno' },
+            ]}
+          />
+          <SelectField
+            className="ncm__f"
+            name="categoria"
+            label="Tipologia struttura"
+            value={form.categoria}
+            onChange={e => setForm({ ...form, categoria: e.target.value as TipologiaCategoria })}
+            options={CATEGORIE_STRUTTURA.map(c => ({ value: c.id, label: c.label }))}
+          />
           <div className="ncm__f">
             <label className="ncm__label">Categoria</label>
             <div className="ncm__stars">
@@ -150,36 +153,32 @@ export default function StructFields({ form, setForm, readOnly = false }: Props)
               ))}
             </div>
           </div>
-          <div className="ncm__f ncm__f--2">
-            <label className="ncm__label">Nome struttura *</label>
-            <input className="sib-input" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Es. Hotel Firenze Arte" />
-          </div>
-          <div className="ncm__f ncm__f--2">
-            <label className="ncm__label">Ragione sociale</label>
-            <input className="sib-input" value={form.ragioneSociale} onChange={e => setForm({ ...form, ragioneSociale: e.target.value })} placeholder="Es. Hotel Firenze Arte S.r.l." />
-          </div>
-          <div className="ncm__f">
-            <label className="ncm__label">Numero piani</label>
-            <input className="sib-input" type="number" min={0} max={50} value={form.numeroPiani} onChange={e => setNumeroPiani(parseInt(e.target.value))} />
-          </div>
-          <div className="ncm__f ncm__f--2">
-            <label className="ncm__label">Tipologia Gruppo</label>
-            <select className="sib-select" value={form.tipologiaGruppo} onChange={e => setForm({ ...form, tipologiaGruppo: e.target.value })}>
-              <option value="">Tipologia Gruppo</option>{TIPOLOGIE_GRUPPO.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+          <InputField className="ncm__f ncm__f--2" name="nome" label="Nome struttura *" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Es. Hotel Firenze Arte" />
+          <InputField className="ncm__f ncm__f--2" name="ragione-sociale" label="Ragione sociale" value={form.ragioneSociale} onChange={e => setForm({ ...form, ragioneSociale: e.target.value })} placeholder="Es. Hotel Firenze Arte S.r.l." />
+          <InputField className="ncm__f" name="numero-piani" label="Numero piani" type="number" min={0} max={50} value={form.numeroPiani} onChange={e => setNumeroPiani(parseInt(e.target.value))} />
+          <SelectField
+            className="ncm__f ncm__f--2"
+            name="tipologia-gruppo"
+            label="Tipologia Gruppo"
+            value={form.tipologiaGruppo}
+            onChange={e => setForm({ ...form, tipologiaGruppo: e.target.value })}
+            options={[
+              { value: '', label: 'Tipologia Gruppo' },
+              ...TIPOLOGIE_GRUPPO.map(t => ({ value: t, label: t })),
+            ]}
+          />
 
-          <div className="ncm__f ncm__f--2"><label className="ncm__label">Indirizzo</label><input className="sib-input" value={form.indirizzo} onChange={e => setForm({ ...form, indirizzo: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">Località</label><input className="sib-input" value={form.localita} onChange={e => setForm({ ...form, localita: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">Provincia</label><input className="sib-input" value={form.provincia} onChange={e => setForm({ ...form, provincia: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">Città</label><input className="sib-input" value={form.citta} onChange={e => setForm({ ...form, citta: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">CAP</label><input className="sib-input" value={form.cap} onChange={e => setForm({ ...form, cap: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">Nazione</label><input className="sib-input" value={form.nazione} onChange={e => setForm({ ...form, nazione: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">Telefono</label><input className="sib-input" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} /></div>
-          <div className="ncm__f ncm__f--2"><label className="ncm__label">Email</label><input className="sib-input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="info@struttura.it" /></div>
-          <div className="ncm__f"><label className="ncm__label">P. IVA</label><input className="sib-input" value={form.piva} onChange={e => setForm({ ...form, piva: e.target.value })} /></div>
-          <div className="ncm__f"><label className="ncm__label">Codice SDI</label><input className="sib-input" value={form.codiceSdi} onChange={e => setForm({ ...form, codiceSdi: e.target.value })} /></div>
-          <div className="ncm__f ncm__f--2"><label className="ncm__label">PEC</label><input className="sib-input" value={form.pec} onChange={e => setForm({ ...form, pec: e.target.value })} /></div>
+          <InputField className="ncm__f ncm__f--2" name="indirizzo" label="Indirizzo" value={form.indirizzo} onChange={e => setForm({ ...form, indirizzo: e.target.value })} />
+          <InputField className="ncm__f" name="localita" label="Località" value={form.localita} onChange={e => setForm({ ...form, localita: e.target.value })} />
+          <InputField className="ncm__f" name="provincia" label="Provincia" value={form.provincia} onChange={e => setForm({ ...form, provincia: e.target.value })} />
+          <InputField className="ncm__f" name="citta" label="Città" value={form.citta} onChange={e => setForm({ ...form, citta: e.target.value })} />
+          <InputField className="ncm__f" name="cap" label="CAP" value={form.cap} onChange={e => setForm({ ...form, cap: e.target.value })} />
+          <InputField className="ncm__f" name="nazione" label="Nazione" value={form.nazione} onChange={e => setForm({ ...form, nazione: e.target.value })} />
+          <InputField className="ncm__f" name="telefono" label="Telefono" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} />
+          <InputField className="ncm__f ncm__f--2" name="email" label="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="info@struttura.it" />
+          <InputField className="ncm__f" name="piva" label="P. IVA" value={form.piva} onChange={e => setForm({ ...form, piva: e.target.value })} />
+          <InputField className="ncm__f" name="codice-sdi" label="Codice SDI" value={form.codiceSdi} onChange={e => setForm({ ...form, codiceSdi: e.target.value })} />
+          <InputField className="ncm__f ncm__f--2" name="pec" label="PEC" value={form.pec} onChange={e => setForm({ ...form, pec: e.target.value })} />
         </div>
       </Card>
 
@@ -228,14 +227,8 @@ export default function StructFields({ form, setForm, readOnly = false }: Props)
                   <span className="ncm__type-def">{typeName(t)}</span>
                 </div>
                 <div className="ncm__type-fields">
-                  <label className="ncm__f">
-                    <span className="ncm__label">Nome tipologia</span>
-                    <input className="sib-input" value={form.tipologieNomi[t] ?? ''} onChange={e => setTipoNome(t, e.target.value)} placeholder={typeName(t)} />
-                  </label>
-                  <label className="ncm__f ncm__f--narrow">
-                    <span className="ncm__label">Posti base</span>
-                    <input className="sib-input" type="number" min={0} value={postiBase(t)} onChange={e => setPosti(t, 'base', parseInt(e.target.value))} />
-                  </label>
+                  <InputField className="ncm__f" name={`tipo-nome-${t}`} label="Nome tipologia" value={form.tipologieNomi[t] ?? ''} onChange={e => setTipoNome(t, e.target.value)} placeholder={typeName(t)} />
+                  <InputField className="ncm__f ncm__f--narrow" name={`posti-base-${t}`} label="Posti base" type="number" min={0} value={postiBase(t)} onChange={e => setPosti(t, 'base', parseInt(e.target.value))} />
                 </div>
               </div>
             ))}
@@ -250,17 +243,18 @@ export default function StructFields({ form, setForm, readOnly = false }: Props)
               <label className="ncm__label">Schema</label>
               <div className="ncm__scheme">Per piano · 101, 102…</div>
             </div>
-            <div className="ncm__f">
-              <label className="ncm__label">Numero di partenza</label>
-              <input className="sib-input" type="number" min={0} value={form.numStart} onChange={e => setForm({ ...form, numStart: Math.max(0, parseInt(e.target.value) || 0) })} />
-            </div>
-            <div className="ncm__f">
-              <label className="ncm__label">Cifre progressivo</label>
-              <select className="sib-select" value={form.numDigits} onChange={e => setForm({ ...form, numDigits: parseInt(e.target.value) })}>
-                <option value={2}>2 (es. 101)</option>
-                <option value={3}>3 (es. 1001)</option>
-              </select>
-            </div>
+            <InputField className="ncm__f" name="num-start" label="Numero di partenza" type="number" min={0} value={form.numStart} onChange={e => setForm({ ...form, numStart: Math.max(0, parseInt(e.target.value) || 0) })} />
+            <SelectField
+              className="ncm__f"
+              name="num-digits"
+              label="Cifre progressivo"
+              value={form.numDigits}
+              onChange={e => setForm({ ...form, numDigits: parseInt(e.target.value) })}
+              options={[
+                { value: 2, label: '2 (es. 101)' },
+                { value: 3, label: '3 (es. 1001)' },
+              ]}
+            />
             <button type="button" className="ncm__regen" onClick={() => setForm({ ...form, roomOverrides: {}, roomTypes: {}, roomExtra: {} })}>Rigenera</button>
           </div>
           <div className="ncm__floors">
@@ -299,11 +293,11 @@ export default function StructFields({ form, setForm, readOnly = false }: Props)
 
       <Card icon="image" title="Media & descrizione" sub="Immagini, logo, tassa e descrizione breve">
         <div className="ncm__grid">
-          <div className="ncm__f ncm__f--2"><label className="ncm__label">Tassa giornaliera</label><input className="sib-input" value={form.tassaGiornaliera} onChange={e => setForm({ ...form, tassaGiornaliera: e.target.value })} /></div>
+          <InputField className="ncm__f ncm__f--2" name="tassa-giornaliera" label="Tassa giornaliera" value={form.tassaGiornaliera} onChange={e => setForm({ ...form, tassaGiornaliera: e.target.value })} />
           <div className="ncm__f"><label className="ncm__label">Immagine principale</label><label className="ncm__file"><span className="ncm__file-btn">Seleziona</span><span className="ncm__file-name">{form.immaginePrincipale || 'Nessun file'}</span><input type="file" accept="image/*" hidden onChange={e => setForm({ ...form, immaginePrincipale: fileName(e) })} /></label></div>
           <div className="ncm__f"><label className="ncm__label">Logo struttura</label><label className="ncm__file"><span className="ncm__file-btn">Seleziona</span><span className="ncm__file-name">{form.logoStruttura || 'Nessun file'}</span><input type="file" accept="image/*" hidden onChange={e => setForm({ ...form, logoStruttura: fileName(e) })} /></label></div>
           <div className="ncm__f ncm__f--2"><label className="ncm__label">Crea gallery</label><label className="ncm__file"><span className="ncm__file-btn">Seleziona</span><span className="ncm__file-name">{form.gallery.length ? `${form.gallery.length} file selezionati` : 'Nessun file'}</span><input type="file" accept="image/*" multiple hidden onChange={e => setForm({ ...form, gallery: galleryNames(e) })} /></label></div>
-          <div className="ncm__f ncm__f--full"><label className="ncm__label">Breve descrizione</label><textarea className="ncm__textarea" rows={3} value={form.breveDescrizione} onChange={e => setForm({ ...form, breveDescrizione: e.target.value })} /></div>
+          <TextareaField className="ncm__f ncm__f--full" name="breve-descrizione" label="Breve descrizione" rows={3} value={form.breveDescrizione} onChange={e => setForm({ ...form, breveDescrizione: e.target.value })} />
         </div>
       </Card>
 

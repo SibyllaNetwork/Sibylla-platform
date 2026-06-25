@@ -426,7 +426,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
 
   return (
     <div className="td">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Tariffe e disponibilità"
         subtitle="Controllo di tariffe e disponibilità in base alle strutture, giorni e intervalli settimanali"

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './SalesOverview.sass'
 
@@ -109,21 +110,25 @@ export default function SalesOverview({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="sales-overview">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Sales overview"
         subtitle="Analisi performance commerciale, ricavi e marginalità"
       />
 
       <div className="sales-overview__filters">
-        <div className="sales-overview__field">
-          <label>Struttura</label>
-          <select className="sib-select sales-overview__select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="sales-overview__field">
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="sales-overview__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Tutte le strutture' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
+        <div className="sales-overview__field-raw">
           <label>Intervallo</label>
           <div className="sales-overview__date-range">
             <input type="date" className="sib-input" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />

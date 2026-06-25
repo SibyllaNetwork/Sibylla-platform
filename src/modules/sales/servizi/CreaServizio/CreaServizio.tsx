@@ -3,7 +3,7 @@ import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import FormGrid from '../../../../core/components/FormGrid'
 import FormActions from '../../../../core/components/FormActions'
-import { InputField, SelectField, TextareaField, ToggleSwitch, DateRangeField } from '../../../../core/components/form'
+import { InputField, SelectField, TextareaField, ToggleSwitch, DateRangeField, RadioGroup } from '../../../../core/components/form'
 import { Icon } from '../../../purchasing/_shared/Icon'
 import { useServiziStore } from '../../../../store/useServiziStore'
 import { useNotificheServiziStore } from '../../../../store/useNotificheServiziStore'
@@ -262,17 +262,16 @@ export default function CreaServizio({ navigate, servizioId }: { navigate: (p: s
       <section className="crea-servizio__section">
         <h3 className="sib-section-title">Pubblicazione e classificazione</h3>
         <FormGrid cols={3}>
-          <div className="crea-servizio__field">
-            <span className="crea-servizio__label">Visibilità</span>
-            <div className="crea-servizio__radio-row">
-              {(['pubblico', 'privato'] as const).map(v => (
-                <label key={v} className="crea-servizio__radio">
-                  <input type="radio" name="visibilita" checked={form.visibilita === v} onChange={() => set('visibilita', v)} className="sib-radio" />
-                  {v === 'pubblico' ? 'Pubblico' : 'Privato'}
-                </label>
-              ))}
-            </div>
-          </div>
+          <RadioGroup
+            name="visibilita"
+            label="Visibilità"
+            value={form.visibilita}
+            onChange={v => set('visibilita', v as FormState['visibilita'])}
+            options={[
+              { value: 'pubblico', label: 'Pubblico' },
+              { value: 'privato', label: 'Privato' },
+            ]}
+          />
           <SelectField name="area" label="Area" required value={form.area}
             onChange={e => set('area', e.target.value)} placeholder="Seleziona area..."
             options={AREE.map(a => ({ value: a, label: a }))} />

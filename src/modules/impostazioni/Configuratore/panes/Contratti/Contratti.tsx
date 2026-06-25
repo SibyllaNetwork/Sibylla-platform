@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { InputField, SelectField } from '../../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../../services/api'
 import './Contratti.sass'
 
@@ -55,35 +56,29 @@ export default function Contratti() {
       </div>
 
       <div className="contratti__filters">
-        <div className="contratti__field">
-          <label>Nome contratto</label>
-          <input
-            type="text"
-            className="sib-input sib-input--dense contratti__input"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-          />
-        </div>
-        <div className="contratti__field">
-          <label>Tipologia</label>
-          <select
-            className="sib-select sib-select--dense contratti__input contratti__input--select"
-            value={tipologia}
-            onChange={(e) => setTipologia(Number(e.target.value))}
-          >
-            {data.tipi.map((t) => <option key={t.Id} value={t.Id}>{display(t.Nome)}</option>)}
-          </select>
-        </div>
-        <div className="contratti__field">
-          <label>Data</label>
-          <input
-            type="text"
-            className="sib-input sib-input--dense contratti__input"
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            placeholder="gg/mm/aaaa - gg/mm/aaaa"
-          />
-        </div>
+        <InputField
+          name="nome"
+          label="Nome contratto"
+          className="contratti__field"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+        />
+        <SelectField
+          name="tipologia"
+          label="Tipologia"
+          className="contratti__field"
+          value={tipologia}
+          onChange={(e) => setTipologia(Number(e.target.value))}
+          options={data.tipi.map((t) => ({ value: t.Id, label: display(t.Nome) }))}
+        />
+        <InputField
+          name="data"
+          label="Data"
+          className="contratti__field"
+          value={dateRange}
+          onChange={(e) => setDateRange(e.target.value)}
+          placeholder="gg/mm/aaaa - gg/mm/aaaa"
+        />
         <div className="contratti__field">
           <label>Upload contratto</label>
           <label className="contratti__upload">

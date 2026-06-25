@@ -69,7 +69,7 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
 
   return (
     <div>
-      <BtnBack onClick={()=>navigate("home")}/>
+      <BtnBack />
 
       <PageHeader title="Ruoli &amp; funzioni" subtitle="Configura ruoli aziendali e assegna le funzioni ai profili"/>
 

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Ico from '../../../core/icons/Ico'
+import { InputField } from '../../../core/components/form'
 import { useCatalogoStore, type TipoMovimento } from '../../../store/useCatalogoStore'
 import { useOrgStore } from '../../../store/useOrgStore'
 import { isValidEAN13 } from '../../../admin/SibyllaAdminPanel/catalogo/helpers'
@@ -93,7 +94,7 @@ export default function MovimentiBarcode({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="mov-barcode">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Movimenti via barcode"
         subtitle="Lettura scanner per registrare entrate, uscite e rettifiche di magazzino — riferimento al catalogo Sibylla"
@@ -205,25 +206,24 @@ export default function MovimentiBarcode({ navigate }: { navigate: (p: string) =
               />
             </div>
             <div>
-              <label className="mov-barcode__label">Magazzino</label>
-              <input
+              <InputField
+                name="magazzino"
+                label="Magazzino"
                 value={magazzinoId}
                 onChange={e => setMagazzinoId(e.target.value)}
-                className="sib-input"
                 placeholder="principale"
               />
             </div>
           </div>
 
-          <div className="mov-barcode__field">
-            <label className="mov-barcode__label">Note (opzionale)</label>
-            <input
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              className="sib-input"
-              placeholder="Es. n° DDT, lotto, motivo rettifica..."
-            />
-          </div>
+          <InputField
+            className="mov-barcode__field"
+            name="note"
+            label="Note (opzionale)"
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder="Es. n° DDT, lotto, motivo rettifica..."
+          />
 
           {feedback && (
             <div className={`mov-barcode__feedback mov-barcode__feedback--${feedback.kind}`}>

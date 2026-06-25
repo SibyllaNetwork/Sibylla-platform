@@ -1,6 +1,7 @@
 import React from 'react'
 import Modal from '../../../../core/components/Modal'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { ICON_OPTIONS, MACRO_AREE } from '../../catalogo/mockData'
 import type { Categoria, CategoriaForm } from '../../catalogo/types'
 import './CategoriaModal.sass'
@@ -30,38 +31,29 @@ export default function CategoriaModal({ open, editing, form, setForm, onClose, 
         </div>
 
         <div className="cat-modal__form">
-          <div>
-            <label className="cat-modal__label">Nome categoria *</label>
-            <input
-              value={form.nome}
-              onChange={e => setForm({ ...form, nome: e.target.value })}
-              className="sib-input"
-              placeholder="Es. Vini e Bevande"
-            />
-          </div>
-          <div>
-            <label className="cat-modal__label">Macro-area *</label>
-            <select
-              value={form.macroArea}
-              onChange={e => setForm({ ...form, macroArea: e.target.value })}
-              className="sib-select"
-            >
-              <option value="">Seleziona macro-area...</option>
-              {MACRO_AREE.map(m => (
-                <option key={m.id} value={m.id}>{m.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="cat-modal__label">Descrizione</label>
-            <textarea
-              value={form.descrizione}
-              onChange={e => setForm({ ...form, descrizione: e.target.value })}
-              className="sib-input cat-modal__textarea"
-              rows={3}
-              placeholder="Breve descrizione della categoria"
-            />
-          </div>
+          <InputField
+            name="nome"
+            label="Nome categoria *"
+            value={form.nome}
+            onChange={e => setForm({ ...form, nome: e.target.value })}
+            placeholder="Es. Vini e Bevande"
+          />
+          <SelectField
+            name="macro-area"
+            label="Macro-area *"
+            value={form.macroArea}
+            onChange={e => setForm({ ...form, macroArea: e.target.value })}
+            placeholder="Seleziona macro-area..."
+            options={MACRO_AREE.map(m => ({ value: m.id, label: m.label }))}
+          />
+          <TextareaField
+            name="descrizione"
+            label="Descrizione"
+            value={form.descrizione}
+            onChange={e => setForm({ ...form, descrizione: e.target.value })}
+            rows={3}
+            placeholder="Breve descrizione della categoria"
+          />
           <div>
             <label className="cat-modal__label">Icona</label>
             <div className="cat-modal__icons">

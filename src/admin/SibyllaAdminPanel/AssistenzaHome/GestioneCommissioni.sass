@@ -57,11 +57,6 @@
   flex-direction: column
   gap: 6px
 
-  span
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-
   .sib-select
     height: 40px
     min-width: 180px
@@ -146,26 +141,10 @@
     flex-direction: column
     gap: 6px
 
-    label
-      font-size: 12px
-      font-weight: 600
-      color: $text-inactive
-
-    input
-      height: 44px
-      border: 1px solid $border
-      border-radius: 8px
-      padding: 0 12px
-      font-size: 14px
-      color: $text-active
-      outline: none
-
-      &:focus
-        border-color: $primary-300
-
-  &__ro
+  // Campi di sola lettura: ripristina l'aspetto grigio sull'input del componente.
+  &__f-ro .sib-input
     background: #e9edf2
-    color: $text-inactive !important
+    color: $text-inactive
     cursor: not-allowed
 
   &__btn

@@ -134,7 +134,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
 
   return (
     <div className="impdto">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader
         title="Imposta distribuzione"

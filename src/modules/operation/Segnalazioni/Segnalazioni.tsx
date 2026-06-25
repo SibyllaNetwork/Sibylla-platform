@@ -3,7 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, InputField, SelectField, TextareaField } from '../../../core/components/form'
 import './Segnalazioni.sass'
 
 const PAGE_SIZE = 10
@@ -144,7 +144,7 @@ export default function Segnalazioni({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="segnal">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Segnalazioni"
         subtitle="Gestione delle richieste di intervento tecnico/operativo all'interno della struttura con tracking in tempo reale"
@@ -165,24 +165,34 @@ export default function Segnalazioni({ navigate }: { navigate: (p: string) => vo
             />
           </div>
           <div className="segnal__field">
-            <label>Reparto</label>
-            <select className="sib-select segnal__select" value={reparto} onChange={(e) => setReparto(e.target.value as any)}>
-              <option value="Tutti">Tutti</option>
-              {REPARTI.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <SelectField
+              name="reparto"
+              label="Reparto"
+              className="segnal__select"
+              value={reparto}
+              onChange={(e) => setReparto(e.target.value as any)}
+              options={[{ value: 'Tutti', label: 'Tutti' }, ...REPARTI.map((r) => ({ value: r, label: r }))]}
+            />
           </div>
           <div className="segnal__field">
-            <label>Stato lavorazione</label>
-            <select className="sib-select segnal__select" value={statoLav} onChange={(e) => setStatoLav(e.target.value as any)}>
-              <option value="Tutti">Tutti</option>
-              {STATI_LAV.map((s) => <option key={s} value={s}>{STATO_LAV_LABEL[s]}</option>)}
-            </select>
+            <SelectField
+              name="statoLav"
+              label="Stato lavorazione"
+              className="segnal__select"
+              value={statoLav}
+              onChange={(e) => setStatoLav(e.target.value as any)}
+              options={[{ value: 'Tutti', label: 'Tutti' }, ...STATI_LAV.map((s) => ({ value: s, label: STATO_LAV_LABEL[s] }))]}
+            />
           </div>
           <div className="segnal__field">
-            <label>Strutture</label>
-            <select className="sib-select segnal__select" value={data.StrutturaId} onChange={(e) => setData({ ...data, StrutturaId: Number(e.target.value) })}>
-              {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-            </select>
+            <SelectField
+              name="strutturaId"
+              label="Strutture"
+              className="segnal__select"
+              value={data.StrutturaId}
+              onChange={(e) => setData({ ...data, StrutturaId: Number(e.target.value) })}
+              options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+            />
           </div>
         </div>
 
@@ -394,44 +404,67 @@ function CreaSegnalazioneModal({ strutture, onClose }: { strutture: { Id: number
         <div className="segnal__modal-body">
           <div className="segnal__modal-grid">
             <div className="segnal__field">
-              <label>Struttura</label>
-              <select className="sib-select" value={strutturaId} onChange={(e) => setStrutturaId(Number(e.target.value))}>
-                {strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-              </select>
+              <SelectField
+                name="strutturaId"
+                label="Struttura"
+                value={strutturaId}
+                onChange={(e) => setStrutturaId(Number(e.target.value))}
+                options={strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+              />
             </div>
             <div className="segnal__field">
-              <label>Genere Intervento</label>
-              <select className="sib-select" value={genereIntervento} onChange={(e) => setGenereIntervento(e.target.value as GenereIntervento)}>
-                {GENERI.map((g) => <option key={g} value={g}>{g}</option>)}
-              </select>
+              <SelectField
+                name="genereIntervento"
+                label="Genere Intervento"
+                value={genereIntervento}
+                onChange={(e) => setGenereIntervento(e.target.value as GenereIntervento)}
+                options={GENERI.map((g) => ({ value: g, label: g }))}
+              />
             </div>
             <div className="segnal__field">
-              <label>Reparto</label>
-              <select className="sib-select" value={reparto} onChange={(e) => setReparto(e.target.value as Reparto)}>
-                {REPARTI.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <SelectField
+                name="reparto"
+                label="Reparto"
+                value={reparto}
+                onChange={(e) => setReparto(e.target.value as Reparto)}
+                options={REPARTI.map((r) => ({ value: r, label: r }))}
+              />
             </div>
             <div className="segnal__field">
-              <label>Priorità</label>
-              <select className="sib-select" value={priorita} onChange={(e) => setPriorita(e.target.value as Priorita)}>
-                {PRIORITA.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
+              <SelectField
+                name="priorita"
+                label="Priorità"
+                value={priorita}
+                onChange={(e) => setPriorita(e.target.value as Priorita)}
+                options={PRIORITA.map((p) => ({ value: p, label: p }))}
+              />
             </div>
             <div className="segnal__field">
-              <label>Camere</label>
-              <select className="sib-select" value={camera} onChange={(e) => setCamera(e.target.value)}>
-                <option value="">Seleziona</option>
-                {CAMERE_DISTINCT.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <SelectField
+                name="camera"
+                label="Camere"
+                value={camera}
+                onChange={(e) => setCamera(e.target.value)}
+                options={[{ value: '', label: 'Seleziona' }, ...CAMERE_DISTINCT.map((c) => ({ value: c, label: c }))]}
+              />
             </div>
             <div className="segnal__field">
-              <label>Area comune</label>
-              <input className="sib-input" value={areaComune} onChange={(e) => setAreaComune(e.target.value)} />
+              <InputField
+                name="areaComune"
+                label="Area comune"
+                value={areaComune}
+                onChange={(e) => setAreaComune(e.target.value)}
+              />
             </div>
           </div>
           <div className="segnal__field">
-            <label>Descrizione</label>
-            <textarea className="sib-input segnal__textarea" rows={3} value={descrizione} onChange={(e) => setDescrizione(e.target.value)} />
+            <TextareaField
+              name="descrizione"
+              label="Descrizione"
+              rows={3}
+              value={descrizione}
+              onChange={(e) => setDescrizione(e.target.value)}
+            />
           </div>
         </div>
         <div className="segnal__modal-foot">

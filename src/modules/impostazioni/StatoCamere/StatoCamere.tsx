@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
+import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './StatoCamere.sass'
 
@@ -141,7 +142,7 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="stato-cam">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Stato camere"
         subtitle="Gestione centralizzata e aggiornata in tempo reale delle condizioni delle camere"
@@ -149,19 +150,17 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="stato-cam__bar">
-        <div className="stato-cam__field">
-          <label>Strutture</label>
-          <select
-            className="sib-select stato-cam__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Strutture"
+          className="stato-cam__field stato-cam__select"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+        />
 
-        <div className="stato-cam__field">
-          <label>Cerca</label>
+        <div className="stato-cam__field stato-cam__field-raw">
+          <span>Cerca</span>
           <div className="stato-cam__search">
             <input
               type="search"

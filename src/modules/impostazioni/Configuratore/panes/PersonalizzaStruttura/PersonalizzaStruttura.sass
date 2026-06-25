@@ -29,16 +29,23 @@
     display: flex
     flex-direction: column
     gap: 6px
+
+  &__field-raw
+    display: flex
+    flex-direction: column
+    gap: 6px
     label
+      font-family: 'Poppins', sans-serif
       font-size: 12px
-      color: $text-inactive
+      color: $primary
       font-weight: 600
 
   &__short
     width: 70px
 
   &__time
-    width: 120px
+    .sib-select
+      width: 120px
 
   &__row-cell
     display: flex

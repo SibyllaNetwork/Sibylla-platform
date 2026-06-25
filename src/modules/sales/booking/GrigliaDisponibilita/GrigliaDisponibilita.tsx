@@ -183,7 +183,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
 
   return (
     <div className="griglia-disp">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader
         title="Griglia disponibilità"

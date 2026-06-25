@@ -3,7 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, InputField, SelectField, TextareaField, CheckboxField } from '../../../core/components/form'
 import './AssegnazioniIncarichi.sass'
 
 const PAGE_SIZE = 12
@@ -189,7 +189,7 @@ export default function AssegnazioniIncarichi({ navigate }: { navigate: (p: stri
 
   return (
     <div className="ass-inc">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Assegnazione incarichi"
         subtitle="Creazione rapida e gestione di task operative con assegnazione automatica o manuale delle attività al personale disponibile"
@@ -209,24 +209,34 @@ export default function AssegnazioniIncarichi({ navigate }: { navigate: (p: stri
             />
           </div>
           <div className="ass-inc__field">
-            <label>Reparto</label>
-            <select className="sib-select ass-inc__select" value={reparto} onChange={(e) => setReparto(e.target.value as any)}>
-              <option value="Tutti">Tutti</option>
-              {REPARTI.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <SelectField
+              name="reparto"
+              label="Reparto"
+              className="ass-inc__select"
+              value={reparto}
+              onChange={(e) => setReparto(e.target.value as any)}
+              options={[{ value: 'Tutti', label: 'Tutti' }, ...REPARTI.map((r) => ({ value: r, label: r }))]}
+            />
           </div>
           <div className="ass-inc__field">
-            <label>Stato lavorazione</label>
-            <select className="sib-select ass-inc__select" value={statoLav} onChange={(e) => setStatoLav(e.target.value as any)}>
-              <option value="Tutti">Tutti</option>
-              {STATI_LAV.map((s) => <option key={s} value={s}>{STATO_LAV_LABEL[s]}</option>)}
-            </select>
+            <SelectField
+              name="statoLav"
+              label="Stato lavorazione"
+              className="ass-inc__select"
+              value={statoLav}
+              onChange={(e) => setStatoLav(e.target.value as any)}
+              options={[{ value: 'Tutti', label: 'Tutti' }, ...STATI_LAV.map((s) => ({ value: s, label: STATO_LAV_LABEL[s] }))]}
+            />
           </div>
           <div className="ass-inc__field">
-            <label>Strutture</label>
-            <select className="sib-select ass-inc__select" value={data.StrutturaId} onChange={(e) => setData({ ...data, StrutturaId: Number(e.target.value) })}>
-              {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-            </select>
+            <SelectField
+              name="strutture"
+              label="Strutture"
+              className="ass-inc__select"
+              value={data.StrutturaId}
+              onChange={(e) => setData({ ...data, StrutturaId: Number(e.target.value) })}
+              options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+            />
           </div>
           <div className="ass-inc__field">
             <label>Cerca</label>
@@ -439,14 +449,17 @@ function AggiungiIncaricoModal({ strutture, onClose }: { strutture: { Id: number
         </div>
         <div className="ass-inc__modal-body">
           <div className="ass-inc__field">
-            <label>Struttura</label>
-            <select className="sib-select" value={strutturaId} onChange={(e) => setStrutturaId(Number(e.target.value))}>
-              {strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-            </select>
+            <SelectField
+              name="strutturaId"
+              label="Struttura"
+              value={strutturaId}
+              onChange={(e) => setStrutturaId(Number(e.target.value))}
+              options={strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+            />
           </div>
 
           <div className="ass-inc__modal-grid">
-            <div className="ass-inc__field">
+            <div className="ass-inc__field ass-inc__field-raw">
               <label>Periodo</label>
               <div className="ass-inc__date-range">
                 <input type="date" className="sib-input" value={periodoDa} onChange={(e) => setPeriodoDa(e.target.value)} />
@@ -455,62 +468,89 @@ function AggiungiIncaricoModal({ strutture, onClose }: { strutture: { Id: number
               </div>
             </div>
             <div className="ass-inc__field">
-              <label>Manutenzione</label>
-              <label className="ass-inc__check-row">
-                <input type="checkbox" className="sib-checkbox" checked={manutenzione} onChange={(e) => setManutenzione(e.target.checked)} />
-                <span>Metti in manutenzione</span>
-              </label>
+              <CheckboxField
+                name="manutenzione"
+                label="Metti in manutenzione"
+                checked={manutenzione}
+                onChange={(e) => setManutenzione(e.target.checked)}
+              />
             </div>
 
             <div className="ass-inc__field">
-              <label>Camere</label>
-              <select className="sib-select" value={camera} onChange={(e) => setCamera(e.target.value)}>
-                <option value="">Seleziona</option>
-                {CAMERE_DISTINCT.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <SelectField
+                name="camera"
+                label="Camere"
+                value={camera}
+                onChange={(e) => setCamera(e.target.value)}
+                options={[{ value: '', label: 'Seleziona' }, ...CAMERE_DISTINCT.map((c) => ({ value: c, label: c }))]}
+              />
             </div>
             <div className="ass-inc__field">
-              <label>Area comune</label>
-              <input className="sib-input" value={areaComune} onChange={(e) => setAreaComune(e.target.value)} />
-            </div>
-
-            <div className="ass-inc__field">
-              <label>Genere Intervento</label>
-              <select className="sib-select" value={genereIntervento} onChange={(e) => setGenereIntervento(e.target.value as GenereIntervento)}>
-                {GENERI.map((g) => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </div>
-            <div className="ass-inc__field">
-              <label>Reparto</label>
-              <select className="sib-select" value={reparto} onChange={(e) => setReparto(e.target.value as Reparto)}>
-                {REPARTI.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <InputField
+                name="areaComune"
+                label="Area comune"
+                value={areaComune}
+                onChange={(e) => setAreaComune(e.target.value)}
+              />
             </div>
 
             <div className="ass-inc__field">
-              <label>Assegnatario</label>
-              <select className="sib-select" value={assegnatario} onChange={(e) => setAssegnatario(e.target.value)}>
-                <option value="da-assegnare">Da assegnare</option>
-                <option value="pieri">Pieri Matteo</option>
-              </select>
+              <SelectField
+                name="genereIntervento"
+                label="Genere Intervento"
+                value={genereIntervento}
+                onChange={(e) => setGenereIntervento(e.target.value as GenereIntervento)}
+                options={GENERI.map((g) => ({ value: g, label: g }))}
+              />
             </div>
             <div className="ass-inc__field">
-              <label>Priorità</label>
-              <select className="sib-select" value={priorita} onChange={(e) => setPriorita(e.target.value as Priorita)}>
-                {PRIORITA.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
+              <SelectField
+                name="reparto"
+                label="Reparto"
+                value={reparto}
+                onChange={(e) => setReparto(e.target.value as Reparto)}
+                options={REPARTI.map((r) => ({ value: r, label: r }))}
+              />
+            </div>
+
+            <div className="ass-inc__field">
+              <SelectField
+                name="assegnatario"
+                label="Assegnatario"
+                value={assegnatario}
+                onChange={(e) => setAssegnatario(e.target.value)}
+                options={[{ value: 'da-assegnare', label: 'Da assegnare' }, { value: 'pieri', label: 'Pieri Matteo' }]}
+              />
+            </div>
+            <div className="ass-inc__field">
+              <SelectField
+                name="priorita"
+                label="Priorità"
+                value={priorita}
+                onChange={(e) => setPriorita(e.target.value as Priorita)}
+                options={PRIORITA.map((p) => ({ value: p, label: p }))}
+              />
             </div>
           </div>
 
           <div className="ass-inc__field">
-            <label>Tipologia</label>
-            <select className="sib-select" value={tipologia} onChange={(e) => setTipologia(e.target.value as Tipologia)}>
-              {TIPOLOGIE.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <SelectField
+              name="tipologia"
+              label="Tipologia"
+              value={tipologia}
+              onChange={(e) => setTipologia(e.target.value as Tipologia)}
+              options={TIPOLOGIE.map((t) => ({ value: t, label: t }))}
+            />
           </div>
           <div className="ass-inc__field">
-            <label>Descrizione</label>
-            <textarea className="sib-input ass-inc__textarea" rows={3} value={descrizione} onChange={(e) => setDescrizione(e.target.value)} />
+            <TextareaField
+              name="descrizione"
+              label="Descrizione"
+              className="ass-inc__textarea"
+              rows={3}
+              value={descrizione}
+              onChange={(e) => setDescrizione(e.target.value)}
+            />
           </div>
         </div>
         <div className="ass-inc__modal-foot">

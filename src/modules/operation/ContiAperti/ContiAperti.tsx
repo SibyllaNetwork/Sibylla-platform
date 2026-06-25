@@ -211,7 +211,7 @@ export default function ContiAperti({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="mov-sog">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Conti aperti"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"

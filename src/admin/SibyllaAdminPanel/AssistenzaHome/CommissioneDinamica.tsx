@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Ico from '../../../core/icons/Ico'
+import { SelectField, CheckboxField } from '../../../core/components/form'
 import './CommissioneDinamica.sass'
 
 interface Props { navigate: (p: string) => void }
@@ -21,24 +22,38 @@ export default function CommissioneDinamica({ navigate }: Props) {
       </div>
 
       <div className="cdn__toolbar">
-        <label className="cdn__field">
-          <span>Azienda</span>
-          <select className="sib-select" value={azienda} onChange={e => setAzienda(e.target.value)}>
-            <option value="">Seleziona Azienda</option>{AZIENDE.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </label>
-        <label className="cdn__field">
-          <span>Tour operator partner</span>
-          <select className="sib-select" disabled><option>Seleziona TO partner</option></select>
-        </label>
-        <label className="cdn__field">
-          <span>Hotel partner</span>
-          <select className="sib-select" disabled><option>Seleziona Hotel partner</option></select>
-        </label>
-        <label className="cdn__flat">
-          <span>Flat</span>
-          <input type="checkbox" checked={flat} onChange={e => setFlat(e.target.checked)} />
-        </label>
+        <SelectField
+          name="azienda"
+          label="Azienda"
+          className="cdn__field"
+          value={azienda}
+          onChange={e => setAzienda(e.target.value)}
+          placeholder="Seleziona Azienda"
+          options={AZIENDE.map(a => ({ value: a, label: a }))}
+        />
+        <SelectField
+          name="toPartner"
+          label="Tour operator partner"
+          className="cdn__field"
+          disabled
+          placeholder="Seleziona TO partner"
+          options={[]}
+        />
+        <SelectField
+          name="hotelPartner"
+          label="Hotel partner"
+          className="cdn__field"
+          disabled
+          placeholder="Seleziona Hotel partner"
+          options={[]}
+        />
+        <CheckboxField
+          name="flat"
+          label="Flat"
+          className="cdn__flat"
+          checked={flat}
+          onChange={e => setFlat(e.target.checked)}
+        />
       </div>
 
       <div className="cdn__placeholder">

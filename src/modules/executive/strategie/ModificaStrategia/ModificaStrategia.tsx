@@ -67,7 +67,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title="Modifica strategia" subtitle="Seleziona una strategia esistente per tipo e colore, quindi modifica i parametri tariffari"/>
       {saved && <AlertBanner type="success">Strategia aggiornata con successo</AlertBanner>}
 
@@ -77,10 +77,13 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
         <div className="strat__selector-filter-row">
           <span className="strat__filter-title">Filtra strategie</span>
           <div className="strat__filter-item">
-            <span className="text-[12px] font-semibold font-poppins text-primary strat__form-label--inline">Tipo</span>
-            <select className="sib-select" value={tipoFilter} onChange={e => setTipoFilter(e.target.value)}>
-              {['Tutti','Individuali','Gruppi','Mista'].map(o => <option key={o}>{o}</option>)}
-            </select>
+            <SelectField
+              name="tipoFilter"
+              label="Tipo"
+              value={tipoFilter}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTipoFilter(e.target.value)}
+              options={['Tutti','Individuali','Gruppi','Mista'].map(o => ({ value: o, label: o }))}
+            />
           </div>
           <div className="strat__filter-item strat__filter-item--relative">
             <span className="text-[12px] font-semibold font-poppins text-primary strat__form-label--inline">Colore</span>

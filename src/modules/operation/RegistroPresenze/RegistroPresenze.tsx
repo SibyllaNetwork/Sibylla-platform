@@ -237,7 +237,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader
         title="Registro presenze"

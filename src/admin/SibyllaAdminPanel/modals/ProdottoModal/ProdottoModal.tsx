@@ -1,6 +1,7 @@
 import React from 'react'
 import Modal from '../../../../core/components/Modal'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { UNITA_MISURA_OPTIONS } from '../../catalogo/mockData'
 import { getCategoria } from '../../catalogo/classificazione'
 import { generateEAN13, isValidEAN13 } from '../../catalogo/helpers'
@@ -127,101 +128,113 @@ export default function ProdottoModal({
         <div className="prod-modal__section">
           <div className="prod-modal__section-title">Anagrafica prodotto</div>
           <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Nome prodotto *">
-              <input value={form.nome} onChange={e => set('nome', e.target.value)} className="sib-input" placeholder="Es. Olio EVO 1L" />
-            </Field>
-            <Field label="URL immagine">
-              <input value={form.immagineUrl} onChange={e => set('immagineUrl', e.target.value)} className="sib-input" placeholder="https://..." />
-            </Field>
+            <InputField className="prod-modal__field" name="nome" label="Nome prodotto *" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Es. Olio EVO 1L" />
+            <InputField className="prod-modal__field" name="immagine-url" label="URL immagine" value={form.immagineUrl} onChange={e => set('immagineUrl', e.target.value)} placeholder="https://..." />
           </div>
-          <Field label="Descrizione">
-            <textarea
-              value={form.descrizione}
-              onChange={e => set('descrizione', e.target.value)}
-              className="sib-input prod-modal__textarea"
-              rows={2}
-              placeholder="Descrizione, formato, caratteristiche..."
-            />
-          </Field>
+          <TextareaField
+            className="prod-modal__field"
+            name="descrizione"
+            label="Descrizione"
+            value={form.descrizione}
+            onChange={e => set('descrizione', e.target.value)}
+            rows={2}
+            placeholder="Descrizione, formato, caratteristiche..."
+          />
         </div>
 
         <div className="prod-modal__section">
           <div className="prod-modal__section-title">Classificazione e fornitura</div>
           <div className="prod-modal__grid prod-modal__grid--2">
-            <Field label="Categoria *">
-              <select value={form.categoriaId} onChange={e => setCategoria(e.target.value)} className="sib-select">
-                <option value="">Seleziona categoria...</option>
-                {categorie.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-              </select>
-            </Field>
-            <Field label="Classe *">
-              <select value={form.classe} onChange={e => setClasse(e.target.value)} className="sib-select" disabled={!selCat}>
-                <option value="">{selCat ? 'Seleziona classe...' : 'Seleziona prima la categoria'}</option>
-                {selCat?.classi.map(c => <option key={c.nome} value={c.nome}>{c.nome}</option>)}
-              </select>
-            </Field>
-            <Field label="Tipologia">
-              <select value={form.tipologia} onChange={e => set('tipologia', e.target.value)} className="sib-select" disabled={!selClasse || selClasse.tipologie.length === 0}>
-                <option value="">{selClasse && selClasse.tipologie.length > 0 ? 'Seleziona tipologia...' : 'Nessuna tipologia'}</option>
-                {selClasse?.tipologie.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </Field>
-            <Field label="Fornitore *">
-              <select value={form.fornitoreId} onChange={e => set('fornitoreId', e.target.value)} className="sib-select">
-                <option value="">Seleziona fornitore...</option>
-                {fornitori.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}
-              </select>
-            </Field>
+            <SelectField
+              className="prod-modal__field"
+              name="categoria"
+              label="Categoria *"
+              value={form.categoriaId}
+              onChange={e => setCategoria(e.target.value)}
+              placeholder="Seleziona categoria..."
+              options={categorie.map(c => ({ value: c.id, label: c.nome }))}
+            />
+            <SelectField
+              className="prod-modal__field"
+              name="classe"
+              label="Classe *"
+              value={form.classe}
+              onChange={e => setClasse(e.target.value)}
+              disabled={!selCat}
+              options={[
+                { value: '', label: selCat ? 'Seleziona classe...' : 'Seleziona prima la categoria' },
+                ...(selCat?.classi.map(c => ({ value: c.nome, label: c.nome })) ?? []),
+              ]}
+            />
+            <SelectField
+              className="prod-modal__field"
+              name="tipologia"
+              label="Tipologia"
+              value={form.tipologia}
+              onChange={e => set('tipologia', e.target.value)}
+              disabled={!selClasse || selClasse.tipologie.length === 0}
+              options={[
+                { value: '', label: selClasse && selClasse.tipologie.length > 0 ? 'Seleziona tipologia...' : 'Nessuna tipologia' },
+                ...(selClasse?.tipologie.map(t => ({ value: t, label: t })) ?? []),
+              ]}
+            />
+            <SelectField
+              className="prod-modal__field"
+              name="fornitore"
+              label="Fornitore *"
+              value={form.fornitoreId}
+              onChange={e => set('fornitoreId', e.target.value)}
+              placeholder="Seleziona fornitore..."
+              options={fornitori.map(f => ({ value: f.id, label: f.nome }))}
+            />
           </div>
         </div>
 
         <div className="prod-modal__section">
           <div className="prod-modal__section-title">Prezzo base e magazzino</div>
           <div className="prod-modal__grid prod-modal__grid--4">
-            <Field label="Prezzo base / acquisto (€) *">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.prezzoBase}
-                onChange={e => set('prezzoBase', e.target.value)}
-                className="sib-input"
-                placeholder="0,00"
-              />
-            </Field>
-            <Field label="Unità di misura">
-              <select
-                value={form.unita}
-                onChange={e => set('unita', e.target.value as UnitaMisura)}
-                className="sib-select"
-              >
-                {UNITA_MISURA_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Quantità per unità">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.quantitaUnita}
-                onChange={e => set('quantitaUnita', e.target.value)}
-                className="sib-input"
-                placeholder="1"
-              />
-            </Field>
-            <Field label="Scorta minima">
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={form.scortaMinima}
-                onChange={e => set('scortaMinima', e.target.value)}
-                className="sib-input"
-                placeholder="0"
-              />
-            </Field>
+            <InputField
+              className="prod-modal__field"
+              name="prezzo-base"
+              label="Prezzo base / acquisto (€) *"
+              type="number"
+              step={0.01}
+              min={0}
+              iconLeft="fa-light fa-euro-sign"
+              value={form.prezzoBase}
+              onChange={e => set('prezzoBase', e.target.value)}
+              placeholder="0,00"
+            />
+            <SelectField
+              className="prod-modal__field"
+              name="unita"
+              label="Unità di misura"
+              value={form.unita}
+              onChange={e => set('unita', e.target.value as UnitaMisura)}
+              options={UNITA_MISURA_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+            />
+            <InputField
+              className="prod-modal__field"
+              name="quantita-unita"
+              label="Quantità per unità"
+              type="number"
+              step={0.01}
+              min={0}
+              value={form.quantitaUnita}
+              onChange={e => set('quantitaUnita', e.target.value)}
+              placeholder="1"
+            />
+            <InputField
+              className="prod-modal__field"
+              name="scorta-minima"
+              label="Scorta minima"
+              type="number"
+              step={1}
+              min={0}
+              value={form.scortaMinima}
+              onChange={e => set('scortaMinima', e.target.value)}
+              placeholder="0"
+            />
           </div>
         </div>
 
@@ -290,14 +303,5 @@ export default function ProdottoModal({
         </div>
       </div>
     </Modal>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="prod-modal__field">
-      <label className="prod-modal__label">{label}</label>
-      {children}
-    </div>
   )
 }

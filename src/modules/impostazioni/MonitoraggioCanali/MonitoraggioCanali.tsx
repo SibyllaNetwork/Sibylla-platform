@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
+import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './MonitoraggioCanali.sass'
 
@@ -171,34 +172,32 @@ export default function MonitoraggioCanali({ navigate }: { navigate: (p: string)
 
   return (
     <div className="monitoraggio-canali">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Monitoraggio canali"
         subtitle="Sintesi dei movimenti per tariffe e disponibilità verso i canali di vendita"
       />
 
       <div className="monitoraggio-canali__filters">
-        <div className="monitoraggio-canali__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="monitoraggio-canali__field">
-          <label>Alla data</label>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="monitoraggio-canali__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+        />
+        <label className="monitoraggio-canali__field monitoraggio-canali__field-raw">
+          <span>Alla data</span>
           <input
             type="date"
             className="sib-input"
             value={allaData}
             onChange={(e) => setAllaData(e.target.value)}
           />
-        </div>
-        <div className="monitoraggio-canali__field monitoraggio-canali__field--search">
-          <label>Cerca</label>
+        </label>
+        <div className="monitoraggio-canali__field monitoraggio-canali__field--search monitoraggio-canali__field-raw">
+          <span>Cerca</span>
           <div className="monitoraggio-canali__search">
             <input
               type="search"

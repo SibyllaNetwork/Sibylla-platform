@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
+import { SelectField } from '../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../services/api'
 import './AllocazioneRisorse.sass'
 
@@ -90,7 +91,7 @@ export default function AllocazioneRisorse({ navigate }: { navigate: (p: string)
 
   return (
     <div className="alloc-risorse">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Allocazione risorse"
         subtitle="Ripartizione delle prenotazioni nelle camere al fine di ottimizzarne la capienza"
@@ -144,29 +145,42 @@ function Panel({ data, onChange, expanded, onToggleExpand }: PanelProps) {
   return (
     <div className="alloc-risorse__panel">
       <div className="alloc-risorse__filters">
-        <div className="alloc-risorse__field"><label>Da</label>
+        <div className="alloc-risorse__field alloc-risorse__field-raw"><label>Da</label>
           <input type="date" className="sib-input" value={data.Da} onChange={(e) => onChange({ ...data, Da: e.target.value })} />
         </div>
-        <div className="alloc-risorse__field"><label>Struttura</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => onChange({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="alloc-risorse__field"><label>Stato allocazione</label>
-          <select className="sib-select" value={data.Stato} onChange={(e) => onChange({ ...data, Stato: e.target.value as PanelData['Stato'] })}>
-            <option value="Tutte">Tutte</option>
-            <option value="Confermata">Confermata</option>
-            <option value="Opzionata">Opzionata</option>
-          </select>
-        </div>
-        <div className="alloc-risorse__field"><label>Prenotazioni</label>
-          <select className="sib-select" value={data.TipoPren} onChange={(e) => onChange({ ...data, TipoPren: e.target.value as PanelData['TipoPren'] })}>
-            <option value="Tutti">Tutti</option>
-            <option value="Individuali">Individuali</option>
-            <option value="Gruppi">Gruppi</option>
-          </select>
-        </div>
-        <div className="alloc-risorse__field alloc-risorse__field--search"><label>Cerca</label>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="alloc-risorse__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => onChange({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+        />
+        <SelectField
+          name="stato"
+          label="Stato allocazione"
+          className="alloc-risorse__field"
+          value={data.Stato}
+          onChange={(e) => onChange({ ...data, Stato: e.target.value as PanelData['Stato'] })}
+          options={[
+            { value: 'Tutte', label: 'Tutte' },
+            { value: 'Confermata', label: 'Confermata' },
+            { value: 'Opzionata', label: 'Opzionata' },
+          ]}
+        />
+        <SelectField
+          name="tipoPren"
+          label="Prenotazioni"
+          className="alloc-risorse__field"
+          value={data.TipoPren}
+          onChange={(e) => onChange({ ...data, TipoPren: e.target.value as PanelData['TipoPren'] })}
+          options={[
+            { value: 'Tutti', label: 'Tutti' },
+            { value: 'Individuali', label: 'Individuali' },
+            { value: 'Gruppi', label: 'Gruppi' },
+          ]}
+        />
+        <div className="alloc-risorse__field alloc-risorse__field--search alloc-risorse__field-raw"><label>Cerca</label>
           <div className="alloc-risorse__search">
             <input type="search" className="sib-input" placeholder="Cerca" value={data.Search} onChange={(e) => onChange({ ...data, Search: e.target.value })} />
             <i className="fa-light fa-magnifying-glass alloc-risorse__search-icon" />

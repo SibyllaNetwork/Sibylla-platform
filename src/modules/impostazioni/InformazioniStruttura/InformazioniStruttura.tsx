@@ -52,7 +52,7 @@ export default function InformazioniStruttura({ navigate }: { navigate: (p: stri
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Informazioni struttura" subtitle="Anagrafica, contatti e geolocalizzazione" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}

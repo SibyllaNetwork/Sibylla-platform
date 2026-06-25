@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, RadioGroup } from '../../../../../core/components/form'
 import './BarFit.sass'
 
 const TIPI_CAMERA = [
@@ -67,41 +68,29 @@ export default function BarFit() {
       </div>
 
       <div className="bar-fit__filters">
-        <div className="bar-fit__field">
-          <label>Strutture</label>
-          <select
-            className="sib-select sib-select--dense bar-fit__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="strutture"
+          label="Strutture"
+          className="bar-fit__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Tutorial' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
 
-        <div className="bar-fit__field">
-          <label>Tipologia</label>
-          <div className="bar-fit__radio-group">
-            <label className="bar-fit__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Modalita === 'BAR'}
-                onChange={() => setData({ ...data, Modalita: 'BAR' })}
-              />
-              <span>B.A.R.</span>
-            </label>
-            <label className="bar-fit__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Modalita === 'FIT'}
-                onChange={() => setData({ ...data, Modalita: 'FIT' })}
-              />
-              <span>F.I.T.</span>
-            </label>
-          </div>
-        </div>
+        <RadioGroup
+          name="tipologia"
+          label="Tipologia"
+          className="bar-fit__field"
+          value={data.Modalita}
+          onChange={(val) => setData({ ...data, Modalita: val as Data['Modalita'] })}
+          options={[
+            { value: 'BAR', label: 'B.A.R.' },
+            { value: 'FIT', label: 'F.I.T.' },
+          ]}
+        />
 
         <button
           type="button"

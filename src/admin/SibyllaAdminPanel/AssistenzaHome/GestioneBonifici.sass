@@ -56,14 +56,16 @@
   flex-direction: column
   gap: 6px
 
-  span
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-
   .sib-select, .sib-input
     height: 40px
     min-width: 160px
+
+// Wrapper per il campo data ancora raw (input nativo type=date): ripristina lo
+// stile della label che prima era condiviso da .gbf__field span.
+.gbf__field-raw span
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
 
 .gbf__wrap
   border: 1px solid $border

@@ -109,7 +109,7 @@ export default function VoipServiceHub({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="voip-hub">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="VoIP Service HUB" subtitle="Gestione unificata delle prenotazioni dirette" />
 
       <div className="voip-hub__top-actions">

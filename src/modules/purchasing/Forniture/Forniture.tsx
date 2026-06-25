@@ -349,7 +349,7 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
   // ─── Vista lista ───────────────────────────────────────────────────
   return (
     <div className="forniture">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Lista fornitori"
         subtitle="Scopri i partner selezionati per la qualità e l'eccellenza dei loro prodotti"

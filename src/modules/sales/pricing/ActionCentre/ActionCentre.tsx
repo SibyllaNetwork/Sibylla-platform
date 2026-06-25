@@ -101,7 +101,7 @@ export default function ActionCentre({ navigate, praticaId }: { navigate: (p: st
   if (!pratica || !detail || !calc) {
     return (
       <div className="actc">
-        <BtnBack onClick={() => navigate('home')} />
+        <BtnBack />
         <PageHeader title="Action centre" subtitle="Suggerimenti data-driven a supporto delle decisioni operative" />
         <p className="actc__empty">Nessun preventivo da ottimizzare. Creane uno da “Crea pratica”.</p>
       </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Tooltip from '../../../core/components/Tooltip'
+import { SelectField } from '../../../core/components/form'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
@@ -244,7 +245,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       {/* Header */}
       {error && loaded && (
@@ -272,12 +273,14 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
 
       {/* Filter bar */}
       <div className="notifiche__filters">
-        <div>
-          <span className="notifiche__filter-label">Tipo notifica</span>
-          <select className="sib-select notifiche__filter-select" value={tipoFilter} onChange={e => setTipoFilter(e.target.value)}>
-            {['Tutte','Errore','Avviso','Info'].map(o => <option key={o}>{o}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="tipoFilter"
+          label="Tipo notifica"
+          className="notifiche__filter-select"
+          value={tipoFilter}
+          onChange={e => setTipoFilter(e.target.value)}
+          options={['Tutte','Errore','Avviso','Info'].map(o => ({ value: o, label: o }))}
+        />
         <div className="notifiche__filter-search">
           <span className="notifiche__filter-label">Cerca</span>
           <div className="notifiche__search-wrap">

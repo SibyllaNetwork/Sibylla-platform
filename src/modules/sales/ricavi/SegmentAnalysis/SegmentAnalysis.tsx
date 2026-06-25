@@ -3,7 +3,7 @@ import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
 import { HBars } from '../../distribution/_charts/HBars'
-import { DateRangeField } from '../../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './SegmentAnalysis.sass'
 
 interface RankItem { label: string; value: number; color: string }
@@ -113,7 +113,7 @@ export default function SegmentAnalysis({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="segment-analysis">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Segment analysis"
         subtitle="Analisi delle performance per cluster e segmenti di mercato"
@@ -121,17 +121,27 @@ export default function SegmentAnalysis({ navigate }: { navigate: (p: string) =>
 
       <div className="segment-analysis__filters">
         <div className="segment-analysis__field">
-          <label>Struttura</label>
-          <select className="sib-select segment-analysis__select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
+          <SelectField
+            label="Struttura"
+            name="struttura"
+            className="segment-analysis__select"
+            value={data.StrutturaId ?? ''}
+            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+            options={[
+              { value: '', label: 'Tutte le strutture' },
+              ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+            ]}
+          />
         </div>
         <div className="segment-analysis__field">
-          <label>Segmenti</label>
-          <select className="sib-select segment-analysis__select" value={data.SegmentoSel} onChange={(e) => setData({ ...data, SegmentoSel: e.target.value })}>
-            {data.Segmenti.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <SelectField
+            label="Segmenti"
+            name="segmenti"
+            className="segment-analysis__select"
+            value={data.SegmentoSel}
+            onChange={(e) => setData({ ...data, SegmentoSel: e.target.value })}
+            options={data.Segmenti.map((s) => ({ value: s, label: s }))}
+          />
         </div>
         <div className="segment-analysis__field">
           <DateRangeField

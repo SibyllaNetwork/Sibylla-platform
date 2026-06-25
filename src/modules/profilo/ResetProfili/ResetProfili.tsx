@@ -158,7 +158,7 @@ export default function ResetProfili({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="reset-profili">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader title="Reset profili" subtitle="Configura e controlla i profili in modo centralizzato" />
 

@@ -237,7 +237,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
 
   return (
     <div className="sdd">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Suggerimenti data driven"
         subtitle="Indicazioni strategiche data-driven su tariffe, numero di camere da mettere a disposizione, richieste extra per gruppi"

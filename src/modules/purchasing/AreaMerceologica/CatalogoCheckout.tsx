@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { Icon } from '../_shared/Icon'
+import { InputField, TextareaField } from '../../../core/components/form'
 import { useCartStore, type ProductCartItem } from '../../../store/useCartStore'
 import './CatalogoCheckout.sass'
 
@@ -72,34 +73,69 @@ export default function CatalogoCheckout({ navigate }: { navigate: (p: string) =
           <section className="ck__section">
             <h2 className="ck__section-title">Dati di consegna</h2>
             <div className="ck__grid">
-              <label className="ck__field ck__field--full">
-                <span>Nome completo *</span>
-                <input className="sib-input" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Mario Rossi" />
-              </label>
-              <label className="ck__field">
-                <span>Email *</span>
-                <input className="sib-input" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="mario@struttura.it" />
-              </label>
-              <label className="ck__field">
-                <span>Telefono</span>
-                <input className="sib-input" value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="+39 ..." />
-              </label>
-              <label className="ck__field ck__field--full">
-                <span>Indirizzo *</span>
-                <input className="sib-input" value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} placeholder="Via, civico" />
-              </label>
-              <label className="ck__field">
-                <span>Città *</span>
-                <input className="sib-input" value={form.citta} onChange={e => set('citta', e.target.value)} placeholder="Città" />
-              </label>
-              <label className="ck__field">
-                <span>CAP *</span>
-                <input className="sib-input" value={form.cap} onChange={e => set('cap', e.target.value)} placeholder="00000" />
-              </label>
-              <label className="ck__field ck__field--full">
-                <span>Note</span>
-                <textarea className="sib-input ck__textarea" rows={2} value={form.note} onChange={e => set('note', e.target.value)} placeholder="Note per la consegna (facoltativo)" />
-              </label>
+              <InputField
+                name="nome"
+                label="Nome completo"
+                required
+                className="ck__field ck__field--full"
+                value={form.nome}
+                onChange={e => set('nome', e.target.value)}
+                placeholder="Mario Rossi"
+              />
+              <InputField
+                name="email"
+                label="Email"
+                required
+                type="email"
+                className="ck__field"
+                value={form.email}
+                onChange={e => set('email', e.target.value)}
+                placeholder="mario@struttura.it"
+              />
+              <InputField
+                name="telefono"
+                label="Telefono"
+                className="ck__field"
+                value={form.telefono}
+                onChange={e => set('telefono', e.target.value)}
+                placeholder="+39 ..."
+              />
+              <InputField
+                name="indirizzo"
+                label="Indirizzo"
+                required
+                className="ck__field ck__field--full"
+                value={form.indirizzo}
+                onChange={e => set('indirizzo', e.target.value)}
+                placeholder="Via, civico"
+              />
+              <InputField
+                name="citta"
+                label="Città"
+                required
+                className="ck__field"
+                value={form.citta}
+                onChange={e => set('citta', e.target.value)}
+                placeholder="Città"
+              />
+              <InputField
+                name="cap"
+                label="CAP"
+                required
+                className="ck__field"
+                value={form.cap}
+                onChange={e => set('cap', e.target.value)}
+                placeholder="00000"
+              />
+              <TextareaField
+                name="note"
+                label="Note"
+                rows={2}
+                className="ck__field ck__field--full ck__textarea"
+                value={form.note}
+                onChange={e => set('note', e.target.value)}
+                placeholder="Note per la consegna (facoltativo)"
+              />
             </div>
           </section>
 

@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
 import { Donut } from '../../sales/distribution/_charts/Donut'
+import { SelectField } from '../../../core/components/form'
 import './GuestRoomAnalysis.sass'
 
 interface SeriePoint { date: string; ty: number; forecast: number | null; ly: number }
@@ -79,21 +80,25 @@ export default function GuestRoomAnalysis({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="grm-analysis">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Guests & rooms analysis"
         subtitle="Monitoraggio e analisi degli ospiti e dell'occupazione delle camere"
       />
 
       <div className="grm-analysis__filters">
-        <div className="grm-analysis__field">
-          <label>Struttura</label>
-          <select className="sib-select grm-analysis__select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="grm-analysis__field">
+        <SelectField
+          className="grm-analysis__field grm-analysis__select"
+          label="Struttura"
+          name="struttura"
+          value={data.StrutturaId ?? ''}
+          options={[
+            { value: '', label: 'Tutte le strutture' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+        />
+        <div className="grm-analysis__field-raw">
           <label>Seleziona intervallo</label>
           <div className="grm-analysis__date-range">
             <input type="date" className="sib-input" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />

@@ -80,7 +80,7 @@ export default function CalendarioMaster({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="cm">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Calendario master"
         subtitle="Visione d'insieme delle strategie applicate alle tariffe, alla distribuzione delle camere e alle prenotazioni di gruppo"

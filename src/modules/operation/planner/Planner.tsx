@@ -1,6 +1,7 @@
 // ─── Planner ──────────────────────────────────────────────────────────────────
 import React, { useState } from 'react';
 import BtnBack from '../../../core/components/BtnBack';
+import { SelectField } from '../../../core/components/form';
 
 import { PlannerProps, Pren } from './planner.types';
 import { CAM_CLR } from './planner.styles';
@@ -47,7 +48,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="planner__header">
-          <BtnBack onClick={() => navigate('home')} />
+          <BtnBack />
 
           <h1 className="planner__title">Planner</h1>
           <p className="planner__subtitle">
@@ -59,14 +60,13 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
             {/* Struttura */}
             <div className="planner__filter-group">
-              <label className="planner__filter-label">Struttura</label>
-              <select
-                className="sib-select"
+              <SelectField
+                name="struttura"
+                label="Struttura"
                 value={s.struttura}
                 onChange={e => s.setStruttura(e.target.value)}
-              >
-                {STRUTTURE.map(st => <option key={st}>{st}</option>)}
-              </select>
+                options={STRUTTURE.map(st => ({ value: st, label: st }))}
+              />
             </div>
 
             {/* Cerca */}
@@ -99,14 +99,13 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
             {/* Intervallo */}
             <div className="planner__filter-group">
-              <label className="planner__filter-label">Intervallo</label>
-              <select
-                className="sib-select"
+              <SelectField
+                name="intervallo"
+                label="Intervallo"
                 value={s.intervallo}
                 onChange={e => s.setIntervallo(Number(e.target.value))}
-              >
-                {[7, 10, 14, 21, 30].map(n => <option key={n} value={n}>{n} gg</option>)}
-              </select>
+                options={[7, 10, 14, 21, 30].map(n => ({ value: n, label: `${n} gg` }))}
+              />
             </div>
 
             {/* Piani */}

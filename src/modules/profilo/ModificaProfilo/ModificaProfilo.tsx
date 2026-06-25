@@ -121,7 +121,7 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
   return (
     
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader title="Modifica profilo" subtitle="Gestisci i tuoi dati personali, la sicurezza e le preferenze"/>
       

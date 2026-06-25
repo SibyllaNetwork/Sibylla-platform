@@ -694,7 +694,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       {/* Top bar */}
       <div className="giornale__top-bar">
         <div>
-          <BtnBack onClick={() => navigate('home')} />
+          <BtnBack />
           <h1 className="giornale__title">Giornale impresa</h1>
           <p className="giornale__subtitle">{D.subtitle}</p>
         </div>

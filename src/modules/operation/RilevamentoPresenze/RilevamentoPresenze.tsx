@@ -77,7 +77,7 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Rilevamento presenze" subtitle="Report dei dati aggregati per nazionalità e delle presenze registrate" />
 
       {error && loaded && (

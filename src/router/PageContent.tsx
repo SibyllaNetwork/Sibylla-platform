@@ -124,6 +124,7 @@ import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagra
 import AssegnaObiettivo            from '../modules/hr/AssegnaObiettivo/AssegnaObiettivo';
 import CabinaControllo             from '../modules/finance/CabinaControllo/CabinaControllo';
 import BudgetComplessivo           from '../modules/finance/BudgetComplessivo/BudgetComplessivo';
+import BudgetCosti                 from '../modules/finance/BudgetCosti/BudgetCosti';
 import SimulatoriScenari           from '../modules/finance/SimulatoriScenari/SimulatoriScenari';
 import StatoCamere                 from '../modules/impostazioni/StatoCamere/StatoCamere';
 import SchedaQuestura              from '../modules/impostazioni/SchedaQuestura/SchedaQuestura';
@@ -333,6 +334,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate}/>;
   if (page === 'crea-anagrafica')       return <CreaAnagrafica navigate={navigate}/>;
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
+  if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
   if (page === 'cabina-controllo')      return <CabinaControllo navigate={navigate}/>;
   if (page === 'budget-cabina')         return <CabinaControllo navigate={navigate}/>;
   if (page === 'budget-complessivo')    return <BudgetComplessivo navigate={navigate}/>;

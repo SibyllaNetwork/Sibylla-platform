@@ -87,7 +87,7 @@ export default function MarketLens({ navigate, praticaId }: { navigate: (p: stri
   if (!pratica || !analisi) {
     return (
       <div className="mklens">
-        <BtnBack onClick={() => navigate('home')} />
+        <BtnBack />
         <PageHeader title="Market lens" subtitle="Monitoraggio del posizionamento competitivo delle offerte" />
         <p className="mklens__empty">Nessuna pratica disponibile da analizzare. Creane una da “Crea pratica”.</p>
       </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField } from '../../../../../core/components/form'
 import './PersonalizzaStruttura.sass'
 
 // Ragione sociale di fatturazione: rappresenta una delle ragioni sociali
@@ -74,14 +75,15 @@ export default function PersonalizzaStruttura() {
       </div>
 
       <div className="personalizza-struttura__filters">
-        <div className="personalizza-struttura__field">
-          <label>Struttura</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Hotel Archimede</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="personalizza-struttura__field">
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="personalizza-struttura__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[{ value: '', label: 'Hotel Archimede' }, ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))]}
+        />
+        <div className="personalizza-struttura__field-raw">
           <label>Assegnazione</label>
           <div className="personalizza-struttura__row-cell">
             <select className="sib-select personalizza-struttura__short" value={data.Assegnazione1} onChange={(e) => setData({ ...data, Assegnazione1: e.target.value })}>
@@ -92,26 +94,22 @@ export default function PersonalizzaStruttura() {
             </select>
           </div>
         </div>
-        <div className="personalizza-struttura__field">
-          <label>Da che ora prevedi il check in</label>
-          <select
-            className="sib-select personalizza-struttura__time"
-            value={data.CheckInDa}
-            onChange={(e) => setData({ ...data, CheckInDa: e.target.value })}
-          >
-            {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div className="personalizza-struttura__field">
-          <label>Fino a che ora è previsto il check out</label>
-          <select
-            className="sib-select personalizza-struttura__time"
-            value={data.CheckOutFino}
-            onChange={(e) => setData({ ...data, CheckOutFino: e.target.value })}
-          >
-            {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="checkInDa"
+          label="Da che ora prevedi il check in"
+          className="personalizza-struttura__field personalizza-struttura__time"
+          value={data.CheckInDa}
+          onChange={(e) => setData({ ...data, CheckInDa: e.target.value })}
+          options={TIME_OPTIONS.map((t) => ({ value: t, label: t }))}
+        />
+        <SelectField
+          name="checkOutFino"
+          label="Fino a che ora è previsto il check out"
+          className="personalizza-struttura__field personalizza-struttura__time"
+          value={data.CheckOutFino}
+          onChange={(e) => setData({ ...data, CheckOutFino: e.target.value })}
+          options={TIME_OPTIONS.map((t) => ({ value: t, label: t }))}
+        />
         <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>
       </div>
 

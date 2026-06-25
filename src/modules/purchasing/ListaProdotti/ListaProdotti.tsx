@@ -190,7 +190,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="lista-prodotti">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Lista prodotti"
         subtitle="Tutti i prodotti del catalogo merceologico, con modifica e gestione dei prezzi"

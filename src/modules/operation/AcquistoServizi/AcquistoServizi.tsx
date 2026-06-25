@@ -57,7 +57,7 @@ export default function AcquistoServizi({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="acq-serv">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Acquisto Servizi" subtitle="Servizi acquistati dalla struttura e dettagli di ogni acquisto" />
 
       {/* ── Toolbar: ricerca + filtro pagamento + totale ──────────────── */}

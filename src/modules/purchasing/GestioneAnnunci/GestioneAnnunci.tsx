@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { Icon } from '../_shared/Icon'
+import { InputField, SelectField } from '../../../core/components/form'
 import {
   HOTEL_CATEGORY_MAP,
   addManagementAnnouncement,
@@ -117,95 +118,92 @@ export default function GestioneAnnunci({ navigate }: { navigate: (p: string) =>
 
         <div className="announcements-mgmt__form-body">
           <div className="announcements-mgmt__row-primary">
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Tipo</span>
-              <select
-                className="sib-select"
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as AnnouncementType })}
-              >
-                <option value="vendita">Vendita</option>
-                <option value="acquisto">Acquisto</option>
-              </select>
-            </label>
+            <SelectField
+              name="type"
+              label="Tipo"
+              className="announcements-mgmt__field"
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as AnnouncementType })}
+              options={[
+                { value: 'vendita', label: 'Vendita' },
+                { value: 'acquisto', label: 'Acquisto' },
+              ]}
+            />
 
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Tipologia</span>
-              <select
-                className="sib-select"
-                value={formData.structureType}
-                onChange={(e) => setFormData({ ...formData, structureType: e.target.value as AnnouncementStructureType })}
-              >
-                <option value="struttura">Struttura</option>
-                <option value="categoria">Categoria</option>
-              </select>
-            </label>
+            <SelectField
+              name="structureType"
+              label="Tipologia"
+              className="announcements-mgmt__field"
+              value={formData.structureType}
+              onChange={(e) => setFormData({ ...formData, structureType: e.target.value as AnnouncementStructureType })}
+              options={[
+                { value: 'struttura', label: 'Struttura' },
+                { value: 'categoria', label: 'Categoria' },
+              ]}
+            />
 
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Ospiti</span>
-              <select
-                className="sib-select"
-                value={formData.guestType}
-                onChange={(e) => setFormData({ ...formData, guestType: e.target.value as GuestType })}
-              >
-                <option value="gruppi">Gruppi</option>
-                <option value="individuali">Individuali</option>
-              </select>
-            </label>
+            <SelectField
+              name="guestType"
+              label="Ospiti"
+              className="announcements-mgmt__field"
+              value={formData.guestType}
+              onChange={(e) => setFormData({ ...formData, guestType: e.target.value as GuestType })}
+              options={[
+                { value: 'gruppi', label: 'Gruppi' },
+                { value: 'individuali', label: 'Individuali' },
+              ]}
+            />
 
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Base</span>
-              <select
-                className="sib-select"
-                value={formData.baseType}
-                onChange={(e) => setFormData({ ...formData, baseType: e.target.value as BaseType })}
-              >
-                <option value="base_doppia">Base Doppia</option>
-                <option value="base_multipla">Base Multipla</option>
-                <option value="mista">Mista</option>
-              </select>
-            </label>
+            <SelectField
+              name="baseType"
+              label="Base"
+              className="announcements-mgmt__field"
+              value={formData.baseType}
+              onChange={(e) => setFormData({ ...formData, baseType: e.target.value as BaseType })}
+              options={[
+                { value: 'base_doppia', label: 'Base Doppia' },
+                { value: 'base_multipla', label: 'Base Multipla' },
+                { value: 'mista', label: 'Mista' },
+              ]}
+            />
 
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Lotti</span>
-              <select
-                className="sib-select"
-                value={formData.lotType}
-                onChange={(e) => setFormData({ ...formData, lotType: e.target.value as LotType })}
-              >
-                <option value="lotto">Lotto</option>
-                <option value="mezzo_lotto">Mezzo Lotto</option>
-              </select>
-            </label>
+            <SelectField
+              name="lotType"
+              label="Lotti"
+              className="announcements-mgmt__field"
+              value={formData.lotType}
+              onChange={(e) => setFormData({ ...formData, lotType: e.target.value as LotType })}
+              options={[
+                { value: 'lotto', label: 'Lotto' },
+                { value: 'mezzo_lotto', label: 'Mezzo Lotto' },
+              ]}
+            />
 
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Quantità</span>
-              <input
-                type="number"
-                className="sib-input"
-                min={1}
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value, 10) || 1 })}
-              />
-            </label>
+            <InputField
+              name="quantity"
+              label="Quantità"
+              type="number"
+              min={1}
+              className="announcements-mgmt__field"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value, 10) || 1 })}
+            />
           </div>
 
           <div className="announcements-mgmt__row-secondary">
-            <label className="announcements-mgmt__field">
-              <span className="announcements-mgmt__field-label">Struttura</span>
-              <select
-                className="sib-select"
-                value={formData.structure}
-                onChange={(e) => setFormData({ ...formData, structure: e.target.value })}
-              >
-                <option value="">Seleziona hotel...</option>
-                {Object.keys(HOTEL_CATEGORY_MAP).map((hotel) => (
-                  <option key={hotel} value={hotel}>{hotel}</option>
-                ))}
-              </select>
-            </label>
+            <SelectField
+              name="structure"
+              label="Struttura"
+              className="announcements-mgmt__field"
+              value={formData.structure}
+              onChange={(e) => setFormData({ ...formData, structure: e.target.value })}
+              options={[
+                { value: '', label: 'Seleziona hotel...' },
+                ...Object.keys(HOTEL_CATEGORY_MAP).map((hotel) => ({ value: hotel, label: hotel })),
+              ]}
+            />
 
-            <label className="announcements-mgmt__field">
+            <label className="announcements-mgmt__field announcements-mgmt__field-raw">
               <span className="announcements-mgmt__field-label">Periodo</span>
               <div className="announcements-mgmt__date-range">
                 <input

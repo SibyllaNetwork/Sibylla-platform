@@ -203,7 +203,7 @@ export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string)
 
   return (
     <div className="movimenti-soggiorno">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Movimenti soggiorno"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"

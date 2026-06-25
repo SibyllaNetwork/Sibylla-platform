@@ -226,7 +226,7 @@ export default function CreaStruttura({
 
   return (
     <div className="crea-struttura">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Crea struttura"
         subtitle="Imposta, aggiungi e verifica i dati delle tue strutture ricettive"

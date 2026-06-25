@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
+import { InputField, SelectField } from '../../../core/components/form'
 import './ContiCamera.sass'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -390,14 +391,22 @@ function ModificaAddebitoModal({ addebito, onClose }: { addebito: Addebito; onCl
     <ModalShell title="Modifica addebito" onClose={onClose} maxWidth={520}>
       <p className="cc-modal__totale">Totale addebito <strong>{fmtCurrency(addebito.prezzo)}</strong></p>
       <div className="cc-modal__grid cc-modal__grid--2">
-        <div className="cc-modal__field">
-          <label>Modifica importo</label>
-          <input className="sib-input" type="text" value={importo} onChange={(e) => setImporto(e.target.value)} />
-        </div>
-        <div className="cc-modal__field">
-          <label>Motivazione</label>
-          <input className="sib-input" placeholder="Inserire motivazione" value={motivazione} onChange={(e) => setMotivazione(e.target.value)} />
-        </div>
+        <InputField
+          className="cc-modal__field"
+          name="importo"
+          label="Modifica importo"
+          type="text"
+          value={importo}
+          onChange={(e) => setImporto(e.target.value)}
+        />
+        <InputField
+          className="cc-modal__field"
+          name="motivazione"
+          label="Motivazione"
+          placeholder="Inserire motivazione"
+          value={motivazione}
+          onChange={(e) => setMotivazione(e.target.value)}
+        />
       </div>
       <div className="cc-modal__foot">
         <button type="button" className="sib-btn sib-btn--primary" disabled={!importo || !motivazione} onClick={onClose}>Salva</button>
@@ -426,14 +435,16 @@ function FrazionatoModal({ addebito, onClose }: { addebito: Addebito; onClose: (
     <ModalShell title="Addebito frazionato" onClose={onClose} maxWidth={620}>
       <p className="cc-modal__totale">Totale addebito <strong>{fmtCurrency(addebito.prezzo)}</strong></p>
       <div className="cc-modal__frazionato">
-        <div className="cc-modal__field cc-modal__field--narrow">
-          <label>Numero parti</label>
-          <select className="sib-select" value={parti} onChange={(e) => setNumeroParti(Number(e.target.value))}>
-            {[2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="numeroParti"
+          label="Numero parti"
+          value={parti}
+          onChange={(e) => setNumeroParti(Number(e.target.value))}
+          options={[2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }))}
+        />
         {valori.map((v, i) => (
-          <div key={i} className="cc-modal__field cc-modal__field--narrow">
+          <div key={i} className="cc-modal__field-raw cc-modal__field--narrow">
             <label>Parte {i + 1}</label>
             <div className="cc-modal__amount">
               <input className="sib-input" type="text" placeholder="0.00" value={v} onChange={(e) => setValore(i, e.target.value)} />
@@ -458,14 +469,16 @@ function PartiUgualiModal({ addebito, onClose }: { addebito: Addebito; onClose: 
     <ModalShell title="Addebito in parti uguali" onClose={onClose} maxWidth={620}>
       <p className="cc-modal__totale">Totale addebito <strong>{fmtCurrency(addebito.prezzo)}</strong></p>
       <div className="cc-modal__frazionato">
-        <div className="cc-modal__field cc-modal__field--narrow">
-          <label>Numero parti</label>
-          <select className="sib-select" value={parti} onChange={(e) => setParti(Number(e.target.value))}>
-            {[2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="numeroParti"
+          label="Numero parti"
+          value={parti}
+          onChange={(e) => setParti(Number(e.target.value))}
+          options={[2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }))}
+        />
         {Array.from({ length: parti }, (_, i) => (
-          <div key={i} className="cc-modal__field cc-modal__field--narrow">
+          <div key={i} className="cc-modal__field-raw cc-modal__field--narrow">
             <label>Parte {i + 1}</label>
             <div className="cc-modal__amount">
               <input className="sib-input" type="text" value={valore.toFixed(2).replace('.', ',')} readOnly />
@@ -535,13 +548,17 @@ function TrasferisciModal({ addebito, addebiti, onClose }: { addebito: Addebito;
         </table>
       </div>
       <div className="cc-modal__totale-row">Totale: <strong>{fmtCurrency(totale)}</strong></div>
-      <div className="cc-modal__field">
-        <label>Seleziona camera di destinazione</label>
-        <select className="sib-select" value={destCamera} onChange={(e) => setDestCamera(e.target.value)}>
-          <option value="">Seleziona</option>
-          {camereDisponibili.map((c) => <option key={c} value={c}>Camera {c}</option>)}
-        </select>
-      </div>
+      <SelectField
+        className="cc-modal__field"
+        name="destCamera"
+        label="Seleziona camera di destinazione"
+        value={destCamera}
+        onChange={(e) => setDestCamera(e.target.value)}
+        options={[
+          { value: '', label: 'Seleziona' },
+          ...camereDisponibili.map((c) => ({ value: c, label: `Camera ${c}` })),
+        ]}
+      />
       <div className="cc-modal__foot">
         <button type="button" className="sib-btn sib-btn--primary" disabled={!destCamera || selected.length === 0} onClick={onClose}>Trasferisci</button>
       </div>
@@ -588,62 +605,86 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
         <DetailField label="Ospiti" value={String(dettaglio.ospiti)} />
       </div>
       <div className="cc-modal__row">
-        <div className="cc-modal__field cc-modal__field--medium">
-          <label>Nome servizio</label>
-          <select className="sib-select" value={nomeServizio} onChange={(e) => setNomeServizio(e.target.value)}>
-            <option value="">Seleziona</option>
-            <option value="room-only">Room Only</option>
-            <option value="frigo-bar">Frigo Bar</option>
-            <option value="lavanderia">Lavanderia</option>
-            <option value="parcheggio">Parcheggio</option>
-          </select>
-        </div>
-        <div className="cc-modal__field cc-modal__field--medium">
-          <label>Descrizione</label>
-          <input className="sib-input" value={descrizione} onChange={(e) => setDescrizione(e.target.value)} />
-        </div>
-        <div className="cc-modal__field cc-modal__field--medium">
-          <label>Ospite</label>
-          <select className="sib-select" value={ospite} onChange={(e) => setOspite(e.target.value)}>
-            <option value="">Seleziona</option>
-            <option value="novi">Novi Ruggero</option>
-          </select>
-        </div>
-        <div className="cc-modal__field cc-modal__field--narrow">
-          <label>Pertinenza</label>
-          <select className="sib-select" value={pertinenza} onChange={(e) => setPertinenza(e.target.value)}>
-            <option value="Ospite">Ospite</option>
-            <option value="Camera">Camera</option>
-            <option value="Prenotazione">Prenotazione</option>
-          </select>
-        </div>
-        <div className="cc-modal__field cc-modal__field--xs">
-          <label>Quantità</label>
-          <select className="sib-select" value={quantita} onChange={(e) => setQuantita(e.target.value)}>
-            {[1,2,3,4,5,6,7,8,9,10].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-        <div className="cc-modal__field cc-modal__field--xs">
+        <SelectField
+          className="cc-modal__field cc-modal__field--medium"
+          name="nomeServizio"
+          label="Nome servizio"
+          value={nomeServizio}
+          onChange={(e) => setNomeServizio(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: 'room-only', label: 'Room Only' },
+            { value: 'frigo-bar', label: 'Frigo Bar' },
+            { value: 'lavanderia', label: 'Lavanderia' },
+            { value: 'parcheggio', label: 'Parcheggio' },
+          ]}
+        />
+        <InputField
+          className="cc-modal__field cc-modal__field--medium"
+          name="descrizione"
+          label="Descrizione"
+          value={descrizione}
+          onChange={(e) => setDescrizione(e.target.value)}
+        />
+        <SelectField
+          className="cc-modal__field cc-modal__field--medium"
+          name="ospite"
+          label="Ospite"
+          value={ospite}
+          onChange={(e) => setOspite(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: 'novi', label: 'Novi Ruggero' },
+          ]}
+        />
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="pertinenza"
+          label="Pertinenza"
+          value={pertinenza}
+          onChange={(e) => setPertinenza(e.target.value)}
+          options={[
+            { value: 'Ospite', label: 'Ospite' },
+            { value: 'Camera', label: 'Camera' },
+            { value: 'Prenotazione', label: 'Prenotazione' },
+          ]}
+        />
+        <SelectField
+          className="cc-modal__field cc-modal__field--xs"
+          name="quantita"
+          label="Quantità"
+          value={quantita}
+          onChange={(e) => setQuantita(e.target.value)}
+          options={[1,2,3,4,5,6,7,8,9,10].map((n) => ({ value: n, label: String(n) }))}
+        />
+        <div className="cc-modal__field-raw cc-modal__field--xs">
           <label>Prezzo</label>
           <div className="cc-modal__amount">
             <input className="sib-input" value={prezzo} onChange={(e) => setPrezzo(e.target.value)} />
             <span>€</span>
           </div>
         </div>
-        <div className="cc-modal__field cc-modal__field--narrow">
-          <label>IVA</label>
-          <select className="sib-select" value={iva} onChange={(e) => setIva(e.target.value)}>
-            <option value="">Seleziona</option>
-            <option value="0">0%</option>
-            <option value="4">4%</option>
-            <option value="10">10%</option>
-            <option value="22">22%</option>
-          </select>
-        </div>
-        <div className="cc-modal__field cc-modal__field--narrow">
-          <label>Del</label>
-          <input className="sib-input" value={del} onChange={(e) => setDel(e.target.value)} />
-        </div>
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="iva"
+          label="IVA"
+          value={iva}
+          onChange={(e) => setIva(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: '0', label: '0%' },
+            { value: '4', label: '4%' },
+            { value: '10', label: '10%' },
+            { value: '22', label: '22%' },
+          ]}
+        />
+        <InputField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="del"
+          label="Del"
+          value={del}
+          onChange={(e) => setDel(e.target.value)}
+        />
       </div>
       <div className="cc-modal__foot">
         <button type="button" className="sib-btn sib-btn--primary" disabled={!nomeServizio || !prezzo || !iva} onClick={onClose}>Salva</button>

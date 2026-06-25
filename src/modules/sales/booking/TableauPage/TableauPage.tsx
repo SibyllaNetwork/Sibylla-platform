@@ -169,7 +169,7 @@ export default function TableauPage({
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title={title} subtitle={subtitle}/>
 
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}

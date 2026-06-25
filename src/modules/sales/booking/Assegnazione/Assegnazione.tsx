@@ -90,7 +90,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="assegnazione">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       <PageHeader title="Assegnazione" subtitle="Visualizzazione dell'assegnazione delle camere proposte dall'AI di Sibylla e possibilità di modifica"/>
 

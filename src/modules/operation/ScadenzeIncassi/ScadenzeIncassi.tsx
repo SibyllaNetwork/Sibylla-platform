@@ -262,7 +262,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="scad-inc">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Scadenze incassi"
         subtitle="Monitora acconti, rate e saldi delle prenotazioni: evidenzia i pagamenti in scadenza o scaduti, invia solleciti e registra gli incassi"
@@ -284,7 +284,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
       )}
 
       <div className="scad-inc__bar">
-        <div className="scad-inc__field scad-inc__field--grow">
+        <div className="scad-inc__field scad-inc__field-raw scad-inc__field--grow">
           <label>Cerca</label>
           <div className="scad-inc__search">
             <input

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
-import { DateRangeField } from '../../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './BudgetAnalysis.sass'
 
 type BudgetView = 'revenue' | 'cost' | 'profit'
@@ -76,7 +76,7 @@ export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="budget-analysis">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Budget analysis"
         subtitle="Visualizza, monitora e analizza i budget per decisioni strategiche"
@@ -84,15 +84,17 @@ export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => 
 
       <div className="budget-analysis__filters">
         <div className="budget-analysis__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select budget-analysis__select"
+          <SelectField
+            label="Struttura"
+            name="struttura"
+            className="budget-analysis__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Tutte le strutture</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
+            options={[
+              { value: '', label: 'Tutte le strutture' },
+              ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+            ]}
+          />
         </div>
         <div className="budget-analysis__field">
           <DateRangeField

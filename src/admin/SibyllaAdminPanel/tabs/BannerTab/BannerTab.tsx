@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField } from '../../../../core/components/form'
 import BannerPreview from './BannerPreview'
 import BookingPageTab from './BookingPageTab'
 import {
@@ -226,49 +227,50 @@ export default function BannerTab() {
           <section className="bgen__config">
             <h3 className="bgen__section-title">Configurazione</h3>
 
-            <div className="bgen__field bgen__field--full">
-              <label className="bgen__label" htmlFor="bgen-dest">Destinazione predefinita</label>
-              <input
-                id="bgen-dest"
-                className="sib-input"
-                placeholder="Es. Roma, Costiera Amalfitana… (vuoto = ricerca libera)"
-                value={config.destinazione}
-                onChange={e => set('destinazione', e.target.value)}
-              />
-            </div>
+            <InputField
+              className="bgen__field bgen__field--full"
+              name="bgen-dest"
+              label="Destinazione predefinita"
+              placeholder="Es. Roma, Costiera Amalfitana… (vuoto = ricerca libera)"
+              value={config.destinazione}
+              onChange={e => set('destinazione', e.target.value)}
+            />
 
-            <div className="bgen__field bgen__field--full">
-              <label className="bgen__label" htmlFor="bgen-msg">Messaggio personalizzato</label>
-              <input
-                id="bgen-msg"
-                className="sib-input"
-                placeholder={`${labelsFor(config.lingua).slogan} (predefinito)`}
-                value={config.messaggio}
-                onChange={e => set('messaggio', e.target.value)}
-              />
-              <span className="bgen__hint-inline">Sovrascrive lo slogan in tutti i banner. Lascia vuoto per usare il testo predefinito della lingua selezionata.</span>
-            </div>
+            <InputField
+              className="bgen__field bgen__field--full"
+              name="bgen-msg"
+              label="Messaggio personalizzato"
+              placeholder={`${labelsFor(config.lingua).slogan} (predefinito)`}
+              value={config.messaggio}
+              onChange={e => set('messaggio', e.target.value)}
+              hint="Sovrascrive lo slogan in tutti i banner. Lascia vuoto per usare il testo predefinito della lingua selezionata."
+            />
 
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-lang">Lingua</label>
-                <select id="bgen-lang" className="sib-select" value={config.lingua} onChange={e => set('lingua', e.target.value)}>
-                  {LINGUE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-cur">Valuta</label>
-                <select id="bgen-cur" className="sib-select" value={config.valuta} onChange={e => set('valuta', e.target.value)}>
-                  {VALUTE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-tema">Tema</label>
-                <select id="bgen-tema" className="sib-select" value={config.tema} onChange={e => set('tema', e.target.value as BannerConfig['tema'])}>
-                  <option value="light">Chiaro</option>
-                  <option value="dark">Scuro</option>
-                </select>
-              </div>
+              <SelectField
+                className="bgen__field"
+                name="bgen-lang"
+                label="Lingua"
+                value={config.lingua}
+                onChange={e => set('lingua', e.target.value)}
+                options={LINGUE.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-cur"
+                label="Valuta"
+                value={config.valuta}
+                onChange={e => set('valuta', e.target.value)}
+                options={VALUTE.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-tema"
+                label="Tema"
+                value={config.tema}
+                onChange={e => set('tema', e.target.value as BannerConfig['tema'])}
+                options={[{ value: 'light', label: 'Chiaro' }, { value: 'dark', label: 'Scuro' }]}
+              />
             </div>
 
             <div className="bgen__field bgen__field--full">
@@ -326,48 +328,64 @@ export default function BannerTab() {
 
             {/* ─── Tipografia ───────────────────────────────────────── */}
             <h3 className="bgen__section-title bgen__section-title--spaced">Tipografia</h3>
-            <div className="bgen__field bgen__field--full">
-              <label className="bgen__label" htmlFor="bgen-font">Font dei titoli</label>
-              <select id="bgen-font" className="sib-select" value={config.fontFamily} onChange={e => set('fontFamily', e.target.value)}>
-                {FONT_FAMILIES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
-              </select>
-            </div>
+            <SelectField
+              className="bgen__field bgen__field--full"
+              name="bgen-font"
+              label="Font dei titoli"
+              value={config.fontFamily}
+              onChange={e => set('fontFamily', e.target.value)}
+              options={FONT_FAMILIES.map(f => ({ value: f.id, label: f.label }))}
+            />
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-fweight">Peso</label>
-                <select id="bgen-fweight" className="sib-select" value={config.headingWeight} onChange={e => set('headingWeight', Number(e.target.value))}>
-                  {HEADING_WEIGHTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-fscale">Dimensione</label>
-                <select id="bgen-fscale" className="sib-select" value={config.headingScale} onChange={e => set('headingScale', Number(e.target.value))}>
-                  <option value={0.85}>Compatta</option>
-                  <option value={1}>Normale</option>
-                  <option value={1.15}>Grande</option>
-                  <option value={1.3}>Molto grande</option>
-                  <option value={1.5}>Massima</option>
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-fleading">Interlinea</label>
-                <select id="bgen-fleading" className="sib-select" value={config.lineHeight} onChange={e => set('lineHeight', Number(e.target.value))}>
-                  <option value={1}>Stretta</option>
-                  <option value={1.2}>Normale</option>
-                  <option value={1.4}>Ariosa</option>
-                  <option value={1.6}>Molto ariosa</option>
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-ftracking">Spaziatura lettere</label>
-                <select id="bgen-ftracking" className="sib-select" value={config.letterSpacing} onChange={e => set('letterSpacing', Number(e.target.value))}>
-                  <option value={-0.02}>Compatta</option>
-                  <option value={0}>Normale</option>
-                  <option value={0.04}>Larga</option>
-                  <option value={0.08}>Molto larga</option>
-                  <option value={0.16}>Massima</option>
-                </select>
-              </div>
+              <SelectField
+                className="bgen__field"
+                name="bgen-fweight"
+                label="Peso"
+                value={config.headingWeight}
+                onChange={e => set('headingWeight', Number(e.target.value))}
+                options={HEADING_WEIGHTS.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-fscale"
+                label="Dimensione"
+                value={config.headingScale}
+                onChange={e => set('headingScale', Number(e.target.value))}
+                options={[
+                  { value: 0.85, label: 'Compatta' },
+                  { value: 1, label: 'Normale' },
+                  { value: 1.15, label: 'Grande' },
+                  { value: 1.3, label: 'Molto grande' },
+                  { value: 1.5, label: 'Massima' },
+                ]}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-fleading"
+                label="Interlinea"
+                value={config.lineHeight}
+                onChange={e => set('lineHeight', Number(e.target.value))}
+                options={[
+                  { value: 1, label: 'Stretta' },
+                  { value: 1.2, label: 'Normale' },
+                  { value: 1.4, label: 'Ariosa' },
+                  { value: 1.6, label: 'Molto ariosa' },
+                ]}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-ftracking"
+                label="Spaziatura lettere"
+                value={config.letterSpacing}
+                onChange={e => set('letterSpacing', Number(e.target.value))}
+                options={[
+                  { value: -0.02, label: 'Compatta' },
+                  { value: 0, label: 'Normale' },
+                  { value: 0.04, label: 'Larga' },
+                  { value: 0.08, label: 'Molto larga' },
+                  { value: 0.16, label: 'Massima' },
+                ]}
+              />
             </div>
             <div className="bgen__field bgen__field--full">
               <label className="bgen__label">Stile del testo</label>
@@ -383,19 +401,23 @@ export default function BannerTab() {
                 <h3 className="bgen__section-title bgen__section-title--spaced">Disposizione testi</h3>
                 <div className="bgen__grid">
                   {format.kind === 'display' && (
-                    <div className="bgen__field">
-                      <label className="bgen__label" htmlFor="bgen-valign">Posizione verticale</label>
-                      <select id="bgen-valign" className="sib-select" value={config.contentVAlign} onChange={e => set('contentVAlign', e.target.value as BannerConfig['contentVAlign'])}>
-                        {VALIGN_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
-                    </div>
+                    <SelectField
+                      className="bgen__field"
+                      name="bgen-valign"
+                      label="Posizione verticale"
+                      value={config.contentVAlign}
+                      onChange={e => set('contentVAlign', e.target.value as BannerConfig['contentVAlign'])}
+                      options={VALIGN_OPTIONS.map(([v, l]) => ({ value: v, label: l }))}
+                    />
                   )}
-                  <div className="bgen__field">
-                    <label className="bgen__label" htmlFor="bgen-talign">Allineamento orizzontale</label>
-                    <select id="bgen-talign" className="sib-select" value={config.textAlign} onChange={e => set('textAlign', e.target.value as BannerConfig['textAlign'])}>
-                      {TEXT_ALIGN_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                    </select>
-                  </div>
+                  <SelectField
+                    className="bgen__field"
+                    name="bgen-talign"
+                    label="Allineamento orizzontale"
+                    value={config.textAlign}
+                    onChange={e => set('textAlign', e.target.value as BannerConfig['textAlign'])}
+                    options={TEXT_ALIGN_OPTIONS.map(([v, l]) => ({ value: v, label: l }))}
+                  />
                 </div>
                 <span className="bgen__hint-inline">Il logo resta posizionato in modo indipendente dalla sezione Logo.</span>
               </>
@@ -435,22 +457,28 @@ export default function BannerTab() {
               )}
             </div>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-logo-pos">Posizione logo</label>
-                <select id="bgen-logo-pos" className="sib-select" value={config.logoPosition} onChange={e => set('logoPosition', e.target.value as BannerConfig['logoPosition'])}>
-                  {LOGO_POSITIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-logo-size">Dimensione logo</label>
-                <select id="bgen-logo-size" className="sib-select" value={config.logoSize} onChange={e => set('logoSize', Number(e.target.value))}>
-                  <option value={0}>Automatica</option>
-                  <option value={16}>Piccolo</option>
-                  <option value={22}>Medio</option>
-                  <option value={30}>Grande</option>
-                  <option value={40}>Extra</option>
-                </select>
-              </div>
+              <SelectField
+                className="bgen__field"
+                name="bgen-logo-pos"
+                label="Posizione logo"
+                value={config.logoPosition}
+                onChange={e => set('logoPosition', e.target.value as BannerConfig['logoPosition'])}
+                options={LOGO_POSITIONS.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-logo-size"
+                label="Dimensione logo"
+                value={config.logoSize}
+                onChange={e => set('logoSize', Number(e.target.value))}
+                options={[
+                  { value: 0, label: 'Automatica' },
+                  { value: 16, label: 'Piccolo' },
+                  { value: 22, label: 'Medio' },
+                  { value: 30, label: 'Grande' },
+                  { value: 40, label: 'Extra' },
+                ]}
+              />
             </div>
 
             {/* ─── Sfondo ───────────────────────────────────────────── */}
@@ -546,41 +574,53 @@ export default function BannerTab() {
                   </span>
                 </div>
                 <div className="bgen__grid">
-                  <div className="bgen__field">
-                    <label className="bgen__label" htmlFor="bgen-bg-pos">Posizione sfondo</label>
-                    <select id="bgen-bg-pos" className="sib-select" value={config.bgPosition} onChange={e => set('bgPosition', e.target.value as BannerConfig['bgPosition'])}>
-                      {BG_POSITIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                    </select>
-                  </div>
-                  <div className="bgen__field">
-                    <label className="bgen__label" htmlFor="bgen-bg-fit">Adattamento</label>
-                    <select id="bgen-bg-fit" className="sib-select" value={config.bgFit} onChange={e => set('bgFit', e.target.value as BannerConfig['bgFit'])}>
-                      <option value="cover">Riempi (cover)</option>
-                      <option value="contain">Contieni (contain)</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    className="bgen__field"
+                    name="bgen-bg-pos"
+                    label="Posizione sfondo"
+                    value={config.bgPosition}
+                    onChange={e => set('bgPosition', e.target.value as BannerConfig['bgPosition'])}
+                    options={BG_POSITIONS.map(([v, l]) => ({ value: v, label: l }))}
+                  />
+                  <SelectField
+                    className="bgen__field"
+                    name="bgen-bg-fit"
+                    label="Adattamento"
+                    value={config.bgFit}
+                    onChange={e => set('bgFit', e.target.value as BannerConfig['bgFit'])}
+                    options={[
+                      { value: 'cover', label: 'Riempi (cover)' },
+                      { value: 'contain', label: 'Contieni (contain)' },
+                    ]}
+                  />
                 </div>
 
                 {(format.kind === 'display' || format.kind === 'card') && (
                   <>
                     <div className="bgen__grid">
-                      <div className="bgen__field">
-                        <label className="bgen__label" htmlFor="bgen-scrim">Effetto sfumatura</label>
-                        <select id="bgen-scrim" className="sib-select" value={config.scrimStyle} onChange={e => set('scrimStyle', e.target.value as BannerConfig['scrimStyle'])}>
-                          {SCRIM_STYLES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                        </select>
-                      </div>
+                      <SelectField
+                        className="bgen__field"
+                        name="bgen-scrim"
+                        label="Effetto sfumatura"
+                        value={config.scrimStyle}
+                        onChange={e => set('scrimStyle', e.target.value as BannerConfig['scrimStyle'])}
+                        options={SCRIM_STYLES.map(([v, l]) => ({ value: v, label: l }))}
+                      />
                       {config.scrimStyle !== 'none' && (
-                        <div className="bgen__field">
-                          <label className="bgen__label" htmlFor="bgen-scrim-str">Intensità</label>
-                          <select id="bgen-scrim-str" className="sib-select" value={config.scrimStrength} onChange={e => set('scrimStrength', Number(e.target.value))}>
-                            <option value={35}>Leggera</option>
-                            <option value={55}>Media</option>
-                            <option value={72}>Marcata</option>
-                            <option value={88}>Forte</option>
-                            <option value={100}>Piena</option>
-                          </select>
-                        </div>
+                        <SelectField
+                          className="bgen__field"
+                          name="bgen-scrim-str"
+                          label="Intensità"
+                          value={config.scrimStrength}
+                          onChange={e => set('scrimStrength', Number(e.target.value))}
+                          options={[
+                            { value: 35, label: 'Leggera' },
+                            { value: 55, label: 'Media' },
+                            { value: 72, label: 'Marcata' },
+                            { value: 88, label: 'Forte' },
+                            { value: 100, label: 'Piena' },
+                          ]}
+                        />
                       )}
                     </div>
                     {config.scrimStyle !== 'none' && (
@@ -616,49 +656,79 @@ export default function BannerTab() {
             {/* ─── Link ─────────────────────────────────────────────── */}
             <h3 className="bgen__section-title bgen__section-title--spaced">Link</h3>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-link-type">Tipo di link</label>
-                <select id="bgen-link-type" className="sib-select" value={config.linkType} onChange={e => set('linkType', e.target.value as BannerConfig['linkType'])}>
-                  {LINK_TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-link-target">Apertura</label>
-                <select id="bgen-link-target" className="sib-select" value={config.linkTarget} onChange={e => set('linkTarget', e.target.value as BannerConfig['linkTarget'])}>
-                  <option value="_blank">Nuova scheda</option>
-                  <option value="_self">Stessa scheda</option>
-                </select>
-              </div>
+              <SelectField
+                className="bgen__field"
+                name="bgen-link-type"
+                label="Tipo di link"
+                value={config.linkType}
+                onChange={e => set('linkType', e.target.value as BannerConfig['linkType'])}
+                options={LINK_TYPES.map(([v, l]) => ({ value: v, label: l }))}
+              />
+              <SelectField
+                className="bgen__field"
+                name="bgen-link-target"
+                label="Apertura"
+                value={config.linkTarget}
+                onChange={e => set('linkTarget', e.target.value as BannerConfig['linkTarget'])}
+                options={[
+                  { value: '_blank', label: 'Nuova scheda' },
+                  { value: '_self', label: 'Stessa scheda' },
+                ]}
+              />
             </div>
             {config.linkType === 'custom' && (
-              <div className="bgen__field bgen__field--full">
-                <label className="bgen__label" htmlFor="bgen-link-url">URL di destinazione</label>
-                <input id="bgen-link-url" className="sib-input" placeholder="https://…" value={config.linkUrl} onChange={e => set('linkUrl', e.target.value)} />
-              </div>
+              <InputField
+                className="bgen__field bgen__field--full"
+                name="bgen-link-url"
+                label="URL di destinazione"
+                placeholder="https://…"
+                value={config.linkUrl}
+                onChange={e => set('linkUrl', e.target.value)}
+              />
             )}
-            <div className="bgen__field bgen__field--full">
-              <label className="bgen__label" htmlFor="bgen-link-text">Testo del link / bottone</label>
-              <input id="bgen-link-text" className="sib-input" placeholder="Es. Prenota ora, Scopri le offerte… (vuoto = predefinito)" value={config.linkText} onChange={e => set('linkText', e.target.value)} />
-            </div>
+            <InputField
+              className="bgen__field bgen__field--full"
+              name="bgen-link-text"
+              label="Testo del link / bottone"
+              placeholder="Es. Prenota ora, Scopri le offerte… (vuoto = predefinito)"
+              value={config.linkText}
+              onChange={e => set('linkText', e.target.value)}
+            />
 
             <h3 className="bgen__section-title bgen__section-title--spaced">Tracciamento</h3>
             <div className="bgen__grid">
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-aid">ID affiliato / partner</label>
-                <input id="bgen-aid" className="sib-input" placeholder="Es. AFF-10234" value={config.affiliateId} onChange={e => set('affiliateId', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-utms">UTM source</label>
-                <input id="bgen-utms" className="sib-input" placeholder="Es. blog-viaggi" value={config.utmSource} onChange={e => set('utmSource', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-utmm">UTM medium</label>
-                <input id="bgen-utmm" className="sib-input" placeholder="banner" value={config.utmMedium} onChange={e => set('utmMedium', e.target.value)} />
-              </div>
-              <div className="bgen__field">
-                <label className="bgen__label" htmlFor="bgen-utmc">UTM campaign</label>
-                <input id="bgen-utmc" className="sib-input" placeholder="Es. estate-2026" value={config.utmCampaign} onChange={e => set('utmCampaign', e.target.value)} />
-              </div>
+              <InputField
+                className="bgen__field"
+                name="bgen-aid"
+                label="ID affiliato / partner"
+                placeholder="Es. AFF-10234"
+                value={config.affiliateId}
+                onChange={e => set('affiliateId', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bgen-utms"
+                label="UTM source"
+                placeholder="Es. blog-viaggi"
+                value={config.utmSource}
+                onChange={e => set('utmSource', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bgen-utmm"
+                label="UTM medium"
+                placeholder="banner"
+                value={config.utmMedium}
+                onChange={e => set('utmMedium', e.target.value)}
+              />
+              <InputField
+                className="bgen__field"
+                name="bgen-utmc"
+                label="UTM campaign"
+                placeholder="Es. estate-2026"
+                value={config.utmCampaign}
+                onChange={e => set('utmCampaign', e.target.value)}
+              />
             </div>
           </section>
 

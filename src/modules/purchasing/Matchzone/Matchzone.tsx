@@ -135,7 +135,7 @@ export default function Matchzone({ navigate }: { navigate: (p: string) => void 
 
   return (
     <div className="match-zone">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Match Zone"
         subtitle="Seleziona un tuo annuncio e lascia che il sistema trovi la controparte"

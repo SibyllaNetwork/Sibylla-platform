@@ -105,7 +105,7 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Assegna obiettivo" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}

@@ -70,7 +70,7 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader title="Schedine alloggiati" subtitle="Archivio automatico e centralizzato delle presenze" />
 
       {error && loaded && (

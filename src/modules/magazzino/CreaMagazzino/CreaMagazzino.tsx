@@ -70,7 +70,7 @@ export default function CreaMagazzino({
 
   return (
     <div className="crea-mag">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Movimenti scorte"
         subtitle="Monitoraggio e gestione delle scorte di magazzino per tenere traccia delle giacenze, automatizzare il riordino e ottimizzare i livelli di stock"

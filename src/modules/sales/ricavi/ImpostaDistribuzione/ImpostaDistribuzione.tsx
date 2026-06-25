@@ -3,6 +3,7 @@ import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
+import { SelectField, InputField } from '../../../../core/components/form'
 import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
 
@@ -161,7 +162,7 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
 
   return (
     <div className="imposta-dist">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
 
       {data.attenzione && (
         <div className="imposta-dist__alert">
@@ -179,14 +180,14 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
 
       <div className="imposta-dist__bar">
         <div className="imposta-dist__field">
-          <label>Strutture</label>
-          <select
-            className="sib-select imposta-dist__select"
+          <SelectField
+            label="Strutture"
+            name="strutture"
+            className="imposta-dist__select"
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
+            options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          />
         </div>
         <button type="button" className="sib-btn sib-btn--secondary imposta-dist__invita" onClick={() => setInvitaOpen(true)}>
           <i className="fa-light fa-envelope" /> Invita nuovo operatore
@@ -207,28 +208,28 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
               Riceverai Sibylla Token nel momento della sua registrazione.
             </p>
             <div className="imposta-dist__modal-field">
-              <label>Nome azienda<span className="imposta-dist__req">*</span>:</label>
-              <input
-                type="text"
-                className="sib-input"
+              <InputField
+                label="Nome azienda"
+                name="azienda"
+                required
                 value={invita.azienda}
                 onChange={(e) => setInvita({ ...invita, azienda: e.target.value })}
               />
             </div>
             <div className="imposta-dist__modal-field">
-              <label>Email<span className="imposta-dist__req">*</span>:</label>
-              <input
+              <InputField
+                label="Email"
+                name="email"
                 type="email"
-                className="sib-input"
+                required
                 value={invita.email}
                 onChange={(e) => setInvita({ ...invita, email: e.target.value })}
               />
             </div>
             <div className="imposta-dist__modal-field">
-              <label>Referente:</label>
-              <input
-                type="text"
-                className="sib-input"
+              <InputField
+                label="Referente"
+                name="referente"
                 value={invita.referente}
                 onChange={(e) => setInvita({ ...invita, referente: e.target.value })}
               />
@@ -296,7 +297,7 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           </div>
 
           <div className="imposta-dist__cluster-form">
-            <div className="imposta-dist__cluster-row">
+            <div className="imposta-dist__cluster-row imposta-dist__field-raw">
               <span className="imposta-dist__cluster-label">Nome</span>
               <input
                 type="text"

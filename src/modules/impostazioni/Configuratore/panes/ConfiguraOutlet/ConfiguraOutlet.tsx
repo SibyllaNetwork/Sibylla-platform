@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { InputField, SelectField } from '../../../../../core/components/form'
 import './ConfiguraOutlet.sass'
 
 interface Sala { id: number; nome: string; tavoli: number; pax: number; attivo: boolean }
@@ -61,12 +62,14 @@ export default function ConfiguraOutlet() {
         Configuratore <i className="fa-light fa-chevron-right" /> <strong>Configura Outlet</strong>
       </div>
 
-      <div className="configura-outlet__field">
-        <label>I miei outlet</label>
-        <select className="sib-select" value={data.OutletId ?? ''} onChange={(e) => setData({ ...data, OutletId: e.target.value ? Number(e.target.value) : null })}>
-          {data.Outlet.map((o) => <option key={o.Id} value={o.Id}>{o.nome}</option>)}
-        </select>
-      </div>
+      <SelectField
+        name="miei-outlet"
+        label="I miei outlet"
+        className="configura-outlet__field"
+        value={data.OutletId ?? ''}
+        onChange={(e) => setData({ ...data, OutletId: e.target.value ? Number(e.target.value) : null })}
+        options={data.Outlet.map((o) => ({ value: o.Id, label: o.nome }))}
+      />
 
       <h3 className="configura-outlet__section-title">Configura Sale</h3>
       <button
@@ -149,15 +152,21 @@ export default function ConfiguraOutlet() {
       {data.turniEnabled && (
         <>
           <div className="configura-outlet__form">
-            <div className="configura-outlet__field"><label>Nome Turno</label><input type="text" className="sib-input" /></div>
-            <div className="configura-outlet__field"><label>Servizio</label>
-              <select className="sib-select">{SERVIZI.map((s) => <option key={s} value={s}>{s}</option>)}</select>
-            </div>
+            <InputField name="nome-turno" label="Nome Turno" className="configura-outlet__field" />
+            <SelectField
+              name="servizio"
+              label="Servizio"
+              className="configura-outlet__field"
+              options={SERVIZI.map((s) => ({ value: s, label: s }))}
+            />
             <div className="configura-outlet__field"><label>Dalle ore</label><input type="time" className="sib-input" /></div>
             <div className="configura-outlet__field"><label>Alle ore</label><input type="time" className="sib-input" /></div>
-            <div className="configura-outlet__field"><label>Sale</label>
-              <select className="sib-select">{data.sale.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}</select>
-            </div>
+            <SelectField
+              name="sale"
+              label="Sale"
+              className="configura-outlet__field"
+              options={data.sale.map((s) => ({ value: s.id, label: s.nome }))}
+            />
             <button type="button" className="sib-btn sib-btn--secondary configura-outlet__add"><i className="fa-light fa-circle-plus" /> Aggiungi Turno</button>
           </div>
 

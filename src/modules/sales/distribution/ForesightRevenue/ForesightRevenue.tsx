@@ -4,6 +4,7 @@ import BtnBack from '../../../../core/components/BtnBack'
 import Tooltip from '../../../../core/components/Tooltip'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHeader from '../../../../core/components/PageHeader'
+import { SelectField, RadioGroup } from '../../../../core/components/form'
 import './ForesightRevenue.sass'
 
 const STRUTTURE    = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Hotel Siracusa']
@@ -67,45 +68,35 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
 
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div className="foresight__toolbar">
-        <div>
+        <div className="foresight__field-raw">
           <label className="text-[12px] font-semibold font-poppins text-primary">Dal</label>
           <input type="date" className="sib-input" value={dateFrom} onChange={e=>setDateFrom(e.target.value)}/>
         </div>
-        <div>
+        <div className="foresight__field-raw">
           <label className="text-[12px] font-semibold font-poppins text-primary">Al</label>
           <input type="date" className="sib-input" value={dateTo} onChange={e=>setDateTo(e.target.value)}/>
         </div>
-        <div>
-          <label className="text-[12px] font-semibold font-poppins text-primary">Struttura</label>
-          <select className="sib-select" value={struttura} onChange={e=>setStruttura(e.target.value)}>
-            {STRUTTURE.map(s=><option key={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-[12px] font-semibold font-poppins text-primary">Tipo</label>
-          <div className="foresight__tipo-group">
-            {(['bar','fit'] as const).map(t=>(
-              <label key={t} className="foresight__tipo-label foresight__tipo-label--dyn" style={{
-                '--tipo-weight': tipoBar===t ? 700 : 400,
-                '--tipo-color':  tipoBar===t ? T.primary : T.textActive,
-              } as React.CSSProperties}>
-                <input type="radio" checked={tipoBar===t}
-                  onChange={()=>{
-                    if (t!==tipoBar&&erasedCells.size>0) { setPendingTipo(t); setShowConfirmModal(true) }
-                    else setTipoBar(t)
-                  }}
-                  className="sib-radio"/>
-                {t==='bar'?'B.A.R.':'F.I.T.'}
-              </label>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className="text-[12px] font-semibold font-poppins text-primary">B.A.R.</label>
-          <select className="sib-select" value={barSel} onChange={e=>setBarSel(e.target.value)}>
-            {BARS.map(b=><option key={b}>{b}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura" label="Struttura" value={struttura}
+          onChange={e=>setStruttura(e.target.value)}
+          options={STRUTTURE.map(s=>({ value: s, label: s }))}
+          className="foresight__select--struttura"
+        />
+        <RadioGroup
+          name="foresight-tipo" label="Tipo" value={tipoBar}
+          onChange={v=>{
+            const t = v as 'bar'|'fit'
+            if (t!==tipoBar&&erasedCells.size>0) { setPendingTipo(t); setShowConfirmModal(true) }
+            else setTipoBar(t)
+          }}
+          options={[{ value: 'bar', label: 'B.A.R.' }, { value: 'fit', label: 'F.I.T.' }]}
+        />
+        <SelectField
+          name="barSel" label="B.A.R." value={barSel}
+          onChange={e=>setBarSel(e.target.value)}
+          options={BARS.map(b=>({ value: b, label: b }))}
+          className="foresight__select--bar"
+        />
         <Tooltip text="Gomma — cancella tariffe assegnate">
           <button className={`foresight__eraser-btn ${eraseMode?'foresight__eraser-btn--active':''}`} onClick={()=>setEraseMode(v=>!v)}>
             <i className="fa-duotone fa-eraser foresight__eraser-ico foresight__eraser-ico--dyn" style={{'--eraser-color': eraseMode?T.warning:T.textInactive} as React.CSSProperties} aria-hidden="true"/>

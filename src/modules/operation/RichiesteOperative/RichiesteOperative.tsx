@@ -162,7 +162,7 @@ export default function RichiesteOperative({ navigate }: { navigate: (p: string)
 
   return (
     <div className="rich-op">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Richieste operative"
         subtitle="Invia alla struttura di destinazione gli extra da far trovare in camera ai tuoi clienti (fiori, champagne, allestimenti…)"

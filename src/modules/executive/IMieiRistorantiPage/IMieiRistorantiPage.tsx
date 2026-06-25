@@ -101,7 +101,7 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
 
   return (
     <div>
-      <BtnBack onClick={()=>navigate("home")}/>
+      <BtnBack />
 
       <PageHeader title="I miei ristoranti" subtitle="Performance, coperti e dati finanziari dei tuoi ristoranti, per servizio"/>
 

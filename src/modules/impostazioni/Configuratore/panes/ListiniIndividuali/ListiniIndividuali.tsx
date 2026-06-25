@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField } from '../../../../../core/components/form'
 import './ListiniIndividuali.sass'
 
 interface Standard { id: number; nome: string; prezzo: number }
@@ -52,34 +53,56 @@ export default function ListiniIndividuali() {
       </div>
 
       <div className="listini-individuali__filters">
-        <div className="listini-individuali__field"><label>Struttura</label>
-          <select className="sib-select" value={data.StrutturaId ?? ''} onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">ciao</option>{data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
-        <div className="listini-individuali__field"><label>Tariffa</label>
-          <select className="sib-select" value={data.Tariffa} onChange={(e) => setData({ ...data, Tariffa: e.target.value as any })}>
-            <option value="Per Camera">Per Camera</option>
-            <option value="Per Persona">Per Persona</option>
-          </select>
-        </div>
-        <div className="listini-individuali__field"><label>Stagionalità</label>
-          <select className="sib-select" value={data.Stagionalita} onChange={(e) => setData({ ...data, Stagionalita: e.target.value as any })}>
-            <option value="Alta Stagione">Alta Stagione</option>
-            <option value="Media Stagione">Media Stagione</option>
-            <option value="Bassa Stagione">Bassa Stagione</option>
-          </select>
-        </div>
-        <div className="listini-individuali__field"><label>Listino</label>
-          <select className="sib-select" value={data.ListinoId ?? ''} onChange={(e) => setData({ ...data, ListinoId: e.target.value ? Number(e.target.value) : null })}>
-            {data.Listini.map((l) => <option key={l.Id} value={l.Id}>{l.Nome}</option>)}
-          </select>
-        </div>
-        <div className="listini-individuali__field"><label>Camere</label>
-          <select className="sib-select" value={data.CameraId ?? ''} onChange={(e) => setData({ ...data, CameraId: e.target.value ? Number(e.target.value) : null })}>
-            {data.Camere.map((c) => <option key={c.Id} value={c.Id}>{c.Nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="listini-individuali__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'ciao' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
+        <SelectField
+          name="tariffa"
+          label="Tariffa"
+          className="listini-individuali__field"
+          value={data.Tariffa}
+          onChange={(e) => setData({ ...data, Tariffa: e.target.value as any })}
+          options={[
+            { value: 'Per Camera', label: 'Per Camera' },
+            { value: 'Per Persona', label: 'Per Persona' },
+          ]}
+        />
+        <SelectField
+          name="stagionalita"
+          label="Stagionalità"
+          className="listini-individuali__field"
+          value={data.Stagionalita}
+          onChange={(e) => setData({ ...data, Stagionalita: e.target.value as any })}
+          options={[
+            { value: 'Alta Stagione', label: 'Alta Stagione' },
+            { value: 'Media Stagione', label: 'Media Stagione' },
+            { value: 'Bassa Stagione', label: 'Bassa Stagione' },
+          ]}
+        />
+        <SelectField
+          name="listino"
+          label="Listino"
+          className="listini-individuali__field"
+          value={data.ListinoId ?? ''}
+          onChange={(e) => setData({ ...data, ListinoId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Listini.map((l) => ({ value: l.Id, label: l.Nome }))}
+        />
+        <SelectField
+          name="camere"
+          label="Camere"
+          className="listini-individuali__field"
+          value={data.CameraId ?? ''}
+          onChange={(e) => setData({ ...data, CameraId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Camere.map((c) => ({ value: c.Id, label: c.Nome }))}
+        />
       </div>
 
       <div className="listini-individuali__header"><span>Standard Sibylla</span><span>Prezzo</span></div>

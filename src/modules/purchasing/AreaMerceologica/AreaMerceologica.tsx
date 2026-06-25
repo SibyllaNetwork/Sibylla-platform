@@ -59,7 +59,7 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="area-merceologica">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         eyebrow="Catalogo · Categorie"
         title="Area merceologica"

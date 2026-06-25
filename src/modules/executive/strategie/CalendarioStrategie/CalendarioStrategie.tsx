@@ -262,7 +262,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
 
   return (
     <div className="cal-strategie">
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader
         title="Calendario strategie"
         subtitle="Pianifica le tue strategie giorno per giorno: scegli un periodo, una struttura, il tipo di calendario, seleziona la strategia e applicala con un click."

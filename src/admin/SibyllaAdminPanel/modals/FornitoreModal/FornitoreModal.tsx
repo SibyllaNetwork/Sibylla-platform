@@ -1,6 +1,7 @@
 import React from 'react'
 import Modal from '../../../../core/components/Modal'
 import Ico from '../../../../core/icons/Ico'
+import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { MACRO_AREE } from '../../catalogo/mockData'
 import type { Categoria, Fornitore, FornitoreForm } from '../../catalogo/types'
 import './FornitoreModal.sass'
@@ -35,93 +36,73 @@ export default function FornitoreModal({ open, editing, form, setForm, categorie
         <div className="forn-modal__section">
           <div className="forn-modal__section-title">Anagrafica</div>
           <div className="forn-modal__grid forn-modal__grid--2">
-            <Field label="Nome fornitore *">
-              <input value={form.nome} onChange={e => set('nome', e.target.value)} className="sib-input" placeholder="Es. Caseificio Alpino" />
-            </Field>
-            <Field label="Anno di fondazione">
-              <input type="number" value={form.annoFondazione} onChange={e => set('annoFondazione', e.target.value)} className="sib-input" placeholder="Es. 1965" />
-            </Field>
-            <Field label="Descrizione breve">
-              <input value={form.descrizione} onChange={e => set('descrizione', e.target.value)} className="sib-input" placeholder="Sintesi del fornitore" />
-            </Field>
-            <Field label="URL immagine">
-              <input value={form.immagineUrl} onChange={e => set('immagineUrl', e.target.value)} className="sib-input" placeholder="https://..." />
-            </Field>
+            <InputField className="forn-modal__field" name="nome" label="Nome fornitore *" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Es. Caseificio Alpino" />
+            <InputField className="forn-modal__field" name="anno-fondazione" label="Anno di fondazione" type="number" value={form.annoFondazione} onChange={e => set('annoFondazione', e.target.value)} placeholder="Es. 1965" />
+            <InputField className="forn-modal__field" name="descrizione" label="Descrizione breve" value={form.descrizione} onChange={e => set('descrizione', e.target.value)} placeholder="Sintesi del fornitore" />
+            <InputField className="forn-modal__field" name="immagine-url" label="URL immagine" value={form.immagineUrl} onChange={e => set('immagineUrl', e.target.value)} placeholder="https://..." />
           </div>
-          <Field label="Storia / racconto">
-            <textarea
-              value={form.storia}
-              onChange={e => set('storia', e.target.value)}
-              className="sib-input forn-modal__textarea"
-              rows={3}
-              placeholder="Storia, tradizione, valori..."
-            />
-          </Field>
+          <TextareaField
+            className="forn-modal__field"
+            name="storia"
+            label="Storia / racconto"
+            value={form.storia}
+            onChange={e => set('storia', e.target.value)}
+            rows={3}
+            placeholder="Storia, tradizione, valori..."
+          />
         </div>
 
         <div className="forn-modal__section">
           <div className="forn-modal__section-title">Sede</div>
           <div className="forn-modal__grid forn-modal__grid--3">
-            <Field label="Indirizzo">
-              <input value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} className="sib-input" placeholder="Via..." />
-            </Field>
-            <Field label="Città">
-              <input value={form.citta} onChange={e => set('citta', e.target.value)} className="sib-input" placeholder="Città" />
-            </Field>
-            <Field label="CAP">
-              <input value={form.cap} onChange={e => set('cap', e.target.value)} className="sib-input" placeholder="00100" />
-            </Field>
-            <Field label="Regione">
-              <input value={form.regione} onChange={e => set('regione', e.target.value)} className="sib-input" placeholder="Es. Toscana" />
-            </Field>
-            <Field label="Telefono">
-              <input value={form.telefono} onChange={e => set('telefono', e.target.value)} className="sib-input" placeholder="+39 ..." />
-            </Field>
-            <Field label="Email">
-              <input value={form.email} onChange={e => set('email', e.target.value)} className="sib-input" placeholder="info@..." />
-            </Field>
+            <InputField className="forn-modal__field" name="indirizzo" label="Indirizzo" value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} placeholder="Via..." />
+            <InputField className="forn-modal__field" name="citta" label="Città" value={form.citta} onChange={e => set('citta', e.target.value)} placeholder="Città" />
+            <InputField className="forn-modal__field" name="cap" label="CAP" value={form.cap} onChange={e => set('cap', e.target.value)} placeholder="00100" />
+            <InputField className="forn-modal__field" name="regione" label="Regione" value={form.regione} onChange={e => set('regione', e.target.value)} placeholder="Es. Toscana" />
+            <InputField className="forn-modal__field" name="telefono" label="Telefono" value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="+39 ..." />
+            <InputField className="forn-modal__field" name="email" label="Email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="info@..." />
           </div>
-          <Field label="Sito web">
-            <input value={form.sito} onChange={e => set('sito', e.target.value)} className="sib-input" placeholder="www.fornitore.it" />
-          </Field>
+          <InputField className="forn-modal__field" name="sito" label="Sito web" value={form.sito} onChange={e => set('sito', e.target.value)} placeholder="www.fornitore.it" />
         </div>
 
         <div className="forn-modal__section">
           <div className="forn-modal__section-title">Classificazione</div>
           <div className="forn-modal__grid forn-modal__grid--2">
-            <Field label="Categoria merceologica *">
-              <select value={form.categoriaId} onChange={e => set('categoriaId', e.target.value)} className="sib-select">
-                <option value="">Seleziona categoria...</option>
-                {categorie.map(c => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Macro-area *">
-              <select value={form.macroArea} onChange={e => set('macroArea', e.target.value)} className="sib-select">
-                <option value="">Seleziona macro-area...</option>
-                {MACRO_AREE.map(m => (
-                  <option key={m.id} value={m.id}>{m.label}</option>
-                ))}
-              </select>
-            </Field>
+            <SelectField
+              className="forn-modal__field"
+              name="categoria"
+              label="Categoria merceologica *"
+              value={form.categoriaId}
+              onChange={e => set('categoriaId', e.target.value)}
+              placeholder="Seleziona categoria..."
+              options={categorie.map(c => ({ value: c.id, label: c.nome }))}
+            />
+            <SelectField
+              className="forn-modal__field"
+              name="macro-area"
+              label="Macro-area *"
+              value={form.macroArea}
+              onChange={e => set('macroArea', e.target.value)}
+              placeholder="Seleziona macro-area..."
+              options={MACRO_AREE.map(m => ({ value: m.id, label: m.label }))}
+            />
           </div>
-          <Field label="Certificazioni (separate da virgola)">
-            <input
-              value={form.certificazioni}
-              onChange={e => set('certificazioni', e.target.value)}
-              className="sib-input"
-              placeholder="DOP Raschera, Biologico, Vegan OK"
-            />
-          </Field>
-          <Field label="Caratteristiche distintive (separate da virgola)">
-            <input
-              value={form.caratteristiche}
-              onChange={e => set('caratteristiche', e.target.value)}
-              className="sib-input"
-              placeholder="80 ettari di vigneti, 400.000 bottiglie/anno"
-            />
-          </Field>
+          <InputField
+            className="forn-modal__field"
+            name="certificazioni"
+            label="Certificazioni (separate da virgola)"
+            value={form.certificazioni}
+            onChange={e => set('certificazioni', e.target.value)}
+            placeholder="DOP Raschera, Biologico, Vegan OK"
+          />
+          <InputField
+            className="forn-modal__field"
+            name="caratteristiche"
+            label="Caratteristiche distintive (separate da virgola)"
+            value={form.caratteristiche}
+            onChange={e => set('caratteristiche', e.target.value)}
+            placeholder="80 ettari di vigneti, 400.000 bottiglie/anno"
+          />
         </div>
 
         <div className="forn-modal__actions">
@@ -132,14 +113,5 @@ export default function FornitoreModal({ open, editing, form, setForm, categorie
         </div>
       </div>
     </Modal>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="forn-modal__field">
-      <label className="forn-modal__label">{label}</label>
-      {children}
-    </div>
   )
 }

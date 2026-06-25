@@ -95,7 +95,7 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('home')}/>
+      <BtnBack />
       <PageHeader title="Maggiorazioni e promozioni" subtitle="Aumenta la tua marginalità applicando maggiorazioni o promozioni mirate in tempo reale"/>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
@@ -306,14 +306,14 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
             <InputField name="struttura" label="Struttura / Categoria" placeholder="Es. Hotel Catania" value={form.struttura} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,struttura:e.target.value}))}/>
           </FormGrid>
           <FormGrid cols={3}>
-            <div className="flex flex-col gap-1">
-              <span className="text-[12px] font-semibold font-poppins text-primary">Partners</span>
-              <select multiple className="sib-input h-[90px] p-2 resize-none text-xs"
+            <div className="promo__field-raw">
+              <label htmlFor="partners">Partners</label>
+              <select id="partners" multiple className="sib-input promo__partners-select resize-none text-xs"
                 value={form.partners?form.partners.split(',').map(s=>s.trim()).filter(Boolean):[]}
                 onChange={e=>{const sel=Array.from(e.target.selectedOptions).map(o=>o.value);setForm(v=>({...v,partners:sel.join(', ')}))}}>
                 {['Booking.com','Expedia','Agoda','HRS','Airbnb','Tour Operator Test','Sibylla Network s.r.l.','Dirette','B2B Portal','GDS'].map(p=><option key={p} value={p}>{p}</option>)}
               </select>
-              <span className="text-[10px] text-ink-subtle">Cmd/Ctrl per selezione multipla</span>
+              <span className="promo__partners-hint">Cmd/Ctrl per selezione multipla</span>
             </div>
             <DatePickerField name="blackout" label="Black-out Date" value={form.blackout} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,blackout:e.target.value}))}/>
             <InputField name="sconto" label="Sconto %" type="number" placeholder="0" value={form.sconto} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,sconto:e.target.value}))}/>

@@ -78,9 +78,10 @@ $bg-zebra: $primary-50
     width: min(360px, 100%)
 
   &__search-label
+    font-family: 'Poppins', sans-serif
     font-size: 12px
     font-weight: 600
-    color: $muted
+    color: $primary
     line-height: 1.2
 
   // ── Section ──────────────────────────────────────────────────────
@@ -124,8 +125,90 @@ $bg-zebra: $primary-50
     display: inline-flex
     gap: 6px
 
+  // ── Filtri di colonna ──────────────────────────────────────────
+  &__cf
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    position: relative
+
+  &__cf-btn
+    background: transparent
+    border: none
+    color: $text-disabled
+    cursor: pointer
+    font-size: 11px
+    padding: 4px
+    border-radius: 4px
+    line-height: 1
+
+    &:hover
+      background: $primary-50
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__cf-overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__cf-popup
+    position: absolute
+    top: 100%
+    left: 0
+    margin-top: 6px
+    min-width: 200px
+    max-height: 300px
+    overflow-y: auto
+    background: $white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 2px
+    text-transform: none
+    letter-spacing: 0
+
+  &__cf-title
+    font-weight: 700
+    color: $text-active
+    padding: 4px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__cf-option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    font-weight: 400
+    color: $text-active
+    text-transform: none
+
+    &:hover
+      background: $primary-50
+
+    .sib-checkbox
+      flex-shrink: 0
+
+  &__pager
+    justify-content: center
+    padding: 4px 2px
+
   // ── Tabella movimenti ──────────────────────────────────────────
   &__table
+    // Righe più compatte (override locale del padding sib-table)
+    tbody td
+      padding-top: 5px
+      padding-bottom: 5px
+
     .cassa__th-num,
     .cassa__td-num
       text-align: right
@@ -136,10 +219,10 @@ $bg-zebra: $primary-50
     display: inline-flex
     align-items: center
     justify-content: center
-    width: 28px
-    height: 28px
+    width: 24px
+    height: 24px
     color: $primary
-    font-size: 15px
+    font-size: 14px
     cursor: help
     border-radius: 999px
     transition: $transition-fast
@@ -155,15 +238,81 @@ $bg-zebra: $primary-50
     gap: 8px
 
   &__avatar
-    width: 28px
-    height: 28px
+    width: 24px
+    height: 24px
     border-radius: 999px
     background: $bg-zebra
     color: $primary
     display: inline-flex
     align-items: center
     justify-content: center
+    font-size: 11px
+    flex-shrink: 0
+
+    &--sm
+      width: 20px
+      height: 20px
+      font-size: 10px
+
+  // ── Azioni di riga (gruppo icone) ──────────────────────────────
+  &__row-actions
+    display: inline-flex
+    gap: 2px
+
+  // ── Chiusure: chevron espansione + sotto-tabella ───────────────
+  &__chev-th
+    width: 40px
+
+  &__chev-td
+    text-align: center
+
+  &__chev-btn
+    background: transparent
+    border: none
+    color: $primary
+    cursor: pointer
     font-size: 12px
+    padding: 4px 8px
+    line-height: 1
+
+    &:hover
+      opacity: 0.8
+
+  &__expand-row
+    background: var(--color-surface)
+
+  &__expand-cell
+    padding: 0 0 0 40px
+    background: var(--color-surface)
+
+  &__sub-table
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+    background: var(--color-surface)
+
+    thead th
+      font-weight: 600
+      color: $text-active
+      padding: 8px 12px
+      text-align: left
+      background: var(--color-surface)
+      border-bottom: 1px solid $border
+
+      &.cassa__th-num
+        text-align: right
+
+    tbody td
+      padding: 8px 12px
+      color: $text-active
+      border-bottom: 1px dashed $border
+
+      &.cassa__td-num
+        text-align: right
+        white-space: nowrap
+
+    tbody tr:nth-child(even) td
+      background: rgba(143, 184, 200, 0.10)
 
   // ── Riepilogo totali ───────────────────────────────────────────
   &__totals
@@ -214,9 +363,10 @@ $bg-zebra: $primary-50
   &__field-label
     display: block
     margin-bottom: 4px
+    font-family: 'Poppins', sans-serif
     font-size: 12px
     font-weight: 600
-    color: $muted
+    color: $primary
     line-height: 1.2
 
   // ── Modali condivise ──────────────────────────────────────────
@@ -240,6 +390,9 @@ $bg-zebra: $primary-50
     display: flex
     flex-direction: column
     overflow: hidden
+
+    &--confirm
+      width: min(440px, 100%)
 
   &__modal-head
     display: flex
@@ -269,6 +422,10 @@ $bg-zebra: $primary-50
     background: var(--color-surface)
     display: flex
     justify-content: flex-end
+
+    &--center
+      justify-content: center
+      gap: 10px
 
   &__modal-text
     margin: 0

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
-import { SelectField, DateRangeField } from '../../../../core/components/form'
+import { SelectField, DateRangeField, RadioGroup } from '../../../../core/components/form'
 import Modal from '../../../../core/components/Modal'
 import { useAccessStore } from '../../../../store/useAccessStore'
 import PianificazioneAnnualeTO from './PianificazioneAnnualeTO'
@@ -131,7 +131,7 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="ca">
-      <BtnBack onClick={() => navigate('home')} />
+      <BtnBack />
       <PageHeader
         title="Calendario annuale"
         subtitle="Organizza in anticipo le politiche di prezzo per garantire stabilità e visione a lungo termine"
@@ -150,17 +150,12 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
           options={STRUTTURE.map(s => ({ value: s, label: s }))}
           className="ca__filter-struttura"
         />
-        <div className="ca__field">
-          <span className="ca__field-label">Tipo tariffa</span>
-          <div className="ca__radios">
-            {(['bar', 'fit'] as const).map(t => (
-              <label key={t} className="ca__radio">
-                <input type="radio" name="ca-tipo" className="sib-radio" checked={tipo === t} onChange={() => { setTipo(t); setErase(false) }} />
-                {t === 'bar' ? 'B.A.R.' : 'F.I.T.'}
-              </label>
-            ))}
-          </div>
-        </div>
+        <RadioGroup
+          name="ca-tipo" label="Tipo tariffa" value={tipo}
+          onChange={v => { setTipo(v as Tipo); setErase(false) }}
+          options={[{ value: 'bar', label: 'B.A.R.' }, { value: 'fit', label: 'F.I.T.' }]}
+          className="ca__field"
+        />
 
         {/* Listino: solo in modalità F.I.T. */}
         {!isBar && (
@@ -258,7 +253,7 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
       {/* ── Modale Crea B.A.R./F.I.T. ───────────────────────────────── */}
       <Modal open={creaOpen} onClose={() => setCreaOpen(false)} size="sm" title={`Crea ${rateLabel}`}>
         <div className="ca__crea">
-          <label className="ca__field">
+          <label className="ca__field ca__field-raw">
             <span className="ca__field-label">Prezzo {rateLabel} (€)</span>
             <input
               className="sib-input" type="text" inputMode="decimal" placeholder="es. 149,90"

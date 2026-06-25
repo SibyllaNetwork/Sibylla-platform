@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { SelectField } from '../../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../../services/api'
 import './FasceEta.sass'
 
@@ -60,17 +61,17 @@ export default function FasceEta() {
       <h3 className="fasce-eta__title">Variazione del prezzo rispetto a fascia di età adulti</h3>
 
       <div className="fasce-eta__filters">
-        <div className="fasce-eta__field">
-          <label>Struttura</label>
-          <select
-            className="sib-select sib-select--dense"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="struttura"
+          label="Struttura"
+          className="fasce-eta__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Tutorial' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
       </div>
 
       <div className="fasce-eta__table-wrap">
@@ -145,21 +146,21 @@ export default function FasceEta() {
       </div>
 
       <div className="fasce-eta__adulti">
-        <div className="fasce-eta__field">
-          <label>Adulti extra</label>
-          <select
-            className="sib-select sib-select--dense fasce-eta__select-adulti"
-            value={data.numAdultiExtra}
-            onChange={(e) => setData({ ...data, numAdultiExtra: Number(e.target.value) })}
-          >
-            <option value={0}>Nessuno</option>
-            <option value={1}>1</option>
-            <option value={2}>2</option>
-            <option value={3}>3</option>
-          </select>
-        </div>
+        <SelectField
+          name="numAdultiExtra"
+          label="Adulti extra"
+          className="fasce-eta__field fasce-eta__select-adulti"
+          value={data.numAdultiExtra}
+          onChange={(e) => setData({ ...data, numAdultiExtra: Number(e.target.value) })}
+          options={[
+            { value: 0, label: 'Nessuno' },
+            { value: 1, label: '1' },
+            { value: 2, label: '2' },
+            { value: 3, label: '3' },
+          ]}
+        />
         {[1, 2, 3].map((n) => data.numAdultiExtra >= n && (
-          <div className="fasce-eta__field" key={n}>
+          <div className="fasce-eta__field-raw" key={n}>
             <label>Adulto {n}</label>
             <span className="fasce-eta__cell">
               <input

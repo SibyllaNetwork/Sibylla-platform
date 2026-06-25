@@ -31,9 +31,18 @@
     gap: 6px
     flex: 1
     min-width: 160px
+
+  // Prezzo vendita resta un field "raw" con <label> nativo
+  &__field-raw
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex: 1
+    min-width: 160px
     label
+      font-family: 'Poppins', sans-serif
       font-size: 12px
-      color: $text-inactive
+      color: $primary
       font-weight: 600
 
   &__check

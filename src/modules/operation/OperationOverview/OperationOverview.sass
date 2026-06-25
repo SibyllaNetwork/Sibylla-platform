@@ -21,9 +21,15 @@
     flex-direction: column
     gap: 6px
 
+  &__field-raw
+    display: flex
+    flex-direction: column
+    gap: 6px
+
     label
+      font-family: 'Poppins', sans-serif
       font-size: 12px
-      color: $text-inactive
+      color: $primary
       font-weight: 600
 
   &__select
@@ -220,8 +226,10 @@
 
   &__rooms-select
     width: 200px
-    background: var(--color-surface)
-    color: $primary
+
+    .sib-select
+      background: var(--color-surface)
+      color: $primary
 
   &__rooms-title
     margin-top: 6px

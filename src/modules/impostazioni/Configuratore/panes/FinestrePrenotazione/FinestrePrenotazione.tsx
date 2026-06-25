@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, RadioGroup } from '../../../../../core/components/form'
 import './FinestrePrenotazione.sass'
 
 interface Window { from: number; to: number }
@@ -64,41 +65,29 @@ export default function FinestrePrenotazione() {
       </div>
 
       <div className="finestre-prenotazione__filters">
-        <div className="finestre-prenotazione__field">
-          <label>Strutture</label>
-          <select
-            className="sib-select sib-select--dense finestre-prenotazione__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          >
-            <option value="">Hotel Tutorial</option>
-            {data.Strutture.map((s) => <option key={s.Id} value={s.Id}>{s.nome}</option>)}
-          </select>
-        </div>
+        <SelectField
+          name="strutture"
+          label="Strutture"
+          className="finestre-prenotazione__field"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={[
+            { value: '', label: 'Hotel Tutorial' },
+            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+          ]}
+        />
 
-        <div className="finestre-prenotazione__field">
-          <label>Tipologia</label>
-          <div className="finestre-prenotazione__radio-group">
-            <label className="finestre-prenotazione__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Tipologia === 'Individuali'}
-                onChange={() => setData({ ...data, Tipologia: 'Individuali' })}
-              />
-              <span>Individuali</span>
-            </label>
-            <label className="finestre-prenotazione__radio-item">
-              <input
-                type="radio"
-                className="sib-radio"
-                checked={data.Tipologia === 'Gruppi'}
-                onChange={() => setData({ ...data, Tipologia: 'Gruppi' })}
-              />
-              <span>Gruppi</span>
-            </label>
-          </div>
-        </div>
+        <RadioGroup
+          name="tipologia"
+          label="Tipologia"
+          className="finestre-prenotazione__field"
+          value={data.Tipologia}
+          onChange={(val) => setData({ ...data, Tipologia: val as Tipologia })}
+          options={[
+            { value: 'Individuali', label: 'Individuali' },
+            { value: 'Gruppi', label: 'Gruppi' },
+          ]}
+        />
       </div>
 
       <div className="finestre-prenotazione__table" role="table">
