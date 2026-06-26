@@ -140,7 +140,12 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.mese}>
-                <td className="bdg-ric__mese"><i className="fa-light fa-calendar" /> {r.mese}</td>
+                <td className="bdg-ric__mese-cell">
+                  <span className="bdg-ric__cal" aria-label={r.mese}>
+                    <span className="bdg-ric__cal-head" />
+                    <span className="bdg-ric__cal-day">{r.mese}</span>
+                  </span>
+                </td>
                 <td>{r.precRN} Notti</td>
                 <td>{eur(r.precADR)}</td>
                 <td>{eur(r.precRev)}</td>

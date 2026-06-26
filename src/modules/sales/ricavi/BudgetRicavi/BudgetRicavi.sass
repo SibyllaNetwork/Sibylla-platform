@@ -56,13 +56,53 @@
   &__corr
     background: rgba(32, 71, 105, 0.04)
 
-  &__mese
-    font-weight: 700
-    color: $primary
+  // ── Badge calendario del mese (sigla dentro) ─────────────────────────────────
+  &__mese-cell
+    padding-top: 10px
+    padding-bottom: 6px
 
-    i
-      color: $primary
-      margin-right: 4px
+  &__cal
+    position: relative
+    display: inline-flex
+    flex-direction: column
+    width: 48px
+    height: 48px
+    border-radius: 9px
+    background: $white
+    border: 1px solid $primary-200
+    box-shadow: 0 2px 7px rgba(32, 71, 105, 0.14)
+
+    // anelli di rilegatura
+    &::before, &::after
+      content: ''
+      position: absolute
+      top: -4px
+      width: 4px
+      height: 9px
+      border-radius: 2px
+      background: $primary
+      z-index: 1
+    &::before
+      left: 13px
+    &::after
+      right: 13px
+
+  &__cal-head
+    height: 14px
+    background: $primary
+    border-radius: 8px 8px 0 0
+    flex-shrink: 0
+
+  &__cal-day
+    flex: 1
+    display: flex
+    align-items: center
+    justify-content: center
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 14px
+    letter-spacing: .3px
+    color: $primary
 
   // Celle editabili Impostazione Rapida
   &__imp-cell
