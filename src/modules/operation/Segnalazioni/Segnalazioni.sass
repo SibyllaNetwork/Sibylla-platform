@@ -44,28 +44,26 @@
   &__select
     width: 180px
 
-  &__date-range
-    display: flex
-    align-items: center
-    gap: 6px
-
-    .sib-input
-      width: 145px
-
-    span
-      color: $text-inactive
-
-  // ── Tabella ──────────────────────────────────────────────────────────────
+  // ── Tabella (compatta: deve stare nei laptop senza scroll orizzontale) ─────
   &__table
+    width: 100%
+    font-size: 12.5px
+
     thead th
       vertical-align: middle
       font-weight: 600
+      white-space: normal
+      line-height: 1.2
+      padding: 7px 6px !important
 
-  &__head-only
-    margin-bottom: 0
+    td
+      padding: 5px 6px !important
 
-    thead th
-      font-weight: 600
+  &__th-center, &__td-center
+    text-align: center !important
+
+  &__nowrap
+    white-space: nowrap
 
   &__th-sortable
     cursor: pointer
@@ -80,105 +78,144 @@
     font-size: 11px
     color: $text-inactive
 
-  &__status
-    display: inline-block
-    padding: 3px 10px
-    border-radius: 12px
-    font-size: 11px
+  // Utenza: avatar + nome
+  &__user
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__avatar
+    width: 28px
+    height: 28px
+    border-radius: 50%
+    object-fit: cover
+    flex: none
+
+  &__user-name
     font-weight: 600
-    text-transform: uppercase
+    white-space: nowrap
 
-    &--aperta
-      background: rgba(245, 125, 3, 0.14)
+  // Status: una sola icona, colore = livello di priorità
+  &__sev
+    font-size: 16px
+
+    &--media
       color: $warning
-
-    &--in-lavorazione
-      background: rgba(92, 156, 212, 0.14)
-      color: $link
-
-    &--risolta
-      background: rgba(0, 112, 53, 0.12)
-      color: $success
-
-    &--annullata
-      background: rgba(255, 97, 110, 0.14)
+    &--alta
       color: $error
 
-  &__empty
-    text-align: center
-    color: $text-inactive
-    padding: 80px 0
-    font-size: 14px
+  // Reparto: icona singola con tooltip
+  &__rep-ico
+    font-size: 16px
+    color: $primary
+
+  // Genere intervento: icona + testo
+  &__genere
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    white-space: nowrap
+
+  &__gen-ico
+    font-size: 15px
+    color: $primary
+
+  // Stato lavorazione: testo colorato
+  &__stato
+    font-weight: 600
+    white-space: nowrap
+
+    &--da-assegnare
+      color: $error
+    &--in-corso
+      color: $warning
+    &--completata
+      color: $success
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    justify-content: center
 
   &__pagination
     display: flex
     justify-content: center
     margin-top: 4px
 
-  // ── Modal ────────────────────────────────────────────────────────────────
-  &__modal-overlay
-    position: fixed
-    inset: 0
-    background: rgba(0,0,0,0.45)
-    display: flex
-    align-items: center
-    justify-content: center
-    z-index: 100
-    padding: 24px
-
-  &__modal
-    background: var(--color-surface)
-    border-radius: 10px
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25)
-    width: 100%
-    max-width: 720px
-    display: flex
-    flex-direction: column
-    overflow: hidden
-
-  &__modal-head
-    display: flex
-    justify-content: space-between
-    align-items: center
-    padding: 18px 22px
-    border-bottom: 1px solid $border
-
-    h3
-      margin: 0
-      font-family: $font-heading
-      font-weight: 700
-      font-size: 18px
-      color: $primary
-
-  &__modal-close
-    background: transparent
-    border: none
-    color: $text-inactive
-    cursor: pointer
-    font-size: 16px
-
-    &:hover
-      color: $primary
-
+  // ── Modal (corpo riusato dentro <Modal> condiviso) ─────────────────────────
   &__modal-body
-    padding: 18px 22px
     display: flex
     flex-direction: column
-    gap: 14px
+    gap: 16px
 
   &__modal-grid
     display: grid
     grid-template-columns: 1fr 1fr
-    gap: 14px
+    gap: 14px 18px
 
     @media (max-width: 700px)
       grid-template-columns: 1fr
+
+  &__modal-grid-4
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 14px 18px
+
+    @media (max-width: 860px)
+      grid-template-columns: 1fr 1fr
 
   &__modal-foot
     display: flex
     justify-content: flex-end
     gap: 8px
-    padding: 14px 22px 18px
+    margin-top: 20px
+
+  // ── Assegna intervento ─────────────────────────────────────────────────────
+  &__assign-meta
+    font-size: 13px
+    color: $text-inactive
+    line-height: 1.5
+    margin-bottom: 4px
+
+  &__assign-title
+    font-weight: 600
+    color: $text-active
+    margin: 8px 0 4px
+
+  &__assign-list
+    display: flex
+    flex-direction: column
+    gap: 10px
+    max-height: 360px
+    overflow-y: auto
+    padding-right: 4px
+
+  &__assign-item
+    display: flex
+    align-items: center
+    gap: 14px
+    width: 100%
+    text-align: left
+    padding: 10px 14px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    cursor: pointer
+    font-size: 14px
+    color: $text-active
+    transition: border-color .15s, background .15s
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+  &__assign-avatar
+    width: 36px
+    height: 36px
+    border-radius: 50%
+    object-fit: cover
+    flex: none
 
 
 // ─── COL FILTER POPUP ────────────────────────────────────────────────────────
@@ -187,6 +224,9 @@
   align-items: center
   gap: 8px
   position: relative
+
+  &--center
+    justify-content: center
 
   &__btn
     background: transparent
