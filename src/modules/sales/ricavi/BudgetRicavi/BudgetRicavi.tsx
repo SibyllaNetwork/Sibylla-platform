@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
-import { exportTableToXls } from '../../booking/GrigliaDisponibilita/exportGriglia'
+import { exportTableToXls, exportElementToPdf } from '../../booking/GrigliaDisponibilita/exportGriglia'
 import './BudgetRicavi.sass'
 
 // Budget dei ricavi — dashboard revenue per mese: Anno Precedente, Impostazione
@@ -97,6 +97,9 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
 
   const ripristina = () => { setDRN(INIT_DRN); setDADR(MESI.map(() => 2)); setHeadRN(1); setHeadADR(2) }
 
+  const tableRef = useRef<HTMLTableElement>(null)
+  const esportaPdf = () => exportElementToPdf(tableRef.current, 'budget-ricavi.pdf', `Budget dei ricavi ${anno}`)
+
   const esportaXls = () => {
     const header = ['Mese', 'RN Prec.', 'ADR Prec.', 'Revenue Prec.', 'Δ%RN', 'Δ%ADR', 'RN Prev.', 'ADR Prev.', 'Revenue Prev.', 'RN', 'ADR', 'Revenue']
     const body = rows.map((r, i) => [r.mese, r.precRN, eur(r.precADR), eur(r.precRev), dRN[i], dADR[i], r.prevRN, eur(r.prevADR), eur(r.prevRev), r.corrRN, eur(r.corrADR), eur(r.corrRev)])
@@ -116,7 +119,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
           <SelectField name="segmento" label="Segmenti" value={segmento} onChange={(e) => setSegmento(e.target.value)} options={SEGMENTI.map((s) => ({ value: s, label: s }))} />
           <SelectField name="anno" label="Anno" className="w-[110px]" value={anno} onChange={(e) => setAnno(e.target.value)} options={ANNI.map((a) => ({ value: a, label: a }))} />
-          <Tooltip text="Configurando il budget aziendale in modalità aggregata non avrai un dettaglio analitico pesato per segmento">
+          <Tooltip content="Configurando il budget aziendale in modalità aggregata non avrai un dettaglio analitico pesato per segmento" position="bottom">
             <i className="fa-light fa-circle-info bdg-ric__info" />
           </Tooltip>
         </div>
@@ -129,14 +132,14 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-light fa-file-excel" /></button>
           </Tooltip>
           <Tooltip text="Esporta in PDF">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF"><i className="fa-light fa-file-pdf" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-light fa-file-pdf" /></button>
           </Tooltip>
         </div>
       </div>
 
       {/* ── Tabella ─────────────────────────────────────────────────────────── */}
       <div className="sib-table-wrap">
-        <table className="sib-table bdg-ric__table">
+        <table ref={tableRef} className="sib-table bdg-ric__table">
           <thead>
             <tr>
               <th rowSpan={2}>Mese</th>
