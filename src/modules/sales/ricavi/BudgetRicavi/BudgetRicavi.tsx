@@ -101,7 +101,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
           <SelectField name="segmento" label="Segmenti" value={segmento} onChange={(e) => setSegmento(e.target.value)} options={SEGMENTI.map((s) => ({ value: s, label: s }))} />
           <SelectField name="anno" label="Anno" className="w-[110px]" value={anno} onChange={(e) => setAnno(e.target.value)} options={ANNI.map((a) => ({ value: a, label: a }))} />
-          <Tooltip text="Modifica le % di Impostazione Rapida per ricalcolare la Previsione Attesa">
+          <Tooltip text="Configurando il budget aziendale in modalità aggregata non avrai un dettaglio analitico pesato per segmento">
             <i className="fa-light fa-circle-info bdg-ric__info" />
           </Tooltip>
         </div>
