@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { SelectField } from '../../../core/components/form'
+import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
 import './StatoCamere.sass'
 
@@ -19,6 +20,7 @@ interface Camera {
   struttura: string
   stato: StatoPulizia
   statoLavorazione: StatoLavorazione
+  vip: boolean
   segnalazioni: string
   note: string
 }
@@ -50,6 +52,7 @@ function genCamere(): Camera[] {
       struttura: 'Hotel Archimede',
       stato: stati[i % stati.length],
       statoLavorazione: statiLav[(i + 1) % statiLav.length],
+      vip: i % 4 === 0,
       segnalazioni: 'N/A',
       note: 'Nessuna segnalazione',
     })
@@ -76,6 +79,19 @@ const STATO_LAV_LABEL: Record<StatoLavorazione, string> = {
   'completata': 'Completata',
   'in-corso':   'In corso',
   'da-fare':    'Da fare',
+}
+
+// Colore = livello di completezza: rosso (in lavorazione) → arancio (a breve
+// conclusa) → verde (conclusa). Un'unica icona per colonna, colorata di conseguenza.
+const PULIZIA_COLOR: Record<StatoPulizia, string> = {
+  'da-pulire':  'rosso',
+  'in-pulizia': 'arancio',
+  'pulita':     'verde',
+}
+const LAV_COLOR: Record<StatoLavorazione, string> = {
+  'da-fare':    'rosso',
+  'in-corso':   'arancio',
+  'completata': 'verde',
 }
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -178,10 +194,10 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
         </button>
 
         <div className="stato-cam__bar-actions">
-          <button type="button" className="sib-btn sib-btn--primary">
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('previsione-movimenti')}>
             <i className="fa-light fa-chart-line" /> Previsione movimenti camere
           </button>
-          <button type="button" className="sib-btn sib-btn--primary">
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('piano-camere')}>
             <i className="fa-light fa-calendar-days" /> Piano camere giornaliero
           </button>
         </div>
@@ -194,6 +210,7 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
             <tr>
               <th>N° Camera</th>
               <th>Struttura</th>
+              <th className="stato-cam__th-center">VIP</th>
               <th className="stato-cam__th-icons">
                 <ColFilterHeader
                   label="Stato"
@@ -234,24 +251,25 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
           </thead>
           <tbody>
             {pageRows.length === 0 ? (
-              <tr><td colSpan={6} className="sib-empty">Nessuna camera per i criteri selezionati.</td></tr>
+              <tr><td colSpan={7} className="sib-empty">Nessuna camera per i criteri selezionati.</td></tr>
             ) : pageRows.map((c) => (
               <tr key={c.id}>
                 <td>{c.nome}</td>
                 <td>{c.struttura}</td>
-                <td>
-                  <div className="stato-cam__icons">
-                    <i className={`fa-light fa-broom-wide stato-cam__ico ${c.stato === 'pulita'    ? 'stato-cam__ico--on' : 'stato-cam__ico--off'}`} title="Pulita" />
-                    <i className={`fa-light fa-broom      stato-cam__ico ${c.stato === 'in-pulizia' ? 'stato-cam__ico--on' : 'stato-cam__ico--off'}`} title="In pulizia" />
-                    <i className={`fa-light fa-broom-ball stato-cam__ico ${c.stato === 'da-pulire'  ? 'stato-cam__ico--on' : 'stato-cam__ico--off'}`} title="Da pulire" />
-                  </div>
+                <td className="stato-cam__td-center">
+                  <Tooltip text={c.vip ? 'VIP' : 'Standard'}>
+                    <i className={`fa-${c.vip ? 'solid' : 'regular'} fa-star stato-cam__vip ${c.vip ? 'stato-cam__vip--on' : ''}`} aria-hidden="true" />
+                  </Tooltip>
                 </td>
-                <td>
-                  <div className="stato-cam__icons">
-                    <i className={`fa-light fa-wrench         stato-cam__ico ${c.statoLavorazione === 'completata' ? 'stato-cam__ico--on' : 'stato-cam__ico--off'}`} title="Completata" />
-                    <i className={`fa-light fa-screwdriver-wrench stato-cam__ico ${c.statoLavorazione === 'in-corso'  ? 'stato-cam__ico--on' : 'stato-cam__ico--off'}`} title="In corso" />
-                    <i className={`fa-light fa-hammer         stato-cam__ico ${c.statoLavorazione === 'da-fare'    ? 'stato-cam__ico--on' : 'stato-cam__ico--off'}`} title="Da fare" />
-                  </div>
+                <td className="stato-cam__td-center">
+                  <Tooltip text={STATO_LABEL[c.stato]}>
+                    <i className={`fa-solid fa-broom stato-cam__ico stato-cam__ico--${PULIZIA_COLOR[c.stato]}`} aria-hidden="true" />
+                  </Tooltip>
+                </td>
+                <td className="stato-cam__td-center">
+                  <Tooltip text={STATO_LAV_LABEL[c.statoLavorazione]}>
+                    <i className={`fa-solid fa-screwdriver-wrench stato-cam__ico stato-cam__ico--${LAV_COLOR[c.statoLavorazione]}`} aria-hidden="true" />
+                  </Tooltip>
                 </td>
                 <td>{c.segnalazioni}</td>
                 <td>{c.note}</td>

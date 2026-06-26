@@ -71,22 +71,34 @@
       font-weight: 600
 
   &__th-icons
-    min-width: 140px
+    min-width: 90px
+    text-align: center
 
-  &__icons
-    display: inline-flex
-    align-items: center
-    gap: 12px
-    font-size: 16px
+  // Il filtro colonna (label + imbuto) centrato sopra l'icona della colonna
+  .sc-colfilter
+    justify-content: center
 
+  &__th-center, &__td-center
+    text-align: center
+
+  // Stato / Stato lavorazione: un'unica icona, colore = livello di completezza
   &__ico
     font-size: 18px
 
-    &--on
+    &--rosso
+      color: $error
+    &--arancio
+      color: $warning
+    &--verde
       color: $success
 
-    &--off
-      color: $border
+  // VIP: stella vuota (standard) / piena dorata
+  &__vip
+    font-size: 16px
+    color: $border
+
+    &--on
+      color: #c9a84c
 
   &__pagination
     display: flex

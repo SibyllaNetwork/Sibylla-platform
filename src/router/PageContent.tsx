@@ -129,6 +129,8 @@ import BudgetComplessivo           from '../modules/finance/BudgetComplessivo/Bu
 import BudgetCosti                 from '../modules/finance/BudgetCosti/BudgetCosti';
 import SimulatoriScenari           from '../modules/finance/SimulatoriScenari/SimulatoriScenari';
 import StatoCamere                 from '../modules/impostazioni/StatoCamere/StatoCamere';
+import PrevisioneMovimenti         from '../modules/impostazioni/PrevisioneMovimenti/PrevisioneMovimenti';
+import PianoCamere                 from '../modules/impostazioni/PianoCamere/PianoCamere';
 import SchedaQuestura              from '../modules/impostazioni/SchedaQuestura/SchedaQuestura';
 import LogDiSistema                from '../modules/impostazioni/LogDiSistema/LogDiSistema';
 import InformazioniStruttura       from '../modules/impostazioni/InformazioniStruttura/InformazioniStruttura';
@@ -345,6 +347,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'simulatore')            return <SimulatoriScenari navigate={navigate}/>;
   if (page === 'simulatori-scenari')    return <SimulatoriScenari navigate={navigate}/>;
   if (page === 'stato-camere')          return <StatoCamere navigate={navigate}/>;
+  if (page === 'previsione-movimenti')  return <PrevisioneMovimenti navigate={navigate}/>;
+  if (page === 'piano-camere')          return <PianoCamere navigate={navigate}/>;
   if (page === 'scheda-questura')       return <SchedaQuestura navigate={navigate}/>;
   if (page === 'log-sistema')           return <LogDiSistema navigate={navigate}/>;
   if (page === 'informazioni-struttura')return <InformazioniStruttura navigate={navigate}/>;

@@ -1,0 +1,58 @@
+// ─── PIANO CAMERE GIORNALIERO ─────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.piano-cam
+  &__bar
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+    margin-bottom: 18px
+
+  &__status
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__exports
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+
+  // Tabella compatta: deve stare nei laptop senza scroll orizzontale
+  &__table
+    width: 100%
+    font-size: 12px
+
+    th
+      white-space: normal
+      line-height: 1.2
+      padding: 6px 5px !important
+      font-size: 11.5px
+
+    td
+      white-space: nowrap
+      padding: 5px 5px !important
+      font-size: 12px
+
+  &__td-center
+    text-align: center
+
+  &__nowrap
+    white-space: nowrap
+
+  &__col-check
+    width: 32px
+    text-align: center
+
+  &__ico-ok
+    color: $success
+    font-size: 16px
+
+  &__ico-warn
+    color: $warning
+    font-size: 16px
+
+  &__pager
+    margin-top: 4px
