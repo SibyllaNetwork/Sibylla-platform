@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
+import Modal from '../../../../core/components/Modal'
+import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../services/api'
 import './AllocazioneRisorse.sass'
@@ -11,7 +13,26 @@ interface Prenotazione {
   endISO: string    // YYYY-MM-DD (esclusivo)
   badge: number
   row: number
+  ai?: boolean      // prenotazione generata dall'AI Sibylla
 }
+
+interface DettaglioRiga {
+  cliente: string
+  dataIn: string
+  dataOut: string
+  tipoCamera: string
+  numCamere: number
+  numPersone: number
+}
+
+// Dettaglio mock mostrato nella modale (uguale per ogni prenotazione del mock)
+const DETTAGLIO_MOCK: DettaglioRiga[] = [
+  { cliente: '',                      dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Singola Classic', numCamere: 13, numPersone: 13 },
+  { cliente: 'Test Ale checkin 234 new', dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Doppia Classic',  numCamere: 1,  numPersone: 2 },
+  { cliente: 'test ar',               dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Doppia Classic',  numCamere: 40, numPersone: 80 },
+  { cliente: 'Tour Operator Test',    dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Doppia Classic',  numCamere: 8,  numPersone: 16 },
+  { cliente: 'Tour Operator Test',    dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Tripla Classic',  numCamere: 1,  numPersone: 3 },
+]
 
 interface PanelData {
   Strutture: { Id: number; nome: string }[]
@@ -34,10 +55,10 @@ const FALLBACK_LEFT: PanelData = {
   Da: '2026-04-30',
   Prenotazioni: [
     { id: 1, startISO: '2026-05-01', endISO: '2026-05-07', badge: 1, row: 0 },
-    { id: 2, startISO: '2026-05-02', endISO: '2026-05-04', badge: 1, row: 1 },
+    { id: 2, startISO: '2026-05-02', endISO: '2026-05-04', badge: 1, row: 1, ai: true },
     { id: 3, startISO: '2026-05-03', endISO: '2026-05-08', badge: 1, row: 2 },
     { id: 4, startISO: '2026-05-06', endISO: '2026-05-09', badge: 1, row: 3 },
-    { id: 5, startISO: '2026-05-12', endISO: '2026-05-19', badge: 1, row: 4 },
+    { id: 5, startISO: '2026-05-12', endISO: '2026-05-19', badge: 1, row: 4, ai: true },
   ],
 }
 
@@ -50,7 +71,7 @@ const FALLBACK_RIGHT: PanelData = {
   Da: '2026-05-01',
   Prenotazioni: [
     { id: 1, startISO: '2026-05-02', endISO: '2026-05-05', badge: 1, row: 0 },
-    { id: 2, startISO: '2026-05-04', endISO: '2026-05-07', badge: 1, row: 1 },
+    { id: 2, startISO: '2026-05-04', endISO: '2026-05-07', badge: 1, row: 1, ai: true },
     { id: 3, startISO: '2026-05-06', endISO: '2026-05-18', badge: 1, row: 2 },
   ],
 }
@@ -125,6 +146,7 @@ interface PanelProps {
 }
 
 function Panel({ data, onChange, expanded, onToggleExpand }: PanelProps) {
+  const [detail, setDetail] = useState<Prenotazione | null>(null)
   const days = useMemo(() => {
     const start = parseISO(data.Da)
     return Array.from({ length: DAYS_PER_PANEL }, (_, i) => addDays(start, i))
@@ -223,12 +245,22 @@ function Panel({ data, onChange, expanded, onToggleExpand }: PanelProps) {
             const top = p.row * 28
             return (
               <div
-                className="alloc-risorse__bar"
+                className={'alloc-risorse__bar' + (p.ai ? ' alloc-risorse__bar--ai' : '')}
                 key={p.id}
                 style={{ '--bar-left': `${left}%`, '--bar-width': `${width}%`, '--bar-top': `${top}px` } as React.CSSProperties}
-                title={`Prenotazione #${p.id}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setDetail(p)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetail(p) } }}
               >
                 <span className="alloc-risorse__bar-badge">{p.badge}</span>
+                {p.ai && (
+                  <Tooltip text="Prenotazione generata dall'AI Sibylla">
+                    <span className="alloc-risorse__bar-ai" aria-label="Generata dall'AI Sibylla">
+                      <i className="fa-solid fa-wand-magic-sparkles" />
+                    </span>
+                  </Tooltip>
+                )}
               </div>
             )
           })}
@@ -240,6 +272,40 @@ function Panel({ data, onChange, expanded, onToggleExpand }: PanelProps) {
           </button>
         </div>
       </div>
+
+      <Modal open={!!detail} onClose={() => setDetail(null)} title="Dettaglio prenotazione" size="xl">
+        {detail?.ai && (
+          <div className="alloc-risorse__detail-ai">
+            <i className="fa-solid fa-wand-magic-sparkles" /> Prenotazione generata dall'AI Sibylla
+          </div>
+        )}
+        <div className="sib-table-wrap alloc-risorse__detail-table">
+          <table className="sib-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th className="alloc-risorse__detail-c">Data In</th>
+                <th className="alloc-risorse__detail-c">Data Out</th>
+                <th className="alloc-risorse__detail-c">Tipo camera Sibylla</th>
+                <th className="alloc-risorse__detail-c">Numero camere</th>
+                <th className="alloc-risorse__detail-c">Numero persone</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DETTAGLIO_MOCK.map((r, i) => (
+                <tr key={i}>
+                  <td className="alloc-risorse__detail-cl">{r.cliente || <span className="sib-cell--muted">-</span>}</td>
+                  <td className="alloc-risorse__detail-c">{r.dataIn}</td>
+                  <td className="alloc-risorse__detail-c">{r.dataOut}</td>
+                  <td className="alloc-risorse__detail-c">{r.tipoCamera}</td>
+                  <td className="alloc-risorse__detail-c">{r.numCamere}</td>
+                  <td className="alloc-risorse__detail-c">{r.numPersone}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Modal>
     </div>
   )
 }
