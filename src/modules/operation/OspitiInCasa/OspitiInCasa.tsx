@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
+import Modal from '../../../core/components/Modal'
+import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
-import { DateRangeField, SelectField } from '../../../core/components/form'
+import { DateRangeField, SelectField, RadioGroup, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import './OspitiInCasa.sass'
 
@@ -53,12 +55,12 @@ const FALLBACK: Data = {
     { id: 2,  prenotazioneNum: '14881', camera: '101', ospite: 'Calabretti Sofia',         fasciaEta: 'Bambino', arrivo: '24/04/2026', partenza: '01/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'GAR S.R.L', canaleIcon: 'building',  tipoPren: 'Individuale', vip: false, hasNotes: true },
     { id: 3,  prenotazioneNum: '14903', camera: '102', ospite: 'Bianchi Marco',            fasciaEta: 'Adulto',  arrivo: '23/04/2026', partenza: '02/05/2026', arrangiamento: 'Senza colazione', arrangiamentoIcon: 'ban',              canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: true,  hasNotes: false },
     { id: 4,  prenotazioneNum: '14903', camera: '102', ospite: 'Bianchi Anna',             fasciaEta: 'Adulto',  arrivo: '23/04/2026', partenza: '02/05/2026', arrangiamento: 'Senza colazione', arrangiamentoIcon: 'ban',              canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: true,  hasNotes: false },
-    { id: 5,  prenotazioneNum: '14915', camera: '103', ospite: 'Rossi Giulia',             fasciaEta: 'Adulto',  arrivo: '25/04/2026', partenza: '03/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'GAR S.R.L', canaleIcon: 'building',  tipoPren: 'Individuale', vip: false, hasNotes: false },
+    { id: 5,  prenotazioneNum: '14915', camera: '103', ospite: 'Rossi Giulia',             fasciaEta: 'Adulto',  arrivo: '25/04/2026', partenza: '10/07/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'GAR S.R.L', canaleIcon: 'building',  tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 6,  prenotazioneNum: '14922', camera: '105', ospite: 'Verdi Paolo',              fasciaEta: 'Adulto',  arrivo: '24/04/2026', partenza: '01/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 7,  prenotazioneNum: '14922', camera: '105', ospite: 'Verdi Laura',              fasciaEta: 'Infante', arrivo: '24/04/2026', partenza: '01/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 8,  prenotazioneNum: '14931', camera: '201', ospite: 'Romano Federico',          fasciaEta: 'Adulto',  arrivo: '23/04/2026', partenza: '30/04/2026', arrangiamento: 'Senza colazione', arrangiamentoIcon: 'ban',              canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 9,  prenotazioneNum: '14938', camera: '202', ospite: 'De Luca Sara',             fasciaEta: 'Adulto',  arrivo: '26/04/2026', partenza: '01/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'GAR S.R.L', canaleIcon: 'building',  tipoPren: 'Individuale', vip: false, hasNotes: true },
-    { id: 10, prenotazioneNum: '14942', camera: '203', ospite: 'Greco Alessandro',         fasciaEta: 'Adulto',  arrivo: '25/04/2026', partenza: '02/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'GAR S.R.L', canaleIcon: 'building',  tipoPren: 'Individuale', vip: false, hasNotes: false },
+    { id: 10, prenotazioneNum: '14942', camera: '203', ospite: 'Greco Alessandro',         fasciaEta: 'Adulto',  arrivo: '25/04/2026', partenza: '18/07/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'GAR S.R.L', canaleIcon: 'building',  tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 11, prenotazioneNum: '14951', camera: '205', ospite: 'Conti Martina',            fasciaEta: 'Adulto',  arrivo: '24/04/2026', partenza: '01/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 12, prenotazioneNum: '14951', camera: '205', ospite: 'Conti Davide',             fasciaEta: 'Bambino', arrivo: '24/04/2026', partenza: '01/05/2026', arrangiamento: 'Con colazione',  arrangiamentoIcon: 'mug-saucer',       canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: false, hasNotes: false },
     { id: 13, prenotazioneNum: '14958', camera: '301', ospite: 'Marini Lorenzo',           fasciaEta: 'Adulto',  arrivo: '23/04/2026', partenza: '01/05/2026', arrangiamento: 'Senza colazione', arrangiamentoIcon: 'ban',              canale: 'Sibylla',   canaleIcon: 'globe',     tipoPren: 'Individuale', vip: false, hasNotes: false },
@@ -83,13 +85,24 @@ type ColFilterKey = 'fasciaEta' | 'arrangiamento' | 'canale'
 type ColSearchKey = 'prenotazioneNum' | 'camera' | 'ospite'
 
 const FASCIA_ETA_ICONS: Record<string, string> = {
-  'Infante': 'baby',
+  'Infante': 'baby-carriage',
   'Bambino': 'child',
-  'Adulto':  'people-simple',
+  'Adulto':  'person',
 }
 const ARRANGIAMENTO_ICONS: Record<string, string> = {
   'Con colazione':  'mug-saucer',
   'Senza colazione': 'ban',
+}
+
+// dd/mm/yyyy → Date; "scaduto" = partenza precedente a oggi (check-out camera
+// abilitato solo dopo la data di partenza).
+const parseIt = (d: string) => { const [g, m, a] = d.split('/').map(Number); return new Date(a, m - 1, g) }
+const isOverdue = (partenza: string) => { const t = new Date(); t.setHours(0, 0, 0, 0); return parseIt(partenza) < t }
+
+// Camere disponibili per il "Cambio camera" (mock) + relative tariffe.
+const CAMERE_DISPONIBILI = ['210', '212', '214', '305', '410']
+const TARIFFA_CAMERA: Record<string, number> = {
+  '210': 198.00, '212': 224.46, '214': 210.50, '305': 245.90, '410': 188.00,
 }
 
 export default function OspitiInCasa({ navigate }: { navigate: (p: string) => void }) {
@@ -101,6 +114,13 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
   const [scaduti, setScaduti] = useState<OspiteScaduto[]>(FALLBACK.ospitiScaduti)
   const [anagrafica, setAnagrafica] = useState<Ospite | null>(null)
   const [page, setPage] = useState(1)
+
+  // Azioni di riga: check-out prenotazione, check-out camera (scaduti),
+  // cambio camera, modifica soggiorno.
+  const [checkoutTarget, setCheckoutTarget] = useState<Ospite | null>(null)
+  const [scadutiTarget,  setScadutiTarget]  = useState<Ospite | null>(null)
+  const [cambioTarget,   setCambioTarget]   = useState<Ospite | null>(null)
+  const [modSoggTarget,  setModSoggTarget]  = useState<Ospite | null>(null)
 
   // Column filters
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
@@ -196,6 +216,27 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
 
   const checkoutMassa = () => {
     setShowAvviso(false)
+  }
+
+  // Check-out di una prenotazione: rimuove tutti gli ospiti collegati.
+  const confermaCheckout = () => {
+    if (!checkoutTarget) return
+    setData((d) => ({ ...d, ospiti: d.ospiti.filter((o) => o.prenotazioneNum !== checkoutTarget.prenotazioneNum) }))
+    setCheckoutTarget(null)
+  }
+
+  // Elenco soggiorni con partenza scaduta, con la prenotazione cliccata in cima.
+  const scadutiList = useMemo(() => {
+    if (!scadutiTarget) return []
+    const overdue = data.ospiti.filter((o) => isOverdue(o.partenza))
+    return [scadutiTarget, ...overdue.filter((o) => o.id !== scadutiTarget.id)]
+  }, [scadutiTarget, data.ospiti])
+
+  // Applica il cambio camera all'ospite selezionato.
+  const applicaCambioCamera = (nuovaCamera: string) => {
+    if (!cambioTarget) return
+    setData((d) => ({ ...d, ospiti: d.ospiti.map((o) => (o.id === cambioTarget.id ? { ...o, camera: nuovaCamera } : o)) }))
+    setCambioTarget(null)
   }
 
   return (
@@ -356,30 +397,62 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                 </td>
                 <td className="ospiti-casa__td-center">
                   <div className="ospiti-casa__row-icons">
-                    <button type="button" className="sib-btn sib-btn--icon" title="Check-Out prenotazione" aria-label="Check-Out prenotazione"><i className="fa-light fa-arrow-right-from-bracket" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Check-Out camera" aria-label="Check-Out camera"><i className="fa-light fa-bed" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Modifica soggiorno" aria-label="Modifica soggiorno"><i className="fa-light fa-calendar-pen" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Cambio camera" aria-label="Cambio camera"><i className="fa-light fa-person-walking-arrow-right" /></button>
+                    <Tooltip text="Check-Out prenotazione">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-Out prenotazione" onClick={() => setCheckoutTarget(r)}><i className="fa-light fa-arrow-right-from-bracket" /></button>
+                    </Tooltip>
+                    <Tooltip text="Modifica soggiorno">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica soggiorno" onClick={() => setModSoggTarget(r)}><i className="fa-light fa-bed" /></button>
+                    </Tooltip>
+                    <Tooltip text="Cambio camera">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Cambio camera" onClick={() => setCambioTarget(r)}><i className="fa-light fa-person-walking-arrow-right" /></button>
+                    </Tooltip>
+                    <Tooltip text={isOverdue(r.partenza) ? 'Soggiorno scaduto' : 'Soggiorno non ancora scaduto'}>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Soggiorno scaduto" disabled={!isOverdue(r.partenza)} onClick={() => setScadutiTarget(r)}><i className="fa-light fa-calendar-pen" /></button>
+                    </Tooltip>
                   </div>
                 </td>
-                <td>{r.fasciaEta}</td>
+                <td className="ospiti-casa__td-center">
+                  <Tooltip text={r.fasciaEta}>
+                    <i className={`fa-light fa-${FASCIA_ETA_ICONS[r.fasciaEta] ?? 'users'}`} aria-hidden="true" />
+                  </Tooltip>
+                </td>
                 <td>{r.arrivo}</td>
                 <td>{r.partenza}</td>
                 <td className="ospiti-casa__td-center">
-                  <i className={`fa-light fa-${r.arrangiamentoIcon}`} title={r.arrangiamento} />
+                  <Tooltip text={r.arrangiamento}>
+                    <i className={`fa-light fa-${r.arrangiamentoIcon}`} aria-hidden="true" />
+                  </Tooltip>
                 </td>
                 <td className="ospiti-casa__td-center">
-                  <i className={`fa-light fa-${r.canaleIcon}`} title={r.canale} />
+                  <Tooltip text={r.canale}>
+                    <i className={`fa-light fa-${r.canaleIcon}`} aria-hidden="true" />
+                  </Tooltip>
                 </td>
                 <td className="ospiti-casa__td-center">
-                  <i className={`fa-light fa-${r.tipoPren?.toLowerCase().includes('gruppo') ? 'users' : 'user'}`} title={r.tipoPren} />
+                  <Tooltip text={r.tipoPren}>
+                    <i className={`fa-light fa-${r.tipoPren?.toLowerCase().includes('gruppo') ? 'users' : 'user'}`} aria-hidden="true" />
+                  </Tooltip>
                 </td>
                 <td>
                   <div className="ospiti-casa__actions">
-                    <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica" onClick={() => setAnagrafica(r)}><i className="fa-light fa-pen" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Conto camera" aria-label="Conto camera" onClick={() => navigate('conti-camera')}><i className="fa-light fa-receipt" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Chiudi conto" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-light fa-circle-check" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Check-out ospite" aria-label="Check-out ospite"><i className="fa-light fa-right-from-bracket" /></button>
+                    <Tooltip text="Modifica prenotazione">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica prenotazione" onClick={() => setAnagrafica(r)}><i className="fa-light fa-pen" /></button>
+                    </Tooltip>
+                    <Tooltip text="Conto camera">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Conto camera" onClick={() => navigate('conti-camera')}><i className="fa-light fa-receipt" /></button>
+                    </Tooltip>
+                    <Tooltip text="Chiudi conto">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-light fa-circle-check" /></button>
+                    </Tooltip>
+                    <Tooltip text="Trasferimento ospite">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferimento ospite" disabled={!isOverdue(r.partenza)}><i className="fa-light fa-person-walking-luggage" /></button>
+                    </Tooltip>
+                    <Tooltip text="Scambia ospite">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Scambia ospite" disabled={!isOverdue(r.partenza)}><i className="fa-light fa-people-arrows" /></button>
+                    </Tooltip>
+                    <Tooltip text="Check-out ospite">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-out ospite"><i className="fa-light fa-right-from-bracket" /></button>
+                    </Tooltip>
                   </div>
                 </td>
               </tr>
@@ -399,6 +472,48 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
 
       {/* ─── Modal Anagrafica Ospite ────────────────────────────────────── */}
       {anagrafica && <AnagraficaModal ospite={anagrafica} onClose={() => setAnagrafica(null)} />}
+
+      {/* ─── Modal Check-out prenotazione (alert di conferma, uniforme) ───── */}
+      {checkoutTarget && (
+        <Modal open onClose={() => setCheckoutTarget(null)} title="Conferma check-out" size="sm">
+          <div className="ospiti-casa__confirm">
+            <p className="ospiti-casa__confirm-text">
+              <i className="fa-light fa-triangle-exclamation ospiti-casa__confirm-ico" />
+              <span>
+                Sei sicuro di voler effettuare il <strong>check-out della prenotazione N° {checkoutTarget.prenotazioneNum}</strong>
+                {' '}(camera {checkoutTarget.camera}, {checkoutTarget.ospite})? L'operazione è irreversibile.
+              </span>
+            </p>
+            <div className="ospiti-casa__confirm-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutTarget(null)}>Annulla</button>
+              <button type="button" className="sib-btn sib-btn--danger" onClick={confermaCheckout}>Esegui check-out</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ─── Modal Check-out camera (soggiorni scaduti) ─────────────────── */}
+      {scadutiTarget && (
+        <ScadutiModal
+          target={scadutiTarget}
+          list={scadutiList}
+          onClose={() => setScadutiTarget(null)}
+          onCheckout={(ids) => {
+            setData((d) => ({ ...d, ospiti: d.ospiti.filter((o) => !ids.includes(o.id)) }))
+            setScadutiTarget(null)
+          }}
+        />
+      )}
+
+      {/* ─── Modal Cambio camera ────────────────────────────────────────── */}
+      {cambioTarget && (
+        <CambioCameraModal ospite={cambioTarget} onClose={() => setCambioTarget(null)} onApply={applicaCambioCamera} />
+      )}
+
+      {/* ─── Modal Modifica soggiorno ───────────────────────────────────── */}
+      {modSoggTarget && (
+        <ModificaSoggiornoModal ospite={modSoggTarget} onClose={() => setModSoggTarget(null)} />
+      )}
 
       {/* ─── Modal Avviso ────────────────────────────────────────────────── */}
       {showAvviso && scaduti.length > 0 && (
@@ -643,6 +758,170 @@ function AnagraficaModal({ ospite, onClose }: { ospite: Ospite; onClose: () => v
         </div>
       </div>
     </div>
+  )
+}
+
+// ─── SCADUTI MODAL (check-out camera) ──────────────────────────────────────────
+
+function ScadutiModal({ target, list, onClose, onCheckout }: {
+  target: Ospite; list: Ospite[]; onClose: () => void; onCheckout: (ids: number[]) => void
+}) {
+  const [sel, setSel] = useState<number[]>([target.id])
+  const toggle = (id: number) => setSel((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
+
+  return (
+    <Modal open onClose={onClose} title="Check-out camera — soggiorni scaduti" size="lg">
+      <p className="oc-confirm__msg">
+        Soggiorni con data di partenza superata e check-out non effettuato. Seleziona quali registrare in uscita.
+      </p>
+      <table className="sib-table">
+        <thead>
+          <tr>
+            <th>Prenotazione</th><th>Camera</th><th>Ospite</th><th>Arrivo</th><th>Partenza</th>
+            <th className="ospiti-casa__th-center">Check-out</th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.map((s, i) => (
+            <tr key={s.id} className={i === 0 ? 'oc-scaduti__first' : ''}>
+              <td><span className="ospiti-casa__pren-badge"><i className="fa-light fa-id-card" /> {s.prenotazioneNum}</span></td>
+              <td>{s.camera}</td>
+              <td>{s.ospite}</td>
+              <td>{s.arrivo}</td>
+              <td className="sib-cell--error">{s.partenza}</td>
+              <td className="ospiti-casa__td-center">
+                <input type="checkbox" className="sib-checkbox" checked={sel.includes(s.id)} onChange={() => toggle(s.id)} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="oc-modal-foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!sel.length} onClick={() => onCheckout(sel)}>
+          <i className="fa-light fa-right-from-bracket" /> Check-Out
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── CAMBIO CAMERA MODAL ────────────────────────────────────────────────────────
+
+function CambioCameraModal({ ospite, onClose, onApply }: {
+  ospite: Ospite; onClose: () => void; onApply: (camera: string) => void
+}) {
+  const [camera, setCamera] = useState('')
+  const opzioni = CAMERE_DISPONIBILI.filter((c) => c !== ospite.camera)
+  const tariffaAttuale = TARIFFA_CAMERA[ospite.camera]
+  const tariffaNuova   = camera ? TARIFFA_CAMERA[camera] : null
+
+  return (
+    <Modal open onClose={onClose} title={`Cambio camera ${ospite.camera}`} size="md">
+      <div className="oc-cambio">
+        <SelectField
+          name="cambio-camera"
+          label="Seleziona Camera"
+          value={camera}
+          placeholder="Seleziona"
+          onChange={(e) => setCamera(e.target.value)}
+          options={opzioni.map((c) => ({ value: c, label: `Camera ${c}` }))}
+        />
+        {!camera ? (
+          <p className="oc-cambio__empty">Seleziona una camera per visualizzare le tariffe.</p>
+        ) : (
+          <div className="oc-cambio__tariffe">
+            <div className="oc-cambio__tariffa">
+              <span className="oc-cambio__tariffa-label">Tariffa attuale · Camera {ospite.camera}</span>
+              <span className="oc-cambio__tariffa-val">{tariffaAttuale != null ? `${tariffaAttuale.toFixed(2)} €` : '—'}</span>
+            </div>
+            <div className="oc-cambio__tariffa">
+              <span className="oc-cambio__tariffa-label">Nuova tariffa · Camera {camera}</span>
+              <span className="oc-cambio__tariffa-val oc-cambio__tariffa-val--new">{tariffaNuova != null ? `${tariffaNuova.toFixed(2)} €` : '—'}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="oc-modal-foot">
+        <button type="button" className="sib-btn sib-btn--secondary" disabled={!camera} onClick={() => onApply(camera)}>
+          Mantieni prezzi attuali
+        </button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!camera} onClick={() => onApply(camera)}>
+          Accetta nuovi prezzi
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── MODIFICA SOGGIORNO MODAL ───────────────────────────────────────────────────
+
+function ModificaSoggiornoModal({ ospite, onClose }: { ospite: Ospite; onClose: () => void }) {
+  const [mode, setMode]   = useState('estendi')
+  const [date, setDate]   = useState('2026-06-20')
+  const [importo, setImporto] = useState('104,73')
+
+  const fmt = (iso: string) => { const [y, m, g] = iso.split('-'); return `${g}/${m}/${y}` }
+  const correnti = [{ data: ospite.partenza, persone: 4, importo: '224,46 €' }]
+  const nuove = mode === 'estendi'
+    ? [...correnti.map((r) => ({ ...r, isNew: false })), { data: fmt(date), persone: 2, importo, isNew: true }]
+    : correnti.slice(0, Math.max(0, correnti.length - 1)).map((r) => ({ ...r, isNew: false }))
+
+  return (
+    <Modal open onClose={onClose} title={`Modifica soggiorno Camera ${ospite.camera}`} size="lg">
+      <p className="oc-modsogg__hint">
+        Selezionando una data differente da quella corrente potresti visualizzare variazioni di prezzo
+      </p>
+      <div className="oc-modsogg__controls">
+        <RadioGroup
+          name="modsogg-mode"
+          value={mode}
+          onChange={setMode}
+          options={[{ value: 'riduci', label: 'Riduci' }, { value: 'estendi', label: 'Estendi' }]}
+        />
+        <DatePickerField name="modsogg-date" value={date} onChange={(e) => setDate(e.target.value)} />
+      </div>
+
+      <div className="oc-modsogg__cols">
+        <div className="oc-modsogg__col">
+          <h4 className="oc-modsogg__col-title">Tariffe correnti</h4>
+          <table className="sib-table">
+            <thead><tr><th>Data</th><th>Persone</th><th>Importo</th></tr></thead>
+            <tbody>
+              {correnti.map((r, i) => (
+                <tr key={i}><td>{r.data}</td><td>{r.persone}</td><td>{r.importo}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="oc-modsogg__col">
+          <h4 className="oc-modsogg__col-title">Nuove tariffe</h4>
+          <table className="sib-table">
+            <thead><tr><th>Data</th><th>Persone</th><th>Importo</th></tr></thead>
+            <tbody>
+              {nuove.length === 0 ? (
+                <tr><td colSpan={3} className="sib-empty">Nessuna notte</td></tr>
+              ) : nuove.map((r, i) => (
+                <tr key={i} className={r.isNew ? 'oc-modsogg__new' : ''}>
+                  <td>{r.data}</td>
+                  <td>{r.persone}</td>
+                  <td>
+                    {r.isNew
+                      ? <input className="sib-input oc-modsogg__importo" value={importo} onChange={(e) => setImporto(e.target.value)} />
+                      : r.importo}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="oc-modal-foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Conferma</button>
+      </div>
+    </Modal>
   )
 }
 

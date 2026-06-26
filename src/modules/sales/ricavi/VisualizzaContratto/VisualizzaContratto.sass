@@ -55,32 +55,28 @@
     flex-direction: column
     gap: 16px
 
-  // ── Read field grid ────────────────────────────────────────────────────────
-  &__row
+  // ── Anagrafica: griglia uniforme a 4 colonne (campi allineati) ──────────────
+  &__anag-grid
     display: grid
-    grid-template-columns: 1fr 1fr 1fr
-    gap: 24px
+    grid-template-columns: repeat(4, 1fr)
+    gap: 18px 28px
     align-items: start
 
-    &--4
-      grid-template-columns: 1fr 1fr 1fr 1fr
+    @media (max-width: 1280px)
+      grid-template-columns: repeat(3, 1fr)
 
-      @media (max-width: 1100px)
-        grid-template-columns: 1fr 1fr
+    @media (max-width: 900px)
+      grid-template-columns: repeat(2, 1fr)
 
-    &--5
-      grid-template-columns: 1fr 1fr 1fr 1fr 1fr
-
-      @media (max-width: 1280px)
-        grid-template-columns: 1fr 1fr 1fr
-
-    &--full
-      grid-template-columns: 1fr
+  // Note: occupa l'intera larghezza, sotto la griglia
+  &__anag-note
+    grid-column: 1 / -1
 
   &__field
     display: flex
     flex-direction: column
     gap: 4px
+    min-width: 0
 
   &__field-label
     font-size: 12px
@@ -90,7 +86,7 @@
   &__field-value
     display: inline-flex
     align-items: center
-    justify-content: space-between
+    justify-content: flex-start
     gap: 8px
     font-size: 14px
     color: $text-active

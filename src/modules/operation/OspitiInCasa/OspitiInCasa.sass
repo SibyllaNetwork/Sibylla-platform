@@ -468,3 +468,118 @@
     font-size: 14px
     width: 16px
     text-align: center
+
+// ─── Modali azioni di riga (Modal standard) ─────────────────────────────────────
+.oc-modal-foot
+  display: flex
+  justify-content: flex-end
+  gap: $space-sm
+  margin-top: $space-lg
+
+.oc-confirm__msg
+  font-size: 14px
+  color: $text-active
+  line-height: 1.5
+  margin: 0 0 $space-sm
+
+// Riga "in cima" (prenotazione cliccata) nell'elenco scaduti
+.oc-scaduti__first td
+  background: $primary-50
+
+// ── Cambio camera ──────────────────────────────────────────────────────────────
+.oc-cambio
+  display: flex
+  flex-direction: column
+  gap: $space-lg
+
+  &__empty
+    text-align: center
+    color: $link
+    font-size: 13px
+    font-weight: 600
+    padding: $space-xl 0
+
+  &__tariffe
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: $space-lg
+
+  &__tariffa
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: $space-md
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: var(--color-bg)
+
+  &__tariffa-label
+    font-size: 10px
+    font-weight: 700
+    color: $text-disabled
+    text-transform: uppercase
+    letter-spacing: 0.4px
+
+  &__tariffa-val
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 700
+    color: $primary
+
+    &--new
+      color: $success
+
+// ── Modifica soggiorno ───────────────────────────────────────────────────────────
+.oc-modsogg
+  &__hint
+    font-size: 13px
+    color: $text-inactive
+    margin: 0 0 $space-md
+
+  &__controls
+    display: flex
+    align-items: flex-end
+    gap: $space-lg
+    margin-bottom: $space-lg
+
+  &__cols
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: $space-lg
+
+  &__col-title
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    margin: 0 0 $space-xs
+
+  &__new td
+    background: $primary-50
+
+  &__importo
+    max-width: 110px
+
+// ── Alert di conferma (check-out) — uniforme con le modali di questo tipo ────────
+.ospiti-casa__confirm
+  padding: 4px 2px 0
+
+  &-text
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    margin: 0
+    font-size: 13.5px
+    color: $text-active
+    line-height: 1.5
+
+  &-ico
+    color: $primary
+    font-size: 18px
+    margin-top: 1px
+
+  &-actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 22px

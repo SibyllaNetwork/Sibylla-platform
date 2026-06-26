@@ -107,26 +107,22 @@ export default function VisualizzaContratto({ navigate }: { navigate: (p: string
         open={openAnagrafica}
         onToggle={() => setOpenAnagrafica((v) => !v)}
       >
-        <div className="visualizza-contratto__row">
-          <ReadField label="Nome azienda"           value={a.nomeAzienda} />
-          <ReadField label="E-mail"                 value={a.email} />
-          <ReadField label="Telefono"               value={a.telefono} />
-        </div>
-        <div className="visualizza-contratto__row visualizza-contratto__row--4">
-          <ReadField label="Hotel Partner"          value={a.hotelPartner} />
-          <ReadField label="Specifiche contratto"   value={a.specificheContratto} />
-          <ReadField label="Inizio periodo"         value={a.inizioPeriodo} icon="calendar" />
-          <ReadField label="Fine periodo"           value={a.finePeriodo}   icon="calendar" />
-        </div>
-        <div className="visualizza-contratto__row visualizza-contratto__row--5">
-          <ReadField label="Tipologia garanzie"     value={a.tipologiaGaranzie} />
-          <ReadField label="Durata garanzie dal"    value={a.durataGaranzieDal} icon="calendar" />
-          <ReadField label="Fino al"                value={a.durataGaranzieAl}  icon="calendar" />
-          <ReadField label="Tipologia pagamento"    value={a.tipologiaPagamento} />
-          <ReadField label="Carica PDF"             value={a.caricaPDF ?? '-'} />
-        </div>
-        <div className="visualizza-contratto__row visualizza-contratto__row--full">
-          <ReadField label="Note" value={a.note || '-'} />
+        <div className="visualizza-contratto__anag-grid">
+          <ReadField label="Nome azienda"         value={a.nomeAzienda} />
+          <ReadField label="E-mail"               value={a.email} />
+          <ReadField label="Telefono"             value={a.telefono} />
+          <ReadField label="Hotel Partner"        value={a.hotelPartner} />
+          <ReadField label="Specifiche contratto" value={a.specificheContratto} />
+          <ReadField label="Inizio periodo"       value={a.inizioPeriodo} icon="calendar" />
+          <ReadField label="Fine periodo"         value={a.finePeriodo}   icon="calendar" />
+          <ReadField label="Tipologia garanzie"   value={a.tipologiaGaranzie} />
+          <ReadField label="Durata garanzie dal"  value={a.durataGaranzieDal} icon="calendar" />
+          <ReadField label="Fino al"              value={a.durataGaranzieAl}  icon="calendar" />
+          <ReadField label="Tipologia pagamento"  value={a.tipologiaPagamento} />
+          <ReadField label="Carica PDF"           value={a.caricaPDF ?? '-'} />
+          <div className="visualizza-contratto__anag-note">
+            <ReadField label="Note" value={a.note || '-'} />
+          </div>
         </div>
       </Section>
 

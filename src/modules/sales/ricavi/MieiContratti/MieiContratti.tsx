@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import Pagination from '../../../../core/components/Pagination'
+import Tooltip from '../../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../../services/api'
 import { setEditingContract } from '../InserisciContrattoVendita/_state'
 import './MieiContratti.sass'
@@ -52,10 +53,20 @@ function fmtPercent(v: number): string {
   return `${v.toFixed(2).replace('.', ',')} %`
 }
 
+type ColKey = 'struttura' | 'categoria' | 'mercato'
+
 export default function MieiContratti({ navigate }: { navigate: (p: string) => void }) {
   const [data, setData] = useState<Data>(FALLBACK)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+
+  // Filtri per colonna (multi-scelta), standard di piattaforma.
+  const [openFilter, setOpenFilter] = useState<ColKey | null>(null)
+  const [colFilters, setColFilters] = useState<Record<ColKey, string[]>>({ struttura: [], categoria: [], mercato: [] })
+  const toggleCol = (k: ColKey, v: string) =>
+    setColFilters((p) => ({ ...p, [k]: p[k].includes(v) ? p[k].filter((x) => x !== v) : [...p[k], v] }))
+  const setAllCol = (k: ColKey, all: string[], sel: boolean) =>
+    setColFilters((p) => ({ ...p, [k]: sel ? [...all] : [] }))
 
   useEffect(() => {
     let cancelled = false
@@ -65,15 +76,25 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
     return () => { cancelled = true }
   }, [])
 
+  const strutture = useMemo(() => Array.from(new Set(data.Contratti.map((c) => c.struttura))).sort(), [data.Contratti])
+  const categorie = useMemo(() => Array.from(new Set(data.Contratti.map((c) => String(c.categoria)))).sort(), [data.Contratti])
+  const mercati   = useMemo(() => Array.from(new Set(data.Contratti.map((c) => c.mercato))).sort(), [data.Contratti])
+
   const filtered = useMemo(() => {
+    let rows = data.Contratti
     const q = search.toLowerCase().trim()
-    if (!q) return data.Contratti
-    return data.Contratti.filter((c) =>
+    if (q) rows = rows.filter((c) =>
       String(c.id).includes(q) ||
       c.ragioneSociale.toLowerCase().includes(q) ||
       c.struttura.toLowerCase().includes(q),
     )
-  }, [data.Contratti, search])
+    if (colFilters.struttura.length) rows = rows.filter((c) => colFilters.struttura.includes(c.struttura))
+    if (colFilters.categoria.length) rows = rows.filter((c) => colFilters.categoria.includes(String(c.categoria)))
+    if (colFilters.mercato.length)   rows = rows.filter((c) => colFilters.mercato.includes(c.mercato))
+    return rows
+  }, [data.Contratti, search, colFilters])
+
+  useEffect(() => { setPage(1) }, [search, colFilters])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -114,15 +135,35 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
             <tr>
               <th>ID</th>
               <th>Ragione Sociale</th>
-              <th>Struttura</th>
-              <th>Categoria</th>
+              <th>
+                <ColFilterHeader
+                  label="Struttura" options={strutture} selected={colFilters.struttura}
+                  open={openFilter === 'struttura'} onToggleOpen={() => setOpenFilter(openFilter === 'struttura' ? null : 'struttura')}
+                  onToggle={(v) => toggleCol('struttura', v)} onSelectAll={(s) => setAllCol('struttura', strutture, s)}
+                />
+              </th>
+              <th>
+                <ColFilterHeader
+                  label="Categoria" options={categorie} selected={colFilters.categoria}
+                  open={openFilter === 'categoria'} onToggleOpen={() => setOpenFilter(openFilter === 'categoria' ? null : 'categoria')}
+                  onToggle={(v) => toggleCol('categoria', v)} onSelectAll={(s) => setAllCol('categoria', categorie, s)}
+                  labelFor={(o) => (o === '0' ? 'Nessuna' : `${o} stelle`)}
+                />
+              </th>
               <th>Contatti</th>
               <th>Periodi</th>
               <th>Camera</th>
               <th>Persona</th>
               <th>Supplemento</th>
               <th>Sconto</th>
-              <th>Mercato</th>
+              <th>
+                <ColFilterHeader
+                  label="Mercato" options={mercati} selected={colFilters.mercato}
+                  open={openFilter === 'mercato'} onToggleOpen={() => setOpenFilter(openFilter === 'mercato' ? null : 'mercato')}
+                  onToggle={(v) => toggleCol('mercato', v)} onSelectAll={(s) => setAllCol('mercato', mercati, s)}
+                  labelFor={(o) => o.toUpperCase()}
+                />
+              </th>
               <th>Azioni</th>
             </tr>
           </thead>
@@ -142,8 +183,8 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
                 </td>
                 <td>
                   <span className="miei-contratti__contatti">
-                    {c.emailAttiva && <i className="fa-light fa-envelope" title="Email" />}
-                    {c.contattiAttivi && <i className="fa-light fa-id-card" title="Contatti" />}
+                    {c.emailAttiva && <Tooltip text="Email"><i className="fa-light fa-envelope" /></Tooltip>}
+                    {c.contattiAttivi && <Tooltip text="Contatti"><i className="fa-light fa-address-book" /></Tooltip>}
                   </span>
                 </td>
                 <td>{c.periodo}</td>
@@ -162,46 +203,54 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
                 </td>
                 <td>
                   <span className="miei-contratti__azioni">
-                    <button type="button" className="miei-contratti__icon-btn" title="Conferma" aria-label="Conferma">
-                      <i className="fa-light fa-circle-check" />
-                    </button>
-                    <button
-                      type="button"
-                      className="miei-contratti__icon-btn"
-                      title="Modifica"
-                      aria-label="Modifica"
-                      onClick={() => {
-                        const [pi, pf] = (c.periodo ?? '').split(' - ').map(s => s.trim())
-                        setEditingContract({
-                          id: c.id,
-                          ragioneSociale: c.ragioneSociale,
-                          periodoInizio: pi ? pi.split('/').reverse().join('-') : undefined,
-                          periodoFine:   pf ? pf.split('/').reverse().join('-') : undefined,
-                          camera:        c.camera,
-                          persona:       c.persona,
-                          supplemento:   c.supplemento,
-                          sconto:        c.sconto,
-                        })
-                        navigate('modifica-contratto-v')
-                      }}
-                    >
-                      <i className="fa-light fa-pen-to-square" />
-                    </button>
-                    <button type="button" className="miei-contratti__icon-btn miei-contratti__icon-btn--pdf" title="Esporta PDF" aria-label="Esporta PDF">
-                      <i className="fa-light fa-file-pdf" />
-                    </button>
-                    <button
-                      type="button"
-                      className="miei-contratti__icon-btn"
-                      title="Visualizza"
-                      aria-label="Visualizza"
-                      onClick={() => navigate('visualizza-contratto-v')}
-                    >
-                      <i className="fa-light fa-eye" />
-                    </button>
-                    <button type="button" className="miei-contratti__icon-btn" title="Elimina" aria-label="Elimina">
-                      <i className="fa-light fa-trash" />
-                    </button>
+                    <Tooltip text="Conferma">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Conferma">
+                        <i className="fa-light fa-circle-check" />
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Modifica">
+                      <button
+                        type="button"
+                        className="sib-btn sib-btn--icon"
+                        aria-label="Modifica"
+                        onClick={() => {
+                          const [pi, pf] = (c.periodo ?? '').split(' - ').map(s => s.trim())
+                          setEditingContract({
+                            id: c.id,
+                            ragioneSociale: c.ragioneSociale,
+                            periodoInizio: pi ? pi.split('/').reverse().join('-') : undefined,
+                            periodoFine:   pf ? pf.split('/').reverse().join('-') : undefined,
+                            camera:        c.camera,
+                            persona:       c.persona,
+                            supplemento:   c.supplemento,
+                            sconto:        c.sconto,
+                          })
+                          navigate('modifica-contratto-v')
+                        }}
+                      >
+                        <i className="fa-light fa-pen-to-square" />
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Esporta PDF">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF">
+                        <i className="fa-light fa-file-pdf" />
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Visualizza">
+                      <button
+                        type="button"
+                        className="sib-btn sib-btn--icon"
+                        aria-label="Visualizza"
+                        onClick={() => navigate('visualizza-contratto-v')}
+                      >
+                        <i className="fa-light fa-eye" />
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Elimina">
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina">
+                        <i className="fa-light fa-trash" />
+                      </button>
+                    </Tooltip>
                   </span>
                 </td>
               </tr>
@@ -227,5 +276,54 @@ function Stars({ n }: { n: number }) {
         <i key={i} className={`fa-solid fa-star miei-contratti__star${i < n ? ' miei-contratti__star--on' : ''}`} />
       ))}
     </span>
+  )
+}
+
+// ─── COL FILTER HEADER (multi-scelta, standard) ─────────────────────────────────
+interface ColFilterHeaderProps {
+  label: string
+  options: string[]
+  selected: string[]
+  open: boolean
+  onToggleOpen: () => void
+  onToggle: (value: string) => void
+  onSelectAll: (select: boolean) => void
+  labelFor?: (option: string) => string
+}
+
+function ColFilterHeader({ label, options, selected, open, onToggleOpen, onToggle, onSelectAll, labelFor }: ColFilterHeaderProps) {
+  const allSelected = options.length > 0 && options.every((o) => selected.includes(o))
+  const hasFilter = selected.length > 0
+
+  return (
+    <div className="mc-colfilter">
+      <span>{label}</span>
+      <button
+        type="button"
+        className={'mc-colfilter__btn' + (hasFilter ? ' mc-colfilter__btn--active' : '')}
+        onClick={onToggleOpen}
+        aria-label={`Filtra per ${label}`}
+      >
+        <i className="fa-solid fa-filter" />
+      </button>
+      {open && (
+        <>
+          <div className="mc-colfilter__overlay" onClick={onToggleOpen} />
+          <div className="mc-colfilter__popup" onClick={(e) => e.stopPropagation()}>
+            <div className="mc-colfilter__title">Filtra</div>
+            <label className="mc-colfilter__option">
+              <input type="checkbox" className="sib-checkbox" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} />
+              <span>Tutti</span>
+            </label>
+            {options.map((opt) => (
+              <label key={opt} className="mc-colfilter__option">
+                <input type="checkbox" className="sib-checkbox" checked={selected.includes(opt)} onChange={() => onToggle(opt)} />
+                <span>{labelFor ? labelFor(opt) : opt}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
