@@ -308,15 +308,19 @@
   min-width: 180px
 
 .promo__f-periodo
-  flex: 1 1 190px
-  min-width: 170px
+  flex: 0 0 196px
+  min-width: 0
 
   .sib-daterange
     width: 100%
 
   button.sib-input
     width: 100%
-    justify-content: space-between
+    justify-content: flex-start
+
+  // niente chevron da "select": resta solo l'icona calendario
+  button.sib-input .fa-chevron-down
+    display: none
 
 .promo__f-mercato
   flex: 0 0 130px
