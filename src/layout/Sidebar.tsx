@@ -107,12 +107,25 @@ export default function Sidebar({
         ]
       : [
           'transition-[width,min-width] duration-[420ms] ease-sidebar',
-          sideOpen ? 'w-[260px] min-w-[260px]' : 'w-16 min-w-16',
+          sideOpen ? 'w-[260px] min-w-[260px]' : 'w-16 min-w-16 cursor-pointer',
         ],
   )
 
+  // Sidenav chiusa (desktop): un click qualsiasi la apre — non solo l'hamburger.
+  // Intercetto in capture per aprire e bloccare l'azione del figlio (no navigazione).
+  const handleCollapsedClick = (e: React.MouseEvent) => {
+    if (!sideOpen && !isMobile) {
+      e.stopPropagation()
+      setSideOpen(true)
+    }
+  }
+
   return (
-    <div className={rootClass} style={adminMode ? { background: '#c9a84c' } : undefined}>
+    <div
+      className={rootClass}
+      style={adminMode ? { background: '#c9a84c' } : undefined}
+      onClickCapture={handleCollapsedClick}
+    >
 
       {/* ── Header: hamburger (1° elemento) + select struttura (chiara) ──────── */}
       <div

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
+import Tooltip from '../../../../core/components/Tooltip'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
@@ -71,21 +72,51 @@ const MOCK_PRENOTAZIONE: Prenotazione = {
 
 const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
 
+// Camere disponibili per piano (mock) — usate in "Modifica assegnazione".
+const AVAILABLE_ROOMS: Record<string, string[]> = {
+  'Piano Terra':   ['2', '4', '6'],
+  'Primo Piano':   ['102', '109', '110'],
+  'Secondo Piano': ['201', '202', '205', '207'],
+  'Terzo Piano':   ['301', '303', '308'],
+  'Quarto Piano':  ['401', '402', '409'],
+}
+const PIANI = Object.keys(AVAILABLE_ROOMS)
+
 // ── Componente ────────────────────────────────────────────────────────────────
 export default function Assegnazione({ navigate }: { navigate: (p: string) => void }) {
   const [calendario, setCalendario] = useState('2026-04-13')
   const [calendarioFine, setCalendarioFine] = useState('2026-04-14')
   const [struttura, setStruttura] = useState(STRUTTURE[0])
-  const [selectedCamera, setSelectedCamera] = useState<Camera | null>(MOCK_CAMERE[0])
 
-  const prenotazione = selectedCamera
-    ? MOCK_PRENOTAZIONE
-    : null
+  const [cameras, setCameras]   = useState<Camera[]>(MOCK_CAMERE)
+  const [selectedId, setSelectedId] = useState<number | null>(MOCK_CAMERE[0].id)
+  // Modalità modifica assegnazione (cambio piano + scelta nuova camera).
+  const [editMode, setEditMode]     = useState(false)
+  const [editPiano, setEditPiano]   = useState(MOCK_CAMERE[0].piano)
+  const [editCamera, setEditCamera] = useState<string | null>(null)
 
-  const statoClass = (stato: string) => {
-    if (!stato) return 'assegnazione__stato-badge--vuoto'
-    if (stato === 'attivo') return 'assegnazione__stato-badge--attivo'
-    return 'assegnazione__stato-badge--opzionata'
+  const selectedCamera = cameras.find(c => c.id === selectedId) ?? null
+  const prenotazione   = selectedCamera ? MOCK_PRENOTAZIONE : null
+  const availableRooms = AVAILABLE_ROOMS[editPiano] ?? []
+
+  // Visualizza dettagli: seleziona la camera ed esce dall'eventuale modifica.
+  const viewCamera = (cam: Camera) => {
+    setSelectedId(cam.id)
+    setEditMode(false)
+  }
+  // Modifica assegnazione: seleziona la camera e apre l'editor (piano + camera).
+  const editCameraStart = (cam: Camera) => {
+    setSelectedId(cam.id)
+    setEditPiano(cam.piano)
+    setEditCamera(null)
+    setEditMode(true)
+  }
+  const confermaAssegnazione = () => {
+    if (!selectedCamera || !editCamera) return
+    setCameras(prev => prev.map(c =>
+      c.id === selectedCamera.id ? { ...c, piano: editPiano, numero: editCamera } : c,
+    ))
+    setEditMode(false)
   }
 
   return (
@@ -136,11 +167,11 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                 </tr>
               </thead>
               <tbody>
-                {MOCK_CAMERE.map(cam => (
+                {cameras.map(cam => (
                   <tr
                     key={cam.id}
-                    className={`assegnazione__tr ${selectedCamera?.id === cam.id ? 'assegnazione__tr--selected' : ''}`}
-                    onClick={() => setSelectedCamera(cam)}
+                    className={`assegnazione__tr ${selectedId === cam.id ? 'assegnazione__tr--selected' : ''}`}
+                    onClick={() => viewCamera(cam)}
                   >
                     <td><span className="assegnazione__camera-num">{cam.numero}</span></td>
                     <td>{cam.piano}</td>
@@ -151,7 +182,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                         {cam.tipoRichiesto}
                       </span>
                     </td>
-                    <td className="assegnazione__checkin" style={{ '--checkin-color': cam.checkIn === 'Sì' ? T.success : T.textDisabled } as React.CSSProperties}>
+                    <td className={`assegnazione__checkin ${cam.checkIn === 'Sì' ? 'assegnazione__checkin--yes' : 'assegnazione__checkin--no'}`}>
                       {cam.checkIn}
                     </td>
                     <td>
@@ -164,14 +195,18 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                     </td>
                     <td>
                       <div className="flex gap-1">
-                        <button className="sib-btn sib-btn--icon w-7 h-7" title="Visualizza"
-                          onClick={e => { e.stopPropagation(); setSelectedCamera(cam) }}>
-                          <i className="fa-duotone fa-eye text-[13px]" aria-hidden="true"/>
-                        </button>
-                        <button className="sib-btn sib-btn--icon w-7 h-7" title="Modifica"
-                          onClick={e => e.stopPropagation()}>
-                          <i className="fa-duotone fa-pen text-[13px]" aria-hidden="true"/>
-                        </button>
+                        <Tooltip text="Visualizza dettagli">
+                          <button className="sib-btn sib-btn--icon w-7 h-7"
+                            onClick={e => { e.stopPropagation(); viewCamera(cam) }}>
+                            <Ico n="eye" s={13} c="currentColor" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Modifica assegnazione">
+                          <button className="sib-btn sib-btn--icon w-7 h-7"
+                            onClick={e => { e.stopPropagation(); editCameraStart(cam) }}>
+                            <Ico n="edit" s={13} c="currentColor" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </td>
                   </tr>
@@ -183,7 +218,9 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
 
         {/* Pannello dettaglio */}
         <div className="assegnazione__detail-panel">
-          <h2 className="assegnazione__detail-title">Dettagli prenotazione</h2>
+          <h2 className="assegnazione__detail-title">
+            {editMode ? 'Modifica assegnazione' : 'Dettagli prenotazione'}
+          </h2>
           {!prenotazione ? (
             <div className="assegnazione__detail-empty">
               <Ico n="eye" s={28} c={T.textDisabled} />
@@ -229,9 +266,19 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                       {prenotazione.stato}
                     </span>
                   </div>
+                  {/* Piano: in modifica diventa una select per cambiare piano */}
                   <div className="assegnazione__detail-item">
                     <span className="assegnazione__detail-label">Piano</span>
-                    <span className="assegnazione__detail-value--normal assegnazione__detail-value">{prenotazione.piano}</span>
+                    {editMode ? (
+                      <SelectField
+                        name="edit-piano"
+                        value={editPiano}
+                        onChange={e => { setEditPiano(e.target.value); setEditCamera(null) }}
+                        options={PIANI.map(p => ({ value: p, label: p }))}
+                      />
+                    ) : (
+                      <span className="assegnazione__detail-value--normal assegnazione__detail-value">{selectedCamera?.piano}</span>
+                    )}
                   </div>
                   <div className="assegnazione__detail-item">
                     <span className="assegnazione__detail-label">Data opt</span>
@@ -239,14 +286,49 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                   </div>
                   <div className="assegnazione__detail-item assegnazione__detail-item--full">
                     <span className="assegnazione__detail-label">Camera assegnata</span>
-                    <span className="assegnazione__detail-value">{selectedCamera?.numero}</span>
+                    <span className="assegnazione__detail-value">{editMode ? (editCamera ?? selectedCamera?.numero) : selectedCamera?.numero}</span>
                   </div>
                 </div>
+
+                {/* Modifica: lista camere disponibili per il piano scelto */}
+                {editMode && (
+                  <div className="assegnazione__assign">
+                    <span className="assegnazione__assign-title">Camere disponibili — {editPiano}</span>
+                    {availableRooms.length ? (
+                      <div className="assegnazione__rooms">
+                        {availableRooms.map(r => (
+                          <button
+                            key={r}
+                            type="button"
+                            className={`assegnazione__room ${editCamera === r ? 'assegnazione__room--sel' : ''}`}
+                            onClick={() => setEditCamera(r)}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="assegnazione__dash">Nessuna camera disponibile su questo piano</span>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="assegnazione__back-arrow">
-                <Ico n="arrow-right" s={14} c={T.blue} />
-                Vai alla prenotazione completa
-              </div>
+
+              {editMode ? (
+                <div className="assegnazione__detail-actions">
+                  <button type="button" className="sib-btn sib-btn--ghost" onClick={() => setEditMode(false)}>
+                    Annulla
+                  </button>
+                  <button type="button" className="sib-btn sib-btn--primary" disabled={!editCamera} onClick={confermaAssegnazione}>
+                    Assegna nuova camera
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="assegnazione__back-arrow" onClick={() => navigate('analisi-booking')}>
+                  <Ico n="arrow-right" s={14} c={T.blue} />
+                  Vai alla prenotazione completa
+                </button>
+              )}
             </>
           )}
         </div>
