@@ -54,6 +54,12 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   const [anno, setAnno]           = useState(ANNI[0])
   const [dRN, setDRN]   = useState<number[]>(INIT_DRN)
   const [dADR, setDADR] = useState<number[]>(MESI.map(() => 2))
+  // Valori "applica a tutti" dell'header Impostazione Rapida %
+  const [headRN, setHeadRN]   = useState('1')
+  const [headADR, setHeadADR] = useState('2,00')
+  const num = (v: string) => Number(v.replace(',', '.')) || 0
+  const applyAllRN  = (v: string) => { setHeadRN(v);  setDRN(MESI.map(() => num(v))) }
+  const applyAllADR = (v: string) => { setHeadADR(v); setDADR(MESI.map(() => num(v))) }
 
   const rows = useMemo(() => MESI.map((m, i) => {
     const precRev = m.precRN * m.precADR
@@ -77,10 +83,19 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
     }
   }, [rows])
 
+  // Mesi già trascorsi: valori fissi (non editabili) e sbiaditi
+  const now = new Date()
+  const isPast = (i: number) => {
+    const y = Number(anno)
+    if (y < now.getFullYear()) return true
+    if (y > now.getFullYear()) return false
+    return i < now.getMonth()
+  }
+
   const setD = (setter: React.Dispatch<React.SetStateAction<number[]>>, i: number, v: string) =>
     setter((p) => p.map((x, j) => (j === i ? Number(v.replace(',', '.')) || 0 : x)))
 
-  const ripristina = () => { setDRN(INIT_DRN); setDADR(MESI.map(() => 2)) }
+  const ripristina = () => { setDRN(INIT_DRN); setDADR(MESI.map(() => 2)); setHeadRN('1'); setHeadADR('2,00') }
 
   const esportaXls = () => {
     const header = ['Mese', 'RN Prec.', 'ADR Prec.', 'Revenue Prec.', 'Δ%RN', 'Δ%ADR', 'RN Prev.', 'ADR Prev.', 'Revenue Prev.', 'RN', 'ADR', 'Revenue']
@@ -132,14 +147,23 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
             </tr>
             <tr>
               <th>RN</th><th>ADR</th><th>Revenue</th>
-              <th>Δ%RN</th><th>Δ%ADR</th>
+              <th>
+                <span className="bdg-ric__head-imp">Δ%RN
+                  <input className="sib-input bdg-ric__imp-input" value={headRN} onChange={(e) => applyAllRN(e.target.value)} aria-label="Δ%RN per tutti i mesi" />
+                </span>
+              </th>
+              <th>
+                <span className="bdg-ric__head-imp">Δ%ADR
+                  <input className="sib-input bdg-ric__imp-input" value={headADR} onChange={(e) => applyAllADR(e.target.value)} aria-label="Δ%ADR per tutti i mesi" />
+                </span>
+              </th>
               <th>RN</th><th>ADR</th><th>Revenue</th>
               <th>RN</th><th>Δ% RN vs BDG</th><th>ADR</th><th>Δ% ADR vs BDG</th><th>Revenue</th><th>Δ% RV</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.mese}>
+              <tr key={r.mese} className={isPast(i) ? 'bdg-ric__row--past' : ''}>
                 <td className="bdg-ric__mese-cell">
                   <span className="bdg-ric__cal" aria-label={r.mese}>
                     <span className="bdg-ric__cal-head" />
@@ -149,12 +173,21 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
                 <td>{r.precRN} Notti</td>
                 <td>{eur(r.precADR)}</td>
                 <td>{eur(r.precRev)}</td>
-                <td className="bdg-ric__imp-cell">
-                  <input className="sib-input bdg-ric__imp-input" value={dRN[i]} onChange={(e) => setD(setDRN, i, e.target.value)} />
-                </td>
-                <td className="bdg-ric__imp-cell">
-                  <input className="sib-input bdg-ric__imp-input" value={dADR[i].toLocaleString('it-IT', { minimumFractionDigits: 2 })} onChange={(e) => setD(setDADR, i, e.target.value)} />
-                </td>
+                {isPast(i) ? (
+                  <>
+                    <td className="bdg-ric__imp-cell">{dRN[i]}</td>
+                    <td className="bdg-ric__imp-cell">{dADR[i].toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
+                  </>
+                ) : (
+                  <>
+                    <td className="bdg-ric__imp-cell">
+                      <input className="sib-input bdg-ric__imp-input" value={dRN[i]} onChange={(e) => setD(setDRN, i, e.target.value)} />
+                    </td>
+                    <td className="bdg-ric__imp-cell">
+                      <input className="sib-input bdg-ric__imp-input" value={dADR[i].toLocaleString('it-IT', { minimumFractionDigits: 2 })} onChange={(e) => setD(setDADR, i, e.target.value)} />
+                    </td>
+                  </>
+                )}
                 <td>{r.prevRN} Notti</td>
                 <td>{eur(r.prevADR)}</td>
                 <td>{eur(r.prevRev)}</td>

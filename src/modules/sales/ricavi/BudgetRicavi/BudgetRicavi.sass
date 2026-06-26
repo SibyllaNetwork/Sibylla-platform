@@ -104,6 +104,13 @@
     letter-spacing: .3px
     color: $primary
 
+  // Input "applica a tutti" nell'header Impostazione Rapida
+  &__head-imp
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+
   // Celle editabili Impostazione Rapida
   &__imp-cell
     background: $primary-50
@@ -127,6 +134,15 @@
 
     &--zero
       color: $text-disabled
+
+  // Mesi passati: valori fissi, aspetto sbiadito
+  &__row--past
+    opacity: 0.5
+
+    .bdg-ric__imp-cell
+      font-weight: 600
+      color: $text-disabled
+      background: transparent
 
   &__tot
     background: $primary-50
