@@ -3,3 +3,31 @@
 
 .rilev-presenze__flag
   font-size: 16px
+
+// ── Popover "Esporta XML" (scelta intervallo) ─────────────────────────────────
+.rilev-presenze__xml-pop
+  position: absolute
+  right: 0
+  top: 100%
+  margin-top: 8px
+  z-index: 50
+  width: 256px
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 10px
+  box-shadow: 0 12px 32px rgba(32, 71, 105, 0.18)
+  padding: 14px
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.rilev-presenze__xml-title
+  display: flex
+  align-items: center
+  gap: 8px
+  font-family: $font-heading
+  font-size: 12px
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.4px
+  color: $primary

@@ -41,6 +41,7 @@ import SegmentAnalysis             from '../modules/sales/ricavi/SegmentAnalysis
 import MieiContratti               from '../modules/sales/ricavi/MieiContratti/MieiContratti';
 import InserisciContrattoVendita   from '../modules/sales/ricavi/InserisciContrattoVendita/InserisciContrattoVendita';
 import VisualizzaContratto         from '../modules/sales/ricavi/VisualizzaContratto/VisualizzaContratto';
+import CreaAziendaVendita          from '../modules/sales/ricavi/CreaAziendaVendita/CreaAziendaVendita';
 import SalesOverview               from '../modules/sales/SalesOverview/SalesOverview';
 import OnTheBookAnalysis           from '../modules/operation/OnTheBookAnalysis/OnTheBookAnalysis';
 import OperationOverview           from '../modules/operation/OperationOverview/OperationOverview';
@@ -246,6 +247,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'inserisci-contratto-v') return <InserisciContrattoVendita navigate={navigate} key="ins-contr-v"/>;
   if (page === 'modifica-contratto-v')  return <InserisciContrattoVendita navigate={navigate} editing key="mod-contr-v"/>;
   if (page === 'visualizza-contratto-v') return <VisualizzaContratto navigate={navigate}/>;
+  if (page === 'crea-azienda-v')        return <CreaAziendaVendita navigate={navigate}/>;
   if (page === 'sales-overview')        return <SalesOverview navigate={navigate}/>;
   if (page === 'on-the-book')           return <OnTheBookAnalysis navigate={navigate}/>;
   if (page === 'op-overview')           return <OperationOverview navigate={navigate}/>;

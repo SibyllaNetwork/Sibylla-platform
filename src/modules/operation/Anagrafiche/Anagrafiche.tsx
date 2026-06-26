@@ -698,7 +698,7 @@ function CreaAziendaModal({ onClose, onSave }: { onClose: () => void; onSave: (a
     pIva: form.pIva, codFiscale: form.codFiscale, note: '',
   })
   return (
-    <Modal open onClose={onClose} title="Creazione anagrafica Ditta/Agenzia" size="lg">
+    <Modal open onClose={onClose} title="Crea anagrafica azienda" size="lg">
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-4">
           <InputField name="ragioneSociale" label="Ragione sociale" required placeholder="Inserisci nome azienda" value={form.ragioneSociale} onChange={(e) => set('ragioneSociale', e.target.value)} />

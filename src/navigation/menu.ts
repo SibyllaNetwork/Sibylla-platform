@@ -83,7 +83,7 @@ const MENU:any[]=[
         {id:"contratti-vendita",label:"Contratti di vendita",children:[
           {id:"miei-contratti-v",label:"I miei contratti",page:"miei-contratti-v"},
           {id:"inserisci-contratto-v",label:"Inserisci contratto",page:"inserisci-contratto-v"},
-          {id:"crea-azienda-v",label:"Crea nuova azienda",page:"crea-struttura"},
+          {id:"crea-azienda-v",label:"Crea nuova azienda",page:"crea-azienda-v"},
         ]},
       ]},
       {id:"sales-overview",label:"Sales overview",page:"sales-overview"},
