@@ -140,25 +140,25 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <thead>
             <tr>
               <th rowSpan={2}>Mese</th>
-              <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--prec">Anno Precedente</th>
-              <th colSpan={2} className="bdg-ric__grp bdg-ric__grp--imp">Impostazione Rapida %</th>
-              <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--prev">Previsione Attesa</th>
-              <th colSpan={6} className="bdg-ric__grp bdg-ric__grp--corr">Anno Corrente</th>
+              <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--prec bdg-ric__gsep">Anno Precedente</th>
+              <th colSpan={2} className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__gsep">Impostazione Rapida %</th>
+              <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--prev bdg-ric__gsep">Previsione Attesa</th>
+              <th colSpan={6} className="bdg-ric__grp bdg-ric__grp--corr bdg-ric__gsep">Anno Corrente</th>
             </tr>
             <tr>
-              <th>RN</th><th>ADR</th><th>Revenue</th>
-              <th>
+              <th className="bdg-ric__c-prec bdg-ric__gsep">RN</th><th className="bdg-ric__c-prec">ADR</th><th className="bdg-ric__c-prec">Revenue</th>
+              <th className="bdg-ric__imp-cell bdg-ric__gsep">
                 <span className="bdg-ric__head-imp">Δ%RN
                   <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={headRN} onChange={(e) => applyAllRN(e.target.value)} aria-label="Δ%RN per tutti i mesi" />
                 </span>
               </th>
-              <th>
+              <th className="bdg-ric__imp-cell">
                 <span className="bdg-ric__head-imp">Δ%ADR
                   <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={headADR} onChange={(e) => applyAllADR(e.target.value)} aria-label="Δ%ADR per tutti i mesi" />
                 </span>
               </th>
-              <th>RN</th><th>ADR</th><th>Revenue</th>
-              <th>RN</th><th>Δ% RN vs BDG</th><th>ADR</th><th>Δ% ADR vs BDG</th><th>Revenue</th><th>Δ% RV</th>
+              <th className="bdg-ric__c-prev bdg-ric__gsep">RN</th><th className="bdg-ric__c-prev">ADR</th><th className="bdg-ric__c-prev">Revenue</th>
+              <th className="bdg-ric__corr bdg-ric__gsep">RN</th><th className="bdg-ric__corr">Δ% RN vs BDG</th><th className="bdg-ric__corr">ADR</th><th className="bdg-ric__corr">Δ% ADR vs BDG</th><th className="bdg-ric__corr">Revenue</th><th className="bdg-ric__corr">Δ% RV</th>
             </tr>
           </thead>
           <tbody>
@@ -170,17 +170,17 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
                     <span className="bdg-ric__cal-day">{r.mese}</span>
                   </span>
                 </td>
-                <td>{r.precRN} Notti</td>
-                <td>{eur(r.precADR)}</td>
-                <td>{eur(r.precRev)}</td>
+                <td className="bdg-ric__c-prec bdg-ric__gsep">{r.precRN} Notti</td>
+                <td className="bdg-ric__c-prec">{eur(r.precADR)}</td>
+                <td className="bdg-ric__c-prec">{eur(r.precRev)}</td>
                 {isPast(i) ? (
                   <>
-                    <td className="bdg-ric__imp-cell">{dRN[i]}</td>
+                    <td className="bdg-ric__imp-cell bdg-ric__gsep">{dRN[i]}</td>
                     <td className="bdg-ric__imp-cell">{dADR[i].toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
                   </>
                 ) : (
                   <>
-                    <td className="bdg-ric__imp-cell">
+                    <td className="bdg-ric__imp-cell bdg-ric__gsep">
                       <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={dRN[i]} onChange={(e) => setD(setDRN, i, e.target.value)} />
                     </td>
                     <td className="bdg-ric__imp-cell">
@@ -188,10 +188,10 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
                     </td>
                   </>
                 )}
-                <td>{r.prevRN} Notti</td>
-                <td>{eur(r.prevADR)}</td>
-                <td>{eur(r.prevRev)}</td>
-                <td className="bdg-ric__corr">{r.corrRN} Notti</td>
+                <td className="bdg-ric__c-prev bdg-ric__gsep">{r.prevRN} Notti</td>
+                <td className="bdg-ric__c-prev">{eur(r.prevADR)}</td>
+                <td className="bdg-ric__c-prev">{eur(r.prevRev)}</td>
+                <td className="bdg-ric__corr bdg-ric__gsep">{r.corrRN} Notti</td>
                 <td className="bdg-ric__corr"><Delta d={pct(r.corrRN, r.prevRN)} /></td>
                 <td className="bdg-ric__corr">{eur(r.corrADR)}</td>
                 <td className="bdg-ric__corr"><Delta d={pct(r.corrADR, r.prevADR)} /></td>
@@ -203,15 +203,15 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <tfoot>
             <tr className="bdg-ric__tot">
               <td>Totale</td>
-              <td>{tot.precRN} Notti</td>
+              <td className="bdg-ric__gsep">{tot.precRN} Notti</td>
               <td>{eur(tot.precADR)}</td>
               <td>{eur(tot.precRev)}</td>
+              <td className="bdg-ric__gsep">—</td>
               <td>—</td>
-              <td>—</td>
-              <td>{tot.prevRN} Notti</td>
+              <td className="bdg-ric__gsep">{tot.prevRN} Notti</td>
               <td>{eur(tot.prevADR)}</td>
               <td>{eur(tot.prevRev)}</td>
-              <td>{tot.corrRN} Notti</td>
+              <td className="bdg-ric__gsep">{tot.corrRN} Notti</td>
               <td><Delta d={pct(tot.corrRN, tot.prevRN)} /></td>
               <td>{eur(tot.corrADR)}</td>
               <td><Delta d={pct(tot.corrADR, tot.prevADR)} /></td>

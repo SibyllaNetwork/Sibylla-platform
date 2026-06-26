@@ -27,34 +27,55 @@
     gap: 8px
     flex-wrap: wrap
 
-  // ── Tabella ──────────────────────────────────────────────────────────────────
+  // ── Tabella (compatta: deve stare nei laptop senza scroll orizzontale) ───────
   &__table
+    width: 100%
+    font-size: 12px
+
     th
       text-align: center
-      white-space: nowrap
+      white-space: normal   // le intestazioni lunghe vanno a capo invece di allargare
+      line-height: 1.2
+      padding: 5px 4px !important
+      font-size: 11px
 
     td
       text-align: center
       white-space: nowrap
+      padding: 4px 4px !important
+      font-size: 11px
 
-  // Intestazioni di gruppo
+  // ── Differenziazione dei 4 blocchi (tinte + separatori verticali) ────────────
+  // Anno precedente = grigio neutro · Impostazione rapida = blu · Previsione
+  // attesa = verde tenue · Anno corrente = blu più intenso.
   &__grp
     font-family: $font-heading
     text-transform: none
     letter-spacing: 0
     font-size: 13px
 
+    &--prec
+      background: #eef1f5
     &--imp
-      background: $primary-50
-
+      background: #e7f0fa
     &--prev
-      background: var(--color-bg)
-
+      background: #ecf5ef
     &--corr
-      background: $primary-100
+      background: #dce8f4
 
+  // Celle del corpo per gruppo
+  &__c-prec
+    background: #f5f7fa
+  &__imp-cell
+    background: #eef5fc
+  &__c-prev
+    background: #f3f9f5
   &__corr
-    background: rgba(32, 71, 105, 0.04)
+    background: #e8f1fa
+
+  // Separatore verticale all'inizio di ogni blocco
+  &__gsep
+    border-left: 2px solid $primary-200 !important
 
   // ── Badge calendario del mese (sigla dentro) ─────────────────────────────────
   &__mese-cell
@@ -65,9 +86,9 @@
     position: relative
     display: inline-flex
     flex-direction: column
-    width: 48px
-    height: 48px
-    border-radius: 9px
+    width: 42px
+    height: 42px
+    border-radius: 8px
     background: $white
     border: 1px solid $primary-200
     box-shadow: 0 2px 7px rgba(32, 71, 105, 0.14)
@@ -107,21 +128,18 @@
   // Input "applica a tutti" nell'header Impostazione Rapida
   &__head-imp
     display: inline-flex
+    flex-direction: column
     align-items: center
     justify-content: center
-    gap: 8px
-
-  // Celle editabili Impostazione Rapida
-  &__imp-cell
-    background: $primary-50
+    gap: 4px
 
   // Larghezza fissa: spazio per ≥2 cifre + le frecce dello spinner
   &__imp-input
-    width: 68px
-    min-width: 68px
-    max-width: 68px
+    width: 52px
+    min-width: 52px
+    max-width: 52px
     text-align: center
-    padding: 4px 6px
+    padding: 3px 4px
     margin: 0 auto
 
   // Scostamenti %
