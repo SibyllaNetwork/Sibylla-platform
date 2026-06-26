@@ -618,3 +618,123 @@
   color: var(--giac-color)
   border-bottom: var(--giac-border)
   background: var(--giac-bg)
+
+// ─── Dropdown "Filtri" (ultima icona barra) ────────────────────────────────────
+.tableau__filtri-popup
+  position: absolute
+  top: calc(100% + 6px)
+  right: 0
+  z-index: 100
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  padding: 8px
+  min-width: 220px
+  box-shadow: 0 8px 32px rgba(32,71,105,0.16)
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.tableau__filtri-item
+  display: flex
+  align-items: center
+  gap: 12px
+  width: 100%
+  text-align: left
+  padding: 9px 12px
+  background: $white
+  border: 1px solid $border
+  border-radius: 8px
+  cursor: pointer
+  font-size: 13px
+  font-weight: 600
+  color: $primary
+  transition: border-color 0.15s, background 0.15s
+
+  &:hover
+    border-color: $primary
+    background: $primary-50
+
+.tableau__filtri-ico
+  font-size: 15px
+  color: $primary
+  width: 18px
+  text-align: center
+
+// ─── Popover check su barra TOTALI ──────────────────────────────────────────────
+.tableau__totali-header
+  position: relative
+
+.tableau__totali-chevron
+  background: transparent
+  border: none
+  padding: 0
+  display: flex
+  align-items: center
+  cursor: pointer
+
+.tableau__totali-pop-overlay
+  position: fixed
+  inset: 0
+  z-index: 99
+
+.tableau__totali-pop
+  position: absolute
+  bottom: calc(100% + 6px)
+  left: 0
+  z-index: 100
+  background: $white
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 12px 14px
+  min-width: 260px
+  box-shadow: 0 8px 32px rgba(32,71,105,0.16)
+
+.tableau__totali-pop-grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 8px 16px
+
+// ─── Giacenza: due righe colorate + legenda icone ───────────────────────────────
+.tableau__giacenza-bar
+  display: flex
+  flex-direction: column
+
+.tableau__giacenza-row--ok
+  background: $success-light
+
+  .tableau__giacenza-cell
+    color: $success
+
+.tableau__giacenza-row--ko
+  background: $error-light
+
+  .tableau__giacenza-cell
+    color: $error
+
+.tableau__giacenza-select
+  display: flex
+  align-items: center
+  gap: 8px
+
+  .sib-select
+    flex: 1
+    min-width: 0
+
+.tableau__giacenza-legend
+  display: flex
+  flex-direction: column
+  gap: 1px
+
+.tableau__giacenza-legend-ico
+  font-size: 15px
+  line-height: 1.1
+
+  &--ok
+    color: $success
+
+  &--ko
+    color: $error
+
+.tableau__estensione-tablewrap
+  margin-bottom: 0

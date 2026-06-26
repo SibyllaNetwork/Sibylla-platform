@@ -5,6 +5,9 @@ import Ico from '../../../../core/icons/Ico'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import Modal from '../../../../core/components/Modal'
+import Tooltip from '../../../../core/components/Tooltip'
+import { CheckboxField } from '../../../../core/components/form'
+import { exportTableToXls, exportElementToPdf } from '../GrigliaDisponibilita/exportGriglia'
 import './TableauPage.sass'
 
 const MONTHS    = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -54,6 +57,17 @@ export default function TableauPage({
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
   const [showTotali,      setShowTotali]      = useState(true)
   const [showLegenda,     setShowLegenda]     = useState(false)
+  const [showFiltri,      setShowFiltri]      = useState(false)
+  const [totaliFiltri,    setTotaliFiltri]    = useState<Record<string, boolean>>({
+    'Tutte': true,
+    'Solo confermate': false,
+    'Solo opzioni': false,
+    'Pernottamenti + servizi': false,
+    'Solo pernottamenti': true,
+    'Solo servizi': false,
+  })
+  const [showTotaliPop,   setShowTotaliPop]   = useState(false)
+  const [showEstensione,  setShowEstensione]  = useState(false)
   const [showDettaglio,   setShowDettaglio]   = useState(false)
   const [giacenzaMode,    setGiacenzaMode]    = useState('Giacenza per camere')
   const [bookings,        setBookings]        = useState<Booking[]>([
@@ -86,6 +100,26 @@ export default function TableauPage({
   // Prenotazioni del periodo visualizzato: legate alla data reale (mese/anno),
   // così scorrendo i mesi compaiono solo nelle loro giornate.
   const visibleBookings = bookings.filter(b => b.mese===mese && b.anno===anno)
+
+  // ── Dropdown "Filtri" (ultima icona barra) ──────────────────────────────────
+  const exportXls = () => {
+    const header = ['Prenotazione', 'Check-in', 'Check-out', 'Camere', 'Persone', 'Importo €']
+    const rows = visibleBookings.map(b => [
+      b.nome, `${b.startDay}/${mese+1}/${anno}`, `${b.endDay}/${mese+1}/${anno}`, b.camere, b.persone, b.importo,
+    ])
+    exportTableToXls('tableau.xls', header, rows, `Tableau ${MONTHS[mese]} ${anno}`)
+  }
+  const exportPdf = () => exportElementToPdf(gridRef.current, 'tableau.pdf', `Tableau ${MONTHS[mese]} ${anno}`)
+
+  const filtriItems: { ico: string; label: string; action: () => void }[] = [
+    { ico: 'fa-diagram-project',         label: 'Allocazione risorse',  action: () => navigate('allocazione-risorse') },
+    { ico: 'fa-table-cells',             label: 'Griglia disponibilità', action: () => navigate('griglia-disp') },
+    { ico: 'fa-gears',                   label: 'Mixer assegnazione',   action: () => navigate('assegnazione-book') },
+    { ico: 'fa-magnifying-glass-chart',  label: 'Analisi booking',      action: () => navigate('analisi-booking') },
+    { ico: 'fa-chart-line',              label: 'Report',               action: () => navigate('analisi-booking') },
+    { ico: 'fa-file-excel',              label: 'Download XLS',         action: exportXls },
+    { ico: 'fa-file-pdf',                label: 'Download PDF',         action: exportPdf },
+  ]
   const getGiacenza = (d:number) => { const used=visibleBookings.filter(b=>d>=b.startDay&&d<=b.endDay).reduce((a,b)=>a+b.camere,0); return ALLOTMENT-used }
 
   const totPersone = visibleBookings.reduce((a,b)=>a+b.persone,0)
@@ -239,11 +273,42 @@ export default function TableauPage({
                 </div>
               )}
             </div>
-            {[{ico:'fa-arrows-rotate',title:'Aggiorna'},{ico:'fa-pen',title:'Modifica'},{ico:'fa-gear',title:'Impostazioni'}].map((btn,i)=>(
-              <button key={i} className="sib-btn sib-btn--icon" title={btn.title}>
-                <i className={`fa-duotone ${btn.ico} text-[14px]`} aria-hidden="true"/>
+            <button className="sib-btn sib-btn--icon" title="Aggiorna">
+              <i className="fa-duotone fa-arrows-rotate text-[14px]" aria-hidden="true"/>
+            </button>
+            {/* Estensione — Tour operator con estensione */}
+            <button className="sib-btn sib-btn--icon" title="Estensione" onClick={()=>setShowEstensione(true)}>
+              <i className="fa-duotone fa-file-pen text-[14px]" aria-hidden="true"/>
+            </button>
+            {/* Filtri — dropdown di scorciatoie (hover o click) */}
+            <div
+              className="relative"
+              onMouseEnter={()=>setShowFiltri(true)}
+              onMouseLeave={()=>setShowFiltri(false)}
+            >
+              <button
+                className={`sib-btn sib-btn--icon ${showFiltri?'border-primary bg-primary-50 text-primary':''}`}
+                title="Filtri"
+                onClick={()=>setShowFiltri(v=>!v)}
+              >
+                <i className="fa-duotone fa-bars-filter text-[14px]" aria-hidden="true"/>
               </button>
-            ))}
+              {showFiltri && (
+                <div className="tableau__filtri-popup">
+                  {filtriItems.map((it,i)=>(
+                    <button
+                      key={i}
+                      type="button"
+                      className="tableau__filtri-item"
+                      onClick={()=>{ setShowFiltri(false); it.action() }}
+                    >
+                      <i className={`fa-duotone ${it.ico} tableau__filtri-ico`} aria-hidden="true"/>
+                      <span>{it.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -304,9 +369,32 @@ export default function TableauPage({
           <div className="tableau__totali-wrap">
             <div className="tableau__totali-header" onClick={()=>setShowTotali(v=>!v)}>
               <span className="tableau__totali-title">TOTALI</span>
-              <div className={`tableau__totali-chevron ${showTotali?'':'tableau__totali-chevron--collapsed'}`}>
+              <button
+                type="button"
+                className={`tableau__totali-chevron ${showTotali?'':'tableau__totali-chevron--collapsed'}`}
+                aria-label="Filtra totali"
+                onClick={(e)=>{ e.stopPropagation(); setShowTotaliPop(v=>!v) }}
+              >
                 <Ico n="chevd" s={12} c="rgba(255,255,255,0.7)"/>
-              </div>
+              </button>
+              {showTotaliPop && (
+                <>
+                  <div className="tableau__totali-pop-overlay" onClick={(e)=>{ e.stopPropagation(); setShowTotaliPop(false) }}/>
+                  <div className="tableau__totali-pop" onClick={(e)=>e.stopPropagation()}>
+                    <div className="tableau__totali-pop-grid">
+                      {['Tutte','Pernottamenti + servizi','Solo confermate','Solo pernottamenti','Solo opzioni','Solo servizi'].map((k)=>(
+                        <CheckboxField
+                          key={k}
+                          name={`totf-${k}`}
+                          label={k}
+                          checked={!!totaliFiltri[k]}
+                          onChange={(e)=>setTotaliFiltri(p=>({ ...p, [k]: e.target.checked }))}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             {showTotali && (
               <div className="tableau__totali-grid">
@@ -325,10 +413,18 @@ export default function TableauPage({
           </div>
 
           <div className="tableau__giacenza-select">
-            <select className="sib-select sib-select--dense w-full" value={giacenzaMode} onChange={e=>setGiacenzaMode(e.target.value)}>
+            <select className="sib-select sib-select--dense" value={giacenzaMode} onChange={e=>setGiacenzaMode(e.target.value)}>
               <option>Giacenza per camere</option>
               <option>Giacenza per persone</option>
             </select>
+            <div className="tableau__giacenza-legend">
+              <Tooltip text="Giacenza – tiene conto solo delle prenotazioni confermate (allotment rilasciato)" position="left">
+                <i className="fa-duotone fa-bed-front tableau__giacenza-legend-ico tableau__giacenza-legend-ico--ok" aria-hidden="true"/>
+              </Tooltip>
+              <Tooltip text="Giacenza – tiene conto di tutte le prenotazioni (confermate e opzionate)" position="left">
+                <i className="fa-duotone fa-bed-front tableau__giacenza-legend-ico tableau__giacenza-legend-ico--ko" aria-hidden="true"/>
+              </Tooltip>
+            </div>
           </div>
         </div>
 
@@ -450,24 +546,29 @@ export default function TableauPage({
             </div>
           </div>
 
-          {/* Giacenza */}
+          {/* Giacenza — riga verde (confermate / allotment rilasciato) + riga rossa (tutte) */}
           <div className="tableau__giacenza-bar">
-            {[true,false].map((positive,gi)=>(
-              <div key={gi} className="tableau__giacenza-row">
-                {days.map(d=>{
-                  const g=getGiacenza(d), val=positive?g:g-ALLOTMENT
-                  return (
-                    <div key={d} className="tableau__giacenza-cell" style={{
-                      '--giac-color':  val<0?T.error:val===0?T.warning:T.textActive,
-                      '--giac-border': gi===0?`1px solid ${T.border}`:'none',
-                      '--giac-bg':     isToday_(d)?`${T.blue}08`:isWeekend(d)?'#FAFBFF':'transparent',
-                    } as React.CSSProperties}>
-                      {val}
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
+            {[true,false].map((positive,gi)=>{
+              const tip = gi===0
+                ? "Tiene conto solo delle prenotazioni confermate. - (Allotment rilasciato)"
+                : "Tiene conto di tutte le prenotazioni (confermate e opzionate)."
+              return (
+                <Tooltip key={gi} text={tip} position="top">
+                  <div className={`tableau__giacenza-row tableau__giacenza-row--${gi===0?'ok':'ko'}`}>
+                    {days.map(d=>{
+                      const g=getGiacenza(d), val=positive?g:g-ALLOTMENT
+                      return (
+                        <div key={d} className="tableau__giacenza-cell" style={{
+                          '--giac-border': gi===0?`1px solid ${T.border}`:'none',
+                        } as React.CSSProperties}>
+                          {val}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </Tooltip>
+              )
+            })}
           </div>
           </div>
         </div>
@@ -513,6 +614,29 @@ export default function TableauPage({
               </tbody>
             </table>
           </div>
+        </div>
+      </Modal>
+
+      {/* ── Modale Tour operator con estensione ────────────────────────────── */}
+      <Modal open={showEstensione} onClose={()=>setShowEstensione(false)} title="Tour operator con estensione" size="xl">
+        <div className="sib-table-wrap tableau__estensione-tablewrap">
+          <table className="sib-table">
+            <thead>
+              <tr>
+                <th>Azienda</th>
+                <th>Nome</th>
+                <th>Data richiesta</th>
+                <th>Data scadenza</th>
+                <th>Periodo</th>
+                <th>Stato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan={6} className="sib-empty">Nessun tour operator ha richiesto un'estensione</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </Modal>
     </div>
