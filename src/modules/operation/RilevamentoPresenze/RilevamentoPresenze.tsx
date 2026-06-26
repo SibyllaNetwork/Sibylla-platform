@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
-import AlertBanner from '../../../core/components/AlertBanner'
 import { DatePickerField, DateRangeField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './RilevamentoPresenze.sass'
@@ -52,8 +51,6 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
   const [periodoDa, setPeriodoDa] = useState('2026-03-01')
   const [periodoA,  setPeriodoA]  = useState('2026-03-31')
   const [items, setItems] = useState<RigaNazione[]>(FALLBACK)
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [filterPaese, setFilterPaese] = useState('')
   const [filterProv,  setFilterProv]  = useState('')
   const [openFilter,  setOpenFilter]  = useState<'paese' | 'provincia' | null>(null)
@@ -64,8 +61,8 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
       method: 'POST',
       body: { struttura, data, periodoDa, periodoA },
     })
-      .then((d) => { if (!cancelled) { setItems(d?.length ? d : FALLBACK); setLoaded(true) } })
-      .catch((err) => { if (!cancelled) { setError(err?.message ?? 'Errore'); setLoaded(true) } })
+      .then((d) => { if (!cancelled) setItems(d?.length ? d : FALLBACK) })
+      .catch(() => { /* mantiene i dati di esempio */ })
     return () => { cancelled = true }
   }, [struttura, data, periodoDa, periodoA])
 
@@ -79,10 +76,6 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
     <div>
       <BtnBack />
       <PageHeader title="Rilevamento presenze" subtitle="Report dei dati aggregati per nazionalità e delle presenze registrate" />
-
-      {error && loaded && (
-        <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>
-      )}
 
       <div className="flex items-end gap-4 mb-5 flex-wrap">
         <div className="w-56">

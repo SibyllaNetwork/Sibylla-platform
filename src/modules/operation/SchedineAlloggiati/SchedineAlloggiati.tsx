@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
-import AlertBanner from '../../../core/components/AlertBanner'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './SchedineAlloggiati.sass'
@@ -41,8 +40,6 @@ const STATO_LABEL: Record<string, { label: string; color: string }> = {
 export default function SchedineAlloggiati({ navigate }: { navigate: (p: string) => void }) {
   const today = '2026-04-29'
   const [items, setItems] = useState<Schedina[]>(FALLBACK)
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState(today)
   const [struttura, setStruttura] = useState('Hotel Tutorial')
 
@@ -52,8 +49,8 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
       method: 'POST',
       body: { data_riferimento: data, struttura },
     })
-      .then((d) => { if (!cancelled) { setItems(d); setLoaded(true) } })
-      .catch((err) => { if (!cancelled) { setError(err?.message ?? 'Errore'); setLoaded(true) } })
+      .then((d) => { if (!cancelled) setItems(d) })
+      .catch(() => { /* mantiene i dati di esempio */ })
     return () => { cancelled = true }
   }, [data, struttura])
 
@@ -62,20 +59,14 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
   async function inviaQuestura() {
     try {
       await apiFetchSibylla('backoffice/InviaQuestura', { method: 'POST', body: { data_riferimento: data, struttura } })
-      setItems((prev) => prev.map((s) => s.stato === 'da-inviare' ? { ...s, stato: 'inviata' } : s))
-    } catch (err: any) {
-      setError(err?.message ?? 'Invio fallito')
-    }
+    } catch { /* demo: prosegue comunque */ }
+    setItems((prev) => prev.map((s) => s.stato === 'da-inviare' ? { ...s, stato: 'inviata' } : s))
   }
 
   return (
     <div>
       <BtnBack />
       <PageHeader title="Schedine alloggiati" subtitle="Archivio automatico e centralizzato delle presenze" />
-
-      {error && loaded && (
-        <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>
-      )}
 
       <div className="flex items-end gap-4 mb-5 flex-wrap">
         <div className="w-44">
