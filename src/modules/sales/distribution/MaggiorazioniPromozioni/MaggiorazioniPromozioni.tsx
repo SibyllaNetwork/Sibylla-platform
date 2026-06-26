@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import T from '../../../../core/tokens'
 import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
 import PageHeader from '../../../../core/components/PageHeader'
+import Pagination from '../../../../core/components/Pagination'
 import './MaggiorazioniPromozioni.sass'
 import FormActions from '../../../../core/components/FormActions'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
@@ -60,10 +61,23 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
   const handleDelete    = (id:number) => setPromos(prev=>prev.filter(p=>p.id!==id))
   const handleDuplicate = (p:Promo)   => setPromos(prev=>[...prev,{...p,id:Date.now(),nome:p.nome+' (copia)'}])
 
-  // ── Column filters ────────────────────────────────────────────────────────
+  // ── Column filters (standard: funnel + popover multi-scelta) ────────────────
   type ColKey = keyof Promo | 'idx'
-  const [colFilters, setColFilters] = useState<Record<string,string>>({})
-  const setColFilter = (col:string, val:string) => setColFilters(prev=>({...prev,[col]:val}))
+  const [colFilters, setColFilters] = useState<Record<string,string[]>>({})
+  const [openFilter, setOpenFilter] = useState<string|null>(null)
+  const toggleColFilter = (col:string, val:string) => setColFilters(prev=>{
+    const cur = prev[col]||[]
+    const next = cur.includes(val) ? cur.filter(v=>v!==val) : [...cur,val]
+    return {...prev,[col]:next}
+  })
+  const setAllColFilter = (col:string, all:string[], select:boolean) =>
+    setColFilters(prev=>({...prev,[col]:select?[...all]:[]}))
+  const distinctVals = (key:string) =>
+    Array.from(new Set(promos.map(p=>String((p as any)[key]||'')).filter(Boolean))).sort()
+
+  // ── Paginazione (standard) ──────────────────────────────────────────────────
+  const PAGE_SIZE = 10
+  const [page, setPage] = useState(1)
 
   // ── Sorting ──────────────────────────────────────────────────────────────
   const [sortCol, setSortCol] = useState<ColKey|null>(null)
@@ -79,14 +93,10 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
     // Global filters
     if (filtNome) rows = rows.filter(p=>p.nome.toLowerCase().includes(filtNome.toLowerCase()))
     if (filtMercato && filtMercato!=='Tutti') rows = rows.filter(p=>p.mercato===filtMercato)
-    // Column filters
-    Object.entries(colFilters).forEach(([col,val])=>{
-      if (!val) return
-      const v = val.toLowerCase()
-      rows = rows.filter(p=>{
-        const cell = String((p as any)[col]||'').toLowerCase()
-        return cell.includes(v)
-      })
+    // Column filters (multi-scelta)
+    Object.entries(colFilters).forEach(([col,vals])=>{
+      if (!vals || !vals.length) return
+      rows = rows.filter(p=>vals.includes(String((p as any)[col]||'')))
     })
     // Sorting
     if (sortCol && sortCol!=='idx') {
@@ -102,8 +112,15 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
     return rows
   },[promos,filtNome,filtMercato,colFilters,sortCol,sortDir])
 
-  const hasFilters = filtNome || filtMercato!=='Tutti' || filtPrenot || filtPromo || Object.values(colFilters).some(v=>v)
+  const hasFilters = filtNome || filtMercato!=='Tutti' || filtPrenot || filtPromo || Object.values(colFilters).some(v=>v&&v.length)
   const resetFilters = () => { setFiltNome(''); setFiltMercato('Tutti'); setFiltPrenot(''); setFiltPromo(''); setColFilters({}); setSortCol(null) }
+
+  // ── Pagina corrente sulle righe filtrate ────────────────────────────────────
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  useEffect(()=>{ setPage(1) }, [filtNome,filtMercato,filtPrenot,filtPromo,colFilters])
+  useEffect(()=>{ if (page>totalPages) setPage(totalPages) }, [page,totalPages])
+  const pageStart = (page-1)*PAGE_SIZE
+  const pageRows = filtered.slice(pageStart, pageStart+PAGE_SIZE)
 
   return (
     <div>
@@ -184,32 +201,31 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
             <div className="promo__table-scroll">
               <table className="sib-table promo__table">
                 <thead>
-                  {/* Header row — sortable */}
+                  {/* Header row — sort (label) + filtro colonna standard (funnel) */}
                   <tr className="promo__thead-row">
                     {cols.map((c,i)=>(
                       <th key={i}
-                        className={`promo__th ${c.align==='right'?'promo__th--right':c.align==='center'?'promo__th--center':''} ${c.sortable?'cursor-pointer select-none':''} ${c.w||''}`}
-                        onClick={c.sortable?()=>toggleSort(c.key):undefined}
+                        className={`promo__th ${c.align==='right'?'promo__th--right':c.align==='center'?'promo__th--center':''} ${c.w||''}`}
                       >
-                        <span className="inline-flex items-center">
-                          {c.label}
-                          {c.sortable && <SortIcon col={c.key}/>}
+                        <span className="inline-flex items-center gap-1">
+                          <span
+                            className={c.sortable?'cursor-pointer select-none inline-flex items-center':''}
+                            onClick={c.sortable?()=>toggleSort(c.key):undefined}
+                          >
+                            {c.label}
+                            {c.sortable && <SortIcon col={c.key}/>}
+                          </span>
+                          {c.filterable && (
+                            <ColFilterHeader
+                              options={distinctVals(c.key as string)}
+                              selected={colFilters[c.key as string]||[]}
+                              open={openFilter===c.key}
+                              onToggleOpen={()=>setOpenFilter(openFilter===c.key?null:c.key as string)}
+                              onToggle={(v)=>toggleColFilter(c.key as string, v)}
+                              onSelectAll={(s)=>setAllColFilter(c.key as string, distinctVals(c.key as string), s)}
+                            />
+                          )}
                         </span>
-                      </th>
-                    ))}
-                  </tr>
-                  {/* Filter row */}
-                  <tr className="border-b border-line bg-canvas">
-                    {cols.map((c,i)=>(
-                      <th key={i} className="px-2 py-1.5">
-                        {c.filterable ? (
-                          <input
-                            className="sib-input sib-input--dense text-[11px] !h-7"
-                            placeholder={`Filtra...`}
-                            value={colFilters[c.key]||''}
-                            onChange={e=>setColFilter(c.key,e.target.value)}
-                          />
-                        ) : null}
                       </th>
                     ))}
                   </tr>
@@ -223,9 +239,9 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
                       </div>
                     </td></tr>
                   )}
-                  {filtered.map((p,i) => (
+                  {pageRows.map((p,i) => (
                     <tr key={p.id} className="promo__row">
-                      <td className="promo__td promo__td--num">{i+1}</td>
+                      <td className="promo__td promo__td--num">{pageStart+i+1}</td>
                       <td className="promo__td promo__td--nome" title={p.nome}>{p.nome}</td>
                       <td className="promo__td" title={p.periodoPromo}>{p.periodoPromo}</td>
                       <td className="promo__td" title={p.periodoPrenot}>{p.periodoPrenot}</td>
@@ -256,6 +272,9 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="promo__pagination">
+              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           </div>
         )
@@ -333,6 +352,48 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
           <FormActions onCancel={()=>setShowModal(false)} onConfirm={handleSave} confirmLabel="Salva e invia" confirmIcon="fa-paper-plane" confirmDisabled={!form.nome.trim()}/>
         </div>
       </Modal>
+    </div>
+  )
+}
+
+// ─── COL FILTER HEADER (funnel + popover multi-scelta, standard piattaforma) ────
+interface ColFilterHeaderProps {
+  options: string[]
+  selected: string[]
+  open: boolean
+  onToggleOpen: () => void
+  onToggle: (value: string) => void
+  onSelectAll: (select: boolean) => void
+}
+
+function ColFilterHeader({ options, selected, open, onToggleOpen, onToggle, onSelectAll }: ColFilterHeaderProps) {
+  const allSelected = options.length>0 && options.every(o=>selected.includes(o))
+  const hasFilter = selected.length>0
+  return (
+    <div className="promo-colfilter">
+      <button type="button" className={'promo-colfilter__btn'+(hasFilter?' promo-colfilter__btn--active':'')}
+        onClick={(e)=>{ e.stopPropagation(); onToggleOpen() }} aria-label="Filtra colonna">
+        <i className="fa-solid fa-filter" />
+      </button>
+      {open && (
+        <>
+          <div className="promo-colfilter__overlay" onClick={(e)=>{ e.stopPropagation(); onToggleOpen() }} />
+          <div className="promo-colfilter__popup" onClick={(e)=>e.stopPropagation()}>
+            <div className="promo-colfilter__title">scelte multiple</div>
+            <label className="promo-colfilter__option">
+              <input type="checkbox" className="sib-checkbox" checked={allSelected} onChange={(e)=>onSelectAll(e.target.checked)} />
+              <span>Tutti</span>
+            </label>
+            {options.length===0 && <div className="promo-colfilter__empty">Nessun valore</div>}
+            {options.map(opt=>(
+              <label key={opt} className="promo-colfilter__option">
+                <input type="checkbox" className="sib-checkbox" checked={selected.includes(opt)} onChange={()=>onToggle(opt)} />
+                <span>{opt}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

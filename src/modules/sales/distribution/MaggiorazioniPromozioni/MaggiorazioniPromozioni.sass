@@ -214,3 +214,84 @@
 
 .promo__modal-actions
   margin-top: 0
+
+// ─── Paginazione (standard: centrata) ───────────────────────────────────────────
+.promo__pagination
+  display: flex
+  justify-content: center
+  margin-top: 8px
+
+// ─── Filtro colonna (funnel + popover, standard piattaforma) ─────────────────────
+.promo-colfilter
+  display: inline-flex
+  align-items: center
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 11px
+    padding: 3px
+    border-radius: 4px
+    line-height: 1
+
+    &:hover
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 200px
+    max-height: 280px
+    overflow-y: auto
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+    font-size: 12px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 5px 4px
+    cursor: pointer
+    font-size: 12.5px
+    color: $text-active
+    text-transform: none
+    font-weight: 400
+
+    &:hover
+      background: $primary-50
+
+  &__empty
+    text-align: center
+    color: $text-inactive
+    font-size: 12px
+    padding: 6px 0
