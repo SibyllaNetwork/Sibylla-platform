@@ -30,31 +30,23 @@ const isoToIt = (s?:string) => {
 }
 
 export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:string)=>void }) {
-  const [editRow,     setEditRow]     = useState<any>(null)
   const [deleteId,    setDeleteId]    = useState<number|null>(null)
   const [promos,      setPromos]      = useState<Promo[]>(INIT_PROMOS)
-  const [form,        setForm]        = useState(BLANK_FORM)
 
-  // La form vive in testa alla pagina (create + edit inline, niente modale).
-  const cancelEdit = () => { setEditRow(null); setForm(BLANK_FORM) }
-  const openEdit = (p:Promo) => {
-    setEditRow(p)
-    const [ppf,ppt]=(p.periodoPrenot+'').split(' - '), [prf,prt]=(p.periodoPromo+'').split(' - ')
-    setForm({nome:p.nome,periodoPromoFrom:itToIso(prf),periodoPromoTo:itToIso(prt),periodoPrenotFrom:itToIso(ppf),periodoPrenotTo:itToIso(ppt),mercato:p.mercato,segmento:p.segmento,struttura:p.struttura,partners:p.partners,blackout:itToIso(p.blackout),sconto:String(p.sconto)})
-    if (typeof window!=='undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-  const handleSave = () => {
-    if (!form.nome.trim()) return
-    const pp=`${isoToIt(form.periodoPrenotFrom)} - ${isoToIt(form.periodoPrenotTo)}`, pr=`${isoToIt(form.periodoPromoFrom)} - ${isoToIt(form.periodoPromoTo)}`
-    const bo=isoToIt(form.blackout)
-    if (editRow) setPromos(prev=>prev.map(p=>p.id===editRow.id?{...p,nome:form.nome,periodoPromo:pr,periodoPrenot:pp,mercato:form.mercato,segmento:form.segmento,struttura:form.struttura,partners:form.partners,blackout:bo,sconto:parseFloat(form.sconto)||0}:p))
-    else setPromos(prev=>[...prev,{id:Date.now(),nome:form.nome,periodoPromo:pr,periodoPrenot:pp,mercato:form.mercato,segmento:form.segmento,struttura:form.struttura,partners:form.partners,blackout:bo,sconto:parseFloat(form.sconto)||0}])
-    setForm(BLANK_FORM); setEditRow(null)
-  }
+  // ── Filtri in testa (componenti standard) ───────────────────────────────────
+  const [fNome,       setFNome]       = useState('')
+  const [fPrenotFrom, setFPrenotFrom] = useState('')
+  const [fPrenotTo,   setFPrenotTo]   = useState('')
+  const [fPromoFrom,  setFPromoFrom]  = useState('')
+  const [fPromoTo,    setFPromoTo]    = useState('')
+  const [fMercato,    setFMercato]    = useState('')
+  const [fBlackout,   setFBlackout]   = useState('')
+  const [fVar,        setFVar]        = useState('')
+
   const handleDelete    = (id:number) => setPromos(prev=>prev.filter(p=>p.id!==id))
   const handleDuplicate = (p:Promo)   => setPromos(prev=>[...prev,{...p,id:Date.now(),nome:p.nome+' (copia)'}])
 
-  // ── Column filters (standard: funnel + popover multi-scelta) ────────────────
+  // ── Column filters (funnel + popover multi-scelta) ──────────────────────────
   type ColKey = keyof Promo | 'idx'
   const [colFilters, setColFilters] = useState<Record<string,string[]>>({})
   const [openFilter, setOpenFilter] = useState<string|null>(null)
@@ -72,23 +64,42 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
   const PAGE_SIZE = 10
   const [page, setPage] = useState(1)
 
-  // ── Filtering pipeline (solo filtri colonna a imbuto) ───────────────────────
+  // "dd/MM/yyyy" → ms (NaN se vuoto/non valido)
+  const ts = (s?:string) => { const m=(s||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m?new Date(+m[3],+m[2]-1,+m[1]).getTime():NaN }
+  // un periodo "dd/MM - dd/MM" interseca il range filtro (ISO from/to)?
+  const periodOverlaps = (period:string, fromIso:string, toIso:string) => {
+    if (!fromIso && !toIso) return true
+    const [a,b]=(period+'').split(' - ')
+    const pS=ts(a), pE=ts(b||a)
+    if (isNaN(pS)) return true
+    const fS = fromIso ? ts(isoToIt(fromIso)) : -Infinity
+    const fE = toIso   ? ts(isoToIt(toIso))   : Infinity
+    return pS <= fE && (isNaN(pE)?pS:pE) >= fS
+  }
+
+  // ── Filtering pipeline (filtri in testa + filtri colonna a imbuto) ──────────
   const filtered = useMemo(()=>{
     let rows = [...promos]
-    // Column filters (multi-scelta)
+    if (fNome.trim())  rows = rows.filter(p=>p.nome.toLowerCase().includes(fNome.trim().toLowerCase()))
+    if (fMercato)      rows = rows.filter(p=>p.mercato===fMercato)
+    if (fVar.trim())   rows = rows.filter(p=>String(p.sconto).includes(fVar.trim()))
+    if (fBlackout)     rows = rows.filter(p=>p.blackout===isoToIt(fBlackout))
+    rows = rows.filter(p=>periodOverlaps(p.periodoPrenot, fPrenotFrom, fPrenotTo))
+    rows = rows.filter(p=>periodOverlaps(p.periodoPromo,  fPromoFrom,  fPromoTo))
     Object.entries(colFilters).forEach(([col,vals])=>{
       if (!vals || !vals.length) return
       rows = rows.filter(p=>vals.includes(String((p as any)[col]||'')))
     })
     return rows
-  },[promos,colFilters])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[promos,fNome,fMercato,fVar,fBlackout,fPrenotFrom,fPrenotTo,fPromoFrom,fPromoTo,colFilters])
 
-  const hasFilters = Object.values(colFilters).some(v=>v&&v.length)
-  const resetFilters = () => { setColFilters({}) }
+  const hasFilters = !!(fNome||fMercato||fVar||fBlackout||fPrenotFrom||fPrenotTo||fPromoFrom||fPromoTo) || Object.values(colFilters).some(v=>v&&v.length)
+  const resetFilters = () => { setFNome('');setFMercato('');setFVar('');setFBlackout('');setFPrenotFrom('');setFPrenotTo('');setFPromoFrom('');setFPromoTo('');setColFilters({}) }
 
   // ── Pagina corrente sulle righe filtrate ────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(()=>{ setPage(1) }, [colFilters])
+  useEffect(()=>{ setPage(1) }, [fNome,fMercato,fVar,fBlackout,fPrenotFrom,fPrenotTo,fPromoFrom,fPromoTo,colFilters])
   useEffect(()=>{ if (page>totalPages) setPage(totalPages) }, [page,totalPages])
   const pageStart = (page-1)*PAGE_SIZE
   const pageRows = filtered.slice(pageStart, pageStart+PAGE_SIZE)
@@ -98,48 +109,48 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
       <BtnBack />
       <PageHeader title="Maggiorazioni e promozioni" subtitle="Aumenta la tua marginalità applicando maggiorazioni o promozioni mirate in tempo reale"/>
 
-      {/* ── Form in testa: crea / modifica promozione (Image #36) ───────────── */}
+      {/* ── Filtri in testa (componenti standard) ───────────────────────────── */}
       <div className="promo__top-form">
         <div className="promo__form-row">
           <InputField
             className="promo__f-nome"
-            name="nome" label="Nome promozione" required
-            placeholder="Nome della promozione"
-            value={form.nome}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nome:e.target.value}))}
+            name="fNome" label="Nome promozione"
+            placeholder="Cerca per nome…"
+            value={fNome}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFNome(e.target.value)}
           />
           <DateRangeField
             className="promo__f-periodo"
-            nameFrom="periodoPrenotFrom" nameTo="periodoPrenotTo" label="Periodo di prenotabilità"
-            valueFrom={form.periodoPrenotFrom} valueTo={form.periodoPrenotTo}
-            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotFrom:e.target.value}))}
-            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotTo:e.target.value}))}
+            nameFrom="fPrenotFrom" nameTo="fPrenotTo" label="Periodo di prenotabilità"
+            valueFrom={fPrenotFrom} valueTo={fPrenotTo}
+            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setFPrenotFrom(e.target.value)}
+            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setFPrenotTo(e.target.value)}
           />
           <DateRangeField
             className="promo__f-periodo"
-            nameFrom="periodoPromoFrom" nameTo="periodoPromoTo" label="Periodo di promozione"
-            valueFrom={form.periodoPromoFrom} valueTo={form.periodoPromoTo}
-            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoFrom:e.target.value}))}
-            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoTo:e.target.value}))}
+            nameFrom="fPromoFrom" nameTo="fPromoTo" label="Periodo di promozione"
+            valueFrom={fPromoFrom} valueTo={fPromoTo}
+            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setFPromoFrom(e.target.value)}
+            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setFPromoTo(e.target.value)}
           />
           <SelectField
             className="promo__f-mercato"
-            name="mercato" label="Mercato"
-            value={form.mercato}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,mercato:e.target.value}))}
+            name="fMercato" label="Mercato"
+            value={fMercato}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFMercato(e.target.value)}
             options={[{value:'',label:'Seleziona'}, ...['Libero','B2C','B2B','Corporate'].map(o => ({ value: o, label: o }))]}
           />
           <DatePickerField
             className="promo__f-blackout"
-            name="blackout" label="Black-out Date"
-            value={form.blackout}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,blackout:e.target.value}))}
+            name="fBlackout" label="Black-out Date"
+            value={fBlackout}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFBlackout(e.target.value)}
           />
           <InputField
             className="promo__f-var"
-            name="sconto" label="Variazioni" type="number" placeholder="%"
-            value={form.sconto}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,sconto:e.target.value}))}
+            name="fVar" label="Variazioni" type="number" placeholder="%"
+            value={fVar}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFVar(e.target.value)}
           />
         </div>
       </div>
@@ -226,9 +237,6 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
                         <div className="flex items-center justify-center gap-1">
                           <button className="sib-btn sib-btn--icon w-7 h-7" title="Duplica" onClick={()=>handleDuplicate(p)}>
                             <i className="fa-duotone fa-copy text-[13px]" aria-hidden="true"/>
-                          </button>
-                          <button className="sib-btn sib-btn--icon w-7 h-7" title="Modifica" onClick={()=>openEdit(p)}>
-                            <i className="fa-duotone fa-pen text-[13px]" aria-hidden="true"/>
                           </button>
                           <button className="sib-btn sib-btn--icon w-7 h-7" title="Elimina" onClick={()=>setDeleteId(p.id)}>
                             <i className="fa-duotone fa-trash text-[13px]" aria-hidden="true"/>
