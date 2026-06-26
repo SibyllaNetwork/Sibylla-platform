@@ -142,15 +142,6 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,sconto:e.target.value}))}
           />
         </div>
-        <div className="promo__top-form-actions">
-          {editRow && (
-            <button className="sib-btn sib-btn--secondary" onClick={cancelEdit}>Annulla</button>
-          )}
-          <button className="sib-btn sib-btn--primary" onClick={handleSave} disabled={!form.nome.trim()}>
-            <i className={`fa-duotone ${editRow?'fa-floppy-disk':'fa-plus'} text-sm`} aria-hidden="true"/>
-            {editRow ? 'Salva modifiche' : 'Aggiungi promozione'}
-          </button>
-        </div>
       </div>
 
       {/* Barra azioni tabella */}
