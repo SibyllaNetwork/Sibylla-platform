@@ -147,7 +147,11 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
                     ? <Tooltip text="Manutenzione in corso"><i className="fa-solid fa-screwdriver-wrench piano-cam__ico-warn" aria-hidden="true" /></Tooltip>
                     : <span className="sib-cell--muted">-</span>}
                 </td>
-                <td className="piano-cam__td-center">{r.vip ? 'Sì' : 'no'}</td>
+                <td className="piano-cam__td-center">
+                  <Tooltip text={r.vip ? 'VIP' : 'Standard'}>
+                    <i className={`fa-${r.vip ? 'solid' : 'regular'} fa-star piano-cam__vip ${r.vip ? 'piano-cam__vip--on' : ''}`} aria-hidden="true" />
+                  </Tooltip>
+                </td>
               </tr>
             ))}
           </tbody>
