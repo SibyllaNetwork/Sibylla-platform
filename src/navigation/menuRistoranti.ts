@@ -89,7 +89,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"contratti-vendita",label:"Contratti di vendita",children:[
           {id:"miei-contratti-v",label:"I miei contratti",page:"miei-contratti-v"},
           {id:"inserisci-contratto-v",label:"Inserisci contratto",page:"inserisci-contratto-v"},
-          {id:"crea-azienda-v",label:"Crea nuova azienda",page:"crea-struttura"},
+          {id:"crea-azienda-v",label:"Crea nuova azienda",page:"crea-azienda-v"},
         ]},
       ]},
       {id:"sales-overview",label:"Sales overview",page:"sales-overview"},
@@ -155,14 +155,10 @@ const MENU_RISTORANTI:any[]=[
         {id:"acquisti-rete",label:"Acquisti di rete",children:[
           {id:"crea-acquisto",label:"Crea acquisto condiviso",page:"crea-acquisto"},
         ]},
-        {id:"agora-purch",label:"Agorà",page:"agora-dashboard",children:[
-          {id:"gestione-annunci",label:"Annunci",page:"gestione-annunci"},
-          {id:"matchzone",label:"Matchzone",page:"matchzone"},
-        ]},
         {id:"contratti-acquisto",label:"Contratti di acquisto",children:[
           {id:"miei-contratti-a",label:"I miei contratti",page:"miei-contratti-a"},
           {id:"inserisci-contratto-a",label:"Inserisci contratto",page:"inserisci-contratto-a"},
-          {id:"crea-azienda-a",label:"Crea nuova azienda",page:"crea-struttura"},
+          {id:"crea-azienda-a",label:"Crea nuova azienda",page:"crea-azienda-v"},
         ]},
       ]},
       {id:"gest-magazzino",label:"Gestione del magazzino",children:[

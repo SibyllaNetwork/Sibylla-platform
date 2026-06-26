@@ -143,10 +143,12 @@ const MENU:any[]=[
         {id:"contratti-acquisto",label:"Contratti di acquisto",children:[
           {id:"miei-contratti-a",label:"I miei contratti",page:"miei-contratti-a"},
           {id:"inserisci-contratto-a",label:"Inserisci contratto",page:"inserisci-contratto-a"},
-          {id:"crea-azienda-a",label:"Crea nuova azienda",page:"crea-struttura"},
+          {id:"crea-azienda-a",label:"Crea nuova azienda",page:"crea-azienda-v"},
         ]},
       ]},
       {id:"agora-purch",label:"Agorà",page:"agora-dashboard",children:[
+        {id:"gestione-annunci",label:"Annunci",page:"gestione-annunci"},
+        {id:"matchzone",label:"Matchzone",page:"matchzone"},
         {id:"agora-announcements-manage",label:"Componi annuncio",page:"agora-announcements-manage"},
         {id:"crea-acquisto",label:"Crea acquisto condiviso",page:"crea-acquisto"},
         {id:"agora-accommodations",label:"Strutture ricettive",page:"agora-accommodations"},
