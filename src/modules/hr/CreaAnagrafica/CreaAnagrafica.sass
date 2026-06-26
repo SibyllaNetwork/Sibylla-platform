@@ -1,0 +1,157 @@
+// ─── CREA ANAGRAFICA PERSONALE (scheda personale) ───────────────────────────────
+@use '../../../styles/tokens' as *
+
+.crea-anag
+  display: flex
+  flex-direction: column
+  align-items: stretch
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // i campi riempiono la cella della griglia
+  .sib-input,
+  .sib-select
+    width: 100%
+
+  &__error
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $error
+    font-size: 13px
+    margin: 4px 0 0
+
+  // ── Scheda: sezioni impilate ───────────────────────────────────────────────
+  &__sheet
+    display: flex
+    flex-direction: column
+    gap: 16px
+    margin-top: 8px
+
+  &__section
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__section-head
+    display: flex
+    align-items: center
+    gap: 9px
+    padding: 11px 18px
+    background: $bg
+    border-bottom: 1px solid $border
+
+    i
+      color: $primary
+      font-size: 15px
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-weight: 600
+      font-size: 14px
+      color: $primary
+
+  &__section-body
+    padding: 18px
+
+  // ── Dati anagrafici: foto compatta + campi ──────────────────────────────────
+  &__identity
+    display: flex
+    gap: 22px
+    align-items: flex-start
+
+    @media (max-width: 720px)
+      flex-direction: column
+      align-items: center
+
+  &__photo
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    flex: none
+
+  &__photo-thumb
+    width: 96px
+    height: 96px
+    border-radius: 50%
+    border: 1px solid $border
+    background: $primary-50
+    display: flex
+    align-items: center
+    justify-content: center
+    overflow: hidden
+    cursor: pointer
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    i
+      font-size: 40px
+      color: $text-inactive
+
+  &__photo-btns
+    display: flex
+    gap: 6px
+
+  &__identity-fields
+    flex: 1
+    min-width: 0
+
+  // ── Griglie campi ───────────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    gap: 16px 18px
+
+    &--3
+      grid-template-columns: repeat(3, 1fr)
+
+    &--res
+      grid-template-columns: 2fr 2fr 1fr 1fr
+
+    @media (max-width: 900px)
+      &--3, &--res
+        grid-template-columns: repeat(2, 1fr)
+
+    @media (max-width: 560px)
+      &--3, &--res
+        grid-template-columns: 1fr
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__label
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  // input "scegli file" coerente con gli altri campi
+  &__file
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    text-align: left
+    color: $text-active
+    cursor: pointer
+
+    i
+      color: $text-inactive
+      font-size: 13px
+
+  &__file-empty
+    color: $text-inactive
+
+  // ── Azioni ──────────────────────────────────────────────────────────────────
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 12px
+    margin-top: 20px
