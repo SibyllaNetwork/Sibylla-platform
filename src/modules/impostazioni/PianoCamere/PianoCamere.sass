@@ -37,7 +37,7 @@
       font-size: 12px
 
   &__td-center
-    text-align: center
+    text-align: center !important
 
   &__nowrap
     white-space: nowrap
@@ -54,6 +54,12 @@
     color: $warning
     font-size: 16px
 
+  // Nota presente: icona; il testo compare in una finestra al rollover (Tooltip)
+  &__note
+    color: $primary
+    font-size: 15px
+    cursor: help
+
   // VIP: stella vuota (standard) / piena dorata
   &__vip
     font-size: 15px
@@ -63,4 +69,6 @@
       color: #c9a84c
 
   &__pager
-    margin-top: 4px
+    display: flex
+    justify-content: center
+    margin-top: 8px

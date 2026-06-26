@@ -3,7 +3,8 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
-import { DatePickerField, SelectField, SearchField, RadioGroup } from '../../../core/components/form'
+import Modal from '../../../core/components/Modal'
+import { DatePickerField, SelectField, SearchField, RadioGroup, InputField, TextareaField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './PianoCamere.sass'
 
@@ -52,6 +53,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('tutte')
   const [page, setPage] = useState(1)
+  const [creaOpen, setCreaOpen] = useState(false)
   const tableRef = useRef<HTMLTableElement>(null)
 
   const filtered = useMemo(() => {
@@ -88,7 +90,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
         <button type="button" className="sib-btn sib-btn--icon" aria-label="Aggiorna" title="Aggiorna"><i className="fa-light fa-arrows-rotate" /></button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('previsione-movimenti')}><i className="fa-light fa-chart-line" /> Previsione movimenti camere</button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('stato-camere')}><i className="fa-light fa-bed-front" /> Stato camere</button>
-        <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-circle-plus" /> Crea Incarico</button>
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCreaOpen(true)}><i className="fa-light fa-circle-plus" /> Crea Incarico</button>
 
         <div className="piano-cam__status">
           <RadioGroup name="status" label="Status" value={status} onChange={setStatus}
@@ -112,9 +114,9 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
               <th>Assegnatario</th>
               <th>Cliente</th>
               <th>In/Out</th>
-              <th>Progr. RN</th>
+              <th className="piano-cam__td-center">Progr. RN</th>
               <th className="piano-cam__td-center">Gruppi/Individuali</th>
-              <th>Note</th>
+              <th className="piano-cam__td-center">Note</th>
               <th className="piano-cam__td-center">Pulizia</th>
               <th className="piano-cam__td-center">Manutenzione</th>
               <th className="piano-cam__td-center">Vip</th>
@@ -136,7 +138,11 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
                 <td className="piano-cam__td-center">
                   <Tooltip text={r.gruppo ? 'Gruppo' : 'Individuale'}><i className={`fa-light fa-${r.gruppo ? 'users' : 'user'}`} aria-hidden="true" /></Tooltip>
                 </td>
-                <td className={r.note ? '' : 'sib-cell--muted'}>{r.note || '-'}</td>
+                <td className="piano-cam__td-center">
+                  {r.note
+                    ? <Tooltip content={r.note}><i className="fa-light fa-note-sticky piano-cam__note" aria-hidden="true" /></Tooltip>
+                    : <span className="sib-cell--muted">-</span>}
+                </td>
                 <td className="piano-cam__td-center">
                   {r.pulizia
                     ? <Tooltip text="Pulizia effettuata"><i className="fa-solid fa-broom piano-cam__ico-ok" aria-hidden="true" /></Tooltip>
@@ -159,6 +165,49 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
       </div>
 
       <Pagination className="piano-cam__pager" page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      {creaOpen && <CreaIncaricoModal struttura={struttura} onClose={() => setCreaOpen(false)} onAdd={() => setCreaOpen(false)} />}
     </div>
+  )
+}
+
+// ─── CREA INCARICO MODAL ────────────────────────────────────────────────────────
+const GENERI   = ['Pulizia ordinaria', 'Pulizia profonda', 'Manutenzione', 'Riparazione', 'Controllo']
+const REPARTI  = ['Pulizie', 'Manutenzione', 'Reception']
+const ASSEGNATARI = ['dino tacchini', 'Ruggero AppOp', 'Sibylla System']
+const PRIORITA = ['Bassa', 'Normale', 'Alta', 'Urgente']
+
+function CreaIncaricoModal({ struttura, onClose, onAdd }: { struttura: string; onClose: () => void; onAdd: () => void }) {
+  const [form, setForm] = useState({
+    struttura, camere: '', genere: GENERI[0], reparto: REPARTI[0],
+    assegnatario: ASSEGNATARI[0], priorita: 'Normale', descrizione: '',
+  })
+  const set = (k: keyof typeof form, v: string) => setForm((p) => ({ ...p, [k]: v }))
+
+  return (
+    <Modal open onClose={onClose} title="Aggiungi incarico" size="lg">
+      <div className="flex flex-col gap-4">
+        <SelectField name="struttura" label="Struttura" value={form.struttura} onChange={(e) => set('struttura', e.target.value)}
+          options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+        <InputField name="camere" label="Camere" placeholder="es. 101, 102, 103" value={form.camere} onChange={(e) => set('camere', e.target.value)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField name="genere" label="Genere Intervento" value={form.genere} onChange={(e) => set('genere', e.target.value)}
+            options={GENERI.map((g) => ({ value: g, label: g }))} />
+          <SelectField name="reparto" label="Reparto" value={form.reparto} onChange={(e) => set('reparto', e.target.value)}
+            options={REPARTI.map((r) => ({ value: r, label: r }))} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SelectField name="assegnatario" label="Assegnatario" required value={form.assegnatario} onChange={(e) => set('assegnatario', e.target.value)}
+            options={ASSEGNATARI.map((a) => ({ value: a, label: a }))} />
+          <SelectField name="priorita" label="Priorità" value={form.priorita} onChange={(e) => set('priorita', e.target.value)}
+            options={PRIORITA.map((p) => ({ value: p, label: p }))} />
+        </div>
+        <TextareaField name="descrizione" label="Descrizione" rows={3} value={form.descrizione} onChange={(e) => set('descrizione', e.target.value)} />
+      </div>
+      <div className="flex justify-end gap-2 mt-6">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!form.assegnatario} onClick={onAdd}>Aggiungi</button>
+      </div>
+    </Modal>
   )
 }
