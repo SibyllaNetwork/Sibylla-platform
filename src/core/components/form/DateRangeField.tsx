@@ -2,7 +2,7 @@ import React, { useId, useState } from 'react'
 import clsx from 'clsx'
 import { DayPicker, type DateRange } from 'react-day-picker'
 import { it } from 'date-fns/locale'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, isValid } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import './DateRangeField.sass'
 
@@ -26,7 +26,19 @@ export interface DateRangeFieldProps {
   className?:    string
 }
 
-const fmtIt = (s?: string) => (s ? format(parseISO(s), 'dd/MM/yyyy') : '')
+// Parse difensivo: ritorna null se la stringa non è una data ISO valida
+// (es. dd/MM/yyyy o vuota) invece di produrre una Date "Invalid" che farebbe
+// crashare format() con "RangeError: Invalid time value".
+const safeParseISO = (s?: string): Date | null => {
+  if (!s) return null
+  const d = parseISO(s)
+  return isValid(d) ? d : null
+}
+
+const fmtIt = (s?: string) => {
+  const d = safeParseISO(s)
+  return d ? format(d, 'dd/MM/yyyy') : ''
+}
 
 // Standard di piattaforma per gli intervalli di date: un unico Date Range Picker
 // con due calendari affiancati (react-day-picker). API invariata rispetto alla
@@ -43,7 +55,9 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
 
   const from = valueFrom ?? defaultFrom ?? ''
   const to   = valueTo   ?? defaultTo   ?? ''
-  const selected: DateRange | undefined = from ? { from: parseISO(from), to: to ? parseISO(to) : undefined } : undefined
+  const fromDate = safeParseISO(from)
+  const toDate   = safeParseISO(to)
+  const selected: DateRange | undefined = fromDate ? { from: fromDate, to: toDate ?? undefined } : undefined
 
   const emit = (h: ((e: React.ChangeEvent<HTMLInputElement>) => void) | undefined, value: string, name: string) =>
     h?.({ target: { value, name } } as unknown as React.ChangeEvent<HTMLInputElement>)
@@ -91,8 +105,8 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
                 selected={selected}
                 onSelect={handleSelect}
                 defaultMonth={selected?.from}
-                fromDate={min ? parseISO(min) : undefined}
-                toDate={max ? parseISO(max) : undefined}
+                fromDate={safeParseISO(min) ?? undefined}
+                toDate={safeParseISO(max) ?? undefined}
               />
             </div>
           </>

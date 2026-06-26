@@ -20,6 +20,17 @@ const INIT_PROMOS: Promo[] = [
 ]
 const BLANK_FORM = {nome:'',periodoPromoFrom:'',periodoPromoTo:'',periodoPrenotFrom:'',periodoPrenotTo:'',mercato:'Libero',segmento:'Dirette',struttura:'',partners:'',blackout:'',sconto:'0'}
 
+// I campi data dei componenti form (DateRangeField/DatePickerField) lavorano in
+// ISO yyyy-MM-dd; le promo memorizzano/visualizzano in dd/MM/yyyy. Conversioni:
+const itToIso = (s?:string) => {
+  const m = (s||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : ''
+}
+const isoToIt = (s?:string) => {
+  const m = (s||'').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : ''
+}
+
 export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:string)=>void }) {
   const [filtNome,    setFiltNome]    = useState('')
   const [filtMercato, setFiltMercato] = useState('Tutti')
@@ -35,14 +46,15 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
   const openEdit = (p:Promo) => {
     setEditRow(p)
     const [ppf,ppt]=(p.periodoPrenot+'').split(' - '), [prf,prt]=(p.periodoPromo+'').split(' - ')
-    setForm({nome:p.nome,periodoPromoFrom:prf||'',periodoPromoTo:prt||'',periodoPrenotFrom:ppf||'',periodoPrenotTo:ppt||'',mercato:p.mercato,segmento:p.segmento,struttura:p.struttura,partners:p.partners,blackout:p.blackout,sconto:String(p.sconto)})
+    setForm({nome:p.nome,periodoPromoFrom:itToIso(prf),periodoPromoTo:itToIso(prt),periodoPrenotFrom:itToIso(ppf),periodoPrenotTo:itToIso(ppt),mercato:p.mercato,segmento:p.segmento,struttura:p.struttura,partners:p.partners,blackout:itToIso(p.blackout),sconto:String(p.sconto)})
     setShowModal(true)
   }
   const handleSave = () => {
     if (!form.nome.trim()) return
-    const pp=`${form.periodoPrenotFrom} - ${form.periodoPrenotTo}`, pr=`${form.periodoPromoFrom} - ${form.periodoPromoTo}`
-    if (editRow) setPromos(prev=>prev.map(p=>p.id===editRow.id?{...p,nome:form.nome,periodoPromo:pr,periodoPrenot:pp,mercato:form.mercato,segmento:form.segmento,struttura:form.struttura,partners:form.partners,blackout:form.blackout,sconto:parseFloat(form.sconto)||0}:p))
-    else setPromos(prev=>[...prev,{id:Date.now(),nome:form.nome,periodoPromo:pr,periodoPrenot:pp,mercato:form.mercato,segmento:form.segmento,struttura:form.struttura,partners:form.partners,blackout:form.blackout,sconto:parseFloat(form.sconto)||0}])
+    const pp=`${isoToIt(form.periodoPrenotFrom)} - ${isoToIt(form.periodoPrenotTo)}`, pr=`${isoToIt(form.periodoPromoFrom)} - ${isoToIt(form.periodoPromoTo)}`
+    const bo=isoToIt(form.blackout)
+    if (editRow) setPromos(prev=>prev.map(p=>p.id===editRow.id?{...p,nome:form.nome,periodoPromo:pr,periodoPrenot:pp,mercato:form.mercato,segmento:form.segmento,struttura:form.struttura,partners:form.partners,blackout:bo,sconto:parseFloat(form.sconto)||0}:p))
+    else setPromos(prev=>[...prev,{id:Date.now(),nome:form.nome,periodoPromo:pr,periodoPrenot:pp,mercato:form.mercato,segmento:form.segmento,struttura:form.struttura,partners:form.partners,blackout:bo,sconto:parseFloat(form.sconto)||0}])
     setShowModal(false)
   }
   const handleDelete    = (id:number) => setPromos(prev=>prev.filter(p=>p.id!==id))
