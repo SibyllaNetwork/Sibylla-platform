@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
-import AlertBanner from '../../../../core/components/AlertBanner'
 import SearchField from '../../../../core/components/form/SearchField'
 import Pagination from '../../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../../services/api'
@@ -61,8 +60,6 @@ function isScaduto(p: Preventivo): boolean {
 
 export default function IMieiPreventivi({ navigate }: { navigate: (p: string) => void }) {
   const [items, setItems] = useState<Preventivo[]>(FALLBACK)
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statiSel, setStatiSel] = useState<string[]>([])
   const [statiOpen, setStatiOpen] = useState(false)
@@ -75,8 +72,8 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<Preventivo[]>('preventivi/GetPreventivi', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) { setItems(d); setLoaded(true) } })
-      .catch((err) => { if (!cancelled) { setError(err?.message ?? 'Errore'); setLoaded(true) } })
+      .then((d) => { if (!cancelled) setItems(d) })
+      .catch(() => { /* mantiene i dati di esempio */ })
     return () => { cancelled = true }
   }, [])
 
@@ -127,10 +124,6 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
     <div className="gest-prev">
       <BtnBack />
       <PageHeader title="Gestione preventivi" />
-
-      {error && loaded && (
-        <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>
-      )}
 
       <div className="gest-prev__toolbar">
         <div className="gest-prev__field" ref={statiRef}>
