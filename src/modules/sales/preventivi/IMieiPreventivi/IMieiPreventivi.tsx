@@ -3,6 +3,7 @@ import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import SearchField from '../../../../core/components/form/SearchField'
 import Pagination from '../../../../core/components/Pagination'
+import Tooltip from '../../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../../services/api'
 import './IMieiPreventivi.sass'
 
@@ -123,7 +124,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   return (
     <div className="gest-prev">
       <BtnBack />
-      <PageHeader title="Gestione preventivi" />
+      <PageHeader title="I miei preventivi" />
 
       <div className="gest-prev__toolbar">
         <div className="gest-prev__field" ref={statiRef}>
@@ -144,20 +145,20 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
           )}
         </div>
 
-        <div className="gest-prev__toolbar-row">
-          <div className="gest-prev__field gest-prev__field--search">
-            <label className="gest-prev__label">Cerca</label>
-            <SearchField value={search} placeholder="Cerca..." onChange={(e) => { setSearch(e.target.value); setPage(1) }} onClear={() => { setSearch(''); setPage(1) }} />
-          </div>
+        <div className="gest-prev__field gest-prev__field--search">
+          <label className="gest-prev__label">Cerca</label>
+          <SearchField value={search} placeholder="Cerca..." onChange={(e) => { setSearch(e.target.value); setPage(1) }} onClear={() => { setSearch(''); setPage(1) }} />
+        </div>
 
-          <button type="button" className="gest-prev__xls" title="Esporta in Excel">
+        <Tooltip text="Esporta in Excel">
+          <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel">
             <i className="fa-light fa-file-excel" aria-hidden="true" />
           </button>
+        </Tooltip>
 
-          <button className="sib-btn sib-btn--primary gest-prev__new" onClick={() => navigate('crea-preventivo')}>
-            <i className="fa-light fa-file" aria-hidden="true" /> Nuovo Preventivo
-          </button>
-        </div>
+        <button className="sib-btn sib-btn--primary gest-prev__new" onClick={() => navigate('crea-preventivo')}>
+          <i className="fa-light fa-file" aria-hidden="true" /> Nuovo Preventivo
+        </button>
       </div>
 
       <div className="sib-table-wrap">
@@ -204,17 +205,27 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                   <td>{p.data_creazione}</td>
                   <td className={isScaduto(p) ? 'gest-prev__scaduto' : ''}>{p.data_scadenza}</td>
                   <td>{p.cliente}</td>
-                  <td>{p.email}</td>
+                  <td className="gest-prev__email" title={p.email}>{p.email}</td>
                   <td className="gest-prev__col-num">{p.camere}</td>
-                  <td>{p.checkin} - {p.checkout}</td>
+                  <td className="gest-prev__nowrap" title={`${p.checkin} → ${p.checkout}`}>{p.checkin?.slice(0, 5)} → {p.checkout?.slice(0, 5)}</td>
                   <td className="gest-prev__col-num">{p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</td>
                   <td>
                     <div className="gest-prev__actions">
-                      <button type="button" title="Visualizza" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-eye" aria-hidden="true" /></button>
-                      <button type="button" title="Scarica PDF"><i className="fa-light fa-file-pdf" aria-hidden="true" /></button>
-                      <button type="button" title="Invia email"><i className="fa-light fa-envelope" aria-hidden="true" /></button>
-                      <button type="button" title="Modifica" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-pen" aria-hidden="true" /></button>
-                      <button type="button" title="Elimina" className="gest-prev__act-del"><i className="fa-light fa-trash" aria-hidden="true" /></button>
+                      <Tooltip text="Visualizza">
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-eye" aria-hidden="true" /></button>
+                      </Tooltip>
+                      <Tooltip text="Scarica PDF">
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Scarica PDF"><i className="fa-light fa-file-pdf" aria-hidden="true" /></button>
+                      </Tooltip>
+                      <Tooltip text="Invia email">
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Invia email"><i className="fa-light fa-envelope" aria-hidden="true" /></button>
+                      </Tooltip>
+                      <Tooltip text="Modifica">
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-pen" aria-hidden="true" /></button>
+                      </Tooltip>
+                      <Tooltip text="Elimina">
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Elimina"><i className="fa-light fa-trash" aria-hidden="true" /></button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

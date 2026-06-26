@@ -3,19 +3,13 @@
 @use '../../../../styles/tokens' as *
 
 .gest-prev
-  // ── Toolbar filtri ──────────────────────────────────────────────────────
+  // ── Toolbar filtri: tutti i campi su un'unica riga ──────────────────────
   &__toolbar
-    display: flex
-    flex-direction: column
-    align-items: flex-start
-    gap: 14px
-    margin-bottom: 20px
-
-  &__toolbar-row
     display: flex
     align-items: flex-end
     gap: 14px
     flex-wrap: wrap
+    margin-bottom: 20px
 
   &__field
     display: flex
@@ -86,30 +80,34 @@
       accent-color: var(--color-primary)
 
   // ── Bottone export XLS ──────────────────────────────────────────────────
-  &__xls
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    width: 38px
-    height: 38px
-    background: var(--color-surface)
-    border: 1px solid var(--color-border)
-    border-radius: 6px
-    color: var(--color-text-inactive)
-    font-size: 17px
-    cursor: pointer
-
-    &:hover
-      color: var(--color-primary)
-      border-color: var(--color-primary)
-
   &__new
     height: 38px
+    margin-left: auto   // spinto a destra della riga
 
   // ── Tabella ─────────────────────────────────────────────────────────────
+  // Compatta: deve stare nei laptop senza scroll orizzontale (1366, sidebar aperta)
   &__table
-    th, td
+    width: 100%
+    font-size: 12px
+
+    th
+      white-space: normal     // le intestazioni vanno a capo invece di allargare
+      line-height: 1.2
+      padding: 6px 4px !important
+      font-size: 11.5px
+
+    td
       white-space: nowrap
+      padding: 5px 4px !important
+      font-size: 12px
+
+  &__email
+    max-width: 110px
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__nowrap
+    white-space: nowrap
 
   &__col-check
     width: 36px
@@ -175,21 +173,7 @@
   &__actions
     display: inline-flex
     align-items: center
-    gap: 12px
-
-    button
-      background: none
-      border: none
-      padding: 0
-      font-size: 15px
-      color: var(--color-text-inactive)
-      cursor: pointer
-
-      &:hover
-        color: var(--color-primary)
-
-  &__act-del:hover
-    color: var(--color-error) !important
+    gap: 4px
 
   // ── Riga di dettaglio (espansione) ──────────────────────────────────────
   &__detail-row td
