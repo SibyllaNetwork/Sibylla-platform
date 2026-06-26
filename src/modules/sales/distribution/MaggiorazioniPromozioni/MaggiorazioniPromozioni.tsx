@@ -7,7 +7,6 @@ import Pagination from '../../../../core/components/Pagination'
 import './MaggiorazioniPromozioni.sass'
 import FormActions from '../../../../core/components/FormActions'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
-import FormGrid from '../../../../core/components/FormGrid'
 import { InputField, SelectField, DatePickerField, DateRangeField, SearchField } from '../../../../core/components/form'
 
 type Promo = {id:number;nome:string;periodoPromo:string;periodoPrenot:string;mercato:string;segmento:string;struttura:string;partners:string;blackout:string;sconto:number}
@@ -19,7 +18,7 @@ const INIT_PROMOS: Promo[] = [
   {id:4,nome:'promozione 1',  periodoPromo:'28/11/2025 - 03/11/2025',periodoPrenot:'28/11/2025 - 30/11/2025',mercato:'Libero',segmento:'Dirette',struttura:'Hotel Catania',      partners:'',blackout:'30/11/2025',sconto:25.00},
   {id:5,nome:'super',         periodoPromo:'18/03/2026 - 31/03/2026',periodoPrenot:'18/03/2026 - 31/03/2026',mercato:'Libero',segmento:'B2C',    struttura:'Categoria 4',         partners:'',blackout:'31/03/2026',sconto:5.00},
 ]
-const BLANK_FORM = {nome:'',periodoPromoFrom:'',periodoPromoTo:'',periodoPrenotFrom:'',periodoPrenotTo:'',mercato:'Libero',segmento:'Dirette',struttura:'',partners:'',blackout:'',sconto:'0'}
+const BLANK_FORM = {nome:'',periodoPromoFrom:'',periodoPromoTo:'',periodoPrenotFrom:'',periodoPrenotTo:'',mercato:'',segmento:'Dirette',struttura:'',partners:'',blackout:'',sconto:'0'}
 
 // I campi data dei componenti form (DateRangeField/DatePickerField) lavorano in
 // ISO yyyy-MM-dd; le promo memorizzano/visualizzano in dd/MM/yyyy. Conversioni:
@@ -302,53 +301,59 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
       </Modal>
 
       {/* ── Create/edit modal ───────────────────────────────────────── */}
-      <Modal open={showModal} onClose={()=>setShowModal(false)} title={editRow?'Modifica promozione':'Nuova promozione'} size="lg">
+      <Modal open={showModal} onClose={()=>setShowModal(false)} title={editRow?'Modifica promozione':'Nuova promozione'} size="xl">
         <div className="flex flex-col gap-3.5">
-          <InputField
-            name="nome"
-            label="Nome promozione"
-            required
-            placeholder="Nome della promozione"
-            value={form.nome}
-            error={!form.nome && showModal ? 'Campo obbligatorio' : undefined}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nome:e.target.value}))}
-          />
-          <DateRangeField
-            nameFrom="periodoPromoFrom"
-            nameTo="periodoPromoTo"
-            label="Periodo promozione"
-            valueFrom={form.periodoPromoFrom}
-            valueTo={form.periodoPromoTo}
-            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoFrom:e.target.value}))}
-            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoTo:e.target.value}))}
-          />
-          <DateRangeField
-            nameFrom="periodoPrenotFrom"
-            nameTo="periodoPrenotTo"
-            label="Periodo prenotabilità"
-            valueFrom={form.periodoPrenotFrom}
-            valueTo={form.periodoPrenotTo}
-            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotFrom:e.target.value}))}
-            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotTo:e.target.value}))}
-          />
-          <FormGrid cols={3}>
-            <SelectField name="mercato" label="Mercato" value={form.mercato} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,mercato:e.target.value}))} options={['Libero','B2C','B2B','Corporate'].map(o => ({ value: o, label: o }))}/>
-            <SelectField name="segmento" label="Segmento" value={form.segmento} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,segmento:e.target.value}))} options={['Dirette','B2C','B2B','Gruppi','Corporate'].map(o => ({ value: o, label: o }))}/>
-            <InputField name="struttura" label="Struttura / Categoria" placeholder="Es. Hotel Catania" value={form.struttura} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,struttura:e.target.value}))}/>
-          </FormGrid>
-          <FormGrid cols={3}>
-            <div className="promo__field-raw">
-              <label htmlFor="partners">Partners</label>
-              <select id="partners" multiple className="sib-input promo__partners-select resize-none text-xs"
-                value={form.partners?form.partners.split(',').map(s=>s.trim()).filter(Boolean):[]}
-                onChange={e=>{const sel=Array.from(e.target.selectedOptions).map(o=>o.value);setForm(v=>({...v,partners:sel.join(', ')}))}}>
-                {['Booking.com','Expedia','Agoda','HRS','Airbnb','Tour Operator Test','Sibylla Network s.r.l.','Dirette','B2B Portal','GDS'].map(p=><option key={p} value={p}>{p}</option>)}
-              </select>
-              <span className="promo__partners-hint">Cmd/Ctrl per selezione multipla</span>
-            </div>
-            <DatePickerField name="blackout" label="Black-out Date" value={form.blackout} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,blackout:e.target.value}))}/>
-            <InputField name="sconto" label="Sconto %" type="number" placeholder="0" value={form.sconto} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,sconto:e.target.value}))}/>
-          </FormGrid>
+          <div className="promo__form-row">
+            <InputField
+              className="promo__f-nome"
+              name="nome"
+              label="Nome promozione"
+              required
+              placeholder="Nome della promozione"
+              value={form.nome}
+              error={!form.nome && showModal ? 'Campo obbligatorio' : undefined}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,nome:e.target.value}))}
+            />
+            <DateRangeField
+              className="promo__f-periodo"
+              nameFrom="periodoPrenotFrom"
+              nameTo="periodoPrenotTo"
+              label="Periodo di prenotabilità"
+              valueFrom={form.periodoPrenotFrom}
+              valueTo={form.periodoPrenotTo}
+              onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotFrom:e.target.value}))}
+              onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPrenotTo:e.target.value}))}
+            />
+            <DateRangeField
+              className="promo__f-periodo"
+              nameFrom="periodoPromoFrom"
+              nameTo="periodoPromoTo"
+              label="Periodo di promozione"
+              valueFrom={form.periodoPromoFrom}
+              valueTo={form.periodoPromoTo}
+              onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoFrom:e.target.value}))}
+              onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,periodoPromoTo:e.target.value}))}
+            />
+            <SelectField
+              className="promo__f-mercato"
+              name="mercato" label="Mercato"
+              value={form.mercato}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setForm(v=>({...v,mercato:e.target.value}))}
+              options={[{value:'',label:'Seleziona'}, ...['Libero','B2C','B2B','Corporate'].map(o => ({ value: o, label: o }))]}
+            />
+            <DatePickerField
+              className="promo__f-blackout"
+              name="blackout" label="Black-out Date"
+              value={form.blackout}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,blackout:e.target.value}))}
+            />
+            <InputField
+              className="promo__f-var"
+              name="sconto" label="Variazioni" type="number" placeholder="%"
+              value={form.sconto}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(v=>({...v,sconto:e.target.value}))}
+            />
+          </div>
           <FormActions onCancel={()=>setShowModal(false)} onConfirm={handleSave} confirmLabel="Salva e invia" confirmIcon="fa-paper-plane" confirmDisabled={!form.nome.trim()}/>
         </div>
       </Modal>

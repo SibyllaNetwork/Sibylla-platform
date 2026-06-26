@@ -295,3 +295,34 @@
     color: $text-inactive
     font-size: 12px
     padding: 6px 0
+
+// ─── Form promozione: campi su un'unica riga (Image #35) ────────────────────────
+.promo__form-row
+  display: flex
+  flex-wrap: wrap
+  gap: 14px
+  align-items: flex-end
+
+.promo__f-nome
+  flex: 1 1 200px
+  min-width: 180px
+
+.promo__f-periodo
+  flex: 1 1 190px
+  min-width: 170px
+
+  .sib-daterange
+    width: 100%
+
+  button.sib-input
+    width: 100%
+    justify-content: space-between
+
+.promo__f-mercato
+  flex: 0 0 130px
+
+.promo__f-blackout
+  flex: 0 0 150px
+
+.promo__f-var
+  flex: 0 0 100px
