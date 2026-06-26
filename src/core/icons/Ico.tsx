@@ -133,6 +133,21 @@ const FA_MAP: Record<string, string> = {
   'trend-down':      'fa-arrow-trend-down',
   'gauge':           'fa-gauge-high',
   'bullseye':        'fa-bullseye',
+  // Icone menu radiale Timone (home)
+  'crown':         'fa-crown',
+  'search-dollar': 'fa-magnifying-glass-dollar',
+  'chart-area':    'fa-chart-area',
+  'chart-pie':     'fa-chart-pie',
+  'money-bill':    'fa-money-bill-wave',
+  'file-x':        'fa-file-circle-xmark',
+  'file-check':    'fa-file-circle-check',
+  'receipt':       'fa-receipt',
+  'cash-register': 'fa-cash-register',
+  'users':         'fa-users',
+  'id-card':       'fa-id-card',
+  'user-plus':     'fa-user-plus',
+  'scale':         'fa-scale-balanced',
+  'share-nodes':   'fa-share-nodes',
 }
 
 export default function Ico({ n, s = 20, c = '#fff', c2, w = 'duotone' }: IcoProps) {

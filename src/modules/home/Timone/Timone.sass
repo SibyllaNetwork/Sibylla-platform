@@ -13,10 +13,239 @@ $ease: cubic-bezier(.22, 1, .36, 1)
   height: min(620px, 74vmin)
   user-select: none
 
+// Il "disco" cliccabile: contiene SVG + arco; trasla a sinistra quando il
+// menu radiale si apre, lasciando spazio alle voci sulla destra.
+.timone__wheel
+  position: relative
+  width: 100%
+  height: 100%
+  transition: transform .55s $ease
+
+.timone--ready .timone__svg [id^="seg-"]
+  cursor: pointer
+
+.timone--open .timone__wheel
+  transform: translateX(-140px) scale(.78)
+
+// Menu di un segmento aperto: spegni TUTTE le frecce (desaturate/attenuate),
+// poi riaccendi solo quella selezionata. Lo shimmer va spento o sovrascrive.
+.timone--open .timone__svg [id^="seg-"]
+  animation: none !important
+  filter: grayscale(.92) opacity(.34)
+
+.timone--sel-sales #seg-sales,
+.timone--sel-operation #seg-operation,
+.timone--sel-purchasing #seg-purchasing,
+.timone--sel-hr #seg-hr,
+.timone--sel-finance #seg-finance
+  filter: brightness(1.05) saturate(1.05)
+
 .timone__svg
   display: block
   width: 100%
   height: 100%
+
+// ── Arco che si "disegna" attorno al timone (tinta del segmento aperto) ───────
+.timone__arc
+  position: absolute
+  top: 50%
+  left: 50%
+  width: 124%
+  height: 124%
+  transform: translate(-50%, -50%)
+  overflow: visible
+  pointer-events: none
+
+.timone__arc-path
+  fill: none
+  stroke: var(--arc-color, transparent)
+  stroke-width: 2
+  stroke-linecap: round
+  stroke-dasharray: 100
+  stroke-dashoffset: 100
+
+.timone--open .timone__arc-path
+  transition: stroke-dashoffset 1s $ease
+  stroke-dashoffset: 0
+
+// ── Colonna di voci a destra ──────────────────────────────────────────────────
+.timone__menu
+  position: absolute
+  top: 50%
+  left: 90%
+  transform: translateY(-50%)
+  margin: 0
+  padding: 0
+  list-style: none
+  display: flex
+  flex-direction: column
+  gap: 14px
+  width: 300px
+  z-index: 5
+
+.timone__menu-item
+  opacity: 0
+  transform: translateX(30px)
+  animation: timone-item-in .5s $ease both
+  animation-delay: calc(var(--i) * 65ms + 120ms)
+
+@keyframes timone-item-in
+  to
+    opacity: 1
+    transform: translateX(0)
+
+.timone__menu-btn
+  display: flex
+  align-items: center
+  gap: 12px
+  width: 100%
+  padding-right: 16px
+  height: 46px
+  border: none
+  border-radius: 9px
+  cursor: pointer
+  background: var(--menu-color)
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(0, 0, 0, .06))
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .16)
+  color: #fff
+  text-align: left
+  transition: transform .14s $ease, box-shadow .14s $ease, filter .14s $ease
+
+  &:hover
+    transform: translateX(-4px)
+    filter: brightness(1.07)
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .24)
+
+  &:active
+    transform: translateX(0) scale(.99)
+
+.timone__menu-ico
+  width: 46px
+  height: 46px
+  flex-shrink: 0
+  display: flex
+  align-items: center
+  justify-content: center
+  border-radius: 9px 0 0 9px
+  background: rgba(0, 0, 0, .15)
+
+.timone__menu-label
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  line-height: 1.25
+  letter-spacing: .2px
+
+// ── Modalità Executive (click sull'hub) ───────────────────────────────────────
+$exec-gold: #c2a15a
+
+// Anello oro attorno al disco interno (visibile solo in exec)
+.timone__exec-ring
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  pointer-events: none
+  opacity: 0
+  transition: opacity .4s $ease
+
+  circle
+    fill: none
+    stroke: $exec-gold
+    stroke-width: 2.4
+    stroke-dasharray: 100
+    stroke-dashoffset: 100
+
+.timone--exec .timone__exec-ring
+  opacity: 1
+
+  circle
+    transition: stroke-dashoffset 1s $ease .1s
+    stroke-dashoffset: 0
+
+// I segmenti colorati diventano "argento" (approssimazione in attesa dell'asset).
+// Lo shimmer di .timone--live sovrascriverebbe il filter → va spento qui.
+.timone--exec .timone__svg [id^="seg-"]
+  animation: none !important
+  filter: grayscale(1) brightness(1.18) contrast(.92)
+  transition: filter .5s $ease
+
+// La ruota si riduce in exec per fare spazio alle bolle
+.timone--exec .timone__wheel
+  transform: scale(.84)
+  transition: transform .5s $ease
+
+.timone__exec
+  position: absolute
+  inset: 0
+  pointer-events: none
+
+// Bolle orbitanti (icona + label), pop a molla in cascata
+.timone__bubble
+  position: absolute
+  left: var(--bx)
+  top: var(--by)
+  width: 104px
+  height: 104px
+  border-radius: 50%
+  border: 2px solid $exec-gold
+  background: radial-gradient(circle at 50% 32%, #ffffff 0%, #f4f7fa 100%)
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 5px
+  text-align: center
+  padding: 10px
+  cursor: pointer
+  pointer-events: auto
+  box-shadow: 0 8px 22px rgba(32, 71, 105, .18)
+  z-index: 5
+  opacity: 1
+  transform: translate(-50%, -50%)
+  animation: timone-bubble-in .52s cubic-bezier(.34, 1.56, .64, 1) backwards
+  animation-delay: calc(var(--i) * 75ms + 300ms)
+  transition: transform .18s $ease, box-shadow .18s $ease, border-color .18s $ease
+
+  &:hover
+    transform: translate(-50%, -50%) scale(1.09)
+    border-color: #e0c074
+    box-shadow: 0 12px 30px rgba(194, 161, 90, .42), 0 0 0 4px rgba(194, 161, 90, .16)
+
+  &:active
+    transform: translate(-50%, -50%) scale(1.02)
+
+  &.is-disabled
+    border-color: $border
+    background: #f1f4f7
+    cursor: default
+    box-shadow: none
+
+.timone__bubble-ico
+  display: flex
+  align-items: center
+  justify-content: center
+
+.timone__bubble-label
+  font-family: $font-heading
+  font-size: 11.5px
+  font-weight: 600
+  color: $primary
+  line-height: 1.18
+
+.is-disabled .timone__bubble-label
+  color: $text-disabled
+
+@keyframes timone-bubble-in
+  0%
+    opacity: 0
+    transform: translate(-50%, -50%) scale(.2)
+  60%
+    opacity: 1
+    transform: translate(-50%, -50%) scale(1.12)
+  100%
+    opacity: 1
+    transform: translate(-50%, -50%) scale(1)
 
 // Origine comune al centro ruota per scale/rotazioni in coordinate SVG.
 #t-wheel, #t-disc, #t-hub, #seg-sales, #seg-operation, #seg-purchasing, #seg-hr, #seg-finance
@@ -155,3 +384,21 @@ $flow: cubic-bezier(.22, 1, .36, 1)
     animation: none !important
     opacity: 1
     transform: none
+
+  .timone__wheel, .timone--open .timone__wheel
+    transition: none
+
+  .timone__menu-item
+    animation: none
+    opacity: 1
+    transform: none
+
+  .timone--open .timone__arc-path
+    transition: none
+
+  .timone__bubble
+    animation: none
+
+  .timone--exec .timone__exec-ring circle
+    transition: none
+    stroke-dashoffset: 0
