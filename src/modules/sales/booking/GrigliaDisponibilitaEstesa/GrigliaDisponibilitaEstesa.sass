@@ -9,13 +9,14 @@
     justify-content: space-between
     flex-wrap: wrap
     gap: $space-md
+    // distanza uniforme di tutta la toolbar (filtri + icone) dalla tabella
+    margin-bottom: 24px
 
   &__filters
     display: flex
     align-items: flex-end
     gap: $space-lg
     flex-wrap: wrap
-    margin-bottom: 20px
 
   &__filter
     display: flex
@@ -64,11 +65,11 @@
 
   &__th
     padding: 10px 14px
-    font-size: 10px
-    font-weight: 700
+    font-size: 12px
+    font-weight: 600
     color: $text-disabled
-    text-transform: uppercase
-    letter-spacing: 0.4px
+    // header come da standard .sib-table: testo come scritto, non in maiuscolo
+    text-transform: none
     background: var(--color-bg)
     border-bottom: 1px solid $border
     text-align: right
