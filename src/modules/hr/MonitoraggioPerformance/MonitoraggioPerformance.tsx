@@ -19,7 +19,8 @@ interface PerfRow {
   nome: string
   reparto: string
   struttura: string
-  obiettivo: string
+  challenge: string   // la challenge/obiettivo a cui partecipa
+  obiettivo: string   // KPI specifico del dipendente
   anno: number
   avanzamento: number // 0-100 → posizione del runner sulla pista
 }
@@ -59,15 +60,15 @@ const trend = (av: number) => MESI.map((m, i) => ({ mese: m, valore: Math.round(
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 
 const MOCK: PerfRow[] = [
-  { id: 1, nome: 'Piero Aragona',   reparto: 'Manutenzione',    struttura: 'Hotel Tutorial',  obiettivo: 'Interventi risolti entro SLA',        anno: 2026, avanzamento: 105 },
-  { id: 2, nome: 'Anna Verdi',      reparto: 'Amministrazione', struttura: "Grim's Hotel",    obiettivo: 'Chiusura contabile mensile',          anno: 2026, avanzamento: 96 },
-  { id: 3, nome: 'Andrea Grimaudo', reparto: 'Front office',    struttura: 'Hotel Tutorial',  obiettivo: 'Punteggio recensioni reception',      anno: 2026, avanzamento: 88 },
-  { id: 4, nome: 'Marco Campo',     reparto: 'Housekeeping',    struttura: "Grim's Hotel",    obiettivo: 'Camere pronte entro le 14:00',        anno: 2026, avanzamento: 72 },
-  { id: 5, nome: 'Paolo Greco',     reparto: 'Manutenzione',    struttura: 'Hotel Archimede', obiettivo: 'Manutenzioni preventive completate',   anno: 2026, avanzamento: 63 },
-  { id: 6, nome: 'Sara Conti',      reparto: 'F&B',             struttura: 'Hotel Tutorial',  obiettivo: 'Upselling servizi ristorante',        anno: 2026, avanzamento: 54 },
-  { id: 7, nome: 'Luca Ferri',      reparto: 'Front office',    struttura: 'Hotel Archimede', obiettivo: 'Check-in time medio',                  anno: 2026, avanzamento: 41 },
-  { id: 8, nome: 'Giulia Neri',     reparto: 'Marketing',       struttura: 'Hotel Tutorial',  obiettivo: 'Engagement campagne social',          anno: 2026, avanzamento: 28 },
-  { id: 9, nome: 'Dino Tacchini',   reparto: 'Housekeeping',    struttura: 'Hotel Tutorial',  obiettivo: 'Controllo qualità pulizie',           anno: 2025, avanzamento: 100 },
+  { id: 1, nome: 'Piero Aragona',   reparto: 'Manutenzione',    struttura: 'Hotel Tutorial',  challenge: 'Efficienza operativa 2026', obiettivo: 'Interventi risolti entro SLA',        anno: 2026, avanzamento: 105 },
+  { id: 2, nome: 'Anna Verdi',      reparto: 'Amministrazione', struttura: "Grim's Hotel",    challenge: 'Premio produzione 2026',    obiettivo: 'Chiusura contabile mensile',          anno: 2026, avanzamento: 96 },
+  { id: 3, nome: 'Andrea Grimaudo', reparto: 'Front office',    struttura: 'Hotel Tutorial',  challenge: 'Eccellenza ospitalità 2026',obiettivo: 'Punteggio recensioni reception',      anno: 2026, avanzamento: 88 },
+  { id: 4, nome: 'Marco Campo',     reparto: 'Housekeeping',    struttura: "Grim's Hotel",    challenge: 'Efficienza operativa 2026', obiettivo: 'Camere pronte entro le 14:00',        anno: 2026, avanzamento: 72 },
+  { id: 5, nome: 'Paolo Greco',     reparto: 'Manutenzione',    struttura: 'Hotel Archimede', challenge: 'Efficienza operativa 2026', obiettivo: 'Manutenzioni preventive completate',   anno: 2026, avanzamento: 63 },
+  { id: 6, nome: 'Sara Conti',      reparto: 'F&B',             struttura: 'Hotel Tutorial',  challenge: 'Eccellenza ospitalità 2026',obiettivo: 'Upselling servizi ristorante',        anno: 2026, avanzamento: 54 },
+  { id: 7, nome: 'Luca Ferri',      reparto: 'Front office',    struttura: 'Hotel Archimede', challenge: 'Eccellenza ospitalità 2026',obiettivo: 'Check-in time medio',                  anno: 2026, avanzamento: 41 },
+  { id: 8, nome: 'Giulia Neri',     reparto: 'Marketing',       struttura: 'Hotel Tutorial',  challenge: 'Premio produzione 2026',    obiettivo: 'Engagement campagne social',          anno: 2026, avanzamento: 28 },
+  { id: 9, nome: 'Dino Tacchini',   reparto: 'Housekeeping',    struttura: 'Hotel Tutorial',  challenge: 'Premio produzione 2025',    obiettivo: 'Controllo qualità pulizie',           anno: 2025, avanzamento: 100 },
 ]
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -75,19 +76,27 @@ const MOCK: PerfRow[] = [
 export default function MonitoraggioPerformance(_props: { navigate?: (p: string) => void } = {}) {
   const [rows] = useState<PerfRow[]>(MOCK)
   const [anno, setAnno] = useState(2026)
+  const [challenge, setChallenge] = useState<'Tutte' | string>('Tutte')
   const [reparto, setReparto] = useState<'Tutti' | string>('Tutti')
   const [struttura, setStruttura] = useState<'Tutte' | string>('Tutte')
   const [search, setSearch] = useState('')
   const [detail, setDetail] = useState<PerfRow | null>(null)
 
+  // challenge in corso = obiettivi attivi per l'anno selezionato
+  const challengeOpts = useMemo(
+    () => Array.from(new Set(rows.filter((r) => r.anno === anno).map((r) => r.challenge))).sort(),
+    [rows, anno],
+  )
+
   const filtered = useMemo(() => {
     let out = rows.filter((r) => r.anno === anno)
+    if (challenge !== 'Tutte') out = out.filter((r) => r.challenge === challenge)
     if (reparto !== 'Tutti') out = out.filter((r) => r.reparto === reparto)
     if (struttura !== 'Tutte') out = out.filter((r) => r.struttura === struttura)
     const q = search.toLowerCase().trim()
-    if (q) out = out.filter((r) => r.nome.toLowerCase().includes(q) || r.obiettivo.toLowerCase().includes(q))
+    if (q) out = out.filter((r) => r.nome.toLowerCase().includes(q) || r.obiettivo.toLowerCase().includes(q) || r.challenge.toLowerCase().includes(q))
     return out.sort((a, b) => b.avanzamento - a.avanzamento)
-  }, [rows, anno, reparto, struttura, search])
+  }, [rows, anno, challenge, reparto, struttura, search])
 
   const mediaAvanz = filtered.length ? Math.round(filtered.reduce((s, r) => s + r.avanzamento, 0) / filtered.length) : 0
   const nRaggiunti = filtered.filter((r) => r.avanzamento >= 100).length
@@ -100,8 +109,12 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="mon-perf__bar">
         <div className="mon-perf__field">
-          <SelectField name="anno" label="Anno" className="mon-perf__select" value={String(anno)} onChange={(e) => setAnno(Number(e.target.value))}
+          <SelectField name="anno" label="Anno" className="mon-perf__select-sm" value={String(anno)} onChange={(e) => { setAnno(Number(e.target.value)); setChallenge('Tutte') }}
             options={ANNI.map((a) => ({ value: String(a), label: String(a) }))} />
+        </div>
+        <div className="mon-perf__field">
+          <SelectField name="challenge" label="Challenge in corso" className="mon-perf__select-lg" value={challenge} onChange={(e) => setChallenge(e.target.value)}
+            options={[{ value: 'Tutte', label: 'Tutte le challenge' }, ...challengeOpts.map((c) => ({ value: c, label: c }))]} />
         </div>
         <div className="mon-perf__field">
           <SelectField name="reparto" label="Reparto" className="mon-perf__select" value={reparto} onChange={(e) => setReparto(e.target.value)}
@@ -154,7 +167,10 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
               <button key={r.id} type="button" className="mon-perf__row mon-perf__row--emp" onClick={() => setDetail(r)}>
                 <div className="mon-perf__c-name">
                   <img className="mon-perf__avatar" src={avatarUrl(r.nome)} alt="" />
-                  <span className="mon-perf__user-name">{r.nome}</span>
+                  <span className="mon-perf__user-wrap">
+                    <span className="mon-perf__user-name">{r.nome}</span>
+                    <span className="mon-perf__user-chall">{r.challenge}</span>
+                  </span>
                 </div>
                 <div className="mon-perf__c-rep">
                   <Tooltip text={r.reparto}><i className={`fa-light ${REPARTO_ICON[r.reparto] ?? 'fa-user'} mon-perf__rep-ico`} /></Tooltip>
@@ -206,6 +222,7 @@ function DettaglioPerfModal({ row, onClose }: { row: PerfRow | null; onClose: ()
               <div>
                 <div className="mon-perf__detail-name">{row.nome}</div>
                 <div className="mon-perf__detail-sub">{row.reparto} · {row.struttura} · {row.anno}</div>
+                <div className="mon-perf__detail-chall"><i className="fa-solid fa-flag-checkered" /> {row.challenge}</div>
               </div>
               <span className={`mon-perf__stato mon-perf__stato--${stato} mon-perf__detail-stato`}>{STATO_LABEL[stato]}</span>
             </div>
