@@ -4,6 +4,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
+import { getEditingAnagrafica, clearEditingAnagrafica } from './_state'
 import './CreaAnagrafica.sass'
 
 /**
@@ -37,7 +38,7 @@ function Section({ icon, title, children }: { icon: string; title: string; child
   )
 }
 
-export default function CreaAnagrafica({ navigate }: { navigate: (p: string) => void }) {
+export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -45,11 +46,17 @@ export default function CreaAnagrafica({ navigate }: { navigate: (p: string) => 
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
+  const initial = editing ? getEditingAnagrafica() : null
   const [form, setForm] = useState({
     nome: '', cognome: '', data_nascita: '', sesso: '',
     codice_fiscale: '', email: '', telefono: '', contatto_emergenza: '',
     indirizzo: '', indirizzo2: '', cap: '', provincia: '', nazionalita: 'ITALIA',
     strutture: '', credenziali: '', numero_turni: 1, fasce_turni: '', reparti: '',
+    ...(initial ? {
+      nome: initial.nome ?? '', cognome: initial.cognome ?? '', data_nascita: initial.data_nascita ?? '',
+      codice_fiscale: initial.codice_fiscale ?? '', indirizzo: initial.indirizzo ?? '',
+      cap: initial.cap ?? '', provincia: initial.provincia ?? '', nazionalita: initial.nazionalita ?? 'ITALIA',
+    } : {}),
   })
 
   const set = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }))
@@ -73,17 +80,18 @@ export default function CreaAnagrafica({ navigate }: { navigate: (p: string) => 
     }
     setError(null); setPending(true)
     try {
-      await apiFetchSibylla('anagrafica-personale/Insert', { method: 'POST', body: form })
+      await apiFetchSibylla(editing ? 'anagrafica-personale/Update' : 'anagrafica-personale/Insert', { method: 'POST', body: form })
     } catch { /* mock: salva comunque */ }
     setPending(false)
+    clearEditingAnagrafica()
     navigate('archivio-personale')
   }
 
   return (
     <div className="crea-anag">
-      <BtnBack onClick={() => navigate('archivio-personale')} />
+      <BtnBack onClick={() => { clearEditingAnagrafica(); navigate('archivio-personale') }} />
       <PageHeader
-        title="Creazione anagrafica personale"
+        title={editing ? 'Modifica anagrafica personale' : 'Creazione anagrafica personale'}
         subtitle="Scheda del dipendente: dati anagrafici, contatti, residenza e inquadramento"
       />
 
@@ -164,7 +172,7 @@ export default function CreaAnagrafica({ navigate }: { navigate: (p: string) => 
       </div>
 
       <div className="crea-anag__actions">
-        <button type="button" className="sib-btn sib-btn--ghost" onClick={() => navigate('archivio-personale')}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--ghost" onClick={() => { clearEditingAnagrafica(); navigate('archivio-personale') }}>Annulla</button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={handleSave} disabled={pending}>
           {pending ? 'Salvataggio…' : 'Salva'}
         </button>

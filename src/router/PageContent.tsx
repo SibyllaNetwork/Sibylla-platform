@@ -343,7 +343,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate} key="ins-contr-a"/>;
   if (page === 'modifica-contratto-a')  return <InserisciContrattoAcquisto navigate={navigate} editing key="mod-contr-a"/>;
   if (page === 'miei-contratti-a')      return <MieiContrattiAcquisto navigate={navigate}/>;
-  if (page === 'crea-anagrafica')       return <CreaAnagrafica navigate={navigate}/>;
+  if (page === 'crea-anagrafica')       return <CreaAnagrafica navigate={navigate} key="crea-anag"/>;
+  if (page === 'modifica-anagrafica')   return <CreaAnagrafica navigate={navigate} editing key="mod-anag"/>;
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
   if (page === 'cabina-controllo')      return <CabinaControllo navigate={navigate}/>;
