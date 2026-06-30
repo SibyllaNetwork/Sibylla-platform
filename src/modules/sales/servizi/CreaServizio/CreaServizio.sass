@@ -10,12 +10,12 @@
     margin-bottom: 16px
 
     .sib-section-title
-      margin: 0 0 14px
+      margin: 0
 
-  // riusa lo stesso spacing fra le FormGrid impilate
-  .crea-servizio__section > .grid + .grid,
-  .crea-servizio__section > .grid + .crea-servizio__dist
-    margin-top: 12px
+  // spacing verticale uniforme fra tutti gli elementi impilati nella sezione
+  // (anche dopo una textarea, es. i campi Prezzo/Commissione)
+  .crea-servizio__section > * + *
+    margin-top: 14px
 
   .crea-servizio__field
     display: flex
