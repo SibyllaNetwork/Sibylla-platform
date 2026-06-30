@@ -156,6 +156,7 @@ import CreaMagazzino               from '../modules/magazzino/CreaMagazzino/Crea
 import MovimentiBarcode            from '../modules/magazzino/MovimentiBarcode/MovimentiBarcode';
 import ArchivioContratti           from '../modules/finance/ArchivioContratti/ArchivioContratti';
 import InserisciContrattoAcquisto  from '../modules/purchasing/InserisciContrattoAcquisto/InserisciContrattoAcquisto';
+import MieiContrattiAcquisto       from '../modules/purchasing/MieiContrattiAcquisto/MieiContrattiAcquisto';
 import TurniPersonale              from '../modules/operation/TurniPersonale/TurniPersonale';
 import AgoraShell                  from '../modules/purchasing/Agora/AgoraShell';
 import { renderPortedPage }        from '../modules/_scaffold/portedPages';
@@ -340,6 +341,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'archivio-personale')    return <ArchivioPersonale navigate={navigate}/>;
   if (page === 'archivio-contratti')    return <ArchivioContratti navigate={navigate}/>;
   if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate}/>;
+  if (page === 'miei-contratti-a')      return <MieiContrattiAcquisto navigate={navigate}/>;
   if (page === 'crea-anagrafica')       return <CreaAnagrafica navigate={navigate}/>;
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;

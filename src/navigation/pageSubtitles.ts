@@ -81,6 +81,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "maggiorazioni": "Aumenta la tua marginalità applicando maggiorazioni e promozioni verso ciascun operatore",
   "maintenance-analysis": "Analisi delle attività di manutenzione per ottimizzare tempi e costi",
   "market-lens": "Analisi comparativa dei prezzi di mercato in tempo reale",
+  "miei-contratti-a": "Gestisci e consulta tutti i contratti di acquisto in un unico spazio",
   "miei-contratti-v": "Panoramica completa dei tuoi contratti con dettagli e stato aggiornato",
   "modifica-profilo": "Gestisci e personalizza le informazioni del tuo profilo",
   "modifica-strategia": "Modifica la strategia inserita nella matrice per l'ottimizzazione d'impresa",
