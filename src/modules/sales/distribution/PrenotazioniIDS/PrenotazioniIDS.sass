@@ -20,28 +20,10 @@
     flex-wrap: wrap
     margin-top: 4px
 
-  &__filters
-    display: flex
-    align-items: flex-end
-    gap: 12px
-    flex-wrap: wrap
-
   &__field
     display: flex
     flex-direction: column
     gap: 6px
-
-    label
-      font-family: 'Poppins', sans-serif
-      font-size: 12px
-      color: $primary
-      font-weight: 600
-
-    .sib-input, .sib-select
-      width: 100%
-
-  &__select
-    width: 200px
 
   &__summary
     display: flex
@@ -64,104 +46,189 @@
     i
       color: $primary
 
-    &--peak
-      color: $text-active
-
     &--tot
       border-color: $primary
       background: $primary-50
       color: $primary
       font-weight: 700
 
-  // ── Matrice heatmap ────────────────────────────────────────────────────────
-  &__matrix
-    width: 100%
-    font-size: 13px
+  // ── Master / Detail ──────────────────────────────────────────────────────────
+  &__split
+    display: grid
+    grid-template-columns: 280px 1fr
+    gap: 16px
+    align-items: start
 
-    th, td
-      text-align: center
+    @media (max-width: 860px)
+      grid-template-columns: 1fr
 
-    th
-      font-weight: 600
+  // elenco strutture
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 8px
 
-  &__th-name
-    text-align: left !important
-    min-width: 160px
-
-  &__th-date
-    white-space: nowrap
-
-  &__th-tot
-    background: $bg
-
-  &__name
-    text-align: left !important
-    font-weight: 600
-    color: $text-active
-    white-space: nowrap
-
-  &__cell
-    font-weight: 600
-    color: $text-active
-    transition: filter .1s
+  &__item
+    display: flex
+    flex-direction: column
+    gap: 8px
+    text-align: left
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    padding: 10px 12px
+    cursor: pointer
+    font-family: inherit
+    transition: border-color .12s, background .12s
 
     &:hover
-      filter: brightness(0.96)
+      border-color: $primary
 
-  &__zero
-    color: $text-disabled
+    &.is-sel
+      border-color: $primary
+      background: $primary-50
 
-  // 5 livelli di intensità (heatmap)
-  &__cell--l0
-    background: var(--color-surface)
-    color: $text-disabled
-    font-weight: 400
-  &__cell--l1
-    background: $primary-50
-  &__cell--l2
-    background: $primary-100
-  &__cell--l3
-    background: $primary-200
-  &__cell--l4
-    background: $primary-300
-    color: $primary-900
+  &__item-top
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 10px
 
-  &__tot
-    font-weight: 700
-    color: $primary
-    background: $bg
-
-  // footer totali
-  &__foot-label
-    font-weight: 700
+  &__item-name
+    font-weight: 600
     color: $text-active
 
-  &__foot-val
+  &__item-tot
     font-weight: 700
-    color: $text-active
-    background: $bg
-
-  &__foot-tot
-    font-weight: 800
     color: $primary
-    background: $primary-50
 
-  // ── Legenda ──────────────────────────────────────────────────────────────────
-  &__legend
+  &__item-bottom
     display: flex
     align-items: center
-    gap: 12px
-    align-self: flex-end
-    font-size: 11px
+    gap: 8px
+
+  &__item-bar
+    flex: 1
+    height: 6px
+    border-radius: 999px
+    background: $bg
+    overflow: hidden
+
+  &__item-bar-fill
+    display: block
+    height: 100%
+    border-radius: 999px
+    background: $primary
+
+  &__spark
+    flex: none
+
+  // dettaglio
+  &__detail
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__detail-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+  &__detail-name
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 16px
+    color: $primary
+
+  &__detail-sub
+    font-size: 12px
     color: $text-inactive
 
-  &__legend-scale
-    display: inline-flex
-    align-items: center
-    gap: 4px
+  &__detail-kpis
+    display: flex
+    gap: 10px
+    flex-wrap: wrap
 
-    i
-      width: 22px
-      height: 14px
-      border-radius: 3px
-      border: 1px solid $border
+  &__kpi
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 6px 12px
+    min-width: 92px
+
+    span
+      font-size: 11px
+      color: $text-inactive
+    strong
+      font-size: 16px
+      color: $text-active
+
+      small
+        font-size: 11px
+        font-weight: 400
+        color: $text-inactive
+
+  &__chart
+    border-top: 1px solid $border
+    padding-top: 8px
+
+  // tabella giorno per giorno
+  &__daily-title
+    font-weight: 600
+    color: $primary
+    margin-bottom: 8px
+
+  &__daily-scroll
+    max-height: 320px
+    overflow-y: auto
+    border: 1px solid $border
+    border-radius: 8px
+
+  &__daily-table
+    width: 100%
+    border-collapse: collapse
+    font-size: 12.5px
+
+    thead th
+      position: sticky
+      top: 0
+      background: $bg
+      color: $text-inactive
+      font-weight: 600
+      text-align: left
+      padding: 8px 12px
+      border-bottom: 1px solid $border
+      z-index: 1
+
+    td
+      padding: 7px 12px
+      border-bottom: 1px solid $border
+      color: $text-active
+
+    tr:last-child td
+      border-bottom: none
+
+    tr.is-peak td
+      background: $primary-50
+      font-weight: 600
+
+  &__r
+    text-align: right !important
+
+  &__dow
+    color: $text-inactive
+
+  &__count
+    display: inline-block
+    min-width: 30px
+    text-align: right
+    font-weight: 600
+    color: $primary
