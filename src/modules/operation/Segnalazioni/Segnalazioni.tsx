@@ -511,24 +511,89 @@ function ModificaSegnalazioneModal({ row, strutture, onClose }: { row: Segnalazi
 
 // ─── MODAL: Assegna intervento ───────────────────────────────────────────────
 
-const DIPENDENTI = ['dino tacchini', 'Scontrino test', 'Andrea G Test', 'Marco Campo', 'Luca Ferri', 'Sara Conti', 'Paolo Greco']
+interface Dipendente {
+  nome: string
+  reparto: Reparto
+}
+
+const DIPENDENTI: Dipendente[] = [
+  { nome: 'dino tacchini', reparto: 'Manutenzione' },
+  { nome: 'Scontrino test', reparto: 'Manutenzione' },
+  { nome: 'Paolo Greco',    reparto: 'Manutenzione' },
+  { nome: 'Andrea G Test',  reparto: 'Housekeeping' },
+  { nome: 'Marco Campo',    reparto: 'Housekeeping' },
+  { nome: 'Luca Ferri',     reparto: 'Reception' },
+  { nome: 'Sara Conti',     reparto: 'Cucina' },
+]
 
 function AssegnaInterventoModal({ row, onClose }: { row: Segnalazione | null; onClose: () => void }) {
+  // all'apertura la lista è filtrata sul reparto della segnalazione
+  const [repFilter, setRepFilter] = useState<'Tutti' | Reparto>('Tutti')
+  const [assegnato, setAssegnato] = useState<Dipendente | null>(null)
+
+  useEffect(() => {
+    if (!row) return
+    setRepFilter(row.reparto)
+    setAssegnato(null)
+  }, [row])
+
+  // gli utenti del reparto della segnalazione vengono mostrati per primi
+  const lista = useMemo(() => {
+    const base = repFilter === 'Tutti' ? DIPENDENTI : DIPENDENTI.filter((d) => d.reparto === repFilter)
+    return [...base].sort((a, b) => {
+      const am = a.reparto === row?.reparto ? 0 : 1
+      const bm = b.reparto === row?.reparto ? 0 : 1
+      return am - bm
+    })
+  }, [repFilter, row])
+
   return (
     <Modal open={!!row} onClose={onClose} title="Assegna intervento" size="sm">
-      <div className="segnal__assign-meta">
-        Segnalazione id: {row?.id} del {row?.data}<br />
-        Struttura: {row?.struttura} - Camera: {row?.camera}
-      </div>
-      <div className="segnal__assign-title">Utenti</div>
-      <div className="segnal__assign-list">
-        {DIPENDENTI.map((nome) => (
-          <button key={nome} type="button" className="segnal__assign-item" onClick={onClose}>
-            <img className="segnal__assign-avatar" src={avatarUrl(nome)} alt="" />
-            <span>{nome}</span>
-          </button>
-        ))}
-      </div>
+      {assegnato ? (
+        <div className="segnal__assign-done">
+          <i className="fa-solid fa-circle-check segnal__assign-done-ico" />
+          <div className="segnal__assign-done-title">Intervento assegnato a {assegnato.nome}</div>
+          <div className="segnal__assign-done-text">
+            Una notifica è stata inviata a <strong>{assegnato.nome}</strong> ({assegnato.reparto}) per avvisarlo del nuovo intervento da gestire.
+          </div>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Chiudi</button>
+        </div>
+      ) : (
+        <>
+          <div className="segnal__assign-meta">
+            Segnalazione id: {row?.id} del {row?.data}<br />
+            Struttura: {row?.struttura} - Camera: {row?.camera}<br />
+            Genere intervento: {row?.genereIntervento} · Reparto: {row?.reparto}
+          </div>
+          <div className="segnal__assign-filter">
+            <SelectField
+              name="repFilter" label="Reparto"
+              value={repFilter} onChange={(e) => setRepFilter(e.target.value as 'Tutti' | Reparto)}
+              options={[{ value: 'Tutti', label: 'Tutti i reparti' }, ...REPARTI.map((r) => ({ value: r, label: r }))]}
+            />
+          </div>
+          <div className="segnal__assign-title">Utenti</div>
+          <div className="segnal__assign-list">
+            {lista.length === 0 ? (
+              <div className="sib-empty">Nessun utente per questo reparto.</div>
+            ) : lista.map((d) => {
+              const match = d.reparto === row?.reparto
+              return (
+                <button
+                  key={d.nome} type="button"
+                  className={'segnal__assign-item' + (match ? ' segnal__assign-item--match' : '')}
+                  onClick={() => setAssegnato(d)}
+                >
+                  <img className="segnal__assign-avatar" src={avatarUrl(d.nome)} alt="" />
+                  <span className="segnal__assign-name">{d.nome}</span>
+                  {match && <span className="segnal__assign-badge">Consigliato</span>}
+                  <span className="segnal__assign-rep">{d.reparto}</span>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
     </Modal>
   )
 }
