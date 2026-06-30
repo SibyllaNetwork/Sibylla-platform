@@ -60,22 +60,40 @@ const KIND_GRAD: Record<RoomKind, [string, string]> = {
   camera: ['#3b6ea5', '#28456b'], meeting: ['#2f8f86', '#1f5e58'], dus: ['#8a6bb0', '#553f78'], oof: ['#9a5a5a', '#6b3a3a'],
 }
 function roomImg(room: Room): string {
-  const [c1, c2] = GRAD[room.tipologia] ?? KIND_GRAD[room.kind]
+  const [a1, a2] = GRAD[room.tipologia] ?? KIND_GRAD[room.kind] // a1 = accento, a2 = accento scuro
   const svg =
-    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='380'>` +
-    `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs>` +
-    `<rect width='600' height='380' fill='url(#g)'/>` +
-    `<g fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'>` +
-    `<line x1='60' y1='300' x2='540' y2='300'/>` +
-    `<rect x='110' y='200' width='320' height='95' rx='10'/>` +
-    `<rect x='92' y='150' width='30' height='150' rx='8'/>` +
-    `<rect x='140' y='184' width='80' height='36' rx='10'/>` +
-    `<rect x='232' y='184' width='80' height='36' rx='10'/>` +
-    `<line x1='320' y1='200' x2='320' y2='295'/>` +
-    `<rect x='380' y='86' width='130' height='120' rx='4'/>` +
-    `<line x1='445' y1='86' x2='445' y2='206'/><line x1='380' y1='146' x2='510' y2='146'/>` +
-    `<line x1='474' y1='225' x2='474' y2='295'/><circle cx='474' cy='216' r='11'/>` +
-    `</g></svg>`
+    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='380' viewBox='0 0 600 380'>` +
+    `<defs>` +
+    `<linearGradient id='wall' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#f6f9fd'/><stop offset='1' stop-color='#e7eef7'/></linearGradient>` +
+    `<linearGradient id='duvet' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffffff'/><stop offset='1' stop-color='#eef2f8'/></linearGradient>` +
+    `</defs>` +
+    `<rect width='600' height='380' fill='url(#wall)'/>` +
+    `<rect x='0' y='300' width='600' height='80' fill='#ece0cd'/>` +
+    `<rect x='0' y='300' width='600' height='5' fill='#d8c3a5'/>` +
+    `<ellipse cx='300' cy='344' rx='225' ry='22' fill='${a1}' opacity='0.13'/>` +
+    // finestra con luce
+    `<rect x='40' y='66' width='118' height='150' rx='6' fill='#ffffff' stroke='${a2}' stroke-width='3'/>` +
+    `<rect x='48' y='74' width='102' height='134' rx='3' fill='#dcefff'/>` +
+    `<circle cx='128' cy='100' r='15' fill='#ffe7a3'/>` +
+    `<line x1='99' y1='74' x2='99' y2='208' stroke='${a2}' stroke-width='3'/><line x1='48' y1='141' x2='150' y2='141' stroke='${a2}' stroke-width='3'/>` +
+    // quadro
+    `<rect x='252' y='78' width='92' height='66' rx='4' fill='#ffffff' stroke='${a2}' stroke-width='3'/>` +
+    `<path d='M264 134 L286 106 L300 122 L318 98 L332 134 Z' fill='${a1}' opacity='0.45'/>` +
+    // pianta
+    `<path d='M86 270 C66 234 58 256 78 270 M86 270 C106 230 120 254 96 270 M86 270 C86 224 86 246 86 270' fill='none' stroke='#6fa37a' stroke-width='7' stroke-linecap='round'/>` +
+    `<path d='M70 268 h32 l-5 42 h-22 Z' fill='#c98a5a'/>` +
+    // letto
+    `<rect x='150' y='150' width='270' height='66' rx='12' fill='${a1}'/>` +
+    `<rect x='140' y='250' width='292' height='58' rx='10' fill='${a2}'/>` +
+    `<rect x='150' y='206' width='272' height='58' rx='16' fill='url(#duvet)'/>` +
+    `<rect x='150' y='244' width='272' height='22' rx='10' fill='${a1}' opacity='0.5'/>` +
+    `<rect x='166' y='196' width='112' height='42' rx='15' fill='#ffffff' stroke='${a1}' stroke-width='2.5'/>` +
+    `<rect x='292' y='196' width='112' height='42' rx='15' fill='#ffffff' stroke='${a1}' stroke-width='2.5'/>` +
+    // comodino + lampada
+    `<rect x='446' y='244' width='54' height='64' rx='6' fill='#d8c3a5'/>` +
+    `<rect x='466' y='206' width='14' height='40' fill='${a2}'/>` +
+    `<path d='M456 206 L490 206 L482 184 L464 184 Z' fill='${a1}'/>` +
+    `</svg>`
   return `data:image/svg+xml,${encodeURIComponent(svg)}`
 }
 
