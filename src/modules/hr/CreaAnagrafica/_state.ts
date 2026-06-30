@@ -15,6 +15,14 @@ export interface EditingAnagrafica {
   cap?: string
   provincia?: string
   nazionalita?: string
+  documenti?: {
+    identita?: string
+    codiceFiscale?: string
+    contratto?: string
+    privacy?: string
+    sicurezza?: string
+    altri?: string[]
+  }
 }
 
 let _editing: EditingAnagrafica | null = null

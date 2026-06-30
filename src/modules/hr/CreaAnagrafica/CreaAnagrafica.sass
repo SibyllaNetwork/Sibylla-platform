@@ -149,50 +149,92 @@
   &__file-empty
     color: $text-inactive
 
-  // ── Acquisizione documenti (scanner / file / fotocamera) ─────────────────────
-  &__acq
+  // ── Documenti e allegati (5 documenti su righe ordinate) ─────────────────────
+  &__doc-rows
     display: flex
     flex-direction: column
     gap: 8px
 
-  &__acq-btns
+  &__doc-row
     display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
     flex-wrap: wrap
-    gap: 6px
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 10px 12px
+    background: var(--color-surface)
 
-  &__acq-preview
+  &__doc-row-label
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 200px
+
+  &__doc-row-title
+    font-weight: 600
+    color: $text-active
+    font-size: 13px
+
+  &__doc-badge
     display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    font-weight: 600
+
+    &--ok
+      color: $success
+
+    &--ko
+      color: $warning
+
+      i
+        animation: crea-anag-blink 1s ease-in-out infinite
+
+  &__doc-row-main
+    display: flex
     align-items: center
     gap: 10px
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 6px 10px
-    background: var(--color-surface)
-    align-self: flex-start
+    flex-wrap: wrap
 
-    img
-      width: 64px
-      height: 44px
-      object-fit: cover
-      border-radius: 4px
-
-  &__acq-file
+  &__doc-file
     display: inline-flex
     align-items: center
-    gap: 6px
+    gap: 8px
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 4px 8px
+    background: $bg
+
+  &__doc-thumb
+    width: 40px
+    height: 30px
+    object-fit: cover
+    border-radius: 4px
+
+  &__doc-ico
+    font-size: 16px
+    color: $primary
+
+  &__doc-name
     font-size: 12px
     color: $text-active
+    max-width: 180px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
 
-  &__acq-del
-    background: transparent
-    border: none
-    color: $text-inactive
-    cursor: pointer
+  &__doc-ins
+    display: inline-flex
+    gap: 6px
+    flex-wrap: wrap
 
-    &:hover
-      color: $error
+  // ── Documentazione contrattuale / altri allegati (upload multiplo) ───────────
+  &__doc-altri
+    margin-top: 14px
 
-  // ── Documentazione contrattuale (upload multiplo) ────────────────────────────
   &__docs
     display: flex
     flex-direction: column
@@ -219,14 +261,10 @@
     font-size: 13px
     color: $text-active
 
-    button
-      background: transparent
-      border: none
-      color: $text-inactive
-      cursor: pointer
-
-      &:hover
-        color: $error
+  &__doc-item-acts
+    display: inline-flex
+    gap: 4px
+    flex: none
 
   // ── Azioni ──────────────────────────────────────────────────────────────────
   &__actions
@@ -234,3 +272,11 @@
     justify-content: flex-end
     gap: 12px
     margin-top: 20px
+
+
+// ─── ANIMAZIONI ───────────────────────────────────────────────────────────────
+@keyframes crea-anag-blink
+  0%, 100%
+    opacity: 1
+  50%
+    opacity: 0.35

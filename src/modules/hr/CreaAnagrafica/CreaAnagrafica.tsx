@@ -40,8 +40,26 @@ function Section({ icon, title, children }: { icon: string; title: string; child
 
 interface AcqFile { name: string; dataUrl?: string }
 
-// Acquisizione documento: scanner / file / fotocamera del terminale
-function AcquisisciDoc({ label, value, onAcquire, onRemove }: {
+type DocKey = 'identita' | 'codiceFiscale' | 'contratto' | 'privacy' | 'sicurezza'
+const DOC_SLOTS: { key: DocKey; label: string }[] = [
+  { key: 'identita',      label: "Documento d'identità" },
+  { key: 'codiceFiscale', label: 'Codice fiscale / Tessera sanitaria' },
+  { key: 'contratto',     label: 'Contratto di lavoro' },
+  { key: 'privacy',       label: 'Informativa privacy' },
+  { key: 'sicurezza',     label: 'Formazione sicurezza' },
+]
+
+const viewDoc = (f: AcqFile) => { if (f.dataUrl) window.open(f.dataUrl, '_blank') }
+const printDoc = (f: AcqFile) => {
+  if (!f.dataUrl) return
+  const w = window.open('', '_blank')
+  if (w) { w.document.write(`<img src="${f.dataUrl}" style="max-width:100%" onload="window.focus();window.print()" />`); w.document.close() }
+}
+
+// Riga documento: etichetta + stato; se presente mostra file con azioni
+// (visualizza / stampa / elimina); le opzioni di acquisizione (Scanner / File /
+// Fotocamera) sono sempre disponibili (per inserire o sostituire).
+function DocSlot({ label, value, onAcquire, onRemove }: {
   label: string; value: AcqFile | null; onAcquire: (f: AcqFile) => void; onRemove: () => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -57,23 +75,30 @@ function AcquisisciDoc({ label, value, onAcquire, onRemove }: {
     } else onAcquire({ name: f.name })
   }
   return (
-    <div className="crea-anag__field">
-      <label className="crea-anag__label">{label}</label>
-      <div className="crea-anag__acq">
-        {value ? (
-          <div className="crea-anag__acq-preview">
+    <div className="crea-anag__doc-row">
+      <div className="crea-anag__doc-row-label">
+        <span className="crea-anag__doc-row-title">{label}</span>
+        {value
+          ? <span className="crea-anag__doc-badge crea-anag__doc-badge--ok"><i className="fa-solid fa-circle-check" /> Caricato</span>
+          : <span className="crea-anag__doc-badge crea-anag__doc-badge--ko"><i className="fa-solid fa-triangle-exclamation" /> Mancante</span>}
+      </div>
+      <div className="crea-anag__doc-row-main">
+        {value && (
+          <span className="crea-anag__doc-file">
             {value.dataUrl
-              ? <img src={value.dataUrl} alt={value.name} />
-              : <span className="crea-anag__acq-file"><i className="fa-light fa-file-lines" /> {value.name}</span>}
-            <button type="button" className="crea-anag__acq-del" aria-label="Rimuovi" onClick={onRemove}><i className="fa-light fa-xmark" /></button>
-          </div>
-        ) : (
-          <div className="crea-anag__acq-btns">
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => fileRef.current?.click()}><i className="fa-light fa-scanner-image" /> Scanner</button>
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => fileRef.current?.click()}><i className="fa-light fa-folder-open" /> File</button>
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => camRef.current?.click()}><i className="fa-light fa-camera" /> Foto</button>
-          </div>
+              ? <img className="crea-anag__doc-thumb" src={value.dataUrl} alt={value.name} />
+              : <i className="fa-light fa-file-lines crea-anag__doc-ico" />}
+            <span className="crea-anag__doc-name" title={value.name}>{value.name}</span>
+            <button type="button" className="sib-btn sib-btn--icon" title="Visualizza" onClick={() => viewDoc(value)}><i className="fa-light fa-eye" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" title="Stampa" onClick={() => printDoc(value)}><i className="fa-light fa-print" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" title="Elimina" onClick={onRemove}><i className="fa-light fa-trash-can" /></button>
+          </span>
         )}
+        <span className="crea-anag__doc-ins">
+          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" title={value ? 'Sostituisci da scanner' : 'Scanner'} onClick={() => fileRef.current?.click()}><i className="fa-light fa-scanner-image" /> Scanner</button>
+          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" title={value ? 'Sostituisci da file' : 'File'} onClick={() => fileRef.current?.click()}><i className="fa-light fa-folder-open" /> File</button>
+          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" title={value ? 'Sostituisci da fotocamera' : 'Fotocamera'} onClick={() => camRef.current?.click()}><i className="fa-light fa-camera" /> Foto</button>
+        </span>
         <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handle} />
         <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handle} />
       </div>
@@ -82,24 +107,37 @@ function AcquisisciDoc({ label, value, onAcquire, onRemove }: {
 }
 
 export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [contrattoName, setContrattoName] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
-  const [docIdentita, setDocIdentita] = useState<AcqFile | null>(null)
-  const [docCF, setDocCF] = useState<AcqFile | null>(null)
-  const [docContrattuale, setDocContrattuale] = useState<string[]>([])
-  const docContrRef = useRef<HTMLInputElement>(null)
-  const onDocContrattuale = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fs = e.target.files
-    if (fs) setDocContrattuale((prev) => [...prev, ...Array.from(fs).map((f) => f.name)])
-    e.target.value = ''
-  }
-
   const initial = editing ? getEditingAnagrafica() : null
+
+  const mkSlot = (name?: string): AcqFile | null => (name ? { name } : null)
+  const [docs, setDocs] = useState<Record<DocKey, AcqFile | null>>({
+    identita:      mkSlot(initial?.documenti?.identita),
+    codiceFiscale: mkSlot(initial?.documenti?.codiceFiscale),
+    contratto:     mkSlot(initial?.documenti?.contratto),
+    privacy:       mkSlot(initial?.documenti?.privacy),
+    sicurezza:     mkSlot(initial?.documenti?.sicurezza),
+  })
+  const [altri, setAltri] = useState<AcqFile[]>((initial?.documenti?.altri ?? []).map((n) => ({ name: n })))
+  const altriRef = useRef<HTMLInputElement>(null)
+  const onAltri = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fs = e.target.files
+    e.target.value = ''
+    if (!fs) return
+    Array.from(fs).forEach((f) => {
+      if (f.type.startsWith('image/')) {
+        const r = new FileReader()
+        r.onload = () => setAltri((p) => [...p, { name: f.name, dataUrl: r.result as string }])
+        r.readAsDataURL(f)
+      } else setAltri((p) => [...p, { name: f.name }])
+    })
+  }
+  const setDoc = (k: DocKey, f: AcqFile | null) => setDocs((p) => ({ ...p, [k]: f }))
+
   const [form, setForm] = useState({
     nome: '', cognome: '', data_nascita: '', sesso: '',
     codice_fiscale: '', email: '', telefono: '', contatto_emergenza: '',
@@ -120,11 +158,6 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
     const reader = new FileReader()
     reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
     reader.readAsDataURL(f)
-  }
-
-  function onContrattoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    setContrattoName(f?.name ?? '')
   }
 
   async function handleSave() {
@@ -216,32 +249,30 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
         </Section>
 
         <Section icon="fa-folder-open" title="Documenti e allegati">
-          <div className="crea-anag__grid crea-anag__grid--3">
-            <AcquisisciDoc label="Documento d'identità" value={docIdentita} onAcquire={setDocIdentita} onRemove={() => setDocIdentita(null)} />
-            <AcquisisciDoc label="Codice fiscale / Tessera sanitaria" value={docCF} onAcquire={setDocCF} onRemove={() => setDocCF(null)} />
-            <div className="crea-anag__field">
-              <label className="crea-anag__label">Contratto di lavoro</label>
-              <button type="button" className="sib-input crea-anag__file" onClick={() => fileInputRef.current?.click()}>
-                <i className="fa-light fa-paperclip" />
-                <span className={contrattoName ? '' : 'crea-anag__file-empty'}>{contrattoName || 'Scegli file'}</span>
-              </button>
-              <input ref={fileInputRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={onContrattoChange} />
-            </div>
+          <div className="crea-anag__doc-rows">
+            {DOC_SLOTS.map((s) => (
+              <DocSlot key={s.key} label={s.label} value={docs[s.key]}
+                onAcquire={(f) => setDoc(s.key, f)} onRemove={() => setDoc(s.key, null)} />
+            ))}
           </div>
 
-          <div className="crea-anag__field">
-            <label className="crea-anag__label">Documentazione contrattuale</label>
+          <div className="crea-anag__field crea-anag__doc-altri">
+            <label className="crea-anag__label">Documentazione contrattuale / altri allegati</label>
             <div className="crea-anag__docs">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => docContrRef.current?.click()}>
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => altriRef.current?.click()}>
                 <i className="fa-light fa-circle-plus" /> Aggiungi documenti
               </button>
-              <input ref={docContrRef} type="file" accept="application/pdf,image/*" multiple className="hidden" onChange={onDocContrattuale} />
-              {docContrattuale.length > 0 && (
+              <input ref={altriRef} type="file" accept="application/pdf,image/*" multiple className="hidden" onChange={onAltri} />
+              {altri.length > 0 && (
                 <ul className="crea-anag__doc-list">
-                  {docContrattuale.map((n, i) => (
+                  {altri.map((d, i) => (
                     <li key={i} className="crea-anag__doc-item">
-                      <span><i className="fa-light fa-file-lines" /> {n}</span>
-                      <button type="button" aria-label="Rimuovi" onClick={() => setDocContrattuale((prev) => prev.filter((_, idx) => idx !== i))}><i className="fa-light fa-xmark" /></button>
+                      <span><i className="fa-light fa-file-lines" /> {d.name}</span>
+                      <span className="crea-anag__doc-item-acts">
+                        <button type="button" className="sib-btn sib-btn--icon" title="Visualizza" onClick={() => viewDoc(d)}><i className="fa-light fa-eye" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Stampa" onClick={() => printDoc(d)}><i className="fa-light fa-print" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Elimina" onClick={() => setAltri((prev) => prev.filter((_, idx) => idx !== i))}><i className="fa-light fa-trash-can" /></button>
+                      </span>
                     </li>
                   ))}
                 </ul>

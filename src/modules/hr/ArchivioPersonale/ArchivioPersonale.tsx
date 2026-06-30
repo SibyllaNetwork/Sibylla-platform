@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Modal from '../../../core/components/Modal'
+import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
 import { avatarUrl } from '../../../core/avatar'
 import { setEditingAnagrafica } from '../CreaAnagrafica/_state'
@@ -106,6 +107,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
       codice_fiscale: p.codice_fiscale,
       indirizzo: p.indirizzo, cap: p.cap, provincia: p.provincia,
       nazionalita: p.nazione && /^IT/i.test(p.nazione) ? 'ITALIA' : 'ITALIA',
+      documenti: p.documenti,
     })
     navigate('modifica-anagrafica')
   }
@@ -186,15 +188,23 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
           </thead>
           <tbody>
             {filtered.map((p) => {
-              const mancanti = docMancanti(p)
+              const mancanti = REQUIRED_DOCS.filter((d) => !p.documenti?.[d.key])
               return (
-              <tr key={p.id} className={mancanti > 0 ? 'bg-warning-light' : undefined}>
+              <tr key={p.id} className={mancanti.length > 0 ? 'bg-warning-light' : undefined}>
                 <td>
                   <span className="inline-flex items-center gap-2">
-                    {mancanti > 0 && (
-                      <span title={`Documentazione incompleta — ${mancanti} document${mancanti === 1 ? 'o' : 'i'} su 5 mancant${mancanti === 1 ? 'e' : 'i'}`}>
+                    {mancanti.length > 0 && (
+                      <Tooltip variant="light" position="right" content={
+                        <div className="text-left">
+                          <div className="font-semibold text-text mb-1">Documentazione incompleta</div>
+                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/5 documenti mancanti:</div>
+                          <ul className="m-0 pl-4 list-disc text-[12px] text-text">
+                            {mancanti.map((d) => <li key={d.key}>{d.label}</li>)}
+                          </ul>
+                        </div>
+                      }>
                         <i className="fa-solid fa-triangle-exclamation text-warning animate-pulse" />
-                      </span>
+                      </Tooltip>
                     )}
                     {p.matricola}
                   </span>
