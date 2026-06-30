@@ -153,7 +153,7 @@ export default function GestioneDocumenti(_props: { navigate?: (p: string) => vo
   return (
     <div className="gest-doc">
       <BtnBack />
-      <PageHeader title="Elenco Documenti" subtitle="Visualizza, filtra e gestisci documenti" />
+      <PageHeader title="Gestione documenti" subtitle="Visualizza, filtra e gestisci documenti" />
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="gest-doc__bar">
