@@ -18,13 +18,17 @@ const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
 const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const CATEGORIE = ['Tutte','Standard','Superior','Suite']
 
-// Genera dati giornalieri mock per il grafico
-function genChartData(mese: number, anno: number, capienza: number) {
+const hashStr = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
+
+// Genera dati giornalieri mock per il grafico (deterministici per seed = riga selezionata)
+function genChartData(mese: number, anno: number, capienza: number, seed = 'tot') {
   const giorni = new Date(anno, mese, 0).getDate()
+  let s = hashStr(seed) || 1
+  const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff }
   const data: { giorno: string; vendute: number }[] = []
   for (let d = 1; d <= giorni; d++) {
     const label = `${String(d).padStart(2,'0')}/${String(mese).padStart(2,'0')}/${anno}`
-    const peak = d >= 7 && d <= 10 ? capienza : d >= 15 && d <= 17 ? Math.round(capienza * 0.24) : Math.round(Math.random() * capienza * 0.15)
+    const peak = d >= 7 && d <= 10 ? Math.round(capienza * (0.7 + rnd() * 0.3)) : d >= 15 && d <= 17 ? Math.round(capienza * 0.24) : Math.round(rnd() * capienza * 0.18)
     data.push({ giorno: label, vendute: peak })
   }
   return data
@@ -97,7 +101,9 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
   const [categoria, setCategoria] = useState('Tutte')
 
   const capienza  = 25
-  const chartData = genChartData(mese, anno, capienza)
+  const [selectedOp, setSelectedOp] = useState('tot')
+  const selName = selectedOp === 'tot' ? 'totale' : (OPERATORI.find((o) => o.id === selectedOp)?.nome ?? 'totale')
+  const chartData = genChartData(mese, anno, capienza, selectedOp)
 
   const totale = {
     produzione:   OPERATORI.reduce((s, o) => s + o.produzione, 0),
@@ -180,7 +186,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
             </thead>
             <tbody>
               {OPERATORI.map(op => (
-                <tr key={op.id} className="analisi-booking__tr">
+                <tr key={op.id} className={'analisi-booking__tr' + (selectedOp === op.id ? ' analisi-booking__tr--selected' : '')} onClick={() => setSelectedOp(op.id)}>
                   <td className="analisi-booking__td analisi-booking__td--name">{op.nome}</td>
                   <td className="analisi-booking__td analisi-booking__td--right">
                     {op.produzione.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €
@@ -188,8 +194,12 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                   <td className="analisi-booking__td analisi-booking__td--right">
                     <div className="analisi-booking__riempimento">
                       {op.riempimento.toFixed(2)} %
-                      <Ico n={op.trend === 'up' ? 'chart-line' : 'minus'} s={11}
-                        c={op.trend === 'up' ? T.success : T.error} />
+                      <Tooltip text="Mostra grafico di questa riga">
+                        <button type="button" className="analisi-booking__chart-btn" aria-label="Mostra grafico"
+                          onClick={(e) => { e.stopPropagation(); setSelectedOp(op.id) }}>
+                          <Ico n="chart-line" s={13} c={selectedOp === op.id ? T.primary : (op.trend === 'up' ? T.success : T.error)} />
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                   <td className="analisi-booking__td analisi-booking__td--right">{op.giorniExtra}</td>
@@ -199,7 +209,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                   <td className="analisi-booking__td analisi-booking__td--right">{eur(op.ricavo)}</td>
                 </tr>
               ))}
-              <tr className="analisi-booking__tr analisi-booking__tr--total">
+              <tr className={'analisi-booking__tr analisi-booking__tr--total' + (selectedOp === 'tot' ? ' analisi-booking__tr--selected' : '')} onClick={() => setSelectedOp('tot')}>
                 <td className="analisi-booking__td">Totale</td>
                 <td className="analisi-booking__td analisi-booking__td--right">
                   <strong>{totale.produzione.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</strong>
@@ -207,7 +217,12 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                 <td className="analisi-booking__td analisi-booking__td--right">
                   <div className="analisi-booking__riempimento">
                     <strong>{totale.riempimento.toFixed(2)} %</strong>
-                    <Ico n="chart-line" s={11} c={T.success} />
+                    <Tooltip text="Mostra grafico totale">
+                      <button type="button" className="analisi-booking__chart-btn" aria-label="Mostra grafico"
+                        onClick={(e) => { e.stopPropagation(); setSelectedOp('tot') }}>
+                        <Ico n="chart-line" s={13} c={T.primary} />
+                      </button>
+                    </Tooltip>
                   </div>
                 </td>
                 <td className="analisi-booking__td analisi-booking__td--right"><strong>{totale.giorniExtra}</strong></td>
@@ -222,7 +237,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
 
         {/* Grafico */}
         <div className="analisi-booking__chart-wrap">
-          <div className="analisi-booking__chart-title">Riempimento mensile totale</div>
+          <div className="analisi-booking__chart-title">Riempimento mensile — {selName}</div>
           <div className="analisi-booking__chart-legend">
             <div className="analisi-booking__legend-item">
               <div className="analisi-booking__legend-line analisi-booking__legend-line--capacity" />

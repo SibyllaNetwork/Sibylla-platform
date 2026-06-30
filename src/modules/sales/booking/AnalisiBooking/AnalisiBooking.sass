@@ -83,9 +83,28 @@
 
   &__tr
     transition: background 0.1s
+    cursor: pointer
 
     &:hover
       background: var(--color-bg)
+
+    &--selected
+      background: $primary-50
+
+      &:hover
+        background: $primary-50
+
+  &__chart-btn
+    background: transparent
+    border: none
+    padding: 2px
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    border-radius: 4px
+
+    &:hover
+      background: $primary-100
 
     &--total
       background: var(--color-bg)
