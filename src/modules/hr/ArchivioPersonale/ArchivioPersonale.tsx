@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
-import AlertBanner from '../../../core/components/AlertBanner'
 import { apiFetchSibylla } from '../../../services/api'
 
 /**
@@ -53,16 +52,14 @@ const COLS: Col[] = [
 
 export default function ArchivioPersonale({ navigate }: { navigate: (p: string) => void }) {
   const [items, setItems] = useState<PersonaleItem[]>(FALLBACK)
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [openFilter, setOpenFilter] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<PersonaleItem[]>('anagrafica-personale/GetAll', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) { setItems(d); setLoaded(true) } })
-      .catch((err) => { if (!cancelled) { setError(err?.message ?? 'Errore'); setLoaded(true) } })
+      .then((d) => { if (!cancelled) setItems(d) })
+      .catch(() => {})
     return () => { cancelled = true }
   }, [])
 
@@ -82,10 +79,6 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
         title="Archivio del personale"
         subtitle="Gestione dei dati anagrafici e contrattuali di tutto il personale, con accesso rapido agli archivi contrattuali e possibilità di creare nuovi profili"
       />
-
-      {error && loaded && (
-        <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>
-      )}
 
       <div className="flex justify-end mb-4">
         <button className="sib-btn sib-btn--primary" onClick={() => navigate('crea-anagrafica')}>
