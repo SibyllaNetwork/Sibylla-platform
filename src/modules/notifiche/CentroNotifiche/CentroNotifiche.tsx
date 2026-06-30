@@ -8,6 +8,7 @@ import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
 import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
 import { useEfficienzaStore, deltaEur, deltaPct } from '../../../store/useEfficienzaStore'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -220,6 +221,8 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     [allNotifications]
   )
   const [readSet, setReadSet] = useState<Set<number>>(new Set(initialReadIds))
+  const [removedSet, setRemovedSet] = useState<Set<number>>(new Set())
+  const confirm = useConfirmStore(s => s.confirm)
 
   useEffect(() => {
     setReadSet(new Set(initialReadIds))
@@ -228,20 +231,32 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const toggleGroup  = (g: string) => setCollapsed(prev => { const n = new Set(prev); n.has(g) ? n.delete(g) : n.add(g); return n })
   const markRead     = (id: number) => setReadSet(prev => { const n = new Set(prev); n.add(id); return n })
   const markAllRead  = () => setReadSet(new Set(allNotifications.map(n => n.id)))
-  const unreadCount  = allNotifications.filter(n => !readSet.has(n.id)).length
+
+  const deleteNotif = async (id: number, title: string) => {
+    const ok = await confirm({
+      title: 'Elimina notifica',
+      message: <>Vuoi eliminare la notifica <strong>«{title}»</strong>? L’operazione non è reversibile.</>,
+    })
+    if (!ok) return
+    setRemovedSet(prev => new Set(prev).add(id))
+    setSelectedId(prev => (prev === id ? null : prev))
+  }
+
+  const visibleNotifications = allNotifications.filter(n => !removedSet.has(n.id))
+  const unreadCount  = visibleNotifications.filter(n => !readSet.has(n.id)).length
 
   const selectNotif = (id: number) => {
     setSelectedId(id)
     markRead(id)
   }
 
-  const filtered = allNotifications.filter(n => {
+  const filtered = visibleNotifications.filter(n => {
     const matchTipo   = tipoFilter === 'Tutte' || sevLabel[n.sev] === tipoFilter
     const matchSearch = !search || n.title.toLowerCase().includes(search.toLowerCase()) || n.text.toLowerCase().includes(search.toLowerCase())
     return matchTipo && matchSearch
   })
 
-  const selectedNotif = selectedId == null ? null : allNotifications.find(n => n.id === selectedId) ?? null
+  const selectedNotif = selectedId == null ? null : visibleNotifications.find(n => n.id === selectedId) ?? null
 
   return (
     <div>
@@ -359,6 +374,16 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                           {n.ref  && <div className="notifiche__row-ref">{n.ref}</div>}
                           {n.text && <p className="notifiche__row-text">{n.text}</p>}
                         </div>
+                        <Tooltip text="Elimina notifica">
+                          <button
+                            type="button"
+                            className="notifiche__row-del"
+                            aria-label="Elimina notifica"
+                            onClick={(e) => { e.stopPropagation(); deleteNotif(n.id, n.title) }}
+                          >
+                            <i className="fa-light fa-trash-can" aria-hidden="true" />
+                          </button>
+                        </Tooltip>
                       </div>
                     )
                   })}
@@ -458,6 +483,13 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                     >
                       Gestione della prenotazione extra
                     </button>
+                    <button
+                      type="button"
+                      className="sib-btn sib-btn--danger"
+                      onClick={() => deleteNotif(selectedNotif.id, selectedNotif.title)}
+                    >
+                      <i className="fa-light fa-trash-can" aria-hidden="true" /> Elimina
+                    </button>
                   </div>
                 </>
               ) : (
@@ -494,6 +526,13 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                       onClick={() => openChat(selectedNotif.id)}
                     >
                       <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
+                    </button>
+                    <button
+                      type="button"
+                      className="sib-btn sib-btn--danger"
+                      onClick={() => deleteNotif(selectedNotif.id, selectedNotif.title)}
+                    >
+                      <i className="fa-light fa-trash-can" aria-hidden="true" /> Elimina
                     </button>
                   </div>
                 </>

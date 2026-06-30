@@ -7,6 +7,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import { DateRangeField, InputField, SelectField, TextareaField, CheckboxField, SearchField } from '../../../core/components/form'
 import { avatarUrl } from '../../../core/avatar'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import './AssegnazioniIncarichi.sass'
 
 const PAGE_SIZE = 12
@@ -131,6 +132,7 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
   const [search, setSearch] = useState('')
   const [sortDataDir, setSortDataDir] = useState<'asc' | 'desc' | null>('asc')
   const tableRef = useRef<HTMLTableElement>(null)
+  const confirm = useConfirmStore((s) => s.confirm)
 
   const [showStat, setShowStat] = useState(false)
   const [showManuale, setShowManuale] = useState(false)
@@ -205,7 +207,13 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
     setCreaOpen(false)
     setEditRow(null)
   }
-  const deleteIncarico = (target: Incarico) => setRows((prev) => prev.filter((r) => r !== target))
+  const deleteIncarico = async (target: Incarico) => {
+    const ok = await confirm({
+      title: 'Elimina incarico',
+      message: <>Vuoi eliminare l’incarico <strong>#{target.id}</strong> (camera {target.cameraNum})? L’operazione non è reversibile.</>,
+    })
+    if (ok) setRows((prev) => prev.filter((r) => r !== target))
+  }
 
   const esportaXls = () => {
     const header = ['ID', 'N° Camera', 'Data ass.', 'Struttura', 'Reparto', 'Descrizione', 'Status', 'Assegnato a', 'Stato lavorazione']

@@ -251,6 +251,26 @@ $notifiche-split-breakpoint: 1024px
     flex: 1
     min-width: 0
 
+  &__row-del
+    flex: none
+    align-self: center
+    width: 30px
+    height: 30px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 8px
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 14px
+    transition: color 0.12s, background 0.12s
+
+    &:hover
+      color: $error
+      background: $error-light
+
   &__row-top
     display: flex
     align-items: flex-start

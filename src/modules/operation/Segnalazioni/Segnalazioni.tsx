@@ -6,6 +6,7 @@ import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { DateRangeField, DatePickerField, InputField, RadioGroup, SelectField, TextareaField } from '../../../core/components/form'
 import { avatarUrl } from '../../../core/avatar'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './Segnalazioni.sass'
 
@@ -140,6 +141,14 @@ type ColFilterKey = 'severita' | 'reparto' | 'genereIntervento' | 'statoLavorazi
 
 export default function Segnalazioni(_props: { navigate?: (p: string) => void } = {}) {
   const [rows, setRows] = useState<Segnalazione[]>(MOCK)
+  const confirm = useConfirmStore((s) => s.confirm)
+  const deleteSegnalazione = async (target: Segnalazione) => {
+    const ok = await confirm({
+      title: 'Elimina segnalazione',
+      message: <>Vuoi eliminare la segnalazione <strong>#{target.id}</strong> (camera {target.camera})? L’operazione non è reversibile.</>,
+    })
+    if (ok) setRows((prev) => prev.filter((r) => r !== target))
+  }
   const [page, setPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [dataDa, setDataDa] = useState('2026-01-01')
@@ -426,7 +435,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => setEditRow(s)}><i className="fa-light fa-pen" /></button>
                     </Tooltip>
                     <Tooltip text="Elimina segnalazione">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina"><i className="fa-light fa-trash-can" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteSegnalazione(s)}><i className="fa-light fa-trash-can" /></button>
                     </Tooltip>
                   </div>
                 </td>
