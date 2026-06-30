@@ -197,13 +197,15 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                       <Tooltip variant="light" position="right" content={
                         <div className="text-left">
                           <div className="font-semibold text-text mb-1">Documentazione incompleta</div>
-                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/5 documenti mancanti:</div>
+                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/5 documenti mancanti — clicca per inserirli:</div>
                           <ul className="m-0 pl-4 list-disc text-[12px] text-text">
                             {mancanti.map((d) => <li key={d.key}>{d.label}</li>)}
                           </ul>
                         </div>
                       }>
-                        <i className="fa-solid fa-triangle-exclamation text-warning animate-pulse" />
+                        <button type="button" className="bg-transparent border-0 p-0 cursor-pointer" aria-label="Documentazione incompleta — inserisci documenti mancanti" onClick={() => modificaPersona(p)}>
+                          <i className="fa-solid fa-triangle-exclamation text-warning animate-pulse" />
+                        </button>
                       </Tooltip>
                     )}
                     {p.matricola}
