@@ -38,6 +38,49 @@ function Section({ icon, title, children }: { icon: string; title: string; child
   )
 }
 
+interface AcqFile { name: string; dataUrl?: string }
+
+// Acquisizione documento: scanner / file / fotocamera del terminale
+function AcquisisciDoc({ label, value, onAcquire, onRemove }: {
+  label: string; value: AcqFile | null; onAcquire: (f: AcqFile) => void; onRemove: () => void
+}) {
+  const fileRef = useRef<HTMLInputElement>(null)
+  const camRef = useRef<HTMLInputElement>(null)
+  const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    if (f.type.startsWith('image/')) {
+      const r = new FileReader()
+      r.onload = () => onAcquire({ name: f.name, dataUrl: r.result as string })
+      r.readAsDataURL(f)
+    } else onAcquire({ name: f.name })
+  }
+  return (
+    <div className="crea-anag__field">
+      <label className="crea-anag__label">{label}</label>
+      <div className="crea-anag__acq">
+        {value ? (
+          <div className="crea-anag__acq-preview">
+            {value.dataUrl
+              ? <img src={value.dataUrl} alt={value.name} />
+              : <span className="crea-anag__acq-file"><i className="fa-light fa-file-lines" /> {value.name}</span>}
+            <button type="button" className="crea-anag__acq-del" aria-label="Rimuovi" onClick={onRemove}><i className="fa-light fa-xmark" /></button>
+          </div>
+        ) : (
+          <div className="crea-anag__acq-btns">
+            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => fileRef.current?.click()}><i className="fa-light fa-scanner-image" /> Scanner</button>
+            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => fileRef.current?.click()}><i className="fa-light fa-folder-open" /> File</button>
+            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => camRef.current?.click()}><i className="fa-light fa-camera" /> Foto</button>
+          </div>
+        )}
+        <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handle} />
+        <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handle} />
+      </div>
+    </div>
+  )
+}
+
 export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
@@ -45,6 +88,16 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
   const [contrattoName, setContrattoName] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  const [docIdentita, setDocIdentita] = useState<AcqFile | null>(null)
+  const [docCF, setDocCF] = useState<AcqFile | null>(null)
+  const [docContrattuale, setDocContrattuale] = useState<string[]>([])
+  const docContrRef = useRef<HTMLInputElement>(null)
+  const onDocContrattuale = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fs = e.target.files
+    if (fs) setDocContrattuale((prev) => [...prev, ...Array.from(fs).map((f) => f.name)])
+    e.target.value = ''
+  }
 
   const initial = editing ? getEditingAnagrafica() : null
   const [form, setForm] = useState({
@@ -150,14 +203,6 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
 
         <Section icon="fa-briefcase" title="Inquadramento e turni">
           <div className="crea-anag__grid crea-anag__grid--3">
-            <div className="crea-anag__field">
-              <label className="crea-anag__label">Contratto</label>
-              <button type="button" className="sib-input crea-anag__file" onClick={() => fileInputRef.current?.click()}>
-                <i className="fa-duotone fa-paperclip" />
-                <span className={contrattoName ? '' : 'crea-anag__file-empty'}>{contrattoName || 'Scegli file'}</span>
-              </button>
-              <input ref={fileInputRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={onContrattoChange} />
-            </div>
             <SelectField name="strutture"   label="Strutture abilitate"     value={form.strutture}   onChange={(e) => set('strutture', e.target.value)}
               options={[{ value: '', label: 'Seleziona' }, ...STRUTTURE.map((s) => ({ value: s, label: s }))]} />
             <SelectField name="credenziali" label="Credenziali da generare" value={form.credenziali} onChange={(e) => set('credenziali', e.target.value)}
@@ -167,6 +212,41 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
               options={[{ value: '', label: 'Seleziona' }, ...FASCE_TURNI.map((f) => ({ value: f, label: f }))]} />
             <SelectField name="reparti"     label="Reparti"                 value={form.reparti}     onChange={(e) => set('reparti', e.target.value)}
               options={[{ value: '', label: 'Seleziona' }, ...REPARTI.map((r) => ({ value: r, label: r }))]} />
+          </div>
+        </Section>
+
+        <Section icon="fa-folder-open" title="Documenti e allegati">
+          <div className="crea-anag__grid crea-anag__grid--3">
+            <AcquisisciDoc label="Documento d'identità" value={docIdentita} onAcquire={setDocIdentita} onRemove={() => setDocIdentita(null)} />
+            <AcquisisciDoc label="Codice fiscale / Tessera sanitaria" value={docCF} onAcquire={setDocCF} onRemove={() => setDocCF(null)} />
+            <div className="crea-anag__field">
+              <label className="crea-anag__label">Contratto di lavoro</label>
+              <button type="button" className="sib-input crea-anag__file" onClick={() => fileInputRef.current?.click()}>
+                <i className="fa-light fa-paperclip" />
+                <span className={contrattoName ? '' : 'crea-anag__file-empty'}>{contrattoName || 'Scegli file'}</span>
+              </button>
+              <input ref={fileInputRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={onContrattoChange} />
+            </div>
+          </div>
+
+          <div className="crea-anag__field">
+            <label className="crea-anag__label">Documentazione contrattuale</label>
+            <div className="crea-anag__docs">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => docContrRef.current?.click()}>
+                <i className="fa-light fa-circle-plus" /> Aggiungi documenti
+              </button>
+              <input ref={docContrRef} type="file" accept="application/pdf,image/*" multiple className="hidden" onChange={onDocContrattuale} />
+              {docContrattuale.length > 0 && (
+                <ul className="crea-anag__doc-list">
+                  {docContrattuale.map((n, i) => (
+                    <li key={i} className="crea-anag__doc-item">
+                      <span><i className="fa-light fa-file-lines" /> {n}</span>
+                      <button type="button" aria-label="Rimuovi" onClick={() => setDocContrattuale((prev) => prev.filter((_, idx) => idx !== i))}><i className="fa-light fa-xmark" /></button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </Section>
       </div>

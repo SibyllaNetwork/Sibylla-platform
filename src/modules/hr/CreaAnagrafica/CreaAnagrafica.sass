@@ -149,6 +149,85 @@
   &__file-empty
     color: $text-inactive
 
+  // ── Acquisizione documenti (scanner / file / fotocamera) ─────────────────────
+  &__acq
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__acq-btns
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__acq-preview
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 6px 10px
+    background: var(--color-surface)
+    align-self: flex-start
+
+    img
+      width: 64px
+      height: 44px
+      object-fit: cover
+      border-radius: 4px
+
+  &__acq-file
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+
+  &__acq-del
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+
+    &:hover
+      color: $error
+
+  // ── Documentazione contrattuale (upload multiplo) ────────────────────────────
+  &__docs
+    display: flex
+    flex-direction: column
+    gap: 8px
+    align-items: flex-start
+
+  &__doc-list
+    list-style: none
+    margin: 0
+    padding: 0
+    width: 100%
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__doc-item
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 6px 10px
+    font-size: 13px
+    color: $text-active
+
+    button
+      background: transparent
+      border: none
+      color: $text-inactive
+      cursor: pointer
+
+      &:hover
+        color: $error
+
   // ── Azioni ──────────────────────────────────────────────────────────────────
   &__actions
     display: flex
