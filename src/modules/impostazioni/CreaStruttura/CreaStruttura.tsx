@@ -129,12 +129,14 @@ export default function CreaStruttura({
 }) {
   const [rows, setRows] = useState<StructureRow[]>(INITIAL_ROWS)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<FilterType>(autoOpenType ?? 'all')
+  const [filter, setFilter] = useState<FilterType>('all')
   const [page, setPage] = useState(1)
 
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [pickerSel, setPickerSel] = useState<StructureType | null>(null)
-  const [drawerType, setDrawerType] = useState<StructureType | null>(autoOpenType ?? null)
+  // Pagina dedicata "Crea outlet": apre la stessa pagina di Crea struttura con il
+  // picker già aperto e "Outlet" pre-selezionato (come scegliere Crea struttura → Outlet).
+  const [pickerOpen, setPickerOpen] = useState(autoOpenType === 'outlet')
+  const [pickerSel, setPickerSel] = useState<StructureType | null>(autoOpenType ?? null)
+  const [drawerType, setDrawerType] = useState<StructureType | null>(null)
   const [editingRow, setEditingRow] = useState<StructureRow | null>(null)
 
   // Modale "Nuova struttura" (stessa della sezione admin, UI platform).
@@ -174,11 +176,6 @@ export default function CreaStruttura({
     setEditingRow(null)
     setPickerSel(null)
     setPickerOpen(true)
-  }
-  // Sulla pagina dedicata "Crea outlet" si salta il picker e si apre il form outlet
-  function openCreate() {
-    if (autoOpenType === 'outlet') { setEditingRow(null); setDrawerType('outlet'); return }
-    openPicker()
   }
   function confirmPicker() {
     if (!pickerSel) return
@@ -233,17 +230,15 @@ export default function CreaStruttura({
     <div className="crea-struttura">
       <BtnBack />
       <PageHeader
-        title={autoOpenType === 'outlet' ? 'Nuovo outlet' : 'Crea struttura'}
-        subtitle={autoOpenType === 'outlet'
-          ? 'Inserisci un nuovo outlet, definendo informazioni, categorie e parametri operativi'
-          : 'Imposta, aggiungi e verifica i dati delle tue strutture ricettive'}
+        title="Crea struttura"
+        subtitle="Imposta, aggiungi e verifica i dati delle tue strutture ricettive"
       />
 
       <FilterToolbar
         actions={
-          <button type="button" className="sib-btn sib-btn--primary" onClick={openCreate}>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={openPicker}>
             <i className="fa-light fa-circle-plus" aria-hidden="true" />
-            {autoOpenType === 'outlet' ? 'Nuovo outlet' : 'Nuova struttura'}
+            Nuova struttura
           </button>
         }
       >
