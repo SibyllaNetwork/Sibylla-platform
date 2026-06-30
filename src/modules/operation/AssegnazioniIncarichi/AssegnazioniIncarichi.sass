@@ -200,41 +200,38 @@
     gap: 8px
     margin-top: 20px
 
-  // ── Statistiche grid ─────────────────────────────────────────────────────
-  &__stat-grid
+  // ── Statistiche (grafici) ──────────────────────────────────────────────────
+  &__stat-summary
+    margin: 0
+    font-size: 13px
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  &__stat-panels
     display: grid
-    grid-template-columns: 1fr 1fr 1fr
-    gap: 24px
+    grid-template-columns: 1fr 1fr
+    gap: 16px
 
-  &__stat-col
-    display: flex
-    flex-direction: column
+    @media (max-width: 760px)
+      grid-template-columns: 1fr
 
-  &__stat-head
+  &__stat-panel
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 14px 14px 8px
+    background: var(--color-surface)
+
+    &--wide
+      grid-column: 1 / -1
+
+  &__stat-panel-title
     font-family: $font-heading
     font-weight: 700
     font-size: 14px
     color: $primary
-    margin-bottom: 12px
-
-  &__stat-cell
-    display: flex
-    align-items: center
-    gap: 8px
-    padding: 6px 0
-    font-size: 13px
-    color: $text-active
-
-  &__stat-ids
-    flex-wrap: wrap
-
-  &__id-pill
-    background: rgba(143, 184, 200, 0.18)
-    color: $primary
-    padding: 2px 8px
-    border-radius: 4px
-    font-size: 12px
-    margin-right: 4px
+    margin-bottom: 10px
 
   // ── Assegnazione manuale ────────────────────────────────────────────────
   &__tabs
@@ -258,62 +255,133 @@
       border-bottom-color: $primary
       font-weight: 600
 
-  &__manuale-grid
+  // due colonne guidate: 1) elemento  2) operatore
+  &__man
     display: grid
-    grid-template-columns: 1fr 130px 1fr
+    grid-template-columns: 1fr 1fr
     gap: 16px
-    align-items: stretch
 
-    @media (max-width: 900px)
+    @media (max-width: 760px)
       grid-template-columns: 1fr
-      gap: 12px
 
-  &__manuale-list
-    border: 1px solid $border
-    border-radius: 6px
-    overflow: hidden
-    min-height: 280px
-    max-height: 360px
-    overflow-y: auto
+  &__man-col
+    display: flex
+    flex-direction: column
+    min-width: 0
 
-  &__manuale-table
-    margin: 0
-    width: 100%
+  &__man-step
+    display: flex
+    align-items: center
+    gap: 8px
+    font-weight: 600
+    color: $text-active
+    margin-bottom: 8px
 
-    th, td
-      font-size: 12px
-      padding: 8px 10px
+  &__man-num
+    width: 20px
+    height: 20px
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: $primary
+    color: #fff
+    font-size: 12px
+    font-weight: 700
 
-    thead th
-      background: $bg
-      font-weight: 600
-
-  &__row-sel
-    background: rgba(143, 184, 200, 0.16)
-
-  &__reparti
+  &__man-list
     display: flex
     flex-direction: column
     gap: 8px
+    max-height: 320px
+    overflow-y: auto
+    padding-right: 2px
 
-  &__reparto-btn
+  // card elemento (step 1)
+  &__man-item
     display: flex
-    flex-direction: column
     align-items: center
-    justify-content: center
-    gap: 6px
-    background: var(--color-surface)
+    gap: 12px
+    width: 100%
+    text-align: left
+    padding: 10px 12px
     border: 1px solid $border
-    border-radius: 8px
-    padding: 12px 8px
+    border-radius: 10px
+    background: var(--color-surface)
     cursor: pointer
-    font-size: 12px
     color: $text-active
-    font-family: inherit
+    transition: border-color .15s, background .15s
 
-    i
-      font-size: 18px
-      color: $text-inactive
+    &:hover
+      border-color: $primary
+
+    &--sel
+      border-color: $primary
+      background: $primary-50
+
+  &__man-item-ico
+    font-size: 18px
+    color: $primary
+    flex: none
+
+  &__man-item-body
+    flex: 1
+    min-width: 0
+
+  &__man-item-top
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 10px
+
+  &__man-item-desc
+    font-weight: 600
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__man-item-cam
+    flex: none
+    font-size: 12px
+    color: $text-inactive
+
+  &__man-item-meta
+    font-size: 12px
+    color: $text-inactive
+    margin-top: 2px
+
+  &__man-item-check
+    color: $primary
+    flex: none
+
+  &__man-hint
+    display: flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+    font-size: 13px
+    border: 1px dashed $border
+    border-radius: 10px
+    padding: 24px 16px
+    justify-content: center
+
+  // chips filtro reparto (step 2)
+  &__man-chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+    margin-bottom: 10px
+
+  &__man-chip
+    border: 1px solid $border
+    background: var(--color-surface)
+    color: $text-active
+    border-radius: 999px
+    padding: 4px 12px
+    font-size: 12px
+    cursor: pointer
+    font-family: inherit
 
     &:hover
       border-color: $primary
@@ -322,9 +390,130 @@
       border-color: $primary
       background: $primary-50
       color: $primary
+      font-weight: 600
 
-      i
-        color: $primary
+  // card operatore (step 2)
+  &__man-op
+    display: flex
+    align-items: center
+    gap: 12px
+    width: 100%
+    text-align: left
+    padding: 9px 12px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    cursor: pointer
+    color: $text-active
+    transition: border-color .15s, background .15s
+
+    &:hover
+      border-color: $primary
+
+    &--match
+      border-color: $primary
+      background: $primary-50
+
+    &--sel
+      border-color: $primary
+      box-shadow: inset 0 0 0 1px $primary
+
+  &__man-op-avatar
+    width: 34px
+    height: 34px
+    border-radius: 50%
+    object-fit: cover
+    flex: none
+
+  &__man-op-body
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+  &__man-op-name
+    font-weight: 600
+    white-space: nowrap
+
+  &__man-op-rep
+    font-size: 12px
+    color: $text-inactive
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__man-op-badge
+    flex: none
+    font-size: 11px
+    font-weight: 600
+    color: $primary
+    background: $primary-100
+    padding: 2px 8px
+    border-radius: 999px
+
+  &__man-op-load
+    flex: none
+    min-width: 22px
+    height: 22px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 6px
+    background: $bg
+    color: $text-active
+    font-size: 12px
+    font-weight: 600
+
+  &__man-op-check
+    color: $primary
+    flex: none
+
+  // footer con riepilogo
+  &__man-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    margin-top: 18px
+    flex-wrap: wrap
+
+  &__man-summary
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  &__man-actions
+    display: flex
+    gap: 8px
+
+  // esito assegnazione
+  &__man-done
+    display: flex
+    flex-direction: column
+    align-items: center
+    text-align: center
+    gap: 10px
+    padding: 12px 8px 4px
+
+  &__man-done-ico
+    font-size: 42px
+    color: $success
+
+  &__man-done-title
+    font-weight: 600
+    font-size: 16px
+    color: $text-active
+
+  &__man-done-text
+    font-size: 13px
+    color: $text-inactive
+    line-height: 1.5
+    margin-bottom: 8px
 
 
 // ─── COL FILTER POPUP ────────────────────────────────────────────────────────

@@ -26,6 +26,9 @@
     border-radius: 16px
     box-shadow: 0 20px 60px rgba(32, 71, 105, 0.2)
     padding: 24px
+    // non superare mai l'altezza dello schermo: scroll interno
+    max-height: calc(100vh - 32px)
+    overflow-y: auto
 
     &--sm
       max-width: 360px

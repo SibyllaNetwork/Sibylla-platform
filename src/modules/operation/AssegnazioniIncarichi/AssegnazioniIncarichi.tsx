@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
+  PieChart, Pie, Legend, Tooltip as RTooltip,
+} from 'recharts'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
@@ -395,7 +399,7 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
 
       <IncaricoModal open={creaOpen || !!editRow} row={editRow} strutture={STRUTTURE} operatori={OPERATORI}
         onClose={() => { setCreaOpen(false); setEditRow(null) }} onSave={saveIncarico} />
-      <StatisticheModal open={showStat} operatori={OPERATORI} onClose={() => setShowStat(false)} />
+      <StatisticheModal open={showStat} incarichi={rows} onClose={() => setShowStat(false)} />
       <AssegnazioneManualeModal open={showManuale} segnalazioni={SEGNALAZIONI_PENDING} incarichi={INCARICHI_PENDING} operatori={OPERATORI} onClose={() => setShowManuale(false)} />
     </div>
   )
@@ -548,35 +552,106 @@ function IncaricoModal({ open, row, strutture, operatori, onClose, onSave }: {
 
 // ─── MODAL: Statistiche / Stato assegnazione ─────────────────────────────────
 
-function StatisticheModal({ open, operatori, onClose }: { open: boolean; operatori: Operatore[]; onClose: () => void }) {
+const CHART = {
+  navy:   '#204769',
+  blue:   '#5C9CD4',
+  teal:   '#3BA99C',
+  green:  '#1F9D55',
+  orange: '#E0922A',
+  red:    '#E2574C',
+  grey:   '#C3C9D0',
+}
+const REPARTO_BAR_COLOR: Record<Reparto, string> = {
+  'Manutenzione': CHART.navy,
+  'Magazzino':    CHART.teal,
+  'Pulizie':      CHART.blue,
+  'Front Office': CHART.orange,
+}
+const STATO_COLOR: Record<StatoLav, string> = {
+  'nuova':     CHART.orange,
+  'in-corso':  CHART.blue,
+  'terminata': CHART.green,
+}
+
+function countBy<T>(arr: T[], key: (t: T) => string): Map<string, number> {
+  const m = new Map<string, number>()
+  arr.forEach((t) => { const k = key(t); m.set(k, (m.get(k) ?? 0) + 1) })
+  return m
+}
+
+function StatisticheModal({ open, incarichi, onClose }: { open: boolean; incarichi: Incarico[]; onClose: () => void }) {
+  const stats = useMemo(() => {
+    const perOperatoreMap = countBy(incarichi, (i) => i.assegnatoA)
+    const perOperatore = Array.from(perOperatoreMap, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
+    const perStato = STATI_LAV.map((s) => ({ name: STATO_LAV_LABEL[s], value: incarichi.filter((i) => i.statoLavorazione === s).length, color: STATO_COLOR[s] }))
+    const perReparto = REPARTI.map((r) => ({ name: r, value: incarichi.filter((i) => i.reparto === r).length, color: REPARTO_BAR_COLOR[r] }))
+    const perSeverita = (['media', 'alta'] as Severita[]).map((s) => ({ name: SEVERITA_LABEL[s], value: incarichi.filter((i) => i.severita === s).length, color: s === 'alta' ? CHART.red : CHART.orange }))
+    const totale = incarichi.length
+    const terminati = incarichi.filter((i) => i.statoLavorazione === 'terminata').length
+    const completamento = totale ? Math.round((terminati / totale) * 100) : 0
+    return { perOperatore, perStato, perReparto, perSeverita, totale, operatoriAttivi: perOperatoreMap.size, completamento }
+  }, [incarichi])
+
   return (
-    <Modal open={open} onClose={onClose} title="Stato assegnazione" size="lg">
+    <Modal open={open} onClose={onClose} title="Statistiche assegnazioni" size="xl">
       <div className="ass-inc__modal-body">
-        <div className="ass-inc__stat-grid">
-          <div className="ass-inc__stat-col">
-            <div className="ass-inc__stat-head">Assegnatario</div>
-            {operatori.map((o) => (
-              <div key={o.id} className="ass-inc__stat-cell">
-                <img className="ass-inc__avatar" src={avatarUrl(o.nominativo)} alt="" />
-                <span>{o.nominativo}</span>
-              </div>
-            ))}
+        <p className="ass-inc__stat-summary">
+          <strong>{stats.totale}</strong> incarichi · <strong>{stats.operatoriAttivi}</strong> operatori coinvolti · completamento <strong>{stats.completamento}%</strong>
+        </p>
+
+        <div className="ass-inc__stat-panels">
+          <div className="ass-inc__stat-panel ass-inc__stat-panel--wide">
+            <div className="ass-inc__stat-panel-title">Carico di lavoro per operatore</div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={stats.perOperatore} margin={{ top: 8, right: 12, left: 0, bottom: 4 }} barCategoryGap="28%">
+                <CartesianGrid stroke="#E0E7EE" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6E7175' }} tickLine={false} axisLine={{ stroke: '#C3C9D0' }} interval={0} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#6E7175' }} tickLine={false} axisLine={false} width={28} />
+                <RTooltip formatter={(v) => [`${v} incarichi`, 'Assegnati']} />
+                <Bar dataKey="value" name="Incarichi" fill={CHART.navy} radius={[4, 4, 0, 0]} maxBarSize={48} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <div className="ass-inc__stat-col">
-            <div className="ass-inc__stat-head">Numero assegnazioni</div>
-            {operatori.map((o) => (
-              <div key={o.id} className="ass-inc__stat-cell">{o.numeroAssegnazioni}</div>
-            ))}
+
+          <div className="ass-inc__stat-panel">
+            <div className="ass-inc__stat-panel-title">Stato di lavorazione</div>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={stats.perStato} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                  {stats.perStato.map((d) => <Cell key={d.name} fill={d.color} />)}
+                </Pie>
+                <RTooltip />
+                <Legend verticalAlign="bottom" height={28} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-          <div className="ass-inc__stat-col">
-            <div className="ass-inc__stat-head">ID assegnazione</div>
-            {operatori.map((o) => (
-              <div key={o.id} className="ass-inc__stat-cell ass-inc__stat-ids">
-                {o.idAssegnazioni.map((id) => (
-                  <span key={id} className="ass-inc__id-pill">Id:{id}</span>
-                ))}
-              </div>
-            ))}
+
+          <div className="ass-inc__stat-panel">
+            <div className="ass-inc__stat-panel-title">Incarichi per reparto</div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={stats.perReparto} layout="vertical" margin={{ top: 8, right: 16, left: 8, bottom: 4 }} barCategoryGap="28%">
+                <CartesianGrid stroke="#E0E7EE" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#6E7175' }} tickLine={false} axisLine={{ stroke: '#C3C9D0' }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#6E7175' }} tickLine={false} axisLine={false} width={92} />
+                <RTooltip formatter={(v) => [`${v} incarichi`, 'Reparto']} />
+                <Bar dataKey="value" name="Incarichi" radius={[0, 4, 4, 0]} maxBarSize={26}>
+                  {stats.perReparto.map((d) => <Cell key={d.name} fill={d.color} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="ass-inc__stat-panel">
+            <div className="ass-inc__stat-panel-title">Priorità (Status)</div>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={stats.perSeverita} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} paddingAngle={2}>
+                  {stats.perSeverita.map((d) => <Cell key={d.name} fill={d.color} />)}
+                </Pie>
+                <RTooltip />
+                <Legend verticalAlign="bottom" height={28} iconType="circle" wrapperStyle={{ fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -594,80 +669,136 @@ function AssegnazioneManualeModal({ open, segnalazioni, incarichi, operatori, on
   onClose: () => void
 }) {
   const [tab, setTab] = useState<'segnalazioni' | 'incarichi'>('segnalazioni')
-  const [repartoSel, setRepartoSel] = useState<Reparto>('Manutenzione')
-  const [rigaSel, setRigaSel] = useState<number | null>(null)
+  const [selItem, setSelItem] = useState<PendingItem | null>(null)
+  const [repFilter, setRepFilter] = useState<'Tutti' | Reparto>('Tutti')
   const [operatoreSel, setOperatoreSel] = useState<number | null>(null)
+  const [done, setDone] = useState<string | null>(null)
 
-  const operatoriFiltered = operatori.filter((o) => o.reparti.includes(repartoSel))
+  useEffect(() => {
+    if (!open) return
+    setTab('segnalazioni'); setSelItem(null); setRepFilter('Tutti'); setOperatoreSel(null); setDone(null)
+  }, [open])
+
   const lista = tab === 'segnalazioni' ? segnalazioni : incarichi
+
+  const selectItem = (it: PendingItem) => {
+    setSelItem(it)
+    setRepFilter(it.reparto) // pre-filtra sugli operatori del reparto dell'elemento
+    setOperatoreSel(null)
+  }
+
+  const operatoriView = useMemo(() => {
+    const base = repFilter === 'Tutti' ? operatori : operatori.filter((o) => o.reparti.includes(repFilter))
+    return [...base].sort((a, b) => {
+      const am = selItem && a.reparti.includes(selItem.reparto) ? 0 : 1
+      const bm = selItem && b.reparti.includes(selItem.reparto) ? 0 : 1
+      return am - bm
+    })
+  }, [operatori, repFilter, selItem])
+
+  const opSel = operatori.find((o) => o.id === operatoreSel) ?? null
+  const canAssign = !!selItem && !!opSel
 
   return (
     <Modal open={open} onClose={onClose} title="Assegnazione manuale" size="xl">
-      <div className="ass-inc__modal-body">
-        <p className="ass-inc__modal-subtitle">Seleziona la segnalazione e il nominativo</p>
-        <div className="ass-inc__tabs">
-          <button type="button" className={'ass-inc__tab' + (tab === 'segnalazioni' ? ' ass-inc__tab--active' : '')} onClick={() => { setTab('segnalazioni'); setRigaSel(null) }}>Segnalazioni</button>
-          <button type="button" className={'ass-inc__tab' + (tab === 'incarichi' ? ' ass-inc__tab--active' : '')} onClick={() => { setTab('incarichi'); setRigaSel(null) }}>Incarichi</button>
+      {done ? (
+        <div className="ass-inc__man-done">
+          <i className="fa-solid fa-circle-check ass-inc__man-done-ico" />
+          <div className="ass-inc__man-done-title">Elemento assegnato a {done}</div>
+          <div className="ass-inc__man-done-text">Una notifica è stata inviata a <strong>{done}</strong> per avvisarlo del nuovo incarico da gestire.</div>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Chiudi</button>
         </div>
+      ) : (
+        <>
+          <div className="ass-inc__modal-body">
+            <p className="ass-inc__modal-subtitle">Scegli l’elemento da assegnare, poi l’operatore. Gli operatori del reparto dell’elemento sono consigliati.</p>
 
-        <div className="ass-inc__manuale-grid">
-          <div className="ass-inc__manuale-list">
-            <table className="sib-table ass-inc__manuale-table">
-              <thead>
-                <tr><th>#</th><th>ID</th><th>Struttura</th><th>Camera</th><th>Reparto</th><th>Descrizione</th></tr>
-              </thead>
-              <tbody>
-                {lista.length === 0 ? (
-                  <tr><td colSpan={6} className="sib-empty">Nessun elemento</td></tr>
-                ) : lista.map((r) => (
-                  <tr key={r.id} className={rigaSel === r.id ? 'ass-inc__row-sel' : ''}>
-                    <td><input type="radio" name="manuale-row" checked={rigaSel === r.id} onChange={() => setRigaSel(r.id)} /></td>
-                    <td>{r.id}</td>
-                    <td>{r.struttura}</td>
-                    <td>{r.camera}</td>
-                    <td>{r.reparto}</td>
-                    <td>{r.descrizione}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="ass-inc__man">
+              {/* STEP 1 — elemento */}
+              <section className="ass-inc__man-col">
+                <div className="ass-inc__man-step"><span className="ass-inc__man-num">1</span> Elemento da assegnare</div>
+                <div className="ass-inc__tabs">
+                  <button type="button" className={'ass-inc__tab' + (tab === 'segnalazioni' ? ' ass-inc__tab--active' : '')} onClick={() => { setTab('segnalazioni'); setSelItem(null); setOperatoreSel(null) }}>Segnalazioni</button>
+                  <button type="button" className={'ass-inc__tab' + (tab === 'incarichi' ? ' ass-inc__tab--active' : '')} onClick={() => { setTab('incarichi'); setSelItem(null); setOperatoreSel(null) }}>Incarichi</button>
+                </div>
+                <div className="ass-inc__man-list">
+                  {lista.length === 0 ? (
+                    <div className="sib-empty">Nessun elemento in attesa</div>
+                  ) : lista.map((it) => (
+                    <button key={it.id} type="button"
+                      className={'ass-inc__man-item' + (selItem?.id === it.id ? ' ass-inc__man-item--sel' : '')}
+                      onClick={() => selectItem(it)}>
+                      <i className={`fa-light ${REPARTO_ICON[it.reparto]} ass-inc__man-item-ico`} />
+                      <div className="ass-inc__man-item-body">
+                        <div className="ass-inc__man-item-top">
+                          <span className="ass-inc__man-item-desc">{it.descrizione || `Elemento #${it.id}`}</span>
+                          <span className="ass-inc__man-item-cam">Camera {it.camera}</span>
+                        </div>
+                        <div className="ass-inc__man-item-meta">{it.struttura} · {it.reparto}</div>
+                      </div>
+                      {selItem?.id === it.id && <i className="fa-solid fa-circle-check ass-inc__man-item-check" />}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {/* STEP 2 — operatore */}
+              <section className="ass-inc__man-col">
+                <div className="ass-inc__man-step"><span className="ass-inc__man-num">2</span> Operatore</div>
+                {!selItem ? (
+                  <div className="ass-inc__man-hint">
+                    <i className="fa-light fa-arrow-left" /> Seleziona prima un elemento da assegnare
+                  </div>
+                ) : (
+                  <>
+                    <div className="ass-inc__man-chips">
+                      <button type="button" className={'ass-inc__man-chip' + (repFilter === 'Tutti' ? ' ass-inc__man-chip--active' : '')} onClick={() => setRepFilter('Tutti')}>Tutti</button>
+                      {REPARTI.map((r) => (
+                        <button key={r} type="button" className={'ass-inc__man-chip' + (repFilter === r ? ' ass-inc__man-chip--active' : '')} onClick={() => setRepFilter(r)}>{r}</button>
+                      ))}
+                    </div>
+                    <div className="ass-inc__man-list">
+                      {operatoriView.length === 0 ? (
+                        <div className="sib-empty">Nessun operatore per questo reparto</div>
+                      ) : operatoriView.map((o) => {
+                        const match = o.reparti.includes(selItem.reparto)
+                        return (
+                          <button key={o.id} type="button"
+                            className={'ass-inc__man-op' + (operatoreSel === o.id ? ' ass-inc__man-op--sel' : '') + (match ? ' ass-inc__man-op--match' : '')}
+                            onClick={() => setOperatoreSel(o.id)}>
+                            <img className="ass-inc__man-op-avatar" src={avatarUrl(o.nominativo)} alt="" />
+                            <div className="ass-inc__man-op-body">
+                              <span className="ass-inc__man-op-name">{o.nominativo}</span>
+                              <span className="ass-inc__man-op-rep">{o.reparti.join(', ')}</span>
+                            </div>
+                            {match && <span className="ass-inc__man-op-badge">Consigliato</span>}
+                            <span className="ass-inc__man-op-load" title="Incarichi attivi">{o.numeroAssegnazioni}</span>
+                            {operatoreSel === o.id && <i className="fa-solid fa-circle-check ass-inc__man-op-check" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </section>
+            </div>
           </div>
 
-          <div className="ass-inc__reparti">
-            {REPARTI.map((r) => (
-              <button key={r} type="button"
-                className={'ass-inc__reparto-btn' + (repartoSel === r ? ' ass-inc__reparto-btn--active' : '')}
-                onClick={() => { setRepartoSel(r); setOperatoreSel(null) }}>
-                <i className={`fa-light ${REPARTO_ICON[r]}`} />
-                <span>{r}</span>
-              </button>
-            ))}
+          <div className="ass-inc__man-foot">
+            <div className="ass-inc__man-summary">
+              {canAssign ? (
+                <><i className="fa-solid fa-arrow-right-arrow-left" /> Assegni <strong>{selItem!.descrizione || `#${selItem!.id}`}</strong> a <strong>{opSel!.nominativo}</strong></>
+              ) : (
+                'Seleziona un elemento e un operatore per procedere'
+              )}
+            </div>
+            <div className="ass-inc__man-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+              <button type="button" className="sib-btn sib-btn--primary" disabled={!canAssign} onClick={() => setDone(opSel!.nominativo)}>Assegna</button>
+            </div>
           </div>
-
-          <div className="ass-inc__manuale-list">
-            <table className="sib-table ass-inc__manuale-table">
-              <thead>
-                <tr><th>#</th><th>Nominativo</th><th>Reparto</th></tr>
-              </thead>
-              <tbody>
-                {operatoriFiltered.length === 0 ? (
-                  <tr><td colSpan={3} className="sib-empty">Nessun operatore</td></tr>
-                ) : operatoriFiltered.map((o) => (
-                  <tr key={o.id} className={operatoreSel === o.id ? 'ass-inc__row-sel' : ''}>
-                    <td><input type="radio" name="manuale-op" checked={operatoreSel === o.id} onChange={() => setOperatoreSel(o.id)} /></td>
-                    <td>{o.nominativo}</td>
-                    <td>{o.reparti.join(', ')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div className="ass-inc__modal-foot">
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={onClose} disabled={rigaSel === null || operatoreSel === null}>Assegna</button>
-      </div>
+        </>
+      )}
     </Modal>
   )
 }
