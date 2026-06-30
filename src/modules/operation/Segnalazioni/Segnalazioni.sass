@@ -127,10 +127,48 @@
 
     &--da-assegnare
       color: $error
+    &--assegnato
+      color: $primary
     &--in-corso
       color: $warning
     &--completata
       color: $success
+
+    &--hint
+      display: inline-flex
+      align-items: center
+      gap: 5px
+      cursor: help
+
+  &__stato-ico
+    font-size: 12px
+    color: $primary
+
+  // ── Dettagli assegnazione (tooltip su hover) ────────────────────────────────
+  &__assign-info
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 200px
+
+  &__assign-info-title
+    font-weight: 600
+    color: $text-active
+    padding-bottom: 6px
+    margin-bottom: 2px
+    border-bottom: 1px solid $border
+
+  &__assign-info-row
+    display: flex
+    justify-content: space-between
+    gap: 16px
+    font-size: 12px
+
+    span
+      color: $text-inactive
+    strong
+      color: $text-active
+      font-weight: 600
 
   &__actions
     display: inline-flex
@@ -170,6 +208,10 @@
     justify-content: flex-end
     gap: 8px
     margin-top: 20px
+
+  // ── Riga appena inserita (lampeggio) ────────────────────────────────────────
+  &__row--flash > td
+    animation: segnal-flash 0.9s ease-in-out 3
 
   // ── Assegna intervento ─────────────────────────────────────────────────────
   &__assign-meta
@@ -337,3 +379,13 @@
 
     &:hover
       background: $primary-50
+
+
+// ─── ANIMAZIONI ───────────────────────────────────────────────────────────────
+@keyframes segnal-flash
+  0%, 100%
+    background-color: transparent
+  25%, 75%
+    background-color: $primary-100
+  50%
+    background-color: $primary-50

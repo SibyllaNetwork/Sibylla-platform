@@ -14,7 +14,7 @@ const PAGE_SIZE = 12
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
 type Severita = 'media' | 'alta'
-type StatoLav = 'da-assegnare' | 'in-corso' | 'completata'
+type StatoLav = 'da-assegnare' | 'assegnato' | 'in-corso' | 'completata'
 type Reparto = 'Manutenzione' | 'Housekeeping' | 'Reception' | 'Cucina'
 type GenereIntervento = 'Pulizia ordinaria' | 'Elettrico' | 'Manutenzione' | 'Idraulico'
 type Priorita = 'Bassa' | 'Normale' | 'Alta' | 'Urgente'
@@ -31,6 +31,13 @@ interface Segnalazione {
   struttura: string
   camera: string
   data: string // dd/mm/yyyy HH:MM
+  assegnazione?: Assegnazione
+}
+
+interface Assegnazione {
+  assegnatario: string
+  reparto: Reparto
+  data: string // dd/mm/yyyy HH:MM
 }
 
 // ─── COSTANTI ─────────────────────────────────────────────────────────────────
@@ -40,11 +47,12 @@ const STRUTTURE = ['Hotel Tutorial', 'Hotel Archimede', 'Hotel Azzurro Mare']
 const REPARTI: Reparto[] = ['Manutenzione', 'Housekeeping', 'Reception', 'Cucina']
 const GENERI: GenereIntervento[] = ['Pulizia ordinaria', 'Elettrico', 'Manutenzione', 'Idraulico']
 const PRIORITA: Priorita[] = ['Bassa', 'Normale', 'Alta', 'Urgente']
-const STATI_LAV: StatoLav[] = ['da-assegnare', 'in-corso', 'completata']
+const STATI_LAV: StatoLav[] = ['da-assegnare', 'assegnato', 'in-corso', 'completata']
 const CAMERE_DISTINCT = ['101', '102', '103', '104', '105', '106']
 
 const STATO_LAV_LABEL: Record<StatoLav, string> = {
   'da-assegnare': 'Da assegnare',
+  'assegnato':    'Assegnato',
   'in-corso':     'In corso',
   'completata':   'Completata',
 }
@@ -89,11 +97,19 @@ const MOCK: Segnalazione[] = [
   { id: 14, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Reception',    hasFoto: false, genereIntervento: 'Elettrico',         statoLavorazione: 'completata',   descrizione: '',            struttura: 'Hotel Tutorial', camera: '106', data: '18/03/2026 08:12' },
 ]
 
+// data/ora corrente nel formato dd/mm/yyyy HH:MM
+const formatNow = () => {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 type ColFilterKey = 'severita' | 'reparto' | 'genereIntervento' | 'statoLavorazione' | 'camera'
 
 export default function Segnalazioni(_props: { navigate?: (p: string) => void } = {}) {
+  const [rows, setRows] = useState<Segnalazione[]>(MOCK)
   const [page, setPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [dataDa, setDataDa] = useState('2026-01-01')
@@ -101,10 +117,41 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
   const [reparto, setReparto] = useState<'Tutti' | Reparto>('Tutti')
   const [statoLav, setStatoLav] = useState<'Tutti' | StatoLav>('Tutti')
   const [struttura, setStruttura] = useState(STRUTTURE[0])
-  const [sortDataDir, setSortDataDir] = useState<'asc' | 'desc' | null>(null)
+  // default: le segnalazioni più recenti in cima
+  const [sortDataDir, setSortDataDir] = useState<'asc' | 'desc' | null>('desc')
   const [editRow, setEditRow] = useState<Segnalazione | null>(null)
   const [assignRow, setAssignRow] = useState<Segnalazione | null>(null)
+  const [flashId, setFlashId] = useState<number | null>(null)
+  const flashTimer = useRef<number | null>(null)
   const tableRef = useRef<HTMLTableElement>(null)
+
+  // crea una segnalazione, la porta in cima e la evidenzia (lampeggio)
+  const addSegnalazione = (dati: Omit<Segnalazione, 'id' | 'data'>) => {
+    const newId = rows.reduce((m, r) => Math.max(m, r.id), 0) + 1
+    const newRow: Segnalazione = { ...dati, id: newId, data: formatNow() }
+    setRows((prev) => [newRow, ...prev])
+    // azzera i filtri per garantire che la nuova segnalazione sia subito visibile
+    setStruttura(newRow.struttura)
+    setReparto('Tutti')
+    setStatoLav('Tutti')
+    setColFilters({ severita: [], reparto: [], genereIntervento: [], statoLavorazione: [], camera: [] })
+    setSortDataDir('desc')
+    setPage(1)
+    setShowModal(false)
+    setFlashId(newId)
+    if (flashTimer.current) window.clearTimeout(flashTimer.current)
+    flashTimer.current = window.setTimeout(() => setFlashId(null), 3500)
+  }
+  useEffect(() => () => { if (flashTimer.current) window.clearTimeout(flashTimer.current) }, [])
+
+  // assegna l'intervento: stato → "Assegnato" + dettagli per l'hover
+  const assegnaIntervento = (segnalazioneId: number, assegnatario: { nome: string; reparto: Reparto }) => {
+    setRows((prev) => prev.map((r) =>
+      r.id === segnalazioneId
+        ? { ...r, statoLavorazione: 'assegnato', assegnazione: { assegnatario: assegnatario.nome, reparto: assegnatario.reparto, data: formatNow() } }
+        : r
+    ))
+  }
 
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
   const [colFilters, setColFilters] = useState<Record<ColFilterKey, string[]>>({
@@ -130,21 +177,21 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
   }
 
   const filtered = useMemo(() => {
-    let rows = MOCK.filter((r) => r.struttura === struttura)
-    if (reparto !== 'Tutti') rows = rows.filter((r) => r.reparto === reparto)
-    if (statoLav !== 'Tutti') rows = rows.filter((r) => r.statoLavorazione === statoLav)
-    if (colFilters.severita.length)         rows = rows.filter((r) => colFilters.severita.includes(r.severita))
-    if (colFilters.reparto.length)          rows = rows.filter((r) => colFilters.reparto.includes(r.reparto))
-    if (colFilters.genereIntervento.length) rows = rows.filter((r) => colFilters.genereIntervento.includes(r.genereIntervento))
-    if (colFilters.statoLavorazione.length) rows = rows.filter((r) => colFilters.statoLavorazione.includes(r.statoLavorazione))
-    if (colFilters.camera.length)           rows = rows.filter((r) => colFilters.camera.includes(r.camera))
+    let out = rows.filter((r) => r.struttura === struttura)
+    if (reparto !== 'Tutti') out = out.filter((r) => r.reparto === reparto)
+    if (statoLav !== 'Tutti') out = out.filter((r) => r.statoLavorazione === statoLav)
+    if (colFilters.severita.length)         out = out.filter((r) => colFilters.severita.includes(r.severita))
+    if (colFilters.reparto.length)          out = out.filter((r) => colFilters.reparto.includes(r.reparto))
+    if (colFilters.genereIntervento.length) out = out.filter((r) => colFilters.genereIntervento.includes(r.genereIntervento))
+    if (colFilters.statoLavorazione.length) out = out.filter((r) => colFilters.statoLavorazione.includes(r.statoLavorazione))
+    if (colFilters.camera.length)           out = out.filter((r) => colFilters.camera.includes(r.camera))
     if (sortDataDir) {
       const dir = sortDataDir === 'asc' ? 1 : -1
-      rows = [...rows].sort((a, b) => (parseData(a.data) - parseData(b.data)) * dir)
+      out = [...out].sort((a, b) => (parseData(a.data) - parseData(b.data)) * dir)
     }
-    return rows
+    return out
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [struttura, reparto, statoLav, colFilters, sortDataDir])
+  }, [rows, struttura, reparto, statoLav, colFilters, sortDataDir])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   useEffect(() => { setPage(1) }, [reparto, statoLav, struttura, colFilters, dataDa, dataA])
@@ -275,7 +322,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
             {pageRows.length === 0 ? (
               <tr><td colSpan={11} className="sib-empty">Nessuna segnalazione trovata.</td></tr>
             ) : pageRows.map((s) => (
-              <tr key={s.id}>
+              <tr key={s.id} className={s.id === flashId ? 'segnal__row--flash' : undefined}>
                 <td>
                   <span className="segnal__user">
                     <img className="segnal__avatar" src={avatarUrl(s.segnalazioneDi)} alt="" />
@@ -305,7 +352,25 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                     {s.genereIntervento}
                   </span>
                 </td>
-                <td><span className={`segnal__stato segnal__stato--${s.statoLavorazione}`}>{STATO_LAV_LABEL[s.statoLavorazione]}</span></td>
+                <td>
+                  {s.statoLavorazione === 'assegnato' && s.assegnazione ? (
+                    <Tooltip variant="light" position="top" content={
+                      <div className="segnal__assign-info">
+                        <div className="segnal__assign-info-title">Dettagli assegnazione</div>
+                        <div className="segnal__assign-info-row"><span>Assegnatario</span><strong>{s.assegnazione.assegnatario}</strong></div>
+                        <div className="segnal__assign-info-row"><span>Reparto</span><strong>{s.assegnazione.reparto}</strong></div>
+                        <div className="segnal__assign-info-row"><span>Data e ora</span><strong>{s.assegnazione.data}</strong></div>
+                      </div>
+                    }>
+                      <span className={`segnal__stato segnal__stato--${s.statoLavorazione} segnal__stato--hint`}>
+                        {STATO_LAV_LABEL[s.statoLavorazione]}
+                        <i className="fa-light fa-circle-info segnal__stato-ico" />
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <span className={`segnal__stato segnal__stato--${s.statoLavorazione}`}>{STATO_LAV_LABEL[s.statoLavorazione]}</span>
+                  )}
+                </td>
                 <td>{s.descrizione || <span className="sib-cell--muted">-</span>}</td>
                 <td>{s.struttura}</td>
                 <td className="segnal__td-center">{s.camera}</td>
@@ -333,9 +398,9 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
-      <CreaSegnalazioneModal open={showModal} strutture={STRUTTURE} onClose={() => setShowModal(false)} />
+      <CreaSegnalazioneModal open={showModal} strutture={STRUTTURE} onClose={() => setShowModal(false)} onCreate={addSegnalazione} />
       <ModificaSegnalazioneModal row={editRow} strutture={STRUTTURE} onClose={() => setEditRow(null)} />
-      <AssegnaInterventoModal row={assignRow} onClose={() => setAssignRow(null)} />
+      <AssegnaInterventoModal row={assignRow} onClose={() => setAssignRow(null)} onAssign={assegnaIntervento} />
     </div>
   )
 }
@@ -389,7 +454,12 @@ function ColFilterHeader(props: ColFilterHeaderProps) {
 
 // ─── MODAL: Aggiungi segnalazione ────────────────────────────────────────────
 
-function CreaSegnalazioneModal({ open, strutture, onClose }: { open: boolean; strutture: string[]; onClose: () => void }) {
+function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
+  open: boolean
+  strutture: string[]
+  onClose: () => void
+  onCreate: (dati: Omit<Segnalazione, 'id' | 'data'>) => void
+}) {
   const [struttura, setStruttura] = useState('')
   const [genereIntervento, setGenereIntervento] = useState<GenereIntervento>('Elettrico')
   const [reparto, setReparto] = useState<Reparto>('Manutenzione')
@@ -397,6 +467,20 @@ function CreaSegnalazioneModal({ open, strutture, onClose }: { open: boolean; st
   const [camera, setCamera] = useState('')
   const [areaComune, setAreaComune] = useState('')
   const [descrizione, setDescrizione] = useState('')
+
+  const handleCreate = () => {
+    onCreate({
+      segnalazioneDi: 'Rossi Mario',
+      severita: priorita === 'Alta' || priorita === 'Urgente' ? 'alta' : 'media',
+      reparto,
+      hasFoto: false,
+      genereIntervento,
+      statoLavorazione: 'da-assegnare',
+      descrizione: descrizione || (areaComune ? `Area comune: ${areaComune}` : ''),
+      struttura: struttura || strutture[0],
+      camera,
+    })
+  }
 
   return (
     <Modal open={open} onClose={onClose} title="Aggiungi segnalazione" size="lg">
@@ -439,7 +523,7 @@ function CreaSegnalazioneModal({ open, strutture, onClose }: { open: boolean; st
       </div>
       <div className="segnal__modal-foot">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Aggiungi</button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={handleCreate}>Aggiungi</button>
       </div>
     </Modal>
   )
@@ -526,10 +610,19 @@ const DIPENDENTI: Dipendente[] = [
   { nome: 'Sara Conti',     reparto: 'Cucina' },
 ]
 
-function AssegnaInterventoModal({ row, onClose }: { row: Segnalazione | null; onClose: () => void }) {
+function AssegnaInterventoModal({ row, onClose, onAssign }: {
+  row: Segnalazione | null
+  onClose: () => void
+  onAssign: (segnalazioneId: number, assegnatario: { nome: string; reparto: Reparto }) => void
+}) {
   // all'apertura la lista è filtrata sul reparto della segnalazione
   const [repFilter, setRepFilter] = useState<'Tutti' | Reparto>('Tutti')
   const [assegnato, setAssegnato] = useState<Dipendente | null>(null)
+
+  const handleSelect = (d: Dipendente) => {
+    setAssegnato(d)
+    if (row) onAssign(row.id, { nome: d.nome, reparto: d.reparto })
+  }
 
   useEffect(() => {
     if (!row) return
@@ -582,7 +675,7 @@ function AssegnaInterventoModal({ row, onClose }: { row: Segnalazione | null; on
                 <button
                   key={d.nome} type="button"
                   className={'segnal__assign-item' + (match ? ' segnal__assign-item--match' : '')}
-                  onClick={() => setAssegnato(d)}
+                  onClick={() => handleSelect(d)}
                 >
                   <img className="segnal__assign-avatar" src={avatarUrl(d.nome)} alt="" />
                   <span className="segnal__assign-name">{d.nome}</span>
