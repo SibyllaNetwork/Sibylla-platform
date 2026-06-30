@@ -126,6 +126,7 @@ import ArchivioPersonale           from '../modules/hr/ArchivioPersonale/Archivi
 import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagrafica';
 import AssegnaObiettivo            from '../modules/hr/AssegnaObiettivo/AssegnaObiettivo';
 import MonitoraggioPerformance     from '../modules/hr/MonitoraggioPerformance/MonitoraggioPerformance';
+import HrOverview                  from '../modules/hr/HrOverview/HrOverview';
 import CabinaControllo             from '../modules/finance/CabinaControllo/CabinaControllo';
 import BudgetComplessivo           from '../modules/finance/BudgetComplessivo/BudgetComplessivo';
 import BudgetCosti                 from '../modules/finance/BudgetCosti/BudgetCosti';
@@ -348,6 +349,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'modifica-anagrafica')   return <CreaAnagrafica navigate={navigate} editing key="mod-anag"/>;
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
   if (page === 'monitoraggio-perf')     return <MonitoraggioPerformance navigate={navigate}/>;
+  if (page === 'hr-overview')           return <HrOverview navigate={navigate}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
   if (page === 'cabina-controllo')      return <CabinaControllo navigate={navigate}/>;
   if (page === 'budget-cabina')         return <CabinaControllo navigate={navigate}/>;
