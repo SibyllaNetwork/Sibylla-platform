@@ -79,22 +79,51 @@ const SEVERITA_LABEL: Record<Severita, string> = {
   'alta':  'Priorità alta',
 }
 
+// ─── FOTO DI ESEMPIO (SVG inline, nessuna risorsa esterna) ─────────────────────
+
+const samplePhoto = (emoji: string, caption: string, c1: string, c2: string) => {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'>` +
+    `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>` +
+    `<stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2}'/></linearGradient></defs>` +
+    `<rect width='800' height='600' fill='url(#g)'/>` +
+    `<text x='400' y='285' font-size='240' text-anchor='middle' dominant-baseline='central'>${emoji}</text>` +
+    `<text x='400' y='520' font-size='44' fill='rgba(255,255,255,0.95)' font-family='sans-serif' text-anchor='middle'>${caption}</text>` +
+    `</svg>`
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
+const FOTO_PULIZIA = [
+  samplePhoto('🧹', 'Camera da pulire', '#0f766e', '#14b8a6'),
+  samplePhoto('🧽', 'Bagno da sanificare', '#155e75', '#22d3ee'),
+]
+const FOTO_ELETTRICO = [
+  samplePhoto('⚡', 'Quadro elettrico', '#1e3a8a', '#3b82f6'),
+  samplePhoto('🔌', 'Presa danneggiata', '#334155', '#64748b'),
+]
+const FOTO_MANUT = [
+  samplePhoto('🔧', 'Infisso da riparare', '#7c2d12', '#ea580c'),
+]
+const FOTO_IDRAULICO = [
+  samplePhoto('💧', 'Perdita lavabo', '#1e40af', '#60a5fa'),
+  samplePhoto('🚿', 'Scarico doccia', '#0369a1', '#38bdf8'),
+]
+
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 
 const MOCK: Segnalazione[] = [
-  { id: 1,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'in-corso',     descrizione: '',            struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 17:16' },
-  { id: 2,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true,  genereIntervento: 'Elettrico',         statoLavorazione: 'in-corso',     descrizione: '',            struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 17:15' },
+  { id: 1,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  foto: FOTO_PULIZIA,   genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'in-corso',     descrizione: 'Pulizia camera dopo check-out', struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 17:16' },
+  { id: 2,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true,  foto: FOTO_ELETTRICO, genereIntervento: 'Elettrico',         statoLavorazione: 'in-corso',     descrizione: 'Presa corrente non funzionante', struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 17:15' },
   { id: 3,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'da-assegnare', descrizione: '',            struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 16:59' },
   { id: 4,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true,  genereIntervento: 'Manutenzione',      statoLavorazione: 'da-assegnare', descrizione: '',            struttura: 'Hotel Tutorial', camera: '101', data: '21/05/2026 14:49' },
   { id: 5,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true,  genereIntervento: 'Elettrico',         statoLavorazione: 'da-assegnare', descrizione: '',            struttura: 'Hotel Tutorial', camera: '102', data: '24/06/2026 10:25' },
   { id: 6,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'da-assegnare', descrizione: '',            struttura: 'Hotel Tutorial', camera: '102', data: '21/05/2026 14:50' },
   { id: 7,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true,  genereIntervento: 'Elettrico',         statoLavorazione: 'da-assegnare', descrizione: '',            struttura: 'Hotel Tutorial', camera: '102', data: '08/04/2026 12:03' },
-  { id: 8,  segnalazioneDi: 'Rossi Mario', severita: 'alta',  reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'da-assegnare', descrizione: 'test 56',     struttura: 'Hotel Tutorial', camera: '103', data: '27/05/2026 10:19' },
-  { id: 9,  segnalazioneDi: 'Rossi Mario', severita: 'alta',  reparto: 'Manutenzione', hasFoto: true,  genereIntervento: 'Manutenzione',      statoLavorazione: 'in-corso',     descrizione: '',            struttura: 'Hotel Tutorial', camera: '103', data: '07/04/2026 16:18' },
+  { id: 8,  segnalazioneDi: 'Rossi Mario', severita: 'alta',  reparto: 'Housekeeping', hasFoto: true,  foto: FOTO_PULIZIA, genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'da-assegnare', descrizione: 'Macchie su moquette e tende', struttura: 'Hotel Tutorial', camera: '103', data: '27/05/2026 10:19' },
+  { id: 9,  segnalazioneDi: 'Rossi Mario', severita: 'alta',  reparto: 'Manutenzione', hasFoto: true,  foto: FOTO_MANUT,   genereIntervento: 'Manutenzione',      statoLavorazione: 'in-corso',     descrizione: 'Maniglia finestra rotta',     struttura: 'Hotel Tutorial', camera: '103', data: '07/04/2026 16:18' },
   { id: 10, segnalazioneDi: 'Rossi Mario', severita: 'alta',  reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'da-assegnare', descrizione: 'test Pulizie', struttura: 'Hotel Tutorial', camera: '104', data: '27/05/2026 10:18' },
   { id: 11, segnalazioneDi: 'Rossi Mario', severita: 'alta',  reparto: 'Manutenzione', hasFoto: true,  genereIntervento: 'Manutenzione',      statoLavorazione: 'in-corso',     descrizione: '',            struttura: 'Hotel Tutorial', camera: '104', data: '23/03/2026 11:52' },
   { id: 12, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'in-corso',     descrizione: '',            struttura: 'Hotel Tutorial', camera: '105', data: '26/05/2026 17:09' },
-  { id: 13, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: false, genereIntervento: 'Idraulico',         statoLavorazione: 'completata',   descrizione: 'Perdita lavabo', struttura: 'Hotel Tutorial', camera: '105', data: '20/03/2026 09:30' },
+  { id: 13, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true, foto: FOTO_IDRAULICO, genereIntervento: 'Idraulico',         statoLavorazione: 'completata',   descrizione: 'Perdita lavabo', struttura: 'Hotel Tutorial', camera: '105', data: '20/03/2026 09:30' },
   { id: 14, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Reception',    hasFoto: false, genereIntervento: 'Elettrico',         statoLavorazione: 'completata',   descrizione: '',            struttura: 'Hotel Tutorial', camera: '106', data: '18/03/2026 08:12' },
 ]
 
