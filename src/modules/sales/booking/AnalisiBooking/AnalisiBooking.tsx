@@ -3,14 +3,15 @@ import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
+import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import './AnalisiBooking.sass'
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const OPERATORI = [
-  { id: 'tot', nome: 'Tour Operator Test', produzione: 17000.64, riempimento: 16.27, trend: 'up', giorniExtra: 0, servizi: 0 },
-  { id: 'ota', nome: 'Booking.com',         produzione:  8400.00, riempimento:  9.80, trend: 'up', giorniExtra: 2, servizi: 1 },
-  { id: 'dir', nome: 'Prenotazione diretta',produzione: 12300.00, riempimento: 14.50, trend: 'down', giorniExtra: 0, servizi: 3 },
+  { id: 'tot', nome: 'Tour Operator Test', produzione: 17000.64, riempimento: 16.27, trend: 'up', giorniExtra: 0, servizi: 0, adr: 100.25, camere: 299, ricavo: 3000.00 },
+  { id: 'ota', nome: 'Booking.com',         produzione:  8400.00, riempimento:  9.80, trend: 'up', giorniExtra: 2, servizi: 1, adr: 92.40, camere: 168, ricavo: 1980.00 },
+  { id: 'dir', nome: 'Prenotazione diretta',produzione: 12300.00, riempimento: 14.50, trend: 'down', giorniExtra: 0, servizi: 3, adr: 110.80, camere: 221, ricavo: 2640.00 },
 ]
 
 const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
@@ -103,7 +104,11 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
     riempimento:  OPERATORI.reduce((s, o) => s + o.riempimento, 0) / OPERATORI.length,
     giorniExtra:  OPERATORI.reduce((s, o) => s + o.giorniExtra, 0),
     servizi:      OPERATORI.reduce((s, o) => s + o.servizi, 0),
+    adr:          OPERATORI.reduce((s, o) => s + o.adr, 0) / OPERATORI.length,
+    camere:       OPERATORI.reduce((s, o) => s + o.camere, 0),
+    ricavo:       OPERATORI.reduce((s, o) => s + o.ricavo, 0),
   }
+  const eur = (v: number) => v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
   return (
     <div className="analisi-booking">
@@ -160,6 +165,17 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                 <th className="analisi-booking__th analisi-booking__th--right">Riempimento</th>
                 <th className="analisi-booking__th analisi-booking__th--right">Giorni extra</th>
                 <th className="analisi-booking__th analisi-booking__th--right">Servizi</th>
+                <th className="analisi-booking__th analisi-booking__th--right">
+                  <Tooltip text="ADR — Average Daily Rate (ricavo medio per notte)">
+                    <span className="analisi-booking__th-ico">ADR <i className="fa-light fa-circle-info" /></span>
+                  </Tooltip>
+                </th>
+                <th className="analisi-booking__th analisi-booking__th--right">
+                  <Tooltip text="Camere / notti vendute"><i className="fa-light fa-bed-front" /></Tooltip>
+                </th>
+                <th className="analisi-booking__th analisi-booking__th--right">
+                  <Tooltip text="Ricavo"><i className="fa-light fa-euro-sign" /></Tooltip>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -178,6 +194,9 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                   </td>
                   <td className="analisi-booking__td analisi-booking__td--right">{op.giorniExtra}</td>
                   <td className="analisi-booking__td analisi-booking__td--right">{op.servizi}</td>
+                  <td className="analisi-booking__td analisi-booking__td--right">{eur(op.adr)}</td>
+                  <td className="analisi-booking__td analisi-booking__td--right">{op.camere}</td>
+                  <td className="analisi-booking__td analisi-booking__td--right">{eur(op.ricavo)}</td>
                 </tr>
               ))}
               <tr className="analisi-booking__tr analisi-booking__tr--total">
@@ -193,6 +212,9 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                 </td>
                 <td className="analisi-booking__td analisi-booking__td--right"><strong>{totale.giorniExtra}</strong></td>
                 <td className="analisi-booking__td analisi-booking__td--right"><strong>{totale.servizi}</strong></td>
+                <td className="analisi-booking__td analisi-booking__td--right"><strong>{eur(totale.adr)}</strong></td>
+                <td className="analisi-booking__td analisi-booking__td--right"><strong>{totale.camere}</strong></td>
+                <td className="analisi-booking__td analisi-booking__td--right"><strong>{eur(totale.ricavo)}</strong></td>
               </tr>
             </tbody>
           </table>
