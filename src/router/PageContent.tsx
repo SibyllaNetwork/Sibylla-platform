@@ -340,7 +340,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'centro-costo')          return <ImpostaCentroDiCosto navigate={navigate}/>;
   if (page === 'archivio-personale')    return <ArchivioPersonale navigate={navigate}/>;
   if (page === 'archivio-contratti')    return <ArchivioContratti navigate={navigate}/>;
-  if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate}/>;
+  if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate} key="ins-contr-a"/>;
+  if (page === 'modifica-contratto-a')  return <InserisciContrattoAcquisto navigate={navigate} editing key="mod-contr-a"/>;
   if (page === 'miei-contratti-a')      return <MieiContrattiAcquisto navigate={navigate}/>;
   if (page === 'crea-anagrafica')       return <CreaAnagrafica navigate={navigate}/>;
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;

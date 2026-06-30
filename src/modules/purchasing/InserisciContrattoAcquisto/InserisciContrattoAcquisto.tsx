@@ -8,6 +8,7 @@ import {
   SelectField,
   TextareaField,
 } from '../../../core/components/form'
+import { getEditingContrattoAcquisto, clearEditingContrattoAcquisto } from './_state'
 import './InserisciContrattoAcquisto.sass'
 
 const SPECIFICHE_OPTIONS = [
@@ -58,10 +59,13 @@ export default function InserisciContrattoAcquisto({
   editing?: boolean
 }) {
   const sectionsLocked = !editing
-  const [nome,     setNome]     = useState('')
-  const [email,    setEmail]    = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [referente,setReferente]= useState('')
+  const initial = editing ? getEditingContrattoAcquisto() : null
+  const backTo = editing ? 'miei-contratti-a' : 'archivio-contratti'
+
+  const [nome,     setNome]     = useState(initial?.ragioneSociale ?? '')
+  const [email,    setEmail]    = useState(initial?.email ?? '')
+  const [telefono, setTelefono] = useState(initial?.telefono ?? '')
+  const [referente,setReferente]= useState(initial?.referente ?? '')
   const [specifiche, setSpecifiche] = useState('misto')
   const [pdfName,  setPdfName]  = useState<string>('Scegli il file')
   const [inizio,   setInizio]   = useState('2026-05-04')
@@ -71,11 +75,17 @@ export default function InserisciContrattoAcquisto({
   const [note,     setNote]     = useState('')
 
   const [openAnag,  setOpenAnag]  = useState(true)
-  const [openProd,  setOpenProd]  = useState(false)
-  const [openServ,  setOpenServ]  = useState(false)
+  const [openProd,  setOpenProd]  = useState(editing)
+  const [openServ,  setOpenServ]  = useState(editing)
 
-  const [prodotti, setProdotti] = useState<Prodotto[]>([])
-  const [servizi,  setServizi]  = useState<Servizio[]>([])
+  const [prodotti, setProdotti] = useState<Prodotto[]>(
+    (initial?.prodotti ?? []).map((p, i) => ({ id: `p-init-${i}`, nome: p.nome, unita: 'pz', prezzo: p.prezzo, iva: 22, quantita: 1 }))
+  )
+  const [servizi,  setServizi]  = useState<Servizio[]>(
+    (initial?.servizi ?? []).map((s, i) => ({ id: `s-init-${i}`, nome: s.nome, descrizione: '', costo: s.prezzo, iva: 22 }))
+  )
+
+  const tornaIndietro = () => { clearEditingContrattoAcquisto(); navigate(backTo) }
 
   const fileRef = React.useRef<HTMLInputElement>(null)
 
@@ -111,8 +121,8 @@ export default function InserisciContrattoAcquisto({
 
   return (
     <div className="ins-contr">
-      <BtnBack onClick={() => navigate('archivio-contratti')} />
-      <PageHeader title="Inserisci contratto" />
+      <BtnBack onClick={tornaIndietro} />
+      <PageHeader title={editing ? 'Modifica contratto' : 'Inserisci contratto'} />
 
       {/* ── Anagrafica ─────────────────────────────────────── */}
       <section className="ins-contr__section">
@@ -215,10 +225,10 @@ export default function InserisciContrattoAcquisto({
             </FormGrid>
 
             <div className="ins-contr__sec-actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('archivio-contratti')}>
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={tornaIndietro}>
                 Annulla
               </button>
-              <button type="button" className="sib-btn sib-btn--primary">
+              <button type="button" className="sib-btn sib-btn--primary" onClick={tornaIndietro}>
                 Salva
               </button>
             </div>
