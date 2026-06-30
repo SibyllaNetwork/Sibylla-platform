@@ -50,6 +50,7 @@ import GuestRoomAnalysis           from '../modules/operation/GuestRoomAnalysis/
 import OspitiInCasa                from '../modules/operation/OspitiInCasa/OspitiInCasa';
 import ContiCamera                 from '../modules/operation/ContiCamera/ContiCamera';
 import EmissioneDocumenti          from '../modules/operation/EmissioneDocumenti/EmissioneDocumenti';
+import GestioneDocumenti           from '../modules/operation/GestioneDocumenti/GestioneDocumenti';
 import ContiAperti                 from '../modules/operation/ContiAperti/ContiAperti';
 import MovimentiSoggiorno           from '../modules/operation/MovimentiSoggiorno/MovimentiSoggiorno';
 import ContiChiusi                 from '../modules/operation/ContiChiusi/ContiChiusi';
@@ -281,6 +282,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'ospiti-in-casa')        return <OspitiInCasa navigate={navigate}/>;
   if (page === 'conti-camera')          return <ContiCamera navigate={navigate}/>;
   if (page === 'emissione-documenti')   return <EmissioneDocumenti navigate={navigate}/>;
+  if (page === 'gest-documenti')        return <GestioneDocumenti navigate={navigate}/>;
   if (page === 'conti-aperti')          return <ContiAperti navigate={navigate}/>;
   if (page === 'movimenti-soggiorno')   return <MovimentiSoggiorno navigate={navigate}/>;
   if (page === 'conti-chiusi')          return <ContiChiusi navigate={navigate}/>;

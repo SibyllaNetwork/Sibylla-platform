@@ -1,0 +1,394 @@
+// ─── GESTIONE DOCUMENTI ───────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.gest-doc
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    justify-content: space-between
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+    margin-top: 4px
+
+  &__bar-left
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+  &__bar-right
+    display: flex
+    align-items: center
+    gap: 8px
+    padding-bottom: 2px
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    label
+      font-family: 'Poppins', sans-serif
+      font-size: 12px
+      color: $primary
+      font-weight: 600
+
+    .sib-input, .sib-select
+      width: 100%
+
+  &__select
+    width: 180px
+
+  &__search
+    width: 200px
+
+  &__search-btn
+    white-space: nowrap
+
+  &__ctx
+    display: flex
+    align-items: flex-end
+    gap: 8px
+    flex-wrap: wrap
+
+    .sib-btn
+      white-space: nowrap
+
+  // ── Barra selezione ────────────────────────────────────────────────────────
+  &__selbar
+    background: $primary-50
+    border: 1px solid $primary-100
+    border-radius: 8px
+    padding: 10px 16px
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+
+  // ── Layout: tabella + drawer ─────────────────────────────────────────────────
+  &__main
+    display: flex
+    align-items: flex-start
+    gap: 16px
+
+  &__table-area
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  // ── Tabella ──────────────────────────────────────────────────────────────
+  &__table
+    width: 100%
+    font-size: 12.5px
+
+    thead th
+      vertical-align: middle
+      font-weight: 600
+      white-space: normal
+      line-height: 1.2
+      padding: 7px 6px !important
+
+    td
+      padding: 6px 6px !important
+
+  &__th-check, &__td-check
+    width: 36px
+    text-align: center !important
+
+  &__th-center, &__td-center
+    text-align: center !important
+
+  &__th-num, &__td-num
+    text-align: right !important
+    white-space: nowrap
+
+  &__nowrap
+    white-space: nowrap
+
+  &__row--sel
+    background: $primary-50
+
+  // Stato lavorazione: testo colorato
+  &__stato
+    font-weight: 600
+    white-space: nowrap
+
+    &--pagato
+      color: $success
+    &--da-incassare
+      color: $warning
+    &--annullato
+      color: $error
+    &--stornato
+      color: $text-inactive
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    justify-content: center
+
+  &__pagination
+    display: flex
+    justify-content: center
+    margin-top: 4px
+
+  // ── Drawer laterale ──────────────────────────────────────────────────────────
+  &__drawer
+    flex: none
+    width: 380px
+    align-self: stretch
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    display: flex
+    flex-direction: column
+    max-height: calc(100vh - 220px)
+    position: sticky
+    top: 8px
+
+    @media (max-width: 1100px)
+      width: 320px
+
+  &__drawer-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 14px 16px
+    border-bottom: 1px solid $border
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 16px
+      color: $primary
+
+  &__drawer-close
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 16px
+
+    &:hover
+      color: $primary
+
+  &__drawer-body
+    padding: 14px 16px
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__drawer-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 12px 16px
+    border-top: 1px solid $border
+
+  &__drawer-tot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    background: $bg
+    border-radius: 8px
+    padding: 8px 12px
+    font-size: 13px
+    color: $text-active
+
+    strong
+      color: $primary
+      font-size: 14px
+
+  // ── Card documento nel drawer ────────────────────────────────────────────────
+  &__nc-card
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 12px
+
+  &__nc-card-head
+    display: flex
+    flex-wrap: wrap
+    align-items: baseline
+    gap: 4px 12px
+    margin-bottom: 10px
+
+  &__nc-num
+    font-weight: 700
+    color: $primary
+
+  &__nc-meta
+    font-size: 12px
+    color: $text-inactive
+
+  &__nc-lines
+    width: 100%
+    border-collapse: collapse
+    font-size: 12px
+
+    th
+      text-align: left
+      font-weight: 600
+      color: $text-inactive
+      padding: 4px 6px
+      border-bottom: 1px solid $border
+
+    td
+      padding: 6px 6px
+      vertical-align: top
+      color: $text-active
+
+  &__nc-line-sub
+    display: block
+    font-size: 11px
+    color: $text-inactive
+
+  &__nc-input
+    width: 90px
+    text-align: right
+
+  &__warn
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    background: $warning-light
+    color: $warning
+    border-radius: 8px
+    padding: 10px 12px
+    font-size: 12.5px
+    line-height: 1.4
+
+  // ── Modale dettaglio ─────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    gap: 0
+    margin: 0
+
+  &__detail-row
+    display: flex
+    justify-content: space-between
+    gap: 16px
+    padding: 8px 0
+    border-bottom: 1px solid $border
+    font-size: 13px
+
+    dt
+      color: $text-inactive
+    dd
+      margin: 0
+      color: $text-active
+      font-weight: 600
+      text-align: right
+
+  &__detail-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 18px
+
+  // ── Storico ───────────────────────────────────────────────────────────────────
+  &__storico
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__storico-item
+    display: flex
+    gap: 10px
+    font-size: 13px
+    color: $text-active
+
+  &__storico-dot
+    font-size: 8px
+    color: $primary
+    margin-top: 5px
+    flex: none
+
+  &__storico-data
+    font-size: 12px
+    color: $text-inactive
+
+
+// ─── COL FILTER POPUP ────────────────────────────────────────────────────────
+.gd-colfilter
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+
+    &:hover
+      color: $primary
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 50%
+    transform: translateX(-50%)
+    margin-top: 6px
+    min-width: 200px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+
+    &:hover
+      background: $primary-50
