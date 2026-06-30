@@ -1,194 +1,179 @@
-import React, { useState } from 'react'
-import T from '../../../../core/tokens'
-import Ico from '../../../../core/icons/Ico'
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { SelectField, DatePickerField } from '../../../../core/components/form'
+import { exportTableToXls, exportElementToPdf } from '../GrigliaDisponibilita/exportGriglia'
 import './GrigliaDisponibilitaEstesa.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
-interface RoomRow {
-  tipo:         string
-  totale:       number
-  vendute:      number
-  impegnate:    number
-  disponibili:  number
-  prenotate:    number
-  opzionate:    number
-  occupate:     number
-  manutenzione: number
+interface Tipo { tipo: string; tot: number }
+interface StrutturaDef { nome: string; tipi: Tipo[]; busy?: boolean }
+interface Metrics { totale: number; vendute: number; impegnate: number; disponibili: number; prenotate: number; opzionate: number; occupate: number; manutenzione: number }
+
+const STRUTTURE_DEF: StrutturaDef[] = [
+  { nome: "Grim's Hotel", tipi: [{ tipo: 'Doppia Classic', tot: 3 }, { tipo: 'Matrimoniale Convertibile in Tripla', tot: 5 }, { tipo: 'Singola Classic', tot: 3 }] },
+  { nome: 'Hotel Azzurro Mare', tipi: [{ tipo: 'Singola Classic', tot: 1 }] },
+  { nome: 'HOTEL DEI MILLE', tipi: [{ tipo: 'Doppia Classic', tot: 2 }] },
+  { nome: 'Hotel Tempio di Pallade', tipi: [{ tipo: 'Doppia Classic', tot: 1 }] },
+  { nome: 'Hotel Tutorial', busy: true, tipi: [{ tipo: 'Doppia Classic', tot: 53 }, { tipo: 'Singola Classic', tot: 12 }, { tipo: 'Tripla Classic', tot: 1 }] },
+]
+
+const STRUTTURE_OPTS = ['Tutte', ...STRUTTURE_DEF.map((s) => s.nome)]
+const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+const GIORNI_W = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
+const PERIODI_GIORNI = [5, 10, 15, 20, 30]
+
+const SUB: { k: keyof Metrics; label: string }[] = [
+  { k: 'totale', label: 'Tot.' }, { k: 'vendute', label: 'Ven.' }, { k: 'impegnate', label: 'Imp.' }, { k: 'disponibili', label: 'Disp.' },
+  { k: 'prenotate', label: 'Pren.' }, { k: 'opzionate', label: 'Opz.' }, { k: 'occupate', label: 'Occ.' }, { k: 'manutenzione', label: 'Man.' },
+]
+
+const hashStr = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
+
+function cell(struct: StrutturaDef, t: Tipo, dayIdx: number): Metrics {
+  if (!struct.busy) return { totale: t.tot, vendute: 0, impegnate: 0, disponibili: t.tot, prenotate: 0, opzionate: 0, occupate: 0, manutenzione: 0 }
+  const r = (hashStr(struct.nome + t.tipo) + dayIdx * 13) % 7
+  const ven = Math.min(t.tot, Math.round(t.tot * 0.28) + (r % 4))
+  return { totale: t.tot, vendute: ven, impegnate: ven, disponibili: t.tot - ven, prenotate: ven, opzionate: 0, occupate: 0, manutenzione: 0 }
+}
+function sumMetrics(struct: StrutturaDef, dayIdx: number): Metrics {
+  return struct.tipi.reduce((acc, t) => {
+    const c = cell(struct, t, dayIdx)
+    return { totale: acc.totale + c.totale, vendute: acc.vendute + c.vendute, impegnate: acc.impegnate + c.impegnate, disponibili: acc.disponibili + c.disponibili, prenotate: acc.prenotate + c.prenotate, opzionate: acc.opzionate + c.opzionate, occupate: acc.occupate + c.occupate, manutenzione: acc.manutenzione + c.manutenzione }
+  }, { totale: 0, vendute: 0, impegnate: 0, disponibili: 0, prenotate: 0, opzionate: 0, occupate: 0, manutenzione: 0 })
 }
 
-interface GiornoGroup {
-  label:  string
-  struttura: string
-  camere: RoomRow[]
-}
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const TIPI_CAMERA = ['Singola Classic','Doppia Classic','Tripla Classic','Doppia convertibile in Tripla','Doppia convertibile in Quadrupla']
-
-function genGiornoGroup(date: Date, struttura: string): GiornoGroup {
-  const label = date.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  const n = Math.floor(1 + Math.random() * 3)
-  const tipi = TIPI_CAMERA.slice(0, n)
-  const camere: RoomRow[] = tipi.map(tipo => {
-    const totale      = 1
-    const vendute     = 0
-    const impegnate   = 0
-    const disponibili = totale - vendute - impegnate
-    return { tipo, totale, vendute, impegnate, disponibili, prenotate: 0, opzionate: 0, occupate: 0, manutenzione: 0 }
-  })
-  return { label, struttura, camere }
-}
-
-function genGruppi(startDate: Date, nGiorni: number, struttura: string): GiornoGroup[] {
-  return Array.from({ length: nGiorni }, (_, i) => {
-    const d = new Date(startDate)
-    d.setDate(d.getDate() + i)
-    return genGiornoGroup(d, struttura)
-  })
-}
-
-const STRUTTURE = ['Tutte','Hotel Tutorial','Grim\'s Hotel','Hotel Azzurro Mare']
+function genGiorni(start: Date, n: number) { return Array.from({ length: n }, (_, i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d }) }
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const dayLabel = (d: Date) => `${GIORNI_W[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]}`
 
 // ── Componente ────────────────────────────────────────────────────────────────
-export default function GrigliaDisponibilitaEstesa({ navigate }: { navigate: (p: string) => void }) {
+export default function GrigliaDisponibilitaEstesa(_props: { navigate?: (p: string) => void } = {}) {
   const [categoria, setCategoria] = useState('Tutte')
   const [struttura, setStruttura] = useState('Tutte')
-  const [periodo,   setPeriodo]   = useState(() => new Date().toISOString().slice(0, 10))
-  const [nGiorni,   setNGiorni]   = useState(5)
+  const [periodo, setPeriodo] = useState('2026-06-30')
+  const [nGiorni, setNGiorni] = useState(5)
 
-  const startDate = new Date(periodo)
-  const gruppi    = genGruppi(startDate, nGiorni, struttura)
+  const giorni = useMemo(() => genGiorni(new Date(periodo), nGiorni), [periodo, nGiorni])
+  const strutture = struttura === 'Tutte' ? STRUTTURE_DEF : STRUTTURE_DEF.filter((s) => s.nome === struttura)
 
-  const Cell = ({ v }: { v: number }) =>
-    v === 0
-      ? <span className="griglia-estesa__zero">0</span>
-      : <span className="griglia-estesa__positive">{v}</span>
+  // scroll orizzontale + frecce (come Griglia disponibilità)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLTableElement>(null)
+  const [nav, setNav] = useState({ prev: false, next: false })
+  const updateNav = useCallback(() => {
+    const el = wrapRef.current; if (!el) return
+    setNav({ prev: el.scrollLeft > 4, next: el.scrollLeft < el.scrollWidth - el.clientWidth - 4 })
+  }, [])
+  useEffect(() => { updateNav(); window.addEventListener('resize', updateNav); return () => window.removeEventListener('resize', updateNav) }, [nGiorni, struttura, updateNav])
+  const scrollDays = (dir: number) => { const el = wrapRef.current; if (!el) return; el.scrollBy({ left: dir * Math.max(320, el.clientWidth * 0.8), behavior: 'smooth' }) }
+  useEffect(() => {
+    const el = wrapRef.current; if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      if (!delta) return
+      const atStart = el.scrollLeft <= 0, atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1
+      if ((delta > 0 && !atEnd) || (delta < 0 && !atStart)) { el.scrollLeft += delta; e.preventDefault(); updateNav() }
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [updateNav])
+
+  // export
+  const buildExport = () => {
+    const header = ['Struttura', 'Tipologia camera', ...giorni.flatMap((g) => SUB.map((s) => `${g.getDate()}/${g.getMonth() + 1} ${s.label}`))]
+    const rows: (string | number)[][] = []
+    strutture.forEach((st) => {
+      st.tipi.forEach((t, ti) => rows.push([ti === 0 ? st.nome : '', t.tipo, ...giorni.flatMap((_g, gi) => SUB.map((s) => cell(st, t, gi)[s.k]))]))
+      rows.push(['', 'TOTALE', ...giorni.flatMap((_g, gi) => SUB.map((s) => sumMetrics(st, gi)[s.k]))])
+    })
+    return { header, rows }
+  }
+  const fileBase = `griglia-disponibilita-estesa_${periodo}`
+  const handleXls = () => { const { header, rows } = buildExport(); exportTableToXls(`${fileBase}.xls`, header, rows, 'Griglia disponibilità estesa') }
+  const handlePdf = () => exportElementToPdf(tableRef.current, `${fileBase}.pdf`, 'Griglia disponibilità estesa')
 
   return (
-    <div className="griglia-estesa">
+    <div className="gde">
       <BtnBack />
-
-      <PageHeader title="Griglia disponibilità estesa" subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo"/>
+      <PageHeader title="Griglia disponibilità estesa" subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo" />
 
       {/* ── Toolbar ── */}
-      <div className="griglia-estesa__toolbar">
-        <div className="griglia-estesa__filters">
-          <SelectField
-            label="Categoria"
-            name="categoria"
-            className="w-[110px]"
-            value={categoria}
-            onChange={e => setCategoria(e.target.value)}
-            options={['Tutte','Standard','Superior','Suite'].map(c => ({ value: c, label: c }))}
-          />
-          <SelectField
-            label="Struttura"
-            name="struttura"
-            className="w-[200px]"
-            value={struttura}
-            onChange={e => setStruttura(e.target.value)}
-            options={STRUTTURE.map(s => ({ value: s, label: s }))}
-          />
-          <DatePickerField
-            label="Periodo"
-            name="periodo"
-            className="w-[150px]"
-            value={periodo}
-            onChange={e => setPeriodo(e.target.value)}
-          />
-          <SelectField
-            label="Giorni"
-            name="nGiorni"
-            className="w-[80px]"
-            value={nGiorni}
-            onChange={e => setNGiorni(+e.target.value)}
-            options={[3, 5, 7, 10, 14].map(n => ({ value: n, label: String(n) }))}
-          />
-        </div>
-        <div className="flex flex-col gap-1 ml-auto">
-          <span className="text-[12px] font-semibold font-poppins text-primary">&nbsp;</span>
-          <div className="flex items-center gap-1.5">
-            <button className="sib-btn sib-btn--icon" title="Esporta CSV">
-              <i className="fa-duotone fa-file-csv text-[14px]" aria-hidden="true"/>
-            </button>
-            <button className="sib-btn sib-btn--icon" title="Esporta PDF">
-              <i className="fa-duotone fa-file-pdf text-[14px]" aria-hidden="true"/>
-            </button>
+      <div className="gde__toolbar">
+        <div className="gde__filters">
+          <SelectField label="Categoria" name="categoria" className="w-[130px]" value={categoria} onChange={(e) => setCategoria(e.target.value)}
+            options={['Tutte', 'Standard', 'Superior', 'Suite'].map((c) => ({ value: c, label: c }))} />
+          <SelectField label="Struttura" name="struttura" className="w-[200px]" value={struttura} onChange={(e) => setStruttura(e.target.value)}
+            options={STRUTTURE_OPTS.map((s) => ({ value: s, label: s }))} />
+          <DatePickerField label="Periodo" name="periodo" className="w-[150px]" value={periodo} onChange={(e) => setPeriodo(e.target.value)} />
+          <div className="gde__period">
+            <label className="gde__period-label">Giorni</label>
+            <div className="gde__seg" role="group" aria-label="Giorni">
+              {PERIODI_GIORNI.map((n) => (
+                <button key={n} type="button" className={`gde__seg-btn ${nGiorni === n ? 'is-active' : ''}`} aria-pressed={nGiorni === n} onClick={() => setNGiorni(n)}>{n}</button>
+              ))}
+            </div>
           </div>
+        </div>
+        <div className="gde__export">
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS" onClick={handleXls}><i className="fa-light fa-file-excel" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF" onClick={handlePdf}><i className="fa-light fa-file-pdf" /></button>
         </div>
       </div>
 
       {/* ── Tabella ── */}
-      <div className="griglia-estesa__table-wrap">
-        <table className="griglia-estesa__table">
-          <thead>
-            <tr>
-              <th className="griglia-estesa__th griglia-estesa__th--left">Data</th>
-              <th className="griglia-estesa__th">Numero Totale</th>
-              <th className="griglia-estesa__th">Vendute</th>
-              <th className="griglia-estesa__th">Impegnate</th>
-              <th className="griglia-estesa__th">Disponibili</th>
-              <th className="griglia-estesa__th">Prenotate</th>
-              <th className="griglia-estesa__th">Opzionate</th>
-              <th className="griglia-estesa__th">Occupate</th>
-              <th className="griglia-estesa__th">Manutenzione</th>
-            </tr>
-          </thead>
-          <tbody>
-            {gruppi.map((gruppo, gi) => {
-              const tot = {
-                totale:       gruppo.camere.reduce((s, r) => s + r.totale, 0),
-                vendute:      gruppo.camere.reduce((s, r) => s + r.vendute, 0),
-                impegnate:    gruppo.camere.reduce((s, r) => s + r.impegnate, 0),
-                disponibili:  gruppo.camere.reduce((s, r) => s + r.disponibili, 0),
-                prenotate:    gruppo.camere.reduce((s, r) => s + r.prenotate, 0),
-                opzionate:    gruppo.camere.reduce((s, r) => s + r.opzionate, 0),
-                occupate:     gruppo.camere.reduce((s, r) => s + r.occupate, 0),
-                manutenzione: gruppo.camere.reduce((s, r) => s + r.manutenzione, 0),
-              }
-
-              return (
-                <React.Fragment key={gi}>
-                  {/* Header giorno */}
-                  <tr className="griglia-estesa__tr-date">
-                    <td colSpan={9}>{gruppo.label}</td>
-                  </tr>
-
-                  {/* Righe tipo camera */}
-                  {gruppo.camere.map((cam, ci) => (
-                    <tr key={ci} className="griglia-estesa__tr-room">
-                      <td>{cam.tipo}</td>
-                      <td>{cam.totale}</td>
-                      <td><Cell v={cam.vendute} /></td>
-                      <td><Cell v={cam.impegnate} /></td>
-                      <td><Cell v={cam.disponibili} /></td>
-                      <td><Cell v={cam.prenotate} /></td>
-                      <td><Cell v={cam.opzionate} /></td>
-                      <td><Cell v={cam.occupate} /></td>
-                      <td><Cell v={cam.manutenzione} /></td>
+      <div className="gde__timeline">
+        {nav.prev && <button type="button" className="gde__nav gde__nav--prev" onClick={() => scrollDays(-1)} aria-label="Giorni precedenti"><i className="fa-light fa-chevron-left" /></button>}
+        {nav.next && <button type="button" className="gde__nav gde__nav--next" onClick={() => scrollDays(1)} aria-label="Giorni successivi"><i className="fa-light fa-chevron-right" /></button>}
+        <div className="gde__wrap" ref={wrapRef} onScroll={updateNav}>
+          <table className="gde__table" ref={tableRef}>
+            <thead>
+              <tr>
+                <th className="gde__th gde__th--struct" rowSpan={2}>Struttura</th>
+                <th className="gde__th gde__th--tipo" rowSpan={2}>Tipologia camera</th>
+                {giorni.map((g, i) => {
+                  const weekend = g.getDay() === 0 || g.getDay() === 6
+                  return <th key={i} className={`gde__th gde__th--day ${weekend ? 'is-weekend' : ''}`} colSpan={SUB.length}>{cap(dayLabel(g))}</th>
+                })}
+              </tr>
+              <tr>
+                {giorni.map((_g, i) => SUB.map((s, si) => (
+                  <th key={`${i}-${s.k}`} className={`gde__th gde__th--sub ${si === 0 ? 'gde__th--day-start' : ''} ${s.k === 'disponibili' ? 'gde__th--disp' : ''}`}>{s.label}</th>
+                )))}
+              </tr>
+            </thead>
+            <tbody>
+              {strutture.map((st) => (
+                <React.Fragment key={st.nome}>
+                  {st.tipi.map((t, ti) => (
+                    <tr key={t.tipo} className="gde__tr">
+                      {ti === 0 && <td className="gde__td gde__td--struct" rowSpan={st.tipi.length + 1}>{st.nome}</td>}
+                      <td className="gde__td gde__td--tipo">{t.tipo}</td>
+                      {giorni.map((_g, gi) => {
+                        const c = cell(st, t, gi)
+                        return SUB.map((s, si) => (
+                          <td key={`${gi}-${s.k}`} className={`gde__td gde__td--num ${si === 0 ? 'gde__td--day-start' : ''} ${s.k === 'disponibili' ? 'gde__td--disp' : ''}`}>
+                            {c[s.k] === 0 ? <span className="gde__zero">0</span> : c[s.k]}
+                          </td>
+                        ))
+                      })}
                     </tr>
                   ))}
-
-                  {/* Totale giorno */}
-                  <tr className="griglia-estesa__tr-total">
-                    <td>Totale</td>
-                    <td>{tot.totale}</td>
-                    <td><Cell v={tot.vendute} /></td>
-                    <td><Cell v={tot.impegnate} /></td>
-                    <td><Cell v={tot.disponibili} /></td>
-                    <td><Cell v={tot.prenotate} /></td>
-                    <td><Cell v={tot.opzionate} /></td>
-                    <td><Cell v={tot.occupate} /></td>
-                    <td><Cell v={tot.manutenzione} /></td>
+                  <tr className="gde__tr gde__tr--total">
+                    <td className="gde__td gde__td--tipo">TOTALE</td>
+                    {giorni.map((_g, gi) => {
+                      const tot = sumMetrics(st, gi)
+                      return SUB.map((s, si) => (
+                        <td key={`${gi}-${s.k}`} className={`gde__td gde__td--num ${si === 0 ? 'gde__td--day-start' : ''} ${s.k === 'disponibili' ? 'gde__td--disp' : ''}`}><strong>{tot[s.k]}</strong></td>
+                      ))
+                    })}
                   </tr>
                 </React.Fragment>
-              )
-            })}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
