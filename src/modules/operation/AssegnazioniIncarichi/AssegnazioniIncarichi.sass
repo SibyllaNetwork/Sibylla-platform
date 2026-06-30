@@ -48,54 +48,32 @@
     .sib-select
       width: 100%
 
-  &__field-raw
-    label
-      font-family: 'Poppins', sans-serif
-      font-size: 12px
-      color: $primary
-      font-weight: 600
-
   &__select
     width: 170px
 
-  &__date-range
-    display: flex
-    align-items: center
-    gap: 6px
-
-    .sib-input
-      width: 145px
-
-    span
-      color: $text-inactive
-
   &__search
-    position: relative
     width: 200px
 
-    .sib-input
-      padding-right: 32px
-
-  &__search-ico
-    position: absolute
-    right: 12px
-    top: 50%
-    transform: translateY(-50%)
-    color: $text-inactive
-    font-size: 13px
-    pointer-events: none
-
-  // ── Tabella ──────────────────────────────────────────────────────────────
+  // ── Tabella (compatta: deve stare nei laptop senza scroll orizzontale) ─────
   &__table
+    width: 100%
+    font-size: 12.5px
+
     thead th
       vertical-align: middle
       font-weight: 600
+      white-space: normal
+      line-height: 1.2
+      padding: 7px 6px !important
 
-  &__head-only
-    margin-bottom: 0
+    td
+      padding: 5px 6px !important
 
-    thead th
-      font-weight: 600
+  &__th-center, &__td-center
+    text-align: center !important
+
+  &__nowrap
+    white-space: nowrap
 
   &__th-sortable
     cursor: pointer
@@ -109,127 +87,118 @@
     font-size: 11px
     color: $text-inactive
 
-  &__status
+  // Descrizione: troncata con ellissi, testo completo al rollover
+  &__desc
     display: inline-block
-    padding: 3px 10px
-    border-radius: 12px
-    font-size: 11px
+    max-width: 220px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    vertical-align: middle
+    cursor: help
+
+  &__desc-info
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 180px
+    max-width: 320px
+
+  &__desc-info-title
     font-weight: 600
-    text-transform: uppercase
+    color: $text-active
+    padding-bottom: 6px
+    border-bottom: 1px solid $border
 
-    &--aperto
-      background: rgba(245, 125, 3, 0.14)
+  &__desc-info-text
+    font-size: 12px
+    color: $text-active
+    line-height: 1.5
+    white-space: pre-wrap
+
+  // Reparto: icona singola con tooltip
+  &__rep-ico
+    font-size: 16px
+    color: $primary
+
+  // Status: una sola icona, colore = livello di priorità
+  &__sev
+    font-size: 16px
+
+    &--media
       color: $warning
-
-    &--in-lavorazione
-      background: rgba(92, 156, 212, 0.14)
-      color: $link
-
-    &--completato
-      background: rgba(0, 112, 53, 0.12)
-      color: $success
-
-    &--annullato
-      background: rgba(255, 97, 110, 0.14)
+    &--alta
       color: $error
 
-  &__empty
-    text-align: center
-    color: $text-inactive
-    padding: 80px 0
-    font-size: 14px
+  // Assegnato a: avatar + nome
+  &__user
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__avatar
+    width: 28px
+    height: 28px
+    border-radius: 50%
+    object-fit: cover
+    flex: none
+
+  &__user-name
+    font-weight: 600
+    white-space: nowrap
+
+  // Stato lavorazione: testo colorato
+  &__stato
+    font-weight: 600
+    white-space: nowrap
+
+    &--nuova
+      color: $warning
+    &--in-corso
+      color: $link
+    &--terminata
+      color: $success
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    justify-content: center
 
   &__pagination
     display: flex
     justify-content: center
     margin-top: 4px
 
-  // ── Modal ────────────────────────────────────────────────────────────────
-  &__modal-overlay
-    position: fixed
-    inset: 0
-    background: rgba(0,0,0,0.45)
-    display: flex
-    align-items: center
-    justify-content: center
-    z-index: 100
-    padding: 24px
-
-  &__modal
-    background: var(--color-surface)
-    border-radius: 10px
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25)
-    width: 100%
-    max-width: 720px
-    max-height: 90vh
-    display: flex
-    flex-direction: column
-    overflow: hidden
-
-    &--wide
-      max-width: 1100px
-
-  &__modal-head
-    display: flex
-    justify-content: space-between
-    align-items: flex-start
-    padding: 18px 22px
-    border-bottom: 1px solid $border
-
-    h3
-      margin: 0
-      font-family: $font-heading
-      font-weight: 700
-      font-size: 18px
-      color: $primary
-
-  &__modal-subtitle
-    margin: 4px 0 0 0
-    font-size: 12px
-    color: $text-inactive
-
-  &__modal-close
-    background: transparent
-    border: none
-    color: $text-inactive
-    cursor: pointer
-    font-size: 16px
-
-    &:hover
-      color: $primary
-
+  // ── Modal (corpo riusato dentro <Modal> condiviso) ─────────────────────────
   &__modal-body
-    padding: 18px 22px
-    overflow-y: auto
     display: flex
     flex-direction: column
     gap: 14px
+
+  &__modal-subtitle
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
 
   &__modal-grid
     display: grid
     grid-template-columns: 1fr 1fr
-    gap: 14px
+    gap: 14px 18px
 
     @media (max-width: 700px)
       grid-template-columns: 1fr
 
-  &__check-row
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    padding: 8px 0
-    cursor: pointer
-
-  &__textarea
-    resize: vertical
-    min-height: 80px
-    font-family: inherit
+  &__check-cell
+    display: flex
+    align-items: flex-end
+    padding-bottom: 8px
 
   &__modal-foot
     display: flex
     justify-content: flex-end
     gap: 8px
-    padding: 14px 22px 18px
+    margin-top: 20px
 
   // ── Statistiche grid ─────────────────────────────────────────────────────
   &__stat-grid
@@ -258,17 +227,6 @@
 
   &__stat-ids
     flex-wrap: wrap
-
-  &__avatar
-    width: 32px
-    height: 32px
-    border-radius: 50%
-    background: $bg
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    color: $text-inactive
-    font-size: 14px
 
   &__id-pill
     background: rgba(143, 184, 200, 0.18)
@@ -330,11 +288,6 @@
       background: $bg
       font-weight: 600
 
-  &__manuale-empty
-    text-align: center
-    color: $text-inactive
-    padding: 40px 0
-
   &__row-sel
     background: rgba(143, 184, 200, 0.16)
 
@@ -381,6 +334,9 @@
   gap: 8px
   position: relative
 
+  &--center
+    justify-content: center
+
   &__btn
     background: transparent
     border: none
@@ -388,6 +344,7 @@
     cursor: pointer
     font-size: 12px
     padding: 4px
+    border-radius: 4px
 
     &:hover
       color: $primary
