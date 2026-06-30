@@ -300,7 +300,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                   onToggleOpen={() => setOpenFilter(openFilter === 'statoLavorazione' ? null : 'statoLavorazione')}
                   onToggle={(v) => toggleColFilter('statoLavorazione', v)} onSelectAll={(s) => setAllColFilter('statoLavorazione', STATI_LAV, s)} />
               </th>
-              <th>Descrizione</th>
+              <th className="segnal__th-center">Descrizione</th>
               <th>Struttura</th>
               <th className="segnal__th-center">
                 <ColFilterHeader label="Camera" center options={CAMERE_DISTINCT}
@@ -371,7 +371,18 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                     <span className={`segnal__stato segnal__stato--${s.statoLavorazione}`}>{STATO_LAV_LABEL[s.statoLavorazione]}</span>
                   )}
                 </td>
-                <td>{s.descrizione || <span className="sib-cell--muted">-</span>}</td>
+                <td className="segnal__td-center">
+                  {s.descrizione ? (
+                    <Tooltip variant="light" position="top" content={
+                      <div className="segnal__desc-info">
+                        <div className="segnal__desc-info-title">Descrizione</div>
+                        <div className="segnal__desc-info-text">{s.descrizione}</div>
+                      </div>
+                    }>
+                      <i className="fa-light fa-circle-info segnal__desc-ico" />
+                    </Tooltip>
+                  ) : <span className="sib-cell--muted">-</span>}
+                </td>
                 <td>{s.struttura}</td>
                 <td className="segnal__td-center">{s.camera}</td>
                 <td className="segnal__nowrap">{s.data}</td>
@@ -467,8 +478,13 @@ function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
   const [camera, setCamera] = useState('')
   const [areaComune, setAreaComune] = useState('')
   const [descrizione, setDescrizione] = useState('')
+  const [descErr, setDescErr] = useState('')
 
   const handleCreate = () => {
+    if (!descrizione.trim()) {
+      setDescErr('La descrizione è obbligatoria')
+      return
+    }
     onCreate({
       segnalazioneDi: 'Rossi Mario',
       severita: priorita === 'Alta' || priorita === 'Urgente' ? 'alta' : 'media',
@@ -476,7 +492,7 @@ function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
       hasFoto: false,
       genereIntervento,
       statoLavorazione: 'da-assegnare',
-      descrizione: descrizione || (areaComune ? `Area comune: ${areaComune}` : ''),
+      descrizione: descrizione.trim(),
       struttura: struttura || strutture[0],
       camera,
     })
@@ -517,8 +533,8 @@ function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
           />
         </div>
         <TextareaField
-          name="descrizione" label="Descrizione" rows={3}
-          value={descrizione} onChange={(e) => setDescrizione(e.target.value)}
+          name="descrizione" label="Descrizione" rows={3} required error={descErr}
+          value={descrizione} onChange={(e) => { setDescrizione(e.target.value); if (descErr) setDescErr('') }}
         />
       </div>
       <div className="segnal__modal-foot">
