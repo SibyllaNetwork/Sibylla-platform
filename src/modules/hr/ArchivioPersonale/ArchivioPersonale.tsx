@@ -190,7 +190,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
             {filtered.map((p) => {
               const mancanti = REQUIRED_DOCS.filter((d) => !p.documenti?.[d.key])
               return (
-              <tr key={p.id} className={mancanti.length > 0 ? 'bg-warning-light' : undefined}>
+              <tr key={p.id}>
                 <td>
                   <span className="inline-flex items-center gap-2">
                     {mancanti.length > 0 && (
