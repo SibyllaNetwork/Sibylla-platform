@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import Modal from '../../../core/components/Modal'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { InputField, SelectField, CheckboxField, DatePickerField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
@@ -50,7 +51,6 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
   const [items, setItems] = useState<ObiettivoItem[]>(FALLBACK)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [pending, setPending] = useState(false)
   const [openFiltroReparto, setOpenFiltroReparto] = useState(false)
   const [repartiSel, setRepartiSel] = useState<string[]>([])     // filtro a imbuto (multi)
   const [sortAnno, setSortAnno] = useState<'asc' | 'desc' | null>(null)
@@ -76,8 +76,11 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
   const [parametro, setParametro] = useState<ParametroT>('percentuale')
   const [percentuale, setPercentuale] = useState('40%')
   const [data, setData] = useState('2026-04-29')
+  const [dataAvvio, setDataAvvio] = useState('2026-05-01T09:00')
   const [frammenta, setFrammenta] = useState(true)
   const [traguardi, setTraguardi] = useState<Record<string, Traguardo>>(TRAGUARDI_DEFAULT)
+  const [showAnteprima, setShowAnteprima] = useState(false)
+  const [avviato, setAvviato] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -90,17 +93,24 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
   const setTraguardo = (k: string, patch: Partial<Traguardo>) =>
     setTraguardi((t) => ({ ...t, [k]: { ...t[k], ...patch } }))
 
-  async function handleSave() {
+  // Salva l'obiettivo e apre l'anteprima della notifica per la schedulazione
+  function apriAnteprima() {
     if (!nome.trim()) { setError('Nome obiettivo obbligatorio'); return }
-    setError(null); setPending(true)
-    try {
-      await apiFetchSibylla('premio-performance/SaveObiettivo', {
-        method: 'POST',
-        body: { nome, tipologia, reparto, vendita, parametro, percentuale, data, frammenta, traguardi },
-      })
-    } catch { /* backend assente → salvataggio locale, nessun errore mostrato */ }
-    setPending(false)
-    navigate('home')
+    setError(null)
+    setAvviato(false)
+    setShowAnteprima(true)
+  }
+
+  // Avvio confermato: salva, aggiunge alla tabella e schedula (notifica 24h prima)
+  function avviaObiettivo() {
+    apiFetchSibylla('premio-performance/SaveObiettivo', {
+      method: 'POST',
+      body: { nome, tipologia, reparto, vendita, parametro, percentuale, data, dataAvvio, frammenta, traguardi, schedulato: true },
+    }).catch(() => { /* backend assente → schedulazione locale */ })
+    const anno = Number((dataAvvio || data).slice(0, 4)) || new Date().getFullYear()
+    const newId = items.reduce((m, o) => Math.max(m, o.id ?? 0), 0) + 1
+    setItems((prev) => [{ id: newId, nome, reparto, anno, tipologia }, ...prev])
+    setAvviato(true)
   }
 
   return (
@@ -213,8 +223,12 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <DatePickerField name="data" label="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} />
+            <div className="flex flex-col gap-1">
+              <label className="text-[12px] font-semibold font-poppins text-primary">Data e ora di avvio</label>
+              <input type="datetime-local" className="sib-input" value={dataAvvio} onChange={(e) => setDataAvvio(e.target.value)} />
+            </div>
             <div className="h-9 flex items-center">
               <CheckboxField name="frammenta" label="Frammenta obiettivo" checked={frammenta} onChange={(e) => setFrammenta(e.target.checked)} />
             </div>
@@ -234,11 +248,133 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
       </div>
 
       <div className="flex justify-end mt-8">
-        <button type="button" className="sib-btn sib-btn--primary" onClick={handleSave} disabled={pending}>
-          {pending ? 'Salvataggio…' : 'Assegna obiettivo'}
+        <button type="button" className="sib-btn sib-btn--primary" onClick={apriAnteprima}>
+          <i className="fa-light fa-calendar-check" /> Salva e schedula
         </button>
       </div>
+
+      <AnteprimaNotificaModal
+        open={showAnteprima}
+        nome={nome}
+        reparto={reparto}
+        tipologia={tipologia}
+        parametro={parametro}
+        percentuale={percentuale}
+        dataAvvio={dataAvvio}
+        traguardi={traguardi}
+        avviato={avviato}
+        onAvvia={avviaObiettivo}
+        onClose={() => setShowAnteprima(false)}
+      />
     </div>
+  )
+}
+
+// ─── MODAL: Anteprima notifica + schedulazione ───────────────────────────────
+
+const STEP_DEFS: { key: string; label: string; trofei: number | 'star' | 'party' }[] = [
+  { key: 't1', label: 'Traguardo 1', trofei: 1 },
+  { key: 't2', label: 'Traguardo 2', trofei: 2 },
+  { key: 't3', label: 'Traguardo 3', trofei: 3 },
+  { key: 't4', label: 'Traguardo 4', trofei: 'star' },
+  { key: 'finale', label: 'Traguardo finale', trofei: 'party' },
+]
+
+const fmtD = (iso: string) => { if (!iso) return '—'; const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}` }
+const fmtDT = (ms: number) => { const d = new Date(ms); const p = (n: number) => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}` }
+
+function Countdown({ target }: { target: string }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id) }, [])
+  const t = new Date(target).getTime() - now
+  if (isNaN(t)) return null
+  if (t <= 0) return <span className="font-mono text-[12px] font-semibold text-success">Raggiunto</span>
+  const g = Math.floor(t / 86400000), h = Math.floor(t / 3600000) % 24, m = Math.floor(t / 60000) % 60, s = Math.floor(t / 1000) % 60
+  return <span className="font-mono text-[12px] font-semibold text-primary">{g}g {String(h).padStart(2, '0')}h {String(m).padStart(2, '0')}m {String(s).padStart(2, '0')}s</span>
+}
+
+function AnteprimaNotificaModal({ open, nome, reparto, tipologia, parametro, percentuale, dataAvvio, traguardi, avviato, onAvvia, onClose }: {
+  open: boolean
+  nome: string
+  reparto: string
+  tipologia: TipologiaT
+  parametro: ParametroT
+  percentuale: string
+  dataAvvio: string
+  traguardi: Record<string, Traguardo>
+  avviato: boolean
+  onAvvia: () => void
+  onClose: () => void
+}) {
+  const steps = STEP_DEFS.filter((s) => traguardi[s.key]?.abilitato)
+  const stepsShown = steps.length ? steps : STEP_DEFS
+  const avvioMs = new Date(dataAvvio).getTime()
+  const notificaMs = avvioMs - 24 * 3600 * 1000
+  const destinatari = tipologia === 'reparto' ? `tutti i dipendenti del reparto ${reparto}` : `i dipendenti coinvolti del reparto ${reparto}`
+
+  return (
+    <Modal open={open} onClose={onClose} title={avviato ? 'Obiettivo schedulato' : 'Anteprima notifica obiettivo'} size="lg">
+      <div className="ao-prev">
+      {avviato && (
+        <div className="ao-prev__done">
+          <i className="fa-solid fa-circle-check ao-prev__done-ico" />
+          <div>
+            <div className="ao-prev__done-title">Obiettivo «{nome}» avviato e schedulato</div>
+            <div className="ao-prev__done-text">La notifica verrà inviata <strong>24h prima dell'avvio</strong> ({fmtDT(notificaMs)}) a {destinatari}. I conti alla rovescia per ogni step sono attivi.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Anteprima notifica */}
+      <div className="ao-prev__notif">
+        <div className="ao-prev__notif-head">
+          <i className="fa-solid fa-bell" />
+          <strong>Sibylla · Premio performance</strong>
+          <span className="ao-prev__notif-time">{avviato ? fmtDT(notificaMs) : 'anteprima'}</span>
+        </div>
+        <div className="ao-prev__notif-title">🎯 Nuovo obiettivo: {nome}</div>
+        <div className="ao-prev__notif-body">
+          Sei stato coinvolto nell'obiettivo «{nome}» ({reparto}). Parametro di valutazione: <strong>{percentuale}</strong> ({parametro}).
+          Raggiungi i traguardi entro le scadenze indicate per sbloccare i premi. In bocca al lupo!
+        </div>
+      </div>
+
+      {/* Timeline step / premi */}
+      <div className="ao-prev__steps-head">Step operativi, premi e tempistiche</div>
+      <ol className="ao-prev__steps">
+        {stepsShown.map((s, i) => {
+          const t = traguardi[s.key]
+          return (
+            <li key={s.key} className="ao-prev__step">
+              <span className="ao-prev__step-num">{i + 1}</span>
+              <span className="ao-prev__step-ico"><TrofeiVisual trofei={s.trofei} /></span>
+              <div className="ao-prev__step-body">
+                <div className="ao-prev__step-title">{s.label} — <strong>{t?.premio || 'Premio da definire'}</strong></div>
+                <div className="ao-prev__step-meta">Scadenza: {fmtD(t?.data ?? '')}{avviato && <> · <Countdown target={t?.data ?? ''} /></>}</div>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+
+      <div className="ao-prev__timing">
+        <div><span>Avvio obiettivo</span><strong>{isNaN(avvioMs) ? '—' : fmtDT(avvioMs)}</strong></div>
+        <div><span>Invio notifica (24h prima)</span><strong>{isNaN(notificaMs) ? '—' : fmtDT(notificaMs)}</strong></div>
+        <div><span>Destinatari</span><strong>{destinatari}</strong></div>
+      </div>
+
+      <div className="ao-prev__foot">
+        {avviato ? (
+          <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Fatto</button>
+        ) : (
+          <>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={onAvvia}><i className="fa-light fa-rocket-launch" /> Avvia Obiettivo</button>
+          </>
+        )}
+      </div>
+      </div>
+    </Modal>
   )
 }
 
