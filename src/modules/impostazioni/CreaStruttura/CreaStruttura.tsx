@@ -175,6 +175,11 @@ export default function CreaStruttura({
     setPickerSel(null)
     setPickerOpen(true)
   }
+  // Sulla pagina dedicata "Crea outlet" si salta il picker e si apre il form outlet
+  function openCreate() {
+    if (autoOpenType === 'outlet') { setEditingRow(null); setDrawerType('outlet'); return }
+    openPicker()
+  }
   function confirmPicker() {
     if (!pickerSel) return
     // Apre la modale "Nuova struttura" con la Tipologia precompilata dalla scelta.
@@ -228,15 +233,17 @@ export default function CreaStruttura({
     <div className="crea-struttura">
       <BtnBack />
       <PageHeader
-        title="Crea struttura"
-        subtitle="Imposta, aggiungi e verifica i dati delle tue strutture ricettive"
+        title={autoOpenType === 'outlet' ? 'Nuovo outlet' : 'Crea struttura'}
+        subtitle={autoOpenType === 'outlet'
+          ? 'Inserisci un nuovo outlet, definendo informazioni, categorie e parametri operativi'
+          : 'Imposta, aggiungi e verifica i dati delle tue strutture ricettive'}
       />
 
       <FilterToolbar
         actions={
-          <button type="button" className="sib-btn sib-btn--primary" onClick={openPicker}>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={openCreate}>
             <i className="fa-light fa-circle-plus" aria-hidden="true" />
-            Nuova struttura
+            {autoOpenType === 'outlet' ? 'Nuovo outlet' : 'Nuova struttura'}
           </button>
         }
       >
