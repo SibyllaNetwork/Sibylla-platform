@@ -177,7 +177,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                 <td>{p.nazione}</td>
                 <td>
                   <div className="flex items-center gap-3">
-                    <button className="sib-btn sib-btn--icon" title="Documento di identità" onClick={() => setDocPerson(p)}>
+                    <button className="sib-btn sib-btn--icon" title="Dettaglio dipendente" onClick={() => setDocPerson(p)}>
                       <i className="fa-light fa-eye" />
                     </button>
                     <button className="sib-btn sib-btn--icon" title="Modifica" onClick={() => modificaPersona(p)}>
@@ -222,7 +222,7 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
     ['Nazione', persona.nazione],
   ] : []
   return (
-    <Modal open={!!persona} onClose={onClose} title="Documento di identità" size="md">
+    <Modal open={!!persona} onClose={onClose} title="Dettaglio dipendente" size="md">
       {persona && (
         <div className="flex gap-5">
           <div className="flex-none">
