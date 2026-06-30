@@ -1,8 +1,9 @@
-// Export della Griglia disponibilità: XLS (HTML che Excel apre nativamente) e
+// Export della Griglia disponibilità: XLSX (file Excel reale via SheetJS) e
 // PDF (cattura della tabella via html2canvas + jsPDF). Nessun dato sul server:
 // i file vengono generati e scaricati lato client.
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import * as XLSX from 'xlsx'
 
 function triggerDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
@@ -15,29 +16,29 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-const esc = (v: unknown) =>
-  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+// nome foglio Excel: max 31 char, niente caratteri vietati : \ / ? * [ ]
+const sheetName = (title?: string) =>
+  (title || 'Foglio1').replace(/[:\\/?*[\]]/g, ' ').trim().slice(0, 31) || 'Foglio1'
 
-/** Esporta una tabella (header + righe) in un file .xls apribile in Excel. */
+/**
+ * Esporta una tabella (header + righe) in un vero file .xlsx apribile in Excel.
+ * Accetta filename con estensione .xls o .xlsx (viene comunque normalizzato a .xlsx).
+ */
 export function exportTableToXls(
   filename: string,
   header: string[],
   rows: (string | number)[][],
   title?: string,
 ) {
-  const thead = `<tr>${header.map((h) => `<th style="background:#eef2f6;border:1px solid #cbd5e1;padding:4px 8px;font-weight:700">${esc(h)}</th>`).join('')}</tr>`
-  const tbody = rows
-    .map(
-      (r) =>
-        `<tr>${r.map((c) => `<td style="border:1px solid #cbd5e1;padding:4px 8px">${esc(c)}</td>`).join('')}</tr>`,
-    )
-    .join('')
-  const html =
-    `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">` +
-    `<head><meta charset="utf-8"></head><body>` +
-    (title ? `<h3>${esc(title)}</h3>` : '') +
-    `<table>${thead}${tbody}</table></body></html>`
-  triggerDownload(new Blob([html], { type: 'application/vnd.ms-excel' }), filename)
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows])
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, sheetName(title))
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+  const xlsxName = filename.replace(/\.(xls|xlsx)$/i, '') + '.xlsx'
+  triggerDownload(
+    new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    xlsxName,
+  )
 }
 
 /** Cattura un elemento (la tabella) e lo salva come PDF orizzontale A4. */
