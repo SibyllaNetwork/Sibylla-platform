@@ -25,6 +25,7 @@ interface Segnalazione {
   severita: Severita
   reparto: Reparto
   hasFoto: boolean
+  foto?: string[] // data URL delle foto documentali (scattate o caricate)
   genereIntervento: GenereIntervento
   statoLavorazione: StatoLav
   descrizione: string
@@ -121,6 +122,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
   const [sortDataDir, setSortDataDir] = useState<'asc' | 'desc' | null>('desc')
   const [editRow, setEditRow] = useState<Segnalazione | null>(null)
   const [assignRow, setAssignRow] = useState<Segnalazione | null>(null)
+  const [photoRow, setPhotoRow] = useState<Segnalazione | null>(null)
   const [flashId, setFlashId] = useState<number | null>(null)
   const flashTimer = useRef<number | null>(null)
   const tableRef = useRef<HTMLTableElement>(null)
@@ -342,7 +344,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                 <td className="segnal__td-center">
                   {s.hasFoto ? (
                     <Tooltip text="Visualizza foto">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza foto"><i className="fa-light fa-eye" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza foto" onClick={() => setPhotoRow(s)}><i className="fa-light fa-eye" /></button>
                     </Tooltip>
                   ) : <span className="sib-cell--muted">-</span>}
                 </td>
@@ -412,6 +414,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
       <CreaSegnalazioneModal open={showModal} strutture={STRUTTURE} onClose={() => setShowModal(false)} onCreate={addSegnalazione} />
       <ModificaSegnalazioneModal row={editRow} strutture={STRUTTURE} onClose={() => setEditRow(null)} />
       <AssegnaInterventoModal row={assignRow} onClose={() => setAssignRow(null)} onAssign={assegnaIntervento} />
+      <VisualizzaFotoModal row={photoRow} onClose={() => setPhotoRow(null)} />
     </div>
   )
 }
@@ -479,6 +482,19 @@ function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
   const [areaComune, setAreaComune] = useState('')
   const [descrizione, setDescrizione] = useState('')
   const [descErr, setDescErr] = useState('')
+  const [foto, setFoto] = useState<string[]>([])
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+
+  const onFiles = (files: FileList | null) => {
+    if (!files) return
+    Array.from(files).forEach((f) => {
+      const reader = new FileReader()
+      reader.onload = () => setFoto((prev) => [...prev, reader.result as string])
+      reader.readAsDataURL(f)
+    })
+  }
+  const removeFoto = (i: number) => setFoto((prev) => prev.filter((_, idx) => idx !== i))
 
   const handleCreate = () => {
     if (!descrizione.trim()) {
@@ -489,13 +505,18 @@ function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
       segnalazioneDi: 'Rossi Mario',
       severita: priorita === 'Alta' || priorita === 'Urgente' ? 'alta' : 'media',
       reparto,
-      hasFoto: false,
+      hasFoto: foto.length > 0,
+      foto,
       genereIntervento,
       statoLavorazione: 'da-assegnare',
       descrizione: descrizione.trim(),
       struttura: struttura || strutture[0],
       camera,
     })
+    // reset per la prossima apertura
+    setFoto([])
+    setDescrizione('')
+    setAreaComune('')
   }
 
   return (
@@ -536,6 +557,33 @@ function CreaSegnalazioneModal({ open, strutture, onClose, onCreate }: {
           name="descrizione" label="Descrizione" rows={3} required error={descErr}
           value={descrizione} onChange={(e) => { setDescrizione(e.target.value); if (descErr) setDescErr('') }}
         />
+        <div className="segnal__photo">
+          <div className="segnal__photo-label">Foto documentali</div>
+          <div className="segnal__photo-actions">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => cameraRef.current?.click()}>
+              <i className="fa-light fa-camera" /> Scatta foto
+            </button>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => galleryRef.current?.click()}>
+              <i className="fa-light fa-image" /> Carica da galleria
+            </button>
+          </div>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden
+            onChange={(e) => { onFiles(e.target.files); e.target.value = '' }} />
+          <input ref={galleryRef} type="file" accept="image/*" multiple hidden
+            onChange={(e) => { onFiles(e.target.files); e.target.value = '' }} />
+          {foto.length > 0 && (
+            <div className="segnal__photo-grid">
+              {foto.map((src, i) => (
+                <div key={i} className="segnal__photo-thumb">
+                  <img src={src} alt={`Foto ${i + 1}`} />
+                  <button type="button" className="segnal__photo-del" aria-label="Rimuovi foto" onClick={() => removeFoto(i)}>
+                    <i className="fa-solid fa-xmark" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <div className="segnal__modal-foot">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
@@ -702,6 +750,30 @@ function AssegnaInterventoModal({ row, onClose, onAssign }: {
             })}
           </div>
         </>
+      )}
+    </Modal>
+  )
+}
+
+// ─── MODAL: Visualizza foto ──────────────────────────────────────────────────
+
+function VisualizzaFotoModal({ row, onClose }: { row: Segnalazione | null; onClose: () => void }) {
+  const foto = row?.foto ?? []
+  return (
+    <Modal open={!!row} onClose={onClose} title="Foto documentali" size="lg">
+      <div className="segnal__viewer-meta">
+        Segnalazione id: {row?.id} del {row?.data} · {row?.struttura} - Camera: {row?.camera}
+      </div>
+      {foto.length > 0 ? (
+        <div className="segnal__viewer-grid">
+          {foto.map((src, i) => (
+            <a key={i} href={src} target="_blank" rel="noreferrer" className="segnal__viewer-cell">
+              <img src={src} alt={`Foto ${i + 1}`} className="segnal__viewer-img" />
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="sib-empty">Nessuna anteprima disponibile per questa segnalazione.</div>
       )}
     </Modal>
   )

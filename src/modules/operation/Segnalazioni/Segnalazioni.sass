@@ -234,6 +234,83 @@
     gap: 8px
     margin-top: 20px
 
+  // ── Foto documentali (creazione) ────────────────────────────────────────────
+  &__photo
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__photo-label
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__photo-actions
+    display: flex
+    gap: 8px
+    flex-wrap: wrap
+
+  &__photo-grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr))
+    gap: 10px
+
+  &__photo-thumb
+    position: relative
+    aspect-ratio: 1
+    border: 1px solid $border
+    border-radius: 8px
+    overflow: hidden
+    background: var(--color-surface)
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  &__photo-del
+    position: absolute
+    top: 4px
+    right: 4px
+    width: 22px
+    height: 22px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 50%
+    background: rgba(0, 0, 0, 0.55)
+    color: #fff
+    font-size: 12px
+    cursor: pointer
+
+    &:hover
+      background: rgba(0, 0, 0, 0.75)
+
+  // ── Visualizza foto ──────────────────────────────────────────────────────────
+  &__viewer-meta
+    font-size: 13px
+    color: $text-inactive
+    line-height: 1.5
+    margin-bottom: 12px
+
+  &__viewer-grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))
+    gap: 12px
+
+  &__viewer-cell
+    display: block
+    aspect-ratio: 4 / 3
+    border: 1px solid $border
+    border-radius: 10px
+    overflow: hidden
+
+  &__viewer-img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
   // ── Riga appena inserita (lampeggio) ────────────────────────────────────────
   &__row--flash > td
     animation: segnal-flash 0.9s ease-in-out 3
