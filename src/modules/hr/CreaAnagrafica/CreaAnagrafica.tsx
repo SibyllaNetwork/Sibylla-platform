@@ -177,7 +177,7 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
     <div className="crea-anag">
       <BtnBack onClick={() => { clearEditingAnagrafica(); navigate('archivio-personale') }} />
       <PageHeader
-        title={editing ? 'Modifica anagrafica personale' : 'Creazione anagrafica personale'}
+        title={editing ? 'Modifica anagrafica personale' : 'Crea anagrafica personale'}
         subtitle="Scheda del dipendente: dati anagrafici, contatti, residenza e inquadramento"
       />
 
