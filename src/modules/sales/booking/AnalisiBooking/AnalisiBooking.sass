@@ -46,19 +46,26 @@
     font-size: 12.5px
 
   &__th
-    padding: 8px 8px
+    padding: 9px 8px
     text-align: left
-    font-size: 11px
-    font-weight: 700
-    color: $text-disabled
-    text-transform: uppercase
-    letter-spacing: 0.4px
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
     border-bottom: 1px solid $border
     background: var(--color-bg)
     white-space: nowrap
 
     &--right
       text-align: right
+
+  &__th-ico
+    display: inline-flex
+    align-items: center
+    gap: 5px
+
+  &__adr-ico
+    color: var(--color-primary)
+    font-size: 15px
 
   &__td
     padding: 8px 8px

@@ -167,7 +167,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
                 <th className="analisi-booking__th analisi-booking__th--right">Servizi</th>
                 <th className="analisi-booking__th analisi-booking__th--right">
                   <Tooltip text="ADR — Average Daily Rate (ricavo medio per notte)">
-                    <span className="analisi-booking__th-ico">ADR <i className="fa-light fa-circle-info" /></span>
+                    <span className="analisi-booking__th-ico">ADR <i className="fa-light fa-hexagon-nodes analisi-booking__adr-ico" /></span>
                   </Tooltip>
                 </th>
                 <th className="analisi-booking__th analisi-booking__th--right">
