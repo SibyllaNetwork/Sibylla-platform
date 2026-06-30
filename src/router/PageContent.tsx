@@ -157,6 +157,7 @@ import GestioneUtenti              from '../modules/sysadmin/GestioneUtenti/Gest
 import CreaMagazzino               from '../modules/magazzino/CreaMagazzino/CreaMagazzino';
 import MovimentiBarcode            from '../modules/magazzino/MovimentiBarcode/MovimentiBarcode';
 import ArchivioContratti           from '../modules/finance/ArchivioContratti/ArchivioContratti';
+import BenchmarkFinanziario        from '../modules/finance/BenchmarkFinanziario/BenchmarkFinanziario';
 import InserisciContrattoAcquisto  from '../modules/purchasing/InserisciContrattoAcquisto/InserisciContrattoAcquisto';
 import MieiContrattiAcquisto       from '../modules/purchasing/MieiContrattiAcquisto/MieiContrattiAcquisto';
 import TurniPersonale              from '../modules/operation/TurniPersonale/TurniPersonale';
@@ -342,6 +343,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'centro-costo')          return <ImpostaCentroDiCosto navigate={navigate}/>;
   if (page === 'archivio-personale')    return <ArchivioPersonale navigate={navigate}/>;
   if (page === 'archivio-contratti')    return <ArchivioContratti navigate={navigate}/>;
+  if (page === 'benchmark-fin')         return <BenchmarkFinanziario navigate={navigate}/>;
   if (page === 'inserisci-contratto-a') return <InserisciContrattoAcquisto navigate={navigate} key="ins-contr-a"/>;
   if (page === 'modifica-contratto-a')  return <InserisciContrattoAcquisto navigate={navigate} editing key="mod-contr-a"/>;
   if (page === 'miei-contratti-a')      return <MieiContrattiAcquisto navigate={navigate}/>;
