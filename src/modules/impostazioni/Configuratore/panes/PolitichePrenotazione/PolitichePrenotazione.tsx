@@ -115,7 +115,11 @@ export default function PolitichePrenotazione() {
   const [politiche, setPolitiche] = useState<Politica[]>(FALLBACK)
   const [editing, setEditing] = useState<Politica | null>(null)
   const [preview, setPreview] = useState<{ nome: string; html: string } | null>(null)
+  // l'anteprima nel form è disponibile solo dopo aver cliccato "Genera T&C"
+  const [generated, setGenerated] = useState(false)
   const confirm = useConfirmStore((s) => s.confirm)
+
+  const openEditor = (p: Politica) => { setGenerated(false); setEditing(p) }
 
   useEffect(() => {
     let cancelled = false
@@ -141,8 +145,14 @@ export default function PolitichePrenotazione() {
     if (!editing) return
     const { it, en } = generaTermini(editing)
     upd({ TestoIt: it, TestoEn: en })
+    setGenerated(true)
     toast.success('Testi Termini & Condizioni generati (IT/EN)')
   }
+
+  // campi obbligatori del documento
+  const requiredOk = !!editing && editing.Nome.trim() !== '' && editing.Descrizione.trim() !== ''
+    && (!editing.MancatoArrivoAbilitato || editing.MancatoArrivoPercentuale > 0)
+  const anteprimaReady = generated && requiredOk
 
   const save = () => {
     if (!editing) return
@@ -193,7 +203,7 @@ export default function PolitichePrenotazione() {
     <div className="politiche-prenotazione">
       <div className="politiche-prenotazione__breadcrumb">
         <span>Configuratore <i className="fa-light fa-chevron-right" /> <strong>Politiche di prenotazione</strong></span>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={() => setEditing({ ...EMPTY })}>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={() => openEditor({ ...EMPTY })}>
           <i className="fa-light fa-circle-plus" /> Crea nuova regola
         </button>
       </div>
@@ -213,6 +223,7 @@ export default function PolitichePrenotazione() {
               <th className="politiche-prenotazione__col-c">Cancellazione</th>
               <th className="politiche-prenotazione__col-c">Mancato arrivo</th>
               <th>Termini</th>
+              <th>Documento</th>
               <th className="politiche-prenotazione__col-c">Stato</th>
               <th className="politiche-prenotazione__col-c">Azioni</th>
             </tr>
@@ -228,10 +239,11 @@ export default function PolitichePrenotazione() {
                 <td className="politiche-prenotazione__col-c">{p.PagamentiAbilitati ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.CancellazioneAbilitata ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.MancatoArrivoAbilitato ? pct(p.MancatoArrivoPercentuale) : 'Nessuna'}</td>
+                <td>{p.TerminiNome || '—'}</td>
                 <td>
                   {p.DocumentoHtml || p.TestoIt ? (
                     <button type="button" className="politiche-prenotazione__doc-link" onClick={() => openPreview(p.Nome, docHtmlOf(p))} title="Visualizza documento">
-                      <i className="fa-light fa-file-lines" /> {p.TerminiNome || 'Documento'}
+                      <i className="fa-light fa-file-lines" /> Documento
                     </button>
                   ) : '—'}
                 </td>
@@ -245,7 +257,7 @@ export default function PolitichePrenotazione() {
                     <button type="button" className="sib-btn sib-btn--icon" title="Anteprima documento" aria-label="Anteprima documento" onClick={() => openPreview(p.Nome, docHtmlOf(p))}>
                       <i className="fa-light fa-eye" />
                     </button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica" onClick={() => setEditing({ ...p })}>
+                    <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica" onClick={() => openEditor({ ...p })}>
                       <i className="fa-light fa-pen" />
                     </button>
                     <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina" onClick={() => remove(p)}>
@@ -256,7 +268,7 @@ export default function PolitichePrenotazione() {
               </tr>
             ))}
             {politiche.length === 0 && (
-              <tr><td colSpan={9} className="politiche-prenotazione__empty">Nessuna politica configurata.</td></tr>
+              <tr><td colSpan={10} className="politiche-prenotazione__empty">Nessuna politica configurata.</td></tr>
             )}
           </tbody>
         </table>
@@ -280,7 +292,7 @@ export default function PolitichePrenotazione() {
               <div className="politiche-prenotazione__fsec-title">Anagrafica</div>
               <div className="politiche-prenotazione__grid2">
                 <InputField name="nome" label="Nome" required value={editing.Nome} onChange={(e) => upd({ Nome: e.target.value })} placeholder="Es. Non rimborsabile" />
-                <InputField name="descrizione" label="Descrizione" value={editing.Descrizione} onChange={(e) => upd({ Descrizione: e.target.value })} placeholder="Breve descrizione" />
+                <InputField name="descrizione" label="Descrizione" required value={editing.Descrizione} onChange={(e) => upd({ Descrizione: e.target.value })} placeholder="Breve descrizione" />
               </div>
             </section>
 
@@ -304,7 +316,7 @@ export default function PolitichePrenotazione() {
                   <RadioGroup name="mancato" value={editing.MancatoArrivoAbilitato ? '1' : '0'} options={SN} onChange={(v) => upd({ MancatoArrivoAbilitato: v === '1' })} />
                   {editing.MancatoArrivoAbilitato && (
                     <InputField
-                      name="percentuale" type="number" label="Percentuale penale (%)"
+                      name="percentuale" type="number" label="Percentuale penale (%)" required
                       className="politiche-prenotazione__pct"
                       value={String(editing.MancatoArrivoPercentuale)}
                       onChange={(e) => upd({ MancatoArrivoPercentuale: Number(e.target.value) || 0 })}
@@ -332,7 +344,13 @@ export default function PolitichePrenotazione() {
             </section>
 
             <div className="politiche-prenotazione__form-actions">
-              <button type="button" className="sib-btn sib-btn--secondary politiche-prenotazione__preview-btn" onClick={() => openPreview(editing.Nome || 'Documento', buildDocumentoHtml(editing, editing.DocumentoGeneratoIl))}>
+              <button
+                type="button"
+                className="sib-btn sib-btn--secondary politiche-prenotazione__preview-btn"
+                disabled={!anteprimaReady}
+                title={anteprimaReady ? 'Anteprima documento' : 'Clicca "Genera Termini & Condizioni" e compila i campi obbligatori'}
+                onClick={() => openPreview(editing.Nome || 'Documento', buildDocumentoHtml(editing, editing.DocumentoGeneratoIl))}
+              >
                 <i className="fa-light fa-eye" /> Anteprima
               </button>
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEditing(null)}>Annulla</button>
