@@ -136,9 +136,10 @@
   &__col-num
     text-align: right
 
-  // distanzia la colonna Azioni dal valore (right-aligned) di Prezzo
+  // La colonna Azioni mantiene la stessa distanza dal Prezzo che c'è tra le
+  // altre colonne fra loro: stesso padding-left standard delle celle (4px)
   &__col-actions
-    padding-left: 34px !important
+    padding-left: 4px !important
 
   &__exp-btn
     display: inline-flex
@@ -173,8 +174,6 @@
 
   // ── Stato (testo, non badge) ────────────────────────────────────────────
   &__stato
-    font-weight: 700
-
     &--letto
       color: var(--color-primary)
 
@@ -183,7 +182,6 @@
 
   &__scaduto
     color: var(--color-error)
-    font-weight: 600
 
   // ── Azioni inline ───────────────────────────────────────────────────────
   &__actions

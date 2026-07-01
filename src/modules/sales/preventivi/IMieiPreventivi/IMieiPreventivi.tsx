@@ -199,7 +199,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                       <i className={`fa-light fa-chevron-down ${expanded.has(p.id!) ? 'is-open' : ''}`} aria-hidden="true" />
                     </button>
                   </td>
-                  <td><strong>{p.codice}</strong></td>
+                  <td>{p.codice}</td>
                   <td><span className={`gest-prev__stato gest-prev__stato--${(p.stato ?? '').toLowerCase()}`}>{p.stato}</span></td>
                   <td>{p.utente}</td>
                   <td>{p.data_creazione}</td>
