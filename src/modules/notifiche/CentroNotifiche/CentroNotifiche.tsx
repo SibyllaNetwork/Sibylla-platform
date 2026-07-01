@@ -489,25 +489,25 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                 </>
               ) : (
                 <>
-                  <dl className="notifiche__detail-grid">
-                    <div className="notifiche__detail-item">
+                  <dl className="notifiche__detail-list">
+                    <div className="notifiche__detail-list-row">
                       <dt>ID notifica</dt>
                       <dd>#{selectedNotif.id}</dd>
                     </div>
-                    <div className="notifiche__detail-item">
+                    <div className="notifiche__detail-list-row">
                       <dt>Tipologia</dt>
                       <dd>{sevLabel[selectedNotif.sev]}</dd>
                     </div>
-                    <div className="notifiche__detail-item">
+                    <div className="notifiche__detail-list-row">
                       <dt>Ricevuta il</dt>
                       <dd>{selectedNotif.date}{selectedNotif.time ? ` · ${selectedNotif.time}` : ''}</dd>
                     </div>
-                    <div className="notifiche__detail-item">
+                    <div className="notifiche__detail-list-row">
                       <dt>Stato</dt>
                       <dd>{readSet.has(selectedNotif.id) ? 'Letta' : 'Non letta'}</dd>
                     </div>
                     {selectedNotif.ref && (
-                      <div className="notifiche__detail-item notifiche__detail-item--wide">
+                      <div className="notifiche__detail-list-row">
                         <dt>Riferimento</dt>
                         <dd>{selectedNotif.ref}</dd>
                       </div>
