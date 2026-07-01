@@ -67,6 +67,21 @@
   &__slider
     justify-content: center
 
+  // link "documento" nella colonna Termini
+  &__doc-link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: none
+    border: none
+    padding: 0
+    cursor: pointer
+    color: $link
+    font: inherit
+
+    &:hover
+      text-decoration: underline
+
   &__actions-cell
     display: flex
     justify-content: center
@@ -181,11 +196,38 @@
   &__form-actions
     display: flex
     justify-content: flex-end
+    align-items: center
     gap: 10px
     padding-top: 14px
     border-top: 1px solid $border
 
+  // pulsante allineato a sinistra (Anteprima / Apri in nuova scheda)
+  &__preview-btn
+    margin-right: auto
+
+  // ── Anteprima documento ─────────────────────────────────────────
+  &__doc
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__doc-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+
+  &__doc-frame
+    width: 100%
+    height: 62vh
+    border: 1px solid $border
+    border-radius: 10px
+    background: $bg
+
 // larghezza dedicata della modale (Modal condiviso, size xl = 780 → più ampia
 // per ospitare i tre blocchi condizione e i due testi affiancati)
 .modal__box.politiche-modal
+  max-width: 900px
+
+.modal__box.politiche-doc-modal
   max-width: 900px

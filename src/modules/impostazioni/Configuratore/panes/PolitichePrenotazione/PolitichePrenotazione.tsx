@@ -5,6 +5,7 @@ import Ico from '../../../../../core/icons/Ico'
 import { InputField, SelectField, TextareaField, RadioGroup, CheckboxField, ToggleSwitch } from '../../../../../core/components/form'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
+import { buildDocumentoHtml } from './documentoHtml'
 import './PolitichePrenotazione.sass'
 
 /**
@@ -27,6 +28,8 @@ interface Politica {
   TestoIt: string
   TestoEn: string
   Attivo: boolean
+  DocumentoHtml?: string
+  DocumentoGeneratoIl?: string
 }
 
 /** Modelli di partenza per il testo (dropdown "Termini e condizioni"). */
@@ -111,6 +114,7 @@ const SN = [{ value: '1', label: 'Sì' }, { value: '0', label: 'No' }]
 export default function PolitichePrenotazione() {
   const [politiche, setPolitiche] = useState<Politica[]>(FALLBACK)
   const [editing, setEditing] = useState<Politica | null>(null)
+  const [preview, setPreview] = useState<{ nome: string; html: string } | null>(null)
   const confirm = useConfirmStore((s) => s.confirm)
 
   useEffect(() => {
@@ -143,15 +147,30 @@ export default function PolitichePrenotazione() {
   const save = () => {
     if (!editing) return
     if (!editing.Nome.trim()) { toast.warning('Inserisci un nome per la regola'); return }
-    apiFetchSibylla('configura/SetPolitichePrenotazione', { method: 'POST', body: editing }).catch(() => {})
-    if (editing.Id) {
-      setPolitiche((list) => list.map((p) => (p.Id === editing.Id ? editing : p)))
-      toast.success(`Regola "${editing.Nome}" aggiornata`)
+    // genera la pagina "documento" impaginata e la salva nel record (tabella)
+    const generatoIl = new Date().toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' })
+    const doc: Politica = { ...editing, DocumentoGeneratoIl: generatoIl }
+    doc.DocumentoHtml = buildDocumentoHtml(doc, generatoIl)
+    apiFetchSibylla('configura/SetPolitichePrenotazione', { method: 'POST', body: doc }).catch(() => {})
+    if (doc.Id) {
+      setPolitiche((list) => list.map((p) => (p.Id === doc.Id ? doc : p)))
+      toast.success(`Regola "${doc.Nome}" aggiornata · documento generato`)
     } else {
-      setPolitiche((list) => [...list, { ...editing, Id: Date.now() }])
-      toast.success(`Regola "${editing.Nome}" creata`)
+      setPolitiche((list) => [...list, { ...doc, Id: Date.now() }])
+      toast.success(`Regola "${doc.Nome}" creata · documento generato`)
     }
     setEditing(null)
+  }
+
+  /** Documento HTML della politica: usa quello salvato o lo costruisce al volo. */
+  const docHtmlOf = (p: Politica) => p.DocumentoHtml || buildDocumentoHtml(p, p.DocumentoGeneratoIl)
+
+  const openPreview = (nome: string, html: string) => setPreview({ nome, html })
+
+  const openInNewTab = (html: string) => {
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
   }
 
   const toggleAttivo = (p: Politica) => {
@@ -209,7 +228,13 @@ export default function PolitichePrenotazione() {
                 <td className="politiche-prenotazione__col-c">{p.PagamentiAbilitati ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.CancellazioneAbilitata ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.MancatoArrivoAbilitato ? pct(p.MancatoArrivoPercentuale) : 'Nessuna'}</td>
-                <td>{p.TerminiNome || (p.TestoIt ? 'Personalizzati' : '—')}</td>
+                <td>
+                  {p.DocumentoHtml || p.TestoIt ? (
+                    <button type="button" className="politiche-prenotazione__doc-link" onClick={() => openPreview(p.Nome, docHtmlOf(p))} title="Visualizza documento">
+                      <i className="fa-light fa-file-lines" /> {p.TerminiNome || 'Documento'}
+                    </button>
+                  ) : '—'}
+                </td>
                 <td className="politiche-prenotazione__col-c">
                   <span className={`politiche-prenotazione__badge ${p.Attivo ? 'is-on' : 'is-off'}`}>
                     {p.Attivo ? 'Attivo' : 'Disattivo'}
@@ -217,6 +242,9 @@ export default function PolitichePrenotazione() {
                 </td>
                 <td className="politiche-prenotazione__col-c">
                   <div className="politiche-prenotazione__actions-cell">
+                    <button type="button" className="sib-btn sib-btn--icon" title="Anteprima documento" aria-label="Anteprima documento" onClick={() => openPreview(p.Nome, docHtmlOf(p))}>
+                      <i className="fa-light fa-eye" />
+                    </button>
                     <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica" onClick={() => setEditing({ ...p })}>
                       <i className="fa-light fa-pen" />
                     </button>
@@ -304,8 +332,36 @@ export default function PolitichePrenotazione() {
             </section>
 
             <div className="politiche-prenotazione__form-actions">
+              <button type="button" className="sib-btn sib-btn--secondary politiche-prenotazione__preview-btn" onClick={() => openPreview(editing.Nome || 'Documento', buildDocumentoHtml(editing, editing.DocumentoGeneratoIl))}>
+                <i className="fa-light fa-eye" /> Anteprima
+              </button>
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEditing(null)}>Annulla</button>
               <button type="button" className="sib-btn sib-btn--primary" onClick={save}>Salva</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {preview && (
+        <Modal open onClose={() => setPreview(null)} size="xl" className="politiche-doc-modal">
+          <div className="politiche-prenotazione__doc">
+            <div className="politiche-prenotazione__doc-head">
+              <div>
+                <h2 className="politiche-prenotazione__form-title">Anteprima documento</h2>
+                <p className="politiche-prenotazione__form-sub">{preview.nome}</p>
+              </div>
+              <button type="button" className="politiche-prenotazione__form-close" onClick={() => setPreview(null)} aria-label="Chiudi">
+                <Ico n="x" s={18} c="var(--color-text-disabled)" />
+              </button>
+            </div>
+
+            <iframe className="politiche-prenotazione__doc-frame" title="Anteprima documento" srcDoc={preview.html} />
+
+            <div className="politiche-prenotazione__form-actions">
+              <button type="button" className="sib-btn sib-btn--secondary politiche-prenotazione__preview-btn" onClick={() => openInNewTab(preview.html)}>
+                <i className="fa-light fa-arrow-up-right-from-square" /> Apri in nuova scheda
+              </button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={() => setPreview(null)}>Chiudi</button>
             </div>
           </div>
         </Modal>
