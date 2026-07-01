@@ -172,7 +172,7 @@ $notifiche-split-breakpoint: 1024px
     min-width: 20px
     height: 20px
     border-radius: 10px
-    background: $error
+    background: $link
     color: $white
     font-size: 10px
     font-weight: 700
@@ -412,19 +412,18 @@ $notifiche-split-breakpoint: 1024px
     padding: 14px 0
     border-top: 1px solid $border
     border-bottom: 1px solid $border
-    // due colonne di coppie etichetta-valore ravvicinate (invece di una sola
-    // colonna con label e valore agli estremi opposti)
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 8px 32px
+    // due sole colonne: etichette + valori, un campo per riga, ravvicinati
+    display: flex
+    flex-direction: column
+    gap: 8px
 
   &__detail-list-row
     display: flex
     align-items: baseline
-    gap: 8px
+    gap: 12px
 
     dt
-      flex: 0 0 88px
+      flex: 0 0 130px
       font-size: 13px
       font-weight: 600
       color: $text-inactive
@@ -438,7 +437,6 @@ $notifiche-split-breakpoint: 1024px
       font-weight: 400
 
     &--total
-      grid-column: 1 / -1
       margin-top: 4px
       padding-top: 8px
       border-top: 1px solid $border
