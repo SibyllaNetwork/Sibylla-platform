@@ -184,7 +184,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
               <th className="gest-prev__col-num">Camere</th>
               <th>In/Out</th>
               <th className="gest-prev__col-num">Prezzo</th>
-              <th>Azioni</th>
+              <th className="gest-prev__col-actions">Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -209,7 +209,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                   <td className="gest-prev__col-num">{p.camere}</td>
                   <td className="gest-prev__nowrap" title={`${p.checkin} → ${p.checkout}`}>{p.checkin?.slice(0, 5)} → {p.checkout?.slice(0, 5)}</td>
                   <td className="gest-prev__col-num">{p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</td>
-                  <td>
+                  <td className="gest-prev__col-actions">
                     <div className="gest-prev__actions">
                       <Tooltip text="Visualizza">
                         <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-eye" aria-hidden="true" /></button>
