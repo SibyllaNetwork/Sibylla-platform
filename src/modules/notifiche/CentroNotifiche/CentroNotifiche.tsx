@@ -375,18 +375,17 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                           {n.text && <p className="notifiche__row-text">{n.text}</p>}
                         </div>
                         <div className="notifiche__row-actions">
-                          {n.source === 'tableau' && (
-                            <Tooltip text="Apri chat">
-                              <button
-                                type="button"
-                                className="notifiche__row-act"
-                                aria-label="Apri chat"
-                                onClick={(e) => { e.stopPropagation(); openChat(n.id) }}
-                              >
-                                <i className="fa-light fa-comments" aria-hidden="true" />
-                              </button>
-                            </Tooltip>
-                          )}
+                          <Tooltip text={n.source === 'tableau' ? 'Apri chat' : 'Chat non disponibile'}>
+                            <button
+                              type="button"
+                              className="notifiche__row-act"
+                              aria-label="Apri chat"
+                              disabled={n.source !== 'tableau'}
+                              onClick={(e) => { e.stopPropagation(); openChat(n.id) }}
+                            >
+                              <i className="fa-light fa-comments" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
                           <Tooltip text={isRead ? 'Già letta' : 'Segna come letta'}>
                             <button
                               type="button"
