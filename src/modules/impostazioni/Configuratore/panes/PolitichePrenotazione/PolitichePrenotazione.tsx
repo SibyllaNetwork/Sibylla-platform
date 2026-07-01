@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
-import { InputField, SelectField, TextareaField, RadioGroup, CheckboxField } from '../../../../../core/components/form'
+import { InputField, SelectField, TextareaField, RadioGroup, CheckboxField, ToggleSwitch } from '../../../../../core/components/form'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
 import './PolitichePrenotazione.sass'
@@ -186,6 +186,7 @@ export default function PolitichePrenotazione() {
         <table className="politiche-prenotazione__table">
           <thead>
             <tr>
+              <th className="politiche-prenotazione__col-c">Attivo</th>
               <th>Nome</th><th>Descrizione</th>
               <th className="politiche-prenotazione__col-c">Pagamenti</th>
               <th className="politiche-prenotazione__col-c">Cancellazione</th>
@@ -198,6 +199,9 @@ export default function PolitichePrenotazione() {
           <tbody>
             {politiche.map((p) => (
               <tr key={p.Id} className={p.Attivo ? '' : 'politiche-prenotazione__row--off'}>
+                <td className="politiche-prenotazione__col-c">
+                  <ToggleSwitch checked={p.Attivo} onChange={() => toggleAttivo(p)} className="politiche-prenotazione__slider" />
+                </td>
                 <td>{p.Nome}</td>
                 <td>{p.Descrizione}</td>
                 <td className="politiche-prenotazione__col-c">{p.PagamentiAbilitati ? 'Sì' : 'No'}</td>
@@ -211,9 +215,6 @@ export default function PolitichePrenotazione() {
                 </td>
                 <td className="politiche-prenotazione__col-c">
                   <div className="politiche-prenotazione__actions-cell">
-                    <button type="button" className="sib-btn sib-btn--icon" title={p.Attivo ? 'Disattiva' : 'Attiva'} aria-label={p.Attivo ? 'Disattiva' : 'Attiva'} onClick={() => toggleAttivo(p)}>
-                      <i className={`fa-light ${p.Attivo ? 'fa-toggle-on' : 'fa-toggle-off'}`} />
-                    </button>
                     <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica" onClick={() => setEditing({ ...p })}>
                       <i className="fa-light fa-pen" />
                     </button>
@@ -225,7 +226,7 @@ export default function PolitichePrenotazione() {
               </tr>
             ))}
             {politiche.length === 0 && (
-              <tr><td colSpan={8} className="politiche-prenotazione__empty">Nessuna politica configurata.</td></tr>
+              <tr><td colSpan={9} className="politiche-prenotazione__empty">Nessuna politica configurata.</td></tr>
             )}
           </tbody>
         </table>
