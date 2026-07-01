@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
 import Modal from '../../../../../core/components/Modal'
 import Ico from '../../../../../core/icons/Ico'
-import Tooltip from '../../../../../core/components/Tooltip'
+import TruncatedText from '../../../../../core/components/TruncatedText'
 import { InputField, SelectField, TextareaField, RadioGroup, CheckboxField, ToggleSwitch } from '../../../../../core/components/form'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
@@ -222,7 +222,7 @@ export default function PolitichePrenotazione() {
               <th>Nome</th><th>Descrizione</th>
               <th className="politiche-prenotazione__col-c">Pagamenti</th>
               <th className="politiche-prenotazione__col-c">Cancellazione</th>
-              <th className="politiche-prenotazione__col-c">Mancato arrivo</th>
+              <th className="politiche-prenotazione__col-c"><TruncatedText text="M. arrivo" full="Mancato arrivo" /></th>
               <th>Termini</th>
               <th>Documento</th>
               <th className="politiche-prenotazione__col-c">Stato</th>
@@ -235,18 +235,14 @@ export default function PolitichePrenotazione() {
                 <td className="politiche-prenotazione__col-c">
                   <ToggleSwitch checked={p.Attivo} onChange={() => toggleAttivo(p)} className="politiche-prenotazione__slider" />
                 </td>
-                <td>{p.Nome}</td>
+                <td><TruncatedText text={p.Nome} className="politiche-prenotazione__cell-name" /></td>
                 <td>
-                  {p.Descrizione ? (
-                    <Tooltip content={p.Descrizione} position="top" variant="light">
-                      <span className="politiche-prenotazione__desc">{p.Descrizione}</span>
-                    </Tooltip>
-                  ) : '—'}
+                  {p.Descrizione ? <TruncatedText text={p.Descrizione} className="politiche-prenotazione__desc" /> : '—'}
                 </td>
                 <td className="politiche-prenotazione__col-c">{p.PagamentiAbilitati ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.CancellazioneAbilitata ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.MancatoArrivoAbilitato ? pct(p.MancatoArrivoPercentuale) : 'Nessuna'}</td>
-                <td>{p.TerminiNome || '—'}</td>
+                <td>{p.TerminiNome ? <TruncatedText text={p.TerminiNome} className="politiche-prenotazione__cell-termini" /> : '—'}</td>
                 <td>
                   {p.DocumentoHtml || p.TestoIt ? (
                     <button type="button" className="politiche-prenotazione__doc-link" onClick={() => openPreview(p.Nome, docHtmlOf(p))} title="Visualizza documento">

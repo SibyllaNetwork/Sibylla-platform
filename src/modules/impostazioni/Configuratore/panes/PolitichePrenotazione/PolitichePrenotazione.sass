@@ -30,17 +30,25 @@
   &__table
     @include paneShared.pane-table-base
 
+    // titoli colonna: mai su due righe
+    th
+      white-space: nowrap
+
   // colonne centrate (valori Sì/No, %, stato, azioni)
   &__col-c
     text-align: center
 
-  // Descrizione: sempre una sola riga con ellipsis; testo completo nel tooltip
+  // Testi su una riga (ellipsis + tooltip via TruncatedText): larghezze colonna
+  &__cell-name
+    max-width: 200px
+    cursor: default
+
   &__desc
-    display: block
     max-width: 260px
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
+    cursor: default
+
+  &__cell-termini
+    max-width: 160px
     cursor: default
 
   &__row--off td

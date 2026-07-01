@@ -186,6 +186,12 @@
     @apply bg-white border border-line rounded-field overflow-x-auto mb-5;
   }
 
+  /* Testo su una sola riga con ellipsis (titoli tabella + celle). La max-width
+     va data dal contesto/colonna; il testo completo si mostra via TruncatedText. */
+  .sib-truncate {
+    @apply block overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+
   .sib-table {
     @apply w-full text-[13px] font-opensans border-collapse [font-variant-numeric:tabular-nums];
   }
