@@ -227,10 +227,10 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
                 <p>Il carrello {tab === 'aziendale' ? 'aziendale' : 'personale'} è vuoto.</p>
                 <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('area-merceologica')}>Esplora il catalogo</button>
               </div>
-            ) : visible.map(r => {
+            ) : visible.map((r, i) => {
               const scontoPct = r.prezzoOriginale ? Math.round((1 - r.prezzoUnitario / r.prezzoOriginale) * 100) : 0
               return (
-              <article key={r.id} className="cart-item">
+              <article key={r.id} className="cart-item" data-tone={i % 4}>
                 <div className="cart-item__img" style={{ backgroundImage: `url(${r.img})` }} role="img" aria-label={r.nome}>
                   {!r.img && <i className="fa-light fa-image" aria-hidden="true" />}
                   {scontoPct > 0 && <span className="cart-item__badge">-{scontoPct}%</span>}
