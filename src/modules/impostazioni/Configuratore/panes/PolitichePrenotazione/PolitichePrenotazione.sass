@@ -34,6 +34,15 @@
   &__col-c
     text-align: center
 
+  // Descrizione: sempre una sola riga con ellipsis; testo completo nel tooltip
+  &__desc
+    display: block
+    max-width: 260px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+    cursor: default
+
   &__row--off td
     color: $text-disabled
 

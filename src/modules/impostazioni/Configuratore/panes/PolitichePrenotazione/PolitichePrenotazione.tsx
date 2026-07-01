@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
 import Modal from '../../../../../core/components/Modal'
 import Ico from '../../../../../core/icons/Ico'
+import Tooltip from '../../../../../core/components/Tooltip'
 import { InputField, SelectField, TextareaField, RadioGroup, CheckboxField, ToggleSwitch } from '../../../../../core/components/form'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
@@ -235,7 +236,13 @@ export default function PolitichePrenotazione() {
                   <ToggleSwitch checked={p.Attivo} onChange={() => toggleAttivo(p)} className="politiche-prenotazione__slider" />
                 </td>
                 <td>{p.Nome}</td>
-                <td>{p.Descrizione}</td>
+                <td>
+                  {p.Descrizione ? (
+                    <Tooltip content={p.Descrizione} position="top" variant="light">
+                      <span className="politiche-prenotazione__desc">{p.Descrizione}</span>
+                    </Tooltip>
+                  ) : '—'}
+                </td>
                 <td className="politiche-prenotazione__col-c">{p.PagamentiAbilitati ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.CancellazioneAbilitata ? 'Sì' : 'No'}</td>
                 <td className="politiche-prenotazione__col-c">{p.MancatoArrivoAbilitato ? pct(p.MancatoArrivoPercentuale) : 'Nessuna'}</td>
