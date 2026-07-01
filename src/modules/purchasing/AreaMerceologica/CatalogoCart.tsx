@@ -28,11 +28,17 @@ interface Row {
   descrizione: string
   img: string
   prezzoUnitario: number
+  prezzoOriginale?: number
+  chip: string
   quantita: number
   qtaLabel: string
   contesto: Tab
   updateQty: (id: string, q: number) => void
 }
+
+// prezzo "di listino" per gli item dimostrativi (mostra sconto e risparmio)
+const DEMO_ORIG: Record<string, number> = { d1: 89, d2: 52, d3: 35 }
+const FREE_SHIP_THRESHOLD = 50
 
 // ── Ordini (storico, mock in attesa API) ─────────────────────────────────────
 interface Ordine {
@@ -84,6 +90,8 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
   const [metodo, setMetodo] = useState<Metodo>('wallet')
   const [spedizione, setSpedizione] = useState(SPEDIZIONI[0])
   const [ordSearch, setOrdSearch] = useState('')
+  const [coupon, setCoupon] = useState('')
+  const [couponOk, setCouponOk] = useState(false)
 
   // Popola il carrello unico con contenuti dimostrativi al primo accesso
   useEffect(() => {
@@ -94,9 +102,9 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
   }, [])
 
   const rows: Row[] = useMemo(() => items.map((it: CartItem): Row => {
-    if (it.kind === 'stay') return { id: it.id, nome: it.nome, descrizione: `${it.location} · ${it.camere}`, img: it.immagineUrl, prezzoUnitario: it.prezzoPerNotte, quantita: it.notti, qtaLabel: 'notti', contesto: 'aziendale', updateQty: updateStay }
-    if (it.kind === 'service') return { id: it.id, nome: it.nome, descrizione: `${it.citta} · ${it.durata}`, img: it.immagineUrl, prezzoUnitario: it.prezzoUnitario, quantita: it.quantita, qtaLabel: it.unitaPrezzo, contesto: 'personale', updateQty: updateService }
-    return { id: it.id, nome: it.nome, descrizione: it.descrizione || it.fornitoreNome, img: it.immagineUrl, prezzoUnitario: it.prezzoUnitario, quantita: it.quantita, qtaLabel: 'pz', contesto: 'aziendale', updateQty: updateProduct }
+    if (it.kind === 'stay') return { id: it.id, nome: it.nome, descrizione: `${it.camere} · ${it.adulti} adulti`, chip: it.location, img: it.immagineUrl, prezzoUnitario: it.prezzoPerNotte, quantita: it.notti, qtaLabel: 'notti', contesto: 'aziendale', updateQty: updateStay }
+    if (it.kind === 'service') return { id: it.id, nome: it.nome, descrizione: it.durata, chip: it.citta, img: it.immagineUrl, prezzoUnitario: it.prezzoUnitario, quantita: it.quantita, qtaLabel: it.unitaPrezzo, contesto: 'personale', updateQty: updateService }
+    return { id: it.id, nome: it.nome, descrizione: it.descrizione || 'Prodotto del catalogo', chip: it.fornitoreNome, img: it.immagineUrl, prezzoUnitario: it.prezzoUnitario, prezzoOriginale: DEMO_ORIG[it.id], quantita: it.quantita, qtaLabel: 'pz', contesto: 'aziendale', updateQty: updateProduct }
   }), [items, updateProduct, updateStay, updateService])
 
   const visible = useMemo(() => {
@@ -109,9 +117,20 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
   }, [rows, tab, sort])
 
   const subtotale = visible.reduce((acc, r) => acc + r.prezzoUnitario * r.quantita, 0)
-  const iva = subtotale * IVA_PCT
-  const totale = subtotale + iva
+  const risparmio = visible.reduce((acc, r) => acc + (r.prezzoOriginale ? (r.prezzoOriginale - r.prezzoUnitario) * r.quantita : 0), 0)
+  const sconto = couponOk ? subtotale * 0.10 : 0
+  const imponibile = subtotale - sconto
+  const iva = imponibile * IVA_PCT
+  const totale = imponibile + iva
   const daPagare = paga === 'acconto' ? totale * ACCONTO_PCT : totale
+  const freeShipReached = subtotale >= FREE_SHIP_THRESHOLD
+  const freeShipPct = Math.min(100, Math.round((subtotale / FREE_SHIP_THRESHOLD) * 100))
+
+  const applyCoupon = () => {
+    if (!coupon.trim()) return
+    setCouponOk(true)
+    toast.success(`Codice "${coupon.trim().toUpperCase()}" applicato · -10%`)
+  }
 
   const remove = async (r: Row) => {
     const ok = await confirm({ title: 'Rimuovi dal carrello', message: `Rimuovere "${r.nome}" dal carrello?`, confirmLabel: 'Rimuovi', danger: true })
@@ -208,12 +227,16 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
                 <p>Il carrello {tab === 'aziendale' ? 'aziendale' : 'personale'} è vuoto.</p>
                 <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('area-merceologica')}>Esplora il catalogo</button>
               </div>
-            ) : visible.map(r => (
+            ) : visible.map(r => {
+              const scontoPct = r.prezzoOriginale ? Math.round((1 - r.prezzoUnitario / r.prezzoOriginale) * 100) : 0
+              return (
               <article key={r.id} className="cart-item">
                 <div className="cart-item__img" style={{ backgroundImage: `url(${r.img})` }} role="img" aria-label={r.nome}>
                   {!r.img && <i className="fa-light fa-image" aria-hidden="true" />}
+                  {scontoPct > 0 && <span className="cart-item__badge">-{scontoPct}%</span>}
                 </div>
                 <div className="cart-item__info">
+                  <span className="cart-item__chip"><i className="fa-solid fa-store" aria-hidden="true" />{r.chip}</span>
                   <h3 className="cart-item__name">{r.nome}</h3>
                   <p className="cart-item__desc">{r.descrizione}</p>
                   <div className="cart-item__qty" role="group" aria-label="Quantità">
@@ -223,6 +246,7 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
                   </div>
                 </div>
                 <div className="cart-item__right">
+                  {r.prezzoOriginale && <span className="cart-item__old">{eur(r.prezzoOriginale * r.quantita)}</span>}
                   <span className="cart-item__price">{eur(r.prezzoUnitario * r.quantita)}</span>
                   <span className="cart-item__unit">{eur(r.prezzoUnitario)} / {r.qtaLabel}</span>
                   <button type="button" className="cart-item__remove" onClick={() => remove(r)} aria-label="Rimuovi">
@@ -230,21 +254,39 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
                   </button>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </section>
 
           {/* Colonna destra: riepilogo */}
           <aside className="cart__summary">
             <h2 className="cart__summary-title">Riepilogo</h2>
 
+            {/* Barra spedizione gratuita */}
+            <div className="cart__ship-progress">
+              <div className="cart__ship-progress-head">
+                <span><i className="fa-solid fa-truck-fast" aria-hidden="true" /> {freeShipReached ? 'Spedizione gratuita sbloccata!' : `Ti mancano ${eur(FREE_SHIP_THRESHOLD - subtotale)} alla spedizione gratuita`}</span>
+                {freeShipReached && <i className="fa-solid fa-circle-check" aria-hidden="true" />}
+              </div>
+              <div className="cart__ship-bar"><span style={{ width: `${freeShipPct}%` }} /></div>
+            </div>
+
             <div className="cart__sum-row"><span>Subtotale</span><span>{eur(subtotale)}</span></div>
+            {risparmio > 0 && <div className="cart__sum-row cart__sum-row--save"><span>Risparmi</span><span>− {eur(risparmio)}</span></div>}
+            {sconto > 0 && <div className="cart__sum-row cart__sum-row--save"><span>Codice sconto</span><span>− {eur(sconto)}</span></div>}
             <div className="cart__sum-row"><span>Spedizione</span><span className="cart__free">Gratis</span></div>
-            <p className="cart__ship-note"><i className="fa-solid fa-truck-fast" aria-hidden="true" /> Il tuo ordine usufruisce della spedizione gratuita</p>
             <label className="cart__ship-select">
               <select value={spedizione} onChange={e => setSpedizione(e.target.value)}>
                 {SPEDIZIONI.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </label>
+
+            {/* Codice sconto */}
+            <div className="cart__coupon">
+              <i className="fa-solid fa-tag" aria-hidden="true" />
+              <input type="text" placeholder="Codice sconto" value={coupon} onChange={e => { setCoupon(e.target.value); setCouponOk(false) }} />
+              <button type="button" onClick={applyCoupon} disabled={!coupon.trim()}>Applica</button>
+            </div>
 
             <div className="cart__sum-row"><span>IVA ({Math.round(IVA_PCT * 100)}%)</span><span>{eur(iva)}</span></div>
             <div className="cart__sum-total"><span>Totale</span><span>{eur(totale)}</span></div>
@@ -272,8 +314,14 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
             </div>
 
             <button type="button" className="cart__pay-btn" onClick={pagaOra}>
-              Paga ora · {eur(daPagare)}
+              <i className="fa-solid fa-lock" aria-hidden="true" /> Paga ora · {eur(daPagare)}
             </button>
+
+            <div className="cart__trust">
+              <span><i className="fa-solid fa-shield-halved" aria-hidden="true" /> Pagamento sicuro</span>
+              <span><i className="fa-solid fa-rotate-left" aria-hidden="true" /> Reso facile</span>
+              <span><i className="fa-solid fa-headset" aria-hidden="true" /> Assistenza 24/7</span>
+            </div>
 
             <div className="cart__cards">
               <i className="fa-brands fa-cc-visa" aria-hidden="true" />
