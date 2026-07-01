@@ -143,7 +143,10 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
   const setCheckout = useCheckoutStore(s => s.setCheckout)
   const pagaOra = () => {
     if (visible.length === 0) { toast.warning('Il carrello è vuoto'); return }
-    setCheckout({ totale, acconto: paga === 'acconto', accontoPct: ACCONTO_PCT, metodo })
+    setCheckout({
+      totale, acconto: paga === 'acconto', accontoPct: ACCONTO_PCT, metodo,
+      items: visible.map(r => ({ id: r.id, nome: r.nome, img: r.img, prezzo: r.prezzoUnitario * r.quantita, qta: r.quantita, qtaLabel: r.qtaLabel })),
+    })
     navigate('catalogo-pagamento')
   }
 
