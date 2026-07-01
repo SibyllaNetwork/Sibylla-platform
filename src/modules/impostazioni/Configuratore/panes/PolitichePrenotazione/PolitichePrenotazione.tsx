@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
+import Modal from '../../../../../core/components/Modal'
+import Ico from '../../../../../core/icons/Ico'
 import { InputField, SelectField, TextareaField, RadioGroup, CheckboxField, ToggleSwitch } from '../../../../../core/components/form'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
@@ -233,56 +235,80 @@ export default function PolitichePrenotazione() {
       </div>
 
       {editing && (
-        <div className="politiche-prenotazione__modal-backdrop" onClick={() => setEditing(null)}>
-          <div className="politiche-prenotazione__modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{editing.Id ? 'Modifica regola' : 'Nuova regola'}</h3>
-
-            <div className="politiche-prenotazione__form-top">
-              <InputField name="nome" label="Nome" required value={editing.Nome} onChange={(e) => upd({ Nome: e.target.value })} placeholder="Es. Non rimborsabile" />
-              <InputField name="descrizione" label="Descrizione" value={editing.Descrizione} onChange={(e) => upd({ Descrizione: e.target.value })} placeholder="Breve descrizione" />
-              <SelectField name="termini" label="Termini e condizioni" value={editing.TerminiNome} options={terminiOptions} onChange={(e) => applyTemplate(e.target.value)} />
-              <button type="button" className="sib-btn sib-btn--secondary politiche-prenotazione__genera" onClick={genera}>
-                <i className="fa-light fa-wand-magic-sparkles" /> Genera Termini &amp; Condizioni
+        <Modal open onClose={() => setEditing(null)} size="xl" className="politiche-modal">
+          <div className="politiche-prenotazione__form">
+            <div className="politiche-prenotazione__form-head">
+              <div>
+                <h2 className="politiche-prenotazione__form-title">{editing.Id ? 'Modifica regola' : 'Nuova regola'}</h2>
+                <p className="politiche-prenotazione__form-sub">Configura le condizioni e i testi multilingua del documento di politica.</p>
+              </div>
+              <button type="button" className="politiche-prenotazione__form-close" onClick={() => setEditing(null)} aria-label="Chiudi">
+                <Ico n="x" s={18} c="var(--color-text-disabled)" />
               </button>
             </div>
 
-            <div className="politiche-prenotazione__group">
-              <h4>Programmazione pagamenti</h4>
-              <RadioGroup name="pagamenti" value={editing.PagamentiAbilitati ? '1' : '0'} options={SN} onChange={(v) => upd({ PagamentiAbilitati: v === '1' })} />
-              {editing.PagamentiAbilitati && (
-                <CheckboxField name="carta" label="Richiedi Carta di Credito a Garanzia" checked={editing.RichiediCartaGaranzia} onChange={(e) => upd({ RichiediCartaGaranzia: e.target.checked })} />
-              )}
-            </div>
+            {/* Anagrafica */}
+            <section className="politiche-prenotazione__fsec">
+              <div className="politiche-prenotazione__fsec-title">Anagrafica</div>
+              <div className="politiche-prenotazione__grid2">
+                <InputField name="nome" label="Nome" required value={editing.Nome} onChange={(e) => upd({ Nome: e.target.value })} placeholder="Es. Non rimborsabile" />
+                <InputField name="descrizione" label="Descrizione" value={editing.Descrizione} onChange={(e) => upd({ Descrizione: e.target.value })} placeholder="Breve descrizione" />
+              </div>
+            </section>
 
-            <div className="politiche-prenotazione__group">
-              <h4>Condizioni di cancellazione e penali</h4>
-              <RadioGroup name="cancellazione" value={editing.CancellazioneAbilitata ? '1' : '0'} options={SN} onChange={(v) => upd({ CancellazioneAbilitata: v === '1' })} />
-            </div>
+            {/* Condizioni */}
+            <section className="politiche-prenotazione__fsec">
+              <div className="politiche-prenotazione__fsec-title">Condizioni</div>
+              <div className="politiche-prenotazione__cond-grid">
+                <div className="politiche-prenotazione__cond">
+                  <span className="politiche-prenotazione__cond-title">Programmazione pagamenti</span>
+                  <RadioGroup name="pagamenti" value={editing.PagamentiAbilitati ? '1' : '0'} options={SN} onChange={(v) => upd({ PagamentiAbilitati: v === '1' })} />
+                  {editing.PagamentiAbilitati && (
+                    <CheckboxField name="carta" label="Richiedi Carta di Credito a Garanzia" checked={editing.RichiediCartaGaranzia} onChange={(e) => upd({ RichiediCartaGaranzia: e.target.checked })} />
+                  )}
+                </div>
+                <div className="politiche-prenotazione__cond">
+                  <span className="politiche-prenotazione__cond-title">Condizioni di cancellazione e penali</span>
+                  <RadioGroup name="cancellazione" value={editing.CancellazioneAbilitata ? '1' : '0'} options={SN} onChange={(v) => upd({ CancellazioneAbilitata: v === '1' })} />
+                </div>
+                <div className="politiche-prenotazione__cond">
+                  <span className="politiche-prenotazione__cond-title">Penalità di mancato arrivo</span>
+                  <RadioGroup name="mancato" value={editing.MancatoArrivoAbilitato ? '1' : '0'} options={SN} onChange={(v) => upd({ MancatoArrivoAbilitato: v === '1' })} />
+                  {editing.MancatoArrivoAbilitato && (
+                    <InputField
+                      name="percentuale" type="number" label="Percentuale penale (%)"
+                      className="politiche-prenotazione__pct"
+                      value={String(editing.MancatoArrivoPercentuale)}
+                      onChange={(e) => upd({ MancatoArrivoPercentuale: Number(e.target.value) || 0 })}
+                    />
+                  )}
+                </div>
+              </div>
+            </section>
 
-            <div className="politiche-prenotazione__group">
-              <h4>Penalità di mancato arrivo</h4>
-              <RadioGroup name="mancato" value={editing.MancatoArrivoAbilitato ? '1' : '0'} options={SN} onChange={(v) => upd({ MancatoArrivoAbilitato: v === '1' })} />
-              {editing.MancatoArrivoAbilitato && (
-                <InputField
-                  name="percentuale" type="number" label="Percentuale penale (%)"
-                  className="politiche-prenotazione__pct"
-                  value={String(editing.MancatoArrivoPercentuale)}
-                  onChange={(e) => upd({ MancatoArrivoPercentuale: Number(e.target.value) || 0 })}
-                />
-              )}
-            </div>
+            {/* Termini e condizioni multilingua */}
+            <section className="politiche-prenotazione__fsec">
+              <div className="politiche-prenotazione__fsec-head">
+                <div className="politiche-prenotazione__fsec-title">Termini e condizioni (multilingua)</div>
+                <div className="politiche-prenotazione__fsec-tools">
+                  <SelectField className="politiche-prenotazione__modello" name="termini" label="Modello di partenza" value={editing.TerminiNome} options={terminiOptions} onChange={(e) => applyTemplate(e.target.value)} />
+                  <button type="button" className="sib-btn sib-btn--secondary politiche-prenotazione__genera" onClick={genera}>
+                    <i className="fa-light fa-wand-magic-sparkles" /> Genera Termini &amp; Condizioni
+                  </button>
+                </div>
+              </div>
+              <div className="politiche-prenotazione__grid2">
+                <TextareaField name="testoIt" label="Testo italiano" rows={6} value={editing.TestoIt} onChange={(e) => upd({ TestoIt: e.target.value })} placeholder="Testo della politica in italiano" />
+                <TextareaField name="testoEn" label="Testo inglese" rows={6} value={editing.TestoEn} onChange={(e) => upd({ TestoEn: e.target.value })} placeholder="Policy text in English" />
+              </div>
+            </section>
 
-            <div className="politiche-prenotazione__testi">
-              <TextareaField name="testoIt" label="Testo italiano" rows={6} value={editing.TestoIt} onChange={(e) => upd({ TestoIt: e.target.value })} placeholder="Testo della politica in italiano" />
-              <TextareaField name="testoEn" label="Testo inglese" rows={6} value={editing.TestoEn} onChange={(e) => upd({ TestoEn: e.target.value })} placeholder="Policy text in English" />
-            </div>
-
-            <div className="politiche-prenotazione__modal-actions">
+            <div className="politiche-prenotazione__form-actions">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEditing(null)}>Annulla</button>
               <button type="button" className="sib-btn sib-btn--primary" onClick={save}>Salva</button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   )
