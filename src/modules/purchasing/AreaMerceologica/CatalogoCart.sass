@@ -4,21 +4,23 @@
 .cart
   display: flex
   flex-direction: column
-  gap: 18px
+  gap: 14px
   padding-bottom: 24px
 
   // BtnBack è figlio diretto del flex-column: evita che stretchi a tutta larghezza
   .sib-btn--back
     align-self: flex-start
+    margin-bottom: 0
 
   // ── Intestazione ────────────────────────────────────────────────
   &__head
     text-align: center
+    margin: -2px 0 2px
 
   &__title
     margin: 0
     font-family: $font-heading
-    font-size: 26px
+    font-size: 24px
     font-weight: 700
     color: $primary
     display: inline-flex
@@ -29,9 +31,9 @@
       color: $accent
 
   &__subtitle
-    margin: 4px 0 0
+    margin: 2px 0 0
     color: $text-inactive
-    font-size: 13.5px
+    font-size: 13px
 
   // ── Tabs ────────────────────────────────────────────────────────
   &__tabs
@@ -470,6 +472,7 @@
   border: 1px solid $border
   border-left: 3px solid var(--tone)
   border-radius: 14px
+  cursor: pointer
   transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s
 
   &[data-tone="0"]
@@ -643,6 +646,154 @@
     &:hover
       color: $error
       background: $error-light
+
+// ── Modale dettaglio articolo ─────────────────────────────────────────────────
+.modal__box.cart-detail-modal
+  padding: 0
+  overflow: hidden
+
+.cart-detail
+  --tone: #3F86C6
+  --tone-soft: #EAF3FB
+
+  &[data-tone="0"]
+    --tone: #3F86C6
+    --tone-soft: #EAF3FB
+  &[data-tone="1"]
+    --tone: #2FA37A
+    --tone-soft: #E7F5EF
+  &[data-tone="2"]
+    --tone: #C9A84C
+    --tone-soft: #FAF3DF
+  &[data-tone="3"]
+    --tone: #7C6BD4
+    --tone-soft: #EFECFB
+
+  &__hero
+    position: relative
+    height: 220px
+    background: $bg center/cover no-repeat
+    display: flex
+    align-items: flex-end
+
+    &::after
+      content: ''
+      position: absolute
+      inset: 0
+      background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.45) 100%), linear-gradient(140deg, transparent 50%, var(--tone) 165%)
+      opacity: 0.9
+
+  &__badge
+    position: absolute
+    z-index: 2
+    top: 14px
+    left: 14px
+    padding: 4px 10px
+    border-radius: 8px
+    background: linear-gradient(135deg, #F0663C, #D8462B)
+    color: #fff
+    font-size: 12px
+    font-weight: 700
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3)
+
+  &__close
+    position: absolute
+    z-index: 2
+    top: 12px
+    right: 12px
+    width: 34px
+    height: 34px
+    border: none
+    border-radius: 50%
+    background: rgba(255, 255, 255, 0.92)
+    color: $text-active
+    cursor: pointer
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 15px
+
+    &:hover
+      background: #fff
+
+  &__ctx
+    position: relative
+    z-index: 2
+    margin: 14px
+    padding: 4px 12px
+    border-radius: 999px
+    background: rgba(255, 255, 255, 0.92)
+    color: var(--tone)
+    font-size: 11px
+    font-weight: 700
+
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 20px 24px 24px
+
+  &__name
+    margin: 0
+    font-family: $font-heading
+    font-size: 20px
+    font-weight: 700
+    color: $primary
+
+  &__desc
+    margin: 0
+    font-size: 13.5px
+    line-height: 1.5
+    color: $text-inactive
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+    margin-top: 4px
+
+    div
+      display: flex
+      flex-direction: column
+      gap: 2px
+      padding: 10px 12px
+      border-radius: 10px
+      background: var(--tone-soft)
+
+      span
+        font-size: 11px
+        color: $text-inactive
+
+      strong
+        font-size: 15px
+        color: $primary
+
+  &__strike
+    text-decoration: line-through
+    color: $text-disabled !important
+
+  &__save
+    color: #1f8a4c !important
+
+  &__total
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 14px 16px
+    border-radius: 12px
+    background: linear-gradient(160deg, var(--color-primary), var(--color-primary-800))
+    color: #fff
+
+    strong
+      font-family: $font-heading
+      font-size: 22px
+      color: $accent
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 2px
 
 // ── Card ordine ───────────────────────────────────────────────────────────────
 .order-card

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
+import Modal from '../../../core/components/Modal'
 import { useCartStore, type CartItem } from '../../../store/useCartStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -92,6 +93,7 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
   const [ordSearch, setOrdSearch] = useState('')
   const [coupon, setCoupon] = useState('')
   const [couponOk, setCouponOk] = useState(false)
+  const [detail, setDetail] = useState<{ row: Row; tone: number } | null>(null)
 
   // Popola il carrello unico con contenuti dimostrativi al primo accesso
   useEffect(() => {
@@ -230,7 +232,7 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
             ) : visible.map((r, i) => {
               const scontoPct = r.prezzoOriginale ? Math.round((1 - r.prezzoUnitario / r.prezzoOriginale) * 100) : 0
               return (
-              <article key={r.id} className="cart-item" data-tone={i % 4}>
+              <article key={r.id} className="cart-item" data-tone={i % 4} onClick={() => setDetail({ row: r, tone: i % 4 })} role="button" tabIndex={0} aria-label={`Dettaglio ${r.nome}`}>
                 <div className="cart-item__img" style={{ backgroundImage: `url(${r.img})` }} role="img" aria-label={r.nome}>
                   {!r.img && <i className="fa-light fa-image" aria-hidden="true" />}
                   {scontoPct > 0 && <span className="cart-item__badge">-{scontoPct}%</span>}
@@ -239,7 +241,7 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
                   <span className="cart-item__chip"><i className="fa-solid fa-store" aria-hidden="true" />{r.chip}</span>
                   <h3 className="cart-item__name">{r.nome}</h3>
                   <p className="cart-item__desc">{r.descrizione}</p>
-                  <div className="cart-item__qty" role="group" aria-label="Quantità">
+                  <div className="cart-item__qty" role="group" aria-label="Quantità" onClick={e => e.stopPropagation()}>
                     <button type="button" onClick={() => r.updateQty(r.id, r.quantita - 1)} aria-label="Diminuisci"><i className="fa-light fa-minus" aria-hidden="true" /></button>
                     <span>{r.quantita}<em>{r.qtaLabel}</em></span>
                     <button type="button" onClick={() => r.updateQty(r.id, r.quantita + 1)} aria-label="Aumenta"><i className="fa-light fa-plus" aria-hidden="true" /></button>
@@ -249,7 +251,7 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
                   {r.prezzoOriginale && <span className="cart-item__old">{eur(r.prezzoOriginale * r.quantita)}</span>}
                   <span className="cart-item__price">{eur(r.prezzoUnitario * r.quantita)}</span>
                   <span className="cart-item__unit">{eur(r.prezzoUnitario)} / {r.qtaLabel}</span>
-                  <button type="button" className="cart-item__remove" onClick={() => remove(r)} aria-label="Rimuovi">
+                  <button type="button" className="cart-item__remove" onClick={e => { e.stopPropagation(); remove(r) }} aria-label="Rimuovi">
                     <i className="fa-light fa-trash-can" aria-hidden="true" />
                   </button>
                 </div>
@@ -333,6 +335,49 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
           </aside>
         </div>
       )}
+
+      {detail && (() => {
+        const r = detail.row
+        const scPct = r.prezzoOriginale ? Math.round((1 - r.prezzoUnitario / r.prezzoOriginale) * 100) : 0
+        const risp = r.prezzoOriginale ? (r.prezzoOriginale - r.prezzoUnitario) * r.quantita : 0
+        return (
+          <Modal open onClose={() => setDetail(null)} size="lg" className="cart-detail-modal">
+            <div className="cart-detail" data-tone={detail.tone}>
+              <div className="cart-detail__hero" style={{ backgroundImage: `url(${r.img})` }} role="img" aria-label={r.nome}>
+                {scPct > 0 && <span className="cart-detail__badge">-{scPct}%</span>}
+                <button type="button" className="cart-detail__close" onClick={() => setDetail(null)} aria-label="Chiudi">
+                  <i className="fa-light fa-xmark" aria-hidden="true" />
+                </button>
+                <span className="cart-detail__ctx">{r.contesto === 'personale' ? 'Personale' : 'Aziendale'}</span>
+              </div>
+              <div className="cart-detail__body">
+                <span className="cart-item__chip"><i className="fa-solid fa-store" aria-hidden="true" />{r.chip}</span>
+                <h2 className="cart-detail__name">{r.nome}</h2>
+                <p className="cart-detail__desc">{r.descrizione}</p>
+
+                <div className="cart-detail__grid">
+                  <div><span>Prezzo unitario</span><strong>{eur(r.prezzoUnitario)}</strong></div>
+                  <div><span>Quantità</span><strong>{r.quantita} {r.qtaLabel}</strong></div>
+                  {r.prezzoOriginale && <div><span>Prezzo pieno</span><strong className="cart-detail__strike">{eur(r.prezzoOriginale)}</strong></div>}
+                  {risp > 0 && <div><span>Risparmi</span><strong className="cart-detail__save">− {eur(risp)}</strong></div>}
+                </div>
+
+                <div className="cart-detail__total">
+                  <span>Totale articolo</span>
+                  <strong>{eur(r.prezzoUnitario * r.quantita)}</strong>
+                </div>
+
+                <div className="cart-detail__actions">
+                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => { setDetail(null); remove(r) }}>
+                    <i className="fa-light fa-trash-can" aria-hidden="true" /> Rimuovi
+                  </button>
+                  <button type="button" className="sib-btn sib-btn--primary" onClick={() => setDetail(null)}>Chiudi</button>
+                </div>
+              </div>
+            </div>
+          </Modal>
+        )
+      })()}
     </div>
   )
 }
