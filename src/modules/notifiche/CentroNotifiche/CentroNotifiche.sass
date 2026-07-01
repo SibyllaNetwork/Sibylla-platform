@@ -232,20 +232,21 @@ $notifiche-split-breakpoint: 1024px
     i
       font-size: 17px
 
-    &[data-sev="error"]
-      background: $error-light
-      border: 1px solid alpha($error, 0.13)
-      color: $error
+    // Colore per provenienza: Platform → blu, Tableau → verde, Agora → #708090
+    &[data-source="platform"]
+      background: #E8EEF4
+      border: 1px solid rgba(32, 71, 105, 0.13)
+      color: #204769
 
-    &[data-sev="warning"]
-      background: $warning-light
-      border: 1px solid alpha($warning, 0.13)
-      color: $warning
+    &[data-source="tableau"]
+      background: #E6F2EC
+      border: 1px solid rgba(32, 105, 83, 0.13)
+      color: #206953
 
-    &[data-sev="info"]
-      background: $link-light
-      border: 1px solid alpha($link, 0.13)
-      color: $link
+    &[data-source="agora"]
+      background: #EEF1F3
+      border: 1px solid rgba(112, 128, 144, 0.2)
+      color: #708090
 
   &__row-content
     flex: 1
@@ -328,6 +329,16 @@ $notifiche-split-breakpoint: 1024px
 
     &--unread
       font-weight: 700
+
+    // Colore titolo per provenienza (coerente con la campanella e la finestra)
+    &[data-source="platform"]
+      color: #204769
+
+    &[data-source="tableau"]
+      color: #206953
+
+    &[data-source="agora"]
+      color: #708090
 
   &__sev-badge
     font-size: 10px

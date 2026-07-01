@@ -35,24 +35,24 @@ interface NotificaUI {
   group: 'oggi' | 'mese-scorso' | 'precedenti'
   read: boolean
   extra?: ExtraBookingInfo
-  /** origine della notifica: 'tableau' abilita la chat dedicata */
-  source?: 'tableau' | 'to' | 'platform'
+  /** provenienza: colora campanella e titolo. 'tableau' abilita la chat dedicata */
+  source?: 'platform' | 'tableau' | 'agora'
 }
 
 const fmtEUR = (n: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(n)
 
 const FALLBACK: NotificaUI[] = [
-  { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false, source:'tableau' },
-  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false, source:'to',
+  { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false, source:'platform' },
+  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false, source:'platform',
     extra: { bookingId:'0001/015161', nazionalita:'ITA', checkIn:'sab 25/04/2026', checkOut:'lun 27/04/2026', stato:'Opzionata', camere:50, persone:110, tipologia:'Studenti', pernotto:10600, servizi:0 } },
   { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-scorso', read:true, source:'tableau' },
   { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-scorso', read:true, source:'tableau' },
-  { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true, source:'to' },
-  { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true, source:'tableau' },
-  { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'19 Feb', time:'09:15', group:'precedenti', read:true,
+  { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true, source:'platform' },
+  { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true, source:'agora' },
+  { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'19 Feb', time:'09:15', group:'precedenti', read:true, source:'tableau',
     extra: { bookingId:'0001/014474', nazionalita:'GER', checkIn:'ven 19/02/2026', checkOut:'dom 21/02/2026', stato:'Confermata', camere:12, persone:24, tipologia:'Famiglie', pernotto:4200, servizi:350 } },
-  { id:4,   sev:'warning', title:'richiesta extra', text:'La prenotazione 2026014463 è passata in Extra a...', ref:'', date:'19 Feb', time:'09:14', group:'precedenti', read:true },
+  { id:4,   sev:'warning', title:'richiesta extra', text:'La prenotazione 2026014463 è passata in Extra a...', ref:'', date:'19 Feb', time:'09:14', group:'precedenti', read:true, source:'agora' },
 ]
 
 const groups = [
@@ -354,14 +354,14 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                         }
                         onClick={() => selectNotif(n.id)}
                       >
-                        <div className="notifiche__row-icon" data-sev={n.sev}>
+                        <div className="notifiche__row-icon" data-source={n.source ?? 'platform'}>
                           <i className="fa-light fa-bell" aria-hidden="true" />
                         </div>
                         <div className="notifiche__row-content">
                           <div className="notifiche__row-top">
                             <div className="notifiche__row-title-wrap">
                               {!isRead && <div className="notifiche__unread-dot" />}
-                              <span className={`notifiche__row-title ${!isRead ? 'notifiche__row-title--unread' : ''}`}>{n.title}</span>
+                              <span className={`notifiche__row-title ${!isRead ? 'notifiche__row-title--unread' : ''}`} data-source={n.source ?? 'platform'}>{n.title}</span>
                               <span className="notifiche__sev-badge" data-sev={n.sev}>
                                 {sevLabel[n.sev]}
                               </span>

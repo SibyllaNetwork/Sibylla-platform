@@ -33,11 +33,11 @@ const INIT_DATA: Notif[] = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 // Il colore primario della notifica (icona, badge, accenti) deriva dall'origine
-// della richiesta: Platform → blu, Tableau → verde, Agora → oro.
+// della richiesta: Platform → blu, Tableau → verde, Agora → grigio ardesia (#708090).
 const ORIGIN_CONFIG: Record<Origin, { bg: string; color: string; label: string }> = {
   platform: { bg: '#E8EEF4', color: '#204769', label: 'Platform' },
   tableau:  { bg: '#E6F2EC', color: '#206953', label: 'Tableau'  },
-  agora:    { bg: '#FAF1D7', color: '#A87D0F', label: 'Agora'    },
+  agora:    { bg: '#EEF1F3', color: '#708090', label: 'Agora'    },
 }
 
 const SEV_LABEL: Record<Sev, string> = {
