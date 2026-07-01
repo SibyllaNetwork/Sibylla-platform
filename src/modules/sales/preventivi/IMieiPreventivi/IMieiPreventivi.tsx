@@ -5,6 +5,10 @@ import SearchField from '../../../../core/components/form/SearchField'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../../services/api'
+import { useConfirmStore } from '../../../../store/useConfirmStore'
+import { toast } from '../../../../core/components/Toast/useToast'
+import { exportTableToXls } from '../../booking/GrigliaDisponibilita/exportGriglia'
+import { exportPreventivoPdf } from './preventivoPdf'
 import './IMieiPreventivi.sass'
 
 /**
@@ -69,6 +73,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const [page, setPage] = useState(1)
   const statiRef = useRef<HTMLDivElement>(null)
+  const confirm = useConfirmStore((s) => s.confirm)
 
   useEffect(() => {
     let cancelled = false
@@ -121,6 +126,48 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
   const statiLabel = statiSel.length === 0 ? 'Scelte multiple' : statiSel.length === 1 ? statiSel[0] : `${statiSel.length} stati`
 
+  // ── Azioni riga ───────────────────────────────────────────────────────────
+  // CreaPreventivo funge sia da vista che da editor (nessun prefill da id).
+  const handleOpen = () => navigate('crea-preventivo')
+
+  const handlePdf = (p: Preventivo) => {
+    exportPreventivoPdf(p)
+    toast.success(`PDF del preventivo ${p.codice} generato`)
+  }
+
+  const handleEmail = (p: Preventivo) => {
+    if (!p.email) { toast.warning(`Nessun indirizzo email per ${p.codice}`); return }
+    // marca il preventivo come "Inviato"
+    setItems((list) => list.map((x) => (x.id === p.id ? { ...x, stato: 'Inviato' } : x)))
+    toast.success(`Preventivo ${p.codice} inviato a ${p.email}`)
+  }
+
+  const handleDelete = async (p: Preventivo) => {
+    const ok = await confirm({
+      title: 'Elimina preventivo',
+      message: `Eliminare il preventivo ${p.codice}? L'operazione non è reversibile.`,
+      confirmLabel: 'Elimina',
+      danger: true,
+    })
+    if (!ok) return
+    setItems((list) => list.filter((x) => x.id !== p.id))
+    setSelected((s) => { const n = new Set(s); n.delete(p.id!); return n })
+    setExpanded((s) => { const n = new Set(s); n.delete(p.id!); return n })
+    toast.success(`Preventivo ${p.codice} eliminato`)
+  }
+
+  // ── Export Excel dell'elenco filtrato ───────────────────────────────────────
+  const handleExcel = () => {
+    const header = ['ID preventivo', 'Stato', 'Utente', 'Data creazione', 'Data scadenza', 'Cliente', 'Email', 'Camere', 'Check-in', 'Check-out', 'Prezzo']
+    const rows = filtered.map((p) => [
+      p.codice ?? '', p.stato ?? '', p.utente ?? '', p.data_creazione ?? '', p.data_scadenza ?? '',
+      p.cliente ?? '', p.email ?? '', p.camere ?? '', p.checkin ?? '', p.checkout ?? '',
+      p.prezzo != null ? p.prezzo.toLocaleString('it-IT', { minimumFractionDigits: 2 }) : '',
+    ])
+    exportTableToXls('preventivi.xlsx', header, rows, 'I miei preventivi')
+    toast.success(`Esportati ${rows.length} preventivi in Excel`)
+  }
+
   return (
     <div className="gest-prev">
       <BtnBack />
@@ -151,7 +198,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
         </div>
 
         <Tooltip text="Esporta in Excel">
-          <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel">
+          <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={handleExcel}>
             <i className="fa-light fa-file-excel" aria-hidden="true" />
           </button>
         </Tooltip>
@@ -212,19 +259,19 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                   <td className="gest-prev__col-actions">
                     <div className="gest-prev__actions">
                       <Tooltip text="Visualizza">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-eye" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={handleOpen}><i className="fa-light fa-eye" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Scarica PDF">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Scarica PDF"><i className="fa-light fa-file-pdf" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Scarica PDF" onClick={() => handlePdf(p)}><i className="fa-light fa-file-pdf" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Invia email">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Invia email"><i className="fa-light fa-envelope" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Invia email" onClick={() => handleEmail(p)}><i className="fa-light fa-envelope" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Modifica">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={() => navigate('crea-preventivo')}><i className="fa-light fa-pen" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={handleOpen}><i className="fa-light fa-pen" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Elimina">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Elimina"><i className="fa-light fa-trash" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Elimina" onClick={() => handleDelete(p)}><i className="fa-light fa-trash" aria-hidden="true" /></button>
                       </Tooltip>
                     </div>
                   </td>
