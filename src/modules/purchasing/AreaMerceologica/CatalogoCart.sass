@@ -7,6 +7,10 @@
   gap: 18px
   padding-bottom: 24px
 
+  // BtnBack è figlio diretto del flex-column: evita che stretchi a tutta larghezza
+  .sib-btn--back
+    align-self: flex-start
+
   // ── Intestazione ────────────────────────────────────────────────
   &__head
     text-align: center
