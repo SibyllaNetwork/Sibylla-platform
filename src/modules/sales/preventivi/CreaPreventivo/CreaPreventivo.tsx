@@ -142,8 +142,10 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="crea-preventivo">
-      <div className="crea-preventivo__top">
-        <BtnBack onClick={() => navigate('i-miei-preventivi')} />
+      <BtnBack onClick={() => navigate('i-miei-preventivi')} />
+
+      <div className="crea-preventivo__header">
+        <PageHeader title="Crea preventivo" subtitle="Generazione automatica di preventivi personalizzabili" />
         <div className="crea-preventivo__top-actions">
           <button className="sib-btn sib-btn--secondary" onClick={() => navigate('i-miei-preventivi')}>
             <i className="fa-duotone fa-file-lines" aria-hidden="true" /> Gestione preventivi
@@ -153,8 +155,6 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
           </button>
         </div>
       </div>
-
-      <PageHeader title="Crea preventivo" subtitle="Generazione automatica di preventivi personalizzabili" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}
 

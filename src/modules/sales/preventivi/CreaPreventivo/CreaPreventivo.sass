@@ -9,8 +9,12 @@
   flex-direction: column
   gap: 14px
 
-  // ── Barra superiore (Indietro + azioni a destra) ──────────────────
-  &__top
+  // BtnBack è figlio diretto del flex-column: evita che stretchi a tutta larghezza
+  .sib-btn--back
+    align-self: flex-start
+
+  // ── Intestazione: titolo a sx + azioni a dx, allineate al box titolo ──
+  &__header
     display: flex
     align-items: center
     justify-content: space-between
@@ -20,6 +24,7 @@
     display: flex
     align-items: center
     gap: 8px
+    flex-shrink: 0
 
   // ── Box-card di sezione ───────────────────────────────────────────
   &__section
