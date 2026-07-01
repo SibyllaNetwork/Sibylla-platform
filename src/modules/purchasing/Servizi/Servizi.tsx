@@ -135,7 +135,7 @@ export default function Servizi({ navigate }: { navigate: (p: string) => void })
           <button
             type="button"
             className="sib-btn sib-btn--ghost servizi__cart-btn"
-            onClick={() => navigate('agora-cart')}
+            onClick={() => navigate('catalogo-cart')}
             aria-label="Vai al carrello"
           >
             <Icon family="regular" name="cart-shopping" />
