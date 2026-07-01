@@ -35,19 +35,21 @@ interface NotificaUI {
   group: 'oggi' | 'mese-scorso' | 'precedenti'
   read: boolean
   extra?: ExtraBookingInfo
+  /** origine della notifica: 'tableau' abilita la chat dedicata */
+  source?: 'tableau' | 'to' | 'platform'
 }
 
 const fmtEUR = (n: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(n)
 
 const FALLBACK: NotificaUI[] = [
-  { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false },
-  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false,
+  { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false, source:'tableau' },
+  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false, source:'to',
     extra: { bookingId:'0001/015161', nazionalita:'ITA', checkIn:'sab 25/04/2026', checkOut:'lun 27/04/2026', stato:'Opzionata', camere:50, persone:110, tipologia:'Studenti', pernotto:10600, servizi:0 } },
-  { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-scorso', read:true  },
-  { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-scorso', read:true  },
-  { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true },
-  { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true },
+  { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-scorso', read:true, source:'tableau' },
+  { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-scorso', read:true, source:'tableau' },
+  { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true, source:'to' },
+  { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true, source:'tableau' },
   { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'19 Feb', time:'09:15', group:'precedenti', read:true,
     extra: { bookingId:'0001/014474', nazionalita:'GER', checkIn:'ven 19/02/2026', checkOut:'dom 21/02/2026', stato:'Confermata', camere:12, persone:24, tipologia:'Famiglie', pernotto:4200, servizi:350 } },
   { id:4,   sev:'warning', title:'richiesta extra', text:'La prenotazione 2026014463 è passata in Extra a...', ref:'', date:'19 Feb', time:'09:14', group:'precedenti', read:true },
@@ -269,6 +271,9 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
           subtitle={unreadCount > 0 ? `${unreadCount} notifiche non lette` : 'Tutte le notifiche sono state lette'}
         />
         <div className="notifiche__actions">
+          <button className="sib-btn sib-btn--secondary" onClick={() => navigate('chat')}>
+            <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
+          </button>
           {unreadCount > 0 && (
             <button className="sib-btn sib-btn--secondary" onClick={markAllRead}>
               <i className="fa-light fa-check" aria-hidden="true" /> Segna tutte lette
@@ -369,16 +374,31 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                           {n.ref  && <div className="notifiche__row-ref">{n.ref}</div>}
                           {n.text && <p className="notifiche__row-text">{n.text}</p>}
                         </div>
-                        <Tooltip text="Elimina notifica">
-                          <button
-                            type="button"
-                            className="notifiche__row-del"
-                            aria-label="Elimina notifica"
-                            onClick={(e) => { e.stopPropagation(); deleteNotif(n.id, n.title) }}
-                          >
-                            <i className="fa-light fa-trash-can" aria-hidden="true" />
-                          </button>
-                        </Tooltip>
+                        <div className="notifiche__row-actions">
+                          {n.source === 'tableau' && (
+                            <Tooltip text="Apri chat">
+                              <button
+                                type="button"
+                                className="notifiche__row-act"
+                                aria-label="Apri chat"
+                                onClick={(e) => { e.stopPropagation(); openChat(n.id) }}
+                              >
+                                <i className="fa-light fa-comments" aria-hidden="true" />
+                              </button>
+                            </Tooltip>
+                          )}
+                          <Tooltip text={isRead ? 'Già letta' : 'Segna come letta'}>
+                            <button
+                              type="button"
+                              className="notifiche__row-act"
+                              aria-label="Segna come letta"
+                              disabled={isRead}
+                              onClick={(e) => { e.stopPropagation(); markRead(n.id) }}
+                            >
+                              <i className="fa-light fa-eye" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
+                        </div>
                       </div>
                     )
                   })}
