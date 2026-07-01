@@ -108,6 +108,13 @@
     th.gest-prev__col-num
       text-align: right
 
+    // Azioni: stacca i pulsanti dal Prezzo (right-aligned), altrimenti si
+    // appiccicano. Serve la specificità di `&__table td/th` per battere il
+    // padding shorthand delle celle qui sotto (che vince su un .col-actions).
+    th.gest-prev__col-actions,
+    td.gest-prev__col-actions
+      padding-left: 32px !important
+
     td
       white-space: nowrap
       padding: 5px 4px !important
@@ -135,11 +142,6 @@
 
   &__col-num
     text-align: right
-
-  // La colonna Azioni mantiene la stessa distanza dal Prezzo che c'è tra le
-  // altre colonne fra loro: stesso padding-left standard delle celle (4px)
-  &__col-actions
-    padding-left: 4px !important
 
   &__exp-btn
     display: inline-flex
