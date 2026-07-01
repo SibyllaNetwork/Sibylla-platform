@@ -31,14 +31,17 @@
     display: flex
     flex-direction: column
     gap: 12px
-    padding: 16px 18px
+    padding: 14px 18px 16px
     background: $white
     border: 1px solid $border
     border-radius: 12px
 
-  &__section-title
-    margin-top: 0
-    margin-bottom: 4px
+    // Annulla il mt-6 (24px) dello standard .sib-section-title: il contenuto
+    // deve stare attaccato al margine superiore del box. Selettore annidato
+    // = specificità (0,2,0) → vince a prescindere dall'ordine dei layer.
+    .sib-section-title
+      margin-top: 0
+      margin-bottom: 2px
 
   &__field
     display: flex
@@ -56,9 +59,11 @@
       min-height: 56px
 
   // ── Voci di spesa: intestazione e azioni ──────────────────────────
+  // align-items: flex-start → il titolo resta attaccato al bordo superiore
+  // del box invece di centrarsi rispetto ai pulsanti (più alti).
   &__voci-head
     display: flex
-    align-items: center
+    align-items: flex-start
     justify-content: space-between
     gap: 12px
     flex-wrap: wrap
