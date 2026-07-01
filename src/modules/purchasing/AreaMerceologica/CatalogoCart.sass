@@ -13,74 +13,75 @@
     margin-bottom: 0
 
   // ── Intestazione ────────────────────────────────────────────────
-  &__head
-    text-align: center
-    margin: -2px 0 2px
+  // ── Intestazione + tab (una sola riga, recupera altezza) ────────
+  &__topbar
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 20px
+    flex-wrap: wrap
+    border-bottom: 1px solid $border
 
   &__title
-    margin: 0
+    margin: 0 0 10px
     font-family: $font-heading
-    font-size: 24px
+    font-size: 22px
     font-weight: 700
     color: $primary
     display: inline-flex
     align-items: center
-    gap: 12px
+    gap: 10px
 
     i
       color: $accent
 
-  &__subtitle
-    margin: 2px 0 0
-    color: $text-inactive
-    font-size: 13px
-
-  // ── Tabs ────────────────────────────────────────────────────────
+  // Tab a sottolineatura (flat, poco ingombro verticale)
   &__tabs
     display: flex
-    gap: 8px
-    justify-content: center
-    flex-wrap: wrap
+    gap: 4px
 
   &__tab
     display: inline-flex
     align-items: center
-    gap: 8px
-    padding: 9px 18px
-    border: 1px solid $border
-    border-radius: 999px
-    background: $white
+    gap: 7px
+    padding: 10px 16px
+    border: none
+    background: transparent
     color: $text-inactive
     font-family: $font-heading
-    font-size: 13px
+    font-size: 13.5px
     font-weight: 600
     cursor: pointer
-    transition: all 0.15s
+    border-bottom: 2px solid transparent
+    margin-bottom: -1px
+    transition: color 0.15s, border-color 0.15s
 
     i
       font-size: 14px
 
     &:hover
-      border-color: $primary-300
       color: $primary
 
     &.is-active
-      background: $primary
-      border-color: $primary
-      color: $white
+      color: $primary
+      border-bottom-color: $accent
 
   &__tab-count
-    min-width: 20px
-    height: 20px
-    padding: 0 6px
+    min-width: 18px
+    height: 18px
+    padding: 0 5px
     border-radius: 999px
-    background: $accent
+    background: $primary-50
     color: $primary
-    font-size: 11px
+    font-size: 10.5px
     font-weight: 700
     display: inline-flex
     align-items: center
     justify-content: center
+
+  &__tab.is-active &__tab-count
+    background: $accent
+    color: $primary
 
   // ── Layout carrello ─────────────────────────────────────────────
   &__layout

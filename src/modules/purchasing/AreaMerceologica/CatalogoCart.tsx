@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import Modal from '../../../core/components/Modal'
 import { useCartStore, type CartItem } from '../../../store/useCartStore'
+import { useCheckoutStore } from '../../../store/useCheckoutStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { toast } from '../../../core/components/Toast/useToast'
 import './CatalogoCart.sass'
@@ -139,9 +140,11 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
     if (ok) { removeItem(r.id); toast.success(`"${r.nome}" rimosso dal carrello`) }
   }
 
+  const setCheckout = useCheckoutStore(s => s.setCheckout)
   const pagaOra = () => {
     if (visible.length === 0) { toast.warning('Il carrello è vuoto'); return }
-    toast.success(`Pagamento di ${eur(daPagare)} avviato · ${metodo === 'wallet' ? 'Sibylla wallet' : 'Carta di credito'}`)
+    setCheckout({ totale, acconto: paga === 'acconto', accontoPct: ACCONTO_PCT, metodo })
+    navigate('catalogo-pagamento')
   }
 
   const ordiniFiltrati = ORDINI.filter(o => !ordSearch || o.nome.toLowerCase().includes(ordSearch.toLowerCase()) || o.numero.includes(ordSearch))
@@ -150,24 +153,23 @@ export default function CatalogoCart({ navigate }: { navigate: (p: string) => vo
     <div className="cart">
       <BtnBack onClick={() => navigate('area-merceologica')} />
 
-      <header className="cart__head">
+      <div className="cart__topbar">
         <h1 className="cart__title"><i className="fa-duotone fa-cart-shopping" aria-hidden="true" /> Il Mio Carrello</h1>
-        <p className="cart__subtitle">Tutti i tuoi acquisti in un unico posto</p>
-      </header>
 
-      {/* Tabs */}
-      <div className="cart__tabs" role="tablist">
-        <button role="tab" aria-selected={tab === 'aziendale'} className={`cart__tab ${tab === 'aziendale' ? 'is-active' : ''}`} onClick={() => setTab('aziendale')}>
-          <i className="fa-duotone fa-briefcase" aria-hidden="true" /> Aziendale
-          <span className="cart__tab-count">{rows.filter(r => r.contesto === 'aziendale').length}</span>
-        </button>
-        <button role="tab" aria-selected={tab === 'personale'} className={`cart__tab ${tab === 'personale' ? 'is-active' : ''}`} onClick={() => setTab('personale')}>
-          <i className="fa-duotone fa-user" aria-hidden="true" /> Personale
-          <span className="cart__tab-count">{rows.filter(r => r.contesto === 'personale').length}</span>
-        </button>
-        <button role="tab" aria-selected={tab === 'ordini'} className={`cart__tab ${tab === 'ordini' ? 'is-active' : ''}`} onClick={() => setTab('ordini')}>
-          <i className="fa-duotone fa-box-open" aria-hidden="true" /> I miei Ordini
-        </button>
+        {/* Tabs a sottolineatura */}
+        <div className="cart__tabs" role="tablist">
+          <button role="tab" aria-selected={tab === 'aziendale'} className={`cart__tab ${tab === 'aziendale' ? 'is-active' : ''}`} onClick={() => setTab('aziendale')}>
+            <i className="fa-duotone fa-briefcase" aria-hidden="true" /> Aziendale
+            <span className="cart__tab-count">{rows.filter(r => r.contesto === 'aziendale').length}</span>
+          </button>
+          <button role="tab" aria-selected={tab === 'personale'} className={`cart__tab ${tab === 'personale' ? 'is-active' : ''}`} onClick={() => setTab('personale')}>
+            <i className="fa-duotone fa-user" aria-hidden="true" /> Personale
+            <span className="cart__tab-count">{rows.filter(r => r.contesto === 'personale').length}</span>
+          </button>
+          <button role="tab" aria-selected={tab === 'ordini'} className={`cart__tab ${tab === 'ordini' ? 'is-active' : ''}`} onClick={() => setTab('ordini')}>
+            <i className="fa-duotone fa-box-open" aria-hidden="true" /> I miei Ordini
+          </button>
+        </div>
       </div>
 
       {tab === 'ordini' ? (

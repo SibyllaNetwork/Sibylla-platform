@@ -73,6 +73,7 @@ import ClasseProdotti              from '../modules/purchasing/AreaMerceologica/
 import ProdottoDettaglio           from '../modules/purchasing/AreaMerceologica/ProdottoDettaglio';
 import CatalogoCart                from '../modules/purchasing/AreaMerceologica/CatalogoCart';
 import CatalogoCheckout            from '../modules/purchasing/AreaMerceologica/CatalogoCheckout';
+import CatalogoPagamento           from '../modules/purchasing/AreaMerceologica/CatalogoPagamento';
 import Servizi                     from '../modules/purchasing/Servizi/Servizi';
 import CreaProdotto                from '../modules/purchasing/CreaProdotto/CreaProdotto';
 import ListaProdotti               from '../modules/purchasing/ListaProdotti/ListaProdotti';
@@ -320,6 +321,7 @@ export default function PageContent({ page, navigate }: Props) {
   }
   if (page === 'catalogo-cart')         return <CatalogoCart navigate={navigate}/>;
   if (page === 'catalogo-checkout')     return <CatalogoCheckout navigate={navigate}/>;
+  if (page === 'catalogo-pagamento')    return <CatalogoPagamento navigate={navigate}/>;
   if (page === 'servizi-acquisto')      return <Servizi navigate={navigate}/>;
   if (page === 'crea-prodotto')         return <CreaProdotto navigate={navigate}/>;
   if (page === 'lista-prodotti')        return <ListaProdotti navigate={navigate}/>;
