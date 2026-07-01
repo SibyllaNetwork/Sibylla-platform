@@ -263,11 +263,6 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       <BtnBack />
 
       {/* Header */}
-      {error && loaded && (
-        <div className="notifiche__error" role="status">
-          Backend non raggiungibile — mostrando dati di esempio. ({error})
-        </div>
-      )}
       <div className="notifiche__top-bar">
         <PageHeader
           title="Centro notifiche"

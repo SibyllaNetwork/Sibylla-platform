@@ -412,33 +412,40 @@ $notifiche-split-breakpoint: 1024px
     padding: 14px 0
     border-top: 1px solid $border
     border-bottom: 1px solid $border
-    display: flex
-    flex-direction: column
-    gap: 6px
+    // due colonne di coppie etichetta-valore ravvicinate (invece di una sola
+    // colonna con label e valore agli estremi opposti)
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px 32px
 
   &__detail-list-row
     display: flex
-    justify-content: space-between
     align-items: baseline
-    gap: 24px
+    gap: 8px
 
     dt
+      flex: 0 0 88px
       font-size: 13px
-      font-weight: 400
-      color: $text-active
+      font-weight: 600
+      color: $text-inactive
       margin: 0
 
     dd
       font-size: 13px
       color: $text-active
       margin: 0
-      text-align: right
+      text-align: left
+      font-weight: 400
 
     &--total
+      grid-column: 1 / -1
       margin-top: 4px
+      padding-top: 8px
+      border-top: 1px solid $border
 
       dt, dd
         font-weight: 700
+        color: $text-active
 
   &__detail-grid
     display: grid
