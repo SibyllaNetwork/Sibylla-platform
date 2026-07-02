@@ -65,18 +65,19 @@
 .ca-field--num
   flex: 0 0 92px
 
-  &__foot
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 12px
-    padding: 5px
-    border-top: 1px solid $border
-    background: alpha($primary, 0.02)
+// Footer: Indietro a sinistra, azione a destra, 5px dai bordi
+.ca-setup__foot
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  padding: 5px
+  border-top: 1px solid $border
+  background: alpha($primary, 0.02)
 
-  // l'azione principale resta sempre a destra (anche quando "Indietro" è nascosto)
-  &__next
-    margin-left: auto
+// l'azione principale resta sempre a destra (anche quando "Indietro" è nascosto)
+.ca-setup__next
+  margin-left: auto
 
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
