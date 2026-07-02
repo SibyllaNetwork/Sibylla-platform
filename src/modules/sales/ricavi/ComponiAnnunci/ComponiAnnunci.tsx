@@ -4,6 +4,7 @@ import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
 import { SelectField, RadioGroup, InputField, DateRangeField } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
+import Pagination from '../../../../core/components/Pagination'
 import './ComponiAnnunci.sass'
 
 // ─── TIPI ─────────────────────────────────────────────────────────────────────
@@ -76,12 +77,19 @@ const periodLabel = (da: string, a: string) => {
 }
 
 // ─── BACHECA seed ─────────────────────────────────────────────────────────────
+const PAGE_SIZE = 8
+
 const BACHECA_INIT: RigaBacheca[] = [
-  { id: 1, periodo: '3/2026 - 6/2026',  tipologia: 'Vendita', preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 2, periodo: '2/2026 - 5/2026',  tipologia: 'Vendita', preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 3, periodo: '11/2025 - 4/2026', tipologia: 'Acquisto', preferito: false, quantita: '6 Lotti', stato: 'In bozza'   },
-  { id: 4, periodo: '12/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
-  { id: 5, periodo: '11/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '4 Lotti', stato: 'Pubblicato' },
+  { id: 1,  periodo: '3/2026 - 6/2026',   tipologia: 'Vendita',  preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 2,  periodo: '2/2026 - 5/2026',   tipologia: 'Vendita',  preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 3,  periodo: '11/2025 - 4/2026',  tipologia: 'Acquisto', preferito: false, quantita: '6 Lotti',  stato: 'In bozza'   },
+  { id: 4,  periodo: '12/2025 - 4/2026',  tipologia: 'Vendita',  preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
+  { id: 5,  periodo: '11/2025 - 4/2026',  tipologia: 'Vendita',  preferito: false, quantita: '4 Lotti',  stato: 'Pubblicato' },
+  { id: 6,  periodo: '1/2026 - 4/2026',   tipologia: 'Acquisto', preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
+  { id: 7,  periodo: '4/2026 - 9/2026',   tipologia: 'Vendita',  preferito: false, quantita: '3 Lotti',  stato: 'In bozza'   },
+  { id: 8,  periodo: '5/2026 - 10/2026',  tipologia: 'Vendita',  preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 9,  periodo: '7/2026 - 10/2026',  tipologia: 'Acquisto', preferito: false, quantita: '5 Lotti',  stato: 'In bozza'   },
+  { id: 10, periodo: '9/2026 - 12/2026',  tipologia: 'Vendita',  preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
 ]
 
 export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => void }) {
@@ -100,6 +108,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const [contratto, setContratto] = useState<Contratto | null>(null)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
   const [step, setStep] = useState(0)
+  const [boardPage, setBoardPage] = useState(1)
+
+  const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
+  useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
+  const bachecaPage = bacheca.slice((boardPage - 1) * PAGE_SIZE, boardPage * PAGE_SIZE)
 
   useEffect(() => {
     let cancelled = false
@@ -296,7 +309,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           <div className="ca-board__list">
             {bacheca.length === 0 ? (
               <div className="ca-board__empty">Nessun annuncio in bacheca.</div>
-            ) : bacheca.map((b) => (
+            ) : bachecaPage.map((b) => (
               <article key={b.id} className={`ca-item ${editingBachecaId === b.id ? 'ca-item--active' : ''}`}>
                 <span className={`ca-item__pin ca-item__pin--${b.tipologia.toLowerCase()}`} aria-hidden="true" />
                 <button type="button" className="ca-item__open" onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
@@ -326,6 +339,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               </article>
             ))}
           </div>
+          {boardTotalPages > 1 && (
+            <Pagination page={boardPage} totalPages={boardTotalPages} onPageChange={setBoardPage} className="ca-board__pager" />
+          )}
         </aside>
       </div>
 
