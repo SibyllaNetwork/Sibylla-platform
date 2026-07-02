@@ -30,13 +30,6 @@ const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio'
 const WDAYS  = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato']
 const WDAYS_SHORT = ['D','L','M','M','G','V','S']
 
-// Posizioni delle sfere (%) — sincronizzate con .giornale__node--pN nel .sass
-const NODE_POS = [
-  { x: 50, y: 6 }, { x: 89, y: 27 }, { x: 89, y: 73 },
-  { x: 50, y: 94 }, { x: 11, y: 73 }, { x: 11, y: 27 },
-]
-
-
 // ── Card per tab (vista estesa) ─────────────────────────────────────────────
 // Panoramica = widget dashboard dedicati (renderExtCard).
 // Gli altri tab elencano le SEZIONI DEL MENU del modulo Impresa corrispondente:
@@ -733,19 +726,6 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       {viewMode === 'sintetica' && (
         <>
           <div className="giornale__ring">
-            {/* Orbita ellittica + raggi verso il centro */}
-            <svg className="giornale__orbit" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <ellipse className="giornale__orbit-ring" cx="50" cy="50" rx="39" ry="44" vectorEffect="non-scaling-stroke" />
-              {orbit.map((_, i) => (
-                <line
-                  key={i}
-                  className={`giornale__spoke ${i === active ? 'giornale__spoke--active' : ''}`}
-                  x1="50" y1="50" x2={NODE_POS[i].x} y2={NODE_POS[i].y}
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-            </svg>
-
             <button
               className="giornale__ring-arrow giornale__ring-arrow--prev"
               onClick={() => setActive(a => (a - 1 + orbit.length) % orbit.length)}
