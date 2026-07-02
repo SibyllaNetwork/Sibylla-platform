@@ -1,176 +1,99 @@
 // ─── COMPONI ANNUNCI ──────────────────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
 
-.componi-annunci
+.ca
   display: flex
   flex-direction: column
-  align-items: stretch
-  gap: 16px
+  gap: 18px
   font-size: 13px
 
   > .sib-btn--back
     align-self: flex-start
 
-  // ── Layout: sinistra (parametri + contenuto) | destra (bacheca) ──────────────
-  &__layout
-    display: grid
-    grid-template-columns: 1fr 460px
-    gap: 24px
-    align-items: start
+// ── Card parametri ──────────────────────────────────────────────────────────────
+.ca-setup
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 14px
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
+  overflow: hidden
 
-    @media (max-width: 1200px)
-      grid-template-columns: 1fr
-
-  &__left
+  &__head
     display: flex
-    flex-direction: column
-    gap: 16px
-    min-width: 0
+    align-items: center
+    gap: 8px
+    padding: 12px 18px
+    font-family: $font-heading
+    font-weight: 600
+    color: $primary
+    border-bottom: 1px solid $border
+    background: alpha($primary, 0.03)
 
-  // ── Filtri (righe di parametri) ──────────────────────────────────────────────
-  &__filters
-    display: flex
-    flex-wrap: wrap
-    align-items: flex-end
-    gap: 12px
-
-  &__f
-    min-width: 150px
-
-  &__f-num
-    width: 120px
-
-  &__avanti
-    margin-left: 4px
-
-  // ── Messaggio iniziale ───────────────────────────────────────────────────────
-  &__hint
-    padding: 40px 8px
-
-    h2
-      font-family: $font-heading
-      font-weight: 700
+    i
       color: $primary
-      font-size: 26px
-      line-height: 1.3
-      max-width: 560px
-      margin: 0
 
-  // ── Bacheca ───────────────────────────────────────────────────────────────────
-  &__bacheca
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))
+    gap: 14px 18px
+    padding: 18px
+
+  &__foot
     display: flex
-    flex-direction: column
-    gap: 10px
+    justify-content: flex-end
+    padding: 0 18px 18px
 
-  &__bacheca-title
+// ── Corpo: documento (sx) + bacheca (dx) ──────────────────────────────────────
+.ca-body
+  display: grid
+  grid-template-columns: 1fr 400px
+  gap: 18px
+  align-items: start
+
+  @media (max-width: 1200px)
+    grid-template-columns: 1fr
+
+// ── Pannello documento ────────────────────────────────────────────────────────
+.ca-doc-panel
+  min-width: 0
+
+// Empty state elegante
+.ca-empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  text-align: center
+  gap: 12px
+  padding: 64px 24px
+  background: var(--color-surface)
+  border: 1px dashed $border
+  border-radius: 14px
+
+  &__icon
+    width: 72px
+    height: 72px
+    border-radius: 50%
+    display: flex
+    align-items: center
+    justify-content: center
+    background: alpha($primary, 0.08)
+    color: $primary
+    font-size: 30px
+
+  &__title
     margin: 0
-    text-align: center
     font-family: $font-heading
     font-weight: 700
     color: $primary
-    font-size: 22px
+    font-size: 18px
 
-  &__bacheca-wrap
-    max-height: 560px
-    overflow-y: auto
-
-  &__table
-    th
-      white-space: nowrap
-
-  &__td-c
-    text-align: center
-
-  &__periodo
-    white-space: nowrap
-
-    i
-      color: $text-inactive
-      font-size: 11px
-      margin-right: 6px
-
-  &__tipologia
-    font-weight: 600
-    color: $text-active
-    margin-right: 4px
-
-  &__star-btn
-    background: transparent
-    border: none
-    cursor: pointer
-    padding: 2px
-
-  &__star
-    color: $warning
-    font-size: 13px
-
-    &--off
-      color: $border
-
-  &__file
-    color: $error
-    font-size: 16px
-
-  &__icon-btn
-    background: transparent
-    border: none
-    cursor: pointer
+  &__text
+    margin: 0
+    max-width: 420px
     color: $text-inactive
-    padding: 4px
+    line-height: 1.6
 
-    &:hover
-      color: $primary
-
-  &__pubblica-btn
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    background: transparent
-    border: none
-    cursor: pointer
-    color: $success
-    font-weight: 600
-    font-size: 12px
-    padding: 4px
-
-  &__pubblicato
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    color: $success
-    font-weight: 600
-    font-size: 12px
-
-    i
-      font-size: 14px
-
-  // ── Celle editabili (tabelle contratto) ──────────────────────────────────────
-  &__edit-cell
-    display: inline-flex
-    align-items: center
-    gap: 8px
-
-  &__edit-ico
-    background: transparent
-    border: none
-    cursor: pointer
-    color: $text-inactive
-    font-size: 12px
-    padding: 4px
-    border-radius: 4px
-
-    &:hover
-      background: $primary-50
-      color: $primary
-
-  &__edit-input
-    width: 100%
-    min-width: 90px
-    height: 28px
-    font-size: 12px
-
-
-// ─── ANTEPRIMA CONTRATTO (Doc) ──────────────────────────────────────────────────
+// ── Toolbar contratto ───────────────────────────────────────────────────────────
 .ca-contract
   display: flex
   flex-direction: column
@@ -185,50 +108,63 @@
     display: flex
     gap: 8px
 
-  &__sheet
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10)
-    padding: 32px 36px
-    display: flex
-    flex-direction: column
-    gap: 18px
-    color: $text-active
+// ── Foglio contratto (documento professionale) ──────────────────────────────────
+.ca-sheet
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 14px
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.10)
+  overflow: hidden
+  color: $text-active
 
   &__head
     display: flex
     justify-content: space-between
     align-items: flex-start
     gap: 24px
-    padding-bottom: 14px
-    border-bottom: 2px solid $primary
+    padding: 26px 32px
+    background: linear-gradient(135deg, $primary 0%, $primary-700 100%)
+    color: #fff
 
-  &__title
+  &__kicker
+    font-size: 11px
+    text-transform: uppercase
+    letter-spacing: 0.08em
+    opacity: 0.85
+
+  &__struttura
     font-family: $font-heading
     font-weight: 700
     font-size: 22px
-    color: $primary
+    margin-top: 2px
 
   &__meta
     text-align: right
+    font-size: 12px
 
     > div
       display: flex
       justify-content: space-between
       gap: 16px
+      padding: 1px 0
 
     span
-      color: $text-inactive
+      opacity: 0.8
 
   &__parties
     display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 8px 24px
+    grid-template-columns: repeat(3, 1fr)
+    gap: 16px
+    padding: 18px 32px
+    border-bottom: 1px solid $border
 
-    > div
-      display: flex
-      flex-direction: column
+    @media (max-width: 620px)
+      grid-template-columns: 1fr
+
+  &__party
+    display: flex
+    flex-direction: column
+    gap: 2px
 
     span
       font-size: 10px
@@ -241,26 +177,263 @@
       color: $primary
       font-size: 14px
 
-  &__h
-    margin: 6px 0 0
-    font-family: $font-heading
-    font-weight: 700
-    color: $primary
-    font-size: 15px
+  &__section-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 18px 32px 8px
 
-  &__note-edit
-    margin: 0
-    font-size: 12px
-    color: $text-inactive
-
-    i
+    h4
+      margin: 0
+      font-family: $font-heading
+      font-weight: 700
       color: $primary
-      margin-right: 4px
+      font-size: 15px
+
+  &__editable
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    color: $primary
+    background: alpha($primary, 0.08)
+    border-radius: 999px
+    padding: 2px 10px
+
+  &__table
+    margin: 0
+
+  .sib-table-wrap
+    margin: 0 32px
 
   &__clausola
     font-size: 12px
     color: $text-inactive
     line-height: 1.6
-    border-top: 1px solid $border
-    padding-top: 12px
+    padding: 18px 32px 28px
     margin: 0
+
+// ── Celle editabili ─────────────────────────────────────────────────────────────
+.ca-edit-cell
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  cursor: pointer
+  border-radius: 4px
+  padding: 2px 4px
+
+  &:hover
+    background: alpha($primary, 0.06)
+
+  &__ico
+    color: $text-inactive
+    font-size: 11px
+
+  &:hover .ca-edit-cell__ico
+    color: $primary
+
+.ca-edit-input
+  width: 100%
+  min-width: 90px
+  height: 28px
+  font-size: 12px
+
+// ── Bacheca ───────────────────────────────────────────────────────────────────
+.ca-board
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 14px
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
+  overflow: hidden
+  display: flex
+  flex-direction: column
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    padding: 14px 16px
+    border-bottom: 1px solid $border
+    background: alpha($primary, 0.03)
+
+  &__title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 15px
+
+    i
+      color: $primary
+
+  &__count
+    min-width: 24px
+    height: 22px
+    padding: 0 8px
+    border-radius: 999px
+    background: $primary
+    color: #fff
+    font-size: 12px
+    font-weight: 700
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 12px
+    max-height: 620px
+    overflow-y: auto
+
+  &__empty
+    padding: 30px 12px
+    text-align: center
+    color: $text-inactive
+
+// Item bacheca
+.ca-item
+  display: flex
+  align-items: stretch
+  gap: 6px
+  border: 1px solid $border
+  border-radius: 12px
+  padding: 10px 12px
+  transition: border-color 0.15s, box-shadow 0.15s
+
+  &:hover
+    border-color: alpha($primary, 0.5)
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06)
+
+  &--active
+    border-color: $primary
+    box-shadow: 0 0 0 2px alpha($primary, 0.15)
+
+  &__star
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $border
+    font-size: 14px
+    padding: 2px 4px
+    align-self: flex-start
+
+    &--on
+      color: $warning
+
+  &__body
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+    cursor: pointer
+
+  &__top
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+  &__period,
+  &__qty
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-active
+
+    i
+      color: $text-inactive
+      font-size: 11px
+
+  &__qty
+    color: $text-inactive
+
+  &__actions
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 4px
+    padding-left: 4px
+    border-left: 1px solid $border
+
+  &__act
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    font-size: 14px
+    width: 28px
+    height: 28px
+    border-radius: 6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+
+    &:hover
+      background: alpha($primary, 0.08)
+      color: $primary
+
+    &--danger:hover
+      background: alpha($error, 0.10)
+      color: $error
+
+    &--publish
+      color: $success
+
+      &:hover
+        background: alpha($success, 0.12)
+        color: $success
+
+  &__pub
+    width: 28px
+    height: 28px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    color: $success
+    font-size: 15px
+
+// Chip tipologia
+.ca-chip
+  display: inline-flex
+  align-items: center
+  font-size: 11px
+  font-weight: 700
+  border-radius: 999px
+  padding: 2px 10px
+  text-transform: uppercase
+  letter-spacing: 0.02em
+
+  &--vendita
+    background: alpha($primary, 0.10)
+    color: $primary
+
+  &--acquisto
+    background: alpha($warning, 0.14)
+    color: $warning
+
+// Badge stato
+.ca-badge
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 11px
+  font-weight: 600
+  border-radius: 999px
+  padding: 2px 9px
+
+  i
+    font-size: 10px
+
+  &--pub
+    background: alpha($success, 0.12)
+    color: $success
+
+  &--draft
+    background: alpha($warning, 0.14)
+    color: $warning

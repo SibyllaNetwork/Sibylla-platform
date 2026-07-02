@@ -67,12 +67,11 @@ const periodLabel = (da: string, a: string) => {
 
 // ─── BACHECA seed ─────────────────────────────────────────────────────────────
 const BACHECA_INIT: RigaBacheca[] = [
-  { id: 1, periodo: '3/2026 - 6/2026',  tipologia: 'Vendita', preferito: true,  quantita: '1 Lotti', stato: 'Pubblicato' },
-  { id: 2, periodo: '3/2026 - 6/2026',  tipologia: 'Vendita', preferito: false, quantita: '1 Lotti', stato: 'Pubblicato' },
-  { id: 3, periodo: '2/2026 - 5/2026',  tipologia: 'Vendita', preferito: false, quantita: '1 Lotti', stato: 'Pubblicato' },
-  { id: 4, periodo: '11/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '1 Lotti', stato: 'Pubblicato' },
-  { id: 5, periodo: '11/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '6 Lotti', stato: 'Pubblicato' },
-  { id: 6, periodo: '12/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '1 Lotti', stato: 'Pubblicato' },
+  { id: 1, periodo: '3/2026 - 6/2026',  tipologia: 'Vendita', preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 2, periodo: '2/2026 - 5/2026',  tipologia: 'Vendita', preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 3, periodo: '11/2025 - 4/2026', tipologia: 'Acquisto', preferito: false, quantita: '6 Lotti', stato: 'In bozza'   },
+  { id: 4, periodo: '12/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
+  { id: 5, periodo: '11/2025 - 4/2026', tipologia: 'Vendita', preferito: false, quantita: '4 Lotti', stato: 'Pubblicato' },
 ]
 
 export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => void }) {
@@ -88,7 +87,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   const [bacheca, setBacheca] = useState<RigaBacheca[]>(BACHECA_INIT)
   const [contratto, setContratto] = useState<Contratto | null>(null)
-  // id della riga di bacheca in editing (null = nuovo contratto non ancora salvato)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -99,7 +97,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     return () => { cancelled = true }
   }, [])
 
-  // Genera il contratto (bozza) a partire dai parametri.
   const generaContratto = (): Contratto => {
     const struttura = STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel"
     return {
@@ -122,29 +119,26 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     }
   }
 
-  const avanti = () => { setEditingBachecaId(null); setContratto(generaContratto()) }
-  const annullaContratto = () => { setContratto(null); setEditingBachecaId(null) }
+  const genera = () => { setEditingBachecaId(null); setContratto(generaContratto()) }
+  const chiudiContratto = () => { setContratto(null); setEditingBachecaId(null) }
 
   const updTariffa = (id: number, field: keyof RigaTariffa, v: string) =>
     setContratto((c) => c && ({ ...c, tariffe: c.tariffe.map((r) => r.id === id ? { ...r, [field]: v } : r) }))
   const updServizio = (id: number, field: keyof RigaServizio, v: string) =>
     setContratto((c) => c && ({ ...c, servizi: c.servizi.map((r) => r.id === id ? { ...r, [field]: v } : r) }))
 
-  // Salva il contratto nella bacheca come Bozza (o aggiorna quello in editing).
   const salvaInBacheca = () => {
     if (!contratto) return
     const riga: Omit<RigaBacheca, 'id'> = {
       periodo: contratto.periodo || periodLabel(params.dataDa, params.dataA),
       tipologia: contratto.tipo,
       preferito: false,
-      quantita: `${params.quantita} Lotti`,
+      quantita: `${params.quantita} ${params.quantita === 1 ? 'Lotto' : 'Lotti'}`,
       stato: 'In bozza',
       contratto,
     }
     setBacheca((prev) => {
-      if (editingBachecaId != null) {
-        return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id } : b)
-      }
+      if (editingBachecaId != null) return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id } : b)
       const id = Math.max(0, ...prev.map((b) => b.id)) + 1
       return [{ id, ...riga }, ...prev]
     })
@@ -166,65 +160,66 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const toggleStar = (id: number) =>
     setBacheca((prev) => prev.map((b) => b.id === id ? { ...b, preferito: !b.preferito } : b))
 
-  const pubblica = (id: number) => {
-    // Pubblicazione in Agorà: la riga passa a stato Pubblicato (visibile nel marketplace).
+  const pubblica = (id: number) =>
     setBacheca((prev) => prev.map((b) => b.id === id ? { ...b, stato: 'Pubblicato' } : b))
-  }
 
   const eliminaBacheca = async (id: number) => {
-    if (await confirm({ title: 'Elimina annuncio', message: "Eliminare questo annuncio dalla bacheca?", confirmLabel: 'Elimina', danger: true })) {
+    if (await confirm({ title: 'Elimina annuncio', message: 'Eliminare questo annuncio dalla bacheca?', confirmLabel: 'Elimina', danger: true })) {
       setBacheca((prev) => prev.filter((b) => b.id !== id))
+      if (editingBachecaId === id) chiudiContratto()
     }
   }
 
   return (
-    <div className="componi-annunci">
+    <div className="ca">
       <BtnBack />
-      <PageHeader title="Componi annunci" />
+      <PageHeader title="Componi annunci" subtitle="Configura i parametri, genera il contratto, modificalo e pubblicalo in Agorà." />
 
-      <div className="componi-annunci__layout">
-        {/* ─── Colonna sinistra: parametri + contenuto ───────────────────── */}
-        <div className="componi-annunci__left">
-          <div className="componi-annunci__filters">
-            <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
-              options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
-            <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
-              options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
-            <SelectField label="Struttura" name="struttura" className="componi-annunci__f"
-              value={params.strutturaId ?? ''} onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
-              options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
-            <SelectField label="Tipo ospiti" name="tipoOspiti" className="componi-annunci__f"
-              value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
-              options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-            <SelectField label="Tipologia base" name="tipologiaBase" className="componi-annunci__f"
-              value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-              options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-            <SelectField label="Tipo lotti" name="tipoLotti" className="componi-annunci__f"
-              value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
-              options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
-            <button type="button" className="sib-btn sib-btn--primary componi-annunci__avanti" onClick={avanti}>Avanti</button>
-          </div>
+      {/* ── Parametri ─────────────────────────────────────────────────────── */}
+      <section className="ca-setup">
+        <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
+        <div className="ca-setup__grid">
+          <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
+            options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
+          <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
+            options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
+          <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
+            onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
+            options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+          <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
+            options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+          <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+            options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+          <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
+            options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
+          <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
+            valueFrom={params.dataDa} valueTo={params.dataA}
+            onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+          <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
+            options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
+          <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+          <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
+          <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
+            options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
+        </div>
+        <div className="ca-setup__foot">
+          <button type="button" className="sib-btn sib-btn--primary" onClick={genera}>
+            <i className="fa-light fa-file-contract" /> Genera contratto
+          </button>
+        </div>
+      </section>
 
-          <div className="componi-annunci__filters">
-            <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
-              valueFrom={params.dataDa} valueTo={params.dataA}
-              onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-            <SelectField label="Tour operator" name="tourOperator" className="componi-annunci__f"
-              value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
-              options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
-            <InputField label="Quantità" name="quantita" type="number" className="componi-annunci__f-num"
-              value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
-            <InputField label="Quantità Massima" name="quantitaMax" type="number" className="componi-annunci__f-num"
-              value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
-            <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" className="componi-annunci__f"
-              value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
-              options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
-          </div>
-
-          {/* Contenuto: messaggio o anteprima contratto */}
+      {/* ── Corpo: contratto (sx) + bacheca (dx) ──────────────────────────── */}
+      <div className="ca-body">
+        <div className="ca-doc-panel">
           {!contratto ? (
-            <div className="componi-annunci__hint">
-              <h2>Imposta la tipologia di annuncio per generare automaticamente opportunità di business.</h2>
+            <div className="ca-empty">
+              <div className="ca-empty__icon"><i className="fa-light fa-file-contract" /></div>
+              <h3 className="ca-empty__title">Nessun contratto in modifica</h3>
+              <p className="ca-empty__text">
+                Configura i parametri qui sopra e premi <strong>Genera contratto</strong>,
+                oppure apri un contratto dalla <strong>bacheca</strong> per modificarlo.
+              </p>
             </div>
           ) : (
             <ContrattoPreview
@@ -232,81 +227,73 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               onUpdTariffa={updTariffa}
               onUpdServizio={updServizio}
               onSalva={salvaInBacheca}
-              onAnnulla={annullaContratto}
+              onChiudi={chiudiContratto}
               isEditing={editingBachecaId != null}
             />
           )}
         </div>
 
-        {/* ─── Colonna destra: La mia bacheca ────────────────────────────── */}
-        <div className="componi-annunci__bacheca">
-          <h3 className="componi-annunci__bacheca-title">La mia bacheca</h3>
-          <div className="sib-table-wrap componi-annunci__bacheca-wrap">
-            <table className="sib-table componi-annunci__table">
-              <thead>
-                <tr>
-                  <th>Periodo</th><th>Tipologia</th><th>Quantità</th>
-                  <th className="componi-annunci__td-c">Contratto</th>
-                  <th className="componi-annunci__td-c">Elimina</th>
-                  <th className="componi-annunci__td-c">Pubblica</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bacheca.length === 0 ? (
-                  <tr><td colSpan={6} className="sib-empty">Nessun annuncio in bacheca.</td></tr>
-                ) : bacheca.map((b) => (
-                  <tr key={b.id}>
-                    <td className="componi-annunci__periodo"><i className="fa-light fa-paperclip" /> {b.periodo}</td>
-                    <td>
-                      <span className="componi-annunci__tipologia">{b.tipologia}</span>
-                      <button type="button" className="componi-annunci__star-btn" onClick={() => toggleStar(b.id)} aria-label="Preferito">
-                        <i className={`${b.preferito ? 'fa-solid' : 'fa-light'} fa-star componi-annunci__star ${b.preferito ? '' : 'componi-annunci__star--off'}`} />
-                      </button>
-                    </td>
-                    <td>{b.quantita}</td>
-                    <td className="componi-annunci__td-c">
-                      <button type="button" className="componi-annunci__icon-btn componi-annunci__file" onClick={() => apriContratto(b)} aria-label="Apri contratto" title="Apri contratto">
-                        <i className="fa-light fa-file-pdf" />
-                      </button>
-                    </td>
-                    <td className="componi-annunci__td-c">
-                      <button type="button" className="componi-annunci__icon-btn" onClick={() => eliminaBacheca(b.id)} aria-label="Elimina">
-                        <i className="fa-light fa-trash" />
-                      </button>
-                    </td>
-                    <td className="componi-annunci__td-c">
-                      {b.stato === 'Pubblicato' ? (
-                        <span className="componi-annunci__pubblicato"><i className="fa-solid fa-circle-check" /> Pubblicato</span>
-                      ) : (
-                        <button type="button" className="componi-annunci__pubblica-btn" onClick={() => pubblica(b.id)}>
-                          <i className="fa-solid fa-paper-plane" /> Pubblica
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <aside className="ca-board">
+          <div className="ca-board__head">
+            <span className="ca-board__title"><i className="fa-light fa-clipboard-list" /> La mia bacheca</span>
+            <span className="ca-board__count">{bacheca.length}</span>
           </div>
-        </div>
+          <div className="ca-board__list">
+            {bacheca.length === 0 ? (
+              <div className="ca-board__empty">Nessun annuncio in bacheca.</div>
+            ) : bacheca.map((b) => (
+              <article key={b.id} className={`ca-item ${editingBachecaId === b.id ? 'ca-item--active' : ''}`}>
+                <button type="button" className="ca-item__star" onClick={() => toggleStar(b.id)} aria-label="Preferito">
+                  <i className={`${b.preferito ? 'fa-solid' : 'fa-light'} fa-star ${b.preferito ? 'ca-item__star--on' : ''}`} />
+                </button>
+                <div className="ca-item__body" onClick={() => apriContratto(b)} role="button" tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') apriContratto(b) }}>
+                  <div className="ca-item__top">
+                    <span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span>
+                    <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
+                      <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
+                    </span>
+                  </div>
+                  <div className="ca-item__period"><i className="fa-light fa-calendar-range" /> {b.periodo}</div>
+                  <div className="ca-item__qty"><i className="fa-light fa-cubes" /> {b.quantita}</div>
+                </div>
+                <div className="ca-item__actions">
+                  <button type="button" className="ca-item__act" title="Modifica contratto" onClick={() => apriContratto(b)}>
+                    <i className="fa-light fa-file-pen" />
+                  </button>
+                  <button type="button" className="ca-item__act ca-item__act--danger" title="Elimina" onClick={() => eliminaBacheca(b.id)}>
+                    <i className="fa-light fa-trash" />
+                  </button>
+                  {b.stato === 'Pubblicato' ? (
+                    <span className="ca-item__pub" title="Pubblicato in Agorà"><i className="fa-solid fa-circle-check" /></span>
+                  ) : (
+                    <button type="button" className="ca-item__act ca-item__act--publish" title="Pubblica in Agorà" onClick={() => pubblica(b.id)}>
+                      <i className="fa-solid fa-paper-plane" />
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </aside>
       </div>
     </div>
   )
 }
 
 // ─── ANTEPRIMA CONTRATTO (Doc editabile) ────────────────────────────────────────
-function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onAnnulla, isEditing }: {
+function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onChiudi, isEditing }: {
   contratto: Contratto
   onUpdTariffa: (id: number, field: keyof RigaTariffa, v: string) => void
   onUpdServizio: (id: number, field: keyof RigaServizio, v: string) => void
   onSalva: () => void
-  onAnnulla: () => void
+  onChiudi: () => void
   isEditing: boolean
 }) {
   return (
     <div className="ca-contract">
       <div className="ca-contract__toolbar">
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={onAnnulla}><i className="fa-light fa-arrow-left" /> Indietro</button>
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onChiudi}><i className="fa-light fa-xmark" /> Chiudi</button>
         <div className="ca-contract__toolbar-right">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.print()}><i className="fa-light fa-print" /> Stampa</button>
           <button type="button" className="sib-btn sib-btn--primary" onClick={onSalva}>
@@ -315,26 +302,30 @@ function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onA
         </div>
       </div>
 
-      <div className="ca-contract__sheet">
-        <header className="ca-contract__head">
-          <div className="ca-contract__title">Contratto di {contratto.tipo}</div>
-          <div className="ca-contract__meta">
+      <div className="ca-sheet">
+        <header className="ca-sheet__head">
+          <div>
+            <div className="ca-sheet__kicker">Contratto di {contratto.tipo.toLowerCase()}</div>
+            <div className="ca-sheet__struttura">{contratto.struttura}</div>
+          </div>
+          <div className="ca-sheet__meta">
             <div><span>Numero</span><strong>{contratto.numero}</strong></div>
             <div><span>Data</span><strong>{contratto.data}</strong></div>
           </div>
         </header>
 
-        <section className="ca-contract__parties">
-          <div><span>Struttura</span><strong>{contratto.struttura}</strong></div>
-          <div><span>Tour operator</span><strong>{contratto.tourOperator}</strong></div>
-          <div><span>Periodo</span><strong>{contratto.periodo || '—'}</strong></div>
-          <div><span>Pagamento</span><strong>{contratto.pagamento}</strong></div>
+        <section className="ca-sheet__parties">
+          <div className="ca-sheet__party"><span>Tour operator</span><strong>{contratto.tourOperator}</strong></div>
+          <div className="ca-sheet__party"><span>Periodo</span><strong>{contratto.periodo || '—'}</strong></div>
+          <div className="ca-sheet__party"><span>Pagamento</span><strong>{contratto.pagamento}</strong></div>
         </section>
 
-        <h4 className="ca-contract__h">Condizioni economiche</h4>
-        <p className="ca-contract__note-edit"><i className="fa-light fa-circle-info" /> Le tabelle sono editabili: clicca sulla matita per modificare i valori.</p>
+        <div className="ca-sheet__section-head">
+          <h4>Condizioni economiche</h4>
+          <span className="ca-sheet__editable"><i className="fa-light fa-pen" /> Tabella editabile</span>
+        </div>
         <div className="sib-table-wrap">
-          <table className="sib-table">
+          <table className="sib-table ca-sheet__table">
             <thead>
               <tr><th>Stagionalità</th><th>Tipologia base</th><th>Lotto</th><th>Quantità</th><th>Prezzo (€)</th></tr>
             </thead>
@@ -352,9 +343,12 @@ function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onA
           </table>
         </div>
 
-        <h4 className="ca-contract__h">Servizi e condizioni</h4>
+        <div className="ca-sheet__section-head">
+          <h4>Servizi e condizioni</h4>
+          <span className="ca-sheet__editable"><i className="fa-light fa-pen" /> Tabella editabile</span>
+        </div>
         <div className="sib-table-wrap">
-          <table className="sib-table">
+          <table className="sib-table ca-sheet__table">
             <thead>
               <tr><th>Servizio</th><th>Condizione</th><th>Note</th></tr>
             </thead>
@@ -370,7 +364,7 @@ function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onA
           </table>
         </div>
 
-        <p className="ca-contract__clausola">
+        <p className="ca-sheet__clausola">
           Il presente contratto disciplina la {contratto.tipo.toLowerCase()} dei lotti secondo le condizioni sopra riportate.
           Le parti si impegnano al rispetto dei termini di pagamento ({contratto.pagamento}) e delle quantità concordate.
         </p>
@@ -393,7 +387,7 @@ function EditCell({ value, onChange }: { value: string; onChange: (v: string) =>
       <input
         ref={inputRef}
         type="text"
-        className="sib-input componi-annunci__edit-input"
+        className="sib-input ca-edit-input"
         defaultValue={value}
         onBlur={(e) => { onChange(e.target.value); setEditing(false) }}
         onKeyDown={(e) => {
@@ -405,11 +399,10 @@ function EditCell({ value, onChange }: { value: string; onChange: (v: string) =>
   }
 
   return (
-    <span className="componi-annunci__edit-cell">
+    <span className="ca-edit-cell" onClick={() => setEditing(true)} role="button" tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') setEditing(true) }}>
       <span>{value || '—'}</span>
-      <button type="button" className="componi-annunci__edit-ico" onClick={() => setEditing(true)} aria-label="Modifica">
-        <i className="fa-light fa-pen" />
-      </button>
+      <i className="fa-light fa-pen ca-edit-cell__ico" />
     </span>
   )
 }
