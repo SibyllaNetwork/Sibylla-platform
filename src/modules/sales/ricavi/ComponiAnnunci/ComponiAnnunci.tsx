@@ -253,7 +253,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
             {step === 2 && (
               <>
-                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
+                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
                   valueFrom={params.dataDa} valueTo={params.dataA}
                   onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
                 <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
