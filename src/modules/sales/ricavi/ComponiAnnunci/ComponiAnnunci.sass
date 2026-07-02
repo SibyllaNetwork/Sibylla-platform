@@ -11,46 +11,140 @@
   > .sib-btn--back
     align-self: flex-start
 
-  // ── Filtri top ──────────────────────────────────────────────────────────────
+  // ── Layout: sinistra (parametri + contenuto) | destra (bacheca) ──────────────
+  &__layout
+    display: grid
+    grid-template-columns: 1fr 460px
+    gap: 24px
+    align-items: start
+
+    @media (max-width: 1200px)
+      grid-template-columns: 1fr
+
+  &__left
+    display: flex
+    flex-direction: column
+    gap: 16px
+    min-width: 0
+
+  // ── Filtri (righe di parametri) ──────────────────────────────────────────────
   &__filters
     display: flex
     flex-wrap: wrap
     align-items: flex-end
     gap: 12px
 
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 4px
+  &__f
+    min-width: 150px
+
+  &__f-num
+    width: 120px
 
   &__avanti
     margin-left: 4px
 
-  // ── 2 colonne ───────────────────────────────────────────────────────────────
-  &__columns
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 16px
+  // ── Messaggio iniziale ───────────────────────────────────────────────────────
+  &__hint
+    padding: 40px 8px
 
-    @media (max-width: 1280px)
-      grid-template-columns: 1fr
+    h2
+      font-family: $font-heading
+      font-weight: 700
+      color: $primary
+      font-size: 26px
+      line-height: 1.3
+      max-width: 560px
+      margin: 0
 
-  &__col
+  // ── Bacheca ───────────────────────────────────────────────────────────────────
+  &__bacheca
     display: flex
     flex-direction: column
-    gap: 8px
+    gap: 10px
 
-  &__col-title
+  &__bacheca-title
     margin: 0
+    text-align: center
     font-family: $font-heading
     font-weight: 700
     color: $primary
-    font-size: 18px
+    font-size: 22px
+
+  &__bacheca-wrap
+    max-height: 560px
+    overflow-y: auto
 
   &__table
     th
       white-space: nowrap
 
+  &__td-c
+    text-align: center
+
+  &__periodo
+    white-space: nowrap
+
+    i
+      color: $text-inactive
+      font-size: 11px
+      margin-right: 6px
+
+  &__tipologia
+    font-weight: 600
+    color: $text-active
+    margin-right: 4px
+
+  &__star-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 2px
+
+  &__star
+    color: $warning
+    font-size: 13px
+
+    &--off
+      color: $border
+
+  &__file
+    color: $error
+    font-size: 16px
+
+  &__icon-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $text-inactive
+    padding: 4px
+
+    &:hover
+      color: $primary
+
+  &__pubblica-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $success
+    font-weight: 600
+    font-size: 12px
+    padding: 4px
+
+  &__pubblicato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: $success
+    font-weight: 600
+    font-size: 12px
+
+    i
+      font-size: 14px
+
+  // ── Celle editabili (tabelle contratto) ──────────────────────────────────────
   &__edit-cell
     display: inline-flex
     align-items: center
@@ -71,73 +165,102 @@
 
   &__edit-input
     width: 100%
-    min-width: 100px
+    min-width: 90px
     height: 28px
     font-size: 12px
 
-  // ── Bacheca specific ────────────────────────────────────────────────────────
-  &__periodo
-    white-space: nowrap
 
-    i
-      color: $text-inactive
-      font-size: 11px
-      margin-right: 6px
+// ─── ANTEPRIMA CONTRATTO (Doc) ──────────────────────────────────────────────────
+.ca-contract
+  display: flex
+  flex-direction: column
+  gap: 12px
 
-  &__tipologia
-    font-weight: 600
-    color: $text-active
-    margin-right: 6px
-
-  &__star
-    color: $warning
-    font-size: 13px
-
-    &--off
-      color: $border
-
-  &__td-c
-    text-align: center
-
-  &__file
-    color: $error
-    font-size: 16px
-
-  &__icon-btn
-    background: transparent
-    border: none
-    cursor: pointer
-    color: $text-inactive
-    padding: 4px
-
-    &:hover
-      color: $error
-
-  &__pubblica-btn
-    background: transparent
-    border: none
-    cursor: pointer
-    color: $success
-    font-size: 16px
-    padding: 4px
-
-    &:hover
-      transform: translateX(2px)
-
-  &__pubblicato
-    display: inline-flex
+  &__toolbar
+    display: flex
     align-items: center
-    gap: 6px
-    color: $success
-    font-weight: 600
-    font-size: 12px
+    justify-content: space-between
 
-    i
+  &__toolbar-right
+    display: flex
+    gap: 8px
+
+  &__sheet
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10)
+    padding: 32px 36px
+    display: flex
+    flex-direction: column
+    gap: 18px
+    color: $text-active
+
+  &__head
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 24px
+    padding-bottom: 14px
+    border-bottom: 2px solid $primary
+
+  &__title
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 22px
+    color: $primary
+
+  &__meta
+    text-align: right
+
+    > div
+      display: flex
+      justify-content: space-between
+      gap: 16px
+
+    span
+      color: $text-inactive
+
+  &__parties
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px 24px
+
+    > div
+      display: flex
+      flex-direction: column
+
+    span
+      font-size: 10px
+      font-weight: 700
+      text-transform: uppercase
+      letter-spacing: 0.04em
+      color: $text-inactive
+
+    strong
+      color: $primary
       font-size: 14px
 
-  // ── Bottom actions ──────────────────────────────────────────────────────────
-  &__actions
-    display: flex
-    justify-content: flex-end
-    gap: 8px
-    margin-top: 8px
+  &__h
+    margin: 6px 0 0
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    font-size: 15px
+
+  &__note-edit
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+      margin-right: 4px
+
+  &__clausola
+    font-size: 12px
+    color: $text-inactive
+    line-height: 1.6
+    border-top: 1px solid $border
+    padding-top: 12px
+    margin: 0
