@@ -107,7 +107,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"gest-ospiti",label:"Gestione Ospiti",children:[
           {id:"arrivi-partenze",label:"Arrivi e partenze",page:"arrivi-partenze"},
           {id:"ospiti-in-casa",label:"Ospiti in casa",page:"ospiti-in-casa"},
-          {id:"anagrafiche-op",label:"Anagrafiche",page:"anagrafiche-op"},
+          {id:"anagrafiche-op",label:"Anagrafiche Ospiti",page:"anagrafiche-op"},
           {id:"schedine",label:"Schedine alloggiati",page:"schedine"},
           {id:"rilevamento-presenze",label:"Rilevamento presenze",page:"rilevamento-presenze"},
           {id:"analisi-occ",label:"Analisi dell'occupazione",page:"analisi-occ"},

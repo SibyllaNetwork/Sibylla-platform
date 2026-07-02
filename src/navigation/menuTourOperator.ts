@@ -78,7 +78,7 @@ const MENU_TO:any[]=[
       ]},
       {id:"acquisti-servizi",label:"Acquisti servizi",page:"acquisti-servizi"},
       {id:"gest-clienti",label:"Gestione clienti",children:[
-        {id:"anagrafiche-op",label:"Anagrafiche",page:"anagrafiche-op"},
+        {id:"anagrafiche-op",label:"Anagrafiche Ospiti",page:"anagrafiche-op"},
         {id:"arrivi-partenze",label:"Arrivi e partenze",page:"arrivi-partenze"},
         {id:"ospiti-in-casa",label:"Ospiti in casa",page:"ospiti-in-casa"},
       ]},
