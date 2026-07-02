@@ -184,7 +184,7 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
   return (
     <div>
       <BtnBack />
-      <PageHeader title="Anagrafiche" subtitle="Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura" />
+      <PageHeader title="Anagrafiche Ospiti" subtitle="Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura" />
 
       <FilterToolbar>
         <SelectField name="tipo" label="Tipo anagrafica" value={tipo} onChange={(e) => setTipo(e.target.value)}
