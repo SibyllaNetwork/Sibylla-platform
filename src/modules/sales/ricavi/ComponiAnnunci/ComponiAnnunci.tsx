@@ -175,52 +175,43 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       <BtnBack />
       <PageHeader title="Componi annunci" subtitle="Configura i parametri, genera il contratto, modificalo e pubblicalo in Agorà." />
 
-      {/* ── Parametri ─────────────────────────────────────────────────────── */}
-      <section className="ca-setup">
-        <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
-        <div className="ca-setup__grid">
-          <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
-            options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
-          <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
-            options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
-          <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
-            onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
-            options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
-          <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
-            options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-          <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-            options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-          <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
-            options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
-          <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
-            valueFrom={params.dataDa} valueTo={params.dataA}
-            onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-          <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
-            options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
-          <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
-          <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
-          <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
-            options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
-        </div>
-        <div className="ca-setup__foot">
-          <button type="button" className="sib-btn sib-btn--primary" onClick={genera}>
-            <i className="fa-light fa-file-contract" /> Genera contratto
-          </button>
-        </div>
-      </section>
-
-      {/* ── Corpo: contratto (sx) + bacheca (dx) ──────────────────────────── */}
+      {/* ── Corpo: form/contratto (sx) + bacheca (dx) ─────────────────────── */}
       <div className="ca-body">
         <div className="ca-doc-panel">
           {!contratto ? (
-            <div className="ca-empty">
-              <div className="ca-empty__icon"><i className="fa-light fa-file-contract" /></div>
-              <h3 className="ca-empty__title">Nessun contratto in modifica</h3>
-              <p className="ca-empty__text">
-                Configura i parametri qui sopra e premi <strong>Genera contratto</strong>,
-                oppure apri un contratto dalla <strong>bacheca</strong> per modificarlo.
-              </p>
-            </div>
+            <section className="ca-setup">
+              <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
+              <div className="ca-setup__grid">
+                <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
+                  options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
+                <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
+                  options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
+                <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
+                  onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
+                  options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+                <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
+                  options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+                <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                  options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
+                  options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
+                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
+                  valueFrom={params.dataDa} valueTo={params.dataA}
+                  onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+                <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
+                  options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
+                <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
+                <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
+                  options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
+              </div>
+              <div className="ca-setup__foot">
+                <span className="ca-setup__hint"><i className="fa-light fa-circle-info" /> Compila i parametri e genera il contratto: comparirà qui, editabile.</span>
+                <button type="button" className="sib-btn sib-btn--primary" onClick={genera}>
+                  <i className="fa-light fa-file-contract" /> Genera contratto
+                </button>
+              </div>
+            </section>
           ) : (
             <ContrattoPreview
               contratto={contratto}
