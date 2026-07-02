@@ -21,7 +21,7 @@ function fmt(v: number): string {
 }
 
 export default function FatturaDocumento({ navigate }: { navigate: (p: string) => void }) {
-  const fattura = useEmissioneStore((s) => s.fattura)
+  const fattura = useEmissioneStore((s) => s.documento)
 
   if (!fattura) {
     return (

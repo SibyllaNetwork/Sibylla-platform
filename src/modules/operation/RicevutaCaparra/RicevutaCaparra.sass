@@ -1,0 +1,147 @@
+// ─── RICEVUTA DI CAPARRA ───────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.ricevuta-caparra
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 16px
+
+  &__toolbar
+    align-self: stretch
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+  &__sheet
+    width: 100%
+    max-width: 720px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10)
+    padding: 40px 44px
+    display: flex
+    flex-direction: column
+    gap: 24px
+    color: $text-active
+    font-size: 13px
+
+  &__head
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 24px
+    padding-bottom: 18px
+    border-bottom: 2px solid $primary
+
+  &__seller-name
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 20px
+    color: $primary
+    margin-bottom: 4px
+
+  &__seller-line
+    color: $text-inactive
+    line-height: 1.5
+
+  &__meta
+    text-align: right
+    min-width: 200px
+
+  &__doc-title
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 20px
+    color: $primary
+    text-transform: uppercase
+    letter-spacing: 0.03em
+    margin-bottom: 8px
+
+  &__meta-row
+    display: flex
+    justify-content: space-between
+    gap: 16px
+    padding: 2px 0
+
+    span
+      color: $text-inactive
+
+  // Corpo
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__attesto
+    line-height: 1.6
+
+  &__amount
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 32px
+    color: $primary
+    text-align: center
+    margin-top: 6px
+
+  &__amount-label
+    text-align: center
+    color: $text-inactive
+    margin-bottom: 8px
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px 24px
+    padding: 16px
+    border: 1px solid $border
+    border-radius: 8px
+    background: rgba(143, 184, 200, 0.08)
+
+    > div
+      display: flex
+      flex-direction: column
+      gap: 2px
+
+    span
+      font-size: 10px
+      font-weight: 700
+      text-transform: uppercase
+      letter-spacing: 0.04em
+      color: $text-inactive
+
+    strong
+      font-size: 15px
+      color: $primary
+
+  &__residuo strong
+    color: $text-active
+
+  &__note
+    font-size: 11px
+    color: $text-inactive
+    line-height: 1.5
+
+  &__foot
+    display: flex
+    justify-content: space-between
+    align-items: flex-end
+    gap: 24px
+    padding-top: 18px
+    border-top: 1px solid $border
+
+  &__foot-lbl
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    color: $text-inactive
+
+  &__sign
+    text-align: center
+
+  &__sign-line
+    width: 200px
+    border-top: 1px solid $text-inactive
+    margin-bottom: 4px

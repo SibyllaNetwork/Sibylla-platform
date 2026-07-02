@@ -51,6 +51,8 @@ import OspitiInCasa                from '../modules/operation/OspitiInCasa/Ospit
 import ContiCamera                 from '../modules/operation/ContiCamera/ContiCamera';
 import EmissioneDocumenti          from '../modules/operation/EmissioneDocumenti/EmissioneDocumenti';
 import FatturaDocumento            from '../modules/operation/FatturaDocumento/FatturaDocumento';
+import ScontrinoDocumento          from '../modules/operation/ScontrinoDocumento/ScontrinoDocumento';
+import RicevutaCaparra             from '../modules/operation/RicevutaCaparra/RicevutaCaparra';
 import GestioneDocumenti           from '../modules/operation/GestioneDocumenti/GestioneDocumenti';
 import ContiAperti                 from '../modules/operation/ContiAperti/ContiAperti';
 import MovimentiSoggiorno           from '../modules/operation/MovimentiSoggiorno/MovimentiSoggiorno';
@@ -289,6 +291,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'conti-camera')          return <ContiCamera navigate={navigate}/>;
   if (page === 'emissione-documenti')   return <EmissioneDocumenti navigate={navigate}/>;
   if (page === 'fattura-documento')     return <FatturaDocumento navigate={navigate}/>;
+  if (page === 'scontrino-documento')   return <ScontrinoDocumento navigate={navigate}/>;
+  if (page === 'ricevuta-caparra')      return <RicevutaCaparra navigate={navigate}/>;
   if (page === 'gest-documenti')        return <GestioneDocumenti navigate={navigate}/>;
   if (page === 'conti-aperti')          return <ContiAperti navigate={navigate}/>;
   if (page === 'movimenti-soggiorno')   return <MovimentiSoggiorno navigate={navigate}/>;

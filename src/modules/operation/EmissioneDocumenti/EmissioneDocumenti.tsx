@@ -47,7 +47,7 @@ function fmtCurrency(v: number): string {
 export default function EmissioneDocumenti({ navigate }: { navigate: (p: string) => void }) {
   const checkout = useEmissioneStore((s) => s.checkout)
   const clearCheckout = useEmissioneStore((s) => s.clearCheckout)
-  const setFattura = useEmissioneStore((s) => s.setFattura)
+  const setDocumento = useEmissioneStore((s) => s.setDocumento)
 
   // Se arrivo da "Paga ora" uso gli addebiti selezionati, altrimenti i dati demo.
   const [data, setData] = useState<Data>(() =>
@@ -90,18 +90,23 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
   // Ripulisce il payload di checkout lasciando la pagina.
   useEffect(() => () => clearCheckout(), [clearCheckout])
 
+  const prefissoNumero = tipoDoc === 'Fattura' ? 'FT' : tipoDoc === 'Caparra' ? 'CP' : 'DC'
+  const rottaPerTipo = tipoDoc === 'Fattura' ? 'fattura-documento'
+    : tipoDoc === 'Caparra' ? 'ricevuta-caparra' : 'scontrino-documento'
+
   const emetti = () => {
-    if (!isFattura) return // scontrino/altri: emissione fiscale (fuori scope)
-    setFattura({
-      numero: 'FT/' + new Date().getFullYear() + '/' + String(Math.floor(Math.random() * 9000) + 1000),
+    setDocumento({
+      tipo: tipoDoc as 'Scontrino' | 'Caparra' | 'Fattura',
+      numero: prefissoNumero + '/' + new Date().getFullYear() + '/' + String(Math.floor(Math.random() * 9000) + 1000),
       data: new Date().toLocaleDateString('it-IT'),
       struttura: "Grim's Hotel",
-      ragioneSociale, indirizzo, cap, citta, provincia, nazionalita,
-      partitaIva, codiceFiscale, codiceUnivoco, pec,
+      nome, cognome,
+      ragioneSociale, partitaIva, codiceUnivoco, pec,
+      indirizzo, cap, citta, provincia, nazionalita, codiceFiscale,
       addebiti: data.addebiti, caparra: data.caparra,
       modoPagamento, importo,
     })
-    navigate('fattura-documento')
+    navigate(rottaPerTipo)
   }
 
   return (
