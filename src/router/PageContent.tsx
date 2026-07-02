@@ -282,7 +282,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (isPlatformAdminPage(page))        return <PlatformAdminStub page={page} navigate={navigate}/>;
 
   // ── Pagine portate da platform ──
-  if (page === 'anagrafiche-op')        return <Anagrafiche navigate={navigate}/>;
+  if (page === 'anagrafiche-op')        return <Anagrafiche/>;
   if (page === 'arrivi-partenze')       return <ArriviPartenze navigate={navigate}/>;
   if (page === 'ospiti-in-casa')        return <OspitiInCasa navigate={navigate}/>;
   if (page === 'conti-camera')          return <ContiCamera navigate={navigate}/>;

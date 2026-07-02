@@ -90,7 +90,7 @@ const TIPI_DOCUMENTO = ['Carta Identità', 'Passaporto', 'Patente di guida', 'Pe
 const toISO = (d: string) => { const [g, m, a] = (d || '').split('/'); return a && m && g ? `${a}-${m}-${g}` : '' }
 const toIt  = (iso: string) => { const [a, m, g] = (iso || '').split('-'); return g && m && a ? `${g}/${m}/${a}` : '' }
 
-export default function Anagrafiche({ navigate }: { navigate: (p: string) => void }) {
+export default function Anagrafiche() {
   const [items, setItems] = useState<Anagrafica[]>(FALLBACK)
   const [aziende, setAziende] = useState<Azienda[]>(AZIENDE)
   const [tipo, setTipo] = useState(TIPI_ANAGRAFICA[0])
@@ -155,6 +155,7 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
   }, [aziende, search])
 
   const [creaAzOpen, setCreaAzOpen] = useState(false)
+  const [creaOspiteOpen, setCreaOspiteOpen] = useState(false)
 
   const activeLen = isAzienda ? aziendeFiltered.length : filtered.length
   const totalPages = Math.max(1, Math.ceil(activeLen / PAGE_SIZE))
@@ -180,6 +181,10 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
     setAziende((prev) => [{ ...a, id: Math.max(0, ...prev.map((x) => x.id)) + 1 }, ...prev])
     setCreaAzOpen(false)
   }
+  const creaOspite = (a: Omit<Anagrafica, 'id'>) => {
+    setItems((prev) => [{ ...a, id: Math.max(0, ...prev.map((x) => x.id)) + 1 }, ...prev])
+    setCreaOspiteOpen(false)
+  }
 
   return (
     <div>
@@ -201,7 +206,7 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
           <SearchField name="cerca" placeholder={isAzienda ? 'Ragione sociale, P. IVA…' : 'Nome, documento o paese…'} value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <button type="button" className="sib-btn sib-btn--primary"
-          onClick={() => (isAzienda ? setCreaAzOpen(true) : navigate('crea-anagrafica'))}>
+          onClick={() => (isAzienda ? setCreaAzOpen(true) : setCreaOspiteOpen(true))}>
           <i className="fa-light fa-circle-plus" /> Aggiungi Anagrafica
         </button>
       </FilterToolbar>
@@ -394,6 +399,7 @@ export default function Anagrafiche({ navigate }: { navigate: (p: string) => voi
       {editAz && <ModificaAziendaModal az={editAz} onClose={() => setEditAz(null)} onSave={salvaAzienda} />}
       {detailAz && <DettaglioAziendaModal az={detailAz} onClose={() => setDetailAz(null)} />}
       {creaAzOpen && <CreaAziendaModal onClose={() => setCreaAzOpen(false)} onSave={creaAzienda} />}
+      {creaOspiteOpen && <CreaAnagraficaOspiteModal onClose={() => setCreaOspiteOpen(false)} onSave={creaOspite} />}
 
       {/* ─── Storico soggiorni ──────────────────────────────────────────────── */}
       {storicoName && <StoricoSoggiorniModal name={storicoName} onClose={() => setStoricoName(null)} />}
@@ -680,6 +686,84 @@ function DettaglioAziendaModal({ az, onClose }: { az: Azienda; onClose: () => vo
       </div>
       <div className="flex justify-end mt-6">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Chiudi</button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── CREAZIONE ANAGRAFICA OSPITE ────────────────────────────────────────────────
+// Modale per l'inserimento di un ospite fruitore della struttura: raccoglie tutti
+// i dati mostrati nella tabella Anagrafiche Ospiti. Distinta dalla pagina HR
+// "Crea anagrafica personale" (che riguarda i dipendenti dell'hotel).
+function CreaAnagraficaOspiteModal({ onClose, onSave }: { onClose: () => void; onSave: (a: Omit<Anagrafica, 'id'>) => void }) {
+  const [form, setForm] = useState({
+    nome: '', cognome: '', sesso: '', dataNascita: '', email: '', telefono: '',
+    paeseNascita: '', paeseResidenza: '', struttura: STRUTTURE[1],
+    tipoDocumento: TIPI_DOCUMENTO[0], nDocumento: '', scadeIl: '', emessoDa: '',
+    vip: false, note: '', esenzione: false, tipoEsenzione: '',
+  })
+  const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm((p) => ({ ...p, [k]: v }))
+
+  const salva = () => {
+    onSave({
+      nomeCognome: `${form.nome} ${form.cognome}`.trim(),
+      sesso: form.sesso, dataNascita: toIt(form.dataNascita), email: form.email, telefono: form.telefono,
+      paeseNascita: form.paeseNascita, paeseResidenza: form.paeseResidenza, struttura: form.struttura,
+      tipoDocumento: form.tipoDocumento, nDocumento: form.nDocumento, scadeIl: toIt(form.scadeIl), emessoDa: form.emessoDa,
+      checkIn: '-', vip: form.vip, note: form.note, esenzione: form.esenzione, tipoEsenzione: form.tipoEsenzione,
+    })
+  }
+
+  return (
+    <Modal open onClose={onClose} title="Crea anagrafica ospite" size="xl">
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <InputField name="nome" label="Nome" required value={form.nome} onChange={(e) => set('nome', e.target.value)} />
+          <InputField name="cognome" label="Cognome" required value={form.cognome} onChange={(e) => set('cognome', e.target.value)} />
+          <SelectField name="sesso" label="Sesso" placeholder="Seleziona" value={form.sesso} onChange={(e) => set('sesso', e.target.value)}
+            options={SESSI.map((s) => ({ value: s, label: s }))} />
+          <DatePickerField name="dataNascita" label="Data di Nascita" value={form.dataNascita} onChange={(e) => set('dataNascita', e.target.value)} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField name="email" label="Email" type="email" placeholder="Inserire email" value={form.email} onChange={(e) => set('email', e.target.value)} />
+          <InputField name="telefono" label="Telefono" placeholder="Inserire telefono" value={form.telefono} onChange={(e) => set('telefono', e.target.value)} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <InputField name="paeseNascita" label="Paese di nascita" value={form.paeseNascita} onChange={(e) => set('paeseNascita', e.target.value)} />
+          <InputField name="paeseResidenza" label="Paese di residenza" value={form.paeseResidenza} onChange={(e) => set('paeseResidenza', e.target.value)} />
+          <SelectField name="struttura" label="Struttura" value={form.struttura} onChange={(e) => set('struttura', e.target.value)}
+            options={STRUTTURE.filter((s) => s !== 'Tutte').map((s) => ({ value: s, label: s }))} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <SelectField name="tipoDocumento" label="Documento identità" value={form.tipoDocumento} onChange={(e) => set('tipoDocumento', e.target.value)}
+            options={TIPI_DOCUMENTO.map((t) => ({ value: t, label: t }))} />
+          <InputField name="nDocumento" label="Numero documento" value={form.nDocumento} onChange={(e) => set('nDocumento', e.target.value)} />
+          <DatePickerField name="scadeIl" label="Scade il" value={form.scadeIl} onChange={(e) => set('scadeIl', e.target.value)} />
+          <InputField name="emessoDa" label="Emesso da" value={form.emessoDa} onChange={(e) => set('emessoDa', e.target.value)} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+          <div className="flex flex-col gap-1">
+            <label className="text-[12px] font-semibold font-poppins text-primary">Carica documento</label>
+            <label className="sib-input flex items-center cursor-pointer text-ink-muted">
+              <input type="file" hidden />
+              <span>Scegli il file</span>
+            </label>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[12px] font-semibold font-poppins text-primary">Acquisisci documento</label>
+            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-camera" /> Acquisisci</button>
+          </div>
+          <div className="pb-2"><CheckboxField name="vip" label="VIP" checked={form.vip} onChange={(e) => set('vip', e.target.checked)} /></div>
+        </div>
+        <TextareaField name="note" label="Note" rows={3} placeholder="Inserire note aggiuntive" value={form.note} onChange={(e) => set('note', e.target.value)} />
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 items-center">
+          <CheckboxField name="esenzione" label="Esenzione tassa di sogg." checked={form.esenzione} onChange={(e) => set('esenzione', e.target.checked)} />
+          <InputField name="tipoEsenzione" label="Tipo esenzione" disabled={!form.esenzione} value={form.tipoEsenzione} onChange={(e) => set('tipoEsenzione', e.target.value)} />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-6">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Chiudi</button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={salva}>Salva</button>
       </div>
     </Modal>
   )
