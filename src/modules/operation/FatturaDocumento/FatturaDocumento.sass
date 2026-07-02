@@ -13,6 +13,56 @@
     align-items: center
     justify-content: space-between
 
+  &__fiscal-note
+    align-self: stretch
+    text-align: center
+    font-size: 12px
+    font-style: italic
+    color: $text-active
+    background: rgba(245, 198, 50, 0.18)
+    border: 1px solid rgba(245, 198, 50, 0.55)
+    border-radius: 6px
+    padding: 6px 12px
+
+  // Attestazione caparra
+  &__attesto-box
+    text-align: center
+    padding: 8px 0
+
+  &__attesto
+    line-height: 1.6
+
+  &__amount
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 32px
+    color: $primary
+    margin-top: 6px
+
+  &__amount-label
+    color: $text-inactive
+
+  &__foot-note
+    align-self: flex-end
+    font-size: 11px
+    color: $text-inactive
+    font-style: italic
+
+  &__sign
+    text-align: center
+
+  &__sign-line
+    width: 200px
+    border-top: 1px solid $text-inactive
+    margin-bottom: 4px
+
+  &__note
+    font-size: 11px
+    color: $text-inactive
+    line-height: 1.5
+    border-top: 1px solid $border
+    padding-top: 12px
+
   // Foglio in stile A4
   &__sheet
     width: 100%
