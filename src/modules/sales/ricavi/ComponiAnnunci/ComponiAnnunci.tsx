@@ -15,6 +15,7 @@ interface Params {
   tipo: Tipo
   tipologia: Tipologia
   strutturaId: number | null
+  categoria: string
   tipoOspiti: string
   tipologiaBase: string
   tipoLotti: string
@@ -53,6 +54,7 @@ interface RigaBacheca {
 
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
 const STRUTTURE = [{ Id: 1, nome: "Grim's Hotel" }, { Id: 2, nome: 'Hotel Azzurro Mare' }]
+const CATEGORIE = ['Hotel', 'Resort', 'B&B', 'Villaggio', 'Agriturismo', 'Boutique hotel']
 const TIPO_OSPITI = ['Individuali', 'Gruppi']
 const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
@@ -78,7 +80,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const confirm = useConfirmStore((s) => s.confirm)
 
   const [params, setParams] = useState<Params>({
-    tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1,
+    tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: 'Hotel',
     tipoOspiti: 'Gruppi', tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
     dataDa: '2026-07-01', dataA: '2026-10-31', tourOperator: 'Tutti',
     quantita: 1, quantitaMax: 1, tipologiaPagamento: 'VCC',
@@ -98,7 +100,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   }, [])
 
   const generaContratto = (): Contratto => {
-    const struttura = STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel"
+    const struttura = params.tipologia === 'Categoria'
+      ? `Categoria: ${params.categoria}`
+      : (STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel")
     return {
       numero: 'CTR/' + new Date().getFullYear() + '/' + String(Math.floor(Math.random() * 9000) + 1000),
       data: new Date().toLocaleDateString('it-IT'),
@@ -186,9 +190,15 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
                 <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
                   options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
-                <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
-                  onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
-                  options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+                {params.tipologia === 'Categoria' ? (
+                  <SelectField label="Categoria" name="categoria" value={params.categoria}
+                    onChange={(e) => set('categoria', e.target.value)}
+                    options={CATEGORIE.map((c) => ({ value: c, label: c }))} />
+                ) : (
+                  <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
+                    onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
+                    options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+                )}
                 <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
                   options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
                 <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
