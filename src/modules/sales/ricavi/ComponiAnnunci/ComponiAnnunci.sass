@@ -51,6 +51,10 @@
     min-height: 120px
     align-content: start
 
+    // i figli possono restringersi (niente overflow/sovrapposizioni)
+    > *
+      min-width: 0
+
   &__foot
     display: flex
     align-items: center
@@ -58,18 +62,26 @@
     gap: 12px
     padding: 0 18px 18px
 
+// Campo che occupa due colonne (es. range di date)
+.ca-field--wide
+  grid-column: span 2
+
+  .sib-input, .sib-select
+    width: 100%
+
 // ── Stepper ───────────────────────────────────────────────────────────────────
 .ca-steps
   display: flex
   align-items: center
-  gap: 6px
+  gap: 8px
   padding: 14px 18px 4px
   flex-wrap: wrap
 
   &__sep
-    flex: 1
-    min-width: 12px
-    height: 1px
+    flex: 0 0 28px
+    width: 28px
+    height: 2px
+    border-radius: 2px
     background: $border
 
 .ca-step
