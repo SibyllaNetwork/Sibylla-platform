@@ -340,7 +340,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             ))}
           </div>
           {boardTotalPages > 1 && (
-            <Pagination page={boardPage} totalPages={boardTotalPages} onPageChange={setBoardPage} className="ca-board__pager" />
+            <div className="ca-board__pager">
+              <Pagination page={boardPage} totalPages={boardTotalPages} onPageChange={setBoardPage} />
+            </div>
           )}
         </aside>
       </div>
