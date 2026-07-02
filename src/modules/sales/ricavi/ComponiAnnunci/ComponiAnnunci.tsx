@@ -208,6 +208,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
       {/* ── Riga superiore: parametri (40%) + bacheca (60%) ───────────────── */}
       <div className="ca-top">
+        <div className="ca-left">
         <section className="ca-setup">
           <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
 
@@ -301,6 +302,26 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           </div>
         </section>
 
+        {/* Box editor documento (PDF/DOC) — stessa larghezza dei parametri, alto come la bacheca */}
+        <div className="ca-panel">
+          {contratto ? (
+            <ContrattoPreview
+              contratto={contratto}
+              onUpdTariffa={updTariffa}
+              onUpdServizio={updServizio}
+              onSalva={salvaInBacheca}
+              onChiudi={chiudiContratto}
+              isEditing={editingBachecaId != null}
+            />
+          ) : (
+            <div className="ca-hint">
+              <i className="fa-light fa-file-pen" />
+              <span>Genera un contratto dai parametri qui sopra, oppure aprine uno dalla bacheca: qui puoi modificare il documento (PDF/DOC).</span>
+            </div>
+          )}
+        </div>
+        </div>
+
         <aside className="ca-board">
           <div className="ca-board__head">
             <span className="ca-board__title"><i className="fa-light fa-clipboard-list" /> La mia bacheca</span>
@@ -346,23 +367,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           )}
         </aside>
       </div>
-
-      {/* ── Editor del contratto (a tutta larghezza, sotto) ───────────────── */}
-      {contratto ? (
-        <ContrattoPreview
-          contratto={contratto}
-          onUpdTariffa={updTariffa}
-          onUpdServizio={updServizio}
-          onSalva={salvaInBacheca}
-          onChiudi={chiudiContratto}
-          isEditing={editingBachecaId != null}
-        />
-      ) : (
-        <div className="ca-hint">
-          <i className="fa-light fa-file-pen" />
-          <span>Completa i parametri e premi <strong>Genera contratto</strong>, oppure apri un annuncio dalla bacheca: l'editor del documento si aprirà qui, a tutta larghezza.</span>
-        </div>
-      )}
     </div>
   )
 }
