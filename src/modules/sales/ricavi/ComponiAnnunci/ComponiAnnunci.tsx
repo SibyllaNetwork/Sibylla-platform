@@ -262,7 +262,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                     <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--num" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
                     <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
                       options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
-                    <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
+                    <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" className="ca-field--sm" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
                       options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
                   </>
                 )}
