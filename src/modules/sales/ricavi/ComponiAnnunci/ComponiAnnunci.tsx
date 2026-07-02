@@ -25,6 +25,10 @@ interface Params {
   quantita: number
   quantitaMax: number
   tipologiaPagamento: string
+  // Solo per Tipo = Acquisto
+  citta: string
+  categoriaLivello: string
+  tipologiaCamere: string
 }
 
 interface RigaTariffa { id: number; stagionalita: string; tipologiaBase: string; lotto: string; quantita: string; prezzo: string }
@@ -55,6 +59,9 @@ interface RigaBacheca {
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
 const STRUTTURE = [{ Id: 1, nome: "Grim's Hotel" }, { Id: 2, nome: 'Hotel Azzurro Mare' }]
 const CATEGORIE = ['Hotel', 'Resort', 'B&B', 'Villaggio', 'Agriturismo', 'Boutique hotel']
+const CITTA = ['Roma', 'Milano', 'Catania', 'Firenze', 'Napoli', 'Torino', 'Bologna', 'Venezia']
+const LIVELLI = ['1', '2', '3', '4', '5']
+const TIPOLOGIA_CAMERE = ['Singola Classic', 'Doppia Classic', 'Doppia Superior', 'Tripla Classic', 'Matrimoniale', 'Suite']
 const TIPO_OSPITI = ['Individuali', 'Gruppi']
 const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
@@ -84,6 +91,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     tipoOspiti: 'Gruppi', tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
     dataDa: '2026-07-01', dataA: '2026-10-31', tourOperator: 'Tutti',
     quantita: 1, quantitaMax: 1, tipologiaPagamento: 'VCC',
+    citta: 'Roma', categoriaLivello: '5', tipologiaCamere: 'Singola Classic',
   })
   const set = <K extends keyof Params>(k: K, v: Params[K]) => setParams((p) => ({ ...p, [k]: v }))
 
@@ -100,20 +108,23 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   }, [])
 
   const generaContratto = (): Contratto => {
-    const struttura = params.tipologia === 'Categoria'
-      ? `Categoria: ${params.categoria}`
-      : (STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel")
+    const isAcquisto = params.tipo === 'Acquisto'
+    const struttura = isAcquisto
+      ? `${params.citta} · Categoria ${params.categoriaLivello}`
+      : params.tipologia === 'Categoria'
+        ? `Categoria: ${params.categoria}`
+        : (STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel")
     return {
       numero: 'CTR/' + new Date().getFullYear() + '/' + String(Math.floor(Math.random() * 9000) + 1000),
       data: new Date().toLocaleDateString('it-IT'),
       tipo: params.tipo,
       struttura,
-      tourOperator: params.tourOperator,
+      tourOperator: isAcquisto ? '—' : params.tourOperator,
       periodo: periodLabel(params.dataDa, params.dataA),
-      pagamento: params.tipologiaPagamento,
+      pagamento: isAcquisto ? '—' : params.tipologiaPagamento,
       tariffe: STAGIONI.map((s, i) => ({
         id: i + 1, stagionalita: s, tipologiaBase: params.tipologiaBase,
-        lotto: params.tipoLotti, quantita: String(params.quantita), prezzo: '0,00',
+        lotto: isAcquisto ? params.tipologiaCamere : params.tipoLotti, quantita: String(params.quantita), prezzo: '0,00',
       })),
       servizi: [
         { id: 1, servizio: 'Pernottamento', condizione: 'Incluso', note: '' },
@@ -190,30 +201,51 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
                 <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
                   options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
-                {params.tipologia === 'Categoria' ? (
-                  <SelectField label="Categoria" name="categoria" value={params.categoria}
-                    onChange={(e) => set('categoria', e.target.value)}
-                    options={CATEGORIE.map((c) => ({ value: c, label: c }))} />
+                {params.tipo === 'Acquisto' ? (
+                  <>
+                    <SelectField label="Città" name="citta" value={params.citta} onChange={(e) => set('citta', e.target.value)}
+                      options={CITTA.map((c) => ({ value: c, label: c }))} />
+                    <SelectField label="Categoria" name="categoriaLivello" value={params.categoriaLivello} onChange={(e) => set('categoriaLivello', e.target.value)}
+                      options={LIVELLI.map((c) => ({ value: c, label: c }))} />
+                    <SelectField label="Tipologia" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
+                      options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+                    <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                      options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                    <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
+                      valueFrom={params.dataDa} valueTo={params.dataA}
+                      onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+                    <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
+                      options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
+                    <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                  </>
                 ) : (
-                  <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
-                    onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
-                    options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+                  <>
+                    {params.tipologia === 'Categoria' ? (
+                      <SelectField label="Categoria" name="categoria" value={params.categoria}
+                        onChange={(e) => set('categoria', e.target.value)}
+                        options={CATEGORIE.map((c) => ({ value: c, label: c }))} />
+                    ) : (
+                      <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
+                        onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
+                        options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+                    )}
+                    <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
+                      options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+                    <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                      options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                    <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
+                      options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
+                    <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
+                      valueFrom={params.dataDa} valueTo={params.dataA}
+                      onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+                    <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
+                      options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
+                    <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                    <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
+                    <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
+                      options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
+                  </>
                 )}
-                <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
-                  options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-                <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                  options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-                <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
-                  options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
-                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
-                  valueFrom={params.dataDa} valueTo={params.dataA}
-                  onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
-                  options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
-                <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
-                <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
-                <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
-                  options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
               </div>
               <div className="ca-setup__foot">
                 <span className="ca-setup__hint"><i className="fa-light fa-circle-info" /> Compila i parametri e genera il contratto: comparirà qui, editabile.</span>
