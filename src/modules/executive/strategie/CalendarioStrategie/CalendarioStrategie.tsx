@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
@@ -36,10 +36,12 @@ interface MonthCardProps {
   selectedStrategy: Strategia | null
   eraseMode:        boolean
   onToggleDay:      (key: string) => void
+  onDayDown:        (key: string) => void
+  onDayEnter:       (key: string) => void
   onShowTip:        (tip: StrategyTooltipState | null) => void
 }
 
-function MonthCard({ year, month, assignments, strategiesById, selectedStrategy, eraseMode, onToggleDay, onShowTip }: MonthCardProps) {
+function MonthCard({ year, month, assignments, strategiesById, selectedStrategy, eraseMode, onToggleDay, onDayDown, onDayEnter, onShowTip }: MonthCardProps) {
   const dim     = daysInMonth(year, month)
   const offset  = weekdayIndex(year, month, 1)
   const cells   = offset + dim
@@ -106,7 +108,8 @@ function MonthCard({ year, month, assignments, strategiesById, selectedStrategy,
               aria-label={strat ? `${dayNum} — ${strat.nome}` : `${dayNum}`}
               disabled={!canApply}
               onClick={() => canApply && onToggleDay(k)}
-              onMouseEnter={handleEnter}
+              onMouseDown={() => canApply && onDayDown(k)}
+              onMouseEnter={(e) => { handleEnter(e); if (canApply) onDayEnter(k) }}
               onMouseLeave={handleLeave}
               onFocus={handleEnter}
               onBlur={handleLeave}
@@ -121,7 +124,7 @@ function MonthCard({ year, month, assignments, strategiesById, selectedStrategy,
 }
 
 // Vista "per righe": ogni mese è una riga di celle 1..31 (etichetta giorno settimana)
-function MonthRow({ year, month, assignments, strategiesById, selectedStrategy, eraseMode, onToggleDay, onShowTip }: MonthCardProps) {
+function MonthRow({ year, month, assignments, strategiesById, selectedStrategy, eraseMode, onToggleDay, onDayDown, onDayEnter, onShowTip }: MonthCardProps) {
   const dim      = daysInMonth(year, month)
   const today    = new Date()
   const todayK   = dayKey(today.getFullYear(), today.getMonth(), today.getDate())
@@ -169,7 +172,8 @@ function MonthRow({ year, month, assignments, strategiesById, selectedStrategy, 
               aria-label={strat ? `${d} — ${strat.nome}` : `${d}`}
               disabled={!canApply}
               onClick={() => canApply && onToggleDay(k)}
-              onMouseEnter={handleEnter}
+              onMouseDown={() => canApply && onDayDown(k)}
+              onMouseEnter={(e) => { handleEnter(e); if (canApply) onDayEnter(k) }}
               onMouseLeave={handleLeave}
               onFocus={handleEnter}
               onBlur={handleLeave}
@@ -196,7 +200,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
   const [search,           setSearch]           = useState('')
   const [assignments,      setAssignments]      = useState<Record<string, string>>({})
   const [tip,              setTip]              = useState<StrategyTooltipState | null>(null)
-  const [calView,          setCalView]          = useState<'grid' | 'rows'>('grid')
+  const [calView,          setCalView]          = useState<'grid' | 'rows'>('rows')
 
   const strategiesById = STRATEGIES_BY_ID
 
@@ -243,6 +247,39 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
     })
   }
 
+  // ── Selezione col mouse (drag su più giorni/aree) ────────────────────────────
+  // Applica (non toggle) la strategia attiva ai giorni attraversati dal trascinamento.
+  const dragRef = useRef<{ active: boolean; moved: boolean; startKey: string | null }>({ active: false, moved: false, startKey: null })
+
+  const applySet = (key: string) => {
+    setAssignments(prev => {
+      const next = { ...prev }
+      if (eraseMode) delete next[key]
+      else if (activeStrategy) next[key] = activeStrategy.id
+      return next
+    })
+  }
+
+  const handleDayDown = (key: string) => { dragRef.current = { active: true, moved: false, startKey: key } }
+  const handleDayEnter = (key: string) => {
+    const d = dragRef.current
+    if (!d.active) return
+    if (!d.moved) { d.moved = true; if (d.startKey) applySet(d.startKey) }
+    applySet(key)
+  }
+  // Click singolo: toggle come prima; se è stato un trascinamento, il click va ignorato.
+  const handleDayClick = (key: string) => {
+    const d = dragRef.current
+    if (d.moved) { d.moved = false; d.startKey = null; return }
+    handleToggleDay(key)
+  }
+
+  useEffect(() => {
+    const up = () => { dragRef.current.active = false }
+    window.addEventListener('mouseup', up)
+    return () => window.removeEventListener('mouseup', up)
+  }, [])
+
   const handleSave = () => {
     setSaved(true)
     window.setTimeout(() => setSaved(false), 3000)
@@ -265,7 +302,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
       <BtnBack />
       <PageHeader
         title="Calendario strategie"
-        subtitle="Pianifica le tue strategie giorno per giorno: scegli un periodo, una struttura, il tipo di calendario, seleziona la strategia e applicala con un click."
+        subtitle="Pianifica le tue strategie giorno per giorno: scegli un periodo, una struttura, il tipo di calendario, seleziona la strategia e applicala con un click sul giorno o trascinando il mouse su più giorni."
       />
 
       {saved && <AlertBanner type="success">Modifiche salvate con successo</AlertBanner>}
@@ -475,7 +512,9 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
                   strategiesById={strategiesById}
                   selectedStrategy={activeStrategy}
                   eraseMode={eraseMode}
-                  onToggleDay={handleToggleDay}
+                  onToggleDay={handleDayClick}
+                  onDayDown={handleDayDown}
+                  onDayEnter={handleDayEnter}
                   onShowTip={setTip}
                 />
               ))}
@@ -500,7 +539,9 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
                     strategiesById={strategiesById}
                     selectedStrategy={activeStrategy}
                     eraseMode={eraseMode}
-                    onToggleDay={handleToggleDay}
+                    onToggleDay={handleDayClick}
+                    onDayDown={handleDayDown}
+                    onDayEnter={handleDayEnter}
                     onShowTip={setTip}
                   />
                 ))}

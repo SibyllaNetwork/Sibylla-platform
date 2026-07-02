@@ -393,6 +393,7 @@
     display: grid
     grid-template-columns: repeat(7, 1fr)
     gap: 4px
+    user-select: none
 
   // ── Cella giorno ────────────────────────────────────────────────────────────
   &__day
@@ -580,6 +581,7 @@
     display: grid
     grid-template-columns: repeat(31, minmax(var(--rcell-min), 1fr))
     gap: var(--rcell-gap)
+    user-select: none
 
   &__rcell
     aspect-ratio: 1 / 1
