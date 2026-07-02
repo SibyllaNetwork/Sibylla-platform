@@ -10,7 +10,23 @@
   > .sib-btn--back
     align-self: flex-start
 
-// ── Card parametri ──────────────────────────────────────────────────────────────
+// ── Corpo: colonna sinistra (parametri + editor) | bacheca ────────────────────
+.ca-body
+  display: grid
+  grid-template-columns: 1fr 480px
+  gap: 18px
+  align-items: start
+
+  @media (max-width: 1240px)
+    grid-template-columns: 1fr
+
+.ca-doc-panel
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+// ── Card parametri (compatta) ────────────────────────────────────────────────
 .ca-setup
   background: var(--color-surface)
   border: 1px solid $border
@@ -22,7 +38,7 @@
     display: flex
     align-items: center
     gap: 8px
-    padding: 12px 18px
+    padding: 10px 16px
     font-family: $font-heading
     font-weight: 600
     color: $primary
@@ -34,9 +50,9 @@
 
   &__grid
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))
-    gap: 14px 18px
-    padding: 18px
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+    gap: 10px 14px
+    padding: 14px 16px
 
   &__foot
     display: flex
@@ -44,7 +60,7 @@
     justify-content: space-between
     gap: 12px
     flex-wrap: wrap
-    padding: 0 18px 18px
+    padding: 0 16px 14px
 
   &__hint
     display: inline-flex
@@ -56,19 +72,31 @@
     i
       color: $primary
 
-// ── Corpo: documento (sx) + bacheca (dx) ──────────────────────────────────────
-.ca-body
-  display: grid
-  grid-template-columns: 1fr 400px
-  gap: 18px
-  align-items: start
+  // Variante compatta: campi più fitti per lasciare spazio all'editor sottostante
+  &--compact
+    .ca-setup__grid
+      grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))
+      gap: 8px 12px
+      padding: 12px 14px
 
-  @media (max-width: 1200px)
-    grid-template-columns: 1fr
+    .sib-input, .sib-select
+      height: 32px
 
-// ── Pannello documento ────────────────────────────────────────────────────────
-.ca-doc-panel
-  min-width: 0
+// ── Placeholder editor ────────────────────────────────────────────────────────
+.ca-hint
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 22px 20px
+  background: var(--color-surface)
+  border: 1px dashed $border
+  border-radius: 14px
+  color: $text-inactive
+  line-height: 1.5
+
+  i
+    font-size: 22px
+    color: $primary
 
 // ── Toolbar contratto ───────────────────────────────────────────────────────────
 .ca-contract
@@ -215,23 +243,30 @@
   height: 28px
   font-size: 12px
 
-// ── Bacheca ───────────────────────────────────────────────────────────────────
+// ── LA MIA BACHECA (stile sughero) ───────────────────────────────────────────────
 .ca-board
-  background: var(--color-surface)
-  border: 1px solid $border
   border-radius: 14px
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
   overflow: hidden
-  display: flex
-  flex-direction: column
+  border: 7px solid #7c5230
+  background-color: #c69a63
+  background-image: radial-gradient(rgba(110, 66, 20, 0.20) 1px, transparent 1.6px), radial-gradient(rgba(255, 255, 255, 0.10) 1px, transparent 1.6px)
+  background-size: 9px 9px, 13px 13px
+  background-position: 0 0, 5px 7px
+  box-shadow: inset 0 0 40px rgba(60, 34, 8, 0.35), 0 4px 14px rgba(0, 0, 0, 0.18)
 
   &__head
     display: flex
     align-items: center
-    justify-content: space-between
-    padding: 14px 16px
-    border-bottom: 1px solid $border
-    background: alpha($primary, 0.03)
+    justify-content: center
+    gap: 10px
+    position: relative
+    margin: 12px auto 4px
+    padding: 8px 20px
+    width: max-content
+    border-radius: 8px
+    background: rgba(50, 30, 10, 0.55)
+    color: #fff
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3)
 
   &__title
     display: inline-flex
@@ -239,18 +274,15 @@
     gap: 8px
     font-family: $font-heading
     font-weight: 700
-    color: $primary
-    font-size: 15px
-
-    i
-      color: $primary
+    font-size: 17px
+    letter-spacing: 0.02em
 
   &__count
-    min-width: 24px
-    height: 22px
-    padding: 0 8px
+    min-width: 22px
+    height: 20px
+    padding: 0 7px
     border-radius: 999px
-    background: $primary
+    background: rgba(255, 255, 255, 0.22)
     color: #fff
     font-size: 12px
     font-weight: 700
@@ -261,82 +293,102 @@
   &__list
     display: flex
     flex-direction: column
-    gap: 10px
-    padding: 12px
-    max-height: 620px
+    gap: 14px
+    padding: 16px 16px 20px
+    max-height: 640px
     overflow-y: auto
 
   &__empty
-    padding: 30px 12px
     text-align: center
-    color: $text-inactive
+    color: rgba(255, 255, 255, 0.9)
+    padding: 24px 12px
 
-// Item bacheca
+// Foglietto appuntato — riga unica
 .ca-item
+  position: relative
   display: flex
-  align-items: stretch
-  gap: 6px
-  border: 1px solid $border
-  border-radius: 12px
-  padding: 10px 12px
-  transition: border-color 0.15s, box-shadow 0.15s
+  align-items: center
+  gap: 10px
+  background: var(--color-surface)
+  border-radius: 8px
+  padding: 12px 12px 12px 14px
+  box-shadow: 0 3px 9px rgba(40, 22, 4, 0.30)
+  transition: transform 0.12s, box-shadow 0.12s
 
   &:hover
-    border-color: alpha($primary, 0.5)
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06)
+    transform: translateY(-1px)
+    box-shadow: 0 6px 16px rgba(40, 22, 4, 0.38)
 
   &--active
-    border-color: $primary
-    box-shadow: 0 0 0 2px alpha($primary, 0.15)
+    outline: 2px solid $primary
+    outline-offset: 1px
 
-  &__star
-    background: transparent
-    border: none
-    cursor: pointer
-    color: $border
-    font-size: 14px
-    padding: 2px 4px
-    align-self: flex-start
+  // Puntina
+  &__pin
+    position: absolute
+    top: -7px
+    left: 18px
+    width: 15px
+    height: 15px
+    border-radius: 50%
+    background: radial-gradient(circle at 34% 30%, #ff9a9a, #d84343 58%, #9e2b2b)
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4)
 
-    &--on
-      color: $warning
+    &::after
+      content: ''
+      position: absolute
+      top: 4px
+      left: 4px
+      width: 4px
+      height: 4px
+      border-radius: 50%
+      background: rgba(255, 255, 255, 0.7)
 
-  &__body
+    &--acquisto
+      background: radial-gradient(circle at 34% 30%, #ffd98a, #e0a63a 58%, #a9761d)
+
+  &__open
     flex: 1
     min-width: 0
     display: flex
-    flex-direction: column
-    gap: 6px
-    cursor: pointer
-
-  &__top
-    display: flex
     align-items: center
-    justify-content: space-between
-    gap: 8px
+    gap: 10px
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 0
+    text-align: left
 
-  &__period,
-  &__qty
+  &__period
     display: inline-flex
     align-items: center
     gap: 6px
-    font-size: 12px
+    font-size: 12.5px
+    font-weight: 600
     color: $text-active
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
 
     i
       color: $text-inactive
       font-size: 11px
 
   &__qty
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
     color: $text-inactive
+    white-space: nowrap
+
+    i
+      font-size: 11px
 
   &__actions
-    display: flex
-    flex-direction: column
+    display: inline-flex
     align-items: center
-    gap: 4px
-    padding-left: 4px
-    border-left: 1px solid $border
+    gap: 2px
 
   &__act
     background: transparent
@@ -352,46 +404,41 @@
     justify-content: center
 
     &:hover
-      background: alpha($primary, 0.08)
+      background: alpha($primary, 0.10)
       color: $primary
 
     &--danger:hover
-      background: alpha($error, 0.10)
+      background: alpha($error, 0.12)
       color: $error
 
     &--publish
       color: $success
 
       &:hover
-        background: alpha($success, 0.12)
+        background: alpha($success, 0.14)
         color: $success
 
-  &__pub
-    width: 28px
-    height: 28px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    color: $success
-    font-size: 15px
+  &__star--on
+    color: $warning
 
 // Chip tipologia
 .ca-chip
   display: inline-flex
   align-items: center
-  font-size: 11px
+  font-size: 10.5px
   font-weight: 700
   border-radius: 999px
-  padding: 2px 10px
+  padding: 2px 9px
   text-transform: uppercase
   letter-spacing: 0.02em
+  white-space: nowrap
 
   &--vendita
     background: alpha($primary, 0.10)
     color: $primary
 
   &--acquisto
-    background: alpha($warning, 0.14)
+    background: alpha($warning, 0.16)
     color: $warning
 
 // Badge stato
@@ -403,14 +450,15 @@
   font-weight: 600
   border-radius: 999px
   padding: 2px 9px
+  white-space: nowrap
 
   i
     font-size: 10px
 
   &--pub
-    background: alpha($success, 0.12)
+    background: alpha($success, 0.14)
     color: $success
 
   &--draft
-    background: alpha($warning, 0.14)
+    background: alpha($warning, 0.16)
     color: $warning

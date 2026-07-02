@@ -194,8 +194,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       {/* ── Corpo: form/contratto (sx) + bacheca (dx) ─────────────────────── */}
       <div className="ca-body">
         <div className="ca-doc-panel">
-          {!contratto ? (
-            <section className="ca-setup">
+          <section className="ca-setup ca-setup--compact">
               <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
               <div className="ca-setup__grid">
                 <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
@@ -263,7 +262,8 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 </button>
               </div>
             </section>
-          ) : (
+
+          {contratto ? (
             <ContrattoPreview
               contratto={contratto}
               onUpdTariffa={updTariffa}
@@ -272,6 +272,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               onChiudi={chiudiContratto}
               isEditing={editingBachecaId != null}
             />
+          ) : (
+            <div className="ca-hint">
+              <i className="fa-light fa-file-pen" />
+              <span>Genera un contratto dai parametri qui sopra, oppure aprine uno dalla bacheca: l'editor del documento si aprirà qui sotto.</span>
+            </div>
           )}
         </div>
 
@@ -285,35 +290,31 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               <div className="ca-board__empty">Nessun annuncio in bacheca.</div>
             ) : bacheca.map((b) => (
               <article key={b.id} className={`ca-item ${editingBachecaId === b.id ? 'ca-item--active' : ''}`}>
-                <button type="button" className="ca-item__star" onClick={() => toggleStar(b.id)} aria-label="Preferito">
-                  <i className={`${b.preferito ? 'fa-solid' : 'fa-light'} fa-star ${b.preferito ? 'ca-item__star--on' : ''}`} />
+                <span className={`ca-item__pin ca-item__pin--${b.tipologia.toLowerCase()}`} aria-hidden="true" />
+                <button type="button" className="ca-item__open" onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
+                  <span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span>
+                  <span className="ca-item__period"><i className="fa-light fa-calendar-range" /> {b.periodo}</span>
+                  <span className="ca-item__qty"><i className="fa-light fa-cubes" /> {b.quantita}</span>
                 </button>
-                <div className="ca-item__body" onClick={() => apriContratto(b)} role="button" tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter') apriContratto(b) }}>
-                  <div className="ca-item__top">
-                    <span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span>
-                    <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
-                      <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
-                    </span>
-                  </div>
-                  <div className="ca-item__period"><i className="fa-light fa-calendar-range" /> {b.periodo}</div>
-                  <div className="ca-item__qty"><i className="fa-light fa-cubes" /> {b.quantita}</div>
-                </div>
-                <div className="ca-item__actions">
+                <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
+                  <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
+                </span>
+                <span className="ca-item__actions">
+                  <button type="button" className="ca-item__act" title="Preferito" onClick={() => toggleStar(b.id)}>
+                    <i className={`${b.preferito ? 'fa-solid ca-item__star--on' : 'fa-light'} fa-star`} />
+                  </button>
                   <button type="button" className="ca-item__act" title="Modifica contratto" onClick={() => apriContratto(b)}>
                     <i className="fa-light fa-file-pen" />
                   </button>
                   <button type="button" className="ca-item__act ca-item__act--danger" title="Elimina" onClick={() => eliminaBacheca(b.id)}>
                     <i className="fa-light fa-trash" />
                   </button>
-                  {b.stato === 'Pubblicato' ? (
-                    <span className="ca-item__pub" title="Pubblicato in Agorà"><i className="fa-solid fa-circle-check" /></span>
-                  ) : (
+                  {b.stato !== 'Pubblicato' && (
                     <button type="button" className="ca-item__act ca-item__act--publish" title="Pubblica in Agorà" onClick={() => pubblica(b.id)}>
                       <i className="fa-solid fa-paper-plane" />
                     </button>
                   )}
-                </div>
+                </span>
               </article>
             ))}
           </div>
