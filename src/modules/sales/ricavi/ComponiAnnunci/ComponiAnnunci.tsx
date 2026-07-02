@@ -277,11 +277,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               </button>
             )}
             {step < STEPS.length - 1 ? (
-              <button type="button" className="sib-btn sib-btn--primary" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+              <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
                 Avanti <i className="fa-light fa-arrow-right" />
               </button>
             ) : (
-              <button type="button" className="sib-btn sib-btn--primary" onClick={genera}>
+              <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={genera}>
                 <i className="fa-light fa-file-contract" /> Genera contratto
               </button>
             )}

@@ -68,11 +68,15 @@
   &__foot
     display: flex
     align-items: center
-    justify-content: flex-end
+    justify-content: space-between
     gap: 12px
-    padding: 14px 18px
+    padding: 5px
     border-top: 1px solid $border
     background: alpha($primary, 0.02)
+
+  // l'azione principale resta sempre a destra (anche quando "Indietro" è nascosto)
+  &__next
+    margin-left: auto
 
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
