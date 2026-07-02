@@ -11,22 +11,17 @@
     align-self: flex-start
 
 // ── Corpo: colonna sinistra (parametri + editor) | bacheca ────────────────────
-.ca-body
+// ── Riga superiore: parametri (40%) | bacheca (60%) ──────────────────────────
+.ca-top
   display: grid
-  grid-template-columns: 1fr 480px
+  grid-template-columns: 2fr 3fr
   gap: 18px
   align-items: start
 
-  @media (max-width: 1240px)
+  @media (max-width: 1100px)
     grid-template-columns: 1fr
 
-.ca-doc-panel
-  min-width: 0
-  display: flex
-  flex-direction: column
-  gap: 16px
-
-// ── Card parametri (compatta) ────────────────────────────────────────────────
+// ── Card parametri (con stepper) ─────────────────────────────────────────────
 .ca-setup
   background: var(--color-surface)
   border: 1px solid $border
@@ -38,7 +33,7 @@
     display: flex
     align-items: center
     gap: 8px
-    padding: 10px 16px
+    padding: 12px 18px
     font-family: $font-heading
     font-weight: 600
     color: $primary
@@ -50,37 +45,92 @@
 
   &__grid
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
-    gap: 10px 14px
-    padding: 14px 16px
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))
+    gap: 16px 18px
+    padding: 18px
+    min-height: 120px
+    align-content: start
 
   &__foot
     display: flex
     align-items: center
     justify-content: space-between
     gap: 12px
-    flex-wrap: wrap
-    padding: 0 16px 14px
+    padding: 0 18px 18px
 
-  &__hint
+// ── Stepper ───────────────────────────────────────────────────────────────────
+.ca-steps
+  display: flex
+  align-items: center
+  gap: 6px
+  padding: 14px 18px 4px
+  flex-wrap: wrap
+
+  &__sep
+    flex: 1
+    min-width: 12px
+    height: 1px
+    background: $border
+
+.ca-step
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  background: transparent
+  border: none
+  cursor: pointer
+  padding: 2px 4px
+  color: $text-inactive
+
+  &__num
+    width: 24px
+    height: 24px
+    border-radius: 50%
     display: inline-flex
     align-items: center
-    gap: 6px
+    justify-content: center
     font-size: 12px
+    font-weight: 700
+    background: $bg
+    border: 1px solid $border
     color: $text-inactive
 
-    i
+  &__label
+    font-size: 12px
+    font-weight: 600
+    white-space: nowrap
+
+  &.is-active
+    color: $primary
+
+    .ca-step__num
+      background: $primary
+      border-color: $primary
+      color: #fff
+
+  &.is-done
+    color: $primary
+
+    .ca-step__num
+      background: alpha($primary, 0.12)
+      border-color: $primary
       color: $primary
 
-  // Variante compatta: campi più fitti per lasciare spazio all'editor sottostante
-  &--compact
-    .ca-setup__grid
-      grid-template-columns: repeat(auto-fill, minmax(138px, 1fr))
-      gap: 8px 12px
-      padding: 12px 14px
+// ── Placeholder editor ────────────────────────────────────────────────────────
+.ca-hint
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 22px 20px
+  background: var(--color-surface)
+  border: 1px dashed $border
+  border-radius: 14px
+  color: $text-inactive
+  line-height: 1.5
 
-    .sib-input, .sib-select
-      height: 32px
+  i
+    font-size: 22px
+    color: $primary
 
 // ── Placeholder editor ────────────────────────────────────────────────────────
 .ca-hint

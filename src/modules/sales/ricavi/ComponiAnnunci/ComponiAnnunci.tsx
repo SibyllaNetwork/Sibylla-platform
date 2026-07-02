@@ -62,6 +62,7 @@ const CATEGORIE = ['Hotel', 'Resort', 'B&B', 'Villaggio', 'Agriturismo', 'Boutiq
 const CITTA = ['Roma', 'Milano', 'Catania', 'Firenze', 'Napoli', 'Torino', 'Bologna', 'Venezia']
 const LIVELLI = ['1', '2', '3', '4', '5']
 const TIPOLOGIA_CAMERE = ['Singola Classic', 'Doppia Classic', 'Doppia Superior', 'Tripla Classic', 'Matrimoniale', 'Suite']
+const STEPS = ['Tipo e ambito', 'Configurazione', 'Periodo e condizioni']
 const TIPO_OSPITI = ['Individuali', 'Gruppi']
 const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
@@ -98,6 +99,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const [bacheca, setBacheca] = useState<RigaBacheca[]>(BACHECA_INIT)
   const [contratto, setContratto] = useState<Contratto | null>(null)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
+  const [step, setStep] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -191,12 +193,26 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       <BtnBack />
       <PageHeader title="Componi annunci" subtitle="Configura i parametri, genera il contratto, modificalo e pubblicalo in Agorà." />
 
-      {/* ── Corpo: form/contratto (sx) + bacheca (dx) ─────────────────────── */}
-      <div className="ca-body">
-        <div className="ca-doc-panel">
-          <section className="ca-setup ca-setup--compact">
-              <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
-              <div className="ca-setup__grid">
+      {/* ── Riga superiore: parametri (40%) + bacheca (60%) ───────────────── */}
+      <div className="ca-top">
+        <section className="ca-setup">
+          <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
+
+          <div className="ca-steps">
+            {STEPS.map((label, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="ca-steps__sep" aria-hidden="true" />}
+                <button type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
+                  <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
+                  <span className="ca-step__label">{label}</span>
+                </button>
+              </React.Fragment>
+            ))}
+          </div>
+
+          <div className="ca-setup__grid">
+            {step === 0 && (
+              <>
                 <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
                   options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
                 <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
@@ -207,78 +223,71 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                       options={CITTA.map((c) => ({ value: c, label: c }))} />
                     <SelectField label="Categoria" name="categoriaLivello" value={params.categoriaLivello} onChange={(e) => set('categoriaLivello', e.target.value)}
                       options={LIVELLI.map((c) => ({ value: c, label: c }))} />
-                    <SelectField label="Tipologia" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
-                      options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-                    {params.tipoOspiti === 'Gruppi' ? (
-                      <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                        options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-                    ) : (
-                      <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
-                        options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
-                    )}
-                    <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
-                      valueFrom={params.dataDa} valueTo={params.dataA}
-                      onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                    <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
                   </>
+                ) : params.tipologia === 'Categoria' ? (
+                  <SelectField label="Categoria" name="categoria" value={params.categoria} onChange={(e) => set('categoria', e.target.value)}
+                    options={CATEGORIE.map((c) => ({ value: c, label: c }))} />
                 ) : (
+                  <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
+                    onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
+                    options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
+                )}
+              </>
+            )}
+
+            {step === 1 && (
+              <>
+                <SelectField label={params.tipo === 'Acquisto' ? 'Tipologia' : 'Tipo ospiti'} name="tipoOspiti"
+                  value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
+                  options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+                {params.tipoOspiti === 'Gruppi' ? (
+                  <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                    options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                ) : (
+                  <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
+                    options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
+                )}
+                {params.tipo !== 'Acquisto' && (
+                  <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
+                    options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
+                )}
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
+                  valueFrom={params.dataDa} valueTo={params.dataA}
+                  onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+                <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                {params.tipo !== 'Acquisto' && (
                   <>
-                    {params.tipologia === 'Categoria' ? (
-                      <SelectField label="Categoria" name="categoria" value={params.categoria}
-                        onChange={(e) => set('categoria', e.target.value)}
-                        options={CATEGORIE.map((c) => ({ value: c, label: c }))} />
-                    ) : (
-                      <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
-                        onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
-                        options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
-                    )}
-                    <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
-                      options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-                    {params.tipoOspiti === 'Gruppi' ? (
-                      <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                        options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-                    ) : (
-                      <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
-                        options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
-                    )}
-                    <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
-                      options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
-                    <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
-                      valueFrom={params.dataDa} valueTo={params.dataA}
-                      onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+                    <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
                     <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
                       options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
-                    <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
-                    <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
                     <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
                       options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
                   </>
                 )}
-              </div>
-              <div className="ca-setup__foot">
-                <span className="ca-setup__hint"><i className="fa-light fa-circle-info" /> Compila i parametri e genera il contratto: comparirà qui, editabile.</span>
-                <button type="button" className="sib-btn sib-btn--primary" onClick={genera}>
-                  <i className="fa-light fa-file-contract" /> Genera contratto
-                </button>
-              </div>
-            </section>
+              </>
+            )}
+          </div>
 
-          {contratto ? (
-            <ContrattoPreview
-              contratto={contratto}
-              onUpdTariffa={updTariffa}
-              onUpdServizio={updServizio}
-              onSalva={salvaInBacheca}
-              onChiudi={chiudiContratto}
-              isEditing={editingBachecaId != null}
-            />
-          ) : (
-            <div className="ca-hint">
-              <i className="fa-light fa-file-pen" />
-              <span>Genera un contratto dai parametri qui sopra, oppure aprine uno dalla bacheca: l'editor del documento si aprirà qui sotto.</span>
-            </div>
-          )}
-        </div>
+          <div className="ca-setup__foot">
+            <button type="button" className="sib-btn sib-btn--secondary" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+              <i className="fa-light fa-arrow-left" /> Indietro
+            </button>
+            {step < STEPS.length - 1 ? (
+              <button type="button" className="sib-btn sib-btn--primary" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
+                Avanti <i className="fa-light fa-arrow-right" />
+              </button>
+            ) : (
+              <button type="button" className="sib-btn sib-btn--primary" onClick={genera}>
+                <i className="fa-light fa-file-contract" /> Genera contratto
+              </button>
+            )}
+          </div>
+        </section>
 
         <aside className="ca-board">
           <div className="ca-board__head">
@@ -320,6 +329,23 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           </div>
         </aside>
       </div>
+
+      {/* ── Editor del contratto (a tutta larghezza, sotto) ───────────────── */}
+      {contratto ? (
+        <ContrattoPreview
+          contratto={contratto}
+          onUpdTariffa={updTariffa}
+          onUpdServizio={updServizio}
+          onSalva={salvaInBacheca}
+          onChiudi={chiudiContratto}
+          isEditing={editingBachecaId != null}
+        />
+      ) : (
+        <div className="ca-hint">
+          <i className="fa-light fa-file-pen" />
+          <span>Completa i parametri e premi <strong>Genera contratto</strong>, oppure apri un annuncio dalla bacheca: l'editor del documento si aprirà qui, a tutta larghezza.</span>
+        </div>
+      )}
     </div>
   )
 }
