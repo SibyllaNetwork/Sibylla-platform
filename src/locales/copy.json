@@ -1,0 +1,21 @@
+{
+  "default": {
+    "it": {
+      "op.anagraficheOspiti.title": "Anagrafiche Ospiti",
+      "op.anagraficheOspiti.subtitle": "Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura"
+    },
+    "en": {
+      "op.anagraficheOspiti.title": "Guest Records",
+      "op.anagraficheOspiti.subtitle": "Organize, update and manage your property's guest records"
+    },
+    "de": {
+      "op.anagraficheOspiti.title": "Gästestammdaten",
+      "op.anagraficheOspiti.subtitle": "Organisieren, aktualisieren und verwalten Sie die Gästedaten Ihrer Unterkunft"
+    }
+  },
+  "int-gar": {
+    "it": {
+      "op.anagraficheOspiti.subtitle": "Anagrafiche ospiti delle strutture del gruppo Gar"
+    }
+  }
+}

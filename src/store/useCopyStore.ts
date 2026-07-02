@@ -1,27 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import copyJson from '../locales/copy.json'
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Copy store — testi della piattaforma editabili + multilingua, PER CLIENTE.
 //
-//  Vincoli architetturali (richiesti):
-//    • NIENTE database.
-//    • NIENTE storage esterni (no Blob, no object store).
-//    • Testi PER CLIENTE (intestatario del contratto), non globali.
+//  Modello di persistenza (scelto): JSON STATICI NEL REPO + DEPLOY.
+//    • Niente database, niente storage esterni, niente backend di persistenza.
+//    • Il source of truth condiviso è src/locales/copy.json: versionato nel repo,
+//      bundlato con l'app → una modifica committata si propaga a TUTTI gli utenti
+//      al rilascio.
+//    • L'editor-nel-clone (Console assistenza) NON scrive nel repo a runtime: le
+//      modifiche vivono in `overrides` (localStorage) come BOZZA locale, e vengono
+//      poi ESPORTATE (serializeForCommit) → commit → deploy per la pubblicazione.
 //
-//  → La persistenza è interamente client-side in `localStorage` (Zustand persist),
-//    esattamente come gli altri store della piattaforma (useAccessStore,
-//    useCartStore, useSectionThemeStore, …). Nessun servizio esterno coinvolto.
+//  Struttura di copy.json:  { [clientKey]: { [lang]: { [key]: text } } }
+//    - "default" = testi base condivisi da tutti i clienti.
+//    - "int-gar", … = override per singolo intestatario/cliente.
 //
-//  Ogni testo è una coppia `chiave → testo` risolta da t(key, fallback). La catena
-//  di fallback garantisce che, senza override, la UI mostri il letterale italiano
-//  di oggi (migrazione sicura e incrementale):
-//
-//    override[client][lang][key] → override[client]['it'][key]
-//      → SEED[lang][key] → SEED['it'][key] → fallback (letterale nel .tsx) → key
+//  Catena di risoluzione di t(key, fallback):
+//    draft[client][lang]  → draft[client][it]
+//      → repo[client][lang] → repo[client][it]
+//      → repo[default][lang] → repo[default][it]
+//      → fallback (letterale nel .tsx) → key
 //
 //  `client` è la chiave dell'intestatario (es. 'int-gar'); vedi useCurrentClientKey
-//  in src/core/i18n/copy.ts per come viene derivata (sessione assist o profilo).
+//  in src/core/i18n/copy.ts.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type Lang = 'it' | 'en' | 'de' | 'fr' | 'es'
@@ -37,45 +41,33 @@ export const SUPPORTED_LANGS: { id: Lang; label: string; flag: string }[] = [
 ]
 
 export type Bundle = Record<string, string>
-
-// Bundle di default (demo) per la pagina pilota, condiviso da tutti i clienti come
-// base. Gli override per-cliente ci si sovrappongono. Le chiavi seguono la
-// convenzione `area.pagina.campo`.
-const SEED: Partial<Record<Lang, Bundle>> = {
-  it: {
-    'op.anagraficheOspiti.title': 'Anagrafiche Ospiti',
-    'op.anagraficheOspiti.subtitle': 'Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura',
-  },
-  en: {
-    'op.anagraficheOspiti.title': 'Guest Records',
-    'op.anagraficheOspiti.subtitle': "Organize, update and manage your property's guest records",
-  },
-  de: {
-    'op.anagraficheOspiti.title': 'Gästestammdaten',
-    'op.anagraficheOspiti.subtitle': 'Organisieren, aktualisieren und verwalten Sie die Gästedaten Ihrer Unterkunft',
-  },
-}
-
 /** override[clientKey][lang][key] = testo */
-type Overrides = Record<string, Partial<Record<Lang, Bundle>>>
+export type Overrides = Record<string, Partial<Record<Lang, Bundle>>>
+
+const DEFAULT_CLIENT = 'default'
+
+// Testi committati nel repo (source of truth propagato via deploy).
+const REPO = copyJson as Overrides
 
 interface CopyState {
   /** Lingua attualmente mostrata dal clone/app. */
   lang: Lang
   /** Modalità editor (editing in-contesto nel clone della Console). */
   editMode: boolean
-  /** Override per cliente/lingua/chiave (modifiche dell'assistenza). */
+  /** Bozze per cliente/lingua/chiave (modifiche non ancora committate). */
   overrides: Overrides
 
   setLang: (l: Lang) => void
   setEditMode: (v: boolean) => void
   toggleEdit: () => void
-  /** Scrive/aggiorna il testo di una chiave, per un cliente e una lingua. */
+  /** Scrive/aggiorna la bozza di una chiave, per un cliente e una lingua. */
   setEntry: (clientKey: string, lang: Lang, key: string, text: string) => void
-  /** Rimuove l'override (torna a SEED/fallback). */
+  /** Rimuove la bozza (torna al testo del repo). */
   resetEntry: (clientKey: string, lang: Lang, key: string) => void
-  /** Sostituisce in blocco il bundle di un cliente/lingua. */
+  /** Sostituisce in blocco la bozza di un cliente/lingua. */
   mergeBundle: (clientKey: string, lang: Lang, bundle: Bundle) => void
+  /** Svuota le bozze (es. dopo aver esportato e deployato). */
+  clearDrafts: (clientKey?: string) => void
 }
 
 export const useCopyStore = create<CopyState>()(
@@ -106,6 +98,13 @@ export const useCopyStore = create<CopyState>()(
           const client = s.overrides[clientKey] ?? {}
           return { overrides: { ...s.overrides, [clientKey]: { ...client, [lang]: { ...(client[lang] ?? {}), ...bundle } } } }
         }),
+      clearDrafts: (clientKey) =>
+        set((s) => {
+          if (!clientKey) return { overrides: {} }
+          const next = { ...s.overrides }
+          delete next[clientKey]
+          return { overrides: next }
+        }),
     }),
     {
       name: 'sibylla.copy',
@@ -116,7 +115,7 @@ export const useCopyStore = create<CopyState>()(
   ),
 )
 
-/** Risoluzione pura di una chiave dato cliente, lingua e override correnti. */
+/** Risoluzione pura di una chiave dato cliente, lingua, bozze e repo. */
 export function resolveCopy(
   overrides: Overrides,
   clientKey: string,
@@ -124,13 +123,33 @@ export function resolveCopy(
   key: string,
   fallback?: string,
 ): string {
-  const client = overrides[clientKey]
+  const draft = overrides[clientKey]
+  const repoClient = REPO[clientKey]
+  const repoDefault = REPO[DEFAULT_CLIENT]
   return (
-    client?.[lang]?.[key] ??
-    client?.[SOURCE_LANG]?.[key] ??
-    SEED[lang]?.[key] ??
-    SEED[SOURCE_LANG]?.[key] ??
+    draft?.[lang]?.[key] ??
+    draft?.[SOURCE_LANG]?.[key] ??
+    repoClient?.[lang]?.[key] ??
+    repoClient?.[SOURCE_LANG]?.[key] ??
+    repoDefault?.[lang]?.[key] ??
+    repoDefault?.[SOURCE_LANG]?.[key] ??
     fallback ??
     key
   )
+}
+
+/**
+ * Produce il contenuto JSON pronto da committare in src/locales/copy.json,
+ * fondendo il repo attuale con le bozze locali. È l'artefatto che l'assistenza
+ * esporta e che un dev committa → deploy → pubblicazione a tutti gli utenti.
+ */
+export function serializeForCommit(overrides: Overrides): string {
+  const merged: Overrides = JSON.parse(JSON.stringify(REPO))
+  for (const client of Object.keys(overrides)) {
+    merged[client] = merged[client] ?? {}
+    for (const lang of Object.keys(overrides[client]) as Lang[]) {
+      merged[client][lang] = { ...(merged[client][lang] ?? {}), ...(overrides[client][lang] ?? {}) }
+    }
+  }
+  return JSON.stringify(merged, null, 2) + '\n'
 }
