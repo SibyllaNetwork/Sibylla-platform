@@ -271,10 +271,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           </div>
 
           <div className="ca-setup__foot">
-            <button type="button" className="sib-btn sib-btn--secondary" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
-              <i className="fa-light fa-arrow-left" /> Indietro
-            </button>
-            <span className="ca-setup__spacer" />
+            {step > 0 && (
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStep((s) => Math.max(0, s - 1))}>
+                <i className="fa-light fa-arrow-left" /> Indietro
+              </button>
+            )}
             {step < STEPS.length - 1 ? (
               <button type="button" className="sib-btn sib-btn--primary" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
                 Avanti <i className="fa-light fa-arrow-right" />
