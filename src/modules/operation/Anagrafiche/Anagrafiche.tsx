@@ -7,6 +7,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
 import { SelectField, DatePickerField, SearchField, InputField, TextareaField, CheckboxField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import { useT } from '../../../core/i18n/copy'
 import './Anagrafiche.sass'
 
 // Anagrafiche dei clienti che fruiscono della struttura.
@@ -91,6 +92,7 @@ const toISO = (d: string) => { const [g, m, a] = (d || '').split('/'); return a 
 const toIt  = (iso: string) => { const [a, m, g] = (iso || '').split('-'); return g && m && a ? `${g}/${m}/${a}` : '' }
 
 export default function Anagrafiche() {
+  const t = useT()
   const [items, setItems] = useState<Anagrafica[]>(FALLBACK)
   const [aziende, setAziende] = useState<Azienda[]>(AZIENDE)
   const [tipo, setTipo] = useState(TIPI_ANAGRAFICA[0])
@@ -189,7 +191,7 @@ export default function Anagrafiche() {
   return (
     <div>
       <BtnBack />
-      <PageHeader title="Anagrafiche Ospiti" subtitle="Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura" />
+      <PageHeader title={t('op.anagraficheOspiti.title', 'Anagrafiche Ospiti')} subtitle={t('op.anagraficheOspiti.subtitle', 'Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura')} />
 
       <FilterToolbar>
         <SelectField name="tipo" label="Tipo anagrafica" value={tipo} onChange={(e) => setTipo(e.target.value)}
