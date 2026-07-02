@@ -123,8 +123,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       periodo: periodLabel(params.dataDa, params.dataA),
       pagamento: isAcquisto ? '—' : params.tipologiaPagamento,
       tariffe: STAGIONI.map((s, i) => ({
-        id: i + 1, stagionalita: s, tipologiaBase: params.tipologiaBase,
-        lotto: isAcquisto ? params.tipologiaCamere : params.tipoLotti, quantita: String(params.quantita), prezzo: '0,00',
+        id: i + 1, stagionalita: s,
+        tipologiaBase: isAcquisto && params.tipoOspiti === 'Individuali' ? params.tipologiaCamere : params.tipologiaBase,
+        lotto: isAcquisto ? '—' : params.tipoLotti, quantita: String(params.quantita), prezzo: '0,00',
       })),
       servizi: [
         { id: 1, servizio: 'Pernottamento', condizione: 'Incluso', note: '' },
@@ -209,13 +210,16 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                       options={LIVELLI.map((c) => ({ value: c, label: c }))} />
                     <SelectField label="Tipologia" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
                       options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-                    <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                      options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                    {params.tipoOspiti === 'Gruppi' ? (
+                      <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                        options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                    ) : (
+                      <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
+                        options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
+                    )}
                     <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
                       valueFrom={params.dataDa} valueTo={params.dataA}
                       onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                    <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
-                      options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
                     <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
                   </>
                 ) : (
