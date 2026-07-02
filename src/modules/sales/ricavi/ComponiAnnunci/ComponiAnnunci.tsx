@@ -200,13 +200,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
           <div className="ca-steps">
             {STEPS.map((label, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <span className="ca-steps__sep" aria-hidden="true" />}
-                <button type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
-                  <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
-                  <span className="ca-step__label">{label}</span>
-                </button>
-              </React.Fragment>
+              <button key={i} type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
+                <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
+                <span className="ca-step__label">{label}</span>
+              </button>
             ))}
           </div>
 
@@ -256,7 +253,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
             {step === 2 && (
               <>
-                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
+                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
                   valueFrom={params.dataDa} valueTo={params.dataA}
                   onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
                 <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
