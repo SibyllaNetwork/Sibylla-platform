@@ -78,7 +78,8 @@
 
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
-.ca-steps
+// Stepper (prefisso univoco `stpr` per evitare collisioni con `.ca-step` globale)
+.stpr
   position: relative
   display: flex
   padding: 18px 18px 14px
@@ -94,19 +95,37 @@
     background: $border
     z-index: 0
 
-.ca-step
-  flex: 1
-  position: relative
-  z-index: 1
-  display: flex
-  flex-direction: column
-  align-items: center
-  gap: 8px
-  background: transparent
-  border: none
-  cursor: pointer
-  padding: 0
-  color: $text-inactive
+  &__step
+    flex: 1
+    position: relative
+    z-index: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    background: transparent
+    border: none
+    cursor: pointer
+    padding: 0
+    color: $text-inactive
+
+    &.is-active
+      color: $primary
+
+      .stpr__num
+        background: $primary
+        border-color: $primary
+        color: #fff
+        box-shadow: 0 0 0 4px alpha($primary, 0.15)
+
+    // completato: check verde
+    &.is-done
+      color: $success
+
+      .stpr__num
+        background: $success
+        border-color: $success
+        color: #fff
 
   &__num
     width: 28px
@@ -127,23 +146,6 @@
     font-weight: 600
     text-align: center
     line-height: 1.25
-
-  &.is-active
-    color: $primary
-
-    .ca-step__num
-      background: $primary
-      border-color: $primary
-      color: #fff
-      box-shadow: 0 0 0 4px alpha($primary, 0.15)
-
-  &.is-done
-    color: $primary
-
-    .ca-step__num
-      background: $primary
-      border-color: $primary
-      color: #fff
 
 // ── Placeholder editor ────────────────────────────────────────────────────────
 .ca-hint

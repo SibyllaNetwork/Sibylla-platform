@@ -198,11 +198,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
         <section className="ca-setup">
           <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
 
-          <div className="ca-steps">
+          <div className="stpr">
             {STEPS.map((label, i) => (
-              <button key={i} type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
-                <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
-                <span className="ca-step__label">{label}</span>
+              <button key={i} type="button" className={`stpr__step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
+                <span className="stpr__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
+                <span className="stpr__label">{label}</span>
               </button>
             ))}
           </div>
