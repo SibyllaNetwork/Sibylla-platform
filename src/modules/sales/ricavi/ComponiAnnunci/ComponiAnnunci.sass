@@ -55,32 +55,40 @@
     > *
       min-width: 0
 
-    // ogni controllo riempie la propria cella (larghezza uniforme, niente sforo)
-    .sib-input, .sib-select
-      width: 100%
-
-// Campo range date: due colonne ma con larghezza massima (mostra tutto, non troppo lungo)
+// Campo range date: due colonne per dargli spazio; il controllo si dimensiona
+// al contenuto (w-auto dello standard), quindi mostra tutto senza stirarsi.
 .ca-field--wide
   grid-column: span 2
-  max-width: 290px
 
   &__foot
     display: flex
     align-items: center
-    justify-content: space-between
     gap: 12px
     padding: 0 18px 18px
+
+  &__spacer
+    flex: 1
 
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
 .ca-steps
   display: flex
   align-items: flex-start
-  padding: 18px 18px 12px
+  padding: 18px 18px 14px
+
+  // Connettore orizzontale tra i cerchi (elemento reale, allineato al centro del cerchio)
+  &__line
+    flex: 1
+    height: 2px
+    min-width: 16px
+    margin: 14px 8px 0
+    border-radius: 2px
+    background: $border
+
+    &.is-done
+      background: $primary
 
 .ca-step
-  flex: 1
-  position: relative
   display: flex
   flex-direction: column
   align-items: center
@@ -91,20 +99,7 @@
   padding: 0
   color: $text-inactive
 
-  // Connettore verso lo step precedente (dietro i cerchi)
-  &:not(:first-child)::before
-    content: ''
-    position: absolute
-    top: 13px
-    right: 50%
-    width: 100%
-    height: 2px
-    background: $border
-    z-index: 0
-
   &__num
-    position: relative
-    z-index: 1
     width: 28px
     height: 28px
     border-radius: 50%
@@ -133,9 +128,6 @@
       color: #fff
       box-shadow: 0 0 0 4px alpha($primary, 0.15)
 
-    &::before
-      background: $primary
-
   &.is-done
     color: $primary
 
@@ -143,9 +135,6 @@
       background: $primary
       border-color: $primary
       color: #fff
-
-    &::before
-      background: $primary
 
 // ── Placeholder editor ────────────────────────────────────────────────────────
 .ca-hint

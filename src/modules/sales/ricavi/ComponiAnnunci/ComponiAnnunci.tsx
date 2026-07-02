@@ -200,10 +200,13 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
           <div className="ca-steps">
             {STEPS.map((label, i) => (
-              <button key={i} type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
-                <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
-                <span className="ca-step__label">{label}</span>
-              </button>
+              <React.Fragment key={i}>
+                {i > 0 && <span className={`ca-steps__line ${i <= step ? 'is-done' : ''}`} aria-hidden="true" />}
+                <button type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
+                  <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
+                  <span className="ca-step__label">{label}</span>
+                </button>
+              </React.Fragment>
             ))}
           </div>
 
@@ -274,6 +277,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             <button type="button" className="sib-btn sib-btn--secondary" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
               <i className="fa-light fa-arrow-left" /> Indietro
             </button>
+            <span className="ca-setup__spacer" />
             {step < STEPS.length - 1 ? (
               <button type="button" className="sib-btn sib-btn--primary" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
                 Avanti <i className="fa-light fa-arrow-right" />
