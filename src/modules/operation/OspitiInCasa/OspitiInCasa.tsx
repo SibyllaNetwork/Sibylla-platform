@@ -294,14 +294,12 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
         </div>
       </div>
 
-      {/* ─── Stats ───────────────────────────────────────────────────────── */}
-      <div className="ospiti-casa__bar ospiti-casa__bar--info">
-        <div className="ospiti-casa__stats">
-          <span className="ospiti-casa__stat"><i className="fa-light fa-user" /> Presenze: <strong>{totPresenze}</strong></span>
-          <span className="ospiti-casa__stat"><i className="fa-light fa-bed-front" /> Camere: <strong>{totCamere}</strong></span>
-          <span className="ospiti-casa__stat"><i className="fa-light fa-users" /> Gruppi: <strong>{pctGruppi}%</strong></span>
-          <span className="ospiti-casa__stat"><i className="fa-light fa-user-check" /> Individuali: <strong>{pctIndividuali}%</strong></span>
-        </div>
+      {/* ─── Conteggi (badge inline, come in Arrivi e partenze) ──────────── */}
+      <div className="ospiti-casa__counts">
+        <span className="ospiti-casa__count"><i className="fa-light fa-user" /> Presenze <strong>{totPresenze}</strong></span>
+        <span className="ospiti-casa__count"><i className="fa-light fa-bed-front" /> Camere <strong>{totCamere}</strong></span>
+        <span className="ospiti-casa__count"><i className="fa-light fa-users" /> Gruppi <strong>{pctGruppi}%</strong></span>
+        <span className="ospiti-casa__count"><i className="fa-light fa-user-check" /> Individuali <strong>{pctIndividuali}%</strong></span>
       </div>
 
       {/* ─── Tabella ─────────────────────────────────────────────────────── */}
