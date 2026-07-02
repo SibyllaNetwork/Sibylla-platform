@@ -66,7 +66,7 @@ const TIPO_OSPITI = ['Individuali', 'Gruppi']
 const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
 const TOUR_OPERATOR = ['Tutti', 'TUI', 'Alpitour', 'Eden Viaggi', 'Veratour', 'Bluvacanze']
-const PAGAMENTO = ['VCC', 'Bonifico bancario', 'Carta di credito', 'Rimessa diretta']
+const PAGAMENTO = ['VCC', 'Bonifico']
 const STAGIONI = ['Bassa stagione', 'Media stagione', 'Alta stagione']
 
 const periodLabel = (da: string, a: string) => {
