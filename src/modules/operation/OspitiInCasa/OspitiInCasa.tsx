@@ -121,6 +121,9 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
   const [scadutiTarget,  setScadutiTarget]  = useState<Ospite | null>(null)
   const [cambioTarget,   setCambioTarget]   = useState<Ospite | null>(null)
   const [modSoggTarget,  setModSoggTarget]  = useState<Ospite | null>(null)
+  const [trasferisciTarget, setTrasferisciTarget] = useState<Ospite | null>(null)
+  const [scambiaTarget,     setScambiaTarget]     = useState<Ospite | null>(null)
+  const [checkoutOspiteTarget, setCheckoutOspiteTarget] = useState<Ospite | null>(null)
 
   // Column filters
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
@@ -237,6 +240,39 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
     if (!cambioTarget) return
     setData((d) => ({ ...d, ospiti: d.ospiti.map((o) => (o.id === cambioTarget.id ? { ...o, camera: nuovaCamera } : o)) }))
     setCambioTarget(null)
+  }
+
+  // Trasferisce l'ospite selezionato nella camera di destinazione scelta.
+  const applicaTrasferimento = (nuovaCamera: string) => {
+    if (!trasferisciTarget) return
+    setData((d) => ({ ...d, ospiti: d.ospiti.map((o) => (o.id === trasferisciTarget.id ? { ...o, camera: nuovaCamera } : o)) }))
+    setTrasferisciTarget(null)
+  }
+
+  // Scambia le camere fra l'ospite selezionato e un altro ospite in casa.
+  const applicaScambio = (altroId: number) => {
+    if (!scambiaTarget) return
+    setData((d) => {
+      const altro = d.ospiti.find((o) => o.id === altroId)
+      if (!altro) return d
+      const camA = scambiaTarget.camera
+      const camB = altro.camera
+      return {
+        ...d,
+        ospiti: d.ospiti.map((o) =>
+          o.id === scambiaTarget.id ? { ...o, camera: camB }
+          : o.id === altroId ? { ...o, camera: camA }
+          : o),
+      }
+    })
+    setScambiaTarget(null)
+  }
+
+  // Check-out del singolo ospite (rimuove solo quella riga).
+  const confermaCheckoutOspite = () => {
+    if (!checkoutOspiteTarget) return
+    setData((d) => ({ ...d, ospiti: d.ospiti.filter((o) => o.id !== checkoutOspiteTarget.id) }))
+    setCheckoutOspiteTarget(null)
   }
 
   return (
@@ -443,13 +479,13 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-light fa-circle-check" /></button>
                     </Tooltip>
                     <Tooltip text="Trasferimento ospite">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferimento ospite" disabled={!isOverdue(r.partenza)}><i className="fa-light fa-person-walking-luggage" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferimento ospite" onClick={() => setTrasferisciTarget(r)}><i className="fa-light fa-person-walking-luggage" /></button>
                     </Tooltip>
                     <Tooltip text="Scambia ospite">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Scambia ospite" disabled={!isOverdue(r.partenza)}><i className="fa-light fa-people-arrows" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Scambia ospite" onClick={() => setScambiaTarget(r)}><i className="fa-light fa-people-arrows" /></button>
                     </Tooltip>
                     <Tooltip text="Check-out ospite">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-out ospite"><i className="fa-light fa-right-from-bracket" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-out ospite" onClick={() => setCheckoutOspiteTarget(r)}><i className="fa-light fa-right-from-bracket" /></button>
                     </Tooltip>
                   </div>
                 </td>
@@ -506,6 +542,29 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
       {/* ─── Modal Cambio camera ────────────────────────────────────────── */}
       {cambioTarget && (
         <CambioCameraModal ospite={cambioTarget} onClose={() => setCambioTarget(null)} onApply={applicaCambioCamera} />
+      )}
+
+      {/* ─── Modal Trasferimento ospite ─────────────────────────────────── */}
+      {trasferisciTarget && (
+        <TrasferisciOspiteModal ospite={trasferisciTarget} onClose={() => setTrasferisciTarget(null)} onApply={applicaTrasferimento} />
+      )}
+
+      {/* ─── Modal Scambia ospite ───────────────────────────────────────── */}
+      {scambiaTarget && (
+        <ScambiaOspiteModal ospite={scambiaTarget} altri={data.ospiti.filter((o) => o.id !== scambiaTarget.id)} onClose={() => setScambiaTarget(null)} onApply={applicaScambio} />
+      )}
+
+      {/* ─── Modal Check-out ospite (conferma) ──────────────────────────── */}
+      {checkoutOspiteTarget && (
+        <Modal open onClose={() => setCheckoutOspiteTarget(null)} title="Conferma check-out ospite" size="sm">
+          <p className="oc-checkout-msg">
+            Confermi il check-out dell'ospite <strong>{checkoutOspiteTarget.ospite}</strong> dalla camera <strong>{checkoutOspiteTarget.camera}</strong>?
+          </p>
+          <div className="oc-modal-foot">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutOspiteTarget(null)}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--danger" onClick={confermaCheckoutOspite}>Esegui check-out</button>
+          </div>
+        </Modal>
       )}
 
       {/* ─── Modal Modifica soggiorno ───────────────────────────────────── */}
@@ -847,6 +906,91 @@ function CambioCameraModal({ ospite, onClose, onApply }: {
         <button type="button" className="sib-btn sib-btn--primary" disabled={!camera} onClick={() => onApply(camera)}>
           Accetta nuovi prezzi
         </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── TRASFERIMENTO OSPITE MODAL ─────────────────────────────────────────────────
+// Trasferisce un ospite in un'altra camera in base alle disponibilità.
+function TrasferisciOspiteModal({ ospite, onClose, onApply }: {
+  ospite: Ospite; onClose: () => void; onApply: (camera: string) => void
+}) {
+  const [camera, setCamera] = useState('')
+  const disponibili = CAMERE_DISPONIBILI.filter((c) => c !== ospite.camera)
+
+  return (
+    <Modal open onClose={onClose} title="Trasferimento ospite" size="md">
+      <div className="oc-trasf">
+        <p className="oc-trasf__info">
+          Trasferisci <strong>{ospite.ospite}</strong> dalla camera <strong>{ospite.camera}</strong> a una camera disponibile.
+        </p>
+        <SelectField
+          name="trasf-camera"
+          label="Camera di destinazione"
+          value={camera}
+          placeholder="Seleziona camera disponibile"
+          onChange={(e) => setCamera(e.target.value)}
+          options={disponibili.map((c) => ({ value: c, label: `Camera ${c}` }))}
+        />
+        {camera && (
+          <div className="oc-trasf__preview">
+            <span className="oc-trasf__from">Camera {ospite.camera}</span>
+            <i className="fa-light fa-arrow-right-long" />
+            <span className="oc-trasf__to">Camera {camera}</span>
+          </div>
+        )}
+      </div>
+      <div className="oc-modal-foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!camera} onClick={() => onApply(camera)}>Trasferisci</button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── SCAMBIA OSPITE MODAL ───────────────────────────────────────────────────────
+// Scambia due ospiti nelle rispettive camere.
+function ScambiaOspiteModal({ ospite, altri, onClose, onApply }: {
+  ospite: Ospite; altri: Ospite[]; onClose: () => void; onApply: (altroId: number) => void
+}) {
+  const [altroId, setAltroId] = useState('')
+  const altro = altri.find((o) => String(o.id) === altroId)
+
+  return (
+    <Modal open onClose={onClose} title="Scambia ospite" size="md">
+      <div className="oc-trasf">
+        <p className="oc-trasf__info">
+          Scambia la camera di <strong>{ospite.ospite}</strong> (Camera <strong>{ospite.camera}</strong>) con quella di un altro ospite in casa.
+        </p>
+        <SelectField
+          name="scambia-ospite"
+          label="Ospite con cui scambiare"
+          value={altroId}
+          placeholder="Seleziona ospite"
+          onChange={(e) => setAltroId(e.target.value)}
+          options={altri.map((o) => ({ value: String(o.id), label: `${o.ospite} · Camera ${o.camera}` }))}
+        />
+        {altro && (
+          <div className="oc-trasf__swap">
+            <div className="oc-trasf__swap-row">
+              <span>{ospite.ospite}</span>
+              <span className="oc-trasf__from">Camera {ospite.camera}</span>
+              <i className="fa-light fa-arrow-right-long" />
+              <span className="oc-trasf__to">Camera {altro.camera}</span>
+            </div>
+            <div className="oc-trasf__swap-row">
+              <span>{altro.ospite}</span>
+              <span className="oc-trasf__from">Camera {altro.camera}</span>
+              <i className="fa-light fa-arrow-right-long" />
+              <span className="oc-trasf__to">Camera {ospite.camera}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="oc-modal-foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!altro} onClick={() => altro && onApply(altro.id)}>Scambia</button>
       </div>
     </Modal>
   )
