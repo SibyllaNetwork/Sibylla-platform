@@ -34,7 +34,7 @@ const FALLBACK: Data = {
   caparra: 0,
 }
 
-const TIPI_DOCUMENTO = ['Scontrino', 'Fattura', 'Ricevuta fiscale', 'Nota di credito']
+const TIPI_DOCUMENTO = ['Scontrino', 'Caparra', 'Fattura']
 const NAZIONALITA = ['ITALIA', 'AUSTRIA', 'FRANCIA', 'GERMANIA', 'SPAGNA', 'SVIZZERA', 'REGNO UNITO', 'STATI UNITI']
 const MODALITA_PAGAMENTO = ['Contanti', 'Bancomat', 'Carta di credito', 'Bonifico', 'Assegno', 'Ricevuta bancaria']
 
