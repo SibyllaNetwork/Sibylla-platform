@@ -429,29 +429,48 @@
     outline: 2px solid $primary
     outline-offset: 1px
 
-  // Puntina
+  // Puntina (testa a cupola in prospettiva + spillo piantato nel foglio)
   &__pin
     position: absolute
     top: -7px
-    left: 18px
-    width: 15px
+    left: 17px
+    width: 17px
     height: 15px
+    z-index: 2
     border-radius: 50%
-    background: radial-gradient(circle at 34% 30%, #ff9a9a, #d84343 58%, #9e2b2b)
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4)
+    background: radial-gradient(ellipse at 34% 26%, #ffb0b0, #d84343 56%, #8f2323)
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.32), inset -1px -2px 3px rgba(0, 0, 0, 0.28), inset 2px 2px 3px rgba(255, 255, 255, 0.55)
+    transform: rotate(-18deg)
+    transform-origin: 55% 95%
 
+    // spillo metallico che entra nel foglio (dietro la testa, spunta sotto)
+    &::before
+      content: ''
+      position: absolute
+      top: 10px
+      left: 50%
+      width: 2px
+      height: 12px
+      transform: translateX(-60%) rotate(6deg)
+      background: linear-gradient(to bottom, #c3c6cd, #8b8e96 55%, #565860)
+      border-radius: 0 0 1px 1px
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3)
+      z-index: -1
+
+    // riflesso sulla testa
     &::after
       content: ''
       position: absolute
-      top: 4px
-      left: 4px
-      width: 4px
+      top: 3px
+      left: 3px
+      width: 6px
       height: 4px
       border-radius: 50%
-      background: rgba(255, 255, 255, 0.7)
+      background: rgba(255, 255, 255, 0.8)
+      transform: rotate(-18deg)
 
     &--acquisto
-      background: radial-gradient(circle at 34% 30%, #ffd98a, #e0a63a 58%, #a9761d)
+      background: radial-gradient(ellipse at 34% 26%, #ffe3a3, #e0a63a 56%, #a9761d)
 
   &__open
     flex: 1
