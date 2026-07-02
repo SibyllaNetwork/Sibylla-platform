@@ -9,6 +9,9 @@ Indice della documentazione per sviluppatori.
   env, comandi, auth, service layer, smoke test, troubleshooting).
 - **[layout-responsive.md](./layout-responsive.md)** — regole di layout responsive
   e dinamiche di apertura/chiusura del sidenav (budget larghezza laptop, tabelle).
+- **[copy-editabile-multilingua.md](./copy-editabile-multilingua.md)** — sistema di
+  copy editabile dall'assistenza e pubblicabile in multilingua (JSON nel repo,
+  per-cliente, editor nel clone, traduzione in build).
 
 ## Documenti autorevoli in root
 

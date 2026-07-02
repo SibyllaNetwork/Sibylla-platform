@@ -11,11 +11,31 @@
     "de": {
       "op.anagraficheOspiti.title": "Gästestammdaten",
       "op.anagraficheOspiti.subtitle": "Organisieren, aktualisieren und verwalten Sie die Gästedaten Ihrer Unterkunft"
+    },
+    "fr": {
+      "op.anagraficheOspiti.title": "Données clients",
+      "op.anagraficheOspiti.subtitle": "Organiser, mettre à jour et vérifier les données des clients de l'établissement"
+    },
+    "es": {
+      "op.anagraficheOspiti.title": "Datos de huéspedes",
+      "op.anagraficheOspiti.subtitle": "Organiza, actualiza y controla los datos personales de los clientes del establecimiento"
     }
   },
   "int-gar": {
     "it": {
       "op.anagraficheOspiti.subtitle": "Anagrafiche ospiti delle strutture del gruppo Gar"
+    },
+    "en": {
+      "op.anagraficheOspiti.subtitle": "Guest details of the Gar group facilities"
+    },
+    "de": {
+      "op.anagraficheOspiti.subtitle": "Stammdaten der Gäste der Einrichtungen der GAR-Gruppe"
+    },
+    "fr": {
+      "op.anagraficheOspiti.subtitle": "Données clients des structures du groupe GAR"
+    },
+    "es": {
+      "op.anagraficheOspiti.subtitle": "Datos de huéspedes de las estructuras del grupo Gar"
     }
   }
 }
