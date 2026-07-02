@@ -200,13 +200,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
           <div className="ca-steps">
             {STEPS.map((label, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <span className={`ca-steps__line ${i <= step ? 'is-done' : ''}`} aria-hidden="true" />}
-                <button type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
-                  <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
-                  <span className="ca-step__label">{label}</span>
-                </button>
-              </React.Fragment>
+              <button key={i} type="button" className={`ca-step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
+                <span className="ca-step__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
+                <span className="ca-step__label">{label}</span>
+              </button>
             ))}
           </div>
 
@@ -259,10 +256,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
                   valueFrom={params.dataDa} valueTo={params.dataA}
                   onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                <InputField label="Quantità" name="quantita" type="number" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                <InputField label="Quantità" name="quantita" type="number" className="ca-field--num" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
                 {params.tipo !== 'Acquisto' && (
                   <>
-                    <InputField label="Quantità Massima" name="quantitaMax" type="number" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
+                    <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--num" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
                     <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
                       options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
                     <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}

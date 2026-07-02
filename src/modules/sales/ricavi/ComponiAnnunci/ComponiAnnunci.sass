@@ -23,6 +23,7 @@
 
 // ── Card parametri (con stepper) ─────────────────────────────────────────────
 .ca-setup
+  min-width: 0
   background: var(--color-surface)
   border: 1px solid $border
   border-radius: 14px
@@ -44,51 +45,59 @@
       color: $primary
 
   &__grid
-    display: grid
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
     gap: 16px 18px
     padding: 18px
-    min-height: 120px
-    align-content: start
+    min-height: 116px
 
-    // i figli possono restringersi (niente overflow/sovrapposizioni)
+    // ogni campo: larghezza base ~180px, può restringersi
     > *
+      flex: 0 1 180px
       min-width: 0
 
-// Campo range date: due colonne per dargli spazio; il controllo si dimensiona
-// al contenuto (w-auto dello standard), quindi mostra tutto senza stirarsi.
+// Range date: si dimensiona al contenuto (w-auto dello standard)
 .ca-field--wide
-  grid-column: span 2
+  flex: 0 0 auto
+
+// Quantità / Quantità Massima: max 3 cifre → campo stretto
+.ca-field--num
+  flex: 0 0 92px
 
   &__foot
     display: flex
     align-items: center
     gap: 12px
-    padding: 0 18px 18px
+    padding: 14px 18px
+    border-top: 1px solid $border
+    background: alpha($primary, 0.02)
 
   &__spacer
-    flex: 1
+    flex: 1 1 auto
 
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
 .ca-steps
+  position: relative
   display: flex
-  align-items: flex-start
   padding: 18px 18px 14px
 
-  // Connettore orizzontale tra i cerchi (elemento reale, allineato al centro del cerchio)
-  &__line
-    flex: 1
+  // Un'unica linea grigia continua dietro i cerchi (dal primo all'ultimo)
+  &::before
+    content: ''
+    position: absolute
+    top: 32px
+    left: 16.66%
+    right: 16.66%
     height: 2px
-    min-width: 16px
-    margin: 14px 8px 0
-    border-radius: 2px
     background: $border
-
-    &.is-done
-      background: $primary
+    z-index: 0
 
 .ca-step
+  flex: 1
+  position: relative
+  z-index: 1
   display: flex
   flex-direction: column
   align-items: center
@@ -135,22 +144,6 @@
       background: $primary
       border-color: $primary
       color: #fff
-
-// ── Placeholder editor ────────────────────────────────────────────────────────
-.ca-hint
-  display: flex
-  align-items: center
-  gap: 12px
-  padding: 22px 20px
-  background: var(--color-surface)
-  border: 1px dashed $border
-  border-radius: 14px
-  color: $text-inactive
-  line-height: 1.5
-
-  i
-    font-size: 22px
-    color: $primary
 
 // ── Placeholder editor ────────────────────────────────────────────────────────
 .ca-hint
@@ -315,6 +308,7 @@
 
 // ── LA MIA BACHECA (stile sughero) ───────────────────────────────────────────────
 .ca-board
+  min-width: 0
   border-radius: 14px
   overflow: hidden
   border: 7px solid #7c5230
