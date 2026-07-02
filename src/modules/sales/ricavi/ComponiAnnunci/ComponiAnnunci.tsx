@@ -124,7 +124,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       pagamento: isAcquisto ? '—' : params.tipologiaPagamento,
       tariffe: STAGIONI.map((s, i) => ({
         id: i + 1, stagionalita: s,
-        tipologiaBase: isAcquisto && params.tipoOspiti === 'Individuali' ? params.tipologiaCamere : params.tipologiaBase,
+        tipologiaBase: params.tipoOspiti === 'Individuali' ? params.tipologiaCamere : params.tipologiaBase,
         lotto: isAcquisto ? '—' : params.tipoLotti, quantita: String(params.quantita), prezzo: '0,00',
       })),
       servizi: [
@@ -235,8 +235,13 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                     )}
                     <SelectField label="Tipo ospiti" name="tipoOspiti" value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
                       options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-                    <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                      options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                    {params.tipoOspiti === 'Gruppi' ? (
+                      <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                        options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                    ) : (
+                      <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
+                        options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
+                    )}
                     <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
                       options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
                     <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA"
