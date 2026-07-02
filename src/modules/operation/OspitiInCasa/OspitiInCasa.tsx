@@ -447,24 +447,24 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                 </td>
                 <td className="ospiti-casa__td-center">
                   <Tooltip text={r.fasciaEta}>
-                    <i className={`fa-light fa-${FASCIA_ETA_ICONS[r.fasciaEta] ?? 'users'}`} aria-hidden="true" />
+                    <i className={`fa-light fa-${FASCIA_ETA_ICONS[r.fasciaEta] ?? 'users'} ospiti-casa__cat-ico`} aria-hidden="true" />
                   </Tooltip>
                 </td>
                 <td>{r.arrivo}</td>
                 <td>{r.partenza}</td>
                 <td className="ospiti-casa__td-center">
                   <Tooltip text={r.arrangiamento}>
-                    <i className={`fa-light fa-${r.arrangiamentoIcon}`} aria-hidden="true" />
+                    <i className={`fa-light fa-${r.arrangiamentoIcon} ospiti-casa__cat-ico`} aria-hidden="true" />
                   </Tooltip>
                 </td>
                 <td className="ospiti-casa__td-center">
                   <Tooltip text={r.canale}>
-                    <i className={`fa-light fa-${r.canaleIcon}`} aria-hidden="true" />
+                    <i className={`fa-light fa-${r.canaleIcon} ospiti-casa__cat-ico`} aria-hidden="true" />
                   </Tooltip>
                 </td>
                 <td className="ospiti-casa__td-center">
                   <Tooltip text={r.tipoPren}>
-                    <i className={`fa-light fa-${r.tipoPren?.toLowerCase().includes('gruppo') ? 'users' : 'user'}`} aria-hidden="true" />
+                    <i className={`fa-light fa-${r.tipoPren?.toLowerCase().includes('gruppo') ? 'users' : 'user'} ospiti-casa__cat-ico`} aria-hidden="true" />
                   </Tooltip>
                 </td>
                 <td>
