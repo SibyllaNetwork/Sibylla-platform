@@ -12,6 +12,8 @@ Indice della documentazione per sviluppatori.
 - **[copy-editabile-multilingua.md](./copy-editabile-multilingua.md)** — sistema di
   copy editabile dall'assistenza e pubblicabile in multilingua (JSON nel repo,
   per-cliente, editor nel clone, traduzione in build).
+- **[nuova-prenotazione.md](./nuova-prenotazione.md)** — specifica funzionale/tecnica
+  della pagina Nuova prenotazione per il porting/cablaggio al backend.
 
 ## Documenti autorevoli in root
 
