@@ -115,6 +115,28 @@ export const useCopyStore = create<CopyState>()(
   ),
 )
 
+/**
+ * Elenco delle chiavi editabili = registro. La sezione `default` di copy.json fa
+ * da registro: una stringa diventa editabile dall'assistenza quando la sua chiave
+ * è presente lì (in una qualsiasi lingua). Migrare una pagina = t('chiave','IT') nel
+ * .tsx + aggiungere la chiave a default in copy.json.
+ */
+export function copyKeys(): string[] {
+  const base = REPO[DEFAULT_CLIENT] ?? {}
+  const set = new Set<string>()
+  for (const lang of Object.keys(base) as Lang[]) Object.keys(base[lang] ?? {}).forEach((k) => set.add(k))
+  return Array.from(set).sort()
+}
+
+/** Numero di bozze (chiavi modificate) per un cliente, su tutte le lingue. */
+export function draftCount(overrides: Overrides, clientKey: string): number {
+  const client = overrides[clientKey]
+  if (!client) return 0
+  let n = 0
+  for (const lang of Object.keys(client) as Lang[]) n += Object.keys(client[lang] ?? {}).length
+  return n
+}
+
 /** Risoluzione pura di una chiave dato cliente, lingua, bozze e repo. */
 export function resolveCopy(
   overrides: Overrides,

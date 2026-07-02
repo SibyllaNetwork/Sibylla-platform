@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import PageContent from './router/PageContent'
 import ConfirmDialog from './core/components/ConfirmDialog'
+import CopyEditor from './layout/CopyEditor/CopyEditor'
 import Sidebar from './layout/Sidebar'
 import Topbar from './layout/Topbar'
 import TabsBar from './layout/TabsBar'
@@ -300,6 +301,7 @@ export default function App() {
 
       {accessOpen && <ProfileLogin />}
 
+      <CopyEditor />
       <ConfirmDialog />
     </div>
   )
