@@ -283,6 +283,14 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
               <i className="fa-light fa-magnifying-glass ospiti-casa__search-icon" />
             </div>
           </div>
+
+          {/* Conteggi (badge inline, allineati ai campi) */}
+          <div className="ospiti-casa__counts">
+            <span className="ospiti-casa__count"><i className="fa-light fa-user" /> Presenze <strong>{totPresenze}</strong></span>
+            <span className="ospiti-casa__count"><i className="fa-light fa-bed-front" /> Camere <strong>{totCamere}</strong></span>
+            <span className="ospiti-casa__count"><i className="fa-light fa-users" /> Gruppi <strong>{pctGruppi}%</strong></span>
+            <span className="ospiti-casa__count"><i className="fa-light fa-user-check" /> Individuali <strong>{pctIndividuali}%</strong></span>
+          </div>
         </div>
 
         <div className="ospiti-casa__bar-right">
@@ -292,14 +300,6 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
             <i className="fa-light fa-bell" />
           </button>
         </div>
-      </div>
-
-      {/* ─── Conteggi (badge inline, come in Arrivi e partenze) ──────────── */}
-      <div className="ospiti-casa__counts">
-        <span className="ospiti-casa__count"><i className="fa-light fa-user" /> Presenze <strong>{totPresenze}</strong></span>
-        <span className="ospiti-casa__count"><i className="fa-light fa-bed-front" /> Camere <strong>{totCamere}</strong></span>
-        <span className="ospiti-casa__count"><i className="fa-light fa-users" /> Gruppi <strong>{pctGruppi}%</strong></span>
-        <span className="ospiti-casa__count"><i className="fa-light fa-user-check" /> Individuali <strong>{pctIndividuali}%</strong></span>
       </div>
 
       {/* ─── Tabella ─────────────────────────────────────────────────────── */}
