@@ -1,0 +1,185 @@
+// ─── FATTURA DOCUMENTO (grafica professionale) ────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.fattura-doc
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 16px
+
+  &__toolbar
+    align-self: stretch
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+  // Foglio in stile A4
+  &__sheet
+    width: 100%
+    max-width: 800px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10)
+    padding: 40px 44px
+    display: flex
+    flex-direction: column
+    gap: 26px
+    color: $text-active
+    font-size: 13px
+
+  // ── Intestazione ─────────────────────────────────────────────────────────
+  &__head
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 24px
+    padding-bottom: 18px
+    border-bottom: 2px solid $primary
+
+  &__seller-name
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 20px
+    color: $primary
+    margin-bottom: 4px
+
+  &__seller-line
+    color: $text-inactive
+    line-height: 1.5
+
+  &__doc-meta
+    text-align: right
+    min-width: 200px
+
+  &__doc-title
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 24px
+    color: $primary
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    margin-bottom: 8px
+
+  &__doc-row
+    display: flex
+    justify-content: space-between
+    gap: 16px
+    padding: 2px 0
+
+    span
+      color: $text-inactive
+
+  // ── Cliente ───────────────────────────────────────────────────────────────
+  &__block-label
+    font-size: 10px
+    font-weight: 700
+    text-transform: uppercase
+    letter-spacing: 0.06em
+    color: $text-inactive
+    margin-bottom: 4px
+
+  &__client-name
+    font-weight: 700
+    font-size: 15px
+    color: $primary
+
+  &__client-line
+    color: $text-active
+    line-height: 1.5
+
+  &__client-grid
+    display: flex
+    flex-wrap: wrap
+    gap: 6px 24px
+    margin-top: 8px
+
+    em
+      font-style: normal
+      font-size: 10px
+      font-weight: 700
+      text-transform: uppercase
+      color: $text-inactive
+      margin-right: 4px
+
+  // ── Righe ───────────────────────────────────────────────────────────────
+  &__lines
+    width: 100%
+    border-collapse: collapse
+
+    thead th
+      text-align: left
+      font-weight: 600
+      font-size: 11px
+      text-transform: uppercase
+      letter-spacing: 0.03em
+      color: #fff
+      background: $primary
+      padding: 8px 10px
+
+    tbody td
+      padding: 9px 10px
+      border-bottom: 1px solid $border
+
+  &__num
+    text-align: right
+    white-space: nowrap
+
+  thead .fattura-doc__num
+    text-align: right
+
+  // ── Riepilogo + totali ─────────────────────────────────────────────────────
+  &__summary
+    display: flex
+    justify-content: space-between
+    gap: 24px
+    flex-wrap: wrap
+
+  &__iva
+    border-collapse: collapse
+    align-self: flex-start
+    min-width: 280px
+
+    th
+      text-align: left
+      font-size: 11px
+      text-transform: uppercase
+      color: $text-inactive
+      padding: 6px 10px
+      border-bottom: 1px solid $border
+
+    td
+      padding: 6px 10px
+      border-bottom: 1px solid $border
+
+  &__totals
+    min-width: 280px
+    align-self: flex-start
+
+  &__tot-row
+    display: flex
+    justify-content: space-between
+    gap: 24px
+    padding: 6px 0
+
+    &--strong
+      border-top: 1px solid $border
+      font-weight: 700
+      color: $primary
+
+    &--pay
+      border-top: 2px solid $primary
+      font-family: $font-heading
+      font-weight: 700
+      font-size: 16px
+      color: $primary
+
+  // ── Piè di pagina ─────────────────────────────────────────────────────────
+  &__foot
+    display: flex
+    justify-content: space-between
+    gap: 24px
+    flex-wrap: wrap
+    padding-top: 18px
+    border-top: 1px solid $border
+    color: $text-active

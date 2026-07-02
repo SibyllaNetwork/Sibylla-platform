@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
+import { useEmissioneStore, type EmAddebito } from '../../../store/useEmissioneStore'
 import './ContiCamera.sass'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -112,6 +113,7 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
   const [data, setData] = useState<Data>(FALLBACK)
   const [selAddebiti, setSelAddebiti] = useState<number[]>([])
   const [selAnticipi, setSelAnticipi] = useState<number[]>([])
+  const setCheckout = useEmissioneStore((s) => s.setCheckout)
 
   // Modali
   const [modModifica, setModModifica] = useState<Addebito | null>(null)
@@ -143,6 +145,23 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
   const totAnticipi = data.anticipi.reduce((s, a) => s + a.prezzo, 0)
 
   const d = data.dettaglio
+
+  // Paga ora → porta gli addebiti selezionati (o tutti, se nessuno) alla pagina
+  // Emissione documenti.
+  const pagaOra = () => {
+    const scelti = selAddebiti.length ? data.addebiti.filter((a) => selAddebiti.includes(a.id)) : data.addebiti
+    const emAddebiti: EmAddebito[] = scelti.map((a) => ({
+      id: a.id,
+      camera: a.camera,
+      data: a.data,
+      riferimento: a.pertinenza && a.pertinenza !== 'Ospite' ? a.pertinenza : '',
+      descrizione: a.descrizione,
+      prezzo: a.prezzo,
+      iva: a.iva,
+    }))
+    setCheckout({ addebiti: emAddebiti, caparra: Math.abs(totAnticipi) })
+    navigate('emissione-documenti')
+  }
 
   return (
     <div className="conti-camera">
@@ -264,7 +283,7 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
                 </>
               )}
             </div>
-            <button type="button" className="sib-btn sib-btn--primary">Paga ora</button>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={pagaOra}>Paga ora</button>
             <span className="conti-camera__total">Totale: <strong>{fmtCurrency(totAddebiti)}</strong></span>
           </div>
         </div>
