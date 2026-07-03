@@ -15,15 +15,14 @@ interface Props {
 }
 
 // ── Parametri proiezione isometrica ──
-// Piastre e gap ingranditi rispetto alla versione originale (25/12.5/84) per dare
-// più presenza all'edificio; il viewBox viene poi calcolato aderente alla sagoma.
-const CX = 32;
-const CY = 16;
-const SLAB = 6;
-const FLOOR_GAP = 104;
-const TOP = 26;
-const LABEL_W = 26;        // zona badge a sinistra (fuori dalla sagoma)
-const RIGHT_MARGIN = 6;    // margine destro del viewBox, ridotto per riempire la barra
+const CX = 25;
+const CY = 12.5;
+const SLAB = 5;
+const FLOOR_GAP = 84;
+const TOP = 22;
+const LABEL_W = 28;        // zona badge a sinistra (la struttura resta centrata)
+const VW = 206;
+const CXT = VW / 2;        // struttura centrata nel pannello
 
 const gridDims = (n: number): [number, number] => {
   const c = Math.max(1, Math.ceil(Math.sqrt(n)));
@@ -35,7 +34,7 @@ const pt = (Ox: number, Oy: number, i: number, j: number) =>
   `${(Ox + (i - j) * CX).toFixed(1)},${(Oy + (i + j) * CY).toFixed(1)}`;
 const xy = (Ox: number, Oy: number, i: number, j: number): [number, number] =>
   [Ox + (i - j) * CX, Oy + (i + j) * CY];
-const originX = (CXT: number, C: number, R: number) => CXT - ((C - R) * CX) / 2;
+const originX = (C: number, R: number) => CXT - ((C - R) * CX) / 2;
 
 const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRoomHover }) => {
   if (!piani.length) return null;
@@ -44,24 +43,30 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
   const maxRooms = Math.max(...floors.map(f => f.camere.length));
   const [maxC, maxR] = gridDims(maxRooms);
 
-  // viewBox aderente alla sagoma: badge a sinistra, edificio, piccolo margine dx.
-  // Così l'edificio riempie la barra invece di lasciare vuoti laterali.
-  const halfW = ((maxC + maxR) * CX) / 2;
-  const CXT = LABEL_W + halfW;
-  const VW = LABEL_W + 2 * halfW + RIGHT_MARGIN;
-
   // Il piano più basso (Piano Terra, badge 0) è la lobby col desk
   const bottomOy = TOP + (floors.length - 1) * FLOOR_GAP;
   const svgH = bottomOy + (maxC + maxR) * CY + SLAB + 18;
 
   // Sagoma ghost dell'edificio
   const envOy = TOP - 6;
-  const envOx = originX(CXT, maxC, maxR);
+  const envOx = originX(maxC, maxR);
   const [Tx, Ty] = xy(envOx, envOy, 0, 0);
   const [Rx, Ry] = xy(envOx, envOy, maxC, 0);
   const [Bx, By] = xy(envOx, envOy, maxC, maxR);
   const [Lx, Ly] = xy(envOx, envOy, 0, maxR);
   const envH = bottomOy - envOy;
+
+  // viewBox ritagliato sulla sagoma reale: così la struttura riempie l'SVG (e
+  // quindi la barra) invece di lasciare vuoti nel viewBox. Il margine di ~10px
+  // attorno è dato dal padding del contenitore (.hotel-viz__scroll).
+  const VB_PAD = 3;
+  const bLeftX = envOx - maxR * CX;                 // punta sinistra edificio
+  const bRightX = envOx + maxC * CX;                // punta destra edificio
+  const badgeLeftX = LABEL_W / 2 - 9;               // bordo sinistro del badge tondo
+  const vbX = Math.min(bLeftX, badgeLeftX) - VB_PAD;
+  const vbW = bRightX + VB_PAD - vbX;
+  const vbY = envOy - VB_PAD;
+  const vbH = (svgH - 18) + VB_PAD - vbY;           // svgH include 18px di coda: escludili
 
   // ── Finestre sulle due facciate (per leggere l'edificio come hotel) ──
   const WIN_VPAD = 8;   // margine verticale finestra dentro il piano
@@ -180,7 +185,7 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
   return (
     <svg
       className="hotel-viz__iso"
-      viewBox={`0 0 ${VW} ${svgH.toFixed(0)}`}
+      viewBox={`${vbX.toFixed(1)} ${vbY.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}`}
       role="img"
       aria-label="Hotel in prospettiva: clicca un piano per il dettaglio"
     >
@@ -200,7 +205,7 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
 
       {/* Piani esplosi cliccabili (alto → basso) */}
       {floors.map((piano, f) => {
-        const Ox = originX(CXT, maxC, maxR);
+        const Ox = originX(maxC, maxR);
         const Oy = TOP + f * FLOOR_GAP;
         const selected = selectedId === piano.id;
         const isLobby = f === floors.length - 1;
