@@ -127,15 +127,16 @@ export function usePlannerState(navigate: (page: string) => void) {
     );
 
   // Click su cella vuota → apre "Nuova prenotazione" precompilata (1 notte).
-  const handleEmptyClick = useCallback((_cam: Camera, date: Date) => {
-    bookingStore.prefill = { dal: isoDate(date), al: isoDate(addDays(date, 1)) };
+  // Passa anche la camera così NuovaPrenotazione può rilevare un eventuale blocco fantasma.
+  const handleEmptyClick = useCallback((cam: Camera, date: Date) => {
+    bookingStore.prefill = { dal: isoDate(date), al: isoDate(addDays(date, 1)), numeroCamera: cam.numero };
     navigate('nuova-prenotazione');
   }, [navigate]);
 
   // Trascinamento su più celle → "Nuova prenotazione" col periodo selezionato
   // (check-in = primo giorno, check-out = giorno dopo l'ultima notte).
-  const handleSelectPeriod = useCallback((_cam: Camera, startDate: Date, endDate: Date) => {
-    bookingStore.prefill = { dal: isoDate(startDate), al: isoDate(addDays(endDate, 1)) };
+  const handleSelectPeriod = useCallback((cam: Camera, startDate: Date, endDate: Date) => {
+    bookingStore.prefill = { dal: isoDate(startDate), al: isoDate(addDays(endDate, 1)), numeroCamera: cam.numero };
     navigate('nuova-prenotazione');
   }, [navigate]);
 

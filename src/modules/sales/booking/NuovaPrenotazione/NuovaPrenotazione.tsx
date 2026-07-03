@@ -150,7 +150,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     ...(!editing && prefill ? { dal: prefill.dal, al: prefill.al } : {}),
   }))
 
-  const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow('103')])
+  const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow(prefill?.numeroCamera || '103')])
   const [camereGr,  setCamereGr]  = useState<CameraGruppoRow[]>(() => editing
     ? editCamereGr(editing)
     : [initGr('103', 2), initGr('103', 3), initGr('103', 0), initGr('103', 1)])
@@ -258,6 +258,19 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     if (ghostAlert) removeBlocco(ghostAlert.block.id)
     setGhostAlert(null)
   }
+
+  // Aperta da una strisciata sul planner: se la camera+periodo precompilati si
+  // sovrappongono (anche parzialmente) a un blocco fantasma, avvisa subito.
+  useEffect(() => {
+    if (editing || !prefill?.numeroCamera) return
+    const b = bloccoPerCameraPeriodo(
+      useBlocchiFantasmaStore.getState().blocchi,
+      prefill.numeroCamera, prefill.dal, prefill.al,
+    )
+    if (b) setGhostAlert({ scope: 'ind', idx: 0, prev: prefill.numeroCamera, block: b })
+    // solo al mount (i valori del prefill sono catturati una volta)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const updOspite = (i: number, p: Partial<OspiteRow>) =>
     setOspiti(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))

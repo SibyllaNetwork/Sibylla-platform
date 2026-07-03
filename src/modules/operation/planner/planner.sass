@@ -1132,6 +1132,13 @@
     top: 50%
     transform: translateY(-50%)
     clip-path: var(--bar-clip)
+    // Solo display quando la modalità fantasma è spenta: così una prenotazione
+    // può essere strisciata sopra il blocco (le celle sotto ricevono gli eventi).
+    // Interattiva (modifica/hover) solo con la modalità fantasma accesa.
+    pointer-events: none
+
+    &--interactive
+      pointer-events: auto
     background: repeating-linear-gradient(45deg, $primary-600 0, $primary-600 7px, color-mix(in srgb, $primary-600, #fff 24%) 7px, color-mix(in srgb, $primary-600, #fff 24%) 14px)
     color: $white
     display: flex

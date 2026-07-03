@@ -345,7 +345,7 @@ const Timeline: React.FC<Props> = ({
                     return (
                       <React.Fragment key={b.id}>
                         <div
-                          className="timeline__ghost"
+                          className={`timeline__ghost${ghostMode ? ' timeline__ghost--interactive' : ''}`}
                           style={{ '--bar-left': `${gl.leftPx}px`, '--bar-width': `${gl.W}px`, '--bar-clip': gl.clip } as React.CSSProperties}
                           onMouseEnter={onGhostHover ? (e) => onGhostHover(b, e.clientX, e.clientY) : undefined}
                           onMouseMove={onGhostHover ? (e) => onGhostHover(b, e.clientX, e.clientY) : undefined}
