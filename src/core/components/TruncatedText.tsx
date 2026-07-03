@@ -29,7 +29,15 @@ export default function TruncatedText({ text, full, className, position = 'top' 
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
-    const check = () => setOverflow(el.scrollWidth > el.clientWidth + 1)
+    const check = () => {
+      // Leggi il nodo corrente: quando si passa da span "nudo" a span dentro il
+      // wrapper del Tooltip React rimonta l'elemento, e il vecchio nodo (ancora
+      // osservato dal ResizeObserver) risulta staccato → misurerebbe 0/0 e
+      // spegnerebbe erroneamente l'overflow. Ignora i nodi non più connessi.
+      const node = ref.current
+      if (!node || !node.isConnected) return
+      setOverflow(node.scrollWidth > node.clientWidth + 1)
+    }
     check()
     const ro = new ResizeObserver(check)
     ro.observe(el)

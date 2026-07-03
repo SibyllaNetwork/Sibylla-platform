@@ -566,9 +566,11 @@ $notifiche-split-breakpoint: 1024px
   &__viewers-col-note
     width: auto
 
-  // Nota su una sola riga: ellipsis + tooltip col testo completo (TruncatedText)
+  // Nota su una sola riga: ellipsis + tooltip col testo completo (TruncatedText).
+  // Deve essere una max-width FISSA (non 100%): dentro il wrapper inline-flex del
+  // Tooltip un 100% shrink-wrappa al testo intero e l'ellipsis non scatterebbe.
   &__viewers-note
-    max-width: 100%
+    max-width: 260px
 
   &__viewers-flag
     font-size: 12px
