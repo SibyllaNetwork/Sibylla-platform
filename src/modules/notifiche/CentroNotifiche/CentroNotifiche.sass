@@ -550,6 +550,11 @@ $notifiche-split-breakpoint: 1024px
   &__viewers-table
     margin-bottom: 0
 
+    // colonne a larghezza fissa: la cella Note resta vincolata e il testo
+    // trunca davvero (altrimenti la colonna si allarga e non scatta l'ellipsis)
+    table
+      table-layout: fixed
+
   // Utente e Letta compatte, così la colonna Note prende tutto lo spazio residuo
   &__viewers-col-user
     width: 190px
@@ -563,7 +568,7 @@ $notifiche-split-breakpoint: 1024px
 
   // Nota su una sola riga: ellipsis + tooltip col testo completo (TruncatedText)
   &__viewers-note
-    max-width: 320px
+    max-width: 100%
 
   &__viewers-flag
     font-size: 12px
