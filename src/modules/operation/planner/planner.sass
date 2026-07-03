@@ -716,13 +716,16 @@
     opacity: 0
     transition: opacity 0.15s
 
-  // Pulsante "Blocco fantasma" attivo (modalità prelazione accesa)
-  &__btn--ghost-active
+  // Pulsante "Blocco fantasma" attivo (modalità prelazione accesa).
+  // Selettore volутamente specifico (antenato + compound .sib-btn--icon) per
+  // vincere su .sib-btn--icon di Tailwind, incluso il suo stato :hover.
+  &__item &__btn--ghost-active.sib-btn--icon
     border-color: $primary
     background: $primary
     color: $white
 
     &:hover
+      border-color: $primary
       background: $primary
       color: $white
 
