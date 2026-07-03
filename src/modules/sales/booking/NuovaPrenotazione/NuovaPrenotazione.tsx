@@ -432,7 +432,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                     <div className="np-room-cell">
                       <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}>
                         <option value="">—</option>
-                        {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                        {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, form.dal, form.al) ? ' 👻' : ''}</option>)}
                       </select>
                       {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, form.dal, form.al) && (
                         <Tooltip text="Camera in blocco fantasma">
@@ -592,7 +592,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                     <div className="np-room-cell">
                       <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomGr(i, e.target.value, c.nCamera)}>
                         <option value="">—</option>
-                        {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                        {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, grForm.dal, grForm.al) ? ' 👻' : ''}</option>)}
                       </select>
                       {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, grForm.dal, grForm.al) && (
                         <Tooltip text="Camera in blocco fantasma">
