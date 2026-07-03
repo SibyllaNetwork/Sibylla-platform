@@ -15,14 +15,15 @@ interface Props {
 }
 
 // ── Parametri proiezione isometrica ──
-const CX = 25;
-const CY = 12.5;
-const SLAB = 5;
-const FLOOR_GAP = 84;
-const TOP = 22;
-const LABEL_W = 28;        // zona badge a sinistra (la struttura resta centrata)
-const VW = 206;
-const CXT = VW / 2;        // struttura centrata nel pannello
+// Piastre e gap ingranditi rispetto alla versione originale (25/12.5/84) per dare
+// più presenza all'edificio; il viewBox viene poi calcolato aderente alla sagoma.
+const CX = 32;
+const CY = 16;
+const SLAB = 6;
+const FLOOR_GAP = 104;
+const TOP = 26;
+const LABEL_W = 26;        // zona badge a sinistra (fuori dalla sagoma)
+const RIGHT_MARGIN = 6;    // margine destro del viewBox, ridotto per riempire la barra
 
 const gridDims = (n: number): [number, number] => {
   const c = Math.max(1, Math.ceil(Math.sqrt(n)));
@@ -34,7 +35,7 @@ const pt = (Ox: number, Oy: number, i: number, j: number) =>
   `${(Ox + (i - j) * CX).toFixed(1)},${(Oy + (i + j) * CY).toFixed(1)}`;
 const xy = (Ox: number, Oy: number, i: number, j: number): [number, number] =>
   [Ox + (i - j) * CX, Oy + (i + j) * CY];
-const originX = (C: number, R: number) => CXT - ((C - R) * CX) / 2;
+const originX = (CXT: number, C: number, R: number) => CXT - ((C - R) * CX) / 2;
 
 const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRoomHover }) => {
   if (!piani.length) return null;
@@ -43,13 +44,19 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
   const maxRooms = Math.max(...floors.map(f => f.camere.length));
   const [maxC, maxR] = gridDims(maxRooms);
 
+  // viewBox aderente alla sagoma: badge a sinistra, edificio, piccolo margine dx.
+  // Così l'edificio riempie la barra invece di lasciare vuoti laterali.
+  const halfW = ((maxC + maxR) * CX) / 2;
+  const CXT = LABEL_W + halfW;
+  const VW = LABEL_W + 2 * halfW + RIGHT_MARGIN;
+
   // Il piano più basso (Piano Terra, badge 0) è la lobby col desk
   const bottomOy = TOP + (floors.length - 1) * FLOOR_GAP;
   const svgH = bottomOy + (maxC + maxR) * CY + SLAB + 18;
 
   // Sagoma ghost dell'edificio
   const envOy = TOP - 6;
-  const envOx = originX(maxC, maxR);
+  const envOx = originX(CXT, maxC, maxR);
   const [Tx, Ty] = xy(envOx, envOy, 0, 0);
   const [Rx, Ry] = xy(envOx, envOy, maxC, 0);
   const [Bx, By] = xy(envOx, envOy, maxC, maxR);
@@ -193,7 +200,7 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
 
       {/* Piani esplosi cliccabili (alto → basso) */}
       {floors.map((piano, f) => {
-        const Ox = originX(maxC, maxR);
+        const Ox = originX(CXT, maxC, maxR);
         const Oy = TOP + f * FLOOR_GAP;
         const selected = selectedId === piano.id;
         const isLobby = f === floors.length - 1;
