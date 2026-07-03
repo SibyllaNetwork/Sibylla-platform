@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
+import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
@@ -66,6 +67,40 @@ const sevLabel: Record<string,string> = { error:'Errore', warning:'Avviso', info
 const WEEKDAYS = ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
 const MONTHS = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC']
 
+// ── Storico visualizzazioni ─────────────────────────────────────────────────────
+// Elenco (mock) degli utenti a cui la notifica è stata destinata, con stato di
+// lettura ed eventuale nota. Derivato in modo deterministico dall'id notifica,
+// così ogni notifica mostra sempre lo stesso storico.
+interface ViewerRow {
+  name: string
+  letta: boolean
+  note?: string
+}
+
+const VIEWER_POOL = [
+  'Claudia Carapucci',
+  'Eleonora Saladini',
+  'Francesca Poliziani',
+  'Maria Falleni',
+  'Matteo Pieri',
+  'Roberta Manili',
+  'Ruggero Novi',
+  'Sara Buzzoni',
+]
+
+function viewersFor(n: NotificaUI): ViewerRow[] {
+  return VIEWER_POOL.map((name, i) => {
+    const seed = n.id + i * 7
+    const letta = seed % 3 === 0
+    // una sola riga porta una nota di dettaglio, coerente con l'eventuale extra
+    const note =
+      i === 5 && n.extra
+        ? `${n.date.toLowerCase()} ${n.time} · Importo extra: ${fmtEUR(n.extra.servizi)}`
+        : undefined
+    return { name, letta, note }
+  })
+}
+
 function adaptNotifica(n: NotificaDto): NotificaUI {
   const d = new Date(n.data_notifica)
   const valid = !Number.isNaN(d.getTime())
@@ -113,6 +148,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const [loaded,      setLoaded]      = useState(false)
   const [error,       setError]       = useState<string | null>(null)
   const [selectedId,  setSelectedId]  = useState<number | null>(null)
+  const [viewersId,   setViewersId]   = useState<number | null>(null)
 
   const selectChatFromNotif = useChatStore(s => s.selectFromNotif)
   const openChat = (notifId: number) => {
@@ -386,13 +422,12 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                               <i className="fa-light fa-comments" aria-hidden="true" />
                             </button>
                           </Tooltip>
-                          <Tooltip text={isRead ? 'Già letta' : 'Segna come letta'}>
+                          <Tooltip text="Chi ha visualizzato">
                             <button
                               type="button"
                               className="notifiche__row-act"
-                              aria-label="Segna come letta"
-                              disabled={isRead}
-                              onClick={(e) => { e.stopPropagation(); markRead(n.id) }}
+                              aria-label="Chi ha visualizzato la notifica"
+                              onClick={(e) => { e.stopPropagation(); setViewersId(n.id) }}
                             >
                               <i className="fa-light fa-eye" aria-hidden="true" />
                             </button>
@@ -562,6 +597,51 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
           )}
         </aside>
       </div>
+
+      {/* Storico visualizzazioni: chi ha già visto la notifica */}
+      <Modal
+        open={viewersId != null}
+        onClose={() => setViewersId(null)}
+        title="Storico visualizzazioni"
+        size="md"
+      >
+        {(() => {
+          const notif = viewersId == null ? null : visibleNotifications.find(n => n.id === viewersId) ?? null
+          if (!notif) return null
+          const rows = viewersFor(notif)
+          return (
+            <div className="notifiche__viewers">
+              <p className="notifiche__viewers-lead">
+                Utenti destinatari della notifica <strong>«{notif.title}»</strong> e relativo stato di lettura.
+              </p>
+              <div className="sib-table-wrap notifiche__viewers-table">
+                <table className="sib-table">
+                  <thead>
+                    <tr>
+                      <th>Utente</th>
+                      <th>Letta</th>
+                      <th>Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map(r => (
+                      <tr key={r.name}>
+                        <td>{r.name}</td>
+                        <td>
+                          <span className="notifiche__viewers-flag" data-read={r.letta}>
+                            {r.letta ? 'Sì' : 'No'}
+                          </span>
+                        </td>
+                        <td>{r.note ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        })()}
+      </Modal>
     </div>
   )
 }

@@ -539,3 +539,23 @@ $notifiche-split-breakpoint: 1024px
     font-size: 14px
     color: $text-disabled
     margin-top: 12px
+
+  // ── Modale "Visualizzazioni notifica" ─────────────────────────────────────────
+  &__viewers-lead
+    font-size: 13px
+    color: $text-inactive
+    line-height: 1.5
+    margin: 0 0 14px
+
+  &__viewers-table
+    margin-bottom: 0
+
+  &__viewers-flag
+    font-size: 12px
+    font-weight: 600
+
+    &[data-read="true"]
+      color: $success
+
+    &[data-read="false"]
+      color: $text-disabled
