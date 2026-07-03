@@ -39,6 +39,8 @@ interface Props {
   onGhostSelect?: (cam: Camera, startDate: Date, endDate: Date) => void;
   /** Click su un blocco esistente → modifica. */
   onGhostClick?: (b: BloccoFantasma) => void;
+  /** Hover su un blocco → tooltip scuro (motivazione). */
+  onGhostHover?: (b: BloccoFantasma | null, clientX: number, clientY: number) => void;
 }
 
 const Timeline: React.FC<Props> = ({
@@ -47,7 +49,7 @@ const Timeline: React.FC<Props> = ({
   onSelect, selectedId, onEmpty, onSelectPeriod, onAssign, onMove,
   showRiepilogo, onToggleRiepilogo, onBarHover,
   richiesteEseguite, richiesteInAttesa,
-  ghostMode, blocchi, onGhostSelect, onGhostClick,
+  ghostMode, blocchi, onGhostSelect, onGhostClick, onGhostHover,
 }) => {
   const dragEnabled = !!(onMove || onAssign);
 
@@ -345,8 +347,10 @@ const Timeline: React.FC<Props> = ({
                         <div
                           className="timeline__ghost"
                           style={{ '--bar-left': `${gl.leftPx}px`, '--bar-width': `${gl.W}px`, '--bar-clip': gl.clip } as React.CSSProperties}
-                          title={`Blocco fantasma — ${b.motivazione}`}
-                          onClick={e => { e.stopPropagation(); onGhostClick?.(b); }}
+                          onMouseEnter={onGhostHover ? (e) => onGhostHover(b, e.clientX, e.clientY) : undefined}
+                          onMouseMove={onGhostHover ? (e) => onGhostHover(b, e.clientX, e.clientY) : undefined}
+                          onMouseLeave={onGhostHover ? () => onGhostHover(null, 0, 0) : undefined}
+                          onClick={e => { e.stopPropagation(); onGhostHover?.(null, 0, 0); onGhostClick?.(b); }}
                         >
                           <i className="fa-solid fa-ghost timeline__ghost__icon" aria-hidden="true" />
                           <span className="timeline__ghost__label">Blocco</span>

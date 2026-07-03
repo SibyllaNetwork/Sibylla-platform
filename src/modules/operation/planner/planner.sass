@@ -229,6 +229,23 @@
     & + &
       margin-top: 1px
 
+    // riga secondaria (es. motivazione blocco fantasma)
+    &--muted
+      color: alpha($white, 0.75)
+      font-weight: 400
+
+  // Tooltip blocco fantasma: testo libero su più righe, larghezza limitata
+  &__bar-tip--ghost
+    white-space: normal
+    max-width: 240px
+    text-align: left
+
+    .planner__bar-tip-row:first-child
+      font-weight: 700
+      display: flex
+      align-items: center
+      gap: 6px
+
   // Comunicazioni nel tooltip di rollover (icona + significato, allineate a sx)
   &__bar-tip-comms
     margin-top: 6px

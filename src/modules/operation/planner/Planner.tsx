@@ -35,6 +35,9 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
   const s = usePlannerState(navigate);
   const [barTip, setBarTip] = useState<{ pren: Pren; x: number; y: number } | null>(null);
   const onBarHover = (pren: Pren | null, x: number, y: number) => setBarTip(pren ? { pren, x, y } : null);
+  const [ghostTip, setGhostTip] = useState<{ text: string; x: number; y: number } | null>(null);
+  const onGhostHover = (b: { motivazione: string } | null, x: number, y: number) =>
+    setGhostTip(b ? { text: b.motivazione, x, y } : null);
 
   // ── Richieste operative dei Tour Operator ──────────────────────────────────
   const [showRichieste, setShowRichieste] = useState(false);
@@ -214,6 +217,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               blocchi={s.blocchi}
               onGhostSelect={s.handleGhostSelect}
               onGhostClick={s.openGhostEdit}
+              onGhostHover={onGhostHover}
             />
           </div>
           <InfoPanel
@@ -290,6 +294,14 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Tooltip blocco fantasma (rollover) — stile scuro standard */}
+      {ghostTip && (
+        <div className="planner__bar-tip planner__bar-tip--ghost" style={{ '--tip-left': `${ghostTip.x + 14}px`, '--tip-top': `${ghostTip.y + 14}px` } as React.CSSProperties}>
+          <div className="planner__bar-tip-row"><i className="fa-solid fa-ghost" aria-hidden="true" /> Blocco fantasma</div>
+          <div className="planner__bar-tip-row planner__bar-tip-row--muted">{ghostTip.text}</div>
         </div>
       )}
     </>
