@@ -5,6 +5,11 @@ import { useState, useMemo, useCallback } from 'react';
 import { Pren, Camera } from '../planner.types';
 import { PRENS, parseDt, addDays } from '../planner.data';
 import { bookingStore } from '../../../../core/bookingStore';
+import {
+  useBlocchiFantasmaStore,
+  type BloccoFantasma,
+  type NuovoBloccoInput,
+} from '../../../../store/useBlocchiFantasmaStore';
 
 const isoDate = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -31,6 +36,35 @@ export function usePlannerState(navigate: (page: string) => void) {
   const [parkedIds,      setParkedIds]      = useState<string[]>([]);
   const [showParcheggio, setShowParcheggio] = useState(false);
   const [showRiepilogo,  setShowRiepilogo]  = useState(false);
+
+  // ── Blocco fantasma (prelazione) ───────────────────────────────────────────────
+  const blocchi       = useBlocchiFantasmaStore((s) => s.blocchi);
+  const addBlocco     = useBlocchiFantasmaStore((s) => s.add);
+  const updateBlocco  = useBlocchiFantasmaStore((s) => s.update);
+  const removeBlocco  = useBlocchiFantasmaStore((s) => s.remove);
+  const [ghostMode,   setGhostMode]   = useState(false);
+  const [ghostDraft,  setGhostDraft]  = useState<{ dalISO: string; alISO: string; numeroCamera: string } | null>(null);
+  const [ghostEditing, setGhostEditing] = useState<BloccoFantasma | null>(null);
+  const toggleGhost = useCallback(() => setGhostMode((v) => !v), []);
+
+  // Strisciata in modalità fantasma → apre la modale di creazione blocco.
+  const handleGhostSelect = useCallback((cam: Camera, sDate: Date, eDate: Date) => {
+    setGhostEditing(null);
+    setGhostDraft({ dalISO: isoDate(sDate), alISO: isoDate(addDays(eDate, 1)), numeroCamera: cam.numero });
+  }, []);
+
+  // Click su un blocco esistente → apre la modale in modifica.
+  const openGhostEdit = useCallback((b: BloccoFantasma) => {
+    setGhostEditing(b);
+    setGhostDraft({ dalISO: b.dalISO, alISO: b.alISO, numeroCamera: b.numeroCamera });
+  }, []);
+
+  const closeGhostModal = useCallback(() => { setGhostDraft(null); setGhostEditing(null); }, []);
+
+  const saveBlocco = useCallback((input: NuovoBloccoInput) => {
+    if (ghostEditing) updateBlocco(ghostEditing.id, input);
+    else addBlocco(input);
+  }, [ghostEditing, addBlocco, updateBlocco]);
 
   // ── Derived ──────────────────────────────────────────────────────────────────
   const startDate = useMemo(() => parseDt(startDateStr), [startDateStr]);
@@ -126,5 +160,11 @@ export function usePlannerState(navigate: (page: string) => void) {
     parkBooking, assignBookingToRoom, moveBooking,
     handleEmptyClick,
     handleSelectPeriod,
+    // blocco fantasma
+    blocchi,
+    ghostMode, toggleGhost,
+    ghostDraft, ghostEditing,
+    handleGhostSelect, openGhostEdit, closeGhostModal,
+    saveBlocco, removeBlocco,
   };
 }

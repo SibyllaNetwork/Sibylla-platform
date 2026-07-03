@@ -699,6 +699,16 @@
     opacity: 0
     transition: opacity 0.15s
 
+  // Pulsante "Blocco fantasma" attivo (modalità prelazione accesa)
+  &__btn--ghost-active
+    border-color: $primary
+    background: $primary
+    color: $white
+
+    &:hover
+      background: $primary
+      color: $white
+
 // ═══ TIMELINE ═════════════════════════════════════════════════════════════════
 // Wrapper della timeline: contiene la fascia scrollabile + i pulsanti laterali
 .timeline-wrap
@@ -1087,6 +1097,78 @@
   &__bar:hover + &__bar-chevrons
     filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.28)) brightness(1.12)
     z-index: 5
+
+  // ── Blocco fantasma (prelazione): freccia tratteggiata con icona fantasmino ──
+  // Sfondo a righe diagonali (hold/riservato) così si distingue dalle prenotazioni,
+  // ma NON occupa la cella (la disponibilità resta invariata).
+  &--ghost .timeline__cell--free
+    cursor: crosshair
+
+  &__ghost
+    position: absolute
+    left: var(--bar-left)
+    width: var(--bar-width)
+    height: 24px
+    top: 50%
+    transform: translateY(-50%)
+    clip-path: var(--bar-clip)
+    background: repeating-linear-gradient(45deg, $primary-600 0, $primary-600 7px, color-mix(in srgb, $primary-600, #fff 24%) 7px, color-mix(in srgb, $primary-600, #fff 24%) 14px)
+    color: $white
+    display: flex
+    align-items: center
+    gap: 5px
+    padding: 0 16px 0 9px
+    font-family: $font-body
+    font-size: 11px
+    font-weight: 700
+    white-space: nowrap
+    overflow: hidden
+    box-sizing: border-box
+    cursor: pointer
+    z-index: 1
+    filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.25))
+    transition: filter 0.14s ease
+
+    &::before
+      content: ''
+      position: absolute
+      inset: 0 0 auto 0
+      height: 1px
+      background: alpha($white, 0.4)
+      pointer-events: none
+
+    &:hover
+      filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.25)) brightness(1.08)
+      z-index: 3
+
+    &__icon
+      flex: none
+      font-size: 12px
+      text-shadow: 0 1px 2px rgba(15, 23, 42, 0.4)
+
+    &__label
+      +truncate
+      min-width: 0
+      text-shadow: 0 1px 2px rgba(15, 23, 42, 0.4)
+
+  &__ghost-chevrons
+    position: absolute
+    left: var(--chev-left)
+    top: 50%
+    transform: translateY(-50%)
+    width: 28px
+    height: 24px
+    pointer-events: none
+    z-index: 2
+    background: repeating-linear-gradient(45deg, $primary-600 0, $primary-600 7px, color-mix(in srgb, $primary-600, #fff 24%) 7px, color-mix(in srgb, $primary-600, #fff 24%) 14px)
+    $chev: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 26'%3E%3Cg fill='none' stroke='black' stroke-width='3' stroke-linecap='butt' stroke-linejoin='miter'%3E%3Cpath d='M5 0 L19 13 L5 26'/%3E%3Cpath d='M8 0 L22 13 L8 26'/%3E%3Cpath d='M10 0 L24 13 L10 26'/%3E%3C/g%3E%3C/svg%3E"
+    -webkit-mask-image: url("#{$chev}")
+    mask-image: url("#{$chev}")
+    -webkit-mask-size: 100% 100%
+    mask-size: 100% 100%
+    -webkit-mask-repeat: no-repeat
+    mask-repeat: no-repeat
+    filter: drop-shadow(0 1px 1.5px rgba(15, 23, 42, 0.25))
 
   // ── Riepilogo footer (sticky, collassabile) ──────────────────────────────
   &__summary
@@ -1977,3 +2059,35 @@
     flex: none
     display: flex
     align-items: center
+
+// ═══ MODALE BLOCCO FANTASMA ═══════════════════════════════════════════════════
+.bfm
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  // Nota informativa: il blocco NON intacca la disponibilità in vendita
+  &__warn
+    margin: 0
+    background: $warning-light
+    border: 1px solid alpha($warning, 0.3)
+    color: color-mix(in srgb, $warning, #000 38%)
+    border-radius: 8px
+    padding: 10px 12px
+    font-size: 12px
+    line-height: 1.5
+
+  &__actions
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-top: 18px
+
+  &__delete
+    margin-right: auto
+
+  &__actions-right
+    display: flex
+    gap: 8px
+    margin-left: auto

@@ -7,6 +7,7 @@ import { Piano, Pren, Camera } from '../planner.types';
 import { CAM_CLR, DAY_W, ROOM_W } from '../planner.styles';
 import { parseDt, addDays, diffDays, MO } from '../planner.data';
 import { barLayout, barColor, bookingComms } from '../planner.layout';
+import type { BloccoFantasma } from '../../../../store/useBlocchiFantasmaStore';
 
 interface Props {
   piani        : Piano[];
@@ -29,6 +30,15 @@ interface Props {
   richiesteEseguite?: Set<string>;
   /** Booking con richiesta operativa ancora da eseguire → icona "in attesa". */
   richiesteInAttesa?: Set<string>;
+  // ── Blocco fantasma ─────────────────────────────────────────────────────────
+  /** Modalità "blocco fantasma" attiva: la strisciata crea una prelazione. */
+  ghostMode?: boolean;
+  /** Blocchi fantasma da disegnare in timeline. */
+  blocchi?: BloccoFantasma[];
+  /** Strisciata in modalità fantasma → crea blocco sul periodo. */
+  onGhostSelect?: (cam: Camera, startDate: Date, endDate: Date) => void;
+  /** Click su un blocco esistente → modifica. */
+  onGhostClick?: (b: BloccoFantasma) => void;
 }
 
 const Timeline: React.FC<Props> = ({
@@ -37,6 +47,7 @@ const Timeline: React.FC<Props> = ({
   onSelect, selectedId, onEmpty, onSelectPeriod, onAssign, onMove,
   showRiepilogo, onToggleRiepilogo, onBarHover,
   richiesteEseguite, richiesteInAttesa,
+  ghostMode, blocchi, onGhostSelect, onGhostClick,
 }) => {
   const dragEnabled = !!(onMove || onAssign);
 
@@ -76,12 +87,14 @@ const Timeline: React.FC<Props> = ({
       const c = selRef.current; selRef.current = null; setSelDrag(null);
       if (!c) return;
       const lo = Math.min(c.startDi, c.endDi), hi = Math.max(c.startDi, c.endDi);
+      // In modalità fantasma la strisciata (anche di un solo giorno) crea un blocco.
+      if (ghostMode && onGhostSelect) { onGhostSelect(c.cam, days[lo], days[hi]); return; }
       if (lo === hi) onEmpty(c.cam, days[lo]);
       else onSelectPeriod?.(c.cam, days[lo], days[hi]);
     };
     window.addEventListener('mouseup', onUp);
     return () => window.removeEventListener('mouseup', onUp);
-  }, [days, onEmpty, onSelectPeriod]);
+  }, [days, onEmpty, onSelectPeriod, ghostMode, onGhostSelect]);
   const visible = activePiani.length > 0
     ? piani.filter(p => activePiani.includes(p.id))
     : piani;
@@ -101,6 +114,32 @@ const Timeline: React.FC<Props> = ({
   const isToday  = (d: Date) => d.getTime() === today.getTime();
   const isWE     = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
   const todayOff = diffDays(startDate, today);
+
+  // ── Blocchi fantasma: layout freccia (posizione/larghezza dentro la finestra) ──
+  const blocchiByCam = useMemo(() => {
+    const m = new Map<string, BloccoFantasma[]>();
+    (blocchi ?? []).forEach(b => {
+      const arr = m.get(b.numeroCamera); if (arr) arr.push(b); else m.set(b.numeroCamera, [b]);
+    });
+    return m;
+  }, [blocchi]);
+
+  const ghostLayout = useCallback((b: BloccoFantasma) => {
+    const ci = parseDt(b.dalISO), co = parseDt(b.alISO);
+    const endV = addDays(startDate, numDays);
+    if (co <= startDate || ci >= endV) return null;
+    const ld = Math.max(0, diffDays(startDate, ci));
+    const rd = Math.min(numDays, diffDays(startDate, co));
+    const sL = ci >= startDate, sR = co <= endV;
+    const F = 0.3, ARROW = 14;
+    const leftPx = sL ? (ld + F) * DAY_W : 0;
+    const rightPx = sR ? (rd + F) * DAY_W : numDays * DAY_W;
+    const W = Math.max(28, rightPx - leftPx);
+    const clip = sR
+      ? `polygon(0 0, calc(100% - ${ARROW}px) 0, 100% 50%, calc(100% - ${ARROW}px) 100%, 0 100%)`
+      : 'none';
+    return { leftPx, W, clip, chevronLeft: leftPx + W - ARROW, sR };
+  }, [startDate, numDays]);
 
   // ── Riepilogo per giorno (footer collassabile) ───────────────────────────────
   const allCamere = useMemo(() => visible.flatMap(p => p.camere), [visible]);
@@ -138,7 +177,7 @@ const Timeline: React.FC<Props> = ({
           </svg>
         </button>
       )}
-    <div className="timeline" ref={scrollRef} onScroll={updateNav} style={{ '--tl-content-w': `${ROOM_W + numDays * DAY_W}px` } as React.CSSProperties}>
+    <div className={`timeline${ghostMode ? ' timeline--ghost' : ''}`} ref={scrollRef} onScroll={updateNav} style={{ '--tl-content-w': `${ROOM_W + numDays * DAY_W}px` } as React.CSSProperties}>
 
       {/* ── Header date ─────────────────────────────────────────────────────── */}
       <div className="timeline__header">
@@ -292,6 +331,28 @@ const Timeline: React.FC<Props> = ({
                             className="timeline__bar-chevrons"
                             style={{ '--chev-left': `${bp.chevronLeft}px`, '--bar-bg': barColor(pren) } as React.CSSProperties}
                           />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+
+                  {/* Blocchi fantasma (prelazione): freccia con icona fantasmino */}
+                  {(blocchiByCam.get(cam.numero) ?? []).map(b => {
+                    const gl = ghostLayout(b);
+                    if (!gl) return null;
+                    return (
+                      <React.Fragment key={b.id}>
+                        <div
+                          className="timeline__ghost"
+                          style={{ '--bar-left': `${gl.leftPx}px`, '--bar-width': `${gl.W}px`, '--bar-clip': gl.clip } as React.CSSProperties}
+                          title={`Blocco fantasma — ${b.motivazione}`}
+                          onClick={e => { e.stopPropagation(); onGhostClick?.(b); }}
+                        >
+                          <i className="fa-solid fa-ghost timeline__ghost__icon" aria-hidden="true" />
+                          <span className="timeline__ghost__label">Blocco</span>
+                        </div>
+                        {gl.sR && (
+                          <div className="timeline__ghost-chevrons" style={{ '--chev-left': `${gl.chevronLeft}px` } as React.CSSProperties} />
                         )}
                       </React.Fragment>
                     );

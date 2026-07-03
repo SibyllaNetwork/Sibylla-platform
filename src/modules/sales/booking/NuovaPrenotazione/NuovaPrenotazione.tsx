@@ -16,6 +16,11 @@ import { useServiziStore } from '../../../../store/useServiziStore'
 import type { Servizio } from '../../../purchasing/Servizi/servizi-types'
 import { PIANI_DATA } from '../../../operation/planner/planner.data'
 import { withFlag } from '../../../../core/utils/countryFlags'
+import {
+  useBlocchiFantasmaStore,
+  bloccoPerCameraPeriodo,
+  type BloccoFantasma,
+} from '../../../../store/useBlocchiFantasmaStore'
 import './NuovaPrenotazione.sass'
 
 const TODAY        = new Date().toISOString().split('T')[0]
@@ -226,6 +231,33 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const updCameraGr = (i: number, p: Partial<CameraGruppoRow>) =>
     setCamereGr(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
+  // ── Blocco fantasma: se la camera scelta è in prelazione nel periodo, avvisa;
+  //    confermando, il blocco viene rimosso e la prenotazione procede.
+  const blocchiFantasma = useBlocchiFantasmaStore(s => s.blocchi)
+  const removeBlocco     = useBlocchiFantasmaStore(s => s.remove)
+  const [ghostAlert, setGhostAlert] = useState<{ scope: 'ind' | 'gr'; idx: number; prev: string; block: BloccoFantasma } | null>(null)
+
+  const chooseRoomInd = (i: number, val: string, prev: string) => {
+    updCamera(i, { nCamera: val })
+    const b = bloccoPerCameraPeriodo(blocchiFantasma, val, form.dal, form.al)
+    if (b) setGhostAlert({ scope: 'ind', idx: i, prev, block: b })
+  }
+  const chooseRoomGr = (i: number, val: string, prev: string) => {
+    updCameraGr(i, { nCamera: val })
+    const b = bloccoPerCameraPeriodo(blocchiFantasma, val, grForm.dal, grForm.al)
+    if (b) setGhostAlert({ scope: 'gr', idx: i, prev, block: b })
+  }
+  const cancelGhostAlert = () => {
+    if (!ghostAlert) return
+    if (ghostAlert.scope === 'ind') updCamera(ghostAlert.idx, { nCamera: ghostAlert.prev })
+    else updCameraGr(ghostAlert.idx, { nCamera: ghostAlert.prev })
+    setGhostAlert(null)
+  }
+  const confirmGhostAlert = () => {
+    if (ghostAlert) removeBlocco(ghostAlert.block.id)
+    setGhostAlert(null)
+  }
+
   const updOspite = (i: number, p: Partial<OspiteRow>) =>
     setOspiti(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
@@ -383,10 +415,15 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCamera(i,{bambini:+e.target.value||0})}/></td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCamera(i,{infanti:+e.target.value||0})}/></td>
                   <td>
-                    <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>updCamera(i,{nCamera:e.target.value})}>
-                      <option value="">—</option>
-                      {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
+                    <div className="np-room-cell">
+                      <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}>
+                        <option value="">—</option>
+                        {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                      {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, form.dal, form.al) && (
+                        <i className="fa-solid fa-ghost np-ghost-ico" title="Camera in blocco fantasma" aria-label="Camera in blocco fantasma" />
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -536,10 +573,15 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   </td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.persone} onChange={e=>updCameraGr(i,{persone:+e.target.value||0})}/></td>
                   <td>
-                    <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>updCameraGr(i,{nCamera:e.target.value})}>
-                      <option value="">—</option>
-                      {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
+                    <div className="np-room-cell">
+                      <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomGr(i, e.target.value, c.nCamera)}>
+                        <option value="">—</option>
+                        {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                      {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, grForm.dal, grForm.al) && (
+                        <i className="fa-solid fa-ghost np-ghost-ico" title="Camera in blocco fantasma" aria-label="Camera in blocco fantasma" />
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1169,6 +1211,22 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
             />
           </footer>
         </div>
+      </Modal>
+
+      {/* Alert: camera in blocco fantasma nel periodo selezionato */}
+      <Modal open={!!ghostAlert} onClose={cancelGhostAlert} title="Camera in blocco fantasma" size="sm">
+        {ghostAlert && (
+          <>
+            <p className="np-ghost-alert-text">
+              La camera <strong>{ghostAlert.block.numeroCamera}</strong> risulta in blocco fantasma nel
+              periodo selezionato. Confermando, l’intero blocco verrà rimosso.
+            </p>
+            <div className="np-ghost-alert-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={cancelGhostAlert}>Annulla</button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={confirmGhostAlert}>Conferma</button>
+            </div>
+          </>
+        )}
       </Modal>
 
     </div>

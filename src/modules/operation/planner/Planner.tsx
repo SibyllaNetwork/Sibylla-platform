@@ -17,6 +17,7 @@ import ActionButtons      from './components/ActionButtons';
 import LegendaModal       from './components/LegendaModal';
 import PrenModal          from './components/PrenModal';
 import RichiesteOperativeModal from './components/RichiesteOperativeModal';
+import BloccoFantasmaModal from './components/BloccoFantasmaModal';
 import {
   useRichiesteOperativeStore,
   richiestePendingCount,
@@ -153,7 +154,8 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
             <div className="planner__spacer" />
 
             <ActionButtons
-              onGhost={() => {}}
+              onGhost={s.toggleGhost}
+              ghostActive={s.ghostMode}
               onParcheggio={s.toggleParcheggio}
               parcheggioActive={s.showParcheggio}
               parkedCount={s.parkedPrens.length}
@@ -208,6 +210,10 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               onBarHover={onBarHover}
               richiesteEseguite={richiesteEseguite}
               richiesteInAttesa={richiesteInAttesa}
+              ghostMode={s.ghostMode}
+              blocchi={s.blocchi}
+              onGhostSelect={s.handleGhostSelect}
+              onGhostClick={s.openGhostEdit}
             />
           </div>
           <InfoPanel
@@ -241,6 +247,16 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
           items={PENDING_AL}
           onClose={() => s.setShowAllocare(false)}
           actionLabel="Alloca"
+        />
+      )}
+      {s.ghostDraft && (
+        <BloccoFantasmaModal
+          open
+          onClose={s.closeGhostModal}
+          initial={s.ghostDraft}
+          editing={s.ghostEditing}
+          onSave={s.saveBlocco}
+          onDelete={s.removeBlocco}
         />
       )}
 

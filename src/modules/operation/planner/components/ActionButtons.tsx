@@ -5,6 +5,7 @@ import React from 'react';
 
 interface Props {
   onGhost        : () => void;
+  ghostActive?   : boolean;
   onParcheggio   : () => void;
   parcheggioActive: boolean;
   parkedCount    : number;
@@ -20,7 +21,7 @@ interface Props {
 
 const ActionButtons: React.FC<Props> = (p) => {
   const items = [
-    { key: 'ghost',       label: 'Blocco fantasma',      icon: 'fa-ghost',             onClick: p.onGhost },
+    { key: 'ghost',       label: 'Blocco fantasma',      icon: 'fa-ghost',             onClick: p.onGhost, active: p.ghostActive },
     { key: 'parcheggio',  label: 'Parcheggio',           icon: 'fa-square-parking',    onClick: p.onParcheggio, active: p.parcheggioActive, badge: p.parkedCount },
     { key: 'nuova',       label: 'Nuova prenotazione',   icon: 'fa-plus',              onClick: p.onNuova },
     { key: 'arrivi',      label: 'Arrivi & partenze',    icon: 'fa-suitcase-rolling',  onClick: p.onArrivi },
@@ -37,8 +38,9 @@ const ActionButtons: React.FC<Props> = (p) => {
         <div key={a.key} className="action-buttons__item">
           <button
             type="button"
-            className={`sib-btn sib-btn--icon${a.key === 'parcheggio' ? ` planner__park-btn${a.active ? ' planner__park-btn--active' : ''}` : ''}`}
+            className={`sib-btn sib-btn--icon${a.key === 'parcheggio' ? ` planner__park-btn${a.active ? ' planner__park-btn--active' : ''}` : ''}${a.key === 'ghost' && a.active ? ' action-buttons__btn--ghost-active' : ''}`}
             onClick={a.onClick}
+            aria-pressed={a.key === 'ghost' ? !!a.active : undefined}
             aria-label={a.label}
           >
             <i className={`fa-light ${a.icon}`} aria-hidden="true" />
