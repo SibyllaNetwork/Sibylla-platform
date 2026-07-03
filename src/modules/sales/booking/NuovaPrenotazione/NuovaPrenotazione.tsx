@@ -424,9 +424,12 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <tr key={i}>
                   <td>{i+1}</td>
                   <td>
-                    <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
-                      {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-                    </select>
+                    <div className="np-tipo-cell">
+                      <i className="fa-light fa-bed-front np-tipo-ico" aria-hidden="true" />
+                      <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
+                        {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                      </select>
+                    </div>
                   </td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCamera(i,{adulti:+e.target.value||0})}/></td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCamera(i,{ragazzi:+e.target.value||0})}/></td>
