@@ -550,6 +550,21 @@ $notifiche-split-breakpoint: 1024px
   &__viewers-table
     margin-bottom: 0
 
+  // Utente e Letta compatte, così la colonna Note prende tutto lo spazio residuo
+  &__viewers-col-user
+    width: 190px
+
+  &__viewers-col-read
+    width: 64px
+    text-align: center
+
+  &__viewers-col-note
+    width: auto
+
+  // Nota su una sola riga: ellipsis + tooltip col testo completo (TruncatedText)
+  &__viewers-note
+    max-width: 320px
+
   &__viewers-flag
     font-size: 12px
     font-weight: 600

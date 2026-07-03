@@ -3,6 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
 import { SelectField } from '../../../core/components/form'
 import { getNotifiche, type NotificaDto } from '../../../services/notifiche.service'
 import { useChatStore } from '../../../store/useChatStore'
@@ -92,10 +93,12 @@ function viewersFor(n: NotificaUI): ViewerRow[] {
   return VIEWER_POOL.map((name, i) => {
     const seed = n.id + i * 7
     const letta = seed % 3 === 0
-    // una sola riga porta una nota di dettaglio, coerente con l'eventuale extra
+    // alcune righe portano una nota di dettaglio, coerente con l'eventuale extra
     const note =
-      i === 5 && n.extra
-        ? `${n.date.toLowerCase()} ${n.time} · Importo extra: ${fmtEUR(n.extra.servizi)}`
+      seed % 4 === 1
+        ? n.extra
+          ? `${n.date.toLowerCase()} ${n.time} · Presa in carico della richiesta extra — importo servizi ${fmtEUR(n.extra.servizi)} su prenotazione ${n.extra.bookingId}`
+          : `${n.date.toLowerCase()} ${n.time} · Notifica aperta e presa in carico dall'operatore`
         : undefined
     return { name, letta, note }
   })
@@ -603,7 +606,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
         open={viewersId != null}
         onClose={() => setViewersId(null)}
         title="Storico visualizzazioni"
-        size="md"
+        size="lg"
       >
         {(() => {
           const notif = viewersId == null ? null : visibleNotifications.find(n => n.id === viewersId) ?? null
@@ -618,21 +621,23 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                 <table className="sib-table">
                   <thead>
                     <tr>
-                      <th>Utente</th>
-                      <th>Letta</th>
-                      <th>Note</th>
+                      <th className="notifiche__viewers-col-user">Utente</th>
+                      <th className="notifiche__viewers-col-read">Letta</th>
+                      <th className="notifiche__viewers-col-note">Note</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map(r => (
                       <tr key={r.name}>
                         <td>{r.name}</td>
-                        <td>
+                        <td className="notifiche__viewers-col-read">
                           <span className="notifiche__viewers-flag" data-read={r.letta}>
                             {r.letta ? 'Sì' : 'No'}
                           </span>
                         </td>
-                        <td>{r.note ?? '—'}</td>
+                        <td className="notifiche__viewers-col-note">
+                          {r.note ? <TruncatedText text={r.note} className="notifiche__viewers-note" /> : '—'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
