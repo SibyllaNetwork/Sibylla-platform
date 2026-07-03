@@ -809,25 +809,44 @@
     z-index: 4
     pointer-events: none
 
+  // Header di piano: banda chiara come separatore di sezione, con accento
+  // verticale e nome in grassetto (niente barra piena) per distinguerlo dalle righe
   &__floor-header
-    background: $text-inactive
-    color: $white
-    height: 30px
+    background: $primary-50
+    color: $primary
+    height: 28px
     min-width: var(--tl-content-w)
     display: flex
     align-items: center
-    font-family: $font-heading
-    font-size: 12px
-    font-weight: 600
     position: sticky
     top: 46px
     z-index: 8
+    border-top: 1px solid $border
+    border-bottom: 1px solid $border
 
   // nome del piano: resta visibile a sinistra durante lo scroll orizzontale
   &__floor-name
     position: sticky
     left: 0
-    padding-left: 12px
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 100%
+    padding: 0 14px 0 12px
+    background: $primary-50
+    color: $primary
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: 0.2px
+
+    &::before
+      content: ''
+      flex: none
+      width: 3px
+      height: 14px
+      border-radius: 2px
+      background: $primary
 
   &__row
     display: flex
