@@ -3,7 +3,6 @@ import T from '../../../../core/tokens'
 import { bookingStore } from '../../../../core/bookingStore'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
-import Tabs from '../../../../core/components/Tabs'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import Ico from '../../../../core/icons/Ico'
@@ -82,14 +81,16 @@ const editCamereGr = (e: any): CameraGruppoRow[] =>
 // richiesta; le non nominate (agenzia, prezzi) restano in coda.
 // Individuale: Soggiorno, Stato & classificazione, Anticipi, Extra, Altre info,
 //   Note di reparto, [in coda] Agenzia & cliente, Dettaglio prezzi
+// NB: la card Soggiorno è ancorata a tutta larghezza in cima (fuori dalle colonne),
+// per far entrare tutti i campi della tabella camere alla giusta dimensione.
 const LAYOUT_IND = [
-  ['soggiorno','extra','agenzia'],
+  ['extra','agenzia'],
   ['stato','altre','prezzi'],
   ['anticipi','note-reparto'],
 ]
-// Gruppo: Soggiorno gruppo, Dati gruppo, Stato & opzioni, Anticipi, Extra, Altre info, Note di reparto
+// Gruppo: Soggiorno gruppo (pinned full-width), Dati gruppo, Stato & opzioni, Anticipi, Extra, Altre info, Note di reparto
 const LAYOUT_GR  = [
-  ['soggiorno-gr','anticipi','note-reparto'],
+  ['anticipi','note-reparto'],
   ['dati-gr','extra'],
   ['stato-gr','altre'],
 ]
@@ -114,8 +115,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const layoutGr  = useMemo(() => LAYOUT_GR,  [])
 
   // .v2 = nuovo ordine di default (invalida i layout salvati col vecchio ordine)
-  const indLayout = useWidgetLayout('nuova-prenotazione.individuale.v2', layoutInd)
-  const grLayout  = useWidgetLayout('nuova-prenotazione.gruppo.v2',      layoutGr)
+  const indLayout = useWidgetLayout('nuova-prenotazione.individuale.v3', layoutInd)
+  const grLayout  = useWidgetLayout('nuova-prenotazione.gruppo.v3',      layoutGr)
 
   // ── State form ───────────────────────────────────────────────────────────────
   const [form, setForm] = useState(() => ({
@@ -384,17 +385,19 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   }
 
   // ── Widgets renderer ─────────────────────────────────────────────────────────
-  const renderIndWidget = (id: string) => {
+  const renderIndWidget = (id: string, pinned = false) => {
     const collapsed = indLayout.collapsed.has(id)
     const isOver    = indLayout.overId === id
-    const common = {
-      id, collapsed, isDragOver: isOver,
-      onToggleCollapse: indLayout.toggleCollapse,
-      onDragStart:      indLayout.handleDragStart,
-      onDragOver:       indLayout.handleDragOver,
-      onDrop:           indLayout.handleDrop,
-      onDragEnd:        indLayout.handleDragEnd,
-    }
+    const common = pinned
+      ? { id, collapsed, onToggleCollapse: indLayout.toggleCollapse, className: 'np-widget--full' }
+      : {
+          id, collapsed, isDragOver: isOver,
+          onToggleCollapse: indLayout.toggleCollapse,
+          onDragStart:      indLayout.handleDragStart,
+          onDragOver:       indLayout.handleDragOver,
+          onDrop:           indLayout.handleDrop,
+          onDragEnd:        indLayout.handleDragEnd,
+        }
 
     switch (id) {
       case 'soggiorno': return (
@@ -530,17 +533,19 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     }
   }
 
-  const renderGrWidget = (id: string) => {
+  const renderGrWidget = (id: string, pinned = false) => {
     const collapsed = grLayout.collapsed.has(id)
     const isOver    = grLayout.overId === id
-    const common = {
-      id, collapsed, isDragOver: isOver,
-      onToggleCollapse: grLayout.toggleCollapse,
-      onDragStart:      grLayout.handleDragStart,
-      onDragOver:       grLayout.handleDragOver,
-      onDrop:           grLayout.handleDrop,
-      onDragEnd:        grLayout.handleDragEnd,
-    }
+    const common = pinned
+      ? { id, collapsed, onToggleCollapse: grLayout.toggleCollapse, className: 'np-widget--full' }
+      : {
+          id, collapsed, isDragOver: isOver,
+          onToggleCollapse: grLayout.toggleCollapse,
+          onDragStart:      grLayout.handleDragStart,
+          onDragOver:       grLayout.handleDragOver,
+          onDrop:           grLayout.handleDrop,
+          onDragEnd:        grLayout.handleDragEnd,
+        }
 
     switch (id) {
       case 'soggiorno-gr': return (
@@ -1045,11 +1050,22 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       />
 
       <div className="np-toolbar">
-        <Tabs
-          tabs={[{id:'gruppo',label:'Gruppo'},{id:'individuale',label:'Individuale'}]}
-          active={activeTab}
-          onChange={id=>setActiveTab(id as 'gruppo'|'individuale')}
-        />
+        <div className="np-tabs" role="tablist" aria-label="Tipo prenotazione">
+          <button
+            type="button" role="tab" aria-selected={activeTab === 'individuale'}
+            className={`np-tab ${activeTab === 'individuale' ? 'is-active' : ''}`}
+            onClick={() => setActiveTab('individuale')}
+          >
+            <i className="fa-light fa-user" aria-hidden="true" /> Individuale
+          </button>
+          <button
+            type="button" role="tab" aria-selected={activeTab === 'gruppo'}
+            className={`np-tab ${activeTab === 'gruppo' ? 'is-active' : ''}`}
+            onClick={() => setActiveTab('gruppo')}
+          >
+            <i className="fa-light fa-users" aria-hidden="true" /> Gruppo
+          </button>
+        </div>
         <div className="np-toolbar-icons">
           <button type="button" className="sib-btn sib-btn--secondary np-importo-btn" onClick={scaricaPdfPrenotazione}>
             <i className="fa-light fa-file-pdf" /> Scarica PDF
@@ -1059,6 +1075,9 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           </button>
         </div>
       </div>
+
+      {/* Soggiorno ancorato a piena larghezza: la tabella camere entra tutta */}
+      {activeTab === 'individuale' ? renderIndWidget('soggiorno', true) : renderGrWidget('soggiorno-gr', true)}
 
       <div className="np-columns">
         {activeLayout.layout.map((col, ci) => (
