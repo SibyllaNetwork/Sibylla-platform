@@ -8,6 +8,7 @@ import { CAM_CLR, DAY_W, ROOM_W } from '../planner.styles';
 import { parseDt, addDays, diffDays, MO } from '../planner.data';
 import { barLayout, barColor, bookingComms } from '../planner.layout';
 import type { BloccoFantasma } from '../../../../store/useBlocchiFantasmaStore';
+import GhostIcon from '../../../../core/icons/GhostIcon';
 
 interface Props {
   piani        : Piano[];
@@ -352,7 +353,7 @@ const Timeline: React.FC<Props> = ({
                           onMouseLeave={onGhostHover ? () => onGhostHover(null, 0, 0) : undefined}
                           onClick={e => { e.stopPropagation(); onGhostHover?.(null, 0, 0); onGhostClick?.(b); }}
                         >
-                          <i className="fa-solid fa-ghost timeline__ghost__icon" aria-hidden="true" />
+                          <GhostIcon className="timeline__ghost__icon" />
                           <span className="timeline__ghost__label">Blocco</span>
                         </div>
                         {gl.sR && (

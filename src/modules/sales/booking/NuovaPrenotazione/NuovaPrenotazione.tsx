@@ -7,6 +7,7 @@ import Tabs from '../../../../core/components/Tabs'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import Ico from '../../../../core/icons/Ico'
+import GhostIcon from '../../../../core/icons/GhostIcon'
 import ToggleSwitch from '../../../../core/components/ToggleSwitch'
 import { Button } from '../../../../core/components'
 import FormActions from '../../../../core/components/FormActions'
@@ -436,7 +437,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       </select>
                       {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, form.dal, form.al) && (
                         <Tooltip text="Camera in blocco fantasma">
-                          <i className="fa-solid fa-ghost np-ghost-ico" aria-label="Camera in blocco fantasma" />
+                          <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
                         </Tooltip>
                       )}
                     </div>
@@ -596,7 +597,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       </select>
                       {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, grForm.dal, grForm.al) && (
                         <Tooltip text="Camera in blocco fantasma">
-                          <i className="fa-solid fa-ghost np-ghost-ico" aria-label="Camera in blocco fantasma" />
+                          <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
                         </Tooltip>
                       )}
                     </div>
