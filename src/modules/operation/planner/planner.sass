@@ -352,8 +352,8 @@
 // ═══ HOTEL VISUALIZATION ══════════════════════════════════════════════════════
 .hotel-viz
   position: relative
-  width: 245px
-  min-width: 245px
+  width: 180px
+  min-width: 180px
   background: $primary
   border-radius: $radius-xl 0 0 $radius-xl
   overflow: hidden
@@ -433,9 +433,12 @@
   // ── Spaccato assonometrico esploso (data-driven) ──────────────────────────
   &__iso
     display: block
+    // riempie la barra (ora più stretta) con ~10px di margine dal padding;
+    // flex-shrink:0 evita che il flex della colonna la comprima in altezza
+    flex-shrink: 0
     width: 100%
     height: auto
-    margin: 2px 0 8px
+    margin: 2px 0 6px
     fill: none
     stroke-linejoin: round
     stroke-linecap: round
@@ -649,14 +652,17 @@
   &__legend
     background: alpha($white, 0.05)
     border-radius: $radius-md
-    padding: 6px 5px
+    padding: 6px 7px
     margin-top: 2px
+    // due colonne per occupare meno spazio verticale (recuperato per la mappa)
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 3px 8px
 
   &__legend-item
     display: flex
     align-items: center
     gap: 4px
-    margin-bottom: 3px
 
   &__legend-dot
     width: 8px

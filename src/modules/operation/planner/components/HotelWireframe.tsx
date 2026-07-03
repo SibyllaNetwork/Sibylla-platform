@@ -59,7 +59,7 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
   // viewBox ritagliato sulla sagoma reale: così la struttura riempie l'SVG (e
   // quindi la barra) invece di lasciare vuoti nel viewBox. Il margine di ~10px
   // attorno è dato dal padding del contenitore (.hotel-viz__scroll).
-  const VB_PAD = 3;
+  const VB_PAD = 1;
   const bLeftX = envOx - maxR * CX;                 // punta sinistra edificio
   const bRightX = envOx + maxC * CX;                // punta destra edificio
   const badgeLeftX = LABEL_W / 2 - 9;               // bordo sinistro del badge tondo
