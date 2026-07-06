@@ -7,6 +7,10 @@
   align-items: stretch
   gap: 12px
   font-size: 13px
+  // Container query: la compattazione tabella reagisce alla larghezza REALE
+  // dell'area contenuto (che tiene conto della sidebar), non al viewport.
+  container-type: inline-size
+  container-name: ospiti-casa
 
   > .sib-btn--back
     align-self: flex-start
@@ -24,7 +28,10 @@
     display: flex
     align-items: flex-end
     gap: 12px
-    flex-wrap: wrap
+    // Fields form + bullet statistiche sempre su un'unica riga
+    flex-wrap: nowrap
+    min-width: 0
+    flex: 1 1 auto
 
   &__bar-right
     display: flex
@@ -44,9 +51,10 @@
       color: $primary
       font-weight: 600
 
+    // Il campo Cerca è l'elemento elastico: si restringe per tenere tutto su una riga
     &--grow
-      width: 260px
-      flex-shrink: 0
+      flex: 1 1 140px
+      min-width: 120px
 
   &__select-field
     width: 140px
@@ -86,10 +94,11 @@
   // Badge conteggi inline con i campi form (allineati in basso, come gli input)
   &__counts
     display: flex
-    flex-wrap: wrap
+    flex-wrap: nowrap
     align-items: center
     gap: 8px
     padding-bottom: 2px
+    flex-shrink: 0
 
   &__count
     display: inline-flex
@@ -132,10 +141,11 @@
     &--eta
       font-size: 22px
 
-  // ── Compattazione SOLO sotto il laptop ──────────────────────────────────────
-  // A ~1056px (laptop 1366 con sidebar aperta) la tabella deve entrare senza
-  // scroll-x. Sopra il laptop icone e font restano quelli standard.
-  @media (max-width: 1366px)
+  // ── Compattazione quando lo spazio si restringe ─────────────────────────────
+  // Scatta quando l'area contenuto scende sotto ~1360px (dove la tabella a
+  // dimensioni standard, ~1355px, andrebbe in overflow): es. laptop con sidebar
+  // aperta. Sopra questa soglia icone e font restano quelli standard.
+  @container ospiti-casa (max-width: 1360px)
     .ospiti-casa__table
       font-size: 12px
 
@@ -161,6 +171,24 @@
 
       &--eta
         font-size: 20px
+
+    // Toolbar compatta: fields + badge statistiche entrano su un'unica riga
+    .ospiti-casa__select-field
+      width: 120px
+
+    .ospiti-casa__date-range .sib-input
+      width: 108px
+
+    .ospiti-casa__counts
+      gap: 6px
+
+    .ospiti-casa__count
+      font-size: 11px
+      padding: 2px 8px
+      gap: 5px
+
+      i
+        font-size: 11px
 
   &__col-ico
     margin-left: 6px
