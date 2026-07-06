@@ -411,8 +411,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 onChangeFrom={e=>setForm(f=>({...f,dal:e.target.value}))}
                 onChangeTo={e=>setForm(f=>({...f,al:e.target.value}))}
               />
-              <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
-              <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+              <div className="np-soggiorno__cp">
+                <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
+                <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+              </div>
               <div className="np-soggiorno__actions">
                 <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-grid-2" /> Alloca</button>
                 <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-user-plus" /> Assegna</button>
