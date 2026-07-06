@@ -189,7 +189,7 @@ export default function Anagrafiche() {
   }
 
   return (
-    <div>
+    <div className="anagrafiche">
       <BtnBack />
       <PageHeader title={t('op.anagraficheOspiti.title', 'Anagrafiche Ospiti')} subtitle={t('op.anagraficheOspiti.subtitle', 'Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura')} />
 

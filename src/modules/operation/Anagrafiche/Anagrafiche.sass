@@ -1,6 +1,36 @@
 // ─── ANAGRAFICHE ──────────────────────────────────────────────────────────────
 @use '../../../styles/tokens' as *
 
+// Root pagina: container query per la responsività della tabella (misura la
+// larghezza REALE dell'area contenuto, tiene conto della sidebar aperta).
+.anagrafiche
+  container-type: inline-size
+  container-name: anagrafiche
+
+  // ── Compattazione quando lo spazio si restringe (laptop con sidebar aperta) ──
+  // Scatta sotto ~1360px di area contenuto; sopra questa soglia icone e font
+  // restano quelli standard. Scoped alla pagina: lo standard .sib-table resta.
+  @container anagrafiche (max-width: 1360px)
+    .sib-table
+      font-size: 12px
+
+      thead th
+        font-size: 11px
+
+      th, td
+        padding-left: 4px
+        padding-right: 4px
+
+      // Bottoni-icona compatti (le colonne Note/Azioni ne hanno molti in riga)
+      .sib-btn--icon
+        width: 24px
+        height: 24px
+        font-size: 12px
+
+      // Gap ridotto tra le icone d'azione
+      td .flex
+        gap: 1px
+
 // Filtro colonna (multi-scelta) — standard di piattaforma
 .anag-colfilter
   display: inline-flex
