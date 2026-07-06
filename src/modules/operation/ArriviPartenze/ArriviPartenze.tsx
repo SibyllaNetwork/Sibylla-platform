@@ -426,6 +426,24 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
     return <CheckInView gruppo={gruppo.length ? gruppo : [checkIn]} onBack={() => setCheckIn(null)} />
   }
 
+  // Stat riutilizzabili: nella toolbar (sopra il laptop) o accanto alle tab a
+  // destra (sotto il laptop, via container query) — vedi .sass.
+  const arrStats = (
+    <>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-user" aria-hidden="true" /> Presenze: <strong>{totPresenze}</strong></span>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-bed-front" aria-hidden="true" /> Camere: <strong>{totCamere}</strong></span>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-users" aria-hidden="true" /> Gruppi: <strong>{pctGruppi}%</strong></span>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-user-check" aria-hidden="true" /> Individuali: <strong>{pctIndividuali}%</strong></span>
+    </>
+  )
+  const partStats = (
+    <>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-bed-front" aria-hidden="true" /> Camere: <strong>{totPartCamere}</strong></span>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-users" aria-hidden="true" /> Gruppi: <strong>{partPctGruppi}%</strong></span>
+      <span className="arrivi-partenze__stat"><i className="fa-light fa-user-check" aria-hidden="true" /> Individuali: <strong>{partPctIndividuali}%</strong></span>
+    </>
+  )
+
   return (
     <div className="arrivi-partenze">
       <BtnBack />
@@ -436,19 +454,25 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
       />
 
       {/* Switch a linguette: una sezione alla volta, a tutta larghezza */}
-      <div className="arrivi-partenze__tabs" role="tablist" aria-label="Arrivi / Partenze">
-        <button type="button" role="tab" aria-selected={tab === 'arrivi'}
-          className={`arrivi-partenze__tab ${tab === 'arrivi' ? 'is-active' : ''}`}
-          onClick={() => setTab('arrivi')}>
-          <i className="fa-light fa-plane-arrival" aria-hidden="true" /> In arrivo
-          <em className="arrivi-partenze__tab-count">{arrivi.length}</em>
-        </button>
-        <button type="button" role="tab" aria-selected={tab === 'partenze'}
-          className={`arrivi-partenze__tab ${tab === 'partenze' ? 'is-active' : ''}`}
-          onClick={() => setTab('partenze')}>
-          <i className="fa-light fa-plane-departure" aria-hidden="true" /> In partenza
-          <em className="arrivi-partenze__tab-count">{partenze.length}</em>
-        </button>
+      <div className="arrivi-partenze__tabs-row">
+        <div className="arrivi-partenze__tabs" role="tablist" aria-label="Arrivi / Partenze">
+          <button type="button" role="tab" aria-selected={tab === 'arrivi'}
+            className={`arrivi-partenze__tab ${tab === 'arrivi' ? 'is-active' : ''}`}
+            onClick={() => setTab('arrivi')}>
+            <i className="fa-light fa-plane-arrival" aria-hidden="true" /> In arrivo
+            <em className="arrivi-partenze__tab-count">{arrivi.length}</em>
+          </button>
+          <button type="button" role="tab" aria-selected={tab === 'partenze'}
+            className={`arrivi-partenze__tab ${tab === 'partenze' ? 'is-active' : ''}`}
+            onClick={() => setTab('partenze')}>
+            <i className="fa-light fa-plane-departure" aria-hidden="true" /> In partenza
+            <em className="arrivi-partenze__tab-count">{partenze.length}</em>
+          </button>
+        </div>
+        {/* Stat accanto alle tab (a destra): mostrate solo sotto il laptop */}
+        <div className="arrivi-partenze__tabs-stats">
+          {tab === 'arrivi' ? arrStats : partStats}
+        </div>
       </div>
 
       {tab === 'arrivi' && (
@@ -539,12 +563,9 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
           </Tooltip>
         </div>
 
-        {/* Stats inline */}
+        {/* Stats inline (nascoste sotto il laptop: passano accanto alle tab) */}
         <div className="arrivi-partenze__stats">
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-user" aria-hidden="true" /> Presenze: <strong>{totPresenze}</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-bed-front" aria-hidden="true" /> Camere: <strong>{totCamere}</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-users" aria-hidden="true" /> Gruppi: <strong>{pctGruppi}%</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-user-check" aria-hidden="true" /> Individuali: <strong>{pctIndividuali}%</strong></span>
+          {arrStats}
         </div>
 
         {/* Report servizio (stampa promemoria del giorno) + export tabella (dx) */}
@@ -776,9 +797,7 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
         </div>
 
         <div className="arrivi-partenze__stats">
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-bed-front" aria-hidden="true" /> Camere: <strong>{totPartCamere}</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-users" aria-hidden="true" /> Gruppi: <strong>{partPctGruppi}%</strong></span>
-          <span className="arrivi-partenze__stat"><i className="fa-light fa-user-check" aria-hidden="true" /> Individuali: <strong>{partPctIndividuali}%</strong></span>
+          {partStats}
         </div>
 
         <div className="arrivi-partenze__toolbar-right">

@@ -90,6 +90,20 @@
       background: rgba(255, 255, 255, 0.25)
       color: $white
 
+  // Riga che contiene le linguette (sx) ed eventualmente le stat (dx, sotto laptop)
+  &__tabs-row
+    display: flex
+    align-items: center
+    gap: 12px
+
+  // Stat accanto alle tab: nascoste sopra il laptop (stanno nella toolbar),
+  // mostrate a destra sotto il laptop (vedi @container più sotto)
+  &__tabs-stats
+    display: none
+    margin-left: auto
+    align-items: center
+    gap: 14px
+
   // ── Tabella con scroll interno + header sticky (lista lunga compatta) ────────
   &__scroll
     max-height: 62vh
@@ -425,6 +439,31 @@
   // Scatta sotto ~1200px di area contenuto (min-content tabella a dim. standard);
   // sopra questa soglia icone e font restano quelli standard. Scoped alla pagina.
   @container arrivi-partenze (max-width: 1200px)
+    // Le stat passano accanto alle tab (a destra) e liberano la toolbar
+    .arrivi-partenze__tabs-stats
+      display: inline-flex
+
+    .arrivi-partenze__stats
+      display: none
+
+    // Tutti gli elementi della form su un'unica riga
+    .arrivi-partenze__toolbar
+      flex-wrap: nowrap
+
+    .arrivi-partenze__field--search
+      width: auto
+      flex: 1 1 120px
+      min-width: 100px
+
+    .arrivi-partenze__select
+      width: 150px
+
+    .arrivi-partenze__date-range
+      width: 190px
+
+    .arrivi-partenze__report
+      min-width: 170px
+
     .arrivi-partenze__table
       font-size: 12px
 
