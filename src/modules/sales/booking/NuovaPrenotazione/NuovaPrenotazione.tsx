@@ -544,23 +544,25 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
       case 'prezzi': return (
         <Widget key={id} {...common} title="Dettaglio prezzi">
-          <table className="np-table">
-            <thead>
-              <tr><th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th>Totale</th></tr>
-            </thead>
-            <tbody>
-              {prezzi.map((r, i) => (
-                <tr key={i}>
-                  <td>{new Date(r.giorno).toLocaleDateString('it-IT')}</td>
-                  <td>{r.camera}</td>
-                  <td>{r.arrangiamento}</td>
-                  <td>{r.piani}</td>
-                  <td>{r.promozioni}</td>
-                  <td className="np-amt">{r.totale.toFixed(2).replace('.',',')} €</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="np-table-scroll">
+            <table className="np-table">
+              <thead>
+                <tr><th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th>Totale</th></tr>
+              </thead>
+              <tbody>
+                {prezzi.map((r, i) => (
+                  <tr key={i}>
+                    <td>{new Date(r.giorno).toLocaleDateString('it-IT')}</td>
+                    <td>{r.camera}</td>
+                    <td>{r.arrangiamento}</td>
+                    <td>{r.piani}</td>
+                    <td>{r.promozioni}</td>
+                    <td className="np-amt">{r.totale.toFixed(2).replace('.',',')} €</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Widget>
       )
 
