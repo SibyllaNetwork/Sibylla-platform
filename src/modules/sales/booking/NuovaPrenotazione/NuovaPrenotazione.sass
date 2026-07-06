@@ -209,6 +209,16 @@
     .np-table
       width: 100%
 
+    // Scroll verticale dopo la 5a camera (header ~30px + 5 righe da ~45px)
+    .np-table-scroll
+      max-height: 255px
+      overflow-y: auto
+
+      thead th
+        position: sticky
+        top: 0
+        z-index: 1
+
   // Colonna # compatta
   .np-col-idx
     width: 28px

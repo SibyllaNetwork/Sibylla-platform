@@ -425,7 +425,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <table className="np-table">
                   <thead>
                     <tr>
-                      <th className="np-col-idx">#</th><th>Tipologie camere disponibili</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th>
+                      <th className="np-col-idx">#</th><th>Tipologie camere disponibili</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th><th className="np-col-actions" aria-label="Azioni" />
                     </tr>
                   </thead>
                   <tbody>
@@ -456,6 +456,18 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                               </Tooltip>
                             )}
                           </div>
+                        </td>
+                        <td className="np-col-actions">
+                          <button
+                            type="button"
+                            className="np-row-action np-row-action--danger"
+                            aria-label="Elimina camera"
+                            title="Elimina camera"
+                            disabled={camereInd.length <= 1}
+                            onClick={()=>setCamereInd(prev => prev.filter((_, idx) => idx !== i))}
+                          >
+                            <i className="fa-light fa-trash" />
+                          </button>
                         </td>
                       </tr>
                     ))}
