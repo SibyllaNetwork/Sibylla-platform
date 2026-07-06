@@ -118,6 +118,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
   // Azioni di riga: check-out prenotazione, check-out camera (scaduti),
   // cambio camera, modifica soggiorno.
   const [checkoutTarget, setCheckoutTarget] = useState<Ospite | null>(null)
+  const [checkoutCameraTarget, setCheckoutCameraTarget] = useState<Ospite | null>(null)
   const [scadutiTarget,  setScadutiTarget]  = useState<Ospite | null>(null)
   const [cambioTarget,   setCambioTarget]   = useState<Ospite | null>(null)
   const [modSoggTarget,  setModSoggTarget]  = useState<Ospite | null>(null)
@@ -226,6 +227,13 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
     if (!checkoutTarget) return
     setData((d) => ({ ...d, ospiti: d.ospiti.filter((o) => o.prenotazioneNum !== checkoutTarget.prenotazioneNum) }))
     setCheckoutTarget(null)
+  }
+
+  // Check-out di una camera: rimuove tutti gli ospiti presenti in quella camera.
+  const confermaCheckoutCamera = () => {
+    if (!checkoutCameraTarget) return
+    setData((d) => ({ ...d, ospiti: d.ospiti.filter((o) => o.camera !== checkoutCameraTarget.camera) }))
+    setCheckoutCameraTarget(null)
   }
 
   // Elenco soggiorni con partenza scaduta, con la prenotazione cliccata in cima.
@@ -371,7 +379,6 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                   extraIcon={<i className="fa-light fa-star ospiti-casa__col-ico" title="VIP" />}
                 />
               </th>
-              <th className="ospiti-casa__th-center" />
               <th>
                 <ColFilterHeader
                   label="Fascia età"
@@ -418,11 +425,35 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
           </thead>
           <tbody>
             {ospiti.length === 0 ? (
-              <tr><td colSpan={11} className="sib-empty">Nessun ospite presente per i criteri selezionati.</td></tr>
+              <tr><td colSpan={10} className="sib-empty">Nessun ospite presente per i criteri selezionati.</td></tr>
             ) : ospitiPage.map((r) => (
               <tr key={r.id}>
-                <td><span className="ospiti-casa__pren-badge"><i className="fa-light fa-id-card" /> {r.prenotazioneNum}</span></td>
-                <td>{r.camera}</td>
+                <td>
+                  <Tooltip text="Check-Out prenotazione">
+                    <button type="button" className="ospiti-casa__pren-badge ospiti-casa__pren-badge--btn" aria-label="Check-Out prenotazione" onClick={() => setCheckoutTarget(r)}>
+                      <i className="fa-light fa-id-card" /> {r.prenotazioneNum}
+                    </button>
+                  </Tooltip>
+                </td>
+                <td>
+                  <div className="ospiti-casa__camera-cell">
+                    <span className="ospiti-casa__camera-num">{r.camera}</span>
+                    <div className="ospiti-casa__row-icons">
+                      <Tooltip text="Check-Out camera">
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-Out camera" onClick={() => setCheckoutCameraTarget(r)}><i className="fa-light fa-right-from-bracket" /></button>
+                      </Tooltip>
+                      <Tooltip text="Modifica soggiorno">
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica soggiorno" onClick={() => setModSoggTarget(r)}><i className="fa-light fa-bed" /></button>
+                      </Tooltip>
+                      <Tooltip text="Cambio camera">
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Cambio camera" onClick={() => setCambioTarget(r)}><i className="fa-light fa-person-walking-arrow-right" /></button>
+                      </Tooltip>
+                      <Tooltip text={isOverdue(r.partenza) ? 'Soggiorno scaduto' : 'Soggiorno non ancora scaduto'}>
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Soggiorno scaduto" disabled={!isOverdue(r.partenza)} onClick={() => setScadutiTarget(r)}><i className="fa-light fa-calendar-pen" /></button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </td>
                 <td>
                   <span className="ospiti-casa__ospite-cell">
                     {r.ospite}
@@ -430,24 +461,8 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                   </span>
                 </td>
                 <td className="ospiti-casa__td-center">
-                  <div className="ospiti-casa__row-icons">
-                    <Tooltip text="Check-Out prenotazione">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-Out prenotazione" onClick={() => setCheckoutTarget(r)}><i className="fa-light fa-arrow-right-from-bracket" /></button>
-                    </Tooltip>
-                    <Tooltip text="Modifica soggiorno">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica soggiorno" onClick={() => setModSoggTarget(r)}><i className="fa-light fa-bed" /></button>
-                    </Tooltip>
-                    <Tooltip text="Cambio camera">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Cambio camera" onClick={() => setCambioTarget(r)}><i className="fa-light fa-person-walking-arrow-right" /></button>
-                    </Tooltip>
-                    <Tooltip text={isOverdue(r.partenza) ? 'Soggiorno scaduto' : 'Soggiorno non ancora scaduto'}>
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Soggiorno scaduto" disabled={!isOverdue(r.partenza)} onClick={() => setScadutiTarget(r)}><i className="fa-light fa-calendar-pen" /></button>
-                    </Tooltip>
-                  </div>
-                </td>
-                <td className="ospiti-casa__td-center">
                   <Tooltip text={r.fasciaEta}>
-                    <i className={`fa-light fa-${FASCIA_ETA_ICONS[r.fasciaEta] ?? 'users'} ospiti-casa__cat-ico`} aria-hidden="true" />
+                    <i className={`fa-light fa-${FASCIA_ETA_ICONS[r.fasciaEta] ?? 'users'} ospiti-casa__cat-ico ospiti-casa__cat-ico--eta`} aria-hidden="true" />
                   </Tooltip>
                 </td>
                 <td>{r.arrivo}</td>
@@ -496,32 +511,34 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
       </div>
 
       <div className="ospiti-casa__pagination">
-        <span className="ospiti-casa__pagination-info">
-          {ospiti.length > 0
-            ? `Risultati ${pageStart + 1}-${Math.min(pageStart + PAGE_SIZE, ospiti.length)} di ${ospiti.length}`
-            : '0 risultati'}
-        </span>
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* ─── Modal Anagrafica Ospite ────────────────────────────────────── */}
       {anagrafica && <AnagraficaModal ospite={anagrafica} onClose={() => setAnagrafica(null)} />}
 
-      {/* ─── Modal Check-out prenotazione (alert di conferma, uniforme) ───── */}
+      {/* ─── Modal Check-Out prenotazione ────────────────────────────────── */}
       {checkoutTarget && (
-        <Modal open onClose={() => setCheckoutTarget(null)} title="Conferma check-out" size="sm">
-          <div className="ospiti-casa__confirm">
-            <p className="ospiti-casa__confirm-text">
-              <i className="fa-light fa-triangle-exclamation ospiti-casa__confirm-ico" />
-              <span>
-                Sei sicuro di voler effettuare il <strong>check-out della prenotazione N° {checkoutTarget.prenotazioneNum}</strong>
-                {' '}(camera {checkoutTarget.camera}, {checkoutTarget.ospite})? L'operazione è irreversibile.
-              </span>
-            </p>
-            <div className="ospiti-casa__confirm-actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutTarget(null)}>Annulla</button>
-              <button type="button" className="sib-btn sib-btn--danger" onClick={confermaCheckout}>Esegui check-out</button>
-            </div>
+        <Modal open onClose={() => setCheckoutTarget(null)} title="Check-Out prenotazione" size="sm">
+          <p className="oc-checkout-msg">
+            Procedendo libererai tutte le camere eventualmente presenti nella prenotazione.
+          </p>
+          <div className="oc-modal-foot">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutTarget(null)}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--danger-outline" onClick={confermaCheckout}>Procedi</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ─── Modal Check-Out camera ──────────────────────────────────────── */}
+      {checkoutCameraTarget && (
+        <Modal open onClose={() => setCheckoutCameraTarget(null)} title="Check-Out camera" size="sm">
+          <p className="oc-checkout-msg">
+            Vuoi procedere al check-out di tutti gli ospiti presenti nella camera?
+          </p>
+          <div className="oc-modal-foot">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutCameraTarget(null)}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--danger-outline" onClick={confermaCheckoutCamera}>Procedi</button>
           </div>
         </Modal>
       )}
@@ -554,15 +571,15 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
         <ScambiaOspiteModal ospite={scambiaTarget} altri={data.ospiti.filter((o) => o.id !== scambiaTarget.id)} onClose={() => setScambiaTarget(null)} onApply={applicaScambio} />
       )}
 
-      {/* ─── Modal Check-out ospite (conferma) ──────────────────────────── */}
+      {/* ─── Modal Check-Out ospite ──────────────────────────────────────── */}
       {checkoutOspiteTarget && (
-        <Modal open onClose={() => setCheckoutOspiteTarget(null)} title="Conferma check-out ospite" size="sm">
+        <Modal open onClose={() => setCheckoutOspiteTarget(null)} title="Check-Out ospite" size="sm">
           <p className="oc-checkout-msg">
-            Confermi il check-out dell'ospite <strong>{checkoutOspiteTarget.ospite}</strong> dalla camera <strong>{checkoutOspiteTarget.camera}</strong>?
+            Vuoi procedere al check-out di <strong>{checkoutOspiteTarget.ospite}</strong>? Gli altri ospiti della camera rimarranno in casa.
           </p>
           <div className="oc-modal-foot">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutOspiteTarget(null)}>Annulla</button>
-            <button type="button" className="sib-btn sib-btn--danger" onClick={confermaCheckoutOspite}>Esegui check-out</button>
+            <button type="button" className="sib-btn sib-btn--danger-outline" onClick={confermaCheckoutOspite}>Procedi</button>
           </div>
         </Modal>
       )}

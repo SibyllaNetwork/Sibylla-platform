@@ -128,6 +128,40 @@
     font-size: 18px
     color: $primary
 
+    // Fascia età: icone più grandi (età visualizzata a colpo d'occhio)
+    &--eta
+      font-size: 22px
+
+  // ── Compattazione SOLO sotto il laptop ──────────────────────────────────────
+  // A ~1056px (laptop 1366 con sidebar aperta) la tabella deve entrare senza
+  // scroll-x. Sopra il laptop icone e font restano quelli standard.
+  @media (max-width: 1366px)
+    .ospiti-casa__table
+      font-size: 12px
+
+      thead th
+        font-size: 11px
+
+      th, td
+        padding-left: 5px
+        padding-right: 5px
+
+      // Bottoni-icona compatti (Camera N° e Azioni ne hanno molti in riga)
+      .sib-btn--icon
+        width: 24px
+        height: 24px
+        font-size: 12px
+
+      .ospiti-casa__row-icons,
+      .ospiti-casa__actions
+        gap: 1px
+
+    .ospiti-casa__cat-ico
+      font-size: 16px
+
+      &--eta
+        font-size: 20px
+
   &__col-ico
     margin-left: 6px
     color: $text-inactive
@@ -141,15 +175,27 @@
     display: inline-flex
     align-items: center
     gap: 6px
-    background: $primary-50
     color: $primary
-    padding: 3px 8px
-    border-radius: 4px
     font-weight: 600
     font-size: 12px
 
     i
-      font-size: 11px
+      color: $primary
+      font-size: 14px
+
+    // La fa-card è il trigger del Check-Out prenotazione
+    &--btn
+      background: transparent
+      border: none
+      padding: 0
+      cursor: pointer
+      font-family: inherit
+
+      &:hover
+        color: $primary-800
+
+        i
+          color: $primary-800
 
   &__ospite-cell
     display: inline-flex
@@ -168,23 +214,26 @@
     display: inline-flex
     gap: 2px
 
+  // Cella Camera N°: numero + icone azione camera in linea
+  &__camera-cell
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__camera-num
+    font-weight: 600
+    color: $text-active
+
   &__row-icons
     display: inline-flex
     gap: 2px
     justify-content: center
 
-  // ── Pagination ────────────────────────────────────────────────────────────
+  // ── Pagination (standard piattaforma: centrata) ─────────────────────────────
   &__pagination
     display: flex
-    justify-content: space-between
-    align-items: center
-    flex-wrap: wrap
-    gap: 12px
+    justify-content: center
     margin-top: 4px
-
-  &__pagination-info
-    font-size: 12px
-    color: $text-inactive
 
   // ── Modal ─────────────────────────────────────────────────────────────────
   &__modal-overlay
@@ -619,27 +668,3 @@
 
   &__importo
     max-width: 110px
-
-// ── Alert di conferma (check-out) — uniforme con le modali di questo tipo ────────
-.ospiti-casa__confirm
-  padding: 4px 2px 0
-
-  &-text
-    display: flex
-    align-items: flex-start
-    gap: 10px
-    margin: 0
-    font-size: 13.5px
-    color: $text-active
-    line-height: 1.5
-
-  &-ico
-    color: $primary
-    font-size: 18px
-    margin-top: 1px
-
-  &-actions
-    display: flex
-    justify-content: flex-end
-    gap: 10px
-    margin-top: 22px
