@@ -171,7 +171,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   // ── Card full-width riordinabili verticalmente (Anagrafica ospiti, Gestione segmenti)
   // Ordine di default: ospiti (ultima nominata) poi segmenti (non nominata → in coda)
-  const [fullOrder, setFullOrder] = useState<string[]>(['ospiti', 'segmenti'])
+  const [fullOrder, setFullOrder] = useState<string[]>(['prezzi', 'ospiti', 'segmenti'])
   const fullDragId = useRef<string | null>(null)
   const [fullOverId, setFullOverId] = useState<string | null>(null)
   const onFullDragStart = (id: string) => { fullDragId.current = id }
@@ -197,6 +197,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   })
 
   const [ospitiCollapsed, setOspitiCollapsed] = useState(false)
+  const [prezziCollapsed, setPrezziCollapsed] = useState(false)
 
   // ── Gestione segmenti (suddivisione del soggiorno in intervalli di date) ──────
   const [segmentiCollapsed, setSegmentiCollapsed] = useState(false)
@@ -542,8 +543,6 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         </Widget>
       )
 
-      case 'prezzi': return renderPrezziWidget(common)
-
       case 'extra': return renderExtraInclusiWidget(common)
       case 'altre': return renderAltreInfoWidget(common, false)
       case 'note-reparto': return renderNoteRepartoWidget(common, false)
@@ -703,7 +702,6 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       case 'extra': return renderExtraInclusiWidget(common)
       case 'altre': return renderAltreInfoWidget(common, true)
       case 'note-reparto': return renderNoteRepartoWidget(common, true)
-      case 'prezzi': return renderPrezziWidget(common)
       case 'anticipi': return renderAnticipiWidget(common, true)
       default: return null
     }
@@ -906,9 +904,15 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     )
   }
 
-  function renderPrezziWidget(common: any) {
+  function renderPrezziWidget() {
     return (
-      <Widget key="prezzi" {...common} title="Dettaglio prezzi">
+      <Widget
+        key="prezzi"
+        {...fullCommon('prezzi')}
+        title="Dettaglio prezzi"
+        collapsed={prezziCollapsed}
+        onToggleCollapse={() => setPrezziCollapsed(v => !v)}
+      >
         <div className="np-table-scroll np-prezzi__scroll">
           <table className="np-table">
             <thead>
@@ -1225,11 +1229,11 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         ))}
       </div>
 
-      {/* Dettaglio prezzi a piena larghezza: la tabella entra tutta senza scroll */}
-      {activeTab === 'individuale' ? renderIndWidget('prezzi', true) : renderGrWidget('prezzi', true)}
-
       {/* Card full-width riordinabili verticalmente (trascinamento) */}
-      {fullOrder.map(id => id === 'segmenti' ? renderSegmentiWidget() : renderOspitiWidget())}
+      {fullOrder.map(id =>
+        id === 'segmenti' ? renderSegmentiWidget()
+        : id === 'prezzi' ? renderPrezziWidget()
+        : renderOspitiWidget())}
 
       <footer className="np-footer">
         <div className="np-totals">
