@@ -402,60 +402,71 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     switch (id) {
       case 'soggiorno': return (
         <Widget key={id} {...common} title="Soggiorno">
-          <div className="np-row">
-            <DateRangeField
-              nameFrom="dal" nameTo="al" label="Date"
-              valueFrom={form.dal} valueTo={form.al}
-              onChangeFrom={e=>setForm(f=>({...f,dal:e.target.value}))}
-              onChangeTo={e=>setForm(f=>({...f,al:e.target.value}))}
-            />
-            <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
-            <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+          <div className="np-soggiorno">
+            {/* Colonna sinistra: parametri soggiorno + azioni */}
+            <div className="np-soggiorno__side">
+              <DateRangeField
+                nameFrom="dal" nameTo="al" label="Date"
+                valueFrom={form.dal} valueTo={form.al}
+                onChangeFrom={e=>setForm(f=>({...f,dal:e.target.value}))}
+                onChangeTo={e=>setForm(f=>({...f,al:e.target.value}))}
+              />
+              <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
+              <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+              <div className="np-soggiorno__actions">
+                <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-grid-2" /> Alloca</button>
+                <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-user-plus" /> Assegna</button>
+              </div>
+            </div>
+
+            {/* Colonna destra: lista camere */}
+            <div className="np-soggiorno__rooms">
+              <div className="np-table-scroll">
+                <table className="np-table">
+                  <thead>
+                    <tr>
+                      <th className="np-col-idx">#</th><th>Tipologie camere disponibili</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {camereInd.map((c, i) => (
+                      <tr key={i}>
+                        <td className="np-col-idx">{i+1}</td>
+                        <td>
+                          <div className="np-tipo-cell">
+                            <i className="fa-light fa-bed-front np-tipo-ico" aria-hidden="true" />
+                            <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
+                              {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                            </select>
+                          </div>
+                        </td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCamera(i,{adulti:+e.target.value||0})}/></td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCamera(i,{ragazzi:+e.target.value||0})}/></td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCamera(i,{bambini:+e.target.value||0})}/></td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCamera(i,{infanti:+e.target.value||0})}/></td>
+                        <td>
+                          <div className="np-room-cell">
+                            <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}>
+                              <option value="">—</option>
+                              {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, form.dal, form.al) ? ' 👻' : ''}</option>)}
+                            </select>
+                            {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, form.dal, form.al) && (
+                              <Tooltip text="Camera in blocco fantasma">
+                                <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
+                              </Tooltip>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" className="np-add-row" onClick={()=>setCamereInd(p=>[...p, initRow()])}>
+                <i className="fa-light fa-plus" /> Aggiungi camera
+              </button>
+            </div>
           </div>
-          <div className="np-table-scroll">
-          <table className="np-table">
-            <thead>
-              <tr>
-                <th>#</th><th>Tipologia camera</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th>
-              </tr>
-            </thead>
-            <tbody>
-              {camereInd.map((c, i) => (
-                <tr key={i}>
-                  <td>{i+1}</td>
-                  <td>
-                    <div className="np-tipo-cell">
-                      <i className="fa-light fa-bed-front np-tipo-ico" aria-hidden="true" />
-                      <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
-                        {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-                      </select>
-                    </div>
-                  </td>
-                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCamera(i,{adulti:+e.target.value||0})}/></td>
-                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCamera(i,{ragazzi:+e.target.value||0})}/></td>
-                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCamera(i,{bambini:+e.target.value||0})}/></td>
-                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCamera(i,{infanti:+e.target.value||0})}/></td>
-                  <td>
-                    <div className="np-room-cell">
-                      <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}>
-                        <option value="">—</option>
-                        {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, form.dal, form.al) ? ' 👻' : ''}</option>)}
-                      </select>
-                      {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, form.dal, form.al) && (
-                        <Tooltip text="Camera in blocco fantasma">
-                          <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
-                        </Tooltip>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          </div>
-          <button type="button" className="np-add-row" onClick={()=>setCamereInd(p=>[...p, initRow()])}>
-            <i className="fa-light fa-plus" /> Aggiungi camera
-          </button>
         </Widget>
       )
 

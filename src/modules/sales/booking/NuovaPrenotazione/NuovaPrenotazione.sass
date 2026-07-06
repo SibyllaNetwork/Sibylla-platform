@@ -169,6 +169,63 @@
   overflow-x: auto
   -webkit-overflow-scrolling: touch
 
+// ─── Card Soggiorno (individuale): due colonne — parametri+azioni | camere ────
+.np-soggiorno
+  display: flex
+  gap: 16px
+  align-items: stretch
+  flex-wrap: wrap
+
+  // Colonna sinistra: Date / Camere / Persone impilati + azioni in fondo
+  &__side
+    display: flex
+    flex-direction: column
+    gap: 10px
+    flex: 0 0 210px
+    max-width: 210px
+
+    // I number (Camere/Persone) in colonna restano stretti, non alti
+    .np-w-num
+      flex: 0 0 auto
+      width: 90px
+
+  &__actions
+    display: flex
+    gap: 8px
+    margin-top: auto
+    padding: 10px
+    border: 1px solid $border
+    border-radius: 8px
+
+  // Colonna destra: lista camere in box bordato
+  &__rooms
+    flex: 1 1 480px
+    min-width: 0
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 10px 12px
+
+  // Colonna # compatta
+  .np-col-idx
+    width: 28px
+    text-align: center
+
+// Bottoni Alloca / Assegna: stile morbido (come da mockup, non quello del gruppo)
+.np-soggiorno__btn
+  flex: 1
+  justify-content: center
+  background: $white
+  border: 1px solid $border
+  color: $primary
+  font-weight: 600
+
+  i
+    color: $primary
+
+  &:hover:not(:disabled)
+    border-color: $primary
+    background: $primary-50
+
 // ─── Generic form row inside widget body ─────────────────────────────────────
 .np-row
   display: flex
