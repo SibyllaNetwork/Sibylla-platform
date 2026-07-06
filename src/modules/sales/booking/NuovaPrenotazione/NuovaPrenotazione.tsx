@@ -29,7 +29,8 @@ const NAZIONALITA  = ['ITALIA','FRANCIA','GERMANIA','SPAGNA','REGNO UNITO','STAT
 const ARRANGIAMENTI = ['RO','BB','HB','FB','AI']
 const CREDIT        = ['NC','HC','FC','HCT']
 const REPARTI      = ['Manutenzione','Pulizie','Reception','Cucina','SPA']
-const HOTELS       = ['Hotel Tudorial','Hotel Azzurro Mare']
+// Strutture del cliente (tab della lista camere nella card Soggiorno gruppo)
+const STRUTTURE_GRUPPO = ['Hotel dei Mille','Hotel Luce','Hotel Archimede']
 const TIPI_CAMERA  = [
   { v: '53', l: '53 | Doppia classic' },
   { v: '54', l: '54 | Doppia superior' },
@@ -43,13 +44,11 @@ const TIPOLOGIE_CAMERA = ['Doppia Classic','Doppia Superior','Singola Classic','
 
 interface SegmentoRow { id: string; dal: string; al: string; tipo: string; nCamera: string; persone: number; stato: string }
 interface CameraRow { tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string }
-interface CameraGruppoRow { tipo: string; persone: number; nCamera: string }
 interface OspiteRow { nome: string; cognome: string; dataNascita: string; paese: string; sesso: string; nCamera: string; dataArrivo: string }
 interface ExtraAggiunto { id: string; servizio: string; quando: string; quantita: number; intestatario: string; camera: string; importo: number; descrizione: string }
 interface PrezzoRow { giorno: string; camera: string; arrangiamento: string; piani: string; promozioni: string; totale: number; listino: number }
 
 const initRow = (n=''): CameraRow      => ({ tipo: '53', adulti: 2, ragazzi: 0, bambini: 0, infanti: 0, nCamera: n })
-const initGr  = (n='', p=2): CameraGruppoRow => ({ tipo: '53', persone: p, nCamera: n })
 const initOsp = (): OspiteRow          => ({ nome: '', cognome: '', dataNascita: '', paese: '', sesso: '', nCamera: '', dataArrivo: '' })
 
 // ── Modifica prenotazione: mapping dalla prenotazione esistente al form ─────────
@@ -73,8 +72,6 @@ const editOverridesGr = (e: any) => !e ? {} : {
 }
 const editCamere = (e: any): CameraRow[] =>
   e?.dettaglioCamere?.length ? e.dettaglioCamere.map((d: any) => initRow(d.numero)) : [initRow(e?.numeroCamera || '103')]
-const editCamereGr = (e: any): CameraGruppoRow[] =>
-  e?.dettaglioCamere?.length ? e.dettaglioCamere.map((d: any) => initGr(d.numero, 2)) : [initGr(e?.numeroCamera || '103', e?.persone ?? 2)]
 
 // ── Layout default per i due tab ───────────────────────────────────────────────
 // Ordine di lettura (sinistra→destra, riga per riga): le card seguono la sequenza
@@ -139,7 +136,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     dal: TODAY, al: TODAY,
     camere: 4, persone: 10,
     tipologiaOspiti: 'adulti' as 'adulti' | 'studenti',
-    hotel: HOTELS[0],
+    hotel: STRUTTURE_GRUPPO[0],
     confermata: true, opzione: false,
     scadenza: '', personeConf: 2, arrangiamento: 'RO',
     agenzia: '', nomeGruppo: '', nomeCapoGruppo: '', emailCapoGruppo: '',
@@ -153,9 +150,17 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   }))
 
   const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow(prefill?.numeroCamera || '103')])
-  const [camereGr,  setCamereGr]  = useState<CameraGruppoRow[]>(() => editing
-    ? editCamereGr(editing)
-    : [initGr('103', 2), initGr('103', 3), initGr('103', 0), initGr('103', 1)])
+  // Gruppo: una lista camere per ciascuna struttura del cliente (tab dedicati)
+  const [camereGrMap, setCamereGrMap] = useState<Record<string, CameraRow[]>>(() => ({
+    [STRUTTURE_GRUPPO[0]]: editing ? editCamere(editing) : [initRow('103'), initRow('103'), initRow('103'), initRow('103')],
+    [STRUTTURE_GRUPPO[1]]: [initRow('')],
+    [STRUTTURE_GRUPPO[2]]: [initRow('')],
+  }))
+  // Lista camere della struttura attiva (derivata): i consumatori esistenti
+  // (anticipi, updCameraGr, chooseRoomGr…) continuano a lavorare su questa.
+  const camereGr = camereGrMap[grForm.hotel] ?? []
+  const setCamereGr = (u: CameraRow[] | ((p: CameraRow[]) => CameraRow[])) =>
+    setCamereGrMap(m => ({ ...m, [grForm.hotel]: typeof u === 'function' ? (u as (p: CameraRow[]) => CameraRow[])(m[grForm.hotel] ?? []) : u }))
   const [ospiti,    setOspiti]    = useState<OspiteRow[]>([initOsp(), initOsp(), initOsp(), initOsp()])
 
   // ── Card full-width riordinabili verticalmente (Anagrafica ospiti, Gestione segmenti)
@@ -231,7 +236,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const updCamera = (i: number, p: Partial<CameraRow>) =>
     setCamereInd(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
-  const updCameraGr = (i: number, p: Partial<CameraGruppoRow>) =>
+  const updCameraGr = (i: number, p: Partial<CameraRow>) =>
     setCamereGr(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
   // ── Blocco fantasma: se la camera scelta è in prelazione nel periodo, avvisa;
@@ -578,70 +583,102 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     switch (id) {
       case 'soggiorno-gr': return (
         <Widget key={id} {...common} title="Soggiorno gruppo">
-          <div className="np-row">
-            <DateRangeField
-              nameFrom="dal" nameTo="al" label="Date"
-              valueFrom={grForm.dal} valueTo={grForm.al}
-              onChangeFrom={e=>setGrForm(f=>({...f,dal:e.target.value}))}
-              onChangeTo={e=>setGrForm(f=>({...f,al:e.target.value}))}
-            />
-            <InputField name="camere"  label="Camere"  type="number" value={grForm.camere}  onChange={e=>setGrForm(f=>({...f,camere:+e.target.value||0}))}  className="np-w-num"/>
-            <InputField name="persone" label="Persone" type="number" value={grForm.persone} onChange={e=>setGrForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
-          </div>
-          <div className="np-row np-row--baseline">
-            <div className="np-radio-block">
-              <span className="np-label">Tipologia ospiti</span>
-              <div className="np-checks-row">
-                {(['adulti','studenti'] as const).map(t=>(
-                  <label key={t} className="np-check">
-                    <input type="radio" name="tipologiaOspiti" className="sib-radio" checked={grForm.tipologiaOspiti===t} onChange={()=>setGrForm(f=>({...f,tipologiaOspiti:t}))}/>
-                    <span className="np-capitalize">{t}</span>
-                  </label>
-                ))}
+          <div className="np-soggiorno">
+            {/* Colonna sinistra: parametri soggiorno + tipologia ospiti + azioni */}
+            <div className="np-soggiorno__side">
+              <DateRangeField
+                nameFrom="dal" nameTo="al" label="Date"
+                valueFrom={grForm.dal} valueTo={grForm.al}
+                onChangeFrom={e=>setGrForm(f=>({...f,dal:e.target.value}))}
+                onChangeTo={e=>setGrForm(f=>({...f,al:e.target.value}))}
+              />
+              <div className="np-soggiorno__cp">
+                <InputField name="camere"  label="Camere"  type="number" value={grForm.camere}  onChange={e=>setGrForm(f=>({...f,camere:+e.target.value||0}))}  className="np-w-num"/>
+                <InputField name="persone" label="Persone" type="number" value={grForm.persone} onChange={e=>setGrForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+              </div>
+              {/* Tipologia ospiti: Adulti / Studenti */}
+              <div className="np-radio-block">
+                <span className="np-label">Tipologia ospiti</span>
+                <div className="np-checks-row">
+                  {(['adulti','studenti'] as const).map(t=>(
+                    <label key={t} className="np-check">
+                      <input type="radio" name="tipologiaOspiti" className="sib-radio" checked={grForm.tipologiaOspiti===t} onChange={()=>setGrForm(f=>({...f,tipologiaOspiti:t}))}/>
+                      <span className="np-capitalize">{t}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="np-soggiorno__actions">
+                <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-grid-2" /> Alloca</button>
+                <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-user-plus" /> Assegna</button>
               </div>
             </div>
-            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-grid-2" /> Alloca</button>
-            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-user-plus" /> Assegna</button>
+
+            {/* Colonna destra: tab per struttura + lista camere della struttura attiva */}
+            <div className="np-soggiorno__rooms">
+              <div className="np-hotels-tabs">
+                {STRUTTURE_GRUPPO.map(h=>(
+                  <button key={h} type="button" className={`np-hotels-tab ${grForm.hotel===h?'np-hotels-tab--active':''}`} onClick={()=>setGrForm(f=>({...f,hotel:h}))}>{h}</button>
+                ))}
+              </div>
+              <div className="np-table-scroll">
+                <table className="np-table">
+                  <thead>
+                    <tr>
+                      <th className="np-col-idx">#</th><th>Tipologie camere disponibili</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th><th className="np-col-actions" aria-label="Azioni" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {camereGr.map((c, i)=>(
+                      <tr key={i}>
+                        <td className="np-col-idx">{i+1}</td>
+                        <td>
+                          <div className="np-tipo-cell">
+                            <i className="fa-light fa-bed-front np-tipo-ico" aria-hidden="true" />
+                            <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCameraGr(i,{tipo:e.target.value})}>
+                              {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                            </select>
+                          </div>
+                        </td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCameraGr(i,{adulti:+e.target.value||0})}/></td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCameraGr(i,{ragazzi:+e.target.value||0})}/></td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCameraGr(i,{bambini:+e.target.value||0})}/></td>
+                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCameraGr(i,{infanti:+e.target.value||0})}/></td>
+                        <td>
+                          <div className="np-room-cell">
+                            <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomGr(i, e.target.value, c.nCamera)}>
+                              <option value="">—</option>
+                              {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, grForm.dal, grForm.al) ? ' 👻' : ''}</option>)}
+                            </select>
+                            {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, grForm.dal, grForm.al) && (
+                              <Tooltip text="Camera in blocco fantasma">
+                                <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
+                              </Tooltip>
+                            )}
+                          </div>
+                        </td>
+                        <td className="np-col-actions">
+                          <button
+                            type="button"
+                            className="np-row-action np-row-action--danger"
+                            aria-label="Elimina camera"
+                            title="Elimina camera"
+                            disabled={camereGr.length <= 1}
+                            onClick={()=>setCamereGr(prev => prev.filter((_, idx) => idx !== i))}
+                          >
+                            <i className="fa-light fa-trash" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button type="button" className="np-add-row" onClick={()=>setCamereGr(p=>[...p, initRow()])}>
+                <i className="fa-light fa-plus" /> Aggiungi camera
+              </button>
+            </div>
           </div>
-          <div className="np-hotels-tabs">
-            {HOTELS.map(h=>(
-              <button key={h} type="button" className={`np-hotels-tab ${grForm.hotel===h?'np-hotels-tab--active':''}`} onClick={()=>setGrForm(f=>({...f,hotel:h}))}>{h}</button>
-            ))}
-          </div>
-          <table className="np-table">
-            <thead>
-              <tr><th>#</th><th>Tipologia camera</th><th>Persone</th><th>N. Camera</th></tr>
-            </thead>
-            <tbody>
-              {camereGr.map((c, i)=>(
-                <tr key={i}>
-                  <td><i className="fa-light fa-bed-front" /> {i+1}</td>
-                  <td>
-                    <select className="sib-input np-cell-input" value={c.tipo} onChange={e=>updCameraGr(i,{tipo:e.target.value})}>
-                      {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-                    </select>
-                  </td>
-                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.persone} onChange={e=>updCameraGr(i,{persone:+e.target.value||0})}/></td>
-                  <td>
-                    <div className="np-room-cell">
-                      <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomGr(i, e.target.value, c.nCamera)}>
-                        <option value="">—</option>
-                        {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, grForm.dal, grForm.al) ? ' 👻' : ''}</option>)}
-                      </select>
-                      {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, grForm.dal, grForm.al) && (
-                        <Tooltip text="Camera in blocco fantasma">
-                          <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
-                        </Tooltip>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button type="button" className="np-add-row" onClick={()=>setCamereGr(p=>[...p, initGr()])}>
-            <i className="fa-light fa-plus" /> Aggiungi camera
-          </button>
         </Widget>
       )
 
