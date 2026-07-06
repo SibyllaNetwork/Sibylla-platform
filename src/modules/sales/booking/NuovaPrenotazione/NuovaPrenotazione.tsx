@@ -84,7 +84,7 @@ const editCamere = (e: any): CameraRow[] =>
 // per far entrare tutti i campi della tabella camere alla giusta dimensione.
 const LAYOUT_IND = [
   ['extra','agenzia'],
-  ['stato','altre','prezzi'],
+  ['stato','altre'],
   ['anticipi','note-reparto'],
 ]
 // Gruppo: Soggiorno gruppo (pinned full-width), Dati gruppo, Stato & opzioni, Anticipi, Extra, Altre info, Note di reparto
@@ -542,29 +542,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         </Widget>
       )
 
-      case 'prezzi': return (
-        <Widget key={id} {...common} title="Dettaglio prezzi">
-          <div className="np-table-scroll">
-            <table className="np-table">
-              <thead>
-                <tr><th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th>Totale</th></tr>
-              </thead>
-              <tbody>
-                {prezzi.map((r, i) => (
-                  <tr key={i}>
-                    <td>{new Date(r.giorno).toLocaleDateString('it-IT')}</td>
-                    <td>{r.camera}</td>
-                    <td>{r.arrangiamento}</td>
-                    <td>{r.piani}</td>
-                    <td>{r.promozioni}</td>
-                    <td className="np-amt">{r.totale.toFixed(2).replace('.',',')} €</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Widget>
-      )
+      case 'prezzi': return renderPrezziWidget(common)
 
       case 'extra': return renderExtraInclusiWidget(common)
       case 'altre': return renderAltreInfoWidget(common, false)
@@ -725,6 +703,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       case 'extra': return renderExtraInclusiWidget(common)
       case 'altre': return renderAltreInfoWidget(common, true)
       case 'note-reparto': return renderNoteRepartoWidget(common, true)
+      case 'prezzi': return renderPrezziWidget(common)
       case 'anticipi': return renderAnticipiWidget(common, true)
       default: return null
     }
@@ -922,6 +901,32 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
         <div className="np-extra-total">
           <span>Totale servizi:</span>
           <strong>{totaleServizi.toFixed(2).replace('.',',')} €</strong>
+        </div>
+      </Widget>
+    )
+  }
+
+  function renderPrezziWidget(common: any) {
+    return (
+      <Widget key="prezzi" {...common} title="Dettaglio prezzi">
+        <div className="np-table-scroll">
+          <table className="np-table">
+            <thead>
+              <tr><th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th>Totale</th></tr>
+            </thead>
+            <tbody>
+              {prezzi.map((r, i) => (
+                <tr key={i}>
+                  <td>{new Date(r.giorno).toLocaleDateString('it-IT')}</td>
+                  <td>{r.camera}</td>
+                  <td>{r.arrangiamento}</td>
+                  <td>{r.piani}</td>
+                  <td>{r.promozioni}</td>
+                  <td className="np-amt">{r.totale.toFixed(2).replace('.',',')} €</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Widget>
     )
@@ -1219,6 +1224,9 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           </div>
         ))}
       </div>
+
+      {/* Dettaglio prezzi a piena larghezza: la tabella entra tutta senza scroll */}
+      {activeTab === 'individuale' ? renderIndWidget('prezzi', true) : renderGrWidget('prezzi', true)}
 
       {/* Card full-width riordinabili verticalmente (trascinamento) */}
       {fullOrder.map(id => id === 'segmenti' ? renderSegmentiWidget() : renderOspitiWidget())}
