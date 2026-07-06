@@ -909,7 +909,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   function renderPrezziWidget(common: any) {
     return (
       <Widget key="prezzi" {...common} title="Dettaglio prezzi">
-        <div className="np-table-scroll">
+        <div className="np-table-scroll np-prezzi__scroll">
           <table className="np-table">
             <thead>
               <tr><th>Giorno</th><th>Camera</th><th>Arrangiamento</th><th>Piani</th><th>Promozioni</th><th>Totale</th></tr>
