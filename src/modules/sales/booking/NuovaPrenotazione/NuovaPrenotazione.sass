@@ -502,6 +502,52 @@
   i
     font-size: 10px
 
+// ─── NOTE DI REPARTO (più note per reparto) ──────────────────────────────────
+.np-noterep__form
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.np-noterep__add
+  align-self: flex-start
+  width: auto
+  margin-top: 0
+
+.np-noterep__list
+  list-style: none
+  margin: 12px 0 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.np-noterep__item
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 6px 8px 6px 10px
+  border: 1px solid $border
+  border-radius: 6px
+  background: var(--color-surface)
+
+.np-noterep__badge
+  flex: none
+  align-self: flex-start
+  background: $primary-50
+  color: $primary
+  font-size: 11px
+  font-weight: 600
+  padding: 2px 8px
+  border-radius: 999px
+
+.np-noterep__text
+  flex: 1
+  min-width: 0
+  font-size: 13px
+  color: $text-active
+  white-space: pre-wrap
+  word-break: break-word
+
 // ─── GESTIONE SEGMENTI ───────────────────────────────────────────────────────
 // Riepilogo (tabella) + pulsanti azione affiancati
 .np-seg-head

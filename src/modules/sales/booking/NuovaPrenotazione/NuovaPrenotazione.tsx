@@ -44,6 +44,7 @@ const TIPOLOGIE_CAMERA = ['Doppia Classic','Doppia Superior','Singola Classic','
 
 interface SegmentoRow { id: string; dal: string; al: string; tipo: string; nCamera: string; persone: number; stato: string }
 interface CameraRow { tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string }
+interface NotaReparto { id: string; reparto: string; testo: string }
 interface OspiteRow { nome: string; cognome: string; dataNascita: string; paese: string; sesso: string; nCamera: string; dataArrivo: string }
 interface ExtraAggiunto { id: string; servizio: string; quando: string; quantita: number; intestatario: string; camera: string; importo: number; descrizione: string }
 interface PrezzoRow { giorno: string; camera: string; arrangiamento: string; piani: string; promozioni: string; totale: number; listino: number }
@@ -125,6 +126,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     agenzia: '', rifEsterno: '', cliente: '', email: '',
     nazionalita: 'ITALIA', notePrenotazione: '',
     reparto: 'Manutenzione', notaReparto: '',
+    noteReparti: [] as NotaReparto[],
     tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
     metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
     anticipoQuote: [] as number[],
@@ -142,6 +144,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     agenzia: '', nomeGruppo: '', nomeCapoGruppo: '', emailCapoGruppo: '',
     nazionalita: 'ITALIA', notePrenotazione: '',
     reparto: 'Manutenzione', notaReparto: '',
+    noteReparti: [] as NotaReparto[],
     tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
     metodoPagamento: 'Contanti', importoAnticipo: 0, ripartizioneAuto: false,
     anticipoQuote: [] as number[],
@@ -933,10 +936,38 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   function renderNoteRepartoWidget(common: any, isGr: boolean) {
     const f = isGr ? grForm : form
     const setF = isGr ? setGrForm : setForm
+    const note: NotaReparto[] = f.noteReparti ?? []
+    const addNota = () => {
+      const testo = f.notaReparto.trim()
+      if (!testo) return
+      setF((v:any)=>({ ...v, noteReparti: [...(v.noteReparti ?? []), { id: Date.now().toString(), reparto: v.reparto, testo }], notaReparto: '' }))
+    }
+    const removeNota = (id: string) =>
+      setF((v:any)=>({ ...v, noteReparti: (v.noteReparti ?? []).filter((n: NotaReparto) => n.id !== id) }))
+
     return (
       <Widget key="note-reparto" {...common} title="Note di reparto">
-        <SelectField name="reparto" label="Reparto" value={f.reparto} onChange={e=>setF((v:any)=>({...v,reparto:e.target.value}))} options={REPARTI.map(o=>({value:o,label:o}))}/>
-        <TextareaField name="notaReparto" label="Nota" value={f.notaReparto} onChange={e=>setF((v:any)=>({...v,notaReparto:e.target.value}))} rows={3} placeholder="Inserisci una nota per il reparto selezionato"/>
+        <div className="np-noterep__form">
+          <SelectField name="reparto" label="Reparto" value={f.reparto} onChange={e=>setF((v:any)=>({...v,reparto:e.target.value}))} options={REPARTI.map(o=>({value:o,label:o}))}/>
+          <TextareaField name="notaReparto" label="Nota" value={f.notaReparto} onChange={e=>setF((v:any)=>({...v,notaReparto:e.target.value}))} rows={2} placeholder="Inserisci una nota per il reparto selezionato"/>
+          <button type="button" className="np-add-row np-noterep__add" onClick={addNota} disabled={!f.notaReparto.trim()}>
+            <i className="fa-light fa-plus" /> Aggiungi nota
+          </button>
+        </div>
+
+        {note.length > 0 && (
+          <ul className="np-noterep__list">
+            {note.map(n => (
+              <li key={n.id} className="np-noterep__item">
+                <span className="np-noterep__badge">{n.reparto}</span>
+                <span className="np-noterep__text">{n.testo}</span>
+                <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina nota" title="Elimina nota" onClick={()=>removeNota(n.id)}>
+                  <i className="fa-light fa-trash" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </Widget>
     )
   }
