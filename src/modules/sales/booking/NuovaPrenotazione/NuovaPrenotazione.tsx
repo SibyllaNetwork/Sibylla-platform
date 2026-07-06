@@ -45,6 +45,7 @@ const TIPOLOGIE_CAMERA = ['Doppia Classic','Doppia Superior','Singola Classic','
 interface SegmentoRow { id: string; dal: string; al: string; tipo: string; nCamera: string; persone: number; stato: string }
 interface CameraRow { tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string }
 interface NotaReparto { id: string; reparto: string; testo: string }
+interface NotaSemplice { id: string; testo: string }
 interface OspiteRow { nome: string; cognome: string; dataNascita: string; paese: string; sesso: string; nCamera: string; dataArrivo: string }
 interface ExtraAggiunto { id: string; servizio: string; quando: string; quantita: number; intestatario: string; camera: string; importo: number; descrizione: string }
 interface PrezzoRow { giorno: string; camera: string; arrangiamento: string; piani: string; promozioni: string; totale: number; listino: number }
@@ -125,6 +126,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     segmento: { b2b: true, dirette: false, b2c: false, corporate: false },
     agenzia: '', rifEsterno: '', cliente: '', email: '',
     nazionalita: 'ITALIA', notePrenotazione: '',
+    notePrenotazioneList: [] as NotaSemplice[],
     reparto: 'Manutenzione', notaReparto: '',
     noteReparti: [] as NotaReparto[],
     tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
@@ -143,6 +145,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     scadenza: '', personeConf: 2, arrangiamento: 'RO',
     agenzia: '', nomeGruppo: '', nomeCapoGruppo: '', emailCapoGruppo: '',
     nazionalita: 'ITALIA', notePrenotazione: '',
+    notePrenotazioneList: [] as NotaSemplice[],
     reparto: 'Manutenzione', notaReparto: '',
     noteReparti: [] as NotaReparto[],
     tipoAnticipo: 'caparra' as 'caparra' | 'acconto',
@@ -925,10 +928,37 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   function renderAltreInfoWidget(common: any, isGr: boolean) {
     const f = isGr ? grForm : form
     const setF = isGr ? setGrForm : setForm
+    const note: NotaSemplice[] = f.notePrenotazioneList ?? []
+    const addNota = () => {
+      const testo = f.notePrenotazione.trim()
+      if (!testo) return
+      setF((v:any)=>({ ...v, notePrenotazioneList: [...(v.notePrenotazioneList ?? []), { id: Date.now().toString(), testo }], notePrenotazione: '' }))
+    }
+    const removeNota = (id: string) =>
+      setF((v:any)=>({ ...v, notePrenotazioneList: (v.notePrenotazioneList ?? []).filter((n: NotaSemplice) => n.id !== id) }))
+
     return (
       <Widget key="altre" {...common} title="Altre informazioni">
         <SelectField name="nazionalita" label="Nazionalità" value={f.nazionalita} onChange={e=>setF((v:any)=>({...v,nazionalita:e.target.value}))} options={NAZIONALITA.map(o=>({value:o,label:withFlag(o)}))}/>
-        <TextareaField name="notePrenotazione" label="Note prenotazione" value={f.notePrenotazione} onChange={e=>setF((v:any)=>({...v,notePrenotazione:e.target.value}))} rows={3}/>
+        <div className="np-noterep__form">
+          <TextareaField name="notePrenotazione" label="Note prenotazione" value={f.notePrenotazione} onChange={e=>setF((v:any)=>({...v,notePrenotazione:e.target.value}))} rows={2} placeholder="Inserisci una nota di prenotazione"/>
+          <button type="button" className="np-add-row np-noterep__add" onClick={addNota} disabled={!f.notePrenotazione.trim()}>
+            <i className="fa-light fa-plus" /> Aggiungi nota
+          </button>
+        </div>
+
+        {note.length > 0 && (
+          <ul className="np-noterep__list">
+            {note.map(n => (
+              <li key={n.id} className="np-noterep__item">
+                <span className="np-noterep__text">{n.testo}</span>
+                <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina nota" title="Elimina nota" onClick={()=>removeNota(n.id)}>
+                  <i className="fa-light fa-trash" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </Widget>
     )
   }
