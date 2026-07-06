@@ -7,6 +7,10 @@
   align-items: stretch
   gap: 12px
   font-size: 13px
+  // Container query: la responsività della tabella reagisce alla larghezza REALE
+  // dell'area contenuto (tiene conto della sidebar), non al viewport.
+  container-type: inline-size
+  container-name: arrivi-partenze
 
   // BtnBack non deve stirarsi
   > .sib-btn--back
@@ -416,6 +420,30 @@
     &__stats
       height: auto
       gap: 10px 14px
+
+  // ── Compattazione quando lo spazio si restringe (laptop con sidebar aperta) ──
+  // Scatta sotto ~1200px di area contenuto (min-content tabella a dim. standard);
+  // sopra questa soglia icone e font restano quelli standard. Scoped alla pagina.
+  @container arrivi-partenze (max-width: 1200px)
+    .arrivi-partenze__table
+      font-size: 12px
+
+      thead th
+        font-size: 11px
+
+      th, td
+        padding-left: 5px
+        padding-right: 5px
+
+      .sib-btn--icon
+        width: 24px
+        height: 24px
+        font-size: 12px
+
+    // La 2ª riga header (Ospiti) si ancora sotto la 1ª: riallinea l'offset
+    // sticky all'altezza header compatta.
+    .arrivi-partenze__scroll thead tr:nth-child(2) th
+      top: 29px
 
   // ── Tabella arrivi ─────────────────────────────────────────────────────────
   &__table
