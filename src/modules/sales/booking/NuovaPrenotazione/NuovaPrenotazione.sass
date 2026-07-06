@@ -209,6 +209,11 @@
     .np-table
       width: 100%
 
+    // Altezza uniforme dei campi cella a 28px: le select (Tipologia, N. Camera)
+    // allineate ai number. Specificità 0,3,1 per battere la regola sib-input.
+    select.sib-input.np-cell-input
+      height: 28px
+
     // Scroll verticale dopo la 5a camera (header ~30px + 5 righe da ~45px)
     .np-table-scroll
       max-height: 255px
