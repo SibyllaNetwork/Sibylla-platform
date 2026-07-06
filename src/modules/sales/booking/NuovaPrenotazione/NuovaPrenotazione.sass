@@ -181,8 +181,8 @@
     display: flex
     flex-direction: column
     gap: 10px
-    flex: 0 0 210px
-    max-width: 210px
+    flex: 0 0 240px
+    max-width: 240px
 
     // I number (Camere/Persone) in colonna restano stretti, non alti
     .np-w-num
@@ -205,6 +205,10 @@
     border-radius: 8px
     padding: 10px 12px
 
+    // La tabella riempie il box (sovrascrive il width:auto di .np-widget--full)
+    .np-table
+      width: 100%
+
   // Colonna # compatta
   .np-col-idx
     width: 28px
@@ -212,8 +216,11 @@
 
 // Bottoni Alloca / Assegna: stile morbido (come da mockup, non quello del gruppo)
 .np-soggiorno__btn
-  flex: 1
+  flex: 1 1 0
+  min-width: 0
   justify-content: center
+  padding-left: 10px
+  padding-right: 10px
   background: $white
   border: 1px solid $border
   color: $primary
