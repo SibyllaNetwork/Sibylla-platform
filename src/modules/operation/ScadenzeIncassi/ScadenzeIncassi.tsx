@@ -3,7 +3,7 @@ import BtnBack from '../../../core/components/BtnBack'
 import EmptyState from '../../../core/components/EmptyState'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
-import { DateRangeField, RadioGroup } from '../../../core/components/form'
+import { DateRangeField, RadioGroup, SelectField } from '../../../core/components/form'
 import Modal from '../../../core/components/Modal'
 import { toast } from '../../../core/components/Toast/useToast'
 import './ScadenzeIncassi.sass'
@@ -160,6 +160,23 @@ const saldoResiduo = (p: Prenotazione) =>
 // ─── COMPONENTE ─────────────────────────────────────────────────────────────────
 
 type FiltroStato = 'tutti' | 'scaduto' | 'in-scadenza' | 'saldato'
+type FiltroMetodo = 'tutti' | MetodoPagamento
+type FiltroTipo = 'tutti' | TipoPagamento
+type FiltroSollecito = 'tutti' | 'sollecitati' | 'da-sollecitare'
+
+const METODO_OPTS = [{ value: 'tutti', label: 'Tutti i metodi' }, ...(Object.entries(METODO_META).map(([v, m]) => ({ value: v, label: m.label })))]
+const TIPO_OPTS = [
+  { value: 'tutti', label: 'Tutti i tipi' },
+  { value: 'caparra', label: 'Caparra' },
+  { value: 'acconto', label: 'Acconto' },
+  { value: 'rata', label: 'Rata' },
+  { value: 'saldo', label: 'Saldo' },
+]
+const SOLLECITO_OPTS = [
+  { value: 'tutti', label: 'Tutti' },
+  { value: 'da-sollecitare', label: 'Da sollecitare' },
+  { value: 'sollecitati', label: 'Già sollecitati' },
+]
 
 export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) => void }) {
   const today = useMemo(() => new Date(), [])
@@ -168,6 +185,9 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   const [scadDa, setScadDa] = useState('')
   const [scadA, setScadA] = useState('')
   const [filtro, setFiltro] = useState<FiltroStato>('tutti')
+  const [metodoF, setMetodoF] = useState<FiltroMetodo>('tutti')
+  const [tipoF, setTipoF] = useState<FiltroTipo>('tutti')
+  const [sollecitoF, setSollecitoF] = useState<FiltroSollecito>('tutti')
   const [page, setPage] = useState(1)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   // Target della modale "Registra incasso": prenotazione + pagamento da saldare.
@@ -272,6 +292,18 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
       if (q && !(p.numero.includes(q) || p.cliente.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)))
         return false
       if (filtro !== 'tutti' && statoPrenotazione(p, today) !== filtro) return false
+      if (metodoF !== 'tutti' && p.metodo !== metodoF) return false
+      if (tipoF !== 'tutti' && !p.pagamenti.some((x) => x.tipo === tipoF)) return false
+      if (sollecitoF !== 'tutti') {
+        const haSollecito = p.pagamenti.some((x) => x.sollecitato)
+        // "da sollecitare" = ha un pagamento scaduto/in scadenza non ancora sollecitato
+        const daSollecitare = p.pagamenti.some((x) => {
+          const sx = statoPagamento(x, today)
+          return (sx === 'scaduto' || sx === 'in-scadenza') && !x.sollecitato
+        })
+        if (sollecitoF === 'sollecitati' && !haSollecito) return false
+        if (sollecitoF === 'da-sollecitare' && !daSollecitare) return false
+      }
       if (scadDa || scadA) {
         // mantieni le prenotazioni con almeno una scadenza nell'intervallo
         const inRange = p.pagamenti.some((x) =>
@@ -280,10 +312,10 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
       }
       return true
     })
-  }, [prenotazioni, search, filtro, scadDa, scadA, today])
+  }, [prenotazioni, search, filtro, metodoF, tipoF, sollecitoF, scadDa, scadA, today])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [search, filtro, scadDa, scadA])
+  useEffect(() => { setPage(1) }, [search, filtro, metodoF, tipoF, sollecitoF, scadDa, scadA])
   useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
   const pageStart = (page - 1) * PAGE_SIZE
   const pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE)
@@ -293,6 +325,11 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   const totPianificato = tutti.reduce((s, x) => s + x.importo, 0)
   const totIncassato = tutti.filter((x) => x.stato === 'pagato').reduce((s, x) => s + x.importo, 0)
   const totDaIncassare = totPianificato - totIncassato
+
+  const filtriAttivi = search !== '' || filtro !== 'tutti' || metodoF !== 'tutti' || tipoF !== 'tutti' || sollecitoF !== 'tutti' || scadDa !== '' || scadA !== ''
+  const azzeraFiltri = () => {
+    setSearch(''); setFiltro('tutti'); setMetodoF('tutti'); setTipoF('tutti'); setSollecitoF('tutti'); setScadDa(''); setScadA('')
+  }
 
   const CHIPS: { key: FiltroStato; label: string; count?: number }[] = [
     { key: 'tutti', label: 'Tutte', count: prenotazioni.length },
@@ -347,6 +384,35 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
           onChangeFrom={(e) => setScadDa(e.target.value)}
           onChangeTo={(e) => setScadA(e.target.value)}
         />
+        <SelectField
+          className="scad-inc__field--sel"
+          label="Metodo"
+          name="metodo"
+          options={METODO_OPTS}
+          value={metodoF}
+          onChange={(e) => setMetodoF(e.target.value as FiltroMetodo)}
+        />
+        <SelectField
+          className="scad-inc__field--sel"
+          label="Tipo pagamento"
+          name="tipo"
+          options={TIPO_OPTS}
+          value={tipoF}
+          onChange={(e) => setTipoF(e.target.value as FiltroTipo)}
+        />
+        <SelectField
+          className="scad-inc__field--sel"
+          label="Sollecito"
+          name="sollecito"
+          options={SOLLECITO_OPTS}
+          value={sollecitoF}
+          onChange={(e) => setSollecitoF(e.target.value as FiltroSollecito)}
+        />
+        {filtriAttivi && (
+          <button type="button" className="scad-inc__reset" onClick={azzeraFiltri}>
+            <i className="fa-light fa-xmark" /> Azzera filtri
+          </button>
+        )}
       </div>
 
       <div className="scad-inc__chips">
