@@ -23,6 +23,7 @@ import CalendarioMaster            from '../modules/executive/strategie/Calendar
 import SuggerimentiDataDriven      from '../modules/sales/pricing/SuggerimentiDataDriven/SuggerimentiDataDriven';
 import ScreeningOpenPrice          from '../modules/sales/pricing/ScreeningOpenPrice/ScreeningOpenPrice';
 import PricingBenchmark            from '../modules/sales/pricing/PricingBenchmark/PricingBenchmark';
+import PickupAnalysis              from '../modules/sales/pricing/PickupAnalysis/PickupAnalysis';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
 import GestionePianiTariffari      from '../modules/sales/distribution/GestionePianiTariffari/GestionePianiTariffari';
 import MaggiorazioniPromozioni     from '../modules/sales/distribution/MaggiorazioniPromozioni/MaggiorazioniPromozioni';
@@ -224,6 +225,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'sugg-data-driven')      return <SuggerimentiDataDriven navigate={navigate}/>;
   if (page === 'screening-open')        return <ScreeningOpenPrice navigate={navigate}/>;
   if (page === 'pricing-benchmark')     return <PricingBenchmark navigate={navigate}/>;
+  if (page === 'pick-up')               return <PickupAnalysis navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;
   if (page === 'chat')                  return <Chat navigate={navigate}/>;
