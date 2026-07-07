@@ -201,10 +201,27 @@
     z-index: 1
     text-align: left !important
     background: $white
-    min-width: 130px
+    min-width: 150px
 
   thead &__time-head
     background: $bg
+    z-index: 2
+
+  &__mese-th
+    text-align: center !important
+    background: $primary-50 !important
+    color: $primary !important
+    border-left: 1px solid $border
+
+  &__day-th
+    min-width: 54px
+
+  &__day-wd
+    display: block
+    font-size: 10px
+    font-weight: 400
+    color: $text-disabled
+    text-transform: capitalize
 
   // ── KPI ───────────────────────────────────────────────────────────────────
   &__kpis

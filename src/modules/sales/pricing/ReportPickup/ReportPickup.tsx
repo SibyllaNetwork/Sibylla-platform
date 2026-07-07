@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip, Legend,
+  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip, Legend,
 } from 'recharts'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
@@ -17,29 +17,33 @@ const HOTELS: Hotel[] = [
   { id: 'mountain', nome: 'Sibylla Mountain', peso: 0.12 },
 ]
 
-interface MeseAgg { mese: string; anno: number; rn: number; imp: number }
-// Andamento aggregato "anno corrente" (Tutti gli hotel). I dati per singolo hotel
-// sono derivati dai pesi; l'aggregato di una selezione è la somma dei selezionati.
-const AGG_TY: MeseAgg[] = [
-  { mese: 'Gen', anno: 2026, rn: 33,  imp: 8105.40 },
-  { mese: 'Feb', anno: 2026, rn: 18,  imp: 4657.86 },
-  { mese: 'Mar', anno: 2026, rn: 79,  imp: 15679.84 },
-  { mese: 'Apr', anno: 2026, rn: 83,  imp: 20492.93 },
-  { mese: 'Mag', anno: 2026, rn: 106, imp: 23497.99 },
-  { mese: 'Giu', anno: 2026, rn: 52,  imp: 10129.05 },
-  { mese: 'Lug', anno: 2026, rn: 49,  imp: 4772.04 },
-  { mese: 'Ago', anno: 2026, rn: 61,  imp: 14841.62 },
-  { mese: 'Set', anno: 2026, rn: 44,  imp: 9414.43 },
-  { mese: 'Ott', anno: 2026, rn: 38,  imp: 7820.00 },
-  { mese: 'Nov', anno: 2026, rn: 21,  imp: 3960.00 },
-  { mese: 'Dic', anno: 2026, rn: 40,  imp: 9669.64 },
-  { mese: 'Gen', anno: 2027, rn: 27,  imp: 6740.00 },
-  { mese: 'Feb', anno: 2027, rn: 15,  imp: 3980.00 },
-  { mese: 'Mar', anno: 2027, rn: 31,  imp: 7120.00 },
-  { mese: 'Apr', anno: 2027, rn: 12,  imp: 2980.00 },
-]
-// Fattore SDLY (stesso periodo anno precedente) per mese: <1 = quest'anno meglio.
-const LY_FACTOR = [0.88, 1.12, 0.82, 0.95, 0.90, 1.05, 1.20, 0.86, 0.98, 1.02, 1.10, 0.92, 0.94, 1.08, 0.89, 1.15]
+// Il report è organizzato GIORNO PER GIORNO: ogni colonna è una data di soggiorno.
+// L'andamento aggregato "anno corrente" (Tutti gli hotel) è generato in modo
+// deterministico; i dati per singolo hotel derivano dai pesi.
+const WD = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab']
+const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+const N_GIORNI = 92 // ~3 mesi, con scroll orizzontale sui successivi
+
+interface Giorno {
+  label: string      // gg/mm
+  wd: string         // giorno settimana abbreviato
+  meseLabel: string  // "Giugno 2026"
+  rnBase: number     // room nights aggregate (Tutti gli hotel)
+  adr: number
+  lyF: number        // fattore SDLY (<1 = quest'anno meglio)
+}
+const GIORNI: Giorno[] = Array.from({ length: N_GIORNI }, (_, i) => {
+  const date = new Date(2026, 5, 1 + i) // dal 1° giugno 2026
+  const dow = date.getDay()
+  const weekend = dow === 0 || dow === 5 || dow === 6
+  const wave = 12 + Math.round(7 * Math.sin(i / 3.2) + 4 * Math.cos(i / 7))
+  const rnBase = Math.max(0, wave + (weekend ? 8 : 0))
+  const adr = 240 + (i % 11) * 6 + (weekend ? 30 : 0)
+  const lyF = 0.82 + ((i * 7) % 40) / 100 // 0.82 → 1.21 deterministico
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  return { label: `${dd}/${mm}`, wd: WD[dow], meseLabel: `${MESI[date.getMonth()]} ${date.getFullYear()}`, rnBase, adr, lyF }
+})
 
 const fmtEur = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 const fmtEur2 = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(n)
@@ -65,19 +69,25 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
   const peso = selHotels.length === 0 ? 1 : HOTELS.filter((h) => selHotels.includes(h.id)).reduce((s, h) => s + h.peso, 0)
   const aggregata = selHotels.length === 0
 
-  // Serie mensile in base alla selezione hotel.
-  const serie = useMemo(() => AGG_TY.map((m, i) => {
-    const rn = Math.round(m.rn * peso)
-    const imp = m.imp * peso
-    const rnLy = Math.round(rn * LY_FACTOR[i])
-    const impLy = imp * LY_FACTOR[i]
-    return {
-      label: `${m.mese} ${String(m.anno).slice(2)}`,
-      mese: m.mese, anno: m.anno,
-      rn, imp, rnLy, impLy,
-      pickup: rn - rnLy,
-    }
+  // Serie giornaliera in base alla selezione hotel.
+  const serie = useMemo(() => GIORNI.map((g) => {
+    const rn = Math.round(g.rnBase * peso)
+    const imp = rn * g.adr
+    const rnLy = Math.round(rn * g.lyF)
+    const impLy = rnLy * g.adr * 0.97
+    return { label: g.label, wd: g.wd, meseLabel: g.meseLabel, rn, imp, rnLy, impLy, pickup: rn - rnLy }
   }), [peso])
+
+  // Raggruppamento per mese (intestazione superiore della tabella giornaliera).
+  const meseGroups = useMemo(() => {
+    const groups: { label: string; count: number }[] = []
+    serie.forEach((g) => {
+      const last = groups[groups.length - 1]
+      if (last && last.label === g.meseLabel) last.count++
+      else groups.push({ label: g.meseLabel, count: 1 })
+    })
+    return groups
+  }, [serie])
 
   // Totali anno corrente vs SDLY (stesso periodo anno precedente).
   const tot = useMemo(() => {
@@ -112,7 +122,8 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
     { label: 'ADR',            icon: 'chart-line', value: fmtEur2(tot.adr), delta: delta(tot.adr, tot.adrLy) },
   ]
 
-  const chartMinWidth = Math.max(680, serie.length * 78)
+  const chartMinWidth = Math.max(680, serie.length * 30)
+  const tableMinWidth = 150 + serie.length * 58
 
   return (
     <div className="report-pickup">
@@ -194,17 +205,17 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
         </div>
       </section>
 
-      {/* ── Andamento Room nights nel tempo ────────────────────────────────── */}
+      {/* ── Andamento Room nights nel tempo (giorno per giorno) ────────────── */}
       <section className="report-pickup__card">
-        <h2 className="report-pickup__card-title">Andamento Room nights vendute</h2>
-        <p className="report-pickup__hint"><i className="fa-light fa-arrows-left-right" /> Scorri orizzontalmente per consultare i mesi successivi</p>
+        <h2 className="report-pickup__card-title">Andamento Room nights vendute — giorno per giorno</h2>
+        <p className="report-pickup__hint"><i className="fa-light fa-arrows-left-right" /> Scorri orizzontalmente per consultare i giorni e i mesi successivi</p>
 
         <div className="report-pickup__scroll">
           <div style={{ minWidth: chartMinWidth }}>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={serie} margin={{ top: 12, right: 12, left: 0, bottom: 4 }} barGap={2}>
+            <ResponsiveContainer width="100%" height={240}>
+              <ComposedChart data={serie} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
                 <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} tick={{ fontSize: 11, fill: 'var(--color-text-inactive)' }} interval={0} />
+                <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} tick={{ fontSize: 10, fill: 'var(--color-text-inactive)' }} interval={2} />
                 <YAxis tickLine={false} axisLine={false} width={44} tick={{ fontSize: 11, fill: 'var(--color-text-inactive)' }} />
                 <RTooltip
                   cursor={{ fill: 'var(--color-primary-50)' }}
@@ -213,41 +224,48 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
                   contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--color-border)' }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} formatter={(v) => (v === 'rn' ? 'Anno corrente' : 'SDLY')} />
-                <Bar dataKey="rnLy" name="rnLy" fill="var(--color-text-disabled)" radius={[3, 3, 0, 0]} maxBarSize={22} />
-                <Bar dataKey="rn" name="rn" fill="var(--color-primary)" radius={[3, 3, 0, 0]} maxBarSize={22} />
-              </BarChart>
+                <Bar dataKey="rn" name="rn" fill="var(--color-primary)" radius={[3, 3, 0, 0]} maxBarSize={18} />
+                <Line dataKey="rnLy" name="rnLy" stroke="var(--color-text-disabled)" strokeWidth={2} dot={false} type="monotone" />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="report-pickup__scroll report-pickup__scroll--table">
-          <table className="report-pickup__time-table">
+          <table className="report-pickup__time-table" style={{ minWidth: tableMinWidth }}>
             <thead>
               <tr>
-                <th className="report-pickup__time-head">Periodo</th>
-                {serie.map((m) => <th key={m.label} className="report-pickup__num">{m.label}</th>)}
+                <th className="report-pickup__time-head" rowSpan={2}>Periodo</th>
+                {meseGroups.map((mg, gi) => <th key={`${mg.label}-${gi}`} colSpan={mg.count} className="report-pickup__mese-th">{mg.label}</th>)}
+              </tr>
+              <tr>
+                {serie.map((m, i) => (
+                  <th key={i} className="report-pickup__num report-pickup__day-th">
+                    <span className="report-pickup__day-wd">{m.wd}</span>{m.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td className="report-pickup__time-head report-pickup__strong">Camere vendute</td>
-                {serie.map((m) => <td key={m.label} className="report-pickup__num report-pickup__strong">{fmtNum(m.rn)}</td>)}
+                {serie.map((m, i) => <td key={i} className="report-pickup__num report-pickup__strong">{fmtNum(m.rn)}</td>)}
               </tr>
               <tr>
                 <td className="report-pickup__time-head report-pickup__muted">SDLY</td>
-                {serie.map((m) => <td key={m.label} className="report-pickup__num report-pickup__muted">{fmtNum(m.rnLy)}</td>)}
+                {serie.map((m, i) => <td key={i} className="report-pickup__num report-pickup__muted">{fmtNum(m.rnLy)}</td>)}
               </tr>
               <tr>
                 <td className="report-pickup__time-head">Pickup Δ</td>
-                {serie.map((m) => (
-                  <td key={m.label} className={`report-pickup__num report-pickup__delta report-pickup__delta--${m.pickup >= 0 ? 'up' : 'down'}`}>
+                {serie.map((m, i) => (
+                  <td key={i} className={`report-pickup__num report-pickup__delta report-pickup__delta--${m.pickup >= 0 ? 'up' : 'down'}`}>
                     {m.pickup > 0 ? '+' : ''}{fmtNum(m.pickup)}
                   </td>
                 ))}
               </tr>
               <tr>
                 <td className="report-pickup__time-head">Importo</td>
-                {serie.map((m) => <td key={m.label} className="report-pickup__num">{fmtEur(m.imp)}</td>)}
+                {serie.map((m, i) => <td key={i} className="report-pickup__num">{fmtEur(m.imp)}</td>)}
               </tr>
             </tbody>
           </table>
