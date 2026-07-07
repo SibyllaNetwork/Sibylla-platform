@@ -500,7 +500,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
         open={saldoTarget != null}
         onClose={() => setSaldoTarget(null)}
         title="Registra incasso"
-        size="sm"
+        size="md"
       >
         {saldoPren && saldoPag && (
           <>
