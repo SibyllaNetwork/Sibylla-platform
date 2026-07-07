@@ -1,0 +1,249 @@
+// ─── REPORT PICKUP ──────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.report-pickup
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Filtri ────────────────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    align-items: flex-end
+    flex-wrap: wrap
+    gap: 12px
+
+  &__field
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    > label
+      font-family: 'Poppins', sans-serif
+      font-size: 12px
+      font-weight: 600
+      color: $primary
+
+  &__hotel-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    min-width: 240px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    color: $text-active
+    font-size: 13px
+    cursor: pointer
+
+    &.is-open
+      border-color: $primary
+
+    span
+      flex: 1
+      text-align: left
+
+  &__hotel-chev
+    font-size: 11px
+    color: $text-inactive
+
+  &__hotel-pop
+    position: absolute
+    top: 100%
+    left: 0
+    margin-top: 6px
+    min-width: 260px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
+    z-index: 50
+    padding: 8px
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__hotel-sep
+    height: 1px
+    background: $border
+    margin: 4px 0
+
+  &__hotel-opt
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 6px
+    border-radius: 6px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+
+    &:hover
+      background: $primary-50
+
+    em
+      color: $text-inactive
+      font-style: normal
+      font-size: 12px
+
+  &__view-tag
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 34px
+    padding: 0 12px
+    border-radius: 8px
+    font-size: 12px
+    font-weight: 600
+
+    &--agg
+      background: $primary-50
+      color: $primary
+
+    &--det
+      background: $success-light
+      color: $success
+
+  // ── Card di sezione ─────────────────────────────────────────────────────────
+  &__card
+    background: $white
+    border: 1px solid $border
+    border-radius: 12px
+    padding: 16px 18px
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__card-title
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    margin: 0
+
+  &__hint
+    display: flex
+    align-items: center
+    gap: 6px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+  // ── Tabelle numeriche ────────────────────────────────────────────────────────
+  &__num
+    text-align: right !important
+    font-variant-numeric: tabular-nums
+
+  &__strong
+    font-weight: 600
+    color: $primary
+
+  &__muted
+    color: $text-inactive
+
+  &__delta
+    font-weight: 600
+
+    &--up
+      color: $success
+
+    &--down
+      color: $error
+
+    i
+      font-size: 10px
+      margin-right: 2px
+
+  &__cmp-table
+    width: 100%
+
+  // ── Scroll orizzontale (grafico + tabella tempo) ──────────────────────────────
+  &__scroll
+    overflow-x: auto
+    overflow-y: hidden
+
+    &--table
+      border: 1px solid $border
+      border-radius: 8px
+
+  &__time-table
+    border-collapse: collapse
+    white-space: nowrap
+    font-size: 12px
+
+    th, td
+      padding: 8px 12px
+      border-bottom: 1px solid $border
+      text-align: right
+      font-variant-numeric: tabular-nums
+
+    thead th
+      background: $bg
+      color: $text-inactive
+      font-weight: 600
+      position: sticky
+      top: 0
+
+    tbody tr:last-child td
+      border-bottom: none
+
+  &__time-head
+    position: sticky
+    left: 0
+    z-index: 1
+    text-align: left !important
+    background: $white
+    min-width: 130px
+
+  thead &__time-head
+    background: $bg
+
+  // ── KPI ───────────────────────────────────────────────────────────────────
+  &__kpis
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 12px
+
+    @media (max-width: 760px)
+      grid-template-columns: 1fr
+
+  &__kpi
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__kpi-top
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__kpi-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 30px
+    border-radius: 8px
+    background: $primary-50
+    color: $primary
+    font-size: 14px
+
+  &__kpi-delta
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 12px
+    font-weight: 600
+
+    em
+      color: $text-inactive
+      font-style: normal
+      font-weight: 400

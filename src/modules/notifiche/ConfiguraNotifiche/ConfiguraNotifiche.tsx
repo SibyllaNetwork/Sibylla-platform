@@ -6,6 +6,7 @@ import BtnBack from '../../../core/components/BtnBack';
 import PageHeader from '../../../core/components/PageHeader'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { useEfficienzaStore } from '../../../store/useEfficienzaStore'
+import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
 import './ConfiguraNotifiche.sass'
 
 type NotifRow  = {label:string;cn:boolean;email:boolean;scad:boolean;gg:number|null};
@@ -14,9 +15,13 @@ type PersonRow = {label:string;mostra:boolean};
 // Riga il cui flag "Centro notifiche" è la sorgente di verità per la notifica
 // "Ricavo da ottimizzazione" (pagina Efficienza operativa).
 const EFF_LABEL = "Ricavo da ottimizzazione";
+// Riga il cui flag "Centro notifiche" abilita la notifica "Report Pickup"
+// (menu campanella → pulsante "Visualizza report").
+const REPORT_PICKUP_LABEL = "Report Pickup";
 
 const GENERALI_INIT:NotifRow[] = [
   {label:EFF_LABEL,                         cn:true, email:false,scad:false,gg:null},
+  {label:REPORT_PICKUP_LABEL,              cn:true, email:true, scad:false,gg:null},
   {label:"Richiesta prenotazione extra",   cn:true, email:true, scad:false,gg:null},
   {label:"Scadenza opzione",               cn:true, email:true, scad:true, gg:8},
   {label:"Richiesta acquisto lotti",       cn:true, email:true, scad:true, gg:1},
@@ -56,9 +61,13 @@ const CARRELLO_INIT:PersonRow[] = [
 
 export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void}) {
   const setNotificaEffOn = useEfficienzaStore(s=>s.setNotificaOn);
+  const setReportPickupOn = useNotifPrefsStore(s=>s.setReportPickup);
 
   const [rows,     setRows]     = useState<NotifRow[]>(
-    ()=>GENERALI_INIT.map(r=>r.label===EFF_LABEL ? {...r, cn:useEfficienzaStore.getState().notificaOn} : {...r}));
+    ()=>GENERALI_INIT.map(r=>
+      r.label===EFF_LABEL ? {...r, cn:useEfficienzaStore.getState().notificaOn}
+      : r.label===REPORT_PICKUP_LABEL ? {...r, cn:useNotifPrefsStore.getState().reportPickup}
+      : {...r}));
   const [person,   setPerson]   = useState<PersonRow[]>(PERSON_INIT.map(r=>({...r})));
   const [carrello, setCarrello] = useState<PersonRow[]>(CARRELLO_INIT.map(r=>({...r})));
   const [saved,    setSaved]    = useState(false);
@@ -69,6 +78,8 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
       const nv = !r[field];
       // il flag "Centro notifiche" della riga Ottimizzazione persiste nello store
       if(field==="cn" && r.label===EFF_LABEL) setNotificaEffOn(nv);
+      // idem per il Report Pickup: abilita/disabilita la notifica del report
+      if(field==="cn" && r.label===REPORT_PICKUP_LABEL) setReportPickupOn(nv);
       return {...r,[field]:nv};
     }));
   const setGg   = (ri:number, v:number) =>

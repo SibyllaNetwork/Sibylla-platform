@@ -11,6 +11,8 @@ import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperative
 import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
 import { useEfficienzaStore, deltaEur, deltaPct } from '../../../store/useEfficienzaStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
+import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
+import { toast } from '../../../core/components/Toast/useToast'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -34,11 +36,15 @@ interface NotificaUI {
   ref: string
   date: string
   time: string
-  group: 'oggi' | 'mese-scorso' | 'precedenti'
+  group: 'oggi' | 'mese-corrente' | 'precedenti'
   read: boolean
   extra?: ExtraBookingInfo
   /** provenienza: colora campanella e titolo. 'tableau' abilita la chat dedicata */
   source?: 'platform' | 'tableau' | 'agora'
+  /** notifica di tipo report: mostra i pulsanti Scarica / Visualizza report */
+  report?: boolean
+  /** canale di consegna (es. "Email"): mostrato come badge al posto della severità */
+  channel?: string
 }
 
 const fmtEUR = (n: number) =>
@@ -46,10 +52,10 @@ const fmtEUR = (n: number) =>
 
 const FALLBACK: NotificaUI[] = [
   { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false, source:'platform' },
-  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-scorso', read:false, source:'platform',
+  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-corrente', read:false, source:'platform',
     extra: { bookingId:'0001/015161', nazionalita:'ITA', checkIn:'sab 25/04/2026', checkOut:'lun 27/04/2026', stato:'Opzionata', camere:50, persone:110, tipologia:'Studenti', pernotto:10600, servizi:0 } },
-  { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-scorso', read:true, source:'tableau' },
-  { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-scorso', read:true, source:'tableau' },
+  { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-corrente', read:true, source:'tableau' },
+  { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-corrente', read:true, source:'tableau' },
   { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true, source:'platform' },
   { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true, source:'agora' },
   { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'19 Feb', time:'09:15', group:'precedenti', read:true, source:'tableau',
@@ -59,7 +65,7 @@ const FALLBACK: NotificaUI[] = [
 
 const groups = [
   { id:'oggi',        label:'Oggi',        icon:'fa-calendar-day'   },
-  { id:'mese-scorso', label:'Mese scorso', icon:'fa-calendar-days'  },
+  { id:'mese-corrente', label:'Mese corrente', icon:'fa-calendar-days'  },
   { id:'precedenti',  label:'Precedenti',  icon:'fa-folder-open'    },
 ]
 
@@ -118,7 +124,7 @@ function adaptNotifica(n: NotificaDto): NotificaUI {
     : sameDay(d, today)
     ? 'oggi'
     : sameMonth(d, today) || (today.getMonth() - d.getMonth() + (today.getFullYear() - d.getFullYear()) * 12 === 1)
-    ? 'mese-scorso'
+    ? 'mese-corrente'
     : 'precedenti'
 
   const sev: NotificaUI['sev'] = (() => {
@@ -186,7 +192,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
         const today = new Date()
         const sameDay = d.toDateString() === today.toDateString()
         const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
-        const group: NotificaUI['group'] = sameDay ? 'oggi' : sameMonth ? 'mese-scorso' : 'precedenti'
+        const group: NotificaUI['group'] = sameDay ? 'oggi' : sameMonth ? 'mese-corrente' : 'precedenti'
         const extra = r.servizi.length ? ` Extra: ${r.servizi.map((s) => s.label).join(', ')}.` : ''
         return {
           id: 900000 + i,
@@ -235,7 +241,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       const today = new Date()
       const sameDay = d.toDateString() === today.toDateString()
       const sameMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
-      const group: NotificaUI['group'] = sameDay ? 'oggi' : sameMonth ? 'mese-scorso' : 'precedenti'
+      const group: NotificaUI['group'] = sameDay ? 'oggi' : sameMonth ? 'mese-corrente' : 'precedenti'
       const valore = modalitaEff === 'eur'
         ? `+${fmtEUR(deltaEur(o))}`
         : `+${deltaPct(o).toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
@@ -253,9 +259,31 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     })
   }, [ottimizzazioni, notificaEffOn, modalitaEff])
 
+  // Notifiche "Report Pickup" — mostrate solo se l'opzione è attiva nel
+  // Configuratore notifiche. Consegnate via email; dal dettaglio si apre il report.
+  const reportPickupOn = useNotifPrefsStore((s) => s.reportPickup)
+  const reportNotifs: NotificaUI[] = useMemo(() => {
+    if (!reportPickupOn) return []
+    const base: { date: string; time: string; group: NotificaUI['group']; read: boolean }[] = [
+      { date: 'MAR 07 LUG', time: '09:00', group: 'oggi',        read: false },
+      { date: 'DOM 05 LUG', time: '09:00', group: 'mese-corrente', read: false },
+      { date: 'VEN 03 LUG', time: '09:00', group: 'mese-corrente', read: true },
+      { date: 'MER 01 LUG', time: '09:00', group: 'mese-corrente', read: true },
+    ]
+    return base.map((b, i) => ({
+      id: 980000 + i,
+      sev: 'info' as const,
+      title: 'Report PickUp',
+      text: 'È disponibile il nuovo report PickUp.',
+      ref: '',
+      date: b.date, time: b.time, group: b.group,
+      read: b.read, source: 'platform' as const, report: true, channel: 'Email',
+    }))
+  }, [reportPickupOn])
+
   const allNotifications = useMemo(
-    () => [...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
@@ -401,9 +429,13 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                             <div className="notifiche__row-title-wrap">
                               {!isRead && <div className="notifiche__unread-dot" />}
                               <span className={`notifiche__row-title ${!isRead ? 'notifiche__row-title--unread' : ''}`} data-source={n.source ?? 'platform'}>{n.title}</span>
-                              <span className="notifiche__sev-badge" data-sev={n.sev}>
-                                {sevLabel[n.sev]}
-                              </span>
+                              {n.channel ? (
+                                <span className="notifiche__channel-badge">{n.channel}</span>
+                              ) : (
+                                <span className="notifiche__sev-badge" data-sev={n.sev}>
+                                  {sevLabel[n.sev]}
+                                </span>
+                              )}
                             </div>
                             <div className="notifiche__row-meta">
                               <div className="notifiche__date-main">{n.date}</div>
@@ -458,9 +490,13 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
               <header className="notifiche__detail-head">
                 <div className="notifiche__detail-title-wrap">
                   <h3 className="notifiche__detail-title">{selectedNotif.title}</h3>
-                  <span className="notifiche__sev-badge" data-sev={selectedNotif.sev}>
-                    {sevLabel[selectedNotif.sev]}
-                  </span>
+                  {selectedNotif.channel ? (
+                    <span className="notifiche__channel-badge">{selectedNotif.channel}</span>
+                  ) : (
+                    <span className="notifiche__sev-badge" data-sev={selectedNotif.sev}>
+                      {sevLabel[selectedNotif.sev]}
+                    </span>
+                  )}
                 </div>
                 <Tooltip text="Chiudi dettaglio">
                   <button
@@ -478,7 +514,41 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                 <p className="notifiche__detail-lead">{selectedNotif.text}</p>
               )}
 
-              {selectedNotif.extra ? (
+              {selectedNotif.report ? (
+                <>
+                  <dl className="notifiche__detail-list">
+                    <div className="notifiche__detail-list-row">
+                      <dt>Tipo report</dt>
+                      <dd>Pickup</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Ricevuta il</dt>
+                      <dd>{selectedNotif.date}{selectedNotif.time ? ` · ${selectedNotif.time}` : ''}</dd>
+                    </div>
+                    <div className="notifiche__detail-list-row">
+                      <dt>Canale</dt>
+                      <dd>{selectedNotif.channel ?? 'Email'}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="notifiche__detail-actions">
+                    <button
+                      type="button"
+                      className="sib-btn sib-btn--secondary"
+                      onClick={() => toast.success('Download del report Pickup avviato.', 'Report Pickup')}
+                    >
+                      <i className="fa-light fa-file-arrow-down" aria-hidden="true" /> Scarica report PickUp
+                    </button>
+                    <button
+                      type="button"
+                      className="sib-btn sib-btn--primary"
+                      onClick={() => navigate('report-pickup')}
+                    >
+                      <i className="fa-light fa-chart-column" aria-hidden="true" /> Visualizza report
+                    </button>
+                  </div>
+                </>
+              ) : selectedNotif.extra ? (
                 <>
                   <dl className="notifiche__detail-list">
                     <div className="notifiche__detail-list-row">

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import T from '../core/tokens'
 import Ico from '../core/icons/Ico'
 import { useChatStore } from '../store/useChatStore'
+import { useNotifPrefsStore } from '../store/useNotifPrefsStore'
 import './notif.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -17,11 +18,13 @@ interface Notif {
   ref:    string
   date:   string
   read:   boolean
+  // Pagina report da aprire con il pulsante "Visualizza report" (se presente).
+  reportPage?: string
 }
 
 // ── Dati mock ─────────────────────────────────────────────────────────────────
 const INIT_DATA: Notif[] = [
-  { id:100, sev:'info',    origin:'platform', title:'Report Pickup disponibile',           text:'Il report Pickup settimanale è pronto da consultare.',                          ref:'',           date:'Oggi 15:10',  read:false },
+  { id:100, sev:'info',    origin:'platform', title:'Report Pickup disponibile',           text:'Il report Pickup settimanale è pronto da consultare.',                          ref:'',           date:'Oggi 15:10',  read:false, reportPage:'report-pickup' },
   { id:101, sev:'warning', origin:'platform', title:'Segnalazione presa in carico',         text:'',                                                                              ref:'',           date:'Oggi 14:32',  read:false },
   { id:102, sev:'info',    origin:'tableau',  title:'Richiesta extra da Tableau',           text:'Nuova richiesta extra da Tableau: Sibylla.',                                    ref:'',           date:'Oggi 12:08',  read:false },
   { id:103, sev:'info',    origin:'agora',    title:'Nuova prenotazione da Agora',          text:'Ricevuta prenotazione 2026/014510 dal canale Agora.',                           ref:'ID: 014510', date:'Oggi 11:42',  read:false },
@@ -54,8 +57,13 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   const [notifs,  setNotifs]  = useState<Notif[]>(INIT_DATA)
   const ref = useRef<HTMLDivElement>(null)
   const selectChatFromNotif = useChatStore(s => s.selectFromNotif)
+  // Le notifiche-report compaiono solo se l'opzione è attiva nel Configuratore notifiche.
+  const reportPickupOn = useNotifPrefsStore(s => s.reportPickup)
 
-  const unreadCount = notifs.filter(n => !n.read).length
+  // Escludi le notifiche-report disabilitate dal configuratore.
+  const visibili = notifs.filter(n => !n.reportPage || (n.reportPage === 'report-pickup' && reportPickupOn))
+
+  const unreadCount = visibili.filter(n => !n.read).length
 
   // Chiudi cliccando fuori
   useEffect(() => {
@@ -69,7 +77,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, read: true })))
   const markRead    = (id: number) => setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
 
-  const filtered = notifs.filter(n => {
+  const filtered = visibili.filter(n => {
     if (tab === 'unread')   return !n.read
     if (tab === 'platform') return n.origin === 'platform'
     if (tab === 'tableau')  return n.origin === 'tableau'
@@ -185,6 +193,20 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                     </div>
                     {n.ref && <div className="notif-item__ref">{n.ref}</div>}
                     {n.text && <p className="notif-item__text">{n.text}</p>}
+                    {n.reportPage && (
+                      <button
+                        type="button"
+                        className="notif-item__report-btn"
+                        onClick={e => {
+                          e.stopPropagation()
+                          markRead(n.id)
+                          navigate(n.reportPage!)
+                          setOpen(false)
+                        }}
+                      >
+                        <i className="fa-light fa-chart-column" aria-hidden="true" /> Visualizza report
+                      </button>
+                    )}
                     <div className="notif-item__badges">
                       <span
                         className="notif-item__origin-badge"
