@@ -3,7 +3,8 @@ import BtnBack from '../../../core/components/BtnBack'
 import EmptyState from '../../../core/components/EmptyState'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
-import { DateRangeField } from '../../../core/components/form'
+import { DateRangeField, RadioGroup } from '../../../core/components/form'
+import Modal from '../../../core/components/Modal'
 import { toast } from '../../../core/components/Toast/useToast'
 import './ScadenzeIncassi.sass'
 
@@ -28,6 +29,7 @@ interface Pagamento {
   importo: number
   stato: StatoPagamento
   dataPagamento?: string
+  metodoSaldo?: MetodoPagamento
   sollecitato?: boolean
 }
 
@@ -49,6 +51,13 @@ const METODO_META: Record<MetodoPagamento, { label: string; icon: string }> = {
   contanti: { label: 'Contanti', icon: 'money-bill-wave' },
   paypal: { label: 'PayPal', icon: 'wallet' },
 }
+
+// Metodi con cui si può registrare un incasso dalla modale di conferma.
+const METODI_SALDO: { value: MetodoPagamento; label: string }[] = [
+  { value: 'bonifico', label: 'Bonifico' },
+  { value: 'carta', label: 'Carta di credito' },
+  { value: 'contanti', label: 'Contanti' },
+]
 
 const STATO_META: Record<StatoPrenotazione, { label: string; tone: 'ok' | 'warn' | 'ko' | 'muted' }> = {
   saldato: { label: 'Saldato', tone: 'ok' },
@@ -161,6 +170,9 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   const [filtro, setFiltro] = useState<FiltroStato>('tutti')
   const [page, setPage] = useState(1)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
+  // Target della modale "Registra incasso": prenotazione + pagamento da saldare.
+  const [saldoTarget, setSaldoTarget] = useState<{ prenId: number; pagId: number } | null>(null)
+  const [metodoSaldo, setMetodoSaldo] = useState<MetodoPagamento>('bonifico')
 
   // Espande di default le prenotazioni con pagamenti scaduti.
   useEffect(() => {
@@ -178,20 +190,35 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
     })
 
   // ── Azioni ──────────────────────────────────────────────────────────────
-  const saldaPagamento = (prenId: number, pagId: number) => {
+  // Apre la modale di conferma: pre-seleziona il metodo preferito della prenotazione.
+  const richiediSaldo = (prenId: number, pagId: number) => {
     const pren = prenotazioni.find((p) => p.id === prenId)
     const pag = pren?.pagamenti.find((x) => x.id === pagId)
     if (!pren || !pag || pag.stato === 'pagato') return
+    const preferito = METODI_SALDO.some((m) => m.value === pren.metodo) ? pren.metodo : 'bonifico'
+    setMetodoSaldo(preferito)
+    setSaldoTarget({ prenId, pagId })
+  }
+
+  const saldoPren = saldoTarget ? prenotazioni.find((p) => p.id === saldoTarget.prenId) : undefined
+  const saldoPag = saldoPren?.pagamenti.find((x) => x.id === saldoTarget?.pagId)
+
+  // Registra l'incasso col metodo scelto nella modale.
+  const confermaSaldo = () => {
+    if (!saldoTarget || !saldoPren || !saldoPag) return
+    const { prenId, pagId } = saldoTarget
     const oggi = new Date().toISOString().slice(0, 10)
     setPrenotazioni((prev) =>
       prev.map((p) =>
         p.id !== prenId ? p : {
           ...p,
           pagamenti: p.pagamenti.map((x) =>
-            x.id === pagId ? { ...x, stato: 'pagato' as StatoPagamento, dataPagamento: oggi } : x),
+            x.id === pagId ? { ...x, stato: 'pagato' as StatoPagamento, dataPagamento: oggi, metodoSaldo } : x),
         }),
     )
-    toast.success(`Incasso di ${fmtEur(pag.importo)} registrato per ${pren.cliente}.`, 'Pagamento saldato')
+    const metodoLabel = METODI_SALDO.find((m) => m.value === metodoSaldo)?.label ?? ''
+    toast.success(`Incasso di ${fmtEur(saldoPag.importo)} registrato per ${saldoPren.cliente} (${metodoLabel}).`, 'Pagamento saldato')
+    setSaldoTarget(null)
   }
 
   const sollecita = (prenId: number, pagId: number) => {
@@ -401,8 +428,8 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
                                 <tr
                                   key={x.id}
                                   className={`scad-inc__sub-row${pagabile ? ' scad-inc__sub-row--pagabile' : ''}`}
-                                  onClick={pagabile ? () => saldaPagamento(p.id, x.id) : undefined}
-                                  title={pagabile ? 'Clicca per saldare subito' : undefined}
+                                  onClick={pagabile ? () => richiediSaldo(p.id, x.id) : undefined}
+                                  title={pagabile ? 'Clicca per registrare l’incasso' : undefined}
                                 >
                                   <td>
                                     <span className="scad-inc__pag-desc">{x.descrizione}</span>
@@ -422,7 +449,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
                                   <td className="scad-inc__td-actions" onClick={(e) => e.stopPropagation()}>
                                     {pagabile ? (
                                       <>
-                                        <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => saldaPagamento(p.id, x.id)}>
+                                        <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => richiediSaldo(p.id, x.id)}>
                                           <i className="fa-light fa-circle-check" /> Salda
                                         </button>
                                         {(sx === 'scaduto' || sx === 'in-scadenza') && (
@@ -468,6 +495,43 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
       <div className="scad-inc__pagination">
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
+
+      <Modal
+        open={saldoTarget != null}
+        onClose={() => setSaldoTarget(null)}
+        title="Registra incasso"
+        size="sm"
+      >
+        {saldoPren && saldoPag && (
+          <>
+            <div className="scad-inc__modal-body">
+              <p className="scad-inc__modal-lead">
+                Confermi di aver incassato <strong>{fmtEur(saldoPag.importo)}</strong> per <em>{saldoPag.descrizione}</em>?
+              </p>
+              <dl className="scad-inc__modal-meta">
+                <div><dt>Prenotazione</dt><dd>{saldoPren.numero}</dd></div>
+                <div><dt>Cliente</dt><dd>{saldoPren.cliente}</dd></div>
+                <div><dt>Scadenza</dt><dd>{fmtDate(saldoPag.dataScadenza)}</dd></div>
+              </dl>
+              <RadioGroup
+                label="Come è stato saldato?"
+                name="metodo-saldo"
+                options={METODI_SALDO}
+                value={metodoSaldo}
+                onChange={(v) => setMetodoSaldo(v as MetodoPagamento)}
+              />
+            </div>
+            <div className="scad-inc__modal-actions">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSaldoTarget(null)}>
+                Annulla
+              </button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={confermaSaldo}>
+                <i className="fa-light fa-circle-check" /> Registra incasso
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   )
 }

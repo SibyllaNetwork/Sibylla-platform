@@ -339,3 +339,47 @@
     display: flex
     justify-content: center
     margin-top: 4px
+
+  // ── Modale "Registra incasso" ──────────────────────────────────────────────
+  &__modal-body
+    display: flex
+    flex-direction: column
+    gap: 16px
+    padding: 20px 22px 4px
+
+  &__modal-lead
+    font-size: 13px
+    color: $text-active
+    line-height: 1.5
+
+    strong
+      color: $primary
+
+  &__modal-meta
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 0
+    padding: 12px 14px
+    border-radius: 8px
+    background: $bg
+
+    > div
+      display: flex
+      justify-content: space-between
+      gap: 12px
+      font-size: 12px
+
+    dt
+      color: $text-inactive
+
+    dd
+      margin: 0
+      color: $primary
+      font-weight: 600
+
+  &__modal-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 16px 22px 20px
