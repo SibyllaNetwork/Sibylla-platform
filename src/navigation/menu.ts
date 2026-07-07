@@ -37,7 +37,7 @@ const MENU:any[]=[
         {id:"sugg-data-driven",label:"Suggerimenti Data driven",page:"sugg-data-driven"},
         {id:"screening-open",label:"Screening open price",page:"screening-open"},
         {id:"pricing-benchmark",label:"Pricing Benchmark",page:"pricing-benchmark"},
-        {id:"pick-up",label:"Pick up",page:"pick-up"},
+        {id:"pick-up",label:"Pickup analysis",page:"pick-up"},
         {id:"occ-analysis",label:"Occupancy Analysis",page:"occ-analysis"},
         {id:"adr-analysis",label:"ADR Analysis",page:"adr-analysis"},
       ]},
