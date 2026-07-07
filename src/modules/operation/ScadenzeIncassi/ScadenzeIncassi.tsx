@@ -173,6 +173,8 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   // Target della modale "Registra incasso": prenotazione + pagamento da saldare.
   const [saldoTarget, setSaldoTarget] = useState<{ prenId: number; pagId: number } | null>(null)
   const [metodoSaldo, setMetodoSaldo] = useState<MetodoPagamento>('bonifico')
+  // Target della modale "Invia sollecito": prenotazione + pagamento da sollecitare.
+  const [sollecitoTarget, setSollecitoTarget] = useState<{ prenId: number; pagId: number } | null>(null)
 
   // Espande di default le prenotazioni con pagamenti scaduti.
   useEffect(() => {
@@ -221,9 +223,20 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
     setSaldoTarget(null)
   }
 
-  const sollecita = (prenId: number, pagId: number) => {
+  // Apre la modale con l'anteprima della mail di sollecito.
+  const richiediSollecito = (prenId: number, pagId: number) => {
     const pren = prenotazioni.find((p) => p.id === prenId)
-    if (!pren) return
+    const pag = pren?.pagamenti.find((x) => x.id === pagId)
+    if (!pren || !pag || pag.stato === 'pagato') return
+    setSollecitoTarget({ prenId, pagId })
+  }
+
+  const sollPren = sollecitoTarget ? prenotazioni.find((p) => p.id === sollecitoTarget.prenId) : undefined
+  const sollPag = sollPren?.pagamenti.find((x) => x.id === sollecitoTarget?.pagId)
+
+  const confermaSollecito = () => {
+    if (!sollecitoTarget || !sollPren || !sollPag) return
+    const { prenId, pagId } = sollecitoTarget
     setPrenotazioni((prev) =>
       prev.map((p) =>
         p.id !== prenId ? p : {
@@ -231,7 +244,8 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
           pagamenti: p.pagamenti.map((x) => (x.id === pagId ? { ...x, sollecitato: true } : x)),
         }),
     )
-    toast.success(`Sollecito di pagamento inviato a ${pren.cliente} (${pren.email}).`, 'Sollecito inviato')
+    toast.success(`Sollecito di pagamento inviato a ${sollPren.cliente} (${sollPren.email}).`, 'Sollecito inviato')
+    setSollecitoTarget(null)
   }
 
   // ── Conteggi per i filtri / banner ────────────────────────────────────────
@@ -456,7 +470,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
                                           x.sollecitato ? (
                                             <span className="scad-inc__sollecitato"><i className="fa-light fa-paper-plane" /> Sollecitato</span>
                                           ) : (
-                                            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => sollecita(p.id, x.id)}>
+                                            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => richiediSollecito(p.id, x.id)}>
                                               <i className="fa-light fa-paper-plane" /> Sollecita
                                             </button>
                                           )
@@ -531,6 +545,57 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
             </div>
           </>
         )}
+      </Modal>
+
+      <Modal
+        open={sollecitoTarget != null}
+        onClose={() => setSollecitoTarget(null)}
+        title="Invia sollecito di pagamento"
+        size="md"
+      >
+        {sollPren && sollPag && (() => {
+          const g = giorniAllaScadenza(sollPag.dataScadenza, today)
+          const scaduto = g < 0
+          return (
+            <>
+              <div className="scad-inc__modal-body">
+                <p className="scad-inc__modal-lead">
+                  Verrà inviata la seguente email di sollecito. Controlla i dati prima di inviare.
+                </p>
+                <div className="scad-inc__mail">
+                  <div className="scad-inc__mail-head">
+                    <div><span className="scad-inc__mail-lbl">A</span><span className="scad-inc__mail-val">{sollPren.email}</span></div>
+                    <div><span className="scad-inc__mail-lbl">Oggetto</span><span className="scad-inc__mail-val">Promemoria pagamento · Prenotazione {sollPren.numero}</span></div>
+                  </div>
+                  <div className="scad-inc__mail-body">
+                    <p>Gentile {sollPren.cliente},</p>
+                    <p>
+                      le ricordiamo che per la prenotazione <strong>n. {sollPren.numero}</strong> (soggiorno {fmtDate(sollPren.checkIn)} → {fmtDate(sollPren.checkOut)})
+                      risulta {scaduto ? 'scaduto' : 'in scadenza'} il pagamento «{sollPag.descrizione}».
+                    </p>
+                    <ul>
+                      <li>Importo: <strong>{fmtEur(sollPag.importo)}</strong></li>
+                      <li>Scadenza: <strong>{fmtDate(sollPag.dataScadenza)}</strong> {scaduto ? `(scaduto da ${Math.abs(g)} g)` : g === 0 ? '(scade oggi)' : `(tra ${g} g)`}</li>
+                      <li>Metodo di pagamento: <strong>{METODO_META[sollPren.metodo].label}</strong></li>
+                    </ul>
+                    <p>La preghiamo di provvedere al saldo quanto prima. Cordiali saluti.</p>
+                  </div>
+                </div>
+                {sollPag.sollecitato && (
+                  <p className="scad-inc__mail-note"><i className="fa-light fa-circle-info" /> Un sollecito è già stato inviato per questo pagamento.</p>
+                )}
+              </div>
+              <div className="scad-inc__modal-actions">
+                <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setSollecitoTarget(null)}>
+                  Annulla
+                </button>
+                <button type="button" className="sib-btn sib-btn--primary" onClick={confermaSollecito}>
+                  <i className="fa-light fa-paper-plane" /> Invia sollecito
+                </button>
+              </div>
+            </>
+          )
+        })()}
       </Modal>
     </div>
   )
