@@ -164,52 +164,6 @@
     font-size: 13px
     pointer-events: none
 
-  // ── Filtri rapidi (chip) ──────────────────────────────────────────────────
-  &__chips
-    display: flex
-    flex-wrap: wrap
-    gap: 8px
-
-  &__chip
-    display: inline-flex
-    align-items: center
-    gap: 7px
-    padding: 6px 13px
-    border: 1px solid $border
-    border-radius: 999px
-    background: $white
-    color: $text-inactive
-    font-size: 12px
-    font-weight: 600
-    cursor: pointer
-    transition: border-color .12s, color .12s, background .12s
-
-    &:hover
-      border-color: $primary-300
-      color: $text-active
-
-    &--active
-      border-color: $primary
-      background: $primary-50
-      color: $primary
-
-    &--alarm:not(.scad-inc__chip--active)
-      border-color: $error
-      color: $error
-
-  &__chip-count
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    min-width: 18px
-    height: 18px
-    padding: 0 5px
-    border-radius: 999px
-    background: $bg
-    color: inherit
-    font-size: 11px
-    font-weight: 700
-
   // ── Tabella ───────────────────────────────────────────────────────────────
   &__table
     thead th

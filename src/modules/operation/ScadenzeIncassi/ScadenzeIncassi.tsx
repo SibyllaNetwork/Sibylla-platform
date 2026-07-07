@@ -159,7 +159,6 @@ const saldoResiduo = (p: Prenotazione) =>
 
 // ─── COMPONENTE ─────────────────────────────────────────────────────────────────
 
-type FiltroStato = 'tutti' | 'scaduto' | 'in-scadenza' | 'saldato'
 /** Colonne su cui è disponibile il filtro multi-scelta nell'header. */
 type ColFilterKey = 'metodo' | 'stato'
 
@@ -173,7 +172,6 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   const [search, setSearch] = useState('')
   const [scadDa, setScadDa] = useState('')
   const [scadA, setScadA] = useState('')
-  const [filtro, setFiltro] = useState<FiltroStato>('tutti')
   // Filtri colonna (multi-scelta) sull'header della tabella.
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
   const [colFilters, setColFilters] = useState<Record<ColFilterKey, string[]>>({ metodo: [], stato: [] })
@@ -288,7 +286,6 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
     return prenotazioni.filter((p) => {
       if (q && !(p.numero.includes(q) || p.cliente.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)))
         return false
-      if (filtro !== 'tutti' && statoPrenotazione(p, today) !== filtro) return false
       if (colFilters.metodo.length && !colFilters.metodo.includes(METODO_META[p.metodo].label)) return false
       if (colFilters.stato.length && !colFilters.stato.includes(STATO_META[statoPrenotazione(p, today)].label)) return false
       if (scadDa || scadA) {
@@ -299,10 +296,10 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
       }
       return true
     })
-  }, [prenotazioni, search, filtro, colFilters, scadDa, scadA, today])
+  }, [prenotazioni, search, colFilters, scadDa, scadA, today])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [search, filtro, colFilters, scadDa, scadA])
+  useEffect(() => { setPage(1) }, [search, colFilters, scadDa, scadA])
   useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
   const pageStart = (page - 1) * PAGE_SIZE
   const pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE)
@@ -313,17 +310,10 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   const totIncassato = tutti.filter((x) => x.stato === 'pagato').reduce((s, x) => s + x.importo, 0)
   const totDaIncassare = totPianificato - totIncassato
 
-  const filtriAttivi = search !== '' || filtro !== 'tutti' || colFilters.metodo.length > 0 || colFilters.stato.length > 0 || scadDa !== '' || scadA !== ''
+  const filtriAttivi = search !== '' || colFilters.metodo.length > 0 || colFilters.stato.length > 0 || scadDa !== '' || scadA !== ''
   const azzeraFiltri = () => {
-    setSearch(''); setFiltro('tutti'); setColFilters({ metodo: [], stato: [] }); setScadDa(''); setScadA('')
+    setSearch(''); setColFilters({ metodo: [], stato: [] }); setScadDa(''); setScadA('')
   }
-
-  const CHIPS: { key: FiltroStato; label: string; count?: number }[] = [
-    { key: 'tutti', label: 'Tutte', count: prenotazioni.length },
-    { key: 'scaduto', label: 'Scaduti', count: counts.scaduti },
-    { key: 'in-scadenza', label: 'In scadenza', count: counts.inScadenza },
-    { key: 'saldato', label: 'Saldati', count: counts.saldati },
-  ]
 
   return (
     <div className="scad-inc">
@@ -376,20 +366,6 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
             <i className="fa-light fa-xmark" /> Azzera filtri
           </button>
         )}
-      </div>
-
-      <div className="scad-inc__chips">
-        {CHIPS.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            className={`scad-inc__chip${filtro === c.key ? ' scad-inc__chip--active' : ''}${c.key === 'scaduto' && (c.count ?? 0) > 0 ? ' scad-inc__chip--alarm' : ''}`}
-            onClick={() => setFiltro(c.key)}
-          >
-            {c.label}
-            {c.count != null && <span className="scad-inc__chip-count">{c.count}</span>}
-          </button>
-        ))}
       </div>
 
       <div className="sib-table-wrap">
