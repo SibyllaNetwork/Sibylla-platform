@@ -234,7 +234,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'adr-analysis')          return <AdrAnalysis navigate={navigate}/>;
   if (page === 'value-analysis')        return <ValueAnalysis navigate={navigate}/>;
   // Pagine BI Finance (placeholder in attesa del contenuto definitivo)
-  if (['finance-overview', 'break-even', 'cashflow', 'profit-trend', 'cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis', 'wif-analysis'].includes(page))
+  if (['finance-overview', 'break-even', 'cashflow', 'profit-trend', 'cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis', 'wif-analysis', 'analisi-scenari-mensili'].includes(page))
     return <BiPlaceholder page={page} navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;

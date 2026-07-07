@@ -211,7 +211,6 @@ export const PORTED_PAGES: PortedPageDef[] = [
   { pageId: 'analisi-acquisti',         title: 'Analisi acquisti',                  razorPath: 'Views/Report/AnalisiAcquisti2.cshtml',                 apiPath: 'report/GetAnalisiAcquisti' },
   { pageId: 'analisi-vendite',          title: 'Analisi vendite',                   razorPath: 'Views/Report/AnalisiVendite2.cshtml',                  apiPath: 'report/GetAnalisiVendite' },
   { pageId: 'analisi-scenari',          title: 'Analisi scenari',                   razorPath: 'Views/Report/AnalisiScenari2.cshtml',                  apiPath: 'report/GetAnalisiScenari' },
-  { pageId: 'analisi-scenari-mensili',  title: 'Analisi scenari mensili',           razorPath: 'Views/Report/AnalisiScenariMensili.cshtml',            apiPath: 'report/GetAnalisiScenariMensili' },
   { pageId: 'fatturazione-passiva',     title: 'Fatturazione passiva',              razorPath: 'Views/Report/FatturazionePassiva2.cshtml',             apiPath: 'report/GetFatturazionePassiva' },
   { pageId: 'controllo-gestione',       title: 'Controllo di gestione',             razorPath: 'Views/Report/ControlloGestione2.cshtml',               apiPath: 'report/GetControlloGestione' },
   { pageId: 'revenue-analysis',         title: 'Revenue analysis',                  razorPath: 'Views/Report/RevenueAnalysis2.cshtml',                 apiPath: 'report/GetRevenue' },
