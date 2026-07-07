@@ -122,12 +122,71 @@
     flex-direction: column
     gap: 12px
 
+  &__card--scroll
+    position: relative
+    padding-bottom: 58px
+
   &__card-title
     font-family: 'Poppins', sans-serif
     font-size: 14px
     font-weight: 600
     color: $primary
     margin: 0
+
+  // ── Slider di scorrimento giorni (overlay) ──────────────────────────────────
+  &__slider
+    position: absolute
+    left: 18px
+    right: 18px
+    bottom: 12px
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 8px 14px
+    border-radius: 999px
+    background: var(--color-surface)
+    border: 1px solid $border
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12)
+    z-index: 3
+
+    input[type=range]
+      flex: 1
+      appearance: none
+      -webkit-appearance: none
+      height: 6px
+      border-radius: 999px
+      background: $primary-100
+      cursor: pointer
+      outline: none
+
+      &::-webkit-slider-thumb
+        appearance: none
+        -webkit-appearance: none
+        width: 34px
+        height: 16px
+        border-radius: 999px
+        background: $primary
+        border: 2px solid var(--color-surface)
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25)
+        cursor: grab
+
+      &::-moz-range-thumb
+        width: 34px
+        height: 16px
+        border: 2px solid var(--color-surface)
+        border-radius: 999px
+        background: $primary
+        cursor: grab
+
+  &__slider-ico
+    color: $primary
+    font-size: 14px
+
+  &__slider-hint
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    white-space: nowrap
 
   &__hint
     display: flex

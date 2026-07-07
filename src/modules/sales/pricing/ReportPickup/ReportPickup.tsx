@@ -59,6 +59,33 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
   const [a, setA] = useState('2026-12-31')
   const hotelRef = useRef<HTMLDivElement>(null)
 
+  // ── Slider di scorrimento giorni (overlay), sincronizzato grafico ⇄ tabella ──
+  const chartScrollRef = useRef<HTMLDivElement>(null)
+  const tableScrollRef = useRef<HTMLDivElement>(null)
+  const syncing = useRef(false)
+  const [scrollPct, setScrollPct] = useState(0)
+
+  const applyScroll = (pct: number, source?: 'chart' | 'table' | 'slider') => {
+    const p = Math.min(1, Math.max(0, pct))
+    const set = (el: HTMLDivElement | null) => {
+      if (!el) return
+      const max = el.scrollWidth - el.clientWidth
+      if (max > 0) el.scrollLeft = max * p
+    }
+    if (source !== 'chart') set(chartScrollRef.current)
+    if (source !== 'table') set(tableScrollRef.current)
+    setScrollPct(p)
+  }
+
+  const onContainerScroll = (which: 'chart' | 'table') => (e: React.UIEvent<HTMLDivElement>) => {
+    if (syncing.current) return
+    syncing.current = true
+    const el = e.currentTarget
+    const max = el.scrollWidth - el.clientWidth
+    applyScroll(max > 0 ? el.scrollLeft / max : 0, which)
+    requestAnimationFrame(() => { syncing.current = false })
+  }
+
   useEffect(() => {
     const h = (e: MouseEvent) => { if (hotelRef.current && !hotelRef.current.contains(e.target as Node)) setHotelOpen(false) }
     document.addEventListener('mousedown', h)
@@ -206,11 +233,11 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
       </section>
 
       {/* ── Andamento Room nights nel tempo (giorno per giorno) ────────────── */}
-      <section className="report-pickup__card">
+      <section className="report-pickup__card report-pickup__card--scroll">
         <h2 className="report-pickup__card-title">Andamento Room nights vendute — giorno per giorno</h2>
         <p className="report-pickup__hint"><i className="fa-light fa-arrows-left-right" /> Scorri orizzontalmente per consultare i giorni e i mesi successivi</p>
 
-        <div className="report-pickup__scroll">
+        <div className="report-pickup__scroll" ref={chartScrollRef} onScroll={onContainerScroll('chart')}>
           <div style={{ minWidth: chartMinWidth }}>
             <ResponsiveContainer width="100%" height={240}>
               <ComposedChart data={serie} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
@@ -231,7 +258,7 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
           </div>
         </div>
 
-        <div className="report-pickup__scroll report-pickup__scroll--table">
+        <div className="report-pickup__scroll report-pickup__scroll--table" ref={tableScrollRef} onScroll={onContainerScroll('table')}>
           <table className="report-pickup__time-table" style={{ minWidth: tableMinWidth }}>
             <thead>
               <tr>
@@ -269,6 +296,19 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
               </tr>
             </tbody>
           </table>
+        </div>
+
+        {/* Slider di scorrimento giorni in overlay: muove grafico e tabella insieme */}
+        <div className="report-pickup__slider">
+          <i className="fa-light fa-calendar-days report-pickup__slider-ico" />
+          <input
+            type="range"
+            min={0} max={1000} step={1}
+            value={Math.round(scrollPct * 1000)}
+            onChange={(e) => applyScroll(Number(e.target.value) / 1000, 'slider')}
+            aria-label="Scorri i giorni"
+          />
+          <span className="report-pickup__slider-hint">Scorri i giorni</span>
         </div>
       </section>
 
