@@ -1,0 +1,23 @@
+// ─── ADR ANALYSIS ───────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.adr-analysis
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__placeholder
+    display: flex
+    align-items: center
+    justify-content: center
+    min-height: 320px
+    border: 1px dashed $border
+    border-radius: 12px
+    color: $text-inactive
+    font-size: 20px
+    font-weight: 700
+    letter-spacing: 0.06em

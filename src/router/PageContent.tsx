@@ -25,6 +25,8 @@ import ScreeningOpenPrice          from '../modules/sales/pricing/ScreeningOpenP
 import PricingBenchmark            from '../modules/sales/pricing/PricingBenchmark/PricingBenchmark';
 import PickupAnalysis              from '../modules/sales/pricing/PickupAnalysis/PickupAnalysis';
 import OccupancyAnalysis           from '../modules/sales/pricing/OccupancyAnalysis/OccupancyAnalysis';
+import AdrAnalysis                 from '../modules/sales/pricing/AdrAnalysis/AdrAnalysis';
+import ValueAnalysis              from '../modules/sales/pricing/ValueAnalysis/ValueAnalysis';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
 import GestionePianiTariffari      from '../modules/sales/distribution/GestionePianiTariffari/GestionePianiTariffari';
 import MaggiorazioniPromozioni     from '../modules/sales/distribution/MaggiorazioniPromozioni/MaggiorazioniPromozioni';
@@ -228,6 +230,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'pricing-benchmark')     return <PricingBenchmark navigate={navigate}/>;
   if (page === 'pick-up')               return <PickupAnalysis navigate={navigate}/>;
   if (page === 'occ-analysis')          return <OccupancyAnalysis navigate={navigate}/>;
+  if (page === 'adr-analysis')          return <AdrAnalysis navigate={navigate}/>;
+  if (page === 'value-analysis')        return <ValueAnalysis navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;
   if (page === 'chat')                  return <Chat navigate={navigate}/>;

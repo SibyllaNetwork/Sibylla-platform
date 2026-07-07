@@ -200,7 +200,6 @@ export const PORTED_PAGES: PortedPageDef[] = [
 
   // ── Report — sub-pagine ────────────────────────────────────────────
   { pageId: 'report-index',             title: 'Report',                            razorPath: 'Views/Report/Index.cshtml',                            apiPath: 'report/GetIndex' },
-  { pageId: 'adr-analysis',             title: 'ADR Analysis',                      razorPath: 'Views/Report/AdrAnalysis2.cshtml',                     apiPath: 'report/GetAdrAnalysis' },
   { pageId: 'incoming-analysis',        title: 'Incoming analysis',                 razorPath: 'Views/Report/IncomingAnalysis2.cshtml',                apiPath: 'report/GetIncoming' },
   { pageId: 'on-the-book',              title: 'On the book analysis',              razorPath: 'Views/Report/BookAnalysis2.cshtml',                    apiPath: 'report/GetOnTheBook' },
   { pageId: 'budget-analysis',          title: 'Budget analysis',                   razorPath: 'Views/Report/BudgetAnalysis2.cshtml',                  apiPath: 'report/GetBudget' },
