@@ -5,6 +5,7 @@ import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import { DateRangeField, RadioGroup } from '../../../core/components/form'
 import Modal from '../../../core/components/Modal'
+import Tooltip from '../../../core/components/Tooltip'
 import { toast } from '../../../core/components/Toast/useToast'
 import './ScadenzeIncassi.sass'
 
@@ -175,6 +176,9 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
   // Filtri colonna (multi-scelta) sull'header della tabella.
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
   const [colFilters, setColFilters] = useState<Record<ColFilterKey, string[]>>({ metodo: [], stato: [] })
+  // Ordinamento colonna Data prenotazione: asc ↔ desc ↔ nessuno.
+  const [sortData, setSortData] = useState<'asc' | 'desc' | null>(null)
+  const cycleSortData = () => setSortData((s) => (s === null ? 'desc' : s === 'desc' ? 'asc' : null))
   const [page, setPage] = useState(1)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   // Target della modale "Registra incasso": prenotazione + pagamento da saldare.
@@ -298,11 +302,20 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
     })
   }, [prenotazioni, search, colFilters, scadDa, scadA, today])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  // ── Ordinamento per data prenotazione ─────────────────────────────────────
+  const sorted = useMemo(() => {
+    if (!sortData) return filtered
+    return [...filtered].sort((a, b) => {
+      const diff = a.dataPrenotazione.localeCompare(b.dataPrenotazione)
+      return sortData === 'asc' ? diff : -diff
+    })
+  }, [filtered, sortData])
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
   useEffect(() => { setPage(1) }, [search, colFilters, scadDa, scadA])
   useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
   const pageStart = (page - 1) * PAGE_SIZE
-  const pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE)
+  const pageRows = sorted.slice(pageStart, pageStart + PAGE_SIZE)
 
   // ── Stats footer ──────────────────────────────────────────────────────────
   const tutti = prenotazioni.flatMap((p) => p.pagamenti)
@@ -375,7 +388,14 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
               <th className="scad-inc__th-chev" />
               <th>N. prenotazione</th>
               <th>Cliente</th>
-              <th>Data prenotazione</th>
+              <th>
+                <Tooltip text={sortData === 'desc' ? 'Più recenti prima — clic per meno recenti' : sortData === 'asc' ? 'Meno recenti prima — clic per rimuovere' : 'Ordina per data prenotazione'}>
+                  <button type="button" className={'scad-inc__sortbtn' + (sortData ? ' is-on' : '')} onClick={cycleSortData}>
+                    Data prenotazione
+                    <i className={`fa-solid ${sortData === 'desc' ? 'fa-arrow-down-short-wide' : sortData === 'asc' ? 'fa-arrow-up-wide-short' : 'fa-arrow-up-arrow-down'} scad-inc__sort-ico`} aria-hidden="true" />
+                  </button>
+                </Tooltip>
+              </th>
               <th>Soggiorno</th>
               <th>
                 <ColFilterHeader

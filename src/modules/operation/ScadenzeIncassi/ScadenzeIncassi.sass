@@ -76,6 +76,31 @@
     &:hover
       text-decoration: underline
 
+  // ── Sort colonna (header tabella) ───────────────────────────────────────────
+  &__sortbtn
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    background: transparent
+    border: none
+    padding: 0
+    font: inherit
+    color: inherit
+    cursor: pointer
+
+    &:hover
+      color: $primary
+
+    &.is-on
+      color: $primary
+
+  &__sort-ico
+    font-size: 11px
+    color: $text-inactive
+
+    .scad-inc__sortbtn.is-on &
+      color: $primary
+
   // ── Filtro colonna (header tabella) ─────────────────────────────────────────
   &__colfilter
     display: inline-flex
