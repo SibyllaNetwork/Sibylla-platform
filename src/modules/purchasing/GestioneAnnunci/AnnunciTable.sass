@@ -6,59 +6,45 @@
   flex-direction: column
   gap: 16px
   font-size: 13px
-  // Standard scroll-x: compattazione via container query sul root pagina
+  // Container query (stesso metodo di "Ospiti in casa"): la compattazione della
+  // tabella reagisce alla larghezza REALE dell'area contenuto (che tiene conto
+  // della sidebar), non al viewport → niente scroll-x fino al laptop.
   container-type: inline-size
+  container-name: annunci
 
   > .sib-btn--back
     align-self: flex-start
 
 // Colonne testuali su una riga (ellissi + tooltip via TruncatedText)
 .ann__trunc
-  max-width: 100%
+  max-width: 180px
 
-// La tabella non deve mai eccedere il contenitore (niente scroll-x): layout a
-// larghezze fisse in percentuale, celle troncate; le intestazioni restano su una
-// riga senza essere abbreviate.
-.ann__table
-  table-layout: fixed
+.ann__table th
+  white-space: nowrap
 
-  th
-    white-space: nowrap
-
-  th:nth-child(1)  // Logo
-    width: 4%
-  th:nth-child(2)  // Ragione sociale
-    width: 11%
-  th:nth-child(3)  // Periodo
-    width: 12%
-  th:nth-child(4)  // Tipologia
-    width: 8%
-  th:nth-child(5)  // Lotti
-    width: 5%
-  th:nth-child(6)  // Struttura
-    width: 11%
-  th:nth-child(7)  // Categoria
-    width: 9%
-  th:nth-child(8)  // Camere
-    width: 6%
-  th:nth-child(9)  // Pubblicazione
-    width: 11%
-  th:nth-child(10) // Genere
-    width: 9%
-  th:nth-child(11) // Destinatario
-    width: 9%
-  th:nth-child(12) // Azioni
-    width: 5%
-
-// Sotto il laptop (con sidebar) compatta ulteriormente le dimensioni —
-// MAI abbreviare le intestazioni, solo dimensioni.
-@container (max-width: 1360px)
+// Sotto il laptop (con sidebar) compatta le dimensioni — MAI abbreviare le
+// intestazioni, solo dimensioni (come Ospiti in casa).
+@container annunci (max-width: 1360px)
   .ann__table
-    font-size: 11.5px
+    font-size: 12px
+
+    thead th
+      font-size: 11px
 
     th, td
-      padding-left: 6px
-      padding-right: 6px
+      padding-left: 5px
+      padding-right: 5px
+
+    .sib-btn--icon
+      width: 24px
+      height: 24px
+      font-size: 12px
+
+    .ann__actions
+      gap: 1px
+
+  .ann__trunc
+    max-width: 118px
 
   .ann__logo
     width: 30px
@@ -70,6 +56,43 @@
   .ann__genere
     padding: 2px 6px
     gap: 3px
+
+  .ann-colfilter
+    gap: 4px
+
+// Ancora più stretto: riduci ulteriormente icone e testi (come Ospiti in casa).
+@container annunci (max-width: 1180px)
+  .ann__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 4px
+      padding-right: 4px
+
+    .sib-btn--icon
+      width: 22px
+      height: 22px
+      font-size: 11px
+
+  .ann__trunc
+    max-width: 92px
+
+  .ann__logo
+    width: 26px
+    height: 20px
+
+  .ann__stars
+    font-size: 10px
+
+  .ann__genere
+    font-size: 10px
+    padding: 1px 5px
+
+    i
+      font-size: 9px
 
 .ann__top
   display: flex
