@@ -85,6 +85,20 @@
 .ca-field--num
   flex: 0 0 76px
 
+// Wrapper Quantità: ospita l'icona di avviso senza alterare l'altezza del campo
+.ca-qta
+  position: relative
+
+  &__warn
+    position: absolute
+    top: 0
+    right: 0
+    display: inline-flex
+    color: $warning
+    font-size: 12px
+    line-height: 1
+    cursor: help
+
 // Quantità Massima: stretto ma quanto basta per la label per esteso
 .ca-field--nummax
   flex: 0 0 128px

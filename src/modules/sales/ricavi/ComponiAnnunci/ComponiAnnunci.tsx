@@ -5,6 +5,7 @@ import { apiFetchSibylla } from '../../../../services/api'
 import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect, FlagBadge } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
+import Tooltip from '../../../../core/components/Tooltip'
 import {
   buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
@@ -285,21 +286,23 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
                   valueFrom={params.dataDa} valueTo={params.dataA}
                   onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                <InputField label="Quantità" name="quantita" type="number" className="ca-field--num"
-                  min={1} max={params.tipo !== 'Acquisto' ? params.quantitaMax : undefined}
-                  hint={params.tipo !== 'Acquisto' ? `Max ${params.quantitaMax}` : undefined}
-                  value={params.quantita}
-                  onChange={(e) => {
-                    const v = Number(e.target.value) || 0
-                    set('quantita', params.tipo !== 'Acquisto' ? Math.min(v, params.quantitaMax) : v)
-                  }} />
+                <div className="ca-qta ca-field--num">
+                  <InputField label="Quantità" name="quantita" type="number"
+                    min={1} max={params.tipo !== 'Acquisto' ? params.quantitaMax : undefined}
+                    value={params.quantita}
+                    onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                  {params.tipo !== 'Acquisto' && params.quantita > params.quantitaMax && (
+                    <span className="ca-qta__warn">
+                      <Tooltip text={`La quantità (${params.quantita}) non può superare la quantità massima (${params.quantitaMax}).`}>
+                        <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                      </Tooltip>
+                    </span>
+                  )}
+                </div>
                 {params.tipo !== 'Acquisto' && (
                   <>
                     <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--nummax" min={1} value={params.quantitaMax}
-                      onChange={(e) => {
-                        const v = Number(e.target.value) || 0
-                        setParams((p) => ({ ...p, quantitaMax: v, quantita: Math.min(p.quantita, v) }))
-                      }} />
+                      onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
                     <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
                       options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
                     <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" className="ca-field--sm" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
