@@ -21,18 +21,46 @@ function Stelle({ n }: { n: number }) {
 
 // Tabella "Annunci" (destinazione delle pubblicazioni di Componi annunci),
 // standard piattaforma. Router-agnostica: la navigazione arriva via callback.
-export function AnnunciTable({ onBack, onMatchZone, onDettagli }: {
+export function AnnunciTable({ onBack, onMatchZone }: {
   onBack?: () => void
   onMatchZone: () => void
-  onDettagli: (id: string) => void
 }) {
   const annunci = useAnnunciStore((s) => s.annunci)
   const [page, setPage] = useState(1)
+  const [dettaglio, setDettaglio] = useState<AnnuncioPubblicato | null>(null)
 
-  const totalPages = Math.max(1, Math.ceil(annunci.length / PAGE_SIZE))
+  type Filtri = {
+    ragioneSociale: string; periodo: string; tipologia: string;
+    struttura: string; categoria: string; genere: string; destinatario: string
+  }
+  const [f, setF] = useState<Filtri>({
+    ragioneSociale: '', periodo: '', tipologia: '', struttura: '', categoria: '', genere: '', destinatario: '',
+  })
+  const setFilter = (k: keyof Filtri, v: string) => { setF((p) => ({ ...p, [k]: v })); setPage(1) }
+
+  const uniq = (vals: string[]) => Array.from(new Set(vals.filter(Boolean))).sort()
+  const opzTipologia = useMemo(() => uniq(annunci.map((a) => a.tipologia)), [annunci])
+  // Solo le strutture visibili al profilo corrente (le riservate restano nascoste).
+  const opzStruttura = useMemo(() => uniq(annunci.filter(annuncioPerMe).map((a) => a.struttura)), [annunci])
+
+  const filtered = useMemo(() => annunci.filter((a) => {
+    const perMe = annuncioPerMe(a)
+    const rs = perMe ? a.ragioneSociale : 'Riservato'
+    if (f.ragioneSociale && !rs.toLowerCase().includes(f.ragioneSociale.toLowerCase())) return false
+    if (f.periodo && !a.periodo.toLowerCase().includes(f.periodo.toLowerCase())) return false
+    if (f.tipologia && a.tipologia !== f.tipologia) return false
+    if (f.struttura && !(perMe && a.struttura === f.struttura)) return false
+    if (f.categoria && String(a.categoria) !== f.categoria) return false
+    if (f.genere && a.genere !== f.genere) return false
+    if (f.destinatario === 'me' && !perMe) return false
+    if (f.destinatario === 'nonme' && perMe) return false
+    return true
+  }), [annunci, f])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageItems = useMemo(
-    () => annunci.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [annunci, page],
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
   )
 
   return (
@@ -66,6 +94,49 @@ export function AnnunciTable({ onBack, onMatchZone, onDettagli }: {
               <th className="ann__c-center">Destinatario</th>
               <th className="ann__c-center">Azioni</th>
             </tr>
+            <tr className="ann__filters">
+              <th className="ann__c-logo" />
+              <th><input className="sib-input sib-input--dense ann__f" placeholder="Cerca…" value={f.ragioneSociale} onChange={(e) => setFilter('ragioneSociale', e.target.value)} /></th>
+              <th><input className="sib-input sib-input--dense ann__f" placeholder="Periodo…" value={f.periodo} onChange={(e) => setFilter('periodo', e.target.value)} /></th>
+              <th>
+                <select className="sib-select sib-select--dense ann__f" value={f.tipologia} onChange={(e) => setFilter('tipologia', e.target.value)}>
+                  <option value="">Tutte</option>
+                  {opzTipologia.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </th>
+              <th className="ann__c-num" />
+              <th>
+                <select className="sib-select sib-select--dense ann__f" value={f.struttura} onChange={(e) => setFilter('struttura', e.target.value)}>
+                  <option value="">Tutte</option>
+                  {opzStruttura.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </th>
+              <th>
+                <select className="sib-select sib-select--dense ann__f" value={f.categoria} onChange={(e) => setFilter('categoria', e.target.value)}>
+                  <option value="">Tutte</option>
+                  <option value="3">3 stelle</option>
+                  <option value="4">4 stelle</option>
+                  <option value="5">5 stelle</option>
+                </select>
+              </th>
+              <th className="ann__c-num" />
+              <th />
+              <th>
+                <select className="sib-select sib-select--dense ann__f" value={f.genere} onChange={(e) => setFilter('genere', e.target.value)}>
+                  <option value="">Tutti</option>
+                  <option value="Vendita">Vendita</option>
+                  <option value="Acquisto">Acquisto</option>
+                </select>
+              </th>
+              <th className="ann__c-center">
+                <select className="sib-select sib-select--dense ann__f" value={f.destinatario} onChange={(e) => setFilter('destinatario', e.target.value)}>
+                  <option value="">Tutti</option>
+                  <option value="me">Per me</option>
+                  <option value="nonme">Non per me</option>
+                </select>
+              </th>
+              <th className="ann__c-center" />
+            </tr>
           </thead>
           <tbody>
             {pageItems.map((a: AnnuncioPubblicato) => {
@@ -93,14 +164,22 @@ export function AnnunciTable({ onBack, onMatchZone, onDettagli }: {
                     </span>
                   </td>
                   <td className="ann__c-center">
-                    <Tooltip text={perMe ? 'Destinato a te' : 'Non destinato a te'}>
-                      <i className={`fa-light ${perMe ? 'fa-eye' : 'fa-eye-slash'} ann__dest${perMe ? '' : ' ann__dest--off'}`} aria-hidden="true" />
-                    </Tooltip>
+                    <div className="ann__actions">
+                      <Tooltip text={perMe ? 'Destinato a te' : 'Non destinato a te'}>
+                        <span className={`ann__dest${perMe ? '' : ' ann__dest--off'}`}>
+                          <i className={`fa-light ${perMe ? 'fa-eye' : 'fa-eye-slash'}`} aria-hidden="true" />
+                        </span>
+                      </Tooltip>
+                    </div>
                   </td>
                   <td className="ann__c-center">
-                    <button type="button" className="ann__act" title="Dettagli annuncio" onClick={() => onDettagli(a.id)}>
-                      <i className="fa-light fa-file-lines" aria-hidden="true" />
-                    </button>
+                    <div className="ann__actions">
+                      <Tooltip text="Dettaglio annuncio">
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Dettaglio annuncio" onClick={() => setDettaglio(a)}>
+                          <i className="fa-light fa-circle-info" aria-hidden="true" />
+                        </button>
+                      </Tooltip>
+                    </div>
                   </td>
                 </tr>
               )
@@ -109,8 +188,8 @@ export function AnnunciTable({ onBack, onMatchZone, onDettagli }: {
         </table>
       </div>
 
-      {annunci.length === 0 && (
-        <div className="ann__empty">Nessun annuncio pubblicato.</div>
+      {filtered.length === 0 && (
+        <div className="ann__empty">Nessun annuncio trovato.</div>
       )}
 
       {totalPages > 1 && (
@@ -118,6 +197,47 @@ export function AnnunciTable({ onBack, onMatchZone, onDettagli }: {
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
+
+      {dettaglio && <DettaglioModal a={dettaglio} onClose={() => setDettaglio(null)} />}
+    </div>
+  )
+}
+
+// Modale "Dettaglio annuncio": tutti i dettagli del contratto dell'annuncio.
+function DettaglioModal({ a, onClose }: { a: AnnuncioPubblicato; onClose: () => void }) {
+  const perMe = annuncioPerMe(a)
+  const mask = (v: string) => (perMe ? v : 'Riservato')
+  const dimLotto = Math.round(a.camere / Math.max(1, a.lotti))
+  const righe: [string, string][] = [
+    ['Quantità lotti', String(a.lotti)],
+    ['Tipologia', a.ospiti || 'Gruppi'],
+    ['Genere', a.tipologia],
+    ['Dimensione Lotto', `${dimLotto} Camere`],
+    ['Struttura', mask(a.struttura)],
+    ['Quantità massima acquistabile', String(a.quantitaMax ?? a.lotti)],
+    ['Garanzie richieste', a.garanzie || 'Nessuna'],
+    ['Tipologia pagamento', a.pagamento || 'VCC'],
+    ['Annuncio rilasciato da', mask(a.ragioneSociale)],
+  ]
+  return (
+    <div className="ann-modal" role="dialog" aria-modal="true" aria-label="Dettaglio annuncio" onClick={onClose}>
+      <div className="ann-modal__card" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="ann-modal__close" aria-label="Chiudi" onClick={onClose}>
+          <i className="fa-light fa-xmark" aria-hidden="true" />
+        </button>
+        <h2 className="ann-modal__title">Dettaglio annuncio</h2>
+        <div className="ann-modal__body">
+          <h3 className="ann-modal__section">Dettaglio Contratti</h3>
+          <dl className="ann-modal__grid">
+            {righe.map(([k, v]) => (
+              <div key={k} className="ann-modal__row">
+                <dt>{k}:</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
     </div>
   )
 }

@@ -8,7 +8,6 @@ export default function GestioneAnnunci({ navigate }: { navigate: (p: string) =>
     <AnnunciTable
       onBack={() => navigate('agora-announcements')}
       onMatchZone={() => navigate('matchzone')}
-      onDettagli={() => navigate('matchzone')}
     />
   )
 }

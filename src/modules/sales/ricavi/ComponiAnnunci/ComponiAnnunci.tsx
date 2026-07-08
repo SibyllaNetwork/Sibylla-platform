@@ -227,6 +227,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       pubblicazione: `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`,
       genere: b.tipologia,
       destinatario: !dest || dest === '—' ? 'Tutti' : dest,
+      ospiti: params.tipoOspiti,
+      quantitaMax: params.tipo === 'Acquisto' ? undefined : params.quantitaMax,
+      garanzie: 'Nessuna',
+      pagamento: c?.pagamento && c.pagamento !== '—' ? c.pagamento : params.tipologiaPagamento,
     }
   }
 

@@ -20,6 +20,11 @@ export interface AnnuncioPubblicato {
   pubblicazione: string    // gg/mm/aaaa
   genere: 'Vendita' | 'Acquisto'
   destinatario: string     // 'Tutti' oppure la categoria/operatore destinatario
+  // Dettagli opzionali mostrati nella modale "Dettaglio annuncio"
+  ospiti?: string          // es. Gruppi / Individuali
+  quantitaMax?: number     // quantità massima acquistabile
+  garanzie?: string        // garanzie richieste
+  pagamento?: string       // tipologia pagamento (es. VCC)
 }
 
 // Categoria del profilo corrente: gli annunci riservati ad altre categorie

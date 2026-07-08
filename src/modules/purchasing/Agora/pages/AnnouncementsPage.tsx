@@ -8,10 +8,7 @@ export function AnnouncementsPage() {
   const navigate = useNavigate();
   return (
     <Layout>
-      <AnnunciTable
-        onMatchZone={() => navigate('/match-zone')}
-        onDettagli={(id) => navigate(`/match-zone?id=${id}`)}
-      />
+      <AnnunciTable onMatchZone={() => navigate('/match-zone')} />
     </Layout>
   );
 }
