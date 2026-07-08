@@ -45,7 +45,7 @@ import { ElearningPage } from './pages/ElearningPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
-import { AnnouncementManagementPage } from './pages/AnnouncementManagementPage';
+import ComponiAnnunci from '../../sales/ricavi/ComponiAnnunci/ComponiAnnunci';
 import { MatchZonePage } from './pages/MatchZonePage';
 import { GroupPurchasesPage } from './pages/GroupPurchasesPage';
 
@@ -88,7 +88,7 @@ function AgoraRoutes() {
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/announcements" element={<AnnouncementsPage />} />
-      <Route path="/announcements/manage" element={<AnnouncementManagementPage />} />
+      <Route path="/announcements/manage" element={<ComponiAnnunci navigate={() => {}} />} />
       <Route path="/match-zone" element={<MatchZonePage />} />
       <Route path="/group-purchases" element={<GroupPurchasesPage />} />
 
