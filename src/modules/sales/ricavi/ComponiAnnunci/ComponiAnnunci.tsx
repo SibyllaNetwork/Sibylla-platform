@@ -9,6 +9,7 @@ import {
   buildContratto, nextRowId, SEGMENTI,
   type Contratto, type Segmento, type ContrattoInput,
 } from './contratto'
+import { scaricaContrattoPdf, contrattoPdfObjectUrl } from './contrattoPdf'
 import './ComponiAnnunci.sass'
 
 type ConfirmFn = (o: { title: string; message: string; confirmLabel?: string; danger?: boolean }) => Promise<boolean>
@@ -48,6 +49,7 @@ interface RigaBacheca {
   quantita: string
   stato: StatoBacheca
   contratto?: Contratto
+  pdfUrl?: string   // object URL della versione PDF, rigenerata a ogni salvataggio
 }
 
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
@@ -98,6 +100,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   const [bacheca, setBacheca] = useState<RigaBacheca[]>(BACHECA_INIT)
   const [contratto, setContratto] = useState<Contratto | null>(null)
+  const [anteprima, setAnteprima] = useState<Contratto | null>(null)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
   const [step, setStep] = useState(0)
   const [boardPage, setBoardPage] = useState(1)
@@ -153,13 +156,39 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       stato: 'In bozza',
       contratto,
     }
+    const targetId = editingBachecaId ?? (Math.max(0, ...bacheca.map((b) => b.id)) + 1)
     setBacheca((prev) => {
       if (editingBachecaId != null) return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id, stato: b.stato } : b)
-      const id = Math.max(0, ...prev.map((b) => b.id)) + 1
-      return [{ id, ...riga }, ...prev]
+      return [{ id: targetId, ...riga }, ...prev]
     })
+    // Genera/aggiorna la versione PDF del documento (rifatta a ogni modifica).
+    aggiornaPdf(targetId, contratto)
     setContratto(null)
     setEditingBachecaId(null)
+    // Dopo il salvataggio: mostra l'anteprima pronta da stampare del documento.
+    setAnteprima(contratto)
+  }
+
+  // Rigenera l'object URL del PDF per l'annuncio indicato (revoca il precedente).
+  const aggiornaPdf = async (id: number, c: Contratto) => {
+    try {
+      const url = await contrattoPdfObjectUrl(c)
+      setBacheca((prev) => prev.map((b) => {
+        if (b.id !== id) return b
+        if (b.pdfUrl) URL.revokeObjectURL(b.pdfUrl)
+        return { ...b, pdfUrl: url }
+      }))
+    } catch { /* generazione PDF non bloccante */ }
+  }
+
+  // Anteprima stampabile (sola lettura) di un annuncio già in bacheca.
+  const apriAnteprima = (b: RigaBacheca) => {
+    setAnteprima(b.contratto ?? buildContratto(contrattoInput({
+      segmento: b.segmento,
+      periodo: b.periodo,
+      numero: `CTR/${b.periodo.replace(/\s/g, '')}`,
+      quantita: parseInt(b.quantita, 10) || params.quantita,
+    })))
   }
 
   const apriContratto = (b: RigaBacheca) => {
@@ -300,6 +329,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               onPatch={patch}
               onSalva={salvaInBacheca}
               onChiudi={chiudiContratto}
+              onAnteprima={() => setAnteprima(contratto)}
               isEditing={editingBachecaId != null}
               confirm={confirm}
             />
@@ -336,6 +366,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   <button type="button" className="ca-item__act" title="Preferito" onClick={() => toggleStar(b.id)}>
                     <i className={`${b.preferito ? 'fa-solid ca-item__star--on' : 'fa-light'} fa-star`} />
                   </button>
+                  <button type="button" className="ca-item__act" title="Anteprima da stampare" onClick={() => apriAnteprima(b)}>
+                    <i className="fa-light fa-eye" />
+                  </button>
                   <button type="button" className="ca-item__act" title="Modifica contratto" onClick={() => apriContratto(b)}>
                     <i className="fa-light fa-file-pen" />
                   </button>
@@ -358,6 +391,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           )}
         </aside>
       </div>
+
+      {anteprima && (
+        <ContrattoStampa contratto={anteprima} onChiudi={() => setAnteprima(null)} />
+      )}
     </div>
   )
 }
@@ -399,11 +436,12 @@ function DocArea({ value, onChange, placeholder }: {
 // template .docx; la variante (Adulti / Studenti / Adulti e studenti) dipende dai
 // parametri dell'annuncio. Ogni campo/tabella è modificabile e viene salvato
 // nell'annuncio in bacheca.
-function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, isEditing, confirm }: {
+function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, isEditing, confirm }: {
   contratto: Contratto
   onPatch: (p: Partial<Contratto>) => void
   onSalva: () => void
   onChiudi: () => void
+  onAnteprima: () => void
   isEditing: boolean
   confirm: ConfirmFn
 }) {
@@ -439,7 +477,7 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, isEditing, co
       <div className="ca-contract__toolbar">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onChiudi}><i className="fa-light fa-xmark" /> Chiudi</button>
         <div className="ca-contract__toolbar-right">
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.print()}><i className="fa-light fa-print" /> Stampa</button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={onAnteprima}><i className="fa-light fa-print" /> Anteprima stampa</button>
           <button type="button" className="sib-btn sib-btn--primary" onClick={onSalva}>
             <i className="fa-light fa-floppy-disk" /> {isEditing ? 'Salva modifiche' : 'Salva nella bacheca'}
           </button>
@@ -608,6 +646,147 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, isEditing, co
           <div className="ca-sheet__sign-field"><span>Amministratore cliente</span>
             <div className="ca-sheet__sign-line">{contratto.cliente || '—'}</div></div>
         </section>
+      </div>
+    </div>
+  )
+}
+
+// ─── ANTEPRIMA STAMPABILE (sola lettura) ────────────────────────────────────────
+// Overlay a tutta pagina che mostra il contratto salvato come documento pulito,
+// pronto per la stampa o per il download in PDF. In stampa (@media print) resta
+// visibile solo il foglio.
+function ContrattoStampa({ contratto, onChiudi }: {
+  contratto: Contratto
+  onChiudi: () => void
+}) {
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const c = contratto
+
+  const scaricaPdf = async () => {
+    setPdfLoading(true)
+    try { await scaricaContrattoPdf(c) } finally { setPdfLoading(false) }
+  }
+
+  // Valore in sola lettura (con fallback trattino per i campi vuoti).
+  const RO = ({ value, align }: { value: string; align?: 'right' }) => (
+    <span className={`ca-ro${value && value.trim() ? '' : ' ca-ro--empty'}${align ? ` ca-ro--${align}` : ''}`}>
+      {value && value.trim() ? value : '—'}
+    </span>
+  )
+
+  return (
+    <div className="ca-stampa" role="dialog" aria-modal="true" aria-label="Anteprima contratto da stampare">
+      <div className="ca-stampa__bar">
+        <span className="ca-stampa__bar-title"><i className="fa-light fa-file-contract" /> Anteprima da stampare</span>
+        <div className="ca-stampa__bar-actions">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={onChiudi}><i className="fa-light fa-xmark" /> Chiudi</button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={scaricaPdf} disabled={pdfLoading}>
+            <i className={`fa-light ${pdfLoading ? 'fa-spinner fa-spin' : 'fa-file-pdf'}`} /> Scarica PDF
+          </button>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => window.print()}><i className="fa-light fa-print" /> Stampa</button>
+        </div>
+      </div>
+
+      <div className="ca-stampa__scroll">
+        <div className="ca-stampa__sheet ca-sheet ca-sheet--ro">
+          <header className="ca-sheet__head">
+            <div className="ca-sheet__head-left">
+              <div className="ca-sheet__logo">Logo struttura</div>
+              <div>
+                <div className="ca-sheet__kicker">Condizioni di vendita — Mercato gruppi</div>
+                <div className="ca-sheet__struttura">{c.struttura || '—'}</div>
+                <span className="ca-sheet__seg-badge"><i className="fa-light fa-users" /> {c.segmento}</span>
+              </div>
+            </div>
+            <div className="ca-sheet__meta">
+              <div><span>Numero</span><strong>{c.numero}</strong></div>
+              <div><span>Data</span><strong>{c.data}</strong></div>
+            </div>
+          </header>
+
+          <section className="ca-sheet__parties">
+            <div className="ca-sheet__party"><span>Cliente</span><RO value={c.cliente} /></div>
+            <div className="ca-sheet__party"><span>Tour operator</span><RO value={c.tourOperator} /></div>
+            <div className="ca-sheet__party"><span>Periodo</span><RO value={c.periodo} /></div>
+            <div className="ca-sheet__party"><span>Pagamento</span><RO value={c.pagamento} /></div>
+          </section>
+
+          <div className="ca-sheet__section-head"><h4>Distribuzione ({c.segmento})</h4></div>
+          <div className="ca-sheet__block"><p className="ca-ro-para">{c.distribuzione || '—'}</p></div>
+
+          <div className="ca-sheet__section-head"><h4>Stagionalità</h4><span className="ca-sheet__year">anno {c.annoStagione}</span></div>
+          <div className="sib-table-wrap">
+            <table className="sib-table ca-sheet__table">
+              <thead><tr><th>Stagionalità</th><th>Periodo</th></tr></thead>
+              <tbody>
+                {c.stagioni.map((r) => (<tr key={r.id}><td><RO value={r.nome} /></td><td><RO value={r.periodo} /></td></tr>))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="ca-sheet__section-head"><h4>Tariffe {c.annoStagione}</h4></div>
+          <div className="sib-table-wrap">
+            <table className="sib-table ca-sheet__table">
+              <thead><tr><th>Stagione</th><th>Segmento</th><th>Base</th><th>Prezzo (€)</th><th>Suppl. (€)</th></tr></thead>
+              <tbody>
+                {c.tariffe.map((r) => (
+                  <tr key={r.id}>
+                    <td><RO value={r.stagione} /></td><td><RO value={r.segmento} /></td><td><RO value={r.base} /></td>
+                    <td><RO value={r.prezzo} align="right" /></td><td><RO value={r.suppl} align="right" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="ca-sheet__section-head"><h4>Mercato specifico</h4></div>
+          <div className="sib-table-wrap">
+            <table className="sib-table ca-sheet__table">
+              <thead><tr><th>Nazionalità</th><th>Segmento</th><th>Note</th></tr></thead>
+              <tbody>
+                {c.mercato.map((r) => (<tr key={r.id}><td><RO value={r.nazionalita} /></td><td><RO value={r.segmento} /></td><td><RO value={r.note} /></td></tr>))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="ca-sheet__section-head"><h4>Supplementi</h4></div>
+          <div className="sib-table-wrap">
+            <table className="sib-table ca-sheet__table">
+              <thead><tr><th>Segmento</th><th>Categoria</th><th>Voce</th><th>Importo (€)</th></tr></thead>
+              <tbody>
+                {c.supplementi.map((r) => (
+                  <tr key={r.id}><td><RO value={r.segmento} /></td><td><RO value={r.categoria} /></td><td><RO value={r.voce} /></td><td><RO value={r.importo} align="right" /></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="ca-sheet__block">
+            <span className="ca-sheet__note-label">Gratuità, tassa di soggiorno e IVA</span>
+            <p className="ca-ro-para">{c.gratuita || '—'}</p>
+          </div>
+
+          <div className="ca-sheet__section-head"><h4>Contingente camere — Lotti</h4></div>
+          <div className="sib-table-wrap">
+            <table className="sib-table ca-sheet__table">
+              <thead><tr><th>Mese</th><th>Anno</th><th>Lotti</th><th>Camere/giorno</th></tr></thead>
+              <tbody>
+                {c.lotti.map((r) => (
+                  <tr key={r.id}><td><RO value={r.mese} /></td><td><RO value={r.anno} /></td><td><RO value={r.lotti} align="right" /></td><td><RO value={r.camereGiorno} align="right" /></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="ca-sheet__section-head"><h4>Penali</h4></div>
+          <div className="ca-sheet__block"><p className="ca-ro-para">{c.penali || '—'}</p></div>
+
+          <section className="ca-sheet__sign">
+            <div className="ca-sheet__sign-field ca-sheet__sign-field--full"><span>Luogo e data</span><RO value={c.luogo} /></div>
+            <div className="ca-sheet__sign-field"><span>Amministratore struttura</span><div className="ca-sheet__sign-line">{c.struttura || '—'}</div></div>
+            <div className="ca-sheet__sign-field"><span>Amministratore cliente</span><div className="ca-sheet__sign-line">{c.cliente || '—'}</div></div>
+          </section>
+        </div>
       </div>
     </div>
   )
