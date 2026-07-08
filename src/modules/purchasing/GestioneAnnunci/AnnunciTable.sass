@@ -1,5 +1,5 @@
-// ─── ANNUNCI (Agorà) — tabella standard piattaforma ─────────────────────────────
-@use '../../../../styles/tokens' as *
+// ─── ANNUNCI — tabella standard piattaforma (condivisa) ─────────────────────────
+@use '../../../styles/tokens' as *
 
 .ann
   display: flex
@@ -70,7 +70,6 @@
   font-weight: 600
   padding: 2px 9px
   border-radius: 999px
-  border: 1px solid transparent
   white-space: nowrap
 
   i
@@ -79,12 +78,10 @@
   &--vendita
     color: $success
     background: alpha($success, 0.12)
-    border-color: alpha($success, 0.35)
 
   &--acquisto
     color: $primary
     background: alpha($primary, 0.10)
-    border-color: alpha($primary, 0.30)
 
 .ann__dest
   color: $primary
@@ -104,17 +101,7 @@
   &:hover
     color: $primary-700
 
-// Accento sottile a sinistra per differenziare vendita/acquisto
 .ann__row
-  td:first-child
-    border-left: 3px solid transparent
-
-  &--vendita td:first-child
-    border-left-color: alpha($success, 0.6)
-
-  &--acquisto td:first-child
-    border-left-color: alpha($primary, 0.6)
-
   // Annuncio non destinato al profilo corrente: dati identificativi in sordina
   &--reserved
     color: $text-inactive
