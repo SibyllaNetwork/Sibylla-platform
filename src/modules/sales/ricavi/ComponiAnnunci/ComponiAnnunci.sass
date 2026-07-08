@@ -233,17 +233,38 @@
     background: linear-gradient(135deg, $primary 0%, $primary-700 100%)
     color: #fff
 
+    // I campi editabili dentro l'header restano sempre bianchi e leggibili
+    // (senza questo, .ca-doc-input imporrebbe il testo scuro sul blu).
+    .ca-doc-input, .ca-doc-select__el
+      color: #fff
+      border-bottom-color: rgba(255, 255, 255, 0.45)
+
+      &::placeholder
+        color: rgba(255, 255, 255, 0.65)
+
+      &:hover
+        border-bottom-color: #fff
+
+      &:focus
+        border-bottom-color: #fff
+        background: rgba(255, 255, 255, 0.14)
+
+    .ca-doc-select__chev
+      color: rgba(255, 255, 255, 0.8)
+
   &__kicker
     font-size: 11px
+    font-weight: 600
     text-transform: uppercase
-    letter-spacing: 0.08em
-    opacity: 0.85
+    letter-spacing: 0.09em
+    color: rgba(255, 255, 255, 0.82)
 
   &__struttura
     font-family: $font-heading
     font-weight: 700
     font-size: 22px
     margin-top: 2px
+    color: #fff
 
   &__meta
     text-align: right
