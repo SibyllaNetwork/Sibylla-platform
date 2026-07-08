@@ -97,16 +97,96 @@
   &--off
     color: $text-disabled
 
-// Riga filtri di colonna (nell'header della tabella)
-.ann__filters
-  th
-    padding-top: 6px
-    padding-bottom: 8px
-    vertical-align: top
+// Ordinamento colonna (Pubblicazione)
+.ann__sort
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  border: none
+  background: transparent
+  padding: 0
+  font: inherit
+  color: inherit
+  cursor: pointer
 
-.ann__f
-  width: 100%
-  min-width: 0
+  i
+    font-size: 11px
+    color: $text-inactive
+
+  &:hover i
+    color: $primary
+
+  &--active i
+    color: $primary
+
+// Filtro di colonna a imbuto (scelte multiple)
+.ann-colfilter
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  position: relative
+
+  &__btn
+    background: transparent
+    border: none
+    color: $text-inactive
+    cursor: pointer
+    font-size: 12px
+    padding: 4px
+    border-radius: 4px
+
+    &:hover
+      color: $primary
+
+    &:disabled
+      opacity: 0.35
+      cursor: default
+
+    &--active
+      color: $primary
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__popup
+    position: absolute
+    top: 100%
+    left: 0
+    margin-top: 6px
+    min-width: 220px
+    max-height: 320px
+    overflow-y: auto
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
+    z-index: 50
+    padding: 8px 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    text-align: center
+    font-weight: 600
+    color: $text-active
+    padding: 6px 4px 8px
+    border-bottom: 1px solid $border
+    margin-bottom: 4px
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 4px
+    cursor: pointer
+    font-size: 13px
+    color: $text-active
+
+    &:hover
+      background: $primary-50
 
 .ann__row
   // Annuncio non destinato al profilo corrente: dati identificativi in sordina

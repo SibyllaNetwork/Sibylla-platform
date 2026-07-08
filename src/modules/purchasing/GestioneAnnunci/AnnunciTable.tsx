@@ -8,6 +8,29 @@ import './AnnunciTable.sass'
 
 const PAGE_SIZE = 10
 
+type FiltroKey = 'ragioneSociale' | 'periodo' | 'tipologia' | 'struttura' | 'categoria' | 'genere' | 'destinatario'
+const FILTRO_KEYS: FiltroKey[] = ['ragioneSociale', 'periodo', 'tipologia', 'struttura', 'categoria', 'genere', 'destinatario']
+
+// Valore usato per filtro/opzioni della colonna (rispetta il mascheramento).
+const rowVal = (a: AnnuncioPubblicato, k: FiltroKey): string => {
+  const perMe = annuncioPerMe(a)
+  switch (k) {
+    case 'ragioneSociale': return perMe ? a.ragioneSociale : 'Riservato'
+    case 'periodo':        return a.periodo
+    case 'tipologia':      return a.tipologia
+    case 'struttura':      return perMe ? a.struttura : 'Riservato'
+    case 'categoria':      return `${a.categoria} stelle`
+    case 'genere':         return a.genere
+    case 'destinatario':   return perMe ? 'Destinato a te' : 'Non destinato a te'
+  }
+}
+
+// Chiave numerica per l'ordinamento della data di pubblicazione (gg/mm/aaaa).
+const dataKey = (s: string): number => {
+  const [g, m, y] = s.split('/').map(Number)
+  return (y || 0) * 10000 + (m || 0) * 100 + (g || 0)
+}
+
 // Stelle categoria struttura (oro).
 function Stelle({ n }: { n: number }) {
   return (
@@ -28,39 +51,62 @@ export function AnnunciTable({ onBack, onMatchZone }: {
   const annunci = useAnnunciStore((s) => s.annunci)
   const [page, setPage] = useState(1)
   const [dettaglio, setDettaglio] = useState<AnnuncioPubblicato | null>(null)
-
-  type Filtri = {
-    ragioneSociale: string; periodo: string; tipologia: string;
-    struttura: string; categoria: string; genere: string; destinatario: string
-  }
-  const [f, setF] = useState<Filtri>({
-    ragioneSociale: '', periodo: '', tipologia: '', struttura: '', categoria: '', genere: '', destinatario: '',
+  const [openFilter, setOpenFilter] = useState<FiltroKey | null>(null)
+  const [colFilters, setColFilters] = useState<Record<FiltroKey, string[]>>({
+    ragioneSociale: [], periodo: [], tipologia: [], struttura: [], categoria: [], genere: [], destinatario: [],
   })
-  const setFilter = (k: keyof Filtri, v: string) => { setF((p) => ({ ...p, [k]: v })); setPage(1) }
+  const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(null)
 
-  const uniq = (vals: string[]) => Array.from(new Set(vals.filter(Boolean))).sort()
-  const opzTipologia = useMemo(() => uniq(annunci.map((a) => a.tipologia)), [annunci])
-  // Solo le strutture visibili al profilo corrente (le riservate restano nascoste).
-  const opzStruttura = useMemo(() => uniq(annunci.filter(annuncioPerMe).map((a) => a.struttura)), [annunci])
+  // Opzioni distinte per ogni colonna filtrabile.
+  const options = useMemo(() => {
+    const o = {} as Record<FiltroKey, string[]>
+    FILTRO_KEYS.forEach((k) => { o[k] = Array.from(new Set(annunci.map((a) => rowVal(a, k)))).sort() })
+    return o
+  }, [annunci])
 
-  const filtered = useMemo(() => annunci.filter((a) => {
-    const perMe = annuncioPerMe(a)
-    const rs = perMe ? a.ragioneSociale : 'Riservato'
-    if (f.ragioneSociale && !rs.toLowerCase().includes(f.ragioneSociale.toLowerCase())) return false
-    if (f.periodo && !a.periodo.toLowerCase().includes(f.periodo.toLowerCase())) return false
-    if (f.tipologia && a.tipologia !== f.tipologia) return false
-    if (f.struttura && !(perMe && a.struttura === f.struttura)) return false
-    if (f.categoria && String(a.categoria) !== f.categoria) return false
-    if (f.genere && a.genere !== f.genere) return false
-    if (f.destinatario === 'me' && !perMe) return false
-    if (f.destinatario === 'nonme' && perMe) return false
-    return true
-  }), [annunci, f])
+  const toggleColFilter = (k: FiltroKey, v: string) => {
+    setColFilters((p) => ({ ...p, [k]: p[k].includes(v) ? p[k].filter((x) => x !== v) : [...p[k], v] }))
+    setPage(1)
+  }
+  const setAllColFilter = (k: FiltroKey, all: string[], sel: boolean) => {
+    setColFilters((p) => ({ ...p, [k]: sel ? all : [] }))
+    setPage(1)
+  }
+  const toggleSort = () => {
+    setSortDir((d) => (d === null ? 'desc' : d === 'desc' ? 'asc' : null))
+    setPage(1)
+  }
+
+  const filtered = useMemo(() => {
+    let out = annunci.filter((a) => FILTRO_KEYS.every((k) => {
+      const sel = colFilters[k]
+      return sel.length === 0 || sel.includes(rowVal(a, k))
+    }))
+    if (sortDir) {
+      out = [...out].sort((x, y) => sortDir === 'asc'
+        ? dataKey(x.pubblicazione) - dataKey(y.pubblicazione)
+        : dataKey(y.pubblicazione) - dataKey(x.pubblicazione))
+    }
+    return out
+  }, [annunci, colFilters, sortDir])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageItems = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [filtered, page],
+  )
+
+  // Header di colonna con filtro a imbuto.
+  const filterHead = (k: FiltroKey, label: string) => (
+    <ColFilter
+      label={label}
+      options={options[k]}
+      selected={colFilters[k]}
+      open={openFilter === k}
+      onToggleOpen={() => setOpenFilter(openFilter === k ? null : k)}
+      onToggle={(v) => toggleColFilter(k, v)}
+      onSelectAll={(s) => setAllColFilter(k, options[k], s)}
+    />
   )
 
   return (
@@ -82,60 +128,22 @@ export function AnnunciTable({ onBack, onMatchZone }: {
           <thead>
             <tr>
               <th className="ann__c-logo" aria-label="Logo" />
-              <th>Ragione sociale</th>
-              <th>Periodo</th>
-              <th>Tipologia</th>
+              <th>{filterHead('ragioneSociale', 'Ragione sociale')}</th>
+              <th>{filterHead('periodo', 'Periodo')}</th>
+              <th>{filterHead('tipologia', 'Tipologia')}</th>
               <th className="ann__c-num">Lotti</th>
-              <th>Struttura</th>
-              <th>Categoria</th>
+              <th>{filterHead('struttura', 'Struttura')}</th>
+              <th>{filterHead('categoria', 'Categoria')}</th>
               <th className="ann__c-num">Camere</th>
-              <th>Pubblicazione</th>
-              <th>Genere</th>
-              <th className="ann__c-center">Destinatario</th>
+              <th>
+                <button type="button" className={`ann__sort${sortDir ? ' ann__sort--active' : ''}`} onClick={toggleSort}>
+                  Pubblicazione
+                  <i className={`fa-solid ${sortDir === 'asc' ? 'fa-arrow-up-short-wide' : sortDir === 'desc' ? 'fa-arrow-down-wide-short' : 'fa-sort'}`} aria-hidden="true" />
+                </button>
+              </th>
+              <th>{filterHead('genere', 'Genere')}</th>
+              <th className="ann__c-center">{filterHead('destinatario', 'Destinatario')}</th>
               <th className="ann__c-center">Azioni</th>
-            </tr>
-            <tr className="ann__filters">
-              <th className="ann__c-logo" />
-              <th><input className="sib-input sib-input--dense ann__f" placeholder="Cerca…" value={f.ragioneSociale} onChange={(e) => setFilter('ragioneSociale', e.target.value)} /></th>
-              <th><input className="sib-input sib-input--dense ann__f" placeholder="Periodo…" value={f.periodo} onChange={(e) => setFilter('periodo', e.target.value)} /></th>
-              <th>
-                <select className="sib-select sib-select--dense ann__f" value={f.tipologia} onChange={(e) => setFilter('tipologia', e.target.value)}>
-                  <option value="">Tutte</option>
-                  {opzTipologia.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </th>
-              <th className="ann__c-num" />
-              <th>
-                <select className="sib-select sib-select--dense ann__f" value={f.struttura} onChange={(e) => setFilter('struttura', e.target.value)}>
-                  <option value="">Tutte</option>
-                  {opzStruttura.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </th>
-              <th>
-                <select className="sib-select sib-select--dense ann__f" value={f.categoria} onChange={(e) => setFilter('categoria', e.target.value)}>
-                  <option value="">Tutte</option>
-                  <option value="3">3 stelle</option>
-                  <option value="4">4 stelle</option>
-                  <option value="5">5 stelle</option>
-                </select>
-              </th>
-              <th className="ann__c-num" />
-              <th />
-              <th>
-                <select className="sib-select sib-select--dense ann__f" value={f.genere} onChange={(e) => setFilter('genere', e.target.value)}>
-                  <option value="">Tutti</option>
-                  <option value="Vendita">Vendita</option>
-                  <option value="Acquisto">Acquisto</option>
-                </select>
-              </th>
-              <th className="ann__c-center">
-                <select className="sib-select sib-select--dense ann__f" value={f.destinatario} onChange={(e) => setFilter('destinatario', e.target.value)}>
-                  <option value="">Tutti</option>
-                  <option value="me">Per me</option>
-                  <option value="nonme">Non per me</option>
-                </select>
-              </th>
-              <th className="ann__c-center" />
             </tr>
           </thead>
           <tbody>
@@ -203,7 +211,36 @@ export function AnnunciTable({ onBack, onMatchZone }: {
   )
 }
 
-// Modale "Dettaglio annuncio": tutti i dettagli del contratto dell'annuncio.
+// ─── Header di colonna con filtro a imbuto (scelte multiple) ─────────────────────
+function ColFilter({ label, options, selected, open, onToggleOpen, onToggle, onSelectAll }: {
+  label: string; options: string[]; selected: string[]; open: boolean
+  onToggleOpen: () => void; onToggle: (v: string) => void; onSelectAll: (s: boolean) => void
+}) {
+  const allSelected = options.length > 0 && options.every((o) => selected.includes(o))
+  const hasFilter = selected.length > 0
+  return (
+    <div className="ann-colfilter">
+      <span>{label}</span>
+      <button type="button" className={'ann-colfilter__btn' + (hasFilter ? ' ann-colfilter__btn--active' : '')} onClick={onToggleOpen} aria-label={`Filtra per ${label}`} disabled={options.length === 0}>
+        <i className="fa-solid fa-filter" aria-hidden="true" />
+      </button>
+      {open && (
+        <>
+          <div className="ann-colfilter__overlay" onClick={onToggleOpen} />
+          <div className="ann-colfilter__popup" onClick={(e) => e.stopPropagation()}>
+            <div className="ann-colfilter__title">scelte multiple</div>
+            <label className="ann-colfilter__option"><input type="checkbox" className="sib-checkbox" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} /><span>Tutti</span></label>
+            {options.map((opt) => (
+              <label key={opt} className="ann-colfilter__option"><input type="checkbox" className="sib-checkbox" checked={selected.includes(opt)} onChange={() => onToggle(opt)} /><span>{opt}</span></label>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Modale "Dettaglio annuncio" ─────────────────────────────────────────────────
 function DettaglioModal({ a, onClose }: { a: AnnuncioPubblicato; onClose: () => void }) {
   const perMe = annuncioPerMe(a)
   const mask = (v: string) => (perMe ? v : 'Riservato')
