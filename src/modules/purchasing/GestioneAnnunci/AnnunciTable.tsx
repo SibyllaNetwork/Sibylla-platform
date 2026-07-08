@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
@@ -114,17 +113,16 @@ export function AnnunciTable({ onBack, onMatchZone }: {
 
   return (
     <div className="ann">
-      <BtnBack onClick={onBack} />
-
-      <div className="ann__top">
-        <PageHeader
-          title="Annunci"
-          subtitle="Il centro di scambio dove le opportunità si incontrano, le relazioni crescono e il valore si moltiplica."
-        />
-        <button type="button" className="sib-btn sib-btn--secondary ann__matchzone" onClick={onMatchZone}>
-          <i className="fa-light fa-arrows-repeat" aria-hidden="true" /> Match zone
-        </button>
-      </div>
+      <PageHead
+        title="Annunci"
+        subtitle="Il centro di scambio dove le opportunità si incontrano, le relazioni crescono e il valore si moltiplica."
+        onBack={onBack}
+        actions={(
+          <button type="button" className="sib-btn sib-btn--secondary ann__matchzone" onClick={onMatchZone}>
+            <i className="fa-light fa-arrows-repeat" aria-hidden="true" /> Match zone
+          </button>
+        )}
+      />
 
       <div className="sib-table-wrap">
         <table className="sib-table ann__table">

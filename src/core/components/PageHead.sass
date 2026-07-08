@@ -1,0 +1,29 @@
+// ─── PAGE HEAD (header di pagina standard) ──────────────────────────────────────
+@use '../../styles/tokens' as *
+
+// Blocco header unico: gli ingombri interni sono fissi e NON dipendono dal gap
+// della root di pagina. Riferimento: Match Zone.
+.page-head
+  margin-bottom: 20px   // titolo → contenuto
+
+  // Pulsante Indietro sopra il titolo, distanza standard.
+  > .sib-btn--back
+    align-self: flex-start
+    margin-bottom: 14px
+
+  // Il margine inferiore è governato dal blocco .page-head, non dal PageHeader.
+  .page-header
+    margin-bottom: 0
+
+  &__row
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+    .page-header
+      min-width: 0
+
+  &__actions
+    flex: none

@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './ReportPickup.sass'
 
@@ -174,8 +173,7 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
 
   return (
     <div className="rp">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Report Pick-Up"
         subtitle="Evoluzione delle prenotazioni On The Books (OTB): camere vendute per data di arrivo confrontate tra le diverse date di osservazione."
       />

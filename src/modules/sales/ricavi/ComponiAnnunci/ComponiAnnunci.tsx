@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect, FlagBadge } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
@@ -249,8 +248,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="compann">
-      <BtnBack />
-      <PageHeader title="Componi annunci" subtitle="Configura i parametri, genera il contratto, modificalo e pubblicalo in Agorà." />
+      <PageHead title="Componi annunci" subtitle="Configura i parametri, genera il contratto, modificalo e pubblicalo in Agorà." />
 
       {/* ── Riga superiore: parametri (40%) + bacheca (60%) ───────────────── */}
       <div className="ca-top">
