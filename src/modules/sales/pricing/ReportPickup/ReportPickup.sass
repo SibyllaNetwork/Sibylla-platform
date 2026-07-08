@@ -202,9 +202,28 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
   text-transform: uppercase
   color: $text-disabled
 
+// Colonne finali bloccate a destra (Occ. % e Pick-Up)
 .rp__end-th
-  min-width: 66px
   color: $primary
+  position: sticky
+  background: var(--color-canvas, #f8fafc)
+  z-index: 3
+
+.rp__end-td
+  position: sticky
+  background: var(--color-surface)
+  z-index: 2
+
+.rp__end--occ
+  right: 88px
+  width: 156px
+  min-width: 156px
+  box-shadow: inset 6px 0 6px -6px rgba(0, 0, 0, 0.18)
+
+.rp__end--pu
+  right: 0
+  width: 88px
+  min-width: 88px
 
 // Colonne bloccate a sinistra
 .rp__sticky
@@ -289,9 +308,9 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
 
 .rp__occ-bar
   flex: 1
-  max-width: 54px
-  height: 6px
-  border-radius: 3px
+  max-width: 104px
+  height: 8px
+  border-radius: 4px
   background: alpha($primary, 0.12)
   overflow: hidden
 
@@ -351,3 +370,45 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
 
   i
     font-size: 10px
+
+// ── Slider overlay per scorrere i giorni ────────────────────────────────────────
+.rp__card--matrix
+  position: relative
+  padding-bottom: 30px
+
+.rp__slider
+  position: absolute
+  left: 50%
+  bottom: 12px
+  transform: translateX(-50%)
+  display: inline-flex
+  align-items: center
+  gap: 10px
+  padding: 6px 10px
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 999px
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14)
+  z-index: 4
+
+  input[type='range']
+    width: 240px
+    accent-color: var(--color-primary)
+    cursor: pointer
+
+.rp__slider-btn
+  width: 28px
+  height: 28px
+  flex: none
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 1px solid $border
+  border-radius: 50%
+  background: var(--color-surface)
+  color: $primary
+  cursor: pointer
+  font-size: 12px
+
+  &:hover
+    background: alpha($primary, 0.08)

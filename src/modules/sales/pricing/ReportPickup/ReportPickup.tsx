@@ -49,6 +49,29 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
   const [hoverCol, setHoverCol] = useState<number | null>(null)
   const hotelRef = useRef<HTMLDivElement>(null)
 
+  // Scorrimento orizzontale dei giorni (osservazioni) via slider + pulsanti.
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [scrollPct, setScrollPct] = useState(0)
+  const applyScroll = (pct: number) => {
+    const el = wrapRef.current; if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    const p = Math.min(1, Math.max(0, pct))
+    if (max > 0) el.scrollLeft = max * p
+    setScrollPct(p)
+  }
+  const onWrapScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget
+    const max = el.scrollWidth - el.clientWidth
+    setScrollPct(max > 0 ? el.scrollLeft / max : 0)
+  }
+  const stepScroll = (dir: number) => {
+    const el = wrapRef.current; if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    if (max <= 0) return
+    el.scrollLeft = Math.min(max, Math.max(0, el.scrollLeft + dir * 260))
+    setScrollPct(el.scrollLeft / max)
+  }
+
   useEffect(() => {
     const h = (e: MouseEvent) => { if (hotelRef.current && !hotelRef.current.contains(e.target as Node)) setHotelOpen(false) }
     document.addEventListener('mousedown', h)
@@ -153,7 +176,7 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
     <div className="rp">
       <BtnBack />
       <PageHeader
-        title="Report Pick-Up — Camere Vendute"
+        title="Report Pick-Up"
         subtitle="Evoluzione delle prenotazioni On The Books (OTB): camere vendute per data di arrivo confrontate tra le diverse date di osservazione."
       />
 
@@ -200,10 +223,12 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
       </div>
 
       {/* ── Matrice Pick-Up ─────────────────────────────────────────────────── */}
-      <section className="rp__card">
+      <section className="rp__card rp__card--matrix">
         <h2 className="rp__card-title">Matrice Pick-Up OTB · camere per data di arrivo × data di osservazione</h2>
-        <p className="rp__hint"><i className="fa-light fa-arrows-left-right" /> Scorri orizzontalmente per consultare le date di osservazione precedenti e successive</p>
-        <div className="rp__matrix-wrap">
+        <p className="rp__note">
+          <i className="fa-light fa-circle-info" /> Camere Vendute = somma camere delle prenotazioni con Data Creazione ≤ Data Osservazione e non cancellate entro tale data, per la Data Arrivo. Fonte: prenotazioni On The Books. Le colonne Data arrivo / Cam. disp. e Occ. % / Pick-Up restano fisse; scorri i giorni con lo slider.
+        </p>
+        <div className="rp__matrix-wrap" ref={wrapRef} onScroll={onWrapScroll}>
           <table className="rp__matrix" onMouseLeave={() => setHoverCol(null)}>
             <thead>
               <tr>
@@ -216,8 +241,8 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
                     <span className="rp__obs-wd">{s.wd}</span>{s.label}
                   </th>
                 ))}
-                <th className="rp__num rp__end-th">Occ. %</th>
-                <th className="rp__num rp__end-th">Pick-Up</th>
+                <th className="rp__num rp__end-th rp__end--occ">Occ. %</th>
+                <th className="rp__num rp__end-th rp__end--pu">Pick-Up</th>
               </tr>
             </thead>
             <tbody>
@@ -247,22 +272,31 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
                         </td>
                       )
                     })}
-                    <td className="rp__num rp__end-td">
+                    <td className="rp__num rp__end-td rp__end--occ">
                       <span className="rp__occ">
                         <span className="rp__occ-bar"><span className="rp__occ-fill" style={{ width: `${Math.min(100, occPct)}%` }} /></span>
                         <span className="rp__occ-num">{occPct.toFixed(0)}%</span>
                       </span>
                     </td>
-                    <td className={`rp__num rp__end-td rp__pu rp__pu--${pu >= 0 ? 'up' : 'down'}`}>{pu > 0 ? '+' : ''}{fmtNum(pu)}</td>
+                    <td className={`rp__num rp__end-td rp__end--pu rp__pu rp__pu--${pu >= 0 ? 'up' : 'down'}`}>{pu > 0 ? '+' : ''}{fmtNum(pu)}</td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
-        <p className="rp__note">
-          <i className="fa-light fa-circle-info" /> Camere Vendute = somma camere delle prenotazioni con Data Creazione ≤ Data Osservazione e non cancellate entro tale data, per la Data Arrivo. Fonte: prenotazioni On The Books.
-        </p>
+
+        {/* Slider di scorrimento giorni (overlay) con pulsanti sinistra/destra */}
+        <div className="rp__slider">
+          <button type="button" className="rp__slider-btn" onClick={() => stepScroll(-1)} aria-label="Giorni precedenti">
+            <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+          </button>
+          <input type="range" min={0} max={1000} step={1} value={Math.round(scrollPct * 1000)}
+            onChange={(e) => applyScroll(Number(e.target.value) / 1000)} aria-label="Scorri i giorni di osservazione" />
+          <button type="button" className="rp__slider-btn" onClick={() => stepScroll(1)} aria-label="Giorni successivi">
+            <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+          </button>
+        </div>
       </section>
 
       {/* ── KPI (alla data di osservazione corrente) ────────────────────────── */}
