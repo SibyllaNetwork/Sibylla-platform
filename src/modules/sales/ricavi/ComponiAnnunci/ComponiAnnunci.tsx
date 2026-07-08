@@ -11,6 +11,7 @@ import {
   type Contratto, type Segmento, type ContrattoInput,
 } from './contratto'
 import { scaricaContrattoPdf } from './contrattoPdf'
+import { useAnnunciStore, type AnnuncioPubblicato } from '../../../../store/useAnnunciStore'
 import './ComponiAnnunci.sass'
 
 type ConfirmFn = (o: { title: string; message: string; confirmLabel?: string; danger?: boolean }) => Promise<boolean>
@@ -50,6 +51,7 @@ interface RigaBacheca {
   quantita: string
   stato: StatoBacheca
   contratto?: Contratto
+  categoria?: string   // stelle (3/4/5) per la pubblicazione in Agorà
 }
 
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
@@ -92,6 +94,7 @@ const BACHECA_INIT: RigaBacheca[] = [
 
 export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => void }) {
   const confirm = useConfirmStore((s) => s.confirm)
+  const pubblicaAnnuncio = useAnnunciStore((s) => s.pubblica)
 
   const [params, setParams] = useState<Params>({
     tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: '4',
@@ -159,6 +162,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       quantita: `${params.quantita} ${params.quantita === 1 ? 'Lotto' : 'Lotti'}`,
       stato: 'In bozza',
       contratto,
+      categoria: params.tipo === 'Acquisto' ? params.categoriaLivello : params.categoria,
     }
     setBacheca((prev) => {
       if (editingBachecaId != null) return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id, stato: b.stato } : b)
@@ -203,8 +207,34 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const toggleStar = (id: number) =>
     setBacheca((prev) => prev.map((b) => b.id === id ? { ...b, preferito: !b.preferito } : b))
 
-  const pubblica = (id: number) =>
+  // Costruisce il record da pubblicare nella pagina Annunci (Agorà).
+  const annuncioDaRiga = (b: RigaBacheca): AnnuncioPubblicato => {
+    const c = b.contratto
+    const lotti = parseInt(b.quantita, 10) || 1
+    const d = new Date()
+    const p2 = (n: number) => String(n).padStart(2, '0')
+    const dest = c?.tourOperator?.trim()
+    return {
+      id: `ca-${b.id}`,
+      logo: c?.logo || undefined,
+      ragioneSociale: c?.cliente?.trim() || 'G.A.R-SRL',
+      periodo: b.periodo,
+      tipologia: c?.tariffe?.[0]?.base || 'Base doppia',
+      lotti,
+      struttura: c?.struttura || '—',
+      categoria: Number(b.categoria) || 4,
+      camere: lotti * 25,
+      pubblicazione: `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`,
+      genere: b.tipologia,
+      destinatario: !dest || dest === '—' ? 'Tutti' : dest,
+    }
+  }
+
+  const pubblica = (id: number) => {
     setBacheca((prev) => prev.map((b) => b.id === id ? { ...b, stato: 'Pubblicato' } : b))
+    const b = bacheca.find((x) => x.id === id)
+    if (b) pubblicaAnnuncio(annuncioDaRiga(b))
+  }
 
   const eliminaBacheca = async (id: number) => {
     if (await confirm({ title: 'Elimina annuncio', message: 'Eliminare questo annuncio dalla bacheca?', confirmLabel: 'Elimina', danger: true })) {

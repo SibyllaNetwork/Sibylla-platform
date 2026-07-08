@@ -1,0 +1,129 @@
+// ─── ANNUNCI (Agorà) — tabella standard piattaforma ─────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.ann
+  display: flex
+  flex-direction: column
+  gap: 16px
+  font-size: 13px
+
+  > .sib-btn--back
+    align-self: flex-start
+
+.ann__top
+  display: flex
+  align-items: flex-start
+  justify-content: space-between
+  gap: 16px
+
+.ann__matchzone
+  flex: none
+
+.ann__table
+  th, td
+    vertical-align: middle
+
+.ann__c-logo
+  width: 46px
+
+.ann__c-num
+  text-align: right
+  white-space: nowrap
+
+.ann__c-center
+  text-align: center
+
+.ann__nowrap
+  white-space: nowrap
+
+.ann__logo
+  width: 34px
+  height: 26px
+  border-radius: 5px
+  object-fit: contain
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 1px solid $border
+  background: #fff
+
+  &--ph
+    color: $text-inactive
+    font-size: 13px
+
+.ann__stars
+  color: $accent
+  font-size: 11px
+  letter-spacing: 1px
+  white-space: nowrap
+
+.ann__masked
+  color: $text-disabled
+  font-style: italic
+
+// Chip Genere: differenzia vendita (verde) e acquisto (blu)
+.ann__genere
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 11px
+  font-weight: 600
+  padding: 2px 9px
+  border-radius: 999px
+  border: 1px solid transparent
+  white-space: nowrap
+
+  i
+    font-size: 10px
+
+  &--vendita
+    color: $success
+    background: alpha($success, 0.12)
+    border-color: alpha($success, 0.35)
+
+  &--acquisto
+    color: $primary
+    background: alpha($primary, 0.10)
+    border-color: alpha($primary, 0.30)
+
+.ann__dest
+  color: $primary
+  font-size: 14px
+
+  &--off
+    color: $text-disabled
+
+.ann__act
+  border: none
+  background: transparent
+  color: $primary
+  cursor: pointer
+  font-size: 14px
+  padding: 4px
+
+  &:hover
+    color: $primary-700
+
+// Accento sottile a sinistra per differenziare vendita/acquisto
+.ann__row
+  td:first-child
+    border-left: 3px solid transparent
+
+  &--vendita td:first-child
+    border-left-color: alpha($success, 0.6)
+
+  &--acquisto td:first-child
+    border-left-color: alpha($primary, 0.6)
+
+  // Annuncio non destinato al profilo corrente: dati identificativi in sordina
+  &--reserved
+    color: $text-inactive
+
+.ann__pager
+  display: flex
+  justify-content: center
+
+.ann__empty
+  padding: 40px
+  text-align: center
+  color: $text-inactive
