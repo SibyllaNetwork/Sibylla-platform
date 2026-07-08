@@ -553,6 +553,11 @@
   gap: $space-sm
   margin-top: $space-lg
 
+  // Due azioni contrapposte, centrate (es. Cambio camera)
+  &--split
+    justify-content: center
+    gap: 40px
+
 .oc-confirm__msg
   font-size: 14px
   color: $text-active
@@ -620,47 +625,63 @@
   background: $primary-50
 
 // ── Cambio camera ──────────────────────────────────────────────────────────────
-.oc-cambio
+// ── Cambio camera (confronto camera attuale vs proposta, per notte) ──
+.oc-cc
   display: flex
   flex-direction: column
   gap: $space-lg
 
-  &__empty
-    text-align: center
-    color: $link
-    font-size: 13px
-    font-weight: 600
-    padding: $space-xl 0
-
-  &__tariffe
+  &__cols
     display: grid
     grid-template-columns: 1fr 1fr
-    gap: $space-lg
+    gap: 28px
 
-  &__tariffa
-    display: flex
-    flex-direction: column
+    @media (max-width: 720px)
+      grid-template-columns: 1fr
+
+  &__col-head
+    font-size: 13px
+    color: $text-inactive
+    margin-bottom: 8px
+
+    strong
+      color: $text-active
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 13px
+
+    th
+      text-align: left
+      font-weight: 600
+      color: $text-inactive
+      padding: 4px 6px
+      border-bottom: 1px solid $border
+
+    td
+      padding: 8px 6px
+      color: $text-active
+      border-bottom: 1px solid $border
+
+    tbody tr:nth-child(even) td
+      background: alpha($primary, 0.03)
+
+  &__imp-h
+    text-align: right
+
+  &__imp
+    display: inline-flex
+    align-items: center
     gap: 4px
-    padding: $space-md
-    border: 1px solid $border
-    border-radius: $radius-md
-    background: var(--color-bg)
+    justify-content: flex-end
 
-  &__tariffa-label
-    font-size: 10px
-    font-weight: 700
-    color: $text-disabled
-    text-transform: uppercase
-    letter-spacing: 0.4px
+  &__imp-input
+    width: 74px
+    text-align: right
 
-  &__tariffa-val
-    font-family: $font-heading
-    font-size: 18px
-    font-weight: 700
-    color: $primary
-
-    &--new
-      color: $success
+  &__imp-eur
+    color: $text-inactive
 
 // ── Modifica soggiorno ───────────────────────────────────────────────────────────
 .oc-modsogg

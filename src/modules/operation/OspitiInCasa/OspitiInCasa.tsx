@@ -104,6 +104,26 @@ const CAMERE_DISPONIBILI = ['210', '212', '214', '305', '410']
 const TARIFFA_CAMERA: Record<string, number> = {
   '210': 198.00, '212': 224.46, '214': 210.50, '305': 245.90, '410': 188.00,
 }
+// Camere selezionabili nel Cambio camera, con tipologia (per l'etichetta).
+const CAMERE_INFO: { n: string; tipo: string }[] = [
+  { n: '210', tipo: 'DOPPIA STANDARD' },
+  { n: '212', tipo: 'DOPPIA SUPERIOR' },
+  { n: '214', tipo: 'MATRIMONIALE ECONOMY' },
+  { n: '305', tipo: 'TRIPLA COMFORT' },
+  { n: '410', tipo: 'SUITE' },
+]
+// Notti (dd/mm/yyyy) del soggiorno: da arrivo (incluso) a partenza (esclusa).
+const nottiSoggiorno = (arrivo: string, partenza: string): string[] => {
+  const a = parseIt(arrivo), p = parseIt(partenza)
+  const out: string[] = []
+  let t = a.getTime(), guard = 0
+  while (t < p.getTime() && guard < 60) {
+    const d = new Date(t)
+    out.push(`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`)
+    t += 86400000; guard += 1
+  }
+  return out.length ? out : [arrivo]
+}
 
 export default function OspitiInCasa({ navigate }: { navigate: (p: string) => void }) {
   const [data, setData] = useState<Data>(FALLBACK)
@@ -558,7 +578,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
 
       {/* ─── Modal Cambio camera ────────────────────────────────────────── */}
       {cambioTarget && (
-        <CambioCameraModal ospite={cambioTarget} onClose={() => setCambioTarget(null)} onApply={applicaCambioCamera} />
+        <CambioCameraModal ospite={cambioTarget} ospiti={data.ospiti} onClose={() => setCambioTarget(null)} onApply={applicaCambioCamera} />
       )}
 
       {/* ─── Modal Trasferimento ospite ─────────────────────────────────── */}
@@ -882,45 +902,74 @@ function ScadutiModal({ target, list, onClose, onCheckout }: {
 
 // ─── CAMBIO CAMERA MODAL ────────────────────────────────────────────────────────
 
-function CambioCameraModal({ ospite, onClose, onApply }: {
-  ospite: Ospite; onClose: () => void; onApply: (camera: string) => void
+function CambioCameraModal({ ospite, ospiti, onClose, onApply }: {
+  ospite: Ospite; ospiti: Ospite[]; onClose: () => void; onApply: (camera: string) => void
 }) {
-  const [camera, setCamera] = useState('')
-  const opzioni = CAMERE_DISPONIBILI.filter((c) => c !== ospite.camera)
-  const tariffaAttuale = TARIFFA_CAMERA[ospite.camera]
-  const tariffaNuova   = camera ? TARIFFA_CAMERA[camera] : null
+  const opzioni = CAMERE_INFO.filter((c) => c.n !== ospite.camera)
+  const [camera, setCamera] = useState(opzioni[0]?.n ?? '')
+  const notti = useMemo(() => nottiSoggiorno(ospite.arrivo, ospite.partenza), [ospite])
+  const persone = ospiti.filter((o) => o.camera === ospite.camera && o.prenotazioneNum === ospite.prenotazioneNum).length || 2
+  const rateAttuale = Math.round((80 + (Number(ospite.camera) % 20) * 1.37) * 100) / 100
+  const rateProposta = camera ? (TARIFFA_CAMERA[camera] ?? rateAttuale) : rateAttuale
+  const eur = (n: number) => `${n.toFixed(2).replace('.', ',')} €`
+
+  const [prezzi, setPrezzi] = useState<string[]>([])
+  useEffect(() => {
+    setPrezzi(notti.map(() => rateProposta.toFixed(2).replace('.', ',')))
+  }, [camera, notti]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Modal open onClose={onClose} title={`Cambio camera ${ospite.camera}`} size="md">
-      <div className="oc-cambio">
+    <Modal open onClose={onClose} title={`Cambio camera ${ospite.camera}`} size="lg">
+      <div className="oc-cc">
         <SelectField
           name="cambio-camera"
           label="Seleziona Camera"
           value={camera}
-          placeholder="Seleziona"
           onChange={(e) => setCamera(e.target.value)}
-          options={opzioni.map((c) => ({ value: c, label: `Camera ${c}` }))}
+          options={opzioni.map((c) => ({ value: c.n, label: `${c.n} - ${c.tipo}` }))}
         />
-        {!camera ? (
-          <p className="oc-cambio__empty">Seleziona una camera per visualizzare le tariffe.</p>
-        ) : (
-          <div className="oc-cambio__tariffe">
-            <div className="oc-cambio__tariffa">
-              <span className="oc-cambio__tariffa-label">Tariffa attuale · Camera {ospite.camera}</span>
-              <span className="oc-cambio__tariffa-val">{tariffaAttuale != null ? `${tariffaAttuale.toFixed(2)} €` : '—'}</span>
-            </div>
-            <div className="oc-cambio__tariffa">
-              <span className="oc-cambio__tariffa-label">Nuova tariffa · Camera {camera}</span>
-              <span className="oc-cambio__tariffa-val oc-cambio__tariffa-val--new">{tariffaNuova != null ? `${tariffaNuova.toFixed(2)} €` : '—'}</span>
-            </div>
+
+        <div className="oc-cc__cols">
+          <div className="oc-cc__col">
+            <div className="oc-cc__col-head">Camera attuale: <strong>{ospite.camera}</strong></div>
+            <table className="oc-cc__table">
+              <thead><tr><th>Data</th><th>Persone</th><th className="oc-cc__imp-h">Importo</th></tr></thead>
+              <tbody>
+                {notti.map((d, i) => (
+                  <tr key={i}><td>{d}</td><td>{persone}</td><td className="oc-cc__imp-h">{eur(rateAttuale)}</td></tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+
+          <div className="oc-cc__col">
+            <div className="oc-cc__col-head">Camera proposta: <strong>{camera || '—'}</strong></div>
+            <table className="oc-cc__table">
+              <thead><tr><th>Data</th><th>Persone</th><th className="oc-cc__imp-h">Importo</th></tr></thead>
+              <tbody>
+                {notti.map((d, i) => (
+                  <tr key={i}>
+                    <td>{d}</td>
+                    <td>{persone} + 0</td>
+                    <td className="oc-cc__imp-h">
+                      <span className="oc-cc__imp">
+                        <input className="sib-input oc-cc__imp-input" value={prezzi[i] ?? ''}
+                          onChange={(e) => setPrezzi((p) => p.map((x, j) => (j === i ? e.target.value : x)))} />
+                        <span className="oc-cc__imp-eur">€</span>
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div className="oc-modal-foot">
-        <button type="button" className="sib-btn sib-btn--secondary" disabled={!camera} onClick={() => onApply(camera)}>
+      <div className="oc-modal-foot oc-modal-foot--split">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={() => onApply(camera)}>
           Mantieni prezzi attuali
         </button>
-        <button type="button" className="sib-btn sib-btn--primary" disabled={!camera} onClick={() => onApply(camera)}>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={() => onApply(camera)}>
           Accetta nuovi prezzi
         </button>
       </div>
