@@ -41,6 +41,29 @@ async function logoPng(): Promise<{ data: string; ratio: number } | null> {
   }
 }
 
+// Logo struttura (data URL di qualsiasi formato) → PNG normalizzato + dimensioni
+// adattate a un riquadro max, preservando le proporzioni.
+async function rasterizeLogo(dataUrl: string, maxW: number, maxH: number): Promise<{ data: string; w: number; h: number } | null> {
+  try {
+    const img = new Image()
+    img.src = dataUrl
+    await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error('logo')) })
+    const ratio = img.width && img.height ? img.width / img.height : 1
+    let w = maxW, h = w / ratio
+    if (h > maxH) { h = maxH; w = h * ratio }
+    const scale = 2
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(w * scale))
+    canvas.height = Math.max(1, Math.round(h * scale))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    return { data: canvas.toDataURL('image/png'), w, h }
+  } catch {
+    return null
+  }
+}
+
 const dash = (s: string) => (s && s.trim() ? s : '—')
 
 // ISO (yyyy-mm-dd) → gg/mm/aaaa; stringa vuota se non valida.
@@ -93,11 +116,16 @@ async function buildDoc(c: Contratto): Promise<jsPDF> {
   pdf.setTextColor(...rgb(NAVY_TINT))
   pdf.text(`Segmento: ${c.segmento}`, margin, margin + 36)
 
-  // Numero / data a destra
+  // Logo struttura (se caricato) in alto a destra, nella fascia intestazione.
+  const strLogo = c.logo ? await rasterizeLogo(c.logo, 120, 30) : null
+  if (strLogo) pdf.addImage(strLogo.data, 'PNG', pw - margin - strLogo.w, 12, strLogo.w, strLogo.h)
+
+  // Numero / data a destra (sotto il logo quando presente)
+  const metaY = strLogo ? margin + 12 : margin - 2
   pdf.setFontSize(9)
   pdf.setTextColor(...rgb(NAVY_TINT))
-  pdf.text(`N. ${dash(c.numero)}`, pw - margin, margin - 2, { align: 'right' })
-  pdf.text(`Data: ${dash(c.data)}`, pw - margin, margin + 13, { align: 'right' })
+  pdf.text(`N. ${dash(c.numero)}`, pw - margin, metaY, { align: 'right' })
+  pdf.text(`Data: ${dash(c.data)}`, pw - margin, metaY + 14, { align: 'right' })
 
   y = headH + 22
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
@@ -9,7 +9,7 @@ import {
   buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
 } from './contratto'
-import { scaricaContrattoPdf, contrattoPdfObjectUrl } from './contrattoPdf'
+import { scaricaContrattoPdf } from './contrattoPdf'
 import './ComponiAnnunci.sass'
 
 type ConfirmFn = (o: { title: string; message: string; confirmLabel?: string; danger?: boolean }) => Promise<boolean>
@@ -49,7 +49,6 @@ interface RigaBacheca {
   quantita: string
   stato: StatoBacheca
   contratto?: Contratto
-  pdfUrl?: string   // object URL della versione PDF, rigenerata a ogni salvataggio
 }
 
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
@@ -160,40 +159,33 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       stato: 'In bozza',
       contratto,
     }
-    const targetId = editingBachecaId ?? (Math.max(0, ...bacheca.map((b) => b.id)) + 1)
     setBacheca((prev) => {
       if (editingBachecaId != null) return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id, stato: b.stato } : b)
-      return [{ id: targetId, ...riga }, ...prev]
+      const id = Math.max(0, ...prev.map((b) => b.id)) + 1
+      return [{ id, ...riga }, ...prev]
     })
-    // Genera/aggiorna la versione PDF del documento (rifatta a ogni modifica).
-    aggiornaPdf(targetId, contratto)
     setContratto(null)
     setEditingBachecaId(null)
     // Dopo il salvataggio: mostra l'anteprima pronta da stampare del documento.
     setAnteprima(contratto)
   }
 
-  // Rigenera l'object URL del PDF per l'annuncio indicato (revoca il precedente).
-  const aggiornaPdf = async (id: number, c: Contratto) => {
-    try {
-      const url = await contrattoPdfObjectUrl(c)
-      setBacheca((prev) => prev.map((b) => {
-        if (b.id !== id) return b
-        if (b.pdfUrl) URL.revokeObjectURL(b.pdfUrl)
-        return { ...b, pdfUrl: url }
-      }))
-    } catch { /* generazione PDF non bloccante */ }
-  }
-
-  // Anteprima stampabile (sola lettura) di un annuncio già in bacheca.
-  const apriAnteprima = (b: RigaBacheca) => {
-    setAnteprima(b.contratto ?? buildContratto(contrattoInput({
+  // Contratto associato a un annuncio: quello salvato o il template rigenerato
+  // (per i seed senza documento). Usato da anteprima e download PDF, così il
+  // PDF riflette SEMPRE lo stato corrente del contratto.
+  const contrattoDi = (b: RigaBacheca): Contratto =>
+    b.contratto ?? buildContratto(contrattoInput({
       segmento: b.segmento,
       periodo: b.periodo,
       numero: `CTR/${b.periodo.replace(/\s/g, '')}`,
       quantita: parseInt(b.quantita, 10) || params.quantita,
-    })))
-  }
+    }))
+
+  // Anteprima stampabile (sola lettura) di un annuncio già in bacheca.
+  const apriAnteprima = (b: RigaBacheca) => setAnteprima(contrattoDi(b))
+
+  // Scarica il PDF pronto del contratto (generato al momento → sempre aggiornato).
+  const scaricaPdf = (b: RigaBacheca) => { scaricaContrattoPdf(contrattoDi(b)) }
 
   const apriContratto = (b: RigaBacheca) => {
     setEditingBachecaId(b.id)
@@ -293,10 +285,21 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
                   valueFrom={params.dataDa} valueTo={params.dataA}
                   onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                <InputField label="Quantità" name="quantita" type="number" className="ca-field--num" value={params.quantita} onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+                <InputField label="Quantità" name="quantita" type="number" className="ca-field--num"
+                  min={1} max={params.tipo !== 'Acquisto' ? params.quantitaMax : undefined}
+                  hint={params.tipo !== 'Acquisto' ? `Max ${params.quantitaMax}` : undefined}
+                  value={params.quantita}
+                  onChange={(e) => {
+                    const v = Number(e.target.value) || 0
+                    set('quantita', params.tipo !== 'Acquisto' ? Math.min(v, params.quantitaMax) : v)
+                  }} />
                 {params.tipo !== 'Acquisto' && (
                   <>
-                    <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--nummax" value={params.quantitaMax} onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
+                    <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--nummax" min={1} value={params.quantitaMax}
+                      onChange={(e) => {
+                        const v = Number(e.target.value) || 0
+                        setParams((p) => ({ ...p, quantitaMax: v, quantita: Math.min(p.quantita, v) }))
+                      }} />
                     <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
                       options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
                     <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" className="ca-field--sm" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
@@ -375,6 +378,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   </button>
                   <button type="button" className="ca-item__act" title="Modifica contratto" onClick={() => apriContratto(b)}>
                     <i className="fa-light fa-file-pen" />
+                  </button>
+                  <button type="button" className="ca-item__act" title="Scarica PDF del contratto" onClick={() => scaricaPdf(b)}>
+                    <i className="fa-light fa-file-pdf" />
                   </button>
                   <button type="button" className="ca-item__act ca-item__act--danger" title="Elimina" onClick={() => eliminaBacheca(b.id)}>
                     <i className="fa-light fa-trash" />
@@ -472,6 +478,41 @@ function DocDate({ value, onChange, className }: {
   )
 }
 
+// Upload del logo struttura (data URL): click sul riquadro per caricare
+// un'immagine; una volta caricata è sostituibile o rimovibile.
+function LogoUpload({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const pick = () => inputRef.current?.click()
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = () => onChange(typeof reader.result === 'string' ? reader.result : '')
+      reader.readAsDataURL(file)
+    }
+    e.target.value = ''
+  }
+  return (
+    <div className={`ca-sheet__logo${value ? ' ca-sheet__logo--set' : ''}`}>
+      {value ? (
+        <>
+          <img src={value} alt="Logo struttura" className="ca-sheet__logo-img" />
+          <div className="ca-sheet__logo-actions">
+            <button type="button" title="Cambia logo" onClick={pick}><i className="fa-light fa-arrows-rotate" /></button>
+            <button type="button" title="Rimuovi logo" onClick={() => onChange('')}><i className="fa-light fa-trash" /></button>
+          </div>
+        </>
+      ) : (
+        <button type="button" className="ca-sheet__logo-add" onClick={pick}>
+          <i className="fa-light fa-image" />
+          <span>Carica logo</span>
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" className="ca-sheet__logo-input" onChange={onFile} />
+    </div>
+  )
+}
+
 // Opzioni riusabili per le select guidate del documento.
 const OPT = (arr: string[]) => arr.map((v) => ({ value: v, label: v }))
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
@@ -551,7 +592,7 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
         {/* Intestazione: logo struttura, titolo, segmento, numero/data */}
         <header className="ca-sheet__head">
           <div className="ca-sheet__head-left">
-            <div className="ca-sheet__logo">Logo struttura</div>
+            <LogoUpload value={contratto.logo ?? ''} onChange={(v) => onPatch({ logo: v })} />
             <div>
               <div className="ca-sheet__kicker">Condizioni di vendita — Mercato gruppi</div>
               <input className="ca-doc-input ca-sheet__struttura-input" value={contratto.struttura}
@@ -756,7 +797,9 @@ function ContrattoStampa({ contratto, onChiudi }: {
         <div className="ca-stampa__sheet ca-sheet ca-sheet--ro">
           <header className="ca-sheet__head">
             <div className="ca-sheet__head-left">
-              <div className="ca-sheet__logo">Logo struttura</div>
+              <div className={`ca-sheet__logo${c.logo ? ' ca-sheet__logo--set' : ''}`}>
+                {c.logo ? <img src={c.logo} alt="Logo struttura" className="ca-sheet__logo-img" /> : 'Logo struttura'}
+              </div>
               <div>
                 <div className="ca-sheet__kicker">Condizioni di vendita — Mercato gruppi</div>
                 <div className="ca-sheet__struttura">{c.struttura || '—'}</div>

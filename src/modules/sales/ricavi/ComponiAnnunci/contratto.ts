@@ -21,6 +21,7 @@ export interface Contratto {
   tipo: TipoContratto
   segmento: Segmento
   struttura: string
+  logo: string                  // logo struttura (data URL), '' se assente
   cliente: string
   tourOperator: string
   periodo: string
@@ -109,6 +110,7 @@ export function buildContratto(p: ContrattoInput): Contratto {
     tipo: p.tipo,
     segmento: p.segmento,
     struttura: p.struttura,
+    logo: '',
     cliente: p.cliente ?? '',
     tourOperator: p.tourOperator,
     periodo: p.periodo,

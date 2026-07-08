@@ -309,6 +309,7 @@
     min-width: 0
 
   &__logo
+    position: relative
     flex: none
     width: 96px
     height: 52px
@@ -324,6 +325,76 @@
     text-transform: uppercase
     letter-spacing: 0.04em
     color: rgba(255, 255, 255, 0.85)
+
+    // Con logo caricato: mostra l'immagine su fondo bianco, niente tratteggio
+    &--set
+      border-style: solid
+      border-color: rgba(255, 255, 255, 0.35)
+      background: #fff
+      padding: 3px
+
+  &__logo-img
+    max-width: 100%
+    max-height: 100%
+    object-fit: contain
+
+  &__logo-input
+    display: none
+
+  // Pulsante "Carica logo" (stato vuoto): riempie il riquadro
+  &__logo-add
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 3px
+    width: 100%
+    height: 100%
+    border: none
+    background: transparent
+    color: rgba(255, 255, 255, 0.85)
+    font-size: 9px
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    cursor: pointer
+
+    i
+      font-size: 15px
+
+    &:hover
+      color: #fff
+
+  // Azioni (cambia/rimuovi) sovrapposte, visibili all'hover
+  &__logo-actions
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    border-radius: 7px
+    background: rgba(15, 23, 42, 0.55)
+    opacity: 0
+    transition: opacity 0.12s
+
+    button
+      width: 22px
+      height: 22px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      border: none
+      border-radius: 6px
+      background: rgba(255, 255, 255, 0.92)
+      color: $primary
+      font-size: 10px
+      cursor: pointer
+
+      &:hover
+        background: #fff
+
+  &__logo--set:hover &__logo-actions
+    opacity: 1
 
   &__struttura-input
     font-family: $font-heading
