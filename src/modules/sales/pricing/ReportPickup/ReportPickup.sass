@@ -166,9 +166,12 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
     border-bottom: 1px solid $border
     padding: 7px 10px
 
-  // Crosshair: evidenzia riga (hover) e colonna (is-hovercol)
-  tbody tr:hover .rp__sticky
-    background: alpha($primary, 0.07)
+  // Crosshair: evidenzia riga (hover) e colonna (is-hovercol).
+  // Le colonne bloccate usano un colore OPACO (non alpha) per non lasciar
+  // trasparire i dati che scorrono sotto.
+  tbody tr:hover .rp__sticky,
+  tbody tr:hover .rp__end-td
+    background: $primary-50
 
   .is-hovercol
     outline: 2px solid alpha($primary, 0.45)
