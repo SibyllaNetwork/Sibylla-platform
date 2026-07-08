@@ -13,6 +13,7 @@ import { useEfficienzaStore, deltaEur, deltaPct } from '../../../store/useEffici
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
 import { toast } from '../../../core/components/Toast/useToast'
+import { exportReportPickupPdf } from './reportPickupPdf'
 import './CentroNotifiche.sass'
 
 interface ExtraBookingInfo {
@@ -535,7 +536,14 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                     <button
                       type="button"
                       className="sib-btn sib-btn--secondary"
-                      onClick={() => toast.success('Download del report Pickup avviato.', 'Report Pickup')}
+                      onClick={async () => {
+                        try {
+                          await exportReportPickupPdf()
+                          toast.success('Download del report Pickup avviato.', 'Report Pickup')
+                        } catch {
+                          toast.error('Impossibile generare il PDF del report.', 'Report Pickup')
+                        }
+                      }}
                     >
                       <i className="fa-light fa-file-arrow-down" aria-hidden="true" /> Scarica report PickUp
                     </button>
