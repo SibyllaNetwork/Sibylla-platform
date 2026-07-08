@@ -161,8 +161,8 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                       : <span className="ann__logo ann__logo--ph"><i className="fa-light fa-hotel" aria-hidden="true" /></span>}
                   </td>
                   <td>{perMe ? <TruncatedText text={a.ragioneSociale} className="ann__trunc" /> : <span className="ann__masked">Riservato</span>}</td>
-                  <td className="ann__nowrap">{a.periodo}</td>
-                  <td>{a.tipologia}</td>
+                  <td><TruncatedText text={a.periodo} className="ann__trunc" /></td>
+                  <td><TruncatedText text={a.tipologia} className="ann__trunc" /></td>
                   <td className="ann__c-num">{a.lotti}</td>
                   <td>{perMe ? <TruncatedText text={a.struttura} className="ann__trunc" /> : <span className="ann__masked">Riservato</span>}</td>
                   <td><Stelle n={a.categoria} /></td>

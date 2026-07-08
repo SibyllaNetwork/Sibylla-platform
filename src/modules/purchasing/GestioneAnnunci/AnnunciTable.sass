@@ -14,20 +14,51 @@
 
 // Colonne testuali su una riga (ellissi + tooltip via TruncatedText)
 .ann__trunc
-  max-width: 190px
+  max-width: 100%
 
-// Sotto il laptop (con sidebar) compatta le dimensioni per evitare lo scroll-x
-// orizzontale — MAI abbreviare le intestazioni, solo dimensioni.
+// La tabella non deve mai eccedere il contenitore (niente scroll-x): layout a
+// larghezze fisse in percentuale, celle troncate; le intestazioni restano su una
+// riga senza essere abbreviate.
+.ann__table
+  table-layout: fixed
+
+  th
+    white-space: nowrap
+
+  th:nth-child(1)  // Logo
+    width: 4%
+  th:nth-child(2)  // Ragione sociale
+    width: 11%
+  th:nth-child(3)  // Periodo
+    width: 12%
+  th:nth-child(4)  // Tipologia
+    width: 8%
+  th:nth-child(5)  // Lotti
+    width: 5%
+  th:nth-child(6)  // Struttura
+    width: 11%
+  th:nth-child(7)  // Categoria
+    width: 9%
+  th:nth-child(8)  // Camere
+    width: 6%
+  th:nth-child(9)  // Pubblicazione
+    width: 11%
+  th:nth-child(10) // Genere
+    width: 9%
+  th:nth-child(11) // Destinatario
+    width: 9%
+  th:nth-child(12) // Azioni
+    width: 5%
+
+// Sotto il laptop (con sidebar) compatta ulteriormente le dimensioni —
+// MAI abbreviare le intestazioni, solo dimensioni.
 @container (max-width: 1360px)
   .ann__table
-    font-size: 12px
+    font-size: 11.5px
 
     th, td
-      padding-left: 8px
-      padding-right: 8px
-
-  .ann__trunc
-    max-width: 130px
+      padding-left: 6px
+      padding-right: 6px
 
   .ann__logo
     width: 30px
@@ -37,7 +68,8 @@
     letter-spacing: 0
 
   .ann__genere
-    padding: 2px 7px
+    padding: 2px 6px
+    gap: 3px
 
 .ann__top
   display: flex
