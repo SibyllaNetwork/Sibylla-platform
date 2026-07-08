@@ -1,17 +1,19 @@
 import React, { useMemo, useState } from 'react'
+import Modal from '../../../core/components/Modal'
+import { InputField, SelectField } from '../../../core/components/form'
 import type { AnnuncioPubblicato } from '../../../store/useAnnunciStore'
 import './AcquistoAnnuncio.sass'
 
 const BASE_MESE = 450 // valore abbonamento mensile per lotto
 const MERCATI = ['Nessuna', 'Italia', 'Germania', 'Francia', 'Regno Unito', 'Spagna', 'Extra Europa']
+const MESI_ABBR = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 
 const p2 = (n: number) => String(n).padStart(2, '0')
 const fmtEur = (n: number) => `${n.toFixed(2).replace('.', ',')} €`
 
-interface Mese { y: number; m: number; label: string }
+interface Mese { y: number; m: number }
 
-// Elenco dei mesi coperti dal periodo dell'annuncio ("gg/mm/aaaa - gg/mm/aaaa"
-// oppure "m/aaaa - m/aaaa").
+// Mesi coperti dal periodo ("gg/mm/aaaa - gg/mm/aaaa" oppure "m/aaaa - m/aaaa").
 function mesiPeriodo(periodo: string): Mese[] {
   const parts = periodo.split(' - ')
   if (parts.length < 2) return []
@@ -23,12 +25,12 @@ function mesiPeriodo(periodo: string): Mese[] {
   const out: Mese[] = []
   let y = s.y, m = s.m, guard = 0
   while ((y < e.y || (y === e.y && m <= e.m)) && guard < 60) {
-    out.push({ y, m, label: `${p2(m)}/${y}` })
-    m += 1; if (m > 12) { m = 1; y += 1 }
-    guard += 1
+    out.push({ y, m }); m += 1; if (m > 12) { m = 1; y += 1 }; guard += 1
   }
   return out
 }
+
+const meseLabel = (mm: Mese) => `${MESI_ABBR[mm.m - 1]} ${mm.y}`
 
 // Pagina interlocutoria di acquisto dei contratti di vendita di un annuncio.
 export function AcquistoAnnuncio({ a, onClose }: { a: AnnuncioPubblicato; onClose: () => void }) {
@@ -38,8 +40,9 @@ export function AcquistoAnnuncio({ a, onClose }: { a: AnnuncioPubblicato; onClos
 
   const [numLotti, setNumLotti] = useState(1)
   const [mercato, setMercato] = useState('Nessuna')
-  const [firstClick, setFirstClick] = useState<number | null>(null)
-  const [range, setRange] = useState<{ a: number; b: number } | null>(null)
+  const [startIdx, setStartIdx] = useState<number | null>(null)
+  const [endIdx, setEndIdx] = useState<number | null>(null)
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
   const [inviata, setInviata] = useState(false)
 
   const listino = useMemo(() => mesi.map(({ y, m }) => {
@@ -47,131 +50,132 @@ export function AcquistoAnnuncio({ a, onClose }: { a: AnnuncioPubblicato; onClos
     return { dal: `01/${p2(m)}/${y}`, al: `${p2(last)}/${p2(m)}/${y}`, adulti: '10,00 €', ragazzi: '10,00 €', supp: '10,00 €' }
   }), [mesi])
 
-  const onMarker = (i: number) => {
-    if (firstClick === null) { setFirstClick(i); setRange({ a: i, b: i }) }
-    else { setRange({ a: Math.min(firstClick, i), b: Math.max(firstClick, i) }); setFirstClick(null) }
+  const range = startIdx !== null && endIdx !== null ? { a: startIdx, b: endIdx } : null
+  const preview = startIdx !== null && endIdx === null && hoverIdx !== null
+    ? { a: Math.min(startIdx, hoverIdx), b: Math.max(startIdx, hoverIdx) } : null
+
+  const onPill = (i: number) => {
+    if (startIdx === null || endIdx !== null) { setStartIdx(i); setEndIdx(null) }
+    else { setStartIdx(Math.min(startIdx, i)); setEndIdx(Math.max(startIdx, i)) }
   }
+  const reset = () => { setStartIdx(null); setEndIdx(null) }
 
   const count = range ? range.b - range.a + 1 : 0
   const mese = numLotti * BASE_MESE
   const totale = count * mese
   const valido = count >= 4
 
-  if (inviata) {
-    return (
-      <div className="acq" role="dialog" aria-modal="true" aria-label="Richiesta inviata">
-        <div className="acq__sheet acq__sheet--ok">
-          <div className="acq__ok-icon"><i className="fa-solid fa-circle-check" aria-hidden="true" /></div>
-          <h2 className="acq__ok-title">Richiesta di acquisto inviata</h2>
-          <p className="acq__ok-text">
-            La tua richiesta per <strong>{numLotti}</strong> {numLotti === 1 ? 'lotto' : 'lotti'} su
-            {' '}«{a.struttura}» è stata inviata correttamente. Riceverai un riscontro dall'operatore.
+  const inRange = (i: number, r: { a: number; b: number } | null) => r != null && i >= r.a && i <= r.b
+
+  return (
+    <Modal open onClose={onClose} title={inviata ? 'Richiesta inviata' : 'Annuncio Sibylla'} size="xl" className="acq-box">
+      {inviata ? (
+        <div className="acq-ok">
+          <div className="acq-ok__icon"><i className="fa-solid fa-circle-check" aria-hidden="true" /></div>
+          <h3 className="acq-ok__title">Richiesta di acquisto inviata</h3>
+          <p className="acq-ok__text">
+            La tua richiesta per <strong>{numLotti}</strong> {numLotti === 1 ? 'lotto' : 'lotti'} ({count} mesi) su
+            {' '}«{a.struttura}» è stata inviata. Riceverai un riscontro dall'operatore.
           </p>
           <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Chiudi</button>
         </div>
-      </div>
-    )
-  }
+      ) : (
+        <div className="acq2">
+          <div className="acq2__cols">
+            {/* Dettaglio contratti */}
+            <section>
+              <h3 className="acq2__h3">Dettaglio Contratti</h3>
+              <dl className="acq2__dl">
+                {([
+                  ['Quantità lotti', String(a.lotti)],
+                  ['Tipologia', a.ospiti || 'Gruppi'],
+                  ['Genere', a.tipologia],
+                  ['Dimensione Lotto', `${dimLotto} Camere`],
+                  ['Struttura', a.struttura],
+                  ['Quantità massima acquistabile', String(maxLotti)],
+                  ['Garanzie richieste', a.garanzie || 'Nessuna'],
+                  ['Tipologia pagamento', a.pagamento || 'VCC'],
+                  ['Tour Operator', a.destinatario && a.destinatario !== 'Tutti' ? a.destinatario : 'Tour Operator Test'],
+                ] as [string, string][]).map(([k, v]) => (
+                  <div key={k} className="acq2__dl-row"><dt>{k}:</dt><dd>{v}</dd></div>
+                ))}
+              </dl>
+            </section>
 
-  return (
-    <div className="acq" role="dialog" aria-modal="true" aria-label="Acquisto annuncio" onClick={onClose}>
-      <div className="acq__sheet" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="acq__close" aria-label="Chiudi" onClick={onClose}>
-          <i className="fa-light fa-xmark" aria-hidden="true" />
-        </button>
-        <h2 className="acq__title">Annuncio Sibylla</h2>
-
-        <div className="acq__cols">
-          {/* Dettaglio contratti */}
-          <section className="acq__detail">
-            <h3 className="acq__h3">Dettaglio Contratti</h3>
-            <dl className="acq__dl">
-              {([
-                ['Quantità lotti', String(a.lotti)],
-                ['Tipologia', a.ospiti || 'Gruppi'],
-                ['Genere', a.tipologia],
-                ['Dimensione Lotto', `${dimLotto} Camere`],
-                ['Struttura', a.struttura],
-                ['Quantità massima acquistabile', String(maxLotti)],
-                ['Garanzie richieste', a.garanzie || 'Nessuna'],
-                ['Tipologia pagamento', a.pagamento || 'VCC'],
-                ['Tour Operator', a.destinatario && a.destinatario !== 'Tutti' ? a.destinatario : 'Tour Operator Test'],
-              ] as [string, string][]).map(([k, v]) => (
-                <div key={k} className="acq__dl-row"><dt>{k}:</dt><dd>{v}</dd></div>
-              ))}
-            </dl>
-          </section>
-
-          {/* Listino tariffario */}
-          <section className="acq__listino">
-            <h3 className="acq__h3">Listino Tariffario</h3>
-            <div className="sib-table-wrap">
-              <table className="sib-table acq__table">
-                <thead>
-                  <tr><th>Dal:</th><th>Al:</th><th>Tariffa adulti:</th><th>Tariffa ragazzi:</th><th>Supp. singola:</th></tr>
-                </thead>
-                <tbody>
-                  {listino.map((r, i) => (
-                    <tr key={i}>
-                      <td>{r.dal}</td><td>{r.al}</td><td>{r.adulti}</td><td>{r.ragazzi}</td><td>{r.supp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-
-        {/* Condizioni generali */}
-        <h2 className="acq__title2">Condizioni Generali</h2>
-        <div className="acq__cond">
-          <label className="acq__field">
-            <span>Num. Lotti</span>
-            <input type="number" className="sib-input sib-input--dense acq__num" min={1} max={maxLotti}
-              value={numLotti}
-              onChange={(e) => setNumLotti(Math.min(maxLotti, Math.max(1, Number(e.target.value) || 1)))} />
-          </label>
-          <label className="acq__field">
-            <span>Mercato di riferimento</span>
-            <select className="sib-select sib-select--dense acq__mercato" value={mercato} onChange={(e) => setMercato(e.target.value)}>
-              {MERCATI.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </label>
-        </div>
-
-        {/* Slider periodo */}
-        <div className="acq__slider-head">
-          <span className="acq__slider-title">Seleziona un periodo</span>
-          <span className="acq__slider-hint">(inserisci almeno 4 mesi continuativi)</span>
-        </div>
-        <p className="acq__slider-sub">Per effettuare la selezione cliccare sul primo e l'ultimo del periodo desiderato.</p>
-
-        <div className="acq__timeline">
-          {mesi.map((mm, i) => {
-            const active = range != null && i >= range.a && i <= range.b
-            const connActive = range != null && i >= range.a && i < range.b
-            return (
-              <React.Fragment key={mm.label}>
-                <button type="button" className={`acq__marker${active ? ' is-active' : ''}`} onClick={() => onMarker(i)}>
-                  <i className="fa-light fa-box-archive" aria-hidden="true" />
-                  <span>{mm.label}</span>
-                </button>
-                {i < mesi.length - 1 && <span className={`acq__conn${connActive ? ' is-active' : ''}`} />}
-              </React.Fragment>
-            )
-          })}
-        </div>
-
-        <div className="acq__foot">
-          <div className="acq__totals">
-            <div><span>Valore abbonamento mese:</span> <strong>{fmtEur(mese)}</strong></div>
-            <div><span>Totale:</span> <strong>{fmtEur(totale)}</strong></div>
+            {/* Listino tariffario */}
+            <section>
+              <h3 className="acq2__h3">Listino Tariffario</h3>
+              <div className="sib-table-wrap">
+                <table className="sib-table acq2__table">
+                  <thead>
+                    <tr><th>Dal</th><th>Al</th><th>Tariffa adulti</th><th>Tariffa ragazzi</th><th>Supp. singola</th></tr>
+                  </thead>
+                  <tbody>
+                    {listino.map((r, i) => (
+                      <tr key={i}><td>{r.dal}</td><td>{r.al}</td><td>{r.adulti}</td><td>{r.ragazzi}</td><td>{r.supp}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-          <button type="button" className="sib-btn sib-btn--primary acq__send" disabled={!valido} onClick={() => setInviata(true)}>
-            Invia richiesta
-          </button>
+
+          {/* Condizioni generali */}
+          <h3 className="acq2__h2">Condizioni Generali</h3>
+          <div className="acq2__cond">
+            <InputField label="Num. Lotti" name="numLotti" type="number" className="acq2__num"
+              min={1} max={maxLotti} value={numLotti}
+              onChange={(e) => setNumLotti(Math.min(maxLotti, Math.max(1, Number(e.target.value) || 1)))} />
+            <SelectField label="Mercato di riferimento" name="mercato" className="acq2__mercato"
+              value={mercato} onChange={(e) => setMercato(e.target.value)}
+              options={MERCATI.map((o) => ({ value: o, label: o }))} />
+          </div>
+
+          {/* Selezione periodo a pill con anteprima */}
+          <div className="acq2__period">
+            <div className="acq2__period-head">
+              <span className="acq2__period-title">Seleziona il periodo</span>
+              <span className={`acq2__period-hint${!valido && count > 0 ? ' is-warn' : ''}`}>almeno 4 mesi continuativi</span>
+            </div>
+            <div className="acq2__months" onMouseLeave={() => setHoverIdx(null)}>
+              {mesi.map((mm, i) => {
+                const sel = inRange(i, range)
+                const prev = !sel && inRange(i, preview)
+                const endpoint = range != null && (i === range.a || i === range.b)
+                return (
+                  <button
+                    key={`${mm.y}-${mm.m}`}
+                    type="button"
+                    className={`acq2__month${sel ? ' is-sel' : ''}${prev ? ' is-preview' : ''}${endpoint ? ' is-end' : ''}`}
+                    onMouseEnter={() => setHoverIdx(i)}
+                    onClick={() => onPill(i)}
+                  >
+                    <span className="acq2__month-m">{MESI_ABBR[mm.m - 1]}</span>
+                    <span className="acq2__month-y">{mm.y}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="acq2__period-foot">
+              {range
+                ? <span className="acq2__period-sel"><i className="fa-light fa-calendar-check" /> {meseLabel(mesi[range.a])} – {meseLabel(mesi[range.b])} · <strong>{count} mesi</strong></span>
+                : <span className="acq2__period-sel acq2__period-sel--empty">Clicca il primo e l'ultimo mese del periodo.</span>}
+              {range && <button type="button" className="acq2__period-reset" onClick={reset}><i className="fa-light fa-xmark" /> Azzera</button>}
+            </div>
+          </div>
+
+          {/* Riepilogo + invio */}
+          <div className="acq2__foot">
+            <div className="acq2__totals">
+              <div className="acq2__total-row"><span>Valore abbonamento mese</span><strong>{fmtEur(mese)}</strong></div>
+              <div className="acq2__total-row acq2__total-row--big"><span>Totale</span><strong>{fmtEur(totale)}</strong></div>
+            </div>
+            <button type="button" className="sib-btn sib-btn--primary acq2__send" disabled={!valido} onClick={() => setInviata(true)}>
+              <i className="fa-light fa-paper-plane" aria-hidden="true" /> Invia richiesta
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   )
 }
