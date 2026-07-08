@@ -371,32 +371,30 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
   i
     font-size: 10px
 
-// ── Slider overlay per scorrere i giorni ────────────────────────────────────────
-.rp__card--matrix
-  position: relative
-  padding-bottom: 30px
+// ── Intestazione matrice: titolo + navigatore giorni (inline, non overlay) ──────
+.rp__matrix-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 16px
+  flex-wrap: wrap
+  margin-bottom: 10px
 
-.rp__slider
-  position: absolute
-  left: 50%
-  bottom: 12px
-  transform: translateX(-50%)
+  .rp__card-title
+    margin: 0
+
+.rp__daynav
   display: inline-flex
   align-items: center
-  gap: 10px
-  padding: 6px 10px
-  background: var(--color-surface)
-  border: 1px solid $border
-  border-radius: 999px
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14)
-  z-index: 4
+  gap: 8px
+  flex: none
 
   input[type='range']
-    width: 240px
+    width: 200px
     accent-color: var(--color-primary)
     cursor: pointer
 
-.rp__slider-btn
+.rp__daynav-btn
   width: 28px
   height: 28px
   flex: none
@@ -404,7 +402,7 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
   align-items: center
   justify-content: center
   border: 1px solid $border
-  border-radius: 50%
+  border-radius: 8px
   background: var(--color-surface)
   color: $primary
   cursor: pointer

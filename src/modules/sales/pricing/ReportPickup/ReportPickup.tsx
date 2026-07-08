@@ -224,7 +224,19 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
 
       {/* ── Matrice Pick-Up ─────────────────────────────────────────────────── */}
       <section className="rp__card rp__card--matrix">
-        <h2 className="rp__card-title">Matrice Pick-Up OTB · camere per data di arrivo × data di osservazione</h2>
+        <div className="rp__matrix-head">
+          <h2 className="rp__card-title">Matrice Pick-Up OTB · camere per data di arrivo × data di osservazione</h2>
+          <div className="rp__daynav">
+            <button type="button" className="rp__daynav-btn" onClick={() => stepScroll(-1)} aria-label="Giorni precedenti">
+              <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+            </button>
+            <input type="range" min={0} max={1000} step={1} value={Math.round(scrollPct * 1000)}
+              onChange={(e) => applyScroll(Number(e.target.value) / 1000)} aria-label="Scorri i giorni di osservazione" />
+            <button type="button" className="rp__daynav-btn" onClick={() => stepScroll(1)} aria-label="Giorni successivi">
+              <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
         <p className="rp__note">
           <i className="fa-light fa-circle-info" /> Camere Vendute = somma camere delle prenotazioni con Data Creazione ≤ Data Osservazione e non cancellate entro tale data, per la Data Arrivo. Fonte: prenotazioni On The Books. Le colonne Data arrivo / Cam. disp. e Occ. % / Pick-Up restano fisse; scorri i giorni con lo slider.
         </p>
@@ -284,18 +296,6 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
               })}
             </tbody>
           </table>
-        </div>
-
-        {/* Slider di scorrimento giorni (overlay) con pulsanti sinistra/destra */}
-        <div className="rp__slider">
-          <button type="button" className="rp__slider-btn" onClick={() => stepScroll(-1)} aria-label="Giorni precedenti">
-            <i className="fa-solid fa-chevron-left" aria-hidden="true" />
-          </button>
-          <input type="range" min={0} max={1000} step={1} value={Math.round(scrollPct * 1000)}
-            onChange={(e) => applyScroll(Number(e.target.value) / 1000)} aria-label="Scorri i giorni di osservazione" />
-          <button type="button" className="rp__slider-btn" onClick={() => stepScroll(1)} aria-label="Giorni successivi">
-            <i className="fa-solid fa-chevron-right" aria-hidden="true" />
-          </button>
         </div>
       </section>
 
