@@ -7,7 +7,6 @@ import type { Contratto } from './contratto'
 
 // ─── Palette (identità Sibylla + blu Platform) ───────────────────────────────
 const NAVY      = '#204769'
-const NAVY_TINT = '#E8EEF4'
 const ROW_TINT  = '#F3F7FB'
 const GOLD      = '#A2864C'
 const INK       = '#1E293B'
@@ -94,40 +93,38 @@ async function buildDoc(c: Contratto): Promise<jsPDF> {
     if (y + h > ph - footReserve) { pdf.addPage(); y = margin }
   }
 
-  // ── Intestazione (fascia oro→blu) ──
-  const headH = 82
-  pdf.setFillColor(...rgb(NAVY))
-  pdf.rect(0, 0, pw, headH, 'F')
-  pdf.setFillColor(...rgb(GOLD))
-  pdf.rect(0, headH - 4, pw, 4, 'F')
+  // ── Intestazione "letterhead": fondo chiaro, testo scuro, accento oro ──
+  // (niente fondo pieno: stampa bene anche senza "stampa sfondi" e usa poco
+  // inchiostro.)
+  const y0 = margin + 2
 
-  pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(9)
+  // Logo struttura (se caricato) in alto a destra.
+  const strLogo = c.logo ? await rasterizeLogo(c.logo, 120, 32) : null
+  if (strLogo) pdf.addImage(strLogo.data, 'PNG', pw - margin - strLogo.w, y0 - 4, strLogo.w, strLogo.h)
+
+  pdf.setFont('helvetica', 'bold')
+  pdf.setFontSize(8.5)
   pdf.setTextColor(...rgb(GOLD))
-  pdf.text('CONDIZIONI DI VENDITA — MERCATO GRUPPI', margin, margin - 6)
+  pdf.text('CONDIZIONI DI VENDITA — MERCATO GRUPPI', margin, y0)
 
   pdf.setFont('helvetica', 'bold')
   pdf.setFontSize(20)
-  pdf.setTextColor(255, 255, 255)
-  pdf.text(dash(c.struttura), margin, margin + 18)
+  pdf.setTextColor(...rgb(NAVY))
+  pdf.text(dash(c.struttura), margin, y0 + 22)
 
   pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(10)
-  pdf.setTextColor(...rgb(NAVY_TINT))
-  pdf.text(`Segmento: ${c.segmento}`, margin, margin + 36)
+  pdf.setFontSize(9.5)
+  pdf.setTextColor(...rgb(MUTED))
+  pdf.text(`Segmento: ${c.segmento}`, margin, y0 + 38)
+  pdf.text(`N. ${dash(c.numero)}   ·   Data: ${dash(c.data)}`, pw - margin, y0 + 38, { align: 'right' })
 
-  // Logo struttura (se caricato) in alto a destra, nella fascia intestazione.
-  const strLogo = c.logo ? await rasterizeLogo(c.logo, 120, 30) : null
-  if (strLogo) pdf.addImage(strLogo.data, 'PNG', pw - margin - strLogo.w, 12, strLogo.w, strLogo.h)
-
-  // Numero / data a destra (sotto il logo quando presente)
-  const metaY = strLogo ? margin + 12 : margin - 2
-  pdf.setFontSize(9)
-  pdf.setTextColor(...rgb(NAVY_TINT))
-  pdf.text(`N. ${dash(c.numero)}`, pw - margin, metaY, { align: 'right' })
-  pdf.text(`Data: ${dash(c.data)}`, pw - margin, metaY + 14, { align: 'right' })
-
-  y = headH + 22
+  // Filetto di separazione: oro spesso + navy sottile (accento letterhead).
+  y = y0 + 50
+  pdf.setDrawColor(...rgb(GOLD)); pdf.setLineWidth(2)
+  pdf.line(margin, y, pw - margin, y)
+  pdf.setDrawColor(...rgb(NAVY)); pdf.setLineWidth(0.5)
+  pdf.line(margin, y + 3, pw - margin, y + 3)
+  y += 26
 
   // ── Parti / condizioni generali (griglia 2 colonne) ──
   const parties: [string, string][] = [

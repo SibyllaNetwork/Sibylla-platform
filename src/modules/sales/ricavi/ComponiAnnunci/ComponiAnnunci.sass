@@ -224,51 +224,36 @@
   overflow: hidden
   color: $text-active
 
+  // Intestazione "letterhead": fondo chiaro, testo scuro, accento oro.
+  // Niente fondo pieno → stampa pulita (anche senza "stampa sfondi").
   &__head
     display: flex
     justify-content: space-between
     align-items: flex-start
     gap: 24px
-    padding: 26px 32px
-    background: linear-gradient(135deg, $primary 0%, $primary-700 100%)
-    color: #fff
-
-    // I campi editabili dentro l'header restano sempre bianchi e leggibili
-    // (senza questo, .ca-doc-input imporrebbe il testo scuro sul blu).
-    .ca-doc-input, .ca-doc-select__el
-      color: #fff
-      border-bottom-color: rgba(255, 255, 255, 0.45)
-
-      &::placeholder
-        color: rgba(255, 255, 255, 0.65)
-
-      &:hover
-        border-bottom-color: #fff
-
-      &:focus
-        border-bottom-color: #fff
-        background: rgba(255, 255, 255, 0.14)
-
-    .ca-doc-select__chev
-      color: rgba(255, 255, 255, 0.8)
+    padding: 22px 32px 16px
+    background: var(--color-surface)
+    color: $text-active
+    border-bottom: 2px solid $accent
 
   &__kicker
     font-size: 11px
-    font-weight: 600
+    font-weight: 700
     text-transform: uppercase
     letter-spacing: 0.09em
-    color: rgba(255, 255, 255, 0.82)
+    color: $accent
 
   &__struttura
     font-family: $font-heading
     font-weight: 700
     font-size: 22px
     margin-top: 2px
-    color: #fff
+    color: $primary
 
   &__meta
     text-align: right
     font-size: 12px
+    color: $text-inactive
 
     > div
       display: flex
@@ -277,7 +262,7 @@
       padding: 1px 0
 
     span
-      opacity: 0.8
+      color: $text-disabled
 
   &__parties
     display: grid
@@ -318,18 +303,18 @@
     justify-content: center
     text-align: center
     padding: 4px
-    border: 1px dashed rgba(255, 255, 255, 0.55)
+    border: 1px dashed $border
     border-radius: 8px
     font-size: 10px
     line-height: 1.2
     text-transform: uppercase
     letter-spacing: 0.04em
-    color: rgba(255, 255, 255, 0.85)
+    color: $text-inactive
 
     // Con logo caricato: mostra l'immagine su fondo bianco, niente tratteggio
     &--set
       border-style: solid
-      border-color: rgba(255, 255, 255, 0.35)
+      border-color: $border
       background: #fff
       padding: 3px
 
@@ -352,7 +337,7 @@
     height: 100%
     border: none
     background: transparent
-    color: rgba(255, 255, 255, 0.85)
+    color: $text-inactive
     font-size: 9px
     text-transform: uppercase
     letter-spacing: 0.04em
@@ -362,7 +347,7 @@
       font-size: 15px
 
     &:hover
-      color: #fff
+      color: $primary
 
   // Azioni (cambia/rimuovi) sovrapposte, visibili all'hover
   &__logo-actions
@@ -400,11 +385,11 @@
     font-family: $font-heading
     font-weight: 700
     font-size: 20px
-    color: #fff
+    color: $primary
     margin-top: 2px
 
     &::placeholder
-      color: rgba(255, 255, 255, 0.6)
+      color: $text-disabled
 
   &__seg-badge
     display: inline-flex
@@ -413,7 +398,9 @@
     margin-top: 6px
     font-size: 11px
     font-weight: 600
-    background: rgba(255, 255, 255, 0.18)
+    color: $primary
+    background: transparent
+    border: 1px solid $accent
     border-radius: 999px
     padding: 2px 10px
 
