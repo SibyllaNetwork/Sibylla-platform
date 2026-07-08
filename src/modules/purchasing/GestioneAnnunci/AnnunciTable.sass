@@ -6,9 +6,38 @@
   flex-direction: column
   gap: 16px
   font-size: 13px
+  // Standard scroll-x: compattazione via container query sul root pagina
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
+
+// Colonne testuali su una riga (ellissi + tooltip via TruncatedText)
+.ann__trunc
+  max-width: 190px
+
+// Sotto il laptop (con sidebar) compatta le dimensioni per evitare lo scroll-x
+// orizzontale — MAI abbreviare le intestazioni, solo dimensioni.
+@container (max-width: 1360px)
+  .ann__table
+    font-size: 12px
+
+    th, td
+      padding-left: 8px
+      padding-right: 8px
+
+  .ann__trunc
+    max-width: 130px
+
+  .ann__logo
+    width: 30px
+    height: 22px
+
+  .ann__stars
+    letter-spacing: 0
+
+  .ann__genere
+    padding: 2px 7px
 
 .ann__top
   display: flex

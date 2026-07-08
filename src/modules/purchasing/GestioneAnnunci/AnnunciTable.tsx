@@ -3,7 +3,9 @@ import BtnBack from '../../../core/components/BtnBack'
 import PageHeader from '../../../core/components/PageHeader'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
 import { useAnnunciStore, annuncioPerMe, type AnnuncioPubblicato } from '../../../store/useAnnunciStore'
+import { AcquistoAnnuncio } from './AcquistoAnnuncio'
 import './AnnunciTable.sass'
 
 const PAGE_SIZE = 10
@@ -51,6 +53,7 @@ export function AnnunciTable({ onBack, onMatchZone }: {
   const annunci = useAnnunciStore((s) => s.annunci)
   const [page, setPage] = useState(1)
   const [dettaglio, setDettaglio] = useState<AnnuncioPubblicato | null>(null)
+  const [acquisto, setAcquisto] = useState<AnnuncioPubblicato | null>(null)
   const [openFilter, setOpenFilter] = useState<FiltroKey | null>(null)
   const [colFilters, setColFilters] = useState<Record<FiltroKey, string[]>>({
     ragioneSociale: [], periodo: [], tipologia: [], struttura: [], categoria: [], genere: [], destinatario: [],
@@ -157,11 +160,11 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                       ? <img src={a.logo} alt="" className="ann__logo" />
                       : <span className="ann__logo ann__logo--ph"><i className="fa-light fa-hotel" aria-hidden="true" /></span>}
                   </td>
-                  <td>{perMe ? a.ragioneSociale : <span className="ann__masked">Riservato</span>}</td>
+                  <td>{perMe ? <TruncatedText text={a.ragioneSociale} className="ann__trunc" /> : <span className="ann__masked">Riservato</span>}</td>
                   <td className="ann__nowrap">{a.periodo}</td>
                   <td>{a.tipologia}</td>
                   <td className="ann__c-num">{a.lotti}</td>
-                  <td>{perMe ? a.struttura : <span className="ann__masked">Riservato</span>}</td>
+                  <td>{perMe ? <TruncatedText text={a.struttura} className="ann__trunc" /> : <span className="ann__masked">Riservato</span>}</td>
                   <td><Stelle n={a.categoria} /></td>
                   <td className="ann__c-num">{a.camere}</td>
                   <td className="ann__nowrap">{a.pubblicazione}</td>
@@ -187,6 +190,13 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                           <i className="fa-light fa-circle-info" aria-hidden="true" />
                         </button>
                       </Tooltip>
+                      {perMe && a.genere === 'Vendita' && (
+                        <Tooltip text="Acquista i contratti">
+                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Acquista i contratti" onClick={() => setAcquisto(a)}>
+                            <i className="fa-light fa-cart-shopping" aria-hidden="true" />
+                          </button>
+                        </Tooltip>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -207,6 +217,7 @@ export function AnnunciTable({ onBack, onMatchZone }: {
       )}
 
       {dettaglio && <DettaglioModal a={dettaglio} onClose={() => setDettaglio(null)} />}
+      {acquisto && <AcquistoAnnuncio a={acquisto} onClose={() => setAcquisto(null)} />}
     </div>
   )
 }
