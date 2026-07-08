@@ -5,7 +5,13 @@ import { apiFetchSibylla } from '../../../../services/api'
 import { SelectField, RadioGroup, InputField, DateRangeField } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
+import {
+  buildContratto, nextRowId, SEGMENTI,
+  type Contratto, type Segmento, type ContrattoInput,
+} from './contratto'
 import './ComponiAnnunci.sass'
+
+type ConfirmFn = (o: { title: string; message: string; confirmLabel?: string; danger?: boolean }) => Promise<boolean>
 
 // ─── TIPI ─────────────────────────────────────────────────────────────────────
 type Tipo = 'Vendita' | 'Acquisto'
@@ -18,6 +24,7 @@ interface Params {
   strutturaId: number | null
   categoria: string
   tipoOspiti: string
+  segmento: Segmento
   tipologiaBase: string
   tipoLotti: string
   dataDa: string
@@ -32,25 +39,11 @@ interface Params {
   tipologiaCamere: string
 }
 
-interface RigaTariffa { id: number; stagionalita: string; tipologiaBase: string; lotto: string; quantita: string; prezzo: string }
-interface RigaServizio { id: number; servizio: string; condizione: string; note: string }
-
-interface Contratto {
-  numero: string
-  data: string
-  tipo: Tipo
-  struttura: string
-  tourOperator: string
-  periodo: string
-  pagamento: string
-  tariffe: RigaTariffa[]
-  servizi: RigaServizio[]
-}
-
 interface RigaBacheca {
   id: number
   periodo: string
   tipologia: Tipo
+  segmento: Segmento
   preferito: boolean
   quantita: string
   stato: StatoBacheca
@@ -69,7 +62,6 @@ const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
 const TOUR_OPERATOR = ['Tutti', 'TUI', 'Alpitour', 'Eden Viaggi', 'Veratour', 'Bluvacanze']
 const PAGAMENTO = ['VCC', 'Bonifico']
-const STAGIONI = ['Bassa stagione', 'Media stagione', 'Alta stagione']
 
 const periodLabel = (da: string, a: string) => {
   const f = (iso: string) => { const [y, m] = iso.split('-'); return `${Number(m)}/${y}` }
@@ -80,16 +72,16 @@ const periodLabel = (da: string, a: string) => {
 const PAGE_SIZE = 8
 
 const BACHECA_INIT: RigaBacheca[] = [
-  { id: 1,  periodo: '3/2026 - 6/2026',   tipologia: 'Vendita',  preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 2,  periodo: '2/2026 - 5/2026',   tipologia: 'Vendita',  preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 3,  periodo: '11/2025 - 4/2026',  tipologia: 'Acquisto', preferito: false, quantita: '6 Lotti',  stato: 'In bozza'   },
-  { id: 4,  periodo: '12/2025 - 4/2026',  tipologia: 'Vendita',  preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
-  { id: 5,  periodo: '11/2025 - 4/2026',  tipologia: 'Vendita',  preferito: false, quantita: '4 Lotti',  stato: 'Pubblicato' },
-  { id: 6,  periodo: '1/2026 - 4/2026',   tipologia: 'Acquisto', preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
-  { id: 7,  periodo: '4/2026 - 9/2026',   tipologia: 'Vendita',  preferito: false, quantita: '3 Lotti',  stato: 'In bozza'   },
-  { id: 8,  periodo: '5/2026 - 10/2026',  tipologia: 'Vendita',  preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 9,  periodo: '7/2026 - 10/2026',  tipologia: 'Acquisto', preferito: false, quantita: '5 Lotti',  stato: 'In bozza'   },
-  { id: 10, periodo: '9/2026 - 12/2026',  tipologia: 'Vendita',  preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
+  { id: 1,  periodo: '3/2026 - 6/2026',   tipologia: 'Vendita',  segmento: 'Adulti',            preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 2,  periodo: '2/2026 - 5/2026',   tipologia: 'Vendita',  segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 3,  periodo: '11/2025 - 4/2026',  tipologia: 'Acquisto', segmento: 'Adulti e studenti', preferito: false, quantita: '6 Lotti',  stato: 'In bozza'   },
+  { id: 4,  periodo: '12/2025 - 4/2026',  tipologia: 'Vendita',  segmento: 'Adulti',            preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
+  { id: 5,  periodo: '11/2025 - 4/2026',  tipologia: 'Vendita',  segmento: 'Studenti',          preferito: false, quantita: '4 Lotti',  stato: 'Pubblicato' },
+  { id: 6,  periodo: '1/2026 - 4/2026',   tipologia: 'Acquisto', segmento: 'Adulti',            preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
+  { id: 7,  periodo: '4/2026 - 9/2026',   tipologia: 'Vendita',  segmento: 'Adulti e studenti', preferito: false, quantita: '3 Lotti',  stato: 'In bozza'   },
+  { id: 8,  periodo: '5/2026 - 10/2026',  tipologia: 'Vendita',  segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 9,  periodo: '7/2026 - 10/2026',  tipologia: 'Acquisto', segmento: 'Adulti',            preferito: false, quantita: '5 Lotti',  stato: 'In bozza'   },
+  { id: 10, periodo: '9/2026 - 12/2026',  tipologia: 'Vendita',  segmento: 'Adulti e studenti', preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
 ]
 
 export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => void }) {
@@ -97,7 +89,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   const [params, setParams] = useState<Params>({
     tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: 'Hotel',
-    tipoOspiti: 'Gruppi', tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
+    tipoOspiti: 'Gruppi', segmento: 'Adulti', tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
     dataDa: '2026-07-01', dataA: '2026-10-31', tourOperator: 'Tutti',
     quantita: 1, quantitaMax: 1, tipologiaPagamento: 'VCC',
     citta: 'Roma', categoriaLivello: '5', tipologiaCamere: 'Singola Classic',
@@ -122,54 +114,47 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     return () => { cancelled = true }
   }, [])
 
-  const generaContratto = (): Contratto => {
-    const isAcquisto = params.tipo === 'Acquisto'
-    const struttura = isAcquisto
-      ? `${params.citta} · Categoria ${params.categoriaLivello}`
-      : params.tipologia === 'Categoria'
-        ? `Categoria: ${params.categoria}`
-        : (STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel")
-    return {
-      numero: 'CTR/' + new Date().getFullYear() + '/' + String(Math.floor(Math.random() * 9000) + 1000),
-      data: new Date().toLocaleDateString('it-IT'),
-      tipo: params.tipo,
-      struttura,
-      tourOperator: isAcquisto ? '—' : params.tourOperator,
-      periodo: periodLabel(params.dataDa, params.dataA),
-      pagamento: isAcquisto ? '—' : params.tipologiaPagamento,
-      tariffe: STAGIONI.map((s, i) => ({
-        id: i + 1, stagionalita: s,
-        tipologiaBase: params.tipoOspiti === 'Individuali' ? params.tipologiaCamere : params.tipologiaBase,
-        lotto: isAcquisto ? '—' : params.tipoLotti, quantita: String(params.quantita), prezzo: '0,00',
-      })),
-      servizi: [
-        { id: 1, servizio: 'Pernottamento', condizione: 'Incluso', note: '' },
-        { id: 2, servizio: 'Prima colazione', condizione: 'Incluso', note: '' },
-        { id: 3, servizio: 'Tassa di soggiorno', condizione: 'Escluso', note: 'A carico ospite' },
-      ],
-    }
+  // Nome struttura/controparte in base ai parametri.
+  const strutturaLabel = (): string => {
+    if (params.tipo === 'Acquisto') return `${params.citta} · Categoria ${params.categoriaLivello}`
+    if (params.tipologia === 'Categoria') return `Categoria: ${params.categoria}`
+    return STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel"
   }
 
-  const genera = () => { setEditingBachecaId(null); setContratto(generaContratto()) }
+  // Input condiviso per il builder del contratto (partendo dai parametri correnti).
+  const contrattoInput = (over: Partial<ContrattoInput> = {}): ContrattoInput => ({
+    tipo: params.tipo,
+    segmento: params.segmento,
+    struttura: strutturaLabel(),
+    tourOperator: params.tipo === 'Acquisto' ? '—' : params.tourOperator,
+    periodo: periodLabel(params.dataDa, params.dataA),
+    pagamento: params.tipo === 'Acquisto' ? '—' : params.tipologiaPagamento,
+    quantita: params.quantita,
+    tipologiaBase: params.tipoOspiti === 'Individuali' ? params.tipologiaCamere : params.tipologiaBase,
+    dataDa: params.dataDa,
+    dataA: params.dataA,
+    ...over,
+  })
+
+  const genera = () => { setEditingBachecaId(null); setContratto(buildContratto(contrattoInput())) }
   const chiudiContratto = () => { setContratto(null); setEditingBachecaId(null) }
 
-  const updTariffa = (id: number, field: keyof RigaTariffa, v: string) =>
-    setContratto((c) => c && ({ ...c, tariffe: c.tariffe.map((r) => r.id === id ? { ...r, [field]: v } : r) }))
-  const updServizio = (id: number, field: keyof RigaServizio, v: string) =>
-    setContratto((c) => c && ({ ...c, servizi: c.servizi.map((r) => r.id === id ? { ...r, [field]: v } : r) }))
+  // Modifica in-place del contratto in editing (campi scalari o intere liste).
+  const patch = (p: Partial<Contratto>) => setContratto((c) => (c ? { ...c, ...p } : c))
 
   const salvaInBacheca = () => {
     if (!contratto) return
     const riga: Omit<RigaBacheca, 'id'> = {
       periodo: contratto.periodo || periodLabel(params.dataDa, params.dataA),
       tipologia: contratto.tipo,
+      segmento: contratto.segmento,
       preferito: false,
       quantita: `${params.quantita} ${params.quantita === 1 ? 'Lotto' : 'Lotti'}`,
       stato: 'In bozza',
       contratto,
     }
     setBacheca((prev) => {
-      if (editingBachecaId != null) return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id } : b)
+      if (editingBachecaId != null) return prev.map((b) => b.id === editingBachecaId ? { ...b, ...riga, id: b.id, stato: b.stato } : b)
       const id = Math.max(0, ...prev.map((b) => b.id)) + 1
       return [{ id, ...riga }, ...prev]
     })
@@ -179,13 +164,14 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   const apriContratto = (b: RigaBacheca) => {
     setEditingBachecaId(b.id)
-    setContratto(b.contratto ?? {
-      numero: `CTR/${b.periodo}`, data: new Date().toLocaleDateString('it-IT'), tipo: b.tipologia,
-      struttura: STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel",
-      tourOperator: params.tourOperator, periodo: b.periodo, pagamento: params.tipologiaPagamento,
-      tariffe: [{ id: 1, stagionalita: 'Stagione', tipologiaBase: params.tipologiaBase, lotto: params.tipoLotti, quantita: b.quantita, prezzo: '0,00' }],
-      servizi: [{ id: 1, servizio: 'Pernottamento', condizione: 'Incluso', note: '' }],
-    })
+    // Annunci già salvati: riapri il loro documento. Annunci "seed" (senza
+    // documento): genera al volo il template coerente col loro segmento.
+    setContratto(b.contratto ?? buildContratto(contrattoInput({
+      segmento: b.segmento,
+      periodo: b.periodo,
+      numero: `CTR/${b.periodo.replace(/\s/g, '')}`,
+      quantita: parseInt(b.quantita, 10) || params.quantita,
+    })))
   }
 
   const toggleStar = (id: number) =>
@@ -252,8 +238,12 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
                   options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
                 {params.tipoOspiti === 'Gruppi' ? (
-                  <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                    options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                  <>
+                    <SelectField label="Segmento" name="segmento" value={params.segmento} onChange={(e) => set('segmento', e.target.value as Segmento)}
+                      options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
+                    <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                      options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                  </>
                 ) : (
                   <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
                     options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
@@ -307,11 +297,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           {contratto ? (
             <ContrattoPreview
               contratto={contratto}
-              onUpdTariffa={updTariffa}
-              onUpdServizio={updServizio}
+              onPatch={patch}
               onSalva={salvaInBacheca}
               onChiudi={chiudiContratto}
               isEditing={editingBachecaId != null}
+              confirm={confirm}
             />
           ) : (
             <div className="ca-hint">
@@ -336,6 +326,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 <button type="button" className="ca-item__open" onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
                   <span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span>
                   <span className="ca-item__period"><i className="fa-light fa-calendar-range" /> {b.periodo}</span>
+                  <span className="ca-item__seg"><i className="fa-light fa-users" /> {b.segmento}</span>
                   <span className="ca-item__qty"><i className="fa-light fa-cubes" /> {b.quantita}</span>
                 </button>
                 <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
@@ -371,15 +362,78 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   )
 }
 
-// ─── ANTEPRIMA CONTRATTO (Doc editabile) ────────────────────────────────────────
-function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onChiudi, isEditing }: {
+// ─── CAMPI EDITABILI DEL DOCUMENTO ──────────────────────────────────────────────
+// Input inline sempre modificabile (nessun click-per-attivare): sottile,
+// sottolineato al focus. Rende i campi "facilmente accessibili".
+function DocInput({ value, onChange, placeholder, align, className }: {
+  value: string; onChange: (v: string) => void; placeholder?: string
+  align?: 'right' | 'center'; className?: string
+}) {
+  return (
+    <input
+      type="text"
+      className={`ca-doc-input${align ? ` ca-doc-input--${align}` : ''}${className ? ` ${className}` : ''}`}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  )
+}
+
+function DocArea({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder?: string
+}) {
+  return (
+    <textarea
+      className="ca-doc-area"
+      rows={3}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  )
+}
+
+// ─── ANTEPRIMA CONTRATTO (documento editabile) ──────────────────────────────────
+// Documento professionale "CONDIZIONI DI VENDITA — MERCATO GRUPPI" derivato dai
+// template .docx; la variante (Adulti / Studenti / Adulti e studenti) dipende dai
+// parametri dell'annuncio. Ogni campo/tabella è modificabile e viene salvato
+// nell'annuncio in bacheca.
+function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, isEditing, confirm }: {
   contratto: Contratto
-  onUpdTariffa: (id: number, field: keyof RigaTariffa, v: string) => void
-  onUpdServizio: (id: number, field: keyof RigaServizio, v: string) => void
+  onPatch: (p: Partial<Contratto>) => void
   onSalva: () => void
   onChiudi: () => void
   isEditing: boolean
+  confirm: ConfirmFn
 }) {
+  // Updater generici sulle tabelle del contratto.
+  const updRow = (key: keyof Contratto, id: number, field: string, v: string) => {
+    const list = contratto[key] as unknown as { id: number }[]
+    onPatch({ [key]: list.map((r) => (r.id === id ? { ...r, [field]: v } : r)) } as Partial<Contratto>)
+  }
+  const addRow = (key: keyof Contratto, blank: Record<string, unknown>) => {
+    const list = contratto[key] as unknown as { id: number }[]
+    onPatch({ [key]: [...list, { ...blank, id: nextRowId(list) }] } as Partial<Contratto>)
+  }
+  const delRow = async (key: keyof Contratto, id: number, sezione: string) => {
+    const ok = await confirm({ title: 'Elimina riga', message: `Rimuovere questa riga dalla sezione «${sezione}»?`, confirmLabel: 'Elimina', danger: true })
+    if (!ok) return
+    const list = contratto[key] as unknown as { id: number }[]
+    onPatch({ [key]: list.filter((r) => r.id !== id) } as Partial<Contratto>)
+  }
+
+  const AddRow = ({ onClick }: { onClick: () => void }) => (
+    <button type="button" className="ca-doc-addrow" onClick={onClick}>
+      <i className="fa-light fa-plus" /> Aggiungi riga
+    </button>
+  )
+  const DelRow = ({ onClick }: { onClick: () => void }) => (
+    <button type="button" className="ca-doc-delrow" title="Elimina riga" onClick={onClick}>
+      <i className="fa-light fa-trash" />
+    </button>
+  )
+
   return (
     <div className="ca-contract">
       <div className="ca-contract__toolbar">
@@ -393,10 +447,16 @@ function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onC
       </div>
 
       <div className="ca-sheet">
+        {/* Intestazione: logo struttura, titolo, segmento, numero/data */}
         <header className="ca-sheet__head">
-          <div>
-            <div className="ca-sheet__kicker">Contratto di {contratto.tipo.toLowerCase()}</div>
-            <div className="ca-sheet__struttura">{contratto.struttura}</div>
+          <div className="ca-sheet__head-left">
+            <div className="ca-sheet__logo">Logo struttura</div>
+            <div>
+              <div className="ca-sheet__kicker">Condizioni di vendita — Mercato gruppi</div>
+              <input className="ca-doc-input ca-sheet__struttura-input" value={contratto.struttura}
+                placeholder="Nome struttura" onChange={(e) => onPatch({ struttura: e.target.value })} />
+              <span className="ca-sheet__seg-badge"><i className="fa-light fa-users" /> {contratto.segmento}</span>
+            </div>
           </div>
           <div className="ca-sheet__meta">
             <div><span>Numero</span><strong>{contratto.numero}</strong></div>
@@ -404,95 +464,151 @@ function ContrattoPreview({ contratto, onUpdTariffa, onUpdServizio, onSalva, onC
           </div>
         </header>
 
+        {/* Parti / condizioni generali */}
         <section className="ca-sheet__parties">
-          <div className="ca-sheet__party"><span>Tour operator</span><strong>{contratto.tourOperator}</strong></div>
-          <div className="ca-sheet__party"><span>Periodo</span><strong>{contratto.periodo || '—'}</strong></div>
-          <div className="ca-sheet__party"><span>Pagamento</span><strong>{contratto.pagamento}</strong></div>
+          <label className="ca-sheet__party"><span>Cliente</span>
+            <DocInput value={contratto.cliente} onChange={(v) => onPatch({ cliente: v })} placeholder="Ragione sociale cliente" /></label>
+          <label className="ca-sheet__party"><span>Tour operator</span>
+            <DocInput value={contratto.tourOperator} onChange={(v) => onPatch({ tourOperator: v })} placeholder="—" /></label>
+          <label className="ca-sheet__party"><span>Periodo</span>
+            <DocInput value={contratto.periodo} onChange={(v) => onPatch({ periodo: v })} placeholder="mm/aaaa - mm/aaaa" /></label>
+          <label className="ca-sheet__party"><span>Pagamento</span>
+            <DocInput value={contratto.pagamento} onChange={(v) => onPatch({ pagamento: v })} placeholder="—" /></label>
         </section>
 
+        {/* DISTRIBUZIONE */}
+        <div className="ca-sheet__section-head"><h4>Distribuzione ({contratto.segmento})</h4></div>
+        <div className="ca-sheet__block">
+          <DocArea value={contratto.distribuzione} onChange={(v) => onPatch({ distribuzione: v })}
+            placeholder="Descrizione della distribuzione del segmento gruppi…" />
+        </div>
+
+        {/* STAGIONALITÀ */}
         <div className="ca-sheet__section-head">
-          <h4>Condizioni economiche</h4>
-          <span className="ca-sheet__editable"><i className="fa-light fa-pen" /> Tabella editabile</span>
+          <h4>Stagionalità</h4>
+          <label className="ca-sheet__year">anno&nbsp;
+            <DocInput value={contratto.annoStagione} align="center" onChange={(v) => onPatch({ annoStagione: v })} placeholder="aaaa/aaaa" className="ca-doc-input--year" />
+          </label>
         </div>
         <div className="sib-table-wrap">
           <table className="sib-table ca-sheet__table">
-            <thead>
-              <tr><th>Stagionalità</th><th>Tipologia base</th><th>Lotto</th><th>Quantità</th><th>Prezzo (€)</th></tr>
-            </thead>
+            <thead><tr><th>Stagionalità</th><th>Periodo</th><th className="ca-doc-actcol" /></tr></thead>
+            <tbody>
+              {contratto.stagioni.map((r) => (
+                <tr key={r.id}>
+                  <td><DocInput value={r.nome} onChange={(v) => updRow('stagioni', r.id, 'nome', v)} placeholder="Stagione" /></td>
+                  <td><DocInput value={r.periodo} onChange={(v) => updRow('stagioni', r.id, 'periodo', v)} placeholder="gg/mm — gg/mm" /></td>
+                  <td className="ca-doc-actcol"><DelRow onClick={() => delRow('stagioni', r.id, 'Stagionalità')} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <AddRow onClick={() => addRow('stagioni', { nome: '', periodo: '' })} />
+
+        {/* TARIFFE */}
+        <div className="ca-sheet__section-head"><h4>Tariffe {contratto.annoStagione}</h4></div>
+        <div className="sib-table-wrap">
+          <table className="sib-table ca-sheet__table">
+            <thead><tr><th>Stagione</th><th>Segmento</th><th>Base</th><th>Prezzo (€)</th><th>Suppl. (€)</th><th className="ca-doc-actcol" /></tr></thead>
             <tbody>
               {contratto.tariffe.map((r) => (
                 <tr key={r.id}>
-                  <td><EditCell value={r.stagionalita}  onChange={(v) => onUpdTariffa(r.id, 'stagionalita', v)} /></td>
-                  <td><EditCell value={r.tipologiaBase} onChange={(v) => onUpdTariffa(r.id, 'tipologiaBase', v)} /></td>
-                  <td><EditCell value={r.lotto}         onChange={(v) => onUpdTariffa(r.id, 'lotto', v)} /></td>
-                  <td><EditCell value={r.quantita}      onChange={(v) => onUpdTariffa(r.id, 'quantita', v)} /></td>
-                  <td><EditCell value={r.prezzo}        onChange={(v) => onUpdTariffa(r.id, 'prezzo', v)} /></td>
+                  <td><DocInput value={r.stagione} onChange={(v) => updRow('tariffe', r.id, 'stagione', v)} placeholder="Stagione" /></td>
+                  <td><DocInput value={r.segmento} onChange={(v) => updRow('tariffe', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
+                  <td><DocInput value={r.base} onChange={(v) => updRow('tariffe', r.id, 'base', v)} placeholder="Base doppia" /></td>
+                  <td><DocInput value={r.prezzo} align="right" onChange={(v) => updRow('tariffe', r.id, 'prezzo', v)} placeholder="0,00" /></td>
+                  <td><DocInput value={r.suppl} align="right" onChange={(v) => updRow('tariffe', r.id, 'suppl', v)} placeholder="0,00" /></td>
+                  <td className="ca-doc-actcol"><DelRow onClick={() => delRow('tariffe', r.id, 'Tariffe')} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <AddRow onClick={() => addRow('tariffe', { stagione: '', segmento: contratto.segmento === 'Studenti' ? 'Studenti' : 'Adulti', base: contratto.tariffe[0]?.base ?? 'Base doppia', prezzo: '', suppl: '' })} />
 
-        <div className="ca-sheet__section-head">
-          <h4>Servizi e condizioni</h4>
-          <span className="ca-sheet__editable"><i className="fa-light fa-pen" /> Tabella editabile</span>
-        </div>
+        {/* MERCATO SPECIFICO */}
+        <div className="ca-sheet__section-head"><h4>Mercato specifico</h4></div>
         <div className="sib-table-wrap">
           <table className="sib-table ca-sheet__table">
-            <thead>
-              <tr><th>Servizio</th><th>Condizione</th><th>Note</th></tr>
-            </thead>
+            <thead><tr><th>Nazionalità</th><th>Segmento</th><th>Note</th><th className="ca-doc-actcol" /></tr></thead>
             <tbody>
-              {contratto.servizi.map((r) => (
+              {contratto.mercato.map((r) => (
                 <tr key={r.id}>
-                  <td><EditCell value={r.servizio}   onChange={(v) => onUpdServizio(r.id, 'servizio', v)} /></td>
-                  <td><EditCell value={r.condizione} onChange={(v) => onUpdServizio(r.id, 'condizione', v)} /></td>
-                  <td><EditCell value={r.note}       onChange={(v) => onUpdServizio(r.id, 'note', v)} /></td>
+                  <td><DocInput value={r.nazionalita} onChange={(v) => updRow('mercato', r.id, 'nazionalita', v)} placeholder="Es. Italia" /></td>
+                  <td><DocInput value={r.segmento} onChange={(v) => updRow('mercato', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
+                  <td><DocInput value={r.note} onChange={(v) => updRow('mercato', r.id, 'note', v)} placeholder="Dettagli assegnazione market specific" /></td>
+                  <td className="ca-doc-actcol"><DelRow onClick={() => delRow('mercato', r.id, 'Mercato specifico')} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <AddRow onClick={() => addRow('mercato', { nazionalita: '', segmento: contratto.segmento === 'Studenti' ? 'Studenti' : 'Adulti', note: '' })} />
 
-        <p className="ca-sheet__clausola">
-          Il presente contratto disciplina la {contratto.tipo.toLowerCase()} dei lotti secondo le condizioni sopra riportate.
-          Le parti si impegnano al rispetto dei termini di pagamento ({contratto.pagamento}) e delle quantità concordate.
-        </p>
+        {/* SUPPLEMENTI */}
+        <div className="ca-sheet__section-head"><h4>Supplementi</h4></div>
+        <div className="sib-table-wrap">
+          <table className="sib-table ca-sheet__table">
+            <thead><tr><th>Segmento</th><th>Categoria</th><th>Voce</th><th>Importo (€)</th><th className="ca-doc-actcol" /></tr></thead>
+            <tbody>
+              {contratto.supplementi.map((r) => (
+                <tr key={r.id}>
+                  <td><DocInput value={r.segmento} onChange={(v) => updRow('supplementi', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
+                  <td><DocInput value={r.categoria} onChange={(v) => updRow('supplementi', r.id, 'categoria', v)} placeholder="3*" /></td>
+                  <td><DocInput value={r.voce} onChange={(v) => updRow('supplementi', r.id, 'voce', v)} placeholder="Camere singole" /></td>
+                  <td><DocInput value={r.importo} align="right" onChange={(v) => updRow('supplementi', r.id, 'importo', v)} placeholder="0,00" /></td>
+                  <td className="ca-doc-actcol"><DelRow onClick={() => delRow('supplementi', r.id, 'Supplementi')} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <AddRow onClick={() => addRow('supplementi', { segmento: contratto.segmento === 'Studenti' ? 'Studenti' : 'Adulti', categoria: '3*', voce: '', importo: '' })} />
+
+        <div className="ca-sheet__block">
+          <span className="ca-sheet__note-label">Gratuità, tassa di soggiorno e IVA</span>
+          <DocArea value={contratto.gratuita} onChange={(v) => onPatch({ gratuita: v })}
+            placeholder="Gratuità ogni tot. paganti; tassa di soggiorno; prima colazione e IVA…" />
+        </div>
+
+        {/* CONTINGENTE CAMERE / LOTTI */}
+        <div className="ca-sheet__section-head"><h4>Contingente camere — Lotti</h4></div>
+        <div className="sib-table-wrap">
+          <table className="sib-table ca-sheet__table">
+            <thead><tr><th>Mese</th><th>Anno</th><th>Lotti</th><th>Camere/giorno</th><th className="ca-doc-actcol" /></tr></thead>
+            <tbody>
+              {contratto.lotti.map((r) => (
+                <tr key={r.id}>
+                  <td><DocInput value={r.mese} onChange={(v) => updRow('lotti', r.id, 'mese', v)} placeholder="Mese" /></td>
+                  <td><DocInput value={r.anno} onChange={(v) => updRow('lotti', r.id, 'anno', v)} placeholder="aaaa" /></td>
+                  <td><DocInput value={r.lotti} align="right" onChange={(v) => updRow('lotti', r.id, 'lotti', v)} placeholder="0" /></td>
+                  <td><DocInput value={r.camereGiorno} align="right" onChange={(v) => updRow('lotti', r.id, 'camereGiorno', v)} placeholder="0" /></td>
+                  <td className="ca-doc-actcol"><DelRow onClick={() => delRow('lotti', r.id, 'Contingente camere')} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <AddRow onClick={() => addRow('lotti', { mese: '', anno: contratto.annoStagione.split('/')[0] ?? '', lotti: '', camereGiorno: '' })} />
+
+        {/* PENALI */}
+        <div className="ca-sheet__section-head"><h4>Penali</h4></div>
+        <div className="ca-sheet__block">
+          <DocArea value={contratto.penali} onChange={(v) => onPatch({ penali: v })}
+            placeholder="Dettagli su penali per cancellazioni, no-show, ecc." />
+        </div>
+
+        {/* FIRME */}
+        <section className="ca-sheet__sign">
+          <label className="ca-sheet__sign-field ca-sheet__sign-field--full"><span>Luogo e data</span>
+            <DocInput value={contratto.luogo} onChange={(v) => onPatch({ luogo: v })} placeholder="Luogo, gg/mm/aaaa" /></label>
+          <div className="ca-sheet__sign-field"><span>Amministratore struttura</span>
+            <div className="ca-sheet__sign-line">{contratto.struttura || '—'}</div></div>
+          <div className="ca-sheet__sign-field"><span>Amministratore cliente</span>
+            <div className="ca-sheet__sign-line">{contratto.cliente || '—'}</div></div>
+        </section>
       </div>
     </div>
-  )
-}
-
-// ─── EDIT CELL ────────────────────────────────────────────────────────────────
-function EditCell({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [editing, setEditing] = useState(false)
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
-
-  React.useEffect(() => {
-    if (editing && inputRef.current) { inputRef.current.focus(); inputRef.current.select() }
-  }, [editing])
-
-  if (editing) {
-    return (
-      <input
-        ref={inputRef}
-        type="text"
-        className="sib-input ca-edit-input"
-        defaultValue={value}
-        onBlur={(e) => { onChange(e.target.value); setEditing(false) }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') { onChange((e.target as HTMLInputElement).value); setEditing(false) }
-          if (e.key === 'Escape') setEditing(false)
-        }}
-      />
-    )
-  }
-
-  return (
-    <span className="ca-edit-cell" onClick={() => setEditing(true)} role="button" tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter') setEditing(true) }}>
-      <span>{value || '—'}</span>
-      <i className="fa-light fa-pen ca-edit-cell__ico" />
-    </span>
   )
 }
