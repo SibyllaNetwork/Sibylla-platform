@@ -99,6 +99,26 @@
     line-height: 1
     cursor: help
 
+// Avviso quantità > massima: banner a tutta larghezza (riga a sé, non
+// disallinea i campi della griglia)
+.ca-qta-alert
+  flex: 1 0 100%
+  display: flex
+  align-items: center
+  gap: 8px
+  margin-top: 2px
+  padding: 8px 12px
+  border-radius: 8px
+  background: alpha($warning, 0.12)
+  border: 1px solid alpha($warning, 0.45)
+  color: $text-active
+  font-size: 12px
+
+  i
+    color: $warning
+    font-size: 13px
+    flex: none
+
 // Quantità Massima: stretto ma quanto basta per la label per esteso
 .ca-field--nummax
   flex: 0 0 128px
@@ -641,6 +661,8 @@
 // ── LA MIA BACHECA (stile sughero) ───────────────────────────────────────────────
 .ca-board
   min-width: 0
+  // Altezza propria: non si allunga per seguire il contratto (colonna sinistra)
+  align-self: start
   border-radius: 14px
   overflow: hidden
   border: 7px solid #7c5230

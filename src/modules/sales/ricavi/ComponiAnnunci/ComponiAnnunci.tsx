@@ -309,6 +309,12 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                       options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
                   </>
                 )}
+                {params.tipo !== 'Acquisto' && params.quantita > params.quantitaMax && (
+                  <div className="ca-qta-alert" role="alert">
+                    <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                    <span>Stai selezionando una quantità (<strong>{params.quantita}</strong>) superiore alla quantità massima impostata (<strong>{params.quantitaMax}</strong>).</span>
+                  </div>
+                )}
               </>
             )}
           </div>
