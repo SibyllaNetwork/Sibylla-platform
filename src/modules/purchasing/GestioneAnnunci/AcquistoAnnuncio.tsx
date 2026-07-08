@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import Modal from '../../../core/components/Modal'
 import { InputField, SelectField } from '../../../core/components/form'
+import { withFlag } from '../../../core/utils/countryFlags'
 import type { AnnuncioPubblicato } from '../../../store/useAnnunciStore'
 import './AcquistoAnnuncio.sass'
 
@@ -128,7 +129,7 @@ export function AcquistoAnnuncio({ a, onClose }: { a: AnnuncioPubblicato; onClos
               onChange={(e) => setNumLotti(Math.min(maxLotti, Math.max(1, Number(e.target.value) || 1)))} />
             <SelectField label="Mercato di riferimento" name="mercato" className="acq2__mercato"
               value={mercato} onChange={(e) => setMercato(e.target.value)}
-              options={MERCATI.map((o) => ({ value: o, label: o }))} />
+              options={MERCATI.map((o) => ({ value: o, label: withFlag(o) }))} />
           </div>
 
           {/* Selezione periodo a pill con anteprima */}
