@@ -12,13 +12,14 @@
   &__overlay
     position: fixed
     inset: 0
-    z-index: 90
+    z-index: 2000
 
+  // Renderizzato in un portale su document.body: position:fixed con top/left
+  // calcolati dal trigger (vedi DateRangeField.tsx), per non essere mai tagliato
+  // dagli overflow/stacking degli antenati.
   &__pop
-    position: absolute
-    top: calc(100% + 6px)
-    left: 0
-    z-index: 100
+    position: fixed
+    z-index: 2001
     background: $white
     border: 1px solid $border
     border-radius: $radius-lg

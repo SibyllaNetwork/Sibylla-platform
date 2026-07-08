@@ -1,4 +1,5 @@
-import React, { useId, useState } from 'react'
+import React, { useId, useState, useRef, useLayoutEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import clsx from 'clsx'
 import { DayPicker, type DateRange } from 'react-day-picker'
 import { it } from 'date-fns/locale'
@@ -52,6 +53,43 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
 }) => {
   const id = useId()
   const [open, setOpen] = useState(false)
+  const trigRef = useRef<HTMLButtonElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  // Posizione del popup: calcolata dal trigger e renderizzata in un portale con
+  // position:fixed, così sfugge a qualsiasi overflow:hidden / stacking context
+  // degli antenati (es. le card della pagina) invece di finirci sotto.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  const reposition = useCallback(() => {
+    const trig = trigRef.current
+    if (!trig) return
+    const r = trig.getBoundingClientRect()
+    const gap = 6
+    const popW = popRef.current?.offsetWidth ?? 560
+    const popH = popRef.current?.offsetHeight ?? 320
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    // Sotto al campo, ribaltato sopra se non c'è spazio in basso.
+    let top = r.bottom + gap
+    if (top + popH > vh - 8 && r.top - gap - popH > 8) top = r.top - gap - popH
+    // Allineato a sinistra, ma senza uscire dal viewport a destra.
+    let left = r.left
+    if (left + popW > vw - 8) left = Math.max(8, vw - 8 - popW)
+    setPos({ top, left })
+  }, [])
+
+  // Riposiziona all'apertura e su scroll/resize mentre è aperto.
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return }
+    reposition()
+    const onScroll = () => reposition()
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [open, reposition])
 
   const from = valueFrom ?? defaultFrom ?? ''
   const to   = valueTo   ?? defaultTo   ?? ''
@@ -80,6 +118,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
       )}
       <div className="sib-daterange">
         <button
+          ref={trigRef}
           type="button"
           disabled={disabled}
           aria-haspopup="dialog"
@@ -92,10 +131,17 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
           <i className="fa-solid fa-chevron-down text-[9px] text-ink-subtle shrink-0" aria-hidden="true" />
         </button>
 
-        {open && (
+        {open && createPortal(
           <>
             <div className="sib-daterange__overlay" onClick={() => setOpen(false)} />
-            <div className="sib-daterange__pop" role="dialog" aria-label="Seleziona intervallo date" onClick={e => e.stopPropagation()}>
+            <div
+              ref={popRef}
+              className="sib-daterange__pop"
+              role="dialog"
+              aria-label="Seleziona intervallo date"
+              style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, visibility: pos ? 'visible' : 'hidden' }}
+              onClick={e => e.stopPropagation()}
+            >
               <DayPicker
                 mode="range"
                 numberOfMonths={2}
@@ -109,7 +155,8 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
                 toDate={safeParseISO(max) ?? undefined}
               />
             </div>
-          </>
+          </>,
+          document.body,
         )}
       </div>
       {error  && <span id={`${id}-error`} className="text-[11px] font-opensans text-error"><i className="fa-light fa-circle-exclamation mr-1" aria-hidden="true" />{error}</span>}
