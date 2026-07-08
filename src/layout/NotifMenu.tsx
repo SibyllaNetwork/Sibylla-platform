@@ -193,20 +193,6 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                     </div>
                     {n.ref && <div className="notif-item__ref">{n.ref}</div>}
                     {n.text && <p className="notif-item__text">{n.text}</p>}
-                    {n.reportPage && (
-                      <button
-                        type="button"
-                        className="notif-item__report-btn"
-                        onClick={e => {
-                          e.stopPropagation()
-                          markRead(n.id)
-                          navigate(n.reportPage!)
-                          setOpen(false)
-                        }}
-                      >
-                        <i className="fa-light fa-chart-column" aria-hidden="true" /> Visualizza report
-                      </button>
-                    )}
                     <div className="notif-item__badges">
                       <span
                         className="notif-item__origin-badge"
