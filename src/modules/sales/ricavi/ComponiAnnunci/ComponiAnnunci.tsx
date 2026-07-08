@@ -248,7 +248,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   }
 
   return (
-    <div className="ca">
+    <div className="compann">
       <BtnBack />
       <PageHeader title="Componi annunci" subtitle="Configura i parametri, genera il contratto, modificalo e pubblicalo in Agorà." />
 

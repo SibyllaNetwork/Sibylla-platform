@@ -1,7 +1,9 @@
 // ─── COMPONI ANNUNCI ──────────────────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
 
-.ca
+// Root con nome univoco: `.ca` (bare) è usato anche da altre pagine
+// (CreaAzienda, CalendarioAnnuale) e ne ereditava il padding → doppio spazio.
+.compann
   display: flex
   flex-direction: column
   gap: 18px
