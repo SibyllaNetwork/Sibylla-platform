@@ -190,13 +190,16 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                           <i className="fa-light fa-circle-info" aria-hidden="true" />
                         </button>
                       </Tooltip>
-                      {perMe && a.genere === 'Vendita' && (
-                        <Tooltip text="Acquista i contratti">
-                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Acquista i contratti" onClick={() => setAcquisto(a)}>
-                            <i className="fa-light fa-cart-shopping" aria-hidden="true" />
-                          </button>
-                        </Tooltip>
-                      )}
+                      {(() => {
+                        const canBuy = perMe && a.genere === 'Vendita'
+                        return (
+                          <Tooltip text={canBuy ? 'Acquista i contratti' : 'Non abilitato all’acquisto'}>
+                            <button type="button" className="sib-btn sib-btn--icon" aria-label="Acquista i contratti" disabled={!canBuy} onClick={() => canBuy && setAcquisto(a)}>
+                              <i className="fa-light fa-cart-shopping" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
+                        )
+                      })()}
                     </div>
                   </td>
                 </tr>
