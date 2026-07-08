@@ -166,15 +166,26 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
     border-bottom: 1px solid $border
     padding: 7px 10px
 
-  // Crosshair: evidenzia riga (hover) e colonna (is-hovercol).
-  // Le colonne bloccate usano un colore OPACO (non alpha) per non lasciar
-  // trasparire i dati che scorrono sotto.
+  // Crosshair: illumina riga (ordinata) e colonna (ascissa) sotto il mouse.
+  // Il "wash" via background-image si sovrappone al colore semantico della cella
+  // senza sostituirlo (background-color) né interferire con i box-shadow.
+  tbody tr:hover td
+    background-image: linear-gradient(alpha($primary, 0.07), alpha($primary, 0.07))
+
+  // Colonne bloccate: base OPACA in hover (niente trasparenza dei dati sotto),
+  // il wash si somma sopra.
   tbody tr:hover .rp__sticky,
   tbody tr:hover .rp__end-td
-    background: $primary-50
+    background-color: $primary-50
 
+  // Colonna evidenziata
   .is-hovercol
-    outline: 2px solid alpha($primary, 0.45)
+    background-image: linear-gradient(alpha($primary, 0.10), alpha($primary, 0.10))
+
+  // Punto di intersezione riga × colonna
+  tbody tr:hover td.is-hovercol
+    background-image: linear-gradient(alpha($primary, 0.20), alpha($primary, 0.20))
+    outline: 2px solid $primary
     outline-offset: -2px
 
   thead th
@@ -381,7 +392,15 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
   justify-content: space-between
   gap: 16px
   flex-wrap: wrap
-  margin-bottom: 10px
+  // Sempre visibile mentre si scorre la pagina: si aggancia in cima all'area
+  // contenuto, così lo slider dei giorni resta a portata.
+  position: sticky
+  top: 0
+  z-index: 6
+  background: var(--color-surface)
+  padding: 6px 0 8px
+  margin-bottom: 6px
+  border-bottom: 1px solid $border
 
   .rp__card-title
     margin: 0

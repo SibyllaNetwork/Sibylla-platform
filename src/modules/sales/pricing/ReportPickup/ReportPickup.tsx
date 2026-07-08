@@ -265,8 +265,8 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
                 const occPct = camereDisp ? (oOggi / camereDisp) * 100 : 0
                 return (
                   <tr key={i}>
-                    <td className="rp__sticky rp__sticky--arr"><span className="rp__arr-wd">{r.wd}</span>{r.label}</td>
-                    <td className="rp__sticky rp__sticky--disp rp__num rp__muted">{camereDisp}</td>
+                    <td className="rp__sticky rp__sticky--arr" onMouseEnter={() => setHoverCol(null)}><span className="rp__arr-wd">{r.wd}</span>{r.label}</td>
+                    <td className="rp__sticky rp__sticky--disp rp__num rp__muted" onMouseEnter={() => setHoverCol(null)}>{camereDisp}</td>
                     {snapshots.map((s, si) => {
                       const v = otb(r.date, r.finalOcc, si)
                       const prev = si > 0 && !s.futuro ? otb(r.date, r.finalOcc, si - 1) : null
@@ -284,13 +284,13 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
                         </td>
                       )
                     })}
-                    <td className="rp__num rp__end-td rp__end--occ">
+                    <td className="rp__num rp__end-td rp__end--occ" onMouseEnter={() => setHoverCol(null)}>
                       <span className="rp__occ">
                         <span className="rp__occ-bar"><span className="rp__occ-fill" style={{ width: `${Math.min(100, occPct)}%` }} /></span>
                         <span className="rp__occ-num">{occPct.toFixed(0)}%</span>
                       </span>
                     </td>
-                    <td className={`rp__num rp__end-td rp__end--pu rp__pu rp__pu--${pu >= 0 ? 'up' : 'down'}`}>{pu > 0 ? '+' : ''}{fmtNum(pu)}</td>
+                    <td className={`rp__num rp__end-td rp__end--pu rp__pu rp__pu--${pu >= 0 ? 'up' : 'down'}`} onMouseEnter={() => setHoverCol(null)}>{pu > 0 ? '+' : ''}{fmtNum(pu)}</td>
                   </tr>
                 )
               })}
