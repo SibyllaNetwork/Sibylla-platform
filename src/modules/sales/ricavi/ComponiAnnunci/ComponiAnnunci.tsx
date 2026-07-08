@@ -6,7 +6,7 @@ import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect,
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import {
-  buildContratto, nextRowId, SEGMENTI,
+  buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
 } from './contratto'
 import { scaricaContrattoPdf, contrattoPdfObjectUrl } from './contrattoPdf'
@@ -435,6 +435,60 @@ function DocArea({ value, onChange, placeholder }: {
   )
 }
 
+// Select inline "guidata": stesso aspetto sottile del DocInput (nessun bordo/
+// sfondo, chevron discreto), per orientare la compilazione dove è richiesta una
+// scelta (es. Alta/Media/Bassa stagione).
+function DocSelect({ value, onChange, options, placeholder, className }: {
+  value: string; onChange: (v: string) => void
+  options: { value: string; label: string }[]
+  placeholder?: string; className?: string
+}) {
+  return (
+    <span className={`ca-doc-select${className ? ` ${className}` : ''}`}>
+      <select
+        className={`ca-doc-select__el${value ? '' : ' is-empty'}`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <i className="fa-solid fa-chevron-down ca-doc-select__chev" aria-hidden="true" />
+    </span>
+  )
+}
+
+// Date picker inline "guidato": input date nativo reso senza bordo/sfondo.
+function DocDate({ value, onChange, className }: {
+  value: string; onChange: (v: string) => void; className?: string
+}) {
+  return (
+    <input
+      type="date"
+      className={`ca-doc-input ca-doc-date${value ? '' : ' is-empty'}${className ? ` ${className}` : ''}`}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  )
+}
+
+// Opzioni riusabili per le select guidate del documento.
+const OPT = (arr: string[]) => arr.map((v) => ({ value: v, label: v }))
+const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+const BASE_OPTS = ['Base doppia', 'Base singola', 'Base tripla']
+const CAT_STELLE_OPTS = ['3*', '4*', '5*']
+
+// ISO (yyyy-mm-dd) → gg/mm/aaaa (per anteprima sola lettura).
+const fmtDateIt = (iso?: string) => {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return y && m && d ? `${d}/${m}/${y}` : ''
+}
+const rangeLabelIt = (da?: string, a?: string) => {
+  const f = fmtDateIt(da), t = fmtDateIt(a)
+  return f || t ? `${f || '…'} — ${t || '…'}` : ''
+}
+
 // ─── ANTEPRIMA CONTRATTO (documento editabile) ──────────────────────────────────
 // Documento professionale "CONDIZIONI DI VENDITA — MERCATO GRUPPI" derivato dai
 // template .docx; la variante (Adulti / Studenti / Adulti e studenti) dipende dai
@@ -449,6 +503,11 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
   isEditing: boolean
   confirm: ConfirmFn
 }) {
+  // Opzioni per le select guidate, coerenti con il segmento e l'anno del contratto.
+  const segOpts = OPT(segParts(contratto.segmento))
+  const seasonOpts = OPT(STAGIONI_DEF)
+  const yearOpts = OPT(Array.from(new Set(contratto.annoStagione.split('/').filter(Boolean))))
+
   // Updater generici sulle tabelle del contratto.
   const updRow = (key: keyof Contratto, id: number, field: string, v: string) => {
     const list = contratto[key] as unknown as { id: number }[]
@@ -511,11 +570,11 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
           <label className="ca-sheet__party"><span>Cliente</span>
             <DocInput value={contratto.cliente} onChange={(v) => onPatch({ cliente: v })} placeholder="Ragione sociale cliente" /></label>
           <label className="ca-sheet__party"><span>Tour operator</span>
-            <DocInput value={contratto.tourOperator} onChange={(v) => onPatch({ tourOperator: v })} placeholder="—" /></label>
+            <DocSelect value={contratto.tourOperator} onChange={(v) => onPatch({ tourOperator: v })} options={OPT(TOUR_OPERATOR)} placeholder="Seleziona tour operator" /></label>
           <label className="ca-sheet__party"><span>Periodo</span>
             <DocInput value={contratto.periodo} onChange={(v) => onPatch({ periodo: v })} placeholder="mm/aaaa - mm/aaaa" /></label>
           <label className="ca-sheet__party"><span>Pagamento</span>
-            <DocInput value={contratto.pagamento} onChange={(v) => onPatch({ pagamento: v })} placeholder="—" /></label>
+            <DocSelect value={contratto.pagamento} onChange={(v) => onPatch({ pagamento: v })} options={OPT(PAGAMENTO)} placeholder="Seleziona pagamento" /></label>
         </section>
 
         {/* DISTRIBUZIONE */}
@@ -534,19 +593,20 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
         </div>
         <div className="sib-table-wrap">
           <table className="sib-table ca-sheet__table">
-            <thead><tr><th>Stagionalità</th><th>Periodo</th><th className="ca-doc-actcol" /></tr></thead>
+            <thead><tr><th>Stagionalità</th><th>Dal</th><th>Al</th><th className="ca-doc-actcol" /></tr></thead>
             <tbody>
               {contratto.stagioni.map((r) => (
                 <tr key={r.id}>
-                  <td><DocInput value={r.nome} onChange={(v) => updRow('stagioni', r.id, 'nome', v)} placeholder="Stagione" /></td>
-                  <td><DocInput value={r.periodo} onChange={(v) => updRow('stagioni', r.id, 'periodo', v)} placeholder="gg/mm — gg/mm" /></td>
+                  <td><DocSelect value={r.nome} onChange={(v) => updRow('stagioni', r.id, 'nome', v)} options={seasonOpts} placeholder="Stagione" /></td>
+                  <td><DocDate value={r.da ?? ''} onChange={(v) => updRow('stagioni', r.id, 'da', v)} /></td>
+                  <td><DocDate value={r.a ?? ''} onChange={(v) => updRow('stagioni', r.id, 'a', v)} /></td>
                   <td className="ca-doc-actcol"><DelRow onClick={() => delRow('stagioni', r.id, 'Stagionalità')} /></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <AddRow onClick={() => addRow('stagioni', { nome: '', periodo: '' })} />
+        <AddRow onClick={() => addRow('stagioni', { nome: '', da: '', a: '' })} />
 
         {/* TARIFFE */}
         <div className="ca-sheet__section-head"><h4>Tariffe {contratto.annoStagione}</h4></div>
@@ -556,9 +616,9 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
             <tbody>
               {contratto.tariffe.map((r) => (
                 <tr key={r.id}>
-                  <td><DocInput value={r.stagione} onChange={(v) => updRow('tariffe', r.id, 'stagione', v)} placeholder="Stagione" /></td>
-                  <td><DocInput value={r.segmento} onChange={(v) => updRow('tariffe', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
-                  <td><DocInput value={r.base} onChange={(v) => updRow('tariffe', r.id, 'base', v)} placeholder="Base doppia" /></td>
+                  <td><DocSelect value={r.stagione} onChange={(v) => updRow('tariffe', r.id, 'stagione', v)} options={seasonOpts} placeholder="Stagione" /></td>
+                  <td><DocSelect value={r.segmento} onChange={(v) => updRow('tariffe', r.id, 'segmento', v)} options={segOpts} placeholder="Segmento" /></td>
+                  <td><DocSelect value={r.base} onChange={(v) => updRow('tariffe', r.id, 'base', v)} options={OPT(BASE_OPTS)} placeholder="Base" /></td>
                   <td><DocInput value={r.prezzo} align="right" onChange={(v) => updRow('tariffe', r.id, 'prezzo', v)} placeholder="0,00" /></td>
                   <td><DocInput value={r.suppl} align="right" onChange={(v) => updRow('tariffe', r.id, 'suppl', v)} placeholder="0,00" /></td>
                   <td className="ca-doc-actcol"><DelRow onClick={() => delRow('tariffe', r.id, 'Tariffe')} /></td>
@@ -578,7 +638,7 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
               {contratto.mercato.map((r) => (
                 <tr key={r.id}>
                   <td><NazionalitaSelect value={r.nazionalita} onChange={(v) => updRow('mercato', r.id, 'nazionalita', v)} placeholder="Nazionalità" /></td>
-                  <td><DocInput value={r.segmento} onChange={(v) => updRow('mercato', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
+                  <td><DocSelect value={r.segmento} onChange={(v) => updRow('mercato', r.id, 'segmento', v)} options={segOpts} placeholder="Segmento" /></td>
                   <td><DocInput value={r.scontistica ?? ''} align="right" onChange={(v) => updRow('mercato', r.id, 'scontistica', v)} placeholder="0" /></td>
                   <td><DocInput value={r.note} onChange={(v) => updRow('mercato', r.id, 'note', v)} placeholder="Dettagli assegnazione market specific" /></td>
                   <td className="ca-doc-actcol"><DelRow onClick={() => delRow('mercato', r.id, 'Mercato specifico')} /></td>
@@ -597,8 +657,8 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
             <tbody>
               {contratto.supplementi.map((r) => (
                 <tr key={r.id}>
-                  <td><DocInput value={r.segmento} onChange={(v) => updRow('supplementi', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
-                  <td><DocInput value={r.categoria} onChange={(v) => updRow('supplementi', r.id, 'categoria', v)} placeholder="3*" /></td>
+                  <td><DocSelect value={r.segmento} onChange={(v) => updRow('supplementi', r.id, 'segmento', v)} options={segOpts} placeholder="Segmento" /></td>
+                  <td><DocSelect value={r.categoria} onChange={(v) => updRow('supplementi', r.id, 'categoria', v)} options={OPT(CAT_STELLE_OPTS)} placeholder="Categoria" /></td>
                   <td><DocInput value={r.voce} onChange={(v) => updRow('supplementi', r.id, 'voce', v)} placeholder="Camere singole" /></td>
                   <td><DocInput value={r.importo} align="right" onChange={(v) => updRow('supplementi', r.id, 'importo', v)} placeholder="0,00" /></td>
                   <td className="ca-doc-actcol"><DelRow onClick={() => delRow('supplementi', r.id, 'Supplementi')} /></td>
@@ -623,8 +683,8 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
             <tbody>
               {contratto.lotti.map((r) => (
                 <tr key={r.id}>
-                  <td><DocInput value={r.mese} onChange={(v) => updRow('lotti', r.id, 'mese', v)} placeholder="Mese" /></td>
-                  <td><DocInput value={r.anno} onChange={(v) => updRow('lotti', r.id, 'anno', v)} placeholder="aaaa" /></td>
+                  <td><DocSelect value={r.mese} onChange={(v) => updRow('lotti', r.id, 'mese', v)} options={OPT(MESI)} placeholder="Mese" /></td>
+                  <td><DocSelect value={r.anno} onChange={(v) => updRow('lotti', r.id, 'anno', v)} options={yearOpts} placeholder="Anno" /></td>
                   <td><DocInput value={r.lotti} align="right" onChange={(v) => updRow('lotti', r.id, 'lotti', v)} placeholder="0" /></td>
                   <td><DocInput value={r.camereGiorno} align="right" onChange={(v) => updRow('lotti', r.id, 'camereGiorno', v)} placeholder="0" /></td>
                   <td className="ca-doc-actcol"><DelRow onClick={() => delRow('lotti', r.id, 'Contingente camere')} /></td>
@@ -724,7 +784,7 @@ function ContrattoStampa({ contratto, onChiudi }: {
             <table className="sib-table ca-sheet__table">
               <thead><tr><th>Stagionalità</th><th>Periodo</th></tr></thead>
               <tbody>
-                {c.stagioni.map((r) => (<tr key={r.id}><td><RO value={r.nome} /></td><td><RO value={r.periodo} /></td></tr>))}
+                {c.stagioni.map((r) => (<tr key={r.id}><td><RO value={r.nome} /></td><td><RO value={rangeLabelIt(r.da, r.a)} /></td></tr>))}
               </tbody>
             </table>
           </div>

@@ -43,6 +43,17 @@ async function logoPng(): Promise<{ data: string; ratio: number } | null> {
 
 const dash = (s: string) => (s && s.trim() ? s : '—')
 
+// ISO (yyyy-mm-dd) → gg/mm/aaaa; stringa vuota se non valida.
+const fmtDate = (iso?: string) => {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return y && m && d ? `${d}/${m}/${y}` : ''
+}
+const rangeLabel = (da?: string, a?: string) => {
+  const f = fmtDate(da), t = fmtDate(a)
+  return f || t ? `${f || '…'} — ${t || '…'}` : ''
+}
+
 interface Col { header: string; w: number; align?: 'left' | 'right' }
 
 /** Costruisce il documento jsPDF completo del contratto. */
@@ -200,7 +211,7 @@ async function buildDoc(c: Contratto): Promise<jsPDF> {
   sectionTitle(`Stagionalità · anno ${dash(c.annoStagione)}`)
   table(
     [{ header: 'Stagionalità', w: contentW * 0.45 }, { header: 'Periodo', w: contentW * 0.55 }],
-    c.stagioni.map((r) => [r.nome, r.periodo]),
+    c.stagioni.map((r) => [r.nome, rangeLabel(r.da, r.a)]),
   )
 
   // ── TARIFFE ──

@@ -9,7 +9,7 @@ export const SEGMENTI: Segmento[] = ['Adulti', 'Studenti', 'Adulti e studenti']
 export type TipoContratto = 'Vendita' | 'Acquisto'
 
 // Righe delle tabelle editabili del documento
-export interface StagioneRow    { id: number; nome: string; periodo: string }
+export interface StagioneRow    { id: number; nome: string; da: string; a: string }
 export interface TariffaRow      { id: number; stagione: string; segmento: string; base: string; prezzo: string; suppl: string }
 export interface MercatoRow      { id: number; nazionalita: string; segmento: string; scontistica: string; note: string }
 export interface SupplementoRow  { id: number; segmento: string; categoria: string; voce: string; importo: string }
@@ -68,7 +68,7 @@ const anno = (iso: string) => (iso?.split('-')[0] || `${new Date().getFullYear()
 export const nextRowId = (rows: { id: number }[]) =>
   rows.reduce((m, r) => Math.max(m, r.id), 0) + 1
 
-const STAGIONI_DEF = ['Bassa stagione', 'Media stagione', 'Alta stagione']
+export const STAGIONI_DEF = ['Bassa stagione', 'Media stagione', 'Alta stagione']
 
 /** Costruisce un contratto completo (con dati di partenza editabili) dai parametri. */
 export function buildContratto(p: ContrattoInput): Contratto {
@@ -77,7 +77,7 @@ export function buildContratto(p: ContrattoInput): Contratto {
   const parti = segParts(p.segmento)
 
   const stagioni: StagioneRow[] = STAGIONI_DEF.map((nome, i) => ({
-    id: i + 1, nome, periodo: '',
+    id: i + 1, nome, da: '', a: '',
   }))
 
   const tariffe: TariffaRow[] = []
