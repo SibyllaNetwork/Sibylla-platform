@@ -11,7 +11,7 @@ export type TipoContratto = 'Vendita' | 'Acquisto'
 // Righe delle tabelle editabili del documento
 export interface StagioneRow    { id: number; nome: string; periodo: string }
 export interface TariffaRow      { id: number; stagione: string; segmento: string; base: string; prezzo: string; suppl: string }
-export interface MercatoRow      { id: number; nazionalita: string; segmento: string; note: string }
+export interface MercatoRow      { id: number; nazionalita: string; segmento: string; scontistica: string; note: string }
 export interface SupplementoRow  { id: number; segmento: string; categoria: string; voce: string; importo: string }
 export interface LottoRow        { id: number; mese: string; anno: string; lotti: string; camereGiorno: string }
 
@@ -92,7 +92,7 @@ export function buildContratto(p: ContrattoInput): Contratto {
   }
 
   const mercato: MercatoRow[] = parti.map((seg, i) => ({
-    id: i + 1, nazionalita: '', segmento: seg, note: '',
+    id: i + 1, nazionalita: '', segmento: seg, scontistica: '', note: '',
   }))
 
   const supplementi: SupplementoRow[] = parti.map((seg, i) => ({

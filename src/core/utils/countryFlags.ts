@@ -35,6 +35,15 @@ const FLAGS: Record<string, string> = {
   UNGHERIA: '🇭🇺',
 }
 
+/** Elenco paesi (IT) selezionabili, tutti con bandiera nota in FLAGS. */
+export const PAESI: string[] = [
+  'ITALIA', 'ANDORRA', 'AUSTRIA', 'BELGIO', 'CINA', 'CROAZIA', 'DANIMARCA',
+  'FINLANDIA', 'FRANCIA', 'GERMANIA', 'GRECIA', 'IRLANDA', 'LUSSEMBURGO',
+  'MAROCCO', 'NORVEGIA', 'PAESI BASSI', 'POLONIA', 'PORTOGALLO', 'REGNO UNITO',
+  'REPUBBLICA CECA', 'ROMANIA', 'SLOVACCHIA', 'SLOVENIA', 'SPAGNA', 'STATI UNITI',
+  'SVEZIA', 'SVIZZERA', 'UNGHERIA', 'ALBANIA',
+]
+
 /** Emoji bandiera per un nome paese (IT), '' se sconosciuto. */
 export const countryFlag = (name?: string): string =>
   name ? (FLAGS[name.trim().toUpperCase()] ?? '') : ''

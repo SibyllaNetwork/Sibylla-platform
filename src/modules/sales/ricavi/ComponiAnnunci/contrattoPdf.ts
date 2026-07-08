@@ -220,11 +220,12 @@ async function buildDoc(c: Contratto): Promise<jsPDF> {
   sectionTitle('Mercato specifico')
   table(
     [
-      { header: 'Nazionalità', w: contentW * 0.28 },
-      { header: 'Segmento', w: contentW * 0.22 },
-      { header: 'Note', w: contentW * 0.50 },
+      { header: 'Nazionalità', w: contentW * 0.26 },
+      { header: 'Segmento', w: contentW * 0.18 },
+      { header: 'Scontistica', w: contentW * 0.16, align: 'right' },
+      { header: 'Note', w: contentW * 0.40 },
     ],
-    c.mercato.map((r) => [r.nazionalita, r.segmento, r.note]),
+    c.mercato.map((r) => [r.nazionalita, r.segmento, r.scontistica ? `${r.scontistica}%` : '', r.note]),
   )
 
   // ── SUPPLEMENTI ──

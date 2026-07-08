@@ -8,6 +8,7 @@ export { default as ToggleSwitch }    from './ToggleSwitch'
 export { default as DatePickerField } from './DatePickerField'
 export { default as DateRangeField }  from './DateRangeField'
 export { default as SearchField }     from './SearchField'
+export { default as NazionalitaSelect, FlagBadge } from './NazionalitaSelect'
 
 export type { InputFieldProps, InputType }          from './InputField'
 export type { SelectFieldProps, SelectOption }      from './SelectField'

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
 import { apiFetchSibylla } from '../../../../services/api'
-import { SelectField, RadioGroup, InputField, DateRangeField } from '../../../../core/components/form'
+import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect, FlagBadge } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import {
@@ -569,12 +569,13 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
         <div className="ca-sheet__section-head"><h4>Mercato specifico</h4></div>
         <div className="sib-table-wrap">
           <table className="sib-table ca-sheet__table">
-            <thead><tr><th>Nazionalità</th><th>Segmento</th><th>Note</th><th className="ca-doc-actcol" /></tr></thead>
+            <thead><tr><th>Nazionalità</th><th>Segmento</th><th>Scontistica (%)</th><th>Note</th><th className="ca-doc-actcol" /></tr></thead>
             <tbody>
               {contratto.mercato.map((r) => (
                 <tr key={r.id}>
-                  <td><DocInput value={r.nazionalita} onChange={(v) => updRow('mercato', r.id, 'nazionalita', v)} placeholder="Es. Italia" /></td>
+                  <td><NazionalitaSelect value={r.nazionalita} onChange={(v) => updRow('mercato', r.id, 'nazionalita', v)} placeholder="Nazionalità" /></td>
                   <td><DocInput value={r.segmento} onChange={(v) => updRow('mercato', r.id, 'segmento', v)} placeholder="Adulti / Studenti" /></td>
+                  <td><DocInput value={r.scontistica ?? ''} align="right" onChange={(v) => updRow('mercato', r.id, 'scontistica', v)} placeholder="0" /></td>
                   <td><DocInput value={r.note} onChange={(v) => updRow('mercato', r.id, 'note', v)} placeholder="Dettagli assegnazione market specific" /></td>
                   <td className="ca-doc-actcol"><DelRow onClick={() => delRow('mercato', r.id, 'Mercato specifico')} /></td>
                 </tr>
@@ -582,7 +583,7 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
             </tbody>
           </table>
         </div>
-        <AddRow onClick={() => addRow('mercato', { nazionalita: '', segmento: contratto.segmento === 'Studenti' ? 'Studenti' : 'Adulti', note: '' })} />
+        <AddRow onClick={() => addRow('mercato', { nazionalita: '', segmento: contratto.segmento === 'Studenti' ? 'Studenti' : 'Adulti', scontistica: '', note: '' })} />
 
         {/* SUPPLEMENTI */}
         <div className="ca-sheet__section-head"><h4>Supplementi</h4></div>
@@ -742,9 +743,16 @@ function ContrattoStampa({ contratto, onChiudi }: {
           <div className="ca-sheet__section-head"><h4>Mercato specifico</h4></div>
           <div className="sib-table-wrap">
             <table className="sib-table ca-sheet__table">
-              <thead><tr><th>Nazionalità</th><th>Segmento</th><th>Note</th></tr></thead>
+              <thead><tr><th>Nazionalità</th><th>Segmento</th><th>Scontistica (%)</th><th>Note</th></tr></thead>
               <tbody>
-                {c.mercato.map((r) => (<tr key={r.id}><td><RO value={r.nazionalita} /></td><td><RO value={r.segmento} /></td><td><RO value={r.note} /></td></tr>))}
+                {c.mercato.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.nazionalita ? <span className="ca-ro-naz"><FlagBadge name={r.nazionalita} /> {r.nazionalita}</span> : <RO value="" />}</td>
+                    <td><RO value={r.segmento} /></td>
+                    <td><RO value={r.scontistica ? `${r.scontistica}%` : ''} align="right" /></td>
+                    <td><RO value={r.note} /></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

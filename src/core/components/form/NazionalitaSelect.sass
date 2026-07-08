@@ -1,0 +1,121 @@
+// ─── NAZIONALITA SELECT (dropdown custom con bandierine tonde) ────────────────
+@use '../../../styles/tokens' as *
+
+.nazsel
+  position: relative
+  width: 100%
+  min-width: 0
+
+  // Trigger: coerente coi campi del documento (trasparente, sottolineato)
+  &__trigger
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    width: 100%
+    min-width: 0
+    border: none
+    border-bottom: 1px dashed $border
+    background: transparent
+    padding: 3px 2px
+    font-size: 12.5px
+    color: $text-active
+    cursor: pointer
+    text-align: left
+
+    &:hover
+      border-bottom-color: $primary
+
+    &:focus-visible
+      outline: none
+      border-bottom-style: solid
+      border-bottom-color: $primary
+
+    &:disabled
+      cursor: not-allowed
+      opacity: 0.6
+
+  &__val
+    flex: 1
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__ph
+    flex: 1
+    color: $text-disabled
+    font-style: italic
+
+  &__chev
+    flex: none
+    font-size: 9px
+    color: $text-inactive
+
+// ── Bandiera tonda: emoji ritagliata dentro un cerchio ──
+.nazsel__flag
+  flex: none
+  width: 18px
+  height: 18px
+  border-radius: 50%
+  overflow: hidden
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: alpha($primary, 0.06)
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.10)
+
+  em
+    font-style: normal
+    font-size: 15px
+    line-height: 1
+    transform: scale(1.5)
+
+// ── Overlay + lista (in portale su document.body, position:fixed) ──
+.nazsel__overlay
+  position: fixed
+  inset: 0
+  z-index: 2000
+
+.nazsel__list
+  position: fixed
+  z-index: 2001
+  max-height: 280px
+  overflow-y: auto
+  background: $white
+  border: 1px solid $border
+  border-radius: $radius-lg
+  box-shadow: $shadow-lg
+  padding: 4px
+
+.nazsel__opt
+  display: flex
+  align-items: center
+  gap: 9px
+  width: 100%
+  border: none
+  background: transparent
+  padding: 6px 8px
+  border-radius: 8px
+  font-size: 12.5px
+  color: $text-active
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    background: alpha($primary, 0.08)
+
+  &.is-selected
+    background: alpha($primary, 0.12)
+    font-weight: 600
+
+  &-name
+    flex: 1
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &-check
+    flex: none
+    font-size: 10px
+    color: $primary
