@@ -1,325 +1,299 @@
-// ─── REPORT PICKUP ──────────────────────────────────────────────────────────
+// ─── REPORT PICK-UP (OTB) ───────────────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
 
-.report-pickup
+// Palette semantica della matrice (data-viz): incremento / decremento /
+// osservazione corrente / dato futuro.
+$rp-up: #15803d
+$rp-up-bg: rgba(22, 163, 74, 0.13)
+$rp-down: #b91c1c
+$rp-down-bg: rgba(220, 38, 38, 0.11)
+$rp-today-bg: rgba(202, 138, 4, 0.16)
+$rp-today-bd: rgba(202, 138, 4, 0.55)
+$rp-future-bg: rgba(190, 24, 93, 0.09)
+
+.rp
   display: flex
   flex-direction: column
-  align-items: stretch
   gap: 16px
   font-size: 13px
 
   > .sib-btn--back
     align-self: flex-start
 
-  // ── Filtri ────────────────────────────────────────────────────────────────
-  &__bar
-    display: flex
-    align-items: flex-end
-    flex-wrap: wrap
-    gap: 12px
+// ── Filtri ──
+.rp__filters
+  display: flex
+  flex-wrap: wrap
+  align-items: flex-end
+  gap: 12px 16px
 
-  &__field
-    position: relative
-    display: flex
-    flex-direction: column
-    gap: 6px
+.rp__field
+  position: relative
+  display: flex
+  flex-direction: column
+  gap: 4px
 
-    > label
-      font-family: 'Poppins', sans-serif
-      font-size: 12px
-      font-weight: 600
-      color: $primary
-
-  &__hotel-btn
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    height: 34px
-    min-width: 240px
-    padding: 0 12px
-    border: 1px solid $border
-    border-radius: 8px
-    background: $white
-    color: $text-active
-    font-size: 13px
-    cursor: pointer
-
-    &.is-open
-      border-color: $primary
-
-    span
-      flex: 1
-      text-align: left
-
-  &__hotel-chev
-    font-size: 11px
-    color: $text-inactive
-
-  &__hotel-pop
-    position: absolute
-    top: 100%
-    left: 0
-    margin-top: 6px
-    min-width: 260px
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
-    z-index: 50
-    padding: 8px
-    display: flex
-    flex-direction: column
-    gap: 2px
-
-  &__hotel-sep
-    height: 1px
-    background: $border
-    margin: 4px 0
-
-  &__hotel-opt
-    display: flex
-    align-items: center
-    gap: 8px
-    padding: 6px 6px
-    border-radius: 6px
-    cursor: pointer
-    font-size: 13px
-    color: $text-active
-
-    &:hover
-      background: $primary-50
-
-    em
-      color: $text-inactive
-      font-style: normal
-      font-size: 12px
-
-  &__view-tag
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    height: 34px
-    padding: 0 12px
-    border-radius: 8px
+  > label
     font-size: 12px
     font-weight: 600
-
-    &--agg
-      background: $primary-50
-      color: $primary
-
-    &--det
-      background: $success-light
-      color: $success
-
-  // ── Card di sezione ─────────────────────────────────────────────────────────
-  &__card
-    background: $white
-    border: 1px solid $border
-    border-radius: 12px
-    padding: 16px 18px
-    display: flex
-    flex-direction: column
-    gap: 12px
-
-  &__card--scroll
-    position: relative
-    padding-bottom: 58px
-
-  &__card-title
-    font-family: 'Poppins', sans-serif
-    font-size: 14px
-    font-weight: 600
     color: $primary
-    margin: 0
 
-  // ── Slider di scorrimento giorni (overlay) ──────────────────────────────────
-  &__slider
-    position: absolute
-    left: 18px
-    right: 18px
-    bottom: 12px
-    display: flex
-    align-items: center
-    gap: 10px
-    padding: 8px 14px
-    border-radius: 999px
-    background: var(--color-surface)
-    border: 1px solid $border
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12)
-    z-index: 3
+.rp__hotel-btn
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  height: 34px
+  min-width: 210px
+  padding: 0 12px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: $text-active
+  cursor: pointer
 
-    input[type=range]
-      flex: 1
-      appearance: none
-      -webkit-appearance: none
-      height: 6px
-      border-radius: 999px
-      background: $primary-100
-      cursor: pointer
-      outline: none
+  &.is-open
+    border-color: $primary
 
-      &::-webkit-slider-thumb
-        appearance: none
-        -webkit-appearance: none
-        width: 34px
-        height: 16px
-        border-radius: 999px
-        background: $primary
-        border: 2px solid var(--color-surface)
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25)
-        cursor: grab
+.rp__hotel-chev
+  margin-left: auto
+  font-size: 10px
+  color: $text-inactive
 
-      &::-moz-range-thumb
-        width: 34px
-        height: 16px
-        border: 2px solid var(--color-surface)
-        border-radius: 999px
-        background: $primary
-        cursor: grab
+.rp__hotel-pop
+  position: absolute
+  top: calc(100% + 4px)
+  left: 0
+  z-index: 20
+  min-width: 240px
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 8px
+  box-shadow: $shadow-lg
+  padding: 6px
 
-  &__slider-ico
-    color: $primary
-    font-size: 14px
+.rp__hotel-opt
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 7px 8px
+  border-radius: 6px
+  cursor: pointer
 
-  &__slider-hint
+  em
+    color: $text-inactive
+    font-style: normal
     font-size: 11px
-    font-weight: 600
-    color: $text-inactive
-    white-space: nowrap
 
-  &__hint
-    display: flex
+  &:hover
+    background: alpha($primary, 0.06)
+
+.rp__hotel-sep
+  height: 1px
+  background: $border
+  margin: 4px 0
+
+// ── Legenda ──
+.rp__legend
+  display: flex
+  flex-wrap: wrap
+  gap: 18px
+  font-size: 12px
+  color: $text-inactive
+
+  span
+    display: inline-flex
     align-items: center
-    gap: 6px
-    margin: 0
-    font-size: 12px
-    color: $text-inactive
+    gap: 7px
 
-  // ── Tabelle numeriche ────────────────────────────────────────────────────────
-  &__num
-    text-align: right !important
+.rp__sw
+  width: 14px
+  height: 14px
+  border-radius: 4px
+  display: inline-block
+
+  &--up
+    background: $rp-up-bg
+    box-shadow: inset 0 0 0 1px $rp-up
+
+  &--down
+    background: $rp-down-bg
+    box-shadow: inset 0 0 0 1px $rp-down
+
+  &--today
+    background: $rp-today-bg
+    box-shadow: inset 0 0 0 1px $rp-today-bd
+
+  &--future
+    background: $rp-future-bg
+    box-shadow: inset 0 0 0 1px rgba(190, 24, 93, 0.4)
+
+// ── Card ──
+.rp__card
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 12px
+  padding: 16px 18px
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
+
+.rp__card-title
+  margin: 0 0 12px
+  font-family: $font-heading
+  font-weight: 700
+  font-size: 15px
+  color: $primary
+
+// ── Matrice (tabella-matrice: scroll-x consentito) ──
+.rp__matrix-wrap
+  overflow-x: auto
+
+.rp__matrix
+  border-collapse: separate
+  border-spacing: 0
+  font-size: 12px
+  white-space: nowrap
+
+  th, td
+    border-bottom: 1px solid $border
+    padding: 6px 10px
+
+  thead th
+    position: sticky
+    top: 0
+    background: var(--color-canvas, #f8fafc)
+    color: $text-inactive
+    font-weight: 600
+    z-index: 1
+
+  .rp__num
+    text-align: right
     font-variant-numeric: tabular-nums
 
-  &__strong
-    font-weight: 600
-    color: $primary
+.rp__obs-th
+  min-width: 58px
 
-  &__muted
-    color: $text-inactive
+  &.is-today
+    background: $rp-today-bg
+    color: $text-active
 
-  &__delta
-    font-weight: 600
+  &.is-future
+    background: $rp-future-bg
 
-    &--up
-      color: $success
+.rp__obs-wd
+  display: block
+  font-size: 9px
+  text-transform: uppercase
+  color: $text-disabled
 
-    &--down
-      color: $error
+.rp__end-th
+  min-width: 66px
+  color: $primary
 
-    i
-      font-size: 10px
-      margin-right: 2px
+// Colonne bloccate a sinistra
+.rp__sticky
+  position: sticky
+  background: var(--color-surface)
+  z-index: 2
 
-  &__cmp-table
-    width: 100%
-
-  // ── Scroll orizzontale (grafico + tabella tempo) ──────────────────────────────
-  &__scroll
-    overflow-x: auto
-    overflow-y: hidden
-
-    &--table
-      border: 1px solid $border
-      border-radius: 8px
-
-  &__time-table
-    border-collapse: collapse
-    white-space: nowrap
-    font-size: 12px
-
-    th, td
-      padding: 8px 12px
-      border-bottom: 1px solid $border
-      text-align: right
-      font-variant-numeric: tabular-nums
-
-    thead th
-      background: $bg
-      color: $text-inactive
-      font-weight: 600
-      position: sticky
-      top: 0
-
-    tbody tr:last-child td
-      border-bottom: none
-
-  &__time-head
-    position: sticky
+  &--arr
     left: 0
-    z-index: 1
-    text-align: left !important
-    background: $white
-    min-width: 150px
-
-  thead &__time-head
-    background: $bg
-    z-index: 2
-
-  &__mese-th
-    text-align: center !important
-    background: $primary-50 !important
-    color: $primary !important
-    border-left: 1px solid $border
-
-  &__day-th
-    min-width: 54px
-
-  &__day-wd
-    display: block
-    font-size: 10px
-    font-weight: 400
-    color: $text-disabled
-    text-transform: capitalize
-
-  // ── KPI ───────────────────────────────────────────────────────────────────
-  &__kpis
-    display: grid
-    grid-template-columns: repeat(3, 1fr)
-    gap: 12px
-
-    @media (max-width: 760px)
-      grid-template-columns: 1fr
-
-  &__kpi
-    display: flex
-    flex-direction: column
-    gap: 6px
-
-  &__kpi-top
-    display: flex
-    align-items: center
-    gap: 8px
-
-  &__kpi-ico
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    width: 30px
-    height: 30px
-    border-radius: 8px
-    background: $primary-50
-    color: $primary
-    font-size: 14px
-
-  &__kpi-delta
-    display: inline-flex
-    align-items: center
-    gap: 4px
-    font-size: 12px
+    width: 92px
+    min-width: 92px
+    text-align: left
     font-weight: 600
+    color: $text-active
 
-    em
-      color: $text-inactive
-      font-style: normal
-      font-weight: 400
+  &--disp
+    left: 92px
+    width: 66px
+    min-width: 66px
+
+.rp__matrix thead .rp__sticky
+  z-index: 3
+
+.rp__arr-wd
+  color: $text-disabled
+  margin-right: 6px
+
+// Celle della matrice
+.rp-cell--up
+  background: $rp-up-bg
+  color: $rp-up
+  font-weight: 600
+
+.rp-cell--down
+  background: $rp-down-bg
+  color: $rp-down
+  font-weight: 600
+
+.rp-cell--flat
+  color: $text-inactive
+
+.rp-cell--today
+  background: $rp-today-bg
+  color: $text-active
+  font-weight: 700
+  box-shadow: inset 1px 0 0 $rp-today-bd, inset -1px 0 0 $rp-today-bd
+
+.rp-cell--future
+  background: $rp-future-bg
+  color: $text-disabled
+
+.rp__muted
+  color: $text-inactive
+
+.rp__end-td
+  color: $text-active
+  font-weight: 600
+
+.rp__pu
+  &--up
+    color: $rp-up
+  &--down
+    color: $rp-down
+
+.rp__note
+  margin: 12px 0 0
+  font-size: 11.5px
+  color: $text-inactive
+  line-height: 1.5
+
+  i
+    color: $primary
+    margin-right: 5px
+
+// ── KPI ──
+.rp__kpis
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
+  gap: 12px
+
+.rp__kpi
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.rp__kpi-top
+  display: flex
+  align-items: center
+  gap: 8px
+
+.rp__kpi-ico
+  width: 26px
+  height: 26px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border-radius: 7px
+  background: alpha($primary, 0.10)
+  color: $primary
+  font-size: 12px
+
+.rp__kpi-delta
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 12px
+  font-weight: 600
+
+  i
+    font-size: 10px

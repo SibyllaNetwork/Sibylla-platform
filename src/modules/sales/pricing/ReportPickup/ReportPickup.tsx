@@ -1,90 +1,52 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip, Legend,
-} from 'recharts'
 import BtnBack from '../../../../core/components/BtnBack'
 import PageHeader from '../../../../core/components/PageHeader'
-import { DateRangeField } from '../../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './ReportPickup.sass'
 
-// ─── DATI MOCK ────────────────────────────────────────────────────────────────
+// ─── Pick-Up Camere Vendute (OTB) ────────────────────────────────────────────────
+// Matrice: righe = Data Arrivo (data di soggiorno), colonne = Data Osservazione
+// (snapshot giornalieri OTB). Ogni cella = camere OTB per quell'arrivo rilevate
+// nello snapshot. Colori: verde = incremento vs snapshot precedente, rosso =
+// decremento, giallo = data osservazione corrente, rosa = snapshot futuro (dato
+// non disponibile). Dati mock deterministici (On The Books).
 
-interface Hotel { id: string; nome: string; peso: number }
+interface Hotel { id: string; nome: string; camere: number }
 const HOTELS: Hotel[] = [
-  { id: 'resort',   nome: 'Sibylla Resort',   peso: 0.40 },
-  { id: 'city',     nome: 'Sibylla City',     peso: 0.28 },
-  { id: 'bay',      nome: 'Sibylla Bay',      peso: 0.20 },
-  { id: 'mountain', nome: 'Sibylla Mountain', peso: 0.12 },
+  { id: 'resort',   nome: 'Sibylla Resort',   camere: 120 },
+  { id: 'city',     nome: 'Sibylla City',     camere: 90 },
+  { id: 'bay',      nome: 'Sibylla Bay',      camere: 70 },
+  { id: 'mountain', nome: 'Sibylla Mountain', camere: 45 },
 ]
 
-// Il report è organizzato GIORNO PER GIORNO: ogni colonna è una data di soggiorno.
-// L'andamento aggregato "anno corrente" (Tutti gli hotel) è generato in modo
-// deterministico; i dati per singolo hotel derivano dai pesi.
+const SEGMENTI  = ['Tutti', 'Leisure', 'Business', 'Gruppi', 'MICE']
+const CANALI    = ['Tutti', 'Diretto', 'OTA', 'Tour Operator', 'GDS']
+const MERCATI   = ['Tutti', 'Italia', 'Germania', 'UK', 'Francia', 'USA']
+const TIPO_CAM  = ['Tutte', 'Classic', 'Superior', 'Deluxe', 'Suite']
+const PIANI     = ['Tutti', 'BAR', 'Non rimborsabile', 'Semiflex', 'Corporate']
+
 const WD = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab']
-const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
-const N_GIORNI = 92 // ~3 mesi, con scroll orizzontale sui successivi
+const DAY = 86400000
+const OGGI = new Date(2026, 6, 8) // 08/07/2026 (data osservazione corrente)
 
-interface Giorno {
-  label: string      // gg/mm
-  wd: string         // giorno settimana abbreviato
-  meseLabel: string  // "Giugno 2026"
-  rnBase: number     // room nights aggregate (Tutti gli hotel)
-  adr: number
-  lyF: number        // fattore SDLY (<1 = quest'anno meglio)
-}
-const GIORNI: Giorno[] = Array.from({ length: N_GIORNI }, (_, i) => {
-  const date = new Date(2026, 5, 1 + i) // dal 1° giugno 2026
-  const dow = date.getDay()
-  const weekend = dow === 0 || dow === 5 || dow === 6
-  const wave = 12 + Math.round(7 * Math.sin(i / 3.2) + 4 * Math.cos(i / 7))
-  const rnBase = Math.max(0, wave + (weekend ? 8 : 0))
-  const adr = 240 + (i % 11) * 6 + (weekend ? 30 : 0)
-  const lyF = 0.82 + ((i * 7) % 40) / 100 // 0.82 → 1.21 deterministico
-  const dd = String(date.getDate()).padStart(2, '0')
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  return { label: `${dd}/${mm}`, wd: WD[dow], meseLabel: `${MESI[date.getMonth()]} ${date.getFullYear()}`, rnBase, adr, lyF }
-})
-
+const ddmm = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
+const parseISO = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1) }
 const fmtEur = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 const fmtEur2 = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(n)
 const fmtNum = (n: number) => new Intl.NumberFormat('it-IT').format(Math.round(n))
 const fmtPct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1).replace('.', ',')}%`
 
-// ─── COMPONENTE ─────────────────────────────────────────────────────────────────
-
 export default function ReportPickup({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [selHotels, setSelHotels] = useState<string[]>([]) // [] = Tutti gli hotel (aggregata)
+  const [selHotels, setSelHotels] = useState<string[]>([])
   const [hotelOpen, setHotelOpen] = useState(false)
-  const [da, setDa] = useState('2026-01-01')
-  const [a, setA] = useState('2026-12-31')
+  const [da, setDa] = useState('2026-07-10')
+  const [a, setA] = useState('2026-08-06')
+  const [segmento, setSegmento] = useState('Tutti')
+  const [canale, setCanale] = useState('Tutti')
+  const [mercato, setMercato] = useState('Tutti')
+  const [tipoCam, setTipoCam] = useState('Tutte')
+  const [piano, setPiano] = useState('Tutti')
   const hotelRef = useRef<HTMLDivElement>(null)
-
-  // ── Slider di scorrimento giorni (overlay), sincronizzato grafico ⇄ tabella ──
-  const chartScrollRef = useRef<HTMLDivElement>(null)
-  const tableScrollRef = useRef<HTMLDivElement>(null)
-  const syncing = useRef(false)
-  const [scrollPct, setScrollPct] = useState(0)
-
-  const applyScroll = (pct: number, source?: 'chart' | 'table' | 'slider') => {
-    const p = Math.min(1, Math.max(0, pct))
-    const set = (el: HTMLDivElement | null) => {
-      if (!el) return
-      const max = el.scrollWidth - el.clientWidth
-      if (max > 0) el.scrollLeft = max * p
-    }
-    if (source !== 'chart') set(chartScrollRef.current)
-    if (source !== 'table') set(tableScrollRef.current)
-    setScrollPct(p)
-  }
-
-  const onContainerScroll = (which: 'chart' | 'table') => (e: React.UIEvent<HTMLDivElement>) => {
-    if (syncing.current) return
-    syncing.current = true
-    const el = e.currentTarget
-    const max = el.scrollWidth - el.clientWidth
-    applyScroll(max > 0 ? el.scrollLeft / max : 0, which)
-    requestAnimationFrame(() => { syncing.current = false })
-  }
 
   useEffect(() => {
     const h = (e: MouseEvent) => { if (hotelRef.current && !hotelRef.current.contains(e.target as Node)) setHotelOpen(false) }
@@ -92,241 +54,213 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  // Peso complessivo della selezione (Tutti = 1).
-  const peso = selHotels.length === 0 ? 1 : HOTELS.filter((h) => selHotels.includes(h.id)).reduce((s, h) => s + h.peso, 0)
   const aggregata = selHotels.length === 0
-
-  // Serie giornaliera in base alla selezione hotel.
-  const serie = useMemo(() => GIORNI.map((g) => {
-    const rn = Math.round(g.rnBase * peso)
-    const imp = rn * g.adr
-    const rnLy = Math.round(rn * g.lyF)
-    const impLy = rnLy * g.adr * 0.97
-    return { label: g.label, wd: g.wd, meseLabel: g.meseLabel, rn, imp, rnLy, impLy, pickup: rn - rnLy }
-  }), [peso])
-
-  // Raggruppamento per mese (intestazione superiore della tabella giornaliera).
-  const meseGroups = useMemo(() => {
-    const groups: { label: string; count: number }[] = []
-    serie.forEach((g) => {
-      const last = groups[groups.length - 1]
-      if (last && last.label === g.meseLabel) last.count++
-      else groups.push({ label: g.meseLabel, count: 1 })
-    })
-    return groups
-  }, [serie])
-
-  // Totali anno corrente vs SDLY (stesso periodo anno precedente).
-  const tot = useMemo(() => {
-    const rn = serie.reduce((s, m) => s + m.rn, 0)
-    const imp = serie.reduce((s, m) => s + m.imp, 0)
-    const rnLy = serie.reduce((s, m) => s + m.rnLy, 0)
-    const impLy = serie.reduce((s, m) => s + m.impLy, 0)
-    const adr = rn ? imp / rn : 0
-    const adrLy = rnLy ? impLy / rnLy : 0
-    return { rn, imp, adr, rnLy, impLy, adrLy }
-  }, [serie])
-
-  const delta = (ty: number, ly: number) => (ly ? ((ty - ly) / ly) * 100 : 0)
-
+  const camereDisp = (aggregata ? HOTELS : HOTELS.filter((h) => selHotels.includes(h.id))).reduce((s, h) => s + h.camere, 0)
   const hotelLabel = aggregata
-    ? 'Tutti gli hotel'
-    : selHotels.length === 1 ? HOTELS.find((h) => h.id === selHotels[0])!.nome : `${selHotels.length} hotel selezionati`
+    ? 'Tutte le strutture'
+    : selHotels.length === 1 ? HOTELS.find((h) => h.id === selHotels[0])!.nome : `${selHotels.length} strutture`
+  const toggleHotel = (id: string) => setSelHotels((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id])
 
-  const toggleHotel = (id: string) =>
-    setSelHotels((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+  // Ogni filtro specifico (≠ Tutti) restringe la domanda OTB.
+  const segFactor = [segmento === 'Tutti', canale === 'Tutti', mercato === 'Tutti', tipoCam === 'Tutte', piano === 'Tutti']
+    .reduce((f, isAll) => f * (isAll ? 1 : 0.82), 1)
 
-  // Righe della tabella di confronto SDLY.
-  const CONFRONTO: { label: string; ty: number; ly: number; fmt: (n: number) => string }[] = [
-    { label: 'Camere vendute', ty: tot.rn,  ly: tot.rnLy,  fmt: fmtNum },
-    { label: 'Importo',        ty: tot.imp, ly: tot.impLy, fmt: fmtEur },
-    { label: 'ADR',            ty: tot.adr, ly: tot.adrLy, fmt: fmtEur2 },
+  // Colonne = snapshot di osservazione (8 passati, oggi, 3 futuri).
+  const snapshots = useMemo(() => Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(OGGI.getTime() + (i - 8) * DAY)
+    return { date: d, label: ddmm(d), wd: WD[d.getDay()], futuro: d.getTime() > OGGI.getTime(), oggi: d.getTime() === OGGI.getTime() }
+  }), [])
+  const todayIdx = snapshots.findIndex((s) => s.oggi)
+
+  // Righe = date di arrivo nel periodo selezionato (max 31).
+  const arrivi = useMemo(() => {
+    const start = parseISO(da), end = parseISO(a)
+    const out: { date: Date; label: string; wd: string; finalOcc: number }[] = []
+    let t = start.getTime(), guard = 0
+    while (t <= end.getTime() && guard < 31) {
+      const d = new Date(t)
+      const dow = d.getDay()
+      const weekend = dow === 5 || dow === 6
+      const wave = 0.62 + 0.16 * Math.sin(guard / 3.1) + 0.08 * Math.cos(guard / 6.4) + (weekend ? 0.12 : 0)
+      out.push({ date: d, label: ddmm(d), wd: WD[dow], finalOcc: Math.min(0.98, Math.max(0.35, wave)) })
+      t += DAY; guard += 1
+    }
+    return out
+  }, [da, a])
+
+  // OTB(arrivo, snapshot): camere prenotate rilevate nello snapshot (curva di pace).
+  const otb = (arrivoDate: Date, finalOcc: number, snapIdx: number): number | null => {
+    const snap = snapshots[snapIdx]
+    if (snap.futuro) return null
+    const finalRooms = finalOcc * camereDisp * segFactor
+    const daysBefore = Math.max(0, Math.round((arrivoDate.getTime() - snap.date.getTime()) / DAY))
+    const pace = Math.min(1, Math.max(0.12, 1 - daysBefore / 55))
+    return Math.min(camereDisp, Math.round(finalRooms * pace))
+  }
+
+  // ADR deterministico per arrivo.
+  const adrOf = (r: { date: Date }, i: number) => 210 + (i % 9) * 8 + ((r.date.getDay() === 5 || r.date.getDay() === 6) ? 35 : 0)
+
+  // KPI aggregati alla data di osservazione corrente (oggi vs snapshot precedente).
+  const kpi = useMemo(() => {
+    let occ = 0, occPrev = 0, ricavo = 0, lyOcc = 0, adrW = 0
+    arrivi.forEach((r, i) => {
+      const o = otb(r.date, r.finalOcc, todayIdx) ?? 0
+      const p = otb(r.date, r.finalOcc, todayIdx - 1) ?? 0
+      const adr = adrOf(r, i)
+      occ += o; occPrev += p; ricavo += o * adr; adrW += adr
+      lyOcc += Math.round(o * (0.88 + ((i * 7) % 20) / 100)) // LY OTB deterministico
+    })
+    const disp = camereDisp * arrivi.length
+    const adr = arrivi.length ? adrW / arrivi.length : 0
+    return {
+      occ, disp,
+      occPct: disp ? (occ / disp) * 100 : 0,
+      pickupAbs: occ - occPrev,
+      pickupPct: occPrev ? ((occ - occPrev) / occPrev) * 100 : 0,
+      adr, ricavo,
+      revpar: disp ? ricavo / disp : 0,
+      lyOcc, tyVsLy: lyOcc ? ((occ - lyOcc) / lyOcc) * 100 : 0,
+    }
+  }, [arrivi, camereDisp, segFactor, todayIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const KPI: { label: string; icon: string; value: string; delta?: number }[] = [
+    { label: 'Camere occupate', icon: 'bed-front', value: fmtNum(kpi.occ) },
+    { label: 'Occupazione %', icon: 'gauge-high', value: `${kpi.occPct.toFixed(1).replace('.', ',')}%` },
+    { label: 'Pick-Up assoluto', icon: 'arrow-trend-up', value: `${kpi.pickupAbs > 0 ? '+' : ''}${fmtNum(kpi.pickupAbs)}`, delta: kpi.pickupPct },
+    { label: 'ADR', icon: 'chart-line', value: fmtEur2(kpi.adr) },
+    { label: 'Ricavo camere', icon: 'euro-sign', value: fmtEur(kpi.ricavo) },
+    { label: 'RevPAR', icon: 'sack-dollar', value: fmtEur2(kpi.revpar) },
+    { label: 'TY vs LY', icon: 'calendar-days', value: fmtPct(kpi.tyVsLy), delta: kpi.tyVsLy },
   ]
 
-  const KPI = [
-    { label: 'Camere vendute', icon: 'bed-front', value: fmtNum(tot.rn), delta: delta(tot.rn, tot.rnLy) },
-    { label: 'Importo',        icon: 'euro-sign', value: fmtEur(tot.imp), delta: delta(tot.imp, tot.impLy) },
-    { label: 'ADR',            icon: 'chart-line', value: fmtEur2(tot.adr), delta: delta(tot.adr, tot.adrLy) },
-  ]
-
-  const chartMinWidth = Math.max(680, serie.length * 30)
-  const tableMinWidth = 150 + serie.length * 58
+  const cellClass = (r: { date: Date; finalOcc: number }, i: number, snapIdx: number): string => {
+    const snap = snapshots[snapIdx]
+    if (snap.futuro) return 'rp-cell rp-cell--future'
+    if (snap.oggi) return 'rp-cell rp-cell--today'
+    const cur = otb(r.date, r.finalOcc, snapIdx)
+    const prev = snapIdx > 0 ? otb(r.date, r.finalOcc, snapIdx - 1) : null
+    if (cur == null || prev == null) return 'rp-cell'
+    if (cur > prev) return 'rp-cell rp-cell--up'
+    if (cur < prev) return 'rp-cell rp-cell--down'
+    return 'rp-cell rp-cell--flat'
+  }
 
   return (
-    <div className="report-pickup">
+    <div className="rp">
       <BtnBack />
       <PageHeader
-        title="Report Pickup"
-        subtitle="Andamento delle vendite nel tempo e confronto con lo stesso periodo dell'anno precedente (SDLY)"
+        title="Report Pick-Up — Camere Vendute"
+        subtitle="Evoluzione delle prenotazioni On The Books (OTB): camere vendute per data di arrivo confrontate tra le diverse date di osservazione."
       />
 
-      {/* ── Filtri ─────────────────────────────────────────────────────────── */}
-      <div className="report-pickup__bar">
-        <div className="report-pickup__field" ref={hotelRef}>
-          <label>Hotel</label>
-          <button type="button" className={`report-pickup__hotel-btn${hotelOpen ? ' is-open' : ''}`} onClick={() => setHotelOpen((v) => !v)}>
+      {/* ── Filtri ──────────────────────────────────────────────────────────── */}
+      <div className="rp__filters">
+        <div className="rp__field" ref={hotelRef}>
+          <label>Struttura</label>
+          <button type="button" className={`rp__hotel-btn${hotelOpen ? ' is-open' : ''}`} onClick={() => setHotelOpen((v) => !v)}>
             <i className="fa-light fa-hotel" />
             <span>{hotelLabel}</span>
-            <i className={`fa-solid fa-chevron-${hotelOpen ? 'up' : 'down'} report-pickup__hotel-chev`} />
+            <i className={`fa-solid fa-chevron-${hotelOpen ? 'up' : 'down'} rp__hotel-chev`} />
           </button>
           {hotelOpen && (
-            <div className="report-pickup__hotel-pop">
-              <label className="report-pickup__hotel-opt">
+            <div className="rp__hotel-pop">
+              <label className="rp__hotel-opt">
                 <input type="checkbox" className="sib-checkbox" checked={aggregata} onChange={() => setSelHotels([])} />
-                <span>Tutti gli hotel <em>(vista aggregata)</em></span>
+                <span>Tutte le strutture <em>(aggregata)</em></span>
               </label>
-              <div className="report-pickup__hotel-sep" />
+              <div className="rp__hotel-sep" />
               {HOTELS.map((h) => (
-                <label key={h.id} className="report-pickup__hotel-opt">
+                <label key={h.id} className="rp__hotel-opt">
                   <input type="checkbox" className="sib-checkbox" checked={selHotels.includes(h.id)} onChange={() => toggleHotel(h.id)} />
-                  <span>{h.nome}</span>
+                  <span>{h.nome} <em>({h.camere} cam.)</em></span>
                 </label>
               ))}
             </div>
           )}
         </div>
-        <DateRangeField
-          label="Periodo"
-          nameFrom="da" nameTo="a"
-          valueFrom={da} valueTo={a}
-          onChangeFrom={(e) => setDa(e.target.value)}
-          onChangeTo={(e) => setA(e.target.value)}
-        />
-        <span className={`report-pickup__view-tag report-pickup__view-tag--${aggregata ? 'agg' : 'det'}`}>
-          <i className={`fa-solid fa-${aggregata ? 'layer-group' : 'magnifying-glass-chart'}`} />
-          {aggregata ? 'Vista aggregata' : 'Vista di dettaglio'}
-        </span>
+        <DateRangeField label="Periodo (date di arrivo)" nameFrom="da" nameTo="a" valueFrom={da} valueTo={a}
+          onChangeFrom={(e) => setDa(e.target.value)} onChangeTo={(e) => setA(e.target.value)} />
+        <SelectField label="Segmento" name="segmento" value={segmento} onChange={(e) => setSegmento(e.target.value)} options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
+        <SelectField label="Canale" name="canale" value={canale} onChange={(e) => setCanale(e.target.value)} options={CANALI.map((o) => ({ value: o, label: o }))} />
+        <SelectField label="Mercato" name="mercato" value={mercato} onChange={(e) => setMercato(e.target.value)} options={MERCATI.map((o) => ({ value: o, label: o }))} />
+        <SelectField label="Tipologia camera" name="tipoCam" value={tipoCam} onChange={(e) => setTipoCam(e.target.value)} options={TIPO_CAM.map((o) => ({ value: o, label: o }))} />
+        <SelectField label="Piano tariffario" name="piano" value={piano} onChange={(e) => setPiano(e.target.value)} options={PIANI.map((o) => ({ value: o, label: o }))} />
       </div>
 
-      {/* ── Confronto SDLY ─────────────────────────────────────────────────── */}
-      <section className="report-pickup__card">
-        <h2 className="report-pickup__card-title">Confronto Same Date Last Year (SDLY)</h2>
-        <div className="sib-table-wrap">
-          <table className="sib-table report-pickup__cmp-table">
+      {/* ── Legenda colori ──────────────────────────────────────────────────── */}
+      <div className="rp__legend">
+        <span><i className="rp__sw rp__sw--up" /> Incremento OTB</span>
+        <span><i className="rp__sw rp__sw--down" /> Decremento OTB</span>
+        <span><i className="rp__sw rp__sw--today" /> Osservazione corrente</span>
+        <span><i className="rp__sw rp__sw--future" /> Dato futuro / non disponibile</span>
+      </div>
+
+      {/* ── Matrice Pick-Up ─────────────────────────────────────────────────── */}
+      <section className="rp__card">
+        <h2 className="rp__card-title">Matrice Pick-Up OTB · camere per data di arrivo × data di osservazione</h2>
+        <div className="rp__matrix-wrap">
+          <table className="rp__matrix">
             <thead>
               <tr>
-                <th>Indicatore</th>
-                <th className="report-pickup__num">Anno corrente</th>
-                <th className="report-pickup__num">Stesso periodo A-1</th>
-                <th className="report-pickup__num">Δ</th>
-                <th className="report-pickup__num">Δ %</th>
+                <th className="rp__sticky rp__sticky--arr">Data arrivo</th>
+                <th className="rp__sticky rp__sticky--disp rp__num">Cam. disp.</th>
+                {snapshots.map((s, i) => (
+                  <th key={i} className={`rp__num rp__obs-th${s.oggi ? ' is-today' : ''}${s.futuro ? ' is-future' : ''}`}>
+                    <span className="rp__obs-wd">{s.wd}</span>{s.label}
+                  </th>
+                ))}
+                <th className="rp__num rp__end-th">Occ. %</th>
+                <th className="rp__num rp__end-th">Pick-Up</th>
               </tr>
             </thead>
             <tbody>
-              {CONFRONTO.map((r) => {
-                const d = delta(r.ty, r.ly)
+              {arrivi.map((r, i) => {
+                const oOggi = otb(r.date, r.finalOcc, todayIdx) ?? 0
+                const oPrev = otb(r.date, r.finalOcc, todayIdx - 1) ?? 0
+                const pu = oOggi - oPrev
+                const occPct = camereDisp ? (oOggi / camereDisp) * 100 : 0
                 return (
-                  <tr key={r.label}>
-                    <td className="report-pickup__strong">{r.label}</td>
-                    <td className="report-pickup__num">{r.fmt(r.ty)}</td>
-                    <td className="report-pickup__num report-pickup__muted">{r.fmt(r.ly)}</td>
-                    <td className="report-pickup__num">{r.fmt(r.ty - r.ly)}</td>
-                    <td className={`report-pickup__num report-pickup__delta report-pickup__delta--${d >= 0 ? 'up' : 'down'}`}>
-                      <i className={`fa-solid fa-arrow-${d >= 0 ? 'up' : 'down'}`} /> {fmtPct(d)}
-                    </td>
+                  <tr key={i}>
+                    <td className="rp__sticky rp__sticky--arr"><span className="rp__arr-wd">{r.wd}</span>{r.label}</td>
+                    <td className="rp__sticky rp__sticky--disp rp__num rp__muted">{camereDisp}</td>
+                    {snapshots.map((s, si) => {
+                      const v = otb(r.date, r.finalOcc, si)
+                      return <td key={si} className={cellClass(r, i, si) + ' rp__num'}>{v == null ? '—' : fmtNum(v)}</td>
+                    })}
+                    <td className="rp__num rp__end-td">{occPct.toFixed(0)}%</td>
+                    <td className={`rp__num rp__end-td rp__pu rp__pu--${pu >= 0 ? 'up' : 'down'}`}>{pu > 0 ? '+' : ''}{fmtNum(pu)}</td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
+        <p className="rp__note">
+          <i className="fa-light fa-circle-info" /> Camere Vendute = somma camere delle prenotazioni con Data Creazione ≤ Data Osservazione e non cancellate entro tale data, per la Data Arrivo. Fonte: prenotazioni On The Books.
+        </p>
       </section>
 
-      {/* ── Andamento Room nights nel tempo (giorno per giorno) ────────────── */}
-      <section className="report-pickup__card report-pickup__card--scroll">
-        <h2 className="report-pickup__card-title">Andamento Room nights vendute — giorno per giorno</h2>
-        <p className="report-pickup__hint"><i className="fa-light fa-arrows-left-right" /> Scorri orizzontalmente per consultare i giorni e i mesi successivi</p>
-
-        <div className="report-pickup__scroll" ref={chartScrollRef} onScroll={onContainerScroll('chart')}>
-          <div style={{ minWidth: chartMinWidth }}>
-            <ResponsiveContainer width="100%" height={240}>
-              <ComposedChart data={serie} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
-                <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} tick={{ fontSize: 10, fill: 'var(--color-text-inactive)' }} interval={2} />
-                <YAxis tickLine={false} axisLine={false} width={44} tick={{ fontSize: 11, fill: 'var(--color-text-inactive)' }} />
-                <RTooltip
-                  cursor={{ fill: 'var(--color-primary-50)' }}
-                  formatter={(v: any, n: any) => [fmtNum(v as number), n === 'rn' ? 'Anno corrente' : 'SDLY']}
-                  labelStyle={{ color: 'var(--color-text-active)', fontWeight: 600 }}
-                  contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--color-border)' }}
-                />
-                <Legend wrapperStyle={{ fontSize: 12 }} formatter={(v) => (v === 'rn' ? 'Anno corrente' : 'SDLY')} />
-                <Bar dataKey="rn" name="rn" fill="var(--color-primary)" radius={[3, 3, 0, 0]} maxBarSize={18} />
-                <Line dataKey="rnLy" name="rnLy" stroke="var(--color-text-disabled)" strokeWidth={2} dot={false} type="monotone" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="report-pickup__scroll report-pickup__scroll--table" ref={tableScrollRef} onScroll={onContainerScroll('table')}>
-          <table className="report-pickup__time-table" style={{ minWidth: tableMinWidth }}>
-            <thead>
-              <tr>
-                <th className="report-pickup__time-head" rowSpan={2}>Periodo</th>
-                {meseGroups.map((mg, gi) => <th key={`${mg.label}-${gi}`} colSpan={mg.count} className="report-pickup__mese-th">{mg.label}</th>)}
-              </tr>
-              <tr>
-                {serie.map((m, i) => (
-                  <th key={i} className="report-pickup__num report-pickup__day-th">
-                    <span className="report-pickup__day-wd">{m.wd}</span>{m.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="report-pickup__time-head report-pickup__strong">Camere vendute</td>
-                {serie.map((m, i) => <td key={i} className="report-pickup__num report-pickup__strong">{fmtNum(m.rn)}</td>)}
-              </tr>
-              <tr>
-                <td className="report-pickup__time-head report-pickup__muted">SDLY</td>
-                {serie.map((m, i) => <td key={i} className="report-pickup__num report-pickup__muted">{fmtNum(m.rnLy)}</td>)}
-              </tr>
-              <tr>
-                <td className="report-pickup__time-head">Pickup Δ</td>
-                {serie.map((m, i) => (
-                  <td key={i} className={`report-pickup__num report-pickup__delta report-pickup__delta--${m.pickup >= 0 ? 'up' : 'down'}`}>
-                    {m.pickup > 0 ? '+' : ''}{fmtNum(m.pickup)}
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <td className="report-pickup__time-head">Importo</td>
-                {serie.map((m, i) => <td key={i} className="report-pickup__num">{fmtEur(m.imp)}</td>)}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Slider di scorrimento giorni in overlay: muove grafico e tabella insieme */}
-        <div className="report-pickup__slider">
-          <i className="fa-light fa-calendar-days report-pickup__slider-ico" />
-          <input
-            type="range"
-            min={0} max={1000} step={1}
-            value={Math.round(scrollPct * 1000)}
-            onChange={(e) => applyScroll(Number(e.target.value) / 1000, 'slider')}
-            aria-label="Scorri i giorni"
-          />
-          <span className="report-pickup__slider-hint">Scorri i giorni</span>
-        </div>
-      </section>
-
-      {/* ── KPI ────────────────────────────────────────────────────────────── */}
-      <div className="report-pickup__kpis">
-        {KPI.map((k) => (
-          <div key={k.label} className="sib-stat-card report-pickup__kpi">
-            <div className="report-pickup__kpi-top">
-              <span className="report-pickup__kpi-ico"><i className={`fa-light fa-${k.icon}`} /></span>
-              <span className="sib-stat-card__label">{k.label}</span>
+      {/* ── KPI (alla data di osservazione corrente) ────────────────────────── */}
+      <section className="rp__card">
+        <h2 className="rp__card-title">Indicatori chiave · osservazione {ddmm(OGGI)}</h2>
+        <div className="rp__kpis">
+          {KPI.map((k) => (
+            <div key={k.label} className="sib-stat-card rp__kpi">
+              <div className="rp__kpi-top">
+                <span className="rp__kpi-ico"><i className={`fa-light fa-${k.icon}`} /></span>
+                <span className="sib-stat-card__label">{k.label}</span>
+              </div>
+              <span className="sib-stat-card__value">{k.value}</span>
+              {k.delta != null && (
+                <span className={`rp__kpi-delta rp__pu--${k.delta >= 0 ? 'up' : 'down'}`}>
+                  <i className={`fa-solid fa-arrow-${k.delta >= 0 ? 'up' : 'down'}`} /> {fmtPct(k.delta)}
+                </span>
+              )}
             </div>
-            <span className="sib-stat-card__value">{k.value}</span>
-            <span className={`report-pickup__kpi-delta report-pickup__delta--${k.delta >= 0 ? 'up' : 'down'}`}>
-              <i className={`fa-solid fa-arrow-${k.delta >= 0 ? 'up' : 'down'}`} /> {fmtPct(k.delta)} <em>vs SDLY</em>
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
