@@ -54,9 +54,13 @@ interface RigaBacheca {
 
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
 const STRUTTURE = [{ Id: 1, nome: "Grim's Hotel" }, { Id: 2, nome: 'Hotel Azzurro Mare' }]
-const CATEGORIE = ['Hotel', 'Resort', 'B&B', 'Villaggio', 'Agriturismo', 'Boutique hotel']
+// Categoria struttura = classificazione a stelle (3 / 4 / 5).
+const CATEGORIE_STELLE = [
+  { value: '3', label: '★★★ · 3 stelle' },
+  { value: '4', label: '★★★★ · 4 stelle' },
+  { value: '5', label: '★★★★★ · 5 stelle' },
+]
 const CITTA = ['Roma', 'Milano', 'Catania', 'Firenze', 'Napoli', 'Torino', 'Bologna', 'Venezia']
-const LIVELLI = ['1', '2', '3', '4', '5']
 const TIPOLOGIA_CAMERE = ['Singola Classic', 'Doppia Classic', 'Doppia Superior', 'Tripla Classic', 'Matrimoniale', 'Suite']
 const STEPS = ['Tipo e ambito', 'Configurazione', 'Periodo e condizioni']
 const TIPO_OSPITI = ['Individuali', 'Gruppi']
@@ -90,7 +94,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const confirm = useConfirmStore((s) => s.confirm)
 
   const [params, setParams] = useState<Params>({
-    tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: 'Hotel',
+    tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: '4',
     tipoOspiti: 'Gruppi', segmento: 'Adulti', tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
     dataDa: '2026-07-01', dataA: '2026-10-31', tourOperator: 'Tutti',
     quantita: 1, quantitaMax: 1, tipologiaPagamento: 'VCC',
@@ -119,8 +123,8 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   // Nome struttura/controparte in base ai parametri.
   const strutturaLabel = (): string => {
-    if (params.tipo === 'Acquisto') return `${params.citta} · Categoria ${params.categoriaLivello}`
-    if (params.tipologia === 'Categoria') return `Categoria: ${params.categoria}`
+    if (params.tipo === 'Acquisto') return `${params.citta} · Categoria ${params.categoriaLivello} stelle`
+    if (params.tipologia === 'Categoria') return `Categoria ${params.categoria} stelle`
     return STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel"
   }
 
@@ -248,11 +252,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                     <SelectField label="Città" name="citta" value={params.citta} onChange={(e) => set('citta', e.target.value)}
                       options={CITTA.map((c) => ({ value: c, label: c }))} />
                     <SelectField label="Categoria" name="categoriaLivello" value={params.categoriaLivello} onChange={(e) => set('categoriaLivello', e.target.value)}
-                      options={LIVELLI.map((c) => ({ value: c, label: c }))} />
+                      options={CATEGORIE_STELLE} />
                   </>
                 ) : params.tipologia === 'Categoria' ? (
                   <SelectField label="Categoria" name="categoria" value={params.categoria} onChange={(e) => set('categoria', e.target.value)}
-                    options={CATEGORIE.map((c) => ({ value: c, label: c }))} />
+                    options={CATEGORIE_STELLE} />
                 ) : (
                   <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
                     onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
