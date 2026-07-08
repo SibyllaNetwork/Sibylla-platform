@@ -150,7 +150,14 @@ export default function App() {
 
   const crumbs = buildCrumbs(MENU, currentPage) || []
 
+  // Titoli per pagine raggiunte fuori dal menu (es. da notifica): senza questo
+  // la tab/breadcrumb ripiegherebbe sul pageId grezzo.
+  const PAGE_TITLES: Record<string, string> = {
+    'report-pickup': 'Report Pick-Up',
+  }
+
   const labelForPage = (page: string): string => {
+    if (PAGE_TITLES[page]) return PAGE_TITLES[page]
     const direct = findByPage(MENU, page)
     if (direct?.label) return direct.label
     const cr = buildCrumbs(MENU, page)

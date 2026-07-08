@@ -66,9 +66,11 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
   const segFactor = [segmento === 'Tutti', canale === 'Tutti', mercato === 'Tutti', tipoCam === 'Tutte', piano === 'Tutti']
     .reduce((f, isAll) => f * (isAll ? 1 : 0.82), 1)
 
-  // Colonne = snapshot di osservazione (8 passati, oggi, 3 futuri).
-  const snapshots = useMemo(() => Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(OGGI.getTime() + (i - 8) * DAY)
+  // Colonne = snapshot di osservazione giornalieri (storico ampio: 24 passati,
+  // oggi, 4 futuri). Se superano lo spazio disponibile la matrice scorre.
+  const SNAP_PAST = 24, SNAP_FUT = 4
+  const snapshots = useMemo(() => Array.from({ length: SNAP_PAST + 1 + SNAP_FUT }, (_, i) => {
+    const d = new Date(OGGI.getTime() + (i - SNAP_PAST) * DAY)
     return { date: d, label: ddmm(d), wd: WD[d.getDay()], futuro: d.getTime() > OGGI.getTime(), oggi: d.getTime() === OGGI.getTime() }
   }), [])
   const todayIdx = snapshots.findIndex((s) => s.oggi)
@@ -200,6 +202,7 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
       {/* ── Matrice Pick-Up ─────────────────────────────────────────────────── */}
       <section className="rp__card">
         <h2 className="rp__card-title">Matrice Pick-Up OTB · camere per data di arrivo × data di osservazione</h2>
+        <p className="rp__hint"><i className="fa-light fa-arrows-left-right" /> Scorri orizzontalmente per consultare le date di osservazione precedenti e successive</p>
         <div className="rp__matrix-wrap">
           <table className="rp__matrix" onMouseLeave={() => setHoverCol(null)}>
             <thead>
