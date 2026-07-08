@@ -147,6 +147,7 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
   overflow-x: auto
 
 .rp__matrix
+  width: 100%
   border-collapse: separate
   border-spacing: 0
   font-size: 12px
@@ -154,7 +155,15 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
 
   th, td
     border-bottom: 1px solid $border
-    padding: 6px 10px
+    padding: 7px 10px
+
+  // Crosshair: evidenzia riga (hover) e colonna (is-hovercol)
+  tbody tr:hover .rp__sticky
+    background: alpha($primary, 0.07)
+
+  .is-hovercol
+    outline: 2px solid alpha($primary, 0.45)
+    outline-offset: -2px
 
   thead th
     position: sticky
@@ -250,6 +259,42 @@ $rp-future-bg: rgba(190, 24, 93, 0.09)
     color: $rp-up
   &--down
     color: $rp-down
+
+// Valore cella + micro-freccia direzione
+.rp-cell__v
+  display: inline-flex
+  align-items: center
+  justify-content: flex-end
+  gap: 3px
+
+.rp-cell__arw
+  font-size: 9px
+
+// Barra occupazione nella colonna Occ. %
+.rp__occ
+  display: inline-flex
+  align-items: center
+  justify-content: flex-end
+  gap: 7px
+  width: 100%
+
+.rp__occ-bar
+  flex: 1
+  max-width: 54px
+  height: 6px
+  border-radius: 3px
+  background: alpha($primary, 0.12)
+  overflow: hidden
+
+.rp__occ-fill
+  display: block
+  height: 100%
+  background: $primary
+  border-radius: 3px
+
+.rp__occ-num
+  min-width: 32px
+  text-align: right
 
 .rp__note
   margin: 12px 0 0

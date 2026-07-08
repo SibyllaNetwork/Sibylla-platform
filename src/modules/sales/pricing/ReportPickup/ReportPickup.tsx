@@ -46,6 +46,7 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
   const [mercato, setMercato] = useState('Tutti')
   const [tipoCam, setTipoCam] = useState('Tutte')
   const [piano, setPiano] = useState('Tutti')
+  const [hoverCol, setHoverCol] = useState<number | null>(null)
   const hotelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -200,13 +201,15 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
       <section className="rp__card">
         <h2 className="rp__card-title">Matrice Pick-Up OTB · camere per data di arrivo × data di osservazione</h2>
         <div className="rp__matrix-wrap">
-          <table className="rp__matrix">
+          <table className="rp__matrix" onMouseLeave={() => setHoverCol(null)}>
             <thead>
               <tr>
                 <th className="rp__sticky rp__sticky--arr">Data arrivo</th>
                 <th className="rp__sticky rp__sticky--disp rp__num">Cam. disp.</th>
                 {snapshots.map((s, i) => (
-                  <th key={i} className={`rp__num rp__obs-th${s.oggi ? ' is-today' : ''}${s.futuro ? ' is-future' : ''}`}>
+                  <th key={i}
+                    className={`rp__num rp__obs-th${s.oggi ? ' is-today' : ''}${s.futuro ? ' is-future' : ''}${i === hoverCol ? ' is-hovercol' : ''}`}
+                    onMouseEnter={() => setHoverCol(i)}>
                     <span className="rp__obs-wd">{s.wd}</span>{s.label}
                   </th>
                 ))}
@@ -226,9 +229,27 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
                     <td className="rp__sticky rp__sticky--disp rp__num rp__muted">{camereDisp}</td>
                     {snapshots.map((s, si) => {
                       const v = otb(r.date, r.finalOcc, si)
-                      return <td key={si} className={cellClass(r, i, si) + ' rp__num'}>{v == null ? '—' : fmtNum(v)}</td>
+                      const prev = si > 0 && !s.futuro ? otb(r.date, r.finalOcc, si - 1) : null
+                      const dir = (!s.futuro && !s.oggi && v != null && prev != null) ? (v > prev ? 'up' : v < prev ? 'down' : '') : ''
+                      return (
+                        <td key={si}
+                          className={`${cellClass(r, i, si)} rp__num${si === hoverCol ? ' is-hovercol' : ''}`}
+                          onMouseEnter={() => setHoverCol(si)}>
+                          {v == null ? '—' : (
+                            <span className="rp-cell__v">
+                              {fmtNum(v)}
+                              {dir && <i className={`fa-solid fa-caret-${dir === 'up' ? 'up' : 'down'} rp-cell__arw`} aria-hidden="true" />}
+                            </span>
+                          )}
+                        </td>
+                      )
                     })}
-                    <td className="rp__num rp__end-td">{occPct.toFixed(0)}%</td>
+                    <td className="rp__num rp__end-td">
+                      <span className="rp__occ">
+                        <span className="rp__occ-bar"><span className="rp__occ-fill" style={{ width: `${Math.min(100, occPct)}%` }} /></span>
+                        <span className="rp__occ-num">{occPct.toFixed(0)}%</span>
+                      </span>
+                    </td>
                     <td className={`rp__num rp__end-td rp__pu rp__pu--${pu >= 0 ? 'up' : 'down'}`}>{pu > 0 ? '+' : ''}{fmtNum(pu)}</td>
                   </tr>
                 )
