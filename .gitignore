@@ -31,3 +31,6 @@ yarn-error.log*
 
 # Export generati (PowerPoint SSPI, ecc.)
 *.pptx
+
+# Claude Code local config/worktrees
+.claude/
