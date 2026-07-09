@@ -7,6 +7,8 @@
   align-items: stretch
   gap: 14px
   font-size: 13px
+  // Compattazione via container query (niente scroll-x su laptop con sidebar aperta).
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
@@ -76,36 +78,11 @@
     &:hover
       text-decoration: underline
 
-  // ── Sort colonna (header tabella) ───────────────────────────────────────────
-  &__sortbtn
-    display: inline-flex
-    align-items: center
-    gap: 7px
-    background: transparent
-    border: none
-    padding: 0
-    font: inherit
-    color: inherit
-    cursor: pointer
-
-    &:hover
-      color: $primary
-
-    &.is-on
-      color: $primary
-
-  &__sort-ico
-    font-size: 11px
-    color: $text-inactive
-
-    .scad-inc__sortbtn.is-on &
-      color: $primary
-
   // ── Filtro colonna (header tabella) ─────────────────────────────────────────
   &__colfilter
     display: inline-flex
     align-items: center
-    gap: 8px
+    gap: 6px
     position: relative
 
   &__colfilter-btn
@@ -114,12 +91,12 @@
     color: $text-inactive
     cursor: pointer
     font-size: 12px
-    padding: 4px
+    padding: 2px 4px
     border-radius: 4px
     line-height: 1
 
     &:hover
-      background: $primary-50
+      background: alpha($primary, 0.10)
       color: $primary
 
     &--active
@@ -142,7 +119,7 @@
     background: var(--color-surface)
     border: 1px solid $border
     border-radius: 8px
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
+    box-shadow: $shadow-lg
     z-index: 50
     padding: 8px 10px
     display: flex
@@ -168,7 +145,7 @@
     color: $text-active
 
     &:hover
-      background: $primary-50
+      background: alpha($primary, 0.08)
 
     .sib-checkbox
       flex-shrink: 0
@@ -190,17 +167,47 @@
     pointer-events: none
 
   // ── Tabella ───────────────────────────────────────────────────────────────
+  // Padding compatto (specificità > .sib-table) per far stare 12 colonne.
+  &__table.sib-table
+    th, td
+      padding-left: 9px
+      padding-right: 9px
+
   &__table
     thead th
       vertical-align: middle
       font-weight: 600
 
-    .scad-inc__th-chev
-      width: 40px
+    .scad-inc__c-chev
+      width: 34px
+      text-align: center
 
     .scad-inc__th-num
       text-align: right
       white-space: nowrap
+
+    .scad-inc__th-azioni
+      text-align: center
+      width: 92px
+
+    tbody td
+      vertical-align: middle
+
+  // Freccia di espansione (prima colonna).
+  &__chev-btn
+    background: transparent
+    border: none
+    color: $primary
+    cursor: pointer
+    font-size: 12px
+    padding: 4px 6px
+    line-height: 1
+
+    &:hover
+      opacity: 0.75
+
+    &.is-open
+      color: $primary
 
   &__td-center
     text-align: center
@@ -216,161 +223,159 @@
     font-weight: 700
     color: $text-active
 
-  &__td-residuo
-    font-weight: 700
+  // Celle testuali su una riga con ellissi (tooltip via TruncatedText).
+  &__cell-clip
+    display: block
+    max-width: 160px
 
   &__row
     &--scaduto
-      background: rgba(209, 0, 17, 0.06)
+      background: alpha($error, 0.06)
 
     &--scadenza
-      background: rgba(245, 125, 3, 0.07)
+      background: alpha($warning, 0.07)
 
-  &__chev-btn
-    background: transparent
-    border: none
-    color: $primary
-    cursor: pointer
-    font-size: 12px
-    padding: 4px 8px
-    line-height: 1
+    &--open
+      background: alpha($primary, 0.05)
 
-    &:hover
-      opacity: 0.8
-
-  // ── Badge metodo di pagamento ─────────────────────────────────────────────
-  &__pay
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    white-space: nowrap
-
-    i
-      color: $text-inactive
-      font-size: 13px
-
-  // ── Chip di stato ─────────────────────────────────────────────────────────
-  &__status
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    font-size: 11px
+  // ── Stato come testo colorato (no pill) ───────────────────────────────────
+  &__stato-txt
     font-weight: 700
-    border-radius: 6px
-    padding: 3px 9px
     white-space: nowrap
-
-    i
-      font-size: 11px
 
     &--ok
       color: $success
-      background: $success-light
 
     &--warn
       color: $warning
-      background: $warning-light
 
     &--ko
       color: $error
-      background: $error-light
 
     &--muted
       color: $text-inactive
-      background: $bg
 
-  // ── Riga espansa con sub-tabella dei pagamenti ────────────────────────────
+  // ── Azioni: bottoni-icona standard (.sib-btn--icon) ──────────────────────────
+  &__actions
+    display: inline-flex
+    gap: 6px
+    justify-content: center
+
+  // ── Modale dettaglio documento ───────────────────────────────────────────────
+  &__det-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding-bottom: 12px
+    border-bottom: 1px solid $border
+
+  &__det-num
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 16px
+    color: $primary
+
+  &__det-grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 12px 20px
+    margin: 0
+
+    > div
+      display: flex
+      flex-direction: column
+      gap: 2px
+
+    dt
+      font-size: 11px
+      text-transform: uppercase
+      letter-spacing: .03em
+      color: $text-inactive
+
+    dd
+      margin: 0
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
+
+  // ── Riga espansa con dettagli + azioni documento ──────────────────────────
   &__expand-row
     background: var(--color-surface)
 
   &__expand-cell
-    padding: 0 0 0 40px
+    padding: 0
     background: var(--color-surface)
 
-  &__sub-table
-    width: 100%
-    border-collapse: collapse
-    font-size: 12px
-    background: var(--color-surface)
+  &__panel
+    display: flex
+    align-items: center
+    justify-content: space-between
+    flex-wrap: wrap
+    gap: 16px
+    padding: 14px 18px
+    background: alpha($primary, 0.03)
+    border-left: 3px solid $primary
 
-    thead th
-      font-weight: 600
-      color: $text-active
-      padding: 8px 12px
-      text-align: left
-      background: var(--color-surface)
-      border-bottom: 1px solid $border
+  &__panel-info
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 18px
+    font-size: 12.5px
+    color: $text-active
 
-      &.scad-inc__th-num
-        text-align: right
+  &__panel-item
+    display: inline-flex
+    align-items: baseline
+    gap: 6px
 
-      &.scad-inc__th-actions
-        text-align: right
-        width: 230px
+    strong
+      color: $primary
 
-    tbody td
-      padding: 9px 12px
-      color: $text-active
-      border-bottom: 1px dashed $border
-      vertical-align: middle
-
-  &__sub-row
-    &--pagabile
-      cursor: pointer
-
-      &:hover
-        background: rgba(143, 184, 200, 0.12)
-
-  &__pag-desc
-    font-weight: 600
-    display: block
-
-  &__pag-tipo
-    display: block
-    font-size: 10px
-    text-transform: uppercase
-    letter-spacing: .04em
+  &__panel-lbl
+    font-size: 11px
     color: $text-inactive
-    margin-top: 1px
+    text-transform: uppercase
+    letter-spacing: .03em
+
+  &__panel-flag
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
+    font-weight: 600
+    color: $success
+
+  &__panel-actions
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
 
   &__when
-    display: block
     font-size: 11px
-    margin-top: 2px
+    font-weight: 700
 
     &--scaduto
       color: $error
-      font-weight: 700
 
     &--in-scadenza
       color: $warning
-      font-weight: 700
 
-    &--pianificato
+    &--da-incassare
       color: $text-inactive
 
     &--pagato
       color: $success
 
-  &__td-actions
-    text-align: right
-    white-space: nowrap
-
-    .sib-btn + .sib-btn
-      margin-left: 6px
-
   &__sollecitato
     display: inline-flex
     align-items: center
     gap: 5px
-    font-size: 11px
+    font-size: 12px
     font-weight: 600
     color: $text-inactive
-
-  &__saldato-il
-    font-size: 12px
-    color: $success
-    font-weight: 600
 
   // ── Footer stats ───────────────────────────────────────────────────────────
   &__footer
@@ -408,7 +413,7 @@
     justify-content: center
     margin-top: 4px
 
-  // ── Modale "Registra incasso" ──────────────────────────────────────────────
+  // ── Modale sollecito ────────────────────────────────────────────────────────
   &__modal-body
     display: flex
     flex-direction: column
@@ -505,3 +510,16 @@
     gap: 6px
     font-size: 12px
     color: $warning
+
+// ── Compattazione su viewport stretti (laptop con sidebar) ────────────────────
+@container (max-width: 1360px)
+  .scad-inc__table
+    font-size: 12px
+
+  .scad-inc__table.sib-table
+    th, td
+      padding-left: 7px
+      padding-right: 7px
+
+  .scad-inc__cell-clip
+    max-width: 108px
