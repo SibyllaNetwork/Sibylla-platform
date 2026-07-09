@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TotemAgoraCta from '../_shared/TotemAgoraCta'
 import TotemDettaglioModal from '../_shared/TotemDettaglioModal'
@@ -34,8 +33,7 @@ export default function GestioneAdvertising({ navigate }: { navigate: (p: string
 
   return (
     <div className="adv">
-      <BtnBack onClick={() => navigate('i-miei-totem')} />
-      <PageHeader title="Gestione Advertising" />
+      <PageHead title="Gestione Advertising" onBack={() => navigate('i-miei-totem')} />
 
       <div className="adv__layout">
         {/* ── Sinistra: mappa ───────────────────────────────── */}

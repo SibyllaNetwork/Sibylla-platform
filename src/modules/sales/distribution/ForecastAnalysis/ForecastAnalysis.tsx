@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { Donut, DonutLegend } from '../_charts/Donut'
 import { HBars } from '../_charts/HBars'
@@ -87,8 +86,7 @@ export default function ForecastAnalysis({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="forecast-analysis">
-      <BtnBack />
-      <PageHeader title="Forecast analysis" subtitle="Analisi comparativa con una visione d'insieme" />
+      <PageHead title="Forecast analysis" subtitle="Analisi comparativa con una visione d'insieme" />
 
       <div className="forecast-analysis__filters">
         <SelectField

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import BtnBack from '../../../core/components/BtnBack';
 import { InputField } from '../../../core/components/form';
 import AlertBanner from '../../../core/components/AlertBanner'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tabs from '../../../core/components/Tabs'
 import Modal from '../../../core/components/Modal'
@@ -106,9 +105,7 @@ export default function PortafoglioPersonale({navigate}:{navigate:(p:string)=>vo
 
   return (
     <div>
-      <BtnBack onClick={()=>navigate("portafoglio-aziendale")}/>
-
-      <PageHeader title="Portafoglio personale" subtitle="Dai valore al tuo lavoro: guadagna e utilizza il credito del tuo portafoglio"/>
+      <PageHead title="Portafoglio personale" subtitle="Dai valore al tuo lavoro: guadagna e utilizza il credito del tuo portafoglio" onBack={()=>navigate("portafoglio-aziendale")}/>
 
       {/* ── Success banner ───────────────────────────────────────────── */}
       {recharged && <AlertBanner type="success" className="paf__success-banner">Ricarica effettuata con successo</AlertBanner>}

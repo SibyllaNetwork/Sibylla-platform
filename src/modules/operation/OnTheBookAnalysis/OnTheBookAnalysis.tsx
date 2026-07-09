@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { HBars } from '../../sales/distribution/_charts/HBars'
 import { SelectField } from '../../../core/components/form'
@@ -91,8 +90,7 @@ export default function OnTheBookAnalysis({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="otb-analysis">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="On the book analysis"
         subtitle="Analisi dettagliata delle prenotazioni per ottimizzare occupazione e ricavi"
       />

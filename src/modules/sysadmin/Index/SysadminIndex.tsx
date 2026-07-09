@@ -1,6 +1,5 @@
 import React from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import './SysadminIndex.sass'
 
 /**
@@ -22,8 +21,7 @@ const TILES: Array<{ page: string; icon: string; title: string; subtitle: string
 export default function SysadminIndex({ navigate }: { navigate: (p: string) => void }) {
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Sysadmin" subtitle="Pannello di amministrazione globale Sibylla" />
+      <PageHead title="Sysadmin" subtitle="Pannello di amministrazione globale Sibylla" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {TILES.map((tile) => (

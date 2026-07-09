@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import clsx from 'clsx'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 import { STRATEGIES_BY_TIPO, STRUTTURE, type Strategia, type TipoCalendario } from '../strategieData'
 import './CalendarioMaster.sass'
@@ -80,8 +79,7 @@ export default function CalendarioMaster({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="cm">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Calendario master"
         subtitle="Visione d'insieme delle strategie applicate alle tariffe, alla distribuzione delle camere e alle prenotazioni di gruppo"
       />

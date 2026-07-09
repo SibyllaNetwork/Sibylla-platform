@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import './VisualizzaContratto.sass'
 
@@ -97,8 +96,10 @@ export default function VisualizzaContratto({ navigate }: { navigate: (p: string
 
   return (
     <div className="visualizza-contratto">
-      <BtnBack onClick={() => navigate('miei-contratti-v')} />
-      <PageHeader title="Visualizza contratto di vendita" />
+      <PageHead
+        title="Visualizza contratto di vendita"
+        onBack={() => navigate('miei-contratti-v')}
+      />
 
       {/* ─── ANAGRAFICA ──────────────────────────────────────────────────────── */}
       <Section

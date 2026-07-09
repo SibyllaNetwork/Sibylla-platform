@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { DateRangeField } from '../../../../core/components/form'
 import './PianificazioneAnnualeTO.sass'
 
@@ -137,9 +136,7 @@ export default function PianificazioneAnnualeTO({ navigate }: { navigate: (p: st
 
   return (
     <div className="pian">
-      <BtnBack />
-
-      <PageHeader
+      <PageHead
         title="Pianificazione annuale"
         subtitle="Configura e applica markup dinamici alle tue offerte generando il catalogo annuale"
       />

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -152,8 +151,7 @@ export default function GestioneDocumenti(_props: { navigate?: (p: string) => vo
 
   return (
     <div className="gest-doc">
-      <BtnBack />
-      <PageHeader title="Gestione documenti" subtitle="Visualizza, filtra e gestisci documenti" />
+      <PageHead title="Gestione documenti" subtitle="Visualizza, filtra e gestisci documenti" />
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="gest-doc__bar">

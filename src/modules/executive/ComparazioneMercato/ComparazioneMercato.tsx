@@ -3,8 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
   Tooltip as RTooltip, Legend,
 } from 'recharts'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
 import './ComparazioneMercato.sass'
@@ -156,11 +155,11 @@ export default function ComparazioneMercato({ navigate }: { navigate: (p: string
 
   return (
     <div className="cm">
-      <BtnBack onClick={() => navigate('analisi-dist-exec')} />
-      <PageHeader
+      <PageHead
         title="Comparazione di mercato"
         subtitle="Raffronto con i competitor su pricing e brand reputation"
         className="cm__header"
+        onBack={() => navigate('analisi-dist-exec')}
       />
 
       {/* ── Barra filtri + toggle metrica ─────────────────────────────── */}

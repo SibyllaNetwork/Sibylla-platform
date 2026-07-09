@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { SearchField, SelectField, CheckboxField } from '../../../core/components/form'
 import { Donut } from '../../sales/distribution/_charts/Donut'
@@ -103,8 +102,7 @@ export default function BenchmarkFinanziario(_props: { navigate?: (p: string) =>
 
   return (
     <div className="bench-fin">
-      <BtnBack />
-      <PageHeader title="Benchmark finanziario" subtitle="Controlla le prestazioni delle imprese sul mercato per prevenire rischi finanziari e operativi" />
+      <PageHead title="Benchmark finanziario" subtitle="Controlla le prestazioni delle imprese sul mercato per prevenire rischi finanziari e operativi" />
 
       {/* ─── Ricerca (databank imprese) ──────────────────────────────────────── */}
       <div className="bench-fin__search">

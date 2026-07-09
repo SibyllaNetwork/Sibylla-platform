@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import FormGrid from '../../../../core/components/FormGrid'
 import FormActions from '../../../../core/components/FormActions'
 import { InputField, SelectField, TextareaField, ToggleSwitch, DateRangeField, RadioGroup } from '../../../../core/components/form'
@@ -242,10 +241,10 @@ export default function CreaServizio({ navigate, servizioId }: { navigate: (p: s
 
   return (
     <div className="crea-servizio">
-      <BtnBack onClick={handleCancel} />
-      <PageHeader
+      <PageHead
         title={editing ? 'Modifica servizio' : 'Crea servizio'}
         subtitle="Configura il tuo servizio: andrà in verifica al supporto Sibylla prima della pubblicazione"
+        onBack={handleCancel}
       />
 
       {editing?.stato === 'rifiutato' && editing.motivazioneRifiuto && (

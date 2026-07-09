@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Ico from '../../../core/icons/Ico'
 import { InputField } from '../../../core/components/form'
 import { useCatalogoStore, type TipoMovimento } from '../../../store/useCatalogoStore'
@@ -94,8 +93,8 @@ export default function MovimentiBarcode({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="mov-barcode">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Movimenti via barcode"
         subtitle="Lettura scanner per registrare entrate, uscite e rettifiche di magazzino — riferimento al catalogo Sibylla"
       />

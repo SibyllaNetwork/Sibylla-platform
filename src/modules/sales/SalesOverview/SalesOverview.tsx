@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './SalesOverview.sass'
@@ -110,8 +109,7 @@ export default function SalesOverview({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="sales-overview">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Sales overview"
         subtitle="Analisi performance commerciale, ricavi e marginalità"
       />

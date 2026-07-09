@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField } from '../../../../core/components/form'
 import './ImpostaDistribuzioneTO.sass'
 
@@ -134,9 +133,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
 
   return (
     <div className="impdto">
-      <BtnBack />
-
-      <PageHeader
+      <PageHead
         title="Imposta distribuzione"
         subtitle="Distribuisci l'inventario in contratto su destinazioni, strutture e mercati di riferimento"
       />

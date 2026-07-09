@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
 import { Breadcrumb } from '../_shared/Breadcrumb'
@@ -94,8 +93,7 @@ export default function ClasseProdotti({ navigate, categoriaId, classeSlug }: Pr
   if (!found) {
     return (
       <div className="classe-prodotti">
-        <BtnBack onClick={() => navigate('area-merceologica')} />
-        <PageHeader title="Classe non trovata" subtitle="La classe richiesta non è disponibile." />
+        <PageHead title="Classe non trovata" subtitle="La classe richiesta non è disponibile." onBack={() => navigate('area-merceologica')} />
       </div>
     )
   }
@@ -105,7 +103,12 @@ export default function ClasseProdotti({ navigate, categoriaId, classeSlug }: Pr
 
   return (
     <div className="classe-prodotti">
-      <BtnBack onClick={() => navigate(`dettaglio-area-merceologica:${categoriaId}`)} />
+      <PageHead
+        eyebrow={`Classe · ${classe.area}`}
+        title={classe.nome}
+        subtitle={`${categoria.nome} · prodotti acquistabili su Agorà`}
+        onBack={() => navigate(`dettaglio-area-merceologica:${categoriaId}`)}
+      />
       <Breadcrumb
         navigate={navigate}
         items={[
@@ -113,11 +116,6 @@ export default function ClasseProdotti({ navigate, categoriaId, classeSlug }: Pr
           { label: categoria.nome, page: `dettaglio-area-merceologica:${categoriaId}` },
           { label: classe.nome },
         ]}
-      />
-      <PageHeader
-        eyebrow={`Classe · ${classe.area}`}
-        title={classe.nome}
-        subtitle={`${categoria.nome} · prodotti acquistabili su Agorà`}
       />
 
       <PageToolbar

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
@@ -52,8 +51,7 @@ export default function InformazioniStruttura({ navigate }: { navigate: (p: stri
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Informazioni struttura" subtitle="Anagrafica, contatti e geolocalizzazione" />
+      <PageHead title="Informazioni struttura" subtitle="Anagrafica, contatti e geolocalizzazione" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}
       {saved && <AlertBanner type="success">Informazioni salvate</AlertBanner>}

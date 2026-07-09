@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import Modal from '../../../../core/components/Modal'
 import Tabs from '../../../../core/components/Tabs'
@@ -426,8 +425,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
 
   return (
     <div className="td">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Tariffe e disponibilità"
         subtitle="Controllo di tariffe e disponibilità in base alle strutture, giorni e intervalli settimanali"
       />

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Ico from '../../../../core/icons/Ico'
 import Pagination from '../../../../core/components/Pagination'
 import { PageToolbar, type ViewMode } from '../../../purchasing/_shared/PageToolbar'
@@ -95,8 +94,7 @@ export default function IMieiServizi({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="miei-servizi">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="I miei servizi"
         subtitle="Catalogo dei servizi della tua struttura, con stato di approvazione e gestione dei prezzi"
       />

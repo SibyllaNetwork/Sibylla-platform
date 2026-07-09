@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DatePickerField } from '../../../../core/components/form'
 import ConfigurazioneSuggerimentiModal from './ConfigurazioneSuggerimentiModal'
 import DettaglioPrenotazioniModal from './DettaglioPrenotazioniModal'
@@ -183,9 +182,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
 
   return (
     <div className="griglia-disp">
-      <BtnBack />
-
-      <PageHeader
+      <PageHead
         title="Griglia disponibilità"
         subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo"
       />

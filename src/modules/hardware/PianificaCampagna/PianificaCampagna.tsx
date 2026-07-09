@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { InputField, SelectField } from '../../../core/components/form'
 import TotemAgoraCta from '../_shared/TotemAgoraCta'
@@ -85,8 +84,7 @@ export default function PianificaCampagna({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="pianif">
-      <BtnBack onClick={() => navigate('noleggia-spazi')} />
-      <PageHeader title="Gestione Advertising" />
+      <PageHead title="Gestione Advertising" onBack={() => navigate('noleggia-spazi')} />
 
       <div className="pianif__layout">
         {/* ── Sinistra: planner ────────────────────────────── */}

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { SelectField } from '../../../core/components/form'
 import './OrdineServizio.sass'
@@ -48,8 +47,7 @@ export default function OrdineServizio({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="ord-serv">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Ordine di servizio"
         subtitle="Generazione rapida di ordini di servizio per housekeeping, manutenzione, reception e altri reparti"
       />

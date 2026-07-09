@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
@@ -66,8 +65,7 @@ export default function SchedaQuestura({ navigate }: { navigate: (p: string) => 
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Scheda Questura" subtitle="Configurazione invio schedine alloggiati al servizio Alloggiati Web" />
+      <PageHead back title="Scheda Questura" subtitle="Configurazione invio schedine alloggiati al servizio Alloggiati Web" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}
       {saved && <AlertBanner type="success">Configurazione salvata</AlertBanner>}

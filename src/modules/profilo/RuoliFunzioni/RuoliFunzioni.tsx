@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
-import BtnBack from '../../../core/components/BtnBack';
 import Modal from '../../../core/components/Modal';
 import Tooltip from '../../../core/components/Tooltip';
 import AlertBanner from '../../../core/components/AlertBanner'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import './RuoliFunzioni.sass'
 import { InputField, SelectField } from '../../../core/components/form'
 import { useOrgStore } from '../../../store/useOrgStore'
@@ -69,9 +68,7 @@ export default function RuoliFunzioni({navigate}:{navigate:(p:string)=>void}) {
 
   return (
     <div>
-      <BtnBack />
-
-      <PageHeader title="Ruoli &amp; funzioni" subtitle="Configura ruoli aziendali e assegna le funzioni ai profili"/>
+      <PageHead title="Ruoli &amp; funzioni" subtitle="Configura ruoli aziendali e assegna le funzioni ai profili"/>
 
       {/* ── Banner ──────────────────────────────────────────────────── */}
       {saved && <AlertBanner type="success" className="go__banner">Modifiche salvate</AlertBanner>}

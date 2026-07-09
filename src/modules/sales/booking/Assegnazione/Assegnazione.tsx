@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import Tooltip from '../../../../core/components/Tooltip'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 import './Assegnazione.sass'
 
@@ -121,9 +120,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="assegnazione">
-      <BtnBack />
-
-      <PageHeader title="Assegnazione" subtitle="Visualizzazione dell'assegnazione delle camere proposte dall'AI di Sibylla e possibilità di modifica"/>
+      <PageHead title="Assegnazione" subtitle="Visualizzazione dell'assegnazione delle camere proposte dall'AI di Sibylla e possibilità di modifica"/>
 
       {/* ── Filtri ── */}
       <div className="assegnazione__filters">

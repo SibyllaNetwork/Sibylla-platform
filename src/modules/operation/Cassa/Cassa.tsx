@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
@@ -426,8 +425,8 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
 
   return (
     <div className="cassa">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Monitoraggio cassa"
         subtitle="Gestione e controllo del flusso di cassa in tempo reale per analizzare le transazioni, controllare il saldo della cassa e prevenire anomalie"
       />

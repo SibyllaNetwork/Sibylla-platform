@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import SearchField from '../../../../core/components/form/SearchField'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
@@ -170,8 +169,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="gest-prev">
-      <BtnBack />
-      <PageHeader title="I miei preventivi" />
+      <PageHead title="I miei preventivi" />
 
       <div className="gest-prev__toolbar">
         <div className="gest-prev__field" ref={statiRef}>

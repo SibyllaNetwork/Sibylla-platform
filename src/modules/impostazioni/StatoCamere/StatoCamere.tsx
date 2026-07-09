@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import { SelectField } from '../../../core/components/form'
 import Tooltip from '../../../core/components/Tooltip'
@@ -158,8 +157,8 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="stato-cam">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Stato camere"
         subtitle="Gestione centralizzata e aggiornata in tempo reale delle condizioni delle camere"
       />

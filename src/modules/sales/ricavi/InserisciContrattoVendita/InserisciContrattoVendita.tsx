@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import FormGrid from '../../../../core/components/FormGrid'
 import Tooltip from '../../../../core/components/Tooltip'
 import {
@@ -137,8 +136,10 @@ export default function InserisciContrattoVendita({
 
   return (
     <div className="ins-contr-v">
-      <BtnBack onClick={() => navigate('miei-contratti-v')} />
-      <PageHeader title={editing ? 'Modifica contratto di vendita' : 'Inserisci contratto di vendita'} />
+      <PageHead
+        title={editing ? 'Modifica contratto di vendita' : 'Inserisci contratto di vendita'}
+        onBack={() => navigate('miei-contratti-v')}
+      />
 
       {/* ── Anagrafica ─────────────────────────────────────── */}
       <section className="ins-contr-v__section">

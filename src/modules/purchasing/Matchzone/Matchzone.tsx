@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { Icon } from '../_shared/Icon'
 import {
   CATEGORY_ICONS,
@@ -135,8 +134,7 @@ export default function Matchzone({ navigate }: { navigate: (p: string) => void 
 
   return (
     <div className="match-zone">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Match Zone"
         subtitle="Seleziona un tuo annuncio e lascia che il sistema trovi la controparte"
       />

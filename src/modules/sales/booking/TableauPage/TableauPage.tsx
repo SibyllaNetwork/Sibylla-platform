@@ -2,8 +2,7 @@ import { bookingStore } from '../../../../core/bookingStore'
 import React, { useState, useEffect, useRef } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import { CheckboxField } from '../../../../core/components/form'
@@ -203,8 +202,7 @@ export default function TableauPage({
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title={title} subtitle={subtitle}/>
+      <PageHead title={title} subtitle={subtitle}/>
 
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
       <div className="flex items-end gap-3.5 mb-3 flex-wrap">

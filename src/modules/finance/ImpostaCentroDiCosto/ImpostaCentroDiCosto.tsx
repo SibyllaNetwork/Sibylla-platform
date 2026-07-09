@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import AlertBanner from '../../../core/components/AlertBanner'
 import FilterToolbar from '../../../core/components/FilterToolbar'
@@ -323,8 +322,7 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Imposta centro di costo" subtitle="Crea e gestisci i centri di costo della struttura ricettiva, su 4 livelli dal macro all'analitico" />
+      <PageHead title="Imposta centro di costo" subtitle="Crea e gestisci i centri di costo della struttura ricettiva, su 4 livelli dal macro all'analitico" />
 
       {/* Box esplicativo */}
       <div className="icc-info">

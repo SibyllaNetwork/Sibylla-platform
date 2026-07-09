@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FormGrid from '../../../core/components/FormGrid'
 import Tooltip from '../../../core/components/Tooltip'
 import {
@@ -121,8 +120,7 @@ export default function InserisciContrattoAcquisto({
 
   return (
     <div className="ins-contr">
-      <BtnBack onClick={tornaIndietro} />
-      <PageHeader title={editing ? 'Modifica contratto' : 'Inserisci contratto'} />
+      <PageHead title={editing ? 'Modifica contratto' : 'Inserisci contratto'} onBack={tornaIndietro} />
 
       {/* ── Anagrafica ─────────────────────────────────────── */}
       <section className="ins-contr__section">

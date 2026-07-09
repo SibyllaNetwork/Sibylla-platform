@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
@@ -163,8 +162,7 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="cabina">
-      <BtnBack />
-      <PageHeader title="Cabina di controllo" subtitle="Conto economico di gestione: LY · Budget · Actual · Scostamento, per trimestre o intero anno" />
+      <PageHead title="Cabina di controllo" subtitle="Conto economico di gestione: LY · Budget · Actual · Scostamento, per trimestre o intero anno" />
 
       {/* Toolbar */}
       <div className="cabina__toolbar">

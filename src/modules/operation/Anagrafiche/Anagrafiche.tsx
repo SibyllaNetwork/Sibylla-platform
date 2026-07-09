@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import Tooltip from '../../../core/components/Tooltip'
@@ -190,8 +189,7 @@ export default function Anagrafiche() {
 
   return (
     <div className="anagrafiche">
-      <BtnBack />
-      <PageHeader title={t('op.anagraficheOspiti.title', 'Anagrafiche Ospiti')} subtitle={t('op.anagraficheOspiti.subtitle', 'Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura')} />
+      <PageHead back title={t('op.anagraficheOspiti.title', 'Anagrafiche Ospiti')} subtitle={t('op.anagraficheOspiti.subtitle', 'Organizza, aggiorna e controlla le anagrafiche dei clienti della struttura')} />
 
       <FilterToolbar>
         <SelectField name="tipo" label="Tipo anagrafica" value={tipo} onChange={(e) => setTipo(e.target.value)}

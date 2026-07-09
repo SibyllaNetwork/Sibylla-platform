@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DayPicker, type DateRange } from 'react-day-picker'
 import { format, parseISO } from 'date-fns'
 import { it } from 'date-fns/locale'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
 import { Pagination } from '../../../core/components'
@@ -446,9 +445,7 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="arrivi-partenze">
-      <BtnBack />
-
-      <PageHeader
+      <PageHead
         title="Arrivi e partenze"
         subtitle="Monitoraggio del flusso giornaliero di check-in e check-out"
       />
@@ -1011,8 +1008,7 @@ function CheckInView({ gruppo, onBack }: { gruppo: Arrivo[]; onBack: () => void 
 
   return (
     <div className="ap-cki">
-      <BtnBack onClick={onBack} />
-      <PageHeader title="Check In" subtitle="Registrazione degli ospiti e completamento del soggiorno" />
+      <PageHead title="Check In" subtitle="Registrazione degli ospiti e completamento del soggiorno" onBack={onBack} />
 
       <h2 className="ap-cki__section">Dettaglio</h2>
       <div className="ap-cki__panel">

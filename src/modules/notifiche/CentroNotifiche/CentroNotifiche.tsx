@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
@@ -330,29 +329,26 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
 
   return (
     <div>
-      <BtnBack />
-
-      {/* Header */}
-      <div className="notifiche__top-bar">
-        <PageHeader
-          title="Centro notifiche"
-          subtitle={unreadCount > 0 ? `${unreadCount} notifiche non lette` : 'Tutte le notifiche sono state lette'}
-        />
-        <div className="notifiche__actions">
-          <button className="sib-btn sib-btn--secondary" onClick={() => navigate('chat')}>
-            <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
-          </button>
-          {unreadCount > 0 && (
-            <button className="sib-btn sib-btn--secondary" onClick={markAllRead}>
-              <i className="fa-light fa-check" aria-hidden="true" /> Segna tutte lette
+      <PageHead
+        title="Centro notifiche"
+        subtitle={unreadCount > 0 ? `${unreadCount} notifiche non lette` : 'Tutte le notifiche sono state lette'}
+        actions={
+          <div className="notifiche__actions">
+            <button className="sib-btn sib-btn--secondary" onClick={() => navigate('chat')}>
+              <i className="fa-light fa-comments" aria-hidden="true" /> Apri chat
             </button>
-          )}
-          <button className="sib-btn sib-btn--primary" onClick={() => navigate('configura-notifiche')}>
-            <i className="fa-light fa-gear" aria-hidden="true" />
-            Configura notifiche
-          </button>
-        </div>
-      </div>
+            {unreadCount > 0 && (
+              <button className="sib-btn sib-btn--secondary" onClick={markAllRead}>
+                <i className="fa-light fa-check" aria-hidden="true" /> Segna tutte lette
+              </button>
+            )}
+            <button className="sib-btn sib-btn--primary" onClick={() => navigate('configura-notifiche')}>
+              <i className="fa-light fa-gear" aria-hidden="true" />
+              Configura notifiche
+            </button>
+          </div>
+        }
+      />
 
       {/* Filter bar */}
       <div className="notifiche__filters">

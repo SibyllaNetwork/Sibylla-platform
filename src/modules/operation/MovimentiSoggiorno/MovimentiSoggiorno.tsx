@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import EmptyState from '../../../core/components/EmptyState'
 import { apiFetchSibylla } from '../../../services/api'
@@ -203,8 +202,7 @@ export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string)
 
   return (
     <div className="movimenti-soggiorno">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Movimenti soggiorno"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
       />

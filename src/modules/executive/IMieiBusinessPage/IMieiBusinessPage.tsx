@@ -3,8 +3,7 @@ import clsx from 'clsx';
 import T from '../../../core/tokens';
 import Ico from '../../../core/icons/Ico';
 import MenuIco from '../../../core/icons/MenuIco';
-import BtnBack from '../../../core/components/BtnBack';
-import PageHeader from '../../../core/components/PageHeader';
+import PageHead from '../../../core/components/PageHead';
 import './IMieiBusinessPage.sass'
 
 // Previsione di crescita per struttura (moltiplicatore sui ricavi attesi per la
@@ -79,9 +78,7 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
 
   return (
     <div>
-      <BtnBack />
-
-      <PageHeader title="I miei business" subtitle="Panoramica delle performance e dei dati finanziari di tutte le tue strutture"/>
+      <PageHead title="I miei business" subtitle="Panoramica delle performance e dei dati finanziari di tutte le tue strutture"/>
 
       <div className="biz__layout">
 

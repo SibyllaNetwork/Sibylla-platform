@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
 import { Breadcrumb } from '../_shared/Breadcrumb'
@@ -64,26 +63,25 @@ export default function DettaglioAreaMerceologica({ navigate, categoriaId }: Pro
   if (!categoria) {
     return (
       <div className="dettaglio-area-merceologica">
-        <BtnBack onClick={() => navigate('area-merceologica')} />
-        <PageHeader title="Categoria non trovata" subtitle="La categoria richiesta non è disponibile." />
+        <PageHead title="Categoria non trovata" subtitle="La categoria richiesta non è disponibile." onBack={() => navigate('area-merceologica')} />
       </div>
     )
   }
 
   return (
     <div className="dettaglio-area-merceologica">
-      <BtnBack onClick={() => navigate('area-merceologica')} />
+      <PageHead
+        eyebrow={`Categoria · ${categoria.classi.length} ${categoria.classi.length === 1 ? 'classe' : 'classi'}`}
+        title={categoria.nome}
+        subtitle="Seleziona una classe per vederne le tipologie e i prodotti acquistabili"
+        onBack={() => navigate('area-merceologica')}
+      />
       <Breadcrumb
         navigate={navigate}
         items={[
           { label: 'Area merceologica', page: 'area-merceologica' },
           { label: categoria.nome },
         ]}
-      />
-      <PageHeader
-        eyebrow={`Categoria · ${categoria.classi.length} ${categoria.classi.length === 1 ? 'classe' : 'classi'}`}
-        title={categoria.nome}
-        subtitle="Seleziona una classe per vederne le tipologie e i prodotti acquistabili"
       />
 
       <PageToolbar

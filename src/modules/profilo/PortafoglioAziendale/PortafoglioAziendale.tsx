@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import BtnBack from '../../../core/components/BtnBack';
 import { InputField } from '../../../core/components/form';
 import AlertBanner from '../../../core/components/AlertBanner'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tabs from '../../../core/components/Tabs'
 import EmptyState from '../../../core/components/EmptyState'
@@ -103,9 +102,7 @@ export default function PortafoglioAziendale({navigate}:{navigate:(p:string)=>vo
 
   return (
     <div>
-      <BtnBack />
-
-      <PageHeader title="Portafoglio aziendale" subtitle="Monitoraggio centralizzato per operazioni vantaggiose, sicure, rapide e connesse al mercato in tempo reale"/>
+      <PageHead title="Portafoglio aziendale" subtitle="Monitoraggio centralizzato per operazioni vantaggiose, sicure, rapide e connesse al mercato in tempo reale"/>
 
       {/* ── Success banner ───────────────────────────────────────────── */}
       {recharged && <AlertBanner type="success" className="paf__success-banner">Ricarica effettuata con successo</AlertBanner>}

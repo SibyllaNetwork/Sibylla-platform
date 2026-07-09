@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
@@ -70,8 +69,8 @@ export default function RiepilogoBacheche({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="riep-bach">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Riepilogo bacheche"
         subtitle="Sintesi dei contenuti pubblicati verso il B2C (Network) e il B2B (Agorà)"
       />

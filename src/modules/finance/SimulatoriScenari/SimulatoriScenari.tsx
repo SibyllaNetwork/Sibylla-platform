@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import { InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
@@ -121,8 +120,7 @@ export default function SimulatoriScenari({ navigate }: { navigate: (p: string) 
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Simulatori scenari" subtitle="Prova oggi la decisione di domani, senza alcun rischio" />
+      <PageHead title="Simulatori scenari" subtitle="Prova oggi la decisione di domani, senza alcun rischio" />
 
       <div className="flex items-end gap-3 mb-5 flex-wrap">
         <div className="w-64">

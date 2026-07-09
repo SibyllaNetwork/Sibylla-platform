@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { DateRangeField, SelectField, SearchField } from '../../../core/components/form'
 
 // Previsione movimenti camere — riepilogo giornaliero arrivi/presenze/partenze/libere.
@@ -31,8 +30,7 @@ export default function PrevisioneMovimenti({ navigate }: { navigate: (p: string
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('stato-camere')} />
-      <PageHeader title="Previsione movimenti camere" subtitle="Riepilogo giornaliero di arrivi, presenze, partenze e camere libere" />
+      <PageHead back onBack={() => navigate('stato-camere')} title="Previsione movimenti camere" subtitle="Riepilogo giornaliero di arrivi, presenze, partenze e camere libere" />
 
       <div className="flex items-end gap-3 mb-5 flex-wrap">
         <DateRangeField label="Da" nameFrom="da" nameTo="a" valueFrom={da} valueTo={a} onChangeFrom={(e) => setDa(e.target.value)} onChangeTo={(e) => setA(e.target.value)} />

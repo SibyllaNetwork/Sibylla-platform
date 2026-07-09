@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Ico from '../../../core/icons/Ico'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
@@ -190,8 +189,7 @@ export default function ListaProdotti({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="lista-prodotti">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Lista prodotti"
         subtitle="Tutti i prodotti del catalogo merceologico, con modifica e gestione dei prezzi"
       />

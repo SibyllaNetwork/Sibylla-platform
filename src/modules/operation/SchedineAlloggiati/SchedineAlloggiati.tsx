@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './SchedineAlloggiati.sass'
@@ -65,8 +64,7 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Schedine alloggiati" subtitle="Archivio automatico e centralizzato delle presenze" />
+      <PageHead title="Schedine alloggiati" subtitle="Archivio automatico e centralizzato delle presenze" />
 
       <div className="flex items-end gap-4 mb-5 flex-wrap">
         <div className="w-44">

@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import './Interfacce.sass'
 
@@ -57,8 +56,7 @@ export default function Interfacce({ navigate }: { navigate: (p: string) => void
 
   return (
     <div className="interfacce">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Interfacce"
         subtitle="Stato delle integrazioni con i sistemi esterni e ultimo trasferimento dati"
       />

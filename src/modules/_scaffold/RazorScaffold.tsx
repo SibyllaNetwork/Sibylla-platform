@@ -10,8 +10,7 @@
  */
 
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../core/components/BtnBack'
-import PageHeader from '../../core/components/PageHeader'
+import PageHead from '../../core/components/PageHead'
 import AlertBanner from '../../core/components/AlertBanner'
 import StatusBadge from '../../core/components/StatusBadge'
 import FormGrid from '../../core/components/FormGrid'
@@ -65,8 +64,7 @@ export default function RazorScaffold<T = any>({
 
   return (
     <div data-razor-source={razorPath}>
-      {onBack && <BtnBack onClick={onBack} />}
-      <PageHeader title={title} subtitle={subtitle} />
+      <PageHead title={title} subtitle={subtitle} back={!!onBack} onBack={onBack} />
 
       {error && loaded && (
         <AlertBanner type="warning">
@@ -327,8 +325,7 @@ export function FormPage({
 
   return (
     <div data-razor-source={razorPath}>
-      {onBack && <BtnBack onClick={onBack} />}
-      <PageHeader title={title} subtitle={subtitle} />
+      <PageHead title={title} subtitle={subtitle} back={!!onBack} onBack={onBack} />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}
       {saved && <AlertBanner type="success">Salvato</AlertBanner>}
@@ -423,8 +420,7 @@ export interface EmbedPageProps {
 export function EmbedPage({ razorPath, title, subtitle, embedUrl, onBack }: EmbedPageProps) {
   return (
     <div data-razor-source={razorPath}>
-      {onBack && <BtnBack onClick={onBack} />}
-      <PageHeader title={title} subtitle={subtitle} />
+      <PageHead title={title} subtitle={subtitle} back={!!onBack} onBack={onBack} />
       <div className="bg-white border border-line rounded-field overflow-hidden scaffold-embed">
         {embedUrl ? (
           <iframe title={title} src={embedUrl} className="w-full h-full border-0" />

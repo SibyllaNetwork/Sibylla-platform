@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { InputField, SelectField, CheckboxField, DatePickerField } from '../../../core/components/form'
@@ -115,8 +114,7 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Assegna obiettivo" />
+      <PageHead title="Assegna obiettivo" />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}
 

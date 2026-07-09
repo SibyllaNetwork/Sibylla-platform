@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -257,8 +256,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
 
   return (
     <div className="segnal">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Segnalazioni"
         subtitle="Gestione delle richieste di intervento tecnico/operativo all'interno della struttura con tracking in tempo reale"
       />

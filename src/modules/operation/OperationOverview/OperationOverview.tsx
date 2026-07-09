@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { Donut } from '../../sales/distribution/_charts/Donut'
 import { SelectField } from '../../../core/components/form'
@@ -93,8 +92,7 @@ export default function OperationOverview({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="op-overview">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Operation overview"
         subtitle="Monitoraggio e confronto delle performance operative"
       />

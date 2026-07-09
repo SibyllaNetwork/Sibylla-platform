@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import Pagination from '../../../core/components/Pagination'
 import { SearchField, SelectField } from '../../../core/components/form'
@@ -349,8 +349,7 @@ export default function Forniture({ navigate }: { navigate: (p: string) => void 
   // ─── Vista lista ───────────────────────────────────────────────────
   return (
     <div className="forniture">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Lista fornitori"
         subtitle="Scopri i partner selezionati per la qualità e l'eccellenza dei loro prodotti"
       />

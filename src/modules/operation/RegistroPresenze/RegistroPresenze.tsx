@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
 import { DatePickerField, DateRangeField, InputField, SelectField } from '../../../core/components/form'
@@ -237,9 +236,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
 
   return (
     <div>
-      <BtnBack />
-
-      <PageHeader
+      <PageHead
         title="Registro presenze"
         subtitle="Gestione delle presenze del personale in tempo reale. Con tracciamento di ingressi, uscite, assenze, permessi e ferie"
       />

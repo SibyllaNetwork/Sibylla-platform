@@ -2,8 +2,7 @@ import MENU from '../../../navigation/menu';
 import React, { useState } from 'react';
 import T from '../../../core/tokens';
 import Ico from '../../../core/icons/Ico';
-import BtnBack from '../../../core/components/BtnBack';
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { useEfficienzaStore } from '../../../store/useEfficienzaStore'
 import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
@@ -109,9 +108,7 @@ export default function ConfiguraNotifiche({navigate}:{navigate:(p:string)=>void
 
   return (
     <div>
-      <BtnBack onClick={()=>navigate("centro-notifiche")}/>
-
-      <PageHeader title="Configura notifiche" subtitle="Gestisci le preferenze di ricezione per ogni tipo di notifica"/>
+      <PageHead back onBack={()=>navigate("centro-notifiche")} title="Configura notifiche" subtitle="Gestisci le preferenze di ricezione per ogni tipo di notifica"/>
 
       {saved && <AlertBanner type="success" className="cn-saved-banner">Impostazioni salvate con successo</AlertBanner>}
 

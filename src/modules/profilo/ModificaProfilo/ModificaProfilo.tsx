@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
-import BtnBack from '../../../core/components/BtnBack'
 import AlertBanner from '../../../core/components/AlertBanner'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import './ModificaProfilo.sass'
 import FormActions from '../../../core/components/FormActions'
 import FormGrid from '../../../core/components/FormGrid'
@@ -121,10 +120,8 @@ export default function ModificaProfilo({ navigate }: { navigate: (p: string) =>
   return (
     
     <div>
-      <BtnBack />
+      <PageHead title="Modifica profilo" subtitle="Gestisci i tuoi dati personali, la sicurezza e le preferenze"/>
 
-      <PageHeader title="Modifica profilo" subtitle="Gestisci i tuoi dati personali, la sicurezza e le preferenze"/>
-      
 
       {errorBanner && <AlertBanner type="warning">{errorBanner}</AlertBanner>}
       {saved   && <AlertBanner type="success">Profilo aggiornato</AlertBanner>}

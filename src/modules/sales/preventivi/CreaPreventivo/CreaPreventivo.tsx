@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import FormGrid from '../../../../core/components/FormGrid'
 import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
@@ -142,19 +141,21 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="crea-preventivo">
-      <BtnBack onClick={() => navigate('i-miei-preventivi')} />
-
-      <div className="crea-preventivo__header">
-        <PageHeader title="Crea preventivo" subtitle="Generazione automatica di preventivi personalizzabili" />
-        <div className="crea-preventivo__top-actions">
-          <button className="sib-btn sib-btn--secondary" onClick={() => navigate('i-miei-preventivi')}>
-            <i className="fa-duotone fa-file-lines" aria-hidden="true" /> Gestione preventivi
-          </button>
-          <button className="sib-btn sib-btn--secondary" onClick={() => navigate('lista-fornitori')}>
-            <i className="fa-duotone fa-clipboard-list" aria-hidden="true" /> Bacheca fornitori
-          </button>
-        </div>
-      </div>
+      <PageHead
+        title="Crea preventivo"
+        subtitle="Generazione automatica di preventivi personalizzabili"
+        onBack={() => navigate('i-miei-preventivi')}
+        actions={
+          <div className="crea-preventivo__top-actions">
+            <button className="sib-btn sib-btn--secondary" onClick={() => navigate('i-miei-preventivi')}>
+              <i className="fa-duotone fa-file-lines" aria-hidden="true" /> Gestione preventivi
+            </button>
+            <button className="sib-btn sib-btn--secondary" onClick={() => navigate('lista-fornitori')}>
+              <i className="fa-duotone fa-clipboard-list" aria-hidden="true" /> Bacheca fornitori
+            </button>
+          </div>
+        }
+      />
 
       {error && <AlertBanner type="error">{error}</AlertBanner>}
 

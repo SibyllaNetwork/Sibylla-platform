@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { Icon } from '../_shared/Icon'
 import { InputField, TextareaField } from '../../../core/components/form'
 import { useCartStore, type ProductCartItem } from '../../../store/useCartStore'
@@ -54,8 +53,7 @@ export default function CatalogoCheckout({ navigate }: { navigate: (p: string) =
   if (prodotti.length === 0) {
     return (
       <div className="catalogo-checkout">
-        <BtnBack onClick={() => navigate('catalogo-cart')} />
-        <PageHeader title="Checkout" subtitle="Il carrello è vuoto." />
+        <PageHead title="Checkout" subtitle="Il carrello è vuoto." onBack={() => navigate('catalogo-cart')} />
         <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('area-merceologica')}>
           Esplora il catalogo
         </button>
@@ -65,8 +63,7 @@ export default function CatalogoCheckout({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="catalogo-checkout">
-      <BtnBack onClick={() => navigate('catalogo-cart')} />
-      <PageHeader title="Checkout" subtitle="Completa i dati e conferma l'acquisto" />
+      <PageHead title="Checkout" subtitle="Completa i dati e conferma l'acquisto" onBack={() => navigate('catalogo-cart')} />
 
       <div className="ck__layout">
         <div className="ck__form">

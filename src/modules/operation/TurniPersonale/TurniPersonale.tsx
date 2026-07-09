@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
 import { InputField, SelectField, DatePickerField, DateRangeField, CheckboxField } from '../../../core/components/form'
@@ -324,8 +323,7 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Turni del personale" subtitle="Pianificazione settimanale e mensile dei turni, con gestione assenze e turni multi-struttura" />
+      <PageHead title="Turni del personale" subtitle="Pianificazione settimanale e mensile dei turni, con gestione assenze e turni multi-struttura" />
 
       {/* Toolbar filtri */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-4">

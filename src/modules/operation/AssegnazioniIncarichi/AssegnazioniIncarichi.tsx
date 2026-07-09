@@ -3,8 +3,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
   PieChart, Pie, Legend, Tooltip as RTooltip,
 } from 'recharts'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -231,8 +230,8 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
 
   return (
     <div className="ass-inc">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Assegnazione incarichi"
         subtitle="Creazione rapida e gestione di task operative con assegnazione automatica o manuale delle attività al personale disponibile"
       />

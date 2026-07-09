@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
@@ -172,8 +171,8 @@ export default function MonitoraggioCanali({ navigate }: { navigate: (p: string)
 
   return (
     <div className="monitoraggio-canali">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Monitoraggio canali"
         subtitle="Sintesi dei movimenti per tariffe e disponibilità verso i canali di vendita"
       />

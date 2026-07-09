@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './BudgetAnalysis.sass'
@@ -76,8 +75,7 @@ export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="budget-analysis">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Budget analysis"
         subtitle="Visualizza, monitora e analizza i budget per decisioni strategiche"
       />

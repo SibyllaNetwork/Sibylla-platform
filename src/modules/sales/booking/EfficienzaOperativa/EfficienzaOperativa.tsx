@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField } from '../../../../core/components/form'
 import { useEfficienzaStore } from '../../../../store/useEfficienzaStore'
 import './EfficienzaOperativa.sass'
@@ -188,9 +187,7 @@ export default function EfficienzaOperativa({ navigate }: { navigate: (p: string
 
   return (
     <div className="eop">
-      <BtnBack />
-
-      <PageHeader
+      <PageHead
         title="Efficienza operativa"
         subtitle="Ottimizza la disponibilità delle camere con suggerimenti intelligenti per massimizzare occupazione e ricavi"
       />

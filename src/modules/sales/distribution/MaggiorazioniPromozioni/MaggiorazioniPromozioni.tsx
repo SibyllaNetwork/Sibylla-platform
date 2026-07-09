@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import T from '../../../../core/tokens'
-import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
 import './MaggiorazioniPromozioni.sass'
 import { InputField, SelectField, DatePickerField, DateRangeField } from '../../../../core/components/form'
@@ -106,8 +105,7 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Maggiorazioni e promozioni" subtitle="Aumenta la tua marginalità applicando maggiorazioni o promozioni mirate in tempo reale"/>
+      <PageHead title="Maggiorazioni e promozioni" subtitle="Aumenta la tua marginalità applicando maggiorazioni o promozioni mirate in tempo reale"/>
 
       {/* ── Filtri in testa (componenti standard) ───────────────────────────── */}
       <div className="promo__top-form">

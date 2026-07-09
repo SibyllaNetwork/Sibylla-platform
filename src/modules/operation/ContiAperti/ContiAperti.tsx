@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
 import EmptyState from '../../../core/components/EmptyState'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
 import './ContiAperti.sass'
@@ -211,8 +210,8 @@ export default function ContiAperti({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="mov-sog">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Conti aperti"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
       />

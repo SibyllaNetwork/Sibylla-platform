@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { DateRangeField, SelectField } from '../../../core/components/form'
 import './ContiChiusi.sass'
@@ -63,8 +62,8 @@ export default function ContiChiusi({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="conti-chiusi">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Conti chiusi"
         subtitle="Storico dei conti chiusi e fatturati"
       />

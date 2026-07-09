@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { Donut, DonutLegend } from '../_charts/Donut'
 import { HBars } from '../_charts/HBars'
@@ -97,8 +96,7 @@ export default function MonthlyTrend({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="monthly-trend">
-      <BtnBack />
-      <PageHeader title="Monthly analysis" subtitle="Analisi comparativa su base mensile" />
+      <PageHead title="Monthly analysis" subtitle="Analisi comparativa su base mensile" />
 
       <div className="monthly-trend__filters">
         <SelectField

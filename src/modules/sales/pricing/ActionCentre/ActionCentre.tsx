@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField } from '../../../../core/components/form'
 import {
   usePraticheStore,
@@ -101,8 +100,7 @@ export default function ActionCentre({ navigate, praticaId }: { navigate: (p: st
   if (!pratica || !detail || !calc) {
     return (
       <div className="actc">
-        <BtnBack />
-        <PageHeader title="Action centre" subtitle="Suggerimenti data-driven a supporto delle decisioni operative" />
+        <PageHead title="Action centre" subtitle="Suggerimenti data-driven a supporto delle decisioni operative" />
         <p className="actc__empty">Nessun preventivo da ottimizzare. Creane uno da “Crea pratica”.</p>
       </div>
     )
@@ -132,10 +130,10 @@ export default function ActionCentre({ navigate, praticaId }: { navigate: (p: st
 
   return (
     <div className="actc">
-      <BtnBack onClick={() => navigate(fromMarketLens ? `market-lens:${pratica.id}` : 'home')} />
-      <PageHeader
+      <PageHead
         title="Action centre"
         subtitle="Suggerimenti data-driven a supporto delle decisioni operative del Tour Operator"
+        onBack={() => navigate(fromMarketLens ? `market-lens:${pratica.id}` : 'home')}
       />
 
       {fromMarketLens && (

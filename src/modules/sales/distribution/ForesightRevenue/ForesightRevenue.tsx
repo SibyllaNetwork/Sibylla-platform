@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import T from '../../../../core/tokens'
-import BtnBack from '../../../../core/components/BtnBack'
 import Tooltip from '../../../../core/components/Tooltip'
 import AlertBanner from '../../../../core/components/AlertBanner'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField, RadioGroup } from '../../../../core/components/form'
 import './ForesightRevenue.sass'
 
@@ -61,8 +60,7 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('tariffe-disp')}/>
-      <PageHeader title="Foresight revenue" subtitle="Organizza in anticipo le politiche di prezzo per garantire stabilità e visione a lungo termine"/>
+      <PageHead title="Foresight revenue" subtitle="Organizza in anticipo le politiche di prezzo per garantire stabilità e visione a lungo termine" onBack={() => navigate('tariffe-disp')}/>
 
       {saved && <AlertBanner type="success">Modifiche salvate con successo</AlertBanner>}
 

@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DatePickerField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../GrigliaDisponibilita/exportGriglia'
 import './GrigliaDisponibilitaEstesa.sass'
@@ -96,8 +95,7 @@ export default function GrigliaDisponibilitaEstesa(_props: { navigate?: (p: stri
 
   return (
     <div className="gde">
-      <BtnBack />
-      <PageHeader title="Griglia disponibilità estesa" subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo" />
+      <PageHead title="Griglia disponibilità estesa" subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo" />
 
       {/* ── Toolbar ── */}
       <div className="gde__toolbar">

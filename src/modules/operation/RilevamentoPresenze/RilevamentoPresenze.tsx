@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { DatePickerField, DateRangeField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import { exportTableToXls } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
@@ -117,8 +116,7 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Rilevamento presenze" subtitle="Report dei dati aggregati per nazionalità e delle presenze registrate" />
+      <PageHead title="Rilevamento presenze" subtitle="Report dei dati aggregati per nazionalità e delle presenze registrate" />
 
       <div className="flex items-end gap-4 mb-5 flex-wrap">
         <div className="w-56">

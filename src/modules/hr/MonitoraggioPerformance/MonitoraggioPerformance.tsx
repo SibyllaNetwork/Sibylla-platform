@@ -2,8 +2,7 @@ import React, { useMemo, useState } from 'react'
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Tooltip as RTooltip,
 } from 'recharts'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, SearchField } from '../../../core/components/form'
@@ -103,8 +102,7 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
 
   return (
     <div className="mon-perf">
-      <BtnBack />
-      <PageHeader title="Monitoraggio performance" subtitle="Controllo e analisi dei risultati e delle performance del personale" />
+      <PageHead title="Monitoraggio performance" subtitle="Controllo e analisi dei risultati e delle performance del personale" />
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="mon-perf__bar">

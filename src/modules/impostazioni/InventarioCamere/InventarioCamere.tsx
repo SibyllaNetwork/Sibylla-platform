@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import ToggleSwitch from '../../../core/components/ToggleSwitch'
@@ -158,8 +157,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
 
   return (
     <div className="invc">
-      <BtnBack />
-      <PageHeader title="Inventario camere" subtitle="Gestione completa delle tipologie e configurazione delle camere" />
+      <PageHead title="Inventario camere" subtitle="Gestione completa delle tipologie e configurazione delle camere" />
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="invc__bar">
@@ -316,8 +314,7 @@ function AllestisciPage({ onBack, onSave }: { onBack: () => void; onSave: () => 
 
   return (
     <div className="invc-form">
-      <BtnBack onClick={onBack} />
-      <PageHeader title="Allestisci tipologia camera" subtitle="Configura tipologia, caratteristiche, descrizione e immagini" />
+      <PageHead title="Allestisci tipologia camera" subtitle="Configura tipologia, caratteristiche, descrizione e immagini" onBack={onBack} />
 
       <section className="invc-form__card">
         <div className="invc-form__card-head"><i className="fa-light fa-bed" /> Tipologia</div>

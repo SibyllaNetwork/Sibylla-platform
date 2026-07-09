@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { SearchField } from '../../../core/components/form'
@@ -87,8 +86,7 @@ export default function MieiContrattiAcquisto({ navigate }: { navigate?: (p: str
 
   return (
     <div className="mca">
-      <BtnBack />
-      <PageHeader title="I miei contratti" subtitle="Gestisci e consulta tutti i contratti di acquisto in un unico spazio" />
+      <PageHead title="I miei contratti" subtitle="Gestisci e consulta tutti i contratti di acquisto in un unico spazio" />
 
       <div className="mca__toolbar">
         <div className="mca__field">

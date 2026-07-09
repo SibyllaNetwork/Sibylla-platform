@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import { SelectField, DateRangeField, SearchField } from '../../../../core/components/form'
 import StrategyTooltip, { StrategyTooltipState } from '../StrategyTooltip/StrategyTooltip'
@@ -299,8 +298,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
 
   return (
     <div className="cal-strategie">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Calendario strategie"
         subtitle="Pianifica le tue strategie giorno per giorno: scegli un periodo, una struttura, il tipo di calendario, seleziona la strategia e applicala con un click sul giorno o trascinando il mouse su più giorni."
       />

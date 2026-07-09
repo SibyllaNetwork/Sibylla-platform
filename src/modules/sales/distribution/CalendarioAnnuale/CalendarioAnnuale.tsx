@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DateRangeField, RadioGroup } from '../../../../core/components/form'
 import Modal from '../../../../core/components/Modal'
 import { useAccessStore } from '../../../../store/useAccessStore'
@@ -131,8 +130,7 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="ca">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Calendario annuale"
         subtitle="Organizza in anticipo le politiche di prezzo per garantire stabilità e visione a lungo termine"
       />

@@ -1,5 +1,4 @@
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import './PickupAnalysis.sass'
 
 // Pagina Pickup analysis: contenuto BI da definire.
@@ -7,8 +6,7 @@ import './PickupAnalysis.sass'
 export default function PickupAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
   return (
     <div className="pickup-analysis">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Pickup analysis"
         subtitle="Analisi dinamica dell'andamento delle prenotazioni nel tempo"
       />

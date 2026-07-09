@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import './ArchivioContratti.sass'
@@ -96,8 +95,7 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="archivio">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Archivio contratti"
         subtitle="Archivio di tutti i documenti contrattuali attivi e passivi, che consente un facile accesso, monitoraggio e gestione delle scadenze"
       />

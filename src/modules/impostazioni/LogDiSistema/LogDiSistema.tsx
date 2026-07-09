@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import Pagination from '../../../core/components/Pagination'
 import StatusBadge from '../../../core/components/StatusBadge'
@@ -188,8 +187,7 @@ export default function LogDiSistema({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="log-sistema">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Log di sistema"
         subtitle="Cronologia accessi ed eventi degli utenti del sistema"
       />

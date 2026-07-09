@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { SelectField, RadioGroup } from '../../../core/components/form'
 import './BudgetComplessivo.sass'
 
@@ -99,8 +98,7 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="bc">
-      <BtnBack />
-      <PageHeader title="Budget complessivo" subtitle="Pianificazione strategica suddivisa per le diverse voci dei ricavi e dei costi" />
+      <PageHead title="Budget complessivo" subtitle="Pianificazione strategica suddivisa per le diverse voci dei ricavi e dei costi" />
 
       {/* Toolbar (stile screen: controlli compatti) */}
       <div className="bc__toolbar">

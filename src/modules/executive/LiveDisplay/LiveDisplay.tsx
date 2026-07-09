@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { InputField, SelectField, TextareaField } from '../../../core/components/form'
 import {
   useLiveDisplayStore, FONTS, fontStack, CARD_META, CARD_TYPES,
@@ -367,16 +366,18 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="ld">
-      <BtnBack />
-      <div className="ld__top">
-        <PageHeader title="Live display" subtitle="Componi la tua vetrina a griglia: aggiungi righe, scegli la disposizione e riempi le card" />
-        <div className="ld__top-actions">
-          {salvato && <span className="ld__saved"><i className="fa-light fa-circle-check" aria-hidden="true" /> Pagina pubblicata</span>}
-          <button type="button" className="sib-btn sib-btn--ghost" onClick={() => { reset(); setSelected(null); setPicking(null) }}><i className="fa-light fa-arrow-rotate-left" aria-hidden="true" /> Svuota vetrina</button>
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.open(shareLink, '_blank', 'noopener')}><i className="fa-light fa-arrow-up-right-from-square" aria-hidden="true" /> Anteprima</button>
-          <button type="button" className="sib-btn sib-btn--primary" onClick={salva}><i className="fa-light fa-cloud-arrow-up" aria-hidden="true" /> Pubblica</button>
-        </div>
-      </div>
+      <PageHead
+        title="Live display"
+        subtitle="Componi la tua vetrina a griglia: aggiungi righe, scegli la disposizione e riempi le card"
+        actions={
+          <div className="ld__top-actions">
+            {salvato && <span className="ld__saved"><i className="fa-light fa-circle-check" aria-hidden="true" /> Pagina pubblicata</span>}
+            <button type="button" className="sib-btn sib-btn--ghost" onClick={() => { reset(); setSelected(null); setPicking(null) }}><i className="fa-light fa-arrow-rotate-left" aria-hidden="true" /> Svuota vetrina</button>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.open(shareLink, '_blank', 'noopener')}><i className="fa-light fa-arrow-up-right-from-square" aria-hidden="true" /> Anteprima</button>
+            <button type="button" className="sib-btn sib-btn--primary" onClick={salva}><i className="fa-light fa-cloud-arrow-up" aria-hidden="true" /> Pubblica</button>
+          </div>
+        }
+      />
 
       {/* ── Le mie pagine: salva con nome, modifica, elimina, link condivisione ── */}
       <div className="ld__pages">

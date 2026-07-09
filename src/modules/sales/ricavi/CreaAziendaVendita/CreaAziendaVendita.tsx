@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import { InputField } from '../../../../core/components/form'
 
@@ -60,8 +59,7 @@ export default function CreaAziendaVendita({ navigate }: { navigate: (p: string)
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('miei-contratti-v')} />
-      <PageHeader title="Crea nuova azienda" subtitle="Crea e gestisci le anagrafiche delle aziende" />
+      <PageHead title="Crea nuova azienda" subtitle="Crea e gestisci le anagrafiche delle aziende" onBack={() => navigate('miei-contratti-v')} />
 
       {/* ── Form creazione / modifica ─────────────────────────────────────── */}
       <h2 className="text-[15px] font-bold text-primary font-poppins mb-3">

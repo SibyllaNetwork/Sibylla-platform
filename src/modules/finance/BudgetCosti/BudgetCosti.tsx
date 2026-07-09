@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, RadioGroup } from '../../../core/components/form'
 import './BudgetCosti.sass'
@@ -83,8 +82,7 @@ export default function BudgetCosti({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="budget-costi">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Budget dei costi"
         subtitle="Controllo di gestione su piano mensile per monitorare le spese, confrontare i dati storici, analizzare le previsioni e verificare l'andamento dell'anno corrente"
       />

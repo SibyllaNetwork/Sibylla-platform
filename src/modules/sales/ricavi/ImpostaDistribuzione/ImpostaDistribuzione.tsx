@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
 import { SelectField, InputField } from '../../../../core/components/form'
@@ -162,7 +161,10 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
 
   return (
     <div className="imposta-dist">
-      <BtnBack />
+      <PageHead
+        title="Imposta distribuzione"
+        subtitle="Gestione della distribuzione delle camere per i diversi canali di vendita"
+      />
 
       {data.attenzione && (
         <div className="imposta-dist__alert">
@@ -172,11 +174,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           </button>
         </div>
       )}
-
-      <PageHeader
-        title="Imposta distribuzione"
-        subtitle="Gestione della distribuzione delle camere per i diversi canali di vendita"
-      />
 
       <div className="imposta-dist__bar">
         <div className="imposta-dist__field">

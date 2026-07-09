@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
@@ -112,8 +111,7 @@ export default function AllocazioneRisorse({ navigate }: { navigate: (p: string)
 
   return (
     <div className="alloc-risorse">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Allocazione risorse"
         subtitle="Ripartizione delle prenotazioni nelle camere al fine di ottimizzarne la capienza"
       />

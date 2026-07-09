@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import T from '../../../core/tokens'
 import Modal from '../../../core/components/Modal'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import './Scadenzario.sass'
 import { InputField, SelectField, DatePickerField, RadioGroup } from '../../../core/components/form'
 
@@ -220,8 +219,7 @@ export default function Scadenzario({ navigate }: { navigate: (p:string) => void
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Scadenzario" subtitle="Pianifica e monitora scadenze, eventi e promemoria del tuo team"/>
+      <PageHead title="Scadenzario" subtitle="Pianifica e monitora scadenze, eventi e promemoria del tuo team"/>
 
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div className="scadenzario__toolbar">

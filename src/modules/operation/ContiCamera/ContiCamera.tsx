@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
 import { useEmissioneStore, type EmAddebito } from '../../../store/useEmissioneStore'
@@ -165,13 +164,11 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="conti-camera">
-      <BtnBack onClick={() => navigate('ospiti-in-casa')} />
-
-      <div className="conti-camera__stampante">Stampante fiscale ...</div>
-
-      <PageHeader
+      <PageHead
         title="Conti camera"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
+        onBack={() => navigate('ospiti-in-casa')}
+        actions={<div className="conti-camera__stampante">Stampante fiscale ...</div>}
       />
 
       {/* ─── Dettaglio ─────────────────────────────────────────────────────── */}

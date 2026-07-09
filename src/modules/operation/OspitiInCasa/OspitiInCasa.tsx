@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
@@ -305,8 +304,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="ospiti-casa">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Ospiti in casa"
         subtitle="Elenco degli ospiti attualmente presenti in struttura"
       />

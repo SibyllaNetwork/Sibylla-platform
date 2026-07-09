@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import T from '../../../../core/tokens'
-import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { InputField, SelectField } from '../../../../core/components/form'
 import './PricingBenchmark.sass'
 
@@ -80,8 +79,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Pricing Benchmark" subtitle="Raffronto con i competitor su pricing e brand reputation"/>
+      <PageHead title="Pricing Benchmark" subtitle="Raffronto con i competitor su pricing e brand reputation"/>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
       <div className="benchmark__filters">

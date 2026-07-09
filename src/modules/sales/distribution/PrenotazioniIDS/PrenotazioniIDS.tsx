@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { DateRangeField } from '../../../../core/components/form'
 import { AreaTrend, type SeriesPoint } from '../_charts/AreaTrend'
 import './PrenotazioniIDS.sass'
@@ -68,8 +67,7 @@ export default function PrenotazioniIDS(_props: { navigate?: (p: string) => void
 
   return (
     <div className="ids">
-      <BtnBack />
-      <PageHeader title="Prenotazioni IDS" subtitle="Visione centralizzata per monitoraggio in tempo reale delle prenotazioni ricevute dai canali di distribuzione online" />
+      <PageHead title="Prenotazioni IDS" subtitle="Visione centralizzata per monitoraggio in tempo reale delle prenotazioni ricevute dai canali di distribuzione online" />
 
       {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="ids__bar">

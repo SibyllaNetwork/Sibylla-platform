@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { Donut } from '../../sales/distribution/_charts/Donut'
 import { SelectField } from '../../../core/components/form'
@@ -80,8 +79,7 @@ export default function GuestRoomAnalysis({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="grm-analysis">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Guests & rooms analysis"
         subtitle="Monitoraggio e analisi degli ospiti e dell'occupazione delle camere"
       />

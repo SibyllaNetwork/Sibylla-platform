@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { InputField, SelectField } from '../../../core/components/form'
 import { avatarUrl } from '../../../core/avatar'
 import { useRuoliStore, type ProfiloRow } from '../../../store/useRuoliStore'
@@ -120,8 +119,7 @@ export default function CreaPratica({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="crea-prat">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Crea pratica"
         subtitle="Crea e categorizza le pratiche per destinazione, categoria, tipologia cliente, budget e markup; assegnale a un profilo o all'intero team"
       />

@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import './AnalisiBooking.sass'
@@ -118,9 +117,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="analisi-booking">
-      <BtnBack />
-
-      <PageHeader title="Analisi booking" subtitle="Dashboard su revenue, tasso di occupazione, giorni extra e servizi venduti"/>
+      <PageHead title="Analisi booking" subtitle="Dashboard su revenue, tasso di occupazione, giorni extra e servizi venduti"/>
 
       {/* ── Filtri ── */}
       <div className="analisi-booking__filters">

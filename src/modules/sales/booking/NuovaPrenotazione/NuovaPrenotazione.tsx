@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import T from '../../../../core/tokens'
 import { bookingStore } from '../../../../core/bookingStore'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import Ico from '../../../../core/icons/Ico'
@@ -1180,10 +1179,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   return (
     <div className="np-page">
-      <BtnBack onClick={() => navigate('tableau-book')} />
-      <PageHeader
+      <PageHead
         title={editId ? `Modifica Prenotazione N. ${editId}` : 'Nuova prenotazione'}
         subtitle={editId ? 'Modifica i campi della prenotazione e salva per aggiornarla.' : 'Compila i campi per inserire una nuova prenotazione nel sistema'}
+        onBack={() => navigate('tableau-book')}
       />
 
       <div className="np-toolbar">

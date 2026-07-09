@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
 import Ico from '../../../core/icons/Ico'
@@ -267,10 +266,10 @@ export default function CreaProdotto({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="crea-prodotto">
-      <BtnBack onClick={handleCancel} />
-      <PageHeader
+      <PageHead
         title="Crea prodotto"
         subtitle="Il barcode è la chiave per la lettura nel magazzino in entrata e uscita"
+        onBack={handleCancel}
       />
 
       <section className="crea-prodotto__section">

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
 import EmptyState from '../../../core/components/EmptyState'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import { DateRangeField, RadioGroup, SelectField, InputField } from '../../../core/components/form'
 import Modal from '../../../core/components/Modal'
@@ -284,8 +283,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="scad-inc">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Scadenze incassi"
         subtitle="Monitora acconti, rate e saldi delle prenotazioni: evidenzia i pagamenti in scadenza o scaduti, invia solleciti e registra gli incassi"
       />

@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
 import { CATEGORIE, areeOf, type Area } from '../../../admin/SibyllaAdminPanel/catalogo/classificazione'
@@ -59,8 +58,7 @@ export default function AreaMerceologica({ navigate }: { navigate: (p: string) =
 
   return (
     <div className="area-merceologica">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         eyebrow="Catalogo · Categorie"
         title="Area merceologica"
         subtitle="Esplora la classificazione di prodotti e servizi: scegli una categoria per vederne le classi, poi le tipologie e i prodotti"

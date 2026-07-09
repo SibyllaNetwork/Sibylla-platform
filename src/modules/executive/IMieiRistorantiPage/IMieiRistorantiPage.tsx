@@ -3,8 +3,7 @@ import clsx from 'clsx';
 import T from '../../../core/tokens';
 import Ico from '../../../core/icons/Ico';
 import MenuIco from '../../../core/icons/MenuIco';
-import BtnBack from '../../../core/components/BtnBack';
-import PageHeader from '../../../core/components/PageHeader';
+import PageHead from '../../../core/components/PageHead';
 import './IMieiRistorantiPage.sass'
 
 // Servizio della giornata: scala coperti / ricavi / costi rispetto al dato pieno.
@@ -101,9 +100,7 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
 
   return (
     <div>
-      <BtnBack />
-
-      <PageHeader title="I miei ristoranti" subtitle="Performance, coperti e dati finanziari dei tuoi ristoranti, per servizio"/>
+      <PageHead title="I miei ristoranti" subtitle="Performance, coperti e dati finanziari dei tuoi ristoranti, per servizio"/>
 
       <div className="rist__layout">
 

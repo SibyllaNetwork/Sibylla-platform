@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { SelectField, TextareaField, DateRangeField } from '../../../core/components/form'
 import { PRENS, STRUTTURE as PLANNER_STRUTTURE } from '../planner/planner.data'
 import {
@@ -162,8 +161,7 @@ export default function RichiesteOperative({ navigate }: { navigate: (p: string)
 
   return (
     <div className="rich-op">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Richieste operative"
         subtitle="Invia alla struttura di destinazione gli extra da far trovare in camera ai tuoi clienti (fiori, champagne, allestimenti…)"
       />

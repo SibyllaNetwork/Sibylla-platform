@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip } from 'recharts';
-import BtnBack from '../../../core/components/BtnBack';
 import GaugeArc from '../../../core/components/GaugeArc';
-import PageHeader from '../../../core/components/PageHeader';
+import PageHead from '../../../core/components/PageHead';
 import Pagination from '../../../core/components/Pagination';
 import Tooltip from '../../../core/components/Tooltip';
 import { SelectField, DateRangeField } from '../../../core/components/form'
@@ -348,8 +347,7 @@ export default function AnalisiDistribuzione({ navigate }: { navigate: (p: strin
 
   return (
     <div className="analisi">
-      <BtnBack />
-      <PageHeader title={D.title} subtitle={D.subtitle} />
+      <PageHead title={D.title} subtitle={D.subtitle} />
 
       {/* ── Filter bar ──────────────────────────────────────────────────── */}
       <div className="analisi__filter-bar">

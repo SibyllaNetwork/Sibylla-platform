@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import StatusBadge from '../../../core/components/StatusBadge'
@@ -58,8 +57,7 @@ export default function GestioneUtenti({ navigate }: { navigate: (p: string) => 
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Gestione utenti" subtitle="Utenti e permessi della tua organizzazione" />
+      <PageHead title="Gestione utenti" subtitle="Utenti e permessi della tua organizzazione" />
 
       {error && loaded && (
         <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>

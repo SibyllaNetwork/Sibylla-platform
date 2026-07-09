@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { SelectField } from '../../../../core/components/form'
 import {
   usePraticheStore,
@@ -87,8 +86,7 @@ export default function MarketLens({ navigate, praticaId }: { navigate: (p: stri
   if (!pratica || !analisi) {
     return (
       <div className="mklens">
-        <BtnBack />
-        <PageHeader title="Market lens" subtitle="Monitoraggio del posizionamento competitivo delle offerte" />
+        <PageHead title="Market lens" subtitle="Monitoraggio del posizionamento competitivo delle offerte" />
         <p className="mklens__empty">Nessuna pratica disponibile da analizzare. Creane una da “Crea pratica”.</p>
       </div>
     )
@@ -98,10 +96,10 @@ export default function MarketLens({ navigate, praticaId }: { navigate: (p: stri
 
   return (
     <div className="mklens">
-      <BtnBack onClick={() => navigate(fromButton ? 'monitoraggio-pratiche' : 'home')} />
-      <PageHeader
+      <PageHead
         title="Market lens"
         subtitle="Confronta i tuoi prezzi pubblicati in Agorà e Tableau con quelli dei competitor sul mercato"
+        onBack={() => navigate(fromButton ? 'monitoraggio-pratiche' : 'home')}
       />
 
       {/* Banner dettaglio pratica (quando si arriva dal pulsante "Accelera") */}

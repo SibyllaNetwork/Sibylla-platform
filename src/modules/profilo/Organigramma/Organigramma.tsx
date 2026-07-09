@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import Modal from '../../../core/components/Modal'
 import { useRuoliStore } from '../../../store/useRuoliStore'
@@ -298,8 +297,7 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="org">
-      <BtnBack />
-      <PageHeader title="Organigramma" subtitle="Costruisci l'organigramma aziendale trascinando ruoli e profili nel diagramma"/>
+      <PageHead title="Organigramma" subtitle="Costruisci l'organigramma aziendale trascinando ruoli e profili nel diagramma"/>
 
       {saved && <AlertBanner type="success" className="org__saved">Organigramma salvato con successo</AlertBanner>}
 

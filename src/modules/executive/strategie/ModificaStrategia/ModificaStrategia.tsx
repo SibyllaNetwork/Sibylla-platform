@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
-import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
 import AlertBanner from '../../../../core/components/AlertBanner'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import './ModificaStrategia.sass'
 import FormActions from '../../../../core/components/FormActions'
 import { InputField, SelectField } from '../../../../core/components/form'
@@ -67,8 +66,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Modifica strategia" subtitle="Seleziona una strategia esistente per tipo e colore, quindi modifica i parametri tariffari"/>
+      <PageHead title="Modifica strategia" subtitle="Seleziona una strategia esistente per tipo e colore, quindi modifica i parametri tariffari"/>
       {saved && <AlertBanner type="success">Strategia aggiornata con successo</AlertBanner>}
 
       {/* ── Selettore strategie ─────────────────────────────────────────── */}

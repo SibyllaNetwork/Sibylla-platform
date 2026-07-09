@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { DateRangeField, SelectField } from '../../../core/components/form'
 import './MaintenanceAnalysis.sass'
@@ -86,8 +85,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
 
   return (
     <div className="maint-an">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Maintenance analysis"
         subtitle="Monitoraggio e analisi degli interventi di manutenzione per camere e strutture"
       />

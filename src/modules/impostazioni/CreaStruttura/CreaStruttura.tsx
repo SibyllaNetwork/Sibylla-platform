@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
@@ -228,8 +227,7 @@ export default function CreaStruttura({
 
   return (
     <div className="crea-struttura">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Crea struttura"
         subtitle="Imposta, aggiungi e verifica i dati delle tue strutture ricettive"
       />

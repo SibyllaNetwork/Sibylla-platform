@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../booking/GrigliaDisponibilita/exportGriglia'
@@ -110,8 +109,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="bdg-ric">
-      <BtnBack />
-      <PageHeader title="Budget dei ricavi" subtitle="Dashboard interattiva del revenue con confronto dei dati storici e previsioni future" />
+      <PageHead title="Budget dei ricavi" subtitle="Dashboard interattiva del revenue con confronto dei dati storici e previsioni future" />
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <div className="bdg-ric__bar">

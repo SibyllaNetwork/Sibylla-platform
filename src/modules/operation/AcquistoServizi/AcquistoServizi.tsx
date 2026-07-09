@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { InputField } from '../../../core/components/form'
 import './AcquistoServizi.sass'
 
@@ -57,8 +56,7 @@ export default function AcquistoServizi({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="acq-serv">
-      <BtnBack />
-      <PageHeader title="Acquisto Servizi" subtitle="Servizi acquistati dalla struttura e dettagli di ogni acquisto" />
+      <PageHead back title="Acquisto Servizi" subtitle="Servizi acquistati dalla struttura e dettagli di ogni acquisto" />
 
       {/* ── Toolbar: ricerca + filtro pagamento + totale ──────────────── */}
       <div className="acq-serv__toolbar">

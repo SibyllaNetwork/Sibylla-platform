@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { avatarUrl } from '../../../core/avatar'
 import {
@@ -207,8 +206,7 @@ export default function Chat({ navigate }: { navigate: (p: string) => void }) {
 
   return (
     <div className="chat">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Chat"
         subtitle="Comunica con operatori Platform e Tour Operator"
       />

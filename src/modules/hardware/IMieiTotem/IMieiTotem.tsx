@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TotemAgoraCta from '../_shared/TotemAgoraCta'
 import TotemDettaglioModal from '../_shared/TotemDettaglioModal'
@@ -40,8 +39,7 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
 
   return (
     <div className="totem">
-      <BtnBack />
-      <PageHeader title="Totem interattivo" />
+      <PageHead title="Totem interattivo" />
 
       <div className="totem__layout">
         <section className="totem__list-section">

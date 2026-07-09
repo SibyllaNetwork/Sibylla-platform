@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { SelectField } from '../../../core/components/form'
 import { Donut, DonutLegend, type DonutSlice } from '../../sales/distribution/_charts/Donut'
 import { AreaTrend, type SeriesPoint } from '../../sales/distribution/_charts/AreaTrend'
@@ -74,8 +73,7 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
 
   return (
     <div className="hr-ov">
-      <BtnBack />
-      <PageHeader title="HR Overview" subtitle="Panoramica completa del personale, delle performance e dei trend HR" />
+      <PageHead title="HR Overview" subtitle="Panoramica completa del personale, delle performance e dei trend HR" />
 
       {/* ─── Filtri ─────────────────────────────────────────────────────────── */}
       <div className="hr-ov__filters">

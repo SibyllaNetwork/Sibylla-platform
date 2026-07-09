@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import './VoipServiceHub.sass'
 
@@ -109,8 +108,7 @@ export default function VoipServiceHub({ navigate }: { navigate: (p: string) => 
 
   return (
     <div className="voip-hub">
-      <BtnBack />
-      <PageHeader title="VoIP Service HUB" subtitle="Gestione unificata delle prenotazioni dirette" />
+      <PageHead title="VoIP Service HUB" subtitle="Gestione unificata delle prenotazioni dirette" />
 
       <div className="voip-hub__top-actions">
         <button type="button" className="sib-btn sib-btn--secondary">

@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
-import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
 import './ScreeningOpenPrice.sass'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
@@ -117,8 +116,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
         </div>
       )}
 
-      <BtnBack />
-      <PageHeader title="Screening open price" subtitle="Aumenta l'accuratezza dei suggerimenti attraverso uno screening dedicato per ogni tipologia di camera assegnata a ciascun canale di vendita"/>
+      <PageHead title="Screening open price" subtitle="Aumenta l'accuratezza dei suggerimenti attraverso uno screening dedicato per ogni tipologia di camera assegnata a ciascun canale di vendita"/>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
       <div className="screening__filters-row">

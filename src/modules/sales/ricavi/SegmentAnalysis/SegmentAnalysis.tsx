@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { HBars } from '../../distribution/_charts/HBars'
 import { DateRangeField, SelectField } from '../../../../core/components/form'
@@ -113,8 +112,7 @@ export default function SegmentAnalysis({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="segment-analysis">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Segment analysis"
         subtitle="Analisi delle performance per cluster e segmenti di mercato"
       />

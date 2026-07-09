@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import AlertBanner from '../../../core/components/AlertBanner'
@@ -158,9 +157,7 @@ export default function ResetProfili({ navigate }: { navigate: (p: string) => vo
 
   return (
     <div className="reset-profili">
-      <BtnBack />
-
-      <PageHeader title="Reset profili" subtitle="Configura e controlla i profili in modo centralizzato" />
+      <PageHead title="Reset profili" subtitle="Configura e controlla i profili in modo centralizzato" />
 
       {banner && <AlertBanner type={banner.type} className="rp__banner">{banner.msg}</AlertBanner>}
 

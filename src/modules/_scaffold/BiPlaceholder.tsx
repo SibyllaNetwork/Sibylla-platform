@@ -1,5 +1,4 @@
-import BtnBack from '../../core/components/BtnBack'
-import PageHeader from '../../core/components/PageHeader'
+import PageHead from '../../core/components/PageHead'
 import { buildCrumbs } from '../../navigation/menuHelpers'
 import MENU from '../../navigation/menu'
 import { PAGE_SUBTITLES } from '../../navigation/pageSubtitles'
@@ -13,8 +12,7 @@ export default function BiPlaceholder({ page }: { page: string; navigate: (p: st
   const subtitle = PAGE_SUBTITLES[page]
   return (
     <div className="bi-placeholder">
-      <BtnBack />
-      <PageHeader title={title} subtitle={subtitle} />
+      <PageHead title={title} subtitle={subtitle} />
       <div className="bi-placeholder__box">PAGINA BI</div>
     </div>
   )

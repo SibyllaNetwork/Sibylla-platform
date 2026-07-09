@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import AlertBanner from '../../../core/components/AlertBanner'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import StatusBadge from '../../../core/components/StatusBadge'
@@ -54,8 +53,7 @@ export default function Totem({ navigate }: { navigate: (p: string) => void }) {
 
   return (
     <div>
-      <BtnBack />
-      <PageHeader title="Totem" subtitle="Hardware self-service in struttura: stato, firmware, posizione" />
+      <PageHead title="Totem" subtitle="Hardware self-service in struttura: stato, firmware, posizione" />
 
       {error && loaded && (
         <AlertBanner type="warning">Backend non raggiungibile — mostro dati di esempio. ({error})</AlertBanner>

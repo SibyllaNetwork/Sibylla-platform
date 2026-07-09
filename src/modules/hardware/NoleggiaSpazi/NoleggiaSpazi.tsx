@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { SelectField, InputField } from '../../../core/components/form'
 import TotemAgoraCta from '../_shared/TotemAgoraCta'
 import TotemDettaglioModal from '../_shared/TotemDettaglioModal'
@@ -61,8 +60,7 @@ export default function NoleggiaSpazi({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="noleggia">
-      <BtnBack onClick={() => navigate('gest-advertising')} />
-      <PageHeader title="Noleggia spazi" />
+      <PageHead title="Noleggia spazi" onBack={() => navigate('gest-advertising')} />
 
       <div className="noleggia__layout">
         {/* ── Sinistra: planner ────────────────────────────── */}

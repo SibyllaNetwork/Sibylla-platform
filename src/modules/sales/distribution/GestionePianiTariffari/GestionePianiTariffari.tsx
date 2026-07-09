@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import T from '../../../../core/tokens'
-import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import FormActions from '../../../../core/components/FormActions'
 import { InputField, SelectField, DatePickerField, CheckboxField } from '../../../../core/components/form'
 import './GestionePianiTariffari.sass'
@@ -135,8 +134,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p: str
 
   return (
     <div className="piani">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Gestione dei piani tariffari"
         subtitle={'Gestisci i piani tariffari in modo smart per offrire prezzi dinamici ottimizzati per ogni segmento di mercato ed evita "disparity rate" automatizzando i flussi distributivi'}
       />

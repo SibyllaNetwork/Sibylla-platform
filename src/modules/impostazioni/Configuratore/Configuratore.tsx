@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import {
   MAIN_ITEMS,
   FNB_ITEMS,
@@ -80,8 +79,7 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="configuratore">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Configuratore"
         subtitle="Personalizza il sistema per una gestione efficiente e su misura"
       />

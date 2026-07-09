@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import { withFlag } from '../../../core/utils/countryFlags'
@@ -111,13 +110,11 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
 
   return (
     <div className="emissione-doc">
-      <BtnBack onClick={() => navigate('ospiti-in-casa')} />
-
-      <div className="emissione-doc__stampante">Stampante fiscale ...</div>
-
-      <PageHeader
+      <PageHead
         title="Emissione documenti"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
+        onBack={() => navigate('ospiti-in-casa')}
+        actions={<div className="emissione-doc__stampante">Stampante fiscale ...</div>}
       />
 
       {/* ─── Documento ─────────────────────────────────────────────────────── */}

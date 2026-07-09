@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
@@ -77,8 +76,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
 
   return (
     <div className="piano-cam">
-      <BtnBack onClick={() => navigate('stato-camere')} />
-      <PageHeader title="Piano camere giornaliero" subtitle="Vista operativa giornaliera per camera" />
+      <PageHead back onBack={() => navigate('stato-camere')} title="Piano camere giornaliero" subtitle="Vista operativa giornaliera per camera" />
 
       <div className="piano-cam__bar">
         <DatePickerField name="giorno" label="Giorno" className="w-44" value={giorno} onChange={(e) => setGiorno(e.target.value)} />

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
 import Tooltip from '../../../core/components/Tooltip'
@@ -70,8 +69,8 @@ export default function CreaMagazzino({
 
   return (
     <div className="crea-mag">
-      <BtnBack />
-      <PageHeader
+      <PageHead
+        back
         title="Movimenti scorte"
         subtitle="Monitoraggio e gestione delle scorte di magazzino per tenere traccia delle giacenze, automatizzare il riordino e ottimizzare i livelli di stock"
       />

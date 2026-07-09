@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
 import Modal from '../../../../core/components/Modal'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import SelectField from '../../../../core/components/form/SelectField'
 import DateRangeField from '../../../../core/components/form/DateRangeField'
 import Tooltip from '../../../../core/components/Tooltip'
@@ -237,8 +236,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
 
   return (
     <div className="sdd">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Suggerimenti data driven"
         subtitle="Indicazioni strategiche data-driven su tariffe, numero di camere da mettere a disposizione, richieste extra per gruppi"
       />

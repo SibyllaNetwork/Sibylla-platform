@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import BtnBack from '../../../../core/components/BtnBack'
 import AlertBanner from '../../../../core/components/AlertBanner'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import './CalendarioTariffe.sass'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 
@@ -74,8 +73,7 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
 
   return (
     <div>
-      <BtnBack onClick={() => navigate('tariffe-disp')}/>
-      <PageHeader title={`Calendario tariffe — Anno ${new Date(dateFrom).getFullYear()}`} subtitle="Visualizzazione mensile delle tariffe e occupazione per tipo camera"/>
+      <PageHead title={`Calendario tariffe — Anno ${new Date(dateFrom).getFullYear()}`} subtitle="Visualizzazione mensile delle tariffe e occupazione per tipo camera" onBack={() => navigate('tariffe-disp')}/>
 
       {saved && <AlertBanner type="success">Modifiche salvate e inviate con successo</AlertBanner>}
 

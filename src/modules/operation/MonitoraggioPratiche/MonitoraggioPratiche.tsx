@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { avatarUrl } from '../../../core/avatar'
 import { useRuoliStore, type ProfiloRow } from '../../../store/useRuoliStore'
 import {
@@ -182,8 +181,7 @@ export default function MonitoraggioPratiche({ navigate }: { navigate: (p: strin
 
   return (
     <div className="mon-prat">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Monitoraggio pratiche"
         subtitle="Stato e profilo di gestione di ogni pratica, con tempo di gestione e solleciti automatici oltre la soglia"
       />

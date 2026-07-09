@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Ico from '../../../core/icons/Ico'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
@@ -199,13 +198,11 @@ export default function GestioneServizi({ navigate, embedded = false }: Gestione
   return (
     <div className={`gest-servizi${embedded ? ' gest-servizi--embedded' : ''}`}>
       {!embedded && (
-        <>
-          <BtnBack onClick={() => navigate && navigate('home')} />
-          <PageHeader
-            title="Gestione servizi"
-            subtitle="Configura i servizi acquistabili (escursioni, noleggi, eventi…) con i tre listini Agorà / B2B / B2C"
-          />
-        </>
+        <PageHead
+          title="Gestione servizi"
+          subtitle="Configura i servizi acquistabili (escursioni, noleggi, eventi…) con i tre listini Agorà / B2B / B2C"
+          onBack={() => navigate && navigate('home')}
+        />
       )}
 
       <PageToolbar

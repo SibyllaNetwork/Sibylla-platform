@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
@@ -175,10 +174,10 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
 
   return (
     <div className="crea-anag">
-      <BtnBack onClick={() => { clearEditingAnagrafica(); navigate('archivio-personale') }} />
-      <PageHeader
+      <PageHead
         title={editing ? 'Modifica anagrafica personale' : 'Crea anagrafica personale'}
         subtitle="Scheda del dipendente: dati anagrafici, contatti, residenza e inquadramento"
+        onBack={() => { clearEditingAnagrafica(); navigate('archivio-personale') }}
       />
 
       {error && <p className="crea-anag__error"><i className="fa-light fa-circle-exclamation" /> {error}</p>}

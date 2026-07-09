@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react'
 import clsx from 'clsx'
 import { HexColorPicker, HexColorInput } from 'react-colorful'
-import BtnBack from '../../../../core/components/BtnBack'
-import PageHeader from '../../../../core/components/PageHeader'
+import PageHead from '../../../../core/components/PageHead'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import Modal from '../../../../core/components/Modal'
 import FormActions from '../../../../core/components/FormActions'
@@ -165,10 +164,10 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
 
   return (
     <div className="crea-strat">
-      <BtnBack onClick={() => navigate('calendario-strategie')}/>
-      <PageHeader
+      <PageHead
         title="Crea strategia"
         subtitle="Definisci la BAR per ogni combinazione di occupazione struttura e finestra di prenotazione."
+        onBack={() => navigate('calendario-strategie')}
       />
 
       {saved && <AlertBanner type="success">Strategia salvata con successo</AlertBanner>}

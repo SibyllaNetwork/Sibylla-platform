@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Ico from '../../../core/icons/Ico'
 import { Icon } from '../_shared/Icon'
 import { PageToolbar, type ViewMode } from '../_shared/PageToolbar'
@@ -119,8 +118,7 @@ export default function Servizi({ navigate }: { navigate: (p: string) => void })
 
   return (
     <div className="servizi">
-      <BtnBack />
-      <PageHeader
+      <PageHead
         title="Servizi"
         subtitle="Acquisto di servizi: escursioni, noleggi, biglietti per eventi, parchi, musei e altro"
       />

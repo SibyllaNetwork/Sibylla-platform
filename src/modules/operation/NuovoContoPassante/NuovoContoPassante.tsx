@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
@@ -62,8 +61,8 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
 
   return (
     <div className="nuovo-cp">
-      <BtnBack onClick={() => navigate('conti-passanti')} />
-      <PageHeader
+      <PageHead
+        onBack={() => navigate('conti-passanti')}
         title="Nuovo conto passante"
         subtitle="Crea un conto per un cliente o un'agenzia esterna"
       />

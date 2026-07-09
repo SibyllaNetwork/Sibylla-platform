@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import BtnBack from '../../../core/components/BtnBack'
-import PageHeader from '../../../core/components/PageHeader'
+import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import FormActions from '../../../core/components/FormActions'
 import TotemAgoraCta from '../_shared/TotemAgoraCta'
@@ -42,8 +41,7 @@ export default function RiepilogoCampagna({ navigate }: { navigate: (p: string) 
 
   return (
     <div className="riep-camp">
-      <BtnBack onClick={() => navigate('pianifica-campagna')} />
-      <PageHeader title="Totem & Gestione Advertising" />
+      <PageHead title="Totem & Gestione Advertising" onBack={() => navigate('pianifica-campagna')} />
 
       <div className="riep-camp__layout">
         {/* ── Sinistra: riepilogo ─────────────────────────── */}
