@@ -132,7 +132,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       ...(acquisto ? [] : [params.quantitaMax > 0, !!params.tourOperator, !!params.tipologiaPagamento]),
     ]
     const done = checks.filter(Boolean).length
-    return { done, total: checks.length, pct: Math.round((done / checks.length) * 100) }
+    const pct = Math.round((done / checks.length) * 100)
+    // Livello semaforico: il colore comunica quanto manca al completamento.
+    const level = pct === 100 ? 'complete' : pct >= 67 ? 'high' : pct >= 34 ? 'mid' : 'low'
+    return { done, total: checks.length, pct, level }
   }, [params])
 
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
@@ -357,7 +360,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             )}
           </div>
 
-          <div className={`ca-progress ${progresso.pct === 100 ? 'is-complete' : ''}`}
+          <div className={`ca-progress ca-progress--${progresso.level}`}
             role="progressbar" aria-valuenow={progresso.pct} aria-valuemin={0} aria-valuemax={100}
             aria-label="Completamento parametri annuncio">
             <div className="ca-progress__info">

@@ -212,7 +212,8 @@
     height: 100%
     min-width: 12px
     border-radius: 999px
-    background: linear-gradient(90deg, var(--color-primary-400), var(--color-primary) 60%, var(--color-accent))
+    // Colore impostato per livello (semaforo); qui solo il fallback neutro
+    background: var(--color-primary)
     transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s
 
     // Fronte d'avanzamento netto e luminoso: dà "spinta" e chiarezza
@@ -236,15 +237,36 @@
     border-radius: 999px 999px 40% 40%
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0))
 
-  // Stato completo: verde successo
-  &.is-complete
+  // ── Semaforo: il colore comunica quanto manca ──
+  // Basso (rosso) → medio (ambra) → alto (verde) → completo (verde pieno).
+  &--low
+    .ca-progress__fill
+      background: var(--color-error)
+    .ca-progress__label i,
+    .ca-progress__pct
+      color: var(--color-error)
+
+  &--mid
+    .ca-progress__fill
+      background: var(--color-warning)
+    .ca-progress__label i,
+    .ca-progress__pct
+      color: var(--color-warning)
+
+  &--high
+    .ca-progress__fill
+      background: var(--color-success-mid)
+    .ca-progress__label i,
+    .ca-progress__pct
+      color: var(--color-success)
+
+  &--complete
+    .ca-progress__fill
+      background: var(--color-success)
     .ca-progress__label,
     .ca-progress__label i,
     .ca-progress__pct
-      color: $success
-
-    .ca-progress__fill
-      background: linear-gradient(90deg, var(--color-success-mid), var(--color-success))
+      color: var(--color-success)
 
 // ── Placeholder editor ────────────────────────────────────────────────────────
 .ca-hint
