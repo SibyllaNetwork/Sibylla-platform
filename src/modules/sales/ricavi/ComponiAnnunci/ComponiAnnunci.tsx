@@ -89,6 +89,14 @@ const BACHECA_INIT: RigaBacheca[] = [
   { id: 8,  periodo: '5/2026 - 10/2026',  tipologia: 'Vendita', segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
   { id: 9,  periodo: '7/2026 - 10/2026',  tipologia: 'Vendita', segmento: 'Adulti',            preferito: false, quantita: '5 Lotti',  stato: 'In bozza'   },
   { id: 10, periodo: '9/2026 - 12/2026',  tipologia: 'Vendita', segmento: 'Adulti e studenti', preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
+  { id: 11, periodo: '10/2025 - 3/2026',  tipologia: 'Vendita', segmento: 'Adulti',            preferito: false, quantita: '3 Lotti',  stato: 'Pubblicato' },
+  { id: 12, periodo: '2/2026 - 7/2026',   tipologia: 'Vendita', segmento: 'Studenti',          preferito: true,  quantita: '2 Lotti',  stato: 'In bozza'   },
+  { id: 13, periodo: '6/2026 - 11/2026',  tipologia: 'Vendita', segmento: 'Adulti e studenti', preferito: false, quantita: '4 Lotti',  stato: 'Pubblicato' },
+  { id: 14, periodo: '3/2026 - 8/2026',   tipologia: 'Vendita', segmento: 'Adulti',            preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
+  { id: 15, periodo: '5/2026 - 9/2026',   tipologia: 'Vendita', segmento: 'Studenti',          preferito: true,  quantita: '6 Lotti',  stato: 'Pubblicato' },
+  { id: 16, periodo: '8/2026 - 12/2026',  tipologia: 'Vendita', segmento: 'Adulti e studenti', preferito: false, quantita: '2 Lotti',  stato: 'In bozza'   },
+  { id: 17, periodo: '1/2026 - 6/2026',   tipologia: 'Vendita', segmento: 'Adulti',            preferito: false, quantita: '3 Lotti',  stato: 'Pubblicato' },
+  { id: 18, periodo: '4/2026 - 10/2026',  tipologia: 'Vendita', segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
 ]
 
 export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => void }) {
