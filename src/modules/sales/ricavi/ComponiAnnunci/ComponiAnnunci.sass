@@ -155,6 +155,98 @@
 .ca-setup__next
   margin-left: auto
 
+// Nota "configurazioni mancanti" a sinistra nel footer
+.ca-setup__foot-note
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 12px
+  font-weight: 600
+  color: $warning
+
+  i
+    font-size: 12px
+
+// ── Configurazioni obbligatorie (alert prerequisiti) ─────────────────────────
+.ca-reqs
+  margin: 4px 18px 0
+  padding: 12px 14px
+  border-radius: 10px
+  background: alpha($warning, 0.10)
+  border: 1px solid alpha($warning, 0.40)
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 12.5px
+    font-weight: 700
+    color: $text-active
+
+    i
+      flex: none
+      color: $warning
+      font-size: 14px
+
+  &__list
+    list-style: none
+    margin: 10px 0 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 8px 10px
+    border-radius: 8px
+    background: var(--color-surface)
+    border: 1px solid $border
+
+  &__ico
+    flex: none
+    color: $warning
+    font-size: 14px
+
+  &__text
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__label
+    font-size: 12.5px
+    font-weight: 700
+    color: $text-active
+
+  &__desc
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__link
+    flex: none
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 5px 10px
+    border-radius: 7px
+    border: 1px solid $primary
+    background: alpha($primary, 0.06)
+    color: $primary
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    white-space: nowrap
+
+    &:hover
+      background: alpha($primary, 0.12)
+
+    i
+      font-size: 11px
+
 // ── Progress bar completamento parametri ─────────────────────────────────────
 .ca-progress
   padding: 14px 18px 4px

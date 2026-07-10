@@ -384,6 +384,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'scheda-questura')       return <SchedaQuestura navigate={navigate}/>;
   if (page === 'log-sistema')           return <LogDiSistema navigate={navigate}/>;
   if (page === 'informazioni-struttura')return <InformazioniStruttura navigate={navigate}/>;
+  if (page.startsWith('configuratore:')) return <Configuratore navigate={navigate} initialPane={page.slice('configuratore:'.length)} key={page}/>;
   if (page === 'configuratore')         return <Configuratore navigate={navigate}/>;
   if (page === 'crea-struttura')        return <CreaStruttura navigate={navigate}/>;
   if (page === 'crea-outlet')           return <CreaStruttura navigate={navigate} autoOpenType="outlet"/>;

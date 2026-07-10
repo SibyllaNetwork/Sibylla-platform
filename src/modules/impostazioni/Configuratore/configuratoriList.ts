@@ -23,6 +23,7 @@ export type ConfiguratoreId =
   | 'market-specifics'
   | 'listini-individuali'
   | 'listini-gruppi'
+  | 'tipologie-basi'
   | 'politiche-prenotazione'
   | 'voci-incasso'
   | 'configura-outlet'
@@ -70,6 +71,7 @@ export const MAIN_ITEMS: ConfiguratoreItem[] = [
   { id: 'market-specifics',         label: 'Market specifics',       icon: 'globe' },
   { id: 'listini-individuali',      label: 'Listini individuali',    icon: 'user' },
   { id: 'listini-gruppi',           label: 'Listini gruppi',         icon: 'users' },
+  { id: 'tipologie-basi',           label: 'Tipologie basi',         icon: 'layer-group' },
   { id: 'politiche-prenotazione',   label: 'Politiche prenotazione', icon: 'clipboard-list' },
   { id: 'voci-incasso',             label: 'Voci incasso',           icon: 'receipt' },
   { id: 'configura-outlet',         label: 'Configura Outlet',       icon: 'shop' },

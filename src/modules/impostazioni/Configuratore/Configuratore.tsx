@@ -3,6 +3,7 @@ import PageHead from '../../../core/components/PageHead'
 import {
   MAIN_ITEMS,
   FNB_ITEMS,
+  ALL_CONFIGURATORE_IDS,
   type ConfiguratoreId,
   type ConfiguratoreItem,
 } from './configuratoriList'
@@ -36,7 +37,7 @@ import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConf
 
 const DEFAULT_ID: ConfiguratoreId = 'scaglioni-occupazione'
 
-export default function Configuratore({ navigate }: { navigate: (p: string) => void }) {
+export default function Configuratore({ navigate, initialPane }: { navigate: (p: string) => void; initialPane?: string }) {
   // Voci visibili in base al profilo loggato: il modulo Ristoranti mostra solo le
   // voci Food & Beverage (allowed = null → nessun limite, es. Full Suite/Admin).
   const currentProfileId = useAccessStore(s => s.currentProfileId)
@@ -51,8 +52,11 @@ export default function Configuratore({ navigate }: { navigate: (p: string) => v
   const fnbItems  = useMemo(() => allowed ? FNB_ITEMS.filter(i => allowed.has(i.id)) : FNB_ITEMS, [allowed])
   const onlyFnb = mainItems.length === 0 && fnbItems.length > 0
 
-  const [activeId, setActiveId] = useState<ConfiguratoreId>(onlyFnb ? (fnbItems[0]?.id ?? DEFAULT_ID) : DEFAULT_ID)
-  const [subpage, setSubpage]   = useState(onlyFnb)
+  // Deep-link a un pane specifico (es. da "configuratore:lotti-mapping").
+  const validInitial = initialPane && ALL_CONFIGURATORE_IDS.includes(initialPane) ? (initialPane as ConfiguratoreId) : null
+  const initialIsFnb = validInitial ? FNB_ITEMS.some(i => i.id === validInitial) : false
+  const [activeId, setActiveId] = useState<ConfiguratoreId>(validInitial ?? (onlyFnb ? (fnbItems[0]?.id ?? DEFAULT_ID) : DEFAULT_ID))
+  const [subpage, setSubpage]   = useState(validInitial ? initialIsFnb : onlyFnb)
   const [query, setQuery]       = useState('')
 
   const sourceItems = subpage ? fnbItems : mainItems

@@ -110,11 +110,43 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
   const [boardPage, setBoardPage] = useState(1)
 
+  const gruppi = params.tipoOspiti === 'Gruppi'
+
+  // Configurazioni obbligatorie (Configuratore) che sbloccano la generazione del
+  // contratto. Per ora sono tutte DA EFFETTUARE (mock: done = false), quindi la
+  // procedura resta bloccata e la barra non può raggiungere il 100%.
+  const prereqs = useMemo(() => ([
+    {
+      key: 'lotto',
+      label: 'Configurazione del lotto',
+      desc: 'Mappa i lotti della struttura in Configuratore → Lotti mapping.',
+      page: 'configuratore:lotti-mapping',
+      done: false,
+    },
+    {
+      key: 'listini',
+      label: gruppi ? 'Listini gruppi' : 'Listini individuali',
+      desc: gruppi
+        ? 'Definisci i listini gruppi in Configuratore → Listini gruppi.'
+        : 'Definisci i listini individuali in Configuratore → Listini individuali.',
+      page: gruppi ? 'configuratore:listini-gruppi' : 'configuratore:listini-individuali',
+      done: false,
+    },
+    {
+      key: 'base',
+      label: 'Configuratore tipologia BASE',
+      desc: 'Imposta le tipologie base in Configuratore → Tipologie basi.',
+      page: 'configuratore:tipologie-basi',
+      done: false,
+    },
+  ]), [gruppi])
+  const prereqsDone = prereqs.every((p) => p.done)
+
   // Completamento della form: frazione di campi rilevanti valorizzati per la
-  // combinazione corrente (Vendita/Acquisto · Gruppi/Individuali).
+  // combinazione corrente (Vendita/Acquisto · Gruppi/Individuali) + le
+  // configurazioni obbligatorie del Configuratore.
   const progresso = useMemo(() => {
     const acquisto = params.tipo === 'Acquisto'
-    const gruppi = params.tipoOspiti === 'Gruppi'
     const checks: boolean[] = [
       !!params.tipo,
       !!params.tipologia,
@@ -130,13 +162,14 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       !!params.dataDa && !!params.dataA,
       params.quantita > 0 && (acquisto || params.quantita <= params.quantitaMax),
       ...(acquisto ? [] : [params.quantitaMax > 0, !!params.tourOperator, !!params.tipologiaPagamento]),
+      ...prereqs.map((p) => p.done),
     ]
     const done = checks.filter(Boolean).length
     const pct = Math.round((done / checks.length) * 100)
     // Livello semaforico: il colore comunica quanto manca al completamento.
     const level = pct === 100 ? 'complete' : pct >= 67 ? 'high' : pct >= 34 ? 'mid' : 'low'
     return { done, total: checks.length, pct, level }
-  }, [params])
+  }, [params, gruppi, prereqs])
 
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
   useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
@@ -172,7 +205,10 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     ...over,
   })
 
-  const genera = () => { setEditingBachecaId(null); setContratto(buildContratto(contrattoInput())) }
+  const genera = () => {
+    if (!prereqsDone) return
+    setEditingBachecaId(null); setContratto(buildContratto(contrattoInput()))
+  }
   const chiudiContratto = () => { setContratto(null); setEditingBachecaId(null) }
 
   // Modifica in-place del contratto in editing (campi scalari o intere liste).
@@ -360,6 +396,29 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             )}
           </div>
 
+          {!prereqsDone && (
+            <div className="ca-reqs" role="alert">
+              <div className="ca-reqs__head">
+                <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                <span>Completa le configurazioni obbligatorie per attivare la generazione del contratto</span>
+              </div>
+              <ul className="ca-reqs__list">
+                {prereqs.filter((p) => !p.done).map((p) => (
+                  <li key={p.key} className="ca-reqs__item">
+                    <i className="fa-light fa-circle-exclamation ca-reqs__ico" aria-hidden="true" />
+                    <span className="ca-reqs__text">
+                      <strong className="ca-reqs__label">{p.label}</strong>
+                      <span className="ca-reqs__desc">{p.desc}</span>
+                    </span>
+                    <button type="button" className="ca-reqs__link" onClick={() => navigate(p.page)}>
+                      Configura <i className="fa-light fa-arrow-up-right-from-square" aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className={`ca-progress ca-progress--${progresso.level}`}
             role="progressbar" aria-valuenow={progresso.pct} aria-valuemin={0} aria-valuemax={100}
             aria-label="Completamento parametri annuncio">
@@ -379,7 +438,12 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           </div>
 
           <div className="ca-setup__foot">
-            <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={genera}>
+            {!prereqsDone && (
+              <span className="ca-setup__foot-note">
+                <i className="fa-light fa-lock" aria-hidden="true" /> Configurazioni obbligatorie mancanti
+              </span>
+            )}
+            <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={genera} disabled={!prereqsDone}>
               <i className="fa-light fa-file-contract" /> Genera contratto
             </button>
           </div>
