@@ -12,9 +12,15 @@
   > .sib-btn--back
     align-self: flex-start
 
-// ── Corpo: parametri + editor (piena larghezza); la bacheca è sotto ──────────
+// ── Corpo: parametri + editor | bacheca (50% / 50%) ──────────────────────────
 .ca-top
-  min-width: 0
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 18px
+  align-items: start
+
+  @media (max-width: 1200px)
+    grid-template-columns: 1fr
 
 // Colonna sinistra: parametri + box editor (riempie l'altezza pari alla bacheca)
 .ca-left

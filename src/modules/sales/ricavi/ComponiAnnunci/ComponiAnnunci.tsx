@@ -511,9 +511,8 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           )}
         </div>
         </div>
-      </div>
 
-      <aside className="ca-board">
+        <aside className="ca-board">
           <div className="ca-board__head">
             <span className="ca-board__title"><i className="fa-light fa-clipboard-list" /> La mia bacheca</span>
             <span className="ca-board__count">{bacheca.length}</span>
@@ -592,6 +591,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             </div>
           )}
         </aside>
+      </div>
 
       {anteprima && (
         <ContrattoStampa contratto={anteprima} onChiudi={() => setAnteprima(null)} />
