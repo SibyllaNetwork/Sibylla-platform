@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useMemo } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect, NazionalitaMultiSelect, FlagBadge } from '../../../../core/components/form'
@@ -109,6 +109,31 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const [anteprima, setAnteprima] = useState<Contratto | null>(null)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
   const [boardPage, setBoardPage] = useState(1)
+
+  // Completamento della form: frazione di campi rilevanti valorizzati per la
+  // combinazione corrente (Vendita/Acquisto · Gruppi/Individuali).
+  const progresso = useMemo(() => {
+    const acquisto = params.tipo === 'Acquisto'
+    const gruppi = params.tipoOspiti === 'Gruppi'
+    const checks: boolean[] = [
+      !!params.tipo,
+      !!params.tipologia,
+      acquisto
+        ? (!!params.citta && !!params.categoriaLivello)
+        : params.tipologia === 'Categoria' ? !!params.categoria : params.strutturaId != null,
+      !!params.tipoOspiti,
+      params.marketSpecific.length > 0,
+      ...(gruppi
+        ? [!!params.segmento, !!params.tipologiaBase]
+        : [!!params.tipologiaCamere]),
+      ...(acquisto ? [] : [!!params.tipoLotti]),
+      !!params.dataDa && !!params.dataA,
+      params.quantita > 0 && (acquisto || params.quantita <= params.quantitaMax),
+      ...(acquisto ? [] : [params.quantitaMax > 0, !!params.tourOperator, !!params.tipologiaPagamento]),
+    ]
+    const done = checks.filter(Boolean).length
+    return { done, total: checks.length, pct: Math.round((done / checks.length) * 100) }
+  }, [params])
 
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
   useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
@@ -279,11 +304,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             <SelectField label={params.tipo === 'Acquisto' ? 'Tipologia' : 'Tipo ospiti'} name="tipoOspiti"
               value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
               options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+            <NazionalitaMultiSelect label="Market specific" className="ca-field--market"
+              value={params.marketSpecific} onChange={(v) => set('marketSpecific', v)}
+              placeholder="Seleziona paesi" />
             {params.tipoOspiti === 'Gruppi' ? (
               <>
-                <NazionalitaMultiSelect label="Market specific" className="ca-field--market"
-                  value={params.marketSpecific} onChange={(v) => set('marketSpecific', v)}
-                  placeholder="Seleziona paesi" />
                 <SelectField label="Segmento" name="segmento" value={params.segmento} onChange={(e) => set('segmento', e.target.value as Segmento)}
                   options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
                 <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
@@ -330,6 +355,24 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 <span>Stai selezionando una quantità (<strong>{params.quantita}</strong>) superiore alla quantità massima impostata (<strong>{params.quantitaMax}</strong>).</span>
               </div>
             )}
+          </div>
+
+          <div className={`ca-progress ${progresso.pct === 100 ? 'is-complete' : ''}`}
+            role="progressbar" aria-valuenow={progresso.pct} aria-valuemin={0} aria-valuemax={100}
+            aria-label="Completamento parametri annuncio">
+            <div className="ca-progress__info">
+              <span className="ca-progress__label">
+                <i className={`fa-light ${progresso.pct === 100 ? 'fa-circle-check' : 'fa-list-check'}`} aria-hidden="true" />
+                {progresso.pct === 100 ? 'Parametri completi' : 'Completamento parametri'}
+                <span className="ca-progress__frac">{progresso.done}/{progresso.total}</span>
+              </span>
+              <span className="ca-progress__pct">{progresso.pct}%</span>
+            </div>
+            <div className="ca-progress__track">
+              <div className="ca-progress__fill" style={{ width: `${progresso.pct}%` }}>
+                <span className="ca-progress__shine" aria-hidden="true" />
+              </div>
+            </div>
           </div>
 
           <div className="ca-setup__foot">
