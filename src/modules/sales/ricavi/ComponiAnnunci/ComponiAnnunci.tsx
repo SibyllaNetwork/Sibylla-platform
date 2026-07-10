@@ -309,9 +309,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     })))
   }
 
-  const toggleStar = (id: number) =>
-    setBacheca((prev) => prev.map((b) => b.id === id ? { ...b, preferito: !b.preferito } : b))
-
   // Costruisce il record da pubblicare nella pagina Annunci (Agorà).
   const annuncioDaRiga = (b: RigaBacheca): AnnuncioPubblicato => {
     const c = b.contratto
@@ -568,11 +565,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                     </td>
                     <td className="ca-board__actcol" onClick={(e) => e.stopPropagation()}>
                       <div className="ca-board__actions">
-                        <Tooltip text="Preferito">
-                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Preferito" onClick={() => toggleStar(b.id)}>
-                            <i className={`${b.preferito ? 'fa-solid ca-item__star--on' : 'fa-light'} fa-star`} />
-                          </button>
-                        </Tooltip>
                         <Tooltip text="Anteprima da stampare">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Anteprima da stampare" onClick={() => apriAnteprima(b)}>
                             <i className="fa-light fa-eye" />
