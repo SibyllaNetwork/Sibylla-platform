@@ -915,26 +915,19 @@
   &:hover
     background: alpha($primary, 0.10)
 
-// ── LA MIA BACHECA (tabella standard) ────────────────────────────────────────
+// ── LA MIA BACHECA (titolo + tabella standard, senza box esterno) ─────────────
 .ca-board
   min-width: 0
   // Altezza propria: non si allunga per seguire il contratto (colonna sinistra)
   align-self: start
   // Container query: compatta la tabella in base alla larghezza della bacheca
   container-type: inline-size
-  background: var(--color-surface)
-  border: 1px solid $border
-  border-radius: 14px
-  overflow: hidden
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
 
   &__head
     display: flex
     align-items: center
     gap: 10px
-    padding: 12px 16px
-    border-bottom: 1px solid $border
-    background: alpha($primary, 0.03)
+    padding: 0 2px 10px
 
   &__title
     display: inline-flex
