@@ -201,11 +201,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   // l'animazione di apertura/chiusura; in chiusura carica il contratto.
   const toggleParams = () => { if (paramsSaved) setParamsSaved(false); else apriDaParametri() }
 
-  // Periodo per esteso: "3/2026 - 6/2026" → "Marzo 2026 - Giugno 2026".
-  const periodoEsteso = (p: string) =>
-    p.replace(/(\d{1,2})\/(\d{4})/g, (_m, m: string, y: string) =>
-      MESI[Number(m) - 1] ? `${MESI[Number(m) - 1]} ${y}` : `${m}/${y}`)
-
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
   useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
   const bachecaPage = bacheca.slice((boardPage - 1) * PAGE_SIZE, boardPage * PAGE_SIZE)
@@ -544,7 +539,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   <tr key={b.id} className={editingBachecaId === b.id ? 'is-active' : ''}
                     onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
                     <td><span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span></td>
-                    <td className="ca-board__nowrap">{periodoEsteso(b.periodo)}</td>
+                    <td className="ca-board__nowrap">{b.periodo}</td>
                     <td className="ca-board__nowrap">{b.segmento}</td>
                     <td className="ca-board__nowrap">{b.quantita}</td>
                     <td>
