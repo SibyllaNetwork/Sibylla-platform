@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
-import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect, FlagBadge } from '../../../../core/components/form'
+import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect, NazionalitaMultiSelect, FlagBadge } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
@@ -27,6 +27,7 @@ interface Params {
   categoria: string
   tipoOspiti: string
   segmento: Segmento
+  marketSpecific: string[]
   tipologiaBase: string
   tipoLotti: string
   dataDa: string
@@ -96,7 +97,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
   const [params, setParams] = useState<Params>({
     tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: '4',
-    tipoOspiti: 'Gruppi', segmento: 'Adulti', tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
+    tipoOspiti: 'Gruppi', segmento: 'Adulti', marketSpecific: [], tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
     dataDa: '2026-07-01', dataA: '2026-10-31', tourOperator: 'Tutti',
     quantita: 1, quantitaMax: 1, tipologiaPagamento: 'VCC',
     citta: 'Roma', categoriaLivello: '5', tipologiaCamere: 'Singola Classic',
@@ -284,6 +285,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
                 <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
                   options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
+                <NazionalitaMultiSelect label="Market specific" className="ca-field--market"
+                  value={params.marketSpecific} onChange={(v) => set('marketSpecific', v)}
+                  placeholder="Seleziona paesi" />
               </>
             ) : (
               <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
