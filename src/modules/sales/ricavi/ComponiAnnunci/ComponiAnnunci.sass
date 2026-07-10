@@ -13,14 +13,16 @@
     align-self: flex-start
 
 // ── Corpo: colonna sinistra (parametri + editor) | bacheca ────────────────────
-// ── Riga superiore: parametri (60%) | bacheca (40%) ──────────────────────────
+// ── Riga superiore: parametri (~40%) | bacheca (~60%) ─────────────────────────
+// La bacheca è una tabella standard con azioni a icone da 36px: le serve più
+// spazio, quindi il rapporto è invertito rispetto ai parametri.
 .ca-top
   display: grid
-  grid-template-columns: 3fr 2fr
+  grid-template-columns: 2fr 3fr
   gap: 18px
   align-items: stretch
 
-  @media (max-width: 1100px)
+  @media (max-width: 1200px)
     grid-template-columns: 1fr
 
 // Colonna sinistra: parametri + box editor (riempie l'altezza pari alla bacheca)
@@ -915,33 +917,26 @@
   &:hover
     background: alpha($primary, 0.10)
 
-// ── LA MIA BACHECA (stile sughero) ───────────────────────────────────────────────
+// ── LA MIA BACHECA (tabella standard) ────────────────────────────────────────
 .ca-board
   min-width: 0
   // Altezza propria: non si allunga per seguire il contratto (colonna sinistra)
   align-self: start
+  // Container query: compatta la tabella in base alla larghezza della bacheca
+  container-type: inline-size
+  background: var(--color-surface)
+  border: 1px solid $border
   border-radius: 14px
   overflow: hidden
-  border: 7px solid #7c5230
-  background-color: #c69a63
-  background-image: radial-gradient(rgba(110, 66, 20, 0.20) 1px, transparent 1.6px), radial-gradient(rgba(255, 255, 255, 0.10) 1px, transparent 1.6px)
-  background-size: 9px 9px, 13px 13px
-  background-position: 0 0, 5px 7px
-  box-shadow: inset 0 0 40px rgba(60, 34, 8, 0.35), 0 4px 14px rgba(0, 0, 0, 0.18)
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
 
   &__head
     display: flex
     align-items: center
-    justify-content: center
     gap: 10px
-    position: relative
-    margin: 12px auto 4px
-    padding: 8px 20px
-    width: max-content
-    border-radius: 8px
-    background: rgba(50, 30, 10, 0.55)
-    color: #fff
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3)
+    padding: 12px 16px
+    border-bottom: 1px solid $border
+    background: alpha($primary, 0.03)
 
   &__title
     display: inline-flex
@@ -949,187 +944,78 @@
     gap: 8px
     font-family: $font-heading
     font-weight: 700
-    font-size: 17px
-    letter-spacing: 0.02em
+    font-size: 15px
+    color: $primary
+
+    i
+      color: $primary
 
   &__count
     min-width: 22px
     height: 20px
     padding: 0 7px
     border-radius: 999px
-    background: rgba(255, 255, 255, 0.22)
-    color: #fff
+    background: alpha($primary, 0.12)
+    color: $primary
     font-size: 12px
     font-weight: 700
     display: inline-flex
     align-items: center
     justify-content: center
 
-  &__list
-    display: flex
-    flex-direction: column
-    gap: 14px
-    padding: 16px 16px 20px
+  // Tabella standard con larghezze fisse: sta nella colonna senza scroll-x
+  &__table
+    table
+      table-layout: fixed
+
+    th, td
+      padding: 8px 8px
+      overflow: hidden
+      vertical-align: middle
+
+    th:nth-child(1)
+      width: 11%
+    th:nth-child(2)
+      width: 12%
+    th:nth-child(3)
+      width: 13%
+    th:nth-child(4)
+      width: 8%
+    th:nth-child(5)
+      width: 16%
+    th:nth-child(6)
+      width: 40%
+
+    tbody tr
+      cursor: pointer
+
+      &.is-active
+        background: alpha($primary, 0.08)
+
+  // Azioni di riga: icone standard (sib-btn--icon), allineate a destra
+  &__actions
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+    flex-wrap: nowrap
+
+  &__actcol
+    text-align: right
 
   &__pager
     display: flex
     justify-content: center
-    padding: 0 12px 16px
+    padding: 12px
 
   &__empty
     text-align: center
-    color: rgba(255, 255, 255, 0.9)
-    padding: 24px 12px
-
-// Foglietto appuntato — riga unica
-.ca-item
-  position: relative
-  display: flex
-  align-items: center
-  gap: 10px
-  background: var(--color-surface)
-  border-radius: 8px
-  padding: 12px 12px 12px 14px
-  box-shadow: 0 3px 9px rgba(40, 22, 4, 0.30)
-  transition: transform 0.12s, box-shadow 0.12s
-
-  &:hover
-    transform: translateY(-1px)
-    box-shadow: 0 6px 16px rgba(40, 22, 4, 0.38)
-
-  &--active
-    outline: 2px solid $primary
-    outline-offset: 1px
-
-  // Puntina (testa a cupola in prospettiva + spillo piantato nel foglio)
-  &__pin
-    position: absolute
-    top: -6px
-    left: 17px
-    width: 14px
-    height: 12px
-    z-index: 2
-    border-radius: 50%
-    background: radial-gradient(ellipse at 34% 26%, #ffb0b0, #d84343 56%, #8f2323)
-    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.32), inset -1px -2px 3px rgba(0, 0, 0, 0.28), inset 2px 2px 3px rgba(255, 255, 255, 0.55)
-    transform: rotate(-18deg)
-    transform-origin: 55% 95%
-
-    // spillo metallico: parte dal bordo inferiore della testa, in linea con l'inclinazione
-    &::before
-      content: ''
-      position: absolute
-      top: 11px
-      left: 50%
-      width: 2px
-      height: 7px
-      transform-origin: top center
-      transform: translate(calc(-50% - 4px), -1px) rotate(45deg)
-      background: linear-gradient(to bottom, #565860, #8b8e96 45%, #c3c6cd)
-      border-radius: 0 0 1px 1px
-      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3)
-      // dietro la testa: la testa resta in overlay
-      z-index: -1
-
-    // riflesso sulla testa
-    &::after
-      content: ''
-      position: absolute
-      top: 2px
-      left: 3px
-      width: 5px
-      height: 3px
-      border-radius: 50%
-      background: rgba(255, 255, 255, 0.8)
-      transform: rotate(-18deg)
-
-    &--acquisto
-      background: radial-gradient(ellipse at 34% 26%, #ffe3a3, #e0a63a 56%, #a9761d)
-
-  &__open
-    flex: 1
-    min-width: 0
-    display: flex
-    align-items: center
-    gap: 10px
-    background: transparent
-    border: none
-    cursor: pointer
-    padding: 0
-    text-align: left
-
-  &__period
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    font-size: 12.5px
-    font-weight: 600
-    color: $text-active
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-
-    i
-      color: $text-inactive
-      font-size: 11px
-
-  &__seg
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    font-size: 11.5px
     color: $text-inactive
-    white-space: nowrap
+    padding: 20px 12px
 
-    i
-      font-size: 11px
-
-  &__qty
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    font-size: 12px
-    color: $text-inactive
-    white-space: nowrap
-
-    i
-      font-size: 11px
-
-  &__actions
-    display: inline-flex
-    align-items: center
-    gap: 2px
-
-  &__act
-    background: transparent
-    border: none
-    cursor: pointer
-    color: $text-inactive
-    font-size: 14px
-    width: 28px
-    height: 28px
-    border-radius: 6px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-
-    &:hover
-      background: alpha($primary, 0.10)
-      color: $primary
-
-    &--danger:hover
-      background: alpha($error, 0.12)
-      color: $error
-
-    &--publish
-      color: $success
-
-      &:hover
-        background: alpha($success, 0.14)
-        color: $success
-
-  &__star--on
-    color: $warning
+// Stella "preferito" attiva (icona dentro il bottone azione standard)
+.ca-item__star--on
+  color: $warning
 
 // Chip tipologia
 .ca-chip

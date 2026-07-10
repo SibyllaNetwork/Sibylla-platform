@@ -5,6 +5,7 @@ import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect,
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
+import TruncatedText from '../../../../core/components/TruncatedText'
 import {
   buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
@@ -512,45 +513,73 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             <span className="ca-board__title"><i className="fa-light fa-clipboard-list" /> La mia bacheca</span>
             <span className="ca-board__count">{bacheca.length}</span>
           </div>
-          <div className="ca-board__list">
-            {bacheca.length === 0 ? (
-              <div className="ca-board__empty">Nessun annuncio in bacheca.</div>
-            ) : bachecaPage.map((b) => (
-              <article key={b.id} className={`ca-item ${editingBachecaId === b.id ? 'ca-item--active' : ''}`}>
-                <span className={`ca-item__pin ca-item__pin--${b.tipologia.toLowerCase()}`} aria-hidden="true" />
-                <button type="button" className="ca-item__open" onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
-                  <span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span>
-                  <span className="ca-item__period"><i className="fa-light fa-calendar-range" /> {b.periodo}</span>
-                  <span className="ca-item__seg"><i className="fa-light fa-users" /> {b.segmento}</span>
-                  <span className="ca-item__qty"><i className="fa-light fa-cubes" /> {b.quantita}</span>
-                </button>
-                <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
-                  <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
-                </span>
-                <span className="ca-item__actions">
-                  <button type="button" className="ca-item__act" title="Preferito" onClick={() => toggleStar(b.id)}>
-                    <i className={`${b.preferito ? 'fa-solid ca-item__star--on' : 'fa-light'} fa-star`} />
-                  </button>
-                  <button type="button" className="ca-item__act" title="Anteprima da stampare" onClick={() => apriAnteprima(b)}>
-                    <i className="fa-light fa-eye" />
-                  </button>
-                  <button type="button" className="ca-item__act" title="Modifica contratto" onClick={() => apriContratto(b)}>
-                    <i className="fa-light fa-file-pen" />
-                  </button>
-                  <button type="button" className="ca-item__act" title="Scarica PDF del contratto" onClick={() => scaricaPdf(b)}>
-                    <i className="fa-light fa-file-pdf" />
-                  </button>
-                  <button type="button" className="ca-item__act ca-item__act--danger" title="Elimina" onClick={() => eliminaBacheca(b.id)}>
-                    <i className="fa-light fa-trash" />
-                  </button>
-                  {b.stato !== 'Pubblicato' && (
-                    <button type="button" className="ca-item__act ca-item__act--publish" title="Pubblica in Agorà" onClick={() => pubblica(b.id)}>
-                      <i className="fa-solid fa-paper-plane" />
-                    </button>
-                  )}
-                </span>
-              </article>
-            ))}
+          <div className="sib-table-wrap ca-board__table">
+            <table className="sib-table">
+              <thead>
+                <tr>
+                  <th>Tipologia</th>
+                  <th>Periodo</th>
+                  <th>Segmento</th>
+                  <th>Quantità</th>
+                  <th>Stato</th>
+                  <th className="ca-board__actcol">Azioni</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bacheca.length === 0 ? (
+                  <tr><td colSpan={6} className="ca-board__empty">Nessun annuncio in bacheca.</td></tr>
+                ) : bachecaPage.map((b) => (
+                  <tr key={b.id} className={editingBachecaId === b.id ? 'is-active' : ''}
+                    onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
+                    <td><span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span></td>
+                    <td><TruncatedText text={b.periodo} className="ca-board__cell" /></td>
+                    <td><TruncatedText text={b.segmento} className="ca-board__cell" /></td>
+                    <td><TruncatedText text={b.quantita} className="ca-board__cell" /></td>
+                    <td>
+                      <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
+                        <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
+                      </span>
+                    </td>
+                    <td className="ca-board__actcol" onClick={(e) => e.stopPropagation()}>
+                      <div className="ca-board__actions">
+                        <Tooltip text="Preferito">
+                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Preferito" onClick={() => toggleStar(b.id)}>
+                            <i className={`${b.preferito ? 'fa-solid ca-item__star--on' : 'fa-light'} fa-star`} />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Anteprima da stampare">
+                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Anteprima da stampare" onClick={() => apriAnteprima(b)}>
+                            <i className="fa-light fa-eye" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Modifica contratto">
+                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica contratto" onClick={() => apriContratto(b)}>
+                            <i className="fa-light fa-file-pen" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Scarica PDF del contratto">
+                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Scarica PDF del contratto" onClick={() => scaricaPdf(b)}>
+                            <i className="fa-light fa-file-pdf" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text="Elimina">
+                          <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => eliminaBacheca(b.id)}>
+                            <i className="fa-light fa-trash" />
+                          </button>
+                        </Tooltip>
+                        {b.stato !== 'Pubblicato' && (
+                          <Tooltip text="Pubblica in Agorà">
+                            <button type="button" className="sib-btn sib-btn--icon" aria-label="Pubblica in Agorà" onClick={() => pubblica(b.id)}>
+                              <i className="fa-solid fa-paper-plane" />
+                            </button>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           {boardTotalPages > 1 && (
             <div className="ca-board__pager">
