@@ -108,6 +108,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const [contratto, setContratto] = useState<Contratto | null>(null)
   const [anteprima, setAnteprima] = useState<Contratto | null>(null)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
+  const [paramsSaved, setParamsSaved] = useState(false)
   const [boardPage, setBoardPage] = useState(1)
 
   const gruppi = params.tipoOspiti === 'Gruppi'
@@ -179,6 +180,19 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     return { done, total, pct, level }
   }, [params, gruppi, prereqs, prereqsDone])
 
+  // Salva attivo solo con configurazioni complete e tutti i campi compilati.
+  const canSave = prereqsDone && progresso.pct === 100
+  // Genera il contratto dai parametri e collassa la card parametri (animato).
+  const apriDaParametri = () => {
+    setEditingBachecaId(null)
+    setContratto(buildContratto(contrattoInput()))
+    setParamsSaved(true)
+  }
+  const salva = () => { if (canSave) apriDaParametri() }
+  // Toggle manuale (anche cliccando l'header "Parametri annuncio"): mostra
+  // l'animazione di apertura/chiusura; in chiusura carica il contratto.
+  const toggleParams = () => { if (paramsSaved) setParamsSaved(false); else apriDaParametri() }
+
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
   useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
   const bachecaPage = bacheca.slice((boardPage - 1) * PAGE_SIZE, boardPage * PAGE_SIZE)
@@ -213,11 +227,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     ...over,
   })
 
-  const genera = () => {
-    if (!prereqsDone) return
-    setEditingBachecaId(null); setContratto(buildContratto(contrattoInput()))
-  }
-  const chiudiContratto = () => { setContratto(null); setEditingBachecaId(null) }
+  const chiudiContratto = () => { setContratto(null); setEditingBachecaId(null); setParamsSaved(false) }
 
   // Modifica in-place del contratto in editing (campi scalari o intere liste).
   const patch = (p: Partial<Contratto>) => setContratto((c) => (c ? { ...c, ...p } : c))
@@ -241,6 +251,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
     })
     setContratto(null)
     setEditingBachecaId(null)
+    setParamsSaved(false)
     // Dopo il salvataggio: mostra l'anteprima pronta da stampare del documento.
     setAnteprima(contratto)
   }
@@ -323,9 +334,25 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
       {/* ── Riga superiore: parametri (40%) + bacheca (60%) ───────────────── */}
       <div className="ca-top">
-        <div className="ca-left">
-        <section className="ca-setup">
-          <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
+        <div className={`ca-left ${paramsSaved ? 'is-saved' : ''}`}>
+        <section className={`ca-setup ${paramsSaved ? 'is-saved' : ''}`}>
+          <button type="button" className="ca-setup__head" onClick={toggleParams} aria-expanded={!paramsSaved} title={paramsSaved ? 'Riapri i parametri' : 'Comprimi i parametri'}>
+            <span className="ca-setup__head-title"><i className="fa-light fa-sliders" aria-hidden="true" /> Parametri annuncio</span>
+            <i className={`fa-light ca-setup__head-chev fa-chevron-${paramsSaved ? 'down' : 'up'}`} aria-hidden="true" />
+          </button>
+
+          <div className="ca-setup__saved-wrap" aria-hidden={!paramsSaved}>
+            <div className="ca-setup__saved">
+              <i className="fa-solid fa-circle-check ca-setup__saved-ico" aria-hidden="true" />
+              <span className="ca-setup__saved-text">Parametri compilati correttamente</span>
+              <button type="button" className="ca-setup__edit" onClick={() => setParamsSaved(false)} title="Modifica parametri">
+                <i className="fa-light fa-pen-to-square" aria-hidden="true" /> Modifica
+              </button>
+            </div>
+          </div>
+
+          <div className="ca-setup__collapser">
+          <div className="ca-setup__body">
 
           {!prereqsDone && (
             <div className="ca-reqs" role="alert">
@@ -446,14 +473,16 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           </div>
 
           <div className="ca-setup__foot">
-            {!prereqsDone && (
+            {!canSave && (
               <span className="ca-setup__foot-note">
-                <i className="fa-light fa-lock" aria-hidden="true" /> Configurazioni obbligatorie mancanti
+                <i className="fa-light fa-lock" aria-hidden="true" /> {!prereqsDone ? 'Configurazioni obbligatorie mancanti' : 'Completa tutti i campi'}
               </span>
             )}
-            <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={genera} disabled={!prereqsDone}>
-              <i className="fa-light fa-file-contract" /> Genera contratto
+            <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={salva} disabled={!canSave}>
+              <i className="fa-light fa-floppy-disk" /> Salva
             </button>
+          </div>
+          </div>
           </div>
         </section>
 

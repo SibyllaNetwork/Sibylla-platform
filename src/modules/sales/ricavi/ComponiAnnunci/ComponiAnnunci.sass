@@ -30,6 +30,11 @@
   flex-direction: column
   gap: 18px
 
+  // Parametri salvati: il box contratto prende il posto (si espande)
+  &.is-saved .ca-panel
+    flex: 1 1 auto
+    max-height: 2000px
+
 // Box editor documento (PDF/DOC): blocco inferiore, più compatto (scrolla il
 // documento al suo interno). Dimensioni invertite rispetto ai parametri.
 .ca-panel
@@ -40,6 +45,7 @@
   display: flex
   flex-direction: column
   overflow: auto
+  transition: max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1)
 
   > *
     flex: 1
@@ -58,19 +64,114 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05)
   overflow: hidden
 
+  // Salvato: la card si riduce all'header + riga di conferma
+  &.is-saved
+    flex: 0 0 auto
+
+  // Header cliccabile (comprime/riapre i parametri)
   &__head
     display: flex
     align-items: center
+    justify-content: space-between
     gap: 8px
+    width: 100%
     padding: 12px 18px
-    font-family: $font-heading
-    font-weight: 600
-    color: $primary
+    border: none
     border-bottom: 1px solid $border
     background: alpha($primary, 0.03)
+    font-family: $font-heading
+    font-size: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+    text-align: left
+
+    &:hover
+      background: alpha($primary, 0.06)
+
+  &__head-title
+    display: inline-flex
+    align-items: center
+    gap: 8px
 
     i
       color: $primary
+
+  &__head-chev
+    flex: none
+    color: $text-inactive
+    font-size: 13px
+
+  // ── Collasso animato del corpo (tecnica grid-template-rows 1fr↔0fr) ──
+  &__collapser
+    flex: 1
+    min-height: 0
+    display: grid
+    grid-template-rows: 1fr
+    transition: grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1)
+
+  &__body
+    min-height: 0
+    overflow: hidden
+    display: flex
+    flex-direction: column
+    transition: opacity 0.3s
+
+  &.is-saved &__collapser
+    grid-template-rows: 0fr
+
+  &.is-saved &__body
+    opacity: 0
+
+  // ── Riga di conferma (compare quando salvato) ──
+  &__saved-wrap
+    display: grid
+    grid-template-rows: 0fr
+    transition: grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1)
+
+  &.is-saved &__saved-wrap
+    grid-template-rows: 1fr
+
+  &__saved
+    overflow: hidden
+    display: flex
+    align-items: center
+    gap: 10px
+    min-height: 0
+    padding: 0 18px
+
+  &.is-saved &__saved
+    padding: 12px 18px
+
+  &__saved-ico
+    flex: none
+    color: $success
+    font-size: 15px
+
+  &__saved-text
+    flex: 1
+    min-width: 0
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__edit
+    flex: none
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 5px 10px
+    border: 1px solid $border
+    border-radius: 7px
+    background: var(--color-surface)
+    color: $primary
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+
+    &:hover
+      background: alpha($primary, 0.08)
+      border-color: $primary
 
   // NB: è un <fieldset> (per disabilitare in blocco i campi) → reset default
   &__grid
