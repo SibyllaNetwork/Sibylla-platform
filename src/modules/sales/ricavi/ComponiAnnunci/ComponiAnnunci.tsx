@@ -256,7 +256,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
 
           <div className="ca-setup__grid">
             <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
-              options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto', disabled: true }]} />
+              options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto', disabled: true, tooltip: 'Al momento non disponibile' }]} />
             <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
               options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
             {params.tipo === 'Acquisto' ? (
