@@ -147,7 +147,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   // configurazioni obbligatorie del Configuratore.
   const progresso = useMemo(() => {
     const acquisto = params.tipo === 'Acquisto'
-    const checks: boolean[] = [
+    // Campi della form (hanno dei default): NON contano finché la form è
+    // bloccata dalle configurazioni obbligatorie.
+    const formChecks: boolean[] = [
       !!params.tipo,
       !!params.tipologia,
       acquisto
@@ -162,14 +164,20 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
       !!params.dataDa && !!params.dataA,
       params.quantita > 0 && (acquisto || params.quantita <= params.quantitaMax),
       ...(acquisto ? [] : [params.quantitaMax > 0, !!params.tourOperator, !!params.tipologiaPagamento]),
-      ...prereqs.map((p) => p.done),
     ]
-    const done = checks.filter(Boolean).length
-    const pct = Math.round((done / checks.length) * 100)
+    const prereqChecks = prereqs.map((p) => p.done)
+    const total = prereqChecks.length + formChecks.length
+    // Se non è configurato nulla → 0%. Finché mancano le configurazioni
+    // obbligatorie contano solo queste (la form è bloccata: i default non
+    // rappresentano scelte effettive); solo a form sbloccata contano i campi.
+    const done = prereqsDone
+      ? prereqChecks.filter(Boolean).length + formChecks.filter(Boolean).length
+      : prereqChecks.filter(Boolean).length
+    const pct = Math.round((done / total) * 100)
     // Livello semaforico: il colore comunica quanto manca al completamento.
     const level = pct === 100 ? 'complete' : pct >= 67 ? 'high' : pct >= 34 ? 'mid' : 'low'
-    return { done, total: checks.length, pct, level }
-  }, [params, gruppi, prereqs])
+    return { done, total, pct, level }
+  }, [params, gruppi, prereqs, prereqsDone])
 
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
   useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
