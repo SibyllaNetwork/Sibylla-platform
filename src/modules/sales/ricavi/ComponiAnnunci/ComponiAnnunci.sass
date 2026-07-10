@@ -996,6 +996,18 @@
       height: 28px
       font-size: 12.5px
 
+    // "Pubblica in Agorà": sempre presente. Verde quando l'annuncio è ancora
+    // pubblicabile; quando è già pubblicato il bottone è disabled (grigio +
+    // opacità ridotta dal base .sib-btn:disabled).
+    .ca-board__pub:not(:disabled)
+      color: $success
+      border-color: alpha($success, 0.45)
+
+    .ca-board__pub:hover:enabled
+      color: $success
+      border-color: $success
+      background: alpha($success, 0.12)
+
   &__actcol
     width: 1%
     white-space: nowrap

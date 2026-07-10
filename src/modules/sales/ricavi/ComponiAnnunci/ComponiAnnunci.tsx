@@ -585,13 +585,12 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                             <i className="fa-light fa-trash" />
                           </button>
                         </Tooltip>
-                        {b.stato !== 'Pubblicato' && (
-                          <Tooltip text="Pubblica in Agorà">
-                            <button type="button" className="sib-btn sib-btn--icon" aria-label="Pubblica in Agorà" onClick={() => pubblica(b.id)}>
-                              <i className="fa-solid fa-paper-plane" />
-                            </button>
-                          </Tooltip>
-                        )}
+                        <Tooltip text={b.stato === 'Pubblicato' ? 'Già pubblicato in Agorà' : 'Pubblica in Agorà'}>
+                          <button type="button" className="sib-btn sib-btn--icon ca-board__pub" aria-label="Pubblica in Agorà"
+                            disabled={b.stato === 'Pubblicato'} onClick={() => pubblica(b.id)}>
+                            <i className="fa-solid fa-paper-plane" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </td>
                   </tr>
