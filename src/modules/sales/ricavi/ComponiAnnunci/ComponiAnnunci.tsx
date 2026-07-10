@@ -5,7 +5,6 @@ import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect,
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
-import TruncatedText from '../../../../core/components/TruncatedText'
 import {
   buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
@@ -77,19 +76,19 @@ const periodLabel = (da: string, a: string) => {
 }
 
 // ─── BACHECA seed ─────────────────────────────────────────────────────────────
-const PAGE_SIZE = 8
+const PAGE_SIZE = 10
 
 const BACHECA_INIT: RigaBacheca[] = [
-  { id: 1,  periodo: '3/2026 - 6/2026',   tipologia: 'Vendita',  segmento: 'Adulti',            preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 2,  periodo: '2/2026 - 5/2026',   tipologia: 'Vendita',  segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 3,  periodo: '11/2025 - 4/2026',  tipologia: 'Acquisto', segmento: 'Adulti e studenti', preferito: false, quantita: '6 Lotti',  stato: 'In bozza'   },
-  { id: 4,  periodo: '12/2025 - 4/2026',  tipologia: 'Vendita',  segmento: 'Adulti',            preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
-  { id: 5,  periodo: '11/2025 - 4/2026',  tipologia: 'Vendita',  segmento: 'Studenti',          preferito: false, quantita: '4 Lotti',  stato: 'Pubblicato' },
-  { id: 6,  periodo: '1/2026 - 4/2026',   tipologia: 'Acquisto', segmento: 'Adulti',            preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
-  { id: 7,  periodo: '4/2026 - 9/2026',   tipologia: 'Vendita',  segmento: 'Adulti e studenti', preferito: false, quantita: '3 Lotti',  stato: 'In bozza'   },
-  { id: 8,  periodo: '5/2026 - 10/2026',  tipologia: 'Vendita',  segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
-  { id: 9,  periodo: '7/2026 - 10/2026',  tipologia: 'Acquisto', segmento: 'Adulti',            preferito: false, quantita: '5 Lotti',  stato: 'In bozza'   },
-  { id: 10, periodo: '9/2026 - 12/2026',  tipologia: 'Vendita',  segmento: 'Adulti e studenti', preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
+  { id: 1,  periodo: '3/2026 - 6/2026',   tipologia: 'Vendita', segmento: 'Adulti',            preferito: true,  quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 2,  periodo: '2/2026 - 5/2026',   tipologia: 'Vendita', segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 3,  periodo: '11/2025 - 4/2026',  tipologia: 'Vendita', segmento: 'Adulti e studenti', preferito: false, quantita: '6 Lotti',  stato: 'In bozza'   },
+  { id: 4,  periodo: '12/2025 - 4/2026',  tipologia: 'Vendita', segmento: 'Adulti',            preferito: false, quantita: '1 Lotto',  stato: 'In bozza'   },
+  { id: 5,  periodo: '11/2025 - 4/2026',  tipologia: 'Vendita', segmento: 'Studenti',          preferito: false, quantita: '4 Lotti',  stato: 'Pubblicato' },
+  { id: 6,  periodo: '1/2026 - 4/2026',   tipologia: 'Vendita', segmento: 'Adulti',            preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
+  { id: 7,  periodo: '4/2026 - 9/2026',   tipologia: 'Vendita', segmento: 'Adulti e studenti', preferito: false, quantita: '3 Lotti',  stato: 'In bozza'   },
+  { id: 8,  periodo: '5/2026 - 10/2026',  tipologia: 'Vendita', segmento: 'Studenti',          preferito: false, quantita: '1 Lotto',  stato: 'Pubblicato' },
+  { id: 9,  periodo: '7/2026 - 10/2026',  tipologia: 'Vendita', segmento: 'Adulti',            preferito: false, quantita: '5 Lotti',  stato: 'In bozza'   },
+  { id: 10, periodo: '9/2026 - 12/2026',  tipologia: 'Vendita', segmento: 'Adulti e studenti', preferito: true,  quantita: '2 Lotti',  stato: 'Pubblicato' },
 ]
 
 export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => void }) {
@@ -193,6 +192,11 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   // Toggle manuale (anche cliccando l'header "Parametri annuncio"): mostra
   // l'animazione di apertura/chiusura; in chiusura carica il contratto.
   const toggleParams = () => { if (paramsSaved) setParamsSaved(false); else apriDaParametri() }
+
+  // Periodo per esteso: "3/2026 - 6/2026" → "Marzo 2026 - Giugno 2026".
+  const periodoEsteso = (p: string) =>
+    p.replace(/(\d{1,2})\/(\d{4})/g, (_m, m: string, y: string) =>
+      MESI[Number(m) - 1] ? `${MESI[Number(m) - 1]} ${y}` : `${m}/${y}`)
 
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
   useEffect(() => { if (boardPage > boardTotalPages) setBoardPage(boardTotalPages) }, [boardPage, boardTotalPages])
@@ -507,8 +511,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
           )}
         </div>
         </div>
+      </div>
 
-        <aside className="ca-board">
+      <aside className="ca-board">
           <div className="ca-board__head">
             <span className="ca-board__title"><i className="fa-light fa-clipboard-list" /> La mia bacheca</span>
             <span className="ca-board__count">{bacheca.length}</span>
@@ -532,9 +537,9 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                   <tr key={b.id} className={editingBachecaId === b.id ? 'is-active' : ''}
                     onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
                     <td><span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span></td>
-                    <td><TruncatedText text={b.periodo} className="ca-board__cell" /></td>
-                    <td><TruncatedText text={b.segmento} className="ca-board__cell" /></td>
-                    <td><TruncatedText text={b.quantita} className="ca-board__cell" /></td>
+                    <td className="ca-board__nowrap">{periodoEsteso(b.periodo)}</td>
+                    <td className="ca-board__nowrap">{b.segmento}</td>
+                    <td className="ca-board__nowrap">{b.quantita}</td>
                     <td>
                       <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
                         <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
@@ -587,7 +592,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
             </div>
           )}
         </aside>
-      </div>
 
       {anteprima && (
         <ContrattoStampa contratto={anteprima} onChiudi={() => setAnteprima(null)} />

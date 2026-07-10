@@ -12,16 +12,9 @@
   > .sib-btn--back
     align-self: flex-start
 
-// ── Corpo: colonna sinistra (parametri + editor) | bacheca ────────────────────
-// ── Riga superiore: parametri (55%) | bacheca (45%) ──────────────────────────
+// ── Corpo: parametri + editor (piena larghezza); la bacheca è sotto ──────────
 .ca-top
-  display: grid
-  grid-template-columns: 55fr 45fr
-  gap: 18px
-  align-items: stretch
-
-  @media (max-width: 1200px)
-    grid-template-columns: 1fr
+  min-width: 0
 
 // Colonna sinistra: parametri + box editor (riempie l'altezza pari alla bacheca)
 .ca-left
@@ -357,9 +350,13 @@
       font-size: 11px
 
 // ── Progress bar completamento parametri ─────────────────────────────────────
+// Pannello evidenziato e staccato dai campi (margine ampio + riquadro).
 .ca-progress
-  padding: 14px 18px 4px
-  margin-top: auto
+  margin: 16px 18px 10px
+  padding: 14px 16px
+  border: 1px solid alpha($primary, 0.25)
+  border-radius: 12px
+  background: alpha($primary, 0.06)
 
   &__info
     display: flex
@@ -915,13 +912,9 @@
   &:hover
     background: alpha($primary, 0.10)
 
-// ── LA MIA BACHECA (titolo + tabella standard, senza box esterno) ─────────────
+// ── LA MIA BACHECA (titolo + tabella standard a piena larghezza, no box) ──────
 .ca-board
   min-width: 0
-  // Altezza propria: non si allunga per seguire il contratto (colonna sinistra)
-  align-self: start
-  // Container query: compatta la tabella in base alla larghezza della bacheca
-  container-type: inline-size
 
   &__head
     display: flex
@@ -954,28 +947,11 @@
     align-items: center
     justify-content: center
 
-  // Tabella standard con larghezze fisse: sta nella colonna senza scroll-x
+  // Tabella standard: colonne dimensionate sul contenuto, tutto su una riga
   &__table
-    table
-      table-layout: fixed
-
     th, td
-      padding: 8px 8px
-      overflow: hidden
+      padding: 9px 12px
       vertical-align: middle
-
-    th:nth-child(1)
-      width: 12%
-    th:nth-child(2)
-      width: 8%
-    th:nth-child(3)
-      width: 9%
-    th:nth-child(4)
-      width: 7%
-    th:nth-child(5)
-      width: 16%
-    th:nth-child(6)
-      width: 48%
 
     tbody tr
       cursor: pointer
@@ -983,15 +959,21 @@
       &.is-active
         background: alpha($primary, 0.08)
 
+  // Celle di testo sempre su una riga (nessun troncamento: entra tutto)
+  &__nowrap
+    white-space: nowrap
+
   // Azioni di riga: icone standard (sib-btn--icon), allineate a destra
   &__actions
     display: inline-flex
     align-items: center
     justify-content: flex-end
-    gap: 3px
+    gap: 6px
     flex-wrap: nowrap
 
   &__actcol
+    width: 1%
+    white-space: nowrap
     text-align: right
 
   &__pager
