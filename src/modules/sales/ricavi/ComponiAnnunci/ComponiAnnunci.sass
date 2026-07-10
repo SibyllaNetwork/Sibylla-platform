@@ -72,8 +72,12 @@
     i
       color: $primary
 
+  // NB: è un <fieldset> (per disabilitare in blocco i campi) → reset default
   &__grid
     flex: 1
+    border: 0
+    margin: 0
+    min-width: 0
     display: flex
     flex-wrap: wrap
     align-items: flex-end
@@ -86,6 +90,10 @@
     > *
       flex: 0 1 180px
       min-width: 0
+
+    // Bloccato finché mancano le configurazioni obbligatorie
+    &.is-locked
+      opacity: 0.5
 
 // Range date: si dimensiona al contenuto (w-auto dello standard)
 .ca-field--wide

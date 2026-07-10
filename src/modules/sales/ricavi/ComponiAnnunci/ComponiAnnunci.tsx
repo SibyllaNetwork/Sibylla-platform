@@ -319,7 +319,30 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
         <section className="ca-setup">
           <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
 
-          <div className="ca-setup__grid">
+          {!prereqsDone && (
+            <div className="ca-reqs" role="alert">
+              <div className="ca-reqs__head">
+                <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                <span>Completa le configurazioni obbligatorie per poter compilare i parametri e generare il contratto</span>
+              </div>
+              <ul className="ca-reqs__list">
+                {prereqs.filter((p) => !p.done).map((p) => (
+                  <li key={p.key} className="ca-reqs__item">
+                    <i className="fa-light fa-circle-exclamation ca-reqs__ico" aria-hidden="true" />
+                    <span className="ca-reqs__text">
+                      <strong className="ca-reqs__label">{p.label}</strong>
+                      <span className="ca-reqs__desc">{p.desc}</span>
+                    </span>
+                    <button type="button" className="ca-reqs__link" onClick={() => navigate(p.page)}>
+                      Configura <i className="fa-light fa-arrow-up-right-from-square" aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <fieldset className={`ca-setup__grid ${prereqsDone ? '' : 'is-locked'}`} disabled={!prereqsDone}>
             <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
               options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto', disabled: true, tooltip: 'Al momento non disponibile' }]} />
             <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
@@ -394,30 +417,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                 <span>Stai selezionando una quantità (<strong>{params.quantita}</strong>) superiore alla quantità massima impostata (<strong>{params.quantitaMax}</strong>).</span>
               </div>
             )}
-          </div>
-
-          {!prereqsDone && (
-            <div className="ca-reqs" role="alert">
-              <div className="ca-reqs__head">
-                <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-                <span>Completa le configurazioni obbligatorie per attivare la generazione del contratto</span>
-              </div>
-              <ul className="ca-reqs__list">
-                {prereqs.filter((p) => !p.done).map((p) => (
-                  <li key={p.key} className="ca-reqs__item">
-                    <i className="fa-light fa-circle-exclamation ca-reqs__ico" aria-hidden="true" />
-                    <span className="ca-reqs__text">
-                      <strong className="ca-reqs__label">{p.label}</strong>
-                      <span className="ca-reqs__desc">{p.desc}</span>
-                    </span>
-                    <button type="button" className="ca-reqs__link" onClick={() => navigate(p.page)}>
-                      Configura <i className="fa-light fa-arrow-up-right-from-square" aria-hidden="true" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          </fieldset>
 
           <div className={`ca-progress ca-progress--${progresso.level}`}
             role="progressbar" aria-valuenow={progresso.pct} aria-valuemin={0} aria-valuemax={100}
