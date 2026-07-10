@@ -13,12 +13,10 @@
     align-self: flex-start
 
 // ── Corpo: colonna sinistra (parametri + editor) | bacheca ────────────────────
-// ── Riga superiore: parametri (~40%) | bacheca (~60%) ─────────────────────────
-// La bacheca è una tabella standard con azioni a icone da 36px: le serve più
-// spazio, quindi il rapporto è invertito rispetto ai parametri.
+// ── Riga superiore: parametri (55%) | bacheca (45%) ──────────────────────────
 .ca-top
   display: grid
-  grid-template-columns: 2fr 3fr
+  grid-template-columns: 55fr 45fr
   gap: 18px
   align-items: stretch
 
@@ -974,17 +972,17 @@
       vertical-align: middle
 
     th:nth-child(1)
-      width: 11%
-    th:nth-child(2)
       width: 12%
-    th:nth-child(3)
-      width: 13%
-    th:nth-child(4)
+    th:nth-child(2)
       width: 8%
+    th:nth-child(3)
+      width: 9%
+    th:nth-child(4)
+      width: 7%
     th:nth-child(5)
       width: 16%
     th:nth-child(6)
-      width: 40%
+      width: 48%
 
     tbody tr
       cursor: pointer
@@ -997,7 +995,7 @@
     display: inline-flex
     align-items: center
     justify-content: flex-end
-    gap: 6px
+    gap: 3px
     flex-wrap: nowrap
 
   &__actcol
