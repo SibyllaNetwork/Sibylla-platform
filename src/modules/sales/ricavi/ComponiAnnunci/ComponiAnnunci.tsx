@@ -5,7 +5,6 @@ import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect,
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
-import TruncatedText from '../../../../core/components/TruncatedText'
 import {
   buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
@@ -71,9 +70,21 @@ const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
 const TOUR_OPERATOR = ['Tutti', 'TUI', 'Alpitour', 'Eden Viaggi', 'Veratour', 'Bluvacanze']
 const PAGAMENTO = ['VCC', 'Bonifico']
 
-// Abbreviazione del segmento per la colonna stretta della bacheca; il testo
-// completo resta disponibile via tooltip (TruncatedText).
-const segAbbr = (s: Segmento): string => (s === 'Adulti e studenti' ? 'Adulti e stud.' : s)
+// Cella "Segmento" della bacheca. "Adulti e studenti" è abbreviato per
+// risparmiare spazio, con abbreviazione ancora più corta a larghezza laptop
+// (sidebar aperta) via container query; il testo completo è sempre nel tooltip.
+// I segmenti a parola singola non necessitano abbreviazione né tooltip.
+function SegmentoCell({ segmento }: { segmento: Segmento }) {
+  if (segmento !== 'Adulti e studenti') return <span className="ca-board__seg">{segmento}</span>
+  return (
+    <Tooltip text={segmento}>
+      <span className="ca-board__seg">
+        <span className="ca-board__seg-wide">Adulti e stud.</span>
+        <span className="ca-board__seg-mini">Ad. e stud.</span>
+      </span>
+    </Tooltip>
+  )
+}
 
 const periodLabel = (da: string, a: string) => {
   const f = (iso: string) => { const [y, m] = iso.split('-'); return `${Number(m)}/${y}` }
@@ -545,12 +556,15 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                     onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
                     <td><span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span></td>
                     <td className="ca-board__nowrap">{b.periodo}</td>
-                    <td className="ca-board__nowrap"><TruncatedText className="ca-board__seg" text={segAbbr(b.segmento)} full={b.segmento} /></td>
+                    <td className="ca-board__nowrap"><SegmentoCell segmento={b.segmento} /></td>
                     <td className="ca-board__nowrap">{b.quantita}</td>
                     <td>
-                      <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
-                        <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} /> {b.stato}
-                      </span>
+                      <Tooltip text={b.stato}>
+                        <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>
+                          <i className={`fa-solid ${b.stato === 'Pubblicato' ? 'fa-circle-check' : 'fa-pen-ruler'}`} />
+                          <span className="ca-badge__label">{b.stato}</span>
+                        </span>
+                      </Tooltip>
                     </td>
                     <td className="ca-board__actcol" onClick={(e) => e.stopPropagation()}>
                       <div className="ca-board__actions">

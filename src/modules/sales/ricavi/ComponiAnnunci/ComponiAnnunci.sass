@@ -974,9 +974,13 @@
   &__nowrap
     white-space: nowrap
 
-  // Segmento: colonna stretta con abbreviazione + tooltip (via TruncatedText)
+  // Segmento: abbreviazione + tooltip col testo completo. Due forme, la più
+  // corta compare solo a larghezza laptop (vedi @container).
   &__seg
-    max-width: 120px
+    white-space: nowrap
+
+  &__seg-mini
+    display: none
 
   // Azioni di riga: icone standard (sib-btn--icon) in formato ridotto per
   // recuperare spazio ed evitare lo scroll orizzontale della tabella.
@@ -1016,8 +1020,21 @@
     th, td
       padding: 8px 6px
 
-  .ca-board__seg
-    max-width: 96px
+  // Abbreviazione segmento ancora più corta a larghezza laptop
+  .ca-board__seg-wide
+    display: none
+
+  .ca-board__seg-mini
+    display: inline
+
+  // Stato: solo icona (nessuno sfondo né testo); stato esteso via tooltip
+  .ca-badge
+    background: transparent
+    padding: 0
+    gap: 0
+
+  .ca-badge__label
+    display: none
 
   .ca-board__actions
     gap: 2px
