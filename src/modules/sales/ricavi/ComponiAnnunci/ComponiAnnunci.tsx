@@ -63,7 +63,6 @@ const CATEGORIE_STELLE = [
 ]
 const CITTA = ['Roma', 'Milano', 'Catania', 'Firenze', 'Napoli', 'Torino', 'Bologna', 'Venezia']
 const TIPOLOGIA_CAMERE = ['Singola Classic', 'Doppia Classic', 'Doppia Superior', 'Tripla Classic', 'Matrimoniale', 'Suite']
-const STEPS = ['Tipo e ambito', 'Configurazione', 'Periodo e condizioni']
 const TIPO_OSPITI = ['Individuali', 'Gruppi']
 const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
@@ -108,7 +107,6 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const [contratto, setContratto] = useState<Contratto | null>(null)
   const [anteprima, setAnteprima] = useState<Contratto | null>(null)
   const [editingBachecaId, setEditingBachecaId] = useState<number | null>(null)
-  const [step, setStep] = useState(0)
   const [boardPage, setBoardPage] = useState(1)
 
   const boardTotalPages = Math.max(1, Math.ceil(bacheca.length / PAGE_SIZE))
@@ -256,116 +254,84 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
         <section className="ca-setup">
           <div className="ca-setup__head"><i className="fa-light fa-sliders" /> Parametri annuncio</div>
 
-          <div className="stpr">
-            {STEPS.map((label, i) => (
-              <button key={i} type="button" className={`stpr__step ${i === step ? 'is-active' : ''} ${i < step ? 'is-done' : ''}`} onClick={() => setStep(i)}>
-                <span className="stpr__num">{i < step ? <i className="fa-light fa-check" /> : i + 1}</span>
-                <span className="stpr__label">{label}</span>
-              </button>
-            ))}
-          </div>
-
           <div className="ca-setup__grid">
-            {step === 0 && (
+            <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
+              options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
+            <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
+              options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
+            {params.tipo === 'Acquisto' ? (
               <>
-                <RadioGroup label="Tipo" name="tipo" value={params.tipo} onChange={(v) => set('tipo', v as Tipo)}
-                  options={[{ value: 'Vendita', label: 'Vendita' }, { value: 'Acquisto', label: 'Acquisto' }]} />
-                <RadioGroup label="Tipologia" name="tipologia" value={params.tipologia} onChange={(v) => set('tipologia', v as Tipologia)}
-                  options={[{ value: 'Struttura', label: 'Struttura' }, { value: 'Categoria', label: 'Categoria' }]} />
-                {params.tipo === 'Acquisto' ? (
-                  <>
-                    <SelectField label="Città" name="citta" value={params.citta} onChange={(e) => set('citta', e.target.value)}
-                      options={CITTA.map((c) => ({ value: c, label: c }))} />
-                    <SelectField label="Categoria" name="categoriaLivello" value={params.categoriaLivello} onChange={(e) => set('categoriaLivello', e.target.value)}
-                      options={CATEGORIE_STELLE} />
-                  </>
-                ) : params.tipologia === 'Categoria' ? (
-                  <SelectField label="Categoria" name="categoria" value={params.categoria} onChange={(e) => set('categoria', e.target.value)}
-                    options={CATEGORIE_STELLE} />
-                ) : (
-                  <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
-                    onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
-                    options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
-                )}
+                <SelectField label="Città" name="citta" value={params.citta} onChange={(e) => set('citta', e.target.value)}
+                  options={CITTA.map((c) => ({ value: c, label: c }))} />
+                <SelectField label="Categoria" name="categoriaLivello" value={params.categoriaLivello} onChange={(e) => set('categoriaLivello', e.target.value)}
+                  options={CATEGORIE_STELLE} />
               </>
+            ) : params.tipologia === 'Categoria' ? (
+              <SelectField label="Categoria" name="categoria" value={params.categoria} onChange={(e) => set('categoria', e.target.value)}
+                options={CATEGORIE_STELLE} />
+            ) : (
+              <SelectField label="Struttura" name="struttura" value={params.strutturaId ?? ''}
+                onChange={(e) => set('strutturaId', e.target.value ? Number(e.target.value) : null)}
+                options={STRUTTURE.map((s) => ({ value: s.Id, label: s.nome }))} />
             )}
 
-            {step === 1 && (
+            <SelectField label={params.tipo === 'Acquisto' ? 'Tipologia' : 'Tipo ospiti'} name="tipoOspiti"
+              value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
+              options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
+            {params.tipoOspiti === 'Gruppi' ? (
               <>
-                <SelectField label={params.tipo === 'Acquisto' ? 'Tipologia' : 'Tipo ospiti'} name="tipoOspiti"
-                  value={params.tipoOspiti} onChange={(e) => set('tipoOspiti', e.target.value)}
-                  options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
-                {params.tipoOspiti === 'Gruppi' ? (
-                  <>
-                    <SelectField label="Segmento" name="segmento" value={params.segmento} onChange={(e) => set('segmento', e.target.value as Segmento)}
-                      options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
-                    <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
-                      options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-                  </>
-                ) : (
-                  <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
-                    options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
-                )}
-                {params.tipo !== 'Acquisto' && (
-                  <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
-                    options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
-                )}
+                <SelectField label="Segmento" name="segmento" value={params.segmento} onChange={(e) => set('segmento', e.target.value as Segmento)}
+                  options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
+                <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
+                  options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
               </>
+            ) : (
+              <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
+                options={TIPOLOGIA_CAMERE.map((o) => ({ value: o, label: o }))} />
+            )}
+            {params.tipo !== 'Acquisto' && (
+              <SelectField label="Tipo lotti" name="tipoLotti" value={params.tipoLotti} onChange={(e) => set('tipoLotti', e.target.value)}
+                options={TIPO_LOTTI.map((o) => ({ value: o, label: o }))} />
             )}
 
-            {step === 2 && (
-              <>
-                <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
-                  valueFrom={params.dataDa} valueTo={params.dataA}
-                  onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
-                <div className="ca-qta ca-field--num">
-                  <InputField label="Quantità" name="quantita" type="number"
-                    min={1} max={params.tipo !== 'Acquisto' ? params.quantitaMax : undefined}
-                    value={params.quantita}
-                    onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
-                  {params.tipo !== 'Acquisto' && params.quantita > params.quantitaMax && (
-                    <span className="ca-qta__warn">
-                      <Tooltip text={`La quantità (${params.quantita}) non può superare la quantità massima (${params.quantitaMax}).`}>
-                        <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-                      </Tooltip>
-                    </span>
-                  )}
-                </div>
-                {params.tipo !== 'Acquisto' && (
-                  <>
-                    <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--nummax" min={1} value={params.quantitaMax}
-                      onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
-                    <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
-                      options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
-                    <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" className="ca-field--sm" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
-                      options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
-                  </>
-                )}
-                {params.tipo !== 'Acquisto' && params.quantita > params.quantitaMax && (
-                  <div className="ca-qta-alert" role="alert">
+            <DateRangeField label="Data" nameFrom="dataDa" nameTo="dataA" className="ca-field--wide"
+              valueFrom={params.dataDa} valueTo={params.dataA}
+              onChangeFrom={(e) => set('dataDa', e.target.value)} onChangeTo={(e) => set('dataA', e.target.value)} />
+            <div className="ca-qta ca-field--num">
+              <InputField label="Quantità" name="quantita" type="number"
+                min={1} max={params.tipo !== 'Acquisto' ? params.quantitaMax : undefined}
+                value={params.quantita}
+                onChange={(e) => set('quantita', Number(e.target.value) || 0)} />
+              {params.tipo !== 'Acquisto' && params.quantita > params.quantitaMax && (
+                <span className="ca-qta__warn">
+                  <Tooltip text={`La quantità (${params.quantita}) non può superare la quantità massima (${params.quantitaMax}).`}>
                     <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-                    <span>Stai selezionando una quantità (<strong>{params.quantita}</strong>) superiore alla quantità massima impostata (<strong>{params.quantitaMax}</strong>).</span>
-                  </div>
-                )}
+                  </Tooltip>
+                </span>
+              )}
+            </div>
+            {params.tipo !== 'Acquisto' && (
+              <>
+                <InputField label="Quantità Massima" name="quantitaMax" type="number" className="ca-field--nummax" min={1} value={params.quantitaMax}
+                  onChange={(e) => set('quantitaMax', Number(e.target.value) || 0)} />
+                <SelectField label="Tour operator" name="tourOperator" value={params.tourOperator} onChange={(e) => set('tourOperator', e.target.value)}
+                  options={TOUR_OPERATOR.map((o) => ({ value: o, label: o }))} />
+                <SelectField label="Tipologia Pagamento" name="tipologiaPagamento" className="ca-field--sm" value={params.tipologiaPagamento} onChange={(e) => set('tipologiaPagamento', e.target.value)}
+                  options={PAGAMENTO.map((o) => ({ value: o, label: o }))} />
               </>
+            )}
+            {params.tipo !== 'Acquisto' && params.quantita > params.quantitaMax && (
+              <div className="ca-qta-alert" role="alert">
+                <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                <span>Stai selezionando una quantità (<strong>{params.quantita}</strong>) superiore alla quantità massima impostata (<strong>{params.quantitaMax}</strong>).</span>
+              </div>
             )}
           </div>
 
           <div className="ca-setup__foot">
-            {step > 0 && (
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setStep((s) => Math.max(0, s - 1))}>
-                <i className="fa-light fa-arrow-left" /> Indietro
-              </button>
-            )}
-            {step < STEPS.length - 1 ? (
-              <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}>
-                Avanti <i className="fa-light fa-arrow-right" />
-              </button>
-            ) : (
-              <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={genera}>
-                <i className="fa-light fa-file-contract" /> Genera contratto
-              </button>
-            )}
+            <button type="button" className="sib-btn sib-btn--primary ca-setup__next" onClick={genera}>
+              <i className="fa-light fa-file-contract" /> Genera contratto
+            </button>
           </div>
         </section>
 

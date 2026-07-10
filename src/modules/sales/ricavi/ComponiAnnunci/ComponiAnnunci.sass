@@ -30,10 +30,12 @@
   flex-direction: column
   gap: 18px
 
-// Box editor documento (PDF/DOC): contenitore che riempie l'altezza (pari alla bacheca)
+// Box editor documento (PDF/DOC): blocco inferiore, più compatto (scrolla il
+// documento al suo interno). Dimensioni invertite rispetto ai parametri.
 .ca-panel
-  flex: 1
-  min-height: 260px
+  flex: 0 0 auto
+  min-height: 200px
+  max-height: 360px
   min-width: 0
   display: flex
   flex-direction: column
@@ -43,9 +45,13 @@
     flex: 1
     min-height: min-content
 
-// ── Card parametri (con stepper) ─────────────────────────────────────────────
+// ── Card parametri (form completo, senza step) ───────────────────────────────
+// Blocco principale: cresce per riempire l'altezza (pari alla bacheca).
 .ca-setup
+  flex: 1
   min-width: 0
+  display: flex
+  flex-direction: column
   background: var(--color-surface)
   border: 1px solid $border
   border-radius: 14px
@@ -67,11 +73,13 @@
       color: $primary
 
   &__grid
+    flex: 1
     display: flex
     flex-wrap: wrap
     align-items: flex-end
+    align-content: flex-start
     gap: 16px 18px
-    padding: 6px 18px 16px
+    padding: 14px 18px 16px
     min-height: 0
 
     // ogni campo: larghezza base ~180px, può restringersi
@@ -139,80 +147,9 @@
   border-top: 1px solid $border
   background: alpha($primary, 0.02)
 
-// l'azione principale resta sempre a destra (anche quando "Indietro" è nascosto)
+// l'azione principale resta sempre a destra
 .ca-setup__next
   margin-left: auto
-
-
-// ── Stepper ───────────────────────────────────────────────────────────────────
-// Stepper (prefisso univoco `stpr` per evitare collisioni con `.ca-step` globale)
-.stpr
-  position: relative
-  display: flex
-  padding: 16px 18px 6px
-
-  // Un'unica linea grigia continua dietro i cerchi (dal primo all'ultimo)
-  &::before
-    content: ''
-    position: absolute
-    top: 30px
-    left: 16.66%
-    right: 16.66%
-    height: 2px
-    background: $border
-    z-index: 0
-
-  &__step
-    flex: 1
-    position: relative
-    z-index: 1
-    display: flex
-    flex-direction: column
-    align-items: center
-    gap: 8px
-    background: transparent
-    border: none
-    cursor: pointer
-    padding: 0
-    color: $text-inactive
-
-    &.is-active
-      color: $primary
-
-      .stpr__num
-        background: $primary
-        border-color: $primary
-        color: #fff
-        box-shadow: 0 0 0 4px alpha($primary, 0.15)
-
-    // completato: check verde
-    &.is-done
-      color: $success
-
-      .stpr__num
-        background: $success
-        border-color: $success
-        color: #fff
-
-  &__num
-    width: 28px
-    height: 28px
-    border-radius: 50%
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    font-size: 12px
-    font-weight: 700
-    background: var(--color-surface)
-    border: 2px solid $border
-    color: $text-inactive
-    transition: background 0.15s, border-color 0.15s, color 0.15s
-
-  &__label
-    font-size: 12px
-    font-weight: 600
-    text-align: center
-    line-height: 1.25
 
 // ── Placeholder editor ────────────────────────────────────────────────────────
 .ca-hint
