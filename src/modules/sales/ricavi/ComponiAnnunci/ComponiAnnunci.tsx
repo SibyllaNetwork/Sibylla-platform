@@ -281,13 +281,13 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
               options={TIPO_OSPITI.map((o) => ({ value: o, label: o }))} />
             {params.tipoOspiti === 'Gruppi' ? (
               <>
+                <NazionalitaMultiSelect label="Market specific" className="ca-field--market"
+                  value={params.marketSpecific} onChange={(v) => set('marketSpecific', v)}
+                  placeholder="Seleziona paesi" />
                 <SelectField label="Segmento" name="segmento" value={params.segmento} onChange={(e) => set('segmento', e.target.value as Segmento)}
                   options={SEGMENTI.map((o) => ({ value: o, label: o }))} />
                 <SelectField label="Tipologia base" name="tipologiaBase" value={params.tipologiaBase} onChange={(e) => set('tipologiaBase', e.target.value)}
                   options={TIPOLOGIA_BASE.map((o) => ({ value: o, label: o }))} />
-                <NazionalitaMultiSelect label="Market specific" className="ca-field--market"
-                  value={params.marketSpecific} onChange={(v) => set('marketSpecific', v)}
-                  placeholder="Seleziona paesi" />
               </>
             ) : (
               <SelectField label="Tipologia Camere" name="tipologiaCamere" value={params.tipologiaCamere} onChange={(e) => set('tipologiaCamere', e.target.value)}
