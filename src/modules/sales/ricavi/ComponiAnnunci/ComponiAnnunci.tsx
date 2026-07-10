@@ -5,6 +5,7 @@ import { SelectField, RadioGroup, InputField, DateRangeField, NazionalitaSelect,
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
+import TruncatedText from '../../../../core/components/TruncatedText'
 import {
   buildContratto, nextRowId, SEGMENTI, STAGIONI_DEF, segParts,
   type Contratto, type Segmento, type ContrattoInput,
@@ -69,6 +70,10 @@ const TIPOLOGIA_BASE = ['Base doppia', 'Base singola', 'Base tripla']
 const TIPO_LOTTI = ['Lotto', '1/2 Lotto']
 const TOUR_OPERATOR = ['Tutti', 'TUI', 'Alpitour', 'Eden Viaggi', 'Veratour', 'Bluvacanze']
 const PAGAMENTO = ['VCC', 'Bonifico']
+
+// Abbreviazione del segmento per la colonna stretta della bacheca; il testo
+// completo resta disponibile via tooltip (TruncatedText).
+const segAbbr = (s: Segmento): string => (s === 'Adulti e studenti' ? 'Adulti e stud.' : s)
 
 const periodLabel = (da: string, a: string) => {
   const f = (iso: string) => { const [y, m] = iso.split('-'); return `${Number(m)}/${y}` }
@@ -540,7 +545,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                     onClick={() => apriContratto(b)} title="Apri e modifica il contratto">
                     <td><span className={`ca-chip ca-chip--${b.tipologia.toLowerCase()}`}>{b.tipologia}</span></td>
                     <td className="ca-board__nowrap">{b.periodo}</td>
-                    <td className="ca-board__nowrap">{b.segmento}</td>
+                    <td className="ca-board__nowrap"><TruncatedText className="ca-board__seg" text={segAbbr(b.segmento)} full={b.segmento} /></td>
                     <td className="ca-board__nowrap">{b.quantita}</td>
                     <td>
                       <span className={`ca-badge ca-badge--${b.stato === 'Pubblicato' ? 'pub' : 'draft'}`}>

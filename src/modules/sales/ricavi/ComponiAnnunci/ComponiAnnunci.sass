@@ -8,6 +8,10 @@
   flex-direction: column
   gap: 18px
   font-size: 13px
+  // Query sul contenuto della pagina (non sul viewport): a larghezza laptop con
+  // sidebar aperta la bacheca a metà pagina si compatta per non scrollare in
+  // orizzontale (vedi @container più sotto). SOLO dimensioni, mai le intestazioni.
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
@@ -953,10 +957,11 @@
     align-items: center
     justify-content: center
 
-  // Tabella standard: colonne dimensionate sul contenuto, tutto su una riga
+  // Tabella standard: colonne dimensionate sul contenuto, tutto su una riga.
+  // Padding orizzontale contenuto per non forzare lo scroll orizzontale.
   &__table
     th, td
-      padding: 9px 12px
+      padding: 9px 8px
       vertical-align: middle
 
     tbody tr
@@ -965,17 +970,27 @@
       &.is-active
         background: alpha($primary, 0.08)
 
-  // Celle di testo sempre su una riga (nessun troncamento: entra tutto)
+  // Celle di testo sempre su una riga
   &__nowrap
     white-space: nowrap
 
-  // Azioni di riga: icone standard (sib-btn--icon), allineate a destra
+  // Segmento: colonna stretta con abbreviazione + tooltip (via TruncatedText)
+  &__seg
+    max-width: 120px
+
+  // Azioni di riga: icone standard (sib-btn--icon) in formato ridotto per
+  // recuperare spazio ed evitare lo scroll orizzontale della tabella.
   &__actions
     display: inline-flex
     align-items: center
     justify-content: flex-end
-    gap: 6px
+    gap: 3px
     flex-wrap: nowrap
+
+    .sib-btn--icon
+      width: 28px
+      height: 28px
+      font-size: 12.5px
 
   &__actcol
     width: 1%
@@ -991,6 +1006,26 @@
     text-align: center
     color: $text-inactive
     padding: 20px 12px
+
+// A larghezza laptop (contenuto pagina ≤ 1360px, es. sidebar aperta) la bacheca
+// è stretta: compatta dimensioni di celle e icone per evitare lo scroll-x.
+@container (max-width: 1360px)
+  .ca-board__table
+    font-size: 12px
+
+    th, td
+      padding: 8px 6px
+
+  .ca-board__seg
+    max-width: 96px
+
+  .ca-board__actions
+    gap: 2px
+
+    .sib-btn--icon
+      width: 26px
+      height: 26px
+      font-size: 12px
 
 // Stella "preferito" attiva (icona dentro il bottone azione standard)
 .ca-item__star--on
