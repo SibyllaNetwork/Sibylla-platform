@@ -32,10 +32,17 @@ export default function HomePage({ navigate }: { navigate: (p: string) => void }
 
   const wavesRunning = initialPlay || pressing
 
+  // Il mouse-down muove le onde SOLO se premuto sullo sfondo: se parte dal
+  // timone (o dai suoi pulsanti) non deve avviare l'animazione.
+  const onHeroMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.home__hero-content')) return
+    setPressing(true)
+  }
+
   return (
     <div className="home">
       <GiornaleImpresaPeek navigate={navigate} />
-      <div className="home__hero" onMouseDown={() => setPressing(true)}>
+      <div className="home__hero" onMouseDown={onHeroMouseDown}>
         <div className="home__hero-content">
           <Timone navigate={navigate} />
         </div>
