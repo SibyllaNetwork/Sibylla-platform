@@ -350,14 +350,6 @@ $flow: cubic-bezier(.22, 1, .36, 1)
 .timone--ready:not(.timone--open):not(.timone--exec):not(.is-dim-finance) #seg-finance:hover
   filter: saturate(1.45)
 
-// 6b) versione EXECUTIVE: all'hover il timone ruota lentamente in senso orario.
-.timone--exec .timone__wheel:hover .timone__svg
-  animation: timone-hover-spin 16s linear infinite
-
-@keyframes timone-hover-spin
-  to
-    transform: rotate(360deg)
-
 @keyframes timone-hub-in
   0%
     opacity: 0
@@ -416,9 +408,6 @@ $flow: cubic-bezier(.22, 1, .36, 1)
 
   .timone__wheel, .timone--open .timone__wheel, .timone--exec .timone__wheel
     transition: none
-
-  .timone__wheel:hover .timone__svg
-    animation: none
 
   .timone__menu-item
     animation: none
