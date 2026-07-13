@@ -24,8 +24,10 @@ $ease: cubic-bezier(.22, 1, .36, 1)
 .timone--ready .timone__svg [id^="seg-"]
   cursor: pointer
 
+// Aprendo il menu di una freccia il timone resta fermo e a dimensione piena:
+// compaiono solo il semicerchio colorato e le voci a destra.
 .timone--open .timone__wheel
-  transform: translateX(-140px)
+  transform: none
 
 // Menu di un segmento aperto: spegni TUTTE le frecce (desaturate/attenuate),
 // poi riaccendi solo quella selezionata. Lo shimmer va spento o sovrascrive.
