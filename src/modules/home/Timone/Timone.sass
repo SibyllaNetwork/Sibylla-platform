@@ -190,10 +190,21 @@ $exec-gold: #c2a15a
   animation: none !important
 
 .seg-metal
-  fill: url(#silverGrad)
   opacity: 0
   pointer-events: none
   transition: opacity .5s $ease
+
+// sfumatura lineare per freccia, lungo l'asse radiale (retro → punta)
+#seg-operation .seg-metal
+  fill: url(#gradOperation)
+#seg-purchasing .seg-metal
+  fill: url(#gradPurchasing)
+#seg-hr .seg-metal
+  fill: url(#gradHr)
+#seg-finance .seg-metal
+  fill: url(#gradFinance)
+#seg-sales .seg-metal
+  fill: url(#gradSales)
 
 .timone--exec .seg-metal
   opacity: 1
@@ -258,7 +269,7 @@ $exec-gold: #c2a15a
 
 .timone__bubble-label
   font-family: $font-heading
-  font-size: 11.5px
+  font-size: 13.5px
   font-weight: 600
   color: $primary
   line-height: 1.18

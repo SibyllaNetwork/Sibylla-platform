@@ -113,14 +113,14 @@ const SEGMENT_MENU: Record<string, RadialMenu> = {
 // due colonne per lato: riga1 interna, riga2 esterna, riga3 interna, riga4 esterna.
 interface ExecItem { label: string; page: string; icon: string; x: number; y: number; disabled?: boolean }
 const EXEC_ITEMS: ExecItem[] = [
-  { label: 'Giornale impresa',    page: 'giornale-impresa',   icon: 'book',        x: 3,   y: 11 },
-  { label: 'Executive overview',  page: 'executive-overview', icon: 'briefcase',   x: -17, y: 37 },
-  { label: 'Simulatori scenari',  page: 'simulatore',         icon: 'share-nodes', x: 3,   y: 63 },
-  { label: 'Sales overview',      page: 'sales-overview',     icon: 'chart-line',  x: -17, y: 89 },
-  { label: 'Finance overview',    page: 'finance-overview',   icon: 'landmark',    x: 97,  y: 11 },
-  { label: 'Cabina di controllo', page: 'cabina-controllo',   icon: 'gauge',       x: 117, y: 37 },
-  { label: 'Decision tree',       page: 'decision-tree',      icon: 'org',         x: 97,  y: 63, disabled: true },
-  { label: 'Panoramica acquisti', page: 'panoramica-acquisti', icon: 'cart',       x: 117, y: 89 },
+  { label: 'Giornale impresa',    page: 'giornale-impresa',   icon: 'book',        x: -5,  y: 11 },
+  { label: 'Executive overview',  page: 'executive-overview', icon: 'briefcase',   x: -26, y: 37 },
+  { label: 'Simulatori scenari',  page: 'simulatore',         icon: 'share-nodes', x: -5,  y: 63 },
+  { label: 'Sales overview',      page: 'sales-overview',     icon: 'chart-line',  x: -26, y: 89 },
+  { label: 'Finance overview',    page: 'finance-overview',   icon: 'landmark',    x: 105, y: 11 },
+  { label: 'Cabina di controllo', page: 'cabina-controllo',   icon: 'gauge',       x: 126, y: 37 },
+  { label: 'Decision tree',       page: 'decision-tree',      icon: 'org',         x: 105, y: 63, disabled: true },
+  { label: 'Panoramica acquisti', page: 'panoramica-acquisti', icon: 'cart',       x: 126, y: 89 },
 ]
 
 interface Props { navigate?: (p: string) => void }
@@ -287,7 +287,7 @@ export default function Timone({ navigate }: Props) {
               onClick={() => !it.disabled && navigate?.(it.page)}
             >
               <span className="timone__bubble-ico">
-                <Ico n={it.icon} s={20} c={it.disabled ? '#9fb0c0' : '#c2a15a'} w="duotone" />
+                <Ico n={it.icon} s={26} c={it.disabled ? '#9fb0c0' : '#c2a15a'} w="duotone" />
               </span>
               <span className="timone__bubble-label">{it.label}</span>
             </button>
