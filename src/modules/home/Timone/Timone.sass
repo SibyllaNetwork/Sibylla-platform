@@ -9,8 +9,9 @@ $ease: cubic-bezier(.22, 1, .36, 1)
 
 .timone
   position: relative
-  width: min(620px, 74vmin)
-  height: min(620px, 74vmin)
+  // 10% più piccolo (era min(620px, 74vmin))
+  width: min(558px, 66.6vmin)
+  height: min(558px, 66.6vmin)
   user-select: none
 
 // Il "disco" cliccabile: contiene SVG + arco; trasla a sinistra quando il
@@ -66,15 +67,23 @@ $ease: cubic-bezier(.22, 1, .36, 1)
   stroke-dasharray: 100
   stroke-dashoffset: 100
 
+// L'arco si "disegna" a ogni apertura E a ogni cambio di freccia (l'elemento
+// viene rimontato con key={openKey}, così l'animazione riparte da capo).
 .timone--open .timone__arc-path
-  transition: stroke-dashoffset 1s $ease
-  stroke-dashoffset: 0
+  animation: timone-arc-draw 1s $ease forwards
+
+@keyframes timone-arc-draw
+  from
+    stroke-dashoffset: 100
+  to
+    stroke-dashoffset: 0
 
 // ── Colonna di voci a destra ──────────────────────────────────────────────────
 .timone__menu
   position: absolute
   top: 50%
-  left: 85%
+  // almeno 20px a destra del bordo del semicerchio (arc ~105% della ruota)
+  left: calc(105% + 20px)
   transform: translateY(-50%)
   margin: 0
   padding: 0
@@ -417,7 +426,8 @@ $flow: cubic-bezier(.22, 1, .36, 1)
     transform: none
 
   .timone--open .timone__arc-path
-    transition: none
+    animation: none
+    stroke-dashoffset: 0
 
   .timone__bubble
     animation: none

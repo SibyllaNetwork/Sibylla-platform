@@ -229,8 +229,10 @@ export default function Timone({ navigate }: Props) {
       >
         <TimoneSvg className="timone__svg" />
 
-        {/* Arco che si "disegna" sul lato destro del timone, tinta del segmento */}
+        {/* Arco che si "disegna" sul lato destro del timone, tinta del segmento.
+            key={openKey} → si rimonta a ogni cambio freccia e ri-anima il disegno. */}
         <svg
+          key={openKey ?? 'closed'}
           className="timone__arc"
           viewBox="0 0 100 100"
           aria-hidden="true"
