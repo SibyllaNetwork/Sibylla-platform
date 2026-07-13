@@ -172,12 +172,20 @@ $exec-gold: #c2a15a
 .timone--exec #t-hub .st3
   fill: #204769
 
-// I segmenti colorati diventano "argento" (approssimazione in attesa dell'asset).
-// Lo shimmer di .timone--live sovrascriverebbe il filter → va spento qui.
+// Le frecce mantengono il loro testo nello stato normale. In Executive un
+// contorno pieno (.seg-metal, senza i buchi del testo) le copre con una
+// sfumatura metallica argento → il testo sparisce SOLO in Executive.
 .timone--exec .timone__svg [id^="seg-"]
   animation: none !important
-  filter: grayscale(1) brightness(1.18) contrast(.92)
-  transition: filter .5s $ease
+
+.seg-metal
+  fill: url(#silverGrad)
+  opacity: 0
+  pointer-events: none
+  transition: opacity .5s $ease
+
+.timone--exec .seg-metal
+  opacity: 1
 
 // La ruota si riduce in exec per fare spazio alle bolle e compie un giro
 // completo (360°) mentre si trasforma in modalità Executive.
@@ -322,14 +330,22 @@ $flow: cubic-bezier(.22, 1, .36, 1)
   opacity: 1
   animation: none
 
-// 6) accensione all'hover: si accentua soltanto il colore di sfondo della
-//    freccia attiva (saturazione) — nessun bagliore/brillantezza forte, niente blur.
-.timone--ready:not(.is-dim-sales) #seg-sales:hover,
-.timone--ready:not(.is-dim-operation) #seg-operation:hover,
-.timone--ready:not(.is-dim-purchasing) #seg-purchasing:hover,
-.timone--ready:not(.is-dim-hr) #seg-hr:hover,
-.timone--ready:not(.is-dim-finance) #seg-finance:hover
+// 6a) versione NORMALE: all'hover di una freccia attiva se ne accentua il
+//     colore di sfondo (saturazione), senza bagliore né blur.
+.timone--ready:not(.timone--open):not(.timone--exec):not(.is-dim-sales) #seg-sales:hover,
+.timone--ready:not(.timone--open):not(.timone--exec):not(.is-dim-operation) #seg-operation:hover,
+.timone--ready:not(.timone--open):not(.timone--exec):not(.is-dim-purchasing) #seg-purchasing:hover,
+.timone--ready:not(.timone--open):not(.timone--exec):not(.is-dim-hr) #seg-hr:hover,
+.timone--ready:not(.timone--open):not(.timone--exec):not(.is-dim-finance) #seg-finance:hover
   filter: saturate(1.45)
+
+// 6b) versione EXECUTIVE: all'hover il timone ruota lentamente in senso orario.
+.timone--exec .timone__wheel:hover .timone__svg
+  animation: timone-hover-spin 16s linear infinite
+
+@keyframes timone-hover-spin
+  to
+    transform: rotate(360deg)
 
 @keyframes timone-hub-in
   0%
@@ -389,6 +405,9 @@ $flow: cubic-bezier(.22, 1, .36, 1)
 
   .timone__wheel, .timone--open .timone__wheel, .timone--exec .timone__wheel
     transition: none
+
+  .timone__wheel:hover .timone__svg
+    animation: none
 
   .timone__menu-item
     animation: none
