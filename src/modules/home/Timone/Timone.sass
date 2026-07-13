@@ -163,6 +163,15 @@ $exec-gold: #c2a15a
     transition: stroke-dashoffset 1s $ease .1s
     stroke-dashoffset: 0
 
+// In Executive il cerchio arancione (#t-wheel, #f3ab2b) e l'anello arancione
+// attorno all'hub (#t-hub .st3, #edaa41) diventano blu navy.
+#t-wheel, #t-hub .st3
+  transition: filter .5s $ease, fill .6s $ease
+
+.timone--exec #t-wheel,
+.timone--exec #t-hub .st3
+  fill: #204769
+
 // I segmenti colorati diventano "argento" (approssimazione in attesa dell'asset).
 // Lo shimmer di .timone--live sovrascriverebbe il filter → va spento qui.
 .timone--exec .timone__svg [id^="seg-"]
