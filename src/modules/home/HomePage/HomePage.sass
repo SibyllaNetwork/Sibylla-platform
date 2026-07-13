@@ -59,6 +59,10 @@
 
   // 4 onde dello stesso blu Sibylla (#204769) ad alpha diversi; tutte scorrono
   // da sinistra verso destra ma sfalsate (durate/fasi diverse) → parallasse.
+  // Stato "bloccato": il movimento si ferma nel punto in cui si trova.
+  &__waves-parallax.is-paused > use
+    animation-play-state: paused
+
   &__waves-parallax > use
     animation: waveMove 24s cubic-bezier(.55, .5, .45, .5) infinite
 
