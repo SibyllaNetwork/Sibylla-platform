@@ -66,20 +66,22 @@
   &__waves-parallax > use
     animation: waveMove 24s cubic-bezier(.55, .5, .45, .5) infinite
 
+    // delay negativi = fasi molto distanti (0, ¼, ½, ¾ della durata) → alla
+    // partenza le 4 onde sono già molto sfalsate lungo tutta la corsa.
     &:nth-child(1)
-      animation-delay: -3s
+      animation-delay: 0s
       animation-duration: 13s
       fill: rgba(32, 71, 105, .38)
     &:nth-child(2)
-      animation-delay: -5s
+      animation-delay: -4.25s
       animation-duration: 17s
       fill: rgba(32, 71, 105, .52)
     &:nth-child(3)
-      animation-delay: -7s
+      animation-delay: -10.5s
       animation-duration: 21s
       fill: rgba(32, 71, 105, .66)
     &:nth-child(4)
-      animation-delay: -9s
+      animation-delay: -21s
       animation-duration: 28s
       fill: rgba(32, 71, 105, .82)
 
