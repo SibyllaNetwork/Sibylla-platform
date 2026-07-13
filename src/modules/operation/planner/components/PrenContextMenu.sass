@@ -1,0 +1,55 @@
+// ─── PREN CONTEXT MENU ─────────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.pren-ctx
+  position: fixed
+  left: var(--ctx-left)
+  top: var(--ctx-top)
+  z-index: 400
+  min-width: 220px
+  padding: 5px 0
+  background: $white
+  border: 1px solid $border
+  border-left: 3px solid $primary
+  border-radius: $radius-md
+  box-shadow: $shadow-lg
+  overflow: hidden
+  font-family: $font-body
+
+  &__item
+    display: flex
+    align-items: center
+    gap: 12px
+    width: 100%
+    padding: 9px 16px
+    background: transparent
+    border: 0
+    cursor: pointer
+    font-family: $font-body
+    font-size: 13px
+    color: $text-active
+    text-align: left
+    transition: background 0.12s
+
+    &:hover
+      background: $primary-50
+
+    i
+      width: 16px
+      font-size: 15px
+      color: $primary
+      text-align: center
+
+    &--danger
+      color: $error
+
+      i
+        color: $error
+
+      &:hover
+        background: alpha($error, 0.08)
+
+  &__divider
+    height: 1px
+    margin: 5px 0
+    background: $border

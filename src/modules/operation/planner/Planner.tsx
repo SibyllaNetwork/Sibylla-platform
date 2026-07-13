@@ -18,6 +18,7 @@ import LegendaModal       from './components/LegendaModal';
 import PrenModal          from './components/PrenModal';
 import RichiesteOperativeModal from './components/RichiesteOperativeModal';
 import BloccoFantasmaModal from './components/BloccoFantasmaModal';
+import PrenContextMenu     from './components/PrenContextMenu';
 import {
   useRichiesteOperativeStore,
   richiestePendingCount,
@@ -36,6 +37,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
   const [barTip, setBarTip] = useState<{ pren: Pren; x: number; y: number } | null>(null);
   const onBarHover = (pren: Pren | null, x: number, y: number) => setBarTip(pren ? { pren, x, y } : null);
   const [ghostTip, setGhostTip] = useState<{ text: string; x: number; y: number } | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ pren: Pren; x: number; y: number } | null>(null);
   const onGhostHover = (b: { motivazione: string } | null, x: number, y: number) =>
     setGhostTip(b ? { text: b.motivazione, x, y } : null);
 
@@ -211,6 +213,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               showRiepilogo={s.showRiepilogo}
               onToggleRiepilogo={s.toggleRiepilogo}
               onBarHover={onBarHover}
+              onBarContext={(pren, x, y) => { setBarTip(null); s.setSelectedBooking(pren); setCtxMenu({ pren, x, y }); }}
               richiesteEseguite={richiesteEseguite}
               richiesteInAttesa={richiesteInAttesa}
               ghostMode={s.ghostMode}
@@ -261,6 +264,21 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
           editing={s.ghostEditing}
           onSave={s.saveBlocco}
           onDelete={s.removeBlocco}
+        />
+      )}
+
+      {/* ── Menu contestuale prenotazione (tasto destro) ─────────────────────── */}
+      {ctxMenu && (
+        <PrenContextMenu
+          pren={ctxMenu.pren}
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          struttura={s.struttura}
+          navigate={navigate}
+          onParcheggio={s.parkBooking}
+          onClona={s.cloneBooking}
+          onCheckIn={s.checkInBooking}
+          onClose={() => setCtxMenu(null)}
         />
       )}
 

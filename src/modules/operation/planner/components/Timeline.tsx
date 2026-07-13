@@ -27,6 +27,8 @@ interface Props {
   showRiepilogo?    : boolean;
   onToggleRiepilogo?: () => void;
   onBarHover?  : (pren: Pren | null, clientX: number, clientY: number) => void;
+  /** Tasto destro su una barra → menu contestuale della prenotazione. */
+  onBarContext?: (pren: Pren, clientX: number, clientY: number) => void;
   /** Booking con richiesta operativa eseguita → icona sulla barra. */
   richiesteEseguite?: Set<string>;
   /** Booking con richiesta operativa ancora da eseguire → icona "in attesa". */
@@ -48,7 +50,7 @@ const Timeline: React.FC<Props> = ({
   piani, prenotazioni, startDate, numDays,
   filtroConf, filtroOpz, activePiani,
   onSelect, selectedId, onEmpty, onSelectPeriod, onAssign, onMove,
-  showRiepilogo, onToggleRiepilogo, onBarHover,
+  showRiepilogo, onToggleRiepilogo, onBarHover, onBarContext,
   richiesteEseguite, richiesteInAttesa,
   ghostMode, blocchi, onGhostSelect, onGhostClick, onGhostHover,
 }) => {
@@ -306,6 +308,7 @@ const Timeline: React.FC<Props> = ({
                           onMouseMove={onBarHover ? (e) => onBarHover(pren, e.clientX, e.clientY) : undefined}
                           onMouseLeave={onBarHover ? () => onBarHover(null, 0, 0) : undefined}
                           onClick={e => { e.stopPropagation(); onSelect(pren.id === selectedId ? null : pren); }}
+                          onContextMenu={onBarContext ? (e) => { e.preventDefault(); e.stopPropagation(); onBarHover?.(null, 0, 0); onBarContext(pren, e.clientX, e.clientY); } : undefined}
                         >
                           {pren.stato === 'opzione' && (
                             <span className="timeline__bar__question">?</span>

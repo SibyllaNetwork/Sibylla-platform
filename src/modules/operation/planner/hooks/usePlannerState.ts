@@ -117,6 +117,21 @@ export function usePlannerState(navigate: (page: string) => void) {
     setParkedIds(prev => prev.filter(x => x !== id));
   }, []);
 
+  // Clona una prenotazione (stessa camera/date, nuovo booking) → menu contestuale.
+  const cloneBooking = useCallback((id: string) => {
+    setPrens(prev => {
+      const src = prev.find(p => p.id === id);
+      if (!src) return prev;
+      const clone: Pren = { ...src, id: `${src.id}-copy${prev.length}`, booking: `${src.booking}-C` };
+      return [...prev, clone];
+    });
+  }, []);
+
+  // Check-in di una prenotazione → menu contestuale.
+  const checkInBooking = useCallback((id: string) => {
+    setPrens(prev => prev.map(p => (p.id === id ? { ...p, stato: 'checkin', statoCheckIn: 'Effettuato' } : p)));
+  }, []);
+
   const toggleParcheggio = useCallback(() => setShowParcheggio(v => !v), []);
   const toggleRiepilogo  = useCallback(() => setShowRiepilogo(v => !v), []);
 
@@ -158,7 +173,7 @@ export function usePlannerState(navigate: (page: string) => void) {
     showAllocare,  setShowAllocare,
     showParcheggio, setShowParcheggio, toggleParcheggio,
     showRiepilogo, toggleRiepilogo,
-    parkBooking, assignBookingToRoom, moveBooking,
+    parkBooking, assignBookingToRoom, moveBooking, cloneBooking, checkInBooking,
     handleEmptyClick,
     handleSelectPeriod,
     // blocco fantasma
