@@ -302,24 +302,24 @@ $flow: cubic-bezier(.22, 1, .36, 1)
   animation: timone-lock .55s ease-out 2.0s both
   transform-origin: 50% 50%
 
-// 5) a regime: un riflesso di luce tenue scorre attorno alla ruota, solo sulle
-//    frecce ATTIVE (le disabled restano ferme). Sfasamento per dare il senso
-//    di movimento che gira, non troppo accentuato.
-.timone--live:not(.is-dim-sales) #seg-sales
-  opacity: 1
-  animation: timone-shimmer 3.6s ease-in-out 0s infinite
-.timone--live:not(.is-dim-operation) #seg-operation
-  opacity: 1
-  animation: timone-shimmer 3.6s ease-in-out .72s infinite
-.timone--live:not(.is-dim-purchasing) #seg-purchasing
-  opacity: 1
-  animation: timone-shimmer 3.6s ease-in-out 1.44s infinite
-.timone--live:not(.is-dim-hr) #seg-hr
-  opacity: 1
-  animation: timone-shimmer 3.6s ease-in-out 2.16s infinite
+// 5) a regime: il timone resta fermo — nessun riflesso di luce che gira sulle
+//    frecce. Le frecce attive restano semplicemente visibili.
+.timone--live:not(.is-dim-sales) #seg-sales,
+.timone--live:not(.is-dim-operation) #seg-operation,
+.timone--live:not(.is-dim-purchasing) #seg-purchasing,
+.timone--live:not(.is-dim-hr) #seg-hr,
 .timone--live:not(.is-dim-finance) #seg-finance
   opacity: 1
-  animation: timone-shimmer 3.6s ease-in-out 2.88s infinite
+  animation: none
+
+// 6) accensione all'hover: la freccia attiva si illumina al passaggio del mouse,
+//    solo brillantezza/saturazione — nessun blur/glow.
+.timone--ready:not(.is-dim-sales) #seg-sales:hover,
+.timone--ready:not(.is-dim-operation) #seg-operation:hover,
+.timone--ready:not(.is-dim-purchasing) #seg-purchasing:hover,
+.timone--ready:not(.is-dim-hr) #seg-hr:hover,
+.timone--ready:not(.is-dim-finance) #seg-finance:hover
+  filter: brightness(1.42) saturate(1.18)
 
 @keyframes timone-hub-in
   0%
@@ -369,14 +369,6 @@ $flow: cubic-bezier(.22, 1, .36, 1)
     transform: scale(1.022)
   100%
     transform: scale(1)
-
-@keyframes timone-shimmer
-  0%, 32%
-    filter: brightness(1) saturate(1)
-  54%
-    filter: brightness(1.42) saturate(1.18) drop-shadow(0 0 7px rgba(255, 255, 255, .55))
-  78%, 100%
-    filter: brightness(1) saturate(1)
 
 // ── Rispetta la preferenza di ridotta animazione ─────────────────────────────
 @media (prefers-reduced-motion: reduce)
