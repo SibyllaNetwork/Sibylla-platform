@@ -8,7 +8,7 @@ import './HomePage.sass'
 // tutti in scorrimento orizzontale sinistra→destra ma sfalsati (durate/fasi
 // diverse) → parallasse continuo. Stili e alpha in HomePage.sass.
 //
-// Riproduzione: l'animazione scorre per 5s dal caricamento, poi si BLOCCA.
+// Riproduzione: l'animazione scorre per 3s dal caricamento, poi si BLOCCA.
 // Tenendo premuto il mouse sullo sfondo riprende; al rilascio si riferma.
 
 // ── Componente ───────────────────────────────────────────────────────────────
@@ -16,9 +16,9 @@ export default function HomePage({ navigate }: { navigate: (p: string) => void }
   const [initialPlay, setInitialPlay] = useState(true)
   const [pressing, setPressing] = useState(false)
 
-  // Fase iniziale: 5s di scorrimento dal caricamento, poi stop.
+  // Fase iniziale: 3s di scorrimento dal caricamento, poi stop.
   useEffect(() => {
-    const t = setTimeout(() => setInitialPlay(false), 5000)
+    const t = setTimeout(() => setInitialPlay(false), 3000)
     return () => clearTimeout(t)
   }, [])
 
