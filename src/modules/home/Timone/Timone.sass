@@ -170,10 +170,11 @@ $exec-gold: #c2a15a
   filter: grayscale(1) brightness(1.18) contrast(.92)
   transition: filter .5s $ease
 
-// La ruota si riduce in exec per fare spazio alle bolle
+// La ruota si riduce in exec per fare spazio alle bolle e compie un giro
+// completo (360°) mentre si trasforma in modalità Executive.
 .timone--exec .timone__wheel
-  transform: scale(.84)
-  transition: transform .5s $ease
+  transform: rotate(360deg) scale(.84)
+  transition: transform .9s $ease
 
 .timone__exec
   position: absolute
@@ -377,7 +378,7 @@ $flow: cubic-bezier(.22, 1, .36, 1)
     opacity: 1
     transform: none
 
-  .timone__wheel, .timone--open .timone__wheel
+  .timone__wheel, .timone--open .timone__wheel, .timone--exec .timone__wheel
     transition: none
 
   .timone__menu-item
