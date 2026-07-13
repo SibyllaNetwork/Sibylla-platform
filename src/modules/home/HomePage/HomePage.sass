@@ -58,7 +58,7 @@
     display: block
 
   // 4 onde dello stesso blu Sibylla (#204769) ad alpha diversi; tutte scorrono
-  // da destra verso sinistra ma sfalsate (durate/fasi diverse) → parallasse.
+  // da sinistra verso destra ma sfalsate (durate/fasi diverse) → parallasse.
   &__waves-parallax > use
     animation: waveMove 24s cubic-bezier(.55, .5, .45, .5) infinite
 
@@ -79,12 +79,12 @@
       animation-duration: 28s
       fill: rgba(32, 71, 105, .82)
 
-  // Destra → sinistra
+  // Sinistra → destra
   @keyframes waveMove
     0%
-      transform: translate3d(85px, 0, 0)
-    100%
       transform: translate3d(-90px, 0, 0)
+    100%
+      transform: translate3d(85px, 0, 0)
 
   @media (prefers-reduced-motion: reduce)
     &__waves-parallax > use
