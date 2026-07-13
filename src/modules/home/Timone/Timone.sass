@@ -312,14 +312,14 @@ $flow: cubic-bezier(.22, 1, .36, 1)
   opacity: 1
   animation: none
 
-// 6) accensione all'hover: la freccia attiva si illumina al passaggio del mouse,
-//    solo brillantezza/saturazione — nessun blur/glow.
+// 6) accensione all'hover: si accentua soltanto il colore di sfondo della
+//    freccia attiva (saturazione) — nessun bagliore/brillantezza forte, niente blur.
 .timone--ready:not(.is-dim-sales) #seg-sales:hover,
 .timone--ready:not(.is-dim-operation) #seg-operation:hover,
 .timone--ready:not(.is-dim-purchasing) #seg-purchasing:hover,
 .timone--ready:not(.is-dim-hr) #seg-hr:hover,
 .timone--ready:not(.is-dim-finance) #seg-finance:hover
-  filter: brightness(1.42) saturate(1.18)
+  filter: saturate(1.45)
 
 @keyframes timone-hub-in
   0%
