@@ -247,7 +247,7 @@ export default function Timone({ navigate }: Props) {
 
         {/* Anello oro: trattamento "Executive" (approssimazione, in attesa SVG) */}
         <svg className="timone__exec-ring" viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r="40" pathLength={100} />
+          <circle cx="50" cy="50" r="40" />
         </svg>
       </div>
 

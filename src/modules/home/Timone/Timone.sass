@@ -160,19 +160,14 @@ $exec-gold: #c2a15a
   opacity: 0
   transition: opacity .4s $ease
 
+  // anello pieno e CHIUSO (niente dash: prima lasciava un taglietto sul seam)
   circle
     fill: none
     stroke: $exec-gold
     stroke-width: 2.4
-    stroke-dasharray: 100
-    stroke-dashoffset: 100
 
 .timone--exec .timone__exec-ring
   opacity: 1
-
-  circle
-    transition: stroke-dashoffset 1s $ease .1s
-    stroke-dashoffset: 0
 
 // In Executive il cerchio arancione (#t-wheel, #f3ab2b) e l'anello arancione
 // attorno all'hub (#t-hub .st3, #edaa41) diventano blu navy.
@@ -432,7 +427,3 @@ $flow: cubic-bezier(.22, 1, .36, 1)
 
   .timone__bubble
     animation: none
-
-  .timone--exec .timone__exec-ring circle
-    transition: none
-    stroke-dashoffset: 0
