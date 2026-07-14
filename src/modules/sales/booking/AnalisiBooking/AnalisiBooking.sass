@@ -33,9 +33,11 @@
   // ── Layout principale ────────────────────────────────────────────────────────
   &__body
     display: grid
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr)
+    // Tabella alla sua larghezza naturale (tutte le colonne, senza taglio); il
+    // grafico occupa tutto lo spazio restante -> il piu lungo possibile
+    grid-template-columns: min-content minmax(0, 1fr)
     gap: $space-lg
-    align-items: stretch
+    align-items: start
 
     @media (max-width: 1080px)
       grid-template-columns: 1fr
@@ -168,9 +170,6 @@
     border: 1px solid $border
     border-radius: $radius-lg
     padding: $space-lg
-    // riempie il box: card a tutta altezza, area grafico che si espande
-    display: flex
-    flex-direction: column
 
   &__chart-title
     font-family: $font-heading
@@ -204,16 +203,11 @@
 
   &__chart-area
     width: 100%
-    flex: 1
-    min-height: 240px
+    height: 260px
 
   // ── Slider grafico: due mesi per pagina, pulsanti in overlay ─────────────────
   &__chart-slider
     position: relative
-    flex: 1
-    display: flex
-    flex-direction: column
-    min-height: 0
 
   &__slide-btn
     position: absolute
