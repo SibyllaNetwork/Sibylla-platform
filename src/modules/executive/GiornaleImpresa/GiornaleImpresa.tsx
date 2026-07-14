@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import T from '../../../core/tokens'
 import Ico from '../../../core/icons/Ico'
 import MenuIco from '../../../core/icons/MenuIco'
-import BtnBack from '../../../core/components/BtnBack'
+import PageHead from '../../../core/components/PageHead'
 import { Tabs } from '../../../core/components'
 import { SelectField } from '../../../core/components/form'
 import MENU from '../../../navigation/menu'
@@ -686,17 +686,16 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="giornale">
-      {/* Top bar */}
-      <div className="giornale__top-bar">
-        <div>
-          <BtnBack />
-          <h1 className="giornale__title">Giornale impresa</h1>
-          <p className="giornale__subtitle">{D.subtitle}</p>
-        </div>
-        <button className="giornale__live-btn" onClick={() => navigate('sugg-data-driven')}>
-          <div className="giornale__live-dot" />LIVE
-        </button>
-      </div>
+      {/* Header standard (PageHead): Indietro a sx, titolo centrato, LIVE a dx */}
+      <PageHead
+        title="Giornale impresa"
+        subtitle={D.subtitle}
+        actions={
+          <button className="giornale__live-btn" onClick={() => navigate('sugg-data-driven')}>
+            <div className="giornale__live-dot" />LIVE
+          </button>
+        }
+      />
 
       {/* Struttura + toggle vista */}
       <div className="giornale__control-bar">
@@ -711,19 +710,33 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
             className="w-48"
           />
         )}
-        <div className="giornale__view-toggle">
-          <button
-            className={`giornale__view-btn ${viewMode === 'sintetica' ? 'giornale__view-btn--active' : ''}`}
-            onClick={() => setViewMode('sintetica')}
-          >
-            Sintetica
-          </button>
-          <button
-            className={`giornale__view-btn ${viewMode === 'estesa' ? 'giornale__view-btn--active' : ''}`}
-            onClick={() => setViewMode('estesa')}
-          >
-            Estesa
-          </button>
+        <div className="giornale__control-right">
+          {/* Bacchetta magica (personalizza) — solo in estesa, prima del toggle vista */}
+          {viewMode === 'estesa' && (
+            <button
+              type="button"
+              className={`giornale__wand ${editMode ? 'giornale__wand--on' : ''}`}
+              onClick={() => setEditMode(v => !v)}
+              aria-label={editMode ? 'Fine personalizzazione' : 'Personalizza'}
+              title={editMode ? 'Fine personalizzazione' : 'Personalizza'}
+            >
+              <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
+            </button>
+          )}
+          <div className="giornale__view-toggle">
+            <button
+              className={`giornale__view-btn ${viewMode === 'sintetica' ? 'giornale__view-btn--active' : ''}`}
+              onClick={() => setViewMode('sintetica')}
+            >
+              Sintetica
+            </button>
+            <button
+              className={`giornale__view-btn ${viewMode === 'estesa' ? 'giornale__view-btn--active' : ''}`}
+              onClick={() => setViewMode('estesa')}
+            >
+              Estesa
+            </button>
+          </div>
         </div>
       </div>
 
@@ -778,19 +791,8 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
       {/* ───────────────────────── VISTA ESTESA ───────────────────────── */}
       {viewMode === 'estesa' && (
         <>
-          {/* Tab + bacchetta magica (personalizza) a destra della riga tab */}
-          <div className="giornale__ext-tabsrow">
-            <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
-            <button
-              type="button"
-              className={`giornale__wand ${editMode ? 'giornale__wand--on' : ''}`}
-              onClick={() => setEditMode(v => !v)}
-              aria-label={editMode ? 'Fine personalizzazione' : 'Personalizza'}
-              title={editMode ? 'Fine personalizzazione' : 'Personalizza'}
-            >
-              <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
-            </button>
-          </div>
+          {/* Tab di sistema per la categoria */}
+          <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
 
           {/* Pannello "aggiungi/rimuovi sezioni" (dalle voci di menu della categoria) */}
           {editMode && (
