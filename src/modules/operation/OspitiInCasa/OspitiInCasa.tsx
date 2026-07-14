@@ -356,10 +356,10 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
         </div>
 
         <div className="ospiti-casa__bar-right">
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF"><i className="fa-light fa-file-pdf" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS"><i className="fa-light fa-file-excel" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF"><i className="fa-regular fa-file-pdf" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS"><i className="fa-regular fa-file-excel" /></button>
           <button type="button" className="sib-btn sib-btn--icon" title="Avvisi" aria-label="Avvisi" onClick={() => setShowAvviso(true)}>
-            <i className="fa-light fa-bell" />
+            <i className="fa-regular fa-bell" />
           </button>
         </div>
       </div>
