@@ -146,6 +146,23 @@
     &--eta
       font-size: 19px
 
+  // Bottoni-azione tabella (colonne Camera N° e Azioni): icona solid blu,
+  // senza bordo/box, coerenti con le icone categoria
+  &__act-btn
+    border: none
+    background: transparent
+    color: $primary
+    padding: 4px 5px
+    font-size: 16px
+
+    &:hover:not(:disabled)
+      background: $primary-50
+
+    &:disabled
+      color: $text-disabled
+      background: transparent
+      cursor: default
+
   // ── Compattazione quando lo spazio si restringe ─────────────────────────────
   // Scatta quando l'area contenuto scende sotto ~1360px (dove la tabella a
   // dimensioni standard, ~1355px, andrebbe in overflow): es. laptop con sidebar

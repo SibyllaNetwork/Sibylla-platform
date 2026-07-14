@@ -458,16 +458,16 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                     <span className="ospiti-casa__camera-num">{r.camera}</span>
                     <div className="ospiti-casa__row-icons">
                       <Tooltip text="Check-Out camera">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-Out camera" onClick={() => setCheckoutCameraTarget(r)}><i className="fa-light fa-right-from-bracket" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Check-Out camera" onClick={() => setCheckoutCameraTarget(r)}><i className="fa-solid fa-right-from-bracket" /></button>
                       </Tooltip>
                       <Tooltip text="Modifica soggiorno">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica soggiorno" onClick={() => setModSoggTarget(r)}><i className="fa-light fa-bed" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Modifica soggiorno" onClick={() => setModSoggTarget(r)}><i className="fa-solid fa-bed" /></button>
                       </Tooltip>
                       <Tooltip text="Cambio camera">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Cambio camera" onClick={() => setCambioTarget(r)}><i className="fa-light fa-person-walking-arrow-right" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Cambio camera" onClick={() => setCambioTarget(r)}><i className="fa-solid fa-person-walking-arrow-right" /></button>
                       </Tooltip>
                       <Tooltip text={isOverdue(r.partenza) ? 'Soggiorno scaduto' : 'Soggiorno non ancora scaduto'}>
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Soggiorno scaduto" disabled={!isOverdue(r.partenza)} onClick={() => setScadutiTarget(r)}><i className="fa-light fa-calendar-pen" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Soggiorno scaduto" disabled={!isOverdue(r.partenza)} onClick={() => setScadutiTarget(r)}><i className="fa-solid fa-calendar-pen" /></button>
                       </Tooltip>
                     </div>
                   </div>
@@ -503,22 +503,22 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                 <td>
                   <div className="ospiti-casa__actions">
                     <Tooltip text="Modifica prenotazione">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica prenotazione" onClick={() => setAnagrafica(r)}><i className="fa-light fa-pen" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Modifica prenotazione" onClick={() => setAnagrafica(r)}><i className="fa-solid fa-pen" /></button>
                     </Tooltip>
                     <Tooltip text="Conto camera">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Conto camera" onClick={() => navigate('conti-camera')}><i className="fa-light fa-receipt" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Conto camera" onClick={() => navigate('conti-camera')}><i className="fa-solid fa-receipt" /></button>
                     </Tooltip>
                     <Tooltip text="Chiudi conto">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-light fa-circle-check" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-solid fa-circle-check" /></button>
                     </Tooltip>
                     <Tooltip text="Trasferimento ospite">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferimento ospite" onClick={() => setTrasferisciTarget(r)}><i className="fa-light fa-person-walking-luggage" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Trasferimento ospite" onClick={() => setTrasferisciTarget(r)}><i className="fa-solid fa-person-walking-luggage" /></button>
                     </Tooltip>
                     <Tooltip text="Scambia ospite">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Scambia ospite" onClick={() => setScambiaTarget(r)}><i className="fa-light fa-people-arrows" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Scambia ospite" onClick={() => setScambiaTarget(r)}><i className="fa-solid fa-people-arrows" /></button>
                     </Tooltip>
                     <Tooltip text="Check-out ospite">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-out ospite" onClick={() => setCheckoutOspiteTarget(r)}><i className="fa-light fa-right-from-bracket" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon ospiti-casa__act-btn" aria-label="Check-out ospite" onClick={() => setCheckoutOspiteTarget(r)}><i className="fa-solid fa-right-from-bracket" /></button>
                     </Tooltip>
                   </div>
                 </td>
