@@ -52,6 +52,18 @@ const MOCK_CAMERE: Camera[] = [
   { id:406, numero:'406', piano:'Quarto Piano', nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
   { id:407, numero:'407', piano:'Quarto Piano', nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
   { id:408, numero:'408', piano:'Quarto Piano', nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:201, numero:'201', piano:'Secondo Piano',nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'Sì', stato:'Assegnata', prenotazioneId:'PREN-001' },
+  { id:202, numero:'202', piano:'Secondo Piano',nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:203, numero:'203', piano:'Secondo Piano',nome:'MATRIMONIALE CLASSIC',  tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:204, numero:'204', piano:'Secondo Piano',nome:'TRIPLA CLASSIC',        tipo:'Tripla Classic',   tipoRichiesto:'TPL',  checkIn:'Sì', stato:'Assegnata', prenotazioneId:'PREN-001' },
+  { id:205, numero:'205', piano:'Secondo Piano',nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:301, numero:'301', piano:'Terzo Piano',  nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:302, numero:'302', piano:'Terzo Piano',  nome:'MAT ECONOMY',           tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:303, numero:'303', piano:'Terzo Piano',  nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'Sì', stato:'Assegnata', prenotazioneId:'PREN-001' },
+  { id:304, numero:'304', piano:'Terzo Piano',  nome:'QUADRUPLA',             tipo:'Quadrupla',        tipoRichiesto:'QDR',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:305, numero:'305', piano:'Terzo Piano',  nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:2,   numero:'2',   piano:'Piano Terra',  nome:'MAT + X',               tipo:'Tripla Classic',   tipoRichiesto:'TPL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
+  { id:6,   numero:'6',   piano:'Piano Terra',  nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
 ]
 
 const MOCK_PRENOTAZIONE: Prenotazione = {
