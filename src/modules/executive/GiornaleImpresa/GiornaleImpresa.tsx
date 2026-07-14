@@ -658,9 +658,6 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
         <div className="giornale__summary">
           {summaryFor(card).map((b: any, i: number) => renderBlock(b, i))}
         </div>
-        <button className="giornale__page-open" onClick={() => navigate(card.page)}>
-          Apri pagina <Ico n="arrow-right" s={12} c={T.primary} />
-        </button>
       </div>
     )
     return null
@@ -851,9 +848,16 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                       <span className="giornale__card-bar-label">{titleFor(card)}</span>
                       {meta?.sdly && <span className="giornale__merged-sdly">S.D.L.Y.</span>}
                     </div>
-                    {editMode && (
+                    {(card.type === 'page' || editMode) && (
                       <div className="giornale__card-actions">
-                        <span className="giornale__card-act giornale__card-drag"><Ico n="dots-v" s={13} c={T.primary} /></span>
+                        {card.type === 'page' && (
+                          <Tooltip text="Apri pagina">
+                            <button type="button" className="giornale__card-open" onClick={() => navigate(card.page)} aria-label="Apri pagina">
+                              <i className="fa-regular fa-window" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
+                        )}
+                        {editMode && <span className="giornale__card-act giornale__card-drag"><Ico n="dots-v" s={13} c={T.primary} /></span>}
                       </div>
                     )}
                   </div>
