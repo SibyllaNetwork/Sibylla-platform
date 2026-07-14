@@ -120,8 +120,16 @@
   // ── Tabella ───────────────────────────────────────────────────────────────
   &__table
 
+    // Titoli tabella in blu platform
     thead th
       vertical-align: middle
+      color: $primary
+      font-weight: 600
+
+    // righe piu basse: padding verticale ridotto
+    tbody td
+      padding-top: 4px
+      padding-bottom: 4px
 
     .ospiti-casa__th-center
       text-align: center
@@ -131,12 +139,12 @@
 
   // Icone di categoria (fascia età, arrangiamento, canale, tipo prenotazione)
   &__cat-ico
-    font-size: 18px
+    font-size: 16px
     color: $primary
 
-    // Fascia età: icone più grandi (età visualizzata a colpo d'occhio)
+    // Fascia età: icone un po' più grandi (età visualizzata a colpo d'occhio)
     &--eta
-      font-size: 22px
+      font-size: 19px
 
   // ── Compattazione quando lo spazio si restringe ─────────────────────────────
   // Scatta quando l'area contenuto scende sotto ~1360px (dove la tabella a
