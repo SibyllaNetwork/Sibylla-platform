@@ -102,8 +102,10 @@
     flex-wrap: nowrap
     align-items: center
     gap: 16px
-    padding-bottom: 2px
     flex-shrink: 0
+    // centrate verticalmente rispetto ai campi della toolbar (che hanno la label
+    // sopra), invece di restare allineate in basso
+    align-self: center
 
   // Statistiche inline senza pill/sfondo grigio (solo testo + icona)
   &__count
