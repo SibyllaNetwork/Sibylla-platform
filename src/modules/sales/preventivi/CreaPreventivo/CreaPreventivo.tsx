@@ -302,7 +302,7 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
                       onClick={() => rmRiga(r.id)} disabled={righe.length === 1}
                       title="Elimina riga"
                     >
-                      <i className="fa-light fa-trash-can" aria-hidden="true" />
+                      <i className="fa-solid fa-trash-can" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>
@@ -312,7 +312,7 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
         </div>
 
         <button type="button" className="sib-btn sib-btn--ghost crea-preventivo__add-row" onClick={() => addRiga()}>
-          <i className="fa-light fa-plus" aria-hidden="true" /> Aggiungi riga
+          <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi riga
         </button>
 
         {/* ── Riepilogo totali ──────────────────────────────────────── */}

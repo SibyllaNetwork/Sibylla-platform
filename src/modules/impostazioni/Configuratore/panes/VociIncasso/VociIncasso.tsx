@@ -86,7 +86,7 @@ export default function VociIncasso() {
               : data.voci.map((v) => (
                 <tr key={v.id}>
                   <td>{v.codice}</td><td>{v.descrizione}</td><td>{v.gruppo}</td><td>{v.commissioni}%</td><td>{v.codFel}</td><td>{v.codScel}</td>
-                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button></td>
                 </tr>
               ))}
           </tbody>
@@ -116,7 +116,7 @@ export default function VociIncasso() {
               : data.scadenze.map((s) => (
                 <tr key={s.id}>
                   <td>{s.descrizione}</td><td>{s.giorni}</td><td>{s.fineMese ? 'Sì' : 'No'}</td>
-                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button></td>
                 </tr>
               ))}
           </tbody>

@@ -519,7 +519,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                 onClick={exportPdf}
                 disabled={filtered.length === 0}
               >
-                <i className="fa-light fa-file-pdf" aria-hidden="true" />
+                <i className="fa-regular fa-file-pdf" aria-hidden="true" />
               </button>
             </Tooltip>
             <Tooltip text="Esporta in Excel">
@@ -530,7 +530,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                 onClick={exportXls}
                 disabled={filtered.length === 0}
               >
-                <i className="fa-light fa-file-excel" aria-hidden="true" />
+                <i className="fa-regular fa-file-excel" aria-hidden="true" />
               </button>
             </Tooltip>
           </span>
@@ -600,7 +600,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                 <tr key={m.id}>
                   <td>
                     <span className="cassa__user">
-                      <span className="cassa__avatar"><i className="fa-light fa-user" /></span>
+                      <span className="cassa__avatar"><i className="fa-solid fa-user" /></span>
                       {m.utente}
                     </span>
                   </td>
@@ -623,7 +623,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                     {m.soggiorno ? (
                       <Tooltip position="left" variant="light" content={<SoggiornoCard s={m.soggiorno} />}>
                         <span className="cassa__info" aria-label="Dettagli soggiorno" tabIndex={0}>
-                          <i className="fa-light fa-circle-info" />
+                          <i className="fa-solid fa-circle-info" />
                         </span>
                       </Tooltip>
                     ) : (
@@ -633,7 +633,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                   <td>
                     <Tooltip text="Visualizza documento fiscale">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza documento fiscale" onClick={() => setDocMov(m)}>
-                        <i className="fa-light fa-eye" />
+                        <i className="fa-solid fa-eye" />
                       </button>
                     </Tooltip>
                   </td>
@@ -742,12 +742,12 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                             aria-expanded={expanded.has(c.id)}
                             onClick={() => toggleExpanded(c.id)}
                           >
-                            <i className={`fa-light fa-chevron-${expanded.has(c.id) ? 'up' : 'down'}`} />
+                            <i className={`fa-solid fa-chevron-${expanded.has(c.id) ? 'up' : 'down'}`} />
                           </button>
                         </td>
                         <td>
                           <span className="cassa__user">
-                            <span className="cassa__avatar"><i className="fa-light fa-user" /></span>
+                            <span className="cassa__avatar"><i className="fa-solid fa-user" /></span>
                             {c.utente}
                           </span>
                         </td>
@@ -767,17 +767,17 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                                 onClick={() => setAnnullaTarget(c)}
                                 disabled={c.stato === 'Annullata'}
                               >
-                                <i className="fa-light fa-ban" />
+                                <i className="fa-solid fa-ban" />
                               </button>
                             </Tooltip>
                             <Tooltip text="Esporta in Excel">
                               <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={() => exportChiuXls(c)}>
-                                <i className="fa-light fa-file-excel" />
+                                <i className="fa-solid fa-file-excel" />
                               </button>
                             </Tooltip>
                             <Tooltip text="Esporta in PDF">
                               <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={() => exportChiuPdf(c)}>
-                                <i className="fa-light fa-file-pdf" />
+                                <i className="fa-solid fa-file-pdf" />
                               </button>
                             </Tooltip>
                           </span>
@@ -806,7 +806,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                                   <tr key={m.id}>
                                     <td>
                                       <span className="cassa__user">
-                                        <span className="cassa__avatar cassa__avatar--sm"><i className="fa-light fa-user" /></span>
+                                        <span className="cassa__avatar cassa__avatar--sm"><i className="fa-solid fa-user" /></span>
                                         {m.utente}
                                       </span>
                                     </td>
@@ -824,7 +824,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                                       {m.soggiorno ? (
                                         <Tooltip position="left" variant="light" content={<SoggiornoCard s={m.soggiorno} />}>
                                           <span className="cassa__info" aria-label="Dettagli soggiorno" tabIndex={0}>
-                                            <i className="fa-light fa-circle-info" />
+                                            <i className="fa-solid fa-circle-info" />
                                           </span>
                                         </Tooltip>
                                       ) : (
@@ -835,7 +835,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                                     <td>
                                       <Tooltip text="Visualizza documento fiscale">
                                         <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza documento fiscale" onClick={() => setDocMov(m)}>
-                                          <i className="fa-light fa-eye" />
+                                          <i className="fa-solid fa-eye" />
                                         </button>
                                       </Tooltip>
                                     </td>
@@ -913,7 +913,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                   <tr>
                     <td>
                       <span className="cassa__user">
-                        <span className="cassa__avatar"><i className="fa-light fa-user" /></span>
+                        <span className="cassa__avatar"><i className="fa-solid fa-user" /></span>
                         Mario Rossi
                       </span>
                     </td>
@@ -1158,7 +1158,7 @@ function MovimentiCassaModal({ struttura, onClose }: { struttura: string; onClos
                             onClick={() => ristampa(r)}
                             disabled={r.bloccato}
                           >
-                            <i className="fa-light fa-print" />
+                            <i className="fa-solid fa-print" />
                           </button>
                         </Tooltip>
                         <Tooltip text={r.bloccato ? 'Sblocca ristampa' : 'Blocca ristampa'}>
@@ -1169,7 +1169,7 @@ function MovimentiCassaModal({ struttura, onClose }: { struttura: string; onClos
                             aria-pressed={!!r.bloccato}
                             onClick={() => toggleBlocco(r.id)}
                           >
-                            <i className="fa-light fa-ban" />
+                            <i className="fa-solid fa-ban" />
                           </button>
                         </Tooltip>
                       </span>

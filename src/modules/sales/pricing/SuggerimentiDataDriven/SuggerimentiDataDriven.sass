@@ -54,6 +54,11 @@
     gap: 10px
     flex-wrap: wrap
 
+    // Azioni-icona della toolbar: blu Platform, 16px (standard icone piattaforma)
+    .sib-btn--icon i
+      color: var(--color-primary)
+      font-size: 16px
+
   // ── Pannelli ───────────────────────────────────────────────────────────────
   // Default (laptop / larghezza ridotta): pannelli incolonnati a piena larghezza.
   // Le tre tabelle vanno su una sola riga SOLO quando c'e spazio per tutte e tre
@@ -244,8 +249,8 @@
     justify-content: flex-end
 
   &__info
-    color: var(--color-text-inactive)
-    font-size: 12px
+    color: var(--color-primary)
+    font-size: 16px
     cursor: help
 
   &__trend-up
@@ -257,8 +262,8 @@
     font-size: 12px
 
   &__hourglass
-    color: var(--color-text-inactive)
-    font-size: 14px
+    color: var(--color-primary)
+    font-size: 16px
 
   &__tip
     display: inline-block
@@ -274,7 +279,8 @@
 
     i
       margin: 0 2px 0 4px
-      color: var(--color-text-inactive)
+      color: var(--color-primary)
+      font-size: 16px
 
   &__gruppo-info
     font-size: 12.5px

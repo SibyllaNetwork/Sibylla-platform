@@ -97,7 +97,7 @@ export default function BarFit() {
           className="sib-btn sib-btn--secondary bar-fit__create-btn"
           onClick={() => setOpen(true)}
         >
-          <i className="fa-light fa-circle-plus" />
+          <i className="fa-regular fa-circle-plus" />
           <span>Crea {modeLabel}</span>
         </button>
       </div>
@@ -121,10 +121,10 @@ export default function BarFit() {
                     aria-label={`Visualizza ${modeLabel} ${b.id}`}
                     onClick={() => setViewId(b.id)}
                   >
-                    <i className="fa-light fa-eye" />
+                    <i className="fa-solid fa-eye" />
                   </button>
                   <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina">
-                    <i className="fa-light fa-trash" />
+                    <i className="fa-solid fa-trash" />
                   </button>
                 </td>
               </tr>
@@ -303,13 +303,13 @@ function DettaglioBarModal({ modeLabel, id, onClose }: DettaglioProps) {
               <tr>
                 <th className="bar-fit__view-th--name">{modeLabel}</th>
                 <th className="bar-fit__view-th--icon" aria-label="Individuale">
-                  <i className="fa-light fa-user" />
+                  <i className="fa-solid fa-user" />
                 </th>
                 <th className="bar-fit__view-th--icon" aria-label="Gruppo">
-                  <i className="fa-light fa-user-group" />
+                  <i className="fa-solid fa-user-group" />
                 </th>
                 <th className="bar-fit__view-th--icon" aria-label="Bambini">
-                  <i className="fa-light fa-baby-carriage" />
+                  <i className="fa-solid fa-baby-carriage" />
                 </th>
               </tr>
             </thead>

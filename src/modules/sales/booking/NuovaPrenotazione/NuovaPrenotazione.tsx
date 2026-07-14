@@ -447,7 +447,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                         <td className="np-col-idx">{i+1}</td>
                         <td>
                           <div className="np-tipo-cell">
-                            <i className="fa-light fa-bed-front np-tipo-ico" aria-hidden="true" />
+                            <i className="fa-solid fa-bed-front np-tipo-ico" aria-hidden="true" />
                             <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
                               {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
                             </select>
@@ -479,7 +479,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                             disabled={camereInd.length <= 1}
                             onClick={()=>setCamereInd(prev => prev.filter((_, idx) => idx !== i))}
                           >
-                            <i className="fa-light fa-trash" />
+                            <i className="fa-solid fa-trash" />
                           </button>
                         </td>
                       </tr>
@@ -618,7 +618,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                         <td className="np-col-idx">{i+1}</td>
                         <td>
                           <div className="np-tipo-cell">
-                            <i className="fa-light fa-bed-front np-tipo-ico" aria-hidden="true" />
+                            <i className="fa-solid fa-bed-front np-tipo-ico" aria-hidden="true" />
                             <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCameraGr(i,{tipo:e.target.value})}>
                               {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
                             </select>
@@ -650,7 +650,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                             disabled={camereGr.length <= 1}
                             onClick={()=>setCamereGr(prev => prev.filter((_, idx) => idx !== i))}
                           >
-                            <i className="fa-light fa-trash" />
+                            <i className="fa-solid fa-trash" />
                           </button>
                         </td>
                       </tr>
@@ -766,8 +766,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   </td>
                   <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={s.persone} onChange={e=>updSegmento(i,{persone:+e.target.value||0})}/></td>
                   <td className="np-col-actions">
-                    <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica"><i className="fa-light fa-pen-to-square" /></button>
-                    <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>removeSegmento(s.id)}><i className="fa-light fa-trash" /></button>
+                    <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica"><i className="fa-solid fa-pen-to-square" /></button>
+                    <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>removeSegmento(s.id)}><i className="fa-solid fa-trash" /></button>
                   </td>
                 </tr>
               ))}
@@ -824,10 +824,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <td><input type="date" className="sib-input np-cell-input" value={o.dataArrivo} onChange={e=>updOspite(i,{dataArrivo:e.target.value})}/></td>
                 <td className="np-col-actions">
                   <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica">
-                    <i className="fa-light fa-pen-to-square" />
+                    <i className="fa-solid fa-pen-to-square" />
                   </button>
                   <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>setOspiti(prev => prev.filter((_, idx) => idx !== i))}>
-                    <i className="fa-light fa-trash" />
+                    <i className="fa-solid fa-trash" />
                   </button>
                 </td>
               </tr>
@@ -1358,12 +1358,12 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                         <td className="np-col-actions">
                           {editRowIdx === i ? (
                             <>
-                              <button type="button" className="np-row-action np-row-action--ok" aria-label="Conferma" onClick={confirmEditRow}><i className="fa-light fa-check" /></button>
-                              <button type="button" className="np-row-action" aria-label="Annulla" onClick={cancelEditRow}><i className="fa-light fa-xmark" /></button>
+                              <button type="button" className="np-row-action np-row-action--ok" aria-label="Conferma" onClick={confirmEditRow}><i className="fa-solid fa-check" /></button>
+                              <button type="button" className="np-row-action" aria-label="Annulla" onClick={cancelEditRow}><i className="fa-solid fa-xmark" /></button>
                             </>
                           ) : (
                             <button type="button" className="np-row-action" aria-label="Modifica" onClick={()=>startEditRow(i)}>
-                              <i className="fa-light fa-pen-to-square" />
+                              <i className="fa-solid fa-pen-to-square" />
                             </button>
                           )}
                         </td>

@@ -115,8 +115,8 @@ export default function GrigliaDisponibilitaEstesa(_props: { navigate?: (p: stri
           </div>
         </div>
         <div className="gde__export">
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS" onClick={handleXls}><i className="fa-light fa-file-excel" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF" onClick={handlePdf}><i className="fa-light fa-file-pdf" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS" onClick={handleXls}><i className="fa-regular fa-file-excel" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF" onClick={handlePdf}><i className="fa-regular fa-file-pdf" /></button>
         </div>
       </div>
 

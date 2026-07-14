@@ -112,13 +112,13 @@ export default function VoipServiceHub({ navigate }: { navigate: (p: string) => 
 
       <div className="voip-hub__top-actions">
         <button type="button" className="sib-btn sib-btn--secondary">
-          <i className="fa-light fa-wave-pulse" /> Dati statistici
+          <i className="fa-regular fa-wave-pulse" /> Dati statistici
         </button>
         <button type="button" className="sib-btn sib-btn--icon" title="Chiamata" aria-label="Chiamata">
-          <i className="fa-light fa-phone" />
+          <i className="fa-regular fa-phone" />
         </button>
         <button type="button" className="sib-btn sib-btn--icon" title="Profilo agente" aria-label="Profilo agente">
-          <i className="fa-light fa-headset" />
+          <i className="fa-regular fa-headset" />
         </button>
       </div>
 
@@ -172,7 +172,7 @@ export default function VoipServiceHub({ navigate }: { navigate: (p: string) => 
           </div>
         </div>
         <button type="button" className="sib-btn sib-btn--icon voip-hub__interni-toggle" title="Mostra/nascondi" aria-label="Mostra/nascondi">
-          <i className="fa-light fa-eye" />
+          <i className="fa-regular fa-eye" />
         </button>
       </div>
 

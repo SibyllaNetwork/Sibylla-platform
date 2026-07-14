@@ -302,18 +302,18 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
         <div className="sdd__links">
           <Tooltip text="Screening open Price">
             <button type="button" className="sib-btn sib-btn--icon" onClick={() => navigate('screening-open')} aria-label="Screening open Price">
-              <i className="fa-light fa-microchip" aria-hidden="true" />
+              <i className="fa-regular fa-microchip" aria-hidden="true" />
             </button>
           </Tooltip>
           {LINKS.map((l) => (narrow ? (
             <Tooltip key={l.page} text={l.label}>
               <button type="button" className="sib-btn sib-btn--icon" onClick={() => navigate(l.page)} aria-label={l.label}>
-                <i className={`fa-light ${l.icon}`} aria-hidden="true" />
+                <i className={`fa-regular ${l.icon}`} aria-hidden="true" />
               </button>
             </Tooltip>
           ) : (
             <button key={l.page} type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate(l.page)}>
-              <i className={`fa-light ${l.icon}`} aria-hidden="true" /> {l.label}
+              <i className={`fa-regular ${l.icon}`} aria-hidden="true" /> {l.label}
             </button>
           )))}
         </div>
@@ -325,10 +325,10 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
         {show.tariffe && (
           <section className="sdd__panel">
             <header className="sdd__panel-head">
-              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-light fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
+              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
               <h2 className="sdd__panel-title">Pricing</h2>
               <div className="sdd__panel-tools">
-                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-light fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
+                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-regular fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
               </div>
             </header>
             <div className="sdd__scroll">
@@ -374,11 +374,11 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
         {show.disp && (
           <section className="sdd__panel">
             <header className="sdd__panel-head">
-              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-light fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
+              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
               <h2 className="sdd__panel-title">Disponibilità</h2>
               <div className="sdd__panel-tools">
-                <Tooltip text="Guida disponibilità"><button type="button" className="sdd__icobtn" onClick={() => setGuidaOpen(true)} aria-label="Guida disponibilità"><i className="fa-light fa-circle-info" aria-hidden="true" /></button></Tooltip>
-                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-light fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
+                <Tooltip text="Guida disponibilità"><button type="button" className="sdd__icobtn" onClick={() => setGuidaOpen(true)} aria-label="Guida disponibilità"><i className="fa-regular fa-circle-info" aria-hidden="true" /></button></Tooltip>
+                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-regular fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
               </div>
             </header>
             <div className="sdd__scroll">
@@ -399,7 +399,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <tr key={r.id}>
                       <td className="sdd__col-check">
                         {r.locked
-                          ? <i className="fa-light fa-hourglass-half sdd__hourglass" title="In elaborazione" aria-hidden="true" />
+                          ? <i className="fa-solid fa-hourglass-half sdd__hourglass" title="In elaborazione" aria-hidden="true" />
                           : <input type="checkbox" checked={selD.has(r.id)} onChange={() => setSelD((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.tipo}`} />}
                       </td>
                       <td className="sdd__nc">{r.struttura}</td>
@@ -410,14 +410,14 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                           : r.tipo}
                       </td>
                       <td className="sdd__col-num">
-                        <span className="sdd__val">{r.edist}<Tooltip text={`Disponibilità reale: ${r.reale} Cam.`}><i className="fa-light fa-circle-info sdd__info" aria-hidden="true" /></Tooltip></span>
+                        <span className="sdd__val">{r.edist}<Tooltip text={`Disponibilità reale: ${r.reale} Cam.`}><i className="fa-solid fa-circle-info sdd__info" aria-hidden="true" /></Tooltip></span>
                       </td>
                       <td className="sdd__col-num">
                         <span className="sdd__val">
                           {r.suggerito}
                           {r.trend === 'up' && <i className="fa-light fa-arrow-up sdd__trend-up" aria-hidden="true" />}
                           {r.trend === 'down' && <i className="fa-light fa-arrow-down sdd__trend-down" aria-hidden="true" />}
-                          <Tooltip content={<span className="sdd__tip">Occupancy: {r.occupancy}%<br />BookingWindow: {r.bookingWindow} giorni<br />OVP: {r.ovp}% OVL: {r.ovl}%</span>}><i className="fa-light fa-circle-info sdd__info" aria-hidden="true" /></Tooltip>
+                          <Tooltip content={<span className="sdd__tip">Occupancy: {r.occupancy}%<br />BookingWindow: {r.bookingWindow} giorni<br />OVP: {r.ovp}% OVL: {r.ovl}%</span>}><i className="fa-solid fa-circle-info sdd__info" aria-hidden="true" /></Tooltip>
                         </span>
                       </td>
                       <td className="sdd__col-num">
@@ -442,10 +442,10 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
         {show.gruppi && (
           <section className="sdd__panel">
             <header className="sdd__panel-head">
-              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-light fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
+              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
               <h2 className="sdd__panel-title">Richieste per gruppi</h2>
               <div className="sdd__panel-tools">
-                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-light fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
+                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-regular fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
               </div>
             </header>
             <div className="sdd__scroll">
@@ -467,7 +467,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                       <td>
                         <div className="sdd__gruppo">
                           <span className="sdd__gruppo-info">
-                            {r.codice} - {r.label} - {r.periodo} - <i className="fa-light fa-bed" aria-hidden="true" />{r.camere} <i className="fa-light fa-user" aria-hidden="true" />{r.persone} - Tot {r.tot}
+                            {r.codice} - {r.label} - {r.periodo} - <i className="fa-solid fa-bed" aria-hidden="true" />{r.camere} <i className="fa-solid fa-user" aria-hidden="true" />{r.persone} - Tot {r.tot}
                           </span>
                           <button type="button" className="sdd__gruppo-link">Conferma senza importo extra.</button>
                         </div>

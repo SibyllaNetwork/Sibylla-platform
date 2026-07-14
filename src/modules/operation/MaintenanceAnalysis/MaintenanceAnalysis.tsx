@@ -114,7 +114,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
           <i className="fa-light fa-chart-line" /> Visualizza
         </button>
         <button type="button" className="sib-btn sib-btn--icon maint-an__info" title="Info" aria-label="Info">
-          <i className="fa-light fa-circle-info" />
+          <i className="fa-regular fa-circle-info" />
         </button>
       </div>
 
@@ -157,7 +157,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
                   <tr>
                     <td>
                       <button type="button" className="maint-an__expand-btn" onClick={() => toggleRow(d.reparto)} aria-label={expandedRows.has(d.reparto) ? 'Comprimi' : 'Espandi'}>
-                        <i className={`fa-light fa-${expandedRows.has(d.reparto) ? 'circle-minus' : 'circle-plus'}`} />
+                        <i className={`fa-solid fa-${expandedRows.has(d.reparto) ? 'circle-minus' : 'circle-plus'}`} />
                       </button>
                       <span>{d.reparto}</span>
                     </td>
@@ -205,7 +205,7 @@ export default function MaintenanceAnalysis({ navigate }: { navigate: (p: string
           <div className="maint-an__section-title">
             Interventi per personale
             <button type="button" className="maint-an__personale-ico" title="Personale" aria-label="Personale">
-              <i className="fa-light fa-users" />
+              <i className="fa-regular fa-users" />
             </button>
           </div>
 

@@ -251,7 +251,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
                 title="Configura suggerimenti"
                 disabled={!suggerimentiOn}
               >
-                <i className="fa-light fa-gear" aria-hidden="true" />
+                <i className="fa-regular fa-gear" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -262,7 +262,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
                 })}
                 title="Esporta grafico Guests & rooms analysis in PDF"
               >
-                <i className="fa-light fa-chart-line" aria-hidden="true" />
+                <i className="fa-regular fa-chart-line" aria-hidden="true" />
                 <span>PDF</span>
               </button>
             </div>
@@ -271,10 +271,10 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
 
         <div className="griglia-disp__export">
           <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS" onClick={handleXls}>
-            <i className="fa-light fa-file-excel" aria-hidden="true" />
+            <i className="fa-regular fa-file-excel" aria-hidden="true" />
           </button>
           <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF" onClick={handlePdf}>
-            <i className="fa-light fa-file-pdf" aria-hidden="true" />
+            <i className="fa-regular fa-file-pdf" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -312,19 +312,19 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
               <th className="griglia-disp__th griglia-disp__th--struct" rowSpan={2}>Struttura</th>
               <th className="griglia-disp__th griglia-disp__th--lead griglia-disp__th--stanze" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
-                  <i className="fa-light fa-door-closed" aria-hidden="true" />
+                  <i className="fa-solid fa-door-closed" aria-hidden="true" />
                   Stanze
                 </span>
               </th>
               <th className="griglia-disp__th griglia-disp__th--lead griglia-disp__th--licenza" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
-                  <i className="fa-light fa-id-card" aria-hidden="true" />
+                  <i className="fa-solid fa-id-card" aria-hidden="true" />
                   Licenza
                 </span>
               </th>
               <th className="griglia-disp__th griglia-disp__th--buffer griglia-disp__th--lead" rowSpan={2}>
                 <span className="griglia-disp__th-stack">
-                  <i className="fa-light fa-layer-group" aria-hidden="true" />
+                  <i className="fa-solid fa-layer-group" aria-hidden="true" />
                   Buffer
                 </span>
                 <button
@@ -360,13 +360,13 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
                 <React.Fragment key={i}>
                   <th className="griglia-disp__th griglia-disp__th--sub griglia-disp__th--day-start">
                     <span className="griglia-disp__th-stack">
-                      <i className="fa-light fa-door-closed" aria-hidden="true" />
+                      <i className="fa-solid fa-door-closed" aria-hidden="true" />
                       Stanze
                     </span>
                   </th>
                   <th className="griglia-disp__th griglia-disp__th--sub">
                     <span className="griglia-disp__th-stack">
-                      <i className="fa-light fa-user" aria-hidden="true" />
+                      <i className="fa-solid fa-user" aria-hidden="true" />
                       Persone
                     </span>
                   </th>
@@ -380,7 +380,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
               <tr key={row.id} className="griglia-disp__tr">
                 <td className="griglia-disp__td griglia-disp__td--struct">
                   <div className="griglia-disp__hotel">
-                    <i className="griglia-disp__hotel-ico fa-light fa-hotel" aria-hidden="true" />
+                    <i className="griglia-disp__hotel-ico fa-solid fa-hotel" aria-hidden="true" />
                     <span className="griglia-disp__hotel-name">{row.nome}</span>
                   </div>
                 </td>
@@ -423,7 +423,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
             <tr className="griglia-disp__tr griglia-disp__tr--total">
               <td className="griglia-disp__td griglia-disp__td--struct">
                 <div className="griglia-disp__hotel griglia-disp__hotel--total">
-                  <i className="griglia-disp__hotel-ico fa-light fa-calculator" aria-hidden="true" />
+                  <i className="griglia-disp__hotel-ico fa-solid fa-calculator" aria-hidden="true" />
                   <span className="griglia-disp__hotel-name">Totale</span>
                 </div>
               </td>

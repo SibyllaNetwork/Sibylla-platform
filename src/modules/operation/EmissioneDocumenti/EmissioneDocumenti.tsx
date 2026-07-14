@@ -279,7 +279,7 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
           <InputField label="Riferimento" name="riferimento" placeholder="Riferimento" value={riferimento} onChange={(e) => setRiferimento(e.target.value)} />
         </div>
         <button type="button" className="emissione-doc__add-row" aria-label="Aggiungi modalità di pagamento">
-          <i className="fa-light fa-plus" />
+          <i className="fa-regular fa-plus" />
         </button>
       </div>
 

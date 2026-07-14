@@ -162,7 +162,7 @@ export default function VisualizzaContratto({ navigate }: { navigate: (p: string
                   <td>{c.finePeriodo}</td>
                   <td className="visualizza-contratto__td-c">
                     <button type="button" className="visualizza-contratto__icon-btn" aria-label="Visualizza">
-                      <i className="fa-light fa-eye" />
+                      <i className="fa-solid fa-eye" />
                     </button>
                   </td>
                 </tr>
@@ -220,7 +220,7 @@ export default function VisualizzaContratto({ navigate }: { navigate: (p: string
                   <td>{t.finePeriodo}</td>
                   <td className="visualizza-contratto__td-c">
                     <button type="button" className="visualizza-contratto__icon-btn" aria-label="Visualizza">
-                      <i className="fa-light fa-eye" />
+                      <i className="fa-solid fa-eye" />
                     </button>
                   </td>
                 </tr>

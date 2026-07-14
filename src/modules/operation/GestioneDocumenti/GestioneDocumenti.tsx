@@ -186,7 +186,7 @@ export default function GestioneDocumenti(_props: { navigate?: (p: string) => vo
         </div>
         <div className="gest-doc__bar-right">
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-light fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
           </Tooltip>
         </div>
       </div>
@@ -239,9 +239,9 @@ export default function GestioneDocumenti(_props: { navigate?: (p: string) => vo
                     <td><span className={`gest-doc__stato gest-doc__stato--${STATO_CLASS(r.stato)}`}>{r.stato}</span></td>
                     <td className="gest-doc__td-center">
                       <div className="gest-doc__actions">
-                        <Tooltip text="Visualizza documento"><button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza" onClick={() => setDetail(r)}><i className="fa-light fa-eye" /></button></Tooltip>
-                        <Tooltip text="Scarica PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="PDF"><i className="fa-light fa-file-pdf" /></button></Tooltip>
-                        {r.storico && <Tooltip text="Storico documento"><button type="button" className="sib-btn sib-btn--icon" aria-label="Storico" onClick={() => setStorico(r)}><i className="fa-light fa-clock-rotate-left" /></button></Tooltip>}
+                        <Tooltip text="Visualizza documento"><button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza" onClick={() => setDetail(r)}><i className="fa-solid fa-eye" /></button></Tooltip>
+                        <Tooltip text="Scarica PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="PDF"><i className="fa-solid fa-file-pdf" /></button></Tooltip>
+                        {r.storico && <Tooltip text="Storico documento"><button type="button" className="sib-btn sib-btn--icon" aria-label="Storico" onClick={() => setStorico(r)}><i className="fa-solid fa-clock-rotate-left" /></button></Tooltip>}
                       </div>
                     </td>
                   </tr>

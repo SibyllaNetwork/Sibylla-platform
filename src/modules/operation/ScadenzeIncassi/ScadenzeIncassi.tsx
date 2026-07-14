@@ -386,7 +386,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
                   <tr className={`scad-inc__row${st === 'scaduto' ? ' scad-inc__row--scaduto' : st === 'in-scadenza' ? ' scad-inc__row--scadenza' : ''}${isOpen ? ' scad-inc__row--open' : ''}`}>
                     <td className="scad-inc__td-center">
                       <button type="button" className={'scad-inc__chev-btn' + (isOpen ? ' is-open' : '')} aria-label={isOpen ? 'Comprimi' : 'Espandi'} onClick={() => toggleExpanded(d.id)}>
-                        <i className={`fa-light fa-chevron-${isOpen ? 'up' : 'down'}`} />
+                        <i className={`fa-solid fa-chevron-${isOpen ? 'up' : 'down'}`} />
                       </button>
                     </td>
                     <td className="scad-inc__td-strong scad-inc__td-nowrap">{d.numero}</td>
@@ -405,12 +405,12 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
                       <div className="scad-inc__actions">
                         <Tooltip text="Dettaglio completo">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Dettaglio completo" onClick={() => setDettaglioTarget(d.id)}>
-                            <i className="fa-light fa-eye" />
+                            <i className="fa-solid fa-eye" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Esporta PDF">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={() => esportaPdf(d.id)}>
-                            <i className="fa-light fa-file-pdf" />
+                            <i className="fa-solid fa-file-pdf" />
                           </button>
                         </Tooltip>
                       </div>

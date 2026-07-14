@@ -8,7 +8,7 @@ const BtnBack = ({ onClick, label = 'Indietro' }: { onClick?: () => void; label?
   const handle = onClick ?? (() => goBack?.())
   return (
     <button type="button" className="sib-btn sib-btn--back" onClick={handle}>
-      <i className="fa-duotone fa-arrow-left text-[12px]" aria-hidden="true" />
+      <i className="fa-solid fa-arrow-left text-[12px]" aria-hidden="true" />
       {label}
     </button>
   )

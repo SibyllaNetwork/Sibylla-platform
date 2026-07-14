@@ -299,10 +299,10 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
             <i className="fa-light fa-plus" /> Crea segnalazione
           </button>
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-light fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
           </Tooltip>
           <Tooltip text="Esporta in PDF">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={esportaPdf}><i className="fa-light fa-file-pdf" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button>
           </Tooltip>
         </div>
       </div>
@@ -348,7 +348,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
               </th>
               <th className="segnal__th-sortable" onClick={toggleSortData}>
                 Data {sortDataDir === null
-                  ? <i className="fa-light fa-arrow-down-arrow-up segnal__sort-ico" />
+                  ? <i className="fa-solid fa-arrow-down-arrow-up segnal__sort-ico" />
                   : sortDataDir === 'asc'
                     ? <i className="fa-solid fa-arrow-up segnal__sort-ico" />
                     : <i className="fa-solid fa-arrow-down segnal__sort-ico" />}
@@ -374,19 +374,19 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                 </td>
                 <td className="segnal__td-center">
                   <Tooltip text={s.reparto}>
-                    <i className={`fa-light ${REPARTO_ICON[s.reparto]} segnal__rep-ico`} />
+                    <i className={`fa-solid ${REPARTO_ICON[s.reparto]} segnal__rep-ico`} />
                   </Tooltip>
                 </td>
                 <td className="segnal__td-center">
                   {s.hasFoto ? (
                     <Tooltip text="Visualizza foto">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza foto" onClick={() => setPhotoRow(s)}><i className="fa-light fa-eye" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Visualizza foto" onClick={() => setPhotoRow(s)}><i className="fa-solid fa-eye" /></button>
                     </Tooltip>
                   ) : <span className="sib-cell--muted">-</span>}
                 </td>
                 <td>
                   <span className="segnal__genere">
-                    <i className={`fa-light ${GENERE_ICON[s.genereIntervento]} segnal__gen-ico`} />
+                    <i className={`fa-solid ${GENERE_ICON[s.genereIntervento]} segnal__gen-ico`} />
                     {s.genereIntervento}
                   </span>
                 </td>
@@ -402,7 +402,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                     }>
                       <span className={`segnal__stato segnal__stato--${s.statoLavorazione} segnal__stato--hint`}>
                         {STATO_LAV_LABEL[s.statoLavorazione]}
-                        <i className="fa-light fa-circle-info segnal__stato-ico" />
+                        <i className="fa-solid fa-circle-info segnal__stato-ico" />
                       </span>
                     </Tooltip>
                   ) : (
@@ -417,7 +417,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                         <div className="segnal__desc-info-text">{s.descrizione}</div>
                       </div>
                     }>
-                      <i className="fa-light fa-circle-info segnal__desc-ico" />
+                      <i className="fa-solid fa-circle-info segnal__desc-ico" />
                     </Tooltip>
                   ) : <span className="sib-cell--muted">-</span>}
                 </td>
@@ -427,13 +427,13 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
                 <td className="segnal__td-center">
                   <div className="segnal__actions">
                     <Tooltip text="Assegna intervento">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Assegna intervento" onClick={() => setAssignRow(s)}><i className="fa-light fa-user-gear" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Assegna intervento" onClick={() => setAssignRow(s)}><i className="fa-solid fa-user-gear" /></button>
                     </Tooltip>
                     <Tooltip text="Modifica segnalazione">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => setEditRow(s)}><i className="fa-light fa-pen" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => setEditRow(s)}><i className="fa-solid fa-pen" /></button>
                     </Tooltip>
                     <Tooltip text="Elimina segnalazione">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteSegnalazione(s)}><i className="fa-light fa-trash-can" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteSegnalazione(s)}><i className="fa-solid fa-trash-can" /></button>
                     </Tooltip>
                   </div>
                 </td>

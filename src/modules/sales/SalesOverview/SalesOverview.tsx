@@ -138,7 +138,7 @@ export default function SalesOverview({ navigate }: { navigate: (p: string) => v
           <i className="fa-light fa-chart-line" /> Visualizza
         </button>
         <button type="button" className="sib-btn sib-btn--icon sales-overview__info" title="Info" aria-label="Info">
-          <i className="fa-light fa-circle-info" />
+          <i className="fa-regular fa-circle-info" />
         </button>
       </div>
 

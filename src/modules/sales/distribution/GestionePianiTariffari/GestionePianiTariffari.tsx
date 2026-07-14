@@ -109,12 +109,12 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p: str
           <div className="piani__tree" style={{ paddingLeft: 12 + depth * 30 }}>
             <Tooltip text="Aggiungi piano figlio">
               <button type="button" className="piani__add" onClick={() => openChild(sez, node)}>
-                <i className="fa-light fa-plus" aria-hidden="true" />
+                <i className="fa-solid fa-plus" aria-hidden="true" />
               </button>
             </Tooltip>
             <span className="piani__tree-line" aria-hidden="true" />
             <span className="piani__folder" aria-hidden="true">
-              <i className="fa-light fa-folder" />
+              <i className="fa-solid fa-folder" />
               <span className="piani__folder-eur">€</span>
             </span>
           </div>

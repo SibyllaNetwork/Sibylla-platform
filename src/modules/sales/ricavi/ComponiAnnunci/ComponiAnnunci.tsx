@@ -567,22 +567,22 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
                       <div className="ca-board__actions">
                         <Tooltip text="Anteprima da stampare">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Anteprima da stampare" onClick={() => apriAnteprima(b)}>
-                            <i className="fa-light fa-eye" />
+                            <i className="fa-solid fa-eye" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Modifica contratto">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica contratto" onClick={() => apriContratto(b)}>
-                            <i className="fa-light fa-file-pen" />
+                            <i className="fa-solid fa-file-pen" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Scarica PDF del contratto">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Scarica PDF del contratto" onClick={() => scaricaPdf(b)}>
-                            <i className="fa-light fa-file-pdf" />
+                            <i className="fa-solid fa-file-pdf" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Elimina">
                           <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => eliminaBacheca(b.id)}>
-                            <i className="fa-light fa-trash" />
+                            <i className="fa-solid fa-trash" />
                           </button>
                         </Tooltip>
                         <Tooltip text={b.stato === 'Pubblicato' ? 'Già pubblicato in Agorà' : 'Pubblica in Agorà'}>
@@ -776,7 +776,7 @@ function ContrattoPreview({ contratto, onPatch, onSalva, onChiudi, onAnteprima, 
   )
   const DelRow = ({ onClick }: { onClick: () => void }) => (
     <button type="button" className="ca-doc-delrow" title="Elimina riga" onClick={onClick}>
-      <i className="fa-light fa-trash" />
+      <i className="fa-solid fa-trash" />
     </button>
   )
 

@@ -123,7 +123,7 @@ export default function FbVociMenu() {
               : data.voci.map((v) => (
                 <tr key={v.id}>
                   <td>{v.nome}</td><td>{v.gruppo}</td>
-                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button></td>
                 </tr>
               ))}
           </tbody>

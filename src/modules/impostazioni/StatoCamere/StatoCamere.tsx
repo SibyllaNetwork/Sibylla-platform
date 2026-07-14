@@ -184,12 +184,12 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <i className="fa-light fa-magnifying-glass stato-cam__search-ico" />
+            <i className="fa-regular fa-magnifying-glass stato-cam__search-ico" />
           </div>
         </div>
 
         <button type="button" className="sib-btn sib-btn--icon stato-cam__refresh" title="Aggiorna" aria-label="Aggiorna">
-          <i className="fa-light fa-arrows-rotate" />
+          <i className="fa-regular fa-arrows-rotate" />
         </button>
 
         <div className="stato-cam__bar-actions">

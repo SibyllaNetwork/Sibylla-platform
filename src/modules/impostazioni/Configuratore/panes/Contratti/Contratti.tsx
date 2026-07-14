@@ -83,7 +83,7 @@ export default function Contratti() {
           <label>Upload contratto</label>
           <label className="contratti__upload">
             <span className="contratti__upload-name">{fileName || ' '}</span>
-            <i className="fa-light fa-arrow-up-from-bracket" aria-hidden="true" />
+            <i className="fa-regular fa-arrow-up-from-bracket" aria-hidden="true" />
             <input
               type="file"
               accept=".pdf,.doc,.docx"
@@ -98,7 +98,7 @@ export default function Contratti() {
           aria-label="Aggiungi contratto"
           title="Aggiungi contratto"
         >
-          <i className="fa-light fa-circle-plus" />
+          <i className="fa-regular fa-circle-plus" />
         </button>
       </div>
 
@@ -158,10 +158,10 @@ export default function Contratti() {
                       </td>
                       <td className="contratti__td contratti__td--actions">
                         <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica">
-                          <i className="fa-light fa-pen" />
+                          <i className="fa-solid fa-pen" />
                         </button>
                         <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina">
-                          <i className="fa-light fa-trash" />
+                          <i className="fa-solid fa-trash" />
                         </button>
                       </td>
                     </tr>

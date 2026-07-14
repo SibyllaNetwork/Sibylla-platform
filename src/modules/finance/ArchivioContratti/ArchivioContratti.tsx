@@ -143,14 +143,14 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
                     {c.hasDoc && (
                       <Tooltip text="Apri contratto">
                         <button type="button" className="archivio__contact-btn" aria-label="Apri contratto">
-                          <i className="fa-light fa-file-contract" />
+                          <i className="fa-solid fa-file-contract" />
                         </button>
                       </Tooltip>
                     )}
                     {c.hasEmail && (
                       <Tooltip text="Invia email">
                         <button type="button" className="archivio__contact-btn" aria-label="Invia email">
-                          <i className="fa-light fa-envelope" />
+                          <i className="fa-solid fa-envelope" />
                         </button>
                       </Tooltip>
                     )}
@@ -167,12 +167,12 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
                         disabled={c.scaduto}
                         aria-label="Valida contratto"
                       >
-                        <i className="fa-light fa-circle-check" />
+                        <i className="fa-solid fa-circle-check" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Visualizza">
                       <button type="button" className="sib-btn sib-btn--icon" disabled={c.scaduto} aria-label="Visualizza">
-                        <i className="fa-light fa-eye" />
+                        <i className="fa-solid fa-eye" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Visualizza note">
@@ -182,7 +182,7 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
                         onClick={() => toggleNotes(c.id)}
                         aria-label="Visualizza note"
                       >
-                        <i className={'fa-light ' + (notes[c.id] ? 'fa-note-sticky' : 'fa-clipboard')} />
+                        <i className={'fa-solid ' + (notes[c.id] ? 'fa-note-sticky' : 'fa-clipboard')} />
                       </button>
                     </Tooltip>
                     <Tooltip text="Scarica PDF">
@@ -193,7 +193,7 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
                         onClick={() => downloadPdf(c)}
                         aria-label="Scarica PDF"
                       >
-                        <i className="fa-light fa-file-pdf" />
+                        <i className="fa-solid fa-file-pdf" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Elimina">
@@ -203,7 +203,7 @@ export default function ArchivioContratti({ navigate }: { navigate: (p: string) 
                         onClick={() => remove(c.id)}
                         aria-label="Elimina"
                       >
-                        <i className="fa-light fa-trash" />
+                        <i className="fa-solid fa-trash" />
                       </button>
                     </Tooltip>
                   </span>

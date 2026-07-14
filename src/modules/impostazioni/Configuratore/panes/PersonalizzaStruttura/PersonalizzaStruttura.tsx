@@ -144,8 +144,8 @@ export default function PersonalizzaStruttura() {
                 </select>
               </td>
               <td className="personalizza-struttura__cell-actions">
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-pen" /></button>
+                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button>
               </td>
             </tr>
           ))}

@@ -94,13 +94,13 @@ export default function PianificaCampagna({ navigate }: { navigate: (p: string) 
           <div className="pianif__date-range">
             <InputField
               name="data-inizio" label="Data inizio" type="text"
-              iconLeft="fa-light fa-calendar"
+              iconLeft="fa-regular fa-calendar"
               value={formatDateIt(dataInizio)}
               onChange={e => setDataInizio(parseDateIt(e.target.value))}
             />
             <InputField
               name="data-fine" label="Data fine" type="text"
-              iconLeft="fa-light fa-calendar"
+              iconLeft="fa-regular fa-calendar"
               value={formatDateIt(dataFine)}
               onChange={e => setDataFine(parseDateIt(e.target.value))}
             />
@@ -125,7 +125,7 @@ export default function PianificaCampagna({ navigate }: { navigate: (p: string) 
                     <td className="pianif__td-date">
                       {s.kind === 'sub' ? (
                         <span className="pianif__sub-arrow" aria-hidden="true">
-                          <i className="fa-light fa-arrow-turn-down-right" />
+                          <i className="fa-solid fa-arrow-turn-down-right" />
                         </span>
                       ) : (
                         s.date
@@ -166,7 +166,7 @@ export default function PianificaCampagna({ navigate }: { navigate: (p: string) 
                         </td>
                         <td>
                           <button type="button" className="pianif__upload-btn">
-                            Upload <i className="fa-light fa-arrow-up-from-bracket" />
+                            Upload <i className="fa-solid fa-arrow-up-from-bracket" />
                           </button>
                         </td>
                         <td className="pianif__td-num pianif__td-muted">{s.ricavo ? `${s.ricavo}€` : '--'}</td>
@@ -176,18 +176,18 @@ export default function PianificaCampagna({ navigate }: { navigate: (p: string) 
                       <span className="pianif__row-actions">
                         <Tooltip text="Modifica">
                           <button type="button" className="pianif__action" aria-label="Modifica">
-                            <i className="fa-light fa-pen-to-square" />
+                            <i className="fa-solid fa-pen-to-square" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Elimina">
                           <button type="button" className="pianif__action" aria-label="Elimina" onClick={() => remove(s.id)}>
-                            <i className="fa-light fa-trash" />
+                            <i className="fa-solid fa-trash" />
                           </button>
                         </Tooltip>
                         {s.kind === 'slot' && (
                           <Tooltip text="Aggiungi passaggio">
                             <button type="button" className="pianif__action" aria-label="Aggiungi passaggio" onClick={() => addSubRow(s.id)}>
-                              <i className="fa-light fa-circle-plus" />
+                              <i className="fa-solid fa-circle-plus" />
                             </button>
                           </Tooltip>
                         )}

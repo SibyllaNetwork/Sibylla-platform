@@ -92,7 +92,7 @@ export default function FasceEta() {
                 <tr key={key}>
                   <td className="fasce-eta__td--name">
                     <span className="fasce-eta__name">
-                      <i className={`fa-light fa-${icon}`} aria-hidden="true" />
+                      <i className={`fa-solid fa-${icon}`} aria-hidden="true" />
                       <span>{label}</span>
                     </span>
                   </td>

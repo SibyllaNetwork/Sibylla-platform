@@ -16,7 +16,7 @@
     gap: $space-md
 
   &__info
-    color: $text-inactive
+    color: $primary
     font-size: 16px
     margin-bottom: 10px
     cursor: help
@@ -26,6 +26,11 @@
     align-items: center
     gap: 8px
     flex-wrap: wrap
+
+    // Icone della toolbar (bottoni-azione icon-only): blu Platform 16px
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
 
   // ── Tabella (compatta: deve stare nei laptop senza scroll orizzontale) ───────
   &__table

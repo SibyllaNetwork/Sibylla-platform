@@ -166,7 +166,7 @@ export default function MappingSegmentoMercato() {
                     <tr key={h.id}>
                       <td className="mapping-segmento__td--name">{h.nome}</td>
                       <td className="mapping-segmento__td--arrow">
-                        <i className="fa-light fa-arrow-right-long" aria-hidden="true" />
+                        <i className="fa-solid fa-arrow-right-long" aria-hidden="true" />
                       </td>
                       <td>
                         <select

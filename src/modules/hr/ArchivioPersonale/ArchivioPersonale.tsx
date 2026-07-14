@@ -221,16 +221,16 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                 <td>
                   <div className="flex items-center gap-3">
                     <button className="sib-btn sib-btn--icon" title="Dettaglio dipendente" onClick={() => setDocPerson(p)}>
-                      <i className="fa-light fa-eye" />
+                      <i className="fa-solid fa-eye" />
                     </button>
                     <button className="sib-btn sib-btn--icon" title="Modifica" onClick={() => modificaPersona(p)}>
-                      <i className="fa-light fa-pen" />
+                      <i className="fa-solid fa-pen" />
                     </button>
                     <button className="sib-btn sib-btn--icon" title="Documento contratto">
-                      <i className="fa-light fa-file-pdf" />
+                      <i className="fa-solid fa-file-pdf" />
                     </button>
                     <button className="sib-btn sib-btn--icon" title="Elimina">
-                      <i className="fa-light fa-trash-can" />
+                      <i className="fa-solid fa-trash-can" />
                     </button>
                   </div>
                 </td>

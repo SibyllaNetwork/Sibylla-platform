@@ -82,7 +82,7 @@ export default function Interfacce({ navigate }: { navigate: (p: string) => void
                     onClick={() => toggle(s.id)}
                   >
                     <td className="interfacce__td-toggle">
-                      <i className={'fa-light fa-chevron-' + (isOpen ? 'up' : 'down')} aria-hidden="true" />
+                      <i className={'fa-solid fa-chevron-' + (isOpen ? 'up' : 'down')} aria-hidden="true" />
                     </td>
                     <td className="interfacce__td-name">
                       <SystemLogo s={s} />

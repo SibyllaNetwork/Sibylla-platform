@@ -699,6 +699,11 @@
   display: flex
   gap: 5px
 
+  // Icone toolbar allineate allo standard: blu Platform, 16px (box mantenuto)
+  .sib-btn--icon i
+    color: $primary
+    font-size: 16px
+
   &__item
     position: relative
 
@@ -724,10 +729,16 @@
     background: $primary
     color: $white
 
+    i
+      color: $white
+
     &:hover
       border-color: $primary
       background: $primary
       color: $white
+
+      i
+        color: $white
 
 // ═══ TIMELINE ═════════════════════════════════════════════════════════════════
 // Wrapper della timeline: contiene la fascia scrollabile + i pulsanti laterali

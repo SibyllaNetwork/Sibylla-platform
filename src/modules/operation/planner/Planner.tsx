@@ -1,6 +1,6 @@
 // ─── Planner ──────────────────────────────────────────────────────────────────
 import React, { useState } from 'react';
-import BtnBack from '../../../core/components/BtnBack';
+import PageHead from '../../../core/components/PageHead';
 import { SelectField } from '../../../core/components/form';
 
 import { PlannerProps, Pren } from './planner.types';
@@ -54,12 +54,7 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
         {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <div className="planner__header">
-          <BtnBack />
-
-          <h1 className="planner__title">Planner</h1>
-          <p className="planner__subtitle">
-            Gestione operativa in tempo reale delle prenotazioni e della disponibilità delle camere
-          </p>
+          <PageHead title="Planner" subtitle="Gestione operativa in tempo reale delle prenotazioni e della disponibilità delle camere" />
 
           {/* ── FILTRI ────────────────────────────────────────────────────── */}
           <div className="planner__filters">

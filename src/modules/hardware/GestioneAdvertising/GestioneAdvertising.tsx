@@ -78,7 +78,7 @@ export default function GestioneAdvertising({ navigate }: { navigate: (p: string
                       aria-label={`Dettaglio totem ${s.struttura}`}
                     >
                       <span className="adv__pos-icon" aria-hidden="true">
-                        <i className="fa-light fa-mobile-screen" />
+                        <i className="fa-solid fa-mobile-screen" />
                       </span>
                       <span className="adv__pos-text">
                         <strong>{s.struttura}</strong>
@@ -94,7 +94,7 @@ export default function GestioneAdvertising({ navigate }: { navigate: (p: string
                         aria-label="Localizza sulla mappa"
                         onClick={() => setSelectedSpace(s)}
                       >
-                        <i className="fa-light fa-location-dot" aria-hidden="true" />
+                        <i className="fa-solid fa-location-dot" aria-hidden="true" />
                       </button>
                     </Tooltip>
                   </td>

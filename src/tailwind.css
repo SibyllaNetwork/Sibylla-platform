@@ -166,8 +166,8 @@
 
   /* ── Back (navigazione indietro) ───────────────────────────────── */
   .sib-btn--back {
-    @apply bg-transparent border border-line text-ink-muted !h-8 px-3 text-xs mb-3.5
-           hover:enabled:bg-white hover:enabled:text-primary hover:enabled:border-primary-300;
+    @apply bg-transparent border-0 text-ink-muted !h-8 px-3 text-xs mb-3.5
+           hover:enabled:bg-primary hover:enabled:text-white;
   }
 
   /* ── Dimensioni ────────────────────────────────────────────────── */
@@ -211,6 +211,24 @@
   }
   .sib-table tbody tr:last-child td {
     @apply border-b-0;
+  }
+
+  /* Standard icone tabella (piattaforma): i bottoni-azione dentro le tabelle
+     sono senza box, blu Platform, 16px. Le icone a colore semantico (frecce
+     trend, stati) mantengono il proprio colore via classe piu specifica. */
+  .sib-table .sib-btn--icon {
+    @apply w-auto h-auto border-0 bg-transparent;
+    padding: 4px 5px;
+  }
+  .sib-table .sib-btn--icon i {
+    color: var(--color-primary);
+    font-size: 16px;
+  }
+  .sib-table .sib-btn--icon:hover:not(:disabled) {
+    background: var(--color-primary-50);
+  }
+  .sib-table .sib-btn--icon:disabled i {
+    color: var(--color-text-disabled);
   }
 
   .sib-empty {

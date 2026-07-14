@@ -166,7 +166,7 @@ export default function Stagionalita() {
                       onClick={() => delRow(i)}
                       aria-label="Elimina stagione"
                     >
-                      <i className="fa-light fa-trash" />
+                      <i className="fa-solid fa-trash" />
                     </button>
                   )}
                 </td>

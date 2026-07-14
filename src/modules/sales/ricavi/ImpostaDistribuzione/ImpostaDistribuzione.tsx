@@ -187,7 +187,7 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           />
         </div>
         <button type="button" className="sib-btn sib-btn--secondary imposta-dist__invita" onClick={() => setInvitaOpen(true)}>
-          <i className="fa-light fa-envelope" /> Invita nuovo operatore
+          <i className="fa-regular fa-envelope" /> Invita nuovo operatore
         </button>
       </div>
 

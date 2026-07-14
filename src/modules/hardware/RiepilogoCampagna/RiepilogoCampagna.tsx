@@ -86,7 +86,7 @@ export default function RiepilogoCampagna({ navigate }: { navigate: (p: string) 
                           aria-label="Anteprima video"
                           onClick={() => setPreviewSpot(s)}
                         >
-                          <i className="fa-light fa-folder-image" />
+                          <i className="fa-solid fa-folder-image" />
                         </button>
                       </Tooltip>
                     ) : (
@@ -100,12 +100,12 @@ export default function RiepilogoCampagna({ navigate }: { navigate: (p: string) 
                     <span className="riep-camp__row-actions">
                       <Tooltip text="Modifica">
                         <button type="button" className="riep-camp__action" aria-label="Modifica">
-                          <i className="fa-light fa-pen-to-square" />
+                          <i className="fa-solid fa-pen-to-square" />
                         </button>
                       </Tooltip>
                       <Tooltip text="Elimina">
                         <button type="button" className="riep-camp__action" aria-label="Elimina" onClick={() => remove(s.id)}>
-                          <i className="fa-light fa-trash" />
+                          <i className="fa-solid fa-trash" />
                         </button>
                       </Tooltip>
                     </span>

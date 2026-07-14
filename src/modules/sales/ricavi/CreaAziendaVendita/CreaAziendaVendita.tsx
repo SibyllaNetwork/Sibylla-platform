@@ -137,12 +137,12 @@ export default function CreaAziendaVendita({ navigate }: { navigate: (p: string)
                   <div className="flex items-center justify-center gap-1">
                     <Tooltip text="Modifica">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => modifica(a)}>
-                        <i className="fa-light fa-pen-to-square" />
+                        <i className="fa-solid fa-pen-to-square" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Elimina">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => elimina(a.id)}>
-                        <i className="fa-light fa-trash" />
+                        <i className="fa-solid fa-trash" />
                       </button>
                     </Tooltip>
                   </div>

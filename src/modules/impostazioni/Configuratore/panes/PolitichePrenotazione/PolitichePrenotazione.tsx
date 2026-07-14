@@ -246,7 +246,7 @@ export default function PolitichePrenotazione() {
                 <td>
                   {p.DocumentoHtml || p.TestoIt ? (
                     <button type="button" className="politiche-prenotazione__doc-link" onClick={() => openPreview(p.Nome, docHtmlOf(p))} title="Visualizza documento">
-                      <i className="fa-light fa-file-lines" /> Documento
+                      <i className="fa-solid fa-file-lines" /> Documento
                     </button>
                   ) : '—'}
                 </td>
@@ -258,13 +258,13 @@ export default function PolitichePrenotazione() {
                 <td className="politiche-prenotazione__col-c">
                   <div className="politiche-prenotazione__actions-cell">
                     <button type="button" className="sib-btn sib-btn--icon" title="Anteprima documento" aria-label="Anteprima documento" onClick={() => openPreview(p.Nome, docHtmlOf(p))}>
-                      <i className="fa-light fa-eye" />
+                      <i className="fa-solid fa-eye" />
                     </button>
                     <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica" onClick={() => openEditor({ ...p })}>
-                      <i className="fa-light fa-pen" />
+                      <i className="fa-solid fa-pen" />
                     </button>
                     <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina" onClick={() => remove(p)}>
-                      <i className="fa-light fa-trash" />
+                      <i className="fa-solid fa-trash" />
                     </button>
                   </div>
                 </td>

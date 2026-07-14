@@ -1218,7 +1218,7 @@ function ColSearchHeader(props: ColSearchHeaderProps) {
         onClick={onToggleOpen}
         aria-label={`Cerca in ${label}`}
       >
-        <i className="fa-light fa-magnifying-glass" />
+        <i className="fa-solid fa-magnifying-glass" />
       </button>
       {extraIcon}
       {open && (

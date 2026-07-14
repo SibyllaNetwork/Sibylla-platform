@@ -194,7 +194,7 @@ export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string)
   }
 
   const sortIcon = (k: SortKey) => {
-    if (sortKey !== k) return <i className="fa-light fa-arrow-down-arrow-up" />
+    if (sortKey !== k) return <i className="fa-solid fa-arrow-down-arrow-up" />
     return sortDir === 'asc'
       ? <i className="fa-solid fa-arrow-up" />
       : <i className="fa-solid fa-arrow-down" />
@@ -218,7 +218,7 @@ export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string)
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <i className="fa-light fa-magnifying-glass movimenti-soggiorno__search-ico" />
+            <i className="fa-regular fa-magnifying-glass movimenti-soggiorno__search-ico" />
           </div>
         </div>
         <div className="movimenti-soggiorno__field">
@@ -285,7 +285,7 @@ export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string)
                       disabled={r.movimenti.length === 0}
                       onClick={() => toggleExpanded(r.id)}
                     >
-                      <i className={`fa-light fa-chevron-${expanded.has(r.id) ? 'up' : 'down'}`} />
+                      <i className={`fa-solid fa-chevron-${expanded.has(r.id) ? 'up' : 'down'}`} />
                     </button>
                   </td>
                   <td>{r.prenotazioneNum}</td>

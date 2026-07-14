@@ -130,17 +130,17 @@ export default function MieiContrattiAcquisto({ navigate }: { navigate?: (p: str
                 <td className="mca__rs">{r.ragioneSociale}</td>
                 <td className="mca__td-center">
                   <div className="mca__contacts">
-                    <Tooltip text="Email / contatti"><button type="button" className="sib-btn sib-btn--icon" aria-label="Email" onClick={() => setContatti(r)}><i className="fa-light fa-envelope" /></button></Tooltip>
-                    <Tooltip text="Rubrica contatti"><button type="button" className="sib-btn sib-btn--icon" aria-label="Contatti" onClick={() => setContatti(r)}><i className="fa-light fa-address-card" /></button></Tooltip>
+                    <Tooltip text="Email / contatti"><button type="button" className="sib-btn sib-btn--icon" aria-label="Email" onClick={() => setContatti(r)}><i className="fa-solid fa-envelope" /></button></Tooltip>
+                    <Tooltip text="Rubrica contatti"><button type="button" className="sib-btn sib-btn--icon" aria-label="Contatti" onClick={() => setContatti(r)}><i className="fa-solid fa-address-card" /></button></Tooltip>
                   </div>
                 </td>
                 <td>{r.prodotti.length === 0 ? <span className="sib-cell--muted">-</span> : <div className="mca__voci">{vociLabel(r.prodotti).map((v, i) => <span key={i}>{v}</span>)}</div>}</td>
                 <td>{r.servizi.length === 0 ? <span className="sib-cell--muted">-</span> : <div className="mca__voci">{vociLabel(r.servizi).map((v, i) => <span key={i}>{v}</span>)}</div>}</td>
                 <td className="mca__td-center">
                   <div className="mca__actions">
-                    <Tooltip text="Scarica PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="PDF"><i className="fa-light fa-file-pdf" /></button></Tooltip>
-                    <Tooltip text="Modifica contratto"><button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => modifica(r)}><i className="fa-light fa-pen" /></button></Tooltip>
-                    <Tooltip text="Elimina contratto"><button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteContratto(r)}><i className="fa-light fa-trash-can" /></button></Tooltip>
+                    <Tooltip text="Scarica PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="PDF"><i className="fa-solid fa-file-pdf" /></button></Tooltip>
+                    <Tooltip text="Modifica contratto"><button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => modifica(r)}><i className="fa-solid fa-pen" /></button></Tooltip>
+                    <Tooltip text="Elimina contratto"><button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteContratto(r)}><i className="fa-solid fa-trash-can" /></button></Tooltip>
                   </div>
                 </td>
               </tr>

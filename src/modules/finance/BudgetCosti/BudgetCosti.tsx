@@ -112,13 +112,13 @@ export default function BudgetCosti({ navigate }: { navigate: (p: string) => voi
 
         <div className="budget-costi__actions">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={ripristina}>
-            <i className="fa-light fa-eraser" /> Ripristina
+            <i className="fa-regular fa-eraser" /> Ripristina
           </button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('cabina-controllo')}>
-            <i className="fa-light fa-magnifying-glass-chart" /> Cabina di controllo
+            <i className="fa-regular fa-magnifying-glass-chart" /> Cabina di controllo
           </button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('budget-complessivo')}>
-            <i className="fa-light fa-sack-dollar" /> Budget complessivo
+            <i className="fa-regular fa-sack-dollar" /> Budget complessivo
           </button>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function BudgetCosti({ navigate }: { navigate: (p: string) => voi
                       <em>€</em>
                       {past && (
                         <Tooltip text="Mese chiuso: inserire i costi effettivi consuntivati">
-                          <i className="fa-light fa-circle-info budget-costi__info" />
+                          <i className="fa-solid fa-circle-info budget-costi__info" />
                         </Tooltip>
                       )}
                     </span>

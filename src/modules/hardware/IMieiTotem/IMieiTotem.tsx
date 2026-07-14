@@ -76,7 +76,7 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
                       aria-label={`Dettaglio totem ${t.struttura}`}
                     >
                       <span className="totem__pos-icon" aria-hidden="true">
-                        <i className="fa-light fa-mobile-screen" />
+                        <i className="fa-solid fa-mobile-screen" />
                       </span>
                       <span className="totem__pos-text">
                         <strong>{t.struttura}</strong>
@@ -108,7 +108,7 @@ export default function IMieiTotem({ navigate }: { navigate: (p: string) => void
                         aria-label="Gestisci totem"
                         onClick={() => navigate('gest-advertising')}
                       >
-                        <i className="fa-light fa-folder-gear" aria-hidden="true" />
+                        <i className="fa-solid fa-folder-gear" aria-hidden="true" />
                       </button>
                     </Tooltip>
                   </td>

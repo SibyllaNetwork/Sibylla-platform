@@ -208,8 +208,8 @@ export default function PortafoglioAziendale({navigate}:{navigate:(p:string)=>vo
             />
             {movTab==="movimenti" && (
               <div className="paf__movimenti-actions">
-                <button type="button" className="sib-btn sib-btn--icon" title="Aggiorna" aria-label="Aggiorna"><i className="fa-light fa-arrows-rotate"/></button>
-                <button type="button" className="sib-btn sib-btn--icon" title="Esporta" aria-label="Esporta"><i className="fa-light fa-file-export"/></button>
+                <button type="button" className="sib-btn sib-btn--icon" title="Aggiorna" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate"/></button>
+                <button type="button" className="sib-btn sib-btn--icon" title="Esporta" aria-label="Esporta"><i className="fa-regular fa-file-export"/></button>
               </div>
             )}
           </div>

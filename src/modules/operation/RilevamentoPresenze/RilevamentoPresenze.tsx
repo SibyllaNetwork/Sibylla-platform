@@ -126,27 +126,27 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
           <DatePickerField name="data" label="Data" value={data} onChange={(e) => setData(e.target.value)} />
         </div>
 
-        <div className="ml-auto flex items-end gap-3 flex-wrap">
+        <div className="rilev-presenze__bar-right ml-auto flex items-end gap-3 flex-wrap">
           <button className="sib-btn sib-btn--icon" title="Esporta in Excel" aria-label="Esporta in Excel" onClick={esportaXls}>
-            <i className="fa-duotone fa-file-excel" />
+            <i className="fa-regular fa-file-excel" />
           </button>
 
           {/* Esporta XML: scelta intervallo da popover */}
           <div className="relative">
             <button className="sib-btn sib-btn--icon" title="Esporta in XML" aria-label="Esporta in XML" onClick={() => setXmlOpen((o) => !o)}>
-              <i className="fa-duotone fa-file-code" />
+              <i className="fa-regular fa-file-code" />
             </button>
             {xmlOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setXmlOpen(false)} />
                 <div className="rilev-presenze__xml-pop">
                   <div className="rilev-presenze__xml-title">
-                    <i className="fa-light fa-file-code" /> Esporta XML
+                    <i className="fa-regular fa-file-code" /> Esporta XML
                   </div>
                   <SelectField name="xmlInterval" label="Intervallo di giorni" value={xmlInterval}
                     onChange={(e) => setXmlInterval(e.target.value)} options={INTERVALLI_XML} />
                   <button type="button" className="sib-btn sib-btn--primary w-full" onClick={esportaXml}>
-                    <i className="fa-light fa-download" /> Esporta XML
+                    <i className="fa-regular fa-download" /> Esporta XML
                   </button>
                 </div>
               </>
@@ -154,10 +154,10 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
           </div>
           <DateRangeField nameFrom="periodoDa" nameTo="periodoA" label="Periodo" valueFrom={periodoDa} valueTo={periodoA} onChangeFrom={(e) => setPeriodoDa(e.target.value)} onChangeTo={(e) => setPeriodoA(e.target.value)} />
           <button className="sib-btn sib-btn--icon" title="Scarica report">
-            <i className="fa-duotone fa-download" />
+            <i className="fa-regular fa-download" />
           </button>
           <button className="sib-btn sib-btn--icon" title="Invia per email">
-            <i className="fa-duotone fa-envelope" />
+            <i className="fa-regular fa-envelope" />
           </button>
         </div>
       </div>

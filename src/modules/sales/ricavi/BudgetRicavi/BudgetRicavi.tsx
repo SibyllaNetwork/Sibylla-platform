@@ -118,7 +118,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <SelectField name="segmento" label="Segmenti" value={segmento} onChange={(e) => setSegmento(e.target.value)} options={SEGMENTI.map((s) => ({ value: s, label: s }))} />
           <SelectField name="anno" label="Anno" className="w-[110px]" value={anno} onChange={(e) => setAnno(e.target.value)} options={ANNI.map((a) => ({ value: a, label: a }))} />
           <Tooltip content="Configurando il budget aziendale in modalità aggregata non avrai un dettaglio analitico pesato per segmento" position="bottom">
-            <i className="fa-light fa-circle-info bdg-ric__info" />
+            <i className="fa-regular fa-circle-info bdg-ric__info" />
           </Tooltip>
         </div>
         <div className="bdg-ric__actions">
@@ -127,10 +127,10 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('cabina-controllo')}><i className="fa-light fa-gauge-high" /> Cabina di controllo</button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('budget-complessivo')}><i className="fa-light fa-coins" /> Budget complessivo</button>
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-light fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
           </Tooltip>
           <Tooltip text="Esporta in PDF">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-light fa-file-pdf" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button>
           </Tooltip>
         </div>
       </div>

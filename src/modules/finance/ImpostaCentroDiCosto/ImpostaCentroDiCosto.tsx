@@ -408,12 +408,12 @@ export default function ImpostaCentroDiCosto({ navigate }: { navigate: (p: strin
                       <span className="icc-actions">
                         <Tooltip text="Modifica">
                           <button className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => apriModifica(c)}>
-                            <i className="fa-light fa-pen" />
+                            <i className="fa-solid fa-pen" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Elimina">
                           <button className="sib-btn sib-btn--icon icc-actions__del" aria-label="Elimina" onClick={() => setDeleteTarget(c)}>
-                            <i className="fa-light fa-trash" />
+                            <i className="fa-solid fa-trash" />
                           </button>
                         </Tooltip>
                       </span>

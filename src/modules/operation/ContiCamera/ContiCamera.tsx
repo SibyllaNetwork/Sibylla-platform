@@ -214,7 +214,7 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
                       checked={selAddebiti.length === data.addebiti.length && data.addebiti.length > 0}
                       onChange={toggleAllAddebiti}
                     />
-                    <i className="fa-light fa-chevron-down conti-camera__chevron" />
+                    <i className="fa-solid fa-chevron-down conti-camera__chevron" />
                   </th>
                   <th>Camera</th>
                   <th>Data</th>
@@ -242,18 +242,18 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
                     <td>{a.pertinenza}</td>
                     <td>
                       {a.descrizione}
-                      {a.descrizioneInfo && <i className="fa-light fa-circle-info conti-camera__info-ico" />}
+                      {a.descrizioneInfo && <i className="fa-solid fa-circle-info conti-camera__info-ico" />}
                     </td>
                     <td className="conti-camera__td-num">{fmtCurrency(a.prezzo)}</td>
                     <td className="conti-camera__td-num">{a.iva} %</td>
                     <td>{a.trasf}</td>
                     <td>
                       <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" title="Modifica addebito" aria-label="Modifica addebito" onClick={() => setModModifica(a)}><i className="fa-light fa-pen" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Addebito frazionato" aria-label="Addebito frazionato" onClick={() => setModFrazionato(a)}><i className="fa-light fa-arrows-split-up-and-left" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Addebito in parti uguali" aria-label="Addebito in parti uguali" onClick={() => setModPartiUguali(a)}><i className="fa-light fa-equals" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Trasferisci addebito" aria-label="Trasferisci addebito" onClick={() => setModTrasferisci(a)}><i className="fa-light fa-right-left" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina" onClick={() => setModElimina(a)}><i className="fa-light fa-trash" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Modifica addebito" aria-label="Modifica addebito" onClick={() => setModModifica(a)}><i className="fa-solid fa-pen" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Addebito frazionato" aria-label="Addebito frazionato" onClick={() => setModFrazionato(a)}><i className="fa-solid fa-arrows-split-up-and-left" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Addebito in parti uguali" aria-label="Addebito in parti uguali" onClick={() => setModPartiUguali(a)}><i className="fa-solid fa-equals" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Trasferisci addebito" aria-label="Trasferisci addebito" onClick={() => setModTrasferisci(a)}><i className="fa-solid fa-right-left" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina" onClick={() => setModElimina(a)}><i className="fa-solid fa-trash" /></button>
                       </div>
                     </td>
                   </tr>
@@ -263,11 +263,11 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
           </div>
 
           <div className="conti-camera__bar">
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungi(true)}><i className="fa-light fa-circle-plus" /> Aggiungi addebito</button>
-            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-light fa-right-left" /> Trasferisci addebiti</button>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungi(true)}><i className="fa-regular fa-circle-plus" /> Aggiungi addebito</button>
+            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-regular fa-right-left" /> Trasferisci addebiti</button>
             <div className="conti-camera__estratto">
               <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEstrattoOpen((v) => !v)}>
-                <i className="fa-light fa-file-lines" /> Estratto conto <i className="fa-light fa-chevron-down" />
+                <i className="fa-regular fa-file-lines" /> Estratto conto <i className="fa-regular fa-chevron-down" />
               </button>
               {estrattoOpen && (
                 <>
@@ -328,9 +328,9 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
                     <td>{a.trasf}</td>
                     <td>
                       <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferisci"><i className="fa-light fa-right-left" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Documento"><i className="fa-light fa-file-lines" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina"><i className="fa-light fa-trash" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Trasferisci"><i className="fa-solid fa-right-left" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Documento"><i className="fa-solid fa-file-lines" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina"><i className="fa-solid fa-trash" /></button>
                       </div>
                     </td>
                   </tr>
@@ -367,8 +367,8 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
                     <td className="conti-camera__td-num">{doc.sospeso.toFixed(2).replace('.', ',')}</td>
                     <td>
                       <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-light fa-print" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-light fa-eye" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
                       </div>
                     </td>
                   </tr>

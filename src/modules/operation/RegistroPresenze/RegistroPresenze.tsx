@@ -261,7 +261,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
           </button>
           <div className="reg-presenze__legend-pop-wrap">
             <button className="sib-btn sib-btn--icon" aria-label="Legenda">
-              <i className="fa-light fa-circle-info reg-presenze__toolbar-ico" />
+              <i className="fa-regular fa-circle-info reg-presenze__toolbar-ico" />
             </button>
             <div className="reg-presenze__legend-pop" role="tooltip">
               <div className="reg-presenze__legend-pop-title">Legenda</div>
@@ -315,16 +315,16 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
               </div>
               <div className="reg-presenze__name-actions">
                 <button className="reg-presenze__name-action" title="Esporta XLS" aria-label="Esporta XLS" onClick={() => exportXls(d)}>
-                  <i className="fa-light fa-file-excel" />
+                  <i className="fa-solid fa-file-excel" />
                 </button>
                 <button className="reg-presenze__name-action" title="Modifica" aria-label="Modifica" onClick={() => openEdit(d)}>
-                  <i className="fa-light fa-pen" />
+                  <i className="fa-solid fa-pen" />
                 </button>
               </div>
             </div>
 
             <div className="reg-presenze__reparto" title={d.reparto} aria-label={d.reparto}>
-              <i className={`fa-light ${repartoIcon(d.reparto)} reg-presenze__reparto-ico`} />
+              <i className={`fa-solid ${repartoIcon(d.reparto)} reg-presenze__reparto-ico`} />
             </div>
 
             <div className="relative h-9 bg-canvas rounded">

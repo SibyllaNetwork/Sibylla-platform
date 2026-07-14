@@ -238,7 +238,7 @@ export default function EfficienzaOperativa({ navigate }: { navigate: (p: string
               </button>
             </div>
             <button type="button" className="eop__config-btn" onClick={() => navigate('configuratore')}>
-              <i className="fa-light fa-sliders" aria-hidden="true" /> Configuratore
+              <i className="fa-regular fa-sliders" aria-hidden="true" /> Configuratore
             </button>
             <button
               type="button"
@@ -247,7 +247,7 @@ export default function EfficienzaOperativa({ navigate }: { navigate: (p: string
               aria-pressed={notificaOn}
               title={notificaOn ? 'Notifica ricavo attiva — clicca per disattivare' : 'Notifica ricavo disattivata — clicca per attivare'}
             >
-              <i className={`fa-light ${notificaOn ? 'fa-bell' : 'fa-bell-slash'}`} aria-hidden="true" />
+              <i className={`fa-regular ${notificaOn ? 'fa-bell' : 'fa-bell-slash'}`} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function EfficienzaOperativa({ navigate }: { navigate: (p: string
                 <tr key={row.id} className="eop__tr">
                   <td className="eop__td eop__td--struct">
                     <div className="eop__hotel">
-                      <i className="eop__hotel-ico fa-light fa-hotel" aria-hidden="true" />
+                      <i className="eop__hotel-ico fa-solid fa-hotel" aria-hidden="true" />
                       <span className="eop__hotel-info">
                         <span className="eop__hotel-name">{row.nome}</span>
                         <span className="eop__hotel-meta">{row.destinazione} · {row.categoria}</span>

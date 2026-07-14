@@ -276,21 +276,21 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
 
         <div className="ass-inc__bar-right">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCreaOpen(true)}>
-            <i className="fa-light fa-plus" /> Crea incarico
+            <i className="fa-regular fa-plus" /> Crea incarico
           </button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setShowStat(true)}>
-            <i className="fa-light fa-chart-simple" /> Statistiche
+            <i className="fa-regular fa-chart-simple" /> Statistiche
           </button>
           <Tooltip text="Assegnazione manuale">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Assegnazione manuale" onClick={() => setShowManuale(true)}>
-              <i className="fa-light fa-hand" />
+              <i className="fa-regular fa-hand" />
             </button>
           </Tooltip>
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-light fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
           </Tooltip>
           <Tooltip text="Esporta in PDF">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={esportaPdf}><i className="fa-light fa-file-pdf" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button>
           </Tooltip>
         </div>
       </div>
@@ -309,7 +309,7 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
               </th>
               <th className="ass-inc__th-sortable" onClick={toggleSortData}>
                 Data ass. {sortDataDir === null
-                  ? <i className="fa-light fa-arrow-down-arrow-up ass-inc__sort-ico" />
+                  ? <i className="fa-solid fa-arrow-down-arrow-up ass-inc__sort-ico" />
                   : sortDataDir === 'asc'
                     ? <i className="fa-solid fa-arrow-up ass-inc__sort-ico" />
                     : <i className="fa-solid fa-arrow-down ass-inc__sort-ico" />}
@@ -349,7 +349,7 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
                 <td>{r.struttura}</td>
                 <td className="ass-inc__td-center">
                   <Tooltip text={r.reparto}>
-                    <i className={`fa-light ${REPARTO_ICON[r.reparto]} ass-inc__rep-ico`} />
+                    <i className={`fa-solid ${REPARTO_ICON[r.reparto]} ass-inc__rep-ico`} />
                   </Tooltip>
                 </td>
                 <td>
@@ -379,10 +379,10 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
                 <td className="ass-inc__td-center">
                   <div className="ass-inc__actions">
                     <Tooltip text="Modifica incarico">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => setEditRow(r)}><i className="fa-light fa-pen" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica" onClick={() => setEditRow(r)}><i className="fa-solid fa-pen" /></button>
                     </Tooltip>
                     <Tooltip text="Elimina incarico">
-                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteIncarico(r)}><i className="fa-light fa-trash-can" /></button>
+                      <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina" onClick={() => deleteIncarico(r)}><i className="fa-solid fa-trash-can" /></button>
                     </Tooltip>
                   </div>
                 </td>

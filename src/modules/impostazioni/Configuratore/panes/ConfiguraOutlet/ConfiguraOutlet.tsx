@@ -77,7 +77,7 @@ export default function ConfiguraOutlet() {
         className="sib-btn sib-btn--secondary configura-outlet__add"
         onClick={() => setShowAddSala((v) => !v)}
       >
-        <i className="fa-light fa-circle-plus" /> Aggiungi Sala
+        <i className="fa-regular fa-circle-plus" /> Aggiungi Sala
       </button>
 
       {showAddSala && (
@@ -133,8 +133,8 @@ export default function ConfiguraOutlet() {
               </td>
               <td>{s.nome}</td><td>{s.tavoli}</td><td>{s.pax}</td>
               <td className="configura-outlet__actions-cell">
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-pen" /></button>
+                <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button>
               </td>
             </tr>
           ))}
@@ -167,7 +167,7 @@ export default function ConfiguraOutlet() {
               className="configura-outlet__field"
               options={data.sale.map((s) => ({ value: s.id, label: s.nome }))}
             />
-            <button type="button" className="sib-btn sib-btn--secondary configura-outlet__add"><i className="fa-light fa-circle-plus" /> Aggiungi Turno</button>
+            <button type="button" className="sib-btn sib-btn--secondary configura-outlet__add"><i className="fa-regular fa-circle-plus" /> Aggiungi Turno</button>
           </div>
 
           <div className="configura-outlet__table-wrap"><table className="configura-outlet__table">
@@ -183,9 +183,9 @@ export default function ConfiguraOutlet() {
                   </td>
                   <td>{t.nome}</td><td>{t.dalle}</td><td>{t.alle}</td><td>{t.servizio}</td><td>{t.sale.join(', ')}</td>
                   <td className="configura-outlet__actions-cell">
-                    <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-copy" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-pen" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-copy" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button>
                   </td>
                 </tr>
               ))}

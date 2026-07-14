@@ -138,7 +138,7 @@ export default function MonitoraggioCanali({ navigate }: { navigate: (p: string)
       {openFilter === k && (
         <div className="monitoraggio-canali__filter-popup">
           <button type="button" className="monitoraggio-canali__filter-option" onClick={() => setFilterValue(k, '')}>
-            <i className="fa-light fa-circle-xmark" /> Rimuovi filtro
+            <i className="fa-solid fa-circle-xmark" /> Rimuovi filtro
           </button>
           {distinct(k).map((v) => (
             <button

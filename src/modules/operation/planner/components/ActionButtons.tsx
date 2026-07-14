@@ -43,7 +43,7 @@ const ActionButtons: React.FC<Props> = (p) => {
             aria-pressed={a.key === 'ghost' ? !!a.active : undefined}
             aria-label={a.label}
           >
-            <i className={`fa-light ${a.icon}`} aria-hidden="true" />
+            <i className={`fa-regular ${a.icon}`} aria-hidden="true" />
             {(a.key === 'parcheggio' || a.key === 'richieste') && !!a.badge && (
               <span className="planner__park-badge">{a.badge}</span>
             )}

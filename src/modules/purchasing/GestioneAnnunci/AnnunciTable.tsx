@@ -156,7 +156,7 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                   <td className="ann__c-logo">
                     {perMe && a.logo
                       ? <img src={a.logo} alt="" className="ann__logo" />
-                      : <span className="ann__logo ann__logo--ph"><i className="fa-light fa-hotel" aria-hidden="true" /></span>}
+                      : <span className="ann__logo ann__logo--ph"><i className="fa-solid fa-hotel" aria-hidden="true" /></span>}
                   </td>
                   <td>{perMe ? <TruncatedText text={a.ragioneSociale} className="ann__trunc" /> : <span className="ann__masked">Riservato</span>}</td>
                   <td><TruncatedText text={a.periodo} className="ann__trunc" /></td>
@@ -176,7 +176,7 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                     <div className="ann__actions">
                       <Tooltip text={perMe ? 'Destinato a te' : 'Non destinato a te'}>
                         <span className={`ann__dest${perMe ? '' : ' ann__dest--off'}`}>
-                          <i className={`fa-light ${perMe ? 'fa-eye' : 'fa-eye-slash'}`} aria-hidden="true" />
+                          <i className={`fa-solid ${perMe ? 'fa-eye' : 'fa-eye-slash'}`} aria-hidden="true" />
                         </span>
                       </Tooltip>
                     </div>
@@ -185,7 +185,7 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                     <div className="ann__actions">
                       <Tooltip text="Dettaglio annuncio">
                         <button type="button" className="sib-btn sib-btn--icon" aria-label="Dettaglio annuncio" onClick={() => setDettaglio(a)}>
-                          <i className="fa-light fa-circle-info" aria-hidden="true" />
+                          <i className="fa-solid fa-circle-info" aria-hidden="true" />
                         </button>
                       </Tooltip>
                       {(() => {
@@ -193,7 +193,7 @@ export function AnnunciTable({ onBack, onMatchZone }: {
                         return (
                           <Tooltip text={canBuy ? 'Acquista i contratti' : 'Non abilitato all’acquisto'}>
                             <button type="button" className="sib-btn sib-btn--icon" aria-label="Acquista i contratti" disabled={!canBuy} onClick={() => canBuy && setAcquisto(a)}>
-                              <i className="fa-light fa-cart-shopping" aria-hidden="true" />
+                              <i className="fa-solid fa-cart-shopping" aria-hidden="true" />
                             </button>
                           </Tooltip>
                         )

@@ -115,7 +115,7 @@ export default function DettaglioPrenotazioniModal({ open, onClose, data, onNext
                             onClick={() => setExpandedId(null)}
                             title="Conferma spostamento"
                           >
-                            <i className="fa-light fa-arrow-right" aria-hidden="true" />
+                            <i className="fa-solid fa-arrow-right" aria-hidden="true" />
                           </button>
                         </div>
                       ) : (
@@ -124,7 +124,7 @@ export default function DettaglioPrenotazioniModal({ open, onClose, data, onNext
                           className="det-pren__suggest-btn"
                           onClick={() => setExpandedId(p.id)}
                         >
-                          <i className="fa-light fa-shuffle" aria-hidden="true" />
+                          <i className="fa-solid fa-shuffle" aria-hidden="true" />
                           <span>Suggerisci spostamento</span>
                         </button>
                       )}

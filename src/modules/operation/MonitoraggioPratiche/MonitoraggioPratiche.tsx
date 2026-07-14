@@ -364,7 +364,7 @@ function PraticaRow({
       </td>
       <td>
         <span className="mon-prat__tipo">
-          <i className={`fa-light fa-${TIPOLOGIA_META[p.tipologia].icon}`} aria-hidden="true" /> {TIPOLOGIA_META[p.tipologia].label}
+          <i className={`fa-solid fa-${TIPOLOGIA_META[p.tipologia].icon}`} aria-hidden="true" /> {TIPOLOGIA_META[p.tipologia].label}
         </span>
       </td>
       <td>{fmtEur(p.budget)}</td>

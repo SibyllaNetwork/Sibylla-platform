@@ -60,7 +60,7 @@ export default function OverbookingLimit() {
             ) : data.rows.map((r) => (
               <tr key={r.id}>
                 <td>{r.tipologia}</td><td>{r.periodo}</td><td>{r.limit}%</td><td>{r.protection}%</td>
-                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button></td>
               </tr>
             ))}
           </tbody>

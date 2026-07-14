@@ -293,7 +293,7 @@ function PraticaRow({
       <td><Stars n={p.categoria} /></td>
       <td>
         <span className="crea-prat__tipo">
-          <i className={`fa-light fa-${TIPOLOGIA_META[p.tipologia].icon}`} aria-hidden="true" /> {TIPOLOGIA_META[p.tipologia].label}
+          <i className={`fa-solid fa-${TIPOLOGIA_META[p.tipologia].icon}`} aria-hidden="true" /> {TIPOLOGIA_META[p.tipologia].label}
         </span>
       </td>
       <td>{fmtEur(p.budget)}</td>
@@ -314,7 +314,7 @@ function PraticaRow({
       <td><ProfiloCell assegnazione={p.assegnazione} profili={profili} /></td>
       <td className="crea-prat__td-actions">
         <button type="button" className="sib-btn sib-btn--icon sib-btn--sm" title="Elimina pratica" onClick={onRemove}>
-          <i className="fa-light fa-trash" aria-hidden="true" />
+          <i className="fa-solid fa-trash" aria-hidden="true" />
         </button>
       </td>
     </tr>

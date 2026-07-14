@@ -111,7 +111,7 @@ export default function Arrangiamenti() {
                 <tr key={a.id}>
                   <td className="arrangiamenti__td arrangiamenti__td--name">
                     <span className="arrangiamenti__name">
-                      <i className={`fa-light fa-${a.icon}`} aria-hidden="true" />
+                      <i className={`fa-solid fa-${a.icon}`} aria-hidden="true" />
                       <span>{a.nome}</span>
                     </span>
                   </td>

@@ -183,7 +183,7 @@ export default function ReportPickup({ navigate: _navigate }: { navigate: (p: st
         <div className="rp__field" ref={hotelRef}>
           <label>Struttura</label>
           <button type="button" className={`rp__hotel-btn${hotelOpen ? ' is-open' : ''}`} onClick={() => setHotelOpen((v) => !v)}>
-            <i className="fa-light fa-hotel" />
+            <i className="fa-regular fa-hotel" />
             <span>{hotelLabel}</span>
             <i className={`fa-solid fa-chevron-${hotelOpen ? 'up' : 'down'} rp__hotel-chev`} />
           </button>

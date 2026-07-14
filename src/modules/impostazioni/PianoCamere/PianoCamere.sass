@@ -9,6 +9,11 @@
     flex-wrap: wrap
     margin-bottom: 18px
 
+    // Icone dei bottoni-azione della toolbar (aggiorna, export PDF/XLS): blu Platform 16px
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
+
   &__status
     display: flex
     flex-direction: column
@@ -46,6 +51,11 @@
     width: 32px
     text-align: center
 
+  // Icona informativa neutra di cella (Gruppo/Individuale): blu Platform 16px
+  &__ico-info
+    color: $primary
+    font-size: 16px
+
   &__ico-ok
     color: $success
     font-size: 16px
@@ -57,7 +67,7 @@
   // Nota presente: icona; il testo compare in una finestra al rollover (Tooltip)
   &__note
     color: $primary
-    font-size: 15px
+    font-size: 16px
     cursor: help
 
   // VIP: stella vuota (standard) / piena dorata

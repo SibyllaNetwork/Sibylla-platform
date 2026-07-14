@@ -545,17 +545,17 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
         <div className="arrivi-partenze__toolbar-icons">
           <Tooltip text="Check-in libero">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-in libero" onClick={() => setCheckinOpen(true)}>
-              <i className="fa-light fa-calendar-clock" aria-hidden="true" />
+              <i className="fa-regular fa-calendar-clock" aria-hidden="true" />
             </button>
           </Tooltip>
           <Tooltip text="Planner operativo">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Planner operativo" onClick={() => navigate('planner')}>
-              <i className="fa-light fa-building" aria-hidden="true" />
+              <i className="fa-regular fa-building" aria-hidden="true" />
             </button>
           </Tooltip>
           <Tooltip text="Ospiti in casa">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Ospiti in casa" onClick={() => navigate('ospiti-in-casa')}>
-              <i className="fa-light fa-house" aria-hidden="true" />
+              <i className="fa-regular fa-house" aria-hidden="true" />
             </button>
           </Tooltip>
         </div>
@@ -579,17 +579,17 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
           <div className="arrivi-partenze__toolbar-icons">
             <Tooltip text="Scarica previsioni presenze e pasti">
               <button type="button" className="sib-btn sib-btn--icon" aria-label="Scarica previsioni presenze e pasti">
-                <i className="fa-light fa-chart-line" aria-hidden="true" />
+                <i className="fa-regular fa-chart-line" aria-hidden="true" />
               </button>
             </Tooltip>
             <Tooltip text="Esporta in PDF">
               <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={exportArrPdf}>
-                <i className="fa-light fa-file-pdf" aria-hidden="true" />
+                <i className="fa-regular fa-file-pdf" aria-hidden="true" />
               </button>
             </Tooltip>
             <Tooltip text="Esporta in Excel">
               <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={exportArrXls}>
-                <i className="fa-light fa-file-excel" aria-hidden="true" />
+                <i className="fa-regular fa-file-excel" aria-hidden="true" />
               </button>
             </Tooltip>
           </div>
@@ -672,7 +672,7 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
               <tr><td colSpan={14} className="sib-empty">Nessun arrivo per i criteri selezionati.</td></tr>
             ) : arriviPage.map((r) => (
               <tr key={r.id}>
-                <td><Tooltip text="Check in prenotazione"><button type="button" className="arrivi-partenze__pren-badge" onClick={() => setCheckIn(r)}><i className="fa-light fa-id-card" /> {r.prenotazioneNum}</button></Tooltip></td>
+                <td><Tooltip text="Check in prenotazione"><button type="button" className="arrivi-partenze__pren-badge" onClick={() => setCheckIn(r)}><i className="fa-solid fa-id-card" /> {r.prenotazioneNum}</button></Tooltip></td>
                 <td className="arrivi-partenze__td-center">{r.camera}</td>
                 <td>{r.nominativo}</td>
                 <td className="arrivi-partenze__td-center">
@@ -690,9 +690,9 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
                 <td className="arrivi-partenze__td-center arrivi-partenze__nowrap">
                   <Tooltip text={`${r.arrivo} → ${r.partenza}`}><span>{r.arrivo.slice(0, 5)} → {r.partenza.slice(0, 5)}</span></Tooltip>
                 </td>
-                <td className="arrivi-partenze__td-center"><Tooltip text={r.arrangiamento}><i className={`fa-light fa-${r.arrangiamentoIcon}`} aria-hidden="true" /></Tooltip></td>
+                <td className="arrivi-partenze__td-center"><Tooltip text={r.arrangiamento}><i className={`fa-solid fa-${r.arrangiamentoIcon} arrivi-partenze__cell-ico`} aria-hidden="true" /></Tooltip></td>
                 <td className={r.agenzia === '-' ? 'sib-cell--muted' : ''}>{r.agenzia}</td>
-                <td className="arrivi-partenze__td-center"><Tooltip text={r.tipoPren}><i className={`fa-light fa-${r.tipoPren?.toLowerCase().includes('gruppo') ? 'users' : 'user'}`} aria-hidden="true" /></Tooltip></td>
+                <td className="arrivi-partenze__td-center"><Tooltip text={r.tipoPren}><i className={`fa-solid fa-${r.tipoPren?.toLowerCase().includes('gruppo') ? 'users' : 'user'} arrivi-partenze__cell-ico`} aria-hidden="true" /></Tooltip></td>
                 <td className="arrivi-partenze__td-right arrivi-partenze__nowrap">{fmtCurrency(r.importo)}</td>
                 <td className="arrivi-partenze__td-center">
                   <Tooltip text={`Check-in: ${r.azione}`}>
@@ -778,17 +778,17 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
         <div className="arrivi-partenze__toolbar-icons">
           <Tooltip text="Check-in libero">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Check-in libero" onClick={() => setCheckinOpen(true)}>
-              <i className="fa-light fa-calendar-clock" aria-hidden="true" />
+              <i className="fa-regular fa-calendar-clock" aria-hidden="true" />
             </button>
           </Tooltip>
           <Tooltip text="Planner operativo">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Planner operativo" onClick={() => navigate('planner')}>
-              <i className="fa-light fa-building" aria-hidden="true" />
+              <i className="fa-regular fa-building" aria-hidden="true" />
             </button>
           </Tooltip>
           <Tooltip text="Ospiti in casa">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Ospiti in casa" onClick={() => navigate('ospiti-in-casa')}>
-              <i className="fa-light fa-house" aria-hidden="true" />
+              <i className="fa-regular fa-house" aria-hidden="true" />
             </button>
           </Tooltip>
         </div>
@@ -802,8 +802,8 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
             <i className="fa-light fa-bed-front" aria-hidden="true" /> Checkout camere
           </button>
           <div className="arrivi-partenze__toolbar-icons">
-            <Tooltip text="Esporta in PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={exportPartPdf}><i className="fa-light fa-file-pdf" aria-hidden="true" /></button></Tooltip>
-            <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={exportPartXls}><i className="fa-light fa-file-excel" aria-hidden="true" /></button></Tooltip>
+            <Tooltip text="Esporta in PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={exportPartPdf}><i className="fa-regular fa-file-pdf" aria-hidden="true" /></button></Tooltip>
+            <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={exportPartXls}><i className="fa-regular fa-file-excel" aria-hidden="true" /></button></Tooltip>
           </div>
         </div>
       </div>
@@ -859,20 +859,20 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
               const arr = arrangiamentoInfo(p.arrangiamento)
               return (
               <tr key={p.id}>
-                <td><span className="arrivi-partenze__pren-badge arrivi-partenze__pren-badge--static"><i className="fa-light fa-id-card" /> {p.prenotazioneNum}</span></td>
+                <td><span className="arrivi-partenze__pren-badge arrivi-partenze__pren-badge--static"><i className="fa-solid fa-id-card" /> {p.prenotazioneNum}</span></td>
                 <td className="arrivi-partenze__td-center">{p.camera}</td>
                 <td>{p.ospite}</td>
-                <td className="arrivi-partenze__td-center"><Tooltip text={fe.label}><i className={`fa-light ${fe.icon} arrivi-partenze__fascia-ico`} aria-hidden="true" /></Tooltip></td>
+                <td className="arrivi-partenze__td-center"><Tooltip text={fe.label}><i className={`fa-solid ${fe.icon} arrivi-partenze__fascia-ico`} aria-hidden="true" /></Tooltip></td>
                 <td className="arrivi-partenze__td-center arrivi-partenze__nowrap"><Tooltip text={`${p.arrivo} → ${p.partenza}`}><span>{p.arrivo.slice(0, 5)} → {p.partenza.slice(0, 5)}</span></Tooltip></td>
-                <td className="arrivi-partenze__td-center"><Tooltip text={arr.label}><i className={`fa-light ${arr.icon}`} aria-hidden="true" /></Tooltip></td>
+                <td className="arrivi-partenze__td-center"><Tooltip text={arr.label}><i className={`fa-solid ${arr.icon} arrivi-partenze__cell-ico`} aria-hidden="true" /></Tooltip></td>
                 <td>{p.canale}</td>
-                <td className="arrivi-partenze__td-center"><Tooltip text={p.tipoPrenotazione}><i className={`fa-light ${tipoPrenIcon(p.tipoPrenotazione)}`} aria-hidden="true" /></Tooltip></td>
+                <td className="arrivi-partenze__td-center"><Tooltip text={p.tipoPrenotazione}><i className={`fa-solid ${tipoPrenIcon(p.tipoPrenotazione)} arrivi-partenze__cell-ico`} aria-hidden="true" /></Tooltip></td>
                 <td className="arrivi-partenze__td-right arrivi-partenze__nowrap">{fmtCurrency(p.residuo)}</td>
                 <td className="arrivi-partenze__td-center">
                   <span className="arrivi-partenze__row-actions">
-                    <Tooltip text="Conti camera"><button type="button" className="sib-btn sib-btn--icon" aria-label="Conti camera" onClick={() => navigate('conti-camera')}><i className="fa-light fa-receipt" aria-hidden="true" /></button></Tooltip>
-                    <Tooltip text="Check out camera"><button type="button" className="sib-btn sib-btn--icon" aria-label="Check out camera" onClick={() => setCheckout({ multi: false, camera: p.camera })}><i className="fa-light fa-door-open" aria-hidden="true" /></button></Tooltip>
-                    <Tooltip text="Chiudi conto"><button type="button" className="sib-btn sib-btn--icon" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-light fa-coins" aria-hidden="true" /></button></Tooltip>
+                    <Tooltip text="Conti camera"><button type="button" className="sib-btn sib-btn--icon" aria-label="Conti camera" onClick={() => navigate('conti-camera')}><i className="fa-solid fa-receipt" aria-hidden="true" /></button></Tooltip>
+                    <Tooltip text="Check out camera"><button type="button" className="sib-btn sib-btn--icon" aria-label="Check out camera" onClick={() => setCheckout({ multi: false, camera: p.camera })}><i className="fa-solid fa-door-open" aria-hidden="true" /></button></Tooltip>
+                    <Tooltip text="Chiudi conto"><button type="button" className="sib-btn sib-btn--icon" aria-label="Chiudi conto" onClick={() => navigate('emissione-documenti')}><i className="fa-solid fa-coins" aria-hidden="true" /></button></Tooltip>
                   </span>
                 </td>
               </tr>
@@ -1069,14 +1069,14 @@ function CheckInView({ gruppo, onBack }: { gruppo: Arrivo[]; onBack: () => void 
                           <i className={`fa-solid fa-chevron-${open ? 'down' : 'right'}`} aria-hidden="true" />
                         </button>
                       </td>
-                      <td><span className="ap-cki__room-tipo"><i className="fa-light fa-bed-front" aria-hidden="true" /> Standard</span></td>
+                      <td><span className="ap-cki__room-tipo"><i className="fa-solid fa-bed-front" aria-hidden="true" /> Standard</span></td>
                       <td className="ap-cki__c">{room.camera}</td>
                       <td className="ap-cki__c">{room.arrivo}</td>
                       <td className="ap-cki__c">{room.partenza}</td>
-                      <td className="ap-cki__c"><Tooltip text={arrInfo.label}><i className={`fa-light ${arrInfo.icon}`} aria-hidden="true" /></Tooltip></td>
+                      <td className="ap-cki__c"><Tooltip text={arrInfo.label}><i className={`fa-solid ${arrInfo.icon}`} aria-hidden="true" /></Tooltip></td>
                       <td className="ap-cki__c">Doppia Classic</td>
                       <td className="ap-cki__c">{fmtCurrency(room.importo)}</td>
-                      <td className="ap-cki__c"><span className="ap-cki__ospiti-pill"><i className="fa-light fa-user" aria-hidden="true" /> {guests.length}</span></td>
+                      <td className="ap-cki__c"><span className="ap-cki__ospiti-pill"><i className="fa-solid fa-user" aria-hidden="true" /> {guests.length}</span></td>
                       <td className="ap-cki__c">
                         <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={(e) => { e.stopPropagation(); openNewAnag(room.id) }}><i className="fa-light fa-user-plus" /> Aggiungere anagrafica</button>
                       </td>
@@ -1087,7 +1087,7 @@ function CheckInView({ gruppo, onBack }: { gruppo: Arrivo[]; onBack: () => void 
                         <td className="ap-cki__detail-cell" colSpan={10}>
                           <div className="ap-cki__detail">
                             <div className="ap-cki__detail-head">
-                              <i className="fa-light fa-users" aria-hidden="true" />
+                              <i className="fa-solid fa-users" aria-hidden="true" />
                               <span>Ospiti in camera</span>
                               <strong>{room.camera}</strong>
                               <span className="ap-cki__detail-count">{guests.length}</span>
@@ -1127,7 +1127,7 @@ function CheckInView({ gruppo, onBack }: { gruppo: Arrivo[]; onBack: () => void 
                                         </Tooltip>
                                       </td>
                                       <td className="ap-cki__c">
-                                        <Tooltip text="Modifica anagrafica"><button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica anagrafica" onClick={() => openEditAnag(room.id, i)}><i className="fa-light fa-pen" /></button></Tooltip>
+                                        <Tooltip text="Modifica anagrafica"><button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica anagrafica" onClick={() => openEditAnag(room.id, i)}><i className="fa-solid fa-pen" /></button></Tooltip>
                                       </td>
                                     </tr>
                                   )
@@ -1409,7 +1409,7 @@ function CheckinLiberoModal({ open, onClose }: { open: boolean; onClose: () => v
                 <tr key={c.n} className={sel.has(c.n) ? 'is-selected' : ''} onClick={() => toggle(c.n)}>
                   <td>
                     <span className="ap-ci__room">
-                      <i className={`fa-light ${sel.has(c.n) ? 'fa-bed-front' : 'fa-bed'} ap-ci__room-ico`} aria-hidden="true" />
+                      <i className={`fa-solid ${sel.has(c.n) ? 'fa-bed-front' : 'fa-bed'} ap-ci__room-ico`} aria-hidden="true" />
                       <strong>{c.n}</strong> {c.tipo}
                     </span>
                   </td>

@@ -254,7 +254,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                   <tr key={r.id} className={selected.has(r.id) ? 'is-selected' : ''}>
                     <td>
                       <span className="impdto__struct">
-                        <span className="impdto__struct-ico"><i className={`fa-light ${TIPO_ICON[r.tipo]}`} aria-hidden="true" /></span>
+                        <span className="impdto__struct-ico"><i className={`fa-solid ${TIPO_ICON[r.tipo]}`} aria-hidden="true" /></span>
                         <span className="impdto__struct-txt">
                           <span className="impdto__struct-name">{r.nome}</span>
                           <span className="impdto__struct-dest"><i className="fa-solid fa-location-dot" aria-hidden="true" /> {r.destinazione}</span>

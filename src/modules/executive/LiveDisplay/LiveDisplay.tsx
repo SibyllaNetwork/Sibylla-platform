@@ -394,8 +394,8 @@ export default function LiveDisplay({ navigate }: { navigate: (p: string) => voi
             className="ld__pages-name" name="page-nome" label="Nome pagina"
             value={current.nome} onChange={(e) => renamePage(current.id, e.target.value)}
           />
-          <button type="button" className="sib-btn sib-btn--icon" title="Duplica pagina" onClick={() => duplicatePage(current.id)}><i className="fa-light fa-copy" aria-hidden="true" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Elimina pagina" onClick={() => deletePage(current.id)} disabled={pages.length <= 1}><i className="fa-light fa-trash" aria-hidden="true" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Duplica pagina" onClick={() => duplicatePage(current.id)}><i className="fa-regular fa-copy" aria-hidden="true" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Elimina pagina" onClick={() => deletePage(current.id)} disabled={pages.length <= 1}><i className="fa-regular fa-trash" aria-hidden="true" /></button>
           <div className="ld__share">
             <i className="fa-light fa-link ld__share-ico" aria-hidden="true" />
             <input className="sib-input ld__share-url" readOnly value={shareLink} onFocus={(e) => e.target.select()} />

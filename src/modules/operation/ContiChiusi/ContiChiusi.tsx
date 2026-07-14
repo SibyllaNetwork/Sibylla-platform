@@ -99,7 +99,7 @@ export default function ContiChiusi({ navigate }: { navigate: (p: string) => voi
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <i className="fa-light fa-magnifying-glass conti-chiusi__search-ico" />
+            <i className="fa-regular fa-magnifying-glass conti-chiusi__search-ico" />
           </div>
         </div>
       </div>

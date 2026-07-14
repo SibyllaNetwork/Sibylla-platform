@@ -86,8 +86,8 @@ export default function FbCreaMenu() {
                 <td>{p.prezzo.toFixed(2).replace('.', ',')} €</td>
                 <td>{p.margine}%</td><td>{p.gruppo}</td>
                 <td className="fb-crea-menu__row-actions">
-                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-pen" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button>
                 </td>
               </tr>
             ))}

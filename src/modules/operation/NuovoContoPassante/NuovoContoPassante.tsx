@@ -169,7 +169,7 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
                       aria-label="Elimina"
                       onClick={() => eliminaAddebito(a.id)}
                     >
-                      <i className="fa-light fa-trash" />
+                      <i className="fa-solid fa-trash" />
                     </button>
                   </Tooltip>
                 </td>

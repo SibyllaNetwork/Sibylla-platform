@@ -71,7 +71,7 @@ export default function FatturaDocumento({ navigate }: { navigate: (p: string) =
       <div className="fattura-doc__toolbar">
         <BtnBack onClick={() => navigate('emissione-documenti')} />
         <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.print()}>
-          <i className="fa-light fa-print" /> Stampa
+          <i className="fa-regular fa-print" /> Stampa
         </button>
       </div>
 

@@ -76,9 +76,9 @@ export default function PrenotazioniIDS(_props: { navigate?: (p: string) => void
             onChangeFrom={(e) => setDataDa(e.target.value)} onChangeTo={(e) => setDataA(e.target.value)} />
         </div>
         <div className="ids__summary">
-          <span className="ids__sum"><i className="fa-light fa-building" /> {HOTELS.length} strutture</span>
-          <span className="ids__sum"><i className="fa-light fa-calendar-days" /> {giorni} giorni</span>
-          <span className="ids__sum ids__sum--tot"><i className="fa-light fa-calendar-check" /> {totale.toLocaleString('it-IT')} prenotazioni</span>
+          <span className="ids__sum"><i className="fa-regular fa-building" /> {HOTELS.length} strutture</span>
+          <span className="ids__sum"><i className="fa-regular fa-calendar-days" /> {giorni} giorni</span>
+          <span className="ids__sum ids__sum--tot"><i className="fa-regular fa-calendar-check" /> {totale.toLocaleString('it-IT')} prenotazioni</span>
         </div>
       </div>
 

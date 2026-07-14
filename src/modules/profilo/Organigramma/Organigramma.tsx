@@ -304,10 +304,10 @@ export default function Organigramma({ navigate }: { navigate: (p: string) => vo
       {/* ── Azioni in alto a destra ─────────────────────────────────── */}
       <div className="org__toolbar">
         <button type="button" className={`sib-btn sib-btn--icon ${editMode ? 'org__edit-btn--on' : ''}`} title="Modifica organigramma" aria-label="Modifica organigramma" aria-pressed={editMode} onClick={() => setEditMode(true)}>
-          <i className="fa-light fa-pen"/>
+          <i className="fa-regular fa-pen"/>
         </button>
         <button type="button" className="sib-btn sib-btn--icon" title="Scarica PDF" aria-label="Scarica PDF" onClick={handlePdf} disabled={pdfBusy}>
-          <i className={pdfBusy ? 'fa-light fa-spinner-third fa-spin' : 'fa-light fa-file-pdf'}/>
+          <i className={pdfBusy ? 'fa-regular fa-spinner-third fa-spin' : 'fa-regular fa-file-pdf'}/>
         </button>
       </div>
 

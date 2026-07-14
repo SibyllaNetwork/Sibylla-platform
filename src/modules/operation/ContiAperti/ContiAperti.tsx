@@ -288,7 +288,7 @@ export default function ContiAperti({ navigate }: { navigate: (p: string) => voi
                   </td>
                   <td className="mov-sog__td-center">
                     <button type="button" className="mov-sog__chev-btn" aria-label={expanded.has(r.id) ? 'Comprimi' : 'Espandi'} onClick={() => toggleExpanded(r.id)}>
-                      <i className={`fa-light fa-chevron-${expanded.has(r.id) ? 'up' : 'down'}`} />
+                      <i className={`fa-solid fa-chevron-${expanded.has(r.id) ? 'up' : 'down'}`} />
                     </button>
                   </td>
                   <td>{r.prenotazioneNum}</td>

@@ -197,7 +197,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
         <Tooltip text="Esporta in Excel">
           <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={handleExcel}>
-            <i className="fa-light fa-file-excel" aria-hidden="true" />
+            <i className="fa-regular fa-file-excel" aria-hidden="true" />
           </button>
         </Tooltip>
 
@@ -220,7 +220,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
               <th>
                 <button type="button" className="gest-prev__sort" onClick={() => setSortAsc((a) => !a)}>
                   Data creazione
-                  <i className={`fa-light ${sortAsc ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'}`} aria-hidden="true" />
+                  <i className={`fa-solid ${sortAsc ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'}`} aria-hidden="true" />
                 </button>
               </th>
               <th>Data scadenza</th>
@@ -241,7 +241,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                   </td>
                   <td className="gest-prev__col-exp">
                     <button type="button" className="gest-prev__exp-btn" onClick={() => toggleExpand(p.id!)} aria-label="Espandi">
-                      <i className={`fa-light fa-chevron-down ${expanded.has(p.id!) ? 'is-open' : ''}`} aria-hidden="true" />
+                      <i className={`fa-solid fa-chevron-down ${expanded.has(p.id!) ? 'is-open' : ''}`} aria-hidden="true" />
                     </button>
                   </td>
                   <td>{p.codice}</td>
@@ -257,19 +257,19 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                   <td className="gest-prev__col-actions">
                     <div className="gest-prev__actions">
                       <Tooltip text="Visualizza">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={handleOpen}><i className="fa-light fa-eye" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={handleOpen}><i className="fa-solid fa-eye" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Scarica PDF">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Scarica PDF" onClick={() => handlePdf(p)}><i className="fa-light fa-file-pdf" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Scarica PDF" onClick={() => handlePdf(p)}><i className="fa-solid fa-file-pdf" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Invia email">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Invia email" onClick={() => handleEmail(p)}><i className="fa-light fa-envelope" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Invia email" onClick={() => handleEmail(p)}><i className="fa-solid fa-envelope" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Modifica">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={handleOpen}><i className="fa-light fa-pen" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={handleOpen}><i className="fa-solid fa-pen" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Elimina">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Elimina" onClick={() => handleDelete(p)}><i className="fa-light fa-trash" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Elimina" onClick={() => handleDelete(p)}><i className="fa-solid fa-trash" aria-hidden="true" /></button>
                       </Tooltip>
                     </div>
                   </td>

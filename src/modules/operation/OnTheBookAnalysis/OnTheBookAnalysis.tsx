@@ -119,7 +119,7 @@ export default function OnTheBookAnalysis({ navigate }: { navigate: (p: string) 
           <i className="fa-light fa-chart-line" /> Visualizza
         </button>
         <button type="button" className="sib-btn sib-btn--icon otb-analysis__info" title="Info" aria-label="Info">
-          <i className="fa-light fa-circle-info" />
+          <i className="fa-regular fa-circle-info" />
         </button>
       </div>
 

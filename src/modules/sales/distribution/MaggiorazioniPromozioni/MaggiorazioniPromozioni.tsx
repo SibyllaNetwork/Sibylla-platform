@@ -234,10 +234,10 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
                       <td className="promo__td">
                         <div className="flex items-center justify-center gap-1">
                           <button className="sib-btn sib-btn--icon w-7 h-7" title="Duplica" onClick={()=>handleDuplicate(p)}>
-                            <i className="fa-duotone fa-copy text-[13px]" aria-hidden="true"/>
+                            <i className="fa-solid fa-copy text-[13px]" aria-hidden="true"/>
                           </button>
                           <button className="sib-btn sib-btn--icon w-7 h-7" title="Elimina" onClick={()=>setDeleteId(p.id)}>
-                            <i className="fa-duotone fa-trash text-[13px]" aria-hidden="true"/>
+                            <i className="fa-solid fa-trash text-[13px]" aria-hidden="true"/>
                           </button>
                         </div>
                       </td>

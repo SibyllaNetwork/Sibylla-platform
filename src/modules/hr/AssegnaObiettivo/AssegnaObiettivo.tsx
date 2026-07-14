@@ -64,7 +64,7 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
   const setAllReparti = (sel: boolean) => setRepartiSel(sel ? repartiObiettivi : [])
   const toggleSortAnno = () => setSortAnno((p) => (p === 'asc' ? 'desc' : p === 'desc' ? null : 'asc'))
   const sortAnnoIcon = sortAnno === null
-    ? <i className="fa-light fa-arrow-down-arrow-up" />
+    ? <i className="fa-solid fa-arrow-down-arrow-up" />
     : sortAnno === 'asc' ? <i className="fa-solid fa-arrow-up" /> : <i className="fa-solid fa-arrow-down" />
   const eliminaObiettivo = (id?: number) => setItems((prev) => prev.filter((o) => o.id !== id))
 
@@ -150,10 +150,10 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
                 <td>
                   <div className="flex items-center justify-end gap-2">
                     <button className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica">
-                      <i className="fa-light fa-pen" />
+                      <i className="fa-solid fa-pen" />
                     </button>
                     <button className="sib-btn sib-btn--icon hover:enabled:!text-error hover:enabled:!border-error" title="Elimina" aria-label="Elimina" onClick={() => eliminaObiettivo(o.id)}>
-                      <i className="fa-light fa-trash" />
+                      <i className="fa-solid fa-trash" />
                     </button>
                   </div>
                 </td>

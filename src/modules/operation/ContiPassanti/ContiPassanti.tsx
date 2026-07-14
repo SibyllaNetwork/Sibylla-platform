@@ -102,7 +102,7 @@ export default function ContiPassanti({ navigate }: { navigate: (p: string) => v
             </div>
           </div>
           <button type="button" className="sib-btn sib-btn--icon conti-pass__xls" title="Esporta XLS" aria-label="Esporta XLS">
-            <i className="fa-light fa-file-excel" />
+            <i className="fa-regular fa-file-excel" />
           </button>
         </div>
 
@@ -180,16 +180,16 @@ export default function ContiPassanti({ navigate }: { navigate: (p: string) => v
                 </td>
                 <td className="conti-pass__td-center">
                   <div className="conti-pass__collegati">
-                    {r.hasServizi && <i className="fa-light fa-martini-glass-citrus" title="Servizi" />}
-                    {r.hasPagamento && <i className="fa-light fa-credit-card" title="Pagamento" />}
+                    {r.hasServizi && <i className="fa-solid fa-martini-glass-citrus" title="Servizi" />}
+                    {r.hasPagamento && <i className="fa-solid fa-credit-card" title="Pagamento" />}
                   </div>
                 </td>
                 <td className="conti-pass__td-center">
                   <div className="conti-pass__actions">
-                    <button type="button" className="sib-btn sib-btn--icon" title="Visualizza" aria-label="Visualizza"><i className="fa-light fa-eye" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Stampa PDF" aria-label="Stampa PDF"><i className="fa-light fa-file-pdf" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica"><i className="fa-light fa-pen" /></button>
-                    <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina"><i className="fa-light fa-trash" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon" title="Visualizza" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon" title="Stampa PDF" aria-label="Stampa PDF"><i className="fa-solid fa-file-pdf" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica"><i className="fa-solid fa-pen" /></button>
+                    <button type="button" className="sib-btn sib-btn--icon" title="Elimina" aria-label="Elimina"><i className="fa-solid fa-trash" /></button>
                   </div>
                 </td>
               </tr>

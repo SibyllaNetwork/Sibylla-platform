@@ -67,7 +67,7 @@ export default function FbGestioneCosti() {
                   <td>{c.importo.toFixed(2).replace('.', ',')} €</td>
                   <td>{c.frequenza}</td>
                   <td>{(c.importo / DIV[c.frequenza]).toFixed(2).replace('.', ',')}</td>
-                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button></td>
+                  <td><button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button></td>
                 </tr>
               ))}
           </tbody>

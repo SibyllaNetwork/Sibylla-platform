@@ -176,13 +176,13 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
                 <td>
                   <span className="miei-contratti__cat">
                     {c.categoria > 0 ? <Stars n={c.categoria} /> : <span className="sib-cell--muted">-</span>}
-                    {c.hasInfo && <i className="fa-light fa-circle-info miei-contratti__info" />}
+                    {c.hasInfo && <i className="fa-solid fa-circle-info miei-contratti__info" />}
                   </span>
                 </td>
                 <td>
                   <span className="miei-contratti__contatti">
-                    {c.emailAttiva && <Tooltip text="Email"><i className="fa-light fa-envelope" /></Tooltip>}
-                    {c.contattiAttivi && <Tooltip text="Contatti"><i className="fa-light fa-address-book" /></Tooltip>}
+                    {c.emailAttiva && <Tooltip text="Email"><i className="fa-solid fa-envelope" /></Tooltip>}
+                    {c.contattiAttivi && <Tooltip text="Contatti"><i className="fa-solid fa-address-book" /></Tooltip>}
                   </span>
                 </td>
                 <td>{c.periodo}</td>
@@ -203,7 +203,7 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
                   <span className="miei-contratti__azioni">
                     <Tooltip text="Conferma">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Conferma">
-                        <i className="fa-light fa-circle-check" />
+                        <i className="fa-solid fa-circle-check" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Modifica">
@@ -226,12 +226,12 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
                           navigate('modifica-contratto-v')
                         }}
                       >
-                        <i className="fa-light fa-pen-to-square" />
+                        <i className="fa-solid fa-pen-to-square" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Esporta PDF">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF">
-                        <i className="fa-light fa-file-pdf" />
+                        <i className="fa-solid fa-file-pdf" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Visualizza">
@@ -241,12 +241,12 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
                         aria-label="Visualizza"
                         onClick={() => navigate('visualizza-contratto-v')}
                       >
-                        <i className="fa-light fa-eye" />
+                        <i className="fa-solid fa-eye" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Elimina">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Elimina">
-                        <i className="fa-light fa-trash" />
+                        <i className="fa-solid fa-trash" />
                       </button>
                     </Tooltip>
                   </span>

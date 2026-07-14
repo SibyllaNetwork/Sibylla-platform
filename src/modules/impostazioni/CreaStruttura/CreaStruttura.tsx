@@ -306,7 +306,7 @@ export default function CreaStruttura({
                   <span className="crea-struttura__row-actions">
                     <Tooltip text="Qrcode">
                       <button type="button" className="sib-btn sib-btn--icon" onClick={() => setQrFor(r)} aria-label="Qrcode">
-                        <i className="fa-light fa-qrcode" aria-hidden="true" />
+                        <i className="fa-solid fa-qrcode" aria-hidden="true" />
                       </button>
                     </Tooltip>
                     <Tooltip text={r.active ? 'Disattiva struttura' : 'Riattiva struttura'}>
@@ -316,27 +316,27 @@ export default function CreaStruttura({
                         onClick={() => requestToggleActive(r)}
                         aria-label={r.active ? 'Disattiva struttura' : 'Riattiva struttura'}
                       >
-                        <i className="fa-light fa-power-off" aria-hidden="true" />
+                        <i className="fa-solid fa-power-off" aria-hidden="true" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Cambia Configurazione">
                       <button type="button" className="sib-btn sib-btn--icon" onClick={() => setConfigModal(r)} aria-label="Cambia Configurazione">
-                        <i className="fa-light fa-arrows-rotate" aria-hidden="true" />
+                        <i className="fa-solid fa-arrows-rotate" aria-hidden="true" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Outlet">
                       <button type="button" className="sib-btn sib-btn--icon" onClick={() => setOutletModal(r)} aria-label="Outlet">
-                        <i className="fa-light fa-building-circle-check" aria-hidden="true" />
+                        <i className="fa-solid fa-building-circle-check" aria-hidden="true" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Modifica struttura">
                       <button type="button" className="sib-btn sib-btn--icon" onClick={() => openEdit(r)} aria-label="Modifica struttura">
-                        <i className="fa-light fa-pen-to-square" aria-hidden="true" />
+                        <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Elimina">
                       <button type="button" className="sib-btn sib-btn--icon" onClick={() => setConfirmDelete(r)} aria-label="Elimina">
-                        <i className="fa-light fa-trash" aria-hidden="true" />
+                        <i className="fa-solid fa-trash" aria-hidden="true" />
                       </button>
                     </Tooltip>
                   </span>
@@ -836,7 +836,7 @@ function PmsIcon({ pms }: { pms: PmsType }) {
             <path fill="#a2864c" d="M135.1,88.8c-3.4-3.4-4.8-4.3-8.1-5.9-6.4-3.1-15.2-3.3-21.7-.4-5.4,2.4-10.2,6.9-13,13.1-2.8,8.3-1.6,15.6-1.6,15.6h42.9s-1.3,6.3-6.7,9.6c-6.2,3.9-14.4,4.5-21.4.4-5.9-3.4-7.8-7.1-7.8-7.1h-6.7c0,0,3.4,8.6,12.8,12.8,5.2,2.3,12.3,4,19.8,1.8,7.4-2.1,14.8-9.7,16.7-17.1.7-2.6.7-6.3.7-6.3h-43.5s0-2.5.3-3.8c.9-4.6,3.8-8.8,7.2-11.2,3.7-2.5,9.9-3.6,13.7-2.9,6.7,1.2,12.6,6.2,14.6,12.2.5,1.5,1,2.8,1,2.8h6.8s-.1-1.8-.4-3.3c-.3-1.3-.7-2.6-1.2-3.9-.3-.8-2.1-4.3-4.2-6.4"/>
           </svg>
         ) : (
-          <i className="fa-light fa-server" aria-hidden="true" />
+          <i className="fa-solid fa-server" aria-hidden="true" />
         )}
       </span>
     </Tooltip>

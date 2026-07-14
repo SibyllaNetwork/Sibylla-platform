@@ -51,10 +51,10 @@ export default function FbListaMenu() {
                   <i className={`fa-solid fa-thumbs-${m.ok ? 'up' : 'down'} fb-lista-menu__thumb fb-lista-menu__thumb--${m.ok ? 'ok' : 'ko'}`} />
                 </td>
                 <td className="fb-lista-menu__row-actions">
-                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-pen" /></button>
-                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-eye" /></button>
-                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-trash" /></button>
-                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-light fa-book-open" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-pen" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-eye" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-trash" /></button>
+                  <button type="button" className="sib-btn sib-btn--icon"><i className="fa-solid fa-book-open" /></button>
                 </td>
               </tr>
             ))}

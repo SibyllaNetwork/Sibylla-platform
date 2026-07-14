@@ -231,12 +231,12 @@ export default function LogDiSistema({ navigate }: { navigate: (p: string) => vo
                     onClick={() => toggle(u.id)}
                   >
                     <td className="log-sistema__td-toggle">
-                      <i className={'fa-light fa-chevron-' + (isOpen ? 'up' : 'down')} aria-hidden="true" />
+                      <i className={'fa-solid fa-chevron-' + (isOpen ? 'up' : 'down')} aria-hidden="true" />
                     </td>
                     <td>
                       <span className="log-sistema__user">
                         <span className="log-sistema__avatar">
-                          <i className="fa-light fa-user" aria-hidden="true" />
+                          <i className="fa-solid fa-user" aria-hidden="true" />
                         </span>
                         <strong>{u.fullName}</strong>
                       </span>

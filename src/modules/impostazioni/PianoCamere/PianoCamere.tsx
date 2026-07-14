@@ -85,7 +85,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
           <label className="text-[12px] font-semibold font-poppins text-primary">Ricerca</label>
           <SearchField name="cerca" placeholder="Cerca…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
         </div>
-        <button type="button" className="sib-btn sib-btn--icon" aria-label="Aggiorna" title="Aggiorna"><i className="fa-light fa-arrows-rotate" /></button>
+        <button type="button" className="sib-btn sib-btn--icon" aria-label="Aggiorna" title="Aggiorna"><i className="fa-regular fa-arrows-rotate" /></button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('previsione-movimenti')}><i className="fa-light fa-chart-line" /> Previsione movimenti camere</button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate('stato-camere')}><i className="fa-light fa-bed-front" /> Stato camere</button>
         <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCreaOpen(true)}><i className="fa-light fa-circle-plus" /> Crea Incarico</button>
@@ -96,8 +96,8 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
         </div>
 
         <div className="piano-cam__exports">
-          <Tooltip text="Esporta in PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-light fa-file-pdf" /></button></Tooltip>
-          <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-light fa-file-excel" /></button></Tooltip>
+          <Tooltip text="Esporta in PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>
+          <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button></Tooltip>
         </div>
       </div>
 
@@ -134,11 +134,11 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
                 <td className="piano-cam__nowrap">{r.inData ? `${r.inData.slice(0, 5)} → ${r.outData.slice(0, 5)}` : '-'}</td>
                 <td className="piano-cam__td-center">{r.progrRN}</td>
                 <td className="piano-cam__td-center">
-                  <Tooltip text={r.gruppo ? 'Gruppo' : 'Individuale'}><i className={`fa-light fa-${r.gruppo ? 'users' : 'user'}`} aria-hidden="true" /></Tooltip>
+                  <Tooltip text={r.gruppo ? 'Gruppo' : 'Individuale'}><i className={`fa-solid fa-${r.gruppo ? 'users' : 'user'} piano-cam__ico-info`} aria-hidden="true" /></Tooltip>
                 </td>
                 <td className="piano-cam__td-center">
                   {r.note
-                    ? <Tooltip content={r.note}><i className="fa-light fa-note-sticky piano-cam__note" aria-hidden="true" /></Tooltip>
+                    ? <Tooltip content={r.note}><i className="fa-solid fa-note-sticky piano-cam__note" aria-hidden="true" /></Tooltip>
                     : <span className="sib-cell--muted">-</span>}
                 </td>
                 <td className="piano-cam__td-center">

@@ -266,7 +266,7 @@ export default function Anagrafiche() {
                 <td className="text-center">
                   <Tooltip text={a.note ? 'Vedi nota' : 'Nessuna nota'}>
                     <button type="button" className="sib-btn sib-btn--icon" aria-label="Vedi nota" onClick={() => setNoteView({ name: a.nomeCognome, note: a.note })}>
-                      <i className={`fa-light fa-circle-info ${a.note ? 'text-primary' : ''}`} />
+                      <i className={`fa-solid fa-circle-info ${a.note ? 'text-primary' : ''}`} />
                     </button>
                   </Tooltip>
                 </td>
@@ -274,22 +274,22 @@ export default function Anagrafiche() {
                   <div className="flex items-center justify-center gap-1">
                     <Tooltip text="Inserisci note">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Inserisci note" onClick={() => { setNoteEdit({ id: a.id, kind: 'p', name: a.nomeCognome }); setNoteDraft(a.note) }}>
-                        <i className="fa-light fa-file-lines" />
+                        <i className="fa-solid fa-file-lines" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Modifica anagrafica">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica anagrafica" onClick={() => setEditRow(a)}>
-                        <i className="fa-light fa-pen-to-square" />
+                        <i className="fa-solid fa-pen-to-square" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Dettaglio anagrafica">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Dettaglio anagrafica" onClick={() => setDetailRow(a)}>
-                        <i className="fa-light fa-eye" />
+                        <i className="fa-solid fa-eye" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Storico prenotazioni">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Storico prenotazioni" onClick={() => setStoricoName(a.nomeCognome)}>
-                        <i className="fa-light fa-clock-rotate-left" />
+                        <i className="fa-solid fa-clock-rotate-left" />
                       </button>
                     </Tooltip>
                   </div>
@@ -330,7 +330,7 @@ export default function Anagrafiche() {
                 <td className="text-center">
                   <Tooltip text={a.note ? 'Vedi nota' : 'Nessuna nota'}>
                     <button type="button" className="sib-btn sib-btn--icon" aria-label="Vedi nota" onClick={() => setNoteView({ name: a.ragioneSociale, note: a.note })}>
-                      <i className={`fa-light fa-circle-info ${a.note ? 'text-primary' : ''}`} />
+                      <i className={`fa-solid fa-circle-info ${a.note ? 'text-primary' : ''}`} />
                     </button>
                   </Tooltip>
                 </td>
@@ -338,22 +338,22 @@ export default function Anagrafiche() {
                   <div className="flex items-center justify-center gap-1">
                     <Tooltip text="Inserisci note">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Inserisci note" onClick={() => { setNoteEdit({ id: a.id, kind: 'a', name: a.ragioneSociale }); setNoteDraft(a.note) }}>
-                        <i className="fa-light fa-file-lines" />
+                        <i className="fa-solid fa-file-lines" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Dettaglio anagrafica">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Dettaglio anagrafica" onClick={() => setDetailAz(a)}>
-                        <i className="fa-light fa-eye" />
+                        <i className="fa-solid fa-eye" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Storico prenotazioni">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Storico prenotazioni" onClick={() => setStoricoName(a.ragioneSociale)}>
-                        <i className="fa-light fa-clock-rotate-left" />
+                        <i className="fa-solid fa-clock-rotate-left" />
                       </button>
                     </Tooltip>
                     <Tooltip text="Modifica anagrafica">
                       <button type="button" className="sib-btn sib-btn--icon" aria-label="Modifica anagrafica" onClick={() => setEditAz(a)}>
-                        <i className="fa-light fa-pen-to-square" />
+                        <i className="fa-solid fa-pen-to-square" />
                       </button>
                     </Tooltip>
                   </div>
@@ -479,7 +479,7 @@ function StoricoSoggiorniModal({ name, onClose }: { name: string; onClose: () =>
                 <tr>
                   <td className="text-center">
                     <button type="button" className="sib-btn sib-btn--icon" aria-label={openId === s.id ? 'Comprimi' : 'Espandi'} onClick={() => setOpenId(openId === s.id ? null : s.id)}>
-                      <i className={`fa-light ${openId === s.id ? 'fa-chevron-up' : 'fa-chevron-down'}`} />
+                      <i className={`fa-solid ${openId === s.id ? 'fa-chevron-up' : 'fa-chevron-down'}`} />
                     </button>
                   </td>
                   <td>{s.nPren}</td>
