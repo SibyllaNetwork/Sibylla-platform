@@ -151,17 +151,22 @@
   &__act-btn
     border: none
     background: transparent
-    color: $primary
     padding: 4px 5px
     font-size: 16px
+
+    // colore sull'icona (vince sul text-ink-muted di .sib-btn--icon)
+    i
+      color: $primary
 
     &:hover:not(:disabled)
       background: $primary-50
 
     &:disabled
-      color: $text-disabled
       background: transparent
       cursor: default
+
+      i
+        color: $text-disabled
 
   // ── Compattazione quando lo spazio si restringe ─────────────────────────────
   // Scatta quando l'area contenuto scende sotto ~1360px (dove la tabella a
