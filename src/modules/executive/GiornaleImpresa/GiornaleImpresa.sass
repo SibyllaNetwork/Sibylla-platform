@@ -812,27 +812,36 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA ESTESA — tabella unica + drag & drop
 // ═══════════════════════════════════════════════════════════════════════════════
-.giornale__ext-toolbar
+// Riga tab con la bacchetta magica (personalizza) a destra
+.giornale__ext-tabsrow
   display: flex
-  justify-content: flex-end
+  align-items: center
+  gap: 12px
   margin-bottom: 14px
 
-.giornale__personalize
+  // il componente Tabs occupa la riga, la bacchetta resta a destra
+  > *:first-child
+    flex: 1
+    min-width: 0
+
+.giornale__wand
+  flex: none
   display: inline-flex
   align-items: center
-  gap: 7px
-  padding: 8px 16px
+  justify-content: center
+  width: 34px
+  height: 34px
   border: 1px solid $border
   border-radius: 9px
   background: $white
   color: $primary
-  font-size: 12px
-  font-weight: 600
+  font-size: 16px
   cursor: pointer
   transition: $transition-fast
 
   &:hover
     border-color: $primary
+    background: $primary-50
 
   &--on
     background: $primary

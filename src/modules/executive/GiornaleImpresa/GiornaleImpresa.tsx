@@ -698,14 +698,17 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
 
       {/* Struttura + toggle vista */}
       <div className="giornale__control-bar">
-        <SelectField
-          name="struttura"
-          label={D.struttureLabel}
-          value={struttura}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-          options={strutture.map(s => ({ value: s, label: s }))}
-          className="w-48"
-        />
+        {/* Select strutture: solo in vista estesa (nella sintetica e nascosta) */}
+        {viewMode === 'estesa' && (
+          <SelectField
+            name="struttura"
+            label={D.struttureLabel}
+            value={struttura}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
+            options={strutture.map(s => ({ value: s, label: s }))}
+            className="w-48"
+          />
+        )}
         <div className="giornale__view-toggle">
           <button
             className={`giornale__view-btn ${viewMode === 'sintetica' ? 'giornale__view-btn--active' : ''}`}
@@ -767,60 +770,23 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
               </button>
             ))}
           </div>
-
-          {/* News in basso — sezione editoriale */}
-          <div className="giornale__news">
-            <div className="giornale__news-head">
-              <span className="giornale__news-head-title"><Ico n="bar" s={14} c={T.primary} />News &amp; comunicazione</span>
-              <button className="giornale__news-all" onClick={() => navigate('scadenzario')}>
-                Tutte le news <Ico n="chevr" s={11} c={T.blue} />
-              </button>
-            </div>
-            <div className="giornale__news-grid">
-              {/* articolo in evidenza */}
-              <article className="giornale__news-feat">
-                <div className="giornale__news-feat-media" style={{ '--img': `url(${news[0].img})` } as React.CSSProperties}>
-                  <span className="giornale__news-cat">{news[0].cat}</span>
-                </div>
-                <div className="giornale__news-feat-body">
-                  <h3 className="giornale__news-feat-title">{news[0].titolo}</h3>
-                  <p className="giornale__news-feat-text">{news[0].testo}</p>
-                  <div className="giornale__news-meta">{news[0].fonte} · {news[0].tempo} fa</div>
-                </div>
-              </article>
-
-              {/* lista secondaria con thumbnail */}
-              <div className="giornale__news-list">
-                {news.slice(1).map((n, i) => (
-                  <article key={i} className="giornale__news-item">
-                    <div className="giornale__news-thumb" style={{ '--img': `url(${n.img})` } as React.CSSProperties} />
-                    <div className="giornale__news-item-body">
-                      <span className="giornale__news-cat giornale__news-cat--sm">{n.cat}</span>
-                      <h4 className="giornale__news-item-title">{n.titolo}</h4>
-                      <div className="giornale__news-meta">{n.fonte} · {n.tempo} fa</div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
         </>
       )}
 
       {/* ───────────────────────── VISTA ESTESA ───────────────────────── */}
       {viewMode === 'estesa' && (
         <>
-          {/* Tab di sistema per la categoria */}
-          <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
-
-          {/* Toolbar personalizzazione */}
-          <div className="giornale__ext-toolbar">
+          {/* Tab + bacchetta magica (personalizza) a destra della riga tab */}
+          <div className="giornale__ext-tabsrow">
+            <Tabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
             <button
-              className={`giornale__personalize ${editMode ? 'giornale__personalize--on' : ''}`}
+              type="button"
+              className={`giornale__wand ${editMode ? 'giornale__wand--on' : ''}`}
               onClick={() => setEditMode(v => !v)}
+              aria-label={editMode ? 'Fine personalizzazione' : 'Personalizza'}
+              title={editMode ? 'Fine personalizzazione' : 'Personalizza'}
             >
-              <Ico n="sliders" s={14} c={editMode ? T.white : T.primary} />
-              {editMode ? 'Fine' : 'Personalizza'}
+              <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
             </button>
           </div>
 
@@ -882,6 +848,45 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
               )
             })}
           </div>
+
+          {/* News & comunicazione — ultimo elemento della Panoramica impresa */}
+          {activeTab === 'panoramica' && (
+            <div className="giornale__news">
+              <div className="giornale__news-head">
+                <span className="giornale__news-head-title"><Ico n="bar" s={14} c={T.primary} />News &amp; comunicazione</span>
+                <button className="giornale__news-all" onClick={() => navigate('scadenzario')}>
+                  Tutte le news <Ico n="chevr" s={11} c={T.blue} />
+                </button>
+              </div>
+              <div className="giornale__news-grid">
+                {/* articolo in evidenza */}
+                <article className="giornale__news-feat">
+                  <div className="giornale__news-feat-media" style={{ '--img': `url(${news[0].img})` } as React.CSSProperties}>
+                    <span className="giornale__news-cat">{news[0].cat}</span>
+                  </div>
+                  <div className="giornale__news-feat-body">
+                    <h3 className="giornale__news-feat-title">{news[0].titolo}</h3>
+                    <p className="giornale__news-feat-text">{news[0].testo}</p>
+                    <div className="giornale__news-meta">{news[0].fonte} · {news[0].tempo} fa</div>
+                  </div>
+                </article>
+
+                {/* lista secondaria con thumbnail */}
+                <div className="giornale__news-list">
+                  {news.slice(1).map((n, i) => (
+                    <article key={i} className="giornale__news-item">
+                      <div className="giornale__news-thumb" style={{ '--img': `url(${n.img})` } as React.CSSProperties} />
+                      <div className="giornale__news-item-body">
+                        <span className="giornale__news-cat giornale__news-cat--sm">{n.cat}</span>
+                        <h4 className="giornale__news-item-title">{n.titolo}</h4>
+                        <div className="giornale__news-meta">{n.fonte} · {n.tempo} fa</div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
