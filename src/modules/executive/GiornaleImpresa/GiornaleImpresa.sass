@@ -38,6 +38,10 @@
     gap: 16px
     margin-bottom: 18px
 
+    // Select Struttura all'altezza standard dei campi form (34px)
+    select
+      height: 34px
+
   // gruppo destro: bacchetta magica + toggle vista, sempre a destra
   &__control-right
     display: inline-flex
@@ -47,13 +51,17 @@
 
   &__view-toggle
     display: inline-flex
+    align-items: stretch
+    height: 34px
     border: 1px solid $border
     border-radius: 9px
     overflow: hidden
     background: $white
 
   &__view-btn
-    padding: 8px 18px
+    display: inline-flex
+    align-items: center
+    padding: 0 18px
     border: none
     background: transparent
     color: $text-inactive

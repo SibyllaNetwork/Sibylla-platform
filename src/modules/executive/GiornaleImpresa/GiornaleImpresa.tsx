@@ -3,6 +3,7 @@ import T from '../../../core/tokens'
 import Ico from '../../../core/icons/Ico'
 import MenuIco from '../../../core/icons/MenuIco'
 import PageHead from '../../../core/components/PageHead'
+import Tooltip from '../../../core/components/Tooltip'
 import { Tabs } from '../../../core/components'
 import { SelectField } from '../../../core/components/form'
 import MENU from '../../../navigation/menu'
@@ -713,15 +714,16 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
         <div className="giornale__control-right">
           {/* Bacchetta magica (personalizza) — solo in estesa, prima del toggle vista */}
           {viewMode === 'estesa' && (
-            <button
-              type="button"
-              className={`giornale__wand ${editMode ? 'giornale__wand--on' : ''}`}
-              onClick={() => setEditMode(v => !v)}
-              aria-label={editMode ? 'Fine personalizzazione' : 'Personalizza'}
-              title={editMode ? 'Fine personalizzazione' : 'Personalizza'}
-            >
-              <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
-            </button>
+            <Tooltip text="Riorganizza sezioni">
+              <button
+                type="button"
+                className={`giornale__wand ${editMode ? 'giornale__wand--on' : ''}`}
+                onClick={() => setEditMode(v => !v)}
+                aria-label="Riorganizza sezioni"
+              >
+                <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
+              </button>
+            </Tooltip>
           )}
           <div className="giornale__view-toggle">
             <button
