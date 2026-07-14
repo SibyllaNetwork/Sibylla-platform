@@ -156,10 +156,8 @@
       font-size: 12px
       font-weight: 600
       color: var(--color-text-inactive)
-      // intestazioni su piu righe se serve: evita che la tabella superi la
-      // larghezza del pannello (niente scroll orizzontale)
-      white-space: normal
-      vertical-align: bottom
+      // intestazioni SEMPRE su una riga (abbreviate + tooltip se lunghe)
+      white-space: nowrap
       border-bottom: 1px solid var(--color-border)
 
     td

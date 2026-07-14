@@ -371,9 +371,9 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <th>Struttura</th>
                     <th>Giorno</th>
                     <th className="sdd__th-filter">Tipo camera <TipoCameraFilter soloTotem={soloTotem} onApply={setSoloTotem} /></th>
-                    <th className="sdd__col-num">E-distribution</th>
+                    <th className="sdd__col-num"><Tooltip text="E-distribution"><span>E-distrib.</span></Tooltip></th>
                     <th className="sdd__col-num">Suggerito</th>
-                    <th className="sdd__col-num">Overbooking limit</th>
+                    <th className="sdd__col-num"><Tooltip text="Overbooking limit"><span>Overb. limit</span></Tooltip></th>
                   </tr>
                 </thead>
                 <tbody>
