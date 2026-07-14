@@ -252,7 +252,9 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
     if (!el) return
     const ro = new ResizeObserver(([e]) => {
       const w = e.contentRect.width
-      setNarrow(w < 1360)
+      // sotto 1520 (laptop, anche col menu chiuso) la toolbar non ha spazio per
+      // i pulsanti testuali: diventano icone cosi stanno su un'unica riga
+      setNarrow(w < 1520)
       setStacked(w < 1520)
     })
     ro.observe(el)
