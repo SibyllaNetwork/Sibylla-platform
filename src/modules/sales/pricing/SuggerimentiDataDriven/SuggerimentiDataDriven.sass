@@ -55,12 +55,16 @@
   // ── Pannelli ───────────────────────────────────────────────────────────────
   &__panels
     display: flex
+    flex-wrap: wrap
     align-items: stretch
     gap: 18px
 
+  // I pannelli si affiancano solo se c'e spazio per la tabella piu larga
+  // (Disponibilita, 7 colonne ~560px); altrimenti vanno a capo a piena
+  // larghezza. Cosi niente scroll orizzontale E niente colonne tagliate.
   &__panel
-    flex: 1 1 0
-    min-width: 0
+    flex: 1 1 560px
+    min-width: 560px
     display: flex
     flex-direction: column
     border: 1px solid var(--color-border)
@@ -401,10 +405,6 @@
   &__menu-actions
     display: flex
     gap: 8px
-
-@media (max-width: 1100px)
-  .sdd__panels
-    flex-direction: column
 
 // ─── Modale "Suggerimenti proposti" ──────────────────────────────────────────
 // Tab e tabelle usano gli standard di piattaforma (componente Tabs + .sib-table);

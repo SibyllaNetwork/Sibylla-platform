@@ -45,6 +45,14 @@ const GRUPPI: GruppoRow[] = [
 const STRUTTURE = ['Hotel Lux', 'Hotel Archimede', 'Hotel Luce', "Grim's Hotel", 'Hotel Miranda']
 const CATEGORIE = ['1', '2', '3', '4', '5']
 
+// Azioni della toolbar: su viste strette (laptop con sidenav) diventano
+// pulsanti-icona con tooltip esplicativa (vedi useElementNarrow).
+const LINKS = [
+  { icon: 'fa-calendar-days', label: 'Calendario master', page: 'calendario-master' },
+  { icon: 'fa-table-list', label: 'Tariffe & disponibilità', page: 'tariffe-disp' },
+  { icon: 'fa-ruler', label: 'Pianifica strategie', page: 'crea-strategia' },
+]
+
 // ── Dati modale "Suggerimenti proposti" ──────────────────────────────────────
 // Ogni riga: tariffe Attuale e Suggerita per [Adulti, Ragazzi, Bambini, Infanti].
 type Quad = [number, number, number, number]
@@ -222,6 +230,19 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
   const [soloTotem, setSoloTotem] = useState(false)
   const [guidaOpen, setGuidaOpen] = useState(false)
 
+  // Larghezza reale disponibile alla pagina: sotto soglia (laptop con sidenav
+  // aperta) le azioni toolbar si comprimono in icone. Misuriamo l'elemento
+  // (non il viewport) per essere robusti alla presenza della sidenav.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [narrow, setNarrow] = useState(false)
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 1360))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   // I filtri Struttura/Categoria restringono le righe di ogni pannello; le
   // richieste per gruppi non sono legate a una struttura specifica, quindi una
   // struttura selezionata le azzera.
@@ -235,7 +256,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
   const allD = selectableD.length > 0 && selectableD.every((r) => selD.has(r.id))
 
   return (
-    <div className="sdd">
+    <div className="sdd" ref={rootRef}>
       <PageHead
         title="Suggerimenti data driven"
         subtitle="Indicazioni strategiche data-driven su tariffe, numero di camere da mettere a disposizione, richieste extra per gruppi"
@@ -266,15 +287,17 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
               <i className="fa-light fa-microchip" aria-hidden="true" />
             </button>
           </Tooltip>
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('calendario-master')}>
-            <i className="fa-light fa-calendar-days" aria-hidden="true" /> Calendario master
-          </button>
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('tariffe-disp')}>
-            <i className="fa-light fa-table-list" aria-hidden="true" /> Tariffe &amp; disponibilità
-          </button>
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('crea-strategia')}>
-            <i className="fa-light fa-ruler" aria-hidden="true" /> Pianifica strategie
-          </button>
+          {LINKS.map((l) => (narrow ? (
+            <Tooltip key={l.page} text={l.label}>
+              <button type="button" className="sib-btn sib-btn--icon" onClick={() => navigate(l.page)} aria-label={l.label}>
+                <i className={`fa-light ${l.icon}`} aria-hidden="true" />
+              </button>
+            </Tooltip>
+          ) : (
+            <button key={l.page} type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate(l.page)}>
+              <i className={`fa-light ${l.icon}`} aria-hidden="true" /> {l.label}
+            </button>
+          )))}
         </div>
       </div>
 
