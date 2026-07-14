@@ -135,7 +135,7 @@ function MonthMultiSelect({ value, onChange }: { value: number[]; onChange: (v: 
 
 // ── Chart SVG semplice (supporta una o due mensilita concatenate) ───────────────
 function LineChart({ data, capienza, segments, w = 660, h = 240 }: { data: { giorno: string; vendute: number }[], capienza: number, segments: Segment[], w?: number, h?: number }) {
-  const W = w; const H = h; const PL = 36; const PR = 10; const PT = 10; const PB = 50
+  const W = w; const H = h; const PL = 30; const PR = 6; const PT = 10; const PB = 50
   const chartW = W - PL - PR
   const chartH = H - PT - PB
   const maxY = Math.ceil(capienza * 1.15)
