@@ -449,7 +449,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                 <td>
                   <Tooltip text="Check-Out prenotazione">
                     <button type="button" className="ospiti-casa__pren-badge ospiti-casa__pren-badge--btn" aria-label="Check-Out prenotazione" onClick={() => setCheckoutTarget(r)}>
-                      <i className="fa-light fa-id-card" /> {r.prenotazioneNum}
+                      <i className="fa-solid fa-id-card" /> {r.prenotazioneNum}
                     </button>
                   </Tooltip>
                 </td>
@@ -639,7 +639,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
                 <tbody>
                   {scaduti.map((s) => (
                     <tr key={s.id}>
-                      <td><span className="ospiti-casa__pren-badge"><i className="fa-light fa-id-card" /> {s.prenotazioneNum}</span></td>
+                      <td><span className="ospiti-casa__pren-badge"><i className="fa-solid fa-id-card" /> {s.prenotazioneNum}</span></td>
                       <td>{s.camera}</td>
                       <td>{s.ospite}</td>
                       <td>{s.arrivo}</td>
@@ -876,7 +876,7 @@ function ScadutiModal({ target, list, onClose, onCheckout }: {
         <tbody>
           {list.map((s, i) => (
             <tr key={s.id} className={i === 0 ? 'oc-scaduti__first' : ''}>
-              <td><span className="ospiti-casa__pren-badge"><i className="fa-light fa-id-card" /> {s.prenotazioneNum}</span></td>
+              <td><span className="ospiti-casa__pren-badge"><i className="fa-solid fa-id-card" /> {s.prenotazioneNum}</span></td>
               <td>{s.camera}</td>
               <td>{s.ospite}</td>
               <td>{s.arrivo}</td>
