@@ -134,8 +134,8 @@ function MonthMultiSelect({ value, onChange }: { value: number[]; onChange: (v: 
 }
 
 // ── Chart SVG semplice (supporta una o due mensilita concatenate) ───────────────
-function LineChart({ data, capienza, segments }: { data: { giorno: string; vendute: number }[], capienza: number, segments: Segment[] }) {
-  const W = 660; const H = 240; const PL = 36; const PR = 10; const PT = 10; const PB = 50
+function LineChart({ data, capienza, segments, w = 660, h = 240 }: { data: { giorno: string; vendute: number }[], capienza: number, segments: Segment[], w?: number, h?: number }) {
+  const W = w; const H = h; const PL = 36; const PR = 10; const PT = 10; const PB = 50
   const chartW = W - PL - PR
   const chartH = H - PT - PB
   const maxY = Math.ceil(capienza * 1.15)
@@ -231,6 +231,18 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
   // Grafico a slider: due mesi per pagina, si scorre con i pulsanti in overlay
   const [pair, setPair] = useState(0)
   const changeMesi = (v: number[]) => { setMesi(v); setPair(0) }
+
+  // Il grafico riempie il box: SVG dimensionato sul contenitore (nessuna
+  // distorsione perche il viewBox coincide con la dimensione reale in px)
+  const chartAreaRef = useRef<HTMLDivElement>(null)
+  const [chartDim, setChartDim] = useState({ w: 660, h: 300 })
+  useLayoutEffect(() => {
+    const el = chartAreaRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setChartDim({ w: Math.max(320, Math.round(e.contentRect.width)), h: Math.max(220, Math.round(e.contentRect.height)) }))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const mesiSorted = [...mesi].sort((a, b) => a - b)
   const multi = mesiSorted.length > 1
@@ -462,8 +474,8 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
             </div>
           </div>
           <div className="analisi-booking__chart-slider">
-            <div className="analisi-booking__chart-area">
-              <LineChart data={chartData} capienza={capienza} segments={segments} />
+            <div className="analisi-booking__chart-area" ref={chartAreaRef}>
+              <LineChart data={chartData} capienza={capienza} segments={segments} w={chartDim.w} h={chartDim.h} />
             </div>
             {multi && (
               <>

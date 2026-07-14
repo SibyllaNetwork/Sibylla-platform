@@ -35,7 +35,7 @@
     display: grid
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr)
     gap: $space-lg
-    align-items: start
+    align-items: stretch
 
     @media (max-width: 1080px)
       grid-template-columns: 1fr
@@ -168,6 +168,9 @@
     border: 1px solid $border
     border-radius: $radius-lg
     padding: $space-lg
+    // riempie il box: card a tutta altezza, area grafico che si espande
+    display: flex
+    flex-direction: column
 
   &__chart-title
     font-family: $font-heading
@@ -201,11 +204,16 @@
 
   &__chart-area
     width: 100%
-    height: 260px
+    flex: 1
+    min-height: 240px
 
   // ── Slider grafico: due mesi per pagina, pulsanti in overlay ─────────────────
   &__chart-slider
     position: relative
+    flex: 1
+    display: flex
+    flex-direction: column
+    min-height: 0
 
   &__slide-btn
     position: absolute
