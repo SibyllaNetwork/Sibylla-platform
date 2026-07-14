@@ -3,6 +3,7 @@ import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import Tooltip from '../../../../core/components/Tooltip'
 import PageHead from '../../../../core/components/PageHead'
+import Pagination from '../../../../core/components/Pagination'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 import './Assegnazione.sass'
 
@@ -81,6 +82,58 @@ const AVAILABLE_ROOMS: Record<string, string[]> = {
 }
 const PIANI = Object.keys(AVAILABLE_ROOMS)
 
+// Colonne filtrabili della tabella
+const COLS = [
+  { key: 'numero',        label: 'Camera' },
+  { key: 'piano',         label: 'Piano' },
+  { key: 'nome',          label: 'Nome' },
+  { key: 'tipo',          label: 'Tipo' },
+  { key: 'tipoRichiesto', label: 'Tipo richiesto' },
+  { key: 'checkIn',       label: 'Check-in' },
+  { key: 'stato',         label: 'Stato' },
+] as const
+
+// Filtro colonna a imbuto: multi-selezione dei valori distinti della colonna.
+function ColFilter({ label, options, selected, onChange }: {
+  label: string; options: string[]; selected: string[]; onChange: (v: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const active = selected.length > 0
+  const allSel = options.length > 0 && options.every(o => selected.includes(o))
+  const toggle = (o: string) => onChange(selected.includes(o) ? selected.filter(x => x !== o) : [...selected, o])
+  return (
+    <span className="assegnazione__colh">
+      <span className="assegnazione__colh-label">{label}</span>
+      <button
+        type="button"
+        className={`assegnazione__filter-btn ${active ? 'is-on' : ''}`}
+        onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
+        aria-label={`Filtra ${label}`}
+      >
+        <i className="fa-solid fa-filter" aria-hidden="true" />
+      </button>
+      {open && (
+        <>
+          <div className="assegnazione__filter-overlay" onClick={e => { e.stopPropagation(); setOpen(false) }} />
+          <div className="assegnazione__filter-pop" onClick={e => e.stopPropagation()}>
+            <label className="assegnazione__filter-opt">
+              <input type="checkbox" className="sib-checkbox" checked={allSel} onChange={() => onChange(allSel ? [] : [...options])} />
+              <span>Tutti</span>
+            </label>
+            <div className="assegnazione__filter-sep" />
+            {options.map(o => (
+              <label key={o || '(vuoto)'} className="assegnazione__filter-opt">
+                <input type="checkbox" className="sib-checkbox" checked={selected.includes(o)} onChange={() => toggle(o)} />
+                <span>{o || '(vuoto)'}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+    </span>
+  )
+}
+
 // ── Componente ────────────────────────────────────────────────────────────────
 export default function Assegnazione({ navigate }: { navigate: (p: string) => void }) {
   const [calendario, setCalendario] = useState('2026-04-13')
@@ -93,6 +146,24 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
   const [editMode, setEditMode]     = useState(false)
   const [editPiano, setEditPiano]   = useState(MOCK_CAMERE[0].piano)
   const [editCamera, setEditCamera] = useState<string | null>(null)
+
+  // Filtri di colonna (imbuto): per ogni colonna una lista di valori ammessi.
+  const [filters, setFilters] = useState<Record<string, string[]>>({})
+  const distinct = (key: string) => Array.from(new Set(MOCK_CAMERE.map(c => String((c as any)[key])))).sort()
+  const filteredCameras = cameras.filter(cam =>
+    COLS.every(col => {
+      const sel = filters[col.key]
+      return !sel || sel.length === 0 || sel.includes(String((cam as any)[col.key]))
+    }),
+  )
+
+  // Paginazione: 15 elementi per pagina
+  const PAGE_SIZE = 15
+  const [page, setPage] = useState(1)
+  const setColFilter = (key: string, v: string[]) => { setFilters(f => ({ ...f, [key]: v })); setPage(1) }
+  const totalPages = Math.max(1, Math.ceil(filteredCameras.length / PAGE_SIZE))
+  const curPage = Math.min(page, totalPages)
+  const pageCameras = filteredCameras.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE)
 
   const selectedCamera = cameras.find(c => c.id === selectedId) ?? null
   const prenotazione   = selectedCamera ? MOCK_PRENOTAZIONE : null
@@ -148,23 +219,25 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
 
         {/* Tabella assegnazione */}
         <div className="assegnazione__table-card">
-          <h2 className="assegnazione__card-title">Assegnazione automatica</h2>
           <div className="assegnazione__table-wrap">
             <table className="sib-table assegnazione__table">
               <thead>
                 <tr>
-                  <th className="assegnazione__th">Camera</th>
-                  <th className="assegnazione__th">Piano</th>
-                  <th className="assegnazione__th">Nome</th>
-                  <th className="assegnazione__th">Tipo</th>
-                  <th className="assegnazione__th">Tipo richiesto</th>
-                  <th className="assegnazione__th">Check-in</th>
-                  <th className="assegnazione__th">Stato</th>
+                  {COLS.map(col => (
+                    <th key={col.key} className="assegnazione__th">
+                      <ColFilter
+                        label={col.label}
+                        options={distinct(col.key)}
+                        selected={filters[col.key] ?? []}
+                        onChange={v => setColFilter(col.key, v)}
+                      />
+                    </th>
+                  ))}
                   <th className="assegnazione__th">Azioni</th>
                 </tr>
               </thead>
               <tbody>
-                {cameras.map(cam => (
+                {pageCameras.map(cam => (
                   <tr
                     key={cam.id}
                     className={`assegnazione__tr ${selectedId === cam.id ? 'assegnazione__tr--selected' : ''}`}
@@ -193,15 +266,15 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                     <td>
                       <div className="flex gap-1">
                         <Tooltip text="Visualizza dettagli">
-                          <button className="sib-btn sib-btn--icon w-7 h-7"
-                            onClick={e => { e.stopPropagation(); viewCamera(cam) }}>
-                            <Ico n="eye" s={13} c="currentColor" />
+                          <button className="sib-btn sib-btn--icon"
+                            onClick={e => { e.stopPropagation(); viewCamera(cam) }} aria-label="Visualizza dettagli">
+                            <i className="fa-solid fa-eye" aria-hidden="true" />
                           </button>
                         </Tooltip>
                         <Tooltip text="Modifica assegnazione">
-                          <button className="sib-btn sib-btn--icon w-7 h-7"
-                            onClick={e => { e.stopPropagation(); editCameraStart(cam) }}>
-                            <Ico n="edit" s={13} c="currentColor" />
+                          <button className="sib-btn sib-btn--icon"
+                            onClick={e => { e.stopPropagation(); editCameraStart(cam) }} aria-label="Modifica assegnazione">
+                            <i className="fa-solid fa-pen" aria-hidden="true" />
                           </button>
                         </Tooltip>
                       </div>
@@ -210,6 +283,15 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="assegnazione__pagination">
+            <Pagination
+              page={curPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              total={filteredCameras.length}
+              pageSize={PAGE_SIZE}
+            />
           </div>
         </div>
 
