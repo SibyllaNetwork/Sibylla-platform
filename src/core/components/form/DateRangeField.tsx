@@ -26,6 +26,11 @@ export interface DateRangeFieldProps {
   className?:    string
 }
 
+// Icona calendario (caret a destra) con FontAwesome.
+const CalendarCaret = ({ className, ...rest }: { className?: string }) => (
+  <i className={`fa-regular fa-calendar ${className ?? ''}`} aria-hidden="true" {...rest} />
+)
+
 // Parse difensivo: null se non è una data ISO valida.
 const safeParseISO = (s?: string): Date | null => {
   if (!s) return null
@@ -77,6 +82,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
           onChange={handleChange as (v: [Date, Date] | null) => void}
           format="dd/MM/yyyy"
           character=" – "
+          caretAs={CalendarCaret}
           isoWeek
           ranges={[]}
           cleanable={false}
