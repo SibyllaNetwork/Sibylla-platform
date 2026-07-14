@@ -242,9 +242,10 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
   // (non il viewport) per essere robusti alla presenza della sidenav.
   const rootRef = useRef<HTMLDivElement>(null)
   const [narrow, setNarrow] = useState(false)
-  // stacked = pannelli in colonna singola (larghezza < 2 pannelli affiancati):
-  // in questa condizione la Disponibilita e a piena larghezza, quindi mostra
-  // le intestazioni/tipo camera per esteso (niente abbreviazioni).
+  // stacked = pannelli incolonnati a piena larghezza (sotto la soglia della
+  // riga unica, 1840px, sincronizzata con la container query nel .sass): in
+  // questa condizione la Disponibilita ha spazio, quindi mostra intestazioni e
+  // tipo camera per esteso (niente abbreviazioni).
   const [stacked, setStacked] = useState(false)
   useEffect(() => {
     const el = rootRef.current
@@ -252,7 +253,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
     const ro = new ResizeObserver(([e]) => {
       const w = e.contentRect.width
       setNarrow(w < 1360)
-      setStacked(w < 1218)
+      setStacked(w < 1840)
     })
     ro.observe(el)
     return () => ro.disconnect()

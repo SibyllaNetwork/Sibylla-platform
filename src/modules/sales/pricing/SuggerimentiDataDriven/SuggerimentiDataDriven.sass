@@ -4,6 +4,8 @@
 
 .sdd
   // Titolo/sottotitolo: standard PageHeader (allineati a sinistra, nessun override)
+  // Contenitore per le container query (layout pannelli in base allo spazio reale)
+  container-type: inline-size
 
   // ── Toolbar ───────────────────────────────────────────────────────────────
   &__toolbar
@@ -53,18 +55,17 @@
     flex-wrap: wrap
 
   // ── Pannelli ───────────────────────────────────────────────────────────────
+  // Default (laptop / larghezza ridotta): pannelli incolonnati a piena larghezza.
+  // Le tre tabelle vanno su una sola riga SOLO quando c'e spazio per tutte e tre
+  // senza taglio (vedi container query in fondo al file). Nessuno stato a 2
+  // colonne intermedio.
   &__panels
     display: flex
-    flex-wrap: wrap
+    flex-direction: column
     align-items: stretch
     gap: 18px
 
-  // I pannelli si affiancano solo se c'e spazio per la tabella piu larga
-  // (Disponibilita, 7 colonne ~560px); altrimenti vanno a capo a piena
-  // larghezza. Cosi niente scroll orizzontale E niente colonne tagliate.
   &__panel
-    flex: 1 1 600px
-    min-width: 600px
     display: flex
     flex-direction: column
     border: 1px solid var(--color-border)
@@ -411,6 +412,16 @@
   &__menu-actions
     display: flex
     gap: 8px
+
+// Risoluzioni superiori: le tre tabelle DEVONO stare su un'unica riga.
+// Soglia = spazio minimo per 3 pannelli affiancati senza taglio (~1840px).
+// Sotto soglia restano incolonnati (default).
+@container (min-width: 1840px)
+  .sdd__panels
+    flex-direction: row
+  .sdd__panel
+    flex: 1 1 0
+    min-width: 0
 
 // ─── Modale "Suggerimenti proposti" ──────────────────────────────────────────
 // Tab e tabelle usano gli standard di piattaforma (componente Tabs + .sib-table);
