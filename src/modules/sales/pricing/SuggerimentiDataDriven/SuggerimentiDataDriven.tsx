@@ -242,10 +242,18 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
   // (non il viewport) per essere robusti alla presenza della sidenav.
   const rootRef = useRef<HTMLDivElement>(null)
   const [narrow, setNarrow] = useState(false)
+  // stacked = pannelli in colonna singola (larghezza < 2 pannelli affiancati):
+  // in questa condizione la Disponibilita e a piena larghezza, quindi mostra
+  // le intestazioni/tipo camera per esteso (niente abbreviazioni).
+  const [stacked, setStacked] = useState(false)
   useEffect(() => {
     const el = rootRef.current
     if (!el) return
-    const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 1360))
+    const ro = new ResizeObserver(([e]) => {
+      const w = e.contentRect.width
+      setNarrow(w < 1360)
+      setStacked(w < 1218)
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -378,9 +386,9 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <th>Struttura</th>
                     <th>Giorno</th>
                     <th className="sdd__th-filter">Tipo camera <TipoCameraFilter soloTotem={soloTotem} onApply={setSoloTotem} /></th>
-                    <th className="sdd__col-num"><Tooltip text="E-distribution"><span>E-distrib.</span></Tooltip></th>
-                    <th className="sdd__col-num"><Tooltip text="Suggerito"><span>Sugg.</span></Tooltip></th>
-                    <th className="sdd__col-num"><Tooltip text="Overbooking limit"><span>Over. limit</span></Tooltip></th>
+                    <th className="sdd__col-num">{stacked ? 'E-distribution' : <Tooltip text="E-distribution"><span>E-distrib.</span></Tooltip>}</th>
+                    <th className="sdd__col-num">{stacked ? 'Suggerito' : <Tooltip text="Suggerito"><span>Sugg.</span></Tooltip>}</th>
+                    <th className="sdd__col-num">{stacked ? 'Overbooking limit' : <Tooltip text="Overbooking limit"><span>Over. limit</span></Tooltip>}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -394,7 +402,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                       <td className="sdd__nc">{r.struttura}</td>
                       <td className="sdd__nc">{r.giorno}</td>
                       <td className="sdd__nc">
-                        {shortTipo(r.tipo) !== r.tipo
+                        {!stacked && shortTipo(r.tipo) !== r.tipo
                           ? <Tooltip text={r.tipo}><span>{shortTipo(r.tipo)}</span></Tooltip>
                           : r.tipo}
                       </td>
