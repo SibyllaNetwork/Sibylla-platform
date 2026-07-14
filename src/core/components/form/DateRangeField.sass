@@ -17,10 +17,56 @@
   --rs-primary-800: var(--color-primary-900, #11273b)
   --rs-primary-900: var(--color-primary-900, #0c1c2b)
 
-// Trigger allineato ai campi form della piattaforma (bordo/raggio; l'altezza md
-// di rsuite e' gia' 34px).
+// Trigger allineato ai campi form della piattaforma: bordo come i select
+// (var(--color-border)), raggio e altezza 34px, icona calendario a destra.
 .sib-daterange.rs-picker
   font-family: $font-body
 
-  .rs-picker-toggle
-    border-radius: 6px
+  .rs-input-group.rs-input-group-inside
+    height: 34px
+    border: 1px solid var(--color-border)
+    border-radius: var(--radius-field, 6px)
+    background: #fff
+    transition: border-color 0.12s ease
+
+    &:hover,
+    &:focus-within
+      border-color: var(--color-primary)
+
+  .rs-input
+    height: 32px
+    padding-top: 0
+    padding-bottom: 0
+    font-size: 13px
+    background: transparent
+
+  // Icona calendario a destra (sempre visibile). La × per pulire compare
+  // sopra di essa all'hover del campo.
+  .rs-input-group-addon
+    position: relative
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 30px
+
+    &::after
+      content: ''
+      width: 15px
+      height: 15px
+      background: no-repeat center / 15px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%238496a6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4.5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 9.5h18M8 2.5v4M16 2.5v4'/%3E%3C/svg%3E")
+      transition: opacity 0.12s ease
+
+  .rs-picker-clean
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    opacity: 0
+    transition: opacity 0.12s ease
+
+  .rs-input-group:hover .rs-picker-clean
+    opacity: 1
+
+  .rs-input-group:hover .rs-input-group-addon::after
+    opacity: 0

@@ -25,7 +25,7 @@
 
   /* ── Form: select ─────────────────────────────────────────────────── */
   .sib-select {
-    @apply w-full h-9 px-3 pr-8 border border-line rounded-field
+    @apply w-full h-[34px] px-3 pr-8 border border-line rounded-field
            text-[13px] text-ink bg-white font-opensans outline-none box-border
            text-ellipsis overflow-hidden whitespace-nowrap
            appearance-none bg-no-repeat
