@@ -79,7 +79,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
           character=" – "
           isoWeek
           ranges={[]}
-          cleanable
+          cleanable={false}
           disabled={disabled}
           placeholder="Seleziona periodo"
           placement="bottomStart"
