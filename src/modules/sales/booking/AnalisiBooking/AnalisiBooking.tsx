@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import PageHead from '../../../../core/components/PageHead'
@@ -15,14 +15,15 @@ const OPERATORI = [
 
 const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
 const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
+const MESI_ABBR = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic']
 const CATEGORIE = ['Tutte','Standard','Superior','Suite']
 
 const hashStr = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
 
-// Genera dati giornalieri mock per il grafico (deterministici per seed = riga selezionata)
+// Genera dati giornalieri mock per il grafico (deterministici per seed = riga + mese)
 function genChartData(mese: number, anno: number, capienza: number, seed = 'tot') {
   const giorni = new Date(anno, mese, 0).getDate()
-  let s = hashStr(seed) || 1
+  let s = (hashStr(seed) ^ (mese * 2654435761)) >>> 0 || 1
   const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff }
   const data: { giorno: string; vendute: number }[] = []
   for (let d = 1; d <= giorni; d++) {
@@ -33,15 +34,18 @@ function genChartData(mese: number, anno: number, capienza: number, seed = 'tot'
   return data
 }
 
-// ── Chart SVG semplice ────────────────────────────────────────────────────────
-function LineChart({ data, capienza }: { data: { giorno: string; vendute: number }[], capienza: number }) {
+interface Segment { label: string; start: number; count: number }
+
+// ── Chart SVG semplice (supporta una o piu mensilita concatenate) ───────────────
+function LineChart({ data, capienza, segments }: { data: { giorno: string; vendute: number }[], capienza: number, segments: Segment[] }) {
   const W = 660; const H = 240; const PL = 36; const PR = 10; const PT = 10; const PB = 50
   const chartW = W - PL - PR
   const chartH = H - PT - PB
   const maxY = Math.ceil(capienza * 1.15)
   const n = data.length
+  const multi = segments.length > 1
 
-  const toX = (i: number) => PL + (i / (n - 1)) * chartW
+  const toX = (i: number) => n <= 1 ? PL : PL + (i / (n - 1)) * chartW
   const toY = (v: number) => PT + chartH - (v / maxY) * chartH
 
   const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(d.vendute).toFixed(1)}`).join(' ')
@@ -50,8 +54,8 @@ function LineChart({ data, capienza }: { data: { giorno: string; vendute: number
   // Y axis ticks
   const yTicks = [0, 5, 10, 15, 20, 25, Math.ceil(capienza * 1.1)].filter(v => v <= maxY)
 
-  // X axis labels — ogni 5 giorni
-  const xLabels = data.filter((_, i) => i % 4 === 0 || i === n - 1)
+  // X axis labels: piu mesi -> nome mese al centro di ogni segmento; un mese -> giorni
+  const dayLabels = multi ? [] : data.filter((_, i) => i % 4 === 0 || i === n - 1)
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -67,20 +71,37 @@ function LineChart({ data, capienza }: { data: { giorno: string; vendute: number
       <line x1={PL} y1={toY(capienza)} x2={W - PR} y2={toY(capienza)}
         stroke="#E74C3C" strokeWidth={1.5} strokeDasharray="6 4" />
 
+      {/* Separatori di mese (solo multi-mese) */}
+      {multi && segments.map((seg, i) => {
+        if (i === 0) return null
+        const xb = (toX(seg.start - 1) + toX(seg.start)) / 2
+        return <line key={`sep-${i}`} x1={xb} y1={PT} x2={xb} y2={PT + chartH} stroke={T.border} strokeWidth={0.75} strokeDasharray="3 3" />
+      })}
+
       {/* Area fill */}
       <path d={areaPath} fill="#9DD7E8" fillOpacity={0.35} />
 
       {/* Line */}
       <path d={linePath} fill="none" stroke="#5C9CD4" strokeWidth={1.8} />
 
-      {/* X labels */}
-      {xLabels.map((d, i) => {
+      {/* X labels — giorni (mese singolo) */}
+      {dayLabels.map((d, i) => {
         const idx = data.indexOf(d)
         return (
           <text key={i} x={toX(idx)} y={H - 8} textAnchor="middle"
             fontSize={8.5} fill={T.textDisabled}
             transform={`rotate(-40, ${toX(idx)}, ${H - 8})`}>
             {d.giorno.slice(0, 5)}
+          </text>
+        )
+      })}
+
+      {/* X labels — nomi mese (multi-mese) */}
+      {multi && segments.map((seg, i) => {
+        const xMid = (toX(seg.start) + toX(seg.start + seg.count - 1)) / 2
+        return (
+          <text key={`m-${i}`} x={xMid} y={H - 12} textAnchor="middle" fontSize={10} fontWeight={600} fill={T.textInactive}>
+            {seg.label}
           </text>
         )
       })}
@@ -94,7 +115,8 @@ function LineChart({ data, capienza }: { data: { giorno: string; vendute: number
 
 // ── Componente principale ─────────────────────────────────────────────────────
 export default function AnalisiBooking({ navigate }: { navigate: (p: string) => void }) {
-  const [mese,      setMese]      = useState(4)
+  // Una o piu mensilita selezionate contemporaneamente
+  const [mesi,      setMesi]      = useState<number[]>([4])
   const [anno,      setAnno]      = useState(2026)
   const [struttura, setStruttura] = useState(STRUTTURE[0])
   const [categoria, setCategoria] = useState('Tutte')
@@ -102,18 +124,46 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
   const capienza  = 25
   const [selectedOp, setSelectedOp] = useState('tot')
   const selName = selectedOp === 'tot' ? 'totale' : (OPERATORI.find((o) => o.id === selectedOp)?.nome ?? 'totale')
-  const chartData = genChartData(mese, anno, capienza, selectedOp)
+
+  // Toggle di una mensilita (resta sempre almeno un mese selezionato)
+  const toggleMese = (m: number) =>
+    setMesi(prev => prev.includes(m) ? (prev.length > 1 ? prev.filter(x => x !== m) : prev) : [...prev, m])
+
+  const mesiSorted = [...mesi].sort((a, b) => a - b)
+  const nMesi = mesiSorted.length || 1
+
+  // Grafico: giorni di tutti i mesi selezionati concatenati + segmenti per i separatori
+  const chartData: { giorno: string; vendute: number }[] = []
+  const segments: Segment[] = []
+  mesiSorted.forEach(m => {
+    const days = genChartData(m, anno, capienza, selectedOp)
+    segments.push({ label: MESI_ABBR[m - 1], start: chartData.length, count: days.length })
+    chartData.push(...days)
+  })
+
+  // Tabella: metriche aggregate sul periodo selezionato (le voci additive scalano
+  // col numero di mesi; riempimento e ADR restano medie)
+  const rows = OPERATORI.map(o => ({
+    ...o,
+    produzione:  o.produzione  * nMesi,
+    giorniExtra: o.giorniExtra * nMesi,
+    servizi:     o.servizi     * nMesi,
+    camere:      o.camere      * nMesi,
+    ricavo:      o.ricavo      * nMesi,
+  }))
 
   const totale = {
-    produzione:   OPERATORI.reduce((s, o) => s + o.produzione, 0),
-    riempimento:  OPERATORI.reduce((s, o) => s + o.riempimento, 0) / OPERATORI.length,
-    giorniExtra:  OPERATORI.reduce((s, o) => s + o.giorniExtra, 0),
-    servizi:      OPERATORI.reduce((s, o) => s + o.servizi, 0),
-    adr:          OPERATORI.reduce((s, o) => s + o.adr, 0) / OPERATORI.length,
-    camere:       OPERATORI.reduce((s, o) => s + o.camere, 0),
-    ricavo:       OPERATORI.reduce((s, o) => s + o.ricavo, 0),
+    produzione:   rows.reduce((s, o) => s + o.produzione, 0),
+    riempimento:  rows.reduce((s, o) => s + o.riempimento, 0) / rows.length,
+    giorniExtra:  rows.reduce((s, o) => s + o.giorniExtra, 0),
+    servizi:      rows.reduce((s, o) => s + o.servizi, 0),
+    adr:          rows.reduce((s, o) => s + o.adr, 0) / rows.length,
+    camere:       rows.reduce((s, o) => s + o.camere, 0),
+    ricavo:       rows.reduce((s, o) => s + o.ricavo, 0),
   }
   const eur = (v: number) => v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+
+  const periodoLabel = mesiSorted.map(m => MESI[m - 1]).join(', ') + ` ${anno}`
 
   return (
     <div className="analisi-booking">
@@ -121,14 +171,27 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
 
       {/* ── Filtri ── */}
       <div className="analisi-booking__filters">
-        <SelectField
-          label="Mese"
-          name="mese"
-          className="w-[130px]"
-          value={mese}
-          onChange={e => setMese(+e.target.value)}
-          options={MESI.map((m, i) => ({ value: i + 1, label: m }))}
-        />
+        <div className="analisi-booking__filter analisi-booking__filter--months">
+          <span className="analisi-booking__filter-label">Mesi <span className="analisi-booking__hint">(una o più mensilità)</span></span>
+          <div className="analisi-booking__months" role="group" aria-label="Selezione mesi">
+            {MESI_ABBR.map((m, i) => {
+              const val = i + 1
+              const active = mesi.includes(val)
+              return (
+                <Tooltip key={val} text={MESI[i]}>
+                  <button
+                    type="button"
+                    className={'analisi-booking__month-chip' + (active ? ' analisi-booking__month-chip--active' : '')}
+                    onClick={() => toggleMese(val)}
+                    aria-pressed={active}
+                  >
+                    {m}
+                  </button>
+                </Tooltip>
+              )
+            })}
+          </div>
+        </div>
         <SelectField
           label="Anno"
           name="anno"
@@ -182,7 +245,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
               </tr>
             </thead>
             <tbody>
-              {OPERATORI.map(op => (
+              {rows.map(op => (
                 <tr key={op.id} className={'analisi-booking__tr' + (selectedOp === op.id ? ' analisi-booking__tr--selected' : '')} onClick={() => setSelectedOp(op.id)}>
                   <td className="analisi-booking__td analisi-booking__td--name">{op.nome}</td>
                   <td className="analisi-booking__td analisi-booking__td--right">
@@ -234,7 +297,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
 
         {/* Grafico */}
         <div className="analisi-booking__chart-wrap">
-          <div className="analisi-booking__chart-title">Riempimento mensile — {selName}</div>
+          <div className="analisi-booking__chart-title">Riempimento — {selName} · {periodoLabel}</div>
           <div className="analisi-booking__chart-legend">
             <div className="analisi-booking__legend-item">
               <div className="analisi-booking__legend-line analisi-booking__legend-line--capacity" />
@@ -246,7 +309,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
             </div>
           </div>
           <div className="analisi-booking__chart-area">
-            <LineChart data={chartData} capienza={capienza} />
+            <LineChart data={chartData} capienza={capienza} segments={segments} />
           </div>
         </div>
 
