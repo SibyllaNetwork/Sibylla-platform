@@ -359,6 +359,8 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   )
   const [editMode, setEditMode] = useState(false)
   const [dragId, setDragId]     = useState<string | null>(null)
+  // Box News nella Panoramica estesa: gestito dal personalizza (bacchetta)
+  const [newsHidden, setNewsHidden] = useState(false)
 
   // striscia settimana centrata su oggi (3 giorni prima/dopo)
   const weekStrip = Array.from({ length: 7 }, (_, i) => {
@@ -808,6 +810,15 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                     </button>
                   )
                 })}
+                {activeTab === 'panoramica' && (
+                  <button
+                    className={`giornale__add-chip ${!newsHidden ? 'giornale__add-chip--on' : ''}`}
+                    onClick={() => setNewsHidden(v => !v)}
+                  >
+                    <Ico n={!newsHidden ? 'check' : 'plus'} s={11} c={!newsHidden ? T.white : T.primary} />
+                    News &amp; comunicazione
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -836,12 +847,11 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
                       <span className="giornale__card-bar-label">{titleFor(card)}</span>
                       {meta?.sdly && <span className="giornale__merged-sdly">S.D.L.Y.</span>}
                     </div>
-                    <div className="giornale__card-actions">
-                      <button className="giornale__card-act giornale__card-act--del" title="Elimina" onClick={() => removeCard(id)}>
-                        <Ico n="x" s={13} c={T.textInactive} />
-                      </button>
-                      {editMode && <span className="giornale__card-act giornale__card-drag"><Ico n="dots-v" s={13} c={T.primary} /></span>}
-                    </div>
+                    {editMode && (
+                      <div className="giornale__card-actions">
+                        <span className="giornale__card-act giornale__card-drag"><Ico n="dots-v" s={13} c={T.primary} /></span>
+                      </div>
+                    )}
                   </div>
                   <div className="giornale__card-body">{renderCard(card)}</div>
                 </div>
@@ -850,7 +860,7 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
           </div>
 
           {/* News & comunicazione — ultimo elemento della Panoramica impresa */}
-          {activeTab === 'panoramica' && (
+          {activeTab === 'panoramica' && !newsHidden && (
             <div className="giornale__news">
               <div className="giornale__news-head">
                 <span className="giornale__news-head-title"><Ico n="bar" s={14} c={T.primary} />News &amp; comunicazione</span>
