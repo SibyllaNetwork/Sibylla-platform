@@ -27,38 +27,13 @@
     font-weight: 400
     color: $text-inactive
 
-  // ── Selettore mensilita (chip Gen..Dic, una o piu) ───────────────────────────
-  &__months
-    display: flex
-    flex-wrap: wrap
-    gap: 6px
-
-  &__month-chip
-    height: 34px
-    min-width: 44px
-    padding: 0 10px
-    border: 1px solid $border
-    border-radius: 6px
-    background: $white
-    font-family: 'Poppins', sans-serif
-    font-size: 12.5px
-    font-weight: 600
-    color: $text-inactive
-    cursor: pointer
-    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease
-
-    &:hover
-      border-color: $primary
-
-    &--active
-      background: $primary-100
-      border-color: $primary-100
-      color: $primary
+  &__filter--months
+    min-width: 220px
 
   // ── Layout principale ────────────────────────────────────────────────────────
   &__body
     display: grid
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr)
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr)
     gap: $space-lg
     align-items: start
 
@@ -84,7 +59,8 @@
     font-weight: 600
     color: $text-inactive
     border-bottom: 1px solid $border
-    background: var(--color-bg)
+    // intestazione con sfondo azzurro di sistema (le righe restano senza sfondo)
+    background: $primary-50
     white-space: nowrap
 
     &--right
@@ -113,18 +89,14 @@
       font-weight: 500
       color: $primary
 
+  // Righe senza sfondo: la selezione e indicata dall'icona del grafico (non da
+  // un fill di riga). Solo un leggero hover per l'affordance di click.
   &__tr
     transition: background 0.1s
     cursor: pointer
 
     &:hover
       background: var(--color-bg)
-
-    &--selected
-      background: $primary-50
-
-      &:hover
-        background: $primary-50
 
   &__chart-btn
     background: transparent
@@ -152,6 +124,35 @@
     align-items: center
     gap: 5px
     justify-content: flex-end
+
+  // ── Righe espandibili: dettaglio per mese ────────────────────────────────────
+  &__exp-btn
+    background: transparent
+    border: none
+    cursor: pointer
+    color: $primary
+    padding: 0
+    margin-right: 6px
+    font-size: 11px
+    width: 14px
+
+  &__subtr
+    cursor: default
+
+    &:hover
+      background: transparent
+
+    td
+      color: $text-inactive
+      font-size: 12px
+
+    &--total td
+      font-weight: 600
+
+  &__td--month
+    padding-left: 30px
+    color: $text-inactive
+    font-weight: 500
 
   &__trend-up
     color: $success
@@ -202,6 +203,167 @@
     width: 100%
     height: 260px
 
+  // ── Slider grafico: due mesi per pagina, pulsanti in overlay ─────────────────
+  &__chart-slider
+    position: relative
+
+  &__slide-btn
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    width: 30px
+    height: 30px
+    display: flex
+    align-items: center
+    justify-content: center
+    border: 1px solid $border
+    border-radius: 50%
+    background: rgba(255, 255, 255, 0.92)
+    color: $primary
+    font-size: 13px
+    cursor: pointer
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12)
+    transition: background 0.12s ease, opacity 0.12s ease
+
+    &:hover
+      background: $primary-100
+
+    &:disabled
+      opacity: 0.35
+      cursor: default
+
+    &--prev
+      left: -6px
+
+    &--next
+      right: -6px
+
+  &__slide-dots
+    display: flex
+    justify-content: center
+    gap: 6px
+    margin-top: $space-sm
+
+  &__slide-dot
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: var(--color-border)
+
+    &.is-active
+      background: $primary
+
   &__chart-label
     font-size: 9px
     fill: $text-disabled
+
+// ── Multiselect mesi ────────────────────────────────────────────────────────────
+.abm-ms
+  position: relative
+
+  &__trigger
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    width: 100%
+    min-width: 200px
+    height: 34px
+    padding: 0 10px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    font-size: 13px
+    color: $text-active
+    cursor: pointer
+
+    &.is-open
+      border-color: $primary
+
+  &__summary
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+    &--ph
+      color: $text-disabled
+
+  &__chev
+    font-size: 11px
+    color: $text-inactive
+
+  &__overlay
+    position: fixed
+    inset: 0
+    z-index: 1200
+
+  &__list
+    position: fixed
+    z-index: 1201
+    max-height: 340px
+    display: flex
+    flex-direction: column
+    background: $white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14)
+    overflow: hidden
+
+  &__opts
+    overflow-y: auto
+    padding: 4px
+
+  &__opt
+    display: flex
+    align-items: center
+    gap: 8px
+    width: 100%
+    padding: 7px 8px
+    border: none
+    border-radius: 5px
+    background: transparent
+    font-size: 13px
+    color: $text-active
+    cursor: pointer
+    text-align: left
+
+    &:hover
+      background: var(--color-bg)
+
+    &.is-selected
+      color: $primary
+      font-weight: 600
+
+  &__box
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 16px
+    height: 16px
+    border: 1px solid $border
+    border-radius: 4px
+    font-size: 9px
+    color: $white
+
+    &.is-on
+      background: $primary
+      border-color: $primary
+
+  &__foot
+    display: flex
+    justify-content: space-between
+    gap: 8px
+    padding: 8px
+    border-top: 1px solid $border
+
+  &__foot-btn
+    background: transparent
+    border: none
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:disabled
+      color: $text-disabled
+      cursor: default
