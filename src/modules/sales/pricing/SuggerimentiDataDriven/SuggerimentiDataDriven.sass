@@ -108,11 +108,12 @@
     color: var(--color-text-inactive)
     font-size: 15px
 
+  // Nessuno scroll orizzontale (specifica di progetto): la tabella rientra
+  // sempre nella larghezza del pannello grazie al wrapping di header e celle.
   &__scroll
     flex: 1
     display: flex
     flex-direction: column
-    overflow-x: auto
     min-height: 360px
 
   // ── Stato vuoto pannello ───────────────────────────────────────────────────
@@ -151,7 +152,10 @@
       font-size: 12px
       font-weight: 600
       color: var(--color-text-inactive)
-      white-space: nowrap
+      // intestazioni su piu righe se serve: evita che la tabella superi la
+      // larghezza del pannello (niente scroll orizzontale)
+      white-space: normal
+      vertical-align: bottom
       border-bottom: 1px solid var(--color-border)
 
     td
@@ -185,7 +189,8 @@
     background: var(--color-success-mid)
     color: var(--color-primary)
     font-weight: 600
-    white-space: nowrap
+    // il valore puo andare a capo: cosi la colonna non forza lo scroll-x
+    white-space: normal
 
     &--l
       border-radius: 6px 0 0 6px
