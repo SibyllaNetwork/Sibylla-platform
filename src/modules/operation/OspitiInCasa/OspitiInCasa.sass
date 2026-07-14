@@ -103,9 +103,10 @@
     align-items: center
     gap: 16px
     flex-shrink: 0
-    // centrate verticalmente rispetto ai campi della toolbar (che hanno la label
-    // sopra), invece di restare allineate in basso
-    align-self: center
+    // allineate alla linea mediana dell'input Cerca: stessa altezza dell'input
+    // (34px), ancorate in basso come i campi, contenuto centrato
+    align-self: flex-end
+    height: 34px
 
   // Statistiche inline senza pill/sfondo grigio (solo testo + icona)
   &__count
