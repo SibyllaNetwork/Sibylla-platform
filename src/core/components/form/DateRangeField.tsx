@@ -128,7 +128,6 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
         >
           <i className="fa-duotone fa-calendar text-[10px] text-ink-subtle shrink-0" aria-hidden="true" />
           <span className="sib-daterange__val">{trigLabel}</span>
-          <i className="fa-solid fa-chevron-down text-[9px] text-ink-subtle shrink-0" aria-hidden="true" />
         </button>
 
         {open && createPortal(
