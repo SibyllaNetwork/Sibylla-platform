@@ -109,17 +109,13 @@
       border-radius: 2px
 
   // Base table/th/td forniti da .sib-table; qui solo selezione/hover riga
-  // Righe bianche (nessun fill); la selezione è indicata da un accento a
-  // sinistra e dal testo in blu.
+  // Righe bianche (nessun fill né linguetta); la selezione è indicata solo dal
+  // testo in blu.
   &__tr
     cursor: pointer
 
-    &--selected
-      td
-        color: $primary
-
-      td:first-child
-        box-shadow: inset 3px 0 0 $primary
+    &--selected td
+      color: $primary
 
   &__camera-num
     font-family: $font-heading
