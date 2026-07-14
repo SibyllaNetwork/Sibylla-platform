@@ -304,9 +304,12 @@
     width: 100%
 
   // ── Funnel filtri/ordina nelle intestazioni ────────────────────────────────
+  // vertical-align middle: allinea il testo del titolo (es. "Tipo camera") con
+  // gli altri titoli, altrimenti il funnel inline-flex lo abbassa
   &__pop
     position: relative
     display: inline-flex
+    vertical-align: middle
 
   &__filter-btn
     margin-left: 6px
@@ -414,14 +417,19 @@
     gap: 8px
 
 // Risoluzioni superiori: le tre tabelle DEVONO stare su un'unica riga.
-// Soglia = spazio minimo per 3 pannelli affiancati senza taglio (~1840px).
-// Sotto soglia restano incolonnati (default).
-@container (min-width: 1840px)
+// Sotto soglia (laptop) restano incolonnati (default). In modalita riga le
+// tabelle vengono compattate (padding ridotto) per stare affiancate senza taglio.
+@container (min-width: 1520px)
   .sdd__panels
     flex-direction: row
   .sdd__panel
     flex: 1 1 0
     min-width: 0
+  .sdd__tbl th,
+  .sdd__tbl td
+    padding: 8px 4px
+  .sdd__col-check
+    width: 24px
 
 // ─── Modale "Suggerimenti proposti" ──────────────────────────────────────────
 // Tab e tabelle usano gli standard di piattaforma (componente Tabs + .sib-table);
