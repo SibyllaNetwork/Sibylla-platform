@@ -1,62 +1,26 @@
 // ─── DATE RANGE FIELD ──────────────────────────────────────────────────────────
-// Standard di piattaforma: Date Range Picker a due calendari affiancati.
+// Standard di piattaforma: RSuite DateRangePicker (due calendari affiancati).
 @use '../../../styles/tokens' as *
 
-.sib-daterange
-  position: relative
+// Rimappa la palette "primary" di RSuite sul blu Platform. Vale solo per il
+// DateRangePicker (unico componente rsuite in uso). Le tinte chiare/scure
+// derivano dai token piattaforma con fallback espliciti.
+:root
+  --rs-primary-50:  var(--color-primary-50, #f2f5f7)
+  --rs-primary-100: var(--color-primary-100, #dfe7ee)
+  --rs-primary-200: var(--color-primary-200, #c0cfdd)
+  --rs-primary-300: var(--color-primary-300, #93aac2)
+  --rs-primary-400: var(--color-primary-400, #5e7f9f)
+  --rs-primary-500: var(--color-primary, #204769)
+  --rs-primary-600: var(--color-primary-700, #1b3d5c)
+  --rs-primary-700: var(--color-primary-800, #16324c)
+  --rs-primary-800: var(--color-primary-900, #11273b)
+  --rs-primary-900: var(--color-primary-900, #0c1c2b)
 
-  // Trigger: altezza standard campi (34px) + doppia freccetta come i select
-  .sib-input
-    height: 34px
-    padding-right: 26px
-    background-repeat: no-repeat
-    background-position: right 8px center
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E")
+// Trigger allineato ai campi form della piattaforma (bordo/raggio; l'altezza md
+// di rsuite e' gia' 34px).
+.sib-daterange.rs-picker
+  font-family: $font-body
 
-  &__val
-    font-variant-numeric: tabular-nums
-    white-space: nowrap
-
-  &__overlay
-    position: fixed
-    inset: 0
-    z-index: 2000
-
-  // Renderizzato in un portale su document.body: position:fixed con top/left
-  // calcolati dal trigger (vedi DateRangeField.tsx), per non essere mai tagliato
-  // dagli overflow/stacking degli antenati.
-  &__pop
-    position: fixed
-    z-index: 2001
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-lg
-    box-shadow: $shadow-lg
-    padding: $space-sm
-
-    .rdp
-      --rdp-accent-color: #{$primary}
-      --rdp-background-color: #{alpha($primary, 0.12)}
-      margin: 0
-      font-size: 13px
-
-    // titoli mese — meno "pesanti"
-    .rdp-caption_label
-      font-size: 13px
-      font-weight: 600
-      color: $text-active
-
-    // intestazioni giorni settimana — più leggere
-    .rdp-head_cell
-      font-size: 11px
-      font-weight: 500
-      color: $text-inactive
-      text-transform: none
-
-    .rdp-day_selected, .rdp-day_range_start, .rdp-day_range_end
-      background: $primary
-      color: #fff
-
-    .rdp-day_range_middle
-      background: alpha($primary, 0.12)
-      color: $text-active
+  .rs-picker-toggle
+    border-radius: 6px
