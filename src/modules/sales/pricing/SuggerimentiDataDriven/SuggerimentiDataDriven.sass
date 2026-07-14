@@ -63,8 +63,8 @@
   // (Disponibilita, 7 colonne ~560px); altrimenti vanno a capo a piena
   // larghezza. Cosi niente scroll orizzontale E niente colonne tagliate.
   &__panel
-    flex: 1 1 560px
-    min-width: 560px
+    flex: 1 1 600px
+    min-width: 600px
     display: flex
     flex-direction: column
     border: 1px solid var(--color-border)
@@ -185,6 +185,10 @@
 
   &__col-num
     text-align: right
+
+  // Celle Struttura/Giorno: sempre su una riga
+  &__nc
+    white-space: nowrap
 
   // ── Blocco evidenziato Pricing (Attuale → Suggerito) ───────────────────────
   &__hl

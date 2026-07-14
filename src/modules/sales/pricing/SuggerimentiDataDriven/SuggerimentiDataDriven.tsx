@@ -90,6 +90,13 @@ const RATE_NR: RoomPrice[] = [
 
 const eur = (n: number) => `${n.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €`
 
+// Abbreviazioni tipo camera per stare su una riga; il nome completo resta nel tooltip.
+const TIPO_ABBR: Record<string, string> = {
+  'Doppia Economy': 'Doppia Eco.',
+  'Matrimoniale Economy': 'Matr. Econ.',
+}
+const shortTipo = (t: string) => TIPO_ABBR[t] ?? t
+
 /** Tabella Attuale vs Suggerita per un piano tariffario. */
 function PriceTable({ rows }: { rows: RoomPrice[] }) {
   return (
@@ -321,15 +328,15 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <th>Struttura</th>
                     <th>Giorno</th>
                     <th>Attuale</th>
-                    <th className="sdd__th-filter">Suggerito <SortMenu value={sortSugg} onChange={setSortSugg} /></th>
+                    <th className="sdd__th-filter"><Tooltip text="Suggerito"><span>Sugg.</span></Tooltip> <SortMenu value={sortSugg} onChange={setSortSugg} /></th>
                   </tr>
                 </thead>
                 <tbody>
                   {fP.map((r) => (
                     <tr key={r.id}>
                       <td className="sdd__col-check"><input type="checkbox" checked={selP.has(r.id)} onChange={() => setSelP((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.struttura}`} /></td>
-                      <td>{r.struttura}</td>
-                      <td>{r.giorno}</td>
+                      <td className="sdd__nc">{r.struttura}</td>
+                      <td className="sdd__nc">{r.giorno}</td>
                       <td className="sdd__hl sdd__hl--l">{r.attuale}</td>
                       <td className="sdd__hl sdd__hl--r">
                         <Tooltip text="Variazioni di pricing">
@@ -372,8 +379,8 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <th>Giorno</th>
                     <th className="sdd__th-filter">Tipo camera <TipoCameraFilter soloTotem={soloTotem} onApply={setSoloTotem} /></th>
                     <th className="sdd__col-num"><Tooltip text="E-distribution"><span>E-distrib.</span></Tooltip></th>
-                    <th className="sdd__col-num">Suggerito</th>
-                    <th className="sdd__col-num"><Tooltip text="Overbooking limit"><span>Overb. limit</span></Tooltip></th>
+                    <th className="sdd__col-num"><Tooltip text="Suggerito"><span>Sugg.</span></Tooltip></th>
+                    <th className="sdd__col-num"><Tooltip text="Overbooking limit"><span>Over. limit</span></Tooltip></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -384,9 +391,13 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                           ? <i className="fa-light fa-hourglass-half sdd__hourglass" title="In elaborazione" aria-hidden="true" />
                           : <input type="checkbox" checked={selD.has(r.id)} onChange={() => setSelD((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.tipo}`} />}
                       </td>
-                      <td>{r.struttura}</td>
-                      <td>{r.giorno}</td>
-                      <td>{r.tipo}</td>
+                      <td className="sdd__nc">{r.struttura}</td>
+                      <td className="sdd__nc">{r.giorno}</td>
+                      <td className="sdd__nc">
+                        {shortTipo(r.tipo) !== r.tipo
+                          ? <Tooltip text={r.tipo}><span>{shortTipo(r.tipo)}</span></Tooltip>
+                          : r.tipo}
+                      </td>
                       <td className="sdd__col-num">
                         <span className="sdd__val">{r.edist}<Tooltip text={`Disponibilità reale: ${r.reale} Cam.`}><i className="fa-light fa-circle-info sdd__info" aria-hidden="true" /></Tooltip></span>
                       </td>
@@ -433,7 +444,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <th className="sdd__col-check"><input type="checkbox" checked={allG} disabled={fG.length === 0} onChange={() => setSelG(allG ? new Set() : new Set(fG.map((r) => r.id)))} aria-label="Seleziona tutti" /></th>
                     <th>Struttura</th>
                     <th>Giorno</th>
-                    <th>Suggerito</th>
+                    <th><Tooltip text="Suggerito"><span>Sugg.</span></Tooltip></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -441,7 +452,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <tr key={r.id}>
                       <td className="sdd__col-check"><input type="checkbox" checked={selG.has(r.id)} onChange={() => setSelG((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.codice}`} /></td>
                       <td />
-                      <td>{r.giorno}</td>
+                      <td className="sdd__nc">{r.giorno}</td>
                       <td>
                         <div className="sdd__gruppo">
                           <span className="sdd__gruppo-info">
