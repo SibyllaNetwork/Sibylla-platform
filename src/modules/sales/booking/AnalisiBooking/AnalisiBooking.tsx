@@ -149,15 +149,12 @@ function LineChart({ data, capienza, segments, w = 660, h = 240 }: { data: { gio
   const areaPath = linePath + ` L${toX(n - 1).toFixed(1)},${(PT + chartH).toFixed(1)} L${PL},${(PT + chartH).toFixed(1)} Z`
 
   const yTicks = [0, 5, 10, 15, 20, 25, Math.ceil(capienza * 1.1)].filter(v => v <= maxY)
-  // Mese singolo: etichette giorno/mese ruotate. Multi-mese: numeri-giorno
-  // radi (1, 5, 10, …) come dettaglio, piu il nome del mese sotto ogni segmento.
-  const dayLabels = multi ? [] : data.filter((_, i) => i % 4 === 0 || i === n - 1)
-  const dayTicks = multi
-    ? data.map((d, i) => ({ d, i })).filter(({ d }) => { const g = parseInt(d.giorno.slice(0, 2), 10); return g === 1 || g % 5 === 0 })
-    : []
+  // Un mese per pagina: mostra tutti i giorni sull'asse X.
+  const dayLabels = data
+  const dayTicks: { d: { giorno: string; vendute: number }; i: number }[] = []
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
       {yTicks.map(v => (
         <g key={v}>
           <line x1={PL} y1={toY(v)} x2={W - PR} y2={toY(v)} stroke={T.border} strokeWidth={0.5} />
@@ -177,16 +174,11 @@ function LineChart({ data, capienza, segments, w = 660, h = 240 }: { data: { gio
       <path d={areaPath} fill="#9DD7E8" fillOpacity={0.35} />
       <path d={linePath} fill="none" stroke="#5C9CD4" strokeWidth={1.8} />
 
-      {dayLabels.map((d, i) => {
-        const idx = data.indexOf(d)
-        return (
-          <text key={i} x={toX(idx)} y={H - 8} textAnchor="middle"
-            fontSize={8.5} fill={T.textDisabled}
-            transform={`rotate(-40, ${toX(idx)}, ${H - 8})`}>
-            {d.giorno.slice(0, 5)}
-          </text>
-        )
-      })}
+      {dayLabels.map((d, i) => (
+        <text key={i} x={toX(i)} y={H - 14} textAnchor="middle" fontSize={8.5} fill={T.textDisabled}>
+          {d.giorno.slice(0, 2)}
+        </text>
+      ))}
 
       {/* Dettaglio giorni (multi-mese) */}
       {dayTicks.map(({ d, i }) => (
@@ -292,19 +284,19 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
 
   const eur = (v: number) => v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
-  // Finestra dello slider: due mesi per pagina
-  const pages = Math.max(1, Math.ceil(mesiSorted.length / 2))
+  // Slider: un mese per pagina, giorno per giorno
+  const pages = Math.max(1, mesiSorted.length)
   const curPair = Math.min(pair, pages - 1)
-  const windowMonths = multi ? mesiSorted.slice(curPair * 2, curPair * 2 + 2) : mesiSorted
+  const cur = mesiSorted[curPair]
 
   const chartData: { giorno: string; vendute: number }[] = []
   const segments: Segment[] = []
-  windowMonths.forEach(m => {
-    const days = genChartData(m, anno, capienza, selectedOp)
-    segments.push({ label: MESI_ABBR[m - 1], start: chartData.length, count: days.length })
+  if (cur != null) {
+    const days = genChartData(cur, anno, capienza, selectedOp)
+    segments.push({ label: MESI_ABBR[cur - 1], start: 0, count: days.length })
     chartData.push(...days)
-  })
-  const windowLabel = windowMonths.map(m => MESI[m - 1]).join(' – ') + ` ${anno}`
+  }
+  const windowLabel = cur != null ? `${MESI[cur - 1]} ${anno}` : '—'
 
   return (
     <div className="analisi-booking">
@@ -480,12 +472,12 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
             {multi && (
               <>
                 <button type="button" className="analisi-booking__slide-btn analisi-booking__slide-btn--prev"
-                  aria-label="Due mesi precedenti" disabled={curPair === 0}
+                  aria-label="Mese precedente" disabled={curPair === 0}
                   onClick={() => setPair(p => Math.max(0, p - 1))}>
                   <i className="fa-solid fa-chevron-left" />
                 </button>
                 <button type="button" className="analisi-booking__slide-btn analisi-booking__slide-btn--next"
-                  aria-label="Due mesi successivi" disabled={curPair >= pages - 1}
+                  aria-label="Mese successivo" disabled={curPair >= pages - 1}
                   onClick={() => setPair(p => Math.min(pages - 1, p + 1))}>
                   <i className="fa-solid fa-chevron-right" />
                 </button>
