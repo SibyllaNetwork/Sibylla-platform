@@ -9,6 +9,8 @@ import { CAM_CLR } from '../planner.styles';
 interface Props {
   piano: Piano;
   onClose: () => void;
+  /** Se presente, mostra il pulsante per creare la planimetria del piano nell'editor. */
+  onCreatePlan?: () => void;
 }
 
 const STATO_LABEL: Record<StatoCam, string> = {
@@ -20,7 +22,7 @@ const STATO_LABEL: Record<StatoCam, string> = {
   checkout: 'Check-out',
 };
 
-const FloorDetail: React.FC<Props> = ({ piano, onClose }) => {
+const FloorDetail: React.FC<Props> = ({ piano, onClose, onCreatePlan }) => {
   const occ = piano.camere.filter(c => c.stato === 'occupata').length;
   const lib = piano.camere.filter(c => c.stato === 'libera').length;
 
@@ -32,6 +34,12 @@ const FloorDetail: React.FC<Props> = ({ piano, onClose }) => {
 
       <div className="floor-detail__title">{piano.nome}</div>
       <div className="floor-detail__sub">{piano.camere.length} camere · {occ} occ · {lib} lib</div>
+
+      {onCreatePlan && (
+        <button type="button" className="floor-detail__create-plan" onClick={onCreatePlan}>
+          <i className="fa-solid fa-pen-ruler" aria-hidden="true" /> Crea planimetria del piano
+        </button>
+      )}
 
       <div className="floor-detail__grid">
         {piano.camere.map(cam => (

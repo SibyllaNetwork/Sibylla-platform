@@ -115,6 +115,7 @@ import GestionePagine              from '../admin/SibyllaAdminPanel/AssistenzaHo
 import SibyllaAdminPanel           from '../admin/SibyllaAdminPanel/SibyllaAdminPanel';
 import { isPlatformAdminPage, PLATFORM_ADMIN_PLATFORM_PAGE } from '../navigation/platformAdminMenu';
 import Planner                     from '../modules/operation/planner';
+import PlanimetriaEditor            from '../modules/operation/planner/PlanimetriaEditor/PlanimetriaEditor';
 // ── Food & Beverage (Outlet Manager — outlet.sibyllanetwork.it) ──
 import OutletShell                 from '../modules/operation/Outlet/OutletShell';
 import type { OutletSubPage }      from '../modules/operation/Outlet/OutletShell';
@@ -317,6 +318,10 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'maintenance-analysis')  return <MaintenanceAnalysis navigate={navigate}/>;
   if (page === 'ordine-servizio')       return <OrdineServizio navigate={navigate}/>;
   if (page === 'richieste-operative')   return <RichiesteOperative navigate={navigate}/>;
+  if (page.startsWith('planimetria-editor:')) {
+    const [struttura, pianoId] = page.slice('planimetria-editor:'.length).split('__');
+    return <PlanimetriaEditor navigate={navigate} struttura={decodeURIComponent(struttura)} pianoId={Number(pianoId)} key={page}/>;
+  }
   if (page === 'crea-pratica')          return <CreaPratica navigate={navigate}/>;
   if (page === 'monitoraggio-pratiche') return <MonitoraggioPratiche navigate={navigate}/>;
   if (page === 'live-display')          return <LiveDisplay navigate={navigate}/>;

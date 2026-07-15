@@ -664,6 +664,7 @@ export default function SibyllaAdminPanel(props: Props) {
                     onEdit={openEditStruct}
                     onSave={saveEditStruct}
                     onCancel={cancelEditStruct}
+                    navigate={props.navigate}
                   />
                 )}
                 {tab === 'moduli' && (

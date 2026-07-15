@@ -1,0 +1,355 @@
+// ─── PlanimetriaEditor ────────────────────────────────────────────────────────
+.plan-editor
+  display: flex
+  flex-direction: column
+  height: 100%
+  min-height: 0
+
+  &__saved
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-right: 10px
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-success)
+    i
+      font-size: 13px
+
+  &__body
+    flex: 1
+    min-height: 0
+    display: grid
+    grid-template-columns: 244px 1fr 312px
+    gap: 14px
+    padding: 4px 2px 2px
+
+  // ── PALETTE ──────────────────────────────────────────────────────────────
+  &__palette
+    display: flex
+    flex-direction: column
+    gap: 18px
+    overflow-y: auto
+    padding-right: 4px
+
+  &__pal-group
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__pal-title
+    display: flex
+    align-items: center
+    justify-content: space-between
+    font-family: Poppins, sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__pal-count
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    background: var(--color-primary-50)
+    border-radius: 999px
+    padding: 1px 8px
+
+  &__pal-hint
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__pal-done
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: var(--color-success)
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 6px 10px
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    background: var(--color-surface)
+    font-size: 12px
+    font-weight: 500
+    color: var(--color-text-active)
+    cursor: pointer
+    transition: border-color .12s, background .12s
+    &:hover
+      border-color: var(--color-primary-400)
+      background: var(--color-primary-50)
+    &.is-placed
+      opacity: .5
+      cursor: default
+      &:hover
+        border-color: var(--color-border)
+        background: var(--color-surface)
+
+  &__chip-dot
+    width: 9px
+    height: 9px
+    border-radius: 3px
+    background: var(--dot)
+
+  &__chip-ok
+    font-size: 10px
+    color: var(--color-success)
+
+  &__chip--el
+    color: var(--color-primary)
+    i
+      font-size: 12px
+      color: var(--color-primary-500)
+
+  &__stepper
+    display: grid
+    grid-template-columns: 1fr auto auto auto
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: var(--color-text-active)
+    b
+      min-width: 22px
+      text-align: center
+      font-weight: 600
+      color: var(--color-primary)
+    button
+      width: 24px
+      height: 24px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      border: 1px solid var(--color-border)
+      border-radius: 6px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      cursor: pointer
+      font-size: 10px
+      &:hover
+        background: var(--color-primary-50)
+
+  // ── CANVAS ───────────────────────────────────────────────────────────────
+  &__canvas-wrap
+    overflow: auto
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-bg)
+    padding: 18px
+    display: flex
+
+  &__canvas
+    position: relative
+    margin: auto
+    width: calc(var(--cols) * var(--cell))
+    height: calc(var(--rows) * var(--cell))
+    background-color: var(--color-surface)
+    background-image: linear-gradient(var(--color-primary-100) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary-100) 1px, transparent 1px)
+    background-size: var(--cell) var(--cell)
+    border: 1px solid var(--color-primary-200)
+    border-radius: 6px
+    flex: none
+
+  &__empty
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 10px
+    color: var(--color-text-inactive)
+    pointer-events: none
+    i
+      font-size: 30px
+      opacity: .5
+    span
+      font-size: 13px
+
+  &__item
+    position: absolute
+    left: calc(var(--x) * var(--cell))
+    top: calc(var(--y) * var(--cell))
+    width: calc(var(--w) * var(--cell))
+    height: calc(var(--h) * var(--cell))
+    padding: 5px 7px
+    box-sizing: border-box
+    border-radius: 6px
+    cursor: grab
+    overflow: hidden
+    user-select: none
+    display: flex
+    flex-direction: column
+    justify-content: center
+    &:active
+      cursor: grabbing
+    &.is-selected
+      outline: 2px solid var(--color-primary)
+      outline-offset: 1px
+      z-index: 5
+
+  &__item--camera
+    background: var(--color-surface)
+    border: 1px solid var(--color-primary-200)
+    box-shadow: 0 1px 2px rgba(32, 71, 105, .08)
+
+  &__item-bar
+    position: absolute
+    left: 0
+    top: 0
+    bottom: 0
+    width: 5px
+    background: var(--room-clr)
+    border-radius: 6px 0 0 6px
+
+  &__item-num
+    font-family: Poppins, sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    line-height: 1.1
+
+  &__item-type
+    font-size: 10px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  // elementi struttura
+  &__item--corridoio, &__item--scala, &__item--ascensore, &__item--ingresso, &__item--bagno, &__item--area
+    align-items: center
+    justify-content: center
+    flex-direction: row
+    gap: 6px
+    border: 1px dashed var(--color-primary-300)
+    background: var(--color-primary-50)
+    color: var(--color-primary-600)
+    font-size: 11px
+    font-weight: 500
+  &__item--corridoio
+    background: repeating-linear-gradient(45deg, var(--color-primary-50), var(--color-primary-50) 6px, var(--color-surface) 6px, var(--color-surface) 12px)
+
+  &__item-icon
+    font-size: 13px
+
+  &__item-label
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__item-del
+    position: absolute
+    top: 3px
+    right: 3px
+    width: 20px
+    height: 20px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 5px
+    background: var(--color-error)
+    color: #fff
+    font-size: 10px
+    cursor: pointer
+    z-index: 6
+
+  &__item-resize
+    position: absolute
+    right: -3px
+    bottom: -3px
+    width: 14px
+    height: 14px
+    border-radius: 3px
+    background: var(--color-primary)
+    border: 2px solid var(--color-surface)
+    cursor: nwse-resize
+    z-index: 6
+
+  // ── ISPETTORE ────────────────────────────────────────────────────────────
+  &__inspector
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    padding: 16px
+    overflow-y: auto
+
+  &__insp-empty
+    height: 100%
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 10px
+    text-align: center
+    color: var(--color-text-inactive)
+    i
+      font-size: 24px
+      opacity: .5
+    span
+      font-size: 12px
+      max-width: 200px
+
+  &__insp-head
+    display: flex
+    flex-direction: column
+    gap: 2px
+    padding-bottom: 12px
+    margin-bottom: 14px
+    border-bottom: 1px solid var(--color-border)
+
+  &__insp-eyebrow
+    font-size: 10px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: .06em
+    color: var(--color-text-inactive)
+
+  &__insp-title
+    display: flex
+    align-items: center
+    gap: 7px
+    font-family: Poppins, sans-serif
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-primary)
+    i
+      font-size: 14px
+
+  &__insp-sub
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__insp-fields
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__insp-row
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+
+  &__insp-meta
+    display: flex
+    flex-direction: column
+    gap: 3px
+    padding: 10px 12px
+    border-radius: 8px
+    background: var(--color-primary-50)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__insp-del
+    margin-top: 4px
+    color: var(--color-error)
+    i
+      color: var(--color-error)

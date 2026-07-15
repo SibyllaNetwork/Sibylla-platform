@@ -177,7 +177,16 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
 
         {/* ── BODY ────────────────────────────────────────────────────────── */}
         <div className="planner__body">
-          <HotelVisualization piani={PIANI_DATA} activePiani={s.activePiani} />
+          <HotelVisualization
+            piani={PIANI_DATA}
+            activePiani={s.activePiani}
+            struttura={s.struttura}
+            navigate={navigate}
+            onRoomClick={(numero) => {
+              const pren = s.filteredPrens.find(p => p.numeroCamera === numero);
+              if (pren) s.setSelectedBooking(pren);
+            }}
+          />
           <div className="planner__center">
             {s.showParcheggio && (
               <Parcheggio
