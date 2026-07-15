@@ -4,6 +4,7 @@ import { Piano } from '../planner.types';
 import { usePlanimetrieStore, planimetriaEditorPage } from '../../../../store/usePlanimetrieStore';
 import HotelWireframe from './HotelWireframe';
 import PlanimetriaModal from './PlanimetriaModal';
+import { RoomAction } from './RoomContextMenu';
 
 interface Props {
   piani: Piano[];
@@ -11,9 +12,10 @@ interface Props {
   struttura: string;
   navigate?: (page: string) => void;
   onRoomClick?: (numero: string) => void;
+  onRoomAction?: (action: RoomAction, numero: string) => void;
 }
 
-const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, navigate = () => {}, onRoomClick }) => {
+const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, navigate = () => {}, onRoomClick, onRoomAction }) => {
   // Il piano terra (id 0) è la lobby ornamentale: sempre visibile, non filtrabile
   const visible = activePiani.length > 0
     ? piani.filter(p => p.id === 0 || activePiani.includes(p.id))
@@ -60,6 +62,7 @@ const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, na
           plan={selPlan}
           onEdit={() => { const id = selPiano.id; setSelId(null); openEditor(id); }}
           onRoomClick={(numero) => { setSelId(null); onRoomClick?.(numero); }}
+          onRoomAction={onRoomAction}
         />
       )}
     </div>

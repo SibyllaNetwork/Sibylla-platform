@@ -186,6 +186,10 @@ const Planner: React.FC<PlannerProps> = ({ navigate = () => {} }) => {
               const pren = s.filteredPrens.find(p => p.numeroCamera === numero);
               if (pren) s.setSelectedBooking(pren);
             }}
+            onRoomAction={(action) => {
+              if (action === 'assegna') s.setShowAssegnare(true);
+              else if (action === 'richiesta') setShowRichieste(true);
+            }}
           />
           <div className="planner__center">
             {s.showParcheggio && (
