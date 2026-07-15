@@ -262,6 +262,35 @@
     cursor: pointer
     z-index: 6
 
+  &__item-rotate
+    position: absolute
+    top: 3px
+    right: 27px
+    width: 20px
+    height: 20px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    border-radius: 5px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 10px
+    cursor: pointer
+    z-index: 6
+
+  &__marquee
+    position: absolute
+    left: var(--mx)
+    top: var(--my)
+    width: var(--mw)
+    height: var(--mh)
+    background: rgba(32, 71, 105, .12)
+    border: 1px dashed var(--color-primary)
+    border-radius: 3px
+    pointer-events: none
+    z-index: 7
+
   &__item-resize
     position: absolute
     right: -3px
@@ -348,8 +377,13 @@
     font-size: 11px
     color: var(--color-text-inactive)
 
-  &__insp-del
+  &__insp-actions
+    display: flex
+    flex-direction: column
+    gap: 8px
     margin-top: 4px
+
+  &__insp-del
     color: var(--color-error)
     i
       color: var(--color-error)

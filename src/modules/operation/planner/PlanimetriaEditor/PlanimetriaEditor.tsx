@@ -5,7 +5,7 @@
 // La planimetria salvata alimenta poi il viewer (PlanimetriaModal) nel Planner.
 //
 // Raggiunta via page id `planimetria-editor:<struttura>__<pianoId>`.
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PageHead from '../../../../core/components/PageHead';
 import { InputField, SelectField, TextareaField, ToggleSwitch } from '../../../../core/components/form';
 import { PIANI_DATA } from '../planner.data';
@@ -38,8 +38,18 @@ interface Props {
 }
 
 type Drag =
-  | { mode: 'move'; id: string; sx: number; sy: number; ox: number; oy: number }
-  | { mode: 'resize'; id: string; sx: number; sy: number; ow: number; oh: number };
+  | { mode: 'move'; ids: string[]; sx: number; sy: number; origins: Record<string, { x: number; y: number }> }
+  | { mode: 'resize'; id: string; sx: number; sy: number; ow: number; oh: number }
+  | { mode: 'marquee' };
+
+interface MarqueeRect { x0: number; y0: number; x1: number; y1: number; base: string[] }
+
+// Area libera su una griglia data, escludendo un insieme di id (per move/resize/rotate)
+const areaFree = (d: Planimetria, x: number, y: number, w: number, h: number, except: Set<string>) => {
+  if (x < 0 || y < 0 || x + w > d.cols || y + h > d.rows) return false;
+  return !d.items.some(it =>
+    !except.has(it.id) && x < it.x + it.w && x + w > it.x && y < it.y + it.h && y + h > it.y);
+};
 
 const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pianoId }) => {
   const piano = PIANI_DATA.find(p => p.id === pianoId);
@@ -50,11 +60,15 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
   const [draft, setDraft] = useState<Planimetria>(
     () => getPlan(struttura, pianoId) ?? { cols: 14, rows: 8, items: [] },
   );
-  const [selId, setSelId] = useState<string | null>(null);
+  const [selIds, setSelIds] = useState<string[]>([]);
+  const [marquee, setMarquee] = useState<MarqueeRect | null>(null);
   const [saved, setSaved] = useState(false);
 
   const drag = useRef<Drag | null>(null);
+  const marqueeRef = useRef<MarqueeRect | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  const selSet = useMemo(() => new Set(selIds), [selIds]);
 
   // Camere del piano non ancora posizionate
   const placedNums = useMemo(
@@ -64,7 +78,7 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
   const camereDisponibili = piano ? piano.camere.filter(c => !placedNums.has(c.numero)) : [];
   const tipoOf = (numero?: string) => piano?.camere.find(c => c.numero === numero)?.tipo ?? '';
 
-  const sel = draft.items.find(i => i.id === selId) ?? null;
+  const sel = selIds.length === 1 ? draft.items.find(i => i.id === selIds[0]) ?? null : null;
   // opzioni tipologia: unione delle tipologie del piano + eventuale valore corrente
   const tipoOptions = useMemo(() => {
     const set = new Set<string>();
@@ -75,14 +89,8 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
 
   const dirty = JSON.stringify(getPlan(struttura, pianoId) ?? { cols: 14, rows: 8, items: [] }) !== JSON.stringify(draft);
 
-  // ── Occupazione griglia (esclude un id, per move/resize del selezionato) ──────
-  const cellFree = (x: number, y: number, w: number, h: number, exceptId?: string) => {
-    if (x < 0 || y < 0 || x + w > draft.cols || y + h > draft.rows) return false;
-    return !draft.items.some(it => {
-      if (it.id === exceptId) return false;
-      return x < it.x + it.w && x + w > it.x && y < it.y + it.h && y + h > it.y;
-    });
-  };
+  const cellFree = (x: number, y: number, w: number, h: number, exceptId?: string) =>
+    areaFree(draft, x, y, w, h, exceptId ? new Set([exceptId]) : new Set());
 
   const firstFree = (w: number, h: number): { x: number; y: number; grow: number } => {
     for (let y = 0; y <= draft.rows - h; y++)
@@ -102,18 +110,34 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
       label: kind === 'camera' ? undefined : ELEMENTO_META[kind].label,
     };
     setDraft(d => ({ ...d, rows: d.rows + grow, items: [...d.items, item] }));
-    setSelId(id);
-    setSaved(false);
+    setSelIds([id]);
   };
 
   const updateItem = (id: string, patch: Partial<PlanItem>) =>
     setDraft(d => ({ ...d, items: d.items.map(it => (it.id === id ? { ...it, ...patch } : it)) }));
 
-  const removeItem = async (id: string) => {
-    if (await confirm({ message: 'Rimuovere questo elemento dalla planimetria?' })) {
-      setDraft(d => ({ ...d, items: d.items.filter(it => it.id !== id) }));
-      setSelId(null);
-      setSaved(false);
+  // Ruota di 90° (scambia larghezza/altezza) gli elementi indicati, se c'è spazio
+  const rotateItems = (ids: string[]) => {
+    const set = new Set(ids);
+    setDraft(d => ({
+      ...d,
+      items: d.items.map(it => {
+        if (!set.has(it.id)) return it;
+        const nw = it.h, nh = it.w;
+        return areaFree(d, it.x, it.y, nw, nh, new Set([it.id])) ? { ...it, w: nw, h: nh } : it;
+      }),
+    }));
+  };
+
+  const removeItems = async (ids: string[]) => {
+    if (!ids.length) return;
+    const msg = ids.length > 1
+      ? `Rimuovere ${ids.length} elementi selezionati?`
+      : 'Rimuovere questo elemento dalla planimetria?';
+    if (await confirm({ message: msg })) {
+      const set = new Set(ids);
+      setDraft(d => ({ ...d, items: d.items.filter(it => !set.has(it.id)) }));
+      setSelIds([]);
     }
   };
 
@@ -127,40 +151,122 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
       return { ...d, [dim]: Math.max(next, need) };
     });
 
-  // ── Drag & resize (pointer) ───────────────────────────────────────────────────
+  // ── Pointer: marquee (selezione area), spostamento di gruppo, resize ──────────
   const onPointerMove = (e: PointerEvent) => {
     const dr = drag.current;
     if (!dr) return;
-    const dx = Math.round((e.clientX - dr.sx) / CELL);
-    const dy = Math.round((e.clientY - dr.sy) / CELL);
-    setDraft(d => ({
-      ...d,
-      items: d.items.map(it => {
-        if (it.id !== dr.id) return it;
-        if (dr.mode === 'move') {
-          const nx = Math.min(d.cols - it.w, Math.max(0, dr.ox + dx));
-          const ny = Math.min(d.rows - it.h, Math.max(0, dr.oy + dy));
-          return cellFree(nx, ny, it.w, it.h, it.id) ? { ...it, x: nx, y: ny } : it;
-        }
-        const nw = Math.min(d.cols - it.x, Math.max(1, dr.ow + dx));
-        const nh = Math.min(d.rows - it.y, Math.max(1, dr.oh + dy));
-        return cellFree(it.x, it.y, nw, nh, it.id) ? { ...it, w: nw, h: nh } : it;
-      }),
-    }));
+    if (dr.mode === 'marquee') {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect || !marqueeRef.current) return;
+      const next = { ...marqueeRef.current, x1: e.clientX - rect.left, y1: e.clientY - rect.top };
+      marqueeRef.current = next;
+      setMarquee(next);
+      return;
+    }
+    const dxRaw = Math.round((e.clientX - dr.sx) / CELL);
+    const dyRaw = Math.round((e.clientY - dr.sy) / CELL);
+    setDraft(d => {
+      if (dr.mode === 'resize') {
+        return {
+          ...d,
+          items: d.items.map(it => {
+            if (it.id !== dr.id) return it;
+            const nw = Math.min(d.cols - it.x, Math.max(1, dr.ow + dxRaw));
+            const nh = Math.min(d.rows - it.y, Math.max(1, dr.oh + dyRaw));
+            return areaFree(d, it.x, it.y, nw, nh, new Set([it.id])) ? { ...it, w: nw, h: nh } : it;
+          }),
+        };
+      }
+      // spostamento di gruppo: un solo delta valido per tutti gli elementi mossi
+      const set = new Set(dr.ids);
+      const movers = d.items.filter(it => set.has(it.id));
+      if (!movers.length) return d;
+      let loX = -Infinity, hiX = Infinity, loY = -Infinity, hiY = Infinity;
+      for (const it of movers) {
+        const o = dr.origins[it.id];
+        loX = Math.max(loX, -o.x); hiX = Math.min(hiX, d.cols - it.w - o.x);
+        loY = Math.max(loY, -o.y); hiY = Math.min(hiY, d.rows - it.h - o.y);
+      }
+      const dx = Math.min(hiX, Math.max(loX, dxRaw));
+      const dy = Math.min(hiY, Math.max(loY, dyRaw));
+      const ok = movers.every(it => areaFree(d, dr.origins[it.id].x + dx, dr.origins[it.id].y + dy, it.w, it.h, set));
+      if (!ok) return d;
+      return {
+        ...d,
+        items: d.items.map(it => set.has(it.id)
+          ? { ...it, x: dr.origins[it.id].x + dx, y: dr.origins[it.id].y + dy }
+          : it),
+      };
+    });
   };
+
   const endDrag = () => {
+    const dr = drag.current;
+    if (dr?.mode === 'marquee' && marqueeRef.current) {
+      const m = marqueeRef.current;
+      const mx0 = Math.min(m.x0, m.x1), my0 = Math.min(m.y0, m.y1);
+      const mx1 = Math.max(m.x0, m.x1), my1 = Math.max(m.y0, m.y1);
+      if (mx1 - mx0 >= 4 || my1 - my0 >= 4) {
+        const hits = draft.items.filter(it => {
+          const l = it.x * CELL, t = it.y * CELL, r = (it.x + it.w) * CELL, b = (it.y + it.h) * CELL;
+          return l < mx1 && r > mx0 && t < my1 && b > my0;   // intersezione col rettangolo
+        }).map(it => it.id);
+        setSelIds(Array.from(new Set([...m.base, ...hits])));
+      }
+    }
+    marqueeRef.current = null;
+    setMarquee(null);
     drag.current = null;
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', endDrag);
   };
-  const startDrag = (e: React.PointerEvent, dr: Drag) => {
-    e.stopPropagation();
+
+  const startDrag = (dr: Drag) => {
     drag.current = dr;
-    setSelId(dr.id);
-    setSaved(false);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', endDrag);
   };
+
+  const onItemPointerDown = (e: React.PointerEvent, it: PlanItem) => {
+    e.stopPropagation();
+    if (e.shiftKey) {   // shift = aggiungi/togli dalla selezione (nessun drag)
+      setSelIds(prev => prev.includes(it.id) ? prev.filter(x => x !== it.id) : [...prev, it.id]);
+      return;
+    }
+    const group = selSet.has(it.id) && selIds.length > 1;
+    const ids = group ? selIds : [it.id];
+    if (!group) setSelIds([it.id]);
+    const origins: Record<string, { x: number; y: number }> = {};
+    draft.items.forEach(i => { if (ids.includes(i.id)) origins[i.id] = { x: i.x, y: i.y }; });
+    startDrag({ mode: 'move', ids, sx: e.clientX, sy: e.clientY, origins });
+  };
+
+  const onCanvasPointerDown = (e: React.PointerEvent) => {
+    if (e.target !== canvasRef.current) return;   // solo sul vuoto della griglia
+    const rect = canvasRef.current.getBoundingClientRect();
+    const lx = e.clientX - rect.left, ly = e.clientY - rect.top;
+    const base = e.shiftKey ? selIds : [];
+    if (!e.shiftKey) setSelIds([]);
+    const m: MarqueeRect = { x0: lx, y0: ly, x1: lx, y1: ly, base };
+    marqueeRef.current = m;
+    setMarquee(m);
+    startDrag({ mode: 'marquee' });
+  };
+
+  // Scorciatoie: Canc = elimina selezione, R = ruota, Esc = deseleziona
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
+      if (e.key === 'Escape') { setSelIds([]); return; }
+      if (!selIds.length) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeItems(selIds); }
+      else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); rotateItems(selIds); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selIds]);
 
   const handleSave = () => {
     savePlan(struttura, pianoId, draft);
@@ -261,11 +367,12 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
             ref={canvasRef}
             className="plan-editor__canvas"
             style={{ '--cols': draft.cols, '--rows': draft.rows, '--cell': `${CELL}px` } as React.CSSProperties}
-            onPointerDown={() => setSelId(null)}
+            onPointerDown={onCanvasPointerDown}
           >
             {draft.items.map(it => {
               const isCam = it.kind === 'camera';
-              const sel = it.id === selId;
+              const isSel = selSet.has(it.id);
+              const single = isSel && selIds.length === 1;
               const style = {
                 '--x': it.x, '--y': it.y, '--w': it.w, '--h': it.h,
                 ...(isCam ? { '--room-clr': CAM_CLR[piano.camere.find(c => c.numero === it.numero)?.stato ?? 'libera'] } : {}),
@@ -273,9 +380,9 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
               return (
                 <div
                   key={it.id}
-                  className={`plan-editor__item plan-editor__item--${it.kind}${sel ? ' is-selected' : ''}`}
+                  className={`plan-editor__item plan-editor__item--${it.kind}${isSel ? ' is-selected' : ''}`}
                   style={style}
-                  onPointerDown={(e) => startDrag(e, { mode: 'move', id: it.id, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y })}
+                  onPointerDown={(e) => onItemPointerDown(e, it)}
                 >
                   {isCam ? (
                     <>
@@ -289,25 +396,47 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
                       <span className="plan-editor__item-label">{it.label}</span>
                     </>
                   )}
-                  {sel && (
+                  {single && (
                     <>
                       <button
                         type="button"
-                        className="plan-editor__item-del"
+                        className="plan-editor__item-rotate"
+                        title="Ruota 90°"
                         onPointerDown={(e) => e.stopPropagation()}
-                        onClick={(e) => { e.stopPropagation(); removeItem(it.id); }}
+                        onClick={(e) => { e.stopPropagation(); rotateItems([it.id]); }}
+                      >
+                        <i className="fa-solid fa-rotate" />
+                      </button>
+                      <button
+                        type="button"
+                        className="plan-editor__item-del"
+                        title="Rimuovi"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.stopPropagation(); removeItems([it.id]); }}
                       >
                         <i className="fa-solid fa-trash-can" />
                       </button>
                       <span
                         className="plan-editor__item-resize"
-                        onPointerDown={(e) => startDrag(e, { mode: 'resize', id: it.id, sx: e.clientX, sy: e.clientY, ow: it.w, oh: it.h })}
+                        onPointerDown={(e) => { e.stopPropagation(); startDrag({ mode: 'resize', id: it.id, sx: e.clientX, sy: e.clientY, ow: it.w, oh: it.h }); }}
                       />
                     </>
                   )}
                 </div>
               );
             })}
+
+            {marquee && (
+              <div
+                className="plan-editor__marquee"
+                style={{
+                  '--mx': `${Math.min(marquee.x0, marquee.x1)}px`,
+                  '--my': `${Math.min(marquee.y0, marquee.y1)}px`,
+                  '--mw': `${Math.abs(marquee.x1 - marquee.x0)}px`,
+                  '--mh': `${Math.abs(marquee.y1 - marquee.y0)}px`,
+                } as React.CSSProperties}
+              />
+            )}
 
             {draft.items.length === 0 && (
               <div className="plan-editor__empty">
@@ -320,11 +449,31 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
 
         {/* ── ISPETTORE ────────────────────────────────────────────────────── */}
         <aside className="plan-editor__inspector">
-          {!sel && (
+          {selIds.length === 0 && (
             <div className="plan-editor__insp-empty">
               <i className="fa-solid fa-arrow-pointer" />
-              <span>Seleziona un elemento sulla griglia per modificarne i dettagli</span>
+              <span>Seleziona un elemento, o trascina un'area sul vuoto per selezionarne più di uno. Shift-clic per aggiungere · R per ruotare · Canc per eliminare.</span>
             </div>
+          )}
+
+          {selIds.length > 1 && (
+            <>
+              <div className="plan-editor__insp-head">
+                <span className="plan-editor__insp-eyebrow">Selezione area</span>
+                <span className="plan-editor__insp-title">{selIds.length} elementi</span>
+                <span className="plan-editor__insp-sub">Trascinali per spostarli insieme</span>
+              </div>
+              <div className="plan-editor__insp-fields">
+                <div className="plan-editor__insp-actions">
+                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => rotateItems(selIds)}>
+                    <i className="fa-solid fa-rotate" /> Ruota 90°
+                  </button>
+                  <button type="button" className="sib-btn sib-btn--secondary plan-editor__insp-del" onClick={() => removeItems(selIds)}>
+                    <i className="fa-solid fa-trash-can" /> Rimuovi selezione
+                  </button>
+                </div>
+              </div>
+            </>
           )}
 
           {sel && sel.kind === 'camera' && (
@@ -383,9 +532,14 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
                   <span>Ingombro: {sel.w}×{sel.h} celle</span>
                 </div>
 
-                <button type="button" className="sib-btn sib-btn--secondary plan-editor__insp-del" onClick={() => removeItem(sel.id)}>
-                  <i className="fa-solid fa-trash-can" /> Rimuovi camera
-                </button>
+                <div className="plan-editor__insp-actions">
+                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => rotateItems([sel.id])}>
+                    <i className="fa-solid fa-rotate" /> Ruota 90°
+                  </button>
+                  <button type="button" className="sib-btn sib-btn--secondary plan-editor__insp-del" onClick={() => removeItems([sel.id])}>
+                    <i className="fa-solid fa-trash-can" /> Rimuovi camera
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -408,9 +562,14 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
                   <span>Posizione: col {sel.x + 1}, riga {sel.y + 1}</span>
                   <span>Ingombro: {sel.w}×{sel.h} celle</span>
                 </div>
-                <button type="button" className="sib-btn sib-btn--secondary plan-editor__insp-del" onClick={() => removeItem(sel.id)}>
-                  <i className="fa-solid fa-trash-can" /> Rimuovi elemento
-                </button>
+                <div className="plan-editor__insp-actions">
+                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => rotateItems([sel.id])}>
+                    <i className="fa-solid fa-rotate" /> Ruota 90°
+                  </button>
+                  <button type="button" className="sib-btn sib-btn--secondary plan-editor__insp-del" onClick={() => removeItems([sel.id])}>
+                    <i className="fa-solid fa-trash-can" /> Rimuovi elemento
+                  </button>
+                </div>
               </div>
             </>
           )}
