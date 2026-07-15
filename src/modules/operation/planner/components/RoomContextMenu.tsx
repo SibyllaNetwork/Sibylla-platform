@@ -3,6 +3,7 @@
 // Assegnare · Sposta in manutenzione · Opziona · Crea richiesta operativa.
 // Riusa lo stile del menu contestuale prenotazione (.pren-ctx).
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './PrenContextMenu.sass';
 
 export type RoomAction = 'assegna' | 'manutenzione' | 'opziona' | 'richiesta' | 'ripristina';
@@ -50,10 +51,10 @@ const RoomContextMenu: React.FC<Props> = ({ numero, x, y, hasOverride, onAction,
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       ref={ref}
-      className="pren-ctx"
+      className="pren-ctx pren-ctx--room"
       style={{ '--ctx-left': `${pos.left}px`, '--ctx-top': `${pos.top}px` } as React.CSSProperties}
     >
       <div className="pren-ctx__head">Camera {numero}</div>
@@ -72,7 +73,8 @@ const RoomContextMenu: React.FC<Props> = ({ numero, x, y, hasOverride, onAction,
           </button>
         </>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 };
 
