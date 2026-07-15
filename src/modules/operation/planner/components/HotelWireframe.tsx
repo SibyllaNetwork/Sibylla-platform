@@ -1,17 +1,16 @@
 // ─── HotelWireframe ───────────────────────────────────────────────────────────
-// Hotel in prospettiva (assonometria esplosa) generato DAI DATI: ogni piano
-// impostato è una piattaforma isometrica nella sagoma ghost dell'edificio; le
-// camere sono celle colorate per stato. I piani sono evidenziabili (hover) e
-// cliccabili → il dettaglio frontale si apre con animazione (gestito dal parent).
+// Hotel in prospettiva (assonometria esplosa): ogni piano impostato è una
+// piattaforma isometrica nella sagoma ghost dell'edificio, ARREDATA in modo
+// illustrativo (reception al piano terra; corridoio, letti, ascensore e avventori
+// ai piani camere). È un elemento puramente visivo: il click su un piano apre la
+// planimetria/editor (gestito dal parent). Il dato camere vive nella planimetria.
 import React from 'react';
-import { Piano, Camera } from '../planner.types';
-import { CAM_CLR } from '../planner.styles';
+import { Piano } from '../planner.types';
 
 interface Props {
   piani: Piano[];
   selectedId?: number | null;
   onFloorClick?: (piano: Piano) => void;
-  onRoomHover?: (cam: Camera | null, clientX: number, clientY: number) => void;
 }
 
 // ── Parametri proiezione isometrica ──
@@ -36,7 +35,7 @@ const xy = (Ox: number, Oy: number, i: number, j: number): [number, number] =>
   [Ox + (i - j) * CX, Oy + (i + j) * CY];
 const originX = (C: number, R: number) => CXT - ((C - R) * CX) / 2;
 
-const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRoomHover }) => {
+const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) => {
   if (!piani.length) return null;
 
   const floors = [...piani].reverse();
@@ -110,22 +109,6 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
     );
   };
 
-  // Linee di griglia del piano (sempre visibili, anche nelle posizioni senza camera)
-  const gridLines = (Ox: number, Oy: number) => {
-    const out: React.ReactNode[] = [];
-    for (let i = 1; i < maxC; i++) {
-      const [x1, y1] = xy(Ox, Oy, i, 0);
-      const [x2, y2] = xy(Ox, Oy, i, maxR);
-      out.push(<line key={`gv${i}`} className="hotel-viz__iso-grid" x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)} />);
-    }
-    for (let j = 1; j < maxR; j++) {
-      const [x1, y1] = xy(Ox, Oy, 0, j);
-      const [x2, y2] = xy(Ox, Oy, maxC, j);
-      out.push(<line key={`gh${j}`} className="hotel-viz__iso-grid" x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)} />);
-    }
-    return out;
-  };
-
   // Lobby: desk + poltrone + receptionist sul plate del piano terra
   const renderReception = (rOx: number, rOy: number) => {
     const P = (i: number, j: number, dy = 0): [number, number] => {
@@ -182,6 +165,101 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
     );
   };
 
+  // Scena "piano camere": corridoio centrale, letti sui due lati, ascensore e
+  // qualche avventore. È puramente illustrativa (il dato camere vive nella
+  // planimetria); serve a rendere ogni piano riconoscibile come piano d'albergo.
+  const renderFloorScene = (rOx: number, rOy: number, idx: number) => {
+    const P = (i: number, j: number, dy = 0): [number, number] => {
+      const [x, y] = xy(rOx, rOy, i, j);
+      return [x, y - dy];
+    };
+    const poly = (pts: [number, number][]) => pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+    const Box = (i0: number, j0: number, i1: number, j1: number, h: number, key: string, cls = 'rcp') => (
+      <g key={key}>
+        <polygon className={`hotel-viz__${cls}-side`} points={poly([P(i0, j1), P(i1, j1), P(i1, j1, h), P(i0, j1, h)])} />
+        <polygon className={`hotel-viz__${cls}-side`} points={poly([P(i1, j1), P(i1, j0), P(i1, j0, h), P(i1, j1, h)])} />
+        <polygon className={`hotel-viz__${cls}-top`} points={poly([P(i0, j0, h), P(i1, j0, h), P(i1, j1, h), P(i0, j1, h)])} />
+      </g>
+    );
+    const Figure = (i: number, j: number, key: string) => {
+      const [bx, by] = P(i, j);
+      const [hx, hy] = P(i, j, 15);
+      return (
+        <g key={key}>
+          <line className="hotel-viz__rcp-body" x1={bx} y1={by - 3} x2={hx} y2={hy + 3} />
+          <circle className="hotel-viz__rcp-head" cx={hx} cy={hy} r={3} />
+        </g>
+      );
+    };
+    const Plant = (i: number, j: number, key: string) => {
+      const [lx, ly] = P(i, j, 12);
+      return (
+        <g key={key}>
+          {Box(i - 0.12, j - 0.12, i + 0.12, j + 0.12, 6, `${key}v`, 'rcppot')}
+          <circle className="hotel-viz__rcp-leaf" cx={lx} cy={ly - 1} r={4} />
+          <circle className="hotel-viz__rcp-leaf" cx={lx - 3} cy={ly + 1.3} r={3} />
+          <circle className="hotel-viz__rcp-leaf" cx={lx + 3} cy={ly + 1.3} r={3} />
+          <circle className="hotel-viz__rcp-leaf" cx={lx} cy={ly - 4} r={2.8} />
+        </g>
+      );
+    };
+    // Divano (upholstery slate): seduta + schienale + braccioli
+    const Sofa = (i0: number, j0: number, key: string) => {
+      const w = 0.95, d = 0.5, seatH = 4, backH = 10, t = 0.14;
+      return (
+        <g key={key}>
+          {Box(i0, j0, i0 + w, j0 + d, seatH, `${key}s`, 'rcpc')}
+          {Box(i0, j0, i0 + w, j0 + t, backH, `${key}b`, 'rcpc')}
+          {Box(i0, j0, i0 + t, j0 + d, seatH + 2, `${key}l`, 'rcpc')}
+          {Box(i0 + w - t, j0, i0 + w, j0 + d, seatH + 2, `${key}r`, 'rcpc')}
+        </g>
+      );
+    };
+
+    const midJ = maxR / 2;
+    const els: React.ReactNode[] = [];
+
+    // Corridoio centrale (runner)
+    els.push(
+      <polygon key="corr" className="hotel-viz__rcp-rug"
+        points={poly([P(0.3, midJ - 0.5), P(maxC - 0.3, midJ - 0.5), P(maxC - 0.3, midJ + 0.5), P(0.3, midJ + 0.5)])} />,
+    );
+
+    const deepTop = Math.max(0.45, midJ - 0.75);
+    // Disegno retro→fronte per una corretta occlusione isometrica:
+    // 1) fila letti dietro (j piccolo): materasso (tessuto) + testiera (legno)
+    for (let s = 0; s < maxC; s++) {
+      const i0 = s + 0.2, i1 = s + 0.8;
+      els.push(Box(i0, 0.3, i1, 0.3 + deepTop, 2.4, `bt${s}`, 'rcpc'));
+      els.push(Box(i0, 0.3, i1, 0.52, 3.6, `bth${s}`, 'rcp'));
+    }
+    // 2) ascensore in fondo al corridoio (colonna finale)
+    els.push(Box(maxC - 0.82, midJ - 0.34, maxC - 0.18, midJ + 0.34, 15, 'lift', 'lift'));
+    // 3) arredo variato per piano (divano/piante) + avventori — differenzia i piani
+    const decor = idx % 3;
+    if (decor === 0) {
+      els.push(Sofa(0.2, midJ - 0.28, 'sofa'));
+      els.push(Figure(maxC - 1.15, midJ + 0.12, 'g1'));
+    } else if (decor === 1) {
+      els.push(Plant(0.45, midJ - 0.05, 'pl1'));
+      els.push(Figure(1.4, midJ - 0.08, 'g1'));
+      if (maxC > 2) els.push(Figure(maxC - 1.2, midJ + 0.14, 'g2'));
+    } else {
+      els.push(Sofa(0.2, midJ - 0.28, 'sofa'));
+      els.push(Plant(maxC - 0.5, midJ + 0.02, 'pl2'));
+      els.push(Figure(1.55, midJ + 0.1, 'g1'));
+    }
+    // 4) fila letti davanti (j grande) — disegnata per ultima
+    for (let s = 0; s < maxC; s++) {
+      const i0 = s + 0.2, i1 = s + 0.8;
+      const bj0 = maxR - 0.3 - deepTop;
+      els.push(Box(i0, bj0, i1, maxR - 0.3, 2.4, `bb${s}`, 'rcpc'));
+      els.push(Box(i0, maxR - 0.52, i1, maxR - 0.3, 3.6, `bbh${s}`, 'rcp'));
+    }
+
+    return <g>{els}</g>;
+  };
+
   return (
     <svg
       className="hotel-viz__iso"
@@ -221,26 +299,8 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick, onRo
             {slab(Ox, Oy)}
             {/* base piano (bianco con leggera trasparenza) */}
             <polygon className="hotel-viz__iso-platetop" points={plateOutline(Ox, Oy)} />
-            {/* griglia del piano (sempre visibile) */}
-            {!isLobby && gridLines(Ox, Oy)}
-            {isLobby
-              ? renderReception(Ox, Oy)
-              : piano.camere.map((cam, k) => {
-                  const i = k % maxC;
-                  const j = Math.floor(k / maxC);
-                  const points = `${pt(Ox, Oy, i, j)} ${pt(Ox, Oy, i + 1, j)} ${pt(Ox, Oy, i + 1, j + 1)} ${pt(Ox, Oy, i, j + 1)}`;
-                  return (
-                    <polygon
-                      key={cam.numero}
-                      className="hotel-viz__iso-cell"
-                      points={points}
-                      fill={CAM_CLR[cam.stato]}
-                      onMouseEnter={onRoomHover ? (e) => onRoomHover(cam, e.clientX, e.clientY) : undefined}
-                      onMouseMove={onRoomHover ? (e) => onRoomHover(cam, e.clientX, e.clientY) : undefined}
-                      onMouseLeave={onRoomHover ? () => onRoomHover(null, 0, 0) : undefined}
-                    />
-                  );
-                })}
+            {/* scena illustrativa del piano (reception al terra, camere sopra) */}
+            {isLobby ? renderReception(Ox, Oy) : renderFloorScene(Ox, Oy, f)}
             {/* contorno evidenziazione */}
             <polygon className="hotel-viz__iso-floor-outline" points={plateOutline(Ox, Oy)} />
             {/* badge numerato del piano (numerazione dal basso: 0 = piano terra) */}

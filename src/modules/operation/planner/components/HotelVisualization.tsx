@@ -1,10 +1,8 @@
 // ─── HotelVisualization ───────────────────────────────────────────────────────
 import React, { useState } from 'react';
-import { Piano, StatoCam, Camera } from '../planner.types';
-import { CAM_CLR } from '../planner.styles';
+import { Piano } from '../planner.types';
 import { usePlanimetrieStore, planimetriaEditorPage } from '../../../../store/usePlanimetrieStore';
 import HotelWireframe from './HotelWireframe';
-import FloorDetail from './FloorDetail';
 import PlanimetriaModal from './PlanimetriaModal';
 
 interface Props {
@@ -14,15 +12,6 @@ interface Props {
   navigate?: (page: string) => void;
   onRoomClick?: (numero: string) => void;
 }
-
-const STATO_LABEL: Record<StatoCam, string> = {
-  libera: 'Libera',
-  occupata: 'Occupata',
-  prenotata: 'Prenotata',
-  manutenzione: 'Manutenzione',
-  pulizia: 'Pulizia',
-  checkout: 'Check-out',
-};
 
 const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, navigate = () => {}, onRoomClick }) => {
   // Il piano terra (id 0) è la lobby ornamentale: sempre visibile, non filtrabile
@@ -37,7 +26,11 @@ const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, na
   const selPlan = selPiano ? getPlan(struttura, selPiano.id) : undefined;
   const openEditor = (pianoId: number) => navigate(planimetriaEditorPage(struttura, pianoId));
 
-  const [tip, setTip] = useState<{ cam: Camera; x: number; y: number } | null>(null);
+  // Click su un piano: se ha una planimetria → viewer; altrimenti → editor (crea)
+  const handleFloorClick = (p: Piano) => {
+    if (getPlan(struttura, p.id)) setSelId(p.id);
+    else openEditor(p.id);
+  };
 
   return (
     <div className="hotel-viz">
@@ -45,33 +38,20 @@ const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, na
 
       <div className="hotel-viz__header">
         <div className="hotel-viz__title">Mappa struttura</div>
-        <div className="hotel-viz__subtitle">Stato occupazione live</div>
+        <div className="hotel-viz__subtitle">Clicca un piano per la planimetria</div>
       </div>
 
       <HotelWireframe
         piani={visible}
         selectedId={selId}
-        onFloorClick={(p) => setSelId(p.id)}
-        onRoomHover={(cam, x, y) => setTip(cam ? { cam, x, y } : null)}
+        onFloorClick={handleFloorClick}
       />
 
-      <div className="hotel-viz__hint">Tocca un piano per i dettagli</div>
-
-      <div className="hotel-viz__legend">
-        {(['libera','occupata','prenotata','manutenzione','pulizia','checkout'] as StatoCam[]).map(st => (
-          <div key={st} className="hotel-viz__legend-item">
-            <div
-              className="hotel-viz__legend-dot"
-              style={{ '--dot-bg': CAM_CLR[st] } as React.CSSProperties}
-            />
-            <span className="hotel-viz__legend-label">{st}</span>
-          </div>
-        ))}
-      </div>
+      <div className="hotel-viz__hint">Clicca un piano per aprire o modificare la planimetria</div>
 
       </div>
 
-      {selPiano && selPiano.id !== 0 && selPlan && (
+      {selPiano && selPlan && (
         <PlanimetriaModal
           open
           onClose={() => setSelId(null)}
@@ -81,22 +61,6 @@ const HotelVisualization: React.FC<Props> = ({ piani, activePiani, struttura, na
           onEdit={() => { const id = selPiano.id; setSelId(null); openEditor(id); }}
           onRoomClick={(numero) => { setSelId(null); onRoomClick?.(numero); }}
         />
-      )}
-
-      {selPiano && !(selPiano.id !== 0 && selPlan) && (
-        <FloorDetail
-          piano={selPiano}
-          onClose={() => setSelId(null)}
-          onCreatePlan={selPiano.id !== 0 ? () => { const id = selPiano.id; setSelId(null); openEditor(id); } : undefined}
-        />
-      )}
-
-      {tip && (
-        <div className="hotel-viz__tip" style={{ '--tip-left': `${tip.x + 14}px`, '--tip-top': `${tip.y + 14}px` } as React.CSSProperties}>
-          <span className="hotel-viz__tip-num">Cam. {tip.cam.numero}</span>
-          <span className="hotel-viz__tip-dot" style={{ '--dot-bg': CAM_CLR[tip.cam.stato] } as React.CSSProperties} />
-          <span className="hotel-viz__tip-state">{STATO_LABEL[tip.cam.stato]}</span>
-        </div>
       )}
     </div>
   );
