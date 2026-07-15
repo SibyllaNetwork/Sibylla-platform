@@ -89,7 +89,7 @@ const PlanimetriaModal: React.FC<Props> = ({ open, onClose, struttura, piano, pl
                     onMouseMove={e => cam && setTip({ cam, x: e.clientX, y: e.clientY })}
                     onMouseLeave={() => setTip(null)}
                     onClick={() => it.numero && onRoomClick?.(it.numero)}
-                    onContextMenu={e => { if (it.numero) { e.preventDefault(); setTip(null); setMenu({ numero: it.numero, x: e.clientX, y: e.clientY }); } }}
+                    onContextMenu={e => { if (it.numero) { e.preventDefault(); e.stopPropagation(); setTip(null); setMenu({ numero: it.numero, x: e.clientX, y: e.clientY }); } }}
                   >
                     <span className="plan-viewer__room-num">{it.numero}</span>
                     <span className="plan-viewer__room-type">{it.tipologia ?? cam?.tipo}</span>
