@@ -16,9 +16,11 @@
   overflow: hidden
   font-family: $font-body
 
-  // Menu contestuale camera (planimetria): portato su body, sopra la modale
+  // Menu contestuale camera (planimetria): portato su body, sopra la modale;
+  // senza linguetta blu a sinistra (bordo uniforme)
   &--room
     z-index: 3200
+    border-left: 1px solid $border
 
   &__head
     padding: 6px 16px 8px
