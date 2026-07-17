@@ -10,33 +10,16 @@
   > .sib-btn--back
     align-self: flex-start
 
-  // ── Box Destinazione + Città (in alto a sinistra) ─────────────────────────────
-  &__boxes
+  // ── Filtri Destinazione + Città (in alto a sinistra) ──────────────────────────
+  &__filters
     display: flex
     align-items: flex-end
-    gap: 14px
+    gap: 16px
     flex-wrap: wrap
 
-  &__box
-    display: flex
-    flex-direction: column
-    gap: 6px
-    padding: 12px 14px
-    min-width: 220px
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-lg
-
-  &__box-lbl
-    display: inline-flex
-    align-items: center
-    gap: 7px
-    font-size: 12px
-    font-weight: 600
-    color: $primary
-
-    i
-      font-size: 13px
+  &__sel
+    width: 220px
+    max-width: 100%
 
   &__simplified
     display: inline-flex

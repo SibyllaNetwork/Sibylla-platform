@@ -214,26 +214,24 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
         subtitle="Esplorazione analitica della distribuzione delle vendite per destinazione e città, con KPI strategici per guidare la programmazione"
       />
 
-      {/* ── Box Destinazione + Città (in alto a sinistra) ────────────────────── */}
-      <div className="adto__boxes">
-        <div className="adto__box">
-          <span className="adto__box-lbl"><i className="fa-solid fa-earth-europe" aria-hidden="true" /> Destinazione</span>
-          <SelectField
-            name="destinazione"
-            value={destinazione}
-            options={DEST_KEYS.map((d) => ({ value: d, label: d }))}
-            onChange={(e) => onDest(e.target.value)}
-          />
-        </div>
-        <div className="adto__box">
-          <span className="adto__box-lbl"><i className="fa-solid fa-location-dot" aria-hidden="true" /> Città</span>
-          <SelectField
-            name="citta"
-            value={citta}
-            options={[{ value: TUTTE, label: TUTTE }, ...DESTINAZIONI[destinazione].map((c) => ({ value: c, label: c }))]}
-            onChange={(e) => onCitta(e.target.value)}
-          />
-        </div>
+      {/* ── Filtri Destinazione + Città (in alto a sinistra) ─────────────────── */}
+      <div className="adto__filters">
+        <SelectField
+          label="Destinazione"
+          name="destinazione"
+          className="adto__sel"
+          value={destinazione}
+          options={DEST_KEYS.map((d) => ({ value: d, label: d }))}
+          onChange={(e) => onDest(e.target.value)}
+        />
+        <SelectField
+          label="Città"
+          name="citta"
+          className="adto__sel"
+          value={citta}
+          options={[{ value: TUTTE, label: TUTTE }, ...DESTINAZIONI[destinazione].map((c) => ({ value: c, label: c }))]}
+          onChange={(e) => onCitta(e.target.value)}
+        />
         {!vistaCompleta && (
           <span className="adto__simplified" title="Con una città specifica la vista è semplificata">
             <i className="fa-solid fa-filter" aria-hidden="true" /> Vista semplificata
