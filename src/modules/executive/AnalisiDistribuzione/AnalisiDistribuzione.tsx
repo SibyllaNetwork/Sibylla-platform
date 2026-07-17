@@ -7,6 +7,7 @@ import Pagination from '../../../core/components/Pagination';
 import Tooltip from '../../../core/components/Tooltip';
 import { SelectField, DateRangeField } from '../../../core/components/form'
 import SuggerimentiModal from './SuggerimentiModal';
+import AnalisiDistribuzioneTO from './AnalisiDistribuzioneTO';
 import { useAccessStore } from '../../../store/useAccessStore'
 import './AnalisiDistribuzione.sass'
 
@@ -268,14 +269,19 @@ function ConfrontaLY({ row }: { row: Row }) {
   )
 }
 
+// Dispatcher: instrada alla tabella dedicata Tour Operator o alla versione hotel/altri.
 export default function AnalisiDistribuzione({ navigate }: { navigate: (p: string) => void }) {
-  // Variante per modulo (Tour Operator vs hotel/altri).
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const assist           = useAccessStore(s => s.assist)
   const profiles         = useAccessStore(s => s.profiles)
   const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
-  const variant: DistVariant = moduli?.includes('tour-operator') ? 'to' : 'hotel'
-  const D = DIST_VARIANT[variant]
+  if (moduli?.includes('tour-operator')) return <AnalisiDistribuzioneTO navigate={navigate} />
+  return <AnalisiDistribuzioneHotel navigate={navigate} />
+}
+
+// ── Variante hotel / altri moduli ──────────────────────────────────────────────────
+function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void }) {
+  const D = DIST_VARIANT.hotel
 
   const [struttura, setStruttura]       = useState(D.sel[0]);
   const [dateFrom, setDateFrom]         = useState('2026-06-09');

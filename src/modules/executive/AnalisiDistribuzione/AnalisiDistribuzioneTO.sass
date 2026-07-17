@@ -1,0 +1,246 @@
+// ─── ANALISI DELLA DISTRIBUZIONE — variante Tour Operator ────────────────────────
+@use '../../../styles/tokens' as *
+
+.adto
+  display: flex
+  flex-direction: column
+  gap: 16px
+  container-type: inline-size
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Box Destinazione + Città (in alto a sinistra) ─────────────────────────────
+  &__boxes
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+  &__box
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 12px 14px
+    min-width: 220px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+
+  &__box-lbl
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+    i
+      font-size: 13px
+
+  &__simplified
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    height: 34px
+    padding: 0 14px
+    border-radius: $radius-md
+    background: alpha($primary, 0.07)
+    border: 1px solid alpha($primary, 0.2)
+    color: $primary
+    font-size: 12px
+    font-weight: 600
+
+  // ── Tabella ───────────────────────────────────────────────────────────────────
+  &__table
+    th.adto__c-num,
+    td.adto__c-num
+      text-align: right
+
+    th.adto__c-center,
+    td.adto__c-center
+      text-align: center
+
+  &__nowrap
+    white-space: nowrap
+
+  &__guests
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+    white-space: nowrap
+
+    i
+      color: $primary
+      font-size: 14px
+
+  &__avail
+    font-weight: 600
+    color: $text-active
+    white-space: nowrap
+
+    &--low
+      color: $error
+
+  &__avail-sep
+    color: $text-disabled
+    font-weight: 400
+
+  &__stag
+    cursor: help
+
+  &__sugg-link
+    background: none
+    border: none
+    padding: 0
+    font-size: 13px
+    font-weight: 700
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__pagination
+    justify-content: center
+
+  // ── LY (confronto anno su anno) ───────────────────────────────────────────────
+  &__ly-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 30px
+    height: 30px
+    border: none
+    border-radius: $radius-md
+    background: alpha($primary, 0.08)
+    color: $primary
+    font-size: 14px
+    cursor: pointer
+    transition: background .15s ease
+
+    &:hover
+      background: alpha($primary, 0.16)
+
+  &__ly-title
+    display: block
+    font-size: 12px
+    font-weight: 700
+    color: $text-active
+    margin-bottom: 8px
+
+  &__ly-legend
+    display: flex
+    gap: 16px
+    margin-top: 8px
+
+  &__ly-leg
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  &__ly-dot
+    width: 9px
+    height: 9px
+    border-radius: 2px
+
+    &--ty
+      background: #204769
+
+    &--ly
+      background: #C3C9D0
+
+  // ── Icone Eventi / Meteo ──────────────────────────────────────────────────────
+  &__ev-ico,
+  &__meteo-ico
+    font-size: 20px
+    color: $primary
+    cursor: help
+
+  // ── Tooltip Stagionalità ──────────────────────────────────────────────────────
+  &__stag-tip
+    display: block
+    text-align: left
+
+  &__stag-tip-row
+    display: block
+    line-height: 1.7
+    white-space: nowrap
+
+    &::before
+      content: '•  '
+
+// ── HoverCard in portal (fixed) ───────────────────────────────────────────────────
+.adto__hc-trig
+  display: inline-flex
+  cursor: default
+
+.adto__hc
+  position: fixed
+  z-index: 9999
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18)
+  overflow: hidden
+  text-align: left
+
+.adto__hc-pad
+  padding: 12px 14px
+
+// ── Riquadro Eventi / Meteo ────────────────────────────────────────────────────────
+.adto__ev-pop-media
+  position: relative
+  display: block
+  height: 112px
+  background: $bg
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+.adto__ev-pop-tag
+  position: absolute
+  left: 8px
+  bottom: 8px
+  padding: 2px 9px
+  border-radius: 11px
+  background: rgba(30, 41, 59, 0.85)
+  color: $white
+  font-size: 10px
+  font-weight: 600
+
+.adto__ev-pop-body
+  display: block
+  padding: 11px 13px
+
+.adto__ev-pop-name
+  display: block
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+  margin-bottom: 8px
+
+.adto__ev-pop-info
+  display: flex
+  align-items: center
+  gap: 7px
+  font-size: 12px
+  color: $text-inactive
+  margin-bottom: 3px
+
+  i
+    width: 14px
+    color: $primary
+    text-align: center
+
+.adto__meteo-pop-temp
+  display: block
+  font-size: 22px
+  font-weight: 700
+  color: $text-active
+  margin-bottom: 8px
