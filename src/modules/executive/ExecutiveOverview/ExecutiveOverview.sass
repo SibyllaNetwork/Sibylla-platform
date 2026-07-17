@@ -1,0 +1,365 @@
+// ─── EXECUTIVE OVERVIEW ─────────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.exo
+  display: flex
+  flex-direction: column
+  gap: 16px
+  container-type: inline-size
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  // ── Navigazione BI ────────────────────────────────────────────────────────────
+  &__nav
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+    padding: 12px 14px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+
+  &__nav-btns
+    display: flex
+    gap: 8px
+    flex-wrap: wrap
+
+  &__navbtn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 38px
+    padding: 0 14px
+    border-radius: $radius-md
+    border: 1px solid $border
+    background: $white
+    color: $text-active
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+    transition: all .15s ease
+
+    &:hover
+      border-color: $primary
+      background: alpha($primary, 0.05)
+
+  &__navbtn-ico
+    display: grid
+    place-items: center
+    width: 24px
+    height: 24px
+    border-radius: $radius-sm
+    background: alpha($primary, 0.1)
+    color: $primary
+    font-size: 12px
+
+  &__forecast
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    padding: 6px 16px
+    border-radius: $radius-md
+    background: $primary
+    color: $white
+    min-width: 130px
+
+  &__forecast-lbl
+    font-size: 10px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: .04em
+    opacity: .8
+
+  &__forecast-val
+    font-size: 20px
+    font-weight: 700
+    line-height: 1.15
+
+  // ── Filtri ──────────────────────────────────────────────────────────────────
+  &__filters
+    display: flex
+    align-items: flex-end
+    gap: 20px
+    flex-wrap: wrap
+
+  &__sel
+    width: 240px
+    max-width: 100%
+
+  // ── Layout principale (trend sx + donut dx) ──────────────────────────────────
+  &__main
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 340px
+    gap: 16px
+    align-items: stretch
+
+  &__trends
+    display: flex
+    flex-direction: column
+    gap: 16px
+    min-width: 0
+
+  // ── Card trend ─────────────────────────────────────────────────────────────
+  &__trends .exo-trend
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 14px 16px 8px
+
+  // ── Donut mercati ──────────────────────────────────────────────────────────
+  &__pie
+    display: flex
+    flex-direction: column
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 16px
+
+  &__pie-head
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__pie-title
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+
+  &__pie-sub
+    font-size: 12px
+    color: $text-inactive
+
+  &__pie-chart
+    position: relative
+    margin: 8px 0
+
+  &__pie-center
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    pointer-events: none
+
+  &__pie-center-val
+    font-size: 22px
+    font-weight: 700
+    color: $text-active
+    line-height: 1
+
+  &__pie-center-lbl
+    font-size: 11px
+    color: $text-inactive
+    margin-top: 2px
+
+  &__pie-legend
+    list-style: none
+    margin: 6px 0 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+    li
+      display: grid
+      grid-template-columns: 12px 1fr auto
+      align-items: center
+      gap: 8px
+      font-size: 12px
+      color: $text-active
+
+  &__pie-dot
+    width: 10px
+    height: 10px
+    border-radius: 3px
+
+  &__pie-name
+    color: $text-inactive
+
+  &__pie-val
+    font-weight: 700
+    color: $text-active
+
+  // ── KPI card ───────────────────────────────────────────────────────────────
+  &__kpis
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 16px
+
+  &__kpi
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-lg
+    padding: 16px
+
+  &__kpi-top
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__kpi-ico
+    display: grid
+    place-items: center
+    width: 34px
+    height: 34px
+    border-radius: $radius-md
+    background: color-mix(in srgb, var(--kc) 12%, transparent)
+    color: var(--kc)
+    font-size: 15px
+
+  &__kpi-label
+    flex: 1 1 auto
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__kpi-info
+    color: $text-disabled
+    font-size: 13px
+    cursor: help
+
+  &__kpi-body
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 12px
+    margin-top: 12px
+
+  &__kpi-figures
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__kpi-val
+    font-size: 26px
+    font-weight: 700
+    color: $text-active
+    line-height: 1
+
+  &__kpi-delta
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 12px
+    font-weight: 600
+
+    i
+      font-size: 10px
+
+    &.is-up
+      color: $success
+
+    &.is-down
+      color: $error
+
+  &__kpi-spark
+    flex: 1 1 auto
+    max-width: 150px
+    min-width: 90px
+
+// ── Card trend (blocco condiviso) ────────────────────────────────────────────────
+.exo-trend
+  &__head
+    display: flex
+    align-items: center
+    gap: 12px
+    flex-wrap: wrap
+
+  &__badge
+    display: inline-flex
+    align-items: center
+    height: 30px
+    padding: 0 14px
+    border-radius: $radius-md
+    background: $primary
+    color: $white
+    font-size: 14px
+    font-weight: 700
+
+  &__titles
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__title
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__sub
+    font-size: 11px
+    color: $text-inactive
+
+  &__legend
+    display: flex
+    gap: 14px
+    margin-left: auto
+    flex-wrap: wrap
+
+  &__leg
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  &__leg-dot
+    width: 8px
+    height: 8px
+    border-radius: 2px
+
+  &__chart
+    margin-top: 8px
+
+// ── Tooltip trend (recharts custom) ──────────────────────────────────────────────
+.exo-tip
+  display: flex
+  flex-direction: column
+  gap: 5px
+  padding: 9px 11px
+  border-radius: $radius-md
+  background: #1E293B
+  box-shadow: $shadow-md
+  min-width: 160px
+
+  &__label
+    font-size: 11px
+    font-weight: 700
+    color: $white
+    margin-bottom: 2px
+
+  &__row
+    display: grid
+    grid-template-columns: 10px 1fr auto
+    align-items: center
+    gap: 7px
+
+  &__dot
+    width: 8px
+    height: 8px
+    border-radius: 2px
+
+  &__name
+    font-size: 11px
+    color: rgba(255, 255, 255, 0.75)
+
+  &__val
+    font-size: 11px
+    font-weight: 600
+    color: $white
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+@container (max-width: 1080px)
+  .exo__main
+    grid-template-columns: 1fr
+
+  .exo__kpis
+    grid-template-columns: 1fr
+
+@container (max-width: 720px)
+  .exo__forecast
+    align-items: flex-start

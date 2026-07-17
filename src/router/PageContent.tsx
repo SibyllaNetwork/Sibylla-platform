@@ -27,6 +27,7 @@ import PickupAnalysis              from '../modules/sales/pricing/PickupAnalysis
 import OccupancyAnalysis           from '../modules/sales/pricing/OccupancyAnalysis/OccupancyAnalysis';
 import AdrAnalysis                 from '../modules/sales/pricing/AdrAnalysis/AdrAnalysis';
 import ValueAnalysis              from '../modules/sales/pricing/ValueAnalysis/ValueAnalysis';
+import ExecutiveOverview          from '../modules/executive/ExecutiveOverview/ExecutiveOverview';
 import BiPlaceholder              from '../modules/_scaffold/BiPlaceholder';
 import ReportPickup               from '../modules/sales/pricing/ReportPickup/ReportPickup';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
@@ -235,6 +236,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'occ-analysis')          return <OccupancyAnalysis navigate={navigate}/>;
   if (page === 'adr-analysis')          return <AdrAnalysis navigate={navigate}/>;
   if (page === 'value-analysis')        return <ValueAnalysis navigate={navigate}/>;
+  if (page === 'executive-overview')    return <ExecutiveOverview navigate={navigate}/>;
   if (page === 'report-pickup')         return <ReportPickup navigate={navigate}/>;
   // Pagine BI Finance (placeholder in attesa del contenuto definitivo)
   if (['finance-overview', 'break-even', 'cashflow', 'profit-trend', 'cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis', 'wif-analysis', 'analisi-scenari-mensili'].includes(page))
