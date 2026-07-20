@@ -224,10 +224,42 @@
 
   &__th-sw
     text-align: right
-    width: 96px
+    width: 116px
 
   &__td-sw
     text-align: right
+
+  &__actions
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 8px
+
+  // Bottone-azione notifiche (icona sola, blu Platform, senza box)
+  &__act-notif
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: none
+    background: transparent
+    cursor: pointer
+    padding: 4px 5px
+    border-radius: 6px
+
+    i
+      color: $primary
+      font-size: 16px
+      opacity: 0.5
+      transition: opacity 0.15s
+
+    &.is-on i
+      opacity: 1
+
+    &:hover
+      background: $primary-50
+
+    &:hover i
+      opacity: 1
 
   &__struct
     display: flex
@@ -268,26 +300,15 @@
       font-size: 10px
 
   // Dimensione: icona hotel che cresce (Piccola → Grande) + etichetta
+  // Dimensione: solo icona (Piccola/Media/Grande nel tooltip)
   &__dim
     display: inline-flex
     align-items: center
     justify-content: center
-    gap: 8px
-
-  &__dim-ico
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    width: 22px
 
     i
       color: $primary
-      font-size: 16px
-
-  &__dim-label
-    font-size: 12.5px
-    font-weight: 600
-    color: $text-active
+      font-size: 17px
 
   // stelle
   &__stars
@@ -301,26 +322,7 @@
     &--on
       color: $warning
 
-  // capacità di spesa €€€
-  &__spesa
-    display: inline-flex
-    gap: 2px
-
-  &__euro
-    font-size: 13px
-    font-weight: 700
-    color: $border
-
-    &--on
-      color: $success
-
-  // bandiere
-  &__flags
-    display: inline-flex
-    flex-wrap: wrap
-    gap: 4px
-    align-items: center
-
+  // bandiera Nazione
   &__flag
     width: 22px
     height: 15px

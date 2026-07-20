@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
+import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import './ImpostaDistribuzioneTO.sass'
 
@@ -68,16 +69,6 @@ function Stars({ n }: { n: number }) {
   )
 }
 
-function Spesa({ n }: { n: number }) {
-  return (
-    <span className="impdto__spesa" title={`Capacità di spesa ${n}/3`}>
-      {Array.from({ length: 3 }, (_, i) => (
-        <span key={i} className={`impdto__euro${i < n ? ' impdto__euro--on' : ''}`}>€</span>
-      ))}
-    </span>
-  )
-}
-
 // Dimensione struttura: 3 livelli derivati dal numero di camere
 const dimensioneOf = (camere: number): { level: 1 | 2 | 3; label: string } =>
   camere < 40 ? { level: 1, label: 'Piccola' }
@@ -90,22 +81,11 @@ const DIM_ICON: Record<1 | 2 | 3, string> = { 1: 'fa-building', 2: 'fa-building-
 function Dimensione({ camere }: { camere: number }) {
   const { level, label } = dimensioneOf(camere)
   return (
-    <span className={`impdto__dim impdto__dim--l${level}`} title={`Dimensione: ${label}`}>
-      <span className="impdto__dim-ico"><i className={`fa-solid ${DIM_ICON[level]}`} aria-hidden="true" /></span>
-      <span className="impdto__dim-label">{label}</span>
-    </span>
-  )
-}
-
-function Flags({ codes }: { codes: string[] }) {
-  return (
-    <span className="impdto__flags">
-      {codes.map((c, i) => (
-        <img key={i} className="impdto__flag"
-          src={`https://flagcdn.com/w40/${c}.png`} srcSet={`https://flagcdn.com/w80/${c}.png 2x`}
-          alt={c.toUpperCase()} title={c.toUpperCase()} loading="lazy" />
-      ))}
-    </span>
+    <Tooltip text={label}>
+      <span className={`impdto__dim impdto__dim--l${level}`}>
+        <i className={`fa-solid ${DIM_ICON[level]}`} aria-hidden="true" />
+      </span>
+    </Tooltip>
   )
 }
 
@@ -114,6 +94,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
   const [categoria,    setCategoria]    = useState('Tutte')
   const [tipo,         setTipo]         = useState<Tipo>('hotel')
   const [selected,     setSelected]     = useState<Set<number>>(new Set([1, 2, 8]))
+  const [notif,        setNotif]        = useState<Set<number>>(new Set())
   const [clusters,     setClusters]     = useState<Cluster[]>([{ id: 1, nome: 'Centro Storico Roma', strutture: [1, 3] }])
   const [nuovoCluster, setNuovoCluster] = useState('')
   const [attenzione,   setAttenzione]   = useState(true)
@@ -133,13 +114,9 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
     nazione:    () => 'Italia',
     regione:    s => REGIONI[s.destinazione] ?? '—',
     citta:      s => s.destinazione,
-    spesa:      s => ({ 1: 'Bassa', 2: 'Media', 3: 'Alta' } as Record<number, string>)[s.spesa] ?? '—',
   }
-  const distinctFor = (key: string): string[] => {
-    const base = STRUTTURE.filter(s => s.tipo === tipo)
-    if (key === 'mercato') return Array.from(new Set(base.flatMap(s => s.mercati)))
-    return Array.from(new Set(base.map(s => colVal[key](s))))
-  }
+  const distinctFor = (key: string): string[] =>
+    Array.from(new Set(STRUTTURE.filter(s => s.tipo === tipo).map(s => colVal[key](s))))
   const colActive = (key: string) => (colSel[key]?.size ?? 0) > 0
   const toggleColVal = (key: string, val: string) => setColSel(prev => {
     const set = new Set(prev[key] ?? [])
@@ -161,8 +138,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
     for (const key of Object.keys(colSel)) {
       const sel = colSel[key]
       if (!sel || sel.size === 0) continue
-      if (key === 'mercato') { if (!s.mercati.some(m => sel.has(m))) return false }
-      else if (!sel.has(colVal[key](s))) return false
+      if (!sel.has(colVal[key](s))) return false
     }
     return true
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,6 +157,9 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
   )
 
   const toggleRow = (id: number) => setSelected(prev => {
+    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n
+  })
+  const toggleNotif = (id: number) => setNotif(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n
   })
 
@@ -296,8 +275,6 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                   <th><span className="impdto__th-f">Nazione {headIco('nazione', 'filter', colActive('nazione'))}</span></th>
                   <th><span className="impdto__th-f">Regione {headIco('regione', 'filter', colActive('regione'))}</span></th>
                   <th><span className="impdto__th-f">Città {headIco('citta', 'filter', colActive('citta'))}</span></th>
-                  <th className="impdto__th-c"><span className="impdto__th-f">Capacità di spesa {headIco('spesa', 'filter', colActive('spesa'))}</span></th>
-                  <th><span className="impdto__th-f">Mercato {headIco('mercato', 'filter', colActive('mercato'))}</span></th>
                   <th className="impdto__th-sw">Azioni</th>
                 </tr>
               </thead>
@@ -323,19 +300,25 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                     </td>
                     <td>{REGIONI[r.destinazione] ?? '—'}</td>
                     <td>{r.destinazione}</td>
-                    <td className="impdto__td-c"><Spesa n={r.spesa} /></td>
-                    <td><Flags codes={r.mercati} /></td>
                     <td className="impdto__td-sw">
-                      <button type="button" role="switch" aria-checked={selected.has(r.id)}
-                        className={`impdto__switch ${selected.has(r.id) ? 'is-on' : ''}`}
-                        onClick={() => toggleRow(r.id)} title={selected.has(r.id) ? 'In distribuzione' : 'Attiva distribuzione'}>
-                        <span className="impdto__switch-thumb" />
-                      </button>
+                      <span className="impdto__actions">
+                        <button type="button"
+                          className={`impdto__act-notif ${notif.has(r.id) ? 'is-on' : ''}`}
+                          onClick={() => toggleNotif(r.id)} aria-pressed={notif.has(r.id)}
+                          title={notif.has(r.id) ? 'Notifiche attive' : 'Attiva notifiche'}>
+                          <i className={`fa-solid ${notif.has(r.id) ? 'fa-bell' : 'fa-bell-slash'}`} aria-hidden="true" />
+                        </button>
+                        <button type="button" role="switch" aria-checked={selected.has(r.id)}
+                          className={`impdto__switch ${selected.has(r.id) ? 'is-on' : ''}`}
+                          onClick={() => toggleRow(r.id)} title={selected.has(r.id) ? 'In distribuzione' : 'Attiva distribuzione'}>
+                          <span className="impdto__switch-thumb" />
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={9} className="impdto__empty">Nessuna struttura per i filtri selezionati</td></tr>
+                  <tr><td colSpan={7} className="impdto__empty">Nessuna struttura per i filtri selezionati</td></tr>
                 )}
               </tbody>
             </table>
@@ -382,7 +365,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                 {distinctFor(pop.key).map(v => (
                   <label key={v} className="impdto__pop-item">
                     <input type="checkbox" checked={colSel[pop.key]?.has(v) ?? false} onChange={() => toggleColVal(pop.key, v)} />
-                    <span>{pop.key === 'mercato' ? v.toUpperCase() : v}</span>
+                    <span>{v}</span>
                   </label>
                 ))}
                 {colActive(pop.key) && (
