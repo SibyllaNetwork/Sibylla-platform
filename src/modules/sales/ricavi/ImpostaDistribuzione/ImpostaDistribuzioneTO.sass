@@ -44,31 +44,12 @@
     gap: 16px
     flex-wrap: wrap
 
+  // Campo Cerca uniformato a Destinazione/Categoria (label standard + SearchField)
   &__search
     display: flex
     flex-direction: column
-    gap: 6px
-
-  &__search-label
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-
-  &__search-wrap
-    position: relative
-    display: flex
-    align-items: center
-
-    i
-      position: absolute
-      left: 11px
-      color: $text-inactive
-      font-size: 13px
-      pointer-events: none
-
-    .sib-input
-      width: 240px
-      padding-left: 32px
+    gap: 4px
+    width: 220px
 
   // ── Layout: linguette laterali + pannello ─────────────────────────────────────
   &__layout
@@ -164,6 +145,77 @@
     tbody tr:hover td
       background: $white
 
+  // ── Filtri colonna: icona nell'header (lente/imbuto) + popover ──────────────────
+  &__th-f
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__th-ico
+    display: inline-flex
+    border: none
+    background: transparent
+    cursor: pointer
+    padding: 2px
+    line-height: 0
+
+    i
+      color: $primary
+      font-size: 12px
+      opacity: 0.55
+      transition: opacity 0.15s
+
+    &:hover i,
+    &.is-active i
+      opacity: 1
+
+  &__pop-overlay
+    position: fixed
+    inset: 0
+    z-index: 900
+
+  &__pop
+    position: fixed
+    z-index: 901
+    min-width: 180px
+    max-height: 280px
+    overflow-y: auto
+    background: $white
+    border: 1px solid $border
+    border-radius: 8px
+    box-shadow: $shadow-sm
+    padding: 8px
+
+    .sib-input
+      width: 100%
+
+  &__pop-item
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 5px 6px
+    font-size: 12.5px
+    color: $text-active
+    cursor: pointer
+    border-radius: 5px
+
+    &:hover
+      background: $primary-50
+
+  &__pop-clear
+    display: block
+    width: 100%
+    margin-top: 6px
+    padding-top: 7px
+    border: none
+    border-top: 1px solid $border
+    background: transparent
+    color: $primary
+    font-size: 12px
+    font-weight: 600
+    text-align: center
+    cursor: pointer
+
   &__th-c
     text-align: center
 
@@ -176,22 +228,6 @@
 
   &__td-sw
     text-align: right
-
-  &__all-btn
-    border: 1px solid $primary-200
-    background: $primary-50
-    color: $primary
-    font-size: 11px
-    font-weight: 600
-    text-transform: none
-    letter-spacing: 0
-    border-radius: 999px
-    padding: 3px 11px
-    cursor: pointer
-
-    &:hover
-      background: $primary
-      color: $white
 
   &__struct
     display: flex
@@ -231,39 +267,28 @@
       color: $primary
       font-size: 10px
 
-  // Dimensione: barre crescenti (Piccola/Media/Grande) + etichetta
+  // Dimensione: pill con etichetta, intensità crescente (Piccola → Grande)
   &__dim
     display: inline-flex
     align-items: center
-    gap: 8px
-
-  &__dim-bars
-    display: inline-flex
-    align-items: flex-end
-    gap: 2px
-    height: 16px
-
-  &__dim-bar
-    width: 4px
-    border-radius: 1px
-    background: $border
-
-    &:nth-child(1)
-      height: 6px
-
-    &:nth-child(2)
-      height: 11px
-
-    &:nth-child(3)
-      height: 16px
-
-  &__dim-bar--on
-    background: $primary
-
-  &__dim-label
-    font-size: 12.5px
+    justify-content: center
+    padding: 3px 12px
+    border-radius: 999px
+    font-size: 12px
     font-weight: 600
-    color: $text-active
+    line-height: 1.5
+
+  &__dim--l1
+    background: $primary-50
+    color: $primary
+
+  &__dim--l2
+    background: $primary-200
+    color: $primary-700
+
+  &__dim--l3
+    background: $primary
+    color: $white
 
   // stelle
   &__stars

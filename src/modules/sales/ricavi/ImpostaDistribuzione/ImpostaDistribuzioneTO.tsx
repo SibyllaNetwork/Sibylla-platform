@@ -87,12 +87,7 @@ function Dimensione({ camere }: { camere: number }) {
   const { level, label } = dimensioneOf(camere)
   return (
     <span className={`impdto__dim impdto__dim--l${level}`} title={`Dimensione: ${label}`}>
-      <span className="impdto__dim-bars" aria-hidden="true">
-        {[1, 2, 3].map((i) => (
-          <span key={i} className={`impdto__dim-bar${i <= level ? ' impdto__dim-bar--on' : ''}`} />
-        ))}
-      </span>
-      <span className="impdto__dim-label">{label}</span>
+      {label}
     </span>
   )
 }
@@ -112,32 +107,76 @@ function Flags({ codes }: { codes: string[] }) {
 export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: string) => void }) {
   const [destinazione, setDestinazione] = useState('Tutte')
   const [categoria,    setCategoria]    = useState('Tutte')
-  const [search,       setSearch]       = useState('')
   const [tipo,         setTipo]         = useState<Tipo>('hotel')
   const [selected,     setSelected]     = useState<Set<number>>(new Set([1, 2, 8]))
   const [clusters,     setClusters]     = useState<Cluster[]>([{ id: 1, nome: 'Centro Storico Roma', strutture: [1, 3] }])
   const [nuovoCluster, setNuovoCluster] = useState('')
   const [attenzione,   setAttenzione]   = useState(true)
 
+  // ── Filtri sulle colonne: lente (ricerca nome) + imbuto (filtro a valori) ────
+  const [nomeQuery, setNomeQuery] = useState('')
+  const [colSel,    setColSel]    = useState<Record<string, Set<string>>>({})
+  const [pop,       setPop]       = useState<{ key: string; x: number; y: number } | null>(null)
+
   const catNum = (label: string) => (label === 'Tutte' ? 0 : parseInt(label, 10))
   const countByTipo = (t: Tipo) => STRUTTURE.filter(s => s.tipo === t).length
 
-  const rows = useMemo(() => STRUTTURE.filter(s =>
-    s.tipo === tipo &&
-    (destinazione === 'Tutte' || s.destinazione === destinazione) &&
-    (categoria === 'Tutte' || s.stelle === catNum(categoria)) &&
-    (!search.trim() || s.nome.toLowerCase().includes(search.toLowerCase()))
-  ), [tipo, destinazione, categoria, search])
+  // Valore testuale di ogni struttura per le colonne filtrabili "a valori"
+  const colVal: Record<string, (s: Struttura) => string> = {
+    categoria:  s => `${s.stelle} stelle`,
+    dimensione: s => dimensioneOf(s.camere).label,
+    nazione:    () => 'Italia',
+    regione:    s => REGIONI[s.destinazione] ?? '—',
+    citta:      s => s.destinazione,
+    spesa:      s => ({ 1: 'Bassa', 2: 'Media', 3: 'Alta' } as Record<number, string>)[s.spesa] ?? '—',
+  }
+  const distinctFor = (key: string): string[] => {
+    const base = STRUTTURE.filter(s => s.tipo === tipo)
+    if (key === 'mercato') return Array.from(new Set(base.flatMap(s => s.mercati)))
+    return Array.from(new Set(base.map(s => colVal[key](s))))
+  }
+  const colActive = (key: string) => (colSel[key]?.size ?? 0) > 0
+  const toggleColVal = (key: string, val: string) => setColSel(prev => {
+    const set = new Set(prev[key] ?? [])
+    set.has(val) ? set.delete(val) : set.add(val)
+    return { ...prev, [key]: set }
+  })
+  const clearCol = (key: string) => setColSel(prev => { const n = { ...prev }; delete n[key]; return n })
+  const openPop = (key: string, e: React.MouseEvent) => {
+    if (pop?.key === key) { setPop(null); return }
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setPop({ key, x: r.left, y: r.bottom + 6 })
+  }
 
-  const allSelected = rows.length > 0 && rows.every(r => selected.has(r.id))
+  const rows = useMemo(() => STRUTTURE.filter(s => {
+    if (s.tipo !== tipo) return false
+    if (destinazione !== 'Tutte' && s.destinazione !== destinazione) return false
+    if (categoria !== 'Tutte' && s.stelle !== catNum(categoria)) return false
+    if (nomeQuery.trim() && !s.nome.toLowerCase().includes(nomeQuery.trim().toLowerCase())) return false
+    for (const key of Object.keys(colSel)) {
+      const sel = colSel[key]
+      if (!sel || sel.size === 0) continue
+      if (key === 'mercato') { if (!s.mercati.some(m => sel.has(m))) return false }
+      else if (!sel.has(colVal[key](s))) return false
+    }
+    return true
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [tipo, destinazione, categoria, nomeQuery, colSel])
+
+  // Header: etichetta + icona (lente per la ricerca nome, imbuto per i valori)
+  const headIco = (key: string, kind: 'search' | 'filter', active: boolean) => (
+    <button
+      type="button"
+      className={`impdto__th-ico ${active ? 'is-active' : ''}`}
+      onClick={e => openPop(key, e)}
+      aria-label={kind === 'search' ? 'Cerca per nome' : 'Filtra colonna'}
+    >
+      <i className={`fa-solid ${kind === 'search' ? 'fa-magnifying-glass' : 'fa-filter'}`} aria-hidden="true" />
+    </button>
+  )
+
   const toggleRow = (id: number) => setSelected(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n
-  })
-  const toggleAll = () => setSelected(prev => {
-    const n = new Set(prev)
-    if (allSelected) rows.forEach(r => n.delete(r.id))
-    else rows.forEach(r => n.add(r.id))
-    return n
   })
 
   const creaCluster = () => {
@@ -181,13 +220,6 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
           value={categoria} onChange={e => setCategoria(e.target.value)}
           options={CATEGORIE.map(c => ({ value: c, label: c }))}
         />
-        <div className="impdto__search">
-          <label className="impdto__search-label">Cerca struttura</label>
-          <div className="impdto__search-wrap">
-            <i className="fa-light fa-magnifying-glass" aria-hidden="true" />
-            <input className="sib-input" placeholder="Nome struttura…" value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-        </div>
       </div>
 
       {/* ── Linguette laterali + pannello ───────────────────────────────────────── */}
@@ -253,19 +285,15 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
             <table className="sib-table impdto__table">
               <thead>
                 <tr>
-                  <th className="impdto__th-struct">Nome hotel</th>
-                  <th className="impdto__th-c">Categoria</th>
-                  <th className="impdto__th-c">Dimensione</th>
-                  <th>Nazione</th>
-                  <th>Regione</th>
-                  <th>Città</th>
-                  <th className="impdto__th-c">Capacità di spesa</th>
-                  <th>Mercato</th>
-                  <th className="impdto__th-sw">
-                    <button type="button" className="impdto__all-btn" onClick={toggleAll}>
-                      {allSelected ? 'Deseleziona' : 'Tutte'}
-                    </button>
-                  </th>
+                  <th className="impdto__th-struct"><span className="impdto__th-f">Nome hotel {headIco('nome', 'search', nomeQuery.trim().length > 0)}</span></th>
+                  <th className="impdto__th-c"><span className="impdto__th-f">Categoria {headIco('categoria', 'filter', colActive('categoria'))}</span></th>
+                  <th className="impdto__th-c"><span className="impdto__th-f">Dimensione {headIco('dimensione', 'filter', colActive('dimensione'))}</span></th>
+                  <th><span className="impdto__th-f">Nazione {headIco('nazione', 'filter', colActive('nazione'))}</span></th>
+                  <th><span className="impdto__th-f">Regione {headIco('regione', 'filter', colActive('regione'))}</span></th>
+                  <th><span className="impdto__th-f">Città {headIco('citta', 'filter', colActive('citta'))}</span></th>
+                  <th className="impdto__th-c"><span className="impdto__th-f">Capacità di spesa {headIco('spesa', 'filter', colActive('spesa'))}</span></th>
+                  <th><span className="impdto__th-f">Mercato {headIco('mercato', 'filter', colActive('mercato'))}</span></th>
+                  <th className="impdto__th-sw">Azioni</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,6 +353,38 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
           </button>
         </div>
       </div>
+
+      {/* ── Popover filtro colonna (lente: ricerca nome / imbuto: valori) ─────────── */}
+      {pop && (
+        <>
+          <div className="impdto__pop-overlay" onClick={() => setPop(null)} />
+          <div className="impdto__pop" style={{ left: pop.x, top: pop.y }} onClick={e => e.stopPropagation()}>
+            {pop.key === 'nome' ? (
+              <input
+                className="sib-input"
+                autoFocus
+                value={nomeQuery}
+                placeholder="Nome hotel…"
+                onChange={e => setNomeQuery(e.target.value)}
+              />
+            ) : (
+              <>
+                {distinctFor(pop.key).map(v => (
+                  <label key={v} className="impdto__pop-item">
+                    <input type="checkbox" checked={colSel[pop.key]?.has(v) ?? false} onChange={() => toggleColVal(pop.key, v)} />
+                    <span>{pop.key === 'mercato' ? v.toUpperCase() : v}</span>
+                  </label>
+                ))}
+                {colActive(pop.key) && (
+                  <button type="button" className="impdto__pop-clear" onClick={() => { clearCol(pop.key); setPop(null) }}>
+                    Azzera filtro
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
