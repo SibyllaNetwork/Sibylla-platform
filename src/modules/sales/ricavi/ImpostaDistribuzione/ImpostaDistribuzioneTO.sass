@@ -153,6 +153,11 @@
     th, td
       vertical-align: middle
 
+    // Righe corpo SEMPRE bianche: nessuno sfondo su hover (override .sib-table);
+    // solo la head resta colorata (var(--color-bg))
+    tbody tr:hover td
+      background: $white
+
   &__th-c
     text-align: center
 
@@ -181,9 +186,6 @@
     &:hover
       background: $primary
       color: $white
-
-  tr.is-selected td
-    background: $primary-50
 
   &__struct
     display: flex
