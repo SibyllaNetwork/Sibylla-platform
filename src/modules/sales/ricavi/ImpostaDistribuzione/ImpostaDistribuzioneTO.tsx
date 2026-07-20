@@ -285,7 +285,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
             <table className="sib-table impdto__table">
               <thead>
                 <tr>
-                  <th className="impdto__th-struct"><span className="impdto__th-f">Nome hotel {headIco('nome', 'search', nomeQuery.trim().length > 0)}</span></th>
+                  <th className="impdto__th-struct"><span className="impdto__th-f">Nome struttura {headIco('nome', 'search', nomeQuery.trim().length > 0)}</span></th>
                   <th className="impdto__th-c"><span className="impdto__th-f">Categoria {headIco('categoria', 'filter', colActive('categoria'))}</span></th>
                   <th className="impdto__th-c"><span className="impdto__th-f">Dimensione {headIco('dimensione', 'filter', colActive('dimensione'))}</span></th>
                   <th><span className="impdto__th-f">Nazione {headIco('nazione', 'filter', colActive('nazione'))}</span></th>
@@ -364,7 +364,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                 className="sib-input"
                 autoFocus
                 value={nomeQuery}
-                placeholder="Nome hotel…"
+                placeholder="Nome struttura…"
                 onChange={e => setNomeQuery(e.target.value)}
               />
             ) : (
