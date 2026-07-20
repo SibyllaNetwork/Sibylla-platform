@@ -280,7 +280,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
               </thead>
               <tbody>
                 {rows.map(r => (
-                  <tr key={r.id} className={selected.has(r.id) ? 'is-selected' : ''}>
+                  <tr key={r.id} className={selected.has(r.id) ? '' : 'impdto__row--off'}>
                     <td>
                       <span className="impdto__struct">
                         <span className="impdto__struct-ico"><i className={`fa-solid ${TIPO_ICON[r.tipo]}`} aria-hidden="true" /></span>
@@ -303,15 +303,16 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                     <td className="impdto__td-sw">
                       <span className="impdto__actions">
                         <button type="button"
-                          className={`impdto__act-notif ${notif.has(r.id) ? 'is-on' : ''}`}
+                          className={`impdto__act ${notif.has(r.id) ? 'is-on' : ''}`}
                           onClick={() => toggleNotif(r.id)} aria-pressed={notif.has(r.id)}
                           title={notif.has(r.id) ? 'Notifiche attive' : 'Attiva notifiche'}>
                           <i className={`fa-solid ${notif.has(r.id) ? 'fa-bell' : 'fa-bell-slash'}`} aria-hidden="true" />
                         </button>
-                        <button type="button" role="switch" aria-checked={selected.has(r.id)}
-                          className={`impdto__switch ${selected.has(r.id) ? 'is-on' : ''}`}
-                          onClick={() => toggleRow(r.id)} title={selected.has(r.id) ? 'In distribuzione' : 'Attiva distribuzione'}>
-                          <span className="impdto__switch-thumb" />
+                        <button type="button"
+                          className={`impdto__act ${selected.has(r.id) ? 'is-on' : ''}`}
+                          onClick={() => toggleRow(r.id)} aria-pressed={selected.has(r.id)}
+                          title={selected.has(r.id) ? 'In distribuzione' : 'Attiva distribuzione'}>
+                          <i className={selected.has(r.id) ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'} aria-hidden="true" />
                         </button>
                       </span>
                     </td>

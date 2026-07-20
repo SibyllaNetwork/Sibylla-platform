@@ -216,18 +216,27 @@
     text-align: center
     cursor: pointer
 
-  &__th-c
+  // NB: .sib-table th ha text-align:left con specificita' > .impdto__th-*;
+  // prefissare .sib-table per vincere sull'allineamento delle intestazioni
+  .sib-table &__th-c
     text-align: center
 
   &__td-c
     text-align: center
 
-  &__th-sw
+  .sib-table &__th-sw
     text-align: right
+
+  &__th-sw
     width: 116px
 
   &__td-sw
     text-align: right
+
+  // Righe non attive (non in distribuzione): aspetto disabilitato.
+  // La cella Azioni resta piena così si può riattivare la distribuzione.
+  &__row--off td:not(.impdto__td-sw)
+    opacity: 0.4
 
   &__actions
     display: inline-flex
@@ -235,8 +244,8 @@
     justify-content: flex-end
     gap: 8px
 
-  // Bottone-azione notifiche (icona sola, blu Platform, senza box)
-  &__act-notif
+  // Bottoni-azione tabella (icona sola, blu Platform, senza box)
+  &__act
     display: inline-flex
     align-items: center
     justify-content: center
@@ -334,35 +343,6 @@
     display: inline-flex
     align-items: center
     gap: 7px
-
-  // switch distribuzione
-  &__switch
-    position: relative
-    width: 42px
-    height: 22px
-    border-radius: 999px
-    border: none
-    background: $border
-    cursor: pointer
-    padding: 0
-    transition: $transition-fast
-
-    &.is-on
-      background: $primary
-
-  &__switch-thumb
-    position: absolute
-    top: 2px
-    left: 2px
-    width: 18px
-    height: 18px
-    border-radius: 50%
-    background: $white
-    box-shadow: $shadow-sm
-    transition: $transition-fast
-
-    .impdto__switch.is-on &
-      left: 22px
 
   &__empty
     text-align: center
