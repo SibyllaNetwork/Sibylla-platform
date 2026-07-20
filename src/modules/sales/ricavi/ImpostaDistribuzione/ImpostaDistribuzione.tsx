@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
-import { SelectField, InputField } from '../../../../core/components/form'
+import { SelectField, InputField, SearchField } from '../../../../core/components/form'
 import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
 
@@ -116,6 +116,11 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
   const [data, setData] = useState<Data>(FALLBACK)
   const [invitaOpen, setInvitaOpen] = useState(false)
   const [invita, setInvita] = useState({ azienda: '', email: '', referente: '' })
+  const [query, setQuery] = useState('')
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  // Filtro ricerca sui nomi degli operatori (lente)
+  const matchName = (r: { nome: string }) => !query.trim() || r.nome.toLowerCase().includes(query.trim().toLowerCase())
 
   const submitInvita = async () => {
     if (!invita.azienda.trim() || !invita.email.trim()) return
@@ -157,6 +162,23 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
     setData({ ...data, cluster: [...data.cluster, data.nomeCluster], nomeCluster: '' })
   }
 
+  const fCorporate = data.corporate.filter(matchName)
+  const fGruppi    = data.gruppi.filter(matchName)
+  const fB2b       = data.b2b.filter(matchName)
+  const fB2c       = data.b2c.filter(matchName)
+
+  // Rende una sezione (inline con icona espandi, oppure dentro la modale ingrandita)
+  const renderSezione = (key: string, inModal = false) => {
+    const onExpand = inModal ? undefined : () => setExpanded(key)
+    switch (key) {
+      case 'corporate': return <SezioneCorporate label="Corporate" rows={fCorporate} onToggle={(id, f) => toggleField('corporate', id, f)} onExpand={onExpand} />
+      case 'gruppi':    return <SezioneGenerica label="Gruppi" verifica rows={fGruppi} onToggle={(id, f) => toggleField('gruppi', id, f)} onExpand={onExpand} />
+      case 'b2b':       return <SezioneGenerica label="B2B" verifica rows={fB2b} onToggle={(id, f) => toggleField('b2b', id, f)} onExpand={onExpand} />
+      case 'b2c':       return <SezioneGenerica label="B2C" verifica rows={fB2c} onToggle={(id, f) => toggleField('b2c', id, f)} onExpand={onExpand} />
+      default:          return null
+    }
+  }
+
   if (isTO) return <ImpostaDistribuzioneTO navigate={navigate} />
 
   return (
@@ -184,6 +206,16 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
             options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+          />
+        </div>
+        <div className="imposta-dist__field imposta-dist__search">
+          <label htmlFor="cerca-operatore" className="text-[12px] font-semibold font-poppins text-primary">Cerca operatore</label>
+          <SearchField
+            name="cerca-operatore"
+            value={query}
+            placeholder="Cerca per nome…"
+            onChange={(e) => setQuery(e.target.value)}
+            onClear={() => setQuery('')}
           />
         </div>
         <button type="button" className="sib-btn sib-btn--secondary imposta-dist__invita" onClick={() => setInvitaOpen(true)}>
@@ -242,33 +274,14 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
       <div className="imposta-dist__grid">
         {/* ── Colonna 1: Corporate + Gruppi ───────────────────────────────── */}
         <div className="imposta-dist__col">
-          <SezioneCorporate
-            label="Corporate"
-            rows={data.corporate}
-            onToggle={(id, field) => toggleField('corporate', id, field)}
-          />
-          <SezioneGenerica
-            label="Gruppi"
-            verifica
-            rows={data.gruppi}
-            onToggle={(id, field) => toggleField('gruppi', id, field)}
-          />
+          {renderSezione('corporate')}
+          {renderSezione('gruppi')}
         </div>
 
         {/* ── Colonna 2: B2B + B2C ────────────────────────────────────────── */}
         <div className="imposta-dist__col">
-          <SezioneGenerica
-            label="B2B"
-            verifica
-            rows={data.b2b}
-            onToggle={(id, field) => toggleField('b2b', id, field)}
-          />
-          <SezioneGenerica
-            label="B2C"
-            verifica
-            rows={data.b2c}
-            onToggle={(id, field) => toggleField('b2c', id, field)}
-          />
+          {renderSezione('b2b')}
+          {renderSezione('b2c')}
         </div>
 
         {/* ── Colonna 3: Strutture ricettive + Cluster ────────────────────── */}
@@ -317,25 +330,65 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           </div>
         </div>
       </div>
+
+      {/* ── Card evidenziata: apre la sezione ingrandita su sfondo grigio ───────── */}
+      {expanded && (
+        <div className="imposta-dist__expand-backdrop" onClick={() => setExpanded(null)}>
+          <div className="imposta-dist__expand-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="imposta-dist__expand-close" onClick={() => setExpanded(null)} aria-label="Chiudi">
+              <i className="fa-light fa-xmark" />
+            </button>
+            {renderSezione(expanded, true)}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Potenziale cliente: valore 0-5 (mock deterministico) reso con icona + "n/5"
+const potenzialeOf = (id: number) => (id * 7 + 2) % 6
+
+function Potenziale({ value }: { value: number }) {
+  return (
+    <span className="imposta-dist__pot" title={`Potenziale ${value}/5`}>
+      <i className="fa-solid fa-hand-fist imposta-dist__pot-ico" aria-hidden="true" />
+      <span className="imposta-dist__pot-val">{value}/5</span>
+    </span>
+  )
+}
+
+// Testata card: titolo + icona per evidenziare/ingrandire in modale
+function SezioneHead({ label, onExpand }: { label: string; onExpand?: () => void }) {
+  return (
+    <div className="imposta-dist__sezione-head">
+      <h3 className="imposta-dist__section-title">{label}</h3>
+      {onExpand && (
+        <button type="button" className="imposta-dist__expand-btn" onClick={onExpand} title="Ingrandisci" aria-label="Ingrandisci">
+          <i className="fa-light fa-up-right-and-down-left-from-center" />
+        </button>
+      )}
     </div>
   )
 }
 
 // ─── SEZIONE CORPORATE ──────────────────────────────────────────────────────
 function SezioneCorporate({
-  label, rows, onToggle,
+  label, rows, onToggle, onExpand,
 }: {
   label: string
   rows: OperatoreCorporate[]
   onToggle: (id: number, field: 'contratto' | 'libera') => void
+  onExpand?: () => void
 }) {
   return (
     <div className="imposta-dist__sezione">
-      <h3 className="imposta-dist__section-title">{label}</h3>
+      <SezioneHead label={label} onExpand={onExpand} />
       <table className="sib-table imposta-dist__table">
         <thead>
           <tr>
             <th />
+            <th className="imposta-dist__th-c">Potenziale</th>
             <th>Disponibilità<br />a contratto</th>
             <th>Disponibilità<br />libera</th>
             <th>Capacità<br />di spesa</th>
@@ -345,6 +398,7 @@ function SezioneCorporate({
           {rows.map((r) => (
             <tr key={r.id}>
               <td>{r.nome}</td>
+              <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.libera} onChange={() => onToggle(r.id, 'libera')} /></td>
               <td className="imposta-dist__td-c">
@@ -362,16 +416,17 @@ function SezioneCorporate({
 
 // ─── SEZIONE GENERICA (Gruppi / B2B / B2C) ──────────────────────────────────
 function SezioneGenerica({
-  label, verifica, rows, onToggle,
+  label, verifica, rows, onToggle, onExpand,
 }: {
   label: string
   verifica?: boolean
   rows: OperatoreGenerico[]
   onToggle: (id: number, field: 'contratto' | 'libera') => void
+  onExpand?: () => void
 }) {
   return (
     <div className="imposta-dist__sezione">
-      <h3 className="imposta-dist__section-title">{label}</h3>
+      <SezioneHead label={label} onExpand={onExpand} />
       {verifica && (
         <div className="imposta-dist__verifica">
           <i className="fa-solid fa-shield-check" />
@@ -382,6 +437,7 @@ function SezioneGenerica({
         <thead>
           <tr>
             <th />
+            <th className="imposta-dist__th-c">Potenziale</th>
             <th>Disponibilità<br />a contratto</th>
             <th>Disponibilità<br />libera</th>
             <th>Mercato di<br />riferimento</th>
@@ -391,6 +447,7 @@ function SezioneGenerica({
           {rows.map((r) => (
             <tr key={r.id}>
               <td>{r.nome}</td>
+              <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.libera} onChange={() => onToggle(r.id, 'libera')} /></td>
               <td className="imposta-dist__td-c">
