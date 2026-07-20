@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
-import { SelectField, InputField, SearchField } from '../../../../core/components/form'
+import { SelectField, InputField } from '../../../../core/components/form'
 import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
 
@@ -116,11 +116,7 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
   const [data, setData] = useState<Data>(FALLBACK)
   const [invitaOpen, setInvitaOpen] = useState(false)
   const [invita, setInvita] = useState({ azienda: '', email: '', referente: '' })
-  const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
-
-  // Filtro ricerca sui nomi degli operatori (lente)
-  const matchName = (r: { nome: string }) => !query.trim() || r.nome.toLowerCase().includes(query.trim().toLowerCase())
 
   const submitInvita = async () => {
     if (!invita.azienda.trim() || !invita.email.trim()) return
@@ -162,19 +158,14 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
     setData({ ...data, cluster: [...data.cluster, data.nomeCluster], nomeCluster: '' })
   }
 
-  const fCorporate = data.corporate.filter(matchName)
-  const fGruppi    = data.gruppi.filter(matchName)
-  const fB2b       = data.b2b.filter(matchName)
-  const fB2c       = data.b2c.filter(matchName)
-
   // Rende una sezione (inline con icona espandi, oppure dentro la modale ingrandita)
   const renderSezione = (key: string, inModal = false) => {
     const onExpand = inModal ? undefined : () => setExpanded(key)
     switch (key) {
-      case 'corporate': return <SezioneCorporate label="Corporate" rows={fCorporate} onToggle={(id, f) => toggleField('corporate', id, f)} onExpand={onExpand} />
-      case 'gruppi':    return <SezioneGenerica label="Gruppi" verifica rows={fGruppi} onToggle={(id, f) => toggleField('gruppi', id, f)} onExpand={onExpand} />
-      case 'b2b':       return <SezioneGenerica label="B2B" verifica rows={fB2b} onToggle={(id, f) => toggleField('b2b', id, f)} onExpand={onExpand} />
-      case 'b2c':       return <SezioneGenerica label="B2C" verifica rows={fB2c} onToggle={(id, f) => toggleField('b2c', id, f)} onExpand={onExpand} />
+      case 'corporate': return <SezioneCorporate label="Corporate" rows={data.corporate} onToggle={(id, f) => toggleField('corporate', id, f)} onExpand={onExpand} />
+      case 'gruppi':    return <SezioneGenerica label="Gruppi" verifica rows={data.gruppi} onToggle={(id, f) => toggleField('gruppi', id, f)} onExpand={onExpand} />
+      case 'b2b':       return <SezioneGenerica label="B2B" verifica rows={data.b2b} onToggle={(id, f) => toggleField('b2b', id, f)} onExpand={onExpand} />
+      case 'b2c':       return <SezioneGenerica label="B2C" verifica rows={data.b2c} onToggle={(id, f) => toggleField('b2c', id, f)} onExpand={onExpand} />
       default:          return null
     }
   }
@@ -206,16 +197,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
             value={data.StrutturaId ?? ''}
             onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
             options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
-          />
-        </div>
-        <div className="imposta-dist__field imposta-dist__search">
-          <label htmlFor="cerca-operatore" className="text-[12px] font-semibold font-poppins text-primary">Cerca operatore</label>
-          <SearchField
-            name="cerca-operatore"
-            value={query}
-            placeholder="Cerca per nome…"
-            onChange={(e) => setQuery(e.target.value)}
-            onClear={() => setQuery('')}
           />
         </div>
         <button type="button" className="sib-btn sib-btn--secondary imposta-dist__invita" onClick={() => setInvitaOpen(true)}>
@@ -352,7 +333,7 @@ const potenzialeOf = (id: number) => (id * 7 + 2) % 6
 function Potenziale({ value }: { value: number }) {
   return (
     <span className="imposta-dist__pot" title={`Potenziale ${value}/5`}>
-      <i className="fa-solid fa-hand-fist imposta-dist__pot-ico" aria-hidden="true" />
+      <span className="imposta-dist__pot-ico" role="img" aria-label="Potenziale">💪</span>
       <span className="imposta-dist__pot-val">{value}/5</span>
     </span>
   )
@@ -372,6 +353,30 @@ function SezioneHead({ label, onExpand }: { label: string; onExpand?: () => void
   )
 }
 
+// Intestazione colonna Nome: lente → campo di ricerca (filtra i nomi della card)
+function NomeHead({ q, setQ }: { q: string; setQ: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  if (!open) {
+    return (
+      <button type="button" className="imposta-dist__nome-search-btn" onClick={() => setOpen(true)} title="Cerca per nome" aria-label="Cerca per nome">
+        <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+      </button>
+    )
+  }
+  return (
+    <span className="imposta-dist__nome-search">
+      <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+      <input autoFocus className="sib-input" placeholder="Cerca…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <button type="button" className="imposta-dist__nome-search-clear" onClick={() => { setQ(''); setOpen(false) }} aria-label="Chiudi ricerca">
+        <i className="fa-light fa-xmark" aria-hidden="true" />
+      </button>
+    </span>
+  )
+}
+
+const filtraNome = <T extends { nome: string }>(rows: T[], q: string) =>
+  !q.trim() ? rows : rows.filter((r) => r.nome.toLowerCase().includes(q.trim().toLowerCase()))
+
 // ─── SEZIONE CORPORATE ──────────────────────────────────────────────────────
 function SezioneCorporate({
   label, rows, onToggle, onExpand,
@@ -381,13 +386,15 @@ function SezioneCorporate({
   onToggle: (id: number, field: 'contratto' | 'libera') => void
   onExpand?: () => void
 }) {
+  const [q, setQ] = useState('')
+  const fRows = filtraNome(rows, q)
   return (
     <div className="imposta-dist__sezione">
       <SezioneHead label={label} onExpand={onExpand} />
       <table className="sib-table imposta-dist__table">
         <thead>
           <tr>
-            <th />
+            <th><NomeHead q={q} setQ={setQ} /></th>
             <th className="imposta-dist__th-c">Potenziale</th>
             <th>Disponibilità<br />a contratto</th>
             <th>Disponibilità<br />libera</th>
@@ -395,7 +402,7 @@ function SezioneCorporate({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
+          {fRows.map((r) => (
             <tr key={r.id}>
               <td>{r.nome}</td>
               <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
@@ -424,6 +431,8 @@ function SezioneGenerica({
   onToggle: (id: number, field: 'contratto' | 'libera') => void
   onExpand?: () => void
 }) {
+  const [q, setQ] = useState('')
+  const fRows = filtraNome(rows, q)
   return (
     <div className="imposta-dist__sezione">
       <SezioneHead label={label} onExpand={onExpand} />
@@ -436,7 +445,7 @@ function SezioneGenerica({
       <table className="sib-table imposta-dist__table">
         <thead>
           <tr>
-            <th />
+            <th><NomeHead q={q} setQ={setQ} /></th>
             <th className="imposta-dist__th-c">Potenziale</th>
             <th>Disponibilità<br />a contratto</th>
             <th>Disponibilità<br />libera</th>
@@ -444,7 +453,7 @@ function SezioneGenerica({
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
+          {fRows.map((r) => (
             <tr key={r.id}>
               <td>{r.nome}</td>
               <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>

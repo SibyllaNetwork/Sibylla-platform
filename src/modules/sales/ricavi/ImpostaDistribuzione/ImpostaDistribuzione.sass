@@ -41,9 +41,6 @@
     flex-direction: column
     gap: 6px
 
-  &__search
-    width: 240px
-
   &__field-raw
     label
       font-size: 12px
@@ -148,6 +145,47 @@
     cursor: pointer
     font-size: 18px
     color: $text-inactive
+
+    &:hover
+      color: $primary
+
+  // Ricerca per nome nella testata card (lente → input)
+  &__nome-search-btn
+    border: none
+    background: transparent
+    cursor: pointer
+    color: $primary
+    padding: 2px 4px
+    border-radius: 5px
+
+    i
+      font-size: 12px
+      opacity: 0.7
+
+    &:hover i
+      opacity: 1
+
+  &__nome-search
+    display: inline-flex
+    align-items: center
+    gap: 4px
+
+    i
+      font-size: 12px
+      color: $text-inactive
+
+    .sib-input
+      height: 26px
+      padding: 0 6px
+      width: 118px
+      font-size: 12px
+
+  &__nome-search-clear
+    border: none
+    background: transparent
+    cursor: pointer
+    color: $text-inactive
+    padding: 0 2px
 
     &:hover
       color: $primary
