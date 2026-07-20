@@ -49,6 +49,7 @@ const STRUTTURE: Struttura[] = [
   { id: 10, nome: 'Porta Nuova Lofts',    tipo: 'appartamento', destinazione: 'Milano',  camere: 30,  stelle: 5, spesa: 3, mercati: ['it', 'ae', 'us'] },
   { id: 11, nome: 'Hotel Vesuvio Royal',  tipo: 'hotel',        destinazione: 'Napoli',  camere: 110, stelle: 5, spesa: 3, mercati: ['it', 'de', 'gb'] },
   { id: 12, nome: 'Mergellina B&B',       tipo: 'bb',           destinazione: 'Napoli',  camere: 9,   stelle: 3, spesa: 1, mercati: ['it', 'fr'] },
+  { id: 13, nome: 'Hotel Piccolo Pantheon', tipo: 'hotel',      destinazione: 'Roma',    camere: 26,  stelle: 3, spesa: 1, mercati: ['it', 'fr'] },
 ]
 
 const DESTINAZIONI = ['Tutte', ...Array.from(new Set(STRUTTURE.map(s => s.destinazione)))]
