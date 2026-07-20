@@ -144,23 +144,14 @@
   &__panel
     flex: 1
     min-width: 0
-    background: $white
     padding: 14px 16px
-    overflow-x: auto
 
-  // ── Tabella strutture (standard .sib-table) ─────────────────────────────────────
+  // ── Tabella strutture: standard .sib-table (header, bordi, righe canonici) ───────
   &__table
     width: 100%
 
     th, td
       vertical-align: middle
-
-    // Header grigio chiaro (solo la head), righe bianche
-    thead th
-      background: #E5E7EB
-
-    tbody td
-      background: $white
 
   &__th-c
     text-align: center

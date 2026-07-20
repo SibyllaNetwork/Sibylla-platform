@@ -227,6 +227,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
             </div>
           ) : (
             // ── Tabella strutture ──────────────────────────────────────────
+            <div className="sib-table-wrap">
             <table className="sib-table impdto__table">
               <thead>
                 <tr>
@@ -275,6 +276,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                 )}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>
