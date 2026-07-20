@@ -315,7 +315,12 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                     </td>
                     <td className="impdto__td-c"><Stars n={r.stelle} /></td>
                     <td className="impdto__td-c"><Dimensione camere={r.camere} /></td>
-                    <td>Italia</td>
+                    <td>
+                      <span className="impdto__nazione">
+                        <img className="impdto__flag" src="https://flagcdn.com/w40/it.png" srcSet="https://flagcdn.com/w80/it.png 2x" alt="IT" loading="lazy" />
+                        Italia
+                      </span>
+                    </td>
                     <td>{REGIONI[r.destinazione] ?? '—'}</td>
                     <td>{r.destinazione}</td>
                     <td className="impdto__td-c"><Spesa n={r.spesa} /></td>
