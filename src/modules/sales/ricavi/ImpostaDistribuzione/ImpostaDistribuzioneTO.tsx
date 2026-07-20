@@ -50,7 +50,6 @@ const STRUTTURE: Struttura[] = [
   { id: 11, nome: 'Hotel Vesuvio Royal',  tipo: 'hotel',        destinazione: 'Napoli',  camere: 110, stelle: 5, spesa: 3, mercati: ['it', 'de', 'gb'] },
   { id: 12, nome: 'Mergellina B&B',       tipo: 'bb',           destinazione: 'Napoli',  camere: 9,   stelle: 3, spesa: 1, mercati: ['it', 'fr'] },
 ]
-const MAX_CAMERE = Math.max(...STRUTTURE.map(s => s.camere))
 
 const DESTINAZIONI = ['Tutte', ...Array.from(new Set(STRUTTURE.map(s => s.destinazione)))]
 const CATEGORIE = ['Tutte', '3 stelle', '4 stelle', '5 stelle']
@@ -74,6 +73,26 @@ function Spesa({ n }: { n: number }) {
       {Array.from({ length: 3 }, (_, i) => (
         <span key={i} className={`impdto__euro${i < n ? ' impdto__euro--on' : ''}`}>€</span>
       ))}
+    </span>
+  )
+}
+
+// Dimensione struttura: 3 livelli derivati dal numero di camere
+const dimensioneOf = (camere: number): { level: 1 | 2 | 3; label: string } =>
+  camere < 40 ? { level: 1, label: 'Piccola' }
+    : camere <= 120 ? { level: 2, label: 'Media' }
+      : { level: 3, label: 'Grande' }
+
+function Dimensione({ camere }: { camere: number }) {
+  const { level, label } = dimensioneOf(camere)
+  return (
+    <span className={`impdto__dim impdto__dim--l${level}`} title={`Dimensione: ${label}`}>
+      <span className="impdto__dim-bars" aria-hidden="true">
+        {[1, 2, 3].map((i) => (
+          <span key={i} className={`impdto__dim-bar${i <= level ? ' impdto__dim-bar--on' : ''}`} />
+        ))}
+      </span>
+      <span className="impdto__dim-label">{label}</span>
     </span>
   )
 }
@@ -262,10 +281,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                       </span>
                     </td>
                     <td className="impdto__td-c"><Stars n={r.stelle} /></td>
-                    <td className="impdto__td-c">
-                      <span className="impdto__camere">{r.camere}</span>
-                      <span className="impdto__camere-bar"><span className="impdto__camere-fill" style={{ '--w': `${(r.camere / MAX_CAMERE) * 100}%` } as React.CSSProperties} /></span>
-                    </td>
+                    <td className="impdto__td-c"><Dimensione camere={r.camere} /></td>
                     <td>Italia</td>
                     <td>{REGIONI[r.destinazione] ?? '—'}</td>
                     <td>{r.destinazione}</td>

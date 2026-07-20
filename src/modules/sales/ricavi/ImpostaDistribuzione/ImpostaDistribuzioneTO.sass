@@ -231,29 +231,39 @@
       color: $primary
       font-size: 10px
 
-  // camere + barra capienza
-  &__camere
-    display: block
-    font-variant-numeric: tabular-nums
-    font-weight: 700
-    font-size: 14px
+  // Dimensione: barre crescenti (Piccola/Media/Grande) + etichetta
+  &__dim
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+  &__dim-bars
+    display: inline-flex
+    align-items: flex-end
+    gap: 2px
+    height: 16px
+
+  &__dim-bar
+    width: 4px
+    border-radius: 1px
+    background: $border
+
+    &:nth-child(1)
+      height: 6px
+
+    &:nth-child(2)
+      height: 11px
+
+    &:nth-child(3)
+      height: 16px
+
+  &__dim-bar--on
+    background: $primary
+
+  &__dim-label
+    font-size: 12.5px
+    font-weight: 600
     color: $text-active
-
-  &__camere-bar
-    display: block
-    width: 70px
-    height: 5px
-    margin: 4px auto 0
-    border-radius: 999px
-    background: $primary-50
-    overflow: hidden
-
-  &__camere-fill
-    display: block
-    height: 100%
-    width: var(--w, 0%)
-    border-radius: 999px
-    background: linear-gradient(90deg, $primary, $primary-700)
 
   // stelle
   &__stars
