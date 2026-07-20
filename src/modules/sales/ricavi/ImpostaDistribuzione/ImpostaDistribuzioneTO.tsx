@@ -230,14 +230,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
             <table className="sib-table impdto__table">
               <thead>
                 <tr>
-                  <th className="impdto__th-struct">
-                    <span className="impdto__th-struct-row">
-                      Strutture
-                      <select className="sib-select impdto__filter" value={tipo} onChange={e => setTipo(e.target.value as Tipo)} aria-label="Filtro tipo struttura">
-                        {TABS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-                      </select>
-                    </span>
-                  </th>
+                  <th className="impdto__th-struct">Nome hotel</th>
                   <th className="impdto__th-c">N. camere</th>
                   <th className="impdto__th-c">Categoria</th>
                   <th className="impdto__th-c">Capacità di spesa</th>

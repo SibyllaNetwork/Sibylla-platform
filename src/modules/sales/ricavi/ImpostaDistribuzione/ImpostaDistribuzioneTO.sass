@@ -158,18 +158,9 @@
     th, td
       vertical-align: middle
 
-  &__th-struct-row
-    display: inline-flex
-    align-items: center
-    gap: 10px
-
-  &__filter
-    height: 28px
-    padding: 2px 26px 2px 10px
-    font-size: 12px
-    font-weight: 600
-    text-transform: none
-    letter-spacing: 0
+    // Header con sfondo verde chiaro (solo la head); resto = standard .sib-table
+    thead th
+      background: $success-light
 
   &__th-c
     text-align: center
