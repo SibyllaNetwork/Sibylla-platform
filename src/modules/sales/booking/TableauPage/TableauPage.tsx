@@ -5,7 +5,7 @@ import Ico from '../../../../core/icons/Ico'
 import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
-import { CheckboxField } from '../../../../core/components/form'
+import { CheckboxField, DatePickerField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../GrigliaDisponibilita/exportGriglia'
 import './TableauPage.sass'
 
@@ -14,6 +14,11 @@ const ALLOTMENT = 25
 const ROW_H     = 64
 const DAY_W     = 46   // larghezza fissa colonna giorno (timeline scrollabile)
 const ROWS      = ['Riga 1','Riga 2','Riga 3','Riga 4','Riga 5','Riga 6','Riga 7','Riga 8']
+const ROOMING_NOMI = [
+  'Rossi Marco','Bianchi Laura','Esposito Giuseppe','Ferrari Anna','Russo Luca',
+  'Romano Chiara','Colombo Davide','Ricci Sara','Marino Andrea','Greco Elena',
+  'Bruno Matteo','Gallo Francesca','Conti Alessandro','Costa Giulia','Fontana Paolo',
+]
 
 const LEGENDA: {color:string;label:string}[] = [
   {color:T.successMid,   label:'Confermata'},
@@ -68,6 +73,10 @@ export default function TableauPage({
   const [showTotaliPop,   setShowTotaliPop]   = useState(false)
   const [showEstensione,  setShowEstensione]  = useState(false)
   const [showDettaglio,   setShowDettaglio]   = useState(false)
+  const [showStorico,     setShowStorico]     = useState(false)
+  const [showDuplica,     setShowDuplica]     = useState(false)
+  const [showRooming,     setShowRooming]     = useState(false)
+  const [duplicaDate,     setDuplicaDate]     = useState('')
   const [giacenzaMode,    setGiacenzaMode]    = useState('Giacenza per camere')
   const [bookings,        setBookings]        = useState<Booking[]>([
     {id:1,nome:'Grp Piersalvo 2', startDay:7,  endDay:11, row:0, colore:'#5A8A3C', camere:3, persone:6,  importo:1200, mese:today.getMonth(), anno:today.getFullYear()},
@@ -137,11 +146,36 @@ export default function TableauPage({
     : []
   const importoComplessivo = dettaglioRows.reduce((a,r)=>a+r.totale, 0)
 
+  // ── Dati per le azioni del box dettaglio (storico / duplica / rooming) ──────
+  const pad2 = (n:number) => String(n).padStart(2,'0')
+  const bookingCode = selectedBooking ? `${anno}/${String(selectedBooking.id).padStart(6,'0')}` : ''
+  const dStr = (d:number) => `${pad2(d)}/${pad2(mese+1)}/${anno}`
+  // Storico modifiche mock: le prenotazioni con id pari risultano "non modificate"
+  const storicoRows = selectedBooking && selectedBooking.id % 2 === 1
+    ? [
+        {utente:'Marco Bianchi', data:`${dStr(selectedBooking.startDay)} 09:32`, modifica:'Creazione prenotazione'},
+        {utente:'Giulia Neri',   data:`${dStr(selectedBooking.startDay)} 15:10`, modifica:`Numero camere aggiornato a ${selectedBooking.camere}`},
+        {utente:'Marco Bianchi', data:`${dStr(selectedBooking.endDay)} 11:47`,   modifica:`Occupanti aggiornati a ${selectedBooking.persone}`},
+      ]
+    : []
+  // Rooming list mock: un nominativo per ogni occupante del gruppo
+  const roomingRows = selectedBooking
+    ? Array.from({length: selectedBooking.persone}, (_,i) => ({
+        n: i + 1,
+        nome: ROOMING_NOMI[i % ROOMING_NOMI.length],
+        camera: String(101 + Math.floor(i / 2)),
+        tipo: 'Doppia',
+      }))
+    : []
+  const printDettaglio = () =>
+    exportElementToPdf(detailRef.current, `prenotazione-${bookingCode.replace('/','-')}.pdf`, `Prenotazione ${bookingCode}`)
+
   const prevMonth = () => { if(mese===0){setMese(11);setAnno(a=>Math.max(2023,a-1))}else setMese(m=>m-1) }
   const nextMonth = () => { if(mese===11){setMese(0);setAnno(a=>Math.min(2028,a+1))}else setMese(m=>m+1) }
 
   // ── Scroll orizzontale timeline (overlay nav, come nel planner) ─────────────
   const gridRef = useRef<HTMLDivElement>(null)
+  const detailRef = useRef<HTMLDivElement>(null)
   const [tlNav, setTlNav] = useState({prev:false, next:false})
   const updateTlNav = () => {
     const el = gridRef.current; if(!el) return
@@ -325,7 +359,7 @@ export default function TableauPage({
           <div className="tableau__detail-wrap">
             {selectedBooking ? (
               <div className="tableau__detail">
-                <div className="tableau__detail-scroll">
+                <div className="tableau__detail-scroll" ref={detailRef}>
                   {[
                     {l:'ID',       v:<div className="tableau__detail-id-row"><span>2026/{String(selectedBooking.id).padStart(6,'0')}</span><button className="tableau__detail-link" onClick={()=>setShowDettaglio(true)}>Dettaglio</button></div>},
                     {l:'GRUPPO',       v:selectedBooking.nome},
@@ -345,11 +379,16 @@ export default function TableauPage({
                 </div>
                 <div className="tableau__detail-actions">
                   {[
-                    <i key="user" className="fa-duotone fa-user tableau__detail-user-ico" aria-hidden="true"/>,
-                    <Ico key="refresh" n="refresh" s={18} c={T.primary}/>,
-                    <Ico key="lock"    n="lock"    s={18} c={T.primary}/>,
-                  ].map((ico,i)=>(
-                    <button key={i} className="tableau__detail-action-btn">{ico}</button>
+                    {ico:'id-card', label:'Storico modifiche', onClick:()=>setShowStorico(true)},
+                    {ico:'copy',    label:'Duplica',           onClick:()=>{ setDuplicaDate(''); setShowDuplica(true) }},
+                    {ico:'users',   label:'Rooming list',      onClick:()=>setShowRooming(true)},
+                    {ico:'print',   label:'Stampa dettaglio',  onClick:printDettaglio},
+                  ].map((a,i)=>(
+                    <Tooltip key={i} text={a.label} variant="dark">
+                      <button className="tableau__detail-action-btn" aria-label={a.label} onClick={a.onClick}>
+                        <Ico n={a.ico} s={18} c={T.primary}/>
+                      </button>
+                    </Tooltip>
                   ))}
                 </div>
                 <button onClick={()=>setSelectedBooking(null)} className="tableau__detail-close">
@@ -633,6 +672,76 @@ export default function TableauPage({
               <tr>
                 <td colSpan={6} className="sib-empty">Nessun tour operator ha richiesto un'estensione</td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+      </Modal>
+
+      {/* ── Modale Storico modifiche ───────────────────────────────────────── */}
+      <Modal open={showStorico} onClose={()=>setShowStorico(false)} title="Storico modifiche" size="lg">
+        <div className="sib-table-wrap">
+          <table className="sib-table">
+            <thead>
+              <tr>
+                <th>Utente</th>
+                <th>Data e ora</th>
+                <th>Modifica effettuata</th>
+              </tr>
+            </thead>
+            <tbody>
+              {storicoRows.length ? storicoRows.map((r,i)=>(
+                <tr key={i}>
+                  <td>{r.utente}</td>
+                  <td>{r.data}</td>
+                  <td>{r.modifica}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan={3} className="sib-empty">La prenotazione non è stata modificata</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Modal>
+
+      {/* ── Modale Duplica prenotazione ────────────────────────────────────── */}
+      <Modal open={showDuplica} onClose={()=>setShowDuplica(false)} title={`Duplica prenotazione ${bookingCode}`} size="md">
+        <div className="tableau__duplica">
+          <DatePickerField
+            name="duplica-checkin"
+            label="Seleziona la data di check-in"
+            value={duplicaDate}
+            onChange={(e)=>setDuplicaDate(e.target.value)}
+          />
+          <div className="tableau__modal-footer">
+            <button className="sib-btn sib-btn--secondary" onClick={()=>setShowDuplica(false)}>Annulla</button>
+            <button className="sib-btn sib-btn--primary"   onClick={()=>setShowDuplica(false)}>Procedi</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Modale Rooming list ────────────────────────────────────────────── */}
+      <Modal open={showRooming} onClose={()=>setShowRooming(false)} title="Rooming list" size="lg">
+        <div className="sib-table-wrap">
+          <table className="sib-table">
+            <thead>
+              <tr>
+                <th>N.</th>
+                <th>Cognome e nome</th>
+                <th>Camera</th>
+                <th>Sistemazione</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roomingRows.length ? roomingRows.map((r)=>(
+                <tr key={r.n}>
+                  <td>{r.n}</td>
+                  <td>{r.nome}</td>
+                  <td>{r.camera}</td>
+                  <td>{r.tipo}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan={4} className="sib-empty">Nessuna rooming list associata a questa prenotazione</td></tr>
+              )}
             </tbody>
           </table>
         </div>
