@@ -28,10 +28,10 @@ interface Cluster {
   strutture: number[]
 }
 
-const TABS: { key: Tipo; label: string; icon: string }[] = [
+const TABS: { key: Tipo; label: string; short?: string; icon: string }[] = [
   { key: 'hotel',        label: 'Hotel',        icon: 'fa-hotel' },
   { key: 'bb',           label: 'B&B',          icon: 'fa-bed' },
-  { key: 'appartamento', label: 'Appartamento', icon: 'fa-building' },
+  { key: 'appartamento', label: 'Appartamento', short: 'Appart.', icon: 'fa-building' },
   { key: 'cluster',      label: 'Cluster',      icon: 'fa-diagram-project' },
 ]
 const TIPO_ICON: Record<string, string> = { hotel: 'fa-hotel', bb: 'fa-bed', appartamento: 'fa-building' }
@@ -228,9 +228,9 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
           {TABS.map(t => (
             <button key={t.key} type="button" role="tab" aria-selected={tipo === t.key}
               className={`impdto__tab ${tipo === t.key ? 'is-active' : ''}`}
-              onClick={() => setTipo(t.key)}>
+              onClick={() => setTipo(t.key)} title={t.short ? t.label : undefined}>
               <i className={`fa-light ${t.icon}`} aria-hidden="true" />
-              <span>{t.label}</span>
+              <span>{t.short ?? t.label}</span>
               <em className="impdto__tab-count">{t.key === 'cluster' ? clusters.length : countByTipo(t.key)}</em>
             </button>
           ))}
