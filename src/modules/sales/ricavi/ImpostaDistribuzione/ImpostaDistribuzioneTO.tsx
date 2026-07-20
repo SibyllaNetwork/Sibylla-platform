@@ -83,11 +83,14 @@ const dimensioneOf = (camere: number): { level: 1 | 2 | 3; label: string } =>
     : camere <= 120 ? { level: 2, label: 'Media' }
       : { level: 3, label: 'Grande' }
 
+// Icona per livello dimensione (Piccola / Media / Grande)
+const DIM_ICON: Record<1 | 2 | 3, string> = { 1: 'fa-building', 2: 'fa-building-memo', 3: 'fa-apartment' }
+
 function Dimensione({ camere }: { camere: number }) {
   const { level, label } = dimensioneOf(camere)
   return (
     <span className={`impdto__dim impdto__dim--l${level}`} title={`Dimensione: ${label}`}>
-      <span className="impdto__dim-ico"><i className="fa-solid fa-hotel" aria-hidden="true" /></span>
+      <span className="impdto__dim-ico"><i className={`fa-solid ${DIM_ICON[level]}`} aria-hidden="true" /></span>
       <span className="impdto__dim-label">{label}</span>
     </span>
   )
