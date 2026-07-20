@@ -87,7 +87,8 @@ function Dimensione({ camere }: { camere: number }) {
   const { level, label } = dimensioneOf(camere)
   return (
     <span className={`impdto__dim impdto__dim--l${level}`} title={`Dimensione: ${label}`}>
-      {label}
+      <span className="impdto__dim-ico"><i className="fa-solid fa-hotel" aria-hidden="true" /></span>
+      <span className="impdto__dim-label">{label}</span>
     </span>
   )
 }
