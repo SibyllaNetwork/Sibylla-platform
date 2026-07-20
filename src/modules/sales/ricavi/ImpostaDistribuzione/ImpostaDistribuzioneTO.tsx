@@ -302,18 +302,22 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                     <td>{r.destinazione}</td>
                     <td className="impdto__td-sw">
                       <span className="impdto__actions">
-                        <button type="button"
-                          className={`impdto__act ${notif.has(r.id) ? 'is-on' : ''}`}
-                          onClick={() => toggleNotif(r.id)} aria-pressed={notif.has(r.id)}
-                          title={notif.has(r.id) ? 'Notifiche attive' : 'Attiva notifiche'}>
-                          <i className={`fa-solid ${notif.has(r.id) ? 'fa-bell' : 'fa-bell-slash'}`} aria-hidden="true" />
-                        </button>
-                        <button type="button"
-                          className={`impdto__act ${selected.has(r.id) ? 'is-on' : ''}`}
-                          onClick={() => toggleRow(r.id)} aria-pressed={selected.has(r.id)}
-                          title={selected.has(r.id) ? 'In distribuzione' : 'Attiva distribuzione'}>
-                          <i className={selected.has(r.id) ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'} aria-hidden="true" />
-                        </button>
+                        <Tooltip text={notif.has(r.id) ? 'Disattiva notifiche' : 'Attiva notifiche'}>
+                          <button type="button"
+                            className={`impdto__act ${notif.has(r.id) ? 'is-on' : ''}`}
+                            onClick={() => toggleNotif(r.id)} aria-pressed={notif.has(r.id)}
+                            aria-label={notif.has(r.id) ? 'Disattiva notifiche' : 'Attiva notifiche'}>
+                            <i className={`fa-solid ${notif.has(r.id) ? 'fa-bell' : 'fa-bell-slash'}`} aria-hidden="true" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip text={selected.has(r.id) ? 'Distribuito' : 'Non distribuito'}>
+                          <button type="button"
+                            className={`impdto__act ${selected.has(r.id) ? 'is-on' : ''}`}
+                            onClick={() => toggleRow(r.id)} aria-pressed={selected.has(r.id)}
+                            aria-label={selected.has(r.id) ? 'Distribuito' : 'Non distribuito'}>
+                            <i className={selected.has(r.id) ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'} aria-hidden="true" />
+                          </button>
+                        </Tooltip>
                       </span>
                     </td>
                   </tr>
