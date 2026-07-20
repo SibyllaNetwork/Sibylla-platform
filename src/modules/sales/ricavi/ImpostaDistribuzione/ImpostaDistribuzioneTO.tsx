@@ -55,6 +55,9 @@ const MAX_CAMERE = Math.max(...STRUTTURE.map(s => s.camere))
 const DESTINAZIONI = ['Tutte', ...Array.from(new Set(STRUTTURE.map(s => s.destinazione)))]
 const CATEGORIE = ['Tutte', '3 stelle', '4 stelle', '5 stelle']
 
+// Città → Regione (le strutture demo sono tutte in Italia)
+const REGIONI: Record<string, string> = { Roma: 'Lazio', Firenze: 'Toscana', Milano: 'Lombardia', Napoli: 'Campania' }
+
 function Stars({ n }: { n: number }) {
   return (
     <span className="impdto__stars">
@@ -232,8 +235,11 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
               <thead>
                 <tr>
                   <th className="impdto__th-struct">Nome hotel</th>
-                  <th className="impdto__th-c">N. camere</th>
                   <th className="impdto__th-c">Categoria</th>
+                  <th className="impdto__th-c">Dimensione</th>
+                  <th>Nazione</th>
+                  <th>Regione</th>
+                  <th>Città</th>
                   <th className="impdto__th-c">Capacità di spesa</th>
                   <th>Mercato</th>
                   <th className="impdto__th-sw">
@@ -255,11 +261,14 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                         </span>
                       </span>
                     </td>
+                    <td className="impdto__td-c"><Stars n={r.stelle} /></td>
                     <td className="impdto__td-c">
                       <span className="impdto__camere">{r.camere}</span>
                       <span className="impdto__camere-bar"><span className="impdto__camere-fill" style={{ '--w': `${(r.camere / MAX_CAMERE) * 100}%` } as React.CSSProperties} /></span>
                     </td>
-                    <td className="impdto__td-c"><Stars n={r.stelle} /></td>
+                    <td>Italia</td>
+                    <td>{REGIONI[r.destinazione] ?? '—'}</td>
+                    <td>{r.destinazione}</td>
                     <td className="impdto__td-c"><Spesa n={r.spesa} /></td>
                     <td><Flags codes={r.mercati} /></td>
                     <td className="impdto__td-sw">
@@ -272,7 +281,7 @@ export default function ImpostaDistribuzioneTO({ navigate }: { navigate: (p: str
                   </tr>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={6} className="impdto__empty">Nessuna struttura per i filtri selezionati</td></tr>
+                  <tr><td colSpan={9} className="impdto__empty">Nessuna struttura per i filtri selezionati</td></tr>
                 )}
               </tbody>
             </table>
