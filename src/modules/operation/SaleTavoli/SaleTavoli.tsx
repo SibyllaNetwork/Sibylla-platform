@@ -16,6 +16,7 @@ import {
   SALA_EL_META,
   TAVOLO_STATO_META,
   SalaElementKind,
+  SalaElement,
   TavoloForma,
   TavoloStato,
   Tavolo,
@@ -28,17 +29,18 @@ const SEAT_GAP = 7;   // distanza sedia dal bordo tavolo (px)
 // Posizioni delle sedie attorno a un tavolo sulla planimetria (coordinate in px
 // relative al centro del tavolo): lungo i due lati lunghi per i rettangolari,
 // distribuite in cerchio per rotondi/quadrati.
-const canvasSeats = (t: Tavolo): { x: number; y: number }[] => {
+// rot = rotazione (deg) così lo schienale della sedia guarda verso l'esterno
+const canvasSeats = (t: Tavolo): { x: number; y: number; rot: number }[] => {
   const W = t.w * CELL - 8, H = t.h * CELL - 8, hw = W / 2, hh = H / 2;
-  const out: { x: number; y: number }[] = [];
+  const out: { x: number; y: number; rot: number }[] = [];
   if (t.forma === 'rettangolare') {
     const top = Math.ceil(t.capienza / 2), bot = t.capienza - top;
-    for (let i = 0; i < top; i++) out.push({ x: -hw + (W * (i + 1)) / (top + 1), y: -(hh + SEAT_GAP) });
-    for (let i = 0; i < bot; i++) out.push({ x: -hw + (W * (i + 1)) / (bot + 1), y: hh + SEAT_GAP });
+    for (let i = 0; i < top; i++) out.push({ x: -hw + (W * (i + 1)) / (top + 1), y: -(hh + SEAT_GAP), rot: 0 });
+    for (let i = 0; i < bot; i++) out.push({ x: -hw + (W * (i + 1)) / (bot + 1), y: hh + SEAT_GAP, rot: 180 });
   } else {
     for (let i = 0; i < t.capienza; i++) {
       const a = (i / t.capienza) * Math.PI * 2 - Math.PI / 2;
-      out.push({ x: Math.cos(a) * (hw + SEAT_GAP), y: Math.sin(a) * (hh + SEAT_GAP) });
+      out.push({ x: Math.cos(a) * (hw + SEAT_GAP), y: Math.sin(a) * (hh + SEAT_GAP), rot: (a * 180) / Math.PI + 90 });
     }
   }
   return out;
@@ -55,6 +57,7 @@ const SaleTavoli: React.FC<Props> = () => {
   const addTavolo = useSaleStore(s => s.addTavolo);
   const addElemento = useSaleStore(s => s.addElemento);
   const updateTavolo = useSaleStore(s => s.updateTavolo);
+  const updateElemento = useSaleStore(s => s.updateElemento);
   const moveItem = useSaleStore(s => s.moveItem);
   const removeItem = useSaleStore(s => s.removeItem);
   const setGrid = useSaleStore(s => s.setGrid);
@@ -73,6 +76,7 @@ const SaleTavoli: React.FC<Props> = () => {
   useEffect(() => { setSelId(null); }, [salaId, mode]);
 
   const selTavolo = sala?.tavoli.find(t => t.id === selId) ?? null;
+  const selEl = sala?.elementi.find(e => e.id === selId) ?? null;
 
   // ── Drag & drop (sposta tavoli/elementi sulla griglia) ──
   useEffect(() => {
@@ -183,8 +187,9 @@ const SaleTavoli: React.FC<Props> = () => {
               >
                 {canvasSeats(t).map((s, i) => (
                   <span key={i} className="sale__tav-seat"
-                    style={{ '--sx': `${s.x}px`, '--sy': `${s.y}px` } as React.CSSProperties} />
+                    style={{ '--sx': `${s.x}px`, '--sy': `${s.y}px`, '--rot': `${s.rot}deg` } as React.CSSProperties} />
                 ))}
+                <span className="sale__tav-surface" aria-hidden="true" />
                 <span className="sale__tav-num">{t.numero}</span>
                 <span className="sale__tav-cap"><i className="fa-solid fa-chair" /> {t.capienza}</span>
                 {t.nominativo && <span className="sale__tav-nom">{t.nominativo}</span>}
@@ -202,10 +207,12 @@ const SaleTavoli: React.FC<Props> = () => {
             <ComposePanel
               sala={sala}
               selTavolo={selTavolo}
+              selEl={selEl}
               newForma={newForma} setNewForma={setNewForma}
               addTavolo={(cap) => { const id = addTavolo(sala.id, cap, newForma); if (id) setSelId(id); }}
               addElemento={(k) => addElemento(sala.id, k)}
               updateTavolo={(patch) => selTavolo && updateTavolo(sala.id, selTavolo.id, patch)}
+              updateElemento={(patch) => selEl && updateElemento(sala.id, selEl.id, patch)}
               del={del}
               setGrid={(c, r) => setGrid(sala.id, c, r)}
             />
@@ -235,7 +242,8 @@ const TavoloBig: React.FC<{ t: Tavolo }> = ({ t }) => {
           const a = (i / t.capienza) * Math.PI * 2 - Math.PI / 2;
           const rx = wide ? 100 : 72, ry = 66;
           const x = Math.cos(a) * rx, y = Math.sin(a) * ry;
-          return <span key={i} className="sale__seat" style={{ '--sx': `${x}px`, '--sy': `${y}px` } as React.CSSProperties} />;
+          return <span key={i} className="sale__seat"
+            style={{ '--sx': `${x}px`, '--sy': `${y}px`, '--rot': `${(a * 180) / Math.PI + 90}deg` } as React.CSSProperties} />;
         })}
         <div className={`sale__big-top sale__big-top--${t.forma}`} style={{ '--tw': `${tw}px`, '--th': `${th}px` } as React.CSSProperties}>
           <span className="sale__big-num">{t.numero}</span>
@@ -253,13 +261,15 @@ const TavoloBig: React.FC<{ t: Tavolo }> = ({ t }) => {
 const ComposePanel: React.FC<{
   sala: import('../../../store/useSaleStore').Sala;
   selTavolo: Tavolo | null;
+  selEl: SalaElement | null;
   newForma: TavoloForma; setNewForma: (f: TavoloForma) => void;
   addTavolo: (cap: number) => void;
   addElemento: (k: SalaElementKind) => void;
   updateTavolo: (patch: Partial<Tavolo>) => void;
+  updateElemento: (patch: Partial<SalaElement>) => void;
   del: (id: string) => void;
   setGrid: (cols: number, rows: number) => void;
-}> = ({ sala, selTavolo, newForma, setNewForma, addTavolo, addElemento, updateTavolo, del, setGrid }) => (
+}> = ({ sala, selTavolo, selEl, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid }) => (
   <>
     <div className="sale__group">
       <div className="sale__group-title">Aggiungi tavolo</div>
@@ -304,8 +314,17 @@ const ComposePanel: React.FC<{
           <i className="fa-solid fa-trash" /> Rimuovi tavolo
         </button>
       </div>
+    ) : selEl ? (
+      <div className="sale__group sale__group--detail">
+        <div className="sale__group-title">Elemento selezionato</div>
+        <div className="sale__el-sel"><i className={`fa-solid ${SALA_EL_META[selEl.kind].icon}`} /> {SALA_EL_META[selEl.kind].label}</div>
+        <InputField name="el-label" label="Etichetta" value={selEl.label ?? ''} onChange={e => updateElemento({ label: e.target.value })} />
+        <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selEl.id)}>
+          <i className="fa-solid fa-trash" /> Rimuovi elemento
+        </button>
+      </div>
     ) : (
-      <div className="sale__hint">Seleziona un tavolo per modificarlo, oppure trascina gli elementi per posizionarli.</div>
+      <div className="sale__hint">Seleziona un tavolo o un elemento per modificarlo/rimuoverlo, oppure trascina per posizionarlo.</div>
     )}
   </>
 );

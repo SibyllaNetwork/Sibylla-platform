@@ -105,6 +105,7 @@ interface SaleState {
   addTavolo: (salaId: string, capienza: number, forma: TavoloForma) => string | undefined
   addElemento: (salaId: string, kind: SalaElementKind) => void
   updateTavolo: (salaId: string, tavoloId: string, patch: Partial<Tavolo>) => void
+  updateElemento: (salaId: string, elId: string, patch: Partial<SalaElement>) => void
   moveItem: (salaId: string, itemId: string, x: number, y: number) => void
   removeItem: (salaId: string, itemId: string) => void
   setGrid: (salaId: string, cols: number, rows: number) => void
@@ -169,6 +170,12 @@ export const useSaleStore = create<SaleState>()(
               }
               return merged
             }),
+          }),
+        })),
+      updateElemento: (salaId, elId, patch) =>
+        set(st => ({
+          sale: st.sale.map(sa => sa.id !== salaId ? sa : {
+            ...sa, elementi: sa.elementi.map(el => el.id === elId ? { ...el, ...patch } : el),
           }),
         })),
       moveItem: (salaId, itemId, x, y) =>
