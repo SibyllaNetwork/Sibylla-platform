@@ -43,6 +43,32 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
   const maxRooms = Math.max(...floors.map(f => f.camere.length));
   const [maxC, maxR] = gridDims(maxRooms);
 
+  // ── Ascensore: cabina addossata alla parete posteriore (j piccolo), colonna a
+  // destra. Stessa footprint su ogni piano → forma un vano verticale allineato.
+  // Ha una porta sulla faccia frontale: gli avventori vi entrano/escono.
+  const EL = { i0: maxC - 0.85, i1: maxC - 0.25, j0: 0.18, j1: 0.78, h: 21 };
+  const elevator = (
+    P: (i: number, j: number, dy?: number) => [number, number],
+    poly: (pts: [number, number][]) => string,
+    key: string,
+  ) => {
+    const { i0, i1, j0, j1, h } = EL;
+    const mid = (i0 + i1) / 2;
+    const [sx1, sy1] = P(mid, j1, 2);
+    const [sx2, sy2] = P(mid, j1, h - 2);
+    return (
+      <g key={key}>
+        {/* fianco destro + faccia frontale + tetto cabina */}
+        <polygon className="hotel-viz__lift-side" points={poly([P(i1, j1), P(i1, j0), P(i1, j0, h), P(i1, j1, h)])} />
+        <polygon className="hotel-viz__lift-front" points={poly([P(i0, j1), P(i1, j1), P(i1, j1, h), P(i0, j1, h)])} />
+        <polygon className="hotel-viz__lift-top" points={poly([P(i0, j0, h), P(i1, j0, h), P(i1, j1, h), P(i0, j1, h)])} />
+        {/* porta (faccia frontale, incassata) + fenditura centrale */}
+        <polygon className="hotel-viz__lift-door" points={poly([P(i0 + 0.12, j1, 2), P(i1 - 0.12, j1, 2), P(i1 - 0.12, j1, h - 2), P(i0 + 0.12, j1, h - 2)])} />
+        <line className="hotel-viz__lift-seam" x1={sx1} y1={sy1} x2={sx2} y2={sy2} />
+      </g>
+    );
+  };
+
   // Il piano più basso (Piano Terra, badge 0) è la lobby col desk
   const bottomOy = TOP + (floors.length - 1) * FLOOR_GAP;
   const svgH = bottomOy + (maxC + maxR) * CY + SLAB + 18;
@@ -145,6 +171,9 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
       <g>
         <polygon className="hotel-viz__rcp-rug" points={poly([P(0.45, 1.55), P(maxC - 0.45, 1.55), P(maxC - 0.45, maxR - 0.35), P(0.45, maxR - 0.35)])} />
 
+        {/* ascensore (parete posteriore) — dietro all'arredo */}
+        {elevator(P, poly, 'lift')}
+
         {/* poltrone (davanti, rivolte al desk) */}
         {Chair(0.5, maxR - 1.2, 'ch1')}
         {Chair(maxC - 1.12, maxR - 1.2, 'ch2')}
@@ -234,8 +263,8 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
       els.push(Box(i0, 0.3, i1, 0.3 + deepTop, 2.4, `bt${s}`, 'rcpc'));
       els.push(Box(i0, 0.3, i1, 0.52, 3.6, `bth${s}`, 'rcp'));
     }
-    // 2) ascensore in fondo al corridoio (colonna finale)
-    els.push(Box(maxC - 0.82, midJ - 0.34, maxC - 0.18, midJ + 0.34, 15, 'lift', 'lift'));
+    // 2) ascensore addossato alla parete posteriore (con porta)
+    els.push(elevator(P, poly, 'lift'));
     // 3) arredo variato per piano (divano/piante) + avventori — differenzia i piani
     const decor = idx % 3;
     if (decor === 0) {
@@ -269,8 +298,8 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
     lobbyIndex: floors.length - 1,
     maxC, maxR,
     midJ: maxR / 2,
-    liftI: maxC - 0.5,
-    liftJ: maxR / 2,
+    liftI: (EL.i0 + EL.i1) / 2,   // centro porta ascensore (parete posteriore)
+    liftJ: EL.j1,
   };
 
   return (

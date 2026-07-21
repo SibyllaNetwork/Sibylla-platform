@@ -605,6 +605,21 @@
     stroke: alpha(#000000, 0.2)
     stroke-width: 0.4
 
+  &__lift-front
+    fill: #A6B4BF
+    stroke: alpha(#000000, 0.2)
+    stroke-width: 0.4
+
+  // porta ascensore (incassata, metallo scuro) + fenditura ante
+  &__lift-door
+    fill: #46586A
+    stroke: alpha(#000000, 0.25)
+    stroke-width: 0.4
+
+  &__lift-seam
+    stroke: alpha($white, 0.35)
+    stroke-width: 0.6
+
   // Avventori animati (overlay: reception → ascensore → piani → uscita)
   &__crowd
     pointer-events: none
@@ -630,9 +645,14 @@
     stroke-width: 1
     stroke-linecap: round
 
+  // cabina ascensore illuminata (visibile durante la corsa)
   &__crowd-car
-    fill: alpha(#B7C4CE, 0.92)
-    stroke: #8595A2
+    fill: #F6EFD5
+    stroke: #B79A4E
+    stroke-width: 0.7
+
+  &__crowd-car-seam
+    stroke: alpha(#8A6A15, 0.6)
     stroke-width: 0.6
 
   // Piano cliccabile: evidenziazione hover / selezione
