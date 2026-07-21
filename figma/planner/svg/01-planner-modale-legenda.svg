@@ -1,0 +1,87 @@
+<svg width="348" height="425" viewBox="0 0 348 425" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_d_9_2)">
+<g clip-path="url(#clip0_9_2)">
+<rect x="24" y="16" width="300" height="377" rx="12" fill="white"/>
+<text fill="#204769" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="16" font-weight="600" letter-spacing="0em"><tspan x="42" y="48.6">Legenda</tspan></text>
+<path d="M294.5 38.5L303.5 47.5M303.5 38.5L294.5 47.5" stroke="#6E7175" stroke-width="1.35" stroke-linecap="round"/>
+<rect x="24" y="70" width="300" height="1" fill="#E6EAEE"/>
+<g clip-path="url(#clip1_9_2)">
+<circle cx="49.5" cy="99" r="6.75" stroke="#CFCFCF" stroke-width="1.5"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="103.55">Non esistente</tspan></text>
+</g>
+<g clip-path="url(#clip2_9_2)">
+<circle cx="49.5" cy="132" r="7.5" fill="#B8B8B8"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="136.55">Manutenzione</tspan></text>
+</g>
+<g clip-path="url(#clip3_9_2)">
+<circle cx="49.5" cy="165" r="7.5" fill="#9DD7E8"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="169.55">Pulizia in corso</tspan></text>
+</g>
+<g clip-path="url(#clip4_9_2)">
+<circle cx="49.5" cy="198" r="7.5" fill="#00CF86"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="202.55">Confermata</tspan></text>
+</g>
+<g clip-path="url(#clip5_9_2)">
+<circle cx="49.5" cy="231" r="7.5" fill="#D10011"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="235.55">In opzione</tspan></text>
+</g>
+<g clip-path="url(#clip6_9_2)">
+<circle cx="49.5" cy="264" r="7.5" fill="#7B5EA7"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="268.55">No-show</tspan></text>
+</g>
+<g clip-path="url(#clip7_9_2)">
+<circle cx="49.5" cy="297" r="7.5" fill="#1A6B3C"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="301.55">Check-In completo</tspan></text>
+</g>
+<g clip-path="url(#clip8_9_2)">
+<circle cx="49.5" cy="330" r="7.5" fill="#2E9959"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="334.55">Check-In parziale</tspan></text>
+</g>
+<g clip-path="url(#clip9_9_2)">
+<circle cx="49.5" cy="363" r="7.5" fill="#CFCFCF"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="68" y="367.55">Check-Out</tspan></text>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_9_2" x="0" y="0" width="348" height="425" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="8"/>
+<feGaussianBlur stdDeviation="12"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.18 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_9_2"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_9_2" result="shape"/>
+</filter>
+<clipPath id="clip0_9_2">
+<rect x="24" y="16" width="300" height="377" rx="12" fill="white"/>
+</clipPath>
+<clipPath id="clip1_9_2">
+<rect width="114" height="20" fill="white" transform="translate(42 89)"/>
+</clipPath>
+<clipPath id="clip2_9_2">
+<rect width="118" height="20" fill="white" transform="translate(42 122)"/>
+</clipPath>
+<clipPath id="clip3_9_2">
+<rect width="121" height="20" fill="white" transform="translate(42 155)"/>
+</clipPath>
+<clipPath id="clip4_9_2">
+<rect width="106" height="20" fill="white" transform="translate(42 188)"/>
+</clipPath>
+<clipPath id="clip5_9_2">
+<rect width="92" height="20" fill="white" transform="translate(42 221)"/>
+</clipPath>
+<clipPath id="clip6_9_2">
+<rect width="85" height="20" fill="white" transform="translate(42 254)"/>
+</clipPath>
+<clipPath id="clip7_9_2">
+<rect width="152" height="20" fill="white" transform="translate(42 287)"/>
+</clipPath>
+<clipPath id="clip8_9_2">
+<rect width="141" height="20" fill="white" transform="translate(42 320)"/>
+</clipPath>
+<clipPath id="clip9_9_2">
+<rect width="98" height="20" fill="white" transform="translate(42 353)"/>
+</clipPath>
+</defs>
+</svg>

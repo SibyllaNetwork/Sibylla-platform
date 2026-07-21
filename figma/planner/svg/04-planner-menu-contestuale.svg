@@ -1,0 +1,38 @@
+<svg width="278" height="349" viewBox="0 0 278 349" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g filter="url(#filter0_d_9_36)">
+<rect x="24" y="16" width="230" height="301" rx="10" fill="white"/>
+<path d="M51.3334 34H44.6667C43.5621 34 42.6667 34.8954 42.6667 36V44C42.6667 45.1046 43.5621 46 44.6667 46H51.3334C52.4379 46 53.3334 45.1046 53.3334 44V36C53.3334 34.8954 52.4379 34 51.3334 34Z" stroke="#204769"/>
+<path d="M46 43.3333V36.6666H48.3333C48.7754 36.6666 49.1993 36.8422 49.5118 37.1548C49.8244 37.4673 50 37.8913 50 38.3333C50 38.7753 49.8244 39.1992 49.5118 39.5118C49.1993 39.8244 48.7754 40 48.3333 40H46" stroke="#204769"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="44.55">Sposta in Parcheggio</tspan></text>
+<path d="M48 70V82M50 72L48 70L46 72M50 80L48 82L46 80M42 76H54M44 78L42 76L44 74M52 78L54 76L52 74" stroke="#204769" stroke-width="0.933333" stroke-linecap="round"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="80.55">Sposta</tspan></text>
+<path d="M52.6667 106.667H43.3333C42.597 106.667 42 107.264 42 108V116.667C42 117.403 42.597 118 43.3333 118H52.6667C53.403 118 54 117.403 54 116.667V108C54 107.264 53.403 106.667 52.6667 106.667Z" stroke="#204769"/>
+<path d="M42 110H54M45.3333 105.333V108M50.6667 105.333V108" stroke="#204769" stroke-linecap="round"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="116.55">Date</tspan></text>
+<path d="M52 145.333H46.6666C45.9303 145.333 45.3333 145.93 45.3333 146.667V152C45.3333 152.736 45.9303 153.333 46.6666 153.333H52C52.7364 153.333 53.3333 152.736 53.3333 152V146.667C53.3333 145.93 52.7364 145.333 52 145.333Z" stroke="#204769"/>
+<path d="M50.6667 145.333V144C50.6667 143.646 50.5262 143.307 50.2762 143.057C50.0261 142.807 49.687 142.667 49.3334 142.667H44C43.6464 142.667 43.3073 142.807 43.0572 143.057C42.8072 143.307 42.6667 143.646 42.6667 144V149.333C42.6667 149.687 42.8072 150.026 43.0572 150.276C43.3073 150.526 43.6464 150.667 44 150.667H45.3334" stroke="#204769"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="152.55">Clona</tspan></text>
+<path d="M42.6667 189.333L45.3334 188.667L52.3334 181.667C52.4647 181.535 52.5688 181.379 52.6399 181.208C52.711 181.036 52.7476 180.852 52.7476 180.667C52.7476 180.481 52.711 180.297 52.6399 180.125C52.5688 179.954 52.4647 179.798 52.3334 179.667C52.202 179.535 52.0461 179.431 51.8746 179.36C51.703 179.289 51.5191 179.252 51.3334 179.252C50.9583 179.252 50.5986 179.401 50.3334 179.667L43.3334 186.667L42.6667 189.333Z" stroke="#204769" stroke-linejoin="round"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="188.55">Modifica</tspan></text>
+<path d="M41.3333 220C41.3333 220 43.6666 215.333 48 215.333C52.3333 215.333 54.6666 220 54.6666 220C54.6666 220 52.3333 224.667 48 224.667C43.6666 224.667 41.3333 220 41.3333 220Z" stroke="#204769"/>
+<path d="M48 222C49.1046 222 50 221.105 50 220C50 218.895 49.1046 218 48 218C46.8954 218 46 218.895 46 220C46 221.105 46.8954 222 48 222Z" stroke="#204769"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="224.55">Visualizza</tspan></text>
+<path d="M49.3334 250H52.6667V262H49.3334M49.3334 256H42.6667M45.3334 258.667L42.6667 256L45.3334 253.333" stroke="#204769" stroke-linecap="round" stroke-linejoin="round"/>
+<text fill="#4A4D53" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="260.55">Check-in</tspan></text>
+<rect x="24" y="274" width="230" height="1" fill="#E6EAEE"/>
+<path d="M51 290.333H45C44.4477 290.333 44 290.781 44 291.333V297.333C44 297.886 44.4477 298.333 45 298.333H51C51.5523 298.333 52 297.886 52 297.333V291.333C52 290.781 51.5523 290.333 51 290.333Z" stroke="#FF616E"/>
+<path d="M42.6667 289H53.3334M46 289V287.667H50V289M46.6667 292.333V296.333M49.3334 292.333V296.333" stroke="#FF616E" stroke-linecap="round"/>
+<text fill="#FF616E" style="white-space: pre" xml:space="preserve" font-family="Poppins" font-size="13" letter-spacing="0em"><tspan x="67" y="297.55">Annulla prenotazione</tspan></text>
+</g>
+<defs>
+<filter id="filter0_d_9_36" x="0" y="0" width="278" height="349" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="8"/>
+<feGaussianBlur stdDeviation="12"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.18 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_9_36"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_9_36" result="shape"/>
+</filter>
+</defs>
+</svg>
