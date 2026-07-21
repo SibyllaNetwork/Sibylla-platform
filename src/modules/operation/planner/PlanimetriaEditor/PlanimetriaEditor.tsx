@@ -11,10 +11,13 @@ import { InputField, SelectField, TextareaField, ToggleSwitch } from '../../../.
 import { PIANI_DATA } from '../planner.data';
 import { CAM_CLR } from '../planner.styles';
 import { useConfirmStore } from '../../../../store/useConfirmStore';
+import { toast } from '../../../../core/components/Toast/useToast';
 import {
   usePlanimetrieStore,
   ELEMENTO_META,
   ESPOSIZIONI,
+  KIND_STRUTTURA,
+  KIND_ARREDO,
   ElementoKind,
   PlanItem,
   Planimetria,
@@ -29,6 +32,14 @@ const MIN_ROWS = 4, MAX_ROWS = 24;
 const DEFAULT_SIZE: Record<ElementoKind, [number, number]> = {
   camera: [2, 2], corridoio: [4, 1], scala: [2, 2], ascensore: [2, 2],
   ingresso: [2, 1], bagno: [2, 2], area: [3, 2],
+  reception: [3, 1], desk: [2, 1], divano: [2, 1], poltrona: [1, 1], pianta: [1, 1],
+};
+
+// Colori di riempimento per la stampa (nessuno stato live: solo struttura/arredo)
+const PRINT_FILL: Record<Exclude<ElementoKind, 'camera'>, string> = {
+  corridoio: '#eef2f6', scala: '#e6edf3', ascensore: '#e6edf3', ingresso: '#e6edf3',
+  bagno: '#e6edf3', area: '#eef2f6',
+  reception: '#efe0c8', desk: '#ece3d4', divano: '#e7ead6', poltrona: '#e7ead6', pianta: '#e0efe0',
 };
 
 interface Props {
@@ -55,6 +66,8 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
   const piano = PIANI_DATA.find(p => p.id === pianoId);
   const getPlan  = usePlanimetrieStore(s => s.getPlan);
   const savePlan = usePlanimetrieStore(s => s.savePlan);
+  const removePlan = usePlanimetrieStore(s => s.removePlan);
+  const savedExists = usePlanimetrieStore(s => Boolean(s.byKey[`${struttura}::${pianoId}`]));
   const confirm  = useConfirmStore(s => s.confirm);
 
   const [draft, setDraft] = useState<Planimetria>(
@@ -273,6 +286,46 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
     setSaved(true);
   };
 
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Elimina planimetria',
+      message: `Vuoi eliminare la planimetria salvata di ${piano?.nome}? L'operazione non è reversibile.`,
+      confirmLabel: 'Elimina',
+      danger: true,
+    });
+    if (!ok) return;
+    removePlan(struttura, pianoId);
+    setDraft(d => ({ cols: d.cols, rows: d.rows, items: [] }));
+    setSelIds([]);
+    setSaved(false);
+    toast.success('Planimetria eliminata');
+  };
+
+  // Stampa: genera un SVG della planimetria (senza stato live) e apre la stampa
+  const printPlan = () => {
+    const C = 40;
+    const W = draft.cols * C, H = draft.rows * C;
+    const esc = (s: unknown) => String(s ?? '').replace(/[&<>]/g, c => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
+    const cells = draft.items.map(it => {
+      const x = it.x * C, y = it.y * C, w = it.w * C, h = it.h * C;
+      const isCam = it.kind === 'camera';
+      const fill = isCam ? '#ffffff' : (PRINT_FILL[it.kind as Exclude<ElementoKind, 'camera'>] ?? '#eef2f6');
+      const stroke = isCam ? '#204769' : '#8aa0b4';
+      const cx = x + w / 2, cy = y + h / 2;
+      const dash = isCam ? '' : ' stroke-dasharray="4 3"';
+      const txt = isCam
+        ? `<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-size="13" font-weight="600" fill="#204769">${esc(it.numero)}</text>`
+          + (it.tipologia ? `<text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="8.5" fill="#6E7175">${esc(it.tipologia)}</text>` : '')
+        : `<text x="${cx}" y="${cy + 3}" text-anchor="middle" font-size="9.5" fill="#43617c">${esc(it.label ?? ELEMENTO_META[it.kind as Exclude<ElementoKind, 'camera'>].label)}</text>`;
+      return `<rect x="${x + 1.5}" y="${y + 1.5}" width="${w - 3}" height="${h - 3}" rx="5" fill="${fill}" stroke="${stroke}" stroke-width="1.2"${dash}/>${txt}`;
+    }).join('');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#ffffff"/>${cells}</svg>`;
+    const win = window.open('', '_blank', 'width=1000,height=760');
+    if (!win) { toast.error('Consenti i popup del browser per stampare la planimetria'); return; }
+    win.document.write(`<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Planimetria — ${esc(piano?.nome)}</title><style>@page{margin:12mm}body{margin:0;font-family:Poppins,Arial,sans-serif;color:#204769}.wrap{padding:18px}h1{font-size:16px;margin:0 0 2px}p{font-size:12px;color:#6E7175;margin:0 0 14px}svg{max-width:100%;height:auto;border:1px solid #e6eaee;border-radius:8px}</style></head><body class="wrap"><h1>Planimetria — ${esc(piano?.nome)}</h1><p>${esc(struttura)}</p>${svg}<scr` + `ipt>window.onload=function(){setTimeout(function(){window.print()},200)}</scr` + `ipt></body></html>`);
+    win.document.close();
+  };
+
   if (!piano) {
     return (
       <div className="plan-editor">
@@ -290,6 +343,14 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
           <>
             {saved && !dirty && (
               <span className="plan-editor__saved"><i className="fa-solid fa-circle-check" /> Salvata</span>
+            )}
+            <button type="button" className="sib-btn sib-btn--secondary" disabled={draft.items.length === 0} onClick={printPlan}>
+              <i className="fa-solid fa-print" /> Stampa
+            </button>
+            {savedExists && (
+              <button type="button" className="sib-btn sib-btn--danger" onClick={handleDelete}>
+                <i className="fa-solid fa-trash" /> Elimina
+              </button>
             )}
             <button type="button" className="sib-btn sib-btn--primary" disabled={!dirty} onClick={handleSave}>
               <i className="fa-solid fa-floppy-disk" /> Salva planimetria
@@ -335,7 +396,19 @@ const PlanimetriaEditor: React.FC<Props> = ({ navigate = () => {}, struttura, pi
           <div className="plan-editor__pal-group">
             <div className="plan-editor__pal-title">Elementi struttura</div>
             <div className="plan-editor__chips">
-              {(Object.keys(ELEMENTO_META) as Array<keyof typeof ELEMENTO_META>).map(k => (
+              {KIND_STRUTTURA.map(k => (
+                <button key={k} type="button" className="plan-editor__chip plan-editor__chip--el" onClick={() => addItem(k)}>
+                  <i className={`fa-solid ${ELEMENTO_META[k].icon}`} />
+                  {ELEMENTO_META[k].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="plan-editor__pal-group">
+            <div className="plan-editor__pal-title">Arredo &amp; servizi</div>
+            <div className="plan-editor__chips">
+              {KIND_ARREDO.map(k => (
                 <button key={k} type="button" className="plan-editor__chip plan-editor__chip--el" onClick={() => addItem(k)}>
                   <i className={`fa-solid ${ELEMENTO_META[k].icon}`} />
                   {ELEMENTO_META[k].label}

@@ -14,12 +14,19 @@ import { persist } from 'zustand/middleware'
 
 export type ElementoKind =
   | 'camera'
+  // struttura
   | 'corridoio'
   | 'scala'
   | 'ascensore'
   | 'ingresso'
   | 'bagno'
   | 'area'
+  // arredo & servizi
+  | 'reception'
+  | 'desk'
+  | 'divano'
+  | 'poltrona'
+  | 'pianta'
 
 /** Metadati di ogni tipo di elemento non-camera (icona FA + etichetta). */
 export const ELEMENTO_META: Record<
@@ -32,7 +39,18 @@ export const ELEMENTO_META: Record<
   ingresso:   { label: 'Ingresso',   icon: 'fa-door-open' },
   bagno:      { label: 'Bagno comune', icon: 'fa-restroom' },
   area:       { label: 'Area',       icon: 'fa-vector-square' },
+  reception:  { label: 'Reception',  icon: 'fa-bell-concierge' },
+  desk:       { label: 'Desk',       icon: 'fa-table' },
+  divano:     { label: 'Divanetto',  icon: 'fa-couch' },
+  poltrona:   { label: 'Poltrona',   icon: 'fa-chair' },
+  pianta:     { label: 'Pianta',     icon: 'fa-seedling' },
 }
+
+/** Elementi di sola struttura vs arredo & servizi (per raggruppare la palette). */
+export const KIND_STRUTTURA: Array<Exclude<ElementoKind, 'camera'>> =
+  ['corridoio', 'scala', 'ascensore', 'ingresso', 'bagno', 'area']
+export const KIND_ARREDO: Array<Exclude<ElementoKind, 'camera'>> =
+  ['reception', 'desk', 'divano', 'poltrona', 'pianta']
 
 /** Esposizione / affaccio della camera. */
 export type Esposizione = 'strada' | 'giardino' | 'mare' | 'corte interna' | 'piazza' | 'montagna'

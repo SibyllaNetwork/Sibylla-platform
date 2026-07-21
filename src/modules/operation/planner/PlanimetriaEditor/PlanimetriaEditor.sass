@@ -223,8 +223,8 @@
     overflow: hidden
     text-overflow: ellipsis
 
-  // elementi struttura
-  &__item--corridoio, &__item--scala, &__item--ascensore, &__item--ingresso, &__item--bagno, &__item--area
+  // elementi struttura + arredo
+  &__item--corridoio, &__item--scala, &__item--ascensore, &__item--ingresso, &__item--bagno, &__item--area, &__item--reception, &__item--desk, &__item--divano, &__item--poltrona, &__item--pianta
     align-items: center
     justify-content: center
     flex-direction: row
@@ -236,6 +236,19 @@
     font-weight: 500
   &__item--corridoio
     background: repeating-linear-gradient(45deg, var(--color-primary-50), var(--color-primary-50) 6px, var(--color-surface) 6px, var(--color-surface) 12px)
+  // arredo & servizi: tinte piene (bordo continuo) per distinguerlo dalla struttura
+  &__item--reception
+    border-style: solid
+    background: #F3E7D2
+    color: #8A6A15
+  &__item--desk, &__item--divano, &__item--poltrona
+    border-style: solid
+    background: #EFE7D8
+    color: #7A6A45
+  &__item--pianta
+    border-style: solid
+    background: #E2EFE0
+    color: #2F7E50
 
   &__item-icon
     font-size: 13px
