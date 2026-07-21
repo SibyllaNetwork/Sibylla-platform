@@ -24,9 +24,13 @@ import {
   Sala,
 } from '../../../store/useSaleStore';
 import { useClientiStore } from '../../../store/useClientiStore';
+import { useSalePanelStore } from '../../../store/useSalePanelStore';
 import { PRENS } from '../planner/planner.data';
 import ClientiModal from './ClientiModal';
 import './SaleTavoli.sass';
+
+// Una card del pannello laterale (riordinabile + apribile/chiudibile)
+interface PanelCard { id: string; title: string; icon?: string; body: React.ReactNode }
 
 // Camere/soggiorni "in casa" (ospiti con check-in effettuato): sorgente per
 // l'addebito del conto alla camera. Derivate dai dati Planner, deduplicate.
@@ -379,6 +383,65 @@ const SaleTavoli: React.FC<Props> = () => {
   );
 };
 
+// ── Blocco di card riordinabili (drag & drop) + apribili/chiudibili ───────────
+const PanelCards: React.FC<{ storeKey: string; cards: PanelCard[] }> = ({ storeKey, cards }) => {
+  const order = useSalePanelStore(s => s.order[storeKey]);
+  const collapsed = useSalePanelStore(s => s.collapsed);
+  const setOrder = useSalePanelStore(s => s.setOrder);
+  const toggle = useSalePanelStore(s => s.toggle);
+  const dragId = useRef<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+
+  // ordine canonico: quello salvato (ripulito), poi eventuali card nuove in coda
+  const catalog = cards.map(c => c.id);
+  const known = (order ?? []).filter(id => catalog.includes(id));
+  const full = [...known, ...catalog.filter(id => !known.includes(id))];
+  const byId = new Map(cards.map(c => [c.id, c]));
+  const visible = full.filter(id => byId.has(id));
+
+  const reorder = (from: string, to: string) => {
+    if (!from || from === to) return;
+    const next = full.filter(id => id !== from);
+    const at = next.indexOf(to);
+    next.splice(at < 0 ? next.length : at, 0, from);
+    setOrder(storeKey, next);
+  };
+
+  return (
+    <div className="sale__cards">
+      {visible.map(id => {
+        const c = byId.get(id)!;
+        const isClosed = !!collapsed[`${storeKey}:${id}`];
+        return (
+          <div
+            key={id}
+            className={`sale__card${isClosed ? ' is-collapsed' : ''}${overId === id ? ' is-over' : ''}`}
+            onDragOver={e => { if (dragId.current) { e.preventDefault(); setOverId(id); } }}
+            onDragLeave={() => setOverId(o => (o === id ? null : o))}
+            onDrop={e => { e.preventDefault(); if (dragId.current) reorder(dragId.current, id); dragId.current = null; setOverId(null); }}
+          >
+            <div className="sale__card-head" onClick={() => toggle(storeKey, id)}>
+              <span
+                className="sale__card-grip" title="Trascina per riordinare"
+                draggable
+                onClick={e => e.stopPropagation()}
+                onDragStart={e => { dragId.current = id; e.dataTransfer.effectAllowed = 'move'; }}
+                onDragEnd={() => { dragId.current = null; setOverId(null); }}
+              >
+                <i className="fa-solid fa-grip-vertical" />
+              </span>
+              {c.icon && <i className={c.icon} />}
+              <span className="sale__card-title">{c.title}</span>
+              <i className={`fa-solid fa-chevron-${isClosed ? 'right' : 'down'} sale__card-chev`} />
+            </div>
+            {!isClosed && <div className="sale__card-body">{c.body}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 // ── Menu contestuale (tasto destro) su un tavolo ──────────────────────────────
 const TavMenu: React.FC<{
   sala: Sala;
@@ -512,65 +575,80 @@ const ComposePanel: React.FC<{
   updateElemento: (patch: Partial<SalaElement>) => void;
   del: (id: string) => void;
   setGrid: (cols: number, rows: number) => void;
-}> = ({ sala, selTavolo, selEl, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid }) => (
-  <>
-    <div className="sale__group">
-      <div className="sale__group-title">Aggiungi tavolo</div>
-      <SelectField name="new-forma" label="Forma" value={newForma} onChange={e => setNewForma(e.target.value as TavoloForma)}
-        options={FORME.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))} />
-      <div className="sale__cap-btns">
-        {CAPIENZE.map(c => (
-          <button key={c} type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => addTavolo(c)}>
-            <i className="fa-solid fa-plus" /> {c} cop.
+}> = ({ sala, selTavolo, selEl, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid }) => {
+  const cards: PanelCard[] = [
+    {
+      id: 'add-tavolo', title: 'Aggiungi tavolo', body: (
+        <>
+          <SelectField name="new-forma" label="Forma" value={newForma} onChange={e => setNewForma(e.target.value as TavoloForma)}
+            options={FORME.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))} />
+          <div className="sale__cap-btns">
+            {CAPIENZE.map(c => (
+              <button key={c} type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => addTavolo(c)}>
+                <i className="fa-solid fa-plus" /> {c} cop.
+              </button>
+            ))}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'elementi', title: 'Elementi sala', body: (
+        <div className="sale__el-btns">
+          {(Object.keys(SALA_EL_META) as SalaElementKind[]).map(k => (
+            <button key={k} type="button" className="sale__chip" onClick={() => addElemento(k)}>
+              <i className={`fa-solid ${SALA_EL_META[k].icon}`} /> {SALA_EL_META[k].label}
+            </button>
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: 'griglia', title: 'Griglia', body: (
+        <div className="sale__grid-ctrls">
+          <Stepper label="Colonne" value={sala.cols} min={8} max={30} onChange={c => setGrid(c, sala.rows)} />
+          <Stepper label="Righe" value={sala.rows} min={6} max={24} onChange={r => setGrid(sala.cols, r)} />
+        </div>
+      ),
+    },
+  ];
+  if (selTavolo) {
+    cards.push({
+      id: 'detail', title: 'Tavolo selezionato', icon: 'fa-solid fa-pen', body: (
+        <>
+          <InputField name="tav-num" label="Numero" value={selTavolo.numero} onChange={e => updateTavolo({ numero: e.target.value })} />
+          <Stepper label="Capienza" value={selTavolo.capienza} min={1} max={12} onChange={c => updateTavolo({ capienza: c })} />
+          <SelectField name="tav-forma" label="Forma" value={selTavolo.forma} onChange={e => updateTavolo({ forma: e.target.value as TavoloForma })}
+            options={FORME.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))} />
+          <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selTavolo.id)}>
+            <i className="fa-solid fa-trash" /> Rimuovi tavolo
           </button>
-        ))}
-      </div>
-    </div>
-
-    <div className="sale__group">
-      <div className="sale__group-title">Elementi sala</div>
-      <div className="sale__el-btns">
-        {(Object.keys(SALA_EL_META) as SalaElementKind[]).map(k => (
-          <button key={k} type="button" className="sale__chip" onClick={() => addElemento(k)}>
-            <i className={`fa-solid ${SALA_EL_META[k].icon}`} /> {SALA_EL_META[k].label}
+        </>
+      ),
+    });
+  } else if (selEl) {
+    cards.push({
+      id: 'detail', title: 'Elemento selezionato', icon: 'fa-solid fa-pen', body: (
+        <>
+          <div className="sale__el-sel"><i className={`fa-solid ${SALA_EL_META[selEl.kind].icon}`} /> {SALA_EL_META[selEl.kind].label}</div>
+          <InputField name="el-label" label="Etichetta" value={selEl.label ?? ''} onChange={e => updateElemento({ label: e.target.value })} />
+          <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selEl.id)}>
+            <i className="fa-solid fa-trash" /> Rimuovi elemento
           </button>
-        ))}
-      </div>
-    </div>
+        </>
+      ),
+    });
+  }
 
-    <div className="sale__group">
-      <div className="sale__group-title">Griglia</div>
-      <div className="sale__grid-ctrls">
-        <Stepper label="Colonne" value={sala.cols} min={8} max={30} onChange={c => setGrid(c, sala.rows)} />
-        <Stepper label="Righe" value={sala.rows} min={6} max={24} onChange={r => setGrid(sala.cols, r)} />
-      </div>
-    </div>
-
-    {selTavolo ? (
-      <div className="sale__group sale__group--detail">
-        <div className="sale__group-title">Tavolo selezionato</div>
-        <InputField name="tav-num" label="Numero" value={selTavolo.numero} onChange={e => updateTavolo({ numero: e.target.value })} />
-        <Stepper label="Capienza" value={selTavolo.capienza} min={1} max={12} onChange={c => updateTavolo({ capienza: c })} />
-        <SelectField name="tav-forma" label="Forma" value={selTavolo.forma} onChange={e => updateTavolo({ forma: e.target.value as TavoloForma })}
-          options={FORME.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))} />
-        <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selTavolo.id)}>
-          <i className="fa-solid fa-trash" /> Rimuovi tavolo
-        </button>
-      </div>
-    ) : selEl ? (
-      <div className="sale__group sale__group--detail">
-        <div className="sale__group-title">Elemento selezionato</div>
-        <div className="sale__el-sel"><i className={`fa-solid ${SALA_EL_META[selEl.kind].icon}`} /> {SALA_EL_META[selEl.kind].label}</div>
-        <InputField name="el-label" label="Etichetta" value={selEl.label ?? ''} onChange={e => updateElemento({ label: e.target.value })} />
-        <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selEl.id)}>
-          <i className="fa-solid fa-trash" /> Rimuovi elemento
-        </button>
-      </div>
-    ) : (
-      <div className="sale__hint">Seleziona un tavolo o un elemento per modificarlo/rimuoverlo, oppure trascina per posizionarlo.</div>
-    )}
-  </>
-);
+  return (
+    <>
+      <PanelCards storeKey="compose" cards={cards} />
+      {!selTavolo && !selEl && (
+        <div className="sale__hint">Seleziona un tavolo o un elemento per modificarlo/rimuoverlo, oppure trascina per posizionarlo.</div>
+      )}
+    </>
+  );
+};
 
 // ── Pannello SERVIZIO (capo sala) ─────────────────────────────────────────────
 const ServicePanel: React.FC<{
@@ -657,25 +735,9 @@ const ServicePanel: React.FC<{
 
   const capLabel = `${coperti} coperti${isGroup ? ` · ${members.length} tavoli uniti` : ''}${!isGroup && p.coperti && p.coperti > p.capienza ? ` (+${p.coperti - p.capienza} extra)` : ''}`;
 
-  return (
-    <>
-      <TavoloBig t={p} seats={coperti} caption={capLabel} />
-
-      {mins !== null && (p.stato === 'occupato' || p.stato === 'conto') && (
-        <div className="sale__timer"><i className="fa-regular fa-clock" /> Occupato da {mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}h ${mins % 60}m`}</div>
-      )}
-
-      {isGroup && (
-        <div className="sale__uni-bar">
-          <span><i className="fa-solid fa-link" /> Tavoli uniti: <b>{members.map(m => m.numero).join(' + ')}</b></span>
-          <button type="button" className="sale__uni-sep" onClick={doSepara}>
-            <i className="fa-solid fa-link-slash" /> Separa
-          </button>
-        </div>
-      )}
-
-      <div className="sale__group">
-        <div className="sale__group-title">Stato</div>
+  const cards: PanelCard[] = [
+    {
+      id: 'stato', title: 'Stato', body: (
         <div className="sale__stato-btns">
           {STATI.map(s => (
             <button key={s} type="button"
@@ -685,18 +747,20 @@ const ServicePanel: React.FC<{
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="sale__group">
-        <div className="sale__group-title">Cameriere</div>
+      ),
+    },
+    {
+      id: 'cameriere', title: 'Cameriere', body: (
         <SelectField name="tav-cam" value={p.cameriere ?? '—'}
           onChange={e => upP({ cameriere: e.target.value === '—' ? undefined : e.target.value })}
           options={CAMERIERI.map(c => ({ value: c, label: c === '—' ? 'Non assegnato' : c }))} />
-      </div>
-
-      {showResa && (
-        <div className="sale__group">
-          <div className="sale__group-title">{p.stato === 'riservato' ? 'Prenotazione' : 'Servizio al tavolo'}</div>
+      ),
+    },
+  ];
+  if (showResa) {
+    cards.push({
+      id: 'prenotazione', title: p.stato === 'riservato' ? 'Prenotazione' : 'Servizio al tavolo', body: (
+        <>
           <SelectField name="tav-cli" label="Cliente abituale" value={p.clienteId ?? ''}
             onChange={e => linkCliente(e.target.value)}
             options={[{ value: '', label: '— nuovo / occasionale —' }, ...clienti.map(c => ({ value: c.id, label: c.nome }))]} />
@@ -715,12 +779,12 @@ const ServicePanel: React.FC<{
           <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm sale__savecli" onClick={salvaCliente}>
             <i className="fa-solid fa-user-plus" /> {p.clienteId ? 'Aggiorna anagrafica' : 'Salva in anagrafica'}
           </button>
-        </div>
-      )}
-
-      {showResa && (
-        <div className="sale__group">
-          <div className="sale__group-title"><i className="fa-solid fa-bed" /> Addebito camera</div>
+        </>
+      ),
+    });
+    cards.push({
+      id: 'camera', title: 'Addebito camera', icon: 'fa-solid fa-bed', body: (
+        <>
           <SelectField name="tav-camera" label="Collega camera / soggiorno" value={p.camera ?? ''}
             onChange={e => linkCamera(e.target.value)}
             options={[{ value: '', label: '— pagamento diretto —' }, ...CAMERE_IN_CASA.map(c => ({ value: c.numero, label: `Camera ${c.numero} · ${c.ospite}` }))]} />
@@ -731,39 +795,59 @@ const ServicePanel: React.FC<{
           ) : (
             <div className="sale__note-inline"><i className="fa-solid fa-circle-info" /> Nessuna camera collegata: pagamento diretto al tavolo.</div>
           )}
+        </>
+      ),
+    });
+  }
+  cards.push({
+    id: 'note', title: 'Note & allergie', icon: 'fa-solid fa-triangle-exclamation sale__aller-ico', body: (
+      <TextareaField name="tav-note" value={p.note ?? ''} onChange={e => upP({ note: e.target.value })}
+        placeholder="Allergie, intolleranze, richieste particolari…" rows={3} />
+    ),
+  });
+  cards.push({
+    id: 'unisci', title: 'Unisci tavoli', icon: 'fa-solid fa-object-group', body: (
+      unibili.length === 0 ? (
+        <div className="sale__hint sale__hint--sm">Nessun altro tavolo disponibile per l'unione.</div>
+      ) : (
+        <>
+          <div className="sale__uni-list">
+            {unibili.map(x => (
+              <label key={x.id} className={`sale__uni-item${joinSel.includes(x.id) ? ' is-on' : ''}`}>
+                <input type="checkbox" checked={joinSel.includes(x.id)} onChange={() => toggleJoin(x.id)} />
+                <span className="sale__uni-num">{x.numero}</span>
+                <span className="sale__uni-cap">{x.capienza} cop.</span>
+                <span className="sale__uni-dot" style={{ background: TAVOLO_STATO_META[x.stato].color }} title={TAVOLO_STATO_META[x.stato].label} />
+                {x.gruppo && <i className="fa-solid fa-link sale__uni-flag" title="Già in un gruppo" />}
+              </label>
+            ))}
+          </div>
+          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" disabled={!joinSel.length} onClick={doUnisci}>
+            <i className="fa-solid fa-object-group" /> Unisci con selezionati{joinSel.length ? ` (${joinSel.length})` : ''}
+          </button>
+        </>
+      )
+    ),
+  });
+
+  return (
+    <>
+      <TavoloBig t={p} seats={coperti} caption={capLabel} />
+
+      {mins !== null && (p.stato === 'occupato' || p.stato === 'conto') && (
+        <div className="sale__timer"><i className="fa-regular fa-clock" /> Occupato da {mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}h ${mins % 60}m`}</div>
+      )}
+
+      {isGroup && (
+        <div className="sale__uni-bar">
+          <span><i className="fa-solid fa-link" /> Tavoli uniti: <b>{members.map(m => m.numero).join(' + ')}</b></span>
+          <button type="button" className="sale__uni-sep" onClick={doSepara}>
+            <i className="fa-solid fa-link-slash" /> Separa
+          </button>
         </div>
       )}
 
-      <div className="sale__group">
-        <div className="sale__group-title"><i className="fa-solid fa-triangle-exclamation sale__aller-ico" /> Note &amp; allergie</div>
-        <TextareaField name="tav-note" value={p.note ?? ''} onChange={e => upP({ note: e.target.value })}
-          placeholder="Allergie, intolleranze, richieste particolari…" rows={3} />
-      </div>
-
-      {/* ── Unione tavoli ── */}
-      <div className="sale__group">
-        <div className="sale__group-title"><i className="fa-solid fa-object-group" /> Unisci tavoli</div>
-        {unibili.length === 0 ? (
-          <div className="sale__hint sale__hint--sm">Nessun altro tavolo disponibile per l'unione.</div>
-        ) : (
-          <>
-            <div className="sale__uni-list">
-              {unibili.map(x => (
-                <label key={x.id} className={`sale__uni-item${joinSel.includes(x.id) ? ' is-on' : ''}`}>
-                  <input type="checkbox" checked={joinSel.includes(x.id)} onChange={() => toggleJoin(x.id)} />
-                  <span className="sale__uni-num">{x.numero}</span>
-                  <span className="sale__uni-cap">{x.capienza} cop.</span>
-                  <span className="sale__uni-dot" style={{ background: TAVOLO_STATO_META[x.stato].color }} title={TAVOLO_STATO_META[x.stato].label} />
-                  {x.gruppo && <i className="fa-solid fa-link sale__uni-flag" title="Già in un gruppo" />}
-                </label>
-              ))}
-            </div>
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" disabled={!joinSel.length} onClick={doUnisci}>
-              <i className="fa-solid fa-object-group" /> Unisci con selezionati{joinSel.length ? ` (${joinSel.length})` : ''}
-            </button>
-          </>
-        )}
-      </div>
+      <PanelCards storeKey="service" cards={cards} />
 
       {p.stato !== 'libero' && (
         <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm sale__free" onClick={() => setStato('libero')}>

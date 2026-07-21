@@ -304,6 +304,59 @@
   &__aller-ico
     color: var(--color-alert)
 
+  // ── card riordinabili / apribili del pannello laterale ──
+  &__cards
+    display: flex
+    flex-direction: column
+    gap: 14px
+  &__card
+    background: var(--color-surface)
+    border: 1px solid var(--color-primary-100)
+    border-radius: 10px
+    overflow: hidden
+    &.is-over
+      box-shadow: inset 0 3px 0 var(--color-link)
+      border-color: var(--color-primary-200)
+  &__card-head
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 10px 12px
+    cursor: pointer
+    user-select: none
+    color: var(--color-primary)
+    i
+      font-size: 12px
+    &:hover
+      background: var(--color-primary-50)
+  &__card.is-collapsed &__card-head:hover
+    border-radius: 10px
+  &__card-grip
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    color: var(--color-primary-300)
+    cursor: grab
+    padding: 2px 1px
+    &:active
+      cursor: grabbing
+    &:hover
+      color: var(--color-primary-500)
+    i
+      font-size: 12px
+  &__card-title
+    flex: 1
+    font: 600 12px Poppins, sans-serif
+    color: var(--color-primary)
+  &__card-chev
+    color: var(--color-primary-400)
+    font-size: 11px !important
+  &__card-body
+    padding: 0 14px 12px
+    display: flex
+    flex-direction: column
+    gap: 10px
+
   &__cap-btns, &__el-btns
     display: flex
     flex-wrap: wrap
