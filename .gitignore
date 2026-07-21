@@ -34,3 +34,4 @@ yarn-error.log*
 
 # Claude Code local config/worktrees
 .claude/
+figma.zip
