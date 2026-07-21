@@ -196,8 +196,8 @@ const SaleTavoli: React.FC<Props> = () => {
     return [...sala.tavoli, ...sala.elementi]
       .filter(i => selIds.includes(i.id))
       .map(i => 'forma' in i
-        ? { type: 'tavolo', x: i.x, y: i.y, w: i.w, h: i.h, forma: i.forma, capienza: i.capienza }
-        : { type: 'elemento', x: i.x, y: i.y, w: i.w, h: i.h, kind: i.kind, label: i.label });
+        ? { type: 'tavolo', x: i.x, y: i.y, w: i.w, h: i.h, rot: i.rot, forma: i.forma, capienza: i.capienza }
+        : { type: 'elemento', x: i.x, y: i.y, w: i.w, h: i.h, rot: i.rot, kind: i.kind, label: i.label });
   }, [sala, selIds]);
   const plural = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`;
   const copy = useCallback(() => {
@@ -465,11 +465,14 @@ const SaleTavoli: React.FC<Props> = () => {
               <div className="sale__marquee" style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />
             )}
             {/* elementi sala (bar, cucina…) */}
-            {sala.elementi.map(el => (
+            {sala.elementi.map(el => {
+              const rot = el.rot ?? 0, sw = rot % 180 === 90;
+              const lw = sw ? el.h : el.w, lh = sw ? el.w : el.h;
+              return (
               <div
                 key={el.id}
                 className={`sale__el sale__el--${el.kind}${selIds.includes(el.id) ? ' is-sel' : ''}${el.refill ? ' is-refill' : ''}`}
-                style={{ '--x': el.x, '--y': el.y, '--w': el.w, '--h': el.h } as React.CSSProperties}
+                style={{ '--x': el.x, '--y': el.y, '--fw': el.w, '--fh': el.h, '--lw': lw, '--lh': lh, '--irot': `${rot}deg` } as React.CSSProperties}
                 onPointerDown={e => startDrag(e, el.id)}
                 onContextMenu={e => openMenu(e, el.id)}
               >
@@ -485,7 +488,7 @@ const SaleTavoli: React.FC<Props> = () => {
                   </>
                 ) : el.kind === 'bar' ? (
                   <>
-                    <BarStools w={el.w} h={el.h} />
+                    <BarStools w={lw} h={lh} />
                     <i className={`fa-solid ${SALA_EL_META[el.kind].icon}`} />
                     <span>{el.label}</span>
                   </>
@@ -496,29 +499,34 @@ const SaleTavoli: React.FC<Props> = () => {
                   </>
                 )}
               </div>
-            ))}
+              );
+            })}
             {/* tavoli */}
-            {sala.tavoli.map(t => (
+            {sala.tavoli.map(t => {
+              const rot = t.rot ?? 0, sw = rot % 180 === 90;
+              const lw = sw ? t.h : t.w, lh = sw ? t.w : t.h;
+              return (
               <div
                 key={t.id}
                 className={`sale__tav sale__tav--${t.forma} is-${t.stato}${selIds.includes(t.id) ? ' is-sel' : ''}${t.gruppo ? ' is-uni' : ''}`}
-                style={{ '--x': t.x, '--y': t.y, '--w': t.w, '--h': t.h } as React.CSSProperties}
+                style={{ '--x': t.x, '--y': t.y, '--fw': t.w, '--fh': t.h, '--lw': lw, '--lh': lh, '--irot': `${rot}deg` } as React.CSSProperties}
                 onPointerDown={e => startDrag(e, t.id)}
                 onContextMenu={e => openMenu(e, t.id)}
                 title={`Tavolo ${t.numero} · ${t.capienza} coperti${t.gruppo ? ' · unito' : ''}`}
               >
-                {canvasSeats(t).map((s, i) => (
+                {canvasSeats({ ...t, w: lw, h: lh }).map((s, i) => (
                   <span key={i} className="sale__tav-seat"
                     style={{ '--sx': `${s.x}px`, '--sy': `${s.y}px`, '--rot': `${s.rot}deg` } as React.CSSProperties} />
                 ))}
                 <span className="sale__tav-surface" aria-hidden="true" />
-                <span className="sale__tav-num">{t.numero}</span>
-                <span className="sale__tav-cap"><i className="fa-solid fa-chair" /> {t.capienza}</span>
+                <span className="sale__tav-num" style={{ '--irot': `${-rot}deg` } as React.CSSProperties}>{t.numero}</span>
+                <span className="sale__tav-cap" style={{ '--irot': `${-rot}deg` } as React.CSSProperties}><i className="fa-solid fa-chair" /> {t.capienza}</span>
                 {t.nominativo && <span className="sale__tav-nom">{t.nominativo}</span>}
                 {t.camera && <span className="sale__tav-room" title={`Addebito camera ${t.camera}`}><i className="fa-solid fa-bed" /> {t.camera}</span>}
                 {t.gruppo && <span className="sale__tav-link" title="Tavolo unito"><i className="fa-solid fa-link" /></span>}
               </div>
-            ))}
+              );
+            })}
             {sala.tavoli.length === 0 && sala.elementi.length === 0 && (
               <div className="sale__empty">Aggiungi tavoli ed elementi dalla palette</div>
             )}

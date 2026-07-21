@@ -125,11 +125,12 @@
   // elementi sala
   &__el
     position: absolute
-    left: calc(var(--x) * var(--cell))
-    top: calc(var(--y) * var(--cell))
-    width: calc(var(--w) * var(--cell) - 4px)
-    height: calc(var(--h) * var(--cell) - 4px)
-    margin: 2px
+    left: calc((var(--x) + (var(--fw) - var(--lw)) / 2) * var(--cell) + 2px)
+    top: calc((var(--y) + (var(--fh) - var(--lh)) / 2) * var(--cell) + 2px)
+    width: calc(var(--lw) * var(--cell) - 4px)
+    height: calc(var(--lh) * var(--cell) - 4px)
+    transform: rotate(var(--irot, 0deg))
+    transform-origin: center center
     box-sizing: border-box
     display: flex
     flex-direction: column
@@ -259,11 +260,12 @@
   // tavoli
   &__tav
     position: absolute
-    left: calc(var(--x) * var(--cell))
-    top: calc(var(--y) * var(--cell))
-    width: calc(var(--w) * var(--cell) - 8px)
-    height: calc(var(--h) * var(--cell) - 8px)
-    margin: 4px
+    left: calc((var(--x) + (var(--fw) - var(--lw)) / 2) * var(--cell) + 4px)
+    top: calc((var(--y) + (var(--fh) - var(--lh)) / 2) * var(--cell) + 4px)
+    width: calc(var(--lw) * var(--cell) - 8px)
+    height: calc(var(--lh) * var(--cell) - 8px)
+    transform: rotate(var(--irot, 0deg))
+    transform-origin: center center
     box-sizing: border-box
     display: flex
     flex-direction: column
@@ -309,9 +311,11 @@
     font: 600 15px Poppins, sans-serif
     color: var(--color-primary)
     line-height: 1
+    transform: rotate(var(--irot, 0deg))
   &__tav-cap
     font-size: 10px
     color: var(--color-text-inactive)
+    transform: rotate(var(--irot, 0deg))
     i
       font-size: 9px
   &__tav-nom

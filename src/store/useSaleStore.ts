@@ -68,6 +68,8 @@ export interface Tavolo {
   camera?: string
   /** Nominativo ospite della camera collegata (per il riepilogo addebito). */
   cameraOspite?: string
+  /** Rotazione oraria in gradi (0/90/180/270). */
+  rot?: number
 }
 
 export interface SalaElement {
@@ -79,6 +81,8 @@ export interface SalaElement {
   esauriti?: string[]
   /** (Buffet) refill richiesto in cucina. */
   refill?: boolean
+  /** Rotazione oraria in gradi (0/90/180/270). */
+  rot?: number
 }
 
 export interface Sala {
@@ -94,6 +98,7 @@ export interface Sala {
 export interface ClipItem {
   type: 'tavolo' | 'elemento'
   x: number; y: number; w: number; h: number
+  rot?: number
   forma?: TavoloForma; capienza?: number   // tavolo
   kind?: SalaElementKind; label?: string    // elemento
 }
@@ -290,10 +295,10 @@ export const useSaleStore = create<SaleState>()(
           const y = Math.max(0, Math.min(sa.rows - it.h, it.y + offset))
           if (it.type === 'tavolo') {
             const id = uid('t'); ids.push(id); maxNum += 1
-            newTav.push({ id, numero: String(maxNum), capienza: it.capienza ?? 2, forma: it.forma ?? 'quadrato', stato: 'libero', x, y, w: it.w, h: it.h })
+            newTav.push({ id, numero: String(maxNum), capienza: it.capienza ?? 2, forma: it.forma ?? 'quadrato', stato: 'libero', x, y, w: it.w, h: it.h, rot: it.rot })
           } else {
             const id = uid('e'); ids.push(id)
-            newEl.push({ id, kind: it.kind ?? 'area', label: it.label, x, y, w: it.w, h: it.h })
+            newEl.push({ id, kind: it.kind ?? 'area', label: it.label, x, y, w: it.w, h: it.h, rot: it.rot })
           }
         })
         set(st => ({ sale: st.sale.map(s => s.id !== salaId ? s : { ...s, tavoli: [...s.tavoli, ...newTav], elementi: [...s.elementi, ...newEl] }) }))
@@ -318,10 +323,11 @@ export const useSaleStore = create<SaleState>()(
         set(st => ({
           sale: st.sale.map(sa => {
             if (sa.id !== salaId) return sa
-            const rot = <T extends { id: string; x: number; y: number; w: number; h: number }>(it: T): T => {
+            // rotazione oraria +90°: l'ingombro (footprint) scambia w↔h, l'angolo accumula
+            const rot = <T extends { id: string; x: number; y: number; w: number; h: number; rot?: number }>(it: T): T => {
               if (it.id !== id) return it
               const nw = Math.min(sa.cols, it.h), nh = Math.min(sa.rows, it.w)
-              return { ...it, w: nw, h: nh, x: Math.min(it.x, sa.cols - nw), y: Math.min(it.y, sa.rows - nh) }
+              return { ...it, w: nw, h: nh, x: Math.min(it.x, sa.cols - nw), y: Math.min(it.y, sa.rows - nh), rot: ((it.rot ?? 0) + 90) % 360 }
             }
             return { ...sa, tavoli: sa.tavoli.map(rot), elementi: sa.elementi.map(rot) }
           }),
