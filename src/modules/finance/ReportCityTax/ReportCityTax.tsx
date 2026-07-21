@@ -148,7 +148,7 @@ const ReportCityTax: React.FC<Props> = () => {
             {righe.map(r => (
               <tr key={r.struttura.id}>
                 <td>
-                  <span className="rct__struct"><span className="rct__sigla">{r.struttura.sigla}</span> {r.struttura.nome}</span>
+                  <span className="rct__struct">{r.struttura.nome}</span>
                 </td>
                 <td className="rct__num rct__muted">{fmtNum(r.dayUse)}</td>
                 <td className="rct__num rct__muted">{fmtNum(r.residenti)}</td>

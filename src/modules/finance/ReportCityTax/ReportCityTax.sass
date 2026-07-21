@@ -80,29 +80,18 @@
   &__num
     text-align: right
     white-space: nowrap
+  // l'intestazione delle colonne numeriche va allineata a destra come i valori
+  // (specificità maggiore di .sib-table th, che forza l'allineamento a sinistra)
+  &__table thead th.rct__num
+    text-align: right
   &__muted
     color: var(--color-text-inactive)
   &__imp-col
     background: var(--color-primary-50)
 
   &__struct
-    display: inline-flex
-    align-items: center
-    gap: 8px
     font-weight: 500
     color: var(--color-primary)
-  &__sigla
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    min-width: 30px
-    height: 20px
-    padding: 0 6px
-    border-radius: 6px
-    background: var(--color-primary-50)
-    border: 1px solid var(--color-primary-100)
-    color: var(--color-primary-600)
-    font: 700 11px Poppins, sans-serif
 
   &__note
     color: var(--color-text-inactive)
