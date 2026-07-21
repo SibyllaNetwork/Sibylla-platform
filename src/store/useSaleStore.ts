@@ -22,15 +22,17 @@ export const TAVOLO_STATO_META: Record<TavoloStato, { label: string; color: stri
 // Camerieri assegnabili (demo)
 export const CAMERIERI = ['—', 'Marco', 'Giulia', 'Luca', 'Sara', 'Paolo']
 
-export type SalaElementKind = 'bar' | 'cucina' | 'ingresso' | 'bagno' | 'pianta' | 'area'
+export type SalaElementKind = 'bar' | 'cucina' | 'ingresso' | 'bagno' | 'pianta' | 'area' | 'buffet' | 'carrello'
 
 export const SALA_EL_META: Record<SalaElementKind, { label: string; icon: string }> = {
-  bar:      { label: 'Bancone bar', icon: 'fa-martini-glass' },
-  cucina:   { label: 'Cucina',      icon: 'fa-kitchen-set' },
-  ingresso: { label: 'Ingresso',    icon: 'fa-door-open' },
-  bagno:    { label: 'Bagni',       icon: 'fa-restroom' },
-  pianta:   { label: 'Pianta',      icon: 'fa-seedling' },
-  area:     { label: 'Area',        icon: 'fa-vector-square' },
+  bar:      { label: 'Bancone bar',  icon: 'fa-martini-glass' },
+  cucina:   { label: 'Cucina',       icon: 'fa-kitchen-set' },
+  ingresso: { label: 'Ingresso',     icon: 'fa-door-open' },
+  bagno:    { label: 'Bagni',        icon: 'fa-restroom' },
+  pianta:   { label: 'Pianta',       icon: 'fa-seedling' },
+  area:     { label: 'Area',         icon: 'fa-vector-square' },
+  buffet:   { label: 'Tavolo buffet', icon: 'fa-utensils' },
+  carrello: { label: 'Carrello dolci', icon: 'fa-cart-flatbed' },
 }
 
 export interface Tavolo {
@@ -73,6 +75,10 @@ export interface SalaElement {
   kind: SalaElementKind
   label?: string
   x: number; y: number; w: number; h: number
+  /** (Buffet) icone delle pietanze segnalate come esaurite. */
+  esauriti?: string[]
+  /** (Buffet) refill richiesto in cucina. */
+  refill?: boolean
 }
 
 export interface Sala {
@@ -82,6 +88,14 @@ export interface Sala {
   rows: number
   tavoli: Tavolo[]
   elementi: SalaElement[]
+}
+
+// Snapshot di un item negli appunti (copia/taglia/incolla)
+export interface ClipItem {
+  type: 'tavolo' | 'elemento'
+  x: number; y: number; w: number; h: number
+  forma?: TavoloForma; capienza?: number   // tavolo
+  kind?: SalaElementKind; label?: string    // elemento
 }
 
 // Ingombro (in celle) di un tavolo in base a capienza e forma
@@ -135,7 +149,13 @@ interface SaleState {
   removeItem: (salaId: string, itemId: string) => void
   /** Elimina più item (tavoli/elementi) in un colpo solo. */
   removeItems: (salaId: string, ids: string[]) => void
+  /** Incolla gli item degli appunti nella sala (offset in celle); ritorna i nuovi id. */
+  pasteItems: (salaId: string, items: ClipItem[], offset: number) => string[]
   setGrid: (salaId: string, cols: number, rows: number) => void
+  /** Ridimensiona un item (tavolo/elemento): w,h in celle, clamp ai bordi. */
+  resizeItem: (salaId: string, id: string, w: number, h: number) => void
+  /** Ruota di 90° un item scambiando larghezza e altezza. */
+  rotateItem: (salaId: string, id: string) => void
   addSala: (nome: string) => string
   renameSala: (salaId: string, nome: string) => void
   removeSala: (salaId: string) => void
@@ -184,6 +204,7 @@ export const useSaleStore = create<SaleState>()(
         const s = get().sale.find(x => x.id === salaId); if (!s) return
         const size: Record<SalaElementKind, [number, number]> = {
           bar: [2, 4], cucina: [3, 2], ingresso: [2, 1], bagno: [2, 2], pianta: [1, 1], area: [3, 2],
+          buffet: [4, 2], carrello: [2, 1],
         }
         const [w, h] = size[kind]
         const [x, y] = findSpot(s, w, h)
@@ -257,8 +278,54 @@ export const useSaleStore = create<SaleState>()(
             elementi: sa.elementi.filter(el => !ids.includes(el.id)),
           }),
         })),
+      pasteItems: (salaId, items, offset) => {
+        const sa = get().sale.find(s => s.id === salaId)
+        if (!sa || !items.length) return []
+        const ids: string[] = []
+        const newTav: Tavolo[] = []
+        const newEl: SalaElement[] = []
+        let maxNum = sa.tavoli.reduce((m, tv) => Math.max(m, parseInt(tv.numero, 10) || 0), 0)
+        items.forEach(it => {
+          const x = Math.max(0, Math.min(sa.cols - it.w, it.x + offset))
+          const y = Math.max(0, Math.min(sa.rows - it.h, it.y + offset))
+          if (it.type === 'tavolo') {
+            const id = uid('t'); ids.push(id); maxNum += 1
+            newTav.push({ id, numero: String(maxNum), capienza: it.capienza ?? 2, forma: it.forma ?? 'quadrato', stato: 'libero', x, y, w: it.w, h: it.h })
+          } else {
+            const id = uid('e'); ids.push(id)
+            newEl.push({ id, kind: it.kind ?? 'area', label: it.label, x, y, w: it.w, h: it.h })
+          }
+        })
+        set(st => ({ sale: st.sale.map(s => s.id !== salaId ? s : { ...s, tavoli: [...s.tavoli, ...newTav], elementi: [...s.elementi, ...newEl] }) }))
+        return ids
+      },
       setGrid: (salaId, cols, rows) =>
         set(st => ({ sale: st.sale.map(sa => sa.id === salaId ? { ...sa, cols, rows } : sa) })),
+      resizeItem: (salaId, id, w, h) =>
+        set(st => ({
+          sale: st.sale.map(sa => {
+            if (sa.id !== salaId) return sa
+            const fit = <T extends { id: string; x: number; y: number; w: number; h: number }>(it: T): T => {
+              if (it.id !== id) return it
+              const nw = Math.max(1, Math.min(sa.cols, Math.round(w)))
+              const nh = Math.max(1, Math.min(sa.rows, Math.round(h)))
+              return { ...it, w: nw, h: nh, x: Math.min(it.x, sa.cols - nw), y: Math.min(it.y, sa.rows - nh) }
+            }
+            return { ...sa, tavoli: sa.tavoli.map(fit), elementi: sa.elementi.map(fit) }
+          }),
+        })),
+      rotateItem: (salaId, id) =>
+        set(st => ({
+          sale: st.sale.map(sa => {
+            if (sa.id !== salaId) return sa
+            const rot = <T extends { id: string; x: number; y: number; w: number; h: number }>(it: T): T => {
+              if (it.id !== id) return it
+              const nw = Math.min(sa.cols, it.h), nh = Math.min(sa.rows, it.w)
+              return { ...it, w: nw, h: nh, x: Math.min(it.x, sa.cols - nw), y: Math.min(it.y, sa.rows - nh) }
+            }
+            return { ...sa, tavoli: sa.tavoli.map(rot), elementi: sa.elementi.map(rot) }
+          }),
+        })),
       addSala: (nome) => {
         const id = uid('sala')
         set(st => ({ sale: [...st.sale, { id, nome, cols: 16, rows: 10, tavoli: [], elementi: [] }] }))

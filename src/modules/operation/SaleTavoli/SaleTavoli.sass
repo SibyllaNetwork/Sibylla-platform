@@ -1,4 +1,10 @@
 // ─── Sale e tavoli ────────────────────────────────────────────────────────────
+@keyframes sale-refill-pulse
+  0%, 100%
+    transform: scale(1)
+  50%
+    transform: scale(1.12)
+
 .sale
   display: flex
   flex-direction: column
@@ -156,6 +162,99 @@
       background: #E2EFE0
       border-style: solid
       color: #2F7E50
+    &--buffet
+      background: #fbf3e6
+      border-style: solid
+      border-color: #d8b98a
+      color: #7A6A45
+      gap: 3px
+    &--carrello
+      background: #fbeef2
+      border-style: solid
+      border-color: #e3b3c6
+      color: #8a4a63
+      gap: 3px
+
+  // pietanze/cibo sugli elementi imbanditi (buffet / carrello dolci)
+  &__el-food
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    justify-content: center
+    gap: 3px
+    max-width: 100%
+  &__el-dish
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 17px
+    height: 17px
+    border-radius: 50%
+    background: #fff
+    box-shadow: 0 1px 2px rgba(32,71,105,.15)
+    i
+      font-size: 9px
+    &:nth-child(6n+1) i
+      color: #E2703A
+    &:nth-child(6n+2) i
+      color: #4a8fb8
+    &:nth-child(6n+3) i
+      color: #d8a629
+    &:nth-child(6n+4) i
+      color: #cc4d57
+    &:nth-child(6n+5) i
+      color: #5a9e5a
+    &:nth-child(6n) i
+      color: #a86bbf
+  &__el-label
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 10px
+    font-weight: 600
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+    max-width: 100%
+    i
+      font-size: 9px
+  // pietanza esaurita sulla planimetria
+  &__el-dish.is-out
+    opacity: .4
+    background: #f0f0f0
+    i
+      color: #9aa4ad !important
+  // badge "refill richiesto" sull'elemento buffet
+  &__el.is-refill
+    box-shadow: 0 0 0 2px #cc4d57, 0 3px 8px rgba(204,77,87,.25)
+  &__el-refill
+    position: absolute
+    top: -9px
+    right: -9px
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    background: #cc4d57
+    color: #fff
+    border-radius: 10px
+    padding: 1px 7px
+    font-size: 9px
+    font-weight: 700
+    box-shadow: 0 1px 3px rgba(204,77,87,.4)
+    animation: sale-refill-pulse 1.2s ease-in-out infinite
+    i
+      font-size: 8px
+
+  // sgabelli davanti al bancone bar
+  &__stool
+    position: absolute
+    width: 12px
+    height: 12px
+    border-radius: 50%
+    background: #ece3d4
+    border: 1.5px solid #b8a071
+    transform: translate(-50%, -50%)
+    pointer-events: none
 
   // tavoli
   &__tav
@@ -753,6 +852,131 @@
     padding: 0
     margin-top: 6px
     text-decoration: underline
+
+  &__kbd-hint
+    display: inline-block
+    margin-top: 8px
+    font-size: 11px
+    color: var(--color-text-inactive)
+    kbd
+      background: var(--color-primary-50)
+      border: 1px solid var(--color-primary-100)
+      border-radius: 4px
+      padding: 1px 5px
+      font-size: 10px
+
+  // copia / taglia (nella card di dettaglio singolo)
+  &__cc-btns
+    display: flex
+    gap: 8px
+  &__cc
+    flex: 1
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    border: 1px solid var(--color-primary-200)
+    background: var(--color-surface)
+    color: var(--color-primary)
+    border-radius: 8px
+    padding: 7px 8px
+    font: 500 12px Poppins, sans-serif
+    cursor: pointer
+    &:hover
+      background: var(--color-primary-50)
+
+  // barra "incolla" (appunti pieni)
+  &__paste-bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    background: var(--color-primary-50)
+    border: 1px solid var(--color-primary-200)
+    border-radius: 10px
+    padding: 8px 12px
+    font-size: 12px
+    color: var(--color-primary-600)
+    span i
+      margin-right: 6px
+  &__paste-btn
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    border: none
+    background: var(--color-primary)
+    color: #fff
+    border-radius: 8px
+    padding: 6px 12px
+    font: 600 12px Poppins, sans-serif
+    cursor: pointer
+    &:hover
+      filter: brightness(1.05)
+
+  // ridimensionamento (steppers larghezza/altezza)
+  &__dim-row
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 10px
+
+  // scorciatoia da tastiera nel menu contestuale
+  &__menu-kbd
+    margin-left: auto
+    font-size: 10px
+    color: var(--color-text-inactive)
+
+  // buffet: pietanze esaurite + refill
+  &__buffet
+    display: flex
+    flex-direction: column
+    gap: 8px
+    border: 1px solid var(--color-primary-100)
+    border-radius: 8px
+    padding: 10px
+  &__buffet-title
+    font-size: 11px
+    color: var(--color-text-inactive)
+  &__buffet-dishes
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+  &__buffet-dish
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    border: 1px solid var(--color-primary-200)
+    background: var(--color-surface)
+    color: var(--color-primary)
+    border-radius: 16px
+    padding: 5px 10px
+    font: 500 11.5px Poppins, sans-serif
+    cursor: pointer
+    i
+      font-size: 11px
+      color: var(--color-primary-500)
+    &:hover
+      background: var(--color-primary-50)
+    &.is-out
+      background: #fff0f1
+      border-color: #f0b8bd
+      color: #cc4d57
+      text-decoration: line-through
+      i
+        color: #cc4d57
+  &__buffet-req
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: #fff0f1
+    color: #cc4d57
+    border: 1px solid #f0b8bd
+    border-radius: 8px
+    padding: 6px 10px
+    font: 600 11.5px Poppins, sans-serif
+  &__buffet-btns
+    display: flex
+    gap: 8px
+    flex-wrap: wrap
 
   // ── modalità "sposta" (overlay sulla planimetria) ──
   &__canvas.is-moving

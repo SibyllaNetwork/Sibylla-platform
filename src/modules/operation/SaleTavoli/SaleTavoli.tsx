@@ -6,7 +6,7 @@
 //    ed elementi (bar, cucina, ingresso…).
 //  • Servizio — il capo sala gestisce: assegna/sposta/prenota tavoli, imposta lo
 //    stato e annota allergie/intolleranze.
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PageHead from '../../../core/components/PageHead';
 import { InputField, SelectField, TextareaField } from '../../../core/components/form';
 import { useConfirmStore } from '../../../store/useConfirmStore';
@@ -22,6 +22,7 @@ import {
   TavoloStato,
   Tavolo,
   Sala,
+  ClipItem,
 } from '../../../store/useSaleStore';
 import { useClientiStore } from '../../../store/useClientiStore';
 import { useSalePanelStore } from '../../../store/useSalePanelStore';
@@ -68,6 +69,17 @@ const canvasSeats = (t: Tavolo): { x: number; y: number; rot: number }[] => {
   return out;
 };
 
+// Icone "cibo" per gli elementi imbanditi (buffet / carrello dolci)
+const EL_FOOD: Partial<Record<SalaElementKind, string[]>> = {
+  buffet: ['fa-drumstick-bite', 'fa-fish', 'fa-cheese', 'fa-apple-whole', 'fa-bowl-food', 'fa-pizza-slice', 'fa-carrot', 'fa-shrimp'],
+  carrello: ['fa-cake-candles', 'fa-ice-cream', 'fa-cookie-bite', 'fa-mug-hot'],
+};
+const FOOD_LABEL: Record<string, string> = {
+  'fa-drumstick-bite': 'Carne', 'fa-fish': 'Pesce', 'fa-cheese': 'Formaggi', 'fa-apple-whole': 'Frutta',
+  'fa-bowl-food': 'Primi', 'fa-pizza-slice': 'Pizza', 'fa-carrot': 'Verdure', 'fa-shrimp': 'Crostacei',
+  'fa-cake-candles': 'Torte', 'fa-ice-cream': 'Gelato', 'fa-cookie-bite': 'Biscotti', 'fa-mug-hot': 'Caffetteria',
+};
+
 const FORME: TavoloForma[] = ['rotondo', 'quadrato', 'rettangolare'];
 const CAPIENZE = [2, 4, 6, 8];
 const STATI: TavoloStato[] = ['libero', 'occupato', 'riservato', 'conto', 'pulizia'];
@@ -86,6 +98,9 @@ const SaleTavoli: React.FC<Props> = () => {
   const setPositions = useSaleStore(s => s.setPositions);
   const removeItem = useSaleStore(s => s.removeItem);
   const removeItems = useSaleStore(s => s.removeItems);
+  const pasteItems = useSaleStore(s => s.pasteItems);
+  const resizeItem = useSaleStore(s => s.resizeItem);
+  const rotateItem = useSaleStore(s => s.rotateItem);
   const setGrid = useSaleStore(s => s.setGrid);
   const addSala = useSaleStore(s => s.addSala);
   const renameSala = useSaleStore(s => s.renameSala);
@@ -102,6 +117,7 @@ const SaleTavoli: React.FC<Props> = () => {
   const [showClienti, setShowClienti] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [moveMode, setMoveMode] = useState<string | null>(null);
+  const [clip, setClip] = useState<ClipItem[]>([]);
   // rettangolo di selezione (marquee) in px relativi al canvas
   const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
 
@@ -167,6 +183,53 @@ const SaleTavoli: React.FC<Props> = () => {
     window.addEventListener('pointerup', onUp);
     return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
   }, [sala, moveItem, setPositions]);
+
+  // ── Copia / taglia / incolla ──
+  const selectAll = useCallback(() => {
+    if (!sala) return;
+    setSelIds([...sala.tavoli.map(t => t.id), ...sala.elementi.map(e => e.id)]);
+  }, [sala]);
+  const rotateSel = () => { if (sala && selId) rotateItem(sala.id, selId); };
+  const resizeSel = (w: number, h: number) => { if (sala && selId) resizeItem(sala.id, selId, w, h); };
+  const buildClip = useCallback((): ClipItem[] => {
+    if (!sala) return [];
+    return [...sala.tavoli, ...sala.elementi]
+      .filter(i => selIds.includes(i.id))
+      .map(i => 'forma' in i
+        ? { type: 'tavolo', x: i.x, y: i.y, w: i.w, h: i.h, forma: i.forma, capienza: i.capienza }
+        : { type: 'elemento', x: i.x, y: i.y, w: i.w, h: i.h, kind: i.kind, label: i.label });
+  }, [sala, selIds]);
+  const plural = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`;
+  const copy = useCallback(() => {
+    const c = buildClip(); if (!c.length) return;
+    setClip(c); toast.info(`${plural(c.length, 'elemento copiato', 'elementi copiati')}`);
+  }, [buildClip]);
+  const cut = useCallback(() => {
+    const c = buildClip(); if (!c.length || !sala) return;
+    setClip(c); removeItems(sala.id, selIds); setSelIds([]);
+    toast.info(`${plural(c.length, 'elemento tagliato', 'elementi tagliati')}`);
+  }, [buildClip, sala, selIds, removeItems]);
+  const paste = useCallback(() => {
+    if (!sala || !clip.length) return;
+    const ids = pasteItems(sala.id, clip, 1);
+    setSelIds(ids); toast.success(`${plural(ids.length, 'elemento incollato', 'elementi incollati')}`);
+  }, [sala, clip, pasteItems]);
+
+  // scorciatoie da tastiera (solo Composizione)
+  useEffect(() => {
+    if (mode !== 'compose') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const tag = (document.activeElement?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      const k = e.key.toLowerCase();
+      if (k === 'c' && selIds.length) { copy(); e.preventDefault(); }
+      else if (k === 'x' && selIds.length) { cut(); e.preventDefault(); }
+      else if (k === 'v' && clip.length) { paste(); e.preventDefault(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mode, selIds, clip, copy, cut, paste]);
 
   if (!sala) return <div className="sale"><PageHead title="Sale e tavoli" subtitle="Nessuna sala" /></div>;
 
@@ -251,13 +314,12 @@ const SaleTavoli: React.FC<Props> = () => {
     removeItems(sala.id, items.map(i => i.id));
     setSelIds([]);
   };
-  const selectAll = () => setSelIds([...sala.tavoli.map(t => t.id), ...sala.elementi.map(e => e.id)]);
 
   // apre il menu contestuale su un tavolo (tasto destro)
   const openMenu = (e: React.MouseEvent, id: string) => {
     e.preventDefault(); e.stopPropagation();
     setMoveMode(null);
-    setSelId(id);
+    if (!selIds.includes(id)) setSelId(id);   // mantiene la selezione multipla se il tavolo ne fa parte
     setMenu({ x: e.clientX, y: e.clientY, id });
   };
 
@@ -406,12 +468,33 @@ const SaleTavoli: React.FC<Props> = () => {
             {sala.elementi.map(el => (
               <div
                 key={el.id}
-                className={`sale__el sale__el--${el.kind}${selIds.includes(el.id) ? ' is-sel' : ''}`}
+                className={`sale__el sale__el--${el.kind}${selIds.includes(el.id) ? ' is-sel' : ''}${el.refill ? ' is-refill' : ''}`}
                 style={{ '--x': el.x, '--y': el.y, '--w': el.w, '--h': el.h } as React.CSSProperties}
                 onPointerDown={e => startDrag(e, el.id)}
+                onContextMenu={e => openMenu(e, el.id)}
               >
-                <i className={`fa-solid ${SALA_EL_META[el.kind].icon}`} />
-                <span>{el.label}</span>
+                {EL_FOOD[el.kind] ? (
+                  <>
+                    <div className="sale__el-food">
+                      {EL_FOOD[el.kind]!.map((ic, i) => (
+                        <span key={i} className={`sale__el-dish${el.esauriti?.includes(ic) ? ' is-out' : ''}`}><i className={`fa-solid ${ic}`} /></span>
+                      ))}
+                    </div>
+                    <span className="sale__el-label"><i className={`fa-solid ${SALA_EL_META[el.kind].icon}`} /> {el.label}</span>
+                    {el.refill && <span className="sale__el-refill" title="Refill richiesto in cucina"><i className="fa-solid fa-bell" /> refill</span>}
+                  </>
+                ) : el.kind === 'bar' ? (
+                  <>
+                    <BarStools w={el.w} h={el.h} />
+                    <i className={`fa-solid ${SALA_EL_META[el.kind].icon}`} />
+                    <span>{el.label}</span>
+                  </>
+                ) : (
+                  <>
+                    <i className={`fa-solid ${SALA_EL_META[el.kind].icon}`} />
+                    <span>{el.label}</span>
+                  </>
+                )}
               </div>
             ))}
             {/* tavoli */}
@@ -462,7 +545,20 @@ const SaleTavoli: React.FC<Props> = () => {
               tidyGrid={tidyGrid}
               delSelezione={delSelezione}
               selectAll={selectAll}
+              copy={copy}
+              cut={cut}
+              paste={paste}
+              clipCount={clip.length}
+              rotateSel={rotateSel}
+              resizeSel={resizeSel}
             />
+          ) : selEl ? (
+            <div className="sale__group">
+              <div className="sale__group-title"><i className={`fa-solid ${SALA_EL_META[selEl.kind].icon}`} /> {selEl.label}</div>
+              {selEl.kind === 'buffet'
+                ? <BuffetRefill el={selEl} update={(patch) => updateElemento(sala.id, selEl.id, patch)} />
+                : <div className="sale__hint sale__hint--sm">Elemento di sala. Passa a Composizione per modificarlo.</div>}
+            </div>
           ) : (
             <ServicePanel
               sala={sala}
@@ -476,18 +572,25 @@ const SaleTavoli: React.FC<Props> = () => {
       </div>
 
       {menu && (() => {
-        const tv = sala.tavoli.find(t => t.id === menu.id);
-        if (!tv) return null;
+        const tv = sala.tavoli.find(t => t.id === menu.id) ?? null;
+        const el = sala.elementi.find(e => e.id === menu.id) ?? null;
+        if (!tv && !el) return null;
+        const title = tv ? `Tavolo ${tv.numero}` : (el?.label ?? 'Elemento');
         return (
           <TavMenu
-            sala={sala} tavolo={tv} x={menu.x} y={menu.y} mode={mode}
+            sala={sala} tavolo={tv} isTavolo={!!tv} title={title} x={menu.x} y={menu.y} mode={mode}
+            selCount={selIds.length} canPaste={clip.length > 0}
             onClose={() => setMenu(null)}
-            onSposta={() => { setMoveMode(tv.id); setMenu(null); toast.info('Clicca sulla planimetria dove posizionare il tavolo'); }}
-            onUnisci={(otherId) => { unisciTavoli(sala.id, [tv.id, otherId]); setMenu(null); toast.success('Tavoli uniti'); }}
-            onTrasferisci={(toId) => { trasferisci(sala.id, tv.id, toId); setMenu(null); setSelId(toId); toast.success(`Servizio trasferito al tavolo ${sala.tavoli.find(t => t.id === toId)?.numero ?? ''}`); }}
-            onSepara={() => { if (tv.gruppo) separaGruppo(sala.id, tv.gruppo); setMenu(null); toast.info('Tavoli separati'); }}
-            onLibera={() => { updateTavolo(sala.id, tv.id, { stato: 'libero', nominativo: undefined, telefono: undefined, orario: undefined, data: undefined, coperti: undefined, note: undefined, clienteId: undefined, seatedAt: undefined, camera: undefined, cameraOspite: undefined }); setMenu(null); }}
-            onRimuovi={() => { setMenu(null); del(tv.id); }}
+            onRuota={() => { rotateItem(sala.id, menu.id); setMenu(null); }}
+            onCopia={() => { copy(); setMenu(null); }}
+            onTaglia={() => { cut(); setMenu(null); }}
+            onIncolla={() => { paste(); setMenu(null); }}
+            onSposta={() => { setMoveMode(menu.id); setMenu(null); toast.info('Clicca sulla planimetria dove posizionare l\'elemento'); }}
+            onUnisci={(otherId) => { if (tv) { unisciTavoli(sala.id, [tv.id, otherId]); toast.success('Tavoli uniti'); } setMenu(null); }}
+            onTrasferisci={(toId) => { if (tv) { trasferisci(sala.id, tv.id, toId); setSelId(toId); toast.success(`Servizio trasferito al tavolo ${sala.tavoli.find(t => t.id === toId)?.numero ?? ''}`); } setMenu(null); }}
+            onSepara={() => { if (tv?.gruppo) separaGruppo(sala.id, tv.gruppo); setMenu(null); toast.info('Tavoli separati'); }}
+            onLibera={() => { if (tv) updateTavolo(sala.id, tv.id, { stato: 'libero', nominativo: undefined, telefono: undefined, orario: undefined, data: undefined, coperti: undefined, note: undefined, clienteId: undefined, seatedAt: undefined, camera: undefined, cameraOspite: undefined }); setMenu(null); }}
+            onRimuovi={() => { setMenu(null); del(menu.id); }}
           />
         );
       })()}
@@ -559,21 +662,30 @@ const PanelCards: React.FC<{ storeKey: string; cards: PanelCard[] }> = ({ storeK
 // ── Menu contestuale (tasto destro) su un tavolo ──────────────────────────────
 const TavMenu: React.FC<{
   sala: Sala;
-  tavolo: Tavolo;
+  tavolo: Tavolo | null;
+  isTavolo: boolean;
+  title: string;
   x: number; y: number;
   mode: 'compose' | 'service';
+  selCount: number;
+  canPaste: boolean;
   onClose: () => void;
+  onRuota: () => void;
+  onCopia: () => void;
+  onTaglia: () => void;
+  onIncolla: () => void;
   onSposta: () => void;
   onUnisci: (otherId: string) => void;
   onTrasferisci: (toId: string) => void;
   onSepara: () => void;
   onLibera: () => void;
   onRimuovi: () => void;
-}> = ({ sala, tavolo, x, y, mode, onSposta, onUnisci, onTrasferisci, onSepara, onLibera, onRimuovi }) => {
+}> = ({ sala, tavolo, isTavolo, title, x, y, mode, selCount, canPaste, onRuota, onCopia, onTaglia, onIncolla, onSposta, onUnisci, onTrasferisci, onSepara, onLibera, onRimuovi }) => {
+  const multi = selCount > 1;
   const [view, setView] = useState<'root' | 'unisci' | 'trasferisci'>('root');
-  const altri = sala.tavoli.filter(t => t.id !== tavolo.id);
-  const unibili = altri.filter(t => !tavolo.gruppo || t.gruppo !== tavolo.gruppo);
-  const liberi = altri.filter(t => t.stato === 'libero' && !t.gruppo);
+  const altri = sala.tavoli.filter(t => t.id !== tavolo?.id);
+  const unibili = isTavolo ? altri.filter(t => !tavolo!.gruppo || t.gruppo !== tavolo!.gruppo) : [];
+  const liberi = isTavolo ? altri.filter(t => t.stato === 'libero' && !t.gruppo) : [];
   // riposiziona per non uscire dal viewport (menu ~200×260)
   const left = Math.min(x, window.innerWidth - 210);
   const top = Math.min(y, window.innerHeight - 280);
@@ -582,24 +694,44 @@ const TavMenu: React.FC<{
     <div className="sale__menu" style={{ left, top }} onPointerDown={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()}>
       {view === 'root' && (
         <>
-          <div className="sale__menu-head">Tavolo {tavolo.numero}</div>
+          <div className="sale__menu-head">{multi ? `${selCount} elementi` : title}</div>
           <button type="button" className="sale__menu-item" onClick={onSposta}>
             <i className="fa-solid fa-up-down-left-right" /> Sposta
           </button>
-          <button type="button" className="sale__menu-item" disabled={!unibili.length} onClick={() => setView('unisci')}>
-            <i className="fa-solid fa-object-group" /> Unisci con… <i className="fa-solid fa-chevron-right sale__menu-arr" />
+          <button type="button" className="sale__menu-item" onClick={onRuota}>
+            <i className="fa-solid fa-rotate" /> Ruota 90°
           </button>
-          {mode === 'service' && (
+          {mode === 'compose' && (
+            <>
+              <div className="sale__menu-sep" />
+              <button type="button" className="sale__menu-item" onClick={onCopia}>
+                <i className="fa-solid fa-copy" /> Copia <span className="sale__menu-kbd">⌘C</span>
+              </button>
+              <button type="button" className="sale__menu-item" onClick={onTaglia}>
+                <i className="fa-solid fa-scissors" /> Taglia <span className="sale__menu-kbd">⌘X</span>
+              </button>
+              <button type="button" className="sale__menu-item" disabled={!canPaste} onClick={onIncolla}>
+                <i className="fa-solid fa-paste" /> Incolla <span className="sale__menu-kbd">⌘V</span>
+              </button>
+              <div className="sale__menu-sep" />
+            </>
+          )}
+          {isTavolo && (
+            <button type="button" className="sale__menu-item" disabled={!unibili.length} onClick={() => setView('unisci')}>
+              <i className="fa-solid fa-object-group" /> Unisci con… <i className="fa-solid fa-chevron-right sale__menu-arr" />
+            </button>
+          )}
+          {isTavolo && mode === 'service' && (
             <button type="button" className="sale__menu-item" disabled={!liberi.length} onClick={() => setView('trasferisci')}>
               <i className="fa-solid fa-right-left" /> Trasferisci a… <i className="fa-solid fa-chevron-right sale__menu-arr" />
             </button>
           )}
-          {tavolo.gruppo && (
+          {isTavolo && tavolo!.gruppo && (
             <button type="button" className="sale__menu-item" onClick={onSepara}>
               <i className="fa-solid fa-link-slash" /> Separa dal gruppo
             </button>
           )}
-          {mode === 'service' && tavolo.stato !== 'libero' && (
+          {isTavolo && mode === 'service' && tavolo!.stato !== 'libero' && (
             <button type="button" className="sale__menu-item" onClick={onLibera}>
               <i className="fa-solid fa-rotate-left" /> Libera tavolo
             </button>
@@ -608,7 +740,7 @@ const TavMenu: React.FC<{
             <>
               <div className="sale__menu-sep" />
               <button type="button" className="sale__menu-item sale__menu-item--danger" onClick={onRimuovi}>
-                <i className="fa-solid fa-trash" /> Rimuovi tavolo
+                <i className="fa-solid fa-trash" /> Rimuovi {isTavolo ? 'tavolo' : 'elemento'}
               </button>
             </>
           )}
@@ -649,6 +781,21 @@ const TavMenu: React.FC<{
   );
 };
 
+// ── Sgabelli davanti al bancone bar ───────────────────────────────────────────
+const BarStools: React.FC<{ w: number; h: number }> = ({ w, h }) => {
+  const horizontal = w >= h;
+  const n = Math.max(2, horizontal ? w : h);
+  return (
+    <>
+      {Array.from({ length: n }).map((_, i) => {
+        const p = ((i + 0.5) / n) * 100;
+        const style = (horizontal ? { left: `${p}%`, top: 'calc(100% + 6px)' } : { top: `${p}%`, left: 'calc(100% + 6px)' }) as React.CSSProperties;
+        return <span key={i} className="sale__stool" style={style} />;
+      })}
+    </>
+  );
+};
+
 // ── Disegno ingrandito del tavolo con i coperti attorno ───────────────────────
 const TavoloBig: React.FC<{ t: Tavolo; seats?: number; caption?: string }> = ({ t, seats, caption }) => {
   const n = Math.min(seats ?? t.capienza, 14);   // sedie disegnate (cap per non affollare)
@@ -677,6 +824,40 @@ const TavoloBig: React.FC<{ t: Tavolo; seats?: number; caption?: string }> = ({ 
   );
 };
 
+// ── Buffet: segnala pietanze esaurite e richiedi refill in cucina ─────────────
+const BuffetRefill: React.FC<{ el: SalaElement; update: (patch: Partial<SalaElement>) => void }> = ({ el, update }) => {
+  const dishes = EL_FOOD.buffet!;
+  const out = el.esauriti ?? [];
+  const toggle = (ic: string) => update({ esauriti: out.includes(ic) ? out.filter(x => x !== ic) : [...out, ic] });
+  const richiedi = () => {
+    if (!out.length) { toast.warning('Segna prima le pietanze esaurite'); return; }
+    update({ refill: true });
+    toast.success(`Refill richiesto in cucina: ${out.map(ic => FOOD_LABEL[ic] ?? ic).join(', ')}`);
+  };
+  const rifornito = () => { update({ esauriti: [], refill: false }); toast.info('Buffet rifornito'); };
+  return (
+    <div className="sale__buffet">
+      <div className="sale__buffet-title">Pietanze — tocca per segnalare esaurito</div>
+      <div className="sale__buffet-dishes">
+        {dishes.map(ic => (
+          <button key={ic} type="button" className={`sale__buffet-dish${out.includes(ic) ? ' is-out' : ''}`} onClick={() => toggle(ic)}>
+            <i className={`fa-solid ${ic}`} /> {FOOD_LABEL[ic] ?? ''}
+          </button>
+        ))}
+      </div>
+      {el.refill && <div className="sale__buffet-req"><i className="fa-solid fa-bell" /> Refill richiesto in cucina</div>}
+      <div className="sale__buffet-btns">
+        <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" disabled={!out.length || el.refill} onClick={richiedi}>
+          <i className="fa-solid fa-bell-concierge" /> Richiedi refill
+        </button>
+        <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" disabled={!out.length && !el.refill} onClick={rifornito}>
+          <i className="fa-solid fa-check" /> Rifornito
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ── Pannello COMPOSIZIONE ─────────────────────────────────────────────────────
 const ComposePanel: React.FC<{
   sala: Sala;
@@ -695,7 +876,13 @@ const ComposePanel: React.FC<{
   tidyGrid: () => void;
   delSelezione: () => void;
   selectAll: () => void;
-}> = ({ sala, selTavolo, selEl, selCount, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid, align, distribute, tidyGrid, delSelezione, selectAll }) => {
+  copy: () => void;
+  cut: () => void;
+  paste: () => void;
+  clipCount: number;
+  rotateSel: () => void;
+  resizeSel: (w: number, h: number) => void;
+}> = ({ sala, selTavolo, selEl, selCount, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid, align, distribute, tidyGrid, delSelezione, selectAll, copy, cut, paste, clipCount, rotateSel, resizeSel }) => {
   const multi = selCount >= 2;
   const cards: PanelCard[] = [
     {
@@ -741,6 +928,15 @@ const ComposePanel: React.FC<{
           <Stepper label="Capienza" value={selTavolo.capienza} min={1} max={12} onChange={c => updateTavolo({ capienza: c })} />
           <SelectField name="tav-forma" label="Forma" value={selTavolo.forma} onChange={e => updateTavolo({ forma: e.target.value as TavoloForma })}
             options={FORME.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))} />
+          <div className="sale__dim-row">
+            <Stepper label="Largh." value={selTavolo.w} min={1} max={sala.cols} onChange={w => resizeSel(w, selTavolo.h)} />
+            <Stepper label="Alt." value={selTavolo.h} min={1} max={sala.rows} onChange={h => resizeSel(selTavolo.w, h)} />
+          </div>
+          <button type="button" className="sale__cc" onClick={rotateSel}><i className="fa-solid fa-rotate" /> Ruota 90°</button>
+          <div className="sale__cc-btns">
+            <button type="button" className="sale__cc" title="Copia (Ctrl/Cmd+C)" onClick={copy}><i className="fa-solid fa-copy" /> Copia</button>
+            <button type="button" className="sale__cc" title="Taglia (Ctrl/Cmd+X)" onClick={cut}><i className="fa-solid fa-scissors" /> Taglia</button>
+          </div>
           <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selTavolo.id)}>
             <i className="fa-solid fa-trash" /> Rimuovi tavolo
           </button>
@@ -753,6 +949,18 @@ const ComposePanel: React.FC<{
         <>
           <div className="sale__el-sel"><i className={`fa-solid ${SALA_EL_META[selEl.kind].icon}`} /> {SALA_EL_META[selEl.kind].label}</div>
           <InputField name="el-label" label="Etichetta" value={selEl.label ?? ''} onChange={e => updateElemento({ label: e.target.value })} />
+          <div className="sale__dim-row">
+            <Stepper label="Largh." value={selEl.w} min={1} max={sala.cols} onChange={w => resizeSel(w, selEl.h)} />
+            <Stepper label="Alt." value={selEl.h} min={1} max={sala.rows} onChange={h => resizeSel(selEl.w, h)} />
+          </div>
+          <button type="button" className="sale__cc" onClick={rotateSel}><i className="fa-solid fa-rotate" /> Ruota 90°</button>
+          {selEl.kind === 'buffet' && (
+            <BuffetRefill el={selEl} update={updateElemento} />
+          )}
+          <div className="sale__cc-btns">
+            <button type="button" className="sale__cc" title="Copia (Ctrl/Cmd+C)" onClick={copy}><i className="fa-solid fa-copy" /> Copia</button>
+            <button type="button" className="sale__cc" title="Taglia (Ctrl/Cmd+X)" onClick={cut}><i className="fa-solid fa-scissors" /> Taglia</button>
+          </div>
           <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__del" onClick={() => del(selEl.id)}>
             <i className="fa-solid fa-trash" /> Rimuovi elemento
           </button>
@@ -763,12 +971,21 @@ const ComposePanel: React.FC<{
 
   return (
     <>
-      {multi && <AlignToolbar count={selCount} align={align} distribute={distribute} tidyGrid={tidyGrid} delSelezione={delSelezione} />}
+      {clipCount > 0 && (
+        <div className="sale__paste-bar">
+          <span><i className="fa-solid fa-clipboard" /> {clipCount} negli appunti</span>
+          <button type="button" className="sale__paste-btn" onClick={paste}>
+            <i className="fa-solid fa-paste" /> Incolla
+          </button>
+        </div>
+      )}
+      {multi && <AlignToolbar count={selCount} align={align} distribute={distribute} tidyGrid={tidyGrid} delSelezione={delSelezione} copy={copy} cut={cut} />}
       <PanelCards storeKey="compose" cards={cards} />
       {!multi && !selTavolo && !selEl && (
         <div className="sale__hint">
           Seleziona un tavolo o un elemento per modificarlo, oppure trascina per posizionarlo.
           <br />Per <b>selezionare più elementi</b>: trascina un riquadro sullo sfondo, oppure Ctrl/Cmd/Shift+click. <button type="button" className="sale__selall" onClick={selectAll}>Seleziona tutto</button>
+          <br /><span className="sale__kbd-hint">Copia <kbd>Ctrl/Cmd+C</kbd> · Taglia <kbd>Ctrl/Cmd+X</kbd> · Incolla <kbd>Ctrl/Cmd+V</kbd></span>
         </div>
       )}
     </>
@@ -782,7 +999,9 @@ const AlignToolbar: React.FC<{
   distribute: (axis: 'h' | 'v') => void;
   tidyGrid: () => void;
   delSelezione: () => void;
-}> = ({ count, align, distribute, tidyGrid, delSelezione }) => {
+  copy: () => void;
+  cut: () => void;
+}> = ({ count, align, distribute, tidyGrid, delSelezione, copy, cut }) => {
   const can3 = count >= 3;
   return (
     <div className="sale__align">
@@ -805,6 +1024,11 @@ const AlignToolbar: React.FC<{
         <button type="button" className="sale__align-btn" title="Distribuisci verticalmente" disabled={!can3} onClick={() => distribute('v')}><i className="fa-solid fa-arrows-up-to-line" /></button>
         <span className="sale__align-div" />
         <button type="button" className="sale__align-btn sale__align-btn--wide" title="Disponi a griglia ordinata" onClick={tidyGrid}><i className="fa-solid fa-table-cells" /> Ordina a griglia</button>
+      </div>
+      <div className="sale__align-sec">Appunti</div>
+      <div className="sale__align-row">
+        <button type="button" className="sale__align-btn sale__align-btn--wide" title="Copia (Ctrl/Cmd+C)" onClick={copy}><i className="fa-solid fa-copy" /> Copia</button>
+        <button type="button" className="sale__align-btn sale__align-btn--wide" title="Taglia (Ctrl/Cmd+X)" onClick={cut}><i className="fa-solid fa-scissors" /> Taglia</button>
       </div>
       <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__align-del" onClick={delSelezione}>
         <i className="fa-solid fa-trash" /> Rimuovi selezionati
