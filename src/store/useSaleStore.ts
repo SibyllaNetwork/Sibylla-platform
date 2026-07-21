@@ -129,7 +129,12 @@ interface SaleState {
   updateTavolo: (salaId: string, tavoloId: string, patch: Partial<Tavolo>) => void
   updateElemento: (salaId: string, elId: string, patch: Partial<SalaElement>) => void
   moveItem: (salaId: string, itemId: string, x: number, y: number) => void
+  /** Posiziona più item in blocco (allineamento/distribuzione): applica diretto,
+   *  con solo clamp ai bordi della griglia (le sovrapposizioni sono ammesse). */
+  setPositions: (salaId: string, updates: Array<{ id: string; x: number; y: number }>) => void
   removeItem: (salaId: string, itemId: string) => void
+  /** Elimina più item (tavoli/elementi) in un colpo solo. */
+  removeItems: (salaId: string, ids: string[]) => void
   setGrid: (salaId: string, cols: number, rows: number) => void
   addSala: (nome: string) => string
   renameSala: (salaId: string, nome: string) => void
@@ -220,12 +225,36 @@ export const useSaleStore = create<SaleState>()(
             }
           }),
         })),
+      setPositions: (salaId, updates) =>
+        set(st => ({
+          sale: st.sale.map(sa => {
+            if (sa.id !== salaId) return sa
+            const map = new Map(updates.map(u => [u.id, u]))
+            const apply = <T extends { id: string; x: number; y: number; w: number; h: number }>(it: T): T => {
+              const u = map.get(it.id); if (!u) return it
+              return {
+                ...it,
+                x: Math.max(0, Math.min(sa.cols - it.w, Math.round(u.x))),
+                y: Math.max(0, Math.min(sa.rows - it.h, Math.round(u.y))),
+              }
+            }
+            return { ...sa, tavoli: sa.tavoli.map(apply), elementi: sa.elementi.map(apply) }
+          }),
+        })),
       removeItem: (salaId, itemId) =>
         set(st => ({
           sale: st.sale.map(sa => sa.id !== salaId ? sa : {
             ...sa,
             tavoli: sa.tavoli.filter(tv => tv.id !== itemId),
             elementi: sa.elementi.filter(el => el.id !== itemId),
+          }),
+        })),
+      removeItems: (salaId, ids) =>
+        set(st => ({
+          sale: st.sale.map(sa => sa.id !== salaId ? sa : {
+            ...sa,
+            tavoli: sa.tavoli.filter(tv => !ids.includes(tv.id)),
+            elementi: sa.elementi.filter(el => !ids.includes(el.id)),
           }),
         })),
       setGrid: (salaId, cols, rows) =>

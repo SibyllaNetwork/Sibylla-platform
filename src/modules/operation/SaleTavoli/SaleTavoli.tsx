@@ -83,7 +83,9 @@ const SaleTavoli: React.FC<Props> = () => {
   const updateTavolo = useSaleStore(s => s.updateTavolo);
   const updateElemento = useSaleStore(s => s.updateElemento);
   const moveItem = useSaleStore(s => s.moveItem);
+  const setPositions = useSaleStore(s => s.setPositions);
   const removeItem = useSaleStore(s => s.removeItem);
+  const removeItems = useSaleStore(s => s.removeItems);
   const setGrid = useSaleStore(s => s.setGrid);
   const addSala = useSaleStore(s => s.addSala);
   const renameSala = useSaleStore(s => s.renameSala);
@@ -96,17 +98,25 @@ const SaleTavoli: React.FC<Props> = () => {
   const [mode, setMode] = useState<'compose' | 'service'>('service');
   const [salaId, setSalaId] = useState(sale[0]?.id ?? '');
   const [newForma, setNewForma] = useState<TavoloForma>('quadrato');
-  const [selId, setSelId] = useState<string | null>(null);
+  const [selIds, setSelIds] = useState<string[]>([]);
   const [showClienti, setShowClienti] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [moveMode, setMoveMode] = useState<string | null>(null);
+  // rettangolo di selezione (marquee) in px relativi al canvas
+  const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
 
   const sala = sale.find(s => s.id === salaId) ?? sale[0];
   const canvasRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ id: string; ox: number; oy: number; moved: boolean } | null>(null);
+  // drag di uno o più item: memorizza le posizioni originali per applicare il delta
+  const drag = useRef<{ ids: string[]; ocx: number; ocy: number; orig: Record<string, { x: number; y: number }>; moved: boolean } | null>(null);
+  const mq = useRef<{ x0: number; y0: number } | null>(null);
+
+  // id selezionato "singolo" (per il pannello dettaglio); null se selezione multipla/vuota
+  const selId = selIds.length === 1 ? selIds[0] : null;
+  const setSelId = (id: string | null) => setSelIds(id ? [id] : []);
 
   useEffect(() => { if (sala && salaId !== sala.id) setSalaId(sala.id); }, [sala, salaId]);
-  useEffect(() => { setSelId(null); setMenu(null); setMoveMode(null); }, [salaId, mode]);
+  useEffect(() => { setSelIds([]); setMenu(null); setMoveMode(null); setMarquee(null); }, [salaId, mode]);
 
   // chiudi il menu contestuale al click fuori / Esc
   useEffect(() => {
@@ -121,32 +131,127 @@ const SaleTavoli: React.FC<Props> = () => {
   const selTavolo = sala?.tavoli.find(t => t.id === selId) ?? null;
   const selEl = sala?.elementi.find(e => e.id === selId) ?? null;
 
-  // ── Drag & drop (sposta tavoli/elementi sulla griglia) ──
+  // ── Drag & drop (sposta uno o più item) + marquee (selezione a rettangolo) ──
   useEffect(() => {
     if (!sala) return;
     const onMove = (e: PointerEvent) => {
-      const d = drag.current; const c = canvasRef.current;
-      if (!d || !c) return;
+      const c = canvasRef.current; if (!c) return;
       const r = c.getBoundingClientRect();
-      const cx = Math.round((e.clientX - r.left) / CELL - d.ox);
-      const cy = Math.round((e.clientY - r.top) / CELL - d.oy);
+      // marquee di selezione
+      if (mq.current) {
+        const { x0, y0 } = mq.current;
+        const x1 = e.clientX - r.left, y1 = e.clientY - r.top;
+        const rx = Math.min(x0, x1), ry = Math.min(y0, y1), rw = Math.abs(x1 - x0), rh = Math.abs(y1 - y0);
+        setMarquee({ x: rx, y: ry, w: rw, h: rh });
+        const hit = [...sala.tavoli, ...sala.elementi].filter(it => {
+          const ix = it.x * CELL, iy = it.y * CELL, iw = it.w * CELL, ih = it.h * CELL;
+          return rx < ix + iw && rx + rw > ix && ry < iy + ih && ry + rh > iy;
+        }).map(it => it.id);
+        setSelIds(hit);
+        return;
+      }
+      // trascinamento di uno o più item
+      const d = drag.current; if (!d) return;
+      const dx = (e.clientX - r.left) / CELL - d.ocx;
+      const dy = (e.clientY - r.top) / CELL - d.ocy;
       d.moved = true;
-      moveItem(sala.id, d.id, cx, cy);
+      if (d.ids.length === 1) {
+        const o = d.orig[d.ids[0]];
+        moveItem(sala.id, d.ids[0], Math.round(o.x + dx), Math.round(o.y + dy));
+      } else {
+        setPositions(sala.id, d.ids.map(id => ({ id, x: d.orig[id].x + dx, y: d.orig[id].y + dy })));
+      }
     };
-    const onUp = () => { drag.current = null; };
+    const onUp = () => { drag.current = null; mq.current = null; setMarquee(null); };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
-  }, [sala, moveItem]);
+  }, [sala, moveItem, setPositions]);
 
   if (!sala) return <div className="sale"><PageHead title="Sale e tavoli" subtitle="Nessuna sala" /></div>;
 
-  const startDrag = (e: React.PointerEvent, id: string, ix: number, iy: number) => {
+  const startDrag = (e: React.PointerEvent, id: string) => {
     if (e.button !== 0 || moveMode) return;   // solo tasto sinistro; niente drag in modalità "sposta"
     const r = canvasRef.current!.getBoundingClientRect();
-    drag.current = { id, ox: (e.clientX - r.left) / CELL - ix, oy: (e.clientY - r.top) / CELL - iy, moved: false };
-    setSelId(id);
+    const multi = e.shiftKey || e.ctrlKey || e.metaKey;
+    // Ctrl/Cmd/Shift+click in composizione: aggiunge/toglie dalla selezione (no drag)
+    if (mode === 'compose' && multi) {
+      e.stopPropagation();
+      setSelIds(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
+      return;
+    }
+    // set da trascinare: la selezione multipla se il tavolo ne fa parte, altrimenti solo lui
+    let ids: string[];
+    if (mode === 'compose' && selIds.length > 1 && selIds.includes(id)) ids = selIds;
+    else { ids = [id]; setSelIds([id]); }
+    const all = [...sala.tavoli, ...sala.elementi];
+    const orig: Record<string, { x: number; y: number }> = {};
+    ids.forEach(i => { const it = all.find(a => a.id === i); if (it) orig[i] = { x: it.x, y: it.y }; });
+    drag.current = { ids, ocx: (e.clientX - r.left) / CELL, ocy: (e.clientY - r.top) / CELL, orig, moved: false };
   };
+
+  // avvia il marquee di selezione sullo sfondo (solo composizione)
+  const startMarquee = (e: React.PointerEvent) => {
+    if (e.target !== e.currentTarget) return;
+    if (mode === 'compose' && e.button === 0 && !moveMode) {
+      const r = canvasRef.current!.getBoundingClientRect();
+      mq.current = { x0: e.clientX - r.left, y0: e.clientY - r.top };
+      if (!(e.shiftKey || e.ctrlKey || e.metaKey)) setSelIds([]);
+    } else {
+      setSelIds([]);
+    }
+  };
+
+  // ── Allineamento / distribuzione / disposizione della selezione ──
+  const selItems = () => [...sala.tavoli, ...sala.elementi].filter(i => selIds.includes(i.id));
+  const align = (kind: 'left' | 'centerH' | 'right' | 'top' | 'middleV' | 'bottom') => {
+    const items = selItems(); if (items.length < 2) return;
+    const minX = Math.min(...items.map(i => i.x)), maxR = Math.max(...items.map(i => i.x + i.w));
+    const minY = Math.min(...items.map(i => i.y)), maxB = Math.max(...items.map(i => i.y + i.h));
+    const cx = (minX + maxR) / 2, cy = (minY + maxB) / 2;
+    setPositions(sala.id, items.map(i => {
+      switch (kind) {
+        case 'left': return { id: i.id, x: minX, y: i.y };
+        case 'right': return { id: i.id, x: maxR - i.w, y: i.y };
+        case 'centerH': return { id: i.id, x: Math.round(cx - i.w / 2), y: i.y };
+        case 'top': return { id: i.id, x: i.x, y: minY };
+        case 'bottom': return { id: i.id, x: i.x, y: maxB - i.h };
+        default: return { id: i.id, x: i.x, y: Math.round(cy - i.h / 2) };
+      }
+    }));
+  };
+  const distribute = (axis: 'h' | 'v') => {
+    const items = selItems(); if (items.length < 3) return;
+    const key = axis === 'h' ? 'x' : 'y';
+    const size = axis === 'h' ? 'w' : 'h';
+    const sorted = [...items].sort((a, b) => a[key] - b[key]);
+    const total = sorted.reduce((s, i) => s + i[size], 0);
+    const last = sorted[sorted.length - 1];
+    const span = (last[key] + last[size]) - sorted[0][key];
+    const gap = (span - total) / (sorted.length - 1);
+    let cur = sorted[0][key];
+    setPositions(sala.id, sorted.map(i => {
+      const pos = axis === 'h' ? { id: i.id, x: Math.round(cur), y: i.y } : { id: i.id, x: i.x, y: Math.round(cur) };
+      cur += i[size] + gap;
+      return pos;
+    }));
+  };
+  const tidyGrid = () => {
+    const items = selItems(); if (items.length < 2) return;
+    const minX = Math.min(...items.map(i => i.x)), minY = Math.min(...items.map(i => i.y));
+    const stepX = Math.max(...items.map(i => i.w)) + 1, stepY = Math.max(...items.map(i => i.h)) + 1;
+    const cols = Math.ceil(Math.sqrt(items.length));
+    const sorted = [...items].sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    setPositions(sala.id, sorted.map((i, idx) => ({ id: i.id, x: minX + (idx % cols) * stepX, y: minY + Math.floor(idx / cols) * stepY })));
+  };
+  const delSelezione = async () => {
+    const items = selItems(); if (!items.length) return;
+    const ok = await confirm({ title: 'Rimuovi elementi', message: `Rimuovere ${items.length} elementi selezionati dalla sala?`, confirmLabel: 'Rimuovi', danger: true });
+    if (!ok) return;
+    removeItems(sala.id, items.map(i => i.id));
+    setSelIds([]);
+  };
+  const selectAll = () => setSelIds([...sala.tavoli.map(t => t.id), ...sala.elementi.map(e => e.id)]);
 
   // apre il menu contestuale su un tavolo (tasto destro)
   const openMenu = (e: React.MouseEvent, id: string) => {
@@ -287,20 +392,23 @@ const SaleTavoli: React.FC<Props> = () => {
             ref={canvasRef}
             className={`sale__canvas${mode === 'compose' ? ' is-compose' : ''}${moveMode ? ' is-moving' : ''}`}
             style={{ '--cols': sala.cols, '--rows': sala.rows, '--cell': `${CELL}px` } as React.CSSProperties}
-            onPointerDown={e => { if (e.target === e.currentTarget) setSelId(null); }}
+            onPointerDown={startMarquee}
           >
             {moveMode && (
               <div className="sale__moveovl" onPointerDown={e => { e.stopPropagation(); placeMove(e); }}>
                 <span className="sale__moveovl-hint"><i className="fa-solid fa-hand-pointer" /> Clicca dove posizionare il tavolo · <kbd>Esc</kbd> annulla</span>
               </div>
             )}
+            {marquee && (
+              <div className="sale__marquee" style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />
+            )}
             {/* elementi sala (bar, cucina…) */}
             {sala.elementi.map(el => (
               <div
                 key={el.id}
-                className={`sale__el sale__el--${el.kind}${selId === el.id ? ' is-sel' : ''}`}
+                className={`sale__el sale__el--${el.kind}${selIds.includes(el.id) ? ' is-sel' : ''}`}
                 style={{ '--x': el.x, '--y': el.y, '--w': el.w, '--h': el.h } as React.CSSProperties}
-                onPointerDown={e => startDrag(e, el.id, el.x, el.y)}
+                onPointerDown={e => startDrag(e, el.id)}
               >
                 <i className={`fa-solid ${SALA_EL_META[el.kind].icon}`} />
                 <span>{el.label}</span>
@@ -310,9 +418,9 @@ const SaleTavoli: React.FC<Props> = () => {
             {sala.tavoli.map(t => (
               <div
                 key={t.id}
-                className={`sale__tav sale__tav--${t.forma} is-${t.stato}${selId === t.id ? ' is-sel' : ''}${t.gruppo ? ' is-uni' : ''}`}
+                className={`sale__tav sale__tav--${t.forma} is-${t.stato}${selIds.includes(t.id) ? ' is-sel' : ''}${t.gruppo ? ' is-uni' : ''}`}
                 style={{ '--x': t.x, '--y': t.y, '--w': t.w, '--h': t.h } as React.CSSProperties}
-                onPointerDown={e => startDrag(e, t.id, t.x, t.y)}
+                onPointerDown={e => startDrag(e, t.id)}
                 onContextMenu={e => openMenu(e, t.id)}
                 title={`Tavolo ${t.numero} · ${t.capienza} coperti${t.gruppo ? ' · unito' : ''}`}
               >
@@ -341,6 +449,7 @@ const SaleTavoli: React.FC<Props> = () => {
               sala={sala}
               selTavolo={selTavolo}
               selEl={selEl}
+              selCount={selIds.length}
               newForma={newForma} setNewForma={setNewForma}
               addTavolo={(cap) => { const id = addTavolo(sala.id, cap, newForma); if (id) setSelId(id); }}
               addElemento={(k) => addElemento(sala.id, k)}
@@ -348,6 +457,11 @@ const SaleTavoli: React.FC<Props> = () => {
               updateElemento={(patch) => selEl && updateElemento(sala.id, selEl.id, patch)}
               del={del}
               setGrid={(c, r) => setGrid(sala.id, c, r)}
+              align={align}
+              distribute={distribute}
+              tidyGrid={tidyGrid}
+              delSelezione={delSelezione}
+              selectAll={selectAll}
             />
           ) : (
             <ServicePanel
@@ -565,9 +679,10 @@ const TavoloBig: React.FC<{ t: Tavolo; seats?: number; caption?: string }> = ({ 
 
 // ── Pannello COMPOSIZIONE ─────────────────────────────────────────────────────
 const ComposePanel: React.FC<{
-  sala: import('../../../store/useSaleStore').Sala;
+  sala: Sala;
   selTavolo: Tavolo | null;
   selEl: SalaElement | null;
+  selCount: number;
   newForma: TavoloForma; setNewForma: (f: TavoloForma) => void;
   addTavolo: (cap: number) => void;
   addElemento: (k: SalaElementKind) => void;
@@ -575,7 +690,13 @@ const ComposePanel: React.FC<{
   updateElemento: (patch: Partial<SalaElement>) => void;
   del: (id: string) => void;
   setGrid: (cols: number, rows: number) => void;
-}> = ({ sala, selTavolo, selEl, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid }) => {
+  align: (kind: 'left' | 'centerH' | 'right' | 'top' | 'middleV' | 'bottom') => void;
+  distribute: (axis: 'h' | 'v') => void;
+  tidyGrid: () => void;
+  delSelezione: () => void;
+  selectAll: () => void;
+}> = ({ sala, selTavolo, selEl, selCount, newForma, setNewForma, addTavolo, addElemento, updateTavolo, updateElemento, del, setGrid, align, distribute, tidyGrid, delSelezione, selectAll }) => {
+  const multi = selCount >= 2;
   const cards: PanelCard[] = [
     {
       id: 'add-tavolo', title: 'Aggiungi tavolo', body: (
@@ -642,11 +763,53 @@ const ComposePanel: React.FC<{
 
   return (
     <>
+      {multi && <AlignToolbar count={selCount} align={align} distribute={distribute} tidyGrid={tidyGrid} delSelezione={delSelezione} />}
       <PanelCards storeKey="compose" cards={cards} />
-      {!selTavolo && !selEl && (
-        <div className="sale__hint">Seleziona un tavolo o un elemento per modificarlo/rimuoverlo, oppure trascina per posizionarlo.</div>
+      {!multi && !selTavolo && !selEl && (
+        <div className="sale__hint">
+          Seleziona un tavolo o un elemento per modificarlo, oppure trascina per posizionarlo.
+          <br />Per <b>selezionare più elementi</b>: trascina un riquadro sullo sfondo, oppure Ctrl/Cmd/Shift+click. <button type="button" className="sale__selall" onClick={selectAll}>Seleziona tutto</button>
+        </div>
       )}
     </>
+  );
+};
+
+// ── Barra allineamento / distribuzione (selezione multipla) ───────────────────
+const AlignToolbar: React.FC<{
+  count: number;
+  align: (kind: 'left' | 'centerH' | 'right' | 'top' | 'middleV' | 'bottom') => void;
+  distribute: (axis: 'h' | 'v') => void;
+  tidyGrid: () => void;
+  delSelezione: () => void;
+}> = ({ count, align, distribute, tidyGrid, delSelezione }) => {
+  const can3 = count >= 3;
+  return (
+    <div className="sale__align">
+      <div className="sale__align-head">
+        <i className="fa-solid fa-object-ungroup" /> {count} elementi selezionati
+      </div>
+      <div className="sale__align-sec">Allinea</div>
+      <div className="sale__align-row">
+        <button type="button" className="sale__align-btn" title="Allinea a sinistra" onClick={() => align('left')}><i className="fa-solid fa-align-left" /></button>
+        <button type="button" className="sale__align-btn" title="Centra orizzontalmente" onClick={() => align('centerH')}><i className="fa-solid fa-align-center" /></button>
+        <button type="button" className="sale__align-btn" title="Allinea a destra" onClick={() => align('right')}><i className="fa-solid fa-align-right" /></button>
+        <span className="sale__align-div" />
+        <button type="button" className="sale__align-btn" title="Allinea in alto" onClick={() => align('top')}><i className="fa-solid fa-align-left fa-rotate-90" /></button>
+        <button type="button" className="sale__align-btn" title="Centra verticalmente" onClick={() => align('middleV')}><i className="fa-solid fa-align-center fa-rotate-90" /></button>
+        <button type="button" className="sale__align-btn" title="Allinea in basso" onClick={() => align('bottom')}><i className="fa-solid fa-align-right fa-rotate-90" /></button>
+      </div>
+      <div className="sale__align-sec">Distribuisci (equidistanzia)</div>
+      <div className="sale__align-row">
+        <button type="button" className="sale__align-btn" title="Distribuisci orizzontalmente" disabled={!can3} onClick={() => distribute('h')}><i className="fa-solid fa-arrows-left-right-to-line" /></button>
+        <button type="button" className="sale__align-btn" title="Distribuisci verticalmente" disabled={!can3} onClick={() => distribute('v')}><i className="fa-solid fa-arrows-up-to-line" /></button>
+        <span className="sale__align-div" />
+        <button type="button" className="sale__align-btn sale__align-btn--wide" title="Disponi a griglia ordinata" onClick={tidyGrid}><i className="fa-solid fa-table-cells" /> Ordina a griglia</button>
+      </div>
+      <button type="button" className="sib-btn sib-btn--danger sib-btn--sm sale__align-del" onClick={delSelezione}>
+        <i className="fa-solid fa-trash" /> Rimuovi selezionati
+      </button>
+    </div>
   );
 };
 
