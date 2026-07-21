@@ -6,6 +6,7 @@
 // planimetria/editor (gestito dal parent). Il dato camere vive nella planimetria.
 import React from 'react';
 import { Piano } from '../planner.types';
+import HotelCrowd, { CrowdScene } from './HotelCrowd';
 
 interface Props {
   piani: Piano[];
@@ -260,6 +261,18 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
     return <g>{els}</g>;
   };
 
+  // Geometria per l'overlay animato degli avventori (stessa proiezione iso)
+  const crowdScene: CrowdScene = {
+    CX, CY,
+    Ox: originX(maxC, maxR),
+    floorOys: floors.map((_, f) => TOP + f * FLOOR_GAP),
+    lobbyIndex: floors.length - 1,
+    maxC, maxR,
+    midJ: maxR / 2,
+    liftI: maxC - 0.5,
+    liftJ: maxR / 2,
+  };
+
   return (
     <svg
       className="hotel-viz__iso"
@@ -310,6 +323,9 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
           </g>
         );
       })}
+
+      {/* Avventori in movimento (reception → ascensore → piani → uscita) */}
+      <HotelCrowd scene={crowdScene} />
 
     </svg>
   );

@@ -605,6 +605,36 @@
     stroke: alpha(#000000, 0.2)
     stroke-width: 0.4
 
+  // Avventori animati (overlay: reception → ascensore → piani → uscita)
+  &__crowd
+    pointer-events: none
+
+  &__crowd-body
+    stroke: #43617c
+    stroke-width: 3.4
+    stroke-linecap: round
+
+  &__crowd-head
+    fill: #E8C9A0
+    stroke: alpha(#000000, 0.15)
+    stroke-width: 0.4
+
+  &__crowd-bag
+    fill: #C69520
+    stroke: alpha(#000000, 0.2)
+    stroke-width: 0.4
+
+  &__crowd-bag-handle
+    fill: none
+    stroke: #8A6A15
+    stroke-width: 1
+    stroke-linecap: round
+
+  &__crowd-car
+    fill: alpha(#B7C4CE, 0.92)
+    stroke: #8595A2
+    stroke-width: 0.6
+
   // Piano cliccabile: evidenziazione hover / selezione
   &__iso-floor
     &.is-clickable
