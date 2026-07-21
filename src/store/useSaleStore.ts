@@ -9,13 +9,18 @@ import { persist } from 'zustand/middleware'
 //  Planner). Store singleton persistito, con una o più sale.
 
 export type TavoloForma = 'rotondo' | 'quadrato' | 'rettangolare'
-export type TavoloStato = 'libero' | 'occupato' | 'riservato'
+export type TavoloStato = 'libero' | 'occupato' | 'riservato' | 'conto' | 'pulizia'
 
 export const TAVOLO_STATO_META: Record<TavoloStato, { label: string; color: string }> = {
   libero:    { label: 'Libero',    color: '#00CF86' },
   occupato:  { label: 'Occupato',  color: '#FF616E' },
-  riservato: { label: 'Riservato', color: '#C69520' },
+  riservato: { label: 'Prenotato', color: '#C69520' },
+  conto:     { label: 'Conto',     color: '#5C9CD4' },
+  pulizia:   { label: 'Da pulire', color: '#8399AB' },
 }
+
+// Camerieri assegnabili (demo)
+export const CAMERIERI = ['—', 'Marco', 'Giulia', 'Luca', 'Sara', 'Paolo']
 
 export type SalaElementKind = 'bar' | 'cucina' | 'ingresso' | 'bagno' | 'pianta' | 'area'
 
@@ -44,6 +49,23 @@ export interface Tavolo {
   coperti?: number
   /** Note operative, allergie e intolleranze. */
   note?: string
+  /** Telefono di contatto (prenotazione). */
+  telefono?: string
+  /** Data prenotazione (ISO yyyy-mm-dd). */
+  data?: string
+  /** Cameriere assegnato al tavolo. */
+  cameriere?: string
+  /** Cliente abituale collegato (id anagrafica). */
+  clienteId?: string
+  /** Timestamp (ms) di quando il tavolo è stato occupato (per il timer). */
+  seatedAt?: number
+  /** Id del gruppo di unione: i tavoli con lo stesso gruppo sono "uniti"
+   *  (condividono stato e prenotazione; il tavolo capofila tiene i dati). */
+  gruppo?: string
+  /** Camera/soggiorno collegato: conto ed extra addebitati alla camera. */
+  camera?: string
+  /** Nominativo ospite della camera collegata (per il riepilogo addebito). */
+  cameraOspite?: string
 }
 
 export interface SalaElement {
@@ -111,6 +133,13 @@ interface SaleState {
   setGrid: (salaId: string, cols: number, rows: number) => void
   addSala: (nome: string) => string
   renameSala: (salaId: string, nome: string) => void
+  removeSala: (salaId: string) => void
+  /** Unisce due o più tavoli in un unico gruppo (assorbe gruppi già esistenti). */
+  unisciTavoli: (salaId: string, ids: string[]) => void
+  /** Separa un gruppo di tavoli uniti. */
+  separaGruppo: (salaId: string, gruppo: string) => void
+  /** Trasferisce prenotazione/servizio da un tavolo a un altro (il primo torna libero). */
+  trasferisci: (salaId: string, fromId: string, toId: string) => void
 }
 
 const nextNumero = (s: Sala) => {
@@ -208,6 +237,71 @@ export const useSaleStore = create<SaleState>()(
       },
       renameSala: (salaId, nome) =>
         set(st => ({ sale: st.sale.map(sa => sa.id === salaId ? { ...sa, nome } : sa) })),
+      removeSala: (salaId) =>
+        set(st => st.sale.length <= 1 ? st : ({ sale: st.sale.filter(sa => sa.id !== salaId) })),
+      unisciTavoli: (salaId, ids) => {
+        if (ids.length < 2) return
+        const g = uid('grp')
+        set(st => ({
+          sale: st.sale.map(sa => {
+            if (sa.id !== salaId) return sa
+            // assorbi anche i gruppi già esistenti dei tavoli selezionati
+            const gruppiSel = new Set(sa.tavoli.filter(tv => ids.includes(tv.id) && tv.gruppo).map(tv => tv.gruppo))
+            const inGroup = (tv: Tavolo) => ids.includes(tv.id) || (!!tv.gruppo && gruppiSel.has(tv.gruppo))
+            const membri = sa.tavoli.filter(inGroup)
+            // capofila: chi ha una prenotazione, poi chi è non-libero, poi numero più basso
+            const capo = membri.find(m => m.nominativo)
+              ?? membri.find(m => m.stato !== 'libero')
+              ?? [...membri].sort((a, b) => (parseInt(a.numero, 10) || 0) - (parseInt(b.numero, 10) || 0))[0]
+            return {
+              ...sa,
+              tavoli: sa.tavoli.map(tv => {
+                if (!inGroup(tv)) return tv
+                if (tv.id === capo.id) return { ...tv, gruppo: g }
+                // gli altri membri adottano stato/seatedAt del capofila e azzerano i propri dati
+                return {
+                  ...tv, gruppo: g, stato: capo.stato, seatedAt: capo.seatedAt,
+                  nominativo: undefined, telefono: undefined, orario: undefined, data: undefined,
+                  coperti: undefined, note: undefined, clienteId: undefined, cameriere: undefined,
+                  camera: undefined, cameraOspite: undefined,
+                }
+              }),
+            }
+          }),
+        }))
+      },
+      separaGruppo: (salaId, gruppo) =>
+        set(st => ({
+          sale: st.sale.map(sa => sa.id !== salaId ? sa : {
+            ...sa, tavoli: sa.tavoli.map(tv => tv.gruppo === gruppo ? { ...tv, gruppo: undefined } : tv),
+          }),
+        })),
+      trasferisci: (salaId, fromId, toId) =>
+        set(st => ({
+          sale: st.sale.map(sa => {
+            if (sa.id !== salaId) return sa
+            const from = sa.tavoli.find(t => t.id === fromId)
+            if (!from || fromId === toId) return sa
+            const carry: Partial<Tavolo> = {
+              stato: from.stato, nominativo: from.nominativo, telefono: from.telefono,
+              orario: from.orario, data: from.data, coperti: from.coperti, note: from.note,
+              cameriere: from.cameriere, clienteId: from.clienteId, seatedAt: from.seatedAt,
+              camera: from.camera, cameraOspite: from.cameraOspite,
+            }
+            const vuoto: Partial<Tavolo> = {
+              stato: 'libero', nominativo: undefined, telefono: undefined, orario: undefined,
+              data: undefined, coperti: undefined, note: undefined, cameriere: undefined,
+              clienteId: undefined, seatedAt: undefined, camera: undefined, cameraOspite: undefined,
+            }
+            return {
+              ...sa,
+              tavoli: sa.tavoli.map(t =>
+                t.id === toId ? { ...t, ...carry }
+                : t.id === fromId ? { ...t, ...vuoto }
+                : t),
+            }
+          }),
+        })),
     }),
     { name: 'sibylla.sale', version: 1 },
   ),
