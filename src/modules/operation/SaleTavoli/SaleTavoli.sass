@@ -198,6 +198,25 @@
     overflow: hidden
     text-overflow: ellipsis
 
+  // sedie attorno al tavolo (planimetria)
+  &__tav-seat
+    position: absolute
+    left: 50%
+    top: 50%
+    width: 9px
+    height: 9px
+    border-radius: 3px 3px 2px 2px
+    background: #eef2f6
+    border: 1px solid #b3c1cc
+    transform: translate(-50%, -50%) translate(var(--sx), var(--sy))
+    pointer-events: none
+  &__tav.is-libero &__tav-seat
+    border-color: #7fd8b3
+  &__tav.is-occupato &__tav-seat
+    border-color: #ffb0b7
+  &__tav.is-riservato &__tav-seat
+    border-color: #e6cf92
+
   // ── dettaglio (destra) ──
   &__side
     width: 320px

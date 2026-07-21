@@ -23,6 +23,27 @@ import {
 import './SaleTavoli.sass';
 
 const CELL = 40;
+const SEAT_GAP = 7;   // distanza sedia dal bordo tavolo (px)
+
+// Posizioni delle sedie attorno a un tavolo sulla planimetria (coordinate in px
+// relative al centro del tavolo): lungo i due lati lunghi per i rettangolari,
+// distribuite in cerchio per rotondi/quadrati.
+const canvasSeats = (t: Tavolo): { x: number; y: number }[] => {
+  const W = t.w * CELL - 8, H = t.h * CELL - 8, hw = W / 2, hh = H / 2;
+  const out: { x: number; y: number }[] = [];
+  if (t.forma === 'rettangolare') {
+    const top = Math.ceil(t.capienza / 2), bot = t.capienza - top;
+    for (let i = 0; i < top; i++) out.push({ x: -hw + (W * (i + 1)) / (top + 1), y: -(hh + SEAT_GAP) });
+    for (let i = 0; i < bot; i++) out.push({ x: -hw + (W * (i + 1)) / (bot + 1), y: hh + SEAT_GAP });
+  } else {
+    for (let i = 0; i < t.capienza; i++) {
+      const a = (i / t.capienza) * Math.PI * 2 - Math.PI / 2;
+      out.push({ x: Math.cos(a) * (hw + SEAT_GAP), y: Math.sin(a) * (hh + SEAT_GAP) });
+    }
+  }
+  return out;
+};
+
 const FORME: TavoloForma[] = ['rotondo', 'quadrato', 'rettangolare'];
 const CAPIENZE = [2, 4, 6, 8];
 const STATI: TavoloStato[] = ['libero', 'occupato', 'riservato'];
@@ -160,6 +181,10 @@ const SaleTavoli: React.FC<Props> = () => {
                 onPointerDown={e => startDrag(e, t.id, t.x, t.y)}
                 title={`Tavolo ${t.numero} · ${t.capienza} coperti`}
               >
+                {canvasSeats(t).map((s, i) => (
+                  <span key={i} className="sale__tav-seat"
+                    style={{ '--sx': `${s.x}px`, '--sy': `${s.y}px` } as React.CSSProperties} />
+                ))}
                 <span className="sale__tav-num">{t.numero}</span>
                 <span className="sale__tav-cap"><i className="fa-solid fa-chair" /> {t.capienza}</span>
                 {t.nominativo && <span className="sale__tav-nom">{t.nominativo}</span>}
