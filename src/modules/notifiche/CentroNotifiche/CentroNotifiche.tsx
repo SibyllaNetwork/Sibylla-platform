@@ -43,6 +43,10 @@ interface NotificaUI {
   source?: 'platform' | 'tableau' | 'agora'
   /** notifica di tipo report: mostra i pulsanti Scarica / Visualizza report */
   report?: boolean
+  /** pagina report da aprire con "Visualizza report" (default: report-pickup) */
+  reportPage?: string
+  /** etichetta del tipo report mostrata nel dettaglio (default: Pickup) */
+  reportTipo?: string
   /** canale di consegna (es. "Email"): mostrato come badge al posto della severità */
   channel?: string
 }
@@ -277,13 +281,32 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       text: 'È disponibile il nuovo report PickUp.',
       ref: '',
       date: b.date, time: b.time, group: b.group,
-      read: b.read, source: 'platform' as const, report: true, channel: 'Email',
+      read: b.read, source: 'platform' as const, report: true, reportPage: 'report-pickup', reportTipo: 'Pickup', channel: 'Email',
     }))
   }, [reportPickupOn])
 
+  // Notifiche "Report City Tax" — report settimanale della tassa di soggiorno,
+  // consegnate ogni mattina alle 09:00 via email; dal dettaglio si apre il report.
+  const cityTaxNotifs: NotificaUI[] = useMemo(() => {
+    const base: { date: string; time: string; group: NotificaUI['group']; read: boolean }[] = [
+      { date: 'MAR 21 LUG', time: '09:00', group: 'oggi',          read: false },
+      { date: 'LUN 13 LUG', time: '09:00', group: 'mese-corrente', read: true },
+      { date: 'LUN 06 LUG', time: '09:00', group: 'mese-corrente', read: true },
+    ]
+    return base.map((b, i) => ({
+      id: 970000 + i,
+      sev: 'info' as const,
+      title: 'Report City Tax',
+      text: 'È disponibile il report settimanale della tassa di soggiorno, struttura per struttura.',
+      ref: '',
+      date: b.date, time: b.time, group: b.group,
+      read: b.read, source: 'platform' as const, report: true, reportPage: 'report-city-tax', reportTipo: 'City Tax (tassa di soggiorno)', channel: 'Email',
+    }))
+  }, [])
+
   const allNotifications = useMemo(
-    () => [...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),
@@ -516,7 +539,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                   <dl className="notifiche__detail-list">
                     <div className="notifiche__detail-list-row">
                       <dt>Tipo report</dt>
-                      <dd>Pickup</dd>
+                      <dd>{selectedNotif.reportTipo ?? 'Pickup'}</dd>
                     </div>
                     <div className="notifiche__detail-list-row">
                       <dt>Ricevuta il</dt>
@@ -529,24 +552,26 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
                   </dl>
 
                   <div className="notifiche__detail-actions">
-                    <button
-                      type="button"
-                      className="sib-btn sib-btn--secondary"
-                      onClick={async () => {
-                        try {
-                          await exportReportPickupPdf()
-                          toast.success('Download del report Pickup avviato.', 'Report Pickup')
-                        } catch {
-                          toast.error('Impossibile generare il PDF del report.', 'Report Pickup')
-                        }
-                      }}
-                    >
-                      <i className="fa-light fa-file-arrow-down" aria-hidden="true" /> Scarica report PickUp
-                    </button>
+                    {(selectedNotif.reportPage ?? 'report-pickup') === 'report-pickup' && (
+                      <button
+                        type="button"
+                        className="sib-btn sib-btn--secondary"
+                        onClick={async () => {
+                          try {
+                            await exportReportPickupPdf()
+                            toast.success('Download del report Pickup avviato.', 'Report Pickup')
+                          } catch {
+                            toast.error('Impossibile generare il PDF del report.', 'Report Pickup')
+                          }
+                        }}
+                      >
+                        <i className="fa-light fa-file-arrow-down" aria-hidden="true" /> Scarica report PickUp
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="sib-btn sib-btn--primary"
-                      onClick={() => navigate('report-pickup')}
+                      onClick={() => navigate(selectedNotif.reportPage ?? 'report-pickup')}
                     >
                       <i className="fa-light fa-chart-column" aria-hidden="true" /> Visualizza report
                     </button>
