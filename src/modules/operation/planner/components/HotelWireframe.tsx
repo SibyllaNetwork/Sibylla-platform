@@ -163,10 +163,13 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
         </g>
       );
     };
-    const mid = maxC / 2;
+    // banco accorciato (a sinistra) per lasciar vedere l'ascensore a destra;
+    // receptionist centrato sul banco
+    const deskR = maxC - 1.0;
+    const mid = (0.6 + deskR) / 2;
     const [hx, hy] = P(mid, 0.55, 17);
-    // pianta: vaso + chioma
-    const [lx, ly] = P(maxC - 0.4, 0.5, 14);
+    // pianta: vaso + chioma (spostata nell'angolo posteriore sinistro)
+    const [lx, ly] = P(0.4, 0.5, 14);
     return (
       <g>
         <polygon className="hotel-viz__rcp-rug" points={poly([P(0.45, 1.55), P(maxC - 0.45, 1.55), P(maxC - 0.45, maxR - 0.35), P(0.45, maxR - 0.35)])} />
@@ -178,15 +181,15 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
         {Chair(0.5, maxR - 1.2, 'ch1')}
         {Chair(maxC - 1.12, maxR - 1.2, 'ch2')}
 
-        {/* desk reception (in fondo) */}
-        {Box(0.6, 0.7, maxC - 0.6, 1.2, 11, 'desk')}
+        {/* desk reception (in fondo, accorciato) */}
+        {Box(0.6, 0.7, deskR, 1.2, 11, 'desk')}
 
         {/* receptionist al desk */}
         <line className="hotel-viz__rcp-body" x1={P(mid, 0.55)[0]} y1={P(mid, 0.55)[1] - 4} x2={hx} y2={hy + 3} />
         <circle className="hotel-viz__rcp-head" cx={hx} cy={hy} r={3.4} />
 
-        {/* pianta in vaso (angolo) */}
-        {Box(maxC - 0.55, 0.35, maxC - 0.25, 0.65, 7, 'pot', 'rcppot')}
+        {/* pianta in vaso (angolo posteriore sinistro) */}
+        {Box(0.25, 0.35, 0.55, 0.65, 7, 'pot', 'rcppot')}
         <circle className="hotel-viz__rcp-leaf" cx={lx} cy={ly - 1} r={4.6} />
         <circle className="hotel-viz__rcp-leaf" cx={lx - 3.5} cy={ly + 1.5} r={3.4} />
         <circle className="hotel-viz__rcp-leaf" cx={lx + 3.5} cy={ly + 1.5} r={3.4} />
