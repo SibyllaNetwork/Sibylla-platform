@@ -620,6 +620,12 @@
     stroke: alpha($white, 0.35)
     stroke-width: 0.6
 
+  // luce della porta del piano in arrivo (sale dalla base alla cima)
+  &__lift-arrive
+    fill: #F0C24A
+    stroke: alpha(#8A6A15, 0.5)
+    stroke-width: 0.4
+
   // Avventori animati (overlay: reception → ascensore → piani → uscita)
   &__crowd
     pointer-events: none
@@ -644,16 +650,6 @@
     stroke: #8A6A15
     stroke-width: 1
     stroke-linecap: round
-
-  // cabina ascensore illuminata (visibile durante la corsa)
-  &__crowd-car
-    fill: #F6EFD5
-    stroke: #B79A4E
-    stroke-width: 0.7
-
-  &__crowd-car-seam
-    stroke: alpha(#8A6A15, 0.6)
-    stroke-width: 0.6
 
   // Piano cliccabile: evidenziazione hover / selezione
   &__iso-floor

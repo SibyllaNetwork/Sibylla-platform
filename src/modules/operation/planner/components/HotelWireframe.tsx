@@ -300,6 +300,7 @@ const HotelWireframe: React.FC<Props> = ({ piani, selectedId, onFloorClick }) =>
     midJ: maxR / 2,
     liftI: (EL.i0 + EL.i1) / 2,   // centro porta ascensore (parete posteriore)
     liftJ: EL.j1,
+    elI0: EL.i0, elI1: EL.i1, elH: EL.h,
   };
 
   return (
