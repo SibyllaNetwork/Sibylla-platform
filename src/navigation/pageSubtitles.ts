@@ -119,7 +119,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "rilevamento-presenze": "Report dei dati aggregati per nazionalità e delle presenze registrate",
   "ruoli-funzioni": "Gestisci in modo smart ruoli e profili per un’organizzazione efficiente",
   "sala-ristorante": "Gestisci layout sala, assegnazione tavoli in tempo reale",
-  "sale-tavoli": "Sintesi dei contenuti pubblicati verso il B2C e B2B",
+  "sale-tavoli": "Disposizione della sala e servizio ai tavoli",
   "sales-overview": "Analisi performance commerciale, ricavi e marginalità",
   "scadenzario": "Monitora e organizza la tua giornata, eventi e scadenze",
   "schedine": "Archivio automatico e centralizzato delle presenze",

@@ -117,6 +117,7 @@ import SibyllaAdminPanel           from '../admin/SibyllaAdminPanel/SibyllaAdmin
 import { isPlatformAdminPage, PLATFORM_ADMIN_PLATFORM_PAGE } from '../navigation/platformAdminMenu';
 import Planner                     from '../modules/operation/planner';
 import PlanimetriaEditor            from '../modules/operation/planner/PlanimetriaEditor/PlanimetriaEditor';
+import SaleTavoli                   from '../modules/operation/SaleTavoli/SaleTavoli';
 // ── Food & Beverage (Outlet Manager — outlet.sibyllanetwork.it) ──
 import OutletShell                 from '../modules/operation/Outlet/OutletShell';
 import type { OutletSubPage }      from '../modules/operation/Outlet/OutletShell';
@@ -281,6 +282,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'op-overview')           return <OperationOverview navigate={navigate}/>;
   if (page === 'guest-room')            return <GuestRoomAnalysis navigate={navigate}/>;
   if (page === 'planner')               return <Planner navigate={navigate}/>;
+  if (page === 'sale-tavoli')           return <SaleTavoli navigate={navigate}/>;
   if (page === 'sibylla-admin')         return <AssistenzaHome navigate={navigate}/>;
   if (page === 'assist-admin')          return <AssistAdmin navigate={navigate}/>;
   if (page === PLATFORM_ADMIN_PLATFORM_PAGE) return <SibyllaAdminPanel lockedMode="platform" navigate={navigate}/>;
