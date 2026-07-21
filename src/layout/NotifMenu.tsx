@@ -25,6 +25,7 @@ interface Notif {
 // ── Dati mock ─────────────────────────────────────────────────────────────────
 const INIT_DATA: Notif[] = [
   { id:100, sev:'info',    origin:'platform', title:'Report Pickup disponibile',           text:'Il report Pickup settimanale è pronto da consultare.',                          ref:'',           date:'Oggi 15:10',  read:false, reportPage:'report-pickup' },
+  { id:104, sev:'info',    origin:'platform', title:'Report City Tax disponibile',          text:'Il report settimanale della tassa di soggiorno (struttura per struttura) è pronto da consultare.', ref:'', date:'Oggi 09:00', read:false, reportPage:'report-city-tax' },
   { id:101, sev:'warning', origin:'platform', title:'Segnalazione presa in carico',         text:'',                                                                              ref:'',           date:'Oggi 14:32',  read:false },
   { id:102, sev:'info',    origin:'tableau',  title:'Richiesta extra da Tableau',           text:'Nuova richiesta extra da Tableau: Sibylla.',                                    ref:'',           date:'Oggi 12:08',  read:false },
   { id:103, sev:'info',    origin:'agora',    title:'Nuova prenotazione da Agora',          text:'Ricevuta prenotazione 2026/014510 dal canale Agora.',                           ref:'ID: 014510', date:'Oggi 11:42',  read:false },
@@ -61,7 +62,7 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   const reportPickupOn = useNotifPrefsStore(s => s.reportPickup)
 
   // Escludi le notifiche-report disabilitate dal configuratore.
-  const visibili = notifs.filter(n => !n.reportPage || (n.reportPage === 'report-pickup' && reportPickupOn))
+  const visibili = notifs.filter(n => !n.reportPage || (n.reportPage === 'report-pickup' && reportPickupOn) || n.reportPage === 'report-city-tax')
 
   const unreadCount = visibili.filter(n => !n.read).length
 
@@ -193,6 +194,20 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
                     </div>
                     {n.ref && <div className="notif-item__ref">{n.ref}</div>}
                     {n.text && <p className="notif-item__text">{n.text}</p>}
+                    {n.reportPage && (
+                      <button
+                        type="button"
+                        className="notif-item__report-btn"
+                        onClick={e => {
+                          e.stopPropagation()
+                          markRead(n.id)
+                          navigate(n.reportPage!)
+                          setOpen(false)
+                        }}
+                      >
+                        <i className="fa-light fa-chart-column" aria-hidden="true" /> Visualizza report
+                      </button>
+                    )}
                     <div className="notif-item__badges">
                       <span
                         className="notif-item__origin-badge"

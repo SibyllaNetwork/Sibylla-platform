@@ -30,6 +30,7 @@ import ValueAnalysis              from '../modules/sales/pricing/ValueAnalysis/V
 import ExecutiveOverview          from '../modules/executive/ExecutiveOverview/ExecutiveOverview';
 import BiPlaceholder              from '../modules/_scaffold/BiPlaceholder';
 import ReportPickup               from '../modules/sales/pricing/ReportPickup/ReportPickup';
+import ReportCityTax              from '../modules/finance/ReportCityTax/ReportCityTax';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
 import GestionePianiTariffari      from '../modules/sales/distribution/GestionePianiTariffari/GestionePianiTariffari';
 import MaggiorazioniPromozioni     from '../modules/sales/distribution/MaggiorazioniPromozioni/MaggiorazioniPromozioni';
@@ -239,6 +240,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'value-analysis')        return <ValueAnalysis navigate={navigate}/>;
   if (page === 'executive-overview')    return <ExecutiveOverview navigate={navigate}/>;
   if (page === 'report-pickup')         return <ReportPickup navigate={navigate}/>;
+  if (page === 'report-city-tax')       return <ReportCityTax navigate={navigate}/>;
   // Pagine BI Finance (placeholder in attesa del contenuto definitivo)
   if (['finance-overview', 'break-even', 'cashflow', 'profit-trend', 'cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis', 'wif-analysis', 'analisi-scenari-mensili'].includes(page))
     return <BiPlaceholder page={page} navigate={navigate}/>;
