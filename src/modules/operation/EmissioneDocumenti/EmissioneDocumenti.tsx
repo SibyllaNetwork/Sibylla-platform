@@ -55,6 +55,9 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
   const [tipoDoc, setTipoDoc] = useState('Scontrino')
   const isFattura = tipoDoc === 'Fattura'
 
+  // Stato della stampante fiscale collegata (mock). Sempre mostrato in pagina.
+  const printerOnline = true
+
   // Scontrino
   const [nome, setNome] = useState('')
   const [cognome, setCognome] = useState('')
@@ -114,7 +117,19 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
         title="Emissione documenti"
         subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
         onBack={() => navigate('ospiti-in-casa')}
-        actions={<div className="emissione-doc__stampante">Stampante fiscale ...</div>}
+        actions={
+          <div
+            className={`emissione-doc__printer ${printerOnline ? 'is-online' : 'is-offline'}`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="emissione-doc__printer-dot" aria-hidden="true" />
+            <i className="fa-solid fa-print emissione-doc__printer-ico" aria-hidden="true" />
+            <span className="emissione-doc__printer-label">
+              {printerOnline ? 'Stampante fiscale online' : 'Stampante fiscale non disponibile'}
+            </span>
+          </div>
+        }
       />
 
       {/* ─── Documento ─────────────────────────────────────────────────────── */}

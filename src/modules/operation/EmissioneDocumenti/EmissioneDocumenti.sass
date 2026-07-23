@@ -11,15 +11,55 @@
   > .sib-btn--back
     align-self: flex-start
 
-  &__stampante
-    background: rgba(245, 198, 50, 0.18)
-    border-bottom: 1px solid rgba(245, 198, 50, 0.55)
-    color: $text-active
-    text-align: center
-    font-size: 12px
-    padding: 4px 12px
-    margin: -6px -16px 0
-    font-style: italic
+  // Tutti i controlli della form alla stessa altezza standard (34px):
+  // il select è già 34px, l'input di default è 36px → lo riporto a 34px.
+  .sib-input
+    height: 34px
+
+  // ── Stato stampante fiscale ─────────────────────────────────────────────────
+  // Chip integrato nelle azioni del PageHead: ben visibile ma non estraneo.
+  &__printer
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 14px
+    border-radius: 999px
+    border: 1px solid transparent
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+
+    &.is-online
+      background: $success-light
+      border-color: $success-mid
+      color: $success
+
+    &.is-offline
+      background: $error-light
+      border-color: $error
+      color: $error-dark
+
+  &__printer-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    flex-shrink: 0
+
+    .is-online &
+      background: $success
+
+    .is-offline &
+      background: $error
+
+  &__printer-ico
+    font-size: 14px
+
+    .is-online &
+      color: $success
+
+    .is-offline &
+      color: $error-dark
 
   &__section-title
     margin: 4px 0 0 0
