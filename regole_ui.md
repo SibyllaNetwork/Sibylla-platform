@@ -23,6 +23,7 @@ Indice:
 9. [Icone nelle tabelle](#9-icone-nelle-tabelle)
 10. [Paginazione](#10-paginazione)
 11. [Conferme, eliminazioni e tooltip](#11-conferme-eliminazioni-e-tooltip)
+12. [Carrello e acquisti](#12-carrello-e-acquisti)
 
 ---
 
@@ -266,3 +267,23 @@ dimensioni standard).
     un `<ConfirmDialog/>` anche lì (lo store zustand è già globale).
 - **Tooltip standard**: usare il componente condiviso **`Tooltip`**, MAI il `title=`
   nativo (OS-styled, non conforme).
+
+---
+
+## 12. Carrello e acquisti
+
+- **Un solo carrello di piattaforma.** Lo stato del carrello vive nello store condiviso
+  **`useCartStore`** (`src/store/useCartStore.ts`) ed è aperto dall'**icona carrello in
+  Topbar** (rotta `catalogo-cart`, "Il Mio Carrello"). Il carrello mostra TUTTI i tipi
+  di item: prodotti, soggiorni (`stay`), servizi.
+- **Ogni pagina che prevede "aggiungi al carrello"** deve scrivere in `useCartStore`
+  (`addProduct` / `addStay` / `addService`) e, per "vai al carrello", navigare a
+  **`catalogo-cart`**. **MAI** creare carrelli locali/paralleli o mandare l'utente a un
+  carrello diverso.
+- **Pagamento**: dal carrello si passa alla pagina **`catalogo-pagamento`** (form carta di
+  credito con anteprima, gestione **acconto**/saldo, indirizzo di spedizione e recapiti).
+  Importo, acconto, metodo e articoli viaggiano nello store **`useCheckoutStore`**.
+- **Eccezione nota:** la sotto-app **Agorà** ha un proprio `CartContext` interno (shell
+  separata con Design System dedicato); dove possibile scrive anche nello store globale
+  (es. `AccommodationsPage` fa dual-write). L'unificazione completa dell'Agorà è un
+  refactor a parte.
