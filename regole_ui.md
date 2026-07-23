@@ -19,7 +19,7 @@ Indice:
 5. [Layout di pagina](#5-layout-di-pagina)
 6. [Campi form](#6-campi-form)
 7. [Tabelle](#7-tabelle)
-8. [Tabelle responsive — niente scroll orizzontale](#8-tabelle-responsive--niente-scroll-orizzontale)
+8. [Responsività su laptop — niente scroll orizzontale](#8-responsività-su-laptop--niente-scroll-orizzontale)
 9. [Icone nelle tabelle](#9-icone-nelle-tabelle)
 10. [Paginazione](#10-paginazione)
 11. [Conferme, eliminazioni e tooltip](#11-conferme-eliminazioni-e-tooltip)
@@ -168,18 +168,26 @@ Stile canonico implementato nella classe condivisa **`.sib-table` / `.sib-table-
 
 ---
 
-## 8. Tabelle responsive — niente scroll orizzontale
+## 8. Responsività su laptop — niente scroll orizzontale
 
-**Regola tassativa e universale:** **nessuna tabella deve avere scroll orizzontale**,
-almeno fino alle dimensioni di un **laptop**. Obiettivo: a **1366px con sidebar aperta**
-(area contenuto ~1056px) la tabella sta senza scroll-x. Sopra la soglia, dimensioni
-STANDARD.
+**Regola tassativa e universale:** **nessun contenuto della pagina deve avere scroll
+orizzontale fino alle dimensioni di un laptop** (tabelle, toolbar, card, griglie,
+pannelli affiancati…). Vale ovunque, su tutte le pagine — presenti, passate e future —
+e va applicata proattivamente, non solo quando si tocca la pagina.
+
+**Soglia di riferimento:** a **1366px con sidebar aperta** l'area contenuto è ~**1056px**
+(sidebar ≈ 260px + padding contenuto). Fino a lì tutto deve rientrare senza scroll-x.
+**Sopra la soglia** icone, font, padding e ingombri **restano quelli standard** (mai
+rimpicciolire ovunque): la compattazione scatta SOLO quando serve.
 
 **Regola d'oro: usare una CONTAINER QUERY sul root della pagina, MAI una `@media`
 sul viewport.** Il viewport ignora la sidebar: un laptop 1440/1536 con sidebar aperta
-ha ~1130/1230px di contenuto → la tabella standard va in overflow, ma
+ha ~1130/1230px di contenuto → il contenuto a dimensioni standard va in overflow, ma
 `@media (max-width:1366px)` NON scatta → scroll. La container query misura la larghezza
-reale del contenuto e funziona a ogni risoluzione.
+reale del contenuto e funziona a ogni risoluzione. Sul root pagina:
+`container-type: inline-size` + `container-name: <pagina>`; compattazione dentro
+`@container <pagina> (max-width: ~1360px)` (soglia = min-content del contenuto a
+dimensioni standard).
 
 ```css
 /* Root della pagina */
@@ -205,14 +213,18 @@ reale del contenuto e funziona a ogni risoluzione.
 ```
 
 **Vincoli tassativi:**
-- Risolvere **SOLO con le dimensioni** (font, padding, dimensione icone/bottoni).
+- Risolvere **SOLO con le dimensioni** (font, padding, dimensione icone/bottoni, larghezza
+  dei campi). Mai eliminare informazione.
 - **NON abbreviare le intestazioni di colonna**, **NON** aggiungere menu "…"/overflow
   se non esplicitamente richiesto: le etichette restano complete.
 - Sopra la soglia: tutto torna alle dimensioni standard.
-- Ordine di intervento se la sola compattazione non basta: 1) container query;
+- Nelle **tabelle**: il testo **non deve mai andare a capo** (`white-space: normal` non
+  ammesso). Ordine di intervento se la sola compattazione non basta: 1) container query;
   2) ellipsis (troncamento + puntini) o abbreviazione puntata **+ tooltip** col testo
-  completo (§7). Il testo **non deve mai andare a capo**: `white-space: normal` non è
-  ammesso nelle tabelle.
+  completo (§7).
+- Nelle **toolbar/filtri** che devono stare su una riga: `flex-wrap: nowrap`, il campo
+  Cerca come elastico (`flex: 1 1 …; min-width`), e sotto soglia comprimere anche
+  badge/select/date.
 - Verificare a **1366 / 1440 / 1536** con sidebar aperta (overflow 0) e a **1920**
   (dimensioni standard). Riferimenti d'implementazione: **OspitiInCasa**, **AnnunciTable**.
 
