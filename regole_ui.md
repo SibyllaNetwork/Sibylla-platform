@@ -6,10 +6,15 @@
 > si tocca la pagina interessata. In caso di dubbio, prevalgono su qualsiasi
 > abitudine o scorciatoia.
 
+> ## ⛔️ MAI CSS INLINE
+> **Il CSS NON deve MAI essere scritto inline.** Nessun attributo `style={{…}}` /
+> `style="…"` sui componenti — nessuna eccezione, nemmeno per tweak minimi. **OGNI
+> stile va in un file `.css`** con lo stesso nome del componente. Dettagli in §3.
+
 Indice:
 1. [Principi fondamentali](#1-principi-fondamentali)
 2. [Componenti condivisi](#2-componenti-condivisi)
-3. [Stili, SASS e token colore](#3-stili-sass-e-token-colore)
+3. [Stili, CSS e token colore](#3-stili-css-e-token-colore)
 4. [Header di pagina e bottone Indietro](#4-header-di-pagina-e-bottone-indietro)
 5. [Layout di pagina](#5-layout-di-pagina)
 6. [Campi form](#6-campi-form)
@@ -29,7 +34,7 @@ Tre regole non negoziabili che stanno alla base di tutto:
    condiviso. Se non esiste, NON improvvisare: si crea il componente condiviso
    (condividendo la scelta con l'utente). → §2
 2. **MAI CSS inline.** Nessun `style={{…}}` / `style="…"`. Ogni stile vive in un file
-   `.sass` con lo stesso nome del componente. → §3
+   `.css` con lo stesso nome del componente. → §3
 3. **Solo token colore.** Mai hex hardcoded, mai `rgba()` di una CSS var. → §3
 
 ---
@@ -54,34 +59,30 @@ di standard si fa una volta sola e si propaga a tutte le pagine.
 
 ---
 
-## 3. Stili, SASS e token colore
+## 3. Stili, CSS e token colore
 
 ### CSS inline — VIETATO (regola tassativa, nessuna eccezione)
 - Vietato l'attributo `style={{…}}` / `style="…"` sui componenti.
-- OGNI stile va in un file `.sass` con lo **stesso nome del componente**, nella
+- OGNI stile va in un file `.css` con lo **stesso nome del componente**, nella
   stessa cartella, importato in testa al `.tsx`. Anche i tweak minimi
-  (`display:none`, `marginTop:8`) vanno in classi `.sass`.
-- Convenzione file `.sass`: header di commento + `@use '.../tokens' as *` + classi
-  BEM con prefisso modulo (es. `.reset-profili__stub-badge`).
+  (`display:none`, `marginTop:8`) vanno in classi `.css`.
+- Convenzione file `.css`: header di commento + classi BEM con prefisso modulo
+  (es. `.reset-profili__stub-badge`).
 - Per uno stile dinamico runtime (es. colore derivato da dati): usare CSS custom
-  property o `data-attribute` + selettori SASS; l'inline resta l'ultima spiaggia e va
+  property o `data-attribute` + selettori CSS; l'inline resta l'ultima spiaggia e va
   motivato in commento.
 
 ### Colori & token
-- I colori sono **CSS custom properties** `--color-*` / token SASS (`$primary`,
-  `$border`, `$error`…). **MAI hex hardcoded.**
-- **MAI `rgba($tokenVar, …)`**: i token sono `var(--color-*)`, non colori SASS →
-  `rgba(var(--color-primary), .08)` è CSS invalido e la regola viene scartata.
-  Usare l'helper **`alpha($primary, 0.08)`** (`src/styles/_colors.sass`, forwardato da
-  `tokens`) oppure un token dedicato in `_themes.sass` (es. `--color-focus-ring`).
-- **`confirm` / `alert` / `danger` / `disabled` / `surface-subtle` / `link-soft` /
-  `border-soft`** esistono SOLO come palette Tailwind, NON come `--color-*`. Usarli via
-  `@apply` (`@apply bg-confirm-50 text-confirm-700`), MAI `var(--color-confirm-700)`
-  (inesistente → bug silenzioso). Per un colore come *valore* usare i token reali di
-  `_themes.sass`.
-- Nei file `.sass`, **MAI un commento `//` sulla stessa riga di una custom property**
-  (`--x: #fff // nota`): per le `--*` il valore è raw, il `//` finisce dentro il valore
-  e lo invalida. Il commento va su una riga separata sopra.
+- I colori sono **CSS custom properties** `--color-*` (es. `--color-primary`,
+  `--color-border`, `--color-error`). **MAI hex hardcoded.**
+- Per un colore **semitrasparente** tematizzabile da un token NON scrivere
+  `rgba(var(--color-primary), .08)`: è **CSS invalido** (`rgba()` non accetta una
+  `var()` come primo argomento → la regola viene scartata). Usare invece
+  **`color-mix(in srgb, var(--color-primary) 8%, transparent)`** oppure definire un
+  token dedicato (es. `--color-focus-ring`).
+- Per un colore ricorrente come *valore* (box-shadow, gradiente, custom property)
+  usare sempre i token reali `--color-*`, mai un letterale hex.
+- I commenti nei file `.css` sono solo `/* … */` (mai `//`).
 - **Tutti i bordi sono 1px**, mai 1.5px (regola globale piattaforma).
 
 ---
@@ -124,7 +125,7 @@ di standard si fa una volta sola e si propaga a tutte le pagine.
 
 - **Altezza standard input/select = 34px** su tutte le pagine.
   - Eccezione consapevole: **Nuova prenotazione** usa campi cella a **28px** (pagina densa).
-- **Label form**: font **Poppins, 12px, weight 600, `color: $primary`** (navy), case
+- **Label form**: font **Poppins, 12px, weight 600, `color: var(--color-primary)`** (navy), case
   normale (es. "Struttura", "Anno"). **MAI uppercase, MAI letter-spacing.** Lo stile
   vive nei componenti `SelectField`/`RadioGroup`: usarli direttamente quando possibile.
 - **Freccetta dei `<select>`**: SEMPRE la **doppia-chevron su/giù** di `.sib-select`.
@@ -136,11 +137,9 @@ di standard si fa una volta sola e si propaga a tutte le pagine.
 
 ## 7. Tabelle
 
-Stile canonico implementato nella classe **`.sib-table` / `.sib-table-wrap`**
-(`src/tailwind.css`, sezione "TABELLE / LISTE") — LO standard piattaforma. Per i pane
-del Configuratore esiste il mixin `pane-table-base` (`_paneShared.sass`) con gli stessi
-valori. Per una tabella nuova o da uniformare: `className="sib-table"`
-(+ `.sib-table-wrap` se non già dentro una card bordata).
+Stile canonico implementato nella classe condivisa **`.sib-table` / `.sib-table-wrap`**
+— LO standard piattaforma. Per una tabella nuova o da uniformare:
+`className="sib-table"` (+ `.sib-table-wrap` se non già dentro una card bordata).
 
 - **Bordi (tutti 1px):** wrapper `1px solid var(--color-border)`, radius 6px, overflow
   hidden; header→body border-bottom 1px; divisori tra righe `#eef0f3`; ultima riga
@@ -183,28 +182,27 @@ ha ~1130/1230px di contenuto → la tabella standard va in overflow, ma
 `@media (max-width:1366px)` NON scatta → scroll. La container query misura la larghezza
 reale del contenuto e funziona a ogni risoluzione.
 
-```sass
-// Root della pagina
-.mia-pagina
-  container-type: inline-size
-  container-name: mia-pagina
+```css
+/* Root della pagina */
+.mia-pagina {
+  container-type: inline-size;
+  container-name: mia-pagina;
+}
 
-  // Compatta SOLO sotto soglia (≈ min-content della tabella a dim. standard).
-  // Scoped alla pagina: lo standard globale .sib-table resta invariato.
-  @container mia-pagina (max-width: 1360px)
-    .sib-table
-      font-size: 12px            // standard 13px
-      thead th
-        font-size: 11px          // standard 12px
-      th, td
-        padding-left: 4px        // standard ~12px
-        padding-right: 4px
-      .sib-btn--icon             // colonne con molte icone (azioni) = voce più pesante
-        width: 24px              // standard 36px
-        height: 24px
-        font-size: 12px
-      td .flex                   // gap tra icone d'azione
-        gap: 1px
+/* Compatta SOLO sotto soglia (≈ min-content della tabella a dim. standard).
+   Scoped alla pagina: lo standard globale .sib-table resta invariato. */
+@container mia-pagina (max-width: 1360px) {
+  .sib-table { font-size: 12px; }             /* standard 13px */
+  .sib-table thead th { font-size: 11px; }    /* standard 12px */
+  .sib-table th,
+  .sib-table td { padding-inline: 4px; }      /* standard ~12px */
+  .sib-table .sib-btn--icon {                 /* colonne con molte icone (azioni) = voce più pesante */
+    width: 24px;                              /* standard 36px */
+    height: 24px;
+    font-size: 12px;
+  }
+  .sib-table td .flex { gap: 1px; }           /* gap tra icone d'azione */
+}
 ```
 
 **Vincoli tassativi:**
@@ -227,8 +225,8 @@ reale del contenuto e funziona a ogni risoluzione.
   (`fa-solid`), **senza bordo/box** (sfondo trasparente), colore **blu Platform =
   `var(--color-primary)` = #204769**, **16px**.
 - Per i bottoni-azione: la classe `sib-btn--icon` forza grigio 12px e box; va tolto il
-  box e impostato colore/size **direttamente sull'`i`** (`color: $primary; font-size:
-  16px`) tramite una classe scoped (es. `ospiti-casa__act-btn`).
+  box e impostato colore/size **direttamente sull'`i`** (`color: var(--color-primary);
+  font-size: 16px`) tramite una classe scoped (es. `ospiti-casa__act-btn`).
 - **Fuori dalla tabella** (toolbar / accanto al form: export PDF/XLS, avvisi): stile
   **Regular** (`fa-regular`), **box/bordo mantenuto** (`sib-btn--icon`), colore blu
   Platform #204769, 16px (colore e size sull'`i`).
