@@ -45,7 +45,9 @@ larghezza reale del contenuto e funziona a ogni risoluzione.
 ## 2. Colori & token
 - I colori sono **CSS custom properties** `--color-*` / token SASS (`$primary`, `$border`…).
   MAI hex hardcoded, MAI `rgba($tokenVar, …)` (i token sono `var(...)`, non colori SASS).
-- MAI inline style: ogni stile nel file `.sass` con lo stesso nome del componente.
+- **MAI CSS inline (regola tassativa, nessuna eccezione):** vietato l'attributo
+  `style={{…}}` / `style="…"` sui componenti. OGNI stile va nel file `.sass` con lo
+  stesso nome del componente, nella stessa cartella.
 
 ## 3. Componenti condivisi
 - MAI `<select>/<input>`/label custom: usare i componenti condivisi
