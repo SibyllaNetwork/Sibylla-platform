@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Layout } from './Layout';
-import { PageHeader } from './PageHeader';
 import { Icon } from '../ds/icon';
 import { Slider } from '../ds/slider';
-import { Button } from '../ds/button';
-import { Input } from '../ds/input';
-import { Label } from '../ds/label';
 import { Field } from '../ds/field';
-import { H3, P3 } from '../ds/typography';
+import {
+  DsButton,
+  DsInput,
+  DsLabel,
+  DsH3,
+  DsP3,
+  DsPageHeader,
+} from './dpDs';
 import { LocationMap } from './LocationMap';
 import {
   useVoucherParking,
@@ -287,7 +290,7 @@ export function DynamicPackagesPage() {
   return (
     <Layout>
       <div className="dp-page">
-        <PageHeader
+        <DsPageHeader
           title="Pacchetti dinamici"
           subtitle="Crea pacchetti personalizzati di esperienze, soggiorni, sapori e servizi"
         />
@@ -308,14 +311,14 @@ export function DynamicPackagesPage() {
               </div>
             </div>
             <div className="dp-cart-banner__actions">
-              <Button variant="secondary" size="md" onClick={() => navigate('/cart')}>
+              <DsButton variant="secondary" size="md" onClick={() => navigate('/cart')}>
                 <Icon family="light" name="cart-shopping" data-slot="icon" />
                 Vai al carrello
-              </Button>
-              <Button variant="primary" size="md" onClick={() => navigate('/checkout')}>
+              </DsButton>
+              <DsButton variant="primary" size="md" onClick={() => navigate('/checkout')}>
                 <Icon family="light" name="circle-check" data-slot="icon" />
                 Procedi al checkout
-              </Button>
+              </DsButton>
             </div>
           </aside>
         )}
@@ -325,18 +328,18 @@ export function DynamicPackagesPage() {
             <section className="dp-step">
               <div className="dp-step__head">
                 <span className="dp-step__num">1</span>
-                <H3>Dettagli pacchetto</H3>
+                <DsH3>Dettagli pacchetto</DsH3>
               </div>
-              <P3 className="dp-step__hint">
+              <DsP3 className="dp-step__hint">
                 Periodo, località, ospiti e budget del pacchetto.
-              </P3>
+              </DsP3>
 
               <div className="dp-stay">
                 <Field>
-                  <Label htmlFor="dp-date-from">Dal</Label>
+                  <DsLabel htmlFor="dp-date-from">Dal</DsLabel>
                   <div className="dp-ifield">
                     <Icon family="light" name="calendar-day" className="dp-ifield__icon" aria-hidden="true" />
-                    <Input
+                    <DsInput
                       id="dp-date-from"
                       type="date"
                       className="dp-ifield__input"
@@ -346,10 +349,10 @@ export function DynamicPackagesPage() {
                   </div>
                 </Field>
                 <Field>
-                  <Label htmlFor="dp-date-to">Al</Label>
+                  <DsLabel htmlFor="dp-date-to">Al</DsLabel>
                   <div className="dp-ifield">
                     <Icon family="light" name="calendar-day" className="dp-ifield__icon" aria-hidden="true" />
-                    <Input
+                    <DsInput
                       id="dp-date-to"
                       type="date"
                       className="dp-ifield__input"
@@ -360,7 +363,7 @@ export function DynamicPackagesPage() {
                   </div>
                 </Field>
                 <Field className="dp-field--wide">
-                  <Label htmlFor="dp-location">Località</Label>
+                  <DsLabel htmlFor="dp-location">Località</DsLabel>
                   <button
                     type="button"
                     id="dp-location"
@@ -387,15 +390,15 @@ export function DynamicPackagesPage() {
                   </div>
                 )}
                 <Field>
-                  <Label>Adulti</Label>
+                  <DsLabel>Adulti</DsLabel>
                   <Stepper value={adults} min={1} max={params.maxAdults} onChange={setAdults} />
                 </Field>
                 <Field>
-                  <Label>Bambini</Label>
+                  <DsLabel>Bambini</DsLabel>
                   <Stepper value={children} min={0} max={params.maxChildren} onChange={setChildren} />
                 </Field>
                 <Field className="dp-field--wide">
-                  <Label htmlFor="dp-budget">Budget</Label>
+                  <DsLabel htmlFor="dp-budget">Budget</DsLabel>
                   <div className="dp-budget">
                     <Slider
                       id="dp-budget"
@@ -418,11 +421,11 @@ export function DynamicPackagesPage() {
             <section className="dp-step">
               <div className="dp-step__head">
                 <span className="dp-step__num">2</span>
-                <H3>Scegli i servizi</H3>
+                <DsH3>Scegli i servizi</DsH3>
               </div>
-              <P3 className="dp-step__hint">
+              <DsP3 className="dp-step__hint">
                 Espandi una categoria e seleziona uno o più servizi da includere nel pacchetto.
-              </P3>
+              </DsP3>
 
               <div className="dp-cat-grid">
                 {CATEGORIES.map((cat) => (
@@ -439,11 +442,11 @@ export function DynamicPackagesPage() {
             </section>
 
             <div className="dp-actions">
-          <Button variant="tertiary" onClick={handleReset}>
+          <DsButton variant="tertiary" onClick={handleReset}>
             <Icon family="light" name="arrow-rotate-left" data-slot="icon" />
             Reset
-          </Button>
-          <Button
+          </DsButton>
+          <DsButton
             variant="primary"
             size="lg"
             onClick={handleSearch}
@@ -451,7 +454,7 @@ export function DynamicPackagesPage() {
           >
             <Icon family="light" name="magnifying-glass" data-slot="icon" />
             Genera pacchetti
-          </Button>
+          </DsButton>
             </div>
           </div>
 
@@ -489,7 +492,7 @@ export function DynamicPackagesPage() {
         {results.length > 0 && (
           <section className="dp-results">
             <header className="dp-results__head">
-              <H3>I migliori pacchetti per te</H3>
+              <DsH3>I migliori pacchetti per te</DsH3>
               <p className="dp-results__meta">
                 Abbiamo analizzato <strong>{analyzed.toLocaleString('it-IT')}</strong> fornitori e questi sono i{' '}
                 <strong>{results.length}</strong> pacchetti migliori che riusciamo a generare per te.
@@ -516,12 +519,12 @@ export function DynamicPackagesPage() {
 
         <section className="dp-parking">
           <div className="dp-parking__head">
-            <H3>
+            <DsH3>
               <span className="dp-parking__icon">
                 <Icon family="light" name="wallet" />
               </span>
               Borsellino voucher
-            </H3>
+            </DsH3>
             <span className="dp-parking__counts">
               {(() => {
                 const purchased = vouchers.filter((v) => v.status === 'purchased').length;
@@ -548,9 +551,9 @@ export function DynamicPackagesPage() {
           </div>
 
           {vouchers.length === 0 ? (
-            <P3 className="dp-empty">
+            <DsP3 className="dp-empty">
               Nessun voucher salvato. Aggiungi pacchetti dai risultati per metterli nel borsellino.
-            </P3>
+            </DsP3>
           ) : (
             <div className="dp-voucher-grid">
               {vouchers.map((v) => (
@@ -766,7 +769,7 @@ function VoucherCard({
       <div className="dp-voucher__main">
         <div className="dp-voucher__head">
           <div className="dp-voucher__title-row">
-            <H3>{pkg.title}</H3>
+            <DsH3>{pkg.title}</DsH3>
             {isPurchased && (
               <span className="dp-voucher__badge">
                 <Icon family="solid" name="circle-check" /> Acquistato
@@ -778,7 +781,7 @@ function VoucherCard({
               </span>
             )}
           </div>
-          <P3>{pkg.description}</P3>
+          <DsP3>{pkg.description}</DsP3>
         </div>
         <div className="dp-voucher__services">
           {pkg.services.map((s) => (
@@ -799,37 +802,37 @@ function VoucherCard({
         <span className="dp-voucher__price-label">Totale</span>
         <span className="dp-voucher__price">€ {pkg.price.toFixed(0)}</span>
         <div className="dp-voucher__stub-actions">
-          <Button variant="tertiary" size="sm" onClick={onDetails}>
+          <DsButton variant="tertiary" size="sm" onClick={onDetails}>
             <Icon family="light" name="circle-info" data-slot="icon" />
             Dettagli
-          </Button>
+          </DsButton>
           {isPurchased ? (
-            <Button variant="primary" size="sm" onClick={onGenerateVoucher}>
+            <DsButton variant="primary" size="sm" onClick={onGenerateVoucher}>
               <Icon family="light" name="ticket" data-slot="icon" />
               Genera Voucher
-            </Button>
+            </DsButton>
           ) : isInCart ? (
-            <Button variant="primary" size="sm" onClick={onGoToCart}>
+            <DsButton variant="primary" size="sm" onClick={onGoToCart}>
               <Icon family="light" name="cart-shopping" data-slot="icon" />
               Vai al carrello
-            </Button>
+            </DsButton>
           ) : (
             <>
               {isSaved ? (
-                <Button variant="tertiary" size="sm" onClick={onRemove}>
+                <DsButton variant="tertiary" size="sm" onClick={onRemove}>
                   <Icon family="light" name="bookmark-slash" data-slot="icon" />
                   Rimuovi
-                </Button>
+                </DsButton>
               ) : (
-                <Button variant="secondary" size="sm" onClick={onSave}>
+                <DsButton variant="secondary" size="sm" onClick={onSave}>
                   <Icon family="light" name="bookmark" data-slot="icon" />
                   Salva
-                </Button>
+                </DsButton>
               )}
-              <Button variant="primary" size="sm" onClick={onPurchase}>
+              <DsButton variant="primary" size="sm" onClick={onPurchase}>
                 <Icon family="light" name="bag-shopping" data-slot="icon" />
                 Acquista
-              </Button>
+              </DsButton>
             </>
           )}
         </div>
@@ -874,7 +877,7 @@ function ParkedVoucher({
       <div className="dp-voucher__main">
         <div className="dp-voucher__head">
           <div className="dp-voucher__title-row">
-            <H3>{voucher.title}</H3>
+            <DsH3>{voucher.title}</DsH3>
             {isPurchased && (
               <span className="dp-voucher__badge">
                 <Icon family="solid" name="circle-check" /> Acquistato
@@ -886,7 +889,7 @@ function ParkedVoucher({
               </span>
             )}
           </div>
-          <P3>{voucher.description}</P3>
+          <DsP3>{voucher.description}</DsP3>
         </div>
         <div className="dp-voucher__services">
           {voucher.services.map((s) => (
@@ -896,40 +899,40 @@ function ParkedVoucher({
           ))}
         </div>
         <div className="dp-voucher__actions">
-          <Button variant="tertiary" size="sm" onClick={onDetails}>
+          <DsButton variant="tertiary" size="sm" onClick={onDetails}>
             <Icon family="light" name="circle-info" data-slot="icon" />
             Dettagli
-          </Button>
+          </DsButton>
           {isPurchased && (
-            <Button variant="primary" size="sm" onClick={onGenerateVoucher}>
+            <DsButton variant="primary" size="sm" onClick={onGenerateVoucher}>
               <Icon family="light" name="ticket" data-slot="icon" />
               Genera Voucher
-            </Button>
+            </DsButton>
           )}
           {isInCart && (
-            <Button variant="secondary" size="sm" onClick={onOpenCart}>
+            <DsButton variant="secondary" size="sm" onClick={onOpenCart}>
               <Icon family="light" name="cart-shopping" data-slot="icon" />
               Vai al carrello
-            </Button>
+            </DsButton>
           )}
           {!isPurchased && !isInCart && (
-            <Button variant="primary" size="sm" onClick={onPurchase}>
+            <DsButton variant="primary" size="sm" onClick={onPurchase}>
               <Icon family="light" name="bag-shopping" data-slot="icon" />
               Acquista
-            </Button>
+            </DsButton>
           )}
-          <Button variant="tertiary" size="sm" onClick={onPrint}>
+          <DsButton variant="tertiary" size="sm" onClick={onPrint}>
             <Icon family="light" name="print" data-slot="icon" />
             Stampa
-          </Button>
-          <Button variant="tertiary" size="sm" onClick={onPdf}>
+          </DsButton>
+          <DsButton variant="tertiary" size="sm" onClick={onPdf}>
             <Icon family="light" name="file-pdf" data-slot="icon" />
             PDF
-          </Button>
-          <Button variant="tertiary" size="sm" onClick={onEmail}>
+          </DsButton>
+          <DsButton variant="tertiary" size="sm" onClick={onEmail}>
             <Icon family="light" name="envelope" data-slot="icon" />
             Email
-          </Button>
+          </DsButton>
           <button
             type="button"
             className="dp-voucher__remove"
@@ -1464,7 +1467,7 @@ function VoucherDetailsModal({
         </header>
 
         <div className="dp-modal__body">
-          <P3>{pkg.description}</P3>
+          <DsP3>{pkg.description}</DsP3>
 
           <div className="dp-modal__section">
             <h3 className="dp-modal__section-title">Dettagli soggiorno</h3>
@@ -1522,32 +1525,32 @@ function VoucherDetailsModal({
           </div>
           <div className="dp-modal__actions">
             {purchased ? (
-              <Button variant="primary" size="lg" onClick={onGenerateVoucher}>
+              <DsButton variant="primary" size="lg" onClick={onGenerateVoucher}>
                 <Icon family="light" name="ticket" data-slot="icon" />
                 Genera Voucher
-              </Button>
+              </DsButton>
             ) : inCart ? (
-              <Button variant="primary" size="lg" onClick={onGoToCart}>
+              <DsButton variant="primary" size="lg" onClick={onGoToCart}>
                 <Icon family="light" name="cart-shopping" data-slot="icon" />
                 Vai al carrello
-              </Button>
+              </DsButton>
             ) : (
               <>
                 {saved ? (
-                  <Button variant="tertiary" onClick={onRemove}>
+                  <DsButton variant="tertiary" onClick={onRemove}>
                     <Icon family="light" name="bookmark-slash" data-slot="icon" />
                     Rimuovi
-                  </Button>
+                  </DsButton>
                 ) : (
-                  <Button variant="secondary" onClick={onSave}>
+                  <DsButton variant="secondary" onClick={onSave}>
                     <Icon family="light" name="bookmark" data-slot="icon" />
                     Salva
-                  </Button>
+                  </DsButton>
                 )}
-                <Button variant="primary" size="lg" onClick={onPurchase}>
+                <DsButton variant="primary" size="lg" onClick={onPurchase}>
                   <Icon family="light" name="bag-shopping" data-slot="icon" />
                   Acquista
-                </Button>
+                </DsButton>
               </>
             )}
           </div>
