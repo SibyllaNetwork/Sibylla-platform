@@ -152,11 +152,19 @@ valori. Per una tabella nuova o da uniformare: `className="sib-table"`
 - **Niente zebra striping.** Righe body sempre **bianche** / `var(--color-surface)`,
   **nessun hover background**. Eventuali righe "speciali" restano bianche (al massimo
   separate con un border).
-- **Testo su UNA riga** (titoli colonna E celle): mai a capo. Usare **ellipsis** o
-  **abbreviazione puntata** (es. "Mancato arrivo" → "M. arrivo"). Ogni volta che un
-  testo è troncato o abbreviato ci DEVE essere un **tooltip col testo completo**
-  all'hover. Usare il componente condiviso **`TruncatedText`**
-  (`text` = mostrato, `full` = completo per il tooltip).
+- **Testo SEMPRE su UNA riga (regola tassativa) — MAI andare a capo.** In tutte le
+  tabelle, sia i titoli di colonna sia le celle non possono mai occupare più di una
+  riga (`white-space: nowrap`).
+  - Se il testo supera lo spazio della riga, va **troncato poco prima della fine**,
+    con i **puntini di sospensione** (ellipsis) e SEMPRE una **tooltip standard**
+    (§11, scura #1E293B) che all'hover mostra il **testo completo**.
+  - In alternativa all'ellipsis è ammessa l'**abbreviazione puntata** (es. "Mancato
+    arrivo" → "M. arrivo", "Non Rimborsabile" → "Non Rimb."): anche in questo caso è
+    obbligatoria la tooltip col testo completo.
+  - Usare il componente condiviso **`TruncatedText`** (`src/core/components/TruncatedText.tsx`):
+    `text` = testo mostrato (eventualmente abbreviato), `full` = testo completo per la
+    tooltip, `className` per la `max-width` della colonna. Mostra la tooltip in
+    automatico quando il testo va in overflow OPPURE quando `full` ≠ `text`.
 - **Struttura:** preferire CSS Grid a `<table>` per layout semplici.
 - Deroghe consapevoli allo standard tabella solo per griglie/matrici/calendari e
   tabelle di confronto in modale.
@@ -206,8 +214,9 @@ reale del contenuto e funziona a ogni risoluzione.
   se non esplicitamente richiesto: le etichette restano complete.
 - Sopra la soglia: tutto torna alle dimensioni standard.
 - Ordine di intervento se la sola compattazione non basta: 1) container query;
-  2) `white-space: normal` per andare a capo (mai abbreviare le intestazioni);
-  3) in ultima istanza ellipsis/abbreviazione + tooltip.
+  2) ellipsis (troncamento + puntini) o abbreviazione puntata **+ tooltip** col testo
+  completo (§7). Il testo **non deve mai andare a capo**: `white-space: normal` non è
+  ammesso nelle tabelle.
 - Verificare a **1366 / 1440 / 1536** con sidebar aperta (overflow 0) e a **1920**
   (dimensioni standard). Riferimenti d'implementazione: **OspitiInCasa**, **AnnunciTable**.
 
