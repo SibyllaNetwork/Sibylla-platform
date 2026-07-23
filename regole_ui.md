@@ -9,7 +9,7 @@
 > ## ⛔️ MAI CSS INLINE
 > **Il CSS NON deve MAI essere scritto inline.** Nessun attributo `style={{…}}` /
 > `style="…"` sui componenti — nessuna eccezione, nemmeno per tweak minimi. **OGNI
-> stile va in un file `.css`** con lo stesso nome del componente. Dettagli in §3.
+> stile va in un file `.css` dedicato. Dettagli in §3.
 
 Indice:
 1. [Principi fondamentali](#1-principi-fondamentali)
@@ -34,7 +34,7 @@ Tre regole non negoziabili che stanno alla base di tutto:
    condiviso. Se non esiste, NON improvvisare: si crea il componente condiviso
    (condividendo la scelta con l'utente). → §2
 2. **MAI CSS inline.** Nessun `style={{…}}` / `style="…"`. Ogni stile vive in un file
-   `.css` con lo stesso nome del componente. → §3
+   `.css` dedicato. → §3
 3. **Solo token colore.** Mai hex hardcoded, mai `rgba()` di una CSS var. → §3
 
 ---
@@ -63,9 +63,8 @@ di standard si fa una volta sola e si propaga a tutte le pagine.
 
 ### CSS inline — VIETATO (regola tassativa, nessuna eccezione)
 - Vietato l'attributo `style={{…}}` / `style="…"` sui componenti.
-- OGNI stile va in un file `.css` con lo **stesso nome del componente**, nella
-  stessa cartella, importato in testa al `.tsx`. Anche i tweak minimi
-  (`display:none`, `marginTop:8`) vanno in classi `.css`.
+- OGNI stile va in un file `.css` dedicato, importato in testa al `.tsx`. Anche i
+  tweak minimi (`display:none`, `marginTop:8`) vanno in classi `.css`.
 - Convenzione file `.css`: header di commento + classi BEM con prefisso modulo
   (es. `.reset-profili__stub-badge`).
 - Per uno stile dinamico runtime (es. colore derivato da dati): usare CSS custom
