@@ -154,7 +154,7 @@ Stile canonico implementato nella classe condivisa **`.sib-table` / `.sib-table-
   riga (`white-space: nowrap`).
   - Se il testo supera lo spazio della riga, va **troncato poco prima della fine**,
     con i **puntini di sospensione** (ellipsis) e SEMPRE una **tooltip standard**
-    (§11, scura #1E293B) che all'hover mostra il **testo completo**.
+    (§11) che all'hover mostra il **testo completo**.
   - In alternativa all'ellipsis è ammessa l'**abbreviazione puntata** (es. "Mancato
     arrivo" → "M. arrivo", "Non Rimborsabile" → "Non Rimb."): anche in questo caso è
     obbligatoria la tooltip col testo completo.
@@ -252,6 +252,5 @@ reale del contenuto e funziona a ogni risoluzione.
     distruttivo `sib-btn--danger`, label "Elimina"/"Annulla").
   - Nei mount separati (es. AgoraShell) che non condividono l'albero React va montato
     un `<ConfirmDialog/>` anche lì (lo store zustand è già globale).
-- **Tooltip standard: sfondo scuro `#1E293B`, testo bianco.** Usare il componente
-  condiviso **`Tooltip`** (default `variant="dark"`), MAI il `title=` nativo (OS-styled,
-  non conforme). La variante `light` solo dove intenzionale.
+- **Tooltip standard**: usare il componente condiviso **`Tooltip`**, MAI il `title=`
+  nativo (OS-styled, non conforme).
