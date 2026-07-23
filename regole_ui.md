@@ -18,7 +18,6 @@ Indice:
 9. [Icone nelle tabelle](#9-icone-nelle-tabelle)
 10. [Paginazione](#10-paginazione)
 11. [Conferme, eliminazioni e tooltip](#11-conferme-eliminazioni-e-tooltip)
-12. [Dark mode](#12-dark-mode)
 
 ---
 
@@ -259,17 +258,3 @@ reale del contenuto e funziona a ogni risoluzione.
 - **Tooltip standard: sfondo scuro `#1E293B`, testo bianco.** Usare il componente
   condiviso **`Tooltip`** (default `variant="dark"`), MAI il `title=` nativo (OS-styled,
   non conforme). La variante `light` solo dove intenzionale.
-
----
-
-## 12. Dark mode
-
-- Skin **dark** `[data-theme="dark"]` (scelta Standard/Dark in *Profilo › Modifica
-  profilo › Preferenze*). Token in `_themes.sass`, override componenti in
-  `src/styles/_skin-dark.sass`.
-- **`--color-primary` in dark è un accento CHIARO leggibile** (#6F9BCB), perché è usato
-  sia come testo emphasis sia come sfondo chrome: le superfici chrome che lo usano come
-  sfondo (topbar, sidebar) sono ri-scurite in `_skin-dark.sass`.
-- Per essere theme-reactive: superfici bianche → `var(--color-surface)`, bordi/grigi
-  chiari → `var(--color-border)`, canvas chiari → `var(--color-bg)`. **Mai literal
-  hardcoded.**
