@@ -1,235 +1,136 @@
-// ─── FATTURA DOCUMENTO (grafica professionale) ────────────────────────────────
+// ─── Documento fiscale (layout web) ──────────────────────────────────────────
+// Pagina "Documento fiscale" resa in chiave web (non foglio A4): intestazione con
+// letterhead, tabelle Addebiti/Pagamenti in stile piattaforma, barra icone-azione.
 @use '../../../styles/tokens' as *
 
-.fattura-doc
-  display: flex
-  flex-direction: column
-  align-items: center
-  gap: 16px
+.doc-fisc
+  padding-bottom: 32px
 
-  &__toolbar
-    align-self: stretch
-    display: flex
-    align-items: center
-    justify-content: space-between
-
-  &__fiscal-note
-    align-self: stretch
-    text-align: center
-    font-size: 12px
-    font-style: italic
-    color: $text-active
-    background: rgba(245, 198, 50, 0.18)
-    border: 1px solid rgba(245, 198, 50, 0.55)
-    border-radius: 6px
-    padding: 6px 12px
-
-  // Attestazione caparra
-  &__attesto-box
-    text-align: center
-    padding: 8px 0
-
-  &__attesto
-    line-height: 1.6
-
-  &__amount
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 32px
-    color: $primary
-    margin-top: 6px
-
-  &__amount-label
-    color: $text-inactive
-
-  &__foot-note
-    align-self: flex-end
-    font-size: 11px
-    color: $text-inactive
-    font-style: italic
-
-  &__sign
-    text-align: center
-
-  &__sign-line
-    width: 200px
-    border-top: 1px solid $text-inactive
-    margin-bottom: 4px
-
-  &__note
-    font-size: 11px
-    color: $text-inactive
-    line-height: 1.5
-    border-top: 1px solid $border
-    padding-top: 12px
-
-  // Foglio in stile A4
-  &__sheet
-    width: 100%
-    max-width: 800px
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10)
-    padding: 40px 44px
-    display: flex
-    flex-direction: column
-    gap: 26px
-    color: $text-active
-    font-size: 13px
-
-  // ── Intestazione ─────────────────────────────────────────────────────────
+  // ── Intestazione: numero/intestatario a sinistra, venditore a destra ────────
   &__head
     display: flex
     justify-content: space-between
     align-items: flex-start
     gap: 24px
-    padding-bottom: 18px
-    border-bottom: 2px solid $primary
+    margin-top: 8px
+    margin-bottom: 28px
+
+  &__docline
+    color: var(--color-accent)
+    font-size: 16px
+    font-weight: 600
+    margin-bottom: 12px
+
+  &__client
+    display: flex
+    flex-direction: column
+    gap: 2px
+    color: var(--color-accent)
+    font-size: 14px
+    line-height: 1.45
+
+  &__client--inline
+    display: block
+
+  // ── Venditore (letterhead) ──────────────────────────────────────────────────
+  &__seller
+    display: flex
+    align-items: center
+    gap: 14px
+    flex-shrink: 0
+
+  &__seller-logo
+    width: 74px
+    height: auto
+
+  &__seller-info
+    display: flex
+    flex-direction: column
+    gap: 1px
+    font-size: 14px
+    line-height: 1.4
+    color: var(--color-text-inactive)
 
   &__seller-name
-    font-family: $font-heading
+    color: var(--color-primary)
     font-weight: 700
-    font-size: 20px
-    color: $primary
-    margin-bottom: 4px
+    font-size: 16px
+    margin-bottom: 2px
 
-  &__seller-line
-    color: $text-inactive
-    line-height: 1.5
+  // ── Sezioni (Addebiti / Pagamenti) ──────────────────────────────────────────
+  &__section
+    margin-top: 24px
 
-  &__doc-meta
-    text-align: right
-    min-width: 200px
-
-  &__doc-title
-    font-family: $font-heading
+  &__section-title
+    color: var(--color-primary)
     font-weight: 700
-    font-size: 24px
-    color: $primary
-    text-transform: uppercase
-    letter-spacing: 0.04em
-    margin-bottom: 8px
+    font-size: 16px
+    margin-bottom: 10px
 
-  &__doc-row
-    display: flex
-    justify-content: space-between
-    gap: 16px
-    padding: 2px 0
-
-    span
-      color: $text-inactive
-
-  // ── Cliente ───────────────────────────────────────────────────────────────
-  &__block-label
-    font-size: 10px
-    font-weight: 700
-    text-transform: uppercase
-    letter-spacing: 0.06em
-    color: $text-inactive
-    margin-bottom: 4px
-
-  &__client-name
-    font-weight: 700
-    font-size: 15px
-    color: $primary
-
-  &__client-line
-    color: $text-active
-    line-height: 1.5
-
-  &__client-grid
-    display: flex
-    flex-wrap: wrap
-    gap: 6px 24px
-    margin-top: 8px
-
-    em
-      font-style: normal
-      font-size: 10px
-      font-weight: 700
-      text-transform: uppercase
-      color: $text-inactive
-      margin-right: 4px
-
-  // ── Righe ───────────────────────────────────────────────────────────────
-  &__lines
+  &__table
     width: 100%
-    border-collapse: collapse
-
-    thead th
-      text-align: left
-      font-weight: 600
-      font-size: 11px
-      text-transform: uppercase
-      letter-spacing: 0.03em
-      color: #fff
-      background: $primary
-      padding: 8px 10px
-
-    tbody td
-      padding: 9px 10px
-      border-bottom: 1px solid $border
 
   &__num
     text-align: right
-    white-space: nowrap
 
-  thead .fattura-doc__num
-    text-align: right
+  // Banda di gruppo (Prenotazione …) e riga totale.
+  &__group-row td
+    background: var(--color-link-light)
+    color: var(--color-primary)
+    font-weight: 600
 
-  // ── Riepilogo + totali ─────────────────────────────────────────────────────
-  &__summary
+  &__group-sep
+    margin: 0 8px
+    color: var(--color-text-inactive)
+
+  &__total-row td
+    background: var(--color-link-light)
+    color: var(--color-primary)
+    font-weight: 600
+
+  // Cella "Voce incasso" con select inline.
+  &__th-voce
+    width: 300px
+
+  &__td-voce
+    padding-top: 6px
+    padding-bottom: 6px
+
+    .sib-select
+      max-width: 280px
+
+  // ── Barra azioni ─────────────────────────────────────────────────────────────
+  &__actions
     display: flex
-    justify-content: space-between
-    gap: 24px
-    flex-wrap: wrap
+    align-items: center
+    gap: 16px
+    margin-top: 28px
 
-  &__iva
-    border-collapse: collapse
-    align-self: flex-start
-    min-width: 280px
+  // Il pulsante fattura elettronica resta a sinistra; le icone vanno a destra.
+  &__fe-btn
+    i
+      margin-right: 6px
 
-    th
-      text-align: left
-      font-size: 11px
-      text-transform: uppercase
-      color: $text-inactive
-      padding: 6px 10px
-      border-bottom: 1px solid $border
-
-    td
-      padding: 6px 10px
-      border-bottom: 1px solid $border
-
-  &__totals
-    min-width: 280px
-    align-self: flex-start
-
-  &__tot-row
+  &__icons
+    margin-left: auto
     display: flex
-    justify-content: space-between
-    gap: 24px
-    padding: 6px 0
+    align-items: center
+    gap: 4px
 
-    &--strong
-      border-top: 1px solid $border
-      font-weight: 700
-      color: $primary
+  &__icon-btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 34px
+    height: 34px
+    border: none
+    background: transparent
+    border-radius: 8px
+    color: var(--color-primary)
+    font-size: 18px
+    cursor: pointer
+    transition: background .15s ease, color .15s ease
 
-    &--pay
-      border-top: 2px solid $primary
-      font-family: $font-heading
-      font-weight: 700
-      font-size: 16px
-      color: $primary
-
-  // ── Piè di pagina ─────────────────────────────────────────────────────────
-  &__foot
-    display: flex
-    justify-content: space-between
-    gap: 24px
-    flex-wrap: wrap
-    padding-top: 18px
-    border-top: 1px solid $border
-    color: $text-active
+    &:hover
+      background: var(--color-link-light)
+      color: var(--color-link)

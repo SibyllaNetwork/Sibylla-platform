@@ -1,26 +1,42 @@
-import React from 'react'
-import BtnBack from '../../../core/components/BtnBack'
+import React, { useState } from 'react'
+import PageHead from '../../../core/components/PageHead'
+import Tooltip from '../../../core/components/Tooltip'
+import { SelectField } from '../../../core/components/form'
 import { useEmissioneStore } from '../../../store/useEmissioneStore'
+import logoKey from './sibylla-key.svg'
 import './FatturaDocumento.sass'
 
-// Pagina documento emesso: STESSA grafica professionale (foglio A4) per tutti i
-// tipi — Fattura, Scontrino (documento commerciale), Caparra (ricevuta) — con
-// contenuti differenti. Servita dalle rotte fattura-documento / scontrino-documento
-// / ricevuta-caparra. I dati arrivano dallo store di navigazione.
+// Pagina "Documento fiscale" in chiave WEB (non foglio A4): intestazione,
+// letterhead venditore, tabelle Addebiti/Pagamenti in stile piattaforma e
+// barra di icone-azione. Serve le rotte fattura-documento / scontrino-documento
+// / ricevuta-caparra; i dati arrivano dallo store di navigazione.
+// Due conformazioni principali:
+//   • Scontrino → intestatario minimo, nessun XML / niente fattura elettronica;
+//   • Fattura   → blocco intestazione fiscale completo, XML + fattura elettronica.
 
+// Dati del venditore (mock struttura).
 const SELLER = {
-  indirizzo: 'Via Roma 1, 39100 Bolzano (BZ), Italia',
-  piva: 'IT 01234567890',
-  tel: '+39 0471 000000',
-  email: 'amministrazione@grimshotel.it',
-  iban: 'IT80 E030 6909 5081 0000 0006 451',
+  nome: 'Sibylla',
+  righe: ['Via Vicenza 5a', '20154, Roma, Italy'],
+  piva: '80979970466',
 }
 
-const TITOLI: Record<string, string> = {
+// Etichetta inline del tipo documento (il titolo di pagina resta "Documento fiscale").
+const TIPO_LABEL: Record<string, string> = {
   Fattura: 'Fattura',
-  Scontrino: 'Documento commerciale',
-  Caparra: 'Ricevuta di caparra',
+  Scontrino: 'Scontrino',
+  Caparra: 'Ricevuta',
 }
+
+// Voci di incasso selezionabili sulla riga di pagamento.
+const VOCI_INCASSO = [
+  'American Express',
+  'Bonifico',
+  'Carta Credito MasterCard',
+  'Contanti',
+  'neol',
+  'Sospeso',
+]
 
 function fmt(v: number): string {
   return v.toFixed(2).replace('.', ',') + ' €'
@@ -32,189 +48,195 @@ function parseImporto(s: string): number {
 
 export default function FatturaDocumento({ navigate }: { navigate: (p: string) => void }) {
   const doc = useEmissioneStore((s) => s.documento)
+  const [voceIncasso, setVoceIncasso] = useState(
+    doc?.modoPagamento && VOCI_INCASSO.includes(doc.modoPagamento) ? doc.modoPagamento : 'Contanti',
+  )
 
   if (!doc) {
     return (
-      <div className="fattura-doc">
-        <BtnBack onClick={() => navigate('emissione-documenti')} />
-        <div className="sib-empty-state">Nessun documento da mostrare. Emetti un documento dalla pagina Emissione documenti.</div>
+      <div className="doc-fisc">
+        <PageHead title="Documento fiscale" onBack={() => navigate('emissione-documenti')} />
+        <div className="sib-empty-state">
+          Nessun documento da mostrare. Emetti un documento dalla pagina Emissione documenti.
+        </div>
       </div>
     )
   }
 
   const isFattura = doc.tipo === 'Fattura'
-  const isScontrino = doc.tipo === 'Scontrino'
   const isCaparra = doc.tipo === 'Caparra'
 
-  // Riepilogo IVA per aliquota (prezzo trattato come importo lordo).
-  const groups = new Map<number, { imponibile: number; imposta: number }>()
-  for (const a of doc.addebiti) {
-    const imponibile = a.prezzo / (1 + a.iva / 100)
-    const g = groups.get(a.iva) ?? { imponibile: 0, imposta: 0 }
-    g.imponibile += imponibile
-    g.imposta += a.prezzo - imponibile
-    groups.set(a.iva, g)
-  }
-  const totImponibile = Array.from(groups.values()).reduce((s, g) => s + g.imponibile, 0)
-  const totImposta = Array.from(groups.values()).reduce((s, g) => s + g.imposta, 0)
   const totDoc = doc.addebiti.reduce((s, a) => s + a.prezzo, 0)
   const versato = parseImporto(doc.importo)
-  const residuoCaparra = Math.max(0, totDoc - versato)
-  const daSaldare = totDoc - doc.caparra
 
-  const clienteNome = isFattura
-    ? (doc.ragioneSociale || '—')
-    : ([doc.nome, doc.cognome].filter(Boolean).join(' ') || '—')
+  // Numero prenotazione: derivato in modo deterministico dal numero documento
+  // (i mock addebiti non portano il riferimento prenotazione).
+  const bookingNo = (doc.numero.replace(/\D/g, '').slice(-5) || '00000').padStart(5, '0')
+
+  const clienteFattura = [
+    doc.ragioneSociale,
+    doc.indirizzo,
+    [doc.cap, doc.citta, doc.provincia].filter(Boolean).join(' '),
+  ].filter(Boolean)
 
   return (
-    <div className="fattura-doc">
-      <div className="fattura-doc__toolbar">
-        <BtnBack onClick={() => navigate('emissione-documenti')} />
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={() => window.print()}>
-          <i className="fa-regular fa-print" /> Stampa
-        </button>
-      </div>
+    <div className="doc-fisc">
+      <PageHead title="Documento fiscale" onBack={() => navigate('emissione-documenti')} />
 
-      {isScontrino && (
-        <div className="fattura-doc__fiscal-note">
-          Il documento verrà stampato anche dalla stampante fiscale collegata.
-        </div>
-      )}
-
-      <div className="fattura-doc__sheet">
-        {/* Intestazione */}
-        <header className="fattura-doc__head">
-          <div className="fattura-doc__seller">
-            <div className="fattura-doc__seller-name">{doc.struttura}</div>
-            <div className="fattura-doc__seller-line">{SELLER.indirizzo}</div>
-            <div className="fattura-doc__seller-line">P. IVA {SELLER.piva}</div>
-            <div className="fattura-doc__seller-line">{SELLER.tel} · {SELLER.email}</div>
-          </div>
-          <div className="fattura-doc__doc-meta">
-            <div className="fattura-doc__doc-title">{TITOLI[doc.tipo]}</div>
-            <div className="fattura-doc__doc-row"><span>Numero</span><strong>{doc.numero}</strong></div>
-            <div className="fattura-doc__doc-row"><span>Data</span><strong>{doc.data}</strong></div>
-          </div>
-        </header>
-
-        {/* Cliente */}
-        <section className="fattura-doc__client">
-          <div className="fattura-doc__block-label">{isFattura ? 'Spett.le' : 'Cliente'}</div>
-          <div className="fattura-doc__client-name">{clienteNome}</div>
-          <div className="fattura-doc__client-line">{[doc.indirizzo, [doc.cap, doc.citta].filter(Boolean).join(' '), doc.provincia].filter(Boolean).join(', ')}</div>
-          <div className="fattura-doc__client-line">{doc.nazionalita}</div>
-          <div className="fattura-doc__client-grid">
-            {isFattura && doc.partitaIva && <span><em>P. IVA</em> {doc.partitaIva}</span>}
-            {doc.codiceFiscale && <span><em>Cod. fiscale</em> {doc.codiceFiscale}</span>}
-            {isFattura && doc.codiceUnivoco && <span><em>Cod. univoco</em> {doc.codiceUnivoco}</span>}
-            {isFattura && doc.pec && <span><em>PEC</em> {doc.pec}</span>}
-          </div>
-        </section>
-
-        {/* Attestazione caparra */}
-        {isCaparra && (
-          <section className="fattura-doc__attesto-box">
-            <p className="fattura-doc__attesto">Si attesta di aver ricevuto da <strong>{clienteNome}</strong> la somma di:</p>
-            <div className="fattura-doc__amount">{fmt(versato)}</div>
-            <div className="fattura-doc__amount-label">a titolo di caparra sulla prenotazione</div>
-          </section>
-        )}
-
-        {/* Righe */}
-        <table className="fattura-doc__lines">
-          <thead>
-            <tr>
-              <th>Descrizione</th>
-              <th className="fattura-doc__num">Camera</th>
-              <th className="fattura-doc__num">Data</th>
-              <th className="fattura-doc__num">Imponibile</th>
-              <th className="fattura-doc__num">IVA</th>
-              <th className="fattura-doc__num">Importo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doc.addebiti.map((a) => {
-              const imponibile = a.prezzo / (1 + a.iva / 100)
-              return (
-                <tr key={a.id}>
-                  <td>{a.descrizione}{a.riferimento ? ` · ${a.riferimento}` : ''}</td>
-                  <td className="fattura-doc__num">{a.camera}</td>
-                  <td className="fattura-doc__num">{a.data}</td>
-                  <td className="fattura-doc__num">{fmt(imponibile)}</td>
-                  <td className="fattura-doc__num">{a.iva.toFixed(2).replace('.', ',')} %</td>
-                  <td className="fattura-doc__num">{fmt(a.prezzo)}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-
-        {/* Riepilogo IVA (non per la caparra) + totali */}
-        <div className="fattura-doc__summary">
-          {!isCaparra ? (
-            <table className="fattura-doc__iva">
-              <thead>
-                <tr><th>Aliquota</th><th className="fattura-doc__num">Imponibile</th><th className="fattura-doc__num">Imposta</th></tr>
-              </thead>
-              <tbody>
-                {Array.from(groups.entries()).sort((a, b) => a[0] - b[0]).map(([iva, g]) => (
-                  <tr key={iva}>
-                    <td>{iva.toFixed(2).replace('.', ',')} %</td>
-                    <td className="fattura-doc__num">{fmt(g.imponibile)}</td>
-                    <td className="fattura-doc__num">{fmt(g.imposta)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : <div />}
-
-          <div className="fattura-doc__totals">
-            {isCaparra ? (
-              <>
-                <div className="fattura-doc__tot-row"><span>Totale soggiorno</span><span>{fmt(totDoc)}</span></div>
-                <div className="fattura-doc__tot-row"><span>Caparra versata</span><span>{fmt(versato)}</span></div>
-                <div className="fattura-doc__tot-row fattura-doc__tot-row--pay"><span>Saldo residuo</span><span>{fmt(residuoCaparra)}</span></div>
-              </>
-            ) : (
-              <>
-                <div className="fattura-doc__tot-row"><span>Totale imponibile</span><span>{fmt(totImponibile)}</span></div>
-                <div className="fattura-doc__tot-row"><span>Totale IVA</span><span>{fmt(totImposta)}</span></div>
-                <div className="fattura-doc__tot-row fattura-doc__tot-row--strong"><span>Totale documento</span><span>{fmt(totDoc)}</span></div>
-                {doc.caparra > 0 && <div className="fattura-doc__tot-row"><span>Caparra</span><span>− {fmt(doc.caparra)}</span></div>}
-                <div className="fattura-doc__tot-row fattura-doc__tot-row--pay"><span>Netto a pagare</span><span>{fmt(daSaldare)}</span></div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Piè di pagina */}
-        <footer className="fattura-doc__foot">
-          <div>
-            <div className="fattura-doc__block-label">Modalità di pagamento</div>
-            <div>{doc.modoPagamento} · {doc.importo} €</div>
-          </div>
-          {isScontrino ? (
-            <div className="fattura-doc__foot-note">Documento commerciale valido ai fini fiscali (RT).</div>
-          ) : (
-            <div>
-              <div className="fattura-doc__block-label">Coordinate bancarie</div>
-              <div>IBAN {SELLER.iban}</div>
-            </div>
-          )}
-          {isCaparra && (
-            <div className="fattura-doc__sign">
-              <div className="fattura-doc__sign-line" />
-              <div className="fattura-doc__block-label">Timbro e firma</div>
-            </div>
-          )}
-        </footer>
-
-        {isCaparra && (
-          <p className="fattura-doc__note">
-            La presente ricevuta attesta il versamento della caparra e non costituisce documento
-            fiscale. Il saldo residuo sarà regolato al momento del soggiorno.
+      {/* Intestazione: numero/intestatario a sinistra, venditore a destra */}
+      <header className="doc-fisc__head">
+        <div className="doc-fisc__meta">
+          <p className="doc-fisc__docline">
+            {TIPO_LABEL[doc.tipo]} n. {doc.numero} del {doc.data}
           </p>
+          {isFattura ? (
+            <div className="doc-fisc__client">
+              {clienteFattura.map((r, i) => (
+                <span key={i}>{r}</span>
+              ))}
+              <span>P.IVA {doc.partitaIva || '—'}</span>
+            </div>
+          ) : (
+            <p className="doc-fisc__client doc-fisc__client--inline">
+              P.Iva: {doc.partitaIva || ''}
+            </p>
+          )}
+        </div>
+
+        <div className="doc-fisc__seller">
+          <img className="doc-fisc__seller-logo" src={logoKey} alt="Sibylla" />
+          <div className="doc-fisc__seller-info">
+            <span className="doc-fisc__seller-name">{SELLER.nome}</span>
+            {SELLER.righe.map((r, i) => (
+              <span key={i}>{r}</span>
+            ))}
+            <span>P.Iva {SELLER.piva}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Addebiti */}
+      <section className="doc-fisc__section">
+        <h3 className="doc-fisc__section-title">Addebiti</h3>
+        <div className="sib-table-wrap">
+          <table className="sib-table doc-fisc__table">
+            <thead>
+              <tr>
+                <th>Camera</th>
+                <th>Data</th>
+                <th>Riferimento</th>
+                <th>Descrizione</th>
+                <th className="doc-fisc__num">Importo</th>
+                <th className="doc-fisc__num">IVA</th>
+                <th className="doc-fisc__num">Totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="doc-fisc__group-row">
+                <td colSpan={7}>
+                  Prenotazione {bookingNo} <span className="doc-fisc__group-sep">•</span> Totale {fmt(totDoc)}
+                </td>
+              </tr>
+              {doc.addebiti.map((a) => {
+                const imponibile = a.prezzo / (1 + a.iva / 100)
+                return (
+                  <tr key={a.id}>
+                    <td>{a.camera}</td>
+                    <td>{a.data}</td>
+                    <td>{a.riferimento}</td>
+                    <td>{a.descrizione}</td>
+                    <td className="doc-fisc__num">{fmt(imponibile)}</td>
+                    <td className="doc-fisc__num">{a.iva.toFixed(2).replace('.', ',')} %</td>
+                    <td className="doc-fisc__num">{fmt(a.prezzo)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="doc-fisc__total-row">
+                <td colSpan={7} className="doc-fisc__num">
+                  Totale: <strong>{fmt(totDoc)}</strong>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      {/* Pagamenti */}
+      <section className="doc-fisc__section">
+        <h3 className="doc-fisc__section-title">Pagamenti</h3>
+        <div className="sib-table-wrap">
+          <table className="sib-table doc-fisc__table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Gruppo incasso</th>
+                <th className="doc-fisc__th-voce">Voce incasso</th>
+                <th className="doc-fisc__num">Importo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{doc.data}</td>
+                <td>{doc.modoPagamento}</td>
+                <td className="doc-fisc__td-voce">
+                  <SelectField
+                    name="voce-incasso"
+                    value={voceIncasso}
+                    onChange={(e) => setVoceIncasso(e.target.value)}
+                    options={VOCI_INCASSO.map((v) => ({ value: v, label: v }))}
+                  />
+                </td>
+                <td className="doc-fisc__num">{fmt(isCaparra ? versato : totDoc)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Azioni */}
+      <div className="doc-fisc__actions">
+        {isFattura && (
+          <button type="button" className="sib-btn sib-btn--secondary doc-fisc__fe-btn">
+            <i className="fa-solid fa-file-lines" /> Genera fattura elettronica
+          </button>
         )}
+
+        <div className="doc-fisc__icons">
+          <Tooltip text="Invia per email">
+            <button type="button" className="doc-fisc__icon-btn" aria-label="Invia per email">
+              <i className="fa-solid fa-envelope" />
+            </button>
+          </Tooltip>
+          <Tooltip text="Modifica intestazione fiscale">
+            <button type="button" className="doc-fisc__icon-btn" aria-label="Modifica intestazione fiscale">
+              <i className="fa-solid fa-file-pen" />
+            </button>
+          </Tooltip>
+          {isFattura && (
+            <Tooltip text="Scarica XML">
+              <button type="button" className="doc-fisc__icon-btn" aria-label="Scarica XML">
+                <i className="fa-solid fa-file-code" />
+              </button>
+            </Tooltip>
+          )}
+          <Tooltip text="Invia a Business Central">
+            <button type="button" className="doc-fisc__icon-btn" aria-label="Invia a Business Central">
+              <i className="fa-solid fa-paper-plane" />
+            </button>
+          </Tooltip>
+          <Tooltip text="Esporta in PDF">
+            <button type="button" className="doc-fisc__icon-btn" aria-label="Esporta in PDF">
+              <i className="fa-solid fa-file-pdf" />
+            </button>
+          </Tooltip>
+          <Tooltip text="Stampa documento">
+            <button type="button" className="doc-fisc__icon-btn" aria-label="Stampa documento" onClick={() => window.print()}>
+              <i className="fa-solid fa-print" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
     </div>
   )
