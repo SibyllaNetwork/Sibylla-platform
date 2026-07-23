@@ -50,8 +50,11 @@ larghezza reale del contenuto e funziona a ogni risoluzione.
   stesso nome del componente, nella stessa cartella.
 
 ## 3. Componenti condivisi
-- MAI `<select>/<input>`/label custom: usare i componenti condivisi
+- **Per OGNI elemento della UI vanno SEMPRE usati i componenti condivisi.** MAI
+  `<select>/<input>`/label o altri elementi custom: usare i componenti condivisi
   (SelectField, InputField, RadioGroup, SearchField, Modal, Pagination…).
+- **Se il componente condiviso non esiste: NON improvvisare.** Va CREATO come componente
+  condiviso, condividendone la scelta con l'utente prima di procedere.
 - **Label form:** Poppins 12px, weight 600, `color: primary`, case normale (MAI uppercase).
 
 ## 4. Tabelle (standard)
