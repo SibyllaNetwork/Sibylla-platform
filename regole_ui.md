@@ -72,3 +72,31 @@ larghezza reale del contenuto e funziona a ogni risoluzione.
   intrinseca, MAI full-width.
 - Selezione di intervalli di date: sempre col range picker a due calendari affiancati
   (react-day-picker, mode=range), mai campi Da/A separati.
+- Header di pagina: usare il componente condiviso `PageHead` (BtnBack + titolo +
+  sottotitolo + azioni), non `<BtnBack/>` + `<PageHeader/>` sciolti. Titolo/sottotitolo/
+  ingombri IDENTICI su tutte le pagine (rif. Match Zone).
+
+## 8. Icone nelle tabelle
+- TUTTE le icone in tabella (informative e bottoni-azione): `fa-solid`, senza bordo/box,
+  blu Platform (`var(--color-primary)` = #204769), 16px.
+- Per i bottoni-azione impostare colore/size direttamente sull'`i` (la classe
+  `sib-btn--icon` forza grigio 12px). Riferimento: pagina OspitiInCasa.
+
+## 9. Campi form
+- Altezza standard input/select = **34px** su tutte le pagine.
+- Eccezione: Nuova prenotazione a 28px (pagina densa).
+- Freccetta dei `<select>`: sempre la **doppia-chevron** di `.sib-select`. I select con
+  `.sib-input` (celle tabella) mostrano la freccia nativa e vanno uniformati col chevron
+  SVG standard.
+
+## 10. Best practice file .sass
+- MAI commento `//` inline su una CSS custom property: finisce dentro il valore della
+  `--var`. Il commento va su riga separata sopra.
+- `confirm` / `alert` / `disabled` / `surface-subtle` / `link-soft` / `border-soft`
+  esistono SOLO come palette Tailwind: usare `@apply`, non `var(--color-confirm-700)`
+  (inesistente). Per valori-colore usare i token reali di `_themes.sass`.
+
+## 11. Dark mode
+- Skin `[data-theme=dark]` (toggle in topbar Std ↔ Dark).
+- `--color-primary` è l'accento chiaro; il chrome viene ri-scurito in `_skin-dark.sass`.
+- Le superfici usano sempre `var(--color-surface)`.
