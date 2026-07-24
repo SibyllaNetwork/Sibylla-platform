@@ -1,63 +1,10 @@
 /* Stili condivisi delle modali degli Acquisti condivisi (Crea gruppo + Partecipa).
-   Vivono in un file dedicato perché usati sia da GroupPurchasesPage sia dalla
-   pagina Gruppi attivi. */
+   Lo SCAFFOLD della modale (overlay, box, header, close) è quello STANDARD di
+   piattaforma: core/components/Modal (.modal__*), che padda il box di 24px su
+   tutti i lati. Qui vivono solo i contenuti (form / dettaglio adesione). */
 
-.gp-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 28, 49, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-.gp-modal__box {
-  background: var(--color-surface);
-  border-radius: 14px;
-  width: 100%;
-  max-width: 640px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
-}
-.gp-modal__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border, #cfcfcf);
-  background: var(--color-bg);
-}
-.gp-modal__head h2 {
-  font-family: var(--font-heading);
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin: 0;
-}
-.gp-modal__close {
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: 1px solid var(--color-border, #cfcfcf);
-  border-radius: 7px;
-  cursor: pointer;
-  color: var(--color-text-inactive);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.gp-modal__close:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
+/* ── Form "Crea acquisto condiviso" ───────────────────────── */
 .gp-modal__form {
-  padding: 18px 20px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -119,26 +66,18 @@
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 22%, transparent);
 }
 
+/* Footer azioni: sta dentro il padding 24px del box, separato dal contenuto. */
 .gp-modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed var(--color-border, #cfcfcf);
-  margin-top: 4px;
-}
-
-@media (max-width: 540px) {
-  .gp-modal__row { grid-template-columns: 1fr; }
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, #cfcfcf);
 }
 
 /* ── Modale "Partecipa al gruppo" ─────────────────────────── */
-.gp-join {
-  max-width: 560px;
-}
 .gp-join__body {
-  padding: 18px 20px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -328,6 +267,7 @@
 }
 
 @media (max-width: 540px) {
+  .gp-modal__row { grid-template-columns: 1fr; }
   .gp-join__detail { grid-template-columns: 1fr; }
   .gp-join__image { width: 100%; height: 160px; }
 }

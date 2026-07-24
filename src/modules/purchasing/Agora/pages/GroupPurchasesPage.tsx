@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Modal from '../../../../core/components/Modal';
 import { Layout } from './Layout';
 import { PageHeader } from './PageHeader';
 import './GroupPurchasesPage.css';
@@ -347,17 +348,6 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
   const [maxParticipants, setMaxParticipants] = useState(50);
   const [endDate, setEndDate] = useState('');
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!productName.trim() || !supplier.trim() || !category || !endDate) return;
@@ -379,16 +369,8 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
   };
 
   return (
-    <div className="gp-modal" role="presentation" onClick={onClose}>
-      <div className="gp-modal__box" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <header className="gp-modal__head">
-          <h2>Crea acquisto condiviso</h2>
-          <button type="button" className="gp-modal__close" onClick={onClose} aria-label="Chiudi">
-            <Icon family="light" name="xmark" />
-          </button>
-        </header>
-
-        <form className="gp-modal__form" onSubmit={handleSubmit}>
+    <Modal open onClose={onClose} title="Crea acquisto condiviso" size="lg" className="gp-create">
+      <form className="gp-modal__form" onSubmit={handleSubmit}>
           <div className="gp-modal__row">
             <label className="gp-modal__field gp-modal__field--full">
               <span>Nome prodotto *</span>
@@ -470,7 +452,6 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
             </Button>
           </footer>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }
