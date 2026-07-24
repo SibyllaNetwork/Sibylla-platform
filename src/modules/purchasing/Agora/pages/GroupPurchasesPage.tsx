@@ -54,6 +54,7 @@ export function GroupPurchasesPage() {
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT);
   const [purchases, setPurchases] = useState<GroupPurchase[]>(SEED_GROUP_PURCHASES);
   const [showCreate, setShowCreate] = useState(false);
+  const [joinTarget, setJoinTarget] = useState<GroupPurchase | null>(null);
 
   const filteredPurchases = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -129,8 +130,25 @@ export function GroupPurchasesPage() {
     setShowCreate(false);
   };
 
+  const handleJoin = (id: string) => {
+    setPurchases((prev) =>
+      prev.map((gp) => {
+        if (gp.id !== id) return gp;
+        const currentParticipants = gp.currentParticipants + 1;
+        const reachedMin = currentParticipants >= gp.minQuantity;
+        return {
+          ...gp,
+          currentParticipants,
+          status: reachedMin ? 'completed' : gp.status,
+        };
+      }),
+    );
+    setJoinTarget(null);
+  };
+
   return (
     <Layout>
+      <div className="group-purchases-page">
       <PageHeader
         title="Acquisti condivisi"
         subtitle="Unisciti ai gruppi di acquisto e risparmia acquistando insieme ad altri"
@@ -146,6 +164,15 @@ export function GroupPurchasesPage() {
         <CreateGroupPurchaseModal
           onClose={() => setShowCreate(false)}
           onSave={handleCreate}
+        />
+      )}
+
+      {joinTarget && (
+        <JoinGroupPurchaseModal
+          purchase={joinTarget}
+          daysRemaining={getDaysRemaining(joinTarget.endDate)}
+          onClose={() => setJoinTarget(null)}
+          onConfirm={() => handleJoin(joinTarget.id)}
         />
       )}
 
@@ -279,7 +306,7 @@ export function GroupPurchasesPage() {
 
                   <button
                     type="button"
-                    onClick={() =>window.alert(`Partecipa al gruppo: ${purchase.productName}`)}
+                    onClick={() => setJoinTarget(purchase)}
                     className="gp-card__cta"
                   >
                     <Icon family="regular" name="cart-shopping"  />
@@ -325,6 +352,7 @@ export function GroupPurchasesPage() {
             </div>
           </div>
       </section>
+      </div>
     </Layout>
   );
 }
@@ -478,6 +506,142 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
             </Button>
           </footer>
         </form>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   JoinGroupPurchaseModal — dettaglio del gruppo d'acquisto con
+   scelta del quantitativo. Il gruppo si crea al raggiungimento
+   del quantitativo minimo di partecipanti.
+   ============================================================ */
+
+interface JoinModalProps {
+  purchase: GroupPurchase;
+  daysRemaining: number;
+  onClose: () => void;
+  onConfirm: (quantity: number) => void;
+}
+
+function JoinGroupPurchaseModal({ purchase, daysRemaining, onClose, onConfirm }: JoinModalProps) {
+  const [quantity, setQuantity] = useState(purchase.quantityPerPerson);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  const missing = Math.max(purchase.minQuantity - purchase.currentParticipants, 0);
+  const willComplete = purchase.currentParticipants + 1 >= purchase.minQuantity;
+  const total = purchase.groupPrice * quantity;
+  const saving = (purchase.regularPrice - purchase.groupPrice) * quantity;
+
+  const step = (delta: number) =>
+    setQuantity((q) => Math.max(purchase.quantityPerPerson, q + delta));
+
+  return (
+    <div className="gp-modal" role="presentation" onClick={onClose}>
+      <div className="gp-modal__box gp-join" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <header className="gp-modal__head">
+          <h2>Partecipa al gruppo</h2>
+          <button type="button" className="gp-modal__close" onClick={onClose} aria-label="Chiudi">
+            <Icon family="light" name="xmark" />
+          </button>
+        </header>
+
+        <div className="gp-join__body">
+          <div className="gp-join__detail">
+            <img src={purchase.image} alt={purchase.productName} className="gp-join__image" />
+            <div className="gp-join__detail-info">
+              <span className="gp-join__discount">-{purchase.discount}%</span>
+              <h3 className="gp-join__product">{purchase.productName}</h3>
+              <p className="gp-join__supplier">{purchase.supplier}</p>
+              <p className="gp-join__desc">{purchase.description}</p>
+              <div className="gp-join__prices">
+                <span className="gp-join__price-regular">€{purchase.regularPrice.toFixed(2)}</span>
+                <span className="gp-join__price-group">€{purchase.groupPrice.toFixed(2)}</span>
+                <span className="gp-join__price-unit">/ {purchase.unit}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="gp-join__notice">
+            <Icon family="regular" name="circle-info" className="gp-join__notice-icon" />
+            <div>
+              <p className="gp-join__notice-title">
+                Al raggiungimento del quantitativo minimo il gruppo verrà creato.
+              </p>
+              <p className="gp-join__notice-text">
+                Servono <strong>{purchase.minQuantity}</strong> partecipanti: al momento sono{' '}
+                <strong>{purchase.currentParticipants}</strong>
+                {missing > 0
+                  ? `, ne mancano ancora ${missing}.`
+                  : ' — soglia raggiunta.'}
+                {' '}Scadenza tra {daysRemaining} giorni.
+              </p>
+            </div>
+          </div>
+
+          <div className="gp-join__qty">
+            <span className="gp-join__qty-label">Quantitativo desiderato</span>
+            <div className="gp-join__qty-control">
+              <button
+                type="button"
+                className="gp-join__qty-btn"
+                onClick={() => step(-1)}
+                disabled={quantity <= purchase.quantityPerPerson}
+                aria-label="Diminuisci"
+              >
+                <Icon family="regular" name="minus" />
+              </button>
+              <input
+                type="number"
+                min={purchase.quantityPerPerson}
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(Math.max(purchase.quantityPerPerson, Math.floor(Number(e.target.value) || purchase.quantityPerPerson)))
+                }
+              />
+              <button
+                type="button"
+                className="gp-join__qty-btn"
+                onClick={() => step(1)}
+                aria-label="Aumenta"
+              >
+                <Icon family="regular" name="plus" />
+              </button>
+            </div>
+            <span className="gp-join__qty-unit">
+              {purchase.unit} · min. {purchase.quantityPerPerson}
+            </span>
+          </div>
+
+          <div className="gp-join__summary">
+            <div className="gp-join__summary-row">
+              <span>Totale stimato</span>
+              <strong>€{total.toFixed(2)}</strong>
+            </div>
+            <div className="gp-join__summary-row gp-join__summary-row--saving">
+              <span>Risparmio rispetto al listino</span>
+              <strong>€{saving.toFixed(2)}</strong>
+            </div>
+          </div>
+        </div>
+
+        <footer className="gp-modal__actions">
+          <Button variant="tertiary" onClick={onClose} type="button">Annulla</Button>
+          <Button variant="primary" type="button" onClick={() => onConfirm(quantity)}>
+            <Icon family="solid" name="cart-shopping" data-slot="icon" />
+            {willComplete ? 'Partecipa e attiva il gruppo' : 'Conferma partecipazione'}
+          </Button>
+        </footer>
       </div>
     </div>
   );
