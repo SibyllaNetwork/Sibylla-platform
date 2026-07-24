@@ -549,18 +549,21 @@
   gap: 4px;
 }
 .gp-modal__field--full { grid-column: 1 / -1; }
+/* Label form allo standard Platform: Poppins 12px, weight 600, colore primary,
+   case normale (rif. SelectField/RadioGroup). */
 .gp-modal__field > span {
   font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-inactive);
+  color: var(--color-primary);
 }
+/* Campi form all'altezza standard Platform (34px). */
 .gp-modal__field input,
 .gp-modal__field select,
 .gp-modal__field textarea {
   font: inherit;
   font-size: 13px;
-  height: 36px;
+  height: 34px;
   padding: 0 10px;
   border: 1px solid var(--color-border, #cfcfcf);
   border-radius: 7px;
@@ -568,6 +571,15 @@
   color: var(--color-text-active);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+/* Select con la doppia-chevron standard (nativa soppressa). */
+.gp-modal__field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%236E7175' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.75 10.75L8 13L10.25 10.75'/%3E%3Cpath d='M10.25 5.25L8 3L5.75 5.25'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
 }
 .gp-modal__field textarea {
   height: auto;
@@ -897,9 +909,9 @@
 }
 .gp-join__qty-label {
   font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-inactive);
+  color: var(--color-primary);
 }
 .gp-join__qty-control {
   display: inline-flex;
@@ -910,8 +922,8 @@
   overflow: hidden;
 }
 .gp-join__qty-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   background: var(--color-bg);
   border: none;
   cursor: pointer;
