@@ -77,6 +77,11 @@ export function GroupPurchasesPage() {
     });
   }, [selectedCategory, search, sortBy]);
 
+  const activeGroups = useMemo(
+    () => purchases.filter((g) => g.status === 'active' || g.status === 'closing-soon'),
+    [purchases],
+  );
+
   const filtersDirty = sortBy !== DEFAULT_SORT;
   const resetFilters = () => setSortBy(DEFAULT_SORT);
 
@@ -322,6 +327,80 @@ export function GroupPurchasesPage() {
           })}
         </div>
       </div>
+
+      <section className="active-groups">
+        <header className="active-groups__head">
+          <h2 className="active-groups__title">Gruppi attivi</h2>
+          <span className="active-groups__count">{activeGroups.length} gruppi in corso</span>
+        </header>
+
+        {activeGroups.length === 0 ? (
+          <p className="active-groups__empty">
+            Nessun gruppo attivo al momento. Crea un acquisto condiviso per avviarne uno.
+          </p>
+        ) : (
+          <ul className="active-groups__list">
+            {activeGroups.map((group) => {
+              const progress = getProgressPercentage(group.currentParticipants, group.minQuantity);
+              const daysRemaining = getDaysRemaining(group.endDate);
+              const missing = Math.max(group.minQuantity - group.currentParticipants, 0);
+              const progressWidthClass = `gp-progress-${Math.round(progress / 5) * 5}`;
+              return (
+                <li key={group.id} className="active-group">
+                  <img src={group.image} alt={group.productName} className="active-group__image" />
+
+                  <div className="active-group__detail">
+                    <div className="active-group__detail-head">
+                      <h3 className="active-group__product">{group.productName}</h3>
+                      {group.status === 'closing-soon' && (
+                        <span className="active-group__flag">
+                          <Icon family="regular" name="triangle-exclamation" />
+                          In chiusura
+                        </span>
+                      )}
+                    </div>
+                    <p className="active-group__supplier">
+                      {group.supplier} · {group.category}
+                    </p>
+                    <div className="active-group__meta">
+                      <span className="active-group__price">€{group.groupPrice.toFixed(2)}</span>
+                      <span className="active-group__price-regular">€{group.regularPrice.toFixed(2)}</span>
+                      <span className="active-group__discount">-{group.discount}%</span>
+                      <span className="active-group__days">
+                        <Icon family="regular" name="clock" /> {daysRemaining} giorni
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="active-group__participants">
+                    <div className="active-group__participants-head">
+                      <Icon family="regular" name="users" />
+                      <strong>{group.currentParticipants}</strong>
+                      <span>/ {group.minQuantity} partecipanti</span>
+                    </div>
+                    <div className="active-group__progress">
+                      <div className={`active-group__progress-bar ${progressWidthClass}`} />
+                    </div>
+                    <span className="active-group__participants-note">
+                      {missing > 0 ? `Mancano ${missing} adesioni` : 'Soglia raggiunta'}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="active-group__cta"
+                    onClick={() => setJoinTarget(group)}
+                  >
+                    <Icon family="solid" name="user-plus" data-slot="icon" />
+                    Sottoscrivi
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <section className="group-purchases__info">
         <h2 className="group-purchases__info-title">Come funzionano gli Acquisti condivisi?</h2>
