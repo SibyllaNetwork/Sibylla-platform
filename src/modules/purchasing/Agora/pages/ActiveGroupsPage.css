@@ -75,6 +75,21 @@
   width: 100%;
   justify-content: center;
 }
+.ag-box__joined {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: #059669;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
 
 /* ── Vista a righe ─────────────────────────────────────────── */
 .active-groups__list {
@@ -133,6 +148,19 @@
   border-radius: 999px;
   padding: 2px 8px;
 }
+.active-group__joined {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  background: color-mix(in oklab, #059669 12%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
 .active-group__supplier {
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
@@ -184,6 +212,7 @@
   gap: 5px;
 }
 .active-group__participants-head {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 5px;

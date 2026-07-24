@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from './Layout';
 import { PageHeader } from './PageHeader';
@@ -37,7 +37,9 @@ const DEFAULT_SORT: SortKey = 'closing-first';
 export function ActiveGroupsPage() {
   const navigate = useNavigate();
   const purchases = useGroupPurchasesStore((s) => s.purchases);
+  const joinedIds = useGroupPurchasesStore((s) => s.joinedIds);
   const joinPurchase = useGroupPurchasesStore((s) => s.joinPurchase);
+  const leavePurchase = useGroupPurchasesStore((s) => s.leavePurchase);
 
   const [search, setSearch] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
@@ -45,6 +47,14 @@ export function ActiveGroupsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT);
   const [joinTarget, setJoinTarget] = useState<GroupPurchase | null>(null);
+  const [pulse, setPulse] = useState<{ id: string; delta: number } | null>(null);
+  const pulseTimer = useRef<number>(0);
+
+  const triggerPulse = (id: string, delta: number) => {
+    if (pulseTimer.current) window.clearTimeout(pulseTimer.current);
+    setPulse({ id, delta });
+    pulseTimer.current = window.setTimeout(() => setPulse(null), 1800);
+  };
 
   const activeGroups = useMemo(
     () => purchases.filter((g) => g.status === 'active' || g.status === 'closing-soon'),
@@ -88,6 +98,12 @@ export function ActiveGroupsPage() {
   const handleJoin = (id: string) => {
     joinPurchase(id);
     setJoinTarget(null);
+    triggerPulse(id, 1);
+  };
+
+  const handleLeave = (id: string) => {
+    leavePurchase(id);
+    triggerPulse(id, -1);
   };
 
   return (
@@ -188,13 +204,27 @@ export function ActiveGroupsPage() {
         ) : view === 'grid' ? (
           <div className="active-groups__grid">
             {visibleGroups.map((group) => (
-              <ActiveGroupBox key={group.id} group={group} onSubscribe={() => setJoinTarget(group)} />
+              <ActiveGroupBox
+                key={group.id}
+                group={group}
+                joined={joinedIds.includes(group.id)}
+                pulse={pulse?.id === group.id ? pulse.delta : null}
+                onSubscribe={() => setJoinTarget(group)}
+                onLeave={() => handleLeave(group.id)}
+              />
             ))}
           </div>
         ) : (
           <ul className="active-groups__list">
             {visibleGroups.map((group) => (
-              <ActiveGroupRow key={group.id} group={group} onSubscribe={() => setJoinTarget(group)} />
+              <ActiveGroupRow
+                key={group.id}
+                group={group}
+                joined={joinedIds.includes(group.id)}
+                pulse={pulse?.id === group.id ? pulse.delta : null}
+                onSubscribe={() => setJoinTarget(group)}
+                onLeave={() => handleLeave(group.id)}
+              />
             ))}
           </ul>
         )}
@@ -207,7 +237,54 @@ export function ActiveGroupsPage() {
 
 interface GroupItemProps {
   group: GroupPurchase;
+  joined: boolean;
+  /** +1 / −1 se l'elemento sta pulsando dopo un'adesione/recesso, altrimenti null. */
+  pulse: number | null;
   onSubscribe: () => void;
+  onLeave: () => void;
+}
+
+function ParticipantsBlock({ group, pulse }: { group: GroupPurchase; pulse: number | null }) {
+  const { missing, progressWidthClass } = useGroupDerived(group);
+  return (
+    <div className="active-group__participants">
+      <div className="active-group__participants-head">
+        <Icon family="regular" name="users" />
+        <strong className={pulse != null ? 'gp-count-bump' : undefined}>{group.currentParticipants}</strong>
+        <span>/ {group.minQuantity} partecipanti</span>
+        {pulse != null && (
+          <span className={`gp-plus-one${pulse < 0 ? ' gp-plus-one--minus' : ''}`}>
+            {pulse > 0 ? '+1' : '−1'}
+          </span>
+        )}
+      </div>
+      <div className="active-group__progress">
+        <div className={`active-group__progress-bar ${progressWidthClass}`} />
+      </div>
+      <span className="active-group__participants-note">
+        {missing > 0 ? `Mancano ${missing} adesioni` : 'Soglia raggiunta'}
+      </span>
+    </div>
+  );
+}
+
+function SubscribeCta({ joined, onSubscribe, onLeave, className }: {
+  joined: boolean;
+  onSubscribe: () => void;
+  onLeave: () => void;
+  className: string;
+}) {
+  return joined ? (
+    <Button variant="reject-tertiary" size="md" className={className} onClick={onLeave}>
+      <Icon family="regular" name="user-xmark" data-slot="icon" />
+      Recedi
+    </Button>
+  ) : (
+    <Button variant="primary" size="md" className={className} onClick={onSubscribe}>
+      <Icon family="solid" name="user-plus" data-slot="icon" />
+      Sottoscrivi
+    </Button>
+  );
 }
 
 function useGroupDerived(group: GroupPurchase) {
@@ -229,15 +306,18 @@ function ClosingFlag() {
   );
 }
 
-function ActiveGroupBox({ group, onSubscribe }: GroupItemProps) {
-  const { daysRemaining, missing, progressWidthClass } = useGroupDerived(group);
+function ActiveGroupBox({ group, joined, pulse, onSubscribe, onLeave }: GroupItemProps) {
+  const { daysRemaining } = useGroupDerived(group);
   return (
-    <article className="ag-box">
+    <article className={`ag-box${pulse != null ? ' gp-pulse' : ''}${joined ? ' ag-box--joined' : ''}`}>
       <div className="ag-box__image-wrap">
         <img src={group.image} alt={group.productName} className="ag-box__image" />
         <span className="ag-box__discount">-{group.discount}%</span>
         {group.status === 'closing-soon' && (
           <span className="ag-box__flag"><ClosingFlag /></span>
+        )}
+        {joined && (
+          <span className="ag-box__joined"><Icon family="solid" name="circle-check" /> Iscritto</span>
         )}
       </div>
       <div className="ag-box__body">
@@ -252,39 +332,27 @@ function ActiveGroupBox({ group, onSubscribe }: GroupItemProps) {
           </span>
         </div>
 
-        <div className="active-group__participants">
-          <div className="active-group__participants-head">
-            <Icon family="regular" name="users" />
-            <strong>{group.currentParticipants}</strong>
-            <span>/ {group.minQuantity} partecipanti</span>
-          </div>
-          <div className="active-group__progress">
-            <div className={`active-group__progress-bar ${progressWidthClass}`} />
-          </div>
-          <span className="active-group__participants-note">
-            {missing > 0 ? `Mancano ${missing} adesioni` : 'Soglia raggiunta'}
-          </span>
-        </div>
+        <ParticipantsBlock group={group} pulse={pulse} />
 
-        <Button variant="primary" size="md" className="ag-box__cta" onClick={onSubscribe}>
-          <Icon family="solid" name="user-plus" data-slot="icon" />
-          Sottoscrivi
-        </Button>
+        <SubscribeCta joined={joined} onSubscribe={onSubscribe} onLeave={onLeave} className="ag-box__cta" />
       </div>
     </article>
   );
 }
 
-function ActiveGroupRow({ group, onSubscribe }: GroupItemProps) {
-  const { daysRemaining, missing, progressWidthClass } = useGroupDerived(group);
+function ActiveGroupRow({ group, joined, pulse, onSubscribe, onLeave }: GroupItemProps) {
+  const { daysRemaining } = useGroupDerived(group);
   return (
-    <li className="active-group">
+    <li className={`active-group${pulse != null ? ' gp-pulse' : ''}${joined ? ' active-group--joined' : ''}`}>
       <img src={group.image} alt={group.productName} className="active-group__image" />
 
       <div className="active-group__detail">
         <div className="active-group__detail-head">
           <h3 className="active-group__product">{group.productName}</h3>
           {group.status === 'closing-soon' && <ClosingFlag />}
+          {joined && (
+            <span className="active-group__joined"><Icon family="solid" name="circle-check" /> Iscritto</span>
+          )}
         </div>
         <p className="active-group__supplier">{group.supplier} · {group.category}</p>
         <div className="active-group__meta">
@@ -297,24 +365,9 @@ function ActiveGroupRow({ group, onSubscribe }: GroupItemProps) {
         </div>
       </div>
 
-      <div className="active-group__participants">
-        <div className="active-group__participants-head">
-          <Icon family="regular" name="users" />
-          <strong>{group.currentParticipants}</strong>
-          <span>/ {group.minQuantity} partecipanti</span>
-        </div>
-        <div className="active-group__progress">
-          <div className={`active-group__progress-bar ${progressWidthClass}`} />
-        </div>
-        <span className="active-group__participants-note">
-          {missing > 0 ? `Mancano ${missing} adesioni` : 'Soglia raggiunta'}
-        </span>
-      </div>
+      <ParticipantsBlock group={group} pulse={pulse} />
 
-      <Button variant="primary" size="md" className="active-group__cta" onClick={onSubscribe}>
-        <Icon family="solid" name="user-plus" data-slot="icon" />
-        Sottoscrivi
-      </Button>
+      <SubscribeCta joined={joined} onSubscribe={onSubscribe} onLeave={onLeave} className="active-group__cta" />
     </li>
   );
 }

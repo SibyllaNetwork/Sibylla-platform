@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../../../core/components/Modal';
 import { Layout } from './Layout';
@@ -31,8 +31,10 @@ const DEFAULT_SORT: SortKey = 'name-asc';
 export function GroupPurchasesPage() {
   const navigate = useNavigate();
   const purchases = useGroupPurchasesStore((s) => s.purchases);
+  const joinedIds = useGroupPurchasesStore((s) => s.joinedIds);
   const addPurchase = useGroupPurchasesStore((s) => s.addPurchase);
   const joinPurchase = useGroupPurchasesStore((s) => s.joinPurchase);
+  const leavePurchase = useGroupPurchasesStore((s) => s.leavePurchase);
 
   const [selectedCategory, setSelectedCategory] = useState('Tutti');
   const [search, setSearch] = useState('');
@@ -40,6 +42,14 @@ export function GroupPurchasesPage() {
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT);
   const [showCreate, setShowCreate] = useState(false);
   const [joinTarget, setJoinTarget] = useState<GroupPurchase | null>(null);
+  const [pulse, setPulse] = useState<{ id: string; delta: number } | null>(null);
+  const pulseTimer = useRef<number>(0);
+
+  const triggerPulse = (id: string, delta: number) => {
+    if (pulseTimer.current) window.clearTimeout(pulseTimer.current);
+    setPulse({ id, delta });
+    pulseTimer.current = window.setTimeout(() => setPulse(null), 1800);
+  };
 
   const activeGroupsCount = useMemo(
     () => purchases.filter((g) => g.status === 'active' || g.status === 'closing-soon').length,
@@ -70,7 +80,7 @@ export function GroupPurchasesPage() {
   const filtersDirty = sortBy !== DEFAULT_SORT;
   const resetFilters = () => setSortBy(DEFAULT_SORT);
 
-  const handleCreate = (data: Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'discount'>) => {
+  const handleCreate = (data: Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'baseStatus' | 'discount'>) => {
     addPurchase(data);
     setShowCreate(false);
   };
@@ -78,6 +88,12 @@ export function GroupPurchasesPage() {
   const handleJoin = (id: string) => {
     joinPurchase(id);
     setJoinTarget(null);
+    triggerPulse(id, 1);
+  };
+
+  const handleLeave = (id: string) => {
+    leavePurchase(id);
+    triggerPulse(id, -1);
   };
 
   const renderStatusBadge = (status: GroupPurchase['status']) => {
@@ -202,9 +218,11 @@ export function GroupPurchasesPage() {
             const isAlmostComplete =
               purchase.currentParticipants >= purchase.minQuantity * 0.8;
             const progressWidthClass = `gp-progress-${Math.round(progress / 5) * 5}`;
+            const joined = joinedIds.includes(purchase.id);
+            const pulsing = pulse?.id === purchase.id;
 
             return (
-              <article key={purchase.id} className="gp-card">
+              <article key={purchase.id} className={`gp-card${pulsing ? ' gp-pulse' : ''}`}>
                 <div className="gp-card__image-wrap">
                   <img
                     src={purchase.image}
@@ -225,7 +243,16 @@ export function GroupPurchasesPage() {
 
                   <div className="gp-card__progress-head">
                     <span className="gp-card__progress-label">
-                      Partecipanti: {purchase.currentParticipants}/{purchase.minQuantity} min
+                      Partecipanti:{' '}
+                      <span className={pulsing ? 'gp-count-bump' : undefined}>
+                        {purchase.currentParticipants}
+                      </span>
+                      /{purchase.minQuantity} min
+                      {pulsing && (
+                        <span className={`gp-plus-one${pulse!.delta < 0 ? ' gp-plus-one--minus' : ''}`}>
+                          {pulse!.delta > 0 ? '+1' : '−1'}
+                        </span>
+                      )}
                     </span>
                     <span className="gp-card__progress-value">{Math.round(progress)}%</span>
                   </div>
@@ -269,18 +296,33 @@ export function GroupPurchasesPage() {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setJoinTarget(purchase)}
-                    className="gp-card__cta"
-                  >
-                    <Icon family="regular" name="cart-shopping"  />
-                    Partecipa al Gruppo
-                  </button>
-
-                  {isAlmostComplete && (
-                    <p className="gp-card__near-msg">⚡ Quasi al traguardo! Unisciti ora!</p>
+                  {joined ? (
+                    <button
+                      type="button"
+                      onClick={() => handleLeave(purchase.id)}
+                      className="gp-card__cta gp-card__cta--leave"
+                    >
+                      <Icon family="regular" name="user-xmark" />
+                      Recedi dalla sottoscrizione
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setJoinTarget(purchase)}
+                      className="gp-card__cta"
+                    >
+                      <Icon family="regular" name="cart-shopping"  />
+                      Partecipa al Gruppo
+                    </button>
                   )}
+
+                  {joined ? (
+                    <p className="gp-card__joined-msg">
+                      <Icon family="solid" name="circle-check" /> Sei iscritto a questo gruppo
+                    </p>
+                  ) : isAlmostComplete ? (
+                    <p className="gp-card__near-msg">⚡ Quasi al traguardo! Unisciti ora!</p>
+                  ) : null}
                 </div>
               </article>
             );
@@ -329,7 +371,7 @@ export function GroupPurchasesPage() {
 
 interface CreateModalProps {
   onClose: () => void;
-  onSave: (data: Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'discount'>) => void;
+  onSave: (data: Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'baseStatus' | 'discount'>) => void;
 }
 
 function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
