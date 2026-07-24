@@ -48,6 +48,7 @@ import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import ComponiAnnunci from '../../sales/ricavi/ComponiAnnunci/ComponiAnnunci';
 import { MatchZonePage } from './pages/MatchZonePage';
 import { GroupPurchasesPage } from './pages/GroupPurchasesPage';
+import { ActiveGroupsPage } from './pages/ActiveGroupsPage';
 
 import { AdminLayout } from './admin/AdminLayout';
 import { AdminVideosPage } from './admin/AdminVideosPage';
@@ -91,6 +92,7 @@ function AgoraRoutes() {
       <Route path="/announcements/manage" element={<ComponiAnnunci navigate={() => {}} />} />
       <Route path="/match-zone" element={<MatchZonePage />} />
       <Route path="/group-purchases" element={<GroupPurchasesPage />} />
+      <Route path="/group-purchases/active" element={<ActiveGroupsPage />} />
 
       {/* ── Console Admin Agorà ────────────────────────────────────────── */}
       <Route path="/admin" element={<AdminLayout />}>

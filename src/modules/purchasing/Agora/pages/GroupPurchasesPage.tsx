@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from './Layout';
 import { PageHeader } from './PageHeader';
 import './GroupPurchasesPage.css';
 import { Icon } from '../ds/icon';
 import { Button } from '../ds/button';
 import { PageToolbar, type ViewMode } from './PageToolbar';
+import { JoinGroupPurchaseModal } from './JoinGroupPurchaseModal';
+import './groupPurchaseModals.css';
+import {
+  useGroupPurchasesStore,
+  GROUP_PURCHASE_CATEGORIES,
+  getProgressPercentage,
+  getDaysRemaining,
+  type GroupPurchase,
+} from '../../../../store/useGroupPurchasesStore';
 
 type SortKey = 'name-asc' | 'name-desc' | 'discount-desc' | 'end-asc';
 
@@ -17,44 +27,23 @@ const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
 
 const DEFAULT_SORT: SortKey = 'name-asc';
 
-interface GroupPurchase {
-  id: string;
-  productName: string;
-  description: string;
-  image: string;
-  supplier: string;
-  category: string;
-  regularPrice: number;
-  groupPrice: number;
-  minQuantity: number;
-  currentParticipants: number;
-  maxParticipants: number;
-  endDate: string;
-  unit: string;
-  quantityPerPerson: number;
-  discount: number;
-  status: 'active' | 'closing-soon' | 'completed';
-}
-
-const SEED_GROUP_PURCHASES: GroupPurchase[] = [
-  { id: '1', productName: 'Olio Extravergine di Oliva DOP Puglia', description: 'Olio biologico certificato, spremitura a freddo, produzione 2025', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800', supplier: 'Oleificio Pugliese Bio', category: 'Alimentari', regularPrice: 18.5, groupPrice: 13.9, minQuantity: 50, currentParticipants: 38, maxParticipants: 100, endDate: '2026-04-15', unit: 'bottiglia da 750ml', quantityPerPerson: 6, discount: 25, status: 'active' },
-  { id: '2', productName: 'Parmigiano Reggiano DOP 24 mesi', description: 'Forma intera stagionata 24 mesi, prodotto di montagna', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=800', supplier: 'Caseificio Alpino Tradizionale', category: 'Formaggi', regularPrice: 32, groupPrice: 24, minQuantity: 30, currentParticipants: 28, maxParticipants: 50, endDate: '2026-04-10', unit: 'kg', quantityPerPerson: 2, discount: 25, status: 'closing-soon' },
-  { id: '3', productName: 'Pasta di Gragnano IGP - Box Misto', description: 'Selezione di 12 formati di pasta artigianale trafilata al bronzo', image: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=800', supplier: 'Pastificio Artigiano Napoletano', category: 'Pasta', regularPrice: 45, groupPrice: 35, minQuantity: 40, currentParticipants: 42, maxParticipants: 80, endDate: '2026-04-20', unit: 'box da 12 pacchi', quantityPerPerson: 1, discount: 22, status: 'active' },
-  { id: '4', productName: 'Vino Chianti Classico DOCG - Cassa 6 Bottiglie', description: "Annata 2023, medaglia d'oro al concorso enologico internazionale", image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800', supplier: 'Cantina Toscana Del Chianti', category: 'Vini', regularPrice: 78, groupPrice: 59.9, minQuantity: 25, currentParticipants: 19, maxParticipants: 50, endDate: '2026-04-18', unit: 'cassa da 6 bottiglie', quantityPerPerson: 1, discount: 23, status: 'active' },
-  { id: '5', productName: 'Prosciutto Crudo di Parma DOP 18 mesi', description: 'Intero disossato, peso medio 7-8 kg, taglio sottovuoto gratuito', image: 'https://images.unsplash.com/photo-1542843289-3b0e1c9ea8f0?w=800', supplier: 'Salumificio Emiliano D.O.P.', category: 'Salumi', regularPrice: 26, groupPrice: 19.5, minQuantity: 35, currentParticipants: 31, maxParticipants: 60, endDate: '2026-04-12', unit: 'kg', quantityPerPerson: 3, discount: 25, status: 'closing-soon' },
-  { id: '6', productName: 'Miele Biologico Multiflora - Set 12 Vasetti', description: 'Miele italiano biologico certificato, produzione delle nostre api', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784088?w=800', supplier: 'Azienda Agricola Bio del Garda', category: 'Prodotti Tipici', regularPrice: 48, groupPrice: 38.4, minQuantity: 20, currentParticipants: 15, maxParticipants: 40, endDate: '2026-04-25', unit: 'set da 12 vasetti 250g', quantityPerPerson: 1, discount: 20, status: 'active' },
-];
-
-const CATEGORIES = ['Tutti', 'Alimentari', 'Formaggi', 'Pasta', 'Vini', 'Salumi', 'Prodotti Tipici'];
-
 export function GroupPurchasesPage() {
+  const navigate = useNavigate();
+  const purchases = useGroupPurchasesStore((s) => s.purchases);
+  const addPurchase = useGroupPurchasesStore((s) => s.addPurchase);
+  const joinPurchase = useGroupPurchasesStore((s) => s.joinPurchase);
+
   const [selectedCategory, setSelectedCategory] = useState('Tutti');
   const [search, setSearch] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortKey>(DEFAULT_SORT);
-  const [purchases, setPurchases] = useState<GroupPurchase[]>(SEED_GROUP_PURCHASES);
   const [showCreate, setShowCreate] = useState(false);
   const [joinTarget, setJoinTarget] = useState<GroupPurchase | null>(null);
+
+  const activeGroupsCount = useMemo(
+    () => purchases.filter((g) => g.status === 'active' || g.status === 'closing-soon').length,
+    [purchases],
+  );
 
   const filteredPurchases = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -75,24 +64,19 @@ export function GroupPurchasesPage() {
         case 'end-asc':       return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
       }
     });
-  }, [selectedCategory, search, sortBy]);
-
-  const activeGroups = useMemo(
-    () => purchases.filter((g) => g.status === 'active' || g.status === 'closing-soon'),
-    [purchases],
-  );
+  }, [purchases, selectedCategory, search, sortBy]);
 
   const filtersDirty = sortBy !== DEFAULT_SORT;
   const resetFilters = () => setSortBy(DEFAULT_SORT);
 
-  const getProgressPercentage = (current: number, min: number) =>
-    Math.min((current / min) * 100, 100);
+  const handleCreate = (data: Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'discount'>) => {
+    addPurchase(data);
+    setShowCreate(false);
+  };
 
-  const getDaysRemaining = (endDate: string) => {
-    const today = new Date('2026-03-31');
-    const end = new Date(endDate);
-    const diffTime = end.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const handleJoin = (id: string) => {
+    joinPurchase(id);
+    setJoinTarget(null);
   };
 
   const renderStatusBadge = (status: GroupPurchase['status']) => {
@@ -120,37 +104,6 @@ export function GroupPurchasesPage() {
     );
   };
 
-  const handleCreate = (data: Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'discount'>) => {
-    const discount = data.regularPrice > 0
-      ? Math.round(((data.regularPrice - data.groupPrice) / data.regularPrice) * 100)
-      : 0;
-    const newGp: GroupPurchase = {
-      ...data,
-      id: `gp-${Date.now()}`,
-      currentParticipants: 0,
-      status: 'active',
-      discount,
-    };
-    setPurchases((prev) => [newGp, ...prev]);
-    setShowCreate(false);
-  };
-
-  const handleJoin = (id: string) => {
-    setPurchases((prev) =>
-      prev.map((gp) => {
-        if (gp.id !== id) return gp;
-        const currentParticipants = gp.currentParticipants + 1;
-        const reachedMin = currentParticipants >= gp.minQuantity;
-        return {
-          ...gp,
-          currentParticipants,
-          status: reachedMin ? 'completed' : gp.status,
-        };
-      }),
-    );
-    setJoinTarget(null);
-  };
-
   return (
     <Layout>
       <div className="group-purchases-page">
@@ -158,10 +111,17 @@ export function GroupPurchasesPage() {
         title="Acquisti condivisi"
         subtitle="Unisciti ai gruppi di acquisto e risparmia acquistando insieme ad altri"
         actions={
-          <Button variant="primary" size="md" onClick={() => setShowCreate(true)}>
-            <Icon family="solid" name="plus" data-slot="icon" />
-            Crea acquisto condiviso
-          </Button>
+          <>
+            <Button variant="tertiary" size="md" onClick={() => navigate('/group-purchases/active')}>
+              <Icon family="regular" name="layer-group" data-slot="icon" />
+              Gruppi attivi
+              <span className="group-purchases__active-count">{activeGroupsCount}</span>
+            </Button>
+            <Button variant="primary" size="md" onClick={() => setShowCreate(true)}>
+              <Icon family="solid" name="plus" data-slot="icon" />
+              Crea acquisto condiviso
+            </Button>
+          </>
         }
       />
 
@@ -175,14 +135,13 @@ export function GroupPurchasesPage() {
       {joinTarget && (
         <JoinGroupPurchaseModal
           purchase={joinTarget}
-          daysRemaining={getDaysRemaining(joinTarget.endDate)}
           onClose={() => setJoinTarget(null)}
           onConfirm={() => handleJoin(joinTarget.id)}
         />
       )}
 
       <div className="group-purchases__filter-row">
-        {CATEGORIES.map((category) => (
+        {GROUP_PURCHASE_CATEGORIES.map((category) => (
           <button
             key={category}
             type="button"
@@ -328,80 +287,6 @@ export function GroupPurchasesPage() {
         </div>
       </div>
 
-      <section className="active-groups">
-        <header className="active-groups__head">
-          <h2 className="active-groups__title">Gruppi attivi</h2>
-          <span className="active-groups__count">{activeGroups.length} gruppi in corso</span>
-        </header>
-
-        {activeGroups.length === 0 ? (
-          <p className="active-groups__empty">
-            Nessun gruppo attivo al momento. Crea un acquisto condiviso per avviarne uno.
-          </p>
-        ) : (
-          <ul className="active-groups__list">
-            {activeGroups.map((group) => {
-              const progress = getProgressPercentage(group.currentParticipants, group.minQuantity);
-              const daysRemaining = getDaysRemaining(group.endDate);
-              const missing = Math.max(group.minQuantity - group.currentParticipants, 0);
-              const progressWidthClass = `gp-progress-${Math.round(progress / 5) * 5}`;
-              return (
-                <li key={group.id} className="active-group">
-                  <img src={group.image} alt={group.productName} className="active-group__image" />
-
-                  <div className="active-group__detail">
-                    <div className="active-group__detail-head">
-                      <h3 className="active-group__product">{group.productName}</h3>
-                      {group.status === 'closing-soon' && (
-                        <span className="active-group__flag">
-                          <Icon family="regular" name="triangle-exclamation" />
-                          In chiusura
-                        </span>
-                      )}
-                    </div>
-                    <p className="active-group__supplier">
-                      {group.supplier} · {group.category}
-                    </p>
-                    <div className="active-group__meta">
-                      <span className="active-group__price">€{group.groupPrice.toFixed(2)}</span>
-                      <span className="active-group__price-regular">€{group.regularPrice.toFixed(2)}</span>
-                      <span className="active-group__discount">-{group.discount}%</span>
-                      <span className="active-group__days">
-                        <Icon family="regular" name="clock" /> {daysRemaining} giorni
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="active-group__participants">
-                    <div className="active-group__participants-head">
-                      <Icon family="regular" name="users" />
-                      <strong>{group.currentParticipants}</strong>
-                      <span>/ {group.minQuantity} partecipanti</span>
-                    </div>
-                    <div className="active-group__progress">
-                      <div className={`active-group__progress-bar ${progressWidthClass}`} />
-                    </div>
-                    <span className="active-group__participants-note">
-                      {missing > 0 ? `Mancano ${missing} adesioni` : 'Soglia raggiunta'}
-                    </span>
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="active-group__cta"
-                    onClick={() => setJoinTarget(group)}
-                  >
-                    <Icon family="solid" name="user-plus" data-slot="icon" />
-                    Sottoscrivi
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
       <section className="group-purchases__info">
         <h2 className="group-purchases__info-title">Come funzionano gli Acquisti condivisi?</h2>
         <div className="group-purchases__info-grid">
@@ -452,7 +337,7 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
   const [image, setImage] = useState('');
   const [supplier, setSupplier] = useState('');
   const [category, setCategory] = useState(
-    CATEGORIES.find((c) => c !== 'Tutti') ?? '',
+    GROUP_PURCHASE_CATEGORIES.find((c) => c !== 'Tutti') ?? '',
   );
   const [regularPrice, setRegularPrice] = useState(0);
   const [groupPrice, setGroupPrice] = useState(0);
@@ -526,7 +411,7 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
             <label className="gp-modal__field">
               <span>Categoria *</span>
               <select value={category} onChange={(e) => setCategory(e.target.value)} required>
-                {CATEGORIES.filter((c) => c !== 'Tutti').map((c) => (
+                {GROUP_PURCHASE_CATEGORIES.filter((c) => c !== 'Tutti').map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
@@ -585,142 +470,6 @@ function CreateGroupPurchaseModal({ onClose, onSave }: CreateModalProps) {
             </Button>
           </footer>
         </form>
-      </div>
-    </div>
-  );
-}
-
-/* ============================================================
-   JoinGroupPurchaseModal — dettaglio del gruppo d'acquisto con
-   scelta del quantitativo. Il gruppo si crea al raggiungimento
-   del quantitativo minimo di partecipanti.
-   ============================================================ */
-
-interface JoinModalProps {
-  purchase: GroupPurchase;
-  daysRemaining: number;
-  onClose: () => void;
-  onConfirm: (quantity: number) => void;
-}
-
-function JoinGroupPurchaseModal({ purchase, daysRemaining, onClose, onConfirm }: JoinModalProps) {
-  const [quantity, setQuantity] = useState(purchase.quantityPerPerson);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
-  const missing = Math.max(purchase.minQuantity - purchase.currentParticipants, 0);
-  const willComplete = purchase.currentParticipants + 1 >= purchase.minQuantity;
-  const total = purchase.groupPrice * quantity;
-  const saving = (purchase.regularPrice - purchase.groupPrice) * quantity;
-
-  const step = (delta: number) =>
-    setQuantity((q) => Math.max(purchase.quantityPerPerson, q + delta));
-
-  return (
-    <div className="gp-modal" role="presentation" onClick={onClose}>
-      <div className="gp-modal__box gp-join" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <header className="gp-modal__head">
-          <h2>Partecipa al gruppo</h2>
-          <button type="button" className="gp-modal__close" onClick={onClose} aria-label="Chiudi">
-            <Icon family="light" name="xmark" />
-          </button>
-        </header>
-
-        <div className="gp-join__body">
-          <div className="gp-join__detail">
-            <img src={purchase.image} alt={purchase.productName} className="gp-join__image" />
-            <div className="gp-join__detail-info">
-              <span className="gp-join__discount">-{purchase.discount}%</span>
-              <h3 className="gp-join__product">{purchase.productName}</h3>
-              <p className="gp-join__supplier">{purchase.supplier}</p>
-              <p className="gp-join__desc">{purchase.description}</p>
-              <div className="gp-join__prices">
-                <span className="gp-join__price-regular">€{purchase.regularPrice.toFixed(2)}</span>
-                <span className="gp-join__price-group">€{purchase.groupPrice.toFixed(2)}</span>
-                <span className="gp-join__price-unit">/ {purchase.unit}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="gp-join__notice">
-            <Icon family="regular" name="circle-info" className="gp-join__notice-icon" />
-            <div>
-              <p className="gp-join__notice-title">
-                Al raggiungimento del quantitativo minimo il gruppo verrà creato.
-              </p>
-              <p className="gp-join__notice-text">
-                Servono <strong>{purchase.minQuantity}</strong> partecipanti: al momento sono{' '}
-                <strong>{purchase.currentParticipants}</strong>
-                {missing > 0
-                  ? `, ne mancano ancora ${missing}.`
-                  : ' — soglia raggiunta.'}
-                {' '}Scadenza tra {daysRemaining} giorni.
-              </p>
-            </div>
-          </div>
-
-          <div className="gp-join__qty">
-            <span className="gp-join__qty-label">Quantitativo desiderato</span>
-            <div className="gp-join__qty-control">
-              <button
-                type="button"
-                className="gp-join__qty-btn"
-                onClick={() => step(-1)}
-                disabled={quantity <= purchase.quantityPerPerson}
-                aria-label="Diminuisci"
-              >
-                <Icon family="regular" name="minus" />
-              </button>
-              <input
-                type="number"
-                min={purchase.quantityPerPerson}
-                value={quantity}
-                onChange={(e) =>
-                  setQuantity(Math.max(purchase.quantityPerPerson, Math.floor(Number(e.target.value) || purchase.quantityPerPerson)))
-                }
-              />
-              <button
-                type="button"
-                className="gp-join__qty-btn"
-                onClick={() => step(1)}
-                aria-label="Aumenta"
-              >
-                <Icon family="regular" name="plus" />
-              </button>
-            </div>
-            <span className="gp-join__qty-unit">
-              {purchase.unit} · min. {purchase.quantityPerPerson}
-            </span>
-          </div>
-
-          <div className="gp-join__summary">
-            <div className="gp-join__summary-row">
-              <span>Totale stimato</span>
-              <strong>€{total.toFixed(2)}</strong>
-            </div>
-            <div className="gp-join__summary-row gp-join__summary-row--saving">
-              <span>Risparmio rispetto al listino</span>
-              <strong>€{saving.toFixed(2)}</strong>
-            </div>
-          </div>
-        </div>
-
-        <footer className="gp-modal__actions">
-          <Button variant="tertiary" onClick={onClose} type="button">Annulla</Button>
-          <Button variant="primary" type="button" onClick={() => onConfirm(quantity)}>
-            <Icon family="solid" name="cart-shopping" data-slot="icon" />
-            {willComplete ? 'Partecipa e attiva il gruppo' : 'Conferma partecipazione'}
-          </Button>
-        </footer>
       </div>
     </div>
   );
