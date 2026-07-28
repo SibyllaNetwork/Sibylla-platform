@@ -195,7 +195,7 @@ function ContrattiSection({ anagraficaId, nomeDefault }: { anagraficaId: string;
   return (
     <Section
       icon="fa-file-contract"
-      title="Contratti del personale"
+      title="Contratto"
       actions={
         <button
           type="button"

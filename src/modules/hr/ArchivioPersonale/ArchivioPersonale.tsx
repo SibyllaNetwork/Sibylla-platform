@@ -14,6 +14,23 @@ const fmtDate = (iso?: string) => {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
 }
 
+// ─── PDF: visualizza / scarica / stampa (data-URL) ────────────────────────────
+const viewPdf = (url: string) => window.open(url, '_blank')
+const downloadPdf = (url: string, name?: string) => {
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name || 'contratto.pdf'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+const printPdf = (url: string, name?: string) => {
+  const w = window.open('', '_blank')
+  if (!w) return
+  w.document.write(`<title>${name || 'contratto'}</title><iframe src="${url}" style="border:0;width:100%;height:100vh" onload="setTimeout(()=>{try{this.contentWindow.focus();this.contentWindow.print()}catch(e){}},300)"></iframe>`)
+  w.document.close()
+}
+
 // dd/mm/yyyy → yyyy-mm-dd (per il date input della scheda)
 const toIsoDate = (d?: string) => {
   if (!d) return ''
@@ -61,8 +78,21 @@ const REQUIRED_DOCS = [
   { key: 'sicurezza',     label: 'Formazione sicurezza' },
 ] as const
 
-const docMancanti = (p: PersonaleItem) =>
-  REQUIRED_DOCS.filter((d) => !p.documenti?.[d.key]).length
+// Il "Contratto di lavoro" fa parte del fascicolo come gli altri documenti, ma
+// la sua presenza si valuta dallo storico contratti (sezione "Contratti del
+// personale"), non da un file caricato tra i documenti allegati.
+const FASCICOLO_ITEM_CONTRATTO = { key: 'contratto', label: 'Contratto di lavoro' }
+const FASCICOLO_TOTALE = REQUIRED_DOCS.length + 1
+
+const docMancantiList = (p: PersonaleItem) =>
+  REQUIRED_DOCS.filter((d) => !p.documenti?.[d.key])
+
+// Elementi del fascicolo mancanti = documenti allegati mancanti + contratto (se assente).
+const fascicoloMancanti = (p: PersonaleItem, hasContratto: boolean): { key: string; label: string }[] => {
+  const miss: { key: string; label: string }[] = docMancantiList(p).map((d) => ({ key: d.key, label: d.label }))
+  if (!hasContratto) miss.push(FASCICOLO_ITEM_CONTRATTO)
+  return miss
+}
 
 const FALLBACK: PersonaleItem[] = [
   { id: 66, matricola: 66, nome: 'Piero',     cognome: 'Aragona',  telefono: '+39 339 1234567', email: 'p.aragona@hotelnoto.it', contatto_emergenza: 'Maria Aragona +39 340 1112233', nato_il: '12/03/1959', codice_fiscale: 'RSSMRA85C10H501Z', indirizzo: 'VIA DEI MILLE, 30',  cap: '00199', provincia: 'to',   nazione: 'ITA', documenti: { identita: 'carta_identita_aragona.pdf', codiceFiscale: 'tessera_sanitaria_aragona.pdf', contratto: 'contratto_lavoro_2026.pdf', privacy: 'informativa_privacy.pdf', sicurezza: 'formazione_sicurezza.pdf', altri: ['patto_riservatezza.pdf'] } },
@@ -196,8 +226,8 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
           </thead>
           <tbody>
             {filtered.map((p) => {
-              const mancanti = REQUIRED_DOCS.filter((d) => !p.documenti?.[d.key])
               const nCtr = contratti.filter((c) => c.anagraficaId === String(p.id)).length
+              const mancanti = fascicoloMancanti(p, nCtr > 0)
               return (
               <tr key={p.id}>
                 <td>
@@ -206,7 +236,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                       <Tooltip variant="light" position="right" content={
                         <div className="text-left">
                           <div className="font-semibold text-text mb-1">Documentazione incompleta</div>
-                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/{REQUIRED_DOCS.length} documenti mancanti — clicca per inserirli:</div>
+                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/{FASCICOLO_TOTALE} documenti mancanti — clicca per inserirli:</div>
                           <ul className="m-0 pl-4 list-disc text-[12px] text-text">
                             {mancanti.map((d) => <li key={d.key}>{d.label}</li>)}
                           </ul>
@@ -271,11 +301,11 @@ function ContrattiModal({ persona, onClose }: { persona: PersonaleItem | null; o
   const fullName = persona ? `${persona.nome ?? ''} ${persona.cognome ?? ''}`.trim() : ''
   const storico: ContrattoPersonale[] = persona ? contrattiFor(String(persona.id)) : []
   return (
-    <Modal open={!!persona} onClose={onClose} title={`Contratti del personale — ${fullName}`} size="xl">
+    <Modal open={!!persona} onClose={onClose} title={`Contratto — ${fullName}`} size="xl">
       {persona && (
         storico.length === 0 ? (
           <p className="text-[13px] text-text-muted m-0">
-            Nessun contratto registrato per questo profilo. Aggiungilo dalla scheda anagrafica → sezione “Contratti del personale”.
+            Nessun contratto registrato per questo profilo. Aggiungilo dalla scheda anagrafica → sezione “Contratto”.
           </p>
         ) : (
           <ul className="m-0 p-0 list-none flex flex-col gap-2">
@@ -310,6 +340,12 @@ function ContrattiModal({ persona, onClose }: { persona: PersonaleItem | null; o
 // ─── MODAL: Documento di identità ─────────────────────────────────────────────
 
 function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null; onClose: () => void }) {
+  const contratti = useContrattiPersonaleStore((s) => s.contratti)
+  const ultimoContratto = persona
+    ? [...contratti]
+        .filter((c) => c.anagraficaId === String(persona.id))
+        .sort((a, b) => (b.decorrenza ?? b.createdAt).localeCompare(a.decorrenza ?? a.createdAt))[0]
+    : undefined
   const fullName = persona ? `${persona.nome ?? ''} ${persona.cognome ?? ''}`.trim() : ''
   const fields: [string, unknown][] = persona ? [
     ['Matricola N°', persona.matricola],
@@ -345,7 +381,7 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
       )}
 
       {persona && (() => {
-        const mancanti = docMancanti(persona)
+        const mancanti = docMancantiList(persona).length + (ultimoContratto ? 0 : 1)
         const altri = persona.documenti?.altri ?? []
         return (
           <div className="mt-5 pt-4 border-t border-line">
@@ -353,7 +389,7 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
               <h4 className="text-[13px] font-semibold text-text">Documenti allegati</h4>
               {mancanti > 0
                 ? <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-warning bg-warning-light rounded-full px-3 py-1 animate-pulse">
-                    <i className="fa-solid fa-triangle-exclamation" /> Documentazione incompleta — {mancanti}/{REQUIRED_DOCS.length} mancanti
+                    <i className="fa-solid fa-triangle-exclamation" /> Documentazione incompleta — {mancanti}/{FASCICOLO_TOTALE} mancanti
                   </span>
                 : <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-success">
                     <i className="fa-solid fa-circle-check" /> Documentazione completa
@@ -363,6 +399,13 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
               {REQUIRED_DOCS.map((d) => (
                 <DocRow key={d.key} label={d.label} name={persona.documenti?.[d.key]} required />
               ))}
+              <DocRow
+                key="contratto"
+                label="Contratto di lavoro"
+                name={ultimoContratto?.pdfName}
+                pdfUrl={ultimoContratto?.pdfDataUrl}
+                required
+              />
               {altri.map((n, i) => (
                 <DocRow key={`altro-${i}`} label={`Altro documento ${i + 1}`} name={n} />
               ))}
@@ -374,7 +417,7 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
   )
 }
 
-function DocRow({ label, name, required }: { label: string; name?: string; required?: boolean }) {
+function DocRow({ label, name, required, pdfUrl }: { label: string; name?: string; required?: boolean; pdfUrl?: string }) {
   return (
     <li className="flex items-center justify-between gap-3 py-2 border-b border-line last:border-b-0">
       <span className="flex items-center gap-2 text-[13px] text-text">
@@ -384,9 +427,9 @@ function DocRow({ label, name, required }: { label: string; name?: string; requi
       {name ? (
         <span className="flex items-center gap-2">
           <span className="text-[12px] text-text-muted truncate max-w-[200px]" title={name}>{name}</span>
-          <button type="button" className="sib-btn sib-btn--icon" title="Apri documento"><i className="fa-light fa-eye" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Scarica documento"><i className="fa-light fa-download" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Stampa documento"><i className="fa-light fa-print" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Visualizza documento" disabled={!pdfUrl} onClick={pdfUrl ? () => viewPdf(pdfUrl) : undefined}><i className="fa-light fa-eye" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Scarica documento" disabled={!pdfUrl} onClick={pdfUrl ? () => downloadPdf(pdfUrl, name) : undefined}><i className="fa-light fa-download" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Stampa documento" disabled={!pdfUrl} onClick={pdfUrl ? () => printPdf(pdfUrl, name) : undefined}><i className="fa-light fa-print" /></button>
         </span>
       ) : (
         <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-warning">
