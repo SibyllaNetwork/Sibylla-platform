@@ -5,11 +5,14 @@
   display: flex
   flex-direction: column
   gap: 16px
+  // La compattazione delle tabelle si misura sulla larghezza del contenuto della
+  // pagina (sidebar aperta compresa), non su quella del viewport.
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
 
-  // ── Card di sezione ──────────────────────────────────────────────────────────
+  // ── Card di sezione ─────────────────────────────────────────────────────────
   &__card
     border: 1px solid $border
     border-radius: 12px
@@ -38,38 +41,128 @@
       font-size: 15px
       color: $primary
 
+  // Nota accanto al titolo (es. "facoltativo")
+  &__card-note
+    font-family: $font-body
+    font-weight: 400
+    font-size: 11px
+    color: $text-inactive
+    padding: 2px 8px
+    border: 1px solid $border
+    border-radius: 999px
+    background: var(--color-surface)
+
+  &__card-actions
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    .sib-btn i
+      margin-right: 6px
+
   &__card-body
     padding: 16px
 
-  // ── Griglie campi ──────────────────────────────────────────────────────────
+  // ── Griglie campi ───────────────────────────────────────────────────────────
   &__grid
     display: grid
     gap: 16px 18px
+    align-items: start
 
+    &--4
+      grid-template-columns: repeat(4, minmax(0, 1fr))
     &--3
-      grid-template-columns: repeat(3, 1fr)
+      grid-template-columns: repeat(3, minmax(0, 1fr))
     &--2
-      grid-template-columns: repeat(2, 1fr)
+      grid-template-columns: repeat(2, minmax(0, 1fr))
 
-    @media (max-width: 900px)
-      &--3
-        grid-template-columns: repeat(2, 1fr)
-    @media (max-width: 560px)
-      &--3, &--2
-        grid-template-columns: 1fr
+    @container (max-width: 1100px)
+      &--4
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+    @container (max-width: 860px)
+      &--4, &--3
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    @container (max-width: 560px)
+      &--4, &--3, &--2
+        grid-template-columns: minmax(0, 1fr)
 
   &__field
     display: flex
     flex-direction: column
     gap: 4px
 
+    &--search
+      max-width: 320px
+
+  // Label standard piattaforma: Poppins 12px 600 primary
   &__label
     font-family: 'Poppins', sans-serif
     font-size: 12px
     font-weight: 600
     color: $primary
 
+  &__note
+    margin-top: 16px
+
+  // ── Nominativo: suggerimenti anagrafica ─────────────────────────────────────
+  &__combo
+    position: relative
+
+  &__combo-overlay
+    position: fixed
+    inset: 0
+    z-index: 49
+
+  &__combo-list
+    position: absolute
+    top: calc(100% + 4px)
+    left: 0
+    right: 0
+    z-index: 50
+    margin: 0
+    padding: 4px
+    list-style: none
+    max-height: 232px
+    overflow-y: auto
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 10px
+    box-shadow: 0 8px 24px rgba(32, 71, 105, 0.16)
+
+  &__combo-opt
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    width: 100%
+    padding: 7px 9px
+    border: none
+    border-radius: 7px
+    background: transparent
+    cursor: pointer
+    text-align: left
+    font-family: $font-body
+
+    &:hover
+      background: $primary-50
+
+  &__combo-name
+    font-size: 13px
+    color: $text-active
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__combo-meta
+    flex-shrink: 0
+    font-size: 11px
+    color: $text-inactive
+
+  // ── Anticipo ────────────────────────────────────────────────────────────────
   &__anticipo-fields
+    display: flex
+    flex-direction: column
+    gap: 12px
     margin-top: 14px
 
   &__hint
@@ -83,24 +176,104 @@
     i
       color: $primary
 
-  // ── Tabella addebiti ─────────────────────────────────────────────────────────
+  // Chip dell'anticipo collegato (header della card)
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 4px 6px 4px 10px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $primary-200
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+    > i
+      font-size: 11px
+
+  &__chip-x
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 18px
+    height: 18px
+    border: none
+    border-radius: 50%
+    background: transparent
+    color: $primary
+    cursor: pointer
+    font-size: 11px
+
+    &:hover
+      background: $primary-200
+
+  // ── Tabelle (anticipi / addebiti) ───────────────────────────────────────────
   &__table
+    // Nessuno scroll orizzontale: le colonne rientrano nella larghezza utile.
+    table-layout: fixed
+
     th
       vertical-align: middle
 
     .ncp__th-check
-      width: 44px
+      width: 42px
       text-align: center
     .ncp__th-data
-      width: 110px
+      width: 128px
+    .ncp__th-serv
+      width: 168px
+    .ncp__th-qta
+      width: 66px
+      text-align: right
     .ncp__th-iva
-      width: 108px
+      width: 92px
+      text-align: center
+    .ncp__th-mod
+      width: 110px
+      text-align: center
     .ncp__th-num
       text-align: right
       white-space: nowrap
-      width: 130px
+      width: 124px
     .ncp__th-act
-      width: 48px
+      width: 84px
+      text-align: center
+
+    // Le celle di testo restano su una riga sola (standard piattaforma).
+    td
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    // ── Campi dentro le celle ─────────────────────────────────────────────────
+    // I selettori restano annidati sotto .ncp__table: servono almeno due classi
+    // per battere .sib-input/.sib-select, che il foglio Tailwind carica dopo
+    // questo file (a pari specificità vincerebbe il design system).
+    .ncp__cell
+      width: 100%
+      height: 30px
+      font-size: 12px
+      padding-left: 8px
+      padding-right: 8px
+
+    .ncp__cell--num
+      text-align: right
+
+    .ncp__cell-qta
+      padding-left: 6px
+      padding-right: 6px
+
+    .ncp__cell-prezzo
+      width: 72px
+
+    // Lo spazio a destra lascia libera la freccetta standard del select.
+    select.ncp__cell
+      padding-right: 24px
+
+    .ncp__cell-data
+      padding-left: 6px
+      padding-right: 4px
 
   &__td-center
     text-align: center
@@ -117,40 +290,64 @@
   &__row--sel
     background: $primary-50
 
-  // input/select nelle celle
-  &__cell-in
-    width: 100%
+  // Riga selezionabile (scelta anticipo)
+  &__row-pick
+    cursor: pointer
+
+  // Nella lista anticipi la data è un valore centrato: allinea anche il titolo.
+  &__table--anticipi .ncp__th-data
+    text-align: center
+
+  &__row-act
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    justify-content: center
+
+  // Riga di totali in fondo alla tabella addebiti
+  &__foot td
+    background: $bg
+    border-top: 1px solid $border
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
 
   &__euro
     display: inline-flex
     align-items: center
     justify-content: flex-end
     gap: 5px
-
-  &__cell-num
-    width: 92px
-    text-align: right
+    width: 100%
 
   &__euro-sfx
     color: $text-inactive
-    font-size: 13px
+    font-size: 12px
 
-  &__cell-sel
-    width: 92px
-
-  // stato vuoto
+  // ── Stato vuoto ─────────────────────────────────────────────────────────────
   &__empty
-    text-align: center
-    padding: 34px 0 !important
+    padding: 30px 0 !important
     color: $text-inactive
+    white-space: normal !important
+    text-align: center
+
+    // Icona, testo e pulsante incolonnati al centro.
+    > *
+      display: block
+      margin-left: auto
+      margin-right: auto
 
   &__empty-ico
-    display: block
     font-size: 26px
     color: $primary-200
     margin-bottom: 8px
 
-  // ── Riepilogo totali ─────────────────────────────────────────────────────────
+  &__empty-btn
+    display: inline-flex !important
+    align-items: center
+    gap: 6px
+    margin-top: 12px
+
+  // ── Riepilogo totali ────────────────────────────────────────────────────────
   &__summary
     display: flex
     align-items: center
@@ -181,6 +378,9 @@
     font-size: 15px
     color: $text-active
 
+  &__sum-item--neg .ncp__sum-v
+    color: $success
+
   &__sum-item--tot
     padding-left: 26px
     border-left: 1px solid $border
@@ -192,3 +392,35 @@
 
   &__pay
     margin-left: 8px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  // ── Compattazione su laptop (sidebar aperta) ────────────────────────────────
+  // Solo dimensioni: le intestazioni non vengono mai abbreviate.
+  @container (max-width: 1360px)
+    .ncp__table
+      font-size: 12px
+
+      th, td
+        padding-left: 8px
+        padding-right: 8px
+
+      .ncp__th-data
+        width: 120px
+      // Larghezza sufficiente alla voce di catalogo più lunga: le etichette non
+      // vengono mai abbreviate.
+      .ncp__th-serv
+        width: 156px
+      .ncp__th-iva
+        width: 88px
+      .ncp__th-num
+        width: 108px
+      .ncp__th-act
+        width: 72px
+
+      .ncp__cell-prezzo
+        width: 66px
+
+    .ncp__summary
+      gap: 18px
