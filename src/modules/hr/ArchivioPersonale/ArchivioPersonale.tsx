@@ -5,6 +5,14 @@ import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
 import { avatarUrl } from '../../../core/avatar'
 import { setEditingAnagrafica } from '../CreaAnagrafica/_state'
+import { useContrattiPersonaleStore, type ContrattoPersonale } from '../../../store/useContrattiPersonaleStore'
+
+// yyyy-mm-dd → dd/mm/yyyy
+const fmtDate = (iso?: string) => {
+  if (!iso) return '—'
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
+}
 
 // dd/mm/yyyy → yyyy-mm-dd (per il date input della scheda)
 const toIsoDate = (d?: string) => {
@@ -89,6 +97,8 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [openFilter, setOpenFilter] = useState<string | null>(null)
   const [docPerson, setDocPerson] = useState<PersonaleItem | null>(null)
+  const [contrattiPerson, setContrattiPerson] = useState<PersonaleItem | null>(null)
+  const contratti = useContrattiPersonaleStore((s) => s.contratti)
 
   useEffect(() => {
     let cancelled = false
@@ -187,6 +197,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
           <tbody>
             {filtered.map((p) => {
               const mancanti = REQUIRED_DOCS.filter((d) => !p.documenti?.[d.key])
+              const nCtr = contratti.filter((c) => c.anagraficaId === String(p.id)).length
               return (
               <tr key={p.id}>
                 <td>
@@ -226,8 +237,11 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                     <button className="sib-btn sib-btn--icon" title="Modifica" onClick={() => modificaPersona(p)}>
                       <i className="fa-solid fa-pen" />
                     </button>
-                    <button className="sib-btn sib-btn--icon" title="Documento contratto">
+                    <button className="sib-btn sib-btn--icon relative" title="Contratto (PDF)" onClick={() => setContrattiPerson(p)}>
                       <i className="fa-solid fa-file-pdf" />
+                      {nCtr > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 rounded-full bg-primary text-white text-[9px] font-bold leading-[15px] text-center">{nCtr}</span>
+                      )}
                     </button>
                     <button className="sib-btn sib-btn--icon" title="Elimina">
                       <i className="fa-solid fa-trash-can" />
@@ -245,7 +259,51 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
       </div>
 
       <DocIdentitaModal persona={docPerson} onClose={() => setDocPerson(null)} />
+      <ContrattiModal persona={contrattiPerson} onClose={() => setContrattiPerson(null)} />
     </div>
+  )
+}
+
+// ─── MODAL: Contratti del personale (storico + PDF) ───────────────────────────
+
+function ContrattiModal({ persona, onClose }: { persona: PersonaleItem | null; onClose: () => void }) {
+  const contrattiFor = useContrattiPersonaleStore((s) => s.contrattiFor)
+  const fullName = persona ? `${persona.nome ?? ''} ${persona.cognome ?? ''}`.trim() : ''
+  const storico: ContrattoPersonale[] = persona ? contrattiFor(String(persona.id)) : []
+  return (
+    <Modal open={!!persona} onClose={onClose} title={`Contratti del personale — ${fullName}`} size="xl">
+      {persona && (
+        storico.length === 0 ? (
+          <p className="text-[13px] text-text-muted m-0">
+            Nessun contratto registrato per questo profilo. Aggiungilo dalla scheda anagrafica → sezione “Contratti del personale”.
+          </p>
+        ) : (
+          <ul className="m-0 p-0 list-none flex flex-col gap-2">
+            {storico.map((r, i) => (
+              <li key={r.id} className="flex items-center justify-between gap-3 flex-wrap border border-line rounded-lg p-3">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  {i === 0 && <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success text-white text-[11px] font-bold">Vigente</span>}
+                  <span className="font-semibold text-text text-[13px]">{r.tipologia}</span>
+                  <span className="text-[12px] text-text-muted">
+                    {r.ruolo || '—'}{r.livello ? ` · ${r.livello}` : ''} · RAL € {r.ral || '—'} · dal {fmtDate(r.decorrenza)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-none">
+                  {r.pdfName && (
+                    <span className="inline-flex items-center gap-2 text-[12px] text-text-muted truncate max-w-[200px]" title={r.pdfName}>
+                      <i className="fa-light fa-file-pdf text-primary" /> {r.pdfName}
+                    </span>
+                  )}
+                  {r.pdfDataUrl
+                    ? <button type="button" className="sib-btn sib-btn--icon" title="Apri PDF" onClick={() => window.open(r.pdfDataUrl!, '_blank')}><i className="fa-light fa-eye" /></button>
+                    : <span className="text-[11px] text-text-muted italic">PDF non disponibile</span>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+      )}
+    </Modal>
   )
 }
 

@@ -3,6 +3,8 @@ import PageHead from '../../../core/components/PageHead'
 import { InputField, SelectField, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
+import { useContrattiPersonaleStore } from '../../../store/useContrattiPersonaleStore'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import { getEditingAnagrafica, clearEditingAnagrafica } from './_state'
 import './CreaAnagrafica.sass'
 
@@ -24,15 +26,36 @@ const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Ho
 const FASCE_TURNI = ['Mattina', 'Pomeriggio', 'Notte', 'Spezzato']
 const REPARTI = ['Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Amministrazione', 'Marketing', 'Direzione', 'Cucina']
 const CREDENZIALI = ['Nessuna', 'Operatore base', 'Operatore avanzato', 'Manager']
+const TIPOLOGIE_CONTRATTO = [
+  'Tempo indeterminato', 'Tempo determinato', 'Stagionale', 'Apprendistato',
+  'Somministrazione', 'Collaborazione (Co.co.co.)', 'Tirocinio / Stage', 'Part-time', 'Intermittente',
+]
+const LIVELLI_CONTRATTO = ['1° livello', '2° livello', '3° livello', '4° livello', '5° livello', '6° livello', 'Quadro', 'Dirigente']
 
-function Section({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+// Sezione comprimibile: header cliccabile (icona + titolo + chevron) per
+// espandere/richiudere e recuperare spazio verticale; `actions` è uno slot a
+// destra dell'header (es. il pulsante "Storico" dei Contratti) che non innesca
+// il toggle.
+function Section({ icon, title, actions, defaultOpen = true, children }: {
+  icon: string; title: string; actions?: React.ReactNode; defaultOpen?: boolean; children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <section className="crea-anag__section">
+    <section className={`crea-anag__section${open ? '' : ' crea-anag__section--collapsed'}`}>
       <header className="crea-anag__section-head">
-        <i className={`fa-duotone ${icon}`} aria-hidden="true" />
-        <h3>{title}</h3>
+        <button
+          type="button"
+          className="crea-anag__section-toggle"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <i className={`fa-duotone ${icon}`} aria-hidden="true" />
+          <h3>{title}</h3>
+          <i className={`fa-solid fa-chevron-down crea-anag__section-chev${open ? '' : ' is-collapsed'}`} aria-hidden="true" />
+        </button>
+        {actions && <div className="crea-anag__section-actions">{actions}</div>}
       </header>
-      <div className="crea-anag__section-body">{children}</div>
+      {open && <div className="crea-anag__section-body">{children}</div>}
     </section>
   )
 }
@@ -105,6 +128,164 @@ function DocSlot({ label, value, onAcquire, onRemove }: {
   )
 }
 
+// ─── Contratti del personale ────────────────────────────────────────────────
+// Sezione dedicata al caricamento del contratto (operativo: ruolo, livello,
+// retribuzione) collegata all'anagrafica. Ogni variazione contrattuale è un
+// nuovo record dello storico (pulsante "Storico" in alto a destra). Il PDF
+// caricato è quello poi visualizzabile dall'"Archivio del personale".
+const fmtDate = (iso?: string) => {
+  if (!iso) return '—'
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
+}
+
+function ContrattiSection({ anagraficaId, nomeDefault }: { anagraficaId: string; nomeDefault: string }) {
+  // sottoscrivo l'array così la lista si aggiorna a ogni add/remove
+  const contratti = useContrattiPersonaleStore((s) => s.contratti)
+  const addContratto = useContrattiPersonaleStore((s) => s.addContratto)
+  const removeContratto = useContrattiPersonaleStore((s) => s.removeContratto)
+  const confirm = useConfirmStore((s) => s.confirm)
+
+  const storico = [...contratti]
+    .filter((r) => r.anagraficaId === anagraficaId)
+    .sort((a, b) => (b.decorrenza ?? b.createdAt).localeCompare(a.decorrenza ?? a.createdAt))
+  const [showStorico, setShowStorico] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const pdfRef = useRef<HTMLInputElement>(null)
+  const [pdf, setPdf] = useState<AcqFile | null>(null)
+  const [c, setC] = useState({
+    nomeImpiegato: nomeDefault,
+    ruolo: '', livello: '', tipologia: '', ral: '', decorrenza: '', note: '',
+  })
+  const setField = (k: keyof typeof c, v: string) => setC((p) => ({ ...p, [k]: v }))
+
+  const onPdf = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    const r = new FileReader()
+    r.onload = () => setPdf({ name: f.name, dataUrl: r.result as string })
+    r.readAsDataURL(f)
+  }
+
+  const aggiungiVariazione = () => {
+    if (!c.tipologia) { setError('Seleziona la tipologia del contratto.'); return }
+    if (!pdf) { setError('Carica il PDF del contratto.'); return }
+    setError(null)
+    addContratto({
+      anagraficaId,
+      nomeImpiegato: c.nomeImpiegato || nomeDefault,
+      ruolo: c.ruolo, livello: c.livello, tipologia: c.tipologia, ral: c.ral,
+      decorrenza: c.decorrenza, note: c.note,
+      pdfName: pdf.name, pdfDataUrl: pdf.dataUrl,
+    })
+    setC({ nomeImpiegato: nomeDefault, ruolo: '', livello: '', tipologia: '', ral: '', decorrenza: '', note: '' })
+    setPdf(null)
+    setShowStorico(true)
+  }
+
+  const elimina = async (id: string) => {
+    if (await confirm({ message: 'Eliminare questa variazione contrattuale dallo storico?', danger: true })) {
+      removeContratto(id)
+    }
+  }
+
+  return (
+    <Section
+      icon="fa-file-contract"
+      title="Contratti del personale"
+      actions={
+        <button
+          type="button"
+          className="sib-btn sib-btn--secondary sib-btn--sm"
+          onClick={() => setShowStorico((s) => !s)}
+        >
+          <i className={`fa-light ${showStorico ? 'fa-chevron-up' : 'fa-clock-rotate-left'}`} /> Storico
+          {storico.length > 0 && <span className="crea-anag__ctr-count">{storico.length}</span>}
+        </button>
+      }
+    >
+      {error && <p className="crea-anag__error"><i className="fa-light fa-circle-exclamation" /> {error}</p>}
+
+      {/* Nuova variazione contrattuale */}
+      <div className="crea-anag__grid crea-anag__grid--3">
+        <InputField  name="ctr_nome"      label="Nome impiegato"          value={c.nomeImpiegato} onChange={(e) => setField('nomeImpiegato', e.target.value)} />
+        <InputField  name="ctr_ruolo"     label="Ruolo"                   value={c.ruolo}         onChange={(e) => setField('ruolo', e.target.value)} placeholder="es. Addetto ricevimento" />
+        <SelectField name="ctr_livello"   label="Livello"                 value={c.livello}       onChange={(e) => setField('livello', e.target.value)}
+          options={[{ value: '', label: 'Seleziona' }, ...LIVELLI_CONTRATTO.map((l) => ({ value: l, label: l }))]} />
+        <SelectField name="ctr_tipologia" label="Tipologia del contratto" value={c.tipologia}     onChange={(e) => setField('tipologia', e.target.value)}
+          options={[{ value: '', label: 'Seleziona' }, ...TIPOLOGIE_CONTRATTO.map((t) => ({ value: t, label: t }))]} />
+        <InputField  name="ctr_ral"       label="RAL (€)"                 value={c.ral}           onChange={(e) => setField('ral', e.target.value)} placeholder="es. 28.000" iconLeft="fa-light fa-euro-sign" />
+        <DatePickerField name="ctr_decorrenza" label="Decorrenza"         value={c.decorrenza}    onChange={(e) => setField('decorrenza', e.target.value)} />
+      </div>
+
+      {/* Caricamento PDF del contratto */}
+      <div className="crea-anag__ctr-pdf">
+        <div className="crea-anag__ctr-pdf-label">
+          <span className="crea-anag__doc-row-title">Contratto (PDF)</span>
+          {pdf
+            ? <span className="crea-anag__doc-badge crea-anag__doc-badge--ok"><i className="fa-solid fa-circle-check" /> Caricato</span>
+            : <span className="crea-anag__doc-badge crea-anag__doc-badge--ko"><i className="fa-solid fa-triangle-exclamation" /> Da caricare</span>}
+        </div>
+        <div className="crea-anag__ctr-pdf-main">
+          {pdf && (
+            <span className="crea-anag__doc-file">
+              <i className="fa-light fa-file-pdf crea-anag__doc-ico" />
+              <span className="crea-anag__doc-name" title={pdf.name}>{pdf.name}</span>
+              {pdf.dataUrl && <button type="button" className="sib-btn sib-btn--icon" title="Visualizza" onClick={() => window.open(pdf.dataUrl!, '_blank')}><i className="fa-light fa-eye" /></button>}
+              <button type="button" className="sib-btn sib-btn--icon" title="Rimuovi" onClick={() => setPdf(null)}><i className="fa-light fa-trash-can" /></button>
+            </span>
+          )}
+          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => pdfRef.current?.click()}>
+            <i className="fa-light fa-folder-open" /> {pdf ? 'Sostituisci PDF' : 'Carica PDF'}
+          </button>
+          <input ref={pdfRef} type="file" accept="application/pdf" className="hidden" onChange={onPdf} />
+        </div>
+      </div>
+
+      <div className="crea-anag__ctr-add">
+        <button type="button" className="sib-btn sib-btn--primary" onClick={aggiungiVariazione}>
+          <i className="fa-light fa-circle-plus" /> Aggiungi variazione contrattuale
+        </button>
+      </div>
+
+      {/* Storico delle variazioni */}
+      {showStorico && (
+        <div className="crea-anag__ctr-storico">
+          <h4 className="crea-anag__ctr-storico-title"><i className="fa-light fa-clock-rotate-left" /> Storico contrattuale</h4>
+          {storico.length === 0 ? (
+            <p className="crea-anag__ctr-empty">Nessun contratto registrato per questo profilo.</p>
+          ) : (
+            <ul className="crea-anag__ctr-list">
+              {storico.map((r, i) => (
+                <li key={r.id} className="crea-anag__ctr-item">
+                  <div className="crea-anag__ctr-item-main">
+                    {i === 0 && <span className="crea-anag__ctr-tag">Vigente</span>}
+                    <span className="crea-anag__ctr-item-tip">{r.tipologia}</span>
+                    <span className="crea-anag__ctr-item-meta">
+                      {r.ruolo || '—'}{r.livello ? ` · ${r.livello}` : ''} · RAL € {r.ral || '—'} · dal {fmtDate(r.decorrenza)}
+                    </span>
+                  </div>
+                  <div className="crea-anag__ctr-item-acts">
+                    {r.pdfName && (
+                      <span className="crea-anag__ctr-item-pdf" title={r.pdfName}><i className="fa-light fa-file-pdf" /> {r.pdfName}</span>
+                    )}
+                    {r.pdfDataUrl && (
+                      <button type="button" className="sib-btn sib-btn--icon" title="Visualizza PDF" onClick={() => window.open(r.pdfDataUrl!, '_blank')}><i className="fa-light fa-eye" /></button>
+                    )}
+                    <button type="button" className="sib-btn sib-btn--icon" title="Elimina variazione" onClick={() => elimina(r.id)}><i className="fa-light fa-trash-can" /></button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </Section>
+  )
+}
+
 export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -112,6 +293,12 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
   const [pending, setPending] = useState(false)
 
   const initial = editing ? getEditingAnagrafica() : null
+
+  // Chiave stabile per collegare i contratti a questa anagrafica: in modifica è
+  // l'id del dipendente, in creazione un id di sessione (i contratti restano
+  // agganciati al profilo appena creato).
+  const [anagId] = useState(() =>
+    initial?.id != null ? String(initial.id) : `nuovo-${Math.round(performance.now())}`)
 
   const mkSlot = (name?: string): AcqFile | null => (name ? { name } : null)
   const [docs, setDocs] = useState<Record<DocKey, AcqFile | null>>({
@@ -246,6 +433,8 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
               options={[{ value: '', label: 'Seleziona' }, ...REPARTI.map((r) => ({ value: r, label: r }))]} />
           </div>
         </Section>
+
+        <ContrattiSection anagraficaId={anagId} nomeDefault={`${form.nome} ${form.cognome}`.trim()} />
 
         <Section icon="fa-folder-open" title="Documenti e allegati">
           <div className="crea-anag__doc-rows">
