@@ -7,6 +7,11 @@ import { persist } from 'zustand/middleware'
 interface NotifPrefsState {
   reportPickup: boolean
   setReportPickup: (v: boolean) => void
+  // `reportCityTax` abilita la notifica "Report City Tax" (disponibilità del
+  // report settimanale della tassa di soggiorno). Se disattivata, la notifica
+  // e l'accesso al report dalla campanella non vengono mostrati.
+  reportCityTax: boolean
+  setReportCityTax: (v: boolean) => void
 }
 
 export const useNotifPrefsStore = create<NotifPrefsState>()(
@@ -14,6 +19,8 @@ export const useNotifPrefsStore = create<NotifPrefsState>()(
     (set) => ({
       reportPickup: true,
       setReportPickup: (v) => set({ reportPickup: v }),
+      reportCityTax: true,
+      setReportCityTax: (v) => set({ reportCityTax: v }),
     }),
     { name: 'sibylla.notif-prefs' },
   ),
