@@ -233,7 +233,11 @@
   // Periodo "passato" (mesi già trascorsi): SOLO font più chiaro, nessuno sfondo.
   // La distinzione visiva a colpo d'occhio resta il calendario grigio del mese.
   &__row--past td
-    color: $text-inactive
+    color: $text-disabled
+
+    // anche gli scostamenti % seguono il tono più chiaro della riga passata
+    .bdg-ric__delta
+      color: $text-disabled !important
 
   &__tot
     background: $primary-50
