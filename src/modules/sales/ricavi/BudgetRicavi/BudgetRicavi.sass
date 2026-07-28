@@ -126,18 +126,19 @@
     padding: 2px !important
     background: $white !important
 
-  // ── Badge calendario del mese (sigla dentro) ─────────────────────────────────
+  // ── Badge calendario del mese (anno in alto, mese sotto) ─────────────────────
+  // Più spazio sopra/sotto; badge un po' più piccolo.
   &__mese-cell
-    padding-top: 10px
-    padding-bottom: 6px
+    padding-top: 16px !important
+    padding-bottom: 16px !important
 
   &__cal
     position: relative
     display: inline-flex
     flex-direction: column
-    width: 42px
+    width: 38px
     height: 42px
-    border-radius: 8px
+    border-radius: 7px
     background: $white
     border: 1px solid $primary-200
     box-shadow: 0 2px 7px rgba(32, 71, 105, 0.14)
@@ -148,20 +149,28 @@
       position: absolute
       top: -4px
       width: 4px
-      height: 9px
+      height: 8px
       border-radius: 2px
       background: $primary
-      z-index: 1
+      z-index: 2
     &::before
-      left: 13px
+      left: 11px
     &::after
-      right: 13px
+      right: 11px
 
   &__cal-head
-    height: 14px
+    height: 16px
     background: $primary
-    border-radius: 8px 8px 0 0
+    border-radius: 6px 6px 0 0
     flex-shrink: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 8.5px
+    letter-spacing: .4px
+    color: #fff
 
   &__cal-day
     flex: 1
@@ -170,9 +179,20 @@
     justify-content: center
     font-family: $font-heading
     font-weight: 800
-    font-size: 14px
+    font-size: 13px
     letter-spacing: .3px
     color: $primary
+
+  // Calendario dei mesi passati: tinta grigia → distingue passato da futuro
+  &__cal--past
+    border-color: $border
+
+    .bdg-ric__cal-head
+      background: $text-inactive
+    .bdg-ric__cal-day
+      color: $text-inactive
+    &::before, &::after
+      background: $text-inactive
 
   // Input "applica a tutti" nell'header Impostazione Rapida
   &__head-imp
@@ -210,6 +230,11 @@
     font-weight: 600
     color: $text-disabled
 
+  // Periodo "passato" (mesi già trascorsi): SOLO font più chiaro, nessuno sfondo.
+  // La distinzione visiva a colpo d'occhio resta il calendario grigio del mese.
+  &__row--past td
+    color: $text-inactive
+
   &__tot
     background: $primary-50
     font-weight: 700
@@ -217,3 +242,89 @@
     td
       color: $primary
       border-top: 2px solid $border
+
+  // ── Icona "Suggerimenti budget" (dorata) ─────────────────────────────────────
+  &__sugg-btn
+    i
+      color: #c9a227 !important
+
+    &.is-active
+      border-color: #c9a227
+      background: rgba(201, 162, 39, .12)
+
+  // ── Toast "Suggerimento budget" (in basso a destra) ──────────────────────────
+  &__sugg
+    position: fixed
+    right: 24px
+    bottom: 24px
+    z-index: 60
+    width: 340px
+    max-width: calc(100vw - 48px)
+    display: flex
+    align-items: flex-start
+    gap: 12px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-left: 4px solid #c9a227
+    border-radius: 12px
+    box-shadow: 0 14px 36px rgba(0, 0, 0, .18)
+    padding: 14px 16px
+    animation: bdg-sugg-in .3s ease both
+
+  &__sugg-ico
+    color: #c9a227
+    font-size: 20px
+    flex: none
+    margin-top: 2px
+
+  &__sugg-body
+    flex: 1
+    min-width: 0
+
+  &__sugg-title
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 14px
+    color: $text-active
+
+  &__sugg-text
+    margin: 4px 0 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  &__sugg-delta
+    margin-top: 6px
+    font-weight: 700
+    font-size: 13px
+
+    &--up
+      color: $success
+    &--down
+      color: $error
+
+  &__sugg-close
+    flex: none
+    border: 0
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 14px
+    padding: 2px
+    line-height: 1
+
+    &:hover
+      color: $text-active
+
+
+// ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
+@keyframes bdg-sugg-in
+  from
+    opacity: 0
+    transform: translateY(12px)
+  to
+    opacity: 1
+    transform: translateY(0)

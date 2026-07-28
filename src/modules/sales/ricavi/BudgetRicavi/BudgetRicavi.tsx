@@ -59,6 +59,8 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   // Macro-area "Impostazione rapida" a scomparsa (doppia freccia): chiusa dà più
   // spazio alle altre colonne, che si riadattano al nuovo spazio.
   const [impOpen, setImpOpen] = useState(true)
+  // Toast "Suggerimento budget" (toggle dall'icona dorata in toolbar)
+  const [showSugg, setShowSugg] = useState(true)
   const num = (v: string) => Number(v.replace(',', '.')) || 0
   const applyAllRN  = (v: string) => { const n = num(v); setHeadRN(n);  setDRN(MESI.map(() => n)) }
   const applyAllADR = (v: string) => { const n = num(v); setHeadADR(n); setDADR(MESI.map(() => n)) }
@@ -84,6 +86,13 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
       corrRN, corrRev, corrADR: corrRN ? corrRev / corrRN : 0,
     }
   }, [rows])
+
+  // Suggerimento budget: potenziale stimato dal sistema vs previsione attesa
+  // corrente (si aggiorna con le % rapide). Delta negativo = sotto potenziale.
+  const suggPrevisione = tot.prevRev
+  const suggPotenziale = Math.round(suggPrevisione * 1.0498)
+  const suggDelta = suggPrevisione - suggPotenziale
+  const suggDeltaPct = suggPotenziale ? (suggDelta / suggPotenziale) * 100 : 0
 
   // Mesi già trascorsi: valori fissi (non editabili) e sbiaditi
   const now = new Date()
@@ -127,10 +136,15 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
         <div className="bdg-ric__actions">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={ripristina}><i className="fa-light fa-eraser" /> Ripristina</button>
           <button type="button" className="sib-btn sib-btn--primary"><i className="fa-light fa-floppy-disk" /> Salva</button>
+          <Tooltip text="Suggerimenti budget">
+            <button type="button" className={'sib-btn sib-btn--icon bdg-ric__sugg-btn' + (showSugg ? ' is-active' : '')} aria-label="Suggerimenti budget" aria-pressed={showSugg} onClick={() => setShowSugg((v) => !v)}>
+              <i className="fa-solid fa-lightbulb-on" />
+            </button>
+          </Tooltip>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('cabina-controllo')}><i className="fa-light fa-gauge-high" /> Cabina di controllo</button>
           <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('budget-complessivo')}><i className="fa-light fa-coins" /> Budget complessivo</button>
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-regular fa-file-xls" /></button>
           </Tooltip>
           <Tooltip text="Esporta in PDF">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button>
@@ -188,10 +202,10 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.mese}>
+              <tr key={r.mese} className={isPast(i) ? 'bdg-ric__row--past' : ''}>
                 <td className="bdg-ric__mese-cell">
-                  <span className="bdg-ric__cal" aria-label={r.mese}>
-                    <span className="bdg-ric__cal-head" />
+                  <span className={'bdg-ric__cal' + (isPast(i) ? ' bdg-ric__cal--past' : '')} aria-label={`${r.mese} ${anno}`}>
+                    <span className="bdg-ric__cal-head">{anno}</span>
                     <span className="bdg-ric__cal-day">{r.mese}</span>
                   </span>
                 </td>
@@ -256,6 +270,26 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
           </tfoot>
         </table>
       </div>
+
+      {/* ── Toast "Suggerimento budget" ─────────────────────────────────────── */}
+      {showSugg && (
+        <div className="bdg-ric__sugg" role="status">
+          <i className="fa-solid fa-lightbulb-on bdg-ric__sugg-ico" />
+          <div className="bdg-ric__sugg-body">
+            <div className="bdg-ric__sugg-title">Suggerimento budget</div>
+            <p className="bdg-ric__sugg-text">
+              Suggerimento sistema: potenziale TY ≈ <strong>{eur(suggPotenziale)}</strong> (score TY 8 vs LY 7).
+              Previsione attesa attuale: <strong>{eur(suggPrevisione)}</strong>.
+            </p>
+            <div className={'bdg-ric__sugg-delta ' + (suggDelta >= 0 ? 'bdg-ric__sugg-delta--up' : 'bdg-ric__sugg-delta--down')}>
+              Delta: {eur(suggDelta)} ({suggDeltaPct >= 0 ? '+' : ''}{suggDeltaPct.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%)
+            </div>
+          </div>
+          <button type="button" className="bdg-ric__sugg-close" aria-label="Chiudi suggerimento" onClick={() => setShowSugg(false)}>
+            <i className="fa-solid fa-xmark" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
