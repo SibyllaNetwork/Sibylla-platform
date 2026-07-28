@@ -86,6 +86,11 @@
     background: #D8404D
     border-color: #D8404D
 
+// La riga attiva del combobox usa il primary come fondo: stesso trattamento
+// dei bottoni pieni, altrimenti il testo bianco finisce sull'accento chiaro.
+[data-theme="dark"] .sselect__opt.is-active
+  background: #2F6DB5
+
 // ─── Scrollbar chiara del content → scura ───────────────────────────────────
 [data-theme="dark"] .content-scroll::-webkit-scrollbar-thumb
   background: alpha($text-inactive, 0.35)

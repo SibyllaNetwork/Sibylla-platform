@@ -1,0 +1,62 @@
+// ─── CREA ANAGRAFICA CLIENTE (modale) ─────────────────────────────────────────
+// Skin applicata a .modal__box tramite la classe passata al componente Modal.
+@use '../../styles/tokens' as *
+
+.modal__box.crea-anag-cli
+  padding: 26px 28px 22px
+
+.crea-anag-cli
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__grid
+    display: grid
+    gap: 16px 18px
+
+    &--4
+      grid-template-columns: repeat(4, 1fr)
+    &--2
+      grid-template-columns: repeat(2, 1fr)
+
+    @media (max-width: 900px)
+      &--4
+        grid-template-columns: repeat(2, 1fr)
+    @media (max-width: 640px)
+      &--4, &--2
+        grid-template-columns: 1fr
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__label
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  // "Scegli il file": input file mascherato con l'aspetto di un campo standard
+  &__file
+    display: flex
+    align-items: center
+    cursor: pointer
+
+  &__file-txt
+    color: $text-inactive
+
+  &__scan
+    justify-content: center
+
+  &__actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 12px
+    margin-top: 26px
+
+    .sib-btn
+      min-width: 144px
+      justify-content: center
