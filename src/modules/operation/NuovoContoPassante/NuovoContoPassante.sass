@@ -5,6 +5,8 @@
   display: flex
   flex-direction: column
   gap: 16px
+  // container query sul root pagina (vedi regola: niente scroll-x su laptop con sidebar)
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
@@ -133,5 +135,12 @@
   // Le due card (Addebiti/Anticipi) provengono dalla pagina Conti camera in
   // modalità embedded: azzeriamo il margine del primo titolo di sezione.
   .conti-camera--embedded
+    .conti-camera__section-head:first-child,
     .conti-camera__section-title:first-child
       margin-top: 0
+
+  // Su laptop (root pagina sotto soglia, anche con sidebar aperta) le due
+  // colonne Addebiti/Anticipi si impilano per evitare lo scroll orizzontale.
+  @container (max-width: 1600px)
+    .conti-camera--embedded .conti-camera__layout
+      grid-template-columns: 1fr
