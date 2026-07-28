@@ -134,36 +134,32 @@ export default function AnagraficaCombobox({
                 }}
               >
                 {matches.length > 0 ? (
-                  <>
-                    <ul className="anag-cb__list" role="listbox">
-                      {matches.map((a) => (
-                        <li key={a.id}>
-                          <button type="button" role="option" className="anag-cb__opt" onClick={() => handleSelect(a)}>
-                            <i className={`fa-light ${tipo === 'agenzia' ? 'fa-building' : 'fa-user'} anag-cb__opt-ico`} aria-hidden="true" />
-                            <span className="anag-cb__opt-text">
-                              <span className="anag-cb__opt-name">{a.nome}</span>
-                              {a.sub && <span className="anag-cb__opt-sub">{a.sub}</span>}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <button type="button" className="anag-cb__create anag-cb__create--foot" onClick={handleCreate}>
-                      <i className="fa-light fa-circle-plus" aria-hidden="true" /> Crea anagrafica {tipoLabel}
-                    </button>
-                  </>
+                  <ul className="anag-cb__list" role="listbox">
+                    {matches.map((a) => (
+                      <li key={a.id}>
+                        <button type="button" role="option" aria-selected={false} className="anag-cb__opt" onClick={() => handleSelect(a)}>
+                          <i className={`fa-light ${tipo === 'agenzia' ? 'fa-building' : 'fa-user'} anag-cb__opt-ico`} aria-hidden="true" />
+                          <span className="anag-cb__opt-text">
+                            <span className="anag-cb__opt-name">{a.nome}</span>
+                            {a.sub && <span className="anag-cb__opt-sub">{a.sub}</span>}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
-                  // Nessun risultato → invito a creare l'anagrafica
                   <div className="anag-cb__empty">
                     <i className="fa-light fa-user-magnifying-glass anag-cb__empty-ico" aria-hidden="true" />
                     <p className="anag-cb__empty-txt">
                       Nessun{tipo === 'agenzia' ? "'agenzia" : ' cliente'} trovato{query.trim() ? <> per “<strong>{query.trim()}</strong>”</> : null}.
                     </p>
-                    <button type="button" className="anag-cb__create" onClick={handleCreate}>
-                      <i className="fa-light fa-circle-plus" aria-hidden="true" /> Crea anagrafica {tipoLabel}
-                    </button>
                   </div>
                 )}
+
+                {/* Voce SEMPRE presente in fondo alla select */}
+                <button type="button" className="anag-cb__create" onClick={handleCreate}>
+                  <i className="fa-light fa-circle-plus" aria-hidden="true" /> Crea anagrafica {tipoLabel}
+                </button>
               </div>
             </>,
             document.body,

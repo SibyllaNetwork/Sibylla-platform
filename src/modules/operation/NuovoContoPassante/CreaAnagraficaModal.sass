@@ -16,6 +16,15 @@
     @media (max-width: 460px)
       grid-template-columns: 1fr
 
+  // variante agenzia/ditta: 3 colonne
+  &__grid--3
+    grid-template-columns: repeat(3, 1fr)
+
+    @media (max-width: 720px)
+      grid-template-columns: repeat(2, 1fr)
+    @media (max-width: 460px)
+      grid-template-columns: 1fr
+
   // span dei campi sulla griglia a 4 colonne
   &__col
     grid-column: span 1
