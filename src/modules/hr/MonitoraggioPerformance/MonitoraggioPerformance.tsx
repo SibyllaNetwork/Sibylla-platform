@@ -1,37 +1,41 @@
-import React, { useMemo, useState } from 'react'
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Tooltip as RTooltip,
-} from 'recharts'
+import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, SearchField } from '../../../core/components/form'
 import { avatarUrl } from '../../../core/avatar'
+import {
+  useObiettiviStore, type Obiettivo,
+  tuttiSotto, targetTotale, vendutoTotale, premioTotale, premioSbloccato, avanzamentoPct,
+} from '../../../store/useObiettiviStore'
 import './MonitoraggioPerformance.sass'
 
-// ─── TYPES ────────────────────────────────────────────────────────────────────
+/**
+ * Monitoraggio performance — vista di controllo/analisi degli obiettivi del
+ * Premio performance. Legge lo stesso `useObiettiviStore` della pagina
+ * "Assegna obiettivo": ogni obiettivo è una "pista" i cui traguardi sono i
+ * sottoperiodi reali (premio a valore assoluto in €), con avanzamento e
+ * sblocco premi aggiornati in real-time.
+ */
 
 type Stato = 'raggiunto' | 'in-linea' | 'a-rischio'
-
-interface PerfRow {
-  id: number
-  nome: string
-  reparto: string
-  struttura: string
-  challenge: string   // la challenge/obiettivo a cui partecipa
-  obiettivo: string   // KPI specifico del dipendente
-  anno: number
-  avanzamento: number // 0-100 → posizione del runner sulla pista
+const STATO_LABEL: Record<Stato, string> = { 'raggiunto': 'Raggiunto', 'in-linea': 'In linea', 'a-rischio': 'A rischio' }
+const statoOf = (o: Obiettivo): Stato => {
+  if (o.stato === 'concluso') return 'raggiunto'
+  const pct = avanzamentoPct(o)
+  return pct >= 100 ? 'raggiunto' : pct >= 50 ? 'in-linea' : 'a-rischio'
 }
 
-// ─── COSTANTI ─────────────────────────────────────────────────────────────────
-
-const REPARTI = ['Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Amministrazione', 'Marketing', 'Direzione']
-const STRUTTURE = ['Hotel Tutorial', "Grim's Hotel", 'Hotel Archimede']
-const ANNI = [2026, 2025, 2024]
-const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
+const eur = (n: number) => '€ ' + Math.round(n || 0).toLocaleString('it-IT')
+const eurShort = (n: number) => '€' + Math.round(n || 0).toLocaleString('it-IT')
+const fmtDate = (iso?: string) => {
+  if (!iso) return '—'
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso
+}
 
 const REPARTO_ICON: Record<string, string> = {
+  'Commerciale': 'fa-hand-holding-dollar',
   'Front office': 'fa-bell-concierge',
   'F&B': 'fa-martini-glass',
   'Housekeeping': 'fa-broom',
@@ -41,155 +45,155 @@ const REPARTO_ICON: Record<string, string> = {
   'Direzione': 'fa-user-tie',
 }
 
-// le 5 tappe della pista; node 1 = avvio, 2-4 premi crescenti, 5 = traguardo finale
-const NODES = [
-  { n: 1, soglia: 0,   premio: 'Avvio obiettivo',    trofei: 0, finale: false, color: '#E2574C' },
-  { n: 2, soglia: 25,  premio: 'Buono Amazon 50€',   trofei: 1, finale: false, color: '#E0922A' },
-  { n: 3, soglia: 50,  premio: 'Bonus 2 giorni ferie', trofei: 2, finale: false, color: '#2BB0A6' },
-  { n: 4, soglia: 75,  premio: 'Cena per 2 · Weekend SPA', trofei: 3, finale: false, color: '#5C9CD4' },
-  { n: 5, soglia: 100, premio: 'Premio finale performance', trofei: 0, finale: true, color: '#204769' },
-]
-
-const STATO_LABEL: Record<Stato, string> = { 'raggiunto': 'Raggiunto', 'in-linea': 'In linea', 'a-rischio': 'A rischio' }
-const statoOf = (av: number): Stato => (av >= 100 ? 'raggiunto' : av >= 50 ? 'in-linea' : 'a-rischio')
-const reachedCount = (av: number) => NODES.filter((n) => n.soglia <= av).length
-const premioMaturato = (av: number) => { const g = NODES.filter((n) => n.soglia <= av && n.n >= 2); return g.length ? g[g.length - 1].premio : null }
-const trend = (av: number) => MESI.map((m, i) => ({ mese: m, valore: Math.round(Math.min(av, (av * (i + 1)) / 9)) }))
-
-// ─── MOCK ─────────────────────────────────────────────────────────────────────
-
-const MOCK: PerfRow[] = [
-  { id: 1, nome: 'Piero Aragona',   reparto: 'Manutenzione',    struttura: 'Hotel Tutorial',  challenge: 'Efficienza operativa 2026', obiettivo: 'Interventi risolti entro SLA',        anno: 2026, avanzamento: 105 },
-  { id: 2, nome: 'Anna Verdi',      reparto: 'Amministrazione', struttura: "Grim's Hotel",    challenge: 'Premio produzione 2026',    obiettivo: 'Chiusura contabile mensile',          anno: 2026, avanzamento: 96 },
-  { id: 3, nome: 'Andrea Grimaudo', reparto: 'Front office',    struttura: 'Hotel Tutorial',  challenge: 'Eccellenza ospitalità 2026',obiettivo: 'Punteggio recensioni reception',      anno: 2026, avanzamento: 88 },
-  { id: 4, nome: 'Marco Campo',     reparto: 'Housekeeping',    struttura: "Grim's Hotel",    challenge: 'Efficienza operativa 2026', obiettivo: 'Camere pronte entro le 14:00',        anno: 2026, avanzamento: 72 },
-  { id: 5, nome: 'Paolo Greco',     reparto: 'Manutenzione',    struttura: 'Hotel Archimede', challenge: 'Efficienza operativa 2026', obiettivo: 'Manutenzioni preventive completate',   anno: 2026, avanzamento: 63 },
-  { id: 6, nome: 'Sara Conti',      reparto: 'F&B',             struttura: 'Hotel Tutorial',  challenge: 'Eccellenza ospitalità 2026',obiettivo: 'Upselling servizi ristorante',        anno: 2026, avanzamento: 54 },
-  { id: 7, nome: 'Luca Ferri',      reparto: 'Front office',    struttura: 'Hotel Archimede', challenge: 'Eccellenza ospitalità 2026',obiettivo: 'Check-in time medio',                  anno: 2026, avanzamento: 41 },
-  { id: 8, nome: 'Giulia Neri',     reparto: 'Marketing',       struttura: 'Hotel Tutorial',  challenge: 'Premio produzione 2026',    obiettivo: 'Engagement campagne social',          anno: 2026, avanzamento: 28 },
-  { id: 9, nome: 'Dino Tacchini',   reparto: 'Housekeeping',    struttura: 'Hotel Tutorial',  challenge: 'Premio produzione 2025',    obiettivo: 'Controllo qualità pulizie',           anno: 2025, avanzamento: 100 },
-]
+// nodi della pista = sottoperiodi, posizionati per target cumulato
+function pistaNodi(o: Obiettivo) {
+  const subs = tuttiSotto(o)
+  const total = targetTotale(o) || 1
+  let cum = 0
+  return subs.map((s) => {
+    cum += s.target
+    return {
+      id: s.id,
+      nome: s.nome,
+      premio: s.premio,
+      pos: Math.min(100, Math.round((cum / total) * 100)),
+      done: s.target > 0 && s.venduto >= s.target,
+    }
+  })
+}
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
-
 export default function MonitoraggioPerformance(_props: { navigate?: (p: string) => void } = {}) {
-  const [rows] = useState<PerfRow[]>(MOCK)
-  const [anno, setAnno] = useState(2026)
-  const [challenge, setChallenge] = useState<'Tutte' | string>('Tutte')
-  const [reparto, setReparto] = useState<'Tutti' | string>('Tutti')
-  const [struttura, setStruttura] = useState<'Tutte' | string>('Tutte')
-  const [search, setSearch] = useState('')
-  const [detail, setDetail] = useState<PerfRow | null>(null)
+  const obiettivi = useObiettiviStore((s) => s.obiettivi)
+  const avanza = useObiettiviStore((s) => s.avanzaProgresso)
 
-  // challenge in corso = obiettivi attivi per l'anno selezionato
-  const challengeOpts = useMemo(
-    () => Array.from(new Set(rows.filter((r) => r.anno === anno).map((r) => r.challenge))).sort(),
-    [rows, anno],
+  const [stato, setStato] = useState<'in-corso' | 'concluso' | 'tutti'>('in-corso')
+  const [reparto, setReparto] = useState<'Tutti' | string>('Tutti')
+  const [tipologia, setTipologia] = useState<'tutte' | 'reparto' | 'individuale'>('tutte')
+  const [search, setSearch] = useState('')
+  const [live, setLive] = useState(true)
+  const [detail, setDetail] = useState<Obiettivo | null>(null)
+
+  useEffect(() => {
+    if (!live) return
+    const id = setInterval(() => avanza(), 1800)
+    return () => clearInterval(id)
+  }, [live, avanza])
+
+  const repartoOpts = useMemo(
+    () => Array.from(new Set(obiettivi.map((o) => o.reparto).filter(Boolean))).sort() as string[],
+    [obiettivi],
   )
 
   const filtered = useMemo(() => {
-    let out = rows.filter((r) => r.anno === anno)
-    if (challenge !== 'Tutte') out = out.filter((r) => r.challenge === challenge)
-    if (reparto !== 'Tutti') out = out.filter((r) => r.reparto === reparto)
-    if (struttura !== 'Tutte') out = out.filter((r) => r.struttura === struttura)
+    let out = obiettivi.filter((o) => (stato === 'tutti' ? true : o.stato === stato))
+    if (reparto !== 'Tutti') out = out.filter((o) => o.reparto === reparto)
+    if (tipologia !== 'tutte') out = out.filter((o) => o.tipologia === tipologia)
     const q = search.toLowerCase().trim()
-    if (q) out = out.filter((r) => r.nome.toLowerCase().includes(q) || r.obiettivo.toLowerCase().includes(q) || r.challenge.toLowerCase().includes(q))
-    return out.sort((a, b) => b.avanzamento - a.avanzamento)
-  }, [rows, anno, challenge, reparto, struttura, search])
+    if (q) out = out.filter((o) => o.nome.toLowerCase().includes(q) || (o.assegnatario ?? '').toLowerCase().includes(q) || (o.reparto ?? '').toLowerCase().includes(q))
+    return out.sort((a, b) => avanzamentoPct(b) - avanzamentoPct(a))
+  }, [obiettivi, stato, reparto, tipologia, search])
 
-  const mediaAvanz = filtered.length ? Math.round(filtered.reduce((s, r) => s + r.avanzamento, 0) / filtered.length) : 0
-  const nRaggiunti = filtered.filter((r) => r.avanzamento >= 100).length
+  const mediaAvanz = filtered.length ? Math.round(filtered.reduce((s, o) => s + avanzamentoPct(o), 0) / filtered.length) : 0
+  const premiMaturati = filtered.reduce((s, o) => s + premioSbloccato(o), 0)
+  const premiTotali = filtered.reduce((s, o) => s + premioTotale(o), 0)
 
   return (
     <div className="mon-perf">
-      <PageHead title="Monitoraggio performance" subtitle="Controllo e analisi dei risultati e delle performance del personale" />
+      <PageHead
+        title="Monitoraggio performance"
+        subtitle="Controllo e analisi dei risultati e delle performance del personale, con premi maturati in tempo reale"
+        actions={
+          <button type="button" className={'mon-perf__live' + (live ? ' is-live' : '')} onClick={() => setLive((v) => !v)}>
+            <span className="mon-perf__live-dot" />
+            {live ? 'LIVE · in aggiornamento' : 'In pausa'}
+            <i className={`fa-solid ${live ? 'fa-pause' : 'fa-play'}`} />
+          </button>
+        }
+      />
 
-      {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
+      {/* Toolbar */}
       <div className="mon-perf__bar">
         <div className="mon-perf__field">
-          <SelectField name="anno" label="Anno" className="mon-perf__select-sm" value={String(anno)} onChange={(e) => { setAnno(Number(e.target.value)); setChallenge('Tutte') }}
-            options={ANNI.map((a) => ({ value: String(a), label: String(a) }))} />
+          <SelectField name="stato" label="Stato" className="mon-perf__select" value={stato} onChange={(e) => setStato(e.target.value as any)}
+            options={[{ value: 'in-corso', label: 'In corso' }, { value: 'concluso', label: 'Conclusi' }, { value: 'tutti', label: 'Tutti' }]} />
         </div>
         <div className="mon-perf__field">
-          <SelectField name="challenge" label="Challenge in corso" className="mon-perf__select-lg" value={challenge} onChange={(e) => setChallenge(e.target.value)}
-            options={[{ value: 'Tutte', label: 'Tutte le challenge' }, ...challengeOpts.map((c) => ({ value: c, label: c }))]} />
+          <SelectField name="tipologia" label="Tipologia" className="mon-perf__select" value={tipologia} onChange={(e) => setTipologia(e.target.value as any)}
+            options={[{ value: 'tutte', label: 'Tutte' }, { value: 'reparto', label: 'Di reparto' }, { value: 'individuale', label: 'Individuale' }]} />
         </div>
         <div className="mon-perf__field">
           <SelectField name="reparto" label="Reparto" className="mon-perf__select" value={reparto} onChange={(e) => setReparto(e.target.value)}
-            options={[{ value: 'Tutti', label: 'Tutti' }, ...REPARTI.map((r) => ({ value: r, label: r }))]} />
-        </div>
-        <div className="mon-perf__field">
-          <SelectField name="struttura" label="Struttura" className="mon-perf__select" value={struttura} onChange={(e) => setStruttura(e.target.value)}
-            options={[{ value: 'Tutte', label: 'Tutte' }, ...STRUTTURE.map((s) => ({ value: s, label: s }))]} />
+            options={[{ value: 'Tutti', label: 'Tutti' }, ...repartoOpts.map((r) => ({ value: r, label: r }))]} />
         </div>
         <div className="mon-perf__field">
           <label>Cerca</label>
-          <SearchField className="mon-perf__search" name="search" placeholder="Dipendente o obiettivo" value={search}
+          <SearchField className="mon-perf__search" name="search" placeholder="Obiettivo, persona o reparto" value={search}
             onChange={(e) => setSearch(e.target.value)} onClear={() => setSearch('')} />
         </div>
       </div>
 
-      {/* ─── Board "pista a obiettivi" ─────────────────────────────────────── */}
+      {/* Board */}
       <div className="mon-perf__board">
         <div className="mon-perf__board-scroll">
-          {/* header con i premi (trofei) sopra le tappe */}
           <div className="mon-perf__row mon-perf__row--head">
-            <div className="mon-perf__c-name">Nome</div>
+            <div className="mon-perf__c-name">Obiettivo</div>
             <div className="mon-perf__c-rep">Reparto</div>
-            <div className="mon-perf__c-track">
-              <span className="mon-perf__track-title">Obiettivi</span>
-              <div className="mon-perf__premi">
-                {NODES.map((nd, i) => (
-                  <div key={nd.n} className="mon-perf__premio" style={{ left: `${(i / (NODES.length - 1)) * 100}%` }}>
-                    {nd.finale ? (
-                      <Tooltip text={nd.premio}><i className="fa-solid fa-party-horn mon-perf__premio-final" /></Tooltip>
-                    ) : nd.trofei > 0 ? (
-                      <Tooltip text={`Tappa ${nd.n} — ${nd.premio}`}>
-                        <span className="mon-perf__trofei">
-                          {Array.from({ length: nd.trofei }).map((_, t) => <i key={t} className="fa-solid fa-trophy" />)}
-                        </span>
-                      </Tooltip>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <div className="mon-perf__c-track">Percorso premi</div>
+            <div className="mon-perf__c-kpi">Premio maturato</div>
           </div>
 
           {filtered.length === 0 ? (
-            <div className="mon-perf__empty">Nessun dipendente con obiettivo assegnato.</div>
-          ) : filtered.map((r) => {
-            const reached = reachedCount(r.avanzamento)
-            const runner = Math.max(0, Math.min(100, r.avanzamento))
+            <div className="mon-perf__empty">Nessun obiettivo per i filtri selezionati.</div>
+          ) : filtered.map((o) => {
+            const nodi = pistaNodi(o)
+            const runner = avanzamentoPct(o)
+            const st = statoOf(o)
+            const raggiunti = nodi.filter((n) => n.done).length
+            const isInd = o.tipologia === 'individuale'
             return (
-              <button key={r.id} type="button" className="mon-perf__row mon-perf__row--emp" onClick={() => setDetail(r)}>
+              <button key={o.id} type="button" className="mon-perf__row mon-perf__row--emp" onClick={() => setDetail(o)}>
                 <div className="mon-perf__c-name">
-                  <img className="mon-perf__avatar" src={avatarUrl(r.nome)} alt="" />
+                  {isInd
+                    ? <img className="mon-perf__avatar" src={avatarUrl(o.assegnatario || o.nome)} alt="" />
+                    : <span className="mon-perf__icon-circle"><i className={`fa-light ${REPARTO_ICON[o.reparto ?? ''] ?? 'fa-users'}`} /></span>}
                   <span className="mon-perf__user-wrap">
-                    <span className="mon-perf__user-name">{r.nome}</span>
-                    <span className="mon-perf__user-chall">{r.challenge}</span>
+                    <span className="mon-perf__user-name">{o.nome}</span>
+                    <span className="mon-perf__user-chall">{isInd ? o.assegnatario : `Reparto ${o.reparto}`}</span>
                   </span>
                 </div>
                 <div className="mon-perf__c-rep">
-                  <Tooltip text={r.reparto}><i className={`fa-light ${REPARTO_ICON[r.reparto] ?? 'fa-user'} mon-perf__rep-ico`} /></Tooltip>
+                  <Tooltip text={o.reparto}><i className={`fa-light ${REPARTO_ICON[o.reparto ?? ''] ?? 'fa-user'} mon-perf__rep-ico`} /></Tooltip>
                 </div>
                 <div className="mon-perf__c-track">
+                  {/* premi lungo il percorso */}
+                  <div className="mon-perf__premi">
+                    {nodi.map((nd) => (
+                      <div key={nd.id} className="mon-perf__premio" style={{ '--pos': nd.pos } as React.CSSProperties}>
+                        <Tooltip text={`${nd.nome} — premio ${eur(nd.premio)}`}>
+                          <span className={'mon-perf__premio-eur' + (nd.done ? ' is-on' : '')}>{eurShort(nd.premio)}</span>
+                        </Tooltip>
+                      </div>
+                    ))}
+                  </div>
+                  {/* pista */}
                   <div className="mon-perf__track">
                     <div className="mon-perf__track-line" />
-                    <div className="mon-perf__track-prog" style={{ width: `${runner}%` }} />
-                    {NODES.map((nd, i) => {
-                      const ok = nd.soglia <= r.avanzamento
-                      return (
-                        <div key={nd.n} className={'mon-perf__node' + (ok ? ' is-on' : '')}
-                          style={{ left: `${(i / (NODES.length - 1)) * 100}%`, ['--node' as any]: nd.color }}>
-                          {nd.n}
-                        </div>
-                      )
-                    })}
-                    <div className="mon-perf__runner" style={{ left: `${runner}%` }} title={`${r.avanzamento}% · tappa ${reached}/5`}>
+                    <div className="mon-perf__track-prog" style={{ '--pct': runner } as React.CSSProperties} />
+                    {nodi.map((nd) => (
+                      <div key={nd.id} className={'mon-perf__node' + (nd.done ? ' is-on' : '')} style={{ '--pos': nd.pos } as React.CSSProperties}>
+                        {nd.done ? <i className="fa-solid fa-trophy" /> : ''}
+                      </div>
+                    ))}
+                    <div className="mon-perf__runner" style={{ '--pos': runner } as React.CSSProperties} title={`${runner}% · ${raggiunti}/${nodi.length} traguardi`}>
                       <i className="fa-solid fa-person-running" />
                     </div>
                   </div>
+                </div>
+                <div className="mon-perf__c-kpi">
+                  <span className={`mon-perf__stato-badge mon-perf__stato-badge--${st}`}>{STATO_LABEL[st]}</span>
+                  <span className="mon-perf__kpi-prize">{eur(premioSbloccato(o))} <em>/ {eur(premioTotale(o))}</em></span>
+                  <span className="mon-perf__kpi-sub">{raggiunti}/{nodi.length} traguardi · {runner}%</span>
                 </div>
               </button>
             )
@@ -198,68 +202,71 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
       </div>
 
       <div className="mon-perf__summary">
-        <strong>{filtered.length}</strong> dipendenti monitorati · avanzamento medio <strong>{mediaAvanz}%</strong> · <strong>{nRaggiunti}</strong> obiettivi raggiunti
+        <strong>{filtered.length}</strong> obiettivi monitorati · avanzamento medio <strong>{mediaAvanz}%</strong> · premi maturati <strong>{eur(premiMaturati)}</strong> su <strong>{eur(premiTotali)}</strong>
       </div>
 
-      <DettaglioPerfModal row={detail} onClose={() => setDetail(null)} />
+      <DettaglioObiettivoModal obiettivo={detail} onClose={() => setDetail(null)} />
     </div>
   )
 }
 
-// ─── MODAL: dettaglio performance ─────────────────────────────────────────────
-
-function DettaglioPerfModal({ row, onClose }: { row: PerfRow | null; onClose: () => void }) {
+// ─── MODAL: dettaglio obiettivo ───────────────────────────────────────────────
+function DettaglioObiettivoModal({ obiettivo, onClose }: { obiettivo: Obiettivo | null; onClose: () => void }) {
   return (
-    <Modal open={!!row} onClose={onClose} title="Dettaglio performance" size="lg">
-      {row && (() => {
-        const stato = statoOf(row.avanzamento)
+    <Modal open={!!obiettivo} onClose={onClose} title="Dettaglio obiettivo" size="lg">
+      {obiettivo && (() => {
+        const o = obiettivo
+        const st = statoOf(o)
+        const isInd = o.tipologia === 'individuale'
+        const runner = avanzamentoPct(o)
         return (
           <div className="mon-perf__detail">
             <div className="mon-perf__detail-head">
-              <img className="mon-perf__avatar mon-perf__avatar--lg" src={avatarUrl(row.nome)} alt="" />
+              {isInd
+                ? <img className="mon-perf__avatar mon-perf__avatar--lg" src={avatarUrl(o.assegnatario || o.nome)} alt="" />
+                : <span className="mon-perf__icon-circle mon-perf__icon-circle--lg"><i className={`fa-light ${REPARTO_ICON[o.reparto ?? ''] ?? 'fa-users'}`} /></span>}
               <div>
-                <div className="mon-perf__detail-name">{row.nome}</div>
-                <div className="mon-perf__detail-sub">{row.reparto} · {row.struttura} · {row.anno}</div>
-                <div className="mon-perf__detail-chall"><i className="fa-solid fa-flag-checkered" /> {row.challenge}</div>
+                <div className="mon-perf__detail-name">{o.nome}</div>
+                <div className="mon-perf__detail-sub">{isInd ? `${o.assegnatario} · ` : ''}Reparto {o.reparto} · {o.report}</div>
+                <div className="mon-perf__detail-chall"><i className="fa-solid fa-tags" /> {o.segmenti.join(' · ')}</div>
               </div>
-              <span className={`mon-perf__stato mon-perf__stato--${stato} mon-perf__detail-stato`}>{STATO_LABEL[stato]}</span>
+              <span className={`mon-perf__stato mon-perf__stato--${st} mon-perf__detail-stato`}>{STATO_LABEL[st]}</span>
             </div>
 
             <div className="mon-perf__detail-obj">
-              <span className="mon-perf__detail-label">Obiettivo</span>
-              <span className="mon-perf__detail-objname">{row.obiettivo} — <strong>{row.avanzamento}%</strong></span>
+              <div className="mon-perf__detail-objname">
+                Venduto <strong>{eur(vendutoTotale(o))}</strong> su {eur(targetTotale(o))} — <strong>{runner}%</strong>
+                · premio maturato <strong>{eur(premioSbloccato(o))}</strong> / {eur(premioTotale(o))}
+              </div>
+              <div className="mon-perf__bar-lg"><span className="mon-perf__bar-lg-fill" style={{ '--pct': runner } as React.CSSProperties} /></div>
             </div>
 
-            <div className="mon-perf__detail-grid">
-              <div className="mon-perf__chart">
-                <div className="mon-perf__detail-label">Andamento mensile</div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={trend(row.avanzamento)} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
-                    <CartesianGrid stroke="#E0E7EE" vertical={false} />
-                    <XAxis dataKey="mese" tick={{ fontSize: 10, fill: '#6E7175' }} tickLine={false} axisLine={{ stroke: '#C3C9D0' }} interval={0} />
-                    <YAxis domain={[0, 120]} tick={{ fontSize: 10, fill: '#6E7175' }} tickLine={false} axisLine={false} width={30} />
-                    <ReferenceLine y={100} stroke="#1F9D55" strokeDasharray="4 4" />
-                    <RTooltip formatter={(v) => [`${v}%`, 'Avanzamento']} />
-                    <Line type="monotone" dataKey="valore" stroke="#204769" strokeWidth={2} dot={{ r: 2.5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="mon-perf__traguardi">
-                <div className="mon-perf__detail-label">Tappe e premi</div>
-                <ul className="mon-perf__tr-full">
-                  {NODES.map((nd) => {
-                    const ok = nd.soglia <= row.avanzamento
-                    return (
-                      <li key={nd.n} className={ok ? 'is-ok' : ''}>
-                        <span className="mon-perf__tr-node" style={{ background: ok ? nd.color : undefined }}>{nd.n}</span>
-                        <span className="mon-perf__tr-premio">{nd.premio}</span>
-                        {ok && <span className="mon-perf__tr-badge">{nd.finale || nd.trofei === 0 ? 'Raggiunto' : 'Maturato'}</span>}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
+            <div>
+              <div className="mon-perf__detail-label">Traguardi e premi</div>
+              {o.periodi.map((p) => (
+                <div key={p.id} className="mon-perf__det-per">
+                  <div className="mon-perf__det-per-name">{p.nome}</div>
+                  <ul className="mon-perf__tr-full">
+                    {p.sottoperiodi.map((s) => {
+                      const spct = s.target > 0 ? Math.min(100, Math.round((s.venduto / s.target) * 100)) : 0
+                      const done = s.target > 0 && s.venduto >= s.target
+                      return (
+                        <li key={s.id} className={done ? 'is-ok' : ''}>
+                          <span className="mon-perf__tr-node" style={done ? { '--node': 'var(--color-success)' } as React.CSSProperties : undefined}>
+                            {done ? <i className="fa-solid fa-trophy" /> : <i className="fa-solid fa-hourglass-half" />}
+                          </span>
+                          <span className="mon-perf__tr-premio">
+                            <strong>{s.nome}</strong>
+                            <span className="mon-perf__tr-meta">{eur(s.venduto)} / {eur(s.target)} · {spct}%{s.al ? ` · scad. ${fmtDate(s.al)}` : ''}</span>
+                          </span>
+                          <span className="mon-perf__tr-eur">{eur(s.premio)}</span>
+                          {done && <span className="mon-perf__tr-badge">Sbloccato</span>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         )

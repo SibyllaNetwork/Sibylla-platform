@@ -56,12 +56,41 @@
   &__board-scroll
     min-width: 760px
 
-  // riga = grid: nome | reparto | pista
+  // riga = grid: obiettivo | reparto | pista | premio maturato
   &__row
     display: grid
-    grid-template-columns: 220px 90px 1fr
+    grid-template-columns: minmax(190px, 1.3fr) 64px minmax(260px, 2fr) 170px
     align-items: center
     gap: 12px
+
+  // badge LIVE (nell'header pagina)
+  &__live
+    display: inline-flex
+    align-items: center
+    gap: 9px
+    border: 1px solid $border
+    background: var(--color-surface)
+    color: $text-inactive
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .03em
+    padding: 7px 14px
+    border-radius: 999px
+    cursor: pointer
+
+    &.is-live
+      border-color: $success
+      color: $success
+
+  &__live-dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    background: $text-inactive
+
+  &__live.is-live &__live-dot
+    background: $success
+    animation: mon-perf-pulse 1.4s ease-in-out infinite
 
   &__row--head
     padding: 8px 0 6px
@@ -106,6 +135,24 @@
       width: 52px
       height: 52px
 
+  // cerchio con icona reparto (obiettivi di reparto)
+  &__icon-circle
+    width: 30px
+    height: 30px
+    border-radius: 50%
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    background: $primary-50
+    color: $primary
+    font-size: 14px
+
+    &--lg
+      width: 52px
+      height: 52px
+      font-size: 22px
+
   &__user-wrap
     display: flex
     flex-direction: column
@@ -147,10 +194,27 @@
   &__premio
     position: absolute
     top: 0
+    left: calc(var(--pos, 0) * 1%)
     transform: translateX(-50%)
     display: flex
     align-items: center
     justify-content: center
+
+  // etichetta premio (valore assoluto €) lungo il percorso
+  &__premio-eur
+    font-size: 11px
+    font-weight: 700
+    color: $text-inactive
+    background: $bg
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 1px 7px
+    white-space: nowrap
+
+    &.is-on
+      color: #8a6d0f
+      background: rgba(201, 162, 39, .16)
+      border-color: #C9A227
 
   &__trofei
     display: inline-flex
@@ -183,13 +247,14 @@
     position: absolute
     left: 0
     height: 6px
+    width: calc(var(--pct, 0) * 1%)
     border-radius: 999px
-    background: linear-gradient(90deg, #E2574C 0%, #E0922A 30%, #2BB0A6 60%, #5C9CD4 80%, #204769 100%)
-    background-size: 760px 100%
-    transition: width .4s ease
+    background: linear-gradient(90deg, $primary-400, $primary)
+    transition: width .8s cubic-bezier(.22, 1, .36, 1)
 
   &__node
     position: absolute
+    left: calc(var(--pos, 0) * 1%)
     transform: translateX(-50%)
     width: 22px
     height: 22px
@@ -197,27 +262,29 @@
     display: flex
     align-items: center
     justify-content: center
-    font-size: 11px
+    font-size: 10px
     font-weight: 700
     background: var(--color-surface)
     border: 2px solid $border
     color: $text-inactive
     z-index: 1
+    transition: all .3s ease
 
     &.is-on
-      background: var(--node)
-      border-color: var(--node)
+      background: #C9A227
+      border-color: #C9A227
       color: #fff
-      box-shadow: 0 0 0 3px rgba(32, 71, 105, 0.08)
+      box-shadow: 0 0 0 3px rgba(201, 162, 39, .18)
 
   &__runner
     position: absolute
+    left: calc(var(--pos, 0) * 1%)
     transform: translateX(-50%)
     top: -16px
     color: $primary
     font-size: 15px
     z-index: 2
-    transition: left .4s ease
+    transition: left .8s cubic-bezier(.22, 1, .36, 1)
 
   &__empty
     text-align: center
@@ -343,3 +410,96 @@
     background: $success-light
     border-radius: 999px
     padding: 2px 8px
+
+  // ── Colonna KPI (premio maturato) ────────────────────────────────────────────
+  &__c-kpi
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 3px
+    text-align: right
+
+  &__stato-badge
+    font-size: 10px
+    font-weight: 800
+    text-transform: uppercase
+    letter-spacing: .04em
+    padding: 2px 8px
+    border-radius: 999px
+
+    &--raggiunto
+      color: $success
+      background: $success-light
+    &--in-linea
+      color: $link
+      background: $link-light
+    &--a-rischio
+      color: $warning
+      background: $warning-light
+
+  &__kpi-prize
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 15px
+    color: #8a6d0f
+
+    em
+      font-style: normal
+      font-weight: 500
+      font-size: 12px
+      color: $text-inactive
+
+  &__kpi-sub
+    font-size: 11px
+    color: $text-inactive
+
+  // ── Dettaglio: barra grande + gruppi periodo ─────────────────────────────────
+  &__bar-lg
+    position: relative
+    height: 10px
+    border-radius: 999px
+    background: $primary-50
+    overflow: hidden
+    margin-top: 8px
+
+  &__bar-lg-fill
+    position: absolute
+    inset: 0 auto 0 0
+    width: calc(var(--pct, 0) * 1%)
+    border-radius: 999px
+    background: linear-gradient(90deg, $primary-400, $primary)
+    transition: width .8s cubic-bezier(.22, 1, .36, 1)
+
+  &__det-per
+    margin-top: 12px
+
+  &__det-per-name
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    margin-bottom: 6px
+
+  &__tr-premio
+    flex: 1
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__tr-meta
+    font-size: 11px
+    color: $text-inactive
+    font-weight: 400
+
+  &__tr-eur
+    font-family: $font-heading
+    font-weight: 800
+    color: $primary
+    white-space: nowrap
+
+
+// ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
+@keyframes mon-perf-pulse
+  0%, 100%
+    box-shadow: 0 0 0 0 rgba(0, 207, 134, .5)
+  70%
+    box-shadow: 0 0 0 6px rgba(0, 207, 134, 0)
