@@ -150,9 +150,6 @@ const ReportCityTax: React.FC<Props> = () => {
             {fmtEur(TARIFFA)} <small>per persona a notte</small>
           </span>
         </div>
-        <Tooltip text="Tariffa configurata per categoria e per tutte le regioni italiane dal Pannello di controllo. Modificabile solo da lì.">
-          <span className="rct__readonly"><i className="fa-light fa-lock" /> Sola lettura</span>
-        </Tooltip>
       </div>
 
       {/* barra: selettore settimana + esporta */}
