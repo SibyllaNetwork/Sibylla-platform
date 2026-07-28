@@ -56,6 +56,9 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   // Valori "applica a tutti" dell'header Impostazione Rapida %
   const [headRN, setHeadRN]   = useState(1)
   const [headADR, setHeadADR] = useState(2)
+  // Macro-area "Impostazione rapida" a scomparsa (doppia freccia): chiusa dà più
+  // spazio alle altre colonne, che si riadattano al nuovo spazio.
+  const [impOpen, setImpOpen] = useState(true)
   const num = (v: string) => Number(v.replace(',', '.')) || 0
   const applyAllRN  = (v: string) => { const n = num(v); setHeadRN(n);  setDRN(MESI.map(() => n)) }
   const applyAllADR = (v: string) => { const n = num(v); setHeadADR(n); setDADR(MESI.map(() => n)) }
@@ -137,34 +140,55 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
 
       {/* ── Tabella ─────────────────────────────────────────────────────────── */}
       <div className="sib-table-wrap">
-        <table ref={tableRef} className="sib-table bdg-ric__table">
+        <table ref={tableRef} className={'sib-table bdg-ric__table' + (impOpen ? '' : ' bdg-ric__table--imp-closed')}>
+          {/* Sopra-header: le 4 macro-aree con 4 sfondi differenti */}
           <thead>
-            <tr>
-              <th rowSpan={2}>Mese</th>
+            <tr className="bdg-ric__super">
+              <th rowSpan={2} className="bdg-ric__mese-th">Mese</th>
               <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--prec bdg-ric__gsep">Anno Precedente</th>
-              <th colSpan={2} className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__gsep">Impostazione Rapida %</th>
-              <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--prev bdg-ric__gsep">Previsione Attesa</th>
+              {impOpen ? (
+                <th colSpan={2} className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__gsep">
+                  <span className="bdg-ric__grp-imp">
+                    <button type="button" className="bdg-ric__toggle" onClick={() => setImpOpen(false)} title="Comprimi Impostazione rapida" aria-label="Comprimi Impostazione rapida">
+                      <i className="fa-solid fa-angles-left" />
+                    </button>
+                    Impostazione Rapida %
+                  </span>
+                </th>
+              ) : (
+                <th rowSpan={2} className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__imp-collapsed bdg-ric__gsep">
+                  <button type="button" className="bdg-ric__toggle" onClick={() => setImpOpen(true)} title="Espandi Impostazione rapida" aria-label="Espandi Impostazione rapida">
+                    <i className="fa-solid fa-angles-right" />
+                  </button>
+                </th>
+              )}
+              <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--bdg bdg-ric__gsep">Budget</th>
               <th colSpan={6} className="bdg-ric__grp bdg-ric__grp--corr bdg-ric__gsep">Anno Corrente</th>
             </tr>
-            <tr>
+            {/* Leader: intestazioni colonna (sfondo azzurro) */}
+            <tr className="bdg-ric__leader">
               <th className="bdg-ric__c-prec bdg-ric__gsep">RN</th><th className="bdg-ric__c-prec">ADR</th><th className="bdg-ric__c-prec">Revenue</th>
-              <th className="bdg-ric__imp-cell bdg-ric__gsep">
-                <span className="bdg-ric__head-imp">Δ%RN
-                  <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={headRN} onChange={(e) => applyAllRN(e.target.value)} aria-label="Δ%RN per tutti i mesi" />
-                </span>
-              </th>
-              <th className="bdg-ric__imp-cell">
-                <span className="bdg-ric__head-imp">Δ%ADR
-                  <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={headADR} onChange={(e) => applyAllADR(e.target.value)} aria-label="Δ%ADR per tutti i mesi" />
-                </span>
-              </th>
-              <th className="bdg-ric__c-prev bdg-ric__gsep">RN</th><th className="bdg-ric__c-prev">ADR</th><th className="bdg-ric__c-prev">Revenue</th>
+              {impOpen && (
+                <>
+                  <th className="bdg-ric__imp-cell bdg-ric__gsep">
+                    <span className="bdg-ric__head-imp">Δ%RN
+                      <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={headRN} onChange={(e) => applyAllRN(e.target.value)} aria-label="Δ%RN per tutti i mesi" />
+                    </span>
+                  </th>
+                  <th className="bdg-ric__imp-cell">
+                    <span className="bdg-ric__head-imp">Δ%ADR
+                      <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={headADR} onChange={(e) => applyAllADR(e.target.value)} aria-label="Δ%ADR per tutti i mesi" />
+                    </span>
+                  </th>
+                </>
+              )}
+              <th className="bdg-ric__c-bdg bdg-ric__gsep">RN</th><th className="bdg-ric__c-bdg">ADR</th><th className="bdg-ric__c-bdg">Revenue</th>
               <th className="bdg-ric__corr bdg-ric__gsep">RN</th><th className="bdg-ric__corr">Δ% RN vs BDG</th><th className="bdg-ric__corr">ADR</th><th className="bdg-ric__corr">Δ% ADR vs BDG</th><th className="bdg-ric__corr">Revenue</th><th className="bdg-ric__corr">Δ% RV</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.mese} className={isPast(i) ? 'bdg-ric__row--past' : ''}>
+              <tr key={r.mese}>
                 <td className="bdg-ric__mese-cell">
                   <span className="bdg-ric__cal" aria-label={r.mese}>
                     <span className="bdg-ric__cal-head" />
@@ -174,24 +198,28 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
                 <td className="bdg-ric__c-prec bdg-ric__gsep">{r.precRN} Notti</td>
                 <td className="bdg-ric__c-prec">{eur(r.precADR)}</td>
                 <td className="bdg-ric__c-prec">{eur(r.precRev)}</td>
-                {isPast(i) ? (
-                  <>
-                    <td className="bdg-ric__imp-cell bdg-ric__gsep">{dRN[i]}</td>
-                    <td className="bdg-ric__imp-cell">{dADR[i].toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
-                  </>
+                {impOpen ? (
+                  isPast(i) ? (
+                    <>
+                      <td className="bdg-ric__imp-cell bdg-ric__imp-past bdg-ric__gsep">{dRN[i]}</td>
+                      <td className="bdg-ric__imp-cell bdg-ric__imp-past">{dADR[i].toLocaleString('it-IT', { minimumFractionDigits: 2 })}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="bdg-ric__imp-cell bdg-ric__gsep">
+                        <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={dRN[i]} onChange={(e) => setD(setDRN, i, e.target.value)} />
+                      </td>
+                      <td className="bdg-ric__imp-cell">
+                        <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={dADR[i]} onChange={(e) => setD(setDADR, i, e.target.value)} />
+                      </td>
+                    </>
+                  )
                 ) : (
-                  <>
-                    <td className="bdg-ric__imp-cell bdg-ric__gsep">
-                      <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={dRN[i]} onChange={(e) => setD(setDRN, i, e.target.value)} />
-                    </td>
-                    <td className="bdg-ric__imp-cell">
-                      <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={dADR[i]} onChange={(e) => setD(setDADR, i, e.target.value)} />
-                    </td>
-                  </>
+                  <td className="bdg-ric__imp-collapsed bdg-ric__gsep" />
                 )}
-                <td className="bdg-ric__c-prev bdg-ric__gsep">{r.prevRN} Notti</td>
-                <td className="bdg-ric__c-prev">{eur(r.prevADR)}</td>
-                <td className="bdg-ric__c-prev">{eur(r.prevRev)}</td>
+                <td className="bdg-ric__c-bdg bdg-ric__gsep">{r.prevRN} Notti</td>
+                <td className="bdg-ric__c-bdg">{eur(r.prevADR)}</td>
+                <td className="bdg-ric__c-bdg">{eur(r.prevRev)}</td>
                 <td className="bdg-ric__corr bdg-ric__gsep">{r.corrRN} Notti</td>
                 <td className="bdg-ric__corr"><Delta d={pct(r.corrRN, r.prevRN)} /></td>
                 <td className="bdg-ric__corr">{eur(r.corrADR)}</td>
@@ -207,8 +235,14 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
               <td className="bdg-ric__gsep">{tot.precRN} Notti</td>
               <td>{eur(tot.precADR)}</td>
               <td>{eur(tot.precRev)}</td>
-              <td className="bdg-ric__gsep">—</td>
-              <td>—</td>
+              {impOpen ? (
+                <>
+                  <td className="bdg-ric__gsep">—</td>
+                  <td>—</td>
+                </>
+              ) : (
+                <td className="bdg-ric__imp-collapsed bdg-ric__gsep" />
+              )}
               <td className="bdg-ric__gsep">{tot.prevRN} Notti</td>
               <td>{eur(tot.prevADR)}</td>
               <td>{eur(tot.prevRev)}</td>
