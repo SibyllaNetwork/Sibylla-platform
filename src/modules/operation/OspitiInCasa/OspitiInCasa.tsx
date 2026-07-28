@@ -6,6 +6,10 @@ import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
 import { DateRangeField, SelectField, RadioGroup, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
+import { toast } from '../../../core/components/Toast/useToast'
+import { useCityTaxStore } from '../../../store/useCityTaxStore'
+import { downloadCityTaxExcel, CITY_TAX_TARIFFA, type CityTaxStay } from '../../finance/ReportCityTax/cityTaxExcel'
+import CheckoutCityTaxModal from './CheckoutCityTaxModal'
 import './OspitiInCasa.sass'
 
 const PAGE_SIZE = 10
@@ -144,6 +148,10 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
   const [trasferisciTarget, setTrasferisciTarget] = useState<Ospite | null>(null)
   const [scambiaTarget,     setScambiaTarget]     = useState<Ospite | null>(null)
   const [checkoutOspiteTarget, setCheckoutOspiteTarget] = useState<Ospite | null>(null)
+  // City tax: pop-up motivo mancato pagamento al check-out del singolo ospite.
+  const [cityTaxTarget, setCityTaxTarget] = useState<Ospite | null>(null)
+  const cityTaxRecords = useCityTaxStore((s) => s.records)
+  const setCityTaxRecord = useCityTaxStore((s) => s.setRecord)
 
   // Column filters
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
@@ -295,11 +303,42 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
     setScambiaTarget(null)
   }
 
-  // Check-out del singolo ospite (rimuove solo quella riga).
-  const confermaCheckoutOspite = () => {
+  // Check-out del singolo ospite: prima il pop-up City Tax (motivo mancato
+  // pagamento), poi la rimozione della riga.
+  const avviaCheckoutOspite = () => {
     if (!checkoutOspiteTarget) return
-    setData((d) => ({ ...d, ospiti: d.ospiti.filter((o) => o.id !== checkoutOspiteTarget.id) }))
+    setCityTaxTarget(checkoutOspiteTarget)
     setCheckoutOspiteTarget(null)
+  }
+
+  const rimuoviOspite = (o: Ospite) => {
+    setData((d) => ({ ...d, ospiti: d.ospiti.filter((x) => x.id !== o.id) }))
+  }
+
+  // Nome della struttura selezionata (per l'Excel City Tax).
+  const strutturaNome = data.Strutture.find((s) => s.Id === data.StrutturaId)?.nome ?? '—'
+
+  // Mappa gli ospiti presenti in righe Excel City Tax, con stato/motivazione
+  // eventualmente registrati al check-out.
+  const buildCityTaxStays = (): CityTaxStay[] =>
+    data.ospiti.map((o) => ({
+      id: String(o.id),
+      struttura: strutturaNome,
+      camera: o.camera,
+      ospite: o.ospite,
+      checkIn: o.arrivo,
+      checkOut: o.partenza,
+      canale: o.canale,
+      ...cityTaxRecords[String(o.id)],
+    }))
+
+  const scaricaExcelCityTax = () => {
+    downloadCityTaxExcel(buildCityTaxStays(), {
+      tariffa: CITY_TAX_TARIFFA,
+      label: `Report City Tax — Ospiti in casa (${strutturaNome})`,
+      fileName: 'report-city-tax-ospiti-in-casa.csv',
+    })
+    toast.success('Export Excel avviato', 'Report City Tax')
   }
 
   return (
@@ -357,7 +396,7 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
 
         <div className="ospiti-casa__bar-right">
           <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF"><i className="fa-regular fa-file-pdf" /></button>
-          <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS"><i className="fa-regular fa-file-xls" /></button>
+          <button type="button" className="sib-btn sib-btn--icon" title="Scarica Excel City Tax" aria-label="Scarica Excel City Tax" onClick={scaricaExcelCityTax}><i className="fa-regular fa-file-xls" /></button>
           <button type="button" className="sib-btn sib-btn--icon" title="Avvisi" aria-label="Avvisi" onClick={() => setShowAvviso(true)}>
             <i className="fa-regular fa-bell" />
           </button>
@@ -597,9 +636,22 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
           </p>
           <div className="oc-modal-foot">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setCheckoutOspiteTarget(null)}>Annulla</button>
-            <button type="button" className="sib-btn sib-btn--danger-outline" onClick={confermaCheckoutOspite}>Procedi</button>
+            <button type="button" className="sib-btn sib-btn--danger-outline" onClick={avviaCheckoutOspite}>Procedi</button>
           </div>
         </Modal>
+      )}
+
+      {/* ─── Pop-up City Tax (motivo mancato pagamento) al check-out ──────── */}
+      {cityTaxTarget && (
+        <CheckoutCityTaxModal
+          ospite={cityTaxTarget.ospite}
+          onClose={() => setCityTaxTarget(null)}
+          onConfirm={(rec) => {
+            setCityTaxRecord(String(cityTaxTarget.id), rec)
+            rimuoviOspite(cityTaxTarget)
+            setCityTaxTarget(null)
+          }}
+        />
       )}
 
       {/* ─── Modal Modifica soggiorno ───────────────────────────────────── */}

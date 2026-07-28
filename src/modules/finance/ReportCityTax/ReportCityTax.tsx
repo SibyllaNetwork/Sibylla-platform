@@ -3,6 +3,7 @@ import PageHead from '../../../core/components/PageHead';
 import Tooltip from '../../../core/components/Tooltip';
 import { SelectField } from '../../../core/components/form';
 import { toast } from '../../../core/components/Toast/useToast';
+import { downloadCityTaxExcel, MOCK_CITY_TAX_STAYS, CITY_TAX_CATEGORIA, CITY_TAX_TARIFFA } from './cityTaxExcel';
 import './ReportCityTax.sass';
 
 // ─── Report City Tax (tassa di soggiorno) ─────────────────────────────────────
@@ -18,10 +19,10 @@ import './ReportCityTax.sass';
 // Tabella per settimana: Struttura · Paganti (n. ospiti) · Esenti (con causa) ·
 // Totale (n. notti × tariffa). Esportabile in Excel.
 
-// Tariffa €/persona/notte per categoria (sola lettura, da Pannello di controllo).
-const TARIFFE_CATEGORIA: Record<number, number> = { 1: 2.0, 2: 4.0, 3: 6.0, 4: 7.5, 5: 10.0 };
-const CATEGORIA = 3;                              // stelle della struttura (da pannello)
-const TARIFFA = TARIFFE_CATEGORIA[CATEGORIA];     // € per persona / notte
+// Categoria struttura e tariffa €/persona/notte (sola lettura, da Pannello di
+// controllo): sorgente condivisa con l'Excel City Tax.
+const CATEGORIA = CITY_TAX_CATEGORIA;
+const TARIFFA = CITY_TAX_TARIFFA;
 
 interface Struttura { id: string; nome: string; sigla: string }
 const STRUTTURE: Struttura[] = [
@@ -113,23 +114,15 @@ const ReportCityTax: React.FC<Props> = () => {
     { value: 'all', label: 'Tutte le settimane' },
   ];
 
+  // Excel dettagliato per-ospite (Struttura · Camera · Ospite · Check-in ·
+  // Check-out · RN · Canale · Totale · Stato · Motivazione), struttura condivisa
+  // con la pagina Ospiti in casa.
   const exportExcel = () => {
-    const head = ['Struttura', 'Paganti (ospiti)', 'Notti paganti', 'Esenti', 'Totale €'];
-    const body = righe.map(r => [r.struttura.nome, r.ospitiPaganti, r.nottiPaganti, r.esenti, r.totale.toFixed(2)]);
-    const totale = ['TOTALE', tot.ospitiPaganti, tot.nottiPaganti, tot.esenti, tot.totale.toFixed(2)];
-    const rows = [
-      [`Report City Tax — ${settLabel}`],
-      [`Categoria ${CATEGORIA}★ · Tariffa ${TARIFFA.toFixed(2)} € per persona a notte`],
-      head, ...body, totale,
-    ];
-    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `report-city-tax-${tutte ? 'tutte' : SETTIMANE[weekIdx].label.replace(/[^\d]/g, '-')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCityTaxExcel(MOCK_CITY_TAX_STAYS, {
+      tariffa: TARIFFA,
+      label: `Report City Tax — ${settLabel}`,
+      fileName: `report-city-tax-${tutte ? 'tutte' : SETTIMANE[weekIdx].label.replace(/[^\d]/g, '-')}.csv`,
+    });
     toast.success('Export Excel avviato', 'Report City Tax');
   };
 
