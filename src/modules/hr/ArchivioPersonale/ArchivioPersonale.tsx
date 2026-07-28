@@ -52,11 +52,11 @@ interface PersonaleItem {
   [key: string]: unknown
 }
 
-// I 5 documenti obbligatori del fascicolo dipendente
+// Documenti obbligatori del fascicolo dipendente. Il "Contratto di lavoro" NON
+// è qui: è gestito nella sezione "Contratti del personale" (colonna PDF dedicata).
 const REQUIRED_DOCS = [
   { key: 'identita',      label: "Documento d'identità" },
   { key: 'codiceFiscale', label: 'Codice fiscale / Tessera sanitaria' },
-  { key: 'contratto',     label: 'Contratto di lavoro' },
   { key: 'privacy',       label: 'Informativa privacy' },
   { key: 'sicurezza',     label: 'Formazione sicurezza' },
 ] as const
@@ -206,7 +206,7 @@ export default function ArchivioPersonale({ navigate }: { navigate: (p: string) 
                       <Tooltip variant="light" position="right" content={
                         <div className="text-left">
                           <div className="font-semibold text-text mb-1">Documentazione incompleta</div>
-                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/5 documenti mancanti — clicca per inserirli:</div>
+                          <div className="text-[11px] text-text-muted mb-1">{mancanti.length}/{REQUIRED_DOCS.length} documenti mancanti — clicca per inserirli:</div>
                           <ul className="m-0 pl-4 list-disc text-[12px] text-text">
                             {mancanti.map((d) => <li key={d.key}>{d.label}</li>)}
                           </ul>
@@ -353,7 +353,7 @@ function DocIdentitaModal({ persona, onClose }: { persona: PersonaleItem | null;
               <h4 className="text-[13px] font-semibold text-text">Documenti allegati</h4>
               {mancanti > 0
                 ? <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-warning bg-warning-light rounded-full px-3 py-1 animate-pulse">
-                    <i className="fa-solid fa-triangle-exclamation" /> Documentazione incompleta — {mancanti}/5 mancanti
+                    <i className="fa-solid fa-triangle-exclamation" /> Documentazione incompleta — {mancanti}/{REQUIRED_DOCS.length} mancanti
                   </span>
                 : <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-success">
                     <i className="fa-solid fa-circle-check" /> Documentazione completa

@@ -62,11 +62,12 @@ function Section({ icon, title, actions, defaultOpen = true, children }: {
 
 interface AcqFile { name: string; dataUrl?: string }
 
-type DocKey = 'identita' | 'codiceFiscale' | 'contratto' | 'privacy' | 'sicurezza'
+// NB: il "Contratto di lavoro" NON è più qui — è gestito nella sezione
+// "Contratti del personale" (con tipologia/RAL/storico + PDF).
+type DocKey = 'identita' | 'codiceFiscale' | 'privacy' | 'sicurezza'
 const DOC_SLOTS: { key: DocKey; label: string }[] = [
   { key: 'identita',      label: "Documento d'identità" },
   { key: 'codiceFiscale', label: 'Codice fiscale / Tessera sanitaria' },
-  { key: 'contratto',     label: 'Contratto di lavoro' },
   { key: 'privacy',       label: 'Informativa privacy' },
   { key: 'sicurezza',     label: 'Formazione sicurezza' },
 ]
@@ -304,7 +305,6 @@ export default function CreaAnagrafica({ navigate, editing = false }: { navigate
   const [docs, setDocs] = useState<Record<DocKey, AcqFile | null>>({
     identita:      mkSlot(initial?.documenti?.identita),
     codiceFiscale: mkSlot(initial?.documenti?.codiceFiscale),
-    contratto:     mkSlot(initial?.documenti?.contratto),
     privacy:       mkSlot(initial?.documenti?.privacy),
     sicurezza:     mkSlot(initial?.documenti?.sicurezza),
   })
