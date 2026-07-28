@@ -41,22 +41,25 @@
   &__card-body
     padding: 16px
 
+  // card in stato bloccato (prima del salvataggio)
+  &__card--disabled &__card-title,
+  &__card--disabled &__card-title i
+    color: $text-disabled
+
   // ── Griglie campi ──────────────────────────────────────────────────────────
   &__grid
     display: grid
     gap: 16px 18px
 
-    &--3
-      grid-template-columns: repeat(3, 1fr)
-    &--2
-      grid-template-columns: repeat(2, 1fr)
+  // Intestatario: Tipologia · Nominativo · Segmento · Salva
+  &__grid--intestatario
+    grid-template-columns: minmax(160px, 0.9fr) minmax(200px, 1.4fr) minmax(150px, 0.9fr) auto
+    align-items: end
 
     @media (max-width: 900px)
-      &--3
-        grid-template-columns: repeat(2, 1fr)
+      grid-template-columns: 1fr 1fr
     @media (max-width: 560px)
-      &--3, &--2
-        grid-template-columns: 1fr
+      grid-template-columns: 1fr
 
   &__field
     display: flex
@@ -69,126 +72,46 @@
     font-weight: 600
     color: $primary
 
-  &__anticipo-fields
-    margin-top: 14px
-
-  &__hint
-    margin: 12px 0 0
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    font-size: 13px
-    color: $text-inactive
-
-    i
-      color: $primary
-
-  // ── Tabella addebiti ─────────────────────────────────────────────────────────
-  &__table
-    th
-      vertical-align: middle
-
-    .ncp__th-check
-      width: 44px
-      text-align: center
-    .ncp__th-data
-      width: 110px
-    .ncp__th-iva
-      width: 108px
-    .ncp__th-num
-      text-align: right
-      white-space: nowrap
-      width: 130px
-    .ncp__th-act
-      width: 48px
-
-  &__td-center
-    text-align: center
-  &__td-num
-    text-align: right
-    white-space: nowrap
-  &__td-data
-    color: $text-inactive
-    white-space: nowrap
-  &__td-tot
-    font-weight: 700
-    color: $primary
-
-  &__row--sel
-    background: $primary-50
-
-  // input/select nelle celle
-  &__cell-in
-    width: 100%
-
-  &__euro
-    display: inline-flex
-    align-items: center
-    justify-content: flex-end
-    gap: 5px
-
-  &__cell-num
-    width: 92px
-    text-align: right
-
-  &__euro-sfx
-    color: $text-inactive
-    font-size: 13px
-
-  &__cell-sel
-    width: 92px
-
-  // stato vuoto
-  &__empty
-    text-align: center
-    padding: 34px 0 !important
-    color: $text-inactive
-
-  &__empty-ico
-    display: block
-    font-size: 26px
-    color: $primary-200
-    margin-bottom: 8px
-
-  // ── Riepilogo totali ─────────────────────────────────────────────────────────
-  &__summary
+  // ── Bottone Salva (in linea con i campi) ─────────────────────────────────────
+  &__save-cell
     display: flex
-    align-items: center
-    justify-content: flex-end
-    gap: 26px
-    flex-wrap: wrap
-    margin-top: 14px
-    padding: 14px 16px
-    background: $bg
-    border: 1px solid $border
-    border-radius: 10px
+    align-items: flex-end
 
-  &__sum-item
+  &__save-btn
+    height: 34px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    white-space: nowrap
+
+    @media (max-width: 900px)
+      width: 100%
+
+  // ── Stato bloccato Lista addebiti ────────────────────────────────────────────
+  &__locked
     display: flex
     flex-direction: column
-    align-items: flex-end
-    gap: 2px
+    align-items: center
+    gap: 12px
+    padding: 46px 24px
+    text-align: center
+    border: 1px dashed $border
+    border-radius: 10px
+    background: $bg
 
-  &__sum-k
-    font-size: 11px
-    color: $text-inactive
-    text-transform: uppercase
-    letter-spacing: .03em
+    p
+      margin: 0
+      font-size: 14px
+      color: $text-inactive
 
-  &__sum-v
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 15px
-    color: $text-active
+  &__locked-ico
+    font-size: 30px
+    color: $primary-200
 
-  &__sum-item--tot
-    padding-left: 26px
-    border-left: 1px solid $border
-
-    .ncp__sum-v
-      font-size: 20px
-      font-weight: 800
-      color: $primary
-
-  &__pay
-    margin-left: 8px
+  // ── Conti camera incorporato ─────────────────────────────────────────────────
+  // Le due card (Addebiti/Anticipi) provengono dalla pagina Conti camera in
+  // modalità embedded: azzeriamo il margine del primo titolo di sezione.
+  .conti-camera--embedded
+    .conti-camera__section-title:first-child
+      margin-top: 0

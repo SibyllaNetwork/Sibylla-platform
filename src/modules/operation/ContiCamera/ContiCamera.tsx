@@ -108,7 +108,7 @@ function fmtCurrency(v: number): string {
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
-export default function ContiCamera({ navigate }: { navigate: (p: string) => void }) {
+export default function ContiCamera({ navigate, embedded = false }: { navigate: (p: string) => void; embedded?: boolean }) {
   const [data, setData] = useState<Data>(FALLBACK)
   const [selAddebiti, setSelAddebiti] = useState<number[]>([])
   const [selAnticipi, setSelAnticipi] = useState<number[]>([])
@@ -163,40 +163,44 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
   }
 
   return (
-    <div className="conti-camera">
-      <PageHead
-        title="Conti camera"
-        subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
-        onBack={() => navigate('ospiti-in-casa')}
-        actions={<div className="conti-camera__stampante">Stampante fiscale ...</div>}
-      />
+    <div className={'conti-camera' + (embedded ? ' conti-camera--embedded' : '')}>
+      {!embedded && (
+        <>
+          <PageHead
+            title="Conti camera"
+            subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
+            onBack={() => navigate('ospiti-in-casa')}
+            actions={<div className="conti-camera__stampante">Stampante fiscale ...</div>}
+          />
 
-      {/* ─── Dettaglio ─────────────────────────────────────────────────────── */}
-      <h3 className="conti-camera__section-title">Dettaglio</h3>
-      <div className="conti-camera__detail-card">
-        <div className="conti-camera__detail-row">
-          <DetailField label="N. Prenotazione" value={d.prenotazioneNum} />
-          <DetailField label="Nominativo" value={d.nominativo} />
-          <DetailField label="Data di arrivo" value={d.dataArrivo} />
-          <DetailField label="Data di partenza" value={d.dataPartenza} />
-          <DetailField label="Giorni" value={String(d.giorni)} />
-          <DetailField label="Ospiti" value={String(d.ospiti)} />
-          <DetailField label="Agenzia" value={d.agenzia} />
-          <DetailField label="Credit" value={d.credit} />
-          <DetailField label="Struttura" value={d.struttura} />
-        </div>
-        <div className="conti-camera__detail-row">
-          <DetailField label="Arrangiamento" value={d.arrangiamento} />
-          <DetailField label="N camere" value={String(d.nCamere)} />
-          <DetailField label="Totale" value={fmtCurrency(d.totale)} />
-          <DetailField label="Di cui camere" value={fmtCurrency(d.diCuiCamere)} />
-          <DetailField label="Di cui servizi" value={fmtCurrency(d.diCuiServizi)} />
-          <DetailField label="Di cui tasse di soggiorno" value={fmtCurrency(d.diCuiTasse)} />
-          <DetailField label="Pagato" value={fmtCurrency(d.pagato)} />
-          <DetailField label="Da pagare" value={fmtCurrency(d.daPagare)} />
-          <DetailField label="Note" value={d.note} />
-        </div>
-      </div>
+          {/* ─── Dettaglio ─────────────────────────────────────────────────── */}
+          <h3 className="conti-camera__section-title">Dettaglio</h3>
+          <div className="conti-camera__detail-card">
+            <div className="conti-camera__detail-row">
+              <DetailField label="N. Prenotazione" value={d.prenotazioneNum} />
+              <DetailField label="Nominativo" value={d.nominativo} />
+              <DetailField label="Data di arrivo" value={d.dataArrivo} />
+              <DetailField label="Data di partenza" value={d.dataPartenza} />
+              <DetailField label="Giorni" value={String(d.giorni)} />
+              <DetailField label="Ospiti" value={String(d.ospiti)} />
+              <DetailField label="Agenzia" value={d.agenzia} />
+              <DetailField label="Credit" value={d.credit} />
+              <DetailField label="Struttura" value={d.struttura} />
+            </div>
+            <div className="conti-camera__detail-row">
+              <DetailField label="Arrangiamento" value={d.arrangiamento} />
+              <DetailField label="N camere" value={String(d.nCamere)} />
+              <DetailField label="Totale" value={fmtCurrency(d.totale)} />
+              <DetailField label="Di cui camere" value={fmtCurrency(d.diCuiCamere)} />
+              <DetailField label="Di cui servizi" value={fmtCurrency(d.diCuiServizi)} />
+              <DetailField label="Di cui tasse di soggiorno" value={fmtCurrency(d.diCuiTasse)} />
+              <DetailField label="Pagato" value={fmtCurrency(d.pagato)} />
+              <DetailField label="Da pagare" value={fmtCurrency(d.daPagare)} />
+              <DetailField label="Note" value={d.note} />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ─── Layout 2 colonne ──────────────────────────────────────────────── */}
       <div className="conti-camera__layout">
@@ -342,40 +346,44 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
             Totale: <strong>{fmtCurrency(totAnticipi)}</strong>
           </div>
 
-          <h3 className="conti-camera__section-title">Documenti emessi</h3>
-          <div className="sib-table-wrap">
-            <table className="sib-table conti-camera__table">
-              <thead>
-                <tr>
-                  <th>Documento</th>
-                  <th>Data</th>
-                  <th>Intestatario</th>
-                  <th className="conti-camera__th-num">Totale €</th>
-                  <th className="conti-camera__th-num">Pagato €</th>
-                  <th className="conti-camera__th-num">Sospeso €</th>
-                  <th>Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.documenti.map((doc) => (
-                  <tr key={doc.id}>
-                    <td>{doc.documento}</td>
-                    <td>{doc.data}</td>
-                    <td className={doc.intestatario ? '' : 'sib-cell--muted'}>{doc.intestatario || '-'}</td>
-                    <td className="conti-camera__td-num">{doc.totale.toFixed(2).replace('.', ',')}</td>
-                    <td className="conti-camera__td-num">{doc.pagato.toFixed(2).replace('.', ',')}</td>
-                    <td className="conti-camera__td-num">{doc.sospeso.toFixed(2).replace('.', ',')}</td>
-                    <td>
-                      <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {!embedded && (
+            <>
+              <h3 className="conti-camera__section-title">Documenti emessi</h3>
+              <div className="sib-table-wrap">
+                <table className="sib-table conti-camera__table">
+                  <thead>
+                    <tr>
+                      <th>Documento</th>
+                      <th>Data</th>
+                      <th>Intestatario</th>
+                      <th className="conti-camera__th-num">Totale €</th>
+                      <th className="conti-camera__th-num">Pagato €</th>
+                      <th className="conti-camera__th-num">Sospeso €</th>
+                      <th>Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.documenti.map((doc) => (
+                      <tr key={doc.id}>
+                        <td>{doc.documento}</td>
+                        <td>{doc.data}</td>
+                        <td className={doc.intestatario ? '' : 'sib-cell--muted'}>{doc.intestatario || '-'}</td>
+                        <td className="conti-camera__td-num">{doc.totale.toFixed(2).replace('.', ',')}</td>
+                        <td className="conti-camera__td-num">{doc.pagato.toFixed(2).replace('.', ',')}</td>
+                        <td className="conti-camera__td-num">{doc.sospeso.toFixed(2).replace('.', ',')}</td>
+                        <td>
+                          <div className="conti-camera__row-actions">
+                            <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button>
+                            <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
