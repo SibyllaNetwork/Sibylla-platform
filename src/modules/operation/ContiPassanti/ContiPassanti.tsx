@@ -155,7 +155,7 @@ export default function ContiPassanti({ navigate }: { navigate: (p: string) => v
           <thead>
             <tr>
               <th className="conti-pass__th-center">ID</th>
-              <th className="conti-pass__th-center">
+              <th className="conti-pass__th-left">
                 <span className="conti-pass__filter-head">
                   Segmento
                   <button
@@ -186,7 +186,7 @@ export default function ContiPassanti({ navigate }: { navigate: (p: string) => v
                   )}
                 </span>
               </th>
-              <th className="conti-pass__th-center">Nominativo</th>
+              <th className="conti-pass__th-left">Nominativo</th>
               <th className="conti-pass__th-center conti-pass__th-sort" onClick={toggleSortData} title="Ordina per data">
                 <span className="conti-pass__sort-head">Data <i className={`fa-solid ${sortIcon}`} /></span>
               </th>
@@ -242,8 +242,8 @@ export default function ContiPassanti({ navigate }: { navigate: (p: string) => v
             ) : pageRows.map((r) => (
               <tr key={r.id}>
                 <td className="conti-pass__td-center">{r.id}</td>
-                <td className="conti-pass__td-center">{r.segmento}</td>
-                <td className="conti-pass__td-center">{r.nominativo}</td>
+                <td className="conti-pass__td-left">{r.segmento}</td>
+                <td className="conti-pass__td-left">{r.nominativo}</td>
                 <td className="conti-pass__td-center">{r.data}</td>
                 <td className="conti-pass__td-center">{fmtCurrency(r.importo)}</td>
                 <td className="conti-pass__td-center">
