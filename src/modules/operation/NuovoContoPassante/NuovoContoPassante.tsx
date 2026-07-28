@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
+import FormActions from '../../../core/components/FormActions'
 import { SelectField, RadioGroup, CheckboxField, SearchField } from '../../../core/components/form'
 import AnagraficaCombobox, { type Anagrafica } from './AnagraficaCombobox'
 import CreaAnagraficaModal from './CreaAnagraficaModal'
@@ -149,6 +150,14 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
           </div>
         )}
       </Card>
+
+      <FormActions
+        onCancel={() => navigate('conti-passanti')}
+        onConfirm={() => navigate('conti-passanti')}
+        confirmLabel="Salva conto passante"
+        confirmIcon="fa-floppy-disk"
+        confirmDisabled={!saved}
+      />
 
       <CreaAnagraficaModal
         open={modalOpen}
