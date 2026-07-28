@@ -1,116 +1,654 @@
-// ─── ASSEGNA OBIETTIVO ────────────────────────────────────────────────────────
+// ─── PREMIO PERFORMANCE · ASSEGNA OBIETTIVO ───────────────────────────────────
 @use '../../../styles/tokens' as *
 
-// Header colonna ordinabile (Anno)
-.assegna-ob__th-sort
-  cursor: pointer
-  user-select: none
+.ao2
+  display: flex
+  flex-direction: column
 
-  &:hover
+  // ── Tab segmentati (nell'header pagina) ──────────────────────────────────────
+  &__tabs
+    display: inline-flex
+    background: $bg
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 3px
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    border: 0
+    background: transparent
+    color: $text-inactive
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 13px
+    padding: 7px 16px
+    border-radius: 999px
+    cursor: pointer
+    transition: all .18s ease
+
+    &:hover
+      color: $primary
+
+    &.is-active
+      background: $primary
+      color: #fff
+      box-shadow: 0 3px 10px rgba(0, 0, 0, .16)
+
+  &__tab-badge
+    min-width: 18px
+    height: 18px
+    padding: 0 5px
+    border-radius: 9px
+    background: $warning
+    color: #fff
+    font-size: 11px
+    font-weight: 700
+    line-height: 18px
+    text-align: center
+
+
+// ─── WIZARD ───────────────────────────────────────────────────────────────────
+.ao2-wiz
+  margin-top: 6px
+
+  &__panel
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 14px
+    padding: 22px
+
+  &__err
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $error
+    font-size: 13px
+    margin: 10px 0
+
+  &__nav
+    display: flex
+    justify-content: space-between
+    gap: 12px
+    margin-top: 18px
+
+// ── Stepper ─────────────────────────────────────────────────────────────────
+.ao2-steps
+  list-style: none
+  margin: 0 0 18px
+  padding: 0
+  display: flex
+
+  &__item
+    position: relative
+    flex: 1
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+
+  &__dot
+    position: relative
+    z-index: 1
+    width: 42px
+    height: 42px
+    border-radius: 50%
+    border: 2px solid $border
+    background: var(--color-surface)
+    color: $text-inactive
+    font-size: 16px
+    display: flex
+    align-items: center
+    justify-content: center
+    cursor: default
+    transition: all .25s ease
+
+  &__label
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    text-align: center
+    transition: color .2s ease
+
+  // linea di collegamento
+  &__bar
+    position: absolute
+    top: 21px
+    left: 50%
+    width: 100%
+    height: 2px
+    background: $border
+    z-index: 0
+    transition: background .3s ease
+
+  &__item.is-active &__dot
+    border-color: $primary
+    color: $primary
+    box-shadow: 0 0 0 5px $primary-50
+    transform: scale(1.06)
+
+  &__item.is-active &__label
     color: $primary
 
-// Filtro a imbuto standard (replica del pattern oc-colfilter)
-.assegna-ob__cf
+  &__item.is-done &__dot
+    border-color: $success
+    background: $success
+    color: #fff
+    cursor: pointer
+
+  &__item.is-done &__label
+    color: $text-active
+
+  &__item.is-done &__bar
+    background: $success
+
+
+// ── Griglie / campi ───────────────────────────────────────────────────────────
+.ao2-grid
+  display: grid
+  gap: 16px 18px
+
+  &--2
+    grid-template-columns: repeat(2, 1fr)
+
+  @media (max-width: 720px)
+    &--2
+      grid-template-columns: 1fr
+
+.ao2-span-2
+  grid-column: 1 / -1
+
+.ao2-field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.ao2-lbl
+  font-family: 'Poppins', sans-serif
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+  &__hint
+    font-weight: 400
+    color: $text-inactive
+
+// segmented control (Reparto / Individuale)
+.ao2-seg
+  display: inline-flex
+  background: $bg
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 3px
+  height: 34px
+
+  &__opt
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    border: 0
+    background: transparent
+    color: $text-inactive
+    font-size: 13px
+    font-weight: 600
+    padding: 0 14px
+    border-radius: 8px
+    cursor: pointer
+    transition: all .18s ease
+
+    &:hover
+      color: $primary
+
+    &.is-active
+      background: var(--color-surface)
+      color: $primary
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .12)
+
+// chips tipologia vendita
+.ao2-chips
+  display: flex
+  gap: 10px
+  flex-wrap: wrap
+
+.ao2-chip
   display: inline-flex
   align-items: center
   gap: 8px
-  position: relative
+  border: 1px solid $border
+  background: var(--color-surface)
+  color: $text-active
+  font-size: 13px
+  font-weight: 600
+  padding: 9px 14px
+  border-radius: 999px
+  cursor: pointer
+  transition: all .18s ease
 
-  &-btn
-    background: transparent
-    border: none
+  i
     color: $text-inactive
-    cursor: pointer
-    font-size: 12px
-    padding: 4px
-    border-radius: 4px
-    line-height: 1
+    transition: color .18s ease
 
-    &:hover
-      background: $primary-50
+  &:hover
+    border-color: $primary-300
+
+  &.is-active
+    border-color: $primary
+    background: $primary-50
+    color: $primary
+
+    i
       color: $primary
 
-    &--active
-      color: $primary
+  &__check
+    font-size: 11px !important
 
-  &-overlay
-    position: fixed
-    inset: 0
-    z-index: 49
+// budget → margine
+.ao2-calc
+  display: flex
+  align-items: center
+  gap: 18px
+  flex-wrap: wrap
+  background: $bg
+  border: 1px dashed $border
+  border-radius: 12px
+  padding: 14px 18px
 
-  &-popup
-    position: absolute
-    top: 100%
-    left: 50%
-    transform: translateX(-50%)
-    margin-top: 6px
-    min-width: 200px
-    max-height: 320px
-    overflow-y: auto
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14)
-    z-index: 50
-    padding: 8px 10px
+  &__item
     display: flex
     flex-direction: column
-    gap: 4px
+    gap: 3px
 
-  &-title
-    text-align: center
-    font-weight: 600
+  &__k
+    font-size: 12px
+    color: $text-inactive
+
+  &__v
+    font-size: 20px
+    font-weight: 800
     color: $text-active
-    padding: 6px 4px 8px
-    border-bottom: 1px solid $border
-    margin-bottom: 4px
+    font-family: $font-heading
 
-  &-option
-    display: flex
-    align-items: center
-    gap: 8px
-    padding: 6px 4px
-    cursor: pointer
-    font-size: 13px
-    font-weight: 400
-    color: $text-active
+    &--accent
+      color: $success
 
-    &:hover
-      background: $primary-50
-
-    .sib-checkbox
-      flex-shrink: 0
+  &__arrow
+    color: $text-inactive
+    font-size: 15px
 
 
-// ─── Anteprima notifica / schedulazione ───────────────────────────────────────
-.ao-prev
+// ── Frammentazione periodi/sottoperiodi ───────────────────────────────────────
+.ao2-frag
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 14px
 
-  &__done
-    display: flex
-    align-items: flex-start
-    gap: 12px
-    background: $success-light
-    border-radius: 10px
-    padding: 12px 14px
-
-  &__done-ico
-    font-size: 26px
-    color: $success
-    flex: none
-
-  &__done-title
-    font-weight: 700
-    color: $text-active
-
-  &__done-text
+  &__intro p
+    margin: 0
     font-size: 13px
     color: $text-inactive
     line-height: 1.5
 
-  // anteprima notifica (stile push)
+  &__summary
+    display: grid
+    grid-template-columns: repeat(3, auto) 1fr
+    align-items: center
+    gap: 20px
+    background: $primary-50
+    border-radius: 12px
+    padding: 14px 18px
+
+    @media (max-width: 720px)
+      grid-template-columns: 1fr 1fr
+      gap: 14px
+
+  &__sum-item
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    span
+      font-size: 11px
+      color: $text-inactive
+    strong
+      font-size: 18px
+      font-weight: 800
+      color: $text-active
+      font-family: $font-heading
+
+    &--accent strong
+      color: $primary
+
+  &__cover
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 180px
+
+  &__cover-head
+    display: flex
+    justify-content: space-between
+    font-size: 12px
+    color: $text-inactive
+
+    strong
+      color: $primary
+      font-weight: 700
+
+// periodo (editor)
+.ao2-per
+  border: 1px solid $border
+  border-radius: 12px
+  overflow: hidden
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 10px
+    background: $bg
+    padding: 8px 12px
+    border-bottom: 1px solid $border
+
+  &__idx
+    flex: none
+    width: 24px
+    height: 24px
+    border-radius: 50%
+    background: $primary
+    color: #fff
+    font-size: 12px
+    font-weight: 700
+    display: flex
+    align-items: center
+    justify-content: center
+
+  &__name
+    flex: 1
+    min-width: 0
+    border: 1px solid transparent
+    background: transparent
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 14px
+    color: $text-active
+    padding: 4px 8px
+    border-radius: 6px
+
+    &:hover
+      border-color: $border
+    &:focus
+      outline: none
+      border-color: $primary
+      background: var(--color-surface)
+
+  &__tot
+    font-size: 12px
+    color: $text-inactive
+    white-space: nowrap
+
+.ao2-sub
+  padding: 8px 12px 12px
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  &__row
+    display: grid
+    grid-template-columns: 1.4fr 1fr 1fr .9fr .9fr 32px
+    gap: 8px
+    align-items: center
+
+    &--head
+      font-size: 11px
+      font-weight: 600
+      color: $text-inactive
+      padding: 0 2px
+
+    @media (max-width: 860px)
+      grid-template-columns: 1fr 1fr
+      &--head
+        display: none
+
+.ao2-in
+  height: 34px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: $text-active
+  font-size: 13px
+  padding: 0 10px
+  width: 100%
+
+  &:focus
+    outline: none
+    border-color: $primary
+    box-shadow: 0 0 0 3px $primary-50
+
+  &--num
+    text-align: right
+
+.ao2-add-per
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  border: 1px dashed $primary-300
+  background: $primary-50
+  color: $primary
+  font-weight: 600
+  font-size: 13px
+  padding: 8px 14px
+  border-radius: 10px
+  cursor: pointer
+  transition: all .18s ease
+
+  &:hover
+    background: $primary-100
+
+.ao2-icon-btn
+  flex: none
+  width: 30px
+  height: 30px
+  border-radius: 8px
+  border: 1px solid $border
+  background: var(--color-surface)
+  color: $text-inactive
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  font-size: 13px
+  transition: all .16s ease
+
+  &:hover:not(:disabled)
+    border-color: $primary
+    color: $primary
+
+  &:disabled
+    opacity: .4
+    cursor: not-allowed
+
+  &--danger:hover:not(:disabled)
+    border-color: $error
+    color: $error
+
+
+// ── Track / barre (usa --pct come CSS custom property) ────────────────────────
+.ao2-track
+  position: relative
+  height: 8px
+  border-radius: 999px
+  background: $primary-50
+  overflow: hidden
+
+  &__fill
+    position: absolute
+    inset: 0 auto 0 0
+    width: calc(var(--pct, 0) * 1%)
+    background: linear-gradient(90deg, $primary-400, $primary)
+    border-radius: 999px
+    transition: width .9s cubic-bezier(.22, 1, .36, 1)
+
+    &.is-done
+      background: linear-gradient(90deg, $success-mid, $success)
+
+  &--sp
+    height: 22px
+    background: $bg
+    border: 1px solid $border
+
+  &__lbl
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    font-size: 11px
+    font-weight: 700
+    color: $text-active
+    z-index: 1
+    mix-blend-mode: normal
+
+
+// ── Riepilogo (fase 4) ─────────────────────────────────────────────────────────
+.ao2-riep
+  display: flex
+  flex-direction: column
+  gap: 18px
+
+  &__hero
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 20px
+    flex-wrap: wrap
+    background: linear-gradient(120deg, $primary, $primary-700)
+    border-radius: 14px
+    padding: 20px 22px
+    color: #fff
+
+  &__eyebrow
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 20px
+
+  &__dest
+    margin-top: 4px
+    font-size: 13px
+    opacity: .9
+
+  &__segs
+    margin-top: 10px
+    display: flex
+    gap: 6px
+    flex-wrap: wrap
+
+  &__prize
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 2px
+
+  &__prize-k
+    font-size: 12px
+    opacity: .9
+    text-transform: uppercase
+    letter-spacing: .04em
+
+  &__prize-v
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 32px
+    line-height: 1
+
+  &__stats
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 12px
+
+    @media (max-width: 720px)
+      grid-template-columns: repeat(2, 1fr)
+
+    > div
+      display: flex
+      flex-direction: column
+      gap: 3px
+      background: $bg
+      border: 1px solid $border
+      border-radius: 10px
+      padding: 12px 14px
+
+      span
+        font-size: 11px
+        color: $text-inactive
+      strong
+        font-size: 17px
+        font-weight: 800
+        color: $text-active
+        font-family: $font-heading
+
+  &__timeline-head
+    display: flex
+    align-items: center
+    gap: 8px
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 14px
+    color: $primary
+
+  &__timeline
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__tl-per
+    border-left: 2px solid $primary-200
+    padding-left: 14px
+
+  &__tl-pname
+    font-weight: 700
+    color: $text-active
+    font-size: 13px
+
+  &__tl-subs
+    margin-top: 6px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__tl-sub
+    display: flex
+    align-items: center
+    gap: 10px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 10px
+    padding: 8px 12px
+    font-size: 13px
+
+    > i
+      color: $warning
+
+  &__tl-sname
+    font-weight: 600
+    color: $text-active
+
+  &__tl-target
+    color: $text-inactive
+    font-size: 12px
+
+  &__tl-prize
+    margin-left: auto
+    font-weight: 800
+    color: $primary
+    font-family: $font-heading
+
   &__notif
     border: 1px solid $border
     border-radius: 12px
@@ -121,108 +659,371 @@
     display: flex
     align-items: center
     gap: 8px
+    color: $primary
+    font-size: 13px
+
+  &__notif-body
+    margin-top: 6px
+    font-size: 13px
+    color: $text-active
+    line-height: 1.55
+
+.ao2-tag
+  display: inline-flex
+  align-items: center
+  padding: 3px 10px
+  border-radius: 999px
+  background: rgba(255, 255, 255, .18)
+  font-size: 12px
+  font-weight: 600
+
+.ao2-btn-avvia
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18)
+  animation: ao2-pulse 2.2s ease-in-out infinite
+
+
+// ─── LIVE (obiettivi in corso) ─────────────────────────────────────────────────
+.ao2-live
+  margin-top: 6px
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+    margin-bottom: 16px
+
+  &__filters
+    display: inline-flex
+    gap: 6px
+
+  &__filter
+    border: 1px solid $border
+    background: var(--color-surface)
+    color: $text-inactive
+    font-size: 13px
+    font-weight: 600
+    padding: 6px 14px
+    border-radius: 999px
+    cursor: pointer
+    transition: all .16s ease
+
+    &:hover
+      color: $primary
+    &.is-active
+      background: $primary
+      border-color: $primary
+      color: #fff
+
+  &__toggle
+    display: inline-flex
+    align-items: center
+    gap: 9px
+    border: 1px solid $border
+    background: var(--color-surface)
+    color: $text-inactive
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .03em
+    padding: 7px 14px
+    border-radius: 999px
+    cursor: pointer
+
+    &.is-live
+      border-color: $success
+      color: $success
+
+  &__dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    background: $text-inactive
+
+  &.is-live &__dot, &__toggle.is-live &__dot
+    background: $success
+    animation: ao2-live-pulse 1.4s ease-in-out infinite
+
+  &__empty
+    color: $text-inactive
+    font-size: 14px
+    padding: 30px
+    text-align: center
+
+.ao2-cards
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr))
+  gap: 18px
+
+  @media (max-width: 520px)
+    grid-template-columns: 1fr
+
+// card obiettivo
+.ao2-card
+  border: 1px solid $border
+  border-radius: 16px
+  background: var(--color-surface)
+  padding: 18px
+  display: flex
+  flex-direction: column
+  gap: 16px
+  animation: ao2-in .4s ease both
+  transition: box-shadow .2s ease
+
+  &:hover
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .10)
+
+  &.is-done
+    opacity: .92
+
+  &__head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 12px
+
+  &__title-wrap
+    display: flex
+    flex-direction: column
+    gap: 5px
+    min-width: 0
+
+  &__badge
+    align-self: flex-start
+    font-size: 10px
+    font-weight: 800
+    text-transform: uppercase
+    letter-spacing: .05em
+    padding: 3px 9px
+    border-radius: 999px
+
+    &--in-corso
+      background: $success-light
+      color: $success
+    &--concluso
+      background: $primary-50
+      color: $primary
+    &--bozza
+      background: $warning-light
+      color: $warning
+
+  &__title
+    margin: 0
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 17px
+    color: $text-active
+
+  &__dest
+    display: inline-flex
+    align-items: center
+    gap: 7px
     font-size: 12px
     color: $text-inactive
 
     i
       color: $primary
 
-    strong
-      color: $text-active
-
-  &__notif-time
-    margin-left: auto
-
-  &__notif-title
-    margin-top: 8px
-    font-weight: 700
-    color: $text-active
-
-  &__notif-body
-    margin-top: 4px
-    font-size: 13px
-    color: $text-active
-    line-height: 1.5
-
-  &__steps-head
-    font-weight: 600
-    color: $primary
-    font-size: 13px
-
-  &__steps
-    list-style: none
-    margin: 0
-    padding: 0
-    display: flex
-    flex-direction: column
-    gap: 8px
-
-  &__step
+  &__top
     display: flex
     align-items: center
-    gap: 12px
-    border: 1px solid $border
-    border-radius: 10px
-    padding: 10px 12px
+    gap: 20px
 
-  &__step-num
-    flex: none
-    width: 22px
-    height: 22px
-    border-radius: 50%
-    background: $primary
-    color: #fff
-    font-size: 12px
-    font-weight: 700
-    display: flex
-    align-items: center
-    justify-content: center
-
-  &__step-ico
-    flex: none
-    width: 44px
-    text-align: center
-
-  &__step-body
+  &__kpis
     flex: 1
     min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 10px
 
-  &__step-title
-    font-size: 13px
+  &__kpi
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__kpi-k
+    font-size: 11px
+    color: $text-inactive
+
+  &__kpi-v
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 18px
     color: $text-active
 
-  &__step-meta
-    font-size: 12px
-    color: $text-inactive
+    em
+      font-style: normal
+      font-weight: 500
+      font-size: 13px
+      color: $text-inactive
+
+    &--prize
+      color: $warning
+
+  &__coins
     display: flex
     align-items: center
-    gap: 6px
+    gap: 4px
+    margin-top: 2px
 
-  &__timing
-    display: grid
-    grid-template-columns: 1fr 1fr 1fr
+  &__coin
+    font-size: 15px
+    color: $border
+    transition: color .3s ease, transform .3s ease
+
+    &.is-on
+      color: $warning
+      animation: ao2-glow .5s ease
+
+  &__coins-txt
+    margin-left: 8px
+    font-size: 11px
+    color: $text-inactive
+    font-weight: 600
+
+  &__periods
+    display: flex
+    flex-direction: column
     gap: 12px
-    background: $bg
-    border-radius: 10px
-    padding: 12px 14px
+    border-top: 1px solid $border
+    padding-top: 14px
 
-    @media (max-width: 640px)
-      grid-template-columns: 1fr
+  &__period-name
+    font-size: 12px
+    font-weight: 700
+    color: $primary
+    margin-bottom: 6px
 
-    > div
-      display: flex
-      flex-direction: column
-      gap: 2px
+// sottoperiodo (live)
+.ao2-sp
+  display: flex
+  flex-direction: column
+  gap: 5px
+  padding: 8px 0
 
-      span
-        font-size: 11px
-        color: $text-inactive
-      strong
-        font-size: 13px
-        color: $text-active
+  & + &
+    border-top: 1px dashed $border
+
+  &__l
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+
+  &__name
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__prize
+    font-size: 12px
+    color: $text-inactive
+    display: inline-flex
+    align-items: center
+    gap: 5px
+
+  &.is-done &__prize
+    color: $success
+    font-weight: 700
+
+    i
+      color: $warning
 
   &__foot
     display: flex
     justify-content: flex-end
-    gap: 8px
-    margin-top: 4px
+
+  &__done
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    font-weight: 700
+    color: $success
+
+.ao2-cd
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-family: 'Courier New', monospace
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+
+  &--over
+    color: $error
+
+// anello di avanzamento
+.ao2-ring
+  position: relative
+  width: 80px
+  height: 80px
+  flex: none
+
+  &__svg
+    width: 100%
+    height: 100%
+
+  &__bg
+    fill: none
+    stroke: $primary-50
+    stroke-width: 7
+
+  &__val
+    fill: none
+    stroke: $primary
+    stroke-width: 7
+    stroke-linecap: round
+    stroke-dasharray: var(--circ)
+    stroke-dashoffset: calc(var(--circ) * (100 - var(--pct, 0)) / 100)
+    transform: rotate(-90deg)
+    transform-origin: center
+    transition: stroke-dashoffset .9s cubic-bezier(.22, 1, .36, 1)
+
+  &__num
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 20px
+    color: $primary
+
+    small
+      font-size: 11px
+      margin-left: 1px
+
+
+// ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
+.ao2-anim
+  animation: ao2-in .35s ease both
+
+@keyframes ao2-in
+  from
+    opacity: 0
+    transform: translateY(10px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+@keyframes ao2-live-pulse
+  0%, 100%
+    box-shadow: 0 0 0 0 rgba(0, 207, 134, .5)
+  70%
+    box-shadow: 0 0 0 6px rgba(0, 207, 134, 0)
+
+@keyframes ao2-glow
+  0%
+    transform: scale(1)
+  40%
+    transform: scale(1.4)
+  100%
+    transform: scale(1)
+
+@keyframes ao2-pulse
+  0%, 100%
+    transform: translateY(0)
+  50%
+    transform: translateY(-2px)

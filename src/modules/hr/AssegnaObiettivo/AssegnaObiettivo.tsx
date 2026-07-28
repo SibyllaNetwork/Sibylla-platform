@@ -1,472 +1,504 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
-import Modal from '../../../core/components/Modal'
-import AlertBanner from '../../../core/components/AlertBanner'
-import { InputField, SelectField, CheckboxField, DatePickerField } from '../../../core/components/form'
-import { apiFetchSibylla } from '../../../services/api'
+import { InputField, SelectField } from '../../../core/components/form'
+import { useConfirmStore } from '../../../store/useConfirmStore'
+import {
+  useObiettiviStore, type Obiettivo, type Periodo, type SottoPeriodo, type Segmento, type TipologiaObiettivo,
+  premioTotale, targetTotale, vendutoTotale, premioSbloccato, avanzamentoPct, margineAtteso, tuttiSotto,
+} from '../../../store/useObiettiviStore'
 import './AssegnaObiettivo.sass'
 
 /**
- * Assegna obiettivo — replica `Views/HumanResource/AssegnaObiettivo.cshtml`.
- * BE: `PremioPerformanceController.SaveObiettivo` → catch-all
- * `/Sibylla/premio-performance/SaveObiettivo`.
+ * Premio performance · Assegna obiettivo.
+ * Due esperienze in un'unica pagina (toggle):
+ *  - "Assegna": wizard a fasi animate → crea l'obiettivo (reparto/individuale,
+ *    vendita prodotti/servizi/esperienze, budget+margine, frammentazione in
+ *    periodi/sottoperiodi con premio a valore assoluto in €).
+ *  - "In corso": illustrazioni real-time dell'evoluzione degli obiettivi attivi
+ *    (anelli/barre animate, sblocco premi, countdown).
  */
 
-interface ObiettivoItem {
-  id?: number
-  nome?: string
-  reparto?: string
-  anno?: number
-  tipologia?: string
-  [key: string]: unknown
-}
+const uid = (p = 'w') => `${p}-${Math.round(performance.now())}-${Math.floor(Math.random() * 1e4)}`
+const eur = (n: number) => '€ ' + Math.round(n || 0).toLocaleString('it-IT')
 
-const FALLBACK: ObiettivoItem[] = [
-  { id: 1, nome: 'Obiettivo 2024 Reparto Pulizie',         reparto: 'Housekeeping',     anno: 2024, tipologia: 'reparto' },
-  { id: 2, nome: 'Obiettivo 2024 Reparto Manutenzione',    reparto: 'Manutenzione',     anno: 2024, tipologia: 'reparto' },
-  { id: 3, nome: 'Obiettivo 2025 Reparto Amministrazione', reparto: 'Amministrazione',  anno: 2025, tipologia: 'reparto' },
-  { id: 4, nome: 'Obiettivo 2025 Front Office',            reparto: 'Front office',     anno: 2025, tipologia: 'reparto' },
+const REPARTI = ['Commerciale', 'Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Amministrazione', 'Marketing', 'Direzione']
+const DIPENDENTI = ['Andrea Grimaudo', 'Piero Aragona', 'Marco Campo', 'Giulia Neri', 'Ali Aslan']
+const REPORT_OPTS = ['Report vendite reparto', 'Report upselling', 'Report esperienze / attività', 'Report F&B', 'Report camere / RevPAR', 'CRM · conversioni']
+const SEGMENTI: { key: Segmento; label: string; icon: string }[] = [
+  { key: 'prodotti',   label: 'Prodotti',   icon: 'fa-bag-shopping' },
+  { key: 'servizi',    label: 'Servizi',    icon: 'fa-concierge-bell' },
+  { key: 'esperienze', label: 'Esperienze', icon: 'fa-mountain-sun' },
 ]
 
-const REPARTI = ['General Manager', 'Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Amministrazione', 'Marketing', 'Direzione']
-const PERCENTUALI = ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
-const PREMI = ['Buono Amazon 50€', 'Buono Amazon 100€', 'Bonus 1 giorno ferie', 'Bonus 2 giorni ferie', 'Cena per 2 persone', 'Weekend SPA']
+const STEPS = [
+  { icon: 'fa-flag', title: 'Dati obiettivo' },
+  { icon: 'fa-coins', title: 'Vendita & budget' },
+  { icon: 'fa-layer-group', title: 'Periodi & premi' },
+  { icon: 'fa-rocket-launch', title: 'Riepilogo & avvio' },
+]
 
-type TipologiaT = 'reparto' | 'individuale'
-type ParametroT = 'percentuale' | 'numerico'
-
-interface Traguardo {
-  abilitato: boolean
-  data: string
-  premio: string
-}
-
-const TRAGUARDO_BASE: Traguardo = { abilitato: false, data: '2026-04-29', premio: '' }
-const TRAGUARDI_DEFAULT: Record<string, Traguardo> = {
-  t1: { ...TRAGUARDO_BASE }, t2: { ...TRAGUARDO_BASE }, t3: { ...TRAGUARDO_BASE }, t4: { ...TRAGUARDO_BASE }, finale: { ...TRAGUARDO_BASE },
-}
-
+// ─── Pagina ───────────────────────────────────────────────────────────────────
 export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) => void }) {
-  const [items, setItems] = useState<ObiettivoItem[]>(FALLBACK)
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [openFiltroReparto, setOpenFiltroReparto] = useState(false)
-  const [repartiSel, setRepartiSel] = useState<string[]>([])     // filtro a imbuto (multi)
-  const [sortAnno, setSortAnno] = useState<'asc' | 'desc' | null>(null)
+  void navigate
+  const obiettivi = useObiettiviStore((s) => s.obiettivi)
+  const inCorso = obiettivi.filter((o) => o.stato === 'in-corso').length
+  const [tab, setTab] = useState<'assegna' | 'in-corso'>('assegna')
 
-  const repartiObiettivi = Array.from(new Set(items.map((o) => o.reparto).filter(Boolean))) as string[]
-  const itemsFiltrati = (() => {
-    let rows = repartiSel.length ? items.filter((o) => o.reparto && repartiSel.includes(o.reparto)) : items
-    if (sortAnno) { const dir = sortAnno === 'asc' ? 1 : -1; rows = [...rows].sort((a, b) => ((a.anno ?? 0) - (b.anno ?? 0)) * dir) }
-    return rows
-  })()
-  const toggleReparto = (v: string) => setRepartiSel((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))
-  const setAllReparti = (sel: boolean) => setRepartiSel(sel ? repartiObiettivi : [])
-  const toggleSortAnno = () => setSortAnno((p) => (p === 'asc' ? 'desc' : p === 'desc' ? null : 'asc'))
-  const sortAnnoIcon = sortAnno === null
-    ? <i className="fa-solid fa-arrow-down-arrow-up" />
-    : sortAnno === 'asc' ? <i className="fa-solid fa-arrow-up" /> : <i className="fa-solid fa-arrow-down" />
-  const eliminaObiettivo = (id?: number) => setItems((prev) => prev.filter((o) => o.id !== id))
+  return (
+    <div className="ao2">
+      <PageHead
+        title="Premio performance"
+        subtitle="Assegna obiettivi di vendita a reparti o singole persone, frammentali in periodi e premia il raggiungimento con un valore in €"
+        actions={
+          <div className="ao2__tabs" role="tablist">
+            <button type="button" role="tab" aria-selected={tab === 'assegna'} className={'ao2__tab' + (tab === 'assegna' ? ' is-active' : '')} onClick={() => setTab('assegna')}>
+              <i className="fa-solid fa-bullseye" /> Assegna
+            </button>
+            <button type="button" role="tab" aria-selected={tab === 'in-corso'} className={'ao2__tab' + (tab === 'in-corso' ? ' is-active' : '')} onClick={() => setTab('in-corso')}>
+              <i className="fa-solid fa-chart-line" /> In corso
+              {inCorso > 0 && <span className="ao2__tab-badge">{inCorso}</span>}
+            </button>
+          </div>
+        }
+      />
 
-  const [nome, setNome] = useState('Premio produzione')
-  const [tipologia, setTipologia] = useState<TipologiaT>('reparto')
-  const [reparto, setReparto] = useState('General Manager')
-  const [vendita, setVendita] = useState({ prodotti: false, servizi: true, soggiorni: false, esperienze: false })
-  const [parametro, setParametro] = useState<ParametroT>('percentuale')
-  const [percentuale, setPercentuale] = useState('40%')
-  const [data, setData] = useState('2026-04-29')
+      {tab === 'assegna' ? <Wizard onAvviato={() => setTab('in-corso')} /> : <ObiettiviLive />}
+    </div>
+  )
+}
+
+// ─── Wizard di assegnazione ─────────────────────────────────────────────────
+function newSotto(n: number): SottoPeriodo {
+  return { id: uid('s'), nome: `Sottoperiodo ${n}`, dal: '', al: '', target: 0, premio: 0, venduto: 0 }
+}
+function newPeriodo(n: number): Periodo {
+  return { id: uid('p'), nome: `Periodo ${n}`, sottoperiodi: [newSotto(1)] }
+}
+
+function Wizard({ onAvviato }: { onAvviato: () => void }) {
+  const addObiettivo = useObiettiviStore((s) => s.addObiettivo)
+
+  const [step, setStep] = useState(0)
+  const [nome, setNome] = useState('')
+  const [tipologia, setTipologia] = useState<TipologiaObiettivo>('reparto')
+  const [reparto, setReparto] = useState('Commerciale')
+  const [assegnatario, setAssegnatario] = useState(DIPENDENTI[0])
+  const [report, setReport] = useState(REPORT_OPTS[0])
+  const [segmenti, setSegmenti] = useState<Segmento[]>(['servizi'])
+  const [budgetLordo, setBudgetLordo] = useState(120000)
+  const [marginePct, setMarginePct] = useState(35)
   const [dataAvvio, setDataAvvio] = useState('2026-05-01T09:00')
-  const [frammenta, setFrammenta] = useState(true)
-  const [traguardi, setTraguardi] = useState<Record<string, Traguardo>>(TRAGUARDI_DEFAULT)
-  const [showAnteprima, setShowAnteprima] = useState(false)
-  const [avviato, setAvviato] = useState(false)
+  const [periodi, setPeriodi] = useState<Periodo[]>([newPeriodo(1)])
+  const [errore, setErrore] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    apiFetchSibylla<ObiettivoItem[]>('premio-performance/GetObiettivi', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) { if (d?.length) setItems(d); setLoaded(true) } })
-      .catch(() => { if (!cancelled) setLoaded(true) })   // backend assente → resta il fallback, nessun banner
-    return () => { cancelled = true }
-  }, [])
+  const toggleSegmento = (k: Segmento) =>
+    setSegmenti((s) => (s.includes(k) ? s.filter((x) => x !== k) : [...s, k]))
 
-  const setTraguardo = (k: string, patch: Partial<Traguardo>) =>
-    setTraguardi((t) => ({ ...t, [k]: { ...t[k], ...patch } }))
+  // editing periodi/sottoperiodi
+  const addP = () => setPeriodi((ps) => [...ps, newPeriodo(ps.length + 1)])
+  const removeP = (pid: string) => setPeriodi((ps) => ps.filter((p) => p.id !== pid))
+  const setPNome = (pid: string, v: string) => setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, nome: v } : p)))
+  const addS = (pid: string) => setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: [...p.sottoperiodi, newSotto(p.sottoperiodi.length + 1)] } : p)))
+  const removeS = (pid: string, sid: string) => setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: p.sottoperiodi.filter((s) => s.id !== sid) } : p)))
+  const setS = (pid: string, sid: string, patch: Partial<SottoPeriodo>) =>
+    setPeriodi((ps) => ps.map((p) => (p.id === pid ? { ...p, sottoperiodi: p.sottoperiodi.map((s) => (s.id === sid ? { ...s, ...patch } : s)) } : p)))
 
-  // Salva l'obiettivo e apre l'anteprima della notifica per la schedulazione
-  function apriAnteprima() {
-    if (!nome.trim()) { setError('Nome obiettivo obbligatorio'); return }
-    setError(null)
-    setAvviato(false)
-    setShowAnteprima(true)
+  const draft: Obiettivo = useMemo(() => ({
+    id: 'draft', createdAt: '', nome, tipologia, reparto, assegnatario: tipologia === 'individuale' ? assegnatario : undefined,
+    report, segmenti, budgetLordo, marginePct, dataAvvio, stato: 'in-corso', periodi,
+  }), [nome, tipologia, reparto, assegnatario, report, segmenti, budgetLordo, marginePct, dataAvvio, periodi])
+
+  const totTarget = targetTotale(draft)
+  const totPremio = premioTotale(draft)
+  const nSotto = tuttiSotto(draft).length
+  const copertura = budgetLordo > 0 ? Math.min(100, Math.round((totTarget / budgetLordo) * 100)) : 0
+
+  const canNext = () => {
+    if (step === 0) return nome.trim().length > 0
+    if (step === 1) return segmenti.length > 0 && budgetLordo > 0
+    if (step === 2) return nSotto > 0 && totTarget > 0
+    return true
   }
+  const next = () => {
+    if (!canNext()) {
+      setErrore(step === 0 ? 'Inserisci il nome dell’obiettivo.' : step === 1 ? 'Seleziona almeno un tipo di vendita e un budget.' : 'Aggiungi almeno un sottoperiodo con un target.')
+      return
+    }
+    setErrore(null)
+    setStep((s) => Math.min(STEPS.length - 1, s + 1))
+  }
+  const back = () => { setErrore(null); setStep((s) => Math.max(0, s - 1)) }
 
-  // Avvio confermato: salva, aggiunge alla tabella e schedula (notifica 24h prima)
-  function avviaObiettivo() {
-    apiFetchSibylla('premio-performance/SaveObiettivo', {
-      method: 'POST',
-      body: { nome, tipologia, reparto, vendita, parametro, percentuale, data, dataAvvio, frammenta, traguardi, schedulato: true },
-    }).catch(() => { /* backend assente → schedulazione locale */ })
-    const anno = Number((dataAvvio || data).slice(0, 4)) || new Date().getFullYear()
-    const newId = items.reduce((m, o) => Math.max(m, o.id ?? 0), 0) + 1
-    setItems((prev) => [{ id: newId, nome, reparto, anno, tipologia }, ...prev])
-    setAvviato(true)
+  const avvia = () => {
+    addObiettivo({
+      nome, tipologia, reparto,
+      assegnatario: tipologia === 'individuale' ? assegnatario : undefined,
+      report, segmenti, budgetLordo, marginePct, dataAvvio, stato: 'in-corso', periodi,
+    })
+    onAvviato()
   }
 
   return (
-    <div>
-      <PageHead title="Assegna obiettivo" />
+    <div className="ao2-wiz">
+      {/* Stepper */}
+      <ol className="ao2-steps">
+        {STEPS.map((s, i) => (
+          <li key={s.title} className={'ao2-steps__item' + (i === step ? ' is-active' : i < step ? ' is-done' : '')}>
+            <button type="button" className="ao2-steps__dot" onClick={() => i < step && setStep(i)} aria-label={s.title}>
+              {i < step ? <i className="fa-solid fa-check" /> : <i className={`fa-solid ${s.icon}`} />}
+            </button>
+            <span className="ao2-steps__label">{s.title}</span>
+            {i < STEPS.length - 1 && <span className="ao2-steps__bar" />}
+          </li>
+        ))}
+      </ol>
 
-      {error && <AlertBanner type="error">{error}</AlertBanner>}
+      {errore && <p className="ao2-wiz__err"><i className="fa-solid fa-circle-exclamation" /> {errore}</p>}
 
-      {/* Tabella obiettivi esistenti */}
-      <div className="sib-table-wrap mb-6">
-        <table className="sib-table">
-          <thead>
-            <tr>
-              <th>Obiettivo</th>
-              <th>
-                <ColFilterHeader
-                  label="Reparto"
-                  options={repartiObiettivi}
-                  selected={repartiSel}
-                  open={openFiltroReparto}
-                  onToggleOpen={() => setOpenFiltroReparto((o) => !o)}
-                  onToggle={toggleReparto}
-                  onSelectAll={setAllReparti}
-                />
-              </th>
-              <th className="assegna-ob__th-sort" onClick={toggleSortAnno} title="Ordina per anno">
-                <span className="inline-flex items-center gap-1.5">Anno {sortAnnoIcon}</span>
-              </th>
-              <th className="text-right">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {itemsFiltrati.map((o) => (
-              <tr key={o.id}>
-                <td>{o.nome}</td>
-                <td>{o.reparto}</td>
-                <td>{o.anno}</td>
-                <td>
-                  <div className="flex items-center justify-end gap-2">
-                    <button className="sib-btn sib-btn--icon" title="Modifica" aria-label="Modifica">
-                      <i className="fa-solid fa-pen" />
-                    </button>
-                    <button className="sib-btn sib-btn--icon hover:enabled:!text-error hover:enabled:!border-error" title="Elimina" aria-label="Elimina" onClick={() => eliminaObiettivo(o.id)}>
-                      <i className="fa-solid fa-trash" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {itemsFiltrati.length === 0 && (
-              <tr><td colSpan={4} className="text-center text-ink-muted py-6">Nessun obiettivo per il reparto selezionato.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Form a SX */}
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <InputField name="nome" label="Nome obiettivo" value={nome} onChange={(e) => setNome(e.target.value)} />
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-semibold font-poppins text-primary">Tipologia</label>
-              <div className="flex items-center gap-4 h-9">
-                <label className="flex items-center gap-1.5 text-[13px] cursor-pointer">
-                  <input type="radio" className="sib-radio" name="tipologia" checked={tipologia === 'reparto'}     onChange={() => setTipologia('reparto')} />
-                  Reparto
-                </label>
-                <label className="flex items-center gap-1.5 text-[13px] cursor-pointer">
-                  <input type="radio" className="sib-radio" name="tipologia" checked={tipologia === 'individuale'} onChange={() => setTipologia('individuale')} />
-                  Individuale
-                </label>
+      {/* Contenuto fase (rimonta ad ogni step → animazione) */}
+      <div key={step} className="ao2-wiz__panel ao2-anim">
+        {step === 0 && (
+          <div className="ao2-grid ao2-grid--2">
+            <InputField name="nome" label="Nome obiettivo" value={nome} placeholder="es. Spinta commerciale primavera" onChange={(e) => setNome(e.target.value)} />
+            <div className="ao2-field">
+              <label className="ao2-lbl">Tipologia</label>
+              <div className="ao2-seg">
+                <button type="button" className={'ao2-seg__opt' + (tipologia === 'reparto' ? ' is-active' : '')} onClick={() => setTipologia('reparto')}>
+                  <i className="fa-solid fa-users" /> Di reparto
+                </button>
+                <button type="button" className={'ao2-seg__opt' + (tipologia === 'individuale' ? ' is-active' : '')} onClick={() => setTipologia('individuale')}>
+                  <i className="fa-solid fa-user" /> Individuale
+                </button>
               </div>
             </div>
-
             <SelectField name="reparto" label="Reparto" value={reparto} onChange={(e) => setReparto(e.target.value)}
-              options={REPARTI.map((r) => ({ value: r, label: r }))}
-            />
+              options={REPARTI.map((r) => ({ value: r, label: r }))} />
+            {tipologia === 'individuale' ? (
+              <SelectField name="assegnatario" label="Assegnatario" value={assegnatario} onChange={(e) => setAssegnatario(e.target.value)}
+                options={DIPENDENTI.map((d) => ({ value: d, label: d }))} />
+            ) : (
+              <SelectField name="report" label="Fonte dati / KPI (report)" value={report} onChange={(e) => setReport(e.target.value)}
+                options={REPORT_OPTS.map((r) => ({ value: r, label: r }))} />
+            )}
+            {tipologia === 'individuale' && (
+              <SelectField name="report" label="Fonte dati / KPI (report)" value={report} onChange={(e) => setReport(e.target.value)}
+                options={REPORT_OPTS.map((r) => ({ value: r, label: r }))} />
+            )}
           </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-semibold font-poppins text-primary">Tipologia vendita</label>
-              <div className="flex items-center gap-3 h-9 flex-wrap">
-                <CheckboxField name="prodotti"  label="Prodotti"   checked={vendita.prodotti}  onChange={(e) => setVendita((v) => ({ ...v, prodotti: e.target.checked }))} />
-                <CheckboxField name="servizi"   label="Servizi"    checked={vendita.servizi}   onChange={(e) => setVendita((v) => ({ ...v, servizi: e.target.checked }))} />
-                <CheckboxField name="soggiorni" label="Soggiorni"  checked={vendita.soggiorni} onChange={(e) => setVendita((v) => ({ ...v, soggiorni: e.target.checked }))} />
-                <CheckboxField name="esperienze" label="Esperienze" checked={vendita.esperienze} onChange={(e) => setVendita((v) => ({ ...v, esperienze: e.target.checked }))} />
+        {step === 1 && (
+          <div className="ao2-grid ao2-grid--2">
+            <div className="ao2-field ao2-span-2">
+              <label className="ao2-lbl">Tipologia di vendita <span className="ao2-lbl__hint">(focus commerciale)</span></label>
+              <div className="ao2-chips">
+                {SEGMENTI.map((s) => (
+                  <button type="button" key={s.key} className={'ao2-chip' + (segmenti.includes(s.key) ? ' is-active' : '')} onClick={() => toggleSegmento(s.key)}>
+                    <i className={`fa-solid ${s.icon}`} /> {s.label}
+                    {segmenti.includes(s.key) && <i className="fa-solid fa-check ao2-chip__check" />}
+                  </button>
+                ))}
               </div>
             </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-semibold font-poppins text-primary">Parametro valutazione</label>
-              <div className="flex items-center gap-4 h-9">
-                <label className="flex items-center gap-1.5 text-[13px] cursor-pointer">
-                  <input type="radio" className="sib-radio" name="parametro" checked={parametro === 'percentuale'} onChange={() => setParametro('percentuale')} />
-                  Percentuale
-                </label>
-                <label className="flex items-center gap-1.5 text-[13px] cursor-pointer">
-                  <input type="radio" className="sib-radio" name="parametro" checked={parametro === 'numerico'}    onChange={() => setParametro('numerico')} />
-                  Numerico
-                </label>
+            <InputField name="budget" label="Budget lordo obiettivo (€)" type="number" value={String(budgetLordo)} onChange={(e) => setBudgetLordo(Number(e.target.value || 0))} iconLeft="fa-solid fa-euro-sign" />
+            <InputField name="margine" label="Margine % sul budget (M.U.)" type="number" value={String(marginePct)} onChange={(e) => setMarginePct(Number(e.target.value || 0))} iconLeft="fa-solid fa-percent" />
+            <div className="ao2-calc ao2-span-2">
+              <div className="ao2-calc__item">
+                <span className="ao2-calc__k">Budget lordo</span>
+                <strong className="ao2-calc__v">{eur(budgetLordo)}</strong>
+              </div>
+              <i className="fa-solid fa-arrow-right ao2-calc__arrow" />
+              <div className="ao2-calc__item">
+                <span className="ao2-calc__k">Margine atteso ({marginePct}%)</span>
+                <strong className="ao2-calc__v ao2-calc__v--accent">{eur(margineAtteso(draft))}</strong>
               </div>
             </div>
-
-            <SelectField name="percentuale" label="Percentuale" value={percentuale} onChange={(e) => setPercentuale(e.target.value)}
-              options={PERCENTUALI.map((p) => ({ value: p, label: p }))}
-            />
           </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <DatePickerField name="data" label="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} />
-            <div className="flex flex-col gap-1">
-              <label className="text-[12px] font-semibold font-poppins text-primary">Data e ora di avvio</label>
-              <input type="datetime-local" className="sib-input" value={dataAvvio} onChange={(e) => setDataAvvio(e.target.value)} />
+        {step === 2 && (
+          <div className="ao2-frag">
+            <div className="ao2-frag__intro">
+              <p>Frammenta il budget in <strong>periodi</strong> e <strong>sottoperiodi</strong>. Ogni sottoperiodo ha un <strong>target di vendita</strong> e un <strong>premio a valore assoluto (€)</strong> che si sblocca al raggiungimento.</p>
             </div>
-            <div className="h-9 flex items-center">
-              <CheckboxField name="frammenta" label="Frammenta obiettivo" checked={frammenta} onChange={(e) => setFrammenta(e.target.checked)} />
+
+            {periodi.map((p, pi) => {
+              const pTarget = p.sottoperiodi.reduce((s, x) => s + (x.target || 0), 0)
+              const pPremio = p.sottoperiodi.reduce((s, x) => s + (x.premio || 0), 0)
+              return (
+                <div key={p.id} className="ao2-per ao2-anim">
+                  <div className="ao2-per__head">
+                    <span className="ao2-per__idx">{pi + 1}</span>
+                    <input className="ao2-per__name" value={p.nome} onChange={(e) => setPNome(p.id, e.target.value)} aria-label="Nome periodo" />
+                    <span className="ao2-per__tot">Target {eur(pTarget)} · Premio {eur(pPremio)}</span>
+                    <button type="button" className="ao2-icon-btn" title="Aggiungi sottoperiodo" onClick={() => addS(p.id)}><i className="fa-solid fa-plus" /></button>
+                    {periodi.length > 1 && (
+                      <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" title="Rimuovi periodo" onClick={() => removeP(p.id)}><i className="fa-solid fa-trash" /></button>
+                    )}
+                  </div>
+                  <div className="ao2-sub">
+                    <div className="ao2-sub__row ao2-sub__row--head">
+                      <span>Sottoperiodo</span><span>Dal</span><span>Al</span><span>Target €</span><span>Premio €</span><span />
+                    </div>
+                    {p.sottoperiodi.map((s) => (
+                      <div key={s.id} className="ao2-sub__row">
+                        <input className="ao2-in" value={s.nome} onChange={(e) => setS(p.id, s.id, { nome: e.target.value })} aria-label="Nome sottoperiodo" />
+                        <input className="ao2-in" type="date" value={s.dal || ''} onChange={(e) => setS(p.id, s.id, { dal: e.target.value })} aria-label="Dal" />
+                        <input className="ao2-in" type="date" value={s.al || ''} onChange={(e) => setS(p.id, s.id, { al: e.target.value })} aria-label="Al" />
+                        <input className="ao2-in ao2-in--num" type="number" value={String(s.target)} onChange={(e) => setS(p.id, s.id, { target: Number(e.target.value || 0) })} aria-label="Target" />
+                        <input className="ao2-in ao2-in--num" type="number" value={String(s.premio)} onChange={(e) => setS(p.id, s.id, { premio: Number(e.target.value || 0) })} aria-label="Premio" />
+                        <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" title="Rimuovi sottoperiodo" onClick={() => removeS(p.id, s.id)} disabled={p.sottoperiodi.length === 1}><i className="fa-solid fa-xmark" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+
+            <button type="button" className="ao2-add-per" onClick={addP}><i className="fa-solid fa-circle-plus" /> Aggiungi periodo</button>
+
+            <div className="ao2-frag__summary">
+              <div className="ao2-frag__sum-item"><span>Sottoperiodi</span><strong>{nSotto}</strong></div>
+              <div className="ao2-frag__sum-item"><span>Target totale</span><strong>{eur(totTarget)}</strong></div>
+              <div className="ao2-frag__sum-item ao2-frag__sum-item--accent"><span>Premio totale (v.a.)</span><strong>{eur(totPremio)}</strong></div>
+              <div className="ao2-frag__cover">
+                <div className="ao2-frag__cover-head"><span>Copertura del budget</span><strong>{copertura}%</strong></div>
+                <div className="ao2-track"><span className="ao2-track__fill" style={{ '--pct': copertura } as React.CSSProperties} /></div>
+              </div>
             </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <Riepilogo draft={draft} totTarget={totTarget} totPremio={totPremio} nSotto={nSotto} />
+        )}
+      </div>
+
+      {/* Navigazione */}
+      <div className="ao2-wiz__nav">
+        <button type="button" className="sib-btn sib-btn--ghost" onClick={back} disabled={step === 0}>
+          <i className="fa-solid fa-arrow-left" /> Indietro
+        </button>
+        {step < STEPS.length - 1 ? (
+          <button type="button" className="sib-btn sib-btn--primary" onClick={next}>
+            Avanti <i className="fa-solid fa-arrow-right" />
+          </button>
+        ) : (
+          <button type="button" className="sib-btn sib-btn--primary ao2-btn-avvia" onClick={avvia}>
+            <i className="fa-solid fa-rocket-launch" /> Avvia obiettivo
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Riepilogo (fase 4) ───────────────────────────────────────────────────────
+function Riepilogo({ draft, totTarget, totPremio, nSotto }: { draft: Obiettivo; totTarget: number; totPremio: number; nSotto: number }) {
+  const destinatario = draft.tipologia === 'reparto' ? `Reparto ${draft.reparto}` : draft.assegnatario
+  return (
+    <div className="ao2-riep">
+      <div className="ao2-riep__hero">
+        <div className="ao2-riep__hero-l">
+          <div className="ao2-riep__eyebrow"><i className="fa-solid fa-bullseye" /> {draft.nome || 'Nuovo obiettivo'}</div>
+          <div className="ao2-riep__dest">{destinatario}</div>
+          <div className="ao2-riep__segs">
+            {draft.segmenti.map((s) => <span key={s} className="ao2-tag">{SEGMENTI.find((x) => x.key === s)?.label}</span>)}
           </div>
         </div>
-
-        {/* Premi e traguardi a DX */}
-        <div>
-          <h3 className="text-[16px] font-bold font-poppins text-ink mb-4">Definisci premi e intervallo traguardi</h3>
-
-          <TraguardoRow label="Traguardo 1"     trofei={1}      data={traguardi.t1}     premiOpts={PREMI} onChange={(p) => setTraguardo('t1', p)}     dataLabel="Data" />
-          <TraguardoRow label="Traguardo 2"     trofei={2}      data={traguardi.t2}     premiOpts={PREMI} onChange={(p) => setTraguardo('t2', p)}     dataLabel="Data" />
-          <TraguardoRow label="Traguardo 3"     trofei={3}      data={traguardi.t3}     premiOpts={PREMI} onChange={(p) => setTraguardo('t3', p)}     dataLabel="Data" />
-          <TraguardoRow label="Traguardo 4"     trofei={'star'} data={traguardi.t4}     premiOpts={PREMI} onChange={(p) => setTraguardo('t4', p)}     dataLabel="Data" />
-          <TraguardoRow label="Traguardo finale" trofei={'party'} data={traguardi.finale} premiOpts={PREMI} onChange={(p) => setTraguardo('finale', p)} dataLabel="Data" />
+        <div className="ao2-riep__prize">
+          <span className="ao2-riep__prize-k">Premio in palio</span>
+          <span className="ao2-riep__prize-v">{eur(totPremio)}</span>
         </div>
       </div>
 
-      <div className="flex justify-end mt-8">
-        <button type="button" className="sib-btn sib-btn--primary" onClick={apriAnteprima}>
-          <i className="fa-light fa-calendar-check" /> Salva e schedula
+      <div className="ao2-riep__stats">
+        <div><span>Budget lordo</span><strong>{eur(draft.budgetLordo)}</strong></div>
+        <div><span>Margine ({draft.marginePct}%)</span><strong>{eur(margineAtteso(draft))}</strong></div>
+        <div><span>Target totale</span><strong>{eur(totTarget)}</strong></div>
+        <div><span>Sottoperiodi</span><strong>{nSotto}</strong></div>
+      </div>
+
+      <div className="ao2-riep__timeline-head"><i className="fa-solid fa-timeline" /> Sequenza premi</div>
+      <ol className="ao2-riep__timeline">
+        {draft.periodi.map((p) => (
+          <li key={p.id} className="ao2-riep__tl-per">
+            <span className="ao2-riep__tl-pname">{p.nome}</span>
+            <div className="ao2-riep__tl-subs">
+              {p.sottoperiodi.map((s) => (
+                <div key={s.id} className="ao2-riep__tl-sub">
+                  <i className="fa-solid fa-trophy" />
+                  <span className="ao2-riep__tl-sname">{s.nome}</span>
+                  <span className="ao2-riep__tl-target">target {eur(s.target)}</span>
+                  <span className="ao2-riep__tl-prize">{eur(s.premio)}</span>
+                </div>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="ao2-riep__notif">
+        <div className="ao2-riep__notif-head"><i className="fa-solid fa-bell" /> <strong>Anteprima notifica</strong></div>
+        <div className="ao2-riep__notif-body">
+          🎯 Nuovo obiettivo «{draft.nome || '—'}» per {destinatario}. In palio <strong>{eur(totPremio)}</strong> su {nSotto} traguardi. La notifica verrà inviata all'avvio del <strong>{fmtDT(draft.dataAvvio)}</strong>. In bocca al lupo!
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Vista "Obiettivi in corso" (real-time) ───────────────────────────────────
+function ObiettiviLive() {
+  const obiettivi = useObiettiviStore((s) => s.obiettivi)
+  const avanza = useObiettiviStore((s) => s.avanzaProgresso)
+  const removeObiettivo = useObiettiviStore((s) => s.removeObiettivo)
+  const confirm = useConfirmStore((s) => s.confirm)
+
+  const [live, setLive] = useState(true)
+  const [filtro, setFiltro] = useState<'in-corso' | 'concluso' | 'tutti'>('in-corso')
+
+  useEffect(() => {
+    if (!live) return
+    const id = setInterval(() => avanza(), 1800)
+    return () => clearInterval(id)
+  }, [live, avanza])
+
+  const lista = obiettivi.filter((o) => (filtro === 'tutti' ? true : o.stato === filtro))
+  const elimina = async (o: Obiettivo) => {
+    if (await confirm({ message: `Eliminare l'obiettivo «${o.nome}»?`, danger: true })) removeObiettivo(o.id)
+  }
+
+  return (
+    <div className="ao2-live">
+      <div className="ao2-live__bar">
+        <div className="ao2-live__filters">
+          {(['in-corso', 'concluso', 'tutti'] as const).map((f) => (
+            <button key={f} type="button" className={'ao2-live__filter' + (filtro === f ? ' is-active' : '')} onClick={() => setFiltro(f)}>
+              {f === 'in-corso' ? 'In corso' : f === 'concluso' ? 'Conclusi' : 'Tutti'}
+            </button>
+          ))}
+        </div>
+        <button type="button" className={'ao2-live__toggle' + (live ? ' is-live' : '')} onClick={() => setLive((v) => !v)}>
+          <span className="ao2-live__dot" />
+          {live ? 'LIVE · in aggiornamento' : 'In pausa'}
+          <i className={`fa-solid ${live ? 'fa-pause' : 'fa-play'}`} />
         </button>
       </div>
 
-      <AnteprimaNotificaModal
-        open={showAnteprima}
-        nome={nome}
-        reparto={reparto}
-        tipologia={tipologia}
-        parametro={parametro}
-        percentuale={percentuale}
-        dataAvvio={dataAvvio}
-        traguardi={traguardi}
-        avviato={avviato}
-        onAvvia={avviaObiettivo}
-        onClose={() => setShowAnteprima(false)}
-      />
+      {lista.length === 0 ? (
+        <p className="ao2-live__empty">Nessun obiettivo in questa vista.</p>
+      ) : (
+        <div className="ao2-cards">
+          {lista.map((o) => <ObiettivoCard key={o.id} o={o} onElimina={() => elimina(o)} />)}
+        </div>
+      )}
     </div>
   )
 }
 
-// ─── MODAL: Anteprima notifica + schedulazione ───────────────────────────────
+function ObiettivoCard({ o, onElimina }: { o: Obiettivo; onElimina: () => void }) {
+  const pct = avanzamentoPct(o)
+  const venduto = vendutoTotale(o)
+  const target = targetTotale(o)
+  const premioTot = premioTotale(o)
+  const sbloccato = premioSbloccato(o)
+  const sottos = tuttiSotto(o)
+  const raggiunti = sottos.filter((s) => s.target > 0 && s.venduto >= s.target).length
+  const destinatario = o.tipologia === 'reparto' ? `Reparto ${o.reparto}` : `${o.assegnatario} · ${o.reparto}`
 
-const STEP_DEFS: { key: string; label: string; trofei: number | 'star' | 'party' }[] = [
-  { key: 't1', label: 'Traguardo 1', trofei: 1 },
-  { key: 't2', label: 'Traguardo 2', trofei: 2 },
-  { key: 't3', label: 'Traguardo 3', trofei: 3 },
-  { key: 't4', label: 'Traguardo 4', trofei: 'star' },
-  { key: 'finale', label: 'Traguardo finale', trofei: 'party' },
-]
+  return (
+    <article className={'ao2-card' + (o.stato === 'concluso' ? ' is-done' : '')}>
+      <header className="ao2-card__head">
+        <div className="ao2-card__title-wrap">
+          <span className={'ao2-card__badge ao2-card__badge--' + o.stato}>{o.stato === 'in-corso' ? 'In corso' : o.stato === 'concluso' ? 'Concluso' : 'Bozza'}</span>
+          <h3 className="ao2-card__title">{o.nome}</h3>
+          <span className="ao2-card__dest"><i className={`fa-solid ${o.tipologia === 'reparto' ? 'fa-users' : 'fa-user'}`} /> {destinatario}</span>
+        </div>
+        <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" title="Elimina obiettivo" onClick={onElimina}><i className="fa-solid fa-trash" /></button>
+      </header>
 
-const fmtD = (iso: string) => { if (!iso) return '—'; const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}` }
-const fmtDT = (ms: number) => { const d = new Date(ms); const p = (n: number) => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}` }
+      <div className="ao2-card__top">
+        <ProgressRing pct={pct} />
+        <div className="ao2-card__kpis">
+          <div className="ao2-card__kpi">
+            <span className="ao2-card__kpi-k">Venduto / Target</span>
+            <span className="ao2-card__kpi-v">{eur(venduto)} <em>/ {eur(target)}</em></span>
+          </div>
+          <div className="ao2-card__kpi">
+            <span className="ao2-card__kpi-k">Premio sbloccato</span>
+            <span className="ao2-card__kpi-v ao2-card__kpi-v--prize">{eur(sbloccato)} <em>/ {eur(premioTot)}</em></span>
+          </div>
+          <div className="ao2-card__coins">
+            {sottos.map((s) => {
+              const done = s.target > 0 && s.venduto >= s.target
+              return <i key={s.id} className={'fa-solid fa-coins ao2-card__coin' + (done ? ' is-on' : '')} title={`${s.nome}: ${eur(s.premio)}`} />
+            })}
+            <span className="ao2-card__coins-txt">{raggiunti}/{sottos.length} traguardi</span>
+          </div>
+        </div>
+      </div>
 
+      <div className="ao2-card__periods">
+        {o.periodi.map((p) => (
+          <div key={p.id} className="ao2-card__period">
+            <div className="ao2-card__period-name">{p.nome}</div>
+            {p.sottoperiodi.map((s) => {
+              const spct = s.target > 0 ? Math.min(100, Math.round((s.venduto / s.target) * 100)) : 0
+              const done = s.target > 0 && s.venduto >= s.target
+              return (
+                <div key={s.id} className={'ao2-sp' + (done ? ' is-done' : '')}>
+                  <div className="ao2-sp__l">
+                    <span className="ao2-sp__name">{s.nome}</span>
+                    <span className="ao2-sp__prize">{done ? <><i className="fa-solid fa-trophy" /> {eur(s.premio)} sbloccato</> : <>premio {eur(s.premio)}</>}</span>
+                  </div>
+                  <div className="ao2-track ao2-track--sp">
+                    <span className={'ao2-track__fill' + (done ? ' is-done' : '')} style={{ '--pct': spct } as React.CSSProperties} />
+                    <span className="ao2-track__lbl">{eur(s.venduto)} / {eur(s.target)} · {spct}%</span>
+                  </div>
+                  <div className="ao2-sp__foot">
+                    {s.al && !done && <Countdown target={s.al} />}
+                    {done && <span className="ao2-sp__done"><i className="fa-solid fa-circle-check" /> Traguardo raggiunto</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </article>
+  )
+}
+
+// ─── Anello di avanzamento (SVG animato) ──────────────────────────────────────
+function ProgressRing({ pct }: { pct: number }) {
+  const R = 34
+  const circ = +(2 * Math.PI * R).toFixed(1)
+  return (
+    <div className="ao2-ring" style={{ '--pct': pct, '--circ': circ } as React.CSSProperties}>
+      <svg viewBox="0 0 80 80" className="ao2-ring__svg">
+        <circle className="ao2-ring__bg" cx="40" cy="40" r={R} />
+        <circle className="ao2-ring__val" cx="40" cy="40" r={R} />
+      </svg>
+      <div className="ao2-ring__num">{pct}<small>%</small></div>
+    </div>
+  )
+}
+
+// ─── Countdown ────────────────────────────────────────────────────────────────
 function Countdown({ target }: { target: string }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id) }, [])
-  const t = new Date(target).getTime() - now
+  const t = new Date(target + 'T23:59:59').getTime() - now
   if (isNaN(t)) return null
-  if (t <= 0) return <span className="font-mono text-[12px] font-semibold text-success">Raggiunto</span>
+  if (t <= 0) return <span className="ao2-cd ao2-cd--over"><i className="fa-solid fa-hourglass-end" /> scaduto</span>
   const g = Math.floor(t / 86400000), h = Math.floor(t / 3600000) % 24, m = Math.floor(t / 60000) % 60, s = Math.floor(t / 1000) % 60
-  return <span className="font-mono text-[12px] font-semibold text-primary">{g}g {String(h).padStart(2, '0')}h {String(m).padStart(2, '0')}m {String(s).padStart(2, '0')}s</span>
+  return <span className="ao2-cd"><i className="fa-solid fa-hourglass-half" /> {g}g {String(h).padStart(2, '0')}:{String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}</span>
 }
 
-function AnteprimaNotificaModal({ open, nome, reparto, tipologia, parametro, percentuale, dataAvvio, traguardi, avviato, onAvvia, onClose }: {
-  open: boolean
-  nome: string
-  reparto: string
-  tipologia: TipologiaT
-  parametro: ParametroT
-  percentuale: string
-  dataAvvio: string
-  traguardi: Record<string, Traguardo>
-  avviato: boolean
-  onAvvia: () => void
-  onClose: () => void
-}) {
-  const steps = STEP_DEFS.filter((s) => traguardi[s.key]?.abilitato)
-  const stepsShown = steps.length ? steps : STEP_DEFS
-  const avvioMs = new Date(dataAvvio).getTime()
-  const notificaMs = avvioMs - 24 * 3600 * 1000
-  const destinatari = tipologia === 'reparto' ? `tutti i dipendenti del reparto ${reparto}` : `i dipendenti coinvolti del reparto ${reparto}`
-
-  return (
-    <Modal open={open} onClose={onClose} title={avviato ? 'Obiettivo schedulato' : 'Anteprima notifica obiettivo'} size="lg">
-      <div className="ao-prev">
-      {avviato && (
-        <div className="ao-prev__done">
-          <i className="fa-solid fa-circle-check ao-prev__done-ico" />
-          <div>
-            <div className="ao-prev__done-title">Obiettivo «{nome}» avviato e schedulato</div>
-            <div className="ao-prev__done-text">La notifica verrà inviata <strong>24h prima dell'avvio</strong> ({fmtDT(notificaMs)}) a {destinatari}. I conti alla rovescia per ogni step sono attivi.</div>
-          </div>
-        </div>
-      )}
-
-      {/* Anteprima notifica */}
-      <div className="ao-prev__notif">
-        <div className="ao-prev__notif-head">
-          <i className="fa-solid fa-bell" />
-          <strong>Sibylla · Premio performance</strong>
-          <span className="ao-prev__notif-time">{avviato ? fmtDT(notificaMs) : 'anteprima'}</span>
-        </div>
-        <div className="ao-prev__notif-title">🎯 Nuovo obiettivo: {nome}</div>
-        <div className="ao-prev__notif-body">
-          Sei stato coinvolto nell'obiettivo «{nome}» ({reparto}). Parametro di valutazione: <strong>{percentuale}</strong> ({parametro}).
-          Raggiungi i traguardi entro le scadenze indicate per sbloccare i premi. In bocca al lupo!
-        </div>
-      </div>
-
-      {/* Timeline step / premi */}
-      <div className="ao-prev__steps-head">Step operativi, premi e tempistiche</div>
-      <ol className="ao-prev__steps">
-        {stepsShown.map((s, i) => {
-          const t = traguardi[s.key]
-          return (
-            <li key={s.key} className="ao-prev__step">
-              <span className="ao-prev__step-num">{i + 1}</span>
-              <span className="ao-prev__step-ico"><TrofeiVisual trofei={s.trofei} /></span>
-              <div className="ao-prev__step-body">
-                <div className="ao-prev__step-title">{s.label} — <strong>{t?.premio || 'Premio da definire'}</strong></div>
-                <div className="ao-prev__step-meta">Scadenza: {fmtD(t?.data ?? '')}{avviato && <> · <Countdown target={t?.data ?? ''} /></>}</div>
-              </div>
-            </li>
-          )
-        })}
-      </ol>
-
-      <div className="ao-prev__timing">
-        <div><span>Avvio obiettivo</span><strong>{isNaN(avvioMs) ? '—' : fmtDT(avvioMs)}</strong></div>
-        <div><span>Invio notifica (24h prima)</span><strong>{isNaN(notificaMs) ? '—' : fmtDT(notificaMs)}</strong></div>
-        <div><span>Destinatari</span><strong>{destinatari}</strong></div>
-      </div>
-
-      <div className="ao-prev__foot">
-        {avviato ? (
-          <button type="button" className="sib-btn sib-btn--primary" onClick={onClose}>Fatto</button>
-        ) : (
-          <>
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
-            <button type="button" className="sib-btn sib-btn--primary" onClick={onAvvia}><i className="fa-light fa-rocket-launch" /> Avvia Obiettivo</button>
-          </>
-        )}
-      </div>
-      </div>
-    </Modal>
-  )
-}
-
-// Filtro a imbuto standard (stesso pattern di OspitiInCasa/ArriviPartenze)
-function ColFilterHeader({
-  label, options, selected, open, onToggleOpen, onToggle, onSelectAll,
-}: {
-  label: string
-  options: string[]
-  selected: string[]
-  open: boolean
-  onToggleOpen: () => void
-  onToggle: (value: string) => void
-  onSelectAll: (select: boolean) => void
-}) {
-  const allSelected = options.length > 0 && options.every((o) => selected.includes(o))
-  const hasFilter = selected.length > 0
-  return (
-    <div className="assegna-ob__cf">
-      <span>{label}</span>
-      <button
-        type="button"
-        className={'assegna-ob__cf-btn' + (hasFilter ? ' assegna-ob__cf-btn--active' : '')}
-        onClick={onToggleOpen}
-        aria-label={`Filtra per ${label}`}
-      >
-        <i className="fa-solid fa-filter" />
-      </button>
-      {open && (
-        <>
-          <div className="assegna-ob__cf-overlay" onClick={onToggleOpen} />
-          <div className="assegna-ob__cf-popup" onClick={(e) => e.stopPropagation()}>
-            <div className="assegna-ob__cf-title">scelte multiple</div>
-            <label className="assegna-ob__cf-option">
-              <input type="checkbox" className="sib-checkbox" checked={allSelected} onChange={(e) => onSelectAll(e.target.checked)} />
-              <span>Tutti</span>
-            </label>
-            {options.map((opt) => (
-              <label key={opt} className="assegna-ob__cf-option">
-                <input type="checkbox" className="sib-checkbox" checked={selected.includes(opt)} onChange={() => onToggle(opt)} />
-                <span>{opt}</span>
-              </label>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-function TraguardoRow({
-  label, trofei, data, premiOpts, onChange, dataLabel,
-}: {
-  label: string
-  trofei: number | 'star' | 'party'
-  data: Traguardo
-  premiOpts: string[]
-  onChange: (p: Partial<Traguardo>) => void
-  dataLabel: string
-}) {
-  return (
-    <div className="grid grid-cols-[180px_1fr_1fr] gap-4 items-end mb-4">
-      <div className="flex flex-col gap-1">
-        <label className="text-[12px] font-semibold font-opensans text-ink">{label}</label>
-        <div className="flex items-center gap-2 h-9">
-          <input type="checkbox" className="sib-checkbox" checked={data.abilitato} onChange={(e) => onChange({ abilitato: e.target.checked })} />
-          <TrofeiVisual trofei={trofei} />
-        </div>
-      </div>
-      <DatePickerField name={`data-${label}`} label={dataLabel} type="date" value={data.data} onChange={(e) => onChange({ data: e.target.value })} />
-      <SelectField name={`premio-${label}`} label="Premio associato" value={data.premio} onChange={(e) => onChange({ premio: e.target.value })}
-        options={[{ value: '', label: 'Seleziona Premio' }, ...premiOpts.map((p) => ({ value: p, label: p }))]}
-      />
-    </div>
-  )
-}
-
-function TrofeiVisual({ trofei }: { trofei: number | 'star' | 'party' }) {
-  if (trofei === 'star') {
-    return (
-      <span className="inline-flex items-center gap-1">
-        <i className="fa-solid fa-star text-warning text-[18px]" />
-        <i className="fa-solid fa-trophy text-primary text-[18px]" />
-      </span>
-    )
-  }
-  if (trofei === 'party') {
-    return <i className="fa-solid fa-party-horn text-warning text-[20px]" />
-  }
-  return (
-    <span className="inline-flex items-center gap-0.5">
-      {Array.from({ length: trofei }).map((_, i) => (
-        <i key={i} className="fa-solid fa-trophy text-primary text-[16px]" />
-      ))}
-    </span>
-  )
+const fmtDT = (v: string) => {
+  if (!v) return '—'
+  const [d, t] = v.split('T')
+  const [y, mo, da] = (d || '').split('-')
+  return da ? `${da}/${mo}/${y}${t ? ' ' + t : ''}` : v
 }
