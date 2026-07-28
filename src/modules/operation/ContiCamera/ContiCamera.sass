@@ -30,6 +30,17 @@
     font-size: 15px
     color: $primary
 
+  // header di sezione: titolo a sinistra + azione a destra (es. Aggiungi anticipo)
+  &__section-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    margin: 4px 0 0 0
+
+    .conti-camera__section-title
+      margin: 0
+
   // ── Detail card ───────────────────────────────────────────────────────────
   &__detail-card
     background: var(--color-surface)

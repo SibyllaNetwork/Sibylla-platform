@@ -121,6 +121,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
   const [modTrasferisci, setModTrasferisci] = useState<Addebito | null>(null)
   const [modElimina, setModElimina] = useState<Addebito | null>(null)
   const [modAggiungi, setModAggiungi] = useState(false)
+  const [modAggiungiAnticipo, setModAggiungiAnticipo] = useState(false)
   const [estrattoOpen, setEstrattoOpen] = useState(false)
 
   useEffect(() => {
@@ -291,7 +292,12 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
 
         {/* Colonna dx: Anticipi + Documenti */}
         <div className="conti-camera__col">
-          <h3 className="conti-camera__section-title">Anticipi</h3>
+          <div className="conti-camera__section-head">
+            <h3 className="conti-camera__section-title">Anticipi</h3>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungiAnticipo(true)}>
+              <i className="fa-regular fa-circle-plus" /> Aggiungi anticipo
+            </button>
+          </div>
           <div className="sib-table-wrap">
             <table className="sib-table conti-camera__table">
               <thead>
@@ -393,6 +399,7 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
       {modTrasferisci && <TrasferisciModal addebito={modTrasferisci} addebiti={data.addebiti} onClose={() => setModTrasferisci(null)} />}
       {modElimina && <EliminaModal addebito={modElimina} onClose={() => setModElimina(null)} onConfirm={() => setModElimina(null)} />}
       {modAggiungi && <AggiungiAddebitoModal dettaglio={d} onClose={() => setModAggiungi(false)} />}
+      {modAggiungiAnticipo && <AggiungiAnticipoModal dettaglio={d} onClose={() => setModAggiungiAnticipo(false)} />}
     </div>
   )
 }
@@ -712,6 +719,87 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
       </div>
       <div className="cc-modal__foot">
         <button type="button" className="sib-btn sib-btn--primary" disabled={!nomeServizio || !prezzo || !iva} onClick={onClose}>Salva</button>
+      </div>
+    </ModalShell>
+  )
+}
+
+// ─── MODAL: Aggiungi anticipo ────────────────────────────────────────────────
+function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; onClose: () => void }) {
+  const [camera, setCamera] = useState('')
+  const [tipologia, setTipologia] = useState('')
+  const [prezzo, setPrezzo] = useState('')
+  const [iva, setIva] = useState('')
+  const today = new Date().toLocaleDateString('it-IT')
+  const [data, setData] = useState(today)
+
+  return (
+    <ModalShell title="Aggiungi anticipo" onClose={onClose} maxWidth={860}>
+      <div className="cc-modal__detail-row">
+        <DetailField label="N. Prenotazione" value={dettaglio.prenotazioneNum} />
+        <DetailField label="Nominativo" value={dettaglio.nominativo} />
+        <DetailField label="Data di arrivo" value={dettaglio.dataArrivo} />
+        <DetailField label="Data di partenza" value={dettaglio.dataPartenza} />
+      </div>
+      <div className="cc-modal__row">
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="camera"
+          label="Camera"
+          value={camera}
+          onChange={(e) => setCamera(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: '401', label: '401' },
+            { value: '402', label: '402' },
+            { value: '403', label: '403' },
+          ]}
+        />
+        <SelectField
+          className="cc-modal__field cc-modal__field--medium"
+          name="tipologia"
+          label="Tipologia"
+          value={tipologia}
+          onChange={(e) => setTipologia(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: 'bonifico', label: 'Bonifico' },
+            { value: 'carta', label: 'Carta di credito' },
+            { value: 'contanti', label: 'Contanti' },
+            { value: 'caparra', label: 'Caparra confirmatoria' },
+          ]}
+        />
+        <div className="cc-modal__field-raw cc-modal__field--xs">
+          <label>Prezzo</label>
+          <div className="cc-modal__amount">
+            <input className="sib-input" value={prezzo} onChange={(e) => setPrezzo(e.target.value)} />
+            <span>€</span>
+          </div>
+        </div>
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="iva"
+          label="IVA"
+          value={iva}
+          onChange={(e) => setIva(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: '0', label: '0%' },
+            { value: '4', label: '4%' },
+            { value: '10', label: '10%' },
+            { value: '22', label: '22%' },
+          ]}
+        />
+        <InputField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="data"
+          label="Data"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+        />
+      </div>
+      <div className="cc-modal__foot">
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!tipologia || !prezzo} onClick={onClose}>Salva</button>
       </div>
     </ModalShell>
   )

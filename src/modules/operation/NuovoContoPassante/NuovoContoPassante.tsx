@@ -139,7 +139,7 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
         )}
       </Card>
 
-      <Card icon="fa-receipt" title="Lista addebiti" full disabled={!saved}>
+      <Card icon="fa-receipt" title="Lista addebiti-anticipi" full disabled={!saved}>
         {saved ? (
           <ContiCamera navigate={navigate} embedded />
         ) : (
