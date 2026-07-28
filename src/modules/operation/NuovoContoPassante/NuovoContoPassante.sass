@@ -1,60 +1,194 @@
-// ─── NUOVO CONTO PASSANTE ─────────────────────────────────────────────
+// ─── NUOVO CONTO PASSANTE ─────────────────────────────────────────────────────
 @use '../../../styles/tokens' as *
 
-.nuovo-cp
+.ncp
   display: flex
   flex-direction: column
-  gap: 14px
+  gap: 16px
 
   > .sib-btn--back
     align-self: flex-start
 
-  &__check-cell
-    display: flex
-    align-items: flex-end
-    padding-bottom: 6px
+  // ── Card di sezione ──────────────────────────────────────────────────────────
+  &__card
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
+    overflow: hidden
 
-  &__search-field
+  &__card-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 10px 16px
+    background: $bg
+    border-bottom: 1px solid $border
+
+  &__card-title
+    display: inline-flex
+    align-items: center
+    gap: 9px
+    font-family: $font-heading
+    font-weight: 600
+    font-size: 14px
+    color: $primary
+
+    i
+      font-size: 15px
+      color: $primary
+
+  &__card-body
+    padding: 16px
+
+  // ── Griglie campi ──────────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    gap: 16px 18px
+
+    &--3
+      grid-template-columns: repeat(3, 1fr)
+    &--2
+      grid-template-columns: repeat(2, 1fr)
+
+    @media (max-width: 900px)
+      &--3
+        grid-template-columns: repeat(2, 1fr)
+    @media (max-width: 560px)
+      &--3, &--2
+        grid-template-columns: 1fr
+
+  &__field
     display: flex
     flex-direction: column
     gap: 4px
 
-  &__search-label
+  &__label
+    font-family: 'Poppins', sans-serif
     font-size: 12px
     font-weight: 600
-    color: $text-inactive
-    line-height: 1.2
+    color: $primary
 
-  // ── Tabella ──────────────────────────────────────────────────────
+  &__anticipo-fields
+    margin-top: 14px
+
+  &__hint
+    margin: 12px 0 0
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  // ── Tabella addebiti ─────────────────────────────────────────────────────────
   &__table
-    thead th
+    th
       vertical-align: middle
 
-    .nuovo-cp__th-check
-      width: 50px
+    .ncp__th-check
+      width: 44px
       text-align: center
-
-    .nuovo-cp__th-num,
-    .nuovo-cp__td-num
+    .ncp__th-data
+      width: 110px
+    .ncp__th-iva
+      width: 108px
+    .ncp__th-num
       text-align: right
       white-space: nowrap
+      width: 130px
+    .ncp__th-act
+      width: 48px
 
-    .nuovo-cp__td-center
-      text-align: center
-
-    tfoot td
-      padding: 12px
-
-  &__total-row
-    background: rgba(143, 184, 200, 0.10)
+  &__td-center
+    text-align: center
+  &__td-num
+    text-align: right
+    white-space: nowrap
+  &__td-data
+    color: $text-inactive
+    white-space: nowrap
+  &__td-tot
     font-weight: 700
     color: $primary
 
-  &__total-cell
-    color: $primary
+  &__row--sel
+    background: $primary-50
 
-  // ── Bar azioni tabella ───────────────────────────────────────────
-  &__bar
+  // input/select nelle celle
+  &__cell-in
+    width: 100%
+
+  &__euro
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 5px
+
+  &__cell-num
+    width: 92px
+    text-align: right
+
+  &__euro-sfx
+    color: $text-inactive
+    font-size: 13px
+
+  &__cell-sel
+    width: 92px
+
+  // stato vuoto
+  &__empty
+    text-align: center
+    padding: 34px 0 !important
+    color: $text-inactive
+
+  &__empty-ico
+    display: block
+    font-size: 26px
+    color: $primary-200
+    margin-bottom: 8px
+
+  // ── Riepilogo totali ─────────────────────────────────────────────────────────
+  &__summary
     display: flex
-    gap: 10px
+    align-items: center
+    justify-content: flex-end
+    gap: 26px
     flex-wrap: wrap
+    margin-top: 14px
+    padding: 14px 16px
+    background: $bg
+    border: 1px solid $border
+    border-radius: 10px
+
+  &__sum-item
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    gap: 2px
+
+  &__sum-k
+    font-size: 11px
+    color: $text-inactive
+    text-transform: uppercase
+    letter-spacing: .03em
+
+  &__sum-v
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 15px
+    color: $text-active
+
+  &__sum-item--tot
+    padding-left: 26px
+    border-left: 1px solid $border
+
+    .ncp__sum-v
+      font-size: 20px
+      font-weight: 800
+      color: $primary
+
+  &__pay
+    margin-left: 8px
