@@ -61,6 +61,15 @@
     @media (max-width: 560px)
       grid-template-columns: 1fr
 
+  &__grid--2
+    grid-template-columns: repeat(2, 1fr)
+
+    @media (max-width: 560px)
+      grid-template-columns: 1fr
+
+  &__acconto-fields
+    margin-top: 14px
+
   &__field
     display: flex
     flex-direction: column
@@ -71,6 +80,17 @@
     font-size: 12px
     font-weight: 600
     color: $primary
+
+  &__hint
+    margin: 12px 0 0
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    color: $text-inactive
+
+    i
+      color: $primary
 
   // ── Bottone Salva (in linea con i campi) ─────────────────────────────────────
   &__save-cell

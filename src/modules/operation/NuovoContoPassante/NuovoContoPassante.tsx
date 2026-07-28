@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
-import { SelectField, RadioGroup } from '../../../core/components/form'
+import { SelectField, RadioGroup, CheckboxField, SearchField } from '../../../core/components/form'
 import AnagraficaCombobox, { type Anagrafica } from './AnagraficaCombobox'
 import CreaAnagraficaModal from './CreaAnagraficaModal'
 import ContiCamera from '../ContiCamera/ContiCamera'
@@ -44,6 +44,9 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
   const [agenzie, setAgenzie] = useState<Anagrafica[]>(SEED_AGENZIE)
   const [selected, setSelected] = useState<Anagrafica | null>(null)
   const [segmento, setSegmento] = useState('')
+  const [collegaAcconto, setCollegaAcconto] = useState(false)
+  const [acconto, setAcconto] = useState('')
+  const [cercaAcconto, setCercaAcconto] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -103,6 +106,37 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
             </button>
           </div>
         </div>
+      </Card>
+
+      <Card icon="fa-hand-holding-dollar" title="Acconto">
+        <CheckboxField
+          name="collega-acconto" label="Collega un acconto già incassato a questo conto"
+          checked={collegaAcconto}
+          onChange={(e) => setCollegaAcconto(e.target.checked)}
+        />
+        {collegaAcconto ? (
+          <div className="ncp__grid ncp__grid--2 ncp__acconto-fields">
+            <SelectField
+              name="suggerimenti-acconto" label="Acconti disponibili"
+              placeholder="Seleziona un acconto…"
+              value={acconto}
+              onChange={(e) => setAcconto(e.target.value)}
+              options={[]}
+            />
+            <div className="ncp__field">
+              <label className="ncp__label">Cerca acconto</label>
+              <SearchField
+                name="cerca-acconto"
+                placeholder="Per importo o data…"
+                value={cercaAcconto}
+                onChange={(e) => setCercaAcconto(e.target.value)}
+                onClear={() => setCercaAcconto('')}
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="ncp__hint"><i className="fa-light fa-circle-info" aria-hidden="true" /> Attiva l'opzione per collegare un acconto esistente e scalarlo dal totale.</p>
+        )}
       </Card>
 
       <Card icon="fa-receipt" title="Lista addebiti" full disabled={!saved}>
