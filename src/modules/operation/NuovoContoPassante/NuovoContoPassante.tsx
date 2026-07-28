@@ -2,7 +2,10 @@ import React, { useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import FormActions from '../../../core/components/FormActions'
-import { InputField, SelectField, RadioGroup, CheckboxField, SearchField } from '../../../core/components/form'
+import { InputField, SelectField, RadioGroup, CheckboxField, SearchField, SearchSelectField } from '../../../core/components/form'
+import type { SearchSelectOption } from '../../../core/components/form'
+import CreaAnagraficaAziendaModal from '../../../core/components/CreaAnagraficaAziendaModal'
+import type { AnagraficaAzienda } from '../../../core/components/CreaAnagraficaAziendaModal'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import './NuovoContoPassante.sass'
 
@@ -19,6 +22,22 @@ const IVA_OPTS = [22, 10, 4, 0]
 const TIPOLOGIA_OPTIONS = [
   { value: 'cliente', label: 'Cliente' },
   { value: 'agenzia', label: 'Agenzia' },
+]
+
+// Anagrafiche agenzie/ditte già censite: alimentano la ricerca del Nominativo.
+const AGENZIE: SearchSelectOption[] = [
+  { value: 'ITALCAMEL',                label: 'ITALCAMEL',                hint: 'San Giuliano Milanese MI' },
+  { value: 'Ovest Destination Italy',  label: 'Ovest Destination Italy',  hint: 'Roma RM' },
+  { value: 'Sud Travel Agency',        label: 'Sud Travel Agency',        hint: 'Bari BA' },
+  { value: 'Nord Incoming',            label: 'Nord Incoming',            hint: 'Milano MI' },
+  { value: 'Tour Operator Egnazia',    label: 'Tour Operator Egnazia',    hint: 'Fasano BR' },
+  { value: 'Aurora Consulting',        label: 'Aurora Consulting',        hint: 'Torino TO' },
+  { value: 'Adriatica Viaggi',         label: 'Adriatica Viaggi',         hint: 'Rimini RN' },
+  { value: 'Blu Mediterraneo Travel',  label: 'Blu Mediterraneo Travel',  hint: 'Napoli NA' },
+  { value: 'Etna Tour',                label: 'Etna Tour',                hint: 'Catania CT' },
+  { value: 'Dolomiti Group Service',   label: 'Dolomiti Group Service',   hint: 'Bolzano BZ' },
+  { value: 'Booking.com',              label: 'Booking.com',              hint: 'OTA' },
+  { value: 'Expedia',                  label: 'Expedia',                  hint: 'OTA' },
 ]
 
 const eur = (v: number) => v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
@@ -49,6 +68,21 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
   const [cercaAnticipo, setCercaAnticipo] = useState('')
   const [addebiti, setAddebiti] = useState<Addebito[]>([])
   const [selectedAddebiti, setSelectedAddebiti] = useState<number[]>([])
+
+  // Anagrafiche agenzie: lista di partenza + quelle create al volo dalla modale
+  const [agenzie, setAgenzie] = useState<SearchSelectOption[]>(AGENZIE)
+  const [creaAgenziaOpen, setCreaAgenziaOpen] = useState(false)
+  const [nuovaAgenziaNome, setNuovaAgenziaNome] = useState('')
+
+  const salvaAgenzia = (a: AnagraficaAzienda) => {
+    const opt: SearchSelectOption = {
+      value: a.ragioneSociale,
+      label: a.ragioneSociale,
+      hint: a.indirizzo || a.nomeDitta || undefined,
+    }
+    setAgenzie((prev) => (prev.some((o) => o.value === opt.value) ? prev : [opt, ...prev]))
+    setNominativo(opt.value)
+  }
 
   const imponibile = addebiti.reduce((s, a) => s + (a.prezzo || 0), 0)
   const ivaTot = addebiti.reduce((s, a) => s + (a.prezzo || 0) * (a.iva || 0) / 100, 0)
@@ -88,15 +122,28 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
             name="tipologia" label="Tipologia"
             options={TIPOLOGIA_OPTIONS}
             value={tipologia}
-            onChange={(v) => setTipologia(v as 'cliente' | 'agenzia')}
+            onChange={(v) => { setTipologia(v as 'cliente' | 'agenzia'); setNominativo('') }}
           />
-          <InputField
-            name="nominativo" label="Nominativo"
-            placeholder={tipologia === 'agenzia' ? 'Cerca agenzia…' : 'Cerca cliente…'}
-            iconLeft="fa-light fa-magnifying-glass"
-            value={nominativo}
-            onChange={(e) => setNominativo(e.target.value)}
-          />
+          {tipologia === 'agenzia' ? (
+            <SearchSelectField
+              name="nominativo" label="Nominativo"
+              placeholder="Cerca agenzia…"
+              value={nominativo}
+              onChange={(v) => setNominativo(v)}
+              options={agenzie}
+              noneLabel="Nessuna"
+              createLabel="Crea anagrafica agenzia"
+              onCreate={(q) => { setNuovaAgenziaNome(q); setCreaAgenziaOpen(true) }}
+            />
+          ) : (
+            <InputField
+              name="nominativo" label="Nominativo"
+              placeholder="Cerca cliente…"
+              iconLeft="fa-light fa-magnifying-glass"
+              value={nominativo}
+              onChange={(e) => setNominativo(e.target.value)}
+            />
+          )}
           <SelectField
             name="segmento" label="Segmento"
             placeholder="Seleziona"
@@ -236,6 +283,13 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
         onConfirm={() => navigate('conti-passanti')}
         confirmLabel="Salva conto"
         confirmIcon="fa-floppy-disk"
+      />
+
+      <CreaAnagraficaAziendaModal
+        open={creaAgenziaOpen}
+        onClose={() => setCreaAgenziaOpen(false)}
+        onSave={salvaAgenzia}
+        initialRagioneSociale={nuovaAgenziaNome}
       />
     </div>
   )

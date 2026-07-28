@@ -1,0 +1,36 @@
+// ─── CREA ANAGRAFICA DITTA/AGENZIA (modale) ───────────────────────────────────
+// Skin applicata a .modal__box tramite la classe passata al componente Modal.
+@use '../../styles/tokens' as *
+
+.modal__box.crea-anag
+  padding: 26px 28px 22px
+
+.crea-anag
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__grid
+    display: grid
+    gap: 16px 18px
+
+    &--3
+      grid-template-columns: repeat(3, 1fr)
+    &--1-2
+      grid-template-columns: 1fr 2fr
+
+    @media (max-width: 640px)
+      &--3, &--1-2
+        grid-template-columns: 1fr
+
+  &__actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 12px
+    margin-top: 26px
+
+    .sib-btn
+      min-width: 144px
+      justify-content: center
