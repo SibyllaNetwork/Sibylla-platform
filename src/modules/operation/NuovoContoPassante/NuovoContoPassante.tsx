@@ -108,25 +108,25 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
         </div>
       </Card>
 
-      <Card icon="fa-hand-holding-dollar" title="Acconto">
+      <Card icon="fa-hand-holding-dollar" title="Anticipo">
         <CheckboxField
-          name="collega-acconto" label="Collega un acconto già incassato a questo conto"
+          name="collega-anticipo" label="Collega un anticipo già incassato a questo conto"
           checked={collegaAcconto}
           onChange={(e) => setCollegaAcconto(e.target.checked)}
         />
         {collegaAcconto ? (
           <div className="ncp__grid ncp__grid--2 ncp__acconto-fields">
             <SelectField
-              name="suggerimenti-acconto" label="Acconti disponibili"
-              placeholder="Seleziona un acconto…"
+              name="suggerimenti-anticipo" label="Anticipi disponibili"
+              placeholder="Seleziona un anticipo…"
               value={acconto}
               onChange={(e) => setAcconto(e.target.value)}
               options={[]}
             />
             <div className="ncp__field">
-              <label className="ncp__label">Cerca acconto</label>
+              <label className="ncp__label">Cerca anticipo</label>
               <SearchField
-                name="cerca-acconto"
+                name="cerca-anticipo"
                 placeholder="Per importo o data…"
                 value={cercaAcconto}
                 onChange={(e) => setCercaAcconto(e.target.value)}
@@ -135,7 +135,7 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
             </div>
           </div>
         ) : (
-          <p className="ncp__hint"><i className="fa-light fa-circle-info" aria-hidden="true" /> Attiva l'opzione per collegare un acconto esistente e scalarlo dal totale.</p>
+          <p className="ncp__hint"><i className="fa-light fa-circle-info" aria-hidden="true" /> Attiva l'opzione per collegare un anticipo esistente e scalarlo dal totale.</p>
         )}
       </Card>
 
