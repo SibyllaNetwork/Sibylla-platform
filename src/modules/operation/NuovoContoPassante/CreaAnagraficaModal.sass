@@ -1,0 +1,103 @@
+// ─── CREAZIONE ANAGRAFICA (modale) ───────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.cam
+  display: flex
+  flex-direction: column
+  gap: 22px
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 16px 18px
+
+    @media (max-width: 720px)
+      grid-template-columns: repeat(2, 1fr)
+    @media (max-width: 460px)
+      grid-template-columns: 1fr
+
+  // span dei campi sulla griglia a 4 colonne
+  &__col
+    grid-column: span 1
+
+  &__col--2
+    grid-column: span 2
+
+    @media (max-width: 460px)
+      grid-column: span 1
+
+  &__col--full
+    grid-column: 1 / -1
+
+  &__field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__label
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  // ── Carica documento (file) ────────────────────────────────────────────────
+  &__file
+    position: relative
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    cursor: pointer
+    color: $text-inactive
+    font-size: 13px
+    overflow: hidden
+
+    i
+      color: $text-inactive
+      font-size: 13px
+
+    &:hover
+      border-color: $primary-200
+
+  &__file-name
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__file-input
+    position: absolute
+    inset: 0
+    opacity: 0
+    cursor: pointer
+
+  // ── Acquisisci documento ────────────────────────────────────────────────────
+  &__scan
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    height: 34px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    cursor: pointer
+    color: $primary
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+
+    &:hover
+      border-color: $primary-200
+      background: $primary-50
+
+  // ── Footer azioni ───────────────────────────────────────────────────────────
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 4px

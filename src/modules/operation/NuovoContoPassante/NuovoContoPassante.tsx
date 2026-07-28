@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import FormActions from '../../../core/components/FormActions'
-import { InputField, SelectField, RadioGroup, CheckboxField, SearchField } from '../../../core/components/form'
+import { SelectField, RadioGroup, CheckboxField, SearchField } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
+import AnagraficaCombobox, { type Anagrafica } from './AnagraficaCombobox'
+import CreaAnagraficaModal from './CreaAnagraficaModal'
 import './NuovoContoPassante.sass'
 
 interface Addebito {
@@ -19,6 +21,18 @@ const IVA_OPTS = [22, 10, 4, 0]
 const TIPOLOGIA_OPTIONS = [
   { value: 'cliente', label: 'Cliente' },
   { value: 'agenzia', label: 'Agenzia' },
+]
+
+// Anagrafiche di esempio per la ricerca live del Nominativo.
+const SEED_CLIENTI: Anagrafica[] = [
+  { id: 'cli-1', nome: 'Mario Rossi', sub: 'Italia' },
+  { id: 'cli-2', nome: 'Giulia Bianchi', sub: 'Italia' },
+  { id: 'cli-3', nome: 'Luca Verdi', sub: 'Svizzera' },
+]
+const SEED_AGENZIE: Anagrafica[] = [
+  { id: 'ag-1', nome: 'Welcome Travel', sub: 'P.IVA 01234567890' },
+  { id: 'ag-2', nome: 'Bluvacanze', sub: 'P.IVA 09876543210' },
+  { id: 'ag-3', nome: 'Gattinoni', sub: 'P.IVA 05555512345' },
 ]
 
 const eur = (v: number) => v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
@@ -42,13 +56,24 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
   const confirm = useConfirmStore((s) => s.confirm)
 
   const [tipologia, setTipologia] = useState<'cliente' | 'agenzia'>('agenzia')
-  const [nominativo, setNominativo] = useState('')
+  const [clienti, setClienti] = useState<Anagrafica[]>(SEED_CLIENTI)
+  const [agenzie, setAgenzie] = useState<Anagrafica[]>(SEED_AGENZIE)
+  const [selected, setSelected] = useState<Anagrafica | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
   const [segmento, setSegmento] = useState('')
   const [collegaAnticipo, setCollegaAnticipo] = useState(false)
   const [anticipo, setAnticipo] = useState('')
   const [cercaAnticipo, setCercaAnticipo] = useState('')
   const [addebiti, setAddebiti] = useState<Addebito[]>([])
   const [selectedAddebiti, setSelectedAddebiti] = useState<number[]>([])
+
+  const anagrafiche = tipologia === 'agenzia' ? agenzie : clienti
+  const handleSaveAnagrafica = (a: Anagrafica) => {
+    if (tipologia === 'agenzia') setAgenzie((p) => [a, ...p])
+    else setClienti((p) => [a, ...p])
+    setSelected(a)
+    setModalOpen(false)
+  }
 
   const imponibile = addebiti.reduce((s, a) => s + (a.prezzo || 0), 0)
   const ivaTot = addebiti.reduce((s, a) => s + (a.prezzo || 0) * (a.iva || 0) / 100, 0)
@@ -88,14 +113,15 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
             name="tipologia" label="Tipologia"
             options={TIPOLOGIA_OPTIONS}
             value={tipologia}
-            onChange={(v) => setTipologia(v as 'cliente' | 'agenzia')}
+            onChange={(v) => { setTipologia(v as 'cliente' | 'agenzia'); setSelected(null) }}
           />
-          <InputField
-            name="nominativo" label="Nominativo"
-            placeholder={tipologia === 'agenzia' ? 'Cerca agenzia…' : 'Cerca cliente…'}
-            iconLeft="fa-light fa-magnifying-glass"
-            value={nominativo}
-            onChange={(e) => setNominativo(e.target.value)}
+          <AnagraficaCombobox
+            tipo={tipologia}
+            items={anagrafiche}
+            value={selected}
+            onSelect={setSelected}
+            onClear={() => setSelected(null)}
+            onCreate={() => setModalOpen(true)}
           />
           <SelectField
             name="segmento" label="Segmento"
@@ -236,6 +262,13 @@ export default function NuovoContoPassante({ navigate }: { navigate: (p: string)
         onConfirm={() => navigate('conti-passanti')}
         confirmLabel="Salva conto"
         confirmIcon="fa-floppy-disk"
+      />
+
+      <CreaAnagraficaModal
+        open={modalOpen}
+        tipo={tipologia}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSaveAnagrafica}
       />
     </div>
   )
