@@ -4,6 +4,7 @@ import { InputField, SelectField, DatePickerField } from '../../../core/componen
 import { withFlag } from '../../../core/utils/countryFlags'
 import { apiFetchSibylla } from '../../../services/api'
 import { useContrattiPersonaleStore } from '../../../store/useContrattiPersonaleStore'
+import { useRuoliStore } from '../../../store/useRuoliStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { getEditingAnagrafica, clearEditingAnagrafica } from './_state'
 import './CreaAnagrafica.sass'
@@ -147,6 +148,12 @@ function ContrattiSection({ anagraficaId, nomeDefault }: { anagraficaId: string;
   const removeContratto = useContrattiPersonaleStore((s) => s.removeContratto)
   const confirm = useConfirmStore((s) => s.confirm)
 
+  // Ruoli configurati nella piattaforma (pagina Ruoli & funzioni), dedup + no vuoti.
+  const ruoliPiattaforma = useRuoliStore((s) => s.ruoli)
+  const ruoliOptions = Array.from(
+    new Set(ruoliPiattaforma.map((r) => r.nome.trim()).filter(Boolean)),
+  ).map((nome) => ({ value: nome, label: nome }))
+
   const storico = [...contratti]
     .filter((r) => r.anagraficaId === anagraficaId)
     .sort((a, b) => (b.decorrenza ?? b.createdAt).localeCompare(a.decorrenza ?? a.createdAt))
@@ -212,7 +219,8 @@ function ContrattiSection({ anagraficaId, nomeDefault }: { anagraficaId: string;
       {/* Nuova variazione contrattuale */}
       <div className="crea-anag__grid crea-anag__grid--3">
         <InputField  name="ctr_nome"      label="Nome impiegato"          value={c.nomeImpiegato} onChange={(e) => setField('nomeImpiegato', e.target.value)} />
-        <InputField  name="ctr_ruolo"     label="Ruolo"                   value={c.ruolo}         onChange={(e) => setField('ruolo', e.target.value)} placeholder="es. Addetto ricevimento" />
+        <SelectField name="ctr_ruolo"     label="Ruolo"                   value={c.ruolo}         onChange={(e) => setField('ruolo', e.target.value)}
+          options={[{ value: '', label: 'Seleziona' }, ...ruoliOptions]} />
         <SelectField name="ctr_livello"   label="Livello"                 value={c.livello}       onChange={(e) => setField('livello', e.target.value)}
           options={[{ value: '', label: 'Seleziona' }, ...LIVELLI_CONTRATTO.map((l) => ({ value: l, label: l }))]} />
         <SelectField name="ctr_tipologia" label="Tipologia del contratto" value={c.tipologia}     onChange={(e) => setField('tipologia', e.target.value)}
