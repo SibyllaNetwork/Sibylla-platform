@@ -271,7 +271,7 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
 
         <div className="griglia-disp__export">
           <button type="button" className="sib-btn sib-btn--icon" title="Esporta XLS" aria-label="Esporta XLS" onClick={handleXls}>
-            <i className="fa-regular fa-file-excel" aria-hidden="true" />
+            <i className="fa-regular fa-file-xls" aria-hidden="true" />
           </button>
           <button type="button" className="sib-btn sib-btn--icon" title="Esporta PDF" aria-label="Esporta PDF" onClick={handlePdf}>
             <i className="fa-regular fa-file-pdf" aria-hidden="true" />

@@ -125,7 +125,7 @@ export default function TableauPage({
     { ico: 'fa-gears',                   label: 'Mixer assegnazione',   action: () => navigate('assegnazione-book') },
     { ico: 'fa-magnifying-glass-chart',  label: 'Analisi booking',      action: () => navigate('analisi-booking') },
     { ico: 'fa-chart-line',              label: 'Report',               action: () => navigate('analisi-booking') },
-    { ico: 'fa-file-excel',              label: 'Download XLS',         action: exportXls },
+    { ico: 'fa-file-xls',              label: 'Download XLS',         action: exportXls },
     { ico: 'fa-file-pdf',                label: 'Download PDF',         action: exportPdf },
   ]
   const getGiacenza = (d:number) => { const used=visibleBookings.filter(b=>d>=b.startDay&&d<=b.endDay).reduce((a,b)=>a+b.camere,0); return ALLOTMENT-used }

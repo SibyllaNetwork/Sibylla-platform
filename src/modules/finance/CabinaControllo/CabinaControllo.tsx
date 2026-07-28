@@ -173,7 +173,7 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
         </div>
         <div className="cabina__actions">
           <Tooltip text="Esporta PDF"><button className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={exportPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>
-          <Tooltip text="Esporta Excel"><button className="sib-btn sib-btn--icon" aria-label="Esporta Excel" onClick={exportXls}><i className="fa-regular fa-file-excel" /></button></Tooltip>
+          <Tooltip text="Esporta Excel"><button className="sib-btn sib-btn--icon" aria-label="Esporta Excel" onClick={exportXls}><i className="fa-regular fa-file-xls" /></button></Tooltip>
         </div>
       </div>
 

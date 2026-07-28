@@ -783,7 +783,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       <Widget key="ospiti" {...fullCommon('ospiti')} title="Anagrafica ospiti" bodyClassName="widget__body--flush" collapsed={ospitiCollapsed} onToggleCollapse={() => setOspitiCollapsed(v => !v)}>
         <div className="np-ospiti-toolbar">
           <button type="button" className="np-link-add" onClick={scaricaExcelOspiti}>
-            <i className="fa-light fa-file-excel" /> Scarica Excel
+            <i className="fa-light fa-file-xls" /> Scarica Excel
           </button>
           <button type="button" className="np-link-add" onClick={scaricaPdfOspiti}>
             <i className="fa-light fa-file-pdf" /> Scarica PDF

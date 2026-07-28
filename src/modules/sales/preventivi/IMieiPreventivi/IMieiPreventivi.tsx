@@ -197,7 +197,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
         <Tooltip text="Esporta in Excel">
           <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={handleExcel}>
-            <i className="fa-regular fa-file-excel" aria-hidden="true" />
+            <i className="fa-regular fa-file-xls" aria-hidden="true" />
           </button>
         </Tooltip>
 

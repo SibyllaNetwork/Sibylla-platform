@@ -126,7 +126,7 @@ const ReportCityTax: React.FC<Props> = () => {
           </button>
         </div>
         <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm rct__export" onClick={exportExcel}>
-          <i className="fa-solid fa-file-excel" /> Esporta in Excel
+          <i className="fa-solid fa-file-xls" /> Esporta in Excel
         </button>
       </div>
 

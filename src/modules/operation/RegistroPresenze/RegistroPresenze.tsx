@@ -315,7 +315,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
               </div>
               <div className="reg-presenze__name-actions">
                 <button className="reg-presenze__name-action" title="Esporta XLS" aria-label="Esporta XLS" onClick={() => exportXls(d)}>
-                  <i className="fa-solid fa-file-excel" />
+                  <i className="fa-solid fa-file-xls" />
                 </button>
                 <button className="reg-presenze__name-action" title="Modifica" aria-label="Modifica" onClick={() => openEdit(d)}>
                   <i className="fa-solid fa-pen" />

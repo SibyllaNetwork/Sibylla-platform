@@ -299,7 +299,7 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
             <i className="fa-light fa-plus" /> Crea segnalazione
           </button>
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-xls" /></button>
           </Tooltip>
           <Tooltip text="Esporta in PDF">
             <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button>

@@ -186,7 +186,7 @@ export default function GestioneDocumenti(_props: { navigate?: (p: string) => vo
         </div>
         <div className="gest-doc__bar-right">
           <Tooltip text="Esporta in Excel">
-            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button>
+            <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta XLS" onClick={esportaXls}><i className="fa-regular fa-file-xls" /></button>
           </Tooltip>
         </div>
       </div>

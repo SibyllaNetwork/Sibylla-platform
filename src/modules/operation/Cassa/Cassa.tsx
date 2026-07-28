@@ -530,7 +530,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                 onClick={exportXls}
                 disabled={filtered.length === 0}
               >
-                <i className="fa-regular fa-file-excel" aria-hidden="true" />
+                <i className="fa-regular fa-file-xls" aria-hidden="true" />
               </button>
             </Tooltip>
           </span>
@@ -772,7 +772,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
                             </Tooltip>
                             <Tooltip text="Esporta in Excel">
                               <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={() => exportChiuXls(c)}>
-                                <i className="fa-solid fa-file-excel" />
+                                <i className="fa-solid fa-file-xls" />
                               </button>
                             </Tooltip>
                             <Tooltip text="Esporta in PDF">

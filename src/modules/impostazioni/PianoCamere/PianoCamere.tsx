@@ -97,7 +97,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
 
         <div className="piano-cam__exports">
           <Tooltip text="Esporta in PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={esportaPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>
-          <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-regular fa-file-excel" /></button></Tooltip>
+          <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={esportaXls}><i className="fa-regular fa-file-xls" /></button></Tooltip>
         </div>
       </div>
 

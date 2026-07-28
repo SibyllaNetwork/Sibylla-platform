@@ -36,7 +36,7 @@ const FA_MAP: Record<string, string> = {
   'plus':     'fa-circle-plus',
   'check':    'fa-check',
   'thumbs-up': 'fa-thumbs-up',
-  'excel':    'fa-file-excel',
+  'excel':    'fa-file-xls',
   'play':     'fa-play',
   'pause':    'fa-pause',
   'stop':     'fa-stop',

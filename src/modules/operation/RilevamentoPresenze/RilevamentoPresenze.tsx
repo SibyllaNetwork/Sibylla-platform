@@ -128,7 +128,7 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
 
         <div className="rilev-presenze__bar-right ml-auto flex items-end gap-3 flex-wrap">
           <button className="sib-btn sib-btn--icon" title="Esporta in Excel" aria-label="Esporta in Excel" onClick={esportaXls}>
-            <i className="fa-regular fa-file-excel" />
+            <i className="fa-regular fa-file-xls" />
           </button>
 
           {/* Esporta XML: scelta intervallo da popover */}

@@ -589,7 +589,7 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
             </Tooltip>
             <Tooltip text="Esporta in Excel">
               <button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={exportArrXls}>
-                <i className="fa-regular fa-file-excel" aria-hidden="true" />
+                <i className="fa-regular fa-file-xls" aria-hidden="true" />
               </button>
             </Tooltip>
           </div>
@@ -803,7 +803,7 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
           </button>
           <div className="arrivi-partenze__toolbar-icons">
             <Tooltip text="Esporta in PDF"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in PDF" onClick={exportPartPdf}><i className="fa-regular fa-file-pdf" aria-hidden="true" /></button></Tooltip>
-            <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={exportPartXls}><i className="fa-regular fa-file-excel" aria-hidden="true" /></button></Tooltip>
+            <Tooltip text="Esporta in Excel"><button type="button" className="sib-btn sib-btn--icon" aria-label="Esporta in Excel" onClick={exportPartXls}><i className="fa-regular fa-file-xls" aria-hidden="true" /></button></Tooltip>
           </div>
         </div>
       </div>

@@ -404,7 +404,7 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
               <button className="analisi__icon-btn"><i className="fa-duotone fa-file-pdf" aria-hidden="true" /></button>
             </Tooltip>
             <Tooltip text="Excel pickup">
-              <button className="analisi__icon-btn"><i className="fa-duotone fa-file-excel" aria-hidden="true" /></button>
+              <button className="analisi__icon-btn"><i className="fa-duotone fa-file-xls" aria-hidden="true" /></button>
             </Tooltip>
           </div>
         </div>
