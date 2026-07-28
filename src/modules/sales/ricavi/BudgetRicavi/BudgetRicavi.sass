@@ -51,6 +51,12 @@
       padding: 4px 4px !important
       font-size: 11px
 
+    // Cella mese: 5px bianco sotto + (5px + 4px anelli) sopra. Selettore più
+    // specifico di `&__table td` per vincere sul padding compatto.
+    td.bdg-ric__mese-cell
+      padding-top: 9px !important
+      padding-bottom: 5px !important
+
   // ── Sopra-header: 4 macro-aree con 4 sfondi differenti (solo le sopra-leader) ─
   // Anno precedente = grigio · Impostazione rapida = bianco (a scomparsa) ·
   // Budget e Anno corrente = blu platform.
@@ -89,9 +95,9 @@
   &__c-prec
     color: $text-inactive
 
-  // Separatore verticale all'inizio di ogni blocco
+  // Separatore verticale all'inizio di ogni blocco (linea sottile)
   &__gsep
-    border-left: 2px solid $primary-200 !important
+    border-left: 1px solid $primary-200 !important
 
   // ── Colonna "Impostazione rapida" a scomparsa ────────────────────────────────
   &__grp-imp
@@ -127,11 +133,7 @@
     background: $white !important
 
   // ── Badge calendario del mese (anno in alto, mese sotto) ─────────────────────
-  // Badge più basso (stretto in altezza) con 5px di bianco sopra e sotto.
-  &__mese-cell
-    padding-top: 5px !important
-    padding-bottom: 5px !important
-
+  // Badge più basso (stretto in altezza); spaziatura in `&__table td.…mese-cell`.
   &__cal
     position: relative
     display: inline-flex
