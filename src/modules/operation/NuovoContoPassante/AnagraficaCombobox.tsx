@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useLayoutEffect, useCallback } from 'react'
+import React, { useState, useRef, useMemo, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import './AnagraficaCombobox.sass'
 
@@ -66,6 +66,20 @@ export default function AnagraficaCombobox({
     }
   }, [open, matches.length, reposition])
 
+  // Chiusura su click esterno. Niente overlay che copra l'input (altrimenti
+  // non si potrebbe più digitare/cliccare nel campo di ricerca): si ascolta il
+  // mousedown sul document e si ignora ciò che è dentro l'input o il dropdown.
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (wrapRef.current?.contains(t) || popRef.current?.contains(t)) return
+      setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
   const handleSelect = (a: Anagrafica) => {
     onSelect(a)
     setQuery('')
@@ -109,7 +123,6 @@ export default function AnagraficaCombobox({
 
           {open && createPortal(
             <>
-              <div className="anag-cb__overlay" onClick={() => setOpen(false)} />
               <div
                 ref={popRef}
                 className="anag-cb__pop"
