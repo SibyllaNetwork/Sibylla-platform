@@ -1,28 +1,40 @@
 import React, { useMemo, useState } from 'react';
 import PageHead from '../../../core/components/PageHead';
+import Tooltip from '../../../core/components/Tooltip';
+import { SelectField } from '../../../core/components/form';
 import { toast } from '../../../core/components/Toast/useToast';
 import './ReportCityTax.sass';
 
 // ─── Report City Tax (tassa di soggiorno) ─────────────────────────────────────
 // Report settimanale della tassa di soggiorno, struttura per struttura.
-// Raggiunto dal link della notifica Platform quotidiana ("Report City Tax
-// disponibile", ore 09:00). Per ogni struttura e settimana: presenze suddivise
-// in Day use / Residenti / Esenti (esenti da imposta) e Paganti (soggette),
-// con tariffa €/notte, imposta dovuta e note di pagamento. Esportabile in Excel.
+// Raggiunto dal link della notifica Platform ("Report City Tax disponibile",
+// inviata ogni lunedì alle 09:00 — abilitabile dal Configuratore notifiche).
+//
+// In alto: la CATEGORIA della struttura e la relativa TARIFFA della tassa di
+// soggiorno, in sola lettura: le tariffe sono configurate per categoria e per
+// tutte le regioni italiane dal Pannello di controllo (es. ★★★ = 6,00 €,
+// ★★★★ = 7,50 €). La tassa si calcola PER PERSONA PER NOTTE.
+//
+// Tabella per settimana: Struttura · Paganti (n. ospiti) · Esenti (con causa) ·
+// Totale (n. notti × tariffa). Esportabile in Excel.
 
-interface Struttura { id: string; nome: string; sigla: string; tariffa: number }
+// Tariffa €/persona/notte per categoria (sola lettura, da Pannello di controllo).
+const TARIFFE_CATEGORIA: Record<number, number> = { 1: 2.0, 2: 4.0, 3: 6.0, 4: 7.5, 5: 10.0 };
+const CATEGORIA = 3;                              // stelle della struttura (da pannello)
+const TARIFFA = TARIFFE_CATEGORIA[CATEGORIA];     // € per persona / notte
+
+interface Struttura { id: string; nome: string; sigla: string }
 const STRUTTURE: Struttura[] = [
-  { id: 'm1', nome: 'Hotel Siracusa',   sigla: 'M1', tariffa: 2.50 },
-  { id: 'm2', nome: 'Hotel Luce',       sigla: 'M2', tariffa: 2.00 },
-  { id: 'm3', nome: 'Hotel Ortigia',    sigla: 'M3', tariffa: 3.00 },
-  { id: 'm4', nome: 'Resort Plemmirio', sigla: 'M4', tariffa: 4.00 },
-  { id: 'm5', nome: 'B&B Aretusa',      sigla: 'M5', tariffa: 1.50 },
+  { id: 'm1', nome: 'Hotel Siracusa',   sigla: 'M1' },
+  { id: 'm2', nome: 'Hotel Luce',       sigla: 'M2' },
+  { id: 'm3', nome: 'Hotel Ortigia',    sigla: 'M3' },
+  { id: 'm4', nome: 'Resort Plemmirio', sigla: 'M4' },
+  { id: 'm5', nome: 'B&B Aretusa',      sigla: 'M5' },
 ];
 
 const DAY = 86400000;
-// Lunedì di riferimento (settimana corrente): 20/07/2026
-const BASE_LUN = new Date(2026, 6, 20);
-const N_SETT = 8; // settimane disponibili (dalla più recente a ritroso)
+const BASE_LUN = new Date(2026, 6, 20); // lunedì di riferimento (settimana corrente)
+const N_SETT = 8;
 
 const ddmm = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 const fmtEur = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(n);
@@ -31,12 +43,17 @@ const fmtNum = (n: number) => new Intl.NumberFormat('it-IT').format(Math.round(n
 // pseudo-casuale deterministico in [0,1)
 const rnd = (a: number, b: number) => { const x = Math.sin(a * 97.13 + b * 131.7 + 3.1) * 10000; return x - Math.floor(x); };
 
-const NOTE_POOL = ['Versato con F24 (16/mese)', 'Bonifico effettuato', 'In attesa di versamento', 'Ravvedimento operoso', '—'];
+// Principali cause di esenzione dalla tassa di soggiorno (richiamate in tabella).
+const CAUSE_ESENZIONE = ['Residente nel Comune', 'Day use', 'Minori', 'Disabili e accompagnatori', 'Non vuole pagare'] as const;
 
+interface Esenzione { causa: string; n: number }
 interface Riga {
   struttura: Struttura;
-  dayUse: number; residenti: number; esenti: number; paganti: number;
-  imposta: number; nota: string;
+  ospitiPaganti: number;   // ospiti soggetti a imposta
+  nottiPaganti: number;    // notti-persona soggette (ospiti × notti)
+  esenti: number;          // ospiti esenti (totale)
+  esenzioni: Esenzione[];  // dettaglio esenti per causa
+  totale: number;          // nottiPaganti × TARIFFA
 }
 
 // Settimane disponibili (indice 0 = più recente)
@@ -47,47 +64,64 @@ const SETTIMANE = Array.from({ length: N_SETT }, (_, i) => {
 });
 
 const rigaFor = (s: Struttura, si: number, w: number): Riga => {
-  const paganti = 40 + Math.round(rnd(si + 1, w + 1) * 180);
-  const dayUse = Math.round(rnd(si + 2, w + 3) * 14);
-  const residenti = Math.round(rnd(si + 5, w + 2) * 9);
-  const esenti = Math.round(rnd(si + 7, w + 6) * 26);
-  const nota = w === 0 ? NOTE_POOL[2] : NOTE_POOL[(si + w) % NOTE_POOL.length];
-  return { struttura: s, dayUse, residenti, esenti, paganti, imposta: paganti * s.tariffa, nota };
+  const ospitiPaganti = 40 + Math.round(rnd(si + 1, w + 1) * 180);
+  const nottiMedie = 1 + Math.round(rnd(si + 3, w + 2) * 4);      // 1..5 notti
+  const nottiPaganti = ospitiPaganti * nottiMedie;
+  const esentiTot = Math.round(rnd(si + 7, w + 6) * 34);
+  // ripartizione esenti per causa (deterministica)
+  const pesi = CAUSE_ESENZIONE.map((_, ci) => rnd(si + ci + 11, w + ci + 4));
+  const somma = pesi.reduce((a, b) => a + b, 0) || 1;
+  const esenzioni = CAUSE_ESENZIONE.map((causa, ci) => ({ causa, n: Math.round(esentiTot * pesi[ci] / somma) }));
+  const esenti = esenzioni.reduce((a, e) => a + e.n, 0);
+  return { struttura: s, ospitiPaganti, nottiPaganti, esenti, esenzioni, totale: nottiPaganti * TARIFFA };
 };
 
 interface Props { navigate?: (page: string) => void }
 
 const ReportCityTax: React.FC<Props> = () => {
-  const [weekIdx, setWeekIdx] = useState(0);
-  const [tutte, setTutte] = useState(false);
+  // 'all' oppure indice settimana ('0'..)
+  const [week, setWeek] = useState<string>('0');
+  const tutte = week === 'all';
+  const weekIdx = tutte ? 0 : Number(week);
 
   const righe: Riga[] = useMemo(() => {
     if (tutte) {
-      // aggregato su tutte le settimane
       return STRUTTURE.map((s, si) => {
         const acc = SETTIMANE.reduce((a, w) => {
           const r = rigaFor(s, si, w.idx);
-          a.dayUse += r.dayUse; a.residenti += r.residenti; a.esenti += r.esenti; a.paganti += r.paganti; a.imposta += r.imposta;
+          a.ospitiPaganti += r.ospitiPaganti; a.nottiPaganti += r.nottiPaganti; a.esenti += r.esenti; a.totale += r.totale;
+          r.esenzioni.forEach((e, ci) => { a.esenzioni[ci] = { causa: e.causa, n: (a.esenzioni[ci]?.n ?? 0) + e.n }; });
           return a;
-        }, { dayUse: 0, residenti: 0, esenti: 0, paganti: 0, imposta: 0 });
-        return { struttura: s, ...acc, nota: '—' };
+        }, { ospitiPaganti: 0, nottiPaganti: 0, esenti: 0, totale: 0, esenzioni: [] as Esenzione[] });
+        return { struttura: s, ...acc };
       });
     }
     return STRUTTURE.map((s, si) => rigaFor(s, si, weekIdx));
   }, [weekIdx, tutte]);
 
   const tot = righe.reduce((a, r) => ({
-    dayUse: a.dayUse + r.dayUse, residenti: a.residenti + r.residenti,
-    esenti: a.esenti + r.esenti, paganti: a.paganti + r.paganti, imposta: a.imposta + r.imposta,
-  }), { dayUse: 0, residenti: 0, esenti: 0, paganti: 0, imposta: 0 });
+    ospitiPaganti: a.ospitiPaganti + r.ospitiPaganti,
+    nottiPaganti: a.nottiPaganti + r.nottiPaganti,
+    esenti: a.esenti + r.esenti,
+    totale: a.totale + r.totale,
+  }), { ospitiPaganti: 0, nottiPaganti: 0, esenti: 0, totale: 0 });
 
-  const settLabel = tutte ? 'Tutte le settimane' : `Settimana ${ddmm(SETTIMANE[weekIdx].lun)} – ${ddmm(SETTIMANE[weekIdx].dom)}`;
+  const settLabel = tutte ? 'Tutte le settimane' : `Settimana ${SETTIMANE[weekIdx].label}`;
+
+  const weekOptions = [
+    ...SETTIMANE.map((w) => ({ value: String(w.idx), label: w.idx === 0 ? `${w.label} (corrente)` : w.label })),
+    { value: 'all', label: 'Tutte le settimane' },
+  ];
 
   const exportExcel = () => {
-    const head = ['Struttura', 'Sigla', 'Day use', 'Residenti', 'Esenti', 'Paganti', 'Tariffa €/notte', 'Imposta dovuta €', 'Note di pagamento'];
-    const body = righe.map(r => [r.struttura.nome, r.struttura.sigla, r.dayUse, r.residenti, r.esenti, r.paganti, r.struttura.tariffa.toFixed(2), r.imposta.toFixed(2), r.nota]);
-    const totale = ['TOTALE', '', tot.dayUse, tot.residenti, tot.esenti, tot.paganti, '', tot.imposta.toFixed(2), ''];
-    const rows = [[`Report City Tax — ${settLabel}`], head, ...body, totale];
+    const head = ['Struttura', 'Paganti (ospiti)', 'Notti paganti', 'Esenti', 'Totale €'];
+    const body = righe.map(r => [r.struttura.nome, r.ospitiPaganti, r.nottiPaganti, r.esenti, r.totale.toFixed(2)]);
+    const totale = ['TOTALE', tot.ospitiPaganti, tot.nottiPaganti, tot.esenti, tot.totale.toFixed(2)];
+    const rows = [
+      [`Report City Tax — ${settLabel}`],
+      [`Categoria ${CATEGORIA}★ · Tariffa ${TARIFFA.toFixed(2)} € per persona a notte`],
+      head, ...body, totale,
+    ];
     const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -103,30 +137,42 @@ const ReportCityTax: React.FC<Props> = () => {
     <div className="rct">
       <PageHead
         title="Report City Tax"
-        subtitle="Report settimanale della tassa di soggiorno, struttura per struttura: presenze imponibili ed esenti, imposta dovuta e note di pagamento."
+        subtitle="Report settimanale della tassa di soggiorno, struttura per struttura. La tassa si calcola per persona a notte."
       />
 
-      {/* barra: navigazione settimana + esporta */}
-      <div className="rct__bar">
-        <div className="rct__weeknav">
-          <button type="button" className="rct__wk-btn" disabled={tutte || weekIdx >= N_SETT - 1}
-            onClick={() => setWeekIdx(i => Math.min(N_SETT - 1, i + 1))} aria-label="Settimana precedente">
-            <i className="fa-solid fa-chevron-left" />
-          </button>
-          <span className="rct__wk-label">
-            <i className="fa-regular fa-calendar-week" /> {settLabel}
-            {!tutte && weekIdx === 0 && <span className="rct__wk-tag">corrente</span>}
+      {/* Categoria + tariffa (sola lettura, da Pannello di controllo) */}
+      <div className="rct__meta">
+        <div className="rct__meta-item">
+          <span className="rct__meta-label">Categoria struttura</span>
+          <span className="rct__stars" aria-label={`${CATEGORIA} stelle`}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <i key={i} className={`fa-${i < CATEGORIA ? 'solid' : 'light'} fa-star`} aria-hidden="true" />
+            ))}
           </span>
-          <button type="button" className="rct__wk-btn" disabled={tutte || weekIdx <= 0}
-            onClick={() => setWeekIdx(i => Math.max(0, i - 1))} aria-label="Settimana successiva">
-            <i className="fa-solid fa-chevron-right" />
-          </button>
-          <button type="button" className={`rct__all${tutte ? ' is-on' : ''}`} onClick={() => setTutte(v => !v)}>
-            <i className="fa-solid fa-layer-group" /> Tutte le settimane
-          </button>
         </div>
+        <div className="rct__meta-sep" />
+        <div className="rct__meta-item">
+          <span className="rct__meta-label">Tassa di soggiorno</span>
+          <span className="rct__meta-val">
+            {fmtEur(TARIFFA)} <small>per persona a notte</small>
+          </span>
+        </div>
+        <Tooltip text="Tariffa configurata per categoria e per tutte le regioni italiane dal Pannello di controllo. Modificabile solo da lì.">
+          <span className="rct__readonly"><i className="fa-light fa-lock" /> Sola lettura</span>
+        </Tooltip>
+      </div>
+
+      {/* barra: selettore settimana + esporta */}
+      <div className="rct__bar">
+        <SelectField
+          name="rct-week"
+          className="rct__weeksel"
+          value={week}
+          onChange={(e) => setWeek(e.target.value)}
+          options={weekOptions}
+        />
         <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm rct__export" onClick={exportExcel}>
-          <i className="fa-solid fa-file-xls" /> Esporta in Excel
+          <i className="fa-regular fa-file-xls" /> Scarica Excel
         </button>
       </div>
 
@@ -135,48 +181,42 @@ const ReportCityTax: React.FC<Props> = () => {
           <thead>
             <tr>
               <th>Struttura</th>
-              <th className="rct__num">Day use</th>
-              <th className="rct__num">Residenti</th>
-              <th className="rct__num">Esenti</th>
               <th className="rct__num">Paganti</th>
-              <th className="rct__num">Tariffa</th>
-              <th className="rct__num rct__imp-col">Imposta dovuta</th>
-              <th>Note di pagamento</th>
+              <th className="rct__num">Esenti</th>
+              <th className="rct__num rct__imp-col">Totale</th>
             </tr>
           </thead>
           <tbody>
             {righe.map(r => (
               <tr key={r.struttura.id}>
-                <td>
-                  <span className="rct__struct">{r.struttura.nome}</span>
+                <td><span className="rct__struct">{r.struttura.nome}</span></td>
+                <td className="rct__num">
+                  <b>{fmtNum(r.ospitiPaganti)}</b>
+                  <span className="rct__sub">{fmtNum(r.ospitiPaganti)} ospiti · {fmtNum(r.nottiPaganti)} notti</span>
                 </td>
-                <td className="rct__num rct__muted">{fmtNum(r.dayUse)}</td>
-                <td className="rct__num rct__muted">{fmtNum(r.residenti)}</td>
-                <td className="rct__num rct__muted">{fmtNum(r.esenti)}</td>
-                <td className="rct__num"><b>{fmtNum(r.paganti)}</b></td>
-                <td className="rct__num rct__muted">{fmtEur(r.struttura.tariffa)}</td>
-                <td className="rct__num rct__imp-col"><b>{fmtEur(r.imposta)}</b></td>
-                <td className="rct__note">{r.nota}</td>
+                <td className="rct__num">
+                  <Tooltip text={r.esenzioni.filter(e => e.n > 0).map(e => `${e.causa}: ${e.n}`).join(' · ') || 'Nessun esente'}>
+                    <span className="rct__esenti">{fmtNum(r.esenti)} <i className="fa-light fa-circle-info" /></span>
+                  </Tooltip>
+                </td>
+                <td className="rct__num rct__imp-col"><b>{fmtEur(r.totale)}</b></td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="rct__tot">
               <td>Totale{tutte ? ' (tutte le settimane)' : ''}</td>
-              <td className="rct__num">{fmtNum(tot.dayUse)}</td>
-              <td className="rct__num">{fmtNum(tot.residenti)}</td>
+              <td className="rct__num">{fmtNum(tot.ospitiPaganti)}</td>
               <td className="rct__num">{fmtNum(tot.esenti)}</td>
-              <td className="rct__num">{fmtNum(tot.paganti)}</td>
-              <td className="rct__num" />
-              <td className="rct__num rct__imp-col">{fmtEur(tot.imposta)}</td>
-              <td />
+              <td className="rct__num rct__imp-col">{fmtEur(tot.totale)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
 
       <p className="rct__legend">
-        <i className="fa-light fa-circle-info" /> Sono <b>esenti</b> dalla tassa di soggiorno le presenze in <em>day use</em>, i <em>residenti</em> nel Comune e le altre categorie <em>esenti</em> (minori, disabili e accompagnatori, ecc.). L'imposta dovuta è calcolata sulle sole presenze <b>paganti</b> × tariffa €/notte della struttura.
+        <i className="fa-light fa-circle-info" /> La tassa di soggiorno è dovuta <b>per persona a notte</b> ({fmtEur(TARIFFA)}) e si paga al checkout.
+        Il <b>Totale</b> è calcolato come notti-persona paganti × tariffa. Sono <b>esenti</b> le categorie previste (residenti, day use, minori, disabili e accompagnatori, ecc.); passa sulla colonna Esenti per il dettaglio delle cause.
       </p>
     </div>
   );

@@ -266,6 +266,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   // Notifiche "Report Pickup" — mostrate solo se l'opzione è attiva nel
   // Configuratore notifiche. Consegnate via email; dal dettaglio si apre il report.
   const reportPickupOn = useNotifPrefsStore((s) => s.reportPickup)
+  const reportCityTaxOn = useNotifPrefsStore((s) => s.reportCityTax)
   const reportNotifs: NotificaUI[] = useMemo(() => {
     if (!reportPickupOn) return []
     const base: { date: string; time: string; group: NotificaUI['group']; read: boolean }[] = [
@@ -288,6 +289,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   // Notifiche "Report City Tax" — report settimanale della tassa di soggiorno,
   // consegnate ogni mattina alle 09:00 via email; dal dettaglio si apre il report.
   const cityTaxNotifs: NotificaUI[] = useMemo(() => {
+    if (!reportCityTaxOn) return []
     const base: { date: string; time: string; group: NotificaUI['group']; read: boolean }[] = [
       { date: 'MAR 21 LUG', time: '09:00', group: 'oggi',          read: false },
       { date: 'LUN 13 LUG', time: '09:00', group: 'mese-corrente', read: true },
@@ -302,7 +304,7 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
       date: b.date, time: b.time, group: b.group,
       read: b.read, source: 'platform' as const, report: true, reportPage: 'report-city-tax', reportTipo: 'City Tax (tassa di soggiorno)', channel: 'Email',
     }))
-  }, [])
+  }, [reportCityTaxOn])
 
   const allNotifications = useMemo(
     () => [...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],

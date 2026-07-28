@@ -60,9 +60,12 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   const selectChatFromNotif = useChatStore(s => s.selectFromNotif)
   // Le notifiche-report compaiono solo se l'opzione è attiva nel Configuratore notifiche.
   const reportPickupOn = useNotifPrefsStore(s => s.reportPickup)
+  const reportCityTaxOn = useNotifPrefsStore(s => s.reportCityTax)
 
   // Escludi le notifiche-report disabilitate dal configuratore.
-  const visibili = notifs.filter(n => !n.reportPage || (n.reportPage === 'report-pickup' && reportPickupOn) || n.reportPage === 'report-city-tax')
+  const visibili = notifs.filter(n => !n.reportPage
+    || (n.reportPage === 'report-pickup' && reportPickupOn)
+    || (n.reportPage === 'report-city-tax' && reportCityTaxOn))
 
   const unreadCount = visibili.filter(n => !n.read).length
 
