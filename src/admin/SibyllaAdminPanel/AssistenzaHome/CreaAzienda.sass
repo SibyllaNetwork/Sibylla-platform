@@ -4,7 +4,7 @@ $gold: #c9a84c
 $gold-dark: #a9863a
 $ink: #2A2208
 
-.ca
+.caz
   height: 100%
   overflow: auto
   background: #fff
@@ -15,7 +15,7 @@ $ink: #2A2208
   gap: 10px
 
 // ── Intestazione ──
-.ca__back
+.caz__back
   align-self: flex-start
   display: inline-flex
   align-items: center
@@ -30,23 +30,23 @@ $ink: #2A2208
   &:hover
     text-decoration: underline
 
-.ca__head
+.caz__head
   text-align: center
   margin: 0 0 22px
 
-.ca__title
+.caz__title
   font-family: $font-heading
   font-size: 26px
   font-weight: 800
   color: #2A2208
   margin: 0
 
-.ca__lead
+.caz__lead
   font-size: 13.5px
   color: $text-inactive
   margin: 8px 0 0
 
-.ca__body
+.caz__body
   display: flex
   justify-content: center
   align-items: flex-start
@@ -58,7 +58,7 @@ $ink: #2A2208
     gap: 22px
 
 // ── Card form ──
-.ca__card
+.caz__card
   flex: 1
   max-width: 680px
   background: #fff
@@ -68,12 +68,12 @@ $ink: #2A2208
   padding: 22px 24px 24px
   overflow: hidden
 
-.ca__card-head
+.caz__card-head
   display: flex
   align-items: flex-start
   gap: 13px
 
-.ca__card-ico
+.caz__card-ico
   flex-shrink: 0
   width: 44px
   height: 44px
@@ -84,26 +84,26 @@ $ink: #2A2208
   background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
   box-shadow: 0 6px 16px rgba(169, 134, 58, .3)
 
-.ca__eyebrow
+.caz__eyebrow
   font-size: 11px
   font-weight: 700
   letter-spacing: .07em
   text-transform: uppercase
   color: $gold-dark
 
-.ca__heading
+.caz__heading
   font-family: $font-heading
   font-size: 20px
   font-weight: 700
   color: $text-active
   margin: 2px 0 0
 
-.ca__sub
+.caz__sub
   font-size: 13px
   color: $text-inactive
   margin: 2px 0 0
 
-.ca__progress
+.caz__progress
   height: 5px
   border-radius: 999px
   background: #efe6cf
@@ -118,26 +118,26 @@ $ink: #2A2208
     transition: width .3s ease
 
 // ── Campi (dimensioni uniformi) ──
-.ca__fields
+.caz__fields
   display: flex
   flex-direction: column
   gap: 16px
 
-.ca-field
+.caz-field
   min-width: 0
 
-.ca-label
+.caz-label
   display: block
   font-size: 12.5px
   font-weight: 600
   color: $text-active
   margin-bottom: 6px
 
-.ca-req
+.caz-req
   color: $error
   font-weight: 700
 
-.ca-input
+.caz-input
   width: 100%
   height: 44px
   border: 1px solid $border
@@ -154,19 +154,19 @@ $ink: #2A2208
     border-color: $gold
     box-shadow: 0 0 0 3px rgba(201, 168, 76, .18)
 
-.ca-textarea
+.caz-textarea
   height: auto
   padding: 11px 13px
   resize: vertical
   min-height: 84px
   line-height: 1.5
 
-.ca-row
+.caz-row
   display: grid
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr))
   gap: 14px
 
-.ca-count
+.caz-count
   display: block
   text-align: right
   margin-top: 5px
@@ -178,7 +178,7 @@ $ink: #2A2208
     font-weight: 700
 
 // ── Toggle ──
-.ca-toggles
+.caz-toggles
   display: grid
   grid-template-columns: repeat(2, minmax(0, 1fr))
   gap: 10px
@@ -186,7 +186,7 @@ $ink: #2A2208
   @media (max-width: 560px)
     grid-template-columns: 1fr
 
-.ca-toggle
+.caz-toggle
   display: flex
   align-items: center
   gap: 12px
@@ -206,7 +206,7 @@ $ink: #2A2208
     opacity: 0
     pointer-events: none
 
-.ca-toggle__track
+.caz-toggle__track
   position: relative
   width: 40px
   height: 22px
@@ -215,7 +215,7 @@ $ink: #2A2208
   flex-shrink: 0
   transition: background .15s
 
-.ca-toggle__knob
+.caz-toggle__knob
   position: absolute
   top: 3px
   left: 3px
@@ -226,19 +226,19 @@ $ink: #2A2208
   box-shadow: 0 1px 3px rgba(0, 0, 0, .18)
   transition: transform .15s
 
-.ca-toggle input:checked + .ca-toggle__track
+.caz-toggle input:checked + .caz-toggle__track
   background: $gold-dark
 
-.ca-toggle input:checked + .ca-toggle__track .ca-toggle__knob
+.caz-toggle input:checked + .caz-toggle__track .caz-toggle__knob
   transform: translateX(18px)
 
-.ca-toggle__label
+.caz-toggle__label
   font-size: 13.5px
   font-weight: 600
   color: $text-active
 
 // ── Logo dropzone ──
-.ca-drop
+.caz-drop
   display: flex
   align-items: center
   justify-content: center
@@ -255,20 +255,20 @@ $ink: #2A2208
     border-color: $gold
     background: #faf5e6
 
-.ca-drop__hint
+.caz-drop__hint
   display: inline-flex
   align-items: center
   gap: 8px
   font-size: 12.5px
   color: $text-disabled
 
-.ca-drop__img
+.caz-drop__img
   width: 100%
   height: 100%
   object-fit: contain
 
 // ── Navigazione ──
-.ca__nav
+.caz__nav
   display: flex
   justify-content: space-between
   align-items: center
@@ -277,7 +277,7 @@ $ink: #2A2208
   padding-top: 18px
   border-top: 1px solid $border
 
-.ca-btn
+.caz-btn
   display: inline-flex
   align-items: center
   gap: 8px
@@ -311,7 +311,7 @@ $ink: #2A2208
       border-color: $gold-dark
 
 // ── Stepper d'impatto ──
-.ca__stepper
+.caz__stepper
   width: 278px
   flex-shrink: 0
   display: flex
@@ -327,7 +327,7 @@ $ink: #2A2208
     width: 100%
     overflow-x: auto
 
-.ca-step
+.caz-step
   position: relative
   display: flex
   align-items: center
@@ -368,7 +368,7 @@ $ink: #2A2208
       width: auto
       height: 3px
 
-.ca-step__node
+.caz-step__node
   position: relative
   z-index: 1
   width: 46px
@@ -382,34 +382,34 @@ $ink: #2A2208
   border: 2px solid $gold
   transition: background .18s, border-color .18s, transform .18s, box-shadow .18s
 
-.ca-step--active .ca-step__node
+.caz-step--active .caz-step__node
   background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
   border-color: $gold-dark
   transform: scale(1.06)
   box-shadow: 0 0 0 5px rgba(201, 168, 76, .22), 0 6px 16px rgba(169, 134, 58, .32)
 
-.ca-step--done .ca-step__node
+.caz-step--done .caz-step__node
   background: linear-gradient(135deg, $gold 0%, $gold-dark 100%)
   border-color: $gold-dark
 
-.ca-step__meta
+.caz-step__meta
   display: flex
   flex-direction: column
   gap: 1px
   min-width: 0
 
-.ca-step__label
+.caz-step__label
   font-size: 14px
   font-weight: 700
   color: $text-inactive
   line-height: 1.2
 
-.ca-step__desc
+.caz-step__desc
   font-size: 11px
   color: $text-disabled
 
-.ca-step--active .ca-step__label
+.caz-step--active .caz-step__label
   color: $ink
 
-.ca-step--done .ca-step__label
+.caz-step--done .caz-step__label
   color: $gold-dark

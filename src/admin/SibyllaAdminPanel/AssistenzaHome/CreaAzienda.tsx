@@ -83,66 +83,66 @@ export default function CreaAzienda({ navigate }: Props) {
   }
 
   return (
-    <div className="ca">
-      <button type="button" className="ca__back" onClick={() => navigate('pa-gestione-aziende')}>
+    <div className="caz">
+      <button type="button" className="caz__back" onClick={() => navigate('pa-gestione-aziende')}>
         <Ico n="back" s={13} c="#8a6d1f" /> Indietro
       </button>
-      <div className="ca__head">
-        <h1 className="ca__title">{editMode ? 'Modifica azienda' : 'Crea Azienda'}</h1>
-        <p className="ca__lead">
+      <div className="caz__head">
+        <h1 className="caz__title">{editMode ? 'Modifica azienda' : 'Crea Azienda'}</h1>
+        <p className="caz__lead">
           {editMode
             ? 'Aggiorna i dati dell’azienda e salva le modifiche.'
             : 'Compila i passaggi per registrare una nuova azienda cliente.'}
         </p>
       </div>
 
-      <div className="ca__body">
+      <div className="caz__body">
         {/* ── Card form ────────────────────────────────────────────────── */}
-        <section className="ca__card">
-          <header className="ca__card-head">
-            <span className="ca__card-ico"><Ico n={current.icon} s={18} c="#fff" /></span>
-            <div className="ca__card-titles">
-              <span className="ca__eyebrow">Passo {step + 1} di {STEPS.length}</span>
-              <h2 className="ca__heading">{current.label}</h2>
-              <p className="ca__sub">{current.desc}</p>
+        <section className="caz__card">
+          <header className="caz__card-head">
+            <span className="caz__card-ico"><Ico n={current.icon} s={18} c="#fff" /></span>
+            <div className="caz__card-titles">
+              <span className="caz__eyebrow">Passo {step + 1} di {STEPS.length}</span>
+              <h2 className="caz__heading">{current.label}</h2>
+              <p className="caz__sub">{current.desc}</p>
             </div>
           </header>
-          <div className="ca__progress"><span style={{ width: `${progress}%` }} /></div>
+          <div className="caz__progress"><span style={{ width: `${progress}%` }} /></div>
 
-          <div className="ca__fields">
+          <div className="caz__fields">
             {current.id === 'anagrafica' && (
               <>
                 <Field label="Ragione Sociale" required>
-                  <input className="ca-input" maxLength={200} value={form.ragioneSociale} onChange={e => set('ragioneSociale', e.target.value)} />
+                  <input className="caz-input" maxLength={200} value={form.ragioneSociale} onChange={e => set('ragioneSociale', e.target.value)} />
                   <Counter value={form.ragioneSociale} max={200} />
                 </Field>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Nome Ditta" required>
-                    <input className="ca-input" maxLength={200} value={form.nomeDitta} onChange={e => set('nomeDitta', e.target.value)} />
+                    <input className="caz-input" maxLength={200} value={form.nomeDitta} onChange={e => set('nomeDitta', e.target.value)} />
                     <Counter value={form.nomeDitta} max={200} />
                   </Field>
                   <Field label="Tipo Azienda">
-                    <select className="ca-input" value={form.tipoAzienda} onChange={e => set('tipoAzienda', e.target.value)}>
+                    <select className="caz-input" value={form.tipoAzienda} onChange={e => set('tipoAzienda', e.target.value)}>
                       {TIPI.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </Field>
                 </div>
                 <Field label="Descrizione">
-                  <textarea className="ca-input ca-textarea" maxLength={255} rows={3} value={form.descrizione} onChange={e => set('descrizione', e.target.value)} />
+                  <textarea className="caz-input caz-textarea" maxLength={255} rows={3} value={form.descrizione} onChange={e => set('descrizione', e.target.value)} />
                   <Counter value={form.descrizione} max={255} />
                 </Field>
                 <Field label="Indirizzo" required>
-                  <input className="ca-input" maxLength={255} value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} placeholder="Via / Piazza, numero civico" />
+                  <input className="caz-input" maxLength={255} value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)} placeholder="Via / Piazza, numero civico" />
                 </Field>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Città" required>
-                    <input className="ca-input" maxLength={100} value={form.citta} onChange={e => set('citta', e.target.value)} />
+                    <input className="caz-input" maxLength={100} value={form.citta} onChange={e => set('citta', e.target.value)} />
                   </Field>
                   <Field label="Nazione" required>
-                    <input className="ca-input" maxLength={50} value={form.nazione} onChange={e => set('nazione', e.target.value)} />
+                    <input className="caz-input" maxLength={50} value={form.nazione} onChange={e => set('nazione', e.target.value)} />
                   </Field>
                   <Field label="CAP" required>
-                    <input className="ca-input" maxLength={8} value={form.cap} onChange={e => set('cap', e.target.value)} />
+                    <input className="caz-input" maxLength={8} value={form.cap} onChange={e => set('cap', e.target.value)} />
                   </Field>
                 </div>
               </>
@@ -150,28 +150,28 @@ export default function CreaAzienda({ navigate }: Props) {
 
             {current.id === 'fatturazione' && (
               <>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Partita IVA" required>
-                    <input className="ca-input" maxLength={18} value={form.partitaIva} onChange={e => set('partitaIva', e.target.value)} />
+                    <input className="caz-input" maxLength={18} value={form.partitaIva} onChange={e => set('partitaIva', e.target.value)} />
                   </Field>
                   <Field label="Codice Fiscale">
-                    <input className="ca-input" maxLength={36} value={form.codiceFiscale} onChange={e => set('codiceFiscale', e.target.value)} />
+                    <input className="caz-input" maxLength={36} value={form.codiceFiscale} onChange={e => set('codiceFiscale', e.target.value)} />
                   </Field>
                 </div>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Codice destinatario (SDI)">
-                    <input className="ca-input" maxLength={7} value={form.codiceSdi} onChange={e => set('codiceSdi', e.target.value)} placeholder="7 caratteri" />
+                    <input className="caz-input" maxLength={7} value={form.codiceSdi} onChange={e => set('codiceSdi', e.target.value)} placeholder="7 caratteri" />
                   </Field>
                   <Field label="PEC">
-                    <input className="ca-input" maxLength={50} type="email" value={form.pec} onChange={e => set('pec', e.target.value)} />
+                    <input className="caz-input" maxLength={50} type="email" value={form.pec} onChange={e => set('pec', e.target.value)} />
                   </Field>
                 </div>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Email Azienda" required>
-                    <input className="ca-input" maxLength={255} type="email" value={form.emailAzienda} onChange={e => set('emailAzienda', e.target.value)} />
+                    <input className="caz-input" maxLength={255} type="email" value={form.emailAzienda} onChange={e => set('emailAzienda', e.target.value)} />
                   </Field>
                   <Field label="Telefono">
-                    <input className="ca-input" maxLength={20} value={form.telefono} onChange={e => set('telefono', e.target.value)} />
+                    <input className="caz-input" maxLength={20} value={form.telefono} onChange={e => set('telefono', e.target.value)} />
                   </Field>
                 </div>
               </>
@@ -179,20 +179,20 @@ export default function CreaAzienda({ navigate }: Props) {
 
             {current.id === 'amministratore' && (
               <>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Nome" required>
-                    <input className="ca-input" maxLength={100} value={form.uNome} onChange={e => set('uNome', e.target.value)} />
+                    <input className="caz-input" maxLength={100} value={form.uNome} onChange={e => set('uNome', e.target.value)} />
                   </Field>
                   <Field label="Cognome" required>
-                    <input className="ca-input" maxLength={100} value={form.uCognome} onChange={e => set('uCognome', e.target.value)} />
+                    <input className="caz-input" maxLength={100} value={form.uCognome} onChange={e => set('uCognome', e.target.value)} />
                   </Field>
                 </div>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Data di Nascita" required>
-                    <input className="ca-input" type="date" value={form.dataNascita} onChange={e => set('dataNascita', e.target.value)} />
+                    <input className="caz-input" type="date" value={form.dataNascita} onChange={e => set('dataNascita', e.target.value)} />
                   </Field>
                   <Field label="Sesso" required>
-                    <select className="ca-input" value={form.sesso} onChange={e => set('sesso', e.target.value)}>
+                    <select className="caz-input" value={form.sesso} onChange={e => set('sesso', e.target.value)}>
                       <option value="">Seleziona…</option>
                       <option value="M">Maschile</option>
                       <option value="F">Femminile</option>
@@ -201,32 +201,32 @@ export default function CreaAzienda({ navigate }: Props) {
                   </Field>
                 </div>
                 <Field label="Email Utente" required>
-                  <input className="ca-input" maxLength={255} type="email" value={form.uEmail} onChange={e => set('uEmail', e.target.value)} placeholder="admin@azienda.it" />
+                  <input className="caz-input" maxLength={255} type="email" value={form.uEmail} onChange={e => set('uEmail', e.target.value)} placeholder="admin@azienda.it" />
                 </Field>
               </>
             )}
 
             {current.id === 'configurazione' && (
               <>
-                <div className="ca-row">
+                <div className="caz-row">
                   <Field label="Sito Web" required>
-                    <input className="ca-input" value={form.sitoWeb} onChange={e => set('sitoWeb', e.target.value)} placeholder="https://…" />
+                    <input className="caz-input" value={form.sitoWeb} onChange={e => set('sitoWeb', e.target.value)} placeholder="https://…" />
                   </Field>
                   <Field label="Indice di Sostenibilità">
-                    <input className="ca-input" type="number" min={0} max={100} value={form.indiceSostenibilita} onChange={e => set('indiceSostenibilita', e.target.value)} />
+                    <input className="caz-input" type="number" min={0} max={100} value={form.indiceSostenibilita} onChange={e => set('indiceSostenibilita', e.target.value)} />
                   </Field>
                 </div>
-                <div className="ca-toggles">
+                <div className="caz-toggles">
                   <Toggle label="Demo" checked={form.demo} onChange={v => set('demo', v)} />
                   <Toggle label="Attivo" checked={form.attivo} onChange={v => set('attivo', v)} />
                   <Toggle label="Disponibilità Prerolling" checked={form.prerolling} onChange={v => set('prerolling', v)} />
                   <Toggle label="Partner" checked={form.partner} onChange={v => set('partner', v)} />
                 </div>
                 <Field label="Logo Aziendale">
-                  <label className="ca-drop">
+                  <label className="caz-drop">
                     {form.logo
-                      ? <img className="ca-drop__img" src={form.logo} alt="Logo" />
-                      : <span className="ca-drop__hint"><Ico n="upload" s={16} c="var(--color-text-disabled)" /> Trascina o scegli un'immagine</span>}
+                      ? <img className="caz-drop__img" src={form.logo} alt="Logo" />
+                      : <span className="caz-drop__hint"><Ico n="upload" s={16} c="var(--color-text-disabled)" /> Trascina o scegli un'immagine</span>}
                     <input type="file" accept="image/*" hidden onChange={handleLogo} />
                   </label>
                 </Field>
@@ -234,11 +234,11 @@ export default function CreaAzienda({ navigate }: Props) {
             )}
           </div>
 
-          <footer className="ca__nav">
+          <footer className="caz__nav">
             {step > 0
-              ? <button type="button" className="ca-btn ca-btn--ghost" onClick={() => setStep(s => s - 1)}><Ico n="arrow-left" s={13} c="#2A2208" /> Indietro</button>
+              ? <button type="button" className="caz-btn caz-btn--ghost" onClick={() => setStep(s => s - 1)}><Ico n="arrow-left" s={13} c="#2A2208" /> Indietro</button>
               : <span />}
-            <button type="button" className="ca-btn ca-btn--primary" disabled={!stepValid(step)} onClick={goNext}>
+            <button type="button" className="caz-btn caz-btn--primary" disabled={!stepValid(step)} onClick={goNext}>
               {isLast ? (editMode ? 'Salva modifiche' : 'Crea Azienda') : 'Avanti'}
               {!isLast && <Ico n="arrow-right" s={13} c="#fff" />}
             </button>
@@ -246,17 +246,17 @@ export default function CreaAzienda({ navigate }: Props) {
         </section>
 
         {/* ── Stepper ──────────────────────────────────────────────────── */}
-        <nav className="ca__stepper" aria-label="Avanzamento">
+        <nav className="caz__stepper" aria-label="Avanzamento">
           {STEPS.map((s, i) => {
             const state = i === step ? 'active' : (i < step ? 'done' : 'todo')
             return (
-              <button key={s.id} type="button" className={`ca-step ca-step--${state}`} onClick={() => setStep(i)}>
-                <span className="ca-step__node">
+              <button key={s.id} type="button" className={`caz-step caz-step--${state}`} onClick={() => setStep(i)}>
+                <span className="caz-step__node">
                   <Ico n={state === 'done' ? 'check' : s.icon} s={17} c={state === 'todo' ? '#a9863a' : '#fff'} />
                 </span>
-                <span className="ca-step__meta">
-                  <span className="ca-step__label">{s.label}</span>
-                  <span className="ca-step__desc">{s.desc}</span>
+                <span className="caz-step__meta">
+                  <span className="caz-step__label">{s.label}</span>
+                  <span className="caz-step__desc">{s.desc}</span>
                 </span>
               </button>
             )
@@ -271,9 +271,9 @@ export default function CreaAzienda({ navigate }: Props) {
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
-    <div className="ca-field">
-      <label className="ca-label">
-        {label}{required && <span className="ca-req"> *</span>}
+    <div className="caz-field">
+      <label className="caz-label">
+        {label}{required && <span className="caz-req"> *</span>}
       </label>
       {children}
     </div>
@@ -281,15 +281,15 @@ function Field({ label, required, children }: { label: string; required?: boolea
 }
 
 function Counter({ value, max }: { value: string; max: number }) {
-  return <span className="ca-count"><b>{value.length}</b> / {max}</span>
+  return <span className="caz-count"><b>{value.length}</b> / {max}</span>
 }
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="ca-toggle">
+    <label className="caz-toggle">
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
-      <span className="ca-toggle__track"><span className="ca-toggle__knob" /></span>
-      <span className="ca-toggle__label">{label}</span>
+      <span className="caz-toggle__track"><span className="caz-toggle__knob" /></span>
+      <span className="caz-toggle__label">{label}</span>
     </label>
   )
 }
