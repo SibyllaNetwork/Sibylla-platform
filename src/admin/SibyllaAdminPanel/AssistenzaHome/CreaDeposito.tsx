@@ -13,18 +13,18 @@ interface Props {
   navigate: (p: string) => void
 }
 
-interface Dep { ragione: string; partner: string; sales: string; mailFinance: string; mailSales: string }
+interface Dep { ragione: string; partner: string; sales: string; deposito: string; mailFinance: string; mailSales: string }
 
 const BASE_ROWS: Dep[] = [
-  { ragione: 'ITALCAMEL', partner: '', sales: 'Rossi Mario', mailFinance: 'finance@italcamel.it', mailSales: 'm.rossi@italcamel.it' },
-  { ragione: 'Tui Poland', partner: '', sales: '', mailFinance: 'finance@tuipoland.pl', mailSales: '' },
-  { ragione: 'test58', partner: 'test58', sales: '', mailFinance: '', mailSales: '' },
-  { ragione: 'Hassab srl', partner: '', sales: 'Bianchi Anna', mailFinance: 'amministrazione@hassab.it', mailSales: 'a.bianchi@hassab.it' },
-  { ragione: 'Tui Italia', partner: '', sales: 'Rossi Mario', mailFinance: 'finance@tuitalia.it', mailSales: 'm.rossi@tuitalia.it' },
-  { ragione: 'Ovest Destination Italy', partner: 'Ovest Destination Italy', sales: '', mailFinance: 'finance@ovestdestination.it', mailSales: '' },
-  { ragione: 'Debus snc', partner: '', sales: 'Verdi Luca', mailFinance: '', mailSales: 'l.verdi@debus.it' },
-  { ragione: 'Hassab srl', partner: '', sales: '', mailFinance: '', mailSales: '' },
-  { ragione: 'Imperatore Travel', partner: '', sales: 'Bianchi Anna', mailFinance: 'finance@imperatoretravel.it', mailSales: 'a.bianchi@imperatoretravel.it' },
+  { ragione: 'ITALCAMEL', partner: '', sales: 'Rossi Mario', deposito: '12.500,00€', mailFinance: 'finance@italcamel.it', mailSales: 'm.rossi@italcamel.it' },
+  { ragione: 'Tui Poland', partner: '', sales: '', deposito: '980,50€', mailFinance: 'finance@tuipoland.pl', mailSales: '' },
+  { ragione: 'test58', partner: 'test58', sales: '', deposito: '0,00€', mailFinance: '', mailSales: '' },
+  { ragione: 'Hassab srl', partner: '', sales: 'Bianchi Anna', deposito: '7.320,00€', mailFinance: 'amministrazione@hassab.it', mailSales: 'a.bianchi@hassab.it' },
+  { ragione: 'Tui Italia', partner: '', sales: 'Rossi Mario', deposito: '145.000,00€', mailFinance: 'finance@tuitalia.it', mailSales: 'm.rossi@tuitalia.it' },
+  { ragione: 'Ovest Destination Italy', partner: 'Ovest Destination Italy', sales: '', deposito: '3.400,75€', mailFinance: 'finance@ovestdestination.it', mailSales: '' },
+  { ragione: 'Debus snc', partner: '', sales: 'Verdi Luca', deposito: '58,90€', mailFinance: '', mailSales: 'l.verdi@debus.it' },
+  { ragione: 'Hassab srl', partner: '', sales: '', deposito: '0,00€', mailFinance: '', mailSales: '' },
+  { ragione: 'Imperatore Travel', partner: '', sales: 'Bianchi Anna', deposito: '26.780,40€', mailFinance: 'finance@imperatoretravel.it', mailSales: 'a.bianchi@imperatoretravel.it' },
 ]
 const ROWS: Dep[] = [
   ...BASE_ROWS,
@@ -32,6 +32,9 @@ const ROWS: Dep[] = [
     ragione: `Azienda Demo ${i + 1}`,
     partner: '',
     sales: '',
+    // Importi fittizi di taglia diversa: servono a verificare l'allineamento
+    // a destra della colonna Deposito.
+    deposito: `${((i * 937) % 90000 / 100).toLocaleString('it-IT', { minimumFractionDigits: 2 })}€`,
     mailFinance: i % 3 === 0 ? `finance@aziendademo${i + 1}.it` : '',
     mailSales: i % 4 === 0 ? `sales@aziendademo${i + 1}.it` : '',
   })),
@@ -217,13 +220,15 @@ export default function CreaDeposito({ navigate }: Props) {
                 <td><TruncatedText text={r.partner || VUOTO} /></td>
                 <td><TruncatedText text={r.sales || VUOTO} /></td>
                 <td className="cdp__nowrap cdp__dep">
-                  <span className="cdp__val">0,00€</span>
+                  <div className="cdp__dep-cell">
+                  <span className="cdp__val">{r.deposito}</span>
                   <Tooltip text="Deposito">
                     <button type="button" className="cdp__mini" onClick={() => setHistRow(r)}><Ico n="clock" s={13} c="var(--color-text-inactive)" /></button>
                   </Tooltip>
                   <Tooltip text="Dettaglio transazioni">
                     <button type="button" className="cdp__mini" onClick={() => { setTxRow(r); setTxFrom(''); setTxTo('') }}><Ico n="eye" s={13} c="var(--color-text-inactive)" /></button>
                   </Tooltip>
+                  </div>
                 </td>
                 <td className="cdp__nowrap"><span className="cdp__val">0,00%</span><button type="button" className="cdp__mini" title="Invia"><Ico n="email" s={13} c="var(--color-text-inactive)" /></button></td>
                 <td className="cdp__nowrap"><span className="cdp__val">0,00%</span><button type="button" className="cdp__mini" title="Invia"><Ico n="email" s={13} c="var(--color-text-inactive)" /></button></td>

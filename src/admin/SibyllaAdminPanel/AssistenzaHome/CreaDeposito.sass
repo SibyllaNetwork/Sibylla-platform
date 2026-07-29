@@ -123,23 +123,23 @@
 // Larghezze di colonna in percentuale: la somma fa 100. Con 12 colonne le
 // intestazioni più lunghe restano abbreviate (tooltip col testo completo).
 .cdp__col-ragione
-  width: 13%
+  width: 12.2%
 .cdp__col-partner
   width: 7.8%
 .cdp__col-sales
   width: 8.2%
 .cdp__col-deposito
-  width: 10.5%
+  width: 14.6%
 .cdp__col-sollecito
-  width: 8.2%
+  width: 7.0%
 .cdp__col-stop
-  width: 7%
+  width: 6.9%
 .cdp__col-comm
-  width: 6.4%
+  width: 5.4%
 .cdp__col-mail
   width: 8.6%
 .cdp__col-note
-  width: 4.2%
+  width: 4.4%
 .cdp__col-azioni
   width: 9.3%
 
@@ -159,9 +159,26 @@
   font-variant-numeric: tabular-nums
   color: $text-active
 
-// Colonna Deposito: importo e pulsanti allineati a destra (intestazione inclusa).
+// Colonna Deposito: intestazione e importi allineati a destra. I due pulsanti
+// restano ancorati al bordo destro (incolonnati riga per riga) e l'importo
+// occupa lo spazio che resta, così cifre lunghe non li spingono fuori cella.
 .cdp .cdp__table .cdp__dep
   text-align: right
+
+.cdp__dep-cell
+  display: flex
+  align-items: center
+  justify-content: flex-end
+  gap: 2px
+
+  .cdp__val
+    flex: 1 1 auto
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .cdp__mini
+    flex: 0 0 auto
 
 .cdp__c
   text-align: center
