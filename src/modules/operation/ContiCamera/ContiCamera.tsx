@@ -108,7 +108,7 @@ function fmtCurrency(v: number): string {
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
-export default function ContiCamera({ navigate }: { navigate: (p: string) => void }) {
+export default function ContiCamera({ navigate, embedded = false }: { navigate: (p: string) => void; embedded?: boolean }) {
   const [data, setData] = useState<Data>(FALLBACK)
   const [selAddebiti, setSelAddebiti] = useState<number[]>([])
   const [selAnticipi, setSelAnticipi] = useState<number[]>([])
@@ -121,6 +121,7 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
   const [modTrasferisci, setModTrasferisci] = useState<Addebito | null>(null)
   const [modElimina, setModElimina] = useState<Addebito | null>(null)
   const [modAggiungi, setModAggiungi] = useState(false)
+  const [modAggiungiAnticipo, setModAggiungiAnticipo] = useState(false)
   const [estrattoOpen, setEstrattoOpen] = useState(false)
 
   useEffect(() => {
@@ -163,40 +164,44 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
   }
 
   return (
-    <div className="conti-camera">
-      <PageHead
-        title="Conti camera"
-        subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
-        onBack={() => navigate('ospiti-in-casa')}
-        actions={<div className="conti-camera__stampante">Stampante fiscale ...</div>}
-      />
+    <div className={'conti-camera' + (embedded ? ' conti-camera--embedded' : '')}>
+      {!embedded && (
+        <>
+          <PageHead
+            title="Conti camera"
+            subtitle="Gestisci facilmente gli addebiti del soggiorno: sposta le singole voci tra camere o ripartisci il valore della prenotazione"
+            onBack={() => navigate('ospiti-in-casa')}
+            actions={<div className="conti-camera__stampante">Stampante fiscale ...</div>}
+          />
 
-      {/* ─── Dettaglio ─────────────────────────────────────────────────────── */}
-      <h3 className="conti-camera__section-title">Dettaglio</h3>
-      <div className="conti-camera__detail-card">
-        <div className="conti-camera__detail-row">
-          <DetailField label="N. Prenotazione" value={d.prenotazioneNum} />
-          <DetailField label="Nominativo" value={d.nominativo} />
-          <DetailField label="Data di arrivo" value={d.dataArrivo} />
-          <DetailField label="Data di partenza" value={d.dataPartenza} />
-          <DetailField label="Giorni" value={String(d.giorni)} />
-          <DetailField label="Ospiti" value={String(d.ospiti)} />
-          <DetailField label="Agenzia" value={d.agenzia} />
-          <DetailField label="Credit" value={d.credit} />
-          <DetailField label="Struttura" value={d.struttura} />
-        </div>
-        <div className="conti-camera__detail-row">
-          <DetailField label="Arrangiamento" value={d.arrangiamento} />
-          <DetailField label="N camere" value={String(d.nCamere)} />
-          <DetailField label="Totale" value={fmtCurrency(d.totale)} />
-          <DetailField label="Di cui camere" value={fmtCurrency(d.diCuiCamere)} />
-          <DetailField label="Di cui servizi" value={fmtCurrency(d.diCuiServizi)} />
-          <DetailField label="Di cui tasse di soggiorno" value={fmtCurrency(d.diCuiTasse)} />
-          <DetailField label="Pagato" value={fmtCurrency(d.pagato)} />
-          <DetailField label="Da pagare" value={fmtCurrency(d.daPagare)} />
-          <DetailField label="Note" value={d.note} />
-        </div>
-      </div>
+          {/* ─── Dettaglio ─────────────────────────────────────────────────── */}
+          <h3 className="conti-camera__section-title">Dettaglio</h3>
+          <div className="conti-camera__detail-card">
+            <div className="conti-camera__detail-row">
+              <DetailField label="N. Prenotazione" value={d.prenotazioneNum} />
+              <DetailField label="Nominativo" value={d.nominativo} />
+              <DetailField label="Data di arrivo" value={d.dataArrivo} />
+              <DetailField label="Data di partenza" value={d.dataPartenza} />
+              <DetailField label="Giorni" value={String(d.giorni)} />
+              <DetailField label="Ospiti" value={String(d.ospiti)} />
+              <DetailField label="Agenzia" value={d.agenzia} />
+              <DetailField label="Credit" value={d.credit} />
+              <DetailField label="Struttura" value={d.struttura} />
+            </div>
+            <div className="conti-camera__detail-row">
+              <DetailField label="Arrangiamento" value={d.arrangiamento} />
+              <DetailField label="N camere" value={String(d.nCamere)} />
+              <DetailField label="Totale" value={fmtCurrency(d.totale)} />
+              <DetailField label="Di cui camere" value={fmtCurrency(d.diCuiCamere)} />
+              <DetailField label="Di cui servizi" value={fmtCurrency(d.diCuiServizi)} />
+              <DetailField label="Di cui tasse di soggiorno" value={fmtCurrency(d.diCuiTasse)} />
+              <DetailField label="Pagato" value={fmtCurrency(d.pagato)} />
+              <DetailField label="Da pagare" value={fmtCurrency(d.daPagare)} />
+              <DetailField label="Note" value={d.note} />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ─── Layout 2 colonne ──────────────────────────────────────────────── */}
       <div className="conti-camera__layout">
@@ -287,7 +292,12 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
 
         {/* Colonna dx: Anticipi + Documenti */}
         <div className="conti-camera__col">
-          <h3 className="conti-camera__section-title">Anticipi</h3>
+          <div className="conti-camera__section-head">
+            <h3 className="conti-camera__section-title">Anticipi</h3>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungiAnticipo(true)}>
+              <i className="fa-regular fa-circle-plus" /> Aggiungi anticipo
+            </button>
+          </div>
           <div className="sib-table-wrap">
             <table className="sib-table conti-camera__table">
               <thead>
@@ -342,40 +352,44 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
             Totale: <strong>{fmtCurrency(totAnticipi)}</strong>
           </div>
 
-          <h3 className="conti-camera__section-title">Documenti emessi</h3>
-          <div className="sib-table-wrap">
-            <table className="sib-table conti-camera__table">
-              <thead>
-                <tr>
-                  <th>Documento</th>
-                  <th>Data</th>
-                  <th>Intestatario</th>
-                  <th className="conti-camera__th-num">Totale €</th>
-                  <th className="conti-camera__th-num">Pagato €</th>
-                  <th className="conti-camera__th-num">Sospeso €</th>
-                  <th>Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.documenti.map((doc) => (
-                  <tr key={doc.id}>
-                    <td>{doc.documento}</td>
-                    <td>{doc.data}</td>
-                    <td className={doc.intestatario ? '' : 'sib-cell--muted'}>{doc.intestatario || '-'}</td>
-                    <td className="conti-camera__td-num">{doc.totale.toFixed(2).replace('.', ',')}</td>
-                    <td className="conti-camera__td-num">{doc.pagato.toFixed(2).replace('.', ',')}</td>
-                    <td className="conti-camera__td-num">{doc.sospeso.toFixed(2).replace('.', ',')}</td>
-                    <td>
-                      <div className="conti-camera__row-actions">
-                        <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button>
-                        <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {!embedded && (
+            <>
+              <h3 className="conti-camera__section-title">Documenti emessi</h3>
+              <div className="sib-table-wrap">
+                <table className="sib-table conti-camera__table">
+                  <thead>
+                    <tr>
+                      <th>Documento</th>
+                      <th>Data</th>
+                      <th>Intestatario</th>
+                      <th className="conti-camera__th-num">Totale €</th>
+                      <th className="conti-camera__th-num">Pagato €</th>
+                      <th className="conti-camera__th-num">Sospeso €</th>
+                      <th>Azioni</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.documenti.map((doc) => (
+                      <tr key={doc.id}>
+                        <td>{doc.documento}</td>
+                        <td>{doc.data}</td>
+                        <td className={doc.intestatario ? '' : 'sib-cell--muted'}>{doc.intestatario || '-'}</td>
+                        <td className="conti-camera__td-num">{doc.totale.toFixed(2).replace('.', ',')}</td>
+                        <td className="conti-camera__td-num">{doc.pagato.toFixed(2).replace('.', ',')}</td>
+                        <td className="conti-camera__td-num">{doc.sospeso.toFixed(2).replace('.', ',')}</td>
+                        <td>
+                          <div className="conti-camera__row-actions">
+                            <button type="button" className="sib-btn sib-btn--icon" aria-label="Stampa"><i className="fa-solid fa-print" /></button>
+                            <button type="button" className="sib-btn sib-btn--icon conti-camera__icon-danger" aria-label="Visualizza"><i className="fa-solid fa-eye" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -385,6 +399,7 @@ export default function ContiCamera({ navigate }: { navigate: (p: string) => voi
       {modTrasferisci && <TrasferisciModal addebito={modTrasferisci} addebiti={data.addebiti} onClose={() => setModTrasferisci(null)} />}
       {modElimina && <EliminaModal addebito={modElimina} onClose={() => setModElimina(null)} onConfirm={() => setModElimina(null)} />}
       {modAggiungi && <AggiungiAddebitoModal dettaglio={d} onClose={() => setModAggiungi(false)} />}
+      {modAggiungiAnticipo && <AggiungiAnticipoModal dettaglio={d} onClose={() => setModAggiungiAnticipo(false)} />}
     </div>
   )
 }
@@ -704,6 +719,87 @@ function AggiungiAddebitoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; o
       </div>
       <div className="cc-modal__foot">
         <button type="button" className="sib-btn sib-btn--primary" disabled={!nomeServizio || !prezzo || !iva} onClick={onClose}>Salva</button>
+      </div>
+    </ModalShell>
+  )
+}
+
+// ─── MODAL: Aggiungi anticipo ────────────────────────────────────────────────
+function AggiungiAnticipoModal({ dettaglio, onClose }: { dettaglio: Dettaglio; onClose: () => void }) {
+  const [camera, setCamera] = useState('')
+  const [tipologia, setTipologia] = useState('')
+  const [prezzo, setPrezzo] = useState('')
+  const [iva, setIva] = useState('')
+  const today = new Date().toLocaleDateString('it-IT')
+  const [data, setData] = useState(today)
+
+  return (
+    <ModalShell title="Aggiungi anticipo" onClose={onClose} maxWidth={860}>
+      <div className="cc-modal__detail-row">
+        <DetailField label="N. Prenotazione" value={dettaglio.prenotazioneNum} />
+        <DetailField label="Nominativo" value={dettaglio.nominativo} />
+        <DetailField label="Data di arrivo" value={dettaglio.dataArrivo} />
+        <DetailField label="Data di partenza" value={dettaglio.dataPartenza} />
+      </div>
+      <div className="cc-modal__row">
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="camera"
+          label="Camera"
+          value={camera}
+          onChange={(e) => setCamera(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: '401', label: '401' },
+            { value: '402', label: '402' },
+            { value: '403', label: '403' },
+          ]}
+        />
+        <SelectField
+          className="cc-modal__field cc-modal__field--medium"
+          name="tipologia"
+          label="Tipologia"
+          value={tipologia}
+          onChange={(e) => setTipologia(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: 'bonifico', label: 'Bonifico' },
+            { value: 'carta', label: 'Carta di credito' },
+            { value: 'contanti', label: 'Contanti' },
+            { value: 'caparra', label: 'Caparra confirmatoria' },
+          ]}
+        />
+        <div className="cc-modal__field-raw cc-modal__field--xs">
+          <label>Prezzo</label>
+          <div className="cc-modal__amount">
+            <input className="sib-input" value={prezzo} onChange={(e) => setPrezzo(e.target.value)} />
+            <span>€</span>
+          </div>
+        </div>
+        <SelectField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="iva"
+          label="IVA"
+          value={iva}
+          onChange={(e) => setIva(e.target.value)}
+          options={[
+            { value: '', label: 'Seleziona' },
+            { value: '0', label: '0%' },
+            { value: '4', label: '4%' },
+            { value: '10', label: '10%' },
+            { value: '22', label: '22%' },
+          ]}
+        />
+        <InputField
+          className="cc-modal__field cc-modal__field--narrow"
+          name="data"
+          label="Data"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+        />
+      </div>
+      <div className="cc-modal__foot">
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!tipologia || !prezzo} onClick={onClose}>Salva</button>
       </div>
     </ModalShell>
   )

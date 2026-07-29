@@ -1,0 +1,188 @@
+// ─── ANAGRAFICA COMBOBOX (ricerca cliente / agenzia) ─────────────────────────
+@use '../../../styles/tokens' as *
+
+.anag-cb__field
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+.anag-cb__label
+  font-family: 'Poppins', sans-serif
+  font-size: 12px
+  font-weight: 600
+  color: $primary
+
+.anag-cb__control
+  position: relative
+  display: flex
+  align-items: center
+
+.anag-cb__search-ico
+  position: absolute
+  right: 12px
+  font-size: 13px
+  color: $text-inactive
+  pointer-events: none
+
+// 2 classi per battere .sib-input a pari specificità (design system caricato dopo)
+.anag-cb__input.sib-input
+  width: 100%
+  padding-right: 34px
+
+// ── Chip anagrafica selezionata ──────────────────────────────────────────────
+.anag-cb__chip
+  display: flex
+  align-items: center
+  gap: 10px
+  height: 34px
+  padding: 0 8px 0 12px
+  border: 1px solid $primary-200
+  border-radius: 8px
+  background: $primary-50
+
+.anag-cb__chip-ico
+  font-size: 14px
+  color: $primary
+  flex: 0 0 auto
+
+.anag-cb__chip-text
+  display: flex
+  flex-direction: column
+  line-height: 1.15
+  min-width: 0
+  flex: 1 1 auto
+
+.anag-cb__chip-name
+  font-family: 'Poppins', sans-serif
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.anag-cb__chip-sub
+  font-size: 11px
+  color: $text-inactive
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.anag-cb__chip-x
+  flex: 0 0 auto
+  width: 24px
+  height: 24px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: none
+  background: transparent
+  border-radius: 6px
+  color: $text-inactive
+  cursor: pointer
+
+  &:hover
+    background: rgba(0, 0, 0, .05)
+    color: $text-active
+
+// ── Dropdown (portale) ───────────────────────────────────────────────────────
+.anag-cb__pop
+  position: fixed
+  z-index: 1201
+  background: var(--color-surface)
+  border: 1px solid $border
+  border-radius: 10px
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .14)
+  overflow: hidden
+
+.anag-cb__list
+  list-style: none
+  margin: 0
+  padding: 6px
+  max-height: 240px
+  overflow-y: auto
+
+.anag-cb__opt
+  display: flex
+  align-items: center
+  gap: 10px
+  width: 100%
+  padding: 8px 10px
+  border: none
+  background: transparent
+  border-radius: 8px
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    background: $bg
+
+.anag-cb__opt-ico
+  font-size: 14px
+  color: $primary
+  flex: 0 0 auto
+
+.anag-cb__opt-text
+  display: flex
+  flex-direction: column
+  line-height: 1.2
+  min-width: 0
+
+.anag-cb__opt-name
+  font-family: 'Poppins', sans-serif
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.anag-cb__opt-sub
+  font-size: 11px
+  color: $text-inactive
+
+// ── Stato vuoto + Crea ───────────────────────────────────────────────────────
+.anag-cb__empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 10px
+  padding: 22px 16px 16px
+  text-align: center
+
+.anag-cb__empty-ico
+  font-size: 26px
+  color: $primary-200
+
+.anag-cb__empty-txt
+  margin: 0
+  font-size: 13px
+  color: $text-inactive
+
+  strong
+    color: $text-active
+
+// Voce fissa "+ Crea anagrafica …": sempre in fondo alla select, con
+// separatore superiore per distinguerla dai risultati.
+.anag-cb__create
+  display: flex
+  align-items: center
+  gap: 8px
+  width: 100%
+  padding: 11px 12px
+  border: none
+  border-top: 1px solid $border
+  border-radius: 0 0 10px 10px
+  background: transparent
+  color: $primary
+  font-family: 'Poppins', sans-serif
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  text-align: left
+
+  i
+    font-size: 14px
+
+  &:hover
+    background: $primary-50
