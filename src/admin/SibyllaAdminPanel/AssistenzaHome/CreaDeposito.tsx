@@ -5,6 +5,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import Modal from '../../../core/components/Modal'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import './CreaDeposito.sass'
 
@@ -12,24 +13,35 @@ interface Props {
   navigate: (p: string) => void
 }
 
-interface Dep { ragione: string; partner: string; sales: string }
+interface Dep { ragione: string; partner: string; sales: string; mailFinance: string; mailSales: string }
 
 const BASE_ROWS: Dep[] = [
-  { ragione: 'ITALCAMEL', partner: '', sales: '' },
-  { ragione: 'Tui Poland', partner: '', sales: '' },
-  { ragione: 'test58', partner: 'test58', sales: '' },
-  { ragione: 'Hassab srl', partner: '', sales: '' },
-  { ragione: 'Tui Italia', partner: '', sales: '' },
-  { ragione: 'Ovest Destination Italy', partner: 'Ovest Destination Italy', sales: '' },
-  { ragione: 'Debus snc', partner: '', sales: '' },
-  { ragione: 'Hassab srl', partner: '', sales: '' },
-  { ragione: 'Imperatore Travel', partner: '', sales: '' },
+  { ragione: 'ITALCAMEL', partner: '', sales: 'Rossi Mario', mailFinance: 'finance@italcamel.it', mailSales: 'm.rossi@italcamel.it' },
+  { ragione: 'Tui Poland', partner: '', sales: '', mailFinance: 'finance@tuipoland.pl', mailSales: '' },
+  { ragione: 'test58', partner: 'test58', sales: '', mailFinance: '', mailSales: '' },
+  { ragione: 'Hassab srl', partner: '', sales: 'Bianchi Anna', mailFinance: 'amministrazione@hassab.it', mailSales: 'a.bianchi@hassab.it' },
+  { ragione: 'Tui Italia', partner: '', sales: 'Rossi Mario', mailFinance: 'finance@tuitalia.it', mailSales: 'm.rossi@tuitalia.it' },
+  { ragione: 'Ovest Destination Italy', partner: 'Ovest Destination Italy', sales: '', mailFinance: 'finance@ovestdestination.it', mailSales: '' },
+  { ragione: 'Debus snc', partner: '', sales: 'Verdi Luca', mailFinance: '', mailSales: 'l.verdi@debus.it' },
+  { ragione: 'Hassab srl', partner: '', sales: '', mailFinance: '', mailSales: '' },
+  { ragione: 'Imperatore Travel', partner: '', sales: 'Bianchi Anna', mailFinance: 'finance@imperatoretravel.it', mailSales: 'a.bianchi@imperatoretravel.it' },
 ]
 const ROWS: Dep[] = [
   ...BASE_ROWS,
-  ...Array.from({ length: 33 }, (_, i) => ({ ragione: `Azienda Demo ${i + 1}`, partner: '', sales: '' })),
+  ...Array.from({ length: 33 }, (_, i) => ({
+    ragione: `Azienda Demo ${i + 1}`,
+    partner: '',
+    sales: '',
+    mailFinance: i % 3 === 0 ? `finance@aziendademo${i + 1}.it` : '',
+    mailSales: i % 4 === 0 ? `sales@aziendademo${i + 1}.it` : '',
+  })),
 ]
 const PAGE_SIZE = 10
+// Etichetta con cui le celle vuote entrano nei filtri a imbuto.
+const VUOTO = '—'
+// Chiave della nota legata alla riga (non alla posizione in pagina): con filtri
+// e ordinamento attivi la posizione cambia, la riga no.
+const noteKey = (r: Dep) => `${r.ragione}#${ROWS.indexOf(r)}`
 
 const ROLLING_PARTNERS = [
   { partner: '-', deposito: '0,00€', stato: 'Ongoing' },
@@ -65,15 +77,35 @@ const EMPTY_AG: AgForm = {
 export default function CreaDeposito({ navigate }: Props) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  // Filtri per colonna: imbuto (scelte multiple), lente (testo), ordinamento.
+  const cf = useColFilters()
+
+  // Le scelte dell'imbuto seguono i valori realmente presenti in tabella.
+  const partnerOpt = useMemo(
+    () => Array.from(new Set(ROWS.map(r => r.partner || VUOTO))).sort(), [])
+  const salesOpt = useMemo(
+    () => Array.from(new Set(ROWS.map(r => r.sales || VUOTO))).sort(), [])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
-    return q ? ROWS.filter(r => r.ragione.toLowerCase().includes(q)) : ROWS
-  }, [search])
+    return ROWS.filter(r =>
+      (!q || r.ragione.toLowerCase().includes(q)) &&
+      cf.matchText(r.ragione, 'ragione') &&
+      cf.matchMulti(r.partner || VUOTO, 'partner') &&
+      cf.matchMulti(r.sales || VUOTO, 'sales') &&
+      cf.matchText(r.mailFinance, 'mailFinance') &&
+      cf.matchText(r.mailSales, 'mailSales')
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, cf.text, cf.multi])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [search])
-  const rows = filtered.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
+  const sorted = useMemo(() => cf.sortRows(filtered),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, cf.sort])
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [search, cf.text, cf.multi])
+  const rows = sorted.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
 
   // Modali azioni
   const [notes, setNotes] = useState<Record<string, string>>({})
@@ -107,7 +139,14 @@ export default function CreaDeposito({ navigate }: Props) {
   }
   const openAgenzia = (r: Dep) => {
     setAgRow(r)
-    setAgForm({ ...EMPTY_AG, ragioneSociale: r.ragione, partner: r.partner, salesManager: r.sales })
+    setAgForm({
+      ...EMPTY_AG,
+      ragioneSociale: r.ragione,
+      partner: r.partner,
+      salesManager: r.sales,
+      emailFinance: r.mailFinance,
+      emailSales: r.mailSales,
+    })
   }
   const saveAgenzia = () => {
     if (!agRow) return
@@ -154,27 +193,30 @@ export default function CreaDeposito({ navigate }: Props) {
           </colgroup>
           <thead>
             <tr>
-              <th><ThLabel full="Ragione sociale" short="Rag. sociale" /></th>
-              <th><ThLabel full="Partner" /></th>
-              <th><ThLabel full="Sales manager" short="Sales mgr." /></th>
-              <th><ThLabel full="Deposito" /></th>
+              <th><span className="sib-colf-head"><ThLabel full="Ragione sociale" short="Rag. sociale" />{cf.th('ragione', 'ragione sociale', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Partner" />{cf.th('partner', 'partner', { options: partnerOpt })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Sales manager" short="Sales mgr." />{cf.th('sales', 'sales manager', { options: salesOpt })}</span></th>
+              <th className="cdp__dep"><ThLabel full="Deposito" /></th>
               <th><ThLabel full="Primo Sollecito" short="1° sollecito" /></th>
               <th><ThLabel full="Secondo Sollecito" short="2° sollecito" /></th>
               <th><ThLabel full="Stop sales" /></th>
               <th><ThLabel full="Commissione" short="Comm." /></th>
-              <th><ThLabel full="Indirizzo mail finance" short="Mail fin." /></th>
-              <th><ThLabel full="Indirizzo mail Sales manager" short="Mail sales" /></th>
+              <th><span className="sib-colf-head"><ThLabel full="Indirizzo mail finance" short="Mail fin." />{cf.th('mailFinance', 'indirizzo mail finance', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Indirizzo mail Sales manager" short="Mail sales" />{cf.th('mailSales', 'indirizzo mail sales manager', { search: true })}</span></th>
               <th className="cdp__th-c"><ThLabel full="Note" /></th>
               <th className="cdp__th-c"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
           <tbody>
+            {rows.length === 0 && (
+              <tr><td colSpan={12} className="cdp__empty">Nessuna azienda con i filtri selezionati.</td></tr>
+            )}
             {rows.map((r, i) => (
-              <tr key={i}>
+              <tr key={`${r.ragione}#${ROWS.indexOf(r)}`}>
                 <td className="cdp__rag"><TruncatedText text={r.ragione} /></td>
-                <td><TruncatedText text={r.partner || ''} /></td>
-                <td><TruncatedText text={r.sales || ''} /></td>
-                <td className="cdp__nowrap">
+                <td><TruncatedText text={r.partner || VUOTO} /></td>
+                <td><TruncatedText text={r.sales || VUOTO} /></td>
+                <td className="cdp__nowrap cdp__dep">
                   <span className="cdp__val">0,00€</span>
                   <Tooltip text="Deposito">
                     <button type="button" className="cdp__mini" onClick={() => setHistRow(r)}><Ico n="clock" s={13} c="var(--color-text-inactive)" /></button>
@@ -187,14 +229,14 @@ export default function CreaDeposito({ navigate }: Props) {
                 <td className="cdp__nowrap"><span className="cdp__val">0,00%</span><button type="button" className="cdp__mini" title="Invia"><Ico n="email" s={13} c="var(--color-text-inactive)" /></button></td>
                 <td className="cdp__nowrap"><span className="cdp__val">0,00%</span><button type="button" className="cdp__mini" title="Invia"><Ico n="email" s={13} c="var(--color-text-inactive)" /></button></td>
                 <td><span className="cdp__val">0,00%</span></td>
-                <td />
-                <td />
+                <td><TruncatedText text={r.mailFinance || VUOTO} /></td>
+                <td><TruncatedText text={r.mailSales || VUOTO} /></td>
                 <td className="cdp__c"><Ico n="info" s={15} c="var(--color-text-disabled)" /></td>
                 <td className="cdp__c">
                   <div className="cdp__actions">
                     <Tooltip text="Inserisci note">
-                      <button type="button" className="cdp__mini" onClick={() => openNote(`${r.ragione}#${(page - 1) * PAGE_SIZE + i}`, r.ragione)}>
-                        <Ico n="file" s={13} c={notes[`${r.ragione}#${(page - 1) * PAGE_SIZE + i}`] ? '#8a6d1f' : 'var(--color-text-inactive)'} />
+                      <button type="button" className="cdp__mini" onClick={() => openNote(noteKey(r), r.ragione)}>
+                        <Ico n="file" s={13} c={notes[noteKey(r)] ? '#8a6d1f' : 'var(--color-text-inactive)'} />
                       </button>
                     </Tooltip>
                     <Tooltip text="Dettaglio anagrafica">
