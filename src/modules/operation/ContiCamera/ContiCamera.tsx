@@ -269,22 +269,26 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
 
           <div className="conti-camera__bar">
             <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModAggiungi(true)}><i className="fa-regular fa-circle-plus" /> Aggiungi addebito</button>
-            <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-regular fa-right-left" /> Trasferisci addebiti</button>
-            <div className="conti-camera__estratto">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEstrattoOpen((v) => !v)}>
-                <i className="fa-regular fa-file-lines" /> Estratto conto <i className="fa-regular fa-chevron-down" />
-              </button>
-              {estrattoOpen && (
-                <>
-                  <div className="conti-camera__estratto-overlay" onClick={() => setEstrattoOpen(false)} />
-                  <div className="conti-camera__estratto-menu" onClick={(e) => e.stopPropagation()}>
-                    <button type="button" onClick={() => setEstrattoOpen(false)}>Estratto conto totale</button>
-                    <button type="button" onClick={() => setEstrattoOpen(false)}>Estratto conto cliente</button>
-                    <button type="button" onClick={() => setEstrattoOpen(false)}>Estratto conto ospite</button>
-                  </div>
-                </>
-              )}
-            </div>
+            {!embedded && (
+              <>
+                <button type="button" className="sib-btn sib-btn--secondary"><i className="fa-regular fa-right-left" /> Trasferisci addebiti</button>
+                <div className="conti-camera__estratto">
+                  <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setEstrattoOpen((v) => !v)}>
+                    <i className="fa-regular fa-file-lines" /> Estratto conto <i className="fa-regular fa-chevron-down" />
+                  </button>
+                  {estrattoOpen && (
+                    <>
+                      <div className="conti-camera__estratto-overlay" onClick={() => setEstrattoOpen(false)} />
+                      <div className="conti-camera__estratto-menu" onClick={(e) => e.stopPropagation()}>
+                        <button type="button" onClick={() => setEstrattoOpen(false)}>Estratto conto totale</button>
+                        <button type="button" onClick={() => setEstrattoOpen(false)}>Estratto conto cliente</button>
+                        <button type="button" onClick={() => setEstrattoOpen(false)}>Estratto conto ospite</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
             <button type="button" className="sib-btn sib-btn--primary" onClick={pagaOra}>Paga ora</button>
             <span className="conti-camera__total">Totale: <strong>{fmtCurrency(totAddebiti)}</strong></span>
           </div>
