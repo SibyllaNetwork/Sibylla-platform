@@ -84,6 +84,9 @@ export default function CreaAzienda({ navigate }: Props) {
 
   return (
     <div className="ca">
+      <button type="button" className="ca__back" onClick={() => navigate('pa-gestione-aziende')}>
+        <Ico n="back" s={13} c="#8a6d1f" /> Indietro
+      </button>
       <div className="ca__head">
         <h1 className="ca__title">{editMode ? 'Modifica azienda' : 'Crea Azienda'}</h1>
         <p className="ca__lead">
