@@ -8,6 +8,10 @@
   display: flex
   flex-direction: column
   gap: 10px
+  // Container query sul root pagina: la tabella si compatta in base alla
+  // larghezza REALE del contenuto (sidebar aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: commissioni
   // Header/righe tabella e paginazione in palette oro invece dell'azzurro.
   --color-bg: #faf6ec
   --color-primary: #8a6d1f
@@ -129,13 +133,17 @@
   &:hover
     background: #6f5615
 
+// Nessuno scroll orizzontale fino al laptop: la tabella rientra sempre nella
+// larghezza disponibile grazie alla compattazione (container query in fondo al
+// file). `auto` resta solo come rete di sicurezza sotto le misure coperte —
+// meglio uno scroll che contenuto tagliato.
 .cms__wrap
   border: 1px solid $border
   overflow-x: auto
 
-.cms__table
-  min-width: 1300px
-
+// Due classi nel selettore: a pari specificità le regole di .sib-table
+// (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
+.cms .cms__table
   th, td
     vertical-align: middle
     white-space: nowrap
@@ -147,6 +155,18 @@
   tbody tr:nth-child(even)
     background: rgba(201, 168, 76, 0.09)
 
+// Colonne testuali su una riga: ellipsis + tooltip col testo completo
+// (componente TruncatedText).
+.cms__trunc
+  max-width: 160px
+
+// Etichette di colonna: intera sopra soglia, abbreviata (con tooltip) sotto.
+.cms__th-short
+  display: none
+
+.cms__th-full
+  display: inline
+
 .cms__c
   text-align: center
 
@@ -154,17 +174,212 @@
   font-weight: 600
   color: $text-active
 
-.cms__vcc-tag
+// Colonna VCC: occhio (già generata) oppure carta di credito (da generare).
+.cms__vcc-act
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
   display: inline-flex
   align-items: center
-  font-size: 12px
-  font-weight: 600
-  color: $text-inactive
-
-  &--on
-    color: $success
+  justify-content: center
+  line-height: 1
 
 .cms__pag
   display: flex
   justify-content: center
   margin-top: 8px
+
+// ─── MODALE "VCC card" ────────────────────────────────────────────────────────
+// Carta di credito Sibylla a sinistra, logo del cliente per cui è stata
+// generata (monogramma) a destra.
+.cms-vcc
+  display: flex
+  align-items: flex-start
+  justify-content: center
+  gap: 28px
+  padding: 4px 4px 8px
+
+.cms-vcc__card
+  flex: 0 1 420px
+  min-width: 0
+
+.cms-vcc__client
+  flex: 0 0 210px
+  display: flex
+  flex-direction: column
+  align-items: center
+  text-align: center
+  gap: 10px
+  padding: 18px 14px
+  border: 1px solid $border
+  border-radius: 12px
+  background: #faf6ec
+
+.cms-vcc__client-label
+  font-size: 11px
+  font-weight: 600
+  letter-spacing: .4px
+  color: $text-inactive
+
+// Monogramma del cliente: 5 tinte fisse assegnate in modo deterministico dal
+// nome (valori d'illustrazione: non esistono token equivalenti).
+.cms-vcc__mark
+  width: 82px
+  height: 82px
+  border-radius: 18px
+  display: flex
+  align-items: center
+  justify-content: center
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .16)
+
+  &--c1
+    background: linear-gradient(135deg, #1f4f7a 0%, #2c7bb0 100%)
+  &--c2
+    background: linear-gradient(135deg, #7a3b1f 0%, #c07a34 100%)
+  &--c3
+    background: linear-gradient(135deg, #1f6b52 0%, #35a37b 100%)
+  &--c4
+    background: linear-gradient(135deg, #5a2f6b 0%, #9153a8 100%)
+  &--c5
+    background: linear-gradient(135deg, #7a1f38 0%, #b8455f 100%)
+
+.cms-vcc__mark-sigla
+  font-family: $font-heading
+  font-size: 30px
+  font-weight: 800
+  letter-spacing: 1px
+  color: #fff
+
+.cms-vcc__client-name
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $text-active
+
+.cms-vcc__meta
+  margin: 4px 0 0
+  width: 100%
+  display: grid
+  grid-template-columns: auto 1fr
+  gap: 4px 10px
+  font-size: 12px
+  text-align: left
+
+  dt
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-weight: 600
+    color: $text-active
+    text-align: right
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+// Sotto il laptop (con sidenav aperta) si compattano SOLO le dimensioni
+// (font, padding, icone, larghezza dei testi troncati): le intestazioni di
+// colonna restano complete. Sopra soglia tutto torna standard.
+@container commissioni (max-width: 1360px)
+  .cms .cms__table
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+    tbody td
+      padding-top: 7px
+      padding-bottom: 7px
+
+    .sib-colf-head
+      gap: 3px
+
+    .sib-colf__btn
+      width: 16px
+      height: 16px
+
+      i
+        font-size: 10px
+
+  .cms__trunc
+    max-width: 116px
+
+  // Sotto soglia le intestazioni passano all'abbreviazione puntata + tooltip.
+  .cms__th-full
+    display: none
+
+  .cms__th-short
+    display: inline-flex
+
+  .cms__field .sib-select, .cms__field .sib-input
+    min-width: 96px
+
+  .cms__toolbar .cms__vcc
+    width: 118px
+    min-width: 118px
+
+  .cms__btn
+    padding: 0 12px
+
+@container commissioni (max-width: 1180px)
+  .cms .cms__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 4px
+      padding-right: 4px
+
+    .sib-colf__btn
+      width: 14px
+      height: 14px
+
+      i
+        font-size: 9px
+
+  .cms__trunc
+    max-width: 92px
+
+  .cms__field .sib-select, .cms__field .sib-input
+    min-width: 84px
+
+  .cms__toolbar .cms__vcc
+    width: 104px
+    min-width: 104px
+
+  .cms__btn
+    padding: 0 10px
+    font-size: 12px
+
+// Ultimo gradino (schermi stretti / finestre affiancate): si stringono ancora
+// padding, icone dei filtri e testi troncati, così la tabella resta intera.
+@container commissioni (max-width: 900px)
+  .cms .cms__table
+    th, td
+      padding-left: 2px
+      padding-right: 2px
+
+    .sib-colf-head
+      gap: 2px
+
+    .sib-colf__btn
+      width: 12px
+      height: 12px
+
+      i
+        font-size: 8px
+
+  .cms__trunc
+    max-width: 70px
+
+  .cms__field .sib-select, .cms__field .sib-input
+    min-width: 72px
+
+  .cms__toolbar .cms__vcc
+    width: 92px
+    min-width: 92px

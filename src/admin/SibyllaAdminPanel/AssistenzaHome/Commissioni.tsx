@@ -1,6 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
+import Modal from '../../../core/components/Modal'
+import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import VccCard from '../../../core/components/VccCard'
 import { SelectField, DatePickerField } from '../../../core/components/form'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -11,7 +15,7 @@ interface Props { navigate: (p: string) => void }
 interface Row {
   to: string; struttura: string; cod: string; nome: string
   dataPren: string; checkin: string; persone: number
-  prezzo: string; commissione: string; totale: string; vcc: string
+  prezzo: string; commissione: string; totale: string; vcc: boolean
 }
 
 const NAMES = ['Rossi Mario', 'Bianchi Anna', 'Verdi Luca', 'Esposito Sara', 'Romano Ivan', 'Greco Elsa']
@@ -30,16 +34,51 @@ const ROWS: Row[] = Array.from({ length: 24 }, (_, i) => ({
   prezzo: `${(i + 1) * 50},00`,
   commissione: `${(i + 1) * 5},00`,
   totale: `${(i + 1) * 55},00`,
-  vcc: i % 3 === 0 ? 'Attiva' : '—',
+  // true = VCC già generata (icona occhio), false = pronta da generare (icona carta)
+  vcc: i % 3 === 0,
 }))
 const PAGE_SIZE = 10
 const PERSONE_ALL = ['1', '2', '3', '4']
-const VCC_ALL = ['Attiva', '—']
+const VCC_GENERATA = 'Generata'
+const VCC_DA_GENERARE = 'Da generare'
+const VCC_ALL = [VCC_GENERATA, VCC_DA_GENERARE]
+
+// Intestazione di colonna: sotto la soglia della container query (laptop con
+// sidenav aperta) la tabella mostra l'abbreviazione puntata, con tooltip che
+// riporta sempre l'etichetta completa. Sopra soglia resta l'etichetta intera.
+function Th({ full, short }: { full: string; short: string }) {
+  return (
+    <>
+      <span className="cms__th-full">{full}</span>
+      <span className="cms__th-short">
+        <Tooltip text={full}><span>{short}</span></Tooltip>
+      </span>
+    </>
+  )
+}
+
+// Logo del cliente (tour operator) mostrato accanto alla carta: monogramma con
+// una delle 5 tinte definite in Commissioni.sass, scelta in modo deterministico
+// dal nome così che ogni cliente abbia sempre lo stesso marchio.
+function logoOf(nome: string) {
+  const parole = nome.trim().split(/\s+/)
+  const sigla = (parole.length > 1
+    ? parole[0][0] + parole[1][0]
+    : nome.slice(0, 2)).toUpperCase()
+  let h = 0
+  for (let i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) >>> 0
+  return { sigla, tinta: (h % 5) + 1 }
+}
 
 export default function Commissioni({ navigate }: Props) {
   const [page, setPage] = useState(1)
   const [sel, setSel] = useState<Set<string>>(new Set())
-  const [visione, setVisione] = useState<Record<string, boolean>>({})
+  // Stato VCC per prenotazione: generata (occhio) oppure da generare (carta).
+  const [generate, setGenerate] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(ROWS.map(r => [r.cod, r.vcc]))
+  )
+  // Prenotazione di cui si sta visualizzando la carta nella modale.
+  const [cardRow, setCardRow] = useState<Row | null>(null)
   // Filtri per colonna: imbuto (scelte multiple), lente (testo), ordinamento.
   const cf = useColFilters()
 
@@ -47,14 +86,14 @@ export default function Commissioni({ navigate }: Props) {
     cf.matchMulti(r.to, 'to') &&
     cf.matchMulti(r.struttura, 'struttura') &&
     cf.matchMulti(String(r.persone), 'persone') &&
-    cf.matchMulti(r.vcc, 'vcc') &&
+    cf.matchMulti(generate[r.cod] ? VCC_GENERATA : VCC_DA_GENERARE, 'vcc') &&
     cf.matchText(r.cod, 'cod') &&
     cf.matchText(r.nome, 'nome') &&
     cf.matchText(r.prezzo, 'prezzo') &&
     cf.matchText(r.commissione, 'commissione') &&
     cf.matchText(r.totale, 'totale')
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [cf.text, cf.multi])
+  ), [cf.text, cf.multi, generate])
 
   const sorted = useMemo(() => cf.sortRows(filtered),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,12 +114,36 @@ export default function Commissioni({ navigate }: Props) {
     const n = new Set(prev); n.has(cod) ? n.delete(cod) : n.add(cod); return n
   })
 
+  // Genera la VCC di una singola prenotazione: da quel momento la riga mostra
+  // l'occhio e la carta è consultabile in modale.
+  const generaVcc = (r: Row) => {
+    setGenerate(prev => ({ ...prev, [r.cod]: true }))
+    toast.success(`VCC generata per la prenotazione ${r.cod} (${r.to}).`, 'VCC creata')
+  }
+
+  // Sblocca una nuova visualizzazione della carta per il cliente (la VCC è
+  // consultabile una volta sola: il refresh ne concede un'altra).
+  const nuovaVisione = (r: Row) => {
+    toast.success(`Nuova visualizzazione abilitata per la prenotazione ${r.cod}.`, 'Visione abilitata')
+  }
+
+  // Genera in blocco le VCC delle righe selezionate non ancora emesse.
+  const generaSelezionate = () => {
+    const da = ROWS.filter(r => sel.has(r.cod) && !generate[r.cod])
+    if (da.length === 0) {
+      toast.info('Le prenotazioni selezionate hanno già una VCC.', 'VCC')
+      return
+    }
+    setGenerate(prev => ({ ...prev, ...Object.fromEntries(da.map(r => [r.cod, true])) }))
+    toast.success(`${da.length} VCC generate.`, 'VCC create')
+  }
+
   // Esporta TUTTE le righe del documento in un file .xls (apribile da Excel).
   const exportExcel = () => {
     const cols = ['Tour operator', 'Struttura', 'Cod. Prenotazione', 'Nome e Cognome', 'Data prenotazione', 'Data check-in', 'N. Persone', 'Prezzo di vendita', 'Commissione', 'Totale', 'VCC']
     const head = cols.map(c => `<th>${c}</th>`).join('')
     const body = sorted.map(r =>
-      `<tr><td>${r.to}</td><td>${r.struttura}</td><td>${r.cod}</td><td>${r.nome}</td><td>${r.dataPren}</td><td>${r.checkin}</td><td>${r.persone}</td><td>${r.prezzo} €</td><td>${r.commissione} €</td><td>${r.totale} €</td><td>${r.vcc}</td></tr>`
+      `<tr><td>${r.to}</td><td>${r.struttura}</td><td>${r.cod}</td><td>${r.nome}</td><td>${r.dataPren}</td><td>${r.checkin}</td><td>${r.persone}</td><td>${r.prezzo} €</td><td>${r.commissione} €</td><td>${r.totale} €</td><td>${generate[r.cod] ? VCC_GENERATA : VCC_DA_GENERARE}</td></tr>`
     ).join('')
     const html = `<html><head><meta charset="utf-8"></head><body><table border="1" cellspacing="0" cellpadding="4"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></body></html>`
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
@@ -132,7 +195,7 @@ export default function Commissioni({ navigate }: Props) {
           className="cms__field"
         />
         <button type="button" className="cms__btn cms__btn--apply" onClick={() => toast.info('Filtri applicati.', 'Commissioni')}>Applica</button>
-        <button type="button" className="cms__btn cms__btn--ghost cms__push" disabled={sel.size === 0} onClick={() => toast.success(`${sel.size} VCC attivati.`, 'VCC')}>Attiva VCC selezionate</button>
+        <button type="button" className="cms__btn cms__btn--ghost cms__push" disabled={sel.size === 0} onClick={generaSelezionate}>Attiva VCC selezionate</button>
         <select className="sib-select cms__vcc"><option>VCC check-in 24H</option><option>VCC check-in 48H</option><option>VCC immediato</option></select>
         <button type="button" className="cms__icon-btn" title="Esporta in Excel" onClick={exportExcel}><Ico n="excel" s={16} c="#fff" /></button>
       </div>
@@ -142,28 +205,28 @@ export default function Commissioni({ navigate }: Props) {
           <thead>
             <tr>
               <th className="cms__c"><input type="checkbox" checked={allOnPage} onChange={toggleAll} /></th>
-              <th><span className="sib-colf-head">Tour operator{cf.th('to', 'tour operator', { options: TOS })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Tour operator" short="Tour op." />{cf.th('to', 'tour operator', { options: TOS })}</span></th>
               <th><span className="sib-colf-head">Struttura{cf.th('struttura', 'struttura', { options: STRUTT })}</span></th>
-              <th><span className="sib-colf-head">Cod. Prenotazione{cf.th('cod', 'codice prenotazione', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Nome e Cognome{cf.th('nome', 'nome e cognome', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Data prenotazione{cf.th('dataPren', 'data prenotazione', { sort: true })}</span></th>
-              <th><span className="sib-colf-head">Data check-in{cf.th('checkin', 'data check-in', { sort: true })}</span></th>
-              <th className="cms__c"><span className="sib-colf-head">N. Persone{cf.th('persone', 'n. persone', { options: PERSONE_ALL })}</span></th>
-              <th><span className="sib-colf-head">Prezzo di vendita{cf.th('prezzo', 'prezzo di vendita', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Commissione{cf.th('commissione', 'commissione', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Cod. Prenotazione" short="Cod. pren." />{cf.th('cod', 'codice prenotazione', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Nome e Cognome" short="Nome e cogn." />{cf.th('nome', 'nome e cognome', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Data prenotazione" short="Data pren." />{cf.th('dataPren', 'data prenotazione', { sort: true })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Data check-in" short="Check-in" />{cf.th('checkin', 'data check-in', { sort: true })}</span></th>
+              <th className="cms__c"><span className="sib-colf-head"><Th full="N. Persone" short="N. pers." />{cf.th('persone', 'n. persone', { options: PERSONE_ALL })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Prezzo di vendita" short="Prezzo vend." />{cf.th('prezzo', 'prezzo di vendita', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Commissione" short="Comm." />{cf.th('commissione', 'commissione', { search: true })}</span></th>
               <th><span className="sib-colf-head">Totale{cf.th('totale', 'totale', { search: true })}</span></th>
               <th className="cms__c"><span className="sib-colf-head">VCC{cf.th('vcc', 'VCC', { options: VCC_ALL })}</span></th>
-              <th className="cms__c">Abilita visione</th>
+              <th className="cms__c"><Th full="Abilita visione" short="Ab. visione" /></th>
             </tr>
           </thead>
           <tbody>
             {rows.map(r => (
               <tr key={r.cod}>
                 <td className="cms__c"><input type="checkbox" checked={sel.has(r.cod)} onChange={() => toggleOne(r.cod)} /></td>
-                <td className="cms__strong">{r.to}</td>
-                <td>{r.struttura}</td>
+                <td className="cms__strong"><TruncatedText text={r.to} className="cms__trunc" /></td>
+                <td><TruncatedText text={r.struttura} className="cms__trunc" /></td>
                 <td>{r.cod}</td>
-                <td>{r.nome}</td>
+                <td><TruncatedText text={r.nome} className="cms__trunc" /></td>
                 <td>{r.dataPren}</td>
                 <td>{r.checkin}</td>
                 <td className="cms__c">{r.persone}</td>
@@ -171,10 +234,26 @@ export default function Commissioni({ navigate }: Props) {
                 <td>{r.commissione} €</td>
                 <td>{r.totale} €</td>
                 <td className="cms__c">
-                  <span className={`cms__vcc-tag${r.vcc === 'Attiva' ? ' cms__vcc-tag--on' : ''}`}>{r.vcc}</span>
+                  {generate[r.cod] ? (
+                    <Tooltip text="Visualizza VCC">
+                      <button type="button" className="cms__vcc-act" onClick={() => setCardRow(r)} aria-label="Visualizza VCC">
+                        <Ico n="eye" w="solid" s={16} c="var(--color-primary)" />
+                      </button>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip text="Genera VCC">
+                      <button type="button" className="cms__vcc-act" onClick={() => generaVcc(r)} aria-label="Genera VCC">
+                        <Ico n="credit-card" w="solid" s={16} c="var(--color-primary)" />
+                      </button>
+                    </Tooltip>
+                  )}
                 </td>
                 <td className="cms__c">
-                  <input type="checkbox" checked={!!visione[r.cod]} onChange={e => setVisione(v => ({ ...v, [r.cod]: e.target.checked }))} />
+                  <Tooltip text="Abilita una nuova visualizzazione">
+                    <button type="button" className="cms__vcc-act" onClick={() => nuovaVisione(r)} aria-label="Abilita una nuova visualizzazione">
+                      <Ico n="refresh" w="solid" s={16} c="var(--color-primary)" />
+                    </button>
+                  </Tooltip>
                 </td>
               </tr>
             ))}
@@ -183,6 +262,28 @@ export default function Commissioni({ navigate }: Props) {
       </div>
 
       <div className="cms__pag"><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>
+
+      <Modal open={cardRow !== null} onClose={() => setCardRow(null)} title="VCC card" size="xl">
+        {cardRow && (
+          <div className="cms-vcc">
+            <div className="cms-vcc__card">
+              <VccCard seed={cardRow.cod} />
+            </div>
+            <aside className="cms-vcc__client">
+              <span className="cms-vcc__client-label">Generata per</span>
+              <div className={`cms-vcc__mark cms-vcc__mark--c${logoOf(cardRow.to).tinta}`}>
+                <span className="cms-vcc__mark-sigla">{logoOf(cardRow.to).sigla}</span>
+              </div>
+              <span className="cms-vcc__client-name">{cardRow.to}</span>
+              <dl className="cms-vcc__meta">
+                <dt>Prenotazione</dt><dd>{cardRow.cod}</dd>
+                <dt>Struttura</dt><dd>{cardRow.struttura}</dd>
+                <dt>Importo</dt><dd>{cardRow.totale} €</dd>
+              </dl>
+            </aside>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

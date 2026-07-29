@@ -145,6 +145,7 @@ const FA_MAP: Record<string, string> = {
   'cash-register': 'fa-cash-register',
   'users':         'fa-users',
   'id-card':       'fa-id-card',
+  'credit-card':   'fa-credit-card',
   'user-plus':     'fa-user-plus',
   'scale':         'fa-scale-balanced',
   'share-nodes':   'fa-share-nodes',
