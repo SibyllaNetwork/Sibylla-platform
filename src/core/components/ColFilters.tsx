@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Tooltip from './Tooltip'
 import './ColFilters.sass'
 
@@ -11,9 +11,10 @@ export interface ColFilterCfg {
   search?: boolean
   /** Icona di ordinamento: asc → desc → nessun ordinamento. */
   sort?: boolean
-  /** Popup allineato a destra, per le colonne a filo del bordo tabella. */
-  right?: boolean
 }
+
+/** Larghezza del popup: serve a tenerlo dentro il viewport. */
+const POP_W = 200
 
 interface ColFiltersProps {
   colKey:        string
@@ -33,14 +34,43 @@ function ColFilters({
   colKey, label, cfg, text, multi, sort, open, onOpen, onText, onToggleMulti, onToggleSort,
 }: ColFiltersProps) {
   const fKey = `${colKey}:f`, sKey = `${colKey}:s`
-  const popCls = 'sib-colf__pop' + (cfg.right ? ' sib-colf__pop--right' : '')
+  const wrapRef = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+  const isOpen = open === fKey || open === sKey
+
+  // Il popup è position:fixed così non viene tagliato dall'overflow di
+  // .sib-table-wrap (tabelle corte o filtrate a poche righe).
+  const openAt = (key: string) => {
+    if (open === key) { onOpen(null); return }
+    const r = wrapRef.current?.getBoundingClientRect()
+    if (r) setPos({
+      top: r.bottom + 6,
+      left: Math.max(12, Math.min(r.left, window.innerWidth - POP_W - 12)),
+    })
+    onOpen(key)
+  }
+
+  // Con position:fixed il popup non segue lo scroll: meglio chiuderlo.
+  useEffect(() => {
+    if (!isOpen) return
+    const close = () => onOpen(null)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [isOpen, onOpen])
+
+  // Solo la geometria calcolata a runtime è inline: l'aspetto sta nel .sass.
+  const popStyle: React.CSSProperties = { top: pos.top, left: pos.left }
   const sortIco = sort?.k !== colKey ? 'fa-arrow-down-arrow-up'
     : sort.dir === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'
   const sortTip = sort?.k !== colKey ? `Ordina per ${label}`
     : sort.dir === 'asc' ? 'Ordine crescente — clicca per decrescente' : 'Ordine decrescente — clicca per rimuovere'
 
   return (
-    <span className="sib-colf">
+    <span className="sib-colf" ref={wrapRef}>
       {cfg.options && (
         <>
           <Tooltip text={`Filtra per ${label}`}>
@@ -48,7 +78,7 @@ function ColFilters({
               type="button"
               className={'sib-colf__btn' + (multi[colKey]?.length ? ' sib-colf__btn--on' : '')}
               aria-label={`Filtra per ${label}`}
-              onClick={() => onOpen(open === fKey ? null : fKey)}
+              onClick={() => openAt(fKey)}
             >
               <i className="fa-solid fa-filter" aria-hidden="true" />
             </button>
@@ -56,7 +86,7 @@ function ColFilters({
           {open === fKey && (
             <>
               <div className="sib-colf__overlay" onClick={() => onOpen(null)} />
-              <div className={popCls} onClick={e => e.stopPropagation()}>
+              <div className="sib-colf__pop" style={popStyle} onClick={e => e.stopPropagation()}>
                 <div className="sib-colf__pop-title">scelte multiple</div>
                 {cfg.options.map(o => (
                   <label key={o} className="sib-colf__opt">
@@ -81,7 +111,7 @@ function ColFilters({
               type="button"
               className={'sib-colf__btn' + (text[colKey] ? ' sib-colf__btn--on' : '')}
               aria-label={`Cerca in ${label}`}
-              onClick={() => onOpen(open === sKey ? null : sKey)}
+              onClick={() => openAt(sKey)}
             >
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
             </button>
@@ -89,7 +119,7 @@ function ColFilters({
           {open === sKey && (
             <>
               <div className="sib-colf__overlay" onClick={() => onOpen(null)} />
-              <div className={popCls} onClick={e => e.stopPropagation()}>
+              <div className="sib-colf__pop" style={popStyle} onClick={e => e.stopPropagation()}>
                 <input
                   className="sib-colf__input"
                   autoFocus

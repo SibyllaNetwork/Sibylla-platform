@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { SelectField, InputField } from '../../../core/components/form'
 import { toast } from '../../../core/components/Toast/useToast'
 import './GestioneCommissioni.sass'
@@ -27,7 +28,21 @@ export default function GestioneCommissioni({ navigate }: Props) {
   const [cComm, setCComm] = useState('0')
   const [cCash, setCCash] = useState('0')
 
-  const filtered = azienda ? rows.filter(r => r.azienda === azienda) : rows
+  // Filtri per colonna: imbuto (scelte multiple) e lente (ricerca testo).
+  const cf = useColFilters()
+  // Le scelte dell'imbuto seguono i valori realmente presenti in tabella
+  // (le commissioni si creano da modale, con azienda e segmento liberi).
+  const aziendeOpt = useMemo(() => Array.from(new Set(rows.map(r => r.azienda))).sort(), [rows])
+  const segmentiOpt = useMemo(() => Array.from(new Set(rows.map(r => r.segmento))).sort(), [rows])
+
+  const filtered = useMemo(() => rows.filter(r => {
+    if (azienda && r.azienda !== azienda) return false
+    return cf.matchMulti(r.azienda, 'azienda')
+      && cf.matchMulti(r.segmento, 'segmento')
+      && cf.matchText(r.commissione, 'commissione')
+      && cf.matchText(r.cashback, 'cashback')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [rows, azienda, cf.text, cf.multi])
 
   const remove = (c: Comm) => {
     setRows(prev => prev.filter(r => r.id !== c.id))
@@ -85,8 +100,11 @@ export default function GestioneCommissioni({ navigate }: Props) {
         <table className="sib-table gcm__table">
           <thead>
             <tr>
-              <th>Azienda</th><th>Segmento</th><th>Percentuale comissione</th>
-              <th>Percentuale cashback</th><th className="gcm__th-actions">Azioni</th>
+              <th><span className="sib-colf-head">Azienda{cf.th('azienda', 'azienda', { options: aziendeOpt })}</span></th>
+              <th><span className="sib-colf-head">Segmento{cf.th('segmento', 'segmento', { options: segmentiOpt })}</span></th>
+              <th><span className="sib-colf-head">Percentuale comissione{cf.th('commissione', 'percentuale comissione', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Percentuale cashback{cf.th('cashback', 'percentuale cashback', { search: true })}</span></th>
+              <th className="gcm__th-actions">Azioni</th>
             </tr>
           </thead>
           <tbody>

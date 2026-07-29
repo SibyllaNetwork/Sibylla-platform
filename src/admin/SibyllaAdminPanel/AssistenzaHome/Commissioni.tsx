@@ -152,7 +152,7 @@ export default function Commissioni({ navigate }: Props) {
               <th><span className="sib-colf-head">Prezzo di vendita{cf.th('prezzo', 'prezzo di vendita', { search: true })}</span></th>
               <th><span className="sib-colf-head">Commissione{cf.th('commissione', 'commissione', { search: true })}</span></th>
               <th><span className="sib-colf-head">Totale{cf.th('totale', 'totale', { search: true })}</span></th>
-              <th className="cms__c"><span className="sib-colf-head">VCC{cf.th('vcc', 'VCC', { options: VCC_ALL, right: true })}</span></th>
+              <th className="cms__c"><span className="sib-colf-head">VCC{cf.th('vcc', 'VCC', { options: VCC_ALL })}</span></th>
               <th className="cms__c">Abilita visione</th>
             </tr>
           </thead>

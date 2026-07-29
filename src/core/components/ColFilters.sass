@@ -42,12 +42,12 @@
   inset: 0
   z-index: 30
 
+// position: fixed (coordinate calcolate al click) così il popup non viene
+// tagliato dall'overflow di .sib-table-wrap.
 .sib-colf__pop
-  position: absolute
-  top: calc(100% + 6px)
-  left: 0
+  position: fixed
   z-index: 31
-  min-width: 176px
+  width: 200px
   max-height: 260px
   overflow-y: auto
   padding: 8px
@@ -55,12 +55,6 @@
   border: 1px solid $border
   border-radius: 8px
   box-shadow: 0 8px 24px rgba(0, 0, 0, .14)
-
-  // Colonne a filo destro: il popup si apre verso sinistra per non uscire
-  // dalla tabella.
-  &--right
-    left: auto
-    right: 0
 
 .sib-colf__pop-title
   font-size: 11px

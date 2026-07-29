@@ -131,7 +131,7 @@ export default function GestioneBonifici({ navigate }: Props) {
               <th><span className="sib-colf-head">Pagatore{cf.th('pagatore', 'pagatore', { options: PAGATORI })}</span></th>
               <th><span className="sib-colf-head">Importo{cf.th('importo', 'importo', { search: true })}</span></th>
               <th><span className="sib-colf-head">Stato{cf.th('stato', 'stato', { options: STATI })}</span></th>
-              <th><span className="sib-colf-head">Incassato da{cf.th('incassatoDa', 'incassato da', { options: PAGATORI, right: true })}</span></th>
+              <th><span className="sib-colf-head">Incassato da{cf.th('incassatoDa', 'incassato da', { options: PAGATORI })}</span></th>
               <th className="gbf__th-actions">Azioni</th>
             </tr>
           </thead>
