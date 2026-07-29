@@ -133,20 +133,23 @@
   &:hover
     background: #6f5615
 
-// Nessuno scroll orizzontale fino al laptop: la tabella rientra sempre nella
-// larghezza disponibile grazie alla compattazione (container query in fondo al
-// file). `auto` resta solo come rete di sicurezza sotto le misure coperte —
-// meglio uno scroll che contenuto tagliato.
+// Regola tassativa: la tabella non scrolla MAI in orizzontale, a nessuna
+// larghezza. Ci si arriva con table-layout fixed + colonne in percentuale
+// (sotto) e con la compattazione della container query (in fondo al file).
 .cms__wrap
   border: 1px solid $border
-  overflow-x: auto
+  overflow-x: hidden
 
 // Due classi nel selettore: a pari specificità le regole di .sib-table
 // (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
 .cms .cms__table
+  table-layout: fixed
+  width: 100%
+
   th, td
     vertical-align: middle
     white-space: nowrap
+    overflow: hidden
 
   tbody td
     padding-top: 9px
@@ -155,17 +158,50 @@
   tbody tr:nth-child(even)
     background: rgba(201, 168, 76, 0.09)
 
-// Colonne testuali su una riga: ellipsis + tooltip col testo completo
-// (componente TruncatedText).
-.cms__trunc
-  max-width: 160px
+  // Il contenuto delle intestazioni si stringe, le icone dei filtri no.
+  thead .sib-colf-head
+    display: flex
+    min-width: 0
+
+  thead .sib-colf
+    flex: 0 0 auto
+
+// Larghezze di colonna in percentuale: la somma fa 100, così la tabella
+// riempie sempre esattamente lo spazio disponibile.
+.cms__col-check
+  width: 1.9%
+.cms__col-to
+  width: 8.6%
+.cms__col-struttura
+  width: 6.7%
+.cms__col-cod
+  width: 10.1%
+.cms__col-nome
+  width: 9.9%
+.cms__col-data
+  width: 10.2%
+.cms__col-persone
+  width: 7.3%
+.cms__col-prezzo
+  width: 9.6%
+.cms__col-comm
+  width: 8.3%
+.cms__col-totale
+  width: 5.6%
+.cms__col-vcc
+  width: 4.8%
+.cms__col-visione
+  width: 6.8%
 
 // Etichette di colonna: intera sopra soglia, abbreviata (con tooltip) sotto.
+// In entrambi i casi il testo resta su una riga con ellipsis + tooltip.
 .cms__th-short
   display: none
 
 .cms__th-full
-  display: inline
+  display: block
+  min-width: 0
+  overflow: hidden
 
 .cms__c
   text-align: center
@@ -304,15 +340,39 @@
       i
         font-size: 10px
 
-  .cms__trunc
-    max-width: 116px
-
   // Sotto soglia le intestazioni passano all'abbreviazione puntata + tooltip.
   .cms__th-full
     display: none
 
   .cms__th-short
-    display: inline-flex
+    display: block
+    min-width: 0
+    overflow: hidden
+
+  // Con le etichette abbreviate le proporzioni cambiano: più spazio ai testi
+  // (nome struttura, tour operator), meno alle colonne di sole cifre.
+  .cms__col-to
+    width: 10%
+  .cms__col-struttura
+    width: 9%
+  .cms__col-cod
+    width: 9%
+  .cms__col-nome
+    width: 11%
+  .cms__col-data
+    width: 8.4%
+  .cms__col-persone
+    width: 6.4%
+  .cms__col-prezzo
+    width: 9.2%
+  .cms__col-comm
+    width: 8%
+  .cms__col-totale
+    width: 7.1%
+  .cms__col-vcc
+    width: 5.6%
+  .cms__col-visione
+    width: 6%
 
   .cms__field .sib-select, .cms__field .sib-input
     min-width: 96px
@@ -342,9 +402,6 @@
       i
         font-size: 9px
 
-  .cms__trunc
-    max-width: 92px
-
   .cms__field .sib-select, .cms__field .sib-input
     min-width: 84px
 
@@ -373,9 +430,6 @@
 
       i
         font-size: 8px
-
-  .cms__trunc
-    max-width: 70px
 
   .cms__field .sib-select, .cms__field .sib-input
     min-width: 72px

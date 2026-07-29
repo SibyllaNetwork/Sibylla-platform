@@ -46,13 +46,13 @@ const VCC_ALL = [VCC_GENERATA, VCC_DA_GENERARE]
 // Intestazione di colonna: sotto la soglia della container query (laptop con
 // sidenav aperta) la tabella mostra l'abbreviazione puntata, con tooltip che
 // riporta sempre l'etichetta completa. Sopra soglia resta l'etichetta intera.
-function Th({ full, short }: { full: string; short: string }) {
+function Th({ full, short }: { full: string; short?: string }) {
   return (
     <>
-      <span className="cms__th-full">{full}</span>
-      <span className="cms__th-short">
-        <Tooltip text={full}><span>{short}</span></Tooltip>
-      </span>
+      <span className="cms__th-full"><TruncatedText text={full} /></span>
+      {/* Senza abbreviazione l'etichetta corta coincide con quella intera:
+          il tooltip compare solo se il testo viene troncato. */}
+      <span className="cms__th-short"><TruncatedText text={short ?? full} full={full} /></span>
     </>
   )
 }
@@ -202,11 +202,28 @@ export default function Commissioni({ navigate }: Props) {
 
       <div className="sib-table-wrap cms__wrap">
         <table className="sib-table cms__table">
+          {/* Larghezze in percentuale + table-layout fixed: la tabella si adatta
+              sempre allo spazio disponibile, senza mai scrollare in orizzontale. */}
+          <colgroup>
+            <col className="cms__col-check" />
+            <col className="cms__col-to" />
+            <col className="cms__col-struttura" />
+            <col className="cms__col-cod" />
+            <col className="cms__col-nome" />
+            <col className="cms__col-data" />
+            <col className="cms__col-data" />
+            <col className="cms__col-persone" />
+            <col className="cms__col-prezzo" />
+            <col className="cms__col-comm" />
+            <col className="cms__col-totale" />
+            <col className="cms__col-vcc" />
+            <col className="cms__col-visione" />
+          </colgroup>
           <thead>
             <tr>
               <th className="cms__c"><input type="checkbox" checked={allOnPage} onChange={toggleAll} /></th>
               <th><span className="sib-colf-head"><Th full="Tour operator" short="Tour op." />{cf.th('to', 'tour operator', { options: TOS })}</span></th>
-              <th><span className="sib-colf-head">Struttura{cf.th('struttura', 'struttura', { options: STRUTT })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Struttura" />{cf.th('struttura', 'struttura', { options: STRUTT })}</span></th>
               <th><span className="sib-colf-head"><Th full="Cod. Prenotazione" short="Cod. pren." />{cf.th('cod', 'codice prenotazione', { search: true })}</span></th>
               <th><span className="sib-colf-head"><Th full="Nome e Cognome" short="Nome e cogn." />{cf.th('nome', 'nome e cognome', { search: true })}</span></th>
               <th><span className="sib-colf-head"><Th full="Data prenotazione" short="Data pren." />{cf.th('dataPren', 'data prenotazione', { sort: true })}</span></th>
@@ -214,8 +231,8 @@ export default function Commissioni({ navigate }: Props) {
               <th className="cms__c"><span className="sib-colf-head"><Th full="N. Persone" short="N. pers." />{cf.th('persone', 'n. persone', { options: PERSONE_ALL })}</span></th>
               <th><span className="sib-colf-head"><Th full="Prezzo di vendita" short="Prezzo vend." />{cf.th('prezzo', 'prezzo di vendita', { search: true })}</span></th>
               <th><span className="sib-colf-head"><Th full="Commissione" short="Comm." />{cf.th('commissione', 'commissione', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Totale{cf.th('totale', 'totale', { search: true })}</span></th>
-              <th className="cms__c"><span className="sib-colf-head">VCC{cf.th('vcc', 'VCC', { options: VCC_ALL })}</span></th>
+              <th><span className="sib-colf-head"><Th full="Totale" />{cf.th('totale', 'totale', { search: true })}</span></th>
+              <th className="cms__c"><span className="sib-colf-head"><Th full="VCC" />{cf.th('vcc', 'VCC', { options: VCC_ALL })}</span></th>
               <th className="cms__c"><Th full="Abilita visione" short="Ab. visione" /></th>
             </tr>
           </thead>
@@ -223,16 +240,16 @@ export default function Commissioni({ navigate }: Props) {
             {rows.map(r => (
               <tr key={r.cod}>
                 <td className="cms__c"><input type="checkbox" checked={sel.has(r.cod)} onChange={() => toggleOne(r.cod)} /></td>
-                <td className="cms__strong"><TruncatedText text={r.to} className="cms__trunc" /></td>
-                <td><TruncatedText text={r.struttura} className="cms__trunc" /></td>
-                <td>{r.cod}</td>
-                <td><TruncatedText text={r.nome} className="cms__trunc" /></td>
-                <td>{r.dataPren}</td>
-                <td>{r.checkin}</td>
+                <td className="cms__strong"><TruncatedText text={r.to} /></td>
+                <td><TruncatedText text={r.struttura} /></td>
+                <td><TruncatedText text={r.cod} /></td>
+                <td><TruncatedText text={r.nome} /></td>
+                <td><TruncatedText text={r.dataPren} /></td>
+                <td><TruncatedText text={r.checkin} /></td>
                 <td className="cms__c">{r.persone}</td>
-                <td>{r.prezzo} €</td>
-                <td>{r.commissione} €</td>
-                <td>{r.totale} €</td>
+                <td><TruncatedText text={`${r.prezzo} €`} /></td>
+                <td><TruncatedText text={`${r.commissione} €`} /></td>
+                <td><TruncatedText text={`${r.totale} €`} /></td>
                 <td className="cms__c">
                   {generate[r.cod] ? (
                     <Tooltip text="Visualizza VCC">
