@@ -36,7 +36,6 @@ const PERSONE_ALL = ['1', '2', '3', '4']
 const VCC_ALL = ['Attiva', '—']
 
 export default function Commissioni({ navigate }: Props) {
-  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [sel, setSel] = useState<Set<string>>(new Set())
   const [visione, setVisione] = useState<Record<string, boolean>>({})
@@ -55,14 +54,12 @@ export default function Commissioni({ navigate }: Props) {
   )
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim()
     const has = (val: string, f?: string) => !f || val.toLowerCase().includes(f.toLowerCase())
     const inSet = (val: string, k: string) => {
       const f = colM[k]
       return !f || f.length === 0 || f.includes(val)
     }
     return ROWS.filter(r => {
-      if (q && !`${r.to} ${r.struttura} ${r.cod} ${r.nome}`.toLowerCase().includes(q)) return false
       if (!inSet(r.to, 'to')) return false
       if (!inSet(r.struttura, 'struttura')) return false
       if (!inSet(String(r.persone), 'persone')) return false
@@ -74,7 +71,7 @@ export default function Commissioni({ navigate }: Props) {
       if (!has(r.totale, colF.totale)) return false
       return true
     })
-  }, [search, colF, colM])
+  }, [colF, colM])
 
   // Ordinamento solo sulle due colonne data: formato aaaa-mm-gg, confronto
   // lessicografico = confronto cronologico.
@@ -89,7 +86,7 @@ export default function Commissioni({ navigate }: Props) {
   }, [filtered, sort])
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [search, colF, colM])
+  useEffect(() => { setPage(1) }, [colF, colM])
   const rows = sorted.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
 
   // Cluster di icone-filtro accanto al titolo di colonna.
@@ -237,10 +234,6 @@ export default function Commissioni({ navigate }: Props) {
         <button type="button" className="cms__btn cms__btn--ghost cms__push" disabled={sel.size === 0} onClick={() => toast.success(`${sel.size} VCC attivati.`, 'VCC')}>Attiva VCC selezionate</button>
         <select className="sib-select cms__vcc"><option>VCC check-in 24H</option><option>VCC check-in 48H</option><option>VCC immediato</option></select>
         <button type="button" className="cms__icon-btn" title="Esporta in Excel" onClick={exportExcel}><Ico n="excel" s={16} c="#fff" /></button>
-        <div className="cms__search">
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca" />
-          <Ico n="search" s={14} c="var(--color-text-disabled)" />
-        </div>
       </div>
 
       <div className="sib-table-wrap cms__wrap">

@@ -50,14 +50,14 @@
   display: flex
   align-items: flex-end
   gap: 10px
-  // Wrap invece di overflow-x: su viewport strette la barra va a capo, così
-  // l'icona Excel e la ricerca restano sempre visibili e non vengono tagliate.
-  flex-wrap: wrap
-  row-gap: 12px
+  // Barra su una riga sola: i campi si stringono al bisogno invece di andare
+  // a capo o generare scroll orizzontale.
+  flex-wrap: nowrap
   padding-bottom: 2px
 
   > *
-    flex: 0 0 auto
+    flex: 0 1 auto
+    min-width: 0
 
 .cms__push
   margin-left: auto
@@ -69,9 +69,10 @@
 
   .sib-select, .sib-input
     height: 40px
-    min-width: 128px
+    min-width: 112px
 
 .cms__btn
+  flex: 0 0 auto
   height: 40px
   display: inline-flex
   align-items: center
@@ -103,12 +104,16 @@
       opacity: .55
       cursor: not-allowed
 
-.cms__vcc
+// Due classi: .sib-select in tailwind.css è w-full e a pari specificità
+// vincerebbe (è caricato dopo), rendendo la select larga tutta la barra.
+.cms__toolbar .cms__vcc
   height: 40px
   width: 132px
   min-width: 132px
+  flex: 0 0 auto
 
 .cms__icon-btn
+  flex: 0 0 auto
   width: 40px
   height: 40px
   border: 0
@@ -123,31 +128,6 @@
 
   &:hover
     background: #6f5615
-
-.cms__search
-  position: relative
-  display: flex
-  align-items: center
-  width: 160px
-  min-width: 160px
-
-  input
-    width: 100%
-    height: 40px
-    border: 1px solid $border
-    border-radius: 9px
-    padding: 0 34px 0 13px
-    font-size: 13px
-    color: $text-active
-    outline: none
-
-    &:focus
-      border-color: $primary-300
-
-  > i
-    position: absolute
-    right: 12px
-    pointer-events: none
 
 .cms__wrap
   border: 1px solid $border
