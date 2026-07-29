@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { useAziendaEditStore } from './aziendaEditStore'
 import './GestioneAziende.sass'
 
@@ -32,10 +33,33 @@ const AZIENDE: Az[] = [
 ]
 const PAGE_SIZE = 10
 
+// Etichette usate sia in cella sia come scelte dell'imbuto, così il filtro
+// combacia con quello che si legge in tabella.
+const cittaLabel = (c: string) => c || '—'
+const preLabel = (p: boolean) => (p ? 'Attivato' : 'Non attivato')
+
+const CITTA = Array.from(new Set(AZIENDE.map(a => cittaLabel(a.citta)))).sort()
+const TIPI = Array.from(new Set(AZIENDE.map(a => a.tipo))).sort()
+const PREROLLING = ['Attivato', 'Non attivato']
+
 export default function GestioneAziende({ navigate }: Props) {
   const [page, setPage] = useState(1)
-  const totalPages = Math.max(1, Math.ceil(AZIENDE.length / PAGE_SIZE))
-  const rows = useMemo(() => AZIENDE.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE), [page])
+  // Filtri per colonna: imbuto (scelte multiple) e lente (ricerca testo).
+  const cf = useColFilters()
+
+  const filtered = useMemo(() => AZIENDE.filter(a =>
+    cf.matchMulti(cittaLabel(a.citta), 'citta') &&
+    cf.matchMulti(a.tipo, 'tipo') &&
+    cf.matchMulti(preLabel(a.prerolling), 'prerolling') &&
+    cf.matchText(a.nome, 'nome') &&
+    cf.matchText(a.tel, 'tel') &&
+    cf.matchText(a.email, 'email')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [cf.text, cf.multi])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [cf.text, cf.multi])
+  const rows = useMemo(() => filtered.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE), [filtered, page])
 
   const editAzienda = (a: Az) => {
     useAziendaEditStore.getState().startEdit({
@@ -70,12 +94,20 @@ export default function GestioneAziende({ navigate }: Props) {
         <table className="sib-table gaz__table">
           <thead>
             <tr>
-              <th>Azienda</th><th>Città</th><th>Tipo azienda</th><th>Telefono</th><th>Email</th>
-              <th>Logo</th><th>Stato</th><th>Prerolling status</th>
+              <th><span className="sib-colf-head">Azienda{cf.th('nome', 'azienda', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Città{cf.th('citta', 'città', { options: CITTA })}</span></th>
+              <th><span className="sib-colf-head">Tipo azienda{cf.th('tipo', 'tipo azienda', { options: TIPI })}</span></th>
+              <th><span className="sib-colf-head">Telefono{cf.th('tel', 'telefono', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Email{cf.th('email', 'email', { search: true })}</span></th>
+              <th>Logo</th><th>Stato</th>
+              <th><span className="sib-colf-head">Prerolling status{cf.th('prerolling', 'prerolling', { options: PREROLLING })}</span></th>
               <th className="gaz__th-actions">Azioni</th>
             </tr>
           </thead>
           <tbody>
+            {rows.length === 0 && (
+              <tr><td colSpan={9} className="gaz__empty">Nessuna azienda con i filtri selezionati.</td></tr>
+            )}
             {rows.map((a, i) => (
               <tr key={i}>
                 <td className="gaz__name">{a.nome}</td>
