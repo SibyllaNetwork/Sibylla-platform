@@ -8,6 +8,10 @@
   display: flex
   flex-direction: column
   gap: 10px
+  // Container query sul root pagina: i campi si compattano sulla larghezza
+  // REALE del contenuto (sidenav aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: comm-dinamica
   --color-bg: #faf6ec
   --color-primary: #8a6d1f
   --color-primary-100: #f3e9cf
@@ -45,16 +49,23 @@
   color: $text-inactive
   margin: 8px 0 0
 
+// Barra filtri su una riga sola: i campi si stringono al bisogno, senza mai
+// generare scroll orizzontale.
 .cdn__toolbar
   display: flex
   align-items: flex-end
   gap: 16px
-  flex-wrap: wrap
+  flex-wrap: nowrap
+
+  > *
+    flex: 0 1 auto
+    min-width: 0
 
 .cdn__field
   display: flex
   flex-direction: column
   gap: 6px
+  min-width: 0
 
   .sib-select
     height: 40px
@@ -76,3 +87,28 @@
   p
     font-size: 13.5px
     margin: 0
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+// Sotto il laptop (con sidenav aperta) si compattano SOLO le dimensioni dei
+// campi, così la barra resta su una riga senza scroll orizzontale.
+@container comm-dinamica (max-width: 900px)
+  // I campi si dividono lo spazio disponibile (flex-basis 0): la select non
+  // impone più la larghezza del suo option più lungo, quindi la barra non può
+  // eccedere la riga.
+  .cdn__field
+    flex: 1 1 0
+
+  .cdn__field .sib-select
+    min-width: 0
+
+  // Le label non devono imporre la larghezza del campo: restano su una riga e
+  // si troncano, così i campi possono stringersi senza uscire dalla barra.
+  .cdn__field label
+    max-width: 100%
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+@container comm-dinamica (max-width: 700px)
+  .cdn__toolbar
+    gap: 8px

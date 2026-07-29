@@ -1,4 +1,5 @@
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
 .gcm
   height: 100%
@@ -8,6 +9,10 @@
   display: flex
   flex-direction: column
   gap: 10px
+  // Container query sul root pagina: la tabella si compatta sulla larghezza
+  // REALE del contenuto (sidenav aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: commissioni-gest
   --color-bg: #faf6ec
   --color-primary: #8a6d1f
   --color-primary-50: #faf5e6
@@ -79,16 +84,33 @@
   &:hover
     background: #6f5615
 
+// Regola tassativa: la tabella non scrolla MAI in orizzontale, a nessuna
+// larghezza (colonne in percentuale + compattazione in fondo al file).
 .gcm__wrap
   border: 1px solid $border
+  overflow-x: hidden
 
-.gcm__table
-  th, td
-    vertical-align: middle
+// Due classi nel selettore: a pari specificità le regole di .sib-table
+// (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
+.gcm .gcm__table
+  +table-fit
 
   .gcm__th-actions
     text-align: center
-    width: 90px
+
++th-labels
+
+// Larghezze di colonna in percentuale: la somma fa 100.
+.gcm__col-azienda
+  width: 28%
+.gcm__col-segmento
+  width: 20%
+.gcm__col-comm
+  width: 21%
+.gcm__col-cash
+  width: 21%
+.gcm__col-azioni
+  width: 10%
 
 .gcm__strong
   font-weight: 600
@@ -166,3 +188,38 @@
     &:disabled
       opacity: .5
       cursor: not-allowed
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+// Sotto il laptop (con sidenav aperta) si compattano SOLO le dimensioni; le
+// intestazioni passano alle abbreviazioni puntate (con tooltip).
+@container commissioni-gest (max-width: 900px)
+  .gcm .gcm__table
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+    .sib-colf-head
+      gap: 3px
+
+    .sib-colf__btn
+      width: 16px
+      height: 16px
+
+      i
+        font-size: 10px
+
+  .gcm
+    +th-compact
+
+  .gcm__icon
+    width: 24px
+    height: 24px
+    margin: 0 1px
+
+  .gcm__field .sib-select
+    min-width: 130px

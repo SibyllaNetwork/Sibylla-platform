@@ -1,4 +1,5 @@
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
 .gaz
   height: 100%
@@ -8,6 +9,10 @@
   display: flex
   flex-direction: column
   gap: 10px
+  // Container query sul root pagina: la tabella si compatta sulla larghezza
+  // REALE del contenuto (sidenav aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: aziende
   // Header/righe tabella (bg-canvas = --color-bg) e paginazione (--color-primary*)
   // in palette oro invece dell'azzurro di piattaforma.
   --color-bg: #faf6ec
@@ -68,13 +73,37 @@
   &:hover
     background: #6f5615
 
-.gaz__table
-  th, td
-    vertical-align: middle
+// Regola tassativa: la tabella non scrolla MAI in orizzontale, a nessuna
+// larghezza (colonne in percentuale + compattazione in fondo al file).
+// Due classi nel selettore: a pari specificità le regole di .sib-table
+// (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
+.gaz .gaz__table
+  +table-fit
 
   .gaz__th-actions
     text-align: center
-    width: 80px
+
++th-labels
+
+// Larghezze di colonna in percentuale: la somma fa 100.
+.gaz__col-azienda
+  width: 15%
+.gaz__col-citta
+  width: 10.5%
+.gaz__col-tipo
+  width: 12%
+.gaz__col-tel
+  width: 11%
+.gaz__col-email
+  width: 17%
+.gaz__col-logo
+  width: 6.5%
+.gaz__col-stato
+  width: 7%
+.gaz__col-prerolling
+  width: 15%
+.gaz__col-azioni
+  width: 6%
 
 .gaz__name
   font-weight: 600
@@ -134,3 +163,65 @@
   display: flex
   justify-content: center
   margin-top: 8px
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+// Sotto il laptop (con sidenav aperta) si compattano SOLO le dimensioni; le
+// intestazioni passano alle abbreviazioni puntate (con tooltip).
+@container aziende (max-width: 1180px)
+  .gaz .gaz__table
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+    .sib-colf-head
+      gap: 3px
+
+    .sib-colf__btn
+      width: 16px
+      height: 16px
+
+      i
+        font-size: 10px
+
+  .gaz
+    +th-compact
+
+  .gaz__logo
+    width: 28px
+    height: 28px
+    font-size: 10px
+
+  .gaz__icon
+    width: 24px
+    height: 24px
+
+@container aziende (max-width: 980px)
+  .gaz .gaz__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 4px
+      padding-right: 4px
+
+    .sib-colf__btn
+      width: 14px
+      height: 14px
+
+      i
+        font-size: 9px
+
+  .gaz__logo
+    width: 24px
+    height: 24px
+
+  .gaz__icon
+    width: 22px
+    height: 22px

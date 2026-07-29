@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import ThLabel from '../../../core/components/ThLabel'
 import Modal from '../../../core/components/Modal'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { SelectField, InputField } from '../../../core/components/form'
@@ -98,13 +100,21 @@ export default function GestioneCommissioni({ navigate }: Props) {
 
       <div className="sib-table-wrap gcm__wrap">
         <table className="sib-table gcm__table">
+          {/* Larghezze in percentuale + table-layout fixed: nessuno scroll orizzontale. */}
+          <colgroup>
+            <col className="gcm__col-azienda" />
+            <col className="gcm__col-segmento" />
+            <col className="gcm__col-comm" />
+            <col className="gcm__col-cash" />
+            <col className="gcm__col-azioni" />
+          </colgroup>
           <thead>
             <tr>
-              <th><span className="sib-colf-head">Azienda{cf.th('azienda', 'azienda', { options: aziendeOpt })}</span></th>
-              <th><span className="sib-colf-head">Segmento{cf.th('segmento', 'segmento', { options: segmentiOpt })}</span></th>
-              <th><span className="sib-colf-head">Percentuale comissione{cf.th('commissione', 'percentuale comissione', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Percentuale cashback{cf.th('cashback', 'percentuale cashback', { search: true })}</span></th>
-              <th className="gcm__th-actions">Azioni</th>
+              <th><span className="sib-colf-head"><ThLabel full="Azienda" />{cf.th('azienda', 'azienda', { options: aziendeOpt })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Segmento" />{cf.th('segmento', 'segmento', { options: segmentiOpt })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Percentuale comissione" short="Perc. comm." />{cf.th('commissione', 'percentuale comissione', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Percentuale cashback" short="Perc. cashback" />{cf.th('cashback', 'percentuale cashback', { search: true })}</span></th>
+              <th className="gcm__th-actions"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
           <tbody>
@@ -113,10 +123,10 @@ export default function GestioneCommissioni({ navigate }: Props) {
             )}
             {filtered.map(c => (
               <tr key={c.id}>
-                <td className="gcm__strong">{c.azienda}</td>
-                <td>{c.segmento}</td>
-                <td>{c.commissione}</td>
-                <td>{c.cashback}</td>
+                <td className="gcm__strong"><TruncatedText text={c.azienda} /></td>
+                <td><TruncatedText text={c.segmento} /></td>
+                <td><TruncatedText text={c.commissione} /></td>
+                <td><TruncatedText text={c.cashback} /></td>
                 <td className="gcm__actions">
                   <Tooltip text="Modifica">
                     <button type="button" className="gcm__icon" onClick={() => openEdit(c)}><Ico n="edit" s={13} c="var(--color-text-inactive)" /></button>

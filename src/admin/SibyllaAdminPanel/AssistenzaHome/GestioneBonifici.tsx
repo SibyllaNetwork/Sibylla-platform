@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import ThLabel from '../../../core/components/ThLabel'
 import Modal from '../../../core/components/Modal'
 import { SelectField, DatePickerField } from '../../../core/components/form'
 import { useColFilters } from '../../../core/components/ColFilters'
@@ -122,30 +124,43 @@ export default function GestioneBonifici({ navigate }: Props) {
 
       <div className="sib-table-wrap gbf__wrap">
         <table className="sib-table gbf__table">
+          {/* Larghezze in percentuale + table-layout fixed: la tabella si adatta
+              sempre allo spazio disponibile, senza mai scrollare in orizzontale. */}
+          <colgroup>
+            <col className="gbf__col-azienda" />
+            <col className="gbf__col-data" />
+            <col className="gbf__col-causale" />
+            <col className="gbf__col-id" />
+            <col className="gbf__col-pagatore" />
+            <col className="gbf__col-importo" />
+            <col className="gbf__col-stato" />
+            <col className="gbf__col-incassato" />
+            <col className="gbf__col-azioni" />
+          </colgroup>
           <thead>
             <tr>
-              <th><span className="sib-colf-head">Azienda{cf.th('azienda', 'azienda', { options: AZIENDE })}</span></th>
-              <th><span className="sib-colf-head">Data{cf.th('data', 'data', { sort: true })}</span></th>
-              <th><span className="sib-colf-head">Causale{cf.th('causale', 'causale', { search: true })}</span></th>
-              <th><span className="sib-colf-head">ID pagamento{cf.th('idPagamento', 'ID pagamento', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Pagatore{cf.th('pagatore', 'pagatore', { options: PAGATORI })}</span></th>
-              <th><span className="sib-colf-head">Importo{cf.th('importo', 'importo', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Stato{cf.th('stato', 'stato', { options: STATI })}</span></th>
-              <th><span className="sib-colf-head">Incassato da{cf.th('incassatoDa', 'incassato da', { options: PAGATORI })}</span></th>
-              <th className="gbf__th-actions">Azioni</th>
+              <th><span className="sib-colf-head"><ThLabel full="Azienda" />{cf.th('azienda', 'azienda', { options: AZIENDE })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Data" />{cf.th('data', 'data', { sort: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Causale" />{cf.th('causale', 'causale', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="ID pagamento" short="ID pag." />{cf.th('idPagamento', 'ID pagamento', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Pagatore" />{cf.th('pagatore', 'pagatore', { options: PAGATORI })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Importo" />{cf.th('importo', 'importo', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Stato" />{cf.th('stato', 'stato', { options: STATI })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Incassato da" short="Incass. da" />{cf.th('incassatoDa', 'incassato da', { options: PAGATORI })}</span></th>
+              <th className="gbf__th-actions"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
           <tbody>
             {rows.map(b => (
               <tr key={b.id}>
-                <td className="gbf__strong">{b.azienda}</td>
-                <td>{b.data}</td>
-                <td>{b.causale}</td>
-                <td className="gbf__id"><span title={b.idPagamento}>{b.idPagamento}</span></td>
-                <td>{b.pagatore}</td>
-                <td>{b.importo} €</td>
+                <td className="gbf__strong"><TruncatedText text={b.azienda} /></td>
+                <td><TruncatedText text={b.data} /></td>
+                <td><TruncatedText text={b.causale} /></td>
+                <td className="gbf__id"><TruncatedText text={b.idPagamento} /></td>
+                <td><TruncatedText text={b.pagatore} /></td>
+                <td><TruncatedText text={`${b.importo} €`} /></td>
                 <td><span className={`gbf__stato gbf__stato--${b.stato === 'Pending' ? 'pending' : 'ok'}`}>{b.stato}</span></td>
-                <td>{b.incassatoDa}</td>
+                <td><TruncatedText text={b.incassatoDa} /></td>
                 <td className="gbf__actions">
                   {b.stato === 'Pending' && (
                     <>

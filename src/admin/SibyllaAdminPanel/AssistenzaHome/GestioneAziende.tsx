@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import ThLabel from '../../../core/components/ThLabel'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { useAziendaEditStore } from './aziendaEditStore'
 import './GestioneAziende.sass'
@@ -92,16 +94,28 @@ export default function GestioneAziende({ navigate }: Props) {
 
       <div className="sib-table-wrap">
         <table className="sib-table gaz__table">
+          {/* Larghezze in percentuale + table-layout fixed: nessuno scroll orizzontale. */}
+          <colgroup>
+            <col className="gaz__col-azienda" />
+            <col className="gaz__col-citta" />
+            <col className="gaz__col-tipo" />
+            <col className="gaz__col-tel" />
+            <col className="gaz__col-email" />
+            <col className="gaz__col-logo" />
+            <col className="gaz__col-stato" />
+            <col className="gaz__col-prerolling" />
+            <col className="gaz__col-azioni" />
+          </colgroup>
           <thead>
             <tr>
-              <th><span className="sib-colf-head">Azienda{cf.th('nome', 'azienda', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Città{cf.th('citta', 'città', { options: CITTA })}</span></th>
-              <th><span className="sib-colf-head">Tipo azienda{cf.th('tipo', 'tipo azienda', { options: TIPI })}</span></th>
-              <th><span className="sib-colf-head">Telefono{cf.th('tel', 'telefono', { search: true })}</span></th>
-              <th><span className="sib-colf-head">Email{cf.th('email', 'email', { search: true })}</span></th>
-              <th>Logo</th><th>Stato</th>
-              <th><span className="sib-colf-head">Prerolling status{cf.th('prerolling', 'prerolling', { options: PREROLLING })}</span></th>
-              <th className="gaz__th-actions">Azioni</th>
+              <th><span className="sib-colf-head"><ThLabel full="Azienda" />{cf.th('nome', 'azienda', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Città" />{cf.th('citta', 'città', { options: CITTA })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Tipo azienda" short="Tipo az." />{cf.th('tipo', 'tipo azienda', { options: TIPI })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Telefono" short="Tel." />{cf.th('tel', 'telefono', { search: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Email" />{cf.th('email', 'email', { search: true })}</span></th>
+              <th><ThLabel full="Logo" /></th><th><ThLabel full="Stato" /></th>
+              <th><span className="sib-colf-head"><ThLabel full="Prerolling status" short="Prerolling" />{cf.th('prerolling', 'prerolling', { options: PREROLLING })}</span></th>
+              <th className="gaz__th-actions"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
           <tbody>
@@ -110,17 +124,18 @@ export default function GestioneAziende({ navigate }: Props) {
             )}
             {rows.map((a, i) => (
               <tr key={i}>
-                <td className="gaz__name">{a.nome}</td>
-                <td>{a.citta || '—'}</td>
-                <td>{a.tipo}</td>
-                <td>{a.tel || '—'}</td>
-                <td>{a.email || '—'}</td>
+                <td className="gaz__name"><TruncatedText text={a.nome} /></td>
+                <td><TruncatedText text={a.citta || '—'} /></td>
+                <td><TruncatedText text={a.tipo} /></td>
+                <td><TruncatedText text={a.tel || '—'} /></td>
+                <td><TruncatedText text={a.email || '—'} /></td>
                 <td><span className="gaz__logo">{a.nome.slice(0, 2).toUpperCase()}</span></td>
                 <td><span className="gaz__stato">Attiva</span></td>
                 <td>
-                  <span className={`gaz__pre${a.prerolling ? ' gaz__pre--on' : ''}`}>
-                    {a.prerolling ? 'Prerolling è attivato' : 'Prerolling non è attivato'}
-                  </span>
+                  <TruncatedText
+                    className={`gaz__pre${a.prerolling ? ' gaz__pre--on' : ''}`}
+                    text={a.prerolling ? 'Prerolling è attivato' : 'Prerolling non è attivato'}
+                  />
                 </td>
                 <td className="gaz__actions">
                   <Tooltip text="Modifica azienda">

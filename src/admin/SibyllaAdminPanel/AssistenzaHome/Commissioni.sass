@@ -1,4 +1,5 @@
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
 .cms
   height: 100%
@@ -143,13 +144,7 @@
 // Due classi nel selettore: a pari specificità le regole di .sib-table
 // (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
 .cms .cms__table
-  table-layout: fixed
-  width: 100%
-
-  th, td
-    vertical-align: middle
-    white-space: nowrap
-    overflow: hidden
+  +table-fit
 
   tbody td
     padding-top: 9px
@@ -158,13 +153,7 @@
   tbody tr:nth-child(even)
     background: rgba(201, 168, 76, 0.09)
 
-  // Il contenuto delle intestazioni si stringe, le icone dei filtri no.
-  thead .sib-colf-head
-    display: flex
-    min-width: 0
-
-  thead .sib-colf
-    flex: 0 0 auto
++th-labels
 
 // Larghezze di colonna in percentuale: la somma fa 100, così la tabella
 // riempie sempre esattamente lo spazio disponibile.
@@ -192,16 +181,6 @@
   width: 4.8%
 .cms__col-visione
   width: 6.8%
-
-// Etichette di colonna: intera sopra soglia, abbreviata (con tooltip) sotto.
-// In entrambi i casi il testo resta su una riga con ellipsis + tooltip.
-.cms__th-short
-  display: none
-
-.cms__th-full
-  display: block
-  min-width: 0
-  overflow: hidden
 
 .cms__c
   text-align: center
@@ -341,13 +320,8 @@
         font-size: 10px
 
   // Sotto soglia le intestazioni passano all'abbreviazione puntata + tooltip.
-  .cms__th-full
-    display: none
-
-  .cms__th-short
-    display: block
-    min-width: 0
-    overflow: hidden
+  .cms
+    +th-compact
 
   // Con le etichette abbreviate le proporzioni cambiano: più spazio ai testi
   // (nome struttura, tour operator), meno alle colonne di sole cifre.

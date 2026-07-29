@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
+import TruncatedText from '../../../core/components/TruncatedText'
+import ThLabel from '../../../core/components/ThLabel'
 import './CreaMappingAziende.sass'
 
 interface Props {
@@ -49,16 +51,21 @@ export default function CreaMappingAziende({ navigate }: Props) {
 
       <div className="sib-table-wrap maz__wrap">
         <table className="sib-table maz__table">
+          {/* Larghezze in percentuale + table-layout fixed: nessuno scroll orizzontale. */}
+          <colgroup>
+            <col className="maz__col-az" />
+            {CHANNELS.map(c => <col key={c} className="maz__col-ch" />)}
+          </colgroup>
           <thead>
             <tr>
-              <th className="maz__th-az">Azienda</th>
-              {CHANNELS.map(c => <th key={c} className="maz__th-ch">{c}</th>)}
+              <th className="maz__th-az"><ThLabel full="Azienda" /></th>
+              {CHANNELS.map(c => <th key={c} className="maz__th-ch"><ThLabel full={c} /></th>)}
             </tr>
           </thead>
           <tbody>
             {rows.map(az => (
               <tr key={az}>
-                <td className="maz__az">{az}</td>
+                <td className="maz__az"><TruncatedText text={az} /></td>
                 {CHANNELS.map(ch => (
                   <td key={ch} className="maz__cell">
                     <input

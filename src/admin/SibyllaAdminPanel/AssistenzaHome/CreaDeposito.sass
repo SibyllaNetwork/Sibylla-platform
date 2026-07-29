@@ -1,4 +1,5 @@
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
 .cdp
   height: 100%
@@ -8,6 +9,10 @@
   display: flex
   flex-direction: column
   gap: 10px
+  // Container query sul root pagina: la tabella si compatta sulla larghezza
+  // REALE del contenuto (sidenav aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: deposito
   // Header tabella (bg-canvas) e accenti in palette oro invece dell'azzurro.
   --color-bg: #faf6ec
   --color-primary: #8a6d1f
@@ -96,22 +101,47 @@
     right: 12px
     pointer-events: none
 
+// Regola tassativa: la tabella non scrolla MAI in orizzontale, a nessuna
+// larghezza (colonne in percentuale + compattazione in fondo al file).
 .cdp__wrap
   border: 1px solid $border
-  overflow-x: auto
+  overflow-x: hidden
 
-.cdp__table
-  min-width: 1200px
-
-  th, td
-    vertical-align: middle
-    white-space: nowrap
+// Due classi nel selettore: a pari specificità le regole di .sib-table
+// (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
+.cdp .cdp__table
+  +table-fit
 
   tbody tr:nth-child(even)
     background: rgba(201, 168, 76, 0.09)
 
   .cdp__th-c
     text-align: center
+
++th-labels
+
+// Larghezze di colonna in percentuale: la somma fa 100. Con 12 colonne le
+// intestazioni più lunghe restano abbreviate (tooltip col testo completo).
+.cdp__col-ragione
+  width: 13%
+.cdp__col-partner
+  width: 8%
+.cdp__col-sales
+  width: 9%
+.cdp__col-deposito
+  width: 11%
+.cdp__col-sollecito
+  width: 8.5%
+.cdp__col-stop
+  width: 8%
+.cdp__col-comm
+  width: 8%
+.cdp__col-mail
+  width: 6.5%
+.cdp__col-note
+  width: 4%
+.cdp__col-azioni
+  width: 9%
 
 .cdp__rag
   font-weight: 600
@@ -319,3 +349,46 @@
     display: grid
     grid-template-columns: 1fr 1fr
     gap: 18px
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+// 12 colonne: le intestazioni lunghe usano l'abbreviazione puntata (tooltip col
+// testo completo) fino agli schermi molto larghi; sotto il laptop si compattano
+// anche font, padding e bottoni-icona.
+@container deposito (max-width: 1700px)
+  .cdp
+    +th-compact
+
+@container deposito (max-width: 1180px)
+  .cdp .cdp__table
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th, td
+      padding-left: 5px
+      padding-right: 5px
+
+  .cdp__mini
+    width: 22px
+    height: 22px
+    margin-left: 2px
+
+  .cdp__actions
+    gap: 0
+
+@container deposito (max-width: 980px)
+  .cdp .cdp__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 3px
+      padding-right: 3px
+
+  .cdp__mini
+    width: 19px
+    height: 19px
+    margin-left: 1px

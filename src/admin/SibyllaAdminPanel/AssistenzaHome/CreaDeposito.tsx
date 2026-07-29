@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
+import TruncatedText from '../../../core/components/TruncatedText'
+import ThLabel from '../../../core/components/ThLabel'
 import Modal from '../../../core/components/Modal'
 import { toast } from '../../../core/components/Toast/useToast'
 import './CreaDeposito.sass'
@@ -135,20 +137,43 @@ export default function CreaDeposito({ navigate }: Props) {
 
       <div className="sib-table-wrap cdp__wrap">
         <table className="sib-table cdp__table">
+          {/* Larghezze in percentuale + table-layout fixed: nessuno scroll orizzontale. */}
+          <colgroup>
+            <col className="cdp__col-ragione" />
+            <col className="cdp__col-partner" />
+            <col className="cdp__col-sales" />
+            <col className="cdp__col-deposito" />
+            <col className="cdp__col-sollecito" />
+            <col className="cdp__col-sollecito" />
+            <col className="cdp__col-stop" />
+            <col className="cdp__col-comm" />
+            <col className="cdp__col-mail" />
+            <col className="cdp__col-mail" />
+            <col className="cdp__col-note" />
+            <col className="cdp__col-azioni" />
+          </colgroup>
           <thead>
             <tr>
-              <th>Ragione sociale</th><th>Partner</th><th>Sales manager</th>
-              <th>Deposito</th><th>Primo Sollecito</th><th>Secondo Sollecito</th><th>Stop sales</th><th>Commissione</th>
-              <th>Indirizzo mail finance</th><th>Indirizzo mail Sales manager</th>
-              <th className="cdp__th-c">Note</th><th className="cdp__th-c">Azioni</th>
+              <th><ThLabel full="Ragione sociale" short="Rag. sociale" /></th>
+              <th><ThLabel full="Partner" /></th>
+              <th><ThLabel full="Sales manager" short="Sales mgr." /></th>
+              <th><ThLabel full="Deposito" /></th>
+              <th><ThLabel full="Primo Sollecito" short="1° sollecito" /></th>
+              <th><ThLabel full="Secondo Sollecito" short="2° sollecito" /></th>
+              <th><ThLabel full="Stop sales" /></th>
+              <th><ThLabel full="Commissione" short="Comm." /></th>
+              <th><ThLabel full="Indirizzo mail finance" short="Mail fin." /></th>
+              <th><ThLabel full="Indirizzo mail Sales manager" short="Mail sales" /></th>
+              <th className="cdp__th-c"><ThLabel full="Note" /></th>
+              <th className="cdp__th-c"><ThLabel full="Azioni" /></th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={i}>
-                <td className="cdp__rag">{r.ragione}</td>
-                <td>{r.partner || ''}</td>
-                <td>{r.sales || ''}</td>
+                <td className="cdp__rag"><TruncatedText text={r.ragione} /></td>
+                <td><TruncatedText text={r.partner || ''} /></td>
+                <td><TruncatedText text={r.sales || ''} /></td>
                 <td className="cdp__nowrap">
                   <span className="cdp__val">0,00€</span>
                   <Tooltip text="Deposito">

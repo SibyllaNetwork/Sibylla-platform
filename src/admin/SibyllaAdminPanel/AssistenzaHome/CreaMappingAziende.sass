@@ -1,4 +1,5 @@
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
 .maz
   height: 100%
@@ -8,6 +9,10 @@
   display: flex
   flex-direction: column
   gap: 10px
+  // Container query sul root pagina: la tabella si compatta sulla larghezza
+  // REALE del contenuto (sidenav aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: mapping
   // Header/righe tabella (bg-canvas = --color-bg) e paginazione (--color-primary*)
   // in palette oro invece dell'azzurro di piattaforma.
   --color-bg: #faf6ec
@@ -46,24 +51,34 @@
   color: $text-inactive
   margin: 8px 0 0
 
+// Regola tassativa: la tabella non scrolla MAI in orizzontale, a nessuna
+// larghezza (colonne in percentuale + compattazione in fondo al file).
 .maz__wrap
   border: 1px solid $border
+  overflow-x: hidden
 
-.maz__table
-  th, td
-    vertical-align: middle
+// Due classi nel selettore: a pari specificità le regole di .sib-table
+// (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
+.maz .maz__table
+  +table-fit
 
   .maz__th-az
     text-align: left
 
   .maz__th-ch
     text-align: center
-    white-space: nowrap
+
++th-labels
+
+// Larghezze di colonna in percentuale: la somma fa 100 (azienda + 6 canali).
+.maz__col-az
+  width: 28%
+.maz__col-ch
+  width: 12%
 
 .maz__az
   font-weight: 600
   color: $text-active
-  white-space: nowrap
 
 .maz__cell
   text-align: center
@@ -72,3 +87,16 @@
   display: flex
   justify-content: center
   margin-top: 8px
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+// Sotto il laptop (con sidenav aperta) si compattano SOLO le dimensioni.
+@container mapping (max-width: 1000px)
+  .maz .maz__table
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px

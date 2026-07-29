@@ -71,6 +71,51 @@
   white-space: nowrap
   text-overflow: ellipsis
 
+// ── Tabelle che non scrollano mai in orizzontale ──────────────────────────────
+// Base della tabella a larghezza fissa: le colonne prendono le percentuali del
+// <colgroup> e il testo (in TruncatedText) ellissa invece di allargare.
+// Va usato in un selettore a due classi (es. `.pag .pag__table`): a pari
+// specificità vincerebbe `.sib-table` di tailwind.css, caricato dopo.
+=table-fit
+  table-layout: fixed
+  width: 100%
+
+  th, td
+    vertical-align: middle
+    white-space: nowrap
+    overflow: hidden
+
+  // Il contenuto delle intestazioni si stringe, le icone dei filtri no.
+  thead .sib-colf-head
+    display: flex
+    min-width: 0
+
+  thead .sib-colf
+    flex: 0 0 auto
+
+// Etichette di colonna del componente ThLabel: intere di default.
+=th-labels
+  .sib-th-full
+    display: block
+    min-width: 0
+    overflow: hidden
+
+  .sib-th-short
+    display: none
+    min-width: 0
+    overflow: hidden
+
+// Scambio intera → abbreviata: da usare dentro la container query di pagina e
+// SEMPRE annidato nella classe root della pagina (es. `.cms`). Le regole base
+// di `+th-labels` sono globali (una classe): senza il root le vincerebbero, in
+// base all'ordine di caricamento dei file, quelle emesse da un'altra pagina.
+=th-compact
+  .sib-th-full
+    display: none
+
+  .sib-th-short
+    display: block
+
 // ── Scrollbar custom ──────────────────────────────────────────────────────────
 =custom-scrollbar
   &::-webkit-scrollbar
