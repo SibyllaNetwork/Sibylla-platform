@@ -3,7 +3,8 @@ import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import Modal from '../../../core/components/Modal'
-import { SelectField } from '../../../core/components/form'
+import { SelectField, DatePickerField } from '../../../core/components/form'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import './GestioneBonifici.sass'
 
@@ -41,6 +42,8 @@ const BONIFICI: Bon[] = [
   })),
 ]
 const AZIENDE = ['Sibylla', 'G.A.R-SRL', 'Reservation Hotel Italy']
+const PAGATORI = Array.from(new Set(BONIFICI.map(b => b.pagatore))).sort()
+const STATI = ['Pending', 'Incasso']
 const PAGE_SIZE = 10
 
 export default function GestioneBonifici({ navigate }: Props) {
@@ -48,29 +51,29 @@ export default function GestioneBonifici({ navigate }: Props) {
   const [azienda, setAzienda] = useState('')
   const [data, setData] = useState('')
   const [page, setPage] = useState(1)
-  const [colF, setColF] = useState<Record<string, string>>({})
-  const setCol = (k: string, v: string) => setColF(p => ({ ...p, [k]: v }))
+  // Filtri per colonna: imbuto (scelte multiple), lente (testo), ordinamento.
+  const cf = useColFilters()
 
-  const filtered = useMemo(() => {
-    const has = (val: string, f?: string) => !f || val.toLowerCase().includes(f.toLowerCase())
-    return rowsAll.filter(b => {
-      if (azienda && b.azienda !== azienda) return false
-      if (data && !b.data.startsWith(data)) return false
-      if (colF.azienda && b.azienda !== colF.azienda) return false
-      if (!has(b.data, colF.data)) return false
-      if (!has(b.causale, colF.causale)) return false
-      if (!has(b.idPagamento, colF.idPagamento)) return false
-      if (!has(b.pagatore, colF.pagatore)) return false
-      if (!has(b.importo, colF.importo)) return false
-      if (colF.stato && b.stato !== colF.stato) return false
-      if (!has(b.incassatoDa, colF.incassatoDa)) return false
-      return true
-    })
-  }, [rowsAll, azienda, data, colF])
+  const filtered = useMemo(() => rowsAll.filter(b => {
+    if (azienda && b.azienda !== azienda) return false
+    if (data && !b.data.startsWith(data)) return false
+    return cf.matchMulti(b.azienda, 'azienda')
+      && cf.matchMulti(b.pagatore, 'pagatore')
+      && cf.matchMulti(b.stato, 'stato')
+      && cf.matchMulti(b.incassatoDa, 'incassatoDa')
+      && cf.matchText(b.causale, 'causale')
+      && cf.matchText(b.idPagamento, 'idPagamento')
+      && cf.matchText(b.importo, 'importo')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [rowsAll, azienda, data, cf.text, cf.multi])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [azienda, data, colF])
-  const rows = filtered.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
+  const sorted = useMemo(() => cf.sortRows(filtered),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, cf.sort])
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [azienda, data, cf.text, cf.multi])
+  const rows = sorted.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
 
   const [approveRow, setApproveRow] = useState<Bon | null>(null)
   const confirmApprove = () => {
@@ -108,30 +111,28 @@ export default function GestioneBonifici({ navigate }: Props) {
           onChange={e => setAzienda(e.target.value)}
           options={[{ value: '', label: 'Tutti' }, ...AZIENDE.map(a => ({ value: a, label: a }))]}
         />
-        <label className="gbf__field gbf__field-raw">
-          <span>Data</span>
-          <input className="sib-input" type="date" value={data} onChange={e => setData(e.target.value)} />
-        </label>
+        <DatePickerField
+          name="data"
+          label="Data"
+          className="gbf__field"
+          value={data}
+          onChange={e => setData(e.target.value)}
+        />
       </div>
 
       <div className="sib-table-wrap gbf__wrap">
         <table className="sib-table gbf__table">
           <thead>
             <tr>
-              <th>Azienda</th><th>Data</th><th>Causale</th><th>ID pagamento</th>
-              <th>Pagatore</th><th>Importo</th><th>Stato</th><th>Incassato da</th>
+              <th><span className="sib-colf-head">Azienda{cf.th('azienda', 'azienda', { options: AZIENDE })}</span></th>
+              <th><span className="sib-colf-head">Data{cf.th('data', 'data', { sort: true })}</span></th>
+              <th><span className="sib-colf-head">Causale{cf.th('causale', 'causale', { search: true })}</span></th>
+              <th><span className="sib-colf-head">ID pagamento{cf.th('idPagamento', 'ID pagamento', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Pagatore{cf.th('pagatore', 'pagatore', { options: PAGATORI })}</span></th>
+              <th><span className="sib-colf-head">Importo{cf.th('importo', 'importo', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Stato{cf.th('stato', 'stato', { options: STATI })}</span></th>
+              <th><span className="sib-colf-head">Incassato da{cf.th('incassatoDa', 'incassato da', { options: PAGATORI, right: true })}</span></th>
               <th className="gbf__th-actions">Azioni</th>
-            </tr>
-            <tr className="gbf__filter-row">
-              <th><select className="gbf__cf" value={colF.azienda || ''} onChange={e => setCol('azienda', e.target.value)}><option value="">Tutti</option>{AZIENDE.map(a => <option key={a} value={a}>{a}</option>)}</select></th>
-              <th><input className="gbf__cf" value={colF.data || ''} onChange={e => setCol('data', e.target.value)} placeholder="aaaa-mm-gg" /></th>
-              <th><input className="gbf__cf" value={colF.causale || ''} onChange={e => setCol('causale', e.target.value)} placeholder="Filtra" /></th>
-              <th><input className="gbf__cf" value={colF.idPagamento || ''} onChange={e => setCol('idPagamento', e.target.value)} placeholder="Filtra" /></th>
-              <th><input className="gbf__cf" value={colF.pagatore || ''} onChange={e => setCol('pagatore', e.target.value)} placeholder="Filtra" /></th>
-              <th><input className="gbf__cf" value={colF.importo || ''} onChange={e => setCol('importo', e.target.value)} placeholder="Filtra" /></th>
-              <th><select className="gbf__cf" value={colF.stato || ''} onChange={e => setCol('stato', e.target.value)}><option value="">Tutti</option><option value="Pending">Pending</option><option value="Incasso">Incasso</option></select></th>
-              <th><input className="gbf__cf" value={colF.incassatoDa || ''} onChange={e => setCol('incassatoDa', e.target.value)} placeholder="Filtra" /></th>
-              <th />
             </tr>
           </thead>
           <tbody>

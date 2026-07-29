@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
 import Pagination from '../../../core/components/Pagination'
 import { SelectField, DatePickerField } from '../../../core/components/form'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import './Commissioni.sass'
 
@@ -39,129 +40,29 @@ export default function Commissioni({ navigate }: Props) {
   const [page, setPage] = useState(1)
   const [sel, setSel] = useState<Set<string>>(new Set())
   const [visione, setVisione] = useState<Record<string, boolean>>({})
-  // Filtri per colonna: testo (lente), scelte multiple (imbuto), ordinamento.
-  const [colF, setColF] = useState<Record<string, string>>({})
-  const [colM, setColM] = useState<Record<string, string[]>>({})
-  const [sort, setSort] = useState<{ k: string; dir: 'asc' | 'desc' } | null>(null)
-  const [openTool, setOpenTool] = useState<string | null>(null)
-  const setCol = (k: string, v: string) => setColF(p => ({ ...p, [k]: v }))
-  const toggleMulti = (k: string, v: string) => setColM(p => {
-    const cur = p[k] ?? []
-    return { ...p, [k]: cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v] }
-  })
-  const toggleSort = (k: string) => setSort(p =>
-    p?.k !== k ? { k, dir: 'asc' } : p.dir === 'asc' ? { k, dir: 'desc' } : null
-  )
+  // Filtri per colonna: imbuto (scelte multiple), lente (testo), ordinamento.
+  const cf = useColFilters()
 
-  const filtered = useMemo(() => {
-    const has = (val: string, f?: string) => !f || val.toLowerCase().includes(f.toLowerCase())
-    const inSet = (val: string, k: string) => {
-      const f = colM[k]
-      return !f || f.length === 0 || f.includes(val)
-    }
-    return ROWS.filter(r => {
-      if (!inSet(r.to, 'to')) return false
-      if (!inSet(r.struttura, 'struttura')) return false
-      if (!inSet(String(r.persone), 'persone')) return false
-      if (!inSet(r.vcc, 'vcc')) return false
-      if (!has(r.cod, colF.cod)) return false
-      if (!has(r.nome, colF.nome)) return false
-      if (!has(r.prezzo, colF.prezzo)) return false
-      if (!has(r.commissione, colF.commissione)) return false
-      if (!has(r.totale, colF.totale)) return false
-      return true
-    })
-  }, [colF, colM])
+  const filtered = useMemo(() => ROWS.filter(r =>
+    cf.matchMulti(r.to, 'to') &&
+    cf.matchMulti(r.struttura, 'struttura') &&
+    cf.matchMulti(String(r.persone), 'persone') &&
+    cf.matchMulti(r.vcc, 'vcc') &&
+    cf.matchText(r.cod, 'cod') &&
+    cf.matchText(r.nome, 'nome') &&
+    cf.matchText(r.prezzo, 'prezzo') &&
+    cf.matchText(r.commissione, 'commissione') &&
+    cf.matchText(r.totale, 'totale')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ), [cf.text, cf.multi])
 
-  // Ordinamento solo sulle due colonne data: formato aaaa-mm-gg, confronto
-  // lessicografico = confronto cronologico.
-  const sorted = useMemo(() => {
-    if (!sort) return filtered
-    const dir = sort.dir === 'asc' ? 1 : -1
-    return [...filtered].sort((a, b) => {
-      const av = (a as unknown as Record<string, string>)[sort.k]
-      const bv = (b as unknown as Record<string, string>)[sort.k]
-      return String(av).localeCompare(String(bv)) * dir
-    })
-  }, [filtered, sort])
+  const sorted = useMemo(() => cf.sortRows(filtered),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, cf.sort])
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [colF, colM])
+  useEffect(() => { setPage(1) }, [cf.text, cf.multi])
   const rows = sorted.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
-
-  // Cluster di icone-filtro accanto al titolo di colonna.
-  const thTools = (k: string, label: string, cfg: { options?: string[]; search?: boolean; sort?: boolean; right?: boolean }) => {
-    const fKey = `${k}:f`, sKey = `${k}:s`
-    const popCls = 'cms__th-pop' + (cfg.right ? ' cms__th-pop--right' : '')
-    const sortIco = sort?.k !== k ? 'fa-arrow-down-arrow-up'
-      : sort.dir === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'
-    return (
-      <span className="cms__th-tools">
-        {cfg.options && (
-          <>
-            <button
-              type="button"
-              className={'cms__th-btn' + (colM[k]?.length ? ' cms__th-btn--on' : '')}
-              aria-label={`Filtra per ${label}`}
-              onClick={() => setOpenTool(o => (o === fKey ? null : fKey))}
-            >
-              <i className="fa-solid fa-filter" />
-            </button>
-            {openTool === fKey && (
-              <>
-                <div className="cms__th-overlay" onClick={() => setOpenTool(null)} />
-                <div className={popCls} onClick={e => e.stopPropagation()}>
-                  <div className="cms__th-pop-title">scelte multiple</div>
-                  {cfg.options.map(o => (
-                    <label key={o} className="cms__th-opt">
-                      <input type="checkbox" checked={(colM[k] ?? []).includes(o)} onChange={() => toggleMulti(k, o)} />
-                      <span>{o}</span>
-                    </label>
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        )}
-        {cfg.search && (
-          <>
-            <button
-              type="button"
-              className={'cms__th-btn' + (colF[k] ? ' cms__th-btn--on' : '')}
-              aria-label={`Cerca in ${label}`}
-              onClick={() => setOpenTool(o => (o === sKey ? null : sKey))}
-            >
-              <i className="fa-solid fa-magnifying-glass" />
-            </button>
-            {openTool === sKey && (
-              <>
-                <div className="cms__th-overlay" onClick={() => setOpenTool(null)} />
-                <div className={popCls} onClick={e => e.stopPropagation()}>
-                  <input
-                    className="cms__cf"
-                    autoFocus
-                    value={colF[k] || ''}
-                    onChange={e => setCol(k, e.target.value)}
-                    placeholder={`Cerca ${label.toLowerCase()}…`}
-                  />
-                </div>
-              </>
-            )}
-          </>
-        )}
-        {cfg.sort && (
-          <button
-            type="button"
-            className={'cms__th-btn' + (sort?.k === k ? ' cms__th-btn--on' : '')}
-            aria-label={`Ordina per ${label}`}
-            onClick={() => toggleSort(k)}
-          >
-            <i className={`fa-solid ${sortIco}`} />
-          </button>
-        )}
-      </span>
-    )
-  }
 
   const allOnPage = rows.length > 0 && rows.every(r => sel.has(r.cod))
   const toggleAll = () => setSel(prev => {
@@ -241,17 +142,17 @@ export default function Commissioni({ navigate }: Props) {
           <thead>
             <tr>
               <th className="cms__c"><input type="checkbox" checked={allOnPage} onChange={toggleAll} /></th>
-              <th><span className="cms__th-head">Tour operator{thTools('to', 'tour operator', { options: TOS })}</span></th>
-              <th><span className="cms__th-head">Struttura{thTools('struttura', 'struttura', { options: STRUTT })}</span></th>
-              <th><span className="cms__th-head">Cod. Prenotazione{thTools('cod', 'codice prenotazione', { search: true })}</span></th>
-              <th><span className="cms__th-head">Nome e Cognome{thTools('nome', 'nome e cognome', { search: true })}</span></th>
-              <th><span className="cms__th-head">Data prenotazione{thTools('dataPren', 'data prenotazione', { sort: true })}</span></th>
-              <th><span className="cms__th-head">Data check-in{thTools('checkin', 'data check-in', { sort: true })}</span></th>
-              <th className="cms__c"><span className="cms__th-head">N. Persone{thTools('persone', 'n. persone', { options: PERSONE_ALL })}</span></th>
-              <th><span className="cms__th-head">Prezzo di vendita{thTools('prezzo', 'prezzo di vendita', { search: true })}</span></th>
-              <th><span className="cms__th-head">Commissione{thTools('commissione', 'commissione', { search: true })}</span></th>
-              <th><span className="cms__th-head">Totale{thTools('totale', 'totale', { search: true })}</span></th>
-              <th className="cms__c"><span className="cms__th-head">VCC{thTools('vcc', 'VCC', { options: VCC_ALL, right: true })}</span></th>
+              <th><span className="sib-colf-head">Tour operator{cf.th('to', 'tour operator', { options: TOS })}</span></th>
+              <th><span className="sib-colf-head">Struttura{cf.th('struttura', 'struttura', { options: STRUTT })}</span></th>
+              <th><span className="sib-colf-head">Cod. Prenotazione{cf.th('cod', 'codice prenotazione', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Nome e Cognome{cf.th('nome', 'nome e cognome', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Data prenotazione{cf.th('dataPren', 'data prenotazione', { sort: true })}</span></th>
+              <th><span className="sib-colf-head">Data check-in{cf.th('checkin', 'data check-in', { sort: true })}</span></th>
+              <th className="cms__c"><span className="sib-colf-head">N. Persone{cf.th('persone', 'n. persone', { options: PERSONE_ALL })}</span></th>
+              <th><span className="sib-colf-head">Prezzo di vendita{cf.th('prezzo', 'prezzo di vendita', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Commissione{cf.th('commissione', 'commissione', { search: true })}</span></th>
+              <th><span className="sib-colf-head">Totale{cf.th('totale', 'totale', { search: true })}</span></th>
+              <th className="cms__c"><span className="sib-colf-head">VCC{cf.th('vcc', 'VCC', { options: VCC_ALL, right: true })}</span></th>
               <th className="cms__c">Abilita visione</th>
             </tr>
           </thead>
