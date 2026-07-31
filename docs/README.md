@@ -14,6 +14,9 @@ Indice della documentazione per sviluppatori.
   per-cliente, editor nel clone, traduzione in build).
 - **[nuova-prenotazione.md](./nuova-prenotazione.md)** — specifica funzionale/tecnica
   della pagina Nuova prenotazione per il porting/cablaggio al backend.
+- **[food-beverage.md](./food-beverage.md)** — briefing di consegna della sezione Food &
+  Beverage (Outlet Manager): stato dell'integrazione, back-end Flask separato, debito
+  noto, decisioni aperte e roadmap per chi prende in carico lo sviluppo.
 - **[skills/sibylla-ui-migration/SKILL.md](./skills/sibylla-ui-migration/SKILL.md)** —
   skill caricabile da un agente AI: linee guida e caratteristiche per migrare le
   pagine Sibylla su un'altra piattaforma mantenendo inalterata la UI/UX.
