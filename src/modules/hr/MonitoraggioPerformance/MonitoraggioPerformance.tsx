@@ -4,6 +4,7 @@ import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, SearchField } from '../../../core/components/form'
 import { avatarUrl } from '../../../core/avatar'
+import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
   useObiettiviStore, type Obiettivo,
   tuttiSotto, targetTotale, vendutoTotale, premioTotale, premioSbloccato, avanzamentoPct,
@@ -212,6 +213,19 @@ export default function MonitoraggioPerformance(_props: { navigate?: (p: string)
 
 // ─── MODAL: dettaglio obiettivo ───────────────────────────────────────────────
 function DettaglioObiettivoModal({ obiettivo, onClose }: { obiettivo: Obiettivo | null; onClose: () => void }) {
+  const removeObiettivo = useObiettiviStore((s) => s.removeObiettivo)
+  const confirm = useConfirmStore((s) => s.confirm)
+
+  // Unica via per eliminare un obiettivo: prima viveva nella vista "In corso"
+  // della pagina Premio performance, rimossa perché duplicava questa.
+  const elimina = async () => {
+    if (!obiettivo) return
+    if (await confirm({ message: `Eliminare l'obiettivo «${obiettivo.nome}»?`, danger: true })) {
+      removeObiettivo(obiettivo.id)
+      onClose()
+    }
+  }
+
   return (
     <Modal open={!!obiettivo} onClose={onClose} title="Dettaglio obiettivo" size="lg">
       {obiettivo && (() => {
@@ -267,6 +281,12 @@ function DettaglioObiettivoModal({ obiettivo, onClose }: { obiettivo: Obiettivo 
                   </ul>
                 </div>
               ))}
+            </div>
+
+            <div className="mon-perf__detail-actions">
+              <button type="button" className="sib-btn sib-btn--danger sib-btn--sm" onClick={elimina}>
+                <i className="fa-solid fa-trash" /> Elimina obiettivo
+              </button>
             </div>
           </div>
         )

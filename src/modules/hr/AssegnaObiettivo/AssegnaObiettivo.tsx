@@ -1,21 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import { InputField, SelectField } from '../../../core/components/form'
-import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
   useObiettiviStore, type Obiettivo, type Periodo, type SottoPeriodo, type Segmento, type TipologiaObiettivo,
-  premioTotale, targetTotale, vendutoTotale, premioSbloccato, avanzamentoPct, margineAtteso, tuttiSotto,
+  premioTotale, targetTotale, margineAtteso, tuttiSotto,
 } from '../../../store/useObiettiviStore'
 import './AssegnaObiettivo.sass'
 
 /**
  * Premio performance · Assegna obiettivo.
- * Due esperienze in un'unica pagina (toggle):
- *  - "Assegna": wizard a fasi animate → crea l'obiettivo (reparto/individuale,
- *    vendita prodotti/servizi/esperienze, budget+margine, frammentazione in
- *    periodi/sottoperiodi con premio a valore assoluto in €).
- *  - "In corso": illustrazioni real-time dell'evoluzione degli obiettivi attivi
- *    (anelli/barre animate, sblocco premi, countdown).
+ * Wizard a fasi animate → crea l'obiettivo (reparto/individuale, vendita
+ * prodotti/servizi/esperienze, budget+margine, frammentazione in periodi e
+ * sottoperiodi con premio a valore assoluto in €).
+ *
+ * La vista real-time degli obiettivi attivi NON vive qui: duplicava la pagina
+ * "Monitoraggio performance", che legge lo stesso `useObiettiviStore` ed è più
+ * completa (filtri, pista dei traguardi, dettaglio). "In corso" e l'avvio di un
+ * obiettivo portano lì.
  */
 
 const uid = (p = 'w') => `${p}-${Math.round(performance.now())}-${Math.floor(Math.random() * 1e4)}`
@@ -39,10 +40,8 @@ const STEPS = [
 
 // ─── Pagina ───────────────────────────────────────────────────────────────────
 export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) => void }) {
-  void navigate
   const obiettivi = useObiettiviStore((s) => s.obiettivi)
   const inCorso = obiettivi.filter((o) => o.stato === 'in-corso').length
-  const [tab, setTab] = useState<'assegna' | 'in-corso'>('assegna')
 
   return (
     <div className="ao2">
@@ -50,19 +49,15 @@ export default function AssegnaObiettivo({ navigate }: { navigate: (p: string) =
         title="Premio performance"
         subtitle="Assegna obiettivi di vendita a reparti o singole persone, frammentali in periodi e premia il raggiungimento con un valore in €"
         actions={
-          <div className="ao2__tabs" role="tablist">
-            <button type="button" role="tab" aria-selected={tab === 'assegna'} className={'ao2__tab' + (tab === 'assegna' ? ' is-active' : '')} onClick={() => setTab('assegna')}>
-              <i className="fa-solid fa-bullseye" /> Assegna
-            </button>
-            <button type="button" role="tab" aria-selected={tab === 'in-corso'} className={'ao2__tab' + (tab === 'in-corso' ? ' is-active' : '')} onClick={() => setTab('in-corso')}>
-              <i className="fa-solid fa-chart-line" /> In corso
-              {inCorso > 0 && <span className="ao2__tab-badge">{inCorso}</span>}
-            </button>
-          </div>
+          <button type="button" className="ao2__golive" onClick={() => navigate('monitoraggio-perf')}>
+            <i className="fa-solid fa-chart-line" /> In corso
+            {inCorso > 0 && <span className="ao2__golive-badge">{inCorso}</span>}
+            <i className="fa-solid fa-arrow-right ao2__golive-go" />
+          </button>
         }
       />
 
-      {tab === 'assegna' ? <Wizard onAvviato={() => setTab('in-corso')} /> : <ObiettiviLive />}
+      <Wizard onAvviato={() => navigate('monitoraggio-perf')} />
     </div>
   )
 }
@@ -346,154 +341,6 @@ function Riepilogo({ draft, totTarget, totPremio, nSotto }: { draft: Obiettivo; 
       </div>
     </div>
   )
-}
-
-// ─── Vista "Obiettivi in corso" (real-time) ───────────────────────────────────
-function ObiettiviLive() {
-  const obiettivi = useObiettiviStore((s) => s.obiettivi)
-  const avanza = useObiettiviStore((s) => s.avanzaProgresso)
-  const removeObiettivo = useObiettiviStore((s) => s.removeObiettivo)
-  const confirm = useConfirmStore((s) => s.confirm)
-
-  const [live, setLive] = useState(true)
-  const [filtro, setFiltro] = useState<'in-corso' | 'concluso' | 'tutti'>('in-corso')
-
-  useEffect(() => {
-    if (!live) return
-    const id = setInterval(() => avanza(), 1800)
-    return () => clearInterval(id)
-  }, [live, avanza])
-
-  const lista = obiettivi.filter((o) => (filtro === 'tutti' ? true : o.stato === filtro))
-  const elimina = async (o: Obiettivo) => {
-    if (await confirm({ message: `Eliminare l'obiettivo «${o.nome}»?`, danger: true })) removeObiettivo(o.id)
-  }
-
-  return (
-    <div className="ao2-live">
-      <div className="ao2-live__bar">
-        <div className="ao2-live__filters">
-          {(['in-corso', 'concluso', 'tutti'] as const).map((f) => (
-            <button key={f} type="button" className={'ao2-live__filter' + (filtro === f ? ' is-active' : '')} onClick={() => setFiltro(f)}>
-              {f === 'in-corso' ? 'In corso' : f === 'concluso' ? 'Conclusi' : 'Tutti'}
-            </button>
-          ))}
-        </div>
-        <button type="button" className={'ao2-live__toggle' + (live ? ' is-live' : '')} onClick={() => setLive((v) => !v)}>
-          <span className="ao2-live__dot" />
-          {live ? 'LIVE · in aggiornamento' : 'In pausa'}
-          <i className={`fa-solid ${live ? 'fa-pause' : 'fa-play'}`} />
-        </button>
-      </div>
-
-      {lista.length === 0 ? (
-        <p className="ao2-live__empty">Nessun obiettivo in questa vista.</p>
-      ) : (
-        <div className="ao2-cards">
-          {lista.map((o) => <ObiettivoCard key={o.id} o={o} onElimina={() => elimina(o)} />)}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ObiettivoCard({ o, onElimina }: { o: Obiettivo; onElimina: () => void }) {
-  const pct = avanzamentoPct(o)
-  const venduto = vendutoTotale(o)
-  const target = targetTotale(o)
-  const premioTot = premioTotale(o)
-  const sbloccato = premioSbloccato(o)
-  const sottos = tuttiSotto(o)
-  const raggiunti = sottos.filter((s) => s.target > 0 && s.venduto >= s.target).length
-  const destinatario = o.tipologia === 'reparto' ? `Reparto ${o.reparto}` : `${o.assegnatario} · ${o.reparto}`
-
-  return (
-    <article className={'ao2-card' + (o.stato === 'concluso' ? ' is-done' : '')}>
-      <header className="ao2-card__head">
-        <div className="ao2-card__title-wrap">
-          <span className={'ao2-card__badge ao2-card__badge--' + o.stato}>{o.stato === 'in-corso' ? 'In corso' : o.stato === 'concluso' ? 'Concluso' : 'Bozza'}</span>
-          <h3 className="ao2-card__title">{o.nome}</h3>
-          <span className="ao2-card__dest"><i className={`fa-solid ${o.tipologia === 'reparto' ? 'fa-users' : 'fa-user'}`} /> {destinatario}</span>
-        </div>
-        <button type="button" className="ao2-icon-btn ao2-icon-btn--danger" title="Elimina obiettivo" onClick={onElimina}><i className="fa-solid fa-trash" /></button>
-      </header>
-
-      <div className="ao2-card__top">
-        <ProgressRing pct={pct} />
-        <div className="ao2-card__kpis">
-          <div className="ao2-card__kpi">
-            <span className="ao2-card__kpi-k">Venduto / Target</span>
-            <span className="ao2-card__kpi-v">{eur(venduto)} <em>/ {eur(target)}</em></span>
-          </div>
-          <div className="ao2-card__kpi">
-            <span className="ao2-card__kpi-k">Premio sbloccato</span>
-            <span className="ao2-card__kpi-v ao2-card__kpi-v--prize">{eur(sbloccato)} <em>/ {eur(premioTot)}</em></span>
-          </div>
-          <div className="ao2-card__coins">
-            {sottos.map((s) => {
-              const done = s.target > 0 && s.venduto >= s.target
-              return <i key={s.id} className={'fa-solid fa-coins ao2-card__coin' + (done ? ' is-on' : '')} title={`${s.nome}: ${eur(s.premio)}`} />
-            })}
-            <span className="ao2-card__coins-txt">{raggiunti}/{sottos.length} traguardi</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="ao2-card__periods">
-        {o.periodi.map((p) => (
-          <div key={p.id} className="ao2-card__period">
-            <div className="ao2-card__period-name">{p.nome}</div>
-            {p.sottoperiodi.map((s) => {
-              const spct = s.target > 0 ? Math.min(100, Math.round((s.venduto / s.target) * 100)) : 0
-              const done = s.target > 0 && s.venduto >= s.target
-              return (
-                <div key={s.id} className={'ao2-sp' + (done ? ' is-done' : '')}>
-                  <div className="ao2-sp__l">
-                    <span className="ao2-sp__name">{s.nome}</span>
-                    <span className="ao2-sp__prize">{done ? <><i className="fa-solid fa-trophy" /> {eur(s.premio)} sbloccato</> : <>premio {eur(s.premio)}</>}</span>
-                  </div>
-                  <div className="ao2-track ao2-track--sp">
-                    <span className={'ao2-track__fill' + (done ? ' is-done' : '')} style={{ '--pct': spct } as React.CSSProperties} />
-                    <span className="ao2-track__lbl">{eur(s.venduto)} / {eur(s.target)} · {spct}%</span>
-                  </div>
-                  <div className="ao2-sp__foot">
-                    {s.al && !done && <Countdown target={s.al} />}
-                    {done && <span className="ao2-sp__done"><i className="fa-solid fa-circle-check" /> Traguardo raggiunto</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
-    </article>
-  )
-}
-
-// ─── Anello di avanzamento (SVG animato) ──────────────────────────────────────
-function ProgressRing({ pct }: { pct: number }) {
-  const R = 34
-  const circ = +(2 * Math.PI * R).toFixed(1)
-  return (
-    <div className="ao2-ring" style={{ '--pct': pct, '--circ': circ } as React.CSSProperties}>
-      <svg viewBox="0 0 80 80" className="ao2-ring__svg">
-        <circle className="ao2-ring__bg" cx="40" cy="40" r={R} />
-        <circle className="ao2-ring__val" cx="40" cy="40" r={R} />
-      </svg>
-      <div className="ao2-ring__num">{pct}<small>%</small></div>
-    </div>
-  )
-}
-
-// ─── Countdown ────────────────────────────────────────────────────────────────
-function Countdown({ target }: { target: string }) {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id) }, [])
-  const t = new Date(target + 'T23:59:59').getTime() - now
-  if (isNaN(t)) return null
-  if (t <= 0) return <span className="ao2-cd ao2-cd--over"><i className="fa-solid fa-hourglass-end" /> scaduto</span>
-  const g = Math.floor(t / 86400000), h = Math.floor(t / 3600000) % 24, m = Math.floor(t / 60000) % 60, s = Math.floor(t / 1000) % 60
-  return <span className="ao2-cd"><i className="fa-solid fa-hourglass-half" /> {g}g {String(h).padStart(2, '0')}:{String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}</span>
 }
 
 const fmtDT = (v: string) => {

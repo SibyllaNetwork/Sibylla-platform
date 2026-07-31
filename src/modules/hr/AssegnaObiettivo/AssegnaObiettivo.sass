@@ -5,38 +5,31 @@
   display: flex
   flex-direction: column
 
-  // ── Tab segmentati (nell'header pagina) ──────────────────────────────────────
-  &__tabs
-    display: inline-flex
-    background: $bg
-    border: 1px solid $border
-    border-radius: 999px
-    padding: 3px
-
-  &__tab
+  // ── "In corso" → porta a Monitoraggio performance (non è un tab) ─────────────
+  &__golive
     display: inline-flex
     align-items: center
-    gap: 7px
-    border: 0
-    background: transparent
-    color: $text-inactive
+    gap: 8px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-radius: 999px
+    color: $primary
     font-family: $font-heading
     font-weight: 600
     font-size: 13px
-    padding: 7px 16px
-    border-radius: 999px
+    padding: 7px 14px
     cursor: pointer
-    transition: all .18s ease
+    transition: background .18s ease, border-color .18s ease
 
     &:hover
-      color: $primary
+      background: $bg
+      border-color: $primary
 
-    &.is-active
-      background: $primary
-      color: #fff
-      box-shadow: 0 3px 10px rgba(0, 0, 0, .16)
+    &:focus-visible
+      outline: 2px solid $primary
+      outline-offset: 2px
 
-  &__tab-badge
+  &__golive-badge
     min-width: 18px
     height: 18px
     padding: 0 5px
@@ -47,6 +40,15 @@
     font-weight: 700
     line-height: 18px
     text-align: center
+
+  &__golive-go
+    font-size: 11px
+    color: $text-inactive
+    transition: transform .18s ease
+
+  &__golive:hover &__golive-go
+    transform: translateX(2px)
+    color: $primary
 
 
 // ─── WIZARD ───────────────────────────────────────────────────────────────────
@@ -492,24 +494,6 @@
     &.is-done
       background: linear-gradient(90deg, $success-mid, $success)
 
-  &--sp
-    height: 22px
-    background: $bg
-    border: 1px solid $border
-
-  &__lbl
-    position: absolute
-    inset: 0
-    display: flex
-    align-items: center
-    justify-content: center
-    font-size: 11px
-    font-weight: 700
-    color: $text-active
-    z-index: 1
-    mix-blend-mode: normal
-
-
 // ── Riepilogo (fase 4) ─────────────────────────────────────────────────────────
 .ao2-riep
   display: flex
@@ -682,320 +666,6 @@
   animation: ao2-pulse 2.2s ease-in-out infinite
 
 
-// ─── LIVE (obiettivi in corso) ─────────────────────────────────────────────────
-.ao2-live
-  margin-top: 6px
-
-  &__bar
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 12px
-    flex-wrap: wrap
-    margin-bottom: 16px
-
-  &__filters
-    display: inline-flex
-    gap: 6px
-
-  &__filter
-    border: 1px solid $border
-    background: var(--color-surface)
-    color: $text-inactive
-    font-size: 13px
-    font-weight: 600
-    padding: 6px 14px
-    border-radius: 999px
-    cursor: pointer
-    transition: all .16s ease
-
-    &:hover
-      color: $primary
-    &.is-active
-      background: $primary
-      border-color: $primary
-      color: #fff
-
-  &__toggle
-    display: inline-flex
-    align-items: center
-    gap: 9px
-    border: 1px solid $border
-    background: var(--color-surface)
-    color: $text-inactive
-    font-size: 12px
-    font-weight: 700
-    letter-spacing: .03em
-    padding: 7px 14px
-    border-radius: 999px
-    cursor: pointer
-
-    &.is-live
-      border-color: $success
-      color: $success
-
-  &__dot
-    width: 9px
-    height: 9px
-    border-radius: 50%
-    background: $text-inactive
-
-  &.is-live &__dot, &__toggle.is-live &__dot
-    background: $success
-    animation: ao2-live-pulse 1.4s ease-in-out infinite
-
-  &__empty
-    color: $text-inactive
-    font-size: 14px
-    padding: 30px
-    text-align: center
-
-.ao2-cards
-  display: grid
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr))
-  gap: 18px
-
-  @media (max-width: 520px)
-    grid-template-columns: 1fr
-
-// card obiettivo
-.ao2-card
-  border: 1px solid $border
-  border-radius: 16px
-  background: var(--color-surface)
-  padding: 18px
-  display: flex
-  flex-direction: column
-  gap: 16px
-  animation: ao2-in .4s ease both
-  transition: box-shadow .2s ease
-
-  &:hover
-    box-shadow: 0 10px 28px rgba(0, 0, 0, .10)
-
-  &.is-done
-    opacity: .92
-
-  &__head
-    display: flex
-    align-items: flex-start
-    justify-content: space-between
-    gap: 12px
-
-  &__title-wrap
-    display: flex
-    flex-direction: column
-    gap: 5px
-    min-width: 0
-
-  &__badge
-    align-self: flex-start
-    font-size: 10px
-    font-weight: 800
-    text-transform: uppercase
-    letter-spacing: .05em
-    padding: 3px 9px
-    border-radius: 999px
-
-    &--in-corso
-      background: $success-light
-      color: $success
-    &--concluso
-      background: $primary-50
-      color: $primary
-    &--bozza
-      background: $warning-light
-      color: $warning
-
-  &__title
-    margin: 0
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 17px
-    color: $text-active
-
-  &__dest
-    display: inline-flex
-    align-items: center
-    gap: 7px
-    font-size: 12px
-    color: $text-inactive
-
-    i
-      color: $primary
-
-  &__top
-    display: flex
-    align-items: center
-    gap: 20px
-
-  &__kpis
-    flex: 1
-    min-width: 0
-    display: flex
-    flex-direction: column
-    gap: 10px
-
-  &__kpi
-    display: flex
-    flex-direction: column
-    gap: 1px
-
-  &__kpi-k
-    font-size: 11px
-    color: $text-inactive
-
-  &__kpi-v
-    font-family: $font-heading
-    font-weight: 800
-    font-size: 18px
-    color: $text-active
-
-    em
-      font-style: normal
-      font-weight: 500
-      font-size: 13px
-      color: $text-inactive
-
-    &--prize
-      color: $warning
-
-  &__coins
-    display: flex
-    align-items: center
-    gap: 4px
-    margin-top: 2px
-
-  &__coin
-    font-size: 15px
-    color: $border
-    transition: color .3s ease, transform .3s ease
-
-    &.is-on
-      color: $warning
-      animation: ao2-glow .5s ease
-
-  &__coins-txt
-    margin-left: 8px
-    font-size: 11px
-    color: $text-inactive
-    font-weight: 600
-
-  &__periods
-    display: flex
-    flex-direction: column
-    gap: 12px
-    border-top: 1px solid $border
-    padding-top: 14px
-
-  &__period-name
-    font-size: 12px
-    font-weight: 700
-    color: $primary
-    margin-bottom: 6px
-
-// sottoperiodo (live)
-.ao2-sp
-  display: flex
-  flex-direction: column
-  gap: 5px
-  padding: 8px 0
-
-  & + &
-    border-top: 1px dashed $border
-
-  &__l
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 10px
-
-  &__name
-    font-size: 13px
-    font-weight: 600
-    color: $text-active
-
-  &__prize
-    font-size: 12px
-    color: $text-inactive
-    display: inline-flex
-    align-items: center
-    gap: 5px
-
-  &.is-done &__prize
-    color: $success
-    font-weight: 700
-
-    i
-      color: $warning
-
-  &__foot
-    display: flex
-    justify-content: flex-end
-
-  &__done
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    font-size: 12px
-    font-weight: 700
-    color: $success
-
-.ao2-cd
-  display: inline-flex
-  align-items: center
-  gap: 6px
-  font-family: 'Courier New', monospace
-  font-size: 12px
-  font-weight: 700
-  color: $primary
-
-  &--over
-    color: $error
-
-// anello di avanzamento
-.ao2-ring
-  position: relative
-  width: 80px
-  height: 80px
-  flex: none
-
-  &__svg
-    width: 100%
-    height: 100%
-
-  &__bg
-    fill: none
-    stroke: $primary-50
-    stroke-width: 7
-
-  &__val
-    fill: none
-    stroke: $primary
-    stroke-width: 7
-    stroke-linecap: round
-    stroke-dasharray: var(--circ)
-    stroke-dashoffset: calc(var(--circ) * (100 - var(--pct, 0)) / 100)
-    transform: rotate(-90deg)
-    transform-origin: center
-    transition: stroke-dashoffset .9s cubic-bezier(.22, 1, .36, 1)
-
-  &__num
-    position: absolute
-    inset: 0
-    display: flex
-    align-items: center
-    justify-content: center
-    font-family: $font-heading
-    font-weight: 800
-    font-size: 20px
-    color: $primary
-
-    small
-      font-size: 11px
-      margin-left: 1px
-
-
 // ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
 .ao2-anim
   animation: ao2-in .35s ease both
@@ -1007,12 +677,6 @@
   to
     opacity: 1
     transform: translateY(0)
-
-@keyframes ao2-live-pulse
-  0%, 100%
-    box-shadow: 0 0 0 0 rgba(0, 207, 134, .5)
-  70%
-    box-shadow: 0 0 0 6px rgba(0, 207, 134, 0)
 
 @keyframes ao2-glow
   0%
