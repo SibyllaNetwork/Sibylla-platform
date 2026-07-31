@@ -58,7 +58,7 @@
       padding-bottom: 5px !important
 
   // ── Sopra-header: 4 macro-aree con 4 sfondi differenti (solo le sopra-leader) ─
-  // Anno precedente = grigio · Impostazione rapida = bianco (a scomparsa) ·
+  // Anno precedente = grigio · Imposta budget = bianco (a scomparsa) ·
   // Budget e Anno corrente = blu platform.
   &__grp
     font-family: $font-heading
@@ -99,7 +99,7 @@
   &__gsep
     border-left: 1px solid $primary-200 !important
 
-  // ── Colonna "Impostazione rapida" a scomparsa ────────────────────────────────
+  // ── Colonna "Imposta budget" a scomparsa ─────────────────────────────────────
   &__grp-imp
     display: inline-flex
     align-items: center
@@ -124,13 +124,26 @@
       color: #fff
       border-color: $primary
 
-  // cella stretta quando la macro-area è chiusa
+  // Colonna chiusa: striscia bianca continua da sopra-header a totali. Le celle
+  // restano (una per sezione: header, leader, corpo con rowspan, totali) ma senza
+  // bordi orizzontali, così a schermo si legge come un unico spazio vuoto.
   &__imp-collapsed
     width: 34px
     min-width: 34px
     max-width: 34px
     padding: 2px !important
     background: $white !important
+    border-top-color: transparent !important
+    border-bottom-color: transparent !important
+
+  // la cella della riga leader e quella dei totali hanno sfondi propri, più
+  // specifici: qui vanno riportate al bianco della striscia
+  &__leader th.bdg-ric__imp-collapsed
+    background: $white !important
+
+  &__tot td.bdg-ric__imp-collapsed
+    background: $white !important
+    border-top-color: transparent !important
 
   // ── Badge calendario del mese (anno in alto, mese sotto) ─────────────────────
   // Badge più basso (stretto in altezza); spaziatura in `&__table td.…mese-cell`.
@@ -196,7 +209,7 @@
     &::before, &::after
       background: $text-inactive
 
-  // Input "applica a tutti" nell'header Impostazione Rapida
+  // Input "applica a tutti" nell'header Imposta budget
   &__head-imp
     display: inline-flex
     flex-direction: column

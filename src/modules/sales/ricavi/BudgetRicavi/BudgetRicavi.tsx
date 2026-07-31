@@ -5,9 +5,9 @@ import { SelectField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../booking/GrigliaDisponibilita/exportGriglia'
 import './BudgetRicavi.sass'
 
-// Budget dei ricavi — dashboard revenue per mese: Anno Precedente, Impostazione
-// Rapida % (editabile, guida la Previsione Attesa), Previsione Attesa e Anno
-// Corrente con scostamenti vs budget. Replica `Views/Budget/BudgetR.cshtml`.
+// Budget dei ricavi — dashboard revenue per mese: Anno Precedente, Imposta
+// budget (%RN/%ADR editabili, guidano il Budget), Budget e Anno Corrente con
+// scostamenti vs budget. Replica `Views/Budget/BudgetR.cshtml`.
 
 interface MeseBase {
   mese: string
@@ -53,17 +53,29 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   const [anno, setAnno]           = useState(ANNI[0])
   const [dRN, setDRN]   = useState<number[]>(INIT_DRN)
   const [dADR, setDADR] = useState<number[]>(MESI.map(() => 2))
-  // Valori "applica a tutti" dell'header Impostazione Rapida %
+  // Valori "applica a tutti" dell'header Imposta budget
   const [headRN, setHeadRN]   = useState(1)
   const [headADR, setHeadADR] = useState(2)
-  // Macro-area "Impostazione rapida" a scomparsa (doppia freccia): chiusa dà più
+  // Macro-area "Imposta budget" a scomparsa (doppia freccia): chiusa dà più
   // spazio alle altre colonne, che si riadattano al nuovo spazio.
   const [impOpen, setImpOpen] = useState(true)
   // Toast "Suggerimento budget" (toggle dall'icona dorata in toolbar)
   const [showSugg, setShowSugg] = useState(true)
+
+  // Mesi già trascorsi: valori fissi (non editabili) e sbiaditi
+  const now = new Date()
+  const isPast = (i: number) => {
+    const y = Number(anno)
+    if (y < now.getFullYear()) return true
+    if (y > now.getFullYear()) return false
+    return i < now.getMonth()
+  }
+
   const num = (v: string) => Number(v.replace(',', '.')) || 0
-  const applyAllRN  = (v: string) => { const n = num(v); setHeadRN(n);  setDRN(MESI.map(() => n)) }
-  const applyAllADR = (v: string) => { const n = num(v); setHeadADR(n); setDADR(MESI.map(() => n)) }
+  // "Applica a tutti" tocca solo i mesi ancora da venire: il consuntivo dei mesi
+  // già trascorsi non si ricalcola.
+  const applyAllRN  = (v: string) => { const n = num(v); setHeadRN(n);  setDRN((p) => p.map((x, i) => (isPast(i) ? x : n))) }
+  const applyAllADR = (v: string) => { const n = num(v); setHeadADR(n); setDADR((p) => p.map((x, i) => (isPast(i) ? x : n))) }
 
   const rows = useMemo(() => MESI.map((m, i) => {
     const precRev = m.precRN * m.precADR
@@ -94,15 +106,6 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   const suggDelta = suggPrevisione - suggPotenziale
   const suggDeltaPct = suggPotenziale ? (suggDelta / suggPotenziale) * 100 : 0
 
-  // Mesi già trascorsi: valori fissi (non editabili) e sbiaditi
-  const now = new Date()
-  const isPast = (i: number) => {
-    const y = Number(anno)
-    if (y < now.getFullYear()) return true
-    if (y > now.getFullYear()) return false
-    return i < now.getMonth()
-  }
-
   const setD = (setter: React.Dispatch<React.SetStateAction<number[]>>, i: number, v: string) =>
     setter((p) => p.map((x, j) => (j === i ? Number(v.replace(',', '.')) || 0 : x)))
 
@@ -112,7 +115,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   const esportaPdf = () => exportElementToPdf(tableRef.current, 'budget-ricavi.pdf', `Budget dei ricavi ${anno}`)
 
   const esportaXls = () => {
-    const header = ['Mese', 'RN Prec.', 'ADR Prec.', 'Revenue Prec.', 'Δ%RN', 'Δ%ADR', 'RN Prev.', 'ADR Prev.', 'Revenue Prev.', 'RN', 'ADR', 'Revenue']
+    const header = ['Mese', 'RN Prec.', 'ADR Prec.', 'Revenue Prec.', '%RN', '%ADR', 'RN Prev.', 'ADR Prev.', 'Revenue Prev.', 'RN', 'ADR', 'Revenue']
     const body = rows.map((r, i) => [r.mese, r.precRN, eur(r.precADR), eur(r.precRev), dRN[i], dADR[i], r.prevRN, eur(r.prevADR), eur(r.prevRev), r.corrRN, eur(r.corrADR), eur(r.corrRev)])
     exportTableToXls('budget-ricavi.xls', header, body, `Budget dei ricavi ${anno}`)
   }
@@ -163,17 +166,24 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
               {impOpen ? (
                 <th colSpan={2} className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__gsep">
                   <span className="bdg-ric__grp-imp">
-                    <button type="button" className="bdg-ric__toggle" onClick={() => setImpOpen(false)} title="Comprimi Impostazione rapida" aria-label="Comprimi Impostazione rapida">
-                      <i className="fa-solid fa-angles-left" />
-                    </button>
-                    Impostazione Rapida %
+                    <Tooltip text="Contrai imposta budget">
+                      <button type="button" className="bdg-ric__toggle" onClick={() => setImpOpen(false)} aria-label="Contrai imposta budget">
+                        <i className="fa-solid fa-angles-left" />
+                      </button>
+                    </Tooltip>
+                    Imposta budget
                   </span>
                 </th>
               ) : (
-                <th rowSpan={2} className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__imp-collapsed bdg-ric__gsep">
-                  <button type="button" className="bdg-ric__toggle" onClick={() => setImpOpen(true)} title="Espandi Impostazione rapida" aria-label="Espandi Impostazione rapida">
-                    <i className="fa-solid fa-angles-right" />
-                  </button>
+                /* Chiusa: la freccia sta nella riga delle macro-aree, così è
+                   allineata ai titoli "Anno Precedente" e "Budget"; sotto, la
+                   colonna è un'unica striscia bianca senza celle. */
+                <th className="bdg-ric__grp bdg-ric__grp--imp bdg-ric__imp-collapsed bdg-ric__gsep">
+                  <Tooltip text="Espandi imposta budget">
+                    <button type="button" className="bdg-ric__toggle" onClick={() => setImpOpen(true)} aria-label="Espandi imposta budget">
+                      <i className="fa-solid fa-angles-right" />
+                    </button>
+                  </Tooltip>
                 </th>
               )}
               <th colSpan={3} className="bdg-ric__grp bdg-ric__grp--bdg bdg-ric__gsep">Budget</th>
@@ -182,19 +192,21 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
             {/* Leader: intestazioni colonna (sfondo azzurro) */}
             <tr className="bdg-ric__leader">
               <th className="bdg-ric__c-prec bdg-ric__gsep">RN</th><th className="bdg-ric__c-prec">ADR</th><th className="bdg-ric__c-prec">Revenue</th>
-              {impOpen && (
+              {impOpen ? (
                 <>
                   <th className="bdg-ric__imp-cell bdg-ric__gsep">
-                    <span className="bdg-ric__head-imp">Δ%RN
-                      <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={headRN} onChange={(e) => applyAllRN(e.target.value)} aria-label="Δ%RN per tutti i mesi" />
+                    <span className="bdg-ric__head-imp">%RN
+                      <input type="number" min={0} step={1} className="sib-input bdg-ric__imp-input" value={headRN} onChange={(e) => applyAllRN(e.target.value)} aria-label="%RN per tutti i mesi" />
                     </span>
                   </th>
                   <th className="bdg-ric__imp-cell">
-                    <span className="bdg-ric__head-imp">Δ%ADR
-                      <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={headADR} onChange={(e) => applyAllADR(e.target.value)} aria-label="Δ%ADR per tutti i mesi" />
+                    <span className="bdg-ric__head-imp">%ADR
+                      <input type="number" min={0} step={0.01} className="sib-input bdg-ric__imp-input" value={headADR} onChange={(e) => applyAllADR(e.target.value)} aria-label="%ADR per tutti i mesi" />
                     </span>
                   </th>
                 </>
+              ) : (
+                <th className="bdg-ric__imp-collapsed bdg-ric__gsep" />
               )}
               <th className="bdg-ric__c-bdg bdg-ric__gsep">RN</th><th className="bdg-ric__c-bdg">ADR</th><th className="bdg-ric__c-bdg">Revenue</th>
               <th className="bdg-ric__corr bdg-ric__gsep">RN</th><th className="bdg-ric__corr">Δ% RN vs BDG</th><th className="bdg-ric__corr">ADR</th><th className="bdg-ric__corr">Δ% ADR vs BDG</th><th className="bdg-ric__corr">Revenue</th><th className="bdg-ric__corr">Δ% RV</th>
@@ -229,7 +241,9 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
                     </>
                   )
                 ) : (
-                  <td className="bdg-ric__imp-collapsed bdg-ric__gsep" />
+                  /* Una sola cella per tutto il corpo: la colonna chiusa è uno
+                     spazio bianco continuo, non una fila di celle vuote. */
+                  i === 0 && <td rowSpan={rows.length} className="bdg-ric__imp-collapsed bdg-ric__gsep" />
                 )}
                 <td className="bdg-ric__c-bdg bdg-ric__gsep">{r.prevRN} Notti</td>
                 <td className="bdg-ric__c-bdg">{eur(r.prevADR)}</td>
