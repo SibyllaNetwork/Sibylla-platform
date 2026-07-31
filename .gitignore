@@ -26,8 +26,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Outlet Manager — sorgente vendorizzato fuori da src/ (contiene node_modules/venv pesanti)
-/outlet-full
+# Outlet Manager (Food & Beverage) — il SORGENTE è versionato (back-end Flask +
+# frontend originale come riferimento); fuori restano solo pesi e dati locali.
+# Nota: `.env` è già coperto dalla regola generale sopra; il template è .env.example.
+/outlet-full/**/node_modules
+/outlet-full/**/venv
+/outlet-full/**/__pycache__
+/outlet-full/**/*.pyc
+/outlet-full/frontend/dist
+/outlet-full/frontend/vite.config.js.timestamp-*
+# database locale di sviluppo: si rigenera all'avvio (create_tables + seed)
+/outlet-full/**/*.db
 
 # Export generati (PowerPoint SSPI, ecc.)
 *.pptx

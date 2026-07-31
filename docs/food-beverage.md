@@ -15,11 +15,11 @@ La sezione F&B **non è un mock**: è l'applicazione reale *Outlet Manager*
 (`outlet.sibyllanetwork.it` — React/Vite + **Python Flask** + SQLite) portata dentro
 la platform. Le pagine sono state **ricreate in React dentro il repo** come sub-app
 montata (pattern `AgoraShell`), mentre il **back-end Python è rimasto separato** nella
-propria cartella (`outlet-full/`, fuori dal versionamento).
+propria cartella (`outlet-full/backend`), versionata in questo stesso repo.
 
-Quindi: il front-end è **dentro**, funzionante e navigabile; il back-end è **fuori**,
-ancora Flask/SQLite; l'allineamento agli standard UI Sibylla e al modello dati
-multi-struttura è **il lavoro da fare**.
+Quindi: front-end React dentro `src/`, back-end Flask/SQLite in `outlet-full/backend`,
+uniti a runtime dal proxy `/api`. Con un `git clone` si ha tutto. L'allineamento agli
+standard UI Sibylla e al modello dati multi-struttura è **il lavoro da fare**.
 
 ---
 
@@ -80,24 +80,35 @@ del sorgente originale (`selTurno`/`dateStr` non definiti in `SalaRistorante`).
 
 ## 2. Il back-end: dov'è e com'è fatto
 
-Cartella `outlet-full/` nella root del repo — **esclusa da git** (`.gitignore` riga 30).
-**Non arriva con il clone**: farsela passare a mano (o rimetterla sotto versionamento
-in un repo proprio: vedi § 5, decisione 1).
+Cartella `outlet-full/` nella root del repo: **è versionata, arriva col clone**.
+Fuori dal versionamento restano solo pesi e roba locale — `venv/`, `node_modules/`,
+`dist/`, `.env` e `*.db`.
 
 ```
 outlet-full/
-├─ backend/                      ← quello che conta
+├─ README.md                     ← leggere il box in testa: ruolo della cartella + avvio
+├─ backend/                      ← quello che conta: è il BE della sezione F&B
 │  ├─ app/main.py                3 347 righe, 131 endpoint
 │  ├─ app/models.py                708 righe, 27 tabelle
 │  ├─ app/auth.py                  token di sessione su tabella + ruoli/permessi
 │  ├─ app/database.py              SQLAlchemy → SQLite
-│  ├─ outlet_manager.db            il database (file locale)
 │  ├─ Script Migrazione/           18 script di migrazione ad-hoc
-│  └─ requirements.txt             flask 3.0.3, flask-cors, sqlalchemy 2.0, openpyxl
+│  ├─ requirements.txt             flask 3.0.3, flask-cors, sqlalchemy 2.0, openpyxl
+│  ├─ .env.example                → copiare in .env (non versionato)
+│  └─ [outlet_manager.db]          NON versionato: si rigenera vuoto al primo avvio
 ├─ frontend/                     ← originale Vite: superato, resta come riferimento
+│  └─ src/                          utile per SSO: LoginPage/AuthPages/useAuth, mai
+│                                   portate nella platform
 ├─ docker-compose.yml
 └─ outlet_manager_relazione_tecnica.docx   ← documentazione funzionale originale
 ```
+
+**Il database non è nel repo** ed è una scelta: contiene dati di lavoro e la password
+SMTP in chiaro (`config_email.smtp_password`). Al primo avvio `create_tables()` +
+`_seed()` + `_seed_auth()` ricreano schema e minimo indispensabile: 14 allergeni EU,
+3 tipi menu (Food/Beverage/Cantina) e l'utente `admin` / `admin123`. Outlet, sale,
+tavoli e menu **no**: per lavorare su dati realistici farsi passare a mano una copia
+del `.db`, oppure crearli dal Configuratore → Food & Beverage.
 
 ### Avvio in locale
 
@@ -226,9 +237,10 @@ anagrafiche parallele. Decidere quale è la sorgente di verità prima di costrui
 ## 6. Roadmap suggerita
 
 **Fase 0 — ambiente e rete di sicurezza** *(giorni, non settimane)*
-1. Farsi passare `outlet-full/`, avviare BE locale + FE con `OUTLET_PROXY_TARGET`.
+1. Avviare BE locale + FE con `OUTLET_PROXY_TARGET` (istruzioni in `outlet-full/README.md`).
 2. Leggere `outlet_manager_relazione_tecnica.docx`: è la specifica funzionale originale.
-3. Mettere il back-end sotto versionamento nel suo repo (oggi è solo su questo Mac).
+3. Chiedere una copia del `.db` di lavoro, se serve lavorare su dati realistici
+   (il database non è versionato: vedi § 2).
 4. Congelare il contratto API: da `api.js` + `main.py` generare i tipi TS delle risposte.
    È la base per tutto il resto e non richiede decisioni aperte.
 
@@ -269,10 +281,13 @@ email hanno endpoint pronti ma nessuna UI integrata; e va chiusa l'integrazione 
 - **Non sviluppare col proxy verso produzione** (il default): esportare sempre
   `OUTLET_PROXY_TARGET`.
 - **Python 3.13/3.14 non vanno**: servono 3.11 o 3.12.
-- **`outlet-full/` è gitignored**: qualunque modifica al back-end fatta lì non finisce
-  in nessun commit di questo repo. È l'errore più facile da fare.
-- **`Script Migrazione/`**: sono script one-shot già applicati al `.db` presente. Non
-  rilanciarli alla cieca su un database esistente.
+- **Non lanciare `outlet-full/start.sh`**: avvia anche il frontend Vite originale sulla
+  porta 3000, in conflitto con la platform. Del progetto originale serve **solo** il
+  back-end.
+- **`.env` e `*.db` non sono versionati** (per scelta: password SMTP in chiaro nel DB).
+  Copiare `.env.example` → `.env` al primo avvio.
+- **`Script Migrazione/`**: sono script one-shot già applicati. Non rilanciarli alla
+  cieca su un database esistente.
 - Le pagine Outlet montano **il proprio** `PageHeader`: chi passa a `PageHead` deve
   togliere anche la soppressione condizionale in `Configuratore.tsx` (riga ~157).
 

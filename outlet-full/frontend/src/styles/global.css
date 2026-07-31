@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary:     #204769;
+  --primary-700: #58738b;
+  --primary-100: #e6eaee;
+  --primary-50:  #f2f5f6;
+  --link:        #5C9CD4;
+  --link-light:  #9DD7E8;
+  --text-active: #4A4D53;
+  --text-inactive:#6E7175;
+  --text-disabled:#A9AAAD;
+  --error:       #FF616E;
+  --error-bg:    #FFEAEF;
+  --success:     #00CF86;
+  --success-bg:  #E4F8EE;
+  --warning:     #F57D03;
+  --bg-page:     #f2f5f6;
+  --border:      #CFCFCF;
+  --border-light:#DBDBDB;
+  --radius-sm:   6px;
+  --radius:      8px;
+  --radius-lg:   12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+
+body {
+  font-family: 'Open Sans', 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-active);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px; line-height: 20px;
+}
+
+h1,h2,h3 { font-family: 'Poppins', sans-serif; color: var(--primary); }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.3); }
+.scrollbar-light::-webkit-scrollbar-thumb { background: #DBDBDB; }
+.scrollbar-light::-webkit-scrollbar-thumb:hover { background: #A9AAAD; }
+.scrollbar-thin::-webkit-scrollbar { width: 3px; }
+
+input, select, textarea, button { font-family: inherit; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 8px; border: none;
+  background: transparent; color: rgba(255,255,255,.55);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap; text-align: left; width: 100%;
+}
+.nav-item:hover { background: rgba(255,255,255,.09); color: rgba(255,255,255,.92); }
+.nav-item.active { background: rgba(92,156,212,.22); color: #5C9CD4; font-weight: 700; }
+.nav-item.active svg { color: #5C9CD4; }
+.nav-child { font-size: 12px; padding: 6px 10px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
