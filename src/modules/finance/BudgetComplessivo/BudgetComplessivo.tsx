@@ -85,14 +85,21 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
 
   const months = useMemo(() => MESI.map((_, m) => m), [])
 
+  // Totale di riga: somma dei 12 mesi (colonna "Totale" dopo i mesi)
+  const rowTotal = useCallback(
+    (key: string): number => months.reduce((s, m) => s + monthVal(key, m), 0),
+    [months, monthVal],
+  )
+
   const renderRow = (r: RowCfg, variant: 'ricavi' | 'costi' | 'margine') => (
     <tr key={r.key} className={`bc__row bc__row--${variant} ${r.totale ? 'bc__row--totale' : ''}`}>
       <td className="bc__voce">{r.label}</td>
       {months.map(m => {
-        // Valori a sola lettura; i mesi già trascorsi sono evidenziati
-        const pastCls = isPast(m) && !r.totale ? 'bc__cell--past' : ''
+        // Valori a sola lettura; i mesi già trascorsi sono sbiaditi
+        const pastCls = isPast(m) ? 'bc__cell--past' : ''
         return <td key={m} className={`bc__num bc__cell ${pastCls}`}>{fmtEuro(monthVal(r.key, m))}</td>
       })}
+      <td className="bc__num bc__tot">{fmtEuro(rowTotal(r.key))}</td>
     </tr>
   )
 
@@ -133,6 +140,7 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
                 {months.map(m => (
                   <th key={m} className={`bc__num bc__colhead ${isPast(m) ? 'bc__colhead--past' : ''}`}>{MESI[m]}</th>
                 ))}
+                <th className="bc__num bc__colhead bc__tot bc__tot--head">Totale</th>
               </tr>
             </thead>
             <tbody>
@@ -140,7 +148,7 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
                 <React.Fragment key={sez.variant}>
                   <tr className="bc__section">
                     <td className={`bc__voce bc__section-cell bc__section-cell--${sez.variant}`}>{sez.title}</td>
-                    <td colSpan={months.length} className={`bc__section-cell bc__section-cell--${sez.variant}`} />
+                    <td colSpan={months.length + 1} className={`bc__section-cell bc__section-cell--${sez.variant}`} />
                   </tr>
                   {sez.rows.map(r => renderRow(r, sez.variant))}
                 </React.Fragment>

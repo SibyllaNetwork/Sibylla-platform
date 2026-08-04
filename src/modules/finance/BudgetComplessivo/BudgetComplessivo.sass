@@ -83,12 +83,27 @@
     background: var(--color-surface)
     min-width: 110px
 
-    &--past
-      background: rgba(232, 168, 132, 0.10)
+  // Mesi già trascorsi: testo sbiadito, come nella tabella del Budget dei ricavi
+  // (selettori con elemento + !important per vincere su `.sib-table th/td`)
+  &__pl th.bc__colhead--past,
+  &__pl td.bc__cell--past
+    color: $text-disabled !important
 
-  &__cell
-    &--past
-      background: rgba(232, 168, 132, 0.10)
+  // ── Colonna "Totale" (dopo i mesi): blu platform in gradazione più chiara ──
+  &__pl th.bc__tot,
+  &__pl td.bc__tot
+    background: #d6e6f5
+    color: $primary
+    font-weight: 700
+    min-width: 130px
+    border-left: 1px solid $primary-200
+
+  &__pl th.bc__tot--head
+    background: #bcd4e9
+
+  // Sull'incrocio con le righe Totale/MOL la colonna resta riconoscibile
+  &__row--totale td.bc__tot
+    background: #bcd4e9
 
   // Prima colonna (voci) — sempre fissa
   &__voce
@@ -126,7 +141,3 @@
   &__row--totale td
     font-weight: 700
     background: $primary-50
-
-  // I mesi già trascorsi sono evidenziati (solo sulle voci, non sui totali)
-  &__cell--past
-    background: rgba(232, 168, 132, 0.10)
