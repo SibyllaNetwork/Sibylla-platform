@@ -30,81 +30,139 @@
 
   &__actions
     display: inline-flex
+    align-items: center
     gap: 8px
     flex-wrap: wrap
 
-  // ── Tabella ─────────────────────────────────────────────────────
-  &__num
-    text-align: right
-    white-space: nowrap
+    .sib-btn--icon i
+      color: $primary
+      font-size: 16px
 
-  // Intestazione di gruppo (Anno Precedente / Variazioni / ...)
-  &__group-row th
-    text-align: center
-    font-family: 'Poppins', sans-serif
-    font-weight: 700
+  // ── Tabella (impaginata come il Budget dei ricavi) ───────────────
+  &__table
+    width: 100%
+    font-size: 12px
+
+    // testi centrati sotto la colonna a cui si riferiscono
+    th
+      text-align: center !important
+      vertical-align: middle
+      white-space: normal
+      line-height: 1.2
+      padding: 5px 4px !important
+      font-size: 11px
+
+    td
+      text-align: center !important
+      white-space: nowrap
+      padding: 4px 4px !important
+      font-size: 11px
+
+    td.budget-costi__mese-cell
+      padding-top: 9px !important
+      padding-bottom: 5px !important
+
+  // Sopra-header: macro-aree — Anno precedente grigio, Variazioni bianco,
+  // Budget e Anno corrente blu platform (identico al Budget dei ricavi)
+  &__grp
+    font-family: $font-heading
+    text-transform: none
+    letter-spacing: 0
     font-size: 13px
-    color: $primary
-    background: var(--color-surface)
-    border-bottom: 1px solid $border
-
-  &__group
-    border-left: 1px solid $border
-
-    &--current
-      background: $primary-50
-
-  // Sotto-intestazione (Mese / Costi totali / Δ% ...)
-  &__sub-row th
-    background: $primary-50
-    color: $primary
     font-weight: 700
 
-  &__col--current
-    background: $primary-50
+    &--prec
+      background: #e7eaf0 !important
+      color: $text-active
+    &--imp
+      background: $white !important
+      color: $text-active
+    &--bdg
+      background: $primary !important
+      color: #fff !important
+    &--corr
+      background: $primary !important
+      color: #fff !important
 
-  // Badge mese stile calendario
+  &__mese-th
+    background: #e7f0fa !important
+    color: $primary !important
+    font-weight: 700
+
+  &__leader th
+    background: #e7f0fa !important
+    color: $primary !important
+    font-weight: 700
+
+  // Separatore verticale all'inizio di ogni blocco
+  &__gsep
+    border-left: 1px solid $primary-200 !important
+
+  // ── Badge calendario del mese (anno in alto, mese sotto) ─────────
   &__cal
     position: relative
     display: inline-flex
-    align-items: center
-    justify-content: center
-    width: 40px
-    height: 40px
-    border-radius: 8px
-    background: $primary
-    color: $white
-    font-size: 11px
-    font-weight: 700
-    letter-spacing: 0.5px
-    box-shadow: inset 0 9px 0 rgba(255, 255, 255, 0.20)
+    flex-direction: column
+    width: 38px
+    height: 34px
+    border-radius: 7px
+    background: $white
+    border: 1px solid $primary-200
+    box-shadow: 0 2px 7px rgba(32, 71, 105, 0.14)
 
-    &::before,
-    &::after
+    // anelli di rilegatura
+    &::before, &::after
       content: ''
       position: absolute
-      top: -3px
+      top: -4px
       width: 4px
-      height: 7px
+      height: 8px
       border-radius: 2px
       background: $primary
-
+      z-index: 2
     &::before
-      left: 10px
-
+      left: 11px
     &::after
-      right: 10px
+      right: 11px
 
-    &--past
-      background: $primary-300
+  &__cal-head
+    height: 16px
+    background: $primary
+    border-radius: 6px 6px 0 0
+    flex-shrink: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 8.5px
+    letter-spacing: .4px
+    color: #fff
 
-      &::before,
-      &::after
-        background: $primary-300
+  &__cal-day
+    flex: 1
+    display: flex
+    align-items: center
+    justify-content: center
+    font-family: $font-heading
+    font-weight: 800
+    font-size: 13px
+    letter-spacing: .3px
+    color: $primary
 
-  // Righe mesi passati
+  &__cal--past
+    border-color: $border
+
+    .budget-costi__cal-head
+      background: $text-inactive
+    .budget-costi__cal-day
+      color: $text-inactive
+    &::before, &::after
+      background: $text-inactive
+
+  // Mesi già trascorsi: solo font più chiaro (come nel Budget dei ricavi)
   &__row--past td
-    background: rgba(232, 168, 132, 0.08)
+    color: $text-disabled !important
 
   &__prev
     color: $text-inactive
@@ -113,21 +171,21 @@
     font-weight: 600
     color: $primary
 
-  // Input Δ% e € in cella
+  // Input % e € in cella (centrati sotto l'intestazione)
   &__delta-input,
   &__euro-input
     display: inline-flex
     align-items: center
-    justify-content: flex-end
+    justify-content: center
     gap: 4px
 
     input
-      width: 64px
-      text-align: right
+      width: 62px
+      text-align: center
       border: 1px solid $border
       border-radius: 6px
-      padding: 4px 6px
-      font-size: 13px
+      padding: 3px 4px
+      font-size: 12px
       font-family: 'Open Sans', sans-serif
       color: $text-active
       background: var(--color-surface)
@@ -142,11 +200,11 @@
       font-size: 12px
 
   &__euro-input input
-    width: 110px
+    width: 104px
 
   &__info
     color: $primary
-    font-size: 16px
+    font-size: 14px
     cursor: help
 
   // Riga totale
@@ -155,3 +213,203 @@
     font-weight: 700
     color: $primary
     border-top: 2px solid $border
+
+  // ── Icona "Suggerimento budget" (dorata) ─────────────────────────
+  &__sugg-btn
+    i
+      color: #c9a227 !important
+
+    &.is-active
+      border-color: #c9a227
+      background: rgba(201, 162, 39, .12)
+
+  // ── Toast "Suggerimento budget" (in basso a destra) ──────────────
+  &__sugg
+    position: fixed
+    right: 24px
+    bottom: 24px
+    z-index: 60
+    width: 360px
+    max-width: calc(100vw - 48px)
+    display: flex
+    align-items: flex-start
+    gap: 12px
+    background: var(--color-surface)
+    border: 1px solid $border
+    border-left: 4px solid #c9a227
+    border-radius: 12px
+    box-shadow: 0 14px 36px rgba(0, 0, 0, .18)
+    padding: 14px 16px
+    animation: bdg-costi-sugg-in .3s ease both
+
+  &__sugg-ico
+    color: #c9a227
+    font-size: 20px
+    flex: none
+    margin-top: 2px
+
+  &__sugg-body
+    flex: 1
+    min-width: 0
+
+  &__sugg-title
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 14px
+    color: $text-active
+
+  &__sugg-text
+    margin: 4px 0 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  &__sugg-note
+    margin: 6px 0 0
+    font-size: 11.5px
+    font-style: italic
+    color: $text-disabled
+
+  &__sugg-actions
+    display: flex
+    justify-content: flex-end
+    margin-top: 10px
+
+  &__sugg-close
+    flex: none
+    border: 0
+    background: transparent
+    color: $text-inactive
+    cursor: pointer
+    font-size: 14px
+    padding: 2px
+    line-height: 1
+
+    &:hover
+      color: $text-active
+
+
+// ─── POP-UP "STIMA DEI COSTI VARIABILI" ──────────────────────────────────────
+// Larghezza dedicata: trend e tabella laterale devono stare affiancati
+.modal__box.stima-cv
+  width: min(1120px, 95vw)
+  max-width: 95vw
+
+.stima-cv
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 4px 20px 20px
+
+  &__copy
+    margin: 0
+    font-size: 12.5px
+    line-height: 1.6
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  &__copy-ico
+    color: #c9a227
+    font-size: 16px
+    margin-right: 8px
+
+  &__copy-sub
+    display: block
+    margin-top: 6px
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 12px
+    color: $primary
+
+  &__content
+    display: flex
+    gap: 16px
+    align-items: stretch
+    flex-wrap: wrap
+
+  &__chart
+    flex: 1 1 420px
+    min-width: 0
+    border: 1px solid $border
+    border-radius: 12px
+    padding: 12px
+
+  &__chart-title
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 13px
+    color: $primary
+    margin-bottom: 8px
+
+  &__aside
+    flex: 0 0 280px
+    max-width: 280px
+    border: 1px solid $border
+    border-radius: 12px
+    padding: 12px
+    display: flex
+    flex-direction: column
+
+  &__table
+    width: 100%
+    font-size: 11px
+
+    th
+      text-align: center !important
+      background: #e7f0fa !important
+      color: $primary !important
+      font-weight: 700
+      padding: 5px 4px !important
+      font-size: 11px
+
+    td
+      text-align: center !important
+      padding: 3px 4px !important
+      white-space: nowrap
+
+  &__row--stima td
+    color: $text-inactive
+    font-style: italic
+
+  &__tot td
+    background: $primary-50
+    font-weight: 700
+    color: $primary
+    border-top: 2px solid $border
+
+  &__legend
+    display: flex
+    align-items: center
+    gap: 14px
+    margin-top: 10px
+    font-size: 11px
+    color: $text-inactive
+
+  &__dot
+    display: inline-block
+    width: 10px
+    height: 10px
+    border-radius: 2px
+    margin-right: 5px
+
+    &--navy
+      background: $primary
+
+    &--azzurro
+      background: #14A0DE
+
+
+// ─── ANIMAZIONI ─────────────────────────────────────────────────────────────
+@keyframes bdg-costi-sugg-in
+  from
+    opacity: 0
+    transform: translateY(12px)
+  to
+    opacity: 1
+    transform: translateY(0)
