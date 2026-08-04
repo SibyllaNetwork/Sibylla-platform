@@ -24,7 +24,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "budget-complessivo": "Pianificazione strategica suddivisa per le diverse voci dei ricavi e dei costi",
   "budget-costi": "Controllo di gestione su piano mensile per monitorare le spese, confrontare i dati storici, analizzare le previsioni e verificare l’andamento dell’anno corrente",
   "budget-ricavi": "Dashboard interattiva del revenue con confronto dei dati storici e previsioni future",
-  "cabina-controllo": "Bilancio sulle diverse voci dei ricavi e dei costi",
+  "cabina-controllo": "Panoramica di gestione sulle diverse voci di ricavi e costi",
   "cal-annuale": "Gestisci il tuo catalogo e assegna markup per garantire stabilità e visione a lungo termine",
   "calendario-master": "Visione d'insieme delle strategie applicate alle tariffe, alla distribuzione delle camere e alle prenotazioni di gruppo",
   "calendario-strategie": "Dalla visione all'azione: il tuo piano strategico si applica al mercato in tempo reale. Meno tempo e più risultati",

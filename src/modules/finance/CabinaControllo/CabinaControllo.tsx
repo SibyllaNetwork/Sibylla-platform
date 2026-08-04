@@ -87,7 +87,8 @@ function colonne(ivId: string): Col[] {
   if (ivId === 'Y') {
     return [
       ...MESI.map((_, m) => ({ label: MESI[m], months: [m] })),
-      { label: 'Year', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], totale: true },
+      // Colonna "Totale" dopo i mesi, come nel Budget complessivo
+      { label: 'Totale', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], totale: true },
     ]
   }
   const iv = INTERVALLI.find(i => i.id === ivId) ?? INTERVALLI[0]
@@ -162,7 +163,7 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
 
   return (
     <div className="cabina">
-      <PageHead title="Cabina di controllo" subtitle="Conto economico di gestione: LY · Budget · Actual · Scostamento, per trimestre o intero anno" />
+      <PageHead title="Cabina di controllo" subtitle="Panoramica di gestione sulle diverse voci di ricavi e costi" />
 
       {/* Toolbar */}
       <div className="cabina__toolbar">

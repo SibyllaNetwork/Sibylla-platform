@@ -139,9 +139,19 @@
     z-index: 6
     background: $bg
 
-  // Colonna Totale evidenziata
+  // Colonna "Totale" (dopo i mesi): blu platform in gradazione più chiara,
+  // identica a quella del Budget complessivo. Selettori con elemento + tr per
+  // vincere sugli sfondi delle righe totale/margine.
+  &__pl td.cabina__col-tot
+    background: #d6e6f5
+
+  &__pl th.cabina__col-tot,
+  &__pl tr.cabina__row--totale td.cabina__col-tot,
+  &__pl tr.cabina__row--margine td.cabina__col-tot
+    background: #bcd4e9
+
   &__col-tot
-    background: $primary-50
+    border-left: 1px solid $primary-200
 
   // Scostamento colorato
   &__scost
@@ -163,7 +173,8 @@
     &--neutral
       color: $text-inactive
 
-  // Righe di sezione
+  // Righe di sezione: banda bianca che attraversa la tabella, come nel
+  // Budget complessivo (prima era off-white come gli header)
   &__section-cell
     padding: 12px 14px
     font-family: 'Poppins', sans-serif
@@ -171,7 +182,7 @@
     font-size: 12px
     text-transform: uppercase
     letter-spacing: 0.04em
-    background: $bg
+    background: var(--color-surface)
 
     &--ricavi,
     &--margine
