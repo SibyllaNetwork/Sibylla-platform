@@ -139,6 +139,7 @@ export default function BudgetCosti({ navigate }: { navigate: (p: string) => voi
             options={COSTI_OPTS}
             value={costType}
             onChange={v => setCostType(v as CostType)}
+            className="budget-costi__costi"
           />
           <SelectField
             name="anno" label="Anno"

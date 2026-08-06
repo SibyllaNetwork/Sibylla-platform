@@ -4,11 +4,14 @@
   display: flex
   flex-direction: column
   gap: 14px
+  // Riferimento per le container query della toolbar (si compatta in base allo
+  // spazio reale della pagina, non alla larghezza del viewport)
+  container-type: inline-size
 
   > .sib-btn--back
     align-self: flex-start
 
-  // ── Toolbar ─────────────────────────────────────────────────────
+  // ── Toolbar: filtri (Strutture, Costi, Anno) e pulsanti sulla stessa riga ──
   &__toolbar
     display: flex
     align-items: flex-end
@@ -19,24 +22,76 @@
   &__filters
     display: flex
     align-items: flex-end
-    gap: 20px
-    flex-wrap: wrap
+    gap: 14px
+    // I filtri restano in linea: a stringere sono le misure, non il wrap
+    flex-wrap: nowrap
+    min-width: 0
 
   &__struttura
-    width: min(220px, 100%)
+    width: 170px
+
+  // Radio "Costi": spaziatura più compatta per stare in linea con gli altri
+  &__costi > div
+    gap: 14px
 
   &__anno
-    width: 110px
+    width: 84px
 
   &__actions
     display: inline-flex
     align-items: center
-    gap: 8px
+    gap: 6px
     flex-wrap: wrap
+    flex: none
 
     .sib-btn--icon i
       color: $primary
       font-size: 16px
+
+  // Sotto il laptop con sidebar aperta: solo dimensioni più strette, nessuna
+  // etichetta abbreviata e nessun a-capo.
+  @container (max-width: 1120px)
+    .budget-costi__filters
+      gap: 10px
+
+    .budget-costi__struttura
+      width: 148px
+
+    .budget-costi__costi > div
+      gap: 10px
+
+    .budget-costi__anno
+      width: 78px
+
+    .budget-costi__actions
+      gap: 4px
+
+      .sib-btn
+        padding-left: 10px
+        padding-right: 10px
+
+  // Laptop 13" con sidebar aperta: ultimo giro di compattazione per tenere
+  // filtri e pulsanti sulla stessa riga.
+  @container (max-width: 1010px)
+    .budget-costi__filters
+      gap: 8px
+
+    .budget-costi__struttura
+      width: 118px
+
+    .budget-costi__costi > div
+      gap: 8px
+
+    .budget-costi__anno
+      width: 82px
+
+    .budget-costi__actions
+      gap: 3px
+
+      .sib-btn
+        padding-left: 8px
+        padding-right: 8px
+        font-size: 12px
 
   // ── Tabella (impaginata come il Budget dei ricavi) ───────────────
   &__table
