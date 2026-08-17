@@ -1351,3 +1351,299 @@ export function computeIncassi(d: FinanceData): IncassiKpi {
     sparkCredito: perMese.map((m) => m.credito),
   }
 }
+
+// ─── Partitario e quadrature (usato da Ledger analysis) ─────────────────────────
+//  La contabilità vista dal lato del controllo: quanto si è registrato, se le
+//  registrazioni quadrano (dare = avere), che cosa è rimasto in sospeso e quali
+//  anomalie vanno sanate prima della chiusura.
+//
+//  Il partitario non è un mondo a parte: nasce dagli stessi fatti del conto
+//  economico e della cassa (ricavi fatturati, costi ricevuti, incassi, pagamenti),
+//  perciò i saldi dei mastri si leggono come le altre pagine di finance.
+
+/** Aliquota IVA media del mix (10% su camere e ristorazione, 22% sugli altri servizi). */
+const IVA_MEDIA = 0.12
+
+export type NaturaConto = 'attivo' | 'passivo' | 'ricavo' | 'costo' | 'transitorio'
+
+export interface ContoMastro {
+  codice: string
+  label: string
+  natura: NaturaConto
+  dare: number
+  avere: number
+  /** Saldo con segno: positivo = eccedenza in dare. */
+  saldo: number
+  /** Dare + avere: quanto il conto è stato movimentato. */
+  movimentazione: number
+  /** Partite ancora aperte sul conto. */
+  partiteAperte: number
+}
+
+export interface MeseLedger {
+  mese: number
+  label: string
+  /** Numero di registrazioni del mese. */
+  registrazioni: number
+  dare: number
+  avere: number
+  /** Dare meno avere: deve essere zero. */
+  sbilancio: number
+  /** Importi incassati e non ancora attribuiti a un documento. */
+  sospesi: number
+  consuntivo: boolean
+}
+
+export interface RigaRegistrazione {
+  id: string
+  data: Date
+  protocollo: string
+  mastro: string
+  descrizione: string
+  dare: number
+  avere: number
+  stato: 'validata' | 'da validare' | 'sospesa'
+}
+
+export interface AnomaliaLedger {
+  key: string
+  tipo: string
+  descrizione: string
+  conteggio: number
+  valore: number
+  gravita: 'alta' | 'media' | 'bassa'
+}
+
+export interface LedgerKpi {
+  /** Registrazioni dell'anno. */
+  registrazioni: number
+  /** Totale movimentato in dare (= in avere, a quadratura). */
+  movimentato: number
+  sospesi: number
+  /** Sbilancio complessivo: se non è zero la contabilità non quadra. */
+  sbilancio: number
+  quadrato: boolean
+  /** Mesi che non quadrano. */
+  mesiNonQuadrati: number
+  anomalie: number
+  valoreAnomalie: number
+  partiteAperte: number
+  mastri: ContoMastro[]
+  perMese: MeseLedger[]
+  righe: RigaRegistrazione[]
+  anomalieDettaglio: AnomaliaLedger[]
+  sparkRegistrazioni: number[]
+  sparkMovimentato: number[]
+  sparkSospesi: number[]
+}
+
+/** Descrizioni di registrazione per il dettaglio, per mastro. */
+const REGISTRAZIONI_TIPO: [string, string][] = [
+  ['Clienti', 'Fattura soggiorno gruppo'],
+  ['Banca', 'Accredito virtual card OTA'],
+  ['Fornitori', 'Fattura fornitore alimentari'],
+  ['Ricavi camere', 'Corrispettivi camere del giorno'],
+  ['Cassa', 'Versamento incassi di cassa'],
+  ['Ricavi F&B', 'Corrispettivi ristorante'],
+  ['Erario IVA', 'Liquidazione IVA del periodo'],
+  ['Costi del personale', 'Cedolini del mese'],
+  ['Partite di giro', 'Anticipo agenzia da riconciliare'],
+  ['Fornitori', 'Fattura utenze energia'],
+  ['Clienti', 'Nota di credito storno soggiorno'],
+  ['Banca', 'Bonifico tour operator'],
+  ['Costi diretti', 'Lavanderia e consumabili'],
+  ['Partite di giro', 'Caparra evento non attribuita'],
+  ['Ricavi camere', 'Fattura corporate a fine mese'],
+  ['Fornitori', 'Manutenzione impianti'],
+  ['Banca', 'Commissioni bancarie e POS'],
+  ['Clienti', 'Incasso saldo gruppo scolastico'],
+]
+
+export function computeLedger(d: FinanceData): LedgerKpi {
+  const somma = (f: (m: MeseFinance) => number) => d.mesi.reduce((s, m) => s + f(m), 0)
+  const incassi = computeIncassi(d)
+
+  const ricavi = somma((m) => m.ricaviTotali)
+  const costi = somma((m) => m.costiTotali)
+
+  // Ogni mese muove i fatti economici (ricavi e costi, IVA compresa) e quelli
+  // finanziari (incassi e pagamenti): il movimentato è la somma dei due lati.
+  const perMese: MeseLedger[] = d.mesi.map((m) => {
+    const movimentato = Math.round(
+      (m.ricaviTotali + m.costiTotali) * (1 + IVA_MEDIA) + m.incassi + m.pagamenti,
+    )
+    // Le registrazioni provvisorie non quadrate sono l'eccezione, non la regola:
+    // capitano nei mesi ancora aperti e in qualche mese chiuso in fretta.
+    const scarto = jitter(m.mese * 29 + 11, 1)
+    const sbilancio = Math.abs(scarto) > 0.82 ? Math.round(movimentato * 0.0004 * (scarto > 0 ? 1 : -1)) : 0
+    return {
+      mese: m.mese,
+      label: m.label,
+      registrazioni: Math.round(m.camereVendute * 0.42 + 240 + jitter(m.mese * 7, 0.08) * 240),
+      dare: movimentato,
+      avere: movimentato - sbilancio,
+      sbilancio,
+      sospesi: Math.round(m.incassi * 0.004 * (1 + jitter(m.mese * 13 + 5, 0.5))),
+      consuntivo: m.consuntivo,
+    }
+  })
+
+  const movimentato = perMese.reduce((s, m) => s + m.dare, 0)
+  const sospesi = perMese.reduce((s, m) => s + m.sospesi, 0)
+  const sbilancio = perMese.reduce((s, m) => s + m.sbilancio, 0)
+  const registrazioni = perMese.reduce((s, m) => s + m.registrazioni, 0)
+
+  // ── Bilancio di verifica: dare, avere e saldo dei mastri ──
+  const ivaVendite = Math.round(ricavi * IVA_MEDIA)
+  const ivaAcquisti = Math.round(costi * IVA_MEDIA)
+  const incassato = incassi.incassi
+  const pagato = somma((m) => m.pagamenti)
+  const transitori = Math.round(sospesi * 1.6)
+
+  const conti: Omit<ContoMastro, 'saldo' | 'movimentazione'>[] = [
+    {
+      codice: '11.05', label: 'Clienti', natura: 'attivo',
+      dare: ricavi + ivaVendite, avere: incassato, partiteAperte: incassi.credito,
+    },
+    {
+      codice: '21.05', label: 'Fornitori', natura: 'passivo',
+      dare: pagato, avere: costi + ivaAcquisti, partiteAperte: Math.round(costi * (DPO / 365)),
+    },
+    {
+      codice: '12.10', label: 'Banca', natura: 'attivo',
+      dare: Math.round(incassato * 0.86), avere: Math.round(pagato * 0.94), partiteAperte: 0,
+    },
+    {
+      codice: '12.05', label: 'Cassa', natura: 'attivo',
+      dare: Math.round(incassato * 0.14), avere: Math.round(pagato * 0.06), partiteAperte: 0,
+    },
+    {
+      codice: '41.05', label: 'Ricavi camere', natura: 'ricavo',
+      dare: 0, avere: somma((m) => m.ricaviCamere), partiteAperte: 0,
+    },
+    {
+      codice: '41.10', label: 'Ricavi F&B', natura: 'ricavo',
+      dare: 0, avere: somma((m) => m.ricaviFb), partiteAperte: 0,
+    },
+    {
+      codice: '41.20', label: 'Altri ricavi', natura: 'ricavo',
+      dare: 0, avere: somma((m) => m.ricaviAltri), partiteAperte: 0,
+    },
+    {
+      codice: '51.05', label: 'Costi del personale', natura: 'costo',
+      dare: somma((m) => m.costi.filter((c) => famigliaDi(c.key) === 'personale').reduce((a, c) => a + c.valore, 0)),
+      avere: 0, partiteAperte: 0,
+    },
+    {
+      codice: '51.20', label: 'Acquisti e servizi', natura: 'costo',
+      dare: somma((m) => m.costi.filter((c) => famigliaDi(c.key) !== 'personale').reduce((a, c) => a + c.valore, 0)),
+      avere: 0, partiteAperte: 0,
+    },
+    {
+      codice: '22.10', label: 'Erario IVA', natura: 'passivo',
+      dare: ivaAcquisti, avere: ivaVendite, partiteAperte: Math.abs(ivaVendite - ivaAcquisti),
+    },
+    {
+      codice: '29.90', label: 'Partite di giro', natura: 'transitorio',
+      dare: transitori, avere: Math.round(transitori * 0.72), partiteAperte: Math.round(transitori * 0.28),
+    },
+  ]
+  const mastri: ContoMastro[] = conti.map((c) => ({
+    ...c,
+    saldo: c.dare - c.avere,
+    movimentazione: c.dare + c.avere,
+  }))
+
+  const partiteAperte = mastri.reduce((s, c) => s + c.partiteAperte, 0)
+
+  // ── Dettaglio delle registrazioni ──
+  const oggi = d.aggiornatoAl
+  const righe: RigaRegistrazione[] = REGISTRAZIONI_TIPO.map(([mastro, descrizione], i) => {
+    const importo = Math.round((movimentato / 900) * (0.4 + Math.abs(jitter(i * 31 + 7, 0.9))))
+    const inDare = i % 2 === 0
+    const stato: RigaRegistrazione['stato'] = i % 9 === 4 ? 'sospesa' : i % 5 === 3 ? 'da validare' : 'validata'
+    return {
+      id: `r-${i}`,
+      data: new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - i * 2),
+      protocollo: `${oggi.getFullYear()}/${String(2140 + i * 3).padStart(5, '0')}`,
+      mastro,
+      descrizione,
+      dare: inDare ? importo : 0,
+      avere: inDare ? 0 : importo,
+      stato,
+    }
+  })
+
+  // ── Anomalie da sanare prima della chiusura ──
+  const daValidare = righe.filter((r) => r.stato !== 'validata').length
+  const oltre90 = incassi.fasce[incassi.fasce.length - 1]?.valore ?? 0
+  const anomalieDettaglio: AnomaliaLedger[] = [
+    {
+      key: 'sbilancio',
+      tipo: 'Registrazioni non quadrate',
+      descrizione: 'Mesi in cui dare e avere non coincidono',
+      conteggio: perMese.filter((m) => m.sbilancio !== 0).length,
+      valore: perMese.reduce((s, m) => s + Math.abs(m.sbilancio), 0),
+      gravita: 'alta',
+    },
+    {
+      key: 'oltre90',
+      tipo: 'Partite clienti oltre 90 giorni',
+      descrizione: 'Credito da svalutare o sollecitare',
+      conteggio: 4,
+      valore: oltre90,
+      gravita: 'alta',
+    },
+    {
+      key: 'sospesi',
+      tipo: 'Incassi in sospeso',
+      descrizione: 'Denaro arrivato e non ancora attribuito a un documento',
+      conteggio: 12,
+      valore: sospesi,
+      gravita: 'media',
+    },
+    {
+      key: 'transitori',
+      tipo: 'Partite di giro aperte',
+      descrizione: 'Anticipi e caparre da girare al conto definitivo',
+      conteggio: 7,
+      valore: mastri.find((c) => c.natura === 'transitorio')?.partiteAperte ?? 0,
+      gravita: 'media',
+    },
+    {
+      key: 'iva',
+      tipo: 'IVA da riconciliare',
+      descrizione: 'Differenza fra IVA sulle vendite e sugli acquisti da liquidare',
+      conteggio: 1,
+      valore: Math.abs(ivaVendite - ivaAcquisti),
+      gravita: 'bassa',
+    },
+    {
+      key: 'validare',
+      tipo: 'Registrazioni da validare',
+      descrizione: 'Prime note inserite e non confermate',
+      conteggio: daValidare,
+      valore: righe.filter((r) => r.stato !== 'validata').reduce((s, r) => s + r.dare + r.avere, 0),
+      gravita: 'bassa',
+    },
+  ]
+
+  return {
+    registrazioni,
+    movimentato,
+    sospesi,
+    sbilancio,
+    quadrato: sbilancio === 0,
+    mesiNonQuadrati: perMese.filter((m) => m.sbilancio !== 0).length,
+    anomalie: anomalieDettaglio.reduce((s, a) => s + a.conteggio, 0),
+    valoreAnomalie: anomalieDettaglio.reduce((s, a) => s + a.valore, 0),
+    partiteAperte,
+    mastri,
+    perMese,
+    righe,
+    anomalieDettaglio,
+    sparkRegistrazioni: perMese.map((m) => m.registrazioni),
+    sparkMovimentato: perMese.map((m) => m.dare),
+    sparkSospesi: perMese.map((m) => m.sospesi),
+  }
+}

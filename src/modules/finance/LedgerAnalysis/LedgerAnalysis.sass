@@ -1,0 +1,316 @@
+// ─── LEDGER ANALYSIS ────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + movimentazione dei mastri (2 colonne) +
+// quadratura per mese, anomalie da sanare e posizioni aperte.
+@use '../../../styles/tokens' as *
+
+.la
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main quad' 'anom anom sosp'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__quad
+    grid-area: quad
+
+  &__anom
+    grid-area: anom
+
+  &__sosp
+    grid-area: sosp
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+    // La contabilità che non quadra è uno stato, non un dettaglio: si vede
+    &--allerta
+      color: var(--chart-bad)
+
+      i
+        color: var(--chart-bad)
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
+
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__detail-table
+    flex: 1
+    min-height: 0
+
+    // Celle su UNA riga: un testo che va a capo alza la riga e fa sbordare la tabella
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+
+  &__col-data
+    width: 14%
+
+  &__col-prot
+    width: 13%
+
+  &__col-mastro
+    width: 16%
+
+  &__col-desc
+    width: 21%
+
+  &__col-num
+    width: 12%
+
+  &__col-stato
+    width: 12%
+
+  &__num
+    text-align: right
+
+  &__stato
+    display: inline-block
+    padding: 0 6px
+    border-radius: 999px
+    font-size: 10px
+    font-weight: 600
+    white-space: nowrap
+
+    &--ok
+      background: color-mix(in srgb, var(--chart-good) 14%, transparent)
+      color: var(--chart-good)
+
+    &--attesa
+      background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+      color: var(--chart-4)
+
+    &--sospesa
+      background: color-mix(in srgb, var(--chart-bad) 14%, transparent)
+      color: var(--chart-bad)
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Anomalie ─────────────────────────────────────────────────────────────────
+  &__anomalie
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__anomalia
+    display: grid
+    grid-template-columns: 8px minmax(0, 1fr) auto auto
+    align-items: center
+    gap: 10px
+    min-width: 0
+    padding: 2px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  // Pallino di gravità: lo stato lo porta il colore E la posizione in elenco
+  &__gravita
+    width: 8px
+    height: 8px
+    border-radius: 50%
+
+    &--alta
+      background: var(--chart-bad)
+
+    &--media
+      background: var(--chart-4)
+
+    &--bassa
+      background: var(--chart-axis)
+
+  &__anomalia-testi
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__anomalia-lbl
+    min-width: 0
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__anomalia-meta
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+
+  &__anomalia-n
+    min-width: 26px
+    padding: 0 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
+    color: var(--chart-1)
+    font-size: 11px
+    font-weight: 600
+    font-variant-numeric: tabular-nums
+    text-align: center
+
+  &__anomalia-val
+    min-width: 62px
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    text-align: right
+
+  // ── Posizioni aperte: numeri, non un grafico ─────────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__figure-lbl
+    display: flex
+    align-items: baseline
+    gap: 6px
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-cod
+    font-family: var(--font-heading)
+    font-size: 10px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .la
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+// Sotto i 900px di altezza la riga di spiegazione dell'anomalia non entra.
+// Due classi nel selettore: `.sib-truncate` di TruncatedText dichiara
+// `display: block` a pari specificità e viene caricata dopo il sass di pagina.
+// Le sei anomalie restano tutte: si comprime la riga, non si taglia l'elenco.
+@media (max-height: 900px)
+  .la__anomalia .la__anomalia-meta
+    display: none
+
+  .la
+    &__anomalia
+      padding: 0
+      gap: 8px
+
+    &__anomalia-lbl
+      font-size: 11px
+
+    &__anomalia-val
+      font-size: 12px
+
+@media (max-height: 820px)
+  .la
+    &__kpis
+      gap: 8px
+
+    &__figure
+      padding: 2px 0
