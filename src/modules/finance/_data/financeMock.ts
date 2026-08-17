@@ -428,6 +428,106 @@ export function computeBep(mesi: MeseFinance[]): Bep {
   }
 }
 
+// ─── Cassa e capitale circolante ────────────────────────────────────────────────
+
+export interface PassoPonte {
+  label: string
+  /** Base invisibile su cui poggia la barra (saldo cumulato precedente). */
+  base: number
+  /** Variazione del mese (positiva o negativa). */
+  delta: number
+  /** true per la barra conclusiva del totale. */
+  totale?: boolean
+}
+
+export interface AttesaCassa {
+  label: string
+  incassi: number
+  pagamenti: number
+}
+
+export interface CassaKpi {
+  incassi: number
+  pagamenti: number
+  flusso: number
+  /** Saldo cumulato a fine periodo. */
+  saldoFinale: number
+  /** Crediti verso clienti ancora aperti (ricavi non incassati). */
+  crediti: number
+  /** Debiti verso fornitori ancora aperti (costi non pagati). */
+  debiti: number
+  dso: number
+  dpo: number
+  /** Ciclo di cassa: giorni fra l'uscita e il rientro del denaro. */
+  cicloCassa: number
+  /** Mesi con flusso negativo: sono quelli da presidiare. */
+  mesiNegativi: number
+  sparkIncassi: number[]
+  sparkPagamenti: number[]
+  sparkSaldo: number[]
+  /** Ponte di cassa: saldo che si costruisce mese per mese, più il totale. */
+  ponte: PassoPonte[]
+  /** Incassi e pagamenti attesi nelle prossime fasce di 30 giorni. */
+  attese: AttesaCassa[]
+}
+
+export function computeCassa(d: FinanceData): CassaKpi {
+  const incassi = d.mesi.reduce((s, m) => s + m.incassi, 0)
+  const pagamenti = d.mesi.reduce((s, m) => s + m.pagamenti, 0)
+  const ricavi = d.mesi.reduce((s, m) => s + m.ricaviTotali, 0)
+  const costi = d.mesi.reduce((s, m) => s + m.costiTotali, 0)
+
+  const cumulato = d.mesi.reduce((s, m) => s + m.cassa, 0)
+
+  // Ponte "da ricavi a cassa": i ricavi non sono cassa. Prima si toglie quanto è
+  // stato fatturato e non ancora incassato, poi i costi, poi si riaggiunge quanto è
+  // stato acquistato e non ancora pagato. Ogni barra parte dove finisce la
+  // precedente (la `base` è invisibile), l'ultima riparte da zero: è il saldo.
+  const crediti = Math.round(ricavi * (DSO / 365))
+  const debiti = Math.round(costi * (DPO / 365))
+  const ponte: PassoPonte[] = []
+  let livello = 0
+  const passo = (label: string, delta: number) => {
+    if (delta >= 0) {
+      ponte.push({ label, base: livello, delta })
+    } else {
+      ponte.push({ label, base: livello + delta, delta: -delta })
+    }
+    livello += delta
+  }
+  passo('Ricavi', ricavi)
+  passo('Crediti non incassati', -crediti)
+  passo('Costi', -costi)
+  passo('Debiti non pagati', debiti)
+  ponte.push({ label: 'Cassa', base: 0, delta: livello, totale: true })
+
+  // Attese: le fasce future prendono i mesi non ancora consuntivati
+  const futuri = d.mesi.filter((m) => !m.consuntivo).slice(0, 3)
+  const attese: AttesaCassa[] = ['Entro 30 gg', '31-60 gg', '61-90 gg'].map((label, i) => ({
+    label,
+    incassi: futuri[i]?.incassi ?? 0,
+    pagamenti: futuri[i]?.pagamenti ?? 0,
+  }))
+
+  return {
+    incassi,
+    pagamenti,
+    flusso: incassi - pagamenti,
+    saldoFinale: cumulato,
+    crediti,
+    debiti,
+    dso: DSO,
+    dpo: DPO,
+    cicloCassa: DSO - DPO,
+    mesiNegativi: d.mesi.filter((m) => m.cassa < 0).length,
+    sparkIncassi: d.mesi.map((m) => m.incassi),
+    sparkPagamenti: d.mesi.map((m) => m.pagamenti),
+    sparkSaldo: d.mesi.map((m) => m.saldoCumulato),
+    ponte,
+    attese,
+  }
+}
+
 // ─── Simulazione (usata da WIF analysis e Analisi scenari mensili) ───────────────
 
 export interface Leve {

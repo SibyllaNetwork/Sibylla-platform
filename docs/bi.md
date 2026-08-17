@@ -69,6 +69,7 @@ una tabella di "spingere" e far comparire lo scroll.
 | `BiDataStamp` | orario dell'ultimo carico dati BI + ricarica |
 | `useFitRows` | quante righe di tabella entrano davvero (paginazione al posto dello scroll) |
 | `useCountUp` | conteggio animato dei valori KPI |
+| `RangeField` (in `core/components/form`) | cursore condiviso per le simulazioni: etichetta, valore corrente, azzeramento, riga di contesto |
 | `chartTheme` | palette, cromature, props di assi e griglia, formattatori, tempi d'animazione |
 
 ### Dati
@@ -152,7 +153,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Profit trend | 🆕 | GOP · GOP % · EBITDA · TRevPAR · GOPPAR | Profitto per mese vs LY · Margine per reparto · Da ricavi a GOP (composizione) · Dettaglio |
 | Incoming analysis | 🆕 | Incassi · Crediti aperti · Insoluti · Tempo medio incasso | Incassi per metodo · Per canale · Anzianità dei crediti · Dettaglio |
 | Ledger analysis | 🆕 | Registrazioni · Partite aperte · Sospesi · Quadratura | Partite per conto · Anomalie · Dettaglio |
-| WIF analysis (what-if) | 🆕 | Scenario base vs simulato su GOP | Simulatore ADR/occupazione/costi · Impatto per driver · Confronto scenari |
+| WIF analysis (what-if) | ✅ | Ricavi · GOP · Marginalità · Occupazione · Ricavo per camera, tutti simulati vs base | Base vs simulato per mese (margine o ricavi) · Quattro leve con cursori (prezzo, camere occupate, costi fissi, costi variabili) e scenari pronti · Impatto isolato per leva · Sintesi base/simulato/differenza |
 | Decision tree | 🆕 | — | Albero delle leve (pricing, costi, canali) con esito atteso e probabilità |
 | Analisi scenari mensili | 🆕 | Scenario pessimistico · base · ottimistico | Confronto per mese · Driver dello scostamento · Dettaglio |
 
@@ -175,7 +176,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 3. Blocco finance: ✅ Finance overview e Break even point (modello condiviso in
    `finance/_data/financeMock.ts`: conto economico per reparto, classificazione
    fissa/variabile dei costi, cassa con DSO/DPO, pareggio e simulazione scenari).
-   Restano, nell'ordine: Cash flow → WIF analysis → Analisi scenari mensili →
+   ✅ Cash flow e WIF analysis. Restano, nell'ordine: Analisi scenari mensili →
    Profit trend → Cost analysis → Incoming/Ledger analysis → Decision tree.
 4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
 5. Le altre overview (Sales, Operation) e On the book analysis.

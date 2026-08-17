@@ -1,0 +1,145 @@
+// ─── WIF ANALYSIS ───────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + base/simulato (2 colonne) + leve, impatto
+// per leva e sintesi.
+@use '../../../styles/tokens' as *
+
+.wf
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main leve' 'imp  sint sint'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__leve
+    grid-area: leve
+
+  &__imp
+    grid-area: imp
+
+  &__sint
+    grid-area: sint
+
+  // ── Testata ──────────────────────────────────────────────────────────────────
+  &__reset
+    white-space: nowrap
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 150px
+
+    &--wide
+      width: 196px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
+
+  &__foot
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    strong
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
+
+  // ── Leve ─────────────────────────────────────────────────────────────────────
+  &__sliders
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    gap: 6px
+
+  // ── Sintesi ──────────────────────────────────────────────────────────────────
+  &__sint-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  &__col-voce
+    width: 34%
+
+  &__col-num
+    width: 22%
+
+  // Riga del margine: è la sintesi di tutto, si distingue in peso
+  &__row--gop
+    td
+      font-weight: 700
+      color: var(--color-primary)
+
+  &__num
+    text-align: right
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .wf
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 128px
+
+      &--wide
+        width: 164px
+
+    &__note
+      display: none
+
+    &__sliders
+      gap: 4px
+
+    &__sint-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+@media (max-height: 820px)
+  .wf
+    &__kpis
+      gap: 8px
