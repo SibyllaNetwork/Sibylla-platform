@@ -1,0 +1,224 @@
+// ─── COST ANALYSIS ──────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + costi per mese (2 colonne) + costo per camera
+// occupata, scostamento dal budget e centri di costo.
+@use '../../../styles/tokens' as *
+
+.ca
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 1fr)
+    // Le barre di efficienza chiedono ALTEZZA (sei categorie), il costo per camera
+    // chiede LARGHEZZA (dodici mesi): stanno nelle celle giuste, non in quelle comode.
+    grid-template-areas: 'kpi kpi   kpi' 'main main  scost' 'cam cam   centri'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__cam
+    grid-area: cam
+
+  &__scost
+    grid-area: scost
+
+  &__centri
+    grid-area: centri
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
+
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__detail-table
+    flex: 1
+    min-height: 0
+
+    // Larghezze in percentuale: nessuno scroll orizzontale a nessuna larghezza.
+    // Tutto su UNA riga: se un numero andasse a capo la riga crescerebbe e le righe
+    // calcolate da useFitRows non entrerebbero più.
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+
+  &__col-voce
+    width: 25%
+
+  &__col-fam
+    width: 15%
+
+  &__col-num
+    width: 15%
+
+  &__num
+    text-align: right
+
+  &__over
+    color: var(--chart-bad)
+    font-weight: 600
+
+  &__under
+    color: var(--chart-good)
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Centri di costo ──────────────────────────────────────────────────────────
+  &__reparti
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__reparto
+    display: flex
+    flex-direction: column
+    gap: 3px
+    min-width: 0
+
+  &__reparto-top
+    display: grid
+    grid-template-columns: 1fr auto auto
+    align-items: baseline
+    gap: 8px
+    min-width: 0
+
+  &__reparto-lbl
+    min-width: 0
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__reparto-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__reparto-pct
+    padding: 0 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
+    color: var(--chart-1)
+    font-size: 11px
+    font-weight: 600
+    font-variant-numeric: tabular-nums
+
+  &__reparto-bar
+    display: block
+    height: 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--color-border) 60%, transparent)
+    overflow: hidden
+
+  &__reparto-fill
+    display: block
+    width: var(--w, 0%)
+    height: 100%
+    border-radius: 999px
+    background: var(--chart-1)
+    transition: width 620ms cubic-bezier(0.32, 0.72, 0, 1)
+
+  &__reparto-meta
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .ca
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+// Sotto i 900px di altezza la riga di contesto dei centri di costo non entra nella
+// card: si toglie quella, non una voce dell'elenco.
+@media (max-height: 900px)
+  .ca__reparto-meta
+    display: none
+
+@media (max-height: 820px)
+  .ca
+    &__kpis
+      gap: 8px
+
+@media (prefers-reduced-motion: reduce)
+  .ca__reparto-fill
+    transition: none

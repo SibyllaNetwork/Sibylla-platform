@@ -109,6 +109,41 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Gross Operating Profit — margine operativo lordo',
     formula: 'Ricavi totali meno i costi operativi diretti e indiretti',
   },
+  GOPPAR: {
+    term: 'GOPPAR',
+    description: 'Gross Operating Profit Per Available Room — margine per camera disponibile',
+    formula: 'GOP diviso il numero delle camere disponibili nel periodo',
+  },
+  costiFissi: {
+    term: 'Costi fissi',
+    description: 'Costi che non si muovono con le camere occupate',
+    formula: 'Quota fissa di ogni voce di costo, più affitti e ammortamenti',
+  },
+  costiVariabili: {
+    term: 'Costi variabili',
+    description: 'Costi che seguono i volumi venduti',
+    formula: 'Quota variabile di ogni voce di costo, proporzionale alle camere occupate',
+  },
+  foodCost: {
+    term: 'Food cost',
+    description: 'Incidenza delle materie prime sul ricavo F&B',
+    formula: 'Costo delle materie prime F&B diviso i ricavi food & beverage',
+  },
+  incidenzaPersonale: {
+    term: 'Costo del personale',
+    description: 'Peso del lavoro sui ricavi',
+    formula: 'Costo del personale (reparti e amministrazione) diviso i ricavi totali',
+  },
+  costoPerCamera: {
+    term: 'Costo per camera',
+    description: 'Costo sostenuto per ogni camera occupata',
+    formula: 'Costi totali diviso il numero delle camere occupate',
+  },
+  scostamento: {
+    term: 'Scostamento',
+    description: 'Differenza fra consuntivo e budget',
+    formula: 'Valore consuntivato meno valore di budget dello stesso periodo',
+  },
   ALOS: {
     term: 'ALOS',
     description: 'Average Length Of Stay — permanenza media',

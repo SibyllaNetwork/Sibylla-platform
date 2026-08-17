@@ -143,8 +143,8 @@ export default function Cashflow({ navigate: _navigate }: { navigate: (p: string
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'flussi', label: 'Flussi', icon: 'fa-chart-column' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'flussi', label: 'Flussi' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'flussi' | 'dettaglio')}

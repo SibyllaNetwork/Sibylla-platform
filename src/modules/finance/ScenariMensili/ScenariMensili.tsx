@@ -177,8 +177,8 @@ export default function ScenariMensili({ navigate: _navigate }: { navigate: (p: 
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'margine', label: 'Margine', icon: 'fa-chart-line' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'margine', label: 'Margine' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'margine' | 'dettaglio')}

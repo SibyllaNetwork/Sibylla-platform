@@ -152,8 +152,8 @@ export default function AdrAnalysis({ navigate: _navigate }: { navigate: (p: str
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'trend', label: 'Andamento', icon: 'fa-chart-area' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'trend', label: 'Andamento' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'trend' | 'dettaglio')}

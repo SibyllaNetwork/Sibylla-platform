@@ -45,23 +45,30 @@ interface VoceCosto {
   quota: number
   /** Parte variabile del costo (0 = tutto fisso, 1 = tutto variabile). */
   variabile: number
+  /**
+   * Che cosa muove la parte variabile: le CAMERE occupate (lavanderia, personale di
+   * servizio, energia) o il RICAVO (commissioni e materie prime, che seguono anche il
+   * prezzo). La distinzione conta: con lo stesso numero di camere, un mese a tariffe
+   * alte costa più di commissioni.
+   */
+  driver?: 'camere' | 'ricavo'
 }
 
 const COSTI: VoceCosto[] = [
   // Reparto camere
   { key: 'personale-camere', label: 'Personale camere', reparto: 'camere', quota: 0.175, variabile: 0.45 },
   { key: 'lavanderia', label: 'Lavanderia e consumabili', reparto: 'camere', quota: 0.055, variabile: 1 },
-  { key: 'commissioni', label: 'Commissioni e OTA', reparto: 'camere', quota: 0.082, variabile: 1 },
+  { key: 'commissioni', label: 'Commissioni e OTA', reparto: 'camere', quota: 0.082, variabile: 1, driver: 'ricavo' },
   { key: 'altri-camere', label: 'Altri costi camere', reparto: 'camere', quota: 0.028, variabile: 0.6 },
   // Reparto food & beverage
-  { key: 'food-cost', label: 'Materie prime F&B', reparto: 'fb', quota: 0.3, variabile: 1 },
+  { key: 'food-cost', label: 'Materie prime F&B', reparto: 'fb', quota: 0.3, variabile: 1, driver: 'ricavo' },
   { key: 'personale-fb', label: 'Personale F&B', reparto: 'fb', quota: 0.315, variabile: 0.5 },
-  { key: 'altri-fb', label: 'Altri costi F&B', reparto: 'fb', quota: 0.06, variabile: 0.7 },
+  { key: 'altri-fb', label: 'Altri costi F&B', reparto: 'fb', quota: 0.06, variabile: 0.7, driver: 'ricavo' },
   // Altri ricavi
-  { key: 'costi-altri', label: 'Costi altri servizi', reparto: 'altri', quota: 0.4, variabile: 0.8 },
+  { key: 'costi-altri', label: 'Costi altri servizi', reparto: 'altri', quota: 0.4, variabile: 0.8, driver: 'ricavo' },
   // Costi indistribuiti (sul ricavo totale)
   { key: 'amministrazione', label: 'Amministrazione', quota: 0.068, variabile: 0.1 },
-  { key: 'marketing', label: 'Marketing e distribuzione', quota: 0.042, variabile: 0.3 },
+  { key: 'marketing', label: 'Marketing e distribuzione', quota: 0.042, variabile: 0.3, driver: 'ricavo' },
   { key: 'energia', label: 'Energia e utenze', quota: 0.062, variabile: 0.55 },
   { key: 'manutenzione', label: 'Manutenzione', quota: 0.031, variabile: 0.25 },
 ]
@@ -82,7 +89,49 @@ export interface VoceCostoMese {
   valore: number
   fisso: number
   variabile: number
+  /** Costo previsto dal budget per la stessa voce e lo stesso periodo. */
+  budget: number
+  /**
+   * Budget riparametrato sui volumi effettivi ("budget flessibile"): quanto la voce
+   * DOVREBBE costare alle quote di budget, avendo venduto quello che si è venduto.
+   * Serve a separare lo scostamento da volumi (budget flessibile − budget) da quello
+   * di efficienza (consuntivo − budget flessibile), che è la parte su cui si agisce.
+   */
+  budgetFlex: number
 }
+
+/**
+ * Famiglie di costo: aggregazione per NATURA della spesa, che è il modo in cui si
+ * governano i costi (si tratta con i fornitori, si taglia, si rinegozia). Il reparto
+ * risponde a un'altra domanda — dove il costo è stato consumato — e resta nel campo
+ * `reparto`. L'ordine è quello degli slot categoriali e non va cambiato a gusto.
+ */
+export type FamigliaCosto = 'personale' | 'materie' | 'distribuzione' | 'energia' | 'struttura' | 'altri'
+
+export const FAMIGLIE_COSTO: {
+  key: FamigliaCosto
+  label: string
+  /** Etichetta per le legende. */
+  breve: string
+  /** Etichetta per gli assi categoriali: UNA parola, così non va mai a capo. */
+  sigla: string
+  voci: string[]
+}[] = [
+  { key: 'personale', label: 'Personale', breve: 'Personale', sigla: 'Personale', voci: ['personale-camere', 'personale-fb', 'amministrazione'] },
+  { key: 'materie', label: 'Materie prime e consumabili', breve: 'Materie prime', sigla: 'Materie', voci: ['food-cost', 'lavanderia'] },
+  { key: 'distribuzione', label: 'Commissioni e marketing', breve: 'Commissioni', sigla: 'Commissioni', voci: ['commissioni', 'marketing'] },
+  { key: 'energia', label: 'Energia e utenze', breve: 'Energia', sigla: 'Energia', voci: ['energia'] },
+  { key: 'struttura', label: 'Struttura e manutenzione', breve: 'Struttura', sigla: 'Struttura', voci: ['struttura', 'manutenzione'] },
+  { key: 'altri', label: 'Altri costi operativi', breve: 'Altri', sigla: 'Altri', voci: ['altri-camere', 'altri-fb', 'costi-altri'] },
+]
+
+/** Famiglia di appartenenza di una voce di costo. */
+export function famigliaDi(key: string): FamigliaCosto {
+  return FAMIGLIE_COSTO.find((f) => f.voci.includes(key))?.key ?? 'altri'
+}
+
+/** Il budget dell'anno: i ricavi dell'anno precedente più l'obiettivo di crescita. */
+const CRESCITA_BUDGET = 1.04
 
 export interface MeseFinance {
   /** 1-12 */
@@ -99,11 +148,17 @@ export interface MeseFinance {
   ricaviTotali: number
   /** Ricavi totali dello stesso mese dell'anno precedente. */
   ricaviLY: number
+  /** Ricavi totali previsti dal budget. */
+  ricaviBudget: number
   costi: VoceCostoMese[]
   costiDiretti: number
   costiIndistribuiti: number
   costiStruttura: number
   costiTotali: number
+  /** Costi totali previsti dal budget. */
+  costiBudget: number
+  /** Costi totali di budget riparametrati sui volumi effettivi. */
+  costiBudgetFlex: number
   costiFissi: number
   costiVariabili: number
   /** Costo variabile per camera occupata. */
@@ -164,36 +219,106 @@ export function buildFinance(
     : anno > oggi.getFullYear() ? 0
       : oggi.getMonth() + 1
 
-  const mesi: MeseFinance[] = []
-  let saldo = 0
-
-  for (let m = 1; m <= 12; m++) {
+  // ── Passo 1: volumi e ricavi del mese ────────────────────────────────────────
+  //  I costi si costruiscono DOPO, perché la parte fissa è un impegno d'anno e per
+  //  ripartirla servono i totali dei dodici mesi.
+  const base = Array.from({ length: 12 }, (_, i) => {
+    const m = i + 1
     const giorni = buildGiorniMese(anno, m, strutturaId, oggi)
-    const nGiorni = giorniDelMese(anno, m)
-    const camereDisp = disponibiliGiorno * nGiorni
+    const camereDisp = disponibiliGiorno * giorniDelMese(anno, m)
     const camereVendute = giorni.reduce((s, d) => s + d.camere, 0)
     const ricaviCamere = giorni.reduce((s, d) => s + d.ricavi, 0)
     const ricaviCamereLY = giorni.reduce((s, d) => s + d.ricaviLY, 0)
-    const adr = camereVendute ? ricaviCamere / camereVendute : 0
 
     // F&B e altri ricavi seguono i volumi camere, con un po' di stagionalità propria
     const ricaviFb = Math.round(ricaviCamere * QUOTA_FB * (1 + jitter(m + 61, 0.06)))
     const ricaviAltri = Math.round(ricaviCamere * QUOTA_ALTRI * (1 + jitter(m + 71, 0.1)))
-    const ricaviTotali = ricaviCamere + ricaviFb + ricaviAltri
-    const ricaviLY = Math.round((ricaviCamereLY) * (1 + QUOTA_FB + QUOTA_ALTRI) * 0.98)
+    const ricaviLY = Math.round(ricaviCamereLY * (1 + QUOTA_FB + QUOTA_ALTRI) * 0.98)
 
-    const ricavoDi = (r?: Reparto) =>
-      r === 'camere' ? ricaviCamere : r === 'fb' ? ricaviFb : r === 'altri' ? ricaviAltri : ricaviTotali
+    return {
+      mese: m,
+      camereDisponibili: camereDisp,
+      camereVendute,
+      adr: camereVendute ? ricaviCamere / camereVendute : 0,
+      ricaviCamere,
+      ricaviFb,
+      ricaviAltri,
+      ricaviTotali: ricaviCamere + ricaviFb + ricaviAltri,
+      ricaviLY,
+      // Budget dell'anno: i ricavi dell'anno precedente più l'obiettivo di crescita
+      ricaviBudget: Math.round(ricaviLY * CRESCITA_BUDGET),
+    }
+  })
+
+  const totale = (f: (b: typeof base[number]) => number) => base.reduce((s, b) => s + f(b), 0)
+  const annoCamereDisp = totale((b) => b.camereDisponibili)
+  const annoCamereVendute = totale((b) => b.camereVendute)
+  const annoRicavi = {
+    camere: totale((b) => b.ricaviCamere),
+    fb: totale((b) => b.ricaviFb),
+    altri: totale((b) => b.ricaviAltri),
+    totali: totale((b) => b.ricaviTotali),
+  }
+  const annoBudget = totale((b) => b.ricaviBudget)
+  // Il budget dei ricavi si ripartisce sui reparti con le stesse quote del modello
+  const annoBudgetCamere = annoBudget / (1 + QUOTA_FB + QUOTA_ALTRI)
+
+  const ricavoDiMese = (b: typeof base[number], r?: Reparto) =>
+    r === 'camere' ? b.ricaviCamere
+      : r === 'fb' ? b.ricaviFb
+        : r === 'altri' ? b.ricaviAltri
+          : b.ricaviTotali
+  const ricavoAnnoDi = (r?: Reparto) =>
+    r === 'camere' ? annoRicavi.camere
+      : r === 'fb' ? annoRicavi.fb
+        : r === 'altri' ? annoRicavi.altri
+          : annoRicavi.totali
+  const budgetAnnoDi = (r?: Reparto) =>
+    r === 'camere' ? annoBudgetCamere
+      : r === 'fb' ? annoBudgetCamere * QUOTA_FB
+        : r === 'altri' ? annoBudgetCamere * QUOTA_ALTRI
+          : annoBudget
+
+  // ── Passo 2: costi, cassa e indicatori del mese ──────────────────────────────
+  const mesi: MeseFinance[] = []
+  let saldo = 0
+
+  for (const b of base) {
+    const m = b.mese
+    const { camereVendute, ricaviTotali, ricaviLY } = b
+    // Quote di ripartizione sui dodici mesi: la CAPACITÀ per la parte fissa (un
+    // affitto o uno stipendio a tempo indeterminato non guardano l'occupazione), il
+    // volume del proprio DRIVER per la parte variabile. È questa distinzione che rende
+    // veri il punto di pareggio, le simulazioni e il costo per camera occupata: nei
+    // mesi vuoti la parte fissa si concentra su poche camere.
+    const quotaCapacita = annoCamereDisp ? b.camereDisponibili / annoCamereDisp : 0
+    const quotaCamere = annoCamereVendute ? camereVendute / annoCamereVendute : 0
 
     const costi: VoceCostoMese[] = COSTI.map((c) => {
-      const valore = Math.round(ricavoDi(c.reparto) * c.quota * (1 + jitter(m * 13 + c.key.length, 0.04)))
+      // Quota del mese sul volume d'anno del proprio driver
+      const quotaVolume = c.driver === 'ricavo'
+        ? (ricavoAnnoDi(c.reparto) ? ricavoDiMese(b, c.reparto) / ricavoAnnoDi(c.reparto) : 0)
+        : quotaCamere
+      // La parte fissa è quella PIANIFICATA (calcolata sui ricavi di budget): è un
+      // impegno preso prima dell'anno, non una conseguenza di quanto si è venduto.
+      const fissoAnno = budgetAnnoDi(c.reparto) * c.quota * (1 - c.variabile)
+      const variabileAnno = ricavoAnnoDi(c.reparto) * c.quota * c.variabile
+      const variabileBudgetAnno = budgetAnnoDi(c.reparto) * c.quota * c.variabile
+      const seed = m * 13 + c.key.length
+      const fisso = Math.round(fissoAnno * quotaCapacita * (1 + jitter(seed, 0.015)))
+      const variabile = Math.round(variabileAnno * quotaVolume * (1 + jitter(seed + 7, 0.04)))
+      const budgetFisso = Math.round(fissoAnno * quotaCapacita)
       return {
         key: c.key,
         label: c.label,
         reparto: c.reparto,
-        valore,
-        variabile: Math.round(valore * c.variabile),
-        fisso: Math.round(valore * (1 - c.variabile)),
+        valore: fisso + variabile,
+        fisso,
+        variabile,
+        budget: budgetFisso + Math.round(variabileBudgetAnno * quotaVolume),
+        // Budget riparametrato sui volumi effettivi: separa lo scostamento dovuto
+        // ai volumi da quello dovuto all'efficienza della gestione.
+        budgetFlex: budgetFisso + Math.round(variabileAnno * quotaVolume),
       }
     })
 
@@ -205,11 +330,17 @@ export function buildFinance(
       valore: costiStruttura,
       fisso: costiStruttura,
       variabile: 0,
+      // Affitti e ammortamenti sono contrattualizzati: a budget valgono quanto a
+      // consuntivo, e non generano scostamento.
+      budget: costiStruttura,
+      budgetFlex: costiStruttura,
     })
 
     const costiDiretti = costi.filter((c) => c.reparto).reduce((s, c) => s + c.valore, 0)
     const costiIndistribuiti = costi.filter((c) => !c.reparto).reduce((s, c) => s + c.valore, 0)
     const costiTotali = costiDiretti + costiIndistribuiti
+    const costiBudget = costi.reduce((s, c) => s + c.budget, 0)
+    const costiBudgetFlex = costi.reduce((s, c) => s + c.budgetFlex, 0)
     const costiFissi = costi.reduce((s, c) => s + c.fisso, 0)
     const costiVariabili = costi.reduce((s, c) => s + c.variabile, 0)
 
@@ -233,27 +364,30 @@ export function buildFinance(
     mesi.push({
       mese: m,
       label: MESI[m - 1].slice(0, 3),
-      camereDisponibili: camereDisp,
+      camereDisponibili: b.camereDisponibili,
       camereVendute,
-      occ: camereDisp ? +((camereVendute / camereDisp) * 100).toFixed(1) : 0,
-      adr,
-      ricaviCamere,
-      ricaviFb,
-      ricaviAltri,
+      occ: b.camereDisponibili ? +((camereVendute / b.camereDisponibili) * 100).toFixed(1) : 0,
+      adr: b.adr,
+      ricaviCamere: b.ricaviCamere,
+      ricaviFb: b.ricaviFb,
+      ricaviAltri: b.ricaviAltri,
       ricaviTotali,
       ricaviLY,
+      ricaviBudget: b.ricaviBudget,
       costi,
       costiDiretti,
       costiIndistribuiti,
       costiStruttura,
       costiTotali,
+      costiBudget,
+      costiBudgetFlex,
       costiFissi,
       costiVariabili,
       cvu: camereVendute ? costiVariabili / camereVendute : 0,
       contribuzione: ricaviTotali - costiVariabili,
       gop,
       gopPct: ricaviTotali ? (gop / ricaviTotali) * 100 : 0,
-      goppar: camereDisp ? gop / camereDisp : 0,
+      goppar: b.camereDisponibili ? gop / b.camereDisponibili : 0,
       gopLY,
       consuntivo: m <= ultimoMeseConsuntivo,
       incassi,
@@ -282,6 +416,8 @@ export function buildFinance(
         cur.valore += c.valore
         cur.fisso += c.fisso
         cur.variabile += c.variabile
+        cur.budget += c.budget
+        cur.budgetFlex += c.budgetFlex
       } else {
         mappa.set(c.key, { ...c })
       }
@@ -683,5 +819,255 @@ export function computeProfit(d: FinanceData): ProfitKpi {
     sparkGop: d.mesi.map((m) => m.gop),
     sparkMargine: d.mesi.map((m) => m.gopPct),
     sparkGoppar: d.mesi.map((m) => m.goppar),
+  }
+}
+
+// ─── Costi (usato da Cost analysis) ─────────────────────────────────────────────
+//  Tre letture dello stesso denaro, che rispondono a tre domande diverse:
+//   • per FAMIGLIA (natura): su cosa si spende, quindi dove si può intervenire;
+//   • per CENTRO DI COSTO (reparto): dove il costo è stato consumato e quanto pesa
+//     sui ricavi che quel reparto porta;
+//   • per CAMERA OCCUPATA: quanto costa davvero servire una camera, separando la
+//     parte variabile da quella fissa (che nei mesi vuoti si concentra su poche
+//     camere ed è la vera ragione dei mesi in perdita).
+
+export interface CostoFamiglia {
+  key: FamigliaCosto
+  label: string
+  /** Etichetta corta per le legende. */
+  breve: string
+  /** Etichetta di una parola per gli assi categoriali. */
+  sigla: string
+  valore: number
+  budget: number
+  /** Budget riparametrato sui volumi effettivi. */
+  budgetFlex: number
+  /** Consuntivo meno budget: positivo = si è speso più del previsto. */
+  scostamento: number
+  scostamentoPct: number
+  /** Parte dello scostamento dovuta a volumi diversi dal budget. */
+  effettoVolume: number
+  /** Parte dello scostamento dovuta all'efficienza (a parità di volumi). */
+  effettoEfficienza: number
+  /** Effetto efficienza in quota sul budget flessibile (%). */
+  effettoEfficienzaPct: number
+  /** Quota sui costi totali (%). */
+  quota: number
+  /** Incidenza sui ricavi totali (%). */
+  incidenza: number
+  fisso: number
+  variabile: number
+}
+
+export type CostoMese = Record<FamigliaCosto, number> & {
+  mese: number
+  label: string
+  totale: number
+  budget: number
+  /** Costi su ricavi (%). */
+  incidenza: number
+  /** Costo variabile, fisso e totale per camera occupata. */
+  perCameraVariabile: number
+  perCameraFisso: number
+  perCamera: number
+  consuntivo: boolean
+}
+
+export interface CostoCentro {
+  key: Reparto | 'indistribuiti'
+  label: string
+  valore: number
+  /** Ricavi del centro (per gli indistribuiti: i ricavi totali). */
+  ricavi: number
+  /** Costo sui ricavi del centro (%). */
+  incidenza: number
+  /** Quota sui costi totali (%). */
+  quota: number
+}
+
+export interface VoceCostoAnno extends VoceCostoMese {
+  famiglia: FamigliaCosto
+  /** Incidenza sui ricavi totali (%). */
+  incidenza: number
+  scostamento: number
+  /** Scostamento a parità di volumi. */
+  effettoEfficienza: number
+}
+
+export interface CostiKpi {
+  costi: number
+  costiLY: number
+  deltaCosti: number
+  budget: number
+  /** Budget riparametrato sui volumi effettivi. */
+  budgetFlex: number
+  scostamento: number
+  scostamentoPct: number
+  /** Scomposizione dello scostamento: volumi diversi dal budget ed efficienza. */
+  effettoVolume: number
+  effettoEfficienza: number
+  /** Costi su ricavi (%) e stesso indicatore dell'anno precedente. */
+  incidenza: number
+  incidenzaLY: number
+  costoPersonale: number
+  incidenzaPersonale: number
+  /** Materie prime F&B sui ricavi F&B (%). */
+  foodCostPct: number
+  /** Energia e utenze sui ricavi totali (%). */
+  energiaPct: number
+  /** Costo totale per camera occupata. */
+  costoPerCamera: number
+  costiFissi: number
+  costiVariabili: number
+  fissiPct: number
+  /** Voce con lo scostamento da budget più pesante. */
+  vocePeggiore: VoceCostoAnno | null
+  perMese: CostoMese[]
+  perFamiglia: CostoFamiglia[]
+  centri: CostoCentro[]
+  voci: VoceCostoAnno[]
+  sparkCosti: number[]
+  sparkIncidenza: number[]
+  sparkPersonale: number[]
+  sparkFood: number[]
+  sparkPerCamera: number[]
+}
+
+export function computeCosti(d: FinanceData): CostiKpi {
+  const somma = (f: (m: MeseFinance) => number) => d.mesi.reduce((s, m) => s + f(m), 0)
+  const voceMese = (m: MeseFinance, key: string) => m.costi.find((c) => c.key === key)?.valore ?? 0
+  const famigliaMese = (m: MeseFinance, fam: FamigliaCosto) =>
+    m.costi.filter((c) => famigliaDi(c.key) === fam).reduce((s, c) => s + c.valore, 0)
+
+  const ricavi = somma((m) => m.ricaviTotali)
+  const ricaviLY = somma((m) => m.ricaviLY)
+  const ricaviFb = somma((m) => m.ricaviFb)
+  const costi = somma((m) => m.costiTotali)
+  // I costi dell'anno precedente si ricavano dal suo conto economico: ricavi meno
+  // margine. Non serve un'altra serie di mock che potrebbe contraddire questa.
+  const costiLY = ricaviLY - somma((m) => m.gopLY)
+  const budget = somma((m) => m.costiBudget)
+  const camereVendute = somma((m) => m.camereVendute)
+  const costiFissi = somma((m) => m.costiFissi)
+  const costiVariabili = somma((m) => m.costiVariabili)
+  const personale = FAMIGLIE_COSTO[0].voci.reduce((s, k) => s + somma((m) => voceMese(m, k)), 0)
+  const pct = (a: number, b: number) => (b ? (a / b) * 100 : 0)
+
+  const perMese: CostoMese[] = d.mesi.map((m) => {
+    const perFam = FAMIGLIE_COSTO.reduce((acc, f) => {
+      acc[f.key] = famigliaMese(m, f.key)
+      return acc
+    }, {} as Record<FamigliaCosto, number>)
+    return {
+      ...perFam,
+      mese: m.mese,
+      label: m.label,
+      totale: m.costiTotali,
+      budget: m.costiBudget,
+      incidenza: pct(m.costiTotali, m.ricaviTotali),
+      perCameraVariabile: m.camereVendute ? m.costiVariabili / m.camereVendute : 0,
+      perCameraFisso: m.camereVendute ? m.costiFissi / m.camereVendute : 0,
+      perCamera: m.camereVendute ? m.costiTotali / m.camereVendute : 0,
+      consuntivo: m.consuntivo,
+    }
+  })
+
+  const perFamiglia: CostoFamiglia[] = FAMIGLIE_COSTO.map((f) => {
+    const sommaVoci = (campo: keyof VoceCostoMese) => f.voci.reduce(
+      (s, k) => s + somma((m) => Number(m.costi.find((c) => c.key === k)?.[campo] ?? 0)),
+      0,
+    )
+    const valore = somma((m) => famigliaMese(m, f.key))
+    const bud = sommaVoci('budget')
+    const flex = sommaVoci('budgetFlex')
+    return {
+      key: f.key,
+      label: f.label,
+      breve: f.breve,
+      sigla: f.sigla,
+      valore,
+      budget: bud,
+      budgetFlex: flex,
+      scostamento: valore - bud,
+      scostamentoPct: bud ? ((valore - bud) / bud) * 100 : 0,
+      effettoVolume: flex - bud,
+      effettoEfficienza: valore - flex,
+      effettoEfficienzaPct: flex ? ((valore - flex) / flex) * 100 : 0,
+      quota: pct(valore, costi),
+      incidenza: pct(valore, ricavi),
+      fisso: sommaVoci('fisso'),
+      variabile: sommaVoci('variabile'),
+    }
+  })
+
+  // Centri di costo: i tre reparti che generano ricavo più i costi indistribuiti,
+  // che non appartengono a nessun reparto e si misurano sui ricavi totali.
+  const centri: CostoCentro[] = [
+    ...REPARTI.map(({ key, label }) => {
+      const valore = somma((m) => m.costi.filter((c) => c.reparto === key).reduce((a, c) => a + c.valore, 0))
+      const ricaviCentro = somma((m) => (key === 'camere' ? m.ricaviCamere : key === 'fb' ? m.ricaviFb : m.ricaviAltri))
+      return {
+        key: key as Reparto,
+        label,
+        valore,
+        ricavi: ricaviCentro,
+        incidenza: pct(valore, ricaviCentro),
+        quota: pct(valore, costi),
+      }
+    }),
+    {
+      key: 'indistribuiti' as const,
+      label: 'Costi indistribuiti',
+      valore: somma((m) => m.costiIndistribuiti),
+      ricavi,
+      incidenza: pct(somma((m) => m.costiIndistribuiti), ricavi),
+      quota: pct(somma((m) => m.costiIndistribuiti), costi),
+    },
+  ]
+
+  const voci: VoceCostoAnno[] = d.costiPerNatura.map((c) => ({
+    ...c,
+    famiglia: famigliaDi(c.key),
+    incidenza: pct(c.valore, ricavi),
+    scostamento: c.valore - c.budget,
+    effettoEfficienza: c.valore - c.budgetFlex,
+  }))
+  // "Peggiore" è la voce meno efficiente, non la più cresciuta: una voce che sale
+  // perché si è venduto di più non è un problema da presidiare.
+  const peggiori = [...voci].sort((a, b) => b.effettoEfficienza - a.effettoEfficienza)
+
+  return {
+    costi,
+    costiLY,
+    deltaCosti: costiLY ? ((costi - costiLY) / costiLY) * 100 : 0,
+    budget,
+    budgetFlex: somma((m) => m.costiBudgetFlex),
+    scostamento: costi - budget,
+    scostamentoPct: budget ? ((costi - budget) / budget) * 100 : 0,
+    effettoVolume: somma((m) => m.costiBudgetFlex - m.costiBudget),
+    effettoEfficienza: somma((m) => m.costiTotali - m.costiBudgetFlex),
+    incidenza: pct(costi, ricavi),
+    incidenzaLY: pct(costiLY, ricaviLY),
+    costoPersonale: personale,
+    incidenzaPersonale: pct(personale, ricavi),
+    foodCostPct: pct(somma((m) => voceMese(m, 'food-cost')), ricaviFb),
+    energiaPct: pct(somma((m) => voceMese(m, 'energia')), ricavi),
+    costoPerCamera: camereVendute ? costi / camereVendute : 0,
+    costiFissi,
+    costiVariabili,
+    fissiPct: pct(costiFissi, costi),
+    vocePeggiore: peggiori[0] ?? null,
+    perMese,
+    perFamiglia,
+    centri,
+    voci,
+    sparkCosti: d.mesi.map((m) => m.costiTotali),
+    sparkIncidenza: perMese.map((m) => m.incidenza),
+    sparkPersonale: d.mesi.map((m) => pct(
+      FAMIGLIE_COSTO[0].voci.reduce((s, k) => s + voceMese(m, k), 0),
+      m.ricaviTotali,
+    )),
+    sparkFood: d.mesi.map((m) => pct(voceMese(m, 'food-cost'), m.ricaviFb)),
+    sparkPerCamera: perMese.map((m) => m.perCamera),
   }
 }

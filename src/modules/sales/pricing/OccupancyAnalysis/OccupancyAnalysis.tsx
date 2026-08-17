@@ -147,8 +147,8 @@ export default function OccupancyAnalysis({ navigate: _navigate }: { navigate: (
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'trend', label: 'Andamento', icon: 'fa-chart-area' },
-              { id: 'calendario', label: 'Calendario', icon: 'fa-calendar-days' },
+              { id: 'trend', label: 'Andamento' },
+              { id: 'calendario', label: 'Calendario' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'trend' | 'calendario')}

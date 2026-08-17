@@ -181,8 +181,8 @@ export default function BreakEvenPoint({ navigate: _navigate }: { navigate: (p: 
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'curva', label: 'Curva', icon: 'fa-chart-line' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'curva', label: 'Curva' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'curva' | 'dettaglio')}

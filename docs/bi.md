@@ -102,6 +102,24 @@ Le metriche portanti, per area:
 - **B&B e piccole strutture**: stesse metriche camere, ma il peso sta su diretto vs
   OTA, commissioni e costo per soggiorno; segmenti MICE/gruppi non pertinenti.
 
+### Come si comportano i costi (modello dell'area finance)
+
+Tre distinzioni, tutte in `finance/_data/financeMock`, da cui dipendono pareggio,
+simulazioni, profit trend e analisi dei costi:
+
+1. **Fisso o variabile.** La parte fissa di ogni voce è un impegno d'anno: si ripartisce
+   sui mesi in quote di **capacità** (camere disponibili), non di ricavo. La parte
+   variabile segue i volumi. È questo che fa salire il **costo per camera occupata**
+   nei mesi vuoti e rende veri il punto di pareggio e la leva operativa.
+2. **Driver della parte variabile**: le **camere** occupate (lavanderia, personale di
+   servizio, energia) o il **ricavo** (commissioni OTA, materie prime), che si muove
+   anche col prezzo. A parità di camere, un mese a tariffe alte costa più di commissioni.
+3. **Budget e budget flessibile.** Il budget è la quota di costo sui ricavi previsti; il
+   *flessibile* è la stessa quota riparametrata sui volumi effettivi. Lo scostamento si
+   scompone in **effetto volumi** (flessibile − budget) ed **effetto efficienza**
+   (consuntivo − flessibile): solo il secondo è governabile, e solo su quello si usa il
+   colore di stato.
+
 ---
 
 ## 4. Piano dei contenuti per pagina
@@ -147,7 +165,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Pagina | Stato | Fascia KPI | Card |
 |---|---|---|---|
 | Finance overview | ✅ | Ricavi totali · Costi totali · GOP · Marginalità · GOPPAR | Ricavi, costi e margine per mese (+ Dettaglio) · Margine per reparto (USALI) · Costi per natura · Struttura fissa/variabile dei costi · collegamenti a pareggio, cassa, simulazioni |
-| Cost analysis | 🆕 | Costi totali · Costo personale % · Food cost · Energia · Fissi/variabili | Costi per natura · Per centro di costo · Costo per camera occupata · Scostamento vs budget |
+| Cost analysis | ✅ | Costi totali · Incidenza sui ricavi · Costo del personale · Food cost · Costo per camera | Costi per mese per famiglia di spesa (+ viste Budget e Dettaglio per voce) · Costo per camera occupata diviso in variabile e fisso · Efficienza rispetto al budget per famiglia (scostamento a parità di volumi) · Costi per centro di costo |
 | Break even point analysis | ✅ | Camere di pareggio · Ricavi di pareggio · Occupazione minima · Margine di sicurezza · Leva operativa | Curva di pareggio (+ Dettaglio per mese) · Cammino verso il pareggio (camere cumulate vs soglia) · Sensibilità a prezzo e costi fissi · Composizione del pareggio |
 | Cashflow | 🆕 | Saldo · Incassi · Pagamenti · DSO · DPO | Flussi mensili in/out · Previsione a 90 giorni · Scadenzario · Dettaglio |
 | Profit trend | ✅ | GOP · Marginalità · GOPPAR · TRevPAR · Margine per camera | Margine per mese vs LY (+ Dettaglio) · Marginalità per mese con media dell'anno · Ponte dal ricavo al margine · Rendimento per camera |
@@ -176,8 +194,8 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 3. Blocco finance: ✅ Finance overview e Break even point (modello condiviso in
    `finance/_data/financeMock.ts`: conto economico per reparto, classificazione
    fissa/variabile dei costi, cassa con DSO/DPO, pareggio e simulazione scenari).
-   ✅ Cash flow, WIF analysis, Analisi scenari mensili e Profit trend.
-   Restano: Cost analysis → Incoming analysis → Ledger analysis → Decision tree.
+   ✅ Cash flow, WIF analysis, Analisi scenari mensili, Profit trend e Cost analysis.
+   Restano: Incoming analysis → Ledger analysis → Decision tree.
 4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
 5. Le altre overview (Sales, Operation) e On the book analysis.
 6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,

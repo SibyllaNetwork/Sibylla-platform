@@ -311,7 +311,11 @@ Riferimenti d'implementazione: **Monthly trend**, **Executive overview**.
 - Le **tabelle di dettaglio** non stanno in fondo alla pagina (allungherebbe): vivono
   nella stessa card dietro i **tab verticali** (`BiVerticalTabs`, es. Trend/Dettaglio),
   con righe per pagina calcolate da **`useFitRows`** (misura lo spazio reale) e
-  `Pagination` centrata. Mai scroll interno per mostrare le righe.
+  `Pagination` centrata. Mai scroll interno per mostrare le righe. I tab verticali
+  portano **solo testo**, centrato nel rail: nessuna icona.
+- Perché il conto di `useFitRows` regga, nelle tabelle di dettaglio le celle stanno su
+  **una riga** (`white-space: nowrap` + ellipsis, larghezze in % con `colgroup`): un
+  numero che va a capo alza la riga e fa sbordare la tabella.
 - Unica eccezione allo scroll: il pannello della legenda acronimi, se le voci
   superano l'altezza disponibile.
 
@@ -343,6 +347,10 @@ Riferimenti d'implementazione: **Monthly trend**, **Executive overview**.
 - Ruoli riservati: `CHART.ly` (anno precedente, neutro), `CHART.forecast`
   (previsione, sempre **tratteggiata**), `CHART.good`/`CHART.bad` (stato: mai come
   "serie N", sempre con freccia + testo → `DeltaBadge`).
+- Il **colore di stato si usa solo dove il segno ha un significato**: costi sopra il
+  budget perché si è venduto di più non sono un errore, e dipingerli di rosso mese per
+  mese non informa. Prima si neutralizza l'effetto volumi (budget riparametrato), poi
+  si colora ciò che resta.
 - Scale sequenziali (heatmap, mappe): **una sola tinta** chiaro→scuro
   (`CHART.seqFrom`/`seqTo`), mai arcobaleno.
 - Nelle forme dove due marchi qualsiasi possono affiancarsi (scatter, bolle, small
@@ -359,6 +367,9 @@ Riferimenti d'implementazione: **Monthly trend**, **Executive overview**.
   non entrano si riducono i tick o si accorcia il formato.
 - Etichette di valore **selettive** (in testa alle barre, sull'ultimo punto), mai un
   numero su ogni punto. Cifre **tabulari** nei valori e nelle colonne.
+- Nelle barre a segno variabile (scostamenti) l'etichetta va **all'estremità libera**
+  della barra — a destra se positiva, a sinistra se negativa — e la scala è
+  **simmetrica** intorno allo zero, con margine per le etichette.
 - Tooltip dei grafici = `ChartTooltip` (fondo scuro, testo bianco), crosshair
   tratteggiato su linee e aree; mai il `title` nativo.
 - A volte la risposta **non è un grafico**: un donut con una sola fetta al 100% o una

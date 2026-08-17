@@ -178,8 +178,8 @@ export default function MonthlyTrend({ navigate: _navigate }: { navigate: (p: st
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'trend', label: 'Trend', icon: 'fa-chart-area' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'trend', label: 'Trend' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'trend' | 'dettaglio')}

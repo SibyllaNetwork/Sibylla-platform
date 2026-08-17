@@ -212,8 +212,8 @@ export default function WifAnalysis({ navigate: _navigate }: { navigate: (p: str
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'gop', label: 'Margine', icon: 'fa-chart-pie' },
-              { id: 'ricavi', label: 'Ricavi', icon: 'fa-sack-dollar' },
+              { id: 'gop', label: 'Margine' },
+              { id: 'ricavi', label: 'Ricavi' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'gop' | 'ricavi')}

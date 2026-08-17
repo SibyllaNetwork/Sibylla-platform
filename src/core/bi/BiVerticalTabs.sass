@@ -1,5 +1,6 @@
 // ─── TAB VERTICALI (rail della card) ────────────────────────────────────────────
-// Etichette ruotate sul fianco della card: la selezionata è piena in blu Platform.
+// Etichette ruotate sul fianco della card, centrate nel rail (solo testo, nessuna
+// icona): la selezionata è piena in blu Platform.
 @use '../../styles/tokens' as *
 
 .bi-vtabs
@@ -13,7 +14,6 @@
     flex: 1
     align-items: center
     justify-content: center
-    gap: 8px
     min-height: 0
     padding: 10px 0
     border: 0
@@ -26,9 +26,6 @@
     letter-spacing: 0.08em
     text-transform: uppercase
     transition: background 160ms ease, color 160ms ease
-
-    i
-      font-size: 11px
 
     & + &
       border-top: 1px solid var(--color-border)

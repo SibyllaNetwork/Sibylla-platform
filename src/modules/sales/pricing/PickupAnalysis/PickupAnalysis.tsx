@@ -153,8 +153,8 @@ export default function PickupAnalysis({ navigate: _navigate }: { navigate: (p: 
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'trend', label: 'Pickup', icon: 'fa-chart-column' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'trend', label: 'Pickup' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'trend' | 'dettaglio')}

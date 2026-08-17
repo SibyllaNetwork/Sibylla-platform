@@ -8,10 +8,12 @@ import './BiVerticalTabs.sass'
 //  di tenere grafico e dati sotto lo stesso tetto a schermo fisso, invece di
 //  mettere la tabella in fondo e generare scroll.
 
+//  Solo testo: nessuna icona. Ruotata di 90°, un'icona resta ambigua e sposta
+//  l'etichetta dal centro del rail.
+
 export interface BiVerticalTab {
   id: string
   label: string
-  icon?: string
 }
 
 export interface BiVerticalTabsProps {
@@ -33,7 +35,6 @@ export default function BiVerticalTabs({ tabs, active, onChange, className }: Bi
           className={clsx('bi-vtabs__tab', t.id === active && 'bi-vtabs__tab--on')}
           onClick={() => onChange(t.id)}
         >
-          {t.icon && <i className={`fa-solid ${t.icon}`} aria-hidden="true" />}
           <span className="bi-vtabs__lbl">{t.label}</span>
         </button>
       ))}

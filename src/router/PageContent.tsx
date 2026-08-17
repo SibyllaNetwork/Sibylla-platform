@@ -35,6 +35,7 @@ import Cashflow                   from '../modules/finance/Cashflow/Cashflow';
 import WifAnalysis                from '../modules/finance/WifAnalysis/WifAnalysis';
 import ScenariMensili             from '../modules/finance/ScenariMensili/ScenariMensili';
 import ProfitTrend                from '../modules/finance/ProfitTrend/ProfitTrend';
+import CostAnalysis               from '../modules/finance/CostAnalysis/CostAnalysis';
 import ReportPickup               from '../modules/sales/pricing/ReportPickup/ReportPickup';
 import ReportCityTax              from '../modules/finance/ReportCityTax/ReportCityTax';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
@@ -253,8 +254,9 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'wif-analysis')          return <WifAnalysis navigate={navigate}/>;
   if (page === 'analisi-scenari-mensili') return <ScenariMensili navigate={navigate}/>;
   if (page === 'profit-trend')          return <ProfitTrend navigate={navigate}/>;
+  if (page === 'cost-analysis')         return <CostAnalysis navigate={navigate}/>;
   // Pagine BI Finance ancora da costruire (placeholder di riferimento)
-  if (['cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis'].includes(page))
+  if (['decision-tree', 'incoming-analysis', 'ledger-analysis'].includes(page))
     return <BiPlaceholder page={page} navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;

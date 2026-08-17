@@ -185,8 +185,8 @@ export default function FinanceOverview({ navigate }: { navigate: (p: string) =>
         rail={(
           <BiVerticalTabs
             tabs={[
-              { id: 'trend', label: 'Andamento', icon: 'fa-chart-column' },
-              { id: 'dettaglio', label: 'Dettaglio', icon: 'fa-table-list' },
+              { id: 'trend', label: 'Andamento' },
+              { id: 'dettaglio', label: 'Dettaglio' },
             ]}
             active={vista}
             onChange={(id) => setVista(id as 'trend' | 'dettaglio')}
