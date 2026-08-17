@@ -1,6 +1,7 @@
 import React from 'react'
 import clsx from 'clsx'
 import Tooltip from '../components/Tooltip'
+import TruncatedText from '../components/TruncatedText'
 import DeltaBadge from './DeltaBadge'
 import Sparkline from './Sparkline'
 import { useCountUp } from './useCountUp'
@@ -69,7 +70,8 @@ export default function KpiTile({
             <i className={`fa-solid ${icon}`} aria-hidden="true" />
           </span>
         )}
-        <span className="kpi-tile__label">{label}</span>
+        {/* Etichetta sempre su una riga: se non entra, ellipsis + tooltip */}
+        <TruncatedText text={label} className="kpi-tile__label" />
         {info && (
           <Tooltip text={info}>
             <i className="fa-solid fa-circle-info kpi-tile__info" aria-hidden="true" />

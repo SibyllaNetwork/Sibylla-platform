@@ -50,9 +50,10 @@
     font-size: 12px
     font-weight: 600
     color: var(--color-text-inactive)
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
+
+  // Il wrapper della tooltip non deve rompere la riga dell'intestazione
+  &__head > *
+    min-width: 0
 
   &__info
     flex: none

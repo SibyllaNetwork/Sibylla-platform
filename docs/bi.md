@@ -145,9 +145,9 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 
 | Pagina | Stato | Fascia KPI | Card |
 |---|---|---|---|
-| Finance overview | 🆕 | Ricavi · EBITDA · GOP · GOPPAR · Cash | Conto economico per reparto (impostazione USALI) · GOP vs budget · Incidenza costi · Flussi di cassa |
+| Finance overview | ✅ | Ricavi totali · Costi totali · GOP · Marginalità · GOPPAR | Ricavi, costi e margine per mese (+ Dettaglio) · Margine per reparto (USALI) · Costi per natura · Struttura fissa/variabile dei costi · collegamenti a pareggio, cassa, simulazioni |
 | Cost analysis | 🆕 | Costi totali · Costo personale % · Food cost · Energia · Fissi/variabili | Costi per natura · Per centro di costo · Costo per camera occupata · Scostamento vs budget |
-| Break even point analysis | 🆕 | Ricavi di pareggio · Occupazione di pareggio · Margine di sicurezza · Leva operativa | Curva ricavi/costi con punto di pareggio · BEP per mese · Sensibilità ad ADR e occupazione |
+| Break even point analysis | ✅ | Camere di pareggio · Ricavi di pareggio · Occupazione minima · Margine di sicurezza · Leva operativa | Curva di pareggio (+ Dettaglio per mese) · Cammino verso il pareggio (camere cumulate vs soglia) · Sensibilità a prezzo e costi fissi · Composizione del pareggio |
 | Cashflow | 🆕 | Saldo · Incassi · Pagamenti · DSO · DPO | Flussi mensili in/out · Previsione a 90 giorni · Scadenzario · Dettaglio |
 | Profit trend | 🆕 | GOP · GOP % · EBITDA · TRevPAR · GOPPAR | Profitto per mese vs LY · Margine per reparto · Da ricavi a GOP (composizione) · Dettaglio |
 | Incoming analysis | 🆕 | Incassi · Crediti aperti · Insoluti · Tempo medio incasso | Incassi per metodo · Per canale · Anzianità dei crediti · Dettaglio |
@@ -172,10 +172,11 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 1. ✅ Kit + Monthly trend (pilota).
 2. ✅ Ciclo revenue: Pickup, Occupancy, ADR analysis (primitive dati condivise in
    `sales/_data/revenueMock.ts`).
-3. Blocco finance, in quest'ordine perché condividono il conto economico per reparto
-   e il modello costi fissi/variabili: Finance overview → Break even point → Cash flow
-   → WIF analysis → Analisi scenari mensili → Profit trend → Cost analysis →
-   Incoming/Ledger analysis → Decision tree.
+3. Blocco finance: ✅ Finance overview e Break even point (modello condiviso in
+   `finance/_data/financeMock.ts`: conto economico per reparto, classificazione
+   fissa/variabile dei costi, cassa con DSO/DPO, pareggio e simulazione scenari).
+   Restano, nell'ordine: Cash flow → WIF analysis → Analisi scenari mensili →
+   Profit trend → Cost analysis → Incoming/Ledger analysis → Decision tree.
 4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
 5. Le altre overview (Sales, Operation) e On the book analysis.
 6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,

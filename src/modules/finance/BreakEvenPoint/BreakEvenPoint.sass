@@ -1,0 +1,184 @@
+// ─── BREAK EVEN POINT ANALYSIS ──────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + curva di pareggio (2 colonne) + cammino
+// verso il pareggio e sensibilità.
+@use '../../../styles/tokens' as *
+
+.be
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.3fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main sens' 'path path comp'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__path
+    grid-area: path
+
+  &__sens
+    grid-area: sens
+
+  &__comp
+    grid-area: comp
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__foot
+    strong
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
+
+  // ── Tabelle (dettaglio e sensibilità) ────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__detail-table,
+  &__sens-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  // Colonne in percentuale: la tabella si adatta alla card, non il contrario
+  &__sens-table .sib-table
+    table-layout: fixed
+
+  &__col-var
+    width: 34%
+
+  &__col-num
+    width: 33%
+
+  // ── Composizione del pareggio: numeri, non un grafico ────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  // Riga della situazione attuale: si distingue senza colorare la riga
+  &__row--base
+    td
+      font-weight: 700
+      color: var(--color-primary)
+
+  &__num
+    text-align: right
+
+  &__tag
+    margin-left: 6px
+    padding: 0 5px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+    color: var(--chart-4)
+    font-size: 10px
+    font-weight: 600
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .be
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      font-size: 10px
+
+    &__detail-table .sib-table,
+    &__sens-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+@media (max-height: 820px)
+  .be
+    &__kpis
+      gap: 8px

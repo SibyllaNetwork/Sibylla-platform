@@ -29,6 +29,8 @@ import AdrAnalysis                 from '../modules/sales/pricing/AdrAnalysis/Ad
 import ValueAnalysis              from '../modules/sales/pricing/ValueAnalysis/ValueAnalysis';
 import ExecutiveOverview          from '../modules/executive/ExecutiveOverview/ExecutiveOverview';
 import BiPlaceholder              from '../modules/_scaffold/BiPlaceholder';
+import FinanceOverview            from '../modules/finance/FinanceOverview/FinanceOverview';
+import BreakEvenPoint             from '../modules/finance/BreakEvenPoint/BreakEvenPoint';
 import ReportPickup               from '../modules/sales/pricing/ReportPickup/ReportPickup';
 import ReportCityTax              from '../modules/finance/ReportCityTax/ReportCityTax';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
@@ -241,8 +243,10 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'executive-overview')    return <ExecutiveOverview navigate={navigate}/>;
   if (page === 'report-pickup')         return <ReportPickup navigate={navigate}/>;
   if (page === 'report-city-tax')       return <ReportCityTax navigate={navigate}/>;
-  // Pagine BI Finance (placeholder in attesa del contenuto definitivo)
-  if (['finance-overview', 'break-even', 'cashflow', 'profit-trend', 'cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis', 'wif-analysis', 'analisi-scenari-mensili'].includes(page))
+  if (page === 'finance-overview')      return <FinanceOverview navigate={navigate}/>;
+  if (page === 'break-even')            return <BreakEvenPoint navigate={navigate}/>;
+  // Pagine BI Finance ancora da costruire (placeholder di riferimento)
+  if (['cashflow', 'profit-trend', 'cost-analysis', 'decision-tree', 'incoming-analysis', 'ledger-analysis', 'wif-analysis', 'analisi-scenari-mensili'].includes(page))
     return <BiPlaceholder page={page} navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;
