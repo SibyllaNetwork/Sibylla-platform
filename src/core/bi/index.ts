@@ -36,6 +36,8 @@ export type { BiDataStampProps } from './BiDataStamp'
 export { default as BiGlossaryRail } from './BiGlossaryRail'
 export type { BiGlossaryRailProps } from './BiGlossaryRail'
 
+export { barEndLabel } from './BiBarLabel'
+
 export { default as BiVerticalTabs } from './BiVerticalTabs'
 export type { BiVerticalTab, BiVerticalTabsProps } from './BiVerticalTabs'
 

@@ -7,7 +7,7 @@ import { SelectField } from '../../../core/components/form'
 import Pagination from '../../../core/components/Pagination'
 import TruncatedText from '../../../core/components/TruncatedText'
 import {
-  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile,
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile, barEndLabel,
   CHART, cursorProps, fmtAxisNum, fmtDelta, fmtEur, fmtEurK, fmtPct, gridProps,
   reducedMotion, series, useFitRows, xAxisProps, yAxisProps,
 } from '../../../core/bi'
@@ -31,31 +31,6 @@ import './CostAnalysis.sass'
 //  economico di Finance overview: le due pagine non possono contraddirsi).
 
 type Vista = 'composizione' | 'budget' | 'dettaglio'
-
-/**
- * Etichetta di una barra a segno variabile: va SEMPRE all'estremità libera della
- * barra (a destra se positiva, a sinistra se negativa), altrimenti le negative
- * finiscono sopra il grafico e si sovrappongono fra loro.
- */
-function EtichettaBarra(p: any) {
-  const { x = 0, y = 0, width = 0, height = 0, value } = p
-  const negativa = Number(value) < 0
-  // Con i valori negativi recharts passa una larghezza negativa: gli estremi si
-  // ricavano sempre da min/max, non da x e x+width dati per buoni.
-  const sinistra = Math.min(x, x + width)
-  const destra = Math.max(x, x + width)
-  return (
-    <text
-      x={negativa ? sinistra - 6 : destra + 6}
-      y={y + height / 2}
-      dy={4}
-      textAnchor={negativa ? 'end' : 'start'}
-      className="ca__bar-label"
-    >
-      {fmtEurK(Number(value))}
-    </text>
-  )
-}
 
 export default function CostAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
   const [strutturaId, setStrutturaId] = useState<number | null>(null)
@@ -412,7 +387,7 @@ export default function CostAnalysis({ navigate: _navigate }: { navigate: (p: st
                 {kpi.perFamiglia.map((f) => (
                   <Cell key={f.key} fill={f.effettoEfficienza > 0 ? CHART.bad : CHART.good} />
                 ))}
-                <LabelList dataKey="effettoEfficienza" content={EtichettaBarra} />
+                <LabelList dataKey="effettoEfficienza" content={barEndLabel()} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

@@ -172,7 +172,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Incoming analysis | ✅ | Incassi · Quota incassata · Credito aperto · Tempo d'incasso · Insoluti | Fatturato e incassato per mese (+ viste Metodi di pagamento e Dettaglio delle partite aperte) · Incassi per canale col rispettivo tempo medio · Anzianità del credito (scala sequenziale) · Rischio del credito |
 | Ledger analysis | ✅ | Registrazioni · Movimentato · Partite aperte · Sospesi · Sbilancio | Movimentazione dei mastri (+ viste Per mese e Dettaglio della prima nota) · Quadratura per mese (dare − avere) · Anomalie da sanare per gravità · Posizioni ancora aperte per conto |
 | WIF analysis (what-if) | ✅ | Ricavi · GOP · Marginalità · Occupazione · Ricavo per camera, tutti simulati vs base | Base vs simulato per mese (margine o ricavi) · Quattro leve con cursori (prezzo, camere occupate, costi fissi, costi variabili) e scenari pronti · Impatto isolato per leva · Sintesi base/simulato/differenza |
-| Decision tree | 🆕 | — | Albero delle leve (pricing, costi, canali) con esito atteso e probabilità |
+| Decision tree | ✅ | — (deroga: nessuna fascia KPI, l'albero occupa l'altezza) | Albero a tre livelli (domanda → quattro leve → esiti con probabilità) · Valore atteso per decisione · Esposizione della leva scelta (caso migliore, peggiore, probabilità di migliorare) |
 | Analisi scenari mensili | ✅ | Margine pessimistico · base · ottimistico · Ampiezza fra estremi · Mesi in perdita | Margine per mese nei tre scenari (+ Dettaglio) · Ipotesi in chiaro (le quattro leve per scenario) · Banda di oscillazione dei ricavi · Sintesi d'anno |
 
 ### HR e Purchasing
@@ -195,7 +195,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
    `finance/_data/financeMock.ts`: conto economico per reparto, classificazione
    fissa/variabile dei costi, cassa con DSO/DPO, pareggio e simulazione scenari).
    ✅ Cash flow, WIF analysis, Analisi scenari mensili, Profit trend e Cost analysis.
-   ✅ Incoming analysis e Ledger analysis. Resta: Decision tree.
+   ✅ Incoming analysis, Ledger analysis e Decision tree: **blocco finance completo**.
 4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
 5. Le altre overview (Sales, Operation) e On the book analysis.
 6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,

@@ -7,7 +7,7 @@ import { SelectField } from '../../../core/components/form'
 import Pagination from '../../../core/components/Pagination'
 import TruncatedText from '../../../core/components/TruncatedText'
 import {
-  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile,
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile, barEndLabel,
   CHART, cursorProps, fmtAxisNum, fmtDate, fmtEur, fmtEurK, fmtInt, fmtPct, gridProps,
   reducedMotion, series, useFitRows, xAxisProps, yAxisProps,
 } from '../../../core/bi'
@@ -211,10 +211,7 @@ export default function LedgerAnalysis({ navigate: _navigate }: { navigate: (p: 
                   isAnimationActive={!still}
                   animationDuration={ANIM.duration} animationEasing={ANIM.easing}
                 >
-                  <LabelList
-                    dataKey="movimentazione" position="right"
-                    formatter={(v: any) => fmtEurK(Number(v))} className="la__bar-label"
-                  />
+                  <LabelList dataKey="movimentazione" content={barEndLabel()} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

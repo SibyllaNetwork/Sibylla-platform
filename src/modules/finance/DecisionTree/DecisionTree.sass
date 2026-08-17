@@ -1,0 +1,312 @@
+// ─── DECISION TREE ──────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: albero su due righe (2 colonne) + valore atteso ed
+// esposizione della leva scelta. Niente fascia KPI: l'albero ha bisogno dell'altezza.
+@use '../../../styles/tokens' as *
+
+.dt
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: minmax(0, 1.12fr) minmax(0, 1fr)
+    grid-template-areas: 'albero albero valori' 'albero albero esp'
+
+  &__albero
+    grid-area: albero
+
+  &__valori
+    grid-area: valori
+
+  &__esp
+    grid-area: esp
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Albero: tre livelli affiancati, collegati da dorsali verticali ───────────
+  &__tree
+    display: grid
+    grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1.2fr)
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__root
+    align-self: center
+    display: flex
+    flex-direction: column
+    gap: 1px
+    min-width: 0
+    margin-right: 14px
+    padding: 8px 10px
+    border: 1px solid var(--color-primary)
+    border-radius: var(--radius-md)
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface))
+
+  &__root-lbl
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__root-val
+    font-family: var(--font-heading)
+    font-size: 17px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__root-meta
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+
+  // Livelli 2 e 3: dorsale verticale fra il centro della prima e dell'ultima voce
+  // (--spine, valore runtime che dipende da quante voci ci sono)
+  &__branches,
+  &__leaves
+    position: relative
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    gap: 6px
+    flex: 1
+    min-height: 0
+    min-width: 0
+    margin: 0
+    padding: 0 12px 0 26px
+    list-style: none
+
+    &::before
+      content: ''
+      position: absolute
+      left: 0
+      top: var(--spine, 12%)
+      bottom: var(--spine, 12%)
+      width: 1px
+      background: var(--color-border)
+
+    // Raccordo dal livello precedente alla dorsale
+    &::after
+      content: ''
+      position: absolute
+      left: -14px
+      top: 50%
+      width: 14px
+      height: 1px
+      background: var(--color-border)
+
+  &__leaves
+    justify-content: space-around
+
+  &__branch,
+  &__leaf
+    position: relative
+    display: flex
+    align-items: stretch
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+    // Raccordo orizzontale dalla dorsale al nodo
+    &::before
+      content: ''
+      position: absolute
+      left: -26px
+      top: 50%
+      width: 26px
+      height: 1px
+      background: var(--color-border)
+
+  // ── Nodo di decisione (cliccabile) ──────────────────────────────────────────
+  &__node
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 2px
+    width: 100%
+    min-width: 0
+    padding: 5px 10px
+    border: 1px solid var(--color-border)
+    border-radius: var(--radius-md)
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+    transition: border-color 160ms ease, background 160ms ease
+
+    &:hover
+      border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border))
+      background: var(--color-primary-100)
+
+    // La leva scelta: il bordo pieno la lega ai suoi esiti a destra
+    &--on
+      border-color: var(--color-primary)
+      background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface))
+
+  &__node-bottom
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+  &__node-lbl
+    min-width: 0
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__node-meta
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+
+  // ── Esito (foglia): probabilità, effetto, scostamento ───────────────────────
+  // Riquadro tratteggiato: più recessivo del nodo di decisione, perché l'esito non
+  // si sceglie: si subisce.
+  &__leaf
+    // Le foglie non si stirano: sono riquadri compatti distribuiti nell'altezza
+    flex: 0 0 auto
+    align-items: center
+    gap: 8px
+    padding: 5px 9px
+    border: 1px dashed var(--color-border)
+    border-radius: var(--radius-md)
+    background: var(--color-bg)
+
+    &::before
+      border-top: 1px dashed var(--color-border)
+      background: none
+      height: 0
+
+  &__leaf-prob
+    align-self: center
+    flex: none
+    min-width: 40px
+    padding: 1px 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
+    color: var(--chart-1)
+    font-family: var(--font-heading)
+    font-size: 11px
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+    text-align: center
+
+  &__leaf-testi
+    display: flex
+    flex-direction: column
+    gap: 2px
+    justify-content: center
+    min-width: 0
+    flex: 1
+
+  &__leaf-bottom
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+  &__leaf-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text)
+
+  &__leaf-meta
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  // ── Grafico e numeri ────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .dt
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      display: none
+
+    &__tree
+      grid-template-columns: 132px minmax(0, 1fr) minmax(0, 1.05fr)
+
+    &__root-val
+      font-size: 15px
+
+@media (max-height: 820px)
+  .dt
+    &__figure
+      padding: 2px 0
+
+    &__branches,
+    &__leaves
+      gap: 4px

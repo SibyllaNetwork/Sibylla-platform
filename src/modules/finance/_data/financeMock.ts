@@ -1647,3 +1647,152 @@ export function computeLedger(d: FinanceData): LedgerKpi {
     sparkSospesi: perMese.map((m) => m.sospesi),
   }
 }
+
+// ─── Albero delle decisioni (usato da Decision tree) ────────────────────────────
+//  Ogni leva di gestione è una decisione con più esiti possibili, ognuno con la sua
+//  probabilità: il valore atteso è la somma degli esiti pesati, non il caso migliore.
+//  Gli esiti non sono numeri inventati a parte: sono lo STESSO motore di simulazione
+//  di WIF analysis (`applyScenario`) applicato a combinazioni di leve diverse, così
+//  quello che si legge qui è coerente con la pagina degli scenari.
+
+export interface EsitoDecisione {
+  key: string
+  label: string
+  /** Probabilità dell'esito (%). Le probabilità di una decisione sommano a 100. */
+  probabilita: number
+  leve: Leve
+  gop: number
+  /** Differenza di margine rispetto alla situazione attuale. */
+  delta: number
+  ricavi: number
+  occ: number
+}
+
+export interface Decisione {
+  key: string
+  label: string
+  /** Etichetta di una parola per gli assi categoriali. */
+  breve: string
+  descrizione: string
+  /** Come si legge la leva in una riga (le percentuali applicate). */
+  ipotesi: string
+  esiti: EsitoDecisione[]
+  /** Valore atteso della decisione: Σ probabilità × delta. */
+  valoreAtteso: number
+  /** Probabilità che il margine migliori. */
+  probMiglioramento: number
+  /** Esito peggiore e migliore, per capire l'esposizione. */
+  peggiore: number
+  migliore: number
+}
+
+export interface DecisioniKpi {
+  /** Margine e ricavi di partenza (nessuna leva mossa). */
+  gopBase: number
+  ricaviBase: number
+  occBase: number
+  decisioni: Decisione[]
+  /** Decisione col valore atteso più alto. */
+  migliore: Decisione | null
+}
+
+/** Le decisioni sul tavolo, con gli esiti possibili e le rispettive probabilità. */
+const DECISIONI: {
+  key: string
+  label: string
+  breve: string
+  descrizione: string
+  ipotesi: string
+  esiti: { key: string; label: string; probabilita: number; leve: Leve }[]
+}[] = [
+  {
+    key: 'prezzo',
+    label: 'Alzare la tariffa media',
+    breve: 'Tariffa',
+    descrizione: 'Aumento del 4% sui periodi di domanda alta',
+    ipotesi: 'ADR +4%, volumi da verificare',
+    esiti: [
+      { key: 'tenuta', label: 'La domanda tiene', probabilita: 45, leve: { adr: 4, camere: 0, costiFissi: 0, costiVariabili: 1 } },
+      { key: 'parziale', label: 'Perdita lieve di volumi', probabilita: 40, leve: { adr: 4, camere: -2, costiFissi: 0, costiVariabili: 0 } },
+      { key: 'reazione', label: 'Il compset si allinea al ribasso', probabilita: 15, leve: { adr: 1, camere: -5, costiFissi: 0, costiVariabili: -2 } },
+    ],
+  },
+  {
+    key: 'diretto',
+    label: 'Spingere il canale diretto',
+    breve: 'Diretto',
+    descrizione: 'Campagna sul sito e sul CRM per ridurre le commissioni',
+    ipotesi: 'costi variabili in calo, investimento fisso in marketing',
+    esiti: [
+      { key: 'efficace', label: 'Campagna efficace', probabilita: 40, leve: { adr: 1, camere: 1, costiFissi: 1.5, costiVariabili: -5 } },
+      { key: 'parziale', label: 'Risultato parziale', probabilita: 45, leve: { adr: 0, camere: 0, costiFissi: 1.5, costiVariabili: -2 } },
+      { key: 'vuoto', label: 'Investimento a vuoto', probabilita: 15, leve: { adr: 0, camere: 0, costiFissi: 2, costiVariabili: 0 } },
+    ],
+  },
+  {
+    key: 'fissi',
+    label: 'Rinegoziare i costi fissi',
+    breve: 'Costi fissi',
+    descrizione: 'Utenze, manutenzioni e contratti di servizio',
+    ipotesi: 'obiettivo −3% sui costi fissi, ricavi invariati',
+    esiti: [
+      { key: 'riuscita', label: 'Rinegoziazione riuscita', probabilita: 35, leve: { adr: 0, camere: 0, costiFissi: -3, costiVariabili: 0 } },
+      { key: 'parziale', label: 'Sconto parziale', probabilita: 45, leve: { adr: 0, camere: 0, costiFissi: -1.5, costiVariabili: 0 } },
+      { key: 'nulla', label: 'Nessun accordo', probabilita: 20, leve: LEVE_NEUTRE },
+    ],
+  },
+  {
+    key: 'occupazione',
+    label: 'Promo per riempire i vuoti',
+    breve: 'Promo',
+    descrizione: 'Sconto mirato nei mesi di bassa occupazione',
+    ipotesi: 'ADR in calo, camere occupate in crescita',
+    esiti: [
+      { key: 'riempimento', label: 'I vuoti si riempiono', probabilita: 40, leve: { adr: -6, camere: 9, costiFissi: 0, costiVariabili: 2 } },
+      { key: 'parziale', label: 'Riempimento parziale', probabilita: 40, leve: { adr: -6, camere: 4, costiFissi: 0, costiVariabili: 1 } },
+      { key: 'cannibalizza', label: 'Sconta chi avrebbe pagato', probabilita: 20, leve: { adr: -8, camere: 2, costiFissi: 0, costiVariabili: 0 } },
+    ],
+  },
+]
+
+export function computeDecisioni(d: FinanceData): DecisioniKpi {
+  const base = applyScenario(d, LEVE_NEUTRE)
+
+  const decisioni: Decisione[] = DECISIONI.map((dec) => {
+    const esiti: EsitoDecisione[] = dec.esiti.map((e) => {
+      const esito = applyScenario(d, e.leve)
+      return {
+        key: e.key,
+        label: e.label,
+        probabilita: e.probabilita,
+        leve: e.leve,
+        gop: esito.gop,
+        delta: esito.gop - base.gop,
+        ricavi: esito.ricavi,
+        occ: esito.occ,
+      }
+    })
+    const valoreAtteso = esiti.reduce((s, e) => s + (e.probabilita / 100) * e.delta, 0)
+    const delte = esiti.map((e) => e.delta)
+    return {
+      key: dec.key,
+      label: dec.label,
+      breve: dec.breve,
+      descrizione: dec.descrizione,
+      ipotesi: dec.ipotesi,
+      esiti,
+      valoreAtteso,
+      probMiglioramento: esiti.filter((e) => e.delta > 0).reduce((s, e) => s + e.probabilita, 0),
+      peggiore: Math.min(...delte),
+      migliore: Math.max(...delte),
+    }
+  }).sort((a, b) => b.valoreAtteso - a.valoreAtteso)
+
+  return {
+    gopBase: base.gop,
+    ricaviBase: base.ricavi,
+    occBase: base.occ,
+    decisioni,
+    migliore: decisioni[0] ?? null,
+  }
+}

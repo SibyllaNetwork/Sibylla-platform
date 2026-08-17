@@ -7,7 +7,7 @@ import { SelectField } from '../../../core/components/form'
 import Pagination from '../../../core/components/Pagination'
 import TruncatedText from '../../../core/components/TruncatedText'
 import {
-  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile,
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile, barEndLabel,
   CHART, cursorProps, fmtAxisNum, fmtDate, fmtEur, fmtEurK, fmtInt, fmtPct, gridProps,
   reducedMotion, series, useFitRows, xAxisProps, yAxisProps,
 } from '../../../core/bi'
@@ -230,10 +230,7 @@ export default function IncomingAnalysis({ navigate: _navigate }: { navigate: (p
                   isAnimationActive={!still}
                   animationDuration={ANIM.duration} animationEasing={ANIM.easing}
                 >
-                  <LabelList
-                    dataKey="incassato" position="right"
-                    formatter={(v: any) => fmtEurK(Number(v))} className="ia__bar-label"
-                  />
+                  <LabelList dataKey="incassato" content={barEndLabel()} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -358,10 +355,7 @@ export default function IncomingAnalysis({ navigate: _navigate }: { navigate: (p
                 {kpi.fasce.map((f, i) => (
                   <Cell key={f.label} fill={tintaFascia(i, kpi.fasce.length)} />
                 ))}
-                <LabelList
-                  dataKey="valore" position="right"
-                  formatter={(v: any) => fmtEurK(Number(v))} className="ia__bar-label"
-                />
+                <LabelList dataKey="valore" content={barEndLabel()} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

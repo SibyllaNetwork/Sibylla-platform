@@ -7,7 +7,7 @@ import { SelectField } from '../../../core/components/form'
 import Tooltip from '../../../core/components/Tooltip'
 import Pagination from '../../../core/components/Pagination'
 import {
-  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, DeltaBadge, KpiTile,
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, DeltaBadge, KpiTile, barEndLabel,
   CHART, cursorProps, fmtAxisNum, fmtDelta, fmtEur, fmtEurK, fmtPct, gridProps,
   reducedMotion, series, useFitRows, xAxisProps, yAxisProps,
 } from '../../../core/bi'
@@ -330,7 +330,7 @@ export default function FinanceOverview({ navigate }: { navigate: (p: string) =>
                 dataKey="valore" fill={series(0)} radius={[0, 4, 4, 0]} maxBarSize={14}
                 isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
               >
-                <LabelList dataKey="valore" position="right" formatter={(v: any) => fmtEurK(Number(v))} className="fo__bar-label" />
+                <LabelList dataKey="valore" content={barEndLabel()} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

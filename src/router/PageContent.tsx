@@ -28,7 +28,6 @@ import OccupancyAnalysis           from '../modules/sales/pricing/OccupancyAnaly
 import AdrAnalysis                 from '../modules/sales/pricing/AdrAnalysis/AdrAnalysis';
 import ValueAnalysis              from '../modules/sales/pricing/ValueAnalysis/ValueAnalysis';
 import ExecutiveOverview          from '../modules/executive/ExecutiveOverview/ExecutiveOverview';
-import BiPlaceholder              from '../modules/_scaffold/BiPlaceholder';
 import FinanceOverview            from '../modules/finance/FinanceOverview/FinanceOverview';
 import BreakEvenPoint             from '../modules/finance/BreakEvenPoint/BreakEvenPoint';
 import Cashflow                   from '../modules/finance/Cashflow/Cashflow';
@@ -38,6 +37,7 @@ import ProfitTrend                from '../modules/finance/ProfitTrend/ProfitTre
 import CostAnalysis               from '../modules/finance/CostAnalysis/CostAnalysis';
 import IncomingAnalysis           from '../modules/finance/IncomingAnalysis/IncomingAnalysis';
 import LedgerAnalysis             from '../modules/finance/LedgerAnalysis/LedgerAnalysis';
+import DecisionTree               from '../modules/finance/DecisionTree/DecisionTree';
 import ReportPickup               from '../modules/sales/pricing/ReportPickup/ReportPickup';
 import ReportCityTax              from '../modules/finance/ReportCityTax/ReportCityTax';
 import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDisponibilita/TariffeDisponibilita';
@@ -259,9 +259,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'cost-analysis')         return <CostAnalysis navigate={navigate}/>;
   if (page === 'incoming-analysis')     return <IncomingAnalysis navigate={navigate}/>;
   if (page === 'ledger-analysis')       return <LedgerAnalysis navigate={navigate}/>;
-  // Pagine BI Finance ancora da costruire (placeholder di riferimento)
-  if (page === 'decision-tree')
-    return <BiPlaceholder page={page} navigate={navigate}/>;
+  if (page === 'decision-tree')         return <DecisionTree navigate={navigate}/>;
   if (page === 'configura-notifiche')   return <ConfiguraNotifiche navigate={navigate}/>;
   if (page === 'centro-notifiche')      return <CentroNotifiche navigate={navigate}/>;
   if (page === 'chat')                  return <Chat navigate={navigate}/>;
