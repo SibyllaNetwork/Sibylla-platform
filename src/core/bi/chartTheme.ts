@@ -124,6 +124,9 @@ export const fmtPct = (n: number, decimals = 1) => `${nf(decimals, decimals).for
 /** 1.234 */
 export const fmtInt = (n: number) => nf(0, 0).format(n)
 
+/** 3,5 — numero con decimali alla italiana (virgola), per le grandezze non intere. */
+export const fmtDec = (n: number, decimals = 1) => nf(decimals, decimals).format(n)
+
 /**
  * Variazione con segno: +8,2% / −3,0% (meno tipografico, non il trattino).
  * A variazione nulla il segno non serve: lo stato "invariato" lo porta già il badge.

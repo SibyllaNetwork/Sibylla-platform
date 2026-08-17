@@ -1,226 +1,292 @@
-// ─── MAINTENANCE ANALYSIS ─────────────────────────────────────────────────────
+// ─── MAINTENANCE ANALYSIS ───────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + carico di lavoro (2 colonne) + rispetto SLA,
+// camere fuori servizio e impatto sul business.
 @use '../../../styles/tokens' as *
 
-.maint-an
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 14px
-  font-size: 13px
-  background: var(--color-surface)
+.ma
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 1fr)
+    // Gli SLA chiedono altezza (quattro priorità), le camere fuori servizio
+    // larghezza (dodici mesi): ognuno nella cella giusta.
+    grid-template-areas: 'kpi kpi kpi' 'main main sla' 'ooo ooo imp'
 
-  > .sib-btn--back
-    align-self: flex-start
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
 
-  // ── Toolbar ──────────────────────────────────────────────────────────────
-  &__bar
-    display: flex
-    align-items: flex-end
-    gap: 12px
-    flex-wrap: wrap
-    margin-top: 4px
+  &__main
+    grid-area: main
 
-    .sib-btn--icon i
-      color: $primary
-      font-size: 16px
+  &__sla
+    grid-area: sla
 
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
+  &__ooo
+    grid-area: ooo
 
-    .sib-input,
-    .sib-select
-      width: 100%
+  &__imp
+    grid-area: imp
 
-  &__select
-    width: 200px
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
 
-  &__date-range
-    display: flex
-    align-items: center
-    gap: 6px
+    &--wide
+      width: 210px
 
-    .sib-input
-      width: 145px
-
-    span
-      color: $text-inactive
-
-  &__visualizza
+  &__note
     display: inline-flex
     align-items: center
     gap: 6px
-
-  &__info
     margin-left: auto
-
-  // ── Sections con label laterale ─────────────────────────────────────────
-  &__section
-    position: relative
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    overflow: hidden
-    display: flex
-
-  &__side-label
-    background: $primary
-    color: white
+    padding-bottom: 8px
+    font-family: var(--font-body)
     font-size: 11px
-    font-weight: 700
-    letter-spacing: 1px
-    writing-mode: vertical-rl
-    transform: rotate(180deg)
-    padding: 14px 6px
-    display: flex
-    align-items: center
-    justify-content: center
-    flex-shrink: 0
-
-    &--right
-      position: absolute
-      right: 0
-      top: 0
-      bottom: 0
-
-  &__section-content
-    flex: 1
-    padding: 14px 18px
-    display: flex
-    flex-direction: column
-    gap: 12px
-
-  &__section-title
-    text-align: center
-    font-family: $font-heading
-    font-weight: 600
-    font-size: 14px
-    color: $text-active
-    display: flex
-    align-items: center
-    justify-content: center
-    gap: 8px
-
-  &--tipi
-    padding: 14px 18px
-
-  &__section--tipi
-    flex-direction: column
-    align-items: center
-    gap: 12px
-    background: var(--color-surface)
-
-  // ── Tipi camera pill ─────────────────────────────────────────────────────
-  &__tipi-row
-    display: inline-flex
-    gap: 8px
-
-  &__tipo-pill
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 999px
-    padding: 6px 16px
-    cursor: pointer
-    font-size: 13px
-    color: $text-active
-    font-family: inherit
-
-    &:hover
-      border-color: $primary
-
-    &--active
-      background: $link
-      color: white
-      border-color: $link
-
-  // ── Dettaglio matrix ─────────────────────────────────────────────────────
-  .sib-table &__td-num
-    text-align: right
+    color: var(--color-text-inactive)
     white-space: nowrap
 
-  &__expand-btn
-    background: transparent
-    border: none
-    color: $link
-    cursor: pointer
-    margin-right: 8px
-    font-size: 14px
-
-    &:hover
-      color: $primary
-
-  // ── Trend SVG ────────────────────────────────────────────────────────────
-  &__trend-svg
-    width: 100%
-    height: 180px
-
-  // ── Personale chart ──────────────────────────────────────────────────────
-  &__personale-ico
-    background: transparent
-    border: 1px solid $border
-    border-radius: 50%
-    width: 32px
-    height: 32px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    color: $primary
-    cursor: pointer
-    margin-left: auto
-
     i
-      font-size: 16px
+      color: var(--color-primary)
+      font-size: 12px
 
-    &:hover
-      border-color: $primary
-      background: $primary-50
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
 
-  &__bars
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
     display: flex
-    gap: 16px
-    height: 220px
+    flex-direction: column
+    flex: 1
+    min-height: 0
 
-  &__bars-yaxis
+  &__detail-table
+    flex: 1
+    min-height: 0
+
+    // Celle su UNA riga: un testo che va a capo alza la riga e fa sbordare la tabella
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+        white-space: nowrap
+        overflow: hidden
+        text-overflow: ellipsis
+
+  &__col-data
+    width: 14%
+
+  &__col-area
+    width: 17%
+
+  &__col-tipo
+    width: 21%
+
+  &__col-prio
+    width: 14%
+
+  &__col-tecnico
+    width: 18%
+
+  &__col-ore
+    width: 8%
+
+  &__col-stato
+    width: 13%
+
+  &__num
+    text-align: right
+
+  &__stato
+    display: inline-block
+    padding: 0 6px
+    border-radius: 999px
+    font-size: 10px
+    font-weight: 600
+    white-space: nowrap
+
+    &--ok
+      background: color-mix(in srgb, var(--chart-good) 14%, transparent)
+      color: var(--chart-good)
+
+    &--corso
+      background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+      color: var(--chart-4)
+
+    &--aperto
+      background: color-mix(in srgb, var(--chart-bad) 14%, transparent)
+      color: var(--chart-bad)
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Rispetto degli SLA ───────────────────────────────────────────────────────
+  &__sla-list
     display: flex
     flex-direction: column
     justify-content: space-between
-    text-align: right
-    color: $text-inactive
-    font-size: 11px
-    width: 28px
-
-  &__bars-tick
-    line-height: 1
-
-  &__bars-area
     flex: 1
-    display: flex
-    align-items: stretch
-    gap: 24px
-    padding-bottom: 20px
-    position: relative
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
 
-  &__bar-row
-    flex: 1
+  &__sla-row
     display: flex
     flex-direction: column
-    align-items: center
-    justify-content: flex-end
-    height: 100%
-    position: relative
+    gap: 2px
+    min-width: 0
 
-  &__bar
-    width: 100%
-    max-width: 1200px
-    height: var(--bar-h)
-    background: $link
-    border-radius: 2px
-    min-height: 2px
+  &__sla-top
+    display: grid
+    grid-template-columns: 1fr auto auto
+    align-items: baseline
+    gap: 8px
+    min-width: 0
 
-  &__bar-label
-    position: absolute
-    bottom: -18px
-    color: $text-inactive
+  &__sla-lbl
+    min-width: 0
+    font-family: var(--font-heading)
     font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__sla-pct
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__sla-ore
+    padding: 0 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
+    color: var(--chart-1)
+    font-size: 11px
+    font-weight: 600
+    font-variant-numeric: tabular-nums
+
+  &__sla-bar
+    display: block
+    height: 6px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--color-border) 60%, transparent)
+    overflow: hidden
+
+  &__sla-fill
+    display: block
+    width: var(--w, 0%)
+    height: 100%
+    border-radius: 999px
+    background: var(--chart-1)
+    transition: width 620ms cubic-bezier(0.32, 0.72, 0, 1)
+
+  &__sla-meta
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
     white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  // ── Impatto: numeri, non un grafico ──────────────────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+    // Riga di totale: è la somma delle precedenti, si legge come tale
+    &--tot
+      .ma__figure-lbl
+        color: var(--color-primary)
+        font-weight: 600
+
+      .ma__figure-val
+        font-size: 15px
+        font-weight: 700
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .ma
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+// Sotto i 900px di altezza la riga di contesto degli SLA non entra nella card
+@media (max-height: 900px)
+  .ma__sla-row .ma__sla-meta
+    display: none
+
+@media (max-height: 820px)
+  .ma
+    &__kpis
+      gap: 8px
+
+    &__figure
+      padding: 2px 0
+
+@media (prefers-reduced-motion: reduce)
+  .ma__sla-fill
+    transition: none

@@ -164,6 +164,21 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Differenza fra consuntivo e budget',
     formula: 'Valore consuntivato meno valore di budget dello stesso periodo',
   },
+  OOO: {
+    term: 'OOO',
+    description: 'Out Of Order — camere fuori servizio, non vendibili',
+    formula: 'Camere non disponibili alla vendita per guasto o lavori, in media giornaliera',
+  },
+  SLA: {
+    term: 'SLA',
+    description: 'Service Level Agreement — tempo massimo di intervento concordato',
+    formula: 'Quota di interventi chiusi entro il tempo previsto dalla loro priorità',
+  },
+  MTTR: {
+    term: 'MTTR',
+    description: 'Mean Time To Repair — tempo medio di chiusura di un intervento',
+    formula: 'Somma delle ore di lavorazione diviso il numero di interventi chiusi',
+  },
   ALOS: {
     term: 'ALOS',
     description: 'Average Length Of Stay — permanenza media',

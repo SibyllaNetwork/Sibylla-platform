@@ -151,7 +151,7 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Operation overview | ⏳ | Camere occupate · Arrivi · Partenze · Fuori servizio · Housekeeping da fare | Movimenti del giorno · Stato camere · Carico housekeeping per piano · Segnalazioni aperte |
 | On the book analysis | ⏳ | OTB ricavo · Camere · ADR · Occupazione prevista · Pace vs LY | OTB per data soggiorno vs LY · Per segmento · Per canale · Pickup ultimi 7 gg |
 | Guest & room analysis | ⏳ | Ospiti · ALOS · Ospiti ripetenti · Upsell · Recensioni | Provenienze (top + Altro) · Tipologie più vendute · Composizione dell'ospite · Upgrade e upsell |
-| Maintenance analysis | ⏳ | Interventi aperti · Tempo medio di chiusura · Camere fuori servizio · Costo interventi · Ricavo perso | Interventi per tipologia · Camere fuori servizio nel tempo · Rispetto SLA · Costi per reparto |
+| Maintenance analysis | ✅ | Interventi aperti · Tempo di chiusura · Camere fuori servizio · Costo interventi · Ricavo perso | Segnalati e chiusi per mese con l'arretrato (+ viste Tipologie di costo e Dettaglio interventi) · Rispetto degli SLA per priorità · Camere fuori servizio nel tempo · Impatto sul business (costo + ricavo perso) |
 | Analisi dell'occupazione | ⏳ | variante operativa di Occupancy analysis | idem, in chiave giornaliera e per piano |
 
 ### Food & Beverage
@@ -197,7 +197,10 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
    ✅ Cash flow, WIF analysis, Analisi scenari mensili, Profit trend e Cost analysis.
    ✅ Incoming analysis, Ledger analysis e Decision tree: **blocco finance completo**.
 4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
-5. Le altre overview (Sales, Operation) e On the book analysis.
+5. ✅ Maintenance analysis (modello in `operation/_data/maintenanceMock`: interventi
+   proporzionali alle camere occupate, arretrato che cresce in alta stagione, camere
+   fuori servizio valorizzate all'ADR del mese).
+   Restano le altre overview (Sales, Operation) e On the book analysis.
 6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,
    SSPI, Value analysis, Market lens): impianto e palette, contenuto invariato.
 
