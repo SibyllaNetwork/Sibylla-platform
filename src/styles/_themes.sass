@@ -75,6 +75,40 @@
   --shadow-md: 0 2px 8px rgba(32, 71, 105, 0.15)
   --shadow-lg: 0 4px 16px rgba(32, 71, 105, 0.18)
 
+  // ── Grafici BI (palette categoriale) ─────────────────────────────────────
+  // 8 slot in ordine FISSO: l'ordine è il meccanismo di sicurezza per i deficit
+  // di visione colore, non una scelta estetica. Gli slot si assegnano in
+  // sequenza (serie 1 → --chart-1) e non si riciclano mai: la nona serie
+  // diventa "Altro". Palette verificata su superficie chiara e scura (banda di
+  // luminosità, chroma, separazione protanopia/deuteranopia e contrasto ≥ 3:1).
+  // Nelle forme dove due marchi qualsiasi possono affiancarsi (scatter, bolle,
+  // small multiples) il tetto è 3 serie: oltre, aggregare in "Altro".
+  --chart-1: #2E6DA4
+  --chart-2: #C4661F
+  --chart-3: #A8407F
+  --chart-4: #A8862F
+  --chart-5: #1E9E95
+  --chart-6: #C43D34
+  --chart-7: #5B43A0
+  --chart-8: #2E7D3A
+  // Ruoli non categoriali: confronto storico, previsione, scala sequenziale
+  --chart-ly:        #A9B2BC
+  --chart-forecast:  #A8862F
+  --chart-seq-from:  #D8E5F1
+  --chart-seq-to:    #204769
+  // Cromature: griglia, assi, inchiostro, superficie del grafico
+  --chart-grid:      #E6EBF0
+  --chart-axis:      #C3C9D0
+  --chart-ink:       #4A4D53
+  --chart-ink-muted: #6E7175
+  --chart-surface:   #FFFFFF
+  // Stato (significato riservato: mai usati come "serie N")
+  --chart-good:      #007035
+  --chart-bad:       #D10011
+  // Tooltip grafici = standard piattaforma (fondo scuro, testo bianco)
+  --chart-tip-bg:    #1E293B
+  --chart-tip-ink:   #FFFFFF
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  PRO — Modern CRM (Linear/Attio/Notion style), dark slate + indigo accent
@@ -353,3 +387,28 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40)
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.50)
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.55)
+
+  // ── Grafici BI: stessi 8 colori RI-GRADINATI per la superficie scura
+  // (non un ribaltamento automatico: ogni step è scelto e verificato sulla
+  // superficie #1A1E26, stesse tinte e stesso ordine del modo chiaro).
+  --chart-1: #4A8BC9
+  --chart-2: #D9722F
+  --chart-3: #D0609F
+  --chart-4: #A8862F
+  --chart-5: #1E9E95
+  --chart-6: #E8635A
+  --chart-7: #9585E0
+  --chart-8: #3FA34D
+  --chart-ly:        #4A5462
+  --chart-forecast:  #C9A84C
+  --chart-seq-from:  #223449
+  --chart-seq-to:    #7FB0DE
+  --chart-grid:      #262C38
+  --chart-axis:      #3A4453
+  --chart-ink:       #E6E8EC
+  --chart-ink-muted: #9AA2AE
+  --chart-surface:   #1A1E26
+  --chart-good:      #34D399
+  --chart-bad:       #FF6B78
+  --chart-tip-bg:    #0E1116
+  --chart-tip-ink:   #FFFFFF

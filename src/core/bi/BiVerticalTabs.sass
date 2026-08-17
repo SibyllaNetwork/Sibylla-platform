@@ -1,0 +1,46 @@
+// ─── TAB VERTICALI (rail della card) ────────────────────────────────────────────
+// Etichette ruotate sul fianco della card: la selezionata è piena in blu Platform.
+@use '../../styles/tokens' as *
+
+.bi-vtabs
+  display: flex
+  flex-direction: column
+  flex: none
+  width: 30px
+
+  &__tab
+    display: flex
+    flex: 1
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 0
+    padding: 10px 0
+    border: 0
+    background: var(--color-bg)
+    color: var(--color-text-inactive)
+    cursor: pointer
+    font-family: var(--font-heading)
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.08em
+    text-transform: uppercase
+    transition: background 160ms ease, color 160ms ease
+
+    i
+      font-size: 11px
+
+    & + &
+      border-top: 1px solid var(--color-border)
+
+    &:hover:not(&--on)
+      background: var(--color-primary-100)
+      color: var(--color-primary)
+
+    &--on
+      background: var(--color-primary)
+      color: var(--color-text-negative)
+
+  &__lbl
+    writing-mode: vertical-rl
+    transform: rotate(180deg)

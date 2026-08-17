@@ -1,0 +1,116 @@
+// ─── KPI TILE ───────────────────────────────────────────────────────────────────
+// Riquadro indicatore della fascia BI. Ingresso in cascata (sfasato da --kpi-i),
+// filo di colore in alto per legare il riquadro allo slot della serie.
+@use '../../styles/tokens' as *
+
+.kpi-tile
+  position: relative
+  display: flex
+  flex-direction: column
+  gap: 6px
+  min-width: 0
+  min-height: 0
+  padding: 10px 12px
+  border: 1px solid var(--color-border)
+  border-radius: var(--radius-lg)
+  background: var(--color-surface)
+  overflow: hidden
+  animation: kpi-tile-in 420ms var(--kpi-delay, 0ms) both cubic-bezier(0.32, 0.72, 0, 1)
+  // Ritardo derivato dalla posizione nella fila
+  --kpi-delay: calc(var(--kpi-i, 0) * 70ms)
+
+  // Filo del colore di serie sul bordo superiore
+  &::before
+    content: ''
+    position: absolute
+    inset: 0 0 auto 0
+    height: 2px
+    background: linear-gradient(90deg, var(--kpi-c, var(--chart-1)), transparent)
+
+  &:hover
+    border-color: color-mix(in srgb, var(--kpi-c, var(--chart-1)) 45%, var(--color-border))
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  &__ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 20px
+    height: 20px
+    flex: none
+    border-radius: var(--radius-sm)
+    background: color-mix(in srgb, var(--kpi-c, var(--chart-1)) 14%, transparent)
+    color: var(--kpi-c, var(--chart-1))
+    font-size: 11px
+
+  &__label
+    flex: 1
+    min-width: 0
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__info
+    flex: none
+    font-size: 12px
+    color: var(--color-primary)
+    cursor: help
+
+  &__body
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: 10px
+    min-width: 0
+
+  &__figures
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+
+  &__val
+    font-family: var(--font-heading)
+    font-size: 21px
+    font-weight: 700
+    line-height: 1.1
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__spark
+    width: 92px
+    flex: none
+
+// Sotto soglia laptop la fascia si compatta: SOLO dimensioni, nessuna
+// informazione rimossa (regole_ui.md §8).
+@container bi-page (max-width: 1180px)
+  .kpi-tile
+    padding: 8px 10px
+
+    &__val
+      font-size: 18px
+
+    &__spark
+      width: 68px
+
+@keyframes kpi-tile-in
+  from
+    opacity: 0
+    transform: translateY(8px)
+  to
+    opacity: 1
+    transform: none
+
+@media (prefers-reduced-motion: reduce)
+  .kpi-tile
+    animation: none

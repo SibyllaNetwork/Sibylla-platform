@@ -1,161 +1,267 @@
-// ─── MONTHLY TREND ────────────────────────────────────────────────────────────
+// ─── MONTHLY TREND ──────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: fascia indicatori + andamento (2 colonne) + tre card di
+// composizione. Nessuna traccia può crescere oltre lo spazio disponibile (righe in
+// `minmax(0, …)`), quindi la pagina non scrolla né in verticale né in orizzontale.
 @use '../../../../styles/tokens' as *
 
-.monthly-trend
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+.mt
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 0.95fr)
+    grid-template-areas: 'kpi   kpi   kpi' 'trend trend mix' 'seg   age   qual'
+    // Le proporzioni NON cambiano passando da Trend a Dettaglio: se le card si
+    // ridimensionassero, i grafici delle altre card ri-animerebbero a ogni
+    // cambio vista (movimento non giustificato da un dato nuovo). Alla tabella
+    // basta la densità di riga: quante righe entrano lo decide `useFitRows`.
 
-  > .sib-btn--back
-    align-self: flex-start
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
 
-  &__filters
-    display: flex
-    align-items: flex-end
-    flex-wrap: nowrap
-    gap: 12px
-    margin-top: 8px
+  &__trend
+    grid-area: trend
 
-  &__select
-    width: 200px
+  &__mix
+    grid-area: mix
 
-    &--sm
-      width: 110px
+  &__seg
+    grid-area: seg
 
-  &__visualizza
-    margin-left: 4px
+  &__age
+    grid-area: age
+
+  &__qual
+    grid-area: qual
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__inventory
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
 
     i
-      margin-right: 6px
+      color: var(--color-primary)
+      font-size: 12px
 
-  &__cards
-    display: grid
-    grid-template-columns: repeat(3, 1fr)
-    gap: 16px
-
-    @media (max-width: 1280px)
-      grid-template-columns: 1fr
-      gap: 16px
-
-  &__card
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 16px
-    display: flex
-    flex-direction: column
-    gap: 12px
-    min-height: 320px
-
-    &--donut
-      align-items: center
-
-  &__card-title
-    margin: 0
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 600
-    color: $primary
-    text-align: center
-
-  &__card-foot
-    display: flex
-    align-items: center
-    justify-content: center
-    gap: 6px
-    font-size: 11px
-    color: $text-inactive
-    margin-top: 4px
-
-  &__donut-row
-    display: flex
-    align-items: center
-    gap: 16px
-    width: 100%
-    justify-content: center
-
-  &__donut-labels-left,
-  &__donut-labels-right
-    display: flex
-    flex-direction: column
-    gap: 8px
-    font-size: 11px
-    color: $text-inactive
-
-  &__donut-labels-left
-    text-align: right
-
-  &__donut-totals
-    display: flex
-    justify-content: space-between
-    width: 100%
-    margin-top: 8px
-    padding-top: 12px
-    border-top: 1px solid $border
-
-  &__small-label
-    font-size: 11px
-    color: $text-inactive
-
-  &__small-value
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 700
-    color: $primary
-
-  &__legend-dot
-    width: 10px
-    height: 10px
-    border-radius: 50%
-    display: inline-block
-
-    &--sales
-      background: #5DC3E0
-
-  // ── Trend section ──────────────────────────────────────────────────────────
-  &__trend-section
-    display: flex
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    overflow: hidden
-
-  &__side-tag
-    background: $primary
-    color: white
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 11px
-    letter-spacing: 2px
-    padding: 16px 6px
-    writing-mode: vertical-rl
-    text-orientation: mixed
-    transform: rotate(180deg)
-    display: flex
-    align-items: center
-    justify-content: center
-
-  &__trend-body
+  // ── Aree grafico: riempiono il corpo della card ──────────────────────────────
+  &__chart,
+  &__bars
     flex: 1
-    padding: 16px
+    min-height: 0
+    min-width: 0
 
-  &__trend-header
+  // Etichette di valore in testa alle barre
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
+
+  // ── Donut mix canali: legenda a sinistra, anello a destra ────────────────────
+  &__mix-body
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 46%)
+    align-items: center
+    gap: 10px
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__mix-legend
+    min-width: 0
+
+  &__donut
+    position: relative
+    height: 100%
+    min-height: 0
+    min-width: 0
+
+  &__donut-center
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
     display: flex
-    flex-wrap: wrap
-    gap: 24px
-    align-items: baseline
-    margin-bottom: 8px
-    font-size: 13px
-    color: $text-active
+    flex-direction: column
+    align-items: center
+    gap: 1px
+    text-align: center
+    pointer-events: none
+
+  &__donut-val
+    font-family: var(--font-heading)
+    font-size: 19px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    line-height: 1.1
+
+  &__donut-lbl
+    max-width: 128px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__donut-note
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-disabled)
+
+  // ── Piede della card andamento ───────────────────────────────────────────────
+  &__trend-foot
+    display: flex
+    align-items: center
+    gap: 14px
+    flex-wrap: nowrap
+    overflow: hidden
+    white-space: nowrap
+    font-variant-numeric: tabular-nums
 
     strong
-      color: $primary
+      color: var(--color-text-inactive)
+      font-weight: 600
 
-  &__delta
-    &--pos strong
-      color: $success
+  &__trend-foot-delta
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--color-text-active)
 
-    &--neg strong
-      color: $error
+  &__trend-foot-sep
+    color: var(--color-border)
+
+  // ── Vista DETTAGLIO: tabella + paginazione (mai scroll) ──────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__detail-table
+    flex: 1
+    min-height: 0
+
+    // Righe compatte: nella BI l'altezza è la risorsa scarsa, così ne entrano
+    // più giorni per pagina (serve doppia classe per battere .sib-table).
+    .sib-table.sib-table
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  &__num
+    text-align: right
+
+  &__tag
+    margin-left: 6px
+    padding: 0 5px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-forecast) 16%, transparent)
+    color: var(--chart-forecast)
+    font-size: 10px
+    font-weight: 600
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Qualità del business: numeri, non un grafico ─────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: grid
+    grid-template-columns: 1fr auto auto
+    align-items: center
+    gap: 8px
+    padding: 4px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop (container query sul root BI) ─────────
+// Solo dimensioni: nessuna informazione rimossa, nessuna intestazione abbreviata.
+@container bi-page (max-width: 1180px)
+  .mt
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__inventory
+      font-size: 10px
+
+    &__donut-val
+      font-size: 17px
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+    &__trend-foot
+      gap: 10px
+      font-size: 10px
+
+// Schermi bassi: si recupera altezza sulle spaziature interne.
+@media (max-height: 820px)
+  .mt
+    &__kpis
+      gap: 8px
+
+    &__figure
+      padding: 2px 0

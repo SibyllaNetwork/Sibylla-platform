@@ -24,6 +24,7 @@ Indice:
 10. [Paginazione](#10-paginazione)
 11. [Conferme, eliminazioni e tooltip](#11-conferme-eliminazioni-e-tooltip)
 12. [Carrello e acquisti](#12-carrello-e-acquisti)
+13. [Pagine BI e grafici](#13-pagine-bi-e-grafici)
 
 ---
 
@@ -287,3 +288,88 @@ dimensioni standard).
   separata con Design System dedicato); dove possibile scrive anche nello store globale
   (es. `AccommodationsPage` fa dual-write). L'unificazione completa dell'Agorà è un
   refactor a parte.
+
+---
+
+## 13. Pagine BI e grafici
+
+Le pagine di business intelligence (overview, analysis, trend, benchmark) seguono
+tutte le regole precedenti **più** queste, e si costruiscono SOLO con il kit
+condiviso **`src/core/bi`** (`BiPage`, `ChartCard`, `KpiTile`, `DeltaBadge`,
+`Sparkline`, `BiLegend`, `ChartTooltip`, `BiVerticalTabs`, `BiGlossaryRail`,
+`BiDataStamp`, `useFitRows`, `useCountUp`, parametri in `chartTheme`).
+Riferimenti d'implementazione: **Monthly trend**, **Executive overview**.
+
+### Tutto in una schermata, zero scroll (regola tassativa)
+- Una pagina BI **non deve mai scrollare**, né in verticale né in orizzontale: tutto
+  ciò che serve sta in **una schermata**.
+- Impianto: `BiPage` (righe `[header · toolbar · corpo]`, corpo a griglia con
+  `min-height: 0`, tracce in `minmax(0, …)`, `overflow: hidden`). La griglia della
+  singola pagina si dichiara nel `.sass` di pagina via `gridClassName`.
+- I grafici riempiono l'altezza disponibile (`ResponsiveContainer height="100%"`),
+  non hanno altezze fisse in px.
+- Le **tabelle di dettaglio** non stanno in fondo alla pagina (allungherebbe): vivono
+  nella stessa card dietro i **tab verticali** (`BiVerticalTabs`, es. Trend/Dettaglio),
+  con righe per pagina calcolate da **`useFitRows`** (misura lo spazio reale) e
+  `Pagination` centrata. Mai scroll interno per mostrare le righe.
+- Unica eccezione allo scroll: il pannello della legenda acronimi, se le voci
+  superano l'altezza disponibile.
+
+### Fascia KPI in cima — deroga esplicita alla §5
+- Nelle **sole pagine BI** è ammessa (e attesa) una fascia di indicatori in cima:
+  `KpiTile` = etichetta + valore + variazione + micro-andamento. Non è la "riga di
+  stat-card" vietata dalla §5, che sono box con un numero e nulla più.
+- Fuori dalle pagine BI la §5 resta valida senza eccezioni.
+
+### Legenda degli acronimi — obbligatoria
+- Ogni pagina BI monta **`BiGlossaryRail`** (linguetta "Legenda" sul lato destro):
+  apre acronimo · descrizione · modalità di calcolo.
+- I testi stanno nel dizionario condiviso **`core/bi/biGlossary.ts`**: la pagina
+  dichiara solo le chiavi che le servono. Una metrica si definisce **una volta** e
+  vale su tutta la piattaforma; niente glossari copiati per pagina.
+
+### Colore dei grafici
+- **Solo i token `--chart-*`** (definiti per tema in `_themes.sass`, ri-gradinati per
+  la dark mode): mai hex nei componenti, mai colori d'interfaccia usati come serie.
+- Palette categoriale a **8 slot in ordine fisso** (`series(i)`): gli slot si
+  assegnano **in sequenza** e non si riciclano mai — dalla nona serie si aggrega in
+  **"Altro"**. L'ordine è il meccanismo di sicurezza per i deficit di visione colore
+  (validato su banda di luminosità, chroma, separazione protanopia/deuteranopia e
+  contrasto ≥ 3:1 su superficie chiara e scura), quindi **non si riordina a gusto**.
+- Il colore segue **l'entità**, non la posizione in classifica: un filtro che cambia
+  il numero di serie non deve ricolorare quelle che restano.
+- **Barre nominali** (segmenti, agenzie, reparti): tutte con la **stessa tinta** —
+  la lunghezza porta già il valore, il colore non deve ri-codificarlo.
+- Ruoli riservati: `CHART.ly` (anno precedente, neutro), `CHART.forecast`
+  (previsione, sempre **tratteggiata**), `CHART.good`/`CHART.bad` (stato: mai come
+  "serie N", sempre con freccia + testo → `DeltaBadge`).
+- Scale sequenziali (heatmap, mappe): **una sola tinta** chiaro→scuro
+  (`CHART.seqFrom`/`seqTo`), mai arcobaleno.
+- Nelle forme dove due marchi qualsiasi possono affiancarsi (scatter, bolle, small
+  multiples) il tetto è **3 serie** (`ALL_PAIRS_SERIES_CAP`): oltre, aggregare o
+  sfaccettare.
+
+### Forma e leggibilità
+- **Un solo asse dei valori per grafico**: mai due scale y. Due misure di scala
+  diversa → due grafici, o indicizzate a base comune.
+- Con **2 o più serie la legenda è sempre presente** (`BiLegend`); con una sola serie
+  il titolo la nomina e la legenda non serve. L'identità non è mai affidata al solo
+  colore: pallino colorato + etichetta in colore testo.
+- Etichette d'asse **mai ruotate** (nel BI storico erano inclinate e illeggibili): se
+  non entrano si riducono i tick o si accorcia il formato.
+- Etichette di valore **selettive** (in testa alle barre, sull'ultimo punto), mai un
+  numero su ogni punto. Cifre **tabulari** nei valori e nelle colonne.
+- Tooltip dei grafici = `ChartTooltip` (fondo scuro, testo bianco), crosshair
+  tratteggiato su linee e aree; mai il `title` nativo.
+- A volte la risposta **non è un grafico**: un donut con una sola fetta al 100% o una
+  barra sola in un riquadro vuoto sono numeri, non grafici → usare valori con
+  variazione (vedi "Qualità del business" in Monthly trend).
+
+### Animazioni
+- Ingresso in cascata di card e serie (`ANIM`, ritardi via `--cc-i` / `--kpi-i`),
+  valori KPI contati con `useCountUp`, aree con gradiente, punto attivo in evidenza,
+  fetta del donut puntata con le altre attenuate.
+- Il movimento va **giustificato da un dato nuovo**: cambiando vista o pagina i
+  grafici non devono ri-animare (attenzione ai cambi di layout, che ridimensionano i
+  grafici e ne fanno ripartire l'animazione).
+- Tutto rispetta `prefers-reduced-motion: reduce` (`reducedMotion()`).

@@ -1,0 +1,143 @@
+// ─── CHART CARD ─────────────────────────────────────────────────────────────────
+// Card di un grafico BI. Il corpo è elastico con min-height:0: è la condizione
+// per far stare i grafici in una pagina a schermo fisso, senza scroll.
+@use '../../styles/tokens' as *
+
+.chart-card
+  display: flex
+  min-width: 0
+  min-height: 0
+  border: 1px solid var(--color-border)
+  border-radius: var(--radius-lg)
+  background: var(--color-surface)
+  overflow: hidden
+  animation: chart-card-in 460ms var(--cc-delay, 0ms) both cubic-bezier(0.32, 0.72, 0, 1)
+  --cc-delay: calc(var(--cc-i, 0) * 80ms + 80ms)
+  transition: border-color 160ms ease, box-shadow 160ms ease
+
+  &:hover
+    border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border))
+    box-shadow: var(--shadow-sm)
+
+  &__inner
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+    min-height: 0
+    padding: 10px 12px 12px
+
+  // ── Intestazione ────────────────────────────────────────────────────────────
+  &__head
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    flex: none
+    min-width: 0
+    margin-bottom: 8px
+
+  &__titles
+    flex: 1
+    min-width: 0
+
+  &__title
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    min-width: 0
+
+  // Il testo del titolo si tronca (con tooltip) invece di spingere la card
+  &__title-txt
+    min-width: 0
+
+  // Il wrapper della tooltip non deve rompere il layout flex del titolo
+  &__title > *
+    min-width: 0
+
+  &__badge
+    flex: none
+    padding: 1px 7px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent)
+    color: var(--color-primary)
+    font-size: 11px
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+  &__sub
+    margin: 2px 0 0
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+    .sib-truncate
+      display: block
+
+  &__legend
+    margin-left: auto
+    justify-content: flex-end
+    max-width: 58%
+
+  &__actions
+    display: flex
+    align-items: center
+    gap: 4px
+    flex: none
+    margin-left: auto
+
+  &__legend + &__actions
+    margin-left: 8px
+
+  // ── Corpo: qui vive il grafico, riempie lo spazio che resta ──────────────────
+  &__body
+    flex: 1
+    min-width: 0
+    min-height: 0
+    display: flex
+    flex-direction: column
+
+  &__footer
+    flex: none
+    margin-top: 8px
+    padding-top: 8px
+    border-top: 1px solid var(--color-border)
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  // ── Barra verticale a sinistra (tab TREND/DETTAGLIO) ────────────────────────
+  &__rail
+    display: flex
+    flex: none
+    border-right: 1px solid var(--color-border)
+
+// Sotto soglia laptop: solo dimensioni, nessuna informazione tolta.
+@container bi-page (max-width: 1180px)
+  .chart-card
+    &__inner
+      padding: 8px 10px 10px
+
+    &__title
+      font-size: 12px
+
+    &__sub
+      font-size: 10px
+
+@keyframes chart-card-in
+  from
+    opacity: 0
+    transform: translateY(10px) scale(0.995)
+  to
+    opacity: 1
+    transform: none
+
+@media (prefers-reduced-motion: reduce)
+  .chart-card
+    animation: none
+    transition: none

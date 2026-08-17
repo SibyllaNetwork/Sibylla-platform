@@ -1,0 +1,83 @@
+// ─── BI PAGE (guscio delle pagine BI) ───────────────────────────────────────────
+// Una schermata, zero scroll: righe [header · toolbar · corpo elastico], corpo a
+// griglia con min-height:0. Il root è un container query chiamato `bi-page`, così
+// le card e le KPI si compattano sulla larghezza REALE del contenuto (che cambia
+// con la sidenav aperta/chiusa) e non sul viewport.
+@use '../../styles/tokens' as *
+
+.bi-page
+  height: 100%
+  min-height: 0
+  min-width: 0
+  display: grid
+  grid-template-rows: auto auto minmax(0, 1fr)
+  gap: 0
+  // Niente scroll: se lo spazio manca si compatta, non si scrolla.
+  overflow: hidden
+  container-type: inline-size
+  container-name: bi-page
+
+  // Header più compatto che nelle pagine normali: nella BI l'altezza è preziosa.
+  &__head
+    margin-bottom: 12px
+
+  // ── Toolbar filtri: una riga sola, mai a capo ───────────────────────────────
+  &__toolbar
+    display: flex
+    flex-flow: row nowrap
+    align-items: flex-end
+    gap: 10px
+    min-width: 0
+    margin-bottom: 12px
+
+    // I campi non si allargano oltre il necessario; l'eventuale campo elastico
+    // (es. una ricerca) dichiara `flex: 1 1 …` nella pagina.
+    > *
+      flex: none
+      min-width: 0
+
+  // ── Corpo: griglia + rail della legenda ─────────────────────────────────────
+  &__body
+    display: flex
+    align-items: stretch
+    gap: 10px
+    min-height: 0
+    min-width: 0
+
+  &__grid
+    flex: 1
+    display: grid
+    gap: 10px
+    min-height: 0
+    min-width: 0
+
+  // Le celle non devono mai poter crescere oltre la traccia: senza questo una
+  // tabella o un grafico "spinge" e ricompare lo scroll.
+  &__grid > *
+    min-width: 0
+    min-height: 0
+
+// ── Compattazioni: solo dimensioni ────────────────────────────────────────────
+// Larghezza reale del contenuto (laptop con sidenav aperta).
+@container bi-page (max-width: 1180px)
+  .bi-page
+    &__toolbar
+      gap: 8px
+      margin-bottom: 10px
+
+    &__body,
+    &__grid
+      gap: 8px
+
+// Schermi bassi (laptop 13"): si recupera altezza su header e spaziature.
+@media (max-height: 820px)
+  .bi-page
+    &__head
+      margin-bottom: 8px
+
+    &__toolbar
+      margin-bottom: 8px
+
+    &__body,
+    &__grid
+      gap: 8px

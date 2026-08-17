@@ -1,0 +1,54 @@
+// ─── TOOLTIP GRAFICI BI ─────────────────────────────────────────────────────────
+// Fondo scuro + testo bianco: stesso standard del componente Tooltip della
+// piattaforma. I valori sono in cifre tabulari così le righe restano allineate.
+@use '../../styles/tokens' as *
+
+.chart-tip
+  display: flex
+  flex-direction: column
+  gap: 4px
+  min-width: 168px
+  padding: 8px 10px
+  border-radius: 8px
+  background: var(--chart-tip-bg)
+  color: var(--chart-tip-ink)
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28)
+  font-family: var(--font-body)
+  font-size: 12px
+  line-height: 1.35
+  pointer-events: none
+
+  &__label
+    font-family: var(--font-heading)
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: 0.02em
+    opacity: 0.75
+
+  &__row
+    display: grid
+    grid-template-columns: 8px 1fr auto
+    align-items: center
+    gap: 8px
+    white-space: nowrap
+
+  &__dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: var(--tip-dot, currentColor)
+
+  &__name
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__val
+    font-weight: 600
+    font-variant-numeric: tabular-nums
+
+  &__footer
+    margin-top: 2px
+    padding-top: 5px
+    border-top: 1px solid rgba(255, 255, 255, 0.18)
+    font-size: 11px
+    opacity: 0.85

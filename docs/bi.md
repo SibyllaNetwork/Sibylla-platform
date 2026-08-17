@@ -1,0 +1,193 @@
+# Business Intelligence — kit condiviso e piano delle pagine
+
+Documento di riferimento della sezione BI: **come si costruisce** una pagina BI
+(kit `src/core/bi`) e **cosa ci va dentro** (contenuti per pagina, con le metriche
+del settore hospitality: hotel, food & beverage, B&B).
+
+Le regole tassative sono in **`../regole_ui.md` §13**; qui c'è il "come" operativo.
+Riferimenti d'implementazione già a standard: **Monthly trend**, **Executive overview**.
+
+---
+
+## 1. I due vincoli che decidono l'impianto
+
+1. **Tutto in una schermata, zero scroll** (verticale e orizzontale). Da qui viene
+   tutto il resto: griglia ad altezza fissa, grafici elastici, tabelle di dettaglio
+   dietro i tab verticali con righe calcolate sullo spazio disponibile.
+2. **Un solo sistema visivo.** Nessuna pagina disegna i propri assi, colori o
+   tooltip: quello che serve sta nel kit. Cambiare il kit cambia tutte le pagine.
+
+Lo strato grafico (oggi **recharts**) è incapsulato nel kit: se un domani si passa
+ad altra libreria si riscrive il kit, non le pagine.
+
+---
+
+## 2. Anatomia di una pagina BI
+
+```tsx
+<BiPage
+  title="Titolo pagina"
+  subtitle="Che domanda risponde questa pagina"
+  glossary={['TY', 'LY', 'ADR', 'RevPAR', …]}   // rail "Legenda" a destra
+  dataAt={data.aggiornatoAl}                     // timbro "Dati BI · gg/mm/aaaa hh:mm"
+  onRefresh={…}
+  toolbar={<>…SelectField / DateRangeField…</>}   // una riga sola, mai a capo
+  gridClassName="xx__grid"                        // la griglia la definisce la pagina
+>
+  <div className="xx__kpis">…KpiTile…</div>       {/* fascia indicatori */}
+  <ChartCard title="…" subtitle="…" legend={…}>…grafico…</ChartCard>
+  <ChartCard title="…" rail={<BiVerticalTabs …/>}>…grafico o tabella…</ChartCard>
+</BiPage>
+```
+
+Nel `.sass` di pagina si dichiara **solo la griglia**:
+
+```sass
+.xx
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 0.95fr)
+    grid-template-areas: 'kpi kpi kpi' 'trend trend mix' 'seg age qual'
+```
+
+Le tracce vanno **sempre** in `minmax(0, …)`: è ciò che impedisce a un grafico o a
+una tabella di "spingere" e far comparire lo scroll.
+
+### Pezzi del kit
+
+| Componente | A cosa serve |
+|---|---|
+| `BiPage` | guscio: header + toolbar + griglia elastica + rail legenda; garantisce lo zero-scroll |
+| `KpiTile` | indicatore della fascia: etichetta, valore contato, variazione, micro-andamento |
+| `ChartCard` | card di un grafico: titolo/sottotitolo troncati con tooltip, badge, legenda, azioni, rail, piede |
+| `BiVerticalTabs` | tab verticali sul fianco della card (Trend / Dettaglio) |
+| `BiLegend` | legenda in riga o in colonna, voci cliccabili per accendere/spegnere serie |
+| `ChartTooltip` | tooltip standard dei grafici (fondo scuro, testo bianco) |
+| `DeltaBadge` | variazione con freccia e colore di stato (con `invert` per costi e cancellazioni) |
+| `Sparkline` | micro-andamento senza assi per le KPI |
+| `BiGlossaryRail` | legenda acronimi laterale, alimentata da `biGlossary.ts` |
+| `BiDataStamp` | orario dell'ultimo carico dati BI + ricarica |
+| `useFitRows` | quante righe di tabella entrano davvero (paginazione al posto dello scroll) |
+| `useCountUp` | conteggio animato dei valori KPI |
+| `chartTheme` | palette, cromature, props di assi e griglia, formattatori, tempi d'animazione |
+
+### Dati
+Pattern **fallback-first** come nel resto della piattaforma: mock deterministici
+(nessun `Math.random`: stessi filtri → stessi numeri) in un file
+`<pagina>.data.ts` accanto al componente, sovrascritti dal DTO del backend quando
+risponde (anche parziale). Le formule di dominio (ADR, RevPAR, occupazione,
+forecast) vivono nel file dati, non nel JSX.
+
+---
+
+## 3. Metriche di riferimento (hospitality)
+
+Il glossario condiviso (`core/bi/biGlossary.ts`) è la fonte unica delle definizioni.
+Le metriche portanti, per area:
+
+- **Camere / revenue**: occupazione = vendute / disponibili · ADR = ricavi camere /
+  vendute · RevPAR = ricavi camere / disponibili (= ADR × occupazione) · TRevPAR
+  (ricavi totali / disponibili) · OTB · pickup · ALOS · lead time · cancellazioni ·
+  no show · complimentary · forecast garantito vs opzionato.
+- **Distribuzione**: mix canali (diretto, OTA, tour operator, corporate, gruppi),
+  commissioni riconosciute, ricavo netto per canale, parità tariffaria.
+- **F&B**: coperti, scontrino medio, **RevPASH** (ricavo per posto-ora disponibile),
+  food cost % e beverage cost %, mix categorie, margine per piatto, rotazione tavolo.
+- **Finance (impostazione USALI)**: ricavi per reparto, costi diretti, margine di
+  reparto, costi indistribuiti, **GOP** e **GOPPAR** (GOP / camere disponibili),
+  EBITDA, break even, cashflow, DSO/DPO, incidenza costo del personale sui ricavi.
+- **HR**: FTE, costo del personale su ricavi, costo per camera occupata / per
+  coperto, ore straordinario, turnover, assenteismo.
+- **B&B e piccole strutture**: stesse metriche camere, ma il peso sta su diretto vs
+  OTA, commissioni e costo per soggiorno; segmenti MICE/gruppi non pertinenti.
+
+---
+
+## 4. Piano dei contenuti per pagina
+
+Contenuto proposto: **fascia KPI** (4-5 indicatori) + **card**. Tutto in una
+schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi placeholder).
+
+### Sales & Revenue
+
+| Pagina | Stato | Fascia KPI | Card |
+|---|---|---|---|
+| Monthly trend | ✅ | Ricavi camere · ADR · Occupazione · RevPAR · Forecast garantito vs budget | Andamento giornaliero (consuntivo + previsione + LY) con Dettaglio · Mix canali · Ranking segmenti · Top intermediari · Qualità del business |
+| Sales overview | ⏳ | Ricavi totali · RevPAR · ADR · Occupazione · Pickup 7gg | Ricavi vs budget vs LY per mese · Mix canali nel tempo · Produzione per segmento · Booking curve (OTB per data soggiorno vs LY) · Top tipologie camera |
+| Analisi booking | ⏳ | Prenotazioni · Valore medio · Lead time · ALOS · Cancellazioni | Prenotazioni per data di creazione · Distribuzione LOS · Finestra di prenotazione a fasce · Conversione preventivi · Provenienze |
+| Pickup analysis | 🆕 | Pickup 1/7/14/30 gg · Ricavo incrementale · Camere acquisite | Pickup per data di soggiorno · Pickup per canale · OTB vs LY · Giorni a maggior e minor pickup |
+| Occupancy analysis | 🆕 | Occupazione · Camere vendute · Disponibili · Fuori servizio · Complimentary | Occupazione giornaliera con soglia di budget · Per tipologia camera · Per giorno della settimana · Calendario del mese (scala a una tinta) |
+| ADR analysis | 🆕 | ADR · ADR LY · ADR budget · Sconto medio · Mix tariffario | ADR per canale · per tipologia camera · per segmento · Relazione prezzo/occupazione (max 3 serie) |
+| Value analysis | ⏳ | Valore cliente · Marginalità · Ricavi accessori · Repeat rate | Valore per segmento · Contributo servizi extra · Anzianità cliente · Ranking clienti |
+| Pricing benchmark | ⏳ | Indice prezzo vs compset · Posizione · Gap medio · Parità | Prezzo proprio vs compset per data · Gap per canale · Eventi e stagionalità · Suggerimenti |
+| Forecast analysis / Grand total | ⏳ | Forecast garantito · Opzionato · Budget · Gap · Affidabilità | Forecast per mese · Contributo per segmento · Scostamento vs budget · Previsto vs consuntivato |
+| Segment analysis | ⏳ | Ricavo per segmento · ADR · Occupazione · Quota mix | Quota mix nel tempo · ADR per segmento · Contribuzione · Dettaglio |
+| Budget analysis | ⏳ | Ricavi vs budget · Scostamento · % raggiungimento · Forecast fine anno | Budget vs consuntivo per mese · Per reparto · Composizione dello scostamento · Dettaglio |
+| Analisi distribuzione · Comparazione mercato · SSPI · Market lens | ⏳ | già ricche di contenuto | allineare al kit (palette, impianto, legenda acronimi) senza cambiare l'impostazione |
+
+### Operation
+
+| Pagina | Stato | Fascia KPI | Card |
+|---|---|---|---|
+| Operation overview | ⏳ | Camere occupate · Arrivi · Partenze · Fuori servizio · Housekeeping da fare | Movimenti del giorno · Stato camere · Carico housekeeping per piano · Segnalazioni aperte |
+| On the book analysis | ⏳ | OTB ricavo · Camere · ADR · Occupazione prevista · Pace vs LY | OTB per data soggiorno vs LY · Per segmento · Per canale · Pickup ultimi 7 gg |
+| Guest & room analysis | ⏳ | Ospiti · ALOS · Ospiti ripetenti · Upsell · Recensioni | Provenienze (top + Altro) · Tipologie più vendute · Composizione dell'ospite · Upgrade e upsell |
+| Maintenance analysis | ⏳ | Interventi aperti · Tempo medio di chiusura · Camere fuori servizio · Costo interventi · Ricavo perso | Interventi per tipologia · Camere fuori servizio nel tempo · Rispetto SLA · Costi per reparto |
+| Analisi dell'occupazione | ⏳ | variante operativa di Occupancy analysis | idem, in chiave giornaliera e per piano |
+
+### Food & Beverage
+
+| Pagina | Stato | Fascia KPI | Card |
+|---|---|---|---|
+| F&B overview | 🆕 | Ricavo F&B · Coperti · Scontrino medio · RevPASH · Food cost % | Ricavo per outlet e turno · Coperti per fascia orario (calendario a una tinta) · Mix categorie di menu · Top voci per margine · Incidenza costo materie prime |
+
+### Finance
+
+| Pagina | Stato | Fascia KPI | Card |
+|---|---|---|---|
+| Finance overview | 🆕 | Ricavi · EBITDA · GOP · GOPPAR · Cash | Conto economico per reparto (impostazione USALI) · GOP vs budget · Incidenza costi · Flussi di cassa |
+| Cost analysis | 🆕 | Costi totali · Costo personale % · Food cost · Energia · Fissi/variabili | Costi per natura · Per centro di costo · Costo per camera occupata · Scostamento vs budget |
+| Break even point analysis | 🆕 | Ricavi di pareggio · Occupazione di pareggio · Margine di sicurezza · Leva operativa | Curva ricavi/costi con punto di pareggio · BEP per mese · Sensibilità ad ADR e occupazione |
+| Cashflow | 🆕 | Saldo · Incassi · Pagamenti · DSO · DPO | Flussi mensili in/out · Previsione a 90 giorni · Scadenzario · Dettaglio |
+| Profit trend | 🆕 | GOP · GOP % · EBITDA · TRevPAR · GOPPAR | Profitto per mese vs LY · Margine per reparto · Da ricavi a GOP (composizione) · Dettaglio |
+| Incoming analysis | 🆕 | Incassi · Crediti aperti · Insoluti · Tempo medio incasso | Incassi per metodo · Per canale · Anzianità dei crediti · Dettaglio |
+| Ledger analysis | 🆕 | Registrazioni · Partite aperte · Sospesi · Quadratura | Partite per conto · Anomalie · Dettaglio |
+| WIF analysis (what-if) | 🆕 | Scenario base vs simulato su GOP | Simulatore ADR/occupazione/costi · Impatto per driver · Confronto scenari |
+| Decision tree | 🆕 | — | Albero delle leve (pricing, costi, canali) con esito atteso e probabilità |
+| Analisi scenari mensili | 🆕 | Scenario pessimistico · base · ottimistico | Confronto per mese · Driver dello scostamento · Dettaglio |
+
+### HR e Purchasing
+
+| Pagina | Stato | Fascia KPI | Card |
+|---|---|---|---|
+| HR overview | ⏳ | FTE · Costo personale · Incidenza su ricavi · Straordinari · Turnover | Organico per reparto · Costo per camera occupata e per coperto · Produttività · Assenze |
+| Profile analysis | ⏳ | Organico · Contratti · Seniority · Età media | Composizione per reparto · Tipologia contratto · Anzianità · Formazione |
+| Panoramica acquisti | ⏳ | Spesa · Ordini · Risparmio da gruppi d'acquisto · Lead time fornitori | Spesa per area merceologica · Top fornitori · Andamento prezzi · Incidenza su ricavi |
+| Fatturazione passiva | ⏳ | Fatture · Importo · In scadenza · Insoluti | Fatture per fornitore · Scadenze · Stato · Dettaglio |
+
+---
+
+## 5. Ordine di lavoro suggerito
+
+1. ✅ Kit + Monthly trend (pilota).
+2. Pagine con placeholder "PAGINA BI" del ciclo revenue: Pickup, Occupancy, ADR
+   analysis — sono le più richieste dall'uso quotidiano e riusano lo stesso file dati.
+3. Le tre overview (Sales, Operation, HR) più On the book: sono le pagine d'ingresso.
+4. Il blocco Finance (10 pagine): prima Finance overview, Cost analysis, Profit trend
+   e Break even, che condividono il conto economico per reparto.
+5. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,
+   SSPI, Value analysis, Market lens): impianto e palette, contenuto invariato.
+
+---
+
+## 6. Cose da chiudere
+
+- **amCharts**: il BI storico è in amCharts, qui si usa recharts (MIT, già in
+  dipendenze). Se serve parità visiva col legacy e c'è la licenza, si sostituisce lo
+  strato grafico dentro il kit.
+- **Export**: i grafici non hanno ancora export Excel/PDF; l'icona standard sarebbe
+  `fa-regular fa-file-xls` (§ regole_ui).
+- **Backend**: le pagine restano fallback-first; gli endpoint BI reali vanno mappati
+  come da `INTEGRATION.md` (`apiFetchSibylla`).
+- **Glossario**: nel BI storico la definizione di TY riportava la formula del RevPAR;
+  in `biGlossary.ts` è corretta. Le altre voci vanno riviste con chi le usa.

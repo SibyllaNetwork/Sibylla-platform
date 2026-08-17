@@ -1,0 +1,59 @@
+// ─── TIMBRO "DATI BI" ───────────────────────────────────────────────────────────
+// Pillola con l'orario dell'ultimo carico dati + ricarica opzionale.
+@use '../../styles/tokens' as *
+
+.bi-stamp
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 3px 9px
+  border: 1px solid var(--color-border)
+  border-radius: 999px
+  background: var(--color-surface)
+  font-family: var(--font-body)
+  font-size: 11px
+  white-space: nowrap
+
+  &__ico
+    font-size: 11px
+    color: var(--color-primary)
+
+  &__btn
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 18px
+    height: 18px
+    border: 0
+    border-radius: 50%
+    background: none
+    color: var(--color-primary)
+    cursor: pointer
+    font-size: 11px
+
+    &:hover:not(:disabled)
+      background: var(--color-primary-100)
+
+    &:disabled
+      cursor: default
+      opacity: 0.7
+
+  &__label
+    font-family: var(--font-heading)
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__time
+    color: var(--color-text-inactive)
+    font-variant-numeric: tabular-nums
+
+  &__spin
+    animation: bi-stamp-spin 900ms linear infinite
+
+@keyframes bi-stamp-spin
+  to
+    transform: rotate(360deg)
+
+@media (prefers-reduced-motion: reduce)
+  .bi-stamp__spin
+    animation: none
