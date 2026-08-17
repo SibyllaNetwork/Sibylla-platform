@@ -134,6 +134,12 @@ export function fmtDelta(n: number, suffix = '%', decimals = 1): string {
   return `${n > 0 ? '+' : '−'}${s}${suffix}`
 }
 
+/** dd/MM/yyyy — data secca (scadenze, tabelle di dettaglio). */
+export function fmtDate(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`
+}
+
 /** dd/MM/yyyy HH:mm — timestamp del dato BI. */
 export function fmtStamp(d: Date): string {
   const p = (n: number) => String(n).padStart(2, '0')

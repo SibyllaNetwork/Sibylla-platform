@@ -1071,3 +1071,283 @@ export function computeCosti(d: FinanceData): CostiKpi {
     sparkPerCamera: perMese.map((m) => m.perCamera),
   }
 }
+
+// ─── Incassi e credito (usato da Incoming analysis) ─────────────────────────────
+//  Il conto economico dice quanto si è fatturato, non quanto è rientrato. Qui il
+//  ricavo si legge dal lato dell'incasso: per canale (chi paga subito e chi a 60
+//  giorni), per metodo di pagamento, per anzianità del credito ancora aperto.
+//
+//  Il comportamento di pagamento è una proprietà del CANALE, non del cliente: il
+//  diretto incassa alla partenza, l'OTA paga con virtual card a scadenza, il tour
+//  operator e il corporate lavorano a fattura. È da qui che nascono DSO, crediti
+//  aperti e insoluti.
+
+export interface ProfiloIncasso {
+  canale: string
+  /** Quota del canale sul ricavo (allineata a `mixCanali` del ciclo revenue). */
+  quota: number
+  /** Giorni medi fra emissione e incasso, prima della normalizzazione sul DSO. */
+  giorni: number
+  /** Quota del credito che non rientra (%). */
+  insolutoPct: number
+  /** Come paga: quote per metodo di pagamento. */
+  metodi: { metodo: string; quota: number }[]
+}
+
+export const PROFILI_INCASSO: ProfiloIncasso[] = [
+  {
+    canale: 'Vendita diretta', quota: 0.34, giorni: 2, insolutoPct: 0.2,
+    metodi: [{ metodo: 'Carta di credito', quota: 0.62 }, { metodo: 'Contanti', quota: 0.22 }, { metodo: 'Bonifico', quota: 0.16 }],
+  },
+  {
+    canale: 'OTA', quota: 0.29, giorni: 21, insolutoPct: 0.6,
+    metodi: [{ metodo: 'Virtual card', quota: 0.7 }, { metodo: 'Portale prepagato', quota: 0.3 }],
+  },
+  {
+    canale: 'Tour operator', quota: 0.16, giorni: 46, insolutoPct: 2.4,
+    metodi: [{ metodo: 'Bonifico', quota: 1 }],
+  },
+  {
+    canale: 'Corporate', quota: 0.13, giorni: 38, insolutoPct: 1.1,
+    metodi: [{ metodo: 'Bonifico', quota: 0.85 }, { metodo: 'Carta di credito', quota: 0.15 }],
+  },
+  {
+    canale: 'Gruppi', quota: 0.08, giorni: 30, insolutoPct: 1.8,
+    metodi: [{ metodo: 'Bonifico', quota: 0.9 }, { metodo: 'Contanti', quota: 0.1 }],
+  },
+]
+
+/** Metodi di pagamento nell'ordine degli slot categoriali. */
+export const METODI_INCASSO = ['Carta di credito', 'Virtual card', 'Bonifico', 'Portale prepagato', 'Contanti']
+
+/** Fasce di anzianità del credito, dalla più giovane alla più vecchia. */
+export const FASCE_CREDITO = ['0-30 gg', '31-60 gg', '61-90 gg', 'oltre 90 gg']
+
+/**
+ * Ripartizione del credito di un canale nelle quattro fasce: più il canale paga
+ * tardi, più il credito si sposta verso le fasce vecchie.
+ */
+function ripartizioneFasce(giorni: number): number[] {
+  if (giorni <= 15) return [0.9, 0.07, 0.02, 0.01]
+  if (giorni <= 30) return [0.72, 0.18, 0.07, 0.03]
+  if (giorni <= 45) return [0.52, 0.29, 0.13, 0.06]
+  return [0.4, 0.31, 0.18, 0.11]
+}
+
+export interface CanaleIncasso {
+  canale: string
+  /** Fatturato del canale nel periodo. */
+  fatturato: number
+  /** Quanto ne è già rientrato. */
+  incassato: number
+  /** Credito ancora aperto. */
+  credito: number
+  insoluti: number
+  /** Giorni medi d'incasso del canale (normalizzati sul DSO della struttura). */
+  giorni: number
+  /** Quota sul fatturato totale (%). */
+  quota: number
+}
+
+export interface MetodoIncasso {
+  metodo: string
+  incassato: number
+  /** Quota sugli incassi (%). */
+  quota: number
+}
+
+export interface FasciaCredito {
+  label: string
+  valore: number
+  /** Quota sul credito aperto (%). */
+  quota: number
+}
+
+export interface PartitaAperta {
+  id: string
+  cliente: string
+  canale: string
+  documento: string
+  struttura: string
+  importo: number
+  /** Data di scadenza del pagamento. */
+  scadenza: Date
+  /** Giorni di ritardo (negativi = non ancora scaduta). */
+  ritardo: number
+  stato: 'in scadenza' | 'scaduta' | 'insoluta'
+}
+
+export interface MeseIncasso {
+  mese: number
+  label: string
+  fatturato: number
+  incassato: number
+  /** Quota incassata del fatturato del mese (%). */
+  incassatoPct: number
+  credito: number
+  consuntivo: boolean
+}
+
+export interface IncassiKpi {
+  incassi: number
+  fatturato: number
+  /** Incassato sul fatturato (%). */
+  incassatoPct: number
+  credito: number
+  insoluti: number
+  /** Insoluti sul fatturato (%). */
+  insolutiPct: number
+  /** Tempo medio d'incasso, media dei canali pesata sul fatturato. */
+  tempoMedio: number
+  /** Credito nelle due fasce oltre i 60 giorni. */
+  creditoVecchio: number
+  perMese: MeseIncasso[]
+  canali: CanaleIncasso[]
+  metodi: MetodoIncasso[]
+  fasce: FasciaCredito[]
+  partite: PartitaAperta[]
+  /** Canale col credito più lento. */
+  canalePeggiore: CanaleIncasso | null
+  sparkIncassi: number[]
+  sparkIncassatoPct: number[]
+  sparkCredito: number[]
+}
+
+/** Clienti a fattura per il dettaglio delle partite aperte. */
+const CLIENTI_PARTITE: [string, string][] = [
+  ['Booking.com', 'OTA'],
+  ['Expedia', 'OTA'],
+  ['Hotelbeds', 'Tour operator'],
+  ['Alpitour', 'Tour operator'],
+  ['TUI Italia', 'Tour operator'],
+  ['ADP srl', 'Corporate'],
+  ['Enel Energia spa', 'Corporate'],
+  ['Studio Marino & Partners', 'Corporate'],
+  ['Politecnico di Milano', 'Gruppi'],
+  ['Coro Santa Cecilia', 'Gruppi'],
+  ['Wedding Planner Aurora', 'Gruppi'],
+  ['Sicily Incentive srl', 'Tour operator'],
+  ['Gruppo Bancario Sud', 'Corporate'],
+  ['Airbnb', 'OTA'],
+  ['Congressi Mediterraneo', 'Gruppi'],
+  ['Nord Incoming', 'Tour operator'],
+]
+
+export function computeIncassi(d: FinanceData): IncassiKpi {
+  const somma = (f: (m: MeseFinance) => number) => d.mesi.reduce((s, m) => s + f(m), 0)
+  const fatturato = somma((m) => m.ricaviTotali)
+  const pct = (a: number, b: number) => (b ? (a / b) * 100 : 0)
+
+  // I giorni dei canali si normalizzano perché la loro media pesata coincida col DSO
+  // della struttura: la stessa metrica non può valere 21 giorni qui e 24 in Cash flow.
+  const mediaGrezza = PROFILI_INCASSO.reduce((s, p) => s + p.quota * p.giorni, 0)
+  const correzione = mediaGrezza ? DSO / mediaGrezza : 1
+
+  const canali: CanaleIncasso[] = PROFILI_INCASSO.map((p) => {
+    const fattCanale = Math.round(fatturato * p.quota)
+    const giorni = +(p.giorni * correzione).toFixed(1)
+    // Credito aperto: quanto del fatturato annuo resta mediamente da incassare
+    const credito = Math.round(fattCanale * (giorni / 365))
+    const insoluti = Math.round(credito * (p.insolutoPct / 100) * 12)
+    return {
+      canale: p.canale,
+      fatturato: fattCanale,
+      incassato: fattCanale - credito,
+      credito,
+      insoluti,
+      giorni,
+      quota: +(p.quota * 100).toFixed(1),
+    }
+  })
+
+  const credito = canali.reduce((s, c) => s + c.credito, 0)
+  const insoluti = canali.reduce((s, c) => s + c.insoluti, 0)
+  const incassi = fatturato - credito
+
+  // Metodi di pagamento: l'incassato di ogni canale si spalma sui suoi metodi
+  const perMetodo = new Map<string, number>()
+  for (const p of PROFILI_INCASSO) {
+    const incassatoCanale = canali.find((c) => c.canale === p.canale)?.incassato ?? 0
+    for (const m of p.metodi) {
+      perMetodo.set(m.metodo, (perMetodo.get(m.metodo) ?? 0) + Math.round(incassatoCanale * m.quota))
+    }
+  }
+  const metodi: MetodoIncasso[] = METODI_INCASSO
+    .map((metodo) => ({ metodo, incassato: perMetodo.get(metodo) ?? 0, quota: 0 }))
+    .map((m) => ({ ...m, quota: pct(m.incassato, incassi) }))
+    .sort((a, b) => b.incassato - a.incassato)
+
+  // Anzianità: ogni canale porta il proprio credito nelle fasce che gli competono
+  const valoriFasce = FASCE_CREDITO.map((_, i) => PROFILI_INCASSO.reduce((s, p) => {
+    const c = canali.find((x) => x.canale === p.canale)
+    return s + Math.round((c?.credito ?? 0) * ripartizioneFasce(c?.giorni ?? p.giorni)[i])
+  }, 0))
+  const fasce: FasciaCredito[] = FASCE_CREDITO.map((label, i) => ({
+    label,
+    valore: valoriFasce[i],
+    quota: pct(valoriFasce[i], credito),
+  }))
+
+  // Andamento mensile: il fatturato del mese rientra in parte nel mese stesso, il
+  // resto resta a credito (con la stessa logica di sfasamento della cassa).
+  const quotaMese = Math.max(0, 1 - DSO / 30)
+  const perMese: MeseIncasso[] = d.mesi.map((m, i) => {
+    const precedente = i > 0 ? d.mesi[i - 1] : null
+    const incassato = Math.round(
+      m.ricaviTotali * quotaMese + (precedente ? precedente.ricaviTotali * (1 - quotaMese) : 0),
+    )
+    return {
+      mese: m.mese,
+      label: m.label,
+      fatturato: m.ricaviTotali,
+      incassato,
+      incassatoPct: pct(incassato, m.ricaviTotali),
+      credito: Math.max(0, m.ricaviTotali - incassato),
+      consuntivo: m.consuntivo,
+    }
+  })
+
+  // Partite aperte: elenco deterministico, ordinato dal ritardo più grave
+  const oggi = d.aggiornatoAl
+  const partite: PartitaAperta[] = CLIENTI_PARTITE.map(([cliente, canale], i) => {
+    const profilo = PROFILI_INCASSO.find((p) => p.canale === canale) ?? PROFILI_INCASSO[0]
+    const quotaCredito = canali.find((c) => c.canale === canale)?.credito ?? 0
+    const importo = Math.round((quotaCredito / 4) * (0.35 + Math.abs(jitter(i * 17 + 3, 0.9))))
+    // Il ritardo cresce col profilo del canale: chi paga a 60 giorni sfora più spesso
+    const ritardo = Math.round(profilo.giorni * correzione * (0.2 + jitter(i * 23 + 5, 1.4)))
+    const scadenza = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate() - ritardo)
+    return {
+      id: `p-${i}`,
+      cliente,
+      canale,
+      documento: `FT ${2026}/${String(140 + i * 7).padStart(4, '0')}`,
+      struttura: STRUTTURE[i % STRUTTURE.length].nome,
+      importo,
+      scadenza,
+      ritardo,
+      stato: (ritardo > 90 ? 'insoluta' : ritardo > 0 ? 'scaduta' : 'in scadenza') as PartitaAperta['stato'],
+    }
+  }).sort((a, b) => b.ritardo - a.ritardo)
+
+  const perLentezza = [...canali].sort((a, b) => b.giorni - a.giorni)
+
+  return {
+    incassi,
+    fatturato,
+    incassatoPct: pct(incassi, fatturato),
+    credito,
+    insoluti,
+    insolutiPct: pct(insoluti, fatturato),
+    tempoMedio: +canali.reduce((s, c) => s + (c.fatturato / (fatturato || 1)) * c.giorni, 0).toFixed(1),
+    creditoVecchio: valoriFasce[2] + valoriFasce[3],
+    perMese,
+    canali,
+    metodi,
+    fasce,
+    partite,
+    canalePeggiore: perLentezza[0] ?? null,
+    sparkIncassi: perMese.map((m) => m.incassato),
+    sparkIncassatoPct: perMese.map((m) => m.incassatoPct),
+    sparkCredito: perMese.map((m) => m.credito),
+  }
+}

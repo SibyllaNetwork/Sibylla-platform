@@ -50,5 +50,5 @@ export type { FitRowsOptions, FitRowsResult } from './useFitRows'
 export {
   SERIES, series, ALL_PAIRS_SERIES_CAP, CHART, ANIM, reducedMotion,
   gridProps, xAxisProps, yAxisProps, cursorProps,
-  fmtEur, fmtEurK, fmtAxisNum, fmtPct, fmtInt, fmtDelta, fmtStamp,
+  fmtEur, fmtEurK, fmtAxisNum, fmtPct, fmtInt, fmtDelta, fmtDate, fmtStamp,
 } from './chartTheme'

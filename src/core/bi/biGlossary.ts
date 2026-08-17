@@ -134,6 +134,26 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Peso del lavoro sui ricavi',
     formula: 'Costo del personale (reparti e amministrazione) diviso i ricavi totali',
   },
+  DSO: {
+    term: 'DSO',
+    description: 'Days Sales Outstanding — tempo medio d’incasso',
+    formula: 'Giorni medi fra emissione del documento e incasso, pesati sul fatturato',
+  },
+  DPO: {
+    term: 'DPO',
+    description: 'Days Payable Outstanding — tempo medio di pagamento ai fornitori',
+    formula: 'Giorni medi fra ricevimento della fattura passiva e pagamento',
+  },
+  creditoAperto: {
+    term: 'Credito aperto',
+    description: 'Fatturato emesso e non ancora incassato',
+    formula: 'Documenti emessi meno incassi ricevuti, alla data di analisi',
+  },
+  insoluti: {
+    term: 'Insoluti',
+    description: 'Credito non rientrato nei termini',
+    formula: 'Partite scadute oltre la soglia di tolleranza, da mettere a rischio',
+  },
   costoPerCamera: {
     term: 'Costo per camera',
     description: 'Costo sostenuto per ogni camera occupata',
