@@ -43,6 +43,19 @@ export default function KpiTile({
   const shown = useCountUp(value)
   const color = seriesColor(slot)
 
+  // Posizione del valore dentro il proprio minimo-massimo di periodo: dice se il
+  // numero che stai leggendo è alto o basso PER TE, non solo quanto vale.
+  // Sostituisce la vecchia banda colorata decorativa con un'informazione.
+  const range = React.useMemo(() => {
+    if (!spark || spark.length < 3) return null
+    const min = Math.min(...spark)
+    const max = Math.max(...spark)
+    if (!Number.isFinite(min) || !Number.isFinite(max) || max === min) return null
+    const ultimo = spark[spark.length - 1]
+    const pos = Math.max(0, Math.min(100, ((ultimo - min) / (max - min)) * 100))
+    return { min, max, pos }
+  }, [spark])
+
   return (
     <div
       className={clsx('kpi-tile', className)}
@@ -81,6 +94,22 @@ export default function KpiTile({
           />
         )}
       </div>
+
+      {range && (
+        <div
+          className="kpi-tile__range"
+          /* --kpi-pos = posizione del valore corrente nel proprio intervallo */
+          style={{ ['--kpi-pos' as any]: `${range.pos}%` }}
+        >
+          <span className="kpi-tile__range-track">
+            <span className="kpi-tile__range-mark" />
+          </span>
+          <span className="kpi-tile__range-legend">
+            <span>min {format(range.min)}</span>
+            <span>max {format(range.max)}</span>
+          </span>
+        </div>
+      )}
     </div>
   )
 }

@@ -19,16 +19,11 @@
   // Ritardo derivato dalla posizione nella fila
   --kpi-delay: calc(var(--kpi-i, 0) * 70ms)
 
-  // Filo del colore di serie sul bordo superiore
-  &::before
-    content: ''
-    position: absolute
-    inset: 0 0 auto 0
-    height: 2px
-    background: linear-gradient(90deg, var(--kpi-c, var(--chart-1)), transparent)
-
   &:hover
     border-color: color-mix(in srgb, var(--kpi-c, var(--chart-1)) 45%, var(--color-border))
+
+    .kpi-tile__range-legend
+      opacity: 1
 
   &__head
     display: flex
@@ -91,6 +86,48 @@
     width: 92px
     flex: none
 
+  // ── Riga di base: posizione del valore nel suo intervallo di periodo ─────────
+  // Sostituisce la banda colorata decorativa: qui il colore porta un'informazione
+  // (dove sta oggi il valore fra il minimo e il massimo del periodo). Gli estremi
+  // compaiono all'hover, per non affollare la lettura.
+  &__range
+    position: relative
+    flex: none
+    margin-top: 2px
+
+  &__range-track
+    position: relative
+    display: block
+    height: 3px
+    border-radius: 999px
+    background: repeating-linear-gradient(90deg, var(--color-border) 0 2px, transparent 2px 5px)
+
+  &__range-mark
+    position: absolute
+    top: 50%
+    left: var(--kpi-pos, 0%)
+    width: 9px
+    height: 9px
+    margin-left: -4.5px
+    border-radius: 50%
+    background: var(--kpi-c, var(--chart-1))
+    box-shadow: 0 0 0 2px var(--color-surface)
+    transform: translateY(-50%)
+    transition: left 420ms cubic-bezier(0.32, 0.72, 0, 1)
+
+  &__range-legend
+    display: flex
+    justify-content: space-between
+    gap: 8px
+    margin-top: 3px
+    font-family: var(--font-body)
+    font-size: 9px
+    color: var(--color-text-disabled)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+    opacity: 0
+    transition: opacity 160ms ease
+
 // Sotto soglia laptop la fascia si compatta: SOLO dimensioni, nessuna
 // informazione rimossa (regole_ui.md §8).
 @container bi-page (max-width: 1180px)
@@ -114,3 +151,6 @@
 @media (prefers-reduced-motion: reduce)
   .kpi-tile
     animation: none
+
+    &__range-mark
+      transition: none

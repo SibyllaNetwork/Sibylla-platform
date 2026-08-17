@@ -49,7 +49,10 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>((
         name={name}
         className={clsx('sib-select', error && 'sib-input--error')}
         value={value}
-        defaultValue={defaultValue ?? ''}
+        // Mai `value` e `defaultValue` insieme: React segnalerebbe una select
+        // "né controllata né non controllata". Il default serve solo quando il
+        // campo NON è controllato dal chiamante.
+        defaultValue={value === undefined ? defaultValue ?? '' : undefined}
         title={value != null ? options.find(o => String(o.value) === String(value))?.label ?? String(value) : undefined}
         disabled={disabled}
         onChange={onChange}

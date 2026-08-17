@@ -7,7 +7,7 @@ import { SelectField } from '../../../../core/components/form'
 import Pagination from '../../../../core/components/Pagination'
 import {
   ANIM, BiLegend, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, DeltaBadge, KpiTile,
-  CHART, cursorProps, fmtAxisNum, fmtEur, fmtEurK, fmtInt, fmtPct, gridProps,
+  CHART, cursorProps, fmtAxisNum, fmtDelta, fmtEur, fmtEurK, fmtInt, fmtPct, gridProps,
   reducedMotion, series, useFitRows, xAxisProps, yAxisProps,
 } from '../../../../core/bi'
 import { apiFetchSibylla } from '../../../../services/api'
@@ -144,7 +144,7 @@ export default function MonthlyTrend({ navigate: _navigate }: { navigate: (p: st
         <KpiTile
           label="Occupazione" icon="fa-door-open" slot={4} index={2}
           value={kpi.occ} format={(n) => fmtPct(n)}
-          delta={kpi.deltaOcc} deltaLabel={`${kpi.deltaOcc >= 0 ? '+' : '−'}${Math.abs(kpi.deltaOcc).toFixed(1)} pt`}
+          delta={kpi.deltaOcc} deltaLabel={fmtDelta(kpi.deltaOcc, ' pt')}
           spark={kpi.sparkOcc}
           info="Camere vendute diviso camere disponibili. Il confronto con l'anno precedente è in punti percentuali."
         />
@@ -158,7 +158,7 @@ export default function MonthlyTrend({ navigate: _navigate }: { navigate: (p: st
           label="Forecast garantito" icon="fa-bullseye" slot={3} index={4}
           value={kpi.forecastGarantito} format={(n) => fmtEurK(n)}
           delta={kpi.deltaBudget}
-          deltaLabel={`${kpi.deltaBudget >= 0 ? '+' : '−'}${Math.abs(kpi.deltaBudget).toFixed(1)}% vs budget`}
+          deltaLabel={`${fmtDelta(kpi.deltaBudget)} vs budget`}
           info="Previsione a fine mese sulle sole prenotazioni confermate, confrontata con il budget del mese."
         />
       </div>

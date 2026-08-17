@@ -58,7 +58,7 @@ una tabella di "spingere" e far comparire lo scroll.
 | Componente | A cosa serve |
 |---|---|
 | `BiPage` | guscio: header + toolbar + griglia elastica + rail legenda; garantisce lo zero-scroll |
-| `KpiTile` | indicatore della fascia: etichetta, valore contato, variazione, micro-andamento |
+| `KpiTile` | indicatore della fascia: etichetta, valore contato, variazione, micro-andamento e riga di base con la posizione del valore nel proprio minimo-massimo di periodo (min e max compaiono all'hover) |
 | `ChartCard` | card di un grafico: titolo/sottotitolo troncati con tooltip, badge, legenda, azioni, rail, piede |
 | `BiVerticalTabs` | tab verticali sul fianco della card (Trend / Dettaglio) |
 | `BiLegend` | legenda in riga o in colonna, voci cliccabili per accendere/spegnere serie |
@@ -115,9 +115,9 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Monthly trend | ✅ | Ricavi camere · ADR · Occupazione · RevPAR · Forecast garantito vs budget | Andamento giornaliero (consuntivo + previsione + LY) con Dettaglio · Mix canali · Ranking segmenti · Top intermediari · Qualità del business |
 | Sales overview | ⏳ | Ricavi totali · RevPAR · ADR · Occupazione · Pickup 7gg | Ricavi vs budget vs LY per mese · Mix canali nel tempo · Produzione per segmento · Booking curve (OTB per data soggiorno vs LY) · Top tipologie camera |
 | Analisi booking | ⏳ | Prenotazioni · Valore medio · Lead time · ALOS · Cancellazioni | Prenotazioni per data di creazione · Distribuzione LOS · Finestra di prenotazione a fasce · Conversione preventivi · Provenienze |
-| Pickup analysis | 🆕 | Pickup 1/7/14/30 gg · Ricavo incrementale · Camere acquisite | Pickup per data di soggiorno · Pickup per canale · OTB vs LY · Giorni a maggior e minor pickup |
-| Occupancy analysis | 🆕 | Occupazione · Camere vendute · Disponibili · Fuori servizio · Complimentary | Occupazione giornaliera con soglia di budget · Per tipologia camera · Per giorno della settimana · Calendario del mese (scala a una tinta) |
-| ADR analysis | 🆕 | ADR · ADR LY · ADR budget · Sconto medio · Mix tariffario | ADR per canale · per tipologia camera · per segmento · Relazione prezzo/occupazione (max 3 serie) |
+| Pickup analysis | ✅ | Camere acquisite · Ricavo acquisito · ADR del pickup · On the book (pace vs LY) · Occupazione a libro | Pickup per data di soggiorno (+ Dettaglio) · On the book vs LY · Pickup per canale · Date da presidiare |
+| Occupancy analysis | ✅ | Occupazione · Camere vendute · Scostamento budget · RevPAR · Fuori servizio | Occupazione giornaliera vs budget e LY (+ Calendario del mese a una tinta) · Per tipologia · Per giorno della settimana · Estremi del mese |
+| ADR analysis | ✅ | ADR · ADR netto · Scostamento budget · Sconto medio · RevPAR | ADR giornaliero vs budget e LY (+ Dettaglio) · ADR per tipologia · ADR per canale lordo/netto · Prezzo e occupazione (elasticità) |
 | Value analysis | ⏳ | Valore cliente · Marginalità · Ricavi accessori · Repeat rate | Valore per segmento · Contributo servizi extra · Anzianità cliente · Ranking clienti |
 | Pricing benchmark | ⏳ | Indice prezzo vs compset · Posizione · Gap medio · Parità | Prezzo proprio vs compset per data · Gap per canale · Eventi e stagionalità · Suggerimenti |
 | Forecast analysis / Grand total | ⏳ | Forecast garantito · Opzionato · Budget · Gap · Affidabilità | Forecast per mese · Contributo per segmento · Scostamento vs budget · Previsto vs consuntivato |
@@ -170,12 +170,15 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 ## 5. Ordine di lavoro suggerito
 
 1. ✅ Kit + Monthly trend (pilota).
-2. Pagine con placeholder "PAGINA BI" del ciclo revenue: Pickup, Occupancy, ADR
-   analysis — sono le più richieste dall'uso quotidiano e riusano lo stesso file dati.
-3. Le tre overview (Sales, Operation, HR) più On the book: sono le pagine d'ingresso.
-4. Il blocco Finance (10 pagine): prima Finance overview, Cost analysis, Profit trend
-   e Break even, che condividono il conto economico per reparto.
-5. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,
+2. ✅ Ciclo revenue: Pickup, Occupancy, ADR analysis (primitive dati condivise in
+   `sales/_data/revenueMock.ts`).
+3. Blocco finance, in quest'ordine perché condividono il conto economico per reparto
+   e il modello costi fissi/variabili: Finance overview → Break even point → Cash flow
+   → WIF analysis → Analisi scenari mensili → Profit trend → Cost analysis →
+   Incoming/Ledger analysis → Decision tree.
+4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
+5. Le altre overview (Sales, Operation) e On the book analysis.
+6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,
    SSPI, Value analysis, Market lens): impianto e palette, contenuto invariato.
 
 ---

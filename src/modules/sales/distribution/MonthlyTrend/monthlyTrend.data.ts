@@ -1,15 +1,18 @@
 // ─── MONTHLY TREND — dati di lavoro ─────────────────────────────────────────────
-//  Modello e generatore dei dati della pagina. Come nel resto della piattaforma
-//  la pagina è "fallback-first": qui vivono numeri mock DETERMINISTICI (nessun
-//  Math.random: gli stessi filtri danno sempre gli stessi numeri) che la pagina
-//  mostra finché il backend non risponde.
-//
-//  La logica è quella del revenue management alberghiero:
-//    camere vendute → occupazione = vendute / disponibili
-//    ADR    = ricavi camere / camere vendute
-//    RevPAR = ricavi camere / camere disponibili  ( = ADR × occupazione )
-//  I giorni successivi a oggi non sono consuntivo ma previsione, e si separano in
-//  garantito (confermato) e opzionato (opzioni non ancora confermate).
+//  Modello e derivazioni della pagina. Le primitive di dominio (inventario,
+//  stagionalità, curva prezzo, serie giornaliera, mix per canale/segmento/agenzia)
+//  stanno nel modulo condiviso `sales/_data/revenueMock`: qui c'è solo ciò che è
+//  specifico del mese — separazione consuntivo/previsione, forecast garantito e
+//  opzionato, indicatori di sintesi.
+import {
+  MESI as MESI_BASE, STRUTTURE, aggiornatoAl, buildGiorniMese, camereDisponibili,
+  giorniDelMese, mixAgenzie, mixCanali, mixSegmenti, STAGIONALITA,
+  type VoceDimensione,
+} from '../../_data/revenueMock'
+
+export const MESI = MESI_BASE
+export { STRUTTURE }
+export type VoceRanking = VoceDimensione
 
 export interface GiornoTrend {
   /** Giorno del mese. */
@@ -30,15 +33,6 @@ export interface GiornoTrend {
   ricaviLY: number
   /** true se il giorno è previsione e non consuntivo. */
   futuro: boolean
-}
-
-export interface VoceRanking {
-  label: string
-  valore: number
-  /** Quota sul totale (%). */
-  quota: number
-  /** Commissione media riconosciuta (solo per intermediari). */
-  commissione?: number
 }
 
 export interface IndicatoreQualita {
@@ -76,41 +70,13 @@ export interface MonthlyTrendData {
   aggiornatoAl: Date
 }
 
-export const MESI = [
-  'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-  'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre',
-]
-
-export const STRUTTURE = [
-  { id: 1, nome: 'Hotel Archimede' },
-  { id: 2, nome: 'Grand Hotel Roma' },
-  { id: 3, nome: 'B&B Ortigia' },
-  { id: 4, nome: 'Resort Capo Bianco' },
-]
-
-/** Inventario camere per struttura (l'insieme = somma delle singole). */
-const INVENTARIO: Record<number, number> = { 1: 42, 2: 96, 3: 8, 4: 64 }
-
-/** Occupazione media attesa per mese: alta stagione piena, gennaio scarico. */
-const STAGIONALITA = [0.38, 0.42, 0.53, 0.66, 0.74, 0.82, 0.86, 0.88, 0.79, 0.62, 0.46, 0.55]
-
-/** ADR base per mese (€): sale nei mesi di alta stagione. */
-const ADR_BASE = [92, 95, 104, 118, 132, 158, 182, 196, 164, 126, 102, 116]
-
-/** Pseudo-casualità deterministica: stesso giorno → sempre lo stesso scostamento. */
-function jitter(seed: number, ampiezza: number): number {
-  const x = Math.sin(seed * 12.9898) * 43758.5453
-  return (x - Math.floor(x) - 0.5) * 2 * ampiezza
-}
-
-export function giorniDelMese(anno: number, mese: number): number {
-  return new Date(anno, mese, 0).getDate()
-}
+export { giorniDelMese }
 
 /**
- * Costruisce la serie giornaliera del mese selezionato.
- * `oggi` serve a separare consuntivo e previsione: i giorni oltre la data odierna
- * sono previsione (e nei mesi passati il mese è tutto consuntivato).
+ * Costruisce i dati del mese selezionato.
+ * `oggi` separa consuntivo e previsione: i giorni oltre la data odierna sono
+ * previsione; nei mesi passati il mese è tutto consuntivato, in quelli futuri è
+ * tutto previsione.
  */
 export function buildMonthlyTrend(
   anno: number,
@@ -118,90 +84,41 @@ export function buildMonthlyTrend(
   strutturaId: number | null,
   oggi = new Date(),
 ): MonthlyTrendData {
-  const camereDisponibili = strutturaId
-    ? INVENTARIO[strutturaId] ?? 40
-    : Object.values(INVENTARIO).reduce((s, n) => s + n, 0)
+  const disponibili = camereDisponibili(strutturaId)
+  const base = buildGiorniMese(anno, mese, strutturaId, oggi)
+  const nGiorni = base.length
 
-  const nGiorni = giorniDelMese(anno, mese)
   const meseCorrente = oggi.getFullYear() === anno && oggi.getMonth() + 1 === mese
   const mesePassato = anno < oggi.getFullYear() || (anno === oggi.getFullYear() && mese - 1 < oggi.getMonth())
   const ultimoGiornoConsuntivo = meseCorrente ? oggi.getDate() : mesePassato ? nGiorni : 0
 
-  const occBase = STAGIONALITA[mese - 1]
-  const adrBase = ADR_BASE[mese - 1]
-
-  const giorni: GiornoTrend[] = Array.from({ length: nGiorni }, (_, i) => {
-    const g = i + 1
-    const dow = new Date(anno, mese - 1, g).getDay()
-    const weekend = dow === 5 || dow === 6
-    const seed = anno * 1000 + mese * 40 + g
-
-    // Occupazione: base stagionale + spinta del weekend + scostamento del giorno
-    const occ = Math.max(0.28, Math.min(1, occBase + (weekend ? 0.07 : -0.015) + jitter(seed, 0.06)))
-    const camere = Math.round(camereDisponibili * occ)
-    // ADR: più alto nei weekend e nei giorni pieni (curva prezzo/occupazione)
-    const adr = Math.round(adrBase * (1 + (weekend ? 0.1 : 0) + (occ - occBase) * 0.55 + jitter(seed + 7, 0.035)))
-    const ricavi = camere * adr
-
-    // Anno precedente: stessa stagionalità, volumi e prezzi più bassi
-    const occLY = Math.max(0.24, Math.min(1, occ - 0.035 + jitter(seed + 31, 0.05)))
-    const ricaviLY = Math.round(camereDisponibili * occLY * adr * (0.93 + jitter(seed + 51, 0.03)))
-
-    const futuro = g > ultimoGiornoConsuntivo
+  const giorni: GiornoTrend[] = base.map((d) => {
+    const futuro = d.g > ultimoGiornoConsuntivo
     return {
-      g,
-      label: `${String(g).padStart(2, '0')}/${String(mese).padStart(2, '0')}`,
-      camere,
-      occ: +(occ * 100).toFixed(1),
-      adr,
-      // Il giorno di taglio compare in entrambe le serie: così consuntivo e
-      // previsione risultano attaccati e non c'è un buco nel grafico.
-      ricaviTY: futuro ? null : ricavi,
-      ricaviFc: g >= ultimoGiornoConsuntivo ? ricavi : null,
-      ricaviLY,
+      g: d.g,
+      label: d.label,
+      camere: d.camere,
+      occ: d.occ,
+      adr: d.adr,
+      ricaviTY: futuro ? null : d.ricavi,
+      // Il giorno di taglio compare in entrambe le serie: consuntivo e previsione
+      // risultano attaccati e nel grafico non si apre un buco.
+      ricaviFc: d.g >= ultimoGiornoConsuntivo ? d.ricavi : null,
+      ricaviLY: d.ricaviLY,
       futuro,
     }
   })
 
   const consuntivo = giorni.filter((d) => !d.futuro).reduce((s, d) => s + (d.ricaviTY ?? 0), 0)
   const previsione = giorni.filter((d) => d.futuro).reduce((s, d) => s + (d.ricaviFc ?? 0), 0)
-  // Del portafoglio futuro una parte è confermata, il resto è in opzione.
+  // Del portafoglio futuro una parte è confermata, il resto è ancora in opzione.
   const forecastGarantito = Math.round(consuntivo + previsione * 0.78)
   const forecastOpzionato = Math.round(consuntivo + previsione)
   const budgetMese = Math.round((consuntivo + previsione) * 0.94)
 
   const totale = consuntivo + previsione
-  const quote = (perc: number) => Math.round(totale * perc)
-
-  // Mix dei canali di vendita: identità (ogni canale ha il suo colore).
-  const canaliRaw: [string, number, number | undefined][] = [
-    ['Vendita diretta', 0.34, undefined],
-    ['OTA', 0.29, 17.5],
-    ['Tour operator', 0.16, 21],
-    ['Corporate', 0.13, 8],
-    ['Gruppi', 0.08, 12],
-  ]
-  const canali: VoceRanking[] = canaliRaw.map(([label, perc, commissione]) => ({
-    label, valore: quote(perc), quota: +(perc * 100).toFixed(1), commissione,
-  }))
-
-  const segmentiRaw: [string, number][] = [
-    ['Leisure', 0.46], ['Business', 0.21], ['Gruppi', 0.14], ['MICE', 0.11], ['Long stay', 0.08],
-  ]
-  const segmenti: VoceRanking[] = segmentiRaw.map(([label, perc]) => ({
-    label, valore: quote(perc), quota: +(perc * 100).toFixed(1),
-  }))
-
-  const agenzieRaw: [string, number, number][] = [
-    ['Booking.com', 0.145, 17],
-    ['Expedia', 0.072, 19],
-    ['Hotelbeds', 0.055, 22],
-    ['ADP srl', 0.038, 14],
-    ['Airbnb', 0.026, 15],
-  ]
-  const agenzie: VoceRanking[] = agenzieRaw.map(([label, perc, commissione]) => ({
-    label, valore: quote(perc), quota: +(perc * 100).toFixed(1), commissione,
-  }))
+  const adrMedio = Math.round(totale / Math.max(1, base.reduce((s, d) => s + d.camere, 0)))
+  const occBase = STAGIONALITA[mese - 1]
 
   const qualita: IndicatoreQualita[] = [
     { key: 'ALOS', label: 'Permanenza media', valore: `${(2.6 + occBase).toFixed(1)} notti`, delta: 4.2 },
@@ -212,21 +129,21 @@ export function buildMonthlyTrend(
   ]
 
   return {
-    strutture: STRUTTURE,
+    strutture: STRUTTURE.map((s) => ({ id: s.id, nome: s.nome })),
     strutturaId,
     anno,
     mese,
-    camereDisponibili,
+    camereDisponibili: disponibili,
     ultimoGiornoConsuntivo,
     giorni,
     forecastGarantito,
     forecastOpzionato,
     budgetMese,
-    canali,
-    segmenti,
-    agenzie,
+    canali: mixCanali(totale, adrMedio),
+    segmenti: mixSegmenti(totale, adrMedio),
+    agenzie: mixAgenzie(totale),
     qualita,
-    aggiornatoAl: new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate(), 9, 19),
+    aggiornatoAl: aggiornatoAl(oggi),
   }
 }
 
@@ -244,14 +161,14 @@ export interface MonthlyKpi {
   deltaRevpar: number
   forecastGarantito: number
   deltaBudget: number
-  /** Serie giornaliera dei ricavi consuntivati, per le sparkline. */
+  /** Serie giornaliere per le sparkline delle KPI. */
   sparkRicavi: number[]
   sparkAdr: number[]
   sparkOcc: number[]
   sparkRevpar: number[]
 }
 
-/** Calcola gli indicatori del mese sui soli giorni consuntivati (confronto omogeneo). */
+/** Indicatori del mese sui soli giorni consuntivati, per un confronto omogeneo. */
 export function computeKpi(d: MonthlyTrendData): MonthlyKpi {
   const cons = d.giorni.filter((g) => !g.futuro)
   const base = cons.length ? cons : d.giorni

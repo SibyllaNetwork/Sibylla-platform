@@ -1,23 +1,225 @@
-// ─── OCCUPANCY ANALYSIS ─────────────────────────────────────────────────────
+// ─── OCCUPANCY ANALYSIS ─────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + andamento/calendario (2 colonne) +
+// tipologie, giorni della settimana ed estremi del mese.
 @use '../../../../styles/tokens' as *
 
-.occupancy-analysis
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 14px
+.oc
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.3fr) minmax(0, 0.95fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main tip' 'dow  dow  edge'
 
-  > .sib-btn--back
-    align-self: flex-start
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
 
-  &__placeholder
+  &__main
+    grid-area: main
+
+  &__tip
+    grid-area: tip
+
+  &__dow
+    grid-area: dow
+
+  &__edge
+    grid-area: edge
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
+
+  // ── Calendario del mese ──────────────────────────────────────────────────────
+  // Scala a UNA tinta: dal chiaro (poco pieno) al blu Platform (pieno). La quota
+  // arriva dalla custom property --occ, così il colore è dato dal dato.
+  &__cal
     display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+    gap: 4px
+
+  &__cal-head
+    display: grid
+    grid-template-columns: repeat(7, minmax(0, 1fr))
+    gap: 4px
+    flex: none
+
+    span
+      text-align: center
+      font-family: var(--font-heading)
+      font-size: 10px
+      font-weight: 600
+      color: var(--color-text-inactive)
+
+  &__cal-grid
+    display: grid
+    grid-template-columns: repeat(7, minmax(0, 1fr))
+    grid-auto-rows: minmax(0, 1fr)
+    gap: 4px
+    flex: 1
+    min-height: 0
+
+  // Le celle sono avvolte dal componente Tooltip: il suo contenitore diventa la
+  // cella della griglia, quindi la cella vera deve riempirlo.
+  &__cal-grid > *
+    min-width: 0
+    min-height: 0
+
+  &__cal-cell
+    flex: 1
+    width: 100%
+    height: 100%
+    display: flex
+    flex-direction: column
     align-items: center
     justify-content: center
-    min-height: 320px
-    border: 1px dashed $border
-    border-radius: 12px
-    color: $text-inactive
-    font-size: 20px
+    gap: 1px
+    min-width: 0
+    min-height: 0
+    border-radius: var(--radius-sm)
+    background: color-mix(in srgb, var(--chart-seq-to) var(--occ, 0%), var(--chart-seq-from))
+    color: var(--color-primary)
+    font-family: var(--font-body)
+    cursor: default
+    transition: transform 140ms ease, box-shadow 140ms ease
+
+    &:hover
+      transform: scale(1.06)
+      box-shadow: var(--shadow-sm)
+
+    // Celle piene: il fondo è scuro, il testo passa al negativo
+    &[data-fill='dark']
+      color: var(--color-text-negative)
+
+    &--void
+      background: none
+
+  &__cal-day
+    font-family: var(--font-heading)
+    font-size: 11px
     font-weight: 700
-    letter-spacing: 0.06em
+    line-height: 1
+
+  &__cal-val
+    font-size: 10px
+    font-variant-numeric: tabular-nums
+    opacity: 0.85
+
+  &__cal-scale
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+    flex: none
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+
+  &__cal-ramp
+    width: 84px
+    height: 8px
+    border-radius: 999px
+    background: linear-gradient(90deg, var(--chart-seq-from), var(--chart-seq-to))
+
+  // ── Estremi del mese: numeri, non un grafico ─────────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .oc
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      font-size: 10px
+
+    &__cal-day
+      font-size: 10px
+
+    &__cal-val
+      font-size: 9px
+
+@media (max-height: 820px)
+  .oc
+    &__kpis
+      gap: 8px
+
+    &__figure
+      padding: 2px 0
