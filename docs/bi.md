@@ -150,12 +150,12 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 | Cost analysis | 🆕 | Costi totali · Costo personale % · Food cost · Energia · Fissi/variabili | Costi per natura · Per centro di costo · Costo per camera occupata · Scostamento vs budget |
 | Break even point analysis | ✅ | Camere di pareggio · Ricavi di pareggio · Occupazione minima · Margine di sicurezza · Leva operativa | Curva di pareggio (+ Dettaglio per mese) · Cammino verso il pareggio (camere cumulate vs soglia) · Sensibilità a prezzo e costi fissi · Composizione del pareggio |
 | Cashflow | 🆕 | Saldo · Incassi · Pagamenti · DSO · DPO | Flussi mensili in/out · Previsione a 90 giorni · Scadenzario · Dettaglio |
-| Profit trend | 🆕 | GOP · GOP % · EBITDA · TRevPAR · GOPPAR | Profitto per mese vs LY · Margine per reparto · Da ricavi a GOP (composizione) · Dettaglio |
+| Profit trend | ✅ | GOP · Marginalità · GOPPAR · TRevPAR · Margine per camera | Margine per mese vs LY (+ Dettaglio) · Marginalità per mese con media dell'anno · Ponte dal ricavo al margine · Rendimento per camera |
 | Incoming analysis | 🆕 | Incassi · Crediti aperti · Insoluti · Tempo medio incasso | Incassi per metodo · Per canale · Anzianità dei crediti · Dettaglio |
 | Ledger analysis | 🆕 | Registrazioni · Partite aperte · Sospesi · Quadratura | Partite per conto · Anomalie · Dettaglio |
 | WIF analysis (what-if) | ✅ | Ricavi · GOP · Marginalità · Occupazione · Ricavo per camera, tutti simulati vs base | Base vs simulato per mese (margine o ricavi) · Quattro leve con cursori (prezzo, camere occupate, costi fissi, costi variabili) e scenari pronti · Impatto isolato per leva · Sintesi base/simulato/differenza |
 | Decision tree | 🆕 | — | Albero delle leve (pricing, costi, canali) con esito atteso e probabilità |
-| Analisi scenari mensili | 🆕 | Scenario pessimistico · base · ottimistico | Confronto per mese · Driver dello scostamento · Dettaglio |
+| Analisi scenari mensili | ✅ | Margine pessimistico · base · ottimistico · Ampiezza fra estremi · Mesi in perdita | Margine per mese nei tre scenari (+ Dettaglio) · Ipotesi in chiaro (le quattro leve per scenario) · Banda di oscillazione dei ricavi · Sintesi d'anno |
 
 ### HR e Purchasing
 
@@ -176,8 +176,8 @@ schermata. Stato: ✅ fatta · ⏳ da rifare sul kit · 🆕 da costruire (oggi 
 3. Blocco finance: ✅ Finance overview e Break even point (modello condiviso in
    `finance/_data/financeMock.ts`: conto economico per reparto, classificazione
    fissa/variabile dei costi, cassa con DSO/DPO, pareggio e simulazione scenari).
-   ✅ Cash flow e WIF analysis. Restano, nell'ordine: Analisi scenari mensili →
-   Profit trend → Cost analysis → Incoming/Ledger analysis → Decision tree.
+   ✅ Cash flow, WIF analysis, Analisi scenari mensili e Profit trend.
+   Restano: Cost analysis → Incoming analysis → Ledger analysis → Decision tree.
 4. Grand total (gemella di Monthly trend), Purchasing overview, HR overview.
 5. Le altre overview (Sales, Operation) e On the book analysis.
 6. Allineamento delle pagine già ricche (Analisi distribuzione, Comparazione mercato,

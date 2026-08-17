@@ -543,6 +543,20 @@ export interface Leve {
 
 export const LEVE_NEUTRE: Leve = { adr: 0, camere: 0, costiFissi: 0, costiVariabili: 0 }
 
+/**
+ * I tre scenari di riferimento della revisione di budget.
+ * Le ipotesi sono ESPLICITE, non nascoste in una formula: sono le leve che
+ * distinguono uno scenario dall'altro, e la pagina le mostra all'utente.
+ */
+export const SCENARI: { key: 'pessimistico' | 'base' | 'ottimistico'; label: string; leve: Leve }[] = [
+  // Domanda debole: si perde occupazione e si difende poco il prezzo; i costi
+  // variabili scendono con i volumi ma i fissi restano.
+  { key: 'pessimistico', label: 'Pessimistico', leve: { adr: -5, camere: -12, costiFissi: 0, costiVariabili: -3 } },
+  { key: 'base', label: 'Base', leve: LEVE_NEUTRE },
+  // Domanda in tenuta: prezzo e volumi crescono, i costi variabili seguono.
+  { key: 'ottimistico', label: 'Ottimistico', leve: { adr: 4, camere: 7, costiFissi: 1, costiVariabili: 3 } },
+]
+
 export interface EsitoScenario {
   ricavi: number
   costi: number
@@ -590,5 +604,84 @@ export function applyScenario(d: FinanceData, leve: Leve): EsitoScenario {
     occ: camereDisp ? (camereVendute / camereDisp) * 100 : 0,
     adr: camereVendute ? ricavi / camereVendute : 0,
     perMese: perMese.map((m) => ({ label: m.label, ricavi: m.ricavi, gop: m.gop })),
+  }
+}
+
+// ─── Dal ricavo al margine (usato da Profit trend) ──────────────────────────────
+
+/**
+ * Ponte dai ricavi al margine operativo: i tre reparti che portano ricavo, i costi
+ * diretti che li erodono, i costi indistribuiti della struttura e ciò che resta.
+ * Ogni barra parte dove finisce la precedente (`base` invisibile); l'ultima riparte
+ * da zero perché è il risultato.
+ */
+export function pontePeL(d: FinanceData): PassoPonte[] {
+  const somma = (f: (m: MeseFinance) => number) => d.mesi.reduce((s, m) => s + f(m), 0)
+  const passi: PassoPonte[] = []
+  let livello = 0
+  const passo = (label: string, delta: number) => {
+    if (delta >= 0) passi.push({ label, base: livello, delta })
+    else passi.push({ label, base: livello + delta, delta: -delta })
+    livello += delta
+  }
+  passo('Camere', somma((m) => m.ricaviCamere))
+  passo('F&B', somma((m) => m.ricaviFb))
+  passo('Altri', somma((m) => m.ricaviAltri))
+  passo('Costi diretti', -somma((m) => m.costiDiretti))
+  passo('Indistribuiti', -somma((m) => m.costiIndistribuiti))
+  passi.push({ label: 'GOP', base: 0, delta: livello, totale: true })
+  return passi
+}
+
+export interface ProfitKpi {
+  gop: number
+  gopPct: number
+  gopLY: number
+  deltaGop: number
+  goppar: number
+  /** Ricavo totale per camera disponibile. */
+  trevpar: number
+  /** Ricavo per camera venduta (tutti i reparti). */
+  ricavoPerCamera: number
+  /** Costo per camera venduta. */
+  costoPerCamera: number
+  /** Margine per camera venduta. */
+  marginePerCamera: number
+  /** Mesi chiusi in perdita. */
+  mesiInPerdita: number
+  /** Mese migliore e peggiore per margine. */
+  migliore: MeseFinance | null
+  peggiore: MeseFinance | null
+  sparkGop: number[]
+  sparkMargine: number[]
+  sparkGoppar: number[]
+}
+
+export function computeProfit(d: FinanceData): ProfitKpi {
+  const somma = (f: (m: MeseFinance) => number) => d.mesi.reduce((s, m) => s + f(m), 0)
+  const ricavi = somma((m) => m.ricaviTotali)
+  const costi = somma((m) => m.costiTotali)
+  const gop = ricavi - costi
+  const gopLY = somma((m) => m.gopLY)
+  const camereDisp = somma((m) => m.camereDisponibili)
+  const camereVendute = somma((m) => m.camereVendute)
+  const ordinati = [...d.mesi].sort((a, b) => b.gop - a.gop)
+
+  return {
+    gop,
+    gopPct: ricavi ? (gop / ricavi) * 100 : 0,
+    gopLY,
+    deltaGop: gopLY ? ((gop - gopLY) / gopLY) * 100 : 0,
+    goppar: camereDisp ? gop / camereDisp : 0,
+    trevpar: camereDisp ? ricavi / camereDisp : 0,
+    ricavoPerCamera: camereVendute ? ricavi / camereVendute : 0,
+    costoPerCamera: camereVendute ? costi / camereVendute : 0,
+    marginePerCamera: camereVendute ? gop / camereVendute : 0,
+    mesiInPerdita: d.mesi.filter((m) => m.gop < 0).length,
+    migliore: ordinati[0] ?? null,
+    peggiore: ordinati[ordinati.length - 1] ?? null,
+    sparkGop: d.mesi.map((m) => m.gop),
+    sparkMargine: d.mesi.map((m) => m.gopPct),
+    sparkGoppar: d.mesi.map((m) => m.goppar),
   }
 }

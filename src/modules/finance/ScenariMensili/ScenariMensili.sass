@@ -1,0 +1,192 @@
+// ─── ANALISI SCENARI MENSILI ────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + margine nei tre scenari (2 colonne) +
+// ipotesi, banda di oscillazione e sintesi d'anno.
+@use '../../../styles/tokens' as *
+
+.sc
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi   kpi   kpi' 'main  main  ip' 'banda banda sint'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__ip
+    grid-area: ip
+
+  &__banda
+    grid-area: banda
+
+  &__sint
+    grid-area: sint
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__foot
+    strong
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
+
+  // ── Tabelle ──────────────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__detail-table,
+  &__ip-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  // Colonne in percentuale: la tabella si adatta alla card
+  &__ip-table .sib-table
+    table-layout: fixed
+
+  &__col-voce
+    width: 40%
+
+  &__col-num
+    width: 20%
+
+  // Righe di esito (non ipotesi): si distinguono in peso, senza colorare la riga
+  &__row--esito
+    td
+      font-weight: 700
+      color: var(--color-primary)
+      border-top: 1px solid var(--color-border)
+
+  &__num
+    text-align: right
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Sintesi d'anno ───────────────────────────────────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: grid
+    grid-template-columns: 1fr auto
+    align-items: baseline
+    gap: 4px 8px
+    padding: 4px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+    &--nota
+      border-top: 1px solid var(--color-border)
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__figure-meta
+    grid-column: 1 / -1
+    font-family: var(--font-body)
+    font-size: 10px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .sc
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table,
+    &__ip-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+@media (max-height: 820px)
+  .sc
+    &__kpis
+      gap: 8px
+
+    &__figure-meta
+      display: none

@@ -1,0 +1,164 @@
+// ─── PROFIT TREND ───────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + margine per mese (2 colonne) + ponte dal
+// ricavo al margine, marginalità e rendimento per camera.
+@use '../../../styles/tokens' as *
+
+.pt
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.28fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi   kpi   kpi' 'main  main  marg' 'ponte ponte cam'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__ponte
+    grid-area: ponte
+
+  &__marg
+    grid-area: marg
+
+  &__cam
+    grid-area: cam
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__detail-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  &__num
+    text-align: right
+
+  &__tag
+    margin-left: 6px
+    padding: 0 5px
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+    color: var(--chart-4)
+    font-size: 10px
+    font-weight: 600
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Rendimento per camera: numeri, non un grafico ────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .pt
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 138px
+
+      &--wide
+        width: 176px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+@media (max-height: 820px)
+  .pt
+    &__kpis
+      gap: 8px
+
+    &__figure
+      padding: 2px 0
