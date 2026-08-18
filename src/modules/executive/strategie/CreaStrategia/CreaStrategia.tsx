@@ -5,6 +5,7 @@ import PageHead from '../../../../core/components/PageHead'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import Modal from '../../../../core/components/Modal'
 import FormActions from '../../../../core/components/FormActions'
+import Tooltip from '../../../../core/components/Tooltip'
 import { InputField, SelectField } from '../../../../core/components/form'
 import { STRUTTURE, TIPI_CALENDARIO, type TipoCalendario } from '../strategieData'
 import './CreaStrategia.sass'
@@ -231,19 +232,27 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
           </div>
         </div>
 
+        {/* Toolbar sempre su una riga: sotto soglia i bottoni restano solo
+            icona (vedi @container nel .sass) e il testo vive nel tooltip. */}
         <div className="crea-strat__actions">
-          <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={() => setShowGuida(true)}>
-            <i className="fa-duotone fa-wand-magic-sparkles" aria-hidden="true"/>
-            Guida assistita smart
-          </button>
-          <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={handleCopy}>
-            <i className="fa-duotone fa-copy" aria-hidden="true"/>
-            Copia strategia
-          </button>
-          <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={handleSave}>
-            <i className="fa-duotone fa-floppy-disk" aria-hidden="true"/>
-            Salva
-          </button>
+          <Tooltip text="Guida assistita smart">
+            <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={() => setShowGuida(true)} aria-label="Guida assistita smart">
+              <i className="fa-duotone fa-wand-magic-sparkles" aria-hidden="true"/>
+              <span className="crea-strat__btn-label">Guida assistita smart</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="Copia strategia">
+            <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={handleCopy} aria-label="Copia strategia">
+              <i className="fa-duotone fa-copy" aria-hidden="true"/>
+              <span className="crea-strat__btn-label">Copia strategia</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="Salva">
+            <button type="button" className="sib-btn sib-btn--secondary crea-strat__btn" onClick={handleSave} aria-label="Salva">
+              <i className="fa-duotone fa-floppy-disk" aria-hidden="true"/>
+              <span className="crea-strat__btn-label">Salva</span>
+            </button>
+          </Tooltip>
         </div>
       </div>
 

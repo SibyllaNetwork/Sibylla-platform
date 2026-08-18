@@ -71,7 +71,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "inserisci-contratto-v": "Crea un nuovo contratto di vendita con il tuo partner commerciale",
   "interfacce": "Gestione dello stato delle  integrazioni con sistemi esterni",
   "inventario-camere": "Gestione completa delle tipologie e configurazione delle camere",
-  "le-mie-destinazioni": "Panoramica completa del tuo business in unico ambiente",
+  "le-mie-destinazioni": "Le destinazioni del tuo catalogo: passeggeri, venduto e marginalità per data e segmento",
   "ledger-analysis": "Controllo e revisione dei registri contabili per garantire correttezza e trasparenza",
   "libro-prenotazioni": "Monitora e gestisci le prenotazioni del tuo ristorante con calendario integrato",
   "lista-fornitori": "Elenco e gestione dei fornitori partner",

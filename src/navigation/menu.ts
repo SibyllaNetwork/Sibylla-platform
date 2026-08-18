@@ -21,7 +21,6 @@ const MENU:any[]=[
       {id:"executive-overview",label:"Executive overview",page:"executive-overview"},
       {id:"live-display",label:"Live display",page:"live-display"},
       {id:"giornale-impresa",label:"Giornale impresa",page:"giornale-impresa"},
-      {id:"business-centre",label:"Business centre",page:"business-centre"},
     ]},
     {id:"sales",label:"Sales & Marketing",color:"#E07B39",children:[
       {id:"analisi-dist-sales",label:"Analisi della distribuzione",page:"analisi-dist-sales"},

@@ -111,7 +111,7 @@ function AvatarMenu({ navigate }: { navigate: (p: string) => void }) {
 export default function App() {
   const { user, loading, handleLogin } = useAuth()
 
-  const [currentPage, setCurrentPage] = useState('home')
+  const [currentPage, setCurrentPage] = useState(localStorage.getItem('qa.page') || 'home')
   const [sideOpen, setSideOpen] = useState(true)
   const [favorites, setFavorites] = useState<string[]>([])
   const [showFavPanel, setShowFavPanel] = useState(false)
@@ -230,7 +230,7 @@ export default function App() {
   // Cambio profilo → torna alla Home (pagina sempre consentita), evitando di
   // restare su una pagina non più presente nel menu del nuovo contratto.
   useEffect(() => {
-    setCurrentPage('home')
+    setCurrentPage(localStorage.getItem('qa.page') || 'home')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProfileId])
 

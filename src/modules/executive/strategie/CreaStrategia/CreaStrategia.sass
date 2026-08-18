@@ -4,17 +4,21 @@
 @use '../../../../styles/tokens' as *
 
 .crea-strat
+  // La compattazione della toolbar si basa sulla larghezza REALE della pagina
+  // (sidenav aperta inclusa), non sul viewport: container query sul root.
+  container-type: inline-size
+  container-name: creastrat
 
   // ── Toolbar: parametri a sinistra, azioni a destra ──────────────────────────
+  // Campi + azioni stanno SEMPRE su una riga sola: niente wrap a nessuna
+  // larghezza. Sotto soglia si comprimono (vedi @container in fondo al file).
   &__bar
     display: flex
     align-items: flex-end
     gap: 16px
-    flex-wrap: wrap
+    flex-wrap: nowrap
     margin-bottom: 14px
 
-  // I campi parametri restano SEMPRE su una sola riga (nowrap). Sono le azioni a
-  // passare a capo quando la toolbar è stretta. I campi possono comprimersi.
   &__params
     display: flex
     align-items: flex-end
@@ -23,18 +27,26 @@
     flex-wrap: nowrap
     min-width: 0
 
+  // I campi non crescono oltre la larghezza nominale (layout invariato su schermi
+  // larghi): possono solo comprimersi, mai sotto la propria label.
   &__field
-    flex: 0 0 130px
-    min-width: 0
+    flex: 0 1 130px
+    min-width: 96px
+
+    label
+      white-space: nowrap
 
     &--narrow
-      flex: 0 0 96px
+      flex: 0 1 96px
+      min-width: 70px
 
     &--wide
-      flex: 0 0 160px
+      flex: 0 1 160px
+      min-width: 76px
 
     &--name
       flex: 0 1 200px
+      min-width: 100px
 
   // ── Campo "statico" (label + valore) per Tipo strategia / Colore ────────────
   // La label usa le stesse classi Tailwind di SelectField/InputField, così
@@ -43,6 +55,11 @@
     display: flex
     flex-direction: column
     gap: 4px
+    // Mai più stretto della propria label (che non va mai troncata).
+    min-width: min-content
+
+    label
+      white-space: nowrap
 
   &__static-val
     height: 34px
@@ -64,8 +81,9 @@
   // ── Azioni (a destra della toolbar) ─────────────────────────────────────────
   &__actions
     display: flex
+    align-items: flex-end
     gap: 10px
-    flex-wrap: wrap
+    flex-wrap: nowrap
     flex-shrink: 0
     margin-left: auto
 
@@ -73,6 +91,7 @@
     height: 38px
     display: inline-flex
     align-items: center
+    justify-content: center
     gap: 7px
     white-space: nowrap
 
@@ -82,10 +101,12 @@
   // ── Color picker libero (react-colorful) ────────────────────────────────────
   &__color
     position: relative
+    min-width: 0
 
   &__color-trigger
     height: 34px
-    min-width: 150px
+    width: 100%
+    min-width: 0
     display: inline-flex
     align-items: center
     gap: 8px
@@ -106,9 +127,11 @@
 
   &__color-placeholder
     color: $text-disabled
+    white-space: nowrap
 
   &__color-val
     letter-spacing: 0.4px
+    white-space: nowrap
 
   &__color-dot
     width: 16px
@@ -415,3 +438,66 @@
     &--filled
       color: $primary
       font-weight: 700
+
+// ─── COMPATTAZIONE TOOLBAR ────────────────────────────────────────────────────
+// La toolbar (parametri + azioni) deve stare SEMPRE su una riga sola, anche su
+// tablet con la sidenav aperta. Le soglie sono sulla larghezza della pagina
+// (container query sul root .crea-strat), non sul viewport: con il menu aperto
+// il viewport è largo ma il contenuto no.
+// I selettori sono composti (2 classi) perché a pari specificità il design
+// system (.sib-btn, caricato dopo) vincerebbe sul .sass di pagina.
+
+@container creastrat (max-width: 1400px)
+  .crea-strat__bar
+    gap: 12px
+
+  .crea-strat__params
+    gap: 8px
+
+  .crea-strat__bar .crea-strat__btn
+    height: 34px
+    padding: 0 12px
+    font-size: 12px
+    gap: 6px
+
+    i
+      font-size: 12px
+
+@container creastrat (max-width: 1180px)
+  .crea-strat__bar
+    gap: 10px
+
+  .crea-strat__params
+    gap: 6px
+
+  .crea-strat__field
+    flex-basis: 100px
+
+    &--narrow
+      flex-basis: 76px
+
+    &--wide
+      flex-basis: 120px
+
+    &--name
+      flex-basis: 140px
+
+  .crea-strat__bar .crea-strat__btn
+    padding: 0 10px
+
+// Sotto questa soglia le etichette dei bottoni non entrano più: le azioni
+// diventano icona-sola con tooltip standard (il testo resta accessibile).
+@container creastrat (max-width: 1020px)
+  .crea-strat__actions
+    gap: 6px
+
+  .crea-strat__btn-label
+    display: none
+
+  .crea-strat__bar .crea-strat__btn
+    width: 34px
+    padding: 0
+    gap: 0
+
+    i
+      font-size: 14px

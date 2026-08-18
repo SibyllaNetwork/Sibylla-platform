@@ -43,6 +43,8 @@ const TABLEAU_PAGES = new Set<string>([
   'analisi-dist-sales',
   'analisi-dist-exec',
   'market-lens',
+  // Pagina esclusiva del catalogo tour operator
+  'le-mie-destinazioni',
 ])
 
 // Pagine Agorà non prefissate con "agora" (le agora-* sono già incluse).

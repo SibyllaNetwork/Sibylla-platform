@@ -1,0 +1,525 @@
+// ─── LE MIE DESTINAZIONI (lato tour operator) ──────────────────────────────────
+// Stesso impianto di "I miei business" e "I miei ristoranti": calendario ed elenco a
+// sinistra, data/segmento/modalità e tabella a destra.
+@use '../../../styles/tokens' as *
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+.dest__layout
+  display: flex
+  gap: 0
+  align-items: flex-start
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+.dest__sidebar
+  width: 248px
+  flex-shrink: 0
+  padding-right: 20px
+
+.dest__sidebar-section
+  margin-bottom: 22px
+
+.dest__section-label
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.6px
+  margin-bottom: 10px
+
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+.dest__cal-card
+  background: $white
+  border-radius: 10px
+  border: 1px solid $border
+  padding: 12px
+
+.dest__cal-nav
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: 10px
+
+.dest__cal-nav-btn
+  background: none
+  border: none
+  cursor: pointer
+  padding: 3px 5px
+  border-radius: 5px
+  display: flex
+  transition: background 0.15s
+
+  &:hover
+    background: $primary-100
+
+.dest__cal-month
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+
+.dest__cal-days-hdr
+  display: grid
+  grid-template-columns: repeat(7,1fr)
+  margin-bottom: 4px
+
+.dest__cal-day-name
+  font-size: 9px
+  font-weight: 600
+  color: $text-disabled
+  text-align: center
+  padding: 1px 0
+
+.dest__cal-cells
+  display: grid
+  grid-template-columns: repeat(7,1fr)
+  gap: 1px
+
+.dest__cal-cell
+  text-align: center
+  padding: 4px 0
+  font-size: 11px
+  border-radius: 5px
+  cursor: pointer
+  color: $text-active
+  background: transparent
+  font-weight: 400
+  transition: background 0.1s
+
+  &:hover:not(&--today):not(&--sel):not(&--out)
+    background: $primary-100
+
+  &--today
+    color: $white
+    background: $primary
+    font-weight: 700
+    cursor: pointer
+
+  &--sel
+    color: $white
+    background: $link
+    font-weight: 700
+
+  &--out
+    color: $text-disabled
+    cursor: default
+
+// ─── Elenco destinazioni ──────────────────────────────────────────────────────
+.dest__list
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+.dest__list-item
+  display: flex
+  align-items: center
+  gap: 9px
+  padding: 7px 10px
+  border-radius: 8px
+  cursor: pointer
+  background: transparent
+  border: 1px solid transparent
+  transition: all 0.13s
+
+  &:hover:not(&--active)
+    background: #F0F4F8
+
+  &--active
+    background: $primary-100
+    border-color: rgba(32,71,105,0.2)
+
+.dest__list-ico
+  width: 28px
+  height: 28px
+  border-radius: 7px
+  background: $primary-100
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+  transition: background 0.13s
+
+  &--active
+    background: $primary
+
+.dest__list-info
+  min-width: 0
+
+.dest__list-name
+  font-size: 12px
+  font-weight: 500
+  color: $text-active
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+  &--active
+    font-weight: 600
+    color: $primary
+
+.dest__list-type
+  font-size: 10px
+  color: $text-disabled
+
+// ─── Right content ────────────────────────────────────────────────────────────
+.dest__content
+  flex: 1
+  min-width: 0
+
+.dest__content-top
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 16px
+  margin-bottom: 20px
+  flex-wrap: wrap
+
+.dest__date-card
+  display: flex
+  align-items: center
+  gap: 12px
+  background: $white
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 12px 18px
+
+.dest__date-ico
+  font-size: 20px
+  color: $text-inactive
+
+.dest__date-label
+  font-size: 9px
+  font-weight: 700
+  color: $text-disabled
+  text-transform: uppercase
+  letter-spacing: 0.6px
+  margin-bottom: 2px
+
+.dest__date-val
+  font-size: 14px
+  font-weight: 700
+  color: $primary
+  font-family: Poppins, sans-serif
+
+// ─── Segmented "Segmento" (individuali / gruppi) ───────────────────────────────
+.dest__segmento
+  display: inline-flex
+  border: 1px solid $border
+  border-radius: 10px
+  padding: 3px
+  background: $white
+
+.dest__segmento-btn
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  padding: 7px 16px
+  border: none
+  background: transparent
+  border-radius: 7px
+  color: $text-inactive
+  font-family: $font-body
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  transition: $transition-fast
+
+  i
+    font-size: 13px
+
+  &:hover:not(&--active)
+    color: $primary
+
+  &--active
+    background: $primary
+    color: $white
+
+// ─── Gruppo a destra: segmento + legenda ───────────────────────────────────────
+.dest__top-right
+  display: flex
+  align-items: center
+  gap: 16px
+  flex-wrap: wrap
+
+// ─── Indicatore Forecast / Production (segmented vivace) ───────────────────────
+@keyframes dest-mode-pulse
+  0%
+    box-shadow: 0 0 0 0 rgba(255,255,255,0.7)
+  70%
+    box-shadow: 0 0 0 6px rgba(255,255,255,0)
+  100%
+    box-shadow: 0 0 0 0 rgba(255,255,255,0)
+
+.dest__mode
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  padding: 4px
+  background: $bg
+  border: 1px solid $border
+  border-radius: 999px
+
+.dest__mode-opt
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 8px 18px
+  border-radius: 999px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 700
+  letter-spacing: 0.2px
+  color: $text-disabled
+  cursor: default
+  transition: all 0.22s ease
+  position: relative
+
+  i
+    font-size: 13px
+    opacity: 0.55
+
+.dest__mode-dot
+  width: 9px
+  height: 9px
+  border-radius: 50%
+  flex-shrink: 0
+
+.dest__mode-opt--forecast .dest__mode-dot
+  background: $link
+
+.dest__mode-opt--production .dest__mode-dot
+  background: $success
+
+.dest__mode-opt.is-active
+  color: $white
+  transform: translateY(-1px)
+
+  i
+    opacity: 1
+
+  .dest__mode-dot
+    background: $white
+    animation: dest-mode-pulse 1.8s ease-out infinite
+
+.dest__mode-opt--forecast.is-active
+  background: linear-gradient(135deg, var(--color-link), color-mix(in srgb, var(--color-link) 62%, white))
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-link) 45%, transparent)
+
+.dest__mode-opt--production.is-active
+  background: linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 62%, white))
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-success) 45%, transparent)
+
+// ─── Filter chips (tipologie di destinazione) ──────────────────────────────────
+.dest__chips
+  display: flex
+  flex-wrap: wrap
+  gap: 8px
+  margin-bottom: 14px
+
+.dest__chip
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  padding: 6px 12px
+  background: $white
+  border: 1px solid $border
+  border-radius: 999px
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+  cursor: pointer
+  transition: all 0.15s
+
+  &:hover:not(&--active)
+    border-color: $primary
+    color: $primary
+
+  &--active
+    background: $primary
+    border-color: $primary
+    color: $white
+
+.dest__chip-ico
+  font-size: 12px
+
+.dest__chip-count
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  min-width: 18px
+  height: 18px
+  padding: 0 5px
+  border-radius: 999px
+  background: $primary-100
+  color: $primary
+  font-size: 10px
+  font-weight: 700
+
+  .dest__chip--active &
+    background: rgba(255,255,255,0.22)
+    color: $white
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+.dest__table-wrap
+  background: $white
+  border-radius: 12px
+  border: 2px solid $border
+  overflow: hidden
+
+  // Bordo dell'intera tabella nel colore della modalità attiva
+  &--forecast
+    border-color: $link
+
+  &--production
+    border-color: $success
+
+.dest__table-top
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 14px 20px
+  border-bottom: 1px solid $border
+
+.dest__table-title
+  font-size: 13px
+  font-weight: 600
+  color: $primary
+
+.dest__table-count
+  font-size: 11px
+  font-weight: 600
+  color: $text-inactive
+  background: $bg
+  border: 1px solid $border
+  border-radius: 6px
+  padding: 4px 12px
+
+// 7 colonne: DESTINAZIONE · PAX · VENDUTO · TICKET MEDIO · MARGINE · % · BI
+$dest-grid: 2.2fr 0.8fr 1fr 1fr 1fr 0.7fr 0.45fr
+
+.dest__table-head
+  display: grid
+  grid-template-columns: $dest-grid
+  padding: 9px 20px
+  background: var(--color-bg)
+  border-bottom: 1px solid $border
+
+.dest__table-hcell
+  font-size: 10px
+  font-weight: 700
+  color: $text-inactive
+  text-transform: uppercase
+  letter-spacing: 0.5px
+  text-align: left
+
+  &--right
+    text-align: right
+
+.dest__table-row
+  display: grid
+  grid-template-columns: $dest-grid
+  padding: 13px 20px
+  align-items: center
+  cursor: pointer
+  background: transparent
+  transition: background 0.13s
+
+  &:hover:not(&--active)
+    background: var(--color-bg)
+
+  &--active
+    background: rgba(32,71,105,0.024)
+
+  &--border
+    border-bottom: 1px solid $border
+
+.dest__row-name-cell
+  display: flex
+  align-items: center
+  gap: 12px
+
+.dest__row-ico
+  width: 32px
+  height: 32px
+  border-radius: 8px
+  background: $primary-100
+  display: flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+  transition: background 0.13s
+
+  &--active
+    background: $primary
+
+.dest__row-name
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+  &--active
+    color: $primary
+
+.dest__row-type
+  font-size: 11px
+  color: $text-disabled
+
+.dest__row-val
+  font-size: 13px
+  color: $text-active
+  text-align: right
+
+  &--ticket
+    color: $primary
+    font-weight: 600
+
+  &--margine
+    color: $success
+    font-weight: 600
+
+.dest__row-val--right
+  display: flex
+  justify-content: flex-end
+
+// Badge passeggeri (specifico destinazioni)
+.dest__pax-badge
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  font-size: 12px
+  font-weight: 700
+  color: $primary
+  background: $primary-100
+  border-radius: 6px
+  padding: 3px 9px
+
+  i
+    font-size: 11px
+    color: $text-inactive
+
+.dest__perc-badge
+  font-size: 11px
+  font-weight: 700
+  color: $success
+  background: $success-light
+  border-radius: 4px
+  padding: 3px 9px
+
+.dest__bi-btn
+  width: 30px
+  height: 30px
+  border: 1px solid $border
+  border-radius: 7px
+  background: $white
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: border-color 0.15s, background 0.15s
+
+  &:hover
+    border-color: $primary
+    background: $primary-100
+
+.dest__bi-ico
+  font-size: 13px
+  color: $text-inactive
