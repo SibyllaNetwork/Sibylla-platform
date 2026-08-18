@@ -1,29 +1,39 @@
 // ─── STRATEGIE ────────────────────────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
 
+// Le soglie di compattazione guardano la larghezza della pagina (sidenav
+// inclusa), non il viewport: container query sul root.
+.strat-page
+  container-type: inline-size
+  container-name: stratpage
+
 .strategia
 
   // ── Filter bar ───────────────────────────────────────────────────────────────
   &__filters
     margin-bottom: 20px
 
+  // Toolbar su una riga sola: né i campi né le azioni vanno mai a capo.
+  // La compattazione è governata dalle @container in fondo al file.
   &__filter-row
     display: flex
     align-items: flex-end
     justify-content: space-between
     gap: 12px
-    flex-wrap: wrap
+    flex-wrap: nowrap
 
   &__filter-group
     display: flex
     gap: 12px
     align-items: flex-end
-    flex-wrap: wrap
+    flex-wrap: nowrap
+    min-width: 0
 
   &__filter-actions
     display: flex
     gap: 8px
-    align-items: center
+    align-items: flex-end
+    flex-wrap: nowrap
     flex-shrink: 0
 
   // ── Color picker ─────────────────────────────────────────────────────────────
@@ -31,7 +41,8 @@
     display: flex
     align-items: center
     gap: 8px
-    height: 36px
+    height: 34px
+    width: 100%
     padding: 0 32px 0 12px
     border: 1px solid $border
     border-radius: 6px
@@ -337,11 +348,14 @@
   padding: 14px 16px
   margin-bottom: 12px
 
+// Filtri: tutti i controlli hanno la label sopra e il campo sotto, allineati
+// sulla stessa base (flex-end). Il titolo "Filtra strategie" è portato sulla
+// riga dei campi, non su quella delle label, così niente scalini.
 .strat__selector-filter-row
   display: flex
-  align-items: center
+  align-items: flex-end
   gap: 12px
-  margin-bottom: 12px
+  margin-bottom: 10px
   flex-wrap: wrap
 
 .strat__filter-title
@@ -350,84 +364,196 @@
   color: $primary
   font-family: Poppins, sans-serif
   white-space: nowrap
-
-.strat__filter-item
+  align-self: flex-end
+  height: 34px
   display: flex
   align-items: center
-  gap: 5px
 
-  &--relative
-    position: relative
+.strat__filter-field
+  display: flex
+  flex-direction: column
+  gap: 4px
 
-.strat__form-label--inline
-  margin-bottom: 0
+  label
+    white-space: nowrap
 
-.strat__select--tipo
-  width: 110px
+  &--tipo
+    width: 118px
+
+  &--colore
+    width: 176px
+
+  &--search
+    width: 190px
+
+// Contenitore del bottone colore: ancora il picker e ospita la x di reset.
+.strat__color-control
+  position: relative
+  display: flex
+  align-items: center
+  gap: 4px
 
 .strat__clear-color-btn
   width: 24px
   height: 24px
+  flex-shrink: 0
 
 .strat__color-picker-grid
   grid-template-columns: repeat(4,1fr)
   min-width: 160px
 
+// Conteggio + toggle del rail, spinti a destra della riga filtri.
+.strat__filter-meta
+  display: flex
+  align-items: center
+  gap: 12px
+  margin-left: auto
+  height: 34px
+
 .strat__filter-count
   font-size: 11px
   color: $text-disabled
+  white-space: nowrap
 
-// ─── Strategy cards ───────────────────────────────────────────────────────────
-.strat__cards-row
+.strat__rail-toggle
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: none
+  padding: 0
+  cursor: pointer
+  font-family: $font-body
+  font-size: 11px
+  font-weight: 700
+  color: $primary
+  white-space: nowrap
+  transition: $transition-fast
+
+  i
+    font-size: 9px
+
+  &:hover
+    opacity: 0.7
+
+// ─── Rail delle strategie ─────────────────────────────────────────────────────
+// Chip su una riga sola: il blocco resta alto ~30px anche con molte strategie.
+// "Mostra tutte" apre il rail su più righe (max 3, poi scorre in verticale).
+$rail-row: 30px
+
+.strat__rail
   display: flex
-  gap: 10px
   flex-wrap: wrap
+  gap: 8px
+  max-height: $rail-row
+  overflow: hidden
+  transition: max-height 0.22s ease
+
+  // 3 righe piene + uno spicchio della quarta: si vede che c'è altro sotto.
+  &--open
+    max-height: ($rail-row + 8px) * 3 + 14px
+    overflow-y: auto
+
+    &::-webkit-scrollbar
+      width: 6px
+
+    &::-webkit-scrollbar-thumb
+      background: $border
+      border-radius: 3px
 
 .strat__cards-empty
   font-size: 12px
   color: $text-disabled
-  padding: 12px 0
+  padding: 6px 0
 
-.strat__card-btn
-  display: flex
+.strat__chip
+  display: inline-flex
   align-items: center
-  gap: 10px
-  padding: 10px 16px
-  border-radius: 9px
-  border: 2px solid $border
-  background: $bg
+  gap: 7px
+  height: $rail-row
+  max-width: 260px
+  padding: 0 12px
+  border-radius: 999px
+  border: 1px solid $border
+  background: $white
   cursor: pointer
-  transition: all 0.15s
+  font-family: $font-body
   text-align: left
+  transition: $transition-fast
 
-.strat__card-ico
-  width: 32px
-  height: 32px
-  border-radius: 8px
-  display: flex
-  align-items: center
-  justify-content: center
+  &:hover
+    border-color: var(--chip-color)
+    background: color-mix(in srgb, var(--chip-color) 6%, $white)
+
+  &--sel
+    border-color: var(--chip-color)
+    background: color-mix(in srgb, var(--chip-color) 12%, $white)
+    box-shadow: inset 0 0 0 1px var(--chip-color)
+
+.strat__chip-ico
+  font-size: 11px
+  color: var(--chip-color)
   flex-shrink: 0
 
-.strat__card-name
+.strat__chip-name
   font-size: 12px
   font-weight: 700
-  line-height: 1.2
+  color: $text-active
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
 
-.strat__card-tipo
+  .strat__chip--sel &
+    color: var(--chip-color)
+
+// Il tipo resta come dettaglio secondario, separato da un punto medio.
+.strat__chip-tipo
   font-size: 10px
   color: $text-disabled
-  margin-top: 2px
+  white-space: nowrap
+  flex-shrink: 0
 
-.strat__card-check
-  margin-left: 4px
+  &::before
+    content: '·'
+    margin-right: 6px
+
+.strat__chip-check
+  font-size: 10px
+  color: var(--chip-color)
+  flex-shrink: 0
 
 // ─── Filter bar selects ───────────────────────────────────────────────────────
-.strat__select--cat
-  width: 78px
+// I campi si comprimono ma mai sotto la larghezza della propria label: le
+// intestazioni non vanno mai troncate o abbreviate.
+.strat__tb-field
+  display: flex
+  flex-direction: column
+  gap: 4px
+  min-width: 0
 
-.strat__select--struttura
-  width: 158px
+  label
+    white-space: nowrap
+
+  &--cat
+    flex: 0 1 88px
+    min-width: 70px
+
+  &--struttura
+    flex: 0 1 158px
+    min-width: 76px
+
+  &--nome
+    flex: 0 1 210px
+    min-width: 120px
+
+  &--tipo
+    min-width: min-content
+
+  &--colore
+    min-width: min-content
+
+.strat__tb-btn
+  justify-content: center
 
 .strat__select--stagione
   width: 148px
@@ -445,11 +571,13 @@
   flex-shrink: 0
 
 .strat__nome-input
-  width: 190px
+  flex: 1 1 auto
+  min-width: 0
 
 // ─── Tipo/Colore display ──────────────────────────────────────────────────────
 .strat__tipo-display
   height: 34px
+  white-space: nowrap
   padding: 0 12px
   border: 1px solid $border
   border-radius: 7px
@@ -462,6 +590,7 @@
 
 .strat__colore-display
   height: 34px
+  white-space: nowrap
   padding: 0 12px
   border: 1px solid $border
   border-radius: 7px
@@ -567,19 +696,6 @@
 .strategia__color-option--dyn
   background: var(--option-color)
 
-.strat__card-btn--dyn
-  border-color: var(--strat-border)
-  background: var(--strat-bg)
-
-  &:hover
-    border-color: var(--strat-color)
-
-.strat__card-ico--dyn
-  background: var(--strat-color)
-
-.strat__card-name--dyn
-  color: var(--strat-name-color)
-
 .strat__nome-dot--dyn
   background: var(--dot-color)
 
@@ -637,3 +753,41 @@
 
 .strategia__guida-td--last
   border-bottom: none
+
+// ─── COMPATTAZIONE TOOLBAR ────────────────────────────────────────────────────
+// Soglie sulla larghezza reale della pagina (container query sul root), non sul
+// viewport: con la sidenav aperta il viewport è largo ma il contenuto no.
+// Selettori composti (2 classi) perché a pari specificità vincerebbe .sib-btn.
+
+@container stratpage (max-width: 1400px)
+  .strategia__filter-row
+    gap: 10px
+
+  .strategia__filter-group
+    gap: 8px
+
+  .strategia__filter-actions .strat__tb-btn
+    height: 34px
+    padding: 0 12px
+    font-size: 12px
+
+@container stratpage (max-width: 1180px)
+  .strategia__filter-group
+    gap: 6px
+
+  .strategia__filter-actions
+    gap: 6px
+
+  .strategia__filter-actions .strat__tb-btn
+    padding: 0 10px
+
+// Sotto questa soglia le etichette dei bottoni non entrano più: azioni solo
+// icona, con il testo nel tooltip standard.
+@container stratpage (max-width: 1040px)
+  .strat__tb-btn-label
+    display: none
+
+  .strategia__filter-actions .strat__tb-btn
+    width: 34px
+    padding: 0
+    gap: 0

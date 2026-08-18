@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import Modal from '../../../../core/components/Modal'
@@ -6,6 +6,7 @@ import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHead from '../../../../core/components/PageHead'
 import './ModificaStrategia.sass'
 import FormActions from '../../../../core/components/FormActions'
+import Tooltip from '../../../../core/components/Tooltip'
 import { InputField, SelectField } from '../../../../core/components/form'
 
 const ROWS   = [{top:'200 %',bot:'100 %'},{top:'99 %',bot:'96 %'},{top:'95 %',bot:'91 %'},{top:'90 %',bot:'86 %'},{top:'85 %',bot:'81 %'},{top:'80 %',bot:'76 %'},{top:'75 %',bot:'0 %'}]
@@ -29,6 +30,10 @@ const STRATEGIES: Strat[] = [
 ]
 
 const tipoIcon = (tipo:string) => tipo === 'Gruppi' ? 'org' : tipo === 'Mista' ? 'wheel' : 'profile'
+const chipIcon = (tipo:string) => tipo === 'Gruppi' ? 'fa-users' : tipo === 'Mista' ? 'fa-shuffle' : 'fa-user'
+
+// Altezza di una riga del rail: deve combaciare con $rail-row nel .sass.
+const RAIL_ROW_H = 30
 
 export default function ModificaStrategia({ navigate }: { navigate: (p:string) => void }) {
   const [selectedId,      setSelectedId]      = useState(1)
@@ -36,6 +41,9 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
   const [struttura,       setStruttura]       = useState('Hotel Noto')
   const [tipoFilter,      setTipoFilter]      = useState('Tutti')
   const [coloreFilter,    setColoreFilter]    = useState('')
+  const [ricerca,         setRicerca]         = useState('')
+  const [railOpen,        setRailOpen]        = useState(false)
+  const [railOverflow,    setRailOverflow]    = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [saved,           setSaved]           = useState(false)
   const [showGuida,       setShowGuida]       = useState(false)
@@ -44,6 +52,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
   const [guidaVals,       setGuidaVals]       = useState<number[][]>(() => GUIDA_ROWS.map(() => GUIDA_COLS.map(() => 0)))
 
   const current = STRATEGIES.find(s => s.id === selectedId) || STRATEGIES[0]
+  const railRef = useRef<HTMLDivElement>(null)
   const [bars,     setBars]     = useState<string[][]>(() => current.bars.map(r => [...r]))
   const [nomeEdit, setNomeEdit] = useState(current.nome)
 
@@ -62,113 +71,144 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
     setGuidaVals(GUIDA_ROWS.map((_, ri) => GUIDA_COLS.map((_, ci) => Math.round(base * Math.max(1-ri*0.06, 0.3) * Math.max(1-ci*0.04, 0.7)))))
   }
 
-  const visible = STRATEGIES.filter(s => (tipoFilter === 'Tutti' || s.tipo === tipoFilter) && (!coloreFilter || s.colore === coloreFilter))
+  const visible = STRATEGIES.filter(s =>
+    (tipoFilter === 'Tutti' || s.tipo === tipoFilter) &&
+    (!coloreFilter || s.colore === coloreFilter) &&
+    (!ricerca.trim() || s.nome.toLowerCase().includes(ricerca.trim().toLowerCase()))
+  )
+
+  // A rail chiuso la strategia selezionata sta sempre in prima posizione, così
+  // resta visibile anche quando le altre finiscono oltre la prima riga.
+  const railOrder = railOpen
+    ? visible
+    : [...visible].sort((a, b) => (a.id === selectedId ? -1 : b.id === selectedId ? 1 : 0))
+
+  // Il toggle compare solo se le chip non ci stanno davvero su una riga.
+  useEffect(() => {
+    const el = railRef.current
+    if (!el) { setRailOverflow(false); return }
+    const measure = () => setRailOverflow(el.scrollHeight > RAIL_ROW_H + 2)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [visible.length, railOpen])
 
   return (
-    <div>
+    <div className="strat-page">
       <PageHead title="Modifica strategia" subtitle="Seleziona una strategia esistente per tipo e colore, quindi modifica i parametri tariffari"/>
       {saved && <AlertBanner type="success">Strategia aggiornata con successo</AlertBanner>}
 
-      {/* ── Selettore strategie ─────────────────────────────────────────── */}
+      {/* ── Selettore strategie ─────────────────────────────────────────
+          Rail di chip su una riga: con molte strategie il blocco non cresce,
+          si espande solo su richiesta ("Mostra tutte"). Filtri e ricerca sono
+          allineati sulla stessa base (label sopra, controllo sotto). */}
       <div className="strat__selector-wrap">
-        {/* Filter header */}
         <div className="strat__selector-filter-row">
           <span className="strat__filter-title">Filtra strategie</span>
-          <div className="strat__filter-item">
-            <SelectField
-              name="tipoFilter"
-              label="Tipo"
-              value={tipoFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTipoFilter(e.target.value)}
-              options={['Tutti','Individuali','Gruppi','Mista'].map(o => ({ value: o, label: o }))}
-            />
+          <SelectField
+            name="tipoFilter"
+            label="Tipo"
+            value={tipoFilter}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTipoFilter(e.target.value)}
+            options={['Tutti','Individuali','Gruppi','Mista'].map(o => ({ value: o, label: o }))}
+            className="strat__filter-field strat__filter-field--tipo"
+          />
+          <div className="strat__filter-field strat__filter-field--colore">
+            <label className="text-[12px] font-semibold font-poppins text-primary">Colore</label>
+            <div className="strat__color-control">
+              <button
+                className={`strategia__color-btn ${showColorPicker?'strategia__color-btn--open':''} ${coloreFilter?'strategia__color-btn--selected':''}`}
+                onClick={() => setShowColorPicker(v => !v)}>
+                {coloreFilter
+                  ? <><div className="strategia__color-swatch strategia__color-swatch--dyn" style={{ '--swatch-color': coloreFilter } as React.CSSProperties}/>{COLORS.find(c => c.val === coloreFilter)?.label}</>
+                  : 'Tutti i colori'}
+              </button>
+              {coloreFilter && (
+                <button className="sib-btn sib-btn--icon strat__clear-color-btn" onClick={() => setColoreFilter('')} aria-label="Rimuovi filtro colore">
+                  <Ico n="x" s={12} c={T.textDisabled}/>
+                </button>
+              )}
+              {showColorPicker && (
+                <div className="strategia__color-picker strat__color-picker-grid">
+                  {COLORS.map(c => (
+                    <button key={c.val}
+                      className={`strategia__color-option strategia__color-option--dyn ${coloreFilter === c.val ? 'strategia__color-option--active' : ''}`}
+                      style={{ '--option-color': c.val } as React.CSSProperties} title={c.label}
+                      onClick={() => { setColoreFilter(c.val); setShowColorPicker(false) }}/>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="strat__filter-item strat__filter-item--relative">
-            <span className="text-[12px] font-semibold font-poppins text-primary strat__form-label--inline">Colore</span>
-            <button
-              className={`strategia__color-btn ${showColorPicker?'strategia__color-btn--open':''} ${coloreFilter?'strategia__color-btn--selected':''}`}
-              onClick={() => setShowColorPicker(v => !v)}>
-              {coloreFilter
-                ? <><div className="strategia__color-swatch strategia__color-swatch--dyn" style={{ '--swatch-color': coloreFilter } as React.CSSProperties}/>{COLORS.find(c => c.val === coloreFilter)?.label}</>
-                : 'Tutti i colori'}
-              <Ico n="chevd" s={9} c={T.textDisabled}/>
-            </button>
-            {coloreFilter && (
-              <button className="sib-btn sib-btn--icon strat__clear-color-btn" onClick={() => setColoreFilter('')}>
-                <Ico n="x" s={12} c={T.textDisabled}/>
+          <InputField
+            name="ricerca"
+            label="Cerca"
+            placeholder="Nome strategia"
+            iconLeft="fa-light fa-magnifying-glass"
+            value={ricerca}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRicerca(e.target.value)}
+            className="strat__filter-field strat__filter-field--search"
+          />
+
+          <div className="strat__filter-meta">
+            <span className="strat__filter-count">
+              {visible.length} strateg{visible.length === 1 ? 'ia' : 'ie'}
+            </span>
+            {railOverflow && (
+              <button type="button" className="strat__rail-toggle" onClick={() => setRailOpen(v => !v)}>
+                {railOpen ? 'Comprimi' : 'Mostra tutte'}
+                <i className={`fa-solid ${railOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`} aria-hidden="true"/>
               </button>
             )}
-            {showColorPicker && (
-              <div className="strategia__color-picker strat__color-picker-grid">
-                {COLORS.map(c => (
-                  <button key={c.val}
-                    className={`strategia__color-option strategia__color-option--dyn ${coloreFilter === c.val ? 'strategia__color-option--active' : ''}`}
-                    style={{ '--option-color': c.val } as React.CSSProperties} title={c.label}
-                    onClick={() => { setColoreFilter(c.val); setShowColorPicker(false) }}/>
-                ))}
-              </div>
-            )}
           </div>
-          <span className="strat__filter-count">
-            {visible.length} strateg{visible.length === 1 ? 'ia' : 'ie'} trovate
-          </span>
         </div>
 
-        {/* Strategy cards */}
-        <div className="strat__cards-row">
-          {visible.length === 0
-            ? <div className="strat__cards-empty">Nessuna strategia corrisponde ai filtri selezionati.</div>
-            : visible.map(s => {
-              const isSel = s.id === selectedId
-              return (
-                <button key={s.id} onClick={() => loadStrat(s)}
-                  className={`strat__card-btn strat__card-btn--dyn ${isSel ? 'strat__card-btn--selected' : ''}`}
-                  style={{
-                    '--strat-color': s.colore,
-                    '--strat-border': isSel ? s.colore : T.border,
-                    '--strat-bg': isSel ? `${s.colore}12` : T.bg,
-                    '--strat-name-color': isSel ? s.colore : T.textActive,
-                  } as React.CSSProperties}>
-                  <div className="strat__card-ico strat__card-ico--dyn">
-                    <Ico n={tipoIcon(s.tipo)} s={16} c="#fff"/>
-                  </div>
-                  <div>
-                    <div className="strat__card-name strat__card-name--dyn">{s.nome}</div>
-                    <div className="strat__card-tipo">{s.tipo}</div>
-                  </div>
-                  {isSel && <div className="strat__card-check"><Ico n="check" s={14} c={s.colore}/></div>}
-                </button>
-              )
-            })
-          }
-        </div>
+        {/* Rail di chip — compatto, una riga sola quando è chiuso */}
+        {visible.length === 0
+          ? <div className="strat__cards-empty">Nessuna strategia corrisponde ai filtri selezionati.</div>
+          : (
+            <div ref={railRef} className={`strat__rail ${railOpen ? 'strat__rail--open' : ''}`}>
+              {railOrder.map(s => {
+                const isSel = s.id === selectedId
+                return (
+                  <button key={s.id} onClick={() => loadStrat(s)}
+                    className={`strat__chip ${isSel ? 'strat__chip--sel' : ''}`}
+                    style={{ '--chip-color': s.colore } as React.CSSProperties}
+                    aria-pressed={isSel}>
+                    <i className={`fa-solid ${chipIcon(s.tipo)} strat__chip-ico`} aria-hidden="true"/>
+                    <span className="strat__chip-name">{s.nome}</span>
+                    <span className="strat__chip-tipo">{s.tipo}</span>
+                    {isSel && <i className="fa-solid fa-check strat__chip-check" aria-hidden="true"/>}
+                  </button>
+                )
+              })}
+            </div>
+          )
+        }
       </div>
 
       {/* ── Filter bar ──────────────────────────────────────────────────── */}
       <div className="strategia__filters">
         <div className="strategia__filter-row">
           <div className="strategia__filter-group">
-            <div>
-              <SelectField
-                name="categoria"
-                label="Categoria"
-                value={categoria}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoria(e.target.value)}
-                options={['-','Standard','Premium','Economy'].map(o => ({ value: o, label: o }))}
-                className="strat__select--cat"
-              />
-            </div>
-            <div>
-              <SelectField
-                name="struttura"
-                label="Struttura"
-                value={struttura}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-                options={['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare'].map(o => ({ value: o, label: o }))}
-                className="strat__select--struttura"
-              />
-            </div>
-            <div>
+            <SelectField
+              name="categoria"
+              label="Categoria"
+              value={categoria}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoria(e.target.value)}
+              options={['-','Standard','Premium','Economy'].map(o => ({ value: o, label: o }))}
+              className="strat__tb-field strat__tb-field--cat"
+            />
+            <SelectField
+              name="struttura"
+              label="Struttura"
+              value={struttura}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
+              options={['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare'].map(o => ({ value: o, label: o }))}
+              className="strat__tb-field strat__tb-field--struttura"
+            />
+            <div className="strat__tb-field strat__tb-field--nome">
               <div className="strat__nome-row">
                 <div className="strat__nome-dot strat__nome-dot--dyn" style={{ '--dot-color': current.colore } as React.CSSProperties}/>
                 <InputField
@@ -179,11 +219,11 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
                 />
               </div>
             </div>
-            <div>
+            <div className="strat__tb-field strat__tb-field--tipo">
               <label className="text-[12px] font-semibold font-poppins text-primary">Tipo strategia</label>
               <div className="strat__tipo-display">{current.tipo}</div>
             </div>
-            <div>
+            <div className="strat__tb-field strat__tb-field--colore">
               <label className="text-[12px] font-semibold font-poppins text-primary">Colore strategia</label>
               <div className="strat__colore-display strat__colore-display--dyn" style={{ '--display-border': `${current.colore}44`, '--display-bg': `${current.colore}10` } as React.CSSProperties}>
                 <div className="strat__nome-dot strat__nome-dot--dyn" style={{ '--dot-color': current.colore } as React.CSSProperties}/>
@@ -191,16 +231,26 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               </div>
             </div>
           </div>
+          {/* Azioni: sotto soglia restano solo icona, così la toolbar non va a capo */}
           <div className="strategia__filter-actions">
-            <button className="sib-btn sib-btn--toolbar" onClick={() => setShowGuida(true)}>
-              <Ico n="wheel" s={13} c="currentColor"/> Guida assistita smart
-            </button>
-            <button className="sib-btn sib-btn--toolbar">
-              <Ico n="edit" s={13} c="currentColor"/> Copia strategia
-            </button>
-            <button className="sib-btn sib-btn--primary" onClick={handleSave}>
-              <Ico n="check" s={13} c="#fff"/> Salva
-            </button>
+            <Tooltip text="Guida assistita smart">
+              <button className="sib-btn sib-btn--toolbar strat__tb-btn" onClick={() => setShowGuida(true)} aria-label="Guida assistita smart">
+                <Ico n="wheel" s={13} c="currentColor"/>
+                <span className="strat__tb-btn-label">Guida assistita smart</span>
+              </button>
+            </Tooltip>
+            <Tooltip text="Copia strategia">
+              <button className="sib-btn sib-btn--toolbar strat__tb-btn" aria-label="Copia strategia">
+                <Ico n="edit" s={13} c="currentColor"/>
+                <span className="strat__tb-btn-label">Copia strategia</span>
+              </button>
+            </Tooltip>
+            <Tooltip text="Salva">
+              <button className="sib-btn sib-btn--primary strat__tb-btn" onClick={handleSave} aria-label="Salva">
+                <Ico n="check" s={13} c="#fff"/>
+                <span className="strat__tb-btn-label">Salva</span>
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
