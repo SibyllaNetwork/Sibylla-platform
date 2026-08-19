@@ -1,0 +1,173 @@
+// ─── PURCHASING OVERVIEW ────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + fatturazione passiva (2 colonne) + fornitori,
+// ranking strutture e composizione della spesa.
+@use '../../../styles/tokens' as *
+
+.po
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.14fr) minmax(0, 1.14fr)
+    grid-template-areas: 'kpi kpi  kpi' 'main main forn' 'str cat  cat'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__forn
+    grid-area: forn
+
+  &__str
+    grid-area: str
+
+  &__cat
+    grid-area: cat
+
+  // ── Testata ──────────────────────────────────────────────────────────────────
+  &__link
+    i
+      color: var(--color-primary)
+      font-size: 15px
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 150px
+
+    &--wide
+      width: 200px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Tabelle ──────────────────────────────────────────────────────────────────
+  &__mesi-table,
+  &__cat-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+
+  // I mesi non ancora chiusi sono previsione: si leggono, ma in secondo piano
+  &__row--prev
+    td
+      color: var(--color-text-inactive)
+
+  &__col-voce
+    width: 34%
+
+  &__col-mese
+    width: 14%
+
+  &__col-mnum
+    width: 17.2%
+
+  &__col-num
+    width: 16.5%
+
+  &__num
+    text-align: right
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .po
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 128px
+
+      &--wide
+        width: 164px
+
+    &__note
+      display: none
+
+    &__mesi-table .sib-table,
+    &__cat-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+// ── Schermi non alti: righe più strette, nessuna informazione in meno ─────────
+@media (max-height: 900px)
+  .po
+    &__kpis
+      gap: 8px
+
+    &__cat-table .sib-table.sib-table
+      font-size: 11px
+      line-height: 1.3
+
+      th,
+      td
+        padding-top: 0
+        padding-bottom: 0
+
+// Laptop bassi: le sei categorie devono stare tutte nella card, senza scroll
+@media (max-height: 820px)
+  .po
+    &__cat-table .sib-table.sib-table
+      line-height: 1.15
+
+    &__mesi-table .sib-table.sib-table
+      font-size: 11px
+      line-height: 1.2
+
+      th,
+      td
+        padding-top: 0
+        padding-bottom: 0
+
+// Schermi molto bassi (1280x720): la fascia in basso prende spazio dal grafico, che
+// resta leggibile, perche' le sei categorie non si possono tagliare.
+@media (max-height: 760px)
+  .po
+    &__grid
+      grid-template-rows: auto minmax(0, 1fr) minmax(0, 1.42fr)
