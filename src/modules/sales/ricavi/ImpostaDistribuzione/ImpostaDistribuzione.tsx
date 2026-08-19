@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
+import TruncatedText from '../../../../core/components/TruncatedText'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
 import { SelectField, InputField } from '../../../../core/components/form'
@@ -396,15 +397,15 @@ function SezioneCorporate({
           <tr>
             <th><NomeHead q={q} setQ={setQ} /></th>
             <th className="imposta-dist__th-c">Potenziale</th>
-            <th>Disponibilità<br />a contratto</th>
-            <th>Disponibilità<br />libera</th>
-            <th>Capacità<br />di spesa</th>
+            <th className="imposta-dist__th-c"><TruncatedText text="A contratto" full="Disponibilità a contratto" /></th>
+            <th className="imposta-dist__th-c"><TruncatedText text="Libera" full="Disponibilità libera" /></th>
+            <th className="imposta-dist__th-c"><TruncatedText text="Capacità" full="Capacità di spesa" /></th>
           </tr>
         </thead>
         <tbody>
           {fRows.map((r) => (
             <tr key={r.id}>
-              <td>{r.nome}</td>
+              <td><TruncatedText text={r.nome} className="sib-truncate" /></td>
               <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.libera} onChange={() => onToggle(r.id, 'libera')} /></td>
@@ -447,15 +448,15 @@ function SezioneGenerica({
           <tr>
             <th><NomeHead q={q} setQ={setQ} /></th>
             <th className="imposta-dist__th-c">Potenziale</th>
-            <th>Disponibilità<br />a contratto</th>
-            <th>Disponibilità<br />libera</th>
-            <th>Mercato di<br />riferimento</th>
+            <th className="imposta-dist__th-c"><TruncatedText text="A contratto" full="Disponibilità a contratto" /></th>
+            <th className="imposta-dist__th-c"><TruncatedText text="Libera" full="Disponibilità libera" /></th>
+            <th className="imposta-dist__th-c"><TruncatedText text="Mercato" full="Mercato di riferimento" /></th>
           </tr>
         </thead>
         <tbody>
           {fRows.map((r) => (
             <tr key={r.id}>
-              <td>{r.nome}</td>
+              <td><TruncatedText text={r.nome} className="sib-truncate" /></td>
               <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} /></td>
               <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.libera} onChange={() => onToggle(r.id, 'libera')} /></td>

@@ -7,6 +7,11 @@
   align-items: stretch
   gap: 16px
   font-size: 13px
+  // Le soglie della griglia guardano lo spazio DISPONIBILE, non il viewport: su un
+  // tablet da 1024 con la sidenav aperta la pagina ha meta' larghezza, e con le media
+  // query restavano tre colonne di tabelle strettissime.
+  container-type: inline-size
+  container-name: imposta-dist
 
   > .sib-btn--back
     align-self: flex-start
@@ -63,10 +68,12 @@
     grid-template-columns: 1fr 1fr 1fr
     gap: 16px
 
-    @media (max-width: 1280px)
+    @container imposta-dist (max-width: 1180px)
       grid-template-columns: 1fr 1fr
 
-    @media (max-width: 900px)
+    // Sotto i 980px di spazio le tre colonne di flag non stanno piu' comode: meglio
+    // una colonna sola con le tabelle larghe, che tre tabelle illeggibili.
+    @container imposta-dist (max-width: 980px)
       grid-template-columns: 1fr
 
   &__col
@@ -225,18 +232,37 @@
   &__table
     table-layout: fixed
 
+    // Larghezze in PERCENTUALE: con i pixel fissi la somma superava la larghezza
+    // della card sulle colonne strette e la colonna del nome si riduceva a zero,
+    // con il testo che finiva sopra la colonna del potenziale.
     th:nth-child(1)
-      width: auto
+      width: 24%
 
     th:nth-child(2)
-      width: 92px
+      width: 20%
 
-    th:nth-child(3),
+    th:nth-child(3)
+      width: 22%
+
     th:nth-child(4)
-      width: 80px
+      width: 16%
 
     th:nth-child(5)
-      width: 96px
+      width: 18%
+
+    // Nomi sempre su UNA riga: se non entrano, ellipsis e tooltip col testo intero
+    td:nth-child(1)
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    // Intestazioni su una riga: il TruncatedText le tronca con la tooltip. Il corpo
+    // piu' piccolo serve a farle stare per intero nelle colonne dei flag. Serve la
+    // doppia classe: a pari specificita' vincerebbe `.sib-table th` del design system.
+    &.sib-table th
+      overflow: hidden
+      white-space: nowrap
+      font-size: 11px
 
     // header colonne (potenziale/checkbox/capacità) centrati (override left di .sib-table th)
     th:nth-child(n+2)
