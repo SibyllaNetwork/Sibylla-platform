@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
+import Tooltip from '../../../../core/components/Tooltip'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import Modal from '../../../../core/components/Modal'
 import Tabs from '../../../../core/components/Tabs'
@@ -470,50 +471,63 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
 
         <SelectField
           name="interv"
-          label="Seleziona intervallo"
+          label="Intervallo"
           value={interv}
           onChange={e => changeInterv(e.target.value)}
           options={INTERVALLI.map(it => ({ value: it.v, label: it.label }))}
           className="td__f td__f--interv"
         />
 
+        {/* Azioni: sotto le larghezze da tablet le etichette si nascondono e restano
+            le sole icone (il nome resta nella tooltip), altrimenti l'ultimo pulsante
+            finiva tagliato fuori dalla toolbar. */}
         <div className="td__toolbar-actions">
-          <div className="td__legend-info">
-            <button className="td__legend-btn" aria-label="Legenda colori">
-              <Ico n="info" s={18} c="var(--color-primary)" w="solid" />
+          <Tooltip text="Apri le date selezionate">
+            <button
+              className={`sib-btn sib-btn--toolbar td__btn ${mode === 'apri' ? 'td__btn--mode-apri' : ''}`}
+              onClick={() => toggleMode('apri')}
+              aria-pressed={mode === 'apri'}
+              aria-label="Apri"
+            >
+              <Ico n="unlock" s={13} c="currentColor" w="solid" /> <span className="td__btn-txt td__btn-txt--keep">Apri</span>
             </button>
-            <div className="td__legend-pop" role="tooltip">
-              <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--closed" /> Chiusura totale</span>
-              <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--partial" /> Chiusura parziale</span>
-              <span className="td__leg-item"><Ico n="star" s={12} c="var(--color-warning)" w="solid" /> Camera di riferimento</span>
-            </div>
-          </div>
-          <button
-            className={`sib-btn sib-btn--toolbar td__btn ${mode === 'apri' ? 'td__btn--mode-apri' : ''}`}
-            onClick={() => toggleMode('apri')}
-            aria-pressed={mode === 'apri'}
-          >
-            <Ico n="unlock" s={13} c="currentColor" w="solid" /> Apri
-          </button>
-          <button
-            className={`sib-btn sib-btn--toolbar td__btn ${mode === 'chiudi' ? 'td__btn--mode-chiudi' : ''}`}
-            onClick={() => toggleMode('chiudi')}
-            aria-pressed={mode === 'chiudi'}
-          >
-            <Ico n="lock" s={13} c="currentColor" w="solid" /> Chiudi
-          </button>
-          <button className="sib-btn sib-btn--toolbar td__btn td__btn--me" onClick={() => setMeOpen(true)}>
-            <Ico n="sliders" s={14} c="currentColor" w="solid" /> Market Engine
-          </button>
-          <button className="sib-btn sib-btn--toolbar td__btn" onClick={() => navigate('calendario-tariffe')}>
-            <Ico n="calendar" s={13} c="currentColor" /> Calendario
-          </button>
-          <button className="sib-btn sib-btn--danger-outline td__btn" onClick={() => setStopOpen(true)}>
-            STOP sales
-          </button>
-          <button className="sib-btn sib-btn--primary td__btn" onClick={salva}>
-            <Ico n="send" s={13} c="currentColor" w="solid" /> Salva e invia
-          </button>
+          </Tooltip>
+          <Tooltip text="Chiudi le date selezionate">
+            <button
+              className={`sib-btn sib-btn--toolbar td__btn ${mode === 'chiudi' ? 'td__btn--mode-chiudi' : ''}`}
+              onClick={() => toggleMode('chiudi')}
+              aria-pressed={mode === 'chiudi'}
+              aria-label="Chiudi"
+            >
+              <Ico n="lock" s={13} c="currentColor" w="solid" /> <span className="td__btn-txt td__btn-txt--keep">Chiudi</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="Market Engine">
+            <button className="sib-btn sib-btn--toolbar td__btn td__btn--me" onClick={() => setMeOpen(true)} aria-label="Market Engine">
+              <Ico n="sliders" s={14} c="currentColor" w="solid" />
+              <span className="td__btn-txt">Market Engine</span>
+              <span className="td__btn-txt td__btn-txt--short">Market</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="Vista calendario">
+            <button className="sib-btn sib-btn--toolbar td__btn" onClick={() => navigate('calendario-tariffe')} aria-label="Calendario">
+              <Ico n="calendar" s={13} c="currentColor" /> <span className="td__btn-txt td__btn-txt--keep">Calendario</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="STOP sales">
+            <button className="sib-btn sib-btn--danger-outline td__btn" onClick={() => setStopOpen(true)} aria-label="STOP sales">
+              <Ico n="stop" s={12} c="currentColor" w="solid" />
+              <span className="td__btn-txt">STOP sales</span>
+              <span className="td__btn-txt td__btn-txt--short">STOP</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="Salva e invia">
+            <button className="sib-btn sib-btn--primary td__btn" onClick={salva} aria-label="Salva e invia">
+              <Ico n="send" s={13} c="currentColor" w="solid" />
+              <span className="td__btn-txt">Salva e invia</span>
+              <span className="td__btn-txt td__btn-txt--short">Salva</span>
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -649,13 +663,13 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                               className="td__info"
                               onMouseEnter={e => showPop('info', e, room, c.i)}
                               onMouseLeave={hidePop}
-                            ><Ico n="info" s={14} c="var(--color-primary)" w="solid" /></span>
+                            ><Ico n="info" s={12} c="var(--color-primary)" w="solid" /></span>
                             <button
                               className="td__hourglass"
                               aria-label="Storico modifiche"
                               onMouseEnter={e => showPop('hist', e, room, c.i)}
                               onMouseLeave={hidePop}
-                            ><Ico n="hourglass" s={12} c="#D94F9C" w="solid" /></button>
+                            ><Ico n="hourglass" s={11} c="var(--chart-3)" w="solid" /></button>
                           </div>
                         )}
                       </td>
@@ -746,6 +760,15 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
             </table>
           </div>
         </div>
+      </div>
+
+      {/* ── Legenda dei colori ───────────────────────────────────────── */}
+      {/* Sta sotto la griglia, accanto ai colori che spiega: prima era dietro un
+          pulsante informativo in mezzo ai filtri. */}
+      <div className="td__legend">
+        <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--closed" /> Chiusura totale</span>
+        <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--partial" /> Chiusura parziale</span>
+        <span className="td__leg-item"><Ico n="star" s={12} c="var(--color-warning)" w="solid" /> Camera di riferimento</span>
       </div>
 
       {/* Popover info — disponibilità per verticale */}

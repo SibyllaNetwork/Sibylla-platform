@@ -4,9 +4,15 @@
 @use '../../../../styles/tokens' as *
 
 .td
+  // Le soglie di compattazione guardano lo SPAZIO della pagina, non il viewport: su
+  // un tablet con la sidenav aperta la pagina ha meta' larghezza.
+  container-type: inline-size
+  container-name: td-page
+
   // ── Toolbar ──────────────────────────────────────────────────────────────
-  // Niente box contenitore + riga unica: filtri a sinistra, azioni a destra sulla
-  // stessa riga. Sotto soglia scrolla in orizzontale invece di spezzarsi.
+  // Niente box contenitore: filtri a sinistra, azioni a destra sulla stessa riga.
+  // Se lo spazio non basta le azioni vanno a capo: prima scrollavano in orizzontale
+  // e l'ultimo pulsante ("Salva e invia") risultava tagliato.
   &__toolbar
     display: flex
     flex-wrap: nowrap
@@ -14,23 +20,38 @@
     gap: $space-sm
     column-gap: 6px
     margin-bottom: $space-lg
-    overflow-x: auto
     padding-bottom: 2px
 
+  // I campi hanno una larghezza ideale ma possono stringersi: è così che filtri e
+  // azioni restano su UNA riga anche quando la pagina ha poco spazio.
   &__f
     display: flex
     flex-direction: column
     gap: 5px
-    flex-shrink: 0
+    flex: 0 1 auto
+    min-width: 0
+
+    // label e campo seguono la larghezza del contenitore
+    label
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+
+    .sib-select,
+    .sib-input,
+    select,
+    input
+      width: 100%
+      min-width: 0
 
   &__f--struttura
-    min-width: 150px
+    width: 150px
 
   &__f--vista
-    min-width: 140px
+    width: 148px
 
   &__f--interv
-    min-width: 130px
+    width: 130px
 
   &__toolbar-actions
     display: flex
@@ -38,7 +59,7 @@
     align-items: center
     gap: 4px
     margin-left: auto
-    flex-shrink: 0
+    flex: 0 0 auto
 
     // Compatta i pulsanti azione per stare su un'unica riga
     .td__btn
@@ -53,6 +74,13 @@
     display: inline-flex
     align-items: center
     gap: 6px
+
+  &__btn-txt
+    white-space: nowrap
+
+    // Variante corta: compare solo nella fascia intermedia (vedi in fondo al file)
+    &--short
+      display: none
 
   &__btn--me
     background: alpha($primary, 0.10)
@@ -297,19 +325,23 @@
 
   // Riga 1 — box allotment + info + chiusura
   &__cell--allot
-    padding: 6px 3px
+    padding: 6px 2px
 
+  // La colonna del giorno è 64px: box, info e clessidra devono starci dentro tutti,
+  // altrimenti l'ultima icona finisce nella cella accanto.
   &__cell-top
     display: inline-flex
     align-items: center
     justify-content: center
-    gap: 4px
+    gap: 2px
+    max-width: 100%
+    min-width: 0
 
   // Input editabile (camere da inviare) — aspetto "box arancione"
   &__allot
-    width: 32px
-    height: 22px
-    padding: 0 4px
+    width: 26px
+    height: 20px
+    padding: 0 2px
     border: 1px solid $border
     border-radius: $radius-sm
     background: $white
@@ -627,55 +659,14 @@
     font-weight: 700
 
   // ── Legenda colori (tooltip su icona "i" in toolbar) ───────────────────────
-  &__legend-info
-    position: relative
-    display: inline-flex
-    &:hover .td__legend-pop, &:focus-within .td__legend-pop
-      opacity: 1
-      visibility: visible
-      transform: translateY(0)
-
-  &__legend-btn
-    appearance: none
-    width: 36px
-    height: 36px
-    border: 1px solid $border
-    border-radius: $radius-md
-    background: $white
-    cursor: pointer
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    transition: $transition-fast
-    &:hover
-      border-color: $primary
-      background: alpha($primary, 0.06)
-
-  &__legend-pop
-    position: absolute
-    top: calc(100% + 8px)
-    right: 0
-    z-index: 60
+  // Legenda dei colori: sta sotto la griglia, dove si leggono i colori, invece che
+  // dietro un pulsante informativo in mezzo ai filtri.
+  &__legend
     display: flex
-    flex-direction: column
-    gap: 10px
-    min-width: 200px
-    padding: 12px 14px
-    background: $white
-    border: 1px solid $border
-    border-radius: $radius-md
-    box-shadow: $shadow-lg
-    opacity: 0
-    visibility: hidden
-    transform: translateY(-4px)
-    transition: $transition-fast
-    &::after
-      content: ''
-      position: absolute
-      bottom: 100%
-      right: 13px
-      border: 6px solid transparent
-      border-bottom-color: $white
+    align-items: center
+    flex-wrap: wrap
+    gap: 16px
+    margin-top: 8px
 
   &__leg-item
     display: inline-flex
@@ -1069,3 +1060,54 @@
     &:focus
       outline: none
       box-shadow: 0 0 0 2px alpha($success, 0.3)
+
+// ── Compattazione della toolbar ───────────────────────────────────────────────
+// Tutto su UNA riga a qualunque larghezza, per gradi: prima le etichette dei pulsanti
+// azione lasciano il posto alle sole icone (il nome resta nella tooltip), poi si
+// stringono anche i campi. Le soglie guardano lo spazio della pagina, non il viewport.
+// Fascia intermedia (laptop, o desktop con la sidenav aperta): i pulsanti tengono il
+// testo — quelli con l'etichetta lunga passano alla versione corta, gli altri restano
+// come sono. Il nome completo e' sempre nella tooltip.
+@container td-page (max-width: 1260px)
+  .td__btn-txt
+    display: none
+
+  .td__btn-txt--short,
+  .td__btn-txt--keep
+    display: inline
+
+  .td__toolbar-actions .td__btn
+    padding: 0 8px
+
+// Sotto questa soglia il testo non ci sta piu': restano le sole icone.
+@container td-page (max-width: 1150px)
+  .td__btn-txt,
+  .td__btn-txt--short,
+  .td__btn-txt--keep
+    display: none
+
+  .td__toolbar-actions .td__btn
+    padding: 0 9px
+
+@container td-page (max-width: 900px)
+  .td__toolbar
+    column-gap: 4px
+
+  .td__toolbar-actions
+    gap: 3px
+
+    .td__btn
+      padding: 0 7px
+
+  .td__f
+    label
+      font-size: 11px
+
+  .td__f--struttura
+    width: 108px
+
+  .td__f--vista
+    width: 108px
+
+  .td__f--interv
+    width: 96px
