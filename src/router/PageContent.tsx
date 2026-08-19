@@ -63,6 +63,7 @@ import CreaAziendaVendita          from '../modules/sales/ricavi/CreaAziendaVend
 import BudgetRicavi                from '../modules/sales/ricavi/BudgetRicavi/BudgetRicavi';
 import SalesOverview               from '../modules/sales/SalesOverview/SalesOverview';
 import PurchasingOverview         from '../modules/purchasing/PurchasingOverview/PurchasingOverview';
+import FatturazionePassiva         from '../modules/purchasing/FatturazionePassiva/FatturazionePassiva';
 import OnTheBookAnalysis           from '../modules/operation/OnTheBookAnalysis/OnTheBookAnalysis';
 import OperationOverview           from '../modules/operation/OperationOverview/OperationOverview';
 import GuestRoomAnalysis           from '../modules/operation/GuestRoomAnalysis/GuestRoomAnalysis';
@@ -300,6 +301,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'budget-ricavi')         return <BudgetRicavi navigate={navigate}/>;
   if (page === 'sales-overview')        return <SalesOverview navigate={navigate}/>;
   if (page === 'panoramica-acquisti')   return <PurchasingOverview navigate={navigate}/>;
+  if (page === 'fatturazione-passiva')  return <FatturazionePassiva navigate={navigate}/>;
   if (page === 'on-the-book')           return <OnTheBookAnalysis navigate={navigate}/>;
   if (page === 'op-overview')           return <OperationOverview navigate={navigate}/>;
   if (page === 'guest-room')            return <GuestRoomAnalysis navigate={navigate}/>;

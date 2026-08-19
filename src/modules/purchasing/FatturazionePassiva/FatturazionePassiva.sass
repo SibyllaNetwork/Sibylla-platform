@@ -1,0 +1,209 @@
+// ─── FATTURAZIONE PASSIVA ───────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + registro dei documenti (2 colonne su due
+// righe) + pagate contro totale e scadenzario dell'aperto.
+@use '../../../styles/tokens' as *
+
+.fp
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi kpi kpi' 'doc doc pag' 'doc doc sca'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__doc
+    grid-area: doc
+
+  &__pag
+    grid-area: pag
+
+  &__sca
+    grid-area: sca
+
+  // ── Testata ──────────────────────────────────────────────────────────────────
+  &__link
+    i
+      color: var(--color-primary)
+      font-size: 15px
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 150px
+
+    &--wide
+      width: 196px
+
+    &--narrow
+      width: 96px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Registro dei documenti ───────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
+
+  &__doc-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  // Le note di credito sono documenti a segno opposto: si distinguono a colpo d'occhio
+  &__row--nc
+    td
+      color: var(--color-text-inactive)
+
+  &__col-num-reg
+    width: 15%
+
+  &__col-str
+    width: 19%
+
+  &__col-forn
+    width: 21%
+
+  &__col-imp
+    width: 14%
+
+  &__col-data
+    width: 12%
+
+  &__col-gg
+    width: 8%
+
+  &__col-stato
+    width: 11%
+
+  &__num
+    text-align: right
+
+  &__stato
+    display: inline-block
+    padding: 0 6px
+    border-radius: 999px
+    font-size: 10px
+    font-weight: 600
+    white-space: nowrap
+
+    &--pagata
+      background: color-mix(in srgb, var(--chart-good) 14%, transparent)
+      color: var(--chart-good)
+
+    &--attesa
+      background: color-mix(in srgb, var(--color-border) 55%, transparent)
+      color: var(--color-text-inactive)
+
+    &--scaduta
+      background: color-mix(in srgb, var(--chart-bad) 14%, transparent)
+      color: var(--chart-bad)
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Pagate contro totale ─────────────────────────────────────────────────────
+  &__donut
+    position: relative
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__donut-center
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    display: flex
+    flex-direction: column
+    align-items: center
+    text-align: center
+    pointer-events: none
+
+  &__donut-val
+    font-family: var(--font-heading)
+    font-size: 19px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    line-height: 1.1
+
+  &__donut-lbl
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  // ── Scadenzario ──────────────────────────────────────────────────────────────
+  &__bars
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .fp
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 128px
+
+      &--wide
+        width: 160px
+
+      &--narrow
+        width: 84px
+
+    &__note
+      display: none
+
+    &__doc-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+@media (max-height: 900px)
+  .fp
+    &__kpis
+      gap: 8px
+
+    &__doc-table .sib-table.sib-table
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+
+    &__donut-val
+      font-size: 17px

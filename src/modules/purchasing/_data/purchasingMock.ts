@@ -187,8 +187,11 @@ export function buildPurchasing(
         const scadenza = new Date(emessa.getFullYear(), emessa.getMonth(), emessa.getDate() + f.termini)
         const giorniAllaScadenza = giorniFra(oggi0, scadenza)
         // Pagato quando la scadenza è passata, tranne una quota di ritardatarie che
-        // resta scaduta: è la parte che il controllo di gestione deve vedere.
-        const inRitardo = jitter(seed + 5, 1) > 0.72
+        // resta scaduta: è la parte che il controllo di gestione deve vedere. Il
+        // ritardo però non si trascina all'infinito — oltre tre mesi una fattura
+        // fornitore o è stata pagata o è un contenzioso, non un ritardo — quindi le
+        // scadenze molto vecchie risultano tutte chiuse.
+        const inRitardo = giorniAllaScadenza > -90 && jitter(seed + 5, 1) > 0.62
         const stato: StatoFattura = giorniAllaScadenza < 0
           ? (inRitardo ? 'scaduta' : 'pagata')
           : 'da pagare'
