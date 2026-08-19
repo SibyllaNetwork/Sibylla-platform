@@ -1,412 +1,194 @@
-// ─── SALES OVERVIEW ───────────────────────────────────────────────────────────
+// ─── SALES OVERVIEW ─────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + ricavi per mese (2 colonne) + mix di vendita,
+// mix contro budget e qualità della domanda.
 @use '../../../styles/tokens' as *
 
-.sales-overview
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+.so
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.24fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main mix' 'vs   vs   dom'
 
-  > .sib-btn--back
-    align-self: flex-start
-
-  &__filters
-    display: flex
-    align-items: flex-end
-    gap: 12px
-
-    .sib-btn--icon i
-      color: $primary
-      font-size: 16px
-
-  &__field
-    width: 200px
-
-  &__field-raw
-    display: flex
-    flex-direction: column
-    gap: 6px
-
-    label
-      font-size: 12px
-      color: $primary
-      font-weight: 600
-      font-family: 'Poppins', sans-serif
-
-  &__date-range
-    display: flex
-    align-items: center
-    gap: 6px
-
-    .sib-input
-      width: 140px
-
-    span
-      color: $text-inactive
-
-  &__visualizza
-    i
-      margin-right: 6px
-
-  &__info
-    margin-left: auto
-
-  // ── Stats row ───────────────────────────────────────────────────────────────
-  &__stats
+  &__kpis
+    grid-area: kpi
     display: grid
-    grid-template-columns: 1fr 1fr 1fr 360px
-    gap: 12px
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
 
-    @media (max-width: 1280px)
-      grid-template-columns: 1fr 1fr
+  &__main
+    grid-area: main
 
-  &__stat-card
-    display: flex
+  &__mix
+    grid-area: mix
+
+  &__vs
+    grid-area: vs
+
+  &__dom
+    grid-area: dom
+
+  // ── Testata ──────────────────────────────────────────────────────────────────
+  &__links
+    display: inline-flex
     align-items: center
-    gap: 14px
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 14px
-
-  &__stat-ico
-    background: $primary
-    color: white
-    width: 36px
-    height: 36px
-    border-radius: 8px
-    display: flex
-    align-items: center
-    justify-content: center
-    font-size: 16px
-    flex-shrink: 0
-
-  &__stat-body
-    flex: 1
-    text-align: center
-
-  &__stat-label
-    font-size: 12px
-    color: $text-inactive
-
-  &__stat-value
-    font-family: $font-heading
-    font-weight: 700
-    color: $primary
-    font-size: 22px
-    line-height: 1.1
-
-    &--pos
-      color: $success
-
-    &--neg
-      color: $error
-
-  &__stat-foot
-    font-size: 11px
-    color: $text-inactive
-    margin-top: 4px
-
-  // ── Bookings table ──────────────────────────────────────────────────────────
-  &__bookings
-    display: flex
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    overflow: hidden
-
-  &__bookings-tag
-    background: $primary
-    color: white
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 11px
-    letter-spacing: 1px
-    padding: 8px 6px
-    writing-mode: vertical-rl
-    text-orientation: mixed
-    transform: rotate(180deg)
-    display: flex
-    align-items: center
-    justify-content: center
-
-  &__bookings-table
-    flex: 1
-    border-collapse: collapse
-    font-size: 12px
-
-    th
-      text-align: center
-      padding: 8px 6px
-      color: $text-inactive
-      font-weight: 600
-      border-bottom: 1px solid $border
-      font-size: 11px
-
-    td
-      text-align: center
-      padding: 8px 6px
-      border-bottom: 1px solid rgba(219,219,219,0.4)
-
-    td:first-child
-      font-weight: 600
-      color: $primary
-
-    tr:last-child td
-      border-bottom: none
-
-  &__bookings-row--today
-    background: $primary-50
-
-  // ── Trend ───────────────────────────────────────────────────────────────────
-  &__trend
-    display: grid
-    grid-template-columns: 220px 1fr 32px
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    overflow: hidden
-
-  &__trend-side
-    background: $primary
-    color: white
-    padding: 18px 18px
-    display: flex
-    flex-direction: column
     gap: 4px
 
-  &__trend-value
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 24px
+  &__link
+    i
+      color: var(--color-primary)
+      font-size: 15px
 
-  &__trend-label
-    font-size: 13px
-    opacity: 0.8
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 150px
 
-  &__trend-foot
+    &--wide
+      width: 200px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
     font-size: 11px
-    opacity: 0.7
-    margin-top: 4px
+    color: var(--color-text-inactive)
+    white-space: nowrap
 
-  &__trend-body
-    padding: 16px
+    i
+      color: var(--color-primary)
+      font-size: 12px
 
-  &__trend-legend
-    display: flex
-    justify-content: center
-    gap: 24px
-    margin-bottom: 8px
-    font-size: 12px
-    color: $text-active
-
-  &__dot
-    width: 10px
-    height: 10px
-    border-radius: 50%
-    display: inline-block
-    margin-right: 6px
-
-    &--ly
-      background: #A0A4AA
-
-    &--rev
-      background: #1F4E5F
-
-    &--forecast
-      background: #F59E0B
-
-  &__trend-tags
-    display: flex
-    flex-direction: column
-
-  &__side-tag
-    background: $primary-700
-    color: white
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 10px
-    letter-spacing: 1px
-    padding: 8px 4px
-    writing-mode: vertical-rl
-    text-orientation: mixed
-    transform: rotate(180deg)
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
     flex: 1
-    display: flex
+    min-height: 0
+    min-width: 0
+
+  &__foot
+    display: inline-flex
     align-items: center
-    justify-content: center
+    gap: 6px
 
-    &--alt
-      background: $primary
+    strong
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
 
-  &__svg
-    width: 100%
-    height: auto
-
-    &--trend
-      height: 320px
-
-  // ── Bottom: segments + KPIs ────────────────────────────────────────────────
-  &__bottom
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 16px
-
-    @media (max-width: 1100px)
-      grid-template-columns: 1fr
-
-  &__segments-card
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
     display: flex
-    gap: 16px
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 16px
-
-  &__segments-icon
-    width: 50px
-    height: 50px
-    border-radius: 50%
-    background: $primary-50
-    color: $primary
-    display: flex
-    align-items: center
-    justify-content: center
-    font-size: 22px
-    flex-shrink: 0
-
-  &__segments-body
+    flex-direction: column
     flex: 1
-    display: flex
-    flex-direction: column
-    gap: 10px
+    min-height: 0
 
-  &__seg-bars
-    display: flex
-    flex-direction: column
-    gap: 8px
+  &__detail-table
+    flex: 1
+    min-height: 0
 
-  &__seg-row
-    display: grid
-    grid-template-columns: 80px 1fr
-    align-items: center
-    gap: 8px
+    .sib-table.sib-table
+      font-size: 12px
 
-  &__seg-label
-    font-size: 12px
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
+
+  // I mesi non ancora chiusi sono previsione: si leggono, ma in secondo piano
+  &__row--prev
+    td
+      color: var(--color-text-inactive)
+
+  &__num
     text-align: right
-    color: $text-active
-    font-weight: 600
 
-  &__seg-track
-    position: relative
-    height: 16px
-    background: $bg
-    border-radius: 3px
-
-  &__seg-bar
-    position: absolute
-    top: 0
-    left: 0
-    height: 100%
-    border-radius: 3px
-    width: var(--seg-bar-w)
-
-    &--total
-      background: #1F4E5F
-      z-index: 2
-      height: 8px
-      top: 0
-
-    &--ly
-      background: #A0A4AA
-      z-index: 1
-      height: 8px
-      top: 8px
-
-  &__seg-bullet
-    position: absolute
-    top: -2px
-    bottom: -2px
-    left: var(--seg-bullet-left)
-    width: 4px
-    background: #1F2E55
-    border-radius: 2px
-    transform: translateX(-50%)
-    z-index: 3
-
-  &__segments-legend
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
     display: flex
-    flex-wrap: wrap
     justify-content: center
-    gap: 16px
-    margin-top: 4px
-    font-size: 11px
-    color: $text-active
+    flex: none
+    margin-top: 6px
 
-  &__sw
-    width: 12px
-    height: 12px
-    border-radius: 2px
-    display: inline-block
-    margin-right: 6px
-    vertical-align: middle
-
-    &--total
-      background: #1F4E5F
-
-    &--ly
-      background: #A0A4AA
-
-    &--budget
-      background: #1F2E55
-
-  // ── KPI cards (right column) ───────────────────────────────────────────────
-  &__kpi-list
+  // ── Qualità della domanda ────────────────────────────────────────────────────
+  &__dom-list
     display: flex
     flex-direction: column
-    gap: 12px
-
-  &__kpi-card
-    display: flex
-    align-items: center
-    gap: 14px
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 14px 16px
-
-  &__kpi-icon
-    width: 44px
-    height: 44px
-    border-radius: 50%
-    background: $primary-50
-    color: $primary
-    display: flex
-    align-items: center
-    justify-content: center
-    font-size: 18px
-    flex-shrink: 0
-
-  &__kpi-text
+    justify-content: space-between
     flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+    overflow: hidden
 
-  &__kpi-label
+  &__dom-row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto auto
+    align-items: center
+    gap: 8px
+    padding: 2px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+  &__dom-lbl
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-family: var(--font-body)
     font-size: 12px
-    color: $text-inactive
+    color: var(--color-text-inactive)
 
-  &__kpi-value
-    font-family: $font-heading
-    font-weight: 700
-    color: $primary
-    font-size: 18px
-    line-height: 1.1
+  &__dom-val
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
 
-  &__kpi-foot
-    font-size: 11px
-    color: $text-inactive
-    margin-top: 2px
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .so
+    &__kpis
+      gap: 8px
 
-  &__sparkline
-    flex-shrink: 0
+    &__filter
+      width: 128px
+
+      &--wide
+        width: 164px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+// ── Schermi non alti: righe più strette, niente informazione in meno ──────────
+@media (max-height: 900px)
+  .so
+    &__kpis
+      gap: 8px
+
+    &__dom-row
+      padding: 0
+      line-height: 1.3
+
+    &__dom-lbl,
+    &__dom-val
+      font-size: 11px
+
+    &__detail-table .sib-table
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px

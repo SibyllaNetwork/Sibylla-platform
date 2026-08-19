@@ -1,380 +1,408 @@
-import React, { useEffect, useState } from 'react'
-import PageHead from '../../../core/components/PageHead'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Line,
+  ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
+} from 'recharts'
 import { SelectField } from '../../../core/components/form'
+import Tooltip from '../../../core/components/Tooltip'
+import Pagination from '../../../core/components/Pagination'
+import {
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, DeltaBadge, KpiTile, barEndLabel, barRightLabel,
+  CHART, cursorProps, fmtAxisNum, fmtDec, fmtDelta, fmtEur, fmtEurK, fmtInt, fmtPct, gridProps,
+  reducedMotion, series, useFitRows, xAxisProps, yAxisProps,
+} from '../../../core/bi'
 import { apiFetchSibylla } from '../../../services/api'
+import {
+  DIMENSIONI, buildSales, computeSalesKpi, mixControLy,
+  type Dimensione, type IndicatoreDomanda, type SalesData,
+} from './salesOverview.data'
 import './SalesOverview.sass'
 
-interface TrendPoint { date: string; revenue: number; revenueLY: number; forecast: number | null }
-interface SegmentBar { label: string; total: number; totalLY: number; budget: number }
-interface BookingDay { label: string; ty: number; ly: number; delta: number }
+// ─── SALES OVERVIEW ─────────────────────────────────────────────────────────────
+//  La fotografia commerciale dell'anno, in una schermata:
+//    • fascia indicatori: ricavi, occupazione, ADR, RevPAR, atterraggio d'anno
+//    • ricavi mese per mese contro anno precedente e budget, con la previsione dei
+//      mesi non ancora chiusi distinta dal consuntivo (+ vista Dettaglio tabellare)
+//    • mix di vendita: canali, segmenti o agenzie, dal rail della card
+//    • come cambia il mix: la quota di ogni voce contro l'anno precedente, dove il
+//      segno dice se la struttura di vendita si sta spostando
+//    • qualità della domanda: permanenza, anticipo di prenotazione, dispersione
+//  Le pagine di dettaglio (mese, prezzo, occupazione, pickup, segmenti) sono
+//  raggiungibili dai pulsanti in testata.
 
-interface Data {
-  Strutture: { Id: number; nome: string }[]
-  StrutturaId: number | null
-  dataDa: string
-  dataA: string
-  revenue: number
-  revenueSDLY: number
-  forecast: number
-  forecastSDLY: number
-  vsBudgetPct: number
-  budget: number
-  bookings: BookingDay[]
-  grandTotal: number
-  grandTotalLY: number
-  trend: TrendPoint[]
-  segmenti: SegmentBar[]
-  occupazione: number
-  occupazioneLY: number
-  occupazioneSpark: number[]
-  adr: number
-  adrLY: number
-  adrSpark: number[]
-}
-
-function genTrend(): TrendPoint[] {
-  const days = 30
-  const points: TrendPoint[] = []
-  const start = new Date('2026-04-01')
-  for (let i = 0; i < days; i++) {
-    const d = new Date(start); d.setDate(d.getDate() + i)
-    const x = i / days
-    const revenue   = 35000 + 25000 * Math.sin(x * Math.PI * 4) + (Math.random() - 0.5) * 6000
-    const revenueLY = 55000 + 12000 * Math.sin(x * Math.PI * 3 + 1) + (Math.random() - 0.5) * 5000
-    const forecast  = i >= days - 1 ? 50000 : null
-    const dateLabel = `${String(d.getDate()).padStart(2, '0')}.04.2026`
-    points.push({ date: dateLabel, revenue: Math.max(20000, revenue), revenueLY: Math.max(20000, revenueLY), forecast })
-  }
-  return points
-}
-
-const FALLBACK: Data = {
-  Strutture: [],
-  StrutturaId: null,
-  dataDa: '2026-04-01',
-  dataA: '2026-04-30',
-  revenue: 1510000,
-  revenueSDLY: 1430000,
-  forecast: 69660,
-  forecastSDLY: 0,
-  vsBudgetPct: 2.31,
-  budget: 1470000,
-  bookings: [
-    { label: 'IERI',    ty: 411, ly: 329, delta: 82 },
-    { label: 'OGGI',    ty: 558, ly: 294, delta: 264 },
-    { label: 'DOMANI',  ty: 0,   ly: 0,   delta: 0 },
-  ],
-  grandTotal: 1580000,
-  grandTotalLY: 1430000,
-  trend: genTrend(),
-  segmenti: [
-    { label: 'B2B',       total: 90000,   totalLY: 0,       budget: 100000 },
-    { label: 'B2C',       total: 700000,  totalLY: 850000,  budget: 720000 },
-    { label: 'Dirette',   total: 80000,   totalLY: 100000,  budget: 90000 },
-    { label: 'Corporate', total: 50000,   totalLY: 60000,   budget: 70000 },
-    { label: 'Gruppi',    total: 600000,  totalLY: 720000,  budget: 750000 },
-  ],
-  occupazione: 70.79,
-  occupazioneLY: 59.41,
-  occupazioneSpark: [55, 58, 60, 62, 60, 64, 70, 70.79],
-  adr: 123.16,
-  adrLY: 121.55,
-  adrSpark: [124, 122, 121, 122, 123, 122, 123, 123.16],
-}
-
-function fmtMln(v: number): string {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2).replace('.', ',')}M €`
-  if (v >= 1_000)     return `${(v / 1_000).toFixed(2).replace('.', ',')}K €`
-  return `${v.toFixed(2).replace('.', ',')} €`
-}
-
-function fmtPct(v: number): string {
-  return `${v.toFixed(2).replace('.', ',')} %`
-}
+const COLLEGAMENTI: { page: string; label: string; icon: string }[] = [
+  { page: 'monthly-trend', label: 'Andamento del mese', icon: 'fa-calendar-days' },
+  { page: 'adr-analysis', label: 'Analisi del prezzo', icon: 'fa-tag' },
+  { page: 'occ-analysis', label: 'Analisi dell’occupazione', icon: 'fa-door-open' },
+  { page: 'pick-up', label: 'Pickup analysis', icon: 'fa-arrow-trend-up' },
+  { page: 'segment-analysis', label: 'Analisi per segmento', icon: 'fa-people-group' },
+]
 
 export default function SalesOverview({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  const [anno, setAnno] = useState(2026)
+  const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')
+  const [dimensione, setDimensione] = useState<Dimensione>('canali')
+  const [pagina, setPagina] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [remoto, setRemoto] = useState<Partial<SalesData> | null>(null)
+
+  const mock = useMemo(() => buildSales(anno, strutturaId), [anno, strutturaId])
+  const data: SalesData = useMemo(() => ({ ...mock, ...(remoto ?? {}) }), [mock, remoto])
+  const kpi = useMemo(() => computeSalesKpi(data), [data])
 
   useEffect(() => {
-    let cancelled = false
-    apiFetchSibylla<Data>('sales/GetOverview', {
+    let annullato = false
+    setLoading(true)
+    apiFetchSibylla<Partial<SalesData>>('sales/GetOverview', {
       method: 'POST',
-      body: { strutturaId: data.StrutturaId, da: data.dataDa, a: data.dataA },
+      body: { strutturaId, anno },
     })
-      .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+      .then((d) => { if (!annullato && d) setRemoto(d) })
+      .catch(() => { if (!annullato) setRemoto(null) })
+      .finally(() => { if (!annullato) setLoading(false) })
+    return () => { annullato = true }
+  }, [strutturaId, anno])
+
+  useEffect(() => { setPagina(1) }, [strutturaId, anno])
+
+  const still = reducedMotion()
+
+  const voci = dimensione === 'canali' ? data.canali
+    : dimensione === 'segmenti' ? data.segmenti
+      : data.agenzie
+  const dimCorrente = DIMENSIONI.find((d) => d.key === dimensione) ?? DIMENSIONI[0]
+
+  // Il mix contro l'anno precedente: sull'anno intero, perché il mix è una struttura
+  // di vendita e si legge sul ciclo completo.
+  const confronto = useMemo(() => mixControLy(voci, kpi.atterraggioLY), [voci, kpi.atterraggioLY])
+  const cresce = useMemo(() => [...confronto].sort((a, b) => b.deltaQuota - a.deltaQuota)[0], [confronto])
+  const arretra = useMemo(() => [...confronto].sort((a, b) => a.deltaQuota - b.deltaQuota)[0], [confronto])
+
+  const { rows: righePerPagina, ref: tabellaRef } = useFitRows({
+    rowHeight: 28, headerHeight: 30, min: 4, max: 12,
+  })
+  const totPagine = Math.max(1, Math.ceil(data.mesi.length / righePerPagina))
+  const paginaCorrente = Math.min(pagina, totPagine)
+  const righe = data.mesi.slice((paginaCorrente - 1) * righePerPagina, paginaCorrente * righePerPagina)
 
   return (
-    <div className="sales-overview">
-      <PageHead
-        title="Sales overview"
-        subtitle="Analisi performance commerciale, ricavi e marginalità"
-      />
-
-      <div className="sales-overview__filters">
-        <SelectField
-          name="struttura"
-          label="Struttura"
-          className="sales-overview__field"
-          value={data.StrutturaId ?? ''}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          options={[
-            { value: '', label: 'Tutte le strutture' },
-            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
-          ]}
-        />
-        <div className="sales-overview__field-raw">
-          <label>Intervallo</label>
-          <div className="sales-overview__date-range">
-            <input type="date" className="sib-input" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />
-            <span>-</span>
-            <input type="date" className="sib-input" value={data.dataA} onChange={(e) => setData({ ...data, dataA: e.target.value })} />
-          </div>
-        </div>
-        <button type="button" className="sib-btn sib-btn--primary sales-overview__visualizza">
-          <i className="fa-light fa-chart-line" /> Visualizza
-        </button>
-        <button type="button" className="sib-btn sib-btn--icon sales-overview__info" title="Info" aria-label="Info">
-          <i className="fa-regular fa-circle-info" />
-        </button>
-      </div>
-
-      {/* ─── Stats row ───────────────────────────────────────────────────────── */}
-      <div className="sales-overview__stats">
-        <div className="sales-overview__stat-card">
-          <i className="fa-light fa-receipt sales-overview__stat-ico" />
-          <div className="sales-overview__stat-body">
-            <div className="sales-overview__stat-label">Revenue</div>
-            <div className="sales-overview__stat-value">{fmtMln(data.revenue)}</div>
-            <div className="sales-overview__stat-foot">SDLY: {fmtMln(data.revenueSDLY)}</div>
-          </div>
-        </div>
-
-        <div className="sales-overview__stat-card">
-          <div className="sales-overview__stat-body">
-            <div className="sales-overview__stat-label">Forecast</div>
-            <div className="sales-overview__stat-value">{fmtMln(data.forecast)}</div>
-            <div className="sales-overview__stat-foot">SDLY: {fmtMln(data.forecastSDLY)}</div>
-          </div>
-        </div>
-
-        <div className="sales-overview__stat-card">
-          <div className="sales-overview__stat-body">
-            <div className="sales-overview__stat-label">Grand total vs budget</div>
-            <div className={'sales-overview__stat-value ' + (data.vsBudgetPct >= 0 ? 'sales-overview__stat-value--pos' : 'sales-overview__stat-value--neg')}>
-              {fmtPct(data.vsBudgetPct)}
-            </div>
-            <div className="sales-overview__stat-foot">Budget {fmtMln(data.budget)}</div>
-          </div>
-        </div>
-
-        <div className="sales-overview__bookings">
-          <div className="sales-overview__bookings-tag">BUDGET ANALYSIS</div>
-          <table className="sales-overview__bookings-table">
-            <thead>
-              <tr>
-                <th />
-                <th>Bookings TY</th>
-                <th>Bookings LY</th>
-                <th>Δ Bookings</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.bookings.map((b) => (
-                <tr key={b.label} className={b.label === 'OGGI' ? 'sales-overview__bookings-row--today' : ''}>
-                  <td>{b.label}</td>
-                  <td>{b.ty}</td>
-                  <td>{b.ly}</td>
-                  <td>{b.delta}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ─── Trend chart ────────────────────────────────────────────────────── */}
-      <div className="sales-overview__trend">
-        <div className="sales-overview__trend-side">
-          <div className="sales-overview__trend-value">{fmtMln(data.grandTotal)}</div>
-          <div className="sales-overview__trend-label">Grand total</div>
-          <div className="sales-overview__trend-foot">LY: {fmtMln(data.grandTotalLY)}</div>
-        </div>
-        <div className="sales-overview__trend-body">
-          <div className="sales-overview__trend-legend">
-            <span><span className="sales-overview__dot sales-overview__dot--ly" /> Revenue LY</span>
-            <span><span className="sales-overview__dot sales-overview__dot--rev" /> Revenue</span>
-            <span><span className="sales-overview__dot sales-overview__dot--forecast" /> Forecast</span>
-          </div>
-          <TrendChart points={data.trend} />
-        </div>
-        <div className="sales-overview__trend-tags">
-          <div className="sales-overview__side-tag">FORECAST ANALYSIS</div>
-          <div className="sales-overview__side-tag sales-overview__side-tag--alt">MONTHLY ANALYSIS</div>
-        </div>
-      </div>
-
-      {/* ─── Bottom row ─────────────────────────────────────────────────────── */}
-      <div className="sales-overview__bottom">
-        <div className="sales-overview__segments-card">
-          <div className="sales-overview__segments-icon">
-            <i className="fa-light fa-people-group" />
-          </div>
-          <div className="sales-overview__segments-body">
-            <SegmentBars bars={data.segmenti} />
-            <div className="sales-overview__segments-legend">
-              <span><span className="sales-overview__sw sales-overview__sw--total" /> Grand Total</span>
-              <span><span className="sales-overview__sw sales-overview__sw--ly" /> Grand Total LY</span>
-              <span><span className="sales-overview__sw sales-overview__sw--budget" /> Budget</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="sales-overview__kpi-list">
-          <div className="sales-overview__kpi-card">
-            <div className="sales-overview__kpi-icon"><i className="fa-light fa-bed-front" /></div>
-            <div className="sales-overview__kpi-text">
-              <div className="sales-overview__kpi-label">Occupazione</div>
-              <div className="sales-overview__kpi-value">{fmtPct(data.occupazione)}</div>
-              <div className="sales-overview__kpi-foot">LY: {fmtPct(data.occupazioneLY)}</div>
-            </div>
-            <Sparkline values={data.occupazioneSpark} color="#3FA34D" />
-          </div>
-
-          <div className="sales-overview__kpi-card">
-            <div className="sales-overview__kpi-icon"><i className="fa-light fa-hotel" /></div>
-            <div className="sales-overview__kpi-text">
-              <div className="sales-overview__kpi-label">Average daily rate</div>
-              <div className="sales-overview__kpi-value">{data.adr.toFixed(2).replace('.', ',')} €</div>
-              <div className="sales-overview__kpi-foot">LY: {data.adrLY.toFixed(2).replace('.', ',')} €</div>
-            </div>
-            <Sparkline values={data.adrSpark} color="#1F4E5F" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── TREND CHART (3 series, with forecast dashed tail) ───────────────────────
-function TrendChart({ points }: { points: TrendPoint[] }) {
-  const W = 1300
-  const H = 320
-  const PAD_L = 60
-  const PAD_R = 20
-  const PAD_T = 16
-  const PAD_B = 36
-  const innerW = W - PAD_L - PAD_R
-  const innerH = H - PAD_T - PAD_B
-
-  const ticks = 6
-  const allY = points.flatMap((p) => [p.revenue, p.revenueLY, p.forecast ?? 0])
-  const maxY = Math.max(...allY, 1)
-  const yPos = (v: number) => PAD_T + innerH - (v / maxY) * innerH
-  const xPos = (i: number) => PAD_L + (points.length <= 1 ? innerW / 2 : (i / (points.length - 1)) * innerW)
-
-  const linePath = (key: 'revenue' | 'revenueLY') =>
-    points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xPos(i)} ${yPos(p[key])}`).join(' ')
-
-  // Forecast: only points where it's not null, connecting from last revenue
-  const forecastPts: { x: number; y: number }[] = []
-  const lastRevenueIdx = points.length - 1
-  if (points[lastRevenueIdx]) {
-    forecastPts.push({ x: xPos(lastRevenueIdx), y: yPos(points[lastRevenueIdx].revenue) })
-    points.forEach((p, i) => {
-      if (p.forecast !== null && i === lastRevenueIdx) {
-        forecastPts.push({ x: xPos(i) + 30, y: yPos(p.forecast!) })
-      }
-    })
-  }
-
-  const xLabelStep = Math.max(1, Math.floor(points.length / 15))
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="sales-overview__svg sales-overview__svg--trend">
-      {Array.from({ length: ticks + 1 }, (_, i) => {
-        const v = (maxY / ticks) * i
-        const y = yPos(v)
-        return (
-          <g key={i}>
-            <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#E0E7EE" strokeWidth={1} />
-            <text x={PAD_L - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#888">
-              {v >= 1000 ? `${Math.round(v / 1000)}K €` : `${Math.round(v)} €`}
-            </text>
-          </g>
-        )
-      })}
-
-      {/* Revenue LY */}
-      <path d={linePath('revenueLY')} fill="none" stroke="#A0A4AA" strokeWidth={2} />
-      {points.map((p, i) => <circle key={`ly-${i}`} cx={xPos(i)} cy={yPos(p.revenueLY)} r={2.5} fill="#A0A4AA" />)}
-
-      {/* Revenue */}
-      <path d={linePath('revenue')} fill="none" stroke="#1F4E5F" strokeWidth={2.2} />
-      {points.map((p, i) => <circle key={`r-${i}`} cx={xPos(i)} cy={yPos(p.revenue)} r={2.8} fill="#1F4E5F" />)}
-
-      {/* Forecast (dashed tail from last point) */}
-      {forecastPts.length > 1 && (
-        <path d={forecastPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')} fill="none" stroke="#F59E0B" strokeWidth={2} strokeDasharray="6 4" />
+    <BiPage
+      title="Sales overview"
+      subtitle={`Andamento commerciale ${data.anno}: ricavi, prezzo, occupazione e mix di vendita`}
+      glossary={['ADR', 'RevPAR', 'occupazione', 'budget', 'atterraggio', 'TY', 'LY', 'delta', 'ALOS', 'leadTime', 'cancellazioni', 'noShow', 'complimentary', 'dirette', 'B2B', 'gruppi', 'corporate', 'ranking']}
+      dataAt={data.aggiornatoAl}
+      loading={loading}
+      onRefresh={() => setRemoto(null)}
+      gridClassName="so__grid"
+      actions={(
+        <span className="so__links">
+          {COLLEGAMENTI.map((c) => (
+            <Tooltip key={c.page} text={c.label}>
+              <button
+                type="button"
+                className="sib-btn sib-btn--icon so__link"
+                onClick={() => navigate(c.page)}
+                aria-label={c.label}
+              >
+                <i className={`fa-regular ${c.icon}`} aria-hidden="true" />
+              </button>
+            </Tooltip>
+          ))}
+        </span>
       )}
+      toolbar={(
+        <>
+          <SelectField
+            name="struttura" label="Struttura"
+            value={strutturaId ?? ''}
+            onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
+            options={[
+              { value: '', label: 'Tutte le strutture' },
+              ...data.strutture.map((s) => ({ value: s.id, label: s.nome })),
+            ]}
+            className="so__filter so__filter--wide"
+          />
+          <SelectField
+            name="anno" label="Anno" value={anno}
+            onChange={(e) => setAnno(Number(e.target.value))}
+            options={[2024, 2025, 2026].map((a) => ({ value: a, label: String(a) }))}
+            className="so__filter"
+          />
+          <span className="so__note">
+            <i className="fa-solid fa-bed" aria-hidden="true" />
+            {fmtInt(data.camereDisponibili)} camere disponibili · {fmtInt(kpi.camere)} camere vendute nel periodo
+          </span>
+        </>
+      )}
+    >
+      {/* ── Indicatori del periodo consuntivato ───────────────────────────── */}
+      <div className="so__kpis">
+        <KpiTile
+          label="Ricavi camere" icon="fa-sack-dollar" slot={0} index={0}
+          value={kpi.ricavi} format={(n) => fmtEurK(n)}
+          delta={kpi.deltaRicavi} spark={kpi.sparkRicavi}
+          info="Ricavi camere dei mesi già chiusi, confrontati con lo stesso periodo dell'anno precedente."
+        />
+        <KpiTile
+          label="Occupazione" icon="fa-door-open" slot={6} index={1}
+          value={kpi.occ} format={(n) => fmtPct(n)}
+          delta={kpi.deltaOcc} deltaLabel={fmtDelta(kpi.deltaOcc, ' pt')}
+          spark={kpi.sparkOcc}
+          info="Camere vendute sulle camere disponibili nel periodo. Si confronta in punti percentuali."
+        />
+        <KpiTile
+          label="ADR" icon="fa-tag" slot={1} index={2}
+          value={kpi.adr} format={(n) => fmtEur(n, 0)}
+          delta={kpi.deltaAdr} spark={kpi.sparkAdr}
+          info="Ricavo medio per camera venduta nel periodo."
+        />
+        <KpiTile
+          label="RevPAR" icon="fa-chart-simple" slot={2} index={3}
+          value={kpi.revpar} format={(n) => fmtEur(n, 0)}
+          delta={kpi.deltaRevpar} spark={kpi.sparkRevpar}
+          info="Ricavo per camera disponibile: tiene insieme prezzo e occupazione."
+        />
+        <KpiTile
+          label="Atterraggio d'anno" icon="fa-plane-arrival" slot={4} index={4}
+          value={kpi.atterraggio} format={(n) => fmtEurK(n)}
+          delta={kpi.deltaBudget}
+          deltaLabel={`${fmtDelta(kpi.deltaBudget)} sul budget`}
+          info={`Chiusura attesa dei dodici mesi (mesi chiusi più previsione) contro il budget d'anno (${fmtEurK(kpi.budgetAnno)}).`}
+        />
+      </div>
 
-      {/* X labels */}
-      {points.map((p, i) => {
-        if (i % xLabelStep !== 0) return null
-        return (
-          <text key={i} x={xPos(i)} y={H - 10} textAnchor="middle" fontSize="10" fill="#888">{p.date}</text>
-        )
-      })}
-    </svg>
-  )
-}
-
-// ─── SEGMENT BARS (Grand Total + LY + Budget bullet) ─────────────────────────
-function SegmentBars({ bars }: { bars: SegmentBar[] }) {
-  const max = bars.reduce((m, b) => Math.max(m, b.total, b.totalLY, b.budget), 0) || 1
-
-  return (
-    <div className="sales-overview__seg-bars">
-      {bars.map((b, i) => {
-        const totalPct = (b.total / max) * 100
-        const lyPct = (b.totalLY / max) * 100
-        const budgetPct = (b.budget / max) * 100
-        return (
-          <div className="sales-overview__seg-row" key={i}>
-            <span className="sales-overview__seg-label">{b.label}</span>
-            <div className="sales-overview__seg-track">
-              <div className="sales-overview__seg-bar sales-overview__seg-bar--total" style={{ '--seg-bar-w': `${totalPct}%` } as React.CSSProperties} />
-              <div className="sales-overview__seg-bar sales-overview__seg-bar--ly"    style={{ '--seg-bar-w': `${lyPct}%` } as React.CSSProperties} />
-              <div className="sales-overview__seg-bullet" style={{ '--seg-bullet-left': `${budgetPct}%` } as React.CSSProperties} />
+      {/* ── Ricavi per mese: consuntivo, previsione, LY e budget ──────────── */}
+      <ChartCard
+        className="so__main"
+        index={0}
+        title={`Ricavi camere · ${data.anno}`}
+        subtitle="Mese per mese, contro anno precedente e budget"
+        badge={fmtEurK(kpi.atterraggio)}
+        legend={[
+          { key: 'ty', name: 'Consuntivo', color: series(0) },
+          { key: 'fc', name: 'Previsione', color: CHART.forecast },
+          { key: 'ly', name: 'Anno precedente', color: CHART.ly },
+          { key: 'bud', name: 'Budget', color: series(4) },
+        ]}
+        rail={(
+          <BiVerticalTabs
+            tabs={[
+              { id: 'trend', label: 'Andamento' },
+              { id: 'dettaglio', label: 'Dettaglio' },
+            ]}
+            active={vista}
+            onChange={(id) => setVista(id as 'trend' | 'dettaglio')}
+          />
+        )}
+        footer={vista === 'trend' ? (
+          <span className="so__foot">
+            {data.ultimoMeseConsuntivo > 0
+              ? <>Consuntivo dei primi {data.ultimoMeseConsuntivo} mesi <strong>{fmtEurK(kpi.ricavi)}</strong> <DeltaBadge value={kpi.deltaRicavi} size="sm" /> sull'anno precedente</>
+              : 'Anno ancora tutto da consuntivare: le colonne sono previsione.'}
+          </span>
+        ) : undefined}
+      >
+        {vista === 'trend' ? (
+          <div className="so__chart">
+            <ResponsiveContainer width="100%" height="100%">
+              {/* Un solo asse dei valori: ricavi, LY e budget sono tutti in € */}
+              <ComposedChart data={data.mesi} margin={{ top: 6, right: 8, left: -4, bottom: 0 }}>
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="label" {...xAxisProps} interval={0} />
+                <YAxis {...yAxisProps} tickFormatter={fmtAxisNum} />
+                <RTooltip
+                  cursor={cursorProps}
+                  content={(
+                    <ChartTooltip
+                      names={{ ricavi: 'Ricavi camere', ricaviLY: 'Anno precedente', budget: 'Budget' }}
+                      format={(v) => fmtEur(v, 0)}
+                    />
+                  )}
+                />
+                <Bar
+                  dataKey="ricavi" radius={[3, 3, 0, 0]} maxBarSize={22}
+                  isAnimationActive={!still} animationBegin={ANIM.begin(0)}
+                  animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+                >
+                  {/* I mesi non ancora chiusi sono previsione: colore dedicato */}
+                  {data.mesi.map((m) => (
+                    <Cell key={m.mese} fill={m.consuntivo ? series(0) : CHART.forecast} />
+                  ))}
+                </Bar>
+                <Line
+                  type="monotone" dataKey="ricaviLY" stroke={CHART.ly} strokeWidth={1.8} dot={false}
+                  isAnimationActive={!still} animationBegin={ANIM.begin(1)}
+                  animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+                />
+                <Line
+                  type="monotone" dataKey="budget" stroke={series(4)} strokeWidth={2}
+                  strokeDasharray="5 4" dot={false}
+                  isAnimationActive={!still} animationBegin={ANIM.begin(2)}
+                  animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="so__detail">
+            <div className="sib-table-wrap so__detail-table" ref={tabellaRef}>
+              <table className="sib-table">
+                <thead>
+                  <tr>
+                    <th>Mese</th>
+                    <th className="so__num">Camere</th>
+                    <th className="so__num">Occupazione</th>
+                    <th className="so__num">ADR</th>
+                    <th className="so__num">RevPAR</th>
+                    <th className="so__num">Ricavi</th>
+                    <th className="so__num">vs LY</th>
+                    <th className="so__num">vs budget</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {righe.map((m) => (
+                    <tr key={m.mese} className={m.consuntivo ? undefined : 'so__row--prev'}>
+                      <td>{m.label}</td>
+                      <td className="so__num">{fmtInt(m.camere)}</td>
+                      <td className="so__num">{fmtPct(m.occ, 0)}</td>
+                      <td className="so__num">{fmtEur(m.adr, 0)}</td>
+                      <td className="so__num">{fmtEur(m.revpar, 0)}</td>
+                      <td className="so__num">{fmtEurK(m.ricavi)}</td>
+                      <td className="so__num">
+                        <DeltaBadge value={m.ricaviLY ? ((m.ricavi - m.ricaviLY) / m.ricaviLY) * 100 : 0} size="sm" />
+                      </td>
+                      <td className="so__num">
+                        <DeltaBadge value={m.budget ? ((m.ricavi - m.budget) / m.budget) * 100 : 0} size="sm" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="so__pager">
+              <Pagination page={paginaCorrente} totalPages={totPagine} onPageChange={setPagina} />
             </div>
           </div>
-        )
-      })}
-    </div>
+        )}
+      </ChartCard>
+
+      {/* ── Mix di vendita ────────────────────────────────────────────────── */}
+      <ChartCard
+        className="so__mix"
+        index={1}
+        title={dimCorrente.titolo}
+        subtitle="Ricavi dell'anno per voce"
+        rail={(
+          <BiVerticalTabs
+            tabs={DIMENSIONI.map((d) => ({ id: d.key, label: d.label }))}
+            active={dimensione}
+            onChange={(id) => setDimensione(id as Dimensione)}
+          />
+        )}
+      >
+        <div className="so__bars">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={voci} layout="vertical" margin={{ top: 2, right: 62, left: 0, bottom: 0 }} barCategoryGap="22%">
+              <CartesianGrid {...gridProps} horizontal={false} vertical />
+              <XAxis type="number" hide />
+              <YAxis
+                type="category" dataKey="label" {...yAxisProps} width={106} interval={0}
+                tick={{ fontSize: 11, fill: CHART.ink }}
+              />
+              <RTooltip
+                cursor={{ fill: 'transparent' }}
+                content={<ChartTooltip names={{ valore: 'Ricavi' }} format={(v) => fmtEur(v, 0)} />}
+              />
+              <Bar
+                dataKey="valore" fill={series(0)} radius={[0, 4, 4, 0]} maxBarSize={16}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                <LabelList dataKey="valore" content={barEndLabel()} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+      {/* ── Il mix contro l'anno precedente ───────────────────────────────── */}
+      <ChartCard
+        className="so__vs"
+        index={2}
+        title={`Come cambia il mix · ${dimCorrente.label.toLowerCase()}`}
+        subtitle="Quota di ricavo guadagnata o persa rispetto all'anno precedente"
+        footer={(
+          <span className="so__foot">
+            {cresce && arretra && cresce.label !== arretra.label ? (
+              <>
+                Guadagna quota <strong>{cresce.label}</strong> ({fmtDelta(cresce.deltaQuota, ' pt')},{' '}
+                {fmtEurK(cresce.delta)} sul valore); ne perde <strong>{arretra.label}</strong>{' '}
+                ({fmtDelta(arretra.deltaQuota, ' pt')}, {fmtEurK(arretra.delta)}).
+              </>
+            ) : (
+              'Variazione della quota di ricavo di ogni voce rispetto allo stesso periodo dell\'anno precedente.'
+            )}
+          </span>
+        )}
+      >
+        <div className="so__bars">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={confronto} layout="vertical" margin={{ top: 2, right: 54, left: 0, bottom: 0 }} barCategoryGap="22%">
+              <CartesianGrid {...gridProps} horizontal={false} vertical />
+              <XAxis type="number" hide />
+              <YAxis
+                type="category" dataKey="label" {...yAxisProps} width={106} interval={0}
+                tick={{ fontSize: 11, fill: CHART.ink }}
+              />
+              <RTooltip
+                cursor={{ fill: 'transparent' }}
+                content={(
+                  <ChartTooltip
+                    names={{ deltaQuota: 'Variazione di quota' }}
+                    format={(v) => fmtDelta(Number(v), ' pt')}
+                  />
+                )}
+              />
+              <ReferenceLine x={0} stroke={CHART.axis} />
+              {/* Spostamento di quota: una variazione neutra, non uno stato — colore
+                  di serie unico, il segno lo porta il lato della barra. */}
+              <Bar
+                dataKey="deltaQuota" fill={series(0)} radius={[3, 3, 3, 3]} maxBarSize={14}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {/* Etichetta oltre lo zero anche per i negativi: a sinistra finirebbe
+                    sopra le etichette di categoria. */}
+                <LabelList dataKey="deltaQuota" content={barRightLabel((n) => fmtDelta(n, ' pt'))} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+      {/* ── Qualità della domanda ─────────────────────────────────────────── */}
+      <ChartCard
+        className="so__dom"
+        index={3}
+        title="Qualità della domanda"
+        subtitle="Come è fatta la prenotazione, non solo quanto vale"
+      >
+        <ul className="so__dom-list">
+          {data.domanda.map((d) => (
+            <li className="so__dom-row" key={d.key}>
+              <span className="so__dom-lbl">{d.label}</span>
+              <span className="so__dom-val">{valoreDomanda(d)}</span>
+              <DeltaBadge value={d.delta} invert={d.invert} size="sm" />
+            </li>
+          ))}
+        </ul>
+      </ChartCard>
+    </BiPage>
   )
 }
 
-// ─── SPARKLINE ───────────────────────────────────────────────────────────────
-function Sparkline({ values, color }: { values: number[]; color: string }) {
-  const W = 220
-  const H = 60
-  const PAD = 6
-  const max = Math.max(...values)
-  const min = Math.min(...values)
-  const range = max - min || 1
-  const xs = (i: number) => PAD + (i / (values.length - 1)) * (W - PAD * 2)
-  const ys = (v: number) => H - PAD - ((v - min) / range) * (H - PAD * 2)
-  const path = values.map((v, i) => `${i === 0 ? 'M' : 'L'} ${xs(i)} ${ys(v)}`).join(' ')
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="sales-overview__sparkline" width={W} height={H}>
-      <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-      {values.map((v, i) => (
-        <circle key={i} cx={xs(i)} cy={ys(v)} r={2.5} fill={color} />
-      ))}
-    </svg>
-  )
+/** Numeri della domanda con la formattazione italiana del kit. */
+function valoreDomanda(d: IndicatoreDomanda): string {
+  return d.unita === 'pct' ? fmtPct(d.valore)
+    : d.unita === 'gg' ? `${fmtInt(d.valore)} gg`
+      : `${fmtDec(d.valore, 1)} notti`
 }
