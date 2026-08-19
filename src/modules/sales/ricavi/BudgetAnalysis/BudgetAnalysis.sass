@@ -1,182 +1,165 @@
-// ─── BUDGET ANALYSIS ──────────────────────────────────────────────────────────
+// ─── BUDGET ANALYSIS ────────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + budget/consuntivo (2 colonne) + indicatori
+// per camera, origine dello scostamento e conto del periodo.
 @use '../../../../styles/tokens' as *
 
-.budget-analysis
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+.bga
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1.08fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main par' 'var  sint sint'
 
-  > .sib-btn--back
-    align-self: flex-start
-
-  &__filters
-    display: flex
-    align-items: flex-end
-    gap: 12px
-
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
-
-  &__select
-    width: 200px
-
-  &__date-range
-    display: flex
-    align-items: center
-    gap: 6px
-
-    .sib-input
-      width: 140px
-
-    span
-      color: $text-inactive
-
-  &__visualizza
-    i
-      margin-right: 6px
-
-  // ── Panel (Budget / KPI) ────────────────────────────────────────────────────
-  &__panel
-    display: flex
-    align-items: flex-start
-    gap: 0
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    overflow: hidden
-
-  &__panel-side
-    background: $primary
-    color: white
-    padding: 18px 20px
-    min-width: 220px
-    display: flex
-    flex-direction: column
-    align-items: flex-start
-    gap: 6px
-
-  &__total
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 22px
-
-  &__panel-label
-    font-size: 13px
-    color: rgba(255,255,255,0.75)
-    align-self: stretch
-    text-align: right
-    margin-top: 4px
-
-  &__panel-body
-    flex: 1
-    padding: 12px 16px
-    display: flex
-    flex-direction: column
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
     gap: 10px
+    min-width: 0
 
-  // ── Tabs ────────────────────────────────────────────────────────────────────
-  &__tabs
-    display: flex
-    gap: 8px
+  &__main
+    grid-area: main
 
-  &__tab
-    flex: 1
-    height: 44px
-    background: $bg
-    border: 1px solid $border
-    border-radius: 6px
-    color: $text-active
-    font-weight: 600
-    font-size: 13px
-    cursor: pointer
-    transition: background 0.15s, color 0.15s
+  &__par
+    grid-area: par
 
-    &:hover
-      background: $primary-50
-      color: $primary
+  &__var
+    grid-area: var
 
-    &--on
-      background: $primary
-      border-color: $primary
-      color: white
+  &__sint
+    grid-area: sint
 
-      &:hover
-        background: $primary-800
-        color: white
+  // ── Testata ──────────────────────────────────────────────────────────────────
+  &__links
+    display: inline-flex
+    align-items: center
+    gap: 4px
 
-  // ── Legend ──────────────────────────────────────────────────────────────────
-  &__legend
-    display: flex
-    justify-content: center
-    gap: 24px
-    font-size: 12px
+  &__link
+    i
+      color: var(--color-primary)
+      font-size: 15px
 
-  &__legend-item
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 168px
+
+    &--wide
+      width: 200px
+
+    &--narrow
+      width: 96px
+
+  &__note
     display: inline-flex
     align-items: center
     gap: 6px
-    color: $text-active
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
 
-  &__sw
-    width: 14px
-    height: 14px
-    border-radius: 2px
-    display: inline-block
+    i
+      color: var(--color-primary)
+      font-size: 12px
 
-    &--revenue
-      background: #204769
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
+    flex: 1
+    min-height: 0
+    min-width: 0
 
-    &--costi
-      background: #A22A2A
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 11px
+    font-weight: 600
 
-    &--dashed
-      background: transparent
-      border: 1px dashed var(--color-border)
+  &__foot
+    display: inline-flex
+    align-items: center
+    gap: 6px
 
-    &--line
-      width: 16px
-      height: 0
-      border-top: 2px solid var(--color-border)
-      border-radius: 0
-      position: relative
+    strong
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
 
-      &::after
-        content: ""
-        position: absolute
-        left: 50%
-        top: 50%
-        transform: translate(-50%, -50%)
-        width: 6px
-        height: 6px
-        background: #3FA34D
-        border-radius: 50%
+  // ── Conto del periodo ────────────────────────────────────────────────────────
+  &__sint-table
+    flex: 1
+    min-height: 0
 
-  &__dot
-    width: 10px
-    height: 10px
-    border-radius: 50%
-    display: inline-block
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
 
-    &--ty
-      background: #F57D03
+      th,
+      td
+        padding-top: 3px
+        padding-bottom: 3px
 
-    &--forecast
-      background: #F57D03
-      opacity: 0.5
+  &__col-voce
+    width: 40%
 
-    &--ly
-      background: #A0A4AA
+  &__col-num
+    width: 20%
 
-  &__svg
-    width: 100%
-    height: auto
+  // Riga del margine: è la sintesi di tutto, si distingue in peso
+  &__row--tot
+    td
+      font-weight: 700
+      color: var(--color-primary)
 
-    &--budget
-      height: 320px
+  &__num
+    text-align: right
 
-    &--kpi
-      height: 280px
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .bga
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 140px
+
+      &--wide
+        width: 168px
+
+      &--narrow
+        width: 84px
+
+    &__note
+      display: none
+
+    &__sint-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+@media (max-height: 900px)
+  .bga
+    &__kpis
+      gap: 8px
+
+    &__sint-table .sib-table
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+
+// Laptop bassi: il conto del periodo deve stare comunque tutto nella card, quindi
+// le righe si stringono (le voci sono quattro e non si tolgono).
+@media (max-height: 820px)
+  .bga
+    &__sint-table .sib-table.sib-table
+      font-size: 11px
+      line-height: 1.25
+
+      th,
+      td
+        padding-top: 0
+        padding-bottom: 0

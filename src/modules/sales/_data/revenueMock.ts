@@ -43,6 +43,19 @@ export const STAGIONALITA = [0.38, 0.42, 0.53, 0.66, 0.74, 0.82, 0.86, 0.88, 0.7
 /** ADR base per mese (€): il prezzo segue la domanda. */
 export const ADR_BASE = [92, 95, 104, 118, 132, 158, 182, 196, 164, 126, 102, 116]
 
+/**
+ * Obiettivo di crescita del budget: il budget di un periodo è il consuntivo dello
+ * stesso periodo dell'anno precedente più questa quota. Vive qui perché è UNO per
+ * tutta la piattaforma — Budget analysis, Sales overview e il conto economico di
+ * finance devono leggere lo stesso budget, altrimenti le pagine si contraddicono.
+ */
+export const CRESCITA_BUDGET = 1.04
+
+/** Budget di un periodo a partire dal consuntivo dello stesso periodo LY. */
+export function budgetDa(ricaviLY: number): number {
+  return Math.round(ricaviLY * CRESCITA_BUDGET)
+}
+
 /** Scostamento deterministico: stesso seme → sempre lo stesso valore. */
 export function jitter(seed: number, ampiezza: number): number {
   const x = Math.sin(seed * 12.9898) * 43758.5453

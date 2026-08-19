@@ -14,8 +14,8 @@
 //
 //  Tutto deterministico: stessi filtri → stessi numeri.
 import {
-  MESI, STRUTTURE, aggiornatoAl, buildGiorniMese, camereDisponibili, giorniDelMese,
-  jitter,
+  CRESCITA_BUDGET, MESI, STRUTTURE, aggiornatoAl, buildGiorniMese, camereDisponibili,
+  giorniDelMese, jitter,
 } from '../../sales/_data/revenueMock'
 
 export { MESI, STRUTTURE }
@@ -129,9 +129,6 @@ export const FAMIGLIE_COSTO: {
 export function famigliaDi(key: string): FamigliaCosto {
   return FAMIGLIE_COSTO.find((f) => f.voci.includes(key))?.key ?? 'altri'
 }
-
-/** Il budget dell'anno: i ricavi dell'anno precedente più l'obiettivo di crescita. */
-const CRESCITA_BUDGET = 1.04
 
 export interface MeseFinance {
   /** 1-12 */

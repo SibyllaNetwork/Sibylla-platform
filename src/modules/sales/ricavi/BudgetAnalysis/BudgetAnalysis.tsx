@@ -1,327 +1,429 @@
-import React, { useEffect, useState } from 'react'
-import PageHead from '../../../../core/components/PageHead'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Line,
+  ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
+} from 'recharts'
+import { SelectField } from '../../../../core/components/form'
+import Tooltip from '../../../../core/components/Tooltip'
+import {
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, DeltaBadge, KpiTile, barRightLabel,
+  CHART, cursorProps, fmtAxisNum, fmtDelta, fmtEur, fmtEurK, fmtPct, gridProps,
+  reducedMotion, series, xAxisProps, yAxisProps,
+} from '../../../../core/bi'
 import { apiFetchSibylla } from '../../../../services/api'
-import { DateRangeField, SelectField } from '../../../../core/components/form'
+import { buildFinance, MESI, type FinanceData } from '../../../finance/_data/financeMock'
+import {
+  AMBITI, budgetMesi, computeBudgetKpi, perCameraDi, scostamentiBudget, sintesiBudget,
+  valoriDi, type Ambito, type Misura, type PerCamera,
+} from './budgetAnalysis.data'
 import './BudgetAnalysis.sass'
 
-type BudgetView = 'revenue' | 'cost' | 'profit'
-type KpiView = 'revpar' | 'costpar' | 'gopar'
+// ─── BUDGET ANALYSIS ────────────────────────────────────────────────────────────
+//  Il budget contro il consuntivo, in una schermata:
+//    • fascia indicatori: ricavi, scostamento sul margine, costi, margine,
+//      atterraggio d'anno — ognuno letto contro il budget dello stesso periodo
+//    • budget e consuntivo mese per mese, con lo scostamento progressivo (i mesi
+//      non ancora chiusi sono previsione, e si vedono)
+//    • indicatori per camera disponibile: RevPAR, CostPAR, GOPPAR contro budget
+//    • da dove nasce lo scostamento: ricavi e famiglie di costo, misurate tutte
+//      come effetto sul margine, ordinate per peso
+//    • il conto del periodo in sei righe
+//  Il selettore di periodo separa la lettura PROGRESSIVA (solo mesi chiusi) da
+//  quella d'ANNO (con la previsione dentro): confondere le due è l'errore classico
+//  della revisione di budget.
 
-interface MonthData {
-  label: string         // 'Apr', 'Mag'
-  revenue: number
-  costi: number
-  profittoForecast: number  // box dashed
-}
+const MISURE: { id: Misura; label: string; titolo: string }[] = [
+  { id: 'ricavi', label: 'Ricavi', titolo: 'Ricavi' },
+  { id: 'costi', label: 'Costi', titolo: 'Costi' },
+  { id: 'gop', label: 'Margine', titolo: 'Margine operativo' },
+]
 
-interface KpiPoint {
-  label: string
-  ty: number
-  forecast: number
-  ly: number
-}
+const PER_CAMERA: { id: PerCamera; label: string; nome: string; info: string }[] = [
+  { id: 'revpar', label: 'RevPAR', nome: 'RevPAR', info: 'Ricavi per camera disponibile' },
+  { id: 'costpar', label: 'CostPAR', nome: 'CostPAR', info: 'Costi per camera disponibile' },
+  { id: 'goppar', label: 'GOPPAR', nome: 'GOPPAR', info: 'Margine per camera disponibile' },
+]
 
-interface Data {
-  Strutture: { Id: number; nome: string }[]
-  StrutturaId: number | null
-  dataDa: string
-  dataA: string
-  budgetTotal: number
-  kpiTotal: number
-  budget: MonthData[]
-  kpi: KpiPoint[]
-}
-
-const FALLBACK: Data = {
-  Strutture: [],
-  StrutturaId: null,
-  dataDa: '2026-04-01',
-  dataA: '2026-05-31',
-  budgetTotal: 17265124.41,
-  kpiTotal: 67.17,
-  budget: [
-    { label: 'Apr', revenue: 9700000, costi: 0, profittoForecast: 9000000 },
-    { label: 'Mag', revenue: 7600000, costi: 0, profittoForecast: 7600000 },
-  ],
-  kpi: [
-    { label: 'Apr', ty: 70, forecast: 70, ly: 63 },
-    { label: 'Mag', ty: 95, forecast: 95, ly: 63 },
-  ],
-}
-
-function fmtEuroTotal(v: number): string {
-  // Italian format: 17.265.124,41 €
-  const [int, dec] = v.toFixed(2).split('.')
-  const withDots = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return `${withDots},${dec} €`
-}
+/** Pagine di approfondimento raggiungibili dalla testata. */
+const COLLEGAMENTI: { page: string; label: string; icon: string }[] = [
+  { page: 'budget-ricavi', label: 'Imposta il budget dei ricavi', icon: 'fa-table-list' },
+  { page: 'budget-costi', label: 'Imposta il budget dei costi', icon: 'fa-scissors' },
+  { page: 'wif-analysis', label: 'Simulazione scenari', icon: 'fa-sliders' },
+]
 
 export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
-  const [budgetView, setBudgetView] = useState<BudgetView>('profit')
-  const [kpiView, setKpiView] = useState<KpiView>('gopar')
+  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  const [anno, setAnno] = useState(2026)
+  const [ambito, setAmbito] = useState<Ambito>('ytd')
+  const [misura, setMisura] = useState<Misura>('ricavi')
+  const [perCamera, setPerCamera] = useState<PerCamera>('revpar')
+  const [loading, setLoading] = useState(false)
+  const [remoto, setRemoto] = useState<Partial<FinanceData> | null>(null)
+
+  const mock = useMemo(() => buildFinance(anno, strutturaId), [anno, strutturaId])
+  const data: FinanceData = useMemo(() => ({ ...mock, ...(remoto ?? {}) }), [mock, remoto])
+
+  const mesi = useMemo(() => budgetMesi(data), [data])
+  const kpi = useMemo(() => computeBudgetKpi(data, ambito), [data, ambito])
+  const scostamenti = useMemo(() => scostamentiBudget(data, ambito), [data, ambito])
+  // Le prime cinque voci per peso: oltre, le etichette dell'asse si toccherebbero
+  // nella card. Quello che resta fuori è dichiarato nel piede, non nascosto.
+  const voci = useMemo(() => scostamenti.slice(0, 5), [scostamenti])
+  const vociFuori = useMemo(() => {
+    const resto = scostamenti.slice(5)
+    return { quante: resto.length, effetto: resto.reduce((s, v) => s + v.effetto, 0) }
+  }, [scostamenti])
+  const sintesi = useMemo(() => sintesiBudget(data, ambito), [data, ambito])
 
   useEffect(() => {
-    let cancelled = false
-    apiFetchSibylla<Data>('budget/GetAnalysis', {
+    let annullato = false
+    setLoading(true)
+    apiFetchSibylla<Partial<FinanceData>>('budget/GetAnalysis', {
       method: 'POST',
-      body: { strutturaId: data.StrutturaId, da: data.dataDa, a: data.dataA },
+      body: { strutturaId, anno },
     })
-      .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+      .then((d) => { if (!annullato && d) setRemoto(d) })
+      .catch(() => { if (!annullato) setRemoto(null) })
+      .finally(() => { if (!annullato) setLoading(false) })
+    return () => { annullato = true }
+  }, [strutturaId, anno])
+
+  const still = reducedMotion()
+  const soloChiusi = ambito === 'ytd'
+
+  // I mesi del grafico: nella lettura progressiva la previsione resta fuori, così il
+  // confronto col budget è fra periodi omogenei.
+  const serie = useMemo(() => mesi
+    .filter((m) => !soloChiusi || m.consuntivo)
+    .map((m) => {
+      const { valore, budget } = valoriDi(m, misura)
+      return { label: m.label, valore, budget, cum: m.scostamentoCum, consuntivo: m.consuntivo }
+    }), [mesi, misura, soloChiusi])
+
+  const seriePerCamera = useMemo(() => mesi
+    .filter((m) => !soloChiusi || m.consuntivo)
+    .map((m) => {
+      const { valore, budget } = perCameraDi(m, perCamera)
+      return { label: m.label, valore, budget }
+    }), [mesi, perCamera, soloChiusi])
+
+  const misuraCorrente = MISURE.find((m) => m.id === misura) ?? MISURE[0]
+  const perCameraCorrente = PER_CAMERA.find((p) => p.id === perCamera) ?? PER_CAMERA[0]
+
+  // Totali della misura in vista: il badge della card deve dire quello che si legge.
+  const totali = useMemo(() => serie.reduce(
+    (a, r) => ({ valore: a.valore + r.valore, budget: a.budget + r.budget }),
+    { valore: 0, budget: 0 },
+  ), [serie])
+  const deltaMisura = totali.budget ? ((totali.valore - totali.budget) / totali.budget) * 100 : 0
 
   return (
-    <div className="budget-analysis">
-      <PageHead
-        title="Budget analysis"
-        subtitle="Visualizza, monitora e analizza i budget per decisioni strategiche"
-      />
-
-      <div className="budget-analysis__filters">
-        <div className="budget-analysis__field">
+    <BiPage
+      title="Budget analysis"
+      subtitle={`Budget ${data.anno} contro consuntivo: scostamenti, indicatori per camera e atterraggio d'anno`}
+      glossary={['budget', 'scostamento', 'atterraggio', 'RevPAR', 'CostPAR', 'GOPPAR', 'GOP', 'TY', 'LY', 'delta']}
+      dataAt={data.aggiornatoAl}
+      loading={loading}
+      onRefresh={() => setRemoto(null)}
+      gridClassName="bga__grid"
+      actions={(
+        <span className="bga__links">
+          {COLLEGAMENTI.map((c) => (
+            <Tooltip key={c.page} text={c.label}>
+              <button
+                type="button"
+                className="sib-btn sib-btn--icon bga__link"
+                onClick={() => navigate(c.page)}
+                aria-label={c.label}
+              >
+                <i className={`fa-regular ${c.icon}`} aria-hidden="true" />
+              </button>
+            </Tooltip>
+          ))}
+        </span>
+      )}
+      toolbar={(
+        <>
           <SelectField
-            label="Struttura"
-            name="struttura"
-            className="budget-analysis__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+            name="struttura" label="Struttura"
+            value={strutturaId ?? ''}
+            onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
             options={[
               { value: '', label: 'Tutte le strutture' },
-              ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+              ...data.strutture.map((s) => ({ value: s.id, label: s.nome })),
             ]}
+            className="bga__filter bga__filter--wide"
           />
-        </div>
-        <div className="budget-analysis__field">
-          <DateRangeField
-            nameFrom="dataDa"
-            nameTo="dataA"
-            label="Date"
-            valueFrom={data.dataDa}
-            valueTo={data.dataA}
-            onChangeFrom={(e) => setData({ ...data, dataDa: e.target.value })}
-            onChangeTo={(e) => setData({ ...data, dataA: e.target.value })}
+          <SelectField
+            name="anno" label="Anno" value={anno}
+            onChange={(e) => setAnno(Number(e.target.value))}
+            options={[2024, 2025, 2026].map((a) => ({ value: a, label: String(a) }))}
+            className="bga__filter bga__filter--narrow"
           />
-        </div>
-        <button type="button" className="sib-btn sib-btn--primary budget-analysis__visualizza">
-          <i className="fa-light fa-chart-line" /> Visualizza
-        </button>
-      </div>
-
-      {/* ─── BUDGET PANEL ─────────────────────────────────────────────────── */}
-      <div className="budget-analysis__panel">
-        <div className="budget-analysis__panel-side">
-          <div className="budget-analysis__total">{fmtEuroTotal(data.budgetTotal)}</div>
-          <div className="budget-analysis__panel-label">Budget</div>
-        </div>
-
-        <div className="budget-analysis__panel-body">
-          <div className="budget-analysis__tabs">
-            {([
-              { id: 'revenue', label: 'Revenue trend' },
-              { id: 'cost',    label: 'Cost trend' },
-              { id: 'profit',  label: 'Profit trend' },
-            ] as const).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={'budget-analysis__tab' + (budgetView === t.id ? ' budget-analysis__tab--on' : '')}
-                onClick={() => setBudgetView(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="budget-analysis__legend">
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--revenue" /> Revenue</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--costi" /> Costi</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--dashed" /> Profitto</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__sw budget-analysis__sw--line" /> Profit Line</span>
-          </div>
-
-          <BudgetChart data={data.budget} view={budgetView} />
-        </div>
-      </div>
-
-      {/* ─── KPI PANEL ────────────────────────────────────────────────────── */}
-      <div className="budget-analysis__panel">
-        <div className="budget-analysis__panel-side">
-          <div className="budget-analysis__total">{data.kpiTotal.toFixed(2).replace('.', ',')} €</div>
-          <div className="budget-analysis__panel-label">KPI Trend</div>
-        </div>
-
-        <div className="budget-analysis__panel-body">
-          <div className="budget-analysis__tabs">
-            {([
-              { id: 'revpar',  label: 'RevPar' },
-              { id: 'costpar', label: 'CostPar' },
-              { id: 'gopar',   label: 'GoPar' },
-            ] as const).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={'budget-analysis__tab' + (kpiView === t.id ? ' budget-analysis__tab--on' : '')}
-                onClick={() => setKpiView(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="budget-analysis__legend">
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot budget-analysis__dot--ty" /> {kpiView.toUpperCase()} TY</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot budget-analysis__dot--forecast" /> {kpiView.toUpperCase()} Forecast</span>
-            <span className="budget-analysis__legend-item"><span className="budget-analysis__dot budget-analysis__dot--ly" /> {kpiView.toUpperCase()} LY</span>
-          </div>
-
-          <KpiChart data={data.kpi} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── BUDGET CHART (bars + dashed boxes + line) ───────────────────────────────
-function BudgetChart({ data, view }: { data: MonthData[]; view: BudgetView }) {
-  const W = 1100
-  const H = 320
-  const PAD_L = 70
-  const PAD_R = 30
-  const PAD_T = 16
-  const PAD_B = 30
-  const innerW = W - PAD_L - PAD_R
-  const innerH = H - PAD_T - PAD_B
-
-  const ticks = 5
-  const allValues = data.flatMap((d) => [d.revenue, d.profittoForecast, d.costi]).filter(Boolean)
-  const maxY = Math.max(...allValues, 1) * 1.05
-  const yPos = (v: number) => PAD_T + innerH - (v / maxY) * innerH
-
-  const barW = (innerW / data.length) * 0.32
-  const profitBoxW = (innerW / data.length) * 0.34
-  const slotW = innerW / data.length
-
-  const showRevenue = view === 'revenue' || view === 'profit'
-  const showCost    = view === 'cost'    || view === 'profit'
-  const showProfit  = view === 'profit'
-
-  // Profit Line points (revenue - cost)
-  const profitPts = data.map((d, i) => ({
-    x: PAD_L + slotW * i + slotW / 2,
-    y: yPos(d.revenue - d.costi),
-  }))
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="budget-analysis__svg budget-analysis__svg--budget">
-      {/* Y grid */}
-      {Array.from({ length: ticks + 1 }, (_, i) => {
-        const v = (maxY / ticks) * i
-        const y = yPos(v)
-        return (
-          <g key={i}>
-            <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#E0E7EE" strokeWidth={1} />
-            <text x={PAD_L - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#888">
-              {Math.round(v).toLocaleString('it-IT')}
-            </text>
-          </g>
-        )
-      })}
-
-      {data.map((d, i) => {
-        const slotX = PAD_L + slotW * i
-        const barX = slotX + slotW / 2 - barW - 4
-        const profitX = slotX + slotW / 2 + 4
-        return (
-          <g key={i}>
-            {showRevenue && d.revenue > 0 && (
-              <rect x={barX} y={yPos(d.revenue)} width={barW} height={H - PAD_B - yPos(d.revenue)} fill="#204769" />
-            )}
-            {showCost && d.costi > 0 && (
-              <rect x={barX} y={yPos(d.costi)} width={barW} height={H - PAD_B - yPos(d.costi)} fill="#A22A2A" />
-            )}
-            {showProfit && d.profittoForecast > 0 && (
-              <rect
-                x={profitX}
-                y={yPos(d.profittoForecast)}
-                width={profitBoxW}
-                height={H - PAD_B - yPos(d.profittoForecast)}
-                fill="rgba(63, 163, 77, 0.10)"
-                stroke="#3FA34D"
-                strokeDasharray="6 4"
-                strokeWidth={1.5}
-              />
-            )}
-            <text x={slotX + slotW / 2} y={H - 8} textAnchor="middle" fontSize="11" fill="#888">{d.label}</text>
-          </g>
-        )
-      })}
-
-      {showProfit && profitPts.length > 1 && (
-        <>
-          <path
-            d={profitPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')}
-            fill="none"
-            stroke="#3FA34D"
-            strokeWidth={2}
+          <SelectField
+            name="ambito" label="Periodo" value={ambito}
+            onChange={(e) => setAmbito(e.target.value as Ambito)}
+            options={AMBITI.map((a) => ({ value: a.key, label: a.label }))}
+            className="bga__filter bga__filter--wide"
           />
-          {profitPts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3.5} fill="#3FA34D" />)}
+          <span className="bga__note">
+            <i className="fa-solid fa-calendar-check" aria-hidden="true" />
+            {data.ultimoMeseConsuntivo > 0
+              ? `Consuntivato fino a ${MESI[data.ultimoMeseConsuntivo - 1].toLowerCase()} · ${kpi.mesiSotto} mesi su ${kpi.mesiTotali} sotto budget`
+              : 'Anno ancora tutto da consuntivare: i valori sono previsione'}
+          </span>
         </>
       )}
-    </svg>
-  )
-}
+    >
+      {/* ── Indicatori contro il budget del periodo ───────────────────────── */}
+      <div className="bga__kpis">
+        <KpiTile
+          label="Ricavi" icon="fa-sack-dollar" slot={0} index={0}
+          value={kpi.ricavi} format={(n) => fmtEurK(n)}
+          delta={kpi.deltaRicavi} spark={kpi.sparkRicavi}
+          deltaLabel={`${fmtDelta(kpi.deltaRicavi)} sul budget`}
+          info={`Ricavi del periodo contro il budget dello stesso periodo (${fmtEurK(kpi.ricaviBudget)}).`}
+        />
+        <KpiTile
+          label="Scostamento sul margine" icon="fa-arrows-left-right-to-line" slot={4} index={1}
+          value={kpi.scostamentoGop} format={(n) => fmtEurK(n)}
+          delta={kpi.deltaGop} spark={kpi.sparkScostamento}
+          deltaLabel={`${fmtDelta(kpi.deltaGop)} sul budget`}
+          info="Margine consuntivato meno margine di budget: l'effetto complessivo di ricavi e costi. La serie mostra lo scostamento sommato mese su mese."
+        />
+        <KpiTile
+          label="Costi" icon="fa-scissors" slot={5} index={2}
+          value={kpi.costi} format={(n) => fmtEurK(n)}
+          delta={kpi.deltaCosti} invertDelta spark={kpi.sparkCosti}
+          deltaLabel={`${fmtDelta(kpi.deltaCosti)} sul budget`}
+          info={`Costi del periodo contro il budget dello stesso periodo (${fmtEurK(kpi.costiBudget)}). Spendere meno del budget migliora il margine.`}
+        />
+        <KpiTile
+          label="Budget realizzato" icon="fa-bullseye" slot={3} index={3}
+          value={kpi.raggiungimento} format={(n) => fmtPct(n, 0)}
+          info="Quota del budget di ricavi del periodo effettivamente realizzata: 100% significa esattamente a budget."
+        />
+        <KpiTile
+          label="Atterraggio d'anno" icon="fa-plane-arrival" slot={1} index={4}
+          value={kpi.atterraggio} format={(n) => fmtEurK(n)}
+          delta={kpi.deltaAtterraggio}
+          deltaLabel={`${fmtDelta(kpi.deltaAtterraggio)} sul budget d'anno`}
+          info={`Chiusura attesa dei dodici mesi (mesi chiusi più previsione) contro il budget d'anno (${fmtEurK(kpi.budgetAnno)}).`}
+        />
+      </div>
 
-// ─── KPI CHART (3 lines, dashed forecast) ────────────────────────────────────
-function KpiChart({ data }: { data: KpiPoint[] }) {
-  const W = 1100
-  const H = 280
-  const PAD_L = 60
-  const PAD_R = 30
-  const PAD_T = 16
-  const PAD_B = 30
-  const innerW = W - PAD_L - PAD_R
-  const innerH = H - PAD_T - PAD_B
+      {/* ── Budget e consuntivo mese per mese ─────────────────────────────── */}
+      <ChartCard
+        className="bga__main"
+        index={0}
+        title={`${misuraCorrente.titolo} · budget contro consuntivo`}
+        subtitle={soloChiusi ? 'Solo i mesi già chiusi' : 'Mesi chiusi e previsione dei mesi restanti'}
+        badge={fmtEurK(totali.valore)}
+        legend={[
+          { key: 'bud', name: 'Budget', color: CHART.ly },
+          { key: 'cons', name: 'Consuntivo', color: series(0) },
+          ...(soloChiusi ? [] : [{ key: 'prev', name: 'Previsione', color: CHART.forecast }]),
+          { key: 'cum', name: 'Scostamento progressivo', color: series(4) },
+        ]}
+        rail={(
+          <BiVerticalTabs
+            tabs={MISURE.map((m) => ({ id: m.id, label: m.label }))}
+            active={misura}
+            onChange={(id) => setMisura(id as Misura)}
+          />
+        )}
+        footer={(
+          <span className="bga__foot">
+            {misuraCorrente.titolo} del periodo <strong>{fmtEurK(totali.valore)}</strong> contro un budget di{' '}
+            <strong>{fmtEurK(totali.budget)}</strong> <DeltaBadge value={deltaMisura} size="sm" invert={misura === 'costi'} />
+            {kpi.peggiore && ` · mese peggiore ${kpi.peggiore.label} (${fmtEurK(kpi.peggiore.delta)} di margine)`}
+          </span>
+        )}
+      >
+        <div className="bga__chart">
+          <ResponsiveContainer width="100%" height="100%">
+            {/* Un solo asse dei valori: barre e scostamento cumulato sono tutti in € */}
+            <ComposedChart data={serie} margin={{ top: 6, right: 8, left: -4, bottom: 0 }} barGap={2}>
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="label" {...xAxisProps} interval={0} />
+              <YAxis {...yAxisProps} tickFormatter={fmtAxisNum} />
+              <RTooltip
+                cursor={cursorProps}
+                content={(
+                  <ChartTooltip
+                    names={{ budget: 'Budget', valore: misuraCorrente.titolo, cum: 'Scostamento progressivo' }}
+                    format={(v) => fmtEur(v, 0)}
+                  />
+                )}
+              />
+              <ReferenceLine y={0} stroke={CHART.axis} />
+              <Bar
+                dataKey="budget" fill={CHART.ly} radius={[3, 3, 0, 0]} maxBarSize={16}
+                isAnimationActive={!still} animationBegin={ANIM.begin(0)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+              <Bar
+                dataKey="valore" radius={[3, 3, 0, 0]} maxBarSize={16}
+                isAnimationActive={!still} animationBegin={ANIM.begin(1)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {/* I mesi non ancora chiusi sono previsione: colore dedicato, non
+                    una sfumatura del consuntivo. */}
+                {serie.map((r) => (
+                  <Cell key={r.label} fill={r.consuntivo ? series(0) : CHART.forecast} />
+                ))}
+              </Bar>
+              <Line
+                type="monotone" dataKey="cum" stroke={series(4)} strokeWidth={2}
+                dot={{ r: 2, strokeWidth: 0 }}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: CHART.surface }}
+                isAnimationActive={!still} animationBegin={ANIM.begin(2)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
 
-  const ticks = 5
-  const allY = data.flatMap((d) => [d.ty, d.forecast, d.ly])
-  const maxY = Math.max(...allY, 1) * 1.1
-  const minY = Math.min(...allY, 0) * 0.95
-  const range = maxY - minY || 1
-  const yPos = (v: number) => PAD_T + innerH - ((v - minY) / range) * innerH
-  const xPos = (i: number) => PAD_L + (data.length <= 1 ? innerW / 2 : (i / (data.length - 1)) * innerW)
+      {/* ── Indicatori per camera disponibile ─────────────────────────────── */}
+      <ChartCard
+        className="bga__par"
+        index={1}
+        title={`${perCameraCorrente.nome} contro budget`}
+        subtitle={perCameraCorrente.info}
+        legend={[
+          { key: 'bud', name: 'Budget', color: CHART.ly },
+          { key: 'ty', name: 'Consuntivo', color: series(0) },
+        ]}
+        rail={(
+          <BiVerticalTabs
+            tabs={PER_CAMERA.map((p) => ({ id: p.id, label: p.label }))}
+            active={perCamera}
+            onChange={(id) => setPerCamera(id as PerCamera)}
+          />
+        )}
+      >
+        <div className="bga__chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={seriePerCamera} margin={{ top: 6, right: 8, left: -6, bottom: 0 }}>
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="label" {...xAxisProps} interval="preserveStartEnd" />
+              <YAxis {...yAxisProps} tickFormatter={fmtAxisNum} width={40} />
+              <RTooltip
+                cursor={cursorProps}
+                content={(
+                  <ChartTooltip
+                    names={{ budget: 'Budget', valore: perCameraCorrente.nome }}
+                    format={(v) => fmtEur(v, 0)}
+                  />
+                )}
+              />
+              <ReferenceLine y={0} stroke={CHART.axis} />
+              <Line
+                type="monotone" dataKey="budget" stroke={CHART.ly} strokeWidth={1.8} dot={false}
+                isAnimationActive={!still} animationBegin={ANIM.begin(0)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+              <Line
+                type="monotone" dataKey="valore" stroke={series(0)} strokeWidth={2.4}
+                dot={{ r: 2, strokeWidth: 0 }}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: CHART.surface }}
+                isAnimationActive={!still} animationBegin={ANIM.begin(1)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
 
-  const path = (key: keyof Omit<KpiPoint, 'label'>) =>
-    data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xPos(i)} ${yPos(d[key])}`).join(' ')
+      {/* ── Da dove nasce lo scostamento ──────────────────────────────────── */}
+      <ChartCard
+        className="bga__var"
+        index={2}
+        title="Da dove nasce lo scostamento"
+        subtitle="Effetto sul margine di ricavi e famiglie di costo"
+        footer={(
+          <>
+            Le voci sono ordinate per peso e lette tutte come effetto sul margine: un costo sotto
+            budget conta in positivo quanto un ricavo sopra budget.
+            {vociFuori.quante > 0 && ` Le altre ${vociFuori.quante} voci pesano ${fmtEurK(vociFuori.effetto)}.`}
+          </>
+        )}
+      >
+        <div className="bga__bars">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={voci} layout="vertical" margin={{ top: 2, right: 62, left: 0, bottom: 0 }} barCategoryGap="22%">
+              <CartesianGrid {...gridProps} horizontal={false} vertical />
+              <XAxis type="number" hide />
+              <YAxis
+                type="category" dataKey="label" {...yAxisProps} width={104} interval={0}
+                tick={{ fontSize: 11, fill: CHART.ink }}
+              />
+              <RTooltip
+                cursor={{ fill: 'transparent' }}
+                content={<ChartTooltip names={{ effetto: 'Effetto sul margine' }} format={(v) => fmtEur(v, 0)} />}
+              />
+              <ReferenceLine x={0} stroke={CHART.axis} />
+              <Bar
+                dataKey="effetto" radius={[3, 3, 3, 3]} maxBarSize={14}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {voci.map((v) => (
+                  // Colore di stato: la voce ha aiutato o penalizzato il margine
+                  <Cell key={v.key} fill={v.effetto >= 0 ? CHART.good : CHART.bad} />
+                ))}
+                {/* Scostamenti: un positivo grande e negativi piccoli. L'etichetta
+                    sta sempre oltre lo zero, mai sopra le etichette di categoria. */}
+                <LabelList dataKey="effetto" content={barRightLabel()} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
 
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="budget-analysis__svg budget-analysis__svg--kpi">
-      {Array.from({ length: ticks + 1 }, (_, i) => {
-        const v = minY + (range / ticks) * i
-        const y = yPos(v)
-        return (
-          <g key={i}>
-            <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#E0E7EE" strokeWidth={1} />
-            <text x={PAD_L - 8} y={y + 4} textAnchor="end" fontSize="11" fill="#888">{Math.round(v)}</text>
-          </g>
-        )
-      })}
-
-      {/* LY (gray) */}
-      <path d={path('ly')} fill="none" stroke="#A0A4AA" strokeWidth={1.5} />
-      {data.map((d, i) => <circle key={`ly-${i}`} cx={xPos(i)} cy={yPos(d.ly)} r={3} fill="#A0A4AA" />)}
-
-      {/* Forecast (dashed orange) */}
-      <path d={path('forecast')} fill="none" stroke="#F57D03" strokeWidth={2} strokeDasharray="6 4" />
-
-      {/* TY (solid orange) */}
-      {data.map((d, i) => <circle key={`ty-${i}`} cx={xPos(i)} cy={yPos(d.ty)} r={3.5} fill="#F57D03" />)}
-
-      {data.map((d, i) => (
-        <text key={`xl-${i}`} x={xPos(i)} y={H - 8} textAnchor="middle" fontSize="11" fill="#888">{d.label}</text>
-      ))}
-    </svg>
+      {/* ── Il conto del periodo ──────────────────────────────────────────── */}
+      <ChartCard
+        className="bga__sint"
+        index={3}
+        title="Budget, consuntivo e scostamento"
+        subtitle={soloChiusi ? 'Voci del periodo consuntivato' : 'Voci dell\'anno, previsione compresa'}
+      >
+        <div className="sib-table-wrap bga__sint-table">
+          <table className="sib-table">
+            <colgroup>
+              <col className="bga__col-voce" />
+              <col className="bga__col-num" />
+              <col className="bga__col-num" />
+              <col className="bga__col-num" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Voce</th>
+                <th className="bga__num">Budget</th>
+                <th className="bga__num">Consuntivo</th>
+                <th className="bga__num">Scostamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sintesi.map((r) => (
+                <tr key={r.label} className={r.totale ? 'bga__row--tot' : undefined}>
+                  <td>{r.label}</td>
+                  <td className="bga__num">{fmtEurK(r.budget)}</td>
+                  <td className="bga__num">{fmtEurK(r.consuntivo)}</td>
+                  <td className="bga__num">
+                    <DeltaBadge
+                      value={r.budget ? ((r.consuntivo - r.budget) / r.budget) * 100 : 0}
+                      label={fmtEurK(r.consuntivo - r.budget)}
+                      invert={r.costo}
+                      size="sm"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ChartCard>
+    </BiPage>
   )
 }

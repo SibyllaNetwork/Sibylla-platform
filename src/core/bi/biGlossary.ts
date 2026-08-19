@@ -164,6 +164,21 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Differenza fra consuntivo e budget',
     formula: 'Valore consuntivato meno valore di budget dello stesso periodo',
   },
+  budget: {
+    term: 'Budget',
+    description: 'Obiettivo economico fissato prima dell’anno',
+    formula: 'Consuntivo dello stesso periodo dell’anno precedente più l’obiettivo di crescita',
+  },
+  CostPAR: {
+    term: 'CostPAR',
+    description: 'Cost Per Available Room — costo per camera disponibile',
+    formula: 'Costi totali diviso il numero delle camere disponibili nel periodo',
+  },
+  atterraggio: {
+    term: 'Atterraggio',
+    description: 'Chiusura attesa dell’anno: mesi consuntivati più previsione dei mesi restanti',
+    formula: 'Somma dei mesi chiusi più la previsione dei mesi ancora da consuntivare',
+  },
   OOO: {
     term: 'OOO',
     description: 'Out Of Order — camere fuori servizio, non vendibili',
