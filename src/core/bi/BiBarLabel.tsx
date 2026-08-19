@@ -62,3 +62,30 @@ export function barRightLabel(format: (n: number) => string = fmtEurK) {
     )
   }
 }
+
+/**
+ * Etichetta di valore per le barre VERTICALI: sopra la barra se il valore è positivo,
+ * sotto se è negativo. Serve al posto di `<LabelList position="top">`, che manda il
+ * testo a capo sulla larghezza della barra (recharts usa il suo `Text` con word-wrap):
+ * su una barra sottile "12,1k €" diventa due righe.
+ */
+export function barTopLabel(format: (n: number) => string = fmtEurK) {
+  return function EtichettaBarraSopra(p: any) {
+    const { x = 0, y = 0, width = 0, height = 0, value } = p
+    const n = Number(value)
+    if (!Number.isFinite(n)) return null
+    const negativa = n < 0
+    const alto = Math.min(y, y + height)
+    const basso = Math.max(y, y + height)
+    return (
+      <text
+        x={x + width / 2}
+        y={negativa ? basso + 12 : alto - 5}
+        textAnchor="middle"
+        className="bi-bar-label"
+      >
+        {format(n)}
+      </text>
+    )
+  }
+}

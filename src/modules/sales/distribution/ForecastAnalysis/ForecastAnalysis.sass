@@ -1,163 +1,187 @@
-// ─── FORECAST ANALYSIS ────────────────────────────────────────────────────────
+// ─── FORECAST ANALYSIS ──────────────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + forecast per data (2 colonne) + composizione,
+// settimane da presidiare e ranking del portafoglio futuro.
 @use '../../../../styles/tokens' as *
 
-.forecast-analysis
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+.fa
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.24fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi  kpi  kpi' 'main main comp' 'sett sett rank'
 
-  > .sib-btn--back
-    align-self: flex-start
-
-  &__filters
-    display: flex
-    align-items: flex-end
-    flex-wrap: nowrap
-    gap: 12px
-    margin-top: 8px
-
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
-    flex-shrink: 0
-
-  &__select
-    width: 200px
-
-  &__date-range
-    display: flex
-    align-items: center
-    gap: 6px
-
-    .sib-input
-      width: 140px
-
-    span
-      color: $text-inactive
-
-  &__visualizza
-    i
-      margin-right: 6px
-
-  &__cards
+  &__kpis
+    grid-area: kpi
     display: grid
-    grid-template-columns: repeat(3, 1fr)
-    gap: 16px
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
 
-    @media (max-width: 1280px)
-      grid-template-columns: 1fr
+  &__main
+    grid-area: main
 
-  &__card
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 16px
-    display: flex
-    flex-direction: column
-    gap: 12px
-    min-height: 320px
+  &__comp
+    grid-area: comp
 
-    &--donut
-      align-items: center
+  &__sett
+    grid-area: sett
 
-  &__card-title
-    margin: 0
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 600
-    color: $primary
-    text-align: center
+  &__rank
+    grid-area: rank
 
-  &__card-foot
-    display: flex
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 168px
+
+    &--wide
+      width: 200px
+
+  &__note
+    display: inline-flex
     align-items: center
-    justify-content: center
     gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
     font-size: 11px
-    color: $text-inactive
-    margin-top: 4px
+    color: var(--color-text-inactive)
+    white-space: nowrap
 
-  &__donut-totals
-    display: flex
-    justify-content: space-between
-    width: 100%
-    margin-top: 8px
-    padding-top: 12px
-    border-top: 1px solid $border
-    gap: 24px
+    i
+      color: var(--color-primary)
+      font-size: 12px
 
-  &__small-label
-    font-size: 11px
-    color: $text-inactive
-
-  &__small-value
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 700
-    color: $primary
-
-  &__legend-dot
-    width: 10px
-    height: 10px
-    border-radius: 50%
-    display: inline-block
-
-    &--sales
-      background: #5DC3E0
-
-  // ── Trend section ──────────────────────────────────────────────────────────
-  &__trend-section
-    display: flex
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    overflow: hidden
-
-  &__side-tags
-    display: flex
-    flex-direction: column
-
-  &__side-tag
-    background: $primary
-    color: white
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 11px
-    letter-spacing: 2px
-    padding: 16px 6px
-    writing-mode: vertical-rl
-    text-orientation: mixed
-    transform: rotate(180deg)
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart,
+  &__bars
     flex: 1
-    display: flex
+    min-height: 0
+    min-width: 0
+
+  &__bar-label
+    fill: var(--chart-ink)
+    font-family: var(--font-body)
+    font-size: 10px
+    font-weight: 600
+
+  &__foot
+    display: inline-flex
     align-items: center
-    justify-content: center
-
-    &:nth-child(2)
-      background: $primary-700
-
-  &__trend-body
-    flex: 1
-    padding: 16px
-
-  &__trend-header
-    display: flex
-    flex-wrap: wrap
-    gap: 24px
-    align-items: baseline
-    margin-bottom: 8px
-    font-size: 13px
-    color: $text-active
+    gap: 6px
+    flex-wrap: nowrap
 
     strong
-      color: $primary
+      color: var(--color-primary)
+      font-variant-numeric: tabular-nums
 
-  &__delta
-    &--pos strong
-      color: $success
+  // ── Vista dettaglio ──────────────────────────────────────────────────────────
+  &__detail
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-height: 0
 
-    &--neg strong
-      color: $error
+  &__detail-table
+    flex: 1
+    min-height: 0
+
+    .sib-table.sib-table
+      table-layout: fixed
+      font-size: 12px
+
+      th,
+      td
+        padding-top: 2px
+        padding-bottom: 2px
+
+  // I weekend guidano la domanda: si distinguono senza colore di stato
+  &__row--we
+    td:first-child
+      font-weight: 600
+      color: var(--color-primary)
+
+  &__col-data
+    width: 12%
+
+  &__col-num
+    width: 14.6%
+
+  &__num
+    text-align: right
+
+  // Paginazione SEMPRE centrata (standard piattaforma)
+  &__pager
+    display: flex
+    justify-content: center
+    flex: none
+    margin-top: 6px
+
+  // ── Composizione del forecast ────────────────────────────────────────────────
+  &__donut
+    position: relative
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__donut-center
+    position: absolute
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    display: flex
+    flex-direction: column
+    align-items: center
+    text-align: center
+    pointer-events: none
+
+  &__donut-val
+    font-family: var(--font-heading)
+    font-size: 16px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    line-height: 1.1
+
+  &__donut-lbl
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .fa
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 142px
+
+      &--wide
+        width: 168px
+
+    &__note
+      display: none
+
+    &__detail-table .sib-table
+      font-size: 11px
+
+      th,
+      td
+        padding-inline: 6px
+
+// ── Schermi non alti: righe più strette, nessuna informazione in meno ─────────
+@media (max-height: 900px)
+  .fa
+    &__kpis
+      gap: 8px
+
+    &__donut-val
+      font-size: 14px
+
+    &__donut-lbl
+      font-size: 10px
+
+    &__detail-table .sib-table.sib-table
+      th,
+      td
+        padding-top: 0
+        padding-bottom: 0
