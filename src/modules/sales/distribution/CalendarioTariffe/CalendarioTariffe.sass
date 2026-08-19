@@ -1,12 +1,27 @@
-// ─── DISTRIBUTION ────────────────────────────────────────────────────────────
+// ─── CALENDARIO TARIFFE ───────────────────────────────────────────────────────
+// Vista mensile di tariffe e occupazione per tipo camera. I mesi stanno in una
+// griglia che riempie la larghezza disponibile (tre-quattro mesi per riga): in
+// colonna singola la pagina lasciava vuota metà schermata.
 @use '../../../../styles/tokens' as *
 
+.cal-tariffe
+  display: flex
+  flex-direction: column
+  gap: 14px
+
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
+// Filtri e azioni su UNA riga (a capo solo quando lo spazio non basta davvero).
+.cal-tariffe__toolbar
+  display: flex
+  align-items: flex-end
+  flex-wrap: wrap
+  gap: 12px
+
 .cal-tariffe__select--struttura
-  width: 148px
+  width: 168px
 
 .cal-tariffe__select--camera
-  width: 180px
+  width: 196px
 
 .cal-tariffe__date-range
   display: flex
@@ -28,6 +43,12 @@
   margin-left: auto
 
 // ─── Camera indicator ─────────────────────────────────────────────────────────
+// Dice a quale tipo camera si riferiscono i prezzi del calendario.
+.cal-tariffe__cam-indicator
+  display: flex
+  align-items: center
+  gap: 8px
+
 .cal-tariffe__cam-dot
   width: 12px
   height: 12px
@@ -35,14 +56,120 @@
   flex-shrink: 0
 
 .cal-tariffe__cam-label
+  font-family: var(--font-heading)
   font-size: 13px
   font-weight: 600
+  white-space: nowrap
 
-// ─── Table head ───────────────────────────────────────────────────────────────
+.cal-tariffe__cam-line
+  flex: 1
+  height: 2px
+  border-radius: 999px
+  min-width: 0
+
+// ─── Griglia dei mesi ─────────────────────────────────────────────────────────
+// `auto-fill` con una larghezza minima: i mesi si affiancano finché ci stanno, e
+// nessuna colonna scende sotto la larghezza che serve a leggere una tariffa.
+.cal-tariffe__month-grid
+  display: grid
+  // 430px e' la larghezza minima perche' una tariffa con i centesimi e il chevron
+  // stiano dentro una colonna da un settimo di mese senza essere tagliati.
+  grid-template-columns: repeat(auto-fill, minmax(430px, 1fr))
+  gap: 14px
+  align-items: start
+
+.cal-tariffe__month-card
+  min-width: 0
+  background: var(--color-surface)
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  overflow: hidden
+
+.cal-tariffe__month-header
+  display: flex
+  align-items: baseline
+  gap: 6px
+  padding: 8px 10px
+  border-bottom: 1px solid var(--color-border)
+
+.cal-tariffe__month-title
+  margin: 0
+  font-family: var(--font-heading)
+  font-size: 14px
+  font-weight: 700
+  color: var(--color-primary)
+
+.cal-tariffe__month-year
+  font-family: var(--font-body)
+  font-size: 12px
+  color: var(--color-text-inactive)
+
+// Nessuno scroll: la tabella si adatta alla card (colonne in percentuale)
+.cal-tariffe__month-scroll
+  min-width: 0
+
+.cal-tariffe__month-table
+  width: 100%
+  table-layout: fixed
+  border-collapse: collapse
+
+.cal-tariffe__month-col
+  width: calc(100% / 7)
+
+// ─── Intestazione dei giorni ──────────────────────────────────────────────────
 .cal-tariffe__thead-row
-  background: #F0F5FA
+  background: var(--color-bg)
 
-// ─── Day price ────────────────────────────────────────────────────────────────
+.cal-tariffe__day-th
+  padding: 4px 2px
+  font-family: var(--font-heading)
+  font-size: 11px
+  font-weight: 600
+  text-align: center
+  color: var(--color-text-inactive)
+  border-bottom: 1px solid var(--color-border)
+
+  &--weekend
+    color: var(--color-primary)
+
+// ─── Celle del giorno ─────────────────────────────────────────────────────────
+.cal-tariffe__day-cell
+  height: 52px
+  padding: 3px 2px
+  vertical-align: top
+  text-align: center
+
+  &--weekend
+    background: color-mix(in srgb, var(--color-bg) 70%, transparent)
+
+  &--empty
+    background: none
+
+  &:not(.cal-tariffe__day-cell--last-row)
+    border-bottom: 1px solid var(--color-border)
+
+  &:not(:last-child)
+    border-right: 1px solid var(--color-border)
+
+.cal-tariffe__day-cell--last-row
+  border-bottom: none
+
+.cal-tariffe__day-num
+  font-family: var(--font-heading)
+  font-size: 11px
+  font-weight: 700
+  line-height: 1.2
+  color: var(--color-text-active)
+
+  &--weekend
+    color: var(--color-primary)
+
+// ─── Prezzo del giorno ────────────────────────────────────────────────────────
+.cal-tariffe__day-price
+  display: flex
+  justify-content: center
+  min-width: 0
+
 .cal-tariffe__day-price-val
   font-size: 11px
   font-weight: 700
@@ -55,6 +182,7 @@
 .cal-tariffe__price-select
   appearance: none
   -webkit-appearance: none
+  max-width: 100%
   border: none
   background: transparent
   font-size: 11px
@@ -63,25 +191,85 @@
   cursor: pointer
   text-align: center
   text-align-last: center
-  padding: 1px 14px 1px 4px
+  padding: 1px 12px 1px 2px
   border-radius: 4px
-  // chevron inline (colore = currentColor → eredita il colore dinamico camera)
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")
+  // chevron inline (colore = currentColor → eredita il colore dinamico camera).
+  // Va disegnato a TRATTO: con `fill` il path si chiudeva in un triangolo sottile
+  // che sullo schermo sembrava un puntino.
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5l4 4 4-4'/%3E%3C/svg%3E")
   background-repeat: no-repeat
-  background-position: right 2px center
-  background-size: 10px
+  background-position: right 1px center
+  background-size: 9px
+
   &:hover
-    background-color: rgba(0,0,0,0.04)
+    background-color: color-mix(in srgb, var(--color-border) 40%, transparent)
+
   &:focus
     outline: none
-    box-shadow: 0 0 0 2px rgba(92,156,212,0.35)
+    box-shadow: 0 0 0 2px var(--color-focus-ring)
 
-// ─── Day occupancy ────────────────────────────────────────────────────────────
+// ─── Occupazione del giorno ───────────────────────────────────────────────────
+// Fascia di occupazione: il colore è di STATO e arriva dai token, non da esadecimali
+// scritti nella pagina, così vale anche in dark mode.
+.cal-tariffe__day-occ
+  margin-top: 2px
+  padding: 1px 0
+  border-radius: 3px
+
+  &[data-occ='bassa']
+    background: color-mix(in srgb, var(--chart-good) 12%, transparent)
+    color: var(--chart-good)
+
+  &[data-occ='media']
+    background: color-mix(in srgb, var(--chart-4) 14%, transparent)
+    color: var(--chart-4)
+
+  &[data-occ='alta']
+    background: color-mix(in srgb, var(--chart-bad) 12%, transparent)
+    color: var(--chart-bad)
+
 .cal-tariffe__day-occ-val
   font-size: 10px
   font-weight: 700
+  color: inherit
 
-// ─── Inline-style replacements ────────────────────────────────────────────────
+// ─── Legenda ──────────────────────────────────────────────────────────────────
+.cal-tariffe__legend
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 16px
+  padding-top: 2px
+
+.cal-tariffe__legend-item
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+.cal-tariffe__legend-swatch
+  width: 12px
+  height: 12px
+  border-radius: 3px
+  flex-shrink: 0
+
+  &[data-occ='bassa']
+    background: color-mix(in srgb, var(--chart-good) 14%, transparent)
+    border: 1px solid var(--chart-good)
+
+  &[data-occ='media']
+    background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+    border: 1px solid var(--chart-4)
+
+  &[data-occ='alta']
+    background: color-mix(in srgb, var(--chart-bad) 14%, transparent)
+    border: 1px solid var(--chart-bad)
+
+.cal-tariffe__legend-label
+  font-family: var(--font-body)
+  font-size: 11px
+  color: var(--color-text-inactive)
+
+// ─── Valori dinamici (colore del tipo camera scelto) ──────────────────────────
 .cal-tariffe__btn-cal-ico
   font-size: 13px
 
@@ -96,20 +284,7 @@
   color: var(--cam-color)
 
 .cal-tariffe__cam-line--dyn
-  background: var(--cam-line-bg)
-
-.cal-tariffe__month-col
-  width: calc(100% / 7)
-
-.cal-tariffe__day-cell--last-row
-  border-bottom: none
-
-.cal-tariffe__day-cell
-  &:not(.cal-tariffe__day-cell--last-row)
-    border-bottom: 1px solid $border
-
-  &:not(:last-child)
-    border-right: 1px solid #E8EBF0
+  background: color-mix(in srgb, var(--cam-color) 22%, transparent)
 
 .cal-tariffe__day-price-val--dyn
   color: var(--cam-color)
@@ -117,12 +292,16 @@
 .cal-tariffe__price-chevron--dyn
   color: var(--cam-color)
 
-.cal-tariffe__day-occ--dyn
-  background: var(--occ-bg)
+// ─── Compattazione su larghezze da laptop ─────────────────────────────────────
+// Sotto certe larghezze i mesi si stringono: le colonne restano leggibili perché
+// la griglia riduce il numero di mesi per riga, non la larghezza del mese.
+@media (max-width: 1180px)
+  .cal-tariffe__month-grid
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr))
 
-.cal-tariffe__day-occ-val--dyn
-  color: var(--occ-color)
+  .cal-tariffe__price-select
+    font-size: 10px
+    padding-right: 11px
 
-.cal-tariffe__legend-swatch--dyn
-  background: var(--leg-bg)
-  border: 1px solid var(--leg-border)
+  .cal-tariffe__day-cell
+    height: 48px

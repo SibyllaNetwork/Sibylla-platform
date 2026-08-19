@@ -7,23 +7,28 @@ import { SelectField, DateRangeField } from '../../../../core/components/form'
 const STRUTTURE  = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Hotel Siracusa']
 const MONTHS_IT  = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAYS_IT    = ['lun','mar','mer','gio','ven','sab','dom']
+// Il colore del tipo camera arriva dagli slot categoriali della piattaforma
+// (token `--chart-*`): niente esadecimali in pagina, così vale anche in dark mode.
 const CAMERAS    = [
-  {id:'doppia',   label:'Doppia Classic',           colore:'#5C9CD4'},
-  {id:'singola',  label:'Singola Classic',           colore:'#E07B39'},
-  {id:'tripla',   label:'Tripla Classic',            colore:'#5A8A3C'},
-  {id:'matsuper', label:'Matrimoniale Superior',     colore:'#9B59B6'},
-  {id:'matconv',  label:'Matr. Convertibile Quad.',  colore:'#C4A820'},
+  {id:'doppia',   label:'Doppia Classic',           colore:'var(--chart-1)'},
+  {id:'singola',  label:'Singola Classic',           colore:'var(--chart-2)'},
+  {id:'tripla',   label:'Tripla Classic',            colore:'var(--chart-8)'},
+  {id:'matsuper', label:'Matrimoniale Superior',     colore:'var(--chart-7)'},
+  {id:'matconv',  label:'Matr. Convertibile Quad.',  colore:'var(--chart-4)'},
 ]
-const LEGEND_OCC = [
-  {c:'#16A34A', bg:'#F0FFF4', label:'Bassa occupazione (< 50%)'},
-  {c:'#E07B39', bg:'#FFF7ED', label:'Media occupazione (50-79%)'},
-  {c:'#DC2626', bg:'#FEF2F2', label:'Alta occupazione (≥ 80%)'},
+
+/** Fasce di occupazione: il colore è di stato e vive nel .sass, qui c'è la soglia. */
+type FasciaOcc = 'bassa' | 'media' | 'alta'
+
+const LEGEND_OCC: { fascia: FasciaOcc; label: string }[] = [
+  { fascia: 'bassa', label: 'Bassa occupazione (< 50%)' },
+  { fascia: 'media', label: 'Media occupazione (50-79%)' },
+  { fascia: 'alta',  label: 'Alta occupazione (≥ 80%)' },
 ]
 
 const getDIM   = (y:number,m:number) => new Date(y,m+1,0).getDate()
 const getWD    = (y:number,m:number,d:number) => { const w=new Date(y,m,d).getDay(); return w===0?6:w-1 }
-const occColor = (occ:number) => occ>=80?'#DC2626':occ>=50?'#E07B39':'#16A34A'
-const occBg    = (occ:number) => occ>=80?'#FEF2F2':occ>=50?'#FFF7ED':'#F0FFF4'
+const occFascia = (occ:number): FasciaOcc => occ>=80?'alta':occ>=50?'media':'bassa'
 const fmt      = (d:Date) => d.toISOString().split('T')[0]
 
 export default function CalendarioTariffe({ navigate }: { navigate: (p:string) => void }) {
@@ -72,7 +77,7 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
   }
 
   return (
-    <div>
+    <div className="cal-tariffe">
       <PageHead title={`Calendario tariffe — Anno ${new Date(dateFrom).getFullYear()}`} subtitle="Visualizzazione mensile delle tariffe e occupazione per tipo camera" onBack={() => navigate('tariffe-disp')}/>
 
       {saved && <AlertBanner type="success">Modifiche salvate e inviate con successo</AlertBanner>}
@@ -117,7 +122,9 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
       <div className="cal-tariffe__cam-indicator">
         <div className="cal-tariffe__cam-dot cal-tariffe__cam-dot--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}/>
         <span className="cal-tariffe__cam-label cal-tariffe__cam-label--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}>{cam.label}</span>
-        <div className="cal-tariffe__cam-line cal-tariffe__cam-line--dyn" style={{ '--cam-line-bg': `${cam.colore}33` } as React.CSSProperties}/>
+        {/* La linea prende il colore della camera, schiarito nel .sass: concatenare
+            l'alfa a un token (`var(--chart-1)33`) non e' un colore valido. */}
+        <div className="cal-tariffe__cam-line cal-tariffe__cam-line--dyn" style={{ '--cam-color': cam.colore } as React.CSSProperties}/>
       </div>
 
       {/* ── Month grid ──────────────────────────────────────────────── */}
@@ -177,8 +184,8 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
                                   {opts.map(p=><option key={p} value={p}>{p.toFixed(2).replace('.',',')} €</option>)}
                                 </select>
                               </div>
-                              <div className="cal-tariffe__day-occ cal-tariffe__day-occ--dyn" style={{ '--occ-bg': occBg(occ), '--occ-color': occColor(occ) } as React.CSSProperties}>
-                                <span className="cal-tariffe__day-occ-val cal-tariffe__day-occ-val--dyn">{occ},0%</span>
+                              <div className="cal-tariffe__day-occ" data-occ={occFascia(occ)}>
+                                <span className="cal-tariffe__day-occ-val">{occ},0%</span>
                               </div>
                             </td>
                           )
@@ -197,7 +204,7 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
       <div className="cal-tariffe__legend">
         {LEGEND_OCC.map(l=>(
           <div key={l.label} className="cal-tariffe__legend-item">
-            <div className="cal-tariffe__legend-swatch cal-tariffe__legend-swatch--dyn" style={{ '--leg-bg': l.bg, '--leg-border': l.c } as React.CSSProperties}/>
+            <div className="cal-tariffe__legend-swatch" data-occ={l.fascia}/>
             <span className="cal-tariffe__legend-label">{l.label}</span>
           </div>
         ))}
