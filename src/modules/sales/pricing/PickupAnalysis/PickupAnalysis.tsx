@@ -62,6 +62,12 @@ export default function PickupAnalysis({ navigate: _navigate }: { navigate: (p: 
   const { rows: righePerPagina, ref: tabellaRef } = useFitRows({
     rowHeight: 30, headerHeight: 32, min: 4, max: 20,
   })
+  // Le date da presidiare sono una lista senza paginazione: quante ce ne stanno
+  // nella card decide lo spazio, altrimenti le ultime righe finiscono sul piede.
+  const { rows: dateInVista, ref: focusRef } = useFitRows({
+    rowHeight: 24, headerHeight: 0, min: 2, max: 5,
+    rowSelector: '.pk__focus-row', headSelector: '.pk__focus-list-head',
+  })
   const totPagine = Math.max(1, Math.ceil(data.giorni.length / righePerPagina))
   const paginaCorrente = Math.min(pagina, totPagine)
   const righe = data.giorni.slice((paginaCorrente - 1) * righePerPagina, paginaCorrente * righePerPagina)
@@ -315,8 +321,8 @@ export default function PickupAnalysis({ navigate: _navigate }: { navigate: (p: 
         subtitle="Domanda ferma e occupazione ancora bassa"
         footer="Le date che corrono sopportano un aumento di prezzo; quelle ferme chiedono offerte o più distribuzione."
       >
-        <ul className="pk__focus-list">
-          {kpi.critici.map((d) => (
+        <ul className="pk__focus-list" ref={focusRef}>
+          {kpi.critici.slice(0, dateInVista).map((d) => (
             <li className="pk__focus-row" key={`c-${d.label}`}>
               <span className="pk__focus-day">
                 {d.label}
