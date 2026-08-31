@@ -1,0 +1,176 @@
+// ─── LISTA MENU (F&B) ────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.lista-menu
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  // La ricerca sta sulla stessa riga della select: larghezza fissa, non
+  // flessibile, altrimenti si allarga e spinge il pulsante a capo
+  &__search
+    flex: 0 0 300px
+    max-width: 300px
+
+  &__td-nome
+    font-weight: 600
+    color: $text-active
+
+  &__td-data
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__td-dett
+    color: $text-inactive
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  &__row--off td
+    color: $text-inactive
+
+  // Menu a la carte: il prezzo è una somma, non un listino
+  &__ico-somma
+    margin-left: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  // ── Allergeni: lettere dell'allegato II, nome nel tooltip ───────────────────
+  &__all
+    display: inline-flex
+    flex-wrap: wrap
+    gap: 4px
+
+  &__all-badge
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 19px
+    height: 19px
+    padding: 0 4px
+    border-radius: 5px
+    border: 1px solid alpha($warning, .45)
+    background: alpha($warning, .12)
+    font-size: 11px
+    font-weight: 700
+    color: $text-active
+
+  &__all-badge--altri
+    border-color: $border
+    background: $bg
+    color: $text-inactive
+    font-weight: 600
+
+  &__no-all
+    font-size: 12px
+    color: $text-inactive
+
+  &__pager
+    display: flex
+    justify-content: center
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  // ── Anteprima del menu (modale) ─────────────────────────────────────────────
+  &__ant
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__ant-head
+    padding-bottom: 12px
+    border-bottom: 1px solid $border
+    text-align: center
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-size: 17px
+      font-weight: 600
+      color: $primary
+
+    p
+      margin: 4px 0 0
+      font-size: 12.5px
+      color: $text-inactive
+
+  &__ant-meta
+    font-size: 12px !important
+    color: $text-inactive
+
+  &__ant-gruppo
+    h4
+      margin: 0 0 6px
+      font-family: $font-heading
+      font-size: 13px
+      font-weight: 600
+      color: $primary
+      text-transform: none
+
+    ul
+      display: flex
+      flex-direction: column
+      gap: 6px
+      margin: 0
+      padding: 0
+      list-style: none
+
+    li
+      display: flex
+      align-items: baseline
+      justify-content: space-between
+      gap: 12px
+      padding-bottom: 5px
+      border-bottom: 1px dashed $border
+
+  &__ant-voce
+    display: flex
+    flex-direction: column
+    gap: 1px
+    min-width: 0
+
+    strong
+      font-size: 13px
+      font-weight: 600
+      color: $text-active
+
+    em
+      font-size: 12px
+      font-style: normal
+      color: $text-inactive
+
+  &__ant-prezzo
+    flex-shrink: 0
+    font-size: 13px
+    font-variant-numeric: tabular-nums
+    color: $text-active
+
+  &__ant-foot
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding-top: 12px
+    border-top: 1px solid $border
+    font-size: 12px
+    line-height: 1.45
+    color: $text-inactive

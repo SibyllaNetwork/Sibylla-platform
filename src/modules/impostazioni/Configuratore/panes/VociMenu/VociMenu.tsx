@@ -15,6 +15,7 @@ import {
   voceDuplicata,
   formattaPrezzo,
   prezzoDaTesto,
+  foodCostDiDefault,
   categoriaNome,
   allergeneLabel,
   newRigaId,
@@ -56,6 +57,7 @@ interface VoceForm {
   categoriaId: string
   /** Prezzo come testo: la validazione avviene al salvataggio. */
   prezzo: string
+  foodCost: string
   allergeni: CodiceAllergene[]
   outletIds: number[]
   stampanti: RigaStampante[]
@@ -64,7 +66,7 @@ interface VoceForm {
 
 const FORM_VUOTO: VoceForm = {
   nomeIt: '', nomeEn: '', nomeDe: '', nomeFr: '', descrizione: '',
-  categoriaId: '', prezzo: '', allergeni: [], outletIds: [],
+  categoriaId: '', prezzo: '', foodCost: '', allergeni: [], outletIds: [],
   stampanti: [], monitor: [],
 }
 
@@ -111,6 +113,7 @@ export default function VociMenu() {
       descrizione: voce.descrizione,
       categoriaId: String(voce.categoriaId),
       prezzo: voce.prezzo.toFixed(2),
+      foodCost: voce.foodCost.toFixed(2),
       allergeni: [...voce.allergeni],
       outletIds: [...voce.outletIds],
       stampanti: voce.stampanti.map(r => ({ ...r })),
@@ -166,6 +169,11 @@ export default function VociMenu() {
 
   // ── Validazione ─────────────────────────────────────────────────────────────
   const prezzo = prezzoDaTesto(form.prezzo)
+  // Food cost lasciato vuoto = 30% del prezzo, la percentuale di riferimento
+  const foodCostDefault = foodCostDiDefault(prezzo ?? 0, form.categoriaId)
+  const foodCost = form.foodCost.trim() === ''
+    ? foodCostDefault
+    : (prezzoDaTesto(form.foodCost) ?? 0)
   const prezzoErrato = form.prezzo.trim() !== '' && prezzo == null
   const candidata: VoceMenu = {
     id: editId ?? '__nuova',
@@ -176,6 +184,7 @@ export default function VociMenu() {
     nomeFr: form.nomeFr.trim(),
     descrizione: form.descrizione.trim(),
     prezzo: prezzo ?? 0,
+    foodCost,
     allergeni: form.allergeni,
     outletIds: form.outletIds,
     // Righe incomplete scartate: una stampante senza outlet non instrada nulla
@@ -425,6 +434,21 @@ export default function VociMenu() {
                     error={prezzoErrato ? 'Inserisci un importo maggiore o uguale a zero.' : undefined}
                     onChange={(e) => upd('prezzo', e.target.value)}
                   />
+                  <InputField
+                    name="foodCost"
+                    label="Food cost (€)"
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={form.foodCost}
+                    placeholder={prezzo != null ? foodCostDefault.toFixed(2) : '0,00'}
+                    onChange={(e) => upd('foodCost', e.target.value)}
+                  />
+                  <p className="voci-menu__hint">
+                    Il food cost è il costo della materia prima: da qui si calcola
+                    il margine quando la voce entra in un menu. Lasciandolo vuoto
+                    vale la quota di riferimento della categoria.
+                  </p>
                 </div>
               </section>
 

@@ -47,6 +47,8 @@ import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
 import TurniServizio          from './panes/TurniServizio/TurniServizio'
 import CategorieMenu          from './panes/CategorieMenu/CategorieMenu'
 import VociMenu               from './panes/VociMenu/VociMenu'
+import CreaMenu               from './panes/CreaMenu/CreaMenu'
+import ListaMenu              from './panes/ListaMenu/ListaMenu'
 import MenuGiorno             from './panes/MenuGiorno/MenuGiorno'
 import WebMenu                from './panes/WebMenu/WebMenu'
 import Gateway                from './panes/Gateway/Gateway'
@@ -120,6 +122,8 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'fb-turni':                 TurniServizio,
   'fb-categorie':             CategorieMenu,
   'fb-voci-menu':             VociMenu,
+  'fb-crea-menu':             CreaMenu,
+  'fb-lista-menu':            ListaMenu,
   'fb-menu-giorno':           MenuGiorno,
   'fb-web-menu':              WebMenu,
   'gateway':                  Gateway,

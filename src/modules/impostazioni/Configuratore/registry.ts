@@ -277,13 +277,13 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   },
   {
     id: 'fb-crea-menu', label: 'Crea menu', icon: 'plus', group: 'food-beverage',
-    description: 'Composizione di un nuovo menu a partire dalle voci configurate.',
-    keywords: ['componi', 'nuovo menu', 'composizione'],
+    description: 'Composizione di un menu con le voci del catalogo: food cost, prezzo e margine calcolati.',
+    keywords: ['componi','nuovo menu','composizione','food cost','margine','menu fisso','prezzo vendita'],
   },
   {
     id: 'fb-lista-menu', label: 'Lista menu', icon: 'list-ul', group: 'food-beverage',
-    description: "L'elenco dei menu configurati.",
-    keywords: ['elenco menu', 'menu configurati'],
+    description: 'I menu salvati: allergeni presenti, prezzo, anteprima, duplica ed elimina.',
+    keywords: ['elenco menu','menu configurati','allergeni','anteprima','duplica'],
   },
   {
     id: 'fb-tipi-menu', label: 'Tipi menu', icon: 'layer-group', group: 'food-beverage',

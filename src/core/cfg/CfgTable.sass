@@ -30,3 +30,11 @@
     text-align: center
     font-size: 12.5px
     color: $text-inactive
+
+// ─── Rete di sicurezza chiusa davvero (NO-SCROLL-X) ──────────────────────────
+// `.overflow-x: hidden` sul blocco `.cfg-table` qui sopra e' UNA classe e
+// pareggia con `.sib-table-wrap` di tailwind.css, che vince perche' caricata
+// dopo: il wrap restava `auto` e riapriva lo scroll orizzontale. Due classi
+// nel selettore lo chiudono per davvero.
+.sib-table-wrap.cfg-table
+  overflow-x: hidden

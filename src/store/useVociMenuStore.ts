@@ -49,6 +49,12 @@ export interface VoceMenu {
   descrizione: string
   /** Prezzo base in euro; i prezzi speciali per outlet/categoria cliente non stanno qui. */
   prezzo: number
+  /**
+   * Costo della materia prima in euro (food cost). Serve a comporre i menu:
+   * margine = (prezzo - foodCost) / prezzo. Sta sulla voce e non sul menu
+   * perché è un dato di catalogo: cambiando qui si aggiorna ogni menu.
+   */
+  foodCost: number
   allergeni: CodiceAllergene[]
   /** Outlet su cui la voce è attiva; array vuoto = tutti gli outlet. */
   outletIds: number[]
@@ -75,6 +81,36 @@ export const ALLERGENI_UE: Array<{ codice: CodiceAllergene; nome: string }> = [
   { codice: 'M', nome: 'Lupini' },
   { codice: 'N', nome: 'Molluschi' },
 ]
+
+/**
+ * Incidenza di default del food cost sul prezzo di carta, per categoria: la
+ * materia prima di un caffè pesa molto meno di quella di una bottiglia di
+ * vino, e un'unica percentuale su tutto renderebbe il margine dei menu una
+ * colonna di numeri identici. Sono valori di partenza: il food cost reale si
+ * corregge sulla singola voce.
+ */
+const INCIDENZA_FOOD_COST: Record<string, number> = {
+  'cat-bollicine':   0.45,
+  'cat-rossi':       0.42,
+  'cat-bianchi':     0.40,
+  'cat-rose':        0.38,
+  'cat-secondi':     0.34,
+  'cat-antipasti':   0.28,
+  'cat-primi':       0.26,
+  'cat-birre':       0.25,
+  'cat-dessert':     0.24,
+  'cat-contorni':    0.22,
+  'cat-soft':        0.18,
+  'cat-caffetteria': 0.12,
+}
+
+/** Food cost di partenza di una voce: quota del prezzo secondo la categoria. */
+export const foodCostDiDefault = (prezzo: number, categoriaId: string): number =>
+  Number((prezzo * (INCIDENZA_FOOD_COST[categoriaId] ?? 0.3)).toFixed(2))
+
+/** Margine percentuale di una voce: (prezzo - food cost) / prezzo. */
+export const marginePerc = (prezzo: number, foodCost: number): number =>
+  prezzo > 0 ? Math.round(((prezzo - foodCost) / prezzo) * 100) : 0
 
 export const allergeneMeta = (codice: CodiceAllergene) =>
   ALLERGENI_UE.find(a => a.codice === codice)
@@ -155,6 +191,7 @@ const v = (
   nomeEn: '', nomeDe: '', nomeFr: '',
   descrizione: '',
   prezzo,
+  foodCost: foodCostDiDefault(prezzo, categoriaId),
   allergeni,
   outletIds: [],
   stampanti: [],
@@ -245,7 +282,21 @@ export const useVociMenuStore = create<VociMenuState>()(
       toggleVoce: (id) =>
         set(s => ({ voci: s.voci.map(x => x.id === id ? { ...x, attivo: !x.attivo } : x) })),
     }),
-    { name: 'sibylla.fb.vociMenu', version: 1 },
+    {
+      name: 'sibylla.fb.vociMenu',
+      version: 2,
+      // v2: la voce porta il food cost, base del margine nella composizione dei
+      // menu. Le voci già salvate lo ricevono dalla quota della loro categoria.
+      migrate: (stato: any) => ({
+        ...stato,
+        voci: (stato?.voci ?? []).map((v: VoceMenu) => ({
+          ...v,
+          foodCost: typeof v.foodCost === 'number'
+            ? v.foodCost
+            : foodCostDiDefault(v.prezzo ?? 0, v.categoriaId),
+        })),
+      }),
+    },
   ),
 )
 
