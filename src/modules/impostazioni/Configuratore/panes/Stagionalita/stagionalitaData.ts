@@ -64,8 +64,9 @@ export const SEGMENTI: { value: SegmentoStagionalita; label: string }[] = [
 /** Anno tariffario di riferimento della configurazione mock. */
 export const ANNO_TARIFFARIO = 2027
 
-// Profilo a metà configurazione (coerente con SEED_COMPLETION 'partial' dello
-// store Configuratore): B2B già configurato, Gruppi ancora vuoto.
+// Entrambi i segmenti hanno periodi configurati: sono la base su cui i due pane
+// Listini costruiscono le proprie colonne (stagioniDaPeriodi), e i Listini si
+// aprono sempre sui contenuti reali.
 const SEED_PERIODI: Record<SegmentoStagionalita, PeriodoStagione[]> = {
   b2b: [
     { id: 'b2b-1', from: '2027-01-07', to: '2027-02-28', stagioneId: 'low-1'  },
@@ -73,7 +74,12 @@ const SEED_PERIODI: Record<SegmentoStagionalita, PeriodoStagione[]> = {
     { id: 'b2b-3', from: '2027-06-01', to: '2027-07-15', stagioneId: 'high-1' },
     { id: 'b2b-4', from: '2027-08-01', to: '2027-08-31', stagioneId: 'peak'   },
   ],
-  gruppi: [],
+  gruppi: [
+    { id: 'grp-1', from: '2027-01-07', to: '2027-03-31', stagioneId: 'low-1'  },
+    { id: 'grp-2', from: '2027-04-01', to: '2027-05-31', stagioneId: 'mid-2'  },
+    { id: 'grp-3', from: '2027-06-01', to: '2027-09-30', stagioneId: 'high-2' },
+    { id: 'grp-4', from: '2027-12-20', to: '2027-12-31', stagioneId: 'peak'   },
+  ],
 }
 
 interface StagionalitaState {
@@ -91,7 +97,20 @@ export const useStagionalitaStore = create<StagionalitaState>()(
       setPeriodi: (segmento, periodi) =>
         set(s => ({ periodi: { ...s.periodi, [segmento]: periodi } })),
     }),
-    { name: 'sibylla.cfg.stagionalita', version: 1 },
+    {
+      name: 'sibylla.cfg.stagionalita',
+      // v2: i periodi del segmento Gruppi entrano nel seed (prima era vuoto).
+      // Il bump serve perché i browser che hanno già lo stato v1 persistito
+      // ripartano dal seed nuovo, altrimenti i Listini gruppi resterebbero
+      // senza stagionalità a calendario.
+      version: 2,
+      migrate: () => ({
+        periodi: {
+          b2b:    SEED_PERIODI.b2b.map(p => ({ ...p })),
+          gruppi: SEED_PERIODI.gruppi.map(p => ({ ...p })),
+        },
+      }),
+    },
   ),
 )
 

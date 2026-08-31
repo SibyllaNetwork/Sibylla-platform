@@ -60,7 +60,13 @@ import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConf
 //  "solo F&B", deep link `configuratore:<id>` (id spariti come `contratti` →
 //  fallback pulito sull'hub), conferma di abbandono con modifiche pendenti.
 
-const PANES: Partial<Record<ConfiguratoreId, React.ComponentType>> = {
+/** Props opzionali dei pane: navigazione verso un altro configuratore (es. il
+ *  prerequisito citato dentro la pagina). I pane che non navigano la ignorano. */
+export interface CfgPaneComponentProps {
+  onGoTo?: (id: ConfiguratoreId) => void
+}
+
+const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponentProps>>> = {
   'scaglioni-occupazione':    ScaglioniOccupazione,
   'finestre-prenotazione':    FinestrePrenotazione,
   'richieste-extra':          RichiesteExtra,
@@ -269,7 +275,7 @@ function PaneSwitch({ def, completion, onGoTo }: {
   }
 
   const Pane = PANES[def.id]
-  if (Pane) return <Pane />
+  if (Pane) return <Pane onGoTo={onGoTo} />
 
   if (hasOutletConfig(def.id)) return <OutletConfig id={def.id} />
 

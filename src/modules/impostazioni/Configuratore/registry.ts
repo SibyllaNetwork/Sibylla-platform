@@ -193,13 +193,18 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     id: 'listini-individuali', label: 'Listini individuali', icon: 'user', group: 'tariffe-listini',
     description: 'Listini per la clientela individuale, per struttura e stagionalità, con riepilogo calendario.',
     keywords: ['prezzi', 'tariffe', 'individuali', 'camere hotel', 'pdf', 'calendario'],
-    requires: { id: 'stagionalita', reason: 'Richiede la Stagionalità B2B completata: i listini individuali si agganciano ai periodi stagionali.' },
+    // Il funzionale (§4.17) prevede il blocco fino alla Stagionalità B2B, ma la
+    // pagina si apre sempre sui contenuti: lo stato di blocco è consultabile nel
+    // box «Opzione errore» in fondo al pane. Nessun `requires` qui, altrimenti la
+    // shell mostrerebbe CfgLocked al posto della pagina.
+
   },
   {
     id: 'listini-gruppi', label: 'Listini gruppi', icon: 'users', group: 'tariffe-listini',
     description: 'Listini per i gruppi con tariffe e supplementi per adulti e studenti.',
     keywords: ['prezzi', 'gruppi', 'supplementi', 'studenti', 'distribuzione', 'per camera', 'per persona'],
-    requires: { id: 'stagionalita', reason: 'Richiede la Stagionalità Gruppi completata: le tariffe gruppi si leggono sul calendario stagionale.' },
+    // Come sopra (§4.18): prerequisito documentato e reso nel box «Opzione errore».
+
   },
   {
     id: 'politiche-prenotazione', label: 'Politiche di prenotazione', icon: 'clipboard-list', group: 'regole-vendita',

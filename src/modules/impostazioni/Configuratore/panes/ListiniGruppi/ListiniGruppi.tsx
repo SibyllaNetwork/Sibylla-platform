@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { CfgToolbar, CfgTable, CfgSaveBar, CfgLocked, CfgEmpty } from '../../../../../core/cfg'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgEmpty } from '../../../../../core/cfg'
 import { SelectField, InputField, RadioGroup } from '../../../../../core/components/form'
 import Tooltip from '../../../../../core/components/Tooltip'
-import { useConfiguratoreStore, isUnlocked } from '../../../../../store/useConfiguratoreStore'
+import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
-import { configuratoreById } from '../../registry'
 import ListiniCalendario from '../_listini/ListiniCalendario'
+import ListiniOpzioneErrore from '../_listini/ListiniOpzioneErrore'
+import type { CfgPaneComponentProps } from '../../Configuratore'
 import {
   LST_STRUTTURE,
   LST_CATEGORIE,
@@ -29,8 +30,9 @@ import './ListiniGruppi.sass'
 //  disabilita e diventa grigia), parametro Distribuzione (per camera / per
 //  persona), tabella dei lotti con Tariffa/Suppl. adulti e studenti sulla
 //  stagionalità selezionata, calendario con le tariffe alle relative
-//  stagionalità gruppi. Gating: Stagionalità gruppi completata (primo scudo
-//  nella shell; qui la difesa per i mount fuori dalla shell).
+//  stagionalità gruppi. Il funzionale prevede il blocco fino alla Stagionalità
+//  Gruppi: la pagina si apre sempre sui contenuti e quello stato resta
+//  consultabile nel box «Opzione errore» in fondo al pane.
 
 const PANE_ID = 'listini-gruppi'
 
@@ -63,8 +65,7 @@ function countGruppiDiff(saved: GruppiConfig, draft: GruppiConfig): number {
   return n
 }
 
-export default function ListiniGruppi() {
-  const completion    = useConfiguratoreStore(s => s.completion)
+export default function ListiniGruppi({ onGoTo }: CfgPaneComponentProps) {
   const markDirty     = useConfiguratoreStore(s => s.markDirty)
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
@@ -101,19 +102,6 @@ export default function ListiniGruppi() {
   useEffect(() => {
     markDirty(PANE_ID, dirtyCount)
   }, [dirtyCount, markDirty])
-
-  // ── Gating (difesa nel pane: la shell mostra già CfgLocked prima del mount)
-  if (!isUnlocked(completion, PANE_ID)) {
-    const def = configuratoreById(PANE_ID)
-    const requirement = def?.requires ? configuratoreById(def.requires.id) : undefined
-    return (
-      <CfgLocked
-        title={def?.label ?? 'Listini gruppi'}
-        requirementLabel={requirement?.label ?? 'Stagionalità'}
-        reason={def?.requires?.reason ?? 'Richiede la Stagionalità Gruppi completata.'}
-      />
-    )
-  }
 
   // Nessun periodo Gruppi a calendario: il pane non ha stagioni su cui tariffare.
   if (!stagione) {
@@ -365,6 +353,13 @@ export default function ListiniGruppi() {
           </section>
         </>
       )}
+
+      <ListiniOpzioneErrore
+        paneLabel="Listini gruppi"
+        requirementLabel="Stagionalità Gruppi"
+        reason="Richiede la Stagionalità Gruppi completata: le tariffe gruppi si leggono sul calendario stagionale."
+        onGoToRequirement={onGoTo ? () => onGoTo('stagionalita') : undefined}
+      />
 
       <CfgSaveBar
         count={dirtyCount}

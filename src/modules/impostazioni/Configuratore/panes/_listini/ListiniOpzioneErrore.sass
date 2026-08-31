@@ -1,0 +1,53 @@
+// ─── OPZIONE ERRORE (Listini) ────────────────────────────────────────────────
+// Box marcato in fondo alle pagine Listini: contiene lo stato di blocco previsto
+// dal funzionale, tenuto separato dai contenuti reali della pagina.
+@use '../../../../../styles/tokens' as *
+
+.lst-opz
+  display: flex
+  flex-direction: column
+  gap: 10px
+  margin-top: 8px
+  padding-top: 18px
+  border-top: 1px dashed $border
+
+  &__head
+    display: flex
+    align-items: baseline
+    gap: 12px
+    flex-wrap: wrap
+
+  &__tag
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    flex-shrink: 0
+    padding: 3px 10px
+    border-radius: 999px
+    background: alpha($warning, .14)
+    color: $warning
+    font-family: $font-heading
+    font-size: 11.5px
+    font-weight: 600
+
+    i
+      font-size: 10px
+
+  &__hint
+    flex: 1
+    min-width: 220px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    strong
+      color: $text-active
+      font-weight: 600
+
+  // Cornice tratteggiata: dice che è una variante di stato, non la pagina
+  &__box
+    border: 1px dashed alpha($warning, .55)
+    border-radius: 8px
+    background: alpha($warning, .04)
+    padding: 6px

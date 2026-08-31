@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { CfgToolbar, CfgTable, CfgSaveBar, CfgLocked, CfgEmpty } from '../../../../../core/cfg'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgEmpty } from '../../../../../core/cfg'
 import { SelectField, InputField } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
-import { useConfiguratoreStore, isUnlocked } from '../../../../../store/useConfiguratoreStore'
-import { configuratoreById } from '../../registry'
+import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import ListiniCalendario from '../_listini/ListiniCalendario'
+import ListiniOpzioneErrore from '../_listini/ListiniOpzioneErrore'
+import type { CfgPaneComponentProps } from '../../Configuratore'
 import {
   LST_STRUTTURE,
   LST_CAMERE,
@@ -23,13 +24,13 @@ import './ListiniIndividuali.sass'
 //  "Camere Hotel" con i NOMI ASSOCIATI DALLA STRUTTURA (mai lo standard
 //  Sibylla) e la tariffa editabile per camera; a destra il riepilogo
 //  calendario per tipologia × stagionalità (prezzo della stessa tipologia
-//  nelle diverse stagioni). Gating: Stagionalità B2B completata (il primo
-//  scudo è nella shell; qui la difesa vale per i mount fuori dalla shell).
+//  nelle diverse stagioni). Il funzionale prevede il blocco fino alla
+//  Stagionalità B2B: la pagina si apre sempre sui contenuti e quello stato
+//  resta consultabile nel box «Opzione errore» in fondo al pane.
 
 const PANE_ID = 'listini-individuali'
 
-export default function ListiniIndividuali() {
-  const completion    = useConfiguratoreStore(s => s.completion)
+export default function ListiniIndividuali({ onGoTo }: CfgPaneComponentProps) {
   const markDirty     = useConfiguratoreStore(s => s.markDirty)
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
@@ -67,19 +68,6 @@ export default function ListiniIndividuali() {
   useEffect(() => {
     markDirty(PANE_ID, dirtyCount)
   }, [dirtyCount, markDirty])
-
-  // ── Gating (difesa nel pane: la shell mostra già CfgLocked prima del mount)
-  if (!isUnlocked(completion, PANE_ID)) {
-    const def = configuratoreById(PANE_ID)
-    const requirement = def?.requires ? configuratoreById(def.requires.id) : undefined
-    return (
-      <CfgLocked
-        title={def?.label ?? 'Listini individuali'}
-        requirementLabel={requirement?.label ?? 'Stagionalità'}
-        reason={def?.requires?.reason ?? 'Richiede la Stagionalità B2B completata.'}
-      />
-    )
-  }
 
   // Nessun periodo B2B a calendario: il pane non ha colonne su cui lavorare.
   if (!stagione) {
@@ -225,6 +213,13 @@ export default function ListiniIndividuali() {
           />
         </section>
       </div>
+
+      <ListiniOpzioneErrore
+        paneLabel="Listini individuali"
+        requirementLabel="Stagionalità B2B"
+        reason="Richiede la Stagionalità B2B completata: i listini individuali si agganciano ai periodi stagionali."
+        onGoToRequirement={onGoTo ? () => onGoTo('stagionalita') : undefined}
+      />
 
       <CfgSaveBar
         count={dirtyCount}
