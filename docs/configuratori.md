@@ -513,15 +513,27 @@ interni di tutti i pane, il secondo page-head della sub-app F&B, tutti gli hex d
   (`stagioniDaPeriodi`), quindi Listini e Stagionalità restano allineati per costruzione.
   Con più di 3 stagionalità il calendario di riepilogo passa a larghezza piena, così le
   intestazioni restano su una riga senza troncature.
-- **Gating dei Listini reso come «Opzione errore»**: i due pane si aprono sempre sui
-  contenuti reali; lo stato di blocco previsto da §4.17/§4.18 vive in un box marcato in
-  fondo alla pagina (`_listini/ListiniOpzioneErrore`), con la stessa copy dello stato reale
-  e il link **«Completa Stagionalità …»** che porta al prerequisito. Per questo le due voci
-  non hanno `requires` nel registry: ce l'avessero, la shell mostrerebbe `CfgLocked` al
-  posto della pagina. Il seed della Stagionalità copre entrambi i segmenti (persist v2), così
-  i Listini hanno stagionalità a calendario su cui lavorare.
+- **Gating reso come «Opzione errore»** su Listini individuali, Listini gruppi e
+  Overbooking limit: i pane si aprono sempre sui contenuti reali; lo stato di blocco
+  previsto da §4.17/§4.18/§4.11 vive in un box marcato in fondo alla pagina
+  (`CfgOpzioneErrore`, nel kit), con la stessa copy dello stato reale e il link
+  **«Completa Stagionalità …»** che porta al prerequisito. Per questo quelle voci non hanno
+  `requires` nel registry: ce l'avessero, la shell mostrerebbe `CfgLocked` al posto della
+  pagina. Resta gated solo `configura-outlet` (richiede un Outlet creato).
+  Il seed della Stagionalità copre entrambi i segmenti (persist v2), così i Listini hanno
+  stagionalità a calendario su cui lavorare.
   I pane possono navigare verso un altro configuratore tramite la prop opzionale
   `onGoTo` (`CfgPaneComponentProps`), passata dalla shell a tutti i pane.
+- **Listini gruppi, ambito a due vie**: l'alternanza Struttura ⇆ Categoria (§4.18) non è
+  resa con due select di cui una sempre spenta, ma con un gruppo «Ambito del listino» che
+  tiene i due campi alla stessa altezza (nessun hint sotto uno solo → etichette allineate) e
+  un comando centrale «oppure ⇄» che sposta il lato attivo portandosi dietro la selezione:
+  da struttura si va sulla SUA categoria, da categoria sulla prima struttura che le
+  appartiene, senza passare da uno stato vuoto. Il lato spento resta disabilitato e grigio,
+  come chiede il funzionale.
+- **Trappola SASS**: un blocco a colonna 0 (es. `.lg-ambito`) va messo in FONDO al file.
+  Inserito in mezzo chiude la nidificazione del blocco di pagina e tutte le regole `&__…`
+  successive compilano con il prefisso sbagliato, sparendo senza errori di build.
 - **`InputField` esteso** con `ariaLabel` e `dense` (additivo, nessun impatto sulle pagine
   esistenti): serviva perché i campi dentro le celle non potevano essere né senza label
   accessibile né alti 34px — ed è la ragione per cui erano rimasti `<input>` grezzi.

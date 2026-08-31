@@ -64,3 +64,82 @@
 
     .sib-table th
       font-size: 11px
+
+// ─── AMBITO A DUE VIE (Struttura ⇄ Categoria) ────────────────────────────────
+//  Un solo controllo con due sorgenti alternative: il lato attivo è in chiaro,
+//  l'altro disabilitato e grigio (§4.18). I due lati hanno la STESSA altezza —
+//  nessun hint sotto un solo campo — così le etichette restano allineate a
+//  quelle degli altri filtri della toolbar.
+//  NB: blocco a colonna 0 tenuto in FONDO al file: messo in mezzo chiuderebbe
+//  la nidificazione di `.listini-gruppi` e le regole successive compilerebbero
+//  con il prefisso sbagliato.
+.lg-ambito
+  display: grid
+  grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr)
+  align-items: end
+  gap: 10px
+  margin: 0
+  // padding-bottom contenuto: il bordo del box resta vicino alla riga dei campi,
+  // così i filtri sciolti accanto (Distribuzione) non sembrano fuori asse
+  padding: 6px 12px 6px
+  border: 1px solid $border
+  border-radius: 8px
+  background: alpha($primary, .02)
+
+  &__legend
+    padding: 0 4px
+    font-family: $font-heading
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__lato
+    min-width: 0
+    // Il lato spento resta leggibile ma chiaramente inattivo
+    opacity: .55
+    transition: opacity .18s ease
+
+  &__lato--on
+    opacity: 1
+
+  // Colonna centrale: la congiunzione + lo scambio del lato attivo
+  &__switch
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+    padding-bottom: 4px
+
+  &__oppure
+    font-size: 10.5px
+    font-weight: 600
+    color: $text-disabled
+
+  &__swap
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    border-radius: 50%
+    border: 1px solid $border
+    background: $white
+    color: $primary
+    cursor: pointer
+    font-size: 12px
+    transition: background .15s ease, border-color .15s ease
+
+    &:hover
+      background: alpha($primary, .08)
+      border-color: $primary
+
+    &:focus-visible
+      outline: none
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+
+    i
+      transition: transform .25s ease
+
+    @media (prefers-reduced-motion: no-preference)
+      &:hover i
+        transform: rotate(180deg)

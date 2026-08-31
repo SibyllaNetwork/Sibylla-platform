@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { CfgToolbar, CfgTable, CfgSaveBar, CfgEmpty } from '../../../../../core/cfg'
+import clsx from 'clsx'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgEmpty, CfgOpzioneErrore } from '../../../../../core/cfg'
 import { SelectField, InputField, RadioGroup } from '../../../../../core/components/form'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import ListiniCalendario from '../_listini/ListiniCalendario'
-import ListiniOpzioneErrore from '../_listini/ListiniOpzioneErrore'
 import type { CfgPaneComponentProps } from '../../Configuratore'
 import {
   LST_STRUTTURE,
@@ -85,9 +85,29 @@ export default function ListiniGruppi({ onGoTo }: CfgPaneComponentProps) {
   const [saved, setSaved] = useState<GruppiConfig>(() => seedGruppiConfig(stagioni))
   const [draft, setDraft] = useState<GruppiConfig>(saved)
 
+  // Lato attivo dell'ambito: categoria solo quando è lei a portare il valore
+  const perCategoria = categoriaId !== ''
+
   const contesto = strutturaId
     ? contestoStruttura(strutturaId)
     : categoriaId ? contestoCategoria(categoriaId) : null
+
+  /**
+   * Scambia il lato attivo portandosi dietro la selezione, così non si passa
+   * mai da un ambito vuoto: da struttura si va sulla SUA categoria, e da
+   * categoria sulla prima struttura che le appartiene.
+   */
+  const scambiaAmbito = () => {
+    if (perCategoria) {
+      const prima = LST_STRUTTURE.find(s => s.categoriaId === categoriaId) ?? LST_STRUTTURE[0]
+      setCategoriaId('')
+      setStrutturaId(prima.id)
+    } else {
+      const corrente = LST_STRUTTURE.find(s => s.id === strutturaId)
+      setStrutturaId('')
+      setCategoriaId(corrente?.categoriaId ?? LST_CATEGORIE[0].id)
+    }
+  }
 
   const stagione = stagioni.find(s => s.id === stagioneId) ?? stagioni[0]
   const lotti = contesto ? draft.lotti[contesto] ?? [] : []
@@ -211,30 +231,49 @@ export default function ListiniGruppi({ onGoTo }: CfgPaneComponentProps) {
           </button>
         )}
       >
-        <SelectField
-          name="struttura"
-          label="Struttura"
-          value={strutturaId}
-          disabled={categoriaId !== ''}
-          hint={categoriaId !== '' ? 'In alternativa alla categoria' : undefined}
-          onChange={e => { setStrutturaId(e.target.value); if (e.target.value) setCategoriaId('') }}
-          options={[
-            { value: '', label: '—' },
-            ...LST_STRUTTURE.map(s => ({ value: s.id, label: s.nome })),
-          ]}
-        />
-        <SelectField
-          name="categoria"
-          label="Categoria"
-          value={categoriaId}
-          disabled={strutturaId !== ''}
-          hint={strutturaId !== '' ? 'In alternativa alla struttura' : undefined}
-          onChange={e => { setCategoriaId(e.target.value); if (e.target.value) setStrutturaId('') }}
-          options={[
-            { value: '', label: '—' },
-            ...LST_CATEGORIE.map(c => ({ value: c.id, label: c.nome })),
-          ]}
-        />
+        {/* Ambito a due vie: un solo controllo, due sorgenti alternative. Il lato
+            attivo e' in chiaro, l'altro disabilitato e grigio (§4.18); lo
+            scambio centrale porta la selezione da un lato all'altro senza
+            passare da uno stato vuoto. */}
+        <fieldset className={clsx('lg-ambito', perCategoria && 'lg-ambito--categoria')}>
+          <legend className="lg-ambito__legend">Ambito del listino</legend>
+
+          <div className={clsx('lg-ambito__lato', !perCategoria && 'lg-ambito__lato--on')}>
+            <SelectField
+              name="struttura"
+              label="Struttura"
+              value={strutturaId}
+              disabled={perCategoria}
+              onChange={e => { setStrutturaId(e.target.value); if (e.target.value) setCategoriaId('') }}
+              options={LST_STRUTTURE.map(s => ({ value: s.id, label: s.nome }))}
+            />
+          </div>
+
+          <div className="lg-ambito__switch">
+            <span className="lg-ambito__oppure">oppure</span>
+            <Tooltip content={perCategoria ? 'Configura per struttura' : 'Configura per categoria'}>
+              <button
+                type="button"
+                className="lg-ambito__swap"
+                onClick={scambiaAmbito}
+                aria-label={perCategoria ? 'Configura per struttura' : 'Configura per categoria'}
+              >
+                <i className="fa-solid fa-right-left" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          </div>
+
+          <div className={clsx('lg-ambito__lato', perCategoria && 'lg-ambito__lato--on')}>
+            <SelectField
+              name="categoria"
+              label="Categoria"
+              value={categoriaId}
+              disabled={!perCategoria}
+              onChange={e => { setCategoriaId(e.target.value); if (e.target.value) setStrutturaId('') }}
+              options={LST_CATEGORIE.map(c => ({ value: c.id, label: c.nome }))}
+            />
+          </div>
+        </fieldset>
         <RadioGroup
           name="distribuzione"
           label="Distribuzione"
@@ -354,7 +393,7 @@ export default function ListiniGruppi({ onGoTo }: CfgPaneComponentProps) {
         </>
       )}
 
-      <ListiniOpzioneErrore
+      <CfgOpzioneErrore
         paneLabel="Listini gruppi"
         requirementLabel="Stagionalità Gruppi"
         reason="Richiede la Stagionalità Gruppi completata: le tariffe gruppi si leggono sul calendario stagionale."

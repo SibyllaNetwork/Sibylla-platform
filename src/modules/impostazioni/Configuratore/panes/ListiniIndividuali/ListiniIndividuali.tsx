@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { CfgToolbar, CfgTable, CfgSaveBar, CfgEmpty } from '../../../../../core/cfg'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgEmpty, CfgOpzioneErrore } from '../../../../../core/cfg'
 import { SelectField, InputField } from '../../../../../core/components/form'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import ListiniCalendario from '../_listini/ListiniCalendario'
-import ListiniOpzioneErrore from '../_listini/ListiniOpzioneErrore'
 import type { CfgPaneComponentProps } from '../../Configuratore'
 import {
   LST_STRUTTURE,
@@ -214,7 +213,7 @@ export default function ListiniIndividuali({ onGoTo }: CfgPaneComponentProps) {
         </section>
       </div>
 
-      <ListiniOpzioneErrore
+      <CfgOpzioneErrore
         paneLabel="Listini individuali"
         requirementLabel="Stagionalità B2B"
         reason="Richiede la Stagionalità B2B completata: i listini individuali si agganciano ai periodi stagionali."

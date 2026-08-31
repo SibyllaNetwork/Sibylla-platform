@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
-import { CfgTable, CfgToolbar, CfgSaveBar } from '../../../../../core/cfg'
+import { CfgTable, CfgToolbar, CfgSaveBar, CfgOpzioneErrore } from '../../../../../core/cfg'
 import { SelectField, InputField } from '../../../../../core/components/form'
 import Modal from '../../../../../core/components/Modal'
 import TruncatedText from '../../../../../core/components/TruncatedText'
@@ -8,18 +8,20 @@ import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import { fetchStagioniCatalogo, type StagioneDef } from '../Stagionalita/stagionalitaData'
 import { useOverbookingStore, TIPOLOGIE_CAMERA_OVB, type RegolaOverbooking } from './overbookingData'
+import type { CfgPaneComponentProps } from '../../Configuratore'
 import './OverbookingLimit.sass'
 
 // ─── OVERBOOKING LIMIT ───────────────────────────────────────────────────────
-//  Sbloccato dal gating della shell solo a Stagionalità configurata e
-//  applicata (registry `requires` + CfgLocked). Righe per tipologia camera
+//  Il funzionale (§4.11) vuole il configuratore bloccato fino a Stagionalità
+//  configurata e applicata: la pagina si apre sempre sui contenuti e quello
+//  stato resta consultabile nel box «Opzione errore» in fondo. Righe per tipologia camera
 //  espandibili ("Mostra dettagli"): dentro, le regole per periodo stagionale
 //  con limit/protection editabili e cestino con conferma. La creazione passa
 //  dal Modal condiviso; il salvataggio dalla CfgSaveBar.
 
 const PANE_ID = 'overbooking-limit'
 
-export default function OverbookingLimit() {
+export default function OverbookingLimit({ onGoTo }: CfgPaneComponentProps) {
   // Periodi = stagionalità dal Pannello di Controllo (elenco dinamico)
   const [catalogo, setCatalogo] = useState<StagioneDef[]>([])
   useEffect(() => {
@@ -255,6 +257,13 @@ export default function OverbookingLimit() {
           onSave={aggiungi}
         />
       )}
+
+      <CfgOpzioneErrore
+        paneLabel="Overbooking limit"
+        requirementLabel="Stagionalità"
+        reason="Richiede la Stagionalità configurata e applicata: il limite di overbooking si definisce sui periodi stagionali."
+        onGoToRequirement={onGoTo ? () => onGoTo('stagionalita') : undefined}
+      />
 
       <CfgSaveBar
         count={dirtyCount}

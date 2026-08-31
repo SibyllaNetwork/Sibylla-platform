@@ -167,7 +167,9 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     id: 'overbooking-limit', label: 'Overbooking limit', icon: 'triangle-exclamation', group: 'camere-inventario',
     description: 'Fino a che livello il sistema può accettare vendite oltre la disponibilità fisica.',
     keywords: ['overbooking', 'protection', 'disponibilità', 'vendite oltre capienza'],
-    requires: { id: 'stagionalita', reason: 'Richiede la Stagionalità configurata e applicata: il limite di overbooking si definisce sui periodi stagionali.' },
+    // Come i Listini (§4.11): il prerequisito è documentato e reso nel box
+    // «Opzione errore» in fondo al pane, così la pagina si apre sui contenuti.
+
   },
   {
     id: 'vincolo-matriosca', label: 'Vincolo matriosca', icon: 'layer-group', group: 'camere-inventario',
