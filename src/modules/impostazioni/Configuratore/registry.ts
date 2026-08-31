@@ -262,8 +262,8 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   },
   {
     id: 'fb-turni', label: 'Turni di servizio', icon: 'clock', group: 'food-beverage',
-    description: 'Orari e copertura dei turni: colazione, pranzo e cena.',
-    keywords: ['orari', 'turni', 'servizio', 'colazione', 'pranzo', 'cena'],
+    description: 'Orari e copertura dei turni per Colazione, Pranzo e Cena, per sala o per tutto l\'outlet.',
+    keywords: ['turni', 'orari', 'colazione', 'pranzo', 'cena', 'copertura', 'coperti', 'servizio'],
   },
   {
     id: 'fb-categorie', label: 'Categorie', icon: 'tags', group: 'food-beverage',

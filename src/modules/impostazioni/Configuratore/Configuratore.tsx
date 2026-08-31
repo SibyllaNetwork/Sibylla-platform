@@ -44,6 +44,7 @@ import VincoloMatriosca       from './panes/VincoloMatriosca/VincoloMatriosca'
 import FasceEta               from './panes/FasceEta/FasceEta'
 import VociIncasso            from './panes/VociIncasso/VociIncasso'
 import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
+import TurniServizio          from './panes/TurniServizio/TurniServizio'
 import Gateway                from './panes/Gateway/Gateway'
 import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFiscali'
 import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
@@ -112,6 +113,7 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   // Voci F&B servite dalle pagine native, non dalla sub-app Outlet Manager
   'fb-sale-tavoli':           FbSaleTavoli,
   'fb-outlet':                FbCreaOutlet,
+  'fb-turni':                 TurniServizio,
   'gateway':                  Gateway,
   'intestazioni-fiscali':     IntestazioniFiscali,
   'business-central':         BusinessCentral,

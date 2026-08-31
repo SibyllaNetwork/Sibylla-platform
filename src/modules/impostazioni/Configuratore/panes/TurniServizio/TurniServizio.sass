@@ -1,0 +1,113 @@
+// ─── TURNI DI SERVIZIO (F&B) ──────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.turni-serv
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  // Servizio: pastiglia con pallino del colore del servizio (palette validata)
+  &__servizio
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 2px 9px
+    border-radius: 999px
+    border: 1px solid color-mix(in srgb, var(--srv-c) 35%, transparent)
+    background: color-mix(in srgb, var(--srv-c) 8%, transparent)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--srv-c)
+    white-space: nowrap
+
+  &__servizio-dot
+    width: 6px
+    height: 6px
+    border-radius: 50%
+    background: var(--srv-c)
+    flex-shrink: 0
+
+  &__td-nome
+    font-weight: 600
+    color: $text-active
+
+  &__td-sala
+    color: $text-inactive
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  // Turno disattivato: resta leggibile ma in secondo piano
+  &__row--off td
+    color: $text-inactive
+
+    .turni-serv__td-nome
+      font-weight: 500
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  // ── Modale nuovo/modifica turno ─────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 620px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__form-full
+    grid-column: 1 / -1
+
+  &__errore
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 8px 10px
+    border-radius: 6px
+    background: alpha($error, .08)
+    font-size: 12px
+    line-height: 1.45
+    color: $error-dark
+
+    i
+      margin-top: 2px
+      flex-shrink: 0
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px
+
+  // Pane stretto: la tabella comprime i suoi spazi, mai scroll orizzontale
+  @container (max-width: 820px)
+    .sib-table th,
+    .sib-table td
+      padding-left: 6px
+      padding-right: 6px
