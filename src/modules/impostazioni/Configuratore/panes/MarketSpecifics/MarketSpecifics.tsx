@@ -163,7 +163,9 @@ export default function MarketSpecifics() {
           <tr key={n.id}>
             <td>
               <span className="market-specifics__naz">
-                <span className="market-specifics__flag" aria-hidden="true">{n.flagEmoji}</span>
+                <span className="market-specifics__flag" aria-hidden="true">
+                  <span className="market-specifics__flag-glyph">{n.flagEmoji}</span>
+                </span>
                 <span>{titleCase(n.nome)}</span>
               </span>
             </td>
