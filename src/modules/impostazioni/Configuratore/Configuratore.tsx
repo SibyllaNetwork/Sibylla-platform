@@ -73,9 +73,13 @@ export interface CfgPaneComponentProps {
   navigate?: (page: string) => void
 }
 
-/** F&B → Sale e tavoli: identica a Il mio business → Sale e tavoli. */
+/**
+ * F&B → Sale e tavoli: stessa pagina di Il mio business, ma qui è il posto dove
+ * le sale si DEFINISCONO (crea, rinomina, elimina, composizione della
+ * planimetria). Là la stessa pagina è di sola consultazione.
+ */
 const FbSaleTavoli = ({ navigate }: CfgPaneComponentProps) => (
-  <SaleTavoli embedded navigate={navigate} />
+  <SaleTavoli embedded editable navigate={navigate} />
 )
 
 /** F&B → Crea outlet: identica a Il mio business → Crea outlet (picker su Outlet). */

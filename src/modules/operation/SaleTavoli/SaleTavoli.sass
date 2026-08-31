@@ -62,13 +62,59 @@
   &__bar
     display: flex
     align-items: flex-end
-    justify-content: space-between
+    // I blocchi si susseguono da sinistra (il selettore sala e il comando che
+    // lo accompagna restano vicini): sono le statistiche a essere spinte a
+    // destra. Con `space-between` i tre blocchi venivano distribuiti e il
+    // bottone «Gestisci sale» restava sospeso al centro.
+    justify-content: flex-start
     gap: 16px
     padding: 12px 24px 0
     flex-wrap: wrap
 
+  // Il selettore e il comando «Gestisci sale» sono un gruppo: il contenitore
+  // si adatta al select (prima era largo 200px fissi e lasciava un vuoto di
+  // ~20px che staccava il bottone) e la distanza tra i due è ridotta.
   &__bar-sala
-    min-width: 200px
+    width: 200px
+    flex-shrink: 0
+
+    .sib-select
+      width: 100%
+
+
+  // Nota di sola lettura (Il mio business): rimanda al Configuratore
+  &__bar-nota
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+    margin: 0
+    align-self: flex-end
+    padding-bottom: 6px
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+    > i
+      color: var(--color-primary)
+
+  &__bar-link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    padding: 0
+    border: none
+    background: none
+    font-family: var(--font-body)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+    i
+      font-size: 10px
 
   &__bar-manage
     display: flex
@@ -82,7 +128,9 @@
       height: 34px
       align-self: flex-end
 
+  // Le statistiche chiudono la riga a destra
   &__stats
+    margin-left: auto
     display: flex
     gap: 8px
     flex-wrap: wrap

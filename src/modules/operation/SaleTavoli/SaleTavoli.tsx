@@ -95,9 +95,17 @@ interface Props {
    * compare un secondo titolo.
    */
   embedded?: boolean
+  /**
+   * Chi può DEFINIRE le sale. Le sale e le loro planimetrie si configurano nel
+   * Configuratore → Food & Beverage → Sale e tavoli (`editable`); in
+   * Impostazioni → Il mio business la stessa pagina è di sola consultazione:
+   * si vedono le sale configurate e si lavora al servizio ai tavoli, ma non si
+   * creano, rinominano, eliminano né si ricompone la planimetria.
+   */
+  editable?: boolean
 }
 
-const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
+const SaleTavoli: React.FC<Props> = ({ navigate, embedded = false, editable = false }) => {
   const sale = useSaleStore(s => s.sale);
   const addTavolo = useSaleStore(s => s.addTavolo);
   const addElemento = useSaleStore(s => s.addElemento);
@@ -119,7 +127,11 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
   const trasferisci = useSaleStore(s => s.trasferisci);
   const confirm = useConfirmStore(s => s.confirm);
 
-  const [mode, setMode] = useState<'compose' | 'service'>('service');
+  // Senza diritti di definizione esiste solo il servizio: la composizione
+  // della planimetria è un'operazione da Configuratore.
+  // Dove si definisce si entra in Composizione; in sola lettura c'è solo il servizio
+  const [mode, setMode] = useState<'compose' | 'service'>(editable ? 'compose' : 'service');
+  const modoCorrente = editable ? mode : 'service';
   const [salaId, setSalaId] = useState(sale[0]?.id ?? '');
   const [newForma, setNewForma] = useState<TavoloForma>('quadrato');
   const [selIds, setSelIds] = useState<string[]>([]);
@@ -259,14 +271,14 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
     const r = canvasRef.current!.getBoundingClientRect();
     const multi = e.shiftKey || e.ctrlKey || e.metaKey;
     // Ctrl/Cmd/Shift+click in composizione: aggiunge/toglie dalla selezione (no drag)
-    if (mode === 'compose' && multi) {
+    if (modoCorrente === 'compose' && multi) {
       e.stopPropagation();
       setSelIds(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
       return;
     }
     // set da trascinare: la selezione multipla se il tavolo ne fa parte, altrimenti solo lui
     let ids: string[];
-    if (mode === 'compose' && selIds.length > 1 && selIds.includes(id)) ids = selIds;
+    if (modoCorrente === 'compose' && selIds.length > 1 && selIds.includes(id)) ids = selIds;
     else { ids = [id]; setSelIds([id]); }
     const all = [...sala.tavoli, ...sala.elementi];
     const orig: Record<string, { x: number; y: number }> = {};
@@ -277,7 +289,7 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
   // avvia il marquee di selezione sullo sfondo (solo composizione)
   const startMarquee = (e: React.PointerEvent) => {
     if (e.target !== e.currentTarget) return;
-    if (mode === 'compose' && e.button === 0 && !moveMode) {
+    if (modoCorrente === 'compose' && e.button === 0 && !moveMode) {
       const r = canvasRef.current!.getBoundingClientRect();
       mq.current = { x0: e.clientX - r.left, y0: e.clientY - r.top };
       if (!(e.shiftKey || e.ctrlKey || e.metaKey)) setSelIds([]);
@@ -456,16 +468,20 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
       <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={printPlan}>
         <i className="fa-solid fa-print" /> Stampa
       </button>
-      <div className="sale__modes" role="tablist" aria-label="Modalità">
-        <button type="button" role="tab" aria-selected={mode === 'compose'}
-          className={`sale__mode${mode === 'compose' ? ' is-active' : ''}`} onClick={() => setMode('compose')}>
-          <i className="fa-solid fa-pen-ruler" /> Composizione
-        </button>
-        <button type="button" role="tab" aria-selected={mode === 'service'}
-          className={`sale__mode${mode === 'service' ? ' is-active' : ''}`} onClick={() => setMode('service')}>
-          <i className="fa-solid fa-bell-concierge" /> Servizio
-        </button>
-      </div>
+      {/* Il selettore compare solo dove si può comporre: in sola lettura resta
+          il servizio ai tavoli, non la definizione della planimetria. */}
+      {editable && (
+        <div className="sale__modes" role="tablist" aria-label="Modalità">
+          <button type="button" role="tab" aria-selected={modoCorrente === 'compose'}
+            className={`sale__mode${modoCorrente === 'compose' ? ' is-active' : ''}`} onClick={() => setMode('compose')}>
+            <i className="fa-solid fa-pen-ruler" /> Composizione
+          </button>
+          <button type="button" role="tab" aria-selected={modoCorrente === 'service'}
+            className={`sale__mode${modoCorrente === 'service' ? ' is-active' : ''}`} onClick={() => setMode('service')}>
+            <i className="fa-solid fa-bell-concierge" /> Servizio
+          </button>
+        </div>
+      )}
     </>
   );
 
@@ -486,7 +502,23 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
           <SelectField name="sala" label="Sala" value={sala.id} onChange={e => setSalaId(e.target.value)}
             options={sale.map(s => ({ value: s.id, label: s.nome }))} />
         </div>
-        {mode === 'compose' && (
+        {!editable && (
+          <p className="sale__bar-nota">
+            <i className="fa-light fa-circle-info" aria-hidden="true" />
+            Sale e planimetrie si definiscono nel Configuratore.
+            {navigate && (
+              <button
+                type="button"
+                className="sale__bar-link"
+                onClick={() => navigate('configuratore:fb-sale-tavoli')}
+              >
+                Apri il configuratore
+                <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </button>
+            )}
+          </p>
+        )}
+        {editable && (
           <div className="sale__bar-manage">
             {/* Un solo comando: la gestione delle sale (elenco, creazione,
                 rinomina con salvataggio, eliminazione) vive nel pannello. */}
@@ -511,7 +543,7 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
         <div className="sale__plan">
           <div
             ref={canvasRef}
-            className={`sale__canvas${mode === 'compose' ? ' is-compose' : ''}${moveMode ? ' is-moving' : ''}`}
+            className={`sale__canvas${modoCorrente === 'compose' ? ' is-compose' : ''}${moveMode ? ' is-moving' : ''}`}
             style={{ '--cols': sala.cols, '--rows': sala.rows, '--cell': `${CELL}px` } as React.CSSProperties}
             onPointerDown={startMarquee}
           >
@@ -594,7 +626,7 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
 
         {/* ── DETTAGLIO (destra) ─────────────────────────────────────────────── */}
         <aside className="sale__side">
-          {mode === 'compose' ? (
+          {modoCorrente === 'compose' ? (
             <ComposePanel
               sala={sala}
               selTavolo={selTavolo}
@@ -633,6 +665,7 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
               updateTavolo={(id, patch) => updateTavolo(sala.id, id, patch)}
               unisci={(ids) => unisciTavoli(sala.id, ids)}
               separa={(g) => separaGruppo(sala.id, g)}
+              componibile={editable}
             />
           )}
         </aside>
@@ -645,7 +678,7 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
         const title = tv ? `Tavolo ${tv.numero}` : (el?.label ?? 'Elemento');
         return (
           <TavMenu
-            sala={sala} tavolo={tv} isTavolo={!!tv} title={title} x={menu.x} y={menu.y} mode={mode}
+            sala={sala} tavolo={tv} isTavolo={!!tv} title={title} x={menu.x} y={menu.y} mode={modoCorrente}
             selCount={selIds.length} canPaste={clip.length > 0}
             onClose={() => setMenu(null)}
             onRuota={() => { rotateItem(sala.id, menu.id); setMenu(null); }}
@@ -1213,12 +1246,14 @@ const AlignToolbar: React.FC<{
 
 // ── Pannello SERVIZIO (capo sala) ─────────────────────────────────────────────
 const ServicePanel: React.FC<{
+  /** true dove la planimetria si può ricomporre (Configuratore) */
+  componibile?: boolean;
   sala: Sala;
   selTavolo: Tavolo | null;
   updateTavolo: (id: string, patch: Partial<Tavolo>) => void;
   unisci: (ids: string[]) => void;
   separa: (gruppo: string) => void;
-}> = ({ sala, selTavolo, updateTavolo, unisci, separa }) => {
+}> = ({ sala, selTavolo, updateTavolo, unisci, separa, componibile = false }) => {
   const clienti = useClientiStore(s => s.clienti);
   const addCliente = useClientiStore(s => s.addCliente);
   const updateCliente = useClientiStore(s => s.updateCliente);
@@ -1228,7 +1263,15 @@ const ServicePanel: React.FC<{
   useEffect(() => { setJoinSel([]); }, [selTavolo?.id]);
 
   if (!selTavolo) {
-    return <div className="sale__hint"><i className="fa-solid fa-hand-pointer" /> Seleziona un tavolo dalla planimetria per assegnarlo, prenotarlo, unirlo ad altri, gestire lo stato o annotare le allergie. Trascina un tavolo per spostarlo.</div>;
+    return (
+      <div className="sale__hint">
+        <i className="fa-solid fa-hand-pointer" />
+        {' '}Seleziona un tavolo dalla planimetria per assegnarlo, prenotarlo, unirlo ad altri,
+        gestire lo stato o annotare le allergie.
+        {/* Spostare i tavoli è composizione: si dice solo dove si può fare */}
+        {componibile && ' Trascina un tavolo per spostarlo.'}
+      </div>
+    );
   }
 
   // ── Gruppo di unione: il capofila (numero più basso) tiene la prenotazione ──
