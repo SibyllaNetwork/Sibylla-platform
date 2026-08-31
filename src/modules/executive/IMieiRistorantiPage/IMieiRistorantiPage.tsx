@@ -4,6 +4,8 @@ import T from '../../../core/tokens';
 import Ico from '../../../core/icons/Ico';
 import MenuIco from '../../../core/icons/MenuIco';
 import PageHead from '../../../core/components/PageHead';
+import Tooltip from '../../../core/components/Tooltip';
+import BiStrutturaModal from '../BiStrutturaModal/BiStrutturaModal';
 import './IMieiRistorantiPage.sass'
 
 // Servizio della giornata: scala coperti / ricavi / costi rispetto al dato pieno.
@@ -31,6 +33,8 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
   const [selRist, setSelRist] = useState<number|null>(null);
   const [servizio, setServizio] = useState<Servizio>('Intera giornata');
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
+  // Ristorante di cui è aperta la modale di business intelligence (indice originale)
+  const [biIdx, setBiIdx] = useState<number|null>(null);
 
   const yr = curDate.getFullYear(), mo = curDate.getMonth();
 
@@ -89,6 +93,8 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
   const toggleType = (t: string) =>
     setActiveTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
   const filtered = activeTypes.length ? ristoranti.filter(r => activeTypes.includes(r.type)) : ristoranti;
+
+  const biRistorante = biIdx===null ? null : ristoranti.find(r => r.idx===biIdx) ?? null;
 
   const fmtEur  = (n:number) => `€ ${n.toLocaleString("it-IT")}`;
   const fmtEur2 = (n:number) => `€ ${n.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -260,10 +266,12 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
                     <span className="rist__perc-badge">+{r.perc.toFixed(1)}%</span>
                   </div>
                   <div className="rist__row-val--right">
-                    <button className="rist__bi-btn"
-                      onClick={e=>e.stopPropagation()}>
-                      <i className="fa-duotone fa-chart-column rist__bi-ico" aria-hidden="true"/>
-                    </button>
+                    <Tooltip text={`Business intelligence di ${r.name}`}>
+                      <button className="rist__bi-btn" aria-label={`Business intelligence di ${r.name}`}
+                        onClick={e=>{e.stopPropagation(); setBiIdx(r.idx);}}>
+                        <i className="fa-duotone fa-chart-column rist__bi-ico" aria-hidden="true"/>
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               );
@@ -271,6 +279,27 @@ export default function IMieiRistorantiPage({navigate}:{navigate:(p:string)=>voi
           </div>
         </div>
       </div>
+
+      {/* BI del singolo ristorante, aperta dall'icona in tabella */}
+      {biRistorante && (
+        <BiStrutturaModal
+          open
+          onClose={()=>setBiIdx(null)}
+          variante="ristorante"
+          seed={biRistorante.idx}
+          nome={biRistorante.name}
+          tipo={biRistorante.type}
+          contesto={servizio}
+          data={selDate}
+          isForecast={isForecast}
+          ricavi={biRistorante.ricavi}
+          costi={biRistorante.costi}
+          profitto={biRistorante.profitto}
+          perc={biRistorante.perc}
+          coperti={biRistorante.coperti}
+          scontrino={biRistorante.scontrino}
+        />
+      )}
     </div>
   );
 }

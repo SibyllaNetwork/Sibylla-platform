@@ -1,0 +1,117 @@
+// ─── MODALE BI DELLA STRUTTURA ────────────────────────────────────────────────
+// Skin della modale condivisa (.modal__box) + impianto della griglia BI.
+@use '../../../styles/tokens' as *
+
+// La modale ospita una fascia di KPI e tre grafici: la larghezza standard (780px)
+// non basta, i grafici diventerebbero illeggibili.
+.modal__box.bi-struct
+  max-width: 1180px
+  width: 96vw
+  padding: 20px 22px 22px
+
+.bi-struct__body
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+// ── Riga di contesto: tipologia, data, modalità, timbro del dato ─────────────
+.bi-struct__meta
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: 10px
+  margin-top: -8px
+
+.bi-struct__tipo
+  background: $primary-50
+  color: $primary
+  font-size: 11px
+  font-weight: 600
+  padding: 4px 10px
+  border-radius: 999px
+
+.bi-struct__data
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 12.5px
+  font-weight: 600
+  color: $text-inactive
+
+  i
+    font-size: 12px
+    color: $primary
+
+.bi-struct__contesto
+  color: $text-disabled
+  font-weight: 500
+
+.bi-struct__mode
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 11px
+  font-weight: 600
+  padding: 4px 10px
+  border-radius: 999px
+  border: 1px solid transparent
+
+  i
+    font-size: 11px
+
+  &--forecast
+    color: var(--chart-forecast)
+    border-color: color-mix(in srgb, var(--chart-forecast) 40%, transparent)
+    background: color-mix(in srgb, var(--chart-forecast) 12%, transparent)
+
+  &--production
+    color: var(--chart-good)
+    border-color: color-mix(in srgb, var(--chart-good) 40%, transparent)
+    background: color-mix(in srgb, var(--chart-good) 12%, transparent)
+
+.bi-struct__stamp
+  margin-left: auto
+
+// ── Fascia indicatori ────────────────────────────────────────────────────────
+// Deroga alla regola "niente stat-card in cima": è un contesto BI (regole_ui §13).
+.bi-struct__kpis
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))
+  gap: 10px
+
+// ── Griglia dei grafici ──────────────────────────────────────────────────────
+// Dentro una modale i grafici non hanno un'altezza da cui ereditare: gliela dà
+// la griglia, così ResponsiveContainer ha sempre una misura su cui disegnare.
+.bi-struct__grid
+  display: grid
+  grid-template-columns: 1.7fr 1.05fr
+  gap: 12px
+
+.bi-struct__card
+  min-width: 0
+
+  &--trend
+    height: 250px
+
+  &--mix
+    height: 250px
+
+  &--anno
+    grid-column: 1 / -1
+    height: 230px
+
+.bi-struct__foot
+  font-size: 11.5px
+  color: $text-inactive
+
+  strong
+    color: $primary
+    font-weight: 600
+
+// Su schermi stretti i due grafici affiancati si impilano.
+@media (max-width: 900px)
+  .bi-struct__grid
+    grid-template-columns: 1fr
+
+  .bi-struct__card--anno
+    grid-column: auto

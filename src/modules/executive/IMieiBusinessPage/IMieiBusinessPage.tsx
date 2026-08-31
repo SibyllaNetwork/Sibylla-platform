@@ -4,6 +4,8 @@ import T from '../../../core/tokens';
 import Ico from '../../../core/icons/Ico';
 import MenuIco from '../../../core/icons/MenuIco';
 import PageHead from '../../../core/components/PageHead';
+import Tooltip from '../../../core/components/Tooltip';
+import BiStrutturaModal from '../BiStrutturaModal/BiStrutturaModal';
 import './IMieiBusinessPage.sass'
 
 // Previsione di crescita per struttura (moltiplicatore sui ricavi attesi per la
@@ -16,6 +18,8 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
   const [selDay,  setSelDay]  = useState(today.getDate());
   const [selBiz,  setSelBiz]  = useState<number|null>(null);
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
+  // Struttura di cui è aperta la modale di business intelligence (indice originale)
+  const [biIdx, setBiIdx] = useState<number|null>(null);
 
   const yr = curDate.getFullYear(), mo = curDate.getMonth();
   const MONTHS  = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
@@ -70,6 +74,8 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
   const toggleType = (t: string) =>
     setActiveTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
   const filtered = activeTypes.length ? view.filter(b => activeTypes.includes(b.type)) : view;
+
+  const biStruttura = biIdx===null ? null : view.find(b => b.idx===biIdx) ?? null;
 
   const fmtEur    = (n:number) => `€ ${n.toLocaleString("it-IT")}`;
   const selDate   = new Date(yr, mo, selDay);
@@ -223,10 +229,12 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
                     <span className="biz__perc-badge">+{b.perc.toFixed(1)}%</span>
                   </div>
                   <div className="biz__row-val--right">
-                    <button className="biz__bi-btn"
-                      onClick={e=>e.stopPropagation()}>
-                      <i className="fa-duotone fa-chart-column biz__bi-ico" aria-hidden="true"/>
-                    </button>
+                    <Tooltip text={`Business intelligence di ${b.name}`}>
+                      <button className="biz__bi-btn" aria-label={`Business intelligence di ${b.name}`}
+                        onClick={e=>{e.stopPropagation(); setBiIdx(b.idx);}}>
+                        <i className="fa-duotone fa-chart-column biz__bi-ico" aria-hidden="true"/>
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               );
@@ -234,6 +242,24 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
           </div>
         </div>
       </div>
+
+      {/* BI della singola struttura, aperta dall'icona in tabella */}
+      {biStruttura && (
+        <BiStrutturaModal
+          open
+          onClose={()=>setBiIdx(null)}
+          variante="business"
+          seed={biStruttura.idx}
+          nome={biStruttura.name}
+          tipo={biStruttura.type}
+          data={selDate}
+          isForecast={isForecast}
+          ricavi={biStruttura.ricavi}
+          costi={biStruttura.costi}
+          profitto={biStruttura.profitto}
+          perc={biStruttura.perc}
+        />
+      )}
     </div>
   );
 }
