@@ -1,0 +1,126 @@
+// ─── STAMPANTI (F&B) ─────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.stampanti
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  &__td-nome
+    font-weight: 600
+    color: $text-active
+
+  // Reparto sotto al nome: dice a che cosa serve la stampante senza una colonna in più
+  &__reparto
+    display: block
+    margin-top: 1px
+    font-size: 11px
+    font-weight: 500
+    color: $text-inactive
+
+  // Tipo: pastiglia col pallino del colore della destinazione
+  &__tipo
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 2px 9px
+    border-radius: 999px
+    border: 1px solid color-mix(in srgb, var(--st-c) 35%, transparent)
+    background: color-mix(in srgb, var(--st-c) 8%, transparent)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--st-c)
+    white-space: nowrap
+
+  &__tipo-dot
+    width: 6px
+    height: 6px
+    border-radius: 50%
+    background: var(--st-c)
+    flex-shrink: 0
+
+  &__td-ip
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__locale
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      font-size: 10px
+
+  &__td-proto,
+  &__td-outlet
+    color: $text-inactive
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__zero
+    color: $warning
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  &__row--off td
+    color: $text-inactive
+
+    .stampanti__td-nome
+      font-weight: 500
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    flex-wrap: wrap
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  &__link
+    padding: 0
+    border: none
+    background: none
+    font-family: inherit
+    font-size: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  // ── Modale ──────────────────────────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 620px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px

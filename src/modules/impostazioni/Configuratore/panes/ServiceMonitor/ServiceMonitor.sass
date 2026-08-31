@@ -1,0 +1,225 @@
+// ─── SERVICE MONITOR (F&B) ───────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.srv-monitor
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+
+  &__list
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+    gap: 12px
+
+  &__card
+    display: flex
+    flex-direction: column
+    min-width: 0
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: $white
+    overflow: hidden
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: border-color $motion-base $motion-ease, box-shadow $motion-base $motion-ease
+
+    &:hover
+      border-color: color-mix(in srgb, var(--mon-c) 45%, $border)
+      box-shadow: $shadow-sm
+
+  // Monitor spento: la testata si attenua, il corpo resta pienamente usabile
+  &__card--off &__head
+    opacity: .72
+
+  // ── Testata colorata per reparto ────────────────────────────────────────────
+  // Il colore del reparto viene scurito del 30%: sui token chiari della palette
+  // (il teal --chart-5) un semplice 12% lasciava il titolo bianco sotto 4.5:1.
+  &__head
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 12px 14px
+    background: color-mix(in srgb, var(--mon-c) 70%, black)
+    color: $text-negative
+
+  &__head-titles
+    flex: 1 1 auto
+    min-width: 0
+
+  &__title
+    margin: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-family: $font-heading
+    font-size: 14.5px
+    font-weight: 700
+
+  &__sub
+    margin: 2px 0 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-size: 11.5px
+    opacity: .85
+
+  &__head-ico
+    flex-shrink: 0
+    margin-top: 2px
+    font-size: 15px
+    opacity: .8
+
+  // ── Corpo ───────────────────────────────────────────────────────────────────
+  // flex: 1 + actions con margin-top auto: le card di una riga restano della
+  // stessa altezza e i pulsanti si allineano in basso
+  &__body
+    display: flex
+    flex: 1
+    flex-direction: column
+    gap: 10px
+    padding: 12px 14px
+
+  &__row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+
+  &__refresh
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      font-size: 11px
+
+  &__voci
+    display: flex
+    align-items: flex-start
+    gap: 7px
+    margin: 0
+    font-size: 12px
+    line-height: 1.4
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      font-size: 11px
+      color: $primary
+      flex-shrink: 0
+
+  // Monitor senza voci instradate: in servizio resterebbe vuoto
+  &__voci--vuoto
+    color: $warning
+
+    i
+      color: $warning
+
+  // ── URL del monitor ─────────────────────────────────────────────────────────
+  &__url-box
+    display: flex
+    flex-direction: column
+    gap: 7px
+    padding: 10px
+    border: 1px solid $border
+    border-radius: 8px
+    background: alpha($primary, .03)
+
+  &__url-label
+    font-family: $font-heading
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__url
+    overflow-wrap: anywhere
+    font-family: $font-body
+    font-size: 11.5px
+    font-weight: 600
+    line-height: 1.4
+    color: $link
+
+  &__url-actions
+    display: flex
+    gap: 8px
+
+  &__actions
+    display: flex
+    margin-top: auto
+    justify-content: flex-end
+    gap: 4px
+    padding-top: 2px
+    border-top: 1px solid $border
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    flex-wrap: wrap
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  &__link
+    padding: 0
+    border: none
+    background: none
+    font-family: inherit
+    font-size: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  // ── Modale ──────────────────────────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 620px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__form-full
+    grid-column: 1 / -1
+
+  &__avviso
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 9px 11px
+    border-radius: 7px
+    background: alpha($primary, .06)
+    font-size: 12px
+    line-height: 1.45
+    color: $text-active
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px

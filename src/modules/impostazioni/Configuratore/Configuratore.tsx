@@ -48,6 +48,9 @@ import TurniServizio          from './panes/TurniServizio/TurniServizio'
 import CategorieMenu          from './panes/CategorieMenu/CategorieMenu'
 import VociMenu               from './panes/VociMenu/VociMenu'
 import Allergeni              from './panes/Allergeni/Allergeni'
+import CategorieOspite        from './panes/CategorieOspite/CategorieOspite'
+import ServiceMonitor         from './panes/ServiceMonitor/ServiceMonitor'
+import StampantiPane          from './panes/Stampanti/Stampanti'
 import CreaMenu               from './panes/CreaMenu/CreaMenu'
 import ListaMenu              from './panes/ListaMenu/ListaMenu'
 import MenuGiorno             from './panes/MenuGiorno/MenuGiorno'
@@ -124,6 +127,9 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'fb-categorie':             CategorieMenu,
   'fb-voci-menu':             VociMenu,
   'fb-allergeni':             Allergeni,
+  'fb-categoria-ospite':      CategorieOspite,
+  'fb-service-monitor':       ServiceMonitor,
+  'fb-stampanti':             StampantiPane,
   'fb-crea-menu':             CreaMenu,
   'fb-lista-menu':            ListaMenu,
   'fb-menu-giorno':           MenuGiorno,

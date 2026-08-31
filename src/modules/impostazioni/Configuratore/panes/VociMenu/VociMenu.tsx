@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { useCategorieMenuStore } from '../../../../../store/useCategorieMenuStore'
+import { useStampantiStore, stampanteLabel } from '../../../../../store/useStampantiStore'
+import { useServiceMonitorStore } from '../../../../../store/useServiceMonitorStore'
 import { CfgToolbar, CfgTable } from '../../../../../core/cfg'
 import { SelectField, InputField, TextareaField, ToggleSwitch } from '../../../../../core/components/form'
 import Modal from '../../../../../core/components/Modal'
@@ -21,9 +23,6 @@ import {
   newRigaId,
   ALLERGENI_UE,
   OUTLET_FB,
-  STAMPANTI_FB,
-  stampanteLabel,
-  SERVICE_MONITOR_FB,
   CONTESTI_STAMPA,
   type CodiceAllergene,
   type ContestoStampa,
@@ -73,6 +72,10 @@ const FORM_VUOTO: VoceForm = {
 export default function VociMenu() {
   const voci       = useVociMenuStore(s => s.voci)
   const categorie = useCategorieMenuStore(s => s.categorie)
+  // Stampanti e monitor arrivano dai rispettivi pane: cambiando l'anagrafica là
+  // le tendine di questa modale si aggiornano da sé
+  const stampanti = useStampantiStore(s => s.stampanti)
+  const monitorFb = useServiceMonitorStore(s => s.monitor)
   const addVoce    = useVociMenuStore(s => s.addVoce)
   const updateVoce = useVociMenuStore(s => s.updateVoce)
   const removeVoce = useVociMenuStore(s => s.removeVoce)
@@ -236,8 +239,9 @@ export default function VociMenu() {
 
   /** Stampanti selezionabili: quelle dell'outlet scelto sulla riga. */
   const stampanteOptions = (outletId: number | null) =>
-    STAMPANTI_FB
-      .filter(s => outletId == null || s.outletId === outletId)
+    stampanti
+      // outletId null sulla stampante = serve tutti gli outlet
+      .filter(s => outletId == null || s.outletId === null || s.outletId === outletId)
       .map(s => ({ value: s.id, label: stampanteLabel(s.id) }))
 
   return (
@@ -605,7 +609,7 @@ export default function VociMenu() {
                       onChange={(e) => updMonitor(r.rid, e.target.value)}
                       options={[
                         { value: '', label: '— Seleziona monitor —' },
-                        ...SERVICE_MONITOR_FB.map(m => ({ value: m.id, label: m.nome })),
+                        ...monitorFb.map(m => ({ value: m.id, label: m.nome })),
                       ]}
                     />
                     <Tooltip content="Rimuovi monitor">

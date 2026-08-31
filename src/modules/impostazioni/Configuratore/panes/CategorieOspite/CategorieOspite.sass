@@ -1,0 +1,118 @@
+// ─── CATEGORIA OSPITE (F&B) ──────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cat-ospite
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  &__conteggio
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12.5px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+  &__td-nome
+    font-weight: 600
+    color: $text-active
+
+  &__td-descr
+    color: $text-inactive
+
+  &__td-sconto
+    text-align: right
+
+  &__td-flag
+    text-align: center
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  &__row--off td
+    color: $text-inactive
+
+    .cat-ospite__td-nome
+      font-weight: 500
+
+  // Sconto: scala dal nessuno all'omaggio totale
+  &__sconto
+    display: inline-flex
+    align-items: center
+    padding: 2px 9px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+  &__sconto--nullo
+    border: 1px solid $border
+    background: $bg
+    color: $text-inactive
+
+  &__sconto--medio
+    border: 1px solid alpha($success, .35)
+    background: alpha($success, .1)
+    color: $success
+
+  &__sconto--alto
+    border: 1px solid alpha($warning, .4)
+    background: alpha($warning, .12)
+    color: $warning
+
+  &__sconto--pieno
+    border: 1px solid alpha($error, .35)
+    background: alpha($error, .1)
+    color: $error-dark
+
+  &__si
+    font-size: 13px
+    color: $primary
+
+  &__no
+    color: $text-disabled
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  // ── Modale ──────────────────────────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-sconto
+    max-width: 200px
+
+  &__form-flags
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: alpha($primary, .03)
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px

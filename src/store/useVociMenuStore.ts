@@ -130,29 +130,10 @@ export const OUTLET_FB: Array<{ id: number; nome: string }> = [
   { id: 3, nome: 'Lounge Bar Sibylla' },
 ]
 
-export const STAMPANTI_FB: Array<{ id: string; nome: string; tipo: string; outletId: number }> = [
-  { id: 'st-caldi',      nome: 'Cucina - Caldi',    tipo: 'Termica', outletId: 1 },
-  { id: 'st-freddi',     nome: 'Cucina - Freddi',   tipo: 'Termica', outletId: 1 },
-  { id: 'st-pasticceria',nome: 'Pasticceria',       tipo: 'Termica', outletId: 1 },
-  { id: 'st-cassa-rest', nome: 'Cassa Restaurant',  tipo: 'Fiscale', outletId: 1 },
-  { id: 'st-roof',       nome: 'Cucina Roof Top',   tipo: 'Termica', outletId: 2 },
-  { id: 'st-cassa-roof', nome: 'Cassa Roof Top',    tipo: 'Fiscale', outletId: 2 },
-  { id: 'st-bar',        nome: 'Bar Sibylla',       tipo: 'Termica', outletId: 3 },
-]
-
-export const stampanteLabel = (id: string): string => {
-  const s = STAMPANTI_FB.find(x => x.id === id)
-  return s ? `${s.nome} (${s.tipo})` : id
-}
-
-export const SERVICE_MONITOR_FB: Array<{ id: string; nome: string }> = [
-  { id: 'mon-primi',   nome: 'KDS Cucina - Primi' },
-  { id: 'mon-secondi', nome: 'KDS Cucina - Secondi' },
-  { id: 'mon-freddi',  nome: 'KDS Freddi e antipasti' },
-  { id: 'mon-past',    nome: 'KDS Pasticceria' },
-  { id: 'mon-bar',     nome: 'KDS Bar' },
-  { id: 'mon-pass',    nome: 'KDS Pass / Espositore' },
-]
+// Stampanti e service monitor NON sono più elenchi di questo modulo: hanno il
+// loro pane e il loro store (Configuratore → F&B → Stampanti / Service
+// monitor). Qui le voci li referenziano per id.
+export { stampanteLabel } from './useStampantiStore'
 
 export const CONTESTI_STAMPA: Array<{ id: ContestoStampa; label: string }> = [
   { id: 'reparto-produzione', label: 'Reparto produzione' },
