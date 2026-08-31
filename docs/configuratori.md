@@ -531,6 +531,15 @@ interni di tutti i pane, il secondo page-head della sub-app F&B, tutti gli hex d
   da struttura si va sulla SUA categoria, da categoria sulla prima struttura che le
   appartiene, senza passare da uno stato vuoto. Il lato spento resta disabilitato e grigio,
   come chiede il funzionale.
+- **Configura Outlet, ritmo delle sezioni**: il `.sass` era rimasto a una versione
+  precedente del markup, quindi testata, form e tabella stavano a distanza zero. Ogni sezione
+  (Sale, Turni) ha ora lo stesso ritmo — testata con titolo e comando sulla stessa riga →
+  form dentro una cornice propria → tabella — con un divisore tra sezioni.
+- **`CfgMultiSelect` nel kit**: selezione multipla con trigger a riepilogo e pannello a
+  scroll proprio (ricerca oltre 7 opzioni, «Tutte/Nessuna», contatore, apertura verso l'alto
+  quando sotto non c'è spazio). Serve dove le opzioni possono essere molte: le sale di un
+  turno in Configura Outlet e le tipologie camera in Lotti mapping, che prima ne aveva una
+  copia locale. Con l'elenco a checkbox in linea, oltre tre sale il form si deformava.
 - **Trappola SASS**: un blocco a colonna 0 (es. `.lg-ambito`) va messo in FONDO al file.
   Inserito in mezzo chiude la nidificazione del blocco di pagina e tutte le regole `&__…`
   successive compilano con il prefisso sbagliato, sparendo senza errori di build.

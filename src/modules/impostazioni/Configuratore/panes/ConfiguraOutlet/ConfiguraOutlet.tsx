@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { apiFetchSibylla } from '../../../../../services/api'
-import { SelectField, InputField, CheckboxField, ToggleSwitch } from '../../../../../core/components/form'
-import { CfgToolbar, CfgTable, CfgSaveBar } from '../../../../../core/cfg'
+import { SelectField, InputField, ToggleSwitch } from '../../../../../core/components/form'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgMultiSelect } from '../../../../../core/cfg'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
@@ -44,10 +44,19 @@ const TIME_OPTIONS: string[] = Array.from({ length: 48 }, (_, i) => {
 const FALLBACK: Data = {
   Outlet: [{ Id: 1, nome: 'Ristorante Hotel Cristallo' }],
   OutletId: 1,
+  // Un outlet può avere molte sale: il seed ne porta abbastanza per verificare
+  // che l'elenco nel form dei turni regga (multiselect con pannello a scroll).
   sale: [
-    { id: 1, nome: 'Melissa',  tavoli: 50, pax: 200, attivo: true  },
-    { id: 2, nome: 'Marcella', tavoli: 24, pax: 90,  attivo: true  },
-    { id: 3, nome: 'Eleonora', tavoli: 12, pax: 40,  attivo: false },
+    { id: 1, nome: 'Melissa',          tavoli: 50, pax: 200, attivo: true  },
+    { id: 2, nome: 'Marcella',         tavoli: 24, pax: 90,  attivo: true  },
+    { id: 3, nome: 'Eleonora',         tavoli: 12, pax: 40,  attivo: false },
+    { id: 4, nome: 'Veranda',          tavoli: 18, pax: 72,  attivo: true  },
+    { id: 5, nome: 'Terrazza Mare',    tavoli: 22, pax: 88,  attivo: true  },
+    { id: 6, nome: 'Sala Camino',      tavoli: 10, pax: 36,  attivo: true  },
+    { id: 7, nome: 'Giardino d\'inverno', tavoli: 16, pax: 60, attivo: true },
+    { id: 8, nome: 'Bistrot',          tavoli: 14, pax: 48,  attivo: true  },
+    { id: 9, nome: 'Sala Privé',       tavoli: 4,  pax: 16,  attivo: true  },
+    { id: 10, nome: 'Bordo Piscina',   tavoli: 20, pax: 80,  attivo: false },
   ],
   turniEnabled: true,
   turni: [
@@ -215,11 +224,11 @@ export default function ConfiguraOutlet() {
     if (ok) setDraft(d => ({ ...d, turni: d.turni.filter(t => t.id !== turno.id) }))
   }
 
-  const toggleTurnoSala = (nome: string) =>
-    setTurnoForm(f => ({
-      ...f,
-      sale: f.sale.includes(nome) ? f.sale.filter(n => n !== nome) : [...f.sale, nome],
-    }))
+  // Opzioni del multiselect: solo le sale attive dell'outlet
+  const saleAttive = useMemo(
+    () => draft.sale.filter(s => s.attivo).map(s => s.nome),
+    [draft.sale],
+  )
 
   const save = async () => {
     try {
@@ -409,20 +418,17 @@ export default function ConfiguraOutlet() {
                 options={TIME_OPTIONS.map((t) => ({ value: t, label: t }))}
                 className="configura-outlet__form-field configura-outlet__form-field--time"
               />
-              <div className="configura-outlet__form-sale">
-                <span className="configura-outlet__form-sale-label">Sale</span>
-                <div className="configura-outlet__form-sale-list">
-                  {draft.sale.filter(s => s.attivo).map((s) => (
-                    <CheckboxField
-                      key={s.id}
-                      name={`turno-sala-${s.id}`}
-                      label={s.nome}
-                      checked={turnoForm.sale.includes(s.nome)}
-                      onChange={() => toggleTurnoSala(s.nome)}
-                    />
-                  ))}
-                </div>
-              </div>
+              {/* Le sale possono essere molte: multiselect con pannello a scroll
+                  proprio, così il form non si deforma al crescere dell'elenco. */}
+              <CfgMultiSelect
+                className="configura-outlet__form-sale"
+                label="Sale"
+                placeholder="Seleziona le sale del turno"
+                nomePlurale="sale"
+                options={saleAttive}
+                value={turnoForm.sale}
+                onChange={(next) => setTurnoForm({ ...turnoForm, sale: next })}
+              />
               <div className="configura-outlet__form-actions">
                 {turnoEditId != null && (
                   <button

@@ -1,110 +1,162 @@
 // ─── CONFIGURA OUTLET ─────────────────────────────────────────────────────────
+//  Due sezioni in sequenza (Sale, Turni), ognuna con lo stesso ritmo:
+//    testata (titolo + comando)  →  form di inserimento riquadrato  →  tabella
+//  Il form è dentro una cornice propria: così non sembra parte della tabella
+//  che lo segue, che era il difetto della versione precedente.
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .configura-outlet
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 20px
   font-size: 13px
+  // Il pane è il container di riferimento della query in fondo al file
+  container-type: inline-size
 
-
+  // Select "I miei outlet" nella toolbar
   &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
     max-width: 280px
 
+  // ── Sezione ─────────────────────────────────────────────────────────────────
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding-top: 18px
+    border-top: 1px solid $border
+
+    // La prima sezione segue la toolbar: nessun divisore sopra
+    &:first-of-type
+      padding-top: 0
+      border-top: none
+
+  &__section-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+    // Stacca la testata da ciò che segue anche quando il form è chiuso
+    min-height: 30px
+
+  &__section-title
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-family: $font-heading
+    font-size: 14.5px
+    font-weight: 600
+    color: $primary
+
+    i
+      font-size: 14px
+
+  // ── Form di inserimento ─────────────────────────────────────────────────────
+  //  Riquadro con fondo tenue: dice che è un blocco di input, separato dalla
+  //  tabella sottostante.
   &__form
     display: flex
     flex-wrap: wrap
-    gap: 12px
     align-items: flex-end
-
-  &__add
-    align-self: flex-start
-
-    i
-      margin-right: 6px
-
-  &__add-form
-    display: flex
-    flex-wrap: wrap
-    gap: 12px
-    align-items: flex-end
-    padding: 12px 14px
+    gap: 12px 14px
+    padding: 12px 14px 14px
     border: 1px solid $border
     border-radius: 8px
-    background: $bg
+    background: alpha($primary, .03)
 
-    .configura-outlet__field
-      max-width: 220px
-      gap: 4px
+  &__form-field
+    flex: 1 1 180px
+    min-width: 0
+    max-width: 240px
 
-      label
-        font-size: 12px
-        color: $text-inactive
-        font-weight: 600
+    // Campi corti: numeri e orari non hanno bisogno di larghezza
+    &--num
+      flex: 0 0 110px
+      max-width: 110px
 
-  &__add-num
-    width: 130px
+    &--time
+      flex: 0 0 124px
+      max-width: 124px
 
-  &__section-title
-    margin: 8px 0 0
+  // Le azioni del form vanno a fine riga, allineate ai campi
+  &__form-actions
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-left: auto
+
+  // Elenco sale del turno: label come gli altri campi, opzioni in una cornice
+  // propria così le checkbox non galleggiano tra i campi
+  &__form-sale
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex: 1 1 220px
+    min-width: 0
+
+  &__form-sale-label
     font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
     color: $primary
-    font-size: 16px
+
+  &__form-sale-list
     display: flex
+    flex-wrap: wrap
     align-items: center
-    gap: 12px
+    gap: 8px 16px
+    min-height: 34px
+    padding: 6px 10px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
 
-    &--toggle
-      gap: 12px
+  &__form-sale-empty
+    font-size: 12px
+    color: $text-inactive
 
-  &__table-wrap
-    @include paneShared.pane-table-wrap
+  // ── Tabelle ─────────────────────────────────────────────────────────────────
+  &__td-name
+    font-weight: 600
+    color: $text-active
 
-  &__table
-    @include paneShared.pane-table-base
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
 
-  &__actions-cell
+  &__td-actions
+    text-align: right
+    white-space: nowrap
+
+  // Riga di una sala/turno disattivato: resta leggibile ma in secondo piano
+  &__row--off td
+    color: $text-inactive
+
+  // ── Nota di coordinamento con le voci F&B ───────────────────────────────────
+  &__note
     display: flex
-    gap: 4px
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
 
-  &__toggle
-    display: inline-flex
-    align-items: center
-    cursor: pointer
-    position: relative
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
 
-    input
-      position: absolute
-      opacity: 0
-      width: 0
-      height: 0
+  // Su pane stretto i campi del form vanno a piena riga e le azioni sotto
+  // (container query sul pane, non @media sul viewport)
+  @container (max-width: 780px)
+    .configura-outlet__form-field,
+    .configura-outlet__form-sale
+      flex: 1 1 100%
+      max-width: none
 
-      &:checked + .configura-outlet__slider
-        background: $primary
-
-        &:before
-          transform: translateX(20px)
-
-  &__slider
-    width: 44px
-    height: 22px
-    background: $border
-    border-radius: 11px
-    position: relative
-    transition: background 0.2s
-
-    &:before
-      content: ""
-      width: 18px
-      height: 18px
-      background: var(--color-surface)
-      border-radius: 50%
-      position: absolute
-      top: 2px
-      left: 2px
-      transition: transform 0.2s
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2)
+    .configura-outlet__form-actions
+      margin-left: 0
+      width: 100%
+      justify-content: flex-end

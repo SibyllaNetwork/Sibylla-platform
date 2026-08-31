@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { apiFetchSibylla } from '../../../../../services/api'
 import { SelectField, InputField, ToggleSwitch } from '../../../../../core/components/form'
-import { CfgToolbar, CfgTable, CfgSaveBar } from '../../../../../core/cfg'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgMultiSelect } from '../../../../../core/cfg'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { toast } from '../../../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
@@ -302,8 +302,10 @@ export default function LottiMapping() {
             </header>
 
             <div className="lotti-mapping__b2b-select">
-              <TipologieMultiSelect
+              <CfgMultiSelect
                 label="Tipologia camere"
+                placeholder="Seleziona tipologie"
+                nomePlurale="tipologie"
                 options={tipologie}
                 value={b2bSelezione}
                 onChange={setB2bSelezione}
@@ -467,78 +469,5 @@ function ConsulenzaBell({ attivo, consulenza, label, onRequest }: {
         <i className="fa-solid fa-bell" aria-hidden="true" />
       </button>
     </Tooltip>
-  )
-}
-
-// ─── Multiselect «Tipologia camere» ───────────────────────────────────────────
-//  Selezione di una o più tipologie insieme, sul precedente del
-//  NazionalitaMultiSelect (trigger con riepilogo + dropdown con checkbox).
-
-function TipologieMultiSelect({ label, options, value, onChange }: {
-  label: string
-  options: string[]
-  value: string[]
-  onChange: (next: string[]) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
-  const toggle = (t: string) =>
-    onChange(value.includes(t) ? value.filter(x => x !== t) : [...value, t])
-
-  return (
-    <div className="lotti-multiselect" ref={wrapRef}>
-      <span className="lotti-multiselect__label">{label}</span>
-      <button
-        type="button"
-        className={clsx('lotti-multiselect__trigger', open && 'is-open')}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen(o => !o)}
-      >
-        {value.length === 0
-          ? <span className="lotti-multiselect__ph">Seleziona tipologie</span>
-          : (
-            <span className="lotti-multiselect__summary">
-              {value.length === 1 ? value[0] : `${value.length} tipologie selezionate`}
-            </span>
-          )}
-        <i className="fa-solid fa-chevron-down lotti-multiselect__chev" aria-hidden="true" />
-      </button>
-
-      {open && (
-        <div className="lotti-multiselect__pop" role="listbox" aria-label={label} aria-multiselectable="true">
-          {options.map((t) => (
-            <label key={t} className="lotti-multiselect__option" role="option" aria-selected={value.includes(t)}>
-              <input
-                type="checkbox"
-                className="sib-checkbox"
-                checked={value.includes(t)}
-                onChange={() => toggle(t)}
-              />
-              <span>{t}</span>
-            </label>
-          ))}
-          <div className="lotti-multiselect__quick">
-            <button type="button" onClick={() => onChange(options)}>Tutte</button>
-            <button type="button" onClick={() => onChange([])}>Nessuna</button>
-          </div>
-        </div>
-      )}
-    </div>
   )
 }
