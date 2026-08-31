@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
 import GestioneServizi from './GestioneServizi'
 import TipiServizioView from './TipiServizioView'
+import ConnettoriFornitoriView from './ConnettoriFornitoriView'
 import './ServiziAdminTab.sass'
 
-type SubTab = 'servizi' | 'tipi'
+type SubTab = 'servizi' | 'tipi' | 'fornitori'
 
 const SUB_TABS: ReadonlyArray<readonly [SubTab, string, string]> = [
-  ['servizi', 'Servizi',          'fa-concierge-bell'],
-  ['tipi',    'Tipi di servizio', 'fa-list-check'],
+  ['servizi',   'Servizi',              'fa-concierge-bell'],
+  ['tipi',      'Tipi di servizio',     'fa-list-check'],
+  // Servizi di fornitori terzi importati via API e rivenduti sui nostri canali
+  ['fornitori', 'Connettori fornitori', 'fa-plug'],
 ] as const
 
 export default function ServiziAdminTab() {
@@ -35,8 +38,9 @@ export default function ServiziAdminTab() {
       </nav>
 
       <div className="srv-admin-tab__panel">
-        {subTab === 'servizi' && <GestioneServizi embedded />}
-        {subTab === 'tipi'    && <TipiServizioView />}
+        {subTab === 'servizi'   && <GestioneServizi embedded />}
+        {subTab === 'tipi'      && <TipiServizioView />}
+        {subTab === 'fornitori' && <ConnettoriFornitoriView />}
       </div>
     </div>
   )

@@ -1,0 +1,250 @@
+// ─── MODALE CONNETTORE FORNITORE SERVIZI ─────────────────────────────────────
+// Stessa impaginazione della modale connettore partner (strutture): nav a
+// sezioni a sinistra dei contenuti, corpo scrollabile, footer con le azioni.
+
+.fc-modal
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.fc-modal__nav
+  display: flex
+  flex-wrap: wrap
+  gap: 4px
+  border-bottom: 1px solid var(--color-border)
+  padding-bottom: 10px
+
+.fc-modal__nav-btn
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 6px 11px
+  border: 1px solid transparent
+  border-radius: 999px
+  background: transparent
+  cursor: pointer
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  font-weight: 600
+  color: var(--color-text-inactive)
+  transition: background .15s, color .15s, border-color .15s
+
+  &:hover
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+
+.fc-modal__nav-btn--active
+  background: var(--color-primary)
+  border-color: var(--color-primary)
+  color: var(--color-text-negative)
+
+  .fc-modal__nav-ico
+    color: var(--color-text-negative)
+
+.fc-modal__nav-ico
+  font-size: 12px
+  color: var(--color-primary)
+
+.fc-modal__nav-dot
+  width: 6px
+  height: 6px
+  border-radius: 50%
+  background: var(--color-warning)
+
+// ─── Corpo ───────────────────────────────────────────────────────────────────
+.fc-modal__body
+  min-height: 320px
+  max-height: 58vh
+  overflow-y: auto
+  padding-right: 4px
+
+.fc-modal__section
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.fc-modal__section-intro
+  margin: 0
+  font-family: 'Open Sans', sans-serif
+  font-size: 12.5px
+  line-height: 1.5
+  color: var(--color-text-inactive)
+
+  strong
+    color: var(--color-text-active)
+
+.fc-modal__note
+  display: flex
+  align-items: flex-start
+  gap: 7px
+  margin: 0
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  line-height: 1.5
+  color: var(--color-text-inactive)
+
+  i
+    margin-top: 2px
+    color: var(--color-primary)
+    flex-shrink: 0
+
+.fc-modal__grid
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 12px
+
+  @media (max-width: 720px)
+    grid-template-columns: minmax(0, 1fr)
+
+.fc-modal__field--full
+  grid-column: 1 / -1
+
+// ─── Griglia fornitori ───────────────────────────────────────────────────────
+.fc-modal__provider-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+  gap: 8px
+
+.fc-modal__provider-card
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 4px
+  padding: 10px 12px
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  background: var(--color-surface)
+  cursor: pointer
+  text-align: left
+  transition: border-color .15s, box-shadow .15s
+
+  &:hover
+    border-color: var(--provider-color, var(--color-primary))
+
+.fc-modal__provider-card--active
+  border-color: var(--provider-color, var(--color-primary))
+  box-shadow: inset 0 0 0 1px var(--provider-color, var(--color-primary))
+
+.fc-modal__provider-icon
+  width: 28px
+  height: 28px
+  border-radius: 7px
+  background: var(--provider-color, var(--color-primary))
+  color: var(--color-text-negative)
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 13px
+
+.fc-modal__provider-label
+  font-family: 'Poppins', sans-serif
+  font-size: 12.5px
+  font-weight: 600
+  color: var(--color-primary)
+
+.fc-modal__provider-desc
+  font-family: 'Open Sans', sans-serif
+  font-size: 11px
+  line-height: 1.35
+  color: var(--color-text-inactive)
+
+// ─── Mappature (categorie e campi) ───────────────────────────────────────────
+.fc-modal__mapped-badge
+  display: inline-flex
+  align-items: center
+  gap: 7px
+  align-self: flex-start
+  padding: 5px 11px
+  border-radius: 999px
+  background: color-mix(in srgb, var(--color-success) 12%, transparent)
+  color: var(--color-success)
+  font-family: 'Open Sans', sans-serif
+  font-size: 11.5px
+  font-weight: 700
+
+.fc-modal__mapped-badge--alert
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent)
+  color: var(--color-warning)
+
+.fc-modal__cat-list
+  display: flex
+  flex-direction: column
+  gap: 8px
+
+.fc-modal__cat-row,
+.fc-modal__map-row
+  display: grid
+  align-items: center
+  gap: 8px
+
+.fc-modal__cat-row
+  grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 30px
+
+.fc-modal__map-row
+  grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) minmax(0, 0.8fr) 30px
+
+  @media (max-width: 720px)
+    grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 30px
+
+    .fc-modal__cat-field:nth-of-type(3)
+      grid-column: 1 / -1
+
+.fc-modal__cat-field
+  min-width: 0
+
+.fc-modal__cat-arrow
+  font-size: 12px
+  color: var(--color-text-disabled)
+  text-align: center
+
+.fc-modal__row-del
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 28px
+  height: 28px
+  border: 1px solid var(--color-border)
+  border-radius: 6px
+  background: var(--color-surface)
+  cursor: pointer
+  transition: border-color .15s, background .15s
+
+  &:hover
+    background: color-mix(in srgb, var(--color-error) 8%, var(--color-surface))
+    border-color: var(--color-error)
+
+.fc-modal__empty-row
+  margin: 0
+  padding: 14px
+  border: 1px dashed var(--color-border)
+  border-radius: 8px
+  font-family: 'Open Sans', sans-serif
+  font-size: 12px
+  color: var(--color-text-inactive)
+
+// ─── Canali ──────────────────────────────────────────────────────────────────
+.fc-modal__canale
+  border: 1px solid var(--color-border)
+  border-radius: 8px
+  padding: 12px 14px
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.fc-modal__canale--on
+  border-color: var(--canale-color, var(--color-primary))
+  background: color-mix(in srgb, var(--canale-color, var(--color-primary)) 5%, transparent)
+
+.fc-modal__canale-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+
+// ─── Footer ──────────────────────────────────────────────────────────────────
+.fc-modal__foot
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  border-top: 1px solid var(--color-border)
+  padding-top: 12px
