@@ -1,107 +1,154 @@
 // ─── OVERBOOKING LIMIT ────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
-.overbooking-limit
+.ovb-limit
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 8px
   font-size: 13px
 
-  &__breadcrumb
+  // ── Righe per tipologia (espandibili) ────────────────────────────────────────
+  // (≥2 classi per vincere sugli stili .sib-table del DS)
+  &__table.cfg-table tbody tr.ovb-limit__row
+    cursor: pointer
+    transition: background .15s ease
+
+    &:hover
+      background: alpha($primary, .04)
+
+    &.ovb-limit__row--aperta
+      background: alpha($primary, .06)
+
+      td
+        border-bottom: none
+
+  &__td-tipo
+    font-weight: 600
+    color: $text-active
+
+  &__tipo-testo
+    max-width: 100%
+
+  &__td-center
+    text-align: center
+    font-variant-numeric: tabular-nums
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__td-azioni
+    text-align: right
+
+  &__toggle
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    background: none
+    border: none
+    padding: 4px 6px
+    cursor: pointer
+    font-size: 11.5px
+    font-weight: 600
+    color: $primary
+    border-radius: 6px
+
+    &:hover
+      background: alpha($primary, .08)
+
+    i
+      font-size: 10px
+
+  // ── Dettaglio espanso: le regole per periodo stagionale ─────────────────────
+  &__dettaglio-row td
+    padding: 0 12px 12px
+    background: alpha($primary, .03)
+
+  &__dettaglio
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+
+  &__regola
     display: flex
     align-items: center
+    gap: 18px
+    padding: 4px 0
+
+    &:not(:last-child)
+      border-bottom: 1px dashed $border
+      padding-bottom: 8px
+
+  &__periodo
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    min-width: 190px
+    font-size: 11.5px
+    font-weight: 600
+    color: $text-active
+
+  &__periodo-dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    flex-shrink: 0
+    background: var(--stag-c)
+
+  &__campo
+    display: inline-flex
+    align-items: center
     gap: 8px
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
 
-  &__bar
-    display: flex
-    align-items: flex-end
-    justify-content: space-between
-    gap: 16px
+  &__campo-label
+    font-family: 'Poppins', sans-serif
+    font-size: 11.5px
+    font-weight: 600
+    color: $primary
 
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
-
-  &__field-raw
-    display: flex
-    flex-direction: column
-    gap: 6px
-    label
-      font-family: 'Poppins', sans-serif
-      font-size: 12px
-      color: $primary
-      font-weight: 600
-
-  &__cell
-    display: flex
+  &__campo-cell
+    display: inline-flex
     align-items: center
     gap: 4px
 
-  &__table-wrap
-    @include paneShared.pane-table-wrap
+    // .className di InputField sta sul wrapper: il campo e' l'input interno
+    .ovb-limit__campo-input
+      width: 64px
 
-  &__table
-    @include paneShared.pane-table-base
+      input
+        text-align: right
 
-  &__empty
-    text-align: center
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button
+          -webkit-appearance: none
+          margin: 0
+
+        -moz-appearance: textfield
+
+  &__unit
     color: $text-inactive
-    padding: 40px
-    font-style: italic
+    font-size: 12px
 
-  &__modal-backdrop
-    position: fixed
-    inset: 0
-    background: rgba(0,0,0,0.4)
-    display: flex
-    align-items: center
-    justify-content: center
-    z-index: 100
+  &__del
+    margin-left: auto
 
-  &__modal
-    background: var(--color-surface)
-    border-radius: 12px
-    min-width: 520px
-    max-width: 720px
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2)
-
-  &__modal-header
-    display: flex
-    justify-content: space-between
-    align-items: center
-    padding: 20px 24px
-    border-bottom: 1px solid $border
-
-    h3
-      margin: 0
-      font-family: $font-heading
-      font-size: 18px
-      color: $primary
-
-  &__close
-    background: none
-    border: none
-    cursor: pointer
+  &__totale
+    margin: 0
+    font-size: 11.5px
     color: $text-inactive
-    font-size: 18px
 
-  &__modal-body
-    padding: 24px
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 16px
+// ─── Modale di creazione (Modal condiviso) ────────────────────────────────────
+.ovb-limit-modal__grid
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 16px
 
-  &__modal-footer
-    display: flex
-    justify-content: flex-end
-    gap: 8px
-    padding: 16px 24px
-    border-top: 1px solid $border
+.ovb-limit-modal__foot
+  display: flex
+  justify-content: flex-end
+  gap: 8px
+  margin-top: 20px

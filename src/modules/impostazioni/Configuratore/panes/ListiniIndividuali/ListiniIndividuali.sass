@@ -1,66 +1,77 @@
-// ─── LISTINI INDIVIDUALI ──────────────────────────────────────────────────────
+// ─── LISTINI INDIVIDUALI ─────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
 
 .listini-individuali
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 4px
   font-size: 13px
+  container-type: inline-size
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
-
-  &__filters
-    display: flex
-    flex-wrap: wrap
+  // Elenco camere a sinistra, calendario di riepilogo a destra (schizzo PDF)
+  &__grid
+    display: grid
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr)
     gap: 16px
-    align-items: flex-end
+    align-items: start
 
-  &__field
+  // Molte stagionalità: calendario a larghezza piena sotto le camere
+  &__grid--stacked
+    grid-template-columns: minmax(0, 1fr)
+
+  &__card
     display: flex
     flex-direction: column
-    gap: 6px
-    min-width: 140px
+    gap: 2px
+    min-width: 0
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 14px 16px 16px
+    background: $white
 
-  &__header
-    display: grid
-    grid-template-columns: 1fr 1fr
-    font-size: 12px
+  &__card-title
+    margin: 0
+    font-family: var(--font-heading)
+    font-size: 13.5px
     font-weight: 600
     color: $primary
-    margin-top: 8px
 
-  &__divider
-    border: none
-    border-top: 1px solid $border
-    margin: 0
+  &__card-sub
+    margin: 0 0 10px
+    font-size: 11.5px
+    color: $text-inactive
 
-  &__row
-    display: grid
-    grid-template-columns: 1fr 1fr
+  &__camera
+    display: block
+    max-width: 100%
+    font-weight: 600
+    color: $text-active
+
+  &__tipologia
+    color: $text-inactive
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__prezzo-cell
+    text-align: right
+
+  &__prezzo
+    display: inline-flex
     align-items: center
+    gap: 6px
 
-  &__cell
-    display: flex
-    align-items: center
-    gap: 4px
+  &__prezzo-input
+    width: 96px
 
-  &__input
-    width: 100px
+    input
+      text-align: right
 
   &__unit
     color: $text-inactive
     font-size: 12px
 
-  &__actions
-    display: flex
-    justify-content: flex-end
-    margin-top: 8px
+  // Sotto la larghezza utile del pane le due sezioni si impilano
+  @container (max-width: 900px)
+    &__grid
+      grid-template-columns: minmax(0, 1fr)

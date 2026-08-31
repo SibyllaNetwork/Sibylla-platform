@@ -1,160 +1,19 @@
 // ─── SCAGLIONI OCCUPAZIONE ────────────────────────────────────────────────────
+// Il grosso del layout vive nel kit (CfgToolbar / CfgRangeRules / CfgSaveBar):
+// qui restano solo le misure del pane e l'aggancio della save bar al bordo
+// del corpo scrollabile di CfgPane (niente fasce bianche in basso).
 @use '../../../../../styles/tokens' as *
-
-$so-cell-w: 84px
-$so-input-h: 28px
-$so-muted: #6b7785
-$so-row-divider: #eef0f3
 
 .scaglioni-occupazione
   display: flex
   flex-direction: column
-  gap: 12px
-  font-size: 13px
-
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  // ── Filtri (Strutture + Tipologia) su una riga ────────────────────────────
-  &__filters
-    display: flex
-    gap: 18px
-    align-items: flex-end
-    flex-wrap: wrap
+  gap: 14px
+  min-height: 100%
 
   &__field
-    display: flex
-    flex-direction: column
-    gap: 4px
+    min-width: 200px
 
-  // ── Tabella scaglioni ─────────────────────────────────────────────────────
-  &__table
-    display: flex
-    flex-direction: column
-    border: 1px solid $border
-    border-radius: 6px
-    overflow: hidden
-
-  &__head
-    display: grid
-    grid-template-columns: $so-cell-w $so-cell-w 1fr
-    gap: 12px
-    padding: 6px 10px
-    background: $bg
-    border-bottom: 1px solid $border
-    font-size: 10.5px
-    font-weight: 600
-    color: $so-muted
-    text-transform: uppercase
-    letter-spacing: 0.4px
-
-    &--actions
-      justify-self: end
-
-  &__row
-    display: grid
-    grid-template-columns: $so-cell-w $so-cell-w 1fr
-    gap: 12px
-    padding: 4px 10px
-    align-items: center
-    border-bottom: 1px solid $so-row-divider
-
-    &:last-of-type
-      border-bottom: none
-
-
-  &__cell
-    display: flex
-    align-items: center
-    gap: 4px
-
-  &__input
-    height: $so-input-h
-    width: 56px
-    border: 1px solid $border
-    border-radius: 5px
-    padding: 0 6px
-    font-family: inherit
-    font-size: 12.5px
-    color: $text-active
-    outline: none
-    transition: border-color 0.12s
-
-    &:focus
-      border-color: var(--color-primary)
-
-    &:disabled
-      background: $bg
-      color: $so-muted
-
-  &__unit
-    color: $so-muted
-    font-size: 11px
-    min-width: 10px
-
-  &__row-actions
-    display: flex
-    align-items: center
-    gap: 10px
-    justify-self: end
-
-  &__act
-    display: inline-flex
-    align-items: center
-    gap: 4px
-    background: transparent
-    border: none
-    padding: 2px 4px
-    border-radius: 4px
-    cursor: pointer
-    font-family: inherit
-    font-size: 11px
-    font-weight: 500
-    color: var(--color-primary)
-    transition: background 0.12s, opacity 0.12s
-
-    i
-      font-size: 10px
-
-    &:hover
-      background: rgba(27, 61, 95, 0.06)
-
-    &--del
-      color: $so-muted
-      font-weight: 400
-
-      &:hover
-        color: $error
-        background: rgba(232, 73, 73, 0.06)
-
-  &__add-row
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    background: transparent
-    border: none
-    border-top: 1px dashed $border
-    padding: 8px 10px
-    cursor: pointer
-    font-family: inherit
-    font-size: 12px
-    font-weight: 500
-    color: var(--color-primary)
-    text-align: left
-    transition: background 0.12s
-
-    i
-      font-size: 10px
-
-    &:hover
-      background: rgba(27, 61, 95, 0.04)
+  // La save bar sticky corre a filo del pane: annulla il padding di
+  // .cfg-pane__body (18px 22px) e si ancora in fondo con margin-top auto
+  &__savebar
+    margin: auto -22px -18px

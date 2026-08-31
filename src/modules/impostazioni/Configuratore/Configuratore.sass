@@ -1,12 +1,8 @@
-// ─── CONFIGURATORE ────────────────────────────────────────────────────────────
+// ─── CONFIGURATORE (shell) ────────────────────────────────────────────────────
+// Layout della sezione: hub (vedi ConfiguratoreHub.sass), oppure sidebar a
+// gruppi (ConfiguratoreSidebar.sass) + pane (kit src/core/cfg).
+// Solo token colore; compattazione via container query sul root, non @media.
 @use '../../../styles/tokens' as *
-
-$cfg-radius: 6px
-$cfg-radius-sm: 7px
-$cfg-border-strong: #cdd3db
-$cfg-text-muted: #6b7785
-$cfg-text-disabled: #9aa3af
-$cfg-hover: #f0f4f9
 
 .configuratore
   padding: 0
@@ -14,240 +10,65 @@ $cfg-hover: #f0f4f9
   display: flex
   flex-direction: column
   gap: 12px
-  align-items: flex-start
+  align-items: stretch
+  container-type: inline-size
+  container-name: configuratore
 
-  // PageHeader e layout devono occupare tutta la larghezza disponibile;
-  // BtnBack invece resta della sua larghezza naturale.
-  > .page-header
-    width: 100%
-    align-self: stretch
-
-  // ── Layout body ────────────────────────────────────────────────────────────
+  // ── Layout voce attiva: sidebar + pane ───────────────────────────────────────
   &__layout
-    flex: 1
-    width: 100%
-    align-self: stretch
     display: grid
-    grid-template-columns: 280px minmax(0, 1fr)
+    grid-template-columns: 268px minmax(0, 1fr)
     gap: 14px
-    min-height: 0
+    height: calc(100vh - 190px)
+    min-height: 420px
 
-    @media (max-width: 1100px)
-      grid-template-columns: 240px minmax(0, 1fr)
-
-  // ── Sidebar ────────────────────────────────────────────────────────────────
-  &__sidebar
-    background: $white
-    border: 1px solid $border
-    border-radius: $cfg-radius
-    display: flex
-    flex-direction: column
-    overflow: hidden
-    min-height: 0
-    max-height: calc(100vh - 180px)
-
-  &__sidebar-head
-    padding: 10px 10px 8px
-    border-bottom: 1px solid $border
-
-  &__crumb
-    display: flex
-    align-items: center
-    gap: 8px
-    width: 100%
-    background: transparent
-    border: none
-    border-radius: $cfg-radius
-    padding: 6px 8px
-    margin-bottom: 8px
-    cursor: pointer
-    font-family: inherit
-    font-size: 12.5px
-    font-weight: 500
-    color: var(--color-primary)
-    text-align: left
-    transition: background 0.12s
-
-    &:hover
-      background: $cfg-hover
-
-  &__crumb-arrow
-    font-size: 12px
-    flex-shrink: 0
-
-  &__crumb-sep
-    color: $cfg-text-muted
-    font-weight: 400
-    margin: 0 2px
-
-  &__crumb-current
-    color: $text-active
-    font-weight: 500
-
-  &__search
-    display: flex
-    align-items: center
-    gap: 7px
-    border: 1px solid $border
-    border-radius: $cfg-radius-sm
-    padding: 0 10px
-    height: 32px
-    background: $white
-    transition: border-color 0.15s, box-shadow 0.15s
-
-    &:focus-within
-      border-color: var(--color-primary)
-      box-shadow: 0 0 0 3px rgba(27, 61, 95, 0.08)
-
-  &__search-icon
-    color: $cfg-text-muted
-    font-size: 12px
-    flex-shrink: 0
-
-  &__search-input
-    border: none
-    outline: none
-    flex: 1
-    font-family: inherit
-    font-size: 12px
-    background: transparent
-    color: $text-active
-    width: 100%
-
-    &::placeholder
-      color: $cfg-text-disabled
-
-  &__list
-    flex: 1
-    padding: 6px
-    overflow-y: auto
+  &__paneview
+    min-width: 0
     min-height: 0
     display: flex
     flex-direction: column
-    gap: 1px
 
-    &::-webkit-scrollbar
-      width: 6px
-    &::-webkit-scrollbar-thumb
-      background: $cfg-border-strong
-      border-radius: 3px
-    &::-webkit-scrollbar-track
-      background: transparent
+    // Transizione tra i pane: crossfade + slide corto (il key sul wrapper
+    // rimonta la vista a ogni cambio voce). Spenta con reduced motion.
+    @media (prefers-reduced-motion: no-preference)
+      animation: cfg-paneview-in .26s ease-out
 
-  &__empty-list
-    padding: 20px 12px
-    text-align: center
-    color: $cfg-text-muted
-    font-size: 12px
+    > *
+      flex: 1
+      min-height: 0
 
-  &__item
-    display: flex
-    align-items: center
-    gap: 9px
-    padding: 4px 9px
-    border-radius: $cfg-radius
-    cursor: pointer
-    font-family: inherit
-    font-size: 12.5px
-    color: $text-active
-    background: transparent
-    border: none
-    text-align: left
-    user-select: none
-    line-height: 1.25
-    min-height: 24px
-    transition: background 0.12s, color 0.12s
-    width: 100%
+  // ── Compattazione da laptop (container query, mai @media sul viewport) ──────
+  @container configuratore (max-width: 1100px)
+    .configuratore__layout
+      grid-template-columns: 224px minmax(0, 1fr)
 
-    &:hover
-      background: $cfg-hover
+    .cfg-pane__body
+      padding: 14px 16px
 
-    &--active
-      background: var(--color-primary-50, #e8f0f9)
-      color: var(--color-primary)
-      font-weight: 500
+    .cfg-pane__head
+      padding: 12px 16px 10px
 
-      .configuratore__item-icon
-        color: var(--color-primary)
+  // ── Sub-app F&B dentro il pane: il titolo lo dà la shell (CfgPane) ───────────
+  // Il PageHeader della sub-app Outlet usa inline style: qui si spengono SOLO
+  // titolo/sottotitolo (le eventuali azioni a destra restano); se la barra non
+  // ha azioni si spegne del tutto.
+  .outletmgr--doc
+    .om-pagehead__titles
+      display: none !important
 
-  &__item-icon
-    color: $cfg-text-muted
-    font-size: 12px
-    width: 14px
-    text-align: center
-    flex-shrink: 0
+    .om-pagehead__bar
+      padding: 0 !important
+      border-bottom: none !important
+      margin-bottom: 12px !important
+      justify-content: flex-end !important
 
-  &__item-label
-    flex: 1
-    overflow: hidden
-    text-overflow: ellipsis
-    white-space: nowrap
+    .om-pagehead__bar:not(:has(> :nth-child(2)))
+      display: none !important
 
-  // F&B category row in lista principale
-  &__item--category
-    margin-top: 6px
-    padding-top: 8px
-    border-top: 1px solid $border
-    border-radius: 0 0 $cfg-radius $cfg-radius
-    font-weight: 500
-    min-height: 30px
-
-  &__badge
-    background: $bg
-    color: $cfg-text-muted
-    font-size: 10.5px
-    padding: 1px 7px
-    border-radius: 10px
-    margin-left: auto
-    border: 1px solid $border
-    font-weight: 500
-
-  &__item-chev
-    color: $cfg-text-muted
-    font-size: 10px
-    margin-left: 4px
-
-  // Sub-page: voci con più respiro
-  &__sidebar--subpage
-    .configuratore__item
-      min-height: 30px
-      padding: 6px 9px
-      font-size: 13px
-
-  // ── Pane principale ───────────────────────────────────────────────────────
-  &__pane
-    background: $white
-    border: 1px solid $border
-    border-radius: $cfg-radius
-    padding: 18px 22px
-    overflow-y: auto
-    min-height: 0
-    max-height: calc(100vh - 180px)
-
-    &::-webkit-scrollbar
-      width: 6px
-    &::-webkit-scrollbar-thumb
-      background: $cfg-border-strong
-      border-radius: 3px
-    &::-webkit-scrollbar-track
-      background: transparent
-
-  &__pane-head
-    display: flex
-    align-items: center
-    gap: 10px
-    margin-bottom: 10px
-
-  &__pane-title
-    font-size: 18px
-    font-weight: 600
-    color: var(--color-primary)
-    margin: 0
-
-  &__placeholder
-    padding-top: 4px
-
-  &__placeholder-desc
-    color: $cfg-text-muted
-    font-size: 12.5px
-    margin: 0
+@keyframes cfg-paneview-in
+  from
+    opacity: 0
+    transform: translateX(14px)
+  to
+    opacity: 1
+    transform: translateX(0)

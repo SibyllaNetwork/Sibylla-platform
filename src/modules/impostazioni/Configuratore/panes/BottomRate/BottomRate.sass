@@ -1,65 +1,213 @@
 // ─── BOTTOM RATE ──────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .bottom-rate
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 8px
   font-size: 13px
 
-  &__breadcrumb
+  &__nome
+    max-width: 100%
+    font-weight: 600
+    color: $text-active
+
+  // ── Piani tariffari dentro la tabella ────────────────────────────────────────
+  &__piani
     display: flex
     align-items: center
-    gap: 8px
-    color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
-
-  &__filters
-    display: flex
-    gap: 24px
-    align-items: flex-end
-
-  &__field
-    display: flex
-    flex-direction: column
     gap: 6px
+    flex-wrap: wrap
 
-  &__table-wrap
-    @include paneShared.pane-table-wrap
+  &__chip
+    padding: 4px 12px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: .2px
+    cursor: pointer
+    border: 1px solid $border
+    background: $bg
+    color: $text-inactive
+    transition: background .15s ease, color .15s ease, border-color .15s ease
 
-  &__table
-    @include paneShared.pane-table-base
+    &:hover
+      border-color: $primary-300
+      color: $primary
 
-  &__th--center
-    text-align: center !important
+    // configurato e attivo → blu pieno
+    &--attivo
+      background: $primary
+      border-color: $primary
+      color: var(--color-surface)
 
-  &__th--price
-    width: 240px
-    text-align: right !important
+      &:hover
+        color: var(--color-surface)
 
-  &__center
-    text-align: center
+    // configurato ma non attivo → blu soft
+    &--configurato
+      background: alpha($primary, .08)
+      border-color: $primary-300
+      color: $primary
 
-  &__td--price
+    // attivo ma senza soglia → contorno blu tratteggiato
+    &--attivo-vuoto
+      border-style: dashed
+      border-color: $primary
+      color: $primary
+      background: alpha($primary, .04)
+
+  // ── Soglia del piano attivo ──────────────────────────────────────────────────
+  &__td-soglia
     text-align: right
 
-  &__cell
+  &__soglia-cell
     display: inline-flex
     align-items: center
-    gap: 4px
+    gap: 5px
 
-  &__price-input
-    width: 110px
+    // .className di InputField sta sul wrapper: il campo e' l'input interno
+    .bottom-rate__soglia-input
+      width: 96px
+
+      input
+        text-align: right
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button
+          -webkit-appearance: none
+          margin: 0
+
+        -moz-appearance: textfield
 
   &__unit
     color: $text-inactive
     font-size: 12px
 
-  &__actions
+  &__totale
+    margin: 0
+    font-size: 11.5px
+    color: $text-inactive
+
+  // ── Notifica sotto-soglia ────────────────────────────────────────────────────
+  &__notifica
     display: flex
-    justify-content: flex-end
+    flex-direction: column
+    gap: 14px
+    margin-top: 10px
+    padding: 16px
+    border: 1px solid $border
+    border-radius: 8px
+
+  &__notifica-head
+    display: flex
+    align-items: flex-start
+    gap: 16px
+
+  &__notifica-titles
+    flex: 1
+    min-width: 0
+
+  &__notifica-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__notifica-sub
+    margin: 3px 0 0
+    font-size: 12px
+    line-height: 1.45
+    color: $text-inactive
+
+  &__notifica-fields
+    display: flex
+    align-items: flex-end
+    gap: 18px
+    flex-wrap: wrap
+
+    > *
+      min-width: 190px
+
+  &__autorizzato
+    padding-bottom: 7px
+
+  // ── Anteprima della notifica ─────────────────────────────────────────────────
+  &__anteprima
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__anteprima-tag
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__card
+    border: 1px solid $border
+    border-left: 3px solid $warning
+    border-radius: 8px
+    padding: 14px 16px
+    background: alpha($primary, .02)
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__card-head
+    display: flex
+    align-items: flex-start
+    gap: 12px
+
+  &__card-icon
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 34px
+    height: 34px
+    border-radius: 8px
+    background: alpha($warning, .15)
+    color: $warning
+    font-size: 15px
+    flex-shrink: 0
+
+  &__card-titles
+    min-width: 0
+
+  &__card-title
+    margin: 0
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__card-meta
+    margin: 2px 0 0
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__card-body
+    margin: 0
+    font-size: 12.5px
+    line-height: 1.55
+    color: $text-active
+
+  &__card-foot
+    display: flex
+    align-items: center
+    gap: 12px
+    flex-wrap: wrap
+
+  &__scostamento
+    font-size: 12px
+    font-weight: 700
+    color: $error
+    font-variant-numeric: tabular-nums
+
+  &__card-actions
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-left: auto
+
+    .sib-btn i
+      margin-right: 6px

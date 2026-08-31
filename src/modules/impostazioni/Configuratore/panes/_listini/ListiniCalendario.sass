@@ -1,0 +1,74 @@
+// ─── CALENDARIO DI RIEPILOGO DEI LISTINI ─────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.lst-cal
+  display: flex
+  flex-direction: column
+  gap: 6px
+  min-width: 0
+
+  // Matrice di confronto: colonne in %, layout fisso, mai scroll-x
+  &__wrap
+    overflow-x: hidden
+    margin-bottom: 0
+
+  &__table
+    table-layout: fixed
+
+    col
+      width: var(--lst-col-w, auto)
+
+  &__col-first
+    width: 30%
+
+  &__season
+    text-align: center
+
+    &--active
+      color: $primary
+      background: alpha($primary, .07)
+
+  &__season-name
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    white-space: nowrap
+    cursor: default
+
+  &__season-icon
+    font-size: 10px
+    color: $text-disabled
+
+  &__season--active &__season-icon
+    color: $primary
+
+  &__row-label
+    display: block
+    max-width: 100%
+    font-weight: 600
+    color: $text-active
+
+  &__cell
+    text-align: center
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+    &--active
+      background: alpha($primary, .05)
+
+  &__value
+    font-variant-numeric: tabular-nums
+    color: $text-active
+
+  &__cell--active &__value
+    font-weight: 600
+    color: $primary
+
+  &__missing
+    color: $text-disabled
+
+  &__legend
+    margin: 0
+    font-size: 11.5px
+    color: $text-inactive

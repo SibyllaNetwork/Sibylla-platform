@@ -1,0 +1,45 @@
+// ─── CFG LOCKED ───────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.cfg-locked
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 10px
+  padding: 56px 24px
+  text-align: center
+  border: 1px solid $border
+  border-radius: 8px
+  background: alpha($warning, .04)
+
+  &__icon-ring
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 56px
+    height: 56px
+    border-radius: 50%
+    background: alpha($warning, .14)
+    color: $warning
+    font-size: 22px
+    margin-bottom: 2px
+
+  &__title
+    font-family: var(--font-heading)
+    font-size: 15px
+    font-weight: 600
+    color: $primary
+
+  &__reason
+    margin: 0
+    max-width: 480px
+    font-size: 13px
+    line-height: 1.55
+    color: $text-inactive
+
+  &__cta
+    margin-top: 10px
+
+    i
+      font-size: 12px

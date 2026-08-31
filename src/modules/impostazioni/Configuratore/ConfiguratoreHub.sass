@@ -1,0 +1,255 @@
+// ─── CONFIGURATORE — HUB D'INGRESSO ──────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.cfg-hub
+  display: flex
+  flex-direction: column
+  gap: 14px
+  width: 100%
+
+  // ── Search (apre la command palette) ─────────────────────────────────────────
+  &__topbar
+    display: flex
+    justify-content: center
+
+  &__search
+    display: flex
+    align-items: center
+    gap: 10px
+    width: min(560px, 100%)
+    height: 36px
+    padding: 0 14px
+    background: $white
+    border: 1px solid $border
+    border-radius: 8px
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 12.5px
+    color: $text-inactive
+    transition: border-color .15s, box-shadow .15s
+
+    &:hover
+      border-color: $primary-400
+      box-shadow: var(--shadow-sm)
+
+    i
+      font-size: 13px
+      flex-shrink: 0
+
+    span
+      flex: 1
+      text-align: left
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__kbd
+    font-family: var(--font-body)
+    font-size: 10px
+    font-weight: 600
+    color: $text-inactive
+    background: $bg
+    border: 1px solid $border
+    border-radius: 4px
+    padding: 1px 6px
+    flex-shrink: 0
+
+  // ── Griglia delle corsie ──────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr))
+    gap: 14px
+
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 16px
+    background: $white
+    border: 1px solid $border
+    border-radius: 10px
+    min-width: 0
+
+    @media (prefers-reduced-motion: no-preference)
+      animation: cfg-hub-card-in .4s ease-out both
+      animation-delay: calc(var(--cfg-i, 0) * 60ms)
+
+  &__card-head
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+
+  &__card-icon
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 34px
+    height: 34px
+    border-radius: 8px
+    background: $primary-50
+    color: $primary
+    font-size: 14px
+    flex-shrink: 0
+
+  &__card-title
+    margin: 0
+    flex: 1
+    font-family: var(--font-heading)
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__card-count
+    font-size: 11px
+    color: $text-inactive
+    white-space: nowrap
+    flex-shrink: 0
+
+    strong
+      color: $primary
+      font-weight: 700
+
+  // Barra di progressione della corsia (larghezza da --cfg-pct)
+  &__progress
+    height: 5px
+    border-radius: 3px
+    background: alpha($primary, .08)
+    overflow: hidden
+
+  &__progress-fill
+    display: block
+    height: 100%
+    width: var(--cfg-pct, 0%)
+    border-radius: 3px
+    background: $success
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: width .5s ease
+
+  // ── Pill delle voci ───────────────────────────────────────────────────────────
+  &__pills
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+    flex: 1
+    align-content: flex-start
+
+  &__pill
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 100%
+    height: 26px
+    padding: 0 10px
+    background: $white
+    border: 1px solid $border
+    border-radius: 13px
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 11.5px
+    font-weight: 500
+    color: $text-active
+    transition: border-color .15s, background .15s
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+  &__pill-icon
+    font-size: 10px
+    flex-shrink: 0
+
+  &__pill-label
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__pill--configured .cfg-hub__pill-icon
+    color: $success
+
+  &__pill--partial .cfg-hub__pill-icon
+    color: $warning
+
+  &__pill--empty .cfg-hub__pill-icon
+    color: $text-disabled
+
+  &__pill--locked
+    color: $text-disabled
+    border-style: dashed
+
+    .cfg-hub__pill-icon
+      color: $text-disabled
+
+    &:hover
+      border-color: $text-disabled
+      background: alpha($text-disabled, .07)
+
+  &__pill--soon
+    color: $text-inactive
+    border-style: dashed
+
+    .cfg-hub__pill-icon
+      color: $text-inactive
+
+  // ── Footer: CTA "Riprendi da…" / corsia completata ────────────────────────────
+  &__card-foot
+    margin-top: 2px
+    padding-top: 10px
+    border-top: 1px dashed $border
+
+  &__resume
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    background: transparent
+    border: none
+    padding: 2px 0
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 12px
+    color: $primary
+
+    strong
+      font-weight: 700
+
+    i
+      font-size: 10px
+
+      @media (prefers-reduced-motion: no-preference)
+        transition: transform .18s ease
+
+    &:hover
+      text-decoration: underline
+
+      i
+        transform: translateX(3px)
+
+  &__done
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 12px
+    font-weight: 600
+    color: $success
+
+    i
+      font-size: 12px
+
+  &__pending
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    font-size: 11.5px
+    color: $text-inactive
+
+@keyframes cfg-hub-card-in
+  from
+    opacity: 0
+    transform: translateY(10px)
+  to
+    opacity: 1
+    transform: translateY(0)

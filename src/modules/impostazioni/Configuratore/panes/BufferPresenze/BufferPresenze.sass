@@ -1,153 +1,55 @@
 // ─── BUFFER PRESENZE ──────────────────────────────────────────────────────────
+// Solo grafica e usabilità (contenuti corretti per il committente): tabella su
+// CfgTable, campi e toggle condivisi, colonne numeriche allineate a destra.
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
-
-$bp-input-h: 28px
-$bp-row-h: 40px
-$bp-num-w: 180px
-$bp-muted: #6b7785
-$bp-row-divider: #eef0f3
 
 .buffer-presenze
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 14px
+  min-height: 100%
   font-size: 13px
 
-  &__breadcrumb
+  &__td-name
+    font-weight: 600
+    color: $text-active
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  // Il campo numerico resta compatto e allineato con la colonna
+  &__input
+    width: 96px
+    margin-left: auto
+
+    input
+      text-align: right
+
+      // Niente spinner nei number input (standard della sezione)
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button
+        -webkit-appearance: none
+        margin: 0
+      -moz-appearance: textfield
+
+  &__toggle
+    // Etichetta di stato su una riga, senza wrapping
+    white-space: nowrap
+
+  &__note
     display: flex
     align-items: center
     gap: 8px
+    margin: 0
+    font-size: 12px
     color: $text-inactive
 
     i
-      font-size: 11px
+      font-size: 13px
+      color: $primary
+      flex-shrink: 0
 
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  &__table-wrap
-    border: 1px solid $border
-    border-radius: 6px
-    overflow: hidden
-
-  &__table
-    @include paneShared.pane-table-base
-
-  &__th--name
-    width: auto
-
-  &__th--num
-    width: $bp-num-w
-    text-align: left
-
-  &__th--toggle
-    width: 160px
-    text-align: left
-
-  &__td
-    color: $text-active
-    line-height: 1.2
-
-    &--name
-      font-weight: 500
-
-    &--num
-      width: $bp-num-w
-
-    &--toggle
-      width: 160px
-
-  &__input
-    height: $bp-input-h
-    width: 80px
-    border: 1px solid $border
-    border-radius: 5px
-    padding: 0 8px
-    font-family: inherit
-    font-size: 12.5px
-    color: $text-active
-    background: $white
-    outline: none
-    transition: border-color 0.12s
-
-    &:focus
-      border-color: var(--color-primary)
-
-    &:disabled
-      background: $bg
-      color: $bp-muted
-
-  // ── Toggle ────────────────────────────────────────────────────────────────
-  &__toggle
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    cursor: pointer
-    position: relative
-    user-select: none
-
-    input
-      position: absolute
-      opacity: 0
-      width: 0
-      height: 0
-
-      &:checked + .buffer-presenze__slider
-        background: var(--color-primary)
-
-        &:before
-          transform: translateX(16px)
-
-  &__slider
-    width: 36px
-    height: 20px
-    background: $border
-    border-radius: 10px
-    position: relative
-    transition: background 0.2s
-
-    &:before
-      content: ""
-      width: 16px
-      height: 16px
-      background: var(--color-surface)
-      border-radius: 50%
-      position: absolute
-      top: 2px
-      left: 2px
-      transition: transform 0.2s
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2)
-
-  &__toggle-text
-    font-size: 11px
-    font-weight: 600
-    color: $bp-muted
-    min-width: 24px
-    letter-spacing: 0.3px
-
-  // ── Save ──────────────────────────────────────────────────────────────────
-  &__actions
-    display: flex
-    justify-content: flex-end
-
-  &__save
-    height: $bp-input-h
-    padding: 0 16px
-    background: var(--color-primary)
-    color: white
-    border: none
-    border-radius: 5px
-    font-family: inherit
-    font-size: 12.5px
-    font-weight: 600
-    cursor: pointer
-    transition: opacity 0.15s
-
-    &:hover
-      opacity: 0.9
-
-    &:disabled
-      opacity: 0.6
-      cursor: not-allowed
+  // Save bar sticky a filo del corpo del pane
+  &__savebar
+    margin: auto -22px -18px

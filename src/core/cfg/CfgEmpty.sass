@@ -1,0 +1,45 @@
+// ─── CFG EMPTY ────────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.cfg-empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 8px
+  padding: 48px 24px
+  text-align: center
+  border: 1px dashed $border
+  border-radius: 8px
+  background: alpha($primary, .02)
+
+  &__icon-ring
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 52px
+    height: 52px
+    border-radius: 50%
+    background: $primary-50
+    color: $primary-600
+    font-size: 22px
+    margin-bottom: 4px
+
+  &__title
+    font-family: var(--font-heading)
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__subtitle
+    margin: 0
+    max-width: 440px
+    font-size: 12.5px
+    line-height: 1.5
+    color: $text-inactive
+
+  &__soon
+    margin-top: 4px
+
+  &__action
+    margin-top: 10px

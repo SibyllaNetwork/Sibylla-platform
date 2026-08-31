@@ -1,66 +1,66 @@
-// ─── LISTINI INDIVIDUALI ──────────────────────────────────────────────────────
+// ─── LISTINI GRUPPI ──────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
 
 .listini-gruppi
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 4px
   font-size: 13px
+  container-type: inline-size
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
+  // Selezione alternativa: il campo escluso è disabilitato E grigio.
+  // Due classi nel selettore per vincere su .sib-select a pari cascata.
+  &__ambito .sib-select:disabled
+    background-color: $bg
+    color: $text-disabled
+    cursor: not-allowed
+
+  &__caption
+    margin: 0 0 8px
+    font-size: 11.5px
     color: $text-inactive
-    i
-      font-size: 11px
-    strong
-      color: $primary
-      font-weight: 600
 
-  &__filters
-    display: flex
-    flex-wrap: wrap
-    gap: 16px
-    align-items: flex-end
+  &__nome input
+    font-weight: 600
 
-  &__field
+  &__tariffa-cell
+    text-align: right
+
+  &__tariffa input
+    text-align: right
+
+  &__azioni
+    text-align: center
+
+  &__calendario
     display: flex
     flex-direction: column
-    gap: 6px
-    min-width: 140px
+    gap: 2px
+    margin-top: 16px
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 14px 16px 16px
+    background: $white
 
-  &__header
-    display: grid
-    grid-template-columns: 1fr 1fr
-    font-size: 12px
+  &__calendario-title
+    margin: 0
+    font-family: var(--font-heading)
+    font-size: 13.5px
     font-weight: 600
     color: $primary
-    margin-top: 8px
 
-  &__divider
-    border: none
-    border-top: 1px solid $border
-    margin: 0
-
-  &__row
-    display: grid
-    grid-template-columns: 1fr 1fr
-    align-items: center
-
-  &__cell
-    display: flex
-    align-items: center
-    gap: 4px
-
-  &__input
-    width: 100px
-
-  &__unit
+  &__calendario-sub
+    margin: 0 0 10px
+    font-size: 11.5px
     color: $text-inactive
-    font-size: 12px
 
-  &__actions
-    display: flex
-    justify-content: flex-end
-    margin-top: 8px
+  // Compattazione della tabella lotti quando il pane si stringe
+  // (container query sul root del pane, non @media sul viewport)
+  @container (max-width: 1000px)
+    .sib-table th,
+    .sib-table td
+      padding-left: 6px
+      padding-right: 6px
+
+    .sib-table th
+      font-size: 11px

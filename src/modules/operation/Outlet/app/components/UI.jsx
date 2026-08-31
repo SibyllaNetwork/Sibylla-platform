@@ -165,13 +165,16 @@ export function DataTable({ cols, rows, onEdit, onDelete, loading, emptyMsg="Nes
 
 // ── PageHeader ────────────────────────────────────────────────────────────────
 export function PageHeader({ title, subtitle, action }) {
+  // Le classi om-pagehead* servono alla shell del Configuratore Sibylla per
+  // spegnere il secondo page-head quando la pagina è montata dentro CfgPane
+  // (il titolo lì lo dà la shell); fuori dal Configuratore non cambiano nulla.
   return (
-    <div style={{marginBottom:0}}>
+    <div className="om-pagehead" style={{marginBottom:0}}>
       {/* Title bar — Sibylla style: full width with primary color title */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+      <div className="om-pagehead__bar" style={{display:"flex",alignItems:"center",justifyContent:"space-between",
         padding:"0 0 16px",borderBottom:`1px solid ${C.borderL}`,marginBottom:20,
         flexWrap:"wrap",gap:12}}>
-        <div>
+        <div className="om-pagehead__titles">
           <h1 style={{fontSize:18,fontWeight:600,color:C.navy,margin:0,
             fontFamily:"'Poppins',sans-serif",lineHeight:"24px"}}>{title}</h1>
           {subtitle&&<p style={{fontSize:13,color:C.muted,margin:"4px 0 0",fontFamily:"'Open Sans',sans-serif"}}>{subtitle}</p>}

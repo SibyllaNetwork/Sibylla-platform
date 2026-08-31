@@ -1,125 +1,238 @@
-import React, { useEffect, useState } from 'react'
-import { apiFetchSibylla } from '../../../../../services/api'
-import { SelectField } from '../../../../../core/components/form'
+import React, { useEffect, useMemo, useState } from 'react'
+import { CfgToolbar, CfgTable, CfgSaveBar, CfgLocked, CfgEmpty } from '../../../../../core/cfg'
+import { SelectField, InputField } from '../../../../../core/components/form'
+import TruncatedText from '../../../../../core/components/TruncatedText'
+import { useConfiguratoreStore, isUnlocked } from '../../../../../store/useConfiguratoreStore'
+import { configuratoreById } from '../../registry'
+import ListiniCalendario from '../_listini/ListiniCalendario'
+import {
+  LST_STRUTTURE,
+  LST_CAMERE,
+  LST_TIPOLOGIE,
+  keyInd,
+  fmtEuro,
+  tipologiaNome,
+  seedPrezziIndividuali,
+} from '../_listini/listiniData'
+import { useStagionalitaStore, stagioniDaPeriodi } from '../Stagionalita/stagionalitaData'
+import { exportListiniIndividualiPdf } from './listiniIndividualiPdf'
 import './ListiniIndividuali.sass'
 
-interface Standard { id: number; nome: string; prezzo: number }
-interface Data {
-  Strutture: { Id: number; nome: string }[]
-  StrutturaId: number | null
-  Tariffa: 'Per Camera' | 'Per Persona'
-  Stagionalita: 'Alta Stagione' | 'Media Stagione' | 'Bassa Stagione'
-  Listini: { Id: number; Nome: string }[]
-  ListinoId: number | null
-  Camere: { Id: number; Nome: string }[]
-  CameraId: number | null
-  Standard: Standard[]
-}
+// ─── LISTINI INDIVIDUALI (§4.17) ─────────────────────────────────────────────
+//  Contesto in alto (Struttura + Stagionalità B2B) → a sinistra la sezione
+//  "Camere Hotel" con i NOMI ASSOCIATI DALLA STRUTTURA (mai lo standard
+//  Sibylla) e la tariffa editabile per camera; a destra il riepilogo
+//  calendario per tipologia × stagionalità (prezzo della stessa tipologia
+//  nelle diverse stagioni). Gating: Stagionalità B2B completata (il primo
+//  scudo è nella shell; qui la difesa vale per i mount fuori dalla shell).
 
-const FALLBACK: Data = {
-  Strutture: [], StrutturaId: null,
-  Tariffa: 'Per Camera', Stagionalita: 'Alta Stagione',
-  Listini: [{ Id: 1, Nome: 'Contratto 2025/2026' }], ListinoId: 1,
-  Camere: [{ Id: 1, Nome: 'Singola Classic' }], CameraId: 1,
-  Standard: [{ id: 1, nome: 'Singola Classic', prezzo: 0 }],
-}
+const PANE_ID = 'listini-individuali'
 
 export default function ListiniIndividuali() {
-  const [data, setData] = useState<Data>(FALLBACK)
-  const [saving, setSaving] = useState(false)
+  const completion    = useConfiguratoreStore(s => s.completion)
+  const markDirty     = useConfiguratoreStore(s => s.markDirty)
+  const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
+  const setCompletion = useConfiguratoreStore(s => s.setCompletion)
+
+  // Le stagionalità sono quelle EFFETTIVAMENTE configurate per il segmento B2B
+  // nel configuratore Stagionalità (che sblocca questo pane): stesse etichette,
+  // stessi periodi, nessun elenco proprio.
+  const periodiB2b = useStagionalitaStore(s => s.periodi.b2b)
+  const stagioni   = useMemo(() => stagioniDaPeriodi(periodiB2b), [periodiB2b])
+
+  const [strutturaId, setStrutturaId] = useState(LST_STRUTTURE[0].id)
+  const [stagioneId, setStagioneId]   = useState(() => stagioni[0]?.id ?? '')
+
+  const [saved, setSaved] = useState<Record<string, number>>(() => seedPrezziIndividuali(stagioni))
+  const [draft, setDraft] = useState<Record<string, number>>(saved)
+
+  const camere = LST_CAMERE[strutturaId] ?? []
+  const struttura = LST_STRUTTURE.find(s => s.id === strutturaId)
+  const stagione = stagioni.find(s => s.id === stagioneId) ?? stagioni[0]
+
+  // Tipologie presenti nella struttura, nell'ordine dello standard
+  const tipologie = useMemo(
+    () => LST_TIPOLOGIE.filter(t => camere.some(c => c.tipologiaId === t.id)),
+    [camere],
+  )
+
+  // ── Dirty state: celle (struttura × stagione × camera) diverse dal salvato
+  const dirtyCount = useMemo(() => {
+    const keys = new Set([...Object.keys(saved), ...Object.keys(draft)])
+    let n = 0
+    keys.forEach(k => { if ((saved[k] ?? 0) !== (draft[k] ?? 0)) n += 1 })
+    return n
+  }, [saved, draft])
 
   useEffect(() => {
-    let cancelled = false
-    apiFetchSibylla<Data>('configura/GetListiniIndividuali', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [])
+    markDirty(PANE_ID, dirtyCount)
+  }, [dirtyCount, markDirty])
 
-  const updatePrezzo = (id: number, prezzo: number) => {
-    setData({ ...data, Standard: data.Standard.map((s) => s.id === id ? { ...s, prezzo } : s) })
+  // ── Gating (difesa nel pane: la shell mostra già CfgLocked prima del mount)
+  if (!isUnlocked(completion, PANE_ID)) {
+    const def = configuratoreById(PANE_ID)
+    const requirement = def?.requires ? configuratoreById(def.requires.id) : undefined
+    return (
+      <CfgLocked
+        title={def?.label ?? 'Listini individuali'}
+        requirementLabel={requirement?.label ?? 'Stagionalità'}
+        reason={def?.requires?.reason ?? 'Richiede la Stagionalità B2B completata.'}
+      />
+    )
+  }
+
+  // Nessun periodo B2B a calendario: il pane non ha colonne su cui lavorare.
+  if (!stagione) {
+    return (
+      <CfgEmpty
+        icon="calendar-xmark"
+        title="Nessuna stagionalità B2B a calendario"
+        subtitle="Configura i periodi del segmento B2B in Stagionalità: i listini si costruiscono su quelle stagioni."
+      />
+    )
+  }
+
+  const setPrezzo = (cameraId: string, value: number) => {
+    setDraft(d => ({ ...d, [keyInd(strutturaId, stagioneId, cameraId)]: value }))
+  }
+
+  // Cella del calendario: prezzo della tipologia nella stagione (se le camere
+  // della stessa tipologia hanno prezzi diversi → intervallo min–max).
+  const cellaCalendario = (tipologiaId: string, stagId: string) => {
+    const valori = camere
+      .filter(c => c.tipologiaId === tipologiaId)
+      .map(c => draft[keyInd(strutturaId, stagId, c.id)])
+      .filter((v): v is number => v != null && v > 0)
+    if (valori.length === 0) return null
+    const min = Math.min(...valori)
+    const max = Math.max(...valori)
+    const text = min === max ? fmtEuro(min) : `${fmtEuro(min)}–${fmtEuro(max)}`
+    const nomi = camere.filter(c => c.tipologiaId === tipologiaId).map(c => c.nomeLocale).join(', ')
+    return { text, tooltip: `${tipologiaNome(tipologiaId)} · ${nomi}` }
   }
 
   const save = async () => {
-    setSaving(true)
-    try { await apiFetchSibylla('configura/SetListiniIndividuali', { method: 'POST', body: data }) } catch {}
-    setSaving(false)
+    // Persistenza simulata (nessun backend in questa fase del rifacimento)
+    await new Promise(resolve => setTimeout(resolve, 400))
+    setSaved(draft)
+    resetDirty()
+    const completo = LST_STRUTTURE.every(s =>
+      stagioni.every(st =>
+        (LST_CAMERE[s.id] ?? []).every(c => (draft[keyInd(s.id, st.id, c.id)] ?? 0) > 0)))
+    setCompletion(PANE_ID, completo ? 'configured' : 'partial')
+  }
+
+  const cancel = () => {
+    setDraft(saved)
+    resetDirty()
+  }
+
+  const scaricaPdf = () => {
+    exportListiniIndividualiPdf({
+      strutturaId,
+      strutturaNome: struttura?.nome ?? strutturaId,
+      stagioneSelezionata: stagione,
+      stagioni,
+      camere,
+      prezzi: draft,
+    })
   }
 
   return (
     <div className="listini-individuali">
-      <div className="listini-individuali__breadcrumb">
-        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Listini individuali</strong>
-      </div>
-
-      <div className="listini-individuali__filters">
+      <CfgToolbar
+        actions={(
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={scaricaPdf}>
+            <i className="fa-regular fa-file-pdf" aria-hidden="true" />
+            Scarica PDF
+          </button>
+        )}
+      >
         <SelectField
           name="struttura"
           label="Struttura"
-          className="listini-individuali__field"
-          value={data.StrutturaId ?? ''}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-          options={[
-            { value: '', label: 'ciao' },
-            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
-          ]}
-        />
-        <SelectField
-          name="tariffa"
-          label="Tariffa"
-          className="listini-individuali__field"
-          value={data.Tariffa}
-          onChange={(e) => setData({ ...data, Tariffa: e.target.value as any })}
-          options={[
-            { value: 'Per Camera', label: 'Per Camera' },
-            { value: 'Per Persona', label: 'Per Persona' },
-          ]}
+          value={strutturaId}
+          onChange={e => setStrutturaId(e.target.value)}
+          options={LST_STRUTTURE.map(s => ({ value: s.id, label: s.nome }))}
         />
         <SelectField
           name="stagionalita"
           label="Stagionalità"
-          className="listini-individuali__field"
-          value={data.Stagionalita}
-          onChange={(e) => setData({ ...data, Stagionalita: e.target.value as any })}
-          options={[
-            { value: 'Alta Stagione', label: 'Alta Stagione' },
-            { value: 'Media Stagione', label: 'Media Stagione' },
-            { value: 'Bassa Stagione', label: 'Bassa Stagione' },
-          ]}
+          value={stagioneId}
+          onChange={e => setStagioneId(e.target.value)}
+          options={stagioni.map(s => ({ value: s.id, label: `${s.nome} · ${s.periodo}` }))}
         />
-        <SelectField
-          name="listino"
-          label="Listino"
-          className="listini-individuali__field"
-          value={data.ListinoId ?? ''}
-          onChange={(e) => setData({ ...data, ListinoId: e.target.value ? Number(e.target.value) : null })}
-          options={data.Listini.map((l) => ({ value: l.Id, label: l.Nome }))}
-        />
-        <SelectField
-          name="camere"
-          label="Camere"
-          className="listini-individuali__field"
-          value={data.CameraId ?? ''}
-          onChange={(e) => setData({ ...data, CameraId: e.target.value ? Number(e.target.value) : null })}
-          options={data.Camere.map((c) => ({ value: c.Id, label: c.Nome }))}
-        />
+      </CfgToolbar>
+
+      {/* Oltre tre stagionalità il calendario non sta in colonna laterale:
+          passa a larghezza piena, così le intestazioni restano su una riga
+          senza troncature e senza scroll orizzontale. */}
+      <div className={'listini-individuali__grid' + (stagioni.length > 3 ? ' listini-individuali__grid--stacked' : '')}>
+        <section className="listini-individuali__card">
+          <h3 className="listini-individuali__card-title">Camere Hotel</h3>
+          <p className="listini-individuali__card-sub">
+            Nomi come associati dalla struttura (non lo standard Sibylla) · tariffa della stagionalità {stagione.nome}
+          </p>
+          <CfgTable
+            columns={[
+              { key: 'camera',    label: 'Camera',    width: '42%' },
+              { key: 'tipologia', label: 'Tipologia', width: '28%' },
+              { key: 'tariffa',   label: 'Tariffa',   width: '30%', align: 'right' },
+            ]}
+            empty={<span>Nessuna camera associata dalla struttura</span>}
+          >
+            {camere.map(cam => {
+              const value = draft[keyInd(strutturaId, stagioneId, cam.id)] ?? 0
+              return (
+                <tr key={cam.id}>
+                  <td>
+                    <TruncatedText text={cam.nomeLocale} className="listini-individuali__camera" />
+                  </td>
+                  <td className="listini-individuali__tipologia">{tipologiaNome(cam.tipologiaId)}</td>
+                  <td className="listini-individuali__prezzo-cell">
+                    <span className="listini-individuali__prezzo">
+                      <InputField
+                        name={`prezzo-${cam.id}`}
+                        type="number"
+                        min={0}
+                        step={1}
+                        placeholder="0"
+                        value={value === 0 ? '' : value}
+                        onChange={e => setPrezzo(cam.id, Number(e.target.value) || 0)}
+                        className="listini-individuali__prezzo-input"
+                      />
+                      <span className="listini-individuali__unit">€</span>
+                    </span>
+                  </td>
+                </tr>
+              )
+            })}
+          </CfgTable>
+        </section>
+
+        <section className="listini-individuali__card">
+          <h3 className="listini-individuali__card-title">Riepilogo calendario</h3>
+          <p className="listini-individuali__card-sub">
+            Prezzo della stessa tipologia nelle diverse stagionalità
+          </p>
+          <ListiniCalendario
+            firstColLabel="Tipologia"
+            seasons={stagioni}
+            rows={tipologie.map(t => ({ id: t.id, label: t.nome }))}
+            value={cellaCalendario}
+            activeSeasonId={stagioneId}
+            legend="Intervallo min–max quando camere della stessa tipologia hanno tariffe diverse"
+          />
+        </section>
       </div>
 
-      <div className="listini-individuali__header"><span>Standard Sibylla</span><span>Prezzo</span></div>
-      <hr className="listini-individuali__divider" />
-      {data.Standard.map((s) => (
-        <div className="listini-individuali__row" key={s.id}>
-          <span>{s.nome}</span>
-          <div className="listini-individuali__cell">
-            <input type="number" step="0.01" className="sib-input listini-individuali__input" value={s.prezzo} onChange={(e) => updatePrezzo(s.id, Number(e.target.value) || 0)} />
-            <span className="listini-individuali__unit">€</span>
-          </div>
-        </div>
-      ))}
-
-      <div className="listini-individuali__actions">
-        <button type="button" className="sib-btn sib-btn--primary" onClick={save} disabled={saving}>Salva</button>
-      </div>
+      <CfgSaveBar
+        count={dirtyCount}
+        onSave={save}
+        onCancel={cancel}
+        successMessage="Listini individuali salvati"
+        errorMessage="Salvataggio dei listini non riuscito. Riprova."
+      />
     </div>
   )
 }

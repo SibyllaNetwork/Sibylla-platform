@@ -1,191 +1,347 @@
-import React, { useEffect, useState } from 'react'
-import { SelectField } from '../../../../../core/components/form'
+import React, { useEffect, useMemo, useState } from 'react'
+import clsx from 'clsx'
 import { apiFetchSibylla } from '../../../../../services/api'
+import { SelectField, InputField, ToggleSwitch } from '../../../../../core/components/form'
+import Tooltip from '../../../../../core/components/Tooltip'
+import { CfgToolbar, CfgSaveBar } from '../../../../../core/cfg'
+import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './FasceEta.sass'
 
-interface Fascia { da: number; a: number; perc: number; attiva: boolean }
-interface Data {
-  Strutture: { Id: number; nome: string }[]
+// ─── FASCE D'ETÀ (§4.5) ───────────────────────────────────────────────────────
+//  Fasce anagrafiche (infanti / bambini / ragazzi) + adulti extra, in quattro
+//  box allineati tra loro (requisito esplicito: allineamento orizzontale tra
+//  toggle, icona e contenuti, e dei box tra loro):
+//   • «Posto letto» non è più un campo: è un toggle con l'icona di un letto;
+//   • nessuna «X» di chiusura sulle fasce (l'attivazione è un toggle);
+//   • «Adulti extra» è un toggle coerente con «Posto letto»;
+//   • la % di riduzione è interattiva all'hover con tooltip dark
+//     «% rispetto alla tariffa base»;
+//   • validazione: le fasce attive non devono sovrapporsi né lasciare buchi.
+
+const PANE_ID = 'fasce-eta'
+
+interface Struttura { Id: number; nome: string }
+interface Fascia { da: number; a: number; perc: number; attiva: boolean; postoLetto: boolean }
+interface AdultiExtra { attivi: boolean; adulto1: number; adulto2: number; adulto3: number }
+
+type FasciaKey = 'Infanti' | 'Bambini' | 'Ragazzi'
+
+interface Fasce { Infanti: Fascia; Bambini: Fascia; Ragazzi: Fascia }
+
+interface ApiData {
+  Strutture: Struttura[]
   StrutturaId: number | null
-  Infanti: Fascia
-  Bambini: Fascia
-  Ragazzi: Fascia
+  Infanti: Partial<Fascia>
+  Bambini: Partial<Fascia>
+  Ragazzi: Partial<Fascia>
   numAdultiExtra: number
   adulto1: number; adulto2: number; adulto3: number
 }
 
-type FasciaKey = 'Infanti' | 'Bambini' | 'Ragazzi'
-
-const FASCE: { key: FasciaKey; label: string; icon: string }[] = [
+const FASCE_META: { key: FasciaKey; label: string; icon: string }[] = [
   { key: 'Infanti', label: 'Infanti', icon: 'baby'   },
   { key: 'Bambini', label: 'Bambini', icon: 'child'  },
   { key: 'Ragazzi', label: 'Ragazzi', icon: 'person' },
 ]
 
-const FALLBACK: Data = {
-  Strutture: [], StrutturaId: null,
-  Infanti: { da: 0, a: 4,  perc: 100, attiva: true  },
-  Bambini: { da: 5, a: 12, perc: 50,  attiva: true  },
-  Ragazzi: { da: 0, a: 0,  perc: 0,   attiva: false },
-  numAdultiExtra: 3, adulto1: 20, adulto2: 30, adulto3: 40,
+const FALLBACK_FASCE: Fasce = {
+  Infanti: { da: 0,  a: 4,  perc: 100, attiva: true,  postoLetto: false },
+  Bambini: { da: 5,  a: 12, perc: 50,  attiva: true,  postoLetto: true  },
+  Ragazzi: { da: 13, a: 17, perc: 25,  attiva: false, postoLetto: true  },
+}
+
+const FALLBACK_ADULTI: AdultiExtra = { attivi: true, adulto1: 20, adulto2: 30, adulto3: 40 }
+
+const TOOLTIP_PERC = '% rispetto alla tariffa base'
+
+interface Validation { message: string | null; kind: 'error' | 'warning' | null }
+
+/** Le fasce attive devono essere coerenti: né sovrapposte né con buchi ambigui. */
+function validateFasce(fasce: Fasce): Validation {
+  const active = FASCE_META
+    .map(m => ({ label: m.label, f: fasce[m.key] }))
+    .filter(x => x.f.attiva)
+
+  for (const { label, f } of active) {
+    if (f.a < f.da) {
+      return { message: `${label}: l'età «A» (${f.a}) non può essere minore di «Da» (${f.da}).`, kind: 'error' }
+    }
+  }
+  for (let i = 1; i < active.length; i++) {
+    const prev = active[i - 1]
+    const cur  = active[i]
+    if (cur.f.da <= prev.f.a) {
+      return {
+        message: `${prev.label} e ${cur.label} si sovrappongono: «Da» di ${cur.label} (${cur.f.da}) deve superare «A» di ${prev.label} (${prev.f.a}).`,
+        kind: 'error',
+      }
+    }
+    if (cur.f.da > prev.f.a + 1) {
+      return {
+        message: `Tra ${prev.label} (fino a ${prev.f.a} anni) e ${cur.label} (da ${cur.f.da} anni) resta un'età scoperta.`,
+        kind: 'warning',
+      }
+    }
+  }
+  return { message: null, kind: null }
+}
+
+function countChanges(savedF: Fasce, draftF: Fasce, savedA: AdultiExtra, draftA: AdultiExtra): number {
+  let n = 0
+  for (const { key } of FASCE_META) {
+    const a = savedF[key]
+    const b = draftF[key]
+    ;(['da', 'a', 'perc', 'attiva', 'postoLetto'] as const).forEach(field => {
+      if (a[field] !== b[field]) n++
+    })
+  }
+  ;(['attivi', 'adulto1', 'adulto2', 'adulto3'] as const).forEach(field => {
+    if (savedA[field] !== draftA[field]) n++
+  })
+  return n
 }
 
 export default function FasceEta() {
-  const [data, setData] = useState<Data>(FALLBACK)
-  const [saving, setSaving] = useState(false)
+  const markDirty     = useConfiguratoreStore(s => s.markDirty)
+  const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
+  const setCompletion = useConfiguratoreStore(s => s.setCompletion)
+
+  const [strutture, setStrutture]     = useState<Struttura[]>([])
+  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  const [savedFasce, setSavedFasce]   = useState<Fasce>(FALLBACK_FASCE)
+  const [fasce, setFasce]             = useState<Fasce>(FALLBACK_FASCE)
+  const [savedAdulti, setSavedAdulti] = useState<AdultiExtra>(FALLBACK_ADULTI)
+  const [adulti, setAdulti]           = useState<AdultiExtra>(FALLBACK_ADULTI)
 
   useEffect(() => {
     let cancelled = false
-    apiFetchSibylla<Data>('configura/GetFasceEta', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => { /* silent */ })
+    apiFetchSibylla<ApiData>('configura/GetFasceEta', { method: 'POST', body: {} })
+      .then((d) => {
+        if (cancelled || !d?.Infanti) return
+        const merged: Fasce = {
+          Infanti: { ...FALLBACK_FASCE.Infanti, ...d.Infanti },
+          Bambini: { ...FALLBACK_FASCE.Bambini, ...d.Bambini },
+          Ragazzi: { ...FALLBACK_FASCE.Ragazzi, ...d.Ragazzi },
+        }
+        const adultiExtra: AdultiExtra = {
+          attivi:  (d.numAdultiExtra ?? 0) > 0,
+          adulto1: d.adulto1 ?? 0,
+          adulto2: d.adulto2 ?? 0,
+          adulto3: d.adulto3 ?? 0,
+        }
+        setStrutture(d.Strutture ?? [])
+        setStrutturaId(d.StrutturaId ?? null)
+        setSavedFasce(merged); setFasce(merged)
+        setSavedAdulti(adultiExtra); setAdulti(adultiExtra)
+      })
+      .catch(() => { /* backend assente in demo: restano i dati di fallback */ })
     return () => { cancelled = true }
   }, [])
 
-  const updateFascia = (key: FasciaKey, f: Partial<Fascia>) => {
-    setData({ ...data, [key]: { ...data[key], ...f } })
+  const validation = useMemo(() => validateFasce(fasce), [fasce])
+  const dirty = useMemo(
+    () => countChanges(savedFasce, fasce, savedAdulti, adulti),
+    [savedFasce, fasce, savedAdulti, adulti],
+  )
+
+  useEffect(() => { markDirty(PANE_ID, dirty) }, [dirty, markDirty])
+  useEffect(() => () => { resetDirty() }, [resetDirty])
+
+  const updateFascia = (key: FasciaKey, patch: Partial<Fascia>) => {
+    setFasce({ ...fasce, [key]: { ...fasce[key], ...patch } })
   }
 
   const save = async () => {
-    setSaving(true)
-    try { await apiFetchSibylla('configura/SetFasceEta', { method: 'POST', body: data }) } catch { /* silent */ }
-    setSaving(false)
+    if (validation.kind === 'error') throw new Error('Fasce non valide')
+    try {
+      await apiFetchSibylla('configura/SetFasceEta', {
+        method: 'POST',
+        body: {
+          StrutturaId: strutturaId,
+          ...fasce,
+          numAdultiExtra: adulti.attivi ? 3 : 0,
+          adulto1: adulti.adulto1, adulto2: adulti.adulto2, adulto3: adulti.adulto3,
+        },
+      })
+    } catch (err) {
+      // Demo senza backend: la configurazione resta salvata in locale
+      console.warn('[FasceEta] persistenza remota non disponibile:', err)
+    }
+    setSavedFasce(fasce)
+    setSavedAdulti(adulti)
+    setCompletion(PANE_ID, 'configured')
+    resetDirty()
   }
 
   return (
     <div className="fasce-eta">
-      <div className="fasce-eta__breadcrumb">
-        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Fasce d'età</strong>
-      </div>
-
-      <h3 className="fasce-eta__title">Variazione del prezzo rispetto a fascia di età adulti</h3>
-
-      <div className="fasce-eta__filters">
+      <CfgToolbar>
         <SelectField
           name="struttura"
           label="Struttura"
           className="fasce-eta__field"
-          value={data.StrutturaId ?? ''}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          value={strutturaId ?? ''}
+          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
           options={[
             { value: '', label: 'Hotel Tutorial' },
-            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+            ...strutture.map((s) => ({ value: s.Id, label: s.nome })),
           ]}
         />
-      </div>
+      </CfgToolbar>
 
-      <div className="fasce-eta__table-wrap">
-        <table className="fasce-eta__table">
-          <thead>
-            <tr>
-              <th>Fascia</th>
-              <th className="fasce-eta__th--num">Da</th>
-              <th className="fasce-eta__th--num">A</th>
-              <th className="fasce-eta__th--num">Percentuale</th>
-              <th className="fasce-eta__th--center">Attiva</th>
-            </tr>
-          </thead>
-          <tbody>
-            {FASCE.map(({ key, label, icon }) => {
-              const f = data[key]
-              return (
-                <tr key={key}>
-                  <td className="fasce-eta__td--name">
-                    <span className="fasce-eta__name">
-                      <i className={`fa-solid fa-${icon}`} aria-hidden="true" />
-                      <span>{label}</span>
-                    </span>
-                  </td>
-                  <td>
-                    <input
+      <div className="fasce-eta__boxes">
+        {FASCE_META.map(({ key, label, icon }) => {
+          const f = fasce[key]
+          return (
+            <section
+              key={key}
+              className={clsx('fasce-eta__box', !f.attiva && 'fasce-eta__box--off')}
+              aria-label={`Fascia ${label}`}
+            >
+              <header className="fasce-eta__box-head">
+                <span className="fasce-eta__box-icon" aria-hidden="true">
+                  <i className={`fa-solid fa-${icon}`} />
+                </span>
+                <h4 className="fasce-eta__box-name">{label}</h4>
+                <ToggleSwitch
+                  checked={f.attiva}
+                  onChange={(checked) => updateFascia(key, { attiva: checked })}
+                  className="fasce-eta__box-toggle"
+                />
+              </header>
+
+              <div className="fasce-eta__box-body">
+                <div className="fasce-eta__row">
+                  <span className="fasce-eta__row-label">Età</span>
+                  <span className="fasce-eta__row-fields">
+                    <InputField
+                      name={`${key}-da`}
                       type="number"
-                      className="sib-input sib-input--dense fasce-eta__short"
+                      min={0}
                       value={f.da}
                       disabled={!f.attiva}
                       onChange={(e) => updateFascia(key, { da: Number(e.target.value) || 0 })}
-                      aria-label={`${label} da`}
+                      className="fasce-eta__num"
                     />
-                  </td>
-                  <td>
-                    <input
+                    <span className="fasce-eta__sep" aria-hidden="true">–</span>
+                    <InputField
+                      name={`${key}-a`}
                       type="number"
-                      className="sib-input sib-input--dense fasce-eta__short"
+                      min={0}
                       value={f.a}
                       disabled={!f.attiva}
                       onChange={(e) => updateFascia(key, { a: Number(e.target.value) || 0 })}
-                      aria-label={`${label} a`}
+                      className="fasce-eta__num"
                     />
-                  </td>
-                  <td>
-                    <span className="fasce-eta__cell">
-                      <input
+                    <span className="fasce-eta__unit">anni</span>
+                  </span>
+                </div>
+
+                <div className="fasce-eta__row">
+                  <span className="fasce-eta__row-label">Riduzione</span>
+                  <span className="fasce-eta__row-fields">
+                    <Tooltip text={TOOLTIP_PERC} variant="dark">
+                      <span className="fasce-eta__perc">
+                        <InputField
+                          name={`${key}-perc`}
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={f.perc}
+                          disabled={!f.attiva}
+                          onChange={(e) => updateFascia(key, { perc: Number(e.target.value) || 0 })}
+                          className="fasce-eta__num"
+                        />
+                        <span className="fasce-eta__unit">%</span>
+                      </span>
+                    </Tooltip>
+                  </span>
+                </div>
+
+                <div className="fasce-eta__row">
+                  <span className="fasce-eta__row-label fasce-eta__row-label--bed">
+                    <i className="fa-solid fa-bed" aria-hidden="true" />
+                    Posto letto
+                  </span>
+                  <span className="fasce-eta__row-fields">
+                    <ToggleSwitch
+                      checked={f.postoLetto}
+                      disabled={!f.attiva}
+                      onChange={(checked) => updateFascia(key, { postoLetto: checked })}
+                    />
+                  </span>
+                </div>
+              </div>
+            </section>
+          )
+        })}
+
+        <section
+          className={clsx('fasce-eta__box', !adulti.attivi && 'fasce-eta__box--off')}
+          aria-label="Adulti extra"
+        >
+          <header className="fasce-eta__box-head">
+            <span className="fasce-eta__box-icon" aria-hidden="true">
+              <i className="fa-solid fa-user-plus" />
+            </span>
+            <h4 className="fasce-eta__box-name">Adulti extra</h4>
+            <ToggleSwitch
+              checked={adulti.attivi}
+              onChange={(checked) => setAdulti({ ...adulti, attivi: checked })}
+              className="fasce-eta__box-toggle"
+            />
+          </header>
+
+          <div className="fasce-eta__box-body">
+            {([1, 2, 3] as const).map((n) => (
+              <div className="fasce-eta__row" key={n}>
+                <span className="fasce-eta__row-label">Adulto {n}</span>
+                <span className="fasce-eta__row-fields">
+                  <Tooltip text={TOOLTIP_PERC} variant="dark">
+                    <span className="fasce-eta__perc">
+                      <InputField
+                        name={`adulto-${n}`}
                         type="number"
-                        className="sib-input sib-input--dense fasce-eta__short"
-                        value={f.perc}
-                        disabled={!f.attiva}
-                        onChange={(e) => updateFascia(key, { perc: Number(e.target.value) || 0 })}
-                        aria-label={`${label} percentuale`}
+                        min={0}
+                        max={100}
+                        value={adulti[`adulto${n}`]}
+                        disabled={!adulti.attivi}
+                        onChange={(e) => setAdulti({ ...adulti, [`adulto${n}`]: Number(e.target.value) || 0 })}
+                        className="fasce-eta__num"
                       />
                       <span className="fasce-eta__unit">%</span>
                     </span>
-                  </td>
-                  <td className="fasce-eta__td--center">
-                    <input
-                      type="checkbox"
-                      className="sib-checkbox"
-                      checked={f.attiva}
-                      onChange={(e) => updateFascia(key, { attiva: e.target.checked })}
-                      aria-label={`${label} attiva`}
-                    />
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="fasce-eta__adulti">
-        <SelectField
-          name="numAdultiExtra"
-          label="Adulti extra"
-          className="fasce-eta__field fasce-eta__select-adulti"
-          value={data.numAdultiExtra}
-          onChange={(e) => setData({ ...data, numAdultiExtra: Number(e.target.value) })}
-          options={[
-            { value: 0, label: 'Nessuno' },
-            { value: 1, label: '1' },
-            { value: 2, label: '2' },
-            { value: 3, label: '3' },
-          ]}
-        />
-        {[1, 2, 3].map((n) => data.numAdultiExtra >= n && (
-          <div className="fasce-eta__field-raw" key={n}>
-            <label>Adulto {n}</label>
-            <span className="fasce-eta__cell">
-              <input
-                type="number"
-                className="sib-input sib-input--dense fasce-eta__short"
-                value={data[`adulto${n}` as 'adulto1' | 'adulto2' | 'adulto3']}
-                onChange={(e) => setData({ ...data, [`adulto${n}`]: Number(e.target.value) || 0 })}
-                aria-label={`Adulto ${n} percentuale`}
-              />
-              <span className="fasce-eta__unit">%</span>
-            </span>
+                  </Tooltip>
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </section>
       </div>
 
-      <div className="fasce-eta__actions">
-        <button
-          type="button"
-          className="sib-btn sib-btn--primary"
-          onClick={save}
-          disabled={saving}
+      {validation.message && (
+        <div
+          className={clsx('fasce-eta__msg', `fasce-eta__msg--${validation.kind}`)}
+          role="alert"
         >
-          Salva
-        </button>
-      </div>
+          <i
+            className={validation.kind === 'error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-triangle-exclamation'}
+            aria-hidden="true"
+          />
+          <span>{validation.message}</span>
+        </div>
+      )}
+
+      <CfgSaveBar
+        className="fasce-eta__savebar"
+        count={dirty}
+        onSave={save}
+        onCancel={() => { setFasce(savedFasce); setAdulti(savedAdulti) }}
+        successMessage="Fasce d'età salvate"
+        errorMessage={validation.kind === 'error'
+          ? 'Le fasce presentano errori: correggi gli intervalli di età prima di salvare.'
+          : 'Salvataggio non riuscito. Riprova.'}
+      />
     </div>
   )
 }

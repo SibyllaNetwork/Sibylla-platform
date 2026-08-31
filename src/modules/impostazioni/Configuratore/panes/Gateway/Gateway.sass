@@ -1,0 +1,130 @@
+// ─── GATEWAY ──────────────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-gateway
+  display: flex
+  flex-direction: column
+  gap: 4px
+  container-type: inline-size
+
+  // Griglia delle card: regge più gateway (oggi Nexy + Axerve)
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr))
+    gap: 16px
+
+  &__card
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 16px 18px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-md
+    box-shadow: $shadow-sm
+
+  &__card-head
+    display: flex
+    align-items: center
+    gap: 12px
+
+  &__card-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 38px
+    height: 38px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: $primary-50
+    color: $primary
+    font-size: 17px
+
+  &__card-titles
+    display: flex
+    flex-direction: column
+    min-width: 0
+    flex: 1
+
+  &__card-name
+    margin: 0
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 600
+    color: $text-active
+    line-height: 1.2
+
+  &__card-code
+    font-size: 10.5px
+    font-weight: 600
+    letter-spacing: 0.6px
+    color: $text-inactive
+
+  // Badge di stato della card (Configurato / Da configurare)
+  &__status
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 22px
+    padding: 0 9px
+    border-radius: 11px
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+    flex-shrink: 0
+
+    i
+      font-size: 10px
+
+    &--todo
+      color: $warning
+      background: alpha($warning, .13)
+
+    &--ok
+      color: $success
+      background: alpha($success, .12)
+
+  &__card-desc
+    margin: 0
+    font-size: 12.5px
+    line-height: 1.45
+    color: $text-inactive
+
+  &__card-form
+    display: flex
+    align-items: flex-end
+    gap: 10px
+
+    // Il campo chiave occupa tutto lo spazio disponibile
+    > :first-child
+      flex: 1
+      min-width: 0
+
+    // Due classi nel selettore: a pari specificità .sib-btn (design system,
+    // caricato dopo) vincerebbe su una classe sola
+    .cfg-gateway__card-save
+      height: 34px
+      padding: 0 14px
+      font-size: 12.5px
+
+  &__card-foot
+    display: flex
+    align-items: center
+    gap: 6px
+    padding-top: 8px
+    border-top: 1px solid alpha($border, .6)
+    font-size: 11.5px
+    color: $text-inactive
+
+    i
+      font-size: 11px
+      color: $primary
+
+// Sotto ~740px di pane le card vanno a colonna piena e il form va in verticale
+@container (max-width: 740px)
+  .cfg-gateway__grid
+    grid-template-columns: 1fr
+
+  .cfg-gateway__card-form
+    flex-direction: column
+    align-items: stretch

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { ALL_PAGES, CLIENTS_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli, EMPTY_NEW_CLIENT } from './constants'
 import { getAllPages } from './helpers'
-import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/configuratoriList'
+import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/registry'
 import { useAccessStore } from '../../store/useAccessStore'
 import { useAdminConfigStore } from '../../store/useAdminConfigStore'
 import { useModuliStore } from '../../store/useModuliStore'

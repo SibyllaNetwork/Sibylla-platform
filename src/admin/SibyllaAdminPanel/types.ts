@@ -117,7 +117,7 @@ export interface ModuloForm {
   nome: string
   desc: string
   pagesSet: Set<string>
-  /** Voci del Configuratore visibili (id da configuratoriList). */
+  /** Voci del Configuratore visibili (id da registry.ts del Configuratore). */
   configItemsSet: Set<string>
 }
 

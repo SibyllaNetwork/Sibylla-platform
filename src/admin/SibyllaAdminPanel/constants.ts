@@ -3,7 +3,7 @@ import MENU_TO from '../../navigation/menuTourOperator'
 import MENU_RISTORANTI from '../../navigation/menuRistoranti'
 import MENU_FULL from '../../navigation/menuFull'
 import { getAllPages } from './helpers'
-import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/configuratoriList'
+import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/registry'
 import type { Cliente, Intestatario, Modulo, NewClientForm, Ruolo, TipologiaCategoria, UserRow } from './types'
 
 export const ALL_PAGES: string[] = getAllPages(MENU as any)

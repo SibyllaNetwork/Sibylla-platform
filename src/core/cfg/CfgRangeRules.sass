@@ -1,0 +1,163 @@
+// ─── CFG RANGE RULES ──────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.cfg-range-rules
+  display: flex
+  flex-direction: column
+  border: 1px solid $border
+  border-radius: 6px
+  overflow: hidden
+  max-width: 640px
+  font-size: 13px
+
+  &--disabled
+    opacity: .6
+    pointer-events: none
+
+  // Colonne: Dal · Al · [extra…] · Azioni — «+» e cestino sulla stessa riga
+  &__head,
+  &__row
+    display: grid
+    grid-template-columns: 110px 110px 1fr
+    align-items: center
+    gap: 12px
+    padding: 3px 12px
+
+  // Con colonne extra il template arriva dalla custom property --cfg-rr-extra
+  &--has-extra
+    .cfg-range-rules__head,
+    .cfg-range-rules__row
+      grid-template-columns: 110px 110px var(--cfg-rr-extra) 1fr
+
+  &__head
+    padding-top: 7px
+    padding-bottom: 7px
+    background: $bg
+    border-bottom: 1px solid $border
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__head-actions
+    text-align: right
+
+  &__row
+    border-bottom: 1px solid alpha($border, .5)
+
+    &:last-of-type
+      border-bottom: none
+
+    &--error
+      background: alpha($error, .05)
+
+      .sib-input
+        border-color: $error
+
+  &__cell
+    display: flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+    &--extra
+      flex: 1
+
+  // Input compatti e densi: niente spinner, altezza ridotta, valori a destra
+  &__input
+    width: 74px
+    flex-shrink: 0
+
+    .sib-input
+      height: 28px
+      padding: 0 8px
+      text-align: right
+      font-variant-numeric: tabular-nums
+
+      // Frecce (spinner) dei number input nascoste — requisito §4.7
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button
+        -webkit-appearance: none
+        margin: 0
+
+      -moz-appearance: textfield
+
+  &__unit
+    font-size: 12px
+    color: $text-inactive
+    flex-shrink: 0
+
+  // «+» e cestino in linea, standard icone tabella (blu, 16px, senza box)
+  &__actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 2px
+
+  &__act
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 26px
+    height: 26px
+    background: transparent
+    border: none
+    border-radius: 5px
+    cursor: pointer
+    color: $primary
+
+    i
+      font-size: 14px
+
+    &:hover:not(:disabled)
+      background: $primary-50
+
+    &:disabled
+      color: $text-disabled
+      cursor: not-allowed
+
+  // Messaggio inline di validazione (continuità / sovrapposizioni)
+  &__msg
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 12px
+    font-size: 12px
+    border-top: 1px solid $border
+
+    i
+      font-size: 12px
+      flex-shrink: 0
+
+    &--error
+      color: $error-dark
+      background: alpha($error, .06)
+
+    &--warning
+      color: $warning
+      background: alpha($warning, .07)
+
+  // Riga di aggiunta in coda (niente fasce bianche: chiude il box)
+  &__add
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 7px
+    padding: 7px 12px
+    background: transparent
+    border: none
+    border-top: 1px dashed $border
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+    i
+      font-size: 11px
+
+    &:hover:not(:disabled)
+      background: $primary-50
+
+    &:disabled
+      color: $text-disabled
+      cursor: not-allowed

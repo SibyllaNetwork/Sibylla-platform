@@ -1,14 +1,26 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
+import { CfgPane, CfgLocked, CfgEmpty, cfgPrefersReducedMotion } from '../../../core/cfg'
 import {
-  MAIN_ITEMS,
-  FNB_ITEMS,
-  ALL_CONFIGURATORE_IDS,
+  CFG_GROUPS,
+  CONFIGURATORI,
+  cfgGroupById,
+  configuratoreById,
+  isConfiguratoreId,
+  type ConfiguratoreDef,
   type ConfiguratoreId,
-  type ConfiguratoreItem,
-} from './configuratoriList'
+} from './registry'
+import {
+  useConfiguratoreStore,
+  displayStatusOf,
+  type CfgCompletion,
+} from '../../../store/useConfiguratoreStore'
 import { useAccessStore, allowedConfiguratoreIds } from '../../../store/useAccessStore'
 import { useModuliStore } from '../../../store/useModuliStore'
+import { useConfirmStore } from '../../../store/useConfirmStore'
+import ConfiguratoreHub from './ConfiguratoreHub'
+import ConfiguratoreSidebar, { type SidebarLane } from './ConfiguratoreSidebar'
+import ConfiguratorePalette from './ConfiguratorePalette'
 import './Configuratore.sass'
 
 import ScaglioniOccupazione   from './panes/ScaglioniOccupazione/ScaglioniOccupazione'
@@ -24,7 +36,6 @@ import LottiMapping           from './panes/LottiMapping/LottiMapping'
 import ListiniIndividuali     from './panes/ListiniIndividuali/ListiniIndividuali'
 import ListiniGruppi          from './panes/ListiniGruppi/ListiniGruppi'
 import PolitichePrenotazione  from './panes/PolitichePrenotazione/PolitichePrenotazione'
-import Contratti              from './panes/Contratti/Contratti'
 import MarketSpecifics        from './panes/MarketSpecifics/MarketSpecifics'
 import BarFit                 from './panes/BarFit/BarFit'
 import Arrangiamenti          from './panes/Arrangiamenti/Arrangiamenti'
@@ -33,13 +44,52 @@ import VincoloMatriosca       from './panes/VincoloMatriosca/VincoloMatriosca'
 import FasceEta               from './panes/FasceEta/FasceEta'
 import VociIncasso            from './panes/VociIncasso/VociIncasso'
 import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
+import Gateway                from './panes/Gateway/Gateway'
+import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFiscali'
+import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
+import CostiMapping           from './panes/CostiMapping/CostiMapping'
 import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConfig'
 
-const DEFAULT_ID: ConfiguratoreId = 'scaglioni-occupazione'
+// ─── SHELL DEL CONFIGURATORE ─────────────────────────────────────────────────
+//  "Configuratore come percorso guidato": hub d'ingresso con le 7 corsie
+//  tematiche, sidebar a gruppi collassabili con indicatore che scorre,
+//  command palette (⌘K) e transizioni tra i pane. Il titolo di pagina è UNO
+//  (PageHead); breadcrumb e titolo della voce vivono in CfgPane.
+//
+//  Preservati: filtro voci per profilo (allowedConfiguratoreIds), caso
+//  "solo F&B", deep link `configuratore:<id>` (id spariti come `contratti` →
+//  fallback pulito sull'hub), conferma di abbandono con modifiche pendenti.
+
+const PANES: Partial<Record<ConfiguratoreId, React.ComponentType>> = {
+  'scaglioni-occupazione':    ScaglioniOccupazione,
+  'finestre-prenotazione':    FinestrePrenotazione,
+  'richieste-extra':          RichiesteExtra,
+  'stagionalita':             Stagionalita,
+  'personalizza-struttura':   PersonalizzaStruttura,
+  'camere-mapping':           CamereMapping,
+  'overbooking-limit':        OverbookingLimit,
+  'buffer-presenze':          BufferPresenze,
+  'mapping-segmento-mercato': MappingSegmentoMercato,
+  'lotti-mapping':            LottiMapping,
+  'listini-individuali':      ListiniIndividuali,
+  'listini-gruppi':           ListiniGruppi,
+  'politiche-prenotazione':   PolitichePrenotazione,
+  'market-specifics':         MarketSpecifics,
+  'bar-fit':                  BarFit,
+  'arrangiamenti':            Arrangiamenti,
+  'bottom-rate':              BottomRate,
+  'vincolo-matriosca':        VincoloMatriosca,
+  'fasce-eta':                FasceEta,
+  'voci-incasso':             VociIncasso,
+  'configura-outlet':         ConfiguraOutlet,
+  'gateway':                  Gateway,
+  'intestazioni-fiscali':     IntestazioniFiscali,
+  'business-central':         BusinessCentral,
+  'costi-mapping':            CostiMapping,
+}
 
 export default function Configuratore({ navigate, initialPane }: { navigate: (p: string) => void; initialPane?: string }) {
-  // Voci visibili in base al profilo loggato: il modulo Ristoranti mostra solo le
-  // voci Food & Beverage (allowed = null → nessun limite, es. Full Suite/Admin).
+  // ── Voci visibili in base al profilo loggato (es. modulo Ristoranti = solo F&B)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
   const modules          = useModuliStore(s => s.moduli)
@@ -48,38 +98,88 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
     const profile = profiles.find(p => p.id === currentProfileId)
     return profile ? allowedConfiguratoreIds(profile, modules) : null
   }, [currentProfileId, profiles, modules])
-  const mainItems = useMemo(() => allowed ? MAIN_ITEMS.filter(i => allowed.has(i.id)) : MAIN_ITEMS, [allowed])
-  const fnbItems  = useMemo(() => allowed ? FNB_ITEMS.filter(i => allowed.has(i.id)) : FNB_ITEMS, [allowed])
-  const onlyFnb = mainItems.length === 0 && fnbItems.length > 0
 
-  // Deep-link a un pane specifico (es. da "configuratore:lotti-mapping").
-  const validInitial = initialPane && ALL_CONFIGURATORE_IDS.includes(initialPane) ? (initialPane as ConfiguratoreId) : null
-  const initialIsFnb = validInitial ? FNB_ITEMS.some(i => i.id === validInitial) : false
-  const [activeId, setActiveId] = useState<ConfiguratoreId>(validInitial ?? (onlyFnb ? (fnbItems[0]?.id ?? DEFAULT_ID) : DEFAULT_ID))
-  const [subpage, setSubpage]   = useState(validInitial ? initialIsFnb : onlyFnb)
-  const [query, setQuery]       = useState('')
+  const visibleDefs = useMemo(
+    () => (allowed ? CONFIGURATORI.filter(d => allowed.has(d.id)) : CONFIGURATORI),
+    [allowed],
+  )
 
-  const sourceItems = subpage ? fnbItems : mainItems
+  // ── Stato di completamento + dirty state (store della sezione)
+  const completion = useConfiguratoreStore(s => s.completion)
+  const dirtyCount = useConfiguratoreStore(s => s.dirtyCount)
+  const resetDirty = useConfiguratoreStore(s => s.resetDirty)
+  const confirm    = useConfirmStore(s => s.confirm)
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return sourceItems
-    return sourceItems.filter(it => it.label.toLowerCase().includes(q))
-  }, [sourceItems, query])
+  const lanes: SidebarLane[] = useMemo(() =>
+    CFG_GROUPS
+      .map(group => {
+        const items = visibleDefs
+          .filter(d => d.group === group.id)
+          .map(def => ({ def, status: displayStatusOf(completion, def.id) }))
+        return {
+          group,
+          items,
+          configured: items.filter(i => i.status === 'configured').length,
+          total: items.length,
+        }
+      })
+      .filter(lane => lane.items.length > 0),
+  [visibleDefs, completion])
 
-  const activeLabel = useMemo(() => {
-    const all: ConfiguratoreItem[] = [...MAIN_ITEMS, ...FNB_ITEMS]
-    return all.find(it => it.id === activeId)?.label ?? ''
+  // ── Vista corrente: null = hub; deep link non valido (es. `contratti`) → hub
+  const validInitial = initialPane
+    && isConfiguratoreId(initialPane)
+    && visibleDefs.some(d => d.id === initialPane)
+    ? (initialPane as ConfiguratoreId)
+    : null
+  const [activeId, setActiveId] = useState<ConfiguratoreId | null>(validInitial)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [entering, setEntering] = useState(false)
+
+  // Cambio voce con guardia sul dirty state (conferma di abbandono)
+  const guardedGo = async (id: ConfiguratoreId | null) => {
+    if (id === activeId) return
+    if (dirtyCount > 0) {
+      const ok = await confirm({
+        title: 'Modifiche non salvate',
+        message: dirtyCount === 1
+          ? "C'è 1 modifica non salvata: uscendo da questa voce andrà persa."
+          : `Ci sono ${dirtyCount} modifiche non salvate: uscendo da questa voce andranno perse.`,
+        confirmLabel: 'Abbandona',
+        cancelLabel: 'Resta',
+        danger: true,
+      })
+      if (!ok) return
+      resetDirty()
+    }
+    setActiveId(id)
+  }
+
+  // Skeleton breve alla transizione tra le voci (disattivato con reduced motion)
+  useEffect(() => {
+    if (!activeId || cfgPrefersReducedMotion()) {
+      setEntering(false)
+      return
+    }
+    setEntering(true)
+    const t = setTimeout(() => setEntering(false), 260)
+    return () => clearTimeout(t)
   }, [activeId])
 
-  const openFnb = () => {
-    setSubpage(true)
-    setQuery('')
-  }
-  const backToMain = () => {
-    setSubpage(false)
-    setQuery('')
-  }
+  // ⌘K / Ctrl+K → command palette
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen(o => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const activeDef = activeId ? configuratoreById(activeId) : undefined
+  const activeGroup = activeDef ? cfgGroupById(activeDef.group) : undefined
 
   return (
     <div className="configuratore">
@@ -88,122 +188,96 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
         subtitle="Personalizza il sistema per una gestione efficiente e su misura"
       />
 
-      <div className="configuratore__layout">
-        <aside className={'configuratore__sidebar' + (subpage ? ' configuratore__sidebar--subpage' : '')}>
-          <div className="configuratore__sidebar-head">
-            {subpage && mainItems.length > 0 && (
-              <button
-                type="button"
-                className="configuratore__crumb"
-                onClick={backToMain}
-                aria-label="Torna alla lista configuratori"
-              >
-                <i className="fa-light fa-arrow-left configuratore__crumb-arrow" />
-                <span>Tutti i configuratori</span>
-                <span className="configuratore__crumb-sep">/</span>
-                <span className="configuratore__crumb-current">F&amp;B</span>
-              </button>
-            )}
+      {activeDef == null ? (
+        <ConfiguratoreHub
+          lanes={lanes}
+          completion={completion}
+          onOpen={guardedGo}
+          onOpenPalette={() => setPaletteOpen(true)}
+        />
+      ) : (
+        <div className="configuratore__layout">
+          <ConfiguratoreSidebar
+            lanes={lanes}
+            activeId={activeDef.id}
+            onSelect={guardedGo}
+            onHub={() => guardedGo(null)}
+            onOpenPalette={() => setPaletteOpen(true)}
+          />
 
-            <div className="configuratore__search">
-              <i className="fa-light fa-magnifying-glass configuratore__search-icon" aria-hidden="true" />
-              <input
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder={subpage ? 'Cerca in F&B...' : 'Cerca...'}
-                className="configuratore__search-input"
-                aria-label="Cerca configuratore"
+          {/* key = voce attiva: ogni cambio rimonta la vista e fa ripartire la
+              transizione (crossfade + slide corto, vedi .sass) */}
+          <div className="configuratore__paneview" key={activeDef.id}>
+            <CfgPane
+              trail={['Configuratore', activeGroup?.label ?? '']}
+              onTrail={() => { void guardedGo(null) }}
+              title={activeDef.label}
+              description={activeDef.description}
+              icon={activeDef.icon}
+              loading={entering}
+            >
+              <PaneSwitch
+                def={activeDef}
+                completion={completion}
+                onGoTo={guardedGo}
               />
-            </div>
+            </CfgPane>
           </div>
+        </div>
+      )}
 
-          <div className="configuratore__list">
-            {filtered.length === 0 ? (
-              <div className="configuratore__empty-list">Nessun risultato</div>
-            ) : (
-              <>
-                {filtered.map(item => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={'configuratore__item' + (activeId === item.id ? ' configuratore__item--active' : '')}
-                    onClick={() => setActiveId(item.id)}
-                  >
-                    <i className={`fa-light fa-${item.icon} configuratore__item-icon`} aria-hidden="true" />
-                    <span className="configuratore__item-label">{item.label}</span>
-                  </button>
-                ))}
-
-                {!subpage && !query.trim() && fnbItems.length > 0 && (
-                  <button
-                    type="button"
-                    className="configuratore__item configuratore__item--category"
-                    onClick={openFnb}
-                  >
-                    <i className="fa-light fa-utensils configuratore__item-icon" aria-hidden="true" />
-                    <span className="configuratore__item-label">Food &amp; Beverage</span>
-                    <span className="configuratore__badge">{fnbItems.length}</span>
-                    <i className="fa-light fa-chevron-right configuratore__item-chev" aria-hidden="true" />
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </aside>
-
-        <section className="configuratore__pane">
-          {/* Le pagine Outlet hanno già il proprio PageHeader: evita il titolo doppio */}
-          {!hasOutletConfig(activeId) && (
-            <div className="configuratore__pane-head">
-              <h2 className="configuratore__pane-title">{activeLabel}</h2>
-            </div>
-          )}
-          <PaneSwitch id={activeId} label={activeLabel} />
-        </section>
-      </div>
+      <ConfiguratorePalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        entries={lanes.flatMap(l => l.items)}
+        onSelect={(id) => { setPaletteOpen(false); void guardedGo(id) }}
+      />
     </div>
   )
 }
 
-function PaneSwitch({ id, label }: { id: ConfiguratoreId; label: string }) {
-  switch (id) {
-    case 'scaglioni-occupazione':    return <ScaglioniOccupazione />
-    case 'finestre-prenotazione':    return <FinestrePrenotazione />
-    case 'richieste-extra':          return <RichiesteExtra />
-    case 'stagionalita':             return <Stagionalita />
-    case 'personalizza-struttura':   return <PersonalizzaStruttura />
-    case 'camere-mapping':           return <CamereMapping />
-    case 'overbooking-limit':        return <OverbookingLimit />
-    case 'buffer-presenze':          return <BufferPresenze />
-    case 'mapping-segmento-mercato': return <MappingSegmentoMercato />
-    case 'lotti-mapping':            return <LottiMapping />
-    case 'listini-individuali':      return <ListiniIndividuali />
-    case 'listini-gruppi':           return <ListiniGruppi />
-    case 'politiche-prenotazione':   return <PolitichePrenotazione />
-    case 'contratti':                return <Contratti />
-    case 'market-specifics':         return <MarketSpecifics />
-    case 'bar-fit':                  return <BarFit />
-    case 'arrangiamenti':            return <Arrangiamenti />
-    case 'bottom-rate':              return <BottomRate />
-    case 'vincolo-matriosca':        return <VincoloMatriosca />
-    case 'fasce-eta':                return <FasceEta />
-    case 'voci-incasso':             return <VociIncasso />
-    case 'configura-outlet':         return <ConfiguraOutlet />
-    // Pagine di configurazione Food & Beverage → Outlet Manager (sub-app reale)
-    default:
-      return hasOutletConfig(id)
-        ? <OutletConfig id={id} />
-        : <PlaceholderPane label={label} />
-  }
-}
+// ─── Contenuto del pane attivo ───────────────────────────────────────────────
+//  Ordine: pane in arrivo → voce bloccata (gating) → pane esistente →
+//  sub-app Outlet (F&B) → empty di riserva.
 
-function PlaceholderPane({ label }: { label: string }) {
+function PaneSwitch({ def, completion, onGoTo }: {
+  def: ConfiguratoreDef
+  completion: Record<string, CfgCompletion>
+  onGoTo: (id: ConfiguratoreId) => void
+}) {
+  if (def.status === 'soon') {
+    return (
+      <CfgEmpty
+        icon={def.icon}
+        title={`${def.label} è in arrivo`}
+        subtitle={`${def.description} Questo configuratore è previsto dal piano di rifacimento della sezione ma non è ancora stato costruito.`}
+        soon
+      />
+    )
+  }
+
+  if (def.requires && displayStatusOf(completion, def.id) === 'locked') {
+    const requirement = configuratoreById(def.requires.id)
+    return (
+      <CfgLocked
+        title={def.label}
+        requirementLabel={requirement?.label ?? def.requires.id}
+        reason={def.requires.reason}
+        onGoToRequirement={() => onGoTo(def.requires!.id)}
+      />
+    )
+  }
+
+  const Pane = PANES[def.id]
+  if (Pane) return <Pane />
+
+  if (hasOutletConfig(def.id)) return <OutletConfig id={def.id} />
+
   return (
-    <div className="configuratore__placeholder">
-      <p className="configuratore__placeholder-desc">
-        Configurazione di {label.toLowerCase()}.
-      </p>
-    </div>
+    <CfgEmpty
+      icon={def.icon}
+      title={`${def.label} non è ancora disponibile`}
+      subtitle={def.description}
+    />
   )
 }

@@ -1,112 +1,173 @@
 // ─── FASCE D'ETÀ ──────────────────────────────────────────────────────────────
+// Quattro box allineati (Infanti / Bambini / Ragazzi / Adulti extra) con righe
+// interne a griglia fissa, così etichette, campi e toggle risultano allineati
+// sia dentro il box sia tra un box e l'altro (requisito §4.5).
+// Compattazione via container query sul root del pane (mai @media sul viewport).
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .fasce-eta
   display: flex
   flex-direction: column
-  gap: 12px
-  font-size: 13px
-
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  &__title
-    margin: 0
-    font-family: $font-heading
-    font-size: 14px
-    color: $text-active
-    font-weight: 600
-
-  &__filters
-    display: flex
-    gap: 18px
-    align-items: flex-end
-    flex-wrap: wrap
+  gap: 14px
+  min-height: 100%
+  container-type: inline-size
 
   &__field
+    min-width: 200px
+
+  &__boxes
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 12px
+
+  &__box
     display: flex
     flex-direction: column
-    gap: 4px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    overflow: hidden
+    transition: opacity .15s ease
 
-  // Raw fields ancora con <label> nativo (es. Adulto N)
-  &__field-raw
+    &--off
+      .fasce-eta__box-body
+        opacity: .55
+
+  &__box-head
     display: flex
-    flex-direction: column
-    gap: 4px
-
-    label
-      font-family: 'Poppins', sans-serif
-      font-size: 12px
-      color: $primary
-      font-weight: 600
-
-  &__table-wrap
-    @include paneShared.pane-table-wrap
-
-  &__table
-    @include paneShared.pane-table-base
-
-    th
-      white-space: nowrap
-
-  &__th--num
-    width: 110px
-
-  &__th--center
-    width: 80px
-    text-align: center
-
-  &__td--name
-    font-weight: 600
-
-  &__td--center
-    text-align: center
-
-  &__name
-    display: inline-flex
     align-items: center
     gap: 8px
+    padding: 8px 12px
+    background: $bg
+    border-bottom: 1px solid $border
 
-    i
-      color: $primary
-      font-size: 16px
-      width: 16px
-      text-align: center
+  &__box-icon
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 26px
+    height: 26px
+    border-radius: 7px
+    background: $primary-50
+    color: $primary
+    font-size: 12px
+    flex-shrink: 0
 
-  &__cell
+  &__box-name
+    margin: 0
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+    flex: 1
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__box-toggle
+    flex-shrink: 0
+
+  &__box-body
+    display: flex
+    flex-direction: column
+    padding: 6px 12px 10px
+
+  // Riga interna: etichetta a larghezza fissa + campi, altezza costante →
+  // allineamento orizzontale tra i box
+  &__row
+    display: grid
+    grid-template-columns: 84px 1fr
+    align-items: center
+    gap: 8px
+    min-height: 38px
+
+  &__row-label
     display: inline-flex
     align-items: center
     gap: 6px
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
 
-  &__short
-    width: 72px
+    &--bed i
+      font-size: 12px
+      color: $primary
+
+  &__row-fields
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    min-width: 0
+
+  // Campi numerici compatti: niente frecce, valori a destra
+  &__num
+    .sib-input
+      height: 28px
+      width: 56px
+      padding: 0 8px
+      text-align: right
+      font-variant-numeric: tabular-nums
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button
+        -webkit-appearance: none
+        margin: 0
+
+      -moz-appearance: textfield
+
+  &__sep
+    color: $text-disabled
 
   &__unit
-    color: $text-inactive
     font-size: 12px
+    color: $text-inactive
 
-  &__adulti
+  // La % di riduzione è interattiva all'hover (tooltip + bordo che risponde)
+  &__perc
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    cursor: help
+
+    &:hover .sib-input:not(:disabled)
+      border-color: $primary
+
+  // Messaggio di validazione (sovrapposizioni / età scoperte)
+  &__msg
     display: flex
-    gap: 18px
-    align-items: flex-end
-    flex-wrap: wrap
-    margin-top: 4px
+    align-items: center
+    gap: 8px
+    padding: 7px 12px
+    border-radius: 6px
+    font-size: 12px
+    max-width: 640px
 
-  &__select-adulti
-    min-width: 120px
+    i
+      font-size: 12px
+      flex-shrink: 0
 
-  &__actions
-    display: flex
-    justify-content: flex-end
-    margin-top: 4px
+    &--error
+      color: $error-dark
+      background: alpha($error, .06)
+      border: 1px solid alpha($error, .3)
+
+    &--warning
+      color: $warning
+      background: alpha($warning, .07)
+      border: 1px solid alpha($warning, .3)
+
+  // Save bar a filo del corpo del pane (annulla il padding di .cfg-pane__body)
+  &__savebar
+    margin: auto -22px -18px
+
+// Compattazione: sotto ~1100px di pane i box passano a 2 colonne, sotto ~560px a 1
+@container (max-width: 1100px)
+  .fasce-eta__boxes
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@container (max-width: 560px)
+  .fasce-eta__boxes
+    grid-template-columns: minmax(0, 1fr)

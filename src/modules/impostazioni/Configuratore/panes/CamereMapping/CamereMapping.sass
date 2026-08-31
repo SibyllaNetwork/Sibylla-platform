@@ -1,40 +1,115 @@
-// ─── CAMERE MAPPING ───────────────────────────────────────────────────────────
+// ─── MAPPING CAMERE ───────────────────────────────────────────────────────────
+// Layout su kit Configuratore (CfgToolbar / CfgTable / CfgSaveBar): qui restano
+// il banner dell'origine anagrafica, le celle del mapping e la nota finale.
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .camere-mapping
   display: flex
   flex-direction: column
-  gap: 16px
+  gap: 14px
+  min-height: 100%
   font-size: 13px
 
-  &__breadcrumb
+  &__field
+    min-width: 200px
+
+  // ── Banner origine anagrafica (PMS esterno / PMS Sibylla) ─────────────────
+  &__source
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 10px 14px
+    border: 1px solid $border
+    border-left: 3px solid $primary
+    border-radius: 8px
+    background: $bg
+
+  &__source-icon
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 34px
+    height: 34px
+    flex-shrink: 0
+    border-radius: 50%
+    background: alpha($primary, .08)
+    color: $primary
+
+    i
+      font-size: 15px
+
+  &__source-text
+    flex: 1
+    min-width: 0
+    font-size: 12.5px
+    line-height: 1.45
+    color: $text-inactive
+
+    strong
+      color: $text-active
+      font-weight: 600
+
+  &__source-progress
+    flex-shrink: 0
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
+
+  // ── Celle tabella ──────────────────────────────────────────────────────────
+  &__td--center
+    text-align: center
+
+  &__nome
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $text-active
+    font-weight: 500
+    min-width: 0
+
+  &__pms-tag
+    display: inline-flex
+    align-items: center
+    padding: 1px 7px
+    border-radius: 10px
+    border: 1px solid $border
+    background: $white
+    font-size: 10.5px
+    font-weight: 600
+    color: $text-inactive
+    white-space: nowrap
+    cursor: default
+
+  &__nome-input
+    max-width: 240px
+
+  &__standard-select
+    max-width: 240px
+
+  &__check
+    font-size: 16px
+    color: $success
+
+  &__pending
+    font-size: 16px
+    color: $text-disabled
+
+  // ── Nota finale ────────────────────────────────────────────────────────────
+  &__note
     display: flex
     align-items: center
     gap: 8px
+    margin: 0
+    font-size: 12px
     color: $text-inactive
+
     i
-      font-size: 11px
-    strong
+      font-size: 13px
       color: $primary
-      font-weight: 600
+      flex-shrink: 0
 
-  &__empty
-    display: flex
-    flex-direction: column
-    align-items: center
-    justify-content: center
-    gap: 12px
-    padding: 80px 24px
-    color: $text-inactive
-    text-align: center
-
-    i
-      font-size: 40px
-      color: $primary-300
-
-  &__table-wrap
-    @include paneShared.pane-table-wrap
-
-  &__table
-    @include paneShared.pane-table-base
+  // Save bar sticky a filo del corpo del pane (annulla il padding di
+  // .cfg-pane__body e si ancora in fondo con margin-top auto)
+  &__savebar
+    margin: auto -22px -18px

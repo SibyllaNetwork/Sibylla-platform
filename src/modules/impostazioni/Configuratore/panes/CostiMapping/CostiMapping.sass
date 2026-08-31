@@ -1,0 +1,129 @@
+// ─── COSTI MAPPING ────────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-costi
+  display: flex
+  flex-direction: column
+  gap: 4px
+  container-type: inline-size
+
+  &__cell-text
+    max-width: 100%
+
+  &__nome-input
+    max-width: 240px
+
+    .sib-input
+      height: 28px
+      font-size: 12.5px
+
+  // ── Impostazione %: Variabile [n]% ─barra─ Fisso [n]% ───────────────────────
+  &__quote
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+  &__quota-label
+    font-size: 11.5px
+    font-weight: 600
+    color: $text-inactive
+    white-space: nowrap
+    flex-shrink: 0
+
+  &__quota-input
+    width: 86px
+    flex-shrink: 0
+
+    .sib-input
+      height: 28px
+      font-size: 12.5px
+      padding-right: 26px
+
+  // Barra della ripartizione: quota variabile (primary) su quota fissa (muted)
+  &__split
+    flex: 1
+    min-width: 40px
+    height: 6px
+    border-radius: 3px
+    background: alpha($text-inactive, .18)
+    overflow: hidden
+
+  &__split-var
+    display: block
+    height: 100%
+    border-radius: 3px
+    background: $primary
+    transition: width .2s ease
+    // La quota arriva dalla riga come custom property
+    width: var(--split, 0%)
+
+  &__actions-cell
+    text-align: right
+    white-space: nowrap
+
+    > div
+      display: inline-flex
+
+  // Icona di convalida: spenta finché il costo non è convalidato
+  &__validate i
+    color: $text-disabled
+
+  &__validate--on i
+    color: $success
+
+  // Paginazione: wrapper SEMPRE centrato (standard piattaforma)
+  &__pagination
+    display: flex
+    justify-content: center
+    margin: 4px 0 8px
+
+// A pane stretto la barra sparisce e restano i due campi
+@container (max-width: 860px)
+  .cfg-costi__split
+    display: none
+
+// ── Modale "Copia costi" ──────────────────────────────────────────────────────
+.modal__box.cfg-costi-modal
+  width: min(440px, calc(100vw - 48px))
+
+.cfg-costi-modal
+  &__desc
+    margin: 2px 0 14px
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__row
+    display: flex
+    align-items: flex-end
+    gap: 10px
+
+    > div:first-child,
+    > div:last-child
+      flex: 1
+
+    // Due classi nel selettore: a pari specificità .sib-btn (design system,
+    // caricato dopo) vincerebbe su una classe sola
+    .cfg-costi-modal__swap
+      height: 34px
+      width: 34px
+      padding: 0
+      flex-shrink: 0
+      border: 1px solid $border
+      border-radius: $radius-sm
+      background: $bg
+      color: $primary
+
+      i
+        font-size: 13px
+
+      &:hover
+        background: $primary-50
+
+  &__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 18px
+    padding-top: 14px
+    border-top: 1px solid $border

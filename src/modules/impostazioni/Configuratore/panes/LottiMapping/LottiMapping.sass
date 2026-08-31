@@ -1,66 +1,353 @@
 // ─── LOTTI MAPPING ────────────────────────────────────────────────────────────
+// Due aree (Gruppi / B2B) + recap laterale. Campanella di consulenza con
+// animazione blu in movimento SOLO senza prefers-reduced-motion.
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .lotti-mapping
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 14px
+  min-height: 100%
   font-size: 13px
-
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  &__filters
-    display: flex
-    gap: 18px
-    align-items: flex-end
-    flex-wrap: wrap
+  // Container query: sotto soglia il recap scende sotto le aree
+  container-type: inline-size
 
   &__field
+    min-width: 200px
+
+  // ── Layout: aree + recap ─────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 260px
+    gap: 18px
+    align-items: start
+
+  &__main
+    display: flex
+    flex-direction: column
+    gap: 22px
+    min-width: 0
+
+  // ── Aree Gruppi / B2B ────────────────────────────────────────────────────────
+  &__area
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__area-head
+    display: flex
+    align-items: baseline
+    gap: 12px
+    flex-wrap: wrap
+
+  &__area-title
+    margin: 0
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 14.5px
+    font-weight: 600
+    color: $primary
+
+    i
+      font-size: 14px
+
+  &__area-desc
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+  &__b2b-select
+    max-width: 320px
+
+  // ── Celle ────────────────────────────────────────────────────────────────────
+  &__row--off td
+    color: $text-inactive
+
+  &__td-name
+    font-weight: 600
+    color: $text-active
+
+  &__td-num
+    text-align: right
+
+  &__td-center
+    text-align: center
+
+  &__nome-input
+    max-width: 220px
+
+  &__tipologia-select
+    max-width: 260px
+
+  &__num-input
+    width: 88px
+    margin-left: auto
+
+    input
+      text-align: right
+
+      // Niente spinner nei number input (standard della sezione)
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button
+        -webkit-appearance: none
+        margin: 0
+      -moz-appearance: textfield
+
+  &__toggle
+    white-space: nowrap
+
+  // ── Campanella «Richiesta di consulenza» ─────────────────────────────────────
+  &__bell
+    position: relative
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border: none
+    border-radius: 50%
+    background: transparent
+    cursor: pointer
+
+    i
+      font-size: 16px
+
+    &--disabled
+      cursor: not-allowed
+      color: $text-disabled
+
+    &--sent
+      cursor: default
+      color: $success
+
+    &--active
+      color: $primary
+
+      &:hover
+        background: alpha($primary, .08)
+
+    // Animazione blu in movimento: campanella che oscilla + anello che pulsa.
+    // Si ferma al tap (la classe --ringing viene tolta) e con reduced motion.
+    &--ringing
+      @media (prefers-reduced-motion: no-preference)
+        i
+          animation: lotti-bell-ring 1.6s ease-in-out infinite
+          transform-origin: top center
+
+        &::after
+          content: ""
+          position: absolute
+          inset: 2px
+          border-radius: 50%
+          border: 2px solid alpha($primary, .55)
+          animation: lotti-bell-pulse 1.6s ease-out infinite
+
+  // ── Recap laterale ───────────────────────────────────────────────────────────
+  &__recap
+    position: sticky
+    top: 0
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $bg
+
+  &__recap-title
+    margin: 0
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+    i
+      font-size: 13px
+
+  &__recap-section
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__recap-label
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: 0.2px
+    color: $text-inactive
+
+  &__recap-rows
+    margin: 0
     display: flex
     flex-direction: column
     gap: 4px
 
-  &__table-wrap
-    @include paneShared.pane-table-wrap
-
-  &__table
-    @include paneShared.pane-table-base
-
-    th
-      white-space: nowrap
-
-  &__th--num
-    width: 180px
-
-  &__td--name
-    font-weight: 600
-    color: $text-active
-
-  &__cell
-    display: inline-flex
-    align-items: center
-    gap: 6px
-
-  &__input
-    width: 80px
-
-  &__unit
-    color: $text-inactive
-    font-size: 12px
-
-  &__actions
+  &__recap-row
     display: flex
-    justify-content: flex-end
-    margin-top: 8px
+    align-items: baseline
+    justify-content: space-between
+    gap: 8px
+
+    dt
+      font-size: 12px
+      color: $text-inactive
+
+    dd
+      margin: 0
+      font-size: 12.5px
+      font-weight: 600
+      color: $text-active
+      font-variant-numeric: tabular-nums
+
+  &__recap-foot
+    display: flex
+    align-items: center
+    gap: 8px
+    padding-top: 10px
+    border-top: 1px solid $border
+    font-size: 11.5px
+    color: $text-inactive
+
+    i
+      font-size: 12px
+      color: $primary
+      flex-shrink: 0
+
+  // Save bar sticky a filo del corpo del pane
+  &__savebar
+    margin: auto -22px -18px
+
+// Il recap scende sotto le aree quando il pane si stringe
+@container (max-width: 900px)
+  .lotti-mapping__layout
+    grid-template-columns: 1fr
+
+  .lotti-mapping__recap
+    position: static
+
+@keyframes lotti-bell-ring
+  0%, 55%, 100%
+    transform: rotate(0deg)
+  10%
+    transform: rotate(14deg)
+  20%
+    transform: rotate(-12deg)
+  30%
+    transform: rotate(8deg)
+  40%
+    transform: rotate(-6deg)
+  50%
+    transform: rotate(3deg)
+
+@keyframes lotti-bell-pulse
+  0%
+    transform: scale(.7)
+    opacity: .9
+  70%
+    transform: scale(1.35)
+    opacity: 0
+  100%
+    transform: scale(1.35)
+    opacity: 0
+
+// ─── Multiselect «Tipologia camere» ──────────────────────────────────────────
+.lotti-multiselect
+  position: relative
+  display: flex
+  flex-direction: column
+  gap: 4px
+
+  &__label
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__trigger
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    width: 100%
+    height: 34px
+    padding: 0 12px
+    border: 1px solid $border
+    border-radius: 7px
+    background: $white
+    font-family: var(--font-body)
+    font-size: 13px
+    color: $text-active
+    cursor: pointer
+    transition: border-color 0.15s
+
+    &:hover,
+    &.is-open
+      border-color: $primary
+
+  &__ph
+    color: $text-inactive
+
+  &__summary
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__chev
+    font-size: 10px
+    color: $text-inactive
+    flex-shrink: 0
+    transition: transform 0.15s
+
+  &__trigger.is-open &__chev
+    transform: rotate(180deg)
+
+  &__pop
+    position: absolute
+    top: calc(100% + 4px)
+    left: 0
+    right: 0
+    z-index: 20
+    display: flex
+    flex-direction: column
+    padding: 6px
+    border: 1px solid $border
+    border-radius: 8px
+    background: $white
+    box-shadow: var(--shadow-md)
+    max-height: 260px
+    overflow-y: auto
+
+  &__option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 8px
+    border-radius: 5px
+    font-size: 12.5px
+    color: $text-active
+    cursor: pointer
+
+    &:hover
+      background: $bg
+
+  &__quick
+    display: flex
+    gap: 6px
+    margin-top: 4px
+    padding: 6px 8px 2px
+    border-top: 1px solid $border
+
+    button
+      background: none
+      border: none
+      padding: 2px 4px
+      font-family: var(--font-body)
+      font-size: 11.5px
+      font-weight: 600
+      color: $primary
+      cursor: pointer
+
+      &:hover
+        text-decoration: underline

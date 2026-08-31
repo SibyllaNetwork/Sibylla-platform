@@ -22,6 +22,10 @@ export interface InputFieldProps {
   max?:          number
   step?:         number
   autoComplete?: string
+  /** Nome accessibile quando il campo è senza label (es. cella di tabella). */
+  ariaLabel?:    string
+  /** Variante densa (34px): campi dentro le celle delle tabelle. */
+  dense?:        boolean
   onChange?:     (e: React.ChangeEvent<HTMLInputElement>) => void
   onBlur?:       (e: React.FocusEvent<HTMLInputElement>) => void
   onFocus?:      (e: React.FocusEvent<HTMLInputElement>) => void
@@ -33,7 +37,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>((
     label, name, type = 'text', value, defaultValue, placeholder,
     hint, error, disabled = false, readOnly = false, required = false,
     iconLeft, iconRight, maxLength, min, max, step, autoComplete,
-    onChange, onBlur, onFocus, className,
+    ariaLabel, dense = false, onChange, onBlur, onFocus, className,
   },
   ref
 ) => {
@@ -65,6 +69,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>((
           type={inputType}
           className={clsx(
             'sib-input',
+            dense && 'sib-input--dense',
             error && 'sib-input--error',
             iconLeft && 'pl-9',
             (iconRight || isPassword) && 'pr-9',
@@ -84,6 +89,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>((
           onChange={onChange}
           onBlur={onBlur}
           onFocus={onFocus}
+          aria-label={ariaLabel}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         />

@@ -1,76 +1,84 @@
 // ─── MARKET SPECIFICS ─────────────────────────────────────────────────────────
+// Tabella su CfgTable: nazioni senza bold, box numerici compatti senza frecce,
+// conteggio sotto la tabella e paginazione centrata (standard piattaforma).
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .market-specifics
   display: flex
   flex-direction: column
   gap: 12px
+  min-height: 100%
   font-size: 13px
 
-  &__breadcrumb
-    display: flex
+  &__search
+    max-width: 280px
+
+  // Indicazione del segmento a cui si riferisce la configurazione
+  &__segmento
+    display: inline-flex
     align-items: center
-    gap: 8px
-    color: $text-inactive
+    gap: 7px
+    padding: 6px 12px
+    border: 1px solid $border
+    border-radius: 16px
+    background: $bg
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
 
     i
-      font-size: 11px
+      font-size: 12px
 
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  &__table-wrap
-    @include paneShared.pane-table-wrap
-
-  &__table
-    @include paneShared.pane-table-base
-
-    th
-      white-space: nowrap
-
-  &__th--sconto
-    width: 180px
-
-  &__td--naz
-    font-weight: 600
-
+  // ── Celle ────────────────────────────────────────────────────────────────────
   &__naz
     display: inline-flex
     align-items: center
-    gap: 12px
+    gap: 10px
+    // Denominazioni delle nazioni SENZA bold (richiesta §4.16)
+    font-weight: 400
     color: $text-active
 
   &__flag
-    font-size: 20px
+    font-size: 16px
     line-height: 1
 
-  &__cell
+  &__promo
     display: inline-flex
     align-items: center
     gap: 6px
 
-  &__input
-    width: 80px
+  // Box numerico ridotto e senza frecce (richiesta §4.16); l'altezza resta
+  // quella standard dei campi form (34px)
+  &__promo-input
+    width: 64px
+
+    input
+      height: 34px
+      padding: 0 8px
+      font-size: 12.5px
+      text-align: right
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button
+        -webkit-appearance: none
+        margin: 0
+      -moz-appearance: textfield
 
   &__unit
+    font-size: 11.5px
     color: $text-inactive
-    font-size: 12px
 
-  &__footer
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 12px
-    margin-top: 8px
-    flex-wrap: wrap
-
+  // ── Footer: conteggio integrato + paginazione centrata ──────────────────────
   &__count
     font-size: 12px
     color: $text-inactive
+    text-align: center
 
-  &__actions
+  &__pagination
     display: flex
-    justify-content: flex-end
-    margin-top: 4px
+    justify-content: center
+
+  // Save bar sticky a filo del corpo del pane
+  &__savebar
+    margin: auto -22px -18px

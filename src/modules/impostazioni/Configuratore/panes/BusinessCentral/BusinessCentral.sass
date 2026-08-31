@@ -1,0 +1,156 @@
+// ─── BUSINESS CENTRAL ─────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-bc
+  display: flex
+  flex-direction: column
+  gap: 4px
+  container-type: inline-size
+
+  // ── Tab interni (Documenti / Conti / Journal Batch) ─────────────────────────
+  &__tabs
+    display: inline-flex
+    align-self: flex-start
+    gap: 2px
+    padding: 3px
+    margin-bottom: 14px
+    background: $bg
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    height: 30px
+    padding: 0 14px
+    border: none
+    border-radius: calc(#{$radius-md} - 3px)
+    background: transparent
+    font-family: $font-body
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease
+
+    i
+      font-size: 12px
+
+    &:hover
+      color: $primary
+
+    &--active
+      background: $white
+      color: $primary
+      box-shadow: $shadow-sm
+
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__section-desc
+    margin: 0 0 12px
+    font-size: 12.5px
+    color: $text-inactive
+    max-width: 720px
+
+  &__cell-text
+    max-width: 100%
+
+  &__actions-cell
+    text-align: right
+    white-space: nowrap
+
+    > div
+      display: inline-flex
+
+  // ── Documenti: iniziale-badge (F/N/Q/S/A/C/R) ───────────────────────────────
+  &__doc
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+    max-width: 100%
+
+  &__doc-initial
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 22px
+    height: 22px
+    flex-shrink: 0
+    border-radius: $radius-sm
+    background: $primary-50
+    color: $primary-600
+    font-size: 11px
+    font-weight: 700
+
+  // ── Badge Journal Batch (Attivo / Da configurare) ───────────────────────────
+  &__badge
+    display: inline-flex
+    align-items: center
+    height: 20px
+    padding: 0 8px
+    border-radius: 10px
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+
+    &--ok
+      color: $success
+      background: alpha($success, .12)
+
+    &--todo
+      color: $warning
+      background: alpha($warning, .13)
+
+  // Input JournalBatch dentro la cella: senza label, larghezza piena colonna
+  &__jb-input
+    max-width: 200px
+
+    .sib-input
+      height: 28px
+      font-size: 12px
+
+  // ── Blocchi Conti (form + tabella) ──────────────────────────────────────────
+  &__conto-block
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 14px 16px 4px
+    margin-bottom: 14px
+    background: $white
+    border: 1px solid $border
+    border-radius: $radius-md
+
+  &__conto-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 13.5px
+    font-weight: 600
+    color: $text-active
+
+  &__conto-form
+    display: flex
+    align-items: flex-end
+    gap: 14px
+    flex-wrap: wrap
+
+    // Solo i campi (le azioni restano a larghezza intrinseca)
+    > div:not(.cfg-bc__conto-form-actions)
+      min-width: 200px
+
+  &__conto-form-actions
+    display: flex
+    gap: 8px
+
+// A pane stretto i tab passano a larghezza piena
+@container (max-width: 640px)
+  .cfg-bc__tabs
+    align-self: stretch
+
+  .cfg-bc__tab
+    flex: 1
+    justify-content: center

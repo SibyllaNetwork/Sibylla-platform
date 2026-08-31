@@ -8,7 +8,7 @@ import { getAllPages } from '../../helpers'
 import type { Modulo, ModuloForm } from '../../types'
 import {
   ALL_CONFIGURATORE_IDS, FNB_ITEMS, MAIN_ITEMS,
-} from '../../../../modules/impostazioni/Configuratore/configuratoriList'
+} from '../../../../modules/impostazioni/Configuratore/registry'
 import './ModuloModal.sass'
 
 // Albero delle voci del Configuratore, nella stessa forma del MENU dell'app

@@ -1,180 +1,114 @@
 // ─── ARRANGIAMENTI ────────────────────────────────────────────────────────────
+// Due tabelle su CfgTable (.sib-table standard): trattamenti base e composti.
+// Qui la densità dei campi (28px, niente spinner), i nomi con icona e la
+// compattazione via container query sul root del pane.
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
-
-$arr-input-h: 28px
-$arr-row-h: 40px
-$arr-num-w: 150px
-$arr-check-w: 72px
-$arr-pasto-w: 150px
-$arr-muted: #6b7785
-$arr-row-divider: #eef0f3
 
 .arrangiamenti
   display: flex
   flex-direction: column
-  gap: 12px
-  font-size: 13px
-
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  // ── Filtri ────────────────────────────────────────────────────────────────
-  &__filters
-    display: flex
-    gap: 18px
-    align-items: flex-end
-    flex-wrap: wrap
+  gap: 16px
+  min-height: 100%
+  container-type: inline-size
 
   &__field
+    min-width: 200px
+
+  &__section
     display: flex
     flex-direction: column
-    gap: 4px
+    gap: 2px
 
-  &__select
-    height: $arr-input-h
-    min-width: 140px
-    border: 1px solid $border
-    border-radius: 5px
-    padding: 0 26px 0 8px
-    font-family: inherit
-    font-size: 12.5px
-    color: $text-active
-    background-color: $white
-    outline: none
+  &__section-title
+    margin: 0
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: $primary
 
-    &:focus
-      border-color: var(--color-primary)
+  &__section-hint
+    margin: 0 0 8px
+    font-size: 12px
+    color: $text-inactive
 
-    &--inline
-      width: 100%
-      min-width: 0
-
-  // ── Tabella ───────────────────────────────────────────────────────────────
-  &__table-wrap
-    border: 1px solid $border
-    border-radius: 6px
-    overflow: hidden
-
-  &__table
-    @include paneShared.pane-table-base
-
-    th
-      white-space: nowrap
-
-  &__th--name
-    width: auto
-    min-width: 140px
-
-  &__th--num
-    width: $arr-num-w
-    text-align: left
-    white-space: nowrap
-
-  &__th--center
-    width: $arr-check-w
-    text-align: center
-
-  &__th--pasto
-    width: $arr-pasto-w
-
-  &__td
-    line-height: 1
-    color: $text-active
-
-    &--name
-      font-weight: 600
-
-    &--num
-      width: $arr-num-w
-
-    &--center
-      text-align: center
-      width: $arr-check-w
+  &__base
+    max-width: 560px
 
   &__name
     display: inline-flex
     align-items: center
     gap: 8px
-    line-height: $arr-input-h
+    min-width: 0
 
     i
-      color: var(--color-primary)
-      font-size: 16px
-      width: 16px
-      text-align: center
+      font-size: 14px
+      color: $primary
+      flex-shrink: 0
 
-  &__cell
+    span
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__nome-input
+    .sib-input
+      height: 28px
+      padding: 0 8px
+
+  // Campi economici compatti: niente frecce, valori a destra
+  &__num
     display: inline-flex
     align-items: center
-    gap: 4px
+    gap: 6px
 
-  &__input
-    height: $arr-input-h
-    width: 64px
-    border: 1px solid $border
-    border-radius: 5px
-    padding: 0 6px
-    font-family: inherit
-    font-size: 12.5px
-    color: $text-active
-    background: $white
-    outline: none
-    transition: border-color 0.12s
+    .sib-input
+      height: 28px
+      width: 74px
+      padding: 0 8px
+      text-align: right
+      font-variant-numeric: tabular-nums
 
-    &:focus
-      border-color: var(--color-primary)
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button
+        -webkit-appearance: none
+        margin: 0
+
+      -moz-appearance: textfield
 
   &__unit
-    color: $arr-muted
-    font-size: 11px
-    min-width: 10px
+    font-size: 12px
+    color: $text-inactive
+    flex-shrink: 0
 
-  &__checkbox
-    width: 16px
-    height: 16px
-    accent-color: var(--color-primary)
-    cursor: pointer
-    vertical-align: middle
-    margin: 0
+  &__td-center
+    text-align: center
 
-  &__dash
-    color: $arr-muted
-    font-size: 13px
-    display: inline-block
-    line-height: $arr-input-h
+  // CheckboxField è flex con gap: al centro cella serve inline + niente gap
+  &__check
+    display: inline-flex
+    justify-content: center
 
-  // ── Actions ───────────────────────────────────────────────────────────────
-  &__actions
-    display: flex
-    justify-content: flex-end
+    .sib-checkbox
+      margin-top: 0
 
-  &__save
-    height: $arr-input-h
-    padding: 0 16px
-    background: var(--color-primary)
-    color: white
-    border: none
-    border-radius: 5px
-    font-family: inherit
-    font-size: 12.5px
-    font-weight: 600
-    cursor: pointer
-    transition: opacity 0.15s
+  &__toggle
+    display: inline-flex
 
-    &:hover
-      opacity: 0.9
+  &__td-actions
+    text-align: right
+    white-space: nowrap
 
-    &:disabled
-      opacity: 0.6
-      cursor: not-allowed
+  // Save bar a filo del corpo del pane (annulla il padding di .cfg-pane__body)
+  &__savebar
+    margin: auto -22px -18px
+
+// Compattazione sotto ~1000px di pane: celle più strette, campi più corti
+@container (max-width: 1000px)
+  .arrangiamenti__combos
+    .sib-table th,
+    .sib-table td
+      padding-left: 8px
+      padding-right: 8px
+
+  .arrangiamenti__num .sib-input
+    width: 62px

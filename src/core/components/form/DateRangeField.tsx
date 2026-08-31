@@ -20,6 +20,9 @@ export interface DateRangeFieldProps {
   required?:     boolean
   min?:          string
   max?:          string
+  /** Giorni non selezionabili nel calendario, in aggiunta a min/max
+   *  (es. intervalli già configurati altrove). */
+  isDateDisabled?: (d: Date) => boolean
   onChangeFrom?: (e: React.ChangeEvent<HTMLInputElement>) => void
   onChangeTo?:   (e: React.ChangeEvent<HTMLInputElement>) => void
   onChange?:     (from: Date | null, to: Date | null) => void
@@ -46,7 +49,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
   label, nameFrom, nameTo, valueFrom, valueTo,
   defaultFrom, defaultTo, hint, error,
   disabled = false, required = false,
-  min, max, onChangeFrom, onChangeTo, onChange, className,
+  min, max, isDateDisabled, onChangeFrom, onChangeTo, onChange, className,
 }) => {
   const from = safeParseISO(valueFrom ?? defaultFrom)
   const to   = safeParseISO(valueTo ?? defaultTo)
@@ -54,8 +57,11 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
 
   const minD = safeParseISO(min)
   const maxD = safeParseISO(max)
-  const shouldDisableDate = (minD || maxD)
-    ? (d: Date) => (!!minD && d < minD) || (!!maxD && d > maxD)
+  const shouldDisableDate = (minD || maxD || isDateDisabled)
+    ? (d: Date) =>
+        (!!minD && d < minD)
+        || (!!maxD && d > maxD)
+        || (!!isDateDisabled && isDateDisabled(d))
     : undefined
 
   const emit = (h: ((e: React.ChangeEvent<HTMLInputElement>) => void) | undefined, v: string, name: string) =>

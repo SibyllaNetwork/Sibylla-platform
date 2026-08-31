@@ -1,0 +1,262 @@
+// ─── CONFIGURATORE — SIDEBAR A GRUPPI ────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.cfgsb
+  display: flex
+  flex-direction: column
+  min-height: 0
+  background: $white
+  border: 1px solid $border
+  border-radius: 8px
+  overflow: hidden
+
+  // ── Testata: search (apre la palette) + link Panoramica ─────────────────────
+  &__head
+    padding: 10px
+    border-bottom: 1px solid $border
+    display: flex
+    flex-direction: column
+    gap: 6px
+    flex-shrink: 0
+
+  &__search
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 32px
+    padding: 0 10px
+    background: $bg
+    border: 1px solid $border
+    border-radius: 7px
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 12px
+    color: $text-inactive
+    transition: border-color .15s
+
+    &:hover
+      border-color: $primary-400
+
+    i
+      font-size: 12px
+      flex-shrink: 0
+
+  &__search-label
+    flex: 1
+    text-align: left
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__kbd
+    font-family: var(--font-body)
+    font-size: 10px
+    font-weight: 600
+    color: $text-inactive
+    background: $white
+    border: 1px solid $border
+    border-radius: 4px
+    padding: 1px 5px
+    flex-shrink: 0
+
+  &__hub-link
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 28px
+    padding: 0 8px
+    background: transparent
+    border: none
+    border-radius: 6px
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    text-align: left
+
+    i
+      font-size: 12px
+      width: 14px
+      text-align: center
+
+    &:hover
+      background: $primary-50
+
+  // ── Nav: gruppi collassabili + indicatore che scorre ────────────────────────
+  &__nav
+    position: relative
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+    padding: 8px
+
+    &::-webkit-scrollbar
+      width: 6px
+    &::-webkit-scrollbar-thumb
+      background: $border
+      border-radius: 3px
+    &::-webkit-scrollbar-track
+      background: transparent
+
+  // Indicatore della voce attiva: barra + velo che SCORRONO tra le voci
+  // (posizione/altezza da --cfgsb-ind-y/-h, impostate dal componente)
+  &__indicator
+    position: absolute
+    left: 8px
+    right: 8px
+    top: 0
+    transform: translateY(var(--cfgsb-ind-y, 0px))
+    height: var(--cfgsb-ind-h, 30px)
+    opacity: var(--cfgsb-ind-o, 0)
+    background: $primary-50
+    border-radius: 6px
+    pointer-events: none
+
+    &::before
+      content: ''
+      position: absolute
+      left: 0
+      top: 5px
+      bottom: 5px
+      width: 3px
+      border-radius: 2px
+      background: $primary
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: transform .28s cubic-bezier(.4, 0, .2, 1), height .28s cubic-bezier(.4, 0, .2, 1), opacity .18s
+
+  &__group
+    margin-bottom: 2px
+
+  &__group-head
+    position: relative
+    z-index: 1
+    display: flex
+    align-items: center
+    gap: 8px
+    width: 100%
+    padding: 7px 8px
+    background: transparent
+    border: none
+    border-radius: 6px
+    cursor: pointer
+    font-family: var(--font-heading)
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    text-align: left
+
+    &:hover
+      background: alpha($primary, .05)
+
+  &__group-icon
+    font-size: 12px
+    width: 15px
+    text-align: center
+    flex-shrink: 0
+    color: $primary-600
+
+  &__group-label
+    flex: 1
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__group-count
+    font-family: var(--font-body)
+    font-size: 10.5px
+    font-weight: 600
+    color: $text-inactive
+    background: $bg
+    border: 1px solid $border
+    border-radius: 9px
+    padding: 0 6px
+    flex-shrink: 0
+
+  &__group-chev
+    font-size: 10px
+    color: $text-inactive
+    flex-shrink: 0
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: transform .22s ease
+
+  &__group--open &__group-chev
+    transform: rotate(180deg)
+
+  // Collasso animato: grid-template-rows 0fr → 1fr
+  &__group-body
+    display: grid
+    grid-template-rows: 0fr
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: grid-template-rows .24s ease
+
+  &__group--open &__group-body
+    grid-template-rows: 1fr
+
+  &__group-items
+    overflow: hidden
+    min-height: 0
+    display: flex
+    flex-direction: column
+    padding-left: 8px
+
+  // ── Voce ─────────────────────────────────────────────────────────────────────
+  &__item
+    position: relative
+    z-index: 1
+    display: flex
+    align-items: center
+    gap: 8px
+    width: 100%
+    min-height: 30px
+    padding: 4px 8px 4px 10px
+    background: transparent
+    border: none
+    border-radius: 6px
+    cursor: pointer
+    font-family: var(--font-body)
+    font-size: 12.5px
+    color: $text-active
+    text-align: left
+
+    &:hover
+      background: alpha($primary, .05)
+
+    &--active
+      color: $primary
+      font-weight: 600
+
+      // Lo sfondo lo dà l'indicatore che scorre: qui niente background
+      &:hover
+        background: transparent
+
+      .cfgsb__item-icon
+        color: $primary
+
+    &--locked
+      color: $text-disabled
+
+      .cfgsb__item-icon
+        color: $text-disabled
+
+    &--soon
+      color: $text-inactive
+
+  &__item-icon
+    font-size: 12px
+    width: 15px
+    text-align: center
+    flex-shrink: 0
+    color: $text-inactive
+
+  &__item-label
+    flex: 1
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__item-badge
+    flex-shrink: 0

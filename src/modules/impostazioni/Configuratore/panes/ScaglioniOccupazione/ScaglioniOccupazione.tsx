@@ -1,153 +1,146 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
 import { SelectField, RadioGroup } from '../../../../../core/components/form'
+import {
+  CfgToolbar, CfgRangeRules, CfgSaveBar, cfgRangeHasErrors,
+  type CfgRangeRow,
+} from '../../../../../core/cfg'
+import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './ScaglioniOccupazione.sass'
 
-interface Scaglione { from: number; to: number }
-type Tipologia = 'Individuali' | 'Gruppi'
+// ─── SCAGLIONI OCCUPAZIONE (§4.7) ─────────────────────────────────────────────
+//  Intervalli percentuali di occupazione, ricostruiti su CfgRangeRules:
+//   • filtro Tipologia con «B2B» al posto di «FIT»;
+//   • niente spinner nei box numerici, «+» e cestino sulla stessa riga;
+//   • validazione di continuità / non-sovrapposizione (nel componente regole);
+//   • Salva (prima assente) su CfgSaveBar, con dirty state sincronizzato con
+//     useConfiguratoreStore così la shell avvisa prima di abbandonare.
+
+const PANE_ID = 'scaglioni-occupazione'
+
+type Tipologia = 'B2B' | 'Gruppi'
+
+interface Struttura { Id: number; nome: string }
 
 interface Data {
-  Strutture: { Id: number; nome: string }[]
+  Strutture: Struttura[]
   StrutturaId: number | null
-  Tipologia: Tipologia
-  scaglioni: Scaglione[]
+  Tipologia: string
+  scaglioni: CfgRangeRow[]
 }
 
-const FALLBACK: Data = {
-  Strutture: [],
-  StrutturaId: null,
-  Tipologia: 'Gruppi',
-  scaglioni: [
-    { from: 0, to: 30 }, { from: 30, to: 45 }, { from: 45, to: 60 },
-    { from: 60, to: 70 }, { from: 70, to: 80 }, { from: 80, to: 85 },
-    { from: 85, to: 90 }, { from: 90, to: 95 },
-  ],
+const FALLBACK_ROWS: CfgRangeRow[] = [
+  { from: 0, to: 30 }, { from: 30, to: 45 }, { from: 45, to: 60 },
+  { from: 60, to: 70 }, { from: 70, to: 80 }, { from: 80, to: 85 },
+  { from: 85, to: 90 }, { from: 90, to: 95 },
+]
+
+/** Righe cambiate rispetto allo snapshot salvato (per il conteggio della save bar). */
+function countRowChanges(saved: CfgRangeRow[], draft: CfgRangeRow[]): number {
+  let n = Math.abs(saved.length - draft.length)
+  const len = Math.min(saved.length, draft.length)
+  for (let i = 0; i < len; i++) {
+    if (saved[i].from !== draft[i].from || saved[i].to !== draft[i].to) n++
+  }
+  return n
 }
 
 export default function ScaglioniOccupazione() {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const markDirty     = useConfiguratoreStore(s => s.markDirty)
+  const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
+  const setCompletion = useConfiguratoreStore(s => s.setCompletion)
+
+  const [strutture, setStrutture]     = useState<Struttura[]>([])
+  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  const [tipologia, setTipologia]     = useState<Tipologia>('Gruppi')
+  const [saved, setSaved]             = useState<CfgRangeRow[]>(FALLBACK_ROWS)
+  const [rows, setRows]               = useState<CfgRangeRow[]>(FALLBACK_ROWS)
 
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<Data>('configura/GetScaglioniOccupazione', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => { /* keep fallback */ })
+      .then((d) => {
+        if (cancelled || !Array.isArray(d?.scaglioni)) return
+        setStrutture(d.Strutture ?? [])
+        setStrutturaId(d.StrutturaId ?? null)
+        // Rinomina richiesta dal brief: «FIT» diventa «B2B» (idem «Individuali»)
+        setTipologia(d.Tipologia === 'Gruppi' ? 'Gruppi' : 'B2B')
+        setSaved(d.scaglioni)
+        setRows(d.scaglioni)
+      })
+      .catch(() => { /* backend assente in demo: restano i dati di fallback */ })
     return () => { cancelled = true }
   }, [])
 
-  const updateRow = (i: number, field: 'from'|'to', value: number) => {
-    const next = [...data.scaglioni]
-    next[i] = { ...next[i], [field]: value }
-    setData({ ...data, scaglioni: next })
-  }
+  const dirty   = useMemo(() => countRowChanges(saved, rows), [saved, rows])
+  const invalid = useMemo(() => cfgRangeHasErrors(rows, 0, 100), [rows])
 
-  const addRow = (afterIdx: number) => {
-    const next = [...data.scaglioni]
-    const prev = next[afterIdx]?.to ?? 0
-    next.splice(afterIdx + 1, 0, { from: prev, to: prev + 5 })
-    setData({ ...data, scaglioni: next })
-  }
+  // Dirty state condiviso con la shell (conferma di abbandono al cambio voce)
+  useEffect(() => { markDirty(PANE_ID, dirty) }, [dirty, markDirty])
+  useEffect(() => () => { resetDirty() }, [resetDirty])
 
-  const deleteRow = (i: number) => {
-    setData({ ...data, scaglioni: data.scaglioni.filter((_, idx) => idx !== i) })
+  const save = async () => {
+    if (invalid) throw new Error('Scaglioni non validi')
+    try {
+      await apiFetchSibylla('configura/SetScaglioniOccupazione', {
+        method: 'POST',
+        body: { StrutturaId: strutturaId, Tipologia: tipologia, scaglioni: rows },
+      })
+    } catch (err) {
+      // Demo senza backend: la configurazione resta salvata in locale
+      console.warn('[ScaglioniOccupazione] persistenza remota non disponibile:', err)
+    }
+    setSaved(rows)
+    setCompletion(PANE_ID, 'configured')
+    resetDirty()
   }
 
   return (
     <div className="scaglioni-occupazione">
-      <div className="scaglioni-occupazione__breadcrumb">
-        Configuratore <i className="fa-light fa-chevron-right" /> <strong>Scaglioni occupazione</strong>
-      </div>
-
-      <div className="scaglioni-occupazione__filters">
+      <CfgToolbar>
         <SelectField
-          name="strutture"
-          label="Strutture"
+          name="struttura"
+          label="Struttura"
           className="scaglioni-occupazione__field"
-          value={data.StrutturaId ?? ''}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          value={strutturaId ?? ''}
+          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
           options={[
             { value: '', label: 'Hotel Tutorial' },
-            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+            ...strutture.map((s) => ({ value: s.Id, label: s.nome })),
           ]}
         />
-
         <RadioGroup
           name="tipologia"
           label="Tipologia"
-          className="scaglioni-occupazione__field"
-          value={data.Tipologia}
-          onChange={(val) => setData({ ...data, Tipologia: val as Tipologia })}
+          value={tipologia}
+          onChange={(val) => setTipologia(val as Tipologia)}
           options={[
-            { value: 'Individuali', label: 'Individuali' },
+            { value: 'B2B',    label: 'B2B'    },
             { value: 'Gruppi', label: 'Gruppi' },
           ]}
         />
-      </div>
+      </CfgToolbar>
 
-      <div className="scaglioni-occupazione__table" role="table">
-        <div className="scaglioni-occupazione__head" role="row">
-          <span role="columnheader">Dal</span>
-          <span role="columnheader">Al</span>
-          <span role="columnheader" className="scaglioni-occupazione__head--actions">Azioni</span>
-        </div>
+      <CfgRangeRules
+        rows={rows}
+        onChange={setRows}
+        unit="%"
+        min={0}
+        max={100}
+        entityName="scaglione"
+        addLabel="Aggiungi scaglione"
+      />
 
-        {data.scaglioni.map((row, i) => (
-          <div className="scaglioni-occupazione__row" key={i} role="row">
-            <div className="scaglioni-occupazione__cell">
-              <input
-                type="number"
-                className="sib-input sib-input--dense scaglioni-occupazione__input"
-                value={row.from}
-                onChange={(e) => updateRow(i, 'from', Number(e.target.value) || 0)}
-                disabled={i === 0}
-                aria-label={`Dal scaglione ${i + 1}`}
-              />
-              <span className="scaglioni-occupazione__unit">%</span>
-            </div>
-            <div className="scaglioni-occupazione__cell">
-              <input
-                type="number"
-                className="sib-input sib-input--dense scaglioni-occupazione__input"
-                value={row.to}
-                onChange={(e) => updateRow(i, 'to', Number(e.target.value) || 0)}
-                aria-label={`Al scaglione ${i + 1}`}
-              />
-              <span className="scaglioni-occupazione__unit">%</span>
-            </div>
-            <div className="scaglioni-occupazione__row-actions">
-              <button
-                type="button"
-                className="scaglioni-occupazione__act"
-                onClick={() => addRow(i)}
-                title="Aggiungi una regola sotto"
-              >
-                <i className="fa-light fa-plus" />
-                <span>Aggiungi</span>
-              </button>
-              {i > 0 && (
-                <button
-                  type="button"
-                  className="scaglioni-occupazione__act scaglioni-occupazione__act--del"
-                  onClick={() => deleteRow(i)}
-                  title="Elimina questa regola"
-                >
-                  <i className="fa-light fa-trash" />
-                  <span>Elimina</span>
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-
-        <button
-          type="button"
-          className="scaglioni-occupazione__add-row"
-          onClick={() => addRow(data.scaglioni.length - 1)}
-        >
-          <i className="fa-light fa-plus" />
-          <span>Aggiungi scaglione</span>
-        </button>
-      </div>
+      <CfgSaveBar
+        className="scaglioni-occupazione__savebar"
+        count={dirty}
+        onSave={save}
+        onCancel={() => setRows(saved)}
+        successMessage="Scaglioni di occupazione salvati"
+        errorMessage={invalid
+          ? 'Gli scaglioni presentano errori: correggi gli intervalli segnalati prima di salvare.'
+          : 'Salvataggio non riuscito. Riprova.'}
+      />
     </div>
   )
 }

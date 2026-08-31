@@ -1,0 +1,54 @@
+// ─── CFG BADGE ────────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.cfg-badge
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  height: 20px
+  padding: 0 8px
+  border-radius: 10px
+  font-family: var(--font-body)
+  font-size: 11px
+  font-weight: 600
+  white-space: nowrap
+  flex-shrink: 0
+
+  &--compact
+    height: auto
+    padding: 0
+    background: none !important
+    border: none !important
+
+  &__dot
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: currentColor
+    flex-shrink: 0
+
+  &__icon
+    font-size: 9px
+    flex-shrink: 0
+
+  // ── Varianti di stato ───────────────────────────────────────────────────────
+  &--configured
+    color: $success
+    background: alpha($success, .12)
+
+  &--partial
+    color: $warning
+    background: alpha($warning, .13)
+
+  &--empty
+    color: $text-inactive
+    background: alpha($text-inactive, .1)
+
+  &--locked
+    color: $text-disabled
+    background: alpha($text-disabled, .12)
+
+  &--soon
+    color: $primary-600
+    background: $primary-50
+    border: 1px dashed $primary-300

@@ -1,0 +1,106 @@
+// ─── INTESTAZIONI FISCALI ─────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.cfg-intestazioni
+  display: flex
+  flex-direction: column
+  gap: 4px
+  container-type: inline-size
+
+  &__lead
+    margin: 0
+    align-self: center
+    font-size: 12.5px
+    color: $text-inactive
+
+  // ── Badge di stato (Attivo / Predefinito / Non attivo / Dedicata) ──────────
+  &__badges
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    flex-wrap: nowrap
+
+  &__badge
+    display: inline-flex
+    align-items: center
+    height: 20px
+    padding: 0 8px
+    border-radius: 10px
+    font-size: 11px
+    font-weight: 600
+    white-space: nowrap
+
+    &--attivo
+      color: $success
+      background: alpha($success, .12)
+
+    &--predefinito
+      color: $primary-600
+      background: $primary-50
+      border: 1px solid $primary-200
+
+    &--spento
+      color: $text-inactive
+      background: alpha($text-inactive, .1)
+
+  &__cell-text
+    max-width: 100%
+
+  &__actions-cell
+    text-align: right
+    white-space: nowrap
+
+    // I wrapper dei Tooltip sono div: vanno resi inline
+    > div
+      display: inline-flex
+
+  // ── Sezione mapping ─────────────────────────────────────────────────────────
+  &__mapping
+    margin-top: 10px
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__section-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $text-active
+
+  &__section-desc
+    margin: 0 0 10px
+    font-size: 12.5px
+    color: $text-inactive
+
+  &__map-select
+    max-width: 260px
+
+// A pane stretto la descrizione in toolbar sparisce (resta il pulsante)
+@container (max-width: 700px)
+  .cfg-intestazioni__lead
+    display: none
+
+// ── Modale crea/modifica ──────────────────────────────────────────────────────
+.modal__box.cfg-intestazioni-modal
+  width: min(560px, calc(100vw - 48px))
+
+.cfg-intestazioni-modal
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 4px 2px 2px
+
+  &__row
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 14px
+
+  &__footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    margin-top: 18px
+    padding-top: 14px
+    border-top: 1px solid $border

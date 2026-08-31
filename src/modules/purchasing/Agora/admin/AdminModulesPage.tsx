@@ -14,7 +14,7 @@ import { AdminPageHeader } from './AdminPageHeader';
 import { useModuliStore } from '../../../../store/useModuliStore';
 import ModuloModal from '../../../../admin/SibyllaAdminPanel/modals/ModuloModal/ModuloModal';
 import type { Modulo, ModuloForm } from '../../../../admin/SibyllaAdminPanel/types';
-import { ALL_CONFIGURATORE_IDS } from '../../../impostazioni/Configuratore/configuratoriList';
+import { ALL_CONFIGURATORE_IDS } from '../../../impostazioni/Configuratore/registry';
 import './AdminModulesPage.css';
 
 const EMPTY: ModuloForm = { nome: '', desc: '', pagesSet: new Set(), configItemsSet: new Set() };

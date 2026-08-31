@@ -1,147 +1,54 @@
 // ─── VINCOLO MATRIOSCA ────────────────────────────────────────────────────────
+// Tabella su CfgTable, pop-up sul Modal condiviso: qui restano gli interni del
+// pop-up (i due box) e le celle della tabella. Colori solo da token.
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
-
-$vm-input-h: 28px
-$vm-row-h: 40px
-$vm-muted: #6b7785
-$vm-row-divider: #eef0f3
 
 .vincolo-matriosca
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 14px
+  min-height: 100%
   font-size: 13px
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
   &__field
-    display: flex
-    flex-direction: column
-    gap: 4px
-    max-width: 240px
+    min-width: 200px
 
-  // ── Tabella ───────────────────────────────────────────────────────────────
-  &__table-wrap
-    border: 1px solid $border
-    border-radius: 6px
-    overflow: hidden
-
-  &__table
-    @include paneShared.pane-table-base
-
-  &__th--name
-    width: 200px
-
-  &__th--actions
-    width: 130px
-    text-align: right
-
-  &__td
+  // ── Celle tabella ───────────────────────────────────────────────────────────
+  &__td-name
+    font-weight: 600
     color: $text-active
 
-    &--name
-      font-weight: 600
-
-    &--actions
-      text-align: right
-
-  &__equiv-list
+  &__corr-list
     color: $text-active
 
   &__empty
-    color: $vm-muted
+    color: $text-inactive
     font-style: italic
 
-  &__action-btn
-    height: $vm-input-h
-    padding: 0 18px
-    background: var(--color-primary)
-    color: white
-    border: none
-    border-radius: 5px
-    font-family: inherit
+  &__td-actions
+    text-align: right
+
+  // ── Pop-up «Configura corrispondenze» ───────────────────────────────────────
+  &__modal-sub
+    margin: -8px 0 16px
     font-size: 12.5px
-    font-weight: 600
-    cursor: pointer
-    transition: opacity 0.15s
+    line-height: 1.45
+    color: $text-inactive
 
-    &:hover
-      opacity: 0.9
-
-  // ── Modale ────────────────────────────────────────────────────────────────
-  &__backdrop
-    position: fixed
-    inset: 0
-    background: rgba(15, 25, 40, 0.45)
-    display: flex
-    align-items: center
-    justify-content: center
-    z-index: 1000
-    padding: 20px
-
-  &__modal
-    width: min(640px, 100%)
-    background: $white
-    border-radius: 10px
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25)
-    display: flex
-    flex-direction: column
-    overflow: hidden
-
-  &__modal-head
-    display: flex
-    align-items: center
-    justify-content: space-between
-    padding: 18px 22px 12px
-    gap: 12px
-
-  &__modal-title
-    margin: 0
-    font-size: 18px
-    font-weight: 700
-    color: var(--color-primary)
-
-  &__close
-    background: transparent
-    border: none
-    color: $vm-muted
-    cursor: pointer
-    width: 28px
-    height: 28px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    border-radius: 5px
-    transition: background 0.12s
-
-    i
-      font-size: 16px
-
-    &:hover
-      background: rgba(0, 0, 0, 0.05)
+    strong
+      color: $primary
+      font-weight: 600
 
   &__columns
     display: grid
     grid-template-columns: 1fr 1fr
     gap: 18px
-    padding: 4px 22px 18px
 
   &__column
     display: flex
     flex-direction: column
     gap: 8px
+    min-width: 0
 
   &__column-title
     margin: 0
@@ -149,6 +56,57 @@ $vm-row-divider: #eef0f3
     font-weight: 600
     color: $text-active
 
+  // Box sinistro: tipologie di camera configurate
+  &__avail
+    list-style: none
+    margin: 0
+    padding: 0
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+    overflow-y: auto
+    min-height: 180px
+    max-height: 260px
+
+  &__avail-empty
+    color: $text-inactive
+    font-size: 12px
+    padding: 12px
+    text-align: center
+
+  &__avail-row
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 8px 10px
+    font-size: 12.5px
+    color: $text-active
+    border-bottom: 1px solid alpha($border, .6)
+
+    &:last-child
+      border-bottom: none
+
+  &__add
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 24px
+    height: 24px
+    background: $primary
+    color: $white
+    border: none
+    border-radius: 4px
+    cursor: pointer
+    transition: opacity 0.15s
+
+    i
+      font-size: 11px
+
+    &:hover
+      opacity: 0.9
+
+  // Box destro: corrispondenze tra le camere configurate
   &__chips
     display: flex
     flex-wrap: wrap
@@ -158,25 +116,27 @@ $vm-row-divider: #eef0f3
     border-radius: 6px
     padding: 8px
     min-height: 180px
-    background: $white
+    max-height: 260px
+    overflow-y: auto
+    background: $bg
 
   &__chips-empty
-    color: $vm-muted
+    color: $text-inactive
     font-size: 12px
     padding: 4px
+    line-height: 1.4
 
   &__chip
     display: inline-flex
     align-items: center
     gap: 4px
-    background: $bg
+    background: $white
     color: $text-active
     font-size: 12px
     padding: 2px 4px 2px 8px
     border-radius: 4px
     border: 1px solid $border
     height: 24px
-    border-bottom: 1px solid rgba(120, 200, 220, 0.5)
 
   &__chip-x
     background: transparent
@@ -195,85 +155,16 @@ $vm-row-divider: #eef0f3
       font-size: 10px
 
     &:hover
-      background: rgba(232, 73, 73, 0.1)
-
-  &__avail
-    list-style: none
-    margin: 0
-    padding: 0
-    border: 1px solid $border
-    border-radius: 6px
-    background: $white
-    overflow: hidden
-    min-height: 180px
-
-  &__avail-empty
-    color: $vm-muted
-    font-size: 12px
-    padding: 12px
-    text-align: center
-
-  &__avail-row
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 8px
-    padding: 8px 10px
-    font-size: 12.5px
-    color: $text-active
-    border-bottom: 1px solid rgba(120, 200, 220, 0.5)
-
-    &:last-child
-      border-bottom: none
-
-  &__add
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    width: 24px
-    height: 24px
-    background: var(--color-primary)
-    color: white
-    border: none
-    border-radius: 4px
-    cursor: pointer
-    transition: opacity 0.15s
-
-    i
-      font-size: 11px
-
-    &:hover
-      opacity: 0.9
+      background: alpha($error, .1)
 
   &__modal-foot
     display: flex
     justify-content: flex-end
     gap: 10px
-    padding: 14px 22px 18px
+    margin-top: 20px
+    padding-top: 14px
     border-top: 1px solid $border
 
-  &__btn
-    height: $vm-input-h
-    padding: 0 18px
-    border-radius: 5px
-    font-family: inherit
-    font-size: 12.5px
-    font-weight: 600
-    cursor: pointer
-    transition: opacity 0.15s
-
-    &--secondary
-      background: $white
-      color: var(--color-primary)
-      border: 1px solid var(--color-primary)
-
-      &:hover
-        background: rgba(27, 61, 95, 0.04)
-
-    &--primary
-      background: var(--color-primary)
-      color: white
-      border: none
-
-      &:hover
-        opacity: 0.9
+  // Save bar sticky a filo del corpo del pane
+  &__savebar
+    margin: auto -22px -18px

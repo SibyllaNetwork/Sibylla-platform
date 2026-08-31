@@ -1,27 +1,16 @@
-// ─── MAPPING SEGMENTO DI MERCATO ──────────────────────────────────────────────
+// ─── MAPPING SEGMENTI ─────────────────────────────────────────────────────────
+// Impianto a card + progress conservato dal pane originale; tabella su
+// CfgTable e colori SOLO da token (trasparenze con alpha()).
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .mapping-segmento
   display: flex
   flex-direction: column
   gap: 16px
+  min-height: 100%
   font-size: 13px
 
-  &__breadcrumb
-    display: flex
-    align-items: center
-    gap: 8px
-    color: $text-inactive
-
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  // ── Intro / banner ────────────────────────────────────────────────────────
+  // ── Intro / banner ─────────────────────────────────────────────────────────
   &__intro
     display: flex
     align-items: center
@@ -30,6 +19,7 @@
     border: 1px solid $border
     border-radius: 8px
     background: $bg
+    flex-wrap: wrap
 
   &__intro-icon
     width: 42px
@@ -39,14 +29,15 @@
     align-items: center
     justify-content: center
     border-radius: 50%
-    background: rgba(27, 61, 95, 0.08)
-    color: var(--color-primary)
+    background: alpha($primary, .08)
+    color: $primary
 
     i
       font-size: 18px
 
   &__intro-text
     flex: 1
+    min-width: 220px
 
     h3
       margin: 0 0 2px
@@ -60,17 +51,10 @@
       color: $text-inactive
       line-height: 1.4
 
-  &__pms-toggle
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    cursor: pointer
-    font-size: 12.5px
-    color: $text-active
+  &__origine
     flex-shrink: 0
-    user-select: none
 
-  // ── Card segmenti Sibylla ────────────────────────────────────────────────
+  // ── Card segmenti Sibylla ───────────────────────────────────────────────────
   &__cards
     display: grid
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
@@ -85,11 +69,13 @@
     border: 1px solid $border
     border-radius: 8px
     background: $white
-    transition: transform 0.12s, box-shadow 0.12s
 
-    &:hover
-      transform: translateY(-1px)
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04)
+    @media (prefers-reduced-motion: no-preference)
+      transition: transform 0.12s, box-shadow 0.12s
+
+      &:hover
+        transform: translateY(-1px)
+        box-shadow: 0 2px 6px alpha($primary, .1)
 
   &__card-icon
     width: 36px
@@ -126,34 +112,45 @@
     height: 22px
     padding: 0 6px
     border-radius: 11px
-    background: var(--color-primary)
-    color: white
+    background: $primary
+    color: $white
     font-size: 11px
     font-weight: 700
     display: inline-flex
     align-items: center
     justify-content: center
+    cursor: default
 
-  // Toni
-  @each $name, $bg, $fg in ('blue' #e6eff7 #2c5b8b, 'slate' #ececef #4a4f55, 'orange' #fbeede #a35d12, 'violet' #ece6f5 #5a3da3, 'green' #e3f2e7 #2c6b3a, 'pink' #f8e3eb #973757)
+  // Toni delle card e delle chip: slot della palette --chart-* (token validati)
+  @each $name, $bg, $fg in ('blue' alpha(var(--chart-1), .12) var(--chart-1), 'slate' alpha(var(--chart-ink), .1) var(--chart-ink), 'orange' alpha(var(--chart-2), .12) var(--chart-2), 'violet' alpha(var(--chart-7), .12) var(--chart-7), 'green' alpha(var(--chart-8), .12) var(--chart-8), 'pink' alpha(var(--chart-3), .12) var(--chart-3))
     &__card--#{$name}
       .mapping-segmento__card-icon
         background: $bg
         color: $fg
 
-  // ── Map header ─────────────────────────────────────────────────────────────
+    &__chip--#{$name}
+      background: $bg
+      color: $fg
+
+  // ── Header mappa + progress ─────────────────────────────────────────────────
   &__map-header
     display: flex
     align-items: center
     justify-content: space-between
     gap: 16px
     margin-top: 4px
+    flex-wrap: wrap
 
     h3
       margin: 0
       font-size: 14px
       font-weight: 600
       color: $text-active
+
+  &__map-header-side
+    display: flex
+    align-items: center
+    gap: 16px
 
   &__progress
     display: flex
@@ -166,7 +163,7 @@
     white-space: nowrap
 
     strong
-      color: var(--color-primary)
+      color: $primary
       font-weight: 700
 
   &__progress-bar
@@ -177,44 +174,49 @@
     overflow: hidden
 
   &__progress-bar-fill
+    display: block
     height: 100%
-    width: var(--fill)
-    background: var(--color-primary)
-    transition: width 0.3s ease
+    // Avanzamento passato dal componente come custom property --fill
+    width: var(--fill, 0%)
+    background: $primary
 
-  // ── Tabella mapping ───────────────────────────────────────────────────────
-  &__table-wrap
-    @include paneShared.pane-table-wrap
+    @media (prefers-reduced-motion: no-preference)
+      transition: width 0.3s ease
 
-  &__table
-    @include paneShared.pane-table-base
+  // ── Avvertenza Operation (solo PMS esterno) ────────────────────────────────
+  &__warning
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
 
-    th
-      white-space: nowrap
+    i
+      font-size: 13px
+      color: $primary
+      flex-shrink: 0
 
-  &__th--arrow
-    width: 32px
-
-  &__th--stato
-    width: 130px
-
-  &__td--name
+  // ── Celle tabella ───────────────────────────────────────────────────────────
+  &__td-name
     font-weight: 600
     color: $text-active
 
   &__td--arrow
     text-align: center
-    color: var(--color-primary)
 
     i
-      font-size: 16px
-      color: var(--color-primary)
+      font-size: 15px
+      color: $primary
 
+  &__td--actions
+    text-align: right
+
+  &__nome-input,
   &__select
-    width: 100%
     max-width: 240px
 
-  // ── Chip stato riga ───────────────────────────────────────────────────────
+  // ── Chip stato riga ─────────────────────────────────────────────────────────
   &__chip
     display: inline-flex
     align-items: center
@@ -223,6 +225,7 @@
     border-radius: 12px
     font-size: 11.5px
     font-weight: 600
+    white-space: nowrap
 
     i
       font-size: 10px
@@ -232,11 +235,6 @@
       color: $text-inactive
       border: 1px solid $border
 
-  @each $name, $bg, $fg in ('blue' #e6eff7 #2c5b8b, 'slate' #ececef #4a4f55, 'orange' #fbeede #a35d12, 'violet' #ece6f5 #5a3da3, 'green' #e3f2e7 #2c6b3a, 'pink' #f8e3eb #973757)
-    &__chip--#{$name}
-      background: $bg
-      color: $fg
-
-  &__actions
-    display: flex
-    justify-content: flex-end
+  // Save bar sticky a filo del corpo del pane
+  &__savebar
+    margin: auto -22px -18px

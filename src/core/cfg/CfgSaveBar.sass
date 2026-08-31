@@ -1,0 +1,56 @@
+// ─── CFG SAVE BAR ─────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.cfg-save-bar
+  position: sticky
+  bottom: 0
+  z-index: 5
+  display: flex
+  align-items: center
+  gap: 10px
+  padding: 10px 22px
+  background: $white
+  border-top: 1px solid $border
+  box-shadow: var(--shadow-md)
+  flex-shrink: 0
+
+  @media (prefers-reduced-motion: no-preference)
+    animation: cfg-save-bar-in .22s ease-out
+
+  &__dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: $warning
+    flex-shrink: 0
+
+    @media (prefers-reduced-motion: no-preference)
+      animation: cfg-save-bar-pulse 1.6s ease-in-out infinite
+
+  &__count
+    font-size: 12.5px
+    font-weight: 600
+    color: $text-active
+
+  &__actions
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-left: auto
+
+  &__cancel
+    color: $text-inactive
+
+@keyframes cfg-save-bar-in
+  from
+    transform: translateY(100%)
+    opacity: 0
+  to
+    transform: translateY(0)
+    opacity: 1
+
+@keyframes cfg-save-bar-pulse
+  0%, 100%
+    opacity: 1
+  50%
+    opacity: .35

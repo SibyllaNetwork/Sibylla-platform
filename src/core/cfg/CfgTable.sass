@@ -1,0 +1,32 @@
+// ─── CFG TABLE ────────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+// Wrapper: lo standard .sib-table-wrap ha overflow-x: auto come rete di
+// sicurezza; qui la rete è vietata (nessuno scroll-x a nessuna larghezza),
+// quindi si chiude e le colonne si governano con colgroup + TruncatedText.
+.cfg-table
+  overflow-x: hidden
+  margin-bottom: 0
+
+  col
+    width: var(--cfg-col-w, auto)
+
+  &__fixed
+    table-layout: fixed
+
+  &__th--center
+    text-align: center
+
+  &__th--right
+    text-align: right
+
+  &__empty-row td
+    padding: 0
+    border-bottom: none
+
+  &__empty-text
+    display: block
+    padding: 28px 16px
+    text-align: center
+    font-size: 12.5px
+    color: $text-inactive

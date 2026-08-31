@@ -1,72 +1,164 @@
-// ─── STAGIONALITA ─────────────────────────────────────────────────────────────
+// ─── STAGIONALITÀ ─────────────────────────────────────────────────────────────
 @use '../../../../../styles/tokens' as *
-@use '../_paneShared' as paneShared
 
 .stagionalita
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 18px
   font-size: 13px
 
-  &__breadcrumb
+  // ── Catalogo: le 7 stagionalità dal Pannello di Controllo ───────────────────
+  &__catalogo
     display: flex
-    align-items: center
+    flex-direction: column
     gap: 8px
-    color: $text-inactive
 
-    i
-      font-size: 11px
-
-    strong
-      color: var(--color-primary)
-      font-weight: 600
-
-  &__filters
+  &__catalogo-head
     display: flex
-    gap: 18px
-    align-items: flex-end
+    align-items: baseline
+    gap: 10px
     flex-wrap: wrap
 
-  &__field
+  &__catalogo-title
+    font-family: $font-heading
+    font-size: 12.5px
+    font-weight: 600
+    color: $primary
+
+  &__catalogo-note
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 4px 12px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+    color: $text-active
+    background: alpha($primary, .04)
+    border: 1px solid $border
+
+  &__chip-dot
+    width: 9px
+    height: 9px
+    border-radius: 50%
+    flex-shrink: 0
+    background: var(--stag-c)
+
+  &__chip-count
+    min-width: 18px
+    height: 18px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    padding: 0 5px
+    border-radius: 999px
+    font-size: 10.5px
+    background: alpha($primary, .1)
+    color: $primary
+
+  // ── Builder: range picker + select stagionalità + associa ───────────────────
+  &__builder
+    display: flex
+    align-items: flex-start
+    gap: 16px
+    flex-wrap: wrap
+    padding: 14px 16px
+    border: 1px solid $border
+    border-radius: 8px
+    background: alpha($primary, .03)
+
+  &__range
+    min-width: 280px
+
+  &__stagione
+    min-width: 220px
+
+  &__add
+    // allineato ai campi (label 12px + gap 4px sopra il controllo da 34px)
+    margin-top: 21px
+    gap: 6px
+
+  // ── Copertura annuale ────────────────────────────────────────────────────────
+  &__anno
     display: flex
     flex-direction: column
     gap: 4px
 
-  &__table-wrap
-    @include paneShared.pane-table-wrap
+  &__anno-bar
+    position: relative
+    height: 16px
+    border-radius: 5px
+    background: alpha($primary, .07)
+    border: 1px solid $border
+    overflow: hidden
 
-  &__table
-    @include paneShared.pane-table-base
+  &__anno-seg
+    position: absolute
+    top: 0
+    bottom: 0
+    left: var(--seg-l)
+    width: var(--seg-w)
+    background: var(--stag-c)
+    opacity: .85
 
-    th
-      white-space: nowrap
+  &__anno-mesi
+    display: grid
+    grid-template-columns: repeat(12, 1fr)
+    font-size: 10px
+    color: $text-inactive
 
-  &__th--actions
-    width: 80px
+    span
+      text-align: left
+      padding-left: 2px
+
+  // ── Riepilogo read-only ──────────────────────────────────────────────────────
+  &__riepilogo
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__td-periodo
+    font-variant-numeric: tabular-nums
+    font-weight: 600
+    color: $text-active
+
+  &__sep
+    color: $text-inactive
+    font-weight: 400
+
+  &__td-giorni
+    text-align: center
+    font-variant-numeric: tabular-nums
+
+  &__td-azioni
     text-align: right
 
-  &__td--actions
-    text-align: right
-
-  &__date-cell
+  &__stag-badge
     display: inline-flex
     align-items: center
-    gap: 6px
+    gap: 7px
+    padding: 3px 10px
+    border-radius: 999px
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: .2px
+    color: $text-active
+    background: alpha($primary, .04)
+    border: 1px solid $border
 
-  &__day
-    width: 64px
+  &__empty
+    color: $text-inactive
 
-  &__month
-    min-width: 130px
-
-  &__stagione
-    min-width: 160px
-
-  &__actions
-    display: flex
-    justify-content: flex-end
-    gap: 8px
-    margin-top: 4px
-
-    .sib-btn i
-      margin-right: 4px
+  &__totale
+    margin: 0
+    font-size: 11.5px
+    color: $text-inactive
