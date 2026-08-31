@@ -76,6 +76,12 @@
     gap: 8px
     flex-wrap: wrap
 
+    // In una riga di campi il bottone accompagna i campi: 34px come loro, non
+    // i 28px del --sm (≥2 classi per vincere su .sib-btn del DS)
+    .sib-btn
+      height: 34px
+      align-self: flex-end
+
   &__stats
     display: flex
     gap: 8px
@@ -1192,3 +1198,91 @@
     font-size: 13px
     padding: 24px 8px
     text-align: center
+
+// ─── PANNELLO «GESTISCI SALE» ─────────────────────────────────────────────────
+// Elenco delle sale con creazione, rinomina a salvataggio esplicito ed
+// eliminazione: la bozza del nome vive nello stato del componente e finisce
+// nello store solo su «Salva».
+.sale__gest
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  &-intro
+    margin: 0
+    font-size: 12.5px
+    line-height: 1.5
+    color: var(--color-text-inactive)
+
+  &-table
+    table-layout: fixed
+
+    // La colonna Azioni deve tenere «Annulla» + «Salva» affiancati
+    col:nth-child(1)
+      width: 42%
+    col:nth-child(2),
+    col:nth-child(3)
+      width: 13%
+    col:nth-child(4)
+      width: 32%
+
+  &-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &-az
+    text-align: right
+    white-space: nowrap
+
+    .sib-btn
+      vertical-align: middle
+
+  // La sala aperta in planimetria resta riconoscibile nell'elenco
+  &-row--current td
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent)
+
+  // Il nome è il comando per aprire quella sala in planimetria
+  &-nome
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 0
+    border: none
+    background: none
+    font-family: var(--font-body)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    text-align: left
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &-badge
+    padding: 1px 7px
+    border-radius: 999px
+    border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)
+    font-size: 10px
+    font-weight: 600
+    color: var(--color-primary)
+    white-space: nowrap
+
+  &-input
+    max-width: 100%
+
+  &-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+
+// Contatore delle sale sul comando «Gestisci sale»
+.sale__bar-count
+  margin-left: 6px
+  padding: 1px 7px
+  border-radius: 999px
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent)
+  font-size: 11px
+  font-weight: 700
+  color: var(--color-primary)

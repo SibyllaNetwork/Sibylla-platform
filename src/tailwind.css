@@ -4,8 +4,11 @@
 
 @layer components {
   /* ── Form: text input ─────────────────────────────────────────────── */
+  /* Altezza standard dei campi form della piattaforma: 34px, la stessa di
+     .sib-select. Prima erano 36 (h-9) e ogni riga che accostava un input a una
+     select risultava disallineata di 2px. */
   .sib-input {
-    @apply w-full h-9 px-3 border border-line rounded-field
+    @apply w-full h-[34px] px-3 border border-line rounded-field
            text-[13px] text-ink bg-white font-opensans outline-none box-border
            text-ellipsis overflow-hidden whitespace-nowrap
            transition-[border-color,box-shadow] duration-150

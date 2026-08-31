@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PageHead from '../../../core/components/PageHead';
 import { InputField, SelectField, TextareaField } from '../../../core/components/form';
+import Modal from '../../../core/components/Modal';
 import { useConfirmStore } from '../../../store/useConfirmStore';
 import { toast } from '../../../core/components/Toast/useToast';
 import {
@@ -123,6 +124,12 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
   const [newForma, setNewForma] = useState<TavoloForma>('quadrato');
   const [selIds, setSelIds] = useState<string[]>([]);
   const [showClienti, setShowClienti] = useState(false);
+  // Pannello di gestione delle sale: elenco, creazione, rinomina con
+  // salvataggio esplicito, eliminazione.
+  const [showSale, setShowSale] = useState(false);
+  // id della sala in modifica nel pannello + valore in corso (bozza)
+  const [editSalaId, setEditSalaId] = useState<string | null>(null);
+  const [editSalaNome, setEditSalaNome] = useState('');
   const [menu, setMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [moveMode, setMoveMode] = useState<string | null>(null);
   const [clip, setClip] = useState<ClipItem[]>([]);
@@ -365,17 +372,52 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
     setSelId(null);
   };
 
-  const delSala = async () => {
-    if (sale.length <= 1) return;
+  // ── Pannello «Gestisci sale» ───────────────────────────────────────────────
+  //  Creazione, elenco, rinomina con SALVATAGGIO ESPLICITO (la bozza vive nello
+  //  stato locale e finisce nello store solo su «Salva») ed eliminazione.
+  const creaSala = () => {
+    const id = addSala('Nuova sala');
+    setSalaId(id);
+    setEditSalaId(id);
+    setEditSalaNome('Nuova sala');
+    toast.success('Sala creata: assegnale un nome e salva');
+  };
+
+  const avviaModifica = (id: string, nome: string) => {
+    setEditSalaId(id);
+    setEditSalaNome(nome);
+  };
+
+  const annullaModifica = () => {
+    setEditSalaId(null);
+    setEditSalaNome('');
+  };
+
+  const salvaModifica = () => {
+    const nome = editSalaNome.trim();
+    if (!editSalaId || !nome) return;
+    renameSala(editSalaId, nome);
+    annullaModifica();
+    toast.success('Sala salvata');
+  };
+
+  const eliminaSalaDaPannello = async (id: string, nome: string) => {
+    if (sale.length <= 1) {
+      toast.warning('Deve restare almeno una sala');
+      return;
+    }
     const ok = await confirm({
       title: 'Elimina sala',
-      message: `Eliminare la sala "${sala.nome}" con tutti i suoi tavoli? L'operazione non è reversibile.`,
+      message: `Eliminare la sala "${nome}" con tutti i suoi tavoli? L'operazione non è reversibile.`,
       confirmLabel: 'Elimina', danger: true,
     });
     if (!ok) return;
-    const next = sale.find(s => s.id !== sala.id);
-    removeSala(sala.id);
-    if (next) setSalaId(next.id);
+    if (editSalaId === id) annullaModifica();
+    removeSala(id);
+    if (salaId === id) {
+      const next = sale.find(s => s.id !== id);
+      if (next) setSalaId(next.id);
+    }
     toast.success('Sala eliminata');
   };
 
@@ -446,15 +488,12 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
         </div>
         {mode === 'compose' && (
           <div className="sale__bar-manage">
-            <InputField name="sala-nome" label="Nome sala" value={sala.nome} onChange={e => renameSala(sala.id, e.target.value)} />
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => { const id = addSala('Nuova sala'); setSalaId(id); }}>
-              <i className="fa-solid fa-plus" /> Nuova sala
+            {/* Un solo comando: la gestione delle sale (elenco, creazione,
+                rinomina con salvataggio, eliminazione) vive nel pannello. */}
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setShowSale(true)}>
+              <i className="fa-solid fa-table-list" /> Gestisci sale
+              <span className="sale__bar-count">{sale.length}</span>
             </button>
-            {sale.length > 1 && (
-              <button type="button" className="sib-btn sib-btn--danger sib-btn--sm" onClick={delSala}>
-                <i className="fa-solid fa-trash" /> Elimina sala
-              </button>
-            )}
           </div>
         )}
         <div className="sale__stats">
@@ -624,6 +663,113 @@ const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
       })()}
 
       {showClienti && <ClientiModal onClose={() => setShowClienti(false)} />}
+
+      {/* ── Gestisci sale: elenco + crea / modifica e salva / elimina ───────── */}
+      {showSale && (
+        <Modal open onClose={() => { annullaModifica(); setShowSale(false); }} title="Gestisci sale" size="lg">
+          <div className="sale__gest">
+            <p className="sale__gest-intro">
+              Le sale dell'outlet: creane di nuove, rinominale e salva, oppure eliminale.
+              Selezionando una sala si apre la sua planimetria.
+            </p>
+
+            <div className="sib-table-wrap">
+              <table className="sib-table sale__gest-table">
+                {/* larghezze in % nel .sass, non inline */}
+                <colgroup>
+                  <col /><col /><col /><col />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Sala</th>
+                    <th className="sale__gest-num">Tavoli</th>
+                    <th className="sale__gest-num">Coperti</th>
+                    <th className="sale__gest-az">Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sale.map(s => {
+                    const inModifica = editSalaId === s.id;
+                    const coperti = s.tavoli.reduce((m, t) => m + t.capienza, 0);
+                    return (
+                      <tr key={s.id} className={s.id === salaId ? 'sale__gest-row--current' : undefined}>
+                        <td>
+                          {inModifica ? (
+                            <InputField
+                              name={`sala-nome-${s.id}`}
+                              ariaLabel={`Nome della sala ${s.nome}`}
+                              value={editSalaNome}
+                              onChange={e => setEditSalaNome(e.target.value)}
+                              className="sale__gest-input"
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              className="sale__gest-nome"
+                              onClick={() => { setSalaId(s.id); setShowSale(false); }}
+                            >
+                              {s.nome}
+                              {s.id === salaId && <span className="sale__gest-badge">in planimetria</span>}
+                            </button>
+                          )}
+                        </td>
+                        <td className="sale__gest-num">{s.tavoli.length}</td>
+                        <td className="sale__gest-num">{coperti}</td>
+                        <td className="sale__gest-az">
+                          {inModifica ? (
+                            <>
+                              <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={annullaModifica}>
+                                Annulla
+                              </button>
+                              <button
+                                type="button"
+                                className="sib-btn sib-btn--primary sib-btn--sm"
+                                onClick={salvaModifica}
+                                disabled={!editSalaNome.trim()}
+                              >
+                                Salva
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="sib-btn sib-btn--icon"
+                                onClick={() => avviaModifica(s.id, s.nome)}
+                                aria-label={`Modifica la sala ${s.nome}`}
+                              >
+                                <i className="fa-solid fa-pen" />
+                              </button>
+                              <button
+                                type="button"
+                                className="sib-btn sib-btn--icon"
+                                onClick={() => eliminaSalaDaPannello(s.id, s.nome)}
+                                disabled={sale.length <= 1}
+                                aria-label={`Elimina la sala ${s.nome}`}
+                              >
+                                <i className="fa-solid fa-trash" />
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="sale__gest-foot">
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={creaSala}>
+                <i className="fa-solid fa-plus" /> Nuova sala
+              </button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={() => { annullaModifica(); setShowSale(false); }}>
+                Chiudi
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
