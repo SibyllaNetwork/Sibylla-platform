@@ -86,9 +86,17 @@ const STATI: TavoloStato[] = ['libero', 'occupato', 'riservato', 'conto', 'puliz
 
 const PRINT_STATO_LABEL = TAVOLO_STATO_META;  // alias per la stampa
 
-interface Props { navigate?: (page: string) => void }
+interface Props {
+  navigate?: (page: string) => void
+  /**
+   * Montata dentro un contenitore che ha già la propria intestazione (il pane
+   * del Configuratore): salta il PageHead e tiene solo le azioni, così non
+   * compare un secondo titolo.
+   */
+  embedded?: boolean
+}
 
-const SaleTavoli: React.FC<Props> = () => {
+const SaleTavoli: React.FC<Props> = ({ embedded = false }) => {
   const sale = useSaleStore(s => s.sale);
   const addTavolo = useSaleStore(s => s.addTavolo);
   const addElemento = useSaleStore(s => s.addElemento);
@@ -231,7 +239,13 @@ const SaleTavoli: React.FC<Props> = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [mode, selIds, clip, copy, cut, paste]);
 
-  if (!sala) return <div className="sale"><PageHead title="Sale e tavoli" subtitle="Nessuna sala" /></div>;
+  if (!sala) return (
+    <div className="sale">
+      {embedded
+        ? <p className="sale__vuoto">Nessuna sala configurata per questo outlet.</p>
+        : <PageHead title="Sale e tavoli" subtitle="Nessuna sala" />}
+    </div>
+  );
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     if (e.button !== 0 || moveMode) return;   // solo tasto sinistro; niente drag in modalità "sposta"
@@ -391,33 +405,39 @@ const SaleTavoli: React.FC<Props> = () => {
     win.document.close();
   };
 
+  // Azioni della pagina: Clienti, Stampa e il selettore di modalità
+  const azioni = (
+    <>
+      <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => setShowClienti(true)}>
+        <i className="fa-solid fa-address-book" /> Clienti
+      </button>
+      <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={printPlan}>
+        <i className="fa-solid fa-print" /> Stampa
+      </button>
+      <div className="sale__modes" role="tablist" aria-label="Modalità">
+        <button type="button" role="tab" aria-selected={mode === 'compose'}
+          className={`sale__mode${mode === 'compose' ? ' is-active' : ''}`} onClick={() => setMode('compose')}>
+          <i className="fa-solid fa-pen-ruler" /> Composizione
+        </button>
+        <button type="button" role="tab" aria-selected={mode === 'service'}
+          className={`sale__mode${mode === 'service' ? ' is-active' : ''}`} onClick={() => setMode('service')}>
+          <i className="fa-solid fa-bell-concierge" /> Servizio
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <div className="sale">
-      <PageHead
-        title="Sale e tavoli"
-        subtitle={`Food & Beverage · ${sala.nome}`}
-        actions={
-          <div className="sale__actions">
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => setShowClienti(true)}>
-              <i className="fa-solid fa-address-book" /> Clienti
-            </button>
-            <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={printPlan}>
-              <i className="fa-solid fa-print" /> Stampa
-            </button>
-            <div className="sale__modes" role="tablist" aria-label="Modalità">
-              <button type="button" role="tab" aria-selected={mode === 'compose'}
-                className={`sale__mode${mode === 'compose' ? ' is-active' : ''}`} onClick={() => setMode('compose')}>
-                <i className="fa-solid fa-pen-ruler" /> Composizione
-              </button>
-              <button type="button" role="tab" aria-selected={mode === 'service'}
-                className={`sale__mode${mode === 'service' ? ' is-active' : ''}`} onClick={() => setMode('service')}>
-                <i className="fa-solid fa-bell-concierge" /> Servizio
-              </button>
-            </div>
-          </div>
-        }
-      />
-
+      {/* Le azioni sono le stesse in pagina e dentro il pane: cambia solo il
+          contenitore, perché in embedded il titolo lo dà già il pane. */}
+      {embedded
+        ? <div className="sale__actions sale__actions--embedded">{azioni}</div>
+        : <PageHead
+            title="Sale e tavoli"
+            subtitle={`Food & Beverage · ${sala.nome}`}
+            actions={<div className="sale__actions">{azioni}</div>}
+          />}
       {/* barra: sala + riepilogo */}
       <div className="sale__bar">
         <div className="sale__bar-sala">

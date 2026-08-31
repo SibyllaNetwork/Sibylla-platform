@@ -456,6 +456,26 @@ Mappa le tipologie di costo e attribuisce valori economici alle componenti.
 - "Copia costi anno" **si rinomina "Copia centro di costo"**.
 - Nella select degli anni includere **anche gli anni passati**; **non** includere l'anno attuale.
 
+### 4.27bis Voci F&B servite dalle pagine native
+Due voci F&B **non** passano più dalla sub-app Outlet Manager: montano le stesse pagine di
+Impostazioni → Il mio business, in modalità `embedded` (senza il proprio `PageHead`, che nel
+pane lo dà `CfgPane`), così grafica e funzioni sono le medesime e non esistono due versioni
+della stessa cosa.
+
+| Voce F&B | Pagina montata | Pagina gemella |
+|---|---|---|
+| `fb-outlet` — «Crea outlet» | `CreaStruttura` (`autoOpenType="outlet"`) | Il mio business → Crea outlet |
+| `fb-sale-tavoli` — «Sale e tavoli» | `SaleTavoli` | Il mio business → Sale e tavoli |
+
+Il CRUD è quello delle pagine native, disponibile identico dentro il pane:
+- **Sale e tavoli**, in modalità Composizione: «Nuova sala» (`addSala`), nome sala editabile
+  in linea (`renameSala`), «Elimina sala» con conferma (`removeSala`), più tavoli ed elementi.
+- **Crea outlet**: «Nuova struttura» col picker già su Outlet, «Modifica struttura» (drawer con
+  Anagrafica / Camere & piani / Tariffe & media / Caratteristiche) ed «Elimina» con conferma.
+
+La shell passa ai pane anche la `navigate` di piattaforma (`CfgPaneComponentProps`), che serve
+ai pane che montano pagine intere.
+
 ### 4.27 Food & Beverage (14 voci)
 Outlet · Sale e tavoli · Turni di servizio · Categorie · Voci menu · Crea menu · Lista menu ·
 Tipi menu · Web menu · Menu del giorno · Allergeni · Arrangiamenti · Categoria ospite ·

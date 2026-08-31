@@ -122,9 +122,15 @@ const FILTER_CHIPS: { id: FilterType; label: string }[] = [
 export default function CreaStruttura({
   navigate,
   autoOpenType,
+  embedded = false,
 }: {
   navigate: (p: string) => void
   autoOpenType?: StructureType
+  /**
+   * Montata dentro un contenitore con la propria intestazione (il pane del
+   * Configuratore): salta il PageHead, così non compare un secondo titolo.
+   */
+  embedded?: boolean
 }) {
   const [rows, setRows] = useState<StructureRow[]>(INITIAL_ROWS)
   const [search, setSearch] = useState('')
@@ -227,10 +233,12 @@ export default function CreaStruttura({
 
   return (
     <div className="crea-struttura">
-      <PageHead
-        title="Crea struttura"
-        subtitle="Imposta, aggiungi e verifica i dati delle tue strutture ricettive"
-      />
+      {!embedded && (
+        <PageHead
+          title="Crea struttura"
+          subtitle="Imposta, aggiungi e verifica i dati delle tue strutture ricettive"
+        />
+      )}
 
       <FilterToolbar
         actions={

@@ -251,14 +251,14 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   },
   // ── Food & Beverage (sub-app Outlet Manager) ────────────────────────────────
   {
-    id: 'fb-outlet', label: 'Outlet', icon: 'store', group: 'food-beverage',
-    description: 'Punti vendita della struttura: ristoranti, bar, boutique.',
-    keywords: ['punti vendita', 'ristorante', 'bar', 'boutique'],
+    id: 'fb-outlet', label: 'Crea outlet', icon: 'store', group: 'food-beverage',
+    description: 'Creazione e anagrafica degli outlet: è la stessa pagina di Il mio business → Crea outlet.',
+    keywords: ['punto vendita', 'ristorante', 'bar', 'boutique', 'crea', 'nuovo outlet', 'il mio business'],
   },
   {
     id: 'fb-sale-tavoli', label: 'Sale e tavoli', icon: 'chair', group: 'food-beverage',
-    description: 'Le sale con i relativi tavoli e la loro disposizione.',
-    keywords: ['sala', 'tavoli', 'planimetria', 'coperti'],
+    description: 'Planimetria della sala e servizio ai tavoli: è la stessa pagina di Il mio business → Sale e tavoli.',
+    keywords: ['tavoli', 'planimetria', 'coperti', 'sala', 'composizione', 'servizio', 'il mio business'],
   },
   {
     id: 'fb-turni', label: 'Turni di servizio', icon: 'clock', group: 'food-beverage',

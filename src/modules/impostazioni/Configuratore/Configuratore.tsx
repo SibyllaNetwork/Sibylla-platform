@@ -49,6 +49,11 @@ import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFisc
 import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
 import CostiMapping           from './panes/CostiMapping/CostiMapping'
 import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConfig'
+// Le voci F&B «Crea outlet» e «Sale e tavoli» sono LE STESSE pagine di
+// Impostazioni → Il mio business: si montano qui in modalità embedded (senza il
+// loro PageHead, che nel pane lo dà CfgPane), non si duplicano.
+import SaleTavoli from '../../operation/SaleTavoli/SaleTavoli'
+import CreaStruttura from '../CreaStruttura/CreaStruttura'
 
 // ─── SHELL DEL CONFIGURATORE ─────────────────────────────────────────────────
 //  "Configuratore come percorso guidato": hub d'ingresso con le 7 corsie
@@ -64,7 +69,19 @@ import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConf
  *  prerequisito citato dentro la pagina). I pane che non navigano la ignorano. */
 export interface CfgPaneComponentProps {
   onGoTo?: (id: ConfiguratoreId) => void
+  /** Navigazione di piattaforma: serve ai pane che montano pagine intere. */
+  navigate?: (page: string) => void
 }
+
+/** F&B → Sale e tavoli: identica a Il mio business → Sale e tavoli. */
+const FbSaleTavoli = ({ navigate }: CfgPaneComponentProps) => (
+  <SaleTavoli embedded navigate={navigate} />
+)
+
+/** F&B → Crea outlet: identica a Il mio business → Crea outlet (picker su Outlet). */
+const FbCreaOutlet = ({ navigate }: CfgPaneComponentProps) => (
+  <CreaStruttura embedded autoOpenType="outlet" navigate={navigate ?? (() => {})} />
+)
 
 const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponentProps>>> = {
   'scaglioni-occupazione':    ScaglioniOccupazione,
@@ -88,6 +105,9 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'fasce-eta':                FasceEta,
   'voci-incasso':             VociIncasso,
   'configura-outlet':         ConfiguraOutlet,
+  // Voci F&B servite dalle pagine native, non dalla sub-app Outlet Manager
+  'fb-sale-tavoli':           FbSaleTavoli,
+  'fb-outlet':                FbCreaOutlet,
   'gateway':                  Gateway,
   'intestazioni-fiscali':     IntestazioniFiscali,
   'business-central':         BusinessCentral,
@@ -226,6 +246,7 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
                 def={activeDef}
                 completion={completion}
                 onGoTo={guardedGo}
+                navigate={navigate}
               />
             </CfgPane>
           </div>
@@ -246,10 +267,12 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
 //  Ordine: pane in arrivo → voce bloccata (gating) → pane esistente →
 //  sub-app Outlet (F&B) → empty di riserva.
 
-function PaneSwitch({ def, completion, onGoTo }: {
+function PaneSwitch({ def, completion, onGoTo, navigate }: {
   def: ConfiguratoreDef
   completion: Record<string, CfgCompletion>
   onGoTo: (id: ConfiguratoreId) => void
+  /** Navigazione di piattaforma, per i pane che montano pagine intere. */
+  navigate: (page: string) => void
 }) {
   if (def.status === 'soon') {
     return (
@@ -275,7 +298,7 @@ function PaneSwitch({ def, completion, onGoTo }: {
   }
 
   const Pane = PANES[def.id]
-  if (Pane) return <Pane onGoTo={onGoTo} />
+  if (Pane) return <Pane onGoTo={onGoTo} navigate={navigate} />
 
   if (hasOutletConfig(def.id)) return <OutletConfig id={def.id} />
 
