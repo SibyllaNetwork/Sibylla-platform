@@ -1,0 +1,258 @@
+// ─── MENU DEL GIORNO (F&B) ────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.menu-giorno
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  &__td-data
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+    color: $text-active
+
+  &__td-nome
+    font-weight: 600
+    color: $text-active
+    min-width: 0
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  // Sigma accanto al prezzo: il menu non ha prezzo fisso, vale la somma voci
+  &__somma-ico
+    margin-left: 6px
+    font-size: 11px
+    color: $text-inactive
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  // Pastiglia «N piatti» nella colonna Voci
+  &__voci-badge
+    display: inline-flex
+    align-items: center
+    padding: 2px 9px
+    border-radius: 999px
+    border: 1px solid alpha($primary, .25)
+    background: alpha($primary, .08)
+    font-size: 11.5px
+    font-weight: 600
+    color: $primary
+    white-space: nowrap
+
+  // Menu disattivato: resta leggibile ma in secondo piano
+  &__row--off td
+    color: $text-inactive
+
+    .menu-giorno__td-nome,
+    .menu-giorno__td-data
+      color: $text-inactive
+
+    .menu-giorno__td-nome
+      font-weight: 500
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  // ── Modale nuovo/modifica menu ──────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 620px)
+      grid-template-columns: minmax(0, 1fr)
+
+  // ── Selettore delle voci da includere ───────────────────────────────────────
+  &__picker
+    display: flex
+    flex-direction: column
+    gap: 8px
+    border: 1px solid $border
+    border-radius: 8px
+    padding: 10px
+
+  &__picker-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+
+  &__picker-titolo
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+    min-width: 0
+
+  &__picker-label
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__picker-filtro
+    width: 200px
+    flex-shrink: 0
+
+  // Due pastiglie affiancate: il conteggio (neutro) e il totale in euro
+  // (valore, quindi contrastato e in cifre tabellari)
+  &__pill
+    display: inline-flex
+    align-items: center
+    padding: 2px 9px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+    white-space: nowrap
+
+  &__pill--count
+    border: 1px solid $border
+    background: alpha($text-inactive, .08)
+    color: $text-inactive
+
+  &__pill--tot
+    border: 1px solid alpha($primary, .3)
+    background: alpha($primary, .1)
+    color: $primary
+    font-variant-numeric: tabular-nums
+
+  // L'elenco delle voci può essere lungo: scroll proprio, la modale non cresce
+  &__lista
+    display: flex
+    flex-direction: column
+    gap: 2px
+    margin: 0
+    padding: 0
+    list-style: none
+    max-height: 240px
+    overflow-y: auto
+    overflow-x: hidden
+
+  &__voce
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto auto
+    align-items: center
+    gap: 10px
+    padding: 5px 8px
+    border-radius: 6px
+
+    &:hover
+      background: alpha($primary, .05)
+
+  &__voce--on
+    background: alpha($primary, .08)
+
+    &:hover
+      background: alpha($primary, .12)
+
+  &__voce-check
+    min-width: 0
+
+  &__voce-cat
+    font-size: 11.5px
+    color: $text-inactive
+    white-space: nowrap
+
+  &__voce-prezzo
+    min-width: 62px
+    text-align: right
+    font-size: 12.5px
+    font-variant-numeric: tabular-nums
+    color: $text-active
+
+  &__lista-vuota
+    padding: 10px 8px
+    font-size: 12px
+    color: $text-inactive
+
+  &__riepilogo
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 12px
+    margin: 0
+    border-top: 1px solid $border
+    padding-top: 8px
+    font-size: 12px
+    color: $text-inactive
+    flex-wrap: wrap
+
+  &__riepilogo-voci
+    color: $text-inactive
+
+  &__riepilogo-tot
+    font-weight: 600
+    color: $text-active
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+  &__errore
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 8px 10px
+    border-radius: 6px
+    background: alpha($error, .08)
+    font-size: 12px
+    line-height: 1.45
+    color: $error-dark
+
+    i
+      margin-top: 2px
+      flex-shrink: 0
+
+  &__avviso
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 8px 10px
+    border-radius: 6px
+    background: alpha($warning, .12)
+    font-size: 12px
+    line-height: 1.45
+    color: $text-active
+
+    i
+      margin-top: 2px
+      color: $warning
+      flex-shrink: 0
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px
+
+  // Pane stretto: la tabella comprime i suoi spazi, mai scroll orizzontale
+  @container (max-width: 820px)
+    .sib-table th,
+    .sib-table td
+      padding-left: 6px
+      padding-right: 6px

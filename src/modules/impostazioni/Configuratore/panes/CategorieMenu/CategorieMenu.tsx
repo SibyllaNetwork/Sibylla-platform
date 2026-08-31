@@ -25,7 +25,7 @@ import './CategorieMenu.sass'
 // ─── CATEGORIE MENU (F&B) ─────────────────────────────────────────────────────
 //  Elenco delle categorie con cui sono raggruppate le voci di menu: ognuna ha
 //  un tipo di menu (Bar / Cantina / Ristorante / Lounge), una posizione
-//  (`ordine`), un'emoji e un colore. Il colore si scegle SOLO tra i token della
+//  (`ordine`), un'emoji e un colore. Il colore si sceglie SOLO tra i token della
 //  palette validata (`var(--chart-1)` … `var(--chart-8)`): così la pastiglia
 //  resta coerente col resto della piattaforma e funziona anche in dark mode.
 //  Creazione e modifica passano dalla stessa modale.
@@ -143,7 +143,7 @@ export default function CategorieMenu() {
 
       <CfgTable
         columns={[
-          { key: 'emoji',  label: <span className="sib-sr-only">Icona</span>, width: '6%', align: 'center' },
+          { key: 'emoji',  label: <span className="sr-only">Icona</span>, width: '6%', align: 'center' },
           { key: 'nome',   label: 'Nome',   width: '42%' },
           { key: 'tipo',   label: 'Tipo',   width: '22%' },
           { key: 'ordine', label: 'Ordine', width: '14%', align: 'right' },

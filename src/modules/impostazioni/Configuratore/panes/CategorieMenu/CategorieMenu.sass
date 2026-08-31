@@ -1,0 +1,215 @@
+// ─── CATEGORIE MENU (F&B) ─────────────────────────────────────────────────────
+// Colori: solo token. Il colore della singola categoria arriva dal .tsx come
+// custom property --cat-c (valore = var(--chart-N) della palette validata),
+// così la pastiglia si ritinge da sola quando lo skin dark ridefinisce i token.
+@use '../../../../../styles/tokens' as *
+
+.categorie-menu
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  // ── Tabella ─────────────────────────────────────────────────────────────────
+  &__td-emoji
+    text-align: center
+
+  &__emoji
+    font-size: 17px
+    line-height: 1
+
+  // Nome: pastiglia col colore della categoria
+  &__pill
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    max-width: 100%
+    padding: 2px 10px
+    border-radius: 999px
+    border: 1px solid color-mix(in srgb, var(--cat-c) 35%, transparent)
+    background: color-mix(in srgb, var(--cat-c) 10%, transparent)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--cat-c)
+
+  &__pill-dot
+    width: 6px
+    height: 6px
+    border-radius: 50%
+    background: var(--cat-c)
+    flex-shrink: 0
+
+  &__pill-text
+    min-width: 0
+    max-width: 100%
+
+  &__td-tipo
+    color: $text-inactive
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  // ── Modale nuova/modifica categoria ─────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 620px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__form-full
+    grid-column: 1 / -1
+
+  // Label dei picker: stesso stile delle label dei campi condivisi
+  // (Poppins 12px, weight 600, colore primary, case normale)
+  &__picker
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__picker-label
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__emoji-grid
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__emoji-btn
+    width: 34px
+    height: 34px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 7px
+    border: 1px solid $border
+    background: $white
+    font-size: 18px
+    line-height: 1
+    cursor: pointer
+    transition: border-color .12s ease, background .12s ease
+
+    &:hover
+      border-color: $primary-300
+
+    &:focus-visible
+      outline: 2px solid $focus-ring
+      outline-offset: 1px
+
+    &[aria-pressed='true']
+      border-color: $primary
+      box-shadow: inset 0 0 0 1px $primary
+      background: alpha($primary, .08)
+
+  &__color-grid
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__color-btn
+    width: 30px
+    height: 30px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    border: 1px solid color-mix(in srgb, var(--cat-c) 60%, transparent)
+    background: var(--cat-c)
+    color: $text-negative
+    font-size: 12px
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .12s ease
+
+    i
+      opacity: 0
+
+    &:hover
+      transform: scale(1.06)
+
+    &:focus-visible
+      outline: 2px solid $focus-ring
+      outline-offset: 2px
+
+    &[aria-pressed='true']
+      box-shadow: 0 0 0 2px $white, 0 0 0 4px var(--cat-c)
+
+      i
+        opacity: 1
+
+  &__preview
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 12px
+    border: 1px dashed $border
+    border-radius: 8px
+    background: alpha($primary, .03)
+
+  &__errore,
+  &__avviso
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 8px 10px
+    border-radius: 6px
+    font-size: 12px
+    line-height: 1.45
+
+    i
+      margin-top: 2px
+      flex-shrink: 0
+
+  &__errore
+    background: alpha($error, .08)
+    color: $error-dark
+
+  &__avviso
+    background: alpha($warning, .1)
+    color: $text-active
+
+    i
+      color: $warning
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px
+
+  // Pane stretto: la tabella comprime i suoi spazi, mai scroll orizzontale
+  @container (max-width: 820px)
+    .sib-table th,
+    .sib-table td
+      padding-left: 6px
+      padding-right: 6px

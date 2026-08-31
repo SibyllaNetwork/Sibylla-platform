@@ -1,0 +1,377 @@
+// ─── WEB MENU (F&B) ───────────────────────────────────────────────────────────
+// Elenco a schede (una per menu web) sul linguaggio visivo dei "Connettori
+// fornitori": testata colorata col colore scelto per il menu, riga di stato +
+// outlet + azioni, blocco URL e blocco QR. Il colore della testata arriva dal
+// pane come custom property `--wm-c` (unico stile inline ammesso): qui si usa
+// solo attraverso i token della palette validata.
+@use '../../../../../styles/tokens' as *
+
+.web-menu
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  // ── Riga informativa (link diretto / QR / URL generato) ─────────────────────
+  &__nota
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    margin: 0
+    padding: 10px 12px
+    border: 1px solid color-mix(in srgb, $primary 22%, transparent)
+    border-radius: $radius-md
+    background: color-mix(in srgb, $primary 5%, transparent)
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      font-size: 15px
+      color: $primary
+      flex-shrink: 0
+
+  &__nota-url
+    font-family: $font-body
+    font-weight: 600
+    color: $primary
+    word-break: break-all
+
+  // ── Elenco delle schede ────────────────────────────────────────────────────
+  // auto-fill + minmax(…, 1fr): le colonne si riducono di numero prima di
+  // stringere oltre il minimo, quindi il contenuto non esce mai in larghezza.
+  &__list
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
+    gap: 12px
+
+  &__card
+    display: flex
+    flex-direction: column
+    min-width: 0
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: $white
+    overflow: hidden
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: border-color $motion-base $motion-ease, box-shadow $motion-base $motion-ease
+
+    &:hover
+      border-color: color-mix(in srgb, var(--wm-c) 45%, $border)
+      box-shadow: $shadow-sm
+
+  // Menu disattivo: la testata si spegne, il corpo resta pienamente usabile
+  &__card--off
+    .web-menu__head
+      opacity: .5
+
+    .web-menu__url,
+    .web-menu__qr-periodo
+      color: $text-inactive
+
+  // ── Testata colorata ───────────────────────────────────────────────────────
+  // Il colore scelto viene scurito di poco: garantisce il testo bianco sia con
+  // la palette chiara (tema standard) sia con quella schiarita del tema scuro.
+  &__head
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 12px 14px
+    background: color-mix(in srgb, var(--wm-c) 88%, black)
+    color: $text-negative
+
+  &__head-titles
+    flex: 1 1 auto
+    min-width: 0
+
+  &__title
+    margin: 0
+    overflow: hidden
+    font-family: $font-heading
+    font-size: 14.5px
+    font-weight: 700
+    line-height: 1.3
+    color: $text-negative
+
+  &__claim
+    margin: 2px 0 0
+    overflow: hidden
+    font-size: 11.5px
+    line-height: 1.35
+    color: $text-negative
+    opacity: .85
+
+  &__voci
+    flex-shrink: 0
+    padding: 3px 9px
+    border-radius: 999px
+    background: color-mix(in srgb, $text-negative 22%, transparent)
+    font-size: 10.5px
+    font-weight: 700
+    color: $text-negative
+    white-space: nowrap
+
+  // ── Riga stato · outlet · azioni ────────────────────────────────────────────
+  // Tre blocchi in fila con gap reale: lo stato non si stringe, il nome
+  // dell'outlet tronca con ellipsis e le azioni restano a destra. Se lo spazio
+  // non basta le azioni vanno a capo (sempre allineate a destra): mai una
+  // sovrapposizione fra nome dell'outlet e pulsanti.
+  &__meta
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px 12px
+    padding: 10px 12px 8px
+
+  &__stato
+    flex: 0 0 auto
+
+  &__outlet
+    display: flex
+    align-items: center
+    gap: 6px
+    flex: 1 1 130px
+    min-width: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      flex-shrink: 0
+      font-size: 12px
+      color: $primary
+
+  &__outlet-nome
+    font-weight: 600
+    color: $text-active
+
+  &__azioni
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    flex: 0 0 auto
+    margin-left: auto
+
+  // Icone fuori tabella: lo standard blu 16px va imposto sull'`i`, perché
+  // `.sib-btn--icon` forza grigio 12px.
+  &__icon-btn
+    i
+      font-size: 16px
+      color: $primary
+
+    &:hover i
+      color: $primary-700
+
+  // Contenitore per i testi troncabili dentro una riga flex: il wrapper del
+  // Tooltip (inline-flex) va limitato, altrimenti spinge la riga in larghezza.
+  &__shrink
+    display: block
+    flex: 1 1 auto
+    min-width: 0
+    overflow: hidden
+
+    > *
+      max-width: 100%
+
+  // ── Blocchi URL e QR ───────────────────────────────────────────────────────
+  &__block
+    margin: 0 12px 12px
+    padding: 8px 10px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: color-mix(in srgb, $primary 4%, transparent)
+
+  &__block-label
+    display: block
+    font-family: $font-heading
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__url-row
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-top: 4px
+
+  &__url
+    font-family: $font-body
+    font-size: 11.5px
+    font-weight: 600
+    color: $link
+
+  &__url-cmds
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    flex: 0 0 auto
+
+  &__qr
+    display: flex
+    align-items: center
+    gap: 12px
+
+  // Il QR a schermo segue il tema (chiaro su chiaro, scuro su scuro); il file
+  // scaricato è sempre nero su bianco, perché va in stampa.
+  &__qr-box
+    flex: 0 0 auto
+    width: 72px
+    height: 72px
+    padding: 3px
+    border: 1px solid $border
+    border-radius: $radius-sm
+    background: $white
+    color: $text-active
+
+  &__qr-img
+    display: block
+    width: 100%
+    height: 100%
+
+    rect
+      fill: currentColor
+      shape-rendering: crispEdges
+
+  &__qr-info
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 5px
+    min-width: 0
+
+  &__qr-periodo
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 11.5px
+    font-weight: 600
+    font-variant-numeric: tabular-nums
+    color: $text-active
+    white-space: nowrap
+
+    i
+      color: $primary
+
+  &__qr-btn
+    align-self: flex-start
+
+  // ── Modale nuovo/modifica menu web ─────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
+
+    @media (max-width: 620px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__form-full
+    grid-column: 1 / -1
+
+  &__colori
+    margin: 0
+    padding: 0
+    border: 0
+    min-width: 0
+
+  &__colori-label
+    padding: 0
+    margin-bottom: 6px
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__colori-row
+    display: flex
+    flex-wrap: wrap
+    gap: 10px
+
+  &__swatch
+    width: 28px
+    height: 28px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 1px solid color-mix(in srgb, var(--wm-c) 55%, transparent)
+    border-radius: $radius-sm
+    background: var(--wm-c)
+    color: $text-negative
+    font-size: 12px
+    cursor: pointer
+
+    @media (prefers-reduced-motion: no-preference)
+      transition: box-shadow $motion-fast $motion-ease
+
+    &:focus-visible
+      outline: 2px solid $focus-ring
+      outline-offset: 2px
+
+  &__swatch--on
+    box-shadow: 0 0 0 2px $white, 0 0 0 4px var(--wm-c)
+
+  // Anteprima dello slug/URL: sola lettura, generata dal nome
+  &__anteprima
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 10px 12px
+    border: 1px dashed $border
+    border-radius: $radius-md
+    background: color-mix(in srgb, $primary 4%, transparent)
+
+  &__anteprima-url
+    font-family: $font-body
+    font-size: 12px
+    font-weight: 600
+    color: $link
+    word-break: break-all
+
+  &__anteprima-hint
+    font-size: 11px
+    line-height: 1.45
+    color: $text-inactive
+
+  &__errore
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 8px 10px
+    border-radius: $radius-sm
+    background: alpha($error, .08)
+    font-size: 12px
+    line-height: 1.45
+    color: $error-dark
+
+    i
+      margin-top: 2px
+      flex-shrink: 0
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px
+
+  // Pane stretto (sidebar aperta su laptop, o pane in colonna): una scheda per
+  // riga e spazi interni ridotti, senza toccare le dimensioni del testo.
+  @container (max-width: 720px)
+    .web-menu__list
+      grid-template-columns: minmax(0, 1fr)
+
+    .web-menu__head
+      padding: 10px 12px
+
+    .web-menu__meta
+      padding: 8px 10px 6px
+
+    .web-menu__block
+      margin: 0 10px 10px

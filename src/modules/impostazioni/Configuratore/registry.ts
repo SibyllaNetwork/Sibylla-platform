@@ -267,13 +267,13 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   },
   {
     id: 'fb-categorie', label: 'Categorie', icon: 'tags', group: 'food-beverage',
-    description: 'Categorie del menu: antipasti, primi, secondi, dolci, vini.',
-    keywords: ['categorie menu', 'antipasti', 'primi', 'dolci', 'vini'],
+    description: 'Categorie del menu (Antipasti, Primi, Vini…) con tipo, ordine, icona e colore.',
+    keywords: ['categorie','antipasti','primi','secondi','dolci','vini','gruppi menu','ordine'],
   },
   {
     id: 'fb-voci-menu', label: 'Voci menu', icon: 'list', group: 'food-beverage',
-    description: 'Piatti, bevande e articoli del menu, multilingua.',
-    keywords: ['piatti', 'bevande', 'articoli', 'multilingua', 'prezzi'],
+    description: 'Piatti, bevande e articoli con nomi multilingua, prezzo, allergeni, stampanti e monitor.',
+    keywords: ['piatti','bevande','articoli','allergeni','prezzo','multilingua','stampanti','service monitor'],
   },
   {
     id: 'fb-crea-menu', label: 'Crea menu', icon: 'plus', group: 'food-beverage',
@@ -292,13 +292,13 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   },
   {
     id: 'fb-web-menu', label: 'Web menu', icon: 'globe', group: 'food-beverage',
-    description: 'Menu digitale accessibile via URL e QR code, personalizzabile.',
-    keywords: ['qr code', 'digitale', 'web', 'url'],
+    description: 'Menu digitale accessibile via URL e QR code, personalizzabile per outlet.',
+    keywords: ['qr','url','menu digitale','link','qr code','online'],
   },
   {
     id: 'fb-menu-giorno', label: 'Menu del giorno', icon: 'calendar-day', group: 'food-beverage',
-    description: 'Il menu giornaliero, composto selezionando le voci disponibili.',
-    keywords: ['giornaliero', 'oggi', 'piatto del giorno'],
+    description: 'Menu giornalieri composti dalle voci, con prezzo fisso o somma delle voci.',
+    keywords: ['menu del giorno','giornaliero','prezzo fisso','composizione','data'],
   },
   {
     id: 'fb-allergeni', label: 'Allergeni', icon: 'leaf', group: 'food-beverage',

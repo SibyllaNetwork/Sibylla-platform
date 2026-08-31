@@ -45,6 +45,10 @@ import FasceEta               from './panes/FasceEta/FasceEta'
 import VociIncasso            from './panes/VociIncasso/VociIncasso'
 import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
 import TurniServizio          from './panes/TurniServizio/TurniServizio'
+import CategorieMenu          from './panes/CategorieMenu/CategorieMenu'
+import VociMenu               from './panes/VociMenu/VociMenu'
+import MenuGiorno             from './panes/MenuGiorno/MenuGiorno'
+import WebMenu                from './panes/WebMenu/WebMenu'
 import Gateway                from './panes/Gateway/Gateway'
 import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFiscali'
 import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
@@ -114,6 +118,10 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'fb-sale-tavoli':           FbSaleTavoli,
   'fb-outlet':                FbCreaOutlet,
   'fb-turni':                 TurniServizio,
+  'fb-categorie':             CategorieMenu,
+  'fb-voci-menu':             VociMenu,
+  'fb-menu-giorno':           MenuGiorno,
+  'fb-web-menu':              WebMenu,
   'gateway':                  Gateway,
   'intestazioni-fiscali':     IntestazioniFiscali,
   'business-central':         BusinessCentral,

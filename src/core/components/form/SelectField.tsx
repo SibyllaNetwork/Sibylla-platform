@@ -18,6 +18,8 @@ export interface SelectFieldProps {
   error?:        string
   disabled?:     boolean
   required?:     boolean
+  /** Nome accessibile quando il campo è senza label (es. riga ripetuta di un form). */
+  ariaLabel?:    string
   onChange?:     (e: React.ChangeEvent<HTMLSelectElement>) => void
   onBlur?:       (e: React.FocusEvent<HTMLSelectElement>) => void
   className?:    string
@@ -26,7 +28,7 @@ export interface SelectFieldProps {
 const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>((
   {
     label, name, options, value, defaultValue, placeholder,
-    hint, error, disabled = false, required = false,
+    hint, error, disabled = false, required = false, ariaLabel,
     onChange, onBlur, className,
   },
   ref
@@ -57,6 +59,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>((
         disabled={disabled}
         onChange={onChange}
         onBlur={onBlur}
+        aria-label={ariaLabel}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
       >

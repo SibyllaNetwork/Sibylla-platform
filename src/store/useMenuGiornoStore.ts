@@ -122,11 +122,15 @@ export const useMenuGiornoStore = create<MenuGiornoState>()(
   ),
 )
 
-/** Menu di un outlet, dal più recente al più vecchio (data desc, poi nome). */
+/**
+ * Menu di un outlet in ordine cronologico crescente (poi per nome): un menu del
+ * giorno si pianifica in avanti, quindi si legge dal primo giorno all'ultimo,
+ * non partendo dalla data più lontana.
+ */
 export function menuOrdinati(menu: MenuGiorno[], outletId: number): MenuGiorno[] {
   return menu
     .filter(m => m.outletId === outletId)
-    .sort((a, b) => b.data.localeCompare(a.data) || a.nome.localeCompare(b.nome, 'it'))
+    .sort((a, b) => a.data.localeCompare(b.data) || a.nome.localeCompare(b.nome, 'it'))
 }
 
 /**

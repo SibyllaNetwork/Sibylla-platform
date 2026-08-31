@@ -51,25 +51,30 @@ export const COLORI_CATEGORIA: string[] = [
 
 /** Griglia di emoji selezionabili nella modale (icona della categoria). */
 export const EMOJI_CATEGORIA: string[] = [
-  '🍝', '🍤', '🥩', '🥦', '🍇', '⭐', '🍸', '🍷', '🍔', '🥗',
-  '🍲', '🍣', '🍕', '☕', '🍰', '🥐', '🫙', '🍫', '🦐', '🧁',
+  // cibo
+  '🍝', '🍤', '🥩', '🥦', '🥗', '🍔', '🍲', '🍣', '🍕', '🦐',
+  '🍰', '🥐', '🧁', '🍫', '🫙', '⭐',
+  // beverage: servono anche birra, bollicine e distillati, altrimenti categorie
+  // come Birre o Bollicine finiscono su un'emoji che non le rappresenta
+  '🍷', '🍺', '🍾', '🥂', '🍸', '🥃', '🥤', '☕', '🍇', '🌸',
 ]
 
 const SEED: CategoriaMenu[] = [
   { id: 'cat-vini',      nome: 'Vini',            tipo: 'bar',        ordine: 0,  emoji: '🍷', colore: 'var(--chart-3)' },
-  { id: 'cat-birre',     nome: 'Birre',           tipo: 'bar',        ordine: 1,  emoji: '🫙', colore: 'var(--chart-4)' },
-  { id: 'cat-rossi',     nome: 'Vini Rossi',      tipo: 'cantina',    ordine: 2,  emoji: '🍇', colore: 'var(--chart-6)' },
+  { id: 'cat-birre',     nome: 'Birre',           tipo: 'bar',        ordine: 1,  emoji: '🍺', colore: 'var(--chart-4)' },
+  { id: 'cat-rossi',     nome: 'Vini Rossi',      tipo: 'cantina',    ordine: 2,  emoji: '🍷', colore: 'var(--chart-6)' },
   { id: 'cat-contorni',  nome: 'Contorni',        tipo: 'ristorante', ordine: 3,  emoji: '🥦', colore: 'var(--chart-8)' },
   { id: 'cat-cocktail',  nome: 'Cocktail',        tipo: 'lounge',     ordine: 4,  emoji: '🍸', colore: 'var(--chart-7)' },
-  { id: 'cat-antipasti', nome: 'Antipasti',       tipo: 'ristorante', ordine: 5,  emoji: '🍤', colore: 'var(--chart-2)' },
-  { id: 'cat-soft',      nome: 'Soft Drink',      tipo: 'bar',        ordine: 6,  emoji: '☕', colore: 'var(--chart-5)' },
+  { id: 'cat-antipasti', nome: 'Antipasti',       tipo: 'ristorante', ordine: 5,  emoji: '🥗', colore: 'var(--chart-2)' },
+  { id: 'cat-soft',      nome: 'Soft Drink',      tipo: 'bar',        ordine: 6,  emoji: '🥤', colore: 'var(--chart-5)' },
   { id: 'cat-primi',     nome: 'Primi',           tipo: 'ristorante', ordine: 7,  emoji: '🍝', colore: 'var(--chart-1)' },
   { id: 'cat-dessert',   nome: 'Dessert',         tipo: 'ristorante', ordine: 8,  emoji: '🍰', colore: 'var(--chart-3)' },
   { id: 'cat-secondi',   nome: 'Secondi',         tipo: 'ristorante', ordine: 9,  emoji: '🥩', colore: 'var(--chart-6)' },
-  { id: 'cat-spirits',   nome: 'Premium Spirits', tipo: 'lounge',     ordine: 10, emoji: '⭐', colore: 'var(--chart-4)' },
-  { id: 'cat-bianchi',   nome: 'Vini Bianchi',    tipo: 'cantina',    ordine: 11, emoji: '🥐', colore: 'var(--chart-5)' },
-  { id: 'cat-rose',      nome: 'Vini Rosè',       tipo: 'cantina',    ordine: 12, emoji: '🍇', colore: 'var(--chart-2)' },
-  { id: 'cat-bollicine', nome: 'Bollicine',       tipo: 'cantina',    ordine: 13, emoji: '🍸', colore: 'var(--chart-1)' },
+  { id: 'cat-spirits',   nome: 'Premium Spirits', tipo: 'lounge',     ordine: 10, emoji: '🥃', colore: 'var(--chart-4)' },
+  { id: 'cat-bianchi',   nome: 'Vini Bianchi',    tipo: 'cantina',    ordine: 11, emoji: '🥂', colore: 'var(--chart-5)' },
+  { id: 'cat-rose',      nome: 'Vini Rosè',       tipo: 'cantina',    ordine: 12, emoji: '🌸', colore: 'var(--chart-2)' },
+  { id: 'cat-bollicine', nome: 'Bollicine',       tipo: 'cantina',    ordine: 13, emoji: '🍾', colore: 'var(--chart-1)' },
+  { id: 'cat-caffetteria', nome: 'Caffetteria',   tipo: 'bar',        ordine: 14, emoji: '☕', colore: 'var(--chart-4)' },
 ]
 
 interface CategorieMenuState {
