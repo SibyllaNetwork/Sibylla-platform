@@ -47,6 +47,7 @@ import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
 import TurniServizio          from './panes/TurniServizio/TurniServizio'
 import CategorieMenu          from './panes/CategorieMenu/CategorieMenu'
 import VociMenu               from './panes/VociMenu/VociMenu'
+import Allergeni              from './panes/Allergeni/Allergeni'
 import CreaMenu               from './panes/CreaMenu/CreaMenu'
 import ListaMenu              from './panes/ListaMenu/ListaMenu'
 import MenuGiorno             from './panes/MenuGiorno/MenuGiorno'
@@ -122,6 +123,7 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'fb-turni':                 TurniServizio,
   'fb-categorie':             CategorieMenu,
   'fb-voci-menu':             VociMenu,
+  'fb-allergeni':             Allergeni,
   'fb-crea-menu':             CreaMenu,
   'fb-lista-menu':            ListaMenu,
   'fb-menu-giorno':           MenuGiorno,

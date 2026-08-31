@@ -1,0 +1,149 @@
+// ─── ALLERGENI (F&B) ─────────────────────────────────────────────────────────
+@use '../../../../../styles/tokens' as *
+
+.allergeni
+  display: flex
+  flex-direction: column
+  gap: 12px
+  font-size: 13px
+  container-type: inline-size
+
+  // Codice: la lettera dell'allegato II (ambra) o la sigla propria (neutra)
+  &__cod
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 24px
+    height: 22px
+    padding: 0 6px
+    border-radius: 6px
+    border: 1px solid alpha($warning, .45)
+    background: alpha($warning, .12)
+    font-size: 11.5px
+    font-weight: 700
+    color: $text-active
+
+  &__cod--proprio
+    border-color: $border
+    background: $bg
+    color: $text-inactive
+
+  // Origine della riga: di legge o dichiarata dalla struttura
+  &__orig
+    display: inline-flex
+    align-items: center
+    padding: 2px 9px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+    white-space: nowrap
+
+  &__orig--ue
+    border: 1px solid alpha($primary, .3)
+    background: alpha($primary, .07)
+    color: $primary
+
+  &__orig--proprio
+    border: 1px solid $border
+    background: $bg
+    color: $text-inactive
+
+  &__td-nome
+    font-weight: 600
+    color: $text-active
+
+  &__td-descr
+    color: $text-inactive
+
+  &__td-num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__zero
+    color: $text-disabled
+
+  &__td-azioni
+    text-align: right
+    white-space: nowrap
+
+  // Lucchetto al posto del cestino sulle righe di legge: stesso ingombro del
+  // bottone che sostituisce, così la colonna non balla
+  &__lock
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 28px
+    height: 28px
+    color: $text-disabled
+
+    i
+      font-size: 12px
+
+  &__nota
+    display: flex
+    align-items: flex-start
+    flex-wrap: wrap
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: $text-inactive
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  &__link
+    padding: 0
+    border: none
+    background: none
+    font-family: inherit
+    font-size: inherit
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  // ── Modale ──────────────────────────────────────────────────────────────────
+  &__form
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__avviso
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    padding: 9px 11px
+    border-radius: 7px
+    background: alpha($primary, .06)
+    font-size: 12px
+    line-height: 1.45
+    color: $text-active
+
+    i
+      margin-top: 2px
+      color: $primary
+      flex-shrink: 0
+
+  &__form-grid
+    display: grid
+    grid-template-columns: 110px minmax(0, 1fr)
+    gap: 12px
+
+  &__form-nome
+    min-width: 0
+
+  &__form-full
+    grid-column: 1 / -1
+
+  &__form-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid $border
+    padding-top: 12px

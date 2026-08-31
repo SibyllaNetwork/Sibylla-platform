@@ -302,8 +302,8 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   },
   {
     id: 'fb-allergeni', label: 'Allergeni', icon: 'leaf', group: 'food-beverage',
-    description: 'I 14 allergeni standard EU, obbligatori per legge.',
-    keywords: ['allergie', 'eu', 'glutine', 'lattosio', 'obbligo di legge'],
+    description: 'I 14 allergeni dell\'allegato II, con la dicitura da stampare, più le voci proprie della struttura.',
+    keywords: ['allergie','eu','allegato ii','glutine','lattosio','solfiti','intolleranze','obbligo di legge','dicitura'],
   },
   {
     id: 'fb-arrangiamenti', label: 'Arrangiamenti', icon: 'box', group: 'food-beverage',

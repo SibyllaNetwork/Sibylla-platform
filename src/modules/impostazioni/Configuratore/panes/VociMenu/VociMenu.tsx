@@ -461,14 +461,17 @@ export default function VociMenu() {
                 </h3>
                 <div className="voci-menu__tags" role="group" aria-label="Allergeni presenti">
                   {ALLERGENI_UE.map(a => {
-                    const on = form.allergeni.includes(a.codice)
+                    // Il catalogo tiene i codici come stringa (ci stanno anche
+                    // le sigle proprie); qui sono per definizione le lettere UE
+                    const cod = a.codice as CodiceAllergene
+                    const on = form.allergeni.includes(cod)
                     return (
                       <button
                         key={a.codice}
                         type="button"
                         aria-pressed={on}
                         className={clsx('voci-menu__tag', on && 'voci-menu__tag--on')}
-                        onClick={() => toggleAllergene(a.codice)}
+                        onClick={() => toggleAllergene(cod)}
                       >
                         <span className="voci-menu__tag-cod">{a.codice}</span>
                         {a.nome}

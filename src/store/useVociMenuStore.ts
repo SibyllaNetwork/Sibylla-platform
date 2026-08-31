@@ -63,25 +63,7 @@ export interface VoceMenu {
   attivo: boolean
 }
 
-// ── Allergeni UE ──────────────────────────────────────────────────────────────
-//  I 14 allergeni a dichiarazione obbligatoria, nell'ordine dell'allegato II.
-export const ALLERGENI_UE: Array<{ codice: CodiceAllergene; nome: string }> = [
-  { codice: 'A', nome: 'Glutine' },
-  { codice: 'B', nome: 'Crostacei' },
-  { codice: 'C', nome: 'Uova' },
-  { codice: 'D', nome: 'Pesce' },
-  { codice: 'E', nome: 'Arachidi' },
-  { codice: 'F', nome: 'Soia' },
-  { codice: 'G', nome: 'Latte' },
-  { codice: 'H', nome: 'Frutta a guscio' },
-  { codice: 'I', nome: 'Sedano' },
-  { codice: 'J', nome: 'Senape' },
-  { codice: 'K', nome: 'Semi di sesamo' },
-  { codice: 'L', nome: 'Anidride solforosa' },
-  { codice: 'M', nome: 'Lupini' },
-  { codice: 'N', nome: 'Molluschi' },
-]
-
+// ── Food cost e margine ───────────────────────────────────────────────────────
 /**
  * Incidenza di default del food cost sul prezzo di carta, per categoria: la
  * materia prima di un caffè pesa molto meno di quella di una bottiglia di
@@ -112,14 +94,17 @@ export const foodCostDiDefault = (prezzo: number, categoriaId: string): number =
 export const marginePerc = (prezzo: number, foodCost: number): number =>
   prezzo > 0 ? Math.round(((prezzo - foodCost) / prezzo) * 100) : 0
 
-export const allergeneMeta = (codice: CodiceAllergene) =>
-  ALLERGENI_UE.find(a => a.codice === codice)
-
-/** Etichetta completa di un allergene, per i tooltip: «A — Glutine». */
-export const allergeneLabel = (codice: CodiceAllergene) => {
-  const meta = allergeneMeta(codice)
-  return meta ? `${meta.codice} — ${meta.nome}` : codice
-}
+// ── Allergeni ─────────────────────────────────────────────────────────────────
+//  Il catalogo (codici, nomi, diciture) vive in `useAllergeniStore`: qui si
+//  ri-esporta per i pane che leggevano da questo modulo. La voce memorizza solo
+//  il codice — le lettere dell'allegato II, che sono le sole selezionabili
+//  perché sono le sole a dichiarazione obbligatoria.
+export {
+  ALLERGENI_UE,
+  allergeneMeta,
+  allergeneLabel,
+} from './useAllergeniStore'
+export type { Allergene } from './useAllergeniStore'
 
 // ── Categorie di menu ─────────────────────────────────────────────────────────
 //  Le categorie NON sono un elenco di questa pagina: sono quelle gestite in
