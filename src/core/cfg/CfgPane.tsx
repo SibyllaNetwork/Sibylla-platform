@@ -1,12 +1,16 @@
 import React from 'react'
 import clsx from 'clsx'
 import Skeleton from '../components/Skeleton'
+import { withAcronimi } from '../components/Acronimo'
 import './CfgPane.sass'
 
 // ─── CFG PANE (guscio del singolo configuratore) ─────────────────────────────
 //  Contenitore standard di ogni pane del Configuratore. È L'UNICO posto dove
 //  compaiono il breadcrumb (`Configuratore › Gruppo › Voce`) e il titolo del
 //  configuratore: i pane NON devono avere breadcrumb o titoli propri.
+//
+//  Le sigle (B.A.R., F.I.T., PMS…) di titolo, descrizione e breadcrumb sono
+//  spiegate automaticamente all'hover (`withAcronimi`).
 //
 //  Struttura: header (crumbs + titolo + descrizione + slot azioni) · corpo
 //  scrollabile · slot save bar sticky in fondo. Con `loading` il corpo mostra
@@ -44,15 +48,15 @@ export default function CfgPane({
             <React.Fragment key={i}>
               {onTrail ? (
                 <button type="button" className="cfg-pane__crumb" onClick={() => onTrail(i)}>
-                  {crumb}
+                  {withAcronimi(crumb)}
                 </button>
               ) : (
-                <span className="cfg-pane__crumb cfg-pane__crumb--static">{crumb}</span>
+                <span className="cfg-pane__crumb cfg-pane__crumb--static">{withAcronimi(crumb)}</span>
               )}
               <i className="fa-light fa-chevron-right cfg-pane__crumb-sep" aria-hidden="true" />
             </React.Fragment>
           ))}
-          <span className="cfg-pane__crumb cfg-pane__crumb--current" aria-current="page">{title}</span>
+          <span className="cfg-pane__crumb cfg-pane__crumb--current" aria-current="page">{withAcronimi(title)}</span>
         </nav>
 
         <div className="cfg-pane__title-row">
@@ -62,8 +66,8 @@ export default function CfgPane({
             </span>
           )}
           <div className="cfg-pane__titles">
-            <h2 className="cfg-pane__title">{title}</h2>
-            {description && <p className="cfg-pane__desc">{description}</p>}
+            <h2 className="cfg-pane__title">{withAcronimi(title)}</h2>
+            {description && <p className="cfg-pane__desc">{withAcronimi(description)}</p>}
           </div>
           {actions && <div className="cfg-pane__actions">{actions}</div>}
         </div>

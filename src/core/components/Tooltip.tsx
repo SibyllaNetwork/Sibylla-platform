@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 
 interface TooltipProps {
   text?:     string
@@ -11,7 +11,13 @@ interface TooltipProps {
 export default function Tooltip({ text, content, children, position = 'top', variant = 'dark' }: TooltipProps) {
   const [visible, setVisible] = useState(false)
   const [coords,  setCoords]  = useState({ x: 0, y: 0 })
-  const wrapRef = useRef<HTMLDivElement>(null)
+  // Rientro orizzontale quando la box uscirebbe dal viewport (celle a filo
+  // destro delle tabelle): altrimenti il bordo finestra taglia il testo.
+  const [shift,   setShift]   = useState(0)
+  // Wrapper e box sono <span>: così il Tooltip è annidabile ovunque, anche
+  // dentro testo (<p>, <h2>, celle, bottoni), senza markup non valido.
+  const wrapRef = useRef<HTMLSpanElement>(null)
+  const boxRef  = useRef<HTMLSpanElement>(null)
 
   const show = () => {
     if (!wrapRef.current) return
@@ -25,14 +31,34 @@ export default function Tooltip({ text, content, children, position = 'top', var
     setVisible(true)
   }
 
-  const hide = () => setVisible(false)
+  const hide = () => { setVisible(false); setShift(0) }
 
   // Nascondi se componente viene smontato
   useEffect(() => () => setVisible(false), [])
 
+  useLayoutEffect(() => {
+    if (!visible) return
+    const el = boxRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const M = 8
+    // Misure "a riposo": tolgo il rientro già applicato, così converge in un passo.
+    const left = r.left - shift
+    const right = r.right - shift
+    let next = 0
+    if (right > window.innerWidth - M) next = window.innerWidth - M - right
+    if (left + next < M) next = M - left
+    if (Math.abs(next - shift) > 0.5) setShift(next)
+  }, [visible, coords, shift])
+
   const hasContent = content !== undefined && content !== null
+  // Testi lunghi devono andare a capo: con `nowrap` + `maxWidth` il testo
+  // sborderebbe dallo sfondo scuro (sembra "tagliato" dalla box).
+  const longText = !hasContent && typeof text === 'string' && text.length > 34
+  const wrap = hasContent || longText
   const light = variant === 'light'
   const boxStyle: React.CSSProperties = {
+    display:     'block',
     position:    'fixed',
     zIndex:      9999,
     background:  light ? '#fff' : '#1E293B',
@@ -41,37 +67,39 @@ export default function Tooltip({ text, content, children, position = 'top', var
     fontSize:    11,
     fontWeight:  500,
     borderRadius: light ? 10 : 6,
-    padding:     hasContent ? (light ? '12px 14px' : '8px 12px') : '5px 10px',
-    whiteSpace:  hasContent ? 'normal' : 'nowrap',
+    padding:     hasContent ? (light ? '12px 14px' : '8px 12px') : (wrap ? '7px 11px' : '5px 10px'),
+    whiteSpace:  wrap ? 'normal' : 'nowrap',
+    overflowWrap: 'anywhere',
     pointerEvents: 'none',
     boxShadow:   light ? '0 8px 24px rgba(32,71,105,0.18)' : '0 4px 12px rgba(32,71,105,0.25)',
     maxWidth:    hasContent ? 320 : 260,
+    width:       'max-content',
     lineHeight:  1.4,
     ...(position === 'top' && {
       left:      coords.x,
       top:       coords.y - 8,
-      transform: 'translateX(-50%) translateY(-100%)',
+      transform: `translateX(calc(-50% + ${shift}px)) translateY(-100%)`,
     }),
     ...(position === 'bottom' && {
       left:      coords.x,
       top:       coords.y + 8,
-      transform: 'translateX(-50%)',
+      transform: `translateX(calc(-50% + ${shift}px))`,
     }),
     ...(position === 'left' && {
       left:      coords.x - 8,
       top:       coords.y,
-      transform: 'translateX(-100%) translateY(-50%)',
+      transform: `translateX(calc(-100% + ${shift}px)) translateY(-50%)`,
     }),
     ...(position === 'right' && {
       left:      coords.x + 8,
       top:       coords.y,
-      transform: 'translateY(-50%)',
+      transform: `translateX(${shift}px) translateY(-50%)`,
     }),
   }
 
   return (
     <>
-      <div
+      <span
         ref={wrapRef}
         style={{ display: 'inline-flex' }}
         onMouseEnter={show}
@@ -80,9 +108,9 @@ export default function Tooltip({ text, content, children, position = 'top', var
         onBlur={hide}
       >
         {children}
-      </div>
+      </span>
       {visible && (hasContent || text) && (
-        <div style={boxStyle}>{hasContent ? content : text}</div>
+        <span ref={boxRef} style={boxStyle}>{hasContent ? content : text}</span>
       )}
     </>
   )

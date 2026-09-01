@@ -1,5 +1,6 @@
 import React, { forwardRef, useState, useId } from 'react'
 import clsx from 'clsx'
+import { withAcronimi } from '../Acronimo'
 
 export type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url'
 
@@ -55,7 +56,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>((
           htmlFor={id}
           className="text-[12px] font-semibold font-poppins text-primary"
         >
-          {label}{required && <span className="text-error ml-0.5">*</span>}
+          {withAcronimi(label)}{required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
       <div className="relative flex items-center">

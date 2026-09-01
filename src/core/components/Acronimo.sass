@@ -1,0 +1,29 @@
+// ─── ACRONIMO ────────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.acronimo
+  // La sigla resta nel colore del testo che la ospita: cambia solo il segnale
+  // "qui c'è una spiegazione" (puntinato + cursore).
+  text-decoration: underline dotted
+  text-decoration-thickness: 1px
+  text-underline-offset: 3px
+  text-decoration-color: alpha($primary, .45)
+  cursor: help
+
+  &:hover
+    text-decoration-color: $primary
+
+  // Contenuto del tooltip scuro
+  &__tip
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+  &__tip-title
+    font-size: 11.5px
+    font-weight: 600
+
+  &__tip-text
+    font-size: 11px
+    font-weight: 400
+    color: rgba(255, 255, 255, .78)

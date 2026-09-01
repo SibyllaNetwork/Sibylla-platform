@@ -2,6 +2,7 @@ import React from 'react'
 import clsx from 'clsx'
 import Tooltip from '../../../core/components/Tooltip'
 import CfgBadge from '../../../core/cfg/CfgBadge'
+import { withAcronimi } from '../../../core/components/Acronimo'
 import {
   nextStepAmong,
   type CfgCompletion,
@@ -72,6 +73,9 @@ export default function ConfiguratoreHub({ lanes, completion, onOpen, onOpenPale
 
               <div className="cfg-hub__pills">
                 {lane.items.map(({ def, status }) => {
+                  // Sulle pill bloccate / in arrivo il tooltip è già sull'intera
+                  // pill: lì la sigla non va avvolta, altrimenti si sovrappongono.
+                  const gated = status === 'locked' || status === 'soon'
                   const pill = (
                     <button
                       key={def.id}
@@ -80,7 +84,9 @@ export default function ConfiguratoreHub({ lanes, completion, onOpen, onOpenPale
                       onClick={() => onOpen(def.id)}
                     >
                       <i className={clsx(STATUS_ICONS[status], 'cfg-hub__pill-icon')} aria-hidden="true" />
-                      <span className="cfg-hub__pill-label">{def.label}</span>
+                      <span className="cfg-hub__pill-label">
+                        {gated ? def.label : withAcronimi(def.label)}
+                      </span>
                     </button>
                   )
                   if (status === 'locked' && def.requires) {
@@ -109,7 +115,7 @@ export default function ConfiguratoreHub({ lanes, completion, onOpen, onOpenPale
                   </span>
                 ) : next ? (
                   <button type="button" className="cfg-hub__resume" onClick={() => onOpen(next.id)}>
-                    Riprendi da <strong>{next.label}</strong>
+                    Riprendi da <strong>{withAcronimi(next.label)}</strong>
                     <i className="fa-solid fa-arrow-right" aria-hidden="true" />
                   </button>
                 ) : (

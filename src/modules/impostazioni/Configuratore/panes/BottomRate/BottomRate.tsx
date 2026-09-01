@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { CfgTable, CfgToolbar, CfgSaveBar } from '../../../../../core/cfg'
 import { SelectField, CheckboxField, ToggleSwitch, InputField } from '../../../../../core/components/form'
 import Tooltip from '../../../../../core/components/Tooltip'
+import { ACRONIMI } from '../../../../../core/components/acronimi'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import { useConfiguratoreStore, type CfgCompletion } from '../../../../../store/useConfiguratoreStore'
 import { toast } from '../../../../../core/components/Toast/useToast'
@@ -146,8 +147,11 @@ export default function BottomRate() {
                   const stato = attivo
                     ? (configurato ? 'Configurato · attivo' : 'Attivo · da configurare')
                     : (configurato ? `Configurato (${fmtEur(r.valori[p.id]!)}) · non attivo` : 'Non configurato')
+                  // La chip è una sigla (BAR, FIT): il tooltip la scioglie prima
+                  // di dare lo stato, così il piano tariffario resta leggibile.
+                  const sigla = ACRONIMI[p.label]
                   return (
-                    <Tooltip key={p.id} text={stato}>
+                    <Tooltip key={p.id} text={sigla ? `${p.label} · ${sigla.esteso} — ${stato}` : stato}>
                       <button
                         type="button"
                         className={clsx(

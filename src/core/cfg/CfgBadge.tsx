@@ -21,12 +21,22 @@ export interface CfgBadgeProps {
   className?: string
 }
 
-const LABELS: Record<CfgBadgeStatus, string> = {
+export const CFG_STATUS_LABELS: Record<CfgBadgeStatus, string> = {
   configured: 'Configurato',
   partial:    'Da completare',
   empty:      'Da configurare',
   locked:     'Bloccato',
   soon:       'In arrivo',
+}
+
+// Significato dell'indicatore (check, pallino, lucchetto, clessidra): serve ai
+// tooltip dei contesti compatti, dove si vede solo il simbolo e non l'etichetta.
+export const CFG_STATUS_HINTS: Record<CfgBadgeStatus, string> = {
+  configured: 'Tutte le impostazioni obbligatorie di questa voce sono salvate.',
+  partial:    'Configurazione avviata: mancano ancora impostazioni obbligatorie.',
+  empty:      'Nessuna impostazione salvata: la voce è ancora ai valori predefiniti.',
+  locked:     'Si sblocca completando prima il configuratore richiesto.',
+  soon:       'Pane in costruzione: sarà disponibile in un prossimo rilascio.',
 }
 
 const ICONS: Record<CfgBadgeStatus, string | null> = {
@@ -43,12 +53,12 @@ export default function CfgBadge({ status, compact = false, className }: CfgBadg
     <span
       className={clsx('cfg-badge', `cfg-badge--${status}`, compact && 'cfg-badge--compact', className)}
       role="status"
-      aria-label={LABELS[status]}
+      aria-label={CFG_STATUS_LABELS[status]}
     >
       {icon
         ? <i className={clsx(icon, 'cfg-badge__icon')} aria-hidden="true" />
         : <span className="cfg-badge__dot" aria-hidden="true" />}
-      {!compact && <span className="cfg-badge__label">{LABELS[status]}</span>}
+      {!compact && <span className="cfg-badge__label">{CFG_STATUS_LABELS[status]}</span>}
     </span>
   )
 }

@@ -1,6 +1,8 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-import CfgBadge from '../../../core/cfg/CfgBadge'
+import Tooltip from '../../../core/components/Tooltip'
+import CfgBadge, { CFG_STATUS_HINTS, CFG_STATUS_LABELS } from '../../../core/cfg/CfgBadge'
+import { withAcronimi } from '../../../core/components/Acronimo'
 import type { CfgDisplayStatus } from '../../../store/useConfiguratoreStore'
 import type { CfgGroup, ConfiguratoreDef, ConfiguratoreId, CfgGroupId } from './registry'
 import './ConfiguratoreSidebar.sass'
@@ -11,6 +13,8 @@ import './ConfiguratoreSidebar.sass'
 //  configurati/totale, badge di stato per voce e voci bloccate riconoscibili.
 //  L'indicatore della voce attiva SCORRE tra le voci (animazione di layout via
 //  custom property --cfgsb-ind-*, non un semplice cambio di sfondo).
+//  I simboli di stato (check, pallino, lucchetto, clessidra) sono spiegati da un
+//  tooltip standard: qui si vede solo il simbolo, non l'etichetta del badge.
 
 export interface SidebarLane {
   group: CfgGroup
@@ -27,6 +31,19 @@ export interface ConfiguratoreSidebarProps {
   onHub: () => void
   /** Apre la command palette (clic sulla search / ⌘K). */
   onOpenPalette: () => void
+}
+
+/** Titolo + spiegazione del simbolo di stato mostrato sulla voce. */
+function statusTip(status: CfgDisplayStatus, def: ConfiguratoreDef) {
+  const hint = status === 'locked' && def.requires
+    ? def.requires.reason
+    : CFG_STATUS_HINTS[status]
+  return (
+    <span className="cfgsb__tip">
+      <strong className="cfgsb__tip-title">{CFG_STATUS_LABELS[status]}</strong>
+      <span className="cfgsb__tip-text">{hint}</span>
+    </span>
+  )
 }
 
 export default function ConfiguratoreSidebar({
@@ -114,7 +131,21 @@ export default function ConfiguratoreSidebar({
               >
                 <i className={`fa-light fa-${lane.group.icon} cfgsb__group-icon`} aria-hidden="true" />
                 <span className="cfgsb__group-label">{lane.group.label}</span>
-                <span className="cfgsb__group-count">{lane.configured}/{lane.total}</span>
+                <span className="cfgsb__group-count-tip">
+                  <Tooltip
+                    position="right"
+                    content={(
+                      <span className="cfgsb__tip">
+                        <strong className="cfgsb__tip-title">{lane.configured} di {lane.total} configurati</strong>
+                        <span className="cfgsb__tip-text">
+                          Voci con impostazioni complete in questa corsia.
+                        </span>
+                      </span>
+                    )}
+                  >
+                    <span className="cfgsb__group-count">{lane.configured}/{lane.total}</span>
+                  </Tooltip>
+                </span>
                 <i className="fa-light fa-chevron-down cfgsb__group-chev" aria-hidden="true" />
               </button>
 
@@ -135,8 +166,12 @@ export default function ConfiguratoreSidebar({
                       aria-current={def.id === activeId ? 'page' : undefined}
                     >
                       <i className={`fa-light fa-${def.icon} cfgsb__item-icon`} aria-hidden="true" />
-                      <span className="cfgsb__item-label">{def.label}</span>
-                      <CfgBadge status={status} compact className="cfgsb__item-badge" />
+                      <span className="cfgsb__item-label">{withAcronimi(def.label)}</span>
+                      <span className="cfgsb__item-badge-tip">
+                        <Tooltip position="right" content={statusTip(status, def)}>
+                          <CfgBadge status={status} compact className="cfgsb__item-badge" />
+                        </Tooltip>
+                      </span>
                     </button>
                   ))}
                 </div>

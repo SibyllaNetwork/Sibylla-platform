@@ -1,6 +1,7 @@
 import React, { useId } from 'react'
 import clsx from 'clsx'
 import Tooltip from '../Tooltip'
+import { withAcronimi } from '../Acronimo'
 
 interface RadioOption {
   value: string
@@ -29,7 +30,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   const id = useId()
   return (
     <div className={clsx('flex flex-col gap-1', className)}>
-      {label && <span className="text-[12px] font-semibold font-poppins text-primary">{label}</span>}
+      {label && <span className="text-[12px] font-semibold font-poppins text-primary">{withAcronimi(label)}</span>}
       <div className="flex items-center gap-4 h-9">
         {options.map(opt => {
           const isDisabled = disabled || !!opt.disabled
@@ -48,7 +49,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
                 disabled={isDisabled}
                 onChange={() => onChange?.(opt.value)}
               />
-              {opt.label}
+              {opt.tooltip ? opt.label : withAcronimi(opt.label)}
             </label>
           )
           return opt.tooltip

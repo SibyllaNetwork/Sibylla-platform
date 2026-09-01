@@ -1,5 +1,6 @@
 import React, { forwardRef, useId } from 'react'
 import clsx from 'clsx'
+import { withAcronimi } from '../Acronimo'
 
 export interface SelectOption {
   value:     string | number
@@ -42,7 +43,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>((
           htmlFor={id}
           className="text-[12px] font-semibold font-poppins text-primary"
         >
-          {label}{required && <span className="text-error ml-0.5">*</span>}
+          {withAcronimi(label)}{required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
       <select

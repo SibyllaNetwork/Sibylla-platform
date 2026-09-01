@@ -1,11 +1,13 @@
 import React from 'react'
 import clsx from 'clsx'
+import { withAcronimi } from '../components/Acronimo'
 import './CfgTable.sass'
 
 // ─── CFG TABLE (tabella standard dei pane) ───────────────────────────────────
 //  Wrapper su `.sib-table` / `.sib-table-wrap` (lo standard piattaforma) con:
 //   • colgroup in % (`width` per colonna) + `table-layout: fixed`, così le
 //     colonne non spingono mai la tabella in overflow orizzontale;
+//   • sigle nelle intestazioni (B.A.R., PEC, SDI…) spiegate all'hover;
 //   • empty state integrato quando non ci sono righe;
 //   • nessuno scroll-x a nessuna larghezza (overflow-x: hidden sul wrap:
 //     i testi lunghi nelle celle vanno troncati con TruncatedText).
@@ -49,7 +51,7 @@ export default function CfgTable({ columns, children, empty, className }: CfgTab
           <tr>
             {columns.map(c => (
               <th key={c.key} className={clsx(c.align && `cfg-table__th--${c.align}`)}>
-                {c.label}
+                {withAcronimi(c.label)}
               </th>
             ))}
           </tr>

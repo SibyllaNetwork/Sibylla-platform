@@ -1,5 +1,6 @@
 import React, { forwardRef, useId } from 'react'
 import clsx from 'clsx'
+import { withAcronimi } from '../Acronimo'
 
 export interface TextareaFieldProps {
   label?: string
@@ -27,7 +28,7 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>((
     <div className={clsx('flex flex-col gap-1', className)}>
       {label && (
         <label htmlFor={id} className="text-[12px] font-semibold font-poppins text-primary">
-          {label}{required && <span className="text-error ml-0.5">*</span>}
+          {withAcronimi(label)}{required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
       <textarea

@@ -137,16 +137,21 @@ export default function CreaStruttura({
   const [filter, setFilter] = useState<FilterType>('all')
   const [page, setPage] = useState(1)
 
-  // Pagina dedicata "Crea outlet": apre la stessa pagina di Crea struttura con il
-  // picker già aperto e "Outlet" pre-selezionato (come scegliere Crea struttura → Outlet).
-  const [pickerOpen, setPickerOpen] = useState(autoOpenType === 'outlet')
+  // Pagina dedicata (es. "Crea outlet" nel Configuratore): il tipo è già deciso,
+  // quindi il picker «Che tipo di struttura vuoi creare?» si salta del tutto e si
+  // apre subito la modale "Nuova struttura" con la Tipologia precompilata.
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerSel, setPickerSel] = useState<StructureType | null>(autoOpenType ?? null)
   const [drawerType, setDrawerType] = useState<StructureType | null>(null)
   const [editingRow, setEditingRow] = useState<StructureRow | null>(null)
 
   // Modale "Nuova struttura" (stessa della sezione admin, UI platform).
-  const [newOpen, setNewOpen] = useState(false)
-  const [newForm, setNewForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
+  const [newOpen, setNewOpen] = useState(!!autoOpenType)
+  const [newForm, setNewForm] = useState<NewClientForm>(
+    autoOpenType
+      ? { ...EMPTY_NEW_CLIENT, categoria: TYPE_TO_CAT[autoOpenType] }
+      : { ...EMPTY_NEW_CLIENT },
+  )
 
   const [confirmDelete,  setConfirmDelete]  = useState<StructureRow | null>(null)
   const [confirmDisable, setConfirmDisable] = useState<StructureRow | null>(null)
@@ -179,6 +184,12 @@ export default function CreaStruttura({
 
   function openPicker() {
     setEditingRow(null)
+    // Tipo già deciso dalla pagina: niente lista dei tipi, si va dritti alla modale.
+    if (autoOpenType) {
+      setNewForm({ ...EMPTY_NEW_CLIENT, categoria: TYPE_TO_CAT[autoOpenType] })
+      setNewOpen(true)
+      return
+    }
     setPickerSel(null)
     setPickerOpen(true)
   }

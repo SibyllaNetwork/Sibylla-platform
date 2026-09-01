@@ -1,5 +1,6 @@
 import React, { useId } from 'react'
 import clsx from 'clsx'
+import { withAcronimi } from '../Acronimo'
 
 export interface CheckboxFieldProps {
   label?: string
@@ -27,7 +28,7 @@ const CheckboxField: React.FC<CheckboxFieldProps> = ({
         disabled={disabled} onChange={onChange}
       />
       <div className="flex flex-col gap-0.5">
-        {label && <label htmlFor={id} className="text-[13px] font-opensans text-ink cursor-pointer">{label}</label>}
+        {label && <label htmlFor={id} className="text-[13px] font-opensans text-ink cursor-pointer">{withAcronimi(label)}</label>}
         {error && <span className="text-[11px] font-opensans text-error">{error}</span>}
         {!error && hint && <span className="text-[11px] font-opensans text-ink-muted">{hint}</span>}
       </div>
