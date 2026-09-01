@@ -1,0 +1,27 @@
+// ─── FLAG CIRCLE ─────────────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.flag-circle
+  // Diametro dal componente (--flag-size), con un default sicuro
+  width: var(--flag-size, 22px)
+  height: var(--flag-size, 22px)
+  flex: none
+  border-radius: 50%
+  overflow: hidden
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  // Anello interno: stacca le bandiere chiare (Giappone, Svizzera) dal fondo
+  box-shadow: inset 0 0 0 1px alpha($primary, .18)
+
+  &__img
+    width: 100%
+    height: 100%
+    display: block
+    object-fit: cover
+
+  // Ripiego sull'emoji quando l'SVG del paese non c'è
+  &__fallback
+    font-size: calc(var(--flag-size, 22px) * .82)
+    line-height: 1
+    transform: scale(1.45)

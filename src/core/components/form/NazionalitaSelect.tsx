@@ -2,17 +2,19 @@ import React, { useState, useRef, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import clsx from 'clsx'
 import { PAESI, countryFlag } from '../../utils/countryFlags'
+import FlagCircle from '../FlagCircle'
 import './NazionalitaSelect.sass'
 
-// Bandiera "tonda": l'emoji-bandiera (rettangolare) viene ingrandita e ritagliata
-// dentro un cerchio con overflow:hidden. Self-contained (nessun asset esterno);
-// degrada alla sigla a 2 lettere solo su Windows datati, come le altre bandiere.
+// Bandiera tonda: SVG circolare condiviso (vedi FlagCircle), con l'emoji come
+// solo ripiego per i paesi senza SVG.
 export function FlagBadge({ name, className }: { name?: string; className?: string }) {
-  const f = countryFlag(name)
   return (
-    <span className={clsx('nazsel__flag', className)} aria-hidden="true">
-      <em>{f || '🏳️'}</em>
-    </span>
+    <FlagCircle
+      name={name}
+      emoji={countryFlag(name)}
+      size={18}
+      className={clsx('nazsel__flag', className)}
+    />
   )
 }
 

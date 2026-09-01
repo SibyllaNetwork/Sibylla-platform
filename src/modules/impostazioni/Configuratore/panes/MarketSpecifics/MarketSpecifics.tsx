@@ -3,6 +3,7 @@ import { apiFetchSibylla } from '../../../../../services/api'
 import { SearchField, InputField } from '../../../../../core/components/form'
 import { CfgToolbar, CfgTable, CfgSaveBar } from '../../../../../core/cfg'
 import Pagination from '../../../../../core/components/Pagination'
+import FlagCircle from '../../../../../core/components/FlagCircle'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './MarketSpecifics.sass'
 
@@ -163,9 +164,7 @@ export default function MarketSpecifics() {
           <tr key={n.id}>
             <td>
               <span className="market-specifics__naz">
-                <span className="market-specifics__flag" aria-hidden="true">
-                  <span className="market-specifics__flag-glyph">{n.flagEmoji}</span>
-                </span>
+                <FlagCircle emoji={n.flagEmoji} name={n.nome} size={22} />
                 <span>{titleCase(n.nome)}</span>
               </span>
             </td>
