@@ -1,52 +1,22 @@
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { DateRangeField } from '../../../../core/components/form'
+import Tooltip from '../../../../core/components/Tooltip'
 import { AreaTrend, type SeriesPoint } from '../_charts/AreaTrend'
+import { HOTELS, buildSeries, parseIso, fmtIt, type Day } from './idsData'
 import './PrenotazioniIDS.sass'
 
-const HOTELS = ['Hotel Archimede', 'Hotel Floridia', 'Hotel Lazio', 'Hotel Luce', 'Hotel Lux', 'Hotel Noto', 'Hotel Regio']
-const HOTEL_BASE: Record<string, number> = {
-  'Hotel Archimede': 14, 'Hotel Floridia': 8, 'Hotel Lazio': 18, 'Hotel Luce': 26, 'Hotel Lux': 10, 'Hotel Noto': 20, 'Hotel Regio': 12,
-}
-
-const hashStr = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h }
-const parseIso = (d: string) => { const [y, m, g] = d.split('-').map(Number); return new Date(y, m - 1, g) }
-const fmtIt = (d: Date) => { const p = (n: number) => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}` }
-const GIORNI = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
-
-// prenotazioni giornaliere deterministiche (mock) per struttura/data
-function dailyCount(hotel: string, d: Date): number {
-  const base = HOTEL_BASE[hotel] ?? 12
-  const weekend = d.getDay() === 5 || d.getDay() === 6 ? base * 0.45 : 0
-  const seasonal = base * 0.45 * Math.sin((d.getMonth() * 30 + d.getDate()) / 58)
-  const noise = ((hashStr(hotel + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()) % 100) / 100 - 0.3) * base * 0.6
-  return Math.max(0, Math.round(base + weekend + seasonal + noise))
-}
-
-interface Day { date: Date; iso: string; label: string; dow: string; count: number }
-function buildSeries(hotel: string, da: Date, a: Date): Day[] {
-  const out: Day[] = []
-  const cur = new Date(da)
-  let guard = 0
-  while (cur <= a && guard < 600) {
-    out.push({ date: new Date(cur), iso: cur.toISOString().slice(0, 10), label: fmtIt(cur), dow: GIORNI[cur.getDay()], count: dailyCount(hotel, cur) })
-    cur.setDate(cur.getDate() + 1)
-    guard++
-  }
-  return out
-}
-
-function Spark({ values, color }: { values: number[]; color: string }) {
+function Spark({ values }: { values: number[] }) {
   if (values.length < 2) return null
   const W = 88, H = 22, max = Math.max(1, ...values)
   const pts = values.map((v, i) => `${((i / (values.length - 1)) * W).toFixed(1)},${(H - (v / max) * (H - 2) - 1).toFixed(1)}`).join(' ')
-  return <svg className="ids__spark" width={W} height={H} viewBox={`0 0 ${W} ${H}`}><polyline points={pts} fill="none" stroke={color} strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" /></svg>
+  return <svg className="ids__spark" width={W} height={H} viewBox={`0 0 ${W} ${H}`}><polyline points={pts} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" /></svg>
 }
 const sample = (arr: Day[], n: number) => { if (arr.length <= n) return arr.map((d) => d.count); const step = arr.length / n; return Array.from({ length: n }, (_, i) => arr[Math.floor(i * step)].count) }
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
-export default function PrenotazioniIDS(_props: { navigate?: (p: string) => void } = {}) {
+export default function PrenotazioniIDS({ navigate }: { navigate?: (p: string) => void } = {}) {
   const [dataDa, setDataDa] = useState('2026-04-01')
   const [dataA, setDataA] = useState('2026-06-30')
   const [selected, setSelected] = useState(HOTELS[3])
@@ -94,7 +64,7 @@ export default function PrenotazioniIDS(_props: { navigate?: (p: string) => void
               </div>
               <div className="ids__item-bottom">
                 <span className="ids__item-bar"><span className="ids__item-bar-fill" style={{ width: `${Math.round((totByHotel[h] / maxTot) * 100)}%` }} /></span>
-                <Spark values={sample(seriesByHotel[h], 20)} color={h === selected ? '#204769' : '#9fb3c8'} />
+                <Spark values={sample(seriesByHotel[h], 20)} />
               </div>
             </button>
           ))}
@@ -128,7 +98,16 @@ export default function PrenotazioniIDS(_props: { navigate?: (p: string) => void
                     <tr key={d.iso} className={d.count === selPicco?.count ? 'is-peak' : undefined}>
                       <td>{d.label}</td>
                       <td className="ids__dow">{d.dow}</td>
-                      <td className="ids__r"><span className="ids__count">{d.count}</span></td>
+                      <td className="ids__r">
+                        {d.count > 0 ? (
+                          <Tooltip content={`Apri le ${d.count} prenotazioni di ${selected} inserite il ${d.label}`} position="left" variant="dark">
+                            <button type="button" className="ids__count ids__count--link"
+                              onClick={() => navigate?.(`prenotazioni-ids-dett:${d.iso}|${encodeURIComponent(selected)}`)}>
+                              {d.count}
+                            </button>
+                          </Tooltip>
+                        ) : <span className="ids__count">{d.count}</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

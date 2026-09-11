@@ -40,6 +40,14 @@ export const ACRONIMI: Record<string, AcronimoDef> = {
     esteso: 'Central Reservation System',
     spiegazione: 'Il sistema centrale che raccoglie e distribuisce le prenotazioni sui canali di vendita.',
   },
+  'IDS': {
+    esteso: 'Internet Distribution System',
+    spiegazione: 'I canali di distribuzione online (OTA, metasearch, sito proprio) da cui arrivano le prenotazioni via channel manager.',
+  },
+  'VCC': {
+    esteso: 'Virtual Credit Card',
+    spiegazione: 'Carta di credito virtuale monouso emessa per incassare una singola prenotazione.',
+  },
   'OTA': {
     esteso: 'Online Travel Agency',
     spiegazione: 'Portale di prenotazione online (Booking.com, Expedia…) che rivende le camere della struttura.',

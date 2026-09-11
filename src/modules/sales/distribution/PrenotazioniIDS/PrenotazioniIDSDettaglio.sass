@@ -1,0 +1,259 @@
+// ─── PRENOTAZIONI IDS · DETTAGLIO GIORNATA ────────────────────────────────────
+@use '../../../../styles/tokens' as *
+@use '../../../../styles/mixins' as *
+
+.idsd
+  display: flex
+  flex-direction: column
+  gap: 14px
+  // La compattazione della tabella si misura sulla larghezza REALE del
+  // contenuto (sidebar aperta o chiusa), non sul viewport.
+  container-type: inline-size
+  container-name: idsd
+
+// ── Filtri ────────────────────────────────────────────────────────────────────
+.idsd__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 12px
+  flex-wrap: wrap
+
+.idsd__field
+  flex: 0 0 auto
+
+.idsd__field--struttura
+  width: 190px
+
+.idsd__field--data
+  width: 190px
+
+.idsd__field--cerca
+  width: 210px
+
+.idsd__field--range
+  width: 230px
+
+.idsd__actions
+  margin-left: auto
+  display: flex
+  align-items: center
+  gap: 8px
+
+.idsd__icon-btn
+  width: 34px
+  height: 34px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: $primary
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  transition: background .15s, border-color .15s
+
+  i
+    font-size: 16px
+
+  &:hover
+    background: $primary-50
+    border-color: $primary
+
+// ── Tabella ───────────────────────────────────────────────────────────────────
+// Regola tassativa: nessuno scroll orizzontale a nessuna larghezza. Ci si
+// arriva con table-layout fixed + colonne in percentuale e con la container
+// query in fondo al file.
+.idsd__wrap
+  overflow-x: hidden
+
+// Due classi nel selettore: a pari specificità vincerebbero le regole di
+// .sib-table (tailwind.css, caricato dopo) su quelle di pagina.
+.idsd .idsd__table
+  +table-fit
+  font-size: 12px
+
+  th, td
+    padding-left: 7px
+    padding-right: 7px
+
+  thead th
+    font-size: 11px
+
++th-labels
+
+.idsd__c
+  text-align: center
+
+.idsd .idsd__table .idsd__c
+  text-align: center
+
+.idsd .idsd__table .idsd__r
+  text-align: right
+
+.idsd .idsd__table .idsd__r .sib-truncate
+  text-align: right
+
+.idsd__idx
+  color: $text-inactive
+
+.idsd .idsd__table .idsd__num
+  color: $primary
+
+.idsd__vcc
+  color: $primary
+  font-size: 16px
+
+// ── Totale + paginazione ──────────────────────────────────────────────────────
+.idsd__foot
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  margin-top: -12px
+
+.idsd__foot-count
+  font-size: 12px
+  color: $text-inactive
+
+.idsd__total
+  display: inline-flex
+  align-items: baseline
+  gap: 10px
+  border: 1px solid $primary
+  border-radius: 8px
+  background: $primary-50
+  padding: 6px 14px
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+
+.idsd__total-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+.idsd__pag
+  display: flex
+  justify-content: center
+
+// ── Larghezze di colonna (somma = 100) ────────────────────────────────────────
+.idsd__col-idx
+  width: 2.4%
+.idsd__col-npre
+  width: 5.4%
+.idsd__col-struttura
+  width: 7.6%
+.idsd__col-datapre
+  width: 6.4%
+.idsd__col-booking
+  width: 9.5%
+.idsd__col-data
+  width: 6.4%
+.idsd__col-persone
+  width: 4.4%
+.idsd__col-camere
+  width: 4.4%
+.idsd__col-piano
+  width: 8.6%
+.idsd__col-arr
+  width: 6.2%
+.idsd__col-origine
+  width: 7.2%
+.idsd__col-cliente
+  width: 8.6%
+.idsd__col-log
+  width: 5.5%
+.idsd__col-vcc
+  width: 4.0%
+.idsd__col-euro
+  width: 7.0%
+
+// ── Compattazione (laptop con sidebar aperta) ─────────────────────────────────
+@container idsd (max-width: 1360px)
+  .idsd .idsd__table
+    font-size: 11.5px
+
+    thead th
+      font-size: 10.5px
+
+    th, td
+      padding-left: 5px
+      padding-right: 5px
+
+    tbody td
+      padding-top: 8px
+      padding-bottom: 8px
+
+    .sib-colf-head
+      gap: 3px
+
+    .sib-colf__btn
+      width: 16px
+      height: 16px
+
+      i
+        font-size: 10px
+
+  // Sotto soglia le intestazioni passano all'abbreviazione puntata + tooltip.
+  .idsd
+    +th-compact
+
+@container idsd (max-width: 1180px)
+  .idsd .idsd__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 4px
+      padding-right: 4px
+
+    .sib-colf__btn
+      width: 14px
+      height: 14px
+
+      i
+        font-size: 9px
+
+  .idsd__field--struttura, .idsd__field--data
+    width: 160px
+
+  .idsd__field--cerca
+    width: 170px
+
+  .idsd__field--range
+    width: 200px
+
+  // Sotto i 1180px le proporzioni cambiano: le date hanno bisogno di tutto lo
+  // spazio (gg/mm/aaaa non si abbrevia), booking-id e piani possono cedere.
+  .idsd__col-idx
+    width: 2.6%
+  .idsd__col-npre
+    width: 5.2%
+  .idsd__col-struttura
+    width: 7.2%
+  .idsd__col-datapre
+    width: 7.4%
+  .idsd__col-booking
+    width: 7.6%
+  .idsd__col-data
+    width: 7.4%
+  .idsd__col-persone
+    width: 4.0%
+  .idsd__col-camere
+    width: 4.0%
+  .idsd__col-piano
+    width: 8.2%
+  .idsd__col-arr
+    width: 6.0%
+  .idsd__col-origine
+    width: 7.2%
+  .idsd__col-cliente
+    width: 8.4%
+  .idsd__col-log
+    width: 5.4%
+  .idsd__col-vcc
+    width: 4.6%
+  .idsd__col-euro
+    width: 7.4%

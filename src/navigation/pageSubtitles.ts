@@ -109,6 +109,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "portafoglio-personale": "Dai valore al tuo lavoro: guadagna e utilizza il credito del tuo portafoglio",
   "preliminare": "Controlla e verifica i dati prima della chiusura definitiva, garantendo correttezza e completezza",
   "prenotazioni-ids": "Visione centralizzata per monitoraggio in tempo reale delle prenotazioni ricevute dai canali di distribuzione online",
+  "prenotazioni-ids-dett": "Importazione e aggiornamento automatico delle prenotazioni dai diversi canali di distribuzione online per singola struttura",
   "pricing-benchmark": "in pending (momentaneamente)",
   "profile-analysis": "Analizza i profili dei dipendenti per monitorare ruoli, performance e competenze",
   "profit-trend": "Analizza trend di profitti e marginalità aziendale",

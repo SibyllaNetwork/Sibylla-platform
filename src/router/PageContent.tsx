@@ -45,6 +45,7 @@ import TariffeDisponibilita        from '../modules/sales/distribution/TariffeDi
 import GestionePianiTariffari      from '../modules/sales/distribution/GestionePianiTariffari/GestionePianiTariffari';
 import MaggiorazioniPromozioni     from '../modules/sales/distribution/MaggiorazioniPromozioni/MaggiorazioniPromozioni';
 import PrenotazioniIDS             from '../modules/sales/distribution/PrenotazioniIDS/PrenotazioniIDS';
+import PrenotazioniIDSDettaglio    from '../modules/sales/distribution/PrenotazioniIDS/PrenotazioniIDSDettaglio';
 import CalendarioTariffe           from '../modules/sales/distribution/CalendarioTariffe/CalendarioTariffe';
 import CalendarioAnnuale           from '../modules/sales/distribution/CalendarioAnnuale/CalendarioAnnuale';
 import ForesightRevenue            from '../modules/sales/distribution/ForesightRevenue/ForesightRevenue';
@@ -272,6 +273,14 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'cal-annuale')           return <CalendarioAnnuale navigate={navigate}/>;
   if (page === 'maggiorazioni')         return <MaggiorazioniPromozioni navigate={navigate}/>;
   if (page === 'prenotazioni-ids')      return <PrenotazioniIDS navigate={navigate}/>;
+  // prenotazioni-ids-dett:<iso>|<struttura> — elenco delle prenotazioni inserite
+  // in una giornata (struttura facoltativa: senza, tutte le strutture).
+  if (page.startsWith('prenotazioni-ids-dett')) {
+    const arg = page.slice('prenotazioni-ids-dett:'.length);
+    const [iso, hotel] = arg.split('|');
+    return <PrenotazioniIDSDettaglio navigate={navigate} iso={iso || undefined}
+      struttura={hotel ? decodeURIComponent(hotel) : undefined} key={page}/>;
+  }
   if (page === 'tableau-book')          return <TableauPage navigate={navigate} key="tableau-book"/>;
   if (page === 'open-board')            return <TableauPage navigate={navigate} key="open-board" title="Open board" subtitle="Accedi in tempo reale alla disponibilità delle strutture e gestisci l'intero processo di prenotazione da un unico ambiente operativo"/>;
   if (page === 'analisi-booking')       return <AnalisiBooking navigate={navigate}/>;

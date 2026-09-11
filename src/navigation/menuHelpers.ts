@@ -107,11 +107,15 @@ const PARENT_MAP: Record<string, string> = {
   'foresight-revenue':    'tariffe-disp',
   'configura-notifiche':  'centro-notifiche',
   'prenotazioni-ids':     'tariffe-disp',
+  'prenotazioni-ids-dett': 'prenotazioni-ids',
   'analisi-dist-sales':   'analisi-dist-exec',
 }
 
 export function resolveActivePage(pageId: string): string {
   const found = findByPage(MENU_FULL, pageId)
   if (found) return pageId
-  return PARENT_MAP[pageId] || pageId
+  // Le pagine parametriche (es. `prenotazioni-ids-dett:2026-09-06|Hotel Luce`)
+  // ereditano la madre della loro base.
+  const base = pageId.split(':')[0]
+  return PARENT_MAP[pageId] || PARENT_MAP[base] || pageId
 }
