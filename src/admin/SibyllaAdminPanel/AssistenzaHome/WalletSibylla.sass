@@ -55,7 +55,7 @@
 // ── Card di riepilogo (2 a sinistra: depositi · 2 a destra: VCC) ──────────────
 .wsb__cards
   display: grid
-  grid-template-columns: repeat(4, 1fr)
+  grid-template-columns: repeat(5, 1fr)
   gap: 14px
   margin-bottom: 6px
 
@@ -84,6 +84,11 @@
   font-size: 12px
   font-weight: 700
   color: $error-dark
+
+// La card del totale complessivo si distingue dalle altre: è la somma.
+.wsb .wsb__card--tot
+  background: #f7edd4
+  border-color: #ddc98a
 
 .wsb .wsb__card--hover
   cursor: help
@@ -337,8 +342,11 @@
   .wsb .wsb__table
     +th-compact
 
-// Le quattro card restano su una riga (due a sinistra · due a destra) finché
-// c'è spazio: solo sotto questa soglia passano a due righe da due.
-@container wallet (max-width: 1040px)
+// Le card restano su una riga finché c'è spazio; poi vanno a capo per gradi.
+@container wallet (max-width: 1240px)
+  .wsb__cards
+    grid-template-columns: repeat(3, 1fr)
+
+@container wallet (max-width: 820px)
   .wsb__cards
     grid-template-columns: repeat(2, 1fr)

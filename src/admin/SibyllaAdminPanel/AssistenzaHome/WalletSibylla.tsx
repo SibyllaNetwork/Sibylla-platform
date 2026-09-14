@@ -167,6 +167,8 @@ export default function WalletSibylla({ navigate }: Props) {
   // Liquidità in cassa: quanto incassato dai partner meno quanto già girato
   // alle strutture con le VCC (depositi residui + commissioni trattenute).
   const creditoTotale = r2(totaleDepositi - vccImporto)
+  // Credito complessivo: credito totale Sibylla + totale dei depositi.
+  const creditoComplessivo = r2(creditoTotale + totaleDepositi)
 
   // Elenco di default: dal movimento più recente. `sortRows` non tocca nulla
   // finché non si sceglie una colonna su cui ordinare.
@@ -237,6 +239,12 @@ export default function WalletSibylla({ navigate }: Props) {
       </div>
 
       <div className="wsb__cards">
+        <div className="sib-stat-card wsb__card wsb__card--tot">
+          <span className="sib-stat-card__label">Credito complessivo</span>
+          <span className="sib-stat-card__value">{eur(creditoComplessivo)}</span>
+          <span className="wsb__card-hint">Credito totale Sibylla + totale dei depositi</span>
+        </div>
+
         <div className="sib-stat-card wsb__card">
           <span className="sib-stat-card__label">Credito totale Sibylla</span>
           <span className="sib-stat-card__value">{eur(creditoTotale)}</span>
@@ -249,7 +257,7 @@ export default function WalletSibylla({ navigate }: Props) {
               Totale dei depositi <Ico n="info" s={12} c="var(--color-primary)" />
             </span>
             <span className="sib-stat-card__value">{eur(totaleDepositi)}</span>
-            <span className="wsb__card-hint">Ricevuti dai partner — passa il mouse per il residuo</span>
+            <span className="wsb__card-hint">Ricevuti dai partner (hover: residuo)</span>
           </span>
         </Tooltip>
 
