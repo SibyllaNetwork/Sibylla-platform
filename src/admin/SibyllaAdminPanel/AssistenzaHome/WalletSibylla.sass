@@ -1,0 +1,346 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+.wsb
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  // Container query sul root pagina: la tabella si compatta sulla larghezza
+  // REALE del contenuto (sidenav aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: wallet
+  // Header tabella (bg-canvas) e accenti in palette oro, come le altre pagine
+  // dell'Amministrazione piattaforma.
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.wsb__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.wsb__head
+  text-align: center
+  margin: 0 0 18px
+
+.wsb__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.wsb__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+// ── Card di riepilogo (2 a sinistra: depositi · 2 a destra: VCC) ──────────────
+.wsb__cards
+  display: grid
+  grid-template-columns: repeat(4, 1fr)
+  gap: 14px
+  margin-bottom: 6px
+
+  // Il Tooltip avvolge la card in uno span inline-flex: senza questo la card
+  // non riempirebbe la colonna della griglia.
+  > span
+    display: flex
+
+.wsb .wsb__card
+  flex: 1
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: 2px
+  text-align: left
+  border-color: #e7d4a3
+  background: #fffdf7
+  padding: 12px 16px 13px
+
+.wsb__card-hint
+  font-size: 11px
+  color: $text-inactive
+
+.wsb__card-alert
+  margin-left: 8px
+  font-size: 12px
+  font-weight: 700
+  color: $error-dark
+
+.wsb .wsb__card--hover
+  cursor: help
+
+.wsb .wsb__card--btn
+  cursor: pointer
+  transition: border-color .12s, box-shadow .12s
+
+  &:hover
+    border-color: #c9a84c
+    box-shadow: 0 2px 10px rgba(201, 168, 76, .22)
+
+// ── Tabella dei depositi residui mostrata all'hover ───────────────────────────
+.wsb-dep
+  display: block
+  min-width: 260px
+
+  &__title
+    display: block
+    font-size: 11px
+    font-weight: 700
+    color: #2A2208
+    margin-bottom: 6px
+
+  &__table
+    width: 100%
+    border-collapse: collapse
+    font-size: 11px
+
+    th
+      text-align: left
+      font-weight: 600
+      color: $text-inactive
+      padding: 0 0 4px
+      border-bottom: 1px solid $border
+
+    td
+      padding: 4px 0
+      color: $text-active
+      white-space: nowrap
+
+    th + th,
+    td + td
+      padding-left: 10px
+
+  &__num
+    text-align: right
+
+  &__perc
+    font-weight: 700
+
+  &__row--alert td
+    color: $error-dark
+    font-weight: 600
+
+  &__note
+    display: block
+    margin-top: 6px
+    font-size: 10px
+    color: $text-inactive
+
+// ── Filtri ────────────────────────────────────────────────────────────────────
+.wsb__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 14px
+  flex-wrap: wrap
+
+.wsb__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  .sib-select
+    min-width: 180px
+
+.wsb .wsb__xls i
+  color: var(--color-primary)
+  font-size: 16px
+
+.wsb__nota
+  font-size: 12px
+  color: $text-inactive
+  margin: 0
+
+// ── Tabella movimenti ─────────────────────────────────────────────────────────
+// Regola tassativa: la tabella non scrolla MAI in orizzontale, a nessuna
+// larghezza (colonne in percentuale + compattazione in fondo al file).
+.wsb__wrap
+  border: 1px solid $border
+  overflow-x: hidden
+
+// Due classi nel selettore: a pari specificità le regole di .sib-table
+// (tailwind.css, caricato dopo) vincerebbero su quelle di pagina.
+.wsb .wsb__table
+  +table-fit
+
+  tbody td
+    padding-top: 9px
+    padding-bottom: 9px
+
++th-labels
+
+.wsb__col-data
+  width: 13%
+.wsb__col-partner
+  width: 13%
+.wsb__col-azione
+  width: 10%
+.wsb__col-pren
+  width: 18%
+.wsb__col-imp
+  width: 12%
+.wsb__col-tipo
+  width: 10%
+
+.wsb .wsb__num
+  text-align: right
+
+.wsb__nowrap
+  white-space: nowrap
+
+.wsb__strong
+  font-weight: 600
+  color: $text-active
+
+.wsb__comm
+  font-weight: 600
+  color: #8a6d1f
+
+.wsb__hotel
+  font-weight: 600
+  color: $success
+
+.wsb__empty
+  text-align: center
+  color: $text-inactive
+  padding: 26px 0
+
+.wsb__badge
+  display: inline-flex
+  align-items: center
+  height: 20px
+  padding: 0 9px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 600
+
+  &--deposito,
+  &--ricarica
+    background: $link-light
+    color: $link
+
+  &--vendita
+    background: $success-light
+    color: $success
+
+  &--acquisto
+    background: #f3e9cf
+    color: #8a6d1f
+
+.wsb__tipo
+  font-size: 12px
+  font-weight: 600
+
+  &--in
+    color: $link
+
+  &--out
+    color: #8a6d1f
+
+.wsb__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px
+
+// ── Modale "Importo VCC emesse" ───────────────────────────────────────────────
+// Due classi: la larghezza di taglia del Modal condiviso va sovrascritta qui.
+.modal__box.wsb-vcc
+  width: min(980px, 94vw)
+  max-width: 980px
+
+.wsb-vcc
+  &__sub
+    font-size: 12.5px
+    color: $text-inactive
+    margin: 0 0 14px
+
+  &__tot
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: 12px
+    margin-bottom: 14px
+
+  &__box
+    border: 1px solid #e7d4a3
+    background: #fffdf7
+    border-radius: $radius-md
+    padding: 10px 14px
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+    &--alert
+      border-color: $error-light
+      background: #fdf3f2
+
+  &__box-label
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+
+  &__box-value
+    font-family: $font-heading
+    font-size: 19px
+    font-weight: 700
+    color: #8a6d1f
+
+  &__box--alert &__box-value
+    color: $error-dark
+
+  &__wrap
+    border: 1px solid $border
+    overflow-x: hidden
+    max-height: 46vh
+    overflow-y: auto
+
+  &__col-partner
+    width: 20%
+  &__col-struttura
+    width: 24%
+  &__col-pren
+    width: 26%
+  &__col-imp
+    width: 15%
+
+  &__ok
+    font-weight: 600
+    color: $success
+
+  &__ko
+    font-weight: 700
+    color: $error-dark
+
+.wsb-vcc .wsb-vcc__table
+  +table-fit
+
+// Le intestazioni passano all'abbreviazione quando il contenuto si stringe
+// (laptop con sidenav aperta), senza mai far comparire lo scroll orizzontale.
+// Solo la tabella dei movimenti si compatta: la modale ha larghezza propria e
+// tiene le intestazioni intere.
+@container wallet (max-width: 1150px)
+  .wsb .wsb__table
+    +th-compact
+
+// Le quattro card restano su una riga (due a sinistra · due a destra) finché
+// c'è spazio: solo sotto questa soglia passano a due righe da due.
+@container wallet (max-width: 1040px)
+  .wsb__cards
+    grid-template-columns: repeat(2, 1fr)

@@ -120,6 +120,7 @@ import PaGestioneAziende           from '../admin/SibyllaAdminPanel/AssistenzaHo
 import CreaDeposito                from '../admin/SibyllaAdminPanel/AssistenzaHome/CreaDeposito';
 import Commissioni                 from '../admin/SibyllaAdminPanel/AssistenzaHome/Commissioni';
 import GestioneBonifici            from '../admin/SibyllaAdminPanel/AssistenzaHome/GestioneBonifici';
+import WalletSibylla               from '../admin/SibyllaAdminPanel/AssistenzaHome/WalletSibylla';
 import GestioneCommissioni         from '../admin/SibyllaAdminPanel/AssistenzaHome/GestioneCommissioni';
 import CommissioneDinamica         from '../admin/SibyllaAdminPanel/AssistenzaHome/CommissioneDinamica';
 import Soggiorno                   from '../admin/SibyllaAdminPanel/AssistenzaHome/Soggiorno';
@@ -327,6 +328,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'pa-gestione-bonifici')  return <GestioneBonifici navigate={navigate}/>;
   if (page === 'pa-gestione-commissioni') return <GestioneCommissioni navigate={navigate}/>;
   if (page === 'pa-commissione-dinamica') return <CommissioneDinamica navigate={navigate}/>;
+  if (page === 'pa-wallet-sibylla')     return <WalletSibylla navigate={navigate}/>;
   if (page === 'pa-soggiorno')          return <Soggiorno navigate={navigate}/>;
   if (page === 'pa-codice-sconti')      return <CodiceSconti navigate={navigate}/>;
   if (page === 'pa-processi-automatici') return <ProcessiAutomatici navigate={navigate}/>;
