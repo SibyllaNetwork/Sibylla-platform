@@ -5,7 +5,7 @@ import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
-import { SelectField } from '../../../core/components/form'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { exportTableToXls } from '../../../modules/sales/booking/GrigliaDisponibilita/exportGriglia'
 import './WalletSibylla.sass'
 
@@ -109,6 +109,10 @@ const AZIONE_LABEL: Record<Azione, string> = {
 const NUM = new Intl.NumberFormat('it-IT', {
   minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' as any,
 })
+// Scelte dei filtri a imbuto: seguono i valori realmente presenti in tabella.
+const AZIONI = Array.from(new Set(MOVIMENTI.map(m => AZIONE_LABEL[m.azione])))
+const TIPI: string[] = ['Incasso', 'Pagamento']
+
 const eur = (n: number) => `${NUM.format(n)} €`
 const pct = (n: number) =>
   `${n.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
@@ -119,10 +123,12 @@ const dataOra = (ts: string) => {
 }
 
 export default function WalletSibylla({ navigate }: Props) {
-  const [partner, setPartner] = useState('')
-  const [tipo, setTipo] = useState('')
   const [page, setPage] = useState(1)
   const [vccOpen, setVccOpen] = useState(false)
+  // Filtri per colonna: imbuto (scelte multiple), lente (testo), ordinamento.
+  // Uno stato per la tabella dei movimenti, uno per quella della modale VCC.
+  const cf = useColFilters()
+  const cfv = useColFilters()
 
   const partners = useMemo(
     () => Array.from(new Set(MOVIMENTI.map(m => m.partner))).sort(), [])
@@ -144,6 +150,17 @@ export default function WalletSibylla({ navigate }: Props) {
   // VCC emesse: una per ogni pagamento verso la struttura.
   const vcc = useMemo(() => MOVIMENTI.filter(m => m.tipo === 'Pagamento')
     .sort((a, b) => a.ts.localeCompare(b.ts)), [])
+  const strutture = useMemo(
+    () => Array.from(new Set(vcc.map(m => m.struttura))).sort(), [vcc])
+
+  // Righe della modale: stesse VCC, con i filtri di colonna della modale.
+  const vccRows = useMemo(() => cfv.sortRows(vcc.filter(m =>
+    cfv.matchMulti(m.partner, 'partner') &&
+    cfv.matchMulti(m.struttura, 'struttura') &&
+    cfv.matchText(m.idPren, 'idPren'))),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [vcc, cfv.text, cfv.multi, cfv.sort])
+
   const vccImporto = r2(vcc.reduce((s, m) => s + m.hotel, 0))
   const vccNonTransate = vcc.filter(m => !m.transata)
   const vccImportoNonTransato = r2(vccNonTransate.reduce((s, m) => s + m.hotel, 0))
@@ -151,17 +168,29 @@ export default function WalletSibylla({ navigate }: Props) {
   // alle strutture con le VCC (depositi residui + commissioni trattenute).
   const creditoTotale = r2(totaleDepositi - vccImporto)
 
+  // Elenco di default: dal movimento più recente. `sortRows` non tocca nulla
+  // finché non si sceglie una colonna su cui ordinare.
   const filtered = useMemo(() => MOVIMENTI
-    .filter(m => (!partner || m.partner === partner) && (!tipo || m.tipo === tipo))
-    .sort((a, b) => b.ts.localeCompare(a.ts)), [partner, tipo])
+    .filter(m =>
+      cf.matchMulti(m.partner, 'partner') &&
+      cf.matchMulti(AZIONE_LABEL[m.azione], 'azione') &&
+      cf.matchText(m.idPren, 'idPren') &&
+      cf.matchMulti(m.tipo, 'tipo'))
+    .sort((a, b) => b.ts.localeCompare(a.ts)),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [cf.text, cf.multi])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [partner, tipo])
-  const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const sorted = useMemo(() => cf.sortRows(filtered),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filtered, cf.sort])
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [cf.text, cf.multi])
+  const rows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const esportaXls = () => {
     const header = ['Data movimento', 'Partner', 'Azione', 'ID prenotazione', 'Importo totale', 'Commissione', 'Importo hotel', 'Tipo movimento']
-    const data = filtered.map(m => [
+    const data = sorted.map(m => [
       dataOra(m.ts), m.partner, AZIONE_LABEL[m.azione], m.idPren,
       eur(m.totale), m.tipo === 'Pagamento' ? eur(m.commissione) : '—',
       m.tipo === 'Pagamento' ? eur(m.hotel) : '—', m.tipo,
@@ -241,32 +270,15 @@ export default function WalletSibylla({ navigate }: Props) {
       </div>
 
       <div className="wsb__toolbar">
-        <SelectField
-          name="partner"
-          label="Partner"
-          className="wsb__field"
-          value={partner}
-          onChange={e => setPartner(e.target.value)}
-          options={[{ value: '', label: 'Tutti' }, ...partners.map(p => ({ value: p, label: p }))]}
-        />
-        <SelectField
-          name="tipo"
-          label="Tipo movimento"
-          className="wsb__field"
-          value={tipo}
-          onChange={e => setTipo(e.target.value)}
-          options={[
-            { value: '', label: 'Tutti' },
-            { value: 'Incasso', label: 'Incasso' },
-            { value: 'Pagamento', label: 'Pagamento' },
-          ]}
-        />
-        <button type="button" className="sib-btn sib-btn--icon wsb__xls" aria-label="Esporta in Excel" onClick={esportaXls}>
-          <i className="fa-regular fa-file-xls" aria-hidden="true" />
-        </button>
+        <p className="wsb__nota">
+          Filtri e ordinamento nelle intestazioni di colonna. L'azione «acquisto» sarà disponibile in una fase successiva.
+        </p>
+        <Tooltip text="Esporta in Excel">
+          <button type="button" className="sib-btn sib-btn--icon wsb__xls" aria-label="Esporta in Excel" onClick={esportaXls}>
+            <i className="fa-regular fa-file-xls" aria-hidden="true" />
+          </button>
+        </Tooltip>
       </div>
-
-      <p className="wsb__nota">L'azione «acquisto» sarà disponibile in una fase successiva.</p>
 
       <div className="sib-table-wrap wsb__wrap">
         <table className="sib-table wsb__table">
@@ -283,14 +295,14 @@ export default function WalletSibylla({ navigate }: Props) {
           </colgroup>
           <thead>
             <tr>
-              <th><ThLabel full="Data movimento" short="Data mov." /></th>
-              <th><ThLabel full="Partner" /></th>
-              <th><ThLabel full="Azione" /></th>
-              <th><ThLabel full="ID prenotazione" short="ID pren." /></th>
-              <th className="wsb__num"><ThLabel full="Importo totale" short="Imp. totale" /></th>
-              <th className="wsb__num"><ThLabel full="Commissione" short="Comm." /></th>
-              <th className="wsb__num"><ThLabel full="Importo hotel" short="Imp. hotel" /></th>
-              <th><ThLabel full="Tipo movimento" short="Tipo mov." /></th>
+              <th><span className="sib-colf-head"><ThLabel full="Data movimento" short="Data mov." />{cf.th('ts', 'data movimento', { sort: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Partner" />{cf.th('partner', 'partner', { options: partners, sort: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Azione" />{cf.th('azione', 'azione', { options: AZIONI })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="ID prenotazione" short="ID pren." />{cf.th('idPren', 'ID prenotazione', { search: true, sort: true })}</span></th>
+              <th className="wsb__num"><span className="sib-colf-head"><ThLabel full="Importo totale" short="Imp. totale" />{cf.th('totale', 'importo totale', { sort: true })}</span></th>
+              <th className="wsb__num"><span className="sib-colf-head"><ThLabel full="Commissione" short="Comm." />{cf.th('commissione', 'commissione', { sort: true })}</span></th>
+              <th className="wsb__num"><span className="sib-colf-head"><ThLabel full="Importo hotel" short="Imp. hotel" />{cf.th('hotel', 'importo hotel', { sort: true })}</span></th>
+              <th><span className="sib-colf-head"><ThLabel full="Tipo movimento" short="Tipo mov." />{cf.th('tipo', 'tipo movimento', { options: TIPI })}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -340,15 +352,18 @@ export default function WalletSibylla({ navigate }: Props) {
             </colgroup>
             <thead>
               <tr>
-                <th><ThLabel full="Partner" /></th>
-                <th><ThLabel full="Struttura" /></th>
-                <th><ThLabel full="ID prenotazione" short="ID pren." /></th>
-                <th className="wsb__num"><ThLabel full="Transato" /></th>
+                <th><span className="sib-colf-head"><ThLabel full="Partner" />{cfv.th('partner', 'partner', { options: partners, sort: true })}</span></th>
+                <th><span className="sib-colf-head"><ThLabel full="Struttura" />{cfv.th('struttura', 'struttura', { options: strutture, sort: true })}</span></th>
+                <th><span className="sib-colf-head"><ThLabel full="ID prenotazione" short="ID pren." />{cfv.th('idPren', 'ID prenotazione', { search: true })}</span></th>
+                <th className="wsb__num"><span className="sib-colf-head"><ThLabel full="Transato" />{cfv.th('hotel', 'importo', { sort: true })}</span></th>
                 <th className="wsb__num"><ThLabel full="Non transato" short="Non trans." /></th>
               </tr>
             </thead>
             <tbody>
-              {vcc.map(m => (
+              {vccRows.length === 0 && (
+                <tr><td colSpan={5} className="wsb__empty">Nessuna VCC con i filtri selezionati.</td></tr>
+              )}
+              {vccRows.map(m => (
                 <tr key={`vcc-${m.idPren}`}>
                   <td className="wsb__strong"><TruncatedText text={m.partner} /></td>
                   <td><TruncatedText text={m.struttura} /></td>

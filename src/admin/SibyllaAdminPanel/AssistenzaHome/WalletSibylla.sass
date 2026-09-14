@@ -145,20 +145,13 @@
     font-size: 10px
     color: $text-inactive
 
-// ── Filtri ────────────────────────────────────────────────────────────────────
+// ── Barra sopra la tabella (nota a sinistra · export a destra) ────────────────
 .wsb__toolbar
   display: flex
-  align-items: flex-end
+  align-items: center
+  justify-content: space-between
   gap: 14px
   flex-wrap: wrap
-
-.wsb__field
-  display: flex
-  flex-direction: column
-  gap: 6px
-
-  .sib-select
-    min-width: 180px
 
 .wsb .wsb__xls i
   color: var(--color-primary)
@@ -188,20 +181,25 @@
 +th-labels
 
 .wsb__col-data
-  width: 13%
+  width: 12.5%
 .wsb__col-partner
   width: 13%
 .wsb__col-azione
-  width: 10%
+  width: 9.5%
 .wsb__col-pren
-  width: 18%
+  width: 17%
 .wsb__col-imp
   width: 12%
 .wsb__col-tipo
-  width: 10%
+  width: 12%
 
 .wsb .wsb__num
   text-align: right
+
+  // Etichetta + icone dei filtri restano appoggiate al bordo destro, come i
+  // valori della colonna.
+  .sib-colf-head
+    justify-content: flex-end
 
 .wsb__nowrap
   white-space: nowrap
