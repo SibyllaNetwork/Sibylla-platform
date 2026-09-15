@@ -5,6 +5,10 @@
   display: flex
   flex-direction: column
   gap: 16px
+  // Compattazione delle tabelle dense su laptop: si misura la larghezza REALE
+  // del contenuto (sidenav aperta), non quella del viewport
+  container-type: inline-size
+  container-name: nppage
 
   > .sib-btn--back
     align-self: flex-start
@@ -258,6 +262,179 @@
     border-color: $primary
     background: $primary-50
 
+// Laptop (contenuto stretto): si comprimono solo le dimensioni — colonna
+// sinistra più stretta e celle più fitte — senza mai abbreviare le intestazioni
+@container nppage (max-width: 1100px)
+  .np-soggiorno__side
+    flex: 0 0 196px
+    max-width: 196px
+
+  .np-table--edit
+    font-size: 11.5px
+
+    th, td
+      padding: 3px 3px
+
+    .np-row-action i
+      font-size: 14px
+
+    th:first-child, td:first-child
+      padding-left: 6px
+
+    .np-cell-input
+      padding: 0 2px
+
+    select.np-cell-input
+      padding-right: 16px
+      background-position: right 2px center
+
+// ─── Modale "Dettaglio camere della riga" ───────────────────────────────────
+// Più larga della xl standard: ospita la tabellina a 12 colonne senza scroll-x
+.np-dett-modal
+  max-width: 980px
+
+.np-dett
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  &__head
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__hotel
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__sub
+    font-size: 12px
+    color: $text-inactive
+
+  // Assegnazione del numero camera in fondo alla riga
+  &__assign
+    display: flex
+    align-items: center
+    gap: 6px
+
+    > span
+      flex: none
+
+    .np-cell-input
+      flex: 1
+      min-width: 0
+
+  &__foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding-top: 10px
+    border-top: 1px solid $border
+
+  &__count
+    font-size: 12px
+    color: $text-inactive
+
+// Tabellina del dettaglio: una riga per camera, larghezze fisse in % (nessuno
+// scroll orizzontale); le celle sono di sola lettura, si assegna solo il numero
+// Due classi nel selettore: questo blocco precede `.np-table` nel file e a pari
+// specificità perderebbe (padding/larghezze della tabella base)
+.np-table.np-table--dett
+  table-layout: fixed
+  width: 100%
+
+  th, td
+    padding: 5px 5px
+
+  .np-d-idx
+    width: 6.2%
+  .np-d-tipo
+    width: 12.3%
+  .np-d-num
+    width: 6%
+  .np-d-prezzo
+    width: 7.5%
+  .np-d-arr
+    width: 6%
+  .np-d-data
+    width: 10.5%
+  .np-d-tot
+    width: 7%
+  .np-d-sel
+    width: 11%
+  .np-d-act
+    width: 5%
+
+// ─── Specchietto "Riepilogo prenotato" (tab Gruppo) ──────────────────────────
+// Sta sopra i pulsanti Alloca/Assegna e riepiloga la lista camere sottostante
+.np-recap
+  margin-top: auto
+  display: flex
+  flex-direction: column
+  gap: 4px
+  padding: 8px 10px
+  border: 1px solid $border
+  border-radius: 8px
+  background: $bg
+
+  &__title
+    font-size: 11px
+    font-weight: 600
+    color: $primary
+
+  &__row
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 8px
+    font-size: 12px
+    color: $text-inactive
+
+    strong
+      font-size: 12.5px
+      font-weight: 600
+      color: $text-active
+
+    &--tot
+      margin-top: 2px
+      padding-top: 6px
+      border-top: 1px solid $border
+
+      strong
+        font-size: 13px
+        color: $primary
+
+  &__mix
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    gap: 4px
+    margin: 2px 0
+
+  &__mix-item
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 1px
+    padding: 4px 2px
+    border: 1px solid $border
+    border-radius: 6px
+    background: $white
+
+  &__mix-val
+    font-size: 12.5px
+    font-weight: 600
+    color: $primary
+
+  &__mix-lab
+    font-size: 9.5px
+    color: $text-inactive
+
+  &__foot
+    font-size: 10.5px
+    color: $text-inactive
+
 // ─── Generic form row inside widget body ─────────────────────────────────────
 .np-row
   display: flex
@@ -423,6 +600,137 @@
   font-weight: 600
   color: $primary
   text-align: right
+
+// ─── Tabelle editabili delle camere (tab Gruppo e modale di dettaglio) ───────
+// Molte colonne in una sola vista: table-layout fisso + larghezze in % (colgroup)
+// così la tabella non produce MAI scroll orizzontale, a nessuna larghezza; i
+// campi si adattano alla colonna.
+.np-table--edit
+  table-layout: fixed
+  width: 100%
+
+  th, td
+    padding: 4px 4px
+
+  th
+    padding: 6px 4px
+
+  th:first-child, td:first-child
+    padding-left: 10px
+
+  // Nel layout fisso comanda la colonna: i campi non impongono larghezze minime
+  .np-cell-input
+    width: 100%
+    min-width: 0
+    max-width: none
+    padding: 0 4px
+
+  select.np-cell-input
+    padding-right: 20px
+    background-position: right 4px center
+
+  .np-cell-input--data
+    font-size: 11px
+    padding: 0 2px
+
+  // Gli importi non vanno mai a capo (standard: testo di tabella su una riga)
+  td.np-amt
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+    span
+      display: block
+      overflow: hidden
+      text-overflow: ellipsis
+
+  // Valore a riga bloccata (nessun campo): stesso ingombro verticale del campo
+  .np-cell-ro
+    display: block
+    height: 28px
+    line-height: 28px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  // Le frecce del number occupano ~15px per colonna: in una tabella così densa
+  // sono spazio sottratto alla cifra
+  input[type="number"].np-cell-input
+    -moz-appearance: textfield
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button
+      -webkit-appearance: none
+      margin: 0
+
+  // Il wrapper del Tooltip sulla tipologia è un inline-flex senza classe:
+  // deve cedere spazio alla colonna come farebbe il select da solo
+  .np-tipo-cell > span
+    flex: 1
+    min-width: 0
+
+  .np-tipo-cell .np-cell-input--tipo
+    width: 100%
+    min-width: 0
+
+  // L'icona letto starebbe a scapito dell'etichetta della tipologia
+  .np-tipo-ico
+    display: none
+
+  .np-col-actions
+    width: auto
+    padding-right: 6px !important
+    white-space: nowrap
+
+    // Icone (dettaglio, matita/conferma, elimina) in una colonna stretta: si
+    // riduce solo la spaziatura. Colore/size sull'`i` come da standard
+    // piattaforma (blu primary, 16px): la classe del bottone forza grigio 13px
+    .np-row-action
+      padding: 2px
+
+      & + .np-row-action
+        margin-left: 2px
+
+      i
+        color: var(--color-primary)
+        font-size: 16px
+
+      &--danger:hover i
+        color: $error
+
+  // Riga sbloccata dalla matita: evidenziata finché non si conferma
+  .np-row-edit td
+    background: var(--color-primary-50)
+
+  // La riga bloccata apre il dettaglio delle camere
+  .np-row-click
+    cursor: pointer
+
+    &:hover td
+      background: var(--color-primary-50)
+
+.np-row-action--ok
+  color: $primary
+
+// Larghezze delle colonne della lista camere del tab Gruppo
+// (somma 99%: l'1% residuo assorbe gli arrotondamenti)
+.np-table--gr
+  .np-c-qta
+    width: 5.6%
+  .np-c-tipo
+    width: 12.6%
+  .np-c-num
+    width: 7.1%
+  .np-c-prezzo
+    width: 7%
+  .np-c-arr
+    width: 6.8%
+  .np-c-data
+    width: 11.5%
+  .np-c-tot
+    width: 8.4%
+  .np-c-act
+    width: 8.4%
 
 // ─── Toolbar interna al widget (es. Anagrafica ospiti) ──────────────────────
 .np-ospiti-toolbar

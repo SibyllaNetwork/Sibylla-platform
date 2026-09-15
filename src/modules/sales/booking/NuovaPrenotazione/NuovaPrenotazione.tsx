@@ -4,6 +4,7 @@ import { bookingStore } from '../../../../core/bookingStore'
 import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
+import TruncatedText from '../../../../core/components/TruncatedText'
 import Ico from '../../../../core/icons/Ico'
 import GhostIcon from '../../../../core/icons/GhostIcon'
 import ToggleSwitch from '../../../../core/components/ToggleSwitch'
@@ -13,6 +14,7 @@ import Widget from '../../../../core/components/Widget/Widget'
 import { InputField, SelectField, DateRangeField, DatePickerField, TextareaField } from '../../../../core/components/form'
 import { useWidgetLayout } from '../../../../core/hooks/useWidgetLayout'
 import { useServiziStore } from '../../../../store/useServiziStore'
+import { useConfirmStore } from '../../../../store/useConfirmStore'
 import type { Servizio } from '../../../purchasing/Servizi/servizi-types'
 import { PIANI_DATA } from '../../../operation/planner/planner.data'
 import { withFlag } from '../../../../core/utils/countryFlags'
@@ -42,14 +44,63 @@ const CAMERE = PIANI_DATA.flatMap(p => p.camere.map(c => c.numero))
 const TIPOLOGIE_CAMERA = ['Doppia Classic','Doppia Superior','Singola Classic','Tripla Classic','Matrimoniale','Suite']
 
 interface SegmentoRow { id: string; dal: string; al: string; tipo: string; nCamera: string; persone: number; stato: string }
-interface CameraRow { tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string }
+// Parametri della singola camera: nella lista gruppo una riga ne raggruppa
+// `quantita`, tutte modificabili una per una dalla modale di dettaglio
+interface DettCamera {
+  tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number
+  prezzoPersona: number; arrangiamento: string; dataIn: string; dataOut: string
+  /** Numero camera assegnato (vuoto = da assegnare) */
+  numero: string
+}
+// I campi quantita/prezzoPersona/arrangiamento/dataIn/dataOut sono usati dalla
+// lista camere del tab Gruppo (la lista del tab Individuale ignora le colonne).
+// Sulla riga valgono da valori "cumulativi": modificarli aggiorna tutte le
+// camere del gruppo; le singole camere possono poi divergere dal dettaglio.
+interface CameraRow {
+  id: string;
+  tipo: string; adulti: number; ragazzi: number; bambini: number; infanti: number; nCamera: string
+  quantita: number; prezzoPersona: number; arrangiamento: string; dataIn: string; dataOut: string
+  dettagli: DettCamera[]
+}
 interface NotaReparto { id: string; reparto: string; testo: string }
 interface NotaSemplice { id: string; testo: string }
 interface OspiteRow { nome: string; cognome: string; dataNascita: string; paese: string; sesso: string; nCamera: string; dataArrivo: string }
 interface ExtraAggiunto { id: string; servizio: string; quando: string; quantita: number; intestatario: string; camera: string; importo: number; descrizione: string }
 interface PrezzoRow { giorno: string; camera: string; arrangiamento: string; piani: string; promozioni: string; totale: number; listino: number }
 
-const initRow = (n=''): CameraRow      => ({ tipo: '53', adulti: 2, ragazzi: 0, bambini: 0, infanti: 0, nCamera: n })
+const uid = () => Math.random().toString(36).slice(2, 9)
+const initRow = (n=''): CameraRow      => ({
+  id: uid(),
+  tipo: '53', adulti: 2, ragazzi: 0, bambini: 0, infanti: 0, nCamera: n,
+  quantita: 1, prezzoPersona: 0, arrangiamento: 'RO', dataIn: '', dataOut: '', dettagli: [],
+})
+// Riga della lista camere gruppo: eredita periodo e arrangiamento dal soggiorno
+const initRowGr = (dal: string, al: string, arr: string): CameraRow =>
+  ({ ...initRow(), arrangiamento: arr, dataIn: dal, dataOut: al })
+
+// ── Calcoli della lista camere gruppo ────────────────────────────────────────
+const notti = (dal: string, al: string) => {
+  if (!dal || !al) return 0
+  const d = (new Date(al).getTime() - new Date(dal).getTime()) / 86400000
+  return Number.isFinite(d) && d > 0 ? Math.round(d) : 0
+}
+// Gli infanti non occupano posto letto: non concorrono al prezzo a persona
+const paganti = (d: DettCamera) => d.adulti + d.ragazzi + d.bambini
+// Camere della riga: sempre `quantita`, le mancanti ereditano i valori di riga
+const dettCamera = (c: CameraRow): DettCamera => ({
+  tipo: c.tipo, adulti: c.adulti, ragazzi: c.ragazzi, bambini: c.bambini, infanti: c.infanti,
+  prezzoPersona: c.prezzoPersona, arrangiamento: c.arrangiamento,
+  dataIn: c.dataIn, dataOut: c.dataOut, numero: '',
+})
+const dettagliDi = (c: CameraRow): DettCamera[] =>
+  Array.from({ length: Math.max(1, c.quantita) }, (_, k) => c.dettagli[k] ?? dettCamera(c))
+const totaleDett = (d: DettCamera) => paganti(d) * d.prezzoPersona * notti(d.dataIn, d.dataOut)
+const totaleRigaGr = (c: CameraRow) => dettagliDi(c).reduce((a, d) => a + totaleDett(d), 0)
+// Valore comune a tutte le camere della riga (undefined se divergono)
+function comune<K extends keyof DettCamera>(c: CameraRow, k: K): DettCamera[K] | undefined {
+  const dd = dettagliDi(c)
+  return dd.every(d => d[k] === dd[0][k]) ? dd[0][k] : undefined
+}
 const initOsp = (): OspiteRow          => ({ nome: '', cognome: '', dataNascita: '', paese: '', sesso: '', nCamera: '', dataArrivo: '' })
 
 // ── Modifica prenotazione: mapping dalla prenotazione esistente al form ─────────
@@ -156,13 +207,19 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow(prefill?.numeroCamera || '103')])
   // Gruppo: una lista camere per ciascuna struttura del cliente (tab dedicati)
-  const [camereGrMap, setCamereGrMap] = useState<Record<string, CameraRow[]>>(() => ({
-    [STRUTTURE_GRUPPO[0]]: editing ? editCamere(editing) : [initRow('103'), initRow('103'), initRow('103'), initRow('103')],
-    [STRUTTURE_GRUPPO[1]]: [initRow('')],
-    [STRUTTURE_GRUPPO[2]]: [initRow('')],
-  }))
+  const [camereGrMap, setCamereGrMap] = useState<Record<string, CameraRow[]>>(() => {
+    const riga = () => initRowGr(grForm.dal, grForm.al, grForm.arrangiamento)
+    const seed = editing
+      ? editCamere(editing).map(c => ({ ...riga(), ...c, dataIn: grForm.dal, dataOut: grForm.al }))
+      : [{ ...riga(), quantita: 2 }, { ...riga(), tipo: '55', quantita: 1, adulti: 3 }]
+    return {
+      [STRUTTURE_GRUPPO[0]]: seed,
+      [STRUTTURE_GRUPPO[1]]: [riga()],
+      [STRUTTURE_GRUPPO[2]]: [riga()],
+    }
+  })
   // Lista camere della struttura attiva (derivata): i consumatori esistenti
-  // (anticipi, updCameraGr, chooseRoomGr…) continuano a lavorare su questa.
+  // (anticipi, updCameraGr…) continuano a lavorare su questa.
   const camereGr = camereGrMap[grForm.hotel] ?? []
   const setCamereGr = (u: CameraRow[] | ((p: CameraRow[]) => CameraRow[])) =>
     setCamereGrMap(m => ({ ...m, [grForm.hotel]: typeof u === 'function' ? (u as (p: CameraRow[]) => CameraRow[])(m[grForm.hotel] ?? []) : u }))
@@ -245,26 +302,84 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const updCameraGr = (i: number, p: Partial<CameraRow>) =>
     setCamereGr(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
+  // Riga aperta nella modale "Dettaglio camere" (indice nella lista della struttura)
+  const [dettaglioIdx, setDettaglioIdx] = useState<number | null>(null)
+
+  // Righe sbloccate: una volta inserita, la riga è in sola lettura e si riapre
+  // con la matita. Chiave = id riga (tabella) o `id:slot` (dettaglio camera).
+  const [editKeys, setEditKeys] = useState<string[]>([])
+  const inModifica = (k: string) => editKeys.includes(k)
+  const apriModifica   = (k: string) => setEditKeys(v => v.includes(k) ? v : [...v, k])
+  const chiudiModifica = (k: string) => setEditKeys(v => v.filter(x => x !== k))
+
+  // Modifica dalla riga cumulativa: il valore si applica a tutte le sue camere
+  const updRigaGr = (i: number, p: Partial<CameraRow>) =>
+    setCamereGr(prev => prev.map((r, idx) => {
+      if (idx !== i) return r
+      const row = { ...r, ...p }
+      const campi = Object.keys(p).filter(k => k !== 'quantita') as (keyof DettCamera)[]
+      const dettagli = dettagliDi(row).map(d =>
+        campi.reduce((acc, k) => ({ ...acc, [k]: (row as any)[k] }), { ...d }))
+      return { ...row, dettagli }
+    }))
+
+  // Modifica di una singola camera dalla modale di dettaglio
+  const updDettaglioGr = (i: number, slot: number, p: Partial<DettCamera>, silent = false) => {
+    const riga = camereGr[i]
+    if (!riga) return
+    const prev = dettagliDi(riga)[slot]
+    setCamereGr(list => list.map((r, idx) => idx === i
+      ? { ...r, dettagli: dettagliDi(r).map((d, k) => k === slot ? { ...d, ...p } : d) }
+      : r))
+    if (silent || !p.numero) return
+    const d = { ...prev, ...p }
+    const b = bloccoPerCameraPeriodo(blocchiFantasma, d.numero, d.dataIn, d.dataOut)
+    if (b) setGhostAlert({ scope: 'gr', idx: i, slot, prev: prev.numero, block: b })
+  }
+
+  // Conferma obbligatoria prima di eliminare una riga camera
+  const confirm = useConfirmStore(s => s.confirm)
+  const eliminaCameraGr = async (i: number) => {
+    const ok = await confirm({ message: 'Eliminare questa riga dalla lista camere?', confirmLabel: 'Elimina' })
+    if (ok) setCamereGr(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  // ── Specchietto: riepilogo di quanto inserito nella lista camere ────────────
+  const riepilogoCamere = (rows: CameraRow[]) => rows.reduce((a, c) => {
+    dettagliDi(c).forEach(d => {
+      a.camere  += 1
+      a.adulti  += d.adulti
+      a.ragazzi += d.ragazzi
+      a.bambini += d.bambini
+      a.infanti += d.infanti
+      a.totale  += totaleDett(d)
+      if (d.numero) a.assegnate += 1
+      if (d.dataIn  && (!a.dal || d.dataIn  < a.dal)) a.dal = d.dataIn
+      if (d.dataOut && (!a.al  || d.dataOut > a.al))  a.al  = d.dataOut
+    })
+    return a
+  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, totale: 0, dal: '', al: '' })
+  const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
+  const recapGrAll = useMemo(() => riepilogoCamere(Object.values(camereGrMap).flat()), [camereGrMap])
+
   // ── Blocco fantasma: se la camera scelta è in prelazione nel periodo, avvisa;
   //    confermando, il blocco viene rimosso e la prenotazione procede.
   const blocchiFantasma = useBlocchiFantasmaStore(s => s.blocchi)
   const removeBlocco     = useBlocchiFantasmaStore(s => s.remove)
-  const [ghostAlert, setGhostAlert] = useState<{ scope: 'ind' | 'gr'; idx: number; prev: string; block: BloccoFantasma } | null>(null)
+  type GhostAlert =
+    | { scope: 'ind'; idx: number; prev: string; block: BloccoFantasma }
+    | { scope: 'gr';  idx: number; slot: number; prev: string; block: BloccoFantasma }
+  const [ghostAlert, setGhostAlert] = useState<GhostAlert | null>(null)
 
   const chooseRoomInd = (i: number, val: string, prev: string) => {
     updCamera(i, { nCamera: val })
     const b = bloccoPerCameraPeriodo(blocchiFantasma, val, form.dal, form.al)
     if (b) setGhostAlert({ scope: 'ind', idx: i, prev, block: b })
   }
-  const chooseRoomGr = (i: number, val: string, prev: string) => {
-    updCameraGr(i, { nCamera: val })
-    const b = bloccoPerCameraPeriodo(blocchiFantasma, val, grForm.dal, grForm.al)
-    if (b) setGhostAlert({ scope: 'gr', idx: i, prev, block: b })
-  }
   const cancelGhostAlert = () => {
     if (!ghostAlert) return
     if (ghostAlert.scope === 'ind') updCamera(ghostAlert.idx, { nCamera: ghostAlert.prev })
-    else updCameraGr(ghostAlert.idx, { nCamera: ghostAlert.prev })
+    else updDettaglioGr(ghostAlert.idx, ghostAlert.slot, { numero: ghostAlert.prev }, true)
     setGhostAlert(null)
   }
   const confirmGhostAlert = () => {
@@ -592,6 +707,39 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   ))}
                 </div>
               </div>
+              {/* Specchietto: riepilogo del prenotato nella lista camere qui sotto */}
+              <div className="np-recap">
+                <div className="np-recap__title">Riepilogo prenotato</div>
+                <div className="np-recap__row">
+                  <span>Camere</span><strong>{recapGr.camere}</strong>
+                </div>
+                <div className="np-recap__row">
+                  <span>Persone</span><strong>{recapGr.adulti + recapGr.ragazzi + recapGr.bambini + recapGr.infanti}</strong>
+                </div>
+                <div className="np-recap__mix">
+                  {([['Adulti', recapGr.adulti], ['Ragazzi', recapGr.ragazzi], ['Bambini', recapGr.bambini], ['Infanti', recapGr.infanti]] as const).map(([l, v]) => (
+                    <div key={l} className="np-recap__mix-item">
+                      <span className="np-recap__mix-val">{v}</span>
+                      <span className="np-recap__mix-lab">{l}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="np-recap__row">
+                  <span>Periodo</span><strong>{fmtData(recapGr.dal) || '—'} → {fmtData(recapGr.al) || '—'}</strong>
+                </div>
+                <div className="np-recap__row">
+                  <span>Notti</span><strong>{notti(recapGr.dal, recapGr.al)}</strong>
+                </div>
+                <div className="np-recap__row np-recap__row--tot">
+                  <span>Totale</span><strong>{euro(recapGr.totale)}</strong>
+                </div>
+                {recapGrAll.camere > recapGr.camere && (
+                  <div className="np-recap__foot">
+                    Tutte le strutture: {recapGrAll.camere} camere · {euro(recapGrAll.totale)}
+                  </div>
+                )}
+              </div>
+
               <div className="np-soggiorno__actions">
                 <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-grid-2" /> Alloca</button>
                 <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-user-plus" /> Assegna</button>
@@ -606,59 +754,153 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 ))}
               </div>
               <div className="np-table-scroll">
-                <table className="np-table">
+                <table className="np-table np-table--edit np-table--gr">
+                  <colgroup>
+                    <col className="np-c-qta" /><col className="np-c-tipo" />
+                    <col className="np-c-num" /><col className="np-c-num" /><col className="np-c-num" /><col className="np-c-num" />
+                    <col className="np-c-prezzo" /><col className="np-c-arr" />
+                    <col className="np-c-data" /><col className="np-c-data" />
+                    <col className="np-c-tot" /><col className="np-c-act" />
+                  </colgroup>
                   <thead>
                     <tr>
-                      <th className="np-col-idx">#</th><th>Tipologie camere disponibili</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th><th className="np-col-actions" aria-label="Azioni" />
+                      <th><TruncatedText text="Q.tà" full="Quantità" /></th>
+                      <th><TruncatedText text="Tipologia camera" /></th>
+                      <th><TruncatedText text="Adulti" /></th>
+                      <th><TruncatedText text="Ragazzi" /></th>
+                      <th><TruncatedText text="Bambini" /></th>
+                      <th><TruncatedText text="Infanti" /></th>
+                      <th><TruncatedText text="Prezzo" full="Prezzo a persona" /></th>
+                      <th><TruncatedText text="Arrang." full="Arrangiamento" /></th>
+                      <th><TruncatedText text="Data in" /></th>
+                      <th><TruncatedText text="Data out" /></th>
+                      <th className="np-amt">Totale</th>
+                      <th className="np-col-actions" aria-label="Azioni" />
                     </tr>
                   </thead>
                   <tbody>
-                    {camereGr.map((c, i)=>(
-                      <tr key={i}>
-                        <td className="np-col-idx">{i+1}</td>
+                    {camereGr.map((c, i)=>{
+                      // La riga mostra i valori della prima camera del gruppo:
+                      // modificarli qui li applica a tutte le camere della riga
+                      const dd  = dettagliDi(c)
+                      const v   = dd[0]
+                      const ed  = inModifica(c.id)
+                      const tipoLabel = TIPI_CAMERA.find(t => t.v === v.tipo)?.l ?? v.tipo
+                      const num = (k: 'adulti'|'ragazzi'|'bambini'|'infanti') => ed
+                        ? <input type="number" min={0} className="sib-input np-cell-input np-cell-input--num" value={v[k]} onChange={e=>updRigaGr(i,{[k]:+e.target.value||0})}/>
+                        : <span className="np-cell-ro">{v[k]}</span>
+                      return (
+                      <tr
+                        key={c.id}
+                        className={ed ? 'np-row-edit' : 'np-row-click'}
+                        onClick={e=>{
+                          if (ed) return
+                          if ((e.target as HTMLElement).closest('input, select, button')) return
+                          setDettaglioIdx(i)
+                        }}
+                      >
+                        <td>
+                          {ed
+                            ? <input type="number" min={1} className="sib-input np-cell-input np-cell-input--num" value={c.quantita} onChange={e=>updRigaGr(i,{quantita:Math.max(1,+e.target.value||1)})}/>
+                            : <span className="np-cell-ro">{c.quantita}</span>}
+                        </td>
                         <td>
                           <div className="np-tipo-cell">
                             <i className="fa-solid fa-bed-front np-tipo-ico" aria-hidden="true" />
-                            <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCameraGr(i,{tipo:e.target.value})}>
-                              {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-                            </select>
+                            {/* L'etichetta può non entrare nella colonna: tooltip col testo completo */}
+                            {ed ? (
+                              <Tooltip text={tipoLabel}>
+                                <select className="sib-input np-cell-input np-cell-input--tipo" value={v.tipo} onChange={e=>updRigaGr(i,{tipo:e.target.value})}>
+                                  {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                                </select>
+                              </Tooltip>
+                            ) : <TruncatedText className="np-cell-ro" text={tipoLabel} />}
                           </div>
                         </td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCameraGr(i,{adulti:+e.target.value||0})}/></td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCameraGr(i,{ragazzi:+e.target.value||0})}/></td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCameraGr(i,{bambini:+e.target.value||0})}/></td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCameraGr(i,{infanti:+e.target.value||0})}/></td>
+                        <td>{num('adulti')}</td>
+                        <td>{num('ragazzi')}</td>
+                        <td>{num('bambini')}</td>
+                        <td>{num('infanti')}</td>
                         <td>
-                          <div className="np-room-cell">
-                            <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomGr(i, e.target.value, c.nCamera)}>
-                              <option value="">—</option>
-                              {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, grForm.dal, grForm.al) ? ' 👻' : ''}</option>)}
+                          {ed
+                            ? <input type="number" min={0} step={0.01} className="sib-input np-cell-input np-cell-input--num" value={v.prezzoPersona} onChange={e=>updRigaGr(i,{prezzoPersona:+e.target.value||0})}/>
+                            : <span className="np-cell-ro">{euro(v.prezzoPersona)}</span>}
+                        </td>
+                        <td>
+                          {ed ? (
+                            <select className="sib-input np-cell-input" value={v.arrangiamento} onChange={e=>updRigaGr(i,{arrangiamento:e.target.value})}>
+                              {ARRANGIAMENTI.map(a => <option key={a} value={a}>{a}</option>)}
                             </select>
-                            {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, grForm.dal, grForm.al) && (
-                              <Tooltip text="Camera in blocco fantasma">
-                                <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
-                              </Tooltip>
-                            )}
-                          </div>
+                          ) : <span className="np-cell-ro">{v.arrangiamento}</span>}
+                        </td>
+                        <td>
+                          {ed
+                            ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={v.dataIn} onChange={e=>updRigaGr(i,{dataIn:e.target.value})}/>
+                            : <span className="np-cell-ro">{fmtData(v.dataIn) || '—'}</span>}
+                        </td>
+                        <td>
+                          {ed
+                            ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={v.dataOut} onChange={e=>updRigaGr(i,{dataOut:e.target.value})}/>
+                            : <span className="np-cell-ro">{fmtData(v.dataOut) || '—'}</span>}
+                        </td>
+                        <td className="np-amt">
+                          <Tooltip text={`${c.quantita} ${c.quantita === 1 ? 'camera' : 'camere'} · ${notti(v.dataIn, v.dataOut)} notti`}>
+                            <span>{euro(totaleRigaGr(c))}</span>
+                          </Tooltip>
                         </td>
                         <td className="np-col-actions">
                           <button
                             type="button"
+                            className="np-row-action"
+                            aria-label="Dettaglio camere"
+                            onClick={()=>setDettaglioIdx(i)}
+                          >
+                            <Tooltip text="Dettaglio camere"><i className="fa-solid fa-list-ul" /></Tooltip>
+                          </button>
+                          {ed ? (
+                            <button
+                              type="button"
+                              className="np-row-action np-row-action--ok"
+                              aria-label="Conferma la riga"
+                              onClick={()=>chiudiModifica(c.id)}
+                            >
+                              <Tooltip text="Conferma la riga"><i className="fa-solid fa-check" /></Tooltip>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="np-row-action"
+                              aria-label="Modifica la riga"
+                              onClick={()=>apriModifica(c.id)}
+                            >
+                              <Tooltip text="Modifica la riga"><i className="fa-solid fa-pen" /></Tooltip>
+                            </button>
+                          )}
+                          <button
+                            type="button"
                             className="np-row-action np-row-action--danger"
                             aria-label="Elimina camera"
-                            title="Elimina camera"
                             disabled={camereGr.length <= 1}
-                            onClick={()=>setCamereGr(prev => prev.filter((_, idx) => idx !== i))}
+                            onClick={()=>eliminaCameraGr(i)}
                           >
-                            <i className="fa-solid fa-trash" />
+                            <Tooltip text="Elimina camera"><i className="fa-solid fa-trash" /></Tooltip>
                           </button>
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
-              <button type="button" className="np-add-row" onClick={()=>setCamereGr(p=>[...p, initRow()])}>
+              <button
+                type="button"
+                className="np-add-row"
+                onClick={()=>{
+                  const riga = initRowGr(grForm.dal, grForm.al, grForm.arrangiamento)
+                  setCamereGr(p=>[...p, riga])
+                  apriModifica(riga.id)
+                }}
+              >
                 <i className="fa-light fa-plus" /> Aggiungi camera
               </button>
             </div>
@@ -1391,6 +1633,150 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       </Modal>
 
       {/* Alert: camera in blocco fantasma nel periodo selezionato */}
+      {/* Dettaglio camere: una riga per camera, tutti i parametri modificabili */}
+      <Modal
+        open={dettaglioIdx !== null && !!camereGr[dettaglioIdx]}
+        onClose={()=>setDettaglioIdx(null)}
+        title="Dettaglio camere"
+        size="xl"
+        className="np-dett-modal"
+      >
+        {dettaglioIdx !== null && camereGr[dettaglioIdx] && (() => {
+          const i = dettaglioIdx
+          const c = camereGr[i]
+          const dd = dettagliDi(c)
+          const assegnate = dd.filter(d => d.numero).length
+          return (
+            <div className="np-dett">
+              <div className="np-dett__head">
+                <span className="np-dett__hotel">{grForm.hotel}</span>
+                <span className="np-dett__sub">
+                  {c.quantita} {c.quantita === 1 ? 'camera' : 'camere'} · totale riga {euro(totaleRigaGr(c))}
+                  {' '}· i parametri si modificano camera per camera con la matita
+                </span>
+              </div>
+
+              <table className="np-table np-table--edit np-table--dett">
+                <colgroup>
+                  <col className="np-d-idx" /><col className="np-d-tipo" />
+                  <col className="np-d-num" /><col className="np-d-num" /><col className="np-d-num" /><col className="np-d-num" />
+                  <col className="np-d-prezzo" /><col className="np-d-arr" />
+                  <col className="np-d-data" /><col className="np-d-data" />
+                  <col className="np-d-tot" /><col className="np-d-sel" /><col className="np-d-act" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th><TruncatedText text="Camera" /></th>
+                    <th><TruncatedText text="Tipologia camera" /></th>
+                    <th><TruncatedText text="Adulti" /></th>
+                    <th><TruncatedText text="Ragazzi" /></th>
+                    <th><TruncatedText text="Bambini" /></th>
+                    <th><TruncatedText text="Infanti" /></th>
+                    <th><TruncatedText text="Prezzo p.p." full="Prezzo a persona" /></th>
+                    <th><TruncatedText text="Arrang." full="Arrangiamento" /></th>
+                    <th><TruncatedText text="Data in" /></th>
+                    <th><TruncatedText text="Data out" /></th>
+                    <th className="np-amt">Totale</th>
+                    <th><TruncatedText text="N. camera" /></th>
+                    <th className="np-col-actions" aria-label="Azioni" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {dd.map((d, k) => {
+                    const key = `${c.id}:${k}`
+                    const ed  = inModifica(key)
+                    const tipoLabel = TIPI_CAMERA.find(t => t.v === d.tipo)?.l ?? d.tipo
+                    const num = (f: 'adulti'|'ragazzi'|'bambini'|'infanti') => ed
+                      ? <input type="number" min={0} className="sib-input np-cell-input np-cell-input--num" value={d[f]} onChange={e=>updDettaglioGr(i,k,{[f]:+e.target.value||0})}/>
+                      : <span className="np-cell-ro">{d[f]}</span>
+                    return (
+                      <tr key={key}>
+                        <td><span className="np-cell-ro">{k + 1}</span></td>
+                        <td>
+                          {ed ? (
+                            <Tooltip text={tipoLabel}>
+                              <select className="sib-input np-cell-input np-cell-input--tipo" value={d.tipo} onChange={e=>updDettaglioGr(i,k,{tipo:e.target.value})}>
+                                {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                              </select>
+                            </Tooltip>
+                          ) : <TruncatedText className="np-cell-ro" text={tipoLabel} />}
+                        </td>
+                        <td>{num('adulti')}</td>
+                        <td>{num('ragazzi')}</td>
+                        <td>{num('bambini')}</td>
+                        <td>{num('infanti')}</td>
+                        <td>
+                          {ed
+                            ? <input type="number" min={0} step={0.01} className="sib-input np-cell-input np-cell-input--num" value={d.prezzoPersona} onChange={e=>updDettaglioGr(i,k,{prezzoPersona:+e.target.value||0})}/>
+                            : <span className="np-cell-ro">{euro(d.prezzoPersona)}</span>}
+                        </td>
+                        <td>
+                          {ed ? (
+                            <select className="sib-input np-cell-input" value={d.arrangiamento} onChange={e=>updDettaglioGr(i,k,{arrangiamento:e.target.value})}>
+                              {ARRANGIAMENTI.map(a => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                          ) : <span className="np-cell-ro">{d.arrangiamento}</span>}
+                        </td>
+                        <td>
+                          {ed
+                            ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={d.dataIn} onChange={e=>updDettaglioGr(i,k,{dataIn:e.target.value})}/>
+                            : <span className="np-cell-ro">{fmtData(d.dataIn) || '—'}</span>}
+                        </td>
+                        <td>
+                          {ed
+                            ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={d.dataOut} onChange={e=>updDettaglioGr(i,k,{dataOut:e.target.value})}/>
+                            : <span className="np-cell-ro">{fmtData(d.dataOut) || '—'}</span>}
+                        </td>
+                        <td className="np-amt">{euro(totaleDett(d))}</td>
+                        <td>
+                          {/* L'assegnazione resta sempre disponibile, anche a riga bloccata */}
+                          <div className="np-dett__assign">
+                            <select
+                              className="sib-input np-cell-input"
+                              aria-label={`Numero camera ${k + 1}`}
+                              value={d.numero}
+                              onChange={e=>updDettaglioGr(i, k, { numero: e.target.value })}
+                            >
+                              <option value="">—</option>
+                              {CAMERE.map(nr => (
+                                <option key={nr} value={nr}>
+                                  {nr}{bloccoPerCameraPeriodo(blocchiFantasma, nr, d.dataIn, d.dataOut) ? ' 👻' : ''}
+                                </option>
+                              ))}
+                            </select>
+                            {!!bloccoPerCameraPeriodo(blocchiFantasma, d.numero, d.dataIn, d.dataOut) && (
+                              <Tooltip text="Camera in blocco fantasma">
+                                <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
+                              </Tooltip>
+                            )}
+                          </div>
+                        </td>
+                        <td className="np-col-actions">
+                          {ed ? (
+                            <button type="button" className="np-row-action np-row-action--ok" aria-label="Conferma la camera" onClick={()=>chiudiModifica(key)}>
+                              <Tooltip text="Conferma la camera"><i className="fa-solid fa-check" /></Tooltip>
+                            </button>
+                          ) : (
+                            <button type="button" className="np-row-action" aria-label="Modifica la camera" onClick={()=>apriModifica(key)}>
+                              <Tooltip text="Modifica la camera"><i className="fa-solid fa-pen" /></Tooltip>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+
+              <div className="np-dett__foot">
+                <span className="np-dett__count">Assegnate {assegnate} di {c.quantita}</span>
+                <button type="button" className="sib-btn sib-btn--primary" onClick={()=>setDettaglioIdx(null)}>Chiudi</button>
+              </div>
+            </div>
+          )
+        })()}
+      </Modal>
+
       <Modal open={!!ghostAlert} onClose={cancelGhostAlert} title="Camera in blocco fantasma" size="sm">
         {ghostAlert && (
           <>
