@@ -60,80 +60,36 @@
       background: var(--color-primary-50)
 
   // ── Barra di servizio ──────────────────────────────────────────────────────
+  //  Filtri standard di piattaforma (SelectField a 34px) su una riga sola: la
+  //  sala deve restare la parte alta della pagina, non i filtri.
   &__bar
-    display: flex
-    flex-wrap: wrap
-    align-items: flex-end
-    gap: 20px
-    padding: 12px 14px
-    border: 1px solid var(--color-border)
-    border-radius: 14px
-    background: var(--color-surface)
+    margin-bottom: 0
 
-  &__pick
-    display: flex
-    flex-direction: column
-    gap: 6px
-    min-width: 0
+  &__f
+    min-width: 168px
 
-    &--end
-      margin-left: auto
+    &--lg
+      min-width: 210px
 
-  &__pick-lab
-    font-size: 12px
-    font-weight: 600
-    color: var(--color-primary)
-
-  &__chips
-    display: flex
-    flex-wrap: wrap
-    gap: 8px
-
-  &__chip
-    min-height: 44px
-    padding: 0 16px
-    border: 1px solid var(--color-border)
-    border-radius: 22px
-    background: var(--color-surface)
-    color: var(--color-text-active)
-    font-size: 13px
-    font-weight: 600
-    white-space: nowrap
-    cursor: pointer
-    transition: background .18s ease, color .18s ease, border-color .18s ease, transform .12s ease
-
-    &:active
-      transform: scale(.97)
-
-    &.is-on
-      background: var(--color-primary)
-      border-color: var(--color-primary)
-      color: #fff
-
-    &--sm
-      min-height: 38px
-      padding: 0 14px
-      font-size: 12.5px
-
-  // Segmented control (vista, servizio)
+  // Segmented control della vista, allineato all'altezza dei campi
   &__seg
     display: inline-flex
-    padding: 3px
+    padding: 2px
     border: 1px solid var(--color-border)
-    border-radius: 24px
+    border-radius: 18px
     background: var(--color-primary-50)
 
     button
       display: inline-flex
       align-items: center
-      gap: 8px
-      min-height: 38px
-      padding: 0 16px
+      gap: 7px
+      min-height: 30px
+      padding: 0 14px
       border: none
-      border-radius: 20px
+      border-radius: 16px
       background: transparent
       color: var(--color-text-inactive)
-      font-size: 13px
+      font-size: 12.5px
       font-weight: 600
       white-space: nowrap
       cursor: pointer
@@ -143,11 +99,6 @@
         background: var(--color-surface)
         color: var(--color-primary)
         box-shadow: 0 1px 4px rgba(32, 71, 105, .16)
-
-    &--sm button
-      min-height: 32px
-      padding: 0 12px
-      font-size: 12px
 
   // ── Corpo ──────────────────────────────────────────────────────────────────
   &__body
@@ -786,19 +737,6 @@
     border-radius: 50%
     background: var(--color-accent)
 
-  &__riga
-    display: flex
-    align-items: center
-    gap: 10px
-    padding: 6px 14px 12px
-    flex-wrap: wrap
-
-  &__riga-lab
-    min-width: 58px
-    font-size: 12px
-    font-weight: 600
-    color: var(--color-text-inactive)
-
   &__nota
     font-size: 12px
     color: var(--color-text-inactive)
@@ -1149,38 +1087,6 @@
     margin: 0
     font-size: 12px
     color: var(--color-warning)
-
-  &__chips
-    display: flex
-    flex-wrap: wrap
-    gap: 8px
-
-  &__chip
-    min-height: 48px
-    padding: 0 16px
-    border: 1px solid var(--color-border)
-    border-radius: 24px
-    background: var(--color-surface)
-    color: var(--color-text-active)
-    font-size: 13px
-    font-weight: 600
-    cursor: pointer
-    transition: background .18s ease, border-color .18s ease, transform .12s ease
-
-    em
-      font-style: normal
-      color: var(--color-text-inactive)
-
-    &:active
-      transform: scale(.97)
-
-    &.is-on
-      background: var(--color-primary)
-      border-color: var(--color-primary)
-      color: #fff
-
-      em
-        color: rgba(255, 255, 255, .8)
 
   &__foot
     display: flex

@@ -12,6 +12,8 @@
 //  filtro), azioni sul tavolo scelto e prenotazioni in arrivo.
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
+import FilterToolbar from '../../../../core/components/FilterToolbar'
+import { SelectField } from '../../../../core/components/form'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
@@ -309,57 +311,54 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
         }
       />
 
-      {/* Barra di servizio: outlet → sala → vista */}
-      <div className="fbsala__bar">
-        <div className="fbsala__pick">
-          <span className="fbsala__pick-lab">I miei outlet</span>
-          <div className="fbsala__chips">
-            {OUTLETS.map(o => (
-              <button
-                key={o.id} type="button"
-                className={`fbsala__chip ${o.id === outletId ? 'is-on' : ''}`}
-                onClick={() => {
-                  const prima = SALE.find(s => s.outletId === o.id)
-                  const t = TURNI.find(x => x.outletId === o.id)
-                  setContesto({ outletId: o.id, salaId: prima?.id ?? salaId, turnoId: t?.id ?? null })
-                  setSel(null); setScelti([])
-                }}
-              >{o.nome}</button>
-            ))}
-          </div>
-        </div>
-
-        <div className="fbsala__pick">
-          <span className="fbsala__pick-lab">Sala</span>
-          <div className="fbsala__chips">
-            {saleOutlet.map(s => (
-              <button
-                key={s.id} type="button"
-                className={`fbsala__chip ${s.id === salaId ? 'is-on' : ''}`}
-                onClick={() => { setContesto({ salaId: s.id }); setSel(null); setScelti([]) }}
-              >{s.nome}</button>
-            ))}
-          </div>
-        </div>
-
-        <div className="fbsala__pick fbsala__pick--end">
-          <span className="fbsala__pick-lab">Vista</span>
+      {/* Barra di servizio: compatta, componenti standard di piattaforma */}
+      <FilterToolbar
+        className="fbsala__bar"
+        actions={
           <div className="fbsala__seg">
-            <button
-              type="button" className={vista === 'griglia' ? 'is-on' : ''}
-              onClick={() => setVista('griglia')}
-            >
+            <button type="button" className={vista === 'griglia' ? 'is-on' : ''} onClick={() => setVista('griglia')}>
               <i className="fa-solid fa-grid-2" aria-hidden="true" /> Card
             </button>
-            <button
-              type="button" className={vista === 'planimetria' ? 'is-on' : ''}
-              onClick={() => setVista('planimetria')}
-            >
+            <button type="button" className={vista === 'planimetria' ? 'is-on' : ''} onClick={() => setVista('planimetria')}>
               <i className="fa-solid fa-chair" aria-hidden="true" /> Planimetria
             </button>
           </div>
-        </div>
-      </div>
+        }
+      >
+        <SelectField
+          name="outlet" label="Outlet" className="fbsala__f fbsala__f--lg"
+          value={outletId}
+          options={OUTLETS.map(o => ({ value: o.id, label: o.nome }))}
+          onChange={e => {
+            const id = +e.target.value
+            const prima = SALE.find(x => x.outletId === id)
+            const t = TURNI.find(x => x.outletId === id)
+            setContesto({ outletId: id, salaId: prima?.id ?? salaId, turnoId: t?.id ?? null })
+            setSel(null); setScelti([])
+          }}
+        />
+        <SelectField
+          name="sala" label="Sala" className="fbsala__f"
+          value={salaId}
+          options={saleOutlet.map(s => ({ value: s.id, label: s.nome }))}
+          onChange={e => { setContesto({ salaId: +e.target.value }); setSel(null); setScelti([]) }}
+        />
+        <SelectField
+          name="servizio" label="Servizio" className="fbsala__f"
+          value={servizio}
+          options={SERVIZI.map(sv => ({ value: sv, label: sv }))}
+          onChange={e => {
+            const t = turniOutlet.find(x => x.servizio === e.target.value)
+            setContesto({ turnoId: t?.id ?? null })
+          }}
+        />
+        <SelectField
+          name="turno" label="Turno" className="fbsala__f"
+          value={turnoId ?? ''}
+          options={turniServizio.map(t => ({ value: t.id, label: `${t.nome} · ${t.oraInizio}–${t.oraFine}` }))}
+          onChange={e => setContesto({ turnoId: +e.target.value })}
+        />
+      </FilterToolbar>
 
       <div className="fbsala__body">
         <section className="fbsala__main">
@@ -515,39 +514,6 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
                   </button>
                 )
               })}
-            </div>
-          </section>
-
-          {/* Turni e servizi */}
-          <section className="fbsala__blk">
-            <h3 className="fbsala__blk-tit">Turni e servizi</h3>
-            <div className="fbsala__riga">
-              <span className="fbsala__riga-lab">Servizio</span>
-              <div className="fbsala__seg fbsala__seg--sm">
-                {SERVIZI.map(sv => (
-                  <button
-                    key={sv} type="button"
-                    className={sv === servizio ? 'is-on' : ''}
-                    onClick={() => {
-                      const t = turniOutlet.find(x => x.servizio === sv)
-                      setContesto({ turnoId: t?.id ?? null })
-                    }}
-                  >{sv}</button>
-                ))}
-              </div>
-            </div>
-            <div className="fbsala__riga">
-              <span className="fbsala__riga-lab">Turni</span>
-              <div className="fbsala__chips">
-                {turniServizio.map(t => (
-                  <button
-                    key={t.id} type="button"
-                    className={`fbsala__chip fbsala__chip--sm ${t.id === turnoId ? 'is-on' : ''}`}
-                    onClick={() => setContesto({ turnoId: t.id })}
-                  >{t.nome}</button>
-                ))}
-                {!turniServizio.length && <span className="fbsala__nota">Nessun turno per {servizio}.</span>}
-              </div>
             </div>
           </section>
 
