@@ -4,7 +4,6 @@
 //  al bancone è sempre la stessa: «questo cliente quanto ha ancora?».
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
-import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
 import Modal from '../../../../core/components/Modal'
 import {

@@ -42,7 +42,7 @@ export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => v
   const [soloDaFare, setSoloDaFare]   = useState(false)
 
   const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
-  const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId])
+  const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId, TURNI])
 
   const righe = useMemo(() => {
     const q = cerca.trim().toLowerCase()

@@ -133,10 +133,7 @@ import { isPlatformAdminPage, PLATFORM_ADMIN_PLATFORM_PAGE } from '../navigation
 import Planner                     from '../modules/operation/planner';
 import PlanimetriaEditor            from '../modules/operation/planner/PlanimetriaEditor/PlanimetriaEditor';
 import SaleTavoli                   from '../modules/operation/SaleTavoli/SaleTavoli';
-// ── Food & Beverage (Outlet Manager — outlet.sibyllanetwork.it) ──
-import OutletShell                 from '../modules/operation/Outlet/OutletShell';
-import type { OutletSubPage }      from '../modules/operation/Outlet/OutletShell';
-import OutletConfig, { hasOutletConfig } from '../modules/operation/Outlet/OutletConfig';
+// ── Food & Beverage: pagine native della sezione ──
 import SalaRistoranteFb            from '../modules/operation/FoodBeverage/SalaRistorante/SalaRistorante';
 import GestioneComandaFb          from '../modules/operation/FoodBeverage/GestioneComanda/GestioneComanda';
 import LibroPrenotazioniFb        from '../modules/operation/FoodBeverage/LibroPrenotazioni/LibroPrenotazioni';
@@ -467,10 +464,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'pianifica-campagna')    return <PianificaCampagna navigate={navigate}/>;
   if (page === 'riepilogo-campagna')    return <RiepilogoCampagna navigate={navigate}/>;
   if (page === 'totem-adv')             return <Totem navigate={navigate}/>;
-  // ── Food & Beverage → Outlet Manager (sub-app vendorizzata) ──
-  // Una sola istanza per i 4 link (niente key): lo stato interno persiste.
-  // Pagine F&B riscritte col design system Platform (sostituiscono le
-  // corrispondenti pagine vendorizzate dell'Outlet Manager).
+  // ── Food & Beverage ──
+  // Tutte native: operative, configurazione e amministrazione della sezione.
   if (page === 'sala-ristorante') return <SalaRistoranteFb navigate={navigate}/>;
   if (page === 'gest-comanda')    return <GestioneComandaFb navigate={navigate}/>;
   if (page === 'libro-prenotazioni') return <LibroPrenotazioniFb navigate={navigate}/>;
@@ -493,18 +488,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'fb-ruoli')           return <FbRuoli navigate={navigate}/>;
   if (page === 'fb-wallet-clienti')  return <FbWalletClienti navigate={navigate}/>;
   // Sale e tavoli: la pagina nativa configura le sale servite dalla sezione
-  if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate}/>;
+  if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate} editable/>;
 
-  const FB_PAGES: Record<string, OutletSubPage> = {
-    'libro-prenotazioni': 'prenotazioni',
-    'ospiti-giorno': 'ospiti',
-  };
-  if (page in FB_PAGES) return <OutletShell initialPage={FB_PAGES[page]} navigate={navigate}/>;
-
-  // Voci Struttura/Menu/Generali della sezione F&B: finché non sono riscritte
-  // col design system Platform, montano la pagina Outlet corrispondente (la
-  // stessa già usata dal Configuratore → Food & Beverage).
-  if (hasOutletConfig(page)) return <OutletConfig id={page} key={page}/>;
 
   if (page === 'sysadmin')              return <SysadminIndex navigate={navigate}/>;
   if (page === 'gestione-aziende')      return <GestioneAziende navigate={navigate}/>;

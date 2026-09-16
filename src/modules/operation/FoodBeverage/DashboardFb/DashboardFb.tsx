@@ -37,7 +37,7 @@ export default function DashboardFb({ navigate }: { navigate?: (p: string) => vo
 
   const { outletId, data } = contesto
   const saleOutlet = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
-  const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId])
+  const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId, TURNI])
   const idSale = useMemo(() => saleOutlet.map(s => s.id), [saleOutlet])
 
   const delGiorno = useMemo(

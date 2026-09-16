@@ -10,7 +10,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
 import Modal from '../../../../core/components/Modal'
 import {
-  InputField, SelectField, TextareaField, DatePickerField, NumCell,
+  InputField, SelectField, DatePickerField, NumCell,
 } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'

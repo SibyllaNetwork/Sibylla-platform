@@ -72,7 +72,7 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
   const [editId, setEditId] = useState<number | null>(null)
 
   const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
-  const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId])
+  const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId, TURNI])
 
   // ── Prenotazioni della giornata ────────────────────────────────────────────
   const delGiorno = useMemo(() => {
@@ -92,7 +92,7 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
       const tb = TURNI.find(t => t.id === b[0])?.oraInizio ?? ''
       return ta.localeCompare(tb)
     })
-  }, [delGiorno])
+  }, [delGiorno, TURNI])
 
   const paxGiorno = delGiorno.reduce((a, p) => a + p.pax, 0)
 
@@ -249,7 +249,6 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
                       </thead>
                       <tbody>
                         {righe.map(p => {
-                          const tav = p.tavoloId ? tavoli.find(x => x.id === p.tavoloId) : undefined
                           const org = ORIGINI.find(o => o.id === p.origine)
                           return (
                             <tr key={p.id} className={p.stato === 'annullata' ? 'is-off' : ''}>

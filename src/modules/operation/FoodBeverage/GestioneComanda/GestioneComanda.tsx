@@ -15,7 +15,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
 import {
-  useFbStore, totaleRiga, totaleComanda, scontoComanda, totaleConto, SALE, TURNI,
+  useFbStore, totaleRiga, totaleComanda, scontoComanda, totaleConto, SALE,
 } from '../../../../store/useFbStore'
 import {
   CATEGORIE_CLIENTE, CATEGORIE_MENU, PORTATE, STATO_RIGA, TIPI_MENU, VOCI_MENU,
@@ -39,7 +39,6 @@ const PAGAMENTI: Array<{ id: NonNullable<Comanda['pagamento']>; label: string; i
 ]
 
 export default function GestioneComanda({ navigate }: { navigate?: (p: string) => void }) {
-  const OUTLETS = useFbStore(s => s.outlets)
   const TURNI   = useFbStore(s => s.turni)
   const contesto    = useFbStore(s => s.contesto)
   const setContesto = useFbStore(s => s.setContesto)

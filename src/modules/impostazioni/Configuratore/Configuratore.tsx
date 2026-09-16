@@ -44,27 +44,13 @@ import VincoloMatriosca       from './panes/VincoloMatriosca/VincoloMatriosca'
 import FasceEta               from './panes/FasceEta/FasceEta'
 import VociIncasso            from './panes/VociIncasso/VociIncasso'
 import ConfiguraOutlet        from './panes/ConfiguraOutlet/ConfiguraOutlet'
-import TurniServizio          from './panes/TurniServizio/TurniServizio'
-import CategorieMenu          from './panes/CategorieMenu/CategorieMenu'
-import VociMenu               from './panes/VociMenu/VociMenu'
-import Allergeni              from './panes/Allergeni/Allergeni'
-import CategorieOspite        from './panes/CategorieOspite/CategorieOspite'
-import ServiceMonitor         from './panes/ServiceMonitor/ServiceMonitor'
-import StampantiPane          from './panes/Stampanti/Stampanti'
-import CreaMenu               from './panes/CreaMenu/CreaMenu'
-import ListaMenu              from './panes/ListaMenu/ListaMenu'
-import MenuGiorno             from './panes/MenuGiorno/MenuGiorno'
-import WebMenu                from './panes/WebMenu/WebMenu'
 import Gateway                from './panes/Gateway/Gateway'
 import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFiscali'
 import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
 import CostiMapping           from './panes/CostiMapping/CostiMapping'
-import OutletConfig, { hasOutletConfig } from '../../operation/Outlet/OutletConfig'
 // Le voci F&B «Crea outlet» e «Sale e tavoli» sono LE STESSE pagine di
 // Impostazioni → Il mio business: si montano qui in modalità embedded (senza il
 // loro PageHead, che nel pane lo dà CfgPane), non si duplicano.
-import SaleTavoli from '../../operation/SaleTavoli/SaleTavoli'
-import CreaStruttura from '../CreaStruttura/CreaStruttura'
 
 // ─── SHELL DEL CONFIGURATORE ─────────────────────────────────────────────────
 //  "Configuratore come percorso guidato": hub d'ingresso con le 7 corsie
@@ -84,19 +70,27 @@ export interface CfgPaneComponentProps {
   navigate?: (page: string) => void
 }
 
-/**
- * F&B → Sale e tavoli: stessa pagina di Il mio business, ma qui è il posto dove
- * le sale si DEFINISCONO (crea, rinomina, elimina, composizione della
- * planimetria). Là la stessa pagina è di sola consultazione.
- */
-const FbSaleTavoli = ({ navigate }: CfgPaneComponentProps) => (
-  <SaleTavoli embedded editable navigate={navigate} />
-)
-
-/** F&B → Crea outlet: identica a Il mio business → Crea outlet (picker su Outlet). */
-const FbCreaOutlet = ({ navigate }: CfgPaneComponentProps) => (
-  <CreaStruttura embedded autoOpenType="outlet" navigate={navigate ?? (() => {})} />
-)
+// ─── Configurazioni F&B ──────────────────────────────────────────────────────
+//  Da quando la sezione Food & Beverage ha le sue pagine native, queste voci
+//  non ospitano più un secondo editor: rimandano alla pagina dove la cosa si
+//  configura davvero, così non esistono due posti (e due stati) per lo stesso
+//  dato. Chiave = voce del Configuratore, valore = pagina della sezione.
+const RIMANDI_FB: Partial<Record<ConfiguratoreId, { page: string; label: string }>> = {
+  'fb-outlet':           { page: 'fb-outlet',           label: 'Outlet' },
+  'fb-sale-tavoli':      { page: 'fb-sale-tavoli',      label: 'Sale e tavoli' },
+  'fb-turni':            { page: 'fb-turni',            label: 'Turni' },
+  'fb-tipi-menu':        { page: 'fb-tipi-menu',        label: 'Tipi menu' },
+  'fb-categorie':        { page: 'fb-categorie',        label: 'Categorie menu' },
+  'fb-voci-menu':        { page: 'fb-voci-menu',        label: 'Voci menu' },
+  'fb-crea-menu':        { page: 'fb-menu-giorno',      label: 'Menu del giorno' },
+  'fb-menu-giorno':      { page: 'fb-menu-giorno',      label: 'Menu del giorno' },
+  'fb-lista-menu':       { page: 'fb-web-menu',         label: 'Web menu' },
+  'fb-web-menu':         { page: 'fb-web-menu',         label: 'Web menu' },
+  'fb-allergeni':        { page: 'fb-allergeni',        label: 'Allergeni' },
+  'fb-categoria-ospite': { page: 'fb-categoria-ospite', label: 'Categorie cliente' },
+  'fb-stampanti':        { page: 'fb-stampanti',        label: 'Stampanti' },
+  'fb-service-monitor':  { page: 'fb-service-monitor',  label: 'Service monitor' },
+}
 
 const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponentProps>>> = {
   'scaglioni-occupazione':    ScaglioniOccupazione,
@@ -120,20 +114,6 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'fasce-eta':                FasceEta,
   'voci-incasso':             VociIncasso,
   'configura-outlet':         ConfiguraOutlet,
-  // Voci F&B servite dalle pagine native, non dalla sub-app Outlet Manager
-  'fb-sale-tavoli':           FbSaleTavoli,
-  'fb-outlet':                FbCreaOutlet,
-  'fb-turni':                 TurniServizio,
-  'fb-categorie':             CategorieMenu,
-  'fb-voci-menu':             VociMenu,
-  'fb-allergeni':             Allergeni,
-  'fb-categoria-ospite':      CategorieOspite,
-  'fb-service-monitor':       ServiceMonitor,
-  'fb-stampanti':             StampantiPane,
-  'fb-crea-menu':             CreaMenu,
-  'fb-lista-menu':            ListaMenu,
-  'fb-menu-giorno':           MenuGiorno,
-  'fb-web-menu':              WebMenu,
   'gateway':                  Gateway,
   'intestazioni-fiscali':     IntestazioniFiscali,
   'business-central':         BusinessCentral,
@@ -323,10 +303,24 @@ function PaneSwitch({ def, completion, onGoTo, navigate }: {
     )
   }
 
+  const rimando = RIMANDI_FB[def.id]
+  if (rimando) {
+    return (
+      <CfgEmpty
+        icon="utensils"
+        title={`${def.label} si configura in Food & Beverage`}
+        subtitle="La sezione Food & Beverage è il posto unico dove questa configurazione vive: qui resta il rimando, per non tenerne due copie che divergono."
+        action={(
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => navigate(rimando.page)}>
+            Vai a {rimando.label}
+          </button>
+        )}
+      />
+    )
+  }
+
   const Pane = PANES[def.id]
   if (Pane) return <Pane onGoTo={onGoTo} navigate={navigate} />
-
-  if (hasOutletConfig(def.id)) return <OutletConfig id={def.id} />
 
   return (
     <CfgEmpty

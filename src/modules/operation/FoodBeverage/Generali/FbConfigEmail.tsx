@@ -5,7 +5,7 @@
 //  si verifica mandando una mail, non rileggendo i campi.
 import React, { useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
-import { InputField, SelectField, ToggleSwitch, NumCell } from '../../../../core/components/form'
+import { InputField, ToggleSwitch, NumCell } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { useFbStore } from '../../../../store/useFbStore'
 import { PROVIDER_EMAIL, type ConfigEmail } from '../fb.model'
