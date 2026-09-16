@@ -1,0 +1,810 @@
+// ─── Sala ristorante (Food & Beverage) ────────────────────────────────────────
+//  Pagina touch-first: ogni bersaglio è almeno 48px, nessuno stato dipende
+//  dall'hover (che su tablet non esiste) e la planimetria scala col contenitore
+//  invece di scrollare. I colori di stato arrivano da STATO_TAVOLO del modello,
+//  qui ridichiarati come custom property per poterli usare anche nei gradienti.
+
+// Pulsazione dei tavoli che chiedono attenzione (conto richiesto)
+@keyframes fbsala-pulse
+  0%, 100%
+    box-shadow: 0 0 0 0 rgba(62, 127, 193, 0.45)
+  50%
+    box-shadow: 0 0 0 10px rgba(62, 127, 193, 0)
+
+// Entrata dei tavoli: la mappa "si compone" all'apertura della pagina
+@keyframes fbsala-in
+  from
+    opacity: 0
+    transform: translate(-50%, -46%) scale(.92)
+  to
+    opacity: 1
+    transform: translate(-50%, -50%) scale(1)
+
+.fbsala
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 12px
+  height: 100%
+  min-height: 0
+
+  --fb-libero:    #00A870
+  --fb-riservato: #C69520
+  --fb-occupato:  #D64550
+  --fb-ordinato:  #B06A1F
+  --fb-conto:     #3E7FC1
+  --fb-pulizia:   #7A8DA0
+  --fb-bloccato:  #5A6B7A
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: background .18s ease, border-color .18s ease
+
+    &:active
+      background: var(--color-primary-50)
+
+  // ── Barra di servizio ──────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    flex-wrap: wrap
+    gap: 18px
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__pick
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+
+  &__pick-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    min-height: 44px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+    transition: background .18s ease, color .18s ease, border-color .18s ease, transform .12s ease
+
+    &:active
+      transform: scale(.97)
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+  // ── Corpo: mappa + pannello ────────────────────────────────────────────────
+  &__body
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 360px
+    gap: 12px
+    flex: 1
+    min-height: 0
+
+  &__mappa-wrap
+    display: flex
+    flex-direction: column
+    min-width: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__mappa-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 12px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
+
+  &__mappa-tit
+    display: flex
+    align-items: baseline
+    gap: 10px
+    min-width: 0
+    font-size: 15px
+    font-weight: 600
+    color: var(--color-primary)
+
+    i
+      color: var(--color-primary)
+
+    em
+      font-style: normal
+      font-size: 12.5px
+      font-weight: 500
+      color: var(--color-text-inactive)
+      white-space: nowrap
+
+  &__mappa-kpi
+    display: flex
+    gap: 16px
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    strong
+      font-size: 14px
+      color: var(--color-primary)
+
+  &__hint
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 16px
+    background: var(--color-link-light)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+
+  &__hint-x
+    margin-left: auto
+    min-height: 36px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    background: var(--color-surface)
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  // Planimetria: i tavoli sono posizionati in % (--x/--y dal modello)
+  &__mappa
+    position: relative
+    flex: 1
+    min-height: 320px
+    margin: 14px
+    border: 1px dashed var(--color-border)
+    border-radius: 12px
+    background-color: var(--color-surface)
+    background-image: radial-gradient(circle at 1px 1px, var(--color-primary-100) 1px, transparent 0)
+    background-size: 28px 28px
+
+  &__vuoto
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    margin: 0
+    color: var(--color-text-inactive)
+    font-size: 13px
+
+  &__tav
+    position: absolute
+    left: calc(var(--x) * 1%)
+    top: calc(var(--y) * 1%)
+    transform: translate(-50%, -50%)
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 2px
+    width: 84px
+    height: 72px
+    padding: 4px
+    border: 2px solid var(--stato, var(--color-border))
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    cursor: pointer
+    animation: fbsala-in .32s ease both
+    transition: transform .14s ease, box-shadow .18s ease, opacity .18s ease
+
+    &:active
+      transform: translate(-50%, -50%) scale(.95)
+
+    &--rotondo
+      border-radius: 50%
+      width: 76px
+      height: 76px
+
+    &--rettangolare
+      width: 104px
+
+    &--libero
+      --stato: var(--fb-libero)
+
+    &--riservato
+      --stato: var(--fb-riservato)
+
+    &--occupato
+      --stato: var(--fb-occupato)
+
+    &--ordinato
+      --stato: var(--fb-ordinato)
+
+    &--conto
+      --stato: var(--fb-conto)
+
+    &--pulizia
+      --stato: var(--fb-pulizia)
+
+    &--bloccato
+      --stato: var(--fb-bloccato)
+
+    &--occupato,
+    &--ordinato,
+    &--conto
+      background: color-mix(in srgb, var(--stato) 10%, var(--color-surface))
+
+    &--pulizia,
+    &--bloccato
+      background: var(--color-primary-50)
+      color: var(--color-text-inactive)
+
+    // Conto richiesto: pulsa finché non viene servito
+    &--conto
+      animation: fbsala-in .32s ease both, fbsala-pulse 2.2s ease-in-out .4s infinite
+
+    &.is-sel
+      box-shadow: 0 0 0 4px var(--color-focus-ring), 0 6px 18px rgba(32, 71, 105, .18)
+
+    &.is-off
+      opacity: .28
+
+    &.is-src
+      box-shadow: 0 0 0 4px rgba(198, 149, 32, .35)
+
+  &__tav-num
+    font-size: 15px
+    font-weight: 700
+    line-height: 1.1
+    color: var(--stato)
+
+  &__tav-cap
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+    i
+      font-size: 10px
+
+  &__tav-tot
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__tav-cam
+    position: absolute
+    top: -8px
+    right: -6px
+    display: grid
+    place-items: center
+    width: 24px
+    height: 24px
+    border-radius: 50%
+    background: var(--color-primary)
+    color: #fff
+    font-size: 10px
+    font-weight: 700
+
+  // ── Legenda / filtro ───────────────────────────────────────────────────────
+  &__legenda
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+    padding: 0 14px 14px
+
+  &__lg
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-surface)
+    cursor: pointer
+    transition: border-color .18s ease, background .18s ease
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+
+  &__lg-dot
+    width: 12px
+    height: 12px
+    border-radius: 50%
+
+    &[data-stato="libero"]
+      background: var(--fb-libero)
+
+    &[data-stato="riservato"]
+      background: var(--fb-riservato)
+
+    &[data-stato="occupato"]
+      background: var(--fb-occupato)
+
+    &[data-stato="ordinato"]
+      background: var(--fb-ordinato)
+
+    &[data-stato="conto"]
+      background: var(--fb-conto)
+
+    &[data-stato="pulizia"]
+      background: var(--fb-pulizia)
+
+    &[data-stato="bloccato"]
+      background: var(--fb-bloccato)
+
+  &__lg-n
+    font-size: 14px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__lg-l
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  // ── Pannello laterale ──────────────────────────────────────────────────────
+  &__panel
+    display: flex
+    flex-direction: column
+    gap: 12px
+    min-height: 0
+    overflow-y: auto
+
+  &__empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 12px
+    padding: 32px 20px
+    border: 1px dashed var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+  &__card
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__card-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 14px 16px
+    color: #fff
+
+    &[data-stato="libero"]
+      background: linear-gradient(135deg, var(--fb-libero), #00895b)
+
+    &[data-stato="riservato"]
+      background: linear-gradient(135deg, var(--fb-riservato), #a87c17)
+
+    &[data-stato="occupato"]
+      background: linear-gradient(135deg, var(--fb-occupato), #b3323d)
+
+    &[data-stato="ordinato"]
+      background: linear-gradient(135deg, var(--fb-ordinato), #915617)
+
+    &[data-stato="conto"]
+      background: linear-gradient(135deg, var(--fb-conto), #2f6aa6)
+
+    &[data-stato="pulizia"]
+      background: linear-gradient(135deg, var(--fb-pulizia), #647485)
+
+    &[data-stato="bloccato"]
+      background: linear-gradient(135deg, var(--fb-bloccato), #46545f)
+
+  &__card-eyebrow
+    display: block
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: .04em
+    opacity: .85
+
+  &__card-num
+    margin: 2px 0 0
+    font-size: 26px
+    font-weight: 700
+    line-height: 1
+
+  &__card-stato
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 6px 12px
+    border-radius: 20px
+    background: rgba(255, 255, 255, .18)
+    font-size: 12.5px
+    font-weight: 600
+    white-space: nowrap
+
+  &__dati
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 1px
+    margin: 0
+    background: var(--color-border)
+
+    > div
+      display: flex
+      flex-direction: column
+      gap: 2px
+      padding: 10px 14px
+      background: var(--color-surface)
+
+    dt
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+    dd
+      margin: 0
+      font-size: 14px
+      font-weight: 600
+      color: var(--color-text-active)
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    &--tot dd
+      color: var(--color-primary)
+      font-size: 17px
+
+  &__pren-tav
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 14px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-link-light)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-primary)
+
+  &__actions
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px
+    padding: 12px
+
+  &__act
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 52px
+    padding: 0 12px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: transform .12s ease, background .18s ease, border-color .18s ease
+
+    &:active
+      transform: scale(.97)
+
+    i
+      font-size: 15px
+      color: var(--color-primary)
+
+    &--go
+      grid-column: span 2
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+      i
+        color: #fff
+
+    &--ok
+      border-color: var(--color-success-mid)
+      color: var(--color-success)
+
+      i
+        color: var(--color-success-mid)
+
+    &--danger
+      border-color: var(--color-error)
+      color: var(--color-error-dark)
+
+      i
+        color: var(--color-error)
+
+  // ── Prenotazioni in arrivo ─────────────────────────────────────────────────
+  &__pren
+    display: flex
+    flex-direction: column
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__pren-head
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding: 12px 14px
+    border-bottom: 1px solid var(--color-border)
+
+    h3
+      margin: 0
+      font-size: 14px
+      font-weight: 600
+      color: var(--color-primary)
+
+    span
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__pren-list
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__pren-row
+    display: grid
+    grid-template-columns: 52px minmax(0, 1fr) 46px 84px
+    align-items: center
+    gap: 8px
+    width: 100%
+    min-height: 48px
+    padding: 0 14px
+    border: none
+    border-bottom: 1px solid var(--color-primary-100)
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+
+    &:active
+      background: var(--color-primary-50)
+
+  &__pren-ora
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__pren-nome
+    font-size: 13px
+    color: var(--color-text-active)
+    min-width: 0
+
+  &__pren-pax
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    i
+      font-size: 10px
+
+  &__pren-tav
+    justify-self: end
+    padding: 4px 10px
+    border-radius: 12px
+    background: var(--color-primary-50)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-primary)
+    white-space: nowrap
+
+    &.is-none
+      background: transparent
+      color: var(--color-text-disabled)
+      font-weight: 500
+
+  &__pren-vuoto
+    padding: 16px 14px
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__pren-all
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 48px
+    border: none
+    border-top: 1px solid var(--color-border)
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+// ─── Modale "Apri tavolo" ─────────────────────────────────────────────────────
+.fbsala-apri
+  display: flex
+  flex-direction: column
+  gap: 18px
+  padding: 18px
+
+  &__blk
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__stepper
+    display: flex
+    align-items: center
+    gap: 14px
+
+    button
+      display: grid
+      place-items: center
+      width: 56px
+      height: 56px
+      border: 1px solid var(--color-border)
+      border-radius: 14px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      font-size: 18px
+      cursor: pointer
+      transition: transform .12s ease, background .18s ease
+
+      &:active
+        transform: scale(.94)
+        background: var(--color-primary-50)
+
+  &__n
+    min-width: 72px
+    text-align: center
+    font-size: 30px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__warn
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: var(--color-warning)
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    min-height: 48px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 24px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: background .18s ease, border-color .18s ease, transform .12s ease
+
+    em
+      font-style: normal
+      color: var(--color-text-inactive)
+
+    &:active
+      transform: scale(.97)
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+      em
+        color: rgba(255, 255, 255, .8)
+
+  &__foot
+    display: flex
+    flex-wrap: wrap
+    gap: 10px
+    padding-top: 4px
+
+  &__annulla
+    min-height: 52px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    flex: 1
+    min-width: 160px
+    min-height: 52px
+    padding: 0 20px
+    border: 1px solid var(--color-primary)
+    border-radius: 12px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 14px
+    font-weight: 600
+    cursor: pointer
+    transition: transform .12s ease, opacity .18s ease
+
+    &:active
+      transform: scale(.98)
+
+    &--go
+      background: var(--color-accent)
+      border-color: var(--color-accent)
+      color: var(--color-primary-900)
+
+// ─── Tablet e monitor in verticale ────────────────────────────────────────────
+// Sotto i 1100px il pannello va sotto la mappa: entrambe restano leggibili e
+// nessuna delle due produce scroll orizzontale.
+@container (max-width: 1100px)
+  .fbsala__body
+    grid-template-columns: minmax(0, 1fr)
+
+  .fbsala__panel
+    overflow: visible
+
+  .fbsala__actions
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@container (max-width: 680px)
+  .fbsala__bar
+    gap: 12px
+
+  .fbsala__actions
+    grid-template-columns: minmax(0, 1fr)
+
+  .fbsala__act--go
+    grid-column: span 1

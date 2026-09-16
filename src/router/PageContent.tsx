@@ -137,6 +137,7 @@ import SaleTavoli                   from '../modules/operation/SaleTavoli/SaleTa
 import OutletShell                 from '../modules/operation/Outlet/OutletShell';
 import type { OutletSubPage }      from '../modules/operation/Outlet/OutletShell';
 import OutletConfig, { hasOutletConfig } from '../modules/operation/Outlet/OutletConfig';
+import SalaRistoranteFb            from '../modules/operation/FoodBeverage/SalaRistorante/SalaRistorante';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -448,9 +449,12 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'totem-adv')             return <Totem navigate={navigate}/>;
   // ── Food & Beverage → Outlet Manager (sub-app vendorizzata) ──
   // Una sola istanza per i 4 link (niente key): lo stato interno persiste.
+  // Pagine F&B riscritte col design system Platform (sostituiscono le
+  // corrispondenti pagine vendorizzate dell'Outlet Manager).
+  if (page === 'sala-ristorante') return <SalaRistoranteFb navigate={navigate}/>;
+
   const FB_PAGES: Record<string, OutletSubPage> = {
     'gest-comanda': 'gestione',
-    'sala-ristorante': 'sala',
     'libro-prenotazioni': 'prenotazioni',
     'ospiti-giorno': 'ospiti',
   };

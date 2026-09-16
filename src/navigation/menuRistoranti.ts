@@ -114,10 +114,38 @@ const MENU_RISTORANTI:any[]=[
         ]},
       ]},
       {id:"food-beverage",label:"Food & Beverage",children:[
-        {id:"gest-comanda",label:"Gestione comanda",page:"gest-comanda"},
-        {id:"sala-ristorante",label:"Sala ristorante",page:"sala-ristorante"},
-        {id:"libro-prenotazioni",label:"Libro prenotazioni",page:"libro-prenotazioni"},
-        {id:"ospiti-giorno",label:"Ospiti del giorno",page:"ospiti-giorno"},
+        {id:"fb-dashboard",label:"Dashboard F&B",page:"fb-dashboard"},
+        {id:"fb-operativo",label:"Operativo",children:[
+          {id:"sala-ristorante",label:"Sala ristorante",page:"sala-ristorante"},
+          {id:"libro-prenotazioni",label:"Libro prenotazioni",page:"libro-prenotazioni"},
+          {id:"ospiti-giorno",label:"Ospiti del giorno",page:"ospiti-giorno"},
+          {id:"gest-comanda",label:"Gestione comanda",page:"gest-comanda"},
+        ]},
+        {id:"fb-struttura",label:"Struttura",children:[
+          {id:"fb-outlet",label:"Outlet",page:"fb-outlet"},
+          {id:"fb-sale-tavoli",label:"Sale e tavoli",page:"fb-sale-tavoli"},
+          {id:"fb-turni",label:"Turni",page:"fb-turni"},
+        ]},
+        {id:"fb-menu",label:"Menu",children:[
+          {id:"fb-tipi-menu",label:"Tipi menu",page:"fb-tipi-menu"},
+          {id:"fb-categorie",label:"Categorie",page:"fb-categorie"},
+          {id:"fb-voci-menu",label:"Voci menu",page:"fb-voci-menu"},
+          {id:"fb-menu-giorno",label:"Menu del giorno",page:"fb-menu-giorno"},
+          {id:"fb-web-menu",label:"Web menu",page:"fb-web-menu"},
+        ]},
+        {id:"fb-generali",label:"Generali",children:[
+          {id:"fb-allergeni",label:"Allergeni",page:"fb-allergeni"},
+          {id:"fb-categoria-ospite",label:"Categorie cliente",page:"fb-categoria-ospite"},
+          {id:"fb-stampanti",label:"Stampanti",page:"fb-stampanti"},
+          {id:"fb-service-monitor",label:"Service monitor",page:"fb-service-monitor"},
+          {id:"fb-config-email",label:"Configurazione e-mail",page:"fb-config-email"},
+          {id:"fb-mobile-wallet",label:"Mobile wallet",page:"fb-mobile-wallet"},
+        ]},
+        {id:"fb-amministrazione",label:"Amministrazione",children:[
+          {id:"fb-utenti",label:"Utenti",page:"fb-utenti"},
+          {id:"fb-wallet-clienti",label:"Wallet clienti",page:"fb-wallet-clienti"},
+          {id:"fb-ruoli",label:"Ruoli e permessi",page:"fb-ruoli"},
+        ]},
       ]},
       {id:"menu-rist",label:"Menu",children:[
         {id:"tipi-menu",label:"Tipi menu",page:"tipi-menu"},
