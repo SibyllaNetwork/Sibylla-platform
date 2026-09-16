@@ -108,6 +108,10 @@ function comune<K extends keyof DettCamera>(c: CameraRow, k: K): DettCamera[K] |
   return dd.every(d => d[k] === dd[0][k]) ? dd[0][k] : undefined
 }
 const initOsp = (): OspiteRow          => ({ nome: '', cognome: '', dataNascita: '', paese: '', sesso: '', nCamera: '', dataArrivo: '' })
+// Data del calendario → yyyy-MM-dd, senza passare per UTC (che sposta il giorno)
+const isoDate = (d: Date | null) => d
+  ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  : ''
 
 // ── Modifica prenotazione: mapping dalla prenotazione esistente al form ─────────
 const isGruppo = (e: any) => !!e && /grupp/i.test(e.segmento || '')
@@ -348,6 +352,23 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const eliminaCameraGr = async (i: number) => {
     const ok = await confirm({ message: 'Eliminare questa riga dalla lista camere?', confirmLabel: 'Elimina' })
     if (ok) setCamereGr(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  // ── Periodo del soggiorno → date delle camere ───────────────────────────────
+  // Il periodo scelto in "Date soggiorno" è il default delle camere: quando
+  // cambia, le camere che portavano ancora le date ereditate (mai modificate a
+  // mano) lo seguono; quelle con date proprie restano come sono.
+  const allineaPeriodoCamere = (dal: string, al: string) => {
+    const pDal = grForm.dal, pAl = grForm.al
+    if (!dal || !al || (dal === pDal && al === pAl)) return
+    const ereditata = (dIn: string, dOut: string) => dIn === pDal && dOut === pAl
+    const agg = (rows: CameraRow[]) => rows.map(r => ({
+      ...r,
+      ...(ereditata(r.dataIn, r.dataOut) ? { dataIn: dal, dataOut: al } : {}),
+      dettagli: dettagliDi(r).map(d =>
+        ereditata(d.dataIn, d.dataOut) ? { ...d, dataIn: dal, dataOut: al } : d),
+    }))
+    setCamereGrMap(m => Object.fromEntries(Object.entries(m).map(([h, rows]) => [h, agg(rows)])))
   }
 
   // ── Specchietto: riepilogo di quanto inserito nella lista camere ────────────
@@ -697,11 +718,14 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
           <div className="np-soggiorno">
             {/* Colonna sinistra: parametri soggiorno + tipologia ospiti + azioni */}
             <div className="np-soggiorno__side">
+              {/* Periodo del soggiorno: è il default delle date delle camere
+                  aggiunte dopo averlo scelto */}
               <DateRangeField
-                nameFrom="dal" nameTo="al" label="Date"
+                nameFrom="dal" nameTo="al" label="Date soggiorno"
                 valueFrom={grForm.dal} valueTo={grForm.al}
                 onChangeFrom={e=>setGrForm(f=>({...f,dal:e.target.value}))}
                 onChangeTo={e=>setGrForm(f=>({...f,al:e.target.value}))}
+                onChange={(f,t)=>allineaPeriodoCamere(isoDate(f), isoDate(t))}
               />
               {/* Quanto ha chiesto il gruppo: non è quanto risulta inserito
                   nella lista camere, che sta nello specchietto qui sotto */}
