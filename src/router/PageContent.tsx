@@ -155,6 +155,9 @@ import FbStampanti                from '../modules/operation/FoodBeverage/Genera
 import FbServiceMonitor           from '../modules/operation/FoodBeverage/Generali/FbServiceMonitor';
 import FbConfigEmail              from '../modules/operation/FoodBeverage/Generali/FbConfigEmail';
 import FbMobileWallet             from '../modules/operation/FoodBeverage/Generali/FbMobileWallet';
+import FbUtenti                   from '../modules/operation/FoodBeverage/Amministrazione/FbUtenti';
+import FbRuoli                    from '../modules/operation/FoodBeverage/Amministrazione/FbRuoli';
+import FbWalletClienti            from '../modules/operation/FoodBeverage/Amministrazione/FbWalletClienti';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -486,6 +489,9 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'fb-service-monitor') return <FbServiceMonitor navigate={navigate}/>;
   if (page === 'fb-config-email')    return <FbConfigEmail navigate={navigate}/>;
   if (page === 'fb-mobile-wallet')   return <FbMobileWallet navigate={navigate}/>;
+  if (page === 'fb-utenti')          return <FbUtenti navigate={navigate}/>;
+  if (page === 'fb-ruoli')           return <FbRuoli navigate={navigate}/>;
+  if (page === 'fb-wallet-clienti')  return <FbWalletClienti navigate={navigate}/>;
   // Sale e tavoli: la pagina nativa configura le sale servite dalla sezione
   if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate}/>;
 

@@ -1,0 +1,482 @@
+// ─── Wallet clienti (Food & Beverage) ─────────────────────────────────────────
+//  Tre colonne: chi (elenco), quanto ha (tessera e movimenti in inserimento),
+//  cosa ha fatto (storico).
+.fbwc
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-acts
+    display: flex
+    gap: 8px
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+    &--go
+      border-color: var(--color-primary)
+      background: var(--color-primary)
+      color: #fff
+
+  &__body
+    display: grid
+    grid-template-columns: 250px 290px minmax(0, 1fr)
+    gap: 12px
+    flex: 1
+    min-height: 0
+
+  // ── Elenco clienti ─────────────────────────────────────────────────────────
+  &__lista
+    display: flex
+    flex-direction: column
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+    ul
+      margin: 0
+      padding: 0
+      list-style: none
+      overflow-y: auto
+
+  &__cerca
+    padding: 10px 12px
+    border-bottom: 1px solid var(--color-border)
+    background: var(--color-primary-50)
+
+  &__voce
+    display: flex
+    flex-direction: column
+    gap: 2px
+    width: 100%
+    min-height: 62px
+    padding: 9px 12px
+    border: none
+    border-bottom: 1px solid var(--color-primary-100)
+    border-left: 3px solid transparent
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+
+    &.is-on
+      border-left-color: var(--color-primary)
+      background: var(--color-primary-50)
+
+  &__voce-nome
+    min-width: 0
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__voce-mail
+    min-width: 0
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__voce-riga
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    margin-top: 3px
+
+  &__voce-cat
+    padding: 1px 7px
+    border-radius: 9px
+    background: var(--color-link-light)
+    font-style: normal
+    font-size: 10.5px
+    font-weight: 700
+    color: var(--color-link)
+
+  &__voce-saldo
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__vuoto-lista
+    padding: 20px
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+    text-align: center
+
+  // ── Tessera ────────────────────────────────────────────────────────────────
+  &__carta
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-height: 0
+    padding: 12px
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow-y: auto
+
+  &__tessera
+    display: flex
+    flex-direction: column
+    gap: 3px
+    padding: 14px
+    border-radius: 14px
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-700))
+    color: #fff
+
+    > header
+      display: flex
+      align-items: center
+      justify-content: space-between
+      font-size: 11px
+      font-weight: 600
+      opacity: .85
+
+      i
+        font-size: 18px
+
+    > footer
+      display: flex
+      align-items: center
+      justify-content: space-between
+      gap: 8px
+      margin-top: 8px
+      font-size: 11px
+      opacity: .8
+
+      .is-on
+        color: #b8f5df
+        opacity: 1
+        font-weight: 700
+
+  &__saldo
+    font-size: 30px
+    font-weight: 700
+    line-height: 1.1
+    font-variant-numeric: tabular-nums
+
+  &__intestatario
+    font-size: 12.5px
+    opacity: .9
+
+  &__azioni
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px
+
+  &__azione
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 42px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+    i
+      color: var(--color-primary)
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+      color: var(--color-primary)
+
+  &__mov
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 12px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-primary-50)
+
+  &__mov-riga
+    display: flex
+    flex-wrap: wrap
+    gap: 10px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__mov-imp
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 0 0 110px
+
+  &__mov-in
+    height: 34px
+    text-align: right
+    font-weight: 600
+
+  &__mov-causale
+    flex: 1
+    min-width: 140px
+
+  &__mov-foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+  &__mov-annulla
+    min-height: 38px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  &__mov-ok
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    min-height: 38px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__scheda
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin-top: auto
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 38px
+      padding: 0 12px
+      border: 1px solid var(--color-border)
+      border-radius: 10px
+      background: var(--color-surface)
+      color: var(--color-text-active)
+      font-size: 12.5px
+      font-weight: 600
+      cursor: pointer
+
+      i
+        color: var(--color-primary)
+
+    &--danger
+      color: var(--color-error-dark) !important
+
+      i
+        color: var(--color-error) !important
+
+  // ── Storico ────────────────────────────────────────────────────────────────
+  &__storico
+    display: flex
+    flex-direction: column
+    min-width: 0
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__storico-head
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding: 11px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), transparent)
+
+    h3
+      margin: 0
+      font-size: 14px
+      font-weight: 600
+      color: var(--color-primary)
+
+    span
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 10px
+      padding-right: 10px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__c-data
+    width: 19%
+  &__c-tipo
+    width: 20%
+  &__c-causale
+    width: 40%
+  &__c-imp
+    width: 21%
+
+  &__data
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__tipo
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    padding: 3px 10px
+    border-radius: 11px
+    font-size: 11px
+    font-weight: 700
+
+    &[data-tipo="ricarica"]
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+    &[data-tipo="consumo"]
+      background: rgba(214, 69, 80, .1)
+      color: #a8323c
+
+    &[data-tipo="rimborso"]
+      background: var(--color-link-light)
+      color: var(--color-link)
+
+    &[data-tipo="omaggio"]
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+
+  &__amt
+    text-align: right
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+    &.is-meno
+      color: #a8323c
+
+    &.is-piu
+      color: #007a51
+
+  &__vuoto-riga
+    padding: 30px
+    color: var(--color-text-inactive)
+    font-size: 12.5px
+    text-align: center
+
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__vuoto
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 12px
+    flex: 1
+    padding: 40px
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+.fbwc-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 150px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__flag
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+@container (max-width: 1100px)
+  .fbwc__body
+    grid-template-columns: 220px minmax(0, 1fr)
+
+  .fbwc__storico
+    grid-column: span 2

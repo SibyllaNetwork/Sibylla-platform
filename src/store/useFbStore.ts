@@ -5,10 +5,12 @@ import {
   VOCI_MENU, CATEGORIE_MENU, TIPI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
   menuGiornoIniziali, webMenuIniziali,
   ALLERGENI_UE, STAMPANTI, MONITOR_KDS, CONFIG_EMAIL, CONFIG_WALLET,
+  RUOLI_FB, UTENTI_FB, WALLET_CLIENTI,
   type CategoriaMenu, type Comanda, type Outlet, type Prenotazione, type RigaComanda,
   type StatoRiga, type StatoTavolo, type Tavolo, type TipoMenu, type Turno, type VoceMenu,
   type MenuGiorno, type WebMenu, type Allergene, type CategoriaCliente,
   type Stampante, type MonitorKds, type ConfigEmail, type ConfigWallet,
+  type RuoloFb, type UtenteFb, type WalletCliente, type MovimentoWallet,
 } from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Store operativo Food & Beverage ─────────────────────────────────────────
@@ -107,6 +109,18 @@ interface FbState {
   eliminaMonitor: (id: number) => void
   salvaConfigEmail: (c: ConfigEmail) => void
   salvaConfigWallet: (c: ConfigWallet) => void
+
+  /** Amministrazione: utenti, ruoli e wallet dei clienti. */
+  utenti: UtenteFb[]
+  ruoli: RuoloFb[]
+  wallet: WalletCliente[]
+  salvaUtente: (u: UtenteFb) => void
+  eliminaUtente: (id: number) => void
+  salvaRuolo: (r: RuoloFb) => void
+  eliminaRuolo: (id: number) => void
+  salvaWallet: (w: WalletCliente) => void
+  eliminaWallet: (id: number) => void
+  aggiungiMovimento: (walletId: number, m: Omit<MovimentoWallet, 'id'>) => void
 
   /** Posti occupati per tavolo: indici delle sedie attorno al tavolo.
    *  Serve alla vista planimetria, dove si lavora sedia per sedia. */
@@ -286,6 +300,51 @@ export const useFbStore = create<FbState>()(
 
       salvaConfigEmail: c => set({ configEmail: c }),
       salvaConfigWallet: c => set({ configWallet: c }),
+
+      utenti: UTENTI_FB,
+      ruoli: RUOLI_FB,
+      wallet: WALLET_CLIENTI,
+
+      salvaUtente: u =>
+        set(s => ({
+          utenti: s.utenti.some(x => x.id === u.id)
+            ? s.utenti.map(x => x.id === u.id ? u : x)
+            : [...s.utenti, { ...u, id: Math.max(0, ...s.utenti.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaUtente: id =>
+        set(s => ({ utenti: s.utenti.filter(u => u.id !== id) })),
+
+      salvaRuolo: r =>
+        set(s => ({
+          ruoli: s.ruoli.some(x => x.id === r.id)
+            ? s.ruoli.map(x => x.id === r.id ? r : x)
+            : [...s.ruoli, { ...r, id: Math.max(0, ...s.ruoli.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaRuolo: id =>
+        set(s => ({
+          ruoli: s.ruoli.filter(r => r.id !== id),
+          // Gli utenti che lo avevano restano senza ruolo, non senza accesso
+          utenti: s.utenti.map(u => u.ruoloId === id ? { ...u, ruoloId: null } : u),
+        })),
+
+      salvaWallet: w =>
+        set(s => ({
+          wallet: s.wallet.some(x => x.id === w.id)
+            ? s.wallet.map(x => x.id === w.id ? w : x)
+            : [...s.wallet, { ...w, id: Math.max(0, ...s.wallet.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaWallet: id =>
+        set(s => ({ wallet: s.wallet.filter(w => w.id !== id) })),
+
+      aggiungiMovimento: (walletId, m) =>
+        set(s => ({
+          wallet: s.wallet.map(w => w.id === walletId
+            ? { ...w, movimenti: [...w.movimenti, { ...m, id: `m${Date.now().toString(36)}` }] }
+            : w),
+        })),
 
       salvaOutlet: o =>
         set(s => ({
@@ -608,6 +667,9 @@ export const useFbStore = create<FbState>()(
         monitor: MONITOR_KDS,
         configEmail: CONFIG_EMAIL,
         configWallet: CONFIG_WALLET,
+        utenti: UTENTI_FB,
+        ruoli: RUOLI_FB,
+        wallet: WALLET_CLIENTI,
         posti: {},
         tavoli: tavoliIniziali(),
         comande: comandeIniziali(),
@@ -615,7 +677,7 @@ export const useFbStore = create<FbState>()(
         progressivo: comandeIniziali().length,
       }),
     }),
-    { name: 'sibylla.fb', version: 5 },
+    { name: 'sibylla.fb', version: 6 },
   ),
 )
 

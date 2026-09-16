@@ -1,0 +1,425 @@
+// ─── Ruoli e permessi (Food & Beverage) ───────────────────────────────────────
+//  Elenco dei ruoli a sinistra, matrice dei permessi a destra: il livello si
+//  cambia con un tocco che lo fa ruotare, senza aprire menu.
+.fbruoli
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-acts
+    display: flex
+    gap: 8px
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+    &--go
+      border-color: var(--color-primary)
+      background: var(--color-primary)
+      color: #fff
+
+  &__body
+    display: grid
+    grid-template-columns: 240px minmax(0, 1fr)
+    gap: 12px
+    flex: 1
+    min-height: 0
+
+  // ── Elenco dei ruoli ───────────────────────────────────────────────────────
+  &__lista
+    display: flex
+    flex-direction: column
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+    ul
+      margin: 0
+      padding: 0
+      list-style: none
+      overflow-y: auto
+
+  &__lista-head
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    padding: 11px 14px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), transparent)
+
+    h3
+      margin: 0
+      font-size: 13.5px
+      font-weight: 600
+      color: var(--color-primary)
+
+    span
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__voce
+    display: flex
+    flex-direction: column
+    gap: 2px
+    width: 100%
+    min-height: 54px
+    padding: 9px 14px
+    border: none
+    border-bottom: 1px solid var(--color-primary-100)
+    border-left: 3px solid transparent
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+
+    &.is-on
+      border-left-color: var(--color-primary)
+      background: var(--color-primary-50)
+
+  &__voce-nome
+    display: flex
+    align-items: center
+    gap: 7px
+    min-width: 0
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-warning)
+      font-size: 11px
+
+  &__voce-sotto
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  // ── Permessi ───────────────────────────────────────────────────────────────
+  &__perm
+    display: flex
+    flex-direction: column
+    min-width: 0
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__perm-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 11px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), transparent)
+
+  &__perm-tit
+    min-width: 0
+
+    h3
+      margin: 0
+      font-size: 15px
+      font-weight: 600
+      color: var(--color-primary)
+
+    p
+      margin: 2px 0 0
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__perm-act
+    display: flex
+    gap: 4px
+
+    button
+      padding: 5px 6px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 15px
+        color: var(--color-primary)
+
+      &:disabled
+        opacity: .35
+        cursor: not-allowed
+
+      &:last-child:not(:disabled):hover i
+        color: var(--color-error)
+
+  &__admin
+    display: flex
+    align-items: center
+    gap: 10px
+    margin: 14px 16px 0
+    padding: 11px 14px
+    border-radius: 12px
+    background: var(--color-warning-light)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-warning)
+
+  &__sommario
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 10px
+    padding: 12px 16px 0
+
+  &__somma
+    padding: 4px 11px
+    border-radius: 12px
+    font-size: 11.5px
+    font-weight: 600
+
+    strong
+      font-size: 13px
+
+    &[data-livello="completa"]
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+    &[data-livello="lettura"]
+      background: var(--color-link-light)
+      color: var(--color-link)
+
+    &[data-livello="nascosta"]
+      background: rgba(122, 141, 160, .16)
+      color: #55677a
+
+  &__tutto
+    display: flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+
+    > span
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 6px
+      min-height: 32px
+      padding: 0 11px
+      border: 1px solid var(--color-border)
+      border-radius: 16px
+      background: var(--color-surface)
+      font-size: 11.5px
+      font-weight: 600
+      color: var(--color-text-active)
+      cursor: pointer
+
+      i
+        font-size: 11px
+
+      &[data-livello="completa"] i
+        color: #007a51
+
+      &[data-livello="lettura"] i
+        color: var(--color-link)
+
+      &[data-livello="nascosta"] i
+        color: #7A8DA0
+
+  &__gruppi
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+    // Le righe seguono il contenuto: con `auto` e contenitore ad altezza
+    // definita verrebbero compresse e i gruppi risulterebbero tagliati
+    grid-auto-rows: max-content
+    align-content: start
+    gap: 14px
+    flex: 1
+    min-height: 0
+    padding: 14px 16px 16px
+    overflow-y: auto
+
+  &__gruppo
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    overflow: hidden
+
+    > header
+      display: flex
+      align-items: center
+      justify-content: space-between
+      gap: 8px
+      padding: 8px 12px
+      background: var(--color-primary-50)
+
+      h4
+        margin: 0
+        font-size: 12px
+        font-weight: 700
+        color: var(--color-primary)
+
+    ul
+      margin: 0
+      padding: 0
+      list-style: none
+
+    li
+      display: flex
+      align-items: center
+      justify-content: space-between
+      gap: 10px
+      min-height: 40px
+      padding: 0 12px
+
+      & + li
+        border-top: 1px solid var(--color-primary-100)
+
+  &__gruppo-act
+    display: flex
+    gap: 3px
+
+    button
+      display: grid
+      place-items: center
+      width: 26px
+      height: 26px
+      border: 1px solid var(--color-border)
+      border-radius: 7px
+      background: var(--color-surface)
+      cursor: pointer
+      font-size: 10px
+
+      &[data-livello="completa"] i
+        color: #007a51
+
+      &[data-livello="lettura"] i
+        color: var(--color-link)
+
+      &[data-livello="nascosta"] i
+        color: #7A8DA0
+
+  &__pagina
+    min-width: 0
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+  &__livello
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    min-width: 116px
+    min-height: 30px
+    padding: 0 11px
+    border: 1px solid transparent
+    border-radius: 15px
+    font-size: 11.5px
+    font-weight: 600
+    cursor: pointer
+    transition: background .16s ease
+
+    i
+      font-size: 11px
+
+    &:disabled
+      cursor: default
+
+    &[data-livello="completa"]
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+    &[data-livello="lettura"]
+      background: var(--color-link-light)
+      color: var(--color-link)
+
+    &[data-livello="nascosta"]
+      background: rgba(122, 141, 160, .16)
+      color: #55677a
+
+  &__vuoto
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 12px
+    flex: 1
+    padding: 40px
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+.fbruoli-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__flag
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+    em
+      font-style: normal
+      font-weight: 500
+      color: var(--color-text-inactive)
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+@container (max-width: 900px)
+  .fbruoli__body
+    grid-template-columns: minmax(0, 1fr)

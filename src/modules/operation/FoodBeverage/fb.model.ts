@@ -280,6 +280,163 @@ export const CONFIG_EMAIL: ConfigEmail = {
   mittente: '', nomeMittente: 'Outlet Manager',
 }
 
+// ─── Amministrazione: utenti, ruoli, wallet dei clienti ──────────────────────
+
+export type LivelloPermesso = 'nascosta' | 'lettura' | 'completa'
+
+export const LIVELLO_PERMESSO: Record<LivelloPermesso, { label: string; ico: string }> = {
+  nascosta: { label: 'Nascosta',    ico: 'fa-eye-slash' },
+  lettura:  { label: 'Solo lettura', ico: 'fa-eye' },
+  completa: { label: 'Completa',    ico: 'fa-pen' },
+}
+
+/** Pagine della sezione su cui si concedono i permessi, nei loro gruppi. */
+export const PAGINE_PERMESSI: Array<{ gruppo: string; pagine: Array<{ id: string; label: string }> }> = [
+  { gruppo: 'Operativo', pagine: [
+    { id: 'sala-ristorante', label: 'Sala ristorante' },
+    { id: 'libro-prenotazioni', label: 'Libro prenotazioni' },
+    { id: 'ospiti-giorno', label: 'Ospiti del giorno' },
+    { id: 'gest-comanda', label: 'Gestione comanda' },
+    { id: 'fb-dashboard', label: 'Dashboard F&B' },
+  ]},
+  { gruppo: 'Struttura', pagine: [
+    { id: 'fb-outlet', label: 'Outlet' },
+    { id: 'fb-sale-tavoli', label: 'Sale e tavoli' },
+    { id: 'fb-turni', label: 'Turni' },
+  ]},
+  { gruppo: 'Menu', pagine: [
+    { id: 'fb-tipi-menu', label: 'Tipi menu' },
+    { id: 'fb-categorie', label: 'Categorie' },
+    { id: 'fb-voci-menu', label: 'Voci menu' },
+    { id: 'fb-menu-giorno', label: 'Menu del giorno' },
+    { id: 'fb-web-menu', label: 'Web menu' },
+  ]},
+  { gruppo: 'Generali', pagine: [
+    { id: 'fb-allergeni', label: 'Allergeni' },
+    { id: 'fb-categoria-ospite', label: 'Categorie cliente' },
+    { id: 'fb-stampanti', label: 'Stampanti' },
+    { id: 'fb-service-monitor', label: 'Service monitor' },
+    { id: 'fb-config-email', label: 'Configurazione e-mail' },
+    { id: 'fb-mobile-wallet', label: 'Mobile wallet' },
+  ]},
+  { gruppo: 'Amministrazione', pagine: [
+    { id: 'fb-utenti', label: 'Utenti' },
+    { id: 'fb-wallet-clienti', label: 'Wallet clienti' },
+    { id: 'fb-ruoli', label: 'Ruoli e permessi' },
+  ]},
+]
+
+export interface RuoloFb {
+  id: number
+  nome: string
+  descrizione: string
+  /** Il ruolo amministratore vede tutto: i permessi sotto non si applicano. */
+  admin: boolean
+  permessi: Record<string, LivelloPermesso>
+}
+
+export interface UtenteFb {
+  id: number
+  nome: string
+  username: string
+  email: string
+  ruoloId: number | null
+  attivo: boolean
+  /** Ultimo accesso, in ISO; vuoto se non ha mai fatto login. */
+  ultimoAccesso: string
+}
+
+export type TipoMovimentoWallet = 'ricarica' | 'consumo' | 'rimborso' | 'omaggio'
+
+export interface MovimentoWallet {
+  id: string
+  data: string
+  tipo: TipoMovimentoWallet
+  importo: number
+  causale: string
+}
+
+/** Carta monetica nominativa del cliente: si ricarica e si scala al tavolo. */
+export interface WalletCliente {
+  id: number
+  nome: string
+  email: string
+  telefono: string
+  categoriaClienteId: number | null
+  /** Scadenza del credito residuo, vuota se non scade. */
+  scadenza: string
+  attivo: boolean
+  movimenti: MovimentoWallet[]
+}
+
+export const saldoWallet = (w: WalletCliente) =>
+  w.movimenti.reduce((a, m) => a + (m.tipo === 'consumo' ? -m.importo : m.importo), 0)
+
+export const RUOLI_FB: RuoloFb[] = [
+  { id: 1, nome: 'Admin', descrizione: 'Accesso completo a tutta la sezione', admin: true, permessi: {} },
+  {
+    id: 2, nome: 'F&B Manager',
+    descrizione: 'Gestisce servizio, menu e configurazione, non l’amministrazione',
+    admin: false,
+    permessi: Object.fromEntries(
+      PAGINE_PERMESSI.flatMap(g => g.pagine.map(p => [
+        p.id,
+        g.gruppo === 'Amministrazione' ? 'nascosta' : 'completa',
+      ])),
+    ) as Record<string, LivelloPermesso>,
+  },
+  {
+    id: 3, nome: 'Cameriere',
+    descrizione: 'Solo il servizio in sala e la comanda',
+    admin: false,
+    permessi: Object.fromEntries(
+      PAGINE_PERMESSI.flatMap(g => g.pagine.map(p => [
+        p.id,
+        g.gruppo === 'Operativo'
+          ? (p.id === 'fb-dashboard' ? 'lettura' : 'completa')
+          : g.gruppo === 'Menu' ? 'lettura' : 'nascosta',
+      ])),
+    ) as Record<string, LivelloPermesso>,
+  },
+]
+
+/** Data di N giorni fa in ISO: tiene gli accessi coerenti con l'orologio. */
+const giorniFa = (n: number) => {
+  const d = new Date(Date.now() - n * 86400000)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+export const UTENTI_FB: UtenteFb[] = [
+  { id: 1, nome: 'Amministratore', username: 'admin',   email: 'admin@outlet.local',          ruoloId: 1, attivo: true, ultimoAccesso: `${giorniFa(0)}T08:07` },
+  { id: 2, nome: 'Andrea Guizzi',  username: 'andrea',  email: '',                            ruoloId: 2, attivo: true, ultimoAccesso: `${giorniFa(12)}T09:35` },
+  { id: 3, nome: 'Marco Rossi',    username: 'marco.r', email: 'm.rossi@sibyllanetwork.com',  ruoloId: 3, attivo: true, ultimoAccesso: `${giorniFa(0)}T12:02` },
+]
+
+const mov = (id: string, quantiGiorniFa: number, tipo: TipoMovimentoWallet, importo: number, causale: string): MovimentoWallet =>
+  ({ id, tipo, importo, causale, data: giorniFa(quantiGiorniFa) })
+
+export const WALLET_CLIENTI: WalletCliente[] = [
+  {
+    id: 1, nome: 'Rossi Ruggero', email: 'r.rossi@mail.it', telefono: '+39 335 1122334',
+    categoriaClienteId: 3, scadenza: '', attivo: true,
+    movimenti: [
+      mov('w1-1', 20, 'ricarica', 200, 'Ricarica alla reception'),
+      mov('w1-2', 12, 'consumo', 46.5, 'Cena — tavolo 004'),
+      mov('w1-3', 5,  'consumo', 22,   'Pranzo — tavolo 011'),
+      mov('w1-4', 2,  'omaggio', 15,   'Omaggio direzione'),
+    ],
+  },
+  {
+    id: 2, nome: 'Verdi Giuseppe', email: 'g.verdi@mail.it', telefono: '+39 340 9988776',
+    categoriaClienteId: 4, scadenza: '', attivo: true,
+    movimenti: [
+      mov('w2-1', 30, 'ricarica', 120, 'Ricarica mensile personale'),
+      mov('w2-2', 8,  'consumo', 12.5, 'Pranzo personale'),
+      mov('w2-3', 1,  'consumo', 9,    'Pranzo personale'),
+    ],
+  },
+]
+
 export const CONFIG_WALLET: ConfigWallet = {
   apple: {
     attivo: false, teamId: '', passTypeId: '', organizzazione: '',

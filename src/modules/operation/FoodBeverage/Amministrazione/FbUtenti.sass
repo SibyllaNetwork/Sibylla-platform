@@ -1,0 +1,237 @@
+// ─── Utenti (Food & Beverage) ─────────────────────────────────────────────────
+.fbut
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-acts
+    display: flex
+    gap: 8px
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+    &--go
+      border-color: var(--color-primary)
+      background: var(--color-primary)
+      color: #fff
+
+  &__bar
+    margin-bottom: 0
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+    min-width: 260px
+
+  &__cerca-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-off td
+      opacity: .55
+
+  &__c-nome
+    width: 26%
+  &__c-mail
+    width: 22%
+  &__c-ruolo
+    width: 16%
+  &__c-stato
+    width: 11%
+  &__c-acc
+    width: 16%
+  &__c-act
+    width: 9%
+
+  &__chi
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+
+  &__avatar
+    display: grid
+    place-items: center
+    width: 30px
+    height: 30px
+    border-radius: 50%
+    background: var(--color-primary)
+    color: #fff
+    font-size: 11px
+    font-weight: 700
+
+  &__chi-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+    line-height: 1.25
+    font-weight: 600
+    color: var(--color-text-active)
+
+    em
+      font-style: normal
+      font-size: 11px
+      font-weight: 500
+      color: var(--color-text-inactive)
+
+  &__ruolo
+    display: inline-block
+    max-width: 100%
+    padding: 3px 10px
+    border-radius: 11px
+    background: var(--color-link-light)
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-link)
+    overflow: hidden
+    text-overflow: ellipsis
+
+    &.is-admin
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+
+  &__nessuno
+    font-size: 12px
+    color: var(--color-text-disabled)
+
+  &__stato
+    min-width: 76px
+    padding: 4px 9px
+    border: none
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+    cursor: pointer
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__acc
+    font-size: 12px
+    color: var(--color-text-inactive)
+    font-variant-numeric: tabular-nums
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__tot-nota
+    font-weight: 500
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+    text-align: right
+
+.fbut-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 150px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__flag
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
