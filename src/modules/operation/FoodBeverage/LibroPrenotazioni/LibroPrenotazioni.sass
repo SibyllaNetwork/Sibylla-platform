@@ -1,0 +1,569 @@
+// ─── Libro prenotazioni (Food & Beverage) ─────────────────────────────────────
+//  Giornata a sinistra (una tabella per turno, standard .sib-table), mese a
+//  destra col carico giornaliero. Nessuno scroll orizzontale: le colonne sono
+//  in percentuale con table-layout fisso e i testi vanno in ellissi.
+
+.fbpren
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-acts
+    display: flex
+    gap: 8px
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+    transition: background .18s ease
+
+    &:active
+      background: var(--color-primary-50)
+
+    &--go
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 150px
+
+    &--lg
+      min-width: 200px
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cerca-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__only
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  // ── Corpo ──────────────────────────────────────────────────────────────────
+  &__body
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 280px
+    gap: 10px
+    flex: 1
+    min-height: 0
+
+  &__giorno
+    display: flex
+    flex-direction: column
+    min-width: 0
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__giorno-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 9px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
+
+  &__giorno-tit
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+    font-size: 15px
+    font-weight: 600
+    color: var(--color-primary)
+
+    span
+      text-transform: capitalize
+
+  &__giorno-kpi
+    display: flex
+    gap: 16px
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    strong
+      font-size: 15px
+      color: var(--color-primary)
+
+  &__scroll
+    flex: 1
+    min-height: 0
+    padding: 12px
+    overflow-y: auto
+
+  // ── Un blocco per turno ────────────────────────────────────────────────────
+  &__turno
+    & + &
+      margin-top: 16px
+
+  &__turno-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    margin-bottom: 6px
+
+  &__turno-nome
+    display: inline-flex
+    align-items: baseline
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+
+    em
+      font-style: normal
+      font-size: 11.5px
+      font-weight: 500
+      color: var(--color-text-inactive)
+
+  &__turno-load
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+  &__turno-barra
+    display: block
+    width: 90px
+    height: 5px
+    border-radius: 3px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+    > span
+      display: block
+      width: calc(var(--pct) * 1%)
+      height: 100%
+      border-radius: 3px
+      background: var(--color-primary)
+
+  // ── Tabella della giornata ─────────────────────────────────────────────────
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    // Molte colonne in poco spazio: si stringono i padding, non i contenuti
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+
+    td,
+    th
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-off td
+      opacity: .5
+      text-decoration: line-through
+
+  &__c-ora
+    width: 8%
+  &__c-osp
+    width: 22%
+  &__c-pax
+    width: 6%
+  &__c-tav
+    width: 13%
+  &__c-org
+    width: 9%
+  &__c-note
+    width: 18%
+  &__c-stato
+    width: 16%
+  &__c-act
+    width: 8%
+
+  &__ora
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__pax
+    font-weight: 600
+    text-align: center
+
+  &__camera
+    margin-left: 6px
+    padding: 1px 6px
+    border-radius: 9px
+    background: var(--color-primary-50)
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__org i
+    color: var(--color-primary)
+    font-size: 14px
+
+  // Select in cella: stessa altezza delle righe, chevron standard
+  &__sel
+    width: 100%
+    height: 28px
+    padding: 0 6px
+    font-size: 12px
+    border-radius: 6px
+
+  &__sel--stato
+    font-weight: 600
+
+    &[data-stato="confermata"]
+      color: #007a51
+    &[data-stato="arrivata"]
+      color: #2c6398
+    &[data-stato="in-attesa"]
+      color: #8a6811
+    &[data-stato="no-show"]
+      color: #a8323c
+    &[data-stato="annullata"]
+      color: var(--color-text-inactive)
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 3px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 15px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 12px
+    padding: 44px 20px
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 44px
+      padding: 0 18px
+      border: 1px solid var(--color-primary)
+      border-radius: 12px
+      background: var(--color-primary)
+      color: #fff
+      font-size: 13px
+      font-weight: 600
+      cursor: pointer
+
+  // ── Colonna del mese ───────────────────────────────────────────────────────
+  &__panel
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-height: 0
+    overflow-y: auto
+
+  &__blk
+    flex: 0 0 auto
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__blk-tit
+    margin: 0
+    padding: 11px 14px 6px
+    font-size: 13.5px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__blk-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 7px 10px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
+
+    h3
+      margin: 0
+      font-size: 13.5px
+      font-weight: 600
+      color: var(--color-primary)
+
+    button
+      display: grid
+      place-items: center
+      width: 34px
+      height: 34px
+      border: 1px solid var(--color-border)
+      border-radius: 10px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      cursor: pointer
+
+  &__cal
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 2px
+    padding: 8px 10px 12px
+
+  &__cal-dow
+    padding-bottom: 4px
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-align: center
+
+  &__cal-vuoto
+    height: 36px
+
+  &__cal-g
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 3px
+    height: 36px
+    border: none
+    border-radius: 9px
+    background: transparent
+    cursor: pointer
+    transition: background .16s ease
+
+    &:active
+      background: var(--color-primary-50)
+
+    &.is-on
+      background: var(--color-primary)
+
+      .fbpren__cal-n
+        color: #fff
+
+      .fbpren__cal-load
+        background: rgba(255, 255, 255, .35)
+
+        > span
+          background: #fff
+
+  &__cal-n
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+
+  // Carico del giorno: una barra sotto il numero, non un pallino
+  &__cal-load
+    display: block
+    width: 22px
+    height: 3px
+    border-radius: 2px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+    > span
+      display: block
+      width: calc(var(--pct) * 1%)
+      height: 100%
+      border-radius: 2px
+      background: var(--color-accent)
+
+  &__turni
+    margin: 0
+    padding: 0 14px 12px
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: minmax(0, 1fr) 70px 54px
+      align-items: center
+      gap: 8px
+      min-height: 34px
+
+  &__turni-nome
+    font-size: 12px
+    color: var(--color-text-active)
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  &__turni-barra
+    display: block
+    height: 6px
+    border-radius: 3px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+    > span
+      display: block
+      width: calc(var(--pct) * 1%)
+      height: 100%
+      border-radius: 3px
+      background: var(--color-primary)
+
+  &__turni-n
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+// ─── Modale di presa prenotazione ─────────────────────────────────────────────
+.fbpren-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 140px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__ora
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+    input
+      height: 34px
+
+  &__pax
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 0 0 auto !important
+
+  &__stepper
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    button
+      display: grid
+      place-items: center
+      width: 40px
+      height: 34px
+      border: 1px solid var(--color-border)
+      border-radius: 9px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      cursor: pointer
+
+      &:active
+        background: var(--color-primary-50)
+
+    > span
+      min-width: 34px
+      text-align: center
+      font-size: 16px
+      font-weight: 700
+      color: var(--color-primary)
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 2px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+// ─── Schermi stretti ──────────────────────────────────────────────────────────
+@container (max-width: 1080px)
+  .fbpren__body
+    grid-template-columns: minmax(0, 1fr) 260px
+
+@container (max-width: 860px)
+  .fbpren__body
+    grid-template-columns: minmax(0, 1fr)
+
+  .fbpren__panel
+    overflow: visible
+
+  .fbpren__scroll
+    max-height: 60vh
