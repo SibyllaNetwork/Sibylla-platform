@@ -1,0 +1,395 @@
+// ─── Voci menu (Food & Beverage) ──────────────────────────────────────────────
+//  Tabella di lavoro: prezzo e disponibilità si cambiano dalla riga. Colonne in
+//  percentuale e table-layout fisso, nessuno scroll orizzontale.
+.fbvoci
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 140px
+
+    &--lg
+      min-width: 190px
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cerca-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-off td
+      opacity: .55
+
+  &__c-nome
+    width: 21%
+  &__c-cat
+    width: 14%
+  &__c-desc
+    width: 22%
+  &__c-rep
+    width: 12%
+  &__c-all
+    width: 9%
+  &__c-prezzo
+    width: 9%
+  &__c-stato
+    width: 8%
+  &__c-act
+    width: 7%
+
+  &__cat
+    display: flex
+    align-items: center
+    gap: 7px
+    min-width: 0
+
+    i
+      width: 9px
+      height: 9px
+      border-radius: 3px
+      background: var(--cat, var(--color-primary-300))
+
+  &__rep
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+
+    i
+      font-size: 12px
+      color: var(--color-primary)
+
+  &__all
+    display: inline-block
+    padding: 2px 7px
+    border-radius: 9px
+    background: var(--color-warning-light)
+    color: var(--color-warning)
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: .04em
+
+  &__nessuno
+    color: var(--color-text-disabled)
+
+  &__amt
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  // Prezzo modificabile dalla riga
+  &__prezzo
+    width: 100%
+    height: 28px
+    padding: 0 6px
+    font-size: 12.5px
+    font-weight: 600
+    text-align: right
+    border-radius: 6px
+
+  &__attiva
+    min-width: 76px
+    padding: 4px 9px
+    border: none
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+    cursor: pointer
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 3px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 15px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__tot-nota
+    font-weight: 500
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+// ─── Scheda voce ──────────────────────────────────────────────────────────────
+.fbvoci-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 130px
+
+  &__grow
+    flex: 2 !important
+    min-width: 220px !important
+
+  &__blk
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 7px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    min-height: 38px
+    padding: 0 13px
+    border: 1px solid var(--color-border)
+    border-radius: 19px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: background .16s ease, border-color .16s ease
+
+    i
+      color: var(--color-primary)
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+      i
+        color: #fff
+
+    &--all
+      font-weight: 500
+
+      strong
+        font-weight: 700
+        color: var(--color-primary)
+
+      &.is-on strong
+        color: #fff
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+  // Selettore della lingua della carta
+  &__lingue
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__seg
+    display: inline-flex
+    padding: 2px
+    border: 1px solid var(--color-border)
+    border-radius: 18px
+    background: var(--color-primary-50)
+    height: 34px
+
+    button
+      min-width: 38px
+      padding: 0 10px
+      border: none
+      border-radius: 16px
+      background: transparent
+      color: var(--color-text-inactive)
+      font-size: 12px
+      font-weight: 700
+      cursor: pointer
+
+      &.is-on
+        background: var(--color-surface)
+        color: var(--color-primary)
+        box-shadow: 0 1px 3px rgba(32, 71, 105, .16)
+
+  &__voce
+    display: flex
+    align-items: center
+    gap: 7px
+    min-width: 0
+
+  &__manca
+    color: var(--color-warning)
+    font-size: 12px
+
+  &__alls
+    display: inline-flex
+    flex-wrap: wrap
+    gap: 3px
+
+// Righe dei prezzi speciali e interruttori di pubblicazione nella scheda
+.fbvoci-form
+  &__prezzi
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px 40px
+      align-items: center
+      gap: 8px
+      padding: 4px 0
+
+  &__ps-prezzo
+    height: 34px
+    text-align: right
+    font-weight: 600
+
+  &__ps-x
+    display: grid
+    place-items: center
+    width: 34px
+    height: 34px
+    border: 1px solid var(--color-border)
+    border-radius: 9px
+    background: var(--color-surface)
+    cursor: pointer
+
+    i
+      color: var(--color-error)
+
+  &__aggiungi
+    align-self: flex-start
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 36px
+    padding: 0 14px
+    border: 1px dashed var(--color-border)
+    border-radius: 18px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__flag
+    display: flex
+    flex-wrap: wrap
+    gap: 20px
+    padding-top: 4px
+    border-top: 1px solid var(--color-border)
+
+    label
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      font-size: 13px
+      font-weight: 600
+      color: var(--color-text-active)
+      cursor: pointer
+
+      i
+        color: var(--color-primary)
+
+  &__lab em
+    font-style: normal
+    font-weight: 500
+    color: var(--color-text-inactive)

@@ -1,0 +1,260 @@
+// ─── Categorie menu (Food & Beverage) ─────────────────────────────────────────
+//  L'ordine si cambia dalla riga (su/giù) e l'anteprima mostra la tessera così
+//  come apparirà nel POS: si configura vedendo il risultato.
+.fbcat
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 190px
+
+  &__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: flex-end
+    min-height: 34px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__c-ord
+    width: 11%
+  &__c-nome
+    width: 25%
+  &__c-tipo
+    width: 16%
+  &__c-voci
+    width: 9%
+  &__c-prev
+    width: 29%
+  &__c-act
+    width: 10%
+
+  &__ord
+    display: inline-flex
+    align-items: center
+    gap: 4px
+
+    button
+      display: grid
+      place-items: center
+      width: 24px
+      height: 24px
+      border: 1px solid var(--color-border)
+      border-radius: 6px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      font-size: 10px
+      cursor: pointer
+
+      &:disabled
+        opacity: .35
+        cursor: not-allowed
+
+    > span
+      min-width: 18px
+      text-align: center
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-text-inactive)
+      font-variant-numeric: tabular-nums
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__emoji
+    font-size: 16px
+
+  &__num
+    text-align: center
+    font-variant-numeric: tabular-nums
+
+  // Anteprima della tessera del POS
+  &__tessera
+    display: inline-flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    max-width: 100%
+    min-width: 130px
+    min-height: 30px
+    padding: 0 12px
+    border-radius: 8px
+    background: var(--cat)
+    color: #fff
+    font-size: 12px
+    font-weight: 600
+    overflow: hidden
+
+    em
+      font-style: normal
+      font-size: 14px
+
+    &--grande
+      min-height: 46px
+      min-width: 190px
+      font-size: 13.5px
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+// ─── Scheda categoria ─────────────────────────────────────────────────────────
+.fbcat-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 140px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__blk,
+  &__anteprima
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__emoji
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__em
+    width: 40px
+    height: 40px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    font-size: 18px
+    cursor: pointer
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+
+  &__colori
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__colore
+    width: 36px
+    height: 36px
+    border: 2px solid transparent
+    border-radius: 9px
+    background: var(--c)
+    cursor: pointer
+
+    &.is-on
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+      border-color: #fff
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer

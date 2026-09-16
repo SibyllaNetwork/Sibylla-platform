@@ -1,0 +1,535 @@
+// ─── Web menu (Food & Beverage) ───────────────────────────────────────────────
+//  Una card per menu pubblicato: intestazione nella tinta scelta, indirizzo
+//  pubblico con copia, QR e periodo di validità.
+.fbweb
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 210px
+
+  &__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: flex-end
+    min-height: 34px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__nota
+    display: flex
+    align-items: center
+    gap: 10px
+    margin: 0
+    padding: 10px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-link-light)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-primary)
+
+    strong
+      color: var(--color-primary)
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+    align-content: start
+    gap: 12px
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__card
+    display: flex
+    flex-direction: column
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__card-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 10px
+    padding: 14px 16px
+    background: var(--tinta)
+    color: #fff
+
+    h3
+      margin: 0
+      font-size: 15px
+      font-weight: 700
+
+    p
+      margin: 2px 0 0
+      font-size: 12px
+      opacity: .85
+
+  &__card-n
+    padding: 3px 10px
+    border-radius: 11px
+    background: rgba(255, 255, 255, .22)
+    font-size: 11px
+    font-weight: 700
+    white-space: nowrap
+
+  &__card-riga
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 14px
+    border-bottom: 1px solid var(--color-primary-100)
+
+    > button:not(.fbweb__stato)
+      padding: 4px 5px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 15px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__stato
+    min-width: 72px
+    padding: 4px 9px
+    border: none
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+    cursor: pointer
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__outlet
+    flex: 1
+    min-width: 0
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__url
+    display: flex
+    flex-direction: column
+    gap: 4px
+    margin: 12px 14px 0
+    padding: 10px 12px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-primary-50)
+
+  &__url-lab
+    font-size: 10.5px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+  &__url code
+    font-size: 11.5px
+    color: var(--color-link)
+    word-break: break-all
+
+  &__url-act
+    display: flex
+    gap: 6px
+    margin-top: 2px
+
+    button
+      display: grid
+      place-items: center
+      width: 32px
+      height: 32px
+      border: 1px solid var(--color-border)
+      border-radius: 8px
+      background: var(--color-surface)
+      cursor: pointer
+
+      i
+        font-size: 13px
+        color: var(--color-primary)
+
+  &__qr
+    display: flex
+    align-items: center
+    gap: 12px
+    margin: 12px 14px 14px
+    padding: 10px 12px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+
+  &__qr-box
+    display: grid
+    place-items: center
+    width: 54px
+    height: 54px
+    border-radius: 8px
+    background: var(--color-primary-50)
+
+    i
+      font-size: 28px
+      color: var(--color-primary)
+
+  &__qr-txt
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+    gap: 1px
+
+    strong
+      font-size: 12.5px
+      color: var(--color-text-active)
+
+    span
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+  &__qr-serv
+    font-weight: 600
+
+  &__qr-btn
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    min-height: 36px
+    padding: 0 12px
+    border: 1px solid var(--color-border)
+    border-radius: 9px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+
+  &__vuoto
+    grid-column: 1 / -1
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 44px
+    border: 1px dashed var(--color-border)
+    border-radius: 14px
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+// ─── Scheda del web menu ──────────────────────────────────────────────────────
+.fbweb-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__tabs
+    display: inline-flex
+    align-self: flex-start
+    padding: 3px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-primary-50)
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 38px
+      padding: 0 16px
+      border: none
+      border-radius: 18px
+      background: transparent
+      color: var(--color-text-inactive)
+      font-size: 13px
+      font-weight: 600
+      cursor: pointer
+
+      &.is-on
+        background: var(--color-surface)
+        color: var(--color-primary)
+        box-shadow: 0 1px 4px rgba(32, 71, 105, .16)
+
+  &__blocco
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 150px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+    em
+      font-style: normal
+      font-weight: 500
+      color: var(--color-text-inactive)
+
+  &__blk
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__flag
+    display: flex
+    flex-wrap: wrap
+    gap: 20px
+
+    label
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      font-size: 13px
+      font-weight: 600
+      color: var(--color-text-active)
+      cursor: pointer
+
+  // ── Design ────────────────────────────────────────────────────────────────
+  &__design
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 260px
+    gap: 18px
+
+  &__col
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__colori
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__colore
+    width: 38px
+    height: 38px
+    border: 2px solid transparent
+    border-radius: 10px
+    background: var(--c)
+    cursor: pointer
+
+    &.is-on
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+      border-color: #fff
+
+  &__anteprima
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  // Anteprima: il menu come lo vede l'ospite sul telefono
+  &__telefono
+    display: flex
+    flex-direction: column
+    border: 8px solid var(--color-primary-900)
+    border-radius: 22px
+    overflow: hidden
+    background: var(--color-surface)
+
+    header
+      padding: 14px 12px
+      background: var(--tinta)
+      color: #fff
+      text-align: center
+
+      strong
+        display: block
+        font-size: 14px
+
+      span
+        font-size: 11px
+        opacity: .85
+
+    ul
+      margin: 0
+      padding: 8px 12px
+      list-style: none
+      min-height: 120px
+
+      li
+        display: flex
+        justify-content: space-between
+        gap: 8px
+        padding: 5px 0
+        border-bottom: 1px dashed var(--color-primary-100)
+        font-size: 12px
+        color: var(--color-text-active)
+
+        em
+          font-style: normal
+          font-weight: 700
+          color: var(--color-primary)
+
+    footer
+      padding: 8px 12px
+      background: var(--color-primary-50)
+      font-size: 10px
+      color: var(--color-text-inactive)
+      text-align: center
+
+  &__ant-vuoto
+    color: var(--color-text-disabled)
+    justify-content: center !important
+
+  // ── Voci ──────────────────────────────────────────────────────────────────
+  &__voci-head
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__conta
+    padding: 3px 10px
+    border-radius: 11px
+    background: var(--color-link-light)
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-link)
+
+  &__tutte
+    margin-left: auto
+    min-height: 34px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 17px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__categorie
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))
+    gap: 14px
+    max-height: 360px
+    overflow-y: auto
+
+  &__gruppo
+    h4
+      display: flex
+      align-items: center
+      gap: 8px
+      margin: 0 0 4px
+      padding-bottom: 4px
+      border-bottom: 2px solid var(--cat)
+      font-size: 12.5px
+      font-weight: 600
+      color: var(--color-primary)
+
+    ul
+      margin: 0
+      padding: 0
+      list-style: none
+
+    label
+      display: grid
+      grid-template-columns: 20px minmax(0, 1fr) 72px
+      align-items: center
+      gap: 8px
+      min-height: 34px
+      cursor: pointer
+
+  &__v-nome
+    min-width: 0
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+  &__v-prezzo
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-primary)
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 4px
+    border-top: 1px solid var(--color-border)
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+@container (max-width: 900px)
+  .fbweb-form__design
+    grid-template-columns: minmax(0, 1fr)

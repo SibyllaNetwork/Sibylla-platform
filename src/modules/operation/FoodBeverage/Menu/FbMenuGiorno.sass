@@ -1,0 +1,298 @@
+// ─── Menu del giorno (Food & Beverage) ────────────────────────────────────────
+.fbmg
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 210px
+
+  &__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: flex-end
+    min-height: 34px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__c-data
+    width: 11%
+  &__c-nome
+    width: 22%
+  &__c-voci
+    width: 10%
+  &__c-note
+    width: 19%
+  &__c-prezzo
+    width: 13%
+  &__c-val
+    width: 15%
+  &__c-stato
+    width: 10%
+  &__c-act
+    width: 8%
+
+  &__data
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__voci
+    display: inline-block
+    padding: 2px 9px
+    border-radius: 11px
+    background: var(--color-link-light)
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-link)
+
+  &__amt
+    text-align: right
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__nota
+    font-style: normal
+    font-weight: 500
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__delta
+    display: block
+    font-style: normal
+    font-size: 11px
+    font-weight: 600
+
+    &.is-giu
+      color: var(--color-success)
+
+    &.is-su
+      color: var(--color-warning)
+
+  &__stato
+    min-width: 76px
+    padding: 4px 9px
+    border: none
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+    cursor: pointer
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+// ─── Composizione del menu ────────────────────────────────────────────────────
+.fbmg-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 150px
+
+  &__grow
+    flex: 2 !important
+    min-width: 220px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__prezzo
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__prezzo-in
+    height: 34px
+    text-align: right
+    font-weight: 600
+
+  &__scelta
+    display: flex
+    flex-direction: column
+    gap: 8px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    overflow: hidden
+
+    > header
+      display: flex
+      align-items: center
+      gap: 10px
+      padding: 10px 12px
+      border-bottom: 1px solid var(--color-border)
+      background: var(--color-primary-50)
+
+  &__cat
+    width: 200px
+    margin-left: auto
+
+  &__conta
+    padding: 3px 10px
+    border-radius: 11px
+    background: var(--color-link-light)
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-link)
+
+  &__valore
+    padding: 3px 10px
+    border-radius: 11px
+    background: rgba(0, 168, 112, .12)
+    font-size: 11.5px
+    font-weight: 700
+    color: #007a51
+
+  &__lista
+    margin: 0
+    padding: 0 12px 10px
+    list-style: none
+    max-height: 320px
+    overflow-y: auto
+
+    li + li
+      border-top: 1px solid var(--color-primary-100)
+
+    label
+      display: grid
+      grid-template-columns: 20px minmax(0, 1fr) 150px 90px
+      align-items: center
+      gap: 10px
+      min-height: 42px
+      cursor: pointer
+
+  &__v-nome
+    min-width: 0
+    font-size: 13px
+    color: var(--color-text-active)
+
+  &__v-cat
+    min-width: 0
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+    text-align: right
+
+  &__v-prezzo
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__vuoto
+    padding: 20px
+    color: var(--color-text-inactive)
+    font-size: 12.5px
+    text-align: center
+
+  &__foot
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 10px
+
+  &__confronto
+    margin-right: auto
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer

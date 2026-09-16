@@ -144,6 +144,11 @@ import OspitiGiornoFb             from '../modules/operation/FoodBeverage/Ospiti
 import DashboardFb                from '../modules/operation/FoodBeverage/DashboardFb/DashboardFb';
 import FbOutlet                   from '../modules/operation/FoodBeverage/Outlet/FbOutlet';
 import FbTurni                    from '../modules/operation/FoodBeverage/Turni/FbTurni';
+import FbTipiMenu                 from '../modules/operation/FoodBeverage/Menu/FbTipiMenu';
+import FbCategorie                from '../modules/operation/FoodBeverage/Menu/FbCategorie';
+import FbVociMenu                 from '../modules/operation/FoodBeverage/Menu/FbVociMenu';
+import FbMenuGiorno               from '../modules/operation/FoodBeverage/Menu/FbMenuGiorno';
+import FbWebMenu                  from '../modules/operation/FoodBeverage/Menu/FbWebMenu';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -464,6 +469,11 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'fb-dashboard')       return <DashboardFb navigate={navigate}/>;
   if (page === 'fb-outlet')          return <FbOutlet navigate={navigate}/>;
   if (page === 'fb-turni')           return <FbTurni navigate={navigate}/>;
+  if (page === 'fb-tipi-menu')       return <FbTipiMenu navigate={navigate}/>;
+  if (page === 'fb-categorie')       return <FbCategorie navigate={navigate}/>;
+  if (page === 'fb-voci-menu')       return <FbVociMenu navigate={navigate}/>;
+  if (page === 'fb-menu-giorno')     return <FbMenuGiorno navigate={navigate}/>;
+  if (page === 'fb-web-menu')        return <FbWebMenu navigate={navigate}/>;
   // Sale e tavoli: la pagina nativa configura le sale servite dalla sezione
   if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate}/>;
 

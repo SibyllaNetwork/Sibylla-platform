@@ -1,0 +1,181 @@
+// ─── Tipi menu (Food & Beverage) ──────────────────────────────────────────────
+.fbtipi
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__c-ord
+    width: 9%
+  &__c-nome
+    width: 28%
+  &__c-col
+    width: 14%
+  &__c-num
+    width: 12%
+  &__c-prezzo
+    width: 15%
+  &__c-act
+    width: 10%
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 9px
+    min-width: 0
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__pallino
+    width: 12px
+    height: 12px
+    border-radius: 4px
+    background: var(--tipo)
+
+  &__col
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+    font-variant-numeric: tabular-nums
+
+  &__num
+    text-align: center
+    font-variant-numeric: tabular-nums
+
+  &__amt
+    text-align: right
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+// ─── Scheda tipo ──────────────────────────────────────────────────────────────
+.fbtipi-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 120px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__blk
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__colori
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__colore
+    width: 40px
+    height: 40px
+    border: 2px solid transparent
+    border-radius: 10px
+    background: var(--c)
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .18s ease
+
+    &:active
+      transform: scale(.94)
+
+    &.is-on
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+      border-color: #fff
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer

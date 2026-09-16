@@ -2,9 +2,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
   OUTLETS, SALE, TURNI, tavoliIniziali, prenotazioniIniziali, comandeIniziali,
-  VOCI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
-  type Comanda, type Outlet, type Prenotazione, type RigaComanda, type StatoRiga,
-  type StatoTavolo, type Tavolo, type Turno,
+  VOCI_MENU, CATEGORIE_MENU, TIPI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
+  menuGiornoIniziali, webMenuIniziali,
+  type CategoriaMenu, type Comanda, type Outlet, type Prenotazione, type RigaComanda,
+  type StatoRiga, type StatoTavolo, type Tavolo, type TipoMenu, type Turno, type VoceMenu,
+  type MenuGiorno, type WebMenu,
 } from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Store operativo Food & Beverage ─────────────────────────────────────────
@@ -66,6 +68,26 @@ interface FbState {
   salvaTurno: (t: Turno) => void
   eliminaTurno: (id: number) => void
 
+  /** Catalogo: tipi di menu → categorie → voci. È ciò che si ordina in comanda. */
+  tipiMenu: TipoMenu[]
+  categorie: CategoriaMenu[]
+  voci: VoceMenu[]
+  salvaTipoMenu: (t: TipoMenu) => void
+  eliminaTipoMenu: (id: number) => void
+  salvaCategoria: (c: CategoriaMenu) => void
+  eliminaCategoria: (id: number) => void
+  ordinaCategorie: (ids: number[]) => void
+  salvaVoce: (v: VoceMenu) => void
+  eliminaVoce: (id: number) => void
+
+  /** Menu del giorno e menu pubblicati online. */
+  menuGiorno: MenuGiorno[]
+  webMenu: WebMenu[]
+  salvaMenuGiorno: (m: MenuGiorno) => void
+  eliminaMenuGiorno: (id: number) => void
+  salvaWebMenu: (m: WebMenu) => void
+  eliminaWebMenu: (id: number) => void
+
   /** Posti occupati per tavolo: indici delle sedie attorno al tavolo.
    *  Serve alla vista planimetria, dove si lavora sedia per sedia. */
   posti: Record<number, number[]>
@@ -124,6 +146,76 @@ export const useFbStore = create<FbState>()(
     (set, get) => ({
       outlets: OUTLETS,
       turni: TURNI,
+      tipiMenu: TIPI_MENU,
+      categorie: CATEGORIE_MENU,
+      voci: VOCI_MENU,
+
+      salvaTipoMenu: t =>
+        set(s => ({
+          tipiMenu: s.tipiMenu.some(x => x.id === t.id)
+            ? s.tipiMenu.map(x => x.id === t.id ? t : x)
+            : [...s.tipiMenu, { ...t, id: Math.max(0, ...s.tipiMenu.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaTipoMenu: id =>
+        set(s => ({ tipiMenu: s.tipiMenu.filter(t => t.id !== id) })),
+
+      salvaCategoria: c =>
+        set(s => ({
+          categorie: s.categorie.some(x => x.id === c.id)
+            ? s.categorie.map(x => x.id === c.id ? c : x)
+            : [...s.categorie, {
+                ...c,
+                id: Math.max(0, ...s.categorie.map(x => x.id)) + 1,
+                ordine: Math.max(0, ...s.categorie.map(x => x.ordine)) + 1,
+              }],
+        })),
+
+      eliminaCategoria: id =>
+        set(s => ({ categorie: s.categorie.filter(c => c.id !== id) })),
+
+      // L'ordine delle categorie è quello in cui compaiono nel POS: si riordina
+      // trascinando, e qui si riscrive la sequenza per intero
+      ordinaCategorie: ids =>
+        set(s => ({
+          categorie: s.categorie.map(c => {
+            const i = ids.indexOf(c.id)
+            return i < 0 ? c : { ...c, ordine: i + 1 }
+          }),
+        })),
+
+      salvaVoce: v =>
+        set(s => ({
+          voci: s.voci.some(x => x.id === v.id)
+            ? s.voci.map(x => x.id === v.id ? v : x)
+            : [...s.voci, { ...v, id: Math.max(0, ...s.voci.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaVoce: id =>
+        set(s => ({ voci: s.voci.filter(v => v.id !== id) })),
+
+      menuGiorno: menuGiornoIniziali(),
+      webMenu: webMenuIniziali(),
+
+      salvaMenuGiorno: m =>
+        set(s => ({
+          menuGiorno: s.menuGiorno.some(x => x.id === m.id)
+            ? s.menuGiorno.map(x => x.id === m.id ? m : x)
+            : [...s.menuGiorno, { ...m, id: Math.max(0, ...s.menuGiorno.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaMenuGiorno: id =>
+        set(s => ({ menuGiorno: s.menuGiorno.filter(m => m.id !== id) })),
+
+      salvaWebMenu: m =>
+        set(s => ({
+          webMenu: s.webMenu.some(x => x.id === m.id)
+            ? s.webMenu.map(x => x.id === m.id ? m : x)
+            : [...s.webMenu, { ...m, id: Math.max(0, ...s.webMenu.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaWebMenu: id =>
+        set(s => ({ webMenu: s.webMenu.filter(m => m.id !== id) })),
 
       salvaOutlet: o =>
         set(s => ({
@@ -435,6 +527,11 @@ export const useFbStore = create<FbState>()(
       reset: () => set({
         outlets: OUTLETS,
         turni: TURNI,
+        tipiMenu: TIPI_MENU,
+        categorie: CATEGORIE_MENU,
+        voci: VOCI_MENU,
+        menuGiorno: menuGiornoIniziali(),
+        webMenu: webMenuIniziali(),
         posti: {},
         tavoli: tavoliIniziali(),
         comande: comandeIniziali(),
@@ -442,7 +539,7 @@ export const useFbStore = create<FbState>()(
         progressivo: comandeIniziali().length,
       }),
     }),
-    { name: 'sibylla.fb', version: 2 },
+    { name: 'sibylla.fb', version: 4 },
   ),
 )
 

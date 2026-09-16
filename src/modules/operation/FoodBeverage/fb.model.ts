@@ -90,17 +90,54 @@ export interface TipoMenu  { id: number; nome: string; colore: string; ordine: n
 export interface CategoriaMenu {
   id: number; tipoId: number; nome: string; emoji: string; colore: string; ordine: number
 }
+/** Lingue in cui il catalogo viene pubblicato (carta, web menu, QR). */
+export const LINGUE = ['it', 'en', 'de', 'fr'] as const
+export type Lingua = typeof LINGUE[number]
+
+export const LINGUA_META: Record<Lingua, { label: string; bandiera: string }> = {
+  it: { label: 'Italiano', bandiera: 'it' },
+  en: { label: 'English',  bandiera: 'gb' },
+  de: { label: 'Deutsch',  bandiera: 'de' },
+  fr: { label: 'Français', bandiera: 'fr' },
+}
+
+/** Prezzo diverso dal base per un outlet e/o una categoria cliente. */
+export interface PrezzoSpeciale {
+  id: string
+  outletId: number | null
+  categoriaClienteId: number | null
+  prezzo: number
+}
+
 export interface VoceMenu {
   id: number
   categoriaId: number
   nome: string
+  /** Traduzioni del nome: quello che legge l'ospite straniero in carta. */
+  traduzioni: Partial<Record<Exclude<Lingua, 'it'>, string>>
   descrizione: string
+  /** Prezzo base: i prezzi speciali lo scavalcano dove previsto. */
   prezzo: number
   /** Codici allergene UE (A…N). */
   allergeni: string[]
   attiva: boolean
   /** Reparto che la prepara: guida la stampa e il service monitor. */
   reparto: 'cucina' | 'bar' | 'cantina' | 'pasticceria'
+  /** Outlet in cui la voce è ordinabile. Vuoto = tutti. */
+  outletIds: number[]
+  /** Pubblicata sul menu online consultabile dall'ospite. */
+  nelWebMenu: boolean
+  prezziSpeciali: PrezzoSpeciale[]
+}
+
+/** Prezzo applicato a una voce in un certo outlet per una certa categoria cliente. */
+export const prezzoDi = (
+  v: VoceMenu, outletId?: number, categoriaClienteId?: number,
+): number => {
+  const match = v.prezziSpeciali.find(p =>
+    (p.outletId == null || p.outletId === outletId)
+    && (p.categoriaClienteId == null || p.categoriaClienteId === categoriaClienteId))
+  return match ? match.prezzo : v.prezzo
 }
 
 export interface Allergene { codice: string; nome: string }
@@ -259,45 +296,90 @@ export const CATEGORIE_MENU: CategoriaMenu[] = [
 
 export const VOCI_MENU: VoceMenu[] = [
   // Ristorante
-  { id: 1,   categoriaId: 1,  nome: 'Bruschetta al pomodoro',  descrizione: 'Pane tostato, pomodoro, basilico',        prezzo: 6.5,  allergeni: ['A'],           attiva: true, reparto: 'cucina' },
-  { id: 2,   categoriaId: 1,  nome: 'Carpaccio di manzo',      descrizione: 'Carne cruda, parmigiano, rucola',         prezzo: 12,   allergeni: ['G'],           attiva: true, reparto: 'cucina' },
-  { id: 16,  categoriaId: 1,  nome: 'Burrata e alici',         descrizione: 'Burrata pugliese, alici del Cantabrico',  prezzo: 11,   allergeni: ['D', 'G'],      attiva: true, reparto: 'cucina' },
-  { id: 3,   categoriaId: 2,  nome: 'Carbonara',               descrizione: 'Uova, guanciale, pecorino',               prezzo: 13,   allergeni: ['A', 'C', 'G'], attiva: true, reparto: 'cucina' },
-  { id: 4,   categoriaId: 2,  nome: 'Risotto ai funghi',       descrizione: 'Carnaroli, porcini, mantecato',           prezzo: 14,   allergeni: ['G'],           attiva: true, reparto: 'cucina' },
-  { id: 17,  categoriaId: 2,  nome: 'Cacio e pepe',            descrizione: 'Tonnarelli, pecorino romano',             prezzo: 12.5, allergeni: ['A', 'G'],      attiva: true, reparto: 'cucina' },
-  { id: 5,   categoriaId: 3,  nome: 'Bistecca alla griglia',   descrizione: 'Controfiletto 300g, rosmarino',           prezzo: 22,   allergeni: [],              attiva: true, reparto: 'cucina' },
-  { id: 6,   categoriaId: 3,  nome: 'Salmone alla piastra',    descrizione: 'Filetto, lime, finocchietto',             prezzo: 18.5, allergeni: ['D'],           attiva: true, reparto: 'cucina' },
-  { id: 114, categoriaId: 14, nome: 'Broccoletti ripassati',   descrizione: 'Aglio, olio, peperoncino',                prezzo: 5,    allergeni: [],              attiva: true, reparto: 'cucina' },
-  { id: 115, categoriaId: 14, nome: 'Patate al forno',         descrizione: 'Rosmarino e sale grosso',                 prezzo: 5,    allergeni: [],              attiva: true, reparto: 'cucina' },
-  { id: 7,   categoriaId: 4,  nome: 'Tiramisù',                descrizione: 'Mascarpone, savoiardi, caffè',            prezzo: 6.5,  allergeni: ['A', 'C', 'G'], attiva: true, reparto: 'pasticceria' },
-  { id: 8,   categoriaId: 4,  nome: 'Cheesecake ai frutti rossi', descrizione: 'Base biscotto, coulis',               prezzo: 6.8,  allergeni: ['A', 'G'],      attiva: true, reparto: 'pasticceria' },
+  { id: 1,   categoriaId: 1,  nome: 'Bruschetta al pomodoro',      traduzioni: { en: 'Tomato bruschetta', de: 'Tomaten-Bruschetta', fr: 'Bruschetta à la tomate' }, descrizione: 'Pane tostato, pomodoro, basilico',        prezzo: 6.5,  allergeni: ['A'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 2,   categoriaId: 1,  nome: 'Carpaccio di manzo',          traduzioni: { en: 'Beef carpaccio', de: 'Rindercarpaccio', fr: 'Carpaccio de bœuf' }, descrizione: 'Carne cruda, parmigiano, rucola',         prezzo: 12,   allergeni: ['G'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 16,  categoriaId: 1,  nome: 'Burrata e alici',             traduzioni: { en: 'Burrata and anchovies', de: 'Burrata mit Sardellen', fr: 'Burrata et anchois' }, descrizione: 'Burrata pugliese, alici del Cantabrico',  prezzo: 11,   allergeni: ['D', 'G'],      attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 3,   categoriaId: 2,  nome: 'Carbonara',                   traduzioni: { en: 'Carbonara', de: 'Carbonara', fr: 'Carbonara' }, descrizione: 'Uova, guanciale, pecorino',               prezzo: 13,   allergeni: ['A', 'C', 'G'], attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 4,   categoriaId: 2,  nome: 'Risotto ai funghi',           traduzioni: { en: 'Mushroom risotto', de: 'Pilzrisotto', fr: 'Risotto aux champignons' }, descrizione: 'Carnaroli, porcini, mantecato',           prezzo: 14,   allergeni: ['G'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 17,  categoriaId: 2,  nome: 'Cacio e pepe',                traduzioni: { en: 'Cacio e pepe', de: 'Cacio e pepe', fr: 'Cacio e pepe' }, descrizione: 'Tonnarelli, pecorino romano',             prezzo: 12.5, allergeni: ['A', 'G'],      attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 5,   categoriaId: 3,  nome: 'Bistecca alla griglia',       traduzioni: { en: 'Grilled steak', de: 'Gegrilltes Steak', fr: 'Steak grillé' }, descrizione: 'Controfiletto 300g, rosmarino',           prezzo: 22,   allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 6,   categoriaId: 3,  nome: 'Salmone alla piastra',        traduzioni: { en: 'Grilled salmon', de: 'Gegrillter Lachs', fr: 'Saumon grillé' }, descrizione: 'Filetto, lime, finocchietto',             prezzo: 18.5, allergeni: ['D'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 114, categoriaId: 14, nome: 'Broccoletti ripassati',       traduzioni: { en: 'Sautéed broccoli', de: 'Gebratener Brokkoli', fr: 'Brocolis sautés' }, descrizione: 'Aglio, olio, peperoncino',                prezzo: 5,    allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 115, categoriaId: 14, nome: 'Patate al forno',             traduzioni: { en: 'Roast potatoes', de: 'Ofenkartoffeln', fr: 'Pommes de terre au four' }, descrizione: 'Rosmarino e sale grosso',                 prezzo: 5,    allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 7,   categoriaId: 4,  nome: 'Tiramisù',                    traduzioni: { en: 'Tiramisu', de: 'Tiramisu', fr: 'Tiramisu' }, descrizione: 'Mascarpone, savoiardi, caffè',            prezzo: 6.5,  allergeni: ['A', 'C', 'G'], attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'pasticceria' },
+  { id: 8,   categoriaId: 4,  nome: 'Cheesecake ai frutti rossi',  traduzioni: { en: 'Red berry cheesecake', de: 'Beeren-Cheesecake', fr: 'Cheesecake aux fruits rouges' }, descrizione: 'Base biscotto, coulis',               prezzo: 6.8,  allergeni: ['A', 'G'],      attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'pasticceria' },
   // Bar
-  { id: 9,   categoriaId: 5,  nome: 'Coca Cola',               descrizione: 'Lattina 33 cl',                           prezzo: 3,    allergeni: [],              attiva: true, reparto: 'bar' },
-  { id: 10,  categoriaId: 5,  nome: 'Acqua minerale',          descrizione: 'Naturale o frizzante 0,75 l',             prezzo: 2.5,  allergeni: [],              attiva: true, reparto: 'bar' },
-  { id: 11,  categoriaId: 6,  nome: 'Birra media',             descrizione: 'Alla spina 0,4 l',                        prezzo: 5,    allergeni: ['A'],           attiva: true, reparto: 'bar' },
-  { id: 12,  categoriaId: 7,  nome: 'Vino rosso al calice',    descrizione: 'Calice 150 ml',                           prezzo: 6,    allergeni: ['L'],           attiva: true, reparto: 'bar' },
-  { id: 18,  categoriaId: 7,  nome: 'Vino bianco al calice',   descrizione: 'Calice 150 ml',                           prezzo: 6,    allergeni: ['L'],           attiva: true, reparto: 'bar' },
+  { id: 9,   categoriaId: 5,  nome: 'Coca Cola',                   traduzioni: { en: 'Coca Cola', de: 'Coca Cola', fr: 'Coca Cola' }, descrizione: 'Lattina 33 cl',                           prezzo: 3,    allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 10,  categoriaId: 5,  nome: 'Acqua minerale',              traduzioni: { en: 'Mineral water', de: 'Mineralwasser', fr: 'Eau minérale' }, descrizione: 'Naturale o frizzante 0,75 l',             prezzo: 2.5,  allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 11,  categoriaId: 6,  nome: 'Birra media',                 traduzioni: { en: 'Draught beer', de: 'Bier vom Fass', fr: 'Bière pression' }, descrizione: 'Alla spina 0,4 l',                        prezzo: 5,    allergeni: ['A'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 12,  categoriaId: 7,  nome: 'Vino rosso al calice',        traduzioni: { en: 'Red wine by the glass', de: 'Rotwein im Glas', fr: 'Vin rouge au verre' }, descrizione: 'Calice 150 ml',                           prezzo: 6,    allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 18,  categoriaId: 7,  nome: 'Vino bianco al calice',       traduzioni: { en: 'White wine by the glass', de: 'Weißwein im Glas', fr: 'Vin blanc au verre' }, descrizione: 'Calice 150 ml',                           prezzo: 6,    allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
   // Lounge
-  { id: 13,  categoriaId: 8,  nome: 'Mojito',                  descrizione: 'Rum, lime, menta, soda',                  prezzo: 10,   allergeni: [],              attiva: true, reparto: 'bar' },
-  { id: 14,  categoriaId: 8,  nome: 'Negroni',                 descrizione: 'Gin, Campari, vermouth',                  prezzo: 11,   allergeni: [],              attiva: true, reparto: 'bar' },
-  { id: 19,  categoriaId: 8,  nome: 'Spritz Sibylla',          descrizione: 'Prosecco, bitter, soda, arancia',         prezzo: 9,    allergeni: ['L'],           attiva: true, reparto: 'bar' },
-  { id: 15,  categoriaId: 9,  nome: 'Whisky 12 y.o.',          descrizione: 'Single malt, 4 cl',                       prezzo: 14,   allergeni: ['A'],           attiva: true, reparto: 'bar' },
+  { id: 13,  categoriaId: 8,  nome: 'Mojito',                      traduzioni: { en: 'Mojito', de: 'Mojito', fr: 'Mojito' }, descrizione: 'Rum, lime, menta, soda',                  prezzo: 10,   allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 14,  categoriaId: 8,  nome: 'Negroni',                     traduzioni: { en: 'Negroni', de: 'Negroni', fr: 'Negroni' }, descrizione: 'Gin, Campari, vermouth',                  prezzo: 11,   allergeni: [],              attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 19,  categoriaId: 8,  nome: 'Spritz Sibylla',              traduzioni: { en: 'Sibylla Spritz', de: 'Sibylla Spritz', fr: 'Spritz Sibylla' }, descrizione: 'Prosecco, bitter, soda, arancia',         prezzo: 9,    allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 15,  categoriaId: 9,  nome: 'Whisky 12 y.o.',              traduzioni: { en: '12 y.o. whisky', de: 'Whisky 12 Jahre', fr: 'Whisky 12 ans' }, descrizione: 'Single malt, 4 cl',                       prezzo: 14,   allergeni: ['A'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
   // Cantina
-  { id: 100, categoriaId: 10, nome: 'Chianti Classico DOCG',   descrizione: 'Toscana, corpo medio, ciliegia',          prezzo: 22,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 101, categoriaId: 10, nome: 'Barolo DOCG',             descrizione: 'Piemonte, strutturato e complesso',       prezzo: 45,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 102, categoriaId: 10, nome: 'Amarone della Valpolicella', descrizione: 'Veneto, intenso e corposo',            prezzo: 55,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 103, categoriaId: 10, nome: 'Montepulciano d’Abruzzo', descrizione: 'Abruzzo, morbido e fruttato',             prezzo: 20,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 104, categoriaId: 11, nome: 'Pinot Grigio DOC',        descrizione: 'Fresco e leggero',                        prezzo: 18,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 105, categoriaId: 11, nome: 'Vermentino di Sardegna',  descrizione: 'Aromatico e minerale',                    prezzo: 21,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 106, categoriaId: 11, nome: 'Chardonnay',              descrizione: 'Strutturato, note di vaniglia',           prezzo: 24,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 107, categoriaId: 11, nome: 'Sauvignon Blanc',         descrizione: 'Fresco, note erbacee',                    prezzo: 23,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 108, categoriaId: 12, nome: 'Chiaretto del Garda',     descrizione: 'Delicato e fruttato',                     prezzo: 19,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 109, categoriaId: 12, nome: 'Cerasuolo d’Abruzzo',     descrizione: 'Rosato intenso',                          prezzo: 20,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 110, categoriaId: 13, nome: 'Prosecco DOC',            descrizione: 'Fresco e vivace',                         prezzo: 18,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 111, categoriaId: 13, nome: 'Franciacorta Brut',       descrizione: 'Metodo classico',                         prezzo: 35,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 112, categoriaId: 13, nome: 'Champagne Brut',          descrizione: 'Elegante e complesso',                    prezzo: 60,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
-  { id: 113, categoriaId: 13, nome: 'Trento DOC',              descrizione: 'Metodo classico italiano',                prezzo: 30,   allergeni: ['L'],           attiva: true, reparto: 'cantina' },
+  { id: 100, categoriaId: 10, nome: 'Chianti Classico DOCG',   traduzioni: {}, descrizione: 'Toscana, corpo medio, ciliegia',          prezzo: 22,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 101, categoriaId: 10, nome: 'Barolo DOCG',             traduzioni: {}, descrizione: 'Piemonte, strutturato e complesso',       prezzo: 45,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 102, categoriaId: 10, nome: 'Amarone della Valpolicella', traduzioni: {}, descrizione: 'Veneto, intenso e corposo',            prezzo: 55,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 103, categoriaId: 10, nome: 'Montepulciano d’Abruzzo', traduzioni: {}, descrizione: 'Abruzzo, morbido e fruttato',             prezzo: 20,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 104, categoriaId: 11, nome: 'Pinot Grigio DOC',        traduzioni: {}, descrizione: 'Fresco e leggero',                        prezzo: 18,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 105, categoriaId: 11, nome: 'Vermentino di Sardegna',  traduzioni: {}, descrizione: 'Aromatico e minerale',                    prezzo: 21,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 106, categoriaId: 11, nome: 'Chardonnay',              traduzioni: {}, descrizione: 'Strutturato, note di vaniglia',           prezzo: 24,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 107, categoriaId: 11, nome: 'Sauvignon Blanc',         traduzioni: {}, descrizione: 'Fresco, note erbacee',                    prezzo: 23,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 108, categoriaId: 12, nome: 'Chiaretto del Garda',     traduzioni: {}, descrizione: 'Delicato e fruttato',                     prezzo: 19,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 109, categoriaId: 12, nome: 'Cerasuolo d’Abruzzo',     traduzioni: {}, descrizione: 'Rosato intenso',                          prezzo: 20,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 110, categoriaId: 13, nome: 'Prosecco DOC',            traduzioni: {}, descrizione: 'Fresco e vivace',                         prezzo: 18,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 111, categoriaId: 13, nome: 'Franciacorta Brut',       traduzioni: {}, descrizione: 'Metodo classico',                         prezzo: 35,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 112, categoriaId: 13, nome: 'Champagne Brut',          traduzioni: {}, descrizione: 'Elegante e complesso',                    prezzo: 60,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
+  { id: 113, categoriaId: 13, nome: 'Trento DOC',              traduzioni: {}, descrizione: 'Metodo classico italiano',                prezzo: 30,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
 ]
+
+// ─── Menu del giorno e web menu ──────────────────────────────────────────────
+
+/** Il menu proposto in una data giornata: una selezione di voci, con o senza
+ *  prezzo fisso (se manca, il conto è la somma delle voci). */
+export interface MenuGiorno {
+  id: number
+  outletId: number
+  /** yyyy-MM-dd */
+  data: string
+  nome: string
+  prezzoFisso: number | null
+  note: string
+  vociIds: number[]
+  attivo: boolean
+}
+
+/** Menu digitale pubblicato: si raggiunge da URL o QR, vale per un periodo. */
+export interface WebMenu {
+  id: number
+  /** Vuoto = vale per tutti gli outlet. */
+  outletId: number | null
+  /** Nome interno, quello con cui lo si cerca qui. */
+  nome: string
+  /** Titolo che legge l'ospite in testa al menu. */
+  titolo: string
+  sottotitolo: string
+  /** Parte finale dell'indirizzo pubblico. */
+  slug: string
+  logo: string
+  /** Note a piè di pagina: allergeni, IVA, informazioni legali. */
+  notePiede: string
+  vociIds: number[]
+  dal: string
+  al: string
+  /** Servizio a cui si riferisce, o tutti. */
+  servizio: Servizio | 'Tutti'
+  mostraPrezzi: boolean
+  mostraAllergeni: boolean
+  attivo: boolean
+  /** Tinta dell'intestazione del menu pubblicato. */
+  colore: string
+}
+
+export const URL_WEB_MENU = 'https://outlet.sibyllanetwork.it/menu/'
 
 export const CATEGORIE_CLIENTE: CategoriaCliente[] = [
   { id: 0, nome: 'Standard',      scontoPerc: 0 },
@@ -473,6 +555,30 @@ const NOTE = [
   'Tavolo vicino alla finestra', 'Un ospite celiaco', 'Seggiolone per bambino',
   'Anniversario: dolce con candelina', '', '', 'Allergia ai crostacei', '',
   'Arrivo in ritardo previsto', '', 'Menu vegetariano', '',
+]
+
+export const menuGiornoIniziali = (): MenuGiorno[] => [
+  {
+    id: 1, outletId: 1, data: oggiISO(), nome: 'Menu del giorno',
+    prezzoFisso: 28, note: 'Acqua e caffè inclusi',
+    vociIds: [1, 3, 5, 114, 7], attivo: true,
+  },
+]
+
+export const webMenuIniziali = (): WebMenu[] => [
+  {
+    id: 1, outletId: 1,
+    nome: 'Menu pranzo estate',
+    titolo: 'Il nostro menu di pranzo',
+    sottotitolo: 'Cucina di stagione, ogni giorno',
+    slug: 'menu-pranzo-25f343',
+    logo: '',
+    notePiede: 'Allergeni disponibili su richiesta. Prezzi IVA inclusa.',
+    vociIds: [1, 2, 16, 3, 4, 17, 5, 6, 114, 115, 7, 8, 9, 10, 11, 12],
+    dal: oggiISO(), al: oggiISO(),
+    servizio: 'Pranzo', mostraPrezzi: true, mostraAllergeni: true,
+    attivo: true, colore: '#B08A4A',
+  },
 ]
 
 export const oggiISO = () => {
