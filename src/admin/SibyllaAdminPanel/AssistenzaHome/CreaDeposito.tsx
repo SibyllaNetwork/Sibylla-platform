@@ -163,8 +163,8 @@ export default function CreaDeposito({ navigate }: Props) {
         <Ico n="back" s={13} c="var(--color-primary)" /> Indietro
       </button>
       <div className="cdp__head">
-        <h1 className="cdp__title">Crea deposito azienda</h1>
-        <p className="cdp__sub">Imposta depositi, solleciti e commissioni per ogni azienda.</p>
+        <h1 className="cdp__title">Anagrafiche e depositi</h1>
+        <p className="cdp__sub">Le aziende clienti con la loro anagrafica, il deposito, i solleciti e le commissioni.</p>
       </div>
 
       <div className="cdp__toolbar">

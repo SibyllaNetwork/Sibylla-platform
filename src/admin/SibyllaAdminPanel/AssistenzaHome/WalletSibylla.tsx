@@ -36,7 +36,7 @@ interface Mov {
 }
 
 // Percentuale di deposito residuo sotto la quale scatta il primo sollecito:
-// il valore arriva dall'anagrafica del partner (pagina "Crea deposito").
+// il valore arriva dall'anagrafica del partner (pagina "Anagrafiche e depositi").
 const SOGLIA_PRIMO_SOLLECITO: Record<string, number> = {
   'G2 Travel': 20,
   'Travco': 25,
@@ -224,7 +224,7 @@ export default function WalletSibylla({ navigate }: Props) {
           ))}
         </tbody>
       </table>
-      <span className="wsb-dep__note">In rosso i partner che hanno raggiunto la soglia del primo sollecito impostata in «Crea deposito».</span>
+      <span className="wsb-dep__note">In rosso i partner che hanno raggiunto la soglia del primo sollecito impostata in «Anagrafiche e depositi».</span>
     </span>
   )
 

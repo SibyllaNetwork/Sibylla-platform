@@ -24,7 +24,7 @@ export const PLATFORM_ADMIN_MENU: PAGroup[] = [
       { id: 'pa-crea-azienda',      label: 'Crea azienda',          page: 'pa-crea-azienda' },
       { id: 'pa-aziende-mapping',   label: 'Aziende mapping',       page: 'pa-aziende-mapping' },
       { id: 'pa-gestione-aziende',  label: 'Gestione delle aziende', page: 'pa-gestione-aziende' },
-      { id: 'pa-crea-deposito',     label: 'Crea Deposito',         page: 'pa-crea-deposito' },
+      { id: 'pa-crea-deposito',     label: 'Anagrafiche e depositi', page: 'pa-crea-deposito' },
     ],
   },
   {
