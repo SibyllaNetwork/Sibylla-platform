@@ -36,8 +36,21 @@
     text-decoration: underline
 
 .cdp__head
-  text-align: center
-  margin: 0 0 26px
+  display: flex
+  align-items: flex-end
+  justify-content: space-between
+  gap: 18px
+  flex-wrap: wrap
+  margin: 0 0 4px
+
+.cdp__head-txt
+  min-width: 0
+
+.cdp__head-act
+  display: flex
+  align-items: center
+  gap: 10px
+  flex-wrap: wrap
 
 .cdp__title
   font-family: $font-heading
@@ -74,6 +87,63 @@
 
   &:hover
     background: #6f5615
+
+  > i
+    margin-right: 7px
+
+  &--ghost
+    background: #fff
+    color: #8a6d1f
+    border: 1px solid #e7d4a3
+
+    &:hover
+      background: #faf6ec
+
+// ── Tab: le due letture dello stesso record ────────────────────────────────
+.cdp__tabs
+  display: flex
+  align-items: flex-end
+  gap: 4px
+  border-bottom: 1px solid $border
+
+.cdp__tab
+  appearance: none
+  border: 1px solid transparent
+  border-bottom: 0
+  background: none
+  padding: 9px 20px
+  border-radius: 9px 9px 0 0
+  font-family: $font-heading
+  font-size: 13.5px
+  font-weight: 600
+  color: $text-inactive
+  cursor: pointer
+  margin-bottom: -1px
+  transition: color .15s, background .15s
+
+  &:hover
+    color: #8a6d1f
+
+  &.is-on
+    background: #faf6ec
+    border-color: $border
+    color: #2A2208
+
+.cdp__conta
+  font-size: 12.5px
+  font-weight: 600
+  color: $text-inactive
+  white-space: nowrap
+
+.cdp__tot-dep
+  margin-left: auto
+  font-size: 12.5px
+  color: $text-inactive
+  white-space: nowrap
+
+  strong
+    font-variant-numeric: tabular-nums
+    color: #2A2208
 
 .cdp__search
   position: relative
@@ -120,28 +190,51 @@
 
 +th-labels
 
-// Larghezze di colonna in percentuale: la somma fa 100. Con 12 colonne le
-// intestazioni più lunghe restano abbreviate (tooltip col testo completo).
+// Larghezze di colonna in percentuale: la somma fa 100 in entrambe le tabelle.
+// I valori sono calibrati sulla misura reale delle intestazioni (icona del
+// filtro inclusa) e sulla fila di icone della colonna Azioni, che non va MAI a
+// capo: lo spazio viene dalle colonne che ne avanzano (telefono, commissione).
+// Tab Depositi
 .cdp__col-ragione
   width: 12.2%
 .cdp__col-partner
-  width: 7.8%
+  width: 9.5%
 .cdp__col-sales
-  width: 8.2%
+  width: 9.6%
 .cdp__col-deposito
-  width: 14.6%
+  width: 10.3%
 .cdp__col-sollecito
-  width: 7.0%
+  width: 7.2%
 .cdp__col-stop
-  width: 6.9%
+  width: 7.0%
 .cdp__col-comm
-  width: 5.4%
-.cdp__col-mail
-  width: 8.6%
+  width: 6.0%
+.cdp__col-mail2
+  width: 10.0%
 .cdp__col-note
-  width: 4.4%
+  width: 5.0%
 .cdp__col-azioni
-  width: 9.3%
+  width: 16.0%
+
+// Tab Anagrafiche (ragione e partner in comune con il tab Depositi)
+.cdp__col-piva
+  width: 9.0%
+.cdp__col-sdi
+  width: 5.5%
+.cdp__col-pec
+  width: 7.7%
+.cdp__col-via
+  width: 8.0%
+.cdp__col-citta
+  width: 6.9%
+.cdp__col-naz
+  width: 9.7%
+.cdp__col-tel
+  width: 5.0%
+.cdp__col-resid
+  width: 6.5%
+.cdp__col-azioni-a
+  width: 11.0%
 
 .cdp__rag
   font-weight: 600
@@ -158,6 +251,24 @@
 .cdp__val
   font-variant-numeric: tabular-nums
   color: $text-active
+
+  &.is-neg
+    color: $error
+
+// Percentuali incolonnate a destra come gli importi.
+.cdp .cdp__table .cdp__num
+  text-align: right
+
+// Finance e Sales manager nella stessa colonna, una riga per indirizzo.
+.cdp__mails
+  display: flex
+  flex-direction: column
+  gap: 1px
+  min-width: 0
+  line-height: 1.35
+
+  > *
+    min-width: 0
 
 // Colonna Deposito: intestazione e importi allineati a destra. I due pulsanti
 // restano ancorati al bordo destro (incolonnati riga per riga) e l'importo
@@ -180,6 +291,12 @@
   .cdp__mini
     flex: 0 0 auto
 
+.cdp__resid
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+  font-size: .92em
+  letter-spacing: .02em
+  color: $text-active
+
 .cdp__c
   text-align: center
 
@@ -199,10 +316,17 @@
   &:hover
     background: rgba(0, 0, 0, .06)
 
+// Le icone della colonna Azioni restano SEMPRE su una riga: la colonna è
+// dimensionata sulla fila completa, alle tre taglie dell'icona.
 .cdp__actions
   display: inline-flex
   align-items: center
-  gap: 2px
+  justify-content: center
+  flex-wrap: nowrap
+  gap: 1px
+
+  .cdp__mini
+    margin-left: 0
 
 .cdp__pag
   display: flex
@@ -215,6 +339,26 @@
   display: flex
   flex-direction: column
   gap: 14px
+
+  &__sez
+    font-family: $font-heading
+    font-size: 13.5px
+    font-weight: 700
+    color: #2A2208
+    margin: 2px 0 -4px
+    padding-bottom: 6px
+    border-bottom: 1px solid $border
+
+  &__hint
+    display: flex
+    align-items: center
+    gap: 7px
+    margin: 0
+    font-size: 12.5px
+    color: $text-inactive
+
+    b
+      color: $text-active
 
   &__label
     font-size: 12px
@@ -336,45 +480,19 @@
     gap: 10px
     margin-top: 4px
 
-// ── Form "Modifica Agenzia" (griglia a 3 colonne) ──────────────
+// ── Scheda azienda: griglia a 3 colonne di campi condivisi ─────
 .cdp-ag
   display: grid
   grid-template-columns: repeat(3, 1fr)
-  gap: 16px 18px
+  gap: 14px 18px
 
   &__f
+    min-width: 0
     display: flex
     flex-direction: column
-    gap: 6px
-
-    label
-      font-size: 12px
-      font-weight: 600
-      color: $text-active
-
-    input
-      height: 42px
-      border: 1px solid $border
-      border-radius: 8px
-      padding: 0 12px
-      font-size: 13px
-      color: $text-active
-      outline: none
-
-      &::placeholder
-        color: $text-disabled
-
-      &:focus
-        border-color: $primary-300
 
     &--2
       grid-column: span 2
-
-  &__pair
-    grid-column: 1 / -1
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 18px
 
 // ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
 // 12 colonne: le intestazioni lunghe usano l'abbreviazione puntata (tooltip col
@@ -396,8 +514,8 @@
       padding-right: 5px
 
   .cdp__mini
-    width: 22px
-    height: 22px
+    width: 21px
+    height: 21px
     margin-left: 2px
 
   .cdp__actions
@@ -415,6 +533,6 @@
       padding-right: 3px
 
   .cdp__mini
-    width: 19px
-    height: 19px
+    width: 18px
+    height: 18px
     margin-left: 1px
