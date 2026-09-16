@@ -92,8 +92,8 @@ const notti = (dal: string, al: string) => {
   const d = (new Date(al).getTime() - new Date(dal).getTime()) / 86400000
   return Number.isFinite(d) && d > 0 ? Math.round(d) : 0
 }
-// Gli infanti non occupano posto letto: non concorrono al prezzo a persona
-const paganti = (d: DettCamera) => d.adulti + d.ragazzi + d.bambini
+// Persone della camera: tutte e quattro le categorie, infanti compresi
+const persone = (d: DettCamera) => d.adulti + d.ragazzi + d.bambini + d.infanti
 // Camere della riga: sempre `quantita`, le mancanti ereditano i valori di riga
 const dettCamera = (c: CameraRow): DettCamera => ({
   tipo: c.tipo, adulti: c.adulti, ragazzi: c.ragazzi, bambini: c.bambini, infanti: c.infanti,
@@ -121,7 +121,8 @@ const dettagliDi = (c: CameraRow): DettCamera[] => {
   return Array.from({ length: n },
     (_, k) => c.dettagli[k] ?? { ...c.dettagli[c.dettagli.length - 1], numero: '', note: '' })
 }
-const totaleDett = (d: DettCamera) => paganti(d) * d.prezzoPersona * notti(d.dataIn, d.dataOut)
+// Costo della camera: le sue persone per il prezzo a persona del soggiorno
+const totaleDett = (d: DettCamera) => persone(d) * d.prezzoPersona
 const totaleRigaGr = (c: CameraRow) => dettagliDi(c).reduce((a, d) => a + totaleDett(d), 0)
 /** Ripartisce un totale sulle camere della riga: il resto va alle prime. */
 const ripartisci = (totale: number, camere: number): number[] => {
@@ -881,7 +882,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       <th><TruncatedText text="Ragazzi" /></th>
                       <th><TruncatedText text="Bambini" /></th>
                       <th><TruncatedText text="Infanti" /></th>
-                      <th><TruncatedText text="Prezzo" full="Prezzo a persona" /></th>
+                      <th><TruncatedText text="Prezzo" full="Prezzo a persona per il soggiorno" /></th>
                       <th><TruncatedText text="Arrang." full="Arrangiamento" /></th>
                       <th><TruncatedText text="Data in" /></th>
                       <th><TruncatedText text="Data out" /></th>
@@ -966,7 +967,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                             : ro('dataOut', x => fmtData(x) || '—')}
                         </td>
                         <td className="np-amt">
-                          <Tooltip text={`${c.quantita} ${c.quantita === 1 ? 'camera' : 'camere'} · ${notti(v.dataIn, v.dataOut)} notti`}>
+                          <Tooltip text={`${personeRiga(c, 'adulti') + personeRiga(c, 'ragazzi') + personeRiga(c, 'bambini') + personeRiga(c, 'infanti')} persone × ${euro(v.prezzoPersona)} · ${c.quantita} ${c.quantita === 1 ? 'camera' : 'camere'} · ${notti(v.dataIn, v.dataOut)} notti`}>
                             <span>{euro(totaleRigaGr(c))}</span>
                           </Tooltip>
                         </td>
@@ -1813,7 +1814,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                     <th><TruncatedText text="Ragazzi" /></th>
                     <th><TruncatedText text="Bambini" /></th>
                     <th><TruncatedText text="Infanti" /></th>
-                    <th><TruncatedText text="Prezzo p.p." full="Prezzo a persona" /></th>
+                    <th><TruncatedText text="Prezzo p.p." full="Prezzo a persona per il soggiorno" /></th>
                     <th><TruncatedText text="Arrang." full="Arrangiamento" /></th>
                     <th><TruncatedText text="Data in" /></th>
                     <th><TruncatedText text="Data out" /></th>
