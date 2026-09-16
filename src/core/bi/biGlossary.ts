@@ -219,6 +219,28 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Classifica per contributo al valore',
     formula: 'Voci ordinate per ricavo decrescente nel periodo selezionato',
   },
+
+  // ── Food & Beverage ──
+  RevPASH: {
+    term: 'RevPASH',
+    description: 'Revenue Per Available Seat Hour',
+    formula: 'Ricavo del servizio diviso (posti a sedere × ore di apertura)',
+  },
+  scontrinoMedio: {
+    term: 'Scontrino medio',
+    description: 'Spesa media per coperto servito',
+    formula: 'Ricavo del servizio diviso il numero di coperti serviti',
+  },
+  rotazione: {
+    term: 'Rotazione',
+    description: 'Quante volte un tavolo viene rioccupato nel servizio',
+    formula: 'Comande chiuse e aperte nel turno diviso il numero di tavoli in servizio',
+  },
+  occupazioneCoperti: {
+    term: 'Occupazione coperti',
+    description: 'Quota di posti a sedere effettivamente occupati',
+    formula: 'Coperti serviti diviso i coperti disponibili nel turno',
+  },
 }
 
 /** Voci del glossario per una pagina, nell'ordine dichiarato (ignora le chiavi sconosciute). */

@@ -1,0 +1,175 @@
+// ─── Dashboard F&B ────────────────────────────────────────────────────────────
+//  Griglia a schermo fisso (regola BI: tutto in una schermata, nessuno scroll):
+//  fascia indicatori, andamento del servizio con il riempimento dei turni a
+//  fianco, e sotto l'incasso per sala accanto alle voci che pesano di più.
+
+.fbdash
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.25fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi kpi kpi' 'main main turni' 'sale top top'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__turni
+    grid-area: turni
+
+  &__sale
+    grid-area: sale
+
+  &__top
+    grid-area: top
+
+  // ── Toolbar ────────────────────────────────────────────────────────────────
+  &__filter
+    width: 160px
+
+    &--wide
+      width: 210px
+
+  &__link
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    align-self: flex-end
+    min-height: 34px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  // ── Riempimento dei turni ──────────────────────────────────────────────────
+  &__turni-list
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 10px
+    height: 100%
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: minmax(0, 1fr) 90px 62px
+      align-items: center
+      gap: 10px
+
+  &__turni-nome
+    min-width: 0
+    font-size: 12px
+    color: var(--color-text-active)
+
+  &__turni-barra
+    display: block
+    height: 8px
+    border-radius: 4px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+    > span
+      display: block
+      width: calc(var(--pct) * 1%)
+      height: 100%
+      border-radius: 4px
+      background: var(--chart-s1, var(--color-primary))
+
+  &__turni-n
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-primary)
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+    em
+      font-style: normal
+      font-weight: 500
+      color: var(--color-text-inactive)
+
+  // ── Voci che pesano di più ─────────────────────────────────────────────────
+  &__top-list
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 6px
+    height: 100%
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: 22px minmax(0, 1fr) 46px 80px
+      align-items: center
+      gap: 10px
+      min-height: 28px
+
+  &__top-pos
+    display: grid
+    place-items: center
+    width: 22px
+    height: 22px
+    border-radius: 7px
+    background: var(--color-primary-50)
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__top-nome
+    display: flex
+    align-items: baseline
+    gap: 8px
+    min-width: 0
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    em
+      font-style: normal
+      font-size: 11px
+      color: var(--color-text-inactive)
+      white-space: nowrap
+
+  &__top-qta
+    font-size: 12px
+    color: var(--color-text-inactive)
+    text-align: right
+
+  &__top-val
+    font-size: 13px
+    font-weight: 700
+    color: var(--color-primary)
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__vuoto
+    color: var(--color-text-inactive)
+    font-size: 12.5px
+    text-align: center
+
+// ─── Laptop e monitor stretti ─────────────────────────────────────────────────
+//  Si comprimono SOLO le dimensioni: nessun blocco sparisce.
+@container bi-page (max-width: 1360px)
+  .fbdash__kpis
+    gap: 8px
+
+  .fbdash__filter
+    width: 140px
+
+    &--wide
+      width: 180px
+
+  .fbdash__top-list li
+    grid-template-columns: 20px minmax(0, 1fr) 40px 72px
