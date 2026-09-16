@@ -84,6 +84,11 @@ interface FbState {
 
   // ── Comande ──
   comandaDiTavolo: (tavoloId: number) => Comanda | undefined
+  /** Seconda comanda sullo stesso tavolo (conti separati). */
+  nuovaComanda: (tavoloId: number) => number
+  /** Stacca le righe scelte in un conto a parte, già chiuso e incassato. */
+  staccaConto: (comandaId: number, righeIds: string[], pagamento: Comanda['pagamento']) => number
+  setNotaComanda: (comandaId: number, nota: string) => void
   aggiungiVoce: (comandaId: number, voceId: number, portata: number) => void
   setQta: (comandaId: number, rigaId: string, qta: number) => void
   setNotaRiga: (comandaId: number, rigaId: string, note: string) => void
@@ -165,6 +170,7 @@ export const useFbStore = create<FbState>()(
           chiusaAlle: null,
           stato: 'aperta',
           righe: [],
+          nota: '',
           addebitoCamera: '',
           pagamento: null,
         }
@@ -215,6 +221,64 @@ export const useFbStore = create<FbState>()(
 
       // ── Comande ───────────────────────────────────────────────────────────
       comandaDiTavolo: tavoloId => get().comande.find(c => c.tavoloId === tavoloId && c.stato === 'aperta'),
+
+      nuovaComanda: tavoloId => {
+        const st = get()
+        const t = st.tavoli.find(x => x.id === tavoloId)
+        const sala = SALE.find(x => x.id === t?.salaId)
+        const madre = st.comande.find(c => c.tavoloId === tavoloId && c.stato === 'aperta')
+        const numero = st.progressivo + 1
+        const comanda: Comanda = {
+          id: Date.now(),
+          numero: String(numero).padStart(3, '0'),
+          outletId: sala?.outletId ?? 1,
+          salaId: t?.salaId ?? 1,
+          tavoloId,
+          turnoId: madre?.turnoId ?? null,
+          coperti: 1,
+          cameriere: madre?.cameriere ?? '',
+          categoriaClienteId: madre?.categoriaClienteId ?? 0,
+          apertaAlle: oraCorrente(),
+          chiusaAlle: null,
+          stato: 'aperta',
+          righe: [],
+          nota: '',
+          addebitoCamera: '',
+          pagamento: null,
+        }
+        set({ comande: [...st.comande, comanda], progressivo: numero })
+        return comanda.id
+      },
+
+      // Le righe scelte escono dalla comanda e diventano un conto a sé, già
+      // chiuso: è il "dividi conto" del cameriere, che incassa per gruppi.
+      staccaConto: (comandaId, righeIds, pagamento) => {
+        const st = get()
+        const madre = st.comande.find(c => c.id === comandaId)
+        if (!madre) return 0
+        const righe = madre.righe.filter(r => righeIds.includes(r.id))
+        if (!righe.length) return 0
+        const numero = st.progressivo + 1
+        const staccata: Comanda = {
+          ...madre,
+          id: Date.now(),
+          numero: `${String(numero).padStart(3, '0')}`,
+          righe,
+          stato: 'chiusa',
+          chiusaAlle: oraCorrente(),
+          pagamento,
+        }
+        set({
+          progressivo: numero,
+          comande: st.comande.map(c =>
+            c.id === comandaId ? { ...c, righe: c.righe.filter(r => !righeIds.includes(r.id)) } : c,
+          ).concat(staccata),
+        })
+        return staccata.id
+      },
+
+      setNotaComanda: (comandaId, nota) =>
+        set(s => ({ comande: s.comande.map(c => c.id === comandaId ? { ...c, nota } : c) })),
 
       aggiungiVoce: (comandaId, voceId, portata) =>
         set(s => ({

@@ -1,11 +1,12 @@
 // ─── Gestione comanda ─────────────────────────────────────────────────────────
-//  Il POS di sala, disegnato per il dito prima che per il mouse: categorie e
-//  voci sono riquadri grandi, la quantità si muove con due pulsanti da 48px, le
-//  azioni pesanti (invio in cucina, conto) stanno in una barra fissa in basso,
+//  Il POS di sala, disegnato per il dito prima che per il mouse: categorie a
+//  tessere, voci a card, quantità con due bersagli da 48px e le azioni pesanti
+//  (invio in cucina, divisione e chiusura del conto) in una barra in basso,
 //  sempre raggiungibile col pollice.
 //
 //  Il tavolo su cui si lavora arriva dal contesto di servizio condiviso con la
-//  Sala; se manca, la pagina chiede di sceglierlo fra i tavoli aperti.
+//  Sala; se manca, la pagina chiede di sceglierlo fra i tavoli aperti. Sullo
+//  stesso tavolo possono convivere più comande (conti separati).
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
@@ -42,6 +43,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const setContesto = useFbStore(s => s.setContesto)
   const tavoli      = useFbStore(s => s.tavoli)
   const comande     = useFbStore(s => s.comande)
+  const prenotazioni = useFbStore(s => s.prenotazioni)
   const aggiungiVoce = useFbStore(s => s.aggiungiVoce)
   const setQta      = useFbStore(s => s.setQta)
   const setNotaRiga = useFbStore(s => s.setNotaRiga)
@@ -50,17 +52,34 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const inviaComanda = useFbStore(s => s.inviaComanda)
   const setCategoriaCliente = useFbStore(s => s.setCategoriaCliente)
   const setAddebitoCamera = useFbStore(s => s.setAddebitoCamera)
+  const setNotaComanda = useFbStore(s => s.setNotaComanda)
   const chiudiConto = useFbStore(s => s.chiudiConto)
+  const staccaConto = useFbStore(s => s.staccaConto)
+  const nuovaComanda = useFbStore(s => s.nuovaComanda)
   const setCoperti  = useFbStore(s => s.setCoperti)
   const confirm     = useConfirmStore(s => s.confirm)
 
-  const comanda = useMemo(
-    () => comande.find(c => c.tavoloId === contesto.tavoloId && c.stato === 'aperta'),
-    [comande, contesto.tavoloId],
+  // Tavolo di lavoro: quello del contesto oppure, entrando dal menu, il primo
+  // tavolo aperto — la pagina non chiede un passaggio in più per iniziare
+  const tavoloId = contesto.tavoloId ?? comande.find(c => c.stato === 'aperta')?.tavoloId ?? null
+
+  // Comande aperte sul tavolo: di norma una, ma i conti separati ne creano altre
+  const aperte = useMemo(
+    () => comande.filter(c => c.tavoloId === tavoloId && c.stato === 'aperta'),
+    [comande, tavoloId],
   )
-  const tavolo = tavoli.find(t => t.id === contesto.tavoloId)
+  const [comandaId, setComandaId] = useState<number | null>(null)
+  const comanda = aperte.find(c => c.id === comandaId) ?? aperte[0]
+
+  const apriTavolo = useFbStore(s => s.apriTavolo)
+  const tavolo = tavoli.find(t => t.id === tavoloId)
   const sala   = SALE.find(s => s.id === tavolo?.salaId)
+  const tavoliSala = useMemo(
+    () => tavoli.filter(t => t.salaId === (tavolo?.salaId ?? contesto.salaId) && t.stato !== 'bloccato'),
+    [tavoli, tavolo, contesto.salaId],
+  )
   const turno  = TURNI.find(t => t.id === comanda?.turnoId)
+  const pren   = prenotazioni.find(p => p.tavoloId === tavolo?.id && p.data === contesto.data && p.stato !== 'annullata')
 
   // Catalogo: tipo menu → categoria → voci
   const [tipoId, setTipoId] = useState(1)
@@ -68,8 +87,13 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const [portata, setPortata] = useState(1)
   const [cerca, setCerca]   = useState('')
   const [notaDi, setNotaDi] = useState<RigaComanda | null>(null)
+  const [notaCom, setNotaCom] = useState(false)
   const [conto, setConto]   = useState(false)
   const [pagamento, setPagamento] = useState<Comanda['pagamento']>('carta')
+  const [divisione, setDivisione] = useState<null | 'righe' | 'uguali'>(null)
+  const [selRighe, setSelRighe] = useState<string[]>([])
+  const [parti, setParti] = useState(2)
+  const [archivio, setArchivio] = useState(false)
 
   const categorie = useMemo(
     () => CATEGORIE_MENU.filter(c => c.tipoId === tipoId).sort((a, b) => a.ordine - b.ordine),
@@ -88,38 +112,44 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
     [comanda],
   )
   const catCliente = CATEGORIE_CLIENTE.find(c => c.id === comanda?.categoriaClienteId)
+  const chiuseDelTavolo = useMemo(
+    () => comande.filter(c => c.tavoloId === tavoloId && c.stato === 'chiusa'),
+    [comande, tavoloId],
+  )
 
-  // ── Nessun tavolo in lavorazione: si sceglie fra quelli aperti ─────────────
+  // ── Nessun tavolo aperto: si apre da qui, senza cambiare pagina ───────────
   if (!comanda || !tavolo) {
-    const aperti = comande.filter(c => c.stato === 'aperta')
+    const liberi = tavoli.filter(t => t.salaId === contesto.salaId && t.stato !== 'bloccato')
     return (
       <div className="fbcom">
         <PageHead
           title="Gestione comanda"
-          subtitle="Scegli il tavolo da servire fra quelli aperti in sala"
+          subtitle="Apri un tavolo per cominciare la comanda"
           actions={
             <button type="button" className="fbcom__head-btn" onClick={() => navigate?.('sala-ristorante')}>
               <i className="fa-solid fa-utensils" aria-hidden="true" /> Vai in sala
             </button>
           }
         />
-        <div className="fbcom__scelta">
-          {aperti.map(c => {
-            const t = tavoli.find(x => x.id === c.tavoloId)
-            return (
+        <div className="fbcom__apri">
+          <i className="fa-solid fa-chair" aria-hidden="true" />
+          <p>Nessun tavolo aperto in {SALE.find(s => s.id === contesto.salaId)?.nome}.</p>
+          <div className="fbcom__apri-tavoli">
+            {liberi.map(t => (
               <button
-                key={c.id} type="button" className="fbcom__scelta-card"
-                onClick={() => setContesto({ tavoloId: c.tavoloId, salaId: c.salaId, outletId: c.outletId })}
+                key={t.id} type="button" className="fbcom__apri-card"
+                onClick={() => {
+                  const id = apriTavolo(t.id, Math.max(1, t.capienza - 1), '', contesto.turnoId, 0)
+                  setContesto({ tavoloId: t.id, salaId: t.salaId })
+                  setComandaId(id)
+                  toast.success(`Tavolo ${t.numero} aperto`)
+                }}
               >
-                <span className="fbcom__scelta-num">{t?.numero}</span>
-                <span className="fbcom__scelta-meta">{c.coperti} coperti · {c.cameriere}</span>
-                <span className="fbcom__scelta-tot">{euro(totaleConto(c))}</span>
+                <span className="fbcom__apri-num">{t.numero}</span>
+                <span className="fbcom__apri-cap">{t.capienza} posti</span>
               </button>
-            )
-          })}
-          {!aperti.length && (
-            <p className="fbcom__scelta-vuoto">Nessun tavolo aperto: apri un tavolo dalla Sala ristorante.</p>
-          )}
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -133,20 +163,28 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   }
 
   const elimina = async (r: RigaComanda) => {
-    const ok = await confirm({
-      message: `Togliere “${r.nome}” dalla comanda?`,
-      confirmLabel: 'Togli',
-    })
+    const ok = await confirm({ message: `Togliere “${r.nome}” dalla comanda?`, confirmLabel: 'Togli' })
     if (ok) rimuoviRiga(comanda.id, r.id)
   }
 
   const confermaConto = () => {
     chiudiConto(comanda.id, pagamento)
     setConto(false)
-    setContesto({ tavoloId: null })
+    if (aperte.length <= 1) { setContesto({ tavoloId: null }); navigate?.('sala-ristorante') }
+    else setComandaId(aperte.find(c => c.id !== comanda.id)?.id ?? null)
     toast.success(`Conto del tavolo ${tavolo.numero} chiuso · ${euro(totaleConto(comanda))}`)
-    navigate?.('sala-ristorante')
   }
+
+  const confermaStacco = () => {
+    if (!selRighe.length) { toast.warning('Scegli le righe del conto da staccare'); return }
+    const importo = comanda.righe.filter(r => selRighe.includes(r.id)).reduce((a, r) => a + totaleRiga(r), 0)
+    staccaConto(comanda.id, selRighe, pagamento)
+    setSelRighe([])
+    setDivisione(null)
+    toast.success(`Conto staccato e incassato · ${euro(importo)}`)
+  }
+
+  const quota = totaleConto(comanda) / Math.max(1, parti)
 
   return (
     <div className="fbcom">
@@ -154,17 +192,71 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
         title="Gestione comanda"
         subtitle={`${sala?.nome} · tavolo ${tavolo.numero}${turno ? ` · ${turno.nome} ${turno.oraInizio}–${turno.oraFine}` : ''}`}
         actions={
-          <button type="button" className="fbcom__head-btn" onClick={() => navigate?.('sala-ristorante')}>
-            <i className="fa-solid fa-utensils" aria-hidden="true" /> Torna in sala
-          </button>
+          <div className="fbcom__head-acts">
+            <button type="button" className="fbcom__head-btn" onClick={() => setArchivio(true)}>
+              <i className="fa-solid fa-box-archive" aria-hidden="true" /> Archivio
+              {!!chiuseDelTavolo.length && <span className="fbcom__head-badge">{chiuseDelTavolo.length}</span>}
+            </button>
+            <button type="button" className="fbcom__head-btn" onClick={() => navigate?.('sala-ristorante')}>
+              <i className="fa-solid fa-utensils" aria-hidden="true" /> Torna in sala
+            </button>
+          </div>
         }
       />
 
       {/* Intestazione della comanda: tutto ciò che identifica il servizio */}
       <div className="fbcom__top">
+        {/* Il tavolo si cambia da qui, senza passare da un'altra schermata:
+            se quello scelto non ha una comanda aperta, viene aperto ora */}
         <div className="fbcom__tavolo">
-          <span className="fbcom__tavolo-lab">Tavolo</span>
-          <span className="fbcom__tavolo-num">{tavolo.numero}</span>
+          <span className="fbcom__tavolo-lab">Tavolo n°</span>
+          <select
+            className="fbcom__tavolo-sel"
+            value={tavolo.id}
+            aria-label="Tavolo da servire"
+            onChange={e => {
+              const id = +e.target.value
+              const t = tavoli.find(x => x.id === id)
+              if (!t) return
+              const aperta = comande.find(c => c.tavoloId === id && c.stato === 'aperta')
+              const nuovoId = aperta ? aperta.id : apriTavolo(id, Math.max(1, t.capienza - 1), comanda.cameriere, comanda.turnoId, 0)
+              setContesto({ tavoloId: id, salaId: t.salaId })
+              setComandaId(nuovoId)
+              if (!aperta) toast.success(`Tavolo ${t.numero} aperto`)
+            }}
+          >
+            {tavoliSala.map(t => {
+              const c = comande.find(x => x.tavoloId === t.id && x.stato === 'aperta')
+              return (
+                <option key={t.id} value={t.id}>
+                  {t.numero}{c ? ` · ${euro(totaleConto(c))}` : ' · libero'}
+                </option>
+              )
+            })}
+          </select>
+        </div>
+
+        <div className="fbcom__meta">
+          <span className="fbcom__meta-lab">Comande del tavolo</span>
+          <div className="fbcom__chips">
+            {aperte.map(c => (
+              <button
+                key={c.id} type="button"
+                className={`fbcom__chip ${c.id === comanda.id ? 'is-on' : ''}`}
+                onClick={() => setComandaId(c.id)}
+              >
+                n. {c.numero}<em> {euro(totaleConto(c))}</em>
+              </button>
+            ))}
+            <Tooltip text="Apre un secondo conto sullo stesso tavolo">
+              <button
+                type="button" className="fbcom__chip fbcom__chip--add"
+                onClick={() => { const id = nuovaComanda(tavolo.id); setComandaId(id); toast.success('Nuova comanda aperta sul tavolo') }}
+              >
+                <i className="fa-solid fa-plus" aria-hidden="true" /> Nuova
+              </button>
+            </Tooltip>
+          </div>
         </div>
 
         <div className="fbcom__meta">
@@ -181,13 +273,10 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
         </div>
 
         <div className="fbcom__meta">
-          <span className="fbcom__meta-lab">Comanda</span>
-          <span className="fbcom__meta-val">n. {comanda.numero} · {comanda.apertaAlle}</span>
-        </div>
-
-        <div className="fbcom__meta">
-          <span className="fbcom__meta-lab">Cameriere</span>
-          <span className="fbcom__meta-val">{comanda.cameriere}</span>
+          <span className="fbcom__meta-lab">Ospite</span>
+          <span className="fbcom__meta-val">
+            <TruncatedText text={pren?.ospite || 'Nessun nominativo'} />
+          </span>
         </div>
 
         <div className="fbcom__meta fbcom__meta--grow">
@@ -224,11 +313,8 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
             <div className="fbcom__cerca">
               <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
               <input
-                type="search"
-                value={cerca}
-                onChange={e => setCerca(e.target.value)}
-                placeholder="Cerca una voce…"
-                aria-label="Cerca una voce di menu"
+                type="search" value={cerca} onChange={e => setCerca(e.target.value)}
+                placeholder="Cerca una voce…" aria-label="Cerca una voce di menu"
               />
               {!!cerca && (
                 <button type="button" onClick={() => setCerca('')} aria-label="Pulisci la ricerca">
@@ -251,12 +337,12 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
               {categorie.map(c => (
                 <button
                   key={c.id} type="button"
-                  className={`fbcom__cat-btn ${c.id === catId ? 'is-on' : ''}`}
+                  className={`fbcom__cat-btn fbcom__cat-btn--tinta ${c.id === catId ? 'is-on' : ''}`}
                   style={{ '--cat': c.colore } as React.CSSProperties}
                   onClick={() => setCatId(c.id)}
                 >
-                  <span className="fbcom__cat-emoji">{c.emoji}</span>
                   <span className="fbcom__cat-nome"><TruncatedText text={c.nome} /></span>
+                  <span className="fbcom__cat-emoji">{c.emoji}</span>
                 </button>
               ))}
             </div>
@@ -265,9 +351,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
           <div className="fbcom__voci">
             {voci.map(v => {
               const cat = CATEGORIE_MENU.find(c => c.id === v.categoriaId)
-              const inComanda = comanda.righe
-                .filter(r => r.voceId === v.id)
-                .reduce((a, r) => a + r.qta, 0)
+              const inComanda = comanda.righe.filter(r => r.voceId === v.id).reduce((a, r) => a + r.qta, 0)
               return (
                 <button
                   key={v.id} type="button" className="fbcom__voce"
@@ -310,8 +394,14 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
         <aside className="fbcom__ordine">
           <header className="fbcom__ordine-head">
             <h3>Comanda {comanda.numero}</h3>
-            <span>{comanda.righe.length} righe · {comanda.coperti} coperti</span>
+            <span>{comanda.righe.length} righe · {comanda.cameriere || 'senza cameriere'}</span>
           </header>
+
+          {!!comanda.nota && (
+            <p className="fbcom__nota-com">
+              <i className="fa-solid fa-note-sticky" aria-hidden="true" /> {comanda.nota}
+            </p>
+          )}
 
           <ul className="fbcom__righe">
             {righeOrdinate.map((r, i) => {
@@ -387,15 +477,25 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
               Invia
               {!!daInviare.length && <span className="fbcom__azione-badge">{daInviare.length}</span>}
             </button>
-            <button type="button" className="fbcom__azione" onClick={() => window.print()}>
+            <button type="button" className="fbcom__azione" onClick={() => setNotaCom(true)} aria-label="Nota della comanda">
+              <i className="fa-solid fa-note-sticky" aria-hidden="true" /> Nota
+            </button>
+            <button type="button" className="fbcom__azione" onClick={() => window.print()} aria-label="Stampa">
               <i className="fa-solid fa-print" aria-hidden="true" /> Stampa
+            </button>
+            <button
+              type="button" className="fbcom__azione"
+              disabled={!comanda.righe.length}
+              onClick={() => { setDivisione('uguali'); setParti(Math.max(2, comanda.coperti)) }}
+            >
+              <i className="fa-solid fa-scissors" aria-hidden="true" /> Dividi
             </button>
             <button
               type="button" className="fbcom__azione fbcom__azione--conto"
               onClick={() => setConto(true)}
               disabled={!comanda.righe.length}
             >
-              <i className="fa-solid fa-receipt" aria-hidden="true" /> Conto
+              <i className="fa-solid fa-receipt" aria-hidden="true" /> Chiudi conto
             </button>
           </div>
         </aside>
@@ -424,8 +524,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
             <label className="fbcom-nota__libera">
               <span>Nota libera</span>
               <textarea
-                rows={3}
-                value={notaDi.note}
+                rows={3} value={notaDi.note}
                 onChange={e => { setNotaRiga(comanda.id, notaDi.id, e.target.value); setNotaDi({ ...notaDi, note: e.target.value }) }}
                 placeholder="Indicazioni per la cucina…"
               />
@@ -451,6 +550,141 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
             </footer>
           </div>
         )}
+      </Modal>
+
+      {/* ── Nota della comanda ────────────────────────────────────────────── */}
+      <Modal open={notaCom} onClose={() => setNotaCom(false)} title="Nota della comanda" size="md">
+        <div className="fbcom-nota">
+          <label className="fbcom-nota__libera">
+            <span>Vale per tutto il tavolo</span>
+            <textarea
+              rows={4} value={comanda.nota}
+              onChange={e => setNotaComanda(comanda.id, e.target.value)}
+              placeholder="Es. compleanno, servizio lento, ospite di riguardo…"
+            />
+          </label>
+          <footer className="fbcom-nota__foot">
+            <button type="button" className="fbcom-nota__ok" onClick={() => setNotaCom(false)}>Fatto</button>
+          </footer>
+        </div>
+      </Modal>
+
+      {/* ── Divisione del conto ───────────────────────────────────────────── */}
+      <Modal open={!!divisione} onClose={() => { setDivisione(null); setSelRighe([]) }} title="Dividi il conto" size="lg">
+        <div className="fbcom-dividi">
+          <div className="fbcom-dividi__seg">
+            <button type="button" className={divisione === 'uguali' ? 'is-on' : ''} onClick={() => setDivisione('uguali')}>
+              <i className="fa-solid fa-equals" aria-hidden="true" /> Parti uguali
+            </button>
+            <button type="button" className={divisione === 'righe' ? 'is-on' : ''} onClick={() => setDivisione('righe')}>
+              <i className="fa-solid fa-list-check" aria-hidden="true" /> Per consumazione
+            </button>
+          </div>
+
+          {divisione === 'uguali' && (
+            <div className="fbcom-dividi__uguali">
+              <span className="fbcom-dividi__lab">In quante parti</span>
+              <div className="fbcom__stepper">
+                <button type="button" onClick={() => setParti(n => Math.max(2, n - 1))} aria-label="Meno parti">
+                  <i className="fa-solid fa-minus" aria-hidden="true" />
+                </button>
+                <span>{parti}</span>
+                <button type="button" onClick={() => setParti(n => n + 1)} aria-label="Più parti">
+                  <i className="fa-solid fa-plus" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="fbcom-dividi__quota">
+                <span>Ognuno paga</span>
+                <strong>{euro(quota)}</strong>
+                <em>su un totale di {euro(totaleConto(comanda))}</em>
+              </div>
+            </div>
+          )}
+
+          {divisione === 'righe' && (
+            <div className="fbcom-dividi__righe">
+              <ul>
+                {comanda.righe.map(r => (
+                  <li key={r.id}>
+                    <label>
+                      <input
+                        type="checkbox" className="sib-checkbox"
+                        checked={selRighe.includes(r.id)}
+                        onChange={() => setSelRighe(v => v.includes(r.id) ? v.filter(x => x !== r.id) : [...v, r.id])}
+                      />
+                      <span className="fbcom-dividi__nome"><TruncatedText text={`${r.qta}× ${r.nome}`} /></span>
+                      <span className="fbcom-dividi__prezzo">{euro(totaleRiga(r))}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <div className="fbcom-dividi__quota">
+                <span>Conto da staccare</span>
+                <strong>{euro(comanda.righe.filter(r => selRighe.includes(r.id)).reduce((a, r) => a + totaleRiga(r), 0))}</strong>
+                <em>restano {euro(comanda.righe.filter(r => !selRighe.includes(r.id)).reduce((a, r) => a + totaleRiga(r), 0))} sul tavolo</em>
+              </div>
+            </div>
+          )}
+
+          <div className="fbcom-dividi__pag">
+            {PAGAMENTI.filter(p => p.id !== 'camera').map(p => (
+              <button
+                key={p.id} type="button"
+                className={`fbcom-dividi__pag-btn ${pagamento === p.id ? 'is-on' : ''}`}
+                onClick={() => setPagamento(p.id)}
+              >
+                <i className={`fa-solid ${p.ico}`} aria-hidden="true" /> {p.label}
+              </button>
+            ))}
+          </div>
+
+          <footer className="fbcom-dividi__foot">
+            <button type="button" className="fbcom-dividi__annulla" onClick={() => { setDivisione(null); setSelRighe([]) }}>Annulla</button>
+            {divisione === 'uguali' ? (
+              <button
+                type="button" className="fbcom-dividi__ok"
+                onClick={() => {
+                  chiudiConto(comanda.id, pagamento)
+                  setDivisione(null)
+                  toast.success(`${parti} quote da ${euro(quota)} incassate`)
+                  setContesto({ tavoloId: null })
+                  navigate?.('sala-ristorante')
+                }}
+              >
+                <i className="fa-solid fa-check" aria-hidden="true" /> Incassa {parti} quote
+              </button>
+            ) : (
+              <button type="button" className="fbcom-dividi__ok" onClick={confermaStacco} disabled={!selRighe.length}>
+                <i className="fa-solid fa-scissors" aria-hidden="true" /> Stacca e incassa
+              </button>
+            )}
+          </footer>
+        </div>
+      </Modal>
+
+      {/* ── Archivio comande del tavolo ───────────────────────────────────── */}
+      <Modal open={archivio} onClose={() => setArchivio(false)} title={`Archivio del tavolo ${tavolo.numero}`} size="lg">
+        <div className="fbcom-arch">
+          {chiuseDelTavolo.map(c => (
+            <article key={c.id} className="fbcom-arch__card">
+              <header>
+                <span className="fbcom-arch__num">n. {c.numero}</span>
+                <span className="fbcom-arch__ore">{c.apertaAlle}–{c.chiusaAlle}</span>
+                <span className="fbcom-arch__pag">{PAGAMENTI.find(p => p.id === c.pagamento)?.label ?? '—'}</span>
+                <span className="fbcom-arch__tot">{euro(totaleConto(c))}</span>
+              </header>
+              <ul>
+                {c.righe.map(r => (
+                  <li key={r.id}>
+                    <span>{r.qta}× {r.nome}</span>
+                    <span>{euro(totaleRiga(r))}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+          {!chiuseDelTavolo.length && <p className="fbcom-arch__vuoto">Nessuna comanda chiusa su questo tavolo.</p>}
+        </div>
       </Modal>
 
       {/* ── Chiusura conto ────────────────────────────────────────────────── */}
@@ -485,7 +719,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
                 type="text" inputMode="numeric"
                 value={comanda.addebitoCamera}
                 onChange={e => setAddebitoCamera(comanda.id, e.target.value)}
-                placeholder="es. 204"
+                placeholder={pren?.camera || 'es. 204'}
               />
             </label>
           )}

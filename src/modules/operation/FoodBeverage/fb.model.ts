@@ -178,6 +178,8 @@ export interface Comanda {
   chiusaAlle: string | null
   stato: 'aperta' | 'chiusa'
   righe: RigaComanda[]
+  /** Nota di servizio valida per tutta la comanda. */
+  nota: string
   /** Addebito su camera, se il conto non è stato incassato in cassa. */
   addebitoCamera: string
   pagamento: 'contanti' | 'carta' | 'camera' | 'wallet' | null
@@ -547,7 +549,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 1, numero: '001', outletId: 1, salaId: 1, tavoloId: 1001, turnoId: 4,
     coperti: 4, cameriere: 'Marco R.', categoriaClienteId: 0,
-    apertaAlle: oraMenoMinuti(35), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    nota: '', apertaAlle: oraMenoMinuti(35), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(1), 2, 1, 'servita'),
       riga(voce(3), 2, 2, 'in-preparazione'),
@@ -558,7 +560,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 2, numero: '002', outletId: 1, salaId: 1, tavoloId: 1002, turnoId: 4,
     coperti: 2, cameriere: 'Giulia P.', categoriaClienteId: 3,
-    apertaAlle: oraMenoMinuti(20), chiusaAlle: null, stato: 'aperta', addebitoCamera: '204', pagamento: null,
+    nota: '', apertaAlle: oraMenoMinuti(20), chiusaAlle: null, stato: 'aperta', addebitoCamera: '204', pagamento: null,
     righe: [
       riga(voce(16), 1, 1, 'inviata'),
       riga(voce(17), 2, 2, 'inviata', 'Uno senza pepe'),
@@ -568,7 +570,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 3, numero: '003', outletId: 1, salaId: 1, tavoloId: 1004, turnoId: 4,
     coperti: 6, cameriere: 'Marco R.', categoriaClienteId: 0,
-    apertaAlle: oraMenoMinuti(55), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    nota: '', apertaAlle: oraMenoMinuti(55), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(2), 3, 1, 'servita'),
       riga(voce(5), 4, 3, 'pronta'),
@@ -579,7 +581,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 4, numero: '004', outletId: 1, salaId: 1, tavoloId: 1007, turnoId: 4,
     coperti: 4, cameriere: 'Luca V.', categoriaClienteId: 0,
-    apertaAlle: oraMenoMinuti(85), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    nota: '', apertaAlle: oraMenoMinuti(85), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(4), 2, 2, 'servita'),
       riga(voce(6), 2, 3, 'servita'),
@@ -590,13 +592,13 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 5, numero: '005', outletId: 1, salaId: 1, tavoloId: 1010, turnoId: 4,
     coperti: 2, cameriere: 'Sara T.', categoriaClienteId: 0,
-    apertaAlle: oraMenoMinuti(10), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    nota: '', apertaAlle: oraMenoMinuti(10), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [riga(voce(19), 2, 0, 'servita')],
   },
   {
     id: 6, numero: '006', outletId: 1, salaId: 1, tavoloId: 1016, turnoId: 4,
     coperti: 4, cameriere: 'Giulia P.', categoriaClienteId: 0,
-    apertaAlle: oraMenoMinuti(40), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    nota: '', apertaAlle: oraMenoMinuti(40), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(1), 2, 1, 'servita'),
       riga(voce(3), 1, 2, 'inviata'),
