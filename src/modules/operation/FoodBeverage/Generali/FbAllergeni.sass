@@ -1,0 +1,179 @@
+// ─── Allergeni (Food & Beverage) ──────────────────────────────────────────────
+.fball
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-off td
+      opacity: .55
+
+  &__c-cod
+    width: 8%
+  &__c-nome
+    width: 18%
+  &__c-desc
+    width: 42%
+  &__c-voci
+    width: 11%
+  &__c-stato
+    width: 11%
+  &__c-act
+    width: 10%
+
+  &__cod
+    display: inline-grid
+    place-items: center
+    min-width: 28px
+    height: 24px
+    padding: 0 6px
+    border-radius: 7px
+    background: var(--color-primary-50)
+    font-size: 12px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__num
+    text-align: center
+
+  &__voci
+    display: inline-block
+    min-width: 26px
+    padding: 2px 8px
+    border-radius: 11px
+    background: var(--color-warning-light)
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-warning)
+
+  &__zero
+    color: var(--color-text-disabled)
+
+  &__stato
+    min-width: 76px
+    padding: 4px 9px
+    border: none
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+    cursor: pointer
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__tot-nota
+    font-weight: 500
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+.fball-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 120px
+
+  &__grow
+    flex: 3 !important
+    min-width: 200px !important
+
+  &__flag
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer

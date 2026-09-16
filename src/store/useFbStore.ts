@@ -4,9 +4,11 @@ import {
   OUTLETS, SALE, TURNI, tavoliIniziali, prenotazioniIniziali, comandeIniziali,
   VOCI_MENU, CATEGORIE_MENU, TIPI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
   menuGiornoIniziali, webMenuIniziali,
+  ALLERGENI_UE, STAMPANTI, MONITOR_KDS, CONFIG_EMAIL, CONFIG_WALLET,
   type CategoriaMenu, type Comanda, type Outlet, type Prenotazione, type RigaComanda,
   type StatoRiga, type StatoTavolo, type Tavolo, type TipoMenu, type Turno, type VoceMenu,
-  type MenuGiorno, type WebMenu,
+  type MenuGiorno, type WebMenu, type Allergene, type CategoriaCliente,
+  type Stampante, type MonitorKds, type ConfigEmail, type ConfigWallet,
 } from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Store operativo Food & Beverage ─────────────────────────────────────────
@@ -87,6 +89,24 @@ interface FbState {
   eliminaMenuGiorno: (id: number) => void
   salvaWebMenu: (m: WebMenu) => void
   eliminaWebMenu: (id: number) => void
+
+  /** Generali: allergeni, categorie cliente, periferiche e servizi. */
+  allergeni: Allergene[]
+  categorieCliente: CategoriaCliente[]
+  stampanti: Stampante[]
+  monitor: MonitorKds[]
+  configEmail: ConfigEmail
+  configWallet: ConfigWallet
+  salvaAllergene: (a: Allergene) => void
+  eliminaAllergene: (codice: string) => void
+  salvaCategoriaCliente: (c: CategoriaCliente) => void
+  eliminaCategoriaCliente: (id: number) => void
+  salvaStampante: (s: Stampante) => void
+  eliminaStampante: (id: number) => void
+  salvaMonitor: (m: MonitorKds) => void
+  eliminaMonitor: (id: number) => void
+  salvaConfigEmail: (c: ConfigEmail) => void
+  salvaConfigWallet: (c: ConfigWallet) => void
 
   /** Posti occupati per tavolo: indici delle sedie attorno al tavolo.
    *  Serve alla vista planimetria, dove si lavora sedia per sedia. */
@@ -216,6 +236,56 @@ export const useFbStore = create<FbState>()(
 
       eliminaWebMenu: id =>
         set(s => ({ webMenu: s.webMenu.filter(m => m.id !== id) })),
+
+      allergeni: ALLERGENI_UE,
+      categorieCliente: CATEGORIE_CLIENTE,
+      stampanti: STAMPANTI,
+      monitor: MONITOR_KDS,
+      configEmail: CONFIG_EMAIL,
+      configWallet: CONFIG_WALLET,
+
+      salvaAllergene: a =>
+        set(s => ({
+          allergeni: s.allergeni.some(x => x.codice === a.codice)
+            ? s.allergeni.map(x => x.codice === a.codice ? a : x)
+            : [...s.allergeni, a],
+        })),
+
+      eliminaAllergene: codice =>
+        set(s => ({ allergeni: s.allergeni.filter(a => a.codice !== codice) })),
+
+      salvaCategoriaCliente: c =>
+        set(s => ({
+          categorieCliente: s.categorieCliente.some(x => x.id === c.id)
+            ? s.categorieCliente.map(x => x.id === c.id ? c : x)
+            : [...s.categorieCliente, { ...c, id: Math.max(0, ...s.categorieCliente.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaCategoriaCliente: id =>
+        set(s => ({ categorieCliente: s.categorieCliente.filter(c => c.id !== id) })),
+
+      salvaStampante: st =>
+        set(s => ({
+          stampanti: s.stampanti.some(x => x.id === st.id)
+            ? s.stampanti.map(x => x.id === st.id ? st : x)
+            : [...s.stampanti, { ...st, id: Math.max(0, ...s.stampanti.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaStampante: id =>
+        set(s => ({ stampanti: s.stampanti.filter(x => x.id !== id) })),
+
+      salvaMonitor: m =>
+        set(s => ({
+          monitor: s.monitor.some(x => x.id === m.id)
+            ? s.monitor.map(x => x.id === m.id ? m : x)
+            : [...s.monitor, { ...m, id: Math.max(0, ...s.monitor.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaMonitor: id =>
+        set(s => ({ monitor: s.monitor.filter(m => m.id !== id) })),
+
+      salvaConfigEmail: c => set({ configEmail: c }),
+      salvaConfigWallet: c => set({ configWallet: c }),
 
       salvaOutlet: o =>
         set(s => ({
@@ -532,6 +602,12 @@ export const useFbStore = create<FbState>()(
         voci: VOCI_MENU,
         menuGiorno: menuGiornoIniziali(),
         webMenu: webMenuIniziali(),
+        allergeni: ALLERGENI_UE,
+        categorieCliente: CATEGORIE_CLIENTE,
+        stampanti: STAMPANTI,
+        monitor: MONITOR_KDS,
+        configEmail: CONFIG_EMAIL,
+        configWallet: CONFIG_WALLET,
         posti: {},
         tavoli: tavoliIniziali(),
         comande: comandeIniziali(),
@@ -539,7 +615,7 @@ export const useFbStore = create<FbState>()(
         progressivo: comandeIniziali().length,
       }),
     }),
-    { name: 'sibylla.fb', version: 4 },
+    { name: 'sibylla.fb', version: 5 },
   ),
 )
 

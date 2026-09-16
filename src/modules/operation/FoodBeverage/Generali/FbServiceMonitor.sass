@@ -1,0 +1,340 @@
+// ─── Service monitor (Food & Beverage) ────────────────────────────────────────
+//  Ogni card porta il tema del display che rappresenta: si riconosce il monitor
+//  giusto guardando la card, non leggendo il nome.
+.fbkds
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__nota
+    display: flex
+    align-items: center
+    gap: 10px
+    margin: 0
+    padding: 10px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-link-light)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-primary)
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+    align-content: start
+    gap: 12px
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__card
+    display: flex
+    flex-direction: column
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__card-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 10px
+    padding: 14px 16px
+    background: var(--sfondo)
+    color: var(--testo)
+
+    h3
+      margin: 0
+      font-size: 14.5px
+      font-weight: 700
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+
+    p
+      display: flex
+      align-items: center
+      gap: 7px
+      margin: 3px 0 0
+      font-size: 11.5px
+      opacity: .8
+
+  &__card-n
+    display: grid
+    place-items: center
+    min-width: 30px
+    height: 30px
+    padding: 0 8px
+    border-radius: 10px
+    background: var(--griglia)
+    color: var(--testo)
+    font-size: 13px
+    font-weight: 700
+
+  &__card-riga
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 14px
+    border-bottom: 1px solid var(--color-primary-100)
+
+    > button:not(.fbkds__stato)
+      margin-left: auto
+      padding: 4px 5px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 15px
+        color: var(--color-primary)
+
+      & + button
+        margin-left: 0
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__stato
+    min-width: 70px
+    padding: 4px 9px
+    border: none
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+    cursor: pointer
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__url
+    display: flex
+    flex-direction: column
+    gap: 4px
+    margin: 12px 14px 14px
+    padding: 10px 12px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-primary-50)
+
+  &__url-lab
+    font-size: 10.5px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+  &__url code
+    font-size: 11.5px
+    color: var(--color-link)
+    word-break: break-all
+
+  &__url-act
+    display: flex
+    gap: 6px
+    margin-top: 2px
+
+    button
+      display: grid
+      place-items: center
+      width: 32px
+      height: 32px
+      border: 1px solid var(--color-border)
+      border-radius: 8px
+      background: var(--color-surface)
+      cursor: pointer
+
+      i
+        font-size: 13px
+        color: var(--color-primary)
+
+  &__vuoto
+    grid-column: 1 / -1
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 44px
+    border: 1px dashed var(--color-border)
+    border-radius: 14px
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+// ─── Scheda del monitor ───────────────────────────────────────────────────────
+.fbkds-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 140px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__blk
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  &__tema
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 270px
+    gap: 18px
+
+  &__temi
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__tema-btn
+    display: grid
+    place-items: center
+    width: 40px
+    height: 40px
+    border: 2px solid transparent
+    border-radius: 10px
+    background: var(--sfondo)
+    color: var(--testo)
+    font-size: 14px
+    font-weight: 700
+    cursor: pointer
+
+    &.is-on
+      border-color: var(--color-accent)
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+
+  &__ant
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  // Anteprima del display di reparto
+  &__display
+    display: flex
+    flex-direction: column
+    border-radius: 12px
+    overflow: hidden
+    background: var(--sfondo)
+    color: var(--testo)
+
+    header
+      display: flex
+      align-items: center
+      justify-content: space-between
+      padding: 8px 12px
+      background: var(--topbar)
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+      font-size: 11px
+      font-weight: 700
+      letter-spacing: .06em
+
+    footer
+      padding: 6px 12px
+      background: var(--topbar)
+      font-size: 10.5px
+      opacity: .75
+      text-align: center
+
+  &__display-body
+    display: flex
+    gap: 8px
+    padding: 10px
+
+  &__card-ex
+    display: flex
+    flex-direction: column
+    gap: 3px
+    flex: 1
+    padding: 8px 10px
+    border-radius: 8px
+    background: var(--griglia)
+    font-size: 10.5px
+
+    strong
+      font-size: 12px
+
+  &__flag
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+@container (max-width: 900px)
+  .fbkds-form__tema
+    grid-template-columns: minmax(0, 1fr)

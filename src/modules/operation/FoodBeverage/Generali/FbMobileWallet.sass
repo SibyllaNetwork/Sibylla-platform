@@ -1,0 +1,201 @@
+// ─── Mobile wallet (Food & Beverage) ──────────────────────────────────────────
+.fbwal
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+  overflow-y: auto
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+  // I prerequisiti in testa: è lì che ci si blocca
+  &__prereq
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    margin: 0
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-warning-light)
+    font-size: 12.5px
+    line-height: 1.5
+    color: var(--color-text-active)
+
+    > i
+      margin-top: 2px
+      color: var(--color-warning)
+
+  &__tabs
+    display: inline-flex
+    align-self: flex-start
+    padding: 3px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-primary-50)
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 38px
+      padding: 0 18px
+      border: none
+      border-radius: 18px
+      background: transparent
+      color: var(--color-text-inactive)
+      font-size: 13px
+      font-weight: 600
+      cursor: pointer
+
+      &.is-on
+        background: var(--color-surface)
+        color: var(--color-primary)
+        box-shadow: 0 1px 4px rgba(32, 71, 105, .16)
+
+  &__pallino
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: var(--color-primary-200)
+
+    &.is-on
+      background: var(--color-success-mid)
+
+  &__blk
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__blk-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 11px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), transparent)
+
+    h3
+      margin: 0
+      font-size: 14px
+      font-weight: 600
+      color: var(--color-primary)
+
+  &__corpo
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 16px
+
+  &__guida
+    margin: 0
+    padding: 12px 14px 12px 32px
+    border-radius: 10px
+    background: var(--color-primary-50)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    li + li
+      margin-top: 4px
+
+    code
+      padding: 1px 5px
+      border-radius: 5px
+      background: var(--color-surface)
+      font-size: 11.5px
+      color: var(--color-primary)
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 150px
+
+  &__grow
+    flex: 2 !important
+    min-width: 220px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__file-riga
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+  &__file
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 1
+    min-width: 200px
+
+  &__file-box
+    display: flex
+    align-items: center
+    gap: 10px
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 7px
+      min-height: 34px
+      padding: 0 13px
+      border: 1px solid var(--color-border)
+      border-radius: 9px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      font-size: 12.5px
+      font-weight: 600
+      cursor: pointer
+
+  &__file-ok
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-success)
+
+  &__file-no
+    font-size: 11.5px
+    color: var(--color-text-disabled)
+
+  &__nota
+    display: flex
+    align-items: center
+    gap: 9px
+    margin: 0
+    padding: 11px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-link-light)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    i
+      margin-right: 6px
+      color: var(--color-primary)

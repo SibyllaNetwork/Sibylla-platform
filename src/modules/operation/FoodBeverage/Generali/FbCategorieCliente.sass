@@ -1,0 +1,195 @@
+// ─── Categorie cliente (Food & Beverage) ──────────────────────────────────────
+.fbcc
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__c-nome
+    width: 16%
+  &__c-desc
+    width: 20%
+  &__c-sconto
+    width: 11%
+  &__c-num
+    width: 11%
+  &__c-imp
+    width: 14%
+  &__c-act
+    width: 9%
+
+  &__sconto
+    display: inline-block
+    padding: 3px 9px
+    border-radius: 11px
+    background: var(--color-primary-50)
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+    &.is-parz
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+
+    &.is-pieno
+      background: rgba(214, 69, 80, .12)
+      color: #a8323c
+
+  &__num
+    text-align: center
+    font-variant-numeric: tabular-nums
+
+  &__ps
+    display: inline-block
+    min-width: 24px
+    padding: 2px 8px
+    border-radius: 11px
+    background: var(--color-link-light)
+    font-size: 11.5px
+    font-weight: 700
+    color: var(--color-link)
+
+  &__amt
+    text-align: right
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+    &--sconto
+      color: var(--color-success)
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+.fbcc-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 130px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__sconto
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 0 0 120px !important
+
+  &__sconto-in
+    height: 34px
+    text-align: right
+    font-weight: 600
+
+  &__avviso
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    padding: 9px 12px
+    border-radius: 10px
+    background: var(--color-warning-light)
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-warning)
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer

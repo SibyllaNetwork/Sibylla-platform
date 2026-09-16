@@ -1,0 +1,225 @@
+// ─── Configurazione e-mail (Food & Beverage) ──────────────────────────────────
+//  Parametri a sinistra, prova d'invio e contenuti a destra: una configurazione
+//  SMTP si verifica mandando una mail, non rileggendo i campi.
+.fbmail
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+  &__body
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 340px
+    gap: 12px
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__lato
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  &__blk
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+    height: fit-content
+
+    &--info
+      background: var(--color-link-light)
+
+    &--nota
+      background: var(--color-warning-light)
+
+  &__blk-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 11px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), transparent)
+
+    h3
+      display: flex
+      align-items: center
+      gap: 9px
+      margin: 0
+      font-size: 14px
+      font-weight: 600
+      color: var(--color-primary)
+
+  &__corpo
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 16px
+
+  &__blk2
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 7px
+
+  &__chip
+    min-height: 34px
+    padding: 0 13px
+    border: 1px solid var(--color-border)
+    border-radius: 17px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 140px
+
+  &__grow
+    flex: 2 !important
+    min-width: 190px !important
+
+  &__porta
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 0 0 110px !important
+
+  &__porta-in
+    height: 34px
+    text-align: right
+    font-weight: 600
+
+  &__sicurezza
+    display: flex
+    flex-wrap: wrap
+    gap: 20px
+
+    label
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      font-size: 13px
+      font-weight: 600
+      color: var(--color-text-active)
+      cursor: pointer
+
+      em
+        font-style: normal
+        font-weight: 500
+        color: var(--color-text-inactive)
+
+  &__pwd
+    display: flex
+    flex-direction: column
+    gap: 4px
+    flex: 1
+    min-width: 190px
+
+  &__pwd-campo
+    display: flex
+    gap: 6px
+
+    input
+      flex: 1
+      min-width: 0
+      height: 34px
+
+    button
+      display: grid
+      place-items: center
+      width: 34px
+      height: 34px
+      border: 1px solid var(--color-border)
+      border-radius: 9px
+      background: var(--color-surface)
+      cursor: pointer
+
+      i
+        color: var(--color-primary)
+
+  &__prova
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 18px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+  &__avviso
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    font-size: 12px
+    color: var(--color-warning)
+
+  &__lista
+    margin: 0
+    padding: 14px 16px 16px 32px
+    font-size: 12.5px
+    color: var(--color-text-active)
+
+    li + li
+      margin-top: 5px
+
+    &--num li
+      line-height: 1.45
+
+@container (max-width: 1000px)
+  .fbmail__body
+    grid-template-columns: minmax(0, 1fr)

@@ -140,8 +140,18 @@ export const prezzoDi = (
   return match ? match.prezzo : v.prezzo
 }
 
-export interface Allergene { codice: string; nome: string }
-export interface CategoriaCliente { id: number; nome: string; scontoPerc: number }
+export interface Allergene {
+  codice: string
+  nome: string
+  descrizione: string
+  attivo: boolean
+}
+export interface CategoriaCliente {
+  id: number
+  nome: string
+  scontoPerc: number
+  descrizione: string
+}
 
 export type StatoPrenotazione = 'in-attesa' | 'confermata' | 'arrivata' | 'no-show' | 'annullata'
 
@@ -235,14 +245,48 @@ export const PORTATE: Array<{ id: number; label: string; ico: string }> = [
 ]
 
 export const ALLERGENI_UE: Allergene[] = [
-  { codice: 'A', nome: 'Glutine' },        { codice: 'B', nome: 'Crostacei' },
-  { codice: 'C', nome: 'Uova' },           { codice: 'D', nome: 'Pesce' },
-  { codice: 'E', nome: 'Arachidi' },       { codice: 'F', nome: 'Soia' },
-  { codice: 'G', nome: 'Latte' },          { codice: 'H', nome: 'Frutta a guscio' },
-  { codice: 'I', nome: 'Sedano' },         { codice: 'J', nome: 'Senape' },
-  { codice: 'K', nome: 'Semi di sesamo' }, { codice: 'L', nome: 'Anidride solforosa' },
-  { codice: 'M', nome: 'Lupini' },         { codice: 'N', nome: 'Molluschi' },
+  { codice: 'A', nome: 'Glutine',            descrizione: 'Cereali contenenti glutine: grano, segale, orzo, avena…', attivo: true },
+  { codice: 'B', nome: 'Crostacei',          descrizione: 'Granchio, gambero, aragosta, scampi…',                    attivo: true },
+  { codice: 'C', nome: 'Uova',               descrizione: 'Uova e prodotti a base di uova',                          attivo: true },
+  { codice: 'D', nome: 'Pesce',              descrizione: 'Pesce e prodotti a base di pesce',                        attivo: true },
+  { codice: 'E', nome: 'Arachidi',           descrizione: 'Arachidi e prodotti a base di arachidi',                  attivo: true },
+  { codice: 'F', nome: 'Soia',               descrizione: 'Soia e prodotti a base di soia',                          attivo: true },
+  { codice: 'G', nome: 'Latte',              descrizione: 'Latte e prodotti a base di latte (lattosio)',             attivo: true },
+  { codice: 'H', nome: 'Frutta a guscio',    descrizione: 'Mandorle, nocciole, noci, anacardi, pistacchi…',          attivo: true },
+  { codice: 'I', nome: 'Sedano',             descrizione: 'Sedano e prodotti a base di sedano',                      attivo: true },
+  { codice: 'J', nome: 'Senape',             descrizione: 'Senape e prodotti a base di senape',                      attivo: true },
+  { codice: 'K', nome: 'Semi di sesamo',     descrizione: 'Semi di sesamo e prodotti a base di sesamo',              attivo: true },
+  { codice: 'L', nome: 'Anidride solforosa', descrizione: 'Solfiti a concentrazioni superiori a 10 mg/kg o 10 mg/l', attivo: true },
+  { codice: 'M', nome: 'Lupini',             descrizione: 'Lupini e prodotti a base di lupini',                      attivo: true },
+  { codice: 'N', nome: 'Molluschi',          descrizione: 'Molluschi e prodotti a base di molluschi',                attivo: true },
 ]
+
+export const STAMPANTI: Stampante[] = [
+  { id: 1, nome: 'Stampa reparto cucina', tipo: 'reparto',  protocollo: 'epson', ip: '192.168.1.70', outletId: null, attiva: true },
+  { id: 2, nome: 'Stampa pre-conto',      tipo: 'preconto', protocollo: 'epson', ip: '192.168.1.71', outletId: 1,    attiva: true },
+  { id: 3, nome: 'Registratore di cassa', tipo: 'fiscale',  protocollo: 'custom', ip: '192.168.1.72', outletId: 1,   attiva: true },
+]
+
+export const MONITOR_KDS: MonitorKds[] = [
+  { id: 1, nome: 'Monitor cucina SR', reparto: 'cucina', outletId: 1, slug: 'monitor-cucina-sr-f3287f',
+    sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f', attivo: true },
+  { id: 2, nome: 'Monitor dispensa SR', reparto: 'bar', outletId: 1, slug: 'monitor-dispensa-sr-3d7ec9',
+    sfondo: '#1b4332', testo: '#f5f9f8', griglia: '#255c45', topbar: '#123527', attivo: true },
+]
+
+export const CONFIG_EMAIL: ConfigEmail = {
+  attivo: false, provider: 'custom', host: 'smtp.sibyllanetwork.com', porta: 25,
+  starttls: false, ssl: false, username: 'admin', password: '',
+  mittente: '', nomeMittente: 'Outlet Manager',
+}
+
+export const CONFIG_WALLET: ConfigWallet = {
+  apple: {
+    attivo: false, teamId: '', passTypeId: '', organizzazione: '',
+    certificato: '', chiave: '', wwdr: '', password: '',
+  },
+  google: { attivo: false, issuerId: '', classeId: '', serviceAccount: '' },
+}
 
 // ─── Seed ────────────────────────────────────────────────────────────────────
 
@@ -380,13 +424,112 @@ export interface WebMenu {
 }
 
 export const URL_WEB_MENU = 'https://outlet.sibyllanetwork.it/menu/'
+export const URL_MONITOR  = 'https://outlet.sibyllanetwork.it/monitor/'
+
+// ─── Periferiche e servizi (gruppo Generali) ─────────────────────────────────
+
+export type TipoStampante = 'reparto' | 'preconto' | 'fiscale'
+
+export const TIPO_STAMPANTE: Record<TipoStampante, { label: string; ico: string }> = {
+  reparto:  { label: 'Reparto di produzione (cucina/bar)', ico: 'fa-kitchen-set' },
+  preconto: { label: 'Preconto', ico: 'fa-receipt' },
+  fiscale:  { label: 'Fiscale (scontrino/fattura)', ico: 'fa-file-invoice' },
+}
+
+export interface Stampante {
+  id: number
+  nome: string
+  tipo: TipoStampante
+  /** Linguaggio della stampante: guida la formattazione della comanda. */
+  protocollo: 'epson' | 'star' | 'custom'
+  ip: string
+  /** Outlet servito; null = tutti. */
+  outletId: number | null
+  attiva: boolean
+}
+
+export type RepartoKds = 'cucina' | 'bar' | 'pasticceria' | 'cantina'
+
+export const REPARTO_KDS: Record<RepartoKds, { label: string; ico: string }> = {
+  cucina:      { label: 'Cucina',      ico: 'fa-kitchen-set' },
+  bar:         { label: 'Bar',         ico: 'fa-martini-glass' },
+  pasticceria: { label: 'Pasticceria', ico: 'fa-cake-candles' },
+  cantina:     { label: 'Cantina',     ico: 'fa-wine-bottle' },
+}
+
+/** Monitor di reparto (KDS): una pagina a sé che gira su un display in cucina. */
+export interface MonitorKds {
+  id: number
+  nome: string
+  reparto: RepartoKds
+  outletId: number | null
+  slug: string
+  /** Tema del display: si legge da lontano, in ambienti molto illuminati. */
+  sfondo: string
+  testo: string
+  griglia: string
+  topbar: string
+  attivo: boolean
+}
+
+/** Temi pronti del monitor, come nell'Outlet Manager. */
+export const TEMI_KDS: Array<{ id: string; nome: string; sfondo: string; testo: string; griglia: string; topbar: string }> = [
+  { id: 'notte',   nome: 'Notte',   sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f' },
+  { id: 'sibylla', nome: 'Sibylla', sfondo: '#204769', testo: '#ffffff', griglia: '#2b5a83', topbar: '#183751' },
+  { id: 'carbone', nome: 'Carbone', sfondo: '#1B1D23', testo: '#ffffff', griglia: '#2A2E3A', topbar: '#121419' },
+  { id: 'bosco',   nome: 'Bosco',   sfondo: '#1b4332', testo: '#f5f9f8', griglia: '#255c45', topbar: '#123527' },
+  { id: 'rubino',  nome: 'Rubino',  sfondo: '#4a1420', testo: '#fff5f6', griglia: '#5f1c2b', topbar: '#360e17' },
+]
+
+/** Server di posta usato per mandare QR del wallet e comunicazioni all'ospite. */
+export interface ConfigEmail {
+  attivo: boolean
+  provider: string
+  host: string
+  porta: number
+  starttls: boolean
+  ssl: boolean
+  username: string
+  password: string
+  mittente: string
+  nomeMittente: string
+}
+
+export const PROVIDER_EMAIL: Array<{ id: string; label: string; host: string; porta: number; starttls: boolean; ssl: boolean }> = [
+  { id: 'gmail',   label: 'Gmail',          host: 'smtp.gmail.com',      porta: 587, starttls: true,  ssl: false },
+  { id: 'outlook', label: 'Outlook/Office', host: 'smtp.office365.com',  porta: 587, starttls: true,  ssl: false },
+  { id: 'yahoo',   label: 'Yahoo',          host: 'smtp.mail.yahoo.com', porta: 465, starttls: false, ssl: true },
+  { id: 'aruba',   label: 'Aruba',          host: 'smtps.aruba.it',      porta: 465, starttls: false, ssl: true },
+  { id: 'libero',  label: 'Libero',         host: 'smtp.libero.it',      porta: 465, starttls: false, ssl: true },
+  { id: 'custom',  label: 'Personalizzato', host: '',                    porta: 25,  starttls: false, ssl: false },
+]
+
+/** Tessere digitali del wallet cliente su Apple e Google. */
+export interface ConfigWallet {
+  apple: {
+    attivo: boolean
+    teamId: string
+    passTypeId: string
+    organizzazione: string
+    certificato: string
+    chiave: string
+    wwdr: string
+    password: string
+  }
+  google: {
+    attivo: boolean
+    issuerId: string
+    classeId: string
+    serviceAccount: string
+  }
+}
 
 export const CATEGORIE_CLIENTE: CategoriaCliente[] = [
-  { id: 0, nome: 'Standard',      scontoPerc: 0 },
-  { id: 3, nome: 'Cliente hotel', scontoPerc: 10 },
-  { id: 2, nome: 'All inclusive', scontoPerc: 100 },
-  { id: 4, nome: 'Personale',     scontoPerc: 50 },
-  { id: 1, nome: 'Direzione',     scontoPerc: 100 },
+  { id: 0, nome: 'Standard',      scontoPerc: 0, descrizione: '' },
+  { id: 3, nome: 'Cliente hotel', scontoPerc: 10, descrizione: '' },
+  { id: 2, nome: 'All inclusive', scontoPerc: 100, descrizione: '' },
+  { id: 4, nome: 'Personale',     scontoPerc: 50, descrizione: '' },
+  { id: 1, nome: 'Direzione',     scontoPerc: 100, descrizione: '' },
 ]
 
 // ─── Planimetrie ─────────────────────────────────────────────────────────────

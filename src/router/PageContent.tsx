@@ -149,6 +149,12 @@ import FbCategorie                from '../modules/operation/FoodBeverage/Menu/F
 import FbVociMenu                 from '../modules/operation/FoodBeverage/Menu/FbVociMenu';
 import FbMenuGiorno               from '../modules/operation/FoodBeverage/Menu/FbMenuGiorno';
 import FbWebMenu                  from '../modules/operation/FoodBeverage/Menu/FbWebMenu';
+import FbAllergeni                from '../modules/operation/FoodBeverage/Generali/FbAllergeni';
+import FbCategorieCliente         from '../modules/operation/FoodBeverage/Generali/FbCategorieCliente';
+import FbStampanti                from '../modules/operation/FoodBeverage/Generali/FbStampanti';
+import FbServiceMonitor           from '../modules/operation/FoodBeverage/Generali/FbServiceMonitor';
+import FbConfigEmail              from '../modules/operation/FoodBeverage/Generali/FbConfigEmail';
+import FbMobileWallet             from '../modules/operation/FoodBeverage/Generali/FbMobileWallet';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -474,6 +480,12 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'fb-voci-menu')       return <FbVociMenu navigate={navigate}/>;
   if (page === 'fb-menu-giorno')     return <FbMenuGiorno navigate={navigate}/>;
   if (page === 'fb-web-menu')        return <FbWebMenu navigate={navigate}/>;
+  if (page === 'fb-allergeni')       return <FbAllergeni navigate={navigate}/>;
+  if (page === 'fb-categoria-ospite')return <FbCategorieCliente navigate={navigate}/>;
+  if (page === 'fb-stampanti')       return <FbStampanti navigate={navigate}/>;
+  if (page === 'fb-service-monitor') return <FbServiceMonitor navigate={navigate}/>;
+  if (page === 'fb-config-email')    return <FbConfigEmail navigate={navigate}/>;
+  if (page === 'fb-mobile-wallet')   return <FbMobileWallet navigate={navigate}/>;
   // Sale e tavoli: la pagina nativa configura le sale servite dalla sezione
   if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate}/>;
 
