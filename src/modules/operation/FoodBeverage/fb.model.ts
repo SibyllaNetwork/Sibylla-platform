@@ -60,9 +60,12 @@ export interface Tavolo {
   /** Colore identitario del tavolo: tinge la toque nella griglia di sala. */
   colore: string
   stato: StatoTavolo
-  /** Posizione sulla planimetria, in percentuale della sala (0-100). */
-  x: number
-  y: number
+  /** Posizione e ingombro sulla planimetria, in celle della griglia di sala.
+   *  È la stessa geometria che si modifica dalla pagina "Sale e tavoli". */
+  gx: number
+  gy: number
+  w: number
+  h: number
   coperti: number
   cameriere: string | null
   /** Ora di apertura del tavolo, HH:mm. */
@@ -303,8 +306,10 @@ export const CATEGORIE_CLIENTE: CategoriaCliente[] = [
 ]
 
 // ─── Planimetrie ─────────────────────────────────────────────────────────────
-// I tavoli sono posizionati in percentuale sulla sala: la planimetria scala con
-// il contenitore e resta leggibile dal tablet senza scroll.
+//  I tavoli vivono su una griglia a celle, la stessa che si disegna nella pagina
+//  "Sale e tavoli": lì si spostano e si ridimensionano, qui si servono. Le righe
+//  sono impacchettate lasciando respiro fra un tavolo e l'altro, perché le sedie
+//  vengono disegnate appena fuori dall'ingombro del tavolo.
 
 /** Colori delle toque: una tavolozza viva ma coerente, ruotata sui tavoli. */
 export const COLORI_TAVOLO = [
@@ -312,44 +317,83 @@ export const COLORI_TAVOLO = [
   '#8E5BC6', '#17A2B8', '#C0392B', '#5BA829', '#6C7BD1',
 ]
 
-const griglia = (
-  salaId: number, prefisso: string, righe: number, colonne: number,
-  capienze: number[], start = 1,
-): Tavolo[] => {
+/** Ingombro in celle secondo capienza e forma (stesso criterio di Sale e tavoli). */
+export const ingombro = (capienza: number, forma: FormaTavolo): [number, number] => {
+  if (forma === 'rettangolare') return capienza <= 4 ? [3, 2] : capienza <= 6 ? [4, 2] : [5, 2]
+  return capienza <= 4 ? [2, 2] : [3, 3]
+}
+
+const formaDi = (cap: number): FormaTavolo =>
+  cap <= 2 ? 'rotondo' : cap >= 6 ? 'rettangolare' : 'quadrato'
+
+/** Dispone le capienze riga per riga e restituisce i tavoli con la geometria. */
+const disponi = (salaId: number, prefisso: string, righe: number[][], start = 1): Tavolo[] => {
   const out: Tavolo[] = []
-  const passoX = 100 / (colonne + 1)
-  const passoY = 100 / (righe + 1)
   let n = start
-  for (let r = 0; r < righe; r++) {
-    for (let c = 0; c < colonne; c++) {
-      const cap = capienze[(r * colonne + c) % capienze.length]
+  let gy = 1
+  righe.forEach(riga => {
+    let gx = 1
+    let maxH = 2
+    riga.forEach(cap => {
+      const forma = formaDi(cap)
+      const [w, h] = ingombro(cap, forma)
       out.push({
         id: salaId * 1000 + n,
         salaId,
         numero: `${prefisso}${String(n).padStart(prefisso ? 2 : 3, '0')}`,
         capienza: cap,
         colore: COLORI_TAVOLO[(n - 1) % COLORI_TAVOLO.length],
-        forma: cap <= 2 ? 'rotondo' : cap >= 6 ? 'rettangolare' : 'quadrato',
+        forma,
         stato: 'libero',
-        x: Math.round(passoX * (c + 1) * 10) / 10,
-        y: Math.round(passoY * (r + 1) * 10) / 10,
+        gx, gy, w, h,
         coperti: 0,
         cameriere: null,
         apertoAlle: null,
         unitoA: null,
       })
+      gx += w + 1
+      maxH = Math.max(maxH, h)
       n++
-    }
-  }
+    })
+    gy += maxH + 2
+  })
   return out
 }
 
 export const TAVOLI: Tavolo[] = [
-  ...griglia(1, '', 4, 6, [4, 2, 4, 6, 2, 4]),
-  ...griglia(2, 'SV', 3, 4, [2, 4, 4, 2]),
-  ...griglia(3, 'RT', 4, 5, [2, 4, 2, 6, 4]),
-  ...griglia(4, 'LB', 3, 4, [2, 2, 4, 2]),
+  ...disponi(1, '', [
+    [4, 2, 4, 2, 4],
+    [6, 4, 6, 4],
+    [2, 4, 2, 4, 2],
+    [4, 6, 4, 6],
+  ]),
+  ...disponi(2, 'SV', [
+    [2, 4, 2, 4],
+    [6, 4, 6],
+    [2, 4, 2, 4],
+  ]),
+  ...disponi(3, 'RT', [
+    [2, 2, 4, 2, 2],
+    [4, 6, 4],
+    [2, 4, 2, 4],
+    [6, 4, 6],
+  ]),
+  ...disponi(4, 'LB', [
+    [2, 2, 4, 2],
+    [4, 2, 4],
+    [2, 2, 2, 2],
+  ]),
 ]
+
+/** Dimensioni della griglia di una sala, dedotte dai tavoli disposti. */
+export const grigliaSala = (salaId: number) => {
+  const dentro = TAVOLI.filter(t => t.salaId === salaId)
+  return {
+    cols: Math.max(12, ...dentro.map(t => t.gx + t.w)) + 1,
+    rows: Math.max(8, ...dentro.map(t => t.gy + t.h)) + 1,
+  }
+}
+
 
 // ─── Stato iniziale del servizio ─────────────────────────────────────────────
 // Una fotografia plausibile a metà servizio: qualche tavolo occupato, due conti
@@ -366,9 +410,9 @@ const SERVIZIO_INIZIALE: Array<[number, StatoTavolo, number, string, number]> = 
   [1013, 'pulizia',   0, '',          0],
   [1014, 'riservato', 0, '',          0],
   [1016, 'ordinato',  4, 'Giulia P.', 40],
-  [1019, 'occupato',  2, 'Paolo N.',  15],
-  [1021, 'conto',     6, 'Luca V.',   100],
-  [1023, 'bloccato',  0, '',          0],
+  [1015, 'occupato',  2, 'Paolo N.',  15],
+  [1017, 'conto',     6, 'Luca V.',   100],
+  [1018, 'bloccato',  0, '',          0],
   [2002, 'occupato',  4, 'Elena F.',  30],
   [2005, 'riservato', 0, '',          0],
   [2008, 'ordinato',  2, 'Elena F.',  18],

@@ -18,6 +18,7 @@ import TruncatedText from '../../../../core/components/TruncatedText'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { useFbStore, totaleConto, OUTLETS, SALE, TURNI } from '../../../../store/useFbStore'
+import { useSaleStore, SALA_EL_META } from '../../../../store/useSaleStore'
 import ChefHat from '../ChefHat'
 import {
   CAMERIERI, CATEGORIE_CLIENTE, PORTATE, STATI_TAVOLO, STATO_TAVOLO,
@@ -33,6 +34,25 @@ const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
 
 const iso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+// Sedie attorno al tavolo, in percentuale del suo ingombro: i rettangolari
+// hanno due file (sopra e sotto), gli altri le sedie in cerchio. Stesso criterio
+// del disegno di "Sale e tavoli", qui espresso in % per scalare col contenitore.
+const sedie = (capienza: number, forma: string): Array<{ x: number; y: number }> => {
+  const out: Array<{ x: number; y: number }> = []
+  if (forma === 'rettangolare') {
+    const sopra = Math.ceil(capienza / 2)
+    const sotto = capienza - sopra
+    for (let i = 0; i < sopra; i++) out.push({ x: ((i + 1) / (sopra + 1)) * 100, y: -16 })
+    for (let i = 0; i < sotto; i++) out.push({ x: ((i + 1) / (sotto + 1)) * 100, y: 116 })
+  } else {
+    for (let i = 0; i < capienza; i++) {
+      const a = (i / capienza) * Math.PI * 2 - Math.PI / 2
+      out.push({ x: 50 + Math.cos(a) * 66, y: 50 + Math.sin(a) * 66 })
+    }
+  }
+  return out
+}
 
 /** Iniziali del cameriere per il badge sul tavolo. */
 const iniziali = (nome: string | null) =>
@@ -61,6 +81,9 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
   const setStato     = useFbStore(s => s.setStatoTavolo)
   const trasferisci  = useFbStore(s => s.trasferisci)
   const unisci       = useFbStore(s => s.unisci)
+  const posti        = useFbStore(s => s.posti)
+  const occupaPosto  = useFbStore(s => s.occupaPosto)
+  const saleCfg      = useSaleStore(s => s.sale)
   const confirm      = useConfirmStore(s => s.confirm)
 
   const { outletId, salaId, turnoId } = contesto
@@ -84,6 +107,8 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
   const turniServizio = turniOutlet.filter(t => t.servizio === servizio)
 
   const tavoliSala = useMemo(() => tavoli.filter(t => t.salaId === salaId), [tavoli, salaId])
+  // Planimetria: geometria e sedie arrivano dalla sala disegnata in "Sale e tavoli"
+  const salaCfg = useMemo(() => saleCfg.find(x => x.nome === sala?.nome), [saleCfg, sala])
   const inVista = useMemo(
     () => filtro ? tavoliSala.filter(t => t.stato === filtro) : tavoliSala,
     [tavoliSala, filtro],
@@ -324,13 +349,13 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
               type="button" className={vista === 'griglia' ? 'is-on' : ''}
               onClick={() => setVista('griglia')}
             >
-              <i className="fa-solid fa-grid-2" aria-hidden="true" /> Griglia
+              <i className="fa-solid fa-grid-2" aria-hidden="true" /> Card
             </button>
             <button
               type="button" className={vista === 'planimetria' ? 'is-on' : ''}
               onClick={() => setVista('planimetria')}
             >
-              <i className="fa-solid fa-map" aria-hidden="true" /> Planimetria
+              <i className="fa-solid fa-chair" aria-hidden="true" /> Planimetria
             </button>
           </div>
         </div>
@@ -383,28 +408,79 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
               {!inVista.length && <p className="fbsala__vuoto">Nessun tavolo da mostrare con questo filtro.</p>}
             </div>
           ) : (
-            <div className="fbsala__mappa">
-              {inVista.map(t => {
-                const c = comande.find(x => x.tavoloId === t.id && x.stato === 'aperta')
-                return (
-                  <button
-                    key={t.id} type="button"
-                    className={`fbsala__tav fbsala__tav--${t.forma} ${sel === t.id ? 'is-sel' : ''}`}
-                    data-stato={t.stato}
-                    style={{ '--x': t.x, '--y': t.y, '--tav': t.colore } as React.CSSProperties}
-                    onClick={() => tocca(t)}
-                    aria-label={`Tavolo ${t.numero}, ${STATO_TAVOLO[t.stato].label}`}
-                  >
-                    <ChefHat color={t.colore} size={22} soft={t.stato === 'libero'} />
-                    <span className="fbsala__tav-num">{t.numero}</span>
-                    <span className="fbsala__tav-cap">
-                      <i className="fa-solid fa-user-group" aria-hidden="true" />{t.coperti || t.capienza}
-                    </span>
-                    {c && <span className="fbsala__tav-tot">{euro(totaleConto(c))}</span>}
+            <div className="fbsala__plan-wrap">
+              {!salaCfg && (
+                <div className="fbsala__no-plan">
+                  <i className="fa-solid fa-compass-drafting" aria-hidden="true" />
+                  <p>Questa sala non ha ancora una planimetria.</p>
+                  <button type="button" onClick={() => navigate?.('fb-sale-tavoli')}>
+                    Disegnala in Sale e tavoli <i className="fa-solid fa-arrow-right" aria-hidden="true" />
                   </button>
-                )
-              })}
-              {!inVista.length && <p className="fbsala__vuoto">Nessun tavolo da mostrare con questo filtro.</p>}
+                </div>
+              )}
+              {salaCfg && (
+                <div
+                  className="fbsala__plan"
+                  style={{ '--cols': salaCfg.cols, '--rows': salaCfg.rows } as React.CSSProperties}
+                >
+                  {salaCfg.elementi.map(el => (
+                    <div
+                      key={el.id}
+                      className="fbsala__el"
+                      style={{ '--gx': el.x + 1, '--gy': el.y + 1, '--gw': el.w, '--gh': el.h } as React.CSSProperties}
+                    >
+                      <i className={`fa-solid ${SALA_EL_META[el.kind]?.icon ?? 'fa-square'}`} aria-hidden="true" />
+                      <span>{el.label ?? SALA_EL_META[el.kind]?.label}</span>
+                    </div>
+                  ))}
+
+                  {salaCfg.tavoli.map(cfg => {
+                    const t = tavoliSala.find(x => x.numero === cfg.numero)
+                    if (!t || (filtro && t.stato !== filtro)) return null
+                    const occupati = posti[t.id] ?? []
+                    const c = comande.find(x => x.tavoloId === t.id && x.stato === 'aperta')
+                    return (
+                      <div
+                        key={cfg.id}
+                        className={`fbsala__pt fbsala__pt--${cfg.forma} ${sel === t.id ? 'is-sel' : ''}`}
+                        data-stato={t.stato}
+                        style={{
+                          '--gx': cfg.x + 1, '--gy': cfg.y + 1, '--gw': cfg.w, '--gh': cfg.h, '--tav': t.colore,
+                        } as React.CSSProperties}
+                      >
+                        {sedie(cfg.capienza, cfg.forma).map((p, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            className={`fbsala__posto ${occupati.includes(i) ? 'is-on' : ''}`}
+                            style={{ '--sx': p.x, '--sy': p.y } as React.CSSProperties}
+                            onClick={() => {
+                              occupaPosto(t.id, i)
+                              if (t.stato === 'libero' && !occupati.includes(i)) setStato(t.id, 'occupato')
+                            }}
+                            aria-label={`Posto ${i + 1} del tavolo ${t.numero}`}
+                            aria-pressed={occupati.includes(i)}
+                          />
+                        ))}
+
+                        <button
+                          type="button"
+                          className="fbsala__pt-box"
+                          onClick={() => tocca(t)}
+                          aria-label={`Tavolo ${t.numero}, ${STATO_TAVOLO[t.stato].label}`}
+                        >
+                          <span className="fbsala__pt-num">{t.numero}</span>
+                          <span className="fbsala__pt-cap">
+                            <i className="fa-solid fa-user-group" aria-hidden="true" />
+                            {occupati.length || t.coperti || 0}/{cfg.capienza}
+                          </span>
+                          {c && <span className="fbsala__pt-tot">{euro(totaleConto(c))}</span>}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </section>

@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import {
+  SALE as FB_SALE, TAVOLI as FB_TAVOLI, grigliaSala,
+} from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Sale & tavoli (Food & Beverage) ──────────────────────────────────────────
 //  Planimetria di una sala ristorante/bar: su una griglia si posizionano i TAVOLI
@@ -114,31 +117,34 @@ export const tavoloSize = (capienza: number, forma: TavoloForma): [number, numbe
   return capienza <= 2 ? [2, 2] : capienza <= 4 ? [2, 2] : capienza <= 6 ? [3, 3] : [3, 3]
 }
 
-// ── Seed dimostrativo: "Sala principale" ───────────────────────────────────────
-const t = (numero: string, capienza: number, forma: TavoloForma, x: number, y: number, stato: TavoloStato = 'libero'): Tavolo => {
-  const [w, h] = tavoloSize(capienza, forma)
-  return { id: `seed-t${numero}`, numero, capienza, forma, stato, x, y, w, h }
-}
-const SEED_SALA: Sala = {
-  id: 'sala-1',
-  nome: 'Sala principale',
-  cols: 16,
-  rows: 10,
-  tavoli: [
-    t('1', 2, 'rotondo', 1, 1),
-    t('2', 2, 'rotondo', 4, 1, 'occupato'),
-    t('3', 4, 'quadrato', 7, 1),
-    t('4', 4, 'quadrato', 10, 1, 'riservato'),
-    t('5', 6, 'rettangolare', 1, 5),
-    t('6', 6, 'rettangolare', 6, 5, 'occupato'),
-    t('7', 8, 'rettangolare', 11, 5),
-  ],
-  elementi: [
-    { id: 'seed-bar', kind: 'bar', label: 'Bancone bar', x: 13, y: 1, w: 2, h: 4 },
-    { id: 'seed-ing', kind: 'ingresso', label: 'Ingresso', x: 7, y: 8, w: 2, h: 1 },
-    { id: 'seed-cuc', kind: 'cucina', label: 'Cucina', x: 0, y: 8, w: 3, h: 2 },
-  ],
-}
+// ── Seed: le sale del Food & Beverage ─────────────────────────────────────────
+//  La pagina "Sale e tavoli" configura le stesse sale che la Sala ristorante
+//  serve: identità e geometria dei tavoli arrivano dal modello F&B, così la
+//  planimetria disegnata qui è quella su cui poi si lavora in servizio.
+const SEED_SALE: Sala[] = FB_SALE.map(sa => {
+  const { cols, rows } = grigliaSala(sa.id)
+  // Tre colonne e due righe in più dei tavoli: lo spazio dove stanno bancone e
+  // ingresso senza sovrapporsi alla sala apparecchiata
+  return {
+    id: `sala-${sa.id}`,
+    nome: sa.nome,
+    cols: cols + 3,
+    rows: rows + 2,
+    tavoli: FB_TAVOLI.filter(t => t.salaId === sa.id).map(t => ({
+      id: `t-${t.id}`,
+      numero: t.numero,
+      capienza: t.capienza,
+      forma: t.forma,
+      stato: 'libero' as TavoloStato,
+      x: t.gx, y: t.gy, w: t.w, h: t.h,
+    })),
+    elementi: [
+      { id: `el-${sa.id}-ing`, kind: 'ingresso' as SalaElementKind, label: 'Ingresso', x: 1, y: rows, w: 2, h: 1 },
+      { id: `el-${sa.id}-bar`, kind: 'bar' as SalaElementKind, label: 'Bancone', x: cols, y: 1, w: 2, h: 5 },
+    ],
+  }
+})
+
 
 interface SaleState {
   sale: Sala[]
@@ -194,7 +200,7 @@ const findSpot = (s: Sala, w: number, h: number): [number, number] => {
 export const useSaleStore = create<SaleState>()(
   persist(
     (set, get) => ({
-      sale: [SEED_SALA],
+      sale: SEED_SALE,
       getSala: (id) => get().sale.find(s => s.id === id),
       addTavolo: (salaId, capienza, forma) => {
         const s = get().sale.find(x => x.id === salaId); if (!s) return
@@ -405,6 +411,6 @@ export const useSaleStore = create<SaleState>()(
           }),
         })),
     }),
-    { name: 'sibylla.sale', version: 1 },
+    { name: 'sibylla.sale', version: 3 },
   ),
 )

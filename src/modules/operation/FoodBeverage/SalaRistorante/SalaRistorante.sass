@@ -497,75 +497,186 @@
     color: #46545f
 
   // ── Planimetria ────────────────────────────────────────────────────────────
-  &__mappa
-    position: relative
+  //  La sala disegnata in "Sale e tavoli": stessa griglia a celle, ma qui le
+  //  colonne sono frazioni del contenitore, così la planimetria scala e non
+  //  produce mai scroll orizzontale. Le sedie stanno attorno al tavolo e sono
+  //  toccabili una per una.
+  &__plan-wrap
     flex: 1
-    min-height: 340px
-    margin: 14px
-    border: 1px dashed var(--color-border)
-    border-radius: 12px
-    background-color: var(--color-surface)
-    background-image: radial-gradient(circle at 1px 1px, var(--color-primary-100) 1px, transparent 0)
-    background-size: 28px 28px
+    min-height: 0
+    padding: 18px
+    overflow: auto
 
-  &__tav
-    position: absolute
-    left: calc(var(--x) * 1%)
-    top: calc(var(--y) * 1%)
-    transform: translate(-50%, -50%)
+  &__plan
+    position: relative
+    display: grid
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr))
+    grid-auto-rows: minmax(26px, auto)
+    gap: 0
+    min-height: 100%
+    background-image: linear-gradient(var(--color-primary-100) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary-100) 1px, transparent 1px)
+    background-size: calc(100% / var(--cols)) calc(100% / var(--rows))
+
+  &__no-plan
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 12px
+    padding: 40px 20px
+    color: var(--color-text-inactive)
+    text-align: center
+
+    i
+      font-size: 26px
+      color: var(--color-primary-300)
+
+    p
+      margin: 0
+      font-size: 13px
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 44px
+      padding: 0 18px
+      border: 1px solid var(--color-primary)
+      border-radius: 12px
+      background: var(--color-primary)
+      color: #fff
+      font-size: 13px
+      font-weight: 600
+      cursor: pointer
+
+  // Elementi di sala (bancone, ingresso, cucina…)
+  &__el
+    grid-column: var(--gx) / span var(--gw)
+    grid-row: var(--gy) / span var(--gh)
     display: flex
     flex-direction: column
     align-items: center
     justify-content: center
-    gap: 1px
-    width: 86px
-    height: 86px
-    padding: 4px
-    border: 2px solid var(--tav)
-    border-radius: 14px
-    background: var(--color-surface)
-    cursor: pointer
-    animation: fbsala-in .3s ease both
-    transition: box-shadow .18s ease, transform .12s ease
+    gap: 4px
+    margin: 4px
+    border: 1px dashed var(--color-primary-200)
+    border-radius: 10px
+    background: var(--color-primary-50)
+    color: var(--color-primary-600)
+    font-size: 10.5px
+    font-weight: 600
+    text-align: center
 
-    &:active
-      transform: translate(-50%, -50%) scale(.95)
+    i
+      font-size: 14px
 
-    &--rotondo
-      border-radius: 50%
+  // Tavolo con le sue sedie
+  &__pt
+    position: relative
+    grid-column: var(--gx) / span var(--gw)
+    grid-row: var(--gy) / span var(--gh)
+    margin: 8px
 
-    &--rettangolare
-      width: 108px
+    &.is-sel .fbsala__pt-box
+      box-shadow: 0 0 0 4px var(--color-focus-ring)
 
-    &[data-stato="conto"]
-      animation: fbsala-in .3s ease both, fbsala-pulse 2.4s ease-in-out .5s infinite
+    &[data-stato="conto"] .fbsala__pt-box
+      animation: fbsala-pulse 2.4s ease-in-out infinite
 
     &[data-stato="bloccato"],
     &[data-stato="pulizia"]
-      opacity: .55
+      opacity: .6
 
-    &.is-sel
-      box-shadow: 0 0 0 4px var(--color-focus-ring), 0 6px 18px rgba(32, 71, 105, .18)
+  &__pt-box
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 2px
+    width: 100%
+    height: 100%
+    min-height: 54px
+    padding: 4px
+    border: 2px solid var(--stato, var(--tav))
+    border-radius: 12px
+    background: var(--color-surface)
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .18s ease
 
-  &__tav-num
-    font-size: 14px
+    &:active
+      transform: scale(.97)
+
+  &__pt--rotondo &__pt-box
+    border-radius: 50%
+
+  &__pt[data-stato="libero"]    &__pt-box
+    --stato: var(--fb-libero)
+
+  &__pt[data-stato="riservato"] &__pt-box
+    --stato: var(--fb-riservato)
+    background: rgba(198, 149, 32, .08)
+
+  &__pt[data-stato="occupato"]  &__pt-box
+    --stato: var(--fb-occupato)
+    background: rgba(214, 69, 80, .08)
+
+  &__pt[data-stato="ordinato"]  &__pt-box
+    --stato: var(--fb-ordinato)
+    background: rgba(176, 106, 31, .08)
+
+  &__pt[data-stato="conto"]     &__pt-box
+    --stato: var(--fb-conto)
+    background: rgba(62, 127, 193, .08)
+
+  &__pt[data-stato="pulizia"]   &__pt-box
+    --stato: var(--fb-pulizia)
+
+  &__pt[data-stato="bloccato"]  &__pt-box
+    --stato: var(--fb-bloccato)
+
+  &__pt-num
+    font-size: 15px
     font-weight: 700
+    line-height: 1
     color: var(--color-primary)
+    font-variant-numeric: tabular-nums
 
-  &__tav-cap
+  &__pt-cap
     display: inline-flex
     align-items: center
     gap: 4px
-    font-size: 11px
+    font-size: 10.5px
     color: var(--color-text-inactive)
 
     i
       font-size: 9px
 
-  &__tav-tot
-    font-size: 11px
+  &__pt-tot
+    font-size: 10.5px
     font-weight: 700
     color: var(--color-primary)
+
+  // Sedia: bersaglio tondo attorno al tavolo, si tocca per occupare il posto
+  &__posto
+    position: absolute
+    left: calc(var(--sx) * 1%)
+    top: calc(var(--sy) * 1%)
+    transform: translate(-50%, -50%)
+    z-index: 2
+    width: 22px
+    height: 22px
+    padding: 0
+    border: 2px solid var(--tav)
+    border-radius: 7px
+    background: var(--color-surface)
+    cursor: pointer
+    transition: background .16s ease, transform .12s ease
+
+    &:active
+      transform: translate(-50%, -50%) scale(.85)
+
+    &.is-on
+      background: var(--tav)
+      box-shadow: 0 1px 4px rgba(32, 71, 105, .25)
 
   // ── Colonna di servizio ────────────────────────────────────────────────────
   &__panel

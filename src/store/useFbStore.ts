@@ -58,6 +58,12 @@ export interface ContestoFb {
 }
 
 interface FbState {
+  /** Posti occupati per tavolo: indici delle sedie attorno al tavolo.
+   *  Serve alla vista planimetria, dove si lavora sedia per sedia. */
+  posti: Record<number, number[]>
+  occupaPosto: (tavoloId: number, indice: number) => void
+  liberaPosti: (tavoloId: number) => void
+
   contesto: ContestoFb
   setContesto: (c: Partial<ContestoFb>) => void
 
@@ -103,6 +109,26 @@ interface FbState {
 export const useFbStore = create<FbState>()(
   persist(
     (set, get) => ({
+      posti: {},
+
+      occupaPosto: (tavoloId, indice) =>
+        set(s => {
+          const attuali = s.posti[tavoloId] ?? []
+          const nuovi = attuali.includes(indice)
+            ? attuali.filter(i => i !== indice)
+            : [...attuali, indice].sort((a, b) => a - b)
+          return {
+            posti: { ...s.posti, [tavoloId]: nuovi },
+            // I coperti del tavolo seguono le sedie occupate
+            tavoli: s.tavoli.map(t => t.id === tavoloId ? { ...t, coperti: nuovi.length } : t),
+            comande: s.comande.map(c =>
+              c.tavoloId === tavoloId && c.stato === 'aperta' ? { ...c, coperti: nuovi.length } : c),
+          }
+        }),
+
+      liberaPosti: tavoloId =>
+        set(s => ({ posti: { ...s.posti, [tavoloId]: [] } })),
+
       contesto: { outletId: 1, salaId: 1, turnoId: turnoCorrente(1)?.id ?? null, tavoloId: null, data: oggiISO() },
       setContesto: c => set(s => ({ contesto: { ...s.contesto, ...c } })),
 
@@ -155,6 +181,7 @@ export const useFbStore = create<FbState>()(
         set(s => ({
           tavoli: s.tavoli.map(t =>
             t.id === id ? { ...t, stato: 'libero', coperti: 0, cameriere: null, apertoAlle: null, unitoA: null } : t),
+          posti: { ...s.posti, [id]: [] },
         })),
 
       trasferisci: (daId, aId) =>
@@ -311,6 +338,7 @@ export const useFbStore = create<FbState>()(
         }),
 
       reset: () => set({
+        posti: {},
         tavoli: tavoliIniziali(),
         comande: comandeIniziali(),
         prenotazioni: prenotazioniIniziali(),

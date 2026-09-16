@@ -454,6 +454,8 @@ export default function PageContent({ page, navigate }: Props) {
   // corrispondenti pagine vendorizzate dell'Outlet Manager).
   if (page === 'sala-ristorante') return <SalaRistoranteFb navigate={navigate}/>;
   if (page === 'gest-comanda')    return <GestioneComandaFb navigate={navigate}/>;
+  // Sale e tavoli: la pagina nativa configura le sale servite dalla sezione
+  if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate}/>;
 
   const FB_PAGES: Record<string, OutletSubPage> = {
     'libro-prenotazioni': 'prenotazioni',
