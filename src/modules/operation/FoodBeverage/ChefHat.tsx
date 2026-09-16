@@ -23,7 +23,9 @@ export default function ChefHat({
       aria-hidden="true"
       focusable="false"
     >
-      <g fill={color} fillOpacity={soft ? 0.42 : 1}>
+      {/* L'opacità sta sul GRUPPO, non sulle singole forme: così i lobi che si
+          sovrappongono non lasciano aloni e il riempimento resta uniforme */}
+      <g fill={color} opacity={soft ? 0.45 : 1}>
         <circle cx="19" cy="24" r="12.5" />
         <circle cx="45" cy="24" r="12.5" />
         <circle cx="32" cy="17" r="14" />
