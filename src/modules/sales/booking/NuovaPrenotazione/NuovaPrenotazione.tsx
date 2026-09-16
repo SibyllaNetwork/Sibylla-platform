@@ -11,7 +11,7 @@ import ToggleSwitch from '../../../../core/components/ToggleSwitch'
 import { Button } from '../../../../core/components'
 import FormActions from '../../../../core/components/FormActions'
 import Widget from '../../../../core/components/Widget/Widget'
-import { InputField, SelectField, DateRangeField, DatePickerField, TextareaField } from '../../../../core/components/form'
+import { InputField, SelectField, DateRangeField, DatePickerField, TextareaField, NumCell } from '../../../../core/components/form'
 import { useWidgetLayout } from '../../../../core/hooks/useWidgetLayout'
 import { useServiziStore } from '../../../../store/useServiziStore'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
@@ -92,8 +92,14 @@ const dettCamera = (c: CameraRow): DettCamera => ({
   prezzoPersona: c.prezzoPersona, arrangiamento: c.arrangiamento,
   dataIn: c.dataIn, dataOut: c.dataOut, numero: '',
 })
-const dettagliDi = (c: CameraRow): DettCamera[] =>
-  Array.from({ length: Math.max(1, c.quantita) }, (_, k) => c.dettagli[k] ?? dettCamera(c))
+// Le camere non ancora materializzate clonano l'ultima definita (senza numero,
+// che è per forza diverso): così il totale della riga resta sempre
+// `quantità × valori mostrati` e lo specchietto non può divergere dalla lista
+const dettagliDi = (c: CameraRow): DettCamera[] => {
+  const base = c.dettagli.length ? c.dettagli : [dettCamera(c)]
+  return Array.from({ length: Math.max(1, c.quantita) },
+    (_, k) => c.dettagli[k] ?? { ...base[base.length - 1], numero: '' })
+}
 const totaleDett = (d: DettCamera) => paganti(d) * d.prezzoPersona * notti(d.dataIn, d.dataOut)
 const totaleRigaGr = (c: CameraRow) => dettagliDi(c).reduce((a, d) => a + totaleDett(d), 0)
 // Valore comune a tutte le camere della riga (undefined se divergono)
@@ -345,8 +351,11 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   }
 
   // ── Specchietto: riepilogo di quanto inserito nella lista camere ────────────
+  // È la somma, camera per camera, di quanto c'è nella lista qui accanto: gli
+  // stessi numeri sono ripetuti nella riga dei totali in fondo alla tabella.
   const riepilogoCamere = (rows: CameraRow[]) => rows.reduce((a, c) => {
     dettagliDi(c).forEach(d => {
+      const n = notti(d.dataIn, d.dataOut)
       a.camere  += 1
       a.adulti  += d.adulti
       a.ragazzi += d.ragazzi
@@ -356,9 +365,12 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       if (d.numero) a.assegnate += 1
       if (d.dataIn  && (!a.dal || d.dataIn  < a.dal)) a.dal = d.dataIn
       if (d.dataOut && (!a.al  || d.dataOut > a.al))  a.al  = d.dataOut
+      if (a.nottiMin === null || n < a.nottiMin) a.nottiMin = n
+      if (a.nottiMax === null || n > a.nottiMax) a.nottiMax = n
     })
     return a
-  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, totale: 0, dal: '', al: '' })
+  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, totale: 0, dal: '', al: '',
+       nottiMin: null as number | null, nottiMax: null as number | null })
   const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
   const recapGrAll = useMemo(() => riepilogoCamere(Object.values(camereGrMap).flat()), [camereGrMap])
 
@@ -568,10 +580,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                             </select>
                           </div>
                         </td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.adulti}  onChange={e=>updCamera(i,{adulti:+e.target.value||0})}/></td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.ragazzi} onChange={e=>updCamera(i,{ragazzi:+e.target.value||0})}/></td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.bambini} onChange={e=>updCamera(i,{bambini:+e.target.value||0})}/></td>
-                        <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={c.infanti} onChange={e=>updCamera(i,{infanti:+e.target.value||0})}/></td>
+                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.adulti} onChange={n=>updCamera(i,{adulti:n})}/></td>
+                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.ragazzi} onChange={n=>updCamera(i,{ragazzi:n})}/></td>
+                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.bambini} onChange={n=>updCamera(i,{bambini:n})}/></td>
+                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.infanti} onChange={n=>updCamera(i,{infanti:n})}/></td>
                         <td>
                           <div className="np-room-cell">
                             <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}>
@@ -691,9 +703,14 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 onChangeFrom={e=>setGrForm(f=>({...f,dal:e.target.value}))}
                 onChangeTo={e=>setGrForm(f=>({...f,al:e.target.value}))}
               />
-              <div className="np-soggiorno__cp">
-                <InputField name="camere"  label="Camere"  type="number" value={grForm.camere}  onChange={e=>setGrForm(f=>({...f,camere:+e.target.value||0}))}  className="np-w-num"/>
-                <InputField name="persone" label="Persone" type="number" value={grForm.persone} onChange={e=>setGrForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+              {/* Quanto ha chiesto il gruppo: non è quanto risulta inserito
+                  nella lista camere, che sta nello specchietto qui sotto */}
+              <div className="np-richiesta">
+                <span className="np-label">Richiesta del gruppo</span>
+                <div className="np-soggiorno__cp">
+                  <InputField name="camere"  label="Camere"  type="number" value={grForm.camere}  onChange={e=>setGrForm(f=>({...f,camere:+e.target.value||0}))}  className="np-w-num"/>
+                  <InputField name="persone" label="Persone" type="number" value={grForm.persone} onChange={e=>setGrForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+                </div>
               </div>
               {/* Tipologia ospiti: Adulti / Studenti */}
               <div className="np-radio-block">
@@ -728,7 +745,12 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   <span>Periodo</span><strong>{fmtData(recapGr.dal) || '—'} → {fmtData(recapGr.al) || '—'}</strong>
                 </div>
                 <div className="np-recap__row">
-                  <span>Notti</span><strong>{notti(recapGr.dal, recapGr.al)}</strong>
+                  <span>Notti</span>
+                  <strong>{recapGr.nottiMin === null
+                    ? 0
+                    : recapGr.nottiMin === recapGr.nottiMax
+                      ? recapGr.nottiMin
+                      : `${recapGr.nottiMin}–${recapGr.nottiMax}`}</strong>
                 </div>
                 <div className="np-recap__row np-recap__row--tot">
                   <span>Totale</span><strong>{euro(recapGr.totale)}</strong>
@@ -786,22 +808,26 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       const v   = dd[0]
                       const ed  = inModifica(c.id)
                       const tipoLabel = TIPI_CAMERA.find(t => t.v === v.tipo)?.l ?? v.tipo
+                      // Sola lettura: se le camere della riga divergono (modificate
+                      // una per una dal dettaglio) la riga non può mostrare un valore
+                      // unico e lo dichiara, così quello che si legge qui × la quantità
+                      // corrisponde sempre allo specchietto
+                      const ro = (k: keyof DettCamera, fmt: (x: any) => React.ReactNode = x => x) => {
+                        const u = comune(c, k)
+                        return u === undefined
+                          ? <Tooltip text="Valori diversi fra le camere: apri il dettaglio camere"><span className="np-cell-ro np-cell-ro--misto">misto</span></Tooltip>
+                          : <span className="np-cell-ro">{fmt(u)}</span>
+                      }
                       const num = (k: 'adulti'|'ragazzi'|'bambini'|'infanti') => ed
-                        ? <input type="number" min={0} className="sib-input np-cell-input np-cell-input--num" value={v[k]} onChange={e=>updRigaGr(i,{[k]:+e.target.value||0})}/>
-                        : <span className="np-cell-ro">{v[k]}</span>
+                        ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={v[k]} onChange={n=>updRigaGr(i,{[k]:n})}/>
+                        : ro(k)
                       return (
-                      <tr
-                        key={c.id}
-                        className={ed ? 'np-row-edit' : 'np-row-click'}
-                        onClick={e=>{
-                          if (ed) return
-                          if ((e.target as HTMLElement).closest('input, select, button')) return
-                          setDettaglioIdx(i)
-                        }}
-                      >
+                      // Il dettaglio camere si apre SOLO dall'icona dedicata:
+                      // la riga non è cliccabile
+                      <tr key={c.id} className={ed ? 'np-row-edit' : ''}>
                         <td>
                           {ed
-                            ? <input type="number" min={1} className="sib-input np-cell-input np-cell-input--num" value={c.quantita} onChange={e=>updRigaGr(i,{quantita:Math.max(1,+e.target.value||1)})}/>
+                            ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={1} value={c.quantita} onChange={n=>updRigaGr(i,{quantita:n})}/>
                             : <span className="np-cell-ro">{c.quantita}</span>}
                         </td>
                         <td>
@@ -814,7 +840,9 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                                   {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
                                 </select>
                               </Tooltip>
-                            ) : <TruncatedText className="np-cell-ro" text={tipoLabel} />}
+                            ) : comune(c, 'tipo') === undefined
+                              ? ro('tipo')
+                              : <TruncatedText className="np-cell-ro" text={tipoLabel} />}
                           </div>
                         </td>
                         <td>{num('adulti')}</td>
@@ -823,25 +851,25 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                         <td>{num('infanti')}</td>
                         <td>
                           {ed
-                            ? <input type="number" min={0} step={0.01} className="sib-input np-cell-input np-cell-input--num" value={v.prezzoPersona} onChange={e=>updRigaGr(i,{prezzoPersona:+e.target.value||0})}/>
-                            : <span className="np-cell-ro">{euro(v.prezzoPersona)}</span>}
+                            ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} step={1} decimals={2} value={v.prezzoPersona} onChange={n=>updRigaGr(i,{prezzoPersona:n})}/>
+                            : ro('prezzoPersona', x => euro(x))}
                         </td>
                         <td>
                           {ed ? (
                             <select className="sib-input np-cell-input" value={v.arrangiamento} onChange={e=>updRigaGr(i,{arrangiamento:e.target.value})}>
                               {ARRANGIAMENTI.map(a => <option key={a} value={a}>{a}</option>)}
                             </select>
-                          ) : <span className="np-cell-ro">{v.arrangiamento}</span>}
+                          ) : ro('arrangiamento')}
                         </td>
                         <td>
                           {ed
                             ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={v.dataIn} onChange={e=>updRigaGr(i,{dataIn:e.target.value})}/>
-                            : <span className="np-cell-ro">{fmtData(v.dataIn) || '—'}</span>}
+                            : ro('dataIn', x => fmtData(x) || '—')}
                         </td>
                         <td>
                           {ed
                             ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={v.dataOut} onChange={e=>updRigaGr(i,{dataOut:e.target.value})}/>
-                            : <span className="np-cell-ro">{fmtData(v.dataOut) || '—'}</span>}
+                            : ro('dataOut', x => fmtData(x) || '—')}
                         </td>
                         <td className="np-amt">
                           <Tooltip text={`${c.quantita} ${c.quantita === 1 ? 'camera' : 'camere'} · ${notti(v.dataIn, v.dataOut)} notti`}>
@@ -890,6 +918,23 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       )
                     })}
                   </tbody>
+                  {/* Totali: sono esattamente i numeri dello specchietto
+                      "Riepilogo prenotato" qui a sinistra */}
+                  <tfoot>
+                    <tr className="np-tot-row">
+                      <td>{recapGr.camere}</td>
+                      <td><TruncatedText text="Totale camere" /></td>
+                      <td>{recapGr.adulti}</td>
+                      <td>{recapGr.ragazzi}</td>
+                      <td>{recapGr.bambini}</td>
+                      <td>{recapGr.infanti}</td>
+                      <td colSpan={4} className="np-tot-row__periodo">
+                        <TruncatedText text={`${fmtData(recapGr.dal) || '—'} → ${fmtData(recapGr.al) || '—'}`} />
+                      </td>
+                      <td className="np-amt">{euro(recapGr.totale)}</td>
+                      <td className="np-col-actions" />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
               <button
@@ -1006,7 +1051,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       {cameraOpts.map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </td>
-                  <td><input type="number" className="sib-input np-cell-input np-cell-input--num" value={s.persone} onChange={e=>updSegmento(i,{persone:+e.target.value||0})}/></td>
+                  <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={s.persone} onChange={n=>updSegmento(i,{persone:n})}/></td>
                   <td className="np-col-actions">
                     <button type="button" className="np-row-action" aria-label="Modifica" title="Modifica"><i className="fa-solid fa-pen-to-square" /></button>
                     <button type="button" className="np-row-action np-row-action--danger" aria-label="Elimina" title="Elimina" onClick={()=>removeSegmento(s.id)}><i className="fa-solid fa-trash" /></button>
@@ -1270,7 +1315,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
             ))}
           </div>
           <span className="np-label np-anticipi-tot-label">Importo totale</span>
-          <input type="number" className="sib-input np-anticipi-tot-input" value={f.importoAnticipo} onChange={e=>setF((v:any)=>({...v,importoAnticipo:+e.target.value||0}))}/>
+          <NumCell className="sib-input np-anticipi-tot-input" min={0} decimals={2} value={f.importoAnticipo} onChange={n=>setF((v:any)=>({...v,importoAnticipo:n}))}/>
           <span className="np-anticipi-eur">€</span>
         </div>
 
@@ -1297,7 +1342,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
               <div key={i} className="np-anticipi-quote-row">
                 <span className="np-anticipi-quote-cam">{r.nCamera || (i + 1)}</span>
                 <div className="np-anticipi-quote-val">
-                  <input type="number" className="sib-input" value={f.anticipoQuote[i] ?? 0} onChange={e=>updQuota(isGr, i, +e.target.value || 0)}/>
+                  <NumCell className="sib-input" min={0} decimals={2} value={f.anticipoQuote[i] ?? 0} onChange={n=>updQuota(isGr, i, n)}/>
                   <span className="np-anticipi-eur">€</span>
                 </div>
               </div>
@@ -1687,7 +1732,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                     const ed  = inModifica(key)
                     const tipoLabel = TIPI_CAMERA.find(t => t.v === d.tipo)?.l ?? d.tipo
                     const num = (f: 'adulti'|'ragazzi'|'bambini'|'infanti') => ed
-                      ? <input type="number" min={0} className="sib-input np-cell-input np-cell-input--num" value={d[f]} onChange={e=>updDettaglioGr(i,k,{[f]:+e.target.value||0})}/>
+                      ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={d[f]} onChange={n=>updDettaglioGr(i,k,{[f]:n})}/>
                       : <span className="np-cell-ro">{d[f]}</span>
                     return (
                       <tr key={key}>
@@ -1707,7 +1752,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                         <td>{num('infanti')}</td>
                         <td>
                           {ed
-                            ? <input type="number" min={0} step={0.01} className="sib-input np-cell-input np-cell-input--num" value={d.prezzoPersona} onChange={e=>updDettaglioGr(i,k,{prezzoPersona:+e.target.value||0})}/>
+                            ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} step={1} decimals={2} value={d.prezzoPersona} onChange={n=>updDettaglioGr(i,k,{prezzoPersona:n})}/>
                             : <span className="np-cell-ro">{euro(d.prezzoPersona)}</span>}
                         </td>
                         <td>

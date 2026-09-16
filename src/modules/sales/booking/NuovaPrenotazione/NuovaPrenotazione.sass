@@ -456,6 +456,11 @@
 .np-w-num
   flex: 0 0 90px
 
+// Camere/Persone richieste dal gruppo: distinte dallo specchietto del prenotato
+.np-richiesta
+  display: flex
+  flex-direction: column
+
 // ─── Form label (standard) ───────────────────────────────────────────────────
 .np-label
   font-size: 12px
@@ -702,12 +707,23 @@
   .np-row-edit td
     background: var(--color-primary-50)
 
-  // La riga bloccata apre il dettaglio delle camere
-  .np-row-click
-    cursor: pointer
+  // Camere della riga con valori divergenti: la cella non mostra un numero
+  .np-cell-ro--misto
+    font-style: italic
+    color: $text-inactive
 
-    &:hover td
-      background: var(--color-primary-50)
+  // Riga dei totali: somma live della lista, identica allo specchietto
+  .np-tot-row td
+    border-top: 1px solid $border
+    font-weight: 600
+    color: $text-active
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .np-tot-row__periodo
+    font-weight: 400
+    color: $text-inactive
 
 .np-row-action--ok
   color: $primary
