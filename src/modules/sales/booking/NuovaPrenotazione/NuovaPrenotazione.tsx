@@ -259,7 +259,13 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     ...(!editing && prefill ? { dal: prefill.dal, al: prefill.al } : {}),
   }))
 
-  const [camereInd, setCamereInd] = useState<CameraRow[]>(() => editing ? editCamere(editing) : [initRow(prefill?.numeroCamera || '103')])
+  const [camereInd, setCamereInd] = useState<CameraRow[]>(() => {
+    const dal = prefill?.dal ?? TODAY, al = prefill?.al ?? traGiorni(2)
+    const conPeriodo = (r: CameraRow) => ({ ...r, dataIn: dal, dataOut: al })
+    return editing
+      ? editCamere(editing).map(conPeriodo)
+      : [conPeriodo(initRow(prefill?.numeroCamera || '103'))]
+  })
   // Gruppo: una lista camere per ciascuna struttura del cliente (tab dedicati)
   const [camereGrMap, setCamereGrMap] = useState<Record<string, CameraRow[]>>(() => {
     const riga = () => initRowGr(grForm.dal, grForm.al, grForm.arrangiamento)
@@ -420,9 +426,21 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   // Conferma obbligatoria prima di eliminare una riga camera
   const confirm = useConfirmStore(s => s.confirm)
+  const eliminaCameraInd = async (i: number) => {
+    const ok = await confirm({ message: 'Eliminare questa riga dalla lista camere?', confirmLabel: 'Elimina' })
+    if (ok) setCamereInd(prev => prev.filter((_, idx) => idx !== i))
+  }
   const eliminaCameraGr = async (i: number) => {
     const ok = await confirm({ message: 'Eliminare questa riga dalla lista camere?', confirmLabel: 'Elimina' })
     if (ok) setCamereGr(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  // Tab individuale: stessa regola del gruppo, sulle sue camere
+  const allineaPeriodoInd = (dal: string, al: string) => {
+    const pDal = form.dal, pAl = form.al
+    if (!dal || !al || (dal === pDal && al === pAl)) return
+    setCamereInd(rows => rows.map(r =>
+      r.dataIn === pDal && r.dataOut === pAl ? { ...r, dataIn: dal, dataOut: al, dettagli: [] } : r))
   }
 
   // ── Periodo del soggiorno → date delle camere ───────────────────────────────
@@ -475,6 +493,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     return a + (uguali ? dd[0].prezzoPersona : dd.reduce((x, d) => x + d.prezzoPersona, 0) / dd.length)
   }, 0), [camereGr])
 
+  const recapInd   = useMemo(() => riepilogoCamere(camereInd), [camereInd])
   const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
   const recapGrAll = useMemo(() => riepilogoCamere(Object.values(camereGrMap).flat()), [camereGrMap])
 
@@ -645,80 +664,232 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       case 'soggiorno': return (
         <Widget key={id} {...common} title="Soggiorno">
           <div className="np-soggiorno">
-            {/* Colonna sinistra: parametri soggiorno + azioni */}
+            {/* Colonna sinistra: periodo, riepilogo del prenotato, azioni */}
             <div className="np-soggiorno__side">
+              {/* Periodo del soggiorno: è il default delle date delle camere */}
               <DateRangeField
-                nameFrom="dal" nameTo="al" label="Date"
+                nameFrom="dal" nameTo="al" label="Date soggiorno"
                 valueFrom={form.dal} valueTo={form.al}
                 onChangeFrom={e=>setForm(f=>({...f,dal:e.target.value}))}
                 onChangeTo={e=>setForm(f=>({...f,al:e.target.value}))}
+                onChange={(f,t)=>allineaPeriodoInd(isoDate(f), isoDate(t))}
               />
-              <div className="np-soggiorno__cp">
-                <InputField name="camere" label="Camere" type="number" value={form.camere} onChange={e=>setForm(f=>({...f,camere:+e.target.value||0}))} className="np-w-num"/>
-                <InputField name="persone" label="Persone" type="number" value={form.persone} onChange={e=>setForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
+
+              {/* Specchietto: riepilogo del prenotato nella lista camere */}
+              <div className="np-recap">
+                <div className="np-recap__title">Riepilogo prenotato</div>
+                <div className="np-recap__row">
+                  <span>Camere</span><strong>{recapInd.camere}</strong>
+                </div>
+                {!!recapInd.camere && (
+                  <ul className="np-recap__tipi">
+                    {Object.entries(recapInd.perTipo)
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([tipo, n]) => (
+                        <li key={tipo}>
+                          <span className="np-recap__tipi-n">{n}</span>
+                          <TruncatedText className="np-recap__tipi-l" text={nomeTipo(tipo)} />
+                        </li>
+                      ))}
+                  </ul>
+                )}
+                <div className="np-recap__row">
+                  <span>Persone</span><strong>{recapInd.adulti + recapInd.ragazzi + recapInd.bambini + recapInd.infanti}</strong>
+                </div>
+                <div className="np-recap__mix">
+                  {([['Adulti', recapInd.adulti], ['Ragazzi', recapInd.ragazzi], ['Bambini', recapInd.bambini], ['Infanti', recapInd.infanti]] as const).map(([l, v]) => (
+                    <div key={l} className="np-recap__mix-item">
+                      <span className="np-recap__mix-val">{v}</span>
+                      <span className="np-recap__mix-lab">{l}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="np-recap__row">
+                  <span>Periodo</span><strong>{fmtData(recapInd.dal) || '—'} → {fmtData(recapInd.al) || '—'}</strong>
+                </div>
+                <div className="np-recap__row">
+                  <span>Notti</span>
+                  <strong>{recapInd.nottiMin === null
+                    ? 0
+                    : recapInd.nottiMin === recapInd.nottiMax
+                      ? recapInd.nottiMin
+                      : `${recapInd.nottiMin}–${recapInd.nottiMax}`}</strong>
+                </div>
+                <div className="np-recap__row np-recap__row--tot">
+                  <span>Totale</span><strong>{euro(recapInd.totale)}</strong>
+                </div>
               </div>
+
               <div className="np-soggiorno__actions">
                 <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-grid-2" /> Alloca</button>
                 <button type="button" className="sib-btn np-soggiorno__btn"><i className="fa-light fa-user-plus" /> Assegna</button>
               </div>
             </div>
 
-            {/* Colonna destra: lista camere */}
+            {/* Colonna destra: lista camere, stessa grammatica del tab Gruppo */}
             <div className="np-soggiorno__rooms">
               <div className="np-table-scroll">
-                <table className="np-table">
+                <table className="np-table np-table--edit np-table--ind">
+                  <colgroup>
+                    <col className="np-i-idx" /><col className="np-i-tipo" />
+                    <col className="np-i-num" /><col className="np-i-num" /><col className="np-i-num" /><col className="np-i-num" />
+                    <col className="np-i-prezzo" /><col className="np-i-arr" />
+                    <col className="np-i-data" /><col className="np-i-data" />
+                    <col className="np-i-room" /><col className="np-i-tot" /><col className="np-i-act" />
+                  </colgroup>
                   <thead>
                     <tr>
-                      <th className="np-col-idx">#</th><th>Tipologie camere disponibili</th><th>Adulti</th><th>Ragazzi</th><th>Bambini</th><th>Infanti</th><th>N. Camera</th><th className="np-col-actions" aria-label="Azioni" />
+                      <th className="np-col-idx">#</th>
+                      <th><TruncatedText text="Tipologia camera" /></th>
+                      <th><TruncatedText text="Adulti" /></th>
+                      <th><TruncatedText text="Ragazzi" /></th>
+                      <th><TruncatedText text="Bambini" /></th>
+                      <th><TruncatedText text="Infanti" /></th>
+                      <th><TruncatedText text="Prezzo" full="Prezzo a persona per il soggiorno" /></th>
+                      <th><TruncatedText text="Arrang." full="Arrangiamento" /></th>
+                      <th><TruncatedText text="Data in" /></th>
+                      <th><TruncatedText text="Data out" /></th>
+                      <th><TruncatedText text="N. camera" /></th>
+                      <th className="np-amt">Totale</th>
+                      <th className="np-col-actions" aria-label="Azioni" />
                     </tr>
                   </thead>
                   <tbody>
-                    {camereInd.map((c, i) => (
-                      <tr key={i}>
-                        <td className="np-col-idx">{i+1}</td>
-                        <td>
-                          <div className="np-tipo-cell">
-                            <i className="fa-solid fa-bed-front np-tipo-ico" aria-hidden="true" />
-                            <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
-                              {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
-                            </select>
-                          </div>
-                        </td>
-                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.adulti} onChange={n=>updCamera(i,{adulti:n})}/></td>
-                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.ragazzi} onChange={n=>updCamera(i,{ragazzi:n})}/></td>
-                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.bambini} onChange={n=>updCamera(i,{bambini:n})}/></td>
-                        <td><NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c.infanti} onChange={n=>updCamera(i,{infanti:n})}/></td>
-                        <td>
-                          <div className="np-room-cell">
-                            <select className="sib-input np-cell-input np-cell-input--room" value={c.nCamera} onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}>
-                              <option value="">—</option>
-                              {CAMERE.map(n => <option key={n} value={n}>{n}{bloccoPerCameraPeriodo(blocchiFantasma, n, form.dal, form.al) ? ' 👻' : ''}</option>)}
-                            </select>
-                            {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, form.dal, form.al) && (
-                              <Tooltip text="Camera in blocco fantasma">
-                                <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
-                              </Tooltip>
+                    {camereInd.map((c, i) => {
+                      const ed = inModifica(c.id)
+                      const tipoLabel = TIPI_CAMERA.find(t => t.v === c.tipo)?.l ?? c.tipo
+                      const num = (k: CampoPersone) => ed
+                        ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={c[k]} onChange={n=>updCamera(i,{[k]:n})}/>
+                        : <span className="np-cell-ro">{c[k]}</span>
+                      return (
+                        <tr key={c.id} className={ed ? 'np-row-edit' : ''}>
+                          <td className="np-col-idx">{i+1}</td>
+                          <td>
+                            <div className="np-tipo-cell">
+                              <i className="fa-solid fa-bed-front np-tipo-ico" aria-hidden="true" />
+                              {ed ? (
+                                <Tooltip text={tipoLabel}>
+                                  <select className="sib-input np-cell-input np-cell-input--tipo" value={c.tipo} onChange={e=>updCamera(i,{tipo:e.target.value})}>
+                                    {TIPI_CAMERA.map(t => <option key={t.v} value={t.v}>{t.l}</option>)}
+                                  </select>
+                                </Tooltip>
+                              ) : <TruncatedText className="np-cell-ro" text={tipoLabel} />}
+                            </div>
+                          </td>
+                          <td>{num('adulti')}</td>
+                          <td>{num('ragazzi')}</td>
+                          <td>{num('bambini')}</td>
+                          <td>{num('infanti')}</td>
+                          <td>
+                            {ed
+                              ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} decimals={2} value={c.prezzoPersona} onChange={n=>updCamera(i,{prezzoPersona:n})}/>
+                              : <span className="np-cell-ro">{euro(c.prezzoPersona)}</span>}
+                          </td>
+                          <td>
+                            {ed ? (
+                              <select className="sib-input np-cell-input" value={c.arrangiamento} onChange={e=>updCamera(i,{arrangiamento:e.target.value})}>
+                                {ARRANGIAMENTI.map(a => <option key={a} value={a}>{a}</option>)}
+                              </select>
+                            ) : <span className="np-cell-ro">{c.arrangiamento}</span>}
+                          </td>
+                          <td>
+                            {ed
+                              ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={c.dataIn} onChange={e=>updCamera(i,{dataIn:e.target.value})}/>
+                              : <span className="np-cell-ro">{fmtData(c.dataIn) || '—'}</span>}
+                          </td>
+                          <td>
+                            {ed
+                              ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={c.dataOut} onChange={e=>updCamera(i,{dataOut:e.target.value})}/>
+                              : <span className="np-cell-ro">{fmtData(c.dataOut) || '—'}</span>}
+                          </td>
+                          <td>
+                            {/* L'assegnazione resta sempre disponibile, anche a riga bloccata */}
+                            <div className="np-room-cell">
+                              <select
+                                className="sib-input np-cell-input np-cell-input--room"
+                                aria-label={`Numero camera della riga ${i + 1}`}
+                                value={c.nCamera}
+                                onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}
+                              >
+                                <option value="">—</option>
+                                {CAMERE.map(n => (
+                                  <option key={n} value={n}>
+                                    {n}{bloccoPerCameraPeriodo(blocchiFantasma, n, c.dataIn || form.dal, c.dataOut || form.al) ? ' 👻' : ''}
+                                  </option>
+                                ))}
+                              </select>
+                              {!!bloccoPerCameraPeriodo(blocchiFantasma, c.nCamera, c.dataIn || form.dal, c.dataOut || form.al) && (
+                                <Tooltip text="Camera in blocco fantasma">
+                                  <GhostIcon className="np-ghost-ico" title="Camera in blocco fantasma" />
+                                </Tooltip>
+                              )}
+                            </div>
+                          </td>
+                          <td className="np-amt">
+                            <Tooltip text={`${c.adulti + c.ragazzi + c.bambini + c.infanti} persone × ${euro(c.prezzoPersona)} · ${notti(c.dataIn, c.dataOut)} notti`}>
+                              <span>{euro(totaleRigaGr(c))}</span>
+                            </Tooltip>
+                          </td>
+                          <td className="np-col-actions">
+                            {ed ? (
+                              <button
+                                type="button" className="np-row-action np-row-action--ok"
+                                aria-label="Conferma la riga" onClick={()=>chiudiModifica(c.id)}
+                              >
+                                <Tooltip text="Conferma la riga"><i className="fa-solid fa-check" /></Tooltip>
+                              </button>
+                            ) : (
+                              <button
+                                type="button" className="np-row-action"
+                                aria-label="Modifica la riga" onClick={()=>apriModifica(c.id)}
+                              >
+                                <Tooltip text="Modifica la riga"><i className="fa-solid fa-pen" /></Tooltip>
+                              </button>
                             )}
-                          </div>
-                        </td>
-                        <td className="np-col-actions">
-                          <button
-                            type="button"
-                            className="np-row-action np-row-action--danger"
-                            aria-label="Elimina camera"
-                            title="Elimina camera"
-                            disabled={camereInd.length <= 1}
-                            onClick={()=>setCamereInd(prev => prev.filter((_, idx) => idx !== i))}
-                          >
-                            <i className="fa-solid fa-trash" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                            <button
+                              type="button"
+                              className="np-row-action np-row-action--danger"
+                              aria-label="Elimina camera"
+                              disabled={camereInd.length <= 1}
+                              onClick={()=>eliminaCameraInd(i)}
+                            >
+                              <Tooltip text="Elimina camera"><i className="fa-solid fa-trash" /></Tooltip>
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
+                  {/* Totali: gli stessi numeri dello specchietto qui a sinistra */}
+                  <tfoot>
+                    <tr className="np-tot-row">
+                      <td className="np-col-idx">{recapInd.camere}</td>
+                      <td><TruncatedText text="Totale camere" /></td>
+                      <td>{recapInd.adulti}</td>
+                      <td>{recapInd.ragazzi}</td>
+                      <td>{recapInd.bambini}</td>
+                      <td>{recapInd.infanti}</td>
+                      <td className="np-amt">
+                        <Tooltip text="Somma dei prezzi a persona delle righe">
+                          <span>{euro(camereInd.reduce((a, c) => a + c.prezzoPersona, 0))}</span>
+                        </Tooltip>
+                      </td>
+                      <td colSpan={4} />
+                      <td className="np-amt">{euro(recapInd.totale)}</td>
+                      <td className="np-col-actions" />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
-              <button type="button" className="np-add-row" onClick={()=>setCamereInd(p=>[...p, initRow()])}>
+              <button
+                type="button"
+                className="np-add-row"
+                onClick={()=>{
+                  const riga = initRowGr(form.dal, form.al, form.arrangiamento)
+                  setCamereInd(p=>[...p, riga])
+                  apriModifica(riga.id)
+                }}
+              >
                 <i className="fa-light fa-plus" /> Aggiungi camera
               </button>
             </div>
