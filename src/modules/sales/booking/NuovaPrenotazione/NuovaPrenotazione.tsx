@@ -449,7 +449,6 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     dettagliDi(c).forEach(d => {
       const n = notti(d.dataIn, d.dataOut)
       a.camere  += 1
-      a.prezzi  += d.prezzoPersona
       a.perTipo[d.tipo] = (a.perTipo[d.tipo] ?? 0) + 1
       a.adulti  += d.adulti
       a.ragazzi += d.ragazzi
@@ -463,9 +462,19 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       if (a.nottiMax === null || n > a.nottiMax) a.nottiMax = n
     })
     return a
-  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, prezzi: 0, totale: 0, dal: '', al: '',
+  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, totale: 0, dal: '', al: '',
        nottiMin: null as number | null, nottiMax: null as number | null,
        perTipo: {} as Record<string, number> })
+  // La colonna Prezzo mostra un prezzo per riga (non per camera): il piede
+  // somma esattamente quei valori. Se le camere di una riga hanno prezzi
+  // diversi, la riga porta la loro media, che è il solo numero che la
+  // rappresenta.
+  const sommaPrezzi = useMemo(() => camereGr.reduce((a, c) => {
+    const dd = dettagliDi(c)
+    const uguali = dd.every(d => d.prezzoPersona === dd[0].prezzoPersona)
+    return a + (uguali ? dd[0].prezzoPersona : dd.reduce((x, d) => x + d.prezzoPersona, 0) / dd.length)
+  }, 0), [camereGr])
+
   const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
   const recapGrAll = useMemo(() => riepilogoCamere(Object.values(camereGrMap).flat()), [camereGrMap])
 
@@ -1023,9 +1032,11 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       <td>{recapGr.ragazzi}</td>
                       <td>{recapGr.bambini}</td>
                       <td>{recapGr.infanti}</td>
-                      {/* Somma dei prezzi a persona di tutte le camere della
-                          sala: la colonna si somma come le altre */}
-                      <td className="np-amt">{euro(recapGr.prezzi)}</td>
+                      <td className="np-amt">
+                        <Tooltip text="Somma dei prezzi a persona delle righe">
+                          <span>{euro(sommaPrezzi)}</span>
+                        </Tooltip>
+                      </td>
                       <td colSpan={3} />
                       <td className="np-amt">{euro(recapGr.totale)}</td>
                       <td className="np-col-actions" />
