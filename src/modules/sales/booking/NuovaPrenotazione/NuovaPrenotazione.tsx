@@ -51,6 +51,8 @@ interface DettCamera {
   prezzoPersona: number; arrangiamento: string; dataIn: string; dataOut: string
   /** Numero camera assegnato (vuoto = da assegnare) */
   numero: string
+  /** Nota di servizio della singola camera (culla, piano alto, allergie…). */
+  note: string
 }
 // I campi quantita/prezzoPersona/arrangiamento/dataIn/dataOut sono usati dalla
 // lista camere del tab Gruppo (la lista del tab Individuale ignora le colonne).
@@ -90,7 +92,7 @@ const paganti = (d: DettCamera) => d.adulti + d.ragazzi + d.bambini
 const dettCamera = (c: CameraRow): DettCamera => ({
   tipo: c.tipo, adulti: c.adulti, ragazzi: c.ragazzi, bambini: c.bambini, infanti: c.infanti,
   prezzoPersona: c.prezzoPersona, arrangiamento: c.arrangiamento,
-  dataIn: c.dataIn, dataOut: c.dataOut, numero: '',
+  dataIn: c.dataIn, dataOut: c.dataOut, numero: '', note: '',
 })
 // Le camere non ancora materializzate clonano l'ultima definita (senza numero,
 // che è per forza diverso): così il totale della riga resta sempre
@@ -98,7 +100,7 @@ const dettCamera = (c: CameraRow): DettCamera => ({
 const dettagliDi = (c: CameraRow): DettCamera[] => {
   const base = c.dettagli.length ? c.dettagli : [dettCamera(c)]
   return Array.from({ length: Math.max(1, c.quantita) },
-    (_, k) => c.dettagli[k] ?? { ...base[base.length - 1], numero: '' })
+    (_, k) => c.dettagli[k] ?? { ...base[base.length - 1], numero: '', note: '' })
 }
 const totaleDett = (d: DettCamera) => paganti(d) * d.prezzoPersona * notti(d.dataIn, d.dataOut)
 const totaleRigaGr = (c: CameraRow) => dettagliDi(c).reduce((a, d) => a + totaleDett(d), 0)
@@ -107,6 +109,13 @@ function comune<K extends keyof DettCamera>(c: CameraRow, k: K): DettCamera[K] |
   const dd = dettagliDi(c)
   return dd.every(d => d[k] === dd[0][k]) ? dd[0][k] : undefined
 }
+/** Nome della tipologia senza il codice davanti: "53 | Doppia classic" → "Doppia classic". */
+const nomeTipo = (v: string) => {
+  const l = TIPI_CAMERA.find(t => t.v === v)?.l ?? v
+  const i = l.indexOf('|')
+  return i < 0 ? l : l.slice(i + 1).trim()
+}
+
 const initOsp = (): OspiteRow          => ({ nome: '', cognome: '', dataNascita: '', paese: '', sesso: '', nCamera: '', dataArrivo: '' })
 // Data del calendario → yyyy-MM-dd, senza passare per UTC (che sposta il giorno)
 const isoDate = (d: Date | null) => d
@@ -378,6 +387,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     dettagliDi(c).forEach(d => {
       const n = notti(d.dataIn, d.dataOut)
       a.camere  += 1
+      a.perTipo[d.tipo] = (a.perTipo[d.tipo] ?? 0) + 1
       a.adulti  += d.adulti
       a.ragazzi += d.ragazzi
       a.bambini += d.bambini
@@ -391,7 +401,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     })
     return a
   }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, totale: 0, dal: '', al: '',
-       nottiMin: null as number | null, nottiMax: null as number | null })
+       nottiMin: null as number | null, nottiMax: null as number | null,
+       perTipo: {} as Record<string, number> })
   const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
   const recapGrAll = useMemo(() => riepilogoCamere(Object.values(camereGrMap).flat()), [camereGrMap])
 
@@ -727,33 +738,25 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 onChangeTo={e=>setGrForm(f=>({...f,al:e.target.value}))}
                 onChange={(f,t)=>allineaPeriodoCamere(isoDate(f), isoDate(t))}
               />
-              {/* Quanto ha chiesto il gruppo: non è quanto risulta inserito
-                  nella lista camere, che sta nello specchietto qui sotto */}
-              <div className="np-richiesta">
-                <span className="np-label">Richiesta del gruppo</span>
-                <div className="np-soggiorno__cp">
-                  <InputField name="camere"  label="Camere"  type="number" value={grForm.camere}  onChange={e=>setGrForm(f=>({...f,camere:+e.target.value||0}))}  className="np-w-num"/>
-                  <InputField name="persone" label="Persone" type="number" value={grForm.persone} onChange={e=>setGrForm(f=>({...f,persone:+e.target.value||0}))} className="np-w-num"/>
-                </div>
-              </div>
-              {/* Tipologia ospiti: Adulti / Studenti */}
-              <div className="np-radio-block">
-                <span className="np-label">Tipologia ospiti</span>
-                <div className="np-checks-row">
-                  {(['adulti','studenti'] as const).map(t=>(
-                    <label key={t} className="np-check">
-                      <input type="radio" name="tipologiaOspiti" className="sib-radio" checked={grForm.tipologiaOspiti===t} onChange={()=>setGrForm(f=>({...f,tipologiaOspiti:t}))}/>
-                      <span className="np-capitalize">{t}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
               {/* Specchietto: riepilogo del prenotato nella lista camere qui sotto */}
               <div className="np-recap">
                 <div className="np-recap__title">Riepilogo prenotato</div>
                 <div className="np-recap__row">
                   <span>Camere</span><strong>{recapGr.camere}</strong>
                 </div>
+                {/* Di che tipo sono: la composizione conta quanto il totale */}
+                {!!recapGr.camere && (
+                  <ul className="np-recap__tipi">
+                    {Object.entries(recapGr.perTipo)
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([tipo, n]) => (
+                        <li key={tipo}>
+                          <span className="np-recap__tipi-n">{n}</span>
+                          <TruncatedText className="np-recap__tipi-l" text={nomeTipo(tipo)} />
+                        </li>
+                      ))}
+                  </ul>
+                )}
                 <div className="np-recap__row">
                   <span>Persone</span><strong>{recapGr.adulti + recapGr.ragazzi + recapGr.bambini + recapGr.infanti}</strong>
                 </div>
@@ -1731,6 +1734,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                   <col className="np-d-num" /><col className="np-d-num" /><col className="np-d-num" /><col className="np-d-num" />
                   <col className="np-d-prezzo" /><col className="np-d-arr" />
                   <col className="np-d-data" /><col className="np-d-data" />
+                  <col className="np-d-note" />
                   <col className="np-d-tot" /><col className="np-d-sel" /><col className="np-d-act" />
                 </colgroup>
                 <thead>
@@ -1745,6 +1749,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                     <th><TruncatedText text="Arrang." full="Arrangiamento" /></th>
                     <th><TruncatedText text="Data in" /></th>
                     <th><TruncatedText text="Data out" /></th>
+                    <th><TruncatedText text="Note" /></th>
                     <th className="np-amt">Totale</th>
                     <th><TruncatedText text="N. camera" /></th>
                     <th className="np-col-actions" aria-label="Azioni" />
@@ -1795,6 +1800,21 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                           {ed
                             ? <input type="date" className="sib-input np-cell-input np-cell-input--data" value={d.dataOut} onChange={e=>updDettaglioGr(i,k,{dataOut:e.target.value})}/>
                             : <span className="np-cell-ro">{fmtData(d.dataOut) || '—'}</span>}
+                        </td>
+                        <td>
+                          {/* La nota è della singola camera: si legge dal tooltip
+                              anche a riga bloccata, si scrive con la matita */}
+                          {ed
+                            ? <input
+                                type="text" className="sib-input np-cell-input"
+                                value={d.note}
+                                placeholder="culla, piano alto…"
+                                aria-label={`Nota della camera ${k + 1}`}
+                                onChange={e=>updDettaglioGr(i,k,{note:e.target.value})}
+                              />
+                            : d.note
+                              ? <Tooltip text={d.note}><span className="np-cell-ro np-cell-nota"><i className="fa-solid fa-note-sticky" aria-hidden="true" /> {d.note}</span></Tooltip>
+                              : <span className="np-cell-ro np-cell-ro--misto">—</span>}
                         </td>
                         <td className="np-amt">{euro(totaleDett(d))}</td>
                         <td>
