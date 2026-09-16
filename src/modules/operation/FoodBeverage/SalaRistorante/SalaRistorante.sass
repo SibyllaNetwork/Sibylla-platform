@@ -23,7 +23,7 @@
   container-type: inline-size
   display: flex
   flex-direction: column
-  gap: 12px
+  gap: 10px
   height: 100%
   min-height: 0
 
@@ -123,7 +123,7 @@
     align-items: center
     justify-content: space-between
     gap: 12px
-    padding: 12px 16px
+    padding: 9px 16px
     border-bottom: 1px solid var(--color-border)
     background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
 
@@ -221,15 +221,15 @@
   // ── Griglia dei tavoli ─────────────────────────────────────────────────────
   &__grid
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr))
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr))
     // `max-content`: con `auto` e contenitore ad altezza definita le righe
     // verrebbero compresse (la card ha overflow:hidden → min-content 0)
     grid-auto-rows: max-content
     align-content: start
-    gap: 12px
+    gap: 10px
     flex: 1
     min-height: 0
-    padding: 14px
+    padding: 12px
     overflow-y: auto
 
   &__vuoto
@@ -244,6 +244,10 @@
     position: relative
     display: flex
     flex-direction: column
+    // Tutte le card hanno la stessa altezza: il contenuto variabile (portate,
+    // cameriere, tempo) sta su una riga sola a ingombro fisso e la fascia di
+    // stato resta in fondo, allineata su tutta la griglia
+    min-height: 162px
     border: 1px solid var(--color-border)
     border-radius: 14px
     background: var(--color-surface)
@@ -297,11 +301,12 @@
     font-size: 13px
 
   &__card-body
+    flex: 1
     display: flex
     flex-direction: column
     align-items: center
-    gap: 3px
-    padding: 14px 12px 12px
+    gap: 2px
+    padding: 8px 10px 8px
     border: none
     background: transparent
     cursor: pointer
@@ -314,21 +319,35 @@
     margin-bottom: 2px
 
   &__card-num
-    font-size: 21px
+    font-size: 19px
     font-weight: 700
     line-height: 1
     letter-spacing: .02em
     color: var(--color-primary)
     font-variant-numeric: tabular-nums
 
+  // Coperti e conto sulla stessa riga
+  &__card-riga
+    display: flex
+    align-items: baseline
+    gap: 8px
+    margin-top: 1px
+
   &__card-cop
+    display: inline-flex
+    align-items: center
+    gap: 4px
     font-size: 11.5px
+    font-weight: 600
     color: var(--color-text-inactive)
+
+    i
+      font-size: 9px
 
   &__card-barra
     display: block
-    width: 72px
-    height: 4px
+    width: 78px
+    height: 3px
     border-radius: 2px
     background: var(--color-primary-100)
     overflow: hidden
@@ -342,16 +361,15 @@
       transition: width .3s ease
 
   &__card-imp
-    margin-top: 4px
-    font-size: 15px
+    font-size: 14px
     font-weight: 700
     color: var(--color-primary)
     font-variant-numeric: tabular-nums
 
   &__card-portate
     display: inline-flex
-    gap: 4px
-    margin-top: 2px
+    align-items: center
+    gap: 3px
 
   &__card-dot
     display: block
@@ -371,16 +389,18 @@
 
   &__card-info
     display: flex
+    flex-wrap: wrap
     align-items: center
-    gap: 8px
-    margin-top: 6px
-    min-height: 22px
+    justify-content: center
+    gap: 6px
+    margin-top: 3px
+    min-height: 20px
 
   &__card-cam
     display: grid
     place-items: center
-    width: 22px
-    height: 22px
+    width: 20px
+    height: 20px
     border-radius: 50%
     background: var(--tav, var(--color-primary))
     color: #fff
@@ -400,18 +420,21 @@
   &__card-unito
     display: inline-flex
     align-items: center
-    gap: 5px
-    margin-top: 4px
+    gap: 4px
+    padding: 2px 7px
+    border-radius: 9px
+    background: var(--color-link-light)
     font-size: 10.5px
     font-weight: 600
     color: var(--color-link)
 
   &__card-stato
+    margin-top: auto
     display: flex
     align-items: center
     justify-content: center
-    gap: 7px
-    min-height: 34px
+    gap: 6px
+    min-height: 28px
     padding: 0 8px
     font-size: 11.5px
     font-weight: 700

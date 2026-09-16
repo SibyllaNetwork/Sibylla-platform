@@ -256,34 +256,41 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
         )}
 
         <button type="button" className="fbsala__card-body" onClick={() => tocca(t)}>
-          <ChefHat color={t.colore} size={52} className="fbsala__card-hat" soft={t.stato === 'libero'} />
+          <ChefHat color={t.colore} size={38} className="fbsala__card-hat" soft={t.stato === 'libero'} />
           <span className="fbsala__card-num">{t.numero}</span>
 
-          <span className="fbsala__card-cop">Coperti {t.coperti} di {t.capienza}</span>
+          {/* Coperti e conto sulla stessa riga: la card resta bassa */}
+          <span className="fbsala__card-riga">
+            <Tooltip text={`${t.coperti} coperti su ${t.capienza} posti`}>
+              <span className="fbsala__card-cop"><i className="fa-solid fa-user-group" aria-hidden="true" />{t.coperti}/{t.capienza}</span>
+            </Tooltip>
+            <span className="fbsala__card-imp">{c ? euro(totaleConto(c)) : euro(0)}</span>
+          </span>
+
           <span
             className="fbsala__card-barra"
             style={{ '--pct': Math.min(100, Math.round((t.coperti / t.capienza) * 100)) } as React.CSSProperties}
             aria-hidden="true"
           ><span /></span>
 
-          <span className="fbsala__card-imp">{c ? euro(totaleConto(c)) : euro(0)}</span>
-
-          {!!portate.length && (
-            <span className="fbsala__card-portate">
-              {portate.map(p => (
-                <Tooltip key={p.id} text={`${p.label}: ${p.stato === 'servita' ? 'servita' : p.stato === 'pronta' ? 'pronta' : 'in preparazione'}`}>
-                  <i className="fbsala__card-dot" data-av={p.stato} />
-                </Tooltip>
-              ))}
-            </span>
-          )}
-
           <span className="fbsala__card-info">
             {t.cameriere && <span className="fbsala__card-cam">{iniziali(t.cameriere)}</span>}
             {min !== null && <span className="fbsala__card-time"><i className="fa-solid fa-clock" aria-hidden="true" /> {durata(min)}</span>}
+            {unito && (
+              <Tooltip text={`Unito con il tavolo ${unito.numero}`}>
+                <span className="fbsala__card-unito"><i className="fa-solid fa-link" aria-hidden="true" /> {unito.numero}</span>
+              </Tooltip>
+            )}
+            {!!portate.length && (
+              <span className="fbsala__card-portate">
+                {portate.map(p => (
+                  <Tooltip key={p.id} text={`${p.label}: ${p.stato === 'servita' ? 'servita' : p.stato === 'pronta' ? 'pronta' : 'in preparazione'}`}>
+                    <i className="fbsala__card-dot" data-av={p.stato} />
+                  </Tooltip>
+                ))}
+              </span>
+            )}
           </span>
-
-          {unito && <span className="fbsala__card-unito"><i className="fa-solid fa-link" aria-hidden="true" /> Unito con {unito.numero}</span>}
         </button>
 
         <span className="fbsala__card-stato">
