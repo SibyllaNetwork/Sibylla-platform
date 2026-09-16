@@ -1,0 +1,227 @@
+// ─── Ospiti del giorno (Food & Beverage) ──────────────────────────────────────
+//  Una tabella sola, standard .sib-table, con i totali in fondo invece che in
+//  testa. Colonne in percentuale e table-layout fisso: niente scroll orizzontale.
+
+.fbosp
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-acts
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+    transition: opacity .18s ease
+
+    &:active
+      opacity: .88
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 150px
+
+    &--lg
+      min-width: 200px
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cerca-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__only
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+
+  &__wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  // ── Tabella ────────────────────────────────────────────────────────────────
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-done td
+      background: rgba(0, 168, 112, .05)
+
+  &__c-ora
+    width: 7%
+  &__c-osp
+    width: 22%
+  &__c-pax
+    width: 5%
+  &__c-sala
+    width: 12%
+  &__c-tav
+    width: 13%
+  &__c-turno
+    width: 14%
+  &__c-note
+    width: 13%
+  &__c-stato
+    width: 12%
+  &__c-act
+    width: 8%
+
+  &__ora
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__osp
+    display: flex
+    align-items: center
+    gap: 7px
+    min-width: 0
+
+  &__org
+    color: var(--color-primary-400)
+    font-size: 12px
+
+  &__camera
+    padding: 1px 6px
+    border-radius: 9px
+    background: var(--color-primary-50)
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-primary)
+    white-space: nowrap
+
+  &__pax
+    font-weight: 600
+    text-align: center
+
+  &__sel
+    width: 100%
+    height: 28px
+    padding: 0 6px
+    font-size: 12px
+    border-radius: 6px
+
+  &__stato
+    display: inline-block
+    max-width: 100%
+    padding: 3px 9px
+    border-radius: 11px
+    font-size: 11px
+    font-weight: 700
+    overflow: hidden
+    text-overflow: ellipsis
+
+    &[data-stato="confermata"]
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+    &[data-stato="arrivata"]
+      background: rgba(62, 127, 193, .14)
+      color: #2c6398
+
+    &[data-stato="in-attesa"]
+      background: rgba(198, 149, 32, .16)
+      color: #8a6811
+
+    &[data-stato="no-show"]
+      background: rgba(214, 69, 80, .12)
+      color: #a8323c
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:disabled
+        opacity: .35
+        cursor: not-allowed
+
+  &__vuoto
+    padding: 36px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  // Totali in fondo alla tabella (mai in testa alla pagina)
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__tot-act
+    text-align: right
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 7px
+      min-height: 32px
+      padding: 0 12px
+      border: 1px solid var(--color-border)
+      border-radius: 9px
+      background: var(--color-surface)
+      color: var(--color-text-active)
+      font-size: 12px
+      font-weight: 600
+      cursor: pointer
+
+      i
+        color: var(--color-primary)
+
+// ─── Schermi stretti ──────────────────────────────────────────────────────────
+@container (max-width: 1100px)
+  .fbosp__c-sala
+    width: 10%
+
+  .fbosp__c-note
+    width: 12%
+
+  .fbosp__c-osp
+    width: 24%
