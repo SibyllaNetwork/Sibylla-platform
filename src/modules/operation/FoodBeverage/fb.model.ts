@@ -57,6 +57,8 @@ export interface Tavolo {
   numero: string
   capienza: number
   forma: FormaTavolo
+  /** Colore identitario del tavolo: tinge la toque nella griglia di sala. */
+  colore: string
   stato: StatoTavolo
   /** Posizione sulla planimetria, in percentuale della sala (0-100). */
   x: number
@@ -304,6 +306,12 @@ export const CATEGORIE_CLIENTE: CategoriaCliente[] = [
 // I tavoli sono posizionati in percentuale sulla sala: la planimetria scala con
 // il contenitore e resta leggibile dal tablet senza scroll.
 
+/** Colori delle toque: una tavolozza viva ma coerente, ruotata sui tavoli. */
+export const COLORI_TAVOLO = [
+  '#E0457B', '#2E9E5B', '#E07B39', '#3E7FC1', '#D9A520',
+  '#8E5BC6', '#17A2B8', '#C0392B', '#5BA829', '#6C7BD1',
+]
+
 const griglia = (
   salaId: number, prefisso: string, righe: number, colonne: number,
   capienze: number[], start = 1,
@@ -320,6 +328,7 @@ const griglia = (
         salaId,
         numero: `${prefisso}${String(n).padStart(prefisso ? 2 : 3, '0')}`,
         capienza: cap,
+        colore: COLORI_TAVOLO[(n - 1) % COLORI_TAVOLO.length],
         forma: cap <= 2 ? 'rotondo' : cap >= 6 ? 'rettangolare' : 'quadrato',
         stato: 'libero',
         x: Math.round(passoX * (c + 1) * 10) / 10,
@@ -346,35 +355,56 @@ export const TAVOLI: Tavolo[] = [
 // Una fotografia plausibile a metà servizio: qualche tavolo occupato, due conti
 // richiesti, alcuni riservati dalle prenotazioni.
 
-const SERVIZIO_INIZIALE: Array<[number, StatoTavolo, number, string, string]> = [
-  [1001, 'occupato',  4, 'Marco R.',  '20:10'],
-  [1002, 'ordinato',  2, 'Giulia P.', '20:25'],
-  [1004, 'occupato',  6, 'Marco R.',  '19:50'],
-  [1007, 'conto',     4, 'Luca V.',   '19:20'],
-  [1008, 'riservato', 0, '',          ''],
-  [1010, 'occupato',  2, 'Sara T.',   '20:40'],
-  [1013, 'pulizia',   0, '',          ''],
-  [1014, 'riservato', 0, '',          ''],
-  [1016, 'ordinato',  4, 'Giulia P.', '20:05'],
-  [1019, 'occupato',  2, 'Paolo N.',  '20:35'],
-  [1021, 'conto',     6, 'Luca V.',   '19:05'],
-  [1023, 'bloccato',  0, '',          ''],
-  [2002, 'occupato',  4, 'Elena F.',  '20:15'],
-  [2005, 'riservato', 0, '',          ''],
-  [2008, 'ordinato',  2, 'Elena F.',  '20:30'],
-  [3002, 'occupato',  4, 'Paolo N.',  '19:40'],
-  [3005, 'riservato', 0, '',          ''],
-  [3009, 'conto',     2, 'Sara T.',   '19:10'],
-  [3012, 'occupato',  6, 'Paolo N.',  '20:20'],
+// [id tavolo, stato, coperti, cameriere, minuti da cui è aperto]
+const SERVIZIO_INIZIALE: Array<[number, StatoTavolo, number, string, number]> = [
+  [1001, 'occupato',  4, 'Marco R.',  35],
+  [1002, 'ordinato',  2, 'Giulia P.', 20],
+  [1004, 'occupato',  6, 'Marco R.',  55],
+  [1007, 'conto',     4, 'Luca V.',   85],
+  [1008, 'riservato', 0, '',          0],
+  [1010, 'occupato',  2, 'Sara T.',   10],
+  [1013, 'pulizia',   0, '',          0],
+  [1014, 'riservato', 0, '',          0],
+  [1016, 'ordinato',  4, 'Giulia P.', 40],
+  [1019, 'occupato',  2, 'Paolo N.',  15],
+  [1021, 'conto',     6, 'Luca V.',   100],
+  [1023, 'bloccato',  0, '',          0],
+  [2002, 'occupato',  4, 'Elena F.',  30],
+  [2005, 'riservato', 0, '',          0],
+  [2008, 'ordinato',  2, 'Elena F.',  18],
+  [3002, 'occupato',  4, 'Paolo N.',  65],
+  [3005, 'riservato', 0, '',          0],
+  [3009, 'conto',     2, 'Sara T.',   95],
+  [3012, 'occupato',  6, 'Paolo N.',  25],
 ]
+
+/** Ora di N minuti fa, in HH:mm: tiene la demo allineata all'orologio. */
+export const oraMenoMinuti = (min: number) => {
+  const d = new Date(Date.now() - min * 60000)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
 
 export const tavoliIniziali = (): Tavolo[] =>
   TAVOLI.map(t => {
     const s = SERVIZIO_INIZIALE.find(([id]) => id === t.id)
     if (!s) return { ...t }
-    const [, stato, coperti, cameriere, ora] = s
-    return { ...t, stato, coperti, cameriere: cameriere || null, apertoAlle: ora || null }
+    const [, stato, coperti, cameriere, min] = s
+    return {
+      ...t, stato, coperti,
+      cameriere: cameriere || null,
+      apertoAlle: min ? oraMenoMinuti(min) : null,
+    }
   })
+
+/** Turno in corso per l'outlet, altrimenti il primo della giornata. */
+export const turnoCorrente = (outletId: number): Turno | undefined => {
+  const d = new Date()
+  const ora = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  const dellOutlet = TURNI.filter(t => t.outletId === outletId)
+  return dellOutlet.find(t => t.oraInizio <= ora && ora <= t.oraFine)
+    ?? dellOutlet.find(t => ora < t.oraInizio)
+    ?? dellOutlet[0]
+}
 
 // ─── Prenotazioni ────────────────────────────────────────────────────────────
 
@@ -473,7 +503,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 1, numero: '001', outletId: 1, salaId: 1, tavoloId: 1001, turnoId: 4,
     coperti: 4, cameriere: 'Marco R.', categoriaClienteId: 0,
-    apertaAlle: '20:10', chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    apertaAlle: oraMenoMinuti(35), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(1), 2, 1, 'servita'),
       riga(voce(3), 2, 2, 'in-preparazione'),
@@ -484,7 +514,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 2, numero: '002', outletId: 1, salaId: 1, tavoloId: 1002, turnoId: 4,
     coperti: 2, cameriere: 'Giulia P.', categoriaClienteId: 3,
-    apertaAlle: '20:25', chiusaAlle: null, stato: 'aperta', addebitoCamera: '204', pagamento: null,
+    apertaAlle: oraMenoMinuti(20), chiusaAlle: null, stato: 'aperta', addebitoCamera: '204', pagamento: null,
     righe: [
       riga(voce(16), 1, 1, 'inviata'),
       riga(voce(17), 2, 2, 'inviata', 'Uno senza pepe'),
@@ -494,7 +524,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 3, numero: '003', outletId: 1, salaId: 1, tavoloId: 1004, turnoId: 4,
     coperti: 6, cameriere: 'Marco R.', categoriaClienteId: 0,
-    apertaAlle: '19:50', chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    apertaAlle: oraMenoMinuti(55), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(2), 3, 1, 'servita'),
       riga(voce(5), 4, 3, 'pronta'),
@@ -505,7 +535,7 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 4, numero: '004', outletId: 1, salaId: 1, tavoloId: 1007, turnoId: 4,
     coperti: 4, cameriere: 'Luca V.', categoriaClienteId: 0,
-    apertaAlle: '19:20', chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    apertaAlle: oraMenoMinuti(85), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(4), 2, 2, 'servita'),
       riga(voce(6), 2, 3, 'servita'),
@@ -516,13 +546,13 @@ export const comandeIniziali = (): Comanda[] => [
   {
     id: 5, numero: '005', outletId: 1, salaId: 1, tavoloId: 1010, turnoId: 4,
     coperti: 2, cameriere: 'Sara T.', categoriaClienteId: 0,
-    apertaAlle: '20:40', chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    apertaAlle: oraMenoMinuti(10), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [riga(voce(19), 2, 0, 'servita')],
   },
   {
     id: 6, numero: '006', outletId: 1, salaId: 1, tavoloId: 1016, turnoId: 4,
     coperti: 4, cameriere: 'Giulia P.', categoriaClienteId: 0,
-    apertaAlle: '20:05', chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
+    apertaAlle: oraMenoMinuti(40), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(1), 2, 1, 'servita'),
       riga(voce(3), 1, 2, 'inviata'),

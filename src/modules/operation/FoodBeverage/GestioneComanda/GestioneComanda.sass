@@ -1,0 +1,933 @@
+// ─── Gestione comanda (Food & Beverage) ───────────────────────────────────────
+//  POS di sala per tablet/monitor touch: bersagli ≥ 48px, due colonne (catalogo
+//  e comanda) che diventano una sola sotto i 1100px, nessuno scroll orizzontale.
+
+// Una voce appena aggiunta alla comanda si annuncia con un lampo discreto
+@keyframes fbcom-nuova
+  from
+    background: var(--color-link-light)
+  to
+    background: var(--color-surface)
+
+.fbcom
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 12px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+    &:active
+      background: var(--color-primary-50)
+
+  // ── Scelta del tavolo (nessuna comanda in lavorazione) ─────────────────────
+  &__scelta
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+    gap: 12px
+
+  &__scelta-card
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+    min-height: 104px
+    padding: 14px 16px
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .18s ease
+
+    &:active
+      transform: scale(.98)
+      box-shadow: 0 4px 14px rgba(32, 71, 105, .12)
+
+  &__scelta-num
+    font-size: 24px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__scelta-meta
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__scelta-tot
+    margin-top: auto
+    font-size: 15px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__scelta-vuoto
+    grid-column: 1 / -1
+    margin: 0
+    padding: 24px
+    border: 1px dashed var(--color-border)
+    border-radius: 12px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  // ── Intestazione della comanda ─────────────────────────────────────────────
+  &__top
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 18px
+    padding: 12px 16px
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__tavolo
+    display: flex
+    flex-direction: column
+    padding: 6px 16px
+    border-radius: 12px
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-700))
+    color: #fff
+
+  &__tavolo-lab
+    font-size: 11px
+    font-weight: 600
+    opacity: .85
+
+  &__tavolo-num
+    font-size: 24px
+    font-weight: 700
+    line-height: 1.1
+
+  &__meta
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+
+    &--grow
+      flex: 1
+      min-width: 240px
+
+  &__meta-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__meta-val
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-text-active)
+    white-space: nowrap
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__chip
+    min-height: 40px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 20px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: background .18s ease, border-color .18s ease
+
+    em
+      font-style: normal
+      color: var(--color-text-inactive)
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+      em
+        color: rgba(255, 255, 255, .8)
+
+  // Stepper quantità: due bersagli grandi con il numero in mezzo
+  &__stepper
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    button
+      display: grid
+      place-items: center
+      width: 48px
+      height: 48px
+      border: 1px solid var(--color-border)
+      border-radius: 12px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      font-size: 15px
+      cursor: pointer
+      transition: transform .12s ease, background .18s ease
+
+      &:active
+        transform: scale(.94)
+        background: var(--color-primary-50)
+
+    > span
+      min-width: 40px
+      text-align: center
+      font-size: 18px
+      font-weight: 700
+      color: var(--color-primary)
+
+    &--sm button
+      width: 40px
+      height: 40px
+      font-size: 13px
+
+    &--sm > span
+      min-width: 32px
+      font-size: 16px
+
+  // ── Corpo ──────────────────────────────────────────────────────────────────
+  &__body
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 400px
+    gap: 12px
+    flex: 1
+    min-height: 0
+
+  &__menu
+    display: flex
+    flex-direction: column
+    min-width: 0
+    // Figlio di una griglia: senza questo non scende sotto il contenuto e la
+    // barra azioni finisce fuori schermo
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__menu-bar
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 12px 14px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
+
+  &__tipi
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__tipo
+    min-height: 44px
+    padding: 0 18px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: background .18s ease, border-color .18s ease, transform .12s ease
+
+    &:active
+      transform: scale(.97)
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+  &__cerca
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 220px
+    height: 44px
+    padding: 0 12px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-surface)
+
+    i
+      color: var(--color-primary-400)
+
+    input
+      flex: 1
+      min-width: 0
+      border: none
+      background: transparent
+      font-size: 14px
+      color: var(--color-text-active)
+      outline: none
+
+    button
+      display: grid
+      place-items: center
+      width: 32px
+      height: 32px
+      border: none
+      border-radius: 50%
+      background: var(--color-primary-50)
+      color: var(--color-primary)
+      cursor: pointer
+
+  &__cat
+    display: flex
+    gap: 8px
+    padding: 12px 14px 0
+    flex-wrap: wrap
+
+  &__cat-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 48px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    max-width: 200px
+    cursor: pointer
+    transition: border-color .18s ease, background .18s ease, transform .12s ease
+
+    &:active
+      transform: scale(.97)
+
+    &.is-on
+      border-color: var(--cat, var(--color-primary))
+      background: color-mix(in srgb, var(--cat, var(--color-primary)) 12%, var(--color-surface))
+      color: var(--cat, var(--color-primary))
+
+  &__cat-emoji
+    font-size: 18px
+    line-height: 1
+
+  &__cat-nome
+    min-width: 0
+
+  // Griglia delle voci: card grandi, tre o più per riga secondo lo spazio
+  &__voci
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+    align-content: start
+    gap: 10px
+    flex: 1
+    min-height: 0
+    padding: 12px 14px
+    overflow-y: auto
+
+  &__voce
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: 4px
+    min-height: 104px
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-left: 4px solid var(--cat)
+    border-radius: 12px
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .18s ease
+
+    &:active
+      transform: scale(.97)
+      box-shadow: 0 4px 14px rgba(32, 71, 105, .14)
+
+  &__voce-nome
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-text-active)
+    min-width: 0
+
+  &__voce-desc
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+    overflow: hidden
+    display: -webkit-box
+    -webkit-line-clamp: 2
+    -webkit-box-orient: vertical
+
+  &__voce-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    margin-top: auto
+
+  &__voce-prezzo
+    font-size: 15px
+    font-weight: 700
+    color: var(--color-primary)
+
+  &__voce-all
+    padding: 2px 8px
+    border-radius: 10px
+    background: var(--color-warning-light)
+    color: var(--color-warning)
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: .06em
+
+  &__voce-badge
+    position: absolute
+    top: -8px
+    right: -8px
+    display: grid
+    place-items: center
+    min-width: 26px
+    height: 26px
+    padding: 0 6px
+    border-radius: 13px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 12px
+    font-weight: 700
+
+  &__voci-vuoto
+    grid-column: 1 / -1
+    margin: 0
+    padding: 24px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  // Portata di destinazione
+  &__portate
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px
+    padding: 10px 14px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-primary-50)
+
+    &--modale
+      border-top: none
+      background: transparent
+      padding: 0
+
+  &__portate-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__portata
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: background .18s ease, border-color .18s ease
+
+    i
+      color: var(--color-primary)
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+      i
+        color: #fff
+
+  // ── Colonna comanda ────────────────────────────────────────────────────────
+  &__ordine
+    display: flex
+    flex-direction: column
+    min-width: 0
+    min-height: 0
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__ordine-head
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 10px
+    padding: 12px 14px
+    border-bottom: 1px solid var(--color-border)
+
+    h3
+      margin: 0
+      font-size: 15px
+      font-weight: 600
+      color: var(--color-primary)
+
+    span
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__righe
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+    overflow-y: auto
+
+  &__riga-sep
+    position: sticky
+    top: 0
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 8px 14px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 11.5px
+    font-weight: 700
+    letter-spacing: .03em
+    z-index: 1
+
+  &__riga
+    padding: 10px 14px
+    border-bottom: 1px solid var(--color-primary-100)
+
+    &.is-nuova
+      animation: fbcom-nuova 1.2s ease both
+      border-left: 3px solid var(--color-link)
+
+  &__riga-testa
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 10px
+
+  &__riga-nome
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-text-active)
+    min-width: 0
+
+  &__riga-tot
+    font-size: 14px
+    font-weight: 700
+    color: var(--color-primary)
+    white-space: nowrap
+
+  &__riga-sotto
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-top: 8px
+
+  &__riga-stato
+    flex: 1
+    min-width: 0
+    font-size: 11.5px
+    font-weight: 600
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+    &[data-stato="in-comanda"]
+      color: #7A8DA0
+
+    &[data-stato="inviata"]
+      color: #3E7FC1
+
+    &[data-stato="in-preparazione"]
+      color: #B06A1F
+
+    &[data-stato="pronta"]
+      color: #00A870
+
+    &[data-stato="servita"]
+      color: #5A6B7A
+
+  &__riga-act
+    display: grid
+    place-items: center
+    width: 44px
+    height: 44px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    cursor: pointer
+    transition: transform .12s ease, background .18s ease
+
+    i
+      font-size: 16px
+      color: var(--color-primary)
+
+    &:active
+      transform: scale(.94)
+
+    &--danger i
+      color: var(--color-error)
+
+  &__riga-nota
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 8px 0 0
+    padding: 6px 10px
+    border-radius: 8px
+    background: var(--color-warning-light)
+    color: var(--color-text-active)
+    font-size: 12px
+
+    i
+      color: var(--color-warning)
+
+  &__righe-vuoto
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 10px
+    padding: 36px 20px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+    i
+      font-size: 24px
+      color: var(--color-primary-300)
+
+  &__totali
+    padding: 12px 14px
+    border-top: 1px solid var(--color-border)
+    background: var(--color-primary-50)
+
+  &__tot-row
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 10px
+    font-size: 13px
+    color: var(--color-text-inactive)
+
+    strong
+      font-size: 14px
+      color: var(--color-text-active)
+
+    &--sconto strong
+      color: var(--color-success)
+
+    &--tot
+      margin-top: 6px
+      padding-top: 8px
+      border-top: 1px solid var(--color-border)
+
+      span
+        font-size: 14px
+        font-weight: 600
+        color: var(--color-primary)
+
+      strong
+        font-size: 22px
+        color: var(--color-primary)
+
+  &__azioni
+    display: grid
+    grid-template-columns: 1.4fr 1fr 1.4fr
+    gap: 8px
+    padding: 12px
+
+  &__azione
+    position: relative
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 56px
+    padding: 0 10px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 14px
+    font-weight: 600
+    cursor: pointer
+    transition: transform .12s ease, background .18s ease
+
+    i
+      color: var(--color-primary)
+
+    &:active
+      transform: scale(.97)
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+    &--invia.is-pronta
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+      i
+        color: #fff
+
+    &--conto
+      background: var(--color-accent)
+      border-color: var(--color-accent)
+      color: var(--color-primary-900)
+
+      i
+        color: var(--color-primary-900)
+
+  &__azione-badge
+    display: grid
+    place-items: center
+    min-width: 24px
+    height: 24px
+    padding: 0 6px
+    border-radius: 12px
+    background: #fff
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 700
+
+// ─── Modale nota di riga ──────────────────────────────────────────────────────
+.fbcom-nota
+  display: flex
+  flex-direction: column
+  gap: 16px
+  padding: 18px
+
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    min-height: 44px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 22px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+    &.is-on
+      background: var(--color-primary)
+      border-color: var(--color-primary)
+      color: #fff
+
+  &__libera
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    span
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-primary)
+
+    textarea
+      padding: 10px 12px
+      border: 1px solid var(--color-border)
+      border-radius: 10px
+      font-family: inherit
+      font-size: 14px
+      color: var(--color-text-active)
+      resize: vertical
+
+  &__lab
+    display: block
+    margin-bottom: 8px
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+
+  &__ok
+    min-height: 52px
+    padding: 0 28px
+    border: 1px solid var(--color-primary)
+    border-radius: 12px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 14px
+    font-weight: 600
+    cursor: pointer
+
+// ─── Modale conto ─────────────────────────────────────────────────────────────
+.fbcom-conto
+  display: flex
+  flex-direction: column
+  gap: 18px
+  padding: 18px
+
+  &__tot
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 4px
+    padding: 18px
+    border-radius: 14px
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-700))
+    color: #fff
+
+    span
+      font-size: 12.5px
+      opacity: .85
+
+    strong
+      font-size: 34px
+      font-weight: 700
+      line-height: 1.1
+
+    em
+      font-style: normal
+      font-size: 12px
+      opacity: .8
+
+  &__blk
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__pag
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
+    gap: 10px
+
+  &__pag-btn
+    display: inline-flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 88px
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: transform .12s ease, background .18s ease, border-color .18s ease
+
+    i
+      font-size: 22px
+      color: var(--color-primary)
+
+    &:active
+      transform: scale(.97)
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+      color: var(--color-primary)
+
+  &__camera
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    span
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-primary)
+
+    input
+      height: 52px
+      padding: 0 14px
+      border: 1px solid var(--color-border)
+      border-radius: 12px
+      font-size: 18px
+      font-weight: 600
+      color: var(--color-text-active)
+
+  &__foot
+    display: flex
+    flex-wrap: wrap
+    gap: 10px
+
+  &__annulla
+    min-height: 56px
+    padding: 0 22px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 14px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    flex: 1
+    min-width: 220px
+    min-height: 56px
+    border: 1px solid var(--color-success-mid)
+    border-radius: 12px
+    background: var(--color-success-mid)
+    color: #06251a
+    font-size: 15px
+    font-weight: 700
+    cursor: pointer
+    transition: transform .12s ease, opacity .18s ease
+
+    &:active
+      transform: scale(.98)
+
+    &:disabled
+      opacity: .45
+      cursor: not-allowed
+
+// ─── Tablet in verticale / schermi stretti ────────────────────────────────────
+@container (max-width: 1100px)
+  .fbcom__body
+    grid-template-columns: minmax(0, 1fr)
+
+  .fbcom__voci
+    max-height: 420px
+
+  .fbcom__righe
+    max-height: 360px
+
+@container (max-width: 680px)
+  .fbcom__azioni
+    grid-template-columns: minmax(0, 1fr)
+
+  .fbcom__top
+    gap: 12px

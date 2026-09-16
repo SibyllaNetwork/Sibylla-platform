@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
   OUTLETS, SALE, TURNI, tavoliIniziali, prenotazioniIniziali, comandeIniziali,
-  VOCI_MENU, CATEGORIE_CLIENTE, oggiISO,
+  VOCI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
   type Comanda, type Prenotazione, type RigaComanda, type StatoRiga,
   type StatoTavolo, type Tavolo,
 } from '../modules/operation/FoodBeverage/fb.model'
@@ -103,7 +103,7 @@ interface FbState {
 export const useFbStore = create<FbState>()(
   persist(
     (set, get) => ({
-      contesto: { outletId: 1, salaId: 1, turnoId: 4, tavoloId: null, data: oggiISO() },
+      contesto: { outletId: 1, salaId: 1, turnoId: turnoCorrente(1)?.id ?? null, tavoloId: null, data: oggiISO() },
       setContesto: c => set(s => ({ contesto: { ...s.contesto, ...c } })),
 
       tavoli: tavoliIniziali(),

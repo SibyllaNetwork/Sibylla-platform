@@ -1,24 +1,23 @@
 // ─── Sala ristorante (Food & Beverage) ────────────────────────────────────────
-//  Pagina touch-first: ogni bersaglio è almeno 48px, nessuno stato dipende
-//  dall'hover (che su tablet non esiste) e la planimetria scala col contenitore
-//  invece di scrollare. I colori di stato arrivano da STATO_TAVOLO del modello,
-//  qui ridichiarati come custom property per poterli usare anche nei gradienti.
+//  Touch-first: bersagli ≥ 44px, nessuno stato legato all'hover, niente scroll
+//  orizzontale a nessuna larghezza. Ogni tavolo ha un colore proprio (--tav),
+//  quello della sua toque; lo stato di servizio tinge la fascia in basso e il
+//  bordo, così la sala resta leggibile a colpo d'occhio anche da lontano.
 
-// Pulsazione dei tavoli che chiedono attenzione (conto richiesto)
-@keyframes fbsala-pulse
-  0%, 100%
-    box-shadow: 0 0 0 0 rgba(62, 127, 193, 0.45)
-  50%
-    box-shadow: 0 0 0 10px rgba(62, 127, 193, 0)
-
-// Entrata dei tavoli: la mappa "si compone" all'apertura della pagina
 @keyframes fbsala-in
   from
     opacity: 0
-    transform: translate(-50%, -46%) scale(.92)
+    transform: translateY(6px)
   to
     opacity: 1
-    transform: translate(-50%, -50%) scale(1)
+    transform: none
+
+// Il tavolo che ha chiesto il conto chiama l'attenzione senza urlare
+@keyframes fbsala-pulse
+  0%, 100%
+    box-shadow: 0 0 0 0 rgba(62, 127, 193, .38)
+  50%
+    box-shadow: 0 0 0 8px rgba(62, 127, 193, 0)
 
 .fbsala
   container-type: inline-size
@@ -36,6 +35,11 @@
   --fb-pulizia:   #7A8DA0
   --fb-bloccato:  #5A6B7A
 
+  // ── Header ─────────────────────────────────────────────────────────────────
+  &__head-acts
+    display: flex
+    gap: 8px
+
   &__head-btn
     display: inline-flex
     align-items: center
@@ -48,8 +52,9 @@
     color: var(--color-primary)
     font-size: 13px
     font-weight: 600
+    white-space: nowrap
     cursor: pointer
-    transition: background .18s ease, border-color .18s ease
+    transition: background .18s ease
 
     &:active
       background: var(--color-primary-50)
@@ -58,7 +63,8 @@
   &__bar
     display: flex
     flex-wrap: wrap
-    gap: 18px
+    align-items: flex-end
+    gap: 20px
     padding: 12px 14px
     border: 1px solid var(--color-border)
     border-radius: 14px
@@ -69,6 +75,9 @@
     flex-direction: column
     gap: 6px
     min-width: 0
+
+    &--end
+      margin-left: auto
 
   &__pick-lab
     font-size: 12px
@@ -101,24 +110,64 @@
       border-color: var(--color-primary)
       color: #fff
 
-  // ── Corpo: mappa + pannello ────────────────────────────────────────────────
+    &--sm
+      min-height: 38px
+      padding: 0 14px
+      font-size: 12.5px
+
+  // Segmented control (vista, servizio)
+  &__seg
+    display: inline-flex
+    padding: 3px
+    border: 1px solid var(--color-border)
+    border-radius: 24px
+    background: var(--color-primary-50)
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 38px
+      padding: 0 16px
+      border: none
+      border-radius: 20px
+      background: transparent
+      color: var(--color-text-inactive)
+      font-size: 13px
+      font-weight: 600
+      white-space: nowrap
+      cursor: pointer
+      transition: background .2s ease, color .2s ease, box-shadow .2s ease
+
+      &.is-on
+        background: var(--color-surface)
+        color: var(--color-primary)
+        box-shadow: 0 1px 4px rgba(32, 71, 105, .16)
+
+    &--sm button
+      min-height: 32px
+      padding: 0 12px
+      font-size: 12px
+
+  // ── Corpo ──────────────────────────────────────────────────────────────────
   &__body
     display: grid
-    grid-template-columns: minmax(0, 1fr) 360px
+    grid-template-columns: minmax(0, 1fr) 340px
     gap: 12px
     flex: 1
     min-height: 0
 
-  &__mappa-wrap
+  &__main
     display: flex
     flex-direction: column
     min-width: 0
+    min-height: 0
     border: 1px solid var(--color-border)
     border-radius: 14px
     background: var(--color-surface)
     overflow: hidden
 
-  &__mappa-head
+  &__main-head
     display: flex
     align-items: center
     justify-content: space-between
@@ -127,7 +176,7 @@
     border-bottom: 1px solid var(--color-border)
     background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
 
-  &__mappa-tit
+  &__main-tit
     display: flex
     align-items: baseline
     gap: 10px
@@ -136,36 +185,75 @@
     font-weight: 600
     color: var(--color-primary)
 
-    i
-      color: var(--color-primary)
-
     em
       font-style: normal
       font-size: 12.5px
       font-weight: 500
       color: var(--color-text-inactive)
       white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
 
-  &__mappa-kpi
+  &__main-kpi
     display: flex
+    align-items: center
     gap: 16px
     font-size: 12.5px
     color: var(--color-text-inactive)
     white-space: nowrap
 
     strong
-      font-size: 14px
+      font-size: 15px
       color: var(--color-primary)
 
-  &__hint
+  &__filtro-off
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    min-height: 34px
+    padding: 0 12px
+    border: 1px solid var(--color-primary-200)
+    border-radius: 18px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 600
+    cursor: pointer
+
+  &__hint,
+  &__multi
     display: flex
     align-items: center
+    flex-wrap: wrap
     gap: 10px
     padding: 10px 16px
     background: var(--color-link-light)
     color: var(--color-primary)
     font-size: 13px
     font-weight: 600
+
+  &__multi
+    background: var(--color-primary-50)
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 8px
+      min-height: 40px
+      padding: 0 14px
+      border: 1px solid var(--color-border)
+      border-radius: 20px
+      background: var(--color-surface)
+      color: var(--color-text-active)
+      font-size: 12.5px
+      font-weight: 600
+      cursor: pointer
+
+      i
+        color: var(--color-primary)
+
+  &__multi-x
+    margin-left: auto
 
   &__hint-x
     margin-left: auto
@@ -179,27 +267,246 @@
     color: var(--color-text-active)
     cursor: pointer
 
-  // Planimetria: i tavoli sono posizionati in % (--x/--y dal modello)
+  // ── Griglia dei tavoli ─────────────────────────────────────────────────────
+  &__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr))
+    // `max-content`: con `auto` e contenitore ad altezza definita le righe
+    // verrebbero compresse (la card ha overflow:hidden → min-content 0)
+    grid-auto-rows: max-content
+    align-content: start
+    gap: 12px
+    flex: 1
+    min-height: 0
+    padding: 14px
+    overflow-y: auto
+
+  &__vuoto
+    grid-column: 1 / -1
+    margin: 0
+    padding: 28px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  &__card
+    position: relative
+    display: flex
+    flex-direction: column
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+    animation: fbsala-in .3s ease both
+    transition: box-shadow .2s ease, border-color .2s ease, transform .12s ease
+
+    &[data-stato="conto"]
+      animation: fbsala-in .3s ease both, fbsala-pulse 2.4s ease-in-out .5s infinite
+
+    &[data-stato="bloccato"]
+      opacity: .6
+
+    &.is-sel
+      border-color: var(--color-primary)
+      box-shadow: 0 0 0 3px var(--color-focus-ring), 0 8px 20px rgba(32, 71, 105, .14)
+
+    &.is-scelto
+      border-color: var(--color-accent)
+
+    &.is-src
+      border-color: var(--color-accent)
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, .3)
+
+  &__card-check
+    position: absolute
+    top: 2px
+    left: 2px
+    z-index: 2
+    display: grid
+    place-items: center
+    width: 40px
+    height: 40px
+    border: none
+    background: transparent
+    cursor: pointer
+
+    i
+      font-size: 15px
+      color: var(--color-primary-300)
+
+    &[aria-pressed="true"] i
+      color: var(--color-accent)
+
+  &__card-pren
+    position: absolute
+    top: 10px
+    right: 12px
+    z-index: 2
+    color: var(--color-warning)
+    font-size: 13px
+
+  &__card-body
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 3px
+    padding: 14px 12px 12px
+    border: none
+    background: transparent
+    cursor: pointer
+    transition: transform .12s ease
+
+    &:active
+      transform: scale(.98)
+
+  &__card-hat
+    margin-bottom: 2px
+
+  &__card-num
+    font-size: 21px
+    font-weight: 700
+    line-height: 1
+    letter-spacing: .02em
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__card-cop
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__card-barra
+    display: block
+    width: 72px
+    height: 4px
+    border-radius: 2px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+    > span
+      display: block
+      width: calc(var(--pct) * 1%)
+      height: 100%
+      border-radius: 2px
+      background: var(--tav, var(--color-primary))
+      transition: width .3s ease
+
+  &__card-imp
+    margin-top: 4px
+    font-size: 15px
+    font-weight: 700
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__card-portate
+    display: inline-flex
+    gap: 4px
+    margin-top: 2px
+
+  &__card-dot
+    display: block
+    width: 7px
+    height: 7px
+    border-radius: 50%
+    background: var(--color-primary-200)
+
+    &[data-av="pronta"]
+      background: var(--fb-libero)
+
+    &[data-av="servita"]
+      background: var(--color-primary-400)
+
+    &[data-av="attesa"]
+      background: var(--fb-ordinato)
+
+  &__card-info
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-top: 6px
+    min-height: 22px
+
+  &__card-cam
+    display: grid
+    place-items: center
+    width: 22px
+    height: 22px
+    border-radius: 50%
+    background: var(--tav, var(--color-primary))
+    color: #fff
+    font-size: 9.5px
+    font-weight: 700
+
+  &__card-time
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+    i
+      font-size: 9px
+
+  &__card-unito
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    margin-top: 4px
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-link)
+
+  &__card-stato
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 7px
+    min-height: 34px
+    padding: 0 8px
+    font-size: 11.5px
+    font-weight: 700
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__card[data-stato="libero"] &__card-stato
+    background: rgba(0, 168, 112, .12)
+    color: #007a51
+
+  &__card[data-stato="riservato"] &__card-stato
+    background: rgba(198, 149, 32, .14)
+    color: #8a6811
+
+  &__card[data-stato="occupato"] &__card-stato
+    background: rgba(214, 69, 80, .12)
+    color: #a8323c
+
+  &__card[data-stato="ordinato"] &__card-stato
+    background: rgba(176, 106, 31, .14)
+    color: #8a5217
+
+  &__card[data-stato="conto"] &__card-stato
+    background: rgba(62, 127, 193, .14)
+    color: #2c6398
+
+  &__card[data-stato="pulizia"] &__card-stato
+    background: rgba(122, 141, 160, .16)
+    color: #55677a
+
+  &__card[data-stato="bloccato"] &__card-stato
+    background: rgba(90, 107, 122, .18)
+    color: #46545f
+
+  // ── Planimetria ────────────────────────────────────────────────────────────
   &__mappa
     position: relative
     flex: 1
-    min-height: 320px
+    min-height: 340px
     margin: 14px
     border: 1px dashed var(--color-border)
     border-radius: 12px
     background-color: var(--color-surface)
     background-image: radial-gradient(circle at 1px 1px, var(--color-primary-100) 1px, transparent 0)
     background-size: 28px 28px
-
-  &__vuoto
-    position: absolute
-    inset: 0
-    display: flex
-    align-items: center
-    justify-content: center
-    margin: 0
-    color: var(--color-text-inactive)
-    font-size: 13px
 
   &__tav
     position: absolute
@@ -210,136 +517,222 @@
     flex-direction: column
     align-items: center
     justify-content: center
-    gap: 2px
-    width: 84px
-    height: 72px
+    gap: 1px
+    width: 86px
+    height: 86px
     padding: 4px
-    border: 2px solid var(--stato, var(--color-border))
-    border-radius: 12px
+    border: 2px solid var(--tav)
+    border-radius: 14px
     background: var(--color-surface)
-    color: var(--color-text-active)
     cursor: pointer
-    animation: fbsala-in .32s ease both
-    transition: transform .14s ease, box-shadow .18s ease, opacity .18s ease
+    animation: fbsala-in .3s ease both
+    transition: box-shadow .18s ease, transform .12s ease
 
     &:active
       transform: translate(-50%, -50%) scale(.95)
 
     &--rotondo
       border-radius: 50%
-      width: 76px
-      height: 76px
 
     &--rettangolare
-      width: 104px
+      width: 108px
 
-    &--libero
-      --stato: var(--fb-libero)
+    &[data-stato="conto"]
+      animation: fbsala-in .3s ease both, fbsala-pulse 2.4s ease-in-out .5s infinite
 
-    &--riservato
-      --stato: var(--fb-riservato)
-
-    &--occupato
-      --stato: var(--fb-occupato)
-
-    &--ordinato
-      --stato: var(--fb-ordinato)
-
-    &--conto
-      --stato: var(--fb-conto)
-
-    &--pulizia
-      --stato: var(--fb-pulizia)
-
-    &--bloccato
-      --stato: var(--fb-bloccato)
-
-    &--occupato,
-    &--ordinato,
-    &--conto
-      background: color-mix(in srgb, var(--stato) 10%, var(--color-surface))
-
-    &--pulizia,
-    &--bloccato
-      background: var(--color-primary-50)
-      color: var(--color-text-inactive)
-
-    // Conto richiesto: pulsa finché non viene servito
-    &--conto
-      animation: fbsala-in .32s ease both, fbsala-pulse 2.2s ease-in-out .4s infinite
+    &[data-stato="bloccato"],
+    &[data-stato="pulizia"]
+      opacity: .55
 
     &.is-sel
       box-shadow: 0 0 0 4px var(--color-focus-ring), 0 6px 18px rgba(32, 71, 105, .18)
 
-    &.is-off
-      opacity: .28
-
-    &.is-src
-      box-shadow: 0 0 0 4px rgba(198, 149, 32, .35)
-
   &__tav-num
-    font-size: 15px
+    font-size: 14px
     font-weight: 700
-    line-height: 1.1
-    color: var(--stato)
+    color: var(--color-primary)
 
   &__tav-cap
     display: inline-flex
     align-items: center
     gap: 4px
-    font-size: 11.5px
-    font-weight: 600
+    font-size: 11px
     color: var(--color-text-inactive)
 
     i
-      font-size: 10px
+      font-size: 9px
 
   &__tav-tot
-    font-size: 11.5px
+    font-size: 11px
     font-weight: 700
     color: var(--color-primary)
 
-  &__tav-cam
-    position: absolute
-    top: -8px
-    right: -6px
-    display: grid
-    place-items: center
-    width: 24px
-    height: 24px
-    border-radius: 50%
-    background: var(--color-primary)
-    color: #fff
-    font-size: 10px
-    font-weight: 700
-
-  // ── Legenda / filtro ───────────────────────────────────────────────────────
-  &__legenda
+  // ── Colonna di servizio ────────────────────────────────────────────────────
+  &__panel
     display: flex
-    flex-wrap: wrap
-    gap: 8px
-    padding: 0 14px 14px
+    flex-direction: column
+    gap: 12px
+    min-height: 0
+    padding-right: 2px
+    overflow-y: auto
 
-  &__lg
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    min-height: 44px
-    padding: 0 14px
+  &__blk
+    flex: 0 0 auto
     border: 1px solid var(--color-border)
-    border-radius: 22px
+    border-radius: 14px
     background: var(--color-surface)
-    cursor: pointer
-    transition: border-color .18s ease, background .18s ease
+    overflow: hidden
 
-    &.is-on
-      border-color: var(--color-primary)
+  &__blk-tit
+    margin: 0
+    padding: 12px 14px 8px
+    font-size: 13.5px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__blk-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 8px 10px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
+
+    h3
+      margin: 0
+      font-size: 13.5px
+      font-weight: 600
+      color: var(--color-primary)
+
+    button
+      display: grid
+      place-items: center
+      width: 36px
+      height: 36px
+      border: 1px solid var(--color-border)
+      border-radius: 10px
+      background: var(--color-surface)
+      color: var(--color-primary)
+      cursor: pointer
+
+      &:active
+        background: var(--color-primary-50)
+
+    &--plain
+      padding: 12px 14px
+
+      span
+        font-size: 11.5px
+        color: var(--color-text-inactive)
+
+  // Calendario del mese
+  &__cal
+    display: grid
+    grid-template-columns: repeat(7, 1fr)
+    gap: 2px
+    padding: 8px 10px 12px
+
+  &__cal-dow
+    padding-bottom: 4px
+    font-size: 10.5px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    text-align: center
+
+  &__cal-vuoto
+    height: 34px
+
+  &__cal-g
+    position: relative
+    height: 34px
+    border: none
+    border-radius: 9px
+    background: transparent
+    color: var(--color-text-active)
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    transition: background .16s ease, color .16s ease
+
+    &.is-fest
+      color: var(--color-link)
+
+    &:active
       background: var(--color-primary-50)
 
-  &__lg-dot
-    width: 12px
-    height: 12px
+    &.is-on
+      background: var(--color-primary)
+      color: #fff
+
+  &__cal-pt
+    position: absolute
+    left: 50%
+    bottom: 4px
+    transform: translateX(-50%)
+    width: 4px
+    height: 4px
     border-radius: 50%
+    background: var(--color-accent)
+
+  &__riga
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 6px 14px 12px
+    flex-wrap: wrap
+
+  &__riga-lab
+    min-width: 58px
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  &__nota
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+    &--pad
+      display: block
+      padding: 14px
+
+  // Contatori di stato
+  &__stati
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 6px
+    padding: 4px 10px 12px
+
+  &__stato
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 8px
+    border: 1px solid transparent
+    border-radius: 10px
+    background: transparent
+    cursor: pointer
+    transition: background .16s ease, border-color .16s ease
+
+    &:disabled
+      opacity: .4
+      cursor: default
+
+    &.is-on
+      border-color: var(--color-primary-200)
+      background: var(--color-primary-50)
+
+  &__stato-n
+    display: grid
+    place-items: center
+    min-width: 26px
+    height: 24px
+    padding: 0 6px
+    border-radius: 7px
+    color: #fff
+    font-size: 12px
+    font-weight: 700
 
     &[data-stato="libero"]
       background: var(--fb-libero)
@@ -362,56 +755,19 @@
     &[data-stato="bloccato"]
       background: var(--fb-bloccato)
 
-  &__lg-n
-    font-size: 14px
-    font-weight: 700
-    color: var(--color-primary)
-
-  &__lg-l
-    font-size: 12.5px
-    color: var(--color-text-inactive)
-
-  // ── Pannello laterale ──────────────────────────────────────────────────────
-  &__panel
-    display: flex
-    flex-direction: column
-    gap: 12px
-    min-height: 0
-    overflow-y: auto
-
-  &__empty
-    display: flex
-    flex-direction: column
-    align-items: center
-    justify-content: center
-    gap: 12px
-    padding: 32px 20px
-    border: 1px dashed var(--color-border)
-    border-radius: 14px
-    background: var(--color-surface)
-    color: var(--color-text-inactive)
-    text-align: center
-
-    i
-      font-size: 26px
-      color: var(--color-primary-300)
-
-    p
-      margin: 0
-      font-size: 13px
-
-  &__card
-    border: 1px solid var(--color-border)
-    border-radius: 14px
-    background: var(--color-surface)
+  &__stato-l
+    font-size: 12px
+    color: var(--color-text-active)
     overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
 
-  &__card-head
+  // ── Tavolo scelto ──────────────────────────────────────────────────────────
+  &__tav-head
     display: flex
     align-items: center
-    justify-content: space-between
     gap: 12px
-    padding: 14px 16px
+    padding: 12px 14px
     color: #fff
 
     &[data-stato="libero"]
@@ -435,27 +791,26 @@
     &[data-stato="bloccato"]
       background: linear-gradient(135deg, var(--fb-bloccato), #46545f)
 
-  &__card-eyebrow
+  &__tav-eyebrow
     display: block
-    font-size: 11px
+    font-size: 10.5px
     font-weight: 600
-    letter-spacing: .04em
     opacity: .85
 
-  &__card-num
-    margin: 2px 0 0
-    font-size: 26px
+  &__tav-big
+    font-size: 24px
     font-weight: 700
-    line-height: 1
+    line-height: 1.05
 
-  &__card-stato
+  &__tav-badge
     display: inline-flex
     align-items: center
-    gap: 8px
-    padding: 6px 12px
-    border-radius: 20px
-    background: rgba(255, 255, 255, .18)
-    font-size: 12.5px
+    gap: 7px
+    margin-left: auto
+    padding: 6px 11px
+    border-radius: 18px
+    background: rgba(255, 255, 255, .2)
+    font-size: 11.5px
     font-weight: 600
     white-space: nowrap
 
@@ -470,16 +825,16 @@
       display: flex
       flex-direction: column
       gap: 2px
-      padding: 10px 14px
+      padding: 9px 12px
       background: var(--color-surface)
 
     dt
-      font-size: 11.5px
+      font-size: 11px
       color: var(--color-text-inactive)
 
     dd
       margin: 0
-      font-size: 14px
+      font-size: 13.5px
       font-weight: 600
       color: var(--color-text-active)
       overflow: hidden
@@ -488,20 +843,21 @@
 
     &--tot dd
       color: var(--color-primary)
-      font-size: 17px
+      font-size: 16px
 
   &__pren-tav
     display: flex
     align-items: center
-    gap: 10px
+    gap: 8px
+    margin: 0
     padding: 10px 14px
     border-top: 1px solid var(--color-border)
-    background: var(--color-link-light)
-    font-size: 12.5px
+    background: var(--color-warning-light)
+    font-size: 12px
     color: var(--color-text-active)
 
     i
-      color: var(--color-primary)
+      color: var(--color-warning)
 
   &__actions
     display: grid
@@ -514,22 +870,22 @@
     align-items: center
     justify-content: center
     gap: 8px
-    min-height: 52px
-    padding: 0 12px
+    min-height: 48px
+    padding: 0 10px
     border: 1px solid var(--color-border)
     border-radius: 12px
     background: var(--color-surface)
     color: var(--color-text-active)
-    font-size: 13px
+    font-size: 12.5px
     font-weight: 600
     cursor: pointer
-    transition: transform .12s ease, background .18s ease, border-color .18s ease
+    transition: transform .12s ease, background .18s ease
 
     &:active
       transform: scale(.97)
 
     i
-      font-size: 15px
+      font-size: 14px
       color: var(--color-primary)
 
     &--go
@@ -537,6 +893,7 @@
       background: var(--color-primary)
       border-color: var(--color-primary)
       color: #fff
+      font-size: 13.5px
 
       i
         color: #fff
@@ -556,31 +913,6 @@
         color: var(--color-error)
 
   // ── Prenotazioni in arrivo ─────────────────────────────────────────────────
-  &__pren
-    display: flex
-    flex-direction: column
-    border: 1px solid var(--color-border)
-    border-radius: 14px
-    background: var(--color-surface)
-    overflow: hidden
-
-  &__pren-head
-    display: flex
-    align-items: baseline
-    justify-content: space-between
-    padding: 12px 14px
-    border-bottom: 1px solid var(--color-border)
-
-    h3
-      margin: 0
-      font-size: 14px
-      font-weight: 600
-      color: var(--color-primary)
-
-    span
-      font-size: 12px
-      color: var(--color-text-inactive)
-
   &__pren-list
     margin: 0
     padding: 0
@@ -588,12 +920,12 @@
 
   &__pren-row
     display: grid
-    grid-template-columns: 52px minmax(0, 1fr) 46px 84px
+    grid-template-columns: 46px minmax(0, 1fr) 40px 76px
     align-items: center
-    gap: 8px
+    gap: 6px
     width: 100%
-    min-height: 48px
-    padding: 0 14px
+    min-height: 46px
+    padding: 0 12px
     border: none
     border-bottom: 1px solid var(--color-primary-100)
     background: var(--color-surface)
@@ -604,31 +936,31 @@
       background: var(--color-primary-50)
 
   &__pren-ora
-    font-size: 13px
+    font-size: 12.5px
     font-weight: 700
     color: var(--color-primary)
 
   &__pren-nome
-    font-size: 13px
-    color: var(--color-text-active)
     min-width: 0
+    font-size: 12.5px
+    color: var(--color-text-active)
 
   &__pren-pax
     display: inline-flex
     align-items: center
     gap: 4px
-    font-size: 12.5px
+    font-size: 12px
     color: var(--color-text-inactive)
 
     i
-      font-size: 10px
+      font-size: 9px
 
   &__pren-tav
     justify-self: end
-    padding: 4px 10px
-    border-radius: 12px
+    padding: 3px 8px
+    border-radius: 11px
     background: var(--color-primary-50)
-    font-size: 11.5px
+    font-size: 10.5px
     font-weight: 600
     color: var(--color-primary)
     white-space: nowrap
@@ -638,22 +970,18 @@
       color: var(--color-text-disabled)
       font-weight: 500
 
-  &__pren-vuoto
-    padding: 16px 14px
-    font-size: 12.5px
-    color: var(--color-text-inactive)
-
   &__pren-all
     display: flex
     align-items: center
     justify-content: center
     gap: 8px
-    min-height: 48px
+    width: 100%
+    min-height: 44px
     border: none
     border-top: 1px solid var(--color-border)
     background: var(--color-primary-50)
     color: var(--color-primary)
-    font-size: 13px
+    font-size: 12.5px
     font-weight: 600
     cursor: pointer
 
@@ -776,7 +1104,7 @@
     font-size: 14px
     font-weight: 600
     cursor: pointer
-    transition: transform .12s ease, opacity .18s ease
+    transition: transform .12s ease
 
     &:active
       transform: scale(.98)
@@ -786,25 +1114,30 @@
       border-color: var(--color-accent)
       color: var(--color-primary-900)
 
-// ─── Tablet e monitor in verticale ────────────────────────────────────────────
-// Sotto i 1100px il pannello va sotto la mappa: entrambe restano leggibili e
-// nessuna delle due produce scroll orizzontale.
-@container (max-width: 1100px)
+// ─── Tablet e monitor stretti ─────────────────────────────────────────────────
+@container (max-width: 1180px)
+  .fbsala__body
+    grid-template-columns: minmax(0, 1fr) 300px
+
+  .fbsala__grid
+    grid-template-columns: repeat(auto-fill, minmax(156px, 1fr))
+
+@container (max-width: 900px)
   .fbsala__body
     grid-template-columns: minmax(0, 1fr)
 
   .fbsala__panel
     overflow: visible
 
-  .fbsala__actions
-    grid-template-columns: repeat(2, minmax(0, 1fr))
+  .fbsala__grid
+    max-height: 60vh
 
-@container (max-width: 680px)
-  .fbsala__bar
-    gap: 12px
-
+@container (max-width: 620px)
   .fbsala__actions
     grid-template-columns: minmax(0, 1fr)
 
   .fbsala__act--go
     grid-column: span 1
+
+  .fbsala__stati
+    grid-template-columns: 1fr
