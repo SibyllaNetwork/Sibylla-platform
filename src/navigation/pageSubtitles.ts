@@ -136,6 +136,26 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "turni-personale": "Pianificazione e visualizzazione dei turni di lavoro",
   "value-analysis": "Analisi del markup e delle performance di occupancy e ADR",
   "wif-analysis": "Simula scenari e valuta l’impatto delle decisioni sul business",
+
+  // Food & Beverage (Outlet Manager)
+  "fb-dashboard": "Andamento del servizio: coperti, incassi, tavoli e prenotazioni della giornata",
+  "fb-outlet": "Gli outlet della struttura: ristoranti, bar, roof top e punti di somministrazione",
+  "fb-sale-tavoli": "Sale, ranghi e tavoli di ogni outlet",
+  "fb-turni": "I turni di servizio: fasce orarie, coperti disponibili e sale collegate",
+  "fb-tipi-menu": "Le famiglie di menu: food, beverage, cantina",
+  "fb-categorie": "Le categorie in cui si articolano le voci di menu",
+  "fb-voci-menu": "Il catalogo completo dei piatti e delle bevande, con prezzi e allergeni",
+  "fb-menu-giorno": "Il menu proposto in ciascuna giornata di servizio",
+  "fb-web-menu": "Il menu pubblicato online per gli ospiti",
+  "fb-allergeni": "I 14 allergeni UE associati alle voci di menu",
+  "fb-categoria-ospite": "Le categorie cliente e i relativi listini",
+  "fb-stampanti": "Le stampanti di reparto e le voci instradate su ciascuna",
+  "fb-service-monitor": "I monitor di cucina e bar con le comande in lavorazione",
+  "fb-config-email": "Il mittente e il server usati per gli invii ai clienti",
+  "fb-mobile-wallet": "Le tessere digitali Apple e Google Wallet dei clienti",
+  "fb-utenti": "Gli utenti abilitati all'Outlet Manager",
+  "fb-wallet-clienti": "Il credito dei clienti e i relativi movimenti",
+  "fb-ruoli": "I ruoli e i permessi di accesso alle pagine F&B",
 }
 
 /** Sottotitolo per una pagina (gestisce gli id con parametro "id:param"). */

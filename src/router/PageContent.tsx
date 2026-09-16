@@ -136,6 +136,7 @@ import SaleTavoli                   from '../modules/operation/SaleTavoli/SaleTa
 // ── Food & Beverage (Outlet Manager — outlet.sibyllanetwork.it) ──
 import OutletShell                 from '../modules/operation/Outlet/OutletShell';
 import type { OutletSubPage }      from '../modules/operation/Outlet/OutletShell';
+import OutletConfig, { hasOutletConfig } from '../modules/operation/Outlet/OutletConfig';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -454,6 +455,11 @@ export default function PageContent({ page, navigate }: Props) {
     'ospiti-giorno': 'ospiti',
   };
   if (page in FB_PAGES) return <OutletShell initialPage={FB_PAGES[page]} navigate={navigate}/>;
+
+  // Voci Struttura/Menu/Generali della sezione F&B: finché non sono riscritte
+  // col design system Platform, montano la pagina Outlet corrispondente (la
+  // stessa già usata dal Configuratore → Food & Beverage).
+  if (hasOutletConfig(page)) return <OutletConfig id={page} key={page}/>;
 
   if (page === 'sysadmin')              return <SysadminIndex navigate={navigate}/>;
   if (page === 'gestione-aziende')      return <GestioneAziende navigate={navigate}/>;
