@@ -98,17 +98,45 @@ const dettCamera = (c: CameraRow): DettCamera => ({
 // che è per forza diverso): così il totale della riga resta sempre
 // `quantità × valori mostrati` e lo specchietto non può divergere dalla lista
 const dettagliDi = (c: CameraRow): DettCamera[] => {
-  const base = c.dettagli.length ? c.dettagli : [dettCamera(c)]
-  return Array.from({ length: Math.max(1, c.quantita) },
-    (_, k) => c.dettagli[k] ?? { ...base[base.length - 1], numero: '', note: '' })
+  const n = Math.max(1, c.quantita)
+  // Riga appena creata: i totali di persone della riga si distribuiscono
+  // sulle sue camere (il resto alle prime)
+  if (!c.dettagli.length) {
+    const quote = {
+      adulti: ripartisci(c.adulti, n), ragazzi: ripartisci(c.ragazzi, n),
+      bambini: ripartisci(c.bambini, n), infanti: ripartisci(c.infanti, n),
+    }
+    return Array.from({ length: n }, (_, k) => ({
+      ...dettCamera(c),
+      adulti: quote.adulti[k], ragazzi: quote.ragazzi[k],
+      bambini: quote.bambini[k], infanti: quote.infanti[k],
+    }))
+  }
+  return Array.from({ length: n },
+    (_, k) => c.dettagli[k] ?? { ...c.dettagli[c.dettagli.length - 1], numero: '', note: '' })
 }
 const totaleDett = (d: DettCamera) => paganti(d) * d.prezzoPersona * notti(d.dataIn, d.dataOut)
 const totaleRigaGr = (c: CameraRow) => dettagliDi(c).reduce((a, d) => a + totaleDett(d), 0)
+/** Ripartisce un totale sulle camere della riga: il resto va alle prime. */
+const ripartisci = (totale: number, camere: number): number[] => {
+  const base = Math.floor(Math.max(0, totale) / Math.max(1, camere))
+  const resto = Math.max(0, totale) - base * camere
+  return Array.from({ length: camere }, (_, i) => base + (i < resto ? 1 : 0))
+}
+
 // Valore comune a tutte le camere della riga (undefined se divergono)
 function comune<K extends keyof DettCamera>(c: CameraRow, k: K): DettCamera[K] | undefined {
   const dd = dettagliDi(c)
   return dd.every(d => d[k] === dd[0][k]) ? dd[0][k] : undefined
 }
+
+// Le colonne Adulti/Ragazzi/Bambini/Infanti della riga sono il TOTALE della riga
+// (di tutte le sue camere), non il valore di una camera: è così che si prende
+// una prenotazione di gruppo — «10 camere per 20 adulti e 6 ragazzi».
+type CampoPersone = 'adulti' | 'ragazzi' | 'bambini' | 'infanti'
+
+const personeRiga = (c: CameraRow, k: CampoPersone) =>
+  dettagliDi(c).reduce((a, d) => a + d[k], 0)
 /** Nome della tipologia senza il codice davanti: "53 | Doppia classic" → "Doppia classic". */
 const nomeTipo = (v: string) => {
   const l = TIPI_CAMERA.find(t => t.v === v)?.l ?? v
@@ -230,7 +258,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     const riga = () => initRowGr(grForm.dal, grForm.al, grForm.arrangiamento)
     const seed = editing
       ? editCamere(editing).map(c => ({ ...riga(), ...c, dataIn: grForm.dal, dataOut: grForm.al }))
-      : [{ ...riga(), quantita: 2 }, { ...riga(), tipo: '55', quantita: 1, adulti: 3 }]
+      : [{ ...riga(), quantita: 2, adulti: 4 }, { ...riga(), tipo: '55', quantita: 1, adulti: 3 }]
     return {
       [STRUTTURE_GRUPPO[0]]: seed,
       [STRUTTURE_GRUPPO[1]]: [riga()],
@@ -332,13 +360,40 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const chiudiModifica = (k: string) => setEditKeys(v => v.filter(x => x !== k))
 
   // Modifica dalla riga cumulativa: il valore si applica a tutte le sue camere
+  const PERSONE: CampoPersone[] = ['adulti', 'ragazzi', 'bambini', 'infanti']
+
   const updRigaGr = (i: number, p: Partial<CameraRow>) =>
     setCamereGr(prev => prev.map((r, idx) => {
       if (idx !== i) return r
       const row = { ...r, ...p }
-      const campi = Object.keys(p).filter(k => k !== 'quantita') as (keyof DettCamera)[]
-      const dettagli = dettagliDi(row).map(d =>
-        campi.reduce((acc, k) => ({ ...acc, [k]: (row as any)[k] }), { ...d }))
+      const chiavi = Object.keys(p).filter(k => k !== 'quantita') as (keyof DettCamera)[]
+      // Cambiando il numero di camere i totali della riga restano quelli:
+      // si ridistribuiscono sulle camere nuove
+      if (p.quantita !== undefined && p.quantita !== r.quantita) {
+        const n = Math.max(1, p.quantita)
+        const quote = Object.fromEntries(
+          PERSONE.map(k => [k, ripartisci(personeRiga(r, k), n)]),
+        ) as Record<CampoPersone, number[]>
+        const base = dettagliDi(r)
+        const dettagli = Array.from({ length: n }, (_, k) => ({
+          ...(base[k] ?? { ...base[base.length - 1], numero: '', note: '' }),
+          adulti: quote.adulti[k], ragazzi: quote.ragazzi[k],
+          bambini: quote.bambini[k], infanti: quote.infanti[k],
+        }))
+        return { ...row, dettagli }
+      }
+      // Le persone sono un totale di riga: si ripartiscono sulle camere.
+      // Gli altri campi (tipo, prezzo, arrangiamento, date) valgono per tutte.
+      const quote = Object.fromEntries(
+        PERSONE.filter(k => chiavi.includes(k))
+          .map(k => [k, ripartisci((row as any)[k], Math.max(1, row.quantita))]),
+      ) as Partial<Record<CampoPersone, number[]>>
+      const comuni = chiavi.filter(k => !PERSONE.includes(k as CampoPersone))
+      const dettagli = dettagliDi(row).map((d, slot) => {
+        const agg = comuni.reduce((acc, k) => ({ ...acc, [k]: (row as any)[k] }), { ...d })
+        PERSONE.forEach(k => { if (quote[k]) (agg as any)[k] = quote[k]![slot] ?? 0 })
+        return agg
+      })
       return { ...row, dettagli }
     }))
 
@@ -845,9 +900,14 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                           ? <Tooltip text="Valori diversi fra le camere: apri il dettaglio camere"><span className="np-cell-ro np-cell-ro--misto">misto</span></Tooltip>
                           : <span className="np-cell-ro">{fmt(u)}</span>
                       }
-                      const num = (k: 'adulti'|'ragazzi'|'bambini'|'infanti') => ed
-                        ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={v[k]} onChange={n=>updRigaGr(i,{[k]:n})}/>
-                        : ro(k)
+                      // Totale della riga: è quello che si scrive e quello che
+                      // si legge, coerente con la somma in fondo alla tabella
+                      const num = (k: CampoPersone) => {
+                        const tot = personeRiga(c, k)
+                        return ed
+                          ? <NumCell className="sib-input np-cell-input np-cell-input--num" min={0} value={tot} onChange={n=>updRigaGr(i,{[k]:n})}/>
+                          : <span className="np-cell-ro">{tot}</span>
+                      }
                       return (
                       // Il dettaglio camere si apre SOLO dall'icona dedicata:
                       // la riga non è cliccabile
