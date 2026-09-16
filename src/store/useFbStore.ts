@@ -3,8 +3,8 @@ import { persist } from 'zustand/middleware'
 import {
   OUTLETS, SALE, TURNI, tavoliIniziali, prenotazioniIniziali, comandeIniziali,
   VOCI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
-  type Comanda, type Prenotazione, type RigaComanda, type StatoRiga,
-  type StatoTavolo, type Tavolo,
+  type Comanda, type Outlet, type Prenotazione, type RigaComanda, type StatoRiga,
+  type StatoTavolo, type Tavolo, type Turno,
 } from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Store operativo Food & Beverage ─────────────────────────────────────────
@@ -58,6 +58,14 @@ export interface ContestoFb {
 }
 
 interface FbState {
+  /** Anagrafica della sezione: outlet e turni si configurano dalle loro pagine. */
+  outlets: Outlet[]
+  turni: Turno[]
+  salvaOutlet: (o: Outlet) => void
+  eliminaOutlet: (id: number) => void
+  salvaTurno: (t: Turno) => void
+  eliminaTurno: (id: number) => void
+
   /** Posti occupati per tavolo: indici delle sedie attorno al tavolo.
    *  Serve alla vista planimetria, dove si lavora sedia per sedia. */
   posti: Record<number, number[]>
@@ -114,6 +122,29 @@ interface FbState {
 export const useFbStore = create<FbState>()(
   persist(
     (set, get) => ({
+      outlets: OUTLETS,
+      turni: TURNI,
+
+      salvaOutlet: o =>
+        set(s => ({
+          outlets: s.outlets.some(x => x.id === o.id)
+            ? s.outlets.map(x => x.id === o.id ? o : x)
+            : [...s.outlets, { ...o, id: Math.max(0, ...s.outlets.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaOutlet: id =>
+        set(s => ({ outlets: s.outlets.filter(o => o.id !== id) })),
+
+      salvaTurno: t =>
+        set(s => ({
+          turni: s.turni.some(x => x.id === t.id)
+            ? s.turni.map(x => x.id === t.id ? t : x)
+            : [...s.turni, { ...t, id: Math.max(0, ...s.turni.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaTurno: id =>
+        set(s => ({ turni: s.turni.filter(t => t.id !== id) })),
+
       posti: {},
 
       occupaPosto: (tavoloId, indice) =>
@@ -402,6 +433,8 @@ export const useFbStore = create<FbState>()(
         }),
 
       reset: () => set({
+        outlets: OUTLETS,
+        turni: TURNI,
         posti: {},
         tavoli: tavoliIniziali(),
         comande: comandeIniziali(),
@@ -409,7 +442,7 @@ export const useFbStore = create<FbState>()(
         progressivo: comandeIniziali().length,
       }),
     }),
-    { name: 'sibylla.fb', version: 1 },
+    { name: 'sibylla.fb', version: 2 },
   ),
 )
 

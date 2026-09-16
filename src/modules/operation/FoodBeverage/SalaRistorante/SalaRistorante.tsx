@@ -19,7 +19,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
-import { useFbStore, totaleConto, OUTLETS, SALE, TURNI } from '../../../../store/useFbStore'
+import { useFbStore, totaleConto, SALE } from '../../../../store/useFbStore'
 import { useSaleStore, SALA_EL_META } from '../../../../store/useSaleStore'
 import ChefHat from '../ChefHat'
 import {
@@ -73,6 +73,8 @@ const durata = (min: number | null) =>
   min === null ? '' : min < 60 ? `${min}′` : `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}′`
 
 export default function SalaRistorante({ navigate }: { navigate?: (p: string) => void }) {
+  const OUTLETS = useFbStore(s => s.outlets)
+  const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
   const setContesto  = useFbStore(s => s.setContesto)
   const tavoli       = useFbStore(s => s.tavoli)

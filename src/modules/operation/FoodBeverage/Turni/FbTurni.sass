@@ -1,0 +1,334 @@
+// ─── Turni (Food & Beverage) ──────────────────────────────────────────────────
+//  La fascia della giornata (06:00 → 02:00) con una corsia per servizio: ogni
+//  turno è un blocco posizionato in percentuale, quindi la fascia scala col
+//  contenitore e non produce mai scroll orizzontale. Sotto, la tabella.
+
+.fbturni
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+    &:active
+      opacity: .88
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 210px
+
+  // ── Fascia della giornata ──────────────────────────────────────────────────
+  &__giorno
+    border: 1px solid var(--color-border)
+    border-radius: 14px
+    background: var(--color-surface)
+    overflow: hidden
+
+  &__giorno-head
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: 12px
+    padding: 9px 16px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, var(--color-primary-50), var(--color-surface))
+
+    h3
+      margin: 0
+      font-size: 14px
+      font-weight: 600
+      color: var(--color-primary)
+
+    span
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+  &__fascia
+    padding: 10px 16px 14px
+
+  &__ore
+    position: relative
+    height: 16px
+    margin-left: 104px
+
+  &__ora
+    position: absolute
+    left: calc(var(--left) * 1%)
+    transform: translateX(-50%)
+    font-size: 10.5px
+    color: var(--color-text-inactive)
+    font-variant-numeric: tabular-nums
+
+  &__corsia
+    display: flex
+    align-items: center
+    gap: 8px
+    height: 38px
+
+  &__corsia-lab
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    width: 96px
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  &__corsia-pista
+    position: relative
+    flex: 1
+    height: 30px
+    border-radius: 8px
+    background-color: var(--color-primary-50)
+    background-image: repeating-linear-gradient(90deg, var(--color-primary-100) 0 1px, transparent 1px 10%)
+
+  &__corsia-vuota
+    position: absolute
+    left: 10px
+    top: 50%
+    transform: translateY(-50%)
+    font-size: 11px
+    color: var(--color-text-disabled)
+
+  // Un turno sulla pista: la parte piena è il prenotato
+  &__blocco
+    position: absolute
+    left: calc(var(--da) * 1%)
+    width: calc((var(--a) - var(--da)) * 1%)
+    top: 3px
+    height: 24px
+    padding: 0 8px
+    border: none
+    border-radius: 6px
+    overflow: hidden
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .18s ease
+
+    &:active
+      transform: scale(.98)
+
+    &[data-servizio="Colazione"]
+      background: rgba(214, 149, 32, .22)
+
+    &[data-servizio="Pranzo"]
+      background: rgba(62, 127, 193, .2)
+
+    &[data-servizio="Cena"]
+      background: rgba(124, 77, 158, .2)
+
+    &.is-off
+      opacity: .45
+
+  &__blocco-fill
+    position: absolute
+    inset: 0 auto 0 0
+    width: calc(var(--pieno) * 1%)
+    background: rgba(32, 71, 105, .18)
+
+  &__blocco-txt
+    position: relative
+    display: block
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-primary)
+    line-height: 24px
+
+  // ── Tabella ────────────────────────────────────────────────────────────────
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+  &__c-nome
+    width: 17%
+  &__c-serv
+    width: 13%
+  &__c-ora
+    width: 8%
+  &__c-sala
+    width: 16%
+  &__c-cop
+    width: 10%
+  &__c-pren
+    width: 13%
+  &__c-stato
+    width: 9%
+  &__c-act
+    width: 8%
+
+  &__serv
+    display: inline-flex
+    align-items: center
+    gap: 7px
+
+    i
+      font-size: 12px
+      color: var(--color-primary)
+
+  &__ora-cel
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+
+  &__num
+    text-align: center
+    font-variant-numeric: tabular-nums
+
+  &__barra
+    display: block
+    width: 100%
+    height: 3px
+    margin-top: 3px
+    border-radius: 2px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+    > span
+      display: block
+      width: calc(var(--pct) * 1%)
+      height: 100%
+      border-radius: 2px
+      background: var(--color-primary)
+
+  &__stato
+    display: inline-block
+    padding: 3px 9px
+    border-radius: 11px
+    background: rgba(122, 141, 160, .16)
+    font-size: 11px
+    font-weight: 700
+    color: #55677a
+
+    &.is-on
+      background: rgba(0, 168, 112, .12)
+      color: #007a51
+
+  &__act
+    white-space: nowrap
+    text-align: right
+
+    button
+      padding: 4px 4px
+      border: none
+      background: transparent
+      cursor: pointer
+
+      i
+        font-size: 16px
+        color: var(--color-primary)
+
+      &:last-child:hover i
+        color: var(--color-error)
+
+  &__vuoto
+    padding: 32px
+    color: var(--color-text-inactive)
+    font-size: 13px
+    text-align: center
+
+  &__tot td
+    border-top: 1px solid var(--color-border)
+    font-weight: 600
+    color: var(--color-text-active)
+
+// ─── Scheda turno ─────────────────────────────────────────────────────────────
+.fbturni-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+  padding: 18px
+
+  &__row
+    display: flex
+    flex-wrap: wrap
+    gap: 12px
+
+    > *
+      flex: 1
+      min-width: 130px
+
+  &__grow
+    flex: 2 !important
+    min-width: 200px !important
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__ora
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+    input
+      height: 34px
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 2px
+
+  &__annulla
+    min-height: 44px
+    padding: 0 20px
+    border: 1px solid var(--color-border)
+    border-radius: 11px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 44px
+    padding: 0 22px
+    border: 1px solid var(--color-primary)
+    border-radius: 11px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13.5px
+    font-weight: 600
+    cursor: pointer
+
+// ─── Schermi stretti ──────────────────────────────────────────────────────────
+@container (max-width: 980px)
+  .fbturni__corsia-lab
+    width: 74px
+    font-size: 11px
+
+  .fbturni__ore
+    margin-left: 82px

@@ -39,6 +39,8 @@ const PAGAMENTI: Array<{ id: NonNullable<Comanda['pagamento']>; label: string; i
 ]
 
 export default function GestioneComanda({ navigate }: { navigate?: (p: string) => void }) {
+  const OUTLETS = useFbStore(s => s.outlets)
+  const TURNI   = useFbStore(s => s.turni)
   const contesto    = useFbStore(s => s.contesto)
   const setContesto = useFbStore(s => s.setContesto)
   const tavoli      = useFbStore(s => s.tavoli)

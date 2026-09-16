@@ -142,6 +142,8 @@ import GestioneComandaFb          from '../modules/operation/FoodBeverage/Gestio
 import LibroPrenotazioniFb        from '../modules/operation/FoodBeverage/LibroPrenotazioni/LibroPrenotazioni';
 import OspitiGiornoFb             from '../modules/operation/FoodBeverage/OspitiGiorno/OspitiGiorno';
 import DashboardFb                from '../modules/operation/FoodBeverage/DashboardFb/DashboardFb';
+import FbOutlet                   from '../modules/operation/FoodBeverage/Outlet/FbOutlet';
+import FbTurni                    from '../modules/operation/FoodBeverage/Turni/FbTurni';
 // ── Pagine portate da platform (Razor) → sibylla-platform ──
 import Anagrafiche                 from '../modules/operation/Anagrafiche/Anagrafiche';
 import ArriviPartenze              from '../modules/operation/ArriviPartenze/ArriviPartenze';
@@ -460,6 +462,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'libro-prenotazioni') return <LibroPrenotazioniFb navigate={navigate}/>;
   if (page === 'ospiti-giorno')      return <OspitiGiornoFb navigate={navigate}/>;
   if (page === 'fb-dashboard')       return <DashboardFb navigate={navigate}/>;
+  if (page === 'fb-outlet')          return <FbOutlet navigate={navigate}/>;
+  if (page === 'fb-turni')           return <FbTurni navigate={navigate}/>;
   // Sale e tavoli: la pagina nativa configura le sale servite dalla sezione
   if (page === 'fb-sale-tavoli')  return <SaleTavoli navigate={navigate}/>;
 

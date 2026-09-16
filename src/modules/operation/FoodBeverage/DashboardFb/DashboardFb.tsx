@@ -19,13 +19,15 @@ import {
   ANIM, BiPage, ChartCard, ChartTooltip, KpiTile, cursorProps,
   fmtEur, fmtEurK, fmtInt, fmtPct, gridProps, series, xAxisProps, yAxisProps,
 } from '../../../../core/bi'
-import { useFbStore, totaleConto, totaleRiga, OUTLETS, SALE, TURNI } from '../../../../store/useFbStore'
+import { useFbStore, totaleConto, totaleRiga, SALE } from '../../../../store/useFbStore'
 import { CATEGORIE_MENU, VOCI_MENU } from '../fb.model'
 import './DashboardFb.sass'
 
 const ORE = ['07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']
 
 export default function DashboardFb({ navigate }: { navigate?: (p: string) => void }) {
+  const OUTLETS = useFbStore(s => s.outlets)
+  const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
   const setContesto  = useFbStore(s => s.setContesto)
   const comande      = useFbStore(s => s.comande)

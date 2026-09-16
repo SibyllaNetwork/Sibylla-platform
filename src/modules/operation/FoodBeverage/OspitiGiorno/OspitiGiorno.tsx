@@ -13,7 +13,7 @@ import TruncatedText from '../../../../core/components/TruncatedText'
 import { SelectField, SearchField, DatePickerField } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
-import { useFbStore, OUTLETS, SALE, TURNI } from '../../../../store/useFbStore'
+import { useFbStore, SALE } from '../../../../store/useFbStore'
 import { CAMERIERI, STATO_PRENOTAZIONE, type Prenotazione, type StatoPrenotazione } from '../fb.model'
 import './OspitiGiorno.sass'
 
@@ -23,6 +23,8 @@ const ORIGINE_ICO: Record<string, string> = {
 }
 
 export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => void }) {
+  const OUTLETS = useFbStore(s => s.outlets)
+  const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
   const setContesto  = useFbStore(s => s.setContesto)
   const prenotazioni = useFbStore(s => s.prenotazioni)

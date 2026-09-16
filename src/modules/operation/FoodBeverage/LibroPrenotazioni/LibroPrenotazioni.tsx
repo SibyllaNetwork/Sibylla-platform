@@ -17,7 +17,7 @@ import {
 } from '../../../../core/components/form'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
-import { useFbStore, OUTLETS, SALE, TURNI } from '../../../../store/useFbStore'
+import { useFbStore, SALE } from '../../../../store/useFbStore'
 import {
   CATEGORIE_CLIENTE, STATO_PRENOTAZIONE,
   type OriginePrenotazione, type Prenotazione, type StatoPrenotazione,
@@ -42,14 +42,18 @@ const iso = (d: Date) =>
 const fmtData = (s: string) => s ? new Date(s + 'T12:00:00').toLocaleDateString('it-IT') : ''
 
 /** Prenotazione vuota per la modale "Nuova". */
-const nuova = (outletId: number, salaId: number, turnoId: number | null, data: string): Omit<Prenotazione, 'id'> => ({
+const nuova = (
+  outletId: number, salaId: number, turnoId: number | null, data: string, ora = '20:00',
+): Omit<Prenotazione, 'id'> => ({
   outletId, salaId, turnoId, data,
-  ora: TURNI.find(t => t.id === turnoId)?.oraInizio ?? '20:00',
+  ora,
   ospite: '', pax: 2, telefono: '', email: '', note: '', camera: '',
   stato: 'confermata', origine: 'telefono', tavoloId: null, categoriaClienteId: 0,
 })
 
 export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string) => void }) {
+  const OUTLETS = useFbStore(s => s.outlets)
+  const TURNI   = useFbStore(s => s.turni)
   const contesto     = useFbStore(s => s.contesto)
   const setContesto  = useFbStore(s => s.setContesto)
   const prenotazioni = useFbStore(s => s.prenotazioni)
@@ -146,7 +150,7 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
             </button>
             <button
               type="button" className="fbpren__head-btn fbpren__head-btn--go"
-              onClick={() => { setEditId(null); setForm(nuova(outletId, salaId, contesto.turnoId, data)) }}
+              onClick={() => { setEditId(null); setForm(nuova(outletId, salaId, contesto.turnoId, data, TURNI.find(t => t.id === contesto.turnoId)?.oraInizio)) }}
             >
               <i className="fa-solid fa-plus" aria-hidden="true" /> Nuova prenotazione
             </button>
@@ -312,7 +316,7 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
               <div className="fbpren__vuoto">
                 <i className="fa-solid fa-book-open" aria-hidden="true" />
                 <p>Nessuna prenotazione per questa giornata.</p>
-                <button type="button" onClick={() => { setEditId(null); setForm(nuova(outletId, salaId, contesto.turnoId, data)) }}>
+                <button type="button" onClick={() => { setEditId(null); setForm(nuova(outletId, salaId, contesto.turnoId, data, TURNI.find(t => t.id === contesto.turnoId)?.oraInizio)) }}>
                   <i className="fa-solid fa-plus" aria-hidden="true" /> Prendi una prenotazione
                 </button>
               </div>
