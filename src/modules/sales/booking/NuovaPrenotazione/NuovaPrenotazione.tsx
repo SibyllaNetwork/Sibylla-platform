@@ -223,6 +223,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   // ── State form ───────────────────────────────────────────────────────────────
   const [form, setForm] = useState(() => ({
+    hotel: STRUTTURE_GRUPPO[0],
     dal: TODAY, al: traGiorni(2),
     camere: 1, persone: 1,
     confermata: true, opzione: false,
@@ -259,13 +260,22 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     ...(!editing && prefill ? { dal: prefill.dal, al: prefill.al } : {}),
   }))
 
-  const [camereInd, setCamereInd] = useState<CameraRow[]>(() => {
+  // Tab individuale: una lista camere per ciascuna struttura del cliente
+  const [camereIndMap, setCamereIndMap] = useState<Record<string, CameraRow[]>>(() => {
     const dal = prefill?.dal ?? TODAY, al = prefill?.al ?? traGiorni(2)
     const conPeriodo = (r: CameraRow) => ({ ...r, dataIn: dal, dataOut: al })
-    return editing
+    const seed = editing
       ? editCamere(editing).map(conPeriodo)
       : [conPeriodo(initRow(prefill?.numeroCamera || '103'))]
+    return {
+      [STRUTTURE_GRUPPO[0]]: seed,
+      [STRUTTURE_GRUPPO[1]]: [conPeriodo(initRow())],
+      [STRUTTURE_GRUPPO[2]]: [conPeriodo(initRow())],
+    }
   })
+  const camereInd = camereIndMap[form.hotel] ?? []
+  const setCamereInd = (u: CameraRow[] | ((p: CameraRow[]) => CameraRow[])) =>
+    setCamereIndMap(m => ({ ...m, [form.hotel]: typeof u === 'function' ? (u as (p: CameraRow[]) => CameraRow[])(m[form.hotel] ?? []) : u }))
   // Gruppo: una lista camere per ciascuna struttura del cliente (tab dedicati)
   const [camereGrMap, setCamereGrMap] = useState<Record<string, CameraRow[]>>(() => {
     const riga = () => initRowGr(grForm.dal, grForm.al, grForm.arrangiamento)
@@ -362,8 +372,11 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const updCameraGr = (i: number, p: Partial<CameraRow>) =>
     setCamereGr(prev => prev.map((r, idx) => idx === i ? { ...r, ...p } : r))
 
-  // Riga aperta nella modale "Dettaglio camere" (indice nella lista della struttura)
-  const [dettaglioIdx, setDettaglioIdx] = useState<number | null>(null)
+  // Riga aperta nella modale "Dettaglio camere": vale per entrambi i tab, con
+  // la lista di appartenenza (individuale o gruppo) e l'indice della riga
+  const [dettaglio, setDettaglio] = useState<{ scope: 'ind' | 'gr'; idx: number } | null>(null)
+  const listaDett = dettaglio?.scope === 'ind' ? camereInd : camereGr
+  const rigaDett  = dettaglio ? listaDett[dettaglio.idx] : undefined
 
   // Righe sbloccate: una volta inserita, la riga è in sola lettura e si riapre
   // con la matita. Chiave = id riga (tabella) o `id:slot` (dettaglio camera).
@@ -412,12 +425,16 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   // Modifica di una singola camera dalla modale di dettaglio
   const updDettaglioGr = (i: number, slot: number, p: Partial<DettCamera>, silent = false) => {
-    const riga = camereGr[i]
+    const ind = dettaglio?.scope === 'ind'
+    const lista = ind ? camereInd : camereGr
+    const riga = lista[i]
     if (!riga) return
     const prev = dettagliDi(riga)[slot]
-    setCamereGr(list => list.map((r, idx) => idx === i
+    const aggiorna = (list: CameraRow[]) => list.map((r, idx) => idx === i
       ? { ...r, dettagli: dettagliDi(r).map((d, k) => k === slot ? { ...d, ...p } : d) }
-      : r))
+      : r)
+    if (ind) setCamereInd(aggiorna)
+    else setCamereGr(aggiorna)
     if (silent || !p.numero) return
     const d = { ...prev, ...p }
     const b = bloccoPerCameraPeriodo(blocchiFantasma, d.numero, d.dataIn, d.dataOut)
@@ -439,8 +456,9 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   const allineaPeriodoInd = (dal: string, al: string) => {
     const pDal = form.dal, pAl = form.al
     if (!dal || !al || (dal === pDal && al === pAl)) return
-    setCamereInd(rows => rows.map(r =>
-      r.dataIn === pDal && r.dataOut === pAl ? { ...r, dataIn: dal, dataOut: al, dettagli: [] } : r))
+    const agg = (rows: CameraRow[]) => rows.map(r =>
+      r.dataIn === pDal && r.dataOut === pAl ? { ...r, dataIn: dal, dataOut: al, dettagli: [] } : r)
+    setCamereIndMap(m => Object.fromEntries(Object.entries(m).map(([h, rows]) => [h, agg(rows)])))
   }
 
   // ── Periodo del soggiorno → date delle camere ───────────────────────────────
@@ -493,7 +511,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     return a + (uguali ? dd[0].prezzoPersona : dd.reduce((x, d) => x + d.prezzoPersona, 0) / dd.length)
   }, 0), [camereGr])
 
-  const recapInd   = useMemo(() => riepilogoCamere(camereInd), [camereInd])
+  const recapInd    = useMemo(() => riepilogoCamere(camereInd), [camereInd])
+  const recapIndAll = useMemo(() => riepilogoCamere(Object.values(camereIndMap).flat()), [camereIndMap])
   const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
   const recapGrAll = useMemo(() => riepilogoCamere(Object.values(camereGrMap).flat()), [camereGrMap])
 
@@ -718,6 +737,11 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <div className="np-recap__row np-recap__row--tot">
                   <span>Totale</span><strong>{euro(recapInd.totale)}</strong>
                 </div>
+                {recapIndAll.camere > recapInd.camere && (
+                  <div className="np-recap__foot">
+                    Tutte le strutture: {recapIndAll.camere} camere · {euro(recapIndAll.totale)}
+                  </div>
+                )}
               </div>
 
               <div className="np-soggiorno__actions">
@@ -726,8 +750,17 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
               </div>
             </div>
 
-            {/* Colonna destra: lista camere, stessa grammatica del tab Gruppo */}
+            {/* Colonna destra: tab per struttura + lista camere della struttura */}
             <div className="np-soggiorno__rooms">
+              <div className="np-hotels-tabs">
+                {STRUTTURE_GRUPPO.map(h=>(
+                  <button
+                    key={h} type="button"
+                    className={`np-hotels-tab ${form.hotel===h?'np-hotels-tab--active':''}`}
+                    onClick={()=>setForm(f=>({...f,hotel:h}))}
+                  >{h}</button>
+                ))}
+              </div>
               <div className="np-table-scroll">
                 <table className="np-table np-table--edit np-table--ind">
                   <colgroup>
@@ -831,6 +864,13 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                             </Tooltip>
                           </td>
                           <td className="np-col-actions">
+                            <button
+                              type="button" className="np-row-action"
+                              aria-label="Dettaglio camere"
+                              onClick={()=>setDettaglio({ scope: 'ind', idx: i })}
+                            >
+                              <Tooltip text="Dettaglio camere"><i className="fa-solid fa-list-ul" /></Tooltip>
+                            </button>
                             {ed ? (
                               <button
                                 type="button" className="np-row-action np-row-action--ok"
@@ -1156,7 +1196,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                             type="button"
                             className="np-row-action"
                             aria-label="Dettaglio camere"
-                            onClick={()=>setDettaglioIdx(i)}
+                            onClick={()=>setDettaglio({ scope: 'gr', idx: i })}
                           >
                             <Tooltip text="Dettaglio camere"><i className="fa-solid fa-list-ul" /></Tooltip>
                           </button>
@@ -1958,21 +1998,21 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       {/* Alert: camera in blocco fantasma nel periodo selezionato */}
       {/* Dettaglio camere: una riga per camera, tutti i parametri modificabili */}
       <Modal
-        open={dettaglioIdx !== null && !!camereGr[dettaglioIdx]}
-        onClose={()=>setDettaglioIdx(null)}
+        open={!!rigaDett}
+        onClose={()=>setDettaglio(null)}
         title="Dettaglio camere"
         size="xl"
         className="np-dett-modal"
       >
-        {dettaglioIdx !== null && camereGr[dettaglioIdx] && (() => {
-          const i = dettaglioIdx
-          const c = camereGr[i]
+        {dettaglio && rigaDett && (() => {
+          const i = dettaglio.idx
+          const c = rigaDett
           const dd = dettagliDi(c)
           const assegnate = dd.filter(d => d.numero).length
           return (
             <div className="np-dett">
               <div className="np-dett__head">
-                <span className="np-dett__hotel">{grForm.hotel}</span>
+                <span className="np-dett__hotel">{dettaglio.scope === 'ind' ? 'Soggiorno' : grForm.hotel}</span>
                 <span className="np-dett__sub">
                   {c.quantita} {c.quantita === 1 ? 'camera' : 'camere'} · totale riga {euro(totaleRigaGr(c))}
                   {' '}· i parametri si modificano camera per camera con la matita
@@ -2110,7 +2150,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
               <div className="np-dett__foot">
                 <span className="np-dett__count">Assegnate {assegnate} di {c.quantita}</span>
-                <button type="button" className="sib-btn sib-btn--primary" onClick={()=>setDettaglioIdx(null)}>Chiudi</button>
+                <button type="button" className="sib-btn sib-btn--primary" onClick={()=>setDettaglio(null)}>Chiudi</button>
               </div>
             </div>
           )
