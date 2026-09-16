@@ -26,6 +26,12 @@ import {
 import './NuovaPrenotazione.sass'
 
 const TODAY        = new Date().toISOString().split('T')[0]
+/** Data di oggi + n giorni, in yyyy-MM-dd. */
+const traGiorni = (n: number) => {
+  const d = new Date()
+  d.setDate(d.getDate() + n)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 const NAZIONALITA  = ['ITALIA','FRANCIA','GERMANIA','SPAGNA','REGNO UNITO','STATI UNITI']
 const ARRANGIAMENTI = ['RO','BB','HB','FB','AI']
 const CREDIT        = ['NC','HC','FC','HCT']
@@ -216,7 +222,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
 
   // ── State form ───────────────────────────────────────────────────────────────
   const [form, setForm] = useState(() => ({
-    dal: TODAY, al: TODAY,
+    dal: TODAY, al: traGiorni(2),
     camere: 1, persone: 1,
     confermata: true, opzione: false,
     scadenza: '', arrangiamento: 'BB', credit: 'NC',
@@ -234,7 +240,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   }))
 
   const [grForm, setGrForm] = useState(() => ({
-    dal: TODAY, al: TODAY,
+    dal: TODAY, al: traGiorni(2),
     camere: 4, persone: 10,
     tipologiaOspiti: 'adulti' as 'adulti' | 'studenti',
     hotel: STRUTTURE_GRUPPO[0],
@@ -442,6 +448,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     dettagliDi(c).forEach(d => {
       const n = notti(d.dataIn, d.dataOut)
       a.camere  += 1
+      a.prezzi  += d.prezzoPersona
       a.perTipo[d.tipo] = (a.perTipo[d.tipo] ?? 0) + 1
       a.adulti  += d.adulti
       a.ragazzi += d.ragazzi
@@ -455,7 +462,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
       if (a.nottiMax === null || n > a.nottiMax) a.nottiMax = n
     })
     return a
-  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, totale: 0, dal: '', al: '',
+  }, { camere: 0, assegnate: 0, adulti: 0, ragazzi: 0, bambini: 0, infanti: 0, prezzi: 0, totale: 0, dal: '', al: '',
        nottiMin: null as number | null, nottiMax: null as number | null,
        perTipo: {} as Record<string, number> })
   const recapGr    = useMemo(() => riepilogoCamere(camereGr), [camereGr])
@@ -1015,9 +1022,10 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                       <td>{recapGr.ragazzi}</td>
                       <td>{recapGr.bambini}</td>
                       <td>{recapGr.infanti}</td>
-                      <td colSpan={4} className="np-tot-row__periodo">
-                        <TruncatedText text={`${fmtData(recapGr.dal) || '—'} → ${fmtData(recapGr.al) || '—'}`} />
-                      </td>
+                      {/* Somma dei prezzi a persona di tutte le camere della
+                          sala: la colonna si somma come le altre */}
+                      <td className="np-amt">{euro(recapGr.prezzi)}</td>
+                      <td colSpan={3} />
                       <td className="np-amt">{euro(recapGr.totale)}</td>
                       <td className="np-col-actions" />
                     </tr>
