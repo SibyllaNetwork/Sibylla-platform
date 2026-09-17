@@ -10,6 +10,7 @@ import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import FilterToolbar from '../../../../core/components/FilterToolbar'
 import Modal from '../../../../core/components/Modal'
+import TouchKeyboard from '../../../../core/components/TouchKeyboard/TouchKeyboard'
 import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
 import {
@@ -490,6 +491,9 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
           </div>
         )}
       </Modal>
+
+      {/* Tablet e totem: la tastiera di sistema non c'è, questa sì */}
+      <TouchKeyboard within=".fbpren" />
     </div>
   )
 }

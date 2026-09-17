@@ -10,6 +10,7 @@
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import Modal from '../../../../core/components/Modal'
+import TouchKeyboard from '../../../../core/components/TouchKeyboard/TouchKeyboard'
 import TruncatedText from '../../../../core/components/TruncatedText'
 import Tooltip from '../../../../core/components/Tooltip'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
@@ -187,6 +188,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
             ))}
           </div>
         </div>
+        <TouchKeyboard within=".fbcom" />
       </div>
     )
   }
@@ -724,7 +726,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
                       className={`fbcom-extra__gruppo ${gruppoExtra === g.id ? 'is-on' : ''}`}
                       onClick={() => setGruppoExtra(gruppoExtra === g.id ? null : g.id)}
                     >
-                      <i className={`fa-solid ${g.ico}`} aria-hidden="true" /> {g.id}
+                      <i className={`fa-solid ${g.ico}`} aria-hidden="true" /> {g.breve}
                     </button>
                   ))}
                 </div>
@@ -973,6 +975,9 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
           </footer>
         </div>
       </Modal>
+
+      {/* Tablet e totem: la tastiera di sistema non c'è, questa sì */}
+      <TouchKeyboard within=".fbcom" />
     </div>
   )
 }

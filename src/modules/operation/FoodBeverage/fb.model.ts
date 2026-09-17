@@ -560,18 +560,20 @@ export type GruppoIngrediente =
   | 'Pane e basi' | 'Frutta e frutta secca' | 'Erbe e spezie' | 'Uova e latticini'
   | 'Dolce' | 'Bar'
 
-export const GRUPPI_INGREDIENTE: Array<{ id: GruppoIngrediente; ico: string }> = [
-  { id: 'Verdure',               ico: 'fa-carrot' },
-  { id: 'Formaggi',              ico: 'fa-cheese' },
-  { id: 'Salumi',                ico: 'fa-bacon' },
-  { id: 'Carne e pesce',         ico: 'fa-drumstick-bite' },
-  { id: 'Salse e condimenti',    ico: 'fa-bottle-droplet' },
-  { id: 'Pane e basi',           ico: 'fa-bread-slice' },
-  { id: 'Frutta e frutta secca', ico: 'fa-apple-whole' },
-  { id: 'Erbe e spezie',         ico: 'fa-seedling' },
-  { id: 'Uova e latticini',      ico: 'fa-egg' },
-  { id: 'Dolce',                 ico: 'fa-ice-cream' },
-  { id: 'Bar',                   ico: 'fa-martini-glass' },
+/** `breve` è l'etichetta del filtro in comanda: la fila dei tasti deve stare
+ *  tutta a schermo, senza scorrimento laterale. */
+export const GRUPPI_INGREDIENTE: Array<{ id: GruppoIngrediente; breve: string; ico: string }> = [
+  { id: 'Verdure',               breve: 'Verdure',      ico: 'fa-carrot' },
+  { id: 'Formaggi',              breve: 'Formaggi',     ico: 'fa-cheese' },
+  { id: 'Salumi',                breve: 'Salumi',       ico: 'fa-bacon' },
+  { id: 'Carne e pesce',         breve: 'Carne pesce',  ico: 'fa-drumstick-bite' },
+  { id: 'Salse e condimenti',    breve: 'Salse',        ico: 'fa-bottle-droplet' },
+  { id: 'Pane e basi',           breve: 'Pane e basi',  ico: 'fa-bread-slice' },
+  { id: 'Frutta e frutta secca', breve: 'Frutta',       ico: 'fa-apple-whole' },
+  { id: 'Erbe e spezie',         breve: 'Erbe spezie',  ico: 'fa-seedling' },
+  { id: 'Uova e latticini',      breve: 'Latticini',    ico: 'fa-egg' },
+  { id: 'Dolce',                 breve: 'Dolce',        ico: 'fa-ice-cream' },
+  { id: 'Bar',                   breve: 'Bar',          ico: 'fa-martini-glass' },
 ]
 
 export interface Ingrediente {

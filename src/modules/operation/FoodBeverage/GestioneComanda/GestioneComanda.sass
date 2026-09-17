@@ -1054,33 +1054,30 @@
       color: var(--color-primary)
       cursor: pointer
 
-  // Famiglie: la scorciatoia senza tastiera. Scorre in orizzontale col dito e
-  // sfuma sul bordo destro, così si vede che la fila continua.
+  // Famiglie: la scorciatoia senza tastiera. Griglia a colonne uguali, così
+  // stanno tutte a schermo e nessuna resta tagliata da uno scorrimento laterale.
   &__gruppi
-    display: flex
-    gap: 8px
-    overflow-x: auto
-    padding-bottom: 2px
-    scrollbar-width: none
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent)
-
-    &::-webkit-scrollbar
-      display: none
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr))
+    gap: 6px
 
   &__gruppo
-    display: inline-flex
+    display: flex
     align-items: center
-    gap: 7px
-    flex: none
+    justify-content: center
+    gap: 6px
+    min-width: 0
     min-height: 40px
-    padding: 0 14px
+    padding: 0 10px
     border: 1px solid var(--color-border)
     border-radius: 20px
     background: var(--color-surface)
     color: var(--color-text-active)
-    font-size: 12.5px
+    font-size: 12px
     font-weight: 600
     white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
     cursor: pointer
 
     i
