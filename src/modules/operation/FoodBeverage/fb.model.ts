@@ -375,7 +375,13 @@ export const PAGINE_PERMESSI: Array<{ gruppo: string; pagine: Array<{ id: string
     { id: 'libro-prenotazioni', label: 'Libro prenotazioni' },
     { id: 'ospiti-giorno', label: 'Ospiti del giorno' },
     { id: 'gest-comanda', label: 'Gestione comanda' },
+    { id: 'fb-kds', label: 'Monitor di cucina' },
+    { id: 'fb-cassa', label: 'Cassa e chiusure' },
     { id: 'fb-dashboard', label: 'Dashboard F&B' },
+  ]},
+  { gruppo: 'Economato', pagine: [
+    { id: 'fb-ingredienti', label: 'Ingredienti e listino' },
+    { id: 'fb-food-cost', label: 'Food cost e margini' },
   ]},
   { gruppo: 'Struttura', pagine: [
     { id: 'fb-outlet', label: 'Outlet' },
