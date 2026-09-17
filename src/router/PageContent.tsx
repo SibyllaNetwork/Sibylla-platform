@@ -137,6 +137,10 @@ import SaleTavoli                   from '../modules/operation/SaleTavoli/SaleTa
 import SalaRistoranteFb            from '../modules/operation/FoodBeverage/SalaRistorante/SalaRistorante';
 import GestioneComandaFb          from '../modules/operation/FoodBeverage/GestioneComanda/GestioneComanda';
 import LibroPrenotazioniFb        from '../modules/operation/FoodBeverage/LibroPrenotazioni/LibroPrenotazioni';
+import FbIngredienti              from '../modules/operation/FoodBeverage/Economato/FbIngredienti';
+import FbFoodCost                 from '../modules/operation/FoodBeverage/Economato/FbFoodCost';
+import FbKds                      from '../modules/operation/FoodBeverage/Kds/FbKds';
+import FbCassa                    from '../modules/operation/FoodBeverage/Cassa/FbCassa';
 import OspitiGiornoFb             from '../modules/operation/FoodBeverage/OspitiGiorno/OspitiGiorno';
 import DashboardFb                from '../modules/operation/FoodBeverage/DashboardFb/DashboardFb';
 import FbOutlet                   from '../modules/operation/FoodBeverage/Outlet/FbOutlet';
@@ -469,6 +473,10 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'sala-ristorante') return <SalaRistoranteFb navigate={navigate}/>;
   if (page === 'gest-comanda')    return <GestioneComandaFb navigate={navigate}/>;
   if (page === 'libro-prenotazioni') return <LibroPrenotazioniFb navigate={navigate}/>;
+  if (page === 'fb-ingredienti')  return <FbIngredienti navigate={navigate}/>;
+  if (page === 'fb-food-cost')    return <FbFoodCost navigate={navigate}/>;
+  if (page === 'fb-kds')          return <FbKds navigate={navigate}/>;
+  if (page === 'fb-cassa')        return <FbCassa navigate={navigate}/>;
   if (page === 'ospiti-giorno')      return <OspitiGiornoFb navigate={navigate}/>;
   if (page === 'fb-dashboard')       return <DashboardFb navigate={navigate}/>;
   if (page === 'fb-outlet')          return <FbOutlet navigate={navigate}/>;

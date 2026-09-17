@@ -1,0 +1,422 @@
+// ─── Food cost e margini (Food & Beverage) ────────────────────────────────────
+//  Due colonne: la tabella di lavoro a sinistra, la lettura d'insieme a destra.
+//  Colonne in percentuale e table-layout fisso, nessuno scroll orizzontale.
+@use '../../../../styles/tokens' as *
+
+.fbfc
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 150px
+
+    &--lg
+      min-width: 210px
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cerca-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__corpo
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 340px
+    gap: 16px
+    flex: 1
+    min-height: 0
+
+    // Sotto al laptop la lettura d'insieme scende sotto la tabella
+    @container (max-width: 1100px)
+      grid-template-columns: minmax(0, 1fr)
+
+  &__col
+    display: flex
+    flex-direction: column
+    min-width: 0
+    overflow-y: auto
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-vuota td
+      background: var(--color-warning-light)
+
+  &__c-nome
+    width: 26%
+  &__c-prezzo
+    width: 12%
+  &__c-costo
+    width: 12%
+  &__c-inc
+    width: 13%
+  &__c-marg
+    width: 12%
+  &__c-vend
+    width: 9%
+  &__c-gen
+    width: 12%
+  &__c-act
+    width: 6%
+
+  &__amt
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  // Due classi: con una sola pareggerebbe con `.sib-input` e vincerebbe il DS
+  .fbfc__table .fbfc__num,
+  .fbfc-sch__table .fbfc__num
+    width: 76px
+    text-align: right
+
+  &__unita
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  // Incidenza: il numero che si controlla in cucina, rosso quando scappa
+  &__inc
+    display: inline-block
+    min-width: 46px
+    padding: 2px 8px
+    border-radius: 9px
+    background: var(--color-success-light)
+    color: var(--color-success)
+    font-weight: 700
+
+    &.is-alta
+      background: var(--color-error-light)
+      color: var(--color-error-dark)
+
+  &__manca
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    color: var(--color-warning)
+    font-size: 12px
+    font-weight: 600
+
+  &__nessuno
+    color: var(--color-text-disabled)
+
+  &__act
+    display: grid
+    place-items: center
+    width: 30px
+    height: 30px
+    margin-left: auto
+    border: 0
+    border-radius: 8px
+    background: transparent
+    cursor: pointer
+
+    i
+      font-size: 16px
+      color: var(--color-primary)
+
+    &:hover
+      background: var(--color-primary-50)
+
+    &--danger i
+      color: var(--color-error)
+
+  &__vuoto
+    padding: 24px
+    text-align: center
+    color: var(--color-text-inactive)
+
+  &__somma
+    margin: 8px 0 0
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-text-active)
+
+  // ── Colonna di lettura ────────────────────────────────────────────────────
+  &__lato
+    display: flex
+    flex-direction: column
+    gap: 8px
+    min-width: 0
+    overflow-y: auto
+    padding-left: 16px
+    border-left: 1px solid var(--color-border)
+
+    @container (max-width: 1100px)
+      padding-left: 0
+      padding-top: 14px
+      border-left: 0
+      border-top: 1px solid var(--color-border)
+
+  &__tit
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 6px 0 0
+    font-size: 14px
+    font-weight: 700
+    color: var(--color-primary)
+
+    i
+      font-size: 13px
+
+  &__nota
+    margin: 0
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__quadri
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 8px
+
+  &__quadro
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 10px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    border-top: 3px solid var(--q, var(--color-primary))
+
+    header
+      display: flex
+      align-items: center
+      gap: 6px
+
+      i
+        font-size: 12px
+        color: var(--q, var(--color-primary))
+
+    ul
+      display: flex
+      flex-direction: column
+      gap: 3px
+      margin: 4px 0 0
+      padding: 0
+      list-style: none
+
+      // Il nome si accorcia, il numero non si tocca mai
+      li
+        display: grid
+        grid-template-columns: minmax(0, 1fr) auto
+        align-items: center
+        gap: 8px
+        font-size: 11.5px
+        color: var(--color-text-active)
+        white-space: nowrap
+
+        > :first-child
+          min-width: 0
+          overflow: hidden
+          text-overflow: ellipsis
+
+        > span
+          font-variant-numeric: tabular-nums
+          color: var(--color-text-inactive)
+
+    &--stella
+      --q: #{$success}
+    &--cavallo
+      --q: #{$warning}
+    &--rompicapo
+      --q: #{$primary}
+    &--peso
+      --q: #{$error}
+
+  &__quadro-lab
+    flex: 1
+    min-width: 0
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-text-active)
+
+  &__quadro-n
+    padding: 1px 8px
+    border-radius: 9px
+    background: var(--color-bg)
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+  &__quadro-desc
+    margin: 0
+    font-size: 11px
+    line-height: 1.3
+    color: var(--color-text-inactive)
+
+  &__quadro-vuoto
+    color: var(--color-text-disabled)
+    font-style: italic
+
+  // ── Occasioni d'acquisto ──────────────────────────────────────────────────
+  &__occ
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+      display: grid
+      grid-template-columns: minmax(0, 1fr) auto
+      gap: 2px 8px
+      padding: 8px 10px
+      border: 1px solid var(--color-border)
+      border-radius: 10px
+      background: var(--color-surface)
+
+  &__occ-nome
+    min-width: 0
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__occ-dett
+    grid-column: 1
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-success)
+
+  &__occ-sconto
+    grid-row: span 2
+    align-self: center
+    padding: 3px 9px
+    border-radius: 10px
+    background: var(--color-success-light)
+    color: var(--color-success)
+    font-size: 12px
+    font-weight: 700
+
+  &__cta
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    margin-top: 4px
+    padding: 12px 14px
+    border: 1px solid var(--color-success)
+    border-radius: 12px
+    background: var(--color-success-light)
+    color: var(--color-success)
+    font-size: 12.5px
+    font-weight: 700
+    text-align: left
+    cursor: pointer
+
+    i
+      flex: none
+
+// ─── Scheda tecnica ──────────────────────────────────────────────────────────
+.fbfc-sch
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  &__table
+    width: 100%
+
+  &__qta
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 5px
+
+  &__aggiungi
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__cand
+    display: flex
+    flex-direction: column
+    gap: 4px
+    margin: 0
+    padding: 0
+    list-style: none
+    max-height: 190px
+    overflow-y: auto
+
+    button
+      display: flex
+      align-items: center
+      justify-content: space-between
+      gap: 10px
+      width: 100%
+      min-height: 38px
+      padding: 0 12px
+      border: 1px solid var(--color-border)
+      border-radius: 9px
+      background: var(--color-surface)
+      font-size: 12.5px
+      color: var(--color-text-active)
+      cursor: pointer
+
+      &:hover
+        border-color: var(--color-primary)
+        background: var(--color-primary-50)
+
+  &__foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 14px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)
+
+  &__tot
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-text-active)
+
+  &__ok
+    min-height: 40px
+    padding: 0 20px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer

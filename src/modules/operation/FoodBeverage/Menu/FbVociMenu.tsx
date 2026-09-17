@@ -106,12 +106,21 @@ export default function FbVociMenu({ navigate }: { navigate?: (p: string) => voi
         title="Voci menu"
         subtitle="Il catalogo di piatti e bevande, con prezzi, allergeni e reparto"
         actions={
-          <button
-            type="button" className="fbvoci__head-btn"
-            onClick={() => setForm(vuota(catId === 'tutte' ? (catDelTipo[0]?.id ?? 1) : catId))}
-          >
-            <i className="fa-solid fa-plus" aria-hidden="true" /> Nuova voce
-          </button>
+          <>
+            {/* Il prezzo si decide guardando il margine: la pagina è a un tocco */}
+            <button
+              type="button" className="fbvoci__head-btn fbvoci__head-btn--ghost"
+              onClick={() => navigate?.('fb-food-cost')}
+            >
+              <i className="fa-solid fa-scale-balanced" aria-hidden="true" /> Food cost e margini
+            </button>
+            <button
+              type="button" className="fbvoci__head-btn"
+              onClick={() => setForm(vuota(catId === 'tutte' ? (catDelTipo[0]?.id ?? 1) : catId))}
+            >
+              <i className="fa-solid fa-plus" aria-hidden="true" /> Nuova voce
+            </button>
+          </>
         }
       />
 
@@ -138,12 +147,14 @@ export default function FbVociMenu({ navigate }: { navigate?: (p: string) => voi
           <span className="fbvoci__cerca-lab">Lingua della carta</span>
           <div className="fbvoci__seg">
             {LINGUE.map(l => (
-              <button
-                key={l} type="button"
-                className={l === lingua ? 'is-on' : ''}
-                onClick={() => setLingua(l)}
-                title={LINGUA_META[l].label}
-              >{l.toUpperCase()}</button>
+              // Tooltip standard della piattaforma, non il `title` nativo
+              <Tooltip key={l} text={LINGUA_META[l].label}>
+                <button
+                  type="button"
+                  className={l === lingua ? 'is-on' : ''}
+                  onClick={() => setLingua(l)}
+                >{l.toUpperCase()}</button>
+              </Tooltip>
             ))}
           </div>
         </div>

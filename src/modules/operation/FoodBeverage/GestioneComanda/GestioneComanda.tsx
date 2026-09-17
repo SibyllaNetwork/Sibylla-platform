@@ -20,8 +20,8 @@ import {
 } from '../../../../store/useFbStore'
 import {
   CATEGORIE_CLIENTE, CATEGORIE_MENU, GRUPPI_INGREDIENTE, INGREDIENTI, INGREDIENTI_EXTRA,
-  PORTATE, STATO_RIGA, TIPI_MENU, VOCI_MENU, normalizzaRicerca, ricettaDi,
-  type Comanda, type GruppoIngrediente, type Ingrediente, type RigaComanda,
+  MOTIVI_STORNO, PORTATE, STATO_RIGA, TIPI_MENU, VOCI_MENU, normalizzaRicerca, ricettaDi,
+  type Comanda, type GruppoIngrediente, type Ingrediente, type MotivoStorno, type RigaComanda,
 } from '../fb.model'
 import './GestioneComanda.sass'
 
@@ -56,6 +56,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const toggleSenzaRiga = useFbStore(s => s.toggleSenzaRiga)
   const setExtraRiga = useFbStore(s => s.setExtraRiga)
   const rimuoviRiga = useFbStore(s => s.rimuoviRiga)
+  const stornaRiga  = useFbStore(s => s.stornaRiga)
   const inviaComanda = useFbStore(s => s.inviaComanda)
   const setCategoriaCliente = useFbStore(s => s.setCategoriaCliente)
   const setAddebitoCamera = useFbStore(s => s.setAddebitoCamera)
@@ -97,6 +98,8 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const [cercaExtra, setCercaExtra] = useState('')
   const [gruppoExtra, setGruppoExtra] = useState<GruppoIngrediente | null>(null)
   const [notaCom, setNotaCom] = useState(false)
+  const [stornoDi, setStornoDi] = useState<RigaComanda | null>(null)
+  const [motivo, setMotivo] = useState<MotivoStorno>(MOTIVI_STORNO[0])
   const [conto, setConto]   = useState(false)
   const [pagamento, setPagamento] = useState<Comanda['pagamento']>('carta')
   const [divisione, setDivisione] = useState<null | 'righe' | 'uguali'>(null)
@@ -217,8 +220,18 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   }
 
   const elimina = async (r: RigaComanda) => {
+    // Una riga già partita per la cucina non si cancella: si storna, col perché.
+    // È l'unica traccia che resta di merce prodotta e non venduta.
+    if (r.stato !== 'in-comanda') { setStornoDi(r); setMotivo(MOTIVI_STORNO[0]); return }
     const ok = await confirm({ message: `Togliere “${r.nome}” dalla comanda?`, confirmLabel: 'Togli' })
     if (ok) rimuoviRiga(comanda.id, r.id)
+  }
+
+  const confermaStorno = () => {
+    if (!stornoDi) return
+    stornaRiga(comanda.id, stornoDi.id, motivo, comanda.cameriere || 'sconosciuto')
+    toast.info(`${stornoDi.nome} stornata · ${motivo.toLowerCase()}`)
+    setStornoDi(null)
   }
 
   const confermaConto = () => {
@@ -594,7 +607,7 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
 
                 {ricetta.length ? (
                   <ul className="fbcom-ing">
-                    {ricetta.map(i => {
+                    {ricetta.map(({ ing: i }) => {
                       const tolto = (rigaPers.senza ?? []).includes(i.id)
                       return (
                         <li key={i.id}>
@@ -974,6 +987,39 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
             </button>
           </footer>
         </div>
+      </Modal>
+
+      {/* ── Storno di una riga già inviata ───────────────────────────────── */}
+      <Modal
+        open={!!stornoDi} onClose={() => setStornoDi(null)} size="md"
+        title={stornoDi ? `Storna — ${stornoDi.nome}` : ''}
+      >
+        {stornoDi && (
+          <div className="fbcom-nota">
+            <p className="fbcom-storno__ava">
+              <i className="fa-solid fa-fire-burner" aria-hidden="true" />
+              La riga è già in lavorazione: lo storno finisce in Cassa e chiusure, col motivo.
+            </p>
+            <div>
+              <span className="fbcom-nota__lab">Motivo</span>
+              <div className="fbcom-nota__chips">
+                {MOTIVI_STORNO.map(m => (
+                  <button
+                    key={m} type="button"
+                    className={`fbcom-nota__chip ${m === motivo ? 'is-on' : ''}`}
+                    onClick={() => setMotivo(m)}
+                  >{m}</button>
+                ))}
+              </div>
+            </div>
+            <footer className="fbcom-nota__foot fbcom-storno__foot">
+              <button type="button" className="fbcom-storno__annulla" onClick={() => setStornoDi(null)}>Annulla</button>
+              <button type="button" className="fbcom-nota__ok" onClick={confermaStorno}>
+                <i className="fa-solid fa-rotate-left" aria-hidden="true" /> Storna {euro(totaleRiga(stornoDi))}
+              </button>
+            </footer>
+          </div>
+        )}
       </Modal>
 
       {/* Tablet e totem: la tastiera di sistema non c'è, questa sì */}

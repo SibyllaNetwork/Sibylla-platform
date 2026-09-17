@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import {
   OUTLETS, SALE, TURNI, tavoliIniziali, prenotazioniIniziali, comandeIniziali,
   VOCI_MENU, CATEGORIE_MENU, TIPI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
+  INGREDIENTI, RICETTE, cassaIniziale, storniIniziali,
   menuGiornoIniziali, webMenuIniziali,
   ALLERGENI_UE, STAMPANTI, MONITOR_KDS, CONFIG_EMAIL, CONFIG_WALLET,
   RUOLI_FB, UTENTI_FB, WALLET_CLIENTI,
@@ -11,7 +12,8 @@ import {
   type MenuGiorno, type WebMenu, type Allergene, type CategoriaCliente,
   type Stampante, type MonitorKds, type ConfigEmail, type ConfigWallet,
   type RuoloFb, type UtenteFb, type WalletCliente, type MovimentoWallet,
-  type Ingrediente, type ExtraRiga,
+  type Ingrediente, type ExtraRiga, type RigaRicetta,
+  type Storno, type TurnoCassa, type MotivoStorno, type MetodoPagamento,
 } from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Store operativo Food & Beverage ─────────────────────────────────────────
@@ -28,7 +30,7 @@ const nuovaRiga = (voceId: number, portata: number): RigaComanda => {
   return {
     id: `r${voceId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     voceId, nome: v.nome, prezzo: v.prezzo, qta: 1, portata, note: '', stato: 'in-comanda', sconto: 0,
-    senza: [], extra: [],
+    inviataAlle: null, senza: [], extra: [],
   }
 }
 
@@ -89,6 +91,16 @@ interface FbState {
   ordinaCategorie: (ids: number[]) => void
   salvaVoce: (v: VoceMenu) => void
   eliminaVoce: (id: number) => void
+
+  /** Economato: ingredienti d'acquisto e schede tecniche dei piatti. */
+  ingredienti: Ingrediente[]
+  /** Scheda tecnica per voce di menu: è da qui che esce il food cost. */
+  ricette: Record<number, RigaRicetta[]>
+  salvaIngrediente: (i: Ingrediente) => void
+  eliminaIngrediente: (id: number) => void
+  salvaRicetta: (voceId: number, righe: RigaRicetta[]) => void
+  /** Carico di magazzino (consegna del fornitore) o rettifica d'inventario. */
+  muoviGiacenza: (ingredienteId: number, delta: number) => void
 
   /** Menu del giorno e menu pubblicati online. */
   menuGiorno: MenuGiorno[]
@@ -176,6 +188,17 @@ interface FbState {
   setAddebitoCamera: (comandaId: number, camera: string) => void
   chiudiConto: (comandaId: number, pagamento: Comanda['pagamento']) => void
 
+  // ── Cassa ──
+  /** Turno di cassa in corso: null se la cassa è ancora chiusa. */
+  cassa: TurnoCassa | null
+  chiusure: TurnoCassa[]
+  storni: Storno[]
+  apriCassa: (fondo: number, operatore: string) => void
+  /** Chiude il turno col conteggio del cassetto e lo archivia. */
+  chiudiCassa: (contato: number) => void
+  /** Toglie una riga dal conto tracciando il perché: è l'unico modo di stornare. */
+  stornaRiga: (comandaId: number, rigaId: string, motivo: MotivoStorno, operatore: string) => void
+
   // ── Prenotazioni ──
   creaPrenotazione: (p: Omit<Prenotazione, 'id'>) => number
   aggiornaPrenotazione: (id: number, p: Partial<Prenotazione>) => void
@@ -237,6 +260,34 @@ export const useFbStore = create<FbState>()(
 
       eliminaVoce: id =>
         set(s => ({ voci: s.voci.filter(v => v.id !== id) })),
+
+      ingredienti: INGREDIENTI,
+      ricette: RICETTE,
+
+      salvaIngrediente: i =>
+        set(s => ({
+          ingredienti: s.ingredienti.some(x => x.id === i.id)
+            ? s.ingredienti.map(x => x.id === i.id ? i : x)
+            : [...s.ingredienti, { ...i, id: Math.max(0, ...s.ingredienti.map(x => x.id)) + 1 }],
+        })),
+
+      eliminaIngrediente: id =>
+        set(s => ({
+          ingredienti: s.ingredienti.filter(i => i.id !== id),
+          // Sparisce anche dalle schede tecniche, altrimenti resta un costo fantasma
+          ricette: Object.fromEntries(
+            Object.entries(s.ricette).map(([v, righe]) => [v, righe.filter(r => r.ingredienteId !== id)]),
+          ),
+        })),
+
+      salvaRicetta: (voceId, righe) =>
+        set(s => ({ ricette: { ...s.ricette, [voceId]: righe } })),
+
+      muoviGiacenza: (ingredienteId, delta) =>
+        set(s => ({
+          ingredienti: s.ingredienti.map(i =>
+            i.id === ingredienteId ? { ...i, giacenza: Math.max(0, +(i.giacenza + delta).toFixed(3)) } : i),
+        })),
 
       menuGiorno: menuGiornoIniziali(),
       webMenu: webMenuIniziali(),
@@ -636,7 +687,8 @@ export const useFbStore = create<FbState>()(
         if (!daInviare) return 0
         set(s => ({
           comande: s.comande.map(x => x.id !== comandaId ? x
-            : { ...x, righe: x.righe.map(r => r.stato === 'in-comanda' ? { ...r, stato: 'inviata' } : r) }),
+            : { ...x, righe: x.righe.map(r => r.stato === 'in-comanda'
+              ? { ...r, stato: 'inviata', inviataAlle: oraCorrente() } : r) }),
           tavoli: s.tavoli.map(t => t.id === c!.tavoloId ? { ...t, stato: 'ordinato' } : t),
         }))
         return daInviare
@@ -675,6 +727,68 @@ export const useFbStore = create<FbState>()(
               : { ...x, stato: 'chiusa', chiusaAlle: oraCorrente(), pagamento }),
             tavoli: s.tavoli.map(t =>
               t.id === c?.tavoloId ? { ...t, stato: 'pulizia', coperti: 0, cameriere: null, apertoAlle: null } : t),
+          }
+        }),
+
+      // ── Cassa ─────────────────────────────────────────────────────────────
+      cassa: cassaIniziale(),
+      chiusure: [],
+      storni: storniIniziali(),
+
+      apriCassa: (fondo, operatore) =>
+        set(s => ({
+          cassa: {
+            id: Math.max(0, ...s.chiusure.map(c => c.id)) + 1,
+            data: oggiISO(),
+            apertaAlle: oraCorrente(),
+            chiusaAlle: null,
+            operatore,
+            fondo,
+            contato: null,
+            incassi: { contanti: 0, carta: 0, camera: 0, wallet: 0 },
+            coperti: 0,
+            conti: 0,
+            storni: 0,
+          },
+        })),
+
+      chiudiCassa: contato =>
+        set(s => {
+          if (!s.cassa) return {}
+          // La fotografia si scatta alla chiusura: quello che è passato in cassa
+          // durante il turno, non quello che c'è a schermo domani.
+          const chiuse = s.comande.filter(c => c.stato === 'chiusa')
+          const incassi: Record<MetodoPagamento, number> = { contanti: 0, carta: 0, camera: 0, wallet: 0 }
+          chiuse.forEach(c => { if (c.pagamento) incassi[c.pagamento] += totaleConto(c) })
+          const turno: TurnoCassa = {
+            ...s.cassa,
+            chiusaAlle: oraCorrente(),
+            contato,
+            incassi,
+            coperti: chiuse.reduce((a, c) => a + c.coperti, 0),
+            conti: chiuse.length,
+            storni: s.storni.reduce((a, x) => a + x.valore, 0),
+          }
+          return { cassa: null, chiusure: [turno, ...s.chiusure] }
+        }),
+
+      stornaRiga: (comandaId, rigaId, motivo, operatore) =>
+        set(s => {
+          const c = s.comande.find(x => x.id === comandaId)
+          const r = c?.righe.find(x => x.id === rigaId)
+          if (!c || !r) return {}
+          const tav = s.tavoli.find(t => t.id === c.tavoloId)
+          const storno: Storno = {
+            id: `st${Date.now().toString(36)}`,
+            comandaId, numero: c.numero, tavolo: tav?.numero ?? '—',
+            voce: r.nome, qta: r.qta, valore: totaleRiga(r),
+            motivo, operatore, ora: oraCorrente(),
+            giaInviata: r.stato !== 'in-comanda',
+          }
+          return {
+            storni: [storno, ...s.storni],
+            comande: s.comande.map(x => x.id !== comandaId ? x
+              : { ...x, righe: x.righe.filter(y => y.id !== rigaId) }),
           }
         }),
 
@@ -729,7 +843,7 @@ export const useFbStore = create<FbState>()(
         progressivo: comandeIniziali().length,
       }),
     }),
-    { name: 'sibylla.fb', version: 7 },
+    { name: 'sibylla.fb', version: 10 },
   ),
 )
 

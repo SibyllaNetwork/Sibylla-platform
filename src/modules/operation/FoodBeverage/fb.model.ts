@@ -217,6 +217,8 @@ export interface RigaComanda {
   stato: StatoRiga
   /** Variazione di prezzo applicata a mano (sconto o supplemento). */
   sconto: number
+  /** Ora in cui la riga è partita per la cucina: è da lì che si conta l'attesa. */
+  inviataAlle: string | null
   /** Ingredienti della ricetta tolti su richiesta: vanno in cucina come "senza". */
   senza: number[]
   /** Aggiunte con supplemento, moltiplicate per la quantità della riga. */
@@ -243,6 +245,70 @@ export interface Comanda {
   addebitoCamera: string
   pagamento: 'contanti' | 'carta' | 'camera' | 'wallet' | null
 }
+
+// ─── Cassa: turno di cassa, storni e chiusura ────────────────────────────────
+//  Ogni servizio incassato apre e chiude un turno di cassa. La chiusura è il
+//  momento in cui si risponde a due domande: quanto è entrato, e per quali vie.
+//  Gli storni stanno qui e non fra le comande perché è lì che li si cerca —
+//  quando un totale non torna.
+
+export type MetodoPagamento = NonNullable<Comanda['pagamento']>
+
+export const METODI_PAGAMENTO: Array<{ id: MetodoPagamento; label: string; ico: string }> = [
+  { id: 'contanti', label: 'Contanti',        ico: 'fa-money-bill-wave' },
+  { id: 'carta',    label: 'Carta',           ico: 'fa-credit-card' },
+  { id: 'camera',   label: 'Addebito camera', ico: 'fa-bed' },
+  { id: 'wallet',   label: 'Wallet Sibylla',  ico: 'fa-wallet' },
+]
+
+/** Perché una riga già inviata è stata tolta dal conto. */
+export const MOTIVI_STORNO = [
+  'Errore di battitura',
+  'Cambio idea dell’ospite',
+  'Piatto non gradito',
+  'Ritardo in cucina',
+  'Omaggio della direzione',
+  'Prodotto terminato',
+] as const
+
+export type MotivoStorno = typeof MOTIVI_STORNO[number]
+
+export interface Storno {
+  id: string
+  comandaId: number
+  numero: string
+  tavolo: string
+  voce: string
+  qta: number
+  valore: number
+  motivo: MotivoStorno
+  operatore: string
+  ora: string
+  /** La riga era già partita per la cucina: è lo storno che conta davvero. */
+  giaInviata: boolean
+}
+
+export interface TurnoCassa {
+  id: number
+  /** yyyy-MM-dd */
+  data: string
+  apertaAlle: string
+  chiusaAlle: string | null
+  operatore: string
+  fondo: number
+  /** Conteggio del cassetto a fine turno: la differenza col teorico è lo scostamento. */
+  contato: number | null
+  incassi: Record<MetodoPagamento, number>
+  coperti: number
+  conti: number
+  storni: number
+}
+
+/** Aliquote IVA della ristorazione: servono al riepilogo di chiusura. */
+export const ALIQUOTE_IVA: Array<{ aliquota: number; label: string; reparti: string[] }> = [
+  { aliquota: 10, label: 'Somministrazione', reparti: ['cucina', 'pasticceria'] },
+  { aliquota: 22, label: 'Bevande alcoliche', reparti: ['bar', 'cantina'] },
+]
 
 // ─── Costanti operative ──────────────────────────────────────────────────────
 
@@ -576,6 +642,22 @@ export const GRUPPI_INGREDIENTE: Array<{ id: GruppoIngrediente; breve: string; i
   { id: 'Bar',                   breve: 'Bar',          ico: 'fa-martini-glass' },
 ]
 
+export type UnitaIngrediente = 'kg' | 'l' | 'pz'
+
+export interface Fornitore {
+  id: number
+  nome: string
+  categoria: string
+}
+
+export const FORNITORI: Fornitore[] = [
+  { id: 1, nome: 'Ortofrutta Val di Noto',   categoria: 'Ortofrutta' },
+  { id: 2, nome: 'Caseificio Iblei',         categoria: 'Latticini' },
+  { id: 3, nome: 'Carni & Mare Srl',         categoria: 'Carni e pesce' },
+  { id: 4, nome: 'Gastronomia Sud Distrib.', categoria: 'Secco e gastronomia' },
+  { id: 5, nome: 'Beverage Partner',         categoria: 'Bevande' },
+]
+
 export interface Ingrediente {
   id: number
   nome: string
@@ -584,16 +666,153 @@ export interface Ingrediente {
   prezzoExtra: number
   /** Codici allergene UE (A…N). */
   allergeni: string[]
+  /** Unità in cui si compra e si consuma. */
+  unita: UnitaIngrediente
+  /** Ultimo prezzo d'acquisto per unità: è la base di ogni food cost. */
+  costo: number
+  /** Quantità di una singola aggiunta, nell'unità dell'ingrediente. */
+  porzione: number
+  /** Quanto ce n'è in magazzino e sotto quale soglia si riordina. */
+  giacenza: number
+  scorta: number
+  fornitoreId: number
+  /** Prezzo spuntato dal gruppo d'acquisto Agorà, quando ce n'è uno aperto. */
+  agora?: number
   /** Fra i più richiesti: compare subito, senza digitare nulla. */
   frequente?: boolean
   /** Non proponibile come aggiunta (compone solo le ricette). */
   soloRicetta?: boolean
 }
 
+/** Listino d'acquisto: costo per unità, porzione di un'aggiunta e magazzino.
+ *  Sta in un posto solo perché è la presa a cui, domani, si attacca il prezzo
+ *  reale — quello dei gruppi d'acquisto dell'Agorà o del gestionale fornitori. */
+const LISTINO: Record<string, {
+  costo: number; unita: UnitaIngrediente; porzione: number
+  giacenza: number; scorta: number; fornitoreId: number; agora?: number
+}> = {
+  'Pomodoro':              { costo: 2.40, unita: 'kg', porzione: 0.06, giacenza: 18, scorta: 8, fornitoreId: 1, agora: 1.95 },
+  'Pomodorini confit':     { costo: 8.50, unita: 'kg', porzione: 0.04, giacenza: 6, scorta: 3, fornitoreId: 1 },
+  'Rucola':                { costo: 6.80, unita: 'kg', porzione: 0.03, giacenza: 1.5, scorta: 2, fornitoreId: 1, agora: 5.60 },
+  'Insalata mista':        { costo: 4.20, unita: 'kg', porzione: 0.06, giacenza: 9, scorta: 4, fornitoreId: 1 },
+  'Cipolla rossa':         { costo: 1.60, unita: 'kg', porzione: 0.04, giacenza: 14, scorta: 6, fornitoreId: 1 },
+  'Cipollotto':            { costo: 2.80, unita: 'kg', porzione: 0.03, giacenza: 5, scorta: 2, fornitoreId: 1 },
+  'Aglio':                 { costo: 5.50, unita: 'kg', porzione: 0.005, giacenza: 3, scorta: 1, fornitoreId: 1 },
+  'Funghi porcini':        { costo: 28.00, unita: 'kg', porzione: 0.05, giacenza: 4, scorta: 2, fornitoreId: 1, agora: 23.40 },
+  'Funghi champignon':     { costo: 4.60, unita: 'kg', porzione: 0.06, giacenza: 7, scorta: 3, fornitoreId: 1 },
+  'Zucchine grigliate':    { costo: 3.40, unita: 'kg', porzione: 0.08, giacenza: 10, scorta: 4, fornitoreId: 1 },
+  'Melanzane grigliate':   { costo: 3.20, unita: 'kg', porzione: 0.08, giacenza: 9, scorta: 4, fornitoreId: 1 },
+  'Peperoni':              { costo: 2.90, unita: 'kg', porzione: 0.07, giacenza: 8, scorta: 3, fornitoreId: 1 },
+  'Olive taggiasche':      { costo: 14.50, unita: 'kg', porzione: 0.02, giacenza: 3, scorta: 1, fornitoreId: 4, agora: 12.20 },
+  'Capperi':               { costo: 11.00, unita: 'kg', porzione: 0.01, giacenza: 2, scorta: 1, fornitoreId: 4 },
+  'Carciofi':              { costo: 6.50, unita: 'kg', porzione: 0.08, giacenza: 5, scorta: 2, fornitoreId: 1 },
+  'Radicchio':             { costo: 3.80, unita: 'kg', porzione: 0.06, giacenza: 6, scorta: 2, fornitoreId: 1 },
+  'Spinaci saltati':       { costo: 4.40, unita: 'kg', porzione: 0.09, giacenza: 7, scorta: 3, fornitoreId: 1 },
+  'Broccoletti':           { costo: 3.60, unita: 'kg', porzione: 0.12, giacenza: 8, scorta: 3, fornitoreId: 1 },
+  'Patate al forno':       { costo: 1.20, unita: 'kg', porzione: 0.18, giacenza: 40, scorta: 15, fornitoreId: 1, agora: 0.98 },
+  'Finocchietto':          { costo: 6.00, unita: 'kg', porzione: 0.01, giacenza: 2, scorta: 1, fornitoreId: 1 },
+  'Sedano':                { costo: 1.80, unita: 'kg', porzione: 0.04, giacenza: 6, scorta: 2, fornitoreId: 1 },
+  'Avocado':               { costo: 6.90, unita: 'kg', porzione: 0.08, giacenza: 5, scorta: 2, fornitoreId: 1 },
+  'Parmigiano':            { costo: 16.50, unita: 'kg', porzione: 0.02, giacenza: 12, scorta: 5, fornitoreId: 2, agora: 14.10 },
+  'Pecorino romano':       { costo: 13.80, unita: 'kg', porzione: 0.025, giacenza: 9, scorta: 4, fornitoreId: 2, agora: 11.90 },
+  'Mozzarella':            { costo: 7.20, unita: 'kg', porzione: 0.08, giacenza: 11, scorta: 5, fornitoreId: 2 },
+  'Burrata':               { costo: 12.40, unita: 'kg', porzione: 0.1, giacenza: 2, scorta: 3, fornitoreId: 2, agora: 10.50 },
+  'Stracciatella':         { costo: 13.50, unita: 'kg', porzione: 0.06, giacenza: 4, scorta: 2, fornitoreId: 2 },
+  'Gorgonzola':            { costo: 9.60, unita: 'kg', porzione: 0.05, giacenza: 5, scorta: 2, fornitoreId: 2 },
+  'Scamorza affumicata':   { costo: 8.40, unita: 'kg', porzione: 0.06, giacenza: 5, scorta: 2, fornitoreId: 2 },
+  'Ricotta':               { costo: 5.60, unita: 'kg', porzione: 0.09, giacenza: 7, scorta: 3, fornitoreId: 2 },
+  'Feta':                  { costo: 8.20, unita: 'kg', porzione: 0.06, giacenza: 4, scorta: 2, fornitoreId: 2 },
+  'Mascarpone':            { costo: 6.40, unita: 'kg', porzione: 0.08, giacenza: 8, scorta: 3, fornitoreId: 2 },
+  'Guanciale':             { costo: 15.50, unita: 'kg', porzione: 0.05, giacenza: 3, scorta: 4, fornitoreId: 3, agora: 12.90 },
+  'Pancetta':              { costo: 11.20, unita: 'kg', porzione: 0.05, giacenza: 7, scorta: 3, fornitoreId: 3 },
+  'Prosciutto crudo':      { costo: 26.00, unita: 'kg', porzione: 0.05, giacenza: 6, scorta: 3, fornitoreId: 3, agora: 22.50 },
+  'Prosciutto cotto':      { costo: 12.50, unita: 'kg', porzione: 0.06, giacenza: 7, scorta: 3, fornitoreId: 3 },
+  'Speck':                 { costo: 18.00, unita: 'kg', porzione: 0.05, giacenza: 4, scorta: 2, fornitoreId: 3 },
+  'Bresaola':              { costo: 32.00, unita: 'kg', porzione: 0.05, giacenza: 3, scorta: 1, fornitoreId: 3, agora: 27.80 },
+  'Salame piccante':       { costo: 12.80, unita: 'kg', porzione: 0.05, giacenza: 5, scorta: 2, fornitoreId: 3 },
+  'Mortadella':            { costo: 9.40, unita: 'kg', porzione: 0.06, giacenza: 5, scorta: 2, fornitoreId: 3 },
+  'Pollo grigliato':       { costo: 7.80, unita: 'kg', porzione: 0.14, giacenza: 12, scorta: 5, fornitoreId: 3 },
+  'Manzo crudo':           { costo: 24.00, unita: 'kg', porzione: 0.12, giacenza: 9, scorta: 4, fornitoreId: 3, agora: 20.90 },
+  'Gamberi':               { costo: 22.50, unita: 'kg', porzione: 0.1, giacenza: 6, scorta: 3, fornitoreId: 3, agora: 19.40 },
+  'Salmone affumicato':    { costo: 28.00, unita: 'kg', porzione: 0.08, giacenza: 5, scorta: 2, fornitoreId: 3 },
+  'Tonno':                 { costo: 19.00, unita: 'kg', porzione: 0.09, giacenza: 4, scorta: 2, fornitoreId: 3 },
+  'Alici del Cantabrico':  { costo: 42.00, unita: 'kg', porzione: 0.03, giacenza: 0.8, scorta: 1, fornitoreId: 3, agora: 36.00 },
+  'Bottarga':              { costo: 95.00, unita: 'kg', porzione: 0.01, giacenza: 1, scorta: 0.5, fornitoreId: 3 },
+  'Olio EVO':              { costo: 9.20, unita: 'l', porzione: 0.012, giacenza: 25, scorta: 10, fornitoreId: 4, agora: 7.80 },
+  'Aceto balsamico':       { costo: 6.50, unita: 'l', porzione: 0.008, giacenza: 8, scorta: 3, fornitoreId: 4 },
+  'Maionese':              { costo: 4.20, unita: 'kg', porzione: 0.02, giacenza: 6, scorta: 2, fornitoreId: 4 },
+  'Senape':                { costo: 5.10, unita: 'kg', porzione: 0.015, giacenza: 3, scorta: 1, fornitoreId: 4 },
+  'Salsa BBQ':             { costo: 4.80, unita: 'kg', porzione: 0.025, giacenza: 4, scorta: 2, fornitoreId: 4 },
+  'Salsa allo yogurt':     { costo: 5.40, unita: 'kg', porzione: 0.025, giacenza: 3, scorta: 1, fornitoreId: 4 },
+  'Pesto genovese':        { costo: 12.00, unita: 'kg', porzione: 0.03, giacenza: 4, scorta: 2, fornitoreId: 4 },
+  'Salsa di pomodoro':     { costo: 2.10, unita: 'kg', porzione: 0.1, giacenza: 20, scorta: 8, fornitoreId: 4, agora: 1.70 },
+  'Crema di tartufo':      { costo: 68.00, unita: 'kg', porzione: 0.012, giacenza: 0.8, scorta: 1, fornitoreId: 4, agora: 57.00 },
+  'Burro':                 { costo: 8.60, unita: 'kg', porzione: 0.015, giacenza: 9, scorta: 4, fornitoreId: 2, agora: 7.30 },
+  'Panna':                 { costo: 3.80, unita: 'l', porzione: 0.04, giacenza: 10, scorta: 4, fornitoreId: 2 },
+  'Coulis ai frutti rossi':{ costo: 9.50, unita: 'kg', porzione: 0.03, giacenza: 3, scorta: 1, fornitoreId: 4 },
+  'Sale grosso':           { costo: 0.60, unita: 'kg', porzione: 0.004, giacenza: 15, scorta: 5, fornitoreId: 4 },
+  'Pane casereccio':       { costo: 3.20, unita: 'kg', porzione: 0.09, giacenza: 14, scorta: 6, fornitoreId: 4 },
+  'Pane tostato':          { costo: 3.40, unita: 'kg', porzione: 0.07, giacenza: 12, scorta: 5, fornitoreId: 4 },
+  'Crostini':              { costo: 4.60, unita: 'kg', porzione: 0.05, giacenza: 6, scorta: 2, fornitoreId: 4 },
+  'Focaccia':              { costo: 5.20, unita: 'kg', porzione: 0.1, giacenza: 8, scorta: 3, fornitoreId: 4 },
+  'Pane senza glutine':    { costo: 9.80, unita: 'kg', porzione: 0.08, giacenza: 4, scorta: 2, fornitoreId: 4, agora: 8.20 },
+  'Tonnarelli':            { costo: 3.60, unita: 'kg', porzione: 0.12, giacenza: 18, scorta: 8, fornitoreId: 4 },
+  'Spaghetti':             { costo: 1.90, unita: 'kg', porzione: 0.11, giacenza: 30, scorta: 12, fornitoreId: 4, agora: 1.45 },
+  'Riso Carnaroli':        { costo: 3.10, unita: 'kg', porzione: 0.09, giacenza: 22, scorta: 9, fornitoreId: 4, agora: 2.60 },
+  'Savoiardi':             { costo: 6.20, unita: 'kg', porzione: 0.05, giacenza: 5, scorta: 2, fornitoreId: 4 },
+  'Base biscotto':         { costo: 5.40, unita: 'kg', porzione: 0.06, giacenza: 4, scorta: 2, fornitoreId: 4 },
+  'Limone':                { costo: 2.20, unita: 'kg', porzione: 0.02, giacenza: 9, scorta: 4, fornitoreId: 1 },
+  'Lime':                  { costo: 4.50, unita: 'kg', porzione: 0.02, giacenza: 5, scorta: 2, fornitoreId: 1 },
+  'Arancia':               { costo: 1.60, unita: 'kg', porzione: 0.03, giacenza: 12, scorta: 5, fornitoreId: 1 },
+  'Frutti rossi':          { costo: 12.00, unita: 'kg', porzione: 0.04, giacenza: 4, scorta: 2, fornitoreId: 1, agora: 9.90 },
+  'Pinoli':                { costo: 38.00, unita: 'kg', porzione: 0.008, giacenza: 0.6, scorta: 1, fornitoreId: 4, agora: 31.50 },
+  'Noci':                  { costo: 12.50, unita: 'kg', porzione: 0.015, giacenza: 3, scorta: 1, fornitoreId: 4 },
+  'Mandorle a lamelle':    { costo: 14.00, unita: 'kg', porzione: 0.012, giacenza: 2, scorta: 1, fornitoreId: 4 },
+  'Pistacchi':             { costo: 26.00, unita: 'kg', porzione: 0.012, giacenza: 2, scorta: 1, fornitoreId: 4, agora: 21.80 },
+  'Basilico':              { costo: 12.00, unita: 'kg', porzione: 0.004, giacenza: 1.5, scorta: 0.6, fornitoreId: 1 },
+  'Prezzemolo':            { costo: 8.00, unita: 'kg', porzione: 0.004, giacenza: 1.5, scorta: 0.6, fornitoreId: 1 },
+  'Rosmarino':             { costo: 7.50, unita: 'kg', porzione: 0.003, giacenza: 1, scorta: 0.4, fornitoreId: 1 },
+  'Menta':                 { costo: 14.00, unita: 'kg', porzione: 0.004, giacenza: 1, scorta: 0.4, fornitoreId: 1 },
+  'Peperoncino':           { costo: 9.00, unita: 'kg', porzione: 0.002, giacenza: 1, scorta: 0.4, fornitoreId: 4 },
+  'Pepe nero':             { costo: 18.00, unita: 'kg', porzione: 0.002, giacenza: 2, scorta: 0.8, fornitoreId: 4 },
+  'Origano':               { costo: 12.50, unita: 'kg', porzione: 0.002, giacenza: 1, scorta: 0.4, fornitoreId: 4 },
+  'Zenzero':               { costo: 6.50, unita: 'kg', porzione: 0.006, giacenza: 2, scorta: 0.8, fornitoreId: 1 },
+  'Timo':                  { costo: 16.00, unita: 'kg', porzione: 0.002, giacenza: 1, scorta: 0.4, fornitoreId: 1 },
+  'Uovo fritto':           { costo: 0.32, unita: 'pz', porzione: 1, giacenza: 120, scorta: 48, fornitoreId: 2, agora: 0.26 },
+  'Uovo in camicia':       { costo: 0.32, unita: 'pz', porzione: 1, giacenza: 120, scorta: 48, fornitoreId: 2 },
+  'Tuorlo':                { costo: 0.34, unita: 'pz', porzione: 1, giacenza: 90, scorta: 36, fornitoreId: 2 },
+  'Latte':                 { costo: 1.10, unita: 'l', porzione: 0.05, giacenza: 30, scorta: 12, fornitoreId: 2 },
+  'Yogurt greco':          { costo: 4.40, unita: 'kg', porzione: 0.1, giacenza: 6, scorta: 2, fornitoreId: 2 },
+  'Gelato alla vaniglia':  { costo: 6.80, unita: 'l', porzione: 0.08, giacenza: 10, scorta: 4, fornitoreId: 4, agora: 5.70 },
+  'Panna montata':         { costo: 4.60, unita: 'l', porzione: 0.04, giacenza: 6, scorta: 2, fornitoreId: 2 },
+  'Cioccolato fondente':   { costo: 11.50, unita: 'kg', porzione: 0.03, giacenza: 4, scorta: 2, fornitoreId: 4 },
+  'Caffè':                 { costo: 18.00, unita: 'kg', porzione: 0.008, giacenza: 6, scorta: 2, fornitoreId: 5, agora: 15.20 },
+  'Cacao amaro':           { costo: 9.40, unita: 'kg', porzione: 0.004, giacenza: 2, scorta: 1, fornitoreId: 4 },
+  'Miele':                 { costo: 8.90, unita: 'kg', porzione: 0.02, giacenza: 3, scorta: 1, fornitoreId: 4 },
+  'Ghiaccio':              { costo: 0.45, unita: 'kg', porzione: 0.15, giacenza: 40, scorta: 15, fornitoreId: 5 },
+  'Soda':                  { costo: 0.90, unita: 'l', porzione: 0.06, giacenza: 25, scorta: 10, fornitoreId: 5 },
+  'Acqua tonica':          { costo: 1.80, unita: 'l', porzione: 0.15, giacenza: 20, scorta: 8, fornitoreId: 5, agora: 1.45 },
+  'Scorza d’arancia':      { costo: 1.60, unita: 'kg', porzione: 0.005, giacenza: 3, scorta: 1, fornitoreId: 1 },
+  'Oliva':                 { costo: 7.20, unita: 'kg', porzione: 0.008, giacenza: 2, scorta: 1, fornitoreId: 4 },
+  'Zucchero di canna':     { costo: 1.40, unita: 'kg', porzione: 0.01, giacenza: 12, scorta: 5, fornitoreId: 4 },
+  'Rum bianco':            { costo: 14.00, unita: 'l', porzione: 0.05, giacenza: 9, scorta: 4, fornitoreId: 5, agora: 11.60 },
+  'Gin':                   { costo: 18.00, unita: 'l', porzione: 0.05, giacenza: 8, scorta: 3, fornitoreId: 5, agora: 15.10 },
+  'Campari':               { costo: 15.50, unita: 'l', porzione: 0.03, giacenza: 6, scorta: 2, fornitoreId: 5 },
+  'Vermouth rosso':        { costo: 9.80, unita: 'l', porzione: 0.03, giacenza: 7, scorta: 3, fornitoreId: 5 },
+  'Prosecco':              { costo: 5.60, unita: 'l', porzione: 0.1, giacenza: 14, scorta: 6, fornitoreId: 5, agora: 4.60 },
+  'Bitter':                { costo: 12.00, unita: 'l', porzione: 0.04, giacenza: 5, scorta: 2, fornitoreId: 5 },
+}
+
 const ing = (
   id: number, nome: string, gruppo: GruppoIngrediente, prezzoExtra: number,
   allergeni: string[] = [], extra: Partial<Ingrediente> = {},
-): Ingrediente => ({ id, nome, gruppo, prezzoExtra, allergeni, ...extra })
+): Ingrediente => ({
+  id, nome, gruppo, prezzoExtra, allergeni,
+  // Se manca dal listino resta a costo zero: si vede subito in Food cost.
+  ...{ unita: 'kg' as UnitaIngrediente, costo: 0, porzione: 0.03, giacenza: 0, scorta: 0, fornitoreId: 4 },
+  ...LISTINO[nome],
+  ...extra,
+})
 
 export const INGREDIENTI: Ingrediente[] = [
   // Verdure
@@ -721,35 +940,74 @@ export const INGREDIENTI: Ingrediente[] = [
 
 const idIngrediente = (nome: string) => INGREDIENTI.find(i => i.nome === nome)?.id
 
-/** Composizione dei piatti, scritta per nome e risolta in id all'avvio. */
-const RICETTE_NOMI: Record<number, string[]> = {
-  1:   ['Pane tostato', 'Pomodoro', 'Basilico', 'Aglio', 'Olio EVO'],
-  2:   ['Manzo crudo', 'Parmigiano', 'Rucola', 'Olio EVO', 'Limone'],
-  16:  ['Burrata', 'Alici del Cantabrico', 'Olio EVO', 'Pepe nero'],
-  3:   ['Spaghetti', 'Tuorlo', 'Guanciale', 'Pecorino romano', 'Pepe nero'],
-  4:   ['Riso Carnaroli', 'Funghi porcini', 'Burro', 'Parmigiano', 'Prezzemolo'],
-  17:  ['Tonnarelli', 'Pecorino romano', 'Pepe nero'],
-  5:   ['Rosmarino', 'Sale grosso', 'Olio EVO'],
-  6:   ['Lime', 'Finocchietto', 'Olio EVO'],
-  114: ['Broccoletti', 'Aglio', 'Olio EVO', 'Peperoncino'],
-  115: ['Patate al forno', 'Rosmarino', 'Sale grosso'],
-  7:   ['Mascarpone', 'Savoiardi', 'Caffè', 'Cacao amaro', 'Tuorlo'],
-  8:   ['Base biscotto', 'Ricotta', 'Coulis ai frutti rossi', 'Frutti rossi'],
-  13:  ['Rum bianco', 'Lime', 'Menta', 'Soda', 'Zucchero di canna', 'Ghiaccio'],
-  14:  ['Gin', 'Campari', 'Vermouth rosso', 'Scorza d’arancia', 'Ghiaccio'],
-  19:  ['Prosecco', 'Bitter', 'Soda', 'Arancia', 'Ghiaccio'],
+/** Una riga di ricetta: quanto di quell'ingrediente entra in una porzione. */
+export interface RigaRicetta {
+  ingredienteId: number
+  /** Quantità per porzione, nell'unità dell'ingrediente. */
+  qta: number
 }
 
-export const RICETTE: Record<number, number[]> = Object.fromEntries(
-  Object.entries(RICETTE_NOMI).map(([voceId, nomi]) => [
+/** Composizione dei piatti: nome e quantità per porzione, risolti in id all'avvio.
+ *  Le quantità sono quelle della scheda tecnica: da lì escono food cost e scarico. */
+const RICETTE_NOMI: Record<number, Array<[string, number]>> = {
+  1:   [['Pane tostato', .08], ['Pomodoro', .12], ['Basilico', .004], ['Aglio', .004], ['Olio EVO', .012]],
+  2:   [['Manzo crudo', .12], ['Parmigiano', .02], ['Rucola', .02], ['Olio EVO', .012], ['Limone', .02]],
+  16:  [['Burrata', .12], ['Alici del Cantabrico', .03], ['Olio EVO', .01], ['Pepe nero', .002]],
+  3:   [['Spaghetti', .11], ['Tuorlo', 2], ['Guanciale', .06], ['Pecorino romano', .03], ['Pepe nero', .002]],
+  4:   [['Riso Carnaroli', .09], ['Funghi porcini', .07], ['Burro', .02], ['Parmigiano', .025], ['Prezzemolo', .004]],
+  17:  [['Tonnarelli', .12], ['Pecorino romano', .045], ['Pepe nero', .003]],
+  5:   [['Rosmarino', .003], ['Sale grosso', .005], ['Olio EVO', .01]],
+  6:   [['Lime', .02], ['Finocchietto', .008], ['Olio EVO', .012]],
+  114: [['Broccoletti', .18], ['Aglio', .004], ['Olio EVO', .015], ['Peperoncino', .002]],
+  115: [['Patate al forno', .22], ['Rosmarino', .003], ['Sale grosso', .004]],
+  7:   [['Mascarpone', .09], ['Savoiardi', .05], ['Caffè', .008], ['Cacao amaro', .004], ['Tuorlo', 1]],
+  8:   [['Base biscotto', .06], ['Ricotta', .10], ['Coulis ai frutti rossi', .03], ['Frutti rossi', .03]],
+  13:  [['Rum bianco', .05], ['Lime', .03], ['Menta', .006], ['Soda', .06], ['Zucchero di canna', .012], ['Ghiaccio', .15]],
+  14:  [['Gin', .03], ['Campari', .03], ['Vermouth rosso', .03], ['Scorza d’arancia', .005], ['Ghiaccio', .15]],
+  19:  [['Prosecco', .09], ['Bitter', .04], ['Soda', .03], ['Arancia', .02], ['Ghiaccio', .12]],
+}
+
+export const RICETTE: Record<number, RigaRicetta[]> = Object.fromEntries(
+  Object.entries(RICETTE_NOMI).map(([voceId, righe]) => [
     Number(voceId),
-    nomi.map(idIngrediente).filter((x): x is number => x != null),
+    righe
+      .map(([nome, qta]) => ({ ingredienteId: idIngrediente(nome), qta }))
+      .filter((r): r is RigaRicetta => r.ingredienteId != null),
   ]),
 )
 
-/** Ingredienti che compongono una voce di menu (vuoto se non ha scheda). */
-export const ricettaDi = (voceId: number): Ingrediente[] =>
-  (RICETTE[voceId] ?? []).map(id => INGREDIENTI.find(i => i.id === id)!).filter(Boolean)
+/** Scheda tecnica di una voce: ingrediente, quantità e costo della riga. */
+export const ricettaDi = (voceId: number): Array<{ ing: Ingrediente; qta: number; costo: number }> =>
+  (RICETTE[voceId] ?? []).flatMap(r => {
+    const ing = INGREDIENTI.find(i => i.id === r.ingredienteId)
+    return ing ? [{ ing, qta: r.qta, costo: ing.costo * r.qta }] : []
+  })
+
+/** Costo materia prima di una porzione. 0 = scheda tecnica ancora da scrivere. */
+export const foodCostDi = (voceId: number): number =>
+  ricettaDi(voceId).reduce((a, r) => a + r.costo, 0)
+
+/** Costo della materia prima di una singola aggiunta. */
+export const costoExtra = (i: Ingrediente) => i.costo * i.porzione
+
+/** Food cost, margine e incidenza di una voce di carta. */
+export const margineDi = (v: VoceMenu) => {
+  const costo = foodCostDi(v.id)
+  const margine = v.prezzo - costo
+  return {
+    costo,
+    margine,
+    /** Quanto resta in percentuale sul prezzo di vendita. */
+    marginePerc: v.prezzo ? (margine / v.prezzo) * 100 : 0,
+    /** Incidenza della materia prima: il numero che si controlla in cucina. */
+    foodCostPerc: v.prezzo ? (costo / v.prezzo) * 100 : 0,
+    /** Senza scheda tecnica non si dice nulla: meglio il trattino di un numero falso. */
+    noScheda: costo === 0,
+  }
+}
+
+/** Soglia oltre la quale l'incidenza della materia prima va guardata. */
+export const SOGLIA_FOOD_COST = 35
 
 /** Catalogo delle aggiunte proponibili in comanda. */
 export const INGREDIENTI_EXTRA = INGREDIENTI.filter(i => !i.soloRicetta)
@@ -1167,10 +1425,13 @@ export const prenotazioniIniziali = (): Prenotazione[] => {
 
 const riga = (
   v: VoceMenu, qta: number, portata: number, stato: StatoRiga, note = '',
-  senza: number[] = [], extra: ExtraRiga[] = [],
+  senza: number[] = [], extra: ExtraRiga[] = [], daMinuti = 0,
 ): RigaComanda => ({
   id: `r${v.id}-${Math.random().toString(36).slice(2, 7)}`,
   voceId: v.id, nome: v.nome, prezzo: v.prezzo, qta, portata, note, stato, sconto: 0,
+  // Una riga in lavorazione aspetta da qualche minuto, non da quando si è aperto
+  // il tavolo: è la differenza fra un monitor credibile e uno tutto rosso.
+  inviataAlle: stato === 'in-comanda' ? null : oraMenoMinuti(daMinuti || 4),
   senza, extra,
 })
 
@@ -1187,7 +1448,7 @@ export const comandeIniziali = (): Comanda[] => [
       // dell'ospite viaggia con la riga, in cucina e sul conto.
       riga(voce(3), 2, 2, 'in-preparazione', '', [idIngrediente('Guanciale')!], [
         { ingredienteId: idIngrediente('Crema di tartufo')!, nome: 'Crema di tartufo', prezzo: 5, qta: 1 },
-      ]),
+      ], 9),
       riga(voce(100), 1, 0, 'servita'),
       riga(voce(10), 2, 0, 'servita'),
     ],
@@ -1197,8 +1458,8 @@ export const comandeIniziali = (): Comanda[] => [
     coperti: 2, cameriere: 'Giulia P.', categoriaClienteId: 3,
     nota: '', apertaAlle: oraMenoMinuti(20), chiusaAlle: null, stato: 'aperta', addebitoCamera: '204', pagamento: null,
     righe: [
-      riga(voce(16), 1, 1, 'inviata'),
-      riga(voce(17), 2, 2, 'inviata', 'Uno senza pepe'),
+      riga(voce(16), 1, 1, 'inviata', '', [], [], 3),
+      riga(voce(17), 2, 2, 'inviata', 'Uno senza pepe', [], [], 8),
       riga(voce(110), 1, 0, 'servita'),
     ],
   },
@@ -1208,8 +1469,8 @@ export const comandeIniziali = (): Comanda[] => [
     nota: '', apertaAlle: oraMenoMinuti(55), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(2), 3, 1, 'servita'),
-      riga(voce(5), 4, 3, 'pronta'),
-      riga(voce(114), 2, 3, 'in-preparazione'),
+      riga(voce(5), 4, 3, 'pronta', '', [], [], 2),
+      riga(voce(114), 2, 3, 'in-preparazione', '', [], [], 16),
       riga(voce(101), 2, 0, 'servita'),
     ],
   },
@@ -1236,9 +1497,83 @@ export const comandeIniziali = (): Comanda[] => [
     nota: '', apertaAlle: oraMenoMinuti(40), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(1), 2, 1, 'servita'),
-      riga(voce(3), 1, 2, 'inviata'),
-      riga(voce(17), 1, 2, 'inviata'),
+      riga(voce(3), 1, 2, 'inviata', '', [], [], 2),
+      riga(voce(17), 1, 2, 'inviata', '', [], [], 5),
       riga(voce(11), 4, 0, 'servita'),
     ],
+  },
+  // ── Conti già incassati: sono quelli che formano la cassa del turno ──
+  {
+    id: 7, numero: '007', outletId: 1, salaId: 1, tavoloId: 1003, turnoId: 4,
+    coperti: 2, cameriere: 'Luca V.', categoriaClienteId: 0,
+    nota: '', apertaAlle: oraMenoMinuti(150), chiusaAlle: oraMenoMinuti(95),
+    stato: 'chiusa', addebitoCamera: '', pagamento: 'carta',
+    righe: [
+      riga(voce(2), 2, 1, 'servita', '', [], [], 95),
+      riga(voce(5), 2, 3, 'servita', '', [], [], 95),
+      riga(voce(100), 1, 0, 'servita', '', [], [], 95),
+    ],
+  },
+  {
+    id: 8, numero: '008', outletId: 1, salaId: 1, tavoloId: 1005, turnoId: 4,
+    coperti: 4, cameriere: 'Marco R.', categoriaClienteId: 3,
+    nota: '', apertaAlle: oraMenoMinuti(170), chiusaAlle: oraMenoMinuti(110),
+    stato: 'chiusa', addebitoCamera: '204', pagamento: 'camera',
+    righe: [
+      riga(voce(16), 2, 1, 'servita', '', [], [], 110),
+      riga(voce(4), 2, 2, 'servita', '', [], [], 110),
+      riga(voce(7), 4, 4, 'servita', '', [], [], 110),
+      riga(voce(110), 2, 0, 'servita', '', [], [], 110),
+    ],
+  },
+  {
+    id: 9, numero: '009', outletId: 1, salaId: 2, tavoloId: 2002, turnoId: 4,
+    coperti: 2, cameriere: 'Elena F.', categoriaClienteId: 0,
+    nota: '', apertaAlle: oraMenoMinuti(80), chiusaAlle: oraMenoMinuti(40),
+    stato: 'chiusa', addebitoCamera: '', pagamento: 'contanti',
+    righe: [
+      riga(voce(13), 2, 0, 'servita', '', [], [], 40),
+      riga(voce(19), 2, 0, 'servita', '', [], [], 40),
+      riga(voce(1), 1, 1, 'servita', '', [], [], 40),
+    ],
+  },
+  {
+    id: 10, numero: '010', outletId: 1, salaId: 1, tavoloId: 1012, turnoId: 4,
+    coperti: 3, cameriere: 'Sara T.', categoriaClienteId: 0,
+    nota: '', apertaAlle: oraMenoMinuti(120), chiusaAlle: oraMenoMinuti(60),
+    stato: 'chiusa', addebitoCamera: '', pagamento: 'wallet',
+    righe: [
+      riga(voce(17), 3, 2, 'servita', '', [], [], 60),
+      riga(voce(8), 3, 4, 'servita', '', [], [], 60),
+      riga(voce(12), 3, 0, 'servita', '', [], [], 60),
+    ],
+  },
+]
+
+/** Turno di cassa già aperto: il servizio in corso è cominciato prima di noi. */
+export const cassaIniziale = (): TurnoCassa => ({
+  id: 1,
+  data: oggiISO(),
+  apertaAlle: oraMenoMinuti(210),
+  chiusaAlle: null,
+  operatore: 'Luca V.',
+  fondo: 150,
+  contato: null,
+  incassi: { contanti: 0, carta: 0, camera: 0, wallet: 0 },
+  coperti: 0,
+  conti: 0,
+  storni: 0,
+})
+
+export const storniIniziali = (): Storno[] => [
+  {
+    id: 'st-seed-1', comandaId: 8, numero: '008', tavolo: '005',
+    voce: 'Risotto ai funghi', qta: 1, valore: 14,
+    motivo: 'Ritardo in cucina', operatore: 'Marco R.', ora: oraMenoMinuti(118), giaInviata: true,
+  },
+  {
+    id: 'st-seed-2', comandaId: 7, numero: '007', tavolo: '003',
+    voce: 'Vino rosso al calice', qta: 2, valore: 12,
+    motivo: 'Errore di battitura', operatore: 'Luca V.', ora: oraMenoMinuti(140), giaInviata: false,
   },
 ]

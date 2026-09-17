@@ -24,6 +24,10 @@
     white-space: nowrap
     cursor: pointer
 
+    &--ghost
+      background: var(--color-surface)
+      color: var(--color-primary)
+
   &__bar
     margin-bottom: 0
 
@@ -42,6 +46,36 @@
     font-size: 12px
     font-weight: 600
     color: var(--color-primary)
+
+  // Selettore della lingua della carta
+  &__lingue
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__seg
+    display: inline-flex
+    padding: 2px
+    border: 1px solid var(--color-border)
+    border-radius: 18px
+    background: var(--color-primary-50)
+    height: 34px
+
+    button
+      min-width: 38px
+      padding: 0 10px
+      border: none
+      border-radius: 16px
+      background: transparent
+      color: var(--color-text-inactive)
+      font-size: 12px
+      font-weight: 700
+      cursor: pointer
+
+      &.is-on
+        background: var(--color-surface)
+        color: var(--color-primary)
+        box-shadow: 0 1px 3px rgba(32, 71, 105, .16)
 
   &__wrap
     flex: 1
@@ -278,35 +312,6 @@
     font-weight: 600
     cursor: pointer
 
-  // Selettore della lingua della carta
-  &__lingue
-    display: flex
-    flex-direction: column
-    gap: 4px
-
-  &__seg
-    display: inline-flex
-    padding: 2px
-    border: 1px solid var(--color-border)
-    border-radius: 18px
-    background: var(--color-primary-50)
-    height: 34px
-
-    button
-      min-width: 38px
-      padding: 0 10px
-      border: none
-      border-radius: 16px
-      background: transparent
-      color: var(--color-text-inactive)
-      font-size: 12px
-      font-weight: 700
-      cursor: pointer
-
-      &.is-on
-        background: var(--color-surface)
-        color: var(--color-primary)
-        box-shadow: 0 1px 3px rgba(32, 71, 105, .16)
 
   &__voce
     display: flex

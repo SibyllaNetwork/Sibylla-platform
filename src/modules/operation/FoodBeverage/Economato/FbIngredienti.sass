@@ -1,0 +1,293 @@
+// ─── Ingredienti e listino (Food & Beverage) ──────────────────────────────────
+//  Tabella di lavoro: costo e giacenza si correggono dalla riga. Colonne in
+//  percentuale e table-layout fisso, nessuno scroll orizzontale.
+@use '../../../../styles/tokens' as *
+
+.fbing
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__head-btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 16px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 140px
+
+    &--lg
+      min-width: 190px
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__cerca-lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-sotto td
+      background: var(--color-warning-light)
+
+  &__c-nome
+    width: 19%
+  &__c-gru
+    width: 11%
+  &__c-forn
+    width: 15%
+  &__c-costo
+    width: 21%
+  &__c-gia
+    width: 10%
+  &__c-extra
+    width: 12%
+  &__c-usi
+    width: 5%
+  &__c-act
+    width: 7%
+
+  &__amt
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__nome
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+  &__all
+    flex: none
+    padding: 2px 7px
+    border-radius: 9px
+    background: var(--color-warning-light)
+    color: var(--color-warning)
+    font-size: 11px
+    font-weight: 700
+    letter-spacing: .04em
+
+  // Costo: campo editabile + unità, e sotto l'occasione del gruppo d'acquisto
+  &__costo
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 4px
+
+  // Due classi: con una sola pareggerebbe con `.sib-input` e vincerebbe il DS
+  .fbing__table .fbing__num
+    width: 72px
+    text-align: right
+
+  &__unita
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__agora
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    margin-left: 6px
+    padding: 2px 8px
+    border: 1px solid var(--color-success)
+    border-radius: 9px
+    background: var(--color-success-light)
+    color: var(--color-success)
+    font-size: 11px
+    font-weight: 700
+    cursor: pointer
+
+    i
+      font-size: 10px
+
+  &__gia
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+
+  &__alert
+    color: var(--color-warning)
+    font-size: 12px
+
+  &__nessuno
+    color: var(--color-text-disabled)
+
+  &__acts
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 4px
+
+  &__act
+    display: grid
+    place-items: center
+    width: 30px
+    height: 30px
+    border: 0
+    border-radius: 8px
+    background: transparent
+    cursor: pointer
+
+    i
+      font-size: 16px
+      color: var(--color-primary)
+
+    &:hover
+      background: var(--color-primary-50)
+
+    &--danger i
+      color: var(--color-error)
+
+  &__vuoto
+    padding: 28px
+    text-align: center
+    color: var(--color-text-inactive)
+
+  // Totale sotto la tabella: mai una fascia di riquadri in cima alla pagina
+  &__somma
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+    margin: 8px 0 0
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__somma-link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    border: 0
+    background: none
+    padding: 0
+    color: var(--color-success)
+    font-size: 12.5px
+    font-weight: 700
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__pag
+    display: flex
+    justify-content: center
+    margin-top: 10px
+
+// ─── Scheda dell'ingrediente ─────────────────────────────────────────────────
+.fbing-form
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr))
+    gap: 12px
+
+  &__blocco
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__all
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+  &__chip
+    padding: 5px 10px
+    border: 1px solid var(--color-border)
+    border-radius: 16px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 11.5px
+    font-weight: 600
+    cursor: pointer
+
+    &.is-on
+      border-color: var(--color-primary)
+      background: var(--color-primary)
+      color: #fff
+
+  &__ora
+    margin: 0
+    font-size: 13px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-text-active)
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)
+
+  &__annulla
+    min-height: 40px
+    padding: 0 18px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+
+  &__ok
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 40px
+    padding: 0 18px
+    border: 1px solid var(--color-primary)
+    border-radius: 10px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
