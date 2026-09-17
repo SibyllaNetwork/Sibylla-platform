@@ -15,15 +15,18 @@ import Tooltip from '../../../../core/components/Tooltip'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
 import {
-  useFbStore, totaleRiga, totaleComanda, scontoComanda, totaleConto, SALE,
+  useFbStore, totaleRiga, extraRiga, totaleComanda, scontoComanda, totaleConto, SALE,
 } from '../../../../store/useFbStore'
 import {
-  CATEGORIE_CLIENTE, CATEGORIE_MENU, PORTATE, STATO_RIGA, TIPI_MENU, VOCI_MENU,
-  type Comanda, type RigaComanda,
+  CATEGORIE_CLIENTE, CATEGORIE_MENU, GRUPPI_INGREDIENTE, INGREDIENTI, INGREDIENTI_EXTRA,
+  PORTATE, STATO_RIGA, TIPI_MENU, VOCI_MENU, normalizzaRicerca, ricettaDi,
+  type Comanda, type GruppoIngrediente, type Ingrediente, type RigaComanda,
 } from '../fb.model'
 import './GestioneComanda.sass'
 
 const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
+
+const perNome = (a: Ingrediente, b: Ingrediente) => a.nome.localeCompare(b.nome, 'it')
 
 /** Note ricorrenti: si aggiungono con un tocco invece di scriverle ogni volta. */
 const NOTE_RAPIDE = [
@@ -49,6 +52,8 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const setQta      = useFbStore(s => s.setQta)
   const setNotaRiga = useFbStore(s => s.setNotaRiga)
   const setPortataRiga = useFbStore(s => s.setPortataRiga)
+  const toggleSenzaRiga = useFbStore(s => s.toggleSenzaRiga)
+  const setExtraRiga = useFbStore(s => s.setExtraRiga)
   const rimuoviRiga = useFbStore(s => s.rimuoviRiga)
   const inviaComanda = useFbStore(s => s.inviaComanda)
   const setCategoriaCliente = useFbStore(s => s.setCategoriaCliente)
@@ -87,7 +92,9 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
   const [catId, setCatId]   = useState<number | null>(null)
   const [portata, setPortata] = useState(1)
   const [cerca, setCerca]   = useState('')
-  const [notaDi, setNotaDi] = useState<RigaComanda | null>(null)
+  const [notaRigaId, setNotaRigaId] = useState<string | null>(null)
+  const [cercaExtra, setCercaExtra] = useState('')
+  const [gruppoExtra, setGruppoExtra] = useState<GruppoIngrediente | null>(null)
   const [notaCom, setNotaCom] = useState(false)
   const [conto, setConto]   = useState(false)
   const [pagamento, setPagamento] = useState<Comanda['pagamento']>('carta')
@@ -117,6 +124,34 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
     () => comande.filter(c => c.tavoloId === tavoloId && c.stato === 'chiusa'),
     [comande, tavoloId],
   )
+
+  // ── Personalizzazione della riga ──────────────────────────────────────────
+  //  La riga in modifica si tiene per id e si rilegge sempre dallo store: una
+  //  copia locale invecchierebbe a ogni tocco su ingredienti ed extra.
+  const rigaPers = comanda?.righe.find(r => r.id === notaRigaId) ?? null
+  const ricetta = rigaPers ? ricettaDi(rigaPers.voceId) : []
+  const extraScelti = rigaPers?.extra ?? []
+
+  // Famiglie con almeno un'aggiunta: sono le scorciatoie che evitano di digitare
+  const gruppiExtra = useMemo(
+    () => GRUPPI_INGREDIENTE.filter(g => INGREDIENTI_EXTRA.some(i => i.gruppo === g.id)),
+    [],
+  )
+
+  // Il catalogo è lungo: a mani libere si mostrano solo i più richiesti, poi
+  // filtrano famiglia e testo. I risultati ordinano per posizione del match,
+  // così “pom” mette Pomodoro prima di Pomodorini confit.
+  const extraTrovati = useMemo(() => {
+    const q = normalizzaRicerca(cercaExtra)
+    const base = gruppoExtra ? INGREDIENTI_EXTRA.filter(i => i.gruppo === gruppoExtra) : INGREDIENTI_EXTRA
+    if (!q) return gruppoExtra ? [...base].sort(perNome) : base.filter(i => i.frequente)
+    const trovati = base.filter(i => normalizzaRicerca(i.nome).includes(q))
+    return trovati.sort((a, b) => {
+      const ia = normalizzaRicerca(a.nome).indexOf(q)
+      const ib = normalizzaRicerca(b.nome).indexOf(q)
+      return ia !== ib ? ia - ib : perNome(a, b)
+    })
+  }, [cercaExtra, gruppoExtra])
 
   // ── Nessun tavolo aperto: si apre da qui, senza cambiare pagina ───────────
   if (!comanda || !tavolo) {
@@ -161,6 +196,22 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
     const n = inviaComanda(comanda.id)
     if (!n) { toast.info('Nessuna riga nuova da inviare'); return }
     toast.success(`${n} ${n === 1 ? 'riga inviata' : 'righe inviate'} in preparazione`)
+  }
+
+  const apriPersonalizza = (r: RigaComanda) => {
+    setNotaRigaId(r.id)
+    setCercaExtra('')
+    setGruppoExtra(null)
+  }
+
+  /** Quantità già richiesta di un'aggiunta sulla riga in modifica. */
+  const qtaExtra = (ingredienteId: number) =>
+    extraScelti.find(e => e.ingredienteId === ingredienteId)?.qta ?? 0
+
+  /** Un tocco aggiunge, un altro toglie: la quantità si regola col +/−. */
+  const toccaExtra = (ing: Ingrediente) => {
+    if (!rigaPers) return
+    setExtraRiga(comanda.id, rigaPers.id, ing, qtaExtra(ing.id) ? 0 : 1)
   }
 
   const elimina = async (r: RigaComanda) => {
@@ -432,13 +483,31 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
                         </button>
                       </div>
                       <span className="fbcom__riga-stato" data-stato={r.stato}>{STATO_RIGA[r.stato].label}</span>
-                      <button type="button" className="fbcom__riga-act" onClick={() => setNotaDi(r)} aria-label="Nota di riga">
+                      <button type="button" className="fbcom__riga-act" onClick={() => apriPersonalizza(r)} aria-label="Personalizza la riga">
                         <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
                       </button>
                       <button type="button" className="fbcom__riga-act fbcom__riga-act--danger" onClick={() => elimina(r)} aria-label="Togli la riga">
                         <i className="fa-solid fa-trash" aria-hidden="true" />
                       </button>
                     </div>
+                    {/* Le richieste dell'ospite restano visibili sulla riga, come le legge la cucina */}
+                    {(!!(r.senza ?? []).length || !!(r.extra ?? []).length) && (
+                      <p className="fbcom__riga-varianti">
+                        {!!(r.senza ?? []).length && <span className="fbcom__var-lab">Senza</span>}
+                        {(r.senza ?? []).map(id => (
+                          <span key={`s${id}`} className="fbcom__var fbcom__var--senza">
+                            {INGREDIENTI.find(i => i.id === id)?.nome}
+                          </span>
+                        ))}
+                        {(r.extra ?? []).map(e => (
+                          <span key={`e${e.ingredienteId}`} className="fbcom__var fbcom__var--extra">
+                            <i className="fa-solid fa-plus" aria-hidden="true" />
+                            {e.qta > 1 ? `${e.qta}× ` : ''}{e.nome}
+                            {!!e.prezzo && ` (+${euro(e.prezzo * e.qta)})`}
+                          </span>
+                        ))}
+                      </p>
+                    )}
                     {!!r.note && <p className="fbcom__riga-nota"><i className="fa-solid fa-comment" aria-hidden="true" /> {r.note}</p>}
                   </li>
                 </React.Fragment>
@@ -502,52 +571,219 @@ export default function GestioneComanda({ navigate }: { navigate?: (p: string) =
         </aside>
       </div>
 
-      {/* ── Nota di riga ──────────────────────────────────────────────────── */}
-      <Modal open={!!notaDi} onClose={() => setNotaDi(null)} title={notaDi ? `Nota — ${notaDi.nome}` : ''} size="md">
-        {notaDi && (
-          <div className="fbcom-nota">
-            <div className="fbcom-nota__chips">
-              {NOTE_RAPIDE.map(n => (
-                <button
-                  key={n} type="button"
-                  className={`fbcom-nota__chip ${notaDi.note.includes(n) ? 'is-on' : ''}`}
-                  onClick={() => {
-                    const parti = notaDi.note ? notaDi.note.split(' · ').filter(Boolean) : []
-                    const nuove = parti.includes(n) ? parti.filter(x => x !== n) : [...parti, n]
-                    const testo = nuove.join(' · ')
-                    setNotaRiga(comanda.id, notaDi.id, testo)
-                    setNotaDi({ ...notaDi, note: testo })
-                  }}
-                >{n}</button>
-              ))}
-            </div>
+      {/* ── Personalizzazione della riga ──────────────────────────────────── */}
+      {/*  Una sola modale per tutto ciò che cambia il piatto: cosa togliere
+          dalla ricetta, cosa aggiungere, la nota per la cucina e la portata. */}
+      <Modal
+        open={!!rigaPers} onClose={() => setNotaRigaId(null)}
+        title={rigaPers ? `Personalizza — ${rigaPers.nome}` : ''}
+        size="xl" className="fbcom-pers-box"
+      >
+        {rigaPers && (
+          <div className="fbcom-pers">
+            <div className="fbcom-pers__cols">
 
-            <label className="fbcom-nota__libera">
-              <span>Nota libera</span>
-              <textarea
-                rows={3} value={notaDi.note}
-                onChange={e => { setNotaRiga(comanda.id, notaDi.id, e.target.value); setNotaDi({ ...notaDi, note: e.target.value }) }}
-                placeholder="Indicazioni per la cucina…"
-              />
-            </label>
+              {/* ── Ricetta: si toglie col tocco ────────────────────────── */}
+              <section className="fbcom-pers__col">
+                <h4 className="fbcom-pers__tit">
+                  <i className="fa-solid fa-list-check" aria-hidden="true" /> Ingredienti del piatto
+                </h4>
+                <p className="fbcom-pers__hint">Tocca un ingrediente per toglierlo: va in cucina come “senza”.</p>
 
-            <div className="fbcom-nota__portate">
-              <span className="fbcom-nota__lab">Portata</span>
-              <div className="fbcom__portate fbcom__portate--modale">
-                {PORTATE.map(p => (
+                {ricetta.length ? (
+                  <ul className="fbcom-ing">
+                    {ricetta.map(i => {
+                      const tolto = (rigaPers.senza ?? []).includes(i.id)
+                      return (
+                        <li key={i.id}>
+                          <button
+                            type="button"
+                            className={`fbcom-ing__chip ${tolto ? 'is-off' : ''}`}
+                            aria-pressed={!tolto}
+                            onClick={() => toggleSenzaRiga(comanda.id, rigaPers.id, i.id)}
+                          >
+                            <i className={`fa-solid ${tolto ? 'fa-ban' : 'fa-check'}`} aria-hidden="true" />
+                            <span className="fbcom-ing__nome">{i.nome}</span>
+                            {!!i.allergeni.length && <span className="fbcom-ing__all">{i.allergeni.join('')}</span>}
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <p className="fbcom-pers__vuoto">
+                    <i className="fa-solid fa-circle-info" aria-hidden="true" />
+                    Per questa voce non c’è una scheda ingredienti: usa la nota per la cucina.
+                  </p>
+                )}
+
+                <div className="fbcom-pers__note">
+                  <span className="fbcom-pers__lab">Note rapide</span>
+                  <div className="fbcom-nota__chips">
+                    {NOTE_RAPIDE.map(n => (
+                      <button
+                        key={n} type="button"
+                        className={`fbcom-nota__chip ${rigaPers.note.includes(n) ? 'is-on' : ''}`}
+                        onClick={() => {
+                          const parti = rigaPers.note ? rigaPers.note.split(' · ').filter(Boolean) : []
+                          const nuove = parti.includes(n) ? parti.filter(x => x !== n) : [...parti, n]
+                          setNotaRiga(comanda.id, rigaPers.id, nuove.join(' · '))
+                        }}
+                      >{n}</button>
+                    ))}
+                  </div>
+
+                  <label className="fbcom-nota__libera">
+                    <span>Nota libera</span>
+                    <textarea
+                      rows={2} value={rigaPers.note}
+                      onChange={e => setNotaRiga(comanda.id, rigaPers.id, e.target.value)}
+                      placeholder="Indicazioni per la cucina…"
+                    />
+                  </label>
+
+                  <span className="fbcom-pers__lab">Portata</span>
+                  <div className="fbcom__portate fbcom__portate--modale">
+                    {PORTATE.map(p => (
+                      <button
+                        key={p.id} type="button"
+                        className={`fbcom__portata ${p.id === rigaPers.portata ? 'is-on' : ''}`}
+                        onClick={() => setPortataRiga(comanda.id, rigaPers.id, p.id)}
+                      >
+                        <i className={`fa-solid ${p.ico}`} aria-hidden="true" /> {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* ── Aggiunte: catalogo lungo, ricerca corta ─────────────── */}
+              <section className="fbcom-pers__col fbcom-pers__col--extra">
+                <h4 className="fbcom-pers__tit">
+                  <i className="fa-solid fa-plus" aria-hidden="true" /> Aggiunte
+                </h4>
+
+                {/* Scelte in cima: si vedono e si correggono senza cercarle di nuovo */}
+                {extraScelti.length ? (
+                  <ul className="fbcom-extra__scelti">
+                    {extraScelti.map(e => {
+                      const ing = INGREDIENTI.find(i => i.id === e.ingredienteId)
+                      return (
+                        <li key={e.ingredienteId} className="fbcom-extra__scelto">
+                          <span className="fbcom-extra__scelto-nome"><TruncatedText text={e.nome} /></span>
+                          <span className="fbcom-extra__scelto-prezzo">
+                            {e.prezzo ? `+${euro(e.prezzo * e.qta)}` : 'incluso'}
+                          </span>
+                          <div className="fbcom__stepper fbcom__stepper--sm">
+                            <button
+                              type="button" aria-label={`Meno ${e.nome}`}
+                              onClick={() => ing && setExtraRiga(comanda.id, rigaPers.id, ing, e.qta - 1)}
+                            ><i className="fa-solid fa-minus" aria-hidden="true" /></button>
+                            <span>{e.qta}</span>
+                            <button
+                              type="button" aria-label={`Più ${e.nome}`}
+                              onClick={() => ing && setExtraRiga(comanda.id, rigaPers.id, ing, e.qta + 1)}
+                            ><i className="fa-solid fa-plus" aria-hidden="true" /></button>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <p className="fbcom-pers__hint">Nessuna aggiunta: cerca qui sotto o scegli fra i più richiesti.</p>
+                )}
+
+                {/* Ricerca: filtra a ogni lettera, senza badare ad accenti e maiuscole */}
+                <div className="fbcom-extra__cerca">
+                  <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+                  <input
+                    type="search" value={cercaExtra} inputMode="search"
+                    onChange={e => setCercaExtra(e.target.value)}
+                    placeholder="Cerca un’aggiunta…"
+                    aria-label="Cerca un’aggiunta"
+                  />
+                  {!!cercaExtra && (
+                    <button type="button" onClick={() => setCercaExtra('')} aria-label="Pulisci la ricerca">
+                      <i className="fa-solid fa-xmark" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Famiglie: la strada senza tastiera per arrivare alla lista giusta */}
+                <div className="fbcom-extra__gruppi">
                   <button
-                    key={p.id} type="button"
-                    className={`fbcom__portata ${p.id === notaDi.portata ? 'is-on' : ''}`}
-                    onClick={() => { setPortataRiga(comanda.id, notaDi.id, p.id); setNotaDi({ ...notaDi, portata: p.id }) }}
+                    type="button"
+                    className={`fbcom-extra__gruppo ${gruppoExtra === null && !cercaExtra ? 'is-on' : ''}`}
+                    onClick={() => { setGruppoExtra(null); setCercaExtra('') }}
                   >
-                    <i className={`fa-solid ${p.ico}`} aria-hidden="true" /> {p.label}
+                    <i className="fa-solid fa-star" aria-hidden="true" /> Più richiesti
                   </button>
-                ))}
-              </div>
+                  {gruppiExtra.map(g => (
+                    <button
+                      key={g.id} type="button"
+                      className={`fbcom-extra__gruppo ${gruppoExtra === g.id ? 'is-on' : ''}`}
+                      onClick={() => setGruppoExtra(gruppoExtra === g.id ? null : g.id)}
+                    >
+                      <i className={`fa-solid ${g.ico}`} aria-hidden="true" /> {g.id}
+                    </button>
+                  ))}
+                </div>
+
+                {!!cercaExtra && (
+                  <p className="fbcom-pers__hint">
+                    {extraTrovati.length === 1 ? '1 aggiunta trovata' : `${extraTrovati.length} aggiunte trovate`}
+                    {' '}su {INGREDIENTI_EXTRA.length}
+                  </p>
+                )}
+
+                {/* Esiti: bersagli larghi, un tocco aggiunge e un altro toglie */}
+                <div className="fbcom-extra__esiti">
+                  {extraTrovati.map(i => {
+                    const q = qtaExtra(i.id)
+                    return (
+                      <button
+                        key={i.id} type="button"
+                        className={`fbcom-extra__tile ${q ? 'is-on' : ''}`}
+                        onClick={() => toccaExtra(i)}
+                      >
+                        <span className="fbcom-extra__tile-nome"><TruncatedText text={i.nome} /></span>
+                        <span className="fbcom-extra__tile-foot">
+                          <span className="fbcom-extra__tile-prezzo">
+                            {i.prezzoExtra ? `+${euro(i.prezzoExtra)}` : 'senza supplemento'}
+                          </span>
+                          {!!i.allergeni.length && <span className="fbcom__voce-all">{i.allergeni.join('')}</span>}
+                        </span>
+                        {q > 0 && <span className="fbcom-extra__tile-badge">{q}</span>}
+                      </button>
+                    )
+                  })}
+                  {!extraTrovati.length && (
+                    <p className="fbcom-pers__vuoto">
+                      <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+                      Nessuna aggiunta per “{cercaExtra}”.
+                    </p>
+                  )}
+                </div>
+              </section>
             </div>
 
-            <footer className="fbcom-nota__foot">
-              <button type="button" className="fbcom-nota__ok" onClick={() => setNotaDi(null)}>Fatto</button>
+            <footer className="fbcom-pers__foot">
+              <span className="fbcom-pers__riepilogo">
+                {(rigaPers.senza ?? []).length > 0 && (
+                  <span className="fbcom-pers__riep-senza">
+                    Senza {(rigaPers.senza ?? [])
+                      .map(id => INGREDIENTI.find(i => i.id === id)?.nome)
+                      .filter(Boolean).join(', ')}
+                  </span>
+                )}
+                {!!extraRiga(rigaPers) && (
+                  <span className="fbcom-pers__riep-extra">
+                    Supplemento {euro(extraRiga(rigaPers))} a porzione
+                  </span>
+                )}
+                <strong>{euro(totaleRiga(rigaPers))}</strong>
+              </span>
+              <button type="button" className="fbcom-nota__ok" onClick={() => setNotaRigaId(null)}>Fatto</button>
             </footer>
           </div>
         )}

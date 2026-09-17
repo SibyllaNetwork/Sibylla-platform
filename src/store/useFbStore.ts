@@ -11,6 +11,7 @@ import {
   type MenuGiorno, type WebMenu, type Allergene, type CategoriaCliente,
   type Stampante, type MonitorKds, type ConfigEmail, type ConfigWallet,
   type RuoloFb, type UtenteFb, type WalletCliente, type MovimentoWallet,
+  type Ingrediente, type ExtraRiga,
 } from '../modules/operation/FoodBeverage/fb.model'
 
 // ─── Store operativo Food & Beverage ─────────────────────────────────────────
@@ -27,6 +28,7 @@ const nuovaRiga = (voceId: number, portata: number): RigaComanda => {
   return {
     id: `r${voceId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     voceId, nome: v.nome, prezzo: v.prezzo, qta: 1, portata, note: '', stato: 'in-comanda', sconto: 0,
+    senza: [], extra: [],
   }
 }
 
@@ -35,8 +37,12 @@ const oraCorrente = () => {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-/** Totale di una riga, sconto di riga incluso. */
-export const totaleRiga = (r: RigaComanda) => r.qta * r.prezzo - r.sconto
+/** Supplemento degli extra su una singola porzione. */
+export const extraRiga = (r: RigaComanda) =>
+  (r.extra ?? []).reduce((a, e) => a + e.prezzo * e.qta, 0)
+
+/** Totale di una riga: gli extra seguono la quantità, lo sconto si toglie dopo. */
+export const totaleRiga = (r: RigaComanda) => r.qta * (r.prezzo + extraRiga(r)) - r.sconto
 
 /** Imponibile della comanda prima dello sconto di categoria cliente. */
 export const totaleComanda = (c: Comanda | undefined) =>
@@ -157,6 +163,10 @@ interface FbState {
   setQta: (comandaId: number, rigaId: string, qta: number) => void
   setNotaRiga: (comandaId: number, rigaId: string, note: string) => void
   setPortataRiga: (comandaId: number, rigaId: string, portata: number) => void
+  /** Toglie o rimette un ingrediente della ricetta ("senza cipolla"). */
+  toggleSenzaRiga: (comandaId: number, rigaId: string, ingredienteId: number) => void
+  /** Porta a `qta` l'aggiunta indicata; 0 la toglie dalla riga. */
+  setExtraRiga: (comandaId: number, rigaId: string, ingrediente: Ingrediente, qta: number) => void
   setScontoRiga: (comandaId: number, rigaId: string, sconto: number) => void
   rimuoviRiga: (comandaId: number, rigaId: string) => void
   inviaComanda: (comandaId: number) => number
@@ -536,8 +546,10 @@ export const useFbStore = create<FbState>()(
         set(s => ({
           comande: s.comande.map(c => {
             if (c.id !== comandaId) return c
-            // Stessa voce e stessa portata non ancora inviata: alza la quantità
-            const gia = c.righe.find(r => r.voceId === voceId && r.portata === portata && r.stato === 'in-comanda')
+            // Stessa voce e stessa portata non ancora inviata: alza la quantità.
+            // Una riga già personalizzata resta a sé: il bis non eredita le sue varianti.
+            const gia = c.righe.find(r => r.voceId === voceId && r.portata === portata && r.stato === 'in-comanda'
+              && !r.note && !(r.senza ?? []).length && !(r.extra ?? []).length)
             return gia
               ? { ...c, righe: c.righe.map(r => r.id === gia.id ? { ...r, qta: r.qta + 1 } : r) }
               : { ...c, righe: [...c.righe, nuovaRiga(voceId, portata)] }
@@ -564,6 +576,46 @@ export const useFbStore = create<FbState>()(
         set(s => ({
           comande: s.comande.map(c => c.id !== comandaId ? c
             : { ...c, righe: c.righe.map(r => r.id === rigaId ? { ...r, portata } : r) }),
+        })),
+
+      toggleSenzaRiga: (comandaId, rigaId, ingredienteId) =>
+        set(s => ({
+          comande: s.comande.map(c => c.id !== comandaId ? c : {
+            ...c,
+            righe: c.righe.map(r => {
+              if (r.id !== rigaId) return r
+              const senza = r.senza ?? []
+              return {
+                ...r,
+                senza: senza.includes(ingredienteId)
+                  ? senza.filter(x => x !== ingredienteId)
+                  : [...senza, ingredienteId],
+              }
+            }),
+          }),
+        })),
+
+      setExtraRiga: (comandaId, rigaId, ingrediente, qta) =>
+        set(s => ({
+          comande: s.comande.map(c => c.id !== comandaId ? c : {
+            ...c,
+            righe: c.righe.map(r => {
+              if (r.id !== rigaId) return r
+              const extra = r.extra ?? []
+              const gia = extra.find(e => e.ingredienteId === ingrediente.id)
+              if (qta <= 0) return { ...r, extra: extra.filter(e => e.ingredienteId !== ingrediente.id) }
+              const nuovo: ExtraRiga = {
+                ingredienteId: ingrediente.id, nome: ingrediente.nome,
+                prezzo: ingrediente.prezzoExtra, qta,
+              }
+              return {
+                ...r,
+                extra: gia
+                  ? extra.map(e => e.ingredienteId === ingrediente.id ? { ...e, qta } : e)
+                  : [...extra, nuovo],
+              }
+            }),
+          }),
         })),
 
       setScontoRiga: (comandaId, rigaId, sconto) =>
@@ -677,7 +729,7 @@ export const useFbStore = create<FbState>()(
         progressivo: comandeIniziali().length,
       }),
     }),
-    { name: 'sibylla.fb', version: 6 },
+    { name: 'sibylla.fb', version: 7 },
   ),
 )
 

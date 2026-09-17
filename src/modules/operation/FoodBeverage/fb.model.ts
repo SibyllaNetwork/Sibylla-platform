@@ -197,6 +197,14 @@ export const STATO_RIGA: Record<StatoRiga, { label: string; color: string }> = {
   servita:          { label: 'Servita',         color: '#5A6B7A' },
 }
 
+/** Aggiunta richiesta dall'ospite su una riga: va in cucina e sul conto. */
+export interface ExtraRiga {
+  ingredienteId: number
+  nome: string
+  prezzo: number
+  qta: number
+}
+
 export interface RigaComanda {
   id: string
   voceId: number
@@ -209,6 +217,10 @@ export interface RigaComanda {
   stato: StatoRiga
   /** Variazione di prezzo applicata a mano (sconto o supplemento). */
   sconto: number
+  /** Ingredienti della ricetta tolti su richiesta: vanno in cucina come "senza". */
+  senza: number[]
+  /** Aggiunte con supplemento, moltiplicate per la quantità della riga. */
+  extra: ExtraRiga[]
 }
 
 export interface Comanda {
@@ -536,6 +548,213 @@ export const VOCI_MENU: VoceMenu[] = [
   { id: 112, categoriaId: 13, nome: 'Champagne Brut',          traduzioni: {}, descrizione: 'Elegante e complesso',                    prezzo: 60,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
   { id: 113, categoriaId: 13, nome: 'Trento DOC',              traduzioni: {}, descrizione: 'Metodo classico italiano',                prezzo: 30,   allergeni: ['L'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cantina' },
 ]
+
+// ─── Ingredienti, ricette ed extra ───────────────────────────────────────────
+//  Due usi dello stesso catalogo: gli ingredienti che compongono un piatto
+//  (togliibili quando l'ospite non li gradisce) e quelli aggiungibili come
+//  extra a pagamento. È una lista lunga per mestiere: in comanda si raggiunge
+//  con la ricerca e con le famiglie, mai scorrendola tutta.
+
+export type GruppoIngrediente =
+  | 'Verdure' | 'Formaggi' | 'Salumi' | 'Carne e pesce' | 'Salse e condimenti'
+  | 'Pane e basi' | 'Frutta e frutta secca' | 'Erbe e spezie' | 'Uova e latticini'
+  | 'Dolce' | 'Bar'
+
+export const GRUPPI_INGREDIENTE: Array<{ id: GruppoIngrediente; ico: string }> = [
+  { id: 'Verdure',               ico: 'fa-carrot' },
+  { id: 'Formaggi',              ico: 'fa-cheese' },
+  { id: 'Salumi',                ico: 'fa-bacon' },
+  { id: 'Carne e pesce',         ico: 'fa-drumstick-bite' },
+  { id: 'Salse e condimenti',    ico: 'fa-bottle-droplet' },
+  { id: 'Pane e basi',           ico: 'fa-bread-slice' },
+  { id: 'Frutta e frutta secca', ico: 'fa-apple-whole' },
+  { id: 'Erbe e spezie',         ico: 'fa-seedling' },
+  { id: 'Uova e latticini',      ico: 'fa-egg' },
+  { id: 'Dolce',                 ico: 'fa-ice-cream' },
+  { id: 'Bar',                   ico: 'fa-martini-glass' },
+]
+
+export interface Ingrediente {
+  id: number
+  nome: string
+  gruppo: GruppoIngrediente
+  /** Supplemento se aggiunto come extra. 0 = aggiunta senza addebito. */
+  prezzoExtra: number
+  /** Codici allergene UE (A…N). */
+  allergeni: string[]
+  /** Fra i più richiesti: compare subito, senza digitare nulla. */
+  frequente?: boolean
+  /** Non proponibile come aggiunta (compone solo le ricette). */
+  soloRicetta?: boolean
+}
+
+const ing = (
+  id: number, nome: string, gruppo: GruppoIngrediente, prezzoExtra: number,
+  allergeni: string[] = [], extra: Partial<Ingrediente> = {},
+): Ingrediente => ({ id, nome, gruppo, prezzoExtra, allergeni, ...extra })
+
+export const INGREDIENTI: Ingrediente[] = [
+  // Verdure
+  ing(1,  'Pomodoro',            'Verdure', 1),
+  ing(2,  'Pomodorini confit',   'Verdure', 1.5),
+  ing(3,  'Rucola',              'Verdure', 1, [], { frequente: true }),
+  ing(4,  'Insalata mista',      'Verdure', 1.5),
+  ing(5,  'Cipolla rossa',       'Verdure', 0.5),
+  ing(6,  'Cipollotto',          'Verdure', 0.5),
+  ing(7,  'Aglio',               'Verdure', 0),
+  ing(8,  'Funghi porcini',      'Verdure', 3),
+  ing(9,  'Funghi champignon',   'Verdure', 1.5),
+  ing(10, 'Zucchine grigliate',  'Verdure', 2),
+  ing(11, 'Melanzane grigliate', 'Verdure', 2),
+  ing(12, 'Peperoni',            'Verdure', 1.5),
+  ing(13, 'Olive taggiasche',    'Verdure', 1.5),
+  ing(14, 'Capperi',             'Verdure', 1),
+  ing(15, 'Carciofi',            'Verdure', 2.5),
+  ing(16, 'Radicchio',           'Verdure', 1.5),
+  ing(17, 'Spinaci saltati',     'Verdure', 2),
+  ing(18, 'Broccoletti',         'Verdure', 2),
+  ing(19, 'Patate al forno',     'Verdure', 3, [], { frequente: true }),
+  ing(20, 'Finocchietto',        'Verdure', 0.5),
+  ing(21, 'Sedano',              'Verdure', 0.5, ['I']),
+  ing(22, 'Avocado',             'Verdure', 3),
+  // Formaggi
+  ing(30, 'Parmigiano',          'Formaggi', 1.5, ['G'], { frequente: true }),
+  ing(31, 'Pecorino romano',     'Formaggi', 1.5, ['G']),
+  ing(32, 'Mozzarella',          'Formaggi', 2,   ['G']),
+  ing(33, 'Burrata',             'Formaggi', 4,   ['G']),
+  ing(34, 'Stracciatella',       'Formaggi', 3.5, ['G']),
+  ing(35, 'Gorgonzola',          'Formaggi', 2.5, ['G']),
+  ing(36, 'Scamorza affumicata', 'Formaggi', 2.5, ['G']),
+  ing(37, 'Ricotta',             'Formaggi', 2,   ['G']),
+  ing(38, 'Feta',                'Formaggi', 2.5, ['G']),
+  ing(39, 'Mascarpone',          'Formaggi', 2,   ['G']),
+  // Salumi
+  ing(50, 'Guanciale',           'Salumi', 3, [], { frequente: true }),
+  ing(51, 'Pancetta',            'Salumi', 2.5),
+  ing(52, 'Prosciutto crudo',    'Salumi', 4),
+  ing(53, 'Prosciutto cotto',    'Salumi', 3),
+  ing(54, 'Speck',               'Salumi', 3.5),
+  ing(55, 'Bresaola',            'Salumi', 4),
+  ing(56, 'Salame piccante',     'Salumi', 3),
+  ing(57, 'Mortadella',          'Salumi', 3),
+  // Carne e pesce
+  ing(70, 'Pollo grigliato',     'Carne e pesce', 5),
+  ing(71, 'Manzo crudo',         'Carne e pesce', 6),
+  ing(72, 'Gamberi',             'Carne e pesce', 6, ['B']),
+  ing(73, 'Salmone affumicato',  'Carne e pesce', 5, ['D']),
+  ing(74, 'Tonno',               'Carne e pesce', 4, ['D']),
+  ing(75, 'Alici del Cantabrico','Carne e pesce', 3, ['D']),
+  ing(76, 'Bottarga',            'Carne e pesce', 5, ['D']),
+  // Salse e condimenti
+  ing(90, 'Olio EVO',            'Salse e condimenti', 0, [], { frequente: true }),
+  ing(91, 'Aceto balsamico',     'Salse e condimenti', 0.5),
+  ing(92, 'Maionese',            'Salse e condimenti', 1, ['C']),
+  ing(93, 'Senape',              'Salse e condimenti', 1, ['J']),
+  ing(94, 'Salsa BBQ',           'Salse e condimenti', 1),
+  ing(95, 'Salsa allo yogurt',   'Salse e condimenti', 1.5, ['G']),
+  ing(96, 'Pesto genovese',      'Salse e condimenti', 2, ['G', 'H']),
+  ing(97, 'Salsa di pomodoro',   'Salse e condimenti', 1),
+  ing(98, 'Crema di tartufo',    'Salse e condimenti', 5, [], { frequente: true }),
+  ing(99, 'Burro',               'Salse e condimenti', 1, ['G']),
+  ing(100,'Panna',               'Salse e condimenti', 1.5, ['G']),
+  ing(101,'Coulis ai frutti rossi','Salse e condimenti', 1.5),
+  ing(102,'Sale grosso',         'Salse e condimenti', 0, [], { soloRicetta: true }),
+  // Pane e basi
+  ing(110,'Pane casereccio',     'Pane e basi', 1.5, ['A']),
+  ing(111,'Pane tostato',        'Pane e basi', 1.5, ['A']),
+  ing(112,'Crostini',            'Pane e basi', 1.5, ['A']),
+  ing(113,'Focaccia',            'Pane e basi', 2.5, ['A']),
+  ing(114,'Pane senza glutine',  'Pane e basi', 2.5, [], { frequente: true }),
+  ing(115,'Tonnarelli',          'Pane e basi', 0, ['A', 'C'], { soloRicetta: true }),
+  ing(116,'Spaghetti',           'Pane e basi', 0, ['A'], { soloRicetta: true }),
+  ing(117,'Riso Carnaroli',      'Pane e basi', 0, [], { soloRicetta: true }),
+  ing(118,'Savoiardi',           'Pane e basi', 0, ['A', 'C'], { soloRicetta: true }),
+  ing(119,'Base biscotto',       'Pane e basi', 0, ['A', 'G'], { soloRicetta: true }),
+  // Frutta e frutta secca
+  ing(130,'Limone',              'Frutta e frutta secca', 0.5),
+  ing(131,'Lime',                'Frutta e frutta secca', 0.5),
+  ing(132,'Arancia',             'Frutta e frutta secca', 1),
+  ing(133,'Frutti rossi',        'Frutta e frutta secca', 2.5),
+  ing(134,'Pinoli',              'Frutta e frutta secca', 2, ['H']),
+  ing(135,'Noci',                'Frutta e frutta secca', 2, ['H']),
+  ing(136,'Mandorle a lamelle',  'Frutta e frutta secca', 2, ['H']),
+  ing(137,'Pistacchi',           'Frutta e frutta secca', 3, ['H']),
+  // Erbe e spezie
+  ing(150,'Basilico',            'Erbe e spezie', 0),
+  ing(151,'Prezzemolo',          'Erbe e spezie', 0),
+  ing(152,'Rosmarino',           'Erbe e spezie', 0),
+  ing(153,'Menta',               'Erbe e spezie', 0),
+  ing(154,'Peperoncino',         'Erbe e spezie', 0),
+  ing(155,'Pepe nero',           'Erbe e spezie', 0),
+  ing(156,'Origano',             'Erbe e spezie', 0),
+  ing(157,'Zenzero',             'Erbe e spezie', 0.5),
+  ing(158,'Timo',                'Erbe e spezie', 0),
+  // Uova e latticini
+  ing(170,'Uovo fritto',         'Uova e latticini', 2, ['C'], { frequente: true }),
+  ing(171,'Uovo in camicia',     'Uova e latticini', 2, ['C']),
+  ing(172,'Tuorlo',              'Uova e latticini', 0, ['C'], { soloRicetta: true }),
+  ing(173,'Latte',               'Uova e latticini', 0.5, ['G']),
+  ing(174,'Yogurt greco',        'Uova e latticini', 2, ['G']),
+  // Dolce
+  ing(190,'Gelato alla vaniglia','Dolce', 3, ['G'], { frequente: true }),
+  ing(191,'Panna montata',       'Dolce', 1.5, ['G']),
+  ing(192,'Cioccolato fondente', 'Dolce', 2),
+  ing(193,'Caffè',               'Dolce', 1),
+  ing(194,'Cacao amaro',         'Dolce', 0.5),
+  ing(195,'Miele',               'Dolce', 1),
+  // Bar
+  ing(210,'Ghiaccio',            'Bar', 0, [], { frequente: true }),
+  ing(211,'Soda',                'Bar', 0.5),
+  ing(212,'Acqua tonica',        'Bar', 1.5),
+  ing(213,'Scorza d’arancia',    'Bar', 0.5),
+  ing(214,'Oliva',               'Bar', 0.5),
+  ing(215,'Zucchero di canna',   'Bar', 0),
+  ing(216,'Rum bianco',          'Bar', 0, [], { soloRicetta: true }),
+  ing(217,'Gin',                 'Bar', 0, [], { soloRicetta: true }),
+  ing(218,'Campari',             'Bar', 0, [], { soloRicetta: true }),
+  ing(219,'Vermouth rosso',      'Bar', 0, ['L'], { soloRicetta: true }),
+  ing(220,'Prosecco',            'Bar', 0, ['L'], { soloRicetta: true }),
+  ing(221,'Bitter',              'Bar', 0, [], { soloRicetta: true }),
+]
+
+const idIngrediente = (nome: string) => INGREDIENTI.find(i => i.nome === nome)?.id
+
+/** Composizione dei piatti, scritta per nome e risolta in id all'avvio. */
+const RICETTE_NOMI: Record<number, string[]> = {
+  1:   ['Pane tostato', 'Pomodoro', 'Basilico', 'Aglio', 'Olio EVO'],
+  2:   ['Manzo crudo', 'Parmigiano', 'Rucola', 'Olio EVO', 'Limone'],
+  16:  ['Burrata', 'Alici del Cantabrico', 'Olio EVO', 'Pepe nero'],
+  3:   ['Spaghetti', 'Tuorlo', 'Guanciale', 'Pecorino romano', 'Pepe nero'],
+  4:   ['Riso Carnaroli', 'Funghi porcini', 'Burro', 'Parmigiano', 'Prezzemolo'],
+  17:  ['Tonnarelli', 'Pecorino romano', 'Pepe nero'],
+  5:   ['Rosmarino', 'Sale grosso', 'Olio EVO'],
+  6:   ['Lime', 'Finocchietto', 'Olio EVO'],
+  114: ['Broccoletti', 'Aglio', 'Olio EVO', 'Peperoncino'],
+  115: ['Patate al forno', 'Rosmarino', 'Sale grosso'],
+  7:   ['Mascarpone', 'Savoiardi', 'Caffè', 'Cacao amaro', 'Tuorlo'],
+  8:   ['Base biscotto', 'Ricotta', 'Coulis ai frutti rossi', 'Frutti rossi'],
+  13:  ['Rum bianco', 'Lime', 'Menta', 'Soda', 'Zucchero di canna', 'Ghiaccio'],
+  14:  ['Gin', 'Campari', 'Vermouth rosso', 'Scorza d’arancia', 'Ghiaccio'],
+  19:  ['Prosecco', 'Bitter', 'Soda', 'Arancia', 'Ghiaccio'],
+}
+
+export const RICETTE: Record<number, number[]> = Object.fromEntries(
+  Object.entries(RICETTE_NOMI).map(([voceId, nomi]) => [
+    Number(voceId),
+    nomi.map(idIngrediente).filter((x): x is number => x != null),
+  ]),
+)
+
+/** Ingredienti che compongono una voce di menu (vuoto se non ha scheda). */
+export const ricettaDi = (voceId: number): Ingrediente[] =>
+  (RICETTE[voceId] ?? []).map(id => INGREDIENTI.find(i => i.id === id)!).filter(Boolean)
+
+/** Catalogo delle aggiunte proponibili in comanda. */
+export const INGREDIENTI_EXTRA = INGREDIENTI.filter(i => !i.soloRicetta)
+
+/** Confronto senza accenti né maiuscole: la ricerca deve perdonare la fretta. */
+export const normalizzaRicerca = (t: string) =>
+  t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 
 // ─── Menu del giorno e web menu ──────────────────────────────────────────────
 
@@ -944,9 +1163,13 @@ export const prenotazioniIniziali = (): Prenotazione[] => {
 
 // ─── Comande aperte ──────────────────────────────────────────────────────────
 
-const riga = (v: VoceMenu, qta: number, portata: number, stato: StatoRiga, note = ''): RigaComanda => ({
+const riga = (
+  v: VoceMenu, qta: number, portata: number, stato: StatoRiga, note = '',
+  senza: number[] = [], extra: ExtraRiga[] = [],
+): RigaComanda => ({
   id: `r${v.id}-${Math.random().toString(36).slice(2, 7)}`,
   voceId: v.id, nome: v.nome, prezzo: v.prezzo, qta, portata, note, stato, sconto: 0,
+  senza, extra,
 })
 
 const voce = (id: number) => VOCI_MENU.find(v => v.id === id)!
@@ -958,7 +1181,11 @@ export const comandeIniziali = (): Comanda[] => [
     nota: '', apertaAlle: oraMenoMinuti(35), chiusaAlle: null, stato: 'aperta', addebitoCamera: '', pagamento: null,
     righe: [
       riga(voce(1), 2, 1, 'servita'),
-      riga(voce(3), 2, 2, 'in-preparazione'),
+      // Carbonara senza guanciale, con l'aggiunta del tartufo: la personalizzazione
+      // dell'ospite viaggia con la riga, in cucina e sul conto.
+      riga(voce(3), 2, 2, 'in-preparazione', '', [idIngrediente('Guanciale')!], [
+        { ingredienteId: idIngrediente('Crema di tartufo')!, nome: 'Crema di tartufo', prezzo: 5, qta: 1 },
+      ]),
       riga(voce(100), 1, 0, 'servita'),
       riga(voce(10), 2, 0, 'servita'),
     ],
