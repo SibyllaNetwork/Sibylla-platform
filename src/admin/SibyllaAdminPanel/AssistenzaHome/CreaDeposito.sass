@@ -20,49 +20,22 @@
   --color-primary-200: #e7d4a3
   --color-primary-300: #ddc98a
 
-.cdp__back
-  align-self: flex-start
-  display: inline-flex
-  align-items: center
-  gap: 6px
-  background: none
-  border: 0
-  cursor: pointer
-  color: #8a6d1f
-  font-size: 13px
-  font-weight: 600
+// Header standard (PageHead): titolo centrato fra Indietro e le azioni.
+// Qui si regola solo la palette oro del pannello, non la struttura.
+.cdp .page-head
+  margin-bottom: 4px
 
-  &:hover
-    text-decoration: underline
+  .page-header__title
+    color: #2A2208
 
-.cdp__head
-  display: flex
-  align-items: flex-end
-  justify-content: space-between
-  gap: 18px
-  flex-wrap: wrap
-  margin: 0 0 4px
+  .page-header__subtitle
+    font-size: 13.5px
+    color: $text-inactive
 
-.cdp__head-txt
-  min-width: 0
-
-.cdp__head-act
-  display: flex
-  align-items: center
-  gap: 10px
-  flex-wrap: wrap
-
-.cdp__title
-  font-family: $font-heading
-  font-size: 26px
-  font-weight: 800
-  color: #2A2208
-  margin: 0
-
-.cdp__sub
-  font-size: 13.5px
-  color: $text-inactive
-  margin: 8px 0 0
+  // Le due azioni a destra restano affiancate e non vanno a capo.
+  .page-head__side--right
+    gap: 10px
+    flex-wrap: wrap
 
 .cdp__toolbar
   display: flex

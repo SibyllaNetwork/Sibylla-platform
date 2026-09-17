@@ -6,6 +6,7 @@
 //  dall'altra tabella, perché il record è lo stesso.
 import React, { useMemo, useState, useEffect } from 'react'
 import Ico from '../../../core/icons/Ico'
+import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
@@ -302,24 +303,22 @@ export default function CreaDeposito({ navigate }: Props) {
 
   return (
     <div className="cdp">
-      <button type="button" className="cdp__back" onClick={() => navigate('sibylla-admin')}>
-        <Ico n="back" s={13} c="var(--color-primary)" /> Indietro
-      </button>
-
-      <div className="cdp__head">
-        <div className="cdp__head-txt">
-          <h1 className="cdp__title">Anagrafiche e depositi</h1>
-          <p className="cdp__sub">Le aziende clienti: chi sono, quanto hanno a credito, con quali soglie di sollecito.</p>
-        </div>
-        <div className="cdp__head-act">
-          <button type="button" className="cdp__btn cdp__btn--ghost" onClick={() => setRollingOpen(true)}>
-            <Ico n="refresh" s={13} c="#8a6d1f" /> Rolling partner
-          </button>
-          <button type="button" className="cdp__btn" onClick={apriNuova}>
-            <Ico n="plus" s={13} c="#fff" /> Crea anagrafica azienda
-          </button>
-        </div>
-      </div>
+      {/* Header standard: [Indietro · titolo centrato · azioni] */}
+      <PageHead
+        title="Anagrafiche e depositi"
+        subtitle="Le aziende clienti: chi sono, quanto hanno a credito, con quali soglie di sollecito."
+        onBack={() => navigate('sibylla-admin')}
+        actions={(
+          <>
+            <button type="button" className="cdp__btn cdp__btn--ghost" onClick={() => setRollingOpen(true)}>
+              <Ico n="refresh" s={13} c="#8a6d1f" /> Rolling partner
+            </button>
+            <button type="button" className="cdp__btn" onClick={apriNuova}>
+              <Ico n="plus" s={13} c="#fff" /> Crea anagrafica azienda
+            </button>
+          </>
+        )}
+      />
 
       {/* Due letture dello stesso record: chi è l'azienda, e quanto ha a credito */}
       <div className="cdp__tabs" role="tablist">
