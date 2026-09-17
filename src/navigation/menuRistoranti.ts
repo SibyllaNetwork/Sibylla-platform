@@ -120,6 +120,12 @@ const MENU_RISTORANTI:any[]=[
           {id:"libro-prenotazioni",label:"Libro prenotazioni",page:"libro-prenotazioni"},
           {id:"ospiti-giorno",label:"Ospiti del giorno",page:"ospiti-giorno"},
           {id:"gest-comanda",label:"Gestione comanda",page:"gest-comanda"},
+          {id:"fb-kds",label:"Monitor di cucina",page:"fb-kds"},
+          {id:"fb-cassa",label:"Cassa e chiusure",page:"fb-cassa"},
+        ]},
+        {id:"fb-economato",label:"Economato",children:[
+          {id:"fb-ingredienti",label:"Ingredienti e listino",page:"fb-ingredienti"},
+          {id:"fb-food-cost",label:"Food cost e margini",page:"fb-food-cost"},
         ]},
         {id:"fb-struttura",label:"Struttura",children:[
           {id:"fb-outlet",label:"Outlet",page:"fb-outlet"},
