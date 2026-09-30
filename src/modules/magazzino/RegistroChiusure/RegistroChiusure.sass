@@ -1,0 +1,318 @@
+// ─── Registro chiusure (Magazzino) ────────────────────────────────────────────
+//  Elenco a layout fisso, colonne in percentuale: nessuno scroll orizzontale.
+@use '../../../styles/tokens' as *
+
+.regch
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 200px
+
+    &--sm
+      min-width: 150px
+
+  &__lab
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__cerca
+    display: flex
+    flex-direction: column
+    gap: 4px
+    min-width: 220px
+
+  &__wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-riaperta td
+      color: var(--color-text-inactive)
+
+  &__c-num
+    width: 9%
+  &__c-per
+    width: 10%
+  &__c-str
+    width: 12%
+  &__c-mag
+    width: 13%
+  &__c-data
+    width: 9%
+  &__c-eur
+    width: 9.5%
+  &__c-diff
+    width: 9%
+  &__c-stato
+    width: 10.5%
+  &__c-act
+    width: 8.5%
+
+  &__amt
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__neg
+    color: var(--color-error-dark)
+
+  &__pos
+    color: var(--color-success)
+
+  &__link
+    display: block
+    max-width: 100%
+    line-height: inherit
+    padding: 0
+    border: 0
+    background: none
+    color: var(--color-primary)
+    font-size: inherit
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+    text-align: left
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    padding: 2px 8px
+    border-radius: 9px
+    font-size: 11px
+    font-weight: 700
+
+    i
+      font-size: 10px
+
+    &--ok
+      background: var(--color-success-light)
+      color: var(--color-success)
+
+    &--open
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+
+  &__acts
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 2px
+
+  &__act
+    display: grid
+    place-items: center
+    width: 26px
+    height: 28px
+    padding: 0
+    border: 0
+    border-radius: 8px
+    background: transparent
+    cursor: pointer
+
+    i
+      font-size: 16px
+      color: var(--color-primary)
+
+    &:hover:not(:disabled)
+      background: var(--color-primary-50)
+
+    &:disabled
+      cursor: not-allowed
+
+      i
+        color: var(--color-text-disabled)
+
+  &__vuoto
+    padding: 28px
+    text-align: center
+    color: var(--color-text-inactive)
+
+  // Totali sotto la tabella, mai in cima alla pagina
+  &__somma
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+    margin: 8px 0 0
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    b
+      color: var(--color-text-active)
+
+      &.regch__neg
+        color: var(--color-error-dark)
+
+  &__somma-nota
+    font-size: 11.5px
+
+  &__somma-link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding: 0
+    border: 0
+    background: none
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 700
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__pag
+    display: flex
+    justify-content: center
+    margin-top: 10px
+
+  // Laptop con sidebar aperta: solo dimensioni più compatte
+  @container (max-width: 1360px)
+    &__table
+      th,
+      td
+        padding-left: 6px
+        padding-right: 6px
+        font-size: 12.5px
+
+    &__act
+      width: 22px
+
+// ─── Dettaglio ───────────────────────────────────────────────────────────────
+.regch-det
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+  &__info
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
+    gap: 12px
+    margin: 0
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-primary-50)
+
+    dt
+      font-size: 12px
+      font-weight: 600
+      color: var(--color-primary)
+
+    dd
+      margin: 2px 0 0
+      color: var(--color-text-active)
+      font-size: 13px
+      font-weight: 600
+
+      span
+        color: var(--color-text-inactive)
+        font-weight: 400
+
+  &__nota
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    color: var(--color-text-active)
+    font-size: 13px
+
+    i
+      color: var(--color-primary)
+
+    &--warn i
+      color: var(--color-warning)
+
+  &__h
+    margin: 6px 0 0
+    color: var(--color-primary)
+    font-size: 14px
+    font-weight: 700
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    th:first-child,
+    td:first-child
+      width: 22%
+
+    &--ret
+      th:first-child,
+      td:first-child
+        width: 28%
+
+      th:nth-child(2),
+      td:nth-child(2)
+        width: 24%
+
+  &__tot td
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-weight: 700
+
+  &__vuoto
+    margin: 0
+    color: var(--color-text-inactive)
+    font-size: 13px
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)
+
+// ─── Riapertura ──────────────────────────────────────────────────────────────
+.regch-form
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+  &__txt
+    margin: 0
+    color: var(--color-text-inactive)
+    font-size: 13px
+
+    b
+      color: var(--color-text-active)
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    padding-top: 12px
+    border-top: 1px solid var(--color-border)

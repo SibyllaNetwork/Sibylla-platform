@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { apiFetchSibylla } from '../../../../../services/api'
 import { SelectField, InputField, TextareaField, ToggleSwitch } from '../../../../../core/components/form'
-import { CfgTable, CfgSaveBar } from '../../../../../core/cfg'
+import { CfgToolbar, CfgTable, CfgSaveBar } from '../../../../../core/cfg'
 import Modal from '../../../../../core/components/Modal'
 import Tooltip from '../../../../../core/components/Tooltip'
+import { toast } from '../../../../../core/components/Toast/useToast'
 import TruncatedText from '../../../../../core/components/TruncatedText'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
@@ -17,6 +18,10 @@ import './PersonalizzaStruttura.sass'
 //   • pop-up SOVRAPPREZZO per Early check-in / Late check-out, con fasce
 //     orarie di riferimento coerenti con l'orologio di sistema;
 //   • azioni collegate: modifica su pop-up, eliminazione con conferma.
+//  Le strutture possono essere molte: si sceglie da «Cerca struttura» e la
+//  tabella mostra solo quella selezionata. Sotto, le credenziali del Portale
+//  Alloggiati (User_Id · Password · WSkey) della stessa struttura, salvate
+//  insieme al resto della riga.
 
 const PANE_ID = 'personalizza-struttura'
 
@@ -35,6 +40,15 @@ interface Sovrapprezzo {
   importo: number
 }
 
+/** Credenziali per il collegamento al Portale Alloggiati (Polizia di Stato). */
+interface PortaleAlloggiati {
+  userId: string
+  password: string
+  wsKey: string
+}
+
+const EMPTY_ALLOGGIATI: PortaleAlloggiati = { userId: '', password: '', wsKey: '' }
+
 interface Row {
   id: number
   struttura: string
@@ -45,6 +59,7 @@ interface Row {
   checkOut: string
   earlyCheckIn: Sovrapprezzo
   lateCheckOut: Sovrapprezzo
+  alloggiati: PortaleAlloggiati
 }
 
 interface Data { rows: Row[] }
@@ -56,6 +71,7 @@ const FALLBACK_ROWS: Row[] = [
     checkIn: '14:00', checkOut: '10:00',
     earlyCheckIn: { attivo: true,  soglia: '11:00', importo: 25 },
     lateCheckOut: { attivo: true,  soglia: '13:00', importo: 30 },
+    alloggiati: EMPTY_ALLOGGIATI,
   },
   {
     id: 2, struttura: 'Hotel Luce', indirizzo: 'Viale dei Romagnoli 8, Fiumicino Aeroporto',
@@ -63,6 +79,7 @@ const FALLBACK_ROWS: Row[] = [
     checkIn: '15:00', checkOut: '11:00',
     earlyCheckIn: { attivo: false, soglia: '12:00', importo: 20 },
     lateCheckOut: { attivo: false, soglia: '14:00', importo: 20 },
+    alloggiati: EMPTY_ALLOGGIATI,
   },
   {
     id: 3, struttura: 'Ristorante Tullio', indirizzo: 'Via Salaria 120, Urbe Aeroporto',
@@ -70,6 +87,7 @@ const FALLBACK_ROWS: Row[] = [
     checkIn: '12:00', checkOut: '00:00',
     earlyCheckIn: { attivo: false, soglia: '10:00', importo: 0 },
     lateCheckOut: { attivo: false, soglia: '01:00', importo: 0 },
+    alloggiati: EMPTY_ALLOGGIATI,
   },
   {
     id: 4, struttura: 'B&B React', indirizzo: 'Piazza della Stazione 3, Stazione Tiburtina',
@@ -77,6 +95,7 @@ const FALLBACK_ROWS: Row[] = [
     checkIn: '14:30', checkOut: '10:30',
     earlyCheckIn: { attivo: false, soglia: '12:00', importo: 15 },
     lateCheckOut: { attivo: false, soglia: '12:30', importo: 15 },
+    alloggiati: EMPTY_ALLOGGIATI,
   },
 ]
 
@@ -86,6 +105,12 @@ function rowEquals(a: Row, b: Row): boolean {
     && a.checkIn === b.checkIn && a.checkOut === b.checkOut
     && JSON.stringify(a.earlyCheckIn) === JSON.stringify(b.earlyCheckIn)
     && JSON.stringify(a.lateCheckOut) === JSON.stringify(b.lateCheckOut)
+    && JSON.stringify(a.alloggiati) === JSON.stringify(b.alloggiati)
+}
+
+/** Il backend può non restituire ancora le credenziali Alloggiati: default vuoti. */
+function normalizeRow(r: Row): Row {
+  return { ...r, alloggiati: { ...EMPTY_ALLOGGIATI, ...r.alloggiati } }
 }
 
 function countChanges(saved: Row[], draft: Row[]): number {
@@ -111,16 +136,20 @@ export default function PersonalizzaStruttura() {
 
   const [saved, setSaved] = useState<Row[]>(FALLBACK_ROWS)
   const [rows, setRows]   = useState<Row[]>(FALLBACK_ROWS)
+  const [strutturaId, setStrutturaId] = useState<number | null>(FALLBACK_ROWS[0]?.id ?? null)
   const [editId, setEditId]       = useState<number | null>(null)
   const [surchargeId, setSurchargeId] = useState<number | null>(null)
+  const [saving, setSaving]           = useState(false)
 
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<Data>('configura/GetPersonalizzaStruttura', { method: 'POST', body: {} })
       .then((d) => {
         if (cancelled || !Array.isArray(d?.rows) || d.rows.length === 0) return
-        setSaved(d.rows)
-        setRows(d.rows)
+        const loaded = d.rows.map(normalizeRow)
+        setSaved(loaded)
+        setRows(loaded)
+        setStrutturaId(loaded[0].id)
       })
       .catch(() => { /* backend assente in demo: restano i dati di fallback */ })
     return () => { cancelled = true }
@@ -132,6 +161,11 @@ export default function PersonalizzaStruttura() {
 
   const updateRow = (id: number, patch: Partial<Row>) =>
     setRows(rs => rs.map(r => r.id === id ? { ...r, ...patch } : r))
+
+  // Se la struttura selezionata sparisce (eliminata o annullamento), ripiega sulla prima
+  useEffect(() => {
+    if (!rows.some(r => r.id === strutturaId)) setStrutturaId(rows[0]?.id ?? null)
+  }, [rows, strutturaId])
 
   const removeRow = async (row: Row) => {
     const ok = await confirm({
@@ -155,11 +189,38 @@ export default function PersonalizzaStruttura() {
     resetDirty()
   }
 
+  // Pulsante «Salva» in fondo alla pagina: stesso salvataggio della save bar, con toast sull'esito
+  const saveFromButton = async () => {
+    setSaving(true)
+    try {
+      await save()
+      toast.success('Personalizzazione struttura salvata')
+    } catch {
+      toast.error('Salvataggio non riuscito. Riprova.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const selected   = rows.find(r => r.id === strutturaId) ?? null
   const editing    = rows.find(r => r.id === editId) ?? null
   const surcharging = rows.find(r => r.id === surchargeId) ?? null
 
   return (
     <div className="personalizza-struttura">
+      <CfgToolbar>
+        <SelectField
+          name="struttura"
+          label="Cerca struttura"
+          className="personalizza-struttura__field"
+          value={strutturaId ?? ''}
+          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
+          options={rows.map((r) => ({ value: r.id, label: r.struttura }))}
+          disabled={rows.length === 0}
+        />
+      </CfgToolbar>
+
+      <h3 className="personalizza-struttura__section-title">Riepilogo assegnazioni</h3>
       <CfgTable
         columns={[
           { key: 'struttura',   label: 'Struttura',   width: '15%' },
@@ -172,7 +233,7 @@ export default function PersonalizzaStruttura() {
         ]}
         empty={<span>Nessuna struttura assegnata</span>}
       >
-        {rows.map((r) => (
+        {selected && [selected].map((r) => (
           <tr key={r.id}>
             <td className="personalizza-struttura__td-name">
               <TruncatedText text={r.struttura} className="personalizza-struttura__trunc" />
@@ -243,6 +304,61 @@ export default function PersonalizzaStruttura() {
         La descrizione popola automaticamente il Riepilogo Bacheca (lì in sola lettura);
         gli orari di check-in e check-out si sincronizzano con Network e con il Planner.
       </p>
+
+      {selected && (
+        <section className="personalizza-struttura__section">
+          <div className="personalizza-struttura__section-head">
+            <span className="personalizza-struttura__section-ico">
+              <i className="fa-light fa-id-card" aria-hidden="true" />
+            </span>
+            <div>
+              <h3 className="personalizza-struttura__section-title">Portale Alloggiati</h3>
+              <p className="personalizza-struttura__section-sub">
+                Credenziali di <strong>{selected.struttura}</strong> per il collegamento e la
+                comunicazione con il Portale Alloggiati.
+              </p>
+            </div>
+          </div>
+          <div className="personalizza-struttura__alloggiati">
+            <InputField
+              name="alloggiati-user-id"
+              label="User_Id"
+              value={selected.alloggiati.userId}
+              autoComplete="off"
+              onChange={(e) => updateRow(selected.id, { alloggiati: { ...selected.alloggiati, userId: e.target.value } })}
+            />
+            <InputField
+              name="alloggiati-password"
+              label="Password"
+              type="password"
+              value={selected.alloggiati.password}
+              autoComplete="new-password"
+              onChange={(e) => updateRow(selected.id, { alloggiati: { ...selected.alloggiati, password: e.target.value } })}
+            />
+            <InputField
+              name="alloggiati-wskey"
+              label="WSkey"
+              type="password"
+              value={selected.alloggiati.wsKey}
+              autoComplete="off"
+              onChange={(e) => updateRow(selected.id, { alloggiati: { ...selected.alloggiati, wsKey: e.target.value } })}
+            />
+          </div>
+        </section>
+      )}
+
+      <div className="personalizza-struttura__actions">
+        <Tooltip text={dirty > 0 ? 'Salva i dati della struttura e del Portale Alloggiati' : 'Nessuna modifica da salvare'} variant="dark">
+          <button
+            type="button"
+            className={`sib-btn sib-btn--primary${saving ? ' sib-btn--loading' : ''}`}
+            disabled={dirty === 0 || saving}
+            onClick={saveFromButton}
+          >
+            <i className="fa-light fa-floppy-disk" aria-hidden="true" /> Salva
+          </button>
+        </Tooltip>
+      </div>
 
       {editing && (
         <EditModal

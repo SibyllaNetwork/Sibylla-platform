@@ -9,6 +9,8 @@
   gap: 14px
   min-height: 100%
   font-size: 13px
+  container-type: inline-size
+  container-name: personalizza-struttura
 
   &__td-name
     font-weight: 600
@@ -45,6 +47,66 @@
       font-size: 13px
       color: $primary
       flex-shrink: 0
+
+  &__field
+    min-width: 240px
+
+  // ── Sezioni (Riepilogo assegnazioni · Portale Alloggiati) ──────────────────
+  &__section
+    display: flex
+    flex-direction: column
+    gap: 12px
+    margin-top: 14px
+
+  &__section-head
+    display: flex
+    align-items: flex-start
+    gap: 12px
+
+  &__section-ico
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border-radius: 8px
+    background: $primary-50
+    color: $primary
+    font-size: 14px
+    flex-shrink: 0
+
+  &__section-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__section-sub
+    margin: 2px 0 0
+    font-size: 12px
+    line-height: 1.45
+    color: $text-inactive
+
+    strong
+      color: $primary
+      font-weight: 600
+
+  &__alloggiati
+    display: grid
+    // User_Id e Password a larghezza fissa; WSkey si allunga fino al filo della tabella
+    grid-template-columns: minmax(0, 260px) minmax(0, 260px) minmax(0, 1fr)
+    gap: 14px
+
+    // Pane stretto: i tre campi si impilano (container query sul pane, non sul viewport)
+    @container personalizza-struttura (max-width: 720px)
+      grid-template-columns: 1fr
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    padding-top: 14px
+    border-top: 1px solid $border
 
   // ── Pop-up modifica ──────────────────────────────────────────────────────────
   &__modal-form
@@ -98,7 +160,7 @@
     margin: 0
     font-size: 13.5px
     font-weight: 600
-    color: $text-active
+    color: $primary
 
   &__surcharge-desc
     margin: 2px 0 0

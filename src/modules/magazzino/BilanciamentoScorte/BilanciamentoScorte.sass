@@ -1,0 +1,289 @@
+// ─── Bilanciamento scorte (Magazzino) ─────────────────────────────────────────
+//  Proposta e trasferimenti: tabelle a layout fisso, colonne in percentuale,
+//  nessuno scroll orizzontale.
+@use 'sass:math'
+@use '../../../styles/tokens' as *
+
+.bil
+  container-type: inline-size
+  display: flex
+  flex-direction: column
+  gap: 10px
+  height: 100%
+  min-height: 0
+
+  &__bar
+    margin-bottom: 0
+
+  &__f
+    min-width: 190px
+
+  &__meta
+    margin: 0 0 8px auto
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    b
+      color: var(--color-text-active)
+
+  &__tabs
+    margin-bottom: 0
+
+  &__wrap
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+
+  &__table
+    table-layout: fixed
+    width: 100%
+
+    th,
+    td
+      padding-left: 8px
+      padding-right: 8px
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    tr.is-escluso td
+      color: var(--color-text-disabled)
+
+  &__c-chk
+    width: 4%
+  &__c-art
+    width: 19%
+  &__c-rep
+    width: 11%
+  &__c-n
+    width: 8%
+  &__c-cop
+    width: 12%
+  &__c-disp
+    width: 9%
+  &__c-qta
+    width: 12%
+  &__c-esito
+    width: 17%
+
+  &__d-num
+    width: 9%
+  &__d-mag
+    width: 13%
+  &__d-righe
+    width: 27%
+  &__d-val
+    width: 9%
+  &__d-data
+    width: 11%
+  &__d-stato
+    width: 11%
+  &__d-act
+    width: 7%
+
+  &__chk
+    text-align: center
+
+  &__chk-in
+    justify-content: center
+
+  &__num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__nd
+    color: var(--color-text-disabled)
+
+  &__art
+    display: flex
+    align-items: baseline
+    gap: 8px
+    min-width: 0
+
+  &__cod
+    flex: none
+    color: var(--color-text-inactive)
+    font-size: 11px
+    font-variant-numeric: tabular-nums
+
+  &__arrivo
+    margin-right: 6px
+    color: var(--color-primary)
+    font-size: 16px
+
+  // Copertura: barra con la tacca del par (par = 1 / soglia eccedenza)
+  &__cop
+    display: flex
+    align-items: center
+    gap: 8px
+
+  &__cop-bar
+    position: relative
+    flex: 1
+    min-width: 30px
+    height: 8px
+    border-radius: 4px
+    background: var(--color-primary-100)
+    overflow: hidden
+
+  &__cop-fill
+    display: block
+    height: 100%
+    border-radius: 4px
+
+    &.is-ok
+      background: var(--color-success)
+    &.is-warn
+      background: var(--color-warning)
+    &.is-ko
+      background: var(--color-error)
+    &.is-over
+      background: var(--color-link)
+
+    @for $i from 0 through 20
+      &--w#{$i * 5}
+        width: math.percentage(math.div($i * 5, 100))
+
+  &__cop-par
+    position: absolute
+    top: 0
+    bottom: 0
+    left: 62.5%
+    width: 2px
+    background: var(--color-primary)
+
+  &__cop-pct
+    flex: none
+    width: 38px
+    color: var(--color-text-active)
+    font-size: 12px
+    font-variant-numeric: tabular-nums
+    text-align: right
+
+  &__qta
+    display: inline-flex
+    align-items: center
+    justify-content: flex-end
+    gap: 6px
+
+  &__dir
+    color: var(--color-primary)
+    font-size: 16px
+
+  // Due classi: con una sola pareggerebbe con `.sib-input` e vincerebbe il DS
+  .bil__table .bil__in
+    width: 72px
+    text-align: right
+
+  &__esito
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 100%
+    padding: 2px 8px
+    border-radius: 9px
+    font-size: 11.5px
+    font-weight: 700
+
+    i
+      flex: none
+      font-size: 11px
+
+    &.is-ok
+      background: var(--color-success-light)
+      color: var(--color-success)
+    &.is-warn
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+    &.is-ko
+      background: var(--color-error-light)
+      color: var(--color-error-dark)
+    &.is-over
+      background: var(--color-link-light)
+      color: var(--color-link)
+
+  &__docnum
+    color: var(--color-primary)
+    font-weight: 700
+    font-variant-numeric: tabular-nums
+
+  &__act
+    display: grid
+    place-items: center
+    width: 30px
+    height: 30px
+    padding: 0
+    border: 0
+    border-radius: 8px
+    background: transparent
+    cursor: pointer
+
+    i
+      font-size: 16px
+      color: var(--color-primary)
+
+    &:hover
+      background: var(--color-primary-50)
+
+  &__vuoto
+    padding: 28px
+    text-align: center
+    color: var(--color-text-inactive)
+
+  // Totali sotto la tabella, mai in cima alla pagina
+  &__somma
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+    margin: 8px 0 0
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+    b
+      color: var(--color-text-active)
+
+  &__rio
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    color: var(--color-warning)
+    font-weight: 700
+
+  &__somma-link
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding: 0
+    border: 0
+    background: none
+    color: var(--color-primary)
+    font-size: 12.5px
+    font-weight: 700
+    cursor: pointer
+
+    &:hover
+      text-decoration: underline
+
+  &__avanti
+    display: flex
+    justify-content: flex-end
+
+  // Laptop con sidebar aperta: solo dimensioni più compatte
+  @container (max-width: 1360px)
+    &__table
+      th,
+      td
+        padding-left: 6px
+        padding-right: 6px
+        font-size: 12.5px
+
+    &__cod
+      display: none
+
+    .bil__table .bil__in
+      width: 58px
+
+    &__cop-pct
+      width: 32px

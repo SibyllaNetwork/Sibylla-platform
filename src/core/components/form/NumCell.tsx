@@ -54,7 +54,7 @@ const NumCell: React.FC<NumCellProps> = ({
       value={testo}
       onFocus={e => {
         // Lo 0 di partenza è solo rumore: si scrive direttamente il valore
-        setDraft(value === 0 ? '' : String(value))
+        setDraft(value === 0 || !Number.isFinite(value) ? '' : String(value))
         e.target.select()
         onFocus?.(e)
       }}

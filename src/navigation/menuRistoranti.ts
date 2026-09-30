@@ -198,6 +198,7 @@ const MENU_RISTORANTI:any[]=[
       {id:"gest-magazzino",label:"Gestione del magazzino",children:[
         {id:"crea-magazzino",label:"Crea magazzino",page:"crea-magazzino"},
         {id:"movimenti-scorte",label:"Movimenti scorte",page:"movimenti-scorte"},
+        {id:"bilanciamento-scorte",label:"Bilanciamento scorte",page:"bilanciamento-scorte"},
         {id:"chiusure",label:"Chiusure",children:[
           {id:"preliminare",label:"Preliminare chiusura",page:"preliminare"},
           {id:"registro-chiusure",label:"Registro chiusure",page:"registro-chiusure"},

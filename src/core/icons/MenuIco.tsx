@@ -227,6 +227,7 @@ const MENU_MAP: Record<string, string> = {
   // Purchasing — Gestione del magazzino
   'crea-magazzino':             'fa-warehouse',
   'movimenti-scorte':           'fa-right-left',
+  'bilanciamento-scorte':       'fa-scale-balanced',
   'chiusure':                   'fa-lock',
 
   // Purchasing — Analisi acquisti

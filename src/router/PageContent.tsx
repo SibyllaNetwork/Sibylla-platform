@@ -205,6 +205,9 @@ import GestioneAziende             from '../modules/sysadmin/GestioneAziende/Ges
 import GestioneUtenti              from '../modules/sysadmin/GestioneUtenti/GestioneUtenti';
 import CreaMagazzino               from '../modules/magazzino/CreaMagazzino/CreaMagazzino';
 import MovimentiBarcode            from '../modules/magazzino/MovimentiBarcode/MovimentiBarcode';
+import PreliminareChiusura         from '../modules/magazzino/PreliminareChiusura/PreliminareChiusura';
+import RegistroChiusure            from '../modules/magazzino/RegistroChiusure/RegistroChiusure';
+import BilanciamentoScorte         from '../modules/magazzino/BilanciamentoScorte/BilanciamentoScorte';
 import ArchivioContratti           from '../modules/finance/ArchivioContratti/ArchivioContratti';
 import BenchmarkFinanziario        from '../modules/finance/BenchmarkFinanziario/BenchmarkFinanziario';
 import InserisciContrattoAcquisto  from '../modules/purchasing/InserisciContrattoAcquisto/InserisciContrattoAcquisto';
@@ -419,6 +422,9 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'movimenti-scorte')      return <CreaMagazzino navigate={navigate} key="movimenti-scorte"/>;
   if (page === 'crea-magazzino')        return <CreaMagazzino navigate={navigate} autoOpen key="crea-magazzino"/>;
   if (page === 'movimenti-barcode')     return <MovimentiBarcode navigate={navigate}/>;
+  if (page === 'preliminare')           return <PreliminareChiusura navigate={navigate}/>;
+  if (page === 'registro-chiusure')     return <RegistroChiusure navigate={navigate}/>;
+  if (page === 'bilanciamento-scorte')  return <BilanciamentoScorte navigate={navigate}/>;
   if (page === 'turni-personale')       return <TurniPersonale navigate={navigate}/>;
   if (page === 'cassa')                 return <Cassa navigate={navigate}/>;
   if (page === 'monitoraggio-cassa')    return <Cassa navigate={navigate}/>;
