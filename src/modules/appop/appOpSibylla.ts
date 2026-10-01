@@ -25,6 +25,7 @@ interface UtenteSibylla {
   stato: 'invitato' | 'attivo' | 'bloccato'
   invito_scade_il: string | null
   ultimo_accesso: string | null
+  esclusi?: string[]
 }
 
 interface ConfigSibylla {
@@ -38,7 +39,7 @@ const keys = (idList: number[]) => idList.map(id => repartoDaId(id)?.key).filter
 const daSibylla = (u: UtenteSibylla): DipendenteOp => ({
   id: u.id_utente, nome: u.nome, cognome: u.cognome, email: u.email, livello: u.livello,
   reparti: keys(u.id_reparti), responsabileReparti: keys(u.responsabile_reparti), hr: u.hr,
-  stato: u.stato, invitoScadeIl: u.invito_scade_il, ultimoAccesso: u.ultimo_accesso,
+  stato: u.stato, invitoScadeIl: u.invito_scade_il, ultimoAccesso: u.ultimo_accesso, esclusi: u.esclusi ?? [],
 })
 
 const moduliDa = (m: Record<string, string[]>): RepartiModuli =>
@@ -77,7 +78,7 @@ export const useAppOpProva = create<ProvaState>()(persist((set, get) => ({
     const dipendente: DipendenteOp = {
       id: id ?? Math.max(0, ...get().dipendenti.map(x => x.id)) + 1,
       nome: d.nome, cognome: d.cognome, email: d.email, livello: d.livello, reparti: d.reparti,
-      responsabileReparti: d.responsabileReparti, hr: d.hr,
+      responsabileReparti: d.responsabileReparti, hr: d.hr, esclusi: d.esclusi ?? [],
       stato: esistente?.stato ?? 'invitato', invitoScadeIl: invito?.scadeIl ?? esistente?.invitoScadeIl ?? null, ultimoAccesso: esistente?.ultimoAccesso ?? null,
     }
     set({ dipendenti: esistente ? get().dipendenti.map(x => (x.id === id ? dipendente : x)) : [...get().dipendenti, dipendente] })
@@ -140,6 +141,7 @@ export const appOpSibylla = {
     const r = await post<{ success: boolean; error_message?: string; invito?: { codice: string; scade_il: string; email_mascherata: string } | null }>('OpApp/utenti/Salva', {
       id_utente: id, nome: d.nome, cognome: d.cognome, email: d.email, livello: d.livello,
       id_reparti: ids(d.reparti), responsabile_reparti: ids(d.responsabileReparti), hr: d.hr, invia_invito: !id && d.inviaInvito !== false,
+      esclusi: d.esclusi ?? [],
     })
     if (!r.success) throw new Error(r.error_message || 'Utenza non salvata.')
     return { invito: r.invito ? { codice: r.invito.codice, scadeIl: r.invito.scade_il, emailMascherata: r.invito.email_mascherata } : null }

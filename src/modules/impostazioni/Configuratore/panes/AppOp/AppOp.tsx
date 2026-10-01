@@ -131,7 +131,7 @@ export default function AppOp() {
         successMessage="Reparti e moduli dell’App Op! salvati"
       />
 
-      <OpDipendenteModal open={modifica !== undefined} dipendente={modifica} reparti={attivi} onClose={() => setModifica(undefined)} onSalva={salvaUtente} />
+      <OpDipendenteModal open={modifica !== undefined} dipendente={modifica} reparti={attivi} moduli={salvati} onClose={() => setModifica(undefined)} onSalva={salvaUtente} />
       <OpInvitoModal invito={invito?.invito ?? null} nome={invito?.nome ?? ''} onClose={() => setInvito(null)} />
     </div>
   )

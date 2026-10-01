@@ -1,0 +1,38 @@
+// ─── MODULI E PAGINE DEL DIPENDENTE ───────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.op-pers
+  display: flex
+  flex-direction: column
+  gap: $space-md
+
+  &__vuoto
+    margin: 0
+    color: $text-inactive
+
+  &__reparto
+    border: 1px solid $border
+    border-radius: $radius-sm
+    padding: $space-sm $space-md
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+
+  &__titolo
+    margin: 0
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__moduli
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: $space-xs $space-lg
+    align-items: start
+
+  &__pagine
+    display: flex
+    flex-direction: column
+    gap: $space-xs
+    margin: $space-xs 0 0 $space-lg
+    color: $text-inactive

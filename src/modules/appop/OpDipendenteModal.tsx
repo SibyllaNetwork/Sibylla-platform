@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import Modal from '../../core/components/Modal'
 import Button from '../../core/components/Button/Button'
 import { CheckboxField, InputField, SelectField, ToggleSwitch } from '../../core/components/form'
-import { LIVELLI_OP, nomeReparto, type LivelloOp, type RepartoOp } from './opCatalogo'
+import OpPersonalizzazione from './OpPersonalizzazione'
+import { LIVELLI_OP, nomeReparto, type LivelloOp, type RepartiModuli, type RepartoOp } from './opCatalogo'
 import type { DipendenteOp, DipendenteRichiesta } from './opApi'
 import './OpDipendenteModal.sass'
 
@@ -12,16 +13,18 @@ interface Props {
   dipendente?: DipendenteOp | null
   /** Reparti attivi per l'azienda: gli unici assegnabili. */
   reparti: RepartoOp[]
+  /** Moduli attivi per reparto dell'azienda: quelli che si possono spegnere al dipendente. */
+  moduli: RepartiModuli
   onClose: () => void
   onSalva: (d: DipendenteRichiesta) => Promise<void>
 }
 
-const VUOTO: DipendenteRichiesta = { nome: '', cognome: '', email: '', livello: 'impiegato', reparti: [], responsabileReparti: [], hr: false, inviaInvito: true }
+const VUOTO: DipendenteRichiesta = { nome: '', cognome: '', email: '', livello: 'impiegato', reparti: [], responsabileReparti: [], hr: false, inviaInvito: true, esclusi: [] }
 
 // ─── UTENZA DELL'APP OP! ──────────────────────────────────────────────────────
 //  Nome, email aziendale, grado, reparti (tra quelli attivi), reparti di cui è
 //  responsabile e HR. Alla creazione si può mandare subito l'invito via email.
-export default function OpDipendenteModal({ open, dipendente, reparti, onClose, onSalva }: Props) {
+export default function OpDipendenteModal({ open, dipendente, reparti, moduli, onClose, onSalva }: Props) {
   const [f, setF] = useState<DipendenteRichiesta>(VUOTO)
   const [errore, setErrore] = useState<string | null>(null)
   const [salvo, setSalvo] = useState(false)
@@ -30,11 +33,13 @@ export default function OpDipendenteModal({ open, dipendente, reparti, onClose, 
     if (!open) return
     setErrore(null)
     setF(dipendente
-      ? { nome: dipendente.nome, cognome: dipendente.cognome, email: dipendente.email, livello: dipendente.livello, reparti: dipendente.reparti, responsabileReparti: dipendente.responsabileReparti, hr: dipendente.hr }
+      ? { nome: dipendente.nome, cognome: dipendente.cognome, email: dipendente.email, livello: dipendente.livello, reparti: dipendente.reparti, responsabileReparti: dipendente.responsabileReparti, hr: dipendente.hr, esclusi: dipendente.esclusi ?? [] }
       : VUOTO)
   }, [open, dipendente])
 
   const amministratore = f.livello === 'amministratore'
+  /** Reparti in cui entra: tutti per l'amministratore. */
+  const suoi = amministratore ? reparti : f.reparti
   const set = <K extends keyof DipendenteRichiesta>(k: K, v: DipendenteRichiesta[K]) => setF(p => ({ ...p, [k]: v }))
   const toggleReparto = (r: RepartoOp, on: boolean) => setF(p => ({
     ...p,
@@ -55,7 +60,9 @@ export default function OpDipendenteModal({ open, dipendente, reparti, onClose, 
     try {
       // L'amministratore ha tutti i reparti attivi dell'azienda, con tutti i loro moduli.
       const ruoli = amministratore ? { reparti, responsabileReparti: [] } : {}
-      await onSalva({ ...f, ...ruoli, nome: f.nome.trim(), cognome: f.cognome.trim(), email: f.email.trim().toLowerCase() })
+      // Solo le voci dei reparti del dipendente.
+      const esclusi = (f.esclusi ?? []).filter(v => suoi.includes(v.split(':')[0] as RepartoOp))
+      await onSalva({ ...f, ...ruoli, esclusi, nome: f.nome.trim(), cognome: f.cognome.trim(), email: f.email.trim().toLowerCase() })
     } catch (e) {
       setErrore(e instanceof Error ? e.message : 'Salvataggio non riuscito.')
     } finally {
@@ -99,6 +106,10 @@ export default function OpDipendenteModal({ open, dipendente, reparti, onClose, 
               ))}
             </div>
           )}
+
+        <p className="op-dip__label">Moduli e pagine</p>
+        <p className="op-dip__vuoto">Togli le funzioni che il dipendente non deve vedere nell’app: restano solo quelle attive per l’azienda.</p>
+        <OpPersonalizzazione reparti={suoi} moduli={moduli} esclusi={f.esclusi ?? []} onChange={v => set('esclusi', v)} />
 
         <div className="op-dip__opzioni">
           <ToggleSwitch checked={f.hr} label="Ufficio del personale (HR)" description="Approvazioni di secondo livello e gestione del personale di tutti i reparti." onChange={v => set('hr', v)} />

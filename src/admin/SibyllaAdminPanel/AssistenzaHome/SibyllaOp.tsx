@@ -359,6 +359,7 @@ function SchedaCliente({ id, onBack }: { id: number; onBack: () => void }) {
         open={modifica !== undefined}
         dipendente={modifica}
         reparti={repartiAttivi}
+        moduli={cliente?.reparti ?? {}}
         onClose={() => setModifica(undefined)}
         onSalva={salvaDipendente}
       />

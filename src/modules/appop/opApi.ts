@@ -98,6 +98,8 @@ export interface DipendenteOp {
   stato: StatoDipendente
   invitoScadeIl: string | null
   ultimoAccesso: string | null
+  /** Moduli e pagine spenti per il dipendente, per reparto ("pulizie:camere", "magazzino:magazzino.report"). */
+  esclusi: string[]
 }
 
 export interface DipendenteRichiesta {
@@ -109,6 +111,8 @@ export interface DipendenteRichiesta {
   responsabileReparti: RepartoOp[]
   hr: boolean
   inviaInvito?: boolean
+  /** Moduli e pagine da spegnere, solo tra quelli attivi nei suoi reparti. */
+  esclusi?: string[]
 }
 
 export interface InvitoOp {

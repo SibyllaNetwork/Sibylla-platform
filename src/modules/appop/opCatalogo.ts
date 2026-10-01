@@ -53,6 +53,35 @@ export const MODULI_SPECIFICI: ModuloOp[] = [
 
 export const MODULI_OP: ModuloOp[] = [...MODULI_COMUNI, ...MODULI_SPECIFICI]
 
+/**
+ * Pagine dei moduli che ne hanno più d'una, spegnibili per il singolo dipendente (chiave "modulo.pagina", come
+ * CatalogoModuli.Pagine di Op.Api). Gli altri moduli si spengono interi.
+ */
+export const PAGINE_OP: Record<string, { key: string; label: string }[]> = {
+  turni: [{ key: 'turni.miei', label: 'I miei turni' }, { key: 'turni.calendario', label: 'Calendario' }],
+  timbratura: [{ key: 'timbratura.timbra', label: 'Timbra' }, { key: 'timbratura.storico', label: 'Storico timbrature' }],
+  richieste: [
+    { key: 'richieste.nuova', label: 'Nuova richiesta' },
+    { key: 'richieste.elenco', label: 'Le mie richieste' },
+    { key: 'richieste.cambioTurno', label: 'Cambio turno' },
+    { key: 'richieste.residui', label: 'Residui di ferie e ROL' },
+  ],
+  segnalazioni: [{ key: 'segnalazioni.elenco', label: 'Elenco' }, { key: 'segnalazioni.nuova', label: 'Nuova segnalazione' }],
+  camere: [{ key: 'camere.avvio', label: 'Avvio camera' }, { key: 'camere.stato', label: 'Stato e camere in corso' }],
+  magazzino: [
+    { key: 'magazzino.carica', label: 'Carico prodotti' },
+    { key: 'magazzino.movimento', label: 'Movimenti' },
+    { key: 'magazzino.preliminare', label: 'Preliminare di chiusura' },
+    { key: 'magazzino.chiusura', label: 'Chiusura' },
+    { key: 'magazzino.chiusure', label: 'Registro chiusure' },
+    { key: 'magazzino.bilanciamento', label: 'Bilanciamento scorte' },
+    { key: 'magazzino.report', label: 'Report' },
+  ],
+  oggetti: [{ key: 'oggetti.elenco', label: 'Elenco' }, { key: 'oggetti.nuovo', label: 'Nuovo oggetto' }],
+}
+
+export const labelModulo = (key: string) => MODULI_OP.find(m => m.key === key)?.label ?? key
+
 const COMUNI = MODULI_COMUNI.map(m => m.key)
 
 export interface InfoRepartoOp {
