@@ -146,7 +146,7 @@ export interface UserAssoc {
 }
 
 /** Sezione di "Configurazione piattaforma" (modalità separata dalla gestione clienti). */
-export type PlatformSection = 'catalogo' | 'servizi' | 'banner' | 'agora-console'
+export type PlatformSection = 'catalogo' | 'servizi' | 'banner' | 'agora-console' | 'sibylla-op'
 
 /** Due modalità top-level del pannello admin: gestione clienti vs configurazione piattaforma. */
 export type AdminMode = 'clients' | 'platform'

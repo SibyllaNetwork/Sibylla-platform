@@ -20,7 +20,10 @@ import {
 } from '../../../modules/appop/opApi'
 import './SibyllaOp.sass'
 
-interface Props { navigate: (p: string) => void }
+interface Props {
+  /** Dentro il pannello Sibylla Admin → Piattaforma: il titolo lo mostra già il pannello. */
+  incorporata?: boolean
+}
 
 const PIANI: { value: PianoCliente; label: string }[] = [
   { value: 'base', label: 'Base' },
@@ -40,8 +43,9 @@ const errore = (e: unknown) => (e instanceof Error ? e.message : 'Operazione non
 //  Clienti indipendenti dell'app Op! (aziende senza Sibylla Platform): elenco con
 //  abbonamento e dipendenti, poi la scheda del cliente con i dati dell'azienda,
 //  i reparti con i moduli e le utenze dei dipendenti (invito, blocco, eliminazione).
-//  Dati e regole stanno in Op.Api (/admin/indipendenti).
-export default function SibyllaOp({ navigate }: Props) {
+//  Dati e regole stanno in Op.Api (/admin/indipendenti). Sta nel pannello
+//  Sibylla Admin → Piattaforma, dopo "Piattaforma admin".
+export default function SibyllaOp({ incorporata = false }: Props) {
   const [clienti, setClienti] = useState<ClienteOp[] | null>(null)
   const [problema, setProblema] = useState<string | null>(null)
   const [cerca, setCerca] = useState('')
@@ -71,15 +75,13 @@ export default function SibyllaOp({ navigate }: Props) {
 
   return (
     <div className="sibylla-op">
-      <PageHead
-        title="Sibylla Op!"
-        subtitle="Clienti indipendenti dell’app Op!: aziende che la usano senza Sibylla Platform."
-        onBack={() => navigate('sibylla-admin')}
-        actions={<Button icon="plus" onClick={() => setNuovo(true)}>Nuovo cliente</Button>}
-      />
+      {!incorporata && (
+        <PageHead title="Sibylla Op!" subtitle="Clienti indipendenti dell’app Op!: aziende che la usano senza Sibylla Platform." back={false} />
+      )}
 
       <div className="sibylla-op__bar">
         <SearchField value={cerca} placeholder="Cerca per ragione sociale o partita IVA" onChange={e => setCerca(e.target.value)} onClear={() => setCerca('')} className="sibylla-op__cerca" />
+        <Button icon="plus" onClick={() => setNuovo(true)}>Nuovo cliente</Button>
       </div>
       {problema && <p className="sibylla-op__errore">{problema}</p>}
 

@@ -35,6 +35,12 @@ const SECTIONS: SectionItem[] = [
     description: 'Contenuti e impostazioni dell\'Agorà',
     icon: 'wheel',
   },
+  {
+    id: 'sibylla-op',
+    label: 'Sibylla Op!',
+    description: 'Clienti indipendenti dell\'app Op!',
+    icon: 'mobile',
+  },
 ]
 
 interface Props {
