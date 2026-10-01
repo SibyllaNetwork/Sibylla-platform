@@ -187,6 +187,7 @@ import SchedaQuestura              from '../modules/impostazioni/SchedaQuestura/
 import LogDiSistema                from '../modules/impostazioni/LogDiSistema/LogDiSistema';
 import InformazioniStruttura       from '../modules/impostazioni/InformazioniStruttura/InformazioniStruttura';
 import Configuratore               from '../modules/impostazioni/Configuratore/Configuratore';
+import { apriSezioneAppOp } from '../modules/impostazioni/Configuratore/panes/AppOp/AppOp';
 import CreaStruttura               from '../modules/impostazioni/CreaStruttura/CreaStruttura';
 import MonitoraggioCanali          from '../modules/impostazioni/MonitoraggioCanali/MonitoraggioCanali';
 import Interfacce                  from '../modules/impostazioni/Interfacce/Interfacce';
@@ -457,6 +458,11 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'scheda-questura')       return <SchedaQuestura navigate={navigate}/>;
   if (page === 'log-sistema')           return <LogDiSistema navigate={navigate}/>;
   if (page === 'informazioni-struttura')return <InformazioniStruttura navigate={navigate}/>;
+  if (page === 'app-op-utenze' || page === 'app-op-moduli') {
+    // Menu App Op!: il pannello App Op! del Configuratore, sulla sezione scelta.
+    apriSezioneAppOp(page === 'app-op-moduli' ? 'moduli' : 'utenze')
+    return <Configuratore navigate={navigate} initialPane="app-op" key={page}/>;
+  }
   if (page.startsWith('configuratore:')) return <Configuratore navigate={navigate} initialPane={page.slice('configuratore:'.length)} key={page}/>;
   if (page === 'configuratore')         return <Configuratore navigate={navigate}/>;
   if (page === 'crea-struttura')        return <CreaStruttura navigate={navigate}/>;

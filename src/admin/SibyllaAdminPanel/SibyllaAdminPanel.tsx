@@ -128,6 +128,8 @@ export default function SibyllaAdminPanel(props: Props) {
     CLIENTS_INIT.forEach(c => { init[c.id] = new Set(moduliSalvati(c.id) || []) })
     return init
   })
+  // Moduli scelti nella tab Moduli e non ancora salvati, per struttura.
+  const [bozzaModuli, setBozzaModuli] = useState<Record<number, Set<string>>>({})
   const [showModuloModal, setShowModuloModal] = useState(false)
   const [editingModulo, setEditingModulo] = useState<Modulo | null>(null)
   const [moduloForm, setModuloForm] = useState<ModuloForm>({ nome: '', desc: '', pagesSet: new Set(), configItemsSet: new Set() })
@@ -201,7 +203,9 @@ export default function SibyllaAdminPanel(props: Props) {
   const enabledCount = Array.from(enabled).filter(pg => pagineModuli.has(pg)).length
   const totalCount = pagineModuli.size
   const clientRuoli = ruoliMap[selId] || []
-  const clientAssigned = assignedModuli[selId] || new Set<string>()
+  const clientAssigned = bozzaModuli[selId] || assignedModuli[selId] || new Set<string>()
+  const moduliDaSalvare = !!bozzaModuli[selId]
+    && Array.from(bozzaModuli[selId]).sort().join() !== Array.from(assignedModuli[selId] || []).sort().join()
   const clientUsers = users[selId] || []
   const clientAssoc = assocMap[selId] || {}
   const setUserAssoc = (userId: number, next: UserAssoc) =>
@@ -272,18 +276,26 @@ export default function SibyllaAdminPanel(props: Props) {
   const enableAll  = () => impostaPagine(new Set(pagineModuli))
   const disableAll = () => impostaPagine(new Set())
 
-  // ─── Moduli ────────────────────────────────────────────────────────────────
-  const toggleModuloAssign = (moduloId: string) => {
-    setAssignedModuli(prev => {
-      const s = new Set(prev[selId])
+  // ─── Moduli: si scelgono in bozza e valgono con "Salva moduli" ─────────────
+  const toggleModuloAssign = (moduloId: string) =>
+    setBozzaModuli(prev => {
+      const s = new Set(prev[selId] ?? assignedModuli[selId])
       s.has(moduloId) ? s.delete(moduloId) : s.add(moduloId)
-      const allEnabled = new Set<string>()
-      moduliList.forEach(m => { if (s.has(m.id)) m.pages.forEach(pg => allEnabled.add(pg)) })
-      setEnabledPages(pp => ({ ...pp, [selId]: allEnabled }))
-      // Moduli della struttura: profilo di accesso, menu, Configuratore (es. App Op!) e assistenza in corso.
-      useAccessStore.getState().setModuliStruttura(selId, Array.from(s))
       return { ...prev, [selId]: s }
     })
+  const annullaModuli = () => setBozzaModuli(({ [selId]: _tolta, ...altre }) => altre)
+  const salvaModuli = () => {
+    const s = bozzaModuli[selId]
+    if (!s) return
+    const allEnabled = new Set<string>()
+    moduliList.forEach(m => { if (s.has(m.id)) m.pages.forEach(pg => allEnabled.add(pg)) })
+    setAssignedModuli(prev => ({ ...prev, [selId]: s }))
+    setEnabledPages(pp => ({ ...pp, [selId]: allEnabled }))
+    // Moduli della struttura: profilo di accesso, menu, Configuratore (es. App Op!) e assistenza in corso.
+    useAccessStore.getState().setModuliStruttura(selId, Array.from(s))
+    annullaModuli()
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
   }
 
   const openEditModulo = (m: Modulo) => {
@@ -702,6 +714,9 @@ export default function SibyllaAdminPanel(props: Props) {
                     assigned={clientAssigned}
                     enabledCount={enabledCount}
                     onToggleAssign={toggleModuloAssign}
+                    modificati={moduliDaSalvare}
+                    onSave={salvaModuli}
+                    onCancel={annullaModuli}
                     onEdit={openEditModulo}
                     onDelete={setDeleteModuloId}
                   />

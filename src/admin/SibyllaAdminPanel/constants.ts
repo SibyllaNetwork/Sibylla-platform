@@ -82,7 +82,7 @@ export const PACCHETTI_INIT: Modulo[] = [
   { id: 'struttura-ricettiva', label: 'Struttura ricettiva', desc: 'Hotel, B&B, case vacanze, residence, ostelli, studentati', pages: getAllPages(MENU as any) },
   { id: 'tour-operator',       label: 'Tour Operator',       desc: 'Programmazione, pratiche, preventivi, distribuzione',      pages: getAllPages(MENU_TO as any) },
   { id: 'ristorazione',        label: 'Ristorazione',        desc: 'Ristoranti, bar — sala, tavoli e Food & Beverage',         pages: getAllPages(MENU_RISTORANTI as any), configuratoreItems: FNB_CONFIG_IDS },
-  { id: 'app-op',              label: 'App Op!',             desc: 'App per i dipendenti: reparti, turni, chat, walkie talkie, F&B e HR', pages: [], configuratoreItems: ['app-op'] },
+  { id: 'app-op',              label: 'App Op!',             desc: 'App per i dipendenti: reparti, turni, chat, walkie talkie, F&B e HR', pages: ['app-op-utenze', 'app-op-moduli'], configuratoreItems: ['app-op'] },
   { id: 'full',                label: 'Full',                desc: 'Tutti i moduli (unione completa delle pagine)',            pages: getAllPages(MENU_FULL as any) },
 ]
 

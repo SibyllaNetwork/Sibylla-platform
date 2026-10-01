@@ -23,12 +23,16 @@ const PANE_ID = 'app-op'
 
 type Sezione = 'utenze' | 'moduli'
 
+/** Sezione con cui si apre il pannello: la scelgono le voci del menu App Op! (Utenze e inviti, Reparti e moduli). */
+let sezioneIniziale: Sezione = 'utenze'
+export const apriSezioneAppOp = (s: Sezione) => { sezioneIniziale = s }
+
 export default function AppOp() {
   const markDirty     = useConfiguratoreStore(s => s.markDirty)
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
-  const [sezione, setSezione] = useState<Sezione>('utenze')
+  const [sezione, setSezione] = useState<Sezione>(() => sezioneIniziale)
   const [fonte, setFonte] = useState<FonteAppOp>('portal')
   const [azienda, setAzienda] = useState<string | undefined>()
   const [salvati, setSalvati] = useState<RepartiModuli>({})

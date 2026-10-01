@@ -33,6 +33,14 @@ export const useModuliStore = create<State>()(
         set(s => ({ moduli: s.moduli.filter(x => x.id !== id) })),
     }),
     // v2: catalogo a 4 moduli (Struttura ricettiva / Tour Operator / Ristorazione / Full).
-    { name: 'sibylla.moduli', version: 2, migrate: () => ({ moduli: PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })) }) },
+    // v3: App Op! con le sue pagine di menu; i moduli del catalogo si riallineano, quelli creati a mano restano.
+    {
+      name: 'sibylla.moduli',
+      version: 3,
+      migrate: (salvato) => {
+        const creati = ((salvato as { moduli?: Modulo[] } | undefined)?.moduli ?? []).filter(m => !PACCHETTI_INIT.some(p => p.id === m.id))
+        return { moduli: [...PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })), ...creati] } as State
+      },
+    },
   ),
 )

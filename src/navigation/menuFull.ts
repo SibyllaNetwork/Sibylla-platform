@@ -29,6 +29,19 @@ function mergeNodes(primary: any[], extra: any[]): any[] {
   return out
 }
 
-const MENU_FULL: any[] = mergeNodes(mergeNodes(MENU as any[], MENU_TO as any[]), MENU_RISTORANTI as any[])
+// App Op! (modulo "app-op"): gestione dell'app dei dipendenti, prima di Impostazioni. Le due pagine aprono il pannello
+// App Op! del Configuratore sulla sezione scelta.
+export const MENU_APP_OP = {
+  id: 'app-op', label: 'App Op!', icon: 'fa-mobile-screen-button', children: [
+    { id: 'app-op-utenze', label: 'Utenze e inviti', page: 'app-op-utenze' },
+    { id: 'app-op-moduli', label: 'Reparti e moduli', page: 'app-op-moduli' },
+  ],
+}
+
+const BASE: any[] = mergeNodes(mergeNodes(MENU as any[], MENU_TO as any[]), MENU_RISTORANTI as any[])
+const IMPOSTAZIONI = BASE.findIndex(n => n.id === 'impostazioni')
+const MENU_FULL: any[] = IMPOSTAZIONI < 0
+  ? [...BASE, MENU_APP_OP]
+  : [...BASE.slice(0, IMPOSTAZIONI), MENU_APP_OP, ...BASE.slice(IMPOSTAZIONI)]
 
 export default MENU_FULL

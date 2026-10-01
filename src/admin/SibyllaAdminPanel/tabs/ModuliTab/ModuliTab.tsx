@@ -9,13 +9,17 @@ interface Props {
   assigned: Set<string>
   enabledCount: number
   onToggleAssign: (moduloId: string) => void
+  /** Scelta dei moduli diversa da quella salvata. */
+  modificati: boolean
+  onSave: () => void
+  onCancel: () => void
   onEdit: (m: Modulo) => void
   onDelete: (id: string) => void
 }
 
 export default function ModuliTab({
   client, modules, assigned, enabledCount,
-  onToggleAssign, onEdit, onDelete,
+  onToggleAssign, modificati, onSave, onCancel, onEdit, onDelete,
 }: Props) {
   return (
     <div className="mod-tab">
@@ -79,6 +83,12 @@ export default function ModuliTab({
             </div>
           )
         })}
+      </div>
+
+      <div className="mod-tab__foot">
+        {modificati && <span className="mod-tab__foot-nota">Modifiche non salvate</span>}
+        <button className="sib-btn sib-btn--toolbar" onClick={onCancel} disabled={!modificati}>Annulla</button>
+        <button className="sib-btn sib-btn--primary" onClick={onSave} disabled={!modificati}>Salva moduli</button>
       </div>
     </div>
   )

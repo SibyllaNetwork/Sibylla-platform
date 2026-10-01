@@ -112,7 +112,11 @@ export const appOpSibylla = {
   async leggi(): Promise<ConfigAppOp> {
     try {
       const c = await opCollegataApi.config()
-      return { reparti: c.reparti, dipendenti: c.dipendenti, fonte: 'op', azienda: c.azienda }
+      // Nessun reparto configurato: come in Sibylla valgono tutti, con i moduli predefiniti.
+      const reparti = Object.keys(c.reparti).length > 0
+        ? c.reparti
+        : Object.fromEntries(REPARTI_OP.map(r => [r.key, [...r.predefiniti]])) as RepartiModuli
+      return { reparti, dipendenti: c.dipendenti, fonte: 'op', azienda: c.azienda }
     } catch (e) {
       if (!opNonDisponibile(e)) throw e
     }
