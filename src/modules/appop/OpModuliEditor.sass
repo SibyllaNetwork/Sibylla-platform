@@ -1,0 +1,50 @@
+// ─── REPARTI E MODULI DELL'APP OP! ────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.op-moduli
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+  // Ogni riquadro alto quanto il suo contenuto (i reparti spenti restano compatti).
+  align-items: start
+  gap: $space-md
+
+  &__reparto
+    border: 1px solid $border
+    border-radius: $radius-md
+    padding: $space-md $space-lg
+    background: $white
+
+    &[data-attivo="false"]
+      background: $bg
+
+  &__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: $space-sm
+
+  &__nome
+    margin: 0
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__gruppi
+    margin-top: $space-md
+    display: flex
+    flex-direction: column
+    gap: $space-md
+
+  &__titolo
+    margin: 0 0 $space-xs
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__voci
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: $space-xs $space-md
+
+  &__voce--pms
+    opacity: .6

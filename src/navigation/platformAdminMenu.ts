@@ -28,6 +28,13 @@ export const PLATFORM_ADMIN_MENU: PAGroup[] = [
     ],
   },
   {
+    id: 'pa-app-op', label: 'App Op!', icon: 'mobile',
+    items: [
+      // Clienti indipendenti dell'app Op! (senza Sibylla Platform): dati e regole in Op.Api.
+      { id: 'pa-sibylla-op', label: 'Sibylla Op!', page: 'pa-sibylla-op' },
+    ],
+  },
+  {
     id: 'pa-amministrazione', label: 'Amministrazione', icon: 'sliders',
     items: [
       { id: 'pa-commissioni',          label: 'Commissioni',              page: 'pa-commissioni' },

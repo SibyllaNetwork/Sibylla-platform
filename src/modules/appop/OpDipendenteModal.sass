@@ -1,0 +1,54 @@
+// ─── UTENZA DELL'APP OP! ──────────────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.op-dip
+  display: flex
+  flex-direction: column
+  gap: $space-md
+  font-size: 13px
+
+  &__grid
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: $space-md
+
+  &__label
+    margin: $space-xs 0 0
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__vuoto
+    margin: 0
+    color: $text-inactive
+
+  &__reparti
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    gap: $space-sm $space-lg
+
+  &__reparto
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: $space-sm
+    border: 1px solid $border
+    border-radius: $radius-sm
+    padding: $space-xs $space-sm
+
+  &__resp
+    color: $text-inactive
+
+  &__opzioni
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+
+  &__errore
+    margin: 0
+    color: $error
+
+  &__azioni
+    display: flex
+    justify-content: flex-end
+    gap: $space-sm

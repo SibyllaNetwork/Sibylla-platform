@@ -1,0 +1,61 @@
+// ─── UTENZE DELL'APP OP! ──────────────────────────────────────────────────────
+//  Tabella standard (.sib-table): testo su una riga con ellipsis e tooltip,
+//  icone d'azione solid blu Platform 16px senza box.
+@use '../../styles/tokens' as *
+
+.op-dipendenti
+  container-type: inline-size
+  container-name: op-dipendenti
+
+  table
+    table-layout: fixed
+    width: 100%
+
+  &__c-nome
+    width: 18%
+  &__c-email
+    width: 22%
+  &__c-grado
+    width: 14%
+  &__c-reparti
+    width: 24%
+  &__c-stato
+    width: 10%
+  &__c-azioni
+    width: 12%
+
+  td
+    white-space: nowrap
+
+  &__testo
+    display: block
+    max-width: 100%
+
+  &__vuoto
+    text-align: center
+    color: $text-inactive
+
+  &__th-azioni,
+  &__azioni
+    text-align: right
+
+  &__azioni
+    display: flex
+    justify-content: flex-end
+    gap: $space-xs
+
+  &__btn
+    border: 0
+    background: transparent
+    padding: $space-xs
+    cursor: pointer
+
+    i
+      color: $primary
+      font-size: 16px
+
+@container op-dipendenti (max-width: 900px)
+  .op-dipendenti .sib-table
+    font-size: 12px
+  .op-dipendenti__btn i
+    font-size: 13px

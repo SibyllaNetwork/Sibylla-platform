@@ -128,6 +128,7 @@ import CodiceSconti                from '../admin/SibyllaAdminPanel/AssistenzaHo
 import ProcessiAutomatici          from '../admin/SibyllaAdminPanel/AssistenzaHome/ProcessiAutomatici';
 import CacheManager                from '../admin/SibyllaAdminPanel/AssistenzaHome/CacheManager';
 import GestionePagine              from '../admin/SibyllaAdminPanel/AssistenzaHome/GestionePagine';
+import SibyllaOp                   from '../admin/SibyllaAdminPanel/AssistenzaHome/SibyllaOp';
 import SibyllaAdminPanel           from '../admin/SibyllaAdminPanel/SibyllaAdminPanel';
 import { isPlatformAdminPage, PLATFORM_ADMIN_PLATFORM_PAGE } from '../navigation/platformAdminMenu';
 import Planner                     from '../modules/operation/planner';
@@ -360,6 +361,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'pa-processi-automatici') return <ProcessiAutomatici navigate={navigate}/>;
   if (page === 'pa-cachemanager')       return <CacheManager navigate={navigate}/>;
   if (page === 'pa-gestione-pagine')    return <GestionePagine navigate={navigate}/>;
+  if (page === 'pa-sibylla-op')         return <SibyllaOp navigate={navigate}/>;
   if (isPlatformAdminPage(page))        return <PlatformAdminStub page={page} navigate={navigate}/>;
 
   // ── Pagine portate da platform ──

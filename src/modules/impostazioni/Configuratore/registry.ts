@@ -56,6 +56,8 @@ export type ConfiguratoreId =
   | 'fb-categoria-ospite'
   | 'fb-stampanti'
   | 'fb-service-monitor'
+  // App Op! (modulo dell'app per i dipendenti)
+  | 'app-op'
 
 // ─── Gruppi tematici (le 7 corsie) ────────────────────────────────────────────
 
@@ -67,6 +69,7 @@ export type CfgGroupId =
   | 'amministrazione-fiscale'
   | 'struttura'
   | 'food-beverage'
+  | 'app-op'
 
 export interface CfgGroup {
   id: CfgGroupId
@@ -83,6 +86,7 @@ export const CFG_GROUPS: CfgGroup[] = [
   { id: 'amministrazione-fiscale', label: 'Amministrazione e fiscale', icon: 'file-invoice' },
   { id: 'struttura',               label: 'Struttura',                 icon: 'house' },
   { id: 'food-beverage',           label: 'Food & Beverage',           icon: 'utensils' },
+  { id: 'app-op',                  label: 'App Op!',                   icon: 'mobile-screen' },
 ]
 
 // ─── Definizione di una voce ──────────────────────────────────────────────────
@@ -108,6 +112,8 @@ export interface ConfiguratoreDef {
   requires?: CfgRequirement
   /** 'soon' = pane non ancora costruito (mostra CfgEmpty "in arrivo"). */
   status?: 'ready' | 'soon'
+  /** Voce visibile solo se l'azienda ha questo modulo (o il modulo Full). */
+  modulo?: string
 }
 
 // ─── Inventario (ordine PDF §2) ───────────────────────────────────────────────
@@ -326,6 +332,11 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
     description: 'Monitor KDS per i reparti di produzione: cucina, bar, pasticceria.',
     keywords: ['kds', 'monitor', 'cucina', 'reparti di produzione'],
   },
+  {
+    id: 'app-op', label: 'App Op!', icon: 'mobile-screen', group: 'app-op', modulo: 'app-op',
+    description: 'Utenze dei dipendenti con reparto, grado e codice di invito, e funzioni dell\u2019app per ogni reparto.',
+    keywords: ['app op', 'operation', 'dipendenti', 'inviti', 'utenze', 'reparti', 'moduli', 'responsabile', 'walkie talkie'],
+  },
 ]
 
 // ─── Lookup e derivazioni ─────────────────────────────────────────────────────
@@ -361,7 +372,7 @@ export interface ConfiguratoreItem {
 }
 
 export const MAIN_ITEMS: ConfiguratoreItem[] = CONFIGURATORI
-  .filter(d => d.group !== 'food-beverage')
+  .filter(d => d.group !== 'food-beverage' && d.group !== 'app-op')
   .map(({ id, label, icon }) => ({ id, label, icon }))
 
 export const FNB_ITEMS: ConfiguratoreItem[] = CONFIGURATORI

@@ -48,6 +48,7 @@ import Gateway                from './panes/Gateway/Gateway'
 import IntestazioniFiscali    from './panes/IntestazioniFiscali/IntestazioniFiscali'
 import BusinessCentral        from './panes/BusinessCentral/BusinessCentral'
 import CostiMapping           from './panes/CostiMapping/CostiMapping'
+import AppOp from './panes/AppOp/AppOp'
 // Le voci F&B «Crea outlet» e «Sale e tavoli» sono LE STESSE pagine di
 // Impostazioni → Il mio business: si montano qui in modalità embedded (senza il
 // loro PageHead, che nel pane lo dà CfgPane), non si duplicano.
@@ -118,6 +119,7 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
   'intestazioni-fiscali':     IntestazioniFiscali,
   'business-central':         BusinessCentral,
   'costi-mapping':            CostiMapping,
+  'app-op':                   AppOp,
 }
 
 export default function Configuratore({ navigate, initialPane }: { navigate: (p: string) => void; initialPane?: string }) {
@@ -131,9 +133,16 @@ export default function Configuratore({ navigate, initialPane }: { navigate: (p:
     return profile ? allowedConfiguratoreIds(profile, modules) : null
   }, [currentProfileId, profiles, modules])
 
+  // Le voci legate a un modulo (es. App Op!) compaiono solo se l'azienda lo ha (o ha il Full).
+  const moduliProfilo = useMemo(() => {
+    const profile = currentProfileId ? profiles.find(p => p.id === currentProfileId) : undefined
+    return profile ? profile.moduli : null
+  }, [currentProfileId, profiles])
   const visibleDefs = useMemo(
-    () => (allowed ? CONFIGURATORI.filter(d => allowed.has(d.id)) : CONFIGURATORI),
-    [allowed],
+    () => CONFIGURATORI
+      .filter(d => !allowed || allowed.has(d.id) || (!!d.modulo && !!moduliProfilo?.includes(d.modulo)))
+      .filter(d => !d.modulo || !moduliProfilo || moduliProfilo.includes(d.modulo) || moduliProfilo.includes('full')),
+    [allowed, moduliProfilo],
   )
 
   // ── Stato di completamento + dirty state (store della sezione)

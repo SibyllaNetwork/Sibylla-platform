@@ -1,0 +1,124 @@
+// ─── SIBYLLA OP! ──────────────────────────────────────────────────────────────
+//  Clienti indipendenti dell'app Op!: tabella standard .sib-table (testo su una
+//  riga con ellipsis e tooltip, icone d'azione solid blu 16px senza box) e
+//  scheda del cliente con le tre sezioni.
+@use '../../../styles/tokens' as *
+
+.sibylla-op
+  display: flex
+  flex-direction: column
+  gap: $space-md
+  font-size: 13px
+  container-type: inline-size
+  container-name: sibylla-op
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    flex-wrap: nowrap
+    gap: $space-md
+
+  &__cerca
+    flex: 1 1 320px
+    max-width: 420px
+
+  &__nota
+    margin: 0
+    color: $text-inactive
+
+  &__errore
+    margin: 0
+    color: $error
+
+  &__sezione
+    display: flex
+    flex-direction: column
+    gap: $space-md
+
+  &__salva
+    display: flex
+    justify-content: flex-end
+    gap: $space-sm
+
+  &__tabella
+    table-layout: fixed
+    width: 100%
+
+    td
+      white-space: nowrap
+
+  &__c-nome
+    width: 22%
+  &__c-piva
+    width: 12%
+  &__c-piano
+    width: 10%
+  &__c-stato
+    width: 9%
+  &__c-scade
+    width: 10%
+  &__c-dip
+    width: 10%
+  &__c-reparti
+    width: 20%
+  &__c-azioni
+    width: 7%
+
+  &__testo
+    display: block
+    max-width: 100%
+
+  &__forte
+    font-weight: 600
+    color: $text-active
+
+  &__num
+    font-variant-numeric: tabular-nums
+
+  &__vuoto
+    text-align: center
+    color: $text-inactive
+
+  &__th-azioni,
+  &__azioni
+    text-align: right
+
+  &__btn
+    border: 0
+    background: transparent
+    padding: $space-xs
+    cursor: pointer
+
+    i
+      color: $primary
+      font-size: 16px
+
+@container sibylla-op (max-width: 1000px)
+  .sibylla-op__tabella
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th,
+    td
+      padding-inline: 4px
+
+.sibylla-op-modal
+  display: flex
+  flex-direction: column
+  gap: $space-md
+
+  &__azioni
+    display: flex
+    justify-content: flex-end
+    gap: $space-sm
+
+.sibylla-op-form
+  display: grid
+  grid-template-columns: repeat(3, 1fr)
+  gap: $space-md
+
+  &__note
+    grid-column: 1 / -1
