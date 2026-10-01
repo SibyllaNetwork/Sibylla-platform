@@ -8,6 +8,7 @@ import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
 import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
+import { fotoProfilo } from '../store/fotoProfili'
 import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePerStruttura, profiloDellaStruttura } from '../store/useAccessStore'
 import { useModuliStore } from '../store/useModuliStore'
 
@@ -267,9 +268,13 @@ export default function Sidebar({
           'flex items-center gap-2.5 border-t border-b border-white/[0.08]',
           sideOpen ? 'px-4 py-3' : 'px-0 py-3 justify-center',
         )}>
-          <div className="w-[34px] h-[34px] rounded-full bg-link shrink-0 flex items-center justify-center text-xs font-bold text-white">
-            {iniziali}
-          </div>
+          {fotoProfilo(profilo) ? (
+            <img src={fotoProfilo(profilo)} alt="" className="w-[34px] h-[34px] rounded-full shrink-0 object-cover" />
+          ) : (
+            <div className="w-[34px] h-[34px] rounded-full bg-link shrink-0 flex items-center justify-center text-xs font-bold text-white">
+              {iniziali}
+            </div>
+          )}
           {sideOpen && (
             <div className="min-w-0 flex-1 text-[13px] font-semibold font-poppins leading-tight" style={{ color: adminMode ? '#2A2208' : '#fff' }}>
               {greeting}, {nomeUtente}

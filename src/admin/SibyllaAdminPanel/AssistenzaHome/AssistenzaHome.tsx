@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import { ASSIGNED_MODULI_INIT, CLIENTS_INIT, INTESTATARI_INIT, PACCHETTI_INIT } from '../constants'
+import { fotoProfilo } from '../../../store/fotoProfili'
 import { profiloDellaStruttura, useAccessStore } from '../../../store/useAccessStore'
 import type { Cliente } from '../types'
 import { PLATFORM_ADMIN_PLATFORM_PAGE } from '../../../navigation/platformAdminMenu'
@@ -19,7 +20,7 @@ export default function AssistenzaHome({ navigate }: Props) {
   // Le stesse strutture di "Accesso profili": ognuna con il suo amministratore e i moduli del suo contratto.
   const strutture = useMemo(() => CLIENTS_INIT.map(c => {
     const profilo = profiloDellaStruttura(c.id, profiles)
-    return { struttura: c, amministratore: profilo?.nome ?? '', moduli: profilo?.moduli ?? ASSIGNED_MODULI_INIT[c.id] ?? [] }
+    return { struttura: c, amministratore: profilo?.nome ?? '', foto: fotoProfilo(profilo), moduli: profilo?.moduli ?? ASSIGNED_MODULI_INIT[c.id] ?? [] }
   }), [profiles])
 
   const filtered = useMemo(() => {
@@ -101,9 +102,11 @@ export default function AssistenzaHome({ navigate }: Props) {
           <div className="ahome__list">
             {filtered.length === 0 ? (
               <div className="ahome__empty">Nessun cliente corrisponde alla ricerca.</div>
-            ) : filtered.map(({ struttura: c, amministratore, moduli }) => (
+            ) : filtered.map(({ struttura: c, amministratore, foto, moduli }) => (
               <button key={c.id} type="button" className="ahome__client" onClick={() => enterCliente(c, moduli)}>
-                <span className="ahome__client-avatar">{c.nome.slice(0, 2).toUpperCase()}</span>
+                {foto
+                  ? <img className="ahome__client-avatar ahome__client-avatar--foto" src={foto} alt="" />
+                  : <span className="ahome__client-avatar">{c.nome.slice(0, 2).toUpperCase()}</span>}
                 <span className="ahome__client-meta">
                   <span className="ahome__client-name">{c.nome}</span>
                   <span className="ahome__client-tags">

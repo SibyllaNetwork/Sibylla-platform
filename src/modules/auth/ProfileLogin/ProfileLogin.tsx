@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Ico from '../../../core/icons/Ico'
 import { InputField } from '../../../core/components/form'
 import { useAccessStore, enabledPagesForProfile } from '../../../store/useAccessStore'
+import { fotoProfilo } from '../../../store/fotoProfili'
 import { useModuliStore } from '../../../store/useModuliStore'
 import './ProfileLogin.sass'
 
@@ -80,7 +81,9 @@ export default function ProfileLogin() {
                 <button className="plogin__del" onClick={e => { e.stopPropagation(); removeProfile(p.id) }} aria-label="Elimina utenza">
                   <Ico n="trash" s={12} c="var(--color-text-inactive)" />
                 </button>
-                <span className="plogin__avatar">{initials(p.nome)}</span>
+                {fotoProfilo(p)
+                  ? <img className="plogin__avatar plogin__avatar--foto" src={fotoProfilo(p)} alt="" />
+                  : <span className="plogin__avatar">{initials(p.nome)}</span>}
                 <span className="plogin__card-name">{p.nome}</span>
                 <span className="plogin__card-client">{p.cliente} · {p.ruolo}</span>
                 <span className="plogin__badges">
