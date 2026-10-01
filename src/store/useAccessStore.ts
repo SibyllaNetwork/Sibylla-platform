@@ -44,6 +44,13 @@ interface AccessState {
   assist: AssistSession | null
   /** Overlay della Login profili aperto. */
   accessOpen: boolean
+  /**
+   * Pagine visibili scelte per struttura (id di CLIENTS_INIT) in "Personalizza Moduli": restringono quelle dei suoi
+   * moduli. Assente = tutte le pagine dei moduli.
+   */
+  pagineStruttura: Record<number, string[]>
+  /** Dati della struttura salvati dall'Admin Panel (scheda Struttura). */
+  datiStruttura: Record<number, unknown>
 
   addProfile: (p: Omit<AccessProfile, 'id'>) => string
   updateProfile: (id: string, patch: Partial<AccessProfile>) => void
@@ -56,6 +63,14 @@ interface AccessState {
   login: (email: string, password: string) => AccessProfile | null
   /** Allinea i moduli dei profili di un'azienda (quando variati nell'admin). */
   syncClientModules: (clienteName: string, moduli: string[]) => void
+  /**
+   * Moduli della struttura (Admin Panel → Moduli): sono quelli del suo profilo, valgono per menu e Configuratore (es.
+   * App Op! apre il gruppo App Op!) e aggiornano l'assistenza in corso. Le pagine tornano a quelle dei moduli.
+   */
+  setModuliStruttura: (id: number, moduli: string[]) => void
+  /** Pagine visibili della struttura; null = tutte quelle dei suoi moduli. */
+  setPagineStruttura: (id: number, pagine: string[] | null) => void
+  setDatiStruttura: (id: number, dati: unknown) => void
   logout: () => void
   openAccess: () => void
   closeAccess: () => void
@@ -87,6 +102,8 @@ export const useAccessStore = create<AccessState>()(
       currentProfileId: null,
       assist: null,
       accessOpen: false,
+      pagineStruttura: {},
+      datiStruttura: {},
 
       addProfile: (p) => {
         const id = `p-${Date.now()}-${Math.floor(Math.random() * 1000)}`
@@ -112,6 +129,21 @@ export const useAccessStore = create<AccessState>()(
       },
       syncClientModules: (clienteName, moduli) =>
         set(s => ({ profiles: s.profiles.map(p => p.cliente === clienteName ? { ...p, moduli: [...moduli] } : p) })),
+      setModuliStruttura: (id, moduli) =>
+        set(s => {
+          const { [id]: _tolte, ...pagine } = s.pagineStruttura
+          return {
+            profiles: s.profiles.map(p => strutturaDelProfilo(p) === id ? { ...p, moduli: [...moduli] } : p),
+            pagineStruttura: pagine,
+            assist: s.assist && s.assist.struttureIds.length === 1 && s.assist.struttureIds[0] === id ? { ...s.assist, moduli: [...moduli] } : s.assist,
+          }
+        }),
+      setPagineStruttura: (id, pagine) =>
+        set(s => {
+          const { [id]: _prima, ...altre } = s.pagineStruttura
+          return { pagineStruttura: pagine ? { ...altre, [id]: [...pagine] } : altre }
+        }),
+      setDatiStruttura: (id, dati) => set(s => ({ datiStruttura: { ...s.datiStruttura, [id]: dati } })),
       logout: () => set({ currentProfileId: null }),
       openAccess: () => set({ accessOpen: true }),
       closeAccess: () => set({ accessOpen: false }),
@@ -123,9 +155,12 @@ export const useAccessStore = create<AccessState>()(
       // v4: Giulia Neri passa al modulo "Menu Tour Operator".
       // v5: catalogo moduli a 4 (Struttura ricettiva / Tour Operator / Ristorazione / Full).
       version: 5,
-      migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null }),
+      migrate: () => ({ profiles: SEED_PROFILES, currentProfileId: null, assist: null, pagineStruttura: {}, datiStruttura: {} }) as Partial<AccessState> as AccessState,
       // Non persistiamo `modules` (riallineati dal seed) né `accessOpen` (transitorio).
-      partialize: (s) => ({ profiles: s.profiles, currentProfileId: s.currentProfileId, assist: s.assist }),
+      partialize: (s) => ({
+        profiles: s.profiles, currentProfileId: s.currentProfileId, assist: s.assist,
+        pagineStruttura: s.pagineStruttura, datiStruttura: s.datiStruttura,
+      }),
     },
   ),
 )
@@ -135,7 +170,32 @@ export const useAccessStore = create<AccessState>()(
  * sottoscritti. La Home è sempre inclusa (landing di piattaforma).
  */
 export function enabledPagesForProfile(profile: AccessProfile, modules: Modulo[]): Set<string> {
-  return enabledPagesForModuli(profile.moduli, modules)
+  return paginePerStruttura(strutturaDelProfilo(profile), profile.moduli, modules)
+}
+
+/** Struttura (id di CLIENTS_INIT) del profilo: dall'id "p-<id>" delle utenze seed, o dal nome della struttura. */
+export function strutturaDelProfilo(p: AccessProfile): number | null {
+  const m = /^p-(\d+)$/.exec(p.id)
+  if (m) return Number(m[1])
+  return CLIENTS_INIT.find(c => c.nome === p.cliente)?.id ?? null
+}
+
+/**
+ * Pagine visibili di una struttura: quelle dei suoi moduli, ristrette a quelle scelte in "Personalizza Moduli" se ce
+ * ne sono (Home sempre inclusa).
+ */
+export function paginePerStruttura(id: number | null, moduli: string[], modules: Modulo[]): Set<string> {
+  const delModuli = enabledPagesForModuli(moduli, modules)
+  const scelte = id === null ? undefined : useAccessStore.getState().pagineStruttura[id]
+  if (!scelte) return delModuli
+  const set = new Set<string>(['home'])
+  scelte.forEach(pg => { if (delModuli.has(pg)) set.add(pg) })
+  return set
+}
+
+/** Profilo della struttura (l'utenza amministratore seed "p-<id>"), se c'è. */
+export function profiloDellaStruttura(id: number, profiles: AccessProfile[]): AccessProfile | undefined {
+  return profiles.find(p => strutturaDelProfilo(p) === id)
 }
 
 /** Insieme delle pagine abilitate dall'unione dei moduli indicati (Home sempre inclusa). */

@@ -1,9 +1,10 @@
 import React from 'react'
-import MENU from '../../../../navigation/menu'
 import MenuTree from '../../MenuTree/MenuTree'
 import './PagineTab.sass'
 
 interface Props {
+  /** Albero del menu con le pagine dei moduli della struttura. */
+  items: any[]
   enabled: Set<string>
   enabledCount: number
   totalCount: number
@@ -15,7 +16,7 @@ interface Props {
 }
 
 export default function PagineTab({
-  enabled, enabledCount, totalCount,
+  items, enabled, enabledCount, totalCount,
   onTogglePage, onToggleGroup, onEnableAll, onDisableAll, onSave,
 }: Props) {
   return (
@@ -33,7 +34,7 @@ export default function PagineTab({
 
       <div className="pag-tab__tree-wrap">
         <MenuTree
-          items={MENU as any[]}
+          items={items}
           selected={enabled}
           onTogglePage={onTogglePage}
           onToggleGroup={onToggleGroup}

@@ -8,7 +8,7 @@ import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
 import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
-import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli } from '../store/useAccessStore'
+import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePerStruttura, profiloDellaStruttura } from '../store/useAccessStore'
 import { useModuliStore } from '../store/useModuliStore'
 
 interface Props {
@@ -51,6 +51,8 @@ export default function Sidebar({
   // Sessione di assistenza (admin che impersona un cliente): ha precedenza e
   // filtra il menu sui moduli del contratto del cliente.
   const assist           = useAccessStore(s => s.assist)
+  // Pagine scelte per struttura in "Personalizza Moduli": il menu si ricalcola quando cambiano.
+  const pagineStruttura  = useAccessStore(s => s.pagineStruttura)
   // Console amministrativa (landing): menu completo, nessun dettaglio utente.
   const onConsole        = currentPage === 'sibylla-admin'
   // Amministrazione piattaforma: la sidenav mostra il menu dedicato (pagine pa-*).
@@ -61,12 +63,27 @@ export default function Sidebar({
   // duplicati). Nessun contratto / console → menu completo.
   const menu = useMemo(() => {
     if (onConsole) return MENU_FULL
-    if (assist) return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForModuli(assist.moduli, modules)), assist.moduli)
+    if (assist) {
+      const pagine = assist.struttureIds.length === 1
+        ? paginePerStruttura(assist.struttureIds[0], assist.moduli, modules)
+        : enabledPagesForModuli(assist.moduli, modules)
+      return applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli)
+    }
     if (!currentProfileId) return MENU_FULL
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU_FULL
     return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli)
-  }, [onConsole, assist, currentProfileId, profiles, modules])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onConsole, assist, currentProfileId, profiles, modules, pagineStruttura])
+
+  // Profilo caricato da "Accesso profili" (o amministratore della struttura assistita): struttura in alto a sinistra e
+  // utente nella riga del saluto.
+  const profilo = useMemo(() => {
+    if (assist?.struttureIds.length === 1) return profiloDellaStruttura(assist.struttureIds[0], profiles)
+    return currentProfileId ? profiles.find(p => p.id === currentProfileId) : undefined
+  }, [assist, currentProfileId, profiles])
+  const nomeUtente = profilo?.nome ?? 'Luca H.'
+  const iniziali = nomeUtente.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase()
 
   // Durante l'assistenza lo switcher elenca le strutture del cliente (le stesse
   // dell'Admin Panel); altrimenti le strutture dell'organizzazione.
@@ -75,10 +92,11 @@ export default function Sidebar({
     [assist],
   )
   const switcherList = assist ? assistStrutture : strutture
-  const showSwitcher = assist ? assistStrutture.length > 0 : (isMultistruttura && strutture.length > 0)
+  // Con un profilo caricato la struttura è la sua: niente switcher delle strutture dell'organizzazione.
+  const showSwitcher = assist ? assistStrutture.length > 0 : (!profilo && isMultistruttura && strutture.length > 0)
   const activeStrutt = assist
     ? (assistStrutture.includes(activeStruttura) ? activeStruttura : assistStrutture[0])
-    : activeStruttura
+    : profilo?.cliente ?? activeStruttura
 
   const [structOpen, setStructOpen] = useState(false)
   const structRef = useRef<HTMLDivElement>(null)
@@ -250,11 +268,11 @@ export default function Sidebar({
           sideOpen ? 'px-4 py-3' : 'px-0 py-3 justify-center',
         )}>
           <div className="w-[34px] h-[34px] rounded-full bg-link shrink-0 flex items-center justify-center text-xs font-bold text-white">
-            LH
+            {iniziali}
           </div>
           {sideOpen && (
             <div className="min-w-0 flex-1 text-[13px] font-semibold font-poppins leading-tight" style={{ color: adminMode ? '#2A2208' : '#fff' }}>
-              {greeting}, Luca H.
+              {greeting}, {nomeUtente}
             </div>
           )}
         </div>

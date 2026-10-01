@@ -9,7 +9,7 @@ import { filterMenu, applyModuleLabels } from '../navigation/filterMenu'
 import { findByPage, searchMenu, SearchResult } from '../navigation/menuHelpers'
 import { useChatStore } from '../store/useChatStore'
 import { useCartStore } from '../store/useCartStore'
-import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli } from '../store/useAccessStore'
+import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePerStruttura } from '../store/useAccessStore'
 import { useModuliStore } from '../store/useModuliStore'
 import { useOrgStore } from '../store/useOrgStore'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
@@ -45,13 +45,21 @@ export default function Topbar({
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
   const modules          = useModuliStore(s => s.moduli)
+  const pagineStruttura  = useAccessStore(s => s.pagineStruttura)
   const searchMenuItems = useMemo(() => {
-    if (assist) return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForModuli(assist.moduli, modules)), assist.moduli)
+    if (assist) {
+      const pagine = assist.struttureIds.length === 1
+        ? paginePerStruttura(assist.struttureIds[0], assist.moduli, modules)
+        : enabledPagesForModuli(assist.moduli, modules)
+      return applyModuleLabels(filterMenu(MENU_FULL as any[], pagine), assist.moduli)
+    }
     if (!currentProfileId) return MENU_FULL
     const profile = profiles.find(p => p.id === currentProfileId)
     if (!profile) return MENU_FULL
     return applyModuleLabels(filterMenu(MENU_FULL as any[], enabledPagesForProfile(profile, modules)), profile.moduli)
-  }, [assist, currentProfileId, profiles, modules])
+    // pagineStruttura: paginePerStruttura la legge dallo store, il menu va ricalcolato quando cambia.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assist, currentProfileId, profiles, modules, pagineStruttura])
   // Colori di icone/testo: scuri (#2A2208) sull'oro admin, chiari sul blu standard.
   const C = adminMode
     ? { bright: '#2A2208', normal: '#2A2208', muted: 'rgba(42,34,8,0.6)' }
@@ -70,7 +78,8 @@ export default function Topbar({
   const strutture       = useOrgStore(s => s.strutture)
   const activeStruttura = useOrgStore(s => s.activeStruttura)
   const setActiveStrutt = useOrgStore(s => s.setActiveStruttura)
-  const showStruttSel   = !sideOpen && !adminMode && tipologia === 'Multistruttura' && strutture.length > 0
+  // Con un profilo caricato la struttura è la sua (nella sidenav): niente selettore delle strutture dell'organizzazione.
+  const showStruttSel   = !sideOpen && !adminMode && !currentProfileId && tipologia === 'Multistruttura' && strutture.length > 0
   const [struttOpen, setStruttOpen] = useState(false)
   const struttRef = useRef<HTMLDivElement>(null)
   useEffect(() => {

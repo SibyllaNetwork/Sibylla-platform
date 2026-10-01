@@ -15,7 +15,7 @@ import {
   displayStatusOf,
   type CfgCompletion,
 } from '../../../store/useConfiguratoreStore'
-import { useAccessStore, allowedConfiguratoreIds } from '../../../store/useAccessStore'
+import { useAccessStore, allowedConfiguratoreIds, type AccessProfile } from '../../../store/useAccessStore'
 import { useModuliStore } from '../../../store/useModuliStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import ConfiguratoreHub from './ConfiguratoreHub'
@@ -123,21 +123,22 @@ const PANES: Partial<Record<ConfiguratoreId, React.ComponentType<CfgPaneComponen
 }
 
 export default function Configuratore({ navigate, initialPane }: { navigate: (p: string) => void; initialPane?: string }) {
-  // ── Voci visibili in base al profilo loggato (es. modulo Ristoranti = solo F&B)
+  // ── Voci visibili in base ai moduli del cliente: in assistenza quelli della struttura assistita, altrimenti quelli
+  //    del profilo caricato (es. modulo Ristoranti = solo F&B, App Op! = gruppo App Op!). Nessuno dei due = tutto.
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
+  const assist           = useAccessStore(s => s.assist)
   const modules          = useModuliStore(s => s.moduli)
-  const allowed = useMemo(() => {
-    if (!currentProfileId) return null
-    const profile = profiles.find(p => p.id === currentProfileId)
-    return profile ? allowedConfiguratoreIds(profile, modules) : null
-  }, [currentProfileId, profiles, modules])
-
-  // Le voci legate a un modulo (es. App Op!) compaiono solo se l'azienda lo ha (o ha il Full).
   const moduliProfilo = useMemo(() => {
+    if (assist) return assist.moduli
     const profile = currentProfileId ? profiles.find(p => p.id === currentProfileId) : undefined
     return profile ? profile.moduli : null
-  }, [currentProfileId, profiles])
+  }, [assist, currentProfileId, profiles])
+  const allowed = useMemo(
+    () => (moduliProfilo ? allowedConfiguratoreIds({ moduli: moduliProfilo } as AccessProfile, modules) : null),
+    [moduliProfilo, modules],
+  )
+
   const visibleDefs = useMemo(
     () => CONFIGURATORI
       .filter(d => !allowed || allowed.has(d.id) || (!!d.modulo && !!moduliProfilo?.includes(d.modulo)))

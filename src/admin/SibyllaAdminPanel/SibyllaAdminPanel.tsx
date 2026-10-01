@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import { ALL_PAGES, CLIENTS_INIT, USERS_INIT, RUOLO_COLORS, tipologiaLabel, ASSIGNED_MODULI_INIT, pagesForModuli, EMPTY_NEW_CLIENT } from './constants'
 import { getAllPages } from './helpers'
 import { ALL_CONFIGURATORE_IDS } from '../../modules/impostazioni/Configuratore/registry'
-import { useAccessStore } from '../../store/useAccessStore'
+import { profiloDellaStruttura, useAccessStore } from '../../store/useAccessStore'
+import MENU_FULL from '../../navigation/menuFull'
+import { filterMenu } from '../../navigation/filterMenu'
 import { useAdminConfigStore } from '../../store/useAdminConfigStore'
 import { useModuliStore } from '../../store/useModuliStore'
 import type {
@@ -78,12 +80,17 @@ export default function SibyllaAdminPanel(props: Props) {
   // Strutture mostrate nella colonna clienti (in embedded = quelle dell'intestatario).
   const visibleClients = structureIds ? clients.filter(c => structureIds.includes(c.id)) : clients
 
+  // Moduli, pagine e dati della struttura stanno nell'archivio di useAccessStore (salvato nel browser): valgono per il
+  // menu reale, per "Accesso profili" e per il Configuratore della struttura.
+  const accesso = useAccessStore.getState()
+  const moduliSalvati = (id: number) => profiloDellaStruttura(id, accesso.profiles)?.moduli ?? ASSIGNED_MODULI_INIT[id]
   const [enabledPages, setEnabledPages] = useState<Record<number, Set<string>>>(() => {
     const init: Record<number, Set<string>> = {}
-    // Pagine abilitate derivate dai moduli assegnati a ciascuna azienda.
+    // Pagine scelte per la struttura, o tutte quelle dei suoi moduli.
     CLIENTS_INIT.forEach(c => {
-      const mids = ASSIGNED_MODULI_INIT[c.id]
-      init[c.id] = mids ? new Set(pagesForModuli(mids)) : new Set(ALL_PAGES)
+      const mids = moduliSalvati(c.id)
+      const scelte = accesso.pagineStruttura[c.id]
+      init[c.id] = scelte ? new Set(scelte) : mids ? new Set(pagesForModuli(mids)) : new Set(ALL_PAGES)
     })
     return init
   })
@@ -99,7 +106,9 @@ export default function SibyllaAdminPanel(props: Props) {
   const [newClientForm, setNewClientForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
   const [newClientId, setNewClientId] = useState<number | null>(null)
   // Form completo della struttura per cliente (dettagli prima tab + modifica inline).
-  const [structForms, setStructForms] = useState<Record<number, NewClientForm>>({})
+  const [structForms, setStructForms] = useState<Record<number, NewClientForm>>(
+    () => accesso.datiStruttura as Record<number, NewClientForm>,
+  )
   const [editingStruct, setEditingStruct] = useState(false)
   const [editStructForm, setEditStructForm] = useState<NewClientForm>({ ...EMPTY_NEW_CLIENT })
 
@@ -116,7 +125,7 @@ export default function SibyllaAdminPanel(props: Props) {
   const [assignedModuli, setAssignedModuli] = useState<Record<number, Set<string>>>(() => {
     const init: Record<number, Set<string>> = {}
     // Moduli pre-assegnati a ciascuna azienda (modificabili dalla tab Moduli).
-    CLIENTS_INIT.forEach(c => { init[c.id] = new Set(ASSIGNED_MODULI_INIT[c.id] || []) })
+    CLIENTS_INIT.forEach(c => { init[c.id] = new Set(moduliSalvati(c.id) || []) })
     return init
   })
   const [showModuloModal, setShowModuloModal] = useState(false)
@@ -185,8 +194,12 @@ export default function SibyllaAdminPanel(props: Props) {
   const client = clients.find(c => c.id === selId)!
   const form = forms[selId] || client
   const enabled = enabledPages[selId] || new Set<string>(ALL_PAGES)
-  const enabledCount = enabled.size
-  const totalCount = ALL_PAGES.length
+  // "Personalizza Moduli": l'albero del menu reale con le sole pagine dei moduli della struttura.
+  const pagineModuli = new Set<string>()
+  moduliList.forEach(m => { if (assignedModuli[selId]?.has(m.id)) m.pages.forEach(pg => pagineModuli.add(pg)) })
+  const menuStruttura = filterMenu(MENU_FULL as any[], pagineModuli)
+  const enabledCount = Array.from(enabled).filter(pg => pagineModuli.has(pg)).length
+  const totalCount = pagineModuli.size
   const clientRuoli = ruoliMap[selId] || []
   const clientAssigned = assignedModuli[selId] || new Set<string>()
   const clientUsers = users[selId] || []
@@ -231,6 +244,7 @@ export default function SibyllaAdminPanel(props: Props) {
       camere: totale || parseInt(f.camere) || 0,
     }
     setStructForms(p => ({ ...p, [selId]: f }))
+    useAccessStore.getState().setDatiStruttura(selId, f)
     setForms(p => ({ ...p, [selId]: { ...p[selId], ...patch } }))
     setClients(p => p.map(c => c.id === selId ? { ...c, ...patch } : c))
     setEditingStruct(false)
@@ -238,24 +252,25 @@ export default function SibyllaAdminPanel(props: Props) {
     setTimeout(() => setSaved(false), 2500)
   }
 
-  // ─── Pagine: toggle singola e di gruppo ────────────────────────────────────
-  const togglePage = (pageId: string) =>
-    setEnabledPages(p => {
-      const s = new Set(p[selId])
-      s.has(pageId) ? s.delete(pageId) : s.add(pageId)
-      return { ...p, [selId]: s }
-    })
+  // ─── Pagine: toggle singola e di gruppo (salvate subito per la struttura) ───
+  const impostaPagine = (s: Set<string>) => {
+    setEnabledPages(p => ({ ...p, [selId]: s }))
+    useAccessStore.getState().setPagineStruttura(selId, Array.from(s))
+  }
+  const togglePage = (pageId: string) => {
+    const s = new Set(enabled)
+    s.has(pageId) ? s.delete(pageId) : s.add(pageId)
+    impostaPagine(s)
+  }
   const toggleGroup = (children: any[]) => {
     const pages = getAllPages(children)
-    setEnabledPages(p => {
-      const s = new Set(p[selId])
-      const allOn = pages.every(pg => s.has(pg))
-      pages.forEach(pg => allOn ? s.delete(pg) : s.add(pg))
-      return { ...p, [selId]: s }
-    })
+    const s = new Set(enabled)
+    const allOn = pages.every(pg => s.has(pg))
+    pages.forEach(pg => allOn ? s.delete(pg) : s.add(pg))
+    impostaPagine(s)
   }
-  const enableAll  = () => setEnabledPages(p => ({ ...p, [selId]: new Set(ALL_PAGES) }))
-  const disableAll = () => setEnabledPages(p => ({ ...p, [selId]: new Set() }))
+  const enableAll  = () => impostaPagine(new Set(pagineModuli))
+  const disableAll = () => impostaPagine(new Set())
 
   // ─── Moduli ────────────────────────────────────────────────────────────────
   const toggleModuloAssign = (moduloId: string) => {
@@ -265,9 +280,8 @@ export default function SibyllaAdminPanel(props: Props) {
       const allEnabled = new Set<string>()
       moduliList.forEach(m => { if (s.has(m.id)) m.pages.forEach(pg => allEnabled.add(pg)) })
       setEnabledPages(pp => ({ ...pp, [selId]: allEnabled }))
-      // Allinea il profilo di login dell'azienda ai moduli appena variati.
-      const clienteNome = clients.find(c => c.id === selId)?.nome
-      if (clienteNome) useAccessStore.getState().syncClientModules(clienteNome, Array.from(s))
+      // Moduli della struttura: profilo di accesso, menu, Configuratore (es. App Op!) e assistenza in corso.
+      useAccessStore.getState().setModuliStruttura(selId, Array.from(s))
       return { ...prev, [selId]: s }
     })
   }
@@ -670,6 +684,7 @@ export default function SibyllaAdminPanel(props: Props) {
                 )}
                 {tab === 'moduli' && (
                   <PagineTab
+                    items={menuStruttura}
                     enabled={enabled}
                     enabledCount={enabledCount}
                     totalCount={totalCount}
