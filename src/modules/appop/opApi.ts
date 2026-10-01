@@ -4,12 +4,12 @@
 //  reparti e moduli, dipendenti e inviti. Contratto:
 //  sibylla-op/docs/integrazione-sibylla/09-clienti-indipendenti.md.
 //
-//  Autenticazione: il token Sibylla dell'amministratore di sistema (IsSysAdmin),
-//  verificato da Op.Api con la chiave dei JWT di SibyllaApi. Solo nella build di
-//  sviluppo vale anche la chiave REACT_APP_OP_ADMIN_KEY (header
+//  Autenticazione: sibylla-platform non ha un login proprio, quindi per ora
+//  Op.Api apre le API di amministrazione a chiunque (Amministrazione:AccessoLibero,
+//  solo fuori dalla produzione) e la pagina non manda credenziali. Solo nella build
+//  di sviluppo vale anche la chiave REACT_APP_OP_ADMIN_KEY (header
 //  X-Chiave-Amministrazione), mai inclusa nelle build di produzione.
 
-import { getToken } from '../../services/auth.service'
 import type { LivelloOp, RepartiModuli, RepartoOp } from './opCatalogo'
 
 const OP_API_URL = process.env.REACT_APP_OP_API_URL || 'http://localhost:5235'
@@ -25,10 +25,6 @@ async function opFetch<T>(path: string, method = 'GET', body?: unknown): Promise
   const headers = new Headers({ Accept: 'application/json' })
   if (body !== undefined) headers.set('Content-Type', 'application/json')
   if (CHIAVE_SVILUPPO) headers.set('X-Chiave-Amministrazione', CHIAVE_SVILUPPO)
-  else {
-    const token = getToken()
-    if (token) headers.set('Authorization', `Bearer ${token}`)
-  }
 
   let res: Response
   try {
@@ -42,7 +38,7 @@ async function opFetch<T>(path: string, method = 'GET', body?: unknown): Promise
   if (!res.ok) {
     const detail = json?.detail || json?.title
     const msg = res.status === 401
-      ? 'Accesso negato: serve un amministratore di sistema di Sibylla.'
+      ? 'Op.Api non accetta ancora la pagina: va attivato l’accesso alle API di amministrazione sul server.'
       : detail || `Errore ${res.status}`
     throw new OpApiError(res.status, msg)
   }
