@@ -34,6 +34,7 @@ export default function OpDipendenteModal({ open, dipendente, reparti, onClose, 
       : VUOTO)
   }, [open, dipendente])
 
+  const amministratore = f.livello === 'amministratore'
   const set = <K extends keyof DipendenteRichiesta>(k: K, v: DipendenteRichiesta[K]) => setF(p => ({ ...p, [k]: v }))
   const toggleReparto = (r: RepartoOp, on: boolean) => setF(p => ({
     ...p,
@@ -48,11 +49,13 @@ export default function OpDipendenteModal({ open, dipendente, reparti, onClose, 
       setErrore('Indica nome, cognome e un indirizzo email valido.')
       return
     }
-    if (f.reparti.length === 0) { setErrore('Scegli almeno un reparto.'); return }
+    if (!amministratore && f.reparti.length === 0) { setErrore('Scegli almeno un reparto.'); return }
     if (f.livello === 'responsabile' && f.responsabileReparti.length === 0) { setErrore('Indica di quali reparti è responsabile.'); return }
     setSalvo(true)
     try {
-      await onSalva({ ...f, nome: f.nome.trim(), cognome: f.cognome.trim(), email: f.email.trim().toLowerCase() })
+      // L'amministratore ha tutti i reparti attivi dell'azienda, con tutti i loro moduli.
+      const ruoli = amministratore ? { reparti, responsabileReparti: [] } : {}
+      await onSalva({ ...f, ...ruoli, nome: f.nome.trim(), cognome: f.cognome.trim(), email: f.email.trim().toLowerCase() })
     } catch (e) {
       setErrore(e instanceof Error ? e.message : 'Salvataggio non riuscito.')
     } finally {
@@ -82,7 +85,9 @@ export default function OpDipendenteModal({ open, dipendente, reparti, onClose, 
         <p className="op-dip__label">Reparti</p>
         {reparti.length === 0
           ? <p className="op-dip__vuoto">Attiva prima almeno un reparto.</p>
-          : (
+          : amministratore
+            ? <p className="op-dip__vuoto">L’amministratore entra in tutti i reparti attivi dell’azienda, con tutti i moduli sottoscritti, anche quelli attivati in seguito.</p>
+            : (
             <div className="op-dip__reparti">
               {reparti.map(r => (
                 <div key={r} className="op-dip__reparto">
