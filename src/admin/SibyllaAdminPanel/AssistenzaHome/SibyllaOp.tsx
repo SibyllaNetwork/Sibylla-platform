@@ -292,6 +292,16 @@ function SchedaCliente({ id, onBack }: { id: number; onBack: () => void }) {
     await esegui(() => opAdminApi.stato(id, sospendi ? 'sospeso' : 'attivo'), sospendi ? 'Abbonamento sospeso.' : 'Abbonamento riattivato.')
   }
 
+  const caricaEsempio = async () => {
+    if (!cliente) return
+    if (!(await confirm({
+      title: 'Caricare i dati di esempio?',
+      message: `In ${cliente.ragioneSociale} arrivano dipendenti ipotetici e dati fittizi in tutte le sezioni dell’app (turni, timbrature, pulizie, magazzino, front office, F&B, chat…), per simulare l’uso. Le utenze reali ricevono turni, richieste e comunicazioni d’esempio. Si fa una volta sola.`,
+      confirmLabel: 'Carica dati di esempio',
+    }))) return
+    await esegui(() => opAdminApi.esempio(id), 'Dati di esempio caricati.')
+  }
+
   const repartiAttivi = Object.keys(cliente?.reparti ?? {}) as RepartoOp[]
 
   return (
@@ -302,9 +312,12 @@ function SchedaCliente({ id, onBack }: { id: number; onBack: () => void }) {
         backLabel="Clienti"
         onBack={onBack}
         actions={cliente && (
-          <Button variant={cliente.stato === 'attivo' ? 'secondary' : 'primary'} onClick={cambiaStato} loading={salvo}>
-            {cliente.stato === 'attivo' ? 'Sospendi abbonamento' : 'Riattiva abbonamento'}
-          </Button>
+          <>
+            <Button variant="secondary" icon="database" onClick={caricaEsempio} loading={salvo}>Carica dati di esempio</Button>
+            <Button variant={cliente.stato === 'attivo' ? 'secondary' : 'primary'} onClick={cambiaStato} loading={salvo}>
+              {cliente.stato === 'attivo' ? 'Sospendi abbonamento' : 'Riattiva abbonamento'}
+            </Button>
+          </>
         )}
       />
       {problema && <p className="sibylla-op__errore">{problema}</p>}
