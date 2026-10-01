@@ -6,6 +6,7 @@ import mariaRossi from '../assets/profili/maria-rossi.jpg'
 import carloVerdi from '../assets/profili/carlo-verdi.jpg'
 import annaConti from '../assets/profili/anna-conti.jpg'
 import giuliaNeri from '../assets/profili/giulia-neri.jpg'
+import marcoBruno from '../assets/profili/marco-bruno.jpg'
 import { strutturaDelProfilo, type AccessProfile } from './useAccessStore'
 
 const PER_STRUTTURA: Record<number, string> = {
@@ -13,6 +14,7 @@ const PER_STRUTTURA: Record<number, string> = {
   2: carloVerdi,
   3: annaConti,
   4: giuliaNeri,
+  5: marcoBruno,
 }
 
 export const fotoProfilo = (p: AccessProfile | null | undefined): string | undefined => {
