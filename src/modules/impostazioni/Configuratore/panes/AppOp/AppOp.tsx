@@ -9,7 +9,7 @@ import OpModuliEditor from '../../../../appop/OpModuliEditor'
 import OpDipendenteModal from '../../../../appop/OpDipendenteModal'
 import OpDipendentiTable from '../../../../appop/OpDipendentiTable'
 import OpInvitoModal from '../../../../appop/OpInvitoModal'
-import { appOpSibylla } from '../../../../appop/appOpSibylla'
+import { appOpSibylla, type FonteAppOp } from '../../../../appop/appOpSibylla'
 import type { RepartiModuli, RepartoOp } from '../../../../appop/opCatalogo'
 import type { DipendenteOp, DipendenteRichiesta, InvitoOp } from '../../../../appop/opApi'
 import './AppOp.sass'
@@ -29,7 +29,8 @@ export default function AppOp() {
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
   const [sezione, setSezione] = useState<Sezione>('utenze')
-  const [prova, setProva] = useState(false)
+  const [fonte, setFonte] = useState<FonteAppOp>('portal')
+  const [azienda, setAzienda] = useState<string | undefined>()
   const [salvati, setSalvati] = useState<RepartiModuli>({})
   const [reparti, setReparti] = useState<RepartiModuli>({})
   const [dipendenti, setDipendenti] = useState<DipendenteOp[]>([])
@@ -40,7 +41,8 @@ export default function AppOp() {
   const carica = useCallback(async () => {
     try {
       const c = await appOpSibylla.leggi()
-      setProva(c.prova)
+      setFonte(c.fonte)
+      setAzienda(c.azienda)
       setSalvati(c.reparti)
       setReparti(c.reparti)
       setDipendenti(c.dipendenti)
@@ -58,13 +60,13 @@ export default function AppOp() {
   useEffect(() => () => { resetDirty() }, [resetDirty])
 
   const salvaModuli = async () => {
-    await appOpSibylla.salvaModuli(reparti, prova)
+    await appOpSibylla.salvaModuli(reparti, fonte)
     setSalvati(reparti)
     resetDirty()
   }
 
   const salvaUtente = async (d: DipendenteRichiesta) => {
-    const { invito: nuovo } = await appOpSibylla.salvaUtente(modifica?.id ?? null, d, prova)
+    const { invito: nuovo } = await appOpSibylla.salvaUtente(modifica?.id ?? null, d, fonte)
     toast.success(modifica ? 'Utenza aggiornata.' : `Utenza di ${d.nome} ${d.cognome} creata.`, 'App Op!')
     if (nuovo) setInvito({ invito: nuovo, nome: `${d.nome} ${d.cognome}` })
     setModifica(undefined)
@@ -73,7 +75,7 @@ export default function AppOp() {
 
   const invita = async (d: DipendenteOp) => {
     try {
-      setInvito({ invito: await appOpSibylla.invita(d.id, prova), nome: `${d.nome} ${d.cognome}` })
+      setInvito({ invito: await appOpSibylla.invita(d.id, fonte), nome: `${d.nome} ${d.cognome}` })
       await carica()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Invito non inviato.', 'App Op!')
@@ -84,7 +86,13 @@ export default function AppOp() {
 
   return (
     <div className="app-op">
-      {prova && (
+      {fonte === 'op' && (
+        <AlertBanner type="info">
+          Ambiente di prova di Op: utenze e moduli sono quelli dell’azienda {azienda ?? 'del simulatore'} nel simulatore di
+          Sibylla. Gli inviti arrivano davvero via email e i dipendenti entrano nell’app.
+        </AlertBanner>
+      )}
+      {fonte === 'prova' && (
         <AlertBanner type="warning">
           Dati di prova salvati in questo browser: il Portal non espone ancora le API dell’App Op! (inviti e moduli). Le utenze
           create qui non ricevono email e non entrano nell’app.

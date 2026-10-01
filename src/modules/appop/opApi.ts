@@ -138,5 +138,24 @@ export const opAdminApi = {
   elimina: (id: number, idDip: number) => opFetch<void>(`${B}/${id}/dipendenti/${idDip}`, 'DELETE'),
 }
 
+// Configuratore → App Op! di un'azienda collegata, finché il Portal non espone le
+// azioni OpApp (scheda 13): Op.Api con il simulatore di Sibylla gestisce moduli e
+// utenze dell'azienda del simulatore. 404 quando Op.Api usa Sibylla vera.
+const C = '/admin/collegata'
+
+export interface ConfigCollegata {
+  azienda: string
+  reparti: RepartiModuli
+  dipendenti: DipendenteOp[]
+}
+
+export const opCollegataApi = {
+  config: () => opFetch<ConfigCollegata>(C),
+  reparti: (reparti: RepartiModuli) => opFetch<void>(`${C}/reparti`, 'PUT', { reparti }),
+  nuovoDipendente: (d: DipendenteRichiesta) => opFetch<{ dipendente: DipendenteOp; invito: InvitoOp | null }>(`${C}/dipendenti`, 'POST', d),
+  aggiornaDipendente: (idDip: number, d: DipendenteRichiesta) => opFetch<DipendenteOp>(`${C}/dipendenti/${idDip}`, 'PUT', d),
+  invito: (idDip: number) => opFetch<InvitoOp>(`${C}/dipendenti/${idDip}/invito`, 'POST'),
+}
+
 export const formatoData = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
