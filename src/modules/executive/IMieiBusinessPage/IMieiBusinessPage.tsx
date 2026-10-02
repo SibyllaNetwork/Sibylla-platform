@@ -7,12 +7,14 @@ import PageHead from '../../../core/components/PageHead';
 import Tooltip from '../../../core/components/Tooltip';
 import BiStrutturaModal from '../BiStrutturaModal/BiStrutturaModal';
 import './IMieiBusinessPage.sass'
+import { useStruttureCliente } from '../../../hooks/useStrutturaCorrente';
 
 // Previsione di crescita per struttura (moltiplicatore sui ricavi attesi per la
 // data futura selezionata). >1 = trend in crescita, <1 = in calo.
 const FORECAST_FACTOR = [1.08, 0.96, 1.12, 1.03, 1.15, 0.98, 1.06, 1.10, 1.02, 1.07];
 
 export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}) {
+  const schede = useStruttureCliente();
   const today   = new Date();
   const [curDate, setCurDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selDay,  setSelDay]  = useState(today.getDate());
@@ -37,18 +39,15 @@ export default function IMieiBusinessPage({navigate}:{navigate:(p:string)=>void}
   const isToday = (d:number,t:string) => t==='current'&&d===today.getDate()&&mo===today.getMonth()&&yr===today.getFullYear();
   const isSel   = (d:number,t:string) => t==='current'&&d===selDay&&mo===curDate.getMonth()&&yr===curDate.getFullYear();
 
-  const businesses = [
-    {name:"Hotel Noto",          type:"Resort 5★",       ricavi:142800,costi:68432, profitto:74368, perc:52.1},
-    {name:"Grand Hotel Roma",    type:"Hotel 4★",         ricavi:98500, costi:54180, profitto:44320, perc:45.0},
-    {name:"Villa Bellini",       type:"Boutique Hotel",   ricavi:67300, costi:31792, profitto:35508, perc:52.8},
-    {name:"Terrazza sul Mare",   type:"Resort 4★",        ricavi:115200,costi:71340, profitto:43860, perc:38.1},
-    {name:"Palazzo Storico",     type:"Luxury Hotel",     ricavi:189700,costi:88614, profitto:101086,perc:53.3},
-    {name:"Locanda dei Fiori",   type:"Agriturismo",      ricavi:41200, costi:22104, profitto:19096, perc:46.4},
-    {name:"Hotel Milano Centro", type:"Business Hotel",   ricavi:76800, costi:43430, profitto:33370, perc:43.4},
-    {name:"Masseria Pugliese",   type:"Agriturismo",      ricavi:53400, costi:28894, profitto:24506, perc:45.9},
-    {name:"Castello del Vino",   type:"Wine Resort",      ricavi:94100, costi:49780, profitto:44320, perc:47.1},
-    {name:"Hotel Firenze Arte",  type:"Design Hotel",     ricavi:81600, costi:42316, profitto:39284, perc:48.2},
-  ];
+  // Il portafoglio è quello del cliente corrente: ricavi del mese stimati da
+  // camere e categoria (ristoranti e bar dal coperto medio), sempre uguali.
+  const businesses = schede.map(st => {
+    const k = 0.85 + (st.seme % 30) / 100
+    const ricavi = Math.round((st.camere > 0 ? st.camere * (st.stelle >= 5 ? 1750 : st.stelle === 4 ? 1250 : 900) : 52000 + (st.seme % 40000)) * k / 100) * 100
+    const perc = 38 + (st.seme % 160) / 10
+    const profitto = Math.round(ricavi * perc / 100)
+    return { name: st.nome, type: st.tipo, ricavi, costi: ricavi - profitto, profitto, perc: Math.round(perc * 10) / 10 }
+  });
 
   // Modalità di analisi guidata dalla data: futuro → Forecast, passato/oggi → Production
   const todayMid   = new Date(today.getFullYear(), today.getMonth(), today.getDate());

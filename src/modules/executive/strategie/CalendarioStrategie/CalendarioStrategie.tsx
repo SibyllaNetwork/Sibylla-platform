@@ -4,8 +4,9 @@ import PageHead from '../../../../core/components/PageHead'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import { SelectField, DateRangeField, SearchField } from '../../../../core/components/form'
 import StrategyTooltip, { StrategyTooltipState } from '../StrategyTooltip/StrategyTooltip'
-import { STRATEGIES, STRATEGIES_BY_ID, STRUTTURE, TIPI_CALENDARIO, type Strategia, type TipoCalendario } from '../strategieData'
+import { STRATEGIES, STRATEGIES_BY_ID, TIPI_CALENDARIO, type Strategia, type TipoCalendario } from '../strategieData'
 import './CalendarioStrategie.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const MONTH_ABBR  = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC']
@@ -191,7 +192,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
 
   const [dateFrom,         setDateFrom]         = useState(initRange.from)
   const [dateTo,           setDateTo]           = useState(initRange.to)
-  const [struttura,        setStruttura]        = useState(STRUTTURE[0])
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tipoCalendario,   setTipoCalendario]   = useState<TipoCalendario>('Tariffe')
   const [selectedStrategy, setSelectedStrategy] = useState<string>('inverno-25')
   const [eraseMode,        setEraseMode]        = useState(false)
@@ -321,7 +322,7 @@ export default function CalendarioStrategie({ navigate }: { navigate: (p: string
           label="Struttura"
           value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="cal-strategie__filter cal-strategie__filter--struttura"
         />
         <SelectField

@@ -7,6 +7,7 @@ import AttenzioneCapienzaModal from './AttenzioneCapienzaModal'
 import { openGuestRoomChartPdf } from './openGuestRoomChartPdf'
 import { exportTableToXls, exportElementToPdf } from './exportGriglia'
 import './GrigliaDisponibilita.sass'
+import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 type StrutturaRow = {
@@ -18,22 +19,6 @@ type StrutturaRow = {
   stopSales: boolean
   giorniDefault: number
 }
-
-const STRUTTURE: StrutturaRow[] = [
-  { id: 'archimede', nome: 'Hotel Archimede', stanze: 155, licenza: 219, buffer: 21, stopSales: false, giorniDefault: 2 },
-  { id: 'lazio',     nome: 'Hotel Lazio',     stanze: 58,  licenza: 77,  buffer: 8,  stopSales: false, giorniDefault: 7 },
-  { id: 'siracusa',  nome: 'Hotel Siracusa',  stanze: 137, licenza: 197, buffer: 18, stopSales: false, giorniDefault: 13 },
-  { id: 'floridia',  nome: 'Hotel Floridia',  stanze: 42,  licenza: 75,  buffer: 5,  stopSales: false, giorniDefault: 7 },
-  { id: 'luce',      nome: 'Hotel Luce',      stanze: 66,  licenza: 114, buffer: 5,  stopSales: false, giorniDefault: 7 },
-  { id: 'lux',       nome: 'Hotel Lux',       stanze: 83,  licenza: 146, buffer: 14, stopSales: false, giorniDefault: 5 },
-  { id: 'noto',      nome: 'Hotel Noto',      stanze: 130, licenza: 193, buffer: 22, stopSales: false, giorniDefault: 5 },
-  { id: 'regio',     nome: 'Hotel Regio',     stanze: 75,  licenza: 151, buffer: 19, stopSales: false, giorniDefault: 5 },
-]
-
-const ALERT_STRUTTURE = [
-  { nome: "Grim's Hotel",  licenza: 59,  inventario: 91 },
-  { nome: 'Hotel Tutorial', licenza: 120, inventario: 133 },
-]
 
 const MESI_IT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic']
 const WEEKDAY_SHORT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab']
@@ -68,9 +53,22 @@ function mockNegative(struttura: StrutturaRow, gi: number) {
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 export default function GrigliaDisponibilita({ navigate }: { navigate: (p: string) => void }) {
+  // Strutture del cliente corrente (con camere): inventario, licenza e buffer
+  // derivati dalla scheda, sempre uguali per la stessa struttura.
+  const schede = useStruttureCliente()
+  const STRUTTURE: StrutturaRow[] = useMemo(() => schede.filter(s => s.camere > 0).map(s => ({
+    id: s.id, nome: s.nome, stanze: s.camere,
+    licenza: Math.round(s.camere * 1.4) + (s.seme % 20),
+    buffer: Math.max(2, Math.round(s.camere * 0.12)),
+    stopSales: false, giorniDefault: 2 + (s.seme % 12),
+  })), [schede])
+  // Strutture con più inventario che licenza di vendita: vanno segnalate.
+  const ALERT_STRUTTURE = useMemo(() => schede.filter(s => s.camere > 0 && s.seme % 3 === 0)
+    .map(s => ({ nome: s.nome, licenza: Math.round(s.camere * 0.85), inventario: s.camere })), [schede])
   const [categoria, setCategoria] = useState('Tutte')
   const [struttura, setStruttura] = useState('Tutte')
-  const [periodo,   setPeriodo]   = useState('2026-05-22')
+  // La timeline parte da oggi.
+  const [periodo,   setPeriodo]   = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })
   const [nGiorni,   setNGiorni]   = useState(5)
   const [bufferOn,  setBufferOn]  = useState(true)
   const [suggerimentiOn, setSuggerimentiOn] = useState(true)

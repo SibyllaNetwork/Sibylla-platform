@@ -4,6 +4,7 @@ import Ico from '../../../core/icons/Ico'
 import { useAccessStore } from '../../../store/useAccessStore'
 import { useSectionThemeStore, SECTION_COLORS } from '../../../store/useSectionThemeStore'
 import './GiornaleImpresaPeek.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 interface Props { navigate: (p: string) => void }
 
@@ -97,7 +98,10 @@ export default function GiornaleImpresaPeek({ navigate }: Props) {
   const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
   const isTO = !!moduli?.includes('tour-operator')
   const variant: PeekVariant = isTO ? 'to' : 'hotel'
-  const D = PEEK_DATA[variant]
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const D0 = PEEK_DATA[variant]
+  // L'anteprima parla della struttura selezionata in alto.
+  const D = variant === 'hotel' ? { ...D0, location: strutturaCorrente } : D0
   const NUMERI = D.numeri
   const OCC = D.headline
   const FEATURE = D.feature

@@ -10,6 +10,7 @@ import SuggerimentiModal from './SuggerimentiModal';
 import AnalisiDistribuzioneTO from './AnalisiDistribuzioneTO';
 import { useAccessStore } from '../../../store/useAccessStore'
 import './AnalisiDistribuzione.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente';
 
 // Pagina CONDIVISA tra modulo hotel e Tour Operator: doppia visualizzazione di
 // contenuti (il colore è già module-aware via sectionForPage). I TO analizzano
@@ -281,9 +282,11 @@ export default function AnalisiDistribuzione({ navigate }: { navigate: (p: strin
 
 // ── Variante hotel / altri moduli ──────────────────────────────────────────────────
 function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void }) {
-  const D = DIST_VARIANT.hotel
+  // Le strutture sono quelle del cliente corrente, a partire da quella selezionata in alto.
+  const { elenco: struttureCliente, struttura: strutturaCorrente } = useStrutturaCorrente()
+  const D = { ...DIST_VARIANT.hotel, sel: struttureCliente }
 
-  const [struttura, setStruttura]       = useState(D.sel[0]);
+  const [struttura, setStruttura]       = useState(strutturaCorrente);
   const [dateFrom, setDateFrom]         = useState('2026-06-09');
   const [dateTo, setDateTo]             = useState('2026-07-09');
   const [tipologia, setTipologia]       = useState<'individuale' | 'gruppo'>('individuale');

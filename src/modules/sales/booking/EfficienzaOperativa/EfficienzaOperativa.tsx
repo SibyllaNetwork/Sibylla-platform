@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { SelectField } from '../../../../core/components/form'
 import { useEfficienzaStore } from '../../../../store/useEfficienzaStore'
+import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 import './EfficienzaOperativa.sass'
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -13,16 +14,6 @@ type StrutturaRow = {
   camere: number
 }
 
-const STRUTTURE: StrutturaRow[] = [
-  { id: 'archimede', nome: 'Hotel Archimede', destinazione: 'Roma',    categoria: '4 stelle', camere: 155 },
-  { id: 'lazio',     nome: 'Hotel Lazio',     destinazione: 'Roma',    categoria: '3 stelle', camere: 58 },
-  { id: 'siracusa',  nome: 'Hotel Siracusa',  destinazione: 'Firenze', categoria: '4 stelle', camere: 137 },
-  { id: 'floridia',  nome: 'Hotel Floridia',  destinazione: 'Firenze', categoria: '3 stelle', camere: 42 },
-  { id: 'luce',      nome: 'Hotel Luce',      destinazione: 'Milano',  categoria: '5 stelle', camere: 66 },
-  { id: 'noto',      nome: 'Hotel Noto',      destinazione: 'Milano',  categoria: '4 stelle', camere: 130 },
-  { id: 'regio',     nome: 'Hotel Regio',     destinazione: 'Napoli',  categoria: '5 stelle', camere: 75 },
-  { id: 'lux',       nome: 'Hotel Lux',       destinazione: 'Napoli',  categoria: '4 stelle', camere: 83 },
-]
 
 const MESI_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
 const WEEKDAY_SHORT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
@@ -53,12 +44,15 @@ type Sugg = {
   ricavoPost: number
   markupGain: number
 }
-const SUGGERIMENTI: Sugg[] = [
-  { strutturaId: 'archimede', gi: 1, daStruttura: 'Hotel Lazio',    camere: 12, ricavoPre: 35000, ricavoPost: 39200, markupGain: 0.4 },
-  { strutturaId: 'noto',      gi: 2, daStruttura: 'Hotel Luce',     camere: 18, ricavoPre: 52000, ricavoPost: 58500, markupGain: 0.6 },
-  { strutturaId: 'floridia',  gi: 3, daStruttura: 'Hotel Siracusa', camere: 7,  ricavoPre: 18500, ricavoPost: 21300, markupGain: 0.3 },
-  { strutturaId: 'regio',     gi: 4, daStruttura: 'Hotel Lux',      camere: 9,  ricavoPre: 24000, ricavoPost: 27100, markupGain: 0.3 },
-]
+// Opportunità fra le strutture del cliente: si spostano camere da una struttura
+// in surplus a un'altra. Con una sola struttura non ce ne sono.
+const generaSuggerimenti = (strutture: StrutturaRow[]): Sugg[] =>
+  strutture.length < 2 ? [] : strutture.slice(0, 4).map((st, i) => {
+    const da = strutture[(i + 1) % strutture.length]
+    const camere = Math.max(3, Math.round(Math.min(st.camere, da.camere) * 0.12))
+    const ricavoPre = camere * 2900
+    return { strutturaId: st.id, gi: i + 1, daStruttura: da.nome, camere, ricavoPre, ricavoPost: Math.round(ricavoPre * 1.12), markupGain: 0.3 + (i % 3) * 0.15 }
+  })
 const suggKey = (id: string, gi: number) => `${id}-${gi}`
 
 // Riepilogo di partenza
@@ -73,9 +67,16 @@ const fmtSignPct = (n: number) => (n >= 0 ? '+ ' : '− ') + Math.abs(n).toLocal
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 export default function EfficienzaOperativa({ navigate }: { navigate: (p: string) => void }) {
+  // Strutture del cliente corrente (con camere), dalla scheda demo.
+  const schede = useStruttureCliente()
+  const STRUTTURE: StrutturaRow[] = useMemo(() => schede.filter(s => s.camere > 0).map(s => ({
+    id: s.id, nome: s.nome, destinazione: s.citta, categoria: s.stelle ? `${s.stelle} stelle` : s.tipo, camere: s.camere,
+  })), [schede])
+  const SUGGERIMENTI = useMemo(() => generaSuggerimenti(STRUTTURE), [STRUTTURE])
   const [destinazione, setDestinazione] = useState('Tutte')
   const [categoria,    setCategoria]    = useState('Tutte')
-  const [periodo]                       = useState('2026-05-22')
+  // La timeline parte da oggi.
+  const [periodo]                       = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })
   const [nGiorni,      setNGiorni]      = useState(10)
   const [suggerimentiOn, setSuggerimentiOn] = useState(true)
   const [applicati, setApplicati] = useState<Set<string>>(new Set())

@@ -7,8 +7,9 @@ import Modal from '../../../../core/components/Modal'
 import FormActions from '../../../../core/components/FormActions'
 import Tooltip from '../../../../core/components/Tooltip'
 import { InputField, SelectField } from '../../../../core/components/form'
-import { STRUTTURE, TIPI_CALENDARIO, type TipoCalendario } from '../strategieData'
+import { TIPI_CALENDARIO, type TipoCalendario } from '../strategieData'
 import './CreaStrategia.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 // ── Dataset locali ────────────────────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ function ColorPickerField({ value, onChange }: { value: string; onChange: (c: st
 
 export default function CreaStrategia({ navigate }: { navigate: (p: string) => void }) {
   const [categoria,      setCategoria]      = useState<string>('-')
-  const [struttura,      setStruttura]      = useState(STRUTTURE[0])
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tipoCalendario, setTipoCalendario] = useState<TipoCalendario>('Tariffe')
   const [tipoStrategia,  setTipoStrategia]  = useState<TipoStrategia>('Individuali')
   const [nome,           setNome]           = useState('')
@@ -195,7 +196,7 @@ export default function CreaStrategia({ navigate }: { navigate: (p: string) => v
             label="Struttura"
             value={struttura}
             onChange={e => setStruttura(e.target.value)}
-            options={STRUTTURE.map(s => ({ value: s, label: s }))}
+            options={opzioniStrutture}
             className="crea-strat__field crea-strat__field--wide"
           />
           <SelectField

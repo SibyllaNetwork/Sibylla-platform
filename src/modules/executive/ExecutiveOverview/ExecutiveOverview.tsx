@@ -8,6 +8,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, DateRangeField } from '../../../core/components/form'
 import { useAccessStore } from '../../../store/useAccessStore'
 import './ExecutiveOverview.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 // ─── EXECUTIVE OVERVIEW ─────────────────────────────────────────────────────────
 //  Dashboard integrata di sintesi delle performance d'impresa. Pagina CONDIVISA:
@@ -222,7 +223,10 @@ export default function ExecutiveOverview({ navigate }: { navigate: (p: string) 
   const profiles = useAccessStore((s) => s.profiles)
   const moduli = assist ? assist.moduli : currentProfileId ? profiles.find((p) => p.id === currentProfileId)?.moduli : undefined
   const variant: Variant = moduli?.includes('tour-operator') ? 'to' : 'hotel'
-  const V = VARIANTS[variant]
+  // Le strutture del confronto sono quelle del cliente corrente.
+  const { elenco: struttureCliente } = useStrutturaCorrente()
+  const V0 = VARIANTS[variant]
+  const V = useMemo(() => (V0.selLabel === 'Struttura' ? { ...V0, sel: struttureCliente } : V0), [V0, struttureCliente])
 
   const [sel, setSel] = useState(V.selAll)
   const [dateFrom, setDateFrom] = useState('2026-01-01')

@@ -11,6 +11,7 @@ import MENU_TO from '../../../navigation/menuTourOperator'
 import { useAccessStore } from '../../../store/useAccessStore'
 import GiornaleImpresaTO from './GiornaleImpresaTO'
 import './GiornaleImpresa.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 // La pagina è CONDIVISA tra moduli: i Tour Operator vedono una versione con
 // contenuti propri (pratiche, preventivi, partenze, destinazioni) mentre gli
@@ -343,11 +344,14 @@ export default function GiornaleImpresa({ navigate }: { navigate: (p: string) =>
   const profiles         = useAccessStore(s => s.profiles)
   const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
   const variant: GiornaleVariant = moduli?.includes('tour-operator') ? 'to' : 'hotel'
-  const D = VARIANT_DATA[variant]
+  // Le strutture sono quelle del cliente corrente, a partire da quella selezionata in alto.
+  const { elenco: struttureCliente, struttura: strutturaCorrente } = useStrutturaCorrente()
+  const D0 = VARIANT_DATA[variant]
+  const D = D0.struttureLabel === 'Struttura' ? { ...D0, strutture: struttureCliente } : D0
   // Vista estesa: catalogo card dal menu del modulo corrente (MENU o MENU_TO).
   const tabCards = React.useMemo(() => buildTabCards(variant === 'to' ? (MENU_TO as any[]) : (MENU as any[])), [variant])
 
-  const [struttura, setStruttura] = useState(D.strutture[0])
+  const [struttura, setStruttura] = useState(D0.struttureLabel === 'Struttura' ? strutturaCorrente : D.strutture[0])
   const [activeTab, setActiveTab] = useState('panoramica')
   const [viewMode,  setViewMode]  = useState<'sintetica' | 'estesa'>('sintetica')
 

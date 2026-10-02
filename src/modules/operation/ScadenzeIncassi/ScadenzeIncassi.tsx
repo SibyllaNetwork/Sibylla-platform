@@ -9,6 +9,7 @@ import TruncatedText from '../../../core/components/TruncatedText'
 import { toast } from '../../../core/components/Toast/useToast'
 import { exportDocumentoIncassoPdf } from './documentoIncassoPdf'
 import './ScadenzeIncassi.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 const PAGE_SIZE = 10
 // Giorni entro i quali un incasso non ancora saldato è considerato "in scadenza".
@@ -124,6 +125,7 @@ const TIPO_VALUES = Object.values(TIPO_LABEL)
 const STATO_VALUES: string[] = ['Pagato', 'Scaduto', 'In scadenza', 'Da incassare']
 
 export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) => void }) {
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
   const today = useMemo(() => new Date(), [])
   const [documenti, setDocumenti] = useState<Documento[]>(SEED)
   const [search, setSearch] = useState('')
@@ -215,7 +217,7 @@ export default function ScadenzeIncassi({ navigate }: { navigate: (p: string) =>
       voceIncasso: d.voceIncasso,
       dataScadenza: d.dataScadenza,
       stato: STATO_META[statoDoc(d, today)].label,
-      gruppo: 'Hotel Noto',
+      gruppo: strutturaCorrente,
     })
     toast.success(`Documento ${d.numero} esportato in PDF.`, 'Esportazione PDF')
   }

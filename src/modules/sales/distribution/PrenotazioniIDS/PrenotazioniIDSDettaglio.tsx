@@ -8,10 +8,11 @@ import { useColFilters } from '../../../../core/components/ColFilters'
 import { SelectField, DatePickerField, InputField, DateRangeField } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import {
-  HOTELS, ORIGINI, PIANI_TARIFFARI, ARRANGIAMENTI,
+  ORIGINI, PIANI_TARIFFARI, ARRANGIAMENTI,
   prenotazioniDelGiorno, prenotazioniDelGiornoTutte, fmtIsoIt, type PrenotazioneIDS,
 } from './idsData'
 import './PrenotazioniIDSDettaglio.sass'
+import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 
 interface Props {
   navigate: (p: string) => void
@@ -28,6 +29,9 @@ const PAGE_SIZES = [25, 50, 100]
 const euroIt = (n: number) => n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export default function PrenotazioniIDSDettaglio({ navigate, iso, struttura }: Props) {
+  // Strutture (con camere) del cliente corrente.
+  const schedeCliente = useStruttureCliente()
+  const HOTELS = useMemo(() => schedeCliente.filter(s => s.camere > 0).map(s => s.nome), [schedeCliente])
   const [dataPre, setDataPre] = useState(iso ?? new Date().toISOString().slice(0, 10))
   const [hotel, setHotel] = useState(struttura || TUTTE)
   const [cerca, setCerca] = useState('')
@@ -42,7 +46,7 @@ export default function PrenotazioniIDSDettaglio({ navigate, iso, struttura }: P
   const cf = useColFilters()
 
   const all: PrenotazioneIDS[] = useMemo(
-    () => (hotel === TUTTE ? prenotazioniDelGiornoTutte(dataPre) : prenotazioniDelGiorno(hotel, dataPre)),
+    () => (hotel === TUTTE ? prenotazioniDelGiornoTutte(dataPre, HOTELS) : prenotazioniDelGiorno(hotel, dataPre)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [hotel, dataPre, refresh],
   )

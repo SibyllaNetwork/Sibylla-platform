@@ -1,9 +1,11 @@
+import { schedaDemo } from '../../../../core/demo/struttureDemo'
 // ─── DATI PRENOTAZIONI IDS ────────────────────────────────────────────────────
 // Sorgente unica (mock deterministico) condivisa fra la vista di sintesi
 // giorno-per-giorno e il dettaglio delle singole prenotazioni: il numero di
 // righe del dettaglio coincide sempre con il conteggio mostrato nella tabella
 // di riepilogo, perché entrambe derivano da `dailyCount()`.
 
+/** Elenco storico; le pagine usano le strutture del cliente corrente (useStrutturaCorrente). */
 export const HOTELS = ['Hotel Archimede', 'Hotel Floridia', 'Hotel Lazio', 'Hotel Luce', 'Hotel Lux', 'Hotel Noto', 'Hotel Regio']
 
 const HOTEL_BASE: Record<string, number> = {
@@ -31,7 +33,8 @@ export const GIORNI = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 /** Prenotazioni ricevute in una giornata da una struttura (mock deterministico). */
 export function dailyCount(hotel: string, d: Date): number {
-  const base = HOTEL_BASE[hotel] ?? 12
+  // Strutture del cliente fuori dall'elenco storico: volume proporzionale alle camere.
+  const base = HOTEL_BASE[hotel] ?? Math.max(2, Math.round(schedaDemo(hotel).camere * 0.22))
   const weekend = d.getDay() === 5 || d.getDay() === 6 ? base * 0.45 : 0
   const seasonal = base * 0.45 * Math.sin((d.getMonth() * 30 + d.getDate()) / 58)
   const noise = ((hashStr(hotel + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()) % 100) / 100 - 0.3) * base * 0.6
@@ -133,6 +136,6 @@ export function prenotazioniDelGiorno(hotel: string, iso: string): PrenotazioneI
 }
 
 /** Prenotazioni inserite in una giornata da tutte le strutture, log più recente in testa. */
-export function prenotazioniDelGiornoTutte(iso: string): PrenotazioneIDS[] {
-  return HOTELS.flatMap(h => prenotazioniDelGiorno(h, iso)).sort((a, b) => b.minuto - a.minuto)
+export function prenotazioniDelGiornoTutte(iso: string, hotels: string[] = HOTELS): PrenotazioneIDS[] {
+  return hotels.flatMap(h => prenotazioniDelGiorno(h, iso)).sort((a, b) => b.minuto - a.minuto)
 }

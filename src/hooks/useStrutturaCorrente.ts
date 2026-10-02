@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
+import { schedaDemo } from '../core/demo/struttureDemo'
 import { useOrgStore } from '../store/useOrgStore'
 import { useAccessStore, profiloDellaStruttura } from '../store/useAccessStore'
 
@@ -59,3 +60,9 @@ export function useStrutturaPagina() {
 
 /** Scheda anagrafica della struttura (se è fra i clienti configurati). */
 export const schedaStruttura = (nome: string) => CLIENTS_INIT.find(c => c.nome === nome)
+
+/** Schede demo delle strutture del cliente corrente (portafoglio). */
+export function useStruttureCliente() {
+  const { elenco } = useStrutturaCorrente()
+  return useMemo(() => elenco.map(schedaDemo), [elenco])
+}

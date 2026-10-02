@@ -2,8 +2,9 @@ import React, { useMemo, useState } from 'react'
 import clsx from 'clsx'
 import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
-import { STRATEGIES_BY_TIPO, STRUTTURE, type Strategia, type TipoCalendario } from '../strategieData'
+import { STRATEGIES_BY_TIPO, type Strategia, type TipoCalendario } from '../strategieData'
 import './CalendarioMaster.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 interface Layer {
   id:    'tariffarie' | 'distributive' | 'gruppi'
@@ -55,7 +56,7 @@ export default function CalendarioMaster({ navigate }: { navigate: (p: string) =
   const initRange = useMemo(defaultRange, [])
   const [dateFrom,  setDateFrom]  = useState(initRange.from)
   const [dateTo,    setDateTo]    = useState(initRange.to)
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tip,       setTip]       = useState<TipState>(null)
 
   const { fromDate, toDate, months } = useMemo(() => {
@@ -91,7 +92,7 @@ export default function CalendarioMaster({ navigate }: { navigate: (p: string) =
           label="Struttura"
           value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="cm__filter-struttura"
         />
         <DateRangeField

@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { DateRangeField } from '../../../../core/components/form'
 import Tooltip from '../../../../core/components/Tooltip'
 import { AreaTrend, type SeriesPoint } from '../_charts/AreaTrend'
-import { HOTELS, buildSeries, parseIso, fmtIt, type Day } from './idsData'
+import { buildSeries, parseIso, fmtIt, toIso, type Day } from './idsData'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 import './PrenotazioniIDS.sass'
 
 function Spark({ values }: { values: number[] }) {
@@ -17,12 +18,17 @@ const sample = (arr: Day[], n: number) => { if (arr.length <= n) return arr.map(
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function PrenotazioniIDS({ navigate }: { navigate?: (p: string) => void } = {}) {
-  const [dataDa, setDataDa] = useState('2026-04-01')
-  const [dataA, setDataA] = useState('2026-06-30')
-  const [selected, setSelected] = useState(HOTELS[3])
+  // Ultimi due mesi fino a oggi, sulle strutture (con camere) del cliente corrente.
+  const [dataDa, setDataDa] = useState(() => toIso(new Date(Date.now() - 60 * 86400000)))
+  const [dataA, setDataA] = useState(() => toIso(new Date()))
+  const schede = useStruttureCliente()
+  const HOTELS = useMemo(() => schede.filter(s => s.camere > 0).map(s => s.nome), [schede])
+  const { struttura } = useStrutturaCorrente()
+  const [selected, setSelected] = useState(struttura)
+  useEffect(() => { setSelected(HOTELS.includes(struttura) ? struttura : HOTELS[0]) }, [struttura, HOTELS])
 
   const da = parseIso(dataDa), a = parseIso(dataA)
-  const seriesByHotel = useMemo(() => Object.fromEntries(HOTELS.map((h) => [h, buildSeries(h, da, a)])) as Record<string, Day[]>, [dataDa, dataA])
+  const seriesByHotel = useMemo(() => Object.fromEntries(HOTELS.map((h) => [h, buildSeries(h, da, a)])) as Record<string, Day[]>, [dataDa, dataA, HOTELS])
   const totByHotel = useMemo(() => Object.fromEntries(HOTELS.map((h) => [h, seriesByHotel[h].reduce((s, d) => s + d.count, 0)])) as Record<string, number>, [seriesByHotel])
 
   const giorni = seriesByHotel[HOTELS[0]]?.length ?? 0
