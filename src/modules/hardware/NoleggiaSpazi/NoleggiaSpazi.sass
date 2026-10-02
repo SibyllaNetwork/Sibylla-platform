@@ -23,11 +23,13 @@ $status-ok-soft: #34d399
     gap: 24px
     align-items: start
 
+    // La colonna del totem ha la larghezza del suo mockup; le altre si dividono il
+    // resto senza mai spingere la pagina oltre il bordo.
     @media (min-width: 1280px)
-      grid-template-columns: 1.6fr 1fr 0.6fr
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 252px
 
     @media (min-width: 1024px) and (max-width: 1279px)
-      grid-template-columns: 1.4fr 1fr
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr)
 
   // ── Planner ──────────────────────────────────────────────────────
   &__planner

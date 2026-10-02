@@ -7,6 +7,9 @@
   align-items: stretch
   gap: 14px
   font-size: 13px
+  // Container query sulla larghezza reale del contenuto (sidenav inclusa).
+  container-type: inline-size
+  container-name: conticamera
 
   > .sib-btn--back
     align-self: flex-start
@@ -76,18 +79,18 @@
     font-weight: 500
 
   // ── Layout 2 colonne ──────────────────────────────────────────────────────
+  // minmax(0, 1fr): le colonne non si allargano oltre la pagina per il contenuto.
   &__layout
     display: grid
-    grid-template-columns: 1fr 1fr
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
     gap: 24px
 
-    @media (max-width: 1200px)
-      grid-template-columns: 1fr
 
   &__col
     display: flex
     flex-direction: column
     gap: 10px
+    min-width: 0
 
   // ── Tabella ───────────────────────────────────────────────────────────────
   &__table
@@ -398,3 +401,10 @@
 
       &:hover
         opacity: 0.9
+
+// Addebiti (9 colonne, 5 azioni) e anticipi/documenti non stanno affiancati su
+// laptop: sotto questa larghezza le colonne si impilano e ogni tabella ha tutta
+// la riga, senza scroll orizzontale.
+@container conticamera (max-width: 1500px)
+  .conti-camera__layout
+    grid-template-columns: minmax(0, 1fr)

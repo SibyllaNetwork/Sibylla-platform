@@ -34,13 +34,14 @@
     color: $primary
 
   // ── Code (queue cards) ──────────────────────────────────────────────────────
+  // minmax(0, 1fr): le code non si allargano oltre la pagina per il contenuto.
   &__queues
     display: grid
-    grid-template-columns: repeat(5, 1fr)
+    grid-template-columns: repeat(5, minmax(0, 1fr))
     gap: 12px
 
     @media (max-width: 1400px)
-      grid-template-columns: repeat(3, 1fr)
+      grid-template-columns: repeat(3, minmax(0, 1fr))
 
     @media (max-width: 900px)
       grid-template-columns: 1fr
@@ -54,6 +55,7 @@
     flex-direction: column
     gap: 10px
     min-height: 320px
+    min-width: 0
 
   &__queue-title
     font-family: $font-heading
