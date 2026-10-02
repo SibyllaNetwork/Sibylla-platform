@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   ResponsiveContainer, ComposedChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip as RTooltip, PieChart, Pie, Cell, LineChart, Line,
@@ -8,7 +8,8 @@ import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, DateRangeField } from '../../../core/components/form'
 import { useAccessStore } from '../../../store/useAccessStore'
 import './ExecutiveOverview.sass'
-import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import type { SchedaDemo } from '../../../core/demo/struttureDemo'
 
 // ─── EXECUTIVE OVERVIEW ─────────────────────────────────────────────────────────
 //  Dashboard integrata di sintesi delle performance d'impresa. Pagina CONDIVISA:
@@ -112,7 +113,8 @@ const VARIANTS: Record<Variant, VariantCfg> = {
 
 // ── Serie temporale (mock deterministico) ─────────────────────────────────────────
 const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
-const CUT = 6 // ultimo mese consuntivato (Lug): forecast da qui in avanti
+// Ultimo mese consuntivato = il mese in corso: forecast da qui in avanti.
+const CUT = new Date().getMonth()
 // Curva stagionale TO (picco estivo), valori in € (base migliaia)
 const REV_K = [120, 108, 176, 232, 340, 520, 610, 585, 430, 268, 176, 214]
 const MARG_PCT = 0.235
@@ -143,6 +145,73 @@ function buildSerie(scale: number): Point[] {
       margLY,
     }
   })
+}
+
+// ── Performance per struttura (variante hotel) ─────────────────────────────────
+//  Dalle schede demo delle strutture del cliente: ADR per categoria, occupazione,
+//  ricavo annuo e GOP sempre uguali per la stessa struttura. Ristoranti e bar
+//  (senza camere) parlano di coperti e scontrino medio.
+const SUM_REV = REV_K.reduce((a, b) => a + b, 0) * 1000
+const SPARK = [0.79, 0.82, 0.85, 0.88, 0.93, 0.98, 1.05, 1.07, 1.04, 0.96, 0.89, 1]
+const fmtMln = (n: number) => (n >= 1e6
+  ? `€ ${(n / 1e6).toLocaleString('it-IT', { maximumFractionDigits: 1 })}M`
+  : `€ ${Math.round(n / 1000).toLocaleString('it-IT')}k`)
+
+function performanceDi(schede: SchedaDemo[]): { scale: number; kpis: KpiDef[]; pie: PieSlice[] } {
+  const righe = schede.map(s => {
+    const k = (s.seme % 20) / 100
+    const ristorazione = s.camere === 0
+    const adr = ristorazione ? 32 + (s.seme % 25)
+      : (s.stelle >= 5 ? 230 : s.stelle === 4 ? 150 : s.stelle === 3 ? 105 : 85) * (0.9 + k)
+    const occ = 0.62 + (s.seme % 21) / 100
+    const coperti = Math.round(120 * (0.7 + k))
+    const annuo = ristorazione ? coperti * adr * 330 : s.camere * adr * occ * 365
+    return { s, adr, occ, coperti, annuo, ristorazione, gop: 0.3 + (s.seme % 13) / 100, yoy: 2 + (s.seme % 10) }
+  })
+  if (!righe.length) return { scale: 0, kpis: [], pie: [] }
+  const hotel = righe.filter(r => !r.ristorazione)
+  const base = hotel.length ? hotel : righe
+  const camere = hotel.reduce((a, r) => a + r.s.camere, 0)
+  const annuo = righe.reduce((a, r) => a + r.annuo, 0)
+  const gop = righe.reduce((a, r) => a + r.annuo * r.gop, 0)
+  const yoy = Math.round(righe.reduce((a, r) => a + r.yoy, 0) / righe.length)
+  const seme = righe.reduce((a, r) => a + r.s.seme, 0)
+  const spark = (v: number) => SPARK.map(x => Math.round(v * x))
+  let kpis: KpiDef[]
+  if (hotel.length) {
+    const adr = Math.round(hotel.reduce((a, r) => a + r.adr * r.s.camere, 0) / camere)
+    const occ = hotel.reduce((a, r) => a + r.occ * r.s.camere, 0) / camere
+    const revpar = Math.round(adr * occ)
+    kpis = [
+      { key: 'revpar', label: 'RevPAR', icon: 'fa-bed', color: '#204769', value: `€ ${revpar}`, deltaLabel: `+${yoy}% YoY`, deltaUp: true, spark: spark(revpar) },
+      { key: 'adr', label: 'ADR', icon: 'fa-euro-sign', color: '#5A8A3C', value: `€ ${adr}`, deltaLabel: `+${Math.max(1, yoy - 2)}% YoY`, deltaUp: true, spark: spark(adr) },
+      { key: 'gop', label: 'GOP', icon: 'fa-sack-dollar', color: '#E07B39', value: fmtMln(gop), deltaLabel: `+${yoy + 3}% YoY`, deltaUp: true, spark: spark(gop / 1000) },
+    ]
+  } else {
+    const coperti = base.reduce((a, r) => a + r.coperti, 0)
+    const scontrino = Math.round(base.reduce((a, r) => a + r.adr, 0) / base.length)
+    kpis = [
+      { key: 'coperti', label: 'Coperti al giorno', icon: 'fa-utensils', color: '#204769', value: String(coperti), deltaLabel: `+${yoy}% YoY`, deltaUp: true, spark: spark(coperti) },
+      { key: 'scontrino', label: 'Scontrino medio', icon: 'fa-receipt', color: '#5A8A3C', value: `€ ${scontrino}`, deltaLabel: `+${Math.max(1, yoy - 2)}% YoY`, deltaUp: true, spark: spark(scontrino) },
+      { key: 'gop', label: 'GOP', icon: 'fa-sack-dollar', color: '#E07B39', value: fmtMln(gop), deltaLabel: `+${yoy + 3}% YoY`, deltaUp: true, spark: spark(gop / 1000) },
+    ]
+  }
+  const pie: PieSlice[] = hotel.length ? [
+    { name: 'Diretto',       val: 30 + (seme % 10),        color: '#204769' },
+    { name: 'OTA',           val: 24 + ((seme >> 3) % 10), color: '#E07B39' },
+    { name: 'Tour Operator', val: 15 + ((seme >> 5) % 10), color: '#9B59B6' },
+    { name: 'Corporate',     val: 12 + ((seme >> 7) % 8),  color: '#5C9CD4' },
+  ] : [
+    { name: 'Sala',          val: 48 + (seme % 10),        color: '#204769' },
+    { name: 'Prenotazioni online', val: 22 + ((seme >> 3) % 8), color: '#E07B39' },
+    { name: 'Eventi',        val: 14 + ((seme >> 5) % 8),  color: '#9B59B6' },
+    { name: 'Asporto',       val: 8 + ((seme >> 7) % 6),   color: '#5C9CD4' },
+  ]
+  // Quote in percentuale (somma 100): centro della ciambella e legenda coincidono.
+  const tot = pie.reduce((a, x) => a + x.val, 0)
+  const quote = [...pie].sort((a, b) => b.val - a.val).map(x => ({ ...x, val: Math.round((x.val / tot) * 100) }))
+  quote[0].val += 100 - quote.reduce((a, x) => a + x.val, 0)
+  return { scale: annuo / SUM_REV, kpis, pie: quote }
 }
 
 const fmtEurK = (n: number) => (n >= 1000 ? `${(n / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })}k €` : `${n} €`)
@@ -228,19 +297,29 @@ export default function ExecutiveOverview({ navigate }: { navigate: (p: string) 
   const V0 = VARIANTS[variant]
   const V = useMemo(() => (V0.selLabel === 'Struttura' ? { ...V0, sel: struttureCliente } : V0), [V0, struttureCliente])
 
-  const [sel, setSel] = useState(V.selAll)
+  // Variante hotel: si parte dalla struttura selezionata in alto (e la si segue).
+  const schede = useStruttureCliente()
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const [sel, setSel] = useState(variant === 'hotel' ? strutturaCorrente : V.selAll)
+  useEffect(() => { if (variant === 'hotel') setSel(strutturaCorrente) }, [variant, strutturaCorrente])
+  const perf = useMemo(
+    () => performanceDi(sel === V.selAll ? schede : schede.filter(s => s.nome === sel)),
+    [sel, schede, V.selAll],
+  )
+  const kpis = variant === 'hotel' ? perf.kpis : V.kpis
+  const pie = variant === 'hotel' ? perf.pie : V.pie
   const [dateFrom, setDateFrom] = useState('2026-01-01')
   const [dateTo, setDateTo] = useState('2026-12-31')
 
   // Scala i dati in base alla selezione (tutte vs singola destinazione/struttura).
-  const scale = sel === V.selAll ? 1 : 0.32 + (V.sel.indexOf(sel) % 3) * 0.12
+  const scale = variant === 'hotel' ? perf.scale : sel === V.selAll ? 1 : 0.32 + (V.sel.indexOf(sel) % 3) * 0.12
   const serie = useMemo(() => buildSerie(scale), [scale])
 
   const forecastProfit = useMemo(
     () => serie.reduce((s, p) => s + (p.margFc ?? 0), 0) - (serie[CUT].margFc ?? 0),
     [serie],
   )
-  const pieTotal = V.pie.reduce((s, p) => s + p.val, 0)
+  const pieTotal = pie.reduce((s, p) => s + p.val, 0)
 
   const names1 = { revTY: 'Ricavi', revFc: 'Previsione', revLY: 'Anno scorso' }
   const names2 = { margTY: 'Margine', margFc: 'Previsione', margLY: 'Anno scorso' }
@@ -317,19 +396,19 @@ export default function ExecutiveOverview({ navigate }: { navigate: (p: string) 
           <div className="exo__pie-chart">
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={V.pie} dataKey="val" nameKey="name" innerRadius={54} outerRadius={84} paddingAngle={3} stroke="none">
-                  {V.pie.map((s) => <Cell key={s.name} fill={s.color} />)}
+                <Pie data={pie} dataKey="val" nameKey="name" innerRadius={54} outerRadius={84} paddingAngle={3} stroke="none">
+                  {pie.map((s) => <Cell key={s.name} fill={s.color} />)}
                 </Pie>
                 <RTooltip formatter={(v: any, n: any) => [`${v}%`, n]} contentStyle={{ borderRadius: 8, border: '1px solid #E0E7EE', fontSize: 12 }} />
               </PieChart>
             </ResponsiveContainer>
             <div className="exo__pie-center">
-              <span className="exo__pie-center-val">{V.pie[0].val}%</span>
-              <span className="exo__pie-center-lbl">{V.pie[0].name}</span>
+              <span className="exo__pie-center-val">{pie[0]?.val}%</span>
+              <span className="exo__pie-center-lbl">{pie[0]?.name}</span>
             </div>
           </div>
           <ul className="exo__pie-legend">
-            {V.pie.map((s) => (
+            {pie.map((s) => (
               <li key={s.name}>
                 <span className="exo__pie-dot" style={{ background: s.color }} />
                 <span className="exo__pie-name">{s.name}</span>
@@ -342,7 +421,7 @@ export default function ExecutiveOverview({ navigate }: { navigate: (p: string) 
 
       {/* ── KPI riepilogativi (3 card specifiche) ───────────────────────────── */}
       <div className="exo__kpis">
-        {V.kpis.map((k) => (
+        {kpis.map((k) => (
           <div key={k.key} className="exo__kpi">
             <div className="exo__kpi-top">
               <span className="exo__kpi-ico" style={{ ['--kc' as any]: k.color }}><i className={`fa-solid ${k.icon}`} aria-hidden="true" /></span>
