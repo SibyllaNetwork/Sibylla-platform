@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import FilterToolbar from '../../../core/components/FilterToolbar'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
 import './RiepilogoBacheche.sass'
+import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import { schedaDemo, type SchedaDemo } from '../../../core/demo/struttureDemo'
 
 interface Struttura {
   id: string
@@ -30,12 +32,22 @@ interface CardData {
   foto: string | null
 }
 
-const STRUTTURE: Struttura[] = [
-  { id: 'azzurro',  nome: 'Hotel Azzurro Mare', stelle: 4, indirizzo: 'Via dei Mille, 123, 98123 Messina ME, Italia', citta: 'Messina', regione: 'Sicilia', prezzoB2b: 95,  prezzoB2c: 135, cameraTipo: '1 camera doppia',  descrizione: '' },
-  { id: 'archim',   nome: 'Hotel Archimede',     stelle: 4, indirizzo: 'Via della Repubblica, 12, 00100 Roma RM, Italia', citta: 'Roma',    regione: 'Lazio',   prezzoB2b: 110, prezzoB2c: 145, cameraTipo: '1 camera singola', descrizione: 'Hotel storico nel cuore di Roma a pochi passi dal Colosseo.' },
-  { id: 'siracusa', nome: 'Hotel Siracusa',      stelle: 3, indirizzo: 'Via Roma, 1, 96100 Siracusa SR, Italia',           citta: 'Siracusa', regione: 'Sicilia', prezzoB2b: 75,  prezzoB2c: 99,  cameraTipo: '1 camera doppia',  descrizione: '' },
-  { id: 'lux',      nome: 'Hotel Lux',           stelle: 4, indirizzo: 'Piazza Navona, 8, 00186 Roma RM, Italia',          citta: 'Roma',    regione: 'Lazio',   prezzoB2b: 140, prezzoB2c: 189, cameraTipo: '1 suite',          descrizione: '' },
-]
+// Le strutture del cliente corrente (schede demo): prezzi per categoria,
+// indirizzo e descrizione derivati, sempre uguali per la stessa struttura.
+const REGIONI: Record<string, string> = {
+  Noto: 'Sicilia', Siracusa: 'Sicilia', Catania: 'Sicilia', Taormina: 'Sicilia', Palermo: 'Sicilia', Messina: 'Sicilia',
+  Roma: 'Lazio', Milano: 'Lombardia', Firenze: 'Toscana', Lecce: 'Puglia', Rimini: 'Emilia-Romagna', Torino: 'Piemonte',
+}
+const struttureDemo = (schede: SchedaDemo[]): Struttura[] => schede.filter((x) => x.camere > 0).map((x) => {
+  const base = x.stelle >= 5 ? 190 : x.stelle === 4 ? 120 : x.categoria === 'studentato' ? 35 : 80
+  return {
+    id: x.nome, nome: x.nome, stelle: x.stelle,
+    indirizzo: `Via Roma, ${1 + (x.seme % 90)}, ${x.citta}, Italia`, citta: x.citta, regione: REGIONI[x.citta] ?? 'Italia',
+    prezzoB2b: Math.round(base * 0.78), prezzoB2c: base,
+    cameraTipo: x.categoria === 'studentato' ? '1 camera singola' : x.stelle >= 5 ? '1 camera deluxe' : '1 camera doppia',
+    descrizione: `${x.tipo} a ${x.citta}, ${x.camere} camere.`,
+  }
+})
 
 function toCardData(s: Struttura, channel: 'b2b' | 'b2c'): CardData {
   return {
@@ -52,8 +64,11 @@ function toCardData(s: Struttura, channel: 'b2b' | 'b2c'): CardData {
 }
 
 export default function RiepilogoBacheche({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState(STRUTTURE[0].id)
-  const struttura = STRUTTURE.find(s => s.id === strutturaId)!
+  // Strutture (con camere) del cliente, a partire da quella selezionata in alto.
+  const schede = useStruttureCliente()
+  const STRUTTURE = useMemo(() => struttureDemo(schede), [schede])
+  const [strutturaId, setStrutturaId] = useStrutturaPagina()
+  const struttura = STRUTTURE.find(s => s.id === strutturaId) ?? STRUTTURE[0] ?? struttureDemo([schedaDemo(strutturaId)])[0]
 
   const [b2b, setB2b] = useState<CardData>(toCardData(struttura, 'b2b'))
   const [b2c, setB2c] = useState<CardData>(toCardData(struttura, 'b2c'))

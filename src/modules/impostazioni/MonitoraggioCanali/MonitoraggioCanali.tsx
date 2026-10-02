@@ -4,6 +4,8 @@ import Pagination from '../../../core/components/Pagination'
 import { SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './MonitoraggioCanali.sass'
+import { useStruttureCliente, useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../core/demo/struttureDemo'
 
 interface Movimento {
   id: number
@@ -22,26 +24,33 @@ interface Data {
   Movimenti: Movimento[]
 }
 
-const FALLBACK_USER = 'Mario Rossi'
-const FALLBACK_DATE = '2026-02-18T09:12:00'
+// Senza backend: movimenti verso i canali degli ultimi giorni per la struttura
+// scelta fra quelle del cliente (valori deterministici, prezzi per categoria).
+const UTENTI = ['Mario Rossi', 'Giulia Neri', 'Revenue bot', 'Luca Bianchi']
+const CANALI_MOV = ['', 'Booking.com', 'Expedia', 'Sito web', 'Airbnb']
+const TIPI_CAMERA = ['Singola Classic', 'Doppia Classic', 'Matrimoniale Superior', 'Tripla Classic', 'Suite', '']
+const OPERAZIONI = ['Tariffa', 'Tariffa', 'Tariffa', 'Disponibilità', 'Restrizione']
 
-const FALLBACK: Data = {
-  Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
-  StrutturaId: 1,
-  Movimenti: [
-    { id: 1,  tipoOperazione: 'Tariffa', valore: 260.41, canale: '', utente: FALLBACK_USER, tipoCamera: 'Singola Classic',     dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 2,  tipoOperazione: 'Tariffa', valore: 294.72, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 3,  tipoOperazione: 'Tariffa', valore: 294.72, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 4,  tipoOperazione: 'Tariffa', valore: 313.84, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 5,  tipoOperazione: 'Tariffa', valore: 313.84, canale: '', utente: FALLBACK_USER, tipoCamera: 'Doppia Classic',      dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 6,  tipoOperazione: 'Tariffa', valore: 362.39, canale: '', utente: FALLBACK_USER, tipoCamera: 'Matrimoniale Superior', dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 7,  tipoOperazione: 'Tariffa', valore: 367.91, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 8,  tipoOperazione: 'Tariffa', valore: 367.91, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 9,  tipoOperazione: 'Tariffa', valore: 367.91, canale: '', utente: FALLBACK_USER, tipoCamera: 'Tripla Classic',      dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 10, tipoOperazione: 'Tariffa', valore: 389.41, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 11, tipoOperazione: 'Tariffa', valore: 386.17, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-    { id: 12, tipoOperazione: 'Tariffa', valore: 277.04, canale: '', utente: FALLBACK_USER, tipoCamera: '',                    dataModifica: FALLBACK_DATE, errore: '' },
-  ],
+function genFallback(schede: SchedaDemo[], strutturaId: number | null): Data {
+  const strutture = schede.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome }))
+  const sel = schede.find((x) => idStruttura(x.nome) === strutturaId) ?? schede[0]
+  const livello = !sel ? 1 : sel.stelle >= 5 ? 1.6 : sel.stelle === 4 ? 1.1 : 0.85
+  const seme = sel?.seme ?? 1
+  const ora = Date.now()
+  const Movimenti: Movimento[] = Array.from({ length: 36 }, (_, i) => {
+    const r = ((seme + i * 2654435761) >>> 0) % 1000
+    const op = OPERAZIONI[r % OPERAZIONI.length]
+    const d = new Date(ora - (i * 5 + (r % 5)) * 3600000)
+    return {
+      id: i + 1, tipoOperazione: op,
+      valore: op === 'Tariffa' ? Math.round((120 + (r % 160)) * livello * 100) / 100 : op === 'Disponibilità' ? r % 12 : 0,
+      canale: CANALI_MOV[(r >> 3) % CANALI_MOV.length], utente: UTENTI[(r >> 5) % UTENTI.length],
+      tipoCamera: TIPI_CAMERA[(r >> 2) % TIPI_CAMERA.length],
+      dataModifica: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`,
+      errore: r % 29 === 0 ? 'Timeout del channel manager: ritrasmesso' : '',
+    }
+  })
+  return { Strutture: strutture, StrutturaId: sel ? idStruttura(sel.nome) : null, Movimenti }
 }
 
 const PAGE_SIZE = 12
@@ -70,13 +79,18 @@ function todayISO(): string {
 }
 
 export default function MonitoraggioCanali({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const schede = useStruttureCliente()
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const [data, setData] = useState<Data>(() => genFallback(schede, idStruttura(strutturaCorrente)))
   const [allaData, setAllaData] = useState<string>(todayISO())
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<Record<ColKey, string>>({ tipoOperazione: '', canale: '', utente: '', tipoCamera: '' })
   const [openFilter, setOpenFilter] = useState<ColKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [page, setPage] = useState(1)
+
+  // Cambiata la struttura selezionata in alto: si riparte da quella.
+  useEffect(() => { setData((d) => ({ ...d, StrutturaId: idStruttura(strutturaCorrente) })) }, [strutturaCorrente])
 
   useEffect(() => {
     let cancelled = false
@@ -85,10 +99,10 @@ export default function MonitoraggioCanali({ navigate }: { navigate: (p: string)
       body: { strutturaId: data.StrutturaId, allaData },
     })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => { /* keep fallback */ })
+      .catch(() => { if (!cancelled) setData((d) => genFallback(schede, d.StrutturaId)) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allaData, data.StrutturaId])
+  }, [allaData, data.StrutturaId, schede])
 
   const filtered = useMemo(() => {
     let rows = data.Movimenti

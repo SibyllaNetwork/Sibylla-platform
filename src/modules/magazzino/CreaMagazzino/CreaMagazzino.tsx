@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import FormGrid from '../../../core/components/FormGrid'
 import FormActions from '../../../core/components/FormActions'
@@ -13,19 +13,14 @@ import { useCatalogoStore } from '../../../store/useCatalogoStore'
 import type { Magazzino, Movimento } from '../../../store/useCatalogoStore'
 import type { Prodotto } from '../../../admin/SibyllaAdminPanel/catalogo/types'
 import './CreaMagazzino.sass'
+import { useStruttureCliente, useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { schedaDemo } from '../../../core/demo/struttureDemo'
 
 interface Struttura {
   id: string
   nome: string
 }
 
-const STRUTTURE: Struttura[] = [
-  { id: 'ciao',     nome: 'ciao' },
-  { id: 'grim',     nome: "Grim's Hotel" },
-  { id: 'azzurro',  nome: 'Hotel Azzurro Mare' },
-  { id: 'tutorial', nome: 'Hotel Tutorial' },
-  { id: 'test',     nome: 'test' },
-]
 
 export default function CreaMagazzino({
   navigate,
@@ -34,6 +29,9 @@ export default function CreaMagazzino({
   navigate: (p: string) => void
   autoOpen?: boolean
 }) {
+  // Strutture del cliente corrente.
+  const schedeCliente = useStruttureCliente()
+  const STRUTTURE: Struttura[] = useMemo(() => schedeCliente.map((x) => ({ id: x.id, nome: x.nome })), [schedeCliente])
   const magazzini         = useCatalogoStore(s => s.magazzini)
   const addMagazzino      = useCatalogoStore(s => s.addMagazzino)
   const movimenti         = useCatalogoStore(s => s.movimenti)
@@ -41,7 +39,9 @@ export default function CreaMagazzino({
   const prodotti          = useCatalogoStore(s => s.prodotti)
   const giacenza          = useCatalogoStore(s => s.giacenza)
 
-  const [strutturaId, setStrutturaId] = useState<string>('azzurro')
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const [strutturaId, setStrutturaId] = useState<string>(() => schedaDemo(strutturaCorrente).id)
+  useEffect(() => { setStrutturaId(schedaDemo(strutturaCorrente).id) }, [strutturaCorrente])
   const [magazzinoId, setMagazzinoId] = useState<string>('')
 
   const [createOpen, setCreateOpen] = useState<boolean>(!!autoOpen)

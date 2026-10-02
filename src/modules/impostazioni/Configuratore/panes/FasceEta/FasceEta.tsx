@@ -6,6 +6,8 @@ import Tooltip from '../../../../../core/components/Tooltip'
 import { CfgToolbar, CfgSaveBar } from '../../../../../core/cfg'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './FasceEta.sass'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../../../core/demo/struttureDemo'
 
 // ─── FASCE D'ETÀ (§4.5) ───────────────────────────────────────────────────────
 //  Fasce anagrafiche (infanti / bambini / ragazzi) + adulti extra, in quattro
@@ -107,7 +109,11 @@ export default function FasceEta() {
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
   const [strutture, setStrutture]     = useState<Struttura[]>([])
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Senza backend: le strutture del cliente corrente, a partire da quella selezionata in alto.
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const struttureCliente = useStruttureCliente()
+  const [strutturaId, setStrutturaId] = useState<number | null>(() => idStruttura(strutturaCorrente))
+  useEffect(() => { setStrutturaId(idStruttura(strutturaCorrente)) }, [strutturaCorrente])
   const [savedFasce, setSavedFasce]   = useState<Fasce>(FALLBACK_FASCE)
   const [fasce, setFasce]             = useState<Fasce>(FALLBACK_FASCE)
   const [savedAdulti, setSavedAdulti] = useState<AdultiExtra>(FALLBACK_ADULTI)
@@ -182,10 +188,8 @@ export default function FasceEta() {
           className="fasce-eta__field"
           value={strutturaId ?? ''}
           onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
-          options={[
-            { value: '', label: 'Hotel Tutorial' },
-            ...strutture.map((s) => ({ value: s.Id, label: s.nome })),
-          ]}
+          options={(strutture.length ? strutture : struttureCliente.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })))
+            .map((s) => ({ value: s.Id, label: s.nome }))}
         />
       </CfgToolbar>
 

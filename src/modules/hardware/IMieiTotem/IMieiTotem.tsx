@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import TotemAgoraCta from '../_shared/TotemAgoraCta'
 import TotemDettaglioModal from '../_shared/TotemDettaglioModal'
 import './IMieiTotem.sass'
+import { useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import type { SchedaDemo } from '../../../core/demo/struttureDemo'
 
 interface Totem {
   id: string
@@ -13,17 +15,20 @@ interface Totem {
   acceso: boolean
 }
 
-const INITIAL: Totem[] = [
-  { id: 't1', struttura: 'Hotel Archimede',          indirizzo: 'Via dei Mille 19 - Roma',         noleggiaSpazi: false, acceso: true  },
-  { id: 't2', struttura: 'B&B Solare',                indirizzo: 'Via Remo Remotti 2 - Roma',       noleggiaSpazi: true,  acceso: false },
-  { id: 't3', struttura: 'Centro Estetico - Saches', indirizzo: 'Via delle Zattere 25 - Roma',     noleggiaSpazi: true,  acceso: true  },
-  { id: 't4', struttura: 'Hotel Centro',              indirizzo: 'Via delle Zattere 25 - Roma',     noleggiaSpazi: true,  acceso: false },
-  { id: 't5', struttura: 'B&B Solare',                indirizzo: 'Via Remo Remotti 2 - Roma',       noleggiaSpazi: true,  acceso: true  },
-  { id: 't6', struttura: 'Centro Estetico - Saches', indirizzo: 'Via delle Zattere 25 - Roma',     noleggiaSpazi: true,  acceso: true  },
-]
+// I totem del cliente corrente: uno per struttura (due nelle strutture grandi,
+// reception e ristorante), indirizzi derivati dalla scheda.
+const totemDemo = (schede: SchedaDemo[]): Totem[] => schede.flatMap((x) => {
+  const indirizzo = `Via Roma ${1 + (x.seme % 90)} - ${x.citta}`
+  const base = { struttura: x.nome, indirizzo }
+  const out: Totem[] = [{ ...base, id: `t-${x.id}`, noleggiaSpazi: x.seme % 2 === 0, acceso: true }]
+  if (x.camere > 40) out.push({ ...base, struttura: `${x.nome} · Ristorante`, id: `t-${x.id}-r`, noleggiaSpazi: true, acceso: x.seme % 3 !== 0 })
+  return out
+})
 
 export default function IMieiTotem({ navigate }: { navigate: (p: string) => void }) {
-  const [totems, setTotems] = useState<Totem[]>(INITIAL)
+  const schede = useStruttureCliente()
+  const [totems, setTotems] = useState<Totem[]>(() => totemDemo(schede))
+  useEffect(() => { setTotems(totemDemo(schede)) }, [schede])
   const [allRent, setAllRent] = useState(true)
   const [dettaglio, setDettaglio] = useState<Totem | null>(null)
 

@@ -6,6 +6,8 @@ import Modal from '../../../core/components/Modal'
 import { DatePickerField, SelectField, SearchField, RadioGroup, InputField, TextareaField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './PianoCamere.sass'
+import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import { generaPms, isoIt } from '../../operation/_data/pmsDemo'
 
 // Piano camere giornaliero — vista operativa giornaliera per camera (occupazione,
 // assegnatario, pulizia, manutenzione, VIP). Da Stato camere → "Piano camere giornaliero".
@@ -27,28 +29,45 @@ interface Riga {
   vip: boolean
 }
 
-const STRUTTURE = ['Hotel Tutorial', 'Hotel Archimede', 'Hotel Azzurro Mare']
 const PAGE_SIZE = 10
-const D = '26/06/2026'
+const oggiIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const piuGiorni = (iso: string, n: number) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 
-const MOCK: Riga[] = [
-  { id: 1,  data: D, camera: '1',   statoOcc: 'Arrivata',       assegnatario: 'dino tacchini', cliente: 'Virgy novi',   inData: '26/06/2026', outData: '27/06/2026', progrRN: '0', gruppo: false, note: '', pulizia: true,  manutenzione: true, vip: false },
-  { id: 2,  data: D, camera: '101', statoOcc: 'In manutenzione', assegnatario: 'Ruggero AppOp', cliente: 'Emy Nasa',     inData: '19/06/2026', outData: '26/06/2026', progrRN: '-', gruppo: false, note: '', pulizia: false, manutenzione: true, vip: false },
-  { id: 3,  data: D, camera: '102', statoOcc: 'In manutenzione', assegnatario: 'dino tacchini', cliente: 'paolo pili',   inData: '26/06/2026', outData: '27/06/2026', progrRN: '0', gruppo: false, note: '', pulizia: false, manutenzione: true, vip: false },
-  { id: 4,  data: D, camera: '103', statoOcc: 'In manutenzione', assegnatario: 'dino tacchini', cliente: 'ilenia dibi',  inData: '26/06/2026', outData: '27/06/2026', progrRN: '0', gruppo: false, note: '', pulizia: false, manutenzione: true, vip: false },
-  { id: 5,  data: D, camera: '104', statoOcc: 'In manutenzione', assegnatario: 'dino tacchini', cliente: 'miranda rossi', inData: '26/06/2026', outData: '27/06/2026', progrRN: '0', gruppo: false, note: '', pulizia: true,  manutenzione: true, vip: false },
-  { id: 6,  data: D, camera: '105', statoOcc: '-',              assegnatario: 'dino tacchini', cliente: '',            inData: '', outData: '', progrRN: '-', gruppo: false, note: '', pulizia: true,  manutenzione: true, vip: false },
-  { id: 7,  data: D, camera: '106', statoOcc: 'In arrivo',       assegnatario: 'Ruggero AppOp', cliente: 'test df nasa', inData: '26/06/2026', outData: '27/06/2026', progrRN: '0', gruppo: false, note: '', pulizia: false, manutenzione: true, vip: false },
-  { id: 8,  data: D, camera: '107', statoOcc: '-',              assegnatario: 'Ruggero AppOp', cliente: '',            inData: '', outData: '', progrRN: '-', gruppo: false, note: '', pulizia: true,  manutenzione: true, vip: false },
-  { id: 9,  data: D, camera: '108', statoOcc: 'In arrivo',       assegnatario: 'Sibylla System', cliente: 'paolo pili', inData: '26/06/2026', outData: '27/06/2026', progrRN: '0', gruppo: false, note: '', pulizia: false, manutenzione: true, vip: true  },
-  { id: 10, data: D, camera: '109', statoOcc: '-',              assegnatario: 'Ruggero AppOp', cliente: '',            inData: '', outData: '', progrRN: '-', gruppo: false, note: '', pulizia: true,  manutenzione: true, vip: false },
-  { id: 11, data: D, camera: '110', statoOcc: 'Arrivata',       assegnatario: 'dino tacchini', cliente: 'luca verdi',  inData: '26/06/2026', outData: '28/06/2026', progrRN: '0', gruppo: true,  note: 'Gruppo Robintur', pulizia: false, manutenzione: true, vip: false },
-  { id: 12, data: D, camera: '201', statoOcc: '-',              assegnatario: 'Ruggero AppOp', cliente: '',            inData: '', outData: '', progrRN: '-', gruppo: false, note: '', pulizia: true,  manutenzione: false, vip: false },
-]
+// Piano del giorno dal gestionale demo della struttura scelta: una riga per
+// camera, con chi c'è, chi arriva e chi parte (stesse prenotazioni del Planner).
+const GOVERNANTI = ['Rosa Cutrona', 'Dino Tacchini', 'Ruggero Pace', 'Sibylla System']
+function pianoDelGiorno(scheda: { nome: string; categoria: string; camere: number; seme: number } | undefined, giorno: string): Riga[] {
+  if (!scheda || scheda.camere === 0) return []
+  const pms = generaPms({ nome: scheda.nome, categoria: scheda.categoria, camere: scheda.camere })
+  return pms.camere.map((c, i) => {
+    const sue = pms.prenotazioni.filter((p) => p.camera === c.numero && p.stato !== 'noshow')
+    const inCorso = sue.find((p) => p.checkIn <= giorno && giorno < p.checkOut)
+    const parte = sue.find((p) => p.checkOut === giorno)
+    const p = inCorso ?? parte
+    const r = (scheda.seme + i * 7919) % 100
+    const manut = r < 4
+    const statoOcc = manut ? 'In manutenzione'
+      : !p ? '-'
+      : inCorso && inCorso.checkIn === giorno ? (inCorso.checkin === 'da-fare' ? 'In arrivo' : 'Arrivata')
+      : inCorso ? 'In casa' : 'In partenza'
+    const notti = p ? Math.round((new Date(giorno).getTime() - new Date(p.checkIn).getTime()) / 86400000) : 0
+    return {
+      id: i + 1, data: isoIt(giorno), camera: c.numero, statoOcc,
+      assegnatario: GOVERNANTI[(scheda.seme + Math.floor(i / 8)) % GOVERNANTI.length],
+      cliente: p?.ospiti[0]?.nome ?? '', inData: p ? isoIt(p.checkIn) : '', outData: p ? isoIt(p.checkOut) : '',
+      progrRN: p ? String(Math.max(0, notti)) : '-', gruppo: p?.tipo === 'Gruppo',
+      note: p?.tipo === 'Gruppo' ? p.nominativo : p?.note ?? '',
+      pulizia: !!parte || !p || r % 3 === 0, manutenzione: manut, vip: !!p?.vip,
+    }
+  })
+}
 
 export default function PianoCamere({ navigate }: { navigate: (p: string) => void }) {
-  const [giorno, setGiorno] = useState('2026-06-26')
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // Oggi, per la struttura selezionata in alto (o un'altra del cliente).
+  const [giorno, setGiorno] = useState(oggiIso)
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
+  const schede = useStruttureCliente()
+  const MOCK = useMemo(() => pianoDelGiorno(schede.find((x) => x.nome === struttura), giorno), [schede, struttura, giorno])
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('tutte')
   const [page, setPage] = useState(1)
@@ -62,7 +81,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
     const q = search.toLowerCase().trim()
     if (q) rows = rows.filter((r) => `${r.camera} ${r.assegnatario} ${r.cliente}`.toLowerCase().includes(q))
     return rows
-  }, [status, search])
+  }, [status, search, MOCK])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -80,7 +99,7 @@ export default function PianoCamere({ navigate }: { navigate: (p: string) => voi
 
       <div className="piano-cam__bar">
         <DatePickerField name="giorno" label="Giorno" className="w-44" value={giorno} onChange={(e) => setGiorno(e.target.value)} />
-        <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+        <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
         <div className="flex flex-col gap-1 min-w-[200px]">
           <label className="text-[12px] font-semibold font-poppins text-primary">Ricerca</label>
           <SearchField name="cerca" placeholder="Cerca…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
@@ -176,6 +195,7 @@ const ASSEGNATARI = ['dino tacchini', 'Ruggero AppOp', 'Sibylla System']
 const PRIORITA = ['Bassa', 'Normale', 'Alta', 'Urgente']
 
 function CreaIncaricoModal({ struttura, onClose, onAdd }: { struttura: string; onClose: () => void; onAdd: () => void }) {
+  const [, , opzioniStrutture] = useStrutturaPagina()
   const [form, setForm] = useState({
     struttura, camere: '', genere: GENERI[0], reparto: REPARTI[0],
     assegnatario: ASSEGNATARI[0], priorita: 'Normale', descrizione: '',
@@ -186,7 +206,7 @@ function CreaIncaricoModal({ struttura, onClose, onAdd }: { struttura: string; o
     <Modal open onClose={onClose} title="Aggiungi incarico" size="lg">
       <div className="flex flex-col gap-4">
         <SelectField name="struttura" label="Struttura" value={form.struttura} onChange={(e) => set('struttura', e.target.value)}
-          options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+          options={opzioniStrutture} />
         <InputField name="camere" label="Camere" placeholder="es. 101, 102, 103" value={form.camere} onChange={(e) => set('camere', e.target.value)} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <SelectField name="genere" label="Genere Intervento" value={form.genere} onChange={(e) => set('genere', e.target.value)}

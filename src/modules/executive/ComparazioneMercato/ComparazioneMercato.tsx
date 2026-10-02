@@ -7,6 +7,7 @@ import PageHead from '../../../core/components/PageHead'
 import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
 import './ComparazioneMercato.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 // ─── Modello dati ─────────────────────────────────────────────────────────────
 interface Hotel {
@@ -23,7 +24,8 @@ interface Hotel {
 
 // Hotel dell'utente (il "tuo hotel")
 const MY_HOTEL: Hotel = {
-  id: 'mine', nome: 'Hotel Archimede', seed: 0, basePrice: 132, baseScore: 9.4,
+  // Il nome è quello della struttura selezionata (vedi myHotel nel componente).
+  id: 'mine', nome: '', seed: 0, basePrice: 132, baseScore: 9.4,
   camere: ['Doppia Classic', 'Singola Standard', 'Tripla Comfort', 'Suite Vista'],
 }
 
@@ -58,7 +60,8 @@ const SEED_MONITORATI: Hotel[] = [
 const LINE_COLORS = ['#E07B39', '#5A8A3C', '#9B59B6', '#2E86C1', '#C0392B', '#16A085']
 const MY_COLOR = '#204769'
 
-const TODAY = new Date('2026-06-09T00:00:00')
+// Oggi (a mezzanotte): le serie arrivano fino alla data corrente.
+const TODAY = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })()
 const fmtDate = (offset: number) => {
   const d = new Date(TODAY.getTime() - offset * 86400000)
   return `${d.getDate()}/${d.getMonth() + 1}`
@@ -87,7 +90,9 @@ function Stelle({ n = 0 }: { n?: number }) {
 export default function ComparazioneMercato({ navigate }: { navigate: (p: string) => void }) {
   const [cap, setCap]           = useState('00185')
   const [paese, setPaese]       = useState('Italia')
-  const [struttura, setStrutt]  = useState('Hotel Archimede')
+  // Il "tuo hotel" è la struttura selezionata in alto.
+  const [struttura, setStrutt, opzioniStrutture] = useStrutturaPagina()
+  const myHotel = useMemo(() => ({ ...MY_HOTEL, nome: struttura }), [struttura])
   const [metric, setMetric]     = useState<Metric>('pricing')
   const [giorni, setGiorni]     = useState<30 | 60 | 90>(30)
   const [loading, setLoading]   = useState(true)
@@ -134,8 +139,8 @@ export default function ComparazioneMercato({ navigate }: { navigate: (p: string
 
   // Serie per il grafico: hotel visibili = il tuo + i selezionati
   const visibili = useMemo(
-    () => [MY_HOTEL, ...monitorati.filter(m => checked.includes(m.id))],
-    [monitorati, checked],
+    () => [myHotel, ...monitorati.filter(m => checked.includes(m.id))],
+    [myHotel, monitorati, checked],
   )
 
   const chartData = useMemo(() => {
@@ -184,7 +189,7 @@ export default function ComparazioneMercato({ navigate }: { navigate: (p: string
           <SelectField
             name="struttura" label="Strutture" value={struttura}
             onChange={e => setStrutt(e.target.value)}
-            options={[{ value: 'Hotel Archimede', label: 'Hotel Archimede' }]}
+            options={opzioniStrutture}
           />
         </div>
 
@@ -278,7 +283,7 @@ export default function ComparazioneMercato({ navigate }: { navigate: (p: string
 
           <div className="cm__monitor-box">
             <div className="cm__monitor-head">
-              <span className="cm__monitor-mine">{MY_HOTEL.nome}</span>
+              <span className="cm__monitor-mine">{myHotel.nome}</span>
               <span className="cm__monitor-mine-tag"><i className="fa-light fa-hotel" aria-hidden="true" /> Il tuo hotel</span>
             </div>
 

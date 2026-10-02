@@ -18,6 +18,7 @@ import {
   type PianoTariffario,
 } from './bottomRateData'
 import './BottomRate.sass'
+import { useStrutturaPagina } from '../../../../../hooks/useStrutturaCorrente'
 
 // ─── BOTTOM RATE ─────────────────────────────────────────────────────────────
 //  Soglia minima per tipologia camera: la colonna "Camera di riferimento" è
@@ -40,6 +41,8 @@ function completionOf(righe: RigaBottomRate[]): CfgCompletion {
 }
 
 export default function BottomRate() {
+  // Strutture del cliente corrente, a partire da quella selezionata in alto.
+  const [strutturaNome, setStrutturaNome, opzioniStrutture] = useStrutturaPagina()
   const saved         = useBottomRateStore(s => s.righe)
   const savedNotifica = useBottomRateStore(s => s.notifica)
   const persistiSalva = useBottomRateStore(s => s.salva)
@@ -121,9 +124,9 @@ export default function BottomRate() {
         <SelectField
           name="struttura"
           label="Struttura"
-          value=""
-          onChange={() => { /* struttura unica nel profilo demo */ }}
-          options={[{ value: '', label: 'Hotel Tutorial' }]}
+          value={strutturaNome}
+          onChange={(e) => setStrutturaNome(e.target.value)}
+          options={opzioniStrutture}
         />
       </CfgToolbar>
 

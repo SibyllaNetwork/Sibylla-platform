@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import Tooltip from '../../../../core/components/Tooltip'
 import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+import { pmsAttivo, usePmsStore } from '../../../operation/_data/pmsDemo'
+import { PIANI_DATA } from '../../../operation/planner/planner.data'
 import './Assegnazione.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -36,63 +39,62 @@ interface Prenotazione {
   camera:   string
 }
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-const MOCK_CAMERE: Camera[] = [
-  { id:101, numero:'101', piano:'Primo Piano',  nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:103, numero:'103', piano:'Primo Piano',  nome:'MAT ECONOMY',           tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:104, numero:'104', piano:'Primo Piano',  nome:'Doppia Classic',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:105, numero:'105', piano:'Primo Piano',  nome:'Doppia Classic',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:106, numero:'106', piano:'Primo Piano',  nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:107, numero:'107', piano:'Primo Piano',  nome:'MATRIMONIALE CLASSIC',  tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:108, numero:'108', piano:'Primo Piano',  nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:1,   numero:'1',   piano:'Piano Terra',  nome:'MAT + X',               tipo:'Tripla Classic',   tipoRichiesto:'TPL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:403, numero:'403', piano:'Quarto Piano', nome:'MAT ECONOMY',           tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:404, numero:'404', piano:'Quarto Piano', nome:'MAT ECONOMY',           tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:405, numero:'405', piano:'Quarto Piano', nome:'MAT ECONOMY',           tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:406, numero:'406', piano:'Quarto Piano', nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:407, numero:'407', piano:'Quarto Piano', nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:408, numero:'408', piano:'Quarto Piano', nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:201, numero:'201', piano:'Secondo Piano',nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'Sì', stato:'Assegnata', prenotazioneId:'PREN-001' },
-  { id:202, numero:'202', piano:'Secondo Piano',nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:203, numero:'203', piano:'Secondo Piano',nome:'MATRIMONIALE CLASSIC',  tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:204, numero:'204', piano:'Secondo Piano',nome:'TRIPLA CLASSIC',        tipo:'Tripla Classic',   tipoRichiesto:'TPL',  checkIn:'Sì', stato:'Assegnata', prenotazioneId:'PREN-001' },
-  { id:205, numero:'205', piano:'Secondo Piano',nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:301, numero:'301', piano:'Terzo Piano',  nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:302, numero:'302', piano:'Terzo Piano',  nome:'MAT ECONOMY',           tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:303, numero:'303', piano:'Terzo Piano',  nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'Sì', stato:'Assegnata', prenotazioneId:'PREN-001' },
-  { id:304, numero:'304', piano:'Terzo Piano',  nome:'QUADRUPLA',             tipo:'Quadrupla',        tipoRichiesto:'QDR',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:305, numero:'305', piano:'Terzo Piano',  nome:'DOPPIA CLASSIC',        tipo:'Doppia Classic',   tipoRichiesto:'DBL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:2,   numero:'2',   piano:'Piano Terra',  nome:'MAT + X',               tipo:'Tripla Classic',   tipoRichiesto:'TPL',  checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-  { id:6,   numero:'6',   piano:'Piano Terra',  nome:'SGL CLASSICA',          tipo:'Singola Classic',  tipoRichiesto:'SNGL', checkIn:'No', stato:'',          prenotazioneId:'PREN-001' },
-]
-
-const MOCK_PRENOTAZIONE: Prenotazione = {
-  id:        'PREN-001',
-  dateIn:    '11/04/2026',
-  dateOut:   '15/04/2026',
-  nCamere:   8,
-  nPersone:  16,
-  genere:    'Studenti',
-  naz:       'ITALIA',
-  checkIn:   'No',
-  nome:      '',
-  stato:     'Opzionata',
-  piano:     'Primo Piano',
-  dataOpt:   '10/04/2026',
-  camera:    '101',
+// ── Dati demo ────────────────────────────────────────────────────────────────
+//  Dal gestionale demo della struttura selezionata (_data/pmsDemo): la prossima
+//  prenotazione di gruppo con le sue camere, e le camere libere per piano nelle
+//  stesse date per il cambio assegnazione. Coerente con Planner e Arrivi.
+const itDi = (iso: string) => iso.split('-').reverse().join('/')
+const isoMeno = (iso: string, n: number) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const TIPO_UMANO: Record<string, [string, string]> = {
+  SGL: ['Singola Classic', 'SNGL'], DBL: ['Doppia Classic', 'DBL'], MAT: ['Doppia Classic', 'DBL'],
+  TRP: ['Tripla Classic', 'TPL'], SUITE: ['Suite', 'STE'],
 }
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
-
-// Camere disponibili per piano (mock) — usate in "Modifica assegnazione".
-const AVAILABLE_ROOMS: Record<string, string[]> = {
-  'Piano Terra':   ['2', '4', '6'],
-  'Primo Piano':   ['102', '109', '110'],
-  'Secondo Piano': ['201', '202', '205', '207'],
-  'Terzo Piano':   ['301', '303', '308'],
-  'Quarto Piano':  ['401', '402', '409'],
+function assegnazioneDemo() {
+  const pms = pmsAttivo()
+  const d0 = new Date()
+  const oggi = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, '0')}-${String(d0.getDate()).padStart(2, '0')}`
+  const pianoDi = (numero: string) => PIANI_DATA.find((p) => p.camere.some((c) => c.numero === numero))?.nome ?? ''
+  // Il prossimo gruppo in arrivo (dopo oggi) con più camere; altrimenti la prima prenotazione futura.
+  const futuri = pms.prenotazioni.filter((x) => x.checkIn > oggi && x.stato !== 'noshow')
+  const camereDi = (b: string) => pms.prenotazioni.filter((x) => x.booking === b).length
+  const gruppi = futuri.filter((x) => x.tipo === 'Gruppo')
+  const prossimi = gruppi.filter((x) => x.checkIn <= isoMeno(oggi, -21))
+  const scelta = [...(prossimi.length ? prossimi : gruppi)].sort((a, b) => camereDi(b.booking) - camereDi(a.booking))[0]
+    ?? futuri[0] ?? pms.prenotazioni[0]
+  const stessa = scelta ? pms.prenotazioni.filter((x) => x.booking === scelta.booking) : []
+  const camere: Camera[] = stessa.map((x) => {
+    const cam = pms.camere.find((c) => c.numero === x.camera)
+    const [tipo, sigla] = TIPO_UMANO[cam?.categoria ?? 'DBL']
+    const fatto = x.checkin !== 'da-fare'
+    return {
+      id: Number(x.camera) || 0, numero: x.camera, piano: pianoDi(x.camera), nome: cam?.tipo ?? '',
+      tipo, tipoRichiesto: sigla, checkIn: fatto ? 'Sì' : 'No', stato: fatto ? 'Assegnata' : '', prenotazioneId: x.booking,
+    }
+  })
+  const disponibili: Record<string, string[]> = {}
+  if (scelta) {
+    pms.camere
+      .filter((c) => !pms.prenotazioni.some((x) => x.camera === c.numero && x.checkIn < scelta.checkOut && x.checkOut > scelta.checkIn && x.stato !== 'noshow'))
+      .forEach((c) => { const p = pianoDi(c.numero); if ((disponibili[p] ||= []).length < 4) disponibili[p].push(c.numero) })
+  }
+  const prenotazione: Prenotazione | null = scelta ? {
+    id: scelta.booking,
+    dateIn: itDi(scelta.checkIn),
+    dateOut: itDi(scelta.checkOut),
+    nCamere: stessa.length,
+    nPersone: stessa.reduce((a, x) => a + x.ospiti.length, 0),
+    genere: scelta.tipo === 'Gruppo' ? 'Gruppi' : 'Individuali',
+    naz: 'ITALIA',
+    checkIn: scelta.checkin === 'da-fare' ? 'No' : 'Sì',
+    nome: scelta.nominativo,
+    stato: scelta.stato === 'opzione' ? 'Opzionata' : 'Confermata',
+    piano: pianoDi(scelta.camera),
+    dataOpt: itDi(isoMeno(scelta.checkIn, 3)),
+    camera: scelta.camera,
+  } : null
+  return { camere, disponibili, prenotazione, dal: scelta?.checkIn ?? oggi, al: scelta?.checkOut ?? oggi }
 }
-const PIANI = Object.keys(AVAILABLE_ROOMS)
 
 // Colonne filtrabili della tabella
 const COLS = [
@@ -148,15 +150,30 @@ function ColFilter({ label, options, selected, onChange }: {
 
 // ── Componente ────────────────────────────────────────────────────────────────
 export default function Assegnazione({ navigate }: { navigate: (p: string) => void }) {
-  const [calendario, setCalendario] = useState('2026-04-13')
-  const [calendarioFine, setCalendarioFine] = useState('2026-04-14')
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // Ricalcolato quando cambia la struttura selezionata (gestionale demo).
+  const versionePms = usePmsStore((st) => st.versione)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const demo = useMemo(() => assegnazioneDemo(), [versionePms])
+  const MOCK_CAMERE = demo.camere
+  const MOCK_PRENOTAZIONE = demo.prenotazione
+  const AVAILABLE_ROOMS = demo.disponibili
+  const PIANI = Object.keys(AVAILABLE_ROOMS)
+  const [calendario, setCalendario] = useState(demo.dal)
+  const [calendarioFine, setCalendarioFine] = useState(demo.al)
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
 
   const [cameras, setCameras]   = useState<Camera[]>(MOCK_CAMERE)
-  const [selectedId, setSelectedId] = useState<number | null>(MOCK_CAMERE[0].id)
+  const [selectedId, setSelectedId] = useState<number | null>(MOCK_CAMERE[0]?.id ?? null)
   // Modalità modifica assegnazione (cambio piano + scelta nuova camera).
   const [editMode, setEditMode]     = useState(false)
-  const [editPiano, setEditPiano]   = useState(MOCK_CAMERE[0].piano)
+  const [editPiano, setEditPiano]   = useState(MOCK_CAMERE[0]?.piano ?? '')
+  useEffect(() => {
+    setCameras(demo.camere)
+    setSelectedId(demo.camere[0]?.id ?? null)
+    setEditPiano(demo.camere[0]?.piano ?? '')
+    setCalendario(demo.dal)
+    setCalendarioFine(demo.al)
+  }, [demo])
   const [editCamera, setEditCamera] = useState<string | null>(null)
 
   // Filtri di colonna (imbuto): per ogni colonna una lista di valori ammessi.
@@ -222,7 +239,7 @@ export default function Assegnazione({ navigate }: { navigate: (p: string) => vo
           className="w-[180px]"
           value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
         />
       </div>
 

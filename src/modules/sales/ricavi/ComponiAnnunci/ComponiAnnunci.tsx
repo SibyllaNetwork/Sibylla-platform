@@ -12,6 +12,8 @@ import {
 import { scaricaContrattoPdf } from './contrattoPdf'
 import { useAnnunciStore, type AnnuncioPubblicato } from '../../../../store/useAnnunciStore'
 import './ComponiAnnunci.sass'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../../core/demo/struttureDemo'
 
 type ConfirmFn = (o: { title: string; message: string; confirmLabel?: string; danger?: boolean }) => Promise<boolean>
 
@@ -55,7 +57,6 @@ interface RigaBacheca {
 }
 
 // ─── OPZIONI ────────────────────────────────────────────────────────────────
-const STRUTTURE = [{ Id: 1, nome: "Grim's Hotel" }, { Id: 2, nome: 'Hotel Azzurro Mare' }]
 // Categoria struttura = classificazione a stelle (3 / 4 / 5).
 const CATEGORIE_STELLE = [
   { value: '3', label: '★★★ · 3 stelle' },
@@ -119,10 +120,20 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const confirm = useConfirmStore((s) => s.confirm)
   const pubblicaAnnuncio = useAnnunciStore((s) => s.pubblica)
 
+  // Strutture (con camere) del cliente, a partire da quella selezionata in alto.
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const schede = useStruttureCliente()
+  const STRUTTURE = useMemo(() => schede.filter((x) => x.camere > 0).map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })), [schede])
+  // Prossima stagione: dal mese prossimo per quattro mesi.
+  const periodoDefault = (() => {
+    const d = new Date(); const da = new Date(d.getFullYear(), d.getMonth() + 1, 1); const a = new Date(d.getFullYear(), d.getMonth() + 5, 0)
+    const iso = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+    return { da: iso(da), a: iso(a) }
+  })()
   const [params, setParams] = useState<Params>({
-    tipo: 'Vendita', tipologia: 'Struttura', strutturaId: 1, categoria: '4',
+    tipo: 'Vendita', tipologia: 'Struttura', strutturaId: idStruttura(strutturaCorrente), categoria: '4',
     tipoOspiti: 'Gruppi', segmento: 'Adulti', marketSpecific: [], tipologiaBase: 'Base doppia', tipoLotti: 'Lotto',
-    dataDa: '2026-07-01', dataA: '2026-10-31', tourOperator: 'Tutti',
+    dataDa: periodoDefault.da, dataA: periodoDefault.a, tourOperator: 'Tutti',
     quantita: 1, quantitaMax: 1, tipologiaPagamento: 'VCC',
     citta: 'Roma', categoriaLivello: '5', tipologiaCamere: 'Singola Classic',
   })
@@ -233,7 +244,7 @@ export default function ComponiAnnunci({ navigate }: { navigate: (p: string) => 
   const strutturaLabel = (): string => {
     if (params.tipo === 'Acquisto') return `${params.citta} · Categoria ${params.categoriaLivello} stelle`
     if (params.tipologia === 'Categoria') return `Categoria ${params.categoria} stelle`
-    return STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? "Grim's Hotel"
+    return STRUTTURE.find((s) => s.Id === params.strutturaId)?.nome ?? strutturaCorrente
   }
 
   // Input condiviso per il builder del contratto (partendo dai parametri correnti).

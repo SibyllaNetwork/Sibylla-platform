@@ -19,6 +19,8 @@ import NewClientModal from '../../../admin/SibyllaAdminPanel/modals/NewClientMod
 import { EMPTY_NEW_CLIENT } from '../../../admin/SibyllaAdminPanel/constants'
 import type { NewClientForm, TipologiaCategoria } from '../../../admin/SibyllaAdminPanel/types'
 import './CreaStruttura.sass'
+import { useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../core/demo/struttureDemo'
 
 type StructureType = 'hotel' | 'bnb' | 'apartment' | 'outlet'
 type PmsType = 'sibylla' | 'esterno'
@@ -92,22 +94,15 @@ const FEATURES = [
   'Prodotti da bagno in omaggio', 'Asciugacapelli', 'Pantofole', 'Vino/champagne',
 ]
 
-const INITIAL_ROWS: StructureRow[] = [
-  { id: 's1',  nome: 'Hotel Archimede',     tipo: 'hotel',     citta: 'Roma',     categoria: 4, pms: 'sibylla', active: true  },
-  { id: 's2',  nome: 'Hotel Lazio',         tipo: 'hotel',     citta: 'Roma',     categoria: 3, pms: 'sibylla', active: true  },
-  { id: 's3',  nome: 'Hotel Siracusa',      tipo: 'hotel',     citta: 'Siracusa', categoria: 3, pms: 'sibylla', active: true  },
-  { id: 's4',  nome: 'Hotel Floridia',      tipo: 'hotel',     citta: 'Floridia', categoria: 3, pms: 'esterno', active: true  },
-  { id: 's5',  nome: 'Hotel Luce',          tipo: 'hotel',     citta: 'Milano',   categoria: 4, pms: 'sibylla', active: true  },
-  { id: 's6',  nome: 'Hotel Lux',           tipo: 'hotel',     citta: 'Roma',     categoria: 4, pms: 'esterno', active: true  },
-  { id: 's7',  nome: 'Hotel Noto',          tipo: 'hotel',     citta: 'Noto',     categoria: 3, pms: 'sibylla', active: true  },
-  { id: 's8',  nome: 'Hotel Regio',         tipo: 'hotel',     citta: 'Torino',   categoria: 3, pms: 'sibylla', active: true  },
-  { id: 's9',  nome: 'B&B Tramonto',        tipo: 'bnb',       citta: 'Firenze',  categoria: 3, pms: 'sibylla', active: true  },
-  { id: 's10', nome: 'Casa al Mare',        tipo: 'apartment', citta: 'Rimini',   categoria: 0, pms: 'sibylla', active: true  },
-  { id: 's11', nome: 'Ristorante Belvista', tipo: 'outlet',    citta: 'Milano',   categoria: 0, pms: 'sibylla', active: true  },
-  { id: 's12', nome: 'Ristorante Il Borgo', tipo: 'outlet',    citta: 'Firenze',  categoria: 0, pms: 'sibylla', active: true  },
-  { id: 's13', nome: 'Sede Raeli',          tipo: 'hotel',     citta: 'Roma',     categoria: 0, pms: 'sibylla', active: false },
-  { id: 's14', nome: 'Test',                tipo: 'hotel',     citta: 'Roma',     categoria: 4, pms: 'esterno', active: false },
-]
+// Le strutture del cliente corrente (schede demo): tipo, città e categoria.
+const TIPO_DA_CATEGORIA: Record<string, StructureType> = {
+  hotel: 'hotel', bnb: 'bnb', 'case-vacanze': 'apartment', appartamenti: 'apartment', studentato: 'apartment',
+  ristorante: 'outlet', bar: 'outlet',
+}
+const righeDemo = (schede: SchedaDemo[]): StructureRow[] => schede.map((x) => ({
+  id: `s-${idStruttura(x.nome)}`, nome: x.nome, tipo: TIPO_DA_CATEGORIA[x.categoria] ?? 'hotel',
+  citta: x.citta, categoria: x.stelle, pms: x.seme % 7 === 0 ? 'esterno' : 'sibylla', active: true,
+}))
 
 const PAGE_SIZE = 10
 
@@ -132,7 +127,9 @@ export default function CreaStruttura({
    */
   embedded?: boolean
 }) {
-  const [rows, setRows] = useState<StructureRow[]>(INITIAL_ROWS)
+  const schede = useStruttureCliente()
+  const [rows, setRows] = useState<StructureRow[]>(() => righeDemo(schede))
+  useEffect(() => { setRows(righeDemo(schede)) }, [schede])
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
   const [page, setPage] = useState(1)

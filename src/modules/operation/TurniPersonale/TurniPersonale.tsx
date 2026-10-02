@@ -5,6 +5,7 @@ import Modal from '../../../core/components/Modal'
 import { InputField, SelectField, DatePickerField, DateRangeField, CheckboxField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './TurniPersonale.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Turni del personale — replica `Views/HumanResource/Turnazione.cshtml`.
@@ -52,7 +53,9 @@ interface Assenza {
 // Costanti
 // ──────────────────────────────────────────────────────────────────────
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
+// Strutture del cliente corrente: riassegnate dal componente principale a ogni
+// render (stesse per le modali e per i turni di esempio).
+let STRUTTURE: string[] = []
 const REPARTI   = ['Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Cucina', 'Amministrazione']
 const FASCE: Record<FasciaTurno, { label: string; range: string; bg: string; bd: string }> = {
   mattina:    { label: 'Mattina',    range: '07–13', bg: '#FBE5E5', bd: '#E94B4B' },
@@ -105,7 +108,7 @@ function buildFallbackTurni(rangeStart: Date, rangeEnd: Date): Turno[] {
         id_dipendente: dip.id,
         data: g,
         fascia,
-        strutture: isMulti ? ['Hotel Tutorial', 'Hotel Archimede'] : [STRUTTURE[(dip.id) % STRUTTURE.length]],
+        strutture: isMulti && STRUTTURE.length > 1 ? STRUTTURE.slice(0, 2) : [STRUTTURE[(dip.id) % Math.max(1, STRUTTURE.length)] ?? ''],
       })
     })
   }
@@ -175,8 +178,12 @@ function fmtRangeLabel(start: Date, end: Date, view: ViewMode): string {
 
 export default function TurniPersonale({ navigate }: { navigate: (p: string) => void }) {
   const [view, setView] = useState<ViewMode>('settimana')
-  const [cursor, setCursor] = useState<Date>(new Date(2026, 3, 27)) // 27 aprile 2026 (lunedì)
-  const [filterStruttura, setFilterStruttura] = useState<string>('Tutte')
+  // Strutture del cliente; la settimana corrente; filtro sulla struttura selezionata in alto.
+  const { struttura: strutturaCorrente, elenco } = useStrutturaCorrente()
+  STRUTTURE = elenco
+  const [cursor, setCursor] = useState<Date>(() => new Date())
+  const [filterStruttura, setFilterStruttura] = useState<string>(strutturaCorrente)
+  useEffect(() => { setFilterStruttura(strutturaCorrente) }, [strutturaCorrente])
   const [filterReparto,   setFilterReparto]   = useState<string>('Tutti')
   const [filterFascia,    setFilterFascia]    = useState<string>('Tutte')
   const [filterAssenza,   setFilterAssenza]   = useState<string>('Tutte')
@@ -221,7 +228,8 @@ export default function TurniPersonale({ navigate }: { navigate: (p: string) => 
         setLoaded(true)
       })
     return () => { cancelled = true }
-  }, [rangeStart.getTime(), rangeEnd.getTime(), view])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeStart.getTime(), rangeEnd.getTime(), view, elenco])
 
   // Filtri
   const dipendentiFiltered = useMemo(() => dipendenti.filter((d) => {

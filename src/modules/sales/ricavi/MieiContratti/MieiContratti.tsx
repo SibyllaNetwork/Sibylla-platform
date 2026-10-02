@@ -5,6 +5,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../../services/api'
 import { setEditingContract } from '../InserisciContrattoVendita/_state'
 import './MieiContratti.sass'
+import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 
 interface Contratto {
   id: number
@@ -27,6 +28,7 @@ interface Data {
   Contratti: Contratto[]
 }
 
+// Esempio di partenza: le strutture dei contratti diventano quelle del cliente.
 const FALLBACK: Data = {
   Contratti: [
     { id: 234, ragioneSociale: 'Tour Operator Test', struttura: '-',             categoria: 3, hasInfo: true,  emailAttiva: true, contattiAttivi: true, periodo: '11/02/2026 - 31/12/2026', camera: 120,  persona: 25, supplemento: 3, sconto: 0, mercato: 'it', attivo: true  },
@@ -55,7 +57,24 @@ function fmtPercent(v: number): string {
 type ColKey = 'struttura' | 'categoria' | 'mercato'
 
 export default function MieiContratti({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const schede = useStruttureCliente()
+  const nomiStrutture = useMemo(() => schede.filter((x) => x.camere > 0).map((x) => x.nome), [schede])
+  const conStrutture = (d: Data): Data => {
+    const mappa: Record<string, number> = {}
+    return {
+      ...d,
+      Contratti: d.Contratti.map((c) => {
+        if (c.struttura === '-' || !nomiStrutture.length) return c
+        if (!(c.struttura in mappa)) mappa[c.struttura] = Object.keys(mappa).length
+        return { ...c, struttura: nomiStrutture[mappa[c.struttura] % nomiStrutture.length] }
+      }),
+    }
+  }
+  const [data, setData] = useState<Data>(() => conStrutture(FALLBACK))
+  // Dati del backend (se risponde) hanno la precedenza sull'esempio.
+  const [remoto, setRemoto] = useState(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!remoto) setData(conStrutture(FALLBACK)) }, [nomiStrutture])
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
@@ -70,7 +89,7 @@ export default function MieiContratti({ navigate }: { navigate: (p: string) => v
   useEffect(() => {
     let cancelled = false
     apiFetchSibylla<Data>('contratti/GetVendita', { method: 'POST', body: {} })
-      .then((d) => { if (!cancelled) setData(d) })
+      .then((d) => { if (!cancelled) { setData(d); setRemoto(true) } })
       .catch(() => {})
     return () => { cancelled = true }
   }, [])

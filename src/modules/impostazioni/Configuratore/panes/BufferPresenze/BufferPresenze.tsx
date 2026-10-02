@@ -4,6 +4,8 @@ import { InputField, ToggleSwitch } from '../../../../../core/components/form'
 import { CfgTable, CfgSaveBar } from '../../../../../core/cfg'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './BufferPresenze.sass'
+import { useStruttureCliente } from '../../../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../../../core/demo/struttureDemo'
 
 // ─── BUFFER PRESENZE (§4.10) ──────────────────────────────────────────────────
 //  Struttura e contenuti sono CORRETTI (parola del committente): qui si
@@ -24,10 +26,12 @@ interface Riga {
 }
 interface Data { rows: Riga[] }
 
-const FALLBACK_ROWS: Riga[] = [
-  { id: 2, struttura: "Grim's Hotel",   capienzaTotale: 59,  capienzaMaggiorata: 59,  bufferOn: true },
-  { id: 4, struttura: 'Hotel Tutorial', capienzaTotale: 120, capienzaMaggiorata: 125, bufferOn: true },
-]
+// Senza backend: una riga per struttura ricettiva del cliente corrente, con la
+// licenza ospiti stimata dalle camere della scheda (sempre uguale).
+const righeDemo = (schede: SchedaDemo[]): Riga[] => schede.filter((x) => x.camere > 0).map((x) => {
+  const tot = x.camere * 2 + (x.seme % 10)
+  return { id: idStruttura(x.nome), struttura: x.nome, capienzaTotale: tot, capienzaMaggiorata: tot + Math.round(tot * 0.05), bufferOn: x.seme % 3 !== 0 }
+})
 
 function countChanges(saved: Riga[], draft: Riga[]): number {
   let n = Math.abs(saved.length - draft.length)
@@ -44,8 +48,10 @@ export default function BufferPresenze() {
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
-  const [saved, setSaved] = useState<Riga[]>(FALLBACK_ROWS)
-  const [rows, setRows]   = useState<Riga[]>(FALLBACK_ROWS)
+  const schede = useStruttureCliente()
+  const [saved, setSaved] = useState<Riga[]>(() => righeDemo(schede))
+  const [rows, setRows]   = useState<Riga[]>(() => righeDemo(schede))
+  useEffect(() => { setSaved(righeDemo(schede)); setRows(righeDemo(schede)) }, [schede])
 
   useEffect(() => {
     let cancelled = false

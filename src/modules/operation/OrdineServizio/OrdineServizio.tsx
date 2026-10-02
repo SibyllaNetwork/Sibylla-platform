@@ -3,6 +3,8 @@ import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { SelectField } from '../../../core/components/form'
 import './OrdineServizio.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../core/demo/struttureDemo'
 
 interface Data {
   Strutture: { Id: number; nome: string }[]
@@ -11,18 +13,18 @@ interface Data {
   reparto: string
 }
 
-const FALLBACK: Data = {
-  Strutture: [
-    { Id: 1, nome: 'Hotel Azzurro Mare' },
-    { Id: 2, nome: 'Hotel Tutorial' },
-  ],
-  StrutturaId: 1,
+// Senza backend: strutture del cliente, a partire da quella selezionata in alto.
+const datiDemo = (strutture: string[], corrente: string): Data => ({
+  Strutture: strutture.map((n) => ({ Id: idStruttura(n), nome: n })),
+  StrutturaId: idStruttura(corrente),
   reparti: ['Tutti', 'Housekeeping', 'Manutenzione', 'Reception', 'F&B'],
   reparto: 'Tutti',
-}
+})
 
 export default function OrdineServizio({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const { struttura: strutturaCorrente, elenco } = useStrutturaCorrente()
+  const [data, setData] = useState<Data>(() => datiDemo(elenco, strutturaCorrente))
+  useEffect(() => { setData((d) => ({ ...datiDemo(elenco, strutturaCorrente), reparto: d.reparto })) }, [elenco, strutturaCorrente])
   const [block, setBlock] = useState('Normal')
   const [font, setFont] = useState('Sans Serif')
   const [size, setSize] = useState('Normal')

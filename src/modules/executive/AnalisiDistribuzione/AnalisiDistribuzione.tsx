@@ -287,8 +287,9 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
   const D = { ...DIST_VARIANT.hotel, sel: struttureCliente }
 
   const [struttura, setStruttura]       = useState(strutturaCorrente);
-  const [dateFrom, setDateFrom]         = useState('2026-06-09');
-  const [dateTo, setDateTo]             = useState('2026-07-09');
+  // Ultimi 30 giorni fino a oggi.
+  const [dateFrom, setDateFrom]         = useState(() => new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
+  const [dateTo, setDateTo]             = useState(() => new Date().toISOString().slice(0, 10));
   const [tipologia, setTipologia]       = useState<'individuale' | 'gruppo'>('individuale');
   const [suggOpen, setSuggOpen]         = useState(false);
   const [page, setPage]                 = useState(1);

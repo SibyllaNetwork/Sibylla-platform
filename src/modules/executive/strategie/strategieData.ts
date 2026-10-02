@@ -13,8 +13,6 @@ export interface Strategia {
 
 export const TIPI_CALENDARIO: TipoCalendario[] = ['Tariffe', 'Disponibilità', 'Richieste Extra']
 
-export const STRUTTURE = ['Hotel Azzurro Mare', 'Hotel Noto', 'Grand Hotel Roma', 'Villa Bellini', 'Terrazza sul Mare']
-
 export const STRATEGIES: Strategia[] = [
   // Tariffe
   { id: 'inverno-25',  nome: 'Inverno 2025',         colore: '#E74C3C', tipo: 'Tariffe',         descrizione: 'Tariffe ridotte stagione fredda, focus business' },

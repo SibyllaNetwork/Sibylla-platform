@@ -2,32 +2,50 @@ import React, { useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import { DateRangeField, SelectField, SearchField } from '../../../core/components/form'
 import './PrevisioneMovimenti.sass'
+import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import { generaPms, isoIt } from '../../operation/_data/pmsDemo'
 
 // Previsione movimenti camere — riepilogo giornaliero arrivi/presenze/partenze/libere.
 // Raggiungibile da Stato camere → "Previsione movimenti camere".
 
 interface Movimento { data: string; arrivi: number; presenze: number; partenze: number; libere: number }
 
-const STRUTTURE = ['Hotel Tutorial', 'Hotel Archimede', 'Hotel Azzurro Mare']
+const oggiIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const piuGiorni = (iso: string, n: number) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 
-const MOCK: Movimento[] = [
-  { data: '26/06/2026', arrivi: 7,  presenze: 5,  partenze: 0, libere: 54 },
-  { data: '27/06/2026', arrivi: 4,  presenze: 9,  partenze: 7, libere: 51 },
-  { data: '28/06/2026', arrivi: 6,  presenze: 12, partenze: 3, libere: 48 },
-  { data: '29/06/2026', arrivi: 2,  presenze: 11, partenze: 5, libere: 49 },
-  { data: '30/06/2026', arrivi: 8,  presenze: 14, partenze: 6, libere: 46 },
-]
+// Movimenti giorno per giorno dal gestionale demo della struttura scelta (le
+// stesse prenotazioni di Planner, Arrivi e partenze e Ospiti in casa).
+function movimenti(scheda: { nome: string; categoria: string; camere: number } | undefined, da: string, a: string): Movimento[] {
+  if (!scheda || scheda.camere === 0) return []
+  const pms = generaPms({ nome: scheda.nome, categoria: scheda.categoria, camere: scheda.camere })
+  const out: Movimento[] = []
+  for (let g = da; g <= (a || da) && out.length < 62; g = piuGiorni(g, 1)) {
+    const valide = pms.prenotazioni.filter((p) => p.stato !== 'noshow')
+    const presenze = valide.filter((p) => p.checkIn <= g && g < p.checkOut).length
+    out.push({
+      data: isoIt(g),
+      arrivi: valide.filter((p) => p.checkIn === g).length,
+      presenze,
+      partenze: valide.filter((p) => p.checkOut === g).length,
+      libere: Math.max(0, pms.camere.length - presenze),
+    })
+  }
+  return out
+}
 
 export default function PrevisioneMovimenti({ navigate }: { navigate: (p: string) => void }) {
-  const [da, setDa] = useState('2026-06-26')
-  const [a, setA]   = useState('2026-06-26')
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // La settimana da oggi, per la struttura selezionata in alto (o un'altra del cliente).
+  const [da, setDa] = useState(oggiIso)
+  const [a, setA]   = useState(() => piuGiorni(oggiIso(), 6))
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
+  const schede = useStruttureCliente()
+  const MOCK = useMemo(() => movimenti(schede.find((x) => x.nome === struttura), da, a), [schede, struttura, da, a])
   const [search, setSearch] = useState('')
 
   const rows = useMemo(() => {
     const q = search.trim()
     return q ? MOCK.filter((m) => m.data.includes(q)) : MOCK
-  }, [search])
+  }, [search, MOCK])
 
   return (
     <div className="previsione-mov">
@@ -35,7 +53,7 @@ export default function PrevisioneMovimenti({ navigate }: { navigate: (p: string
 
       <div className="previsione-mov__bar flex items-end gap-3 mb-5 flex-wrap">
         <DateRangeField label="Da" nameFrom="da" nameTo="a" valueFrom={da} valueTo={a} onChangeFrom={(e) => setDa(e.target.value)} onChangeTo={(e) => setA(e.target.value)} />
-        <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+        <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
         <div className="flex flex-col gap-1 min-w-[220px]">
           <label className="text-[12px] font-semibold font-poppins text-primary">Ricerca</label>
           <SearchField name="cerca" placeholder="Cerca data…" value={search} onChange={(e) => setSearch(e.target.value)} />

@@ -15,6 +15,7 @@ import {
   DateRangeField,
 } from '../../../core/components/form'
 import './Cassa.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 type StatoMovimento = 'In coda' | 'Emesso' | 'Da inviare'
 
@@ -98,11 +99,6 @@ interface Chiusura {
 
 type Tab = 'movimenti' | 'chiusure'
 
-const STRUTTURE = [
-  { value: 'tutorial', label: 'Hotel Tutorial' },
-  { value: 'azzurro',  label: 'Hotel Azzurro Mare' },
-  { value: 'lux',      label: 'Hotel Lux' },
-]
 
 const REPARTI = [
   { value: '',          label: 'Seleziona' },
@@ -126,7 +122,30 @@ const TIPO_MOVIMENTO_OPTS = [
   { value: 'uscita',  label: 'In uscita' },
 ]
 
-const MOVIMENTI: Movimento[] = [
+// Sposta le date dei dati di esempio (gg/mm/aaaa[ ora] e aaaa-mm-gg) in modo che
+// la data di riferimento cada oggi: la demo resta sempre attuale.
+const spostaDate = <T,>(dati: T, ancora: [number, number, number]): T => {
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const delta = Math.round((oggi.getTime() - new Date(ancora[0], ancora[1] - 1, ancora[2]).getTime()) / 86400000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  const conv = (v: unknown): unknown => {
+    if (typeof v === 'string') {
+      let m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})(.*)$/)
+      if (m) { const t = new Date(+m[3], +m[2] - 1, +m[1] + delta); return `${p(t.getDate())}/${p(t.getMonth() + 1)}/${t.getFullYear()}${m[4]}` }
+      m = v.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/)
+      if (m) { const t = new Date(+m[1], +m[2] - 1, +m[3] + delta); return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}${m[4]}` }
+      return v
+    }
+    if (Array.isArray(v)) return v.map(conv)
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, conv(x)]))
+    return v
+  }
+  return conv(dati) as T
+}
+/** Data di oggi spostata di n giorni, aaaa-mm-gg. */
+const isoTra = (n: number) => { const t = new Date(); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }
+
+const MOVIMENTI: Movimento[] = spostaDate([
   { id: '1', utente: 'Mario Rossi', dataDoc: '04/05/2026 11:54:00',                                                              riferimento: 'Front Office', importo: 10, movimento: 'Entrata', stato: 'In coda',    soggiorno: { camera: '410', prenotazione: '15398', ospite: 'Luca Bianchi',   arrivo: '24/06/2026', partenza: '25/06/2026' } },
   { id: '2', utente: 'Mario Rossi', dataDoc: '04/05/2026 11:52:16',                                                              riferimento: 'Front Office', importo: 10, movimento: 'Entrata', stato: 'Da inviare', soggiorno: { camera: '307', prenotazione: '15401', ospite: 'Sara Conti',     arrivo: '23/06/2026', partenza: '26/06/2026' } },
   { id: '3', utente: 'Mario Rossi', dataDoc: '04/05/2026 11:50:26', numeroDoc: 'F 63', voceIncasso: 'Sospeso',                   riferimento: 'Front Office', importo: 55, movimento: 'Entrata', stato: 'Emesso',     soggiorno: { camera: '308', prenotazione: '15398', ospite: 'Luca Bianchi',   arrivo: '24/06/2026', partenza: '25/06/2026' } },
@@ -141,7 +160,7 @@ const MOVIMENTI: Movimento[] = [
   { id: '12', utente: 'Mario Rossi',  dataDoc: '03/05/2026 18:55:47', numeroDoc: 'F 69', voceIncasso: 'POS',       riferimento: 'Bar',         importo: 15,    movimento: 'Entrata', stato: 'In coda' },
   { id: '13', utente: 'Luca Ferraro', dataDoc: '03/05/2026 18:30:22',                     voceIncasso: 'Fondo cassa',riferimento: 'Reception',  importo: 200,   movimento: 'Entrata', stato: 'Emesso' },
   { id: '14', utente: 'Giulia Bruno', dataDoc: '03/05/2026 17:48:09', numeroDoc: 'F 70', voceIncasso: 'Contanti',  riferimento: 'Front Office',importo: 47.5,  movimento: 'Entrata', stato: 'Da inviare' },
-]
+], [2026, 5, 4])
 
 interface MovCassa {
   id: string
@@ -154,7 +173,7 @@ interface MovCassa {
   bloccato?: boolean
 }
 
-const MOVIMENTI_CASSA: MovCassa[] = [
+const MOVIMENTI_CASSA: MovCassa[] = spostaDate([
   { id: 'sc-81', data: '24/06/2026 16:50:51', documento: 'S 81', voce: 'Contanti', importo: 100.0,  stato: 'In coda' },
   { id: 'sc-80', data: '24/06/2026 11:39:29', documento: 'S 80', voce: 'Contanti', importo: 112.23, stato: 'In coda' },
   { id: 'sc-79', data: '24/06/2026 11:17:50', documento: 'S 79', voce: 'Contanti', importo: 200.0,  stato: 'In coda' },
@@ -162,9 +181,9 @@ const MOVIMENTI_CASSA: MovCassa[] = [
   { id: 'sc-77', data: '23/06/2026 15:59:39', documento: 'S 77', voce: 'Contanti', importo: 10.0,   stato: 'In coda' },
   { id: 'sc-76', data: '08/06/2026 10:41:47', documento: 'S 76', voce: 'Contanti', importo: 10.0,   stato: 'In coda' },
   { id: 'sc-75', data: '01/06/2026 10:15:54', documento: 'S 75', voce: 'Contanti', importo: 759.35, stato: 'In coda' },
-]
+], [2026, 6, 24])
 
-const CHIUSURE: Chiusura[] = [
+const CHIUSURE: Chiusura[] = spostaDate([
   {
     id: 'c-1', utente: 'Mario Rossi', operazione: 'Chiusura cassa', dataChiusura: '28/05/2026 07:11:26',
     stato: 'Chiusa', importo: 100,
@@ -250,7 +269,7 @@ const CHIUSURE: Chiusura[] = [
       { id: 'k12-1', utente: 'Anna Verdi', dataDoc: '24/02/2026 21:30:00', numeroDoc: 'C-0019/FG 2026', voceIncasso: 'POS', riferimento: 'Ristorante', importo: 762.40, movimento: 'Entrata', stato: 'Emesso' },
     ],
   },
-]
+], [2026, 5, 28])
 
 function fmt(v: number): string {
   return v.toFixed(2).replace('.', ',') + ' €'
@@ -258,10 +277,11 @@ function fmt(v: number): string {
 
 export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
   const [tab, setTab]                 = useState<Tab>('movimenti')
-  const [strutturaId, setStrutturaId] = useState('tutorial')
+  // Struttura selezionata in alto (strutture del cliente); periodo: ultimo mese.
+  const [strutturaId, setStrutturaId, opzioniStrutture] = useStrutturaPagina()
   const [search, setSearch]           = useState('')
-  const [dateFrom, setDateFrom]       = useState('2026-05-01')
-  const [dateTo, setDateTo]           = useState('2026-05-31')
+  const [dateFrom, setDateFrom]       = useState(() => isoTra(-30))
+  const [dateTo, setDateTo]           = useState(() => isoTra(0))
   const [movimenti, setMovimenti]     = useState<Movimento[]>(MOVIMENTI)
   const [chiusure, setChiusure]       = useState<Chiusura[]>(CHIUSURE)
 
@@ -405,7 +425,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
     setTab('chiusure')
   }
 
-  const strutturaName = STRUTTURE.find(s => s.value === strutturaId)?.label ?? ''
+  const strutturaName = strutturaId
   const dateRangeStr = `${formatDateIt(dateFrom)} – ${formatDateIt(dateTo)}`
 
   function exportXls() {
@@ -491,7 +511,7 @@ export default function Cassa({ navigate }: { navigate: (p: string) => void }) {
           name="struttura" label="Struttura"
           value={strutturaId}
           onChange={e => setStrutturaId(e.target.value)}
-          options={STRUTTURE}
+          options={opzioniStrutture}
         />
         <div className="cassa__search">
           <span className="cassa__search-label">Cerca</span>

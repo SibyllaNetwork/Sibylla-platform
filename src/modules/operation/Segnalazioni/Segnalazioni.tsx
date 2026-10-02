@@ -8,6 +8,8 @@ import { avatarUrl } from '../../../core/avatar'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './Segnalazioni.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { pmsDi } from '../_data/pmsDi'
 
 const PAGE_SIZE = 12
 
@@ -43,7 +45,6 @@ interface Assegnazione {
 
 // ─── COSTANTI ─────────────────────────────────────────────────────────────────
 
-const STRUTTURE = ['Hotel Tutorial', 'Hotel Archimede', 'Hotel Azzurro Mare']
 
 const REPARTI: Reparto[] = ['Manutenzione', 'Housekeeping', 'Reception', 'Cucina']
 const GENERI: GenereIntervento[] = ['Pulizia ordinaria', 'Elettrico', 'Manutenzione', 'Idraulico']
@@ -110,7 +111,30 @@ const FOTO_IDRAULICO = [
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 
-const MOCK: Segnalazione[] = [
+// Sposta le date dei dati di esempio (gg/mm/aaaa[ ora] e aaaa-mm-gg) in modo che
+// la data di riferimento cada oggi: la demo resta sempre attuale.
+const spostaDate = <T,>(dati: T, ancora: [number, number, number]): T => {
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const delta = Math.round((oggi.getTime() - new Date(ancora[0], ancora[1] - 1, ancora[2]).getTime()) / 86400000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  const conv = (v: unknown): unknown => {
+    if (typeof v === 'string') {
+      let m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})(.*)$/)
+      if (m) { const t = new Date(+m[3], +m[2] - 1, +m[1] + delta); return `${p(t.getDate())}/${p(t.getMonth() + 1)}/${t.getFullYear()}${m[4]}` }
+      m = v.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/)
+      if (m) { const t = new Date(+m[1], +m[2] - 1, +m[3] + delta); return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}${m[4]}` }
+      return v
+    }
+    if (Array.isArray(v)) return v.map(conv)
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, conv(x)]))
+    return v
+  }
+  return conv(dati) as T
+}
+/** Data di oggi spostata di n giorni, aaaa-mm-gg. */
+const isoTra = (n: number) => { const t = new Date(); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }
+
+const MOCK: Segnalazione[] = spostaDate([
   { id: 1,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  foto: FOTO_PULIZIA,   genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'in-corso',     descrizione: 'Pulizia camera dopo check-out', struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 17:16' },
   { id: 2,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true,  foto: FOTO_ELETTRICO, genereIntervento: 'Elettrico',         statoLavorazione: 'in-corso',     descrizione: 'Presa corrente non funzionante', struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 17:15' },
   { id: 3,  segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'da-assegnare', descrizione: '',            struttura: 'Hotel Tutorial', camera: '101', data: '26/05/2026 16:59' },
@@ -125,7 +149,7 @@ const MOCK: Segnalazione[] = [
   { id: 12, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Housekeeping', hasFoto: true,  genereIntervento: 'Pulizia ordinaria', statoLavorazione: 'in-corso',     descrizione: '',            struttura: 'Hotel Tutorial', camera: '105', data: '26/05/2026 17:09' },
   { id: 13, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Manutenzione', hasFoto: true, foto: FOTO_IDRAULICO, genereIntervento: 'Idraulico',         statoLavorazione: 'completata',   descrizione: 'Perdita lavabo', struttura: 'Hotel Tutorial', camera: '105', data: '20/03/2026 09:30' },
   { id: 14, segnalazioneDi: 'Rossi Mario', severita: 'media', reparto: 'Reception',    hasFoto: false, genereIntervento: 'Elettrico',         statoLavorazione: 'completata',   descrizione: '',            struttura: 'Hotel Tutorial', camera: '106', data: '18/03/2026 08:12' },
-]
+], [2026, 6, 24])
 
 // data/ora corrente nel formato dd/mm/yyyy HH:MM
 const formatNow = () => {
@@ -134,12 +158,23 @@ const formatNow = () => {
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
+// Le segnalazioni di esempio si replicano su ogni struttura del cliente, sulle
+// sue camere (gestionale demo).
+const mockPer = (strutture: string[]): Segnalazione[] =>
+  strutture.flatMap((st, si) => {
+    const camere = pmsDi(st).camere
+    return MOCK.map((r, i) => ({ ...r, id: si * 100 + r.id, struttura: st, camera: camere.length ? camere[(i * 7 + si) % camere.length].numero : r.camera }))
+  })
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 type ColFilterKey = 'severita' | 'reparto' | 'genereIntervento' | 'statoLavorazione' | 'camera'
 
 export default function Segnalazioni(_props: { navigate?: (p: string) => void } = {}) {
-  const [rows, setRows] = useState<Segnalazione[]>(MOCK)
+  // Struttura selezionata in alto (strutture del cliente).
+  const [struttura, setStruttura, , STRUTTURE] = useStrutturaPagina()
+  const [rows, setRows] = useState<Segnalazione[]>(() => mockPer(STRUTTURE))
+  useEffect(() => { setRows(mockPer(STRUTTURE)) }, [STRUTTURE])
   const confirm = useConfirmStore((s) => s.confirm)
   const deleteSegnalazione = async (target: Segnalazione) => {
     const ok = await confirm({
@@ -150,11 +185,10 @@ export default function Segnalazioni(_props: { navigate?: (p: string) => void } 
   }
   const [page, setPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
-  const [dataDa, setDataDa] = useState('2026-01-01')
-  const [dataA, setDataA] = useState('2026-06-26')
+  const [dataDa, setDataDa] = useState(() => `${new Date().getFullYear()}-01-01`)
+  const [dataA, setDataA] = useState(() => isoTra(0))
   const [reparto, setReparto] = useState<'Tutti' | Reparto>('Tutti')
   const [statoLav, setStatoLav] = useState<'Tutti' | StatoLav>('Tutti')
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
   // default: le segnalazioni più recenti in cima
   const [sortDataDir, setSortDataDir] = useState<'asc' | 'desc' | null>('desc')
   const [editRow, setEditRow] = useState<Segnalazione | null>(null)

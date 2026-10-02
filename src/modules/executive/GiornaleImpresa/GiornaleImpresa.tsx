@@ -235,7 +235,8 @@ const VARIANT_DATA: Record<GiornaleVariant, VariantData> = {
   hotel: {
     subtitle: 'Centro strategico per il monitoraggio aziendale, che offre una visione complessiva e dettagliata dell\'andamento economico e operativo della struttura',
     struttureLabel: 'Struttura',
-    strutture: ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare','Palazzo Storico'],
+    // Sostituito a runtime dalle strutture del cliente corrente (vedi componente).
+    strutture: [],
     orbit: [
       { id:'calendario', label:'Almanacco',  icon:'calendar' },
       { id:'turni',      label:'Turni',      icon:'clock'    },

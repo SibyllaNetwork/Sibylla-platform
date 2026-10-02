@@ -5,6 +5,8 @@ import { CfgToolbar, CfgTable, CfgSaveBar } from '../../../../../core/cfg'
 import Tooltip from '../../../../../core/components/Tooltip'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './CamereMapping.sass'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../../../core/demo/struttureDemo'
 
 // ─── MAPPING CAMERE (§4.1) ────────────────────────────────────────────────────
 //  Da vista di sola lettura a mapping EDITABILE: ogni camera della struttura
@@ -91,7 +93,11 @@ export default function CamereMapping() {
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
   const [strutture, setStrutture]     = useState<Struttura[]>(FALLBACK.Strutture)
-  const [strutturaId, setStrutturaId] = useState<number | null>(FALLBACK.StrutturaId)
+  // Senza backend: le strutture del cliente corrente, a partire da quella selezionata in alto.
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const struttureCliente = useStruttureCliente()
+  const [strutturaId, setStrutturaId] = useState<number | null>(() => idStruttura(strutturaCorrente))
+  useEffect(() => { setStrutturaId(idStruttura(strutturaCorrente)) }, [strutturaCorrente])
   const [pmsNome, setPmsNome]         = useState(FALLBACK.pmsNome)
   const [standards, setStandards]     = useState<Standard[]>(FALLBACK.standards)
 
@@ -159,10 +165,8 @@ export default function CamereMapping() {
           className="camere-mapping__field"
           value={strutturaId ?? ''}
           onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
-          options={[
-            { value: '', label: 'Hotel Tutorial' },
-            ...strutture.map((s) => ({ value: s.Id, label: s.nome })),
-          ]}
+          options={(strutture.length ? strutture : struttureCliente.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })))
+            .map((s) => ({ value: s.Id, label: s.nome }))}
         />
         <RadioGroup
           name="origine-camere"

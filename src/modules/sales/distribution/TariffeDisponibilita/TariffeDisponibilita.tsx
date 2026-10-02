@@ -7,11 +7,14 @@ import Tabs from '../../../../core/components/Tabs'
 import { SelectField, DatePickerField, DateRangeField } from '../../../../core/components/form'
 import Ico from '../../../../core/icons/Ico'
 import './TariffeDisponibilita.sass'
+import { useStrutturaCorrente, useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+
+// Date demo relative a oggi.
+const isoFra = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 
 // ─── DATI DI ESEMPIO ──────────────────────────────────────────────────────────
 const MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 
-const STRUTTURE = ['Hotel Tutorial', 'Residence Mare', 'Villa Aurora', 'B&B Centro']
 
 const INTERVALLI = [
   { v: '14', label: '2 settimane', days: 14 },
@@ -129,8 +132,10 @@ function CanaliPicker({ value, onToggle }: { value: Record<string, boolean>; onT
 // ─── MARKET ENGINE MODAL ──────────────────────────────────────────────────────
 function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [tab, setTab] = useState('disp')
-  const [dal, setDal] = useState('2026-06-05')
-  const [al, setAl]   = useState('2026-06-05')
+  const [dal, setDal] = useState(() => isoFra(0))
+  const [al, setAl]   = useState(() => isoFra(0))
+  // Strutture del cliente corrente.
+  const { elenco: STRUTTURE } = useStrutturaCorrente()
 
   // Tipo camera
   const [selRooms, setSelRooms] = useState<Record<string, boolean>>({})
@@ -346,10 +351,11 @@ function StopSalesModal({ open, onClose, struttura }: { open: boolean; onClose: 
 
 // ─── PAGINA ─────────────────────────────────────────────────────────────────────
 export default function TariffeDisponibilita({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // Struttura selezionata in alto, fra quelle del cliente.
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [vista, setVista]         = useState<'singola' | 'multi'>('singola')
-  const [da, setDa]               = useState('2026-06-05')
-  const [a, setA]                 = useState('2026-06-18')
+  const [da, setDa]               = useState(() => isoFra(0))
+  const [a, setA]                 = useState(() => isoFra(13))
   const [interv, setInterv]       = useState('14')
   const [pageStart, setPageStart] = useState(0)
   const [dir, setDir]             = useState<'next' | 'prev'>('next')
@@ -440,7 +446,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
           label="Struttura"
           value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="td__f td__f--struttura"
         />
 

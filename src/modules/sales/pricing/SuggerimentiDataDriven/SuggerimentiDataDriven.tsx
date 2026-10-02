@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useMemo, useEffect, useRef, useState } from 'react'
 import Modal from '../../../../core/components/Modal'
 import PageHead from '../../../../core/components/PageHead'
 import SelectField from '../../../../core/components/form/SelectField'
@@ -7,6 +7,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import Tabs from '../../../../core/components/Tabs'
 import ToggleSwitch from '../../../../core/components/ToggleSwitch'
 import './SuggerimentiDataDriven.sass'
+import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 
 /**
  * Suggerimenti data driven — indicazioni strategiche data-driven su tariffe,
@@ -19,30 +20,41 @@ interface PricingRow { id: number; struttura: string; giorno: string; attuale: s
 interface DispRow { id: number; struttura: string; giorno: string; tipo: string; edist: number; reale: number; suggerito: number; trend?: 'up' | 'down'; overbooking?: boolean; locked?: boolean; totem?: boolean; occupancy: number; bookingWindow: number; ovp: number; ovl: number }
 interface GruppoRow { id: number; giorno: string; codice: string; label: string; periodo: string; camere: number; persone: number; tot: string }
 
-const PRICING: PricingRow[] = [
-  { id: 1, struttura: 'Hotel Lux',       giorno: '23 Giu 2026', attuale: 'BAR(102) - 135,10 €', suggerito: 'BAR(101) - 136,79 €' },
-  { id: 2, struttura: 'Hotel Archimede', giorno: '24 Giu 2026', attuale: 'BAR(102) - 135,10 €', suggerito: 'BAR(101) - 136,79 €' },
-  { id: 3, struttura: 'Hotel Luce',      giorno: '24 Giu 2026', attuale: 'BAR(101) - 136,79 €', suggerito: 'BAR(99) - 140,23 €' },
-  { id: 4, struttura: 'Hotel Lux',       giorno: '08 Lug 2026', attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(120) - 108,03 €' },
-  { id: 5, struttura: 'Hotel Archimede', giorno: '09 Lug 2026', attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(107) - 126,97 €' },
-  { id: 6, struttura: 'Hotel Archimede', giorno: '10 Lug 2026', attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(107) - 126,97 €' },
-]
+// ── Dati demo ──────────────────────────────────────────────────────────────────
+//  Suggerimenti sulle strutture del cliente corrente, a partire da oggi.
+const MESI_BREVI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
+const traGiorni = (n: number) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return d }
+const giornoLabel = (n: number) => { const d = traGiorni(n); return `${String(d.getDate()).padStart(2, '0')} ${MESI_BREVI[d.getMonth()]} ${d.getFullYear()}` }
+const ddmm = (n: number) => { const d = traGiorni(n); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }
+const isoFra = (n: number) => { const d = traGiorni(n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 
-const DISP: DispRow[] = [
-  { id: 1, struttura: 'Hotel Luce',      giorno: '19 Giu 2026', tipo: 'Singola Classic',     edist: 3, reale: 2, suggerito: 1, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-  { id: 2, struttura: 'Hotel Archimede', giorno: '19 Giu 2026', tipo: 'Doppia Classic',      edist: 3, reale: 2, suggerito: 5, trend: 'up', overbooking: false, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-  { id: 3, struttura: 'Hotel Luce',      giorno: '19 Giu 2026', tipo: 'Doppia Classic',      edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-  { id: 4, struttura: 'Hotel Archimede', giorno: '19 Giu 2026', tipo: 'Doppia Economy',      edist: 3, reale: 2, suggerito: 1, trend: 'up', overbooking: false, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-  { id: 5, struttura: 'Hotel Luce',      giorno: '19 Giu 2026', tipo: 'Doppia Economy',      edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-  { id: 6, struttura: 'Hotel Archimede', giorno: '19 Giu 2026', tipo: 'Matrimoniale Economy', edist: 3, reale: 2, suggerito: 4, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-]
+function datiDemo(h: string[]) {
+  const H = (i: number) => h[i % Math.max(1, h.length)] ?? ''
+  const PRICING: PricingRow[] = [
+    { id: 1, struttura: H(0), giorno: giornoLabel(4),  attuale: 'BAR(102) - 135,10 €', suggerito: 'BAR(101) - 136,79 €' },
+    { id: 2, struttura: H(1), giorno: giornoLabel(5),  attuale: 'BAR(102) - 135,10 €', suggerito: 'BAR(101) - 136,79 €' },
+    { id: 3, struttura: H(2), giorno: giornoLabel(5),  attuale: 'BAR(101) - 136,79 €', suggerito: 'BAR(99) - 140,23 €' },
+    { id: 4, struttura: H(0), giorno: giornoLabel(19), attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(120) - 108,03 €' },
+    { id: 5, struttura: H(1), giorno: giornoLabel(20), attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(107) - 126,97 €' },
+    { id: 6, struttura: H(1), giorno: giornoLabel(21), attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(107) - 126,97 €' },
+  ]
+  const g0 = giornoLabel(0)
+  const DISP: DispRow[] = [
+    { id: 1, struttura: H(2), giorno: g0, tipo: 'Singola Classic',      edist: 3, reale: 2, suggerito: 1, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 2, struttura: H(1), giorno: g0, tipo: 'Doppia Classic',       edist: 3, reale: 2, suggerito: 5, trend: 'up', overbooking: false, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 3, struttura: H(2), giorno: g0, tipo: 'Doppia Classic',       edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 4, struttura: H(1), giorno: g0, tipo: 'Doppia Economy',       edist: 3, reale: 2, suggerito: 1, trend: 'up', overbooking: false, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 5, struttura: H(2), giorno: g0, tipo: 'Doppia Economy',       edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 6, struttura: H(1), giorno: g0, tipo: 'Matrimoniale Economy', edist: 3, reale: 2, suggerito: 4, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+  ]
+  const anno = traGiorni(0).getFullYear()
+  const GRUPPI: GruppoRow[] = [
+    { id: 1, giorno: giornoLabel(16), codice: `${anno}/016420`, label: '[Stop in Italy]', periodo: `${ddmm(16)}-${ddmm(18)}`, camere: 16, persone: 30, tot: '4.350,00€' },
+    { id: 2, giorno: giornoLabel(27), codice: `${anno}/016424`, label: '[Stop in Italy]', periodo: `${ddmm(27)}-${ddmm(30)}`, camere: 11, persone: 21, tot: '3.213,00€' },
+  ]
+  return { PRICING, DISP, GRUPPI }
+}
 
-const GRUPPI: GruppoRow[] = [
-  { id: 1, giorno: '05 Lug 2026', codice: '2026/016420', label: '[Stop in Italy]', periodo: '05/07-07/07', camere: 16, persone: 30, tot: '4.350,00€' },
-  { id: 2, giorno: '16 Lug 2026', codice: '2026/016424', label: '[Stop in Italy]', periodo: '16/07-19/07', camere: 11, persone: 21, tot: '3.213,00€' },
-]
-
-const STRUTTURE = ['Hotel Lux', 'Hotel Archimede', 'Hotel Luce', "Grim's Hotel", 'Hotel Miranda']
 const CATEGORIE = ['1', '2', '3', '4', '5']
 
 // Azioni della toolbar: su viste strette (laptop con sidenav) diventano
@@ -221,9 +233,13 @@ function TipoCameraFilter({ soloTotem, onApply }: { soloTotem: boolean; onApply:
 }
 
 export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: string) => void }) {
-  const [from, setFrom] = useState('2026-06-19')
-  const [to, setTo] = useState('2026-07-19')
+  // Prossimo mese, sulle strutture (con camere) del cliente corrente.
+  const [from, setFrom] = useState(() => isoFra(0))
+  const [to, setTo] = useState(() => isoFra(30))
   const [struttura, setStruttura] = useState('')
+  const schede = useStruttureCliente()
+  const STRUTTURE = useMemo(() => schede.filter((x) => x.camere > 0).map((x) => x.nome), [schede])
+  const { PRICING, DISP, GRUPPI } = useMemo(() => datiDemo(STRUTTURE), [STRUTTURE])
   const [categoria, setCategoria] = useState('4')
   const [show, setShow] = useState({ tariffe: true, disp: true, gruppi: true })
 

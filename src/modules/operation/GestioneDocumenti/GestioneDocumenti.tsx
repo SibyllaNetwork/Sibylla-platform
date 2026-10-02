@@ -5,6 +5,7 @@ import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { DateRangeField, SelectField, SearchField, TextareaField } from '../../../core/components/form'
 import { exportTableToXls } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 import './GestioneDocumenti.sass'
 
 const PAGE_SIZE = 12
@@ -34,7 +35,6 @@ interface Documento {
 
 // ─── COSTANTI ─────────────────────────────────────────────────────────────────
 
-const STRUTTURE = ["Grim's Hotel", 'Hotel Tutorial', 'Hotel Archimede']
 const TIPOLOGIE: Tipologia[] = ['Caparra', 'Scontrino', 'Fattura', 'Nota di credito', 'Quietanza']
 const STATI: Stato[] = ['Pagato', 'Da incassare', 'Annullato', 'Stornato']
 const VOCI_INCASSO = ['Contanti', 'nexy', 'nexi', 'Bonifico', 'Carta']
@@ -46,7 +46,24 @@ const oggiStr = () => { const d = new Date(); const p = (n: number) => String(n)
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 
-const MOCK: Documento[] = [
+// Documenti di esempio: il modello viene replicato su ogni struttura del cliente
+// (selettore in alto) e le date si spostano a ridosso di oggi.
+const ANCORA = new Date(2026, 5, 26).getTime()
+const pad2 = (n: number) => String(n).padStart(2, '0')
+const spostaIt = (d: string, extra = 0) => {
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const delta = Math.round((oggi.getTime() - ANCORA) / 86400000) + extra
+  const [dd, mm, yy] = d.split('/').map(Number)
+  const t = new Date(yy, mm - 1, dd + delta)
+  return `${pad2(t.getDate())}/${pad2(t.getMonth() + 1)}/${t.getFullYear()}`
+}
+const isoTra = (giorni: number) => { const t = new Date(); t.setDate(t.getDate() + giorni); return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}-${pad2(t.getDate())}` }
+const mockPer = (strutture: string[]): Documento[] =>
+  strutture.flatMap((st, si) => MODELLO.map((d, i) => ({
+    ...d, id: si * 100 + i + 1, struttura: st, data: spostaIt(d.data, -(si % 3)),
+  })))
+
+const MODELLO: Documento[] = [
   // Grim's Hotel
   { id: 1, struttura: "Grim's Hotel", numero: 'C-0001/MU 2026', tipologia: 'Caparra', data: '26/06/2026', emessoDa: 'Mario Rossi', riferimento: '',              ragioneSociale: '', importo: 88.44,  saldo: 0, voceIncasso: 'nexy', stato: 'Pagato', descrizioneVoce: 'Anticipo per servizi' },
   { id: 2, struttura: "Grim's Hotel", numero: 'C-0002/MU 2026', tipologia: 'Caparra', data: '26/06/2026', emessoDa: 'Mario Rossi', riferimento: 'melissa barnat', ragioneSociale: '', importo: 144.45, saldo: 0, voceIncasso: 'nexy', stato: 'Pagato', descrizioneVoce: 'Anticipo per servizi' },
@@ -67,11 +84,13 @@ const STATO_CLASS = (s: Stato) => s.toLowerCase().replace(/\s+/g, '-')
 type ColFilterKey = 'tipologia' | 'emessoDa' | 'riferimento' | 'stato'
 
 export default function GestioneDocumenti(_props: { navigate?: (p: string) => void } = {}) {
-  const [rows, setRows] = useState<Documento[]>(MOCK)
+  // Struttura selezionata in alto; documenti per ogni struttura del cliente.
+  const [struttura, setStruttura, opzioniStrutture, elencoStrutture] = useStrutturaPagina()
+  const [rows, setRows] = useState<Documento[]>(() => mockPer(elencoStrutture))
+  useEffect(() => { setRows(mockPer(elencoStrutture)) }, [elencoStrutture])
   const [page, setPage] = useState(1)
-  const [dataDa, setDataDa] = useState('2026-06-23')
-  const [dataA, setDataA] = useState('2026-06-30')
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  const [dataDa, setDataDa] = useState(() => isoTra(-7))
+  const [dataA, setDataA] = useState(() => isoTra(0))
   const [searchDraft, setSearchDraft] = useState('')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<Set<number>>(new Set())
@@ -162,7 +181,7 @@ export default function GestioneDocumenti(_props: { navigate?: (p: string) => vo
           </div>
           <div className="gest-doc__field">
             <SelectField name="struttura" label="Struttura" className="gest-doc__select" value={struttura}
-              onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+              onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
           </div>
           <button type="button" className="sib-btn sib-btn--primary gest-doc__search-btn" onClick={() => setQuery(searchDraft)}>
             <i className="fa-light fa-magnifying-glass" /> Avvia ricerca

@@ -45,8 +45,10 @@ const lvl = (v: number) => (v <= 4 ? 1 : v <= 8 ? 2 : v <= 12 ? 3 : v <= 16 ? 4 
 const fmtData = (iso: string) => iso ? new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
 export default function PianificazioneAnnualeTO({ navigate }: { navigate: (p: string) => void }) {
-  const [da, setDa] = useState('2026-06-01')
-  const [al, setAl] = useState('2026-09-30')
+  // Prossima stagione estiva (giugno–settembre): quest'anno, o il prossimo se già passata.
+  const annoStagione = new Date().getMonth() >= 8 ? new Date().getFullYear() + 1 : new Date().getFullYear()
+  const [da, setDa] = useState(`${annoStagione}-06-01`)
+  const [al, setAl] = useState(`${annoStagione}-09-30`)
   const [markup, setMarkup]       = useState<Record<Stagione, number[]>>(smartMatrix)
   const [overrides, setOverrides] = useState<Record<string, number>>({})
   const [editing, setEditing]     = useState<{ m: number; i: number } | null>(null)

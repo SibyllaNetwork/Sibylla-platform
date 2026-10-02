@@ -12,6 +12,8 @@ import { avatarUrl } from '../../../core/avatar'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import './AssegnazioniIncarichi.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { pmsDi } from '../_data/pmsDi'
 
 const PAGE_SIZE = 12
 
@@ -54,7 +56,6 @@ interface Incarico {
 
 // ─── COSTANTI ─────────────────────────────────────────────────────────────────
 
-const STRUTTURE = ['Hotel Tutorial', 'Hotel Archimede', 'Hotel Azzurro Mare']
 const REPARTI: Reparto[] = ['Manutenzione', 'Magazzino', 'Pulizie', 'Front Office']
 const GENERI: GenereIntervento[] = ['Elettrico', 'Idraulico', 'Edile', 'Pulizie', 'Altro']
 const PRIORITA: Priorita[] = ['Bassa', 'Normale', 'Alta', 'Urgente']
@@ -81,7 +82,30 @@ const REPARTO_ICON: Record<Reparto, string> = {
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 
-const MOCK: Incarico[] = [
+// Sposta le date dei dati di esempio (gg/mm/aaaa[ ora] e aaaa-mm-gg) in modo che
+// la data di riferimento cada oggi: la demo resta sempre attuale.
+const spostaDate = <T,>(dati: T, ancora: [number, number, number]): T => {
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const delta = Math.round((oggi.getTime() - new Date(ancora[0], ancora[1] - 1, ancora[2]).getTime()) / 86400000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  const conv = (v: unknown): unknown => {
+    if (typeof v === 'string') {
+      let m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})(.*)$/)
+      if (m) { const t = new Date(+m[3], +m[2] - 1, +m[1] + delta); return `${p(t.getDate())}/${p(t.getMonth() + 1)}/${t.getFullYear()}${m[4]}` }
+      m = v.match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/)
+      if (m) { const t = new Date(+m[1], +m[2] - 1, +m[3] + delta); return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}${m[4]}` }
+      return v
+    }
+    if (Array.isArray(v)) return v.map(conv)
+    if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, conv(x)]))
+    return v
+  }
+  return conv(dati) as T
+}
+/** Data di oggi spostata di n giorni, aaaa-mm-gg. */
+const isoTra = (n: number) => { const t = new Date(); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }
+
+const MOCK: Incarico[] = spostaDate([
   { id: 60, cameraNum: '219', dataAssegnazione: '07/04/2026', struttura: 'Hotel Tutorial', reparto: 'Manutenzione', descrizione: 'lampadina fulminata', severita: 'media', assegnatoA: 'dino tacchini', statoLavorazione: 'nuova' },
   { id: 61, cameraNum: '319', dataAssegnazione: '07/04/2026', struttura: 'Hotel Tutorial', reparto: 'Manutenzione', descrizione: 'junhjuhyb',           severita: 'alta',  assegnatoA: 'dino tacchini', statoLavorazione: 'nuova' },
   { id: 62, cameraNum: '103', dataAssegnazione: '07/04/2026', struttura: 'Hotel Tutorial', reparto: 'Manutenzione', descrizione: '',                    severita: 'alta',  assegnatoA: 'dino tacchini', statoLavorazione: 'nuova' },
@@ -94,7 +118,7 @@ const MOCK: Incarico[] = [
   { id: 66, cameraNum: '105', dataAssegnazione: '10/04/2026', struttura: 'Hotel Tutorial', reparto: 'Pulizie',      descrizione: 'pulizia straordinaria', severita: 'media', assegnatoA: 'Pieri Matteo', statoLavorazione: 'in-corso' },
   { id: 67, cameraNum: '106', dataAssegnazione: '11/04/2026', struttura: 'Hotel Tutorial', reparto: 'Front Office', descrizione: 'verifica telefono camera', severita: 'media', assegnatoA: 'Sara Conti', statoLavorazione: 'in-corso' },
   { id: 68, cameraNum: '201', dataAssegnazione: '12/04/2026', struttura: 'Hotel Archimede', reparto: 'Manutenzione', descrizione: 'rubinetto gocciolante', severita: 'alta',  assegnatoA: 'Pieri Matteo', statoLavorazione: 'nuova' },
-]
+], [2026, 4, 12])
 
 const OPERATORI: Operatore[] = [
   { id: 20, nominativo: 'Pieri Matteo',  reparti: ['Magazzino', 'Pulizie', 'Manutenzione'], numeroAssegnazioni: 3, idAssegnazioni: [66, 68] },
@@ -120,18 +144,29 @@ const parseData = (d: string) => {
   return new Date(yy, mm - 1, dd).getTime()
 }
 
+// Incarichi di esempio replicati su ogni struttura del cliente, sulle sue camere
+// (la prima struttura tiene gli id originali, a cui puntano gli operatori).
+const mockPer = (strutture: string[]): Incarico[] =>
+  strutture.flatMap((st, si) => {
+    const camere = pmsDi(st).camere
+    return MOCK.map((r, i) => ({ ...r, id: si === 0 ? r.id : si * 1000 + r.id, struttura: st, cameraNum: camere.length ? camere[(i * 5 + si) % camere.length].numero : r.cameraNum }))
+  })
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 type ColFilterKey = 'cameraNum' | 'reparto' | 'severita' | 'assegnatoA'
 
 export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) => void } = {}) {
-  const [rows, setRows] = useState<Incarico[]>(MOCK)
+  // Struttura selezionata in alto (strutture del cliente).
+  const [struttura, setStruttura, , STRUTTURE] = useStrutturaPagina()
+  const [rows, setRows] = useState<Incarico[]>(() => mockPer(STRUTTURE))
+  useEffect(() => { setRows(mockPer(STRUTTURE)) }, [STRUTTURE])
+  const conStruttura = (xs: PendingItem[]) => xs.map((x) => ({ ...x, struttura }))
   const [page, setPage] = useState(1)
-  const [dataDa, setDataDa] = useState('2026-04-01')
-  const [dataA, setDataA] = useState('2026-06-30')
+  const [dataDa, setDataDa] = useState(() => isoTra(-30))
+  const [dataA, setDataA] = useState(() => isoTra(0))
   const [reparto, setReparto] = useState<'Tutti' | Reparto>('Tutti')
   const [statoLav, setStatoLav] = useState<'Tutti' | StatoLav>('Tutti')
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
   const [search, setSearch] = useState('')
   const [sortDataDir, setSortDataDir] = useState<'asc' | 'desc' | null>('asc')
   const tableRef = useRef<HTMLTableElement>(null)
@@ -399,7 +434,7 @@ export default function AssegnazioniIncarichi(_props: { navigate?: (p: string) =
       <IncaricoModal open={creaOpen || !!editRow} row={editRow} strutture={STRUTTURE} operatori={OPERATORI}
         onClose={() => { setCreaOpen(false); setEditRow(null) }} onSave={saveIncarico} />
       <StatisticheModal open={showStat} incarichi={rows} onClose={() => setShowStat(false)} />
-      <AssegnazioneManualeModal open={showManuale} segnalazioni={SEGNALAZIONI_PENDING} incarichi={INCARICHI_PENDING} operatori={OPERATORI} onClose={() => setShowManuale(false)} />
+      <AssegnazioneManualeModal open={showManuale} segnalazioni={conStruttura(SEGNALAZIONI_PENDING)} incarichi={conStruttura(INCARICHI_PENDING)} operatori={OPERATORI} onClose={() => setShowManuale(false)} />
     </div>
   )
 }
@@ -465,8 +500,8 @@ function IncaricoModal({ open, row, strutture, operatori, onClose, onSave }: {
   onSave: (inc: Incarico, isNew: boolean) => void
 }) {
   const [struttura, setStruttura] = useState(strutture[0])
-  const [periodoDa, setPeriodoDa] = useState('2026-04-30')
-  const [periodoA, setPeriodoA] = useState('2026-04-30')
+  const [periodoDa, setPeriodoDa] = useState(() => isoTra(0))
+  const [periodoA, setPeriodoA] = useState(() => isoTra(0))
   const [manutenzione, setManutenzione] = useState(false)
   const [camera, setCamera] = useState('')
   const [areaComune, setAreaComune] = useState('')

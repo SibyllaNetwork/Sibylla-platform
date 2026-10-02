@@ -5,6 +5,9 @@ import { SelectField } from '../../../core/components/form'
 import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
 import './StatoCamere.sass'
+import { useStruttureCliente, useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../core/demo/struttureDemo'
+import { generaPms } from '../../operation/_data/pmsDemo'
 
 const PAGE_SIZE = 12
 
@@ -38,34 +41,29 @@ const TIPOLOGIE = [
   'Matrimoniale Economy',
 ]
 
-function genCamere(): Camera[] {
-  const out: Camera[] = []
-  for (let i = 1; i <= 144; i++) {
-    const tipo = TIPOLOGIE[i % TIPOLOGIE.length]
-    const num = String(i).padStart(3, '0')
+// Senza backend: le camere della struttura dal gestionale demo (stessi numeri e
+// tipologie di Planner e Inventario), con lo stato pulizie di oggi.
+function genFallback(schede: SchedaDemo[], strutturaId: number | null): Data {
+  const hotel = schede.filter((x) => x.camere > 0)
+  const sel = hotel.find((x) => idStruttura(x.nome) === strutturaId) ?? hotel[0]
+  const camere: Camera[] = []
+  if (sel) {
+    const pms = generaPms({ nome: sel.nome, categoria: sel.categoria, camere: sel.camere })
+    const oggi = new Date().toISOString().slice(0, 10)
     const stati: StatoPulizia[] = ['pulita', 'in-pulizia', 'da-pulire']
     const statiLav: StatoLavorazione[] = ['completata', 'in-corso', 'da-fare']
-    out.push({
-      id: num,
-      nome: `${tipo} - ${num}`,
-      struttura: 'Hotel Archimede',
-      stato: stati[i % stati.length],
-      statoLavorazione: statiLav[(i + 1) % statiLav.length],
-      vip: i % 4 === 0,
-      segnalazioni: 'N/A',
-      note: 'Nessuna segnalazione',
+    pms.camere.forEach((c, i) => {
+      const parte = pms.prenotazioni.some((p) => p.camera === c.numero && p.checkOut === oggi)
+      const k = (sel.seme + i * 7919) % 100
+      camere.push({
+        id: c.numero, nome: `${c.tipo} - ${c.numero}`, struttura: sel.nome,
+        stato: parte ? 'da-pulire' : stati[k % 3], statoLavorazione: statiLav[(k >> 2) % 3],
+        vip: pms.prenotazioni.some((p) => p.camera === c.numero && p.vip && p.checkIn <= oggi && oggi < p.checkOut),
+        segnalazioni: k < 6 ? 'Manutenzione' : 'N/A', note: k < 6 ? 'Intervento richiesto' : 'Nessuna segnalazione',
+      })
     })
   }
-  return out
-}
-
-const FALLBACK: Data = {
-  Strutture: [
-    { Id: 1, nome: 'Hotel Archimede' },
-    { Id: 2, nome: 'Hotel Tutorial' },
-  ],
-  StrutturaId: 1,
-  camere: genCamere(),
+  return { Strutture: hotel.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })), StrutturaId: sel ? idStruttura(sel.nome) : null, camere }
 }
 
 const STATO_LABEL: Record<StatoPulizia, string> = {
@@ -98,7 +96,11 @@ const LAV_COLOR: Record<StatoLavorazione, string> = {
 type ColFilterKey = 'stato' | 'statoLavorazione' | 'segnalazioni'
 
 export default function StatoCamere({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const schede = useStruttureCliente()
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const [data, setData] = useState<Data>(() => genFallback(schede, idStruttura(strutturaCorrente)))
+  // Cambiata la struttura selezionata in alto: si riparte da quella.
+  useEffect(() => { setData(genFallback(schede, idStruttura(strutturaCorrente))) }, [schede, strutturaCorrente])
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [openFilter, setOpenFilter] = useState<ColFilterKey | null>(null)
@@ -115,7 +117,7 @@ export default function StatoCamere({ navigate }: { navigate: (p: string) => voi
       body: { strutturaId: data.StrutturaId },
     })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setData((d) => (d.camere.length && d.camere[0].struttura === d.Strutture.find((x) => x.Id === d.StrutturaId)?.nome ? d : genFallback(schede, d.StrutturaId))) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.StrutturaId])

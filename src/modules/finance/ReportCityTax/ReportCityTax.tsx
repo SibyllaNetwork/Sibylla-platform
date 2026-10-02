@@ -5,6 +5,7 @@ import { SelectField } from '../../../core/components/form';
 import { toast } from '../../../core/components/Toast/useToast';
 import { downloadCityTaxExcel, MOCK_CITY_TAX_STAYS, CITY_TAX_CATEGORIA, CITY_TAX_TARIFFA } from './cityTaxExcel';
 import './ReportCityTax.sass';
+import { useStruttureCliente } from '../../../hooks/useStrutturaCorrente';
 
 // ─── Report City Tax (tassa di soggiorno) ─────────────────────────────────────
 // Report settimanale della tassa di soggiorno, struttura per struttura.
@@ -25,16 +26,10 @@ const CATEGORIA = CITY_TAX_CATEGORIA;
 const TARIFFA = CITY_TAX_TARIFFA;
 
 interface Struttura { id: string; nome: string; sigla: string }
-const STRUTTURE: Struttura[] = [
-  { id: 'm1', nome: 'Hotel Siracusa',   sigla: 'M1' },
-  { id: 'm2', nome: 'Hotel Luce',       sigla: 'M2' },
-  { id: 'm3', nome: 'Hotel Ortigia',    sigla: 'M3' },
-  { id: 'm4', nome: 'Resort Plemmirio', sigla: 'M4' },
-  { id: 'm5', nome: 'B&B Aretusa',      sigla: 'M5' },
-];
 
 const DAY = 86400000;
-const BASE_LUN = new Date(2026, 6, 20); // lunedì di riferimento (settimana corrente)
+// Lunedì della settimana in corso: le settimane del report arrivano fino a oggi.
+const BASE_LUN = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d })();
 const N_SETT = 8;
 
 const ddmm = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -64,8 +59,9 @@ const SETTIMANE = Array.from({ length: N_SETT }, (_, i) => {
   return { idx: i, lun, dom, label: `${ddmm(lun)} – ${ddmm(dom)}` };
 });
 
-const rigaFor = (s: Struttura, si: number, w: number): Riga => {
-  const ospitiPaganti = 40 + Math.round(rnd(si + 1, w + 1) * 180);
+const rigaFor = (s: Struttura, si: number, w: number, camere = 60): Riga => {
+  // Ospiti proporzionati alle camere della struttura.
+  const ospitiPaganti = Math.round((camere / 60) * (40 + rnd(si + 1, w + 1) * 180));
   const nottiMedie = 1 + Math.round(rnd(si + 3, w + 2) * 4);      // 1..5 notti
   const nottiPaganti = ospitiPaganti * nottiMedie;
   const esentiTot = Math.round(rnd(si + 7, w + 6) * 34);
@@ -85,11 +81,16 @@ const ReportCityTax: React.FC<Props> = () => {
   const tutte = week === 'all';
   const weekIdx = tutte ? 0 : Number(week);
 
+  // Strutture (con camere) del cliente corrente.
+  const schede = useStruttureCliente();
+  const STRUTTURE = useMemo(() => schede.filter(x => x.camere > 0)
+    .map((x, i) => ({ id: x.id, nome: x.nome, sigla: `M${i + 1}`, camere: x.camere })), [schede]);
+
   const righe: Riga[] = useMemo(() => {
     if (tutte) {
       return STRUTTURE.map((s, si) => {
         const acc = SETTIMANE.reduce((a, w) => {
-          const r = rigaFor(s, si, w.idx);
+          const r = rigaFor(s, si, w.idx, s.camere);
           a.ospitiPaganti += r.ospitiPaganti; a.nottiPaganti += r.nottiPaganti; a.esenti += r.esenti; a.totale += r.totale;
           r.esenzioni.forEach((e, ci) => { a.esenzioni[ci] = { causa: e.causa, n: (a.esenzioni[ci]?.n ?? 0) + e.n }; });
           return a;
@@ -97,8 +98,8 @@ const ReportCityTax: React.FC<Props> = () => {
         return { struttura: s, ...acc };
       });
     }
-    return STRUTTURE.map((s, si) => rigaFor(s, si, weekIdx));
-  }, [weekIdx, tutte]);
+    return STRUTTURE.map((s, si) => rigaFor(s, si, weekIdx, s.camere));
+  }, [weekIdx, tutte, STRUTTURE]);
 
   const tot = righe.reduce((a, r) => ({
     ospitiPaganti: a.ospitiPaganti + r.ospitiPaganti,

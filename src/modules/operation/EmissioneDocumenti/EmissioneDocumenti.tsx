@@ -5,6 +5,8 @@ import { apiFetchSibylla } from '../../../services/api'
 import { withFlag } from '../../../core/utils/countryFlags'
 import { useEmissioneStore } from '../../../store/useEmissioneStore'
 import './EmissioneDocumenti.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { pmsAttivo, inCasa, ARRANGIAMENTO } from '../_data/pmsDemo'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -23,14 +25,25 @@ interface Data {
   caparra: number
 }
 
-const FALLBACK: Data = {
-  addebiti: [
-    { id: 1, camera: '307', data: '22/04/2026', riferimento: '',                  descrizione: 'Room Only',         prezzo: 303.80, iva: 10 },
-    { id: 2, camera: '307', data: '22/04/2026', riferimento: 'Ruggero Poliziani', descrizione: 'Tassa di soggiorno', prezzo: 7.50,   iva: 0  },
-    { id: 3, camera: '307', data: '23/04/2026', riferimento: '',                  descrizione: 'Room Only',         prezzo: 303.80, iva: 10 },
-    { id: 4, camera: '307', data: '23/04/2026', riferimento: 'Ruggero Poliziani', descrizione: 'Tassa di soggiorno', prezzo: 7.50,   iva: 0  },
-  ],
-  caparra: 0,
+// Dati demo: il primo soggiorno in casa nel gestionale demo della struttura
+// selezionata, con gli addebiti notte per notte fino a oggi.
+function datiDemo(): Data {
+  const d = new Date()
+  const oggi = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const x = pmsAttivo().prenotazioni.find((p) => inCasa(p, oggi) && p.checkIn < oggi)
+  if (!x) return { addebiti: [], caparra: 0 }
+  const notti = Math.max(1, Math.round((new Date(x.checkOut).getTime() - new Date(x.checkIn).getTime()) / 86400000))
+  const prezzo = Math.round((x.importo / notti) * 100) / 100
+  const addebiti: Addebito[] = []
+  for (let n = 0; n < notti; n++) {
+    const t = new Date(x.checkIn + 'T12:00:00'); t.setDate(t.getDate() + n)
+    const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+    if (iso > oggi) break
+    const data = iso.split('-').reverse().join('/')
+    addebiti.push({ id: addebiti.length + 1, camera: x.camera, data, riferimento: '', descrizione: ARRANGIAMENTO[x.arrangiamento].label, prezzo, iva: 10 })
+    addebiti.push({ id: addebiti.length + 1, camera: x.camera, data, riferimento: x.ospiti[0].nome, descrizione: 'Tassa di soggiorno', prezzo: 3.5 * x.adulti, iva: 0 })
+  }
+  return { addebiti, caparra: x.pagato }
 }
 
 const TIPI_DOCUMENTO = ['Scontrino', 'Caparra', 'Fattura']
@@ -50,7 +63,8 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
 
   // Se arrivo da "Paga ora" uso gli addebiti selezionati, altrimenti i dati demo.
   const [data, setData] = useState<Data>(() =>
-    checkout ? { addebiti: checkout.addebiti, caparra: checkout.caparra } : FALLBACK)
+    checkout ? { addebiti: checkout.addebiti, caparra: checkout.caparra } : datiDemo())
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
 
   const [tipoDoc, setTipoDoc] = useState('Scontrino')
   const isFattura = tipoDoc === 'Fattura'
@@ -85,9 +99,9 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
     let cancelled = false
     apiFetchSibylla<Data>('frontoffice/GetEmissioneDocumenti', { method: 'POST', body: {} })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setData(datiDemo()) })
     return () => { cancelled = true }
-  }, [checkout])
+  }, [checkout, strutturaCorrente])
 
   // Ripulisce il payload di checkout lasciando la pagina.
   useEffect(() => () => clearCheckout(), [clearCheckout])
@@ -101,7 +115,7 @@ export default function EmissioneDocumenti({ navigate }: { navigate: (p: string)
       tipo: tipoDoc as 'Scontrino' | 'Caparra' | 'Fattura',
       numero: prefissoNumero + '/' + new Date().getFullYear() + '/' + String(Math.floor(Math.random() * 9000) + 1000),
       data: new Date().toLocaleDateString('it-IT'),
-      struttura: "Grim's Hotel",
+      struttura: strutturaCorrente,
       nome, cognome,
       ragioneSociale, partitaIva, codiceUnivoco, pec,
       indirizzo, cap, citta, provincia, nazionalita, codiceFiscale,

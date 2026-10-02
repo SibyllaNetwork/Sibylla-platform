@@ -47,9 +47,20 @@ const mk = (
   struttura: string, categoria: number, pubblicazione: string,
   genere: 'Vendita' | 'Acquisto', destinatario: string,
 ): AnnuncioPubblicato => ({
-  id, ragioneSociale: 'G.A.R-SRL', periodo, tipologia, lotti, struttura,
-  categoria, camere: lotti * 25, pubblicazione, genere, destinatario,
+  id, ragioneSociale: 'G.A.R-SRL', periodo: aOggi(periodo), tipologia, lotti, struttura,
+  categoria, camere: lotti * 25, pubblicazione: aOggi(pubblicazione), genere, destinatario,
 })
+
+// Le date d'esempio (estate 2025) si spostano in avanti: l'annuncio più recente
+// risulta pubblicato ieri e tutti gli altri mantengono la loro distanza.
+const RIFERIMENTO = new Date(2025, 6, 10)
+const SPOSTA_GIORNI = Math.round((Date.now() - RIFERIMENTO.getTime()) / 86400000)
+function aOggi(testo: string) {
+  return testo.replace(/(\d{2})\/(\d{2})\/(\d{4})/g, (_, g, m, a) => {
+    const d = new Date(Number(a), Number(m) - 1, Number(g) + SPOSTA_GIORNI)
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+  })
+}
 
 const SEED: AnnuncioPubblicato[] = [
   mk('seed-1',  '01/07/2025 - 30/11/2025', 'Base doppia',   1, 'Hotel Archimede', 4, '09/07/2025', 'Vendita',  'Tutti'),
@@ -76,6 +87,6 @@ export const useAnnunciStore = create<AnnunciState>()(
         set((s) => ({ annunci: [a, ...s.annunci.filter((x) => x.id !== a.id)] })),
       rimuovi: (id) => set((s) => ({ annunci: s.annunci.filter((x) => x.id !== id) })),
     }),
-    { name: 'sibylla.annunci-agora', version: 1 },
+    { name: 'sibylla.annunci-agora', version: 2 },
   ),
 )

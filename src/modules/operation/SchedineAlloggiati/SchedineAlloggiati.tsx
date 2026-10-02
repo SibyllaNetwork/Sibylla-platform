@@ -3,6 +3,8 @@ import PageHead from '../../../core/components/PageHead'
 import { DatePickerField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './SchedineAlloggiati.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { pmsAttivo, usePmsStore } from '../_data/pmsDemo'
 
 /**
  * Schedine alloggiati — replica `Views/FrontOffice/SchedineAlloggiati.cshtml`.
@@ -21,14 +23,26 @@ interface Schedina {
   [key: string]: unknown
 }
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
 
-const FALLBACK: Schedina[] = [
-  { id_schedina: 1, prenotazione: 15178, camera: '103', nominativo: 'Ruggero novi',     nazionalita: 'ALBANIA', data_check_in: '29/04/2026', stato: 'da-inviare' },
-  { id_schedina: 2, prenotazione: 15184, camera: '109', nominativo: 'Virgy Novo',       nazionalita: 'ANDORRA', data_check_in: '29/04/2026', stato: 'da-inviare' },
-  { id_schedina: 3, prenotazione: 15179, camera: '101', nominativo: 'Ruggero Poliziani', nazionalita: 'Austria', data_check_in: '29/04/2026', stato: 'da-inviare' },
-  { id_schedina: 4, prenotazione: 15182, camera: '105', nominativo: 'Ruggero Aslan',     nazionalita: 'ALBANIA', data_check_in: '29/04/2026', stato: 'da-inviare' },
+// Dati demo: gli ospiti arrivati nel giorno nel gestionale demo della struttura
+// selezionata (una schedina per ospite; quelle dei giorni passati già inviate).
+const NAZIONALITA: Array<[string, string]> = [
+  ['Müller', 'GERMANIA'], ['Schneider', 'GERMANIA'], ['Smith', 'REGNO UNITO'], ['Johnson', 'STATI UNITI'],
+  ['Dubois', 'FRANCIA'], ['Martin', 'FRANCIA'], ['García', 'SPAGNA'], ['Fernández', 'SPAGNA'], ['Tanaka', 'GIAPPONE'], ['O’Brien', 'IRLANDA'],
 ]
+const isoDi = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+function schedineDemo(dataIso: string): Schedina[] {
+  const oggi = isoDi(new Date())
+  let id = 1
+  return pmsAttivo().prenotazioni
+    .filter((x) => x.checkIn === dataIso && x.stato !== 'noshow' && (dataIso < oggi || x.checkin !== 'da-fare'))
+    .flatMap((x) => x.ospiti.map((o) => ({
+      id_schedina: id++, prenotazione: x.booking, camera: x.camera, nominativo: o.nome,
+      nazionalita: NAZIONALITA.find(([c]) => o.nome.startsWith(c + ' '))?.[1] ?? 'ITALIA',
+      data_check_in: dataIso.split('-').reverse().join('/'),
+      stato: dataIso < oggi ? 'inviata' : 'da-inviare',
+    })))
+}
 
 const STATO_LABEL: Record<string, { label: string; color: string }> = {
   'da-inviare': { label: 'DA INVIARE', color: '#1B7F4F' },
@@ -37,10 +51,12 @@ const STATO_LABEL: Record<string, { label: string; color: string }> = {
 }
 
 export default function SchedineAlloggiati({ navigate }: { navigate: (p: string) => void }) {
-  const today = '2026-04-29'
-  const [items, setItems] = useState<Schedina[]>(FALLBACK)
+  const today = isoDi(new Date())
+  const versionePms = usePmsStore((st) => st.versione)
+  const [items, setItems] = useState<Schedina[]>(() => schedineDemo(today))
   const [data, setData] = useState(today)
-  const [struttura, setStruttura] = useState('Hotel Tutorial')
+  // Struttura selezionata in alto (strutture del cliente).
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
 
   useEffect(() => {
     let cancelled = false
@@ -49,9 +65,9 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
       body: { data_riferimento: data, struttura },
     })
       .then((d) => { if (!cancelled) setItems(d) })
-      .catch(() => { /* mantiene i dati di esempio */ })
+      .catch(() => { if (!cancelled) setItems(schedineDemo(data)) })
     return () => { cancelled = true }
-  }, [data, struttura])
+  }, [data, struttura, versionePms])
 
   const tuttiInviati = items.length > 0 && items.every((s) => s.stato !== 'da-inviare')
 
@@ -71,7 +87,7 @@ export default function SchedineAlloggiati({ navigate }: { navigate: (p: string)
           <DatePickerField name="data" label="Data" value={data} onChange={(e) => setData(e.target.value)} />
         </div>
         <div className="w-56">
-          <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
         </div>
         <div className="flex items-end gap-3 ml-4 flex-wrap">
           <button className="sib-btn sib-btn--primary">

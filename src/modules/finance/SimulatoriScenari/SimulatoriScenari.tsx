@@ -4,6 +4,7 @@ import Modal from '../../../core/components/Modal'
 import { InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './SimulatoriScenari.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Simulatori scenari — replica `Views/Budget/SimulatoreScenari.cshtml`.
@@ -11,7 +12,6 @@ import './SimulatoriScenari.sass'
  * `/Sibylla/budget/SaveSimulazioneScenari`.
  */
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
 
 const SEGMENTI = [
   { key: 'diretto',   label: 'Diretto',   color: '#0F2C4A' },
@@ -58,7 +58,8 @@ function applicaVariazione(base: ValoreBase, v: Variazione): { adr: number; rn: 
 }
 
 export default function SimulatoriScenari({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura] = useState('Hotel Tutorial')
+  // Parte dalla struttura selezionata in alto (strutture del cliente corrente).
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [base] = useState<Record<SegKey, ValoreBase>>(ZERO_BASE)
   const [costiBase] = useState<CostiBase>(ZERO_COSTI_BASE)
 
@@ -124,7 +125,7 @@ export default function SimulatoriScenari({ navigate }: { navigate: (p: string) 
 
       <div className="flex items-end gap-3 mb-5 flex-wrap">
         <div className="w-64">
-          <SelectField name="struttura" label="Strutture" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+          <SelectField name="struttura" label="Strutture" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
         </div>
         <button className="sib-btn sib-btn--secondary ml-auto" onClick={ripristina}>
           <i className="fa-duotone fa-eraser" /> Ripristina

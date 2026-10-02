@@ -8,6 +8,9 @@ import { SelectField, DatePickerField, SearchField, InputField, TextareaField, C
 import { apiFetchSibylla } from '../../../services/api'
 import { useT } from '../../../core/i18n/copy'
 import './Anagrafiche.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { usePmsStore } from '../_data/pmsDemo'
+import { pmsDi } from '../_data/pmsDi'
 
 // Anagrafiche dei clienti che fruiscono della struttura.
 // BE: `operation/GetAnagrafichePerStruttura` (proxy). In assenza di BE si usano
@@ -36,24 +39,52 @@ interface Anagrafica {
 
 const mk = (o: Partial<Anagrafica> & Pick<Anagrafica, 'id' | 'nomeCognome'>): Anagrafica => ({
   sesso: '', dataNascita: '', email: '', telefono: '', paeseNascita: '', paeseResidenza: '',
-  nDocumento: '', tipoDocumento: 'Carta Identità', scadeIl: '', emessoDa: '', struttura: 'Hotel Tutorial',
+  nDocumento: '', tipoDocumento: 'Carta Identità', scadeIl: '', emessoDa: '', struttura: '',
   checkIn: '-', vip: false, esenzione: false, tipoEsenzione: '', note: '', ...o,
 })
 
-const FALLBACK: Anagrafica[] = [
-  mk({ id: 1,  nomeCognome: 'vx fvb',          sesso: 'Maschio', dataNascita: '17/06/2026', paeseNascita: 'ANDORRA', paeseResidenza: 'ALBANIA',    nDocumento: 'b',          tipoDocumento: 'Carta Identità',       scadeIl: '17/06/2026', emessoDa: 'bvcz' }),
-  mk({ id: 2,  nomeCognome: 'fs f',            sesso: 'Femmina', dataNascita: '17/06/2026', paeseNascita: 'ALBANIA', paeseResidenza: 'ANDORRA',    nDocumento: 'gfhb',       tipoDocumento: 'Libretto di pensione', scadeIl: '17/06/2026', emessoDa: 'comune', note: 'Allergie segnalate' }),
-  mk({ id: 3,  nomeCognome: 'christiana cici',                   dataNascita: '15/08/1958', paeseNascita: 'ALBANIA', paeseResidenza: 'ALBANIA',    nDocumento: 'as44467643', tipoDocumento: 'Carta Identità',       scadeIl: '15/09/2030', emessoDa: 'Comune' }),
-  mk({ id: 4,  nomeCognome: 'sonia sissi',     sesso: 'Femmina', dataNascita: '25/05/1977', paeseNascita: 'BAHAMAS', paeseResidenza: 'BANGLADESH', nDocumento: 'ar12345op',  tipoDocumento: 'Carta Identità',       scadeIl: '06/06/2031', emessoDa: 'Comune', struttura: 'Hotel Torino' }),
-  mk({ id: 5,  nomeCognome: 'moreno mimo',     sesso: 'Maschio', dataNascita: '25/05/1977', paeseNascita: 'BAHAMAS', paeseResidenza: 'BAHREIN',    nDocumento: 'ar12345op',  tipoDocumento: 'Carta Identità',       scadeIl: '06/06/2031', emessoDa: 'comune', struttura: 'Hotel Torino' }),
-  mk({ id: 6,  nomeCognome: 'lorena mango',    sesso: 'Femmina', dataNascita: '25/05/1977', paeseNascita: 'BAHREIN', paeseResidenza: 'BANGLADESH', nDocumento: 'ar12345op',  tipoDocumento: 'Carta Identità',       scadeIl: '06/06/2031', emessoDa: 'comune', struttura: 'Hotel Catania' }),
-  mk({ id: 7,  nomeCognome: 'pina pin',        sesso: 'Femmina', dataNascita: '15/08/1958', paeseNascita: 'ALBANIA', paeseResidenza: 'BELGIO',     nDocumento: 'ar12345op',  tipoDocumento: 'Carta Identità',       scadeIl: '15/09/2030', emessoDa: 'Comune', struttura: 'Hotel Catania' }),
-  mk({ id: 8,  nomeCognome: 'paolo pili',      sesso: 'Maschio', dataNascita: '25/05/1977', paeseNascita: 'BAHAMAS', paeseResidenza: 'BAHREIN',    nDocumento: 'ar12345op',  tipoDocumento: 'Carta Identità',       scadeIl: '19/12/2026', emessoDa: 'comune', vip: true, note: 'Cliente VIP' }),
-  mk({ id: 9,  nomeCognome: 'amedeo Balli',    sesso: 'Maschio', dataNascita: '09/04/2010', paeseNascita: 'ITALIA',  paeseResidenza: 'ITALIA',     nDocumento: 'gt5456546',  tipoDocumento: 'Carta Identità',       scadeIl: '18/06/2026', emessoDa: 'ft' }),
-  mk({ id: 10, nomeCognome: 'giulia conti',    sesso: 'Femmina', dataNascita: '03/11/1990', paeseNascita: 'ITALIA',  paeseResidenza: 'ITALIA',     nDocumento: 'ca998877',   tipoDocumento: 'Passaporto',           scadeIl: '01/03/2029', emessoDa: 'Questura', struttura: 'Hotel Torino', email: 'g.conti@mail.it', telefono: '+39 333 1122334' }),
-  mk({ id: 11, nomeCognome: 'marco bruno',     sesso: 'Maschio', dataNascita: '22/07/1985', paeseNascita: 'FRANCIA', paeseResidenza: 'FRANCIA',    nDocumento: 'fr551133',   tipoDocumento: 'Carta Identità',       scadeIl: '12/10/2027', emessoDa: 'Mairie', struttura: 'Hotel Catania' }),
-  mk({ id: 12, nomeCognome: 'elena rossi',     sesso: 'Femmina', dataNascita: '14/02/1972', paeseNascita: 'ITALIA',  paeseResidenza: 'SVIZZERA',   nDocumento: 'ch224466',   tipoDocumento: 'Permesso di soggiorno', scadeIl: '30/06/2028', emessoDa: 'Comune', esenzione: true, tipoEsenzione: 'Soggiorno per motivi di lavoro documentati oltre il 10° pernottamento consecutivo' }),
+// Dati demo: gli ospiti adulti arrivati negli ultimi 30 giorni nelle strutture
+// del cliente (gestionale demo), con anagrafica e documento deterministici.
+const PAESE_COGNOME: Array<[string, string]> = [
+  ['Müller', 'GERMANIA'], ['Schneider', 'GERMANIA'], ['Smith', 'REGNO UNITO'], ['Johnson', 'STATI UNITI'],
+  ['Dubois', 'FRANCIA'], ['Martin', 'FRANCIA'], ['García', 'SPAGNA'], ['Fernández', 'SPAGNA'], ['Tanaka', 'GIAPPONE'], ['O’Brien', 'IRLANDA'],
 ]
+const NOMI_F = new Set(['Giulia', 'Francesca', 'Chiara', 'Sara', 'Elena', 'Martina', 'Valentina', 'Laura', 'Anna', 'Silvia'])
+function anagraficheDemo(strutture: string[]): Anagrafica[] {
+  const d = new Date()
+  const iso = (t: Date) => `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+  const oggi = iso(d)
+  const da = iso(new Date(d.getTime() - 30 * 86400000))
+  const visti = new Set<string>()
+  const out: Anagrafica[] = []
+  strutture.forEach((st) => {
+    pmsDi(st).prenotazioni
+      .filter((x) => x.stato !== 'noshow' && x.checkIn >= da && x.checkIn <= oggi && x.checkin !== 'da-fare')
+      .forEach((x) => x.ospiti.filter((o) => o.fascia === 'Adulto').forEach((o) => {
+        if (visti.has(o.nome)) return
+        visti.add(o.nome)
+        let h = 0
+        for (let i = 0; i < o.nome.length; i++) h = (h * 31 + o.nome.charCodeAt(i)) >>> 0
+        const nome = o.nome.split(' ').pop() ?? ''
+        const paese = PAESE_COGNOME.find(([c]) => o.nome.startsWith(c + ' '))?.[1] ?? 'ITALIA'
+        const anno = 1955 + (h % 45)
+        const p2 = (n: number) => String(n).padStart(2, '0')
+        out.push(mk({
+          id: out.length + 1, nomeCognome: o.nome, sesso: NOMI_F.has(nome) ? 'Femmina' : 'Maschio',
+          dataNascita: `${p2(1 + (h % 28))}/${p2(1 + ((h >> 5) % 12))}/${anno}`,
+          email: `${o.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '.')}@mail.com`,
+          telefono: paese === 'ITALIA' ? `+39 3${30 + (h % 60)} ${1000000 + (h % 8999999)}` : `+${30 + (h % 60)} ${1000000 + (h % 8999999)}`,
+          paeseNascita: paese, paeseResidenza: paese,
+          nDocumento: paese === 'ITALIA' ? `CA${String(h % 100000).padStart(5, '0')}${String.fromCharCode(65 + (h % 26))}${String.fromCharCode(65 + ((h >> 3) % 26))}` : `P${h % 10000000}`,
+          tipoDocumento: paese === 'ITALIA' ? 'Carta Identità' : 'Passaporto',
+          scadeIl: `${p2(1 + (h % 28))}/${p2(1 + ((h >> 7) % 12))}/${d.getFullYear() + 1 + (h % 8)}`,
+          emessoDa: paese === 'ITALIA' ? 'Comune' : 'Ministero',
+          struttura: st, checkIn: x.checkIn.split('-').reverse().join('/'), vip: x.vip, note: x.note,
+        }))
+      }))
+  })
+  return out
+}
 
 interface Azienda {
   id: number
@@ -82,7 +113,6 @@ type FilterKey = 'sesso' | 'paeseNascita' | 'paeseResidenza' | 'tipoDocumento'
 
 const PAGE_SIZE = 10
 const TIPI_ANAGRAFICA = ['Persona fisica', 'Azienda']
-const STRUTTURE = ['Tutte', 'Hotel Tutorial', 'Hotel Torino', 'Hotel Catania']
 const SESSI = ['Maschio', 'Femmina']
 const TIPI_DOCUMENTO = ['Carta Identità', 'Passaporto', 'Patente di guida', 'Permesso di soggiorno', 'Libretto di pensione']
 
@@ -92,11 +122,17 @@ const toIt  = (iso: string) => { const [a, m, g] = (iso || '').split('-'); retur
 
 export default function Anagrafiche() {
   const t = useT()
-  const [items, setItems] = useState<Anagrafica[]>(FALLBACK)
+  // Strutture del cliente; si parte da quella selezionata in alto.
+  const { struttura: strutturaCorrente, elenco } = useStrutturaCorrente()
+  const STRUTTURE = ['Tutte', ...elenco]
+  const versionePms = usePmsStore((st) => st.versione)
+  const [items, setItems] = useState<Anagrafica[]>(() => anagraficheDemo(elenco))
+  useEffect(() => { setItems(anagraficheDemo(elenco)) }, [elenco, versionePms])
   const [aziende, setAziende] = useState<Azienda[]>(AZIENDE)
   const [tipo, setTipo] = useState(TIPI_ANAGRAFICA[0])
   const isAzienda = tipo === 'Azienda'
-  const [struttura, setStruttura] = useState('Tutte')
+  const [struttura, setStruttura] = useState(strutturaCorrente)
+  useEffect(() => { setStruttura(strutturaCorrente) }, [strutturaCorrente])
   const [soggiorno, setSoggiorno] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -696,9 +732,10 @@ function DettaglioAziendaModal({ az, onClose }: { az: Azienda; onClose: () => vo
 // i dati mostrati nella tabella Anagrafiche Ospiti. Distinta dalla pagina HR
 // "Crea anagrafica personale" (che riguarda i dipendenti dell'hotel).
 function CreaAnagraficaOspiteModal({ onClose, onSave }: { onClose: () => void; onSave: (a: Omit<Anagrafica, 'id'>) => void }) {
+  const { struttura: strutturaCorrente, elenco: struttureCliente } = useStrutturaCorrente()
   const [form, setForm] = useState({
     nome: '', cognome: '', sesso: '', dataNascita: '', email: '', telefono: '',
-    paeseNascita: '', paeseResidenza: '', struttura: STRUTTURE[1],
+    paeseNascita: '', paeseResidenza: '', struttura: strutturaCorrente,
     tipoDocumento: TIPI_DOCUMENTO[0], nDocumento: '', scadeIl: '', emessoDa: '',
     vip: false, note: '', esenzione: false, tipoEsenzione: '',
   })
@@ -732,7 +769,7 @@ function CreaAnagraficaOspiteModal({ onClose, onSave }: { onClose: () => void; o
           <InputField name="paeseNascita" label="Paese di nascita" value={form.paeseNascita} onChange={(e) => set('paeseNascita', e.target.value)} />
           <InputField name="paeseResidenza" label="Paese di residenza" value={form.paeseResidenza} onChange={(e) => set('paeseResidenza', e.target.value)} />
           <SelectField name="struttura" label="Struttura" value={form.struttura} onChange={(e) => set('struttura', e.target.value)}
-            options={STRUTTURE.filter((s) => s !== 'Tutte').map((s) => ({ value: s, label: s }))} />
+            options={struttureCliente.map((s) => ({ value: s, label: s }))} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <SelectField name="tipoDocumento" label="Documento identità" value={form.tipoDocumento} onChange={(e) => set('tipoDocumento', e.target.value)}

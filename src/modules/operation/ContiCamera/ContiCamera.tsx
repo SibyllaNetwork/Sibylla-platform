@@ -4,6 +4,8 @@ import { apiFetchSibylla } from '../../../services/api'
 import { InputField, SelectField } from '../../../core/components/form'
 import { useEmissioneStore, type EmAddebito } from '../../../store/useEmissioneStore'
 import './ContiCamera.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { pmsAttivo, inCasa, usePmsStore, ARRANGIAMENTO } from '../_data/pmsDemo'
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -67,39 +69,46 @@ interface Data {
   documenti: Documento[]
 }
 
-const FALLBACK: Data = {
-  dettaglio: {
-    prenotazioneNum: '14999',
-    nominativo: 'Novi Rudolph',
-    dataArrivo: '22/04/2026',
-    dataPartenza: '24/04/2026',
-    giorni: 2,
-    ospiti: 1,
-    agenzia: 'Nessuna',
-    credit: 'NC',
-    struttura: 'Hotel Tutorial',
-    arrangiamento: 'Room Only',
-    nCamere: 1,
-    totale: 622.60,
-    diCuiCamere: 607.60,
-    diCuiServizi: 0,
-    diCuiTasse: 15,
-    pagato: 0,
-    daPagare: 472.60,
-    note: '',
-  },
-  addebiti: [
-    { id: 1, camera: '307', data: '22/04/2026', pertinenza: 'Ospite', descrizione: 'Room Only',         prezzo: 303.80, iva: 10, trasf: '' },
-    { id: 2, camera: '307', data: '22/04/2026', pertinenza: 'Ospite', descrizione: 'Tassa di soggiorno', descrizioneInfo: true, prezzo: 7.50,   iva: 0,  trasf: '' },
-    { id: 3, camera: '307', data: '23/04/2026', pertinenza: 'Ospite', descrizione: 'Room Only',         prezzo: 303.80, iva: 10, trasf: '' },
-    { id: 4, camera: '307', data: '23/04/2026', pertinenza: 'Ospite', descrizione: 'Tassa di soggiorno', descrizioneInfo: true, prezzo: 7.50,   iva: 0,  trasf: '' },
-  ],
-  anticipi: [
-    { id: 1, camera: '307', data: '22/04/2026', tipologia: 'Caparra', prezzo: -150, iva: 0, trasf: '' },
-  ],
-  documenti: [
-    { id: 1, documento: 'Caparra n. 19', data: '20/04/2026', intestatario: '', totale: 150, pagato: 150, sospeso: 0 },
-  ],
+// Dati demo: il conto del primo soggiorno in casa nel gestionale demo della
+// struttura selezionata (addebiti notte per notte fino a oggi, caparra pagata).
+function datiDemo(struttura: string): Data {
+  const d = new Date()
+  const oggi = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const it = (iso: string) => iso.split('-').reverse().join('/')
+  const x = pmsAttivo().prenotazioni.find((p) => inCasa(p, oggi) && p.checkIn < oggi)
+  if (!x) {
+    return {
+      dettaglio: { prenotazioneNum: '', nominativo: '', dataArrivo: '', dataPartenza: '', giorni: 0, ospiti: 0, agenzia: '', credit: '', struttura, arrangiamento: '', nCamere: 0, totale: 0, diCuiCamere: 0, diCuiServizi: 0, diCuiTasse: 0, pagato: 0, daPagare: 0, note: '' },
+      addebiti: [], anticipi: [], documenti: [],
+    }
+  }
+  const notti = Math.max(1, Math.round((new Date(x.checkOut).getTime() - new Date(x.checkIn).getTime()) / 86400000))
+  const prezzo = Math.round((x.importo / notti) * 100) / 100
+  const tassa = 3.5 * x.adulti
+  const addebiti: Addebito[] = []
+  for (let n = 0; n < notti; n++) {
+    const t = new Date(x.checkIn + 'T12:00:00'); t.setDate(t.getDate() + n)
+    const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+    addebiti.push({ id: addebiti.length + 1, camera: x.camera, data: it(iso), pertinenza: 'Ospite', descrizione: ARRANGIAMENTO[x.arrangiamento].label, prezzo, iva: 10, trasf: '' })
+    addebiti.push({ id: addebiti.length + 1, camera: x.camera, data: it(iso), pertinenza: 'Ospite', descrizione: 'Tassa di soggiorno', descrizioneInfo: true, prezzo: tassa, iva: 0, trasf: '' })
+  }
+  const camere = Math.round(prezzo * notti * 100) / 100
+  const tasse = tassa * notti
+  // Caparra a conferma: un quarto del soggiorno, arrotondata alla decina.
+  const caparra = Math.max(50, Math.round((camere * 0.25) / 10) * 10)
+  const arrivoMeno3 = (() => { const t = new Date(x.checkIn + 'T12:00:00'); t.setDate(t.getDate() - 3); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` })()
+  return {
+    dettaglio: {
+      prenotazioneNum: x.booking, nominativo: x.nominativo, dataArrivo: it(x.checkIn), dataPartenza: it(x.checkOut),
+      giorni: notti, ospiti: x.ospiti.length, agenzia: x.canale, credit: 'NC', struttura,
+      arrangiamento: ARRANGIAMENTO[x.arrangiamento].label, nCamere: 1,
+      totale: camere + tasse, diCuiCamere: camere, diCuiServizi: 0, diCuiTasse: tasse,
+      pagato: caparra, daPagare: Math.round((camere + tasse - caparra) * 100) / 100, note: x.note,
+    },
+    addebiti,
+    anticipi: [{ id: 1, camera: x.camera, data: it(x.checkIn), tipologia: 'Caparra', prezzo: -caparra, iva: 0, trasf: '' }],
+    documenti: [{ id: 1, documento: `Caparra n. ${Number(x.booking) % 90 + 10}`, data: it(arrivoMeno3), intestatario: x.ospiti[0].nome, totale: caparra, pagato: caparra, sospeso: 0 }],
+  }
 }
 
 function fmtCurrency(v: number): string {
@@ -109,7 +118,9 @@ function fmtCurrency(v: number): string {
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function ContiCamera({ navigate, embedded = false }: { navigate: (p: string) => void; embedded?: boolean }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const versionePms = usePmsStore((st) => st.versione)
+  const [data, setData] = useState<Data>(() => datiDemo(strutturaCorrente))
   const [selAddebiti, setSelAddebiti] = useState<number[]>([])
   const [selAnticipi, setSelAnticipi] = useState<number[]>([])
   const setCheckout = useEmissioneStore((s) => s.setCheckout)
@@ -128,9 +139,9 @@ export default function ContiCamera({ navigate, embedded = false }: { navigate: 
     let cancelled = false
     apiFetchSibylla<Data>('frontoffice/GetContiCamera', { method: 'POST', body: {} })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setData(datiDemo(strutturaCorrente)) })
     return () => { cancelled = true }
-  }, [])
+  }, [strutturaCorrente, versionePms])
 
   const toggleAddebito = (id: number) =>
     setSelAddebiti((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))

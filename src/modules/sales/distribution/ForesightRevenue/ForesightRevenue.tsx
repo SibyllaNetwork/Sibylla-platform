@@ -31,8 +31,9 @@ const circleColor = (price:number) => {
 }
 
 export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>void }) {
-  const [dateFrom,         setDateFrom]         = useState('2026-04-01')
-  const [dateTo,           setDateTo]           = useState('2028-03-31')
+  // Due anni a partire dal mese corrente.
+  const [dateFrom,         setDateFrom]         = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01` })
+  const [dateTo,           setDateTo]           = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 24, 0); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tipoBar,          setTipoBar]          = useState<'bar'|'fit'>('bar')
   const [barSel,           setBarSel]           = useState('Seleziona')

@@ -3,6 +3,10 @@ import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { DateRangeField, SelectField } from '../../../core/components/form'
 import './ContiChiusi.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../core/demo/struttureDemo'
+import { usePmsStore } from '../_data/pmsDemo'
+import { pmsDi } from '../_data/pmsDi'
 
 interface ContoChiuso {
   id: number
@@ -19,20 +23,31 @@ interface Data {
   conti: ContoChiuso[]
 }
 
-const FALLBACK: Data = {
-  Strutture: [
-    { Id: 1, nome: 'Hotel Tutorial' },
-    { Id: 2, nome: 'Hotel Azzurro Mare' },
-  ],
-  StrutturaId: 2,
-  conti: [],
+// ── Dati demo (senza backend) ──────────────────────────────────────────────────
+//  Strutture del cliente; conti chiusi = soggiorni partiti nel periodo, dal
+//  gestionale demo della struttura scelta.
+const isoTra = (n: number) => { const t = new Date(); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }
+function datiDemo(strutture: string[], strutturaId: number | null, da: string, a: string): Data {
+  const nome = strutture.find((n) => idStruttura(n) === strutturaId) ?? strutture[0] ?? ''
+  const oggi = isoTra(0)
+  const conti = pmsDi(nome).prenotazioni
+    .filter((x) => x.stato !== 'noshow' && x.checkOut >= da && x.checkOut <= a && x.checkOut <= oggi)
+    .map((x, i) => ({
+      id: i + 1, prenotazioneNum: x.booking, camera: x.camera, ospite: x.nominativo,
+      dataChiusura: x.checkOut.split('-').reverse().join('/'), importo: x.importo,
+    }))
+  return { Strutture: strutture.map((n) => ({ Id: idStruttura(n), nome: n })), StrutturaId: idStruttura(nome), conti }
 }
 
 export default function ContiChiusi({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Struttura selezionata in alto; periodo: ultima settimana.
+  const { struttura: strutturaCorrente, elenco } = useStrutturaCorrente()
+  const versionePms = usePmsStore((st) => st.versione)
   const [search, setSearch] = useState('')
-  const [dataDa, setDataDa] = useState('2026-04-23')
-  const [dataA, setDataA] = useState('2026-04-30')
+  const [dataDa, setDataDa] = useState(() => isoTra(-7))
+  const [dataA, setDataA] = useState(() => isoTra(0))
+  const [data, setData] = useState<Data>(() => datiDemo(elenco, idStruttura(strutturaCorrente), isoTra(-7), isoTra(0)))
+  useEffect(() => { setData((d) => ({ ...d, StrutturaId: idStruttura(strutturaCorrente) })) }, [strutturaCorrente])
 
   useEffect(() => {
     let cancelled = false
@@ -41,10 +56,10 @@ export default function ContiChiusi({ navigate }: { navigate: (p: string) => voi
       body: { strutturaId: data.StrutturaId, da: dataDa, a: dataA },
     })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setData(datiDemo(elenco, data.StrutturaId, dataDa, dataA)) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDa, dataA, data.StrutturaId])
+  }, [dataDa, dataA, data.StrutturaId, elenco, versionePms])
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()

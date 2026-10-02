@@ -4,6 +4,10 @@ import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import { apiFetchSibylla } from '../../../services/api'
 import './ContiAperti.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../core/demo/struttureDemo'
+import { usePmsStore } from '../_data/pmsDemo'
+import { pmsDi } from '../_data/pmsDi'
 
 const PAGE_SIZE = 12
 
@@ -39,36 +43,35 @@ interface Data {
   soggiorni: Soggiorno[]
 }
 
-const FALLBACK: Data = {
-  Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
-  StrutturaId: 1,
-  soggiorni: [
-    { id: 1,  prenotazioneNum: '14484', cameraNum: '101', intestatario: 'Novi Ruggero',          dataIn: '11/11/2025', dataOut: '12/11/2025', azienda: 'Sibylla', movimenti: [
-      { id: 11, prenotazioneNum: '14484', data: '11/11/2025', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 88.31, aliquotaIva: 10, totale: 97.14 },
-      { id: 12, prenotazioneNum: '14484', data: '11/11/2025', descrizione: 'Tassa di soggiorno',    tipo: 'tassa',     prezzo: 7.50,  aliquotaIva: 0,  totale: 7.50  },
-    ]},
-    { id: 2,  prenotazioneNum: '14493', cameraNum: '104', intestatario: 'Ciro cirelli',          dataIn: '14/11/2025', dataOut: '15/11/2025', azienda: 'Sibylla', movimenti: [
-      { id: 21, prenotazioneNum: '14493', data: '14/11/2025', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 95.45, aliquotaIva: 10, totale: 105.00 },
-    ]},
-    { id: 3,  prenotazioneNum: '14495', cameraNum: '102', intestatario: 'Novi Ruggero',          dataIn: '18/11/2025', dataOut: '20/11/2025', azienda: 'Sibylla', movimenti: [
-      { id: 31, prenotazioneNum: '14495', data: '18/11/2025', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 88.31, aliquotaIva: 10, totale: 97.14 },
-      { id: 32, prenotazioneNum: '14495', data: '19/11/2025', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 76.43, aliquotaIva: 10, totale: 84.07 },
-      { id: 33, prenotazioneNum: '14495', data: '18/11/2025', descrizione: 'Tassa di soggiorno',    tipo: 'tassa',     prezzo: 7.50,  aliquotaIva: 0,  totale: 7.50  },
-      { id: 34, prenotazioneNum: '14495', data: '19/11/2025', descrizione: 'Tassa di soggiorno',    tipo: 'tassa',     prezzo: 7.50,  aliquotaIva: 0,  totale: 7.50  },
-      { id: 35, prenotazioneNum: '14495', data: '07/11/2025', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 88.02, aliquotaIva: 10, totale: 96.82 },
-    ]},
-    { id: 4,  prenotazioneNum: '14504', cameraNum: '101', intestatario: 'Mario Rossi',           dataIn: '18/11/2025', dataOut: '19/11/2025', azienda: 'Sibylla', movimenti: [
-      { id: 41, prenotazioneNum: '14504', data: '18/11/2025', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 90,    aliquotaIva: 10, totale: 99    },
-    ]},
-    { id: 5,  prenotazioneNum: '14506', cameraNum: '102', intestatario: 'Test',                  dataIn: '18/11/2025', dataOut: '19/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 6,  prenotazioneNum: '14509', cameraNum: '101', intestatario: 'Mario Rossi',           dataIn: '18/11/2025', dataOut: '19/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 7,  prenotazioneNum: '14531', cameraNum: '107', intestatario: 'Novi Victory',          dataIn: '18/11/2025', dataOut: '19/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 8,  prenotazioneNum: '14532', cameraNum: '105', intestatario: 'Novi Ruggero',          dataIn: '18/11/2025', dataOut: '19/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 9,  prenotazioneNum: '14541', cameraNum: '106', intestatario: 'Novi Ruggero',          dataIn: '21/11/2025', dataOut: '23/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 10, prenotazioneNum: '14544', cameraNum: '108', intestatario: 'test servizi 50€ transfer', dataIn: '25/11/2025', dataOut: '26/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 11, prenotazioneNum: '14545', cameraNum: '105', intestatario: '',                       dataIn: '25/11/2025', dataOut: '26/11/2025', azienda: 'Sibylla', movimenti: [] },
-    { id: 12, prenotazioneNum: '14559', cameraNum: '106', intestatario: 'Novi Ruggero',          dataIn: '28/11/2025', dataOut: '29/11/2025', azienda: 'Sibylla', movimenti: [] },
-  ],
+// ── Dati demo (senza backend) ──────────────────────────────────────────────────
+//  Strutture del cliente; soggiorni = ospiti in casa nel gestionale demo della
+//  struttura scelta, con i movimenti maturati notte per notte fino a oggi.
+const SERVIZI_EXTRA = [['Minibar', 18], ['Transfer aeroporto', 45], ['Lavanderia', 22], ['Spa — percorso benessere', 35]] as const
+function datiDemo(strutture: string[], strutturaId: number | null): Data {
+  const nome = strutture.find((n) => idStruttura(n) === strutturaId) ?? strutture[0] ?? ''
+  const d = new Date()
+  const oggi = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const it = (iso: string) => iso.split('-').reverse().join('/')
+  const giorno = (iso: string, n: number) => { const t = new Date(iso + 'T12:00:00'); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }
+  const soggiorni = pmsDi(nome).prenotazioni
+    .filter((x) => x.stato !== 'noshow' && x.checkin !== 'da-fare' && x.checkIn <= oggi && oggi < x.checkOut)
+    .map((x, i) => {
+      const id = i + 1
+      const notti = Math.max(1, Math.round((new Date(x.checkOut).getTime() - new Date(x.checkIn).getTime()) / 86400000))
+      const lordo = Math.round((x.importo / notti) * 100) / 100
+      const movimenti: Movimento[] = []
+      for (let n = 0; n < notti && giorno(x.checkIn, n) <= oggi; n++) {
+        const data = it(giorno(x.checkIn, n))
+        movimenti.push({ id: id * 100 + movimenti.length + 1, prenotazioneNum: x.booking, data, descrizione: x.arrangiamento === 'RO' ? 'Soggiorno' : 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: Math.round((lordo / 1.1) * 100) / 100, aliquotaIva: 10, totale: lordo })
+        if (n < 7) movimenti.push({ id: id * 100 + movimenti.length + 1, prenotazioneNum: x.booking, data, descrizione: 'Tassa di soggiorno', tipo: 'tassa', prezzo: 3.5 * x.adulti, aliquotaIva: 0, totale: 3.5 * x.adulti })
+      }
+      if (Number(x.booking) % 3 === 0) {
+        const [desc, prezzo] = SERVIZI_EXTRA[Number(x.booking) % SERVIZI_EXTRA.length]
+        movimenti.push({ id: id * 100 + movimenti.length + 1, prenotazioneNum: x.booking, data: it(oggi), descrizione: desc, tipo: 'servizio', prezzo: Math.round((prezzo / 1.22) * 100) / 100, aliquotaIva: 22, totale: prezzo })
+      }
+      return { id, prenotazioneNum: x.booking, cameraNum: x.camera, intestatario: x.nominativo, dataIn: it(x.checkIn), dataOut: it(x.checkOut), azienda: x.canale, movimenti }
+    })
+  return { Strutture: strutture.map((n) => ({ Id: idStruttura(n), nome: n })), StrutturaId: idStruttura(nome), soggiorni }
 }
 
 function fmtCurrency(v: number): string {
@@ -80,14 +83,19 @@ function fmtCurrency(v: number): string {
 type SortKey = 'dataIn' | 'dataOut'
 
 export default function ContiAperti({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Struttura selezionata in alto (strutture del cliente).
+  const { struttura: strutturaCorrente, elenco } = useStrutturaCorrente()
+  const versionePms = usePmsStore((st) => st.versione)
+  const [data, setData] = useState<Data>(() => datiDemo(elenco, idStruttura(strutturaCorrente)))
+  useEffect(() => { setData(datiDemo(elenco, idStruttura(strutturaCorrente))) }, [elenco, strutturaCorrente, versionePms])
   const [search, setSearch] = useState('')
   const [dataIn, setDataIn] = useState('')
   const [dataOut, setDataOut] = useState('')
   const [page, setPage] = useState(1)
-  const [expanded, setExpanded] = useState<Set<number>>(new Set([3]))
-  const [selSoggiorni, setSelSoggiorni] = useState<Set<number>>(new Set([3]))
-  const [selMovimenti, setSelMovimenti] = useState<Set<number>>(new Set([31, 32, 33, 34, 35]))
+  // Primo soggiorno aperto e selezionato, come esempio di addebito.
+  const [expanded, setExpanded] = useState<Set<number>>(new Set([1]))
+  const [selSoggiorni, setSelSoggiorni] = useState<Set<number>>(new Set([1]))
+  const [selMovimenti, setSelMovimenti] = useState<Set<number>>(() => new Set(data.soggiorni[0]?.movimenti.map((m) => m.id) ?? []))
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
@@ -98,10 +106,10 @@ export default function ContiAperti({ navigate }: { navigate: (p: string) => voi
       body: { strutturaId: data.StrutturaId, dataIn, dataOut },
     })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setData(datiDemo(elenco, data.StrutturaId)) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataIn, dataOut, data.StrutturaId])
+  }, [dataIn, dataOut, data.StrutturaId, elenco, versionePms])
 
   const toggleExpanded = (id: number) =>
     setExpanded((prev) => {

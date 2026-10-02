@@ -4,6 +4,8 @@ import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../services/api'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../../core/demo/struttureDemo'
 import './AllocazioneRisorse.sass'
 
 interface Prenotazione {
@@ -24,13 +26,17 @@ interface DettaglioRiga {
   numPersone: number
 }
 
+// Date demo relative a oggi (la pagina resta popolata in qualunque giorno).
+const isoFra = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const itFra = (n: number) => isoFra(n).split('-').reverse().join('/')
+
 // Dettaglio mock mostrato nella modale (uguale per ogni prenotazione del mock)
 const DETTAGLIO_MOCK: DettaglioRiga[] = [
-  { cliente: '',                      dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Singola Classic', numCamere: 13, numPersone: 13 },
-  { cliente: 'Test Ale checkin 234 new', dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Doppia Classic',  numCamere: 1,  numPersone: 2 },
-  { cliente: 'test ar',               dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Doppia Classic',  numCamere: 40, numPersone: 80 },
-  { cliente: 'Tour Operator Test',    dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Doppia Classic',  numCamere: 8,  numPersone: 16 },
-  { cliente: 'Tour Operator Test',    dataIn: '27/06/2026', dataOut: '29/06/2026', tipoCamera: 'Tripla Classic',  numCamere: 1,  numPersone: 3 },
+  { cliente: '',                      dataIn: itFra(3), dataOut: itFra(5), tipoCamera: 'Singola Classic', numCamere: 13, numPersone: 13 },
+  { cliente: 'Test Ale checkin 234 new', dataIn: itFra(3), dataOut: itFra(5), tipoCamera: 'Doppia Classic',  numCamere: 1,  numPersone: 2 },
+  { cliente: 'test ar',               dataIn: itFra(3), dataOut: itFra(5), tipoCamera: 'Doppia Classic',  numCamere: 40, numPersone: 80 },
+  { cliente: 'Tour Operator Test',    dataIn: itFra(3), dataOut: itFra(5), tipoCamera: 'Doppia Classic',  numCamere: 8,  numPersone: 16 },
+  { cliente: 'Tour Operator Test',    dataIn: itFra(3), dataOut: itFra(5), tipoCamera: 'Tripla Classic',  numCamere: 1,  numPersone: 3 },
 ]
 
 interface PanelData {
@@ -45,34 +51,25 @@ interface PanelData {
 
 const DAYS_PER_PANEL = 25
 
-const FALLBACK_LEFT: PanelData = {
-  Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
-  StrutturaId: 1,
-  Stato: 'Tutte',
-  TipoPren: 'Tutti',
-  Search: '',
-  Da: '2026-04-30',
-  Prenotazioni: [
-    { id: 1, startISO: '2026-05-01', endISO: '2026-05-07', badge: 1, row: 0 },
-    { id: 2, startISO: '2026-05-02', endISO: '2026-05-04', badge: 1, row: 1, ai: true },
-    { id: 3, startISO: '2026-05-03', endISO: '2026-05-08', badge: 1, row: 2 },
-    { id: 4, startISO: '2026-05-06', endISO: '2026-05-09', badge: 1, row: 3 },
-    { id: 5, startISO: '2026-05-12', endISO: '2026-05-19', badge: 1, row: 4, ai: true },
-  ],
-}
+// Pannelli demo: strutture (con camere) del cliente corrente, a partire dalla
+// struttura selezionata in alto; prenotazioni a pochi giorni da oggi.
+const PREN_LEFT: Array<[number, number, boolean?]> = [[1, 7], [2, 4, true], [3, 8], [6, 9], [12, 19, true]]
+const PREN_RIGHT: Array<[number, number, boolean?]> = [[1, 4], [3, 6, true], [5, 17]]
 
-const FALLBACK_RIGHT: PanelData = {
-  Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
-  StrutturaId: 1,
-  Stato: 'Tutte',
-  TipoPren: 'Tutti',
-  Search: '',
-  Da: '2026-05-01',
-  Prenotazioni: [
-    { id: 1, startISO: '2026-05-02', endISO: '2026-05-05', badge: 1, row: 0 },
-    { id: 2, startISO: '2026-05-04', endISO: '2026-05-07', badge: 1, row: 1, ai: true },
-    { id: 3, startISO: '2026-05-06', endISO: '2026-05-18', badge: 1, row: 2 },
-  ],
+function pannelloDemo(schede: SchedaDemo[], struttura: string, inizio: number, pren: Array<[number, number, boolean?]>): PanelData {
+  const hotel = schede.filter((x) => x.camere > 0)
+  const sel = hotel.find((x) => x.nome === struttura) ?? hotel[0]
+  return {
+    Strutture: hotel.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })),
+    StrutturaId: sel ? idStruttura(sel.nome) : null,
+    Stato: 'Tutte',
+    TipoPren: 'Tutti',
+    Search: '',
+    Da: isoFra(inizio),
+    Prenotazioni: pren.map(([da, a, ai], i) => ({
+      id: i + 1, startISO: isoFra(inizio + da), endISO: isoFra(inizio + a), badge: 1, row: i, ...(ai ? { ai: true } : {}),
+    })),
+  }
 }
 
 const MESI_SHORT = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic']
@@ -92,8 +89,15 @@ function formatDayHeader(d: Date): { mese: string; giorno: string } {
 }
 
 export default function AllocazioneRisorse({ navigate }: { navigate: (p: string) => void }) {
-  const [left, setLeft] = useState<PanelData>(FALLBACK_LEFT)
-  const [right, setRight] = useState<PanelData>(FALLBACK_RIGHT)
+  const { struttura } = useStrutturaCorrente()
+  const schede = useStruttureCliente()
+  const [left, setLeft] = useState<PanelData>(() => pannelloDemo(schede, struttura, -1, PREN_LEFT))
+  const [right, setRight] = useState<PanelData>(() => pannelloDemo(schede, struttura, 0, PREN_RIGHT))
+  // Cambiata la struttura selezionata in alto: i pannelli ripartono da quella.
+  useEffect(() => {
+    setLeft(pannelloDemo(schede, struttura, -1, PREN_LEFT))
+    setRight(pannelloDemo(schede, struttura, 0, PREN_RIGHT))
+  }, [schede, struttura])
   const [expandedLeft, setExpandedLeft] = useState(false)
   const [expandedRight, setExpandedRight] = useState(false)
 

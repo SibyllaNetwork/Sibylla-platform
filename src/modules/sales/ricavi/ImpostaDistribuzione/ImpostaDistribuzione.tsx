@@ -6,6 +6,8 @@ import { useAccessStore } from '../../../../store/useAccessStore'
 import { SelectField, InputField } from '../../../../core/components/form'
 import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../../core/demo/struttureDemo'
 
 type Capacita = 1 | 2 | 3
 
@@ -114,7 +116,15 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
   const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
   const isTO = moduli?.includes('tour-operator')
 
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Strutture (con camere) del cliente, a partire da quella selezionata in alto.
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const schede = useStruttureCliente()
+  const struttureCliente = schede.filter((x) => x.camere > 0).map((x) => ({ Id: idStruttura(x.nome), nome: x.nome }))
+  const [data, setData] = useState<Data>(() => ({ ...FALLBACK, Strutture: struttureCliente, StrutturaId: idStruttura(strutturaCorrente) }))
+  useEffect(() => {
+    setData((d) => ({ ...d, Strutture: struttureCliente, StrutturaId: idStruttura(strutturaCorrente) }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schede, strutturaCorrente])
   const [invitaOpen, setInvitaOpen] = useState(false)
   const [invita, setInvita] = useState({ azienda: '', email: '', referente: '' })
   const [expanded, setExpanded] = useState<string | null>(null)

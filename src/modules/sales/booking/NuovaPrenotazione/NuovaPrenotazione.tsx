@@ -24,6 +24,7 @@ import {
   type BloccoFantasma,
 } from '../../../../store/useBlocchiFantasmaStore'
 import './NuovaPrenotazione.sass'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 
 const TODAY        = new Date().toISOString().split('T')[0]
 /** Data di oggi + n giorni, in yyyy-MM-dd. */
@@ -37,7 +38,6 @@ const ARRANGIAMENTI = ['RO','BB','HB','FB','AI']
 const CREDIT        = ['NC','HC','FC','HCT']
 const REPARTI      = ['Manutenzione','Pulizie','Reception','Cucina','SPA']
 // Strutture del cliente (tab della lista camere nella card Soggiorno gruppo)
-const STRUTTURE_GRUPPO = ['Hotel dei Mille','Hotel Luce','Hotel Archimede']
 const TIPI_CAMERA  = [
   { v: '53', l: '53 | Doppia classic' },
   { v: '54', l: '54 | Doppia superior' },
@@ -201,6 +201,14 @@ const LAYOUT_GR  = [
 
 
 export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>void }) {
+  // Strutture (con camere) del cliente corrente: la prima è quella selezionata in alto.
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const schedeCliente = useStruttureCliente()
+  const STRUTTURE_GRUPPO = useMemo(() => {
+    const nomi = schedeCliente.filter(x => x.camere > 0).map(x => x.nome)
+    const lista = nomi.includes(strutturaCorrente) ? [strutturaCorrente, ...nomi.filter(n => n !== strutturaCorrente)] : nomi
+    return lista.length ? lista : [strutturaCorrente]
+  }, [schedeCliente, strutturaCorrente])
   // Modifica prenotazione: cattura una sola volta la prenotazione passata via bookingStore
   const [editing] = useState<any>(() => bookingStore.editing)
   const [editId]  = useState<string | null>(() => bookingStore.editing?.booking ?? null)
@@ -267,12 +275,8 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     const conPeriodo = (r: CameraRow) => ({ ...r, dataIn: dal, dataOut: al })
     const seed = editing
       ? editCamere(editing).map(conPeriodo)
-      : [conPeriodo(initRow(prefill?.numeroCamera || '103'))]
-    return {
-      [STRUTTURE_GRUPPO[0]]: seed,
-      [STRUTTURE_GRUPPO[1]]: [conPeriodo(initRow())],
-      [STRUTTURE_GRUPPO[2]]: [conPeriodo(initRow())],
-    }
+      : [conPeriodo(initRow(prefill?.numeroCamera || camere()[2] || '103'))]
+    return Object.fromEntries(STRUTTURE_GRUPPO.map((h, i) => [h, i === 0 ? seed : [conPeriodo(initRow())]]))
   })
   const camereInd = camereIndMap[form.hotel] ?? []
   const setCamereInd = (u: CameraRow[] | ((p: CameraRow[]) => CameraRow[])) =>
@@ -283,11 +287,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
     const seed = editing
       ? editCamere(editing).map(c => ({ ...riga(), ...c, dataIn: grForm.dal, dataOut: grForm.al }))
       : [{ ...riga(), quantita: 2, adulti: 4 }, { ...riga(), tipo: '55', quantita: 1, adulti: 3 }]
-    return {
-      [STRUTTURE_GRUPPO[0]]: seed,
-      [STRUTTURE_GRUPPO[1]]: [riga()],
-      [STRUTTURE_GRUPPO[2]]: [riga()],
-    }
+    return Object.fromEntries(STRUTTURE_GRUPPO.map((h, i) => [h, i === 0 ? seed : [riga()]]))
   })
   // Lista camere della struttura attiva (derivata): i consumatori esistenti
   // (anticipi, updCameraGr…) continuano a lavorare su questa.
@@ -329,8 +329,9 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   // ── Gestione segmenti (suddivisione del soggiorno in intervalli di date) ──────
   const [segmentiCollapsed, setSegmentiCollapsed] = useState(false)
   const [segmenti, setSegmenti] = useState<SegmentoRow[]>([
-    { id: 's1', dal: '2026-06-13', al: '2026-06-16', tipo: 'Doppia Classic', nCamera: '105', persone: 2, stato: 'Persistito' },
-    { id: 's2', dal: '2026-06-16', al: '2026-06-18', tipo: 'Doppia Classic', nCamera: '118', persone: 2, stato: 'Persistito' },
+    // Segmenti d'esempio a partire da oggi (prime due camere della struttura).
+    { id: 's1', dal: TODAY, al: traGiorni(3), tipo: 'Doppia Classic', nCamera: camere()[0] ?? '105', persone: 2, stato: 'Persistito' },
+    { id: 's2', dal: traGiorni(3), al: traGiorni(5), tipo: 'Doppia Classic', nCamera: camere()[1] ?? '118', persone: 2, stato: 'Persistito' },
   ])
 
   const [extra,        setExtra]        = useState<ExtraAggiunto[]>([])

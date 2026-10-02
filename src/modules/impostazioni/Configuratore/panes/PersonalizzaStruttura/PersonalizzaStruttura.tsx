@@ -9,6 +9,8 @@ import TruncatedText from '../../../../../core/components/TruncatedText'
 import { useConfirmStore } from '../../../../../store/useConfirmStore'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './PersonalizzaStruttura.sass'
+import { useStruttureCliente, useStrutturaCorrente } from '../../../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../../../core/demo/struttureDemo'
 
 // ─── PERSONALIZZA STRUTTURA (§4.25) ───────────────────────────────────────────
 //  Riepilogo assegnazioni della struttura: Struttura · Indirizzo (era
@@ -64,40 +66,24 @@ interface Row {
 
 interface Data { rows: Row[] }
 
-const FALLBACK_ROWS: Row[] = [
-  {
-    id: 1, struttura: 'Hotel Archimede', indirizzo: 'Via Appia 24, Ciampino Aeroporto',
-    descrizione: 'Struttura ricettiva a quattro stelle vicina all’aeroporto', sezionale: 'HA',
-    checkIn: '14:00', checkOut: '10:00',
-    earlyCheckIn: { attivo: true,  soglia: '11:00', importo: 25 },
-    lateCheckOut: { attivo: true,  soglia: '13:00', importo: 30 },
+// Senza backend: una riga per struttura del cliente corrente, con dati
+// anagrafici plausibili derivati dalla scheda (sempre uguali).
+const VIE = ['Via Roma', 'Corso Vittorio Emanuele', 'Via Garibaldi', 'Via Cavour', 'Lungomare Colombo', 'Piazza del Duomo']
+const righeDemo = (schede: SchedaDemo[]): Row[] => schede.map((x) => {
+  const ristorazione = x.camere === 0
+  const sigla = x.nome.split(/\s+/).filter((w) => /^[A-Z]/.test(w)).map((w) => w[0]).join('').slice(0, 3) || x.nome.slice(0, 2).toUpperCase()
+  return {
+    id: idStruttura(x.nome), struttura: x.nome,
+    indirizzo: `${VIE[x.seme % VIE.length]} ${1 + (x.seme % 90)}, ${x.citta}`,
+    descrizione: ristorazione ? `${x.tipo} a ${x.citta}` : `${x.tipo} a ${x.citta}, ${x.camere} camere`,
+    sezionale: sigla,
+    checkIn: ristorazione ? '12:00' : x.categoria === 'bnb' ? '15:00' : '14:00',
+    checkOut: ristorazione ? '00:00' : x.categoria === 'bnb' ? '10:30' : '11:00',
+    earlyCheckIn: { attivo: !ristorazione && x.seme % 2 === 0, soglia: '11:00', importo: ristorazione ? 0 : 20 + (x.seme % 3) * 5 },
+    lateCheckOut: { attivo: !ristorazione && x.seme % 3 === 0, soglia: '13:00', importo: ristorazione ? 0 : 25 + (x.seme % 3) * 5 },
     alloggiati: EMPTY_ALLOGGIATI,
-  },
-  {
-    id: 2, struttura: 'Hotel Luce', indirizzo: 'Viale dei Romagnoli 8, Fiumicino Aeroporto',
-    descrizione: 'Struttura ricettiva con navetta aeroportuale', sezionale: 'HL',
-    checkIn: '15:00', checkOut: '11:00',
-    earlyCheckIn: { attivo: false, soglia: '12:00', importo: 20 },
-    lateCheckOut: { attivo: false, soglia: '14:00', importo: 20 },
-    alloggiati: EMPTY_ALLOGGIATI,
-  },
-  {
-    id: 3, struttura: 'Ristorante Tullio', indirizzo: 'Via Salaria 120, Urbe Aeroporto',
-    descrizione: 'Ristorante lounge bar', sezionale: 'RT',
-    checkIn: '12:00', checkOut: '00:00',
-    earlyCheckIn: { attivo: false, soglia: '10:00', importo: 0 },
-    lateCheckOut: { attivo: false, soglia: '01:00', importo: 0 },
-    alloggiati: EMPTY_ALLOGGIATI,
-  },
-  {
-    id: 4, struttura: 'B&B React', indirizzo: 'Piazza della Stazione 3, Stazione Tiburtina',
-    descrizione: 'Accoglienza H24 in centro città', sezionale: 'BR',
-    checkIn: '14:30', checkOut: '10:30',
-    earlyCheckIn: { attivo: false, soglia: '12:00', importo: 15 },
-    lateCheckOut: { attivo: false, soglia: '12:30', importo: 15 },
-    alloggiati: EMPTY_ALLOGGIATI,
-  },
-]
+  }
+})
 
 function rowEquals(a: Row, b: Row): boolean {
   return a.struttura === b.struttura && a.indirizzo === b.indirizzo
@@ -134,9 +120,13 @@ export default function PersonalizzaStruttura() {
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
-  const [saved, setSaved] = useState<Row[]>(FALLBACK_ROWS)
-  const [rows, setRows]   = useState<Row[]>(FALLBACK_ROWS)
-  const [strutturaId, setStrutturaId] = useState<number | null>(FALLBACK_ROWS[0]?.id ?? null)
+  const schede = useStruttureCliente()
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const [saved, setSaved] = useState<Row[]>(() => righeDemo(schede))
+  const [rows, setRows]   = useState<Row[]>(() => righeDemo(schede))
+  const [strutturaId, setStrutturaId] = useState<number | null>(() => idStruttura(strutturaCorrente))
+  useEffect(() => { setSaved(righeDemo(schede)); setRows(righeDemo(schede)) }, [schede])
+  useEffect(() => { setStrutturaId(idStruttura(strutturaCorrente)) }, [strutturaCorrente])
   const [editId, setEditId]       = useState<number | null>(null)
   const [surchargeId, setSurchargeId] = useState<number | null>(null)
   const [saving, setSaving]           = useState(false)

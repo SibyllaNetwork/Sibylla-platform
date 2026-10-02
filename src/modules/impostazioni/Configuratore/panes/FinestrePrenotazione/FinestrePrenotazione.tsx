@@ -7,6 +7,8 @@ import {
 } from '../../../../../core/cfg'
 import { useConfiguratoreStore } from '../../../../../store/useConfiguratoreStore'
 import './FinestrePrenotazione.sass'
+import { useStrutturaCorrente, useStruttureCliente } from '../../../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../../../core/demo/struttureDemo'
 
 // ─── FINESTRE PRENOTAZIONE (§4.8) ─────────────────────────────────────────────
 //  Intervalli di booking window (giorni di anticipo) su CfgRangeRules:
@@ -49,7 +51,11 @@ export default function FinestrePrenotazione() {
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
 
   const [strutture, setStrutture]     = useState<Struttura[]>([])
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Senza backend: le strutture del cliente corrente, a partire da quella selezionata in alto.
+  const { struttura: strutturaCorrente } = useStrutturaCorrente()
+  const struttureCliente = useStruttureCliente()
+  const [strutturaId, setStrutturaId] = useState<number | null>(() => idStruttura(strutturaCorrente))
+  useEffect(() => { setStrutturaId(idStruttura(strutturaCorrente)) }, [strutturaCorrente])
   const [tipologia, setTipologia]     = useState<Tipologia>('Gruppi')
   const [saved, setSaved]             = useState<CfgRangeRow[]>(FALLBACK_ROWS)
   const [rows, setRows]               = useState<CfgRangeRow[]>(FALLBACK_ROWS)
@@ -102,10 +108,8 @@ export default function FinestrePrenotazione() {
           className="finestre-prenotazione__field"
           value={strutturaId ?? ''}
           onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
-          options={[
-            { value: '', label: 'Hotel Tutorial' },
-            ...strutture.map((s) => ({ value: s.Id, label: s.nome })),
-          ]}
+          options={(strutture.length ? strutture : struttureCliente.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })))
+            .map((s) => ({ value: s.Id, label: s.nome }))}
         />
         <RadioGroup
           name="tipologia"

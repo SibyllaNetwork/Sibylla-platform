@@ -1,3 +1,6 @@
+import { useAccessStore } from '../../../store/useAccessStore'
+import { useOrgStore } from '../../../store/useOrgStore'
+import { CLIENTS_INIT } from '../../../admin/SibyllaAdminPanel/constants'
 // ─── Chiusure e bilanciamento di magazzino — modello ──────────────────────────
 //  Il ciclo di un magazzino alberghiero si chiude a fine mese:
 //
@@ -47,9 +50,25 @@ export interface MagazzinoChiusura {
   reparto: string
 }
 
+// Le due strutture con magazzino sono le prime due del cliente corrente (stessa
+// regola del selettore in alto: assistenza → strutture del cliente; profilo →
+// la sua struttura; altrimenti l'organizzazione). Il nome si risolve alla
+// lettura, gli id restano stabili perché legano magazzini e chiusure salvate.
+function struttureCorrenti(): string[] {
+  const acc = useAccessStore.getState()
+  if (acc.assist) return CLIENTS_INIT.filter((c) => acc.assist!.struttureIds.includes(c.id)).map((c) => c.nome)
+  const prof = acc.currentProfileId ? acc.profiles.find((p) => p.id === acc.currentProfileId) : undefined
+  if (prof?.cliente) return [prof.cliente]
+  return useOrgStore.getState().strutture
+}
+const strutturaMag = (id: string, indice: number, riserva: string): StrutturaMag => ({
+  id,
+  get nome() { return struttureCorrenti()[indice] ?? `${struttureCorrenti()[0] ?? riserva} · dependance` },
+})
+
 export const STRUTTURE_MAG: StrutturaMag[] = [
-  { id: 'azzurro', nome: 'Hotel Azzurro Mare' },
-  { id: 'grim',    nome: "Grim's Hotel" },
+  strutturaMag('azzurro', 0, 'Struttura principale'),
+  strutturaMag('grim', 1, 'Struttura principale'),
 ]
 
 export const MAGAZZINI_CHIUSURA: MagazzinoChiusura[] = [

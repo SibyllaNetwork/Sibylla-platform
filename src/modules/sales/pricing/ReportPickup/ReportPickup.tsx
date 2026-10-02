@@ -2,6 +2,10 @@ import React, { useMemo, useRef, useState, useEffect } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { DateRangeField, SelectField } from '../../../../core/components/form'
 import './ReportPickup.sass'
+import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
+
+// Date demo relative a oggi.
+const isoFra = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 
 // ─── Pick-Up Camere Vendute (OTB) ────────────────────────────────────────────────
 // Matrice: righe = Data Arrivo (data di soggiorno), colonne = Data Osservazione
@@ -11,12 +15,6 @@ import './ReportPickup.sass'
 // non disponibile). Dati mock deterministici (On The Books).
 
 interface Hotel { id: string; nome: string; camere: number }
-const HOTELS: Hotel[] = [
-  { id: 'resort',   nome: 'Sibylla Resort',   camere: 120 },
-  { id: 'city',     nome: 'Sibylla City',     camere: 90 },
-  { id: 'bay',      nome: 'Sibylla Bay',      camere: 70 },
-  { id: 'mountain', nome: 'Sibylla Mountain', camere: 45 },
-]
 
 const SEGMENTI  = ['Tutti', 'Leisure', 'Business', 'Gruppi', 'MICE']
 const CANALI    = ['Tutti', 'Diretto', 'OTA', 'Tour Operator', 'GDS']
@@ -26,7 +24,8 @@ const PIANI     = ['Tutti', 'BAR', 'Non rimborsabile', 'Semiflex', 'Corporate']
 
 const WD = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab']
 const DAY = 86400000
-const OGGI = new Date(2026, 6, 8) // 08/07/2026 (data osservazione corrente)
+// Data di osservazione corrente: oggi.
+const OGGI = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })()
 
 const ddmm = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
 const parseISO = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1) }
@@ -36,10 +35,13 @@ const fmtNum = (n: number) => new Intl.NumberFormat('it-IT').format(Math.round(n
 const fmtPct = (n: number) => `${n > 0 ? '+' : ''}${n.toFixed(1).replace('.', ',')}%`
 
 export default function ReportPickup({ navigate: _navigate }: { navigate: (p: string) => void }) {
+  // Strutture (con camere) del cliente corrente.
+  const schede = useStruttureCliente()
+  const HOTELS: Hotel[] = useMemo(() => schede.filter((x) => x.camere > 0).map((x) => ({ id: x.id, nome: x.nome, camere: x.camere })), [schede])
   const [selHotels, setSelHotels] = useState<string[]>([])
   const [hotelOpen, setHotelOpen] = useState(false)
-  const [da, setDa] = useState('2026-07-10')
-  const [a, setA] = useState('2026-08-06')
+  const [da, setDa] = useState(() => isoFra(2))
+  const [a, setA] = useState(() => isoFra(29))
   const [segmento, setSegmento] = useState('Tutti')
   const [canale, setCanale] = useState('Tutti')
   const [mercato, setMercato] = useState('Tutti')

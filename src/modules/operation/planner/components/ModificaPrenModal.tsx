@@ -4,6 +4,7 @@ import Modal from '../../../../core/components/Modal';
 import { InputField } from '../../../../core/components/form';
 import { Pren, RoomDetail } from '../planner.types';
 import { fmtDate, parseDt } from '../planner.data';
+import { useStrutturaCorrente } from '../../../../hooks/useStrutturaCorrente';
 
 interface Props {
   open    : boolean;
@@ -15,6 +16,7 @@ const ARRANG = ['RO', 'BB', 'HB', 'FB', 'AI'];
 const EXTRA = ['Test Tour Ali Aslan', 'Transfer', 'Sconto', 'Pet Sitting'];
 
 const ModificaPrenModal: React.FC<Props> = ({ open, pren, onClose }) => {
+  const { struttura: strutturaCorrente } = useStrutturaCorrente();
   const [tab, setTab] = useState<'gruppo' | 'individuale'>('gruppo');
   if (!pren) return null;
 
@@ -56,7 +58,7 @@ const ModificaPrenModal: React.FC<Props> = ({ open, pren, onClose }) => {
           </div>
 
           <div className="mod-pren__box mod-pren__box--right">
-            <div className="mod-pren__hotel-tag">Hotel Tutorial</div>
+            <div className="mod-pren__hotel-tag">{strutturaCorrente}</div>
             <div className="mod-pren__types-head">
               <span>Tipologie camere disponibili</span><span>Persone</span><span>N. Camera</span>
             </div>

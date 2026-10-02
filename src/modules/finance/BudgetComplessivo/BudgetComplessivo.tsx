@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import { SelectField, RadioGroup } from '../../../core/components/form'
 import './BudgetComplessivo.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Budget complessivo — pianificazione strategica del conto economico, per voce
@@ -11,7 +12,6 @@ import './BudgetComplessivo.sass'
  */
 
 const ANNI = ['2024', '2025', '2026', '2027']
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 const SCENARI = ['Scenario base', 'Scenario ottimistico', 'Scenario prudenziale']
 const MODI = [{ value: 'Diretto', label: 'Diretto' }, { value: 'Simulato', label: 'Simulato' }]
@@ -42,7 +42,8 @@ function fmtEuro(v: number): string {
 
 export default function BudgetComplessivo({ navigate }: { navigate: (p: string) => void }) {
   const [anno, setAnno] = useState('2026')
-  const [struttura, setStruttura] = useState('Grim’s Hotel')
+  // Parte dalla struttura selezionata in alto (strutture del cliente corrente).
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [modo, setModo] = useState<'Diretto' | 'Simulato'>('Diretto')
   const [scenario, setScenario] = useState('')
   const [vals, setVals] = useState<Inputs>(blankInputs)
@@ -110,7 +111,7 @@ export default function BudgetComplessivo({ navigate }: { navigate: (p: string) 
       {/* Toolbar (stile screen: controlli compatti) */}
       <div className="bc__toolbar">
         <div className="bc__filters">
-          <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={STRUTTURE.map(s => ({ value: s, label: s }))} className="w-56" />
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
           <RadioGroup name="modo" label="Modalità" value={modo} onChange={v => setModo(v as 'Diretto' | 'Simulato')} options={MODI} />
           {modo === 'Simulato' && (
             <SelectField name="scenario" label="Scenario" value={scenario} onChange={e => setScenario(e.target.value)} placeholder="Seleziona Scenario" options={SCENARI.map(s => ({ value: s, label: s }))} className="w-52" />

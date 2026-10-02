@@ -67,8 +67,9 @@ export default function InserisciContrattoAcquisto({
   const [referente,setReferente]= useState(initial?.referente ?? '')
   const [specifiche, setSpecifiche] = useState('misto')
   const [pdfName,  setPdfName]  = useState<string>('Scegli il file')
-  const [inizio,   setInizio]   = useState('2026-05-04')
-  const [fine,     setFine]     = useState('2026-05-04')
+  // Validità di default: da oggi a un anno.
+  const [inizio,   setInizio]   = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })
+  const [fine,     setFine]     = useState(() => { const d = new Date(); d.setFullYear(d.getFullYear() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })
   const [garanzie, setGaranzie] = useState('nessuna')
   const [pagamento,setPagamento]= useState('')
   const [note,     setNote]     = useState('')

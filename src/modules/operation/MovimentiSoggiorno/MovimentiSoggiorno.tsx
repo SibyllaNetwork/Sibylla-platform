@@ -4,6 +4,10 @@ import Pagination from '../../../core/components/Pagination'
 import EmptyState from '../../../core/components/EmptyState'
 import { apiFetchSibylla } from '../../../services/api'
 import './MovimentiSoggiorno.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../core/demo/struttureDemo'
+import { usePmsStore } from '../_data/pmsDemo'
+import { pmsDi } from '../_data/pmsDi'
 
 const PAGE_SIZE = 12
 
@@ -39,30 +43,35 @@ interface Data {
   soggiorni: Soggiorno[]
 }
 
-const FALLBACK: Data = {
-  Strutture: [{ Id: 1, nome: "Grim's Hotel" }],
-  StrutturaId: 1,
-  soggiorni: [
-    { id: 1, prenotazioneNum: '15008', cameraNum: '016', intestatario: '', dataIn: '12/03/2026', dataOut: '13/03/2026', azienda: 'Sibylla', movimenti: [
-      { id: 101, prenotazioneNum: '15008', data: '12/03/2026', descrizione: 'Room Only',         tipo: 'soggiorno', prezzo: 322.04, aliquotaIva: 10, totale: 354.24 },
-      { id: 102, prenotazioneNum: '15008', data: '12/03/2026', descrizione: 'Room Only',         tipo: 'soggiorno', prezzo: 322.04, aliquotaIva: 10, totale: 354.24 },
-      { id: 103, prenotazioneNum: '15008', data: '12/03/2026', descrizione: 'Room Only',         tipo: 'soggiorno', prezzo: 322.04, aliquotaIva: 10, totale: 354.24 },
-      { id: 104, prenotazioneNum: '15008', data: '12/03/2026', descrizione: 'Room Only',         tipo: 'soggiorno', prezzo: 322.04, aliquotaIva: 10, totale: 354.24 },
-      { id: 105, prenotazioneNum: '15008', data: '12/03/2026', descrizione: 'Tassa di soggiorno', tipo: 'tassa',     prezzo: 0,      aliquotaIva: 0,  totale: 0      },
-    ]},
-    { id: 2, prenotazioneNum: '15011', cameraNum: '104', intestatario: 'Novi Ruggero', dataIn: '14/03/2026', dataOut: '16/03/2026', azienda: 'Sibylla', movimenti: [
-      { id: 201, prenotazioneNum: '15011', data: '14/03/2026', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 95.45, aliquotaIva: 10, totale: 105.00 },
-      { id: 202, prenotazioneNum: '15011', data: '15/03/2026', descrizione: 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: 95.45, aliquotaIva: 10, totale: 105.00 },
-      { id: 203, prenotazioneNum: '15011', data: '14/03/2026', descrizione: 'Tassa di soggiorno',    tipo: 'tassa',     prezzo: 7.50,  aliquotaIva: 0,  totale: 7.50  },
-      { id: 204, prenotazioneNum: '15011', data: '14/03/2026', descrizione: 'Transfer aeroporto',    tipo: 'servizio',  prezzo: 45.45, aliquotaIva: 10, totale: 50.00 },
-    ]},
-    { id: 3, prenotazioneNum: '15014', cameraNum: '102', intestatario: 'Mario Rossi',  dataIn: '15/03/2026', dataOut: '17/03/2026', azienda: 'Sibylla', movimenti: [
-      { id: 301, prenotazioneNum: '15014', data: '15/03/2026', descrizione: 'Room Only', tipo: 'soggiorno', prezzo: 88.31, aliquotaIva: 10, totale: 97.14 },
-      { id: 302, prenotazioneNum: '15014', data: '16/03/2026', descrizione: 'Room Only', tipo: 'soggiorno', prezzo: 88.31, aliquotaIva: 10, totale: 97.14 },
-    ]},
-    { id: 4, prenotazioneNum: '15020', cameraNum: '108', intestatario: 'Bianchi Giulia', dataIn: '18/03/2026', dataOut: '19/03/2026', azienda: 'Sibylla', movimenti: [] },
-    { id: 5, prenotazioneNum: '15022', cameraNum: '105', intestatario: 'Novi Victory',   dataIn: '18/03/2026', dataOut: '20/03/2026', azienda: 'Sibylla', movimenti: [] },
-  ],
+// ── Dati demo (senza backend) ──────────────────────────────────────────────────
+//  Strutture del cliente; soggiorni = ospiti in casa nel gestionale demo della
+//  struttura scelta, con i movimenti maturati notte per notte fino a oggi.
+const SERVIZI_EXTRA = [['Minibar', 18], ['Transfer aeroporto', 45], ['Lavanderia', 22], ['Spa — percorso benessere', 35]] as const
+function datiDemo(strutture: string[], strutturaId: number | null): Data {
+  const nome = strutture.find((n) => idStruttura(n) === strutturaId) ?? strutture[0] ?? ''
+  const d = new Date()
+  const oggi = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const it = (iso: string) => iso.split('-').reverse().join('/')
+  const giorno = (iso: string, n: number) => { const t = new Date(iso + 'T12:00:00'); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}` }
+  const soggiorni = pmsDi(nome).prenotazioni
+    .filter((x) => x.stato !== 'noshow' && x.checkin !== 'da-fare' && x.checkIn <= oggi && oggi < x.checkOut)
+    .map((x, i) => {
+      const id = i + 1
+      const notti = Math.max(1, Math.round((new Date(x.checkOut).getTime() - new Date(x.checkIn).getTime()) / 86400000))
+      const lordo = Math.round((x.importo / notti) * 100) / 100
+      const movimenti: Movimento[] = []
+      for (let n = 0; n < notti && giorno(x.checkIn, n) <= oggi; n++) {
+        const data = it(giorno(x.checkIn, n))
+        movimenti.push({ id: id * 100 + movimenti.length + 1, prenotazioneNum: x.booking, data, descrizione: x.arrangiamento === 'RO' ? 'Soggiorno' : 'Soggiorno + colazione', tipo: 'soggiorno', prezzo: Math.round((lordo / 1.1) * 100) / 100, aliquotaIva: 10, totale: lordo })
+        if (n < 7) movimenti.push({ id: id * 100 + movimenti.length + 1, prenotazioneNum: x.booking, data, descrizione: 'Tassa di soggiorno', tipo: 'tassa', prezzo: 3.5 * x.adulti, aliquotaIva: 0, totale: 3.5 * x.adulti })
+      }
+      if (Number(x.booking) % 3 === 0) {
+        const [desc, prezzo] = SERVIZI_EXTRA[Number(x.booking) % SERVIZI_EXTRA.length]
+        movimenti.push({ id: id * 100 + movimenti.length + 1, prenotazioneNum: x.booking, data: it(oggi), descrizione: desc, tipo: 'servizio', prezzo: Math.round((prezzo / 1.22) * 100) / 100, aliquotaIva: 22, totale: prezzo })
+      }
+      return { id, prenotazioneNum: x.booking, cameraNum: x.camera, intestatario: x.nominativo, dataIn: it(x.checkIn), dataOut: it(x.checkOut), azienda: x.canale, movimenti }
+    })
+  return { Strutture: strutture.map((n) => ({ Id: idStruttura(n), nome: n })), StrutturaId: idStruttura(nome), soggiorni }
 }
 
 function fmtCurrency(v: number): string {
@@ -78,7 +87,11 @@ function fmtPercent(v: number): string {
 type SortKey = 'dataIn' | 'dataOut'
 
 export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Struttura selezionata in alto (strutture del cliente).
+  const { struttura: strutturaCorrente, elenco } = useStrutturaCorrente()
+  const versionePms = usePmsStore((st) => st.versione)
+  const [data, setData] = useState<Data>(() => datiDemo(elenco, idStruttura(strutturaCorrente)))
+  useEffect(() => { setData(datiDemo(elenco, idStruttura(strutturaCorrente))) }, [elenco, strutturaCorrente, versionePms])
   const [search, setSearch] = useState('')
   const [dataIn, setDataIn] = useState('')
   const [dataOut, setDataOut] = useState('')
@@ -96,10 +109,10 @@ export default function MovimentiSoggiorno({ navigate }: { navigate: (p: string)
       body: { strutturaId: data.StrutturaId, dataIn, dataOut },
     })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setData(datiDemo(elenco, data.StrutturaId)) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataIn, dataOut, data.StrutturaId])
+  }, [dataIn, dataOut, data.StrutturaId, elenco, versionePms])
 
   const toggleExpanded = (id: number) =>
     setExpanded((prev) => {

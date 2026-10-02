@@ -18,6 +18,7 @@ import {
   type SegmentoStagionalita,
 } from './stagionalitaData'
 import './Stagionalita.sass'
+import { useStrutturaPagina } from '../../../../../hooks/useStrutturaCorrente'
 
 // ─── STAGIONALITÀ ─────────────────────────────────────────────────────────────
 //  Configurazione dei periodi stagionali per segmento (B2B / Gruppi):
@@ -50,6 +51,8 @@ function completionOf(periodi: Record<SegmentoStagionalita, PeriodoStagione[]>):
 }
 
 export default function Stagionalita() {
+  // Strutture del cliente corrente, a partire da quella selezionata in alto.
+  const [strutturaNome, setStrutturaNome, opzioniStrutture] = useStrutturaPagina()
   // ── Catalogo dinamico (mock DB, mai hardcodato nella JSX)
   const [catalogo, setCatalogo] = useState<StagioneDef[]>([])
   useEffect(() => {
@@ -172,9 +175,9 @@ export default function Stagionalita() {
         <SelectField
           name="struttura"
           label="Struttura"
-          value=""
-          onChange={() => { /* struttura unica nel profilo demo */ }}
-          options={[{ value: '', label: 'Hotel Tutorial' }]}
+          value={strutturaNome}
+          onChange={(e) => setStrutturaNome(e.target.value)}
+          options={opzioniStrutture}
         />
         <SelectField
           name="anno"

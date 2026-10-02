@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import T from '../../../../core/tokens'
 import Ico from '../../../../core/icons/Ico'
 import Modal from '../../../../core/components/Modal'
@@ -7,6 +7,7 @@ import Pagination from '../../../../core/components/Pagination'
 import './ScreeningOpenPrice.sass'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
 import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+import TruncatedText from '../../../../core/components/TruncatedText'
 
 const ROOMS = [
   {label:'Singola Classic',  base:153.68},{label:'Doppia Classic',   base:186.24},
@@ -39,6 +40,10 @@ const AreaChart = ({cd}:{cd:any[]}) => {
   )
 }
 
+// Date demo relative a oggi.
+const isoDa = (base: string, n: number) => { const d = new Date(base + 'T12:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const isoFra = (n: number) => { const d = new Date(); return isoDa(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, n) }
+
 const genData = (struttura:string, from:string, to:string) => {
   const arr:any[] = []
   const s = new Date(from+'T00:00:00'), e = new Date(to+'T00:00:00')
@@ -61,8 +66,9 @@ const genData = (struttura:string, from:string, to:string) => {
 
 export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=>void }) {
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
-  const [inputFrom,  setInputFrom]  = useState('2026-04-07')
-  const [inputTo,    setInputTo]    = useState('2026-05-07')
+  // Prossimo mese a partire da oggi.
+  const [inputFrom,  setInputFrom]  = useState(() => isoFra(0))
+  const [inputTo,    setInputTo]    = useState(() => isoFra(30))
   const [loading,    setLoading]    = useState(false)
   const [pg,         setPg]         = useState(1)
   const [showModal,  setShowModal]  = useState(false)
@@ -70,9 +76,12 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
   const [modalOff,   setModalOff]   = useState(0)
   const [selected,   setSelected]   = useState<Set<number>>(new Set())
   const [selectAll,  setSelectAll]  = useState(false)
-  const [data,       setData]       = useState<any[]>(() => genData('Hotel Siracusa', '2026-04-07', '2026-05-07'))
-  const [activeFrom, setActiveFrom] = useState('2026-04-07')
-  const [activeTo,   setActiveTo]   = useState('2026-05-07')
+  const [data,       setData]       = useState<any[]>(() => genData(struttura, isoFra(0), isoFra(30)))
+  const [activeFrom, setActiveFrom] = useState(() => isoFra(0))
+  const [activeTo,   setActiveTo]   = useState(() => isoFra(30))
+  // Cambiata la struttura selezionata: si riscreena il periodo attivo.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setData(genData(struttura, activeFrom, activeTo)) }, [struttura])
 
   const getDIM = (y:number,m:number) => new Date(y,m+1,0).getDate()
   const calMonths:Array<{year:number;month:number}> = []
@@ -86,7 +95,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
   }
 
   const PER=10, total=Math.ceil(data.length/PER), pageData=data.slice((pg-1)*PER,pg*PER)
-  const getChart = (row:any) => Array.from({length:15},(_,i)=>{ const s=(row.id*7+i*13)%100; return{lbl:`2026-04-${String(7+i).padStart(2,'0')}`,str:Math.max(0,20+(s%160)),ai:Math.max(0,40+(s%50)),ly:Math.max(0,s%15)} })
+  const getChart = (row:any) => Array.from({length:15},(_,i)=>{ const s=(row.id*7+i*13)%100; return{lbl:isoDa(activeFrom, i),str:Math.max(0,20+(s%160)),ai:Math.max(0,40+(s%50)),ly:Math.max(0,s%15)} })
 
   return (
     <div className="screening__root">
@@ -219,7 +228,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
                 {pageData.map((row) => (
                   <tr key={row.id} className="screening__row">
                     <td className="screening__td screening__td--nowrap">{row.date}</td>
-                    <td className="screening__td screening__td--nowrap">Hotel Siracu...</td>
+                    <td className="screening__td screening__td--nowrap"><TruncatedText text={row.struttura} /></td>
                     <td className="screening__td screening__td--nowrap">{row.tipologia.length>13?row.tipologia.slice(0,12)+'...':row.tipologia}</td>
                     <td className="screening__td screening__td--right screening__td--nowrap">{row.attS}</td>
                     <td className="screening__td screening__td--right">

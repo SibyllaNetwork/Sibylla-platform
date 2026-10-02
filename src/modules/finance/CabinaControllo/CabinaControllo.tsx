@@ -4,6 +4,7 @@ import Tooltip from '../../../core/components/Tooltip'
 import { SelectField } from '../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './CabinaControllo.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Cabina di controllo — conto economico di gestione. Per ogni periodo (mese o
@@ -13,7 +14,6 @@ import './CabinaControllo.sass'
  */
 
 const ANNI = ['2024', '2025', '2026', '2027']
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
 const INTERVALLI = [
@@ -100,7 +100,8 @@ function colonne(ivId: string): Col[] {
 
 export default function CabinaControllo({ navigate }: { navigate: (p: string) => void }) {
   const [anno, setAnno] = useState('2026')
-  const [struttura, setStruttura] = useState('Hotel Tutorial')
+  // Parte dalla struttura selezionata in alto (strutture del cliente corrente).
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [intervallo, setIntervallo] = useState('Q1')
 
   const data = useMemo(() => buildData(anno), [anno])
@@ -170,7 +171,7 @@ export default function CabinaControllo({ navigate }: { navigate: (p: string) =>
         <div className="cabina__filters">
           <SelectField name="anno" label="Anno" value={anno} onChange={e => setAnno(e.target.value)} options={ANNI.map(a => ({ value: a, label: a }))} className="w-24" />
           <SelectField name="intervallo" label="Periodo" value={intervallo} onChange={e => setIntervallo(e.target.value)} options={INTERVALLI.map(i => ({ value: i.id, label: i.label }))} className="w-36" />
-          <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={STRUTTURE.map(s => ({ value: s, label: s }))} className="w-56" />
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={e => setStruttura(e.target.value)} options={opzioniStrutture} className="w-56" />
         </div>
         <div className="cabina__actions">
           <Tooltip text="Esporta PDF"><button className="sib-btn sib-btn--icon" aria-label="Esporta PDF" onClick={exportPdf}><i className="fa-regular fa-file-pdf" /></button></Tooltip>

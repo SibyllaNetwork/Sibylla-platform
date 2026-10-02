@@ -4,6 +4,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../booking/GrigliaDisponibilita/exportGriglia'
 import './BudgetRicavi.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 // Budget dei ricavi — dashboard revenue per mese: Anno Precedente, Imposta
 // budget (%RN/%ADR editabili, guidano il Budget), Budget e Anno Corrente con
@@ -30,7 +31,6 @@ const MESI: MeseBase[] = [
   { mese: 'DIC', precRN: 56, precADR: 101.00, corrRN: 12,  corrADR: 55.80 },
 ]
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare']
 const SEGMENTI  = ['Tutti i segmenti', 'Individuali', 'Gruppi', 'Business', 'Leisure']
 const ANNI      = ['2026', '2025', '2024']
 const INIT_DRN  = [2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
@@ -48,7 +48,8 @@ function pct(curr: number, base: number): { text: string; cls: string } {
 }
 
 export default function BudgetRicavi({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // Struttura selezionata in alto, fra quelle del cliente.
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [segmento, setSegmento]   = useState(SEGMENTI[0])
   const [anno, setAnno]           = useState(ANNI[0])
   const [dRN, setDRN]   = useState<number[]>(INIT_DRN)
@@ -129,7 +130,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
       {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <div className="bdg-ric__bar">
         <div className="bdg-ric__filters">
-          <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
           <SelectField name="segmento" label="Segmenti" value={segmento} onChange={(e) => setSegmento(e.target.value)} options={SEGMENTI.map((s) => ({ value: s, label: s }))} />
           <SelectField name="anno" label="Anno" className="w-[110px]" value={anno} onChange={(e) => setAnno(e.target.value)} options={ANNI.map((a) => ({ value: a, label: a }))} />
           <Tooltip content="Configurando il budget aziendale in modalità aggregata non avrai un dettaglio analitico pesato per segmento" position="bottom">

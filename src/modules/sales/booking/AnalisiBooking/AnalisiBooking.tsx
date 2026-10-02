@@ -6,6 +6,7 @@ import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import { SelectField } from '../../../../core/components/form'
 import './AnalisiBooking.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 const OPERATORI = [
@@ -14,7 +15,6 @@ const OPERATORI = [
   { id: 'dir', nome: 'Prenotazione diretta',produzione: 12300.00, riempimento: 14.50, trend: 'down', giorniExtra: 0, servizi: 3, adr: 110.80, camere: 221, ricavo: 2640.00 },
 ]
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim\'s Hotel', 'Hotel Azzurro Mare']
 const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const MESI_ABBR = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic']
 const CATEGORIE = ['Tutte','Standard','Superior','Suite']
@@ -208,7 +208,8 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
   // Una o piu mensilita selezionate contemporaneamente (multiselect)
   const [mesi,      setMesi]      = useState<number[]>([4])
   const [anno,      setAnno]      = useState(2026)
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // Strutture del cliente, a partire da quella selezionata in alto.
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [categoria, setCategoria] = useState('Tutte')
 
   const capienza  = 25
@@ -322,7 +323,7 @@ export default function AnalisiBooking({ navigate }: { navigate: (p: string) => 
           className="w-[180px]"
           value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
         />
         <SelectField
           label="Categoria"

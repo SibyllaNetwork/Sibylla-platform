@@ -19,6 +19,7 @@ import {
   type MatriceColKey,
 } from './barFitData'
 import './BarFit.sass'
+import { useStrutturaPagina } from '../../../../../hooks/useStrutturaCorrente'
 
 // ─── B.A.R. / F.I.T. ─────────────────────────────────────────────────────────
 //  Master-detail dentro il pane: la lista (sinistra) mostra le BAR del
@@ -35,6 +36,8 @@ const fmtEur2 = (v: number | null) =>
   v == null ? '—' : new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(v)
 
 export default function BarFit() {
+  // Strutture del cliente corrente, a partire da quella selezionata in alto.
+  const [strutturaNome, setStrutturaNome, opzioniStrutture] = useStrutturaPagina()
   const [mode, setMode] = useState<BarMode>('BAR')
   const modeLabel = mode === 'BAR' ? 'B.A.R.' : 'F.I.T.'
 
@@ -105,9 +108,9 @@ export default function BarFit() {
         <SelectField
           name="struttura"
           label="Struttura"
-          value=""
-          onChange={() => { /* struttura unica nel profilo demo */ }}
-          options={[{ value: '', label: 'Hotel Tutorial' }]}
+          value={strutturaNome}
+          onChange={(e) => setStrutturaNome(e.target.value)}
+          options={opzioniStrutture}
         />
         <RadioGroup
           name="tipologia"

@@ -6,6 +6,7 @@ import ToggleSwitch from '../../../core/components/ToggleSwitch'
 import Pagination from '../../../core/components/Pagination'
 import { InputField, SelectField, TextareaField, CheckboxField } from '../../../core/components/form'
 import './InventarioCamere.sass'
+import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 type RoomKind = 'camera' | 'meeting' | 'dus' | 'oof'
 
@@ -28,12 +29,7 @@ interface Room {
 }
 
 interface Struttura { nome: string; pms: boolean }
-const STRUTTURE: Struttura[] = [
-  { nome: 'Hotel California', pms: false },
-  { nome: "Grim's Hotel", pms: false },
-  { nome: 'Hotel Floridia', pms: true },
-]
-const PIANI = ['Piano terra', 'Primo piano', 'Secondo piano', 'Terzo piano']
+const PIANI_NOMI = ['Piano terra', 'Primo piano', 'Secondo piano', 'Terzo piano', 'Quarto piano', 'Quinto piano', 'Sesto piano', 'Settimo piano', 'Ottavo piano', 'Nono piano', 'Decimo piano']
 const TIPOLOGIE = ['Singola Classic', 'Doppia Classic', 'Tripla Classic', 'Quadrupla', 'Matrimoniale Deluxe', 'Suite', 'DUS', 'Sala']
 
 const AMENITIES = [
@@ -97,38 +93,53 @@ function roomImg(room: Room): string {
 }
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
-function makeMock(): Room[] {
-  type D = [string | undefined, string, string, RoomKind, string]
-  const def: D[] = [
-    ['001', 'Palermo', 'Singola Classic', 'camera', 'Primo piano'],
-    ['002', 'Trapani', 'Singola Classic', 'camera', 'Primo piano'],
-    ['003', 'Cefalù', 'Singola Classic', 'camera', 'Primo piano'],
-    ['004', 'Agrigento', 'Doppia Classic', 'camera', 'Primo piano'],
-    ['005', 'Messina', 'Doppia Classic', 'camera', 'Secondo piano'],
-    ['006', 'Isnello', 'Doppia Classic', 'camera', 'Secondo piano'],
-    ['007', 'Tripla Classic', 'Tripla Classic', 'camera', 'Secondo piano'],
-    ['008', 'Tripla Classic', 'Tripla Classic', 'camera', 'Secondo piano'],
-    ['009', 'Etna', 'Quadrupla', 'camera', 'Terzo piano'],
-    ['010', 'Vulcano', 'Suite', 'camera', 'Terzo piano'],
-    ['011', 'Stromboli', 'DUS', 'dus', 'Terzo piano'],
-    [undefined, 'Sala Meeting', 'Sala', 'meeting', 'Piano terra'],
-    ['013', 'Lipari', 'Doppia Classic', 'oof', 'Secondo piano'],
-    ['014', 'Salina', 'Doppia Classic', 'camera', 'Secondo piano'],
-  ]
-  return def.map(([numero, nome, tip, kind, piano], i) => ({
-    id: `r${i + 1}`, numero, nome, tipologia: tip, struttura: 'Hotel California', piano,
-    postiBase: (POSTI[tip] ?? [1, 0])[0], postiAggiuntivi: (POSTI[tip] ?? [1, 0])[1],
-    enabled: kind !== 'oof' && kind !== 'dus', kind,
-  }))
+// Camere della struttura dalle schede demo: numero e piani coerenti col front
+// office (stessa numerazione del gestionale demo), tipologie deterministiche.
+const NOMI_CAMERA = ['Palermo', 'Trapani', 'Cefalù', 'Agrigento', 'Messina', 'Isnello', 'Etna', 'Vulcano', 'Stromboli', 'Lipari', 'Salina', 'Panarea', 'Ortigia', 'Noto', 'Erice', 'Taormina']
+const TIP_GIRO = ['Doppia Classic', 'Matrimoniale Deluxe', 'Singola Classic', 'Doppia Classic', 'Tripla Classic', 'Matrimoniale Deluxe', 'DUS', 'Quadrupla']
+function makeMock(schede: { nome: string; camere: number; seme: number; categoria: string }[]): Room[] {
+  const out: Room[] = []
+  schede.filter((x) => x.camere > 0).forEach((x) => {
+    const n = x.camere
+    const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
+    for (let i = 0; i < n; i++) {
+      const piano = n <= 8 ? 1 : 1 + Math.floor(i / perPiano)
+      const k = i % perPiano
+      const ultimo = piano === Math.ceil(n / perPiano)
+      const tip = x.categoria === 'studentato' ? (i % 4 === 0 ? 'Doppia Classic' : 'Singola Classic')
+        : n > 8 && ultimo && k >= perPiano - 2 ? 'Suite' : TIP_GIRO[(x.seme + i * 7) % TIP_GIRO.length]
+      const kind: RoomKind = tip === 'DUS' ? 'dus' : (x.seme + i) % 37 === 0 ? 'oof' : 'camera'
+      out.push({
+        id: `r-${x.seme}-${i}`, numero: n <= 8 ? String(i + 1) : String(piano * 100 + k + 1),
+        nome: NOMI_CAMERA[(i + x.seme) % NOMI_CAMERA.length], tipologia: tip, struttura: x.nome,
+        piano: PIANI_NOMI[piano] ?? `Piano ${piano}`,
+        postiBase: (POSTI[tip] ?? [1, 0])[0], postiAggiuntivi: (POSTI[tip] ?? [1, 0])[1],
+        enabled: kind === 'camera', kind,
+      })
+    }
+    if (n > 40) out.push({
+      id: `r-${x.seme}-sala`, numero: undefined, nome: 'Sala Meeting', tipologia: 'Sala', struttura: x.nome,
+      piano: PIANI_NOMI[0], postiBase: 0, postiAggiuntivi: 0, enabled: true, kind: 'meeting',
+    })
+  })
+  return out
 }
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function InventarioCamere(_props: { navigate?: (p: string) => void } = {}) {
-  const [strutturaNome, setStrutturaNome] = useState(STRUTTURE[0].nome)
+  // Strutture (con camere) del cliente corrente, a partire da quella selezionata in alto.
+  const schede = useStruttureCliente()
+  const STRUTTURE: Struttura[] = useMemo(() => schede.filter((x) => x.camere > 0).map((x) => ({ nome: x.nome, pms: x.seme % 7 === 0 })), [schede])
+  const [strutturaNome, setStrutturaNome] = useStrutturaPagina()
+  const PIANI = useMemo(() => {
+    const usati = new Set(makeMock(schede).filter((r) => r.struttura === strutturaNome).map((r) => r.piano))
+    return PIANI_NOMI.filter((p) => usati.has(p))
+  }, [schede, strutturaNome])
   const [piano, setPiano] = useState('')
   const [tipologia, setTipologia] = useState('')
-  const [rooms, setRooms] = useState<Room[]>(makeMock())
+  const [rooms, setRooms] = useState<Room[]>(() => makeMock(schede))
+  useEffect(() => { setRooms(makeMock(schede)) }, [schede])
   const [page, setPage] = useState(1)
   const [view, setView] = useState<'grid' | 'form'>('grid')
   const [editing, setEditing] = useState<Room | null>(null)

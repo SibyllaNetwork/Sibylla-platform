@@ -10,6 +10,7 @@ import { fetchStagioniCatalogo, type StagioneDef } from '../Stagionalita/stagion
 import { useOverbookingStore, TIPOLOGIE_CAMERA_OVB, type RegolaOverbooking } from './overbookingData'
 import type { CfgPaneComponentProps } from '../../Configuratore'
 import './OverbookingLimit.sass'
+import { useStrutturaPagina } from '../../../../../hooks/useStrutturaCorrente'
 
 // ─── OVERBOOKING LIMIT ───────────────────────────────────────────────────────
 //  Il funzionale (§4.11) vuole il configuratore bloccato fino a Stagionalità
@@ -22,6 +23,8 @@ import './OverbookingLimit.sass'
 const PANE_ID = 'overbooking-limit'
 
 export default function OverbookingLimit({ onGoTo }: CfgPaneComponentProps) {
+  // Strutture del cliente corrente, a partire da quella selezionata in alto.
+  const [strutturaNome, setStrutturaNome, opzioniStrutture] = useStrutturaPagina()
   // Periodi = stagionalità dal Pannello di Controllo (elenco dinamico)
   const [catalogo, setCatalogo] = useState<StagioneDef[]>([])
   useEffect(() => {
@@ -132,9 +135,9 @@ export default function OverbookingLimit({ onGoTo }: CfgPaneComponentProps) {
         <SelectField
           name="struttura"
           label="Struttura"
-          value=""
-          onChange={() => { /* struttura unica nel profilo demo */ }}
-          options={[{ value: '', label: 'Hotel Tutorial' }]}
+          value={strutturaNome}
+          onChange={(e) => setStrutturaNome(e.target.value)}
+          options={opzioniStrutture}
         />
       </CfgToolbar>
 

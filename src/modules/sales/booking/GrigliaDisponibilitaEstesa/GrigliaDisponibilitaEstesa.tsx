@@ -2,6 +2,8 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import { SelectField, DatePickerField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../GrigliaDisponibilita/exportGriglia'
+import { useStrutturaPagina, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
+import type { SchedaDemo } from '../../../../core/demo/struttureDemo'
 import './GrigliaDisponibilitaEstesa.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -9,15 +11,23 @@ interface Tipo { tipo: string; tot: number }
 interface StrutturaDef { nome: string; tipi: Tipo[]; busy?: boolean }
 interface Metrics { totale: number; vendute: number; impegnate: number; disponibili: number; prenotate: number; opzionate: number; occupate: number; manutenzione: number }
 
-const STRUTTURE_DEF: StrutturaDef[] = [
-  { nome: "Grim's Hotel", tipi: [{ tipo: 'Doppia Classic', tot: 3 }, { tipo: 'Matrimoniale Convertibile in Tripla', tot: 5 }, { tipo: 'Singola Classic', tot: 3 }] },
-  { nome: 'Hotel Azzurro Mare', tipi: [{ tipo: 'Singola Classic', tot: 1 }] },
-  { nome: 'HOTEL DEI MILLE', tipi: [{ tipo: 'Doppia Classic', tot: 2 }] },
-  { nome: 'Hotel Tempio di Pallade', tipi: [{ tipo: 'Doppia Classic', tot: 1 }] },
-  { nome: 'Hotel Tutorial', busy: true, tipi: [{ tipo: 'Doppia Classic', tot: 53 }, { tipo: 'Singola Classic', tot: 12 }, { tipo: 'Tripla Classic', tot: 1 }] },
-]
+// Strutture del cliente corrente (dalla scheda demo): camere ripartite per
+// tipologia, tutte "attive" (con vendite) e sempre uguali per la stessa struttura.
+function struttureDef(schede: SchedaDemo[]): StrutturaDef[] {
+  return schede.filter((x) => x.camere > 0).map((x) => {
+    const sgl = Math.max(1, Math.round(x.camere * 0.15))
+    const trp = Math.max(1, Math.round(x.camere * 0.12))
+    const ste = x.camere > 8 ? Math.max(1, Math.round(x.camere * 0.05)) : 0
+    const tipi: Tipo[] = [
+      { tipo: 'Doppia Classic', tot: x.camere - sgl - trp - ste },
+      { tipo: 'Singola Classic', tot: sgl },
+      { tipo: 'Tripla Classic', tot: trp },
+      ...(ste ? [{ tipo: 'Suite', tot: ste }] : []),
+    ].filter((t) => t.tot > 0)
+    return { nome: x.nome, busy: true, tipi }
+  })
+}
 
-const STRUTTURE_OPTS = ['Tutte', ...STRUTTURE_DEF.map((s) => s.nome)]
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 const GIORNI_W = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
 const PERIODI_GIORNI = [5, 10, 15, 20, 30]
@@ -49,8 +59,12 @@ const dayLabel = (d: Date) => `${GIORNI_W[d.getDay()]} ${d.getDate()} ${MESI[d.g
 // ── Componente ────────────────────────────────────────────────────────────────
 export default function GrigliaDisponibilitaEstesa(_props: { navigate?: (p: string) => void } = {}) {
   const [categoria, setCategoria] = useState('Tutte')
-  const [struttura, setStruttura] = useState('Tutte')
-  const [periodo, setPeriodo] = useState('2026-06-30')
+  // Struttura selezionata in alto (o tutte quelle del cliente); timeline da oggi.
+  const schede = useStruttureCliente()
+  const STRUTTURE_DEF = useMemo(() => struttureDef(schede), [schede])
+  const STRUTTURE_OPTS = ['Tutte', ...STRUTTURE_DEF.map((s) => s.nome)]
+  const [struttura, setStruttura] = useStrutturaPagina()
+  const [periodo, setPeriodo] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })
   const [nGiorni, setNGiorni] = useState(5)
 
   const giorni = useMemo(() => genGiorni(new Date(periodo), nGiorni), [periodo, nGiorni])

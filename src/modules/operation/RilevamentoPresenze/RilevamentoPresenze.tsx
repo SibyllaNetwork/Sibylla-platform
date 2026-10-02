@@ -4,6 +4,8 @@ import { DatePickerField, DateRangeField, SelectField } from '../../../core/comp
 import { apiFetchSibylla } from '../../../services/api'
 import { exportTableToXls } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import './RilevamentoPresenze.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
+import { pmsAttivo, usePmsStore } from '../_data/pmsDemo'
 
 /**
  * Rilevamento presenze — replica `Views/FrontOffice/RilevamentoPresenze.cshtml`.
@@ -24,7 +26,6 @@ interface RigaNazione {
   [key: string]: unknown
 }
 
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
 
 // Intervalli per l'export XML (verso questura/ISTAT)
 const INTERVALLI_XML = [
@@ -35,15 +36,38 @@ const INTERVALLI_XML = [
   { value: 'periodo', label: 'Periodo selezionato' },
 ]
 
-const FALLBACK: RigaNazione[] = Array.from({ length: 6 }).map((_, i) => ({
-  id: i + 1,
-  nazione: 'BULGARIA',
-  iso2: 'BG',
-  provincia: '/',
-  presenze: 1,
-  arrivi: 0,
-  partenze: 0,
-}))
+// ── Dati demo: ospiti del gestionale demo della struttura selezionata ─────────
+//  Presenze, arrivi e partenze del giorno raggruppati per paese di residenza
+//  (dedotto dal cognome; per l'Italia la provincia).
+const PAESE_DI: Array<[string, string, string]> = [
+  ['Müller', 'GERMANIA', 'DE'], ['Schneider', 'GERMANIA', 'DE'], ['Smith', 'REGNO UNITO', 'GB'],
+  ['Johnson', 'STATI UNITI', 'US'], ['Dubois', 'FRANCIA', 'FR'], ['Martin', 'FRANCIA', 'FR'],
+  ['García', 'SPAGNA', 'ES'], ['Fernández', 'SPAGNA', 'ES'], ['Tanaka', 'GIAPPONE', 'JP'], ['O’Brien', 'IRLANDA', 'IE'],
+]
+const PROVINCE_IT = ['RM', 'MI', 'NA', 'TO', 'PA', 'CT', 'FI', 'BO', 'BA', 'VE']
+const isoDi = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+function righeDemo(dataIso: string): RigaNazione[] {
+  const m = new Map<string, RigaNazione>()
+  pmsAttivo().prenotazioni.filter((x) => x.stato !== 'noshow').forEach((x) => {
+    const presente = x.checkIn <= dataIso && dataIso < x.checkOut
+    const arriva = x.checkIn === dataIso
+    const parte = x.checkOut === dataIso
+    if (!presente && !arriva && !parte) return
+    x.ospiti.forEach((o) => {
+      const estero = PAESE_DI.find(([c]) => o.nome.startsWith(c + ' '))
+      const nazione = estero ? estero[1] : 'ITALIA'
+      const provincia = estero ? '/' : PROVINCE_IT[(o.nome.charCodeAt(0) + o.nome.length) % PROVINCE_IT.length]
+      const k = `${nazione}|${provincia}`
+      const r = m.get(k) ?? { id: m.size + 1, nazione, iso2: estero ? estero[2] : 'IT', provincia, presenze: 0, arrivi: 0, partenze: 0 }
+      if (presente) r.presenze += 1
+      if (arriva) r.arrivi += 1
+      if (parte) r.partenze += 1
+      m.set(k, r)
+    })
+  })
+  return Array.from(m.values()).sort((a, b) => b.presenze - a.presenze)
+}
 
 function flagEmoji(iso2?: string): string {
   if (!iso2 || iso2.length !== 2) return '🏳️'
@@ -55,11 +79,13 @@ function flagEmoji(iso2?: string): string {
 }
 
 export default function RilevamentoPresenze({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura] = useState('Hotel Tutorial')
-  const [data, setData] = useState('2026-04-28')
-  const [periodoDa, setPeriodoDa] = useState('2026-03-01')
-  const [periodoA,  setPeriodoA]  = useState('2026-03-31')
-  const [items, setItems] = useState<RigaNazione[]>(FALLBACK)
+  // Struttura selezionata in alto; giorno = oggi, periodo = mese precedente.
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
+  const versionePms = usePmsStore((st) => st.versione)
+  const [data, setData] = useState(() => isoDi(new Date()))
+  const [periodoDa, setPeriodoDa] = useState(() => { const d = new Date(); return isoDi(new Date(d.getFullYear(), d.getMonth() - 1, 1)) })
+  const [periodoA,  setPeriodoA]  = useState(() => { const d = new Date(); return isoDi(new Date(d.getFullYear(), d.getMonth(), 0)) })
+  const [items, setItems] = useState<RigaNazione[]>(() => righeDemo(isoDi(new Date())))
   const [filterPaese, setFilterPaese] = useState('')
   const [filterProv,  setFilterProv]  = useState('')
   const [openFilter,  setOpenFilter]  = useState<'paese' | 'provincia' | null>(null)
@@ -72,10 +98,10 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
       method: 'POST',
       body: { struttura, data, periodoDa, periodoA },
     })
-      .then((d) => { if (!cancelled) setItems(d?.length ? d : FALLBACK) })
-      .catch(() => { /* mantiene i dati di esempio */ })
+      .then((d) => { if (!cancelled) setItems(d?.length ? d : righeDemo(data)) })
+      .catch(() => { if (!cancelled) setItems(righeDemo(data)) })
     return () => { cancelled = true }
-  }, [struttura, data, periodoDa, periodoA])
+  }, [struttura, data, periodoDa, periodoA, versionePms])
 
   const filtered = useMemo(() => items.filter((r) => {
     if (filterPaese && !r.nazione.toLowerCase().includes(filterPaese.toLowerCase())) return false
@@ -120,7 +146,7 @@ export default function RilevamentoPresenze({ navigate }: { navigate: (p: string
 
       <div className="flex items-end gap-4 mb-5 flex-wrap">
         <div className="w-56">
-          <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
+          <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)} options={opzioniStrutture} />
         </div>
         <div className="w-44">
           <DatePickerField name="data" label="Data" value={data} onChange={(e) => setData(e.target.value)} />

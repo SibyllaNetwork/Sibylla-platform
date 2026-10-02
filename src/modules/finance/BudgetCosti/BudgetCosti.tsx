@@ -4,8 +4,8 @@ import Tooltip from '../../../core/components/Tooltip'
 import { SelectField, RadioGroup } from '../../../core/components/form'
 import StimaCostiVariabiliModal, { MeseStima } from './StimaCostiVariabiliModal'
 import './BudgetCosti.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
-const STRUTTURE = ['Gruppo Raeli', 'Hotel Tutorial', 'Hotel Azzurro Mare', 'Hotel Lux']
 const ANNI = ['2024', '2025', '2026', '2027']
 const COSTI_OPTS = [
   { value: 'totali',    label: 'Costi totali' },
@@ -45,7 +45,8 @@ function fmtPct(v: number): string {
 }
 
 export default function BudgetCosti({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura] = useState('Gruppo Raeli')
+  // Parte dalla struttura selezionata in alto (strutture del cliente corrente).
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [anno, setAnno]           = useState('2026')
   const [costType, setCostType]   = useState<CostType>('totali')
   const [deltas, setDeltas]       = useState<number[]>(DELTA_DEFAULT.slice())
@@ -131,7 +132,7 @@ export default function BudgetCosti({ navigate }: { navigate: (p: string) => voi
           <SelectField
             name="struttura" label="Strutture"
             value={struttura} onChange={e => setStruttura(e.target.value)}
-            options={STRUTTURE.map(s => ({ value: s, label: s }))}
+            options={[{ value: 'Tutte le strutture', label: 'Tutte le strutture' }, ...opzioniStrutture]}
             className="budget-costi__struttura"
           />
           <RadioGroup

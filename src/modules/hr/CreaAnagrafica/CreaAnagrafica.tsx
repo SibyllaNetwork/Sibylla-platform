@@ -8,6 +8,7 @@ import { useRuoliStore } from '../../../store/useRuoliStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { getEditingAnagrafica, clearEditingAnagrafica } from './_state'
 import './CreaAnagrafica.sass'
+import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Crea anagrafica personale — scheda del dipendente (stile "scheda personale",
@@ -23,7 +24,6 @@ const SESSI = [
 ]
 
 const NAZIONALITA = ['ITALIA', 'FRANCIA', 'GERMANIA', 'SPAGNA', 'REGNO UNITO', 'STATI UNITI', 'ALBANIA', 'ROMANIA', 'MAROCCO', 'CINA']
-const STRUTTURE = ['Hotel Tutorial', 'Grim’s Hotel', 'Hotel Azzurro Mare', 'Hotel Archimede', 'Hotel LUX', 'Hotel Lazio']
 const FASCE_TURNI = ['Mattina', 'Pomeriggio', 'Notte', 'Spezzato']
 const REPARTI = ['Front office', 'F&B', 'Housekeeping', 'Manutenzione', 'Amministrazione', 'Marketing', 'Direzione', 'Cucina']
 const CREDENZIALI = ['Nessuna', 'Operatore base', 'Operatore avanzato', 'Manager']
@@ -296,6 +296,8 @@ function ContrattiSection({ anagraficaId, nomeDefault }: { anagraficaId: string;
 }
 
 export default function CreaAnagrafica({ navigate, editing = false }: { navigate: (p: string) => void; editing?: boolean }) {
+  // Strutture abilitabili: quelle del cliente corrente.
+  const { elenco: STRUTTURE } = useStrutturaCorrente()
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
