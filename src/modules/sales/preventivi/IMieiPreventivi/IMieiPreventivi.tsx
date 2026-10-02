@@ -3,6 +3,8 @@ import PageHead from '../../../../core/components/PageHead'
 import SearchField from '../../../../core/components/form/SearchField'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
+import TruncatedText from '../../../../core/components/TruncatedText'
+import ThLabel from '../../../../core/components/ThLabel'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
@@ -32,18 +34,33 @@ interface Preventivo {
   [key: string]: unknown
 }
 
-const FALLBACK: Preventivo[] = [
-  { id: 16, codice: 'PRV-16', stato: 'Bozza', utente: 'Mario Rossi', data_creazione: '22/05/2026', data_scadenza: '29/05/2026 00:00', cliente: 'nana nana',     email: '',                            camere: 1, checkin: '22/05/2026', checkout: '23/05/2026', prezzo: 420.87 },
-  { id: 18, codice: 'PRV-18', stato: 'Bozza', utente: 'Mario Rossi', data_creazione: '22/05/2026', data_scadenza: '29/05/2026 00:00', cliente: 'nana nana',     email: 'nana@test.com',               camere: 2, checkin: '22/05/2026', checkout: '23/05/2026', prezzo: 771.66 },
-  { id: 21, codice: 'PRV-21', stato: 'Bozza', utente: 'Mario Rossi', data_creazione: '22/05/2026', data_scadenza: '29/05/2026 00:00', cliente: 'Hassan Akkari',  email: 'h.akkari@sibyllanetwork.com', camere: 1, checkin: '22/05/2026', checkout: '23/05/2026', prezzo: 420.87 },
-  { id: 23, codice: 'PRV-23', stato: 'Bozza', utente: 'Mario Rossi', data_creazione: '22/05/2026', data_scadenza: '29/05/2026 00:00', cliente: 'Hassan Akkari',  email: 'h.akkari@sibyllanetwork.com', camere: 1, checkin: '22/05/2026', checkout: '23/05/2026', prezzo: 420.87 },
-  { id: 25, codice: 'PRV-25', stato: 'Bozza', utente: 'Mario Rossi', data_creazione: '22/05/2026', data_scadenza: '29/05/2026 00:00', cliente: 'Hassan Akkari',  email: 'h.akkari@sibyllanetwork.com', camere: 1, checkin: '22/05/2026', checkout: '23/05/2026', prezzo: 420.87 },
-  { id: 30, codice: 'PRV-30', stato: 'Letto', utente: 'Mario Rossi', data_creazione: '22/05/2026', data_scadenza: '29/05/2026 00:00', cliente: 'Hassan Akkari',  email: 'h.akkari@sibyllanetwork.com', camere: 1, checkin: '22/05/2026', checkout: '25/05/2026', prezzo: 1262.61 },
-  { id: 33, codice: 'PRV-33', stato: 'Letto', utente: 'Mario Rossi', data_creazione: '25/05/2026', data_scadenza: '01/06/2026 00:00', cliente: 'nana p',         email: 'hassan.akkari01@gmail.com',  camere: 1, checkin: '25/05/2026', checkout: '26/05/2026', prezzo: 427.87 },
-  { id: 35, codice: 'PRV-35', stato: 'Bozza', utente: 'Mario Rossi', data_creazione: '25/05/2026', data_scadenza: '01/06/2026 00:00', cliente: 'nana nana',     email: '',                            camere: 1, checkin: '25/05/2026', checkout: '26/05/2026', prezzo: 420.87 },
-  { id: 36, codice: 'PRV-36', stato: 'Letto', utente: 'Mario Rossi', data_creazione: '25/05/2026', data_scadenza: '01/06/2026 00:00', cliente: 'nana nana',     email: '',                            camere: 1, checkin: '25/05/2026', checkout: '26/05/2026', prezzo: 420.87 },
-  { id: 38, codice: 'PRV-38', stato: 'Letto', utente: 'Mario Rossi', data_creazione: '25/05/2026', data_scadenza: '01/06/2026 00:00', cliente: 'nana nana',     email: '',                            camere: 1, checkin: '25/05/2026', checkout: '26/05/2026', prezzo: 405.00 },
+// Preventivi d'esempio (senza backend): creati negli ultimi 20 giorni, con
+// scadenza a 7 giorni e soggiorni nelle settimane successive. Deterministici.
+const CLIENTI_PRV: Array<[string, string]> = [
+  ['Gruppo Rotary Roma Sud', 'segreteria@rotaryromasud.it'], ['Studio Legale Riva', 'eventi@studioriva.it'],
+  ['Tecnomec S.p.A.', 'travel@tecnomec.it'], ['Famiglia Colombo', 'colombo.famiglia@mail.it'],
+  ['Welcome Travel', 'booking@welcometravel.it'], ['Associazione Medici Siciliani', 'congressi@ams.it'],
+  ['Sig.ra Laura Ferrara', 'l.ferrara@mail.it'], ['Alpitour Gruppi', 'gruppi@alpitour.it'],
+  ['Mr. James Turner', 'j.turner@mail.uk'], ['Liceo Galilei — gita', 'segreteria@liceogalilei.edu.it'],
+  ['Dott. Marco Bruno', 'm.bruno@mail.it'], ['Wedding Planner Aurora', 'info@weddingaurora.it'],
 ]
+const STATI_PRV = ['Bozza', 'Letto', 'Inviato', 'Accettato', 'Inviato', 'Rifiutato', 'Letto', 'Accettato', 'Bozza', 'Inviato', 'Accettato', 'Letto']
+const fmtDataPrv = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+const traPrv = (n: number) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d }
+
+const FALLBACK: Preventivo[] = CLIENTI_PRV.map(([cliente, email], i) => {
+  const creato = -20 + Math.round(i * 1.6)
+  const arrivo = creato + 15 + ((i * 7) % 40)
+  const notti = 1 + ((i * 3) % 5)
+  const camere = [1, 12, 25, 2, 18, 40, 1, 30, 1, 22, 2, 15][i]
+  return {
+    id: 40 + i, codice: `PRV-${40 + i}`, stato: STATI_PRV[i], utente: 'Mario Rossi',
+    data_creazione: fmtDataPrv(traPrv(creato)), data_scadenza: `${fmtDataPrv(traPrv(creato + 7))} 00:00`,
+    cliente, email, camere,
+    checkin: fmtDataPrv(traPrv(arrivo)), checkout: fmtDataPrv(traPrv(arrivo + notti)),
+    prezzo: Math.round(camere * notti * (128 + (i % 4) * 22) * 100) / 100,
+  }
+}).reverse()
 
 const STATI = ['Bozza', 'Letto', 'Inviato', 'Accettato', 'Rifiutato', 'Scaduto']
 
@@ -206,29 +223,35 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
         </button>
       </div>
 
-      <div className="sib-table-wrap">
+      <div className="sib-table-wrap gest-prev__wrap">
         <table className="sib-table gest-prev__table">
+          {/* Larghezze in percentuale + table-layout fixed: niente scroll orizzontale. */}
+          <colgroup>
+            {['check', 'exp', 'id', 'stato', 'utente', 'creazione', 'scadenza', 'cliente', 'email', 'camere', 'inout', 'prezzo', 'azioni'].map((c) => (
+              <col key={c} className={`gest-prev__w-${c}`} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
               <th className="gest-prev__col-check">
                 <input type="checkbox" checked={allPageSelected} onChange={toggleSelAll} aria-label="Seleziona tutti" />
               </th>
               <th className="gest-prev__col-exp" />
-              <th>ID preventivo</th>
-              <th>Stato</th>
-              <th>Utente</th>
+              <th><ThLabel full="ID preventivo" short="ID prev." /></th>
+              <th><ThLabel full="Stato" /></th>
+              <th><ThLabel full="Utente" /></th>
               <th>
                 <button type="button" className="gest-prev__sort" onClick={() => setSortAsc((a) => !a)}>
-                  Data creazione
+                  <ThLabel full="Data creazione" short="Creato" />
                   <i className={`fa-solid ${sortAsc ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'}`} aria-hidden="true" />
                 </button>
               </th>
-              <th>Data scadenza</th>
-              <th>Cliente</th>
-              <th>Email</th>
-              <th className="gest-prev__col-num">Camere</th>
-              <th>In/Out</th>
-              <th className="gest-prev__col-num">Prezzo</th>
+              <th><ThLabel full="Data scadenza" short="Scadenza" /></th>
+              <th><ThLabel full="Cliente" /></th>
+              <th><ThLabel full="Email" /></th>
+              <th className="gest-prev__col-num"><ThLabel full="Camere" short="Cam." /></th>
+              <th><ThLabel full="In/Out" /></th>
+              <th className="gest-prev__col-num"><ThLabel full="Prezzo" /></th>
               <th className="gest-prev__col-actions">Azioni</th>
             </tr>
           </thead>
@@ -244,16 +267,16 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                       <i className={`fa-solid fa-chevron-down ${expanded.has(p.id!) ? 'is-open' : ''}`} aria-hidden="true" />
                     </button>
                   </td>
-                  <td>{p.codice}</td>
+                  <td><TruncatedText text={p.codice ?? ''} /></td>
                   <td><span className={`gest-prev__stato gest-prev__stato--${(p.stato ?? '').toLowerCase()}`}>{p.stato}</span></td>
-                  <td>{p.utente}</td>
-                  <td>{p.data_creazione}</td>
-                  <td className={isScaduto(p) ? 'gest-prev__scaduto' : ''}>{p.data_scadenza}</td>
-                  <td>{p.cliente}</td>
-                  <td className="gest-prev__email" title={p.email}>{p.email}</td>
+                  <td><TruncatedText text={p.utente ?? ''} /></td>
+                  <td><TruncatedText text={p.data_creazione ?? ''} /></td>
+                  <td className={isScaduto(p) ? 'gest-prev__scaduto' : ''}><TruncatedText text={p.data_scadenza ?? ''} /></td>
+                  <td><TruncatedText text={p.cliente ?? ''} /></td>
+                  <td className="gest-prev__email"><TruncatedText text={p.email ?? ''} /></td>
                   <td className="gest-prev__col-num">{p.camere}</td>
-                  <td className="gest-prev__nowrap" title={`${p.checkin} → ${p.checkout}`}>{p.checkin?.slice(0, 5)} → {p.checkout?.slice(0, 5)}</td>
-                  <td className="gest-prev__col-num">{p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</td>
+                  <td className="gest-prev__nowrap"><TruncatedText text={`${p.checkin?.slice(0, 5)} → ${p.checkout?.slice(0, 5)}`} full={`${p.checkin} → ${p.checkout}`} /></td>
+                  <td className="gest-prev__col-num"><TruncatedText text={`${p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €`} /></td>
                   <td className="gest-prev__col-actions">
                     <div className="gest-prev__actions">
                       <Tooltip text="Visualizza">

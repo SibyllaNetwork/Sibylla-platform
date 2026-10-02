@@ -5,6 +5,7 @@ import { PageHeader } from './PageHeader';
 import './QuotesPage.css';
 import { Icon } from '../ds/icon';
 import { PageToolbar, type ViewMode } from './PageToolbar';
+import { aOggi } from '../../_shared/dateDemo';
 
 type SortKey = 'date-desc' | 'date-asc' | 'client-asc' | 'total-desc';
 
@@ -43,12 +44,14 @@ interface Quote {
   notes: string;
 }
 
-const MOCK_QUOTES: Quote[] = [
+const MOCK_QUOTES_BASE: Quote[] = [
   { id: '1', quoteNumber: 'PRV-2026-001', clientName: 'Hotel Splendid Roma', clientEmail: 'acquisti@hotelsplendid.it', subject: 'Fornitura mensile prodotti alimentari', items: [{ id: '1', description: 'Olio EVO DOP Puglia - 750ml', quantity: 24, unitPrice: 13.9, total: 333.6 }, { id: '2', description: 'Parmigiano Reggiano DOP 24m - kg', quantity: 10, unitPrice: 24, total: 240 }, { id: '3', description: 'Pasta di Gragnano IGP - Box 12 pz', quantity: 5, unitPrice: 35, total: 175 }], subtotal: 748.6, tax: 74.86, total: 823.46, status: 'accepted', createdDate: '2026-03-15', sentDate: '2026-03-15', notes: 'Consegna entro 5 giorni lavorativi' },
   { id: '2', quoteNumber: 'PRV-2026-002', clientName: 'Grand Hotel Firenze', clientEmail: 'direzione@grandhotelfirenze.com', subject: 'Fornitura vini per evento aziendale', items: [{ id: '1', description: 'Chianti Classico DOCG - Cassa 6 bt', quantity: 10, unitPrice: 59.9, total: 599 }, { id: '2', description: 'Prosecco Valdobbiadene - Cassa 6 bt', quantity: 8, unitPrice: 45, total: 360 }], subtotal: 959, tax: 95.9, total: 1054.9, status: 'sent', createdDate: '2026-03-28', sentDate: '2026-03-28', notes: 'Evento previsto per il 15 Aprile' },
   { id: '3', quoteNumber: 'PRV-2026-003', clientName: 'Boutique Hotel Venezia', clientEmail: 'info@boutiquevenice.it', subject: 'Fornitura prodotti tipici per colazione', items: [{ id: '1', description: 'Miele Biologico - Set 12 vasetti', quantity: 3, unitPrice: 38.4, total: 115.2 }, { id: '2', description: 'Marmellate artigianali - Box 24 pz', quantity: 2, unitPrice: 42, total: 84 }, { id: '3', description: 'Biscotti tradizionali - Box 48 pz', quantity: 4, unitPrice: 28.5, total: 114 }], subtotal: 313.2, tax: 31.32, total: 344.52, status: 'received', createdDate: '2026-03-30', sentDate: '2026-03-30', notes: 'Richiesta conferma entro 3 giorni' },
   { id: '4', quoteNumber: 'PRV-2026-004', clientName: 'Resort Costa Smeralda', clientEmail: 'procurement@resortcostasmeralda.it', subject: 'Fornitura salumi e formaggi premium', items: [{ id: '1', description: 'Prosciutto Crudo Parma DOP - kg', quantity: 15, unitPrice: 19.5, total: 292.5 }, { id: '2', description: 'Salame Milano - kg', quantity: 8, unitPrice: 16.8, total: 134.4 }], subtotal: 426.9, tax: 42.69, total: 469.59, status: 'draft', createdDate: '2026-03-31', notes: 'Da completare con formaggio pecorino' },
 ];
+// Date d'esempio spostate a oggi (vedi _shared/dateDemo).
+const MOCK_QUOTES: Quote[] = aOggi(MOCK_QUOTES_BASE);
 
 const STATUS_CONFIG: Record<QuoteStatus, { label: string; modifier: string }> = {
   draft: { label: 'Bozza', modifier: 'quote-card__status--draft' },

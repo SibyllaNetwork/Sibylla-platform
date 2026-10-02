@@ -24,7 +24,7 @@ interface Sistema {
   details?: SectionDetail[]
 }
 
-const SISTEMI: Sistema[] = [
+const SISTEMI_BASE: Sistema[] = [
   { id: 'alyante',         nome: 'ALYANTE',          domain: 'teamsystem.com',     logoStyle: 'alyante',         tipologia: 'Property Management System',  ultimoTrasferimento: '04/05/2026 14:50', status: 'ok' },
   { id: 'verticalbooking', nome: 'VERTICAL BOOKING', domain: 'verticalbooking.com', logoStyle: 'verticalbooking', tipologia: 'Centre Reservation System',   ultimoTrasferimento: '04/05/2026 14:50', status: 'ok' },
   { id: 'hqrevenue',       nome: 'HQ revenue',       domain: 'hqrevenue.com',      logoStyle: 'hqrevenue',       tipologia: 'External Sources',            ultimoTrasferimento: null,               status: 'error' },
@@ -46,6 +46,13 @@ const SISTEMI: Sistema[] = [
   { id: 'agoda',     nome: 'agoda',      domain: 'agoda.com',      logoStyle: 'agoda',     tipologia: 'Booking engine (mirroring)',  ultimoTrasferimento: '04/05/2026 14:50', status: 'error' },
   { id: 'ratehawk',  nome: 'Rate Hawk',  domain: 'ratehawk.com',   logoStyle: 'ratehawk',  tipologia: 'Booking engine (mirroring)',  ultimoTrasferimento: '04/05/2026 14:50', status: 'error' },
 ]
+
+// Ultimo trasferimento: oggi, mezz'ora fa (gli esempi riportavano il 04/05/2026 14:50).
+const ultimoTrasferimentoDemo = () => {
+  const d = new Date(Date.now() - 30 * 60000)
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+const SISTEMI: Sistema[] = SISTEMI_BASE.map(x => (x.ultimoTrasferimento ? { ...x, ultimoTrasferimento: ultimoTrasferimentoDemo() } : x))
 
 export default function Interfacce({ navigate }: { navigate: (p: string) => void }) {
   const [openId, setOpenId] = useState<string | null>('gamma')

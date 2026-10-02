@@ -68,6 +68,12 @@ interface TariffaRow {
   sconto: number
 }
 
+/** Data ISO (yyyy-MM-dd) tra `giorni` giorni da oggi. */
+const isoTra = (giorni: number) => {
+  const d = new Date(); d.setDate(d.getDate() + giorni)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export default function InserisciContrattoVendita({
   navigate,
   editing: editingProp = false,
@@ -84,8 +90,9 @@ export default function InserisciContrattoVendita({
   const [referente,setReferente]= useState(initial?.referente ?? '')
   const [specifiche, setSpecifiche] = useState('camere')
   const [pdfName,  setPdfName]  = useState<string>('Scegli il file')
-  const [inizio,   setInizio]   = useState(initial?.periodoInizio ?? '2026-05-04')
-  const [fine,     setFine]     = useState(initial?.periodoFine ?? '2026-12-31')
+  // Validità d'esempio: da oggi a un anno.
+  const [inizio,   setInizio]   = useState(initial?.periodoInizio ?? isoTra(0))
+  const [fine,     setFine]     = useState(initial?.periodoFine ?? isoTra(365))
   const [garanzie, setGaranzie] = useState('nessuna')
   const [pagamento,setPagamento]= useState('')
   const [note,     setNote]     = useState(initial?.note ?? '')

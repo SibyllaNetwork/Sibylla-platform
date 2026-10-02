@@ -3,6 +3,10 @@ import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { Donut } from '../../sales/distribution/_charts/Donut'
 import { SelectField } from '../../../core/components/form'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
+import { STRUTTURE } from '../../sales/_data/revenueMock'
+import { pmsDi } from '../_data/pmsDi'
+import { usePmsStore } from '../_data/pmsDemo'
 import './GuestRoomAnalysis.sass'
 
 interface SeriePoint { date: string; ty: number; forecast: number | null; ly: number }
@@ -24,38 +28,60 @@ interface Data {
   trendOspiti: SeriePoint[]
 }
 
-function genTrend(scale: number): SeriePoint[] {
-  const out: SeriePoint[] = []
-  const start = new Date('2026-04-01')
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(start); d.setDate(d.getDate() + i)
-    const date = `${String(d.getDate()).padStart(2, '0')}.04.2026`
-    const x = i / 30
-    out.push({
-      date,
-      ty: Math.max(0, Math.round(scale * (Math.sin(x * Math.PI * 4) + 1) + (Math.random() - 0.5) * scale * 0.2)),
-      forecast: i === 29 ? Math.round(scale * 0.6) : null,
-      ly: Math.max(0, Math.round(scale * 0.6 * (Math.sin(x * Math.PI * 4) + 1))),
-    })
-  }
-  return out
-}
+// ── Dati demo (senza backend) ──────────────────────────────────────────────────
+//  Dal gestionale demo delle strutture del cliente: camere occupate e ospiti
+//  notte per notte nel periodo (default: le ultime 3 settimane fino a oggi), quota
+//  B2B (OTA, agenzie, gruppi) contro dirette, RevPAR e ricavo per ospite.
+const isoDi = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const DIRETTI = ['Diretto', 'Sito web']
 
-const FALLBACK: Data = {
-  Strutture: [],
-  StrutturaId: null,
-  dataDa: '2026-04-01',
-  dataA: '2026-04-30',
-  cameraOccupateValore: 287,
-  cameraOccupateB2B: 1.05,
-  cameraOccupateDirette: 98.95,
-  revPar: 0.27,
-  revGuest: 2.65,
-  ospitiValore: 742,
-  ospitiB2B: 0.81,
-  ospitiDirette: 99.19,
-  trendCamera: genTrend(15),
-  trendOspiti: genTrend(50),
+function genFallback(strutturaId: number | null, da: string, a: string): Data {
+  const hotel = STRUTTURE.filter((x) => x.camere > 0)
+  const sel = strutturaId === null ? hotel : hotel.filter((x) => x.id === strutturaId)
+  const giorni: string[] = []
+  for (let d = new Date(da + 'T12:00:00'); isoDi(d) <= a && giorni.length < 366; d.setDate(d.getDate() + 1)) giorni.push(isoDi(d))
+  const oggi = isoDi(new Date())
+  let notti = 0, nottiB2B = 0, ospiti = 0, ospitiB2B = 0, ricavi = 0
+  const perGiorno = giorni.map(() => ({ camere: 0, ospiti: 0 }))
+  const camereTot = sel.reduce((t, x) => t + x.camere, 0)
+  sel.forEach((st) => {
+    pmsDi(st.nome).prenotazioni.filter((p) => p.stato !== 'noshow').forEach((p) => {
+      const b2b = !DIRETTI.includes(p.canale)
+      const perNotte = p.importo / Math.max(1, Math.round((new Date(p.checkOut).getTime() - new Date(p.checkIn).getTime()) / 86400000))
+      giorni.forEach((g, i) => {
+        if (p.checkIn <= g && g < p.checkOut) {
+          perGiorno[i].camere += 1
+          perGiorno[i].ospiti += p.ospiti.length
+          notti += 1; ospiti += p.ospiti.length; ricavi += perNotte
+          if (b2b) { nottiB2B += 1; ospitiB2B += p.ospiti.length }
+        }
+      })
+    })
+  })
+  const fmt = (g: string) => g.split('-').reverse().join('.')
+  const serie = (k: 'camere' | 'ospiti'): SeriePoint[] => perGiorno.map((v, i) => ({
+    date: fmt(giorni[i]),
+    ty: v[k],
+    // Come nei dati del backend: la previsione è l'ultimo punto del periodo.
+    forecast: i === giorni.length - 1 ? Math.round(v[k] * (giorni[i] >= oggi ? 1.04 : 1)) : null,
+    ly: Math.round(v[k] * (0.82 + ((i * 7) % 11) / 100)),
+  }))
+  const pct = (x: number, t: number) => (t ? +((x / t) * 100).toFixed(2) : 0)
+  return {
+    Strutture: hotel.map((x) => ({ Id: x.id, nome: x.nome })),
+    StrutturaId: strutturaId,
+    dataDa: da, dataA: a,
+    cameraOccupateValore: notti,
+    cameraOccupateB2B: pct(nottiB2B, notti),
+    cameraOccupateDirette: notti ? +(100 - pct(nottiB2B, notti)).toFixed(2) : 0,
+    revPar: camereTot && giorni.length ? +(ricavi / (camereTot * giorni.length)).toFixed(2) : 0,
+    revGuest: ospiti ? +(ricavi / ospiti).toFixed(2) : 0,
+    ospitiValore: ospiti,
+    ospitiB2B: pct(ospitiB2B, ospiti),
+    ospitiDirette: ospiti ? +(100 - pct(ospitiB2B, ospiti)).toFixed(2) : 0,
+    trendCamera: serie('camere'),
+    trendOspiti: serie('ospiti'),
+  }
 }
 
 function fmtEuro(v: number): string {
@@ -63,7 +89,18 @@ function fmtEuro(v: number): string {
 }
 
 export default function GuestRoomAnalysis({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Struttura selezionata in alto; senza backend i dati sono quelli del gestionale demo.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
+  const [periodo, setPeriodo] = useState(() => {
+    // Tre settimane fino a oggi: quanto copre il consuntivo del gestionale demo.
+    const oggi = new Date(); const da = new Date(oggi); da.setDate(da.getDate() - 20)
+    return { da: isoDi(da), a: isoDi(oggi) }
+  })
+  const versionePms = usePmsStore((st) => st.versione)
+  const [data, setData] = useState<Data>(() => genFallback(strutturaId, periodo.da, periodo.a))
+  useEffect(() => {
+    setData(genFallback(strutturaId, periodo.da, periodo.a))
+  }, [strutturaId, periodo, versionePms])
 
   useEffect(() => {
     let cancelled = false
@@ -94,14 +131,14 @@ export default function GuestRoomAnalysis({ navigate }: { navigate: (p: string) 
             { value: '', label: 'Tutte le strutture' },
             ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
           ]}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
         />
         <div className="grm-analysis__field-raw">
           <label>Seleziona intervallo</label>
           <div className="grm-analysis__date-range">
-            <input type="date" className="sib-input" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />
+            <input type="date" className="sib-input" value={periodo.da} onChange={(e) => setPeriodo((p) => ({ ...p, da: e.target.value }))} />
             <span>-</span>
-            <input type="date" className="sib-input" value={data.dataA} onChange={(e) => setData({ ...data, dataA: e.target.value })} />
+            <input type="date" className="sib-input" value={periodo.a} onChange={(e) => setPeriodo((p) => ({ ...p, a: e.target.value }))} />
           </div>
         </div>
         <button type="button" className="sib-btn sib-btn--primary grm-analysis__visualizza">

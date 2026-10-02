@@ -6,6 +6,8 @@
 
 // Categoria struttura e tariffa €/persona/notte (sola lettura, da Pannello di
 // controllo: ★★★ = 6,00 €, ★★★★ = 7,50 €, per tutte le regioni italiane).
+import { pmsAttivo } from '../../operation/_data/pmsDemo'
+
 export const CITY_TAX_CATEGORIA = 3
 export const CITY_TAX_TARIFFA = 6.0
 
@@ -62,7 +64,7 @@ export const CITY_TAX_HEADERS = [
 ] as const
 
 // Dataset di esempio (mock) usato per l'export dal Report City Tax.
-export const MOCK_CITY_TAX_STAYS: CityTaxStay[] = [
+const MOCK_BASE: CityTaxStay[] = [
   { id: 's1',  struttura: 'Hotel Siracusa', camera: '101', ospite: 'Calabretti Vladimir', checkIn: '24/04/2026', checkOut: '01/05/2026', canale: 'Booking',  stato: 'pagato' },
   { id: 's2',  struttura: 'Hotel Siracusa', camera: '102', ospite: 'Bianchi Marco',        checkIn: '23/04/2026', checkOut: '02/05/2026', canale: 'G2',       stato: 'esente', motivazione: 'Residente nel Comune' },
   { id: 's3',  struttura: 'Hotel Siracusa', camera: '103', ospite: 'Rossi Giulia',         checkIn: '25/04/2026', checkOut: '28/04/2026', canale: 'Travco',   stato: 'non-pagato', motivazione: 'Rifiuto del pagamento' },
@@ -75,9 +77,50 @@ export const MOCK_CITY_TAX_STAYS: CityTaxStay[] = [
   { id: 's10', struttura: 'B&B Aretusa',    camera: '5',   ospite: 'Conti Martina',        checkIn: '24/04/2026', checkOut: '01/05/2026', canale: 'Booking',  stato: 'esente', motivazione: 'Minore' },
 ]
 
+// Date d'esempio (fine aprile 2026) spostate così che oggi corrisponda al 28/04.
+const RIFERIMENTO = new Date(2026, 3, 28)
+const spostaIt = (it: string) => {
+  const [g, m, a] = it.split('/').map(Number)
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const d = new Date(a, m - 1, g + Math.round((oggi.getTime() - RIFERIMENTO.getTime()) / 86400000))
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+export const MOCK_CITY_TAX_STAYS: CityTaxStay[] = MOCK_BASE.map((x) => ({ ...x, checkIn: spostaIt(x.checkIn), checkOut: spostaIt(x.checkOut) }))
+
+const isoIt = (iso: string) => iso.split('-').reverse().join('/')
+const ESENZIONI_DEMO: Array<[CityTaxStato, string | undefined]> = [
+  ['pagato', undefined], ['pagato', undefined], ['pagato', undefined], ['pagato', undefined],
+  ['esente', 'Minore'], ['pagato', undefined], ['non-pagato', 'Rifiuto del pagamento'], ['pagato', undefined],
+  ['esente', 'Residente nel Comune'], ['pagato', undefined],
+]
+
+/** Ospiti della struttura selezionata (gestionale demo) con soggiorno nell'ultima settimana. */
+function staysDemo(): CityTaxStay[] {
+  const pms = pmsAttivo()
+  const oggi = new Date()
+  const da = new Date(oggi); da.setDate(da.getDate() - 7)
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const daIso = iso(da), aIso = iso(oggi)
+  return pms.prenotazioni
+    .filter((p) => p.stato !== 'noshow' && p.checkIn <= aIso && p.checkOut > daIso && p.checkin !== 'da-fare')
+    .flatMap((p) => p.ospiti.map((o) => ({ p, o })))
+    .map(({ p, o }, i) => {
+      const [stato, motivazione] = o.fascia !== 'Adulto' ? ['esente', 'Minore'] as [CityTaxStato, string] : ESENZIONI_DEMO[i % ESENZIONI_DEMO.length]
+      return {
+        id: `ct-${p.id}-${i}`, struttura: pms.nome, camera: p.camera, ospite: o.nome,
+        checkIn: isoIt(p.checkIn), checkOut: isoIt(p.checkOut), canale: p.canale, stato, motivazione,
+      }
+    })
+}
+
 export function downloadCityTaxExcel(stays: CityTaxStay[], opts?: { tariffa?: number; label?: string; fileName?: string }): void {
   const tariffa = opts?.tariffa ?? CITY_TAX_TARIFFA
   const label = opts?.label ?? 'Report City Tax'
+  // Con il dataset d'esempio si esportano gli ospiti veri della struttura selezionata.
+  if (stays === MOCK_CITY_TAX_STAYS) {
+    const demo = staysDemo()
+    if (demo.length) stays = demo
+  }
 
   const body = stays.map((s) => {
     const stato: CityTaxStato = s.stato ?? 'pagato'

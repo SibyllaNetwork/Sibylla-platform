@@ -89,7 +89,7 @@ interface Gratuita {
 
 // ─── Dati di esempio (fallback senza backend) ─────────────────────────────────
 
-const TERMINI_FALLBACK: Termine[] = [
+const TERMINI_BASE: Termine[] = [
   {
     id: 1, nome: 'Cancellazione flessibile', versione: 3, attivo: true, aggiornatoIl: '12/06/2026',
     descrizione: 'Cancellazione gratuita fino a 3 giorni prima dell’arrivo, nessun anticipo.',
@@ -115,6 +115,21 @@ const TERMINI_FALLBACK: Termine[] = [
     testoEn: 'For groups, staged deposits apply and the rooming list must be sent by the agreed release date.',
   },
 ]
+
+// Date d'esempio portate a ridosso di oggi: `riferimento` cade oggi + `offset`
+// giorni, tutte le altre mantengono la loro distanza.
+const spostaDate = (testo: string, riferimento: Date, offset = 0) => {
+  const oggi = new Date(); oggi.setHours(12, 0, 0, 0)
+  const rif = new Date(riferimento); rif.setHours(12, 0, 0, 0)
+  const giorni = Math.round((oggi.getTime() - rif.getTime()) / 86400000) + offset
+  return testo.replace(/(\d{2})\/(\d{2})\/(\d{4})/g, (_, g, m, a) => {
+    const d = new Date(Number(a), Number(m) - 1, Number(g) + giorni)
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+  })
+}
+
+// L'aggiornamento più recente (28/08/2026 negli esempi) risulta di tre giorni fa.
+const TERMINI_FALLBACK: Termine[] = TERMINI_BASE.map(t => ({ ...t, aggiornatoIl: spostaDate(t.aggiornatoIl, new Date(2026, 7, 28), -3) }))
 
 const POLITICHE_FALLBACK: Politica[] = [
   {

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import { InputField } from '../../../core/components/form'
+import { pmsAttivo, inCasa, usePmsStore } from '../_data/pmsDemo'
 import './AcquistoServizi.sass'
 
 // ── Tipi di pagamento ───────────────────────────────────────────────────────────
@@ -37,22 +38,39 @@ const SERVIZI: Servizio[] = [
 
 const fmtEur = (n: number) => `€ ${n.toLocaleString('it-IT')}`
 
+// Le date d'esempio (giugno 2026) scorrono fino a ieri, mantenendo le distanze;
+// i clienti sono gli ospiti in casa della struttura selezionata (gestionale demo).
+const RIFERIMENTO = new Date(2026, 5, 13)
+const spostaData = (it: string) => {
+  const [g, m, a] = it.split('/').map(Number)
+  const giorni = Math.round((Date.now() - RIFERIMENTO.getTime()) / 86400000)
+  const d = new Date(a, m - 1, g + giorni)
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+function serviziDemo(): Servizio[] {
+  const ospiti = pmsAttivo().prenotazioni.filter((p) => inCasa(p)).map((p) => `${p.nominativo} · cam. ${p.camera}`)
+  return SERVIZI.map((sv, i) => ({ ...sv, dataAcquisto: spostaData(sv.dataAcquisto), cliente: ospiti[i * 3] ?? sv.cliente }))
+}
+
 export default function AcquistoServizi({ navigate }: { navigate: (p: string) => void }) {
   const [search, setSearch] = useState('')
   const [filtroPag, setFiltroPag] = useState<Pagamento | 'tutti'>('tutti')
   const [selId, setSelId] = useState<string>(SERVIZI[0].id)
+  const versionePms = usePmsStore((st) => st.versione)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const servizi = useMemo(() => serviziDemo(), [versionePms])
 
   const filtrati = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return SERVIZI.filter(s => {
+    return servizi.filter(s => {
       const matchSearch = !q || s.nome.toLowerCase().includes(q) || s.cliente.toLowerCase().includes(q)
       const matchPag = filtroPag === 'tutti' || s.pagamento === filtroPag
       return matchSearch && matchPag
     })
-  }, [search, filtroPag])
+  }, [search, filtroPag, servizi])
 
   const totale = filtrati.reduce((sum, s) => sum + s.prezzo, 0)
-  const selected = SERVIZI.find(s => s.id === selId) ?? null
+  const selected = servizi.find(s => s.id === selId) ?? null
 
   return (
     <div className="acq-serv">

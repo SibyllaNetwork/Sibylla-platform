@@ -1,4 +1,5 @@
 @use '../../../../styles/tokens' as *
+@use '../../../../styles/mixins' as *
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
 .promo__filters
@@ -337,3 +338,52 @@
   justify-content: flex-end
   gap: 10px
   margin-bottom: 8px
+
+// ─── Tabella senza scroll orizzontale (regola di piattaforma) ─────────────────
+// table-layout fixed + colonne in percentuale; testi su una riga con ellipsis e
+// tooltip (TruncatedText); sotto soglia intestazioni abbreviate (ThLabel).
+.promo__table-wrap
+  container-type: inline-size
+  container-name: promo
+  overflow-x: hidden
+
+.promo__table-scroll
+  overflow-x: hidden
+
+// Due classi: .sib-table (tailwind.css) vincerebbe a pari specificità.
+.promo__table-wrap .promo__table
+  +table-fit
+
++th-labels
+
+.promo__col-num
+  width: 4%
+.promo__col-nome
+  width: 13%
+.promo__col-periodo
+  width: 12.5%
+.promo__col-mercato
+  width: 7%
+.promo__col-segmento
+  width: 8%
+.promo__col-struttura
+  width: 11%
+.promo__col-partners
+  width: 8%
+.promo__col-blackout
+  width: 8%
+.promo__col-sconto
+  width: 7%
+.promo__col-azioni
+  width: 9%
+
+@container promo (max-width: 1180px)
+  .promo__table-wrap .promo__table
+    font-size: 12px
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+  .promo__table-wrap
+    +th-compact

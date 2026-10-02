@@ -10,6 +10,7 @@ import {
   type AnnouncementCategory,
   type AnnouncementType,
 } from './announcements';
+import { aOggi } from '../../_shared/dateDemo'
 
 export { CATEGORY_ICONS, CATEGORY_LABELS };
 export type { AnnouncementCategory, AnnouncementType };
@@ -42,7 +43,7 @@ export interface MzListing {
 }
 
 /* I miei annunci (struttura corrente). */
-export const MY_LISTINGS: MzListing[] = [
+const MY_LISTINGS_BASE: MzListing[] = [
   {
     id: 'm1',
     ditta: 'La Mia Struttura',
@@ -94,7 +95,7 @@ export const MY_LISTINGS: MzListing[] = [
 ];
 
 /* Annunci della community su cui cercare il match. */
-export const COMMUNITY: MzListing[] = [
+const COMMUNITY_BASE: MzListing[] = [
   // --- Controparti forti per m1 (vendita business Milano, giu) ---
   {
     id: 'c1',
@@ -302,3 +303,7 @@ export function compatibility(mine: MzListing, cand: MzListing): MatchResult {
   );
   return { score, reasons: { category, periodOverlap, sameRegion, quantityProx } };
 }
+
+// Date d'esempio spostate a oggi (vedi _shared/dateDemo).
+export const MY_LISTINGS: MzListing[] = aOggi(MY_LISTINGS_BASE)
+export const COMMUNITY: MzListing[] = aOggi(COMMUNITY_BASE)

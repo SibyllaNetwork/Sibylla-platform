@@ -3,6 +3,10 @@ import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { HBars } from '../../sales/distribution/_charts/HBars'
 import { SelectField } from '../../../core/components/form'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
+import { STRUTTURE, buildGiorniMese, otbFrazione } from '../../sales/_data/revenueMock'
+import { pmsDi } from '../_data/pmsDi'
+import { usePmsStore } from '../_data/pmsDemo'
 import './OnTheBookAnalysis.sass'
 
 interface TrendPoint {
@@ -28,40 +32,64 @@ interface Data {
   forecastBySegment: RankItem[]
 }
 
-const FALLBACK: Data = {
-  Strutture: [],
-  StrutturaId: null,
-  dataDa: '2026-01-01',
-  dataA: '2026-12-31',
-  previsioneRevenue: 71610,
-  previsioneRevenueLY: 15190,
-  forecastTotale: 20642.25,
-  forecastGarantito: 7442.25,
-  forecastOpzionato: 13200.00,
-  trend: [
-    { date: 'gen 2026', produzione: 10500, forecast: null },
-    { date: 'feb 2026', produzione: 4800,  forecast: null },
-    { date: 'mar 2026', produzione: 17500, forecast: null },
-    { date: 'apr 2026', produzione: 18000, forecast: 18000 },
-    { date: 'mag 2026', produzione: null,  forecast: 14600 },
-    { date: 'giu 2026', produzione: null,  forecast: 8500 },
-    { date: 'lug 2026', produzione: null,  forecast: 2500 },
-    { date: 'ago 2026', produzione: null,  forecast: 0 },
-  ],
-  rankAgenzie: [
-    { label: 'N/D',                value: 51187, color: '#3FA8E0' },
-    { label: 'Nessuna',            value: 17195, color: '#5C6FE0' },
-    { label: 'Ovest Des...',       value: 1291,  color: '#7A4FE0' },
-    { label: 'Tour Del M...',      value: 932,   color: '#9F4FE0' },
-    { label: 'Nessuna',            value: 590,   color: '#A53FCF' },
-    { label: 'Ovest Dest...',      value: 314,   color: '#A53FCF' },
-    { label: 'Tour Opera...',      value: 100,   color: '#A53FCF' },
-  ],
-  forecastBySegment: [
-    { label: 'Gruppi',  value: 13200, color: '#FBD737' },
-    { label: 'Dirette', value: 6821,  color: '#3FA34D' },
-    { label: 'B2B',     value: 622,   color: '#1F4E5F' },
-  ],
+// ── Dati demo (senza backend) ──────────────────────────────────────────────────
+//  Produzione mese per mese dell'anno in corso dal ciclo revenue condiviso
+//  (stessi numeri di Sales overview); per i mesi a venire l'on-the-book è la
+//  quota già a libro (curva di prenotazione). Agenzie e segmenti dalle
+//  prenotazioni future del gestionale demo.
+const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
+const COLORI_RANK = ['#3FA8E0', '#5C6FE0', '#7A4FE0', '#9F4FE0', '#A53FCF', '#A53FCF', '#A53FCF']
+const r2 = (n: number) => Math.round(n * 100) / 100
+
+function genFallback(strutturaId: number | null): Data {
+  const oggi = new Date()
+  const anno = oggi.getFullYear()
+  const meseCorr = oggi.getMonth() + 1
+  const hotel = STRUTTURE.filter((x) => x.camere > 0)
+  const sel = strutturaId === null ? hotel : hotel.filter((x) => x.id === strutturaId)
+  let prodAnno = 0, prodLY = 0
+  const trend: TrendPoint[] = []
+  for (let m = 1; m <= Math.min(12, meseCorr + 4); m++) {
+    const g = buildGiorniMese(anno, m, strutturaId, oggi)
+    const ricavi = g.reduce((t, x) => t + x.ricavi, 0)
+    const otb = g.reduce((t, x) => t + x.ricavi * otbFrazione(x.lead), 0)
+    if (m <= meseCorr) { prodAnno += ricavi; prodLY += g.reduce((t, x) => t + x.ricaviLY, 0) }
+    trend.push({
+      date: `${MESI_BREVI[m - 1]} ${anno}`,
+      // Il mese in corso è il punto di raccordo: consuntivo + on-the-book.
+      produzione: m < meseCorr ? Math.round(ricavi) : m === meseCorr ? Math.round(otb) : null,
+      forecast: m >= meseCorr ? Math.round(otb) : null,
+    })
+  }
+  // Prenotazioni future (da domani) del gestionale demo: garantite vs opzionate.
+  const domani = new Date(oggi); domani.setDate(domani.getDate() + 1)
+  const daIso = `${domani.getFullYear()}-${String(domani.getMonth() + 1).padStart(2, '0')}-${String(domani.getDate()).padStart(2, '0')}`
+  const future = sel.flatMap((st) => pmsDi(st.nome).prenotazioni.filter((p) => p.checkIn >= daIso && p.stato !== 'noshow'))
+  const garantito = future.filter((p) => p.stato === 'confermata').reduce((t, p) => t + p.importo, 0)
+  const opzionato = future.filter((p) => p.stato === 'opzione').reduce((t, p) => t + p.importo, 0)
+  const perCanale = new Map<string, number>()
+  future.forEach((p) => perCanale.set(p.canale, (perCanale.get(p.canale) ?? 0) + p.importo))
+  const rankAgenzie = Array.from(perCanale.entries()).sort((x, y) => y[1] - x[1]).slice(0, 7)
+    .map(([label, value], i) => ({ label: label.length > 12 ? `${label.slice(0, 11)}...` : label, value: Math.round(value), color: COLORI_RANK[i] }))
+  const seg = (f: (p: typeof future[number]) => boolean) => Math.round(future.filter(f).reduce((t, p) => t + p.importo, 0))
+  return {
+    Strutture: hotel.map((x) => ({ Id: x.id, nome: x.nome })),
+    StrutturaId: strutturaId,
+    dataDa: `${anno}-01-01`,
+    dataA: `${anno}-12-31`,
+    previsioneRevenue: Math.round(prodAnno),
+    previsioneRevenueLY: Math.round(prodLY),
+    forecastTotale: r2(garantito + opzionato),
+    forecastGarantito: r2(garantito),
+    forecastOpzionato: r2(opzionato),
+    trend,
+    rankAgenzie,
+    forecastBySegment: [
+      { label: 'Gruppi',  value: seg((p) => p.tipo === 'Gruppo'),                                           color: '#FBD737' },
+      { label: 'Dirette', value: seg((p) => p.tipo !== 'Gruppo' && ['Diretto', 'Sito web'].includes(p.canale)), color: '#3FA34D' },
+      { label: 'B2B',     value: seg((p) => p.tipo !== 'Gruppo' && !['Diretto', 'Sito web'].includes(p.canale)), color: '#1F4E5F' },
+    ].sort((x, y) => y.value - x.value),
+  }
 }
 
 function fmtEuro(v: number): string {
@@ -74,7 +102,11 @@ function fmtFull(v: number): string {
 }
 
 export default function OnTheBookAnalysis({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Struttura selezionata in alto; senza backend i dati sono quelli demo.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
+  const versionePms = usePmsStore((st) => st.versione)
+  const [data, setData] = useState<Data>(() => genFallback(strutturaId))
+  useEffect(() => { setData(genFallback(strutturaId)) }, [strutturaId, versionePms])
 
   useEffect(() => {
     let cancelled = false
@@ -105,7 +137,7 @@ export default function OnTheBookAnalysis({ navigate }: { navigate: (p: string) 
             { value: '', label: 'Tutte le strutture' },
             ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
           ]}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
         />
         <div className="otb-analysis__field-raw">
           <label>Scegli intervallo</label>

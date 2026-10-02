@@ -24,7 +24,7 @@ interface UserLog {
 
 const PAGE_SIZE = 10
 
-const MOCK_USERS: UserLog[] = [
+const MOCK_USERS_BASE: UserLog[] = [
   {
     id: 'mario-rossi',
     fullName: 'Mario Rossi',
@@ -159,6 +159,27 @@ const MOCK_USERS: UserLog[] = [
     events: [],
   },
 ]
+
+// Date d'esempio portate a ridosso di oggi: `riferimento` cade oggi + `offset`
+// giorni, tutte le altre mantengono la loro distanza.
+const spostaDate = (testo: string, riferimento: Date, offset = 0) => {
+  const oggi = new Date(); oggi.setHours(12, 0, 0, 0)
+  const rif = new Date(riferimento); rif.setHours(12, 0, 0, 0)
+  const giorni = Math.round((oggi.getTime() - rif.getTime()) / 86400000) + offset
+  return testo.replace(/(\d{2})\/(\d{2})\/(\d{4})/g, (_, g, m, a) => {
+    const d = new Date(Number(a), Number(m) - 1, Number(g) + giorni)
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+  })
+}
+
+// L'attività più recente (04/05/2026 negli esempi) risulta di oggi.
+const RIF_LOG = new Date(2026, 4, 4)
+const MOCK_USERS: UserLog[] = MOCK_USERS_BASE.map(u => ({
+  ...u,
+  registeredAt: spostaDate(u.registeredAt, RIF_LOG),
+  lastAccess: spostaDate(u.lastAccess, RIF_LOG),
+  events: u.events.map(e => ({ ...e, date: spostaDate(e.date, RIF_LOG) })),
+}))
 
 export default function LogDiSistema({ navigate }: { navigate: (p: string) => void }) {
   const [users] = useState<UserLog[]>(MOCK_USERS)

@@ -25,7 +25,7 @@ const TIPO_LABEL: Record<TipoContratto, string> = {
 
 const PAGE_SIZE = 8
 
-const CONTRATTI: Contratto[] = [
+const CONTRATTI_BASE: Contratto[] = [
   { id: '1',  ragioneSociale: 'Tour Operator Test',     tipo: 'vendita', hasDoc: true,  hasEmail: true, dataInizio: '01/11/2025', dataFine: '01/04/2026', validato: false, scaduto: true  },
   { id: '2',  ragioneSociale: 'Tour Operator Test',     tipo: 'vendita', hasDoc: true,  hasEmail: true, dataInizio: '01/12/2025', dataFine: '01/06/2026', validato: true },
   { id: '3',  ragioneSociale: 'Tour Operator Test',     tipo: 'vendita', hasDoc: true,  hasEmail: true, dataInizio: '01/11/2025', dataFine: '01/04/2026', validato: true },
@@ -39,6 +39,17 @@ const CONTRATTI: Contratto[] = [
   { id: '11', ragioneSociale: 'Boutique Hotel Venezia',  tipo: 'vendita',  hasDoc: true, hasEmail: true, dataInizio: '15/01/2026', dataFine: '15/07/2026', validato: true },
   { id: '12', ragioneSociale: 'Resort Costa Smeralda',   tipo: 'acquisto', hasDoc: true, hasEmail: true, dataInizio: '20/02/2026', dataFine: '20/08/2026', validato: false },
 ]
+
+// Date d'esempio scritte ad aprile 2026: scorrono così che oggi corrisponda al
+// 15/04/2026 (i contratti scaduti restano appena scaduti, gli altri in corso).
+const RIFERIMENTO = new Date(2026, 3, 15)
+const spostaIt = (it: string) => {
+  const [g, m, a] = it.split('/').map(Number)
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const d = new Date(a, m - 1, g + Math.round((oggi.getTime() - RIFERIMENTO.getTime()) / 86400000))
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+const CONTRATTI: Contratto[] = CONTRATTI_BASE.map((c) => ({ ...c, dataInizio: spostaIt(c.dataInizio), dataFine: spostaIt(c.dataFine) }))
 
 export default function ArchivioContratti({ navigate }: { navigate: (p: string) => void }) {
   const [contratti, setContratti] = useState<Contratto[]>(CONTRATTI)

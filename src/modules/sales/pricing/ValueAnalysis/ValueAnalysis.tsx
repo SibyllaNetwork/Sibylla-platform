@@ -132,8 +132,9 @@ function ChartTip({ active, payload, label }: any) {
 // ── Pagina ───────────────────────────────────────────────────────────────────────
 export default function ValueAnalysis({ navigate }: { navigate: (p: string) => void }) {
   const [dest, setDest] = useState(DESTINAZIONI[0])
-  const [dateFrom, setDateFrom] = useState('2026-01-01')
-  const [dateTo, setDateTo] = useState('2026-12-31')
+  // Anno in corso.
+  const [dateFrom, setDateFrom] = useState(() => `${new Date().getFullYear()}-01-01`)
+  const [dateTo, setDateTo] = useState(() => `${new Date().getFullYear()}-12-31`)
   const [active, setActive] = useState<Record<MetricKey, boolean>>({ occ: true, markup: true, adr: false, revenue: false })
 
   const toggle = (k: MetricKey) =>

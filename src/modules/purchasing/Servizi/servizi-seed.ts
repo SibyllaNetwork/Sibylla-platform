@@ -1,9 +1,10 @@
 import type { Servizio } from './servizi-types'
+import { aOggi } from '../_shared/dateDemo'
 
 // Seed inventato di servizi: 18 voci coprono tutti i tipi e diverse città
 // italiane. Listini in tre fasce: Agorà, B2B, B2C.
 
-export const SERVIZI_INIT: Servizio[] = [
+const SERVIZI_INIT_BASE: Servizio[] = [
   // ─── Escursioni ─────────────────────────────────────────────────────────
   {
     id: 'srv-esc-cinque-terre',
@@ -435,3 +436,6 @@ export const SERVIZI_INIT: Servizio[] = [
     pubblicato: true,
   },
 ]
+
+// Date d'esempio spostate a oggi (vedi _shared/dateDemo).
+export const SERVIZI_INIT: Servizio[] = aOggi(SERVIZI_INIT_BASE)

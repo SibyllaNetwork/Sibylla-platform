@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { aOggi } from './dateDemo'
 
 export type AnnouncementType = 'vendita' | 'acquisto'
 export type AnnouncementStatus = 'attivo' | 'in_trattativa' | 'concluso'
@@ -151,7 +152,7 @@ export function convertManagementToAnnouncement(ma: ManagementAnnouncement): Ann
   }
 }
 
-export const MOCK_ANNOUNCEMENTS: Announcement[] = [
+export const MOCK_ANNOUNCEMENTS: Announcement[] = aOggi([
   { id: '1',  type: 'vendita',  title: 'Lotto Camere Evento Fiera Milano - Hotel 4 Stelle', description: 'Disponibilità eccezionale per evento fieristico del settore tecnologico. Camere Superior con colazione inclusa, WiFi gratuito, accesso spa e servizio navetta per la fiera.', location: 'Milano, Lombardia',         hotel: 'Grand Hotel Milano',      lots: 5,  roomsPerLot: 10, roomType: 'Doppia Superior',     checkInDate: '2026-05-15', checkOutDate: '2026-05-20', status: 'attivo',        publishedDate: '2026-03-25', publisher: 'Hotel Group Lombardia',         contactEmail: 'vendite@hotelgroup.it',     nights: 5,  category: 'business',   showRecipient: false },
   { id: '2',  type: 'acquisto', title: 'Ricerca Lotti Camere per Congresso Medico - Roma',  description: 'Cerchiamo disponibilità per gruppo congressuale del settore medicale. Necessarie camere con scrivania e connessione internet ad alta velocità.', location: 'Roma, Lazio',           hotel: 'Da definire',          lots: 3,  roomsPerLot: 10, roomType: 'Singola Business',    checkInDate: '2026-06-10', checkOutDate: '2026-06-13', status: 'attivo',        publishedDate: '2026-03-28', publisher: 'Corporate Travel Solutions',    contactEmail: 'booking@corporate.it',      nights: 3,  category: 'business',   showRecipient: false },
   { id: '3',  type: 'vendita',  title: 'Lotti Mix Camere Resort Lusso Costa Smeralda',      description: 'Cancellazione gruppo importante. Disponibili lotti misti con doppie vista mare e suite panoramiche. Pensione completa inclusa, accesso spa, campo da golf.',                                  location: 'Costa Smeralda, Sardegna', hotel: 'Luxury Resort Sardegna', lots: 8,  roomsPerLot: 10, roomType: 'Mix Doppie/Suite',    checkInDate: '2026-07-20', checkOutDate: '2026-07-27', status: 'in_trattativa', publishedDate: '2026-03-26', publisher: 'Sardinia Hotels Network',       contactEmail: 'sales@sardinia.it',         nights: 7,  category: 'mare',       showRecipient: false },
@@ -162,7 +163,7 @@ export const MOCK_ANNOUNCEMENTS: Announcement[] = [
   { id: '8',  type: 'acquisto', title: 'Ricerca Lotti Wellness Retreat Spa Resort',         description: 'Azienda cerca location per ritiro aziendale wellness. Necessari trattamenti spa inclusi, sale meeting, area fitness e alimentazione salutistica.',                                              location: 'Terme di Saturnia, Toscana', hotel: 'Da definire',     lots: 4,  roomsPerLot: 12, roomType: 'Doppia Wellness',     checkInDate: '2026-10-15', checkOutDate: '2026-10-18', status: 'attivo',        publishedDate: '2026-03-31', publisher: 'Corporate Wellness Solutions',  contactEmail: 'wellness@corporate.it',     nights: 3,  category: 'wellness',   showRecipient: false },
   { id: '9',  type: 'vendita',  title: 'Lotti Camere Business Hotel Aeroporto Malpensa',    description: 'Disponibilità immediata per gruppi business in transito. Camere moderne con servizio 24h, transfer aeroporto gratuito, sale riunioni.',                                                       location: 'Malpensa, Lombardia',   hotel: 'Airport Business Hotel', lots: 12, roomsPerLot: 5, roomType: 'Singola Business',    checkInDate: '2026-05-01', checkOutDate: '2026-05-31', status: 'attivo',        publishedDate: '2026-03-30', publisher: 'Airport Hotels Network',        contactEmail: 'booking@airporthotels.it',  nights: 30, category: 'business',   showRecipient: false },
   { id: '10', type: 'vendita',  title: 'Lotti Suite Lago di Como - Vista Panoramica',       description: 'Struttura luxury con camere vista lago disponibili per periodi prolungati. Suite con terrazzo privato, ristorante gourmet, servizio maggiordomo.',                                              location: 'Bellagio, Lago di Como', hotel: 'Como Luxury Hotel',  lots: 3,  roomsPerLot: 15, roomType: 'Suite Vista Lago',    checkInDate: '2026-06-01', checkOutDate: '2026-06-15', status: 'in_trattativa', publishedDate: '2026-03-26', publisher: 'Lakes Hotels Consortium',       contactEmail: 'luxury@lakeshotels.it',     nights: 14, category: 'citta_arte', showRecipient: false },
-]
+])
 
 // ── Store: management announcements (utente corrente) ──────────────────────
 let _state: ManagementAnnouncement[] = [

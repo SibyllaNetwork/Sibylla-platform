@@ -3,6 +3,8 @@ import PageHead from '../../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../../services/api'
 import { HBars } from '../../distribution/_charts/HBars'
 import { DateRangeField, SelectField } from '../../../../core/components/form'
+import { useStrutturaIdRevenue, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
+import { idStruttura } from '../../../../core/demo/struttureDemo'
 import './SegmentAnalysis.sass'
 
 interface RankItem { label: string; value: number; color: string }
@@ -36,8 +38,9 @@ const FALLBACK: Data = {
   StrutturaId: null,
   Segmenti: ['Tutti i segmenti'],
   SegmentoSel: 'Tutti i segmenti',
-  dataDa: '2026-01-01',
-  dataA: '2026-12-31',
+  // Anno in corso.
+  dataDa: `${new Date().getFullYear()}-01-01`,
+  dataA: `${new Date().getFullYear()}-12-31`,
   losAgenzia: [
     { label: 'Ovest Destination Italy', value: 3.00, color: '#D946C7' },
     { label: 'Nessuna',                 value: 2.79, color: '#A53FCF' },
@@ -70,9 +73,9 @@ const FALLBACK: Data = {
 }
 
 function generateFallbackTrend(): RevenueTrendPoint[] {
-  // Genera ~50 punti tra 2026-01-01 e 2026-08-01 con pattern realistico
+  // Genera ~50 punti dal 1° gennaio dell'anno in corso con pattern realistico
   const segments = ['Dirette', 'Gruppi', 'B2C', 'Corporate', 'B2B']
-  const start = new Date('2026-01-01')
+  const start = new Date(new Date().getFullYear(), 0, 1)
   const points: RevenueTrendPoint[] = []
   for (let i = 0; i < 50; i++) {
     const d = new Date(start); d.setDate(d.getDate() + i * 4)
@@ -96,7 +99,18 @@ function fmtNum(v: number): string {
 }
 
 export default function SegmentAnalysis({ navigate }: { navigate: (p: string) => void }) {
+  // Senza backend: le strutture (con camere) del cliente, a partire da quella
+  // selezionata in alto.
+  const schede = useStruttureCliente()
+  const [strutturaSel] = useStrutturaIdRevenue()
   const [data, setData] = useState<Data>(FALLBACK)
+  useEffect(() => {
+    setData((d) => ({
+      ...d,
+      Strutture: schede.filter((x) => x.camere > 0).map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })),
+      StrutturaId: strutturaSel,
+    }))
+  }, [schede, strutturaSel])
 
   useEffect(() => {
     let cancelled = false

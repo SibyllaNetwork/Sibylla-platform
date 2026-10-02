@@ -1,6 +1,7 @@
 // ─── Gestione preventivi ────────────────────────────────────────────────────
 // Stili pagina lista preventivi (IMieiPreventivi.tsx)
 @use '../../../../styles/tokens' as *
+@use '../../../../styles/mixins' as *
 
 .gest-prev
   // ── Toolbar filtri: tutti i campi su un'unica riga ──────────────────────
@@ -221,3 +222,62 @@
   &__pager
     margin-top: 18px
     justify-content: center
+
+// ─── Tabella senza scroll orizzontale (regola di piattaforma) ─────────────────
+// table-layout fixed + colonne in percentuale; testi su una riga con ellipsis e
+// tooltip; sotto soglia intestazioni abbreviate e pulsanti azione più stretti.
+.gest-prev__wrap
+  container-type: inline-size
+  container-name: gestprev
+  overflow-x: hidden
+
+// Due classi: .sib-table (tailwind.css) vincerebbe a pari specificità.
+.gest-prev__wrap .gest-prev__table
+  +table-fit
+
++th-labels
+
+.gest-prev__w-check
+  width: 3%
+.gest-prev__w-exp
+  width: 3%
+.gest-prev__w-id
+  width: 7%
+.gest-prev__w-stato
+  width: 8%
+.gest-prev__w-utente
+  width: 8%
+.gest-prev__w-creazione
+  width: 9%
+.gest-prev__w-scadenza
+  width: 8%
+.gest-prev__w-cliente
+  width: 9%
+.gest-prev__w-email
+  width: 8%
+.gest-prev__w-camere
+  width: 5%
+.gest-prev__w-inout
+  width: 9%
+.gest-prev__w-prezzo
+  width: 7%
+.gest-prev__w-azioni
+  width: 16%
+
+@container gestprev (max-width: 1180px)
+  .gest-prev__wrap .gest-prev__table
+    font-size: 12px
+
+    th, td
+      padding-left: 5px
+      padding-right: 5px
+
+    .gest-prev__actions
+      gap: 0
+
+    .sib-btn--icon
+      width: 24px
+      height: 24px
+
+  .gest-prev__wrap
+    +th-compact

@@ -26,7 +26,7 @@ interface Data {
   conti: Conto[]
 }
 
-const FALLBACK: Data = {
+const FALLBACK_BASE: Data = {
   conti: [
     { id: 205, segmento: 'B2B',         nominativo: 'Ovest Destination Italy', data: '14/04/2026', importo: 85.00,   stato: 'Aperto',    hasServizi: true,  hasPagamento: true },
     { id: 206, segmento: 'Individuale', nominativo: 'Marco Bianchi',           data: '15/04/2026', importo: 42.50,   stato: 'Aperto',    hasServizi: true,  hasPagamento: false },
@@ -46,6 +46,17 @@ const FALLBACK: Data = {
     { id: 220, segmento: 'Gruppo',      nominativo: 'Tour Operator Egnazia',   data: '22/04/2026', importo: 1680.00, stato: 'Aperto',    hasServizi: true,  hasPagamento: true },
   ],
 }
+
+// Le date d'esempio (aprile 2026) scorrono fino a oggi mantenendo le distanze:
+// il conto più recente risulta di oggi.
+const RIFERIMENTO = new Date(2026, 3, 21)
+const spostaData = (it: string) => {
+  const [g, m, a] = it.split('/').map(Number)
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const d = new Date(a, m - 1, g + Math.round((oggi.getTime() - RIFERIMENTO.getTime()) / 86400000))
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+const FALLBACK: Data = { conti: FALLBACK_BASE.conti.map((c) => ({ ...c, data: spostaData(c.data) })) }
 
 const STATI_ALL: Stato[] = ['Aperto', 'Chiuso', 'Annullato']
 

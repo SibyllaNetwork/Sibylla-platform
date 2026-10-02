@@ -66,7 +66,7 @@ const STATO_META: Record<StatoDoc, { label: string; tone: 'ok' | 'warn' | 'ko' |
 
 // ─── DATI MOCK ────────────────────────────────────────────────────────────────
 
-const SEED: Documento[] = [
+const SEED_BASE: Documento[] = [
   { id: 1, numero: 'C-0001/MU 2026', tipologia: 'caparra', dataDocumento: '2026-06-26', emessoDa: 'Mario Rossi', riferimento: '-', ragioneSociale: '-', email: 'ospite1@email.it', importo: 88.44, saldo: 0, voceIncasso: 'Nexi', dataScadenza: '2026-06-26', quietanzato: true },
   { id: 2, numero: 'C-0002/MU 2026', tipologia: 'caparra', dataDocumento: '2026-06-26', emessoDa: 'Mario Rossi', riferimento: 'Melissa Barnat', ragioneSociale: '-', email: 'm.barnat@email.com', importo: 144.45, saldo: 0, voceIncasso: 'Nexi', dataScadenza: '2026-06-26', quietanzato: true },
   { id: 3, numero: 'A-0003/MU 2026', tipologia: 'acconto', dataDocumento: '2026-06-20', emessoDa: 'Reception', riferimento: 'Verdi Tour S.p.A.', ragioneSociale: 'Verdi Tour S.p.A.', email: 'contabilita@verditour.it', importo: 1200, saldo: 900, voceIncasso: 'Bonifico', dataScadenza: '2026-06-22' },
@@ -81,6 +81,17 @@ const SEED: Documento[] = [
   { id: 12, numero: 'C-0012/MU 2026', tipologia: 'caparra', dataDocumento: '2026-06-12', emessoDa: 'Reception', riferimento: 'Elena Costa', ragioneSociale: '-', email: 'elena.costa@email.it', importo: 380, saldo: 380, voceIncasso: 'Carta', dataScadenza: '2026-07-28' },
   { id: 13, numero: 'S-0013/MU 2026', tipologia: 'saldo', dataDocumento: '2026-05-28', emessoDa: 'Mario Rossi', riferimento: 'Fontana Eventi', ragioneSociale: 'Fontana Eventi', email: 'info@fontanaeventi.it', importo: 1500, saldo: 1000, voceIncasso: 'Nexi', dataScadenza: '2026-06-08' },
 ]
+
+// Le date d'esempio (giugno 2026) scorrono così che oggi corrisponda al 26/06:
+// scadenze passate, imminenti e future restano nelle stesse proporzioni.
+const RIFERIMENTO = new Date(2026, 5, 26)
+const spostaIso = (iso: string) => {
+  const [a, m, g] = iso.split('-').map(Number)
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const d = new Date(a, m - 1, g + Math.round((oggi.getTime() - RIFERIMENTO.getTime()) / 86400000))
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+const SEED: Documento[] = SEED_BASE.map((d) => ({ ...d, dataDocumento: spostaIso(d.dataDocumento), dataScadenza: spostaIso(d.dataScadenza) }))
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 

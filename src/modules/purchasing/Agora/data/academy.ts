@@ -1,3 +1,4 @@
+import { aOggi } from '../../_shared/dateDemo'
 /* === Academy data types & mock dataset === */
 
 export type PersonnelKind = 'offerta' | 'richiesta';
@@ -51,7 +52,7 @@ export interface AcademyCourse {
 
 /* === MOCK PERSONNEL === */
 
-export const PERSONNEL_LISTINGS: PersonnelListing[] = [
+export const PERSONNEL_LISTINGS: PersonnelListing[] = aOggi([
   {
     id: 'p1',
     kind: 'offerta',
@@ -234,11 +235,11 @@ export const PERSONNEL_LISTINGS: PersonnelListing[] = [
     contactName: 'Giulia Conti',
     contactEmail: 'giulia.conti.bar@email.it',
   },
-];
+]);
 
 /* === MOCK COURSES === */
 
-export const ACADEMY_COURSES: AcademyCourse[] = [
+export const ACADEMY_COURSES: AcademyCourse[] = aOggi([
   {
     id: 'c1',
     title: 'Hospitality Revenue Management',
@@ -392,4 +393,4 @@ export const ACADEMY_COURSES: AcademyCourse[] = [
     price: 290,
     publishedDate: '2026-04-10',
   },
-];
+]);

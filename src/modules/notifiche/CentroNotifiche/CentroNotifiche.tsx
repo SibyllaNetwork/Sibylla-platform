@@ -55,17 +55,40 @@ interface NotificaUI {
 const fmtEUR = (n: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(n)
 
+// ── Date delle notifiche d'esempio: relative a oggi ─────────────────────────────
+//  Il gruppo (oggi / mese corrente / precedenti) si deduce dalla data, così resta
+//  coerente qualunque sia il giorno in cui si apre la demo.
+const WD = ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
+const MM = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC']
+const MM_BREVE = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
+const WD_BREVE = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab']
+const giorno = (offset: number) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + offset); return d }
+function quando(giorniFa: number): { date: string; group: NotificaUI['group'] } {
+  const d = giorno(-giorniFa)
+  const oggi = giorno(0)
+  const dd = String(d.getDate()).padStart(2, '0')
+  if (giorniFa === 0) return { date: `${WD[d.getDay()]} ${dd} ${MM[d.getMonth()]}`, group: 'oggi' }
+  if (d.getMonth() === oggi.getMonth() && d.getFullYear() === oggi.getFullYear()) return { date: `${WD[d.getDay()]} ${dd} ${MM[d.getMonth()]}`, group: 'mese-corrente' }
+  return { date: `${dd} ${MM_BREVE[d.getMonth()]}`, group: 'precedenti' }
+}
+/** "sab 25/04/2026" a `offset` giorni da oggi. */
+const giornoLungo = (offset: number) => {
+  const d = giorno(offset)
+  return `${WD_BREVE[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+const anno = new Date().getFullYear()
+
 const FALLBACK: NotificaUI[] = [
-  { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'MAR 07 APR', time:'14:32', group:'oggi',         read:false, source:'platform' },
-  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'MAR 31 MAR', time:'12:08', group:'mese-corrente', read:false, source:'platform',
-    extra: { bookingId:'0001/015161', nazionalita:'ITA', checkIn:'sab 25/04/2026', checkOut:'lun 27/04/2026', stato:'Opzionata', camere:50, persone:110, tipologia:'Studenti', pernotto:10600, servizi:0 } },
-  { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'12:07', group:'mese-corrente', read:true, source:'tableau' },
-  { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'LUN 23 MAR', time:'11:14', group:'mese-corrente', read:true, source:'tableau' },
-  { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:'Il tour-operator Tour Operator Test ha annullato la prenotazione 2026/014505.', ref:'', date:'26 Mar', time:'12:31', group:'precedenti', read:true, source:'platform' },
-  { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', date:'17 Mar', time:'15:53', group:'precedenti', read:true, source:'agora' },
-  { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', date:'19 Feb', time:'09:15', group:'precedenti', read:true, source:'tableau',
-    extra: { bookingId:'0001/014474', nazionalita:'GER', checkIn:'ven 19/02/2026', checkOut:'dom 21/02/2026', stato:'Confermata', camere:12, persone:24, tipologia:'Famiglie', pernotto:4200, servizi:350 } },
-  { id:4,   sev:'warning', title:'richiesta extra', text:'La prenotazione 2026014463 è passata in Extra a...', ref:'', date:'19 Feb', time:'09:14', group:'precedenti', read:true, source:'agora' },
+  { id:101, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', ...quando(0), time:'14:32', read:false, source:'platform' },
+  { id:102, sev:'info',    title:'Richiesta extra da TO',        text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', ...quando(1), time:'12:08', read:false, source:'platform',
+    extra: { bookingId:'0001/015161', nazionalita:'ITA', checkIn:giornoLungo(23), checkOut:giornoLungo(25), stato:'Opzionata', camere:50, persone:110, tipologia:'Studenti', pernotto:10600, servizi:0 } },
+  { id:103, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', ...quando(1), time:'12:07', read:true, source:'tableau' },
+  { id:104, sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', ...quando(1), time:'11:14', read:true, source:'tableau' },
+  { id:1,   sev:'error',   title:'Annullamento prenotazione da TO', text:`Il tour-operator Tour Operator Test ha annullato la prenotazione ${anno}/014505.`, ref:'', ...quando(12), time:'12:31', read:true, source:'platform' },
+  { id:2,   sev:'warning', title:'Segnalazione presa in carico', text:'', ref:'', ...quando(21), time:'15:53', read:true, source:'agora' },
+  { id:3,   sev:'info',    title:'Richiesta extra da TO', text:'Nuova richiesta extra da TO: Tour Operator Test.', ref:'', ...quando(45), time:'09:15', read:true, source:'tableau',
+    extra: { bookingId:'0001/014474', nazionalita:'GER', checkIn:giornoLungo(-45), checkOut:giornoLungo(-43), stato:'Confermata', camere:12, persone:24, tipologia:'Famiglie', pernotto:4200, servizi:350 } },
+  { id:4,   sev:'warning', title:'richiesta extra', text:`La prenotazione ${anno}014463 è passata in Extra a...`, ref:'', ...quando(45), time:'09:14', read:true, source:'agora' },
 ]
 
 const groups = [
@@ -271,10 +294,10 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const reportNotifs: NotificaUI[] = useMemo(() => {
     if (!reportPickupOn) return []
     const base: { date: string; time: string; group: NotificaUI['group']; read: boolean }[] = [
-      { date: 'MAR 07 LUG', time: '09:00', group: 'oggi',        read: false },
-      { date: 'DOM 05 LUG', time: '09:00', group: 'mese-corrente', read: false },
-      { date: 'VEN 03 LUG', time: '09:00', group: 'mese-corrente', read: true },
-      { date: 'MER 01 LUG', time: '09:00', group: 'mese-corrente', read: true },
+      { ...quando(0), time: '09:00', read: false },
+      { ...quando(2), time: '09:00', read: false },
+      { ...quando(4), time: '09:00', read: true },
+      { ...quando(6), time: '09:00', read: true },
     ]
     return base.map((b, i) => ({
       id: 980000 + i,
@@ -292,9 +315,9 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
   const cityTaxNotifs: NotificaUI[] = useMemo(() => {
     if (!reportCityTaxOn) return []
     const base: { date: string; time: string; group: NotificaUI['group']; read: boolean }[] = [
-      { date: 'MAR 21 LUG', time: '09:00', group: 'oggi',          read: false },
-      { date: 'LUN 13 LUG', time: '09:00', group: 'mese-corrente', read: true },
-      { date: 'LUN 06 LUG', time: '09:00', group: 'mese-corrente', read: true },
+      { ...quando(0), time: '09:00', read: false },
+      { ...quando(7), time: '09:00', read: true },
+      { ...quando(14), time: '09:00', read: true },
     ]
     return base.map((b, i) => ({
       id: 970000 + i,

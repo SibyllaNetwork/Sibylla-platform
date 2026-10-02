@@ -116,7 +116,7 @@ interface RowBase {
   giacenza: number   // camere a contratto (giacenza)
   sugg: number
 }
-const ROWS: RowBase[] = [
+const ROWS_BASE: RowBase[] = [
   { date: '09/06/2026', evType: 'concerto', meteo: 'sereno',   temp: '28°', market: 'medio', stag: 'Alta Stagione', ospiti: 112, vendute: 46, giacenza: 60, sugg: 3 },
   { date: '10/06/2026', evType: 'sport',    meteo: 'parziale', temp: '27°', market: 'alto',  stag: 'Alta Stagione', ospiti: 128, vendute: 52, giacenza: 60, sugg: 2 },
   { date: '11/06/2026', evType: 'cultura',  meteo: 'nuvoloso', temp: '24°', market: 'alto',  stag: 'Alta Stagione', ospiti: 141, vendute: 55, giacenza: 60, sugg: 4 },
@@ -133,6 +133,16 @@ const ROWS: RowBase[] = [
   { date: '22/06/2026', evType: 'fiera',    meteo: 'parziale', temp: '27°', market: 'medio', stag: 'Alta Stagione', ospiti: 108, vendute: 44, giacenza: 60, sugg: 2 },
   { date: '23/06/2026', evType: 'concerto', meteo: 'sereno',   temp: '32°', market: 'alto',  stag: 'Alta Stagione', ospiti: 139, vendute: 53, giacenza: 60, sugg: 4 },
 ]
+
+// I 15 giorni d'esempio partono da oggi (negli esempi dal 09/06/2026).
+const RIF_ROWS = new Date(2026, 5, 9)
+const ROWS: RowBase[] = ROWS_BASE.map((r) => {
+  const [g, m, a] = r.date.split('/').map(Number)
+  const oggi = new Date(); oggi.setHours(12, 0, 0, 0)
+  const giorni = Math.round((oggi.getTime() - new Date(RIF_ROWS).setHours(12, 0, 0, 0)) / 86400000)
+  const d = new Date(a, m - 1, g + giorni)
+  return { ...r, date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}` }
+})
 
 const STAGIONI_PERIODI: Record<string, string[]> = {
   'Alta Stagione': ['Dal 01/01/2026 al 29/05/2026', 'Dal 03/06/2026 al 03/08/2026', 'Dal 01/09/2026 al 31/10/2026'],

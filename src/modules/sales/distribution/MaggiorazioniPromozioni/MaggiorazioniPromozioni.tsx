@@ -3,18 +3,39 @@ import T from '../../../../core/tokens'
 import Modal from '../../../../core/components/Modal'
 import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
+import TruncatedText from '../../../../core/components/TruncatedText'
+import ThLabel from '../../../../core/components/ThLabel'
 import './MaggiorazioniPromozioni.sass'
+import { useStrutturaCorrente } from '../../../../hooks/useStrutturaCorrente'
 import { InputField, SelectField, DatePickerField, DateRangeField } from '../../../../core/components/form'
 
 type Promo = {id:number;nome:string;periodoPromo:string;periodoPrenot:string;mercato:string;segmento:string;struttura:string;partners:string;blackout:string;sconto:number}
 
-const INIT_PROMOS: Promo[] = [
-  {id:1,nome:'promozione 1',  periodoPromo:'28/11/2025 - 03/11/2025',periodoPrenot:'28/11/2025 - 30/11/2025',mercato:'Libero',segmento:'Dirette',struttura:'Hotel Catania',      partners:'',blackout:'30/11/2025',sconto:25.00},
-  {id:2,nome:'San Valentino', periodoPromo:'02/01/2026 - 02/01/2026',periodoPrenot:'02/01/2026 - 30/01/2026',mercato:'Libero',segmento:'Dirette',struttura:'HOTEL LUCE GHOST 1', partners:'',blackout:'',          sconto:-10.00},
-  {id:3,nome:'pina',          periodoPromo:'18/03/2026 - 31/03/2026',periodoPrenot:'18/03/2026 - 31/03/2026',mercato:'Libero',segmento:'Dirette',struttura:'Categoria 5',         partners:'',blackout:'18/03/2026',sconto:9.00},
-  {id:4,nome:'promozione 1',  periodoPromo:'28/11/2025 - 03/11/2025',periodoPrenot:'28/11/2025 - 30/11/2025',mercato:'Libero',segmento:'Dirette',struttura:'Hotel Catania',      partners:'',blackout:'30/11/2025',sconto:25.00},
-  {id:5,nome:'super',         periodoPromo:'18/03/2026 - 31/03/2026',periodoPrenot:'18/03/2026 - 31/03/2026',mercato:'Libero',segmento:'B2C',    struttura:'Categoria 4',         partners:'',blackout:'31/03/2026',sconto:5.00},
-]
+// Promozioni e maggiorazioni d'esempio: date a ridosso di oggi (prossime
+// festività, early booking, last minute) sulle strutture del cliente corrente.
+const fmtIt = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+const traGiorni = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return d }
+/** Prossima occorrenza (da oggi) del giorno/mese indicato, spostata di `delta` giorni. */
+const prossimo = (giorno: number, mese: number, delta = 0) => {
+  const oggi = new Date(); oggi.setHours(0, 0, 0, 0)
+  const d = new Date(oggi.getFullYear(), mese - 1, giorno)
+  if (d < oggi) d.setFullYear(d.getFullYear() + 1)
+  d.setDate(d.getDate() + delta)
+  return d
+}
+const periodo = (da: Date, a: Date) => `${fmtIt(da)} - ${fmtIt(a)}`
+
+function promoIniziali(strutture: string[]): Promo[] {
+  const s = (i: number) => strutture[i % Math.max(1, strutture.length)] ?? ''
+  return [
+    { id: 1, nome: 'Early booking inverno', periodoPromo: periodo(traGiorni(30), traGiorni(90)), periodoPrenot: periodo(traGiorni(-5), traGiorni(25)), mercato: 'Libero', segmento: 'Dirette', struttura: s(0), partners: '', blackout: '', sconto: 15.00 },
+    { id: 2, nome: 'Ponte dell’Immacolata', periodoPromo: periodo(prossimo(6, 12), prossimo(8, 12)), periodoPrenot: periodo(traGiorni(0), prossimo(5, 12)), mercato: 'Libero', segmento: 'Dirette', struttura: s(1), partners: '', blackout: '', sconto: -8.00 },
+    { id: 3, nome: 'Last minute weekend', periodoPromo: periodo(traGiorni(1), traGiorni(14)), periodoPrenot: periodo(traGiorni(0), traGiorni(12)), mercato: 'Libero', segmento: 'B2C', struttura: 'Categoria 4', partners: '', blackout: fmtIt(traGiorni(7)), sconto: 9.00 },
+    { id: 4, nome: 'Capodanno', periodoPromo: periodo(prossimo(29, 12), prossimo(29, 12, 4)), periodoPrenot: periodo(traGiorni(0), prossimo(20, 12)), mercato: 'Libero', segmento: 'Dirette', struttura: s(0), partners: '', blackout: fmtIt(prossimo(31, 12)), sconto: -15.00 },
+    { id: 5, nome: 'San Valentino', periodoPromo: periodo(prossimo(13, 2), prossimo(15, 2)), periodoPrenot: periodo(traGiorni(0), prossimo(10, 2)), mercato: 'Libero', segmento: 'Dirette', struttura: s(2), partners: '', blackout: '', sconto: 12.00 },
+    { id: 6, nome: 'Long stay 7 notti', periodoPromo: periodo(traGiorni(-10), traGiorni(120)), periodoPrenot: periodo(traGiorni(-10), traGiorni(110)), mercato: 'Libero', segmento: 'B2C', struttura: 'Categoria 5', partners: '', blackout: '', sconto: 10.00 },
+  ]
+}
 const BLANK_FORM = {nome:'',periodoPromoFrom:'',periodoPromoTo:'',periodoPrenotFrom:'',periodoPrenotTo:'',mercato:'',segmento:'Dirette',struttura:'',partners:'',blackout:'',sconto:'0'}
 
 // I campi data dei componenti form (DateRangeField/DatePickerField) lavorano in
@@ -30,7 +51,10 @@ const isoToIt = (s?:string) => {
 
 export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:string)=>void }) {
   const [deleteId,    setDeleteId]    = useState<number|null>(null)
-  const [promos,      setPromos]      = useState<Promo[]>(INIT_PROMOS)
+  const { elenco: struttureCliente } = useStrutturaCorrente()
+  const [promos,      setPromos]      = useState<Promo[]>(() => promoIniziali(struttureCliente))
+  // Cambiato cliente: le promozioni d'esempio sono quelle delle sue strutture.
+  useEffect(() => { setPromos(promoIniziali(struttureCliente)) }, [struttureCliente])
 
   // ── Filtri in testa (componenti standard) ───────────────────────────────────
   const [fNome,       setFNome]       = useState('')
@@ -165,16 +189,16 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
 
       {/* ── Table con filtri colonna a imbuto ─────────────────────── */}
       {(()=>{
-        const cols:{label:string;key:ColKey;align?:'right'|'center';filterable?:boolean;w?:string}[] = [
+        const cols:{label:string;short?:string;key:ColKey;align?:'right'|'center';filterable?:boolean;w?:string}[] = [
           {label:'#',                       key:'idx',           w:'w-10'},
-          {label:'Nome promozione',         key:'nome',          filterable:true},
-          {label:'Periodo promozione',      key:'periodoPromo',  filterable:true},
-          {label:'Periodo prenotabilità',   key:'periodoPrenot', filterable:true},
-          {label:'Mercato',                 key:'mercato',       filterable:true},
-          {label:'Segmento',                key:'segmento',      filterable:true},
-          {label:'Struttura/Categoria',     key:'struttura',     filterable:true},
-          {label:'Partners',                key:'partners',      filterable:true},
-          {label:'Black-out Date',          key:'blackout',      filterable:true},
+          {label:'Nome promozione', short:'Nome promo',         key:'nome',          filterable:true},
+          {label:'Periodo promozione', short:'Per. promo',      key:'periodoPromo',  filterable:true},
+          {label:'Periodo prenotabilità', short:'Per. prenot.',   key:'periodoPrenot', filterable:true},
+          {label:'Mercato', short:'Merc.',                 key:'mercato',       filterable:true},
+          {label:'Segmento', short:'Segm.',                key:'segmento',      filterable:true},
+          {label:'Struttura/Categoria', short:'Strutt./Cat.',     key:'struttura',     filterable:true},
+          {label:'Partners', short:'Partn.',                key:'partners',      filterable:true},
+          {label:'Black-out Date', short:'Black-out',          key:'blackout',      filterable:true},
           {label:'Sconto %',                key:'sconto',        align:'right'},
           {label:'Azioni',                  key:'idx',           align:'center'},
         ]
@@ -182,6 +206,12 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
           <div className="promo__table-wrap sib-table-wrap">
             <div className="promo__table-scroll">
               <table className="sib-table promo__table">
+                {/* Larghezze in percentuale + table-layout fixed: niente scroll orizzontale. */}
+                <colgroup>
+                  {['num', 'nome', 'periodo', 'periodo', 'mercato', 'segmento', 'struttura', 'partners', 'blackout', 'sconto', 'azioni'].map((c, i) => (
+                    <col key={i} className={`promo__col-${c}`} />
+                  ))}
+                </colgroup>
                 <thead>
                   {/* Header: label + filtro colonna a imbuto */}
                   <tr className="promo__thead-row">
@@ -189,8 +219,8 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
                       <th key={i}
                         className={`promo__th ${c.align==='right'?'promo__th--right':c.align==='center'?'promo__th--center':''} ${c.w||''}`}
                       >
-                        <span className="inline-flex items-center gap-1">
-                          <span>{c.label}</span>
+                        <span className="sib-colf-head">
+                          <ThLabel full={c.label} short={c.short} />
                           {c.filterable && (
                             <ColFilterHeader
                               options={distinctVals(c.key as string)}
@@ -218,14 +248,14 @@ export default function MaggiorazioniPromozioni({ navigate }: { navigate: (p:str
                   {pageRows.map((p,i) => (
                     <tr key={p.id} className="promo__row">
                       <td className="promo__td promo__td--num">{pageStart+i+1}</td>
-                      <td className="promo__td promo__td--nome" title={p.nome}>{p.nome}</td>
-                      <td className="promo__td" title={p.periodoPromo}>{p.periodoPromo}</td>
-                      <td className="promo__td" title={p.periodoPrenot}>{p.periodoPrenot}</td>
-                      <td className="promo__td">{p.mercato}</td>
-                      <td className="promo__td">{p.segmento}</td>
-                      <td className="promo__td" title={p.struttura}>{p.struttura}</td>
-                      <td className="promo__td promo__td--muted" title={p.partners}>{p.partners||'—'}</td>
-                      <td className="promo__td">{p.blackout||<span className="promo__td--muted">—</span>}</td>
+                      <td className="promo__td promo__td--nome"><TruncatedText text={p.nome} /></td>
+                      <td className="promo__td"><TruncatedText text={p.periodoPromo} /></td>
+                      <td className="promo__td"><TruncatedText text={p.periodoPrenot} /></td>
+                      <td className="promo__td"><TruncatedText text={p.mercato} /></td>
+                      <td className="promo__td"><TruncatedText text={p.segmento} /></td>
+                      <td className="promo__td"><TruncatedText text={p.struttura} /></td>
+                      <td className="promo__td promo__td--muted"><TruncatedText text={p.partners||'—'} /></td>
+                      <td className="promo__td">{p.blackout ? <TruncatedText text={p.blackout} /> : <span className="promo__td--muted">—</span>}</td>
                       <td className="promo__td promo__td--right">
                         <span className={`promo__sconto-badge ${p.sconto<0?'promo__sconto-badge--negative':p.sconto>0?'promo__sconto-badge--positive':''}`}>
                           {p.sconto>0?'+':''}{p.sconto.toFixed(2).replace('.',',')}

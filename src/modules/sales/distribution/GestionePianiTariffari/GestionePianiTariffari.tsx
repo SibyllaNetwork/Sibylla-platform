@@ -47,13 +47,18 @@ const findNode = (nodes: Piano[], id: number): Piano | undefined => {
   return undefined
 }
 
+// Piani d'esempio con scadenze nei prossimi mesi (relative a oggi).
+const scadenzaTra = (giorni: number) => {
+  const d = new Date(); d.setDate(d.getDate() + giorni)
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
 const SEED: Record<Sezione, Piano[]> = {
-  BAR: [{ id: 1, nome: 'test pippo', valore: '5,00 %', scadenza: '24/10/2025', arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [
-    { id: 2, nome: 'asdasd', valore: '7,00 %', scadenza: '16/04/2026', arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [] },
-    { id: 3, nome: 'sda',    valore: '5,00 %', scadenza: '16/04/2026', arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [] },
+  BAR: [{ id: 1, nome: 'BAR Standard', valore: '5,00 %', scadenza: scadenzaTra(120), arrangiamento: 'RO', politica: 'defaultNessunVincolo', children: [
+    { id: 2, nome: 'BAR Non rimborsabile', valore: '7,00 %', scadenza: scadenzaTra(90), arrangiamento: 'RO', politica: 'NON Rimborsabile', children: [] },
+    { id: 3, nome: 'BAR Early booking',    valore: '5,00 %', scadenza: scadenzaTra(60), arrangiamento: 'BB', politica: 'defaultNessunVincolo', children: [] },
   ] }],
-  FIT:    [{ id: 4, nome: 'pino',   valore: '8,00 %', scadenza: '31/03/2026', arrangiamento: 'BB', politica: 'NON Rimborsabile', children: [] }],
-  Gruppi: [{ id: 5, nome: 'gruppo', valore: '6,00 %', scadenza: '23/03/2026', arrangiamento: 'BB', politica: 'NON Rimborsabile', children: [] }],
+  FIT:    [{ id: 4, nome: 'FIT Tour operator', valore: '8,00 %', scadenza: scadenzaTra(150), arrangiamento: 'BB', politica: 'NON Rimborsabile', children: [] }],
+  Gruppi: [{ id: 5, nome: 'Gruppi e MICE',     valore: '6,00 %', scadenza: scadenzaTra(75),  arrangiamento: 'BB', politica: 'NON Rimborsabile', children: [] }],
 }
 
 type EditCtx = { sezione: Sezione; parentId: number | null; parentName?: string; fromTop: boolean; editId: number | null }
