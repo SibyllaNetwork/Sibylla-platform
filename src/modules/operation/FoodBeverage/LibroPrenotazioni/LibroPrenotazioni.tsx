@@ -72,7 +72,7 @@ export default function LibroPrenotazioni({ navigate }: { navigate?: (p: string)
   const [form, setForm]   = useState<Omit<Prenotazione, 'id'> | null>(null)
   const [editId, setEditId] = useState<number | null>(null)
 
-  const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
+  const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId, OUTLETS])
   const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId, TURNI])
 
   // ── Prenotazioni della giornata ────────────────────────────────────────────

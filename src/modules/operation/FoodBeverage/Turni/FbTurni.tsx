@@ -55,7 +55,7 @@ export default function FbTurni({ navigate }: { navigate?: (p: string) => void }
   const { outletId } = contesto
   const [form, setForm] = useState<Turno | null>(null)
 
-  const saleOutlet = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
+  const saleOutlet = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId, outlets])
   const righe = useMemo(
     () => turni.filter(t => t.outletId === outletId)
       .slice()

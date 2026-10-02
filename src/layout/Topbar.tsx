@@ -13,6 +13,8 @@ import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePe
 import { useModuliStore } from '../store/useModuliStore'
 import { useOrgStore } from '../store/useOrgStore'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
+import { useStrutturaCorrente } from '../hooks/useStrutturaCorrente'
+import './Topbar.sass'
 
 interface Props {
   crumbs          : any[]
@@ -76,12 +78,22 @@ export default function Topbar({
   // chiusa — i dati vengono dallo stesso store usato dalla sidebar.
   const tipologia       = useOrgStore(s => s.tipologia)
   const strutture       = useOrgStore(s => s.strutture)
-  const activeStruttura = useOrgStore(s => s.activeStruttura)
   const setActiveStrutt = useOrgStore(s => s.setActiveStruttura)
   // Con un profilo caricato la struttura è la sua (nella sidenav): niente selettore delle strutture dell'organizzazione.
   const showStruttSel   = !sideOpen && !adminMode && !currentProfileId && tipologia === 'Multistruttura' && strutture.length > 0
   const [struttOpen, setStruttOpen] = useState(false)
   const struttRef = useRef<HTMLDivElement>(null)
+  // In assistenza la sidenav mostra "Admin Console": la struttura del cliente
+  // (una o più) si sceglie qui, sulla barra oro.
+  const { struttura: strutturaCorrente, assistStrutture } = useStrutturaCorrente()
+  const [assistOpen, setAssistOpen] = useState(false)
+  const assistRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!assistOpen) return
+    const h = (e: MouseEvent) => { if (!assistRef.current?.contains(e.target as Node)) setAssistOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [assistOpen])
   useEffect(() => {
     if (!struttOpen) return
     const h = (e: MouseEvent) => { if (!struttRef.current?.contains(e.target as Node)) setStruttOpen(false) }
@@ -209,6 +221,40 @@ export default function Topbar({
         </div>
       )}
 
+      {/* ── Struttura del cliente assistito: una o più, si passa dall'una all'altra ── */}
+      {assist && assistStrutture.length > 0 && (
+        <div ref={assistRef} className="tb-assist-strutt">
+          <button
+            type="button"
+            className={`tb-assist-strutt__btn ${assistStrutture.length > 1 ? 'tb-assist-strutt__btn--switch' : ''}`}
+            onClick={() => assistStrutture.length > 1 && setAssistOpen(o => !o)}
+            aria-haspopup={assistStrutture.length > 1 ? 'listbox' : undefined}
+            aria-expanded={assistStrutture.length > 1 ? assistOpen : undefined}
+          >
+            <i className="fa-solid fa-hotel" aria-hidden="true" />
+            <span className="tb-assist-strutt__nome">{strutturaCorrente}</span>
+            {assistStrutture.length > 1 && (
+              <i className={`fa-solid fa-chevron-down tb-assist-strutt__chev ${assistOpen ? 'tb-assist-strutt__chev--open' : ''}`} aria-hidden="true" />
+            )}
+          </button>
+          {assistOpen && (
+            <div className="tb-assist-strutt__menu" role="listbox">
+              <div className="tb-assist-strutt__titolo">Strutture di {assist.nome}</div>
+              {assistStrutture.map(s => (
+                <button
+                  key={s} type="button" role="option" aria-selected={s === strutturaCorrente}
+                  className={`tb-assist-strutt__opt ${s === strutturaCorrente ? 'tb-assist-strutt__opt--on' : ''}`}
+                  onClick={() => { setActiveStrutt(s); setAssistOpen(false) }}
+                >
+                  <span className="tb-assist-strutt__nome">{s}</span>
+                  {s === strutturaCorrente && <i className="fa-solid fa-check" aria-hidden="true" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Select strutture (solo a sidenav chiusa, prima della breadcrumb) ── */}
       {showStruttSel && (
         <div ref={struttRef} className="relative mr-3 shrink-0">
@@ -219,14 +265,14 @@ export default function Topbar({
             className="flex items-center gap-2 bg-transparent border-0 p-0 cursor-pointer text-white/90 transition-colors hover:text-white"
           >
             <i className="fa-light fa-hotel text-[14px]" aria-hidden="true" />
-            <span className="text-[14px] font-semibold font-poppins max-w-[200px] truncate">{activeStruttura}</span>
+            <span className="text-[14px] font-semibold font-poppins max-w-[200px] truncate">{strutturaCorrente}</span>
             <i className={`fa-solid fa-chevron-down text-[9px] text-white/60 transition-transform duration-200 ${struttOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
           {struttOpen && (
             <div className="absolute left-0 top-full mt-1 z-50 w-56 max-h-60 overflow-y-auto rounded-lg bg-white border border-black/10 shadow-[0_12px_32px_rgba(0,0,0,0.18)]" role="listbox">
               <div className="pt-2 pb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.5px] text-black/45">Cambia struttura</div>
               {strutture.map(s => {
-                const active = s === activeStruttura
+                const active = s === strutturaCorrente
                 return (
                   <button
                     key={s} role="option" aria-selected={active}

@@ -16,6 +16,7 @@ import { useSectionThemeStore, sectionForPage, SECTION_COLORS } from './store/us
 import { useNavGuard } from './store/useNavGuard'
 import { useNavBack } from './store/useNavBack'
 import { useLoadStrutture } from './hooks/useLoadStrutture'
+import { useFbStrutturaSync } from './hooks/useFbStrutturaSync'
 import T from './core/tokens'
 import Ico from './core/icons/Ico'
 
@@ -146,6 +147,8 @@ export default function App() {
 
   // Carica strutture dell'utente dal backend dopo il login.
   useLoadStrutture(!!user)
+  // I dati Food & Beverage seguono la struttura selezionata in alto.
+  useFbStrutturaSync()
 
   const crumbs = buildCrumbs(MENU, currentPage) || []
 

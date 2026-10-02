@@ -41,7 +41,7 @@ export default function OspitiGiorno({ navigate }: { navigate?: (p: string) => v
   const [filtroSala, setFiltroSala]   = useState<number | 'tutte'>('tutte')
   const [soloDaFare, setSoloDaFare]   = useState(false)
 
-  const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
+  const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId, OUTLETS])
   const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId, TURNI])
 
   const righe = useMemo(() => {

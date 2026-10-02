@@ -121,7 +121,8 @@ export const tavoloSize = (capienza: number, forma: TavoloForma): [number, numbe
 //  La pagina "Sale e tavoli" configura le stesse sale che la Sala ristorante
 //  serve: identità e geometria dei tavoli arrivano dal modello F&B, così la
 //  planimetria disegnata qui è quella su cui poi si lavora in servizio.
-const SEED_SALE: Sala[] = FB_SALE.map(sa => {
+// Funzione e non costante: sale e tavoli sono quelli della struttura attiva.
+const seedSale = (): Sala[] => FB_SALE.map(sa => {
   const { cols, rows } = grigliaSala(sa.id)
   // Tre colonne e due righe in più dei tavoli: lo spazio dove stanno bancone e
   // ingresso senza sovrapporsi alla sala apparecchiata
@@ -148,6 +149,11 @@ const SEED_SALE: Sala[] = FB_SALE.map(sa => {
 
 interface SaleState {
   sale: Sala[]
+  /** Struttura a cui appartengono le sale; le altre restano in archivio. */
+  strutturaDemo: string
+  archivio: Record<string, Sala[]>
+  /** Porta le sale sulla struttura indicata (dopo il cambio di anagrafica F&B). */
+  caricaStruttura: (nome: string) => void
   getSala: (id: string) => Sala | undefined
   addTavolo: (salaId: string, capienza: number, forma: TavoloForma) => string | undefined
   addElemento: (salaId: string, kind: SalaElementKind) => void
@@ -200,7 +206,19 @@ const findSpot = (s: Sala, w: number, h: number): [number, number] => {
 export const useSaleStore = create<SaleState>()(
   persist(
     (set, get) => ({
-      sale: SEED_SALE,
+      sale: seedSale(),
+      strutturaDemo: 'Hotel Noto',
+      archivio: {},
+      caricaStruttura: (nome) => {
+        const st = get()
+        if (nome === st.strutturaDemo) return
+        const archivio = { ...st.archivio, [st.strutturaDemo]: st.sale }
+        const sale = archivio[nome] ?? seedSale()
+        delete archivio[nome]
+        const nomi = Object.keys(archivio)
+        nomi.slice(0, Math.max(0, nomi.length - 5)).forEach(n => { delete archivio[n] })
+        set({ sale, strutturaDemo: nome, archivio })
+      },
       getSala: (id) => get().sale.find(s => s.id === id),
       addTavolo: (salaId, capienza, forma) => {
         const s = get().sale.find(x => x.id === salaId); if (!s) return
@@ -411,6 +429,6 @@ export const useSaleStore = create<SaleState>()(
           }),
         })),
     }),
-    { name: 'sibylla.sale', version: 3 },
+    { name: 'sibylla.sale', version: 4 },
   ),
 )

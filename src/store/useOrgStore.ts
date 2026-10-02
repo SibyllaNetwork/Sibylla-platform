@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 // Tipologia cliente scelta in fase di creazione dal pannello di controllo
 export type Tipologia = 'Singola' | 'Multistruttura'
@@ -17,7 +18,7 @@ interface OrgState {
 //    L'attuale demo rappresenta Mario Rossi con multistruttura su 4 immobili.
 const MOCK_STRUTTURE = ['Hotel Noto', 'Hotel Siracusa', 'Hotel Catania', 'Resort Taormina']
 
-export const useOrgStore = create<OrgState>((set) => ({
+export const useOrgStore = create<OrgState>()(persist((set) => ({
   tipologia:        'Multistruttura',
   strutture:        MOCK_STRUTTURE,
   activeStruttura:  MOCK_STRUTTURE[0],
@@ -29,4 +30,8 @@ export const useOrgStore = create<OrgState>((set) => ({
     // se la struttura attiva non è più valida, ripiega sulla prima
     activeStruttura: list.includes(state.activeStruttura) ? state.activeStruttura : (list[0] ?? ''),
   })),
+}), {
+  name: 'sibylla.org',
+  // Si ricorda solo la struttura scelta: l'elenco arriva dal backend o dai mock.
+  partialize: (s) => ({ activeStruttura: s.activeStruttura }),
 }))

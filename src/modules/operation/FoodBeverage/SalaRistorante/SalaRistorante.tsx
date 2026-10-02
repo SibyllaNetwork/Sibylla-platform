@@ -103,7 +103,7 @@ export default function SalaRistorante({ navigate }: { navigate?: (p: string) =>
   const [catCliente, setCatCliente] = useState(0)
   const [trasferimento, setTrasferimento] = useState<number | null>(null)
 
-  const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId])
+  const saleOutlet  = useMemo(() => SALE.filter(s => s.outletId === outletId), [outletId, OUTLETS])
   const turniOutlet = useMemo(() => TURNI.filter(t => t.outletId === outletId), [outletId, TURNI])
   const sala   = SALE.find(s => s.id === salaId)
   const turno  = TURNI.find(t => t.id === turnoId)

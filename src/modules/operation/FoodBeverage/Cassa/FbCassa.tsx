@@ -44,7 +44,9 @@ export default function FbCassa({ navigate }: { navigate?: (p: string) => void }
 
   const idSale = useMemo(
     () => SALE.filter(s => s.outletId === contesto.outletId).map(s => s.id),
-    [contesto.outletId],
+    // Anche la struttura: cambiandola, lo stesso id outlet indica sale diverse.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [contesto.outletId, comande],
   )
   const chiuse = useMemo(
     () => comande.filter(c => c.stato === 'chiusa' && idSale.includes(c.salaId)),

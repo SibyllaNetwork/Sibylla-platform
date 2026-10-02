@@ -6,7 +6,8 @@ import {
   INGREDIENTI, RICETTE, cassaIniziale, storniIniziali, chiusureIniziali,
   menuGiornoIniziali, webMenuIniziali,
   ALLERGENI_UE, STAMPANTI, MONITOR_KDS, CONFIG_EMAIL, CONFIG_WALLET,
-  RUOLI_FB, UTENTI_FB, WALLET_CLIENTI,
+  RUOLI_FB, UTENTI_FB, WALLET_CLIENTI, applicaStruttura,
+  type DescrizioneStruttura,
   type CategoriaMenu, type Comanda, type Outlet, type Prenotazione, type RigaComanda,
   type StatoRiga, type StatoTavolo, type Tavolo, type TipoMenu, type Turno, type VoceMenu,
   type MenuGiorno, type WebMenu, type Allergene, type CategoriaCliente,
@@ -74,6 +75,13 @@ export interface ContestoFb {
 interface FbState {
   /** Giornata a cui si riferisce il servizio salvato: cambiata, si riparte da oggi. */
   giornoDemo: string
+  /** Struttura selezionata in alto a cui si riferiscono tutti i dati della sezione. */
+  strutturaDemo: string
+  descrizioneDemo: DescrizioneStruttura | null
+  /** Dati delle altre strutture visitate: tornandoci si ritrovano le modifiche. */
+  archivio: Record<string, Record<string, unknown>>
+  /** Porta la sezione sulla struttura indicata (archivia quella corrente). */
+  attivaStruttura: (d: DescrizioneStruttura) => void
   /** Anagrafica della sezione: outlet e turni si configurano dalle loro pagine. */
   outlets: Outlet[]
   turni: Turno[]
@@ -209,6 +217,51 @@ interface FbState {
 
   reset: () => void
 }
+
+// ─── Seed per struttura ──────────────────────────────────────────────────────
+//  Configurazione (catalogo, periferiche, utenti…) e servizio (tavoli, comande,
+//  prenotazioni, cassa) si generano sull'anagrafica della struttura attiva.
+
+const seedConfig = () => ({
+  outlets: OUTLETS, turni: TURNI,
+  tipiMenu: TIPI_MENU, categorie: CATEGORIE_MENU, voci: VOCI_MENU,
+  ingredienti: INGREDIENTI, ricette: RICETTE,
+  webMenu: webMenuIniziali(),
+  allergeni: ALLERGENI_UE, categorieCliente: CATEGORIE_CLIENTE,
+  stampanti: STAMPANTI, monitor: MONITOR_KDS, configEmail: CONFIG_EMAIL, configWallet: CONFIG_WALLET,
+  utenti: UTENTI_FB, ruoli: RUOLI_FB, wallet: WALLET_CLIENTI,
+})
+
+const seedOperativo = () => {
+  const comande = comandeIniziali()
+  const primo = OUTLETS[0]?.id ?? 1
+  return {
+    posti: {} as Record<number, number[]>,
+    tavoli: tavoliIniziali(),
+    comande,
+    prenotazioni: prenotazioniIniziali(),
+    progressivo: Math.max(0, ...comande.map(c => c.id)),
+    cassa: cassaIniziale() as TurnoCassa | null,
+    chiusure: chiusureIniziali(),
+    storni: storniIniziali(),
+    menuGiorno: menuGiornoIniziali(),
+    contesto: {
+      outletId: primo,
+      salaId: SALE.find(x => x.outletId === primo)?.id ?? 1,
+      turnoId: turnoCorrente(primo)?.id ?? null,
+      tavoloId: null,
+      data: oggiISO(),
+    } as ContestoFb,
+    giornoDemo: oggiISO(),
+  }
+}
+
+const CHIAVI_CONFIG = Object.keys(seedConfig())
+const CHIAVI_SERVIZIO = ['posti', 'tavoli', 'comande', 'prenotazioni', 'progressivo', 'cassa', 'chiusure', 'storni', 'menuGiorno', 'contesto', 'giornoDemo']
+const prendi = (o: Record<string, unknown>, chiavi: string[]) =>
+  Object.fromEntries(chiavi.filter(k => k in o).map(k => [k, o[k]]))
+/** Strutture tenute in archivio oltre a quella attiva (lo spazio del browser è limitato). */
+const MAX_ARCHIVIO = 5
 
 export const useFbStore = create<FbState>()(
   persist(
@@ -821,46 +874,47 @@ export const useFbStore = create<FbState>()(
           }
         }),
 
-      reset: () => set({
-        outlets: OUTLETS,
-        turni: TURNI,
-        tipiMenu: TIPI_MENU,
-        categorie: CATEGORIE_MENU,
-        voci: VOCI_MENU,
-        menuGiorno: menuGiornoIniziali(),
-        webMenu: webMenuIniziali(),
-        allergeni: ALLERGENI_UE,
-        categorieCliente: CATEGORIE_CLIENTE,
-        stampanti: STAMPANTI,
-        monitor: MONITOR_KDS,
-        configEmail: CONFIG_EMAIL,
-        configWallet: CONFIG_WALLET,
-        utenti: UTENTI_FB,
-        ruoli: RUOLI_FB,
-        wallet: WALLET_CLIENTI,
-        posti: {},
-        tavoli: tavoliIniziali(),
-        comande: comandeIniziali(),
-        prenotazioni: prenotazioniIniziali(),
-        progressivo: comandeIniziali().length,
-        cassa: cassaIniziale(),
-        chiusure: chiusureIniziali(),
-        storni: storniIniziali(),
-        giornoDemo: oggiISO(),
-      }),
+      reset: () => set({ ...seedConfig(), ...seedOperativo() }),
       giornoDemo: oggiISO(),
+      strutturaDemo: 'Hotel Noto',
+      descrizioneDemo: null,
+      archivio: {},
+
+      attivaStruttura: d => {
+        const s = get() as unknown as Record<string, unknown> & FbState
+        if (d.nome === s.strutturaDemo) return
+        const archivio = { ...s.archivio, [s.strutturaDemo]: prendi(s, [...CHIAVI_CONFIG, ...CHIAVI_SERVIZIO]) }
+        applicaStruttura(d)
+        const salvato = archivio[d.nome] as Record<string, unknown> | undefined
+        delete archivio[d.nome]
+        // Tornando su una struttura già vista: stessa giornata → tutto com'era;
+        // giornata nuova → configurazione conservata, servizio di oggi.
+        const dati = salvato?.giornoDemo === oggiISO() ? salvato
+          : salvato ? { ...prendi(salvato, CHIAVI_CONFIG), ...seedOperativo() }
+          : { ...seedConfig(), ...seedOperativo() }
+        const nomi = Object.keys(archivio)
+        nomi.slice(0, Math.max(0, nomi.length - MAX_ARCHIVIO)).forEach(n => { delete archivio[n] })
+        set({ ...(dati as Partial<FbState>), strutturaDemo: d.nome, descrizioneDemo: d, archivio })
+      },
     }),
     {
       name: 'sibylla.fb',
-      version: 11,
+      version: 12,
       // Demo sempre "viva": al primo accesso di una nuova giornata il servizio
       // (tavoli, comande, prenotazioni, cassa, menu del giorno) riparte dalla
       // fotografia di oggi; configurazione e catalogo restano quelli salvati.
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<FbState>
-        if (p.giornoDemo === oggiISO()) return { ...current, ...p }
-        const { tavoli, comande, prenotazioni, progressivo, cassa, chiusure, storni, posti, menuGiorno, webMenu, contesto, giornoDemo, ...config } = p
-        return { ...current, ...config }
+        const p = (persisted ?? {}) as Partial<FbState> & Record<string, unknown>
+        // Prima di tutto l'anagrafica della struttura salvata: è su quella che
+        // si rigenera il servizio quando la giornata è cambiata.
+        if (p.descrizioneDemo) applicaStruttura(p.descrizioneDemo)
+        const base = p.descrizioneDemo ? { ...current, ...seedConfig() } : current
+        if (p.giornoDemo === oggiISO()) return { ...base, ...p }
+        return {
+          ...base,
+          ...prendi(p, [...CHIAVI_CONFIG, 'strutturaDemo', 'descrizioneDemo', 'archivio']),
+          ...seedOperativo(),
+        }
       },
     },
   ),

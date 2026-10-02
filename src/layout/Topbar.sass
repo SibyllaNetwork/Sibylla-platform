@@ -1,0 +1,90 @@
+@use '../styles/tokens' as *
+
+// ─── Selettore struttura in assistenza ───────────────────────────────────────
+// Sulla barra oro, accanto a "Esci assistenza": mostra la struttura del cliente
+// impersonato e, se ne ha più di una, permette di passare dall'una all'altra.
+// È la struttura su cui lavorano i dati della piattaforma (es. Food & Beverage).
+
+.tb-assist-strutt
+  position: relative
+  margin-right: 12px
+  flex-shrink: 0
+
+  &__btn
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 260px
+    padding: 7px 12px
+    border: 0
+    border-radius: 8px
+    background: rgba(255, 255, 255, 0.45)
+    color: #2a2208
+    font-family: $font-heading
+    font-size: 12.5px
+    font-weight: 700
+    white-space: nowrap
+    cursor: default
+
+    &--switch
+      cursor: pointer
+
+      &:hover
+        background: rgba(255, 255, 255, 0.65)
+
+  &__nome
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__chev
+    font-size: 9px
+    opacity: .6
+    transition: transform .2s
+
+    &--open
+      transform: rotate(180deg)
+
+  &__menu
+    position: absolute
+    left: 0
+    top: calc(100% + 4px)
+    z-index: 50
+    width: 240px
+    max-height: 260px
+    overflow-y: auto
+    border: 1px solid rgba(0, 0, 0, 0.1)
+    border-radius: 8px
+    background: #fff
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18)
+
+  &__titolo
+    padding: 8px 12px 6px
+    font-size: 10px
+    font-weight: 700
+    letter-spacing: .5px
+    color: rgba(0, 0, 0, 0.45)
+
+  &__opt
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 9px 12px
+    border: 0
+    background: transparent
+    color: #1f2937
+    font-size: 12px
+    text-align: left
+    cursor: pointer
+
+    &:hover
+      background: rgba(0, 0, 0, 0.04)
+
+    &--on
+      background: #faf3df
+      font-weight: 600
+
+    i
+      color: #8a6d1f
+      font-size: 11px

@@ -339,7 +339,7 @@ export const ALLERGENI_UE: Allergene[] = [
   { codice: 'N', nome: 'Molluschi',          descrizione: 'Molluschi e prodotti a base di molluschi',                attivo: true },
 ]
 
-export const STAMPANTI: Stampante[] = [
+export let STAMPANTI: Stampante[] = [
   { id: 1, nome: 'Stampa reparto cucina',       tipo: 'reparto',  protocollo: 'epson',  ip: '192.168.1.70', outletId: null, attiva: true },
   { id: 2, nome: 'Stampa pre-conto',            tipo: 'preconto', protocollo: 'epson',  ip: '192.168.1.71', outletId: 1,    attiva: true },
   { id: 3, nome: 'Registratore di cassa',       tipo: 'fiscale',  protocollo: 'custom', ip: '192.168.1.72', outletId: 1,    attiva: true },
@@ -352,7 +352,7 @@ export const STAMPANTI: Stampante[] = [
   { id: 10, nome: 'Stampa bar Lounge (riserva)', tipo: 'reparto', protocollo: 'epson',  ip: '192.168.3.70', outletId: 2,    attiva: false },
 ]
 
-export const MONITOR_KDS: MonitorKds[] = [
+export let MONITOR_KDS: MonitorKds[] = [
   { id: 1, nome: 'Monitor cucina SR', reparto: 'cucina', outletId: 1, slug: 'monitor-cucina-sr-f3287f',
     sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f', attivo: true },
   { id: 2, nome: 'Monitor dispensa SR', reparto: 'bar', outletId: 1, slug: 'monitor-dispensa-sr-3d7ec9',
@@ -367,7 +367,7 @@ export const MONITOR_KDS: MonitorKds[] = [
     sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f', attivo: true },
 ]
 
-export const CONFIG_EMAIL: ConfigEmail = {
+export let CONFIG_EMAIL: ConfigEmail = {
   attivo: true, provider: 'outlook', host: 'smtp.office365.com', porta: 587,
   starttls: true, ssl: false, username: 'ristorante@hotelnoto.it', password: '••••••••••',
   mittente: 'ristorante@hotelnoto.it', nomeMittente: 'Sibylla Restaurant — Hotel Noto',
@@ -553,7 +553,7 @@ const giorniFa = (n: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export const UTENTI_FB: UtenteFb[] = [
+export let UTENTI_FB: UtenteFb[] = [
   { id: 1,  nome: 'Amministratore',   username: 'admin',     email: 'admin@hotelnoto.it',        ruoloId: 1, attivo: true,  ultimoAccesso: `${giorniFa(0)}T08:07` },
   { id: 2,  nome: 'Andrea Guizzi',    username: 'andrea',    email: 'a.guizzi@hotelnoto.it',     ruoloId: 2, attivo: true,  ultimoAccesso: `${giorniFa(0)}T09:35` },
   { id: 3,  nome: 'Marco Rossi',      username: 'marco.r',   email: 'm.rossi@hotelnoto.it',      ruoloId: 3, attivo: true,  ultimoAccesso: `${giorniFa(0)}T12:02` },
@@ -574,7 +574,7 @@ export const UTENTI_FB: UtenteFb[] = [
 const mov = (id: string, quantiGiorniFa: number, tipo: TipoMovimentoWallet, importo: number, causale: string): MovimentoWallet =>
   ({ id, tipo, importo, causale, data: giorniFa(quantiGiorniFa) })
 
-export const WALLET_CLIENTI: WalletCliente[] = [
+export let WALLET_CLIENTI: WalletCliente[] = [
   {
     id: 1, nome: 'Rossi Ruggero', email: 'r.rossi@mail.it', telefono: '+39 335 1122334',
     categoriaClienteId: 3, scadenza: '', attivo: true,
@@ -671,7 +671,7 @@ export const WALLET_CLIENTI: WalletCliente[] = [
   },
 ]
 
-export const CONFIG_WALLET: ConfigWallet = {
+export let CONFIG_WALLET: ConfigWallet = {
   apple: {
     attivo: false, teamId: '', passTypeId: '', organizzazione: '',
     certificato: '', chiave: '', wwdr: '', password: '',
@@ -681,20 +681,20 @@ export const CONFIG_WALLET: ConfigWallet = {
 
 // ─── Seed ────────────────────────────────────────────────────────────────────
 
-export const OUTLETS: Outlet[] = [
+export let OUTLETS: Outlet[] = [
   { id: 1, nome: 'Sibylla Restaurant', tipo: 'ristorante', indirizzo: 'Via Roma, 13 — Roma (RM)', email: 'restaurant@sibyllanetwork.com', telefono: '+39 06 121948', attivo: true },
   { id: 3, nome: 'Roof Top Garden',    tipo: 'roof',       indirizzo: 'Via Roma, 13 — Roma (RM)', email: 'roof@sibyllanetwork.com',       telefono: '+39 06 121949', attivo: true },
   { id: 2, nome: 'Lounge Bar Sibylla', tipo: 'lounge',     indirizzo: 'Via Roma, 13 — Roma (RM)', email: 'lounge@sibyllanetwork.com',     telefono: '+39 06 121950', attivo: true },
 ]
 
-export const SALE: Sala[] = [
+export let SALE: Sala[] = [
   { id: 1, outletId: 1, nome: 'Sala Positano', capienzaMax: 96, attiva: true },
   { id: 2, outletId: 1, nome: 'Sala Vietri',   capienzaMax: 48, attiva: true },
   { id: 3, outletId: 3, nome: 'Roof Top',      capienzaMax: 60, attiva: true },
   { id: 4, outletId: 2, nome: 'Lounge',        capienzaMax: 40, attiva: true },
 ]
 
-export const TURNI: Turno[] = [
+export let TURNI: Turno[] = [
   { id: 1, outletId: 1, salaId: null, nome: 'Turno unico', servizio: 'Colazione', oraInizio: '07:00', oraFine: '10:30', coperturaMax: 120, attivo: true },
   { id: 2, outletId: 1, salaId: null, nome: 'Turno 1',     servizio: 'Pranzo',    oraInizio: '12:00', oraFine: '14:00', coperturaMax: 96,  attivo: true },
   { id: 3, outletId: 1, salaId: null, nome: 'Turno 2',     servizio: 'Pranzo',    oraInizio: '14:00', oraFine: '15:30', coperturaMax: 96,  attivo: true },
@@ -731,7 +731,7 @@ export const CATEGORIE_MENU: CategoriaMenu[] = [
   { id: 13, tipoId: 4, nome: 'Bollicine',        emoji: '🍾', colore: '#D4AC0D', ordine: 14 },
 ]
 
-export const VOCI_MENU: VoceMenu[] = [
+export let VOCI_MENU: VoceMenu[] = [
   // Colazione (servita in Sala Positano 07:00–10:30)
   { id: 120, categoriaId: 15, nome: 'Buffet colazione',            traduzioni: { en: 'Breakfast buffet', de: 'Frühstücksbuffet', fr: 'Buffet petit-déjeuner' }, descrizione: 'Dolce e salato, succhi, caffetteria inclusa', prezzo: 18,  allergeni: ['A', 'C', 'G', 'H'], attiva: true, outletIds: [1], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
   { id: 121, categoriaId: 15, nome: 'Cornetto artigianale',        traduzioni: { en: 'Croissant', de: 'Croissant', fr: 'Croissant' }, descrizione: 'Vuoto, crema, marmellata o pistacchio',          prezzo: 1.8, allergeni: ['A', 'C', 'G'],      attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'pasticceria' },
@@ -1403,7 +1403,7 @@ const disponi = (salaId: number, prefisso: string, righe: number[][], start = 1)
   return out
 }
 
-export const TAVOLI: Tavolo[] = [
+export let TAVOLI: Tavolo[] = [
   ...disponi(1, '', [
     [4, 2, 4, 2, 4],
     [6, 4, 6, 4],
@@ -1476,8 +1476,9 @@ export const oraMenoMinuti = (min: number) => {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-export const tavoliIniziali = (): Tavolo[] =>
-  TAVOLI.map(t => {
+export const tavoliIniziali = (): Tavolo[] => {
+  if (!PROFILO.classico) return servizioGenerico()
+  return TAVOLI.map(t => {
     const s = SERVIZIO_INIZIALE.find(([id]) => id === t.id)
     if (!s) return { ...t }
     const [, stato, coperti, cameriere, min] = s
@@ -1487,6 +1488,7 @@ export const tavoliIniziali = (): Tavolo[] =>
       apertoAlle: min ? oraMenoMinuti(min) : null,
     }
   })
+}
 
 /** Turno in corso per l'outlet, altrimenti il primo della giornata. */
 export const turnoCorrente = (outletId: number): Turno | undefined => {
@@ -1532,111 +1534,98 @@ export const menuGiornoIniziali = (): MenuGiorno[] => {
   const oggi = oggiISO()
   const out: MenuGiorno[] = []
   let id = 1
+  // Il menu del giorno lo fanno gli outlet ristorante che servono il pranzo;
+  // le serate degustazione del fine settimana le terrazze.
+  const ristoranti = OUTLETS.filter(o => o.tipo === 'ristorante' && TURNI.some(t => t.outletId === o.id && t.servizio === 'Pranzo'))
+  const terrazze = OUTLETS.filter(o => o.tipo === 'roof')
+  const mensa = PROFILO.tipo === 'studentato'
   for (let g = -7; g <= 7; g++) {
     const data = addGiorni(oggi, g)
-    out.push({
-      id: id++, outletId: 1, data,
-      nome: g === 0 ? 'Menu del giorno' : new Date(data + 'T12:00:00').getDay() === 0 ? 'Pranzo della domenica' : 'Menu del giorno',
-      prezzoFisso: new Date(data + 'T12:00:00').getDay() === 0 ? 35 : 28,
-      note: new Date(data + 'T12:00:00').getDay() === 0 ? 'Calice di vino, acqua e caffè inclusi' : 'Acqua e caffè inclusi',
-      vociIds: MENU_GIORNO_VOCI[(g + 70) % MENU_GIORNO_VOCI.length],
-      // L'ultimo giorno è ancora in bozza: si vede la differenza in tabella.
-      attivo: g < 7,
-    })
     const dow = new Date(data + 'T12:00:00').getDay()
-    if (dow === 5 || dow === 6) {
+    ristoranti.forEach(o => {
       out.push({
-        id: id++, outletId: 3, data, nome: 'Degustazione in terrazza',
-        prezzoFisso: 55, note: 'Abbinamento vini +20 €',
-        vociIds: [16, 4, 6, 8, 111], attivo: true,
+        id: id++, outletId: o.id, data,
+        nome: mensa ? 'Menu mensa' : dow === 0 ? 'Pranzo della domenica' : 'Menu del giorno',
+        prezzoFisso: Math.round((mensa ? 7.5 : dow === 0 ? 35 : 28) * (mensa ? 1 : PROFILO.listino)),
+        note: mensa ? 'Primo, secondo, contorno, frutta e acqua' : dow === 0 ? 'Calice di vino, acqua e caffè inclusi' : 'Acqua e caffè inclusi',
+        vociIds: MENU_GIORNO_VOCI[(g + 70) % MENU_GIORNO_VOCI.length],
+        // L'ultimo giorno è ancora in bozza: si vede la differenza in tabella.
+        attivo: g < 7,
       })
+    })
+    if (dow === 5 || dow === 6) {
+      terrazze.forEach(o => out.push({
+        id: id++, outletId: o.id, data, nome: 'Degustazione in terrazza',
+        prezzoFisso: Math.round(55 * PROFILO.listino), note: 'Abbinamento vini +20 €',
+        vociIds: [16, 4, 6, 8, 111], attivo: true,
+      }))
     }
   }
   return out
 }
 
+const slugBreve = (t: string) =>
+  t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
 export const webMenuIniziali = (): WebMenu[] => {
   const oggi = oggiISO()
-  return [
-    {
-      id: 1, outletId: 1,
-      nome: 'Menu pranzo',
-      titolo: 'Il nostro menu di pranzo',
-      sottotitolo: 'Cucina di stagione, ogni giorno',
-      slug: 'menu-pranzo-25f343',
-      logo: '',
+  const out: WebMenu[] = []
+  const sigla = (n: number) => (PROFILO.seme + n * 7919).toString(16).slice(-6)
+  const add = (m: Omit<WebMenu, 'id' | 'logo' | 'slug'> & { slug: string }) =>
+    out.push({ ...m, id: out.length + 1, logo: '', slug: `${m.slug}-${sigla(out.length)}` })
+  OUTLETS.forEach(o => {
+    const turni = TURNI.filter(t => t.outletId === o.id)
+    if (turni.some(t => t.servizio === 'Colazione')) add({
+      outletId: o.id, nome: 'Colazione', titolo: 'Buongiorno!',
+      sottotitolo: `La colazione è servita dalle ${turni.find(t => t.servizio === 'Colazione')!.oraInizio} alle ${turni.find(t => t.servizio === 'Colazione')!.oraFine}`,
+      slug: 'colazione', notePiede: PROFILO.alloggio ? 'Per gli ospiti in camera la colazione è inclusa nella tariffa.' : 'Prezzi IVA inclusa.',
+      vociIds: [120, 121, 122, 123, 124, 125, 126, 127, 128, 129],
+      dal: addGiorni(oggi, -90), al: addGiorni(oggi, 90), servizio: 'Colazione',
+      mostraPrezzi: true, mostraAllergeni: true, attivo: true, colore: '#B08A4A',
+    })
+    if (o.tipo === 'ristorante' && turni.some(t => t.servizio === 'Pranzo')) add({
+      outletId: o.id, nome: PROFILO.tipo === 'studentato' ? 'Menu mensa' : 'Menu pranzo',
+      titolo: PROFILO.tipo === 'studentato' ? 'Oggi in mensa' : 'Il nostro menu di pranzo',
+      sottotitolo: 'Cucina di stagione, ogni giorno', slug: 'menu-pranzo',
       notePiede: 'Allergeni disponibili su richiesta. Prezzi IVA inclusa.',
       vociIds: [1, 2, 16, 3, 4, 17, 5, 6, 114, 115, 7, 8, 9, 10, 11, 12],
-      dal: addGiorni(oggi, -30), al: addGiorni(oggi, 60),
-      servizio: 'Pranzo', mostraPrezzi: true, mostraAllergeni: true,
-      attivo: true, colore: '#B08A4A',
-    },
-    {
-      id: 2, outletId: 1,
-      nome: 'Menu cena',
-      titolo: 'La cena al Sibylla Restaurant',
-      sottotitolo: 'Dalla terra al mare, con la cantina dell’hotel',
-      slug: 'menu-cena-8b1d07',
-      logo: '',
+      dal: addGiorni(oggi, -30), al: addGiorni(oggi, 60), servizio: 'Pranzo',
+      mostraPrezzi: true, mostraAllergeni: true, attivo: true, colore: '#B08A4A',
+    })
+    if (o.tipo === 'ristorante' && turni.some(t => t.servizio === 'Cena')) add({
+      outletId: o.id, nome: 'Menu cena', titolo: `La cena da ${o.nome}`,
+      sottotitolo: 'Dalla terra al mare, con la nostra cantina', slug: 'menu-cena',
       notePiede: 'Coperto 3 €. Allergeni disponibili su richiesta. Prezzi IVA inclusa.',
       vociIds: [2, 16, 3, 4, 17, 5, 6, 114, 115, 7, 8, 100, 101, 104, 110, 111],
-      dal: addGiorni(oggi, -30), al: addGiorni(oggi, 60),
-      servizio: 'Cena', mostraPrezzi: true, mostraAllergeni: true,
-      attivo: true, colore: '#204769',
-    },
-    {
-      id: 3, outletId: 1,
-      nome: 'Colazione',
-      titolo: 'Buongiorno!',
-      sottotitolo: 'La colazione è servita dalle 7:00 alle 10:30',
-      slug: 'colazione-4e9a61',
-      logo: '',
-      notePiede: 'Per gli ospiti in camera la colazione è inclusa nella tariffa.',
-      vociIds: [120, 121, 122, 123, 124, 125, 126, 127, 128, 129],
-      dal: addGiorni(oggi, -90), al: addGiorni(oggi, 90),
-      servizio: 'Colazione', mostraPrezzi: true, mostraAllergeni: true,
-      attivo: true, colore: '#B08A4A',
-    },
-    {
-      id: 4, outletId: 3,
-      nome: 'Cocktail list Roof Top',
-      titolo: 'Roof Top Garden',
-      sottotitolo: 'Aperitivo al tramonto sui tetti di Roma',
-      slug: 'roof-cocktail-c27f90',
-      logo: '',
-      notePiede: 'Servizio al tavolo. Prezzi IVA inclusa.',
+      dal: addGiorni(oggi, -30), al: addGiorni(oggi, 60), servizio: 'Cena',
+      mostraPrezzi: true, mostraAllergeni: true, attivo: true, colore: '#204769',
+    })
+    if (o.tipo !== 'ristorante' && turni.some(t => t.servizio === 'Cena')) add({
+      outletId: o.id, nome: `Cocktail list ${o.nome}`, titolo: o.nome,
+      sottotitolo: o.tipo === 'roof' ? 'Aperitivo al tramonto in terrazza' : 'Cocktail d’autore e distillati',
+      slug: `cocktail-${slugBreve(o.nome)}`, notePiede: 'Servizio al tavolo. Prezzi IVA inclusa.',
       vociIds: [19, 13, 14, 15, 110, 111, 112, 18, 12, 9, 10],
-      dal: addGiorni(oggi, -20), al: addGiorni(oggi, 40),
-      servizio: 'Cena', mostraPrezzi: true, mostraAllergeni: false,
-      attivo: true, colore: '#5C4E7A',
-    },
-    {
-      id: 5, outletId: null,
-      nome: 'Carta dei vini',
-      titolo: 'La nostra cantina',
-      sottotitolo: 'Etichette italiane selezionate dal sommelier',
-      slug: 'carta-vini-0d5e3a',
-      logo: '',
-      notePiede: 'Disponibilità soggetta a variazioni. Prezzi IVA inclusa.',
-      vociIds: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113],
-      dal: addGiorni(oggi, -120), al: addGiorni(oggi, 120),
-      servizio: 'Tutti', mostraPrezzi: true, mostraAllergeni: true,
-      attivo: true, colore: '#8E4B3C',
-    },
-    {
-      id: 6, outletId: 3,
-      nome: 'Menu estate Roof (archiviato)',
-      titolo: 'Summer on the roof',
-      sottotitolo: 'Edizione estate',
-      slug: 'roof-estate-77aa10',
-      logo: '',
-      notePiede: '',
-      vociIds: [19, 13, 14, 1, 16],
-      dal: addGiorni(oggi, -120), al: addGiorni(oggi, -15),
-      servizio: 'Cena', mostraPrezzi: true, mostraAllergeni: true,
-      attivo: false, colore: '#2E6F5E',
-    },
-  ]
+      dal: addGiorni(oggi, -20), al: addGiorni(oggi, 40), servizio: 'Cena',
+      mostraPrezzi: true, mostraAllergeni: false, attivo: true, colore: '#5C4E7A',
+    })
+  })
+  if (PROFILO.tipo !== 'studentato' && PROFILO.tipo !== 'bnb') add({
+    outletId: null, nome: 'Carta dei vini', titolo: 'La nostra cantina',
+    sottotitolo: 'Etichette italiane selezionate dal sommelier', slug: 'carta-vini',
+    notePiede: 'Disponibilità soggetta a variazioni. Prezzi IVA inclusa.',
+    vociIds: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113],
+    dal: addGiorni(oggi, -120), al: addGiorni(oggi, 120), servizio: 'Tutti',
+    mostraPrezzi: true, mostraAllergeni: true, attivo: true, colore: '#8E4B3C',
+  })
+  const terrazza = OUTLETS.find(o => o.tipo === 'roof')
+  if (terrazza) add({
+    outletId: terrazza.id, nome: 'Menu estate (archiviato)', titolo: 'Summer on the roof',
+    sottotitolo: 'Edizione estate', slug: 'estate', notePiede: '',
+    vociIds: [19, 13, 14, 1, 16],
+    dal: addGiorni(oggi, -120), al: addGiorni(oggi, -15), servizio: 'Cena',
+    mostraPrezzi: true, mostraAllergeni: true, attivo: false, colore: '#2E6F5E',
+  })
+  return out
 }
 
 export const oggiISO = () => {
@@ -1683,11 +1672,11 @@ const TUTTI_OSPITI = [...OSPITI, ...OSPITI_EXTRA]
 /** Fascia di riempimento tipica di un turno, per giorno della settimana. */
 const riempimento = (t: Turno, dow: number) => {
   const weekend = dow === 5 || dow === 6
-  if (t.servizio === 'Colazione') return 0.45
-  if (t.outletId === 1 && t.servizio === 'Pranzo') return t.nome === 'Turno 1' ? (dow === 0 ? 0.75 : 0.45) : 0.18
-  if (t.outletId === 1) return t.nome === 'Turno 1' ? (weekend ? 0.8 : 0.55) : (weekend ? 0.45 : 0.22)
-  if (t.outletId === 3) return weekend ? 0.75 : 0.45
-  return weekend ? 0.7 : 0.4
+  if (t.servizio === 'Colazione') return PROFILO.tipo === 'studentato' ? 0.6 : 0.45
+  const fratelli = TURNI.filter(x => x.outletId === t.outletId && x.servizio === t.servizio)
+  const secondo = fratelli.indexOf(t) > 0
+  if (t.servizio === 'Pranzo') return secondo ? 0.18 : (dow === 0 ? 0.75 : 0.45)
+  return secondo ? (weekend ? 0.45 : 0.22) : (weekend ? 0.8 : 0.55)
 }
 
 export const prenotazioniIniziali = (): Prenotazione[] => {
@@ -1695,15 +1684,18 @@ export const prenotazioniIniziali = (): Prenotazione[] => {
   const now = new Date()
   const oraOra = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
   const origini: OriginePrenotazione[] = ['telefono', 'web', 'web', 'reception', 'telefono', 'tour-operator', 'walk-in']
+  // Senza camere non ci sono prenotazioni dalla reception né dai tour operator.
+  const originiStruttura = PROFILO.alloggio ? origini : origini.filter(o => o !== 'reception' && o !== 'tour-operator')
   const out: Prenotazione[] = []
   let id = 1
   // Tavoli già riservati in sala: le prime prenotazioni del turno li occupano.
-  const riservati: Record<number, number[]> = { 1: [1008, 1014], 2: [2005], 3: [3005], 4: [4008] }
+  const riservati: Record<number, number[]> = {}
+  tavoliIniziali().filter(t => t.stato === 'riservato').forEach(t => { (riservati[t.salaId] ||= []).push(t.id) })
 
   for (let g = -7; g <= 21; g++) {
     const data = addGiorni(oggi, g)
     const dow = new Date(data + 'T12:00:00').getDay()
-    const rnd = rngDemo(semeDi(data))
+    const rnd = rngDemo(semeDi(data) + PROFILO.seme)
     // Più ci si allontana, meno il libro è pieno: le prenotazioni arrivano col tempo.
     const lontananza = g <= 0 ? 1 : Math.max(0.25, 1 - g / 24)
     TURNI.filter(t => t.attivo).forEach(t => {
@@ -1728,7 +1720,8 @@ export const prenotazioniIniziali = (): Prenotazione[] => {
         if (g < 0 || (g === 0 && t.oraFine < oraOra)) stato = r < 0.86 ? 'arrivata' : r < 0.93 ? 'no-show' : 'annullata'
         else if (g === 0 && t.oraInizio <= oraOra) stato = ora <= oraOra ? (r < 0.85 ? 'arrivata' : 'confermata') : 'confermata'
         else stato = r < 0.78 ? 'confermata' : r < 0.94 ? 'in-attesa' : 'annullata'
-        const salaId = t.salaId ?? (rnd() < 0.7 ? 1 : 2)
+        const saleT = SALE.filter(x => x.outletId === t.outletId)
+        const salaId = t.salaId ?? (saleT.length > 1 && rnd() >= 0.7 ? saleT[1].id : saleT[0].id)
         const lista = g === 0 && stato === 'confermata' && !colazione ? riservati[salaId] : undefined
         const tavoloId = lista && lista.length ? lista.shift()! : null
         out.push({
@@ -1738,11 +1731,11 @@ export const prenotazioniIniziali = (): Prenotazione[] => {
           pax: p,
           telefono: tel, email: mail,
           note: colazione ? '' : NOTE[Math.floor(rnd() * NOTE.length)],
-          camera: colazione ? camera || String(101 + Math.floor(rnd() * 220)) : camera,
+          camera: !PROFILO.alloggio ? '' : colazione ? camera || String(101 + Math.floor(rnd() * 220)) : camera,
           stato,
-          origine: colazione ? 'reception' : origini[Math.floor(rnd() * origini.length)],
+          origine: colazione && PROFILO.alloggio ? 'reception' : originiStruttura[Math.floor(rnd() * originiStruttura.length)],
           tavoloId,
-          categoriaClienteId: colazione ? (rnd() < 0.2 ? 2 : 3) : camera ? 3 : 0,
+          categoriaClienteId: !PROFILO.alloggio ? 0 : colazione ? (rnd() < 0.2 ? 2 : 3) : camera ? 3 : 0,
         })
         pax += p
         k++
@@ -1917,28 +1910,40 @@ const PIATTI_PER_SERVIZIO: Record<string, number[][]> = {
 }
 
 const chiuseDelGiorno = (startId: number): Comanda[] => {
-  const rnd = rngDemo(semeDi(oggiISO()) + 7)
+  const rnd = rngDemo(semeDi(oggiISO()) + 7 + PROFILO.seme)
   const out: Comanda[] = []
   const pick = <T,>(xs: T[]) => xs[Math.floor(rnd() * xs.length)]
-  const now = new Date()
+  // Se a quest'ora nessun outlet ha ancora aperto (il cocktail bar a
+  // mezzogiorno), si mostra il servizio della sera prima: la demo non resta vuota.
+  const primoTurno = Math.min(...TURNI.map(t => { const [h, m] = t.oraInizio.split(':').map(Number); return h * 60 + m }))
+  const adesso = new Date()
+  const now = new Date(adesso)
+  if (adesso.getHours() * 60 + adesso.getMinutes() < primoTurno + 40) now.setHours(23, 50, 0, 0)
   const minutiDaMezzanotte = now.getHours() * 60 + now.getMinutes()
+  const fa = (m: number) => {
+    const d = new Date(now.getTime() - m * 60000)
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  }
   let id = startId
-  // Conti chiusi dalle 07:00 a ora: prima dell'apertura la giornata è ancora vuota.
-  const limite = Math.min(900, minutiDaMezzanotte - 470)
+  // Conti chiusi dall'apertura a ora (o fino a fine serata, per il giorno prima).
+  const limite = Math.min(900, minutiDaMezzanotte - Math.min(470, primoTurno + 50))
   for (let min = 35; min < limite; min += 10 + Math.floor(rnd() * 16)) {
     const apertura = new Date(now.getTime() - (min + 50) * 60000)
-    const ora = apertura.getHours()
-    const colazione = ora < 11
-    const outletId = colazione ? 1 : ora >= 17 ? pick([1, 1, 3, 3, 2]) : pick([1, 1, 1, 3])
-    const tipo = colazione ? 'colazione' : outletId === 1 ? 'ristorante' : 'bar'
-    const salaId = outletId === 1 ? (rnd() < 0.72 ? 1 : 2) : outletId === 3 ? 3 : 4
+    const hh = `${String(apertura.getHours()).padStart(2, '0')}:${String(apertura.getMinutes()).padStart(2, '0')}`
+    // Solo gli outlet che a quell'ora erano in servizio; il primo pesa doppio.
+    const aperti = OUTLETS.filter(o => TURNI.some(t => t.outletId === o.id && inTurno(t, hh)))
+    if (!aperti.length) continue
+    const outlet = pick([aperti[0], ...aperti])
+    const outletId = outlet.id
+    const turno = TURNI.find(t => t.outletId === outletId && inTurno(t, hh))!
+    const colazione = turno.servizio === 'Colazione'
+    const tipo = colazione ? 'colazione' : outlet.tipo === 'ristorante' ? 'ristorante' : 'bar'
+    const salaId = pick(SALE.filter(x => x.outletId === outletId)).id
     const tavoli = TAVOLI.filter(t => t.salaId === salaId)
     const tav = pick(tavoli)
     const coperti = Math.max(1, Math.min(tav.capienza, 1 + Math.floor(rnd() * tav.capienza)))
-    const hh = `${String(ora).padStart(2, '0')}:00`
-    const turno = TURNI.filter(t => t.outletId === outletId).find(t => t.oraInizio <= hh && hh < t.oraFine)
-      ?? TURNI.find(t => t.outletId === outletId)!
-    const cat = colazione ? (rnd() < 0.75 ? 3 : 2) : rnd() < 0.62 ? 0 : rnd() < 0.75 ? 3 : rnd() < 0.6 ? 4 : 2
+    const cat = !PROFILO.alloggio ? (rnd() < 0.92 ? 0 : 4)
+      : colazione ? (rnd() < 0.75 ? 3 : 2) : rnd() < 0.62 ? 0 : rnd() < 0.75 ? 3 : rnd() < 0.6 ? 4 : 2
     const righe: RigaComanda[] = []
     const gruppi = PIATTI_PER_SERVIZIO[tipo]
     gruppi.forEach((g, gi) => {
@@ -1950,13 +1955,14 @@ const chiuseDelGiorno = (startId: number): Comanda[] => {
       righe.push(riga(v, qta, portata, 'servita', '', [], [], min + 20))
     })
     const pagamento: Comanda['pagamento'] =
-      cat === 3 ? (rnd() < 0.7 ? 'camera' : 'carta') : cat === 2 ? 'camera'
+      !PROFILO.alloggio ? (rnd() < 0.62 ? 'carta' : rnd() < 0.8 ? 'contanti' : 'wallet')
+      : cat === 3 ? (rnd() < 0.7 ? 'camera' : 'carta') : cat === 2 ? 'camera'
         : rnd() < 0.55 ? 'carta' : rnd() < 0.7 ? 'contanti' : 'wallet'
     out.push({
       id, numero: String(id).padStart(3, '0'), outletId, salaId, tavoloId: tav.id, turnoId: turno.id,
-      coperti, cameriere: outletId === 2 ? 'Martina G.' : outletId === 3 ? pick(['Davide R.', 'Paolo N.', 'Sara T.']) : pick(CAMERIERI.slice(0, 6)),
+      coperti, cameriere: outlet.tipo === 'lounge' ? 'Martina G.' : outlet.tipo === 'roof' ? pick(['Davide R.', 'Paolo N.', 'Sara T.']) : pick(CAMERIERI.slice(0, 6)),
       categoriaClienteId: cat, nota: '',
-      apertaAlle: oraMenoMinuti(min + 50), chiusaAlle: oraMenoMinuti(min),
+      apertaAlle: fa(min + 50), chiusaAlle: fa(min),
       stato: 'chiusa', addebitoCamera: pagamento === 'camera' ? String(101 + Math.floor(rnd() * 220)) : '', pagamento,
       righe,
     })
@@ -1966,7 +1972,7 @@ const chiuseDelGiorno = (startId: number): Comanda[] => {
 }
 
 export const comandeIniziali = (): Comanda[] => {
-  const base = [...comandeBase(), ...comandeAperteExtra()]
+  const base = PROFILO.classico ? [...comandeBase(), ...comandeAperteExtra()] : comandeAperteGeneriche()
   return [...base, ...chiuseDelGiorno(base.length + 1)]
 }
 
@@ -1974,7 +1980,8 @@ export const comandeIniziali = (): Comanda[] => {
 export const cassaIniziale = (): TurnoCassa => ({
   id: 15,
   data: oggiISO(),
-  apertaAlle: (() => { const d = new Date(); return d.getHours() >= 7 ? '07:00' : oraMenoMinuti(60) })(),
+  // La cassa apre col primo turno della struttura.
+  apertaAlle: TURNI.reduce((a, t) => (t.oraInizio < a ? t.oraInizio : a), '23:59'),
   chiusaAlle: null,
   operatore: 'Luca V.',
   fondo: 150,
@@ -1992,11 +1999,13 @@ export const chiusureIniziali = (): TurnoCassa[] => {
   for (let g = 1; g <= 14; g++) {
     const data = addGiorni(oggi, -g)
     const dow = new Date(data + 'T12:00:00').getDay()
-    const rnd = rngDemo(semeDi(data) + 3)
-    const k = (dow === 5 || dow === 6 ? 1.35 : dow === 0 ? 1.15 : 1) * (0.85 + rnd() * 0.3)
+    const rnd = rngDemo(semeDi(data) + 3 + PROFILO.seme)
+    const capienza = SALE.reduce((a, x) => a + x.capienzaMax, 0)
+    const k = (dow === 5 || dow === 6 ? 1.35 : dow === 0 ? 1.15 : 1) * (0.85 + rnd() * 0.3) * (capienza / 244) * PROFILO.listino
     const r2 = (n: number) => Math.round(n * 100) / 100
     const incassi = {
-      contanti: r2(620 * k), carta: r2(2350 * k), camera: r2(1480 * k), wallet: r2(260 * k),
+      contanti: r2(620 * k), carta: r2((PROFILO.alloggio ? 2350 : 3500) * k),
+      camera: r2((PROFILO.alloggio ? 1480 : 0) * k), wallet: r2(260 * k),
     }
     // Quasi sempre in pari; ogni tanto qualche euro di differenza nel cassetto.
     const scarto = rnd() < 0.2 ? r2((rnd() - 0.5) * 24) : 0
@@ -2010,7 +2019,9 @@ export const chiusureIniziali = (): TurnoCassa[] => {
   return out
 }
 
-export const storniIniziali = (): Storno[] => [
+export const storniIniziali = (): Storno[] => PROFILO.classico ? storniClassici() : storniGenerici()
+
+const storniClassici = (): Storno[] => [
   {
     id: 'st-seed-1', comandaId: 8, numero: '008', tavolo: '005',
     voce: 'Risotto ai funghi', qta: 1, valore: 14,
@@ -2037,3 +2048,343 @@ export const storniIniziali = (): Storno[] => [
     motivo: 'Prodotto terminato', operatore: 'Martina G.', ora: oraMenoMinuti(55), giaInviata: false,
   },
 ]
+
+// ─── Struttura selezionata ───────────────────────────────────────────────────
+//  La sezione F&B lavora sempre sulla struttura scelta in alto (selettore della
+//  sidenav). Ogni struttura ha la sua anagrafica coerente col proprio mestiere:
+//  l'hotel ha ristorante, terrazza e lounge; il B&B la sala colazioni; la
+//  trattoria due sale e niente colazione; il cocktail bar aperitivo e serale;
+//  lo studentato mensa e caffetteria. Nomi, indirizzi, prezzi e personale
+//  derivano dal nome della struttura, così ognuna resta sempre la stessa.
+//
+//  OUTLETS, SALE, TURNI, TAVOLI, VOCI_MENU e le periferiche sono esportati come
+//  `let` e riassegnati da applicaStruttura: chi li importa legge sempre quelli
+//  della struttura attiva (binding ES "vivi"). È lo strato mock che le API
+//  reali sostituiranno.
+
+export interface DescrizioneStruttura {
+  nome: string
+  /** Categoria della scheda cliente (hotel, bnb, ristorante, bar…). */
+  categoria?: string
+  classificazione?: string
+  citta?: string
+  email?: string
+}
+
+export type TipoStruttura = 'hotel' | 'resort' | 'bnb' | 'ristorante' | 'bar' | 'residence' | 'studentato'
+
+export interface ProfiloStruttura {
+  nome: string
+  breve: string
+  citta: string
+  dominio: string
+  tipo: TipoStruttura
+  /** Moltiplicatore dei prezzi di carta rispetto al listino base. */
+  listino: number
+  seme: number
+  /** Hotel con la fotografia di servizio "classica" (ristorante + terrazza + lounge). */
+  classico: boolean
+  /** Ha camere: colazione inclusa, conti su camera, clienti hotel. */
+  alloggio: boolean
+}
+
+const BASE = {
+  outlets: OUTLETS, sale: SALE, turni: TURNI, tavoli: TAVOLI, voci: VOCI_MENU,
+  stampanti: STAMPANTI, monitor: MONITOR_KDS, utenti: UTENTI_FB, wallet: WALLET_CLIENTI,
+  email: CONFIG_EMAIL, walletCfg: CONFIG_WALLET,
+}
+
+const PROVINCE: Record<string, string> = {
+  Noto: 'SR', Siracusa: 'SR', Catania: 'CT', Taormina: 'ME', Palermo: 'PA', Roma: 'RM',
+  Milano: 'MI', Napoli: 'NA', Firenze: 'FI', Venezia: 'VE', Torino: 'TO', Lecce: 'LE', Rimini: 'RN',
+}
+
+const hashNome = (t: string) => {
+  let h = 2166136261
+  for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0
+  return h
+}
+
+const tipoDa = (d: DescrizioneStruttura): TipoStruttura => {
+  switch (d.categoria) {
+    case 'hotel':        return /resort/i.test(d.nome) ? 'resort' : 'hotel'
+    case 'bnb':          return 'bnb'
+    case 'ristorante':   return 'ristorante'
+    case 'bar':          return 'bar'
+    case 'case-vacanze':
+    case 'appartamenti': return 'residence'
+    case 'studentato':   return 'studentato'
+  }
+  if (/resort/i.test(d.nome)) return 'resort'
+  if (/b&b|bed and/i.test(d.nome)) return 'bnb'
+  if (/trattoria|ristorante|osteria|pizzeria/i.test(d.nome)) return 'ristorante'
+  if (/\bbar\b|lounge|pub/i.test(d.nome)) return 'bar'
+  if (/campus|studentato/i.test(d.nome)) return 'studentato'
+  if (/residence|case vacanze|appartament/i.test(d.nome)) return 'residence'
+  return 'hotel'
+}
+
+export const profiloDa = (d: DescrizioneStruttura): ProfiloStruttura => {
+  const tipo = tipoDa(d)
+  const breve = d.nome.replace(/^(grand hotel|hotel|resort|b&b|residence|case vacanze|campus living)\s+/i, '').trim() || d.nome
+  const ultima = breve.split(/\s+/).pop() ?? breve
+  const citta = d.citta || (PROVINCE[ultima] ? `${ultima} (${PROVINCE[ultima]})` : ultima)
+  const listino: Record<TipoStruttura, number> = {
+    hotel: /5★|grand/i.test(`${d.classificazione ?? ''} ${d.nome}`) ? 1.15 : 1,
+    resort: 1.2, bnb: 1, ristorante: 0.9, bar: 1.1, residence: 0.95, studentato: 0.6,
+  }
+  return {
+    nome: d.nome, breve, citta, tipo,
+    dominio: d.email?.split('@')[1] ?? `${slugBreve(d.nome).replace(/-/g, '')}.it`,
+    listino: listino[tipo],
+    seme: hashNome(d.nome),
+    classico: tipo === 'hotel' || tipo === 'resort',
+    alloggio: tipo !== 'ristorante' && tipo !== 'bar',
+  }
+}
+
+let PROFILO: ProfiloStruttura = profiloDa({ nome: 'Hotel Noto', categoria: 'hotel' })
+
+/** Profilo della struttura su cui sta lavorando la sezione. */
+export const strutturaFb = () => PROFILO
+
+/** Il turno copre l'orario indicato (anche quando finisce dopo mezzanotte). */
+export const inTurno = (t: Turno, hh: string) =>
+  t.oraFine > t.oraInizio ? t.oraInizio <= hh && hh < t.oraFine : hh >= t.oraInizio || hh < t.oraFine
+
+type SpecOutlet = {
+  nome: string
+  tipo: TipoOutlet
+  sale: Array<[string, number]>
+  turni: Array<[string, Servizio, string, string]>
+}
+
+const specDi = (p: ProfiloStruttura): SpecOutlet[] => {
+  switch (p.tipo) {
+    case 'bnb': return [
+      { nome: 'Sala colazioni', tipo: 'ristorante', sale: [['Sala colazioni', 18]],
+        turni: [['Colazione', 'Colazione', '07:30', '10:30']] },
+    ]
+    case 'ristorante': return [
+      { nome: p.nome, tipo: 'ristorante', sale: [['Sala interna', 56], ['Dehors', 32]],
+        turni: [['Pranzo', 'Pranzo', '12:00', '15:00'], ['Turno 1', 'Cena', '19:00', '21:00'], ['Turno 2', 'Cena', '21:00', '23:30']] },
+    ]
+    case 'bar': return [
+      { nome: p.nome, tipo: 'lounge', sale: [['Sala', 40], ['Terrazza panoramica', 30]],
+        turni: [['Aperitivo', 'Cena', '18:00', '21:00'], ['Serale', 'Cena', '21:00', '02:00']] },
+    ]
+    case 'residence': return [
+      { nome: `Bistrot ${p.breve}`, tipo: 'bar', sale: [['Bistrot', 24]],
+        turni: [['Colazione', 'Colazione', '07:30', '10:30'], ['Aperitivo', 'Cena', '18:00', '21:00']] },
+    ]
+    case 'studentato': return [
+      { nome: 'Mensa campus', tipo: 'ristorante', sale: [['Mensa', 150]],
+        turni: [['Colazione', 'Colazione', '07:00', '09:30'], ['Pranzo', 'Pranzo', '12:00', '14:30'], ['Cena', 'Cena', '19:00', '21:00']] },
+      { nome: 'Caffetteria', tipo: 'bar', sale: [['Caffetteria', 30]],
+        turni: [['Giornata', 'Pranzo', '08:00', '19:00']] },
+    ]
+    default: return []
+  }
+}
+
+/** Righe di tavoli per riempire una sala della capienza indicata. */
+const righeDi = (cap: number, mensa: boolean): number[][] => {
+  const giro = mensa ? [6, 6, 4, 6] : [2, 4, 2, 4, 6, 4]
+  const tutti: number[] = []
+  for (let i = 0, tot = 0; tot < cap; i++) { tutti.push(giro[i % giro.length]); tot += giro[i % giro.length] }
+  const out: number[][] = []
+  const perRiga = mensa ? 4 : 5
+  for (let i = 0; i < tutti.length; i += perRiga) out.push(tutti.slice(i, i + perRiga))
+  return out
+}
+
+const inizialiSala = (nome: string) => {
+  const parole = nome.split(/\s+/)
+  return (parole.length > 1 ? parole[0][0] + parole[1][0] : nome.slice(0, 2)).toUpperCase()
+}
+
+const VIE = ['Corso Vittorio Emanuele', 'Via Garibaldi', 'Via Cavour', 'Lungomare Colombo', 'Piazza del Duomo', 'Via Roma', 'Via dei Mille']
+const NOMI_RISTORANTE = ['Le Zagare', 'Il Barocco', 'La Corte', 'Il Giardino', 'Le Terrazze', 'Al Duomo']
+const NOMI_LOUNGE = ['Lounge Bar', 'American Bar', 'Cocktail Bar']
+const COPPIE_SALE: Array<[string, string]> = [
+  ['Sala Positano', 'Sala Vietri'], ['Sala degli Specchi', 'Sala Camino'],
+  ['Sala Barocca', 'Sala Giardino'], ['Sala Grande', 'Sala Privée'],
+]
+
+const prezzoListino = (prezzo: number, k: number) =>
+  k === 1 ? prezzo : prezzo >= 5 ? Math.round(prezzo * k * 2) / 2 : Math.round(prezzo * k * 10) / 10
+
+const UTENTI_PER_TIPO: Partial<Record<TipoStruttura, number[]>> = {
+  bnb: [1, 2, 10],
+  ristorante: [1, 2, 3, 4, 6, 9, 5, 14],
+  bar: [1, 2, 11, 12, 5],
+  residence: [1, 2, 7],
+  studentato: [1, 2, 9, 3, 4, 6, 5, 15],
+}
+
+/** Rende attiva la struttura: da qui in poi anagrafica e seed sono i suoi. */
+export const applicaStruttura = (d: DescrizioneStruttura) => {
+  const p = profiloDa(d)
+  PROFILO = p
+  const rnd = rngDemo(p.seme)
+  const pick = <T,>(xs: T[]) => xs[Math.floor(rnd() * xs.length)]
+  const indirizzo = `${pick(VIE)}, ${1 + Math.floor(rnd() * 80)} — ${p.citta}`
+  const tel = (i: number) => `+39 0${(p.seme % 90) + 10} ${(p.seme % 800000) + 100000 + i}`
+
+  if (p.classico) {
+    const resort = p.tipo === 'resort'
+    const nomi: Record<number, [string, string]> = {
+      1: [`Ristorante ${pick(NOMI_RISTORANTE)}`, 'ristorante'],
+      3: [resort ? `Pool Bar ${p.breve}` : `Terrazza ${p.breve}`, resort ? 'poolbar' : 'terrazza'],
+      2: [`${pick(NOMI_LOUNGE)} ${p.breve}`, 'lounge'],
+    }
+    const [sala1, sala2] = pick(COPPIE_SALE)
+    OUTLETS = BASE.outlets.map((o, i) => ({
+      ...o, nome: nomi[o.id][0], email: `${nomi[o.id][1]}@${p.dominio}`, indirizzo, telefono: tel(i),
+      tipo: o.id === 3 && resort ? 'bar' : o.tipo,
+    }))
+    SALE = BASE.sale.map(sa => ({
+      ...sa,
+      nome: sa.id === 1 ? sala1 : sa.id === 2 ? sala2 : sa.id === 3 ? (resort ? 'Bordo piscina' : 'Terrazza') : 'Lounge',
+    }))
+    TURNI = resort
+      ? BASE.turni.map(t => t.id === 6 ? { ...t, nome: 'Pranzo in piscina', servizio: 'Pranzo' as Servizio, oraInizio: '12:30', oraFine: '15:30' }
+        : t.id === 7 ? { ...t, nome: 'Aperitivo', oraInizio: '18:00', oraFine: '20:30' } : t)
+      : BASE.turni
+    TAVOLI = BASE.tavoli
+    STAMPANTI = BASE.stampanti
+    MONITOR_KDS = BASE.monitor
+  } else {
+    const outlets: Outlet[] = []
+    const sale: Sala[] = []
+    const turni: Turno[] = []
+    const tavoli: Tavolo[] = []
+    let sid = 1
+    let tid = 1
+    specDi(p).forEach((o, i) => {
+      const oid = i + 1
+      outlets.push({
+        id: oid, nome: o.nome, tipo: o.tipo, indirizzo, telefono: tel(i), attivo: true,
+        email: `${o.tipo === 'ristorante' ? 'prenotazioni' : 'bar'}@${p.dominio}`,
+      })
+      const cap = o.sale.reduce((a, [, c]) => a + c, 0)
+      o.sale.forEach(([nome, c]) => {
+        sale.push({ id: sid, outletId: oid, nome, capienzaMax: c, attiva: true })
+        tavoli.push(...disponi(sid, sid === 1 ? '' : inizialiSala(nome), righeDi(c, p.tipo === 'studentato')))
+        sid++
+      })
+      o.turni.forEach(([nome, servizio, da, a]) => turni.push({
+        id: tid++, outletId: oid, salaId: null, nome, servizio, oraInizio: da, oraFine: a, coperturaMax: cap, attivo: true,
+      }))
+    })
+    OUTLETS = outlets
+    SALE = sale
+    TURNI = turni
+    TAVOLI = tavoli
+    // Periferiche: per ogni outlet stampa di reparto, preconto e cassa fiscale.
+    let sp = 1
+    STAMPANTI = outlets.flatMap((o, i) => ([
+      { id: sp++, nome: `Stampa ${o.tipo === 'ristorante' ? 'cucina' : 'bar'} ${o.nome}`, tipo: 'reparto' as TipoStampante, protocollo: 'epson' as const, ip: `192.168.${i + 1}.70`, outletId: o.id, attiva: true },
+      { id: sp++, nome: `Pre-conto ${o.nome}`, tipo: 'preconto' as TipoStampante, protocollo: 'epson' as const, ip: `192.168.${i + 1}.71`, outletId: o.id, attiva: true },
+      { id: sp++, nome: `Cassa fiscale ${o.nome}`, tipo: 'fiscale' as TipoStampante, protocollo: 'custom' as const, ip: `192.168.${i + 1}.72`, outletId: o.id, attiva: true },
+    ]))
+    let mid = 1
+    MONITOR_KDS = outlets.flatMap(o => (o.tipo === 'ristorante' ? ['cucina', 'bar'] as RepartoKds[] : ['bar'] as RepartoKds[]).map(rep => ({
+      id: mid++, nome: `Monitor ${REPARTO_KDS[rep].label.toLowerCase()} ${o.nome}`, reparto: rep, outletId: o.id,
+      slug: `monitor-${rep}-${slugBreve(o.nome)}-${(p.seme + mid).toString(16).slice(-6)}`,
+      sfondo: rep === 'cucina' ? '#1a1a2e' : '#1b4332', testo: '#ffffff',
+      griglia: rep === 'cucina' ? '#2a2a3e' : '#255c45', topbar: rep === 'cucina' ? '#12121f' : '#123527', attivo: true,
+    })))
+  }
+
+  VOCI_MENU = BASE.voci.map(v => ({ ...v, prezzo: prezzoListino(v.prezzo, p.listino) }))
+  const scelti = UTENTI_PER_TIPO[p.tipo]
+  UTENTI_FB = BASE.utenti
+    .filter(u => !scelti || scelti.includes(u.id))
+    .map(u => ({ ...u, email: u.email.replace('@hotelnoto.it', `@${p.dominio}`) }))
+  const casella = `${OUTLETS[0].tipo === 'ristorante' ? 'ristorante' : 'info'}@${p.dominio}`
+  CONFIG_EMAIL = { ...BASE.email, username: casella, mittente: casella, nomeMittente: `${OUTLETS[0].nome} — ${p.nome}` }
+  CONFIG_WALLET = {
+    ...BASE.walletCfg,
+    google: { ...BASE.walletCfg.google, classeId: `${slugBreve(p.nome)}.wallet_fb`, serviceAccount: `wallet@${slugBreve(p.nome)}-demo.iam.gserviceaccount.com` },
+  }
+  // Senza camere non esistono clienti hotel né pacchetti all inclusive.
+  WALLET_CLIENTI = p.alloggio ? BASE.wallet
+    : BASE.wallet.map(w => ({ ...w, categoriaClienteId: w.categoriaClienteId === 3 || w.categoriaClienteId === 2 ? 0 : w.categoriaClienteId }))
+}
+
+// ── Fotografia di servizio per le strutture non "classiche" ──
+
+const servizioGenerico = (): Tavolo[] => {
+  const rnd = rngDemo(PROFILO.seme + semeDi(oggiISO()))
+  return TAVOLI.map(t => {
+    const r = rnd()
+    const stato: StatoTavolo = r < 0.28 ? 'occupato' : r < 0.36 ? 'ordinato' : r < 0.42 ? 'conto'
+      : r < 0.5 ? 'riservato' : r < 0.53 ? 'pulizia' : 'libero'
+    const coperti = Math.max(1, Math.min(t.capienza, 1 + Math.floor(rnd() * t.capienza)))
+    const cameriere = CAMERIERI[Math.floor(rnd() * 6)]
+    const min = stato === 'conto' ? 70 + Math.floor(rnd() * 40) : 5 + Math.floor(rnd() * 60)
+    if (stato === 'occupato' || stato === 'ordinato' || stato === 'conto') {
+      return { ...t, stato, coperti, cameriere, apertoAlle: oraMenoMinuti(min) }
+    }
+    return { ...t, stato }
+  })
+}
+
+const minutiDa = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number)
+  const d = new Date()
+  return ((d.getHours() * 60 + d.getMinutes()) - (h * 60 + m) + 1440) % 1440
+}
+
+const comandeAperteGeneriche = (): Comanda[] => {
+  const rnd = rngDemo(PROFILO.seme + 11)
+  const pick = <T,>(xs: T[]) => xs[Math.floor(rnd() * xs.length)]
+  const aperti = servizioGenerico().filter(t => t.stato === 'occupato' || t.stato === 'ordinato' || t.stato === 'conto')
+  return aperti.map((t, i) => {
+    const sala = SALE.find(s => s.id === t.salaId)!
+    const outlet = OUTLETS.find(o => o.id === sala.outletId)!
+    const turni = TURNI.filter(x => x.outletId === outlet.id)
+    const turno = turni.find(x => x.servizio === 'Cena') ?? turni[turni.length - 1]
+    const q = () => Math.max(1, Math.round(t.coperti * (0.6 + rnd() * 0.4)))
+    const st = (fasi: StatoRiga[]) => t.stato === 'conto' ? 'servita' as StatoRiga : t.stato === 'ordinato' ? fasi[0] : fasi[1]
+    const piatti: Array<[number, number, StatoRiga]> = outlet.tipo === 'ristorante' && turno.servizio !== 'Colazione'
+      ? [
+          [pick([1, 2, 16]), 1, st(['inviata', 'servita'])],
+          [pick([3, 4, 17]), 2, st(['in-comanda', 'in-preparazione'])],
+          [pick([5, 6]), 3, st(['in-comanda', 'in-comanda'])],
+          [pick([10, 12, 18, 100, 104]), 0, 'servita'],
+        ]
+      : [
+          [pick([19, 13, 14]), 0, st(['inviata', 'servita'])],
+          [pick([19, 13, 14, 15]), 0, st(['inviata', 'in-preparazione'])],
+          [pick([1, 16]), 1, st(['in-comanda', 'servita'])],
+        ]
+    return {
+      id: i + 1, numero: String(i + 1).padStart(3, '0'),
+      outletId: outlet.id, salaId: sala.id, tavoloId: t.id, turnoId: turno.id,
+      coperti: t.coperti, cameriere: t.cameriere ?? CAMERIERI[0], categoriaClienteId: 0, nota: '',
+      apertaAlle: t.apertoAlle ?? oraMenoMinuti(20), chiusaAlle: null, stato: 'aperta' as const,
+      addebitoCamera: '', pagamento: null,
+      righe: piatti.map(([v, port, stato]) =>
+        riga(voce(v), voce(v).reparto === 'cantina' ? 1 : q(), port, stato, '', [], [], Math.min(minutiDa(t.apertoAlle ?? '00:00'), 2 + Math.floor(rnd() * 14)))),
+    }
+  })
+}
+
+const storniGenerici = (): Storno[] => {
+  const chiuse = comandeIniziali().filter(c => c.stato === 'chiusa').slice(0, 3)
+  return chiuse.map((c, i) => {
+    const r = c.righe[0]
+    return {
+      id: `st-gen-${i}`, comandaId: c.id, numero: c.numero,
+      tavolo: TAVOLI.find(t => t.id === c.tavoloId)?.numero ?? '—',
+      voce: r.nome, qta: 1, valore: r.prezzo,
+      motivo: MOTIVI_STORNO[(i * 2 + 1) % MOTIVI_STORNO.length],
+      operatore: c.cameriere, ora: c.chiusaAlle ?? oraMenoMinuti(30), giaInviata: i !== 1,
+    }
+  })
+}
+
+// Struttura di partenza: quella attiva di default nell'organizzazione demo.
+applicaStruttura({ nome: 'Hotel Noto', categoria: 'hotel', classificazione: 'Resort 5★', citta: 'Noto (SR)', email: 'info@hotelnoto.it' })

@@ -5,12 +5,12 @@ import NavItem from './NavItem'
 import MENU_FULL from '../navigation/menuFull'
 import { filterMenu, applyModuleLabels } from '../navigation/filterMenu'
 import { isPlatformAdminPage } from '../navigation/platformAdminMenu'
-import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
 import PlatformAdminNav from './PlatformAdminNav'
 import { useOrgStore } from '../store/useOrgStore'
 import { fotoProfilo } from '../store/fotoProfili'
-import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePerStruttura, profiloDellaStruttura } from '../store/useAccessStore'
+import { useAccessStore, enabledPagesForProfile, enabledPagesForModuli, paginePerStruttura } from '../store/useAccessStore'
 import { useModuliStore } from '../store/useModuliStore'
+import { useStrutturaCorrente } from '../hooks/useStrutturaCorrente'
 
 interface Props {
   sideOpen    : boolean
@@ -34,7 +34,6 @@ export default function Sidebar({
 
   const tipologia          = useOrgStore(s => s.tipologia)
   const strutture          = useOrgStore(s => s.strutture)
-  const activeStruttura    = useOrgStore(s => s.activeStruttura)
   const setActiveStruttura = useOrgStore(s => s.setActiveStruttura)
 
   const isMultistruttura = tipologia === 'Multistruttura'
@@ -78,26 +77,16 @@ export default function Sidebar({
   }, [onConsole, assist, currentProfileId, profiles, modules, pagineStruttura])
 
   // Profilo caricato da "Accesso profili" (o amministratore della struttura assistita): struttura in alto a sinistra e
-  // utente nella riga del saluto.
-  const profilo = useMemo(() => {
-    if (assist?.struttureIds.length === 1) return profiloDellaStruttura(assist.struttureIds[0], profiles)
-    return currentProfileId ? profiles.find(p => p.id === currentProfileId) : undefined
-  }, [assist, currentProfileId, profiles])
+  // utente nella riga del saluto. La regola vive in useStrutturaCorrente, condivisa con la sezione F&B.
+  const { struttura: activeStrutt, profilo, assistStrutture } = useStrutturaCorrente()
   const nomeUtente = profilo?.nome ?? 'Luca H.'
   const iniziali = nomeUtente.split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase()
 
   // Durante l'assistenza lo switcher elenca le strutture del cliente (le stesse
   // dell'Admin Panel); altrimenti le strutture dell'organizzazione.
-  const assistStrutture = useMemo(
-    () => (assist ? CLIENTS_INIT.filter(c => assist.struttureIds.includes(c.id)).map(c => c.nome) : []),
-    [assist],
-  )
   const switcherList = assist ? assistStrutture : strutture
   // Con un profilo caricato la struttura è la sua: niente switcher delle strutture dell'organizzazione.
   const showSwitcher = assist ? assistStrutture.length > 0 : (!profilo && isMultistruttura && strutture.length > 0)
-  const activeStrutt = assist
-    ? (assistStrutture.includes(activeStruttura) ? activeStruttura : assistStrutture[0])
-    : profilo?.cliente ?? activeStruttura
 
   const [structOpen, setStructOpen] = useState(false)
   const structRef = useRef<HTMLDivElement>(null)
