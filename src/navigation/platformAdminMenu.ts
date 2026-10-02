@@ -36,6 +36,7 @@ export const PLATFORM_ADMIN_MENU: PAGroup[] = [
       { id: 'pa-addebiti-tableau',     label: 'Gestisci addebiti tableau', page: 'pa-addebiti-tableau' },
       { id: 'pa-commissione-dinamica', label: 'Commissione Dinamica',     page: 'pa-commissione-dinamica' },
       { id: 'pa-wallet-sibylla',       label: 'Wallet Sibylla',           page: 'pa-wallet-sibylla' },
+      { id: 'pa-vcc-emesse',           label: 'VCC emesse',               page: 'pa-vcc-emesse' },
     ],
   },
   {

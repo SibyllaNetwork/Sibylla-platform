@@ -1,0 +1,383 @@
+@use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
+
+// Stessa impostazione di Amministrazione → Commissioni (palette oro Admin).
+.vcce
+  height: 100%
+  overflow: auto
+  background: #fff
+  padding: 10px 30px 36px
+  display: flex
+  flex-direction: column
+  gap: 10px
+  // Container query sul root pagina: la tabella si compatta in base alla
+  // larghezza REALE del contenuto (sidebar aperta inclusa), mai sul viewport.
+  container-type: inline-size
+  container-name: vccemesse
+  --color-bg: #faf6ec
+  --color-primary: #8a6d1f
+  --color-primary-100: #f3e9cf
+  --color-primary-200: #e7d4a3
+  --color-primary-300: #ddc98a
+
+.vcce__back
+  align-self: flex-start
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  background: none
+  border: 0
+  cursor: pointer
+  color: #8a6d1f
+  font-size: 13px
+  font-weight: 600
+
+  &:hover
+    text-decoration: underline
+
+.vcce__head
+  text-align: center
+  margin: 0 0 22px
+
+.vcce__title
+  font-family: $font-heading
+  font-size: 26px
+  font-weight: 800
+  color: #2A2208
+  margin: 0
+
+.vcce__sub
+  font-size: 13.5px
+  color: $text-inactive
+  margin: 8px 0 0
+
+.vcce__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 10px
+  flex-wrap: nowrap
+  padding-bottom: 2px
+
+  > *
+    flex: 0 1 auto
+    min-width: 0
+
+.vcce__push
+  margin-left: auto
+
+.vcce__field
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+  .sib-select
+    height: 40px
+    min-width: 240px
+
+// Avviso inline (niente stat-card in cima): conteggio delle casistiche
+// scadute ancora da lavorare, lo stesso che alimenta la notifica.
+.vcce__alert
+  height: 40px
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 0 14px
+  border-radius: 9px
+  background: $error-light
+  color: $error-dark
+  font-family: $font-heading
+  font-size: 12.5px
+  font-weight: 600
+  white-space: nowrap
+
+.vcce__icon-btn
+  flex: 0 0 auto
+  width: 40px
+  height: 40px
+  border: 0
+  border-radius: 9px
+  background: #8a6d1f
+  color: #fff
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  transition: background .15s
+
+  &:hover
+    background: #6f5615
+
+// Regola tassativa: la tabella non scrolla MAI in orizzontale.
+.vcce__wrap
+  border: 1px solid $border
+  overflow-x: hidden
+
+// Due classi nel selettore: a pari specificità .sib-table (tailwind.css,
+// caricato dopo) vincerebbe sulle regole di pagina.
+.vcce .vcce__table
+  +table-fit
+
+  tbody td
+    padding-top: 9px
+    padding-bottom: 9px
+
+  tbody tr:nth-child(even)
+    background: rgba(201, 168, 76, 0.09)
+
+  .vcce__r .sib-colf-head
+    justify-content: flex-end
+
+  .vcce__c .sib-colf-head
+    justify-content: center
+
++th-labels
+
+// Larghezze di colonna in percentuale (somma 100).
+.vcce__col-struttura
+  width: 13.5%
+.vcce__col-booking
+  width: 10%
+.vcce__col-importo
+  width: 10.5%
+.vcce__col-vcc
+  width: 5%
+.vcce__col-status
+  width: 11%
+.vcce__col-data
+  width: 9%
+.vcce__col-delta
+  width: 9%
+.vcce__col-stato
+  width: 15%
+.vcce__col-azioni
+  width: 6.5%
+
+.vcce__c
+  text-align: center
+
+.vcce__r
+  text-align: right
+
+.vcce__strong
+  font-weight: 600
+  color: $text-active
+
+.vcce__act
+  border: 0
+  background: none
+  padding: 0
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  line-height: 1
+
+.vcce__acts
+  display: inline-flex
+  align-items: center
+  gap: 14px
+
+.vcce__dash
+  color: $text-inactive
+
+.vcce__data
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  max-width: 100%
+
+.vcce__scaduta
+  display: inline-flex
+  color: $error
+
+// Due classi: il colore del td di .sib-table vincerebbe a pari specificità.
+.vcce .vcce__delta
+  font-weight: 600
+
+  &--pos
+    color: $success
+
+  &--neg
+    color: $error
+
+.vcce .vcce__stato
+  display: block
+  min-width: 0
+
+  &--todo
+    font-weight: 600
+    color: $text-active
+
+  &--ok
+    color: $success
+
+  &--none
+    color: $text-inactive
+
+.vcce__empty
+  text-align: center
+  color: $text-inactive
+  padding: 28px 0 !important
+
+.vcce__pag
+  display: flex
+  justify-content: center
+  margin-top: 8px
+
+// ─── MODALE carta ─────────────────────────────────────────────────────────────
+.vcce-card
+  display: flex
+  align-items: flex-start
+  justify-content: center
+  gap: 28px
+  padding: 4px 4px 8px
+
+.vcce-card__card
+  flex: 0 1 420px
+  min-width: 0
+
+.vcce-card__client
+  flex: 0 0 210px
+  display: flex
+  flex-direction: column
+  align-items: center
+  text-align: center
+  gap: 10px
+  padding: 18px 14px
+  border: 1px solid $border
+  border-radius: 12px
+  background: #faf6ec
+
+.vcce-card__label
+  font-size: 11px
+  font-weight: 600
+  letter-spacing: .4px
+  color: $text-inactive
+
+// Monogramma della struttura: 5 tinte d'illustrazione (nessun token equivalente).
+.vcce-card__mark
+  width: 82px
+  height: 82px
+  border-radius: 18px
+  display: flex
+  align-items: center
+  justify-content: center
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .16)
+
+  &--c1
+    background: linear-gradient(135deg, #1f4f7a 0%, #2c7bb0 100%)
+  &--c2
+    background: linear-gradient(135deg, #7a3b1f 0%, #c07a34 100%)
+  &--c3
+    background: linear-gradient(135deg, #1f6b52 0%, #35a37b 100%)
+  &--c4
+    background: linear-gradient(135deg, #5a2f6b 0%, #9153a8 100%)
+  &--c5
+    background: linear-gradient(135deg, #7a1f38 0%, #b8455f 100%)
+
+.vcce-card__sigla
+  font-family: $font-heading
+  font-size: 30px
+  font-weight: 800
+  letter-spacing: 1px
+  color: #fff
+
+.vcce-card__name
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 700
+  color: $text-active
+
+.vcce-card__meta
+  margin: 4px 0 0
+  width: 100%
+  display: grid
+  grid-template-columns: auto 1fr
+  gap: 4px 10px
+  font-size: 12px
+  text-align: left
+
+  dt
+    color: $text-inactive
+
+  dd
+    margin: 0
+    font-weight: 600
+    color: $text-active
+    text-align: right
+
+// ─── RESPONSIVITÀ ─────────────────────────────────────────────────────────────
+@container vccemesse (max-width: 1360px)
+  .vcce .vcce__table
+    font-size: 12px
+
+    thead th
+      font-size: 11px
+
+    th, td
+      padding-left: 6px
+      padding-right: 6px
+
+    tbody td
+      padding-top: 7px
+      padding-bottom: 7px
+
+    .sib-colf-head
+      gap: 3px
+
+    .sib-colf__btn
+      width: 16px
+      height: 16px
+
+      i
+        font-size: 10px
+
+  .vcce
+    +th-compact
+
+  .vcce__acts
+    gap: 10px
+
+@container vccemesse (max-width: 1180px)
+  .vcce .vcce__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 4px
+      padding-right: 4px
+
+    .sib-colf__btn
+      width: 14px
+      height: 14px
+
+      i
+        font-size: 9px
+
+  .vcce__field .sib-select
+    min-width: 180px
+
+@container vccemesse (max-width: 900px)
+  .vcce .vcce__table
+    th, td
+      padding-left: 2px
+      padding-right: 2px
+
+    .sib-colf-head
+      gap: 2px
+
+    .sib-colf__btn
+      width: 12px
+      height: 12px
+
+      i
+        font-size: 8px
+
+  .vcce__field .sib-select
+    min-width: 140px
+
+  .vcce__alert
+    padding: 0 10px
+    font-size: 11px

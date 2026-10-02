@@ -3,6 +3,7 @@ import T from '../core/tokens'
 import Ico from '../core/icons/Ico'
 import { useChatStore } from '../store/useChatStore'
 import { useNotifPrefsStore } from '../store/useNotifPrefsStore'
+import { useVccEmesseStore, useVccRows, vccScadute } from '../store/useVccEmesseStore'
 import './notif.sass'
 
 // ── Tipi ─────────────────────────────────────────────────────────────────────
@@ -63,9 +64,25 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
   const reportCityTaxOn = useNotifPrefsStore(s => s.reportCityTax)
 
   // Escludi le notifiche-report disabilitate dal configuratore.
-  const visibili = notifs.filter(n => !n.reportPage
+  const visibiliStatiche = notifs.filter(n => !n.reportPage
     || (n.reportPage === 'report-pickup' && reportPickupOn)
     || (n.reportPage === 'report-city-tax' && reportCityTaxOn))
+
+  // Casistiche VCC scadute (incassate prima del check-in, delta da lavorare).
+  const vccScaduteN = vccScadute(useVccRows()).length
+  const notificaVccOn = useVccEmesseStore(s => s.notificaScadute)
+  const [vccLetta, setVccLetta] = useState(false)
+  const VCC_ID = 900
+  const visibili: Notif[] = notificaVccOn && vccScaduteN > 0
+    ? [{
+        id: VCC_ID, sev: 'warning', origin: 'platform',
+        title: 'VCC incassate: casistiche scadute',
+        text: vccScaduteN === 1
+          ? '1 VCC incassata prima del check-in ha un delta importi da lavorare con data in già passata.'
+          : `${vccScaduteN} VCC incassate prima del check-in hanno un delta importi da lavorare con data in già passata.`,
+        ref: '', date: 'Oggi 09:00', read: vccLetta, reportPage: 'pa-vcc-emesse',
+      }, ...visibiliStatiche]
+    : visibiliStatiche
 
   const unreadCount = visibili.filter(n => !n.read).length
 
@@ -78,8 +95,8 @@ export default function NotifMenu({ navigate }: { navigate: (p: string) => void 
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
-  const markAllRead = () => setNotifs(prev => prev.map(n => ({ ...n, read: true })))
-  const markRead    = (id: number) => setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+  const markAllRead = () => { setVccLetta(true); setNotifs(prev => prev.map(n => ({ ...n, read: true }))) }
+  const markRead    = (id: number) => { if (id === VCC_ID) setVccLetta(true); setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n)) }
 
   const filtered = visibili.filter(n => {
     if (tab === 'unread')   return !n.read

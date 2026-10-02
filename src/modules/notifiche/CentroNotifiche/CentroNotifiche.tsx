@@ -8,6 +8,7 @@ import { getNotifiche, type NotificaDto } from '../../../services/notifiche.serv
 import { useChatStore } from '../../../store/useChatStore'
 import { useRichiesteOperativeStore } from '../../../store/useRichiesteOperativeStore'
 import { usePraticheStore, praticheInRitardo } from '../../../store/usePraticheStore'
+import { useVccEmesseStore, useVccRows, vccScadute } from '../../../store/useVccEmesseStore'
 import { useEfficienzaStore, deltaEur, deltaPct } from '../../../store/useEfficienzaStore'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useNotifPrefsStore } from '../../../store/useNotifPrefsStore'
@@ -306,9 +307,29 @@ export default function CentroNotifiche({ navigate }: { navigate: (p: string) =>
     }))
   }, [reportCityTaxOn])
 
+  // VCC incassate prima del check-in: casistiche scadute (data in passata,
+  // delta importi ≠ 0, lavorazione non risolta) → notifica all'Amministrazione.
+  const vccRows = useVccRows()
+  const notificaVccOn = useVccEmesseStore((s) => s.notificaScadute)
+  const vccNotifs: NotificaUI[] = useMemo(() => {
+    const n = vccScadute(vccRows).length
+    if (!notificaVccOn || n === 0) return []
+    return [{
+      id: 990000,
+      sev: 'warning',
+      title: 'VCC incassate: casistiche scadute',
+      text: n === 1
+        ? '1 VCC incassata prima del check-in ha un delta importi da lavorare con data in già passata.'
+        : `${n} VCC incassate prima del check-in hanno un delta importi da lavorare con data in già passata.`,
+      ref: '',
+      date: 'Oggi', time: '09:00', group: 'oggi',
+      read: false, source: 'platform', report: true, reportPage: 'pa-vcc-emesse', reportTipo: 'VCC emesse',
+    }]
+  }, [vccRows, notificaVccOn])
+
   const allNotifications = useMemo(
-    () => [...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
-    [cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
+    () => [...vccNotifs, ...cityTaxNotifs, ...reportNotifs, ...efficienzaNotifs, ...praticheNotifs, ...richiesteNotifs, ...items],
+    [vccNotifs, cityTaxNotifs, reportNotifs, efficienzaNotifs, praticheNotifs, richiesteNotifs, items],
   )
   const initialReadIds = useMemo(
     () => allNotifications.filter((n) => n.read).map((n) => n.id),

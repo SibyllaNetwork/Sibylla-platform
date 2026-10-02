@@ -35,6 +35,7 @@ const FA_MAP: Record<string, string> = {
   'trash':    'fa-trash',
   'plus':     'fa-circle-plus',
   'check':    'fa-check',
+  'circle-check': 'fa-circle-check',
   'thumbs-up': 'fa-thumbs-up',
   'excel':    'fa-file-xls',
   'play':     'fa-play',
