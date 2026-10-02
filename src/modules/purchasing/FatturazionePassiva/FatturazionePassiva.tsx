@@ -18,6 +18,7 @@ import {
   type StatoFattura,
 } from '../_data/purchasingMock'
 import './FatturazionePassiva.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── FATTURAZIONE PASSIVA ───────────────────────────────────────────────────────
 //  Il ciclo passivo alla data di analisi, in una schermata:
@@ -42,7 +43,8 @@ function classeStato(stato: StatoFattura): string {
 }
 
 export default function FatturazionePassiva({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [stato, setStato] = useState<StatoFattura | 'tutti'>('tutti')
   const [pagina, setPagina] = useState(1)

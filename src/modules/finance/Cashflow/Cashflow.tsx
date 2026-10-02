@@ -13,6 +13,7 @@ import {
 import { apiFetchSibylla } from '../../../services/api'
 import { buildFinance, computeCassa, type FinanceData } from '../_data/financeMock'
 import './Cashflow.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── CASH FLOW ──────────────────────────────────────────────────────────────────
 //  Entrate e uscite di cassa, che non coincidono con ricavi e costi: il denaro
@@ -26,7 +27,8 @@ import './Cashflow.sass'
 //  Modello condiviso in `finance/_data/financeMock`.
 
 export default function Cashflow({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'flussi' | 'dettaglio'>('flussi')
   const [pagina, setPagina] = useState(1)

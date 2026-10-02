@@ -12,6 +12,7 @@ import {
 import { apiFetchSibylla } from '../../../services/api'
 import { buildFinance, computeDecisioni, type FinanceData } from '../_data/financeMock'
 import './DecisionTree.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── DECISION TREE ──────────────────────────────────────────────────────────────
 //  Le leve di gestione messe a confronto per VALORE ATTESO, non per caso migliore.
@@ -26,7 +27,8 @@ import './DecisionTree.sass'
 //  domanda con le sue risposte e l'albero ha bisogno di tutta l'altezza.
 
 export default function DecisionTree({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [scelta, setScelta] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)

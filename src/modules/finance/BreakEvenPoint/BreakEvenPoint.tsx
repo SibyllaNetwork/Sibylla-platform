@@ -13,6 +13,7 @@ import {
 import { apiFetchSibylla } from '../../../services/api'
 import { buildFinance, computeBep, type FinanceData } from '../_data/financeMock'
 import './BreakEvenPoint.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── BREAK EVEN POINT ANALYSIS ──────────────────────────────────────────────────
 //  Da quante camere vendute la gestione smette di perdere.
@@ -27,7 +28,8 @@ import './BreakEvenPoint.sass'
 //  `finance/_data/financeMock`, lo stesso di Finance overview e delle simulazioni.
 
 export default function BreakEvenPoint({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'curva' | 'dettaglio'>('curva')
   const [pagina, setPagina] = useState(1)

@@ -14,6 +14,7 @@ import { apiFetchSibylla } from '../../../../services/api'
 import { MESI } from '../../_data/revenueMock'
 import { buildAdr, computeAdrKpi, type AdrData } from './adrAnalysis.data'
 import './AdrAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── ADR ANALYSIS ───────────────────────────────────────────────────────────────
 //  Il prezzo medio di vendita letto dove si decide:
@@ -26,7 +27,8 @@ import './AdrAnalysis.sass'
 //  Impianto e regole grafiche dal kit `core/bi`.
 
 export default function AdrAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [mese, setMese] = useState(8)
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')

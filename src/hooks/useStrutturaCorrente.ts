@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
-import { schedaDemo } from '../core/demo/struttureDemo'
+import { schedaDemo, idStruttura } from '../core/demo/struttureDemo'
 import { useOrgStore } from '../store/useOrgStore'
 import { useAccessStore, profiloDellaStruttura } from '../store/useAccessStore'
 
@@ -65,4 +65,18 @@ export const schedaStruttura = (nome: string) => CLIENTS_INIT.find(c => c.nome =
 export function useStruttureCliente() {
   const { elenco } = useStrutturaCorrente()
   return useMemo(() => elenco.map(schedaDemo), [elenco])
+}
+
+/**
+ * Per le pagine del ciclo revenue (sales, finance, purchasing): id della
+ * struttura selezionata in alto (null = tutte), che la segue quando cambia.
+ */
+export function useStrutturaIdRevenue() {
+  const { struttura } = useStrutturaCorrente()
+  const schede = useStruttureCliente()
+  const conCamere = schede.some(s => s.nome === struttura && s.camere > 0)
+  const iniziale = conCamere ? idStruttura(struttura) : null
+  const [id, setId] = useState<number | null>(iniziale)
+  useEffect(() => { setId(iniziale) }, [iniziale])
+  return [id, setId] as const
 }

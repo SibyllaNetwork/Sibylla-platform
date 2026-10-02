@@ -16,6 +16,7 @@ import {
   buildFinance, computeBep, computeFinanceKpi, type FinanceData,
 } from '../_data/financeMock'
 import './FinanceOverview.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── FINANCE OVERVIEW ───────────────────────────────────────────────────────────
 //  Il conto economico della gestione, in una schermata:
@@ -35,7 +36,8 @@ const COLLEGAMENTI: { page: string; label: string; icon: string }[] = [
 ]
 
 export default function FinanceOverview({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')
   const [pagina, setPagina] = useState(1)

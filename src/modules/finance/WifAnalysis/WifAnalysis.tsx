@@ -15,6 +15,7 @@ import {
   type FinanceData, type Leve,
 } from '../_data/financeMock'
 import './WifAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── WIF ANALYSIS (what if) ─────────────────────────────────────────────────────
 //  Simulatore: si muovono quattro leve e si vede l'effetto sul conto economico.
@@ -39,7 +40,8 @@ const PRESET: { key: string; label: string; leve: Leve }[] = [
 ]
 
 export default function WifAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [leve, setLeve] = useState<Leve>(LEVE_NEUTRE)
   const [vista, setVista] = useState<'gop' | 'ricavi'>('gop')

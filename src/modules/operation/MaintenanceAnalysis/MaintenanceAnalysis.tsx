@@ -16,6 +16,7 @@ import {
   buildManutenzione, computeManutenzione, type ManutenzioneData,
 } from '../_data/maintenanceMock'
 import './MaintenanceAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── MAINTENANCE ANALYSIS ───────────────────────────────────────────────────────
 //  La manutenzione letta come costo e come ricavo mancato, non come elenco di
@@ -34,7 +35,8 @@ import './MaintenanceAnalysis.sass'
 type Vista = 'andamento' | 'tipologie' | 'dettaglio'
 
 export default function MaintenanceAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<Vista>('andamento')
   const [pagina, setPagina] = useState(1)

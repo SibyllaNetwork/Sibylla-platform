@@ -14,6 +14,7 @@ import {
 import { apiFetchSibylla } from '../../../services/api'
 import { buildFinance, computeIncassi, type FinanceData } from '../_data/financeMock'
 import './IncomingAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── INCOMING ANALYSIS ──────────────────────────────────────────────────────────
 //  Il ricavo letto dal lato dell'incasso: quanto è rientrato, quanto è ancora fuori
@@ -32,7 +33,8 @@ import './IncomingAnalysis.sass'
 type Vista = 'andamento' | 'metodi' | 'dettaglio'
 
 export default function IncomingAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<Vista>('andamento')
   const [pagina, setPagina] = useState(1)

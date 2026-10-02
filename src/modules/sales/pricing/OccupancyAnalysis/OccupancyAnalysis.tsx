@@ -16,6 +16,7 @@ import {
   buildCalendario, buildOccupancy, computeOccupancyKpi, type OccupancyData,
 } from './occupancyAnalysis.data'
 import './OccupancyAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── OCCUPANCY ANALYSIS ─────────────────────────────────────────────────────────
 //  L'occupazione del mese su quattro tagli, tutti nella stessa schermata:
@@ -26,7 +27,8 @@ import './OccupancyAnalysis.sass'
 //  Impianto e regole grafiche dal kit `core/bi`.
 
 export default function OccupancyAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [mese, setMese] = useState(8)
   const [vista, setVista] = useState<'trend' | 'calendario'>('trend')

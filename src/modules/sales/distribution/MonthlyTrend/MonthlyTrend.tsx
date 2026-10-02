@@ -15,6 +15,7 @@ import {
   buildMonthlyTrend, computeKpi, MESI, type MonthlyTrendData,
 } from './monthlyTrend.data'
 import './MonthlyTrend.sass'
+import { useStrutturaIdRevenue } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── MONTHLY TREND ──────────────────────────────────────────────────────────────
 //  Andamento del mese a confronto con l'anno precedente e con la previsione a
@@ -30,7 +31,8 @@ import './MonthlyTrend.sass'
 //  backend non risponde.
 
 export default function MonthlyTrend({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [mese, setMese] = useState(8)
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')

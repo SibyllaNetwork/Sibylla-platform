@@ -17,6 +17,7 @@ import {
   type Dimensione, type IndicatoreDomanda, type SalesData,
 } from './salesOverview.data'
 import './SalesOverview.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── SALES OVERVIEW ─────────────────────────────────────────────────────────────
 //  La fotografia commerciale dell'anno, in una schermata:
@@ -39,7 +40,8 @@ const COLLEGAMENTI: { page: string; label: string; icon: string }[] = [
 ]
 
 export default function SalesOverview({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')
   const [dimensione, setDimensione] = useState<Dimensione>('canali')

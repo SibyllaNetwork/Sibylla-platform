@@ -16,6 +16,7 @@ import {
   FAMIGLIE_COSTO, buildFinance, computeCosti, type FamigliaCosto, type FinanceData,
 } from '../_data/financeMock'
 import './CostAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── COST ANALYSIS ──────────────────────────────────────────────────────────────
 //  Dove va il denaro e dove si può intervenire.
@@ -33,7 +34,8 @@ import './CostAnalysis.sass'
 type Vista = 'composizione' | 'budget' | 'dettaglio'
 
 export default function CostAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<Vista>('composizione')
   const [spente, setSpente] = useState<string[]>([])

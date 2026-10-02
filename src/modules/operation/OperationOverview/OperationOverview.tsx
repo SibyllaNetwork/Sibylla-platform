@@ -3,6 +3,8 @@ import PageHead from '../../../core/components/PageHead'
 import { apiFetchSibylla } from '../../../services/api'
 import { Donut } from '../../sales/distribution/_charts/Donut'
 import { SelectField } from '../../../core/components/form'
+import { useStrutturaIdRevenue, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import { idStruttura, type SchedaDemo } from '../../../core/demo/struttureDemo'
 import './OperationOverview.sass'
 
 interface ChartPoint {
@@ -36,45 +38,61 @@ interface Data {
   segnalazioniHotel: SegnalazioneHotel[]
 }
 
-function genTrend(): ChartPoint[] {
-  const out: ChartPoint[] = []
-  const start = new Date('2026-01-01')
+// ── Dati demo (senza backend) ──────────────────────────────────────────────────
+//  Strutture del cliente corrente; 90 giorni fino a oggi più 30 di previsione.
+//  Valori deterministici: stessa struttura, stessi numeri.
+const isoDi = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+function genFallback(schede: SchedaDemo[], strutturaId: number | null): Data {
+  const hotel = schede.filter((x) => x.camere > 0)
+  const sel = strutturaId === null ? hotel : hotel.filter((x) => idStruttura(x.nome) === strutturaId)
+  const camere = Math.max(1, sel.reduce((a, x) => a + x.camere, 0))
+  const seme = sel.reduce((a, x) => a + x.seme, 0)
+  const oggi = new Date()
+  const start = new Date(oggi); start.setDate(start.getDate() - 89)
+  const trend: ChartPoint[] = []
   for (let i = 0; i < 120; i++) {
     const d = new Date(start); d.setDate(d.getDate() + i)
     const date = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
-    const x = i / 120
-    out.push({
+    const r = ((seme + i * 2654435761) >>> 0) % 1000 / 1000
+    const fuori = Math.max(1, Math.round(camere * (0.05 + 0.04 * Math.sin(i / 9) + (r - 0.5) * 0.03)))
+    trend.push({
       date,
-      capienza: 100,
-      occupate: Math.max(2, Math.round(8 + 12 * Math.sin(x * Math.PI * 4) + (Math.random() - 0.5) * 4)),
-      occupateForecast: i > 100 ? Math.max(2, Math.round(7 + Math.random() * 4)) : null,
-      inManutenzione: Math.max(0, Math.round(2 + Math.random() * 3)),
+      capienza: camere,
+      occupate: fuori,
+      occupateForecast: i >= 89 ? Math.max(1, Math.round(camere * (0.045 + r * 0.02))) : null,
+      inManutenzione: Math.max(0, Math.round(fuori * (0.35 + r * 0.2))),
     })
   }
-  return out
-}
-
-const FALLBACK: Data = {
-  Strutture: [],
-  StrutturaId: null,
-  dataDa: '2026-01-01',
-  dataA: '2026-04-30',
-  pctManutenzione: 5.40,
-  pctManutenzioneLY: 0.00,
-  tassoIndisponibilita: 5.40,
-  trend: genTrend(),
-  indisponibili: 5.4,
-  totale: 100,
-  rooms: [{ id: 1, nome: 'ciao' }],
-  roomsSelected: 'ciao',
-  segnalazioniHotel: [
-    { id: 1, nome: 'Hotel Tutorial', open: 7, total: 25 },
-    { id: 2, nome: "Grim's Hotel",   open: 3, total: 25 },
-  ],
+  const pct = +(trend.slice(0, 90).reduce((a, t) => a + t.inManutenzione, 0) / (90 * camere) * 100).toFixed(2)
+  const indisp = +(trend.slice(0, 90).reduce((a, t) => a + t.occupate, 0) / (90 * camere) * 100).toFixed(2)
+  return {
+    Strutture: hotel.map((x) => ({ Id: idStruttura(x.nome), nome: x.nome })),
+    StrutturaId: strutturaId,
+    dataDa: isoDi(start),
+    dataA: isoDi(oggi),
+    pctManutenzione: pct,
+    pctManutenzioneLY: +(pct * 1.18).toFixed(2),
+    tassoIndisponibilita: indisp,
+    trend,
+    indisponibili: indisp,
+    totale: 100,
+    rooms: sel.map((x) => ({ id: idStruttura(x.nome), nome: x.nome })),
+    roomsSelected: sel[0]?.nome ?? '',
+    segnalazioniHotel: hotel.map((x) => ({
+      id: idStruttura(x.nome), nome: x.nome,
+      total: Math.round(x.camere * 0.35) + 4,
+      open: Math.round((Math.round(x.camere * 0.35) + 4) * (0.15 + (x.seme % 20) / 100)),
+    })),
+  }
 }
 
 export default function OperationOverview({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Struttura selezionata in alto; senza backend i dati sono quelli demo.
+  const schede = useStruttureCliente()
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
+  const [data, setData] = useState<Data>(() => genFallback(schede, strutturaId))
+  useEffect(() => { setData(genFallback(schede, strutturaId)) }, [schede, strutturaId])
 
   useEffect(() => {
     let cancelled = false
@@ -107,7 +125,7 @@ export default function OperationOverview({ navigate }: { navigate: (p: string) 
             { value: '', label: 'Tutte le strutture' },
             ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
           ]}
-          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
         />
         <div className="op-overview__field-raw">
           <label>Scegli intervallo</label>

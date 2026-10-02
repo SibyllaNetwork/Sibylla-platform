@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
-import { useStrutturaCorrente, schedaStruttura } from './useStrutturaCorrente'
+import { useStrutturaCorrente, schedaStruttura, useStruttureCliente } from './useStrutturaCorrente'
+import { impostaStruttureRevenue } from '../modules/sales/_data/revenueMock'
+import { strutturaRevenue } from '../core/demo/struttureDemo'
 import { useFbStore } from '../store/useFbStore'
 import { useSaleStore } from '../store/useSaleStore'
 import { applicaStrutturaPms } from '../modules/operation/_data/pmsDemo'
@@ -14,6 +16,11 @@ import { applicaStrutturaPms } from '../modules/operation/_data/pmsDemo'
  */
 export function useFbStrutturaSync() {
   const { struttura } = useStrutturaCorrente()
+  const schede = useStruttureCliente()
+  // Ciclo revenue (sales, finance, purchasing): le strutture con camere del
+  // cliente. Assegnato durante il render (idempotente) così le pagine che lo
+  // leggono nello stesso render vedono già l'elenco giusto.
+  impostaStruttureRevenue(schede.filter(s => s.camere > 0).map(strutturaRevenue))
 
   useEffect(() => {
     if (!struttura) return

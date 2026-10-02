@@ -15,6 +15,7 @@ import {
   buildFinance, computeProfit, pontePeL, type FinanceData,
 } from '../_data/financeMock'
 import './ProfitTrend.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── PROFIT TREND ───────────────────────────────────────────────────────────────
 //  Come si muove il margine nel tempo e da dove nasce.
@@ -28,7 +29,8 @@ import './ProfitTrend.sass'
 //  Modello condiviso in `finance/_data/financeMock`.
 
 export default function ProfitTrend({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'margine' | 'dettaglio'>('margine')
   const [pagina, setPagina] = useState(1)

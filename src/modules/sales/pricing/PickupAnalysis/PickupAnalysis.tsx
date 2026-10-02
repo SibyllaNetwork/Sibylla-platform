@@ -15,6 +15,7 @@ import {
   buildPickup, computePickupKpi, FINESTRE, ORIZZONTI, type PickupData,
 } from './pickupAnalysis.data'
 import './PickupAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── PICKUP ANALYSIS ────────────────────────────────────────────────────────────
 //  Quanta domanda è ENTRATA nell'ultimo intervallo di osservazione, per data di
@@ -27,7 +28,8 @@ import './PickupAnalysis.sass'
 //    • da dove è arrivato il pickup (canali) e dove guardare (date critiche)
 
 export default function PickupAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [finestra, setFinestra] = useState(7)
   const [orizzonte, setOrizzonte] = useState(60)
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')

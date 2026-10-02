@@ -15,6 +15,7 @@ import {
   applyScenario, buildFinance, computeBep, SCENARI, type FinanceData,
 } from '../_data/financeMock'
 import './ScenariMensili.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── ANALISI SCENARI MENSILI ────────────────────────────────────────────────────
 //  Tre scenari a confronto mese per mese: pessimistico, base, ottimistico.
@@ -29,7 +30,8 @@ import './ScenariMensili.sass'
 //    • le ipotesi di ciascuno scenario, in chiaro
 
 export default function ScenariMensili({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'margine' | 'dettaglio'>('margine')
   const [pagina, setPagina] = useState(1)

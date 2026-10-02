@@ -17,6 +17,7 @@ import {
   valoriDi, type Ambito, type Misura, type PerCamera,
 } from './budgetAnalysis.data'
 import './BudgetAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── BUDGET ANALYSIS ────────────────────────────────────────────────────────────
 //  Il budget contro il consuntivo, in una schermata:
@@ -52,7 +53,8 @@ const COLLEGAMENTI: { page: string; label: string; icon: string }[] = [
 ]
 
 export default function BudgetAnalysis({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [ambito, setAmbito] = useState<Ambito>('ytd')
   const [misura, setMisura] = useState<Misura>('ricavi')

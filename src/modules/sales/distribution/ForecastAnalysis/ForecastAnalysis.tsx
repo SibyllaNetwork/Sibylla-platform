@@ -16,6 +16,7 @@ import {
   type Dimensione, type ForecastData,
 } from './forecastAnalysis.data'
 import './ForecastAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../../hooks/useStrutturaCorrente'
 
 // ─── FORECAST ANALYSIS ──────────────────────────────────────────────────────────
 //  Che cosa si chiuderà sull'orizzonte scelto, e con quanta certezza:
@@ -31,7 +32,8 @@ import './ForecastAnalysis.sass'
 //  Il periodo è futuro: qui non c'è consuntivo, e la pagina lo dice sempre.
 
 export default function ForecastAnalysis({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [orizzonte, setOrizzonte] = useState(60)
   const [dimensione, setDimensione] = useState<Dimensione>('segmenti')
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')

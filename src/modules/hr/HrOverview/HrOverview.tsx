@@ -4,9 +4,20 @@ import { SelectField } from '../../../core/components/form'
 import { Donut, DonutLegend, type DonutSlice } from '../../sales/distribution/_charts/Donut'
 import { AreaTrend, type SeriesPoint } from '../../sales/distribution/_charts/AreaTrend'
 import { HBars, type HBar } from '../../sales/distribution/_charts/HBars'
+import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
+import type { SchedaDemo } from '../../../core/demo/struttureDemo'
 import './HrOverview.sass'
 
-const STRUTTURE = ['Tutte le strutture', 'Hotel Tutorial', "Grim's Hotel", 'Hotel Archimede']
+const TUTTE = 'Tutte le strutture'
+/** Organico di riferimento dei dati base qui sotto: si scala sulla selezione. */
+const ORGANICO_BASE = 142
+
+// Organico stimato dalla dimensione e dal tipo della struttura (scheda demo).
+const organicoDi = (s: SchedaDemo) =>
+  s.categoria === 'bnb' ? 3
+    : s.categoria === 'studentato' ? Math.round(s.camere * 0.12) + 6
+    : s.camere === 0 ? 14 + (s.seme % 10)
+    : Math.round(s.camere * (s.stelle >= 5 ? 1.1 : s.stelle === 4 ? 0.7 : 0.45)) + 8
 const ANNI = [2026, 2025, 2024]
 const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
 
@@ -67,7 +78,36 @@ const ASSENZE_BARS: HBar[] = [
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function HrOverview({ navigate }: { navigate?: (p: string) => void } = {}) {
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  // Struttura selezionata in alto (o tutte quelle del cliente): i numeri si
+  // scalano sull'organico stimato della selezione.
+  const [struttura, setStruttura, , elenco] = useStrutturaPagina()
+  const schede = useStruttureCliente()
+  const STRUTTURE = [TUTTE, ...elenco]
+  const selezione = struttura === TUTTE ? schede : schede.filter((x) => x.nome === struttura)
+  const organico = Math.max(1, selezione.reduce((a, x) => a + organicoDi(x), 0))
+  const f = organico / ORGANICO_BASE
+  const sc = (n: number) => Math.max(0, Math.round(n * f))
+  const scSlices = (xs: DonutSlice[]) => xs.map((x) => ({ ...x, value: sc(x.value) }))
+  const scBars = (xs: HBar[]) => xs.map((x) => ({ ...x, value: sc(x.value) }))
+  const costo = 1.24 * f
+  const kpis: Kpi[] = KPIS.map((k) =>
+    k.label === 'Organico totale' ? { ...k, value: String(organico) }
+      : k.label === 'Nuove assunzioni' ? { ...k, value: String(sc(18)) }
+      : k.label === 'Cessazioni' ? { ...k, value: String(sc(9)) }
+      : k.label === 'Costo del personale' ? { ...k, value: costo >= 1 ? `${costo.toLocaleString('it-IT', { maximumFractionDigits: 2 })} M€` : `${Math.round(costo * 1000)} k€` }
+      : k)
+  const t26 = trend2026.map((p) => ({ ...p, y: sc(p.y) }))
+  const t25 = trend2025.map((p) => ({ ...p, y: sc(p.y) }))
+  const contratti = scSlices(CONTRATTI)
+  const genere = scSlices(GENERE)
+  const reparti = scBars(REPARTI_BARS)
+  const performance = scSlices(PERFORMANCE)
+  const documentazione = scSlices(DOCUMENTAZIONE)
+  const assenze = scBars(ASSENZE_BARS)
+  // Le parti di un intero tornano sempre all'organico (niente scarti di arrotondamento).
+  const chiudi = (xs: DonutSlice[]) => { if (xs.length) xs[xs.length - 1].value = Math.max(0, organico - xs.slice(0, -1).reduce((a, x) => a + x.value, 0)) }
+  chiudi(contratti); chiudi(genere); chiudi(documentazione)
+  const docOk = documentazione[0]?.value ?? 0
   const [anno, setAnno] = useState(2026)
   const go = (p: string) => navigate?.(p)
 
@@ -89,7 +129,7 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
 
       {/* ─── KPI ────────────────────────────────────────────────────────────── */}
       <div className="hr-ov__kpis">
-        {KPIS.map((k) => (
+        {kpis.map((k) => (
           <div className="hr-ov__kpi" key={k.label}>
             <div className="hr-ov__kpi-ico"><i className={`fa-light ${k.icon}`} /></div>
             <div className="hr-ov__kpi-body">
@@ -119,7 +159,7 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
       <div className="hr-ov__grid hr-ov__grid--2-1">
         <div className="hr-ov__card">
           <h3 className="hr-ov__card-title">Andamento organico</h3>
-          <AreaTrend primary={trend2026} secondary={trend2025} primaryLabel={`${anno}`} secondaryLabel={`${anno - 1}`} height={240} />
+          <AreaTrend primary={t26} secondary={t25} primaryLabel={`${anno}`} secondaryLabel={`${anno - 1}`} height={240} />
           <div className="hr-ov__legend">
             <span><span className="hr-ov__dot" style={{ background: '#5C9CD4' }} /> {anno}</span>
             <span><span className="hr-ov__dot" style={{ background: '#204769' }} /> {anno - 1}</span>
@@ -127,8 +167,8 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
         </div>
         <div className="hr-ov__card hr-ov__card--center">
           <h3 className="hr-ov__card-title">Composizione contratti</h3>
-          <Donut slices={CONTRATTI} centerValue={fmtNum(CONTRATTI.reduce((s, c) => s + c.value, 0))} centerSubLabel="dipendenti" size={190} thickness={32} />
-          <DonutLegend slices={CONTRATTI} total={CONTRATTI.reduce((s, c) => s + c.value, 0)} />
+          <Donut slices={contratti} centerValue={fmtNum(contratti.reduce((s, c) => s + c.value, 0))} centerSubLabel="dipendenti" size={190} thickness={32} />
+          <DonutLegend slices={contratti} total={contratti.reduce((s, c) => s + c.value, 0)} />
         </div>
       </div>
 
@@ -136,15 +176,15 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
       <div className="hr-ov__grid hr-ov__grid--2-1">
         <div className="hr-ov__card">
           <h3 className="hr-ov__card-title">Organico per reparto</h3>
-          <HBars bars={REPARTI_BARS} showAxis ticks={4} labelWidth={120} />
+          <HBars bars={reparti} showAxis ticks={4} labelWidth={120} />
         </div>
         <div className="hr-ov__card hr-ov__card--center">
           <div className="hr-ov__card-head">
             <h3 className="hr-ov__card-title">Performance obiettivi</h3>
             <button type="button" className="hr-ov__link" onClick={() => go('monitoraggio-perf')}>Monitoraggio <i className="fa-light fa-arrow-right" /></button>
           </div>
-          <Donut slices={PERFORMANCE} centerValue="71%" centerSubLabel="avanz. medio" size={190} thickness={32} />
-          <DonutLegend slices={PERFORMANCE} total={PERFORMANCE.reduce((s, c) => s + c.value, 0)} />
+          <Donut slices={performance} centerValue="71%" centerSubLabel="avanz. medio" size={190} thickness={32} />
+          <DonutLegend slices={performance} total={performance.reduce((s, c) => s + c.value, 0)} />
         </div>
       </div>
 
@@ -155,17 +195,17 @@ export default function HrOverview({ navigate }: { navigate?: (p: string) => voi
             <h3 className="hr-ov__card-title">Stato documentazione</h3>
             <button type="button" className="hr-ov__link" onClick={() => go('archivio-personale')}>Archivio <i className="fa-light fa-arrow-right" /></button>
           </div>
-          <Donut slices={DOCUMENTAZIONE} centerValue={`${Math.round((118 / 142) * 100)}%`} centerSubLabel="completa" size={170} thickness={28} />
-          <DonutLegend slices={DOCUMENTAZIONE} total={142} />
+          <Donut slices={documentazione} centerValue={`${Math.round((docOk / organico) * 100)}%`} centerSubLabel="completa" size={170} thickness={28} />
+          <DonutLegend slices={documentazione} total={organico} />
         </div>
         <div className="hr-ov__card">
           <h3 className="hr-ov__card-title">Assenze per tipologia</h3>
-          <HBars bars={ASSENZE_BARS} showAxis ticks={4} labelWidth={90} />
+          <HBars bars={assenze} showAxis ticks={4} labelWidth={90} />
         </div>
         <div className="hr-ov__card hr-ov__card--center">
           <h3 className="hr-ov__card-title">Composizione di genere</h3>
-          <Donut slices={GENERE} centerValue="142" centerSubLabel="dipendenti" size={170} thickness={28} />
-          <DonutLegend slices={GENERE} total={142} />
+          <Donut slices={genere} centerValue={String(organico)} centerSubLabel="dipendenti" size={170} thickness={28} />
+          <DonutLegend slices={genere} total={organico} />
         </div>
       </div>
     </div>

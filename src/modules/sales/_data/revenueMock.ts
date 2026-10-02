@@ -22,14 +22,31 @@ export interface Struttura {
   camere: number
   /** Tipo di struttura: cambia i segmenti che hanno senso. */
   tipo: 'hotel' | 'resort' | 'bb'
+  /** Livello prezzi rispetto alla curva ADR_BASE (categoria della struttura). */
+  adrK?: number
 }
 
-export const STRUTTURE: Struttura[] = [
+// Elenco di partenza; sulla demo viene sostituito dalle strutture (con camere)
+// del cliente corrente con impostaStruttureRevenue. Esportato come `let`: chi lo
+// importa (anche tramite re-export) legge sempre quello corrente.
+export let STRUTTURE: Struttura[] = [
   { id: 1, nome: 'Hotel Archimede', camere: 42, tipo: 'hotel' },
   { id: 2, nome: 'Grand Hotel Roma', camere: 96, tipo: 'hotel' },
   { id: 3, nome: 'B&B Ortigia', camere: 8, tipo: 'bb' },
   { id: 4, nome: 'Resort Capo Bianco', camere: 64, tipo: 'resort' },
 ]
+
+/** Sostituisce l'elenco strutture del ciclo revenue (struttura selezionata/cliente). */
+export function impostaStruttureRevenue(list: Struttura[]) {
+  if (list.length) STRUTTURE = list
+}
+
+/** Livello prezzi della selezione: la struttura, o la media pesata sulle camere. */
+export function adrFattore(strutturaId: number | null): number {
+  const sel = strutturaId === null ? STRUTTURE : STRUTTURE.filter((s) => s.id === strutturaId)
+  const camere = sel.reduce((a, s) => a + s.camere, 0)
+  return camere ? sel.reduce((a, s) => a + (s.adrK ?? 1) * s.camere, 0) / camere : 1
+}
 
 /** Camere disponibili per la selezione (null = tutte le strutture). */
 export function camereDisponibili(strutturaId: number | null): number {
@@ -113,6 +130,7 @@ export function buildGiorni(
   oggi = new Date(),
 ): GiornoBase[] {
   const camere = camereDisponibili(strutturaId)
+  const livello = adrFattore(strutturaId)
   const out: GiornoBase[] = []
   const cur = new Date(dal.getFullYear(), dal.getMonth(), dal.getDate())
   const fine = new Date(al.getFullYear(), al.getMonth(), al.getDate())
@@ -125,10 +143,10 @@ export function buildGiorni(
     const jsDow = cur.getDay()
     const dow = (jsDow + 6) % 7            // 0 = lunedì
     const weekend = jsDow === 5 || jsDow === 6
-    const seed = anno * 1000 + mese * 40 + g + (strutturaId ?? 0) * 7
+    const seed = anno * 1000 + mese * 40 + g + ((strutturaId ?? 0) % 1000) * 7
 
     const occBase = STAGIONALITA[mese - 1]
-    const adrBase = ADR_BASE[mese - 1]
+    const adrBase = ADR_BASE[mese - 1] * livello
 
     const occ = Math.max(0.28, Math.min(1, occBase + (weekend ? 0.07 : -0.015) + jitter(seed, 0.06)))
     const vendute = Math.round(camere * occ)

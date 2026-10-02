@@ -59,3 +59,16 @@ export function schedaDemo(nome: string): SchedaDemo {
     camere: 40 + (seme % 50),
   }
 }
+
+/** Identificativo numerico stabile della struttura (legato al nome). */
+export const idStruttura = (nome: string) => (hashNome(nome) % 900000) + 100
+
+/** La scheda nella forma del ciclo revenue (sales/_data/revenueMock). */
+export function strutturaRevenue(s: SchedaDemo) {
+  const tipo: 'hotel' | 'resort' | 'bb' = /resort/i.test(s.tipo) ? 'resort' : s.categoria === 'bnb' ? 'bb' : 'hotel'
+  const adrK = s.categoria === 'studentato' ? 0.35
+    : s.categoria === 'bnb' ? 0.8
+    : s.categoria === 'case-vacanze' || s.categoria === 'appartamenti' ? 0.9
+    : tipo === 'resort' ? 1.55 : s.stelle >= 5 ? 1.45 : s.stelle === 4 ? 1 : 0.85
+  return { id: idStruttura(s.nome), nome: s.nome, camere: s.camere, tipo, adrK }
+}

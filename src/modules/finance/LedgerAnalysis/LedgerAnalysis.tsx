@@ -14,6 +14,7 @@ import {
 import { apiFetchSibylla } from '../../../services/api'
 import { buildFinance, computeLedger, type FinanceData } from '../_data/financeMock'
 import './LedgerAnalysis.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── LEDGER ANALYSIS ────────────────────────────────────────────────────────────
 //  La contabilità dal lato del controllo: che cosa è stato registrato, se quadra e
@@ -31,7 +32,8 @@ import './LedgerAnalysis.sass'
 type Vista = 'mastri' | 'mensile' | 'dettaglio'
 
 export default function LedgerAnalysis({ navigate: _navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<Vista>('mastri')
   const [pagina, setPagina] = useState(1)

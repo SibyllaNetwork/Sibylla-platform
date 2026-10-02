@@ -16,6 +16,7 @@ import {
   FAMIGLIE_ESCLUSE, buildPurchasing, computePurchasingKpi, type PurchasingData,
 } from '../_data/purchasingMock'
 import './PurchasingOverview.sass'
+import { useStrutturaIdRevenue } from '../../../hooks/useStrutturaCorrente'
 
 // ─── PURCHASING OVERVIEW ────────────────────────────────────────────────────────
 //  Che cosa compra l'impresa, da chi e a che condizioni, in una schermata:
@@ -33,7 +34,8 @@ import './PurchasingOverview.sass'
 const TOP_FORNITORI = 6
 
 export default function PurchasingOverview({ navigate }: { navigate: (p: string) => void }) {
-  const [strutturaId, setStrutturaId] = useState<number | null>(null)
+  // Parte dalla struttura selezionata in alto e la segue.
+  const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [anno, setAnno] = useState(2026)
   const [vista, setVista] = useState<'trend' | 'dettaglio'>('trend')
   const [pagina, setPagina] = useState(1)
