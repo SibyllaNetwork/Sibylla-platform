@@ -79,6 +79,8 @@ export const PAGINE_OP: Record<string, { key: string; label: string }[]> = {
   ],
   oggetti: [{ key: 'oggetti.elenco', label: 'Elenco' }, { key: 'oggetti.nuovo', label: 'Nuovo oggetto' }],
   biCruscotto: [{ key: 'biCruscotto.giornata', label: 'La giornata' }, { key: 'biCruscotto.reparti', label: 'Reparti oggi' }],
+  fbSala: [{ key: 'fbSala.sala', label: 'Sala ristorante' }, { key: 'fbSala.dashboard', label: 'Dashboard F&B' }],
+  fbComande: [{ key: 'fbComande.comande', label: 'Gestione comanda' }, { key: 'fbComande.cucina', label: 'Monitor di cucina' }, { key: 'fbComande.cassa', label: 'Cassa e chiusure' }],
   acquisti: [
     { key: 'acquisti.aree', label: 'Area merceologica' }, { key: 'acquisti.fornitori', label: 'Fornitori' }, { key: 'acquisti.servizi', label: 'Servizi' },
     { key: 'acquisti.carrello', label: 'Carrello e ordini' }, { key: 'acquisti.richieste', label: 'Richieste d’acquisto' }, { key: 'acquisti.ricevimento', label: 'Ricevimento merce' },
