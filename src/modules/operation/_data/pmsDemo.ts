@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Pren, Piano, PrenPendente, StatoCam } from '../planner/planner.types'
 import { impostaDatiPlanner } from '../planner/planner.data'
+import { camereDemo } from '../../../core/demo/struttureDemo'
 
 // ─── GESTIONALE DEMO (front office) ──────────────────────────────────────────
 //  Camere, prenotazioni e ospiti della struttura selezionata in alto, calcolati
@@ -142,10 +143,9 @@ export function generaPms(d: DescrizionePms): PmsDemo {
   const tipo = tipoStruttura(d)
   const studentato = tipo === 'studentato'
 
-  // Camere: quelle della scheda; per le strutture senza scheda un numero
-  // plausibile ma sempre uguale. Ristoranti e bar non hanno camere.
-  const n = tipo === 'ristorante' || tipo === 'bar' ? 0
-    : d.camere ?? (tipo === 'bnb' ? 6 : 40 + (seme % 50))
+  // Camere: quelle della scheda (ristoranti e bar ne ricevono alcune, vedi
+  // camereDemo); per le strutture senza scheda un numero plausibile ma sempre uguale.
+  const n = camereDemo(tipo, d.camere) ?? (tipo === 'bnb' ? 6 : 40 + (seme % 50))
   const listino = /5★|grand/i.test(`${d.classificazione ?? ''} ${d.nome}`) ? 1.5
     : /resort/i.test(d.nome) || /resort/i.test(d.classificazione ?? '') ? 1.6
     : tipo === 'bnb' ? 0.8 : tipo === 'appartamenti' || tipo === 'case-vacanze' ? 0.9 : studentato ? 0.3 : 1

@@ -1,0 +1,124 @@
+// ─── ANALISI DELL'OCCUPAZIONE ───────────────────────────────────────────────────
+// Griglia a schermo fisso: indicatori + occupazione giornaliera (2 colonne) con le
+// tipologie accanto, poi canali, pickup e segmenti.
+@use '../../../styles/tokens' as *
+
+.aocc
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1fr)
+    grid-template-areas: 'kpi kpi kpi' 'main main tipo' 'canali pickup seg'
+
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+    min-width: 0
+
+  &__main
+    grid-area: main
+
+  &__tipo
+    grid-area: tipo
+
+  &__canali
+    grid-area: canali
+
+  &__pickup
+    grid-area: pickup
+
+  &__seg
+    grid-area: seg
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 220px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  // ── Segmenti: numeri, non un grafico ─────────────────────────────────────────
+  &__figures
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__figure
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    min-width: 0
+    padding: 3px 0
+    border-bottom: 1px solid var(--color-border)
+
+    &:last-child
+      border-bottom: 0
+
+    // Le opzioni aperte sono il lavoro da fare: si leggono come riga di chiusura
+    &--tot
+      .aocc__figure-lbl
+        color: var(--color-primary)
+        font-weight: 600
+
+      .aocc__figure-val
+        font-size: 15px
+        font-weight: 700
+
+  &__figure-lbl
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__figure-val
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+    font-variant-numeric: tabular-nums
+    white-space: nowrap
+
+// ── Compattazione su larghezze da laptop ──────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .aocc
+    &__kpis
+      gap: 8px
+
+    &__filter
+      width: 180px
+
+    &__note
+      display: none
+
+@media (max-height: 820px)
+  .aocc
+    &__kpis
+      gap: 8px
+
+    &__figure
+      padding: 2px 0

@@ -1,0 +1,241 @@
+// ─── MOVIMENTI IN ATTESA ──────────────────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.mov-att
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+
+  // ── Code (tab a pillola, come Arrivi e partenze) ──────────────────────────
+  &__tabs
+    display: inline-flex
+    gap: 4px
+    padding: 4px
+    border-radius: 999px
+    background: $primary-50
+    border: 1px solid $border
+    align-self: flex-start
+
+  &__tab
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    padding: 8px 18px
+    border: none
+    border-radius: 999px
+    background: transparent
+    font-size: 13px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    white-space: nowrap
+    transition: $transition-fast
+
+    &:hover
+      color: $primary
+
+    &.is-active
+      background: $primary
+      color: $white
+
+      .mov-att__tab-count
+        background: $primary-700
+        color: $white
+
+  &__tab-count
+    font-style: normal
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 22px
+    height: 19px
+    padding: 0 6px
+    border-radius: 999px
+    background: $white
+    color: $primary
+    font-size: 11.5px
+    font-weight: 700
+
+  // ── Filtri ────────────────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    align-items: flex-end
+    gap: 12px
+    flex-wrap: wrap
+
+  &__field
+    width: 200px
+
+    &--grow
+      flex: 1
+      min-width: 280px
+      max-width: 480px
+      display: flex
+      flex-direction: column
+      gap: 4px
+
+  // Label standard form (Poppins 12px, 600, primary) per il campo di ricerca
+  &__label
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__bar-actions
+    margin-left: auto
+    display: flex
+    gap: 8px
+
+  // ── Tabella: layout fisso in %, niente scroll orizzontale ─────────────────
+  &__table
+    table-layout: fixed
+    width: 100%
+
+  &__c-check
+    width: 3.5%
+  &__c-ora
+    width: 9%
+  &__c-orig
+    width: 10.5%
+  &__c-cam
+    width: 6%
+  &__c-int
+    width: 13%
+  &__c-mot
+    width: 13%
+  &__c-att
+    width: 7%
+  &__c-imp
+    width: 8.5%
+  &__c-az
+    width: 7.5%
+
+  .mov-att__table th,
+  .mov-att__table td
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .mov-att__table th.mov-att__num
+    text-align: right
+
+  &__trunc
+    display: block
+    max-width: 100%
+
+  &__center
+    text-align: center
+
+  &__num
+    text-align: right
+    font-variant-numeric: tabular-nums
+
+  &__nowrap
+    white-space: nowrap
+
+  &__row--sel td
+    background: $primary-50
+
+  &__orig
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 100%
+    min-width: 0
+
+    i
+      color: $primary
+      font-size: 14px
+      flex-shrink: 0
+
+  &__cam-ko
+    color: $error
+    font-weight: 600
+    text-decoration: underline dotted
+
+  &__motivo
+    display: inline-block
+    max-width: 100%
+    padding: 2px 8px
+    border-radius: $radius-sm
+    font-size: 11.5px
+    font-weight: 600
+    vertical-align: middle
+
+    &--abbinare
+      background: $error-light
+      color: $error-dark
+    &--approvare
+      background: $warning-light
+      color: $text-active
+    &--fatturare
+      background: $primary-100
+      color: $primary
+
+  &__tardi
+    color: $error
+    font-weight: 600
+
+  &__neg
+    color: $error
+
+  // Standard icone in tabella: fa-solid, blu Platform, 16px, senza box
+  .mov-att__table .mov-att__act
+    padding: 4px
+    background: transparent
+    border: none
+
+    i
+      color: $primary
+      font-size: 16px
+
+  // ── Totali e azioni massive ───────────────────────────────────────────────
+  &__footer
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+
+  &__stats
+    display: flex
+    gap: 18px
+    flex-wrap: wrap
+    color: $text-active
+
+  &__pagination
+    display: flex
+    justify-content: center
+
+  // ── Modale Abbina ─────────────────────────────────────────────────────────
+  &__modal
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__modal-desc
+    margin: 0
+    line-height: 1.6
+    color: $text-active
+
+  &__modal-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+// Laptop con sidebar aperta: si compattano solo le dimensioni
+@container (max-width: 1360px)
+  .mov-att
+    font-size: 12px
+
+    &__tab
+      padding: 7px 14px
+      font-size: 12px
+
+    .mov-att__table th,
+    .mov-att__table td
+      padding-left: 8px
+      padding-right: 8px

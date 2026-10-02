@@ -69,6 +69,7 @@ import OnTheBookAnalysis           from '../modules/operation/OnTheBookAnalysis/
 import OperationOverview           from '../modules/operation/OperationOverview/OperationOverview';
 import GuestRoomAnalysis           from '../modules/operation/GuestRoomAnalysis/GuestRoomAnalysis';
 import OspitiInCasa                from '../modules/operation/OspitiInCasa/OspitiInCasa';
+import AnalisiOccupazione          from '../modules/operation/AnalisiOccupazione/AnalisiOccupazione';
 import ContiCamera                 from '../modules/operation/ContiCamera/ContiCamera';
 import EmissioneDocumenti          from '../modules/operation/EmissioneDocumenti/EmissioneDocumenti';
 import FatturaDocumento            from '../modules/operation/FatturaDocumento/FatturaDocumento';
@@ -76,6 +77,7 @@ import GestioneDocumenti           from '../modules/operation/GestioneDocumenti/
 import ContiAperti                 from '../modules/operation/ContiAperti/ContiAperti';
 import MovimentiSoggiorno           from '../modules/operation/MovimentiSoggiorno/MovimentiSoggiorno';
 import ContiChiusi                 from '../modules/operation/ContiChiusi/ContiChiusi';
+import MovimentiAttesa             from '../modules/operation/MovimentiAttesa/MovimentiAttesa';
 import ContiPassanti               from '../modules/operation/ContiPassanti/ContiPassanti';
 import ScadenzeIncassi             from '../modules/operation/ScadenzeIncassi/ScadenzeIncassi';
 import NuovoContoPassante          from '../modules/operation/NuovoContoPassante/NuovoContoPassante';
@@ -377,6 +379,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'gest-documenti')        return <GestioneDocumenti navigate={navigate}/>;
   if (page === 'conti-aperti')          return <ContiAperti navigate={navigate}/>;
   if (page === 'movimenti-soggiorno')   return <MovimentiSoggiorno navigate={navigate}/>;
+  if (page === 'movimenti-attesa')      return <MovimentiAttesa navigate={navigate}/>;
   if (page === 'conti-chiusi')          return <ContiChiusi navigate={navigate}/>;
   if (page === 'scadenze-incassi')      return <ScadenzeIncassi navigate={navigate}/>;
   if (page === 'conti-passanti')        return <ContiPassanti navigate={navigate}/>;
@@ -421,6 +424,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'matchzone')             return <Matchzone navigate={navigate}/>;
   if (page === 'schedine')              return <SchedineAlloggiati navigate={navigate}/>;
   if (page === 'rilevamento-presenze')  return <RilevamentoPresenze navigate={navigate}/>;
+  if (page === 'analisi-occ')           return <AnalisiOccupazione navigate={navigate}/>;
   if (page === 'registro-presenze')     return <RegistroPresenze navigate={navigate}/>;
   if (page === 'movimenti-scorte')      return <CreaMagazzino navigate={navigate} key="movimenti-scorte"/>;
   if (page === 'crea-magazzino')        return <CreaMagazzino navigate={navigate} autoOpen key="crea-magazzino"/>;

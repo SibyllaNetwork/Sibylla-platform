@@ -70,7 +70,7 @@ interface Data { rows: Row[] }
 // anagrafici plausibili derivati dalla scheda (sempre uguali).
 const VIE = ['Via Roma', 'Corso Vittorio Emanuele', 'Via Garibaldi', 'Via Cavour', 'Lungomare Colombo', 'Piazza del Duomo']
 const righeDemo = (schede: SchedaDemo[]): Row[] => schede.map((x) => {
-  const ristorazione = x.camere === 0
+  const ristorazione = x.categoria === 'ristorante' || x.categoria === 'bar'
   const sigla = x.nome.split(/\s+/).filter((w) => /^[A-Z]/.test(w)).map((w) => w[0]).join('').slice(0, 3) || x.nome.slice(0, 2).toUpperCase()
   return {
     id: idStruttura(x.nome), struttura: x.nome,

@@ -35,6 +35,18 @@ const ETICHETTA: Record<string, string> = {
   appartamenti: 'Residence', studentato: 'Studentato',
 }
 
+/**
+ * Camere della demo: quelle della scheda; ristoranti e bar, che nella scheda ne
+ * hanno 0, ne ricevono alcune (una piccola locanda) perché sulla demo pubblica
+ * anche le pagine del front office devono mostrare una struttura in uso.
+ */
+export function camereDemo(categoria: string | undefined, camere: number | undefined): number | undefined {
+  if (camere && camere > 0) return camere
+  if (categoria === 'ristorante') return 10
+  if (categoria === 'bar') return 6
+  return camere
+}
+
 export function schedaDemo(nome: string): SchedaDemo {
   const seme = hashNome(nome)
   const id = nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-')
@@ -45,7 +57,7 @@ export function schedaDemo(nome: string): SchedaDemo {
       id, nome, seme, categoria: c.categoria, stelle,
       tipo: c.classificazione ? (c.categoria === 'hotel' && !/hotel|resort/i.test(c.classificazione) ? `Hotel ${c.classificazione}` : c.classificazione) : ETICHETTA[c.categoria] ?? c.categoria,
       citta: c.citta.replace(/\s*\(.*\)$/, ''),
-      camere: Number(c.camere) || 0,
+      camere: camereDemo(c.categoria, Number(c.camere) || 0) ?? 0,
     }
   }
   const resort = /resort/i.test(nome)
