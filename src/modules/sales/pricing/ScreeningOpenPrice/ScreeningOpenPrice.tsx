@@ -6,6 +6,7 @@ import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
 import './ScreeningOpenPrice.sass'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 const ROOMS = [
   {label:'Singola Classic',  base:153.68},{label:'Doppia Classic',   base:186.24},
@@ -59,7 +60,7 @@ const genData = (struttura:string, from:string, to:string) => {
 }
 
 export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=>void }) {
-  const [struttura,  setStruttura]  = useState('Hotel Siracusa')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [inputFrom,  setInputFrom]  = useState('2026-04-07')
   const [inputTo,    setInputTo]    = useState('2026-05-07')
   const [loading,    setLoading]    = useState(false)
@@ -126,7 +127,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=
             label="Struttura"
             value={struttura}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-            options={['Hotel Siracusa','Hotel Noto','Grand Hotel Roma'].map(s => ({ value: s, label: s }))}
+            options={opzioniStrutture}
             className="screening__select--struttura"
           />
           <DateRangeField

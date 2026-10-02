@@ -8,6 +8,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import { CheckboxField, DatePickerField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../GrigliaDisponibilita/exportGriglia'
 import './TableauPage.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 const MONTHS    = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const ALLOTMENT = 25
@@ -53,7 +54,7 @@ export default function TableauPage({
   const today = new Date()
   const [anno,            setAnno]            = useState(today.getFullYear())
   const [mese,            setMese]            = useState(today.getMonth())
-  const [struttura,       setStruttura]       = useState('Hotel Archimede')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [categoria,       setCategoria]       = useState('')
   const [contratto,       setContratto]       = useState('RaeliHotels')
   const [azienda,         setAzienda]         = useState('Tutte')
@@ -286,7 +287,7 @@ export default function TableauPage({
         <div className="flex flex-col gap-1">
           <span className="text-[12px] font-semibold font-poppins text-primary">Struttura</span>
           <select className="sib-select sib-select--dense w-[148px]" value={struttura} onChange={e=>setStruttura(e.target.value)}>
-            {['Hotel Archimede','Hotel Noto','Grand Hotel Roma'].map(s=><option key={s}>{s}</option>)}
+            {opzioniStrutture.map(o=><option key={o.value}>{o.label}</option>)}
           </select>
         </div>
 

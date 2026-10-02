@@ -63,16 +63,18 @@ for (const cat of SERVICE_CATEGORIES) for (const sub of cat.subs) SUB_INDEX[sub.
 
 // Prenotazioni del TO disponibili (dal planner), deduplicate per booking.
 interface BookingOpt { booking: string; nominativo: string; checkIn: string; checkOut: string; numeroCamera: string }
-const TO_BOOKINGS: BookingOpt[] = (() => {
+// Funzione: le prenotazioni sono quelle della struttura selezionata (i gruppi
+// dei tour operator nel gestionale demo).
+const toBookings = (): BookingOpt[] => {
   const seen = new Set<string>()
   const out: BookingOpt[] = []
   for (const p of PRENS) {
-    if (p.nominativo !== 'Tour Operator Test' || seen.has(p.booking)) continue
+    if ((p.nominativo !== 'Tour Operator Test' && p.segmento !== 'Gruppi') || seen.has(p.booking)) continue
     seen.add(p.booking)
     out.push({ booking: p.booking, nominativo: p.cliente || p.nominativo, checkIn: p.checkIn, checkOut: p.checkOut, numeroCamera: p.numeroCamera })
   }
   return out
-})()
+}
 
 const CITTA = ['Roma', 'Milano', 'Firenze', 'Venezia']
 
@@ -99,7 +101,7 @@ export default function RichiesteOperative({ navigate }: { navigate: (p: string)
   const [inviata, setInviata] = useState(false)
   const [errore, setErrore] = useState('')
 
-  const bookingSel = TO_BOOKINGS.find((b) => b.booking === bookingId) || null
+  const bookingSel = toBookings().find((b) => b.booking === bookingId) || null
 
   const serviziScelti: ServizioSel[] = useMemo(
     () =>
@@ -124,7 +126,7 @@ export default function RichiesteOperative({ navigate }: { navigate: (p: string)
   const handleBooking = (v: string) => {
     setBookingId(v)
     setInviata(false)
-    const b = TO_BOOKINGS.find((x) => x.booking === v)
+    const b = toBookings().find((x) => x.booking === v)
     if (b) { setDal(b.checkIn); setAl(b.checkOut) }
   }
 
@@ -197,7 +199,7 @@ export default function RichiesteOperative({ navigate }: { navigate: (p: string)
               name="prenotazione"
               placeholder="Seleziona prenotazione"
               value={bookingId}
-              options={TO_BOOKINGS.map((b) => ({
+              options={toBookings().map((b) => ({
                 value: b.booking,
                 label: `#${b.booking} · ${b.nominativo} · ${fmtShort(b.checkIn)}→${fmtShort(b.checkOut)}`,
               }))}

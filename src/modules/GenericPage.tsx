@@ -1,11 +1,13 @@
 import React from 'react';
 import T from '../core/tokens';
 import { subtitleForPage } from '../navigation/pageSubtitles';
+import { useStrutturaCorrente } from '../hooks/useStrutturaCorrente';
 import './GenericPage.sass';
 
 export default function GenericPage({item,page,modColor,navigate}:any) {
   const label=item?.label??page;
-  const subtitle = subtitleForPage(page) ?? 'Hotel Noto — Sibylla Platform';
+  const { struttura } = useStrutturaCorrente();
+  const subtitle = subtitleForPage(page) ?? `${struttura} — Sibylla Platform`;
   const modVars = { '--mod-color': modColor || T.blue } as React.CSSProperties;
   return (
     <div>

@@ -45,7 +45,8 @@ const TIPI_CAMERA  = [
   { v: '56', l: '56 | Singola' },
 ]
 // Lista camere della struttura (numeri) derivata dai piani del planner
-const CAMERE = PIANI_DATA.flatMap(p => p.camere.map(c => c.numero))
+// Funzione: le camere sono quelle della struttura selezionata.
+const camere = () => PIANI_DATA.flatMap(p => p.camere.map(c => c.numero))
 // Tipologie camera (per la gestione segmenti)
 const TIPOLOGIE_CAMERA = ['Doppia Classic','Doppia Superior','Singola Classic','Tripla Classic','Matrimoniale','Suite']
 
@@ -845,7 +846,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                                 onChange={e=>chooseRoomInd(i, e.target.value, c.nCamera)}
                               >
                                 <option value="">—</option>
-                                {CAMERE.map(n => (
+                                {camere().map(n => (
                                   <option key={n} value={n}>
                                     {n}{bloccoPerCameraPeriodo(blocchiFantasma, n, c.dataIn || form.dal, c.dataOut || form.al) ? ' 👻' : ''}
                                   </option>
@@ -1312,7 +1313,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
   }
 
   function renderSegmentiWidget() {
-    const cameraOpts = Array.from(new Set([...CAMERE, ...segmenti.map(s => s.nCamera).filter(Boolean)]))
+    const cameraOpts = Array.from(new Set([...camere(), ...segmenti.map(s => s.nCamera).filter(Boolean)]))
     const base = segmenti[0]
     return (
       <Widget
@@ -1423,7 +1424,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                 <td>
                   <select className="sib-input np-cell-input" value={o.nCamera} onChange={e=>updOspite(i,{nCamera:e.target.value})}>
                     <option value="">—</option>
-                    {CAMERE.map(n => <option key={n} value={n}>{n}</option>)}
+                    {camere().map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                 </td>
                 <td><input type="date" className="sib-input np-cell-input" value={o.dataArrivo} onChange={e=>updOspite(i,{dataArrivo:e.target.value})}/></td>
@@ -2118,7 +2119,7 @@ export default function NuovaPrenotazione({ navigate }: { navigate: (p:string)=>
                               onChange={e=>updDettaglioGr(i, k, { numero: e.target.value })}
                             >
                               <option value="">—</option>
-                              {CAMERE.map(nr => (
+                              {camere().map(nr => (
                                 <option key={nr} value={nr}>
                                   {nr}{bloccoPerCameraPeriodo(blocchiFantasma, nr, d.dataIn, d.dataOut) ? ' 👻' : ''}
                                 </option>

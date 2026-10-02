@@ -6,13 +6,13 @@ import Modal from '../../../../core/components/Modal'
 import { useAccessStore } from '../../../../store/useAccessStore'
 import PianificazioneAnnualeTO from './PianificazioneAnnualeTO'
 import './CalendarioAnnuale.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const MONTH_ABBR  = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC']
 const WD_ABBR     = ['DOM','LUN','MAR','MER','GIO','VEN','SAB']
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
-const STRUTTURE = ["Grim's Hotel", 'Hotel Noto', 'Grand Hotel Roma', 'Villa Bellini']
 const LISTINI = ['Listino diretto', 'Listino OTA', 'Listino corporate', 'Listino agenzie']
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -62,7 +62,7 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
   const initYear = new Date(initRange.from).getFullYear()
   const [dateFrom, setDateFrom] = useState(initRange.from)
   const [dateTo,   setDateTo]   = useState(initRange.to)
-  const [struttura, setStruttura] = useState(STRUTTURE[0])
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tipo, setTipo] = useState<Tipo>('bar')
   const [listino, setListino] = useState('')
   const [bars, setBars] = useState<Rate[]>(BAR_INIT)
@@ -145,7 +145,7 @@ export default function CalendarioAnnuale({ navigate }: { navigate: (p: string) 
         <SelectField
           name="struttura" label="Struttura" value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="ca__filter-struttura"
         />
         <RadioGroup

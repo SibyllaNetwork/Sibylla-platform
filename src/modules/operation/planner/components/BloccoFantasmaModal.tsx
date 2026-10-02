@@ -11,8 +11,9 @@ import { PIANI_DATA } from '../planner.data'
 import type { BloccoFantasma, NuovoBloccoInput } from '../../../../store/useBlocchiFantasmaStore'
 
 const cleanTipo = (t: string) => t.replace(/\s*\(.*\)\s*$/, '')
-const ROOMS = PIANI_DATA.flatMap((p) => p.camere.map((c) => ({ numero: c.numero, tipo: c.tipo })))
-const ROOM_OPTS = ROOMS.map((r) => ({ value: r.numero, label: `${r.numero} - ${cleanTipo(r.tipo)}` }))
+// Funzioni e non costanti: le camere sono quelle della struttura selezionata.
+const rooms = () => PIANI_DATA.flatMap((p) => p.camere.map((c) => ({ numero: c.numero, tipo: c.tipo })))
+const roomOpts = () => rooms().map((r) => ({ value: r.numero, label: `${r.numero} - ${cleanTipo(r.tipo)}` }))
 
 interface Props {
   open: boolean
@@ -45,7 +46,7 @@ const BloccoFantasmaModal: React.FC<Props> = ({ open, onClose, initial, editing,
 
   const handleSave = () => {
     if (!canSave) return
-    const tipo = ROOMS.find((r) => r.numero === camera)?.tipo
+    const tipo = rooms().find((r) => r.numero === camera)?.tipo
     onSave({ numeroCamera: camera, camTipo: tipo, dalISO: dal, alISO: al, motivazione: motivazione.trim() })
     onClose()
   }
@@ -76,7 +77,7 @@ const BloccoFantasmaModal: React.FC<Props> = ({ open, onClose, initial, editing,
           name="bfm-camera" label="Camera"
           value={camera}
           onChange={(e) => setCamera(e.target.value)}
-          options={ROOM_OPTS}
+          options={roomOpts()}
         />
         <TextareaField
           name="bfm-motivazione" label="Motivazione" required rows={2}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CLIENTS_INIT } from '../admin/SibyllaAdminPanel/constants'
 import { useOrgStore } from '../store/useOrgStore'
 import { useAccessStore, profiloDellaStruttura } from '../store/useAccessStore'
@@ -37,7 +37,24 @@ export function useStrutturaCorrente() {
     // ricordata potrebbe essere di un cliente assistito in precedenza).
     : profilo?.cliente ?? (struttureOrg.includes(activeStruttura) ? activeStruttura : struttureOrg[0] ?? activeStruttura)
 
-  return { struttura, profilo, assistStrutture }
+  // Strutture tra cui si può scegliere: quelle del cliente assistito, quella del
+  // profilo caricato, altrimenti quelle dell'organizzazione.
+  const elenco = assist ? assistStrutture : profilo?.cliente ? [profilo.cliente] : struttureOrg
+
+  return { struttura, profilo, assistStrutture, elenco }
+}
+
+/**
+ * Per i menu "Struttura" delle pagine: stato locale che parte dalla struttura
+ * selezionata in alto (e la segue quando cambia), con le opzioni delle sole
+ * strutture del cliente corrente.
+ */
+export function useStrutturaPagina() {
+  const { struttura, elenco } = useStrutturaCorrente()
+  const [sel, setSel] = useState(struttura)
+  useEffect(() => { setSel(struttura) }, [struttura])
+  const opzioni = useMemo(() => elenco.map(s => ({ value: s, label: s })), [elenco])
+  return [sel, setSel, opzioni, elenco] as const
 }
 
 /** Scheda anagrafica della struttura (se è fra i clienti configurati). */

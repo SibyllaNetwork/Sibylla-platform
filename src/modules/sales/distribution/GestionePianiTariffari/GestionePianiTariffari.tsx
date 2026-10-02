@@ -6,6 +6,7 @@ import PageHead from '../../../../core/components/PageHead'
 import FormActions from '../../../../core/components/FormActions'
 import { InputField, SelectField, DatePickerField, CheckboxField } from '../../../../core/components/form'
 import './GestionePianiTariffari.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 type Sezione = 'BAR' | 'FIT' | 'Gruppi'
 type Piano = {
@@ -63,7 +64,7 @@ const emptyForm = () => ({
 })
 
 export default function GestionePianiTariffari({ navigate }: { navigate: (p: string) => void }) {
-  const [struttura, setStruttura] = useState("Grim's Hotel")
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [piani, setPiani] = useState<Record<Sezione, Piano[]>>(SEED)
   const [expanded, setExpanded] = useState<Set<Sezione>>(new Set<Sezione>(['BAR', 'FIT', 'Gruppi']))
   const [board, setBoard] = useState<Record<Sezione, string>>({ BAR: 'BB', FIT: 'BB', Gruppi: 'BB' })
@@ -144,7 +145,7 @@ export default function GestionePianiTariffari({ navigate }: { navigate: (p: str
         <SelectField
           name="struttura" label="Strutture" value={struttura}
           onChange={e => setStruttura(e.target.value)}
-          options={["Grim's Hotel", 'Hotel Noto', 'Grand Hotel Roma', 'Villa Bellini'].map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="piani__struttura"
         />
         <div className="piani__toolbar-spacer" aria-hidden="true" />

@@ -1,9 +1,10 @@
 // ─── usePlannerState ──────────────────────────────────────────────────────────
 // Hook che centralizza tutto lo stato della pagina Planner
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Pren, Camera } from '../planner.types';
-import { PRENS, parseDt, addDays } from '../planner.data';
+import { PRENS, STRUTTURE, parseDt, addDays } from '../planner.data';
+import { usePmsStore } from '../../_data/pmsDemo';
 import { bookingStore } from '../../../../core/bookingStore';
 import {
   useBlocchiFantasmaStore,
@@ -17,9 +18,10 @@ const isoDate = (d: Date): string =>
 export function usePlannerState(navigate: (page: string) => void) {
 
   // ── Filtri ───────────────────────────────────────────────────────────────────
-  const [struttura,    setStruttura]    = useState('Hotel Tutorial');
+  const [struttura,    setStruttura]    = useState(STRUTTURE[0]);
   const [cerca,        setCerca]        = useState('');
-  const [startDateStr, setStartDateStr] = useState('2026-04-13');
+  // La timeline parte da due giorni fa: si vedono chi è in casa e chi arriva.
+  const [startDateStr, setStartDateStr] = useState(() => isoDate(addDays(new Date(), -2)));
   const [intervallo,   setIntervallo]   = useState(10);
   const [activePiani,  setActivePiani]  = useState<number[]>([]);
   const [filtroConf,   setFiltroConf]   = useState(true);
@@ -33,6 +35,12 @@ export function usePlannerState(navigate: (page: string) => void) {
 
   // ── Prenotazioni (mutabili) + Parcheggio ──────────────────────────────────────
   const [prens,          setPrens]          = useState<Pren[]>(PRENS);
+  // Cambiata la struttura selezionata in alto: camere e prenotazioni sono le sue.
+  const versionePms = usePmsStore((s) => s.versione);
+  useEffect(() => {
+    setPrens(PRENS);
+    setStruttura(STRUTTURE[0]);
+  }, [versionePms]);
   const [parkedIds,      setParkedIds]      = useState<string[]>([]);
   const [showParcheggio, setShowParcheggio] = useState(false);
   const [showRiepilogo,  setShowRiepilogo]  = useState(false);

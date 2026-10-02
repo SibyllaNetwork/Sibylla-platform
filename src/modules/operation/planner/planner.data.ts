@@ -4,7 +4,7 @@
 import { Piano, Pren, PrenPendente } from './planner.types';
 
 // ── Strutture disponibili ──────────────────────────────────────────────────────
-export const STRUTTURE = [
+export let STRUTTURE = [
   'Hotel Tutorial',
   'Hotel Sibylla Roma',
   'Hotel Sibylla Milano',
@@ -14,7 +14,7 @@ export const STRUTTURE = [
 export const MO = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 
 // ── Piani e camere ─────────────────────────────────────────────────────────────
-export const PIANI_DATA: Piano[] = [
+export let PIANI_DATA: Piano[] = [
   { id: 0, nome: 'Piano Terra', camere: [
     { numero: '1', tipo: 'MAT + X (Tripla Classic)', stato: 'occupata' },
   ]},
@@ -50,7 +50,7 @@ export const PIANI_DATA: Piano[] = [
 ];
 
 // ── Prenotazioni mock ──────────────────────────────────────────────────────────
-export const PRENS: Pren[] = [
+export let PRENS: Pren[] = [
   { id:'p1',  booking:'15080', nominativo:'Tour Operator Test', checkIn:'2026-04-13', checkOut:'2026-04-14', stato:'opzione',    numeroCamera:'1',   agenzia:'Tui Italia', segmento:'Gruppi', roomingList:true,
     cliente:'Mario Giordani', statoCheckIn:'In attesa', persone:112, adulti:0, bambini:0, neonati:0, animali:0, camere:57, arrangiamento:'RO',
     dettaglioCamere:[
@@ -82,13 +82,27 @@ export const PRENS: Pren[] = [
 ];
 
 // ── Prenotazioni pendenti ──────────────────────────────────────────────────────
-export const PENDING_DA: PrenPendente[] = [
+export let PENDING_DA: PrenPendente[] = [
   { booking:'15080', nominativo:'supertest', checkIn:'2026-05-22', checkOut:'2026-05-26', agenzia:'Sibylla', segmento:'Gruppi', tipo:'assegnare' },
 ];
 
-export const PENDING_AL: PrenPendente[] = [
+export let PENDING_AL: PrenPendente[] = [
   { booking:'15080', nominativo:'supertest', checkIn:'2026-05-22', checkOut:'2026-05-26', agenzia:'Sibylla', segmento:'Gruppi', tipo:'allocare' },
 ];
+
+// ── Struttura selezionata ──────────────────────────────────────────────────────
+// I dati sopra sono l'esempio di partenza: il gestionale demo (_data/pmsDemo)
+// li sostituisce con quelli della struttura selezionata in alto. Esportati come
+// `let`, chi li importa legge sempre quelli correnti.
+export function impostaDatiPlanner(d: {
+  strutture: string[]; piani: Piano[]; prens: Pren[]; pendingDa: PrenPendente[]; pendingAl: PrenPendente[]
+}) {
+  STRUTTURE = d.strutture
+  PIANI_DATA = d.piani
+  PRENS = d.prens
+  PENDING_DA = d.pendingDa
+  PENDING_AL = d.pendingAl
+}
 
 // ── Helper functions ───────────────────────────────────────────────────────────
 export const parseDt = (s: string): Date => {

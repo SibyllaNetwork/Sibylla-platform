@@ -17,6 +17,7 @@ import { useNavGuard } from './store/useNavGuard'
 import { useNavBack } from './store/useNavBack'
 import { useLoadStrutture } from './hooks/useLoadStrutture'
 import { useFbStrutturaSync } from './hooks/useFbStrutturaSync'
+import { useStrutturaCorrente } from './hooks/useStrutturaCorrente'
 import T from './core/tokens'
 import Ico from './core/icons/Ico'
 
@@ -58,6 +59,7 @@ function ContextMenu({ x, y, pageId, label, favorites, onToggle, onClose }: {
 function AvatarMenu({ navigate }: { navigate: (p: string) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const { struttura } = useStrutturaCorrente()
 
   useEffect(() => {
     const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
@@ -81,7 +83,7 @@ function AvatarMenu({ navigate }: { navigate: (p: string) => void }) {
         <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 200, background: T.white, borderRadius: 12, boxShadow: '0 8px 32px rgba(32,71,105,0.15)', border: `1px solid ${T.border}`, overflow: 'hidden', zIndex: 50 }}>
           <div style={{ padding: '10px 14px', borderBottom: `1px solid ${T.border}` }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: T.primary }}>Luca H.</div>
-            <div style={{ fontSize: 11, color: T.textDisabled }}>Hotel Noto</div>
+            <div style={{ fontSize: 11, color: T.textDisabled }}>{struttura}</div>
           </div>
           {[
             { icon: 'user', label: 'Il mio profilo', page: 'modifica-profilo', danger: false },

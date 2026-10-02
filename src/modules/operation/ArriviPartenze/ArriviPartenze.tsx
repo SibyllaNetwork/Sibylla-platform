@@ -8,6 +8,7 @@ import Modal from '../../../core/components/Modal'
 import { Pagination } from '../../../core/components'
 import { DateRangeField, InputField, SelectField, CheckboxField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
+import { arriviPartenzeDemo, usePmsStore } from '../_data/pmsDemo'
 import { exportTableToXls, exportElementToPdf } from '../../sales/booking/GrigliaDisponibilita/exportGriglia'
 import 'react-day-picker/dist/style.css'
 import './ArriviPartenze.sass'
@@ -60,6 +61,8 @@ interface Data {
   inPartenza: Partenza[]
 }
 
+// Esempio della forma dei dati restituiti dal backend (non più usato a runtime).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FALLBACK: Data = {
   Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
   StrutturaId: 1,
@@ -233,7 +236,10 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
   const [tab, setTab] = useState<'arrivi' | 'partenze'>('arrivi')
   const [pageArr, setPageArr] = useState(1)
   const [pagePart, setPagePart] = useState(1)
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Senza backend del front office: i dati del gestionale demo della struttura
+  // selezionata in alto (FALLBACK resta come esempio di forma dei dati).
+  const [data, setData] = useState<Data>(() => arriviPartenzeDemo(todayISO(), todayISO()) as Data)
+  const versionePms = usePmsStore(s => s.versione)
   const [searchArr, setSearchArr] = useState('')
   const [searchPart, setSearchPart] = useState('')
   const [dataDa, setDataDa] = useState(today)
@@ -314,10 +320,10 @@ export default function ArriviPartenze({ navigate }: { navigate: (p: string) => 
       body: { strutturaId: data.StrutturaId, da: dataDa, a: dataA },
     })
       .then((d) => { if (!cancelled) setData(d) })
-      .catch(() => { /* keep fallback */ })
+      .catch(() => { if (!cancelled) setData(arriviPartenzeDemo(dataDa, dataA || dataDa) as Data) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDa, dataA, data.StrutturaId])
+  }, [dataDa, dataA, data.StrutturaId, versionePms])
 
   const arrivi = useMemo(() => {
     let rows = data.inArrivo

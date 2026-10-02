@@ -4,6 +4,7 @@ import Modal from '../../../../core/components/Modal'
 import PageHead from '../../../../core/components/PageHead'
 import { InputField, SelectField } from '../../../../core/components/form'
 import './PricingBenchmark.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 const MCOLS  = ['#5C9CD4','#E74C3C','#5A8A3C','#C4A820','#9B59B6','#E07B39','#204769']
 const HOTELS = [
@@ -33,7 +34,7 @@ const Stars = ({rating}:{rating:number|null}) => {
 export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>void }) {
   const [capSearch,    setCapSearch]    = useState('00100 Roma, RM, Ital')
   const [paese,        setPaese]        = useState('Italia')
-  const [struttura,    setStruttura]    = useState('ciao')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [activeView,   setActiveView]   = useState<'brand'|'pricing'>('pricing')
   const [activePeriod, setActivePeriod] = useState<30|60|90>(30)
   const [monitoring,   setMonitoring]   = useState(['Hotel Elyse','Hotel Felice','Ritmo Blues B&B','Città Eterna guesthouse','Hotel Viennese'])
@@ -86,7 +87,7 @@ export default function PricingBenchmark({ navigate }: { navigate: (p:string)=>v
         <div className="benchmark__filters-left">
           <InputField name="capSearch" label="Trova hotel:" value={capSearch} onChange={e=>setCapSearch(e.target.value)} placeholder="CAP o indirizzo..." className="benchmark__search-input"/>
           <SelectField name="paese" label="Paese" value={paese} onChange={e=>setPaese(e.target.value)} options={['Italia','Francia','Spagna','Germania'].map(p=>({value:p,label:p}))} className="benchmark__select--paese"/>
-          <SelectField name="struttura" label="Strutture" value={struttura} onChange={e=>setStruttura(e.target.value)} options={['ciao','Hotel Noto','Grand Hotel Roma'].map(s=>({value:s,label:s}))} className="benchmark__select--struttura"/>
+          <SelectField name="struttura" label="Strutture" value={struttura} onChange={e=>setStruttura(e.target.value)} options={opzioniStrutture} className="benchmark__select--struttura"/>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-[12px] font-semibold font-poppins text-primary">&nbsp;</span>

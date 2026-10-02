@@ -36,7 +36,8 @@ interface PanelCard { id: string; title: string; icon?: string; body: React.Reac
 
 // Camere/soggiorni "in casa" (ospiti con check-in effettuato): sorgente per
 // l'addebito del conto alla camera. Derivate dai dati Planner, deduplicate.
-const CAMERE_IN_CASA: { numero: string; ospite: string }[] = (() => {
+// Funzione: si rilegge dalle prenotazioni della struttura selezionata.
+const camereInCasa = (): { numero: string; ospite: string }[] => {
   const seen = new Set<string>();
   const out: { numero: string; ospite: string }[] = [];
   PRENS.filter(p => p.stato === 'checkin' || p.stato === 'checkin_p').forEach(p => {
@@ -45,7 +46,7 @@ const CAMERE_IN_CASA: { numero: string; ospite: string }[] = (() => {
     out.push({ numero: p.numeroCamera, ospite: p.cliente || p.nominativo });
   });
   return out.sort((a, b) => (parseInt(a.numero, 10) || 0) - (parseInt(b.numero, 10) || 0));
-})();
+};
 
 const CELL = 40;
 const SEAT_GAP = 7;   // distanza sedia dal bordo tavolo (px)
@@ -1319,7 +1320,7 @@ const ServicePanel: React.FC<{
 
   const linkCamera = (numero: string) => {
     if (!numero) { upP({ camera: undefined, cameraOspite: undefined }); return; }
-    const c = CAMERE_IN_CASA.find(x => x.numero === numero);
+    const c = camereInCasa().find(x => x.numero === numero);
     upP({ camera: numero, cameraOspite: c?.ospite });
   };
 
@@ -1391,7 +1392,7 @@ const ServicePanel: React.FC<{
         <>
           <SelectField name="tav-camera" label="Collega camera / soggiorno" value={p.camera ?? ''}
             onChange={e => linkCamera(e.target.value)}
-            options={[{ value: '', label: '— pagamento diretto —' }, ...CAMERE_IN_CASA.map(c => ({ value: c.numero, label: `Camera ${c.numero} · ${c.ospite}` }))]} />
+            options={[{ value: '', label: '— pagamento diretto —' }, ...camereInCasa().map(c => ({ value: c.numero, label: `Camera ${c.numero} · ${c.ospite}` }))]} />
           {p.camera ? (
             <div className="sale__room-link">
               <i className="fa-solid fa-receipt" /> Conto ed extra addebitati alla <b>camera {p.camera}</b>{p.cameraOspite ? ` · ${p.cameraOspite}` : ''}.

@@ -5,6 +5,7 @@ import Modal from '../../../core/components/Modal'
 import { DatePickerField, DateRangeField, InputField, SelectField } from '../../../core/components/form'
 import { apiFetchSibylla } from '../../../services/api'
 import './RegistroPresenze.sass'
+import { useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
 /**
  * Registro presenze — replica `Views/Impostazioni/Presenze.cshtml`.
@@ -135,7 +136,7 @@ function segmentiGiorno(dipId: number, d: Date): SegmentoPresenza[] {
 export default function RegistroPresenze({ navigate }: { navigate: (p: string) => void }) {
   const today = new Date()
   const [date, setDate] = useState<Date>(today)
-  const [struttura, setStruttura] = useState('Hotel Tutorial')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [reparto, setReparto] = useState('Tutti i reparti')
   const [search, setSearch] = useState('')
   const [items, setItems] = useState<DipendenteRow[]>(FALLBACK)
@@ -246,7 +247,7 @@ export default function RegistroPresenze({ navigate }: { navigate: (p: string) =
       <div className="flex items-end gap-3 flex-wrap mb-6">
         <DatePickerField name="data" label="Data" value={dataIso} onChange={(e) => setDate(new Date(e.target.value))} />
         <SelectField name="struttura" label="Struttura" value={struttura} onChange={(e) => setStruttura(e.target.value)}
-          options={[{ value: 'Hotel Tutorial', label: 'Hotel Tutorial' }, { value: 'Hotel Noto', label: 'Hotel Noto' }]} />
+          options={opzioniStrutture} />
         <SelectField name="reparto" label="Reparto" value={reparto} onChange={(e) => setReparto(e.target.value)}
           options={[{ value: 'Tutti i reparti', label: 'Tutti i reparti' }, ...reparti.map((r) => ({ value: r, label: r }))]} />
         <InputField name="ricerca" label="Cerca" placeholder="Cerca" value={search} onChange={(e) => setSearch(e.target.value)} />

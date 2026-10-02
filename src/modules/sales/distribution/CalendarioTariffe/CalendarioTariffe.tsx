@@ -3,8 +3,8 @@ import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHead from '../../../../core/components/PageHead'
 import './CalendarioTariffe.sass'
 import { SelectField, DateRangeField } from '../../../../core/components/form'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
-const STRUTTURE  = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Hotel Siracusa']
 const MONTHS_IT  = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAYS_IT    = ['lun','mar','mer','gio','ven','sab','dom']
 // Il colore del tipo camera arriva dagli slot categoriali della piattaforma
@@ -33,7 +33,7 @@ const fmt      = (d:Date) => d.toISOString().split('T')[0]
 
 export default function CalendarioTariffe({ navigate }: { navigate: (p:string) => void }) {
   const today = new Date()
-  const [struttura, setStruttura] = useState('Hotel Noto')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [dateFrom,  setDateFrom]  = useState(fmt(today))
   const [dateTo,    setDateTo]    = useState(() => { const d=new Date(); d.setMonth(d.getMonth()+3); return fmt(d) })
   const [selCam,    setSelCam]    = useState('doppia')
@@ -89,7 +89,7 @@ export default function CalendarioTariffe({ navigate }: { navigate: (p:string) =
           label="Struttura"
           value={struttura}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-          options={STRUTTURE.map(s => ({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="cal-tariffe__select--struttura"
         />
         <DateRangeField

@@ -5,8 +5,8 @@ import AlertBanner from '../../../../core/components/AlertBanner'
 import PageHead from '../../../../core/components/PageHead'
 import { SelectField, RadioGroup } from '../../../../core/components/form'
 import './ForesightRevenue.sass'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
-const STRUTTURE    = ['Hotel Noto','Grand Hotel Roma','Villa Bellini','Hotel Siracusa']
 const BARS         = ['Seleziona','BAR 1','BAR 2','BAR 3','BAR 4','BAR 5']
 const MONTHS_IT    = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC']
 const MONTHS_FULL  = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -33,7 +33,7 @@ const circleColor = (price:number) => {
 export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>void }) {
   const [dateFrom,         setDateFrom]         = useState('2026-04-01')
   const [dateTo,           setDateTo]           = useState('2028-03-31')
-  const [struttura,        setStruttura]        = useState('Hotel Noto')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tipoBar,          setTipoBar]          = useState<'bar'|'fit'>('bar')
   const [barSel,           setBarSel]           = useState('Seleziona')
   const [saved,            setSaved]            = useState(false)
@@ -77,7 +77,7 @@ export default function ForesightRevenue({ navigate }: { navigate: (p:string)=>v
         <SelectField
           name="struttura" label="Struttura" value={struttura}
           onChange={e=>setStruttura(e.target.value)}
-          options={STRUTTURE.map(s=>({ value: s, label: s }))}
+          options={opzioniStrutture}
           className="foresight__select--struttura"
         />
         <RadioGroup

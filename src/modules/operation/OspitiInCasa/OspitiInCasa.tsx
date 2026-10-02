@@ -4,6 +4,7 @@ import Pagination from '../../../core/components/Pagination'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import { apiFetchSibylla } from '../../../services/api'
+import { ospitiInCasaDemo, usePmsStore } from '../_data/pmsDemo'
 import { DateRangeField, SelectField, RadioGroup, DatePickerField } from '../../../core/components/form'
 import { withFlag } from '../../../core/utils/countryFlags'
 import { toast } from '../../../core/components/Toast/useToast'
@@ -13,6 +14,12 @@ import CheckoutCityTaxModal from './CheckoutCityTaxModal'
 import './OspitiInCasa.sass'
 
 const PAGE_SIZE = 10
+
+/** Oggi in yyyy-MM-dd (data locale). */
+const todayDemo = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -50,6 +57,8 @@ interface Data {
   ospitiScaduti: OspiteScaduto[]
 }
 
+// Esempio della forma dei dati restituiti dal backend (non più usato a runtime).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FALLBACK: Data = {
   Strutture: [{ Id: 1, nome: 'Hotel Tutorial' }],
   StrutturaId: 1,
@@ -129,12 +138,15 @@ const nottiSoggiorno = (arrivo: string, partenza: string): string[] => {
 }
 
 export default function OspitiInCasa({ navigate }: { navigate: (p: string) => void }) {
-  const [data, setData] = useState<Data>(FALLBACK)
+  // Senza backend del front office: gli ospiti della struttura selezionata in
+  // alto (FALLBACK resta come esempio di forma dei dati).
+  const [data, setData] = useState<Data>(() => ospitiInCasaDemo(todayDemo(), todayDemo()))
+  const versionePms = usePmsStore(s => s.versione)
   const [search, setSearch] = useState('')
-  const [dataDa, setDataDa] = useState('2026-04-23')
-  const [dataA, setDataA] = useState('2026-04-30')
+  const [dataDa, setDataDa] = useState(todayDemo)
+  const [dataA, setDataA] = useState(todayDemo)
   const [showAvviso, setShowAvviso] = useState(true)
-  const [scaduti, setScaduti] = useState<OspiteScaduto[]>(FALLBACK.ospitiScaduti)
+  const [scaduti, setScaduti] = useState<OspiteScaduto[]>(() => data.ospitiScaduti)
   const [anagrafica, setAnagrafica] = useState<Ospite | null>(null)
   const [page, setPage] = useState(1)
 
@@ -193,10 +205,16 @@ export default function OspitiInCasa({ navigate }: { navigate: (p: string) => vo
         setData(d)
         setScaduti(d.ospitiScaduti || [])
       })
-      .catch(() => { /* keep fallback */ })
+      .catch(() => {
+        // Senza backend del front office: gli ospiti della struttura selezionata.
+        if (cancelled) return
+        const demo = ospitiInCasaDemo(dataDa || todayDemo(), dataA || dataDa || todayDemo())
+        setData(demo)
+        setScaduti(demo.ospitiScaduti)
+      })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDa, dataA, data.StrutturaId])
+  }, [dataDa, dataA, data.StrutturaId, versionePms])
 
   const fasceEtaDistinct     = useMemo(() => Array.from(new Set(data.ospiti.map((r) => r.fasciaEta))).sort(),     [data.ospiti])
   const arrangiamentiDistinct = useMemo(() => Array.from(new Set(data.ospiti.map((r) => r.arrangiamento))).sort(), [data.ospiti])

@@ -8,6 +8,7 @@ import './ModificaStrategia.sass'
 import FormActions from '../../../../core/components/FormActions'
 import Tooltip from '../../../../core/components/Tooltip'
 import { InputField, SelectField } from '../../../../core/components/form'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 const ROWS   = [{top:'200 %',bot:'100 %'},{top:'99 %',bot:'96 %'},{top:'95 %',bot:'91 %'},{top:'90 %',bot:'86 %'},{top:'85 %',bot:'81 %'},{top:'80 %',bot:'76 %'},{top:'75 %',bot:'0 %'}]
 const COLS   = ['0 – 7 Giorni','8 – 21 Giorni','22 – 45 Giorni','46 – 90 Giorni','91 – 365 Giorni']
@@ -38,7 +39,7 @@ const RAIL_ROW_H = 30
 export default function ModificaStrategia({ navigate }: { navigate: (p:string) => void }) {
   const [selectedId,      setSelectedId]      = useState(1)
   const [categoria,       setCategoria]       = useState('-')
-  const [struttura,       setStruttura]       = useState('Hotel Noto')
+  const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [tipoFilter,      setTipoFilter]      = useState('Tutti')
   const [coloreFilter,    setColoreFilter]    = useState('')
   const [ricerca,         setRicerca]         = useState('')
@@ -205,7 +206,7 @@ export default function ModificaStrategia({ navigate }: { navigate: (p:string) =
               label="Struttura"
               value={struttura}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-              options={['Hotel Noto','Grand Hotel Roma','Villa Bellini','Terrazza sul Mare'].map(o => ({ value: o, label: o }))}
+              options={opzioniStrutture}
               className="strat__tb-field strat__tb-field--struttura"
             />
             <div className="strat__tb-field strat__tb-field--nome">

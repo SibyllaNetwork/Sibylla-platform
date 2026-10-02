@@ -9,12 +9,12 @@ import { Pren } from './planner.types';
 import { DAY_W } from './planner.styles';
 import { parseDt, addDays, diffDays, PRENS } from './planner.data';
 
-// Colori demo desaturati, ciclati in modo STABILE per id (ordine di PRENS), così
-// timeline e parcheggio mostrano lo stesso colore per la stessa prenotazione.
+// Colori demo desaturati, ciclati in modo STABILE per id (ordine di PRENS, letto
+// a ogni chiamata: cambia con la struttura), così timeline e parcheggio
+// mostrano lo stesso colore per la stessa prenotazione.
 export const DEMO_COLORS = ['#cf6b6b', '#86bd6a', '#6aa3cf', '#cdd285'];
-const DEMO_ORDER = PRENS.map(p => p.id);
 export function demoColorFor(id: string): string {
-  const i = DEMO_ORDER.indexOf(id);
+  const i = PRENS.findIndex(p => p.id === id);
   return DEMO_COLORS[(i >= 0 ? i : 0) % DEMO_COLORS.length];
 }
 
