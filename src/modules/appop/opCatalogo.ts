@@ -24,7 +24,7 @@ export const MODULI_COMUNI: ModuloOp[] = [
   { key: 'comunicazioni', label: 'Comunicazioni' },
   { key: 'segnalazioni',  label: 'Segnalazioni' },
   { key: 'compiti',       label: 'I miei compiti' },
-  { key: 'walkie',        label: 'Walkie talkie' },
+  { key: 'walkie',        label: 'Flash Message' },
 ]
 
 export const MODULI_SPECIFICI: ModuloOp[] = [

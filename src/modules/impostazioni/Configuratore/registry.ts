@@ -335,7 +335,7 @@ export const CONFIGURATORI: ConfiguratoreDef[] = [
   {
     id: 'app-op', label: 'App Op!', icon: 'mobile-screen', group: 'app-op', modulo: 'app-op',
     description: 'Utenze dei dipendenti con reparto, grado e codice di invito, e funzioni dell\u2019app per ogni reparto.',
-    keywords: ['app op', 'operation', 'dipendenti', 'inviti', 'utenze', 'reparti', 'moduli', 'responsabile', 'walkie talkie'],
+    keywords: ['app op', 'operation', 'dipendenti', 'inviti', 'utenze', 'reparti', 'moduli', 'responsabile', 'walkie talkie', 'flash message'],
   },
 ]
 
