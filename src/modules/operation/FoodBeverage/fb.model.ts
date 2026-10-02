@@ -312,7 +312,7 @@ export const ALIQUOTE_IVA: Array<{ aliquota: number; label: string; reparti: str
 
 // ─── Costanti operative ──────────────────────────────────────────────────────
 
-export const CAMERIERI = ['Marco R.', 'Giulia P.', 'Luca V.', 'Sara T.', 'Paolo N.', 'Elena F.']
+export const CAMERIERI = ['Marco R.', 'Giulia P.', 'Luca V.', 'Sara T.', 'Paolo N.', 'Elena F.', 'Davide R.', 'Martina G.']
 
 export const PORTATE: Array<{ id: number; label: string; ico: string }> = [
   { id: 0, label: 'Subito',    ico: 'fa-bolt' },
@@ -340,9 +340,16 @@ export const ALLERGENI_UE: Allergene[] = [
 ]
 
 export const STAMPANTI: Stampante[] = [
-  { id: 1, nome: 'Stampa reparto cucina', tipo: 'reparto',  protocollo: 'epson', ip: '192.168.1.70', outletId: null, attiva: true },
-  { id: 2, nome: 'Stampa pre-conto',      tipo: 'preconto', protocollo: 'epson', ip: '192.168.1.71', outletId: 1,    attiva: true },
-  { id: 3, nome: 'Registratore di cassa', tipo: 'fiscale',  protocollo: 'custom', ip: '192.168.1.72', outletId: 1,   attiva: true },
+  { id: 1, nome: 'Stampa reparto cucina',       tipo: 'reparto',  protocollo: 'epson',  ip: '192.168.1.70', outletId: null, attiva: true },
+  { id: 2, nome: 'Stampa pre-conto',            tipo: 'preconto', protocollo: 'epson',  ip: '192.168.1.71', outletId: 1,    attiva: true },
+  { id: 3, nome: 'Registratore di cassa',       tipo: 'fiscale',  protocollo: 'custom', ip: '192.168.1.72', outletId: 1,    attiva: true },
+  { id: 4, nome: 'Stampa reparto pasticceria',  tipo: 'reparto',  protocollo: 'epson',  ip: '192.168.1.73', outletId: 1,    attiva: true },
+  { id: 5, nome: 'Stampa bar Sala Vietri',      tipo: 'reparto',  protocollo: 'star',   ip: '192.168.1.74', outletId: 1,    attiva: true },
+  { id: 6, nome: 'Pre-conto Roof Top',          tipo: 'preconto', protocollo: 'epson',  ip: '192.168.2.71', outletId: 3,    attiva: true },
+  { id: 7, nome: 'Cassa fiscale Roof Top',      tipo: 'fiscale',  protocollo: 'custom', ip: '192.168.2.72', outletId: 3,    attiva: true },
+  { id: 8, nome: 'Comande bar Roof Top',        tipo: 'reparto',  protocollo: 'star',   ip: '192.168.2.70', outletId: 3,    attiva: true },
+  { id: 9, nome: 'Cassa fiscale Lounge',        tipo: 'fiscale',  protocollo: 'custom', ip: '192.168.3.72', outletId: 2,    attiva: true },
+  { id: 10, nome: 'Stampa bar Lounge (riserva)', tipo: 'reparto', protocollo: 'epson',  ip: '192.168.3.70', outletId: 2,    attiva: false },
 ]
 
 export const MONITOR_KDS: MonitorKds[] = [
@@ -350,12 +357,20 @@ export const MONITOR_KDS: MonitorKds[] = [
     sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f', attivo: true },
   { id: 2, nome: 'Monitor dispensa SR', reparto: 'bar', outletId: 1, slug: 'monitor-dispensa-sr-3d7ec9',
     sfondo: '#1b4332', testo: '#f5f9f8', griglia: '#255c45', topbar: '#123527', attivo: true },
+  { id: 3, nome: 'Monitor pasticceria SR', reparto: 'pasticceria', outletId: 1, slug: 'monitor-pasticceria-sr-91ab2c',
+    sfondo: '#3d1f2b', testo: '#fff5f8', griglia: '#55303f', topbar: '#2b141e', attivo: true },
+  { id: 4, nome: 'Monitor bar Roof Top', reparto: 'bar', outletId: 3, slug: 'monitor-bar-roof-5c20de',
+    sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f', attivo: true },
+  { id: 5, nome: 'Monitor cucina Roof Top', reparto: 'cucina', outletId: 3, slug: 'monitor-cucina-roof-a74f11',
+    sfondo: '#1b4332', testo: '#f5f9f8', griglia: '#255c45', topbar: '#123527', attivo: true },
+  { id: 6, nome: 'Monitor bar Lounge', reparto: 'bar', outletId: 2, slug: 'monitor-bar-lounge-e0c3b8',
+    sfondo: '#1a1a2e', testo: '#ffffff', griglia: '#2a2a3e', topbar: '#12121f', attivo: true },
 ]
 
 export const CONFIG_EMAIL: ConfigEmail = {
-  attivo: false, provider: 'custom', host: 'smtp.sibyllanetwork.com', porta: 25,
-  starttls: false, ssl: false, username: 'admin', password: '',
-  mittente: '', nomeMittente: 'Outlet Manager',
+  attivo: true, provider: 'outlook', host: 'smtp.office365.com', porta: 587,
+  starttls: true, ssl: false, username: 'ristorante@hotelnoto.it', password: '••••••••••',
+  mittente: 'ristorante@hotelnoto.it', nomeMittente: 'Sibylla Restaurant — Hotel Noto',
 }
 
 // ─── Amministrazione: utenti, ruoli, wallet dei clienti ──────────────────────
@@ -482,6 +497,54 @@ export const RUOLI_FB: RuoloFb[] = [
       ])),
     ) as Record<string, LivelloPermesso>,
   },
+  {
+    id: 4, nome: 'Maître di sala',
+    descrizione: 'Coordina sala e prenotazioni, legge menu e struttura',
+    admin: false,
+    permessi: Object.fromEntries(
+      PAGINE_PERMESSI.flatMap(g => g.pagine.map(p => [
+        p.id,
+        g.gruppo === 'Operativo' ? 'completa'
+          : g.gruppo === 'Menu' || g.gruppo === 'Struttura' ? 'lettura' : 'nascosta',
+      ])),
+    ) as Record<string, LivelloPermesso>,
+  },
+  {
+    id: 5, nome: 'Chef',
+    descrizione: 'Monitor di cucina, economato e catalogo dei piatti',
+    admin: false,
+    permessi: Object.fromEntries(
+      PAGINE_PERMESSI.flatMap(g => g.pagine.map(p => [
+        p.id,
+        p.id === 'fb-kds' || g.gruppo === 'Economato' || g.gruppo === 'Menu' ? 'completa'
+          : p.id === 'fb-dashboard' || p.id === 'fb-allergeni' ? 'lettura' : 'nascosta',
+      ])),
+    ) as Record<string, LivelloPermesso>,
+  },
+  {
+    id: 6, nome: 'Barman',
+    descrizione: 'Comande e monitor del bar, carta cocktail in lettura',
+    admin: false,
+    permessi: Object.fromEntries(
+      PAGINE_PERMESSI.flatMap(g => g.pagine.map(p => [
+        p.id,
+        ['gest-comanda', 'fb-kds', 'sala-ristorante'].includes(p.id) ? 'completa'
+          : g.gruppo === 'Menu' ? 'lettura' : 'nascosta',
+      ])),
+    ) as Record<string, LivelloPermesso>,
+  },
+  {
+    id: 7, nome: 'Cassiere',
+    descrizione: 'Incassi, chiusure di cassa e wallet clienti',
+    admin: false,
+    permessi: Object.fromEntries(
+      PAGINE_PERMESSI.flatMap(g => g.pagine.map(p => [
+        p.id,
+        ['fb-cassa', 'fb-wallet-clienti'].includes(p.id) ? 'completa'
+          : ['sala-ristorante', 'gest-comanda', 'fb-dashboard'].includes(p.id) ? 'lettura' : 'nascosta',
+      ])),
+    ) as Record<string, LivelloPermesso>,
+  },
 ]
 
 /** Data di N giorni fa in ISO: tiene gli accessi coerenti con l'orologio. */
@@ -491,9 +554,21 @@ const giorniFa = (n: number) => {
 }
 
 export const UTENTI_FB: UtenteFb[] = [
-  { id: 1, nome: 'Amministratore', username: 'admin',   email: 'admin@outlet.local',          ruoloId: 1, attivo: true, ultimoAccesso: `${giorniFa(0)}T08:07` },
-  { id: 2, nome: 'Andrea Guizzi',  username: 'andrea',  email: '',                            ruoloId: 2, attivo: true, ultimoAccesso: `${giorniFa(12)}T09:35` },
-  { id: 3, nome: 'Marco Rossi',    username: 'marco.r', email: 'm.rossi@sibyllanetwork.com',  ruoloId: 3, attivo: true, ultimoAccesso: `${giorniFa(0)}T12:02` },
+  { id: 1,  nome: 'Amministratore',   username: 'admin',     email: 'admin@hotelnoto.it',        ruoloId: 1, attivo: true,  ultimoAccesso: `${giorniFa(0)}T08:07` },
+  { id: 2,  nome: 'Andrea Guizzi',    username: 'andrea',    email: 'a.guizzi@hotelnoto.it',     ruoloId: 2, attivo: true,  ultimoAccesso: `${giorniFa(0)}T09:35` },
+  { id: 3,  nome: 'Marco Rossi',      username: 'marco.r',   email: 'm.rossi@hotelnoto.it',      ruoloId: 3, attivo: true,  ultimoAccesso: `${giorniFa(0)}T12:02` },
+  { id: 4,  nome: 'Giulia Parisi',    username: 'giulia.p',  email: 'g.parisi@hotelnoto.it',     ruoloId: 3, attivo: true,  ultimoAccesso: `${giorniFa(0)}T11:48` },
+  { id: 5,  nome: 'Luca Valenti',     username: 'luca.v',    email: 'l.valenti@hotelnoto.it',    ruoloId: 7, attivo: true,  ultimoAccesso: `${giorniFa(0)}T08:15` },
+  { id: 6,  nome: 'Sara Testa',       username: 'sara.t',    email: 's.testa@hotelnoto.it',      ruoloId: 3, attivo: true,  ultimoAccesso: `${giorniFa(0)}T12:20` },
+  { id: 7,  nome: 'Paolo Neri',       username: 'paolo.n',   email: 'p.neri@hotelnoto.it',       ruoloId: 3, attivo: true,  ultimoAccesso: `${giorniFa(1)}T19:05` },
+  { id: 8,  nome: 'Elena Fontana',    username: 'elena.f',   email: 'e.fontana@hotelnoto.it',    ruoloId: 4, attivo: true,  ultimoAccesso: `${giorniFa(0)}T11:30` },
+  { id: 9,  nome: 'Chef Antonio Esposito', username: 'chef.antonio', email: 'cucina@hotelnoto.it', ruoloId: 5, attivo: true, ultimoAccesso: `${giorniFa(0)}T07:02` },
+  { id: 10, nome: 'Francesca Lombardi', username: 'francesca.l', email: 'pasticceria@hotelnoto.it', ruoloId: 5, attivo: true, ultimoAccesso: `${giorniFa(0)}T06:45` },
+  { id: 11, nome: 'Davide Russo',     username: 'davide.r',  email: 'roof@hotelnoto.it',         ruoloId: 6, attivo: true,  ultimoAccesso: `${giorniFa(1)}T18:32` },
+  { id: 12, nome: 'Martina Galli',    username: 'martina.g', email: 'lounge@hotelnoto.it',       ruoloId: 6, attivo: true,  ultimoAccesso: `${giorniFa(1)}T21:10` },
+  { id: 13, nome: 'Roberto Ferri',    username: 'roberto.f', email: 'r.ferri@hotelnoto.it',      ruoloId: 4, attivo: true,  ultimoAccesso: `${giorniFa(2)}T18:50` },
+  { id: 14, nome: 'Chiara Bassi',     username: 'chiara.b',  email: 'c.bassi@hotelnoto.it',      ruoloId: 3, attivo: false, ultimoAccesso: `${giorniFa(46)}T13:12` },
+  { id: 15, nome: 'Stagista sala',    username: 'stage.sala', email: '',                         ruoloId: 3, attivo: true,  ultimoAccesso: '' },
 ]
 
 const mov = (id: string, quantiGiorniFa: number, tipo: TipoMovimentoWallet, importo: number, causale: string): MovimentoWallet =>
@@ -519,6 +594,81 @@ export const WALLET_CLIENTI: WalletCliente[] = [
       mov('w2-3', 1,  'consumo', 9,    'Pranzo personale'),
     ],
   },
+  {
+    id: 3, nome: 'Turner James', email: 'j.turner@mail.uk', telefono: '+44 7700 900123',
+    categoriaClienteId: 3, scadenza: giorniFa(-5), attivo: true,
+    movimenti: [
+      mov('w3-1', 4, 'ricarica', 300, 'Pacchetto soggiorno — credito F&B'),
+      mov('w3-2', 3, 'consumo', 64,   'Cena — tavolo 012'),
+      mov('w3-3', 2, 'consumo', 38.5, 'Roof Top — aperitivo'),
+      mov('w3-4', 1, 'consumo', 18,   'Colazione'),
+      mov('w3-5', 0, 'consumo', 27,   'Pranzo — tavolo SV03'),
+    ],
+  },
+  {
+    id: 4, nome: 'Schneider Klaus', email: 'k.schneider@mail.de', telefono: '+49 151 23456789',
+    categoriaClienteId: 3, scadenza: giorniFa(-3), attivo: true,
+    movimenti: [
+      mov('w4-1', 5, 'ricarica', 250, 'Ricarica alla reception'),
+      mov('w4-2', 4, 'consumo', 82,  'Cena — tavolo 004'),
+      mov('w4-3', 2, 'consumo', 45,  'Lounge — serata'),
+    ],
+  },
+  {
+    id: 5, nome: 'Laurent Camille', email: 'c.laurent@mail.fr', telefono: '+33 6 12345678',
+    categoriaClienteId: 3, scadenza: giorniFa(-2), attivo: true,
+    movimenti: [
+      mov('w5-1', 3, 'ricarica', 150, 'Ricarica online'),
+      mov('w5-2', 2, 'consumo', 33,  'Pranzo — tavolo 006'),
+      mov('w5-3', 1, 'omaggio', 20,  'Compleanno — omaggio direzione'),
+      mov('w5-4', 0, 'consumo', 19.5, 'Roof Top — aperitivo'),
+    ],
+  },
+  {
+    id: 6, nome: 'Moretti Lucia', email: 'l.moretti@mail.it', telefono: '+39 333 4455667',
+    categoriaClienteId: 0, scadenza: '', attivo: true,
+    movimenti: [
+      mov('w6-1', 40, 'ricarica', 100, 'Gift card regalo'),
+      mov('w6-2', 25, 'consumo', 58,  'Cena — tavolo 009'),
+      mov('w6-3', 6,  'consumo', 24,  'Pranzo — tavolo 015'),
+    ],
+  },
+  {
+    id: 7, nome: 'Esposito Sara', email: 's.esposito@hotelnoto.it', telefono: '+39 328 7766554',
+    categoriaClienteId: 4, scadenza: '', attivo: true,
+    movimenti: [
+      mov('w7-1', 28, 'ricarica', 80, 'Ricarica mensile personale'),
+      mov('w7-2', 14, 'consumo', 7.5, 'Pranzo personale'),
+      mov('w7-3', 7,  'consumo', 7.5, 'Pranzo personale'),
+      mov('w7-4', 0,  'consumo', 6,   'Pranzo personale'),
+    ],
+  },
+  {
+    id: 8, nome: 'Rotary Club Roma Sud', email: 'segreteria@rotaryromasud.it', telefono: '+39 06 4455667',
+    categoriaClienteId: 0, scadenza: giorniFa(-60), attivo: true,
+    movimenti: [
+      mov('w8-1', 35, 'ricarica', 1500, 'Deposito conviviali trimestre'),
+      mov('w8-2', 28, 'consumo', 420,  'Conviviale — Sala Vietri'),
+      mov('w8-3', 14, 'consumo', 465,  'Conviviale — Sala Vietri'),
+    ],
+  },
+  {
+    id: 9, nome: 'Bianchi Carlo', email: 'c.bianchi@mail.it', telefono: '+39 340 1212121',
+    categoriaClienteId: 0, scadenza: '', attivo: true,
+    movimenti: [
+      mov('w9-1', 60, 'ricarica', 50, 'Ricarica al bar'),
+      mov('w9-2', 52, 'consumo', 50, 'Lounge — serata'),
+      mov('w9-3', 10, 'rimborso', 12, 'Rimborso doppio addebito'),
+    ],
+  },
+  {
+    id: 10, nome: 'De Luca Anna', email: 'a.deluca@mail.it', telefono: '+39 347 2233445',
+    categoriaClienteId: 2, scadenza: giorniFa(-4), attivo: false,
+    movimenti: [
+      mov('w10-1', 90, 'ricarica', 200, 'Pacchetto all inclusive'),
+      mov('w10-2', 86, 'consumo', 200, 'Soggiorno concluso'),
+    ],
+  },
 ]
 
 export const CONFIG_WALLET: ConfigWallet = {
@@ -526,7 +676,7 @@ export const CONFIG_WALLET: ConfigWallet = {
     attivo: false, teamId: '', passTypeId: '', organizzazione: '',
     certificato: '', chiave: '', wwdr: '', password: '',
   },
-  google: { attivo: false, issuerId: '', classeId: '', serviceAccount: '' },
+  google: { attivo: true, issuerId: '3388000000022917461', classeId: 'hotelnoto.wallet_fb', serviceAccount: 'wallet@hotelnoto-demo.iam.gserviceaccount.com' },
 }
 
 // ─── Seed ────────────────────────────────────────────────────────────────────
@@ -563,6 +713,8 @@ export const TIPI_MENU: TipoMenu[] = [
 ]
 
 export const CATEGORIE_MENU: CategoriaMenu[] = [
+  { id: 15, tipoId: 1, nome: 'Colazione',        emoji: '🥐', colore: '#C98B2E', ordine: 0 },
+  { id: 16, tipoId: 2, nome: 'Caffetteria',      emoji: '☕', colore: '#6E4B33', ordine: 5 },
   { id: 1,  tipoId: 1, nome: 'Antipasti',        emoji: '🥗', colore: '#D9822B', ordine: 1 },
   { id: 2,  tipoId: 1, nome: 'Primi',            emoji: '🍝', colore: '#C4722A', ordine: 2 },
   { id: 3,  tipoId: 1, nome: 'Secondi',          emoji: '🥩', colore: '#B5522F', ordine: 3 },
@@ -580,6 +732,17 @@ export const CATEGORIE_MENU: CategoriaMenu[] = [
 ]
 
 export const VOCI_MENU: VoceMenu[] = [
+  // Colazione (servita in Sala Positano 07:00–10:30)
+  { id: 120, categoriaId: 15, nome: 'Buffet colazione',            traduzioni: { en: 'Breakfast buffet', de: 'Frühstücksbuffet', fr: 'Buffet petit-déjeuner' }, descrizione: 'Dolce e salato, succhi, caffetteria inclusa', prezzo: 18,  allergeni: ['A', 'C', 'G', 'H'], attiva: true, outletIds: [1], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 121, categoriaId: 15, nome: 'Cornetto artigianale',        traduzioni: { en: 'Croissant', de: 'Croissant', fr: 'Croissant' }, descrizione: 'Vuoto, crema, marmellata o pistacchio',          prezzo: 1.8, allergeni: ['A', 'C', 'G'],      attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'pasticceria' },
+  { id: 122, categoriaId: 15, nome: 'Uova strapazzate e bacon',    traduzioni: { en: 'Scrambled eggs and bacon', de: 'Rührei mit Speck', fr: 'Œufs brouillés et bacon' }, descrizione: 'Pane tostato, burro',              prezzo: 8,   allergeni: ['A', 'C', 'G'],      attiva: true, outletIds: [1], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 123, categoriaId: 15, nome: 'Pancake ai frutti di bosco',  traduzioni: { en: 'Berry pancakes', de: 'Pfannkuchen mit Beeren', fr: 'Pancakes aux fruits rouges' }, descrizione: 'Sciroppo d’acero',                prezzo: 7,   allergeni: ['A', 'C', 'G'],      attiva: true, outletIds: [1], nelWebMenu: true, prezziSpeciali: [], reparto: 'pasticceria' },
+  { id: 124, categoriaId: 15, nome: 'Avocado toast',               traduzioni: { en: 'Avocado toast', de: 'Avocado-Toast', fr: 'Toast à l’avocat' }, descrizione: 'Pane ai cereali, uovo in camicia',            prezzo: 9,   allergeni: ['A', 'C', 'K'],      attiva: true, outletIds: [1], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 125, categoriaId: 15, nome: 'Yogurt, granola e frutta',    traduzioni: { en: 'Yogurt, granola and fruit', de: 'Joghurt, Granola und Obst', fr: 'Yaourt, granola et fruits' }, descrizione: 'Yogurt greco, miele',      prezzo: 5.5, allergeni: ['A', 'G', 'H'],      attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
+  { id: 126, categoriaId: 16, nome: 'Espresso',                    traduzioni: { en: 'Espresso', de: 'Espresso', fr: 'Expresso' }, descrizione: 'Miscela 100% arabica',                         prezzo: 1.5, allergeni: [],                   attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 127, categoriaId: 16, nome: 'Cappuccino',                  traduzioni: { en: 'Cappuccino', de: 'Cappuccino', fr: 'Cappuccino' }, descrizione: 'Anche con latte vegetale',                  prezzo: 2.5, allergeni: ['G'],                attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 128, categoriaId: 16, nome: 'Spremuta d’arancia',          traduzioni: { en: 'Fresh orange juice', de: 'Frisch gepresster Orangensaft', fr: 'Jus d’orange pressé' }, descrizione: 'Arance di Sicilia', prezzo: 4.5, allergeni: [],                   attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
+  { id: 129, categoriaId: 16, nome: 'Tè e tisane',                 traduzioni: { en: 'Tea and herbal tea', de: 'Tee und Kräutertee', fr: 'Thé et tisanes' }, descrizione: 'Selezione in foglia',                 prezzo: 3,   allergeni: [],                   attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'bar' },
   // Ristorante
   { id: 1,   categoriaId: 1,  nome: 'Bruschetta al pomodoro',      traduzioni: { en: 'Tomato bruschetta', de: 'Tomaten-Bruschetta', fr: 'Bruschetta à la tomate' }, descrizione: 'Pane tostato, pomodoro, basilico',        prezzo: 6.5,  allergeni: ['A'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
   { id: 2,   categoriaId: 1,  nome: 'Carpaccio di manzo',          traduzioni: { en: 'Beef carpaccio', de: 'Rindercarpaccio', fr: 'Carpaccio de bœuf' }, descrizione: 'Carne cruda, parmigiano, rucola',         prezzo: 12,   allergeni: ['G'],           attiva: true, outletIds: [], nelWebMenu: true, prezziSpeciali: [], reparto: 'cucina' },
@@ -971,6 +1134,17 @@ const RICETTE_NOMI: Record<number, Array<[string, number]>> = {
   13:  [['Rum bianco', .05], ['Lime', .03], ['Menta', .006], ['Soda', .06], ['Zucchero di canna', .012], ['Ghiaccio', .15]],
   14:  [['Gin', .03], ['Campari', .03], ['Vermouth rosso', .03], ['Scorza d’arancia', .005], ['Ghiaccio', .15]],
   19:  [['Prosecco', .09], ['Bitter', .04], ['Soda', .03], ['Arancia', .02], ['Ghiaccio', .12]],
+  // Colazione e caffetteria
+  120: [['Pane casereccio', .06], ['Burro', .02], ['Yogurt greco', .12], ['Frutti rossi', .05], ['Prosciutto cotto', .04], ['Mozzarella', .05], ['Arancia', .25], ['Caffè', .008], ['Latte', .15], ['Miele', .02]],
+  121: [['Burro', .02], ['Zucchero di canna', .01], ['Tuorlo', 1]],
+  122: [['Tuorlo', 2], ['Pancetta', .05], ['Pane tostato', .06], ['Burro', .01]],
+  123: [['Latte', .08], ['Tuorlo', 1], ['Frutti rossi', .06], ['Miele', .02], ['Burro', .01]],
+  124: [['Avocado', .1], ['Uovo in camicia', 1], ['Pane tostato', .07], ['Olio EVO', .008]],
+  125: [['Yogurt greco', .15], ['Miele', .02], ['Frutti rossi', .05], ['Noci', .015]],
+  126: [['Caffè', .008]],
+  127: [['Caffè', .008], ['Latte', .12]],
+  128: [['Arancia', .35]],
+  129: [['Limone', .02], ['Miele', .015]],
 }
 
 export const RICETTE: Record<number, RigaRicetta[]> = Object.fromEntries(
@@ -1167,11 +1341,11 @@ export interface ConfigWallet {
 }
 
 export const CATEGORIE_CLIENTE: CategoriaCliente[] = [
-  { id: 0, nome: 'Standard',      scontoPerc: 0, descrizione: '' },
-  { id: 3, nome: 'Cliente hotel', scontoPerc: 10, descrizione: '' },
-  { id: 2, nome: 'All inclusive', scontoPerc: 100, descrizione: '' },
-  { id: 4, nome: 'Personale',     scontoPerc: 50, descrizione: '' },
-  { id: 1, nome: 'Direzione',     scontoPerc: 100, descrizione: '' },
+  { id: 0, nome: 'Standard',      scontoPerc: 0,   descrizione: 'Ospiti esterni e walk-in' },
+  { id: 3, nome: 'Cliente hotel', scontoPerc: 10,  descrizione: 'Ospiti in casa: conto su camera o al tavolo' },
+  { id: 2, nome: 'All inclusive', scontoPerc: 100, descrizione: 'Pacchetti con pasti inclusi nel soggiorno' },
+  { id: 4, nome: 'Personale',     scontoPerc: 50,  descrizione: 'Pasti del personale in servizio' },
+  { id: 1, nome: 'Direzione',     scontoPerc: 100, descrizione: 'Ospiti della direzione e sopralluoghi' },
 ]
 
 // ─── Planimetrie ─────────────────────────────────────────────────────────────
@@ -1289,6 +1463,11 @@ const SERVIZIO_INIZIALE: Array<[number, StatoTavolo, number, string, number]> = 
   [3005, 'riservato', 0, '',          0],
   [3009, 'conto',     2, 'Sara T.',   95],
   [3012, 'occupato',  6, 'Paolo N.',  25],
+  [3004, 'ordinato',  2, 'Davide R.', 12],
+  [4001, 'occupato',  2, 'Martina G.', 30],
+  [4003, 'ordinato',  4, 'Martina G.', 15],
+  [4005, 'conto',     2, 'Martina G.', 70],
+  [4008, 'riservato', 0, '',          0],
 ]
 
 /** Ora di N minuti fa, in HH:mm: tiene la demo allineata all'orologio. */
@@ -1342,29 +1521,123 @@ const NOTE = [
   'Arrivo in ritardo previsto', '', 'Menu vegetariano', '',
 ]
 
-export const menuGiornoIniziali = (): MenuGiorno[] => [
-  {
-    id: 1, outletId: 1, data: oggiISO(), nome: 'Menu del giorno',
-    prezzoFisso: 28, note: 'Acqua e caffè inclusi',
-    vociIds: [1, 3, 5, 114, 7], attivo: true,
-  },
+// Menu del giorno: due settimane (passata e prossima) per il ristorante e le
+// serate degustazione del Roof Top nel fine settimana.
+const MENU_GIORNO_VOCI: number[][] = [
+  [1, 3, 5, 114, 7], [16, 17, 6, 115, 8], [2, 4, 5, 114, 7], [1, 17, 6, 115, 8],
+  [16, 3, 5, 115, 7], [2, 4, 6, 114, 8], [1, 17, 5, 114, 7],
 ]
 
-export const webMenuIniziali = (): WebMenu[] => [
-  {
-    id: 1, outletId: 1,
-    nome: 'Menu pranzo estate',
-    titolo: 'Il nostro menu di pranzo',
-    sottotitolo: 'Cucina di stagione, ogni giorno',
-    slug: 'menu-pranzo-25f343',
-    logo: '',
-    notePiede: 'Allergeni disponibili su richiesta. Prezzi IVA inclusa.',
-    vociIds: [1, 2, 16, 3, 4, 17, 5, 6, 114, 115, 7, 8, 9, 10, 11, 12],
-    dal: oggiISO(), al: oggiISO(),
-    servizio: 'Pranzo', mostraPrezzi: true, mostraAllergeni: true,
-    attivo: true, colore: '#B08A4A',
-  },
-]
+export const menuGiornoIniziali = (): MenuGiorno[] => {
+  const oggi = oggiISO()
+  const out: MenuGiorno[] = []
+  let id = 1
+  for (let g = -7; g <= 7; g++) {
+    const data = addGiorni(oggi, g)
+    out.push({
+      id: id++, outletId: 1, data,
+      nome: g === 0 ? 'Menu del giorno' : new Date(data + 'T12:00:00').getDay() === 0 ? 'Pranzo della domenica' : 'Menu del giorno',
+      prezzoFisso: new Date(data + 'T12:00:00').getDay() === 0 ? 35 : 28,
+      note: new Date(data + 'T12:00:00').getDay() === 0 ? 'Calice di vino, acqua e caffè inclusi' : 'Acqua e caffè inclusi',
+      vociIds: MENU_GIORNO_VOCI[(g + 70) % MENU_GIORNO_VOCI.length],
+      // L'ultimo giorno è ancora in bozza: si vede la differenza in tabella.
+      attivo: g < 7,
+    })
+    const dow = new Date(data + 'T12:00:00').getDay()
+    if (dow === 5 || dow === 6) {
+      out.push({
+        id: id++, outletId: 3, data, nome: 'Degustazione in terrazza',
+        prezzoFisso: 55, note: 'Abbinamento vini +20 €',
+        vociIds: [16, 4, 6, 8, 111], attivo: true,
+      })
+    }
+  }
+  return out
+}
+
+export const webMenuIniziali = (): WebMenu[] => {
+  const oggi = oggiISO()
+  return [
+    {
+      id: 1, outletId: 1,
+      nome: 'Menu pranzo',
+      titolo: 'Il nostro menu di pranzo',
+      sottotitolo: 'Cucina di stagione, ogni giorno',
+      slug: 'menu-pranzo-25f343',
+      logo: '',
+      notePiede: 'Allergeni disponibili su richiesta. Prezzi IVA inclusa.',
+      vociIds: [1, 2, 16, 3, 4, 17, 5, 6, 114, 115, 7, 8, 9, 10, 11, 12],
+      dal: addGiorni(oggi, -30), al: addGiorni(oggi, 60),
+      servizio: 'Pranzo', mostraPrezzi: true, mostraAllergeni: true,
+      attivo: true, colore: '#B08A4A',
+    },
+    {
+      id: 2, outletId: 1,
+      nome: 'Menu cena',
+      titolo: 'La cena al Sibylla Restaurant',
+      sottotitolo: 'Dalla terra al mare, con la cantina dell’hotel',
+      slug: 'menu-cena-8b1d07',
+      logo: '',
+      notePiede: 'Coperto 3 €. Allergeni disponibili su richiesta. Prezzi IVA inclusa.',
+      vociIds: [2, 16, 3, 4, 17, 5, 6, 114, 115, 7, 8, 100, 101, 104, 110, 111],
+      dal: addGiorni(oggi, -30), al: addGiorni(oggi, 60),
+      servizio: 'Cena', mostraPrezzi: true, mostraAllergeni: true,
+      attivo: true, colore: '#204769',
+    },
+    {
+      id: 3, outletId: 1,
+      nome: 'Colazione',
+      titolo: 'Buongiorno!',
+      sottotitolo: 'La colazione è servita dalle 7:00 alle 10:30',
+      slug: 'colazione-4e9a61',
+      logo: '',
+      notePiede: 'Per gli ospiti in camera la colazione è inclusa nella tariffa.',
+      vociIds: [120, 121, 122, 123, 124, 125, 126, 127, 128, 129],
+      dal: addGiorni(oggi, -90), al: addGiorni(oggi, 90),
+      servizio: 'Colazione', mostraPrezzi: true, mostraAllergeni: true,
+      attivo: true, colore: '#B08A4A',
+    },
+    {
+      id: 4, outletId: 3,
+      nome: 'Cocktail list Roof Top',
+      titolo: 'Roof Top Garden',
+      sottotitolo: 'Aperitivo al tramonto sui tetti di Roma',
+      slug: 'roof-cocktail-c27f90',
+      logo: '',
+      notePiede: 'Servizio al tavolo. Prezzi IVA inclusa.',
+      vociIds: [19, 13, 14, 15, 110, 111, 112, 18, 12, 9, 10],
+      dal: addGiorni(oggi, -20), al: addGiorni(oggi, 40),
+      servizio: 'Cena', mostraPrezzi: true, mostraAllergeni: false,
+      attivo: true, colore: '#5C4E7A',
+    },
+    {
+      id: 5, outletId: null,
+      nome: 'Carta dei vini',
+      titolo: 'La nostra cantina',
+      sottotitolo: 'Etichette italiane selezionate dal sommelier',
+      slug: 'carta-vini-0d5e3a',
+      logo: '',
+      notePiede: 'Disponibilità soggetta a variazioni. Prezzi IVA inclusa.',
+      vociIds: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113],
+      dal: addGiorni(oggi, -120), al: addGiorni(oggi, 120),
+      servizio: 'Tutti', mostraPrezzi: true, mostraAllergeni: true,
+      attivo: true, colore: '#8E4B3C',
+    },
+    {
+      id: 6, outletId: 3,
+      nome: 'Menu estate Roof (archiviato)',
+      titolo: 'Summer on the roof',
+      sottotitolo: 'Edizione estate',
+      slug: 'roof-estate-77aa10',
+      logo: '',
+      notePiede: '',
+      vociIds: [19, 13, 14, 1, 16],
+      dal: addGiorni(oggi, -120), al: addGiorni(oggi, -15),
+      servizio: 'Cena', mostraPrezzi: true, mostraAllergeni: true,
+      attivo: false, colore: '#2E6F5E',
+    },
+  ]
+}
 
 export const oggiISO = () => {
   const d = new Date()
@@ -1377,54 +1650,106 @@ const addGiorni = (iso: string, n: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// Generatore pseudo-casuale con seme: la demo cambia ogni giorno ma resta
+// identica fra un caricamento e l'altro della stessa giornata.
+export const rngDemo = (seed: number) => () => {
+  seed |= 0; seed = (seed + 0x6D2B79F5) | 0
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+}
+const semeDi = (iso: string) => Number(iso.replace(/-/g, ''))
+
+const OSPITI_EXTRA = [
+  ['Sig. Romano', '+39 335 7788990', 'romano@mail.it', ''],
+  ['Famiglia Colombo', '+39 349 1231231', 'colombo@mail.it', '208'],
+  ['Mrs. Johnson', '+1 212 555 0147', 'johnson@mail.com', '310'],
+  ['Sig.ra Ferrara', '+39 338 4567890', 'ferrara@mail.it', ''],
+  ['Herr Müller', '+49 160 5551234', 'mueller@mail.de', '214'],
+  ['Studio Legale Riva', '+39 06 8899001', 'riva@studioriva.it', ''],
+  ['Sig. Gallo', '+39 333 9090901', 'gallo@mail.it', ''],
+  ['Famiglia Marino', '+39 340 3216549', 'marino@mail.it', '119'],
+  ['Mr. Tanaka', '+81 90 1234 5678', 'tanaka@mail.jp', '305'],
+  ['Sig.ra Costa', '+39 329 6547893', 'costa@mail.it', ''],
+  ['Sig. Fontana', '+39 347 7412589', 'fontana@mail.it', '203'],
+  ['Señora García', '+34 612 345 678', 'garcia@mail.es', '216'],
+  ['Famiglia Rizzo', '+39 331 8529637', 'rizzo@mail.it', ''],
+  ['Mr. O’Brien', '+353 85 123 4567', 'obrien@mail.ie', '302'],
+  ['Azienda Tecnomec', '+39 02 7788665', 'eventi@tecnomec.it', ''],
+  ['Sig. Lombardo', '+39 320 9638527', 'lombardo@mail.it', '110'],
+]
+const TUTTI_OSPITI = [...OSPITI, ...OSPITI_EXTRA]
+
+/** Fascia di riempimento tipica di un turno, per giorno della settimana. */
+const riempimento = (t: Turno, dow: number) => {
+  const weekend = dow === 5 || dow === 6
+  if (t.servizio === 'Colazione') return 0.45
+  if (t.outletId === 1 && t.servizio === 'Pranzo') return t.nome === 'Turno 1' ? (dow === 0 ? 0.75 : 0.45) : 0.18
+  if (t.outletId === 1) return t.nome === 'Turno 1' ? (weekend ? 0.8 : 0.55) : (weekend ? 0.45 : 0.22)
+  if (t.outletId === 3) return weekend ? 0.75 : 0.45
+  return weekend ? 0.7 : 0.4
+}
+
 export const prenotazioniIniziali = (): Prenotazione[] => {
   const oggi = oggiISO()
-  const stati: StatoPrenotazione[] = ['confermata', 'arrivata', 'confermata', 'in-attesa', 'confermata', 'arrivata']
-  const origini: OriginePrenotazione[] = ['telefono', 'web', 'reception', 'walk-in', 'telefono', 'tour-operator']
-  const ore = ['12:15', '12:30', '13:00', '13:30', '19:15', '19:30', '20:00', '20:30', '21:00', '21:15']
+  const now = new Date()
+  const oraOra = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const origini: OriginePrenotazione[] = ['telefono', 'web', 'web', 'reception', 'telefono', 'tour-operator', 'walk-in']
   const out: Prenotazione[] = []
   let id = 1
-  // Oggi: servizio pieno, con qualche tavolo già assegnato
-  const assegnati = [1008, 1014, 2005, 3005, null, null, null, null, null, null]
-  for (let i = 0; i < 10; i++) {
-    const [ospite, tel, mail, camera] = OSPITI[i % OSPITI.length]
-    const sera = i >= 4
-    out.push({
-      id: id++,
-      outletId: i >= 8 ? 3 : 1,
-      salaId: i >= 8 ? 3 : i % 3 === 2 ? 2 : 1,
-      turnoId: i >= 8 ? 7 : sera ? 4 : 2,
-      data: oggi,
-      ora: ore[i],
-      ospite, pax: [2, 4, 2, 6, 3, 2, 4, 2, 5, 2][i],
-      telefono: tel, email: mail, note: NOTE[i], camera,
-      stato: stati[i % stati.length],
-      origine: origini[i % origini.length],
-      tavoloId: assegnati[i],
-      categoriaClienteId: camera ? 3 : 0,
+  // Tavoli già riservati in sala: le prime prenotazioni del turno li occupano.
+  const riservati: Record<number, number[]> = { 1: [1008, 1014], 2: [2005], 3: [3005], 4: [4008] }
+
+  for (let g = -7; g <= 21; g++) {
+    const data = addGiorni(oggi, g)
+    const dow = new Date(data + 'T12:00:00').getDay()
+    const rnd = rngDemo(semeDi(data))
+    // Più ci si allontana, meno il libro è pieno: le prenotazioni arrivano col tempo.
+    const lontananza = g <= 0 ? 1 : Math.max(0.25, 1 - g / 24)
+    TURNI.filter(t => t.attivo).forEach(t => {
+      const target = Math.round(t.coperturaMax * riempimento(t, dow) * lontananza * (0.85 + rnd() * 0.3))
+      let pax = 0
+      let k = 0
+      while (pax < target) {
+        const colazione = t.servizio === 'Colazione'
+        // I nomi collettivi (gruppi, aziende) si usano solo per le prenotazioni di gruppo.
+        const elenco = TUTTI_OSPITI.filter(o => !/^(Gruppo|Azienda|Studio)/.test(o[0]))
+        const [ospite, tel, mail, camera] = elenco[Math.floor(rnd() * elenco.length)]
+        const gruppo = !colazione && rnd() < 0.05
+        const p = gruppo ? 10 + Math.floor(rnd() * 8) : colazione ? 1 + Math.floor(rnd() * 3) : [2, 2, 2, 3, 4, 4, 5, 6][Math.floor(rnd() * 8)]
+        // Orario a quarti d'ora dentro la finestra del turno.
+        const [h0, m0] = t.oraInizio.split(':').map(Number)
+        const [h1, m1] = t.oraFine.split(':').map(Number)
+        const fine = (h1 < h0 ? h1 + 24 : h1) * 60 + m1 - 45
+        const slot = h0 * 60 + m0 + Math.floor(rnd() * Math.max(1, (fine - h0 * 60 - m0) / 15)) * 15
+        const ora = `${String(Math.floor(slot / 60) % 24).padStart(2, '0')}:${String(slot % 60).padStart(2, '0')}`
+        let stato: StatoPrenotazione
+        const r = rnd()
+        if (g < 0 || (g === 0 && t.oraFine < oraOra)) stato = r < 0.86 ? 'arrivata' : r < 0.93 ? 'no-show' : 'annullata'
+        else if (g === 0 && t.oraInizio <= oraOra) stato = ora <= oraOra ? (r < 0.85 ? 'arrivata' : 'confermata') : 'confermata'
+        else stato = r < 0.78 ? 'confermata' : r < 0.94 ? 'in-attesa' : 'annullata'
+        const salaId = t.salaId ?? (rnd() < 0.7 ? 1 : 2)
+        const lista = g === 0 && stato === 'confermata' && !colazione ? riservati[salaId] : undefined
+        const tavoloId = lista && lista.length ? lista.shift()! : null
+        out.push({
+          id: id++,
+          outletId: t.outletId, salaId, turnoId: t.id, data, ora,
+          ospite: gruppo ? ['Gruppo Rotary', 'Azienda Tecnomec', 'Studio Legale Riva'][k % 3] : ospite,
+          pax: p,
+          telefono: tel, email: mail,
+          note: colazione ? '' : NOTE[Math.floor(rnd() * NOTE.length)],
+          camera: colazione ? camera || String(101 + Math.floor(rnd() * 220)) : camera,
+          stato,
+          origine: colazione ? 'reception' : origini[Math.floor(rnd() * origini.length)],
+          tavoloId,
+          categoriaClienteId: colazione ? (rnd() < 0.2 ? 2 : 3) : camera ? 3 : 0,
+        })
+        pax += p
+        k++
+      }
     })
   }
-  // Prossimi giorni: il libro prenotazioni deve avere profondità
-  for (let g = 1; g <= 6; g++) {
-    for (let i = 0; i < 2 + (g % 3); i++) {
-      const k = (g * 3 + i) % OSPITI.length
-      const [ospite, tel, mail, camera] = OSPITI[k]
-      out.push({
-        id: id++,
-        outletId: 1, salaId: i % 2 === 0 ? 1 : 2,
-        turnoId: i % 2 === 0 ? 4 : 2,
-        data: addGiorni(oggi, g),
-        ora: ore[(g + i) % ore.length],
-        ospite, pax: [2, 4, 6, 2, 3][(g + i) % 5],
-        telefono: tel, email: mail, note: NOTE[(g + i) % NOTE.length], camera,
-        stato: g % 4 === 0 ? 'in-attesa' : 'confermata',
-        origine: origini[(g + i) % origini.length],
-        tavoloId: null,
-        categoriaClienteId: camera ? 3 : 0,
-      })
-    }
-  }
-  return out
+  return out.sort((x, y) => (x.data + x.ora).localeCompare(y.data + y.ora)).map((x, i) => ({ ...x, id: i + 1 }))
 }
 
 // ─── Comande aperte ──────────────────────────────────────────────────────────
@@ -1443,7 +1768,7 @@ const riga = (
 
 const voce = (id: number) => VOCI_MENU.find(v => v.id === id)!
 
-export const comandeIniziali = (): Comanda[] => [
+const comandeBase = (): Comanda[] => [
   {
     id: 1, numero: '001', outletId: 1, salaId: 1, tavoloId: 1001, turnoId: 4,
     coperti: 4, cameriere: 'Marco R.', categoriaClienteId: 0,
@@ -1533,7 +1858,7 @@ export const comandeIniziali = (): Comanda[] => [
     ],
   },
   {
-    id: 9, numero: '009', outletId: 1, salaId: 2, tavoloId: 2002, turnoId: 4,
+    id: 9, numero: '009', outletId: 1, salaId: 2, tavoloId: 2003, turnoId: 4,
     coperti: 2, cameriere: 'Elena F.', categoriaClienteId: 0,
     nota: '', apertaAlle: oraMenoMinuti(80), chiusaAlle: oraMenoMinuti(40),
     stato: 'chiusa', addebitoCamera: '', pagamento: 'contanti',
@@ -1556,11 +1881,100 @@ export const comandeIniziali = (): Comanda[] => [
   },
 ]
 
+// Comande ancora aperte negli altri outlet e nella Sala Vietri: ogni tavolo
+// occupato della fotografia iniziale ha il suo conto.
+type RigaSeed = [number, number, number, StatoRiga, number?]
+const aperta = (
+  id: number, outletId: number, salaId: number, tavoloId: number, turnoId: number,
+  coperti: number, cameriere: string, min: number, righe: RigaSeed[], cat = 0, camera = '',
+): Comanda => ({
+  id, numero: String(id).padStart(3, '0'), outletId, salaId, tavoloId, turnoId,
+  coperti, cameriere, categoriaClienteId: cat, nota: '',
+  apertaAlle: oraMenoMinuti(min), chiusaAlle: null, stato: 'aperta', addebitoCamera: camera, pagamento: null,
+  righe: righe.map(([v, q, port, st, m]) => riga(voce(v), q, port, st, '', [], [], m ?? 4)),
+})
+
+const comandeAperteExtra = (): Comanda[] => [
+  aperta(11, 1, 1, 1015, 4, 2, 'Paolo N.', 15, [[16, 1, 1, 'inviata', 6], [12, 2, 0, 'servita']]),
+  aperta(12, 1, 1, 1017, 4, 6, 'Luca V.', 100, [[2, 3, 1, 'servita'], [4, 3, 2, 'servita'], [5, 4, 3, 'servita'], [7, 6, 4, 'servita'], [100, 2, 0, 'servita']]),
+  aperta(13, 1, 2, 2002, 4, 4, 'Elena F.', 30, [[1, 2, 1, 'servita'], [17, 2, 2, 'in-preparazione', 7], [6, 2, 3, 'in-comanda'], [104, 1, 0, 'servita']], 3, '212'),
+  aperta(14, 1, 2, 2008, 4, 2, 'Elena F.', 18, [[16, 1, 1, 'pronta', 3], [3, 2, 2, 'inviata', 5], [18, 2, 0, 'servita']]),
+  aperta(15, 3, 3, 3002, 6, 4, 'Paolo N.', 65, [[19, 4, 0, 'servita'], [1, 2, 1, 'servita'], [14, 2, 0, 'servita']]),
+  aperta(16, 3, 3, 3009, 6, 2, 'Sara T.', 95, [[13, 2, 0, 'servita'], [111, 1, 0, 'servita'], [16, 1, 1, 'servita']], 3, '301'),
+  aperta(17, 3, 3, 3012, 7, 6, 'Paolo N.', 25, [[110, 2, 0, 'servita'], [2, 3, 1, 'in-preparazione', 11], [4, 3, 2, 'in-comanda']]),
+  aperta(18, 3, 3, 3004, 6, 2, 'Davide R.', 12, [[19, 2, 0, 'inviata', 4]]),
+  aperta(19, 2, 4, 4001, 8, 2, 'Martina G.', 30, [[14, 2, 0, 'servita'], [15, 1, 0, 'inviata', 3]]),
+  aperta(20, 2, 4, 4003, 8, 4, 'Martina G.', 15, [[13, 2, 0, 'in-preparazione', 6], [19, 2, 0, 'in-preparazione', 6]]),
+  aperta(21, 2, 4, 4005, 8, 2, 'Martina G.', 70, [[112, 1, 0, 'servita'], [14, 2, 0, 'servita']], 3, '310'),
+]
+
+// Conti già incassati nelle ore precedenti, in tutti gli outlet: colazione,
+// pranzo, aperitivo. Gli orari sono relativi all'ora di apertura della demo.
+const PIATTI_PER_SERVIZIO: Record<string, number[][]> = {
+  colazione: [[120], [121, 127], [122, 126], [123, 128], [124, 127], [125, 129], [121, 126]],
+  ristorante: [[1, 2, 16], [3, 4, 17], [5, 6], [114, 115], [7, 8], [10, 9, 11, 12, 18], [100, 101, 103, 104, 105, 110]],
+  bar: [[19, 13, 14], [15, 110, 111], [1, 16], [9, 10]],
+}
+
+const chiuseDelGiorno = (startId: number): Comanda[] => {
+  const rnd = rngDemo(semeDi(oggiISO()) + 7)
+  const out: Comanda[] = []
+  const pick = <T,>(xs: T[]) => xs[Math.floor(rnd() * xs.length)]
+  const now = new Date()
+  const minutiDaMezzanotte = now.getHours() * 60 + now.getMinutes()
+  let id = startId
+  // Conti chiusi dalle 07:00 a ora: prima dell'apertura la giornata è ancora vuota.
+  const limite = Math.min(900, minutiDaMezzanotte - 470)
+  for (let min = 35; min < limite; min += 10 + Math.floor(rnd() * 16)) {
+    const apertura = new Date(now.getTime() - (min + 50) * 60000)
+    const ora = apertura.getHours()
+    const colazione = ora < 11
+    const outletId = colazione ? 1 : ora >= 17 ? pick([1, 1, 3, 3, 2]) : pick([1, 1, 1, 3])
+    const tipo = colazione ? 'colazione' : outletId === 1 ? 'ristorante' : 'bar'
+    const salaId = outletId === 1 ? (rnd() < 0.72 ? 1 : 2) : outletId === 3 ? 3 : 4
+    const tavoli = TAVOLI.filter(t => t.salaId === salaId)
+    const tav = pick(tavoli)
+    const coperti = Math.max(1, Math.min(tav.capienza, 1 + Math.floor(rnd() * tav.capienza)))
+    const hh = `${String(ora).padStart(2, '0')}:00`
+    const turno = TURNI.filter(t => t.outletId === outletId).find(t => t.oraInizio <= hh && hh < t.oraFine)
+      ?? TURNI.find(t => t.outletId === outletId)!
+    const cat = colazione ? (rnd() < 0.75 ? 3 : 2) : rnd() < 0.62 ? 0 : rnd() < 0.75 ? 3 : rnd() < 0.6 ? 4 : 2
+    const righe: RigaComanda[] = []
+    const gruppi = PIATTI_PER_SERVIZIO[tipo]
+    gruppi.forEach((g, gi) => {
+      // Non tutti prendono tutte le portate: è il conto medio a farlo credibile.
+      if (gi > 0 && rnd() < (tipo === 'ristorante' ? 0.35 : 0.5)) return
+      const v = voce(pick(g))
+      const qta = v.reparto === 'cantina' ? 1 : Math.max(1, Math.round(coperti * (0.5 + rnd() * 0.5)))
+      const portata = tipo === 'ristorante' ? [1, 2, 3, 3, 4, 0, 0][gi] : 0
+      righe.push(riga(v, qta, portata, 'servita', '', [], [], min + 20))
+    })
+    const pagamento: Comanda['pagamento'] =
+      cat === 3 ? (rnd() < 0.7 ? 'camera' : 'carta') : cat === 2 ? 'camera'
+        : rnd() < 0.55 ? 'carta' : rnd() < 0.7 ? 'contanti' : 'wallet'
+    out.push({
+      id, numero: String(id).padStart(3, '0'), outletId, salaId, tavoloId: tav.id, turnoId: turno.id,
+      coperti, cameriere: outletId === 2 ? 'Martina G.' : outletId === 3 ? pick(['Davide R.', 'Paolo N.', 'Sara T.']) : pick(CAMERIERI.slice(0, 6)),
+      categoriaClienteId: cat, nota: '',
+      apertaAlle: oraMenoMinuti(min + 50), chiusaAlle: oraMenoMinuti(min),
+      stato: 'chiusa', addebitoCamera: pagamento === 'camera' ? String(101 + Math.floor(rnd() * 220)) : '', pagamento,
+      righe,
+    })
+    id++
+  }
+  return out
+}
+
+export const comandeIniziali = (): Comanda[] => {
+  const base = [...comandeBase(), ...comandeAperteExtra()]
+  return [...base, ...chiuseDelGiorno(base.length + 1)]
+}
+
 /** Turno di cassa già aperto: il servizio in corso è cominciato prima di noi. */
 export const cassaIniziale = (): TurnoCassa => ({
-  id: 1,
+  id: 15,
   data: oggiISO(),
-  apertaAlle: oraMenoMinuti(210),
+  apertaAlle: (() => { const d = new Date(); return d.getHours() >= 7 ? '07:00' : oraMenoMinuti(60) })(),
   chiusaAlle: null,
   operatore: 'Luca V.',
   fondo: 150,
@@ -1570,6 +1984,31 @@ export const cassaIniziale = (): TurnoCassa => ({
   conti: 0,
   storni: 0,
 })
+
+/** Chiusure delle ultime due settimane: lo storico della cassa. */
+export const chiusureIniziali = (): TurnoCassa[] => {
+  const oggi = oggiISO()
+  const out: TurnoCassa[] = []
+  for (let g = 1; g <= 14; g++) {
+    const data = addGiorni(oggi, -g)
+    const dow = new Date(data + 'T12:00:00').getDay()
+    const rnd = rngDemo(semeDi(data) + 3)
+    const k = (dow === 5 || dow === 6 ? 1.35 : dow === 0 ? 1.15 : 1) * (0.85 + rnd() * 0.3)
+    const r2 = (n: number) => Math.round(n * 100) / 100
+    const incassi = {
+      contanti: r2(620 * k), carta: r2(2350 * k), camera: r2(1480 * k), wallet: r2(260 * k),
+    }
+    // Quasi sempre in pari; ogni tanto qualche euro di differenza nel cassetto.
+    const scarto = rnd() < 0.2 ? r2((rnd() - 0.5) * 24) : 0
+    out.push({
+      id: 15 - g, data, apertaAlle: '07:00', chiusaAlle: rnd() < 0.5 ? '23:45' : '00:20',
+      operatore: ['Luca V.', 'Elena F.', 'Luca V.', 'Roberto F.'][g % 4],
+      fondo: 150, contato: r2(150 + incassi.contanti + scarto), incassi,
+      coperti: Math.round(210 * k), conti: Math.round(88 * k), storni: r2(rnd() * 60),
+    })
+  }
+  return out
+}
 
 export const storniIniziali = (): Storno[] => [
   {
@@ -1581,5 +2020,20 @@ export const storniIniziali = (): Storno[] => [
     id: 'st-seed-2', comandaId: 7, numero: '007', tavolo: '003',
     voce: 'Vino rosso al calice', qta: 2, valore: 12,
     motivo: 'Errore di battitura', operatore: 'Luca V.', ora: oraMenoMinuti(140), giaInviata: false,
+  },
+  {
+    id: 'st-seed-3', comandaId: 16, numero: '016', tavolo: 'RT09',
+    voce: 'Mojito', qta: 1, valore: 10,
+    motivo: 'Cambio idea dell’ospite', operatore: 'Sara T.', ora: oraMenoMinuti(88), giaInviata: true,
+  },
+  {
+    id: 'st-seed-4', comandaId: 12, numero: '012', tavolo: '017',
+    voce: 'Tiramisù', qta: 1, valore: 6.5,
+    motivo: 'Omaggio della direzione', operatore: 'Elena F.', ora: oraMenoMinuti(30), giaInviata: true,
+  },
+  {
+    id: 'st-seed-5', comandaId: 21, numero: '021', tavolo: 'LB05',
+    voce: 'Negroni', qta: 1, valore: 11,
+    motivo: 'Prodotto terminato', operatore: 'Martina G.', ora: oraMenoMinuti(55), giaInviata: false,
   },
 ]

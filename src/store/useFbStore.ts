@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import {
   OUTLETS, SALE, TURNI, tavoliIniziali, prenotazioniIniziali, comandeIniziali,
   VOCI_MENU, CATEGORIE_MENU, TIPI_MENU, CATEGORIE_CLIENTE, oggiISO, turnoCorrente,
-  INGREDIENTI, RICETTE, cassaIniziale, storniIniziali,
+  INGREDIENTI, RICETTE, cassaIniziale, storniIniziali, chiusureIniziali,
   menuGiornoIniziali, webMenuIniziali,
   ALLERGENI_UE, STAMPANTI, MONITOR_KDS, CONFIG_EMAIL, CONFIG_WALLET,
   RUOLI_FB, UTENTI_FB, WALLET_CLIENTI,
@@ -72,6 +72,8 @@ export interface ContestoFb {
 }
 
 interface FbState {
+  /** Giornata a cui si riferisce il servizio salvato: cambiata, si riparte da oggi. */
+  giornoDemo: string
   /** Anagrafica della sezione: outlet e turni si configurano dalle loro pagine. */
   outlets: Outlet[]
   turni: Turno[]
@@ -732,7 +734,7 @@ export const useFbStore = create<FbState>()(
 
       // ── Cassa ─────────────────────────────────────────────────────────────
       cassa: cassaIniziale(),
-      chiusure: [],
+      chiusure: chiusureIniziali(),
       storni: storniIniziali(),
 
       apriCassa: (fondo, operatore) =>
@@ -841,9 +843,26 @@ export const useFbStore = create<FbState>()(
         comande: comandeIniziali(),
         prenotazioni: prenotazioniIniziali(),
         progressivo: comandeIniziali().length,
+        cassa: cassaIniziale(),
+        chiusure: chiusureIniziali(),
+        storni: storniIniziali(),
+        giornoDemo: oggiISO(),
       }),
+      giornoDemo: oggiISO(),
     }),
-    { name: 'sibylla.fb', version: 10 },
+    {
+      name: 'sibylla.fb',
+      version: 11,
+      // Demo sempre "viva": al primo accesso di una nuova giornata il servizio
+      // (tavoli, comande, prenotazioni, cassa, menu del giorno) riparte dalla
+      // fotografia di oggi; configurazione e catalogo restano quelli salvati.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<FbState>
+        if (p.giornoDemo === oggiISO()) return { ...current, ...p }
+        const { tavoli, comande, prenotazioni, progressivo, cassa, chiusure, storni, posti, menuGiorno, webMenu, contesto, giornoDemo, ...config } = p
+        return { ...current, ...config }
+      },
+    },
   ),
 )
 
