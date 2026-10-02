@@ -48,7 +48,7 @@ export const MODULI_SPECIFICI: ModuloOp[] = [
   { key: 'fbOspiti',        label: 'Ospiti del giorno', pms: true },
   { key: 'fbMenu',          label: 'Menu e allergeni' },
   { key: 'biCruscotto',     label: 'Cruscotto (La giornata, Reparti oggi)' },
-  { key: 'acquisti',        label: 'Acquisti (richieste e ricevimento merce)' },
+  { key: 'acquisti',        label: 'Centro acquisti (catalogo, ordini e ricevimento merce)' },
 ]
 
 export const MODULI_OP: ModuloOp[] = [...MODULI_COMUNI, ...MODULI_SPECIFICI]
@@ -79,7 +79,10 @@ export const PAGINE_OP: Record<string, { key: string; label: string }[]> = {
   ],
   oggetti: [{ key: 'oggetti.elenco', label: 'Elenco' }, { key: 'oggetti.nuovo', label: 'Nuovo oggetto' }],
   biCruscotto: [{ key: 'biCruscotto.giornata', label: 'La giornata' }, { key: 'biCruscotto.reparti', label: 'Reparti oggi' }],
-  acquisti: [{ key: 'acquisti.richieste', label: 'Richieste d’acquisto' }, { key: 'acquisti.ricevimento', label: 'Ricevimento merce' }],
+  acquisti: [
+    { key: 'acquisti.aree', label: 'Area merceologica' }, { key: 'acquisti.fornitori', label: 'Fornitori' }, { key: 'acquisti.servizi', label: 'Servizi' },
+    { key: 'acquisti.carrello', label: 'Carrello e ordini' }, { key: 'acquisti.richieste', label: 'Richieste d’acquisto' }, { key: 'acquisti.ricevimento', label: 'Ricevimento merce' },
+  ],
 }
 
 export const labelModulo = (key: string) => MODULI_OP.find(m => m.key === key)?.label ?? key
