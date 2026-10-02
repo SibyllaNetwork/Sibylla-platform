@@ -64,6 +64,7 @@
 
 .vcce__push
   margin-left: auto
+  flex: 0 0 auto
 
 .vcce__field
   display: flex
@@ -74,8 +75,30 @@
     height: 40px
     min-width: 240px
 
+  &--azienda .sib-select
+    min-width: 200px
+
+// Periodo Data in: range picker standard (due calendari affiancati), portato
+// all'altezza degli altri campi della barra (40px come in Commissioni).
+.vcce__field--periodo
+  width: 250px
+
+  .sib-daterange.rs-picker .rs-input-group.rs-input-group-inside
+    height: 40px
+
+  .sib-daterange.rs-picker .rs-input
+    height: 38px
+
+// Avviso: testo esteso sopra soglia, solo conteggio quando la barra si stringe.
+.vcce__alert-short
+  display: none
+
 // Avviso inline (niente stat-card in cima): conteggio delle casistiche
 // scadute ancora da lavorare, lo stesso che alimenta la notifica.
+// Il wrapper (non il Tooltip) è il figlio flex: così l'avviso non si schiaccia.
+.vcce__toolbar .vcce__alert-wrap
+  flex: 0 0 auto
+
 .vcce__alert
   height: 40px
   display: inline-flex
@@ -190,15 +213,8 @@
   display: inline-flex
   color: $error
 
-// Due classi: il colore del td di .sib-table vincerebbe a pari specificità.
 .vcce .vcce__delta
   font-weight: 600
-
-  &--pos
-    color: $success
-
-  &--neg
-    color: $error
 
 .vcce .vcce__stato
   display: block
@@ -357,7 +373,31 @@
         font-size: 9px
 
   .vcce__field .sib-select
-    min-width: 180px
+    min-width: 150px
+
+  .vcce__field--periodo
+    width: 220px
+
+// Avviso compatto solo quando la barra filtri non ci sta più per intero.
+@container vccemesse (max-width: 1000px)
+  // Larghezze fisse: le select altrimenti restano larghe quanto l'opzione più lunga.
+  .vcce__toolbar .vcce__field
+    flex: 0 1 auto
+
+    .sib-select
+      min-width: 0
+
+  .vcce__toolbar .vcce__field:not(.vcce__field--periodo)
+    width: 160px
+
+  .vcce__toolbar .vcce__field--periodo
+    width: 200px
+
+  .vcce__alert-full
+    display: none
+
+  .vcce__alert-short
+    display: inline
 
 @container vccemesse (max-width: 900px)
   .vcce .vcce__table
@@ -376,7 +416,10 @@
         font-size: 8px
 
   .vcce__field .sib-select
-    min-width: 140px
+    min-width: 110px
+
+  .vcce__field--periodo
+    width: 190px
 
   .vcce__alert
     padding: 0 10px

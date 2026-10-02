@@ -21,6 +21,8 @@ export const STATI_LAVORAZIONE: StatoLavorazione[] = ['Nessuna azione necessaria
 
 export interface VccEmessa {
   id: string
+  /** Azienda cliente a cui appartiene la struttura. */
+  azienda: string
   struttura: string
   bookingId: string
   /** Importo della VCC già incassata: non cambia più dopo l'incasso. */
@@ -96,8 +98,25 @@ const SEED_ROWS: SeedRow[] = [
   ['Borgo Antico Spa',       'G2TEST-CV13YP', 610,  'Modificata', -7,  540],
 ]
 
+// Azienda cliente di ciascuna struttura (stesse aziende di Commissioni).
+export const AZIENDE_VCC = ['Sibylla', 'GAR S.R.L.', 'Reservation Hotel Italy']
+const AZIENDA_DI: Record<string, string> = {
+  'Hotel Aurora Roma': 'Sibylla',
+  'Villa Sole Taormina': 'GAR S.R.L.',
+  'Palazzo Navona Suites': 'Sibylla',
+  'Grand Hotel Riviera': 'Reservation Hotel Italy',
+  'Residenza dei Fiori': 'GAR S.R.L.',
+  'Hotel Bellavista Como': 'Reservation Hotel Italy',
+  'Casa Lido Venezia': 'Sibylla',
+  'Borgo Antico Spa': 'GAR S.R.L.',
+  'Hotel Duomo Milano': 'Reservation Hotel Italy',
+  'Masseria Ulivi': 'GAR S.R.L.',
+  'Resort Mare Chiaro': 'Sibylla',
+}
+
 const SEED: VccEmessa[] = SEED_ROWS.map(([struttura, bookingId, importoStruttura, status, giorni, importoDataIn, extra], i) => ({
   id: `vcc-${i + 1}`,
+  azienda: AZIENDA_DI[struttura],
   struttura, bookingId, importoStruttura, status,
   dataIn: shift(giorni),
   importoDataIn,

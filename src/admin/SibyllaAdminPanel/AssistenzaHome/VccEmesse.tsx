@@ -6,13 +6,13 @@ import Tooltip from '../../../core/components/Tooltip'
 import TruncatedText from '../../../core/components/TruncatedText'
 import ThLabel from '../../../core/components/ThLabel'
 import VccCard from '../../../core/components/VccCard'
-import { SelectField } from '../../../core/components/form'
+import { SelectField, DateRangeField } from '../../../core/components/form'
 import { useColFilters } from '../../../core/components/ColFilters'
 import { toast } from '../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import {
   useVccEmesseStore, useVccRows, deltaOf, statoLavorazioneOf, isDaMonitorare, isScaduta,
-  todayIso, STATUS_PRENOTAZIONE, STATI_LAVORAZIONE, type VccEmessa,
+  todayIso, STATUS_PRENOTAZIONE, STATI_LAVORAZIONE, AZIENDE_VCC, type VccEmessa,
 } from '../../../store/useVccEmesseStore'
 import './VccEmesse.sass'
 
@@ -29,8 +29,6 @@ const VISTA_MONITORARE = 'monitorare'
 const VISTA_TUTTE = 'tutte'
 
 // Valori dei filtri a imbuto delle colonne senza un dominio "naturale".
-const VCC_ORIGINALE = 'Solo VCC incassata'
-const VCC_CON_INTEGRATIVA = 'Con VCC integrativa'
 const DATA_FUTURA = 'Da oggi in poi'
 const DATA_PASSATA = 'Passata'
 const AZ_GENERA = 'Genera VCC integrativa'
@@ -72,6 +70,10 @@ export default function VccEmesse({ navigate }: Props) {
   const confirm = useConfirmStore(s => s.confirm)
 
   const [vista, setVista] = useState(VISTA_MONITORARE)
+  const [azienda, setAzienda] = useState('')
+  // Periodo sulla Data in (aaaa-mm-gg): vuoto = nessun limite.
+  const [dataDa, setDataDa] = useState('')
+  const [dataA, setDataA] = useState('')
   const [page, setPage] = useState(1)
   const [card, setCard] = useState<CardView | null>(null)
   const cf = useColFilters()
@@ -81,22 +83,25 @@ export default function VccEmesse({ navigate }: Props) {
   // (sortRows ordina per chiave della riga).
   const rows = useMemo(() => all
     .filter(v => vista === VISTA_TUTTE || isDaMonitorare(v, oggi))
+    .filter(v => !azienda || v.azienda === azienda)
+    .filter(v => (!dataDa || v.dataIn >= dataDa) && (!dataA || v.dataIn <= dataA))
     .map(v => ({
       ...v,
       delta: deltaOf(v),
       stato: statoLavorazioneOf(v),
       azione: azioneOf(v),
       scaduta: isScaduta(v, oggi),
-    })), [all, vista, oggi])
+    })), [all, vista, azienda, dataDa, dataA, oggi])
 
-  const strutture = useMemo(() => Array.from(new Set(all.map(v => v.struttura))).sort(), [all])
+  const strutture = useMemo(() => Array.from(new Set(all
+    .filter(v => !azienda || v.azienda === azienda)
+    .map(v => v.struttura))).sort(), [all, azienda])
   const scaduteTot = useMemo(() => all.filter(v => isScaduta(v, oggi)).length, [all, oggi])
 
   const filtered = useMemo(() => rows.filter(r =>
     cf.matchMulti(r.struttura, 'struttura') &&
     cf.matchText(r.bookingId, 'bookingId') &&
     cf.matchText(eur(r.importoStruttura), 'importoStruttura') &&
-    cf.matchMulti(r.integrativa ? VCC_CON_INTEGRATIVA : VCC_ORIGINALE, 'vcc') &&
     cf.matchMulti(r.status, 'status') &&
     cf.matchMulti(r.dataIn >= oggi ? DATA_FUTURA : DATA_PASSATA, 'dataIn') &&
     cf.matchText(eur(r.importoDataIn), 'importoDataIn') &&
@@ -114,7 +119,7 @@ export default function VccEmesse({ navigate }: Props) {
   [filtered, cf.sort])
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [cf.text, cf.multi, vista])
+  useEffect(() => { setPage(1) }, [cf.text, cf.multi, vista, azienda, dataDa, dataA])
   const pageRows = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   // Flusso modifica positiva: VCC integrativa pari al delta. Da qui in avanti
@@ -145,10 +150,10 @@ export default function VccEmesse({ navigate }: Props) {
 
   // Esporta le righe filtrate in un file .xls (apribile da Excel).
   const exportExcel = () => {
-    const cols = ['Struttura', 'Booking ID', 'Importo struttura', 'VCC integrativa', 'Status prenotazione', 'Data in', 'Importo data in', 'Delta importi', 'Stato lavorazione']
+    const cols = ['Azienda', 'Struttura', 'Booking ID', 'Importo struttura', 'VCC integrativa', 'Status prenotazione', 'Data in', 'Importo data in', 'Delta importi', 'Stato lavorazione']
     const head = cols.map(c => `<th>${c}</th>`).join('')
     const body = sorted.map(r =>
-      `<tr><td>${r.struttura}</td><td>${r.bookingId}</td><td>${eur(r.importoStruttura)}</td><td>${r.integrativa ? 'Sì' : 'No'}</td><td>${r.status}</td><td>${fmtData(r.dataIn)}</td><td>${eur(r.importoDataIn)}</td><td>${eurDelta(r.delta)}</td><td>${r.stato}</td></tr>`
+      `<tr><td>${r.azienda}</td><td>${r.struttura}</td><td>${r.bookingId}</td><td>${eur(r.importoStruttura)}</td><td>${r.integrativa ? 'Sì' : 'No'}</td><td>${r.status}</td><td>${fmtData(r.dataIn)}</td><td>${eur(r.importoDataIn)}</td><td>${eurDelta(r.delta)}</td><td>${r.stato}</td></tr>`
     ).join('')
     const html = `<html><head><meta charset="utf-8"></head><body><table border="1" cellspacing="0" cellpadding="4"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></body></html>`
     const url = URL.createObjectURL(new Blob([html], { type: 'application/vnd.ms-excel' }))
@@ -212,19 +217,44 @@ export default function VccEmesse({ navigate }: Props) {
             { value: VISTA_TUTTE, label: 'Tutte (incluse passate e risolte)' },
           ]}
         />
+        <SelectField
+          name="azienda"
+          label="Azienda"
+          className="vcce__field vcce__field--azienda"
+          value={azienda}
+          onChange={e => setAzienda(e.target.value)}
+          options={[{ value: '', label: 'Tutte le aziende' }, ...AZIENDE_VCC.map(a => ({ value: a, label: a }))]}
+        />
+        <DateRangeField
+          label="Data in"
+          nameFrom="data-in-da"
+          nameTo="data-in-a"
+          className="vcce__field vcce__field--periodo"
+          valueFrom={dataDa}
+          valueTo={dataA}
+          onChangeFrom={e => setDataDa(e.target.value)}
+          onChangeTo={e => setDataA(e.target.value)}
+        />
         {scaduteTot > 0 && (
+          <div className="vcce__alert-wrap">
           <Tooltip text="Data in passata, delta importi diverso da zero e lavorazione non risolta">
             <span className="vcce__alert">
               <Ico n="alert" w="solid" s={13} c="currentColor" />
-              {scaduteTot === 1 ? '1 casistica scaduta da lavorare' : `${scaduteTot} casistiche scadute da lavorare`}
+              <span className="vcce__alert-full">{scaduteTot === 1 ? '1 casistica scaduta da lavorare' : `${scaduteTot} casistiche scadute da lavorare`}</span>
+              <span className="vcce__alert-short">{scaduteTot === 1 ? '1 scaduta' : `${scaduteTot} scadute`}</span>
             </span>
           </Tooltip>
+          </div>
         )}
-        <Tooltip text="Esporta in Excel">
-          <button type="button" className="vcce__icon-btn vcce__push" onClick={exportExcel} aria-label="Esporta in Excel">
-            <Ico n="excel" w="regular" s={16} c="#fff" />
-          </button>
-        </Tooltip>
+        {/* Export in alto a destra: il wrapper prende il margin-left auto e
+            allinea il pulsante al bordo destro della tabella (sopra Azioni). */}
+        <div className="vcce__push">
+          <Tooltip text="Esporta in Excel">
+            <button type="button" className="vcce__icon-btn" onClick={exportExcel} aria-label="Esporta in Excel">
+              <Ico n="excel" w="regular" s={16} c="#fff" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       <div className="sib-table-wrap vcce__wrap">
@@ -248,7 +278,7 @@ export default function VccEmesse({ navigate }: Props) {
               <th><span className="sib-colf-head"><ThLabel full="Struttura" />{cf.th('struttura', 'struttura', { options: strutture })}</span></th>
               <th><span className="sib-colf-head"><ThLabel full="Booking ID" />{cf.th('bookingId', 'booking ID', { search: true })}</span></th>
               <th className="vcce__r"><span className="sib-colf-head"><ThLabel full="Importo struttura" short="Imp. strutt." />{cf.th('importoStruttura', 'importo struttura', { search: true, sort: true })}</span></th>
-              <th className="vcce__c"><span className="sib-colf-head"><ThLabel full="VCC" />{cf.th('vcc', 'VCC', { options: [VCC_ORIGINALE, VCC_CON_INTEGRATIVA] })}</span></th>
+              <th className="vcce__c"><ThLabel full="VCC" /></th>
               <th><span className="sib-colf-head"><ThLabel full="Status prenotazione" short="Status pren." />{cf.th('status', 'status prenotazione', { options: STATUS_PRENOTAZIONE })}</span></th>
               <th><span className="sib-colf-head"><ThLabel full="Data in" />{cf.th('dataIn', 'data in', { sort: true, options: [DATA_FUTURA, DATA_PASSATA] })}</span></th>
               <th className="vcce__r"><span className="sib-colf-head"><ThLabel full="Importo data in" short="Imp. data in" />{cf.th('importoDataIn', 'importo data in', { search: true, sort: true })}</span></th>
@@ -278,7 +308,7 @@ export default function VccEmesse({ navigate }: Props) {
                   </span>
                 </td>
                 <td className="vcce__r"><TruncatedText text={eur(r.importoDataIn)} /></td>
-                <td className={'vcce__r vcce__delta' + (r.delta > 0 ? ' vcce__delta--pos' : r.delta < 0 ? ' vcce__delta--neg' : '')}>
+                <td className="vcce__r vcce__delta">
                   <TruncatedText text={eurDelta(r.delta)} />
                 </td>
                 <td>
