@@ -11,7 +11,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetchSibylla, ApiError } from '../../services/api'
 import { REPARTI_OP, repartoDaId, type LivelloOp, type RepartiModuli, type RepartoOp } from './opCatalogo'
-import { OpApiError, opCollegataApi, type DipendenteOp, type DipendenteRichiesta, type InvitoOp } from './opApi'
+import { OpApiError, opCollegataApi, type DipendenteOp, type DipendenteRichiesta, type InvitoOp, type StrutturaOp } from './opApi'
 
 interface UtenteSibylla {
   id_utente: number
@@ -109,9 +109,9 @@ export interface ConfigAppOp {
 const opNonDisponibile = (e: unknown) => e instanceof OpApiError && (e.status === 404 || e.status === 0)
 
 export const appOpSibylla = {
-  async leggi(): Promise<ConfigAppOp> {
+  async leggi(struttura?: StrutturaOp | null): Promise<ConfigAppOp> {
     try {
-      const c = await opCollegataApi.config()
+      const c = await opCollegataApi.config(struttura)
       // Nessun reparto configurato: come in Sibylla valgono tutti, con i moduli predefiniti.
       const reparti = Object.keys(c.reparti).length > 0
         ? c.reparti
@@ -130,16 +130,16 @@ export const appOpSibylla = {
     }
   },
 
-  async salvaModuli(reparti: RepartiModuli, fonte: FonteAppOp): Promise<void> {
-    if (fonte === 'op') { await opCollegataApi.reparti(reparti); return }
+  async salvaModuli(reparti: RepartiModuli, fonte: FonteAppOp, struttura?: StrutturaOp | null): Promise<void> {
+    if (fonte === 'op') { await opCollegataApi.reparti(reparti, struttura); return }
     if (fonte === 'prova') { useAppOpProva.getState().setReparti(reparti); return }
     await post('OpApp/config/SalvaModuli', { moduli_reparti: moduliPer(reparti) })
   },
 
-  async salvaUtente(id: number | null, d: DipendenteRichiesta, fonte: FonteAppOp): Promise<{ invito: InvitoOp | null }> {
+  async salvaUtente(id: number | null, d: DipendenteRichiesta, fonte: FonteAppOp, struttura?: StrutturaOp | null): Promise<{ invito: InvitoOp | null }> {
     if (fonte === 'op') {
-      if (id) { await opCollegataApi.aggiornaDipendente(id, d); return { invito: null } }
-      return { invito: (await opCollegataApi.nuovoDipendente(d)).invito }
+      if (id) { await opCollegataApi.aggiornaDipendente(id, d, struttura); return { invito: null } }
+      return { invito: (await opCollegataApi.nuovoDipendente(d, struttura)).invito }
     }
     if (fonte === 'prova') return { invito: useAppOpProva.getState().salva(id, d).invito }
     const r = await post<{ success: boolean; error_message?: string; invito?: { codice: string; scade_il: string; email_mascherata: string } | null }>('OpApp/utenti/Salva', {
@@ -151,8 +151,8 @@ export const appOpSibylla = {
     return { invito: r.invito ? { codice: r.invito.codice, scadeIl: r.invito.scade_il, emailMascherata: r.invito.email_mascherata } : null }
   },
 
-  async invita(id: number, fonte: FonteAppOp): Promise<InvitoOp> {
-    if (fonte === 'op') return opCollegataApi.invito(id)
+  async invita(id: number, fonte: FonteAppOp, struttura?: StrutturaOp | null): Promise<InvitoOp> {
+    if (fonte === 'op') return opCollegataApi.invito(id, struttura)
     if (fonte === 'prova') return useAppOpProva.getState().invita(id)
     const r = await post<{ codice: string; scade_il: string; email_mascherata: string }>('OpApp/inviti/Invia', { id_utente: id })
     return { codice: r.codice, scadeIl: r.scade_il, emailMascherata: r.email_mascherata }

@@ -149,6 +149,15 @@ export const opAdminApi = {
 // utenze dell'azienda del simulatore. 404 quando Op.Api usa Sibylla vera.
 const C = '/admin/collegata'
 
+/** Struttura di sibylla-platform di cui si configura l'App Op!: ognuna ha la sua azienda (con i dati di esempio). */
+export interface StrutturaOp {
+  id: number
+  nome: string
+}
+
+const q = (s?: StrutturaOp | null, conNome = false) =>
+  s ? `?struttura=${s.id}${conNome ? `&nome=${encodeURIComponent(s.nome)}` : ''}` : ''
+
 export interface ConfigCollegata {
   azienda: string
   reparti: RepartiModuli
@@ -156,11 +165,12 @@ export interface ConfigCollegata {
 }
 
 export const opCollegataApi = {
-  config: () => opFetch<ConfigCollegata>(C),
-  reparti: (reparti: RepartiModuli) => opFetch<void>(`${C}/reparti`, 'PUT', { reparti }),
-  nuovoDipendente: (d: DipendenteRichiesta) => opFetch<{ dipendente: DipendenteOp; invito: InvitoOp | null }>(`${C}/dipendenti`, 'POST', d),
-  aggiornaDipendente: (idDip: number, d: DipendenteRichiesta) => opFetch<DipendenteOp>(`${C}/dipendenti/${idDip}`, 'PUT', d),
-  invito: (idDip: number) => opFetch<InvitoOp>(`${C}/dipendenti/${idDip}/invito`, 'POST'),
+  config: (s?: StrutturaOp | null) => opFetch<ConfigCollegata>(`${C}${q(s, true)}`),
+  reparti: (reparti: RepartiModuli, s?: StrutturaOp | null) => opFetch<void>(`${C}/reparti${q(s)}`, 'PUT', { reparti }),
+  nuovoDipendente: (d: DipendenteRichiesta, s?: StrutturaOp | null) =>
+    opFetch<{ dipendente: DipendenteOp; invito: InvitoOp | null }>(`${C}/dipendenti${q(s)}`, 'POST', d),
+  aggiornaDipendente: (idDip: number, d: DipendenteRichiesta, s?: StrutturaOp | null) => opFetch<DipendenteOp>(`${C}/dipendenti/${idDip}${q(s)}`, 'PUT', d),
+  invito: (idDip: number, s?: StrutturaOp | null) => opFetch<InvitoOp>(`${C}/dipendenti/${idDip}/invito${q(s)}`, 'POST'),
 }
 
 export const formatoData = (iso: string | null | undefined) =>

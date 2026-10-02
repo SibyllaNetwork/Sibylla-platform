@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import AlertBanner from '../../../../../core/components/AlertBanner'
 import Button from '../../../../../core/components/Button/Button'
 import Tabs from '../../../../../core/components/Tabs'
@@ -10,6 +10,9 @@ import OpDipendenteModal from '../../../../appop/OpDipendenteModal'
 import OpDipendentiTable from '../../../../appop/OpDipendentiTable'
 import OpInvitoModal from '../../../../appop/OpInvitoModal'
 import { appOpSibylla, type FonteAppOp } from '../../../../appop/appOpSibylla'
+import { CLIENTS_INIT } from '../../../../../admin/SibyllaAdminPanel/constants'
+import { strutturaDelProfilo, useAccessStore } from '../../../../../store/useAccessStore'
+import type { StrutturaOp } from '../../../../appop/opApi'
 import type { RepartiModuli, RepartoOp } from '../../../../appop/opCatalogo'
 import type { DipendenteOp, DipendenteRichiesta, InvitoOp } from '../../../../appop/opApi'
 import './AppOp.sass'
@@ -28,6 +31,14 @@ let sezioneIniziale: Sezione = 'utenze'
 export const apriSezioneAppOp = (s: Sezione) => { sezioneIniziale = s }
 
 export default function AppOp() {
+  // Struttura di cui si configura l'App Op!: quella dell'assistenza o del profilo caricato. Ognuna ha la sua azienda.
+  const assist = useAccessStore(s => s.assist)
+  const profilo = useAccessStore(s => s.profiles.find(p => p.id === s.currentProfileId))
+  const idStruttura = assist?.struttureIds.length === 1 ? assist.struttureIds[0] : profilo ? strutturaDelProfilo(profilo) : null
+  const struttura = useMemo<StrutturaOp | null>(() => {
+    const c = CLIENTS_INIT.find(x => x.id === idStruttura)
+    return c ? { id: c.id, nome: c.nome } : null
+  }, [idStruttura])
   const markDirty     = useConfiguratoreStore(s => s.markDirty)
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
@@ -44,7 +55,7 @@ export default function AppOp() {
 
   const carica = useCallback(async () => {
     try {
-      const c = await appOpSibylla.leggi()
+      const c = await appOpSibylla.leggi(struttura)
       setFonte(c.fonte)
       setAzienda(c.azienda)
       setSalvati(c.reparti)
@@ -55,7 +66,7 @@ export default function AppOp() {
     } catch (e) {
       setProblema(e instanceof Error ? e.message : 'Configurazione non disponibile.')
     }
-  }, [setCompletion])
+  }, [setCompletion, struttura])
 
   useEffect(() => { carica() }, [carica])
 
@@ -64,13 +75,13 @@ export default function AppOp() {
   useEffect(() => () => { resetDirty() }, [resetDirty])
 
   const salvaModuli = async () => {
-    await appOpSibylla.salvaModuli(reparti, fonte)
+    await appOpSibylla.salvaModuli(reparti, fonte, struttura)
     setSalvati(reparti)
     resetDirty()
   }
 
   const salvaUtente = async (d: DipendenteRichiesta) => {
-    const { invito: nuovo } = await appOpSibylla.salvaUtente(modifica?.id ?? null, d, fonte)
+    const { invito: nuovo } = await appOpSibylla.salvaUtente(modifica?.id ?? null, d, fonte, struttura)
     toast.success(modifica ? 'Utenza aggiornata.' : `Utenza di ${d.nome} ${d.cognome} creata.`, 'App Op!')
     if (nuovo) setInvito({ invito: nuovo, nome: `${d.nome} ${d.cognome}` })
     setModifica(undefined)
@@ -79,7 +90,7 @@ export default function AppOp() {
 
   const invita = async (d: DipendenteOp) => {
     try {
-      setInvito({ invito: await appOpSibylla.invita(d.id, fonte), nome: `${d.nome} ${d.cognome}` })
+      setInvito({ invito: await appOpSibylla.invita(d.id, fonte, struttura), nome: `${d.nome} ${d.cognome}` })
       await carica()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Invito non inviato.', 'App Op!')
@@ -92,8 +103,8 @@ export default function AppOp() {
     <div className="app-op">
       {fonte === 'op' && (
         <AlertBanner type="info">
-          Ambiente di prova di Op: utenze e moduli sono quelli dell’azienda {azienda ?? 'del simulatore'} nel simulatore di
-          Sibylla. Gli inviti arrivano davvero via email e i dipendenti entrano nell’app.
+          App Op! di {azienda ?? 'questa struttura'}: utenze e moduli sono nell’ambiente di prova di Op, con dipendenti e dati di
+          esempio. Gli inviti arrivano davvero via email e i dipendenti entrano nell’app.
         </AlertBanner>
       )}
       {fonte === 'prova' && (
