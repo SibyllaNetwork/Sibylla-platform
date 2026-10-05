@@ -11,9 +11,10 @@ import OpDipendentiTable from '../../../../appop/OpDipendentiTable'
 import OpInvitoModal from '../../../../appop/OpInvitoModal'
 import OpQrGenerator from '../../../../appop/OpQrGenerator'
 import { appOpSibylla, type FonteAppOp } from '../../../../appop/appOpSibylla'
-import { CLIENTS_INIT } from '../../../../../admin/SibyllaAdminPanel/constants'
-import { strutturaDelProfilo, useAccessStore } from '../../../../../store/useAccessStore'
-import type { StrutturaOp } from '../../../../appop/opApi'
+import { CATEGORIE_STRUTTURA, CLIENTS_INIT } from '../../../../../admin/SibyllaAdminPanel/constants'
+import { useStrutturaCorrente } from '../../../../../hooks/useStrutturaCorrente'
+import { generaPms } from '../../../../operation/_data/pmsDemo'
+import type { StrutturaOp, StrutturaSync } from '../../../../appop/opApi'
 import type { RepartiModuli, RepartoOp } from '../../../../appop/opCatalogo'
 import type { DipendenteOp, DipendenteRichiesta, InvitoOp } from '../../../../appop/opApi'
 import './AppOp.sass'
@@ -31,15 +32,27 @@ type Sezione = 'utenze' | 'moduli' | 'qr'
 let sezioneIniziale: Sezione = 'utenze'
 export const apriSezioneAppOp = (s: Sezione) => { sezioneIniziale = s }
 
+/**
+ * La struttura com'è in Platform, da allineare in Op.Api per i QR: un ristorante o bar (categoria senza camere) è un
+ * outlet, senza camere; una struttura ricettiva porta camere e piani del suo front office (gli stessi del Planner).
+ */
+function strutturaSync(c: (typeof CLIENTS_INIT)[number]): StrutturaSync {
+  const ricettiva = CATEGORIE_STRUTTURA.find(x => x.id === c.categoria)?.hasCamere ?? true
+  if (!ricettiva) return { tipo: 'outlet', nome: c.nome, indirizzo: c.citta || null, camere: [] }
+  const pms = generaPms({ nome: c.nome, categoria: c.categoria, classificazione: c.classificazione, camere: Number(c.camere) || 0 })
+  return {
+    tipo: 'ricettiva', nome: c.nome, indirizzo: c.citta || null,
+    camere: pms.camere.map(k => ({ numero: k.numero, piano: String(k.piano), tipo: k.tipo })),
+  }
+}
+
 export default function AppOp() {
-  // Struttura di cui si configura l'App Op!: quella dell'assistenza o del profilo caricato. Ognuna ha la sua azienda.
-  const assist = useAccessStore(s => s.assist)
-  const profilo = useAccessStore(s => s.profiles.find(p => p.id === s.currentProfileId))
-  const idStruttura = assist?.struttureIds.length === 1 ? assist.struttureIds[0] : profilo ? strutturaDelProfilo(profilo) : null
-  const struttura = useMemo<StrutturaOp | null>(() => {
-    const c = CLIENTS_INIT.find(x => x.id === idStruttura)
-    return c ? { id: c.id, nome: c.nome } : null
-  }, [idStruttura])
+  // Struttura di cui si configura l'App Op!: quella selezionata in alto (assistenza, profilo caricato o organizzazione).
+  // Ognuna ha la sua azienda in Op.
+  const { struttura: nomeStruttura } = useStrutturaCorrente()
+  const cliente = useMemo(() => CLIENTS_INIT.find(x => x.nome === nomeStruttura) ?? null, [nomeStruttura])
+  const struttura = useMemo<StrutturaOp | null>(() => (cliente ? { id: cliente.id, nome: cliente.nome } : null), [cliente])
+  const sync = useMemo(() => (cliente ? strutturaSync(cliente) : null), [cliente])
   const markDirty     = useConfiguratoreStore(s => s.markDirty)
   const resetDirty    = useConfiguratoreStore(s => s.resetDirty)
   const setCompletion = useConfiguratoreStore(s => s.setCompletion)
@@ -142,7 +155,7 @@ export default function AppOp() {
       {sezione === 'qr' && (
         <div className="app-op__sezione">
           {fonte === 'op'
-            ? <OpQrGenerator cliente={{ tipo: 'collegata', struttura }} />
+            ? <OpQrGenerator cliente={{ tipo: 'collegata', struttura }} sincronizza={sync} />
             : <AlertBanner type="info">I QR code dell’App Op! si generano quando la configurazione è collegata a Op (presenze dal totem della struttura, camere dalle Pulizie).</AlertBanner>}
         </div>
       )}

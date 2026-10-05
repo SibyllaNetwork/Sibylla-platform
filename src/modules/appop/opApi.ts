@@ -218,8 +218,23 @@ export const opQrApi = {
     opFetch<ConfigQr>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr` : `${C}/qr${q(c.struttura, true)}`),
   totem: (c: ClienteQr, idStruttura: number) =>
     opFetch<CodiceTotem>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr/totem/${idStruttura}` : `${C}/qr/totem/${idStruttura}${q(c.struttura)}`),
-  /** Clienti indipendenti: link pubblico della pagina totem a tutto schermo, da aprire sul tablet all'ingresso. */
-  linkTotem: (idCliente: number, idStruttura: number) => opFetch<{ url: string }>(`${B}/${idCliente}/qr/totem/${idStruttura}/link`),
+  /** Link pubblico della pagina totem a tutto schermo, da aprire sul tablet all'ingresso. */
+  linkTotem: (c: ClienteQr, idStruttura: number) =>
+    opFetch<{ url: string }>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr/totem/${idStruttura}/link` : `${C}/qr/totem/${idStruttura}/link${q(c.struttura)}`),
+  /**
+   * Strutture collegate: Platform è la fonte di verità. Manda a Op.Api la struttura com'è in Platform (outlet di
+   * ristorazione senza camere, o struttura ricettiva con camere e piani) e riceve i QR già allineati.
+   */
+  sincronizza: (s: StrutturaOp, d: StrutturaSync) => opFetch<ConfigQr>(`${C}/struttura${q(s, true)}`, 'PUT', d),
+}
+
+/** Struttura di Platform da allineare in Op.Api. */
+export interface StrutturaSync {
+  /** Outlet: ristorante o bar senza struttura ricettiva (solo QR delle presenze). */
+  tipo: 'ricettiva' | 'outlet'
+  nome: string
+  indirizzo: string | null
+  camere: { numero: string; piano: string; tipo: string | null }[]
 }
 
 // ─── Strutture, piani e camere dei clienti indipendenti ───────────────────────

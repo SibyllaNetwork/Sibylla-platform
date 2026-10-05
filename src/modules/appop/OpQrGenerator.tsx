@@ -6,7 +6,7 @@ import EmptyState from '../../core/components/EmptyState'
 import Modal from '../../core/components/Modal'
 import { toast } from '../../core/components/Toast/useToast'
 import { InputField, RadioGroup, SearchField, SelectField } from '../../core/components/form'
-import { opQrApi, type CameraQr, type ClienteQr, type CodiceTotem, type ConfigQr, type StrutturaQr } from './opApi'
+import { opQrApi, type CameraQr, type ClienteQr, type CodiceTotem, type ConfigQr, type StrutturaQr, type StrutturaSync } from './opApi'
 import './OpQrGenerator.sass'
 
 // ─── GENERATORE QR CODE (APP OP!) ─────────────────────────────────────────────
@@ -16,6 +16,9 @@ import './OpQrGenerator.sass'
 //  - Camere: il QR di ogni camera, da stampare sull'etichetta. Solo con il reparto
 //    Pulizie e il modulo "Avvia camera" attivi.
 //  Senza strutture collegate e senza Pulizie resta solo il QR delle presenze.
+//  Strutture di Platform: prima si allinea Op.Api alla struttura com'è in Platform
+//  (`sincronizza`). Un ristorante o bar senza struttura ricettiva è un OUTLET: si
+//  sceglie l'outlet e si genera solo il QR per registrare ingressi e uscite.
 
 type Tipo = 'presenze' | 'camere'
 
@@ -27,17 +30,26 @@ const qrPng = (testo: string, larghezza = 512) =>
 
 const etichettaCamera = (c: CameraQr) => [c.piano && `Piano ${c.piano}`, c.posizione].filter(Boolean).join(' · ')
 
-export default function OpQrGenerator({ cliente }: { cliente: ClienteQr }) {
+interface Props {
+  cliente: ClienteQr
+  /** Strutture di Platform: la struttura da allineare in Op.Api prima di generare i QR. */
+  sincronizza?: StrutturaSync | null
+}
+
+export default function OpQrGenerator({ cliente, sincronizza }: Props) {
   const [config, setConfig] = useState<ConfigQr | null>(null)
   const [problema, setProblema] = useState<string | null>(null)
   const [idStruttura, setIdStruttura] = useState<number | null>(null)
   const [tipo, setTipo] = useState<Tipo>('presenze')
 
   // La chiave evita di ricaricare a ogni render quando il cliente arriva come oggetto nuovo.
-  const chiave = cliente.tipo === 'indipendente' ? `i${cliente.id}` : `c${cliente.struttura?.id ?? ''}`
+  const chiave = cliente.tipo === 'indipendente' ? `i${cliente.id}` : `c${cliente.struttura?.id ?? ''}|${JSON.stringify(sincronizza ?? null)}`
+  const outlet = sincronizza?.tipo === 'outlet'
   const carica = useCallback(async () => {
     try {
-      const c = await opQrApi.config(cliente)
+      const c = cliente.tipo === 'collegata' && cliente.struttura && sincronizza
+        ? await opQrApi.sincronizza(cliente.struttura, sincronizza)
+        : await opQrApi.config(cliente)
       setConfig(c)
       setIdStruttura(id => (c.strutture.some(s => s.id === id) ? id : c.strutture[0]?.id ?? null))
       if (!c.pulizie) setTipo('presenze')
@@ -51,28 +63,30 @@ export default function OpQrGenerator({ cliente }: { cliente: ClienteQr }) {
   useEffect(() => { carica() }, [carica])
 
   const struttura = config?.strutture.find(s => s.id === idStruttura) ?? null
-  const soloPresenze = !!config && !config.pulizie
+  const soloPresenze = !!config && (outlet || !config.pulizie)
 
   if (problema) return <AlertBanner type="error">{problema}</AlertBanner>
   if (!config) return <p className="op-qr__nota">Caricamento…</p>
   if (config.strutture.length === 0) {
-    return <EmptyState icon="qrcode" title="Nessuna struttura" subtitle="Il cliente non ha ancora una sede: i QR si generano per struttura." />
+    return outlet
+      ? <EmptyState icon="utensils" title="Nessun outlet" subtitle="Il cliente non ha ancora un outlet: i QR si generano per outlet." />
+      : <EmptyState icon="qrcode" title="Nessuna struttura" subtitle="Il cliente non ha ancora una sede: i QR si generano per struttura." />
   }
 
   return (
     <div className="op-qr">
       <div className="op-qr__scelte">
-        {config.strutture.length > 1 && (
+        {(
           <SelectField
             name="op-qr-struttura"
-            label="Struttura"
+            label={outlet ? 'Outlet' : 'Struttura'}
             value={idStruttura ?? ''}
             options={config.strutture.map(s => ({ value: s.id, label: s.nome }))}
             onChange={e => setIdStruttura(Number(e.target.value))}
             className="op-qr__struttura"
           />
         )}
-        <RadioGroup
+        {!outlet && <RadioGroup
           name="op-qr-tipo"
           label="QR code per"
           value={tipo}
@@ -84,10 +98,13 @@ export default function OpQrGenerator({ cliente }: { cliente: ClienteQr }) {
               tooltip: soloPresenze ? 'Attiva il reparto Pulizie con il modulo “Avvia camera” per generare i QR delle camere.' : undefined,
             },
           ]}
-        />
+        />}
       </div>
 
-      {soloPresenze && (
+      {outlet && (
+        <p className="op-qr__nota">Outlet di ristorazione senza struttura ricettiva: si genera solo il QR per registrare ingressi e uscite.</p>
+      )}
+      {!outlet && soloPresenze && (
         <p className="op-qr__nota">
           {config.strutture.length > 1
             ? 'Il modulo Pulizie non è attivo: si generano solo i QR per registrare le presenze.'
@@ -165,11 +182,11 @@ function QrPresenze({ cliente, struttura }: { cliente: ClienteQr; struttura: Str
         </p>
         {problema && <AlertBanner type="error">{problema}</AlertBanner>}
         <div className="op-qr__azioni">
-          <Button variant={cliente.tipo === 'indipendente' ? 'secondary' : 'primary'} icon="expand" onClick={() => setSchermo(true)} disabled={!png}>
+          <Button variant="secondary" icon="expand" onClick={() => setSchermo(true)} disabled={!png}>
             Mostra a schermo intero
           </Button>
         </div>
-        {cliente.tipo === 'indipendente' && <LinkTablet idCliente={cliente.id} struttura={struttura} />}
+        <LinkTablet cliente={cliente} struttura={struttura} />
       </div>
 
       <Modal open={schermo} onClose={() => setSchermo(false)} title={`Totem di timbratura · ${struttura.nome}`} size="xl">
@@ -183,26 +200,27 @@ function QrPresenze({ cliente, struttura }: { cliente: ClienteQr; struttura: Str
   )
 }
 
-// ─── Link per il tablet (clienti indipendenti) ────────────────────────────────
+// ─── Link per il tablet ───────────────────────────────────────────────────────
 //  Pagina pubblica servita da Op.Api con il QR a tutto schermo: si apre sul tablet
 //  all'ingresso, senza accedere all'amministrazione. Il link vale finché non si
 //  rigenera la chiave del totem.
 
-function LinkTablet({ idCliente, struttura }: { idCliente: number; struttura: StrutturaQr }) {
+function LinkTablet({ cliente, struttura }: { cliente: ClienteQr; struttura: StrutturaQr }) {
   const [url, setUrl] = useState<string | null>(null)
   const [qrLink, setQrLink] = useState<string | null>(null)
   const [problema, setProblema] = useState<string | null>(null)
 
   useEffect(() => {
     let attivo = true
-    opQrApi.linkTotem(idCliente, struttura.id)
+    opQrApi.linkTotem(cliente, struttura.id)
       .then(async r => {
         const immagine = await qrPng(r.url, 240)
         if (attivo) { setUrl(r.url); setQrLink(immagine); setProblema(null) }
       })
       .catch(e => { if (attivo) setProblema(errore(e)) })
     return () => { attivo = false }
-  }, [idCliente, struttura.id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [struttura.id])
 
   const copia = async () => {
     if (!url) return
