@@ -1,0 +1,250 @@
+// ─── STRUTTURE, PIANI E CAMERE (CLIENTE INDIPENDENTE) ─────────────────────────
+//  Tabelle standard (.sib-table) a larghezza fissa, senza scroll orizzontale.
+@use '../../styles/tokens' as *
+
+.op-strutture
+  display: grid
+  grid-template-columns: 240px minmax(0, 1fr)
+  gap: $space-lg
+  align-items: start
+  font-size: 13px
+
+  &__nota
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+  &__errore
+    margin: 0
+    font-size: 12px
+    color: $error
+
+  &__spazio
+    flex: 1
+
+  // ── Elenco strutture ──
+  &__elenco
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__elenco-testa
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: 4px
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  &__voce
+    display: flex
+    align-items: center
+    gap: $space-sm
+    width: 100%
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+    transition: border-color $transition-fast, background $transition-fast
+
+    i
+      font-size: 16px
+      color: $primary
+
+    &:hover
+      border-color: $primary-300
+
+    &.is-attiva
+      border-color: $primary
+      background: $primary-50
+
+  &__voce-testo
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__voce-nome
+    display: block
+    max-width: 100%
+    font-weight: 600
+    color: $text-active
+
+  &__voce-sub
+    font-size: 11px
+    color: $text-inactive
+
+  // ── Dettaglio ──
+  &__dettaglio
+    min-width: 0
+
+  &__corpo
+    display: flex
+    flex-direction: column
+    gap: $space-md
+
+  &__testa
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+    border-bottom: 1px solid $border
+
+  &__testa-info
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__titolo
+    margin: 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 600
+    color: $primary
+
+  &__schede
+    display: flex
+    gap: 0
+
+  &__scheda
+    padding: 8px 14px
+    border: 0
+    border-bottom: 2px solid transparent
+    background: none
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+
+    &:hover
+      color: $text-active
+
+    &.is-attiva
+      border-bottom-color: $primary
+      color: $primary
+
+  &__sezione
+    display: flex
+    flex-direction: column
+    gap: $space-md
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: $space-md
+
+  &__cerca
+    width: 260px
+
+  &__salva
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: $space-sm
+
+  // ── Piani e camere ──
+  &__piano
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+
+  &__piano-testa
+    display: flex
+    align-items: center
+    gap: $space-sm
+
+  &__piano-nome
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__tabella
+    table-layout: fixed
+    width: 100%
+
+    td
+      white-space: nowrap
+
+  &__c-numero
+    width: 16%
+  &__c-nome
+    width: 22%
+  &__c-tipo
+    width: 20%
+  &__c-posizione
+    width: 32%
+  &__c-azioni
+    width: 10%
+
+  &__th-azioni,
+  &__azioni
+    text-align: right
+
+  &__azione
+    padding: 4px
+    border: 0
+    background: none
+    cursor: pointer
+
+    i
+      font-size: 16px
+      color: $primary
+
+  // ── Dipendenti ──
+  &__azioni-elenco
+    display: flex
+    align-items: center
+    gap: $space-md
+
+  &__link
+    padding: 0
+    border: 0
+    background: none
+    font-size: 12px
+    font-weight: 600
+    color: $link
+    cursor: pointer
+
+  &__dipendenti
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))
+    gap: $space-sm
+
+  &__dipendente
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: $space-sm
+    padding: 8px 12px
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: var(--color-surface)
+
+  // ── Dati ──
+  &__form
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: $space-md
+
+.op-strutture-modal
+  display: flex
+  flex-direction: column
+  gap: $space-md
+
+  &__riga
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr
+    gap: $space-md
+
+  &__azioni
+    display: flex
+    justify-content: flex-end
+    gap: $space-sm
+
+@media (max-width: 1100px)
+  .op-strutture
+    grid-template-columns: 1fr

@@ -14,6 +14,7 @@ import OpDipendenteModal from '../../../modules/appop/OpDipendenteModal'
 import OpDipendentiTable from '../../../modules/appop/OpDipendentiTable'
 import OpInvitoModal from '../../../modules/appop/OpInvitoModal'
 import OpQrGenerator from '../../../modules/appop/OpQrGenerator'
+import OpStruttureEditor from '../../../modules/appop/OpStruttureEditor'
 import { nomeReparto, type RepartiModuli, type RepartoOp } from '../../../modules/appop/opCatalogo'
 import {
   formatoData, opAdminApi,
@@ -198,7 +199,7 @@ function DatiForm({ dati, onChange }: { dati: DatiCliente; onChange: (d: DatiCli
 
 // ─── Scheda del cliente ───────────────────────────────────────────────────────
 
-type Scheda = 'azienda' | 'reparti' | 'dipendenti' | 'qr'
+type Scheda = 'azienda' | 'reparti' | 'dipendenti' | 'strutture' | 'qr'
 
 function SchedaCliente({ id, onBack }: { id: number; onBack: () => void }) {
   const confirm = useConfirmStore(s => s.confirm)
@@ -326,7 +327,7 @@ function SchedaCliente({ id, onBack }: { id: number; onBack: () => void }) {
       {cliente && (
         <>
           <Tabs
-            tabs={[{ id: 'dipendenti', label: `Dipendenti (${dipendenti.length})` }, { id: 'reparti', label: 'Reparti e moduli' }, { id: 'qr', label: 'QR code' }, { id: 'azienda', label: 'Azienda e abbonamento' }]}
+            tabs={[{ id: 'dipendenti', label: `Dipendenti (${dipendenti.length})` }, { id: 'reparti', label: 'Reparti e moduli' }, { id: 'strutture', label: 'Strutture e camere' }, { id: 'qr', label: 'QR code' }, { id: 'azienda', label: 'Azienda e abbonamento' }]}
             active={scheda}
             onChange={t => setScheda(t as Scheda)}
           />
@@ -351,6 +352,12 @@ function SchedaCliente({ id, onBack }: { id: number; onBack: () => void }) {
                   Salva reparti e moduli
                 </Button>
               </div>
+            </div>
+          )}
+
+          {scheda === 'strutture' && (
+            <div className="sibylla-op__sezione">
+              <OpStruttureEditor idCliente={id} dipendenti={dipendenti} />
             </div>
           )}
 

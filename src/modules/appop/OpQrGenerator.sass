@@ -125,6 +125,52 @@
     font-weight: 600
     color: $primary
 
+  // ── Link per il tablet ──
+  &__link
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+    margin-top: $space-sm
+    padding: $space-md
+    border: 1px solid $border
+    border-radius: $radius-md
+    background: $primary-50
+
+  &__link-testa
+    display: flex
+    align-items: center
+    gap: $space-sm
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+    i
+      font-size: 16px
+      color: $primary
+
+  &__link-corpo
+    display: flex
+    gap: $space-md
+    align-items: flex-start
+
+  &__link-qr
+    flex-shrink: 0
+    width: 112px
+    height: 112px
+    border-radius: $radius-sm
+    background: $white
+
+  &__link-info
+    display: flex
+    flex: 1
+    min-width: 0
+    flex-direction: column
+    gap: $space-sm
+
+  &__link-url
+    width: 100%
+
   // ── Camere ──
   &__camere
     display: flex

@@ -220,4 +220,50 @@ export const opQrApi = {
     opFetch<ConfigQr>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr` : `${C}/qr${q(c.struttura, true)}`),
   totem: (c: ClienteQr, idStruttura: number) =>
     opFetch<CodiceTotem>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr/totem/${idStruttura}` : `${C}/qr/totem/${idStruttura}${q(c.struttura)}`),
+  /** Clienti indipendenti: link pubblico della pagina totem a tutto schermo, da aprire sul tablet all'ingresso. */
+  linkTotem: (idCliente: number, idStruttura: number) => opFetch<{ url: string }>(`${B}/${idCliente}/qr/totem/${idStruttura}/link`),
+}
+
+// ─── Strutture, piani e camere dei clienti indipendenti ───────────────────────
+//  Il cliente stand alone non ha un gestionale da cui leggere strutture e camere:
+//  le inserisce qui. Le camere ricevono il loro QR (GUID) alla creazione e lo
+//  tengono finché esistono; le strutture di un dipendente decidono dove può
+//  timbrare e quali camere vede nell'app.
+
+export interface CameraStruttura {
+  id: number
+  numero: string
+  nome: string | null
+  piano: string
+  tipo: string | null
+  posizione: string | null
+  qr: string
+}
+
+export interface StrutturaCliente {
+  id: number
+  nome: string
+  indirizzo: string | null
+  camere: CameraStruttura[]
+  /** Dipendenti associati alla struttura. */
+  dipendenti: number[]
+}
+
+export interface CameraRichiesta {
+  /** Null per una camera nuova (riceve un QR nuovo). */
+  id: number | null
+  numero: string
+  nome: string | null
+  piano: string
+  tipo: string | null
+  posizione: string | null
+}
+
+export const opStruttureApi = {
+  elenco: (id: number) => opFetch<StrutturaCliente[]>(`${B}/${id}/strutture`),
+  nuova: (id: number, d: { nome: string; indirizzo: string | null }) => opFetch<StrutturaCliente>(`${B}/${id}/strutture`, 'POST', d),
+  aggiorna: (id: number, idS: number, d: { nome: string; indirizzo: string | null }) => opFetch<StrutturaCliente>(`${B}/${id}/strutture/${idS}`, 'PUT', d),
+  elimina: (id: number, idS: number) => opFetch<void>(`${B}/${id}/strutture/${idS}`, 'DELETE'),
+  camere: (id: number, idS: number, camere: CameraRichiesta[]) => opFetch<StrutturaCliente>(`${B}/${id}/strutture/${idS}/camere`, 'PUT', { camere }),
+  dipendenti: (id: number, idS: number, dipendenti: number[]) => opFetch<StrutturaCliente>(`${B}/${id}/strutture/${idS}/dipendenti`, 'PUT', { dipendenti }),
 }

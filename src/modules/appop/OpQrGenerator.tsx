@@ -4,7 +4,8 @@ import AlertBanner from '../../core/components/AlertBanner'
 import Button from '../../core/components/Button/Button'
 import EmptyState from '../../core/components/EmptyState'
 import Modal from '../../core/components/Modal'
-import { RadioGroup, SearchField, SelectField } from '../../core/components/form'
+import { toast } from '../../core/components/Toast/useToast'
+import { InputField, RadioGroup, SearchField, SelectField } from '../../core/components/form'
 import { opQrApi, type CameraQr, type ClienteQr, type CodiceTotem, type ConfigQr, type StrutturaQr } from './opApi'
 import './OpQrGenerator.sass'
 
@@ -164,8 +165,11 @@ function QrPresenze({ cliente, struttura }: { cliente: ClienteQr; struttura: Str
         </p>
         {problema && <AlertBanner type="error">{problema}</AlertBanner>}
         <div className="op-qr__azioni">
-          <Button icon="expand" onClick={() => setSchermo(true)} disabled={!png}>Mostra a schermo intero</Button>
+          <Button variant={cliente.tipo === 'indipendente' ? 'secondary' : 'primary'} icon="expand" onClick={() => setSchermo(true)} disabled={!png}>
+            Mostra a schermo intero
+          </Button>
         </div>
+        {cliente.tipo === 'indipendente' && <LinkTablet idCliente={cliente.id} struttura={struttura} />}
       </div>
 
       <Modal open={schermo} onClose={() => setSchermo(false)} title={`Totem di timbratura · ${struttura.nome}`} size="xl">
@@ -175,6 +179,64 @@ function QrPresenze({ cliente, struttura }: { cliente: ClienteQr; struttura: Str
           <p className="op-qr__conto">Nuovo QR tra {restano} s</p>
         </div>
       </Modal>
+    </div>
+  )
+}
+
+// ─── Link per il tablet (clienti indipendenti) ────────────────────────────────
+//  Pagina pubblica servita da Op.Api con il QR a tutto schermo: si apre sul tablet
+//  all'ingresso, senza accedere all'amministrazione. Il link vale finché non si
+//  rigenera la chiave del totem.
+
+function LinkTablet({ idCliente, struttura }: { idCliente: number; struttura: StrutturaQr }) {
+  const [url, setUrl] = useState<string | null>(null)
+  const [qrLink, setQrLink] = useState<string | null>(null)
+  const [problema, setProblema] = useState<string | null>(null)
+
+  useEffect(() => {
+    let attivo = true
+    opQrApi.linkTotem(idCliente, struttura.id)
+      .then(async r => {
+        const immagine = await qrPng(r.url, 240)
+        if (attivo) { setUrl(r.url); setQrLink(immagine); setProblema(null) }
+      })
+      .catch(e => { if (attivo) setProblema(errore(e)) })
+    return () => { attivo = false }
+  }, [idCliente, struttura.id])
+
+  const copia = async () => {
+    if (!url) return
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copiato: aprilo nel browser del tablet.', 'Totem di timbratura')
+    } catch {
+      toast.warning('Copia non riuscita: seleziona il link a mano.', 'Totem di timbratura')
+    }
+  }
+
+  return (
+    <div className="op-qr__link">
+      <div className="op-qr__link-testa">
+        <i className="fa-solid fa-tablet-screen-button" aria-hidden="true" />
+        <span>Link per il tablet all’ingresso</span>
+      </div>
+      {problema && <AlertBanner type="error">{problema}</AlertBanner>}
+      {!problema && (
+        <div className="op-qr__link-corpo">
+          {qrLink ? <img src={qrLink} alt="QR code del link al totem" className="op-qr__link-qr" /> : <div className="op-qr__link-qr op-qr__img--vuoto" />}
+          <div className="op-qr__link-info">
+            <p className="op-qr__nota">
+              Apri il link sul tablet (o inquadra questo QR con la sua fotocamera): mostra a tutta pagina il QR delle presenze di
+              {' '}{struttura.nome}, sempre aggiornato, senza accedere all’amministrazione.
+            </p>
+            <InputField name="op-qr-link" readOnly value={url ?? 'Generazione del link…'} ariaLabel="Link della pagina totem" iconLeft="fa-light fa-link" onFocus={e => e.target.select()} className="op-qr__link-url" />
+            <div className="op-qr__azioni">
+              <Button icon="copy" onClick={copia} disabled={!url}>Copia link</Button>
+              <Button variant="secondary" icon="arrow-up-right-from-square" onClick={() => url && window.open(url, '_blank', 'noopener')} disabled={!url}>Apri la pagina</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
