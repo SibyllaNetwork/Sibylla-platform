@@ -175,3 +175,49 @@ export const opCollegataApi = {
 
 export const formatoData = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
+
+// ─── Generatore QR (presenze e camere) ────────────────────────────────────────
+//  I QR devono essere quelli che l'app Op! riconosce: per le presenze il QR dinamico
+//  del totem (sibylla-op:t1:…, firmato da Op.Api con la chiave della struttura e
+//  rinnovato ogni 30 secondi), per le camere il codice (GUID) di ogni camera.
+
+export interface CameraQr {
+  numero: string
+  nome: string | null
+  piano: string
+  posizione: string | null
+  qr: string
+  qrScadeIl: string | null
+}
+
+export interface StrutturaQr {
+  id: number
+  nome: string
+  indirizzo: string | null
+  camere: CameraQr[]
+}
+
+export interface ConfigQr {
+  azienda: string
+  /** Reparto Pulizie con il modulo "camere" attivo: solo allora ci sono i QR delle camere. */
+  pulizie: boolean
+  strutture: StrutturaQr[]
+}
+
+export interface CodiceTotem {
+  codice: string
+  step: number
+  /** Secondi al prossimo codice. */
+  scadeTra: number
+  periodo: number
+}
+
+/** Cliente di cui si generano i QR: indipendente (id Op.Api) o struttura di Sibylla Platform collegata. */
+export type ClienteQr = { tipo: 'indipendente'; id: number } | { tipo: 'collegata'; struttura: StrutturaOp | null }
+
+export const opQrApi = {
+  config: (c: ClienteQr) =>
+    opFetch<ConfigQr>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr` : `${C}/qr${q(c.struttura, true)}`),
+  totem: (c: ClienteQr, idStruttura: number) =>
+    opFetch<CodiceTotem>(c.tipo === 'indipendente' ? `${B}/${c.id}/qr/totem/${idStruttura}` : `${C}/qr/totem/${idStruttura}${q(c.struttura)}`),
+}

@@ -9,6 +9,7 @@ import OpModuliEditor from '../../../../appop/OpModuliEditor'
 import OpDipendenteModal from '../../../../appop/OpDipendenteModal'
 import OpDipendentiTable from '../../../../appop/OpDipendentiTable'
 import OpInvitoModal from '../../../../appop/OpInvitoModal'
+import OpQrGenerator from '../../../../appop/OpQrGenerator'
 import { appOpSibylla, type FonteAppOp } from '../../../../appop/appOpSibylla'
 import { CLIENTS_INIT } from '../../../../../admin/SibyllaAdminPanel/constants'
 import { strutturaDelProfilo, useAccessStore } from '../../../../../store/useAccessStore'
@@ -24,7 +25,7 @@ import './AppOp.sass'
 
 const PANE_ID = 'app-op'
 
-type Sezione = 'utenze' | 'moduli'
+type Sezione = 'utenze' | 'moduli' | 'qr'
 
 /** Sezione con cui si apre il pannello: la scelgono le voci del menu App Op! (Utenze e inviti, Reparti e moduli). */
 let sezioneIniziale: Sezione = 'utenze'
@@ -115,7 +116,7 @@ export default function AppOp() {
       )}
       {problema && <AlertBanner type="error">{problema}</AlertBanner>}
 
-      <Tabs tabs={[{ id: 'utenze', label: `Utenze (${dipendenti.length})` }, { id: 'moduli', label: 'Reparti e moduli' }]} active={sezione} onChange={s => setSezione(s as Sezione)} />
+      <Tabs tabs={[{ id: 'utenze', label: `Utenze (${dipendenti.length})` }, { id: 'moduli', label: 'Reparti e moduli' }, { id: 'qr', label: 'QR code' }]} active={sezione} onChange={s => setSezione(s as Sezione)} />
 
       {sezione === 'utenze' && (
         <div className="app-op__sezione">
@@ -135,6 +136,14 @@ export default function AppOp() {
         <div className="app-op__sezione">
           <p className="app-op__nota">Scegli le funzioni dell’app per ogni reparto: i dipendenti vedono solo quelle attive.</p>
           <OpModuliEditor value={reparti} onChange={setReparti} />
+        </div>
+      )}
+
+      {sezione === 'qr' && (
+        <div className="app-op__sezione">
+          {fonte === 'op'
+            ? <OpQrGenerator cliente={{ tipo: 'collegata', struttura }} />
+            : <AlertBanner type="info">I QR code dell’App Op! si generano quando la configurazione è collegata a Op (presenze dal totem della struttura, camere dalle Pulizie).</AlertBanner>}
         </div>
       )}
 

@@ -16,6 +16,7 @@
     "html-to-image": "^1.11.13",
     "http-proxy-middleware": "^3.0.7",
     "jspdf": "^4.2.1",
+    "qrcode": "^1.5.4",
     "react": "^19.2.4",
     "react-colorful": "^5.7.0",
     "react-day-picker": "^8.10.2",
@@ -56,6 +57,7 @@
     ]
   },
   "devDependencies": {
+    "@types/qrcode": "^1.5.6",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.9",
     "tailwindcss": "^3.4.19"

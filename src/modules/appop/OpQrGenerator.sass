@@ -1,0 +1,187 @@
+// ─── GENERATORE QR CODE (APP OP!) ─────────────────────────────────────────────
+@use '../../styles/tokens' as *
+
+.op-qr
+  display: flex
+  flex-direction: column
+  gap: $space-md
+  font-size: 13px
+
+  &__scelte
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: $space-lg
+
+  &__struttura
+    min-width: 240px
+
+  &__nota
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+  &__testo
+    margin: 0
+    line-height: 1.55
+    color: $text-active
+
+  &__titolo
+    margin: 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 600
+    color: $primary
+
+  &__bar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: $space-md
+
+  &__cerca
+    flex: 1
+    max-width: 360px
+
+  &__azioni
+    display: flex
+    gap: $space-sm
+
+  // ── Presenze ──
+  &__presenze
+    display: grid
+    grid-template-columns: auto minmax(0, 1fr)
+    gap: $space-xl
+    align-items: start
+    padding: $space-lg
+    border: 1px solid $border
+    border-radius: $radius-lg
+    background: var(--color-surface)
+
+  &__totem
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: $space-sm
+    width: 240px
+
+  &__info
+    display: flex
+    flex-direction: column
+    gap: $space-sm
+
+  &__img
+    display: block
+    width: 240px
+    height: 240px
+    border-radius: $radius-md
+    background: $white
+
+    &--vuoto
+      background: $bg
+
+    &--grande
+      width: min(70vh, 520px)
+      height: min(70vh, 520px)
+
+    &--camera
+      width: 140px
+      height: 140px
+
+  &__barra
+    width: 100%
+    height: 4px
+    border-radius: $radius-full
+    background: $bg
+    overflow: hidden
+
+  &__barra-fill
+    display: block
+    height: 100%
+    background: $primary
+    transition: width 1s linear
+
+  @for $i from 0 through 20
+    &__barra-fill--p#{$i * 5}
+      width: #{$i * 5%}
+
+  &__conto
+    margin: 0
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+
+  &__schermo
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: $space-md
+    padding: $space-md 0
+
+  &__invito
+    margin: 0
+    font-family: $font-heading
+    font-size: 18px
+    font-weight: 600
+    color: $primary
+
+  // ── Camere ──
+  &__camere
+    display: flex
+    flex-direction: column
+    gap: $space-md
+
+  &__griglia
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr))
+    gap: $space-md
+
+  &__etichetta
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 4px
+    padding: $space-md
+    border: 1px dashed $border
+    border-radius: $radius-md
+    background: var(--color-surface)
+
+  &__numero
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: $primary
+
+  &__sub
+    max-width: 100%
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    font-size: 11px
+    color: $text-inactive
+
+  &__scarica
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-top: 4px
+    padding: 0
+    border: 0
+    background: none
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:disabled
+      opacity: .5
+      cursor: default
+
+    i
+      font-size: 14px
+      color: $primary
+
+@media (max-width: 720px)
+  .op-qr__presenze
+    grid-template-columns: 1fr
+    justify-items: center
