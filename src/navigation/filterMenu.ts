@@ -28,10 +28,8 @@ const MENU_LABEL_OVERRIDES: Record<string, Record<string, string>> = {
 
 export function applyModuleLabels(items: any[], moduli?: string[]): any[] {
   const mods = moduli ?? []
-  // Voci legate a un modulo: `modulo` = solo a chi ce l'ha; `nascostoConModulo` = nascosta a chi ce l'ha
-  // (es. il gruppo AppOp! di Operation, che col modulo App Op! sale al primo livello).
-  const visibile = (n: any) =>
-    (!n.modulo || mods.includes(n.modulo)) && (!n.nascostoConModulo || !mods.includes(n.nascostoConModulo))
+  // Voci legate a un modulo (`modulo`): solo a chi ce l'ha (es. il gruppo AppOp! di Operation col modulo App Op!).
+  const visibile = (n: any) => !n.modulo || mods.includes(n.modulo)
   const relabel = (n: any): any => {
     let label = n.label
     const ov = n.page ? MENU_LABEL_OVERRIDES[n.page] : undefined

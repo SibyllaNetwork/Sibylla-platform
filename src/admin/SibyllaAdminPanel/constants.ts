@@ -1,7 +1,7 @@
 import MENU from '../../navigation/menu'
 import MENU_TO from '../../navigation/menuTourOperator'
 import MENU_RISTORANTI from '../../navigation/menuRistoranti'
-import MENU_FULL, { MENU_APP_OP } from '../../navigation/menuFull'
+import MENU_FULL from '../../navigation/menuFull'
 import { getAllPages } from './helpers'
 import { FNB_ITEMS } from '../../modules/impostazioni/Configuratore/registry'
 import type { Cliente, Intestatario, Modulo, NewClientForm, Ruolo, TipologiaCategoria, UserRow } from './types'
@@ -82,7 +82,7 @@ export const PACCHETTI_INIT: Modulo[] = [
   { id: 'struttura-ricettiva', label: 'Struttura ricettiva', desc: 'Hotel, B&B, case vacanze, residence, ostelli, studentati', pages: getAllPages(MENU as any) },
   { id: 'tour-operator',       label: 'Tour Operator',       desc: 'Programmazione, pratiche, preventivi, distribuzione',      pages: getAllPages(MENU_TO as any) },
   { id: 'ristorazione',        label: 'Ristorazione',        desc: 'Ristoranti, bar — sala, tavoli e Food & Beverage',         pages: getAllPages(MENU_RISTORANTI as any), configuratoreItems: FNB_CONFIG_IDS },
-  { id: 'app-op',              label: 'App Op!',             desc: 'App per i dipendenti: reparti, turni, chat, Flash Message, F&B e HR', pages: getAllPages([MENU_APP_OP] as any), configuratoreItems: ['app-op'] },
+  { id: 'app-op',              label: 'App Op!',             desc: 'App per i dipendenti: reparti, turni, chat, Flash Message, F&B e HR', pages: getAllPages((MENU as any[]).find(n => n.id === 'impresa')?.children?.find((n: any) => n.id === 'operation')?.children?.filter((n: any) => n.id === 'appop') ?? []), configuratoreItems: ['app-op'] },
   { id: 'full',                label: 'Full',                desc: 'Tutti i moduli (unione completa delle pagine)',            pages: getAllPages(MENU_FULL as any) },
 ]
 

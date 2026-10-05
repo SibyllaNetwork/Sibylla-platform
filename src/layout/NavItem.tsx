@@ -19,8 +19,8 @@ const DEPTH_FONT = [
   'font-opensans text-xs     font-normal',   // d3
 ] as const
 
-// `menu` = albero mostrato in sidenav (filtrato per moduli): il percorso attivo si cerca lì, così le voci presenti in
-// più rami (es. Stato Camere in Operation e nel primo livello App Op!) aprono il ramo visibile.
+// `menu` = albero mostrato in sidenav (filtrato per moduli): il percorso attivo si cerca lì, così anche le voci dei
+// menu Tour Operator / Ristoranti aprono il ramo giusto.
 function NavItem({ item, depth, modColor, currentPage, navigate, sideOpen, favorites, onCtxMenu, openId, setOpenId, menu = MENU }: any) {
   const hasChildren  = (item.children?.length ?? 0) > 0
   const effectivePage = resolveActivePage(currentPage)

@@ -29,22 +29,6 @@ function mergeNodes(primary: any[], extra: any[]): any[] {
   return out
 }
 
-// App Op! (modulo "app-op"): le stesse voci del gruppo AppOp! di Operation (Stato Camere, Segnalazioni, …), portate al
-// primo livello prima di Impostazioni. Il nodo compare solo a chi ha il modulo e, in quel caso, il gruppo dentro
-// Operation si nasconde per non avere due volte le stesse voci (vedi applyModuleLabels).
-export const MENU_APP_OP = {
-  id: 'app-op', label: 'App Op!', icon: 'op', modulo: 'app-op', children: [
-    { id: 'stato-camere', label: 'Stato Camere', page: 'stato-camere' },
-    { id: 'segnalazioni', label: 'Segnalazioni', page: 'segnalazioni' },
-    { id: 'assegnazioni-incarichi', label: 'Assegnazioni incarichi', page: 'assegnazioni-incarichi' },
-    { id: 'maintenance-analysis', label: 'Maintenance Analysis', page: 'maintenance-analysis' },
-  ],
-}
-
-const BASE: any[] = mergeNodes(mergeNodes(MENU as any[], MENU_TO as any[]), MENU_RISTORANTI as any[])
-const IMPOSTAZIONI = BASE.findIndex(n => n.id === 'impostazioni')
-const MENU_FULL: any[] = IMPOSTAZIONI < 0
-  ? [...BASE, MENU_APP_OP]
-  : [...BASE.slice(0, IMPOSTAZIONI), MENU_APP_OP, ...BASE.slice(IMPOSTAZIONI)]
+const MENU_FULL: any[] = mergeNodes(mergeNodes(MENU as any[], MENU_TO as any[]), MENU_RISTORANTI as any[])
 
 export default MENU_FULL

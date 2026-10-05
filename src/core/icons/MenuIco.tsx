@@ -14,6 +14,7 @@
 //   2. Aggiungi una riga nella sezione appropriata di MENU_MAP
 
 import React from 'react'
+import './Ico.sass'
 
 type IcoWeight = 'duotone' | 'light' | 'regular' | 'solid' | 'thin'
 
@@ -87,7 +88,6 @@ const MENU_MAP: Record<string, string> = {
   'gest-conti':             'fa-file-invoice',
   'gest-movimenti':         'fa-money-bill-transfer',
   'gest-documenti':         'fa-file-lines',
-  'appop':                  'fa-mobile-screen-button',
   'ordine-servizio':        'fa-clipboard-list',
   // Agorà (children Purchasing nel menu Ristoranti)
   'gestione-annunci':       'fa-bullhorn',
@@ -341,6 +341,11 @@ const MENU_MAP: Record<string, string> = {
 }
 
 export default function MenuIco({ id, s = 14, c = 'rgba(255,255,255,0.4)', c2, w = 'duotone' }: MenuIcoProps) {
+  // Gruppo AppOp!: niente icona FA, il logo è il wordmark "Op!" (stessa classe di Ico, scurita sul menu oro).
+  if (id === 'appop') {
+    return <span className="ico-op ico-op--menu" style={{ width: s, fontSize: s * 0.72, color: c }} aria-hidden="true">Op!</span>
+  }
+
   const faName = MENU_MAP[id]
 
   if (!faName) {
