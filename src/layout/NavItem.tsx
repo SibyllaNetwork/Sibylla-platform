@@ -19,10 +19,12 @@ const DEPTH_FONT = [
   'font-opensans text-xs     font-normal',   // d3
 ] as const
 
-function NavItem({ item, depth, modColor, currentPage, navigate, sideOpen, favorites, onCtxMenu, openId, setOpenId }: any) {
+// `menu` = albero mostrato in sidenav (filtrato per moduli): il percorso attivo si cerca lì, così le voci presenti in
+// più rami (es. Stato Camere in Operation e nel primo livello App Op!) aprono il ramo visibile.
+function NavItem({ item, depth, modColor, currentPage, navigate, sideOpen, favorites, onCtxMenu, openId, setOpenId, menu = MENU }: any) {
   const hasChildren  = (item.children?.length ?? 0) > 0
   const effectivePage = resolveActivePage(currentPage)
-  const crumbs       = buildCrumbs(MENU, effectivePage) || []
+  const crumbs       = buildCrumbs(menu, effectivePage) || []
   const isInPath     = crumbs.some((c: any) => c.id === item.id)
   const isActive     = item.page && (item.page === currentPage || item.page === effectivePage)
   const color       = modColor ?? item.color ?? '#5C9CD4'
@@ -138,6 +140,7 @@ function NavItem({ item, depth, modColor, currentPage, navigate, sideOpen, favor
               onCtxMenu={onCtxMenu}
               openId={childOpenId}
               setOpenId={setChildOpenId}
+              menu={menu}
             />
           ))}
         </Accordion>

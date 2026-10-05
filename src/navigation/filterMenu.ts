@@ -27,14 +27,18 @@ const MENU_LABEL_OVERRIDES: Record<string, Record<string, string>> = {
 }
 
 export function applyModuleLabels(items: any[], moduli?: string[]): any[] {
-  if (!moduli || moduli.length === 0) return items
+  const mods = moduli ?? []
+  // Voci legate a un modulo: `modulo` = solo a chi ce l'ha; `nascostoConModulo` = nascosta a chi ce l'ha
+  // (es. il gruppo AppOp! di Operation, che col modulo App Op! sale al primo livello).
+  const visibile = (n: any) =>
+    (!n.modulo || mods.includes(n.modulo)) && (!n.nascostoConModulo || !mods.includes(n.nascostoConModulo))
   const relabel = (n: any): any => {
     let label = n.label
     const ov = n.page ? MENU_LABEL_OVERRIDES[n.page] : undefined
-    if (ov) { const hit = moduli.find(m => ov[m]); if (hit) label = ov[hit] }
-    const children = n.children ? n.children.map(relabel) : undefined
+    if (ov) { const hit = mods.find(m => ov[m]); if (hit) label = ov[hit] }
+    const children = n.children ? n.children.filter(visibile).map(relabel) : undefined
     if (children) return { ...n, label, children }
     return label !== n.label ? { ...n, label } : n
   }
-  return items.map(relabel)
+  return items.filter(visibile).map(relabel)
 }

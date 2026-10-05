@@ -34,9 +34,10 @@ export const useModuliStore = create<State>()(
     }),
     // v2: catalogo a 4 moduli (Struttura ricettiva / Tour Operator / Ristorazione / Full).
     // v3: App Op! con le sue pagine di menu; i moduli del catalogo si riallineano, quelli creati a mano restano.
+    // v4: le voci di App Op! sono quelle del gruppo AppOp! di Operation.
     {
       name: 'sibylla.moduli',
-      version: 3,
+      version: 4,
       migrate: (salvato) => {
         const creati = ((salvato as { moduli?: Modulo[] } | undefined)?.moduli ?? []).filter(m => !PACCHETTI_INIT.some(p => p.id === m.id))
         return { moduli: [...PACCHETTI_INIT.map(p => ({ ...p, pages: [...p.pages] })), ...creati] } as State

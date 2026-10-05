@@ -161,7 +161,7 @@ const MENU:any[]=[
         {id:"movimenti-soggiorno",label:"Movimenti soggiorno",page:"movimenti-soggiorno"},
       ]},
       {id:"gest-documenti",label:"Gestione documenti",page:"gest-documenti"},
-      {id:"appop",label:"AppOp!",children:[
+      {id:"appop",label:"AppOp!",nascostoConModulo:"app-op",children:[
         {id:"stato-camere",label:"Stato Camere",page:"stato-camere"},
         {id:"segnalazioni",label:"Segnalazioni",page:"segnalazioni"},
         {id:"assegnazioni-incarichi",label:"Assegnazioni incarichi",page:"assegnazioni-incarichi"},

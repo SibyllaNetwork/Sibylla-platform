@@ -290,6 +290,7 @@ export default function Sidebar({
               onCtxMenu={openCtx}
               openId={navOpen}
               setOpenId={setNavOpen}
+              menu={menu}
             />
           ))
         )}

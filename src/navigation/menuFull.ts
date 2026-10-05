@@ -29,12 +29,15 @@ function mergeNodes(primary: any[], extra: any[]): any[] {
   return out
 }
 
-// App Op! (modulo "app-op"): gestione dell'app dei dipendenti, prima di Impostazioni. Le due pagine aprono il pannello
-// App Op! del Configuratore sulla sezione scelta.
+// App Op! (modulo "app-op"): le stesse voci del gruppo AppOp! di Operation (Stato Camere, Segnalazioni, …), portate al
+// primo livello prima di Impostazioni. Il nodo compare solo a chi ha il modulo e, in quel caso, il gruppo dentro
+// Operation si nasconde per non avere due volte le stesse voci (vedi applyModuleLabels).
 export const MENU_APP_OP = {
-  id: 'app-op', label: 'App Op!', icon: 'op', children: [
-    { id: 'app-op-utenze', label: 'Utenze e inviti', page: 'app-op-utenze' },
-    { id: 'app-op-moduli', label: 'Reparti e moduli', page: 'app-op-moduli' },
+  id: 'app-op', label: 'App Op!', icon: 'op', modulo: 'app-op', children: [
+    { id: 'stato-camere', label: 'Stato Camere', page: 'stato-camere' },
+    { id: 'segnalazioni', label: 'Segnalazioni', page: 'segnalazioni' },
+    { id: 'assegnazioni-incarichi', label: 'Assegnazioni incarichi', page: 'assegnazioni-incarichi' },
+    { id: 'maintenance-analysis', label: 'Maintenance Analysis', page: 'maintenance-analysis' },
   ],
 }
 
