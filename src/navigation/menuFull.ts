@@ -32,7 +32,7 @@ function mergeNodes(primary: any[], extra: any[]): any[] {
 // App Op! (modulo "app-op"): gestione dell'app dei dipendenti, prima di Impostazioni. Le due pagine aprono il pannello
 // App Op! del Configuratore sulla sezione scelta.
 export const MENU_APP_OP = {
-  id: 'app-op', label: 'App Op!', icon: 'fa-mobile-screen-button', children: [
+  id: 'app-op', label: 'App Op!', icon: 'op', children: [
     { id: 'app-op-utenze', label: 'Utenze e inviti', page: 'app-op-utenze' },
     { id: 'app-op-moduli', label: 'Reparti e moduli', page: 'app-op-moduli' },
   ],

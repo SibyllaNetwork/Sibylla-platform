@@ -13,6 +13,7 @@
 //   w  — weight: 'duotone'|'light'|'regular'|'solid'|'thin' (default 'duotone')
 
 import React from 'react'
+import './Ico.sass'
 
 type IcoWeight = 'duotone' | 'light' | 'regular' | 'solid' | 'thin'
 
@@ -153,6 +154,11 @@ const FA_MAP: Record<string, string> = {
 }
 
 export default function Ico({ n, s = 20, c = '#fff', c2, w = 'duotone' }: IcoProps) {
+  // App Op!: niente icona FA, il logo è il wordmark "Op!" dell'app dei dipendenti.
+  if (n === 'op') {
+    return <span className="ico-op" style={{ width: s, fontSize: s * 0.68, color: c }} aria-hidden="true">Op!</span>
+  }
+
   const faName = FA_MAP[n]
 
   if (!faName) {
