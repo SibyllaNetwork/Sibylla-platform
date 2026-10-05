@@ -78,6 +78,18 @@
   border-bottom: 1px solid $border
   flex-shrink: 0
 
+// Lato sinistro della topbar: [Indietro] + brand.
+.sap__topbar-left
+  display: flex
+  align-items: center
+  gap: 12px
+  min-width: 0
+
+// Il tasto Indietro sta in riga col brand: niente margine inferiore, larghezza intrinseca.
+.sap__topbar .sib-btn--back
+  margin-bottom: 0
+  flex: none
+
 .sap__brand
   display: flex
   align-items: center

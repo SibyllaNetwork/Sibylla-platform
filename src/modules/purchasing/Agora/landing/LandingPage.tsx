@@ -6,6 +6,7 @@ import { TopMeta } from './TopMeta';
 import { Constellations, type ConstellationId } from './Constellations';
 import { SideMenu } from './SideMenu';
 import { RightMenu } from './RightMenu';
+import BtnBack from '../../../../core/components/BtnBack';
 import './LandingPage.css';
 
 export function LandingPage() {
@@ -22,6 +23,12 @@ export function LandingPage() {
   return (
     <div className="landing-stage" data-screen-label="01 Home Agora">
       <Sky dim={activeConstellation !== null} />
+
+      {/* Indietro: la landing copre a tutto schermo topbar e sidenav, quindi è
+          l'unica via per tornare alla pagina Sibylla precedente. */}
+      <div className="landing-stage__back">
+        <BtnBack />
+      </div>
 
       <Constellations active={activeConstellation} />
 

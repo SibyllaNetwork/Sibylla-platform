@@ -31,6 +31,7 @@ import ServiziAdminTab from '../../modules/purchasing/Servizi/ServiziAdminTab'
 import BannerTab from './tabs/BannerTab/BannerTab'
 import AgoraShell from '../../modules/purchasing/Agora/AgoraShell'
 import Ico from '../../core/icons/Ico'
+import BtnBack from '../../core/components/BtnBack'
 import NewClientModal from './modals/NewClientModal/NewClientModal'
 import MasterUserModal from './modals/MasterUserModal/MasterUserModal'
 import ModuloModal from './modals/ModuloModal/ModuloModal'
@@ -56,6 +57,8 @@ interface Props {
   clientsTitle?: string
   /** Limita la lista alle sole strutture indicate (id di CLIENTS_INIT). */
   structureIds?: number[]
+  /** Se presente, mostra il tasto "Indietro" a sinistra del brand nella topbar del pannello. */
+  onBack?: () => void
 }
 
 interface NewUser {
@@ -652,6 +655,7 @@ export default function SibyllaAdminPanel(props: Props) {
         onModeChange={setMode}
         brandTitle={brandTitle}
         hideSwitch={!!lockedMode}
+        onBack={props.onBack}
       />
 
       <div className="sap__view">
@@ -940,16 +944,20 @@ interface AdminTopBarProps {
   onModeChange: (m: AdminMode) => void
   brandTitle?: string
   hideSwitch?: boolean
+  onBack?: () => void
 }
 
-function AdminTopBar({ mode, onModeChange, brandTitle, hideSwitch }: AdminTopBarProps) {
+function AdminTopBar({ mode, onModeChange, brandTitle, hideSwitch, onBack }: AdminTopBarProps) {
   return (
     <header className="sap__topbar">
-      <div className="sap__brand">
-        <span className="sap__brand-mark">S</span>
-        <div className="sap__brand-text">
-          <span className="sap__brand-title">{brandTitle ?? 'Sibylla Admin'}</span>
-          <span className="sap__brand-sub">Pannello di controllo</span>
+      <div className="sap__topbar-left">
+        {onBack && <BtnBack onClick={onBack} />}
+        <div className="sap__brand">
+          <span className="sap__brand-mark">S</span>
+          <div className="sap__brand-text">
+            <span className="sap__brand-title">{brandTitle ?? 'Sibylla Admin'}</span>
+            <span className="sap__brand-sub">Pannello di controllo</span>
+          </div>
         </div>
       </div>
 

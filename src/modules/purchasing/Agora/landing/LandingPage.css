@@ -47,3 +47,17 @@
    index.html) con specificità sufficiente a prevalere sull'eredità Inter
    dei bottoni/contenitori che li ospitano. Sovrascriverli qui (anche con
    `revert`) farebbe sparire i glifi in modalità webfont. */
+
+/* Tasto Indietro (BtnBack standard) in alto a sinistra, sopra il cielo: testo
+   chiaro per il contrasto sullo sfondo notturno; hover standard (primary). */
+.landing-stage__back {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 30;
+}
+
+.landing-stage__back .sib-btn--back {
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.85);
+}

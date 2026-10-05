@@ -5,6 +5,7 @@ import {
 import T from '../../../core/tokens'
 import Ico from '../../../core/icons/Ico'
 import Modal from '../../../core/components/Modal'
+import BtnBack from '../../../core/components/BtnBack'
 import './SSPI.sass'
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -314,6 +315,7 @@ export default function SSPI({ navigate }: { navigate: (p: string) => void }) {
       {/* ── Barra superiore: titolo + controlli ──────────────────────────── */}
       <div className="sspi__topbar">
         <div className="sspi__title-wrap">
+          <BtnBack />
           <h1 className="sspi__title">S.S.P.I</h1>
           <p className="sspi__subtitle">Social Sustainable Profitable Index</p>
         </div>

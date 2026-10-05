@@ -36,6 +36,7 @@ export default function AssistAdmin({ navigate }: Props) {
         brandTitle="Admin Panel"
         clientsTitle={assist.nome}
         structureIds={assist.struttureIds}
+        onBack={() => navigate('sibylla-admin')}
       />
     </div>
   )

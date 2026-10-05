@@ -349,7 +349,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'sale-tavoli')           return <SaleTavoli navigate={navigate}/>;
   if (page === 'sibylla-admin')         return <AssistenzaHome navigate={navigate}/>;
   if (page === 'assist-admin')          return <AssistAdmin navigate={navigate}/>;
-  if (page === PLATFORM_ADMIN_PLATFORM_PAGE) return <SibyllaAdminPanel lockedMode="platform" navigate={navigate}/>;
+  if (page === PLATFORM_ADMIN_PLATFORM_PAGE) return <SibyllaAdminPanel lockedMode="platform" navigate={navigate} onBack={() => navigate('sibylla-admin')}/>;
   if (page === 'pa-crea-azienda')       return <CreaAzienda navigate={navigate}/>;
   if (page === 'pa-aziende-mapping')    return <CreaMappingAziende navigate={navigate}/>;
   if (page === 'pa-gestione-aziende')   return <PaGestioneAziende navigate={navigate}/>;

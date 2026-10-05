@@ -30,7 +30,7 @@ export function CartPage() {
   if (items.length === 0) {
     return (
       <Layout>
-        <PageHeader title="Carrello" hideBack />
+        <PageHeader title="Carrello" />
         <div className="cart-empty">
           <div className="cart-empty__icon">
             <Icon family="regular" name="cart-shopping" />
@@ -57,7 +57,6 @@ export function CartPage() {
       <PageHeader
         title="Carrello"
         subtitle={`${items.length} ${items.length === 1 ? 'elemento' : 'elementi'} nel carrello`}
-        hideBack
         actions={
           <Button variant="reject-tertiary" size="md" onClick={clearCart}>
             <Icon family="regular" name="trash" data-slot="icon" />

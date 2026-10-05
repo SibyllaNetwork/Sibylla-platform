@@ -1,5 +1,6 @@
 import React from 'react';
 import T from '../core/tokens';
+import PageHead from '../core/components/PageHead';
 import { subtitleForPage } from '../navigation/pageSubtitles';
 import { useStrutturaCorrente } from '../hooks/useStrutturaCorrente';
 import './GenericPage.sass';
@@ -11,10 +12,7 @@ export default function GenericPage({item,page,modColor,navigate}:any) {
   const modVars = { '--mod-color': modColor || T.blue } as React.CSSProperties;
   return (
     <div>
-      <div className="generic-page__header">
-        <h1 className="generic-page__title">{label}</h1>
-        <p className="generic-page__sub">{subtitle}</p>
-      </div>
+      <PageHead title={label} subtitle={subtitle}/>
       <div className="generic-page__card">
         <div className="generic-page__icon" style={modVars}>
           <div className="generic-page__dot" style={modVars}/>

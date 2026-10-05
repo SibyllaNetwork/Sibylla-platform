@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useNavigationType } from 'react-router-dom';
+import { useNavBack } from '../../../../store/useNavBack';
 import { H1, P3 } from '../ds/typography';
 import './PageHeader.css';
 
@@ -21,7 +22,15 @@ export function PageHeader({
   hideBack = false,
 }: PageHeaderProps) {
   const navigate = useNavigate();
-  const handleBack = onBack ?? (() => navigate(-1));
+  const navType = useNavigationType();
+  const goBackSibylla = useNavBack((st) => st.goBack);
+  // Il MemoryRouter Agorà entra su ogni pagina con un `replace` (PathSync): senza
+  // una navigazione interna alle spalle `navigate(-1)` non farebbe nulla, quindi
+  // in quel caso si torna alla pagina Sibylla precedente.
+  const handleBack = onBack ?? (() => {
+    if (navType === 'PUSH') navigate(-1);
+    else goBackSibylla?.();
+  });
 
   return (
     <header className="page-header">
