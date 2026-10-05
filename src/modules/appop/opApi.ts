@@ -134,8 +134,6 @@ export const opAdminApi = {
   stato: (id: number, stato: StatoCliente) => opFetch<void>(`${B}/${id}/stato`, 'PUT', { stato }),
   reparti: (id: number, reparti: RepartiModuli) => opFetch<DettaglioCliente>(`${B}/${id}/reparti`, 'PUT', { reparti }),
   dipendenti: (id: number) => opFetch<DipendenteOp[]>(`${B}/${id}/dipendenti`),
-  /** Dati fittizi in tutte le sezioni (dipendenti ipotetici e dati clonati dall'azienda di prova), una volta sola. */
-  esempio: (id: number) => opFetch<{ dipendenti: number; righe: number; utenzeReali: number }>(`${B}/${id}/esempio`, 'POST'),
   nuovoDipendente: (id: number, d: DipendenteRichiesta) =>
     opFetch<{ dipendente: DipendenteOp; invito: InvitoOp | null }>(`${B}/${id}/dipendenti`, 'POST', d),
   aggiornaDipendente: (id: number, idDip: number, d: DipendenteRichiesta) => opFetch<DipendenteOp>(`${B}/${id}/dipendenti/${idDip}`, 'PUT', d),
