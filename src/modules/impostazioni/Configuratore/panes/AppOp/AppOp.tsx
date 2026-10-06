@@ -59,7 +59,6 @@ export default function AppOp() {
 
   const [sezione, setSezione] = useState<Sezione>(() => sezioneIniziale)
   const [fonte, setFonte] = useState<FonteAppOp>('portal')
-  const [azienda, setAzienda] = useState<string | undefined>()
   const [salvati, setSalvati] = useState<RepartiModuli>({})
   const [reparti, setReparti] = useState<RepartiModuli>({})
   const [dipendenti, setDipendenti] = useState<DipendenteOp[]>([])
@@ -71,7 +70,6 @@ export default function AppOp() {
     try {
       const c = await appOpSibylla.leggi(struttura)
       setFonte(c.fonte)
-      setAzienda(c.azienda)
       setSalvati(c.reparti)
       setReparti(c.reparti)
       setDipendenti(c.dipendenti)
@@ -115,12 +113,6 @@ export default function AppOp() {
 
   return (
     <div className="app-op">
-      {fonte === 'op' && (
-        <AlertBanner type="info">
-          App Op! di {azienda ?? 'questa struttura'}: utenze e moduli sono nell’ambiente di prova di Op, con dipendenti e dati di
-          esempio. Gli inviti arrivano davvero via email e i dipendenti entrano nell’app.
-        </AlertBanner>
-      )}
       {fonte === 'prova' && (
         <AlertBanner type="warning">
           Dati di prova salvati in questo browser: il Portal non espone ancora le API dell’App Op! (inviti e moduli). Le utenze
