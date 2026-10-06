@@ -9,6 +9,11 @@
 import { getToken, removeToken } from './auth.service';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5289';
+/**
+ * Senza REACT_APP_API_URL una build pubblicata (demo Vercel) non ha il Portal: non si chiama localhost, che da un sito
+ * pubblico fa chiedere a Chrome l'accesso alla rete locale. Si risponde subito 503 e i chiamanti usano i loro mock.
+ */
+const PORTAL_DISPONIBILE = !!process.env.REACT_APP_API_URL || process.env.NODE_ENV !== 'production';
 
 export class ApiError extends Error {
   constructor(
@@ -57,6 +62,8 @@ export async function apiFetch<T = unknown>(
     const token = getToken();
     if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
   }
+
+  if (!PORTAL_DISPONIBILE) throw new ApiError(503, null, `Portal non configurato (${endpoint})`);
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     ...rest,
