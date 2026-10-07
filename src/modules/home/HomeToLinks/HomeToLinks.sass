@@ -1,0 +1,100 @@
+// ─── HOME TOUR OPERATOR · collegamenti ───────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+$ease: cubic-bezier(.22, 1, .36, 1)
+
+// ── Accesso rapido ────────────────────────────────────────────────────────────
+.home-to-quick
+  display: flex
+  flex-wrap: wrap
+  justify-content: center
+  gap: 8px
+
+.home-to-quick__btn
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  height: 36px
+  padding: 0 16px
+  border-radius: 999px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  white-space: nowrap
+  cursor: pointer
+  transition: transform .2s $ease, box-shadow .2s $ease, background .2s, color .2s
+  animation: home-to-quick-in .5s $ease both
+  animation-delay: calc(var(--i) * 60ms + 300ms)
+
+  i
+    font-size: 14px
+
+  &:hover
+    transform: translateY(-2px)
+
+  &:focus-visible
+    outline: 2px solid $focus-ring
+    outline-offset: 2px
+
+.home-to-quick--hero .home-to-quick__btn
+  background: $white
+  color: $primary
+  border: 1px solid $border
+  box-shadow: 0 4px 14px alpha($primary, .1)
+
+  &:hover
+    box-shadow: 0 8px 20px alpha($primary, .18)
+
+.home-to-quick--page .home-to-quick__btn
+  background: $primary-50
+  color: $primary
+  border: 1px solid $primary-100
+
+  &:hover
+    background: $primary
+    color: $white
+
+@keyframes home-to-quick-in
+  from
+    opacity: 0
+    transform: translateY(-6px)
+
+@media (prefers-reduced-motion: reduce)
+  .home-to-quick__btn
+    animation: none
+
+// ── Switch fra le due versioni della Home ─────────────────────────────────────
+.home-to-switch
+  display: inline-flex
+  align-items: center
+  gap: 8px
+  padding: 6px 2px
+  background: none
+  border: 0
+  color: $link
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  white-space: nowrap
+  cursor: pointer
+
+  span
+    text-decoration: underline
+    text-decoration-color: transparent
+    text-underline-offset: 3px
+    transition: text-decoration-color .2s
+
+  &:hover span
+    text-decoration-color: currentColor
+
+  &:focus-visible
+    outline: 2px solid $focus-ring
+    outline-offset: 2px
+    border-radius: 4px
+
+.home-to-switch__arrow
+  font-size: 11px
+  transition: transform .2s $ease
+
+.home-to-switch:hover .home-to-switch__arrow
+  transform: translateX(3px)

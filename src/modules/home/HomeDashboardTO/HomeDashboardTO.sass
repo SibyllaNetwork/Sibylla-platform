@@ -1,0 +1,605 @@
+// ─── HOME TOUR OPERATOR · dashboard ──────────────────────────────────────────
+@use '../../../styles/tokens' as *
+
+$ease: cubic-bezier(.22, 1, .36, 1)
+
+.htd
+  container-type: inline-size
+
+  .home-to-quick
+    margin-bottom: 20px
+
+// Modalità dissociata: i TO usano il verde Tableau (come la pagina Giornale)
+.htd--tableau
+  --color-primary: #206953
+
+// ── Griglia: 12 colonne, riquadri a misura del contenuto ──────────────────────
+.htd__grid
+  display: grid
+  grid-template-columns: repeat(12, minmax(0, 1fr))
+  gap: 16px
+  align-items: stretch
+
+.htd__pratiche
+  grid-column: span 6
+.htd__meteo
+  grid-column: span 3
+.htd__eventi
+  grid-column: span 3
+.htd__pren
+  grid-column: span 5
+.htd__mercato
+  grid-column: span 7
+.htd__contratti
+  grid-column: span 7
+.htd__notizie
+  grid-column: span 5
+
+@container (max-width: 1280px)
+  .htd__pratiche
+    grid-column: span 12
+  .htd__meteo,
+  .htd__eventi
+    grid-column: span 6
+  .htd__pren,
+  .htd__mercato,
+  .htd__contratti,
+  .htd__notizie
+    grid-column: span 12
+
+@container (max-width: 720px)
+  .htd__meteo,
+  .htd__eventi
+    grid-column: span 12
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+.htd-card
+  display: flex
+  flex-direction: column
+  min-width: 0
+  background: $white
+  border: 1px solid $border
+  border-radius: 12px
+  padding: 16px 18px
+  animation: htd-in .5s $ease both
+
+  @for $i from 1 through 7
+    &:nth-child(#{$i})
+      animation-delay: #{$i * 50}ms
+
+.htd-card__head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  margin-bottom: 14px
+  min-height: 28px
+
+.htd-card__title
+  display: flex
+  align-items: center
+  gap: 8px
+  margin: 0
+  font-family: $font-heading
+  font-size: 15px
+  font-weight: 600
+  color: $primary
+  white-space: nowrap
+
+  i
+    font-size: 15px
+
+.htd-card__actions
+  display: flex
+  align-items: center
+  gap: 10px
+
+.htd-card__icon-btn
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 28px
+  height: 28px
+  border: 0
+  border-radius: 6px
+  background: none
+  color: $primary
+  cursor: pointer
+  transition: background .15s
+
+  i
+    font-size: 16px
+
+  &:hover
+    background: $primary-50
+
+.htd-card__link
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  border: 0
+  background: none
+  padding: 0
+  color: $link
+  font-size: 12px
+  font-weight: 600
+  white-space: nowrap
+  cursor: pointer
+
+  i
+    font-size: 10px
+    transition: transform .2s $ease
+
+  &:hover i
+    transform: translateX(3px)
+
+.htd-card__body
+  flex: 1
+  min-height: 0
+  display: flex
+  flex-direction: column
+
+.htd-card__foot
+  margin-top: 12px
+  padding-top: 12px
+  border-top: 1px solid $border
+
+@keyframes htd-in
+  from
+    opacity: 0
+    transform: translateY(8px)
+
+@media (prefers-reduced-motion: reduce)
+  .htd-card
+    animation: none
+
+// ── Toni di stato (pratiche, impatto eventi) ─────────────────────────────────
+.htd-tone--wait
+  --tone: #{$warning}
+.htd-tone--info
+  --tone: #{$primary}
+.htd-tone--ok
+  --tone: #{$success}
+.htd-tone--done
+  --tone: #{$text-disabled}
+
+.htd-badge
+  display: inline-flex
+  align-items: center
+  padding: 2px 8px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 600
+  white-space: nowrap
+  color: var(--tone)
+  background: color-mix(in srgb, var(--tone) 14%, transparent)
+
+// ── Selettore a segmenti (destinazione meteo, metrica grafico) ───────────────
+.htd-seg
+  display: flex
+  flex-wrap: wrap
+  gap: 4px
+  padding: 3px
+  border-radius: 8px
+  background: $bg
+
+.htd-seg__btn
+  flex: 1 1 auto
+  padding: 4px 8px
+  border: 0
+  border-radius: 6px
+  background: none
+  color: $text-inactive
+  font-size: 12px
+  font-weight: 600
+  white-space: nowrap
+  cursor: pointer
+  transition: background .15s, color .15s
+
+  &:hover
+    color: $primary
+
+  &.is-active
+    background: $white
+    color: $primary
+    box-shadow: 0 1px 3px alpha($primary, .15)
+
+.htd-seg--sm .htd-seg__btn
+  padding: 3px 10px
+
+// ── Tabelle nei riquadri (niente scroll orizzontale: layout fisso in %) ──────
+.htd-table-wrap
+  overflow: visible
+
+.htd-table
+  width: 100%
+  table-layout: fixed
+
+  th, td
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .sib-truncate, .truncated-text
+    display: block
+    max-width: 100%
+
+@each $w in 8, 14, 16, 18, 20, 24, 30, 34
+  .htd-col-#{$w}
+    width: #{$w * 1%}
+
+.htd-num
+  font-variant-numeric: tabular-nums
+
+.htd-inline
+  display: inline-flex
+  align-items: center
+  gap: 6px
+
+.htd-ico
+  color: $primary
+  font-size: 14px
+
+// ── Pratiche ──────────────────────────────────────────────────────────────────
+.htd-stati
+  margin-bottom: 12px
+
+.htd-stati__bar
+  display: flex
+  gap: 3px
+  height: 10px
+  border-radius: 999px
+  overflow: hidden
+  background: $bg
+
+.htd-stati__seg
+  flex-grow: var(--grow, 1)
+  flex-basis: 0
+  background: var(--tone)
+  animation: htd-grow .8s $ease both
+  transform-origin: left
+
+@keyframes htd-grow
+  from
+    transform: scaleX(0)
+
+.htd-stati__legend
+  display: flex
+  flex-wrap: wrap
+  gap: 6px 16px
+  margin: 10px 0 0
+  padding: 0
+  list-style: none
+  font-size: 12px
+  color: $text-inactive
+
+  li
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  strong
+    color: $text-active
+
+.htd-stati__dot
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  background: var(--tone)
+
+.htd-stati__tot
+  margin-left: auto
+
+.htd-alert
+  display: flex
+  align-items: center
+  gap: 10px
+  width: 100%
+  margin-bottom: 12px
+  padding: 8px 12px
+  border: 1px solid alpha($warning, .35)
+  border-radius: 8px
+  background: alpha($warning, .1)
+  color: $text-active
+  font-size: 12px
+  text-align: left
+  cursor: pointer
+
+  i
+    color: $warning
+
+  &:hover .htd-alert__cta
+    text-decoration: underline
+
+.htd-alert__cta
+  margin-left: auto
+  color: $warning
+  font-weight: 700
+
+// ── Meteo ─────────────────────────────────────────────────────────────────────
+.htd-meteo__loading
+  flex: 1
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+  min-height: 160px
+  color: $text-inactive
+  font-size: 12px
+
+.htd-meteo__now
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 18px
+  margin: 18px 0 8px
+
+.htd-meteo__ico
+  font-size: 52px
+
+// Icone meteo: nuvole/pioggia nel blu della piattaforma, il sole in oro
+.htd__meteo .fa-duotone
+  --fa-primary-color: #{$primary}
+  --fa-secondary-color: #{$primary-400}
+  --fa-secondary-opacity: .9
+
+  &.is-sole
+    --fa-secondary-color: #f0b429
+
+.htd-meteo__temp
+  font-family: $font-heading
+  font-size: 38px
+  font-weight: 600
+  line-height: 1
+  color: $primary
+
+.htd-meteo__desc
+  margin-top: 4px
+  font-size: 13px
+  color: $text-inactive
+
+.htd-meteo__meta
+  display: flex
+  justify-content: center
+  gap: 16px
+  font-size: 12px
+  color: $text-inactive
+
+  i
+    color: $primary
+    margin-right: 2px
+
+.htd-meteo__days
+  display: grid
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+  gap: 8px
+  margin: auto 0 0
+  padding: 12px 0 0
+  list-style: none
+
+  li
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 4px
+    padding: 8px 4px
+    border-radius: 8px
+    background: $bg
+    font-size: 12px
+
+  i
+    font-size: 18px
+
+.htd-meteo__day
+  color: $text-inactive
+  text-transform: capitalize
+
+.htd-meteo__range
+  color: $text-inactive
+
+  strong
+    color: $text-active
+
+.htd-note
+  margin: 8px 0 0
+  font-size: 11px
+  color: $text-disabled
+  text-align: center
+
+// ── Eventi ────────────────────────────────────────────────────────────────────
+.htd-eventi
+  margin: 0
+  padding: 0
+  list-style: none
+
+.htd-eventi__item
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 8px 0
+  border-bottom: 1px solid $border
+
+  &:last-child
+    border-bottom: 0
+
+.htd-eventi__date
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  flex: none
+  width: 42px
+  height: 42px
+  border-radius: 8px
+  background: $primary-50
+  color: $primary
+  line-height: 1
+
+  strong
+    font-family: $font-heading
+    font-size: 16px
+
+  span
+    margin-top: 2px
+    font-size: 10px
+    font-weight: 600
+
+.htd-eventi__txt
+  display: flex
+  flex-direction: column
+  gap: 2px
+  flex: 1
+  min-width: 0
+
+.htd-eventi__title
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+
+.htd-eventi__dest
+  font-size: 11px
+  color: $text-inactive
+
+  i
+    color: $primary
+
+// ── Prenotazioni ──────────────────────────────────────────────────────────────
+.htd-pren__sum
+  display: flex
+  align-items: baseline
+  flex-wrap: wrap
+  gap: 6px 10px
+  margin-bottom: 8px
+
+.htd-pren__tot
+  font-family: $font-heading
+  font-size: 22px
+  font-weight: 600
+  color: $primary
+
+.htd-pren__lbl
+  font-size: 12px
+  color: $text-inactive
+
+.htd-pren__chart
+  flex: 1
+  min-height: 200px
+  height: 220px
+
+.htd-legend
+  display: flex
+  gap: 12px
+  margin: 0 0 0 auto
+  padding: 0
+  list-style: none
+  font-size: 11px
+  color: $text-inactive
+
+  li
+    display: inline-flex
+    align-items: center
+    gap: 5px
+
+.htd-legend__sw
+  width: 10px
+  height: 10px
+  border-radius: 2px
+
+  &--cur
+    background: var(--chart-1)
+
+  &--ly
+    background: var(--chart-ly)
+
+// ── Mercato ───────────────────────────────────────────────────────────────────
+.htd-occ
+  display: flex
+  align-items: center
+  gap: 8px
+
+.htd-occ__bar
+  flex: 1
+  height: 6px
+  border-radius: 999px
+  background: $bg
+  overflow: hidden
+
+.htd-occ__fill
+  display: block
+  width: var(--occ, 0)
+  height: 100%
+  border-radius: inherit
+  background: $primary
+
+.htd-spark
+  padding-top: 2px !important
+  padding-bottom: 2px !important
+
+.htd-cambi
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 6px 18px
+  font-size: 12px
+  color: $text-inactive
+
+  strong
+    color: $text-active
+    font-variant-numeric: tabular-nums
+
+.htd-cambi__lbl
+  font-weight: 600
+  color: $primary
+
+// ── Notizie ───────────────────────────────────────────────────────────────────
+.htd-news
+  margin: 0
+  padding: 0
+  list-style: none
+
+.htd-news__item
+  padding: 10px 0
+  border-bottom: 1px solid $border
+
+  &:first-child
+    padding-top: 0
+
+  &:last-child
+    border-bottom: 0
+    padding-bottom: 0
+
+.htd-news__meta
+  display: flex
+  align-items: center
+  gap: 8px
+  margin-bottom: 4px
+
+.htd-news__tag
+  padding: 1px 8px
+  border-radius: 999px
+  background: $primary-50
+  color: $primary
+  font-size: 10px
+  font-weight: 700
+
+.htd-news__time
+  font-size: 11px
+  color: $text-disabled
+
+.htd-news__title
+  margin: 0 0 2px
+  font-family: $font-heading
+  font-size: 13px
+  font-weight: 600
+  color: $text-active
+  line-height: 1.35
+
+.htd-news__txt
+  margin: 0
+  font-size: 12px
+  color: $text-inactive
+  line-height: 1.45
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden

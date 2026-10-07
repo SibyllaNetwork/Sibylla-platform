@@ -151,6 +151,19 @@ const FA_MAP: Record<string, string> = {
   'user-plus':     'fa-user-plus',
   'scale':         'fa-scale-balanced',
   'share-nodes':   'fa-share-nodes',
+  // Home Tour Operator
+  'suitcase':      'fa-suitcase-rolling',
+  'table':         'fa-table-list',
+  'kanban':        'fa-table-columns',
+  'lens':          'fa-magnifying-glass-chart',
+  'bolt':          'fa-bolt',
+  'folder-open':   'fa-folder-open',
+  'file-invoice':  'fa-file-invoice-dollar',
+  'handshake':     'fa-handshake',
+  'calendar-check':'fa-calendar-check',
+  'route':         'fa-route',
+  'bell-concierge':'fa-bell-concierge',
+  'newspaper':     'fa-newspaper',
 }
 
 export default function Ico({ n, s = 20, c = '#fff', c2, w = 'duotone' }: IcoProps) {
