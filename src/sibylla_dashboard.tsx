@@ -142,8 +142,12 @@ export default function App() {
   const effectiveModuli = assist
     ? assist.moduli
     : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
-  const section = sectionForPage(currentPage, effectiveModuli)
-  const sectionOverride = dissociato && section !== 'platform'
+  // Utenti Tour Operator: TUTTA l'app nel verde Tableau (sidenav, header e ogni
+  // pagina), a prescindere dalla preferenza unificata/dissociata. Le altre utenze
+  // restano blu Platform (salvo i colori di prodotto in modalità dissociata).
+  const isTourOperator = !!effectiveModuli?.includes('tour-operator')
+  const section = isTourOperator ? 'tableau' : sectionForPage(currentPage, effectiveModuli)
+  const sectionOverride = isTourOperator || (dissociato && section !== 'platform')
   // Modalità admin (oro): include l'angolo curvo gold tra header e sidenav.
   const adminMode = !!assist || currentPage === 'sibylla-admin' || currentPage === 'assist-admin' || isPlatformAdminPage(currentPage)
 

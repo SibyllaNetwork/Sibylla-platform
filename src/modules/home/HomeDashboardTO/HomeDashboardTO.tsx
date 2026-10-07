@@ -42,7 +42,7 @@ function saluto(h: number) {
   return 'Buonasera'
 }
 
-// Colori: quelli di Platform (anche le pagine Tableau ora usano il blu Platform).
+// Colori: eredita il verde Tableau applicato a tutta l'app per gli utenti TO.
 export default function HomeDashboardTO({ navigate }: Props) {
   const nome = useNomeProfilo()
   const oggi = new Date()

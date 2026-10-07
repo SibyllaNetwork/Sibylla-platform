@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import T from '../../../core/tokens'
 import Ico from '../../../core/icons/Ico'
 import { useAccessStore } from '../../../store/useAccessStore'
-import { useSectionThemeStore, SECTION_COLORS } from '../../../store/useSectionThemeStore'
+import { SECTION_COLORS } from '../../../store/useSectionThemeStore'
 import './GiornaleImpresaPeek.sass'
 import { useStrutturaCorrente } from '../../../hooks/useStrutturaCorrente'
 
@@ -90,11 +90,10 @@ export default function GiornaleImpresaPeek({ navigate }: Props) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // Variante per modulo + tema verde (solo in modalità dissociata, come la pagina).
+  // Variante per modulo + tema verde per i Tour Operator.
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const assist           = useAccessStore(s => s.assist)
   const profiles         = useAccessStore(s => s.profiles)
-  const dissociato       = useSectionThemeStore(s => s.dissociato)
   const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
   const isTO = !!moduli?.includes('tour-operator')
   const variant: PeekVariant = isTO ? 'to' : 'hotel'
@@ -107,8 +106,8 @@ export default function GiornaleImpresaPeek({ navigate }: Props) {
   const FEATURE = D.feature
   const EVENTI = D.eventi
   const VIP = D.vip
-  // In dissociata i TO usano il verde Tableau (accento + gradienti); altrimenti blu.
-  const greenTheme = dissociato && isTO
+  // I Tour Operator usano sempre il verde Tableau (tutta l'app è verde).
+  const greenTheme = isTO
   const accent = greenTheme ? SECTION_COLORS.tableau : T.primary
   const themeStyle = greenTheme
     ? ({ ['--color-primary' as string]: SECTION_COLORS.tableau, ['--gip-grad' as string]: 'linear-gradient(120deg, #2f8268 0%, #206953 55%, #184f3c 100%)' } as React.CSSProperties)
