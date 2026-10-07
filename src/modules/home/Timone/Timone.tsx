@@ -106,48 +106,6 @@ const SEGMENT_MENU: Record<string, RadialMenu> = {
   },
 }
 
-// ── Variante Tour Operator: le aree Sales/Operation/Purchasing puntano alle
-// pagine del menu dedicato (MENU_TO); HR e Finance coincidono con l'hotel.
-const SEGMENT_MENU_TO: Record<string, RadialMenu> = {
-  ...SEGMENT_MENU,
-  sales: {
-    color: '#d9773c',
-    items: [
-      { label: 'Open board',                 page: 'open-board',         icon: 'kanban' },
-      { label: 'Tableau',                    page: 'tableau-book',       icon: 'table' },
-      { label: 'Market lens',                page: 'market-lens',        icon: 'lens' },
-      { label: 'Action centre',              page: 'action-centre',      icon: 'bolt' },
-      { label: 'Value analysis',             page: 'value-analysis',     icon: 'chart-pie' },
-      { label: 'Analisi della distribuzione', page: 'analisi-dist-sales', icon: 'chart-area' },
-      { label: 'Imposta distribuzione',      page: 'imposta-dist',       icon: 'share-nodes' },
-    ],
-  },
-  operation: {
-    color: '#7f9c2a',
-    items: [
-      { label: 'Crea pratica',            page: 'crea-pratica',          icon: 'folder-open' },
-      { label: 'Monitoraggio pratiche',   page: 'monitoraggio-pratiche', icon: 'hourglass' },
-      { label: 'Gestione dei preventivi', page: 'gestione-preventivi',   icon: 'file-invoice' },
-      { label: 'Acquisti servizi',        page: 'acquisti-servizi',      icon: 'cart' },
-      { label: 'Richieste operative',     page: 'richieste-operative',   icon: 'bell-concierge' },
-      { label: 'Anagrafiche ospiti',      page: 'anagrafiche-op',        icon: 'id-card' },
-      { label: 'Gestione documenti',      page: 'gest-documenti',        icon: 'file' },
-    ],
-  },
-  purchasing: {
-    color: '#f0c54e',
-    items: [
-      { label: 'I miei contratti',        page: 'miei-contratti-a',           icon: 'file' },
-      { label: 'Inserisci contratto',     page: 'inserisci-contratto-a',      icon: 'plus' },
-      { label: 'Lista fornitori',         page: 'lista-fornitori',            icon: 'users' },
-      { label: 'Area merceologica',       page: 'area-merceologica',          icon: 'archive' },
-      { label: 'Crea acquisto condiviso', page: 'crea-acquisto',              icon: 'globe' },
-      { label: 'Componi annunci',         page: 'agora-announcements-manage', icon: 'edit' },
-      { label: 'Panoramica acquisti',     page: 'panoramica-acquisti',        icon: 'cart' },
-    ],
-  },
-}
-
 // ── Hub centrale "Executive": 8 scorciatoie che orbitano attorno al timone ────
 // `angle` = gradi dall'alto, orario (negativo = sinistra). Il fondo resta libero
 // (lì c'è l'onda). Le bolle sono speculari sinistra/destra.
@@ -165,27 +123,9 @@ const EXEC_ITEMS: ExecItem[] = [
   { label: 'Panoramica acquisti', page: 'panoramica-acquisti', icon: 'cart',       x: 136, y: 89 },
 ]
 
-const EXEC_ITEMS_TO: ExecItem[] = [
-  { label: 'Giornale impresa',     page: 'giornale-impresa',     icon: 'book',       x: -14, y: 11 },
-  { label: 'Executive overview',   page: 'executive-overview',   icon: 'briefcase',  x: -36, y: 37 },
-  { label: 'Le mie destinazioni',  page: 'le-mie-destinazioni',  icon: 'map-pin',    x: -14, y: 63 },
-  { label: 'Sales overview',       page: 'sales-overview',       icon: 'chart-line', x: -36, y: 89 },
-  { label: 'Finance overview',     page: 'finance-overview',     icon: 'landmark',   x: 114, y: 11 },
-  { label: 'Cabina di controllo',  page: 'cabina-controllo',     icon: 'gauge',      x: 136, y: 37 },
-  { label: 'Live display',         page: 'live-display',         icon: 'mobile',     x: 114, y: 63 },
-  { label: 'Panoramica acquisti',  page: 'panoramica-acquisti',  icon: 'cart',       x: 136, y: 89 },
-]
+interface Props { navigate?: (p: string) => void }
 
-interface Props {
-  navigate?: (p: string) => void
-  /** 'to' = Home dei Tour Operator: voci dal menu dedicato, tutte le frecce accese. */
-  variant?: 'hotel' | 'to'
-}
-
-export default function Timone({ navigate, variant = 'hotel' }: Props) {
-  const isTO       = variant === 'to'
-  const segMenu    = isTO ? SEGMENT_MENU_TO : SEGMENT_MENU
-  const execItems  = isTO ? EXEC_ITEMS_TO : EXEC_ITEMS
+export default function Timone({ navigate }: Props) {
   const assist           = useAccessStore(s => s.assist)
   const currentProfileId = useAccessStore(s => s.currentProfileId)
   const profiles         = useAccessStore(s => s.profiles)
@@ -197,9 +137,8 @@ export default function Timone({ navigate, variant = 'hotel' }: Props) {
     profiles.find(p => p.id === currentProfileId)?.moduli ??
     null
   const enabled = moduli ? enabledPagesForModuli(moduli, modules) : null
-  // Il menu TO non è filtrato per pagine (sidenav dedicata): frecce tutte accese.
   const isLit = (key: string) =>
-    isTO || !enabled || SEGMENT_PAGES[key].some(pg => enabled.has(pg))
+    !enabled || SEGMENT_PAGES[key].some(pg => enabled.has(pg))
 
   // Animazione d'ingresso al mount.
   const [entered, setEntered] = useState(false)
@@ -238,7 +177,7 @@ export default function Timone({ navigate, variant = 'hotel' }: Props) {
     }
     const g = (e.target as Element).closest('[id^="seg-"]')
     const key = g?.id.replace('seg-', '')
-    if (!key || !segMenu[key] || !isLit(key)) return
+    if (!key || !SEGMENT_MENU[key] || !isLit(key)) return
     setExec(false)
     setOpenKey(prev => (prev === key ? null : key))
   }
@@ -266,7 +205,7 @@ export default function Timone({ navigate, variant = 'hotel' }: Props) {
     ? SEGMENTS.filter(s => !isLit(s.key)).map(s => `is-dim-${s.key}`).join(' ')
     : ''
 
-  const open = openKey ? segMenu[openKey] : null
+  const open = openKey ? SEGMENT_MENU[openKey] : null
 
   return (
     <div
@@ -338,7 +277,7 @@ export default function Timone({ navigate, variant = 'hotel' }: Props) {
       {/* Modalità Executive: bolle orbitanti */}
       {exec && (
         <div className="timone__exec">
-          {execItems.map((it, i) => (
+          {EXEC_ITEMS.map((it, i) => (
             <button
               key={it.page}
               type="button"

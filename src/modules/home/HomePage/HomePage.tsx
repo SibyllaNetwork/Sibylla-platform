@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react'
 import GiornaleImpresaPeek from '../GiornaleImpresaPeek/GiornaleImpresaPeek'
 import Timone from '../Timone/Timone'
 import HomeDashboardTO from '../HomeDashboardTO/HomeDashboardTO'
-import { HomeToQuickLinks, HomeToSwitch } from '../HomeToLinks/HomeToLinks'
-import { useHomeToView, useIsTourOperator } from '../HomeToLinks/useHomeToView'
+import { useIsTourOperator } from '../HomeToLinks/useProfiloTO'
 import './HomePage.sass'
 
 // Onda di sfondo: pattern "gentle wave" — un unico path riusato 4 volte via
@@ -15,22 +14,14 @@ import './HomePage.sass'
 // Tenendo premuto il mouse sullo sfondo riprende; al rilascio si riferma.
 
 // ── Componente ───────────────────────────────────────────────────────────────
-// I Tour Operator hanno due versioni della Home (timone / dashboard) con un
-// link per passare dall'una all'altra; gli altri profili vedono solo il timone.
+// I Tour Operator hanno una Home propria (dashboard); gli altri profili il timone.
 export default function HomePage({ navigate }: { navigate: (p: string) => void }) {
   const isTO = useIsTourOperator()
-  const [toView, setToView] = useHomeToView()
-  if (isTO && toView === 'dashboard') {
-    return <HomeDashboardTO navigate={navigate} onSwitch={setToView} />
-  }
-  return <HomeTimone navigate={navigate} isTO={isTO} onSwitch={setToView} />
+  if (isTO) return <HomeDashboardTO navigate={navigate} />
+  return <HomeTimone navigate={navigate} />
 }
 
-function HomeTimone({ navigate, isTO, onSwitch }: {
-  navigate: (p: string) => void
-  isTO: boolean
-  onSwitch: (v: 'timone' | 'dashboard') => void
-}) {
+function HomeTimone({ navigate }: { navigate: (p: string) => void }) {
   const [initialPlay, setInitialPlay] = useState(true)
   const [pressing, setPressing] = useState(false)
 
@@ -53,22 +44,16 @@ function HomeTimone({ navigate, isTO, onSwitch }: {
   // Il mouse-down muove le onde SOLO se premuto sullo sfondo: se parte dal
   // timone (o dai suoi pulsanti) non deve avviare l'animazione.
   const onHeroMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.home__hero-content, .home__to-bar')) return
+    if ((e.target as HTMLElement).closest('.home__hero-content')) return
     setPressing(true)
   }
 
   return (
     <div className="home">
       <GiornaleImpresaPeek navigate={navigate} />
-      <div className={`home__hero${isTO ? ' home__hero--to' : ''}`} onMouseDown={onHeroMouseDown}>
-        {isTO && (
-          <div className="home__to-bar">
-            <HomeToSwitch view="timone" onSwitch={onSwitch} />
-            <HomeToQuickLinks navigate={navigate} tone="hero" />
-          </div>
-        )}
+      <div className="home__hero" onMouseDown={onHeroMouseDown}>
         <div className="home__hero-content">
-          <Timone navigate={navigate} variant={isTO ? 'to' : 'hotel'} />
+          <Timone navigate={navigate} />
         </div>
         <div className="home__wave" aria-hidden="true">
           <svg

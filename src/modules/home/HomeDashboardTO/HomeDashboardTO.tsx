@@ -15,9 +15,8 @@ import {
   usePraticheStore, STATO_PRATICA_META, STATO_PRATICA_FLOW, TIPOLOGIA_META,
   oreInGestione, praticheInRitardo, type StatoPratica,
 } from '../../../store/usePraticheStore'
-import { useSectionThemeStore } from '../../../store/useSectionThemeStore'
-import { HomeToQuickLinks, HomeToSwitch } from '../HomeToLinks/HomeToLinks'
-import { useNomeProfilo, type HomeToView } from '../HomeToLinks/useHomeToView'
+import { HomeToQuickLinks } from '../HomeToLinks/HomeToLinks'
+import { useNomeProfilo } from '../HomeToLinks/useProfiloTO'
 import {
   DESTINAZIONI, meteoDa, meteoFallback, PRENOTAZIONI, MERCATO, CAMBI_FALLBACK,
   CONTRATTI, NOTIZIE, EVENTI, type Meteo, type Cambio,
@@ -25,14 +24,13 @@ import {
 import './HomeDashboardTO.sass'
 
 // ─── HOME TOUR OPERATOR · versione dashboard ─────────────────────────────────
-//  Alternativa "tradizionale" alla Home col timone: riepilogo dell'attività
+//  Home dei Tour Operator: riepilogo dell'attività
 //  (pratiche, prenotazioni, contratti) e utility (meteo nelle destinazioni,
 //  mercato e cambi, notizie, eventi). Niente riga di KPI in testa: i numeri
 //  vivono dentro i rispettivi riquadri.
 
 interface Props {
   navigate: (p: string) => void
-  onSwitch: (v: HomeToView) => void
 }
 
 const fmtData = (d: Date) =>
@@ -44,21 +42,17 @@ function saluto(h: number) {
   return 'Buonasera'
 }
 
-export default function HomeDashboardTO({ navigate, onSwitch }: Props) {
+// Colori: quelli di Platform (anche le pagine Tableau ora usano il blu Platform).
+export default function HomeDashboardTO({ navigate }: Props) {
   const nome = useNomeProfilo()
-  const dissociato = useSectionThemeStore(s => s.dissociato)
   const oggi = new Date()
 
   return (
-    <div
-      className={clsx('htd', dissociato && 'htd--tableau')}
-      data-section={dissociato ? 'tableau' : undefined}
-    >
+    <div className="htd">
       <PageHead
         back={false}
         title={nome ? `${saluto(oggi.getHours())}, ${nome}` : saluto(oggi.getHours())}
         subtitle={fmtData(oggi)}
-        actions={<HomeToSwitch view="dashboard" onSwitch={onSwitch} />}
       />
       <HomeToQuickLinks navigate={navigate} />
 

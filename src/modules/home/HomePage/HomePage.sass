@@ -2,7 +2,6 @@
 @use '../../../styles/tokens' as *
 .home
   position: relative
-  container-type: inline-size
 
   // ── Hero (Timone + Onda) ──────────────────────────────────────────────────
   &__hero
@@ -20,30 +19,6 @@
   &__hero-content
     position: relative
     z-index: 2
-
-  // Tour Operator: il timone scende per lasciare spazio alla barra in alto
-  &__hero--to
-    padding-top: 72px
-
-  // Tour Operator: link all'altra versione (sx) + accesso rapido (centrato)
-  &__to-bar
-    position: absolute
-    top: 20px
-    left: 24px
-    right: 24px
-    z-index: 3
-    display: grid
-    grid-template-columns: 1fr auto 1fr
-    align-items: center
-    gap: 16px
-
-    .home-to-switch
-      justify-self: start
-
-  @container (max-width: 1100px)
-    &__to-bar
-      grid-template-columns: 1fr
-      justify-items: center
 
   &__timone
     width: 650px
