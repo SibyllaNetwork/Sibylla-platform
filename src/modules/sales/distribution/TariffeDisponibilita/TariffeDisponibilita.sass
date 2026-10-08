@@ -881,185 +881,477 @@
     opacity: 1
     transform: translateX(0)
 
-// ─── MARKET ENGINE (redesign) ──────────────────────────────────────────────────
-.me2
+// ─── MARKET ENGINE (step guidati, chip e interruttori) ─────────────────────────
+.me3
+  gap: $space-xl
+  max-height: min(68vh, 720px)
+  overflow-y: auto
+
+// Step numerato (Periodo / Tipo camera / Operazioni / Tariffe / Canali)
+.me3-step
   display: flex
   flex-direction: column
-  gap: $space-lg
+  gap: $space-md
 
-  &__dates
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: $space-lg
-
-  &__card
-    border: 1px solid $border
-    border-radius: $radius-lg
-    padding: $space-lg
-    display: flex
-    flex-direction: column
-    gap: $space-md
-
-  &__card-head
+  &__head
     display: flex
     align-items: center
-    justify-content: space-between
+    gap: $space-sm
 
-  &__card-title
-    font-size: 13px
-    font-weight: 700
-    color: $primary
-
-  &__rooms
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 12px
-
-  &__warn
-    display: flex
-    align-items: center
-    gap: 6px
+  &__n
+    width: 22px
+    height: 22px
+    border-radius: $radius-full
+    background: $primary
+    color: $white
     font-size: 12px
+    font-weight: 700
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+
+  &__title
+    font-family: 'Poppins', sans-serif
+    font-size: 14px
     font-weight: 600
-    color: $error
+    color: $primary
     margin: 0
 
-  // Operazioni
-  &__ops
-    gap: $space-lg
+  &__aside
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    background: $bg
+    border-radius: 999px
+    padding: 2px 10px
+    i
+      font-size: 11px
+      color: $primary
 
-  &__op
+.me3-link
+  appearance: none
+  border: none
+  background: transparent
+  margin-left: auto
+  padding: 0
+  font-size: 12px
+  font-weight: 600
+  color: $link
+  cursor: pointer
+  &:hover
+    text-decoration: underline
+
+// Periodo
+.me3-period
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: $space-md
+
+  &__range
+    width: 260px
+
+.me3-presets
+  display: flex
+  flex-wrap: wrap
+  gap: 6px
+
+.me3-preset
+  appearance: none
+  border: 1px solid $border
+  background: $white
+  color: $text-active
+  font-size: 12px
+  font-weight: 600
+  padding: 6px 12px
+  border-radius: 999px
+  cursor: pointer
+  transition: $transition-fast
+  &:hover
+    border-color: $primary
+    color: $primary
+    background: alpha($primary, 0.06)
+
+// Chip selezionabili
+.me3-chips
+  display: flex
+  flex-wrap: wrap
+  gap: $space-sm
+
+  &--rooms
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+
+  // Canali: tutti su una riga; niente spunta, lo stato lo dice il logo (spento = grigio)
+  &--canali
+    .me3-chip
+      padding: 6px 12px 6px 7px
+      gap: 8px
+    .me3-chip__tick
+      display: none
+    .me3-chip:not(.me3-chip--on) .me3-chip__mark
+      background: $text-disabled
+
+  &--grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+
+.me3-chip
+  appearance: none
+  position: relative
+  display: inline-flex
+  align-items: center
+  gap: 10px
+  min-height: 38px
+  padding: 7px 34px 7px 12px
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+  color: $text-active
+  text-align: left
+  cursor: pointer
+  transition: $transition-fast
+  &:hover
+    border-color: alpha($primary, 0.5)
+    box-shadow: $shadow-sm
+
+  &__txt
     display: flex
     flex-direction: column
-    gap: 10px
-    padding-bottom: $space-md
-    border-bottom: 1px solid alpha($border, 0.6)
-    &:last-child
-      padding-bottom: 0
-      border-bottom: none
+    min-width: 0
 
-  &__op-body
+  &__label
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 13px
+    font-weight: 600
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__sub
+    font-size: 11px
+    color: $text-inactive
+    white-space: nowrap
+
+  &__tick
+    position: absolute
+    right: 10px
+    top: 50%
+    width: 16px
+    height: 16px
+    margin-top: -8px
+    border-radius: $radius-full
+    border: 1px solid $border
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 9px
+    color: transparent
+    transition: $transition-fast
+
+  &__mark
+    width: 24px
+    height: 24px
+    border-radius: $radius-sm
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    font-size: 12px
+    font-weight: 800
+    color: $white
+    background: $text-inactive
+    &--all
+      background: $primary
+    &--booking
+      background: $link
+    &--expedia
+      background: $warning
+    &--diretto
+      background: $success
+
+  &--on
+    border-color: $primary
+    background: alpha($primary, 0.06)
+    box-shadow: inset 0 0 0 1px $primary
+    .me3-chip__label
+      color: $primary
+    .me3-chip__tick
+      background: $primary
+      border-color: $primary
+      color: $white
+
+.me3-ref
+  font-size: 9px
+  font-weight: 700
+  letter-spacing: 0.04em
+  color: $primary
+  background: alpha($primary, 0.12)
+  border-radius: $radius-sm
+  padding: 1px 5px
+
+.me3-warn
+  display: flex
+  align-items: center
+  gap: 8px
+  margin: 0
+  padding: 8px 12px
+  border-radius: $radius-md
+  background: $warning-light
+  color: $text-active
+  font-size: 12px
+  i
+    color: $warning
+
+// Operazioni
+.me3-ops
+  display: flex
+  flex-direction: column
+  gap: $space-md
+
+.me3-op
+  border: 1px solid $border
+  border-radius: $radius-lg
+  background: $white
+  transition: $transition-normal
+  overflow: hidden
+
+  &__head
+    appearance: none
+    width: 100%
+    border: none
+    background: transparent
+    display: flex
+    align-items: center
+    gap: $space-md
+    padding: $space-md $space-lg
+    text-align: left
+    cursor: pointer
+
+  &__ico
+    width: 36px
+    height: 36px
+    border-radius: $radius-md
+    background: $bg
+    color: $text-inactive
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 15px
+    flex-shrink: 0
+    transition: $transition-fast
+
+  &__txt
+    display: flex
+    flex-direction: column
+    gap: 2px
+    flex: 1
+    min-width: 0
+
+  &__title
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  &__desc
+    font-size: 12px
+    color: $text-inactive
+
+  &__body
     display: flex
     flex-wrap: wrap
     align-items: flex-start
-    gap: $space-xl
-    padding-left: 26px
+    gap: $space-lg $space-xl
+    padding: $space-lg
+    border-top: 1px dashed $border
+    animation: me3Open $motion-base $motion-ease
 
-  &__inline-field
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    font-size: 13px
-    color: $text-inactive
+  &--on
+    border-color: alpha($primary, 0.55)
+    box-shadow: $shadow-sm
+    .me3-op__ico
+      background: $primary
+      color: $white
+    .me3-op__title
+      color: $primary
 
-  &__mercato
-    width: 90px
-
-  &__los
-    width: 70px
-
-  &__radios-col
-    display: flex
-    flex-direction: column
-    gap: 8px
-
-  // Radio
-  &__radio
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    font-size: 13px
-    color: $text-active
-    cursor: pointer
-    user-select: none
-    input
-      position: absolute
-      opacity: 0
-      width: 0
-      height: 0
-
-  &__radio-dot
+// Interruttore (visivo: il click è sull'intestazione dell'operazione)
+.me3-switch
+  width: 36px
+  height: 20px
+  border-radius: 999px
+  background: $border
+  position: relative
+  flex-shrink: 0
+  transition: $transition-fast
+  span
+    position: absolute
+    top: 2px
+    left: 2px
     width: 16px
     height: 16px
-    border: 1px solid $border
     border-radius: $radius-full
-    flex-shrink: 0
-    position: relative
-    transition: $transition-fast
+    background: $white
+    box-shadow: $shadow-sm
+    transition: transform $motion-fast $motion-ease
+  &--on
+    background: $primary
+    span
+      transform: translateX(16px)
 
-  input:checked + &__radio-dot
-    border-color: $primary
-    &::after
-      content: ''
-      position: absolute
-      inset: 3px
-      border-radius: $radius-full
-      background: $primary
+// Campo con label standard (Poppins 12/600 primary)
+.me3-field
+  display: flex
+  flex-direction: column
+  gap: 6px
 
-  // Picker (Canali / Strutture)
-  &__picker
-    display: flex
-    flex-direction: column
-    gap: 8px
+  &--full
+    flex-basis: 100%
 
-  &__picker-toggle
+  &__label
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-family: 'Poppins', sans-serif
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__count
+    font-size: 11px
+    font-weight: 600
+    color: $text-inactive
+    background: $bg
+    border-radius: 999px
+    padding: 0 8px
+
+.me3-mercato
+  width: 150px
+
+// Segmentato
+.me3-seg
+  display: inline-flex
+  padding: 3px
+  gap: 2px
+  background: $bg
+  border: 1px solid $border
+  border-radius: $radius-md
+
+  &__opt
     appearance: none
     border: none
     background: transparent
     display: inline-flex
     align-items: center
-    gap: 8px
+    gap: 6px
+    padding: 6px 14px
+    border-radius: $radius-sm
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    cursor: pointer
+    transition: $transition-fast
+    white-space: nowrap
+    &:hover
+      color: $primary
+    &--on
+      background: $white
+      color: $primary
+      box-shadow: $shadow-sm
+
+// Stepper notti minime
+.me3-stepper
+  display: inline-flex
+  align-items: center
+  height: 34px
+  border: 1px solid $border
+  border-radius: $radius-md
+  overflow: hidden
+  button
+    appearance: none
+    border: none
+    background: $bg
+    width: 34px
+    height: 100%
+    color: $primary
+    cursor: pointer
+    &:hover:not(:disabled)
+      background: alpha($primary, 0.1)
+    &:disabled
+      color: $text-disabled
+      cursor: not-allowed
+
+  &__val
+    min-width: 44px
+    text-align: center
+    font-size: 14px
+    font-weight: 700
+    color: $text-active
+
+// Tariffe
+.me3-rates
+  display: flex
+  flex-direction: column
+  border: 1px solid $border
+  border-radius: $radius-lg
+  overflow: hidden
+
+.me3-rate
+  display: grid
+  grid-template-columns: 1fr auto 150px
+  align-items: center
+  gap: $space-lg
+  padding: 8px $space-lg
+  border-bottom: 1px solid $border
+  &:last-child
+    border-bottom: none
+
+  &__room
+    display: inline-flex
+    align-items: center
+    gap: 6px
     font-size: 13px
     font-weight: 600
     color: $text-active
-    cursor: pointer
-    padding: 0
 
-  &__picker-list
-    display: flex
-    flex-direction: column
-    gap: 10px
-    padding: 10px 12px
-    border: 1px solid $border
-    border-radius: $radius-md
-    background: $bg
-    min-width: 160px
+  &__delta
+    font-size: 12px
+    font-weight: 600
+    color: $text-inactive
+    &--up
+      color: $success
+    &--down
+      color: $error
 
-  // Tariffe
-  &__tariffe
-    display: flex
-    flex-direction: column
-    gap: 12px
+// Footer con riepilogo
+.me3-footer
+  align-items: center
 
-  &__tariffa
-    display: flex
+  &__sum
+    margin-right: auto
+    display: inline-flex
     align-items: center
-    justify-content: space-between
-    gap: $space-lg
-
-  &__tariffa-room
-    font-size: 13px
-    font-weight: 700
-    color: $primary
-
-  &__price-select
-    appearance: none
-    -webkit-appearance: none
-    border: 1px solid $success
-    background: alpha($success, 0.18)
+    gap: 6px
+    font-size: 12px
+    font-weight: 600
     color: $success
-    font-size: 14px
-    font-weight: 700
-    padding: 8px 28px 8px 12px
-    border-radius: $radius-md
-    cursor: pointer
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2300a86b'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E")
-    background-repeat: no-repeat
-    background-position: right 8px center
-    background-size: 14px
-    &:focus
-      outline: none
-      box-shadow: 0 0 0 2px alpha($success, 0.3)
+    &--warn
+      color: $text-inactive
+
+@keyframes me3Open
+  from
+    opacity: 0
+    transform: translateY(-4px)
+  to
+    opacity: 1
+    transform: translateY(0)
 
 // ── Compattazione della toolbar ───────────────────────────────────────────────
 // Tutto su UNA riga a qualunque larghezza, per gradi: prima le etichette dei pulsanti
