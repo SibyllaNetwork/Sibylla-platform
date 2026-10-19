@@ -46,3 +46,8 @@
   // Icona calendario a destra: quella nativa di rsuite (caret), colore muted.
   .rs-picker-caret-icon
     color: var(--color-text-inactive)
+
+// Il calendario si apre in un popup agganciato al body (z-index 7 di RSuite):
+// dentro una modale (overlay z-index 100) finiva sotto e non era cliccabile.
+.rs-picker-popup
+  z-index: 1050

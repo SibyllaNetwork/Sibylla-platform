@@ -3,7 +3,7 @@ import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import Modal from '../../../../core/components/Modal'
 import Tabs from '../../../../core/components/Tabs'
-import { SelectField, DateRangeField, InputField, TextareaField } from '../../../../core/components/form'
+import { SelectField, DateRangeField, InputField } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import Ico from '../../../../core/icons/Ico'
 import './TariffeDisponibilita.sass'
@@ -30,6 +30,7 @@ const CAMERE: Camera[] = [
   { id: 'tpl', nome: 'TRIPLA CLASSIC',         unit: 8,  base: 175, riferimento: true },
   { id: 'mat', nome: 'MATRIMONIALE SUPERIOR',  unit: 10, base: 160 },
   { id: 'qud', nome: 'QUADRUPLA',              unit: 6,  base: 250 },
+  { id: 'qcl', nome: "QUADRUPLA CLASSIC (COLLEGAMENTO ALL'INVENTARIO MANCANTE)", unit: 4, base: 235 },
 ]
 
 const CANALI = ['Booking.com', 'Expedia', 'Airbnb', 'Sito diretto', 'Hotelbeds']
@@ -41,7 +42,31 @@ const ME_CANALI: { id: string; sigla?: string; icon?: string; tone: string }[] =
   { id: 'Expedia',      sigla: 'E', tone: 'expedia' },
   { id: 'Sito diretto', icon: 'fa-globe', tone: 'diretto' },
 ]
+// Destinatari di restrizioni e Minimum-LOS: i canali collegati oppure i prodotti
+// (piani tariffari) sul channel manager.
+const CANALI_REGOLE = ['Booking.com', 'DOTW (Destinations of The World)', 'Emerging Travel Group', 'G2travel', 'Destination Italia', 'eDreams Odigeo', 'Expedia', 'Italcamel']
+const PRODOTTI_REGOLE = [
+  '(20%) - 8% (BB_BAR_NOTREF_TO)',
+  '(20%) - 8% RO (RO_BAR_NOTREF_TOAL20%)',
+  '20% (BB_BAR_TO 20%)',
+  '20% RO (RO_BAR_TO)',
+  'BB_BAR_TRAVELTINO (BB_BAR_TRAVELTINO)',
+  'BB_NOT REF_TO MUP 2% (BB_NOT REF_TO MUP 2%)',
+  'Miglior Tariffa Flessibile (RO_BAR_SITO)',
+]
 const titleCase = (s: string) => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+
+// Nomi camera: oltre 25 caratteri si troncano con i puntini e il nome intero va
+// nella tooltip al passaggio del mouse.
+const MAX_NOME_CAMERA = 25
+function NomeCamera({ nome }: { nome: string }) {
+  if (nome.length <= MAX_NOME_CAMERA) return <>{nome}</>
+  return (
+    <Tooltip text={nome}>
+      <span aria-label={nome}>{nome.slice(0, MAX_NOME_CAMERA).trimEnd()}…</span>
+    </Tooltip>
+  )
+}
 
 // Finestra fissa di giorni visibili: cambiando intervallo NON si rimpiccioliscono
 // le celle, ma si scorre il range con le frecce avanti/indietro.
@@ -65,6 +90,13 @@ function occDay(n: number) {
   CAMERE.forEach(r => { tot += r.unit; occ += (r.unit - dispOf(r, n)) })
   return tot ? (occ / tot) * 100 : 0
 }
+// Invio apertura/chiusura partito ma senza conferma dal canale da troppo tempo.
+function attesaLunga(room: Camera, n: number) { return rnd(room.id, n + 53) > 0.9 }
+// Ultimo invio rifiutato dal canale (dato di esempio).
+function invioFallito(room: Camera, n: number) { return !attesaLunga(room, n) && rnd(room.id, n + 67) > 0.93 }
+// Stato dell'ultima modifica, mostrato dal colore della clessidra.
+type EsitoInvio = 'corso' | 'ok' | 'errore'
+const ESITO_INVIO: Record<EsitoInvio, string> = { corso: 'in corso', ok: 'effettuata', errore: 'non andata a buon fine' }
 function occupateOf(room: Camera, n: number) { return seedOf(room.id, n + 17) % (room.unit + 1) }
 function batteryFor(pct: number): { ico: string; col: string } {
   if (pct < 5)  return { ico: 'battery-empty', col: 'var(--color-error)' }
@@ -93,8 +125,18 @@ function histOf(room: Camera, n: number): HistRow[] {
   const rows: HistRow[] = [
     { tipo: 'tariffa', valore: priceOf(room, n).toFixed(2), canale: '', data: `${gg}/02 - ${hh}:${mm}`, utente: UTENTI[s % UTENTI.length], errore: '' },
   ]
+  if (invioFallito(room, n)) {
+    rows.push({ tipo: 'B. R.', valore: 'close', canale: 'Booking.com', data: `${gg}/02 - ${hh}:${mm}`, utente: UTENTI[0], errore: 'Canale non raggiungibile' })
+  }
   if (s % 2 === 0) {
     rows.push({ tipo: 'disponibilità', valore: String(alloOf(room, n)), canale: 'Booking.com', data: `${gg}/02 - 0${(s % 7)}:${mm}`, utente: UTENTI[(s + 1) % UTENTI.length], errore: '' })
+  }
+  // Booking rules (apertura/chiusura): "disab." quando la tipologia era disabilitata.
+  if (s % 3 === 0) {
+    rows.push({ tipo: 'B. R. (disab.)', valore: 'open', canale: '', data: `${gg}/02 - ${hh}:${mm}`, utente: UTENTI[0], errore: '' })
+  }
+  if (isClosed(room, n) || s % 3 === 1) {
+    rows.push({ tipo: 'B. R.', valore: 'close', canale: '(Tutti)', data: `${gg}/02 - ${hh}:${mm}`, utente: UTENTI[0], errore: '' })
   }
   return rows
 }
@@ -203,10 +245,13 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const toggleAllRooms = () => setSelRooms(allRooms ? {} : allOn(CAMERE.map(r => r.id)))
   const toggleRoom = (id: string) => setSelRooms(s => ({ ...s, [id]: !s[id] }))
 
-  // Operazioni — Disponibilità
+  // Operazioni — Disponibilità e disponibilità residua si escludono: accenderne una spegne l'altra.
   const [impDisp, setImpDisp] = useState(true)
+  const [impResidua, setImpResidua] = useState(false)
   const [mercato, setMercato] = useState('')
   const [dispCanali, setDispCanali] = useState<Sel>(() => allOn(ME_CANALI.map(c => c.id)))
+  const toggleDisp = () => { setImpDisp(v => !v); setImpResidua(false) }
+  const toggleResidua = () => { setImpResidua(v => !v); setImpDisp(false) }
   // Restrizioni
   const [impRestr, setImpRestr] = useState(true)
   const [restrAz, setRestrAz] = useState<'apri' | 'chiudi'>('chiudi')
@@ -215,9 +260,13 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const [strutture, setStrutture] = useState<Sel>({})
   // Minimum-LOS
   const [impLos, setImpLos] = useState(false)
-  const [losScope, setLosScope] = useState<'tutti' | 'sel'>('tutti')
-  const [losCanali, setLosCanali] = useState<Sel>(() => allOn(ME_CANALI.map(c => c.id)))
   const [losVal, setLosVal] = useState(1)
+  // Destinatari di restrizioni e Minimum-LOS
+  const [regoleSu, setRegoleSu] = useState<'canali' | 'prodotti'>('canali')
+  const [regoleScope, setRegoleScope] = useState<'tutti' | 'sel'>('tutti')
+  const [regoleCanali, setRegoleCanali] = useState<Sel>({})
+  const [prodotti, setProdotti] = useState<Sel>({})
+  const destinatariOk = regoleSu === 'canali' ? regoleScope === 'tutti' || contaSel(regoleCanali) > 0 : contaSel(prodotti) > 0
 
   // Tariffe
   const [tariffeCanali, setTariffeCanali] = useState<Sel>(() => allOn(ME_CANALI.map(c => c.id)))
@@ -228,10 +277,12 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const tariffeRooms = nRooms ? CAMERE.filter(r => selRooms[r.id]) : CAMERE
 
   // Riepilogo per il footer e abilitazione di "Applica".
-  const nOps = [impDisp, impRestr, impLos].filter(Boolean).length
-  const pronto = tab === 'disp' ? nRooms > 0 && nOps > 0 : contaSel(tariffeCanali) > 0
+  const nOps = [impDisp, impResidua, impRestr, impLos].filter(Boolean).length
+  const conRegole = impRestr || impLos
+  const pronto = tab === 'disp' ? nRooms > 0 && nOps > 0 && (!conRegole || destinatariOk) : contaSel(tariffeCanali) > 0
   const riepilogo = tab === 'disp'
     ? (nRooms === 0 ? 'Seleziona almeno una camera' : nOps === 0 ? 'Attiva almeno un\'operazione'
+      : conRegole && !destinatariOk ? (regoleSu === 'canali' ? 'Seleziona almeno un canale' : 'Seleziona almeno un prodotto')
       : `${nOps} ${nOps === 1 ? 'operazione' : 'operazioni'} su ${nRooms} ${nRooms === 1 ? 'camera' : 'camere'}`)
     : `${tariffeRooms.length} tariffe su ${contaSel(tariffeCanali)} ${contaSel(tariffeCanali) === 1 ? 'canale' : 'canali'}`
 
@@ -275,7 +326,7 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="me3-chips me3-chips--rooms">
             {CAMERE.map(r => (
               <MeChip key={r.id} on={!!selRooms[r.id]} onClick={() => toggleRoom(r.id)} sub={`${r.unit} unità · da ${fmtPrice(r.base)}`}>
-                {titleCase(r.nome)}{r.riferimento && <span className="me3-ref">BAR</span>}
+                <NomeCamera nome={titleCase(r.nome)} />{r.riferimento && <span className="me3-ref">BAR</span>}
               </MeChip>
             ))}
           </div>
@@ -293,8 +344,15 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
 
             <div className="me3-ops">
               <MeOp icon="fa-bed" title="Imposta Disponibilità" desc="Allotment da pubblicare sui canali scelti"
-                on={impDisp} onToggle={() => setImpDisp(v => !v)}>
+                on={impDisp} onToggle={toggleDisp}>
                 <InputField name="me-mercato" label="Mercato" placeholder="Es. IT, DE, UK" value={mercato}
+                  onChange={e => setMercato(e.target.value)} className="me3-mercato" />
+                <CanaliSelezionati value={dispCanali} onChange={setDispCanali} />
+              </MeOp>
+
+              <MeOp icon="fa-bed-front" title="Imposta disponibilità residua" desc="Camere ancora vendibili, al netto di quelle già vendute"
+                on={impResidua} onToggle={toggleResidua}>
+                <InputField name="me-mercato-residua" label="Mercato" placeholder="Es. IT, DE, UK" value={mercato}
                   onChange={e => setMercato(e.target.value)} className="me3-mercato" />
                 <CanaliSelezionati value={dispCanali} onChange={setDispCanali} />
               </MeOp>
@@ -331,13 +389,48 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
                     <button type="button" onClick={() => setLosVal(v => Math.min(30, v + 1))} disabled={losVal >= 30} aria-label="Aumenta"><i className="fa-solid fa-plus" /></button>
                   </div>
                 </div>
-                <div className="me3-field">
-                  <span className="me3-field__label">Applica a</span>
-                  <MeSegmented value={losScope} onChange={setLosScope}
-                    options={[{ v: 'tutti', label: 'Tutti i canali' }, { v: 'sel', label: 'Canali selezionati' }]} />
-                </div>
-                {losScope === 'sel' && <CanaliSelezionati value={losCanali} onChange={setLosCanali} />}
               </MeOp>
+
+              {conRegole && (
+                <section className="me3-dest">
+                  <div className="me3-field">
+                    <span className="me3-field__label">Applica restrizioni e Minimum-LOS a</span>
+                    <MeSegmented value={regoleSu} onChange={setRegoleSu}
+                      options={[{ v: 'canali', label: 'Canali', icon: 'fa-share-nodes' }, { v: 'prodotti', label: 'Prodotti', icon: 'fa-tags' }]} />
+                  </div>
+                  {regoleSu === 'canali' ? (
+                    <>
+                      <MeSegmented value={regoleScope} onChange={setRegoleScope}
+                        options={[{ v: 'tutti', label: 'Tutti i canali' }, { v: 'sel', label: 'Canali selezionati' }]} />
+                      {regoleScope === 'sel' && (
+                        <div className="me3-chips me3-chips--grid me3-chips--wide">
+                          {CANALI_REGOLE.map(c => (
+                            <MeChip key={c} on={!!regoleCanali[c]} onClick={() => setRegoleCanali(p => ({ ...p, [c]: !p[c] }))}>{c}</MeChip>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="me3-note"><i className="fa-solid fa-circle-info" /> Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.</p>
+                      <div className="me3-field me3-field--full">
+                        <span className="me3-field__label">
+                          Prodotti <span className="me3-field__count">{contaSel(prodotti) || 'nessuno'}</span>
+                          <button type="button" className="me3-link"
+                            onClick={() => setProdotti(contaSel(prodotti) === PRODOTTI_REGOLE.length ? {} : allOn(PRODOTTI_REGOLE))}>
+                            {contaSel(prodotti) === PRODOTTI_REGOLE.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+                          </button>
+                        </span>
+                        <div className="me3-prodotti">
+                          {PRODOTTI_REGOLE.map(p => (
+                            <MeChip key={p} on={!!prodotti[p]} onClick={() => setProdotti(s => ({ ...s, [p]: !s[p] }))}>{p}</MeChip>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </section>
+              )}
             </div>
           </section>
         ) : (
@@ -355,7 +448,7 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
                   const delta = cur - r.base
                   return (
                     <div key={r.id} className="me3-rate">
-                      <span className="me3-rate__room">{titleCase(r.nome)}{r.riferimento && <span className="me3-ref">BAR</span>}</span>
+                      <span className="me3-rate__room"><NomeCamera nome={titleCase(r.nome)} />{r.riferimento && <span className="me3-ref">BAR</span>}</span>
                       <span className={`me3-rate__delta${delta > 0 ? ' me3-rate__delta--up' : delta < 0 ? ' me3-rate__delta--down' : ''}`}>
                         {delta === 0 ? 'base' : `${delta > 0 ? '+' : '−'}${fmtPrice(Math.abs(delta))}`}
                       </span>
@@ -455,54 +548,19 @@ function StopSalesModal({ open, onClose, struttura }: { open: boolean; onClose: 
   )
 }
 
-// ─── FUNZIONI DEL BLOCCO ────────────────────────────────────────────────────────
-// Ogni blocco giorno ha UNA sola icona "Funzioni" accanto alla clessidra: apre una
-// finestra con tutte le funzioni disponibili. Per aggiungerne una basta una voce nel
-// registro (fino a 10): la finestra si impagina da sola, una colonna fino a 5 voci
-// e due colonne oltre. `pannello` apre un passaggio dentro la finestra invece di
-// eseguire subito.
+// ─── STATO DEL GIORNO ───────────────────────────────────────────────────────────
+// I tre puntini del blocco giorno aprono una finestra informativa: una riga
+// icona + frase per ogni segnalazione che riguarda quel giorno.
 // Catena = giorni consecutivi della stessa camera venduti insieme (es. pacchetto
 // o soggiorno vincolato): si vedono uniti da una guida continua sotto i blocchi.
 interface Catena { id: string; room: string; start: number; end: number }
-interface CtxBlocco { closed: boolean; allot: number; ultimo: boolean; nota: string; los: number; catena: Catena | null; maxLink: number }
-type DaCtx<T> = T | ((c: CtxBlocco) => T)
-interface FunzioneBlocco {
-  id: string
-  icon: DaCtx<string>
-  // testo descrittivo, max due parole
-  label: DaCtx<string>
-  tone?: 'danger'
-  pannello?: DaCtx<'nota' | 'los' | 'collega' | undefined>
-  disabled?: (c: CtxBlocco) => boolean
-}
-const FUNZIONI_BLOCCO: FunzioneBlocco[] = [
-  { id: 'chiusura',   icon: c => (c.closed ? 'fa-lock-open' : 'fa-lock'), label: c => (c.closed ? 'Apri vendita' : 'Chiudi vendita') },
-  { id: 'collega',    icon: c => (c.catena ? 'fa-link-slash' : 'fa-link'), label: c => (c.catena ? 'Scollega giorni' : 'Collega giorni'),
-    pannello: c => (c.catena ? undefined : 'collega'), disabled: c => !c.catena && c.maxLink < 2 },
-  { id: 'replica',    icon: 'fa-clone',         label: 'Replica allotment', disabled: c => c.closed || c.ultimo },
-  { id: 'azzera',     icon: 'fa-eraser',        label: 'Azzera allotment',  disabled: c => c.closed || c.allot === 0 },
-  { id: 'los',        icon: 'fa-moon',          label: 'Soggiorno minimo',  pannello: 'los' },
-  { id: 'nota',       icon: 'fa-note-sticky',   label: c => (c.nota ? 'Modifica nota' : 'Aggiungi nota'), pannello: 'nota' },
-  { id: 'mercato',    icon: 'fa-sliders',       label: 'Market Engine' },
-  { id: 'calendario', icon: 'fa-calendar-days', label: 'Vista calendario' },
-  { id: 'stop',       icon: 'fa-hand',          label: 'Stop sales', tone: 'danger' },
-]
-const daCtx = <T,>(v: DaCtx<T>, c: CtxBlocco): T => (typeof v === 'function' ? (v as (c: CtxBlocco) => T)(c) : v)
+interface VoceStato { icon: string; testo: string; tone?: 'danger' | 'corso' | 'ok' | 'errore' }
 
-function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSaveLos, onSaveCollega, descriviCollega, onClose }: {
-  anchor: HTMLElement; titolo: string; sotto: string; ctx: CtxBlocco
-  onRun: (id: string) => void; onSaveNota: (v: string) => void; onSaveLos: (v: number) => void
-  onSaveCollega: (giorni: number) => void; descriviCollega: (giorni: number) => string; onClose: () => void
-}) {
+function FinestraStato({ anchor, titolo, voci, onClose }: { anchor: HTMLElement; titolo: string; voci: VoceStato[]; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const closeRef = useRef(onClose)
   closeRef.current = onClose
-  const [vista, setVista] = useState<'elenco' | 'nota' | 'los' | 'collega'>('elenco')
   const [pos, setPos] = useState<{ x: number; y: number; up: boolean } | null>(null)
-  const [nota, setNota] = useState(ctx.nota)
-  const [los, setLos] = useState(ctx.los)
-  const [giorni, setGiorni] = useState(Math.min(3, ctx.maxLink))
-  const due = FUNZIONI_BLOCCO.length > 5
 
   // Sotto il blocco se c'è spazio, altrimenti sopra; mai fuori dai bordi.
   useLayoutEffect(() => {
@@ -513,7 +571,7 @@ function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSav
     const up = r.bottom + 8 + h > window.innerHeight - 8 && r.top - 8 - h > 8
     const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8)
     setPos({ x, y: up ? r.top - 8 - h : r.bottom + 8, up })
-  }, [anchor, vista])
+  }, [anchor])
 
   // Si chiude con click fuori, Esc (il fuoco torna all'icona), scroll o resize.
   useEffect(() => {
@@ -522,129 +580,111 @@ function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSav
       if (!ref.current?.contains(t) && !anchor.contains(t)) closeRef.current()
     }
     const tasto = (e: KeyboardEvent) => { if (e.key === 'Escape') { closeRef.current(); anchor.focus() } }
-    const scroll = (e: Event) => { if (!ref.current?.contains(e.target as Node)) closeRef.current() }
-    const resize = () => closeRef.current()
+    const chiudi = () => closeRef.current()
     document.addEventListener('mousedown', fuori)
     document.addEventListener('keydown', tasto)
-    window.addEventListener('scroll', scroll, true)
-    window.addEventListener('resize', resize)
+    window.addEventListener('scroll', chiudi, true)
+    window.addEventListener('resize', chiudi)
     return () => {
       document.removeEventListener('mousedown', fuori)
       document.removeEventListener('keydown', tasto)
-      window.removeEventListener('scroll', scroll, true)
-      window.removeEventListener('resize', resize)
+      window.removeEventListener('scroll', chiudi, true)
+      window.removeEventListener('resize', chiudi)
     }
   }, [anchor])
 
-  const pronta = !!pos
+  return (
+    <div ref={ref} role="dialog" aria-label={`Stato · ${titolo}`}
+      className={`tds${pos ? ' tds--ready' : ''}${pos?.up ? ' tds--up' : ''}`}
+      style={{ '--x': `${pos?.x ?? 0}px`, '--y': `${pos?.y ?? 0}px` } as React.CSSProperties}>
+      <ul className="tds__list">
+        {voci.map((v, i) => (
+          <li key={i} className={`tds__row${v.tone ? ` tds__row--${v.tone}` : ''}`}>
+            <i className={`fa-solid ${v.icon} tds__ico`} aria-hidden="true" />
+            <span>{v.testo}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ─── STORICO (tasto destro sulla cella) ───────────────────────────────────────────
+// Il tasto destro su una cella giorno apre un menu con "Storico": il click apre la
+// modale con tutte le modifiche inviate per quella camera in quel giorno.
+function MenuCella({ x, y, onStorico, onClose }: { x: number; y: number; onStorico: () => void; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+
+  // Centrato sopra il puntatore, dentro la finestra.
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const w = el.offsetWidth, h = el.offsetHeight
+    const top = y - h - 6 > 8 ? y - h - 6 : y + 6
+    setPos({ x: Math.min(Math.max(8, x - w / 2), window.innerWidth - w - 8), y: top })
+    el.querySelector('button')?.focus()
+  }, [x, y])
+
   useEffect(() => {
-    if (pronta) ref.current?.querySelector<HTMLElement>('.tdf__item:not(:disabled), .tdf__panel textarea, .tdf__panel button')?.focus()
-  }, [pronta, vista])
-
-  // Frecce: su/giù per riga, sinistra/destra per voce (la griglia a 2 colonne si
-  // percorre come si legge).
-  const naviga = (e: React.KeyboardEvent) => {
-    const passo = { ArrowDown: due ? 2 : 1, ArrowUp: due ? -2 : -1, ArrowRight: 1, ArrowLeft: -1 }[e.key]
-    if (!passo) return
-    e.preventDefault()
-    const voci = Array.from(ref.current?.querySelectorAll<HTMLButtonElement>('.tdf__item:not(:disabled)') ?? [])
-    const i = voci.indexOf(document.activeElement as HTMLButtonElement)
-    voci[(i + passo + voci.length) % voci.length]?.focus()
-  }
-
-  const scegli = (f: FunzioneBlocco) => {
-    const pan = f.pannello && daCtx(f.pannello, ctx)
-    if (pan) setVista(pan)
-    else onRun(f.id)
-  }
+    const fuori = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) closeRef.current() }
+    const tasto = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current() }
+    const chiudi = () => closeRef.current()
+    document.addEventListener('mousedown', fuori)
+    document.addEventListener('keydown', tasto)
+    window.addEventListener('scroll', chiudi, true)
+    window.addEventListener('resize', chiudi)
+    return () => {
+      document.removeEventListener('mousedown', fuori)
+      document.removeEventListener('keydown', tasto)
+      window.removeEventListener('scroll', chiudi, true)
+      window.removeEventListener('resize', chiudi)
+    }
+  }, [])
 
   return (
-    <div ref={ref} role="dialog" aria-label={`Funzioni · ${titolo}`}
-      className={`tdf${pronta ? ' tdf--ready' : ''}${pos?.up ? ' tdf--up' : ''}`}
-      style={{ '--x': `${pos?.x ?? 0}px`, '--y': `${pos?.y ?? 0}px` } as React.CSSProperties}>
-      <header className="tdf__head">
-        {vista !== 'elenco' && (
-          <button type="button" className="tdf__icon-btn" onClick={() => setVista('elenco')} aria-label="Torna alle funzioni">
-            <i className="fa-solid fa-arrow-left" />
-          </button>
-        )}
-        <span className="tdf__titles">
-          <span className="tdf__title">{{ nota: 'Nota del giorno', los: 'Soggiorno minimo', collega: 'Collega giorni', elenco: titolo }[vista]}</span>
-          <span className="tdf__sub">{vista === 'elenco' ? sotto : `${titolo} · ${sotto}`}</span>
-        </span>
-        <button type="button" className="tdf__icon-btn" onClick={onClose} aria-label="Chiudi">
-          <i className="fa-solid fa-xmark" />
-        </button>
-      </header>
-
-      {vista === 'elenco' && (
-        <ul className={`tdf__list${due ? ' tdf__list--2col' : ''}`} role="menu" onKeyDown={naviga}>
-          {FUNZIONI_BLOCCO.map(f => {
-            const off = f.disabled?.(ctx) ?? false
-            return (
-              <li key={f.id} role="none">
-                <button type="button" role="menuitem" disabled={off} onClick={() => scegli(f)}
-                  className={`tdf__item${f.tone === 'danger' ? ' tdf__item--danger' : ''}`}>
-                  <span className="tdf__ico"><i className={`fa-solid ${daCtx(f.icon, ctx)}`} /></span>
-                  <span className="tdf__lbl">{daCtx(f.label, ctx)}</span>
-                  {f.pannello && daCtx(f.pannello, ctx) && <i className="fa-solid fa-chevron-right tdf__more" />}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-
-      {vista === 'nota' && (
-        <div className="tdf__panel">
-          <TextareaField name="td-nota" label="Nota" rows={3} value={nota} placeholder="Es. evento in città, gruppo in arrivo…"
-            hint="Lascia vuoto per toglierla" onChange={e => setNota(e.target.value)} />
-          <div className="tdf__actions">
-            <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => setVista('elenco')}>Annulla</button>
-            <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => onSaveNota(nota.trim())}>Salva nota</button>
-          </div>
-        </div>
-      )}
-
-      {vista === 'collega' && (
-        <div className="tdf__panel">
-          <div className="me3-field">
-            <span className="me3-field__label">Giorni da collegare, a partire da questo</span>
-            <div className="me3-stepper">
-              <button type="button" onClick={() => setGiorni(v => Math.max(2, v - 1))} disabled={giorni <= 2} aria-label="Diminuisci"><i className="fa-solid fa-minus" /></button>
-              <span className="me3-stepper__val">{giorni}</span>
-              <button type="button" onClick={() => setGiorni(v => Math.min(ctx.maxLink, v + 1))} disabled={giorni >= ctx.maxLink} aria-label="Aumenta"><i className="fa-solid fa-plus" /></button>
-            </div>
-          </div>
-          <p className="tdf__preview">
-            <span className="tdf__chain">{Array.from({ length: giorni }, (_, i) => <span key={i} />)}</span>
-            {descriviCollega(giorni)}
-          </p>
-          <p className="tdf__hint">I giorni collegati si vendono insieme: aprendo o chiudendone uno si aggiornano tutti.</p>
-          <div className="tdf__actions">
-            <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => setVista('elenco')}>Annulla</button>
-            <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => onSaveCollega(giorni)}>Collega</button>
-          </div>
-        </div>
-      )}
-
-      {vista === 'los' && (
-        <div className="tdf__panel">
-          <div className="me3-field">
-            <span className="me3-field__label">Notti minime per gli arrivi di questo giorno</span>
-            <div className="me3-stepper">
-              <button type="button" onClick={() => setLos(v => Math.max(1, v - 1))} disabled={los <= 1} aria-label="Diminuisci"><i className="fa-solid fa-minus" /></button>
-              <span className="me3-stepper__val">{los}</span>
-              <button type="button" onClick={() => setLos(v => Math.min(30, v + 1))} disabled={los >= 30} aria-label="Aumenta"><i className="fa-solid fa-plus" /></button>
-            </div>
-          </div>
-          <div className="tdf__actions">
-            <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => setVista('elenco')}>Annulla</button>
-            <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => onSaveLos(los)}>Applica</button>
-          </div>
-        </div>
-      )}
+    <div ref={ref} role="menu" className={`td-ctx${pos ? ' td-ctx--ready' : ''}`}
+      style={{ '--x': `${pos?.x ?? 0}px`, '--y': `${pos?.y ?? 0}px` } as React.CSSProperties}
+      onContextMenu={e => e.preventDefault()}>
+      <button type="button" role="menuitem" className="sib-btn sib-btn--primary sib-btn--sm" onClick={onStorico}>
+        <i className="fa-solid fa-id-card" /> Storico
+      </button>
     </div>
+  )
+}
+
+function StoricoModal({ cella, titolo, onClose }: { cella: { room: Camera; n: number } | null; titolo: string; onClose: () => void }) {
+  return (
+    <Modal open={!!cella} onClose={onClose} title={`Storico · ${titolo}`} size="lg" className="me-modal">
+      <div className="td-storico">
+        {cella && (
+          <table className="td__hist td-storico__table">
+            <thead>
+              <tr>
+                <th>Tipo</th><th>Valore</th><th>Canale</th><th>Data modifica</th><th>Utente</th><th>Errore</th>
+              </tr>
+            </thead>
+            <tbody>
+              {histOf(cella.room, cella.n).map((r, i) => (
+                <tr key={i}>
+                  <td>{r.tipo}</td>
+                  <td>{r.valore}</td>
+                  <td>{r.canale || '—'}</td>
+                  <td>{r.data}</td>
+                  <td>{r.utente}</td>
+                  <td>{r.errore || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className="me-modal__footer">
+        <button className="sib-btn sib-btn--primary" onClick={onClose}>Chiudi</button>
+      </div>
+    </Modal>
   )
 }
 
@@ -668,8 +708,6 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
   const [expanded, setExpanded]   = useState<Record<string, boolean>>({})
   const [mode, setMode]           = useState<null | 'chiudi' | 'apri'>(null)
   const [manual, setManual]       = useState<Record<string, boolean>>({})
-  const [note, setNote]           = useState<Record<string, string>>({})
-  const [losMin, setLosMin]       = useState<Record<string, number>>({})
   // Catene di esempio, così la vista si capisce al primo colpo d'occhio.
   const [catene, setCatene]       = useState<Catena[]>([
     { id: 'c-dbl', room: 'dbl', start: 2, end: 4 },
@@ -679,12 +717,14 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
   // Modifiche non ancora inviate (chiave → true): badge su "Salva e invia" e
   // segnaposto sul blocco modificato.
   const [dirty, setDirty]         = useState<Record<string, true>>({})
-  const [fn, setFn]               = useState<{ anchor: HTMLElement; room: Camera; n: number } | null>(null)
+  const [stato, setStato]         = useState<{ anchor: HTMLElement; room: Camera; n: number } | null>(null)
+  const [menu, setMenu]           = useState<{ x: number; y: number; room: Camera; n: number } | null>(null)
+  const [storico, setStorico]     = useState<{ room: Camera; n: number } | null>(null)
   const markDirty = (...keys: string[]) => setDirty(p => ({ ...p, ...Object.fromEntries(keys.map(k => [k, true])) }))
   const nDirty = Object.keys(dirty).length
 
   const toggleExpand = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }))
-  const toggleMode = (m: 'chiudi' | 'apri') => { setFn(null); setMode(cur => (cur === m ? null : m)) }
+  const toggleMode = (m: 'chiudi' | 'apri') => { setStato(null); setMode(cur => (cur === m ? null : m)) }
   // Esc esce dalla modalità apri/chiudi.
   useEffect(() => {
     if (!mode) return
@@ -757,87 +797,57 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
 
 
   const toggleCamera = (id: string) => setAttive(p => ({ ...p, [id]: !p[id] }))
+  // Celle con un invio partito da "Salva e invia": in corso finché il canale non conferma.
+  const [inviate, setInviate]     = useState<Record<string, EsitoInvio>>({})
+  const esitoOf = (room: Camera, n: number): EsitoInvio => {
+    const k = `${room.id}-${n}`
+    if (dirty[`c:${k}`] || dirty[`a:${k}`]) return 'corso'
+    if (inviate[k]) return inviate[k]
+    if (attesaLunga(room, n)) return 'corso'
+    return invioFallito(room, n) ? 'errore' : 'ok'
+  }
   const salva = () => {
     if (!nDirty) { toast.info('Nessuna modifica da inviare'); return }
     toast.success(`${nDirty} ${nDirty === 1 ? 'modifica inviata' : 'modifiche inviate'} ai canali`, 'Salvato')
+    const celle = Array.from(new Set(Object.keys(dirty).filter(k => /^[ca]:/.test(k)).map(k => k.slice(2))))
+    setInviate(p => ({ ...p, ...Object.fromEntries(celle.map(k => [k, 'corso' as const])) }))
+    // Demo: la conferma dei canali arriva dopo qualche secondo.
+    window.setTimeout(() => setInviate(p => ({ ...p, ...Object.fromEntries(celle.map(k => [k, 'ok' as const])) })), 4000)
     setDirty({})
   }
 
-  // ── Funzioni del blocco ────────────────────────────────────────────────────
-  const fmtData = (n: number) => { const d = addDays(da, n); return `${DAYS_IT[d.getDay()]} ${d.getDate()} ${MONTHS_IT[d.getMonth()]}` }
-  const ctxOf = (room: Camera, n: number): CtxBlocco => {
+  // ── Stato del giorno (tre puntini) ─────────────────────────────────────────
+  const fmtData = (n: number) => { const d = addDays(da, n); return `${d.getDate()} ${MONTHS_IT[d.getMonth()]}` }
+  const statoOf = (room: Camera, n: number): VoceStato[] => {
     const k = `${room.id}-${n}`
-    // Si collega in avanti fino al primo giorno già in un'altra catena (max 7).
-    let maxLink = 0
-    while (maxLink < 7 && n + maxLink < totalDays && !catenaOf(room, n + maxLink)) maxLink++
-    return { closed: closedOf(room, n), allot: allotVal(room, n), ultimo: n >= totalDays - 1, nota: note[k] ?? '', los: losMin[k] ?? 1, catena: catenaOf(room, n), maxLink }
+    const esito = esitoOf(room, n)
+    // Sempre presenti: tipologia abilitata o no, e lo stato della clessidra con lo stesso colore.
+    const voci: VoceStato[] = [
+      attive[room.id]
+        ? { icon: 'fa-lock-open', testo: 'Tipologia abilitata in Sibylla.' }
+        : { icon: 'fa-lock', testo: 'Tipologia disabilitata in Sibylla.' },
+      {
+        icon: 'fa-hourglass-half', tone: esito,
+        testo: esito === 'errore' ? 'Ultima modifica non andata a buon fine: controllare lo storico.' : `Ultima modifica ${ESITO_INVIO[esito]}.`,
+      },
+    ]
+    if (dirty[`c:${k}`]) voci.push({ icon: 'fa-hourglass-half', testo: 'Apertura/chiusura: modifiche in attesa.' })
+    else if (attesaLunga(room, n)) voci.push({ icon: 'fa-circle-question', tone: 'danger', testo: 'Apertura/chiusura: attesa prolungata; controllare lo stato dell\'invio.' })
+    if (dirty[`a:${k}`]) voci.push({ icon: 'fa-hourglass-half', testo: 'Allotment: modifiche in attesa.' })
+    if (partialOf(room, n)) voci.push({ icon: 'fa-lock-open', testo: 'Chiusura parziale: vendita chiusa su alcuni canali.' })
+    const cat = catenaOf(room, n)
+    if (cat) voci.push({ icon: 'fa-link', testo: `Giorni concatenati: ${fmtData(cat.start)} – ${fmtData(cat.end)}.` })
+    return voci
   }
-  const apriFunzioni = (e: React.MouseEvent<HTMLElement>, room: Camera, n: number) => {
+  const apriMenu = (e: React.MouseEvent, room: Camera, n: number) => {
+    e.preventDefault()
+    setStato(null)
+    hidePop()
+    setMenu({ x: e.clientX, y: e.clientY, room, n })
+  }
+  const apriStato = (e: React.MouseEvent<HTMLElement>, room: Camera, n: number) => {
     const anchor = e.currentTarget
-    setFn(cur => (cur && cur.anchor === anchor ? null : { anchor, room, n }))
-  }
-  const runFunzione = (id: string) => {
-    if (!fn) return
-    const { room, n } = fn
-    const k = `${room.id}-${n}`
-    const nome = `${titleCase(room.nome)} · ${fmtData(n)}`
-    setFn(null)
-    switch (id) {
-      case 'chiusura': {
-        const cl = closedOf(room, n)
-        const tot = setChiusura(room, n, !cl)
-        toast.info(`Vendita ${cl ? 'aperta' : 'chiusa'}${tot > 1 ? ` su ${tot} giorni concatenati` : ''}`, nome)
-        break
-      }
-      case 'collega': {
-        const cat = catenaOf(room, n)
-        if (!cat) break
-        setCatene(p => p.filter(c => c.id !== cat.id))
-        markDirty(`k:${cat.id}`)
-        toast.info(`Scollegati ${fmtData(cat.start)} – ${fmtData(cat.end)}`, titleCase(room.nome))
-        break
-      }
-      case 'replica': {
-        const v = allotVal(room, n)
-        const fino = Math.min(totalDays - 1, n + 6)
-        const idx = Array.from({ length: fino - n }, (_, j) => n + 1 + j)
-        setAllot(p => ({ ...p, ...Object.fromEntries(idx.map(i => [`${room.id}-${i}`, v])) }))
-        markDirty(...idx.map(i => `a:${room.id}-${i}`))
-        toast.success(`Allotment ${v} replicato fino a ${fmtData(fino)}`, titleCase(room.nome))
-        break
-      }
-      case 'azzera':     setAllotVal(room, n, 0); break
-      case 'mercato':    setMeOpen(true); break
-      case 'stop':       setStopOpen(true); break
-      case 'calendario': navigate('calendario-tariffe'); break
-    }
-  }
-  const descriviCollega = (giorni: number) => {
-    if (!fn) return ''
-    return `${fmtData(fn.n)} → ${fmtData(fn.n + giorni - 1)} · ${giorni} notti vendute insieme`
-  }
-  const salvaCollega = (giorni: number) => {
-    if (!fn) return
-    const id = `c-${fn.room.id}-${fn.n}-${Date.now()}`
-    setCatene(p => [...p, { id, room: fn.room.id, start: fn.n, end: fn.n + giorni - 1 }])
-    markDirty(`k:${id}`)
-    toast.success(`${giorni} giorni collegati: ${fmtData(fn.n)} – ${fmtData(fn.n + giorni - 1)}`, titleCase(fn.room.nome))
-    setFn(null)
-  }
-  const salvaNota = (v: string) => {
-    if (!fn) return
-    const k = `${fn.room.id}-${fn.n}`
-    setNote(p => { const q = { ...p }; if (v) q[k] = v; else delete q[k]; return q })
-    markDirty(`n:${k}`)
-    setFn(null)
-  }
-  const salvaLos = (v: number) => {
-    if (!fn) return
-    const k = `${fn.room.id}-${fn.n}`
-    setLosMin(p => ({ ...p, [k]: v }))
-    markDirty(`l:${k}`)
-    toast.info(`Soggiorno minimo ${v} ${v === 1 ? 'notte' : 'notti'}`, `${titleCase(fn.room.nome)} · ${fmtData(fn.n)}`)
-    setFn(null)
+    setStato(cur => (cur && cur.anchor === anchor ? null : { anchor, room, n }))
   }
 
   return (
@@ -921,6 +931,11 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
               <Ico n="sliders" s={14} c="currentColor" w="solid" />
               <span className="td__btn-txt">Market Engine</span>
               <span className="td__btn-txt td__btn-txt--short">Market</span>
+            </button>
+          </Tooltip>
+          <Tooltip text="Pianificazione tariffaria di lungo periodo">
+            <button className="sib-btn sib-btn--toolbar td__btn" onClick={() => navigate('cal-annuale')} aria-label="Pianificazione tariffaria di lungo periodo">
+              <Ico n="calendar-clock" s={14} c="currentColor" w="regular" />
             </button>
           </Tooltip>
           <Tooltip text="Vista calendario">
@@ -1011,7 +1026,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                         <Ico n="bed" s={16} c="var(--color-text-inactive)" />
                         <span className="td__room-name">
                           {room.riferimento && <Ico n="star" s={12} c="var(--color-warning)" w="solid" />}
-                          {room.nome}
+                          <NomeCamera nome={room.nome} />
                         </span>
                         <button
                           className={`td__toggle ${on ? 'td__toggle--on' : ''}`}
@@ -1032,7 +1047,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                       const cur = priceVal(room, c.i)
                       const opts = barPrices.includes(cur) ? barPrices : [cur, ...barPrices].sort((a, b) => a - b)
                       return (
-                        <td key={c.i} className={`td__mcell ${st}`} onClick={() => onCellClick(room, c.i)}>
+                        <td key={c.i} className={`td__mcell ${st}`} onClick={() => onCellClick(room, c.i)} onContextMenu={e => apriMenu(e, room, c.i)}>
                           {closed
                             ? <span className="td__mprice td__mprice--muted">{fmtPrice(cur)}</span>
                             : (
@@ -1064,7 +1079,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                     </Tooltip>
                     <span className="td__room-name">
                       {room.riferimento && <Ico n="star" s={12} c="var(--color-warning)" w="solid" />}
-                      {room.nome}
+                      <NomeCamera nome={room.nome} />
                     </span>
                     <button
                       className={`td__toggle ${on ? 'td__toggle--on' : ''}`}
@@ -1078,11 +1093,11 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                     const closed = closedOf(room, c.i)
                     const partial = partialOf(room, c.i)
                     const k = `${room.id}-${c.i}`
-                    const aperta = fn?.room.id === room.id && fn.n === c.i
+                    const aperta = stato?.room.id === room.id && stato.n === c.i
                     const cat = catenaOf(room, c.i)
                     const link = !cat ? '' : `td__cell--link ${c.i === cat.start ? 'td__cell--link-start' : ''} ${c.i === cat.end ? 'td__cell--link-end' : ''}`
                     return (
-                      <td key={c.i} className={`td__cell td__cell--allot ${closed ? 'td__cell--closed' : ''} ${partial ? 'td__cell--partial' : ''} ${note[k] ? 'td__cell--nota' : ''} ${aperta ? 'td__cell--fn' : ''} ${link}`} onClick={() => onCellClick(room, c.i)}>
+                      <td key={c.i} className={`td__cell td__cell--allot ${closed ? 'td__cell--closed' : ''} ${partial ? 'td__cell--partial' : ''} ${aperta ? 'td__cell--fn' : ''} ${link}`} onClick={() => onCellClick(room, c.i)} onContextMenu={e => apriMenu(e, room, c.i)}>
                         {/* Anello sulla riga che divide due giorni collegati */}
                         {cat && c.i !== cat.end && (
                           <span className="td__link-knot" aria-hidden="true"><i className="fa-solid fa-link" /></span>
@@ -1107,18 +1122,18 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                               ><i className="fa-solid fa-share-nodes" /></span>
                               <button
                                 type="button"
-                                className="td__blk-btn"
-                                aria-label="Storico modifiche"
+                                className={`td__blk-btn td__blk-btn--${esitoOf(room, c.i)}`}
+                                aria-label={`Storico modifiche · ultima modifica ${ESITO_INVIO[esitoOf(room, c.i)]}`}
                                 onMouseEnter={e => showPop('hist', e, room, c.i)}
                                 onMouseLeave={hidePop}
                               ><i className="fa-solid fa-hourglass-half" /></button>
                               <button
                                 type="button"
                                 className="td__blk-btn td__blk-btn--fn"
-                                aria-label="Funzioni del giorno"
+                                aria-label="Stato del giorno"
                                 aria-haspopup="dialog"
                                 aria-expanded={aperta}
-                                onClick={e => apriFunzioni(e, room, c.i)}
+                                onClick={e => apriStato(e, room, c.i)}
                               ><i className="fa-solid fa-ellipsis-vertical" /></button>
                             </span>
                           </div>
@@ -1137,7 +1152,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                     const closed = closedOf(room, c.i)
                     const partial = partialOf(room, c.i)
                     return (
-                      <td key={c.i} className={`td__cell td__cell--price ${closed ? 'td__cell--closed td__cell--muted' : ''} ${partial ? 'td__cell--partial' : ''}`} onClick={() => onCellClick(room, c.i)}>
+                      <td key={c.i} className={`td__cell td__cell--price ${closed ? 'td__cell--closed td__cell--muted' : ''} ${partial ? 'td__cell--partial' : ''}`} onClick={() => onCellClick(room, c.i)} onContextMenu={e => apriMenu(e, room, c.i)}>
                         <span className="td__price">{fmtPrice(priceOf(room, c.i))}</span>
                       </td>
                     )
@@ -1153,7 +1168,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                     const closed = closedOf(room, c.i)
                     const d = closed ? 0 : dispOf(room, c.i)
                     return (
-                      <td key={c.i} className="td__cell td__cell--disp" onClick={() => onCellClick(room, c.i)}>
+                      <td key={c.i} className="td__cell td__cell--disp" onClick={() => onCellClick(room, c.i)} onContextMenu={e => apriMenu(e, room, c.i)}>
                         <span className={d === 0 ? 'td__disp-zero' : ''}>{d}</span>
                       </td>
                     )
@@ -1216,6 +1231,11 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
         <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--closed" /> Chiusura totale</span>
         <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--partial" /> Chiusura parziale</span>
         <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--link" /> Giorni concatenati</span>
+        <span className="td__leg-item">
+          <i className="fa-solid fa-hourglass-half td__leg-hg td__leg-hg--corso" />
+          <i className="fa-solid fa-hourglass-half td__leg-hg td__leg-hg--ok" />
+          <i className="fa-solid fa-hourglass-half td__leg-hg td__leg-hg--errore" /> Modifica in corso · effettuata · non riuscita
+        </span>
         <span className="td__leg-item"><Ico n="star" s={12} c="var(--color-warning)" w="solid" /> Camera di riferimento</span>
       </div>
 
@@ -1237,16 +1257,6 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
             <span className="td__pop-lbl">Agorà (B2B)</span>
             <b>–</b>
           </span>
-          {(losMin[`${pop.room.id}-${pop.n}`] ?? 1) > 1 && (
-            <span className="td__pop-row">
-              <i className="fa-solid fa-moon td__pop-ico" />
-              <span className="td__pop-lbl">Soggiorno minimo</span>
-              <b>{losMin[`${pop.room.id}-${pop.n}`]} notti</b>
-            </span>
-          )}
-          {note[`${pop.room.id}-${pop.n}`] && (
-            <span className="td__pop-note"><i className="fa-solid fa-note-sticky" /> {note[`${pop.room.id}-${pop.n}`]}</span>
-          )}
         </div>
       )}
 
@@ -1275,25 +1285,29 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
         </div>
       )}
 
-      {fn && (
-        <FinestraFunzioni
-          key={`${fn.room.id}-${fn.n}`}
-          anchor={fn.anchor}
-          titolo={titleCase(fn.room.nome)}
-          sotto={(() => {
-            const cat = catenaOf(fn.room, fn.n)
-            const base = `${fmtData(fn.n)} · allotment ${allotVal(fn.room, fn.n)} · ${fmtPrice(priceOf(fn.room, fn.n))}`
-            return cat ? `${base} · collegato ${fmtData(cat.start)} – ${fmtData(cat.end)}` : base
-          })()}
-          ctx={ctxOf(fn.room, fn.n)}
-          onRun={runFunzione}
-          onSaveNota={salvaNota}
-          onSaveLos={salvaLos}
-          onSaveCollega={salvaCollega}
-          descriviCollega={descriviCollega}
-          onClose={() => setFn(null)}
+      {stato && (
+        <FinestraStato
+          key={`${stato.room.id}-${stato.n}`}
+          anchor={stato.anchor}
+          titolo={`${titleCase(stato.room.nome)} · ${fmtData(stato.n)}`}
+          voci={statoOf(stato.room, stato.n)}
+          onClose={() => setStato(null)}
         />
       )}
+
+      {menu && (
+        <MenuCella
+          x={menu.x}
+          y={menu.y}
+          onStorico={() => { setStorico({ room: menu.room, n: menu.n }); setMenu(null) }}
+          onClose={() => setMenu(null)}
+        />
+      )}
+      <StoricoModal
+        cella={storico}
+        titolo={storico ? `${titleCase(storico.room.nome)} · ${fmtData(storico.n)}` : ''}
+        onClose={() => setStorico(null)}
+      />
 
       <MarketEngineModal open={meOpen} onClose={() => setMeOpen(false)} />
       <StopSalesModal open={stopOpen} onClose={() => setStopOpen(false)} struttura={struttura} />

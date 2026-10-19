@@ -454,6 +454,16 @@
       color: $primary
       outline: none
 
+  // Clessidra: colore = stato dell'ultima modifica
+  &__blk-btn--corso, &__leg-hg--corso
+    color: $warning
+  &__blk-btn--ok, &__leg-hg--ok
+    color: $success
+  &__blk-btn--errore, &__leg-hg--errore
+    color: $error
+  &__leg-hg
+    font-size: 11px
+
   // Funzioni: ultimo segmento, separato e pieno → si legge come il "menu" del blocco
   &__blk-btn--fn
     width: 14px
@@ -517,21 +527,9 @@
     justify-content: center
     pointer-events: none
 
-  // Blocco con la finestra funzioni aperta
+  // Blocco con la finestra di stato aperta
   &__cell--fn
     box-shadow: inset 0 0 0 2px alpha($primary, 0.45)
-
-  // Blocco con nota: angolino in alto a destra
-  &__cell--nota
-    position: relative
-    &::after
-      content: ''
-      position: absolute
-      top: 0
-      right: 0
-      border-style: solid
-      border-width: 0 8px 8px 0
-      border-color: transparent $accent transparent transparent
 
   // Riga 2 — prezzo
   &__price
@@ -714,22 +712,6 @@
 
   &__pop-lbl
     font-weight: 600
-
-  &__pop-ico
-    width: 14px
-    font-size: 13px
-    color: $primary
-
-  &__pop-note
-    max-width: 220px
-    padding-top: 8px
-    border-top: 1px solid $border
-    font-size: 12px
-    color: $text-active
-    line-height: 1.35
-    i
-      color: $accent
-      margin-right: 4px
 
   &__pop--hist
     padding: 0
@@ -1184,6 +1166,44 @@
     display: grid
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
 
+  // Nomi lunghi (canali delle regole): colonne più larghe
+  &--wide
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))
+
+// Destinatari di restrizioni e Minimum-LOS (canali o prodotti)
+.me3-dest
+  display: flex
+  flex-direction: column
+  align-items: flex-start
+  gap: $space-md
+  padding: $space-md $space-lg
+  border: 1px dashed $border
+  border-radius: $radius-lg
+  > .me3-chips,
+  > .me3-field--full
+    align-self: stretch
+
+.me3-note
+  display: flex
+  align-items: center
+  gap: 8px
+  margin: 0
+  font-size: 12px
+  color: $text-active
+  i
+    color: $primary
+
+// Prodotti: un elenco a una colonna (i nomi sono lunghi), scorrevole
+.me3-prodotti
+  display: flex
+  flex-direction: column
+  gap: 6px
+  max-height: 220px
+  overflow-y: auto
+  .me3-chip
+    width: 100%
+    justify-content: flex-start
+
 .me3-chip
   appearance: none
   position: relative
@@ -1596,186 +1616,84 @@
     opacity: 1
     transform: none
 
-// ─── FINESTRA FUNZIONI DEL BLOCCO ─────────────────────────────────────────────
+// ─── MENU TASTO DESTRO + STORICO ───────────────────────────────────────────────
+.td-ctx
+  position: fixed
+  left: var(--x)
+  top: var(--y)
+  z-index: 220
+  padding: 8px
+  background: $white
+  border-radius: $radius-md
+  box-shadow: $shadow-lg
+  visibility: hidden
+  &--ready
+    visibility: visible
+    animation: tdsIn $motion-fast $motion-ease
+  .sib-btn
+    gap: 6px
+
+.td-storico
+  max-height: min(60vh, 520px)
+  overflow: auto
+
+  &__table
+    width: 100%
+
+// ─── FINESTRA STATO DEL GIORNO ───────────────────────────────────────────────
 // Posizione fixed (calcolata sull'icona) → non viene tagliata dalla griglia.
-.tdf
+.tds
   position: fixed
   left: var(--x)
   top: var(--y)
   z-index: 210
   width: max-content
-  min-width: 240px
-  max-width: min(400px, calc(100vw - 16px))
-  background: $white
-  border: 1px solid $border
-  border-radius: $radius-lg
+  max-width: min(320px, calc(100vw - 16px))
+  padding: 8px 12px
+  background: #4B525C
+  color: $white
+  border-radius: $radius-md
   box-shadow: $shadow-lg
   visibility: hidden
   &--ready
     visibility: visible
-    animation: tdfIn $motion-fast $motion-ease
-  &--up.tdf--ready
-    animation-name: tdfInUp
-
-  &__head
-    display: flex
-    align-items: center
-    gap: 8px
-    padding: 10px 8px 10px 14px
-    border-bottom: 1px solid $border
-
-  &__titles
-    flex: 1
-    min-width: 0
-    display: flex
-    flex-direction: column
-
-  &__title
-    font-size: 13px
-    font-weight: 700
-    color: $text-active
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-
-  &__sub
-    font-size: 11px
-    color: $text-inactive
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
-
-  &__icon-btn
-    appearance: none
-    border: none
-    background: transparent
-    width: 26px
-    height: 26px
-    flex-shrink: 0
-    border-radius: $radius-sm
-    color: $text-inactive
-    cursor: pointer
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    &:hover
-      background: $bg
-      color: $primary
+    animation: tdsIn $motion-fast $motion-ease
+  &--up.tds--ready
+    animation-name: tdsInUp
 
   &__list
     list-style: none
     margin: 0
-    padding: 6px
-    display: grid
-    grid-template-columns: 1fr
-    gap: 2px
-    &--2col
-      grid-template-columns: repeat(2, minmax(0, 1fr))
-
-  &__item
-    appearance: none
-    border: none
-    background: transparent
-    width: 100%
-    padding: 6px 8px
-    border-radius: $radius-md
-    display: flex
-    align-items: center
-    gap: 10px
-    text-align: left
-    cursor: pointer
-    transition: $transition-fast
-    &:hover:not(:disabled), &:focus-visible
-      background: alpha($primary, 0.07)
-      outline: none
-      .tdf__ico
-        background: $primary
-        color: #fff
-    &:disabled
-      cursor: not-allowed
-      opacity: 0.45
-    &--danger
-      .tdf__ico
-        background: $error-light
-        color: $error
-      .tdf__lbl
-        color: $error
-      &:hover:not(:disabled), &:focus-visible
-        background: alpha($error, 0.07)
-        .tdf__ico
-          background: $error
-          color: #fff
-
-  &__ico
-    width: 30px
-    height: 30px
-    flex-shrink: 0
-    border-radius: $radius-md
-    background: alpha($primary, 0.08)
-    color: $primary
-    font-size: 14px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    transition: $transition-fast
-
-  &__lbl
-    flex: 1
-    font-size: 12px
-    font-weight: 600
-    color: $text-active
-    white-space: nowrap
-
-  &__more
-    font-size: 9px
-    color: $text-disabled
-
-  &__panel
-    .me3-stepper
-      align-self: flex-start
-    padding: 12px 14px
+    padding: 0
     display: flex
     flex-direction: column
-    gap: 12px
-    width: 300px
-    max-width: 100%
+    gap: 4px
 
-  // Anteprima della catena nel pannello "Collega giorni"
-  &__preview
-    margin: 0
+  &__row
     display: flex
-    align-items: center
-    gap: 10px
+    align-items: baseline
+    gap: 8px
     font-size: 12px
-    font-weight: 600
-    color: $text-active
-
-  &__chain
-    display: inline-flex
-    gap: 3px
-    padding: 3px
-    border-radius: 7px
-    background: alpha($primary, 0.22)
-    border: 2px solid $primary
-    span
-      width: 10px
-      height: 10px
-      border-radius: 3px
-      background: $white
-      border: 1px solid alpha($primary, 0.5)
-
-  &__hint
-    margin: 0
-    font-size: 11px
-    color: $text-inactive
     line-height: 1.4
 
-  &__actions
-    display: flex
-    justify-content: flex-end
-    gap: 8px
+  &__ico
+    width: 14px
+    flex-shrink: 0
+    text-align: center
+    font-size: 12px
+    color: $white
 
-@keyframes tdfIn
+  &__row--danger &__ico
+    color: #F87171
+  // Clessidra: stessi colori del blocco, schiariti per il fondo scuro
+  &__row--corso &__ico
+    color: #FBBF24
+  &__row--ok &__ico
+    color: #4ADE80
+  &__row--errore &__ico
+    color: #F87171
+
+@keyframes tdsIn
   from
     opacity: 0
     transform: translateY(-4px)
@@ -1783,7 +1701,7 @@
     opacity: 1
     transform: none
 
-@keyframes tdfInUp
+@keyframes tdsInUp
   from
     opacity: 0
     transform: translateY(4px)

@@ -80,6 +80,7 @@ const FA_MAP: Record<string, string> = {
   'send':     'fa-paper-plane',
   'tag':      'fa-tag',
   'calendar': 'fa-calendar-days',
+  'calendar-clock': 'fa-calendar-clock',
   'clock':    'fa-clock',
   'hourglass': 'fa-hourglass-half',
   'infinity': 'fa-infinity',
