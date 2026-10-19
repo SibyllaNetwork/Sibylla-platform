@@ -461,7 +461,10 @@ function StopSalesModal({ open, onClose, struttura }: { open: boolean; onClose: 
 // registro (fino a 10): la finestra si impagina da sola, una colonna fino a 5 voci
 // e due colonne oltre. `pannello` apre un passaggio dentro la finestra invece di
 // eseguire subito.
-interface CtxBlocco { closed: boolean; allot: number; ultimo: boolean; nota: string; los: number }
+// Catena = giorni consecutivi della stessa camera venduti insieme (es. pacchetto
+// o soggiorno vincolato): si vedono uniti da una guida continua sotto i blocchi.
+interface Catena { id: string; room: string; start: number; end: number }
+interface CtxBlocco { closed: boolean; allot: number; ultimo: boolean; nota: string; los: number; catena: Catena | null; maxLink: number }
 type DaCtx<T> = T | ((c: CtxBlocco) => T)
 interface FunzioneBlocco {
   id: string
@@ -469,11 +472,13 @@ interface FunzioneBlocco {
   // testo descrittivo, max due parole
   label: DaCtx<string>
   tone?: 'danger'
-  pannello?: 'nota' | 'los'
+  pannello?: DaCtx<'nota' | 'los' | 'collega' | undefined>
   disabled?: (c: CtxBlocco) => boolean
 }
 const FUNZIONI_BLOCCO: FunzioneBlocco[] = [
   { id: 'chiusura',   icon: c => (c.closed ? 'fa-lock-open' : 'fa-lock'), label: c => (c.closed ? 'Apri vendita' : 'Chiudi vendita') },
+  { id: 'collega',    icon: c => (c.catena ? 'fa-link-slash' : 'fa-link'), label: c => (c.catena ? 'Scollega giorni' : 'Collega giorni'),
+    pannello: c => (c.catena ? undefined : 'collega'), disabled: c => !c.catena && c.maxLink < 2 },
   { id: 'replica',    icon: 'fa-clone',         label: 'Replica allotment', disabled: c => c.closed || c.ultimo },
   { id: 'azzera',     icon: 'fa-eraser',        label: 'Azzera allotment',  disabled: c => c.closed || c.allot === 0 },
   { id: 'los',        icon: 'fa-moon',          label: 'Soggiorno minimo',  pannello: 'los' },
@@ -484,17 +489,19 @@ const FUNZIONI_BLOCCO: FunzioneBlocco[] = [
 ]
 const daCtx = <T,>(v: DaCtx<T>, c: CtxBlocco): T => (typeof v === 'function' ? (v as (c: CtxBlocco) => T)(c) : v)
 
-function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSaveLos, onClose }: {
+function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSaveLos, onSaveCollega, descriviCollega, onClose }: {
   anchor: HTMLElement; titolo: string; sotto: string; ctx: CtxBlocco
-  onRun: (id: string) => void; onSaveNota: (v: string) => void; onSaveLos: (v: number) => void; onClose: () => void
+  onRun: (id: string) => void; onSaveNota: (v: string) => void; onSaveLos: (v: number) => void
+  onSaveCollega: (giorni: number) => void; descriviCollega: (giorni: number) => string; onClose: () => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const closeRef = useRef(onClose)
   closeRef.current = onClose
-  const [vista, setVista] = useState<'elenco' | 'nota' | 'los'>('elenco')
+  const [vista, setVista] = useState<'elenco' | 'nota' | 'los' | 'collega'>('elenco')
   const [pos, setPos] = useState<{ x: number; y: number; up: boolean } | null>(null)
   const [nota, setNota] = useState(ctx.nota)
   const [los, setLos] = useState(ctx.los)
+  const [giorni, setGiorni] = useState(Math.min(3, ctx.maxLink))
   const due = FUNZIONI_BLOCCO.length > 5
 
   // Sotto il blocco se c'è spazio, altrimenti sopra; mai fuori dai bordi.
@@ -545,7 +552,11 @@ function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSav
     voci[(i + passo + voci.length) % voci.length]?.focus()
   }
 
-  const scegli = (f: FunzioneBlocco) => (f.pannello ? setVista(f.pannello) : onRun(f.id))
+  const scegli = (f: FunzioneBlocco) => {
+    const pan = f.pannello && daCtx(f.pannello, ctx)
+    if (pan) setVista(pan)
+    else onRun(f.id)
+  }
 
   return (
     <div ref={ref} role="dialog" aria-label={`Funzioni · ${titolo}`}
@@ -558,7 +569,7 @@ function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSav
           </button>
         )}
         <span className="tdf__titles">
-          <span className="tdf__title">{vista === 'nota' ? 'Nota del giorno' : vista === 'los' ? 'Soggiorno minimo' : titolo}</span>
+          <span className="tdf__title">{{ nota: 'Nota del giorno', los: 'Soggiorno minimo', collega: 'Collega giorni', elenco: titolo }[vista]}</span>
           <span className="tdf__sub">{vista === 'elenco' ? sotto : `${titolo} · ${sotto}`}</span>
         </span>
         <button type="button" className="tdf__icon-btn" onClick={onClose} aria-label="Chiudi">
@@ -576,7 +587,7 @@ function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSav
                   className={`tdf__item${f.tone === 'danger' ? ' tdf__item--danger' : ''}`}>
                   <span className="tdf__ico"><i className={`fa-solid ${daCtx(f.icon, ctx)}`} /></span>
                   <span className="tdf__lbl">{daCtx(f.label, ctx)}</span>
-                  {f.pannello && <i className="fa-solid fa-chevron-right tdf__more" />}
+                  {f.pannello && daCtx(f.pannello, ctx) && <i className="fa-solid fa-chevron-right tdf__more" />}
                 </button>
               </li>
             )
@@ -591,6 +602,28 @@ function FinestraFunzioni({ anchor, titolo, sotto, ctx, onRun, onSaveNota, onSav
           <div className="tdf__actions">
             <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => setVista('elenco')}>Annulla</button>
             <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => onSaveNota(nota.trim())}>Salva nota</button>
+          </div>
+        </div>
+      )}
+
+      {vista === 'collega' && (
+        <div className="tdf__panel">
+          <div className="me3-field">
+            <span className="me3-field__label">Giorni da collegare, a partire da questo</span>
+            <div className="me3-stepper">
+              <button type="button" onClick={() => setGiorni(v => Math.max(2, v - 1))} disabled={giorni <= 2} aria-label="Diminuisci"><i className="fa-solid fa-minus" /></button>
+              <span className="me3-stepper__val">{giorni}</span>
+              <button type="button" onClick={() => setGiorni(v => Math.min(ctx.maxLink, v + 1))} disabled={giorni >= ctx.maxLink} aria-label="Aumenta"><i className="fa-solid fa-plus" /></button>
+            </div>
+          </div>
+          <p className="tdf__preview">
+            <span className="tdf__chain">{Array.from({ length: giorni }, (_, i) => <span key={i} />)}</span>
+            {descriviCollega(giorni)}
+          </p>
+          <p className="tdf__hint">I giorni collegati si vendono insieme: aprendo o chiudendone uno si aggiornano tutti.</p>
+          <div className="tdf__actions">
+            <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => setVista('elenco')}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--primary sib-btn--sm" onClick={() => onSaveCollega(giorni)}>Collega</button>
           </div>
         </div>
       )}
@@ -637,6 +670,12 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
   const [manual, setManual]       = useState<Record<string, boolean>>({})
   const [note, setNote]           = useState<Record<string, string>>({})
   const [losMin, setLosMin]       = useState<Record<string, number>>({})
+  // Catene di esempio, così la vista si capisce al primo colpo d'occhio.
+  const [catene, setCatene]       = useState<Catena[]>([
+    { id: 'c-dbl', room: 'dbl', start: 2, end: 4 },
+    { id: 'c-mat', room: 'mat', start: 8, end: 10 },
+  ])
+  const catenaOf = (room: Camera, n: number) => catene.find(c => c.room === room.id && n >= c.start && n <= c.end) ?? null
   // Modifiche non ancora inviate (chiave → true): badge su "Salva e invia" e
   // segnaposto sul blocco modificato.
   const [dirty, setDirty]         = useState<Record<string, true>>({})
@@ -659,10 +698,17 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
     return k in manual ? manual[k] : isClosed(room, n)
   }
   const partialOf = (room: Camera, n: number) => !closedOf(room, n) && isPartial(room, n)
+  // Apri/chiudi su un giorno concatenato vale per tutta la catena.
+  const setChiusura = (room: Camera, n: number, chiudi: boolean) => {
+    const cat = catenaOf(room, n)
+    const idx = cat ? Array.from({ length: cat.end - cat.start + 1 }, (_, j) => cat.start + j) : [n]
+    setManual(p => ({ ...p, ...Object.fromEntries(idx.map(i => [`${room.id}-${i}`, chiudi])) }))
+    markDirty(...idx.map(i => `c:${room.id}-${i}`))
+    return idx.length
+  }
   const onCellClick = (room: Camera, n: number) => {
     if (!mode) return
-    setManual(p => ({ ...p, [`${room.id}-${n}`]: mode === 'chiudi' }))
-    markDirty(`c:${room.id}-${n}`)
+    setChiusura(room, n, mode === 'chiudi')
   }
 
   const allotVal = (room: Camera, n: number) => allot[`${room.id}-${n}`] ?? alloOf(room, n)
@@ -721,7 +767,10 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
   const fmtData = (n: number) => { const d = addDays(da, n); return `${DAYS_IT[d.getDay()]} ${d.getDate()} ${MONTHS_IT[d.getMonth()]}` }
   const ctxOf = (room: Camera, n: number): CtxBlocco => {
     const k = `${room.id}-${n}`
-    return { closed: closedOf(room, n), allot: allotVal(room, n), ultimo: n >= totalDays - 1, nota: note[k] ?? '', los: losMin[k] ?? 1 }
+    // Si collega in avanti fino al primo giorno già in un'altra catena (max 7).
+    let maxLink = 0
+    while (maxLink < 7 && n + maxLink < totalDays && !catenaOf(room, n + maxLink)) maxLink++
+    return { closed: closedOf(room, n), allot: allotVal(room, n), ultimo: n >= totalDays - 1, nota: note[k] ?? '', los: losMin[k] ?? 1, catena: catenaOf(room, n), maxLink }
   }
   const apriFunzioni = (e: React.MouseEvent<HTMLElement>, room: Camera, n: number) => {
     const anchor = e.currentTarget
@@ -736,9 +785,16 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
     switch (id) {
       case 'chiusura': {
         const cl = closedOf(room, n)
-        setManual(p => ({ ...p, [k]: !cl }))
-        markDirty(`c:${k}`)
-        toast.info(`Vendita ${cl ? 'aperta' : 'chiusa'}`, nome)
+        const tot = setChiusura(room, n, !cl)
+        toast.info(`Vendita ${cl ? 'aperta' : 'chiusa'}${tot > 1 ? ` su ${tot} giorni concatenati` : ''}`, nome)
+        break
+      }
+      case 'collega': {
+        const cat = catenaOf(room, n)
+        if (!cat) break
+        setCatene(p => p.filter(c => c.id !== cat.id))
+        markDirty(`k:${cat.id}`)
+        toast.info(`Scollegati ${fmtData(cat.start)} – ${fmtData(cat.end)}`, titleCase(room.nome))
         break
       }
       case 'replica': {
@@ -755,6 +811,18 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
       case 'stop':       setStopOpen(true); break
       case 'calendario': navigate('calendario-tariffe'); break
     }
+  }
+  const descriviCollega = (giorni: number) => {
+    if (!fn) return ''
+    return `${fmtData(fn.n)} → ${fmtData(fn.n + giorni - 1)} · ${giorni} notti vendute insieme`
+  }
+  const salvaCollega = (giorni: number) => {
+    if (!fn) return
+    const id = `c-${fn.room.id}-${fn.n}-${Date.now()}`
+    setCatene(p => [...p, { id, room: fn.room.id, start: fn.n, end: fn.n + giorni - 1 }])
+    markDirty(`k:${id}`)
+    toast.success(`${giorni} giorni collegati: ${fmtData(fn.n)} – ${fmtData(fn.n + giorni - 1)}`, titleCase(fn.room.nome))
+    setFn(null)
   }
   const salvaNota = (v: string) => {
     if (!fn) return
@@ -1011,8 +1079,14 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                     const partial = partialOf(room, c.i)
                     const k = `${room.id}-${c.i}`
                     const aperta = fn?.room.id === room.id && fn.n === c.i
+                    const cat = catenaOf(room, c.i)
+                    const link = !cat ? '' : `td__cell--link ${c.i === cat.start ? 'td__cell--link-start' : ''} ${c.i === cat.end ? 'td__cell--link-end' : ''}`
                     return (
-                      <td key={c.i} className={`td__cell td__cell--allot ${closed ? 'td__cell--closed' : ''} ${partial ? 'td__cell--partial' : ''} ${note[k] ? 'td__cell--nota' : ''} ${aperta ? 'td__cell--fn' : ''}`} onClick={() => onCellClick(room, c.i)}>
+                      <td key={c.i} className={`td__cell td__cell--allot ${closed ? 'td__cell--closed' : ''} ${partial ? 'td__cell--partial' : ''} ${note[k] ? 'td__cell--nota' : ''} ${aperta ? 'td__cell--fn' : ''} ${link}`} onClick={() => onCellClick(room, c.i)}>
+                        {/* Anello sulla riga che divide due giorni collegati */}
+                        {cat && c.i !== cat.end && (
+                          <span className="td__link-knot" aria-hidden="true"><i className="fa-solid fa-link" /></span>
+                        )}
                         {closed && <Ico n="lock" s={15} c="#fff" w="solid" />}
                         {!closed && (
                           <div className={`td__blk${aperta ? ' td__blk--on' : ''}`}>
@@ -1141,6 +1215,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
       <div className="td__legend">
         <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--closed" /> Chiusura totale</span>
         <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--partial" /> Chiusura parziale</span>
+        <span className="td__leg-item"><span className="td__leg-swatch td__leg-swatch--link" /> Giorni concatenati</span>
         <span className="td__leg-item"><Ico n="star" s={12} c="var(--color-warning)" w="solid" /> Camera di riferimento</span>
       </div>
 
@@ -1205,11 +1280,17 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
           key={`${fn.room.id}-${fn.n}`}
           anchor={fn.anchor}
           titolo={titleCase(fn.room.nome)}
-          sotto={`${fmtData(fn.n)} · allotment ${allotVal(fn.room, fn.n)} · ${fmtPrice(priceOf(fn.room, fn.n))}`}
+          sotto={(() => {
+            const cat = catenaOf(fn.room, fn.n)
+            const base = `${fmtData(fn.n)} · allotment ${allotVal(fn.room, fn.n)} · ${fmtPrice(priceOf(fn.room, fn.n))}`
+            return cat ? `${base} · collegato ${fmtData(cat.start)} – ${fmtData(cat.end)}` : base
+          })()}
           ctx={ctxOf(fn.room, fn.n)}
           onRun={runFunzione}
           onSaveNota={salvaNota}
           onSaveLos={salvaLos}
+          onSaveCollega={salvaCollega}
+          descriviCollega={descriviCollega}
           onClose={() => setFn(null)}
         />
       )}
