@@ -1027,10 +1027,10 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                             <span className="td__blk-acts">
                               <span
                                 className="td__blk-btn"
-                                aria-label="Disponibilità per canale"
+                                aria-label="Disponibilità per canale (Sibylla, Network, Agorà)"
                                 onMouseEnter={e => showPop('info', e, room, c.i)}
                                 onMouseLeave={hidePop}
-                              ><i className="fa-solid fa-info" /></span>
+                              ><i className="fa-solid fa-share-nodes" /></span>
                               <button
                                 type="button"
                                 className="td__blk-btn"
