@@ -370,94 +370,102 @@
   &__cell--allot
     padding: 6px 0
 
-  // La colonna del giorno è 64px: box, info e clessidra devono starci dentro tutti,
-  // altrimenti l'ultima icona finisce nella cella accanto.
-  &__cell-top
+  // Blocco giorno: UN controllo segmentato (stile toolbar) invece di quattro
+  // elementi con stili diversi. A sinistra le camere da inviare (editabile), a
+  // destra le azioni con lo stesso peso visivo: info canali, storico, funzioni.
+  // Larghezza totale ≤ 60px → sta nella colonna giorno minima (64px).
+  &__blk
     display: inline-flex
-    align-items: center
-    justify-content: center
-    gap: 1px
-    max-width: 100%
-    min-width: 0
-
-  // Input editabile (camere da inviare) — aspetto "box arancione"
-  &__allot
-    width: 24px
-    height: 20px
-    padding: 0 2px
+    align-items: stretch
+    width: calc(100% - 8px)
+    min-width: 60px
+    max-width: 80px
+    height: 24px
     border: 1px solid $border
-    border-radius: $radius-sm
+    border-radius: 6px
     background: $white
+    box-shadow: 0 1px 2px alpha($text-active, 0.06)
+    overflow: hidden
+    vertical-align: middle
+    transition: border-color $motion-fast $motion-ease, box-shadow $motion-fast $motion-ease
+    &:hover, &:focus-within
+      border-color: alpha($primary, 0.45)
+      box-shadow: 0 1px 4px alpha($primary, 0.14)
+    &--on
+      border-color: $primary
+      box-shadow: 0 0 0 2px alpha($primary, 0.18)
+
+  // Camere da inviare: numero in evidenza, campo "nudo" dentro il controllo
+  &__allot
+    flex: 1
+    min-width: 20px
+    width: 22px
+    padding: 0
+    border: none
+    background: transparent
     font-size: 12px
     font-weight: 700
     color: $warning
     text-align: center
+    font-variant-numeric: tabular-nums
     appearance: textfield
     -moz-appearance: textfield
     cursor: text
-    transition: $transition-fast
+    transition: background $motion-fast $motion-ease
     &::-webkit-outer-spin-button, &::-webkit-inner-spin-button
       -webkit-appearance: none
       margin: 0
     &:hover
-      border-color: $warning
+      background: alpha($warning, 0.08)
     &:focus
       outline: none
-      border-color: $warning
-      box-shadow: 0 0 0 2px alpha($warning, 0.25)
+      background: alpha($warning, 0.14)
 
-  // Allotment modificato e non ancora inviato
+  // Allotment modificato e non ancora inviato: puntino in basso
   &__allot--dirty
-    border-color: $warning
-    border-style: dashed
-    background: $warning-light
+    background: radial-gradient(circle at 50% 88%, $warning 1.6px, transparent 2px)
 
-  &__info
+  &__blk-acts
     display: inline-flex
-    line-height: 0
-    cursor: help
+    align-items: stretch
+    border-left: 1px solid $border
+    background: $bg
 
-  &__hourglass
+  &__blk-btn
     appearance: none
     border: none
-    background: transparent
     margin: 0
     padding: 0
-    line-height: 0
-    display: inline-flex
-    cursor: pointer
-    transition: $transition-fast
-    &:hover
-      transform: scale(1.15)
-
-  // Icona "Funzioni": unico accesso a tutte le funzioni del giorno. Pastiglia
-  // colorata e staccata da info/clessidra, così si legge come un pulsante a sé.
-  &__fn
-    appearance: none
-    border: none
-    background: alpha($primary, 0.14)
-    margin: 0 0 0 3px
-    padding: 0
     width: 13px
-    height: 20px
-    flex-shrink: 0
-    border-radius: 4px
+    background: transparent
     display: inline-flex
     align-items: center
     justify-content: center
-    font-size: 13px
+    font-size: 10px
+    line-height: 1
     color: $primary
     cursor: pointer
-    transition: $transition-fast
+    transition: background $motion-fast $motion-ease, color $motion-fast $motion-ease
+    &:first-child
+      cursor: help
+    &:hover, &:focus-visible
+      background: alpha($primary, 0.1)
+      color: $primary
+      outline: none
+
+  // Funzioni: ultimo segmento, separato e pieno → si legge come il "menu" del blocco
+  &__blk-btn--fn
+    width: 14px
+    border-left: 1px solid $border
+    font-size: 12px
+    color: $primary
+    background: alpha($primary, 0.13)
     &:hover, &:focus-visible
       background: $primary
       color: #fff
-      outline: none
-    &--on
-      background: $primary
-      color: #fff
-      &:hover
-        background: $primary
+  &__blk--on .td__blk-btn--fn
+    background: $primary
+    color: #fff
 
   // Blocco con la finestra funzioni aperta
   &__cell--fn
@@ -564,7 +572,7 @@
   &__grid--mode
     .td__cell, .td__mcell
       cursor: pointer
-    .td__cell-top, .td__allot, .td__info, .td__hourglass, .td__fn, .td__mprice, .td__price
+    .td__blk, .td__mprice, .td__price
       pointer-events: none
     .td__cell:hover, .td__mcell:hover
       outline: 2px solid alpha($primary, 0.4)

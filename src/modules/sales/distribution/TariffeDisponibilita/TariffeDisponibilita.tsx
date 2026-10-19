@@ -1015,7 +1015,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                       <td key={c.i} className={`td__cell td__cell--allot ${closed ? 'td__cell--closed' : ''} ${partial ? 'td__cell--partial' : ''} ${note[k] ? 'td__cell--nota' : ''} ${aperta ? 'td__cell--fn' : ''}`} onClick={() => onCellClick(room, c.i)}>
                         {closed && <Ico n="lock" s={15} c="#fff" w="solid" />}
                         {!closed && (
-                          <div className="td__cell-top">
+                          <div className={`td__blk${aperta ? ' td__blk--on' : ''}`}>
                             <input
                               type="number"
                               className={`td__allot${dirty[`a:${k}`] ? ' td__allot--dirty' : ''}`}
@@ -1024,25 +1024,29 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                               onChange={e => setAllotVal(room, c.i, parseInt(e.target.value, 10) || 0)}
                               aria-label="Camere da inviare"
                             />
-                            <span
-                              className="td__info"
-                              onMouseEnter={e => showPop('info', e, room, c.i)}
-                              onMouseLeave={hidePop}
-                            ><Ico n="info" s={12} c="var(--color-primary)" w="solid" /></span>
-                            <button
-                              className="td__hourglass"
-                              aria-label="Storico modifiche"
-                              onMouseEnter={e => showPop('hist', e, room, c.i)}
-                              onMouseLeave={hidePop}
-                            ><Ico n="hourglass" s={11} c="var(--chart-3)" w="solid" /></button>
-                            <button
-                              type="button"
-                              className={`td__fn${aperta ? ' td__fn--on' : ''}`}
-                              aria-label="Funzioni del giorno"
-                              aria-haspopup="dialog"
-                              aria-expanded={aperta}
-                              onClick={e => apriFunzioni(e, room, c.i)}
-                            ><i className="fa-solid fa-ellipsis-vertical" /></button>
+                            <span className="td__blk-acts">
+                              <span
+                                className="td__blk-btn"
+                                aria-label="Disponibilità per canale"
+                                onMouseEnter={e => showPop('info', e, room, c.i)}
+                                onMouseLeave={hidePop}
+                              ><i className="fa-solid fa-info" /></span>
+                              <button
+                                type="button"
+                                className="td__blk-btn"
+                                aria-label="Storico modifiche"
+                                onMouseEnter={e => showPop('hist', e, room, c.i)}
+                                onMouseLeave={hidePop}
+                              ><i className="fa-solid fa-hourglass-half" /></button>
+                              <button
+                                type="button"
+                                className="td__blk-btn td__blk-btn--fn"
+                                aria-label="Funzioni del giorno"
+                                aria-haspopup="dialog"
+                                aria-expanded={aperta}
+                                onClick={e => apriFunzioni(e, room, c.i)}
+                              ><i className="fa-solid fa-ellipsis-vertical" /></button>
+                            </span>
                           </div>
                         )}
                       </td>
