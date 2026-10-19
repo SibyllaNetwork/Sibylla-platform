@@ -225,7 +225,7 @@
 
   // Header — standard di piattaforma (.sib-table th): canvas + ink-muted
   &__th
-    padding: 7px 4px
+    padding: 5px 4px
     background: $bg
     border-bottom: 1px solid $border
     border-right: 1px solid $border
@@ -279,22 +279,23 @@
       color: $success
       font-weight: 700
 
+  // Righe compatte: la griglia deve stare il più possibile in una schermata.
   &__r
-    height: 30px
+    height: 24px
 
   // Colonna sinistra (camera / sotto-etichette)
   &__cl
     border-right: 1px solid $border
     border-top: 1px solid alpha($border, 0.55)
     background: $white
-    padding: 4px $space-lg
+    padding: 2px $space-lg
 
   &__cl--name
     display: flex
     align-items: center
     gap: 8px
-    padding-top: 8px
-    padding-bottom: 8px
+    padding-top: 3px
+    padding-bottom: 3px
 
   &__room-name
     flex: 1
@@ -333,8 +334,8 @@
     padding: 0
     box-sizing: border-box
     flex-shrink: 0
-    width: 40px
-    height: 22px
+    width: 32px
+    height: 18px
     border-radius: 999px
     background: $text-disabled
     position: relative
@@ -344,9 +345,9 @@
   &__toggle-knob
     position: absolute
     top: 50%
-    left: 3px
-    width: 16px
-    height: 16px
+    left: 2px
+    width: 14px
+    height: 14px
     border-radius: 50%
     background: #fff
     box-shadow: 0 1px 3px alpha(#000, 0.25)
@@ -356,7 +357,7 @@
   &__toggle--on
     background: $primary
     .td__toggle-knob
-      left: 21px
+      left: 16px
 
   // Celle dati
   &__cell
@@ -364,11 +365,11 @@
     border-top: 1px solid alpha($border, 0.55)
     text-align: center
     vertical-align: middle
-    padding: 3px 4px
+    padding: 2px 4px
 
   // Riga 1 — box allotment + info + chiusura
   &__cell--allot
-    padding: 6px 0
+    padding: 3px 0
 
   // Blocco giorno: UN controllo segmentato (stile toolbar) invece di quattro
   // elementi con stili diversi. A sinistra le camere da inviare (editabile), a
@@ -380,7 +381,7 @@
     width: calc(100% - 8px)
     min-width: 60px
     max-width: 80px
-    height: 24px
+    height: 22px
     border: 1px solid $border
     border-radius: 6px
     background: $white
@@ -524,7 +525,7 @@
     vertical-align: middle
 
   &__r--occ
-    height: 56px
+    height: 46px
 
   &__cell--occ
     border-top: 1px solid $border
@@ -595,8 +596,8 @@
     appearance: none
     border: 1px solid $border
     background: $white
-    width: 22px
-    height: 22px
+    width: 20px
+    height: 20px
     padding: 0
     border-radius: $radius-sm
     flex-shrink: 0
