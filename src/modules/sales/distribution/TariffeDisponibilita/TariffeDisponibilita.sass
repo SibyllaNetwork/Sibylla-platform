@@ -75,6 +75,56 @@
     align-items: center
     gap: 6px
 
+  // Contatore modifiche non inviate su "Salva e invia"
+  &__badge
+    min-width: 18px
+    height: 18px
+    padding: 0 5px
+    border-radius: 999px
+    background: $warning
+    color: #fff
+    font-size: 11px
+    font-weight: 700
+    line-height: 18px
+    text-align: center
+
+  // Barra modalità apri/chiudi sopra la griglia
+  &__modebar
+    display: flex
+    align-items: center
+    gap: 10px
+    margin-bottom: $space-sm
+    padding: 6px 8px 6px 14px
+    border-radius: $radius-md
+    border: 1px solid
+    font-size: 12px
+    color: $text-active
+    animation: tdFade $motion-base $motion-ease
+    &--chiudi
+      background: $error-light
+      border-color: alpha($error, 0.4)
+      > i
+        color: $error
+    &--apri
+      background: $success-light
+      border-color: alpha($success, 0.4)
+      > i
+        color: $success
+
+  &__modebar-end
+    margin-left: auto
+
+  &__kbd
+    padding: 1px 6px
+    border: 1px solid $border
+    border-bottom-width: 2px
+    border-radius: 4px
+    background: $white
+    font-family: inherit
+    font-size: 10px
+    font-weight: 600
+    color: $text-inactive
+
   &__btn-txt
     white-space: nowrap
 
@@ -171,9 +221,7 @@
     font-size: 12px
 
   &__col-room
-    width: 240px
-  &__col-exp
-    width: 60px
+    width: 220px
 
   // Header — standard di piattaforma (.sib-table th): canvas + ink-muted
   &__th
@@ -217,10 +265,31 @@
     font-weight: 600
     color: $text-inactive
 
-  &__th--exp
-    font-size: 10px
-    text-transform: uppercase
-    letter-spacing: 0.04em
+  &__th-room
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+  // "Espandi tutte": apre in un colpo le righe Occupate/Residuo di ogni camera
+  &__expall
+    appearance: none
+    border: none
+    background: transparent
+    padding: 3px 6px
+    border-radius: $radius-sm
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11px
+    font-weight: 600
+    text-transform: none
+    color: $primary
+    cursor: pointer
+    white-space: nowrap
+    transition: $transition-fast
+    &:hover
+      background: alpha($primary, 0.08)
 
   // Blocco camera (tbody)
   &__room
@@ -333,13 +402,13 @@
     display: inline-flex
     align-items: center
     justify-content: center
-    gap: 2px
+    gap: 1px
     max-width: 100%
     min-width: 0
 
   // Input editabile (camere da inviare) — aspetto "box arancione"
   &__allot
-    width: 26px
+    width: 24px
     height: 20px
     padding: 0 2px
     border: 1px solid $border
@@ -363,6 +432,12 @@
       border-color: $warning
       box-shadow: 0 0 0 2px alpha($warning, 0.25)
 
+  // Allotment modificato e non ancora inviato
+  &__allot--dirty
+    border-color: $warning
+    border-style: dashed
+    background: $warning-light
+
   &__info
     display: inline-flex
     line-height: 0
@@ -380,6 +455,48 @@
     transition: $transition-fast
     &:hover
       transform: scale(1.15)
+
+  // Icona "Funzioni": unico accesso a tutte le funzioni del giorno
+  &__fn
+    appearance: none
+    border: none
+    background: transparent
+    margin: 0
+    padding: 0
+    width: 10px
+    height: 18px
+    border-radius: 3px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    font-size: 12px
+    color: $primary
+    cursor: pointer
+    transition: $transition-fast
+    &:hover, &:focus-visible
+      background: alpha($primary, 0.12)
+      outline: none
+    &--on
+      background: $primary
+      color: #fff
+      &:hover
+        background: $primary
+
+  // Blocco con la finestra funzioni aperta
+  &__cell--fn
+    box-shadow: inset 0 0 0 2px alpha($primary, 0.45)
+
+  // Blocco con nota: angolino in alto a destra
+  &__cell--nota
+    position: relative
+    &::after
+      content: ''
+      position: absolute
+      top: 0
+      right: 0
+      border-style: solid
+      border-width: 0 8px 8px 0
+      border-color: transparent $accent transparent transparent
 
   // Riga 2 — prezzo
   &__price
@@ -414,40 +531,54 @@
     font-weight: 700
 
   // Righe accordion (Espandi): Occupate + Residuo sui canali
-  &__cl--occ
-    font-weight: 700
-    color: $text-active
-    text-align: center
+  &__sub-ico
+    width: 12px
+    margin-right: 4px
+    font-size: 11px
+    color: $text-inactive
     vertical-align: middle
 
-  &__r--occ
-    height: 56px
-
   &__cell--occ
-    border-top: 1px solid $border
+    padding: 4px 6px
 
+  // Occupazione: occupate/totali + barra + percentuale, in una sola riga di lettura
   &__occ
     display: flex
     flex-direction: column
-    align-items: center
-    gap: 1px
-
-  &__occ-nums
-    display: inline-flex
-    gap: 8px
-    font-size: 11px
-    font-weight: 700
-    line-height: 1
-
-  &__occ-o
-    color: $success-mid
-
-  &__occ-t
-    color: $success
-
-  &__occ-pct
+    align-items: stretch
+    gap: 2px
     font-size: 11px
     color: $text-inactive
+    font-variant-numeric: tabular-nums
+
+  &__occ-nums
+    b
+      color: $text-active
+      font-weight: 700
+
+  &__occ-bar
+    display: block
+    height: 4px
+    border-radius: 999px
+    background: alpha($text-inactive, 0.15)
+    overflow: hidden
+
+  &__occ-fill
+    display: block
+    height: 100%
+    border-radius: inherit
+    background: $success
+  @for $i from 0 through 20
+    &__occ-fill--#{$i * 5}
+      width: #{$i * 5%}
+
+  &__occ--low .td__occ-fill
+    background: $error
+  &__occ--mid .td__occ-fill
+    background: $warning
+
+  &__occ-pct
+    font-size: 10px
     font-weight: 600
 
   &__cell--resid
@@ -469,7 +600,7 @@
   &__grid--mode
     .td__cell, .td__mcell
       cursor: pointer
-    .td__cell-top, .td__allot, .td__info, .td__hourglass, .td__mprice, .td__price
+    .td__cell-top, .td__allot, .td__info, .td__hourglass, .td__fn, .td__mprice, .td__price
       pointer-events: none
     .td__cell:hover, .td__mcell:hover
       outline: 2px solid alpha($primary, 0.4)
@@ -487,26 +618,36 @@
   &__cell--partial
     background: repeating-linear-gradient(45deg, alpha($warning, 0.30), alpha($warning, 0.30) 5px, alpha($warning, 0.10) 5px, alpha($warning, 0.10) 10px)
 
-  // Colonna Espandi
-  &__cell-exp
-    border-left: 1px solid $border
-    text-align: center
-    vertical-align: middle
-    background: $white
-
+  // Accordion riga: chevron davanti al nome camera (ruota quando è aperta)
   &__exp-btn
     appearance: none
-    border: none
-    background: transparent
+    border: 1px solid $border
+    background: $white
+    width: 22px
+    height: 22px
     padding: 0
-    line-height: 0
-    cursor: pointer
+    border-radius: $radius-sm
+    flex-shrink: 0
     display: inline-flex
     align-items: center
     justify-content: center
+    font-size: 10px
+    color: $primary
+    cursor: pointer
     transition: $transition-fast
+    i
+      transition: transform $motion-base $motion-ease
     &:hover
-      transform: scale(1.12)
+      border-color: $primary
+      background: alpha($primary, 0.08)
+    &--on
+      background: $primary
+      border-color: $primary
+      color: #fff
+      i
+        transform: rotate(90deg)
+      &:hover
+        background: $primary
 
   // ── Popover hover (info verticali + storico modifiche) ─────────────────────
   // Posizione fixed → non viene tagliato dall'overflow della griglia.
@@ -551,6 +692,22 @@
 
   &__pop-lbl
     font-weight: 600
+
+  &__pop-ico
+    width: 14px
+    font-size: 13px
+    color: $primary
+
+  &__pop-note
+    max-width: 220px
+    padding-top: 8px
+    border-top: 1px solid $border
+    font-size: 12px
+    color: $text-active
+    line-height: 1.35
+    i
+      color: $accent
+      margin-right: 4px
 
   &__pop--hist
     padding: 0
@@ -1403,3 +1560,174 @@
 
   .td__f--interv
     width: 96px
+
+@keyframes tdFade
+  from
+    opacity: 0
+    transform: translateY(-3px)
+  to
+    opacity: 1
+    transform: none
+
+// ─── FINESTRA FUNZIONI DEL BLOCCO ─────────────────────────────────────────────
+// Posizione fixed (calcolata sull'icona) → non viene tagliata dalla griglia.
+.tdf
+  position: fixed
+  left: var(--x)
+  top: var(--y)
+  z-index: 210
+  width: max-content
+  min-width: 240px
+  max-width: min(400px, calc(100vw - 16px))
+  background: $white
+  border: 1px solid $border
+  border-radius: $radius-lg
+  box-shadow: $shadow-lg
+  visibility: hidden
+  &--ready
+    visibility: visible
+    animation: tdfIn $motion-fast $motion-ease
+  &--up.tdf--ready
+    animation-name: tdfInUp
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 10px 8px 10px 14px
+    border-bottom: 1px solid $border
+
+  &__titles
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+  &__title
+    font-size: 13px
+    font-weight: 700
+    color: $text-active
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__sub
+    font-size: 11px
+    color: $text-inactive
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+  &__icon-btn
+    appearance: none
+    border: none
+    background: transparent
+    width: 26px
+    height: 26px
+    flex-shrink: 0
+    border-radius: $radius-sm
+    color: $text-inactive
+    cursor: pointer
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    &:hover
+      background: $bg
+      color: $primary
+
+  &__list
+    list-style: none
+    margin: 0
+    padding: 6px
+    display: grid
+    grid-template-columns: 1fr
+    gap: 2px
+    &--2col
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
+  &__item
+    appearance: none
+    border: none
+    background: transparent
+    width: 100%
+    padding: 6px 8px
+    border-radius: $radius-md
+    display: flex
+    align-items: center
+    gap: 10px
+    text-align: left
+    cursor: pointer
+    transition: $transition-fast
+    &:hover:not(:disabled), &:focus-visible
+      background: alpha($primary, 0.07)
+      outline: none
+      .tdf__ico
+        background: $primary
+        color: #fff
+    &:disabled
+      cursor: not-allowed
+      opacity: 0.45
+    &--danger
+      .tdf__ico
+        background: $error-light
+        color: $error
+      .tdf__lbl
+        color: $error
+      &:hover:not(:disabled), &:focus-visible
+        background: alpha($error, 0.07)
+        .tdf__ico
+          background: $error
+          color: #fff
+
+  &__ico
+    width: 30px
+    height: 30px
+    flex-shrink: 0
+    border-radius: $radius-md
+    background: alpha($primary, 0.08)
+    color: $primary
+    font-size: 14px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    transition: $transition-fast
+
+  &__lbl
+    flex: 1
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    white-space: nowrap
+
+  &__more
+    font-size: 9px
+    color: $text-disabled
+
+  &__panel
+    padding: 12px 14px
+    display: flex
+    flex-direction: column
+    gap: 12px
+    width: 300px
+    max-width: 100%
+
+  &__actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+@keyframes tdfIn
+  from
+    opacity: 0
+    transform: translateY(-4px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes tdfInUp
+  from
+    opacity: 0
+    transform: translateY(4px)
+  to
+    opacity: 1
+    transform: none
