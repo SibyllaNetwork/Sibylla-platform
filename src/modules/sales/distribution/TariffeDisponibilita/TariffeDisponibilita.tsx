@@ -3,11 +3,11 @@ import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import Modal from '../../../../core/components/Modal'
 import Tabs from '../../../../core/components/Tabs'
-import { SelectField, DateRangeField, InputField } from '../../../../core/components/form'
+import { SelectField, DateRangeField, InputField, ToggleSwitch } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import Ico from '../../../../core/icons/Ico'
 import './TariffeDisponibilita.sass'
-import { useStrutturaCorrente, useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
 
 // Date demo relative a oggi.
 const isoFra = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
@@ -159,7 +159,7 @@ const contaSel = (s: Sel) => Object.values(s).filter(Boolean).length
 const fmtGiorno = (iso: string) => { const [, m, d] = iso.split('-'); return `${Number(d)} ${MONTHS_IT[Number(m) - 1]}` }
 const nottiTra = (dal: string, al: string) => Math.max(0, Math.round((new Date(al).getTime() - new Date(dal).getTime()) / 86400000))
 
-// Chip selezionabile (camere, canali, strutture).
+// Chip selezionabile (camere, canali, prodotti).
 function MeChip({ on, onClick, children, sub, mark }: { on: boolean; onClick: () => void; children: React.ReactNode; sub?: string; mark?: React.ReactNode }) {
   return (
     <button type="button" className={`me3-chip${on ? ' me3-chip--on' : ''}`} onClick={onClick} aria-pressed={on}>
@@ -174,12 +174,12 @@ function MeChip({ on, onClick, children, sub, mark }: { on: boolean; onClick: ()
 }
 
 // Controllo segmentato (Apri/Chiudi, ambito canali…).
-function MeSegmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { v: T; label: string; icon?: string }[] }) {
+function MeSegmented<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { v: T; label: string; icon?: string; tone?: 'apri' | 'chiudi' }[] }) {
   return (
     <div className="me3-seg" role="radiogroup">
       {options.map(o => (
         <button key={o.v} type="button" role="radio" aria-checked={value === o.v}
-          className={`me3-seg__opt${value === o.v ? ' me3-seg__opt--on' : ''}`} onClick={() => onChange(o.v)}>
+          className={`me3-seg__opt${value === o.v ? ' me3-seg__opt--on' : ''}${o.tone ? ` me3-seg__opt--${o.tone}` : ''}`} onClick={() => onChange(o.v)}>
           {o.icon && <i className={`fa-solid ${o.icon}`} />}{o.label}
         </button>
       ))}
@@ -235,8 +235,6 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const [al, setAl]   = useState(() => isoFra(7))
   const notti = nottiTra(dal, al)
   const preset = (da: number, n: number) => { setDal(isoFra(da)); setAl(isoFra(da + n)) }
-  // Strutture del cliente corrente.
-  const { elenco: STRUTTURE } = useStrutturaCorrente()
 
   // Tipo camera
   const [selRooms, setSelRooms] = useState<Sel>({})
@@ -245,28 +243,30 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const toggleAllRooms = () => setSelRooms(allRooms ? {} : allOn(CAMERE.map(r => r.id)))
   const toggleRoom = (id: string) => setSelRooms(s => ({ ...s, [id]: !s[id] }))
 
-  // Operazioni — Disponibilità e disponibilità residua si escludono: accenderne una spegne l'altra.
+  // Operazioni — Disponibilità: valore di Mercato inserito a mano, oppure la
+  // disponibilità residua applicata in automatico (il campo Mercato si disabilita).
   const [impDisp, setImpDisp] = useState(true)
-  const [impResidua, setImpResidua] = useState(false)
+  const [residua, setResidua] = useState(false)
   const [mercato, setMercato] = useState('')
   const [dispCanali, setDispCanali] = useState<Sel>(() => allOn(ME_CANALI.map(c => c.id)))
-  const toggleDisp = () => { setImpDisp(v => !v); setImpResidua(false) }
-  const toggleResidua = () => { setImpResidua(v => !v); setImpDisp(false) }
+  const mercatoMancante = impDisp && !residua && mercato === ''
   // Restrizioni
   const [impRestr, setImpRestr] = useState(true)
   const [restrAz, setRestrAz] = useState<'apri' | 'chiudi'>('chiudi')
-  const [checkIn, setCheckIn] = useState(false)
-  const [checkOut, setCheckOut] = useState(false)
-  const [strutture, setStrutture] = useState<Sel>({})
+  // Chiudi anche: check-in oppure check-out, mai entrambi (un secondo click deseleziona).
+  const [chiudiAnche, setChiudiAnche] = useState<null | 'in' | 'out'>(null)
+  const sceltaChiudi = (v: 'in' | 'out') => setChiudiAnche(cur => (cur === v ? null : v))
   // Minimum-LOS
   const [impLos, setImpLos] = useState(false)
   const [losVal, setLosVal] = useState(1)
   // Destinatari di restrizioni e Minimum-LOS
   const [regoleSu, setRegoleSu] = useState<'canali' | 'prodotti'>('canali')
-  const [regoleScope, setRegoleScope] = useState<'tutti' | 'sel'>('tutti')
   const [regoleCanali, setRegoleCanali] = useState<Sel>({})
   const [prodotti, setProdotti] = useState<Sel>({})
-  const destinatariOk = regoleSu === 'canali' ? regoleScope === 'tutti' || contaSel(regoleCanali) > 0 : contaSel(prodotti) > 0
+  // Restrizioni e Minimum-LOS: uno alla volta, come nel Portal.
+  const toggleRestr = () => { setImpRestr(v => !v); setImpLos(false) }
+  const toggleLos = () => { setImpLos(v => !v); setImpRestr(false) }
+  const destinatariOk = regoleSu === 'canali' ? contaSel(regoleCanali) > 0 : contaSel(prodotti) > 0
 
   // Tariffe
   const [tariffeCanali, setTariffeCanali] = useState<Sel>(() => allOn(ME_CANALI.map(c => c.id)))
@@ -277,14 +277,60 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const tariffeRooms = nRooms ? CAMERE.filter(r => selRooms[r.id]) : CAMERE
 
   // Riepilogo per il footer e abilitazione di "Applica".
-  const nOps = [impDisp, impResidua, impRestr, impLos].filter(Boolean).length
+  const nOps = [impDisp, impRestr, impLos].filter(Boolean).length
   const conRegole = impRestr || impLos
-  const pronto = tab === 'disp' ? nRooms > 0 && nOps > 0 && (!conRegole || destinatariOk) : contaSel(tariffeCanali) > 0
+  const pronto = tab === 'disp' ? nRooms > 0 && nOps > 0 && !mercatoMancante && (!conRegole || destinatariOk) : contaSel(tariffeCanali) > 0
   const riepilogo = tab === 'disp'
     ? (nRooms === 0 ? 'Seleziona almeno una camera' : nOps === 0 ? 'Attiva almeno un\'operazione'
+      : mercatoMancante ? 'Inserisci il valore di Mercato o usa la disponibilità residua'
       : conRegole && !destinatariOk ? (regoleSu === 'canali' ? 'Seleziona almeno un canale' : 'Seleziona almeno un prodotto')
       : `${nOps} ${nOps === 1 ? 'operazione' : 'operazioni'} su ${nRooms} ${nRooms === 1 ? 'camera' : 'camere'}`)
     : `${tariffeRooms.length} tariffe su ${contaSel(tariffeCanali)} ${contaSel(tariffeCanali) === 1 ? 'canale' : 'canali'}`
+
+  // Destinatari dell'operazione attiva fra Restrizioni e Minimum-LOS: canali o prodotti.
+  const destinatari = (
+    <section className="me3-dest">
+      <div className="me3-field">
+        <span className="me3-field__label">Applica a</span>
+        <MeSegmented value={regoleSu} onChange={setRegoleSu}
+          options={[{ v: 'canali', label: 'Canali', icon: 'fa-share-nodes' }, { v: 'prodotti', label: 'Prodotti', icon: 'fa-tags' }]} />
+      </div>
+      {regoleSu === 'canali' ? (
+        <div className="me3-field me3-field--full">
+          <span className="me3-field__label">
+            Canali <span className="me3-field__count">{contaSel(regoleCanali) === CANALI_REGOLE.length ? 'tutti' : contaSel(regoleCanali) || 'nessuno'}</span>
+            <button type="button" className="me3-link"
+              onClick={() => setRegoleCanali(contaSel(regoleCanali) === CANALI_REGOLE.length ? {} : allOn(CANALI_REGOLE))}>
+              {contaSel(regoleCanali) === CANALI_REGOLE.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+            </button>
+          </span>
+          <div className="me3-chips me3-chips--grid me3-chips--wide">
+            {CANALI_REGOLE.map(c => (
+              <MeChip key={c} on={!!regoleCanali[c]} onClick={() => setRegoleCanali(p => ({ ...p, [c]: !p[c] }))}>{c}</MeChip>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="me3-note"><i className="fa-solid fa-circle-info" /> Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.</p>
+          <div className="me3-field me3-field--full">
+            <span className="me3-field__label">
+              Prodotti <span className="me3-field__count">{contaSel(prodotti) || 'nessuno'}</span>
+              <button type="button" className="me3-link"
+                onClick={() => setProdotti(contaSel(prodotti) === PRODOTTI_REGOLE.length ? {} : allOn(PRODOTTI_REGOLE))}>
+                {contaSel(prodotti) === PRODOTTI_REGOLE.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+              </button>
+            </span>
+            <div className="me3-prodotti">
+              {PRODOTTI_REGOLE.map(p => (
+                <MeChip key={p} on={!!prodotti[p]} onClick={() => setProdotti(s => ({ ...s, [p]: !s[p] }))}>{p}</MeChip>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  )
 
   return (
     <Modal open={open} onClose={onClose} title="Market Engine" size="lg" className="me-modal me3-modal">
@@ -344,93 +390,57 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
 
             <div className="me3-ops">
               <MeOp icon="fa-bed" title="Imposta Disponibilità" desc="Allotment da pubblicare sui canali scelti"
-                on={impDisp} onToggle={toggleDisp}>
-                <InputField name="me-mercato" label="Mercato" placeholder="Es. IT, DE, UK" value={mercato}
-                  onChange={e => setMercato(e.target.value)} className="me3-mercato" />
+                on={impDisp} onToggle={() => setImpDisp(v => !v)}>
+                <div className="me3-disp">
+                  <InputField name="me-mercato" type="number" label="Mercato" min={0} placeholder={residua ? 'Automatico' : 'Camere'}
+                    value={residua ? '' : mercato} disabled={residua}
+                    onChange={e => setMercato(e.target.value)} className="me3-mercato" />
+                  <ToggleSwitch label="Imposta disponibilità residua" checked={residua} onChange={setResidua}
+                    className="me3-disp__residua" />
+                </div>
+                {residua && (
+                  <p className="me3-note me3-disp__nota"><i className="fa-solid fa-circle-info" /> Applicata in automatico: le camere ancora vendibili, al netto di quelle già vendute.</p>
+                )}
                 <CanaliSelezionati value={dispCanali} onChange={setDispCanali} />
               </MeOp>
 
-              <MeOp icon="fa-bed-front" title="Imposta disponibilità residua" desc="Camere ancora vendibili, al netto di quelle già vendute"
-                on={impResidua} onToggle={toggleResidua}>
-                <InputField name="me-mercato-residua" label="Mercato" placeholder="Es. IT, DE, UK" value={mercato}
-                  onChange={e => setMercato(e.target.value)} className="me3-mercato" />
-                <CanaliSelezionati value={dispCanali} onChange={setDispCanali} />
-              </MeOp>
-
-              <MeOp icon="fa-lock" title="Imposta Restrizioni" desc="Apri o chiudi la vendita, anche solo in arrivo o partenza"
-                on={impRestr} onToggle={() => setImpRestr(v => !v)}>
-                <div className="me3-field">
-                  <span className="me3-field__label">Vendita</span>
-                  <MeSegmented value={restrAz} onChange={setRestrAz}
-                    options={[{ v: 'apri', label: 'Apri', icon: 'fa-lock-open' }, { v: 'chiudi', label: 'Chiudi', icon: 'fa-lock' }]} />
-                </div>
-                <div className="me3-field">
-                  <span className="me3-field__label">Chiudi anche</span>
-                  <div className="me3-chips">
-                    <MeChip on={checkIn} onClick={() => setCheckIn(v => !v)}>Check-in</MeChip>
-                    <MeChip on={checkOut} onClick={() => setCheckOut(v => !v)}>Check-out</MeChip>
-                  </div>
-                </div>
-                <div className="me3-field me3-field--full">
-                  <span className="me3-field__label">Strutture <span className="me3-field__count">{contaSel(strutture) || 'nessuna'}</span></span>
-                  <div className="me3-chips me3-chips--grid">
-                    {STRUTTURE.map(s => <MeChip key={s} on={!!strutture[s]} onClick={() => setStrutture(p => ({ ...p, [s]: !p[s] }))}>{s}</MeChip>)}
-                  </div>
-                </div>
-              </MeOp>
-
-              <MeOp icon="fa-calendar-days" title="Imposta Minimum-LOS" desc="Soggiorno minimo richiesto per prenotare"
-                on={impLos} onToggle={() => setImpLos(v => !v)}>
-                <div className="me3-field">
-                  <span className="me3-field__label">Notti minime</span>
-                  <div className="me3-stepper">
-                    <button type="button" onClick={() => setLosVal(v => Math.max(1, v - 1))} disabled={losVal <= 1} aria-label="Diminuisci"><i className="fa-solid fa-minus" /></button>
-                    <span className="me3-stepper__val">{losVal}</span>
-                    <button type="button" onClick={() => setLosVal(v => Math.min(30, v + 1))} disabled={losVal >= 30} aria-label="Aumenta"><i className="fa-solid fa-plus" /></button>
-                  </div>
-                </div>
-              </MeOp>
-
-              {conRegole && (
-                <section className="me3-dest">
+              {/* Regole di prenotazione: restrizioni o soggiorno minimo, uno alla volta */}
+              <section className="me3-group">
+                <header className="me3-group__head">
+                  <h5 className="me3-group__title">Regole di prenotazione</h5>
+                  <p className="me3-note"><i className="fa-solid fa-circle-info" /> Restrizioni o Minimum-LOS: selezionarne uno alla volta.</p>
+                </header>
+                <MeOp icon="fa-lock" title="Imposta Restrizioni" desc="Apri o chiudi la vendita, anche solo in arrivo o partenza"
+                  on={impRestr} onToggle={toggleRestr}>
                   <div className="me3-field">
-                    <span className="me3-field__label">Applica restrizioni e Minimum-LOS a</span>
-                    <MeSegmented value={regoleSu} onChange={setRegoleSu}
-                      options={[{ v: 'canali', label: 'Canali', icon: 'fa-share-nodes' }, { v: 'prodotti', label: 'Prodotti', icon: 'fa-tags' }]} />
+                    <span className="me3-field__label">Vendita</span>
+                    <MeSegmented value={restrAz} onChange={setRestrAz}
+                      options={[{ v: 'apri', label: 'Apri', icon: 'fa-lock-open', tone: 'apri' }, { v: 'chiudi', label: 'Chiudi', icon: 'fa-lock', tone: 'chiudi' }]} />
                   </div>
-                  {regoleSu === 'canali' ? (
-                    <>
-                      <MeSegmented value={regoleScope} onChange={setRegoleScope}
-                        options={[{ v: 'tutti', label: 'Tutti i canali' }, { v: 'sel', label: 'Canali selezionati' }]} />
-                      {regoleScope === 'sel' && (
-                        <div className="me3-chips me3-chips--grid me3-chips--wide">
-                          {CANALI_REGOLE.map(c => (
-                            <MeChip key={c} on={!!regoleCanali[c]} onClick={() => setRegoleCanali(p => ({ ...p, [c]: !p[c] }))}>{c}</MeChip>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="me3-note"><i className="fa-solid fa-circle-info" /> Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.</p>
-                      <div className="me3-field me3-field--full">
-                        <span className="me3-field__label">
-                          Prodotti <span className="me3-field__count">{contaSel(prodotti) || 'nessuno'}</span>
-                          <button type="button" className="me3-link"
-                            onClick={() => setProdotti(contaSel(prodotti) === PRODOTTI_REGOLE.length ? {} : allOn(PRODOTTI_REGOLE))}>
-                            {contaSel(prodotti) === PRODOTTI_REGOLE.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
-                          </button>
-                        </span>
-                        <div className="me3-prodotti">
-                          {PRODOTTI_REGOLE.map(p => (
-                            <MeChip key={p} on={!!prodotti[p]} onClick={() => setProdotti(s => ({ ...s, [p]: !s[p] }))}>{p}</MeChip>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </section>
-              )}
+                  <div className="me3-field">
+                    <span className="me3-field__label">Chiudi anche</span>
+                    <div className="me3-chips">
+                      <MeChip on={chiudiAnche === 'in'} onClick={() => sceltaChiudi('in')}>Check-in</MeChip>
+                      <MeChip on={chiudiAnche === 'out'} onClick={() => sceltaChiudi('out')}>Check-out</MeChip>
+                    </div>
+                  </div>
+                  {destinatari}
+                </MeOp>
+
+                <MeOp icon="fa-calendar-days" title="Imposta Minimum-LOS" desc="Soggiorno minimo richiesto per prenotare"
+                  on={impLos} onToggle={toggleLos}>
+                  <div className="me3-field">
+                    <span className="me3-field__label">Notti minime</span>
+                    <div className="me3-stepper">
+                      <button type="button" onClick={() => setLosVal(v => Math.max(1, v - 1))} disabled={losVal <= 1} aria-label="Diminuisci"><i className="fa-solid fa-minus" /></button>
+                      <span className="me3-stepper__val">{losVal}</span>
+                      <button type="button" onClick={() => setLosVal(v => Math.min(30, v + 1))} disabled={losVal >= 30} aria-label="Aumenta"><i className="fa-solid fa-plus" /></button>
+                    </div>
+                  </div>
+                  {destinatari}
+                </MeOp>
+              </section>
+
             </div>
           </section>
         ) : (

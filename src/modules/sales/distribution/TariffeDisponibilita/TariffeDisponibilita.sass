@@ -1170,15 +1170,37 @@
   &--wide
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))
 
-// Destinatari di restrizioni e Minimum-LOS (canali o prodotti)
+// Macro area "Regole di prenotazione" (Restrizioni / Minimum-LOS)
+.me3-group
+  display: flex
+  flex-direction: column
+  gap: $space-md
+  padding: $space-md
+  background: $bg
+  border-radius: $radius-lg
+
+  &__head
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  &__title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+// Destinatari di restrizioni o Minimum-LOS (canali o prodotti), in fondo
+// all'operazione attiva
 .me3-dest
+  flex-basis: 100%
   display: flex
   flex-direction: column
   align-items: flex-start
   gap: $space-md
-  padding: $space-md $space-lg
-  border: 1px dashed $border
-  border-radius: $radius-lg
+  padding-top: $space-md
+  border-top: 1px dashed $border
   > .me3-chips,
   > .me3-field--full
     align-self: stretch
@@ -1439,6 +1461,20 @@
 .me3-mercato
   width: 150px
 
+// Mercato a mano oppure disponibilità residua automatica
+.me3-disp
+  flex-basis: 100%
+  display: flex
+  align-items: flex-end
+  flex-wrap: wrap
+  gap: $space-md $space-xl
+
+  &__residua
+    min-height: 34px
+
+  &__nota
+    flex-basis: 100%
+
 // Segmentato
 .me3-seg
   display: inline-flex
@@ -1469,6 +1505,18 @@
       background: $white
       color: $primary
       box-shadow: $shadow-sm
+    // Apri/Chiudi: l'opzione attiva è piena (verde o rossa), l'altra resta spenta
+    &--apri:not(.me3-seg__opt--on),
+    &--chiudi:not(.me3-seg__opt--on)
+      color: $text-disabled
+      &:hover
+        color: $text-inactive
+    &--apri.me3-seg__opt--on
+      background: $success
+      color: $white
+    &--chiudi.me3-seg__opt--on
+      background: $error
+      color: $white
 
 // Stepper notti minime
 .me3-stepper
