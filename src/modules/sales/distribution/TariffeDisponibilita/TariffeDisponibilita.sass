@@ -265,32 +265,6 @@
     font-weight: 600
     color: $text-inactive
 
-  &__th-room
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 8px
-
-  // "Espandi tutte": apre in un colpo le righe Occupate/Residuo di ogni camera
-  &__expall
-    appearance: none
-    border: none
-    background: transparent
-    padding: 3px 6px
-    border-radius: $radius-sm
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    font-size: 11px
-    font-weight: 600
-    text-transform: none
-    color: $primary
-    cursor: pointer
-    white-space: nowrap
-    transition: $transition-fast
-    &:hover
-      background: alpha($primary, 0.08)
-
   // Blocco camera (tbody)
   &__room
     border-bottom: 2px solid $border
@@ -394,7 +368,7 @@
 
   // Riga 1 — box allotment + info + chiusura
   &__cell--allot
-    padding: 6px 2px
+    padding: 6px 0
 
   // La colonna del giorno è 64px: box, info e clessidra devono starci dentro tutti,
   // altrimenti l'ultima icona finisce nella cella accanto.
@@ -456,25 +430,28 @@
     &:hover
       transform: scale(1.15)
 
-  // Icona "Funzioni": unico accesso a tutte le funzioni del giorno
+  // Icona "Funzioni": unico accesso a tutte le funzioni del giorno. Pastiglia
+  // colorata e staccata da info/clessidra, così si legge come un pulsante a sé.
   &__fn
     appearance: none
     border: none
-    background: transparent
-    margin: 0
+    background: alpha($primary, 0.14)
+    margin: 0 0 0 3px
     padding: 0
-    width: 10px
-    height: 18px
-    border-radius: 3px
+    width: 13px
+    height: 20px
+    flex-shrink: 0
+    border-radius: 4px
     display: inline-flex
     align-items: center
     justify-content: center
-    font-size: 12px
+    font-size: 13px
     color: $primary
     cursor: pointer
     transition: $transition-fast
     &:hover, &:focus-visible
-      background: alpha($primary, 0.12)
+      background: $primary
+      color: #fff
       outline: none
     &--on
       background: $primary
@@ -538,47 +515,34 @@
     color: $text-inactive
     vertical-align: middle
 
-  &__cell--occ
-    padding: 4px 6px
+  &__r--occ
+    height: 56px
 
-  // Occupazione: occupate/totali + barra + percentuale, in una sola riga di lettura
+  &__cell--occ
+    border-top: 1px solid $border
+
   &__occ
     display: flex
     flex-direction: column
-    align-items: stretch
-    gap: 2px
-    font-size: 11px
-    color: $text-inactive
-    font-variant-numeric: tabular-nums
+    align-items: center
+    gap: 1px
 
   &__occ-nums
-    b
-      color: $text-active
-      font-weight: 700
+    display: inline-flex
+    gap: 8px
+    font-size: 11px
+    font-weight: 700
+    line-height: 1
 
-  &__occ-bar
-    display: block
-    height: 4px
-    border-radius: 999px
-    background: alpha($text-inactive, 0.15)
-    overflow: hidden
+  &__occ-o
+    color: $success-mid
 
-  &__occ-fill
-    display: block
-    height: 100%
-    border-radius: inherit
-    background: $success
-  @for $i from 0 through 20
-    &__occ-fill--#{$i * 5}
-      width: #{$i * 5%}
-
-  &__occ--low .td__occ-fill
-    background: $error
-  &__occ--mid .td__occ-fill
-    background: $warning
+  &__occ-t
+    color: $success
 
   &__occ-pct
-    font-size: 10px
+    font-size: 11px
+    color: $text-inactive
     font-weight: 600
 
   &__cell--resid

@@ -66,8 +66,13 @@ function occDay(n: number) {
   return tot ? (occ / tot) * 100 : 0
 }
 function occupateOf(room: Camera, n: number) { return seedOf(room.id, n + 17) % (room.unit + 1) }
-// Tono della barra di occupazione: rosso = camere ferme, verde = struttura piena.
-function occTone(pct: number) { return pct < 30 ? 'low' : pct < 55 ? 'mid' : 'high' }
+function batteryFor(pct: number): { ico: string; col: string } {
+  if (pct < 5)  return { ico: 'battery-empty', col: 'var(--color-error)' }
+  if (pct < 30) return { ico: 'battery-low',   col: 'var(--color-error)' }
+  if (pct < 55) return { ico: 'battery-mid',   col: 'var(--color-warning)' }
+  if (pct < 80) return { ico: 'battery-high',  col: 'var(--color-success)' }
+  return { ico: 'battery-full', col: 'var(--color-success)' }
+}
 // Residuo sui canali: allotment inviato meno quanto già venduto dai canali.
 function residuoOf(room: Camera, n: number, allot: number) { return Math.max(0, allot - (seedOf(room.id, n + 41) % 3)) }
 
@@ -640,8 +645,6 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
   const nDirty = Object.keys(dirty).length
 
   const toggleExpand = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }))
-  const tutteEspanse = CAMERE.every(r => expanded[r.id])
-  const toggleExpandAll = () => setExpanded(tutteEspanse ? {} : Object.fromEntries(CAMERE.map(r => [r.id, true])))
   const toggleMode = (m: 'chiudi' | 'apri') => { setFn(null); setMode(cur => (cur === m ? null : m)) }
   // Esc esce dalla modalità apri/chiudi.
   useEffect(() => {
@@ -911,17 +914,7 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
           </colgroup>
           <thead>
             <tr>
-              <th className="td__th td__th--room">
-                <span className="td__th-room">
-                  Tipo camera
-                  {vista === 'singola' && (
-                    <button type="button" className="td__expall" onClick={toggleExpandAll} aria-expanded={tutteEspanse}>
-                      <i className={`fa-solid ${tutteEspanse ? 'fa-angles-up' : 'fa-angles-down'}`} />
-                      {tutteEspanse ? 'Comprimi tutte' : 'Espandi tutte'}
-                    </button>
-                  )}
-                </span>
-              </th>
+              <th className="td__th td__th--room">Tipo camera</th>
               {cols.map(c => (
                 <th key={c.i} className={`td__th td__th--day ${c.weekend ? 'td__th--weekend' : ''}`}>
                   <span className="td__th-day">{c.day}<small> {c.mon}</small></span>
@@ -1098,12 +1091,16 @@ export default function TariffeDisponibilita({ navigate }: { navigate: (p: strin
                       {cols.map(c => {
                         const occ = occupateOf(room, c.i)
                         const pct = room.unit ? (occ / room.unit) * 100 : 0
+                        const bat = batteryFor(pct)
                         return (
                           <td key={c.i} className="td__cell td__cell--occ">
-                            <div className={`td__occ td__occ--${occTone(pct)}`}>
-                              <span className="td__occ-nums"><b>{occ}</b>/{room.unit}</span>
-                              <span className="td__occ-bar"><span className={`td__occ-fill td__occ-fill--${Math.round(pct / 5) * 5}`} /></span>
-                              <span className="td__occ-pct">{Math.round(pct)}%</span>
+                            <div className="td__occ">
+                              <Ico n={bat.ico} s={16} c={bat.col} w="solid" />
+                              <span className="td__occ-nums">
+                                <span className="td__occ-o">{occ}</span>
+                                <span className="td__occ-t">{room.unit}</span>
+                              </span>
+                              <span className="td__occ-pct">{pct.toFixed(2).replace('.', ',')}%</span>
                             </div>
                           </td>
                         )
