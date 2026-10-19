@@ -17,7 +17,7 @@ interface Sistema {
   /** Dominio per fetch del logo via Clearbit Logo API */
   domain?: string
   /** Stile del "logo" testuale di fallback */
-  logoStyle?: 'alyante' | 'verticalbooking' | 'hqrevenue' | 'syselicat' | 'gamma' | 'sojern' | 'travco' | 'g2travel' | 'italcamel' | 'avoris' | 'agoda' | 'ratehawk'
+  logoStyle?: 'verticalbooking' | 'hqrevenue' | 'syselicat' | 'gamma' | 'sojern' | 'travco' | 'g2travel' | 'italcamel' | 'avoris' | 'agoda' | 'ratehawk'
   tipologia: string
   ultimoTrasferimento: string | null
   status: Status
@@ -25,7 +25,6 @@ interface Sistema {
 }
 
 const SISTEMI_BASE: Sistema[] = [
-  { id: 'alyante',         nome: 'ALYANTE',          domain: 'teamsystem.com',     logoStyle: 'alyante',         tipologia: 'Property Management System',  ultimoTrasferimento: '04/05/2026 14:50', status: 'ok' },
   { id: 'verticalbooking', nome: 'VERTICAL BOOKING', domain: 'verticalbooking.com', logoStyle: 'verticalbooking', tipologia: 'Centre Reservation System',   ultimoTrasferimento: '04/05/2026 14:50', status: 'ok' },
   { id: 'hqrevenue',       nome: 'HQ revenue',       domain: 'hqrevenue.com',      logoStyle: 'hqrevenue',       tipologia: 'External Sources',            ultimoTrasferimento: null,               status: 'error' },
   { id: 'syselicat',       nome: 'SYS.ELICAT',       domain: 'elicat.it',          logoStyle: 'syselicat',       tipologia: 'Accounting System',           ultimoTrasferimento: '04/05/2026 14:50', status: 'ok' },
