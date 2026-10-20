@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react'
+import clsx from 'clsx'
 import PageHead from '../../../../core/components/PageHead'
 import TruncatedText from '../../../../core/components/TruncatedText'
+import Tooltip from '../../../../core/components/Tooltip'
+import Modal from '../../../../core/components/Modal'
+import EmptyState from '../../../../core/components/EmptyState'
+import FlagCircle from '../../../../core/components/FlagCircle'
+import { SelectField, InputField, SearchField, ToggleSwitch } from '../../../../core/components/form'
+import { useCountUp } from '../../../../core/bi/useCountUp'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
-import { SelectField, InputField } from '../../../../core/components/form'
+import { useConfirmStore } from '../../../../store/useConfirmStore'
 import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
 import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
@@ -49,63 +56,89 @@ interface Data {
   cluster: string[]
 }
 
+type CanaleKey = 'corporate' | 'gruppi' | 'b2b' | 'b2c'
+type Operatore = OperatoreCorporate | OperatoreGenerico
+
+// Canali di vendita: colore = slot della palette grafici (ordine fisso, vedi
+// --chart-*), icona Font Awesome e descrizione mostrata sotto il titolo.
+const CANALI: { key: CanaleKey; label: string; icon: string; desc: string }[] = [
+  { key: 'corporate', label: 'Corporate', icon: 'fa-briefcase',    desc: 'Aziende con accordo tariffario' },
+  { key: 'gruppi',    label: 'Gruppi',    icon: 'fa-people-group', desc: 'Tour operator e agenzie per gruppi' },
+  { key: 'b2b',       label: 'B2B',       icon: 'fa-handshake',    desc: 'Intermediari e reti commerciali' },
+  { key: 'b2c',       label: 'B2C',       icon: 'fa-globe',        desc: 'Portali rivolti al cliente finale' },
+]
+
 const FALLBACK: Data = {
   Strutture: [{ Id: 1, nome: 'Hotel Archimede' }],
   StrutturaId: 1,
   attenzione: true,
   corporate: [
-    { id: 1, nome: 'Ferservizi',                  contratto: false, libera: false, capacita: 2 },
-    { id: 2, nome: 'Italcamel',                   contratto: false, libera: false, capacita: 3 },
+    { id: 1, nome: 'Ferservizi',                  contratto: true,  libera: false, capacita: 2 },
+    { id: 2, nome: 'Italcamel',                   contratto: false, libera: true,  capacita: 3 },
     { id: 3, nome: 'San Marino Events',           contratto: false, libera: false, capacita: 1 },
-    { id: 4, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, capacita: 2 },
+    { id: 4, nome: 'San Marino Viaggi e Vacanze', contratto: true,  libera: true,  capacita: 2 },
     { id: 5, nome: 'Malatesta',                   contratto: false, libera: false, capacita: 1 },
-    { id: 6, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, capacita: 2 },
-    { id: 7, nome: 'Malatesta',                   contratto: false, libera: false, capacita: 1 },
+    { id: 6, nome: 'Rimini Business Travel',      contratto: false, libera: false, capacita: 2 },
+    { id: 7, nome: 'Adriatica Congressi',         contratto: false, libera: true,  capacita: 1 },
   ],
   gruppi: [
-    { id: 1, nome: 'Ferservizi',                  contratto: false, libera: false, bandiere: ['it','es','de'] },
-    { id: 2, nome: 'Italcamel',                   contratto: false, libera: false, bandiere: ['pt','it'] },
+    { id: 1, nome: 'Ferservizi',                  contratto: false, libera: true,  bandiere: ['it','es','de'] },
+    { id: 2, nome: 'Italcamel',                   contratto: true,  libera: false, bandiere: ['pt','it'] },
     { id: 3, nome: 'San Marino Events',           contratto: false, libera: false, bandiere: ['ch','se','fi'] },
     { id: 4, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, bandiere: ['it','es','de'] },
-    { id: 5, nome: 'Malatesta',                   contratto: false, libera: false, bandiere: ['pt','it'] },
-    { id: 6, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, bandiere: ['ch','se','fi'] },
-    { id: 7, nome: 'Malatesta',                   contratto: false, libera: false, bandiere: ['us','kr'] },
+    { id: 5, nome: 'Malatesta',                   contratto: true,  libera: true,  bandiere: ['pt','it'] },
+    { id: 6, nome: 'Titano Group Tours',          contratto: false, libera: false, bandiere: ['ch','se','fi'] },
+    { id: 7, nome: 'Pacific Gateway',             contratto: false, libera: false, bandiere: ['us','kr'] },
   ],
   b2b: [
     { id: 1, nome: 'Ferservizi',                  contratto: false, libera: false, bandiere: ['it','es','de'] },
-    { id: 2, nome: 'Italcamel',                   contratto: false, libera: false, bandiere: ['pt','it'] },
-    { id: 3, nome: 'San Marino Events',           contratto: false, libera: false, bandiere: ['ch','se','fi'] },
+    { id: 2, nome: 'Italcamel',                   contratto: false, libera: true,  bandiere: ['pt','it'] },
+    { id: 3, nome: 'San Marino Events',           contratto: true,  libera: false, bandiere: ['ch','se','fi'] },
     { id: 4, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, bandiere: ['ch'] },
     { id: 5, nome: 'Malatesta',                   contratto: false, libera: false, bandiere: ['ch','se','fi'] },
-    { id: 6, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, bandiere: ['it'] },
-    { id: 7, nome: 'Malatesta',                   contratto: false, libera: false, bandiere: ['us','kr'] },
+    { id: 6, nome: 'Hotelbeds',                   contratto: true,  libera: true,  bandiere: ['it'] },
+    { id: 7, nome: 'Pacific Gateway',             contratto: false, libera: false, bandiere: ['us','kr'] },
   ],
   b2c: [
-    { id: 1, nome: 'Ferservizi',                  contratto: false, libera: false, bandiere: ['it','es','de'] },
-    { id: 2, nome: 'Italcamel',                   contratto: false, libera: false, bandiere: ['pt','it'] },
+    { id: 1, nome: 'Booking.com',                 contratto: true,  libera: true,  bandiere: ['it','es','de'] },
+    { id: 2, nome: 'Expedia',                     contratto: false, libera: true,  bandiere: ['pt','it'] },
     { id: 3, nome: 'San Marino Events',           contratto: false, libera: false, bandiere: ['ch','se','fi'] },
     { id: 4, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, bandiere: ['it','es','de'] },
     { id: 5, nome: 'Malatesta',                   contratto: false, libera: false, bandiere: ['pt','it'] },
-    { id: 6, nome: 'San Marino Viaggi e Vacanze', contratto: false, libera: false, bandiere: ['ch','se','fi'] },
-    { id: 7, nome: 'Malatesta',                   contratto: false, libera: false, bandiere: ['us','kr'] },
+    { id: 6, nome: 'Airbnb',                      contratto: false, libera: true,  bandiere: ['ch','se','fi'] },
+    { id: 7, nome: 'Trip.com',                    contratto: false, libera: false, bandiere: ['us','kr'] },
   ],
   citta: 'Roma',
   categoria: 3,
   strutture: [
-    { id: 1, nome: 'Hotel Domus Aurelia',           selected: false },
+    { id: 1, nome: 'Hotel Domus Aurelia',           selected: true },
     { id: 2, nome: 'Grand Hotel Colonna Romana',    selected: false },
-    { id: 3, nome: 'Palazzo Aventino Suites',       selected: false },
+    { id: 3, nome: 'Palazzo Aventino Suites',       selected: true },
     { id: 4, nome: 'Hotel Fontana Imperiale',       selected: false },
     { id: 5, nome: 'Residenza Foro Antico',         selected: false },
     { id: 6, nome: 'Hotel Villa Quirinale',         selected: false },
     { id: 7, nome: 'Palazzo Trastevere Boutique Hotel', selected: false },
     { id: 8, nome: 'Hotel Pantheon Royal',          selected: false },
-    { id: 9, nome: 'Residenza Foro Antico',         selected: false },
-    { id: 10, nome: 'Palazzo Aventino Suites',      selected: false },
+    { id: 9, nome: 'Residenza Navona',              selected: false },
+    { id: 10, nome: 'Hotel Celio Garden',           selected: false },
   ],
-  nomeCluster: 'Centro Storico Roma',
+  nomeCluster: '',
   cluster: ['Centro Storico Roma'],
 }
+
+// Potenziale cliente: valore 0-5 (mock deterministico)
+const potenzialeOf = (id: number) => (id * 7 + 2) % 6
+
+const attivo = (r: Operatore) => r.contratto || r.libera
+
+const filtraNome = <T extends { nome: string }>(rows: T[], q: string) =>
+  !q.trim() ? rows : rows.filter((r) => r.nome.toLowerCase().includes(q.trim().toLowerCase()))
+
+// Percentuale arrotondata a 5 → classe `--pNN` (larghezze generate in sass, niente stili inline)
+const step5 = (pct: number) => Math.max(0, Math.min(100, Math.round(pct / 5) * 5))
+
+const iniziali = (nome: string) =>
+  nome.split(/\s+/).filter((w) => /^[A-Za-zÀ-ú]/.test(w)).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
 
 export default function ImpostaDistribuzione({ navigate }: { navigate: (p: string) => void }) {
   // Pagina condivisa: i Tour Operator vedono una versione dedicata (distribuzione
@@ -115,6 +148,7 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
   const profiles         = useAccessStore(s => s.profiles)
   const moduli = assist ? assist.moduli : (currentProfileId ? profiles.find(p => p.id === currentProfileId)?.moduli : undefined)
   const isTO = moduli?.includes('tour-operator')
+  const confirm = useConfirmStore(s => s.confirm)
 
   // Strutture (con camere) del cliente, a partire da quella selezionata in alto.
   const { struttura: strutturaCorrente } = useStrutturaCorrente()
@@ -125,16 +159,15 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
     setData((d) => ({ ...d, Strutture: struttureCliente, StrutturaId: idStruttura(strutturaCorrente) }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schede, strutturaCorrente])
+
+  const [canale, setCanale] = useState<'tutti' | CanaleKey>('tutti')
+  const [q, setQ] = useState('')
   const [invitaOpen, setInvitaOpen] = useState(false)
   const [invita, setInvita] = useState({ azienda: '', email: '', referente: '' })
-  const [expanded, setExpanded] = useState<string | null>(null)
-
-  const submitInvita = async () => {
-    if (!invita.azienda.trim() || !invita.email.trim()) return
-    try { await apiFetchSibylla('distribuzione/InvitaOperatore', { method: 'POST', body: invita }) } catch {}
-    setInvita({ azienda: '', email: '', referente: '' })
-    setInvitaOpen(false)
-  }
+  const [expanded, setExpanded] = useState<CanaleKey | null>(null)
+  // Numero di strutture di ciascun cluster (il BE restituisce solo i nomi)
+  const [clusterSize, setClusterSize] = useState<Record<string, number>>({ 'Centro Storico Roma': 4 })
+  const [ultimoCluster, setUltimoCluster] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -144,42 +177,52 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
     return () => { cancelled = true }
   }, [])
 
-  const dismissAlert = () => setData({ ...data, attenzione: false })
+  const submitInvita = async () => {
+    if (!invita.azienda.trim() || !invita.email.trim()) return
+    try { await apiFetchSibylla('distribuzione/InvitaOperatore', { method: 'POST', body: invita }) } catch {}
+    setInvita({ azienda: '', email: '', referente: '' })
+    setInvitaOpen(false)
+  }
 
-  const toggleField = (
-    section: 'corporate' | 'gruppi' | 'b2b' | 'b2c',
-    id: number,
-    field: 'contratto' | 'libera',
-  ) => {
+  const toggleField = (section: CanaleKey, id: number, field: 'contratto' | 'libera') => {
     setData((prev) => ({
       ...prev,
-      [section]: (prev[section] as any[]).map((r) => r.id === id ? { ...r, [field]: !r[field] } : r),
+      [section]: (prev[section] as Operatore[]).map((r) => r.id === id ? { ...r, [field]: !r[field] } : r),
     }))
   }
 
-  const toggleStruttura = (id: number) => {
-    setData({
-      ...data,
-      strutture: data.strutture.map((s) => s.id === id ? { ...s, selected: !s.selected } : s),
-    })
+  const setTuttiCanale = (section: CanaleKey, field: 'contratto' | 'libera', value: boolean) => {
+    setData((prev) => ({ ...prev, [section]: (prev[section] as Operatore[]).map((r) => ({ ...r, [field]: value })) }))
+  }
+
+  const toggleStruttura = (id: number) =>
+    setData((d) => ({ ...d, strutture: d.strutture.map((s) => s.id === id ? { ...s, selected: !s.selected } : s) }))
+
+  const selezionate = data.strutture.filter((s) => s.selected).length
+  const toggleTutteStrutture = () => {
+    const all = selezionate < data.strutture.length
+    setData((d) => ({ ...d, strutture: d.strutture.map((s) => ({ ...s, selected: all })) }))
   }
 
   const creaCluster = () => {
-    if (!data.nomeCluster.trim()) return
-    setData({ ...data, cluster: [...data.cluster, data.nomeCluster], nomeCluster: '' })
+    const nome = data.nomeCluster.trim()
+    if (!nome || !selezionate) return
+    setData((d) => ({ ...d, cluster: [nome, ...d.cluster.filter((c) => c !== nome)], nomeCluster: '' }))
+    setClusterSize((m) => ({ ...m, [nome]: selezionate }))
+    setUltimoCluster(nome)
   }
 
-  // Rende una sezione (inline con icona espandi, oppure dentro la modale ingrandita)
-  const renderSezione = (key: string, inModal = false) => {
-    const onExpand = inModal ? undefined : () => setExpanded(key)
-    switch (key) {
-      case 'corporate': return <SezioneCorporate label="Corporate" rows={data.corporate} onToggle={(id, f) => toggleField('corporate', id, f)} onExpand={onExpand} />
-      case 'gruppi':    return <SezioneGenerica label="Gruppi" verifica rows={data.gruppi} onToggle={(id, f) => toggleField('gruppi', id, f)} onExpand={onExpand} />
-      case 'b2b':       return <SezioneGenerica label="B2B" verifica rows={data.b2b} onToggle={(id, f) => toggleField('b2b', id, f)} onExpand={onExpand} />
-      case 'b2c':       return <SezioneGenerica label="B2C" verifica rows={data.b2c} onToggle={(id, f) => toggleField('b2c', id, f)} onExpand={onExpand} />
-      default:          return null
-    }
+  const eliminaCluster = async (nome: string) => {
+    const ok = await confirm({ title: 'Elimina cluster', message: <>Eliminare il cluster <strong>{nome}</strong>?</>, confirmLabel: 'Elimina' })
+    if (ok) setData((d) => ({ ...d, cluster: d.cluster.filter((c) => c !== nome) }))
   }
+
+  const rowsOf = (key: CanaleKey) => data[key] as Operatore[]
+  const canaliVisibili = canale === 'tutti' ? CANALI : CANALI.filter((c) => c.key === canale)
+
+  // Copertura complessiva: operatori con almeno una disponibilità attiva
+  const tot = CANALI.reduce((n, c) => n + rowsOf(c.key).length, 0)
+  const att = CANALI.reduce((n, c) => n + rowsOf(c.key).filter(attivo).length, 0)
 
   if (isTO) return <ImpostaDistribuzioneTO navigate={navigate} />
 
@@ -188,316 +231,348 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
       <PageHead
         title="Imposta distribuzione"
         subtitle="Gestione della distribuzione delle camere per i diversi canali di vendita"
+        actions={
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaOpen(true)}>
+            <i className="fa-regular fa-envelope" /> Invita nuovo operatore
+          </button>
+        }
       />
 
       {data.attenzione && (
-        <div className="imposta-dist__alert">
-          <span>ATTENZIONE!! per un risultato ottimale è necessario configurare il budget dei ricavi</span>
-          <button type="button" className="imposta-dist__alert-close" onClick={dismissAlert} aria-label="Chiudi avviso">
+        <div className="imposta-dist__alert" role="status">
+          <span className="imposta-dist__alert-icon"><i className="fa-solid fa-triangle-exclamation" /></span>
+          <div className="imposta-dist__alert-text">
+            <strong>Budget dei ricavi da configurare</strong>
+            <span>Per una distribuzione ottimale delle camere configura prima il budget dei ricavi.</span>
+          </div>
+          <button type="button" className="sib-btn sib-btn--ghost sib-btn--sm" onClick={() => navigate('budget-ricavi')}>
+            Configura budget <i className="fa-solid fa-arrow-right" />
+          </button>
+          <button type="button" className="imposta-dist__alert-close" onClick={() => setData({ ...data, attenzione: false })} aria-label="Chiudi avviso">
             <i className="fa-light fa-xmark" />
           </button>
         </div>
       )}
 
-      <div className="imposta-dist__bar">
-        <div className="imposta-dist__field">
-          <SelectField
-            label="Strutture"
-            name="strutture"
-            className="imposta-dist__select"
-            value={data.StrutturaId ?? ''}
-            onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
-            options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
-          />
+      <div className="imposta-dist__toolbar">
+        <SelectField
+          label="Struttura"
+          name="strutture"
+          className="imposta-dist__select"
+          value={data.StrutturaId ?? ''}
+          onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
+          options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
+        />
+        <div className="imposta-dist__canali" role="tablist" aria-label="Canali di vendita">
+          <button type="button" role="tab" aria-selected={canale === 'tutti'}
+            className={clsx('imposta-dist__canale-tab', canale === 'tutti' && 'is-active')} onClick={() => setCanale('tutti')}>
+            <i className="fa-solid fa-layer-group" /> Tutti
+            <span className="imposta-dist__canale-count">{att}/{tot}</span>
+          </button>
+          {CANALI.map((c) => {
+            const rows = rowsOf(c.key)
+            return (
+              <button key={c.key} type="button" role="tab" aria-selected={canale === c.key}
+                className={clsx('imposta-dist__canale-tab', `imposta-dist__canale-tab--${c.key}`, canale === c.key && 'is-active')}
+                onClick={() => setCanale(c.key)}>
+                <i className={`fa-solid ${c.icon}`} /> {c.label}
+                <span className="imposta-dist__canale-count">{rows.filter(attivo).length}/{rows.length}</span>
+              </button>
+            )
+          })}
         </div>
-        <button type="button" className="sib-btn sib-btn--secondary imposta-dist__invita" onClick={() => setInvitaOpen(true)}>
-          <i className="fa-regular fa-envelope" /> Invita nuovo operatore
-        </button>
+        <SearchField
+          className="imposta-dist__search"
+          placeholder="Cerca operatore…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onClear={() => setQ('')}
+        />
       </div>
 
-      {invitaOpen && (
-        <div className="imposta-dist__modal-backdrop" onClick={() => setInvitaOpen(false)}>
-          <div className="imposta-dist__modal" onClick={(e) => e.stopPropagation()}>
-            <div className="imposta-dist__modal-head">
-              <h3>Invita utente</h3>
-              <button type="button" className="imposta-dist__modal-close" onClick={() => setInvitaOpen(false)} aria-label="Chiudi">
-                <i className="fa-light fa-xmark" />
+      <div className="imposta-dist__layout">
+        <div className={clsx('imposta-dist__workspace', canale !== 'tutti' && 'imposta-dist__workspace--single')} key={canale}>
+          {canaliVisibili.map((c) => (
+            <CanaleCard
+              key={c.key}
+              canale={c}
+              rows={rowsOf(c.key)}
+              q={q}
+              verifica={c.key !== 'corporate'}
+              onToggle={(id, f) => toggleField(c.key, id, f)}
+              onTutti={(f, v) => setTuttiCanale(c.key, f, v)}
+              onExpand={canale === 'tutti' ? () => setExpanded(c.key) : undefined}
+            />
+          ))}
+        </div>
+
+        <aside className="imposta-dist__cluster">
+          <div className="imposta-dist__panel">
+            <div className="imposta-dist__panel-head">
+              <span className="imposta-dist__panel-icon"><i className="fa-solid fa-diagram-project" /></span>
+              <div>
+                <h3 className="imposta-dist__panel-title">Cluster competitivo</h3>
+                <p className="imposta-dist__panel-sub">Strutture ricettive con cui confrontare la distribuzione</p>
+              </div>
+            </div>
+
+            <div className="imposta-dist__filtro">
+              <span><i className="fa-solid fa-location-dot" /> {data.citta}</span>
+              <Stars n={data.categoria} />
+              <button type="button" className="imposta-dist__link" onClick={toggleTutteStrutture}>
+                {selezionate < data.strutture.length ? 'Seleziona tutte' : 'Deseleziona'}
               </button>
             </div>
-            <p className="imposta-dist__modal-sub">
-              Inserisci i dati di un referente e invita un nuovo utente.<br />
-              Riceverai Sibylla Token nel momento della sua registrazione.
-            </p>
-            <div className="imposta-dist__modal-field">
+
+            <ul className="imposta-dist__strutture">
+              {data.strutture.map((s) => (
+                <li key={s.id}>
+                  <label className={clsx('imposta-dist__struttura', s.selected && 'is-selected')}>
+                    <input type="checkbox" className="sib-checkbox" checked={s.selected} onChange={() => toggleStruttura(s.id)} />
+                    <TruncatedText text={s.nome} className="sib-truncate imposta-dist__struttura-nome" />
+                  </label>
+                </li>
+              ))}
+            </ul>
+
+            <div className="imposta-dist__crea">
               <InputField
-                label="Nome azienda"
-                name="azienda"
-                required
-                value={invita.azienda}
-                onChange={(e) => setInvita({ ...invita, azienda: e.target.value })}
-              />
-            </div>
-            <div className="imposta-dist__modal-field">
-              <InputField
-                label="Email"
-                name="email"
-                type="email"
-                required
-                value={invita.email}
-                onChange={(e) => setInvita({ ...invita, email: e.target.value })}
-              />
-            </div>
-            <div className="imposta-dist__modal-field">
-              <InputField
-                label="Referente"
-                name="referente"
-                value={invita.referente}
-                onChange={(e) => setInvita({ ...invita, referente: e.target.value })}
-              />
-            </div>
-            <div className="imposta-dist__modal-actions">
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaOpen(false)}>Annulla</button>
-              <button type="button" className="sib-btn sib-btn--primary" onClick={submitInvita}>Invita</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="imposta-dist__grid">
-        {/* ── Colonna 1: Corporate + Gruppi ───────────────────────────────── */}
-        <div className="imposta-dist__col">
-          {renderSezione('corporate')}
-          {renderSezione('gruppi')}
-        </div>
-
-        {/* ── Colonna 2: B2B + B2C ────────────────────────────────────────── */}
-        <div className="imposta-dist__col">
-          {renderSezione('b2b')}
-          {renderSezione('b2c')}
-        </div>
-
-        {/* ── Colonna 3: Strutture ricettive + Cluster ────────────────────── */}
-        <div className="imposta-dist__col">
-          <h3 className="imposta-dist__section-title">Strutture ricettive</h3>
-          <div className="imposta-dist__filtro-strutture">
-            <span>Città: <strong>{data.citta}</strong></span>
-            <span>Categoria: <Stars n={data.categoria} /></span>
-            <span className="imposta-dist__seleziona-label">Seleziona</span>
-          </div>
-          <div className="imposta-dist__strutture-list">
-            {data.strutture.map((s) => (
-              <label className="imposta-dist__struttura-row" key={s.id}>
-                <span>{s.nome}</span>
-                <input
-                  type="checkbox"
-                  className="sib-checkbox"
-                  checked={s.selected}
-                  onChange={() => toggleStruttura(s.id)}
-                />
-              </label>
-            ))}
-          </div>
-
-          <div className="imposta-dist__cluster-form">
-            <div className="imposta-dist__cluster-row imposta-dist__field-raw">
-              <span className="imposta-dist__cluster-label">Nome</span>
-              <input
-                type="text"
-                className="sib-input"
+                label="Nome cluster"
+                name="nomeCluster"
+                placeholder="Es. Centro Storico Roma"
                 value={data.nomeCluster}
                 onChange={(e) => setData({ ...data, nomeCluster: e.target.value })}
+                hint={`${selezionate} ${selezionate === 1 ? 'struttura selezionata' : 'strutture selezionate'}`}
               />
-              <button type="button" className="sib-btn sib-btn--primary" onClick={creaCluster}>Crea Cluster</button>
+              <button type="button" className="sib-btn sib-btn--primary" onClick={creaCluster} disabled={!data.nomeCluster.trim() || !selezionate}>
+                <i className="fa-solid fa-plus" /> Crea cluster
+              </button>
             </div>
-          </div>
 
-          <h3 className="imposta-dist__cluster-title">Il tuo cluster</h3>
-          <div className="imposta-dist__cluster-list">
-            {data.cluster.map((c, i) => (
-              <div className="imposta-dist__cluster-item" key={i}>
-                <i className="fa-light fa-diagram-project" />
-                <span>{c}</span>
-              </div>
-            ))}
+            <h4 className="imposta-dist__cluster-title">I tuoi cluster</h4>
+            {data.cluster.length === 0 ? (
+              <p className="imposta-dist__cluster-vuoto">Nessun cluster creato.</p>
+            ) : (
+              <ul className="imposta-dist__cluster-list">
+                {data.cluster.map((c) => (
+                  <li key={c} className={clsx('imposta-dist__cluster-item', c === ultimoCluster && 'is-new')}>
+                    <i className="fa-solid fa-diagram-project" />
+                    <TruncatedText text={c} className="sib-truncate imposta-dist__cluster-nome" />
+                    {clusterSize[c] != null && <span className="imposta-dist__cluster-n">{clusterSize[c]} strutture</span>}
+                    <Tooltip text="Elimina cluster">
+                      <button type="button" className="imposta-dist__cluster-del" onClick={() => eliminaCluster(c)} aria-label={`Elimina ${c}`}>
+                        <i className="fa-solid fa-trash" />
+                      </button>
+                    </Tooltip>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+        </aside>
+      </div>
+
+      <Modal open={invitaOpen} onClose={() => setInvitaOpen(false)} title="Invita nuovo operatore">
+        <p className="imposta-dist__modal-sub">
+          Inserisci i dati di un referente e invita un nuovo operatore.
+          Riceverai Sibylla Token nel momento della sua registrazione.
+        </p>
+        <div className="imposta-dist__modal-fields">
+          <InputField label="Nome azienda" name="azienda" required value={invita.azienda} onChange={(e) => setInvita({ ...invita, azienda: e.target.value })} />
+          <InputField label="Email" name="email" type="email" required value={invita.email} onChange={(e) => setInvita({ ...invita, email: e.target.value })} />
+          <InputField label="Referente" name="referente" value={invita.referente} onChange={(e) => setInvita({ ...invita, referente: e.target.value })} />
+        </div>
+        <div className="imposta-dist__modal-actions">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaOpen(false)}>Annulla</button>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={submitInvita} disabled={!invita.azienda.trim() || !invita.email.trim()}>
+            <i className="fa-solid fa-paper-plane" /> Invita
+          </button>
+        </div>
+      </Modal>
+
+      <Modal open={!!expanded} onClose={() => setExpanded(null)} size="xl" className="imposta-dist__expand">
+        {expanded && (
+          <CanaleCard
+            canale={CANALI.find((c) => c.key === expanded)!}
+            rows={rowsOf(expanded)}
+            q={q}
+            verifica={expanded !== 'corporate'}
+            onToggle={(id, f) => toggleField(expanded, id, f)}
+            onTutti={(f, v) => setTuttiCanale(expanded, f, v)}
+            onClose={() => setExpanded(null)}
+          />
+        )}
+      </Modal>
+    </div>
+  )
+}
+
+// ─── CARD CANALE ──────────────────────────────────────────────────────────────
+function CanaleCard({
+  canale, rows, q, verifica, onToggle, onTutti, onExpand, onClose,
+}: {
+  canale: (typeof CANALI)[number]
+  rows: Operatore[]
+  q: string
+  verifica?: boolean
+  onToggle: (id: number, field: 'contratto' | 'libera') => void
+  onTutti: (field: 'contratto' | 'libera', value: boolean) => void
+  onExpand?: () => void
+  onClose?: () => void
+}) {
+  const fRows = filtraNome(rows, q)
+  const isCorporate = canale.key === 'corporate'
+  const nContratto = rows.filter((r) => r.contratto).length
+  const nLibera = rows.filter((r) => r.libera && !r.contratto).length
+  const nAttivi = rows.filter(attivo).length
+  const copertura = rows.length ? Math.round((nAttivi / rows.length) * 100) : 0
+  const coperturaAnim = Math.round(useCountUp(copertura, 700))
+  const tuttiContratto = rows.length > 0 && nContratto === rows.length
+  const pctContratto = rows.length ? (nContratto / rows.length) * 100 : 0
+  const pctLibera = rows.length ? (nLibera / rows.length) * 100 : 0
+
+  return (
+    <section className={clsx('imposta-dist__card', `imposta-dist__card--${canale.key}`)}>
+      <header className="imposta-dist__card-head">
+        <span className="imposta-dist__card-icon"><i className={`fa-solid ${canale.icon}`} /></span>
+        <div className="imposta-dist__card-titles">
+          <h3 className="imposta-dist__card-title">{canale.label}</h3>
+          <span className="imposta-dist__card-desc">{canale.desc}</span>
+        </div>
+        <div className="imposta-dist__card-tools">
+          <Tooltip text={tuttiContratto ? 'Togli tutti dal contratto' : 'Metti tutti a contratto'}>
+            <button type="button" className="imposta-dist__tool" onClick={() => onTutti('contratto', !tuttiContratto)} aria-label="Tutti a contratto">
+              <i className={tuttiContratto ? 'fa-solid fa-square-minus' : 'fa-solid fa-square-check'} />
+            </button>
+          </Tooltip>
+          {onExpand && (
+            <Tooltip text="Ingrandisci">
+              <button type="button" className="imposta-dist__tool" onClick={onExpand} aria-label="Ingrandisci">
+                <i className="fa-solid fa-up-right-and-down-left-from-center" />
+              </button>
+            </Tooltip>
+          )}
+          {onClose && (
+            <button type="button" className="imposta-dist__tool" onClick={onClose} aria-label="Chiudi">
+              <i className="fa-solid fa-xmark" />
+            </button>
+          )}
+        </div>
+      </header>
+
+      <div className="imposta-dist__coverage">
+        <div className="imposta-dist__coverage-top">
+          <span>Copertura distribuzione</span>
+          <strong>{coperturaAnim}%</strong>
+          <span className="imposta-dist__coverage-n">{nAttivi} di {rows.length} operatori attivi</span>
+        </div>
+        <div className="imposta-dist__coverage-bar">
+          <span className={`imposta-dist__coverage-fill imposta-dist__coverage-fill--contratto imposta-dist__w--p${step5(pctContratto)}`} />
+          <span className={`imposta-dist__coverage-fill imposta-dist__coverage-fill--libera imposta-dist__w--p${step5(pctLibera)}`} />
+        </div>
+        <div className="imposta-dist__coverage-legend">
+          <span><i className="imposta-dist__dot imposta-dist__dot--contratto" /> A contratto {nContratto}</span>
+          <span><i className="imposta-dist__dot imposta-dist__dot--libera" /> Solo libera {nLibera}</span>
+          {verifica && <span className="imposta-dist__verifica"><i className="fa-solid fa-shield-check" /> Aderente al budget dei ricavi</span>}
         </div>
       </div>
 
-      {/* ── Card evidenziata: apre la sezione ingrandita su sfondo grigio ───────── */}
-      {expanded && (
-        <div className="imposta-dist__expand-backdrop" onClick={() => setExpanded(null)}>
-          <div className="imposta-dist__expand-modal" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="imposta-dist__expand-close" onClick={() => setExpanded(null)} aria-label="Chiudi">
-              <i className="fa-light fa-xmark" />
-            </button>
-            {renderSezione(expanded, true)}
-          </div>
-        </div>
+      {fRows.length === 0 ? (
+        <EmptyState icon="magnifying-glass" title="Nessun operatore" subtitle={`Nessun risultato per "${q}" in ${canale.label}.`} />
+      ) : (
+        <table className="sib-table imposta-dist__table">
+          <colgroup>
+            <col className="imposta-dist__col-nome" />
+            <col className="imposta-dist__col-pot" />
+            <col className="imposta-dist__col-sw" />
+            <col className="imposta-dist__col-sw" />
+            <col className="imposta-dist__col-extra" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Operatore</th>
+              <th><TruncatedText text="Potenziale" className="sib-truncate" /></th>
+              <th className="imposta-dist__th-c"><TruncatedText text="Contratto" full="Disponibilità a contratto" className="sib-truncate" /></th>
+              <th className="imposta-dist__th-c"><TruncatedText text="Libera" full="Disponibilità libera" className="sib-truncate" /></th>
+              <th className="imposta-dist__th-c">
+                {isCorporate
+                  ? <TruncatedText text="Capacità" full="Capacità di spesa" className="sib-truncate" />
+                  : <TruncatedText text="Mercato" full="Mercato di riferimento" className="sib-truncate" />}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {fRows.map((r) => (
+              <tr key={r.id} className={clsx(attivo(r) && 'is-active')}>
+                <td>
+                  <span className="imposta-dist__op">
+                    <span className="imposta-dist__op-avatar">{iniziali(r.nome)}</span>
+                    <TruncatedText text={r.nome} className="sib-truncate imposta-dist__op-nome" />
+                  </span>
+                </td>
+                <td><Potenziale value={potenzialeOf(r.id)} /></td>
+                <td className="imposta-dist__td-c">
+                  <ToggleSwitch checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} className="imposta-dist__switch" />
+                </td>
+                <td className="imposta-dist__td-c">
+                  <ToggleSwitch checked={r.libera} onChange={() => onToggle(r.id, 'libera')} className="imposta-dist__switch" />
+                </td>
+                <td className="imposta-dist__td-c">
+                  {'capacita' in r ? <CapacitaSpesa value={r.capacita} /> : <Mercato codes={r.bandiere} />}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
-    </div>
+    </section>
   )
 }
 
-// Potenziale cliente: valore 0-5 (mock deterministico) reso con icona + "n/5"
-const potenzialeOf = (id: number) => (id * 7 + 2) % 6
-
+// Potenziale 0-5: cinque tacche che si riempiono in sequenza
 function Potenziale({ value }: { value: number }) {
   return (
-    <span className="imposta-dist__pot" title={`Potenziale ${value}/5`}>
-      <span className="imposta-dist__pot-ico" role="img" aria-label="Potenziale">💪</span>
-      <span className="imposta-dist__pot-val">{value}/5</span>
-    </span>
+    <Tooltip text={`Potenziale ${value}/5`}>
+      <span className={clsx('imposta-dist__pot', value >= 4 && 'imposta-dist__pot--alto', value <= 1 && 'imposta-dist__pot--basso')}>
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} className={clsx('imposta-dist__pot-seg', i < value && 'is-on')} />
+        ))}
+        <span className="imposta-dist__pot-val">{value}/5</span>
+      </span>
+    </Tooltip>
   )
 }
 
-// Testata card: titolo + icona per evidenziare/ingrandire in modale
-function SezioneHead({ label, onExpand }: { label: string; onExpand?: () => void }) {
+function CapacitaSpesa({ value }: { value: Capacita }) {
+  const label = ['', 'Bassa', 'Media', 'Alta'][value]
   return (
-    <div className="imposta-dist__sezione-head">
-      <h3 className="imposta-dist__section-title">{label}</h3>
-      {onExpand && (
-        <button type="button" className="imposta-dist__expand-btn" onClick={onExpand} title="Ingrandisci" aria-label="Ingrandisci">
-          <i className="fa-light fa-up-right-and-down-left-from-center" />
-        </button>
-      )}
-    </div>
+    <Tooltip text={`Capacità di spesa: ${label}`}>
+      <span className="imposta-dist__euro-wrap">
+        {Array.from({ length: 3 }, (_, i) => (
+          <span key={i} className={clsx('imposta-dist__euro', i < value && 'is-on')}>€</span>
+        ))}
+      </span>
+    </Tooltip>
   )
 }
 
-// Intestazione colonna Nome: lente → campo di ricerca (filtra i nomi della card)
-function NomeHead({ q, setQ }: { q: string; setQ: (v: string) => void }) {
-  const [open, setOpen] = useState(false)
-  if (!open) {
-    return (
-      <button type="button" className="imposta-dist__nome-search-btn" onClick={() => setOpen(true)} title="Cerca per nome" aria-label="Cerca per nome">
-        <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-      </button>
-    )
-  }
+function Mercato({ codes }: { codes: string[] }) {
+  const vis = codes.slice(0, 3)
   return (
-    <span className="imposta-dist__nome-search">
-      <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-      <input autoFocus className="sib-input" placeholder="Cerca…" value={q} onChange={(e) => setQ(e.target.value)} />
-      <button type="button" className="imposta-dist__nome-search-clear" onClick={() => { setQ(''); setOpen(false) }} aria-label="Chiudi ricerca">
-        <i className="fa-light fa-xmark" aria-hidden="true" />
-      </button>
-    </span>
-  )
-}
-
-const filtraNome = <T extends { nome: string }>(rows: T[], q: string) =>
-  !q.trim() ? rows : rows.filter((r) => r.nome.toLowerCase().includes(q.trim().toLowerCase()))
-
-// ─── SEZIONE CORPORATE ──────────────────────────────────────────────────────
-function SezioneCorporate({
-  label, rows, onToggle, onExpand,
-}: {
-  label: string
-  rows: OperatoreCorporate[]
-  onToggle: (id: number, field: 'contratto' | 'libera') => void
-  onExpand?: () => void
-}) {
-  const [q, setQ] = useState('')
-  const fRows = filtraNome(rows, q)
-  return (
-    <div className="imposta-dist__sezione">
-      <SezioneHead label={label} onExpand={onExpand} />
-      <table className="sib-table imposta-dist__table">
-        <thead>
-          <tr>
-            <th><NomeHead q={q} setQ={setQ} /></th>
-            <th className="imposta-dist__th-c">Potenziale</th>
-            <th className="imposta-dist__th-c"><TruncatedText text="A contratto" full="Disponibilità a contratto" /></th>
-            <th className="imposta-dist__th-c"><TruncatedText text="Libera" full="Disponibilità libera" /></th>
-            <th className="imposta-dist__th-c"><TruncatedText text="Capacità" full="Capacità di spesa" /></th>
-          </tr>
-        </thead>
-        <tbody>
-          {fRows.map((r) => (
-            <tr key={r.id}>
-              <td><TruncatedText text={r.nome} className="sib-truncate" /></td>
-              <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
-              <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} /></td>
-              <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.libera} onChange={() => onToggle(r.id, 'libera')} /></td>
-              <td className="imposta-dist__td-c">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <span key={i} className={'imposta-dist__euro' + (i < r.capacita ? ' imposta-dist__euro--on' : '')}>€</span>
-                ))}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-// ─── SEZIONE GENERICA (Gruppi / B2B / B2C) ──────────────────────────────────
-function SezioneGenerica({
-  label, verifica, rows, onToggle, onExpand,
-}: {
-  label: string
-  verifica?: boolean
-  rows: OperatoreGenerico[]
-  onToggle: (id: number, field: 'contratto' | 'libera') => void
-  onExpand?: () => void
-}) {
-  const [q, setQ] = useState('')
-  const fRows = filtraNome(rows, q)
-  return (
-    <div className="imposta-dist__sezione">
-      <SezioneHead label={label} onExpand={onExpand} />
-      {verifica && (
-        <div className="imposta-dist__verifica">
-          <i className="fa-solid fa-shield-check" />
-          <span>Verifica aderenza Budget dei ricavi</span>
-        </div>
-      )}
-      <table className="sib-table imposta-dist__table">
-        <thead>
-          <tr>
-            <th><NomeHead q={q} setQ={setQ} /></th>
-            <th className="imposta-dist__th-c">Potenziale</th>
-            <th className="imposta-dist__th-c"><TruncatedText text="A contratto" full="Disponibilità a contratto" /></th>
-            <th className="imposta-dist__th-c"><TruncatedText text="Libera" full="Disponibilità libera" /></th>
-            <th className="imposta-dist__th-c"><TruncatedText text="Mercato" full="Mercato di riferimento" /></th>
-          </tr>
-        </thead>
-        <tbody>
-          {fRows.map((r) => (
-            <tr key={r.id}>
-              <td><TruncatedText text={r.nome} className="sib-truncate" /></td>
-              <td className="imposta-dist__td-c"><Potenziale value={potenzialeOf(r.id)} /></td>
-              <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} /></td>
-              <td className="imposta-dist__td-c"><input type="checkbox" className="sib-checkbox" checked={r.libera} onChange={() => onToggle(r.id, 'libera')} /></td>
-              <td className="imposta-dist__td-c">
-                <span className="imposta-dist__bandiere">
-                  {r.bandiere.map((code, i) => (
-                    <img
-                      key={i}
-                      className="imposta-dist__bandiera"
-                      src={`https://flagcdn.com/w40/${code}.png`}
-                      srcSet={`https://flagcdn.com/w80/${code}.png 2x`}
-                      alt={code.toUpperCase()}
-                      title={code.toUpperCase()}
-                      loading="lazy"
-                    />
-                  ))}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Tooltip text={codes.map((c) => c.toUpperCase()).join(' · ')}>
+      <span className="imposta-dist__flags">
+        {vis.map((c) => <FlagCircle key={c} code={c} size={18} className="imposta-dist__flag" />)}
+        {codes.length > 3 && <span className="imposta-dist__flag-more">+{codes.length - 3}</span>}
+      </span>
+    </Tooltip>
   )
 }
 
 function Stars({ n }: { n: number }) {
   return (
-    <span className="imposta-dist__stars">
+    <span className="imposta-dist__stars" aria-label={`${n} stelle`}>
       {Array.from({ length: 5 }, (_, i) => (
-        <i key={i} className={`fa-solid fa-star imposta-dist__star${i < n ? ' imposta-dist__star--on' : ''}`} />
+        <i key={i} className={clsx('fa-solid fa-star imposta-dist__star', i < n && 'is-on')} />
       ))}
     </span>
   )
