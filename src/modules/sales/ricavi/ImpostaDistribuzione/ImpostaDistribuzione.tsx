@@ -126,9 +126,6 @@ const FALLBACK: Data = {
   cluster: ['Centro Storico Roma'],
 }
 
-// Potenziale cliente: valore 0-5 (mock deterministico)
-const potenzialeOf = (id: number) => (id * 7 + 2) % 6
-
 const attivo = (r: Operatore) => r.contratto || r.libera
 
 const filtraNome = <T extends { nome: string }>(rows: T[], q: string) =>
@@ -435,7 +432,6 @@ function CanaleCard({
         <table className="sib-table imposta-dist__table">
           <colgroup>
             <col className="imposta-dist__col-nome" />
-            <col className="imposta-dist__col-pot" />
             <col className="imposta-dist__col-sw" />
             <col className="imposta-dist__col-sw" />
             <col className="imposta-dist__col-extra" />
@@ -443,7 +439,6 @@ function CanaleCard({
           <thead>
             <tr>
               <th>Operatore</th>
-              <th><TruncatedText text="Potenziale" className="sib-truncate" /></th>
               <th className="imposta-dist__th-c"><TruncatedText text="Contratto" full="Disponibilità a contratto" className="sib-truncate" /></th>
               <th className="imposta-dist__th-c"><TruncatedText text="Libera" full="Disponibilità libera" className="sib-truncate" /></th>
               <th className="imposta-dist__th-c">
@@ -462,7 +457,6 @@ function CanaleCard({
                     <TruncatedText text={r.nome} className="sib-truncate imposta-dist__op-nome" />
                   </span>
                 </td>
-                <td><Potenziale value={potenzialeOf(r.id)} /></td>
                 <td className="imposta-dist__td-c">
                   <ToggleSwitch checked={r.contratto} onChange={() => onToggle(r.id, 'contratto')} className="imposta-dist__switch" />
                 </td>
@@ -478,20 +472,6 @@ function CanaleCard({
         </table>
       )}
     </section>
-  )
-}
-
-// Potenziale 0-5: cinque tacche che si riempiono in sequenza
-function Potenziale({ value }: { value: number }) {
-  return (
-    <Tooltip text={`Potenziale ${value}/5`}>
-      <span className={clsx('imposta-dist__pot', value >= 4 && 'imposta-dist__pot--alto', value <= 1 && 'imposta-dist__pot--basso')}>
-        {Array.from({ length: 5 }, (_, i) => (
-          <span key={i} className={clsx('imposta-dist__pot-seg', i < value && 'is-on')} />
-        ))}
-        <span className="imposta-dist__pot-val">{value}/5</span>
-      </span>
-    </Tooltip>
   )
 }
 

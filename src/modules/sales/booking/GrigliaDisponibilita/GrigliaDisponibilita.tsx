@@ -183,6 +183,11 @@ export default function GrigliaDisponibilita({ navigate }: { navigate: (p: strin
       <PageHead
         title="Griglia disponibilità"
         subtitle="Stato delle prenotazioni per categoria, struttura, tipo di camera e periodo"
+        actions={
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => navigate('griglia-disp-estesa')}>
+            <i className="fa-solid fa-up-right-and-down-left-from-center" aria-hidden="true" /> Versione estesa
+          </button>
+        }
       />
 
       {/* ── Toolbar filtri ─────────────────────────────────────────────────── */}

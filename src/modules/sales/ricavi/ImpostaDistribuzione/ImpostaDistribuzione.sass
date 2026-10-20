@@ -12,14 +12,6 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
     opacity: 1
     transform: none
 
-@keyframes idSegIn
-  from
-    opacity: 0
-    transform: scaleY(0.3)
-  to
-    opacity: 1
-    transform: none
-
 @keyframes idNewItem
   0%
     opacity: 0
@@ -273,16 +265,13 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
         box-shadow: inset 3px 0 0 var(--canale)
 
   &__col-nome
-    width: 36%
-
-  &__col-pot
-    width: 22%
+    width: 50%
 
   &__col-sw
-    width: 13%
+    width: 16%
 
   &__col-extra
-    width: 16%
+    width: 18%
 
   &__table.sib-table &__th-c,
   &__table.sib-table &__td-c
@@ -313,40 +302,6 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
 
   &__switch
     justify-content: center
-
-  // Potenziale: cinque tacche che si accendono in sequenza
-  &__pot
-    display: inline-flex
-    align-items: center
-    gap: 3px
-
-  &__pot-seg
-    width: 7px
-    height: 14px
-    border-radius: 2px
-    background: $primary-100
-    transform-origin: bottom center
-
-    &.is-on
-      background: var(--canale)
-      animation: idSegIn 0.35s $motion-ease both
-
-    @for $i from 1 through 5
-      &:nth-child(#{$i}).is-on
-        animation-delay: #{0.2 + $i * 0.06}s
-
-  &__pot--basso &__pot-seg.is-on
-    background: $text-disabled
-
-  &__pot-val
-    margin-left: 4px
-    font-size: 11px
-    font-weight: 600
-    color: $text-inactive
-    font-variant-numeric: tabular-nums
-
-  &__pot--alto &__pot-val
-    color: $success
 
   &__euro-wrap
     display: inline-flex
