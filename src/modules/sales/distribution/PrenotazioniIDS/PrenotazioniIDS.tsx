@@ -34,9 +34,11 @@ const VCC_SI = 'Emessa', VCC_NO = 'Non emessa'
 const PAGE_SIZES = [25, 50, 100]
 const GIORNI_TREND = 30
 
-// separatore delle migliaia anche sotto 10.000 (it-IT di default lo omette: 8493,63)
-const EURO = new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' } as Intl.NumberFormatOptions)
-const euroIt = (n: number) => EURO.format(n)
+// Separatore delle migliaia anche sotto 10.000 (it-IT di default lo omette: 8493,63)
+const euroIt = (n: number) => {
+  const [int, dec] = Math.abs(n).toFixed(2).split('.')
+  return `${n < 0 ? '-' : ''}${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`
+}
 const oggiIso = () => toIso(new Date())
 const addDays = (iso: string, n: number) => { const d = parseIso(iso); d.setDate(d.getDate() + n); return toIso(d) }
 
