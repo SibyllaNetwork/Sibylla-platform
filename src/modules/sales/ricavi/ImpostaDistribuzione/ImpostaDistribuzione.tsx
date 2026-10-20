@@ -6,6 +6,7 @@ import Tooltip from '../../../../core/components/Tooltip'
 import Modal from '../../../../core/components/Modal'
 import EmptyState from '../../../../core/components/EmptyState'
 import FlagCircle from '../../../../core/components/FlagCircle'
+import { countryName } from '../../../../core/utils/countryFlags'
 import { SelectField, InputField, SearchField, ToggleSwitch } from '../../../../core/components/form'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
@@ -509,15 +510,26 @@ function CapacitaSpesa({ value }: { value: Capacita }) {
   )
 }
 
+// Mercati di riferimento: ogni bandiera ha il suo tooltip col nome del paese;
+// oltre la terza, il "+N" elenca i mercati nascosti.
 function Mercato({ codes }: { codes: string[] }) {
   const vis = codes.slice(0, 3)
+  const altri = codes.slice(3)
   return (
-    <Tooltip text={codes.map((c) => c.toUpperCase()).join(' · ')}>
-      <span className="imposta-dist__flags">
-        {vis.map((c) => <FlagCircle key={c} code={c} size={18} className="imposta-dist__flag" />)}
-        {codes.length > 3 && <span className="imposta-dist__flag-more">+{codes.length - 3}</span>}
-      </span>
-    </Tooltip>
+    <span className="imposta-dist__flags">
+      {vis.map((c) => (
+        <Tooltip key={c} text={countryName(c)}>
+          <span className="imposta-dist__flag-wrap">
+            <FlagCircle code={c} size={18} className="imposta-dist__flag" />
+          </span>
+        </Tooltip>
+      ))}
+      {altri.length > 0 && (
+        <Tooltip text={altri.map(countryName).join(', ')}>
+          <span className="imposta-dist__flag-more">+{altri.length}</span>
+        </Tooltip>
+      )}
+    </span>
   )
 }
 

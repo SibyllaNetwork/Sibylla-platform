@@ -78,6 +78,17 @@ export const isoFromFlagEmoji = (emoji?: string): string => {
   return letters.map(cp => String.fromCharCode(cp - 0x1f1e6 + 97)).join('')
 }
 
+let NOMI_IT: Intl.DisplayNames | null | undefined
+
+/** Nome del paese in italiano da ISO alpha-2 ('kr' → 'Corea del Sud'); la sigla se non risolvibile. */
+export const countryName = (iso?: string): string => {
+  if (!iso) return ''
+  if (NOMI_IT === undefined) {
+    try { NOMI_IT = new Intl.DisplayNames(['it'], { type: 'region' }) } catch { NOMI_IT = null }
+  }
+  try { return NOMI_IT?.of(iso.toUpperCase()) ?? iso.toUpperCase() } catch { return iso.toUpperCase() }
+}
+
 /** Emoji bandiera per un nome paese (IT), '' se sconosciuto. */
 export const countryFlag = (name?: string): string =>
   name ? (FLAGS[name.trim().toUpperCase()] ?? '') : ''

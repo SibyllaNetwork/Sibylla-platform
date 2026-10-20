@@ -362,15 +362,27 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
     display: inline-flex
     align-items: center
 
+  // Ogni bandiera è dentro il proprio wrapper Tooltip: la sovrapposizione va sul wrap
+  &__flag-wrap
+    display: inline-flex
+    cursor: default
+    transition: transform $motion-fast $motion-ease
+
+    &:hover
+      position: relative
+      z-index: 1
+      transform: translateY(-2px) scale(1.12)
+
+  &__flags > span + span &__flag-wrap
+    margin-left: -6px
+
   &__flag
     border: 2px solid var(--color-surface)
     border-radius: 50%
 
-    & + &
-      margin-left: -6px
-
   &__flag-more
-    margin-left: 2px
+    margin-left: 3px
+    cursor: default
     font-size: 10px
     font-weight: 700
     color: $text-inactive
