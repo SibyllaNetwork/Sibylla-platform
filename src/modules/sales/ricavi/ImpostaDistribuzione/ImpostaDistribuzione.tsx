@@ -406,9 +406,7 @@ function CanaleCard({
           <span className="imposta-dist__card-desc">{canale.desc}</span>
         </div>
         {verifica && (
-          <Tooltip text="Verifica aderenza al budget dei ricavi">
-            <span className="imposta-dist__verifica"><i className="fa-solid fa-shield-check" /> Budget OK</span>
-          </Tooltip>
+          <span className="imposta-dist__verifica"><i className="fa-solid fa-shield-check" /> Verifica aderenza Budget dei ricavi</span>
         )}
         <div className="imposta-dist__card-tools">
           <Tooltip text={tuttiContratto ? 'Togli tutti dal contratto' : 'Metti tutti a contratto'}>
