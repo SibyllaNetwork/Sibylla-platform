@@ -7,7 +7,6 @@ import Modal from '../../../../core/components/Modal'
 import EmptyState from '../../../../core/components/EmptyState'
 import FlagCircle from '../../../../core/components/FlagCircle'
 import { SelectField, InputField, SearchField, ToggleSwitch } from '../../../../core/components/form'
-import { useCountUp } from '../../../../core/bi/useCountUp'
 import { apiFetchSibylla } from '../../../../services/api'
 import { useAccessStore } from '../../../../store/useAccessStore'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
@@ -134,9 +133,6 @@ const attivo = (r: Operatore) => r.contratto || r.libera
 const filtraNome = <T extends { nome: string }>(rows: T[], q: string) =>
   !q.trim() ? rows : rows.filter((r) => r.nome.toLowerCase().includes(q.trim().toLowerCase()))
 
-// Percentuale arrotondata a 5 → classe `--pNN` (larghezze generate in sass, niente stili inline)
-const step5 = (pct: number) => Math.max(0, Math.min(100, Math.round(pct / 5) * 5))
-
 const iniziali = (nome: string) =>
   nome.split(/\s+/).filter((w) => /^[A-Za-zÀ-ú]/.test(w)).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
 
@@ -220,10 +216,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
   const rowsOf = (key: CanaleKey) => data[key] as Operatore[]
   const canaliVisibili = canale === 'tutti' ? CANALI : CANALI.filter((c) => c.key === canale)
 
-  // Copertura complessiva: operatori con almeno una disponibilità attiva
-  const tot = CANALI.reduce((n, c) => n + rowsOf(c.key).length, 0)
-  const att = CANALI.reduce((n, c) => n + rowsOf(c.key).filter(attivo).length, 0)
-
   if (isTO) return <ImpostaDistribuzioneTO navigate={navigate} />
 
   return (
@@ -267,19 +259,14 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           <button type="button" role="tab" aria-selected={canale === 'tutti'}
             className={clsx('imposta-dist__canale-tab', canale === 'tutti' && 'is-active')} onClick={() => setCanale('tutti')}>
             <i className="fa-solid fa-layer-group" /> Tutti
-            <span className="imposta-dist__canale-count">{att}/{tot}</span>
           </button>
-          {CANALI.map((c) => {
-            const rows = rowsOf(c.key)
-            return (
-              <button key={c.key} type="button" role="tab" aria-selected={canale === c.key}
-                className={clsx('imposta-dist__canale-tab', `imposta-dist__canale-tab--${c.key}`, canale === c.key && 'is-active')}
-                onClick={() => setCanale(c.key)}>
-                <i className={`fa-solid ${c.icon}`} /> {c.label}
-                <span className="imposta-dist__canale-count">{rows.filter(attivo).length}/{rows.length}</span>
-              </button>
-            )
-          })}
+          {CANALI.map((c) => (
+            <button key={c.key} type="button" role="tab" aria-selected={canale === c.key}
+              className={clsx('imposta-dist__canale-tab', `imposta-dist__canale-tab--${c.key}`, canale === c.key && 'is-active')}
+              onClick={() => setCanale(c.key)}>
+              <i className={`fa-solid ${c.icon}`} /> {c.label}
+            </button>
+          ))}
         </div>
         <SearchField
           className="imposta-dist__search"
@@ -422,14 +409,7 @@ function CanaleCard({
 }) {
   const fRows = filtraNome(rows, q)
   const isCorporate = canale.key === 'corporate'
-  const nContratto = rows.filter((r) => r.contratto).length
-  const nLibera = rows.filter((r) => r.libera && !r.contratto).length
-  const nAttivi = rows.filter(attivo).length
-  const copertura = rows.length ? Math.round((nAttivi / rows.length) * 100) : 0
-  const coperturaAnim = Math.round(useCountUp(copertura, 700))
-  const tuttiContratto = rows.length > 0 && nContratto === rows.length
-  const pctContratto = rows.length ? (nContratto / rows.length) * 100 : 0
-  const pctLibera = rows.length ? (nLibera / rows.length) * 100 : 0
+  const tuttiContratto = rows.length > 0 && rows.every((r) => r.contratto)
 
   return (
     <section className={clsx('imposta-dist__card', `imposta-dist__card--${canale.key}`)}>
@@ -439,6 +419,11 @@ function CanaleCard({
           <h3 className="imposta-dist__card-title">{canale.label}</h3>
           <span className="imposta-dist__card-desc">{canale.desc}</span>
         </div>
+        {verifica && (
+          <Tooltip text="Verifica aderenza al budget dei ricavi">
+            <span className="imposta-dist__verifica"><i className="fa-solid fa-shield-check" /> Budget OK</span>
+          </Tooltip>
+        )}
         <div className="imposta-dist__card-tools">
           <Tooltip text={tuttiContratto ? 'Togli tutti dal contratto' : 'Metti tutti a contratto'}>
             <button type="button" className="imposta-dist__tool" onClick={() => onTutti('contratto', !tuttiContratto)} aria-label="Tutti a contratto">
@@ -459,23 +444,6 @@ function CanaleCard({
           )}
         </div>
       </header>
-
-      <div className="imposta-dist__coverage">
-        <div className="imposta-dist__coverage-top">
-          <span>Copertura distribuzione</span>
-          <strong>{coperturaAnim}%</strong>
-          <span className="imposta-dist__coverage-n">{nAttivi} di {rows.length} operatori attivi</span>
-        </div>
-        <div className="imposta-dist__coverage-bar">
-          <span className={`imposta-dist__coverage-fill imposta-dist__coverage-fill--contratto imposta-dist__w--p${step5(pctContratto)}`} />
-          <span className={`imposta-dist__coverage-fill imposta-dist__coverage-fill--libera imposta-dist__w--p${step5(pctLibera)}`} />
-        </div>
-        <div className="imposta-dist__coverage-legend">
-          <span><i className="imposta-dist__dot imposta-dist__dot--contratto" /> A contratto {nContratto}</span>
-          <span><i className="imposta-dist__dot imposta-dist__dot--libera" /> Solo libera {nLibera}</span>
-          {verifica && <span className="imposta-dist__verifica"><i className="fa-solid fa-shield-check" /> Aderente al budget dei ricavi</span>}
-        </div>
-      </div>
 
       {fRows.length === 0 ? (
         <EmptyState icon="magnifying-glass" title="Nessun operatore" subtitle={`Nessun risultato per "${q}" in ${canale.label}.`} />

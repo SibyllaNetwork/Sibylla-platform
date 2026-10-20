@@ -12,12 +12,6 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
     opacity: 1
     transform: none
 
-@keyframes idGrow
-  from
-    transform: scaleX(0)
-  to
-    transform: scaleX(1)
-
 @keyframes idSegIn
   from
     opacity: 0
@@ -163,15 +157,6 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
       &--#{$k} i
         color: $c
 
-  &__canale-count
-    min-width: 30px
-    padding: 1px 6px
-    border-radius: $radius-full
-    background: rgba(32, 71, 105, 0.08)
-    color: $primary
-    font-size: 10px
-    font-weight: 700
-    text-align: center
 
   // ── Layout: area canali + pannello cluster ─────────────────────────────────
   &__layout
@@ -297,84 +282,7 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
     &:hover
       background: $primary-50
 
-  // ── Copertura (barra a due segmenti animata) ───────────────────────────────
-  &__coverage
-    display: flex
-    flex-direction: column
-    gap: 6px
-    margin: 0 14px 10px
-    padding: 10px 12px
-    border-radius: $radius-lg
-    background: $bg
-
-  &__coverage-top
-    display: flex
-    align-items: baseline
-    gap: 8px
-    font-size: 11px
-    color: $text-inactive
-
-    strong
-      font-family: $font-heading
-      font-size: 16px
-      font-weight: 700
-      color: $primary
-      font-variant-numeric: tabular-nums
-
-  &__coverage-n
-    margin-left: auto
-    white-space: nowrap
-
-  &__coverage-bar
-    display: flex
-    height: 6px
-    border-radius: $radius-full
-    background: $primary-100
-    overflow: hidden
-
-  &__coverage-fill
-    display: block
-    height: 100%
-    transform-origin: left center
-    animation: idGrow 0.7s $motion-ease both
-    transition: width 0.45s $motion-ease
-
-    &--contratto
-      background: var(--canale)
-
-    &--libera
-      background: color-mix(in srgb, var(--canale) 40%, transparent)
-      animation-delay: 0.15s
-
-  // larghezze a passi del 5% (niente stili inline)
-  @for $p from 0 through 20
-    &__w--p#{$p * 5}
-      width: #{$p * 5%}
-
-  &__coverage-legend
-    display: flex
-    align-items: center
-    gap: 12px
-    flex-wrap: wrap
-    font-size: 11px
-    color: $text-inactive
-
-  &__dot
-    display: inline-block
-    width: 8px
-    height: 8px
-    margin-right: 3px
-    border-radius: 50%
-    vertical-align: middle
-
-    &--contratto
-      background: var(--canale)
-
-    &--libera
-      background: color-mix(in srgb, var(--canale) 40%, transparent)
-
   &__verifica
-    margin-left: auto
     display: inline-flex
     align-items: center
     gap: 4px
@@ -382,6 +290,7 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
     border-radius: $radius-full
     background: $success-light
     color: $success
+    font-size: 11px
     font-weight: 600
     white-space: nowrap
 
