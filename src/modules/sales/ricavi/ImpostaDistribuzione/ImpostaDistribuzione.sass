@@ -116,47 +116,6 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
       width: 100%
       margin-left: 0
 
-  &__canali
-    display: inline-flex
-    gap: 4px
-    padding: 4px
-    border-radius: $radius-lg
-    background: $primary-50
-    border: 1px solid $border
-
-  &__canale-tab
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    height: 28px
-    padding: 0 12px
-    border: none
-    border-radius: $radius-md
-    background: transparent
-    color: $text-inactive
-    font-family: $font-body
-    font-size: 12px
-    font-weight: 600
-    white-space: nowrap
-    cursor: pointer
-    transition: background $motion-base $motion-ease, color $motion-base $motion-ease, box-shadow $motion-base $motion-ease
-
-    i
-      font-size: 11px
-
-    &:hover
-      color: $primary
-      background: rgba(255, 255, 255, 0.7)
-
-    &.is-active
-      background: var(--color-surface)
-      color: $primary
-      box-shadow: $shadow-sm
-
-    @each $k, $c in $canali
-      &--#{$k} i
-        color: $c
-
 
   // ── Layout: area canali + pannello cluster ─────────────────────────────────
   &__layout
@@ -173,13 +132,10 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
     grid-template-columns: repeat(2, minmax(0, 1fr))
     gap: 16px
 
-    &--single
-      grid-template-columns: minmax(0, 1fr)
-
     @container imposta-dist (max-width: 1240px)
       grid-template-columns: minmax(0, 1fr)
 
-    // ingresso a cascata delle card (anche al cambio di canale: il wrapper ha key)
+    // ingresso a cascata delle card
     > .imposta-dist__card
       animation: idFadeUp 0.4s $motion-ease both
 

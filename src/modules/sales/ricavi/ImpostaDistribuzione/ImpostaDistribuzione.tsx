@@ -156,7 +156,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schede, strutturaCorrente])
 
-  const [canale, setCanale] = useState<'tutti' | CanaleKey>('tutti')
   const [q, setQ] = useState('')
   const [invitaOpen, setInvitaOpen] = useState(false)
   const [invita, setInvita] = useState({ azienda: '', email: '', referente: '' })
@@ -214,7 +213,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
   }
 
   const rowsOf = (key: CanaleKey) => data[key] as Operatore[]
-  const canaliVisibili = canale === 'tutti' ? CANALI : CANALI.filter((c) => c.key === canale)
 
   if (isTO) return <ImpostaDistribuzioneTO navigate={navigate} />
 
@@ -255,19 +253,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
         />
-        <div className="imposta-dist__canali" role="tablist" aria-label="Canali di vendita">
-          <button type="button" role="tab" aria-selected={canale === 'tutti'}
-            className={clsx('imposta-dist__canale-tab', canale === 'tutti' && 'is-active')} onClick={() => setCanale('tutti')}>
-            <i className="fa-solid fa-layer-group" /> Tutti
-          </button>
-          {CANALI.map((c) => (
-            <button key={c.key} type="button" role="tab" aria-selected={canale === c.key}
-              className={clsx('imposta-dist__canale-tab', `imposta-dist__canale-tab--${c.key}`, canale === c.key && 'is-active')}
-              onClick={() => setCanale(c.key)}>
-              <i className={`fa-solid ${c.icon}`} /> {c.label}
-            </button>
-          ))}
-        </div>
         <SearchField
           className="imposta-dist__search"
           placeholder="Cerca operatore…"
@@ -278,8 +263,8 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
       </div>
 
       <div className="imposta-dist__layout">
-        <div className={clsx('imposta-dist__workspace', canale !== 'tutti' && 'imposta-dist__workspace--single')} key={canale}>
-          {canaliVisibili.map((c) => (
+        <div className="imposta-dist__workspace">
+          {CANALI.map((c) => (
             <CanaleCard
               key={c.key}
               canale={c}
@@ -288,7 +273,7 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
               verifica={c.key !== 'corporate'}
               onToggle={(id, f) => toggleField(c.key, id, f)}
               onTutti={(f, v) => setTuttiCanale(c.key, f, v)}
-              onExpand={canale === 'tutti' ? () => setExpanded(c.key) : undefined}
+              onExpand={() => setExpanded(c.key)}
             />
           ))}
         </div>
