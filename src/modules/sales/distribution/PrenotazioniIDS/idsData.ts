@@ -12,9 +12,13 @@ const HOTEL_BASE: Record<string, number> = {
   'Hotel Archimede': 14, 'Hotel Floridia': 8, 'Hotel Lazio': 18, 'Hotel Luce': 26, 'Hotel Lux': 10, 'Hotel Noto': 20, 'Hotel Regio': 12,
 }
 
-export const ORIGINI = ['BOOKING.COM', 'EXPEDIA', 'SERHS', 'WEBSITE', 'Raelibooking', 'DOTW', 'HOTELBEDS']
+/** Agenzie / canali da cui arrivano le prenotazioni IDS. */
+export const ORIGINI = ['DESTINATIONITALIA', 'LOGITRAVEL', 'DOTW', 'G2TRAVEL', 'BOOKING.COM', 'EXPEDIA', 'HOTELBEDS', 'WEBSITE']
 export const PIANI_TARIFFARI = ['BB_BAR_IDS', 'RO_BAR_IDS', 'RO_BAR_TO', 'BB_BAR_TO', 'BB_NOTREF_SITO', 'BB_BAR_SITO', 'RO_BAR_NOTREF_SITO', 'BB_NOTREF_IDS', 'RO_NOTREF_IDS']
 export const ARRANGIAMENTI = ['BB', 'CA', 'HB', 'FB']
+export const STATI = ['Confermata', 'Modificata', 'Cancellata'] as const
+export type StatoIDS = typeof STATI[number]
+export const TIPI_CAMERA = ['Singola Classic', 'Doppia Classica', 'Doppia Economy', 'Matrimoniale Economy', 'Matrimoniale Superior', 'Tripla Comfort']
 
 const CLIENTI = [
   'Elisabeth Boen', 'MARGARET DEVORE', 'XIANYUE DUAN', 'NASSER AL-SAADI', 'Carolina Delmonte',
@@ -76,6 +80,9 @@ export interface PrenotazioneIDS {
   idLog:      number
   vcc:        boolean
   euro:       number
+  stato:      StatoIDS
+  /** Tipologia della camera prenotata. */
+  camera:     string
 }
 
 /** Generatore pseudo-casuale deterministico a partire da un seme testuale. */
@@ -113,10 +120,17 @@ export function prenotazioniDelGiorno(hotel: string, iso: string): PrenotazioneI
     const persone = 1 + Math.floor(r() * 4)
     const camere = persone > 2 && r() > 0.6 ? 2 : 1
     const notteBase = 55 + r() * 145
+    // Estratti dopo gli altri campi: non alterano i valori già generati.
+    const vcc = r() > 0.86
+    const euro = Math.round(notteBase * notti * camere * 100) / 100
+    const sr = r()
+    const stato: StatoIDS = sr < 0.14 ? 'Cancellata' : sr < 0.28 ? 'Modificata' : 'Confermata'
+    const camera = TIPI_CAMERA[Math.floor(r() * TIPI_CAMERA.length)]
     return {
       key: `${hotel}|${iso}|${i}`,
       minuto,
-      nPre: 136000 + minuto,
+      // univoco anche fra strutture diverse nello stesso minuto
+      nPre: 136000 + minuto * 8 + (hashStr(hotel) % 8),
       struttura: hotel,
       dataPre: iso,
       bookingId: bookingIdOf(r),
@@ -129,8 +143,11 @@ export function prenotazioniDelGiorno(hotel: string, iso: string): PrenotazioneI
       origine: ORIGINI[Math.floor(r() * ORIGINI.length)],
       cliente: CLIENTI[Math.floor(r() * CLIENTI.length)],
       idLog: 1030000 + minuto * 3 + (hashStr(`${hotel}${i}`) % 3),
-      vcc: r() > 0.86,
-      euro: Math.round(notteBase * notti * camere * 100) / 100,
+      vcc,
+      // Una prenotazione cancellata non genera ricavo (come nel gestionale IDS)
+      euro: stato === 'Cancellata' ? 0 : euro,
+      stato,
+      camera,
     }
   })
 }

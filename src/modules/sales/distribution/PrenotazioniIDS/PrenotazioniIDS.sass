@@ -1,255 +1,439 @@
 // ─── PRENOTAZIONI IDS ──────────────────────────────────────────────────────────
 @use '../../../../styles/tokens' as *
+@use '../../../../styles/mixins' as *
+
+@keyframes idsBarIn
+  from
+    transform: scaleY(0)
+  to
+    transform: scaleY(1)
+
+@keyframes idsFadeIn
+  from
+    opacity: 0
+    transform: translateY(6px)
+  to
+    opacity: 1
+    transform: none
 
 .ids
   display: flex
   flex-direction: column
-  align-items: stretch
   gap: 14px
-  font-size: 13px
+  // La compattazione si misura sulla larghezza REALE del contenuto
+  // (sidebar aperta o chiusa), non sul viewport.
+  container-type: inline-size
+  container-name: ids
 
-  > .sib-btn--back
-    align-self: flex-start
+// ── Filtri ────────────────────────────────────────────────────────────────────
+.ids__toolbar
+  display: flex
+  align-items: flex-end
+  gap: 12px
+  flex-wrap: wrap
 
-  // ── Toolbar + sintesi ──────────────────────────────────────────────────────
-  &__bar
+.ids__field
+  flex: 0 0 auto
+
+.ids__field--struttura
+  width: 190px
+
+.ids__field--data
+  width: 170px
+
+.ids__field--cerca
+  width: 220px
+
+.ids__field--range
+  width: 220px
+
+.ids__actions
+  margin-left: auto
+  display: flex
+  align-items: center
+  gap: 8px
+
+.ids__icon-btn
+  width: 34px
+  height: 34px
+  border: 1px solid $border
+  border-radius: 8px
+  background: var(--color-surface)
+  color: $primary
+  cursor: pointer
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  transition: background $motion-fast $motion-ease, border-color $motion-fast $motion-ease
+
+  i
+    font-size: 16px
+
+  &:hover
+    background: $primary-50
+    border-color: $primary
+
+// ── Andamento ultimi 30 giorni ────────────────────────────────────────────────
+.ids__trend
+  border: 1px solid $border
+  border-radius: $radius-xl
+  background: var(--color-surface)
+  box-shadow: $shadow-sm
+  overflow: hidden
+  animation: idsFadeIn 0.35s $motion-ease both
+
+.ids__trend-head
+  display: flex
+  align-items: center
+  gap: 10px
+  width: 100%
+  padding: 10px 14px
+  border: none
+  background: transparent
+  cursor: pointer
+  text-align: left
+
+  &:hover
+    background: $bg
+
+.ids__trend-icon
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 28px
+  height: 28px
+  flex-shrink: 0
+  border-radius: $radius-md
+  background: $link-light
+  color: $link
+
+  i
+    font-size: 13px
+
+.ids__trend-title
+  font-family: $font-heading
+  font-size: 14px
+  font-weight: 600
+  color: $primary
+  white-space: nowrap
+
+.ids__trend-sub
+  flex: 1
+  min-width: 0
+  font-size: 12px
+  color: $text-inactive
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.ids__trend-chev
+  margin-left: auto
+  color: $primary
+  font-size: 12px
+  transition: transform $motion-base $motion-ease
+
+  &.is-open
+    transform: rotate(180deg)
+
+.ids__bars
+  display: grid
+  grid-template-columns: repeat(30, minmax(0, 1fr))
+  gap: 4px
+  padding: 4px 14px 12px
+  border-top: 1px solid $border
+
+  // il wrapper del Tooltip è un inline-flex: deve riempire la colonna
+  > span
     display: flex
-    justify-content: space-between
-    align-items: flex-end
-    gap: 16px
-    flex-wrap: wrap
-    margin-top: 4px
+    min-width: 0
 
-  &__field
-    display: flex
-    flex-direction: column
-    gap: 6px
+.ids__bar
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 4px
+  width: 100%
+  padding: 6px 0 0
+  border: none
+  border-radius: $radius-sm
+  background: transparent
+  cursor: pointer
 
-  &__summary
-    display: flex
-    align-items: center
-    gap: 10px
-    flex-wrap: wrap
-    padding-bottom: 2px
+  &:hover .ids__bar-fill
+    background: $primary-600
 
-  &__sum
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    font-size: 12.5px
-    color: $text-inactive
-    border: 1px solid $border
-    border-radius: 999px
-    padding: 5px 12px
-    background: var(--color-surface)
+  &.is-weekend .ids__bar-day
+    color: $warning
 
-    i
-      color: $primary
-      font-size: 16px
+  &.is-sel
+    background: $link-light
 
-    &--tot
-      border-color: $primary
-      background: $primary-50
+    .ids__bar-fill
+      background: $primary
+
+    .ids__bar-day
       color: $primary
       font-weight: 700
 
-  // ── Master / Detail ──────────────────────────────────────────────────────────
-  &__split
-    display: grid
-    grid-template-columns: 280px 1fr
-    gap: 16px
-    align-items: start
+.ids__bar-track
+  display: flex
+  align-items: flex-end
+  height: 64px
+  padding: 0 3px
 
-    @media (max-width: 860px)
-      grid-template-columns: 1fr
+.ids__bar-fill
+  display: block
+  width: 100%
+  border-radius: 3px 3px 0 0
+  background: $primary-300
+  transform-origin: bottom center
+  animation: idsBarIn 0.5s $motion-ease both
+  transition: background $motion-fast $motion-ease, height 0.35s $motion-ease
 
-  // elenco strutture
-  &__list
-    display: flex
-    flex-direction: column
-    gap: 8px
+  @for $i from 1 through 30
+    .ids__bar:nth-child(#{$i}) &,
+    span:nth-child(#{$i}) > .ids__bar &
+      animation-delay: #{$i * 14}ms
 
-  &__item
-    display: flex
-    flex-direction: column
-    gap: 8px
-    text-align: left
-    border: 1px solid $border
-    border-radius: 10px
-    background: var(--color-surface)
-    padding: 10px 12px
-    cursor: pointer
-    font-family: inherit
-    transition: border-color .12s, background .12s
+// altezze a passi del 5% (niente stili inline)
+@for $p from 1 through 20
+  .ids__h--p#{$p * 5}
+    height: #{$p * 5%}
 
-    &:hover
-      border-color: $primary
+.ids__bar-day
+  font-size: 10px
+  text-align: center
+  color: $text-inactive
+  font-variant-numeric: tabular-nums
 
-    &.is-sel
-      border-color: $primary
-      background: $primary-50
+// ── Tabella ───────────────────────────────────────────────────────────────────
+// Regola tassativa: nessuno scroll orizzontale a nessuna larghezza. Ci si
+// arriva con table-layout fixed + colonne in percentuale e con le container
+// query in fondo al file.
+.ids__wrap
+  overflow-x: hidden
 
-  &__item-top
-    display: flex
-    align-items: baseline
-    justify-content: space-between
-    gap: 10px
+// Due classi nel selettore: a pari specificità vincerebbero le regole di
+// .sib-table (tailwind.css, caricato dopo) su quelle di pagina.
+.ids .ids__table
+  +table-fit
+  font-size: 12px
 
-  &__item-name
-    font-weight: 600
-    color: $text-active
+  th, td
+    padding-left: 7px
+    padding-right: 7px
 
-  &__item-tot
-    font-weight: 700
-    color: $primary
+  thead th
+    font-size: 11px
 
-  &__item-bottom
-    display: flex
-    align-items: center
-    gap: 8px
+  tbody tr
+    animation: idsFadeIn 0.3s $motion-ease both
 
-  &__item-bar
-    flex: 1
-    height: 6px
-    border-radius: 999px
-    background: $bg
-    overflow: hidden
-
-  &__item-bar-fill
-    display: block
-    height: 100%
-    border-radius: 999px
-    background: $primary
-
-  &__spark
-    flex: none
-    // Il tracciato usa currentColor: la struttura selezionata eredita il blu
-    // Platform, le altre il grigio di riposo.
-    color: $text-disabled
-
-  &__item.is-sel &__spark
-    color: $primary
-
-  // dettaglio
-  &__detail
-    border: 1px solid $border
-    border-radius: 12px
-    background: var(--color-surface)
-    padding: 16px
-    display: flex
-    flex-direction: column
-    gap: 14px
-
-  &__detail-head
-    display: flex
-    align-items: flex-start
-    justify-content: space-between
-    gap: 16px
-    flex-wrap: wrap
-
-  &__detail-name
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 16px
-    color: $primary
-
-  &__detail-sub
-    font-size: 12px
+  tbody tr.is-cancelled td
     color: $text-inactive
 
-  &__detail-kpis
-    display: flex
-    gap: 10px
-    flex-wrap: wrap
+  // riga del gruppo "Dettagli" (Camera + Ospite)
+  .ids__group-row th
+    padding-top: 6px
+    padding-bottom: 0
+    border-bottom: none
 
-  &__kpi
-    display: flex
-    flex-direction: column
-    align-items: flex-end
-    border: 1px solid $border
-    border-radius: 8px
-    padding: 6px 12px
-    min-width: 92px
-
-    span
-      font-size: 11px
-      color: $text-inactive
-    strong
-      font-size: 16px
-      color: $text-active
-
-      small
-        font-size: 11px
-        font-weight: 400
-        color: $text-inactive
-
-  &__chart
-    border-top: 1px solid $border
-    padding-top: 8px
-
-  // tabella giorno per giorno
-  &__daily-title
-    font-weight: 600
+  .ids__group
+    text-align: center
     color: $primary
-    margin-bottom: 8px
+    font-weight: 700
+    border-bottom: 1px solid $border
 
-  &__daily-scroll
-    max-height: 320px
-    overflow-y: auto
-    border: 1px solid $border
-    border-radius: 8px
+  .ids__in-group
+    border-left: 1px solid $border
 
-  &__daily-table
-    width: 100%
-    border-collapse: collapse
-    font-size: 12.5px
++th-labels
+
+.ids .ids__table .ids__c
+  text-align: center
+
+.ids .ids__table .ids__r
+  text-align: right
+
+.ids .ids__table .ids__r .sib-truncate
+  text-align: right
+
+.ids__idx
+  color: $text-inactive
+
+.ids .ids__table .ids__num
+  color: $primary
+  font-weight: 600
+
+.ids .ids__table .ids__stato
+  display: block
+  min-width: 0
+  font-weight: 600
+
+  &.is-ok
+    color: $success
+
+  &.is-mod
+    color: $warning
+
+  &.is-ko
+    color: $error
+
+.ids__vcc
+  color: $primary
+  font-size: 16px
+
+// ── Totale + paginazione ──────────────────────────────────────────────────────
+.ids__foot
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+  margin-top: -12px
+
+.ids__foot-count
+  font-size: 12px
+  color: $text-inactive
+
+.ids__total
+  display: inline-flex
+  align-items: baseline
+  gap: 10px
+  border: 1px solid $primary
+  border-radius: 8px
+  background: $primary-50
+  padding: 6px 14px
+  font-size: 15px
+  font-weight: 700
+  color: $primary
+
+.ids__total-label
+  font-size: 12px
+  font-weight: 600
+  color: $text-inactive
+
+.ids__pag
+  display: flex
+  justify-content: center
+
+// ── Larghezze di colonna (somma = 100) ────────────────────────────────────────
+.ids__col-idx
+  width: 2.4%
+.ids__col-npre
+  width: 5%
+.ids__col-struttura
+  width: 7.2%
+.ids__col-stato
+  width: 6.4%
+.ids__col-data
+  width: 6.6%
+.ids__col-booking
+  width: 8%
+.ids__col-persone
+  width: 4%
+.ids__col-piano
+  width: 7.6%
+.ids__col-arr
+  width: 5.8%
+.ids__col-agenzia
+  width: 8%
+.ids__col-camera
+  width: 7.6%
+.ids__col-ospite
+  width: 7.2%
+.ids__col-euro
+  width: 6.6%
+.ids__col-vcc
+  width: 4.4%
+
+// ── Compattazione (laptop con sidebar aperta) ─────────────────────────────────
+@container ids (max-width: 1360px)
+  .ids .ids__table
+    font-size: 11.5px
 
     thead th
-      position: sticky
-      top: 0
-      background: $bg
-      color: $text-inactive
-      font-weight: 600
-      text-align: left
-      padding: 8px 12px
-      border-bottom: 1px solid $border
-      z-index: 1
+      font-size: 10.5px
 
-    td
-      padding: 7px 12px
-      border-bottom: 1px solid $border
-      color: $text-active
+    th, td
+      padding-left: 5px
+      padding-right: 5px
 
-    tr:last-child td
-      border-bottom: none
+    tbody td
+      padding-top: 8px
+      padding-bottom: 8px
 
-    tr.is-peak td
-      background: $primary-50
-      font-weight: 600
+    .sib-colf-head
+      gap: 3px
 
-  &__r
-    text-align: right !important
+    .sib-colf__btn
+      width: 16px
+      height: 16px
 
-  &__dow
-    color: $text-inactive
+      i
+        font-size: 10px
 
-  &__count
-    display: inline-block
-    min-width: 30px
-    text-align: right
-    font-weight: 600
-    color: $primary
+  // Sotto soglia le intestazioni passano all'abbreviazione puntata + tooltip.
+  .ids
+    +th-compact
 
-  // Il conteggio apre l'elenco delle prenotazioni di quella giornata.
-  &__count--link
-    border: 0
-    background: none
-    padding: 0
-    font: inherit
-    cursor: pointer
-    text-decoration: underline
-    text-decoration-style: dotted
-    text-underline-offset: 3px
+  .ids__bars
+    gap: 2px
 
-    &:hover
-      text-decoration-style: solid
+@container ids (max-width: 1180px)
+  .ids .ids__table
+    font-size: 11px
+
+    thead th
+      font-size: 10px
+
+    th, td
+      padding-left: 4px
+      padding-right: 4px
+
+    .sib-colf__btn
+      width: 14px
+      height: 14px
+
+      i
+        font-size: 9px
+
+  // campi più stretti e Cerca elastico: filtri e azioni restano su una riga
+  .ids__field--struttura
+    width: 165px
+
+  .ids__field--data
+    width: 150px
+
+  .ids__field--cerca
+    flex: 1 1 130px
+    width: auto
+    min-width: 130px
+
+  .ids__field--range
+    width: 190px
+
+  .ids__actions
+    gap: 6px
+
+  // Sotto i 1180px le date hanno bisogno di tutto lo spazio (gg/mm/aaaa non
+  // si abbrevia), booking-id, piani e agenzia possono cedere.
+  .ids__col-data
+    width: 7.4%
+  .ids__col-booking
+    width: 7%
+  .ids__col-piano
+    width: 7%
+  .ids__col-agenzia
+    width: 7.2%
+  .ids__col-camera
+    width: 7%
+
+@container ids (max-width: 900px)
+  .ids__trend-sub
+    display: none
+
+// ── Riduci animazioni ─────────────────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce)
+  .ids, .ids *
+    animation: none !important
+    transition: none !important

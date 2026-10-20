@@ -109,7 +109,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "portafoglio-aziendale": "Monitoraggio centralizzato per operazioni vantaggiose, sicure, rapide e connesse al mercato in tempo reale",
   "portafoglio-personale": "Dai valore al tuo lavoro: guadagna e utilizza il credito del tuo portafoglio",
   "preliminare": "Controlli, conta fisica e valorizzazione delle rimanenze prima della chiusura definitiva del periodo",
-  "prenotazioni-ids": "Visione centralizzata per monitoraggio in tempo reale delle prenotazioni ricevute dai canali di distribuzione online",
+  "prenotazioni-ids": "Importazione e aggiornamento automatico delle prenotazioni dai diversi canali di distribuzione online per singola struttura",
   "prenotazioni-ids-dett": "Importazione e aggiornamento automatico delle prenotazioni dai diversi canali di distribuzione online per singola struttura",
   "pricing-benchmark": "in pending (momentaneamente)",
   "profile-analysis": "Analizza i profili dei dipendenti per monitorare ruoli, performance e competenze",

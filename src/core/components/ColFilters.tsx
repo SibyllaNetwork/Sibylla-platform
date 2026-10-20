@@ -219,7 +219,13 @@ export function useColFilters() {
     />
   )
 
-  return { text, multi, sort, matchText, matchMulti, sortRows, th }
+  /** true se almeno un filtro di colonna (testo, scelta o ordinamento) è attivo. */
+  const hasActive = !!sort || Object.values(text).some(v => v) || Object.values(multi).some(v => v.length > 0)
+
+  /** Azzera tutti i filtri di colonna e l'ordinamento (es. pulsante "Azzera filtri"). */
+  const reset = () => { setText({}); setMulti({}); setSort(null); setOpen(null) }
+
+  return { text, multi, sort, matchText, matchMulti, sortRows, th, hasActive, reset }
 }
 
 export default ColFilters
