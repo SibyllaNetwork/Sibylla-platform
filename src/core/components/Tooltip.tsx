@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface TooltipProps {
   text?:     string
@@ -109,8 +110,11 @@ export default function Tooltip({ text, content, children, position = 'top', var
       >
         {children}
       </span>
-      {visible && (hasContent || text) && (
-        <span ref={boxRef} style={boxStyle}>{hasContent ? content : text}</span>
+      {/* Portal nel body: un antenato con container-type, transform o filter
+          diventerebbe il riferimento di position: fixed, spostando e tagliando la box */}
+      {visible && (hasContent || text) && createPortal(
+        <span ref={boxRef} style={boxStyle}>{hasContent ? content : text}</span>,
+        document.body,
       )}
     </>
   )

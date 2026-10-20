@@ -164,9 +164,10 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
       height: 3px
       background: var(--canale)
 
+    // niente transform all'hover: un antenato trasformato diventa il riferimento dei
+    // tooltip (position: fixed) e li ritaglia dentro la card
     &:hover
       box-shadow: $shadow-md
-      transform: translateY(-2px)
       border-color: color-mix(in srgb, var(--canale) 35%, #{$border})
 
     @each $k, $c in $canali
@@ -607,6 +608,3 @@ $canali: (corporate: var(--chart-1), gruppi: var(--chart-2), b2b: var(--chart-5)
   .imposta-dist__card
     border: none
     box-shadow: none
-
-    &:hover
-      transform: none
