@@ -15,6 +15,9 @@ import ImpostaDistribuzioneTO from './ImpostaDistribuzioneTO'
 import './ImpostaDistribuzione.sass'
 import { useStrutturaCorrente, useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 import { idStruttura } from '../../../../core/demo/struttureDemo'
+import { useOpenMarketStore } from '../../../../store/useOpenMarketStore'
+import { useBudgetRicaviStore } from '../../../../store/useBudgetRicaviStore'
+import { toast } from '../../../../core/components/Toast/useToast'
 
 type Capacita = 1 | 2 | 3
 
@@ -212,6 +215,36 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
 
   const rowsOf = (key: CanaleKey) => data[key] as Operatore[]
 
+  // Open market: iscrizione della struttura selezionata al mercato aperto della rete.
+  const openMarketAttive = useOpenMarketStore((s) => s.attive)
+  const impostaOpenMarket = useOpenMarketStore((s) => s.imposta)
+  const nomeStruttura = data.Strutture.find((s) => s.Id === data.StrutturaId)?.nome ?? ''
+  const openMarket = data.StrutturaId != null && !!openMarketAttive[data.StrutturaId]
+  // Attivazione con conferma (Rifiuta / Accetta); la disattivazione è immediata.
+  const toggleOpenMarket = async () => {
+    const id = data.StrutturaId
+    if (id == null) return
+    if (openMarket) {
+      impostaOpenMarket(id, false)
+      toast.info(`${nomeStruttura} non riceve più proposte dal mercato aperto`, 'Open market disattivato')
+      return
+    }
+    const ok = await confirm({
+      title: 'Open market',
+      message: <>Sicuro di volerti aprire al mercato per <strong>{nomeStruttura}</strong>?</>,
+      confirmLabel: 'Accetta',
+      cancelLabel: 'Rifiuta',
+      danger: false,
+    })
+    if (!ok) return
+    impostaOpenMarket(id, true)
+    toast.success(`${nomeStruttura} è iscritta al mercato aperto: riceverai le proposte dei tour operator`, 'Open market attivato')
+  }
+
+  // Scudo: stato del budget dei ricavi dell'anno in corso per la struttura.
+  const annoCorrente = new Date().getFullYear()
+  const budgetSalvatoIl = useBudgetRicaviStore((s) => s.salvati[`${nomeStruttura}|${annoCorrente}`])
+
   if (isTO) return <ImpostaDistribuzioneTO navigate={navigate} />
 
   return (
@@ -220,9 +253,19 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
         title="Imposta distribuzione"
         subtitle="Gestione della distribuzione delle camere per i diversi canali di vendita"
         actions={
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaOpen(true)}>
-            <i className="fa-regular fa-envelope" /> Invita nuovo operatore
-          </button>
+          <>
+            <Tooltip text={budgetSalvatoIl
+              ? `Budget ricavi ${annoCorrente} salvato il ${new Date(budgetSalvatoIl).toLocaleDateString('it-IT')}`
+              : `Nessun budget ricavi salvato per l'anno ${annoCorrente}.`}>
+              <button type="button" className={clsx('sib-btn sib-btn--icon imposta-dist__budget', budgetSalvatoIl && 'imposta-dist__budget--ok')}
+                onClick={() => navigate('budget-ricavi')} aria-label="Budget dei ricavi">
+                <i className={clsx('fa-solid', budgetSalvatoIl ? 'fa-shield-check' : 'fa-shield-halved')} />
+              </button>
+            </Tooltip>
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaOpen(true)}>
+              <i className="fa-regular fa-envelope" /> Invita nuovo operatore
+            </button>
+          </>
         }
       />
 
@@ -251,6 +294,12 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           onChange={(e) => setData({ ...data, StrutturaId: e.target.value ? Number(e.target.value) : null })}
           options={data.Strutture.map((s) => ({ value: s.Id, label: s.nome }))}
         />
+        <div className="imposta-dist__open-market">
+          <ToggleSwitch label="Open market" checked={openMarket} onChange={toggleOpenMarket} disabled={data.StrutturaId == null} className="imposta-dist__open-market-switch" />
+          <Tooltip text="Attivando Open market iscrivi la struttura al mercato aperto della rete: i tour operator possono inviarti proposte di distribuzione sui segmenti di vendita, che potrai accettare o rifiutare.">
+            <i className="fa-regular fa-circle-info imposta-dist__open-market-info" />
+          </Tooltip>
+        </div>
         <SearchField
           className="imposta-dist__search"
           placeholder="Cerca operatore…"

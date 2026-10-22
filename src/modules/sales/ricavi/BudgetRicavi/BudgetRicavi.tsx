@@ -5,6 +5,8 @@ import { SelectField } from '../../../../core/components/form'
 import { exportTableToXls, exportElementToPdf } from '../../booking/GrigliaDisponibilita/exportGriglia'
 import './BudgetRicavi.sass'
 import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+import { useBudgetRicaviStore } from '../../../../store/useBudgetRicaviStore'
+import { toast } from '../../../../core/components/Toast/useToast'
 
 // Budget dei ricavi — dashboard revenue per mese: Anno Precedente, Imposta
 // budget (%RN/%ADR editabili, guidano il Budget), Budget e Anno Corrente con
@@ -52,6 +54,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   const [segmento, setSegmento]   = useState(SEGMENTI[0])
   const [anno, setAnno]           = useState(ANNI[0])
+  const salvaBudget               = useBudgetRicaviStore((s) => s.salva)
   const [dRN, setDRN]   = useState<number[]>(INIT_DRN)
   const [dADR, setDADR] = useState<number[]>(MESI.map(() => 2))
   // Valori "applica a tutti" dell'header Imposta budget
@@ -139,7 +142,7 @@ export default function BudgetRicavi({ navigate }: { navigate: (p: string) => vo
         </div>
         <div className="bdg-ric__actions">
           <button type="button" className="sib-btn sib-btn--secondary" onClick={ripristina}><i className="fa-light fa-eraser" /> Ripristina</button>
-          <button type="button" className="sib-btn sib-btn--primary"><i className="fa-light fa-floppy-disk" /> Salva</button>
+          <button type="button" className="sib-btn sib-btn--primary" onClick={() => { salvaBudget(struttura, anno); toast.success(`Budget dei ricavi ${anno} salvato per ${struttura}`) }}><i className="fa-light fa-floppy-disk" /> Salva</button>
           <Tooltip text="Suggerimenti budget">
             <button type="button" className={'sib-btn sib-btn--icon bdg-ric__sugg-btn' + (showSugg ? ' is-active' : '')} aria-label="Suggerimenti budget" aria-pressed={showSugg} onClick={() => setShowSugg((v) => !v)}>
               <i className="fa-solid fa-lightbulb-on" />
