@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
+import TruncatedText from '../../../../core/components/TruncatedText'
 import Modal from '../../../../core/components/Modal'
 import Tabs from '../../../../core/components/Tabs'
 import { SelectField, DateRangeField, InputField, ToggleSwitch } from '../../../../core/components/form'
@@ -260,13 +261,12 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const [impLos, setImpLos] = useState(false)
   const [losVal, setLosVal] = useState(1)
   // Destinatari di restrizioni e Minimum-LOS
-  const [regoleSu, setRegoleSu] = useState<'canali' | 'prodotti'>('canali')
   const [regoleCanali, setRegoleCanali] = useState<Sel>({})
   const [prodotti, setProdotti] = useState<Sel>({})
   // Restrizioni e Minimum-LOS: uno alla volta, come nel Portal.
   const toggleRestr = () => { setImpRestr(v => !v); setImpLos(false) }
   const toggleLos = () => { setImpLos(v => !v); setImpRestr(false) }
-  const destinatariOk = regoleSu === 'canali' ? contaSel(regoleCanali) > 0 : contaSel(prodotti) > 0
+  const destinatariOk = contaSel(regoleCanali) > 0 || contaSel(prodotti) > 0
 
   // Tariffe
   const [tariffeCanali, setTariffeCanali] = useState<Sel>(() => allOn(ME_CANALI.map(c => c.id)))
@@ -283,52 +283,48 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
   const riepilogo = tab === 'disp'
     ? (nRooms === 0 ? 'Seleziona almeno una camera' : nOps === 0 ? 'Attiva almeno un\'operazione'
       : mercatoMancante ? 'Inserisci il valore di Mercato o usa la disponibilità residua'
-      : conRegole && !destinatariOk ? (regoleSu === 'canali' ? 'Seleziona almeno un canale' : 'Seleziona almeno un prodotto')
+      : conRegole && !destinatariOk ? 'Seleziona almeno un canale o un prodotto'
       : `${nOps} ${nOps === 1 ? 'operazione' : 'operazioni'} su ${nRooms} ${nRooms === 1 ? 'camera' : 'camere'}`)
     : `${tariffeRooms.length} tariffe su ${contaSel(tariffeCanali)} ${contaSel(tariffeCanali) === 1 ? 'canale' : 'canali'}`
 
-  // Destinatari dell'operazione attiva fra Restrizioni e Minimum-LOS: canali o prodotti.
+  // Destinatari dell'operazione attiva fra Restrizioni e Minimum-LOS: canali e
+  // prodotti sempre visibili, affiancati in due colonne.
+  const tuttiCanali = contaSel(regoleCanali) === CANALI_REGOLE.length
+  const tuttiProdotti = contaSel(prodotti) === PRODOTTI_REGOLE.length
   const destinatari = (
     <section className="me3-dest">
-      <div className="me3-field">
-        <span className="me3-field__label">Applica a</span>
-        <MeSegmented value={regoleSu} onChange={setRegoleSu}
-          options={[{ v: 'canali', label: 'Canali', icon: 'fa-share-nodes' }, { v: 'prodotti', label: 'Prodotti', icon: 'fa-tags' }]} />
-      </div>
-      {regoleSu === 'canali' ? (
+      <span className="me3-field__label">Applica a</span>
+      <div className="me3-dest__cols">
         <div className="me3-field me3-field--full">
           <span className="me3-field__label">
-            Canali <span className="me3-field__count">{contaSel(regoleCanali) === CANALI_REGOLE.length ? 'tutti' : contaSel(regoleCanali) || 'nessuno'}</span>
-            <button type="button" className="me3-link"
-              onClick={() => setRegoleCanali(contaSel(regoleCanali) === CANALI_REGOLE.length ? {} : allOn(CANALI_REGOLE))}>
-              {contaSel(regoleCanali) === CANALI_REGOLE.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+            <i className="fa-solid fa-share-nodes" /> Canali <span className="me3-field__count">{tuttiCanali ? 'tutti' : contaSel(regoleCanali) || 'nessuno'}</span>
+            <button type="button" className="me3-link" onClick={() => setRegoleCanali(tuttiCanali ? {} : allOn(CANALI_REGOLE))}>
+              {tuttiCanali ? 'Nessuno' : 'Tutti'}
             </button>
           </span>
-          <div className="me3-chips me3-chips--grid me3-chips--wide">
+          <div className="me3-dest__list">
             {CANALI_REGOLE.map(c => (
-              <MeChip key={c} on={!!regoleCanali[c]} onClick={() => setRegoleCanali(p => ({ ...p, [c]: !p[c] }))}>{c}</MeChip>
+              <MeChip key={c} on={!!regoleCanali[c]} onClick={() => setRegoleCanali(p => ({ ...p, [c]: !p[c] }))}><TruncatedText text={c} /></MeChip>
             ))}
           </div>
         </div>
-      ) : (
-        <>
-          <p className="me3-note"><i className="fa-solid fa-circle-info" /> Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.</p>
-          <div className="me3-field me3-field--full">
-            <span className="me3-field__label">
-              Prodotti <span className="me3-field__count">{contaSel(prodotti) || 'nessuno'}</span>
-              <button type="button" className="me3-link"
-                onClick={() => setProdotti(contaSel(prodotti) === PRODOTTI_REGOLE.length ? {} : allOn(PRODOTTI_REGOLE))}>
-                {contaSel(prodotti) === PRODOTTI_REGOLE.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
-              </button>
-            </span>
-            <div className="me3-prodotti">
-              {PRODOTTI_REGOLE.map(p => (
-                <MeChip key={p} on={!!prodotti[p]} onClick={() => setProdotti(s => ({ ...s, [p]: !s[p] }))}>{p}</MeChip>
-              ))}
-            </div>
+        <div className="me3-field me3-field--full">
+          <span className="me3-field__label">
+            <i className="fa-solid fa-tags" /> Prodotti <span className="me3-field__count">{tuttiProdotti ? 'tutti' : contaSel(prodotti) || 'nessuno'}</span>
+            <Tooltip text="Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.">
+              <i className="fa-solid fa-circle-info me3-dest__info" />
+            </Tooltip>
+            <button type="button" className="me3-link" onClick={() => setProdotti(tuttiProdotti ? {} : allOn(PRODOTTI_REGOLE))}>
+              {tuttiProdotti ? 'Nessuno' : 'Tutti'}
+            </button>
+          </span>
+          <div className="me3-dest__list">
+            {PRODOTTI_REGOLE.map(p => (
+              <MeChip key={p} on={!!prodotti[p]} onClick={() => setProdotti(s => ({ ...s, [p]: !s[p] }))}><TruncatedText text={p} /></MeChip>
+            ))}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </section>
   )
 

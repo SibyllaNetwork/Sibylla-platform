@@ -1162,14 +1162,6 @@
     .me3-chip:not(.me3-chip--on) .me3-chip__mark
       background: $text-disabled
 
-  &--grid
-    display: grid
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
-
-  // Nomi lunghi (canali delle regole): colonne più larghe
-  &--wide
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))
-
 // Macro area "Regole di prenotazione" (Restrizioni / Minimum-LOS)
 .me3-group
   display: flex
@@ -1191,7 +1183,7 @@
     font-weight: 600
     color: $primary
 
-// Destinatari di restrizioni o Minimum-LOS (canali o prodotti), in fondo
+// Destinatari di restrizioni o Minimum-LOS (canali e prodotti), in fondo
 // all'operazione attiva
 .me3-dest
   flex-basis: 100%
@@ -1201,9 +1193,36 @@
   gap: $space-md
   padding-top: $space-md
   border-top: 1px dashed $border
-  > .me3-chips,
-  > .me3-field--full
+
+  // Canali e prodotti affiancati: due colonne, sempre visibili
+  &__cols
     align-self: stretch
+    display: grid
+    grid-template-columns: minmax(0, 4fr) minmax(0, 5fr)
+    gap: $space-md
+    .me3-link
+      white-space: nowrap
+
+  // Elenco compatto a una colonna: i nomi lunghi vanno in ellipsis + tooltip
+  &__list
+    display: flex
+    flex-direction: column
+    gap: 4px
+    .me3-chip
+      width: 100%
+      min-height: 30px
+      padding: 4px 30px 4px 10px
+      justify-content: flex-start
+    .me3-chip__txt,
+    .me3-chip__label
+      min-width: 0
+      max-width: 100%
+    .me3-chip__label
+      display: block
+
+  &__info
+    color: $text-inactive
+    cursor: help
 
 .me3-note
   display: flex
@@ -1214,17 +1233,6 @@
   color: $text-active
   i
     color: $primary
-
-// Prodotti: un elenco a una colonna (i nomi sono lunghi), scorrevole
-.me3-prodotti
-  display: flex
-  flex-direction: column
-  gap: 6px
-  max-height: 220px
-  overflow-y: auto
-  .me3-chip
-    width: 100%
-    justify-content: flex-start
 
 .me3-chip
   appearance: none
