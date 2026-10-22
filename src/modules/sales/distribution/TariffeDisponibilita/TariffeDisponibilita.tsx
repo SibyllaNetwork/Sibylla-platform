@@ -315,7 +315,7 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
             <span className="me3-destbox__ico"><i className="fa-solid fa-tags" /></span>
             <h5 className="me3-destbox__title">Prodotti</h5>
             <span className="me3-field__count">{tuttiProdotti ? 'tutti' : contaSel(prodotti) || 'nessuno'}</span>
-            <Tooltip text="Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.">
+            <Tooltip text="Regole sui prodotti selezionati. Network e Agorà non vengono modificati.">
               <i className="fa-solid fa-circle-info me3-dest__info" />
             </Tooltip>
             <button type="button" className="me3-link" onClick={() => setProdotti(tuttiProdotti ? {} : allOn(PRODOTTI_REGOLE))}>
