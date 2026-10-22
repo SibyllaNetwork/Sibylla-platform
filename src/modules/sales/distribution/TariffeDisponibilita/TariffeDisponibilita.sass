@@ -1198,11 +1198,11 @@
   padding-top: $space-md
   border-top: 1px dashed $border
 
-  // Canali e prodotti affiancati: due colonne, sempre visibili
+  // Canali e prodotti affiancati: due colonne uguali, sempre visibili
   &__cols
     align-self: stretch
     display: grid
-    grid-template-columns: minmax(0, 4fr) minmax(0, 5fr)
+    grid-template-columns: repeat(2, minmax(0, 1fr))
     gap: $space-md
 
   // Elenco compatto a una colonna: i nomi lunghi vanno in ellipsis + tooltip
@@ -1263,8 +1263,12 @@
     font-weight: 600
     color: $primary
 
+  // Pronto per molti elementi: altezza fissa uguale nei due box, scroll verticale
   .me3-dest__list
+    height: 250px
     padding: 10px 12px 12px
+    overflow-y: auto
+    overscroll-behavior: contain
 
 .me3-note
   display: flex
