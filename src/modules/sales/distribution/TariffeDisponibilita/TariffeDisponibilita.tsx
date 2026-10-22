@@ -295,29 +295,33 @@ function MarketEngineModal({ open, onClose }: { open: boolean; onClose: () => vo
     <section className="me3-dest">
       <span className="me3-field__label">Applica a</span>
       <div className="me3-dest__cols">
-        <div className="me3-field me3-field--full">
-          <span className="me3-field__label">
-            <i className="fa-solid fa-share-nodes" /> Canali <span className="me3-field__count">{tuttiCanali ? 'tutti' : contaSel(regoleCanali) || 'nessuno'}</span>
+        <div className="me3-destbox">
+          <header className="me3-destbox__head">
+            <span className="me3-destbox__ico"><i className="fa-solid fa-share-nodes" /></span>
+            <h5 className="me3-destbox__title">Canali</h5>
+            <span className="me3-field__count">{tuttiCanali ? 'tutti' : contaSel(regoleCanali) || 'nessuno'}</span>
             <button type="button" className="me3-link" onClick={() => setRegoleCanali(tuttiCanali ? {} : allOn(CANALI_REGOLE))}>
-              {tuttiCanali ? 'Nessuno' : 'Tutti'}
+              {tuttiCanali ? 'Deseleziona tutti' : 'Seleziona tutti'}
             </button>
-          </span>
+          </header>
           <div className="me3-dest__list">
             {CANALI_REGOLE.map(c => (
               <MeChip key={c} on={!!regoleCanali[c]} onClick={() => setRegoleCanali(p => ({ ...p, [c]: !p[c] }))}><TruncatedText text={c} /></MeChip>
             ))}
           </div>
         </div>
-        <div className="me3-field me3-field--full">
-          <span className="me3-field__label">
-            <i className="fa-solid fa-tags" /> Prodotti <span className="me3-field__count">{tuttiProdotti ? 'tutti' : contaSel(prodotti) || 'nessuno'}</span>
+        <div className="me3-destbox">
+          <header className="me3-destbox__head">
+            <span className="me3-destbox__ico"><i className="fa-solid fa-tags" /></span>
+            <h5 className="me3-destbox__title">Prodotti</h5>
+            <span className="me3-field__count">{tuttiProdotti ? 'tutti' : contaSel(prodotti) || 'nessuno'}</span>
             <Tooltip text="Regole sui prodotti Vertical selezionati. Network e Agorà non vengono modificati.">
               <i className="fa-solid fa-circle-info me3-dest__info" />
             </Tooltip>
             <button type="button" className="me3-link" onClick={() => setProdotti(tuttiProdotti ? {} : allOn(PRODOTTI_REGOLE))}>
-              {tuttiProdotti ? 'Nessuno' : 'Tutti'}
+              {tuttiProdotti ? 'Deseleziona tutti' : 'Seleziona tutti'}
             </button>
-          </span>
+          </header>
           <div className="me3-dest__list">
             {PRODOTTI_REGOLE.map(p => (
               <MeChip key={p} on={!!prodotti[p]} onClick={() => setProdotti(s => ({ ...s, [p]: !s[p] }))}><TruncatedText text={p} /></MeChip>

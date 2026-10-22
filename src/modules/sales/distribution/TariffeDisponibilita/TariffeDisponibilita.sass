@@ -1048,6 +1048,10 @@
     transform: translateX(0)
 
 // ─── MARKET ENGINE (step guidati, chip e interruttori) ─────────────────────────
+// Modale più larga del size lg: canali e prodotti affiancati senza troncare
+.modal__box.me3-modal
+  max-width: 940px
+
 .me3
   gap: $space-xl
   max-height: min(68vh, 720px)
@@ -1200,8 +1204,6 @@
     display: grid
     grid-template-columns: minmax(0, 4fr) minmax(0, 5fr)
     gap: $space-md
-    .me3-link
-      white-space: nowrap
 
   // Elenco compatto a una colonna: i nomi lunghi vanno in ellipsis + tooltip
   &__list
@@ -1223,6 +1225,46 @@
   &__info
     color: $text-inactive
     cursor: help
+
+// Box distinto per Canali e per Prodotti, con intestazione propria
+.me3-destbox
+  display: flex
+  flex-direction: column
+  min-width: 0
+  border: 1px solid $border
+  border-radius: $radius-md
+  background: $white
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 10px 12px
+    border-bottom: 1px solid $border
+    .me3-link
+      white-space: nowrap
+
+  &__ico
+    width: 26px
+    height: 26px
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: $radius-sm
+    background: $primary
+    color: $white
+    font-size: 12px
+
+  &__title
+    margin: 0
+    font-family: 'Poppins', sans-serif
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+
+  .me3-dest__list
+    padding: 10px 12px 12px
 
 .me3-note
   display: flex
