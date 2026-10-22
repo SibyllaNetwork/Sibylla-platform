@@ -252,21 +252,6 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
       <PageHead
         title="Imposta distribuzione"
         subtitle="Gestione della distribuzione delle camere per i diversi canali di vendita"
-        actions={
-          <>
-            <Tooltip text={budgetSalvatoIl
-              ? `Budget ricavi ${annoCorrente} salvato il ${new Date(budgetSalvatoIl).toLocaleDateString('it-IT')}`
-              : `Nessun budget ricavi salvato per l'anno ${annoCorrente}.`}>
-              <button type="button" className={clsx('sib-btn sib-btn--icon imposta-dist__budget', budgetSalvatoIl && 'imposta-dist__budget--ok')}
-                onClick={() => navigate('budget-ricavi')} aria-label="Budget dei ricavi">
-                <i className={clsx('fa-solid', budgetSalvatoIl ? 'fa-shield-check' : 'fa-shield-halved')} />
-              </button>
-            </Tooltip>
-            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setInvitaOpen(true)}>
-              <i className="fa-regular fa-envelope" /> Invita nuovo operatore
-            </button>
-          </>
-        }
       />
 
       {data.attenzione && (
@@ -307,6 +292,17 @@ export default function ImpostaDistribuzione({ navigate }: { navigate: (p: strin
           onChange={(e) => setQ(e.target.value)}
           onClear={() => setQ('')}
         />
+        <Tooltip text={budgetSalvatoIl
+          ? `Budget ricavi ${annoCorrente} salvato il ${new Date(budgetSalvatoIl).toLocaleDateString('it-IT')}`
+          : `Nessun budget ricavi salvato per l'anno ${annoCorrente}.`}>
+          <button type="button" className={clsx('sib-btn sib-btn--icon imposta-dist__budget', budgetSalvatoIl && 'imposta-dist__budget--ok')}
+            onClick={() => navigate('budget-ricavi')} aria-label="Budget dei ricavi">
+            <i className={clsx('fa-solid', budgetSalvatoIl ? 'fa-shield-check' : 'fa-shield-halved')} />
+          </button>
+        </Tooltip>
+        <button type="button" className="sib-btn sib-btn--secondary imposta-dist__invita" onClick={() => setInvitaOpen(true)}>
+          <i className="fa-regular fa-envelope" /> Invita nuovo operatore
+        </button>
       </div>
 
       <div className="imposta-dist__layout">
