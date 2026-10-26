@@ -440,6 +440,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page.startsWith('crea-servizio:')) return <CreaServizio navigate={navigate} servizioId={page.slice('crea-servizio:'.length)} key={page}/>;
   if (page === 'i-miei-preventivi')     return <IMieiPreventivi navigate={navigate}/>;
   if (page === 'crea-preventivo')       return <CreaPreventivo navigate={navigate}/>;
+  if (page.startsWith('crea-preventivo:')) return <CreaPreventivo navigate={navigate} preventivoId={page.slice('crea-preventivo:'.length)} key={page}/>;
   if (page === 'centro-costo')          return <ImpostaCentroDiCosto navigate={navigate}/>;
   if (page === 'archivio-personale')    return <ArchivioPersonale navigate={navigate}/>;
   if (page === 'archivio-contratti')    return <ArchivioContratti navigate={navigate}/>;

@@ -1,0 +1,508 @@
+// ─── PREVENTIVO SOGGIORNO ──────────────────────────────────────────────────────
+@use '../../../../styles/tokens' as *
+
+.psog
+  display: flex
+  flex-direction: column
+  gap: 14px
+  font-size: 13px
+  container-type: inline-size
+
+  &__errori
+    margin: 0
+    padding-left: 18px
+
+  // ── Stato (inviato / accettato) ────────────────────────────────────────────
+  &__stato
+    display: flex
+    align-items: center
+    gap: 10px
+    flex-wrap: wrap
+    padding: 10px 14px
+    border-radius: 12px
+    border: 1px solid $border
+    background: $primary-50
+    color: $text-active
+
+    > i
+      font-size: 16px
+      color: $primary
+
+    > span
+      flex: 1
+      min-width: 0
+
+    &--ok
+      background: $success-light
+      border-color: $success-mid
+
+      > i
+        color: $success
+
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 300px
+    gap: 18px
+    align-items: start
+
+  &__main
+    display: flex
+    flex-direction: column
+    gap: 16px
+    min-width: 0
+
+  // ── Card di sezione ────────────────────────────────────────────────────────
+  &__card
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+
+  &__card-head
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 14px 18px
+    border-bottom: 1px solid $border
+
+  &__num
+    width: 30px
+    height: 30px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 9px
+    background: $primary
+    color: #fff
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 14px
+
+  &__card-titles
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-size: 15px
+      font-weight: 700
+      color: $primary
+
+    span
+      font-size: 12px
+      color: $text-inactive
+
+  &__card-body
+    padding: 16px 18px 18px
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 14px 16px
+    align-items: start
+
+    &--soggiorno
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, .7fr) minmax(0, .7fr) minmax(0, 2fr)
+
+    &--tassa
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+
+  // ── Soluzione ──────────────────────────────────────────────────────────────
+  &__prop
+    border: 1px solid $border
+    border-radius: 12px
+    overflow: hidden
+
+    &.is-scelta
+      border: 2px solid $success
+
+  &__prop-head
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 10px 14px
+    background: $bg
+    border-bottom: 1px solid $border
+
+  &__prop-title
+    flex: 1
+    min-width: 0
+
+  &__ico
+    i
+      color: $primary
+      font-size: 16px
+
+  &__prop-body
+    padding: 14px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__letter
+    width: 24px
+    height: 24px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 7px
+    background: $primary-50
+    color: $primary
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 12px
+
+    &--lg
+      width: 32px
+      height: 32px
+      border-radius: 9px
+      background: $primary
+      color: #fff
+      font-size: 15px
+
+  &__periodo
+    margin: -6px 0 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+      margin-right: 4px
+
+    strong
+      color: $text-active
+
+  &__block
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__block-title
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+  &__camere
+    table-layout: fixed
+    width: 100%
+
+  &__w-tipo
+    width: 44%
+
+  &__w-qta
+    width: 14%
+
+  &__w-prezzo
+    width: 18%
+
+  &__w-tot
+    width: 17%
+
+  &__w-del
+    width: 7%
+
+  &__num-cell
+    text-align: right
+    white-space: nowrap
+
+  &__camere-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+    flex-wrap: wrap
+
+  &__posti
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+
+    &.is-warn
+      color: $warning
+      font-weight: 600
+
+      i
+        color: $warning
+
+  // servizi inclusi
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 6px 13px
+    background: var(--color-surface)
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    cursor: pointer
+    transition: border-color .12s, background .12s, color .12s
+
+    i
+      color: $primary
+
+    &:hover
+      border-color: $primary
+
+    &.is-on
+      border-color: $primary
+      background: $primary
+      color: #fff
+      font-weight: 600
+
+      i
+        color: #fff
+
+  // tassa + conto
+  &__bottom
+    display: grid
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr)
+    gap: 16px
+    align-items: start
+    padding-top: 14px
+    border-top: 1px dashed $border
+
+  &__conto
+    margin: 0
+    padding: 12px 14px
+    border-radius: 10px
+    background: $bg
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    > div
+      display: flex
+      justify-content: space-between
+      gap: 10px
+
+    dt
+      color: $text-inactive
+
+    dd
+      margin: 0
+      font-variant-numeric: tabular-nums
+      color: $text-active
+
+    .is-sconto dd
+      color: $success
+
+    .is-tot
+      margin-top: 4px
+      padding-top: 8px
+      border-top: 1px solid $border
+
+      dt
+        font-weight: 700
+        color: $text-active
+
+      dd
+        font-family: $font-heading
+        font-size: 17px
+        font-weight: 700
+        color: $primary
+
+  &__add
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    padding: 12px
+    border: 1.5px dashed $border
+    border-radius: 12px
+    background: transparent
+    font-family: inherit
+    font-size: 13px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+  // ── Riepilogo (sticky) ─────────────────────────────────────────────────────
+  &__aside
+    position: sticky
+    top: 16px
+
+  &__sum
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 12px
+    box-shadow: 0 1px 3px rgba(32, 71, 105, 0.06), 0 8px 24px rgba(32, 71, 105, 0.08)
+
+  &__sum-head
+    display: flex
+    justify-content: space-between
+    align-items: center
+
+  &__sum-code
+    font-family: $font-heading
+    font-weight: 700
+    color: $text-inactive
+    font-size: 12px
+
+  &__sum-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 700
+    color: $primary
+
+  &__sum-list
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+    li
+      display: flex
+      align-items: center
+      gap: 10px
+      padding: 8px 10px
+      border-radius: 10px
+      border: 1px solid $border
+
+      &.is-scelta
+        border-color: $success
+        background: $success-light
+
+  &__sum-txt
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+    strong, small
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    strong
+      font-size: 12.5px
+      color: $text-active
+
+    small
+      font-size: 11px
+      color: $text-inactive
+
+  &__sum-tot
+    font-family: $font-heading
+    font-weight: 700
+    color: $primary
+    white-space: nowrap
+
+  &__sum-acts
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+    .sib-btn
+      justify-content: center
+
+  &__sum-row
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 8px
+
+  &__badge
+    font-size: 11px
+    font-weight: 700
+    border-radius: 999px
+    padding: 3px 10px
+    background: $primary-50
+    color: $primary
+
+    &--accettato
+      background: $success-light
+      color: $success
+
+    &--rifiutato
+      background: $bg
+      color: $error
+
+  // ── Larghezze ridotte ──────────────────────────────────────────────────────
+  @container (max-width: 1100px)
+    &__layout
+      grid-template-columns: 1fr
+
+    &__aside
+      position: static
+
+    &__grid
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+
+  @container (max-width: 760px)
+    &__grid, &__grid--soggiorno, &__bottom
+      grid-template-columns: 1fr
+
+// Iframe nascosto per la stampa
+.psog__print-frame
+  position: fixed
+  width: 0
+  height: 0
+  border: 0
+  right: 0
+  bottom: 0
+
+// ── Modale mail ───────────────────────────────────────────────────────────────
+.psog-mail
+  &__body
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 16px 20px
+
+  &__fields
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr)
+    gap: 12px
+
+  &__hint
+    margin: 0
+    font-size: 12px
+    color: $text-inactive
+
+    i
+      color: $primary
+      margin-right: 4px
+
+  &__frame
+    width: 100%
+    height: 62vh
+    border: 1px solid $border
+    border-radius: 12px
+    background: $bg
+
+  &__foot
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    padding: 12px 20px 16px
+    border-top: 1px solid $border

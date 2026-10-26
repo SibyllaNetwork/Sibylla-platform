@@ -219,6 +219,87 @@
       font-weight: 600
       color: var(--color-text-inactive)
 
+  // Tipologia del preventivo (Soggiorno / Prodotti / Servizi)
+  &__fin-filter
+    width: 160px
+
+  &__fin
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 100%
+    min-width: 0
+
+    i
+      flex-shrink: 0
+      font-size: 16px
+      color: var(--color-primary)
+
+  // Proposte del preventivo di soggiorno (riga espansa)
+  &__proposte
+    list-style: none
+    margin: 4px 0 10px
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    li
+      display: flex
+      align-items: center
+      gap: 10px
+      padding: 7px 10px
+      border: 1px solid var(--color-border)
+      border-radius: 8px
+      background: var(--color-surface)
+
+      &.is-scelta
+        border-color: var(--color-success)
+        background: var(--color-success-light)
+
+  &__lettera
+    width: 22px
+    height: 22px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 6px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 11px
+    font-weight: 700
+
+  &__prop-txt
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+    strong, small
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    strong
+      font-size: 12.5px
+      color: var(--color-text-active)
+
+    small
+      font-size: 11px
+      color: var(--color-text-inactive)
+
+  &__scelta
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-success)
+    white-space: nowrap
+
+  &__prop-tot
+    font-weight: 700
+    color: var(--color-primary)
+    white-space: nowrap
+
   &__pager
     margin-top: 18px
     justify-content: center
@@ -243,26 +324,28 @@
   width: 3%
 .gest-prev__w-id
   width: 7%
+.gest-prev__w-fin
+  width: 8%
 .gest-prev__w-stato
   width: 8%
 .gest-prev__w-utente
-  width: 8%
+  width: 7%
 .gest-prev__w-creazione
-  width: 9%
+  width: 8%
 .gest-prev__w-scadenza
   width: 8%
 .gest-prev__w-cliente
-  width: 9%
-.gest-prev__w-email
   width: 8%
+.gest-prev__w-email
+  width: 7%
 .gest-prev__w-camere
   width: 5%
 .gest-prev__w-inout
-  width: 9%
+  width: 8%
 .gest-prev__w-prezzo
   width: 7%
 .gest-prev__w-azioni
-  width: 16%
+  width: 13%
 
 @container gestprev (max-width: 1180px)
   .gest-prev__wrap .gest-prev__table

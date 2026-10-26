@@ -10,6 +10,10 @@ import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { exportTableToXls } from '../../booking/GrigliaDisponibilita/exportGriglia'
 import { exportPreventivoPdf } from './preventivoPdf'
+import { SelectField } from '../../../../core/components/form'
+import { usePreventiviSoggiornoStore, type PreventivoSoggiorno } from '../../../../store/usePreventiviSoggiornoStore'
+import { FINALITA, type FinalitaPreventivo } from '../CreaPreventivo/CreaPreventivo'
+import { LETTERE, conto, eur } from '../CreaPreventivo/soggiorno'
 import './IMieiPreventivi.sass'
 
 /**
@@ -31,6 +35,10 @@ interface Preventivo {
   checkin?: string
   checkout?: string
   prezzo?: number
+  /** Finalità: Soggiorno, Prodotti o Servizi. */
+  finalita?: FinalitaPreventivo
+  /** Preventivo di soggiorno creato nella piattaforma (store). */
+  soggiorno?: PreventivoSoggiorno
   [key: string]: unknown
 }
 
@@ -44,6 +52,7 @@ const CLIENTI_PRV: Array<[string, string]> = [
   ['Mr. James Turner', 'j.turner@mail.uk'], ['Liceo Galilei — gita', 'segreteria@liceogalilei.edu.it'],
   ['Dott. Marco Bruno', 'm.bruno@mail.it'], ['Wedding Planner Aurora', 'info@weddingaurora.it'],
 ]
+const FIN_PRV: FinalitaPreventivo[] = ['soggiorno', 'prodotti', 'servizi', 'soggiorno', 'soggiorno', 'servizi', 'soggiorno', 'soggiorno', 'soggiorno', 'soggiorno', 'prodotti', 'servizi']
 const STATI_PRV = ['Bozza', 'Letto', 'Inviato', 'Accettato', 'Inviato', 'Rifiutato', 'Letto', 'Accettato', 'Bozza', 'Inviato', 'Accettato', 'Letto']
 const fmtDataPrv = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 const traPrv = (n: number) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d }
@@ -53,14 +62,40 @@ const FALLBACK: Preventivo[] = CLIENTI_PRV.map(([cliente, email], i) => {
   const arrivo = creato + 15 + ((i * 7) % 40)
   const notti = 1 + ((i * 3) % 5)
   const camere = [1, 12, 25, 2, 18, 40, 1, 30, 1, 22, 2, 15][i]
-  return {
-    id: 40 + i, codice: `PRV-${40 + i}`, stato: STATI_PRV[i], utente: 'Mario Rossi',
+  const finalita = FIN_PRV[i]
+  const base = {
+    id: 40 + i, codice: `PRV-${40 + i}`, stato: STATI_PRV[i], utente: 'Mario Rossi', finalita,
     data_creazione: fmtDataPrv(traPrv(creato)), data_scadenza: `${fmtDataPrv(traPrv(creato + 7))} 00:00`,
-    cliente, email, camere,
+    cliente, email,
+  }
+  // Prodotti e servizi non hanno camere né date di soggiorno.
+  if (finalita !== 'soggiorno') return { ...base, prezzo: Math.round(camere * (38 + (i % 5) * 17) * 100) / 100 }
+  return {
+    ...base, camere,
     checkin: fmtDataPrv(traPrv(arrivo)), checkout: fmtDataPrv(traPrv(arrivo + notti)),
     prezzo: Math.round(camere * notti * (128 + (i % 4) * 22) * 100) / 100,
   }
 }).reverse()
+
+const FIN_LABEL = Object.fromEntries(FINALITA.map((f) => [f.id, f])) as Record<FinalitaPreventivo, (typeof FINALITA)[number]>
+
+const isoIt = (iso: string) => iso.split('-').reverse().join('/')
+
+// Preventivo di soggiorno (store) → riga dell'elenco: date e prezzo della
+// proposta scelta dal cliente, altrimenti della prima.
+function daSoggiorno(p: PreventivoSoggiorno, i: number): Preventivo {
+  const q = p.proposte.find((x) => x.id === p.accettata) ?? p.proposte[0]
+  const scad = new Date(); const [g, m, a] = p.creato.split('/').map(Number)
+  scad.setFullYear(a, m - 1, g + Number(p.validita))
+  return {
+    id: 100000 + i, codice: p.codice, stato: p.stato, utente: 'Mario Rossi', finalita: 'soggiorno', soggiorno: p,
+    data_creazione: p.creato, data_scadenza: `${fmtDataPrv(scad)} 00:00`,
+    cliente: p.cliente, email: p.email,
+    camere: q?.camere.reduce((s, c) => s + c.quantita, 0),
+    checkin: q ? isoIt(q.checkin) : '', checkout: q ? isoIt(q.checkout) : '',
+    prezzo: q ? Math.round(conto(q).totale * 100) / 100 : 0,
+  }
+}
 
 const STATI = ['Bozza', 'Letto', 'Inviato', 'Accettato', 'Rifiutato', 'Scaduto']
 
@@ -80,7 +115,12 @@ function isScaduto(p: Preventivo): boolean {
 }
 
 export default function IMieiPreventivi({ navigate }: { navigate: (p: string) => void }) {
-  const [items, setItems] = useState<Preventivo[]>(FALLBACK)
+  const [remoti, setItems] = useState<Preventivo[]>(FALLBACK)
+  const soggiorni = usePreventiviSoggiornoStore((s) => s.preventivi)
+  const aggiornaSoggiorno = usePreventiviSoggiornoStore((s) => s.aggiorna)
+  const eliminaSoggiorno = usePreventiviSoggiornoStore((s) => s.elimina)
+  const items = useMemo(() => [...soggiorni.map(daSoggiorno), ...remoti], [soggiorni, remoti])
+  const [finSel, setFinSel] = useState<'' | FinalitaPreventivo>('')
   const [search, setSearch] = useState('')
   const [statiSel, setStatiSel] = useState<string[]>([])
   const [statiOpen, setStatiOpen] = useState(false)
@@ -111,14 +151,15 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
     const rows = items.filter((p) => {
       const matchSearch = !search || `${p.codice ?? ''} ${p.cliente ?? ''} ${p.email ?? ''} ${p.utente ?? ''}`.toLowerCase().includes(search.toLowerCase())
       const matchStato = statiSel.length === 0 || statiSel.includes(p.stato ?? '')
-      return matchSearch && matchStato
+      const matchFin = !finSel || p.finalita === finSel
+      return matchSearch && matchStato && matchFin
     })
     return rows.sort((a, b) => {
       const da = parseDate(a.data_creazione)?.getTime() ?? 0
       const db = parseDate(b.data_creazione)?.getTime() ?? 0
       return sortAsc ? da - db : db - da
     })
-  }, [items, search, statiSel, sortAsc])
+  }, [items, search, statiSel, finSel, sortAsc])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageStart = (page - 1) * PAGE_SIZE
@@ -143,8 +184,9 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   const statiLabel = statiSel.length === 0 ? 'Scelte multiple' : statiSel.length === 1 ? statiSel[0] : `${statiSel.length} stati`
 
   // ── Azioni riga ───────────────────────────────────────────────────────────
-  // CreaPreventivo funge sia da vista che da editor (nessun prefill da id).
-  const handleOpen = () => navigate('crea-preventivo')
+  // I preventivi di soggiorno creati in piattaforma si riaprono nella loro
+  // scheda; gli altri aprono Crea preventivo (nessun prefill da id).
+  const handleOpen = (p: Preventivo) => navigate(p.soggiorno ? `crea-preventivo:${p.soggiorno.id}` : 'crea-preventivo')
 
   const handlePdf = (p: Preventivo) => {
     exportPreventivoPdf(p)
@@ -154,7 +196,8 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
   const handleEmail = (p: Preventivo) => {
     if (!p.email) { toast.warning(`Nessun indirizzo email per ${p.codice}`); return }
     // marca il preventivo come "Inviato"
-    setItems((list) => list.map((x) => (x.id === p.id ? { ...x, stato: 'Inviato' } : x)))
+    if (p.soggiorno) aggiornaSoggiorno(p.soggiorno.id, { stato: p.stato === 'Accettato' ? 'Accettato' : 'Inviato', inviatoIl: new Date().toLocaleString('it-IT') })
+    else setItems((list) => list.map((x) => (x.id === p.id ? { ...x, stato: 'Inviato' } : x)))
     toast.success(`Preventivo ${p.codice} inviato a ${p.email}`)
   }
 
@@ -166,7 +209,8 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
       danger: true,
     })
     if (!ok) return
-    setItems((list) => list.filter((x) => x.id !== p.id))
+    if (p.soggiorno) eliminaSoggiorno(p.soggiorno.id)
+    else setItems((list) => list.filter((x) => x.id !== p.id))
     setSelected((s) => { const n = new Set(s); n.delete(p.id!); return n })
     setExpanded((s) => { const n = new Set(s); n.delete(p.id!); return n })
     toast.success(`Preventivo ${p.codice} eliminato`)
@@ -174,9 +218,9 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
 
   // ── Export Excel dell'elenco filtrato ───────────────────────────────────────
   const handleExcel = () => {
-    const header = ['ID preventivo', 'Stato', 'Utente', 'Data creazione', 'Data scadenza', 'Cliente', 'Email', 'Camere', 'Check-in', 'Check-out', 'Prezzo']
+    const header = ['ID preventivo', 'Tipologia', 'Stato', 'Utente', 'Data creazione', 'Data scadenza', 'Cliente', 'Email', 'Camere', 'Check-in', 'Check-out', 'Prezzo']
     const rows = filtered.map((p) => [
-      p.codice ?? '', p.stato ?? '', p.utente ?? '', p.data_creazione ?? '', p.data_scadenza ?? '',
+      p.codice ?? '', p.finalita ? FIN_LABEL[p.finalita].label : '', p.stato ?? '', p.utente ?? '', p.data_creazione ?? '', p.data_scadenza ?? '',
       p.cliente ?? '', p.email ?? '', p.camere ?? '', p.checkin ?? '', p.checkout ?? '',
       p.prezzo != null ? p.prezzo.toLocaleString('it-IT', { minimumFractionDigits: 2 }) : '',
     ])
@@ -207,6 +251,12 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
           )}
         </div>
 
+        <SelectField
+          name="tipologia" label="Tipologia" className="gest-prev__fin-filter"
+          value={finSel} onChange={(e) => { setFinSel(e.target.value as '' | FinalitaPreventivo); setPage(1) }}
+          options={[{ value: '', label: 'Tutte' }, ...FINALITA.map((f) => ({ value: f.id, label: f.label }))]}
+        />
+
         <div className="gest-prev__field gest-prev__field--search">
           <label className="gest-prev__label">Cerca</label>
           <SearchField value={search} placeholder="Cerca..." onChange={(e) => { setSearch(e.target.value); setPage(1) }} onClear={() => { setSearch(''); setPage(1) }} />
@@ -227,7 +277,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
         <table className="sib-table gest-prev__table">
           {/* Larghezze in percentuale + table-layout fixed: niente scroll orizzontale. */}
           <colgroup>
-            {['check', 'exp', 'id', 'stato', 'utente', 'creazione', 'scadenza', 'cliente', 'email', 'camere', 'inout', 'prezzo', 'azioni'].map((c) => (
+            {['check', 'exp', 'id', 'fin', 'stato', 'utente', 'creazione', 'scadenza', 'cliente', 'email', 'camere', 'inout', 'prezzo', 'azioni'].map((c) => (
               <col key={c} className={`gest-prev__w-${c}`} />
             ))}
           </colgroup>
@@ -238,6 +288,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
               </th>
               <th className="gest-prev__col-exp" />
               <th><ThLabel full="ID preventivo" short="ID prev." /></th>
+              <th><ThLabel full="Tipologia" short="Tipo" /></th>
               <th><ThLabel full="Stato" /></th>
               <th><ThLabel full="Utente" /></th>
               <th>
@@ -268,19 +319,29 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                     </button>
                   </td>
                   <td><TruncatedText text={p.codice ?? ''} /></td>
+                  <td>
+                    {p.finalita && (
+                      <span className={`gest-prev__fin gest-prev__fin--${p.finalita}`}>
+                        <i className={`fa-solid ${FIN_LABEL[p.finalita].icona}`} aria-hidden="true" />
+                        <TruncatedText text={FIN_LABEL[p.finalita].label} />
+                      </span>
+                    )}
+                  </td>
                   <td><span className={`gest-prev__stato gest-prev__stato--${(p.stato ?? '').toLowerCase()}`}>{p.stato}</span></td>
                   <td><TruncatedText text={p.utente ?? ''} /></td>
                   <td><TruncatedText text={p.data_creazione ?? ''} /></td>
                   <td className={isScaduto(p) ? 'gest-prev__scaduto' : ''}><TruncatedText text={p.data_scadenza ?? ''} /></td>
                   <td><TruncatedText text={p.cliente ?? ''} /></td>
                   <td className="gest-prev__email"><TruncatedText text={p.email ?? ''} /></td>
-                  <td className="gest-prev__col-num">{p.camere}</td>
-                  <td className="gest-prev__nowrap"><TruncatedText text={`${p.checkin?.slice(0, 5)} → ${p.checkout?.slice(0, 5)}`} full={`${p.checkin} → ${p.checkout}`} /></td>
+                  <td className="gest-prev__col-num">{p.camere ?? '—'}</td>
+                  <td className="gest-prev__nowrap">
+                    {p.checkin ? <TruncatedText text={`${p.checkin.slice(0, 5)} → ${p.checkout?.slice(0, 5)}`} full={`${p.checkin} → ${p.checkout}`} /> : '—'}
+                  </td>
                   <td className="gest-prev__col-num"><TruncatedText text={`${p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €`} /></td>
                   <td className="gest-prev__col-actions">
                     <div className="gest-prev__actions">
                       <Tooltip text="Visualizza">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={handleOpen}><i className="fa-solid fa-eye" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Visualizza" onClick={() => handleOpen(p)}><i className="fa-solid fa-eye" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Scarica PDF">
                         <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Scarica PDF" onClick={() => handlePdf(p)}><i className="fa-solid fa-file-pdf" aria-hidden="true" /></button>
@@ -289,7 +350,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                         <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Invia email" onClick={() => handleEmail(p)}><i className="fa-solid fa-envelope" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Modifica">
-                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={handleOpen}><i className="fa-solid fa-pen" aria-hidden="true" /></button>
+                        <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Modifica" onClick={() => handleOpen(p)}><i className="fa-solid fa-pen" aria-hidden="true" /></button>
                       </Tooltip>
                       <Tooltip text="Elimina">
                         <button type="button" className="sib-btn sib-btn--icon w-7 h-7" aria-label="Elimina" onClick={() => handleDelete(p)}><i className="fa-solid fa-trash" aria-hidden="true" /></button>
@@ -299,11 +360,31 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                 </tr>
                 {expanded.has(p.id!) && (
                   <tr className="gest-prev__detail-row">
-                    <td colSpan={13}>
+                    <td colSpan={14}>
+                      {p.soggiorno && (
+                        <ul className="gest-prev__proposte">
+                          {p.soggiorno.proposte.map((q, i) => {
+                            const k = conto(q)
+                            const scelta = p.soggiorno!.accettata === q.id
+                            return (
+                              <li key={q.id} className={scelta ? 'is-scelta' : ''}>
+                                <span className="gest-prev__lettera">{LETTERE[i]}</span>
+                                <span className="gest-prev__prop-txt">
+                                  <strong>{q.titolo || q.camere.map((c) => `${c.quantita}× ${c.tipologia}`).join(', ')}</strong>
+                                  <small>{isoIt(q.checkin)} → {isoIt(q.checkout)} · {k.notti} notti · {q.trattamento}</small>
+                                </span>
+                                {scelta && <span className="gest-prev__scelta"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Scelta dal cliente</span>}
+                                <span className="gest-prev__prop-tot">{eur(k.totale)}</span>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      )}
                       <div className="gest-prev__detail">
-                        <div><span>Check-in</span>{p.checkin}</div>
-                        <div><span>Check-out</span>{p.checkout}</div>
-                        <div><span>Camere</span>{p.camere}</div>
+                        <div><span>Tipologia</span>{p.finalita ? FIN_LABEL[p.finalita].label : '—'}</div>
+                        <div><span>Check-in</span>{p.checkin || '—'}</div>
+                        <div><span>Check-out</span>{p.checkout || '—'}</div>
+                        <div><span>Camere</span>{p.camere ?? '—'}</div>
                         <div><span>Prezzo</span>{p.prezzo?.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €</div>
                         <div><span>Email</span>{p.email || '—'}</div>
                       </div>
@@ -313,7 +394,7 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
               </React.Fragment>
             ))}
             {pageRows.length === 0 && (
-              <tr><td colSpan={13} className="sib-empty">Nessun preventivo trovato.</td></tr>
+              <tr><td colSpan={14} className="sib-empty">Nessun preventivo trovato.</td></tr>
             )}
           </tbody>
         </table>

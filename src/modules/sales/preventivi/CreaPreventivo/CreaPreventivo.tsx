@@ -5,6 +5,7 @@ import FormGrid from '../../../../core/components/FormGrid'
 import { InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { useCatalogoStore } from '../../../../store/useCatalogoStore'
 import { apiFetchSibylla } from '../../../../services/api'
+import PreventivoSoggiorno from './PreventivoSoggiorno'
 import './CreaPreventivo.sass'
 
 /**
@@ -51,10 +52,20 @@ const SERVIZI_CATALOGO: Array<{ nome: string; prezzo: number }> = [
   { nome: 'Welcome dinner (a persona)',   prezzo: 65 },
 ]
 
+// Finalità del preventivo: Soggiorno ha la sua scheda (soluzioni di soggiorno),
+// Prodotti e Servizi usano lo specchietto delle voci di spesa.
+export type FinalitaPreventivo = 'soggiorno' | 'prodotti' | 'servizi'
+export const FINALITA: { id: FinalitaPreventivo; label: string; icona: string; desc: string }[] = [
+  { id: 'soggiorno', label: 'Soggiorno', icona: 'fa-bed', desc: 'Una o più soluzioni di soggiorno con date, camere, servizi inclusi e tassa' },
+  { id: 'prodotti',  label: 'Prodotti',  icona: 'fa-box', desc: 'Voci di spesa dal catalogo prodotti, quantità e IVA' },
+  { id: 'servizi',   label: 'Servizi',   icona: 'fa-bell-concierge', desc: 'Transfer, ristorazione, meeting, spa ed esperienze' },
+]
+
 const eur = (n: number) =>
   n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 
-export default function CreaPreventivo({ navigate }: { navigate: (p: string) => void }) {
+export default function CreaPreventivo({ navigate, preventivoId }: { navigate: (p: string) => void; preventivoId?: string }) {
+  const [finalita, setFinalita] = useState<FinalitaPreventivo>('soggiorno')
   const prodotti  = useCatalogoStore(s => s.prodotti)
   const fornitori = useCatalogoStore(s => s.fornitori)
 
@@ -97,7 +108,8 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
   }, [prodotti])
 
   const catalogoFiltrato = catalogo.filter(c =>
-    !pickerQuery || c.nome.toLowerCase().includes(pickerQuery.toLowerCase()),
+    (finalita === 'servizi' ? c.tipo === 'Servizio' : c.tipo === 'Prodotto') &&
+    (!pickerQuery || c.nome.toLowerCase().includes(pickerQuery.toLowerCase())),
   )
 
   // ── Totali ───────────────────────────────────────────────────────────
@@ -118,6 +130,7 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
         method: 'POST',
         body: {
           ...form,
+          finalita,
           righe: righeValide.map(r => ({
             descrizione: r.descrizione,
             quantita: r.quantita,
@@ -139,11 +152,14 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
     }
   }
 
+  const modifica = !!preventivoId
   return (
     <div className="crea-preventivo">
       <PageHead
-        title="Crea preventivo"
-        subtitle="Generazione automatica di preventivi personalizzabili"
+        title={modifica ? 'Modifica preventivo' : 'Crea preventivo'}
+        subtitle={finalita === 'soggiorno'
+          ? 'Proponi una o più soluzioni di soggiorno: il cliente riceve la mail e sceglie quella che preferisce'
+          : 'Generazione automatica di preventivi personalizzabili'}
         onBack={() => navigate('i-miei-preventivi')}
         actions={
           <div className="crea-preventivo__top-actions">
@@ -157,230 +173,254 @@ export default function CreaPreventivo({ navigate }: { navigate: (p: string) => 
         }
       />
 
-      {error && <AlertBanner type="error">{error}</AlertBanner>}
-
-      {/* ── Intestatario ─────────────────────────────────────────────── */}
-      <section className="crea-preventivo__section">
-        <h3 className="sib-section-title crea-preventivo__section-title">Intestatario del preventivo</h3>
-
-        <FormGrid cols={4}>
-          <SelectField
-            name="categoria" label="Categoria impresa" required
-            value={form.categoria} onChange={e => set('categoria', e.target.value)}
-            placeholder="Seleziona..."
-            options={CATEGORIE_IMPRESA.map(c => ({ value: c, label: c }))}
-          />
-          <SelectField
-            name="partner" label="Partner"
-            value={form.partner} onChange={e => set('partner', e.target.value)}
-            placeholder="Seleziona..."
-            options={fornitori.map(f => ({ value: f.id, label: f.nome }))}
-          />
-          <SelectField
-            name="struttura" label="Strutture"
-            value={form.struttura} onChange={e => set('struttura', e.target.value)}
-            options={STRUTTURE.map(s => ({ value: s, label: s }))}
-          />
-          <InputField
-            name="indirizzo" label="Indirizzo"
-            value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)}
-            placeholder="Via, civico"
-          />
-        </FormGrid>
-
-        <FormGrid cols={4}>
-          <InputField name="cap"      label="CAP"      value={form.cap}      onChange={e => set('cap', e.target.value)} placeholder="00000" />
-          <InputField name="citta"    label="Città"    value={form.citta}    onChange={e => set('citta', e.target.value)} placeholder="Città" />
-          <InputField name="telefono" label="Telefono" type="tel"   value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="+39 ..." />
-          <InputField name="email"    label="Email"    type="email" value={form.email}    onChange={e => set('email', e.target.value)} placeholder="nome@dominio.it" />
-        </FormGrid>
-
-        <InputField
-          name="descrizione" label="Breve descrizione"
-          value={form.descrizione} onChange={e => set('descrizione', e.target.value)}
-          placeholder="Oggetto del preventivo (es. Soggiorno gruppo · 15 pax · 3 notti)"
-        />
-      </section>
-
-      {/* ── Voci di spesa ────────────────────────────────────────────── */}
-      <section className="crea-preventivo__section">
-        <div className="crea-preventivo__voci-head">
-          <h3 className="sib-section-title crea-preventivo__section-title">Voci di spesa</h3>
-          <div className="crea-preventivo__voci-actions">
-            <div className="crea-preventivo__picker-wrap">
-              <button
-                type="button" className="sib-btn sib-btn--ghost"
-                onClick={() => setPickerOpen(o => !o)} aria-expanded={pickerOpen}
-              >
-                <i className="fa-duotone fa-plus" aria-hidden="true" /> Aggiungi prodotto/servizio
-              </button>
-              {pickerOpen && (
-                <div className="crea-preventivo__picker">
-                  <input
-                    className="sib-input crea-preventivo__picker-search" autoFocus
-                    placeholder="Cerca prodotto o servizio…"
-                    value={pickerQuery} onChange={e => setPickerQuery(e.target.value)}
-                  />
-                  <ul className="crea-preventivo__picker-list">
-                    {catalogoFiltrato.map((c, i) => (
-                      <li key={i}>
-                        <button
-                          type="button"
-                          onClick={() => { addRiga(c.nome, c.prezzo); setPickerOpen(false); setPickerQuery('') }}
-                        >
-                          <span className={'crea-preventivo__picker-tag crea-preventivo__picker-tag--' + c.tipo.toLowerCase()}>{c.tipo}</span>
-                          <span className="crea-preventivo__picker-name">{c.nome}</span>
-                          <span className="crea-preventivo__picker-price">{eur(c.prezzo)}</span>
-                        </button>
-                      </li>
-                    ))}
-                    {catalogoFiltrato.length === 0 && (
-                      <li className="crea-preventivo__picker-empty">Nessun elemento trovato.</li>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
-            <button type="button" className="sib-btn sib-btn--ghost" onClick={() => navigate('crea-prodotto')}>
-              <i className="fa-duotone fa-box" aria-hidden="true" /> Crea prodotto
+      {/* ── Finalità del preventivo ──────────────────────────────────── */}
+      {!modifica && (
+        <div className="crea-preventivo__finalita" role="radiogroup" aria-label="Finalità del preventivo">
+          {FINALITA.map(f => (
+            <button
+              key={f.id} type="button" role="radio" aria-checked={finalita === f.id}
+              className={'crea-preventivo__fin' + (finalita === f.id ? ' is-on' : '')}
+              onClick={() => { setFinalita(f.id); setError(null) }}
+            >
+              <span className="crea-preventivo__fin-ico"><i className={`fa-solid ${f.icona}`} aria-hidden="true" /></span>
+              <span className="crea-preventivo__fin-txt">
+                <strong>{f.label}</strong>
+                <small>{f.desc}</small>
+              </span>
+              <i className={'crea-preventivo__fin-check fa-solid ' + (finalita === f.id ? 'fa-circle-check' : 'fa-circle')} aria-hidden="true" />
             </button>
-            <button type="button" className="sib-btn sib-btn--ghost" onClick={() => navigate('crea-servizio')}>
-              <i className="fa-duotone fa-gear" aria-hidden="true" /> Crea servizio
-            </button>
-          </div>
+          ))}
         </div>
+      )}
 
-        <div className="crea-preventivo__voci-wrap">
-          <table className="crea-preventivo__voci">
-            <thead>
-              <tr>
-                <th className="crea-preventivo__col-idx">#</th>
-                <th>Descrizione</th>
-                <th className="crea-preventivo__col-qta">Quantità</th>
-                <th className="crea-preventivo__col-num">Prezzo unitario</th>
-                <th className="crea-preventivo__col-num">Prezzo totale</th>
-                <th className="crea-preventivo__col-del" />
-              </tr>
-            </thead>
-            <tbody>
-              {righe.map((r, i) => (
-                <tr key={r.id}>
-                  <td className="crea-preventivo__col-idx">{i + 1}</td>
-                  <td>
-                    <input
-                      className="crea-preventivo__cell-input"
-                      value={r.descrizione}
-                      onChange={e => updRiga(r.id, { descrizione: e.target.value })}
-                      placeholder="Descrizione voce"
-                    />
-                  </td>
-                  <td className="crea-preventivo__col-qta">
-                    <input
-                      type="number" min={0} step={1}
-                      className="crea-preventivo__cell-input crea-preventivo__cell-input--num"
-                      value={r.quantita}
-                      onChange={e => updRiga(r.id, { quantita: Math.max(0, Number(e.target.value) || 0) })}
-                    />
-                  </td>
-                  <td className="crea-preventivo__col-num">
-                    <div className="crea-preventivo__cell-money">
+      {finalita === 'soggiorno' || modifica
+        ? <PreventivoSoggiorno navigate={navigate} preventivoId={preventivoId} />
+        : <>
+          {error && <AlertBanner type="error">{error}</AlertBanner>}
+
+          {/* ── Intestatario ─────────────────────────────────────────────── */}
+          <section className="crea-preventivo__section">
+            <h3 className="sib-section-title crea-preventivo__section-title">Intestatario del preventivo</h3>
+
+            <FormGrid cols={4}>
+              <SelectField
+                name="categoria" label="Categoria impresa" required
+                value={form.categoria} onChange={e => set('categoria', e.target.value)}
+                placeholder="Seleziona..."
+                options={CATEGORIE_IMPRESA.map(c => ({ value: c, label: c }))}
+              />
+              <SelectField
+                name="partner" label="Partner"
+                value={form.partner} onChange={e => set('partner', e.target.value)}
+                placeholder="Seleziona..."
+                options={fornitori.map(f => ({ value: f.id, label: f.nome }))}
+              />
+              <SelectField
+                name="struttura" label="Strutture"
+                value={form.struttura} onChange={e => set('struttura', e.target.value)}
+                options={STRUTTURE.map(s => ({ value: s, label: s }))}
+              />
+              <InputField
+                name="indirizzo" label="Indirizzo"
+                value={form.indirizzo} onChange={e => set('indirizzo', e.target.value)}
+                placeholder="Via, civico"
+              />
+            </FormGrid>
+
+            <FormGrid cols={4}>
+              <InputField name="cap"      label="CAP"      value={form.cap}      onChange={e => set('cap', e.target.value)} placeholder="00000" />
+              <InputField name="citta"    label="Città"    value={form.citta}    onChange={e => set('citta', e.target.value)} placeholder="Città" />
+              <InputField name="telefono" label="Telefono" type="tel"   value={form.telefono} onChange={e => set('telefono', e.target.value)} placeholder="+39 ..." />
+              <InputField name="email"    label="Email"    type="email" value={form.email}    onChange={e => set('email', e.target.value)} placeholder="nome@dominio.it" />
+            </FormGrid>
+
+            <InputField
+              name="descrizione" label="Breve descrizione"
+              value={form.descrizione} onChange={e => set('descrizione', e.target.value)}
+              placeholder="Oggetto del preventivo (es. Soggiorno gruppo · 15 pax · 3 notti)"
+            />
+          </section>
+
+          {/* ── Voci di spesa ────────────────────────────────────────────── */}
+          <section className="crea-preventivo__section">
+            <div className="crea-preventivo__voci-head">
+              <h3 className="sib-section-title crea-preventivo__section-title">Voci di spesa</h3>
+              <div className="crea-preventivo__voci-actions">
+                <div className="crea-preventivo__picker-wrap">
+                  <button
+                    type="button" className="sib-btn sib-btn--ghost"
+                    onClick={() => setPickerOpen(o => !o)} aria-expanded={pickerOpen}
+                  >
+                    <i className="fa-duotone fa-plus" aria-hidden="true" /> {finalita === 'servizi' ? 'Aggiungi servizio' : 'Aggiungi prodotto'}
+                  </button>
+                  {pickerOpen && (
+                    <div className="crea-preventivo__picker">
                       <input
-                        type="number" min={0} step={0.01}
-                        className="crea-preventivo__cell-input crea-preventivo__cell-input--num"
-                        value={r.prezzoUnitario}
-                        onChange={e => updRiga(r.id, { prezzoUnitario: Math.max(0, Number(e.target.value) || 0) })}
+                        className="sib-input crea-preventivo__picker-search" autoFocus
+                        placeholder={finalita === 'servizi' ? 'Cerca servizio…' : 'Cerca prodotto…'}
+                        value={pickerQuery} onChange={e => setPickerQuery(e.target.value)}
                       />
-                      <span className="crea-preventivo__cell-cur">€</span>
+                      <ul className="crea-preventivo__picker-list">
+                        {catalogoFiltrato.map((c, i) => (
+                          <li key={i}>
+                            <button
+                              type="button"
+                              onClick={() => { addRiga(c.nome, c.prezzo); setPickerOpen(false); setPickerQuery('') }}
+                            >
+                              <span className={'crea-preventivo__picker-tag crea-preventivo__picker-tag--' + c.tipo.toLowerCase()}>{c.tipo}</span>
+                              <span className="crea-preventivo__picker-name">{c.nome}</span>
+                              <span className="crea-preventivo__picker-price">{eur(c.prezzo)}</span>
+                            </button>
+                          </li>
+                        ))}
+                        {catalogoFiltrato.length === 0 && (
+                          <li className="crea-preventivo__picker-empty">Nessun elemento trovato.</li>
+                        )}
+                      </ul>
                     </div>
-                  </td>
-                  <td className="crea-preventivo__col-num crea-preventivo__cell-total">
-                    {eur(r.quantita * r.prezzoUnitario)}
-                  </td>
-                  <td className="crea-preventivo__col-del">
-                    <button
-                      type="button" className="crea-preventivo__row-del"
-                      onClick={() => rmRiga(r.id)} disabled={righe.length === 1}
-                      title="Elimina riga"
-                    >
-                      <i className="fa-solid fa-trash-can" aria-hidden="true" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </div>
+                <button type="button" className="sib-btn sib-btn--ghost" onClick={() => navigate('crea-prodotto')}>
+                  <i className="fa-duotone fa-box" aria-hidden="true" /> Crea prodotto
+                </button>
+                <button type="button" className="sib-btn sib-btn--ghost" onClick={() => navigate('crea-servizio')}>
+                  <i className="fa-duotone fa-gear" aria-hidden="true" /> Crea servizio
+                </button>
+              </div>
+            </div>
 
-        <button type="button" className="sib-btn sib-btn--ghost crea-preventivo__add-row" onClick={() => addRiga()}>
-          <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi riga
-        </button>
+            <div className="crea-preventivo__voci-wrap">
+              <table className="crea-preventivo__voci">
+                <thead>
+                  <tr>
+                    <th className="crea-preventivo__col-idx">#</th>
+                    <th>Descrizione</th>
+                    <th className="crea-preventivo__col-qta">Quantità</th>
+                    <th className="crea-preventivo__col-num">Prezzo unitario</th>
+                    <th className="crea-preventivo__col-num">Prezzo totale</th>
+                    <th className="crea-preventivo__col-del" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {righe.map((r, i) => (
+                    <tr key={r.id}>
+                      <td className="crea-preventivo__col-idx">{i + 1}</td>
+                      <td>
+                        <input
+                          className="crea-preventivo__cell-input"
+                          value={r.descrizione}
+                          onChange={e => updRiga(r.id, { descrizione: e.target.value })}
+                          placeholder="Descrizione voce"
+                        />
+                      </td>
+                      <td className="crea-preventivo__col-qta">
+                        <input
+                          type="number" min={0} step={1}
+                          className="crea-preventivo__cell-input crea-preventivo__cell-input--num"
+                          value={r.quantita}
+                          onChange={e => updRiga(r.id, { quantita: Math.max(0, Number(e.target.value) || 0) })}
+                        />
+                      </td>
+                      <td className="crea-preventivo__col-num">
+                        <div className="crea-preventivo__cell-money">
+                          <input
+                            type="number" min={0} step={0.01}
+                            className="crea-preventivo__cell-input crea-preventivo__cell-input--num"
+                            value={r.prezzoUnitario}
+                            onChange={e => updRiga(r.id, { prezzoUnitario: Math.max(0, Number(e.target.value) || 0) })}
+                          />
+                          <span className="crea-preventivo__cell-cur">€</span>
+                        </div>
+                      </td>
+                      <td className="crea-preventivo__col-num crea-preventivo__cell-total">
+                        {eur(r.quantita * r.prezzoUnitario)}
+                      </td>
+                      <td className="crea-preventivo__col-del">
+                        <button
+                          type="button" className="crea-preventivo__row-del"
+                          onClick={() => rmRiga(r.id)} disabled={righe.length === 1}
+                          title="Elimina riga"
+                        >
+                          <i className="fa-solid fa-trash-can" aria-hidden="true" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* ── Riepilogo totali ──────────────────────────────────────── */}
-        <div className="crea-preventivo__totali">
-          <div className="crea-preventivo__totali-row">
-            <span className="crea-preventivo__totali-label">Sub Totale</span>
-            <span className="crea-preventivo__totali-val">{eur(subTotale)}</span>
-          </div>
-          <div className="crea-preventivo__totali-row">
-            <span className="crea-preventivo__totali-label">
-              IVA
-              <input
-                type="number" min={0} max={100} step={1}
-                className="crea-preventivo__iva-input"
-                value={ivaPct}
-                onChange={e => setIvaPct(e.target.value)}
+            <button type="button" className="sib-btn sib-btn--ghost crea-preventivo__add-row" onClick={() => addRiga()}>
+              <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi riga
+            </button>
+
+            {/* ── Riepilogo totali ──────────────────────────────────────── */}
+            <div className="crea-preventivo__totali">
+              <div className="crea-preventivo__totali-row">
+                <span className="crea-preventivo__totali-label">Sub Totale</span>
+                <span className="crea-preventivo__totali-val">{eur(subTotale)}</span>
+              </div>
+              <div className="crea-preventivo__totali-row">
+                <span className="crea-preventivo__totali-label">
+                  IVA
+                  <input
+                    type="number" min={0} max={100} step={1}
+                    className="crea-preventivo__iva-input"
+                    value={ivaPct}
+                    onChange={e => setIvaPct(e.target.value)}
+                  />
+                  <span className="crea-preventivo__iva-pct">%</span>
+                </span>
+                <span className="crea-preventivo__totali-val">{eur(iva)}</span>
+              </div>
+              <div className="crea-preventivo__totali-row crea-preventivo__totali-row--grand">
+                <span className="crea-preventivo__totali-label">Totale</span>
+                <span className="crea-preventivo__totali-val">{eur(totale)}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Allegati, validità, note ─────────────────────────────────── */}
+          <section className="crea-preventivo__section">
+            <FormGrid cols={3}>
+              <div className="crea-preventivo__field">
+                <span className="crea-preventivo__label">Allega documentazione</span>
+                <label className="crea-preventivo__file">
+                  <i className="fa-duotone fa-paperclip" aria-hidden="true" />
+                  <span className="crea-preventivo__file-name">{form.allegato || 'Inserisci file'}</span>
+                  <input
+                    type="file" className="crea-preventivo__file-input"
+                    onChange={e => set('allegato', e.target.files?.[0]?.name ?? '')}
+                  />
+                </label>
+              </div>
+              <SelectField
+                name="validita" label="Periodo validità"
+                value={form.validita} onChange={e => set('validita', e.target.value)}
+                options={VALIDITA}
               />
-              <span className="crea-preventivo__iva-pct">%</span>
-            </span>
-            <span className="crea-preventivo__totali-val">{eur(iva)}</span>
-          </div>
-          <div className="crea-preventivo__totali-row crea-preventivo__totali-row--grand">
-            <span className="crea-preventivo__totali-label">Totale</span>
-            <span className="crea-preventivo__totali-val">{eur(totale)}</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Allegati, validità, note ─────────────────────────────────── */}
-      <section className="crea-preventivo__section">
-        <FormGrid cols={3}>
-          <div className="crea-preventivo__field">
-            <span className="crea-preventivo__label">Allega documentazione</span>
-            <label className="crea-preventivo__file">
-              <i className="fa-duotone fa-paperclip" aria-hidden="true" />
-              <span className="crea-preventivo__file-name">{form.allegato || 'Inserisci file'}</span>
-              <input
-                type="file" className="crea-preventivo__file-input"
-                onChange={e => set('allegato', e.target.files?.[0]?.name ?? '')}
+              <TextareaField
+                name="note" label="Note"
+                rows={2}
+                value={form.note} onChange={e => set('note', e.target.value)}
+                placeholder="Note per l'intestatario del preventivo"
+                className="crea-preventivo__note"
               />
-            </label>
-          </div>
-          <SelectField
-            name="validita" label="Periodo validità"
-            value={form.validita} onChange={e => set('validita', e.target.value)}
-            options={VALIDITA}
-          />
-          <TextareaField
-            name="note" label="Note"
-            rows={2}
-            value={form.note} onChange={e => set('note', e.target.value)}
-            placeholder="Note per l'intestatario del preventivo"
-            className="crea-preventivo__note"
-          />
-        </FormGrid>
-      </section>
+            </FormGrid>
+          </section>
 
-      <div className="crea-preventivo__actions">
-        <button className="sib-btn sib-btn--secondary" onClick={() => navigate('i-miei-preventivi')} disabled={pending}>
-          Annulla
-        </button>
-        <button className="sib-btn sib-btn--primary" onClick={() => persist(false)} disabled={pending}>
-          <i className="fa-duotone fa-floppy-disk" aria-hidden="true" /> {pending ? 'Salvataggio…' : 'Salva'}
-        </button>
-        <button className="sib-btn sib-btn--primary" onClick={() => persist(true)} disabled={pending}>
-          <i className="fa-duotone fa-paper-plane" aria-hidden="true" /> Invia preventivo
-        </button>
-      </div>
+          <div className="crea-preventivo__actions">
+            <button className="sib-btn sib-btn--secondary" onClick={() => navigate('i-miei-preventivi')} disabled={pending}>
+              Annulla
+            </button>
+            <button className="sib-btn sib-btn--primary" onClick={() => persist(false)} disabled={pending}>
+              <i className="fa-duotone fa-floppy-disk" aria-hidden="true" /> {pending ? 'Salvataggio…' : 'Salva'}
+            </button>
+            <button className="sib-btn sib-btn--primary" onClick={() => persist(true)} disabled={pending}>
+              <i className="fa-duotone fa-paper-plane" aria-hidden="true" /> Invia preventivo
+            </button>
+          </div>
+        </>}
     </div>
   )
 }
