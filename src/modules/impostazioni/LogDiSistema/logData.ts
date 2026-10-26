@@ -322,3 +322,60 @@ export function etichettaGiorno(t: number): string {
   const s = new Date(t).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
+
+// ─── Periodi e fasce del grafico ─────────────────────────────────────────────
+export type Periodo = 'ora' | 'oggi' | '24h' | '7g' | '30g'
+
+export const PERIODI: { id: Periodo; label: string }[] = [
+  { id: 'ora', label: 'Ultima ora' },
+  { id: 'oggi', label: 'Oggi' },
+  { id: '24h', label: '24 ore' },
+  { id: '7g', label: '7 giorni' },
+  { id: '30g', label: '30 giorni' },
+]
+
+export interface Fascia { da: number; a: number; label: string; asse: string }
+
+const MIN = 60_000, ORA = 3600_000
+
+/** Fasce del grafico per il periodo: 5 minuti, ore o giorni (giorni calcolati
+ *  col calendario, così il cambio dell'ora legale non sposta i confini).
+ *  `fini`: sui 7 giorni fasce di 6 ore invece che giornaliere. */
+export function fasce(p: Periodo, adesso: number, fini = false): Fascia[] {
+  const hhmm = (t: number) => new Date(t).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  if (p === 'ora') {
+    const fine = Math.ceil(adesso / (5 * MIN)) * 5 * MIN
+    return Array.from({ length: 12 }, (_, i) => {
+      const da = fine - (12 - i) * 5 * MIN
+      return { da, a: da + 5 * MIN, label: `${hhmm(da)}–${hhmm(da + 5 * MIN)}`, asse: hhmm(da) }
+    })
+  }
+  if (p === 'oggi' || p === '24h') {
+    const inizio = p === 'oggi' ? giorno(new Date(adesso)) : Math.ceil(adesso / ORA) * ORA - 24 * ORA
+    return Array.from({ length: 24 }, (_, i) => {
+      const da = inizio + i * ORA
+      const giornoLbl = p === '24h' ? `${etichettaGiorno(giorno(new Date(da)))}, ` : ''
+      return { da, a: da + ORA, label: `${giornoLbl}${hhmm(da)}–${hhmm(da + ORA)}`, asse: hhmm(da).slice(0, 2) }
+    })
+  }
+  if (p === '7g' && fini) {
+    const inizio = new Date(adesso); inizio.setHours(0, 0, 0, 0); inizio.setDate(inizio.getDate() - 6)
+    return Array.from({ length: 28 }, (_, i) => {
+      const d = new Date(inizio); d.setDate(d.getDate() + Math.floor(i / 4)); d.setHours((i % 4) * 6)
+      const e = new Date(d); e.setHours(d.getHours() + 6)
+      return {
+        da: d.getTime(), a: e.getTime(), label: `${etichettaGiorno(giorno(d))}, ${hhmm(d.getTime())}–${hhmm(e.getTime())}`,
+        asse: i % 4 ? '' : d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' }),
+      }
+    })
+  }
+  const n = p === '7g' ? 7 : 30
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(adesso); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (n - 1 - i))
+    const e = new Date(d); e.setDate(e.getDate() + 1)
+    return {
+      da: d.getTime(), a: e.getTime(), label: etichettaGiorno(d.getTime()),
+      asse: d.toLocaleDateString('it-IT', p === '7g' ? { weekday: 'short', day: 'numeric' } : { day: 'numeric' }),
+    }
+  })
+}

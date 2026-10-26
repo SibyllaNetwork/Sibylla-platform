@@ -1,122 +1,426 @@
-// ─── MONITORAGGIO CANALI ──────────────────────────────────────────────────────
+// ─── Monitoraggio canali ────────────────────────────────────────────────────
+// Base (barra comandi, diretta, chip, tabella, pannello di dettaglio) in
+// LogDiSistema.sass: qui solo corsie dei canali, esiti e colonne.
 @use '../../../styles/tokens' as *
 
-.monitoraggio-canali
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
+.mcan
+  &__struttura
+    width: 220px
 
-  // BtnBack non deve stirarsi: torna a larghezza naturale
-  > .sib-btn--back
-    align-self: flex-start
-
-  &__filters
+  // ── Avviso canale non raggiungibile ────────────────────────────────────
+  &__alert
     display: flex
-    gap: 16px
-    align-items: flex-end
-    flex-wrap: wrap
-    margin-top: 8px
+    align-items: center
+    gap: 14px
+    padding: 12px 16px
+    border: 1px solid var(--color-error)
+    border-left-width: 4px
+    border-radius: 10px
+    background: var(--color-error-light)
+    animation: logs-in .25s ease-out
 
-  &__field
+    > div
+      flex: 1
+      min-width: 0
+      display: flex
+      flex-direction: column
+      gap: 2px
+
+      strong
+        font-size: 13.5px
+        color: var(--color-error)
+
+      span
+        font-size: 12.5px
+        color: var(--color-text-active)
+
+    .sib-btn
+      flex-shrink: 0
+      display: inline-flex
+      align-items: center
+      gap: 8px
+
+  &__alert-ico
+    flex-shrink: 0
+    width: 36px
+    height: 36px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: var(--color-surface)
+    color: var(--color-error)
+    font-size: 16px
+    animation: mcan-blink 1.8s ease-in-out infinite
+
+  // ── Corsie ─────────────────────────────────────────────────────────────
+  &__legend
+    display: flex
+    gap: 12px
+    flex-wrap: wrap
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+    span
+      display: inline-flex
+      align-items: center
+      gap: 5px
+
+    .mcan__cell
+      flex: 0 0 auto
+      width: 12px
+      height: 12px
+
+  &__lanes
     display: flex
     flex-direction: column
     gap: 6px
-    min-width: 200px
 
-    &--search
-      flex: 1
-      max-width: 360px
+  &__lane, &__axis
+    display: grid
+    grid-template-columns: 190px 1fr 290px
+    align-items: center
+    gap: 14px
 
-  // Wrapper per i campi ancora raw (input nativo type=date / type=search):
-  // ripristina lo stile della label prima condiviso da .monitoraggio-canali__field label.
-  &__field-raw span
-    font-family: 'Poppins', sans-serif
-    font-size: 12px
-    color: $primary
-    font-weight: 600
+  &__lane
+    padding: 4px 0
+    border-radius: 8px
+    transition: opacity .15s
 
-  &__search
-    position: relative
+    &.is-dim
+      opacity: .4
 
-    .sib-input
-      padding-right: 32px
+    &.is-sel .mcan__lane-head
+      background: var(--color-primary-50)
+      box-shadow: inset 0 0 0 1px var(--color-primary)
 
-  &__search-icon
-    position: absolute
-    right: 12px
-    top: 50%
-    transform: translateY(-50%)
-    color: $text-inactive
-    font-size: 14px
-    pointer-events: none
+  // Il wrapper del Tooltip è uno span: occupa la colonna della griglia
+  &__lane > span:first-child
+    display: block
+    min-width: 0
 
-  &__th-cell
+  &__lane-head
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 4px 8px
+    border: 0
+    border-radius: 8px
+    background: none
+    text-align: left
+    cursor: pointer
+
+    &:hover
+      background: var(--color-bg)
+
+  &__lane-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+    strong
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+      font-size: 13px
+      color: var(--color-text-active)
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font-size: 11.5px
+    white-space: nowrap
+
+    span
+      width: 7px
+      height: 7px
+      border-radius: 50%
+
+    &--ok
+      color: var(--color-success)
+
+      span
+        background: var(--color-success)
+
+    &--lento
+      color: var(--color-warning)
+
+      span
+        background: var(--color-warning)
+
+    &--giu
+      color: var(--color-error)
+      font-weight: 600
+
+      span
+        background: var(--color-error)
+        animation: mcan-blink 1.2s ease-in-out infinite
+
+  &__cells
+    display: flex
+    gap: 3px
+    min-width: 0
+    height: 30px
+
+    > span
+      flex: 1 1 0
+      min-width: 0
+      display: flex
+
+  &__axis .mcan__cells
+    height: 14px
+
+  &__cell
+    flex: 1
+    min-width: 0
+    padding: 0
+    border: 0
+    border-radius: 4px
+    background: var(--color-bg)
+    cursor: pointer
+    transition: transform .12s, box-shadow .12s, opacity .15s
+
+    &:hover:not(:disabled)
+      transform: scaleY(1.12)
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .15)
+
+    &:disabled
+      cursor: default
+
+    &.is-future
+      opacity: .35
+
+    &--l1
+      background: var(--color-primary-100)
+    &--l2
+      background: var(--color-primary-300)
+    &--l3
+      background: var(--color-primary-500)
+    &--l4
+      background: var(--color-primary)
+    &--rit
+      background: var(--color-warning)
+    &--err
+      background: var(--color-error)
+
+    &.is-sel
+      outline: 2px solid var(--color-text-active)
+      outline-offset: 1px
+
+  &__lane-kpi
+    display: grid
+    grid-template-columns: repeat(3, 1fr)
+    gap: 8px
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+    span
+      display: flex
+      flex-direction: column
+      min-width: 0
+      white-space: nowrap
+
+    strong
+      overflow: hidden
+      text-overflow: ellipsis
+      font-size: 13px
+      color: var(--color-text-active)
+
+    .is-bad strong
+      color: var(--color-error)
+
+  // ── Celle tabella ──────────────────────────────────────────────────────
+  &__sigla
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 7px
+    background: var(--color-primary)
+    color: #fff
+    font-weight: 700
+
+    &--sm
+      width: 24px
+      height: 24px
+      font-size: 11.5px
+
+    &--lg
+      width: 32px
+      height: 32px
+      font-size: 14px
+
+  &__lane-head &__sigla
+    width: 30px
+    height: 30px
+    font-size: 13px
+
+  &__canale
     display: inline-flex
     align-items: center
     gap: 8px
-    position: relative
+    max-width: 100%
+    min-width: 0
 
-  &__filter-btn,
-  &__sort-btn
-    background: transparent
-    border: none
-    color: $text-inactive
-    cursor: pointer
-    font-size: 12px
-    padding: 4px
-    border-radius: 4px
-
-    &:hover
-      background: $primary-50
-      color: $primary
-
-  &__filter-btn--active
-    color: $primary
-
-  &__filter-popup
-    position: absolute
-    top: 100%
-    left: 0
-    margin-top: 4px
-    min-width: 200px
-    max-height: 280px
-    overflow-y: auto
-    background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12)
-    z-index: 50
-    padding: 6px 0
-    display: flex
-    flex-direction: column
-
-  &__filter-option
-    padding: 8px 12px
-    background: transparent
-    border: none
-    text-align: left
-    cursor: pointer
-    font-size: 13px
-    color: $text-active
-    display: flex
+  &__esito
+    display: inline-flex
     align-items: center
-    gap: 8px
+    gap: 5px
+    max-width: 100%
+    padding: 2px 8px 2px 6px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+    white-space: nowrap
 
     i
-      color: $text-inactive
-      font-size: 11px
+      font-size: 12px
 
-    &:hover
-      background: $primary-50
-      color: $primary
+    &--consegnato
+      background: var(--color-success-light)
+      color: var(--color-success)
+    &--ritrasmesso
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+    &--errore
+      background: var(--color-error-light)
+      color: var(--color-error)
+    &--in-coda
+      background: var(--color-primary-50)
+      color: var(--color-primary)
 
-    &--active
-      background: $primary-100
-      color: $primary
-      font-weight: 600
+      i
+        animation: mcan-spin 1.2s linear infinite
 
-  &__pagination
-    justify-content: center
-    padding: 16px 0
+  &__row--errore td:first-child
+    box-shadow: inset 3px 0 0 var(--color-error)
+  &__row--ritrasmesso td:first-child
+    box-shadow: inset 3px 0 0 var(--color-warning)
+
+  &__val
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 100%
+    overflow: hidden
+
+    i
+      font-size: 10px
+      color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-text-active)
+
+  &__val-prima
+    color: var(--color-text-inactive)
+    text-decoration: line-through
+
+  // ── Dettaglio ──────────────────────────────────────────────────────────
+  &__retry
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px 14px
+    border-radius: 10px
+    background: var(--color-error-light)
+    font-size: 12.5px
+    color: var(--color-error)
+
+    span
+      flex: 1
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 8px
+
+  &__tl-ok::before
+    background: var(--color-success) !important
+
+  &__fanout
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+    button
+      display: flex
+      align-items: center
+      gap: 10px
+      width: 100%
+      padding: 6px 8px
+      border: 1px solid var(--color-border)
+      border-radius: 8px
+      background: var(--color-surface)
+      font-size: 12.5px
+      color: var(--color-text-active)
+      text-align: left
+      cursor: pointer
+
+      > span:nth-child(2)
+        flex: 1
+
+      &:hover:not(:disabled)
+        border-color: var(--color-primary)
+
+      &.is-cur
+        background: var(--color-primary-50)
+        border-color: var(--color-primary)
+        cursor: default
+
+// Pannello: tono verde per gli invii consegnati
+.logs__drawer--ok
+  --logs-accent: var(--color-success)
+  --logs-accent-bg: var(--color-success-light)
+
+// ─── Colonne (somma 100%) ────────────────────────────────────────────────────
+.mcan__w-esito
+  width: 11%
+.mcan__w-quando
+  width: 10%
+.mcan__w-canale
+  width: 12%
+.mcan__w-op
+  width: 12%
+.mcan__w-camera
+  width: 13%
+.mcan__w-periodo
+  width: 11%
+.mcan__w-valore
+  width: 15%
+.mcan__w-origine
+  width: 13%
+.mcan__w-chev
+  width: 3%
+
+@container logs (max-width: 1180px)
+  .mcan__lane, .mcan__axis
+    grid-template-columns: 160px 1fr 200px
+
+  .mcan__lane-kpi span:last-child
+    display: none
+
+  .mcan__lane-kpi
+    grid-template-columns: repeat(2, 1fr)
+
+@container logs (max-width: 900px)
+  .mcan__lane, .mcan__axis
+    grid-template-columns: 130px 1fr
+
+  .mcan__lane-kpi, .mcan__axis > span:last-child
+    display: none
+
+  .mcan__alert
+    flex-wrap: wrap
+
+@keyframes mcan-blink
+  50%
+    opacity: .45
+
+@keyframes mcan-spin
+  to
+    transform: rotate(360deg)
