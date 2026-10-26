@@ -71,7 +71,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "incoming-analysis": "Analisi dei flussi in entrata per monitorare incassi e previsioni di cassa",
   "inserisci-contratto-v": "Crea un nuovo contratto di vendita con il tuo partner commerciale",
   "interfacce": "Gestione dello stato delle  integrazioni con sistemi esterni",
-  "inventario-camere": "Gestione completa delle tipologie e configurazione delle camere",
+  "inventario-camere": "Tipologie di camera della struttura: numero, capacità e letti extra",
   "le-mie-destinazioni": "Le destinazioni del tuo catalogo: passeggeri, venduto e marginalità per data e segmento",
   "ledger-analysis": "Controllo e revisione dei registri contabili per garantire correttezza e trasparenza",
   "libro-prenotazioni": "Monitora e gestisci le prenotazioni del tuo ristorante con calendario integrato",

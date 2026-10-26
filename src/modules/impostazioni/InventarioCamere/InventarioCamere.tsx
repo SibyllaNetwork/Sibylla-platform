@@ -1,319 +1,355 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
-import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import ToggleSwitch from '../../../core/components/ToggleSwitch'
-import Pagination from '../../../core/components/Pagination'
-import { InputField, SelectField, TextareaField, CheckboxField } from '../../../core/components/form'
+import AlertBanner from '../../../core/components/AlertBanner'
+import { toast } from '../../../core/components/Toast/useToast'
+import { InputField, SelectField, TextareaField } from '../../../core/components/form'
+import { useConfirmStore } from '../../../store/useConfirmStore'
+import { useTipologieCamereStore, type TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
-type RoomKind = 'camera' | 'meeting' | 'dus' | 'oof'
-
-interface Room {
-  id: string
-  numero?: string
-  nome: string
-  tipologia: string
-  struttura: string
-  piano: string
-  postiBase: number
-  postiAggiuntivi: number
-  descrizione?: string
-  tipologiaOnline?: string
-  amenities?: string[]
-  immaginePrincipale?: string | null
-  gallery?: string[]
-  enabled: boolean
-  kind: RoomKind
-}
-
-interface Struttura { nome: string; pms: boolean }
-const PIANI_NOMI = ['Piano terra', 'Primo piano', 'Secondo piano', 'Terzo piano', 'Quarto piano', 'Quinto piano', 'Sesto piano', 'Settimo piano', 'Ottavo piano', 'Nono piano', 'Decimo piano']
-const TIPOLOGIE = ['Singola Classic', 'Doppia Classic', 'Tripla Classic', 'Quadrupla', 'Matrimoniale Deluxe', 'Suite', 'DUS', 'Sala']
+const TIPI = ['Singola', 'Doppia', 'Matrimoniale', 'Tripla', 'Quadrupla', 'Suite', 'DUS']
+const MAX_CAPACITA = 8
+const MAX_LETTI_EXTRA = 3
+const MAX_GALLERY = 6
 
 const AMENITIES = [
   'Aria condizionata', 'Balcone', 'Vasca', 'TV a schermo piatto', 'Terrazza', 'Bollitore elettrico', 'Armadio o guardaroba', 'Riscaldamento',
   'Cassaforte', 'Insonorizzazione', 'Scrivania', 'Presa elettrica vicino al letto', 'Bagno privato', 'Bagno in comune', 'Bidet', 'Accappatoio',
   'Prodotti da bagno in omaggio', 'Asciugacapelli', 'Pantofole', 'Vino/champagne', 'Asciugamani', 'Accesso disabili', 'Dep. bagagli', 'Colazione', 'Reception h24',
 ]
-const POSTI: Record<string, [number, number]> = {
-  'Singola Classic': [1, 0], 'Doppia Classic': [2, 1], 'Tripla Classic': [3, 1], 'Quadrupla': [4, 1],
-  'Matrimoniale Deluxe': [2, 1], 'Suite': [2, 2], 'DUS': [1, 0], 'Sala': [0, 0],
-}
 
-const PAGE_SIZE = 12
-const MAX_GALLERY = 6
-
-// ─── Immagine "blueprint" della camera (SVG inline, tinta per tipologia) ──────
-const GRAD: Record<string, [string, string]> = {
-  'Singola Classic': ['#3b6ea5', '#28456b'], 'Doppia Classic': ['#2f8f86', '#1f5e58'], 'Tripla Classic': ['#5b6bb0', '#363f78'],
-  'Quadrupla': ['#b08a2f', '#7a5e1f'], 'Matrimoniale Deluxe': ['#b08a2f', '#7a5e1f'], 'Suite': ['#b08a2f', '#6b4f1a'],
-  'DUS': ['#8a6bb0', '#553f78'], 'Sala': ['#2f8f86', '#1f5e58'],
-}
-const KIND_GRAD: Record<RoomKind, [string, string]> = {
-  camera: ['#3b6ea5', '#28456b'], meeting: ['#2f8f86', '#1f5e58'], dus: ['#8a6bb0', '#553f78'], oof: ['#9a5a5a', '#6b3a3a'],
-}
-function roomImg(room: Room): string {
-  const [a1, a2] = GRAD[room.tipologia] ?? KIND_GRAD[room.kind] // a1 = accento, a2 = accento scuro
-  const svg =
-    `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='380' viewBox='0 0 600 380'>` +
-    `<defs>` +
-    `<linearGradient id='wall' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#f6f9fd'/><stop offset='1' stop-color='#e7eef7'/></linearGradient>` +
-    `<linearGradient id='duvet' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#ffffff'/><stop offset='1' stop-color='#eef2f8'/></linearGradient>` +
-    `</defs>` +
-    `<rect width='600' height='380' fill='url(#wall)'/>` +
-    `<rect x='0' y='300' width='600' height='80' fill='#ece0cd'/>` +
-    `<rect x='0' y='300' width='600' height='5' fill='#d8c3a5'/>` +
-    `<ellipse cx='300' cy='344' rx='225' ry='22' fill='${a1}' opacity='0.13'/>` +
-    // finestra con luce
-    `<rect x='40' y='66' width='118' height='150' rx='6' fill='#ffffff' stroke='${a2}' stroke-width='3'/>` +
-    `<rect x='48' y='74' width='102' height='134' rx='3' fill='#dcefff'/>` +
-    `<circle cx='128' cy='100' r='15' fill='#ffe7a3'/>` +
-    `<line x1='99' y1='74' x2='99' y2='208' stroke='${a2}' stroke-width='3'/><line x1='48' y1='141' x2='150' y2='141' stroke='${a2}' stroke-width='3'/>` +
-    // quadro
-    `<rect x='252' y='78' width='92' height='66' rx='4' fill='#ffffff' stroke='${a2}' stroke-width='3'/>` +
-    `<path d='M264 134 L286 106 L300 122 L318 98 L332 134 Z' fill='${a1}' opacity='0.45'/>` +
-    // pianta
-    `<path d='M86 270 C66 234 58 256 78 270 M86 270 C106 230 120 254 96 270 M86 270 C86 224 86 246 86 270' fill='none' stroke='#6fa37a' stroke-width='7' stroke-linecap='round'/>` +
-    `<path d='M70 268 h32 l-5 42 h-22 Z' fill='#c98a5a'/>` +
-    // letto
-    `<rect x='150' y='150' width='270' height='66' rx='12' fill='${a1}'/>` +
-    `<rect x='140' y='250' width='292' height='58' rx='10' fill='${a2}'/>` +
-    `<rect x='150' y='206' width='272' height='58' rx='16' fill='url(#duvet)'/>` +
-    `<rect x='150' y='244' width='272' height='22' rx='10' fill='${a1}' opacity='0.5'/>` +
-    `<rect x='166' y='196' width='112' height='42' rx='15' fill='#ffffff' stroke='${a1}' stroke-width='2.5'/>` +
-    `<rect x='292' y='196' width='112' height='42' rx='15' fill='#ffffff' stroke='${a1}' stroke-width='2.5'/>` +
-    // comodino + lampada
-    `<rect x='446' y='244' width='54' height='64' rx='6' fill='#d8c3a5'/>` +
-    `<rect x='466' y='206' width='14' height='40' fill='${a2}'/>` +
-    `<path d='M456 206 L490 206 L482 184 L464 184 Z' fill='${a1}'/>` +
-    `</svg>`
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`
-}
+const ospiti = (n: number) => `${n} ${n === 1 ? 'ospite' : 'ospiti'}`
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
-// Camere della struttura dalle schede demo: numero e piani coerenti col front
-// office (stessa numerazione del gestionale demo), tipologie deterministiche.
-const NOMI_CAMERA = ['Palermo', 'Trapani', 'Cefalù', 'Agrigento', 'Messina', 'Isnello', 'Etna', 'Vulcano', 'Stromboli', 'Lipari', 'Salina', 'Panarea', 'Ortigia', 'Noto', 'Erice', 'Taormina']
+// Tipologie della struttura dalle schede demo: stesso giro di tipologie e stessa
+// numerazione del front office, raggruppate con il numero di camere per tipo.
 const TIP_GIRO = ['Doppia Classic', 'Matrimoniale Deluxe', 'Singola Classic', 'Doppia Classic', 'Tripla Classic', 'Matrimoniale Deluxe', 'DUS', 'Quadrupla']
-function makeMock(schede: { nome: string; camere: number; seme: number; categoria: string }[]): Room[] {
-  const out: Room[] = []
-  schede.filter((x) => x.camere > 0).forEach((x) => {
-    const n = x.camere
-    const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
-    for (let i = 0; i < n; i++) {
-      const piano = n <= 8 ? 1 : 1 + Math.floor(i / perPiano)
-      const k = i % perPiano
-      const ultimo = piano === Math.ceil(n / perPiano)
-      const tip = x.categoria === 'studentato' ? (i % 4 === 0 ? 'Doppia Classic' : 'Singola Classic')
-        : n > 8 && ultimo && k >= perPiano - 2 ? 'Suite' : TIP_GIRO[(x.seme + i * 7) % TIP_GIRO.length]
-      const kind: RoomKind = tip === 'DUS' ? 'dus' : (x.seme + i) % 37 === 0 ? 'oof' : 'camera'
-      out.push({
-        id: `r-${x.seme}-${i}`, numero: n <= 8 ? String(i + 1) : String(piano * 100 + k + 1),
-        nome: NOMI_CAMERA[(i + x.seme) % NOMI_CAMERA.length], tipologia: tip, struttura: x.nome,
-        piano: PIANI_NOMI[piano] ?? `Piano ${piano}`,
-        postiBase: (POSTI[tip] ?? [1, 0])[0], postiAggiuntivi: (POSTI[tip] ?? [1, 0])[1],
-        enabled: kind === 'camera', kind,
-      })
-    }
-    if (n > 40) out.push({
-      id: `r-${x.seme}-sala`, numero: undefined, nome: 'Sala Meeting', tipologia: 'Sala', struttura: x.nome,
-      piano: PIANI_NOMI[0], postiBase: 0, postiAggiuntivi: 0, enabled: true, kind: 'meeting',
-    })
-  })
-  return out
+const BASE: Record<string, { tipo: string; capacita: number; lettiExtra: number; descrizione: string }> = {
+  'Singola Classic':     { tipo: 'Singola',      capacita: 1, lettiExtra: 0, descrizione: 'Letto singolo, scrivania e bagno privato con doccia.' },
+  'Doppia Classic':      { tipo: 'Doppia',       capacita: 2, lettiExtra: 1, descrizione: 'Due letti singoli affiancabili, ideale per amici o colleghi.' },
+  'Matrimoniale Deluxe': { tipo: 'Matrimoniale', capacita: 2, lettiExtra: 1, descrizione: 'Letto king size, area relax e set di cortesia premium.' },
+  'Tripla Classic':      { tipo: 'Tripla',       capacita: 3, lettiExtra: 1, descrizione: '' },
+  'Quadrupla':           { tipo: 'Quadrupla',    capacita: 4, lettiExtra: 1, descrizione: '' },
+  'Suite':               { tipo: 'Suite',        capacita: 2, lettiExtra: 2, descrizione: 'Camera da letto e soggiorno separati, vista panoramica.' },
+  'DUS':                 { tipo: 'DUS',          capacita: 1, lettiExtra: 0, descrizione: '' },
 }
+
+function tipologieDemo(scheda: { camere: number; seme: number; categoria: string }): TipologiaCamera[] {
+  const conta = new Map<string, number>()
+  const n = scheda.camere
+  const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
+  for (let i = 0; i < n; i++) {
+    const piano = n <= 8 ? 1 : 1 + Math.floor(i / perPiano)
+    const ultimo = piano === Math.ceil(n / perPiano)
+    const tip = scheda.categoria === 'studentato' ? (i % 4 === 0 ? 'Doppia Classic' : 'Singola Classic')
+      : n > 8 && ultimo && i % perPiano >= perPiano - 2 ? 'Suite' : TIP_GIRO[(scheda.seme + i * 7) % TIP_GIRO.length]
+    conta.set(tip, (conta.get(tip) ?? 0) + 1)
+  }
+  return Object.keys(BASE).filter((t) => conta.has(t)).map((nome) => ({
+    id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: conta.get(nome) ?? 0,
+    nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
+  }))
+}
+
+let _seq = 0
+const nuovoId = () => `tip-new-${Date.now()}-${++_seq}`
+const nuovaTipologia = (): TipologiaCamera => ({
+  id: nuovoId(), nome: '', tipo: 'Doppia', numero: 1, capacita: 2, lettiExtra: 0,
+  descrizione: '', nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
+})
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function InventarioCamere(_props: { navigate?: (p: string) => void } = {}) {
   // Strutture (con camere) del cliente corrente, a partire da quella selezionata in alto.
   const schede = useStruttureCliente()
-  const STRUTTURE: Struttura[] = useMemo(() => schede.filter((x) => x.camere > 0).map((x) => ({ nome: x.nome, pms: x.seme % 7 === 0 })), [schede])
+  const strutture = useMemo(() => schede.filter((x) => x.camere > 0), [schede])
   const [strutturaNome, setStrutturaNome] = useStrutturaPagina()
-  const PIANI = useMemo(() => {
-    const usati = new Set(makeMock(schede).filter((r) => r.struttura === strutturaNome).map((r) => r.piano))
-    return PIANI_NOMI.filter((p) => usati.has(p))
-  }, [schede, strutturaNome])
-  const [piano, setPiano] = useState('')
-  const [tipologia, setTipologia] = useState('')
-  const [rooms, setRooms] = useState<Room[]>(() => makeMock(schede))
-  useEffect(() => { setRooms(makeMock(schede)) }, [schede])
-  const [page, setPage] = useState(1)
-  const [view, setView] = useState<'grid' | 'form'>('grid')
-  const [editing, setEditing] = useState<Room | null>(null)
+  const scheda = strutture.find((s) => s.nome === strutturaNome)
+  const pmsEsterno = scheda ? scheda.seme % 7 === 0 : false
 
-  const pmsEsterno = STRUTTURE.find((s) => s.nome === strutturaNome)?.pms ?? false
+  const salvate = useTipologieCamereStore((s) => s.salvate[strutturaNome])
+  const salva = useTipologieCamereStore((s) => s.salva)
+  const confirm = useConfirmStore((s) => s.confirm)
 
-  const filtered = useMemo(() => rooms.filter((r) => {
-    if (r.struttura !== strutturaNome) return false
-    if (piano && r.piano !== piano) return false
-    if (tipologia && r.tipologia !== tipologia) return false
-    return true
-  }), [rooms, strutturaNome, piano, tipologia])
+  const iniziali = useMemo(() => salvate ?? (scheda ? tipologieDemo(scheda) : []), [salvate, scheda])
+  const [draft, setDraft] = useState<TipologiaCamera[]>(iniziali)
+  useEffect(() => { setDraft(iniziali) }, [iniziali])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [strutturaNome, piano, tipologia])
-  useEffect(() => { if (page > totalPages) setPage(totalPages) }, [page, totalPages])
-  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, (page - 1) * PAGE_SIZE + PAGE_SIZE)
-  const attive = filtered.filter((r) => r.enabled).length
+  const [aperta, setAperta] = useState<string | null>(null)
+  const [scheda_, setSchedaId] = useState<string | null>(null)
+  const [errori, setErrori] = useState<Set<string>>(new Set())
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
 
-  const toggleRoom = (id: string) => setRooms((rs) => rs.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)))
-  const saveCamera = (upd: Room) => { setRooms((rs) => rs.map((r) => (r.id === upd.id ? upd : r))); setEditing(null) }
+  const salvatePerId = useMemo(() => new Map(iniziali.map((t) => [t.id, JSON.stringify(t)])), [iniziali])
+  const modificata = (t: TipologiaCamera) => salvatePerId.get(t.id) !== JSON.stringify(t)
+  const dirty = JSON.stringify(draft) !== JSON.stringify(iniziali)
 
-  if (view === 'form') {
-    return <AllestisciPage onBack={() => setView('grid')} onSave={() => setView('grid')} />
+  const update = (id: string, patch: Partial<TipologiaCamera>) => {
+    setDraft((d) => d.map((t) => (t.id === id ? { ...t, ...patch } : t)))
+    if (patch.nome?.trim()) setErrori((e) => { const n = new Set(e); n.delete(id); return n })
   }
+  const aggiungi = () => {
+    const t = nuovaTipologia()
+    setDraft((d) => [...d, t])
+    setAperta(t.id)
+  }
+  const duplica = (id: string) => setDraft((d) => {
+    const i = d.findIndex((t) => t.id === id)
+    const copia = { ...d[i], id: nuovoId(), nome: `${d[i].nome} (copia)` }
+    return [...d.slice(0, i + 1), copia, ...d.slice(i + 1)]
+  })
+  const elimina = async (t: TipologiaCamera) => {
+    const ok = await confirm({ message: <>Eliminare la tipologia <strong>{t.nome || 'senza nome'}</strong>? Le camere associate restano da riassegnare.</> })
+    if (ok) setDraft((d) => d.filter((x) => x.id !== t.id))
+  }
+  const sposta = (from: string, to: string) => setDraft((d) => {
+    const src = d.findIndex((t) => t.id === from)
+    const dst = d.findIndex((t) => t.id === to)
+    if (src < 0 || dst < 0 || src === dst) return d
+    const next = [...d]
+    const [x] = next.splice(src, 1)
+    next.splice(dst, 0, x)
+    return next
+  })
+
+  const annulla = () => { setDraft(iniziali); setErrori(new Set()); setAperta(null) }
+  const salvaTutto = () => {
+    const vuote = draft.filter((t) => !t.nome.trim()).map((t) => t.id)
+    if (vuote.length) {
+      setErrori(new Set(vuote))
+      toast.error('Dai un nome a tutte le tipologie prima di salvare.')
+      return
+    }
+    salva(strutturaNome, draft)
+    setAperta(null)
+    toast.success(`Tipologie di ${strutturaNome} salvate.`)
+  }
+
+  const inScheda = draft.find((t) => t.id === scheda_)
+  if (inScheda) {
+    return <SchedaTipologia tipologia={inScheda} onBack={() => setSchedaId(null)} onApply={(upd) => { update(upd.id, upd); setSchedaId(null) }} />
+  }
+
+  const camere = draft.reduce((s, t) => s + (t.attiva ? t.numero : 0), 0)
+  const attive = draft.filter((t) => t.attiva).length
 
   return (
     <div className="invc">
-      <PageHead title="Inventario camere" subtitle="Gestione completa delle tipologie e configurazione delle camere" />
+      <PageHead title="Inventario camere" subtitle="Tipologie di camera della struttura: numero, capacità e letti extra"
+        actions={
+          <Tooltip text={pmsEsterno ? 'Non disponibile con PMS esterno per questa struttura' : 'Aggiungi una nuova tipologia di camera'}>
+            <button type="button" className="sib-btn sib-btn--primary" disabled={pmsEsterno} onClick={aggiungi}>
+              <i className="fa-light fa-plus" /> Aggiungi tipologia
+            </button>
+          </Tooltip>
+        } />
 
-      {/* ─── Toolbar ───────────────────────────────────────────────────────── */}
       <div className="invc__bar">
-        <div className="invc__filters">
-          <div className="invc__field">
-            <SelectField name="struttura" label="Struttura" className="invc__select" value={strutturaNome} onChange={(e) => setStrutturaNome(e.target.value)}
-              options={STRUTTURE.map((s) => ({ value: s.nome, label: s.pms ? `${s.nome} · PMS esterno` : s.nome }))} />
-          </div>
-          <div className="invc__field">
-            <SelectField name="piano" label="Piano" className="invc__select" value={piano} onChange={(e) => setPiano(e.target.value)}
-              options={[{ value: '', label: 'Tutti' }, ...PIANI.map((p) => ({ value: p, label: p }))]} />
-          </div>
-          <div className="invc__field">
-            <SelectField name="tipologia" label="Tipologia camera" className="invc__select" value={tipologia} onChange={(e) => setTipologia(e.target.value)}
-              options={[{ value: '', label: 'Tutte' }, ...TIPOLOGIE.map((t) => ({ value: t, label: t }))]} />
-          </div>
-        </div>
-        <Tooltip text={pmsEsterno ? 'Allestimento disabilitato con PMS esterno per questa struttura' : 'Allestisci una tipologia camera'}>
-          <button type="button" className="sib-btn sib-btn--primary invc__allestisci" disabled={pmsEsterno} onClick={() => setView('form')}>
-            <i className="fa-light fa-wand-magic-sparkles" /> Allestisci tipologia
-          </button>
-        </Tooltip>
+        <SelectField name="struttura" label="Struttura" className="invc__select" value={strutturaNome} onChange={(e) => setStrutturaNome(e.target.value)}
+          options={strutture.map((s) => ({ value: s.nome, label: s.nome }))} />
       </div>
 
-      {/* ─── Griglia camere ────────────────────────────────────────────────── */}
-      {pageRows.length === 0 ? (
-        <div className="sib-empty">Nessuna camera trovata per i filtri selezionati.</div>
-      ) : (
-        <div className="invc__grid">
-          {pageRows.map((r) => (
-            <RoomCard key={r.id} room={r} pmsEsterno={pmsEsterno} onEdit={() => setEditing(r)} onToggle={() => toggleRoom(r.id)} />
-          ))}
-        </div>
+      {pmsEsterno && (
+        <AlertBanner type="info">Questa struttura usa un PMS esterno: l'inventario arriva dal PMS e non è modificabile da qui.</AlertBanner>
       )}
 
-      <div className="invc__footer">
-        <span className="invc__count">{filtered.length} camere · <strong>{attive}</strong> attive</span>
-        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-      </div>
+      <section className="invc__panel">
+        <header className="invc__panel-head">
+          <h3 className="invc__panel-title">Tipologie inserite <span className="invc__panel-count">{draft.length}</span></h3>
+          <span className={'invc__state' + (dirty ? ' invc__state--draft' : '')}>{dirty ? 'In bozza' : 'Salvato'}</span>
+        </header>
 
-      <ModificaCameraModal room={editing} onClose={() => setEditing(null)} onSave={saveCamera} />
+        {draft.length === 0 ? (
+          <div className="sib-empty">Nessuna tipologia: aggiungine una per iniziare.</div>
+        ) : (
+          <ul className="invc__list">
+            {draft.map((t) => (
+              <TipologiaRow key={t.id} t={t} disabled={pmsEsterno}
+                aperta={aperta === t.id} evidenziata={modificata(t)} errore={errori.has(t.id)}
+                dragging={dragId === t.id} over={overId === t.id && dragId !== t.id}
+                onChange={(p) => update(t.id, p)}
+                onToggleDettagli={() => setAperta((a) => (a === t.id ? null : t.id))}
+                onScheda={() => setSchedaId(t.id)}
+                onDuplica={() => duplica(t.id)}
+                onElimina={() => elimina(t)}
+                onDragStart={() => setDragId(t.id)}
+                onDragEnter={() => { if (dragId) { setOverId(t.id); sposta(dragId, t.id) } }}
+                onDragEnd={() => { setDragId(null); setOverId(null) }} />
+            ))}
+          </ul>
+        )}
+
+        <footer className="invc__panel-foot">
+          <span className="invc__summary">{attive} tipologie attive · <strong>{camere}</strong> camere in vendita</span>
+          <span className="invc__foot-acts">
+            <button type="button" className="sib-btn sib-btn--secondary" disabled={!dirty} onClick={annulla}>Annulla</button>
+            <button type="button" className="sib-btn sib-btn--primary" disabled={!dirty || pmsEsterno} onClick={salvaTutto}>
+              <i className="fa-light fa-floppy-disk" /> Salva
+            </button>
+          </span>
+        </footer>
+      </section>
     </div>
   )
 }
 
-// ─── Card camera ──────────────────────────────────────────────────────────────
+// ─── Riga tipologia ───────────────────────────────────────────────────────────
 
-function RoomCard({ room, pmsEsterno, onEdit, onToggle }: { room: Room; pmsEsterno: boolean; onEdit: () => void; onToggle: () => void }) {
-  const stato = room.kind === 'oof' ? { label: 'Out of order', cls: 'oof' }
-    : room.kind === 'meeting' ? { label: 'Sala', cls: 'meeting' }
-    : room.kind === 'dus' ? { label: 'DUS', cls: 'dus' }
-    : room.enabled ? { label: 'Attiva', cls: 'on' } : { label: 'Disattivata', cls: 'off' }
+interface RowProps {
+  t: TipologiaCamera
+  disabled: boolean
+  aperta: boolean
+  evidenziata: boolean
+  errore: boolean
+  dragging: boolean
+  over: boolean
+  onChange: (p: Partial<TipologiaCamera>) => void
+  onToggleDettagli: () => void
+  onScheda: () => void
+  onDuplica: () => void
+  onElimina: () => void
+  onDragStart: () => void
+  onDragEnter: () => void
+  onDragEnd: () => void
+}
+
+function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over, onChange, onToggleDettagli, onScheda, onDuplica, onElimina, onDragStart, onDragEnter, onDragEnd }: RowProps) {
+  // La riga è trascinabile solo partendo dalla maniglia, così i campi restano selezionabili.
+  const [armata, setArmata] = useState(false)
+  const totale = t.capacita + t.lettiExtra
 
   return (
-    <article className={'invc__card' + (room.enabled ? '' : ' invc__card--off')}>
-      <div className="invc__media">
-        <img src={roomImg(room)} alt={room.tipologia} />
-        <span className={`invc__status invc__status--${stato.cls}`}>{stato.label}</span>
-        <div className="invc__media-top">
-          <h4 className="invc__card-title">{room.nome}</h4>
-          <span className="invc__card-tip">{room.tipologia}</span>
-          <span className="invc__card-struct">{room.struttura} · {room.piano}</span>
+    <li
+      className={'invc__row' + (evidenziata ? ' invc__row--draft' : '') + (dragging ? ' invc__row--dragging' : '') + (over ? ' invc__row--over' : '') + (t.attiva ? '' : ' invc__row--off')}
+      draggable={armata && !disabled}
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart() }}
+      onDragEnter={onDragEnter}
+      onDragOver={(e) => e.preventDefault()}
+      onDragEnd={() => { setArmata(false); onDragEnd() }}
+    >
+      <Tooltip text="Trascina per riordinare">
+        <span className="invc__handle" onMouseDown={() => setArmata(true)} onMouseUp={() => setArmata(false)}>
+          <i className="fa-solid fa-grip-dots-vertical" />
+        </span>
+      </Tooltip>
+
+      <Letti capacita={t.capacita} extra={t.lettiExtra} />
+
+      <div className="invc__main">
+        <div className="invc__fields">
+          <InputField name={`nome-${t.id}`} label="Nome tipologia" placeholder="Es. Doppia con letto aggiunto" className="invc__f-nome"
+            value={t.nome} disabled={disabled} error={errore ? 'Obbligatorio' : undefined} onChange={(e) => onChange({ nome: e.target.value })} />
+          <SelectField name={`tipo-${t.id}`} label="Tipo" className="invc__f-tipo" value={t.tipo} disabled={disabled}
+            options={TIPI.map((x) => ({ value: x, label: x }))} onChange={(e) => onChange({ tipo: e.target.value })} />
+          <InputField name={`numero-${t.id}`} label="N. camere" type="number" min={0} className="invc__f-num" value={t.numero} disabled={disabled}
+            onChange={(e) => onChange({ numero: Math.max(0, Number(e.target.value) || 0) })} />
+          <SelectField name={`cap-${t.id}`} label="Capacità" className="invc__f-cap" value={t.capacita} disabled={disabled}
+            options={Array.from({ length: MAX_CAPACITA }, (_, i) => ({ value: i + 1, label: ospiti(i + 1) }))}
+            onChange={(e) => onChange({ capacita: Number(e.target.value) })} />
+          <SelectField name={`extra-${t.id}`} label="Letti extra" className="invc__f-extra" value={t.lettiExtra} disabled={disabled}
+            options={Array.from({ length: MAX_LETTI_EXTRA + 1 }, (_, i) => ({ value: i, label: i === 0 ? 'Nessuno' : String(i) }))}
+            onChange={(e) => onChange({ lettiExtra: Number(e.target.value) })} />
         </div>
-        <div className="invc__media-foot">
-          {room.numero && <Tooltip text="Numero camera"><span className="invc__num">{room.numero}</span></Tooltip>}
-          <span className="invc__actions">
-            <Tooltip text={pmsEsterno ? 'Modifica disabilitata con PMS esterno per questa struttura' : 'Modifica camera'}>
-              <button type="button" className="invc__act" aria-label="Modifica" disabled={pmsEsterno} onClick={onEdit}><i className="fa-light fa-pen" /></button>
-            </Tooltip>
-            <Tooltip text={pmsEsterno ? 'Non modificabile con PMS esterno per questa struttura' : room.enabled ? 'Disattiva camera' : 'Attiva camera'}>
-              <span className="invc__toggle"><ToggleSwitch checked={room.enabled} disabled={pmsEsterno} onChange={onToggle} /></span>
-            </Tooltip>
+
+        <div className="invc__meta">
+          <span className="invc__cap">
+            <i className="fa-solid fa-user-group" /> Fino a <strong>{ospiti(totale)}</strong>{t.lettiExtra > 0 && ` (${t.capacita}+${t.lettiExtra})`}
           </span>
+          {t.descrizione && !aperta && <span className="invc__desc">{t.descrizione}</span>}
+          {!disabled && (
+            <button type="button" className="invc__link" onClick={onToggleDettagli}>
+              <i className={`fa-light ${aperta ? 'fa-chevron-up' : t.descrizione ? 'fa-pen-line' : 'fa-plus'}`} />
+              {aperta ? 'Chiudi dettagli' : t.descrizione ? 'Modifica dettagli' : 'Aggiungi dettagli'}
+            </button>
+          )}
         </div>
+
+        {aperta && (
+          <div className="invc__details">
+            <InputField name={`online-${t.id}`} label="Nome sui canali online" placeholder="Nome visibile ai clienti online"
+              value={t.nomeOnline} onChange={(e) => onChange({ nomeOnline: e.target.value })} />
+            <TextareaField name={`desc-${t.id}`} label="Descrizione" rows={2} placeholder="Comfort, vista, dotazioni…"
+              value={t.descrizione} onChange={(e) => onChange({ descrizione: e.target.value })} />
+          </div>
+        )}
       </div>
-    </article>
+
+      <div className="invc__acts">
+        <Tooltip text={disabled ? 'Non modificabile con PMS esterno' : 'Scheda completa: caratteristiche e immagini'}>
+          <button type="button" className="invc__edit" aria-label="Modifica scheda" disabled={disabled} onClick={onScheda}>
+            <i className="fa-solid fa-pen" />
+          </button>
+        </Tooltip>
+        <Tooltip text={t.attiva ? 'Disattiva tipologia' : 'Attiva tipologia'}>
+          <label className="invc__active">
+            <span>{t.attiva ? 'Attiva' : 'Inattiva'}</span>
+            <ToggleSwitch checked={t.attiva} disabled={disabled} onChange={(v) => onChange({ attiva: v })} />
+          </label>
+        </Tooltip>
+        <RowMenu disabled={disabled} onDuplica={onDuplica} onElimina={onElimina} />
+      </div>
+    </li>
   )
 }
 
-// ─── Modal "Modifica camera" ──────────────────────────────────────────────────
+// Letti in pianta: un'icona per posto (max 4) + quelli extra dopo il "+".
+function Letti({ capacita, extra }: { capacita: number; extra: number }) {
+  const base = Math.min(capacita, 4)
+  return (
+    <Tooltip text={`${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
+      <span className="invc__beds" aria-hidden="true">
+        {Array.from({ length: base }, (_, i) => <i key={i} className="fa-light fa-bed" />)}
+        {capacita > 4 && <span className="invc__beds-more">+{capacita - 4}</span>}
+        {extra > 0 && <><span className="invc__beds-plus">+</span><i className="fa-light fa-bed invc__beds-extra" /></>}
+      </span>
+    </Tooltip>
+  )
+}
 
-function ModificaCameraModal({ room, onClose, onSave }: { room: Room | null; onClose: () => void; onSave: (r: Room) => void }) {
-  const [numero, setNumero] = useState('')
-  const [nome, setNome] = useState('')
-  const [postiBase, setPostiBase] = useState('1')
-  const [postiAgg, setPostiAgg] = useState('0')
-  const [disponibile, setDisponibile] = useState(true)
-  const [amenities, setAmenities] = useState<string[]>([])
-
+function RowMenu({ disabled, onDuplica, onElimina }: { disabled: boolean; onDuplica: () => void; onElimina: () => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!room) return
-    setNumero(room.numero ?? '')
-    setNome(room.nome)
-    setPostiBase(String(room.postiBase))
-    setPostiAgg(String(room.postiAggiuntivi))
-    setDisponibile(room.enabled)
-    setAmenities(room.amenities ?? [])
-  }, [room])
-
-  const toggle = (a: string) => setAmenities((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]))
+    if (!open) return
+    const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
 
   return (
-    <Modal open={!!room} onClose={onClose} title="Modifica camera" size="xl">
-      {room && (
-        <div className="invc-mod">
-          <div className="invc-mod__grid">
-            <InputField name="numero" label="Numero camera" value={numero} onChange={(e) => setNumero(e.target.value)} />
-            <InputField name="nome" label="Nome camera" value={nome} onChange={(e) => setNome(e.target.value)} />
-            <InputField name="postiBase" label="Posti base" type="number" value={postiBase} onChange={(e) => setPostiBase(e.target.value)} />
-            <InputField name="postiAgg" label="Posti aggiuntivi" type="number" value={postiAgg} onChange={(e) => setPostiAgg(e.target.value)} />
-            <div className="invc-mod__disp">
-              <CheckboxField name="disponibile" label="Disponibile" checked={disponibile} onChange={(e) => setDisponibile(e.target.checked)} />
-            </div>
-          </div>
-
-          <div className="invc-mod__sec-title"><i className="fa-light fa-list-check" /> Caratteristiche <span className="invc-mod__count">{amenities.length}</span></div>
-          <div className="invc-mod__amenities">
-            {AMENITIES.map((a) => {
-              const on = amenities.includes(a)
-              return (
-                <button key={a} type="button" className={'invc-mod__amenity' + (on ? ' is-on' : '')} onClick={() => toggle(a)}>
-                  <i className={`fa-${on ? 'solid fa-square-check' : 'light fa-square'}`} /> {a}
-                </button>
-              )
-            })}
-          </div>
+    <div className="invc__menu-wrap" ref={ref}>
+      <Tooltip text="Altre azioni">
+        <button type="button" className="invc__kebab" aria-label="Altre azioni" aria-expanded={open} disabled={disabled} onClick={() => setOpen((v) => !v)}>
+          <i className="fa-solid fa-ellipsis-vertical" />
+        </button>
+      </Tooltip>
+      {open && (
+        <div className="invc__menu" role="menu">
+          <button type="button" role="menuitem" className="invc__menu-item" onClick={() => { setOpen(false); onDuplica() }}>
+            <i className="fa-light fa-copy" /> Duplica
+          </button>
+          <button type="button" role="menuitem" className="invc__menu-item invc__menu-item--danger" onClick={() => { setOpen(false); onElimina() }}>
+            <i className="fa-light fa-trash-can" /> Elimina
+          </button>
         </div>
       )}
-      <div className="invc-mod__foot">
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={() => room && onSave({ ...room, numero, nome, postiBase: Number(postiBase) || 0, postiAggiuntivi: Number(postiAgg) || 0, enabled: disponibile, amenities })}>Salva</button>
-      </div>
-    </Modal>
+    </div>
   )
 }
 
-// ─── Pagina "Allestisci tipologia camera" ─────────────────────────────────────
+// ─── Scheda completa della tipologia ──────────────────────────────────────────
 
-function AllestisciPage({ onBack, onSave }: { onBack: () => void; onSave: () => void }) {
-  const [tipologia, setTipologia] = useState('Singola Classic')
-  const [tipologiaOL, setTipologiaOL] = useState('')
-  const [amenities, setAmenities] = useState<string[]>([])
-  const [descrizione, setDescrizione] = useState('')
-  const [main, setMain] = useState<string | null>(null)
-  const [gallery, setGallery] = useState<string[]>([])
+function SchedaTipologia({ tipologia, onBack, onApply }: { tipologia: TipologiaCamera; onBack: () => void; onApply: (t: TipologiaCamera) => void }) {
+  const [nomeOnline, setNomeOnline] = useState(tipologia.nomeOnline)
+  const [amenities, setAmenities] = useState<string[]>(tipologia.amenities)
+  const [descrizione, setDescrizione] = useState(tipologia.descrizione)
+  const [main, setMain] = useState<string | null>(tipologia.immagine)
+  const [gallery, setGallery] = useState<string[]>(tipologia.gallery)
 
   const toggleAmenity = (a: string) => setAmenities((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]))
   const pickMain = (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) setMain(URL.createObjectURL(f)); e.target.value = '' }
@@ -325,14 +361,13 @@ function AllestisciPage({ onBack, onSave }: { onBack: () => void; onSave: () => 
 
   return (
     <div className="invc-form">
-      <PageHead title="Allestisci tipologia camera" subtitle="Configura tipologia, caratteristiche, descrizione e immagini" onBack={onBack} />
+      <PageHead title={tipologia.nome || 'Nuova tipologia'} subtitle="Caratteristiche, descrizione e immagini della tipologia" onBack={onBack} />
 
       <section className="invc-form__card">
-        <div className="invc-form__card-head"><i className="fa-light fa-bed" /> Tipologia</div>
+        <div className="invc-form__card-head"><span><i className="fa-light fa-bed" /> Presentazione</span></div>
         <div className="invc-form__grid-2">
-          <SelectField name="tipologia" label="Tipologia camera" value={tipologia} onChange={(e) => setTipologia(e.target.value)}
-            options={TIPOLOGIE.map((t) => ({ value: t, label: t }))} />
-          <InputField name="tipologiaOL" label="Tipologia camera on line" placeholder="Nome visibile ai clienti online" value={tipologiaOL} onChange={(e) => setTipologiaOL(e.target.value)} />
+          <InputField name="nomeOnline" label="Nome sui canali online" placeholder="Nome visibile ai clienti online" value={nomeOnline} onChange={(e) => setNomeOnline(e.target.value)} />
+          <TextareaField name="descrizione" label="Descrizione" rows={3} placeholder="Comfort, vista, dotazioni…" value={descrizione} onChange={(e) => setDescrizione(e.target.value)} />
         </div>
       </section>
 
@@ -354,13 +389,8 @@ function AllestisciPage({ onBack, onSave }: { onBack: () => void; onSave: () => 
       </section>
 
       <section className="invc-form__card">
-        <div className="invc-form__card-head"><i className="fa-light fa-align-left" /> Breve descrizione</div>
-        <TextareaField name="descrizione" rows={4} placeholder="Descrivi la camera: comfort, vista, dotazioni…" value={descrizione} onChange={(e) => setDescrizione(e.target.value)} />
-      </section>
-
-      <section className="invc-form__card">
-        <div className="invc-form__card-head"><i className="fa-light fa-images" /> Immagine principale & gallery</div>
-        <p className="invc-form__hint">Carica l'immagine principale (anteprima in griglia e sui canali online) e altre immagini per la galleria.</p>
+        <div className="invc-form__card-head"><span><i className="fa-light fa-images" /> Immagine principale & gallery</span></div>
+        <p className="invc-form__hint">L'immagine principale compare sui canali online; le altre formano la galleria.</p>
         <div className="invc-form__media">
           <div>
             <div className="invc-form__media-label">Immagine principale</div>
@@ -375,7 +405,10 @@ function AllestisciPage({ onBack, onSave }: { onBack: () => void; onSave: () => 
 
       <div className="invc-form__actions">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onBack}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={onSave}><i className="fa-light fa-floppy-disk" /> Salva</button>
+        <button type="button" className="sib-btn sib-btn--primary"
+          onClick={() => onApply({ ...tipologia, nomeOnline, amenities, descrizione, immagine: main, gallery })}>
+          <i className="fa-light fa-check" /> Applica
+        </button>
       </div>
     </div>
   )
