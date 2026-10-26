@@ -2,28 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
 import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
-import ToggleSwitch from '../../../core/components/ToggleSwitch'
 import AlertBanner from '../../../core/components/AlertBanner'
 import { toast } from '../../../core/components/Toast/useToast'
-import { InputField, SelectField, TextareaField } from '../../../core/components/form'
+import { InputField, SelectField, ToggleSwitch } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useTipologieCamereStore, type TipologiaCamera } from '../../../store/useTipologieCamereStore'
 import RoomIllustration from './RoomIllustration'
+import ConfigurazioneCamera from './ConfigurazioneCamera'
+import { MAX_CAPACITA, MAX_LETTI_EXTRA, TIPI, lettiExtra, ospiti } from './catalogo'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
-
-const TIPI = ['Singola', 'Doppia', 'Twin', 'Matrimoniale', 'Tripla', 'Quadrupla', 'Family', 'Suite', 'Accessibile', 'DUS']
-const MAX_CAPACITA = 8
-const MAX_LETTI_EXTRA = 3
-const MAX_GALLERY = 6
-
-const AMENITIES = [
-  'Aria condizionata', 'Balcone', 'Vasca', 'TV a schermo piatto', 'Terrazza', 'Bollitore elettrico', 'Armadio o guardaroba', 'Riscaldamento',
-  'Cassaforte', 'Insonorizzazione', 'Scrivania', 'Presa elettrica vicino al letto', 'Bagno privato', 'Bagno in comune', 'Bidet', 'Accappatoio',
-  'Prodotti da bagno in omaggio', 'Asciugacapelli', 'Pantofole', 'Vino/champagne', 'Asciugamani', 'Accesso disabili', 'Dep. bagagli', 'Colazione', 'Reception h24',
-]
-
-const ospiti = (n: number) => `${n} ${n === 1 ? 'ospite' : 'ospiti'}`
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
 // Tipologie della struttura dalle schede demo: tutte le tipologie del catalogo,
@@ -198,9 +186,9 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
   const inScheda = nuova?.id === scheda_ ? nuova : draft.find((t) => t.id === scheda_)
   if (inScheda) {
     return (
-      <SchedaTipologia key={inScheda.id} tipologia={inScheda} nuova={inScheda === nuova}
+      <ConfigurazioneCamera key={inScheda.id} tipologia={inScheda} nuova={inScheda === nuova}
         pianiDisponibili={pianiUsati.length ? pianiUsati : PIANI_NOMI.slice(0, 3)}
-        onBack={chiudiScheda} onApply={salvaScheda} />
+        onBack={chiudiScheda} onSave={salvaScheda} />
     )
   }
 
@@ -278,7 +266,7 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
                 <span className="invc-pick__title">{nome}</span>
                 <span className="invc-pick__desc">{b.descrizione}</span>
                 <span className="invc-pick__cap">
-                  <i className="fa-solid fa-user-group" /> {ospiti(b.capacita)}{b.lettiExtra > 0 && ` + ${b.lettiExtra} ${b.lettiExtra === 1 ? 'letto extra' : 'letti extra'}`}
+                  <i className="fa-solid fa-user-group" /> {ospiti(b.capacita)}{b.lettiExtra > 0 && ` + ${lettiExtra(b.lettiExtra)}`}
                 </span>
               </span>
             </button>
@@ -353,10 +341,9 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
               </button>
             </Tooltip>
             <Tooltip text={t.attiva ? 'Disattiva tipologia' : 'Attiva tipologia'}>
-              <label className="invc__active">
-                <span>{t.attiva ? 'Attiva' : 'Inattiva'}</span>
-                <ToggleSwitch checked={t.attiva} disabled={disabled} onChange={(v) => onChange({ attiva: v })} />
-              </label>
+              <span className="invc__active">
+                <ToggleSwitch label={t.attiva ? 'Attiva' : 'Inattiva'} checked={t.attiva} disabled={disabled} onChange={(v) => onChange({ attiva: v })} />
+              </span>
             </Tooltip>
             <RowMenu disabled={disabled} onDuplica={onDuplica} onElimina={onElimina} />
           </div>
@@ -389,7 +376,7 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
 function Letti({ tipo, capacita, extra }: { tipo: string; capacita: number; extra: number }) {
   return (
     <div className="invc__beds">
-      <Tooltip text={`${tipo} · ${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
+      <Tooltip text={`${tipo} · ${ospiti(capacita)}${extra ? ` + ${lettiExtra(extra)}` : ''}`}>
         <RoomIllustration tipo={tipo} lettiExtra={extra} fill />
       </Tooltip>
     </div>
@@ -414,7 +401,7 @@ function DettagliCamera({ t, disabled, onModifica, onClose }: { t: TipologiaCame
         <div><dt>Nome sui canali online</dt><dd>{t.nomeOnline || vuoto}</dd></div>
         <div><dt>Tipo</dt><dd>{t.tipo}</dd></div>
         <div><dt>N. camere</dt><dd>{t.numero}</dd></div>
-        <div><dt>Ospiti</dt><dd>{ospiti(t.capacita)}{t.lettiExtra > 0 && ` + ${t.lettiExtra} ${t.lettiExtra === 1 ? 'letto extra' : 'letti extra'}`}</dd></div>
+        <div><dt>Ospiti</dt><dd>{ospiti(t.capacita)}{t.lettiExtra > 0 && ` + ${lettiExtra(t.lettiExtra)}`}</dd></div>
         <div className="invc__dl-wide"><dt>Piani</dt><dd>{t.piani?.length ? t.piani.join(', ') : vuoto}</dd></div>
         <div className="invc__dl-full"><dt>Descrizione</dt><dd>{t.descrizione || vuoto}</dd></div>
         <div className="invc__dl-full">
@@ -472,164 +459,6 @@ function RowMenu({ disabled, onDuplica, onElimina }: { disabled: boolean; onDupl
           </button>
         </div>
       )}
-    </div>
-  )
-}
-
-// ─── Scheda completa della tipologia ──────────────────────────────────────────
-
-function SchedaTipologia({ tipologia, nuova, pianiDisponibili, onBack, onApply }: {
-  tipologia: TipologiaCamera; nuova: boolean; pianiDisponibili: string[]; onBack: () => void; onApply: (t: TipologiaCamera) => void
-}) {
-  const [t, setT] = useState<TipologiaCamera>(tipologia)
-  const [errNome, setErrNome] = useState(false)
-  const set = (patch: Partial<TipologiaCamera>) => setT((x) => ({ ...x, ...patch }))
-  const amenities = t.amenities
-  const main = t.immagine
-  const gallery = t.gallery
-
-  const toggleAmenity = (a: string) => set({ amenities: amenities.includes(a) ? amenities.filter((x) => x !== a) : [...amenities, a] })
-  const togglePiano = (pn: string) => {
-    const cur = t.piani ?? []
-    set({ piani: pianiDisponibili.filter((x) => (x === pn ? !cur.includes(x) : cur.includes(x))) })
-  }
-  const pickMain = (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) set({ immagine: URL.createObjectURL(f) }); e.target.value = '' }
-  const addGallery = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? [])
-    if (files.length) set({ gallery: [...gallery, ...files.map((f) => URL.createObjectURL(f))].slice(0, MAX_GALLERY) })
-    e.target.value = ''
-  }
-  const applica = () => {
-    if (!t.nome.trim()) { setErrNome(true); toast.error('Dai un nome alla tipologia.'); return }
-    onApply(t)
-  }
-
-  return (
-    <div className="invc-form">
-      <PageHead title={nuova ? 'Configurazione camera' : 'Modifica camera'} onBack={onBack}
-        subtitle={nuova ? 'Inserisci i dati della nuova camera: al salvataggio entra nell\'inventario' : `${tipologia.nome} · dati, presentazione, caratteristiche e immagini`} />
-
-      <section className="invc-form__card invc-form__intro">
-        <RoomIllustration tipo={t.tipo} lettiExtra={t.lettiExtra} className="invc-form__ill" />
-        <div className="invc-form__intro-fields">
-          <div className="invc-form__grid-3">
-            <InputField name="nome" label="Nome tipologia" required value={t.nome} error={errNome ? 'Obbligatorio' : undefined}
-              onChange={(e) => { set({ nome: e.target.value }); if (e.target.value.trim()) setErrNome(false) }} />
-            <SelectField name="tipo" label="Tipo" value={t.tipo} options={TIPI.map((x) => ({ value: x, label: x }))} onChange={(e) => set({ tipo: e.target.value })} />
-            <InputField name="numero" label="N. camere" type="number" min={0} value={t.numero} onChange={(e) => set({ numero: Math.max(0, Number(e.target.value) || 0) })} />
-            <SelectField name="capacita" label="Capacità" value={t.capacita}
-              options={Array.from({ length: MAX_CAPACITA }, (_, i) => ({ value: i + 1, label: ospiti(i + 1) }))} onChange={(e) => set({ capacita: Number(e.target.value) })} />
-            <SelectField name="lettiExtra" label="Letti extra" value={t.lettiExtra}
-              options={Array.from({ length: MAX_LETTI_EXTRA + 1 }, (_, i) => ({ value: i, label: i === 0 ? 'Nessuno' : String(i) }))} onChange={(e) => set({ lettiExtra: Number(e.target.value) })} />
-          </div>
-          <div>
-            <div className="invc-form__media-label">Piani</div>
-            <div className="invc-form__piani">
-              {pianiDisponibili.map((pn) => {
-                const on = (t.piani ?? []).includes(pn)
-                return (
-                  <button key={pn} type="button" className={'invc-form__piano' + (on ? ' is-on' : '')} onClick={() => togglePiano(pn)}>
-                    <i className={`fa-${on ? 'solid fa-circle-check' : 'light fa-circle'}`} /> {pn}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="invc-form__card">
-        <div className="invc-form__card-head"><span><i className="fa-light fa-bed" /> Presentazione</span></div>
-        <div className="invc-form__grid-2">
-          <InputField name="nomeOnline" label="Nome sui canali online" placeholder="Nome visibile ai clienti online" value={t.nomeOnline} onChange={(e) => set({ nomeOnline: e.target.value })} />
-          <TextareaField name="descrizione" label="Descrizione" rows={3} placeholder="Comfort, vista, dotazioni…" value={t.descrizione} onChange={(e) => set({ descrizione: e.target.value })} />
-        </div>
-      </section>
-
-      <section className="invc-form__card">
-        <div className="invc-form__card-head">
-          <span><i className="fa-light fa-list-check" /> Caratteristiche</span>
-          <span className="invc-form__sel-count">{amenities.length} selezionate</span>
-        </div>
-        <div className="invc-form__amenities">
-          {AMENITIES.map((a) => {
-            const on = amenities.includes(a)
-            return (
-              <button key={a} type="button" className={'invc-form__amenity' + (on ? ' is-on' : '')} onClick={() => toggleAmenity(a)}>
-                <span className="invc-form__amenity-check"><i className={`fa-${on ? 'solid fa-circle-check' : 'light fa-circle'}`} /></span>{a}
-              </button>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="invc-form__card">
-        <div className="invc-form__card-head"><span><i className="fa-light fa-images" /> Immagine principale & gallery</span></div>
-        <p className="invc-form__hint">L'immagine principale compare sui canali online; le altre formano la galleria.</p>
-        <div className="invc-form__media">
-          <div>
-            <div className="invc-form__media-label">Immagine principale</div>
-            <ImageDropzone value={main} onPick={pickMain} onClear={() => set({ immagine: null })} />
-          </div>
-          <div>
-            <div className="invc-form__media-label">Altre immagini <span className="invc-form__muted">(max {MAX_GALLERY})</span></div>
-            <GalleryGrid images={gallery} max={MAX_GALLERY} onAdd={addGallery} onRemove={(i) => set({ gallery: gallery.filter((_, idx) => idx !== i) })} />
-          </div>
-        </div>
-      </section>
-
-      <div className="invc-form__actions">
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={onBack}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={applica}>
-          <i className="fa-light fa-floppy-disk" /> Salva
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ─── Dropzone + Gallery ───────────────────────────────────────────────────────
-
-function ImageDropzone({ value, onPick, onClear }: { value: string | null; onPick: (e: React.ChangeEvent<HTMLInputElement>) => void; onClear: () => void }) {
-  const ref = useRef<HTMLInputElement>(null)
-  if (value) {
-    return (
-      <div className="invc-form__dz invc-form__dz--filled">
-        <img src={value} alt="Anteprima" />
-        <span className="invc-form__dz-acts">
-          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={() => ref.current?.click()}><i className="fa-light fa-arrows-rotate" /> Sostituisci</button>
-          <button type="button" className="sib-btn sib-btn--secondary sib-btn--sm" onClick={onClear}><i className="fa-light fa-trash-can" /> Rimuovi</button>
-        </span>
-        <input ref={ref} type="file" accept="image/*" hidden onChange={onPick} />
-      </div>
-    )
-  }
-  return (
-    <button type="button" className="invc-form__dz" onClick={() => ref.current?.click()}>
-      <i className="fa-light fa-cloud-arrow-up" />
-      <span className="invc-form__dz-title">Trascina o seleziona un file</span>
-      <span className="invc-form__dz-hint">JPG, PNG, WEBP</span>
-      <input ref={ref} type="file" accept="image/*" hidden onChange={onPick} />
-    </button>
-  )
-}
-
-function GalleryGrid({ images, max, onAdd, onRemove }: { images: string[]; max: number; onAdd: (e: React.ChangeEvent<HTMLInputElement>) => void; onRemove: (i: number) => void }) {
-  const ref = useRef<HTMLInputElement>(null)
-  return (
-    <div className="invc-form__gallery">
-      {images.map((src, i) => (
-        <div key={i} className="invc-form__gallery-item">
-          <img src={src} alt={`Immagine ${i + 1}`} />
-          <button type="button" className="invc-form__gallery-rm" aria-label="Rimuovi" onClick={() => onRemove(i)}><i className="fa-solid fa-xmark" /></button>
-        </div>
-      ))}
-      {images.length < max && (
-        <button type="button" className="invc-form__gallery-add" onClick={() => ref.current?.click()}>
-          <i className="fa-light fa-circle-plus" /><span>Aggiungi</span>
-        </button>
-      )}
-      <input ref={ref} type="file" accept="image/*" multiple hidden onChange={onAdd} />
     </div>
   )
 }

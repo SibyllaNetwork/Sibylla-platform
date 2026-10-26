@@ -1,0 +1,577 @@
+// ─── CONFIGURAZIONE CAMERA / MODIFICA CAMERA ───────────────────────────────────
+@use '../../../styles/tokens' as *
+
+.ccam
+  display: flex
+  flex-direction: column
+  align-items: stretch
+  gap: 16px
+  font-size: 13px
+  container-type: inline-size
+
+  > .sib-btn--back
+    align-self: flex-start
+
+  &__layout
+    display: grid
+    grid-template-columns: 300px minmax(0, 1fr)
+    gap: 20px
+    align-items: start
+
+  // ── Colonna anteprima (sticky) ─────────────────────────────────────────────
+  &__aside
+    position: sticky
+    top: 16px
+    display: flex
+    flex-direction: column
+    gap: 14px
+
+  &__preview
+    border: 1px solid $border
+    border-radius: 14px
+    overflow: hidden
+    background: var(--color-surface)
+    box-shadow: 0 1px 3px rgba(32, 71, 105, 0.06), 0 8px 24px rgba(32, 71, 105, 0.08)
+
+  &__preview-media
+    position: relative
+    aspect-ratio: 5 / 3
+    overflow: hidden
+
+    > img
+      width: 100%
+      height: 100%
+      object-fit: cover
+      display: block
+
+  &__preview-badge, &__preview-new
+    position: absolute
+    top: 10px
+    font-size: 11px
+    font-weight: 700
+    border-radius: 999px
+    padding: 3px 10px
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12)
+
+  &__preview-badge
+    left: 10px
+    background: var(--color-surface)
+    color: $primary
+
+  &__preview-new
+    right: 10px
+    background: $success
+    color: #fff
+
+  &__preview-body
+    padding: 14px 16px 16px
+
+  &__preview-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 17px
+    font-weight: 700
+    color: $primary
+    overflow-wrap: anywhere
+
+  &__preview-sub
+    margin: 2px 0 12px
+    font-size: 12px
+    color: $text-inactive
+
+    strong
+      color: $text-active
+
+  &__facts
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+    li
+      display: inline-flex
+      align-items: center
+      gap: 6px
+      padding: 4px 10px
+      border-radius: 999px
+      background: $primary-50
+      color: $primary
+      font-size: 12px
+      font-weight: 600
+
+  // completezza
+  &__progress
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    padding: 14px 16px
+
+  &__progress-head
+    display: flex
+    justify-content: space-between
+    align-items: baseline
+    font-weight: 600
+    color: $text-active
+
+    strong
+      font-family: $font-heading
+      color: $primary
+
+  &__bar
+    appearance: none
+    display: block
+    width: 100%
+    height: 6px
+    margin: 10px 0 12px
+    border: none
+    border-radius: 999px
+    background: $primary-50
+    overflow: hidden
+
+    &::-webkit-progress-bar
+      background: $primary-50
+      border-radius: 999px
+
+    &::-webkit-progress-value
+      background: $success
+      border-radius: 999px
+      transition: width .3s ease
+
+    &::-moz-progress-bar
+      background: $success
+      border-radius: 999px
+
+  &__steps
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__step
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 6px 8px
+    border: none
+    border-radius: 8px
+    background: transparent
+    font-family: inherit
+    font-size: 13px
+    color: $text-active
+    text-align: left
+    cursor: pointer
+
+    &:hover
+      background: $primary-50
+
+    &.is-done
+      color: $text-inactive
+
+  &__step-dot
+    width: 22px
+    height: 22px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    border: 1.5px solid $border
+    font-size: 11px
+    font-weight: 700
+    color: $text-inactive
+
+    .is-done &
+      border-color: $success
+      background: $success
+      color: #fff
+      font-size: 10px
+
+  // ── Sezioni ─────────────────────────────────────────────────────────────────
+  &__main
+    display: flex
+    flex-direction: column
+    gap: 16px
+    min-width: 0
+
+  &__card
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    scroll-margin-top: 16px
+
+  &__card-head
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 14px 18px
+    border-bottom: 1px solid $border
+
+  &__num
+    width: 30px
+    height: 30px
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 9px
+    background: $primary
+    color: #fff
+    font-family: $font-heading
+    font-weight: 700
+    font-size: 14px
+
+    &.is-done
+      background: $success
+
+  &__card-titles
+    display: flex
+    flex-direction: column
+    flex: 1
+    min-width: 0
+
+    h3
+      margin: 0
+      font-family: $font-heading
+      font-size: 15px
+      font-weight: 700
+      color: $primary
+
+    span
+      font-size: 12px
+      color: $text-inactive
+
+  &__count
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    background: $primary-50
+    border-radius: 999px
+    padding: 3px 10px
+
+  &__card-body
+    padding: 16px 18px 18px
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__label
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    margin-bottom: -8px
+
+  &__label-hint
+    font-family: inherit
+    font-weight: 400
+    color: $text-inactive
+    margin-left: 6px
+
+  // tipologia: mini illustrazioni selezionabili
+  &__tipi
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 10px
+
+  &__tipo
+    position: relative
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 6px 6px 8px
+    border: 1.5px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    font-family: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $text-active
+    cursor: pointer
+    transition: border-color .12s, box-shadow .12s, transform .12s
+
+    &:hover
+      border-color: $primary
+      transform: translateY(-1px)
+
+    &.is-on
+      border-color: $primary
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+      color: $primary
+
+  &__tipo-ill
+    border-radius: 6px
+
+  &__tipo-check
+    position: absolute
+    top: 2px
+    right: 2px
+    font-size: 16px
+    color: $primary
+    background: var(--color-surface)
+    border-radius: 50%
+
+  &__grid
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    gap: 14px 16px
+    align-items: start
+
+    &--2
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr)
+
+  &__span-2
+    grid-column: span 2
+
+  // chip (piani e caratteristiche)
+  &__chips
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    border: 1px solid $border
+    border-radius: 999px
+    padding: 6px 13px
+    background: var(--color-surface)
+    font-family: inherit
+    font-size: 12.5px
+    color: $text-active
+    cursor: pointer
+    transition: border-color .12s, background .12s, color .12s
+
+    i
+      color: $primary
+      font-size: 13px
+
+    &:hover
+      border-color: $primary
+
+    &.is-on
+      border-color: $primary
+      background: $primary
+      color: #fff
+      font-weight: 600
+
+      i
+        color: #fff
+
+  &__groups
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__group-title
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-bottom: 8px
+    font-weight: 600
+    color: $text-active
+
+    i
+      color: $primary
+
+  // immagini
+  &__media
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+    gap: 20px
+
+  &__dz
+    width: 100%
+    margin-top: 8px
+    min-height: 180px
+    border: 1.5px dashed $border
+    border-radius: 12px
+    background: $bg
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 6px
+    font-family: inherit
+    color: $text-inactive
+    cursor: pointer
+    transition: border-color .12s, background .12s
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+    &--filled
+      position: relative
+      padding: 0
+      border-style: solid
+      overflow: hidden
+      cursor: default
+
+      img
+        width: 100%
+        height: 200px
+        object-fit: cover
+        display: block
+
+  &__dz-ico
+    width: 46px
+    height: 46px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: $primary-50
+    color: $primary
+    font-size: 20px
+
+  &__dz-title
+    font-weight: 600
+    color: $text-active
+
+    u
+      color: $primary
+
+  &__dz-hint
+    font-size: 12px
+
+  &__dz-acts
+    position: absolute
+    top: 10px
+    right: 10px
+    display: flex
+    gap: 6px
+
+  &__dz-btn
+    width: 32px
+    height: 32px
+    border: none
+    border-radius: 8px
+    background: rgba(255, 255, 255, 0.94)
+    color: $primary
+    cursor: pointer
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18)
+
+  &__gallery
+    margin-top: 8px
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 10px
+
+  &__gallery-item
+    position: relative
+    aspect-ratio: 4 / 3
+    border-radius: 10px
+    overflow: hidden
+    border: 1px solid $border
+
+    img
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+  &__gallery-rm
+    position: absolute
+    top: 5px
+    right: 5px
+    width: 22px
+    height: 22px
+    border: none
+    border-radius: 50%
+    background: rgba(0, 0, 0, 0.55)
+    color: #fff
+    font-size: 11px
+    cursor: pointer
+
+    &:hover
+      background: rgba(0, 0, 0, 0.78)
+
+  &__gallery-add
+    aspect-ratio: 4 / 3
+    border: 1.5px dashed $border
+    border-radius: 10px
+    background: $bg
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 4px
+    font-family: inherit
+    font-size: 12px
+    color: $text-inactive
+    cursor: pointer
+
+    i
+      font-size: 16px
+      color: $primary
+
+    &:hover
+      border-color: $primary
+      background: $primary-50
+
+  // ── Barra di salvataggio sticky ─────────────────────────────────────────────
+  &__savebar
+    position: sticky
+    bottom: 0
+    z-index: 5
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    flex-wrap: wrap
+    padding: 12px 18px
+    border: 1px solid $border
+    border-radius: 14px
+    background: var(--color-surface)
+    box-shadow: 0 -6px 20px rgba(32, 71, 105, 0.08)
+
+  &__savebar-state
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    color: $text-inactive
+
+    i
+      color: $success
+
+    &.is-pending i
+      color: $warning
+
+  &__savebar-acts
+    display: flex
+    gap: 8px
+
+  // ── Larghezze ridotte ───────────────────────────────────────────────────────
+  @container (max-width: 1100px)
+    &__grid
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+
+    &__span-2
+      grid-column: 1 / -1
+
+  @container (max-width: 900px)
+    &__layout
+      grid-template-columns: 1fr
+
+    &__aside
+      position: static
+      display: grid
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+
+    &__grid--2, &__media
+      grid-template-columns: 1fr
+
+  @container (max-width: 600px)
+    &__aside
+      grid-template-columns: 1fr
+
+    &__tipi
+      grid-template-columns: repeat(3, minmax(0, 1fr))
+
+    &__grid
+      grid-template-columns: 1fr

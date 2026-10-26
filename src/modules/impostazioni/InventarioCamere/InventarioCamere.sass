@@ -104,8 +104,15 @@
       border-color: $success-mid
       background: $success-light
 
+    // Disattivata: illustrazione in grigio, campi e riepilogo attenuati
     &--off
-      .invc__beds, .invc__fields, .invc__meta
+      background: $bg
+
+      .invc__beds
+        filter: grayscale(1)
+        opacity: .6
+
+      .invc__fields > :not(.invc__acts), .invc__meta
         opacity: .55
 
     &--dragging
@@ -377,16 +384,12 @@
 
   &__active
     display: inline-flex
-    align-items: center
-    gap: 8px
-    font-size: 12px
-    font-weight: 600
-    color: $text-active
-    cursor: pointer
 
-    span
-      min-width: 46px
-      text-align: right
+    // larghezza fissa del testo: Attiva/Inattiva non sposta il menu accanto
+    > label > div > span
+      min-width: 52px
+      font-size: 12px
+      font-weight: 600
 
   &__menu-wrap
     position: relative
@@ -572,279 +575,6 @@
     i
       color: $primary
       margin-right: 4px
-
-
-// ─── SCHEDA TIPOLOGIA (caratteristiche e immagini) ───────────────────────────────────────
-.invc-form
-  display: flex
-  flex-direction: column
-  align-items: stretch
-  gap: 16px
-  font-size: 13px
-
-  > .sib-btn--back
-    align-self: flex-start
-
-  &__card
-    border: 1px solid $border
-    border-radius: 12px
-    background: var(--color-surface)
-    padding: 16px 18px
-
-  &__card-head
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 10px
-    font-family: $font-heading
-    font-weight: 700
-    font-size: 14px
-    color: $primary
-    margin-bottom: 14px
-
-    i
-      margin-right: 8px
-
-  &__sel-count
-    font-size: 12px
-    font-weight: 600
-    color: $text-inactive
-
-  // Dati della tipologia: illustrazione a sinistra, campi e piani a destra
-  &__intro
-    display: grid
-    grid-template-columns: 300px minmax(0, 1fr)
-    gap: 20px
-    align-items: start
-
-    @media (max-width: 900px)
-      grid-template-columns: 1fr
-
-  &__ill
-    max-width: 300px
-
-  &__intro-fields
-    display: flex
-    flex-direction: column
-    gap: 16px
-
-  &__grid-3
-    display: grid
-    grid-template-columns: repeat(3, minmax(0, 1fr))
-    gap: 14px 16px
-
-    @media (max-width: 640px)
-      grid-template-columns: 1fr
-
-  &__piani
-    display: flex
-    flex-wrap: wrap
-    gap: 8px
-
-  &__piano
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    border: 1px solid $border
-    border-radius: 999px
-    padding: 5px 12px
-    background: var(--color-surface)
-    font-family: inherit
-    font-size: 12.5px
-    color: $text-active
-    cursor: pointer
-
-    i
-      color: $text-inactive
-
-    &:hover
-      border-color: $primary
-
-    &.is-on
-      border-color: $primary
-      background: $primary-50
-      color: $primary
-      font-weight: 600
-
-      i
-        color: $primary
-
-  &__grid-2
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 16px 18px
-
-    @media (max-width: 640px)
-      grid-template-columns: 1fr
-
-  &__amenities
-    display: grid
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr))
-    gap: 8px
-
-  &__amenity
-    display: flex
-    align-items: center
-    gap: 8px
-    text-align: left
-    border: 1px solid $border
-    border-radius: 10px
-    padding: 10px 12px
-    background: var(--color-surface)
-    cursor: pointer
-    font-size: 13px
-    color: $text-active
-    font-family: inherit
-    transition: border-color .12s, background .12s
-
-    &:hover
-      border-color: $primary
-
-    &.is-on
-      border-color: $primary
-      background: $primary-50
-      color: $primary
-      font-weight: 600
-
-  &__amenity-check
-    color: $text-inactive
-
-    .is-on &
-      color: $primary
-
-  &__hint
-    margin: -6px 0 12px
-    font-size: 12px
-    color: $text-inactive
-
-  &__media
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 18px
-
-    @media (max-width: 720px)
-      grid-template-columns: 1fr
-
-  &__media-label
-    font-weight: 600
-    color: $text-active
-    margin-bottom: 8px
-
-  &__muted
-    color: $text-inactive
-    font-weight: 400
-
-  &__actions
-    display: flex
-    justify-content: flex-end
-    gap: 8px
-
-  // dropzone
-  &__dz
-    width: 100%
-    border: 1.5px dashed $border
-    border-radius: 12px
-    background: $bg
-    min-height: 150px
-    display: flex
-    flex-direction: column
-    align-items: center
-    justify-content: center
-    gap: 6px
-    cursor: pointer
-    color: $text-inactive
-    font-family: inherit
-
-    > i
-      font-size: 26px
-      color: $primary
-
-    &:hover
-      border-color: $primary
-      background: $primary-50
-
-    &--filled
-      position: relative
-      border-style: solid
-      padding: 0
-      overflow: hidden
-      cursor: default
-
-      img
-        width: 100%
-        height: 200px
-        object-fit: cover
-
-  &__dz-title
-    font-weight: 600
-    color: $text-active
-
-  &__dz-hint
-    font-size: 12px
-
-  &__dz-acts
-    position: absolute
-    bottom: 10px
-    right: 10px
-    display: flex
-    gap: 6px
-
-  // gallery
-  &__gallery
-    display: grid
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr))
-    gap: 10px
-
-  &__gallery-item
-    position: relative
-    aspect-ratio: 1
-    border-radius: 10px
-    overflow: hidden
-    border: 1px solid $border
-
-    img
-      width: 100%
-      height: 100%
-      object-fit: cover
-
-  &__gallery-rm
-    position: absolute
-    top: 5px
-    right: 5px
-    width: 22px
-    height: 22px
-    border: none
-    border-radius: 50%
-    background: rgba(0,0,0,0.55)
-    color: #fff
-    cursor: pointer
-    font-size: 11px
-
-    &:hover
-      background: rgba(0,0,0,0.78)
-
-  &__gallery-add
-    aspect-ratio: 1
-    border: 1.5px dashed $border
-    border-radius: 10px
-    background: $bg
-    display: flex
-    flex-direction: column
-    align-items: center
-    justify-content: center
-    gap: 4px
-    cursor: pointer
-    color: $text-inactive
-    font-size: 12px
-    font-family: inherit
-
-    i
-      font-size: 18px
-      color: $primary
-
-    &:hover
-      border-color: $primary
-      background: $primary-50
 
 
 @keyframes invc-det-in
