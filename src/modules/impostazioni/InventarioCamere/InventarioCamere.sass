@@ -79,10 +79,11 @@
   // ── Riga ─────────────────────────────────────────────────────────────────────
   &__row
     display: grid
-    grid-template-columns: 18px 136px minmax(0, 1fr) auto
-    align-items: start
+    grid-template-columns: 196px 18px minmax(0, 1fr) auto
+    align-items: center
     gap: 14px
-    padding: 14px 16px
+    padding: 0 16px 0 0
+    overflow: visible
     border: 1px solid $border
     border-radius: 10px
     background: var(--color-surface)
@@ -104,6 +105,20 @@
       border-color: $primary
       border-style: dashed
 
+  // Illustrazione a filo del bordo sinistro, alta quanto la riga.
+  &__beds
+    align-self: stretch
+    position: relative
+    min-height: 100%
+    border-radius: 9px 0 0 9px
+    overflow: hidden
+    border-right: 1px solid $border
+
+    > span
+      position: absolute
+      inset: 0
+      display: block
+
   &__handle
     align-self: center
     color: $text-inactive
@@ -114,16 +129,12 @@
     &:active
       cursor: grabbing
 
-  &__beds
-    align-self: start
-    display: block
-    width: 136px
-
   &__main
     display: flex
     flex-direction: column
     gap: 8px
     min-width: 0
+    padding: 14px 0
 
   &__fields
     display: grid
@@ -316,12 +327,14 @@
   @container (max-width: 720px)
     &__row
       grid-template-columns: 18px minmax(0, 1fr)
+      padding-left: 12px
 
     &__beds
       display: none
 
     &__acts
       grid-column: 2
+      padding-bottom: 12px
       justify-content: flex-end
 
     &__fields

@@ -239,13 +239,13 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
       onDragOver={(e) => e.preventDefault()}
       onDragEnd={() => { setArmata(false); onDragEnd() }}
     >
+      <Letti tipo={t.tipo} capacita={t.capacita} extra={t.lettiExtra} />
+
       <Tooltip text="Trascina per riordinare">
         <span className="invc__handle" onMouseDown={() => setArmata(true)} onMouseUp={() => setArmata(false)}>
           <i className="fa-solid fa-grip-dots-vertical" />
         </span>
       </Tooltip>
-
-      <Letti tipo={t.tipo} capacita={t.capacita} extra={t.lettiExtra} />
 
       <div className="invc__main">
         <div className="invc__fields">
@@ -307,9 +307,11 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
 // Illustrazione della tipologia (con brandina se ci sono letti extra).
 function Letti({ tipo, capacita, extra }: { tipo: string; capacita: number; extra: number }) {
   return (
-    <Tooltip text={`${tipo} · ${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
-      <span className="invc__beds"><RoomIllustration tipo={tipo} lettiExtra={extra} /></span>
-    </Tooltip>
+    <div className="invc__beds">
+      <Tooltip text={`${tipo} · ${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
+        <RoomIllustration tipo={tipo} lettiExtra={extra} fill />
+      </Tooltip>
+    </div>
   )
 }
 
