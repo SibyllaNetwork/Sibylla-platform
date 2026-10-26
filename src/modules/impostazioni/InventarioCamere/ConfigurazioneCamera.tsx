@@ -105,20 +105,10 @@ export default function ConfigurazioneCamera({ tipologia, nuova, pianiDisponibil
         {/* ─── Sezioni ─────────────────────────────────────────────────────── */}
         <div className="ccam__main">
           <Sezione n={1} {...SEZIONI[0]} done={completa.dati}>
-            <div className="ccam__label">Tipologia</div>
-            <div className="ccam__tipi" role="radiogroup" aria-label="Tipologia">
-              {TIPI.map((tipo) => (
-                <button key={tipo} type="button" role="radio" aria-checked={t.tipo === tipo}
-                  className={'ccam__tipo' + (t.tipo === tipo ? ' is-on' : '')} onClick={() => set({ tipo })}>
-                  <RoomIllustration tipo={tipo} className="ccam__tipo-ill" />
-                  <span>{tipo}</span>
-                  {t.tipo === tipo && <i className="fa-solid fa-circle-check ccam__tipo-check" />}
-                </button>
-              ))}
-            </div>
-
             <div className="ccam__grid">
-              <InputField name="nome" label="Nome camera" required className="ccam__span-2" placeholder="Es. Doppia vista mare"
+              <SelectField name="tipo" label="Tipologia" className="ccam__f-tipo" value={t.tipo}
+                options={TIPI.map((x) => ({ value: x, label: x }))} onChange={(e) => set({ tipo: e.target.value })} />
+              <InputField name="nome" label="Nome camera" required className="ccam__f-nome" placeholder="Es. Doppia vista mare"
                 value={t.nome} error={errNome ? 'Obbligatorio' : undefined}
                 onChange={(e) => { set({ nome: e.target.value }); if (e.target.value.trim()) setErrNome(false) }} />
               <InputField name="numero" label="N. camere" type="number" min={0} value={t.numero}

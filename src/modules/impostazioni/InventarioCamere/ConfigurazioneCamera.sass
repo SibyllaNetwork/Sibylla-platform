@@ -272,59 +272,17 @@
     color: $text-inactive
     margin-left: 6px
 
-  // tipologia: mini illustrazioni selezionabili
-  &__tipi
-    display: grid
-    grid-template-columns: repeat(5, minmax(0, 1fr))
-    gap: 10px
-
-  &__tipo
-    position: relative
-    display: flex
-    flex-direction: column
-    gap: 6px
-    padding: 6px 6px 8px
-    border: 1.5px solid $border
-    border-radius: 10px
-    background: var(--color-surface)
-    font-family: inherit
-    font-size: 12px
-    font-weight: 600
-    color: $text-active
-    cursor: pointer
-    transition: border-color .12s, box-shadow .12s, transform .12s
-
-    &:hover
-      border-color: $primary
-      transform: translateY(-1px)
-
-    &.is-on
-      border-color: $primary
-      box-shadow: 0 0 0 3px var(--color-focus-ring)
-      color: $primary
-
-  &__tipo-ill
-    border-radius: 6px
-
-  &__tipo-check
-    position: absolute
-    top: 2px
-    right: 2px
-    font-size: 16px
-    color: $primary
-    background: var(--color-surface)
-    border-radius: 50%
-
+  // Tipologia e Nome larghi (2 colonne), poi Camere / Capacità / Letti extra
   &__grid
     display: grid
-    grid-template-columns: repeat(5, minmax(0, 1fr))
+    grid-template-columns: repeat(7, minmax(0, 1fr))
     gap: 14px 16px
     align-items: start
 
     &--2
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr)
 
-  &__span-2
+  &__f-tipo, &__f-nome
     grid-column: span 2
 
   // chip (piani e caratteristiche)
@@ -551,8 +509,11 @@
     &__grid
       grid-template-columns: repeat(3, minmax(0, 1fr))
 
-    &__span-2
-      grid-column: 1 / -1
+    &__f-tipo
+      grid-column: span 1
+
+    &__f-nome
+      grid-column: span 2
 
   @container (max-width: 900px)
     &__layout
@@ -570,8 +531,8 @@
     &__aside
       grid-template-columns: 1fr
 
-    &__tipi
-      grid-template-columns: repeat(3, minmax(0, 1fr))
-
     &__grid
       grid-template-columns: 1fr
+
+    &__f-tipo, &__f-nome
+      grid-column: auto
