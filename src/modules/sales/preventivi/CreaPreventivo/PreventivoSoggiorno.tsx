@@ -1,22 +1,26 @@
 import React, { useMemo, useRef, useState } from 'react'
 import Modal from '../../../../core/components/Modal'
 import Tooltip from '../../../../core/components/Tooltip'
+import RoomIllustration from '../../../impostazioni/InventarioCamere/RoomIllustration'
 import AlertBanner from '../../../../core/components/AlertBanner'
 import { CheckboxField, DateRangeField, InputField, SelectField, TextareaField } from '../../../../core/components/form'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import {
-  usePreventiviSoggiornoStore, type CameraProposta, type PreventivoSoggiorno, type PropostaSoggiorno,
+  usePreventiviSoggiornoStore, type CameraProposta, type PreventivoSoggiorno, type PropostaSoggiorno, type ServizioExtra, type UnitaExtra,
 } from '../../../../store/usePreventiviSoggiornoStore'
 import {
-  LETTERE, SERVIZI, STRUTTURE, TIPOLOGIE, TRATTAMENTI, VALIDITA, conto, eur, mailHtml, notti, ospitiLabel, periodo, tipologia,
+  EXTRA_CATALOGO, LETTERE, SERVIZI, STRUTTURE, TIPOLOGIE, TRATTAMENTI, UNITA, VALIDITA, comprimiFoto, conto, costoCamera, costoExtra,
+  eur, giornoBreve, mailHtml, notti, nottiDate, ospitiLabel, periodo, tariffa, tipologia,
 } from './soggiorno'
 import './PreventivoSoggiorno.sass'
 
 /**
  * Preventivo di soggiorno: una o più soluzioni (date, camere, trattamento,
- * servizi inclusi, tassa di soggiorno), ognuna col suo prezzo. Si stampa o si
- * invia via mail; il cliente accetta una proposta dai pulsanti nella mail.
+ * servizi inclusi, tassa di soggiorno), ognuna col suo prezzo e con servizi
+ * aggiuntivi a pagamento facoltativi. Ogni camera ha foto, descrizione e
+ * tariffe giorno per giorno. Si stampa o si invia via mail; il cliente accetta
+ * una proposta dai pulsanti nella mail e aggiunge gli extra che vuole.
  */
 
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -27,11 +31,14 @@ const isoTra = (giorni: number) => {
 const oggi = () => new Date().toLocaleDateString('it-IT')
 const ora = () => new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-const nuovaCamera = (nome = 'Doppia Classic'): CameraProposta => ({ id: uid(), tipologia: nome, quantita: 1, prezzoNotte: tipologia(nome).prezzo })
+const nuovaCamera = (nome = 'Doppia Classic'): CameraProposta => ({
+  id: uid(), tipologia: nome, quantita: 1, prezzoNotte: tipologia(nome).prezzo, tariffe: {},
+  descrizione: tipologia(nome).descrizione, immagine: null,
+})
 
 const nuovaProposta = (): PropostaSoggiorno => ({
   id: uid(), titolo: '', checkin: isoTra(14), checkout: isoTra(17), adulti: 2, bambini: 0,
-  camere: [nuovaCamera()], trattamento: 'Pernottamento e colazione', servizi: ['Wi-Fi'],
+  camere: [nuovaCamera()], trattamento: 'Pernottamento e colazione', servizi: ['Wi-Fi'], extra: [],
   scontoPct: 0, tassaImporto: 3.5, tassaMaxNotti: 7, tassaEsentiMinori: true,
 })
 
@@ -60,7 +67,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
   const aggiungi = () => setPr((p) => ({ ...p, proposte: [...p.proposte, nuovaProposta()] }))
   const duplica = (q: PropostaSoggiorno) => setPr((p) => {
     const i = p.proposte.findIndex((x) => x.id === q.id)
-    const copia = { ...q, id: uid(), titolo: q.titolo ? `${q.titolo} (copia)` : '', camere: q.camere.map((c) => ({ ...c, id: uid() })), servizi: [...q.servizi] }
+    const copia = { ...q, id: uid(), titolo: q.titolo ? `${q.titolo} (copia)` : '', camere: q.camere.map((c) => ({ ...c, id: uid(), tariffe: { ...c.tariffe } })), servizi: [...q.servizi], extra: q.extra.map((e) => ({ ...e })) }
     return { ...p, proposte: [...p.proposte.slice(0, i + 1), copia, ...p.proposte.slice(i + 1)] }
   })
   const elimina = async (q: PropostaSoggiorno, i: number) => {
@@ -95,13 +102,13 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
     toast.success(`Preventivo ${pr.codice} inviato a ${pr.email}`)
   }
 
-  // Click del cliente su "Accetta" nella mail (dall'anteprima).
-  const accetta = (propostaId: string) => {
-    if (pr.stato === 'Bozza') { toast.info('I pulsanti si attivano quando il preventivo è inviato al cliente'); return }
+  // Il cliente accetta una proposta (dall'anteprima della mail) con gli extra scelti.
+  const accetta = (propostaId: string, extraScelti: string[]) => {
     const i = pr.proposte.findIndex((q) => q.id === propostaId)
-    const accettato: PreventivoSoggiorno = { ...pr, stato: 'Accettato', accettata: propostaId, rispostaIl: ora() }
+    const accettato: PreventivoSoggiorno = { ...pr, stato: 'Accettato', accettata: propostaId, extraScelti, rispostaIl: ora() }
     setPr(accettato); salva(accettato)
-    toast.success(`${pr.cliente} ha accettato la proposta ${LETTERE[i]}`, 'Preventivo accettato')
+    const extra = extraScelti.length ? ` con ${extraScelti.length} ${extraScelti.length === 1 ? 'servizio aggiuntivo' : 'servizi aggiuntivi'}` : ''
+    toast.success(`${pr.cliente} ha accettato la proposta ${LETTERE[i]}${extra}`, 'Preventivo accettato')
   }
 
   const stampa = () => {
@@ -115,6 +122,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
   }
 
   const scelta = pr.proposte.findIndex((q) => q.id === pr.accettata)
+  const extraPresi = pr.proposte[scelta]?.extra.filter((e) => pr.extraScelti?.includes(e.id)) ?? []
 
   return (
     <div className="psog">
@@ -136,7 +144,10 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
       {pr.stato === 'Accettato' && (
         <div className="psog__stato psog__stato--ok">
           <i className="fa-solid fa-circle-check" aria-hidden="true" />
-          <span><strong>{pr.cliente}</strong> ha accettato la proposta {LETTERE[scelta]}{pr.proposte[scelta]?.titolo ? ` "${pr.proposte[scelta].titolo}"` : ''} il {pr.rispostaIl}.</span>
+          <span><strong>{pr.cliente}</strong> ha accettato la proposta {LETTERE[scelta]}{pr.proposte[scelta]?.titolo ? ` "${pr.proposte[scelta].titolo}"` : ''} il {pr.rispostaIl}
+            {extraPresi.length > 0 && <>, aggiungendo {extraPresi.map((e) => e.nome).join(', ')}</>}.
+            {' '}Totale <strong>{eur(conto(pr.proposte[scelta], pr.extraScelti).totaleConExtra)}</strong>.
+          </span>
         </div>
       )}
 
@@ -196,7 +207,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
             <h4 className="psog__sum-title">{pr.proposte.length === 1 ? '1 soluzione' : `${pr.proposte.length} soluzioni`}</h4>
             <ul className="psog__sum-list">
               {pr.proposte.map((q, i) => {
-                const k = conto(q)
+                const k = conto(q, pr.accettata === q.id ? pr.extraScelti : [])
                 return (
                   <li key={q.id} className={pr.accettata === q.id ? 'is-scelta' : ''}>
                     <span className="psog__letter">{LETTERE[i]}</span>
@@ -204,7 +215,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId }: { naviga
                       <strong>{q.titolo || q.camere.map((c) => `${c.quantita}× ${c.tipologia}`).join(', ')}</strong>
                       <small>{k.notti} {k.notti === 1 ? 'notte' : 'notti'} · {ospitiLabel(q)}</small>
                     </span>
-                    <span className="psog__sum-tot">{eur(k.totale)}</span>
+                    <span className="psog__sum-tot">{eur(k.totaleConExtra)}</span>
                   </li>
                 )
               })}
@@ -246,6 +257,7 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
 }) {
   const k = conto(q)
   const ospiti = q.adulti + q.bambini
+  const date = nottiDate(q)
   const setCamera = (id: string, patch: Partial<CameraProposta>) => onChange({ camere: q.camere.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
   const num = (v: string, min = 0) => Math.max(min, Number(v) || 0)
   const toggleServizio = (s: string) => onChange({ servizi: q.servizi.includes(s) ? q.servizi.filter((x) => x !== s) : [...q.servizi, s] })
@@ -278,42 +290,19 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
             onChangeFrom={(e) => onChange({ checkin: e.target.value })} onChangeTo={(e) => onChange({ checkout: e.target.value })} />
           <InputField name={`adulti-${q.id}`} label="Adulti" type="number" min={1} value={q.adulti} onChange={(e) => onChange({ adulti: num(e.target.value, 1) })} />
           <InputField name={`bambini-${q.id}`} label="Bambini" type="number" min={0} value={q.bambini} onChange={(e) => onChange({ bambini: num(e.target.value) })} />
-          <SelectField name={`tratt-${q.id}`} label="Trattamento" className="psog__f-tratt" value={q.trattamento} onChange={(e) => onChange({ trattamento: e.target.value })}
+          <SelectField name={`tratt-${q.id}`} label="Trattamento" value={q.trattamento} onChange={(e) => onChange({ trattamento: e.target.value })}
             options={TRATTAMENTI.map((t) => ({ value: t.nome, label: t.supplemento ? `${t.nome} (+${eur(t.supplemento)} a persona/notte)` : t.nome }))} />
         </div>
         <p className="psog__periodo"><i className="fa-regular fa-calendar" aria-hidden="true" /> {periodo(q)} · <strong>{k.notti} {k.notti === 1 ? 'notte' : 'notti'}</strong></p>
 
-        {/* Camere */}
+        {/* Camere: foto, descrizione, tariffe giorno per giorno */}
         <div className="psog__block">
-          <div className="psog__block-title">Tipologia di camera</div>
-          <table className="sib-table psog__camere">
-            <colgroup><col className="psog__w-tipo" /><col className="psog__w-qta" /><col className="psog__w-prezzo" /><col className="psog__w-tot" /><col className="psog__w-del" /></colgroup>
-            <thead><tr><th>Tipologia</th><th>Camere</th><th>Prezzo a notte</th><th className="psog__num-cell">Subtotale</th><th /></tr></thead>
-            <tbody>
-              {q.camere.map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    <SelectField name={`tipo-${c.id}`} ariaLabel="Tipologia di camera" value={c.tipologia}
-                      onChange={(e) => setCamera(c.id, { tipologia: e.target.value, prezzoNotte: tipologia(e.target.value).prezzo })}
-                      options={TIPOLOGIE.map((t) => ({ value: t.nome, label: `${t.nome} · max ${t.capacita}` }))} />
-                  </td>
-                  <td><InputField name={`qta-${c.id}`} ariaLabel="Numero camere" dense type="number" min={1} value={c.quantita} onChange={(e) => setCamera(c.id, { quantita: num(e.target.value, 1) })} /></td>
-                  <td><InputField name={`prz-${c.id}`} ariaLabel="Prezzo a notte" dense type="number" min={0} step={1} iconRight="fa-regular fa-euro-sign" value={c.prezzoNotte} onChange={(e) => setCamera(c.id, { prezzoNotte: num(e.target.value) })} /></td>
-                  <td className="psog__num-cell">{eur(c.quantita * c.prezzoNotte * k.notti)}</td>
-                  <td className="psog__num-cell">
-                    {q.camere.length > 1 && (
-                      <Tooltip text="Rimuovi camera">
-                        <button type="button" className="sib-btn sib-btn--icon psog__ico" aria-label="Rimuovi camera"
-                          onClick={() => onChange({ camere: q.camere.filter((x) => x.id !== c.id) })}>
-                          <i className="fa-solid fa-xmark" aria-hidden="true" />
-                        </button>
-                      </Tooltip>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="psog__block-title">Camere</div>
+          {q.camere.map((c) => (
+            <Camera key={c.id} c={c} date={date} rimovibile={q.camere.length > 1}
+              onChange={(patch) => setCamera(c.id, patch)}
+              onRimuovi={() => onChange({ camere: q.camere.filter((x) => x.id !== c.id) })} />
+          ))}
           <div className="psog__camere-foot">
             <button type="button" className="sib-btn sib-btn--ghost" onClick={() => onChange({ camere: [...q.camere, nuovaCamera()] })}>
               <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi camera
@@ -338,6 +327,8 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
           </div>
         </div>
 
+        <Extra q={q} onChange={(extra) => onChange({ extra })} />
+
         {/* Tassa di soggiorno + prezzo */}
         <div className="psog__bottom">
           <div className="psog__block psog__tassa">
@@ -358,6 +349,7 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
             {k.sconto > 0 && <div className="is-sconto"><dt>Sconto {q.scontoPct}%</dt><dd>− {eur(k.sconto)}</dd></div>}
             <div><dt>Tassa di soggiorno</dt><dd>{eur(k.tassa)}</dd></div>
             <div className="is-tot"><dt>Prezzo proposta {LETTERE[i]}</dt><dd>{eur(k.totale)}</dd></div>
+            {q.extra.length > 0 && <div className="is-nota"><dt>Servizi aggiuntivi facoltativi, a scelta del cliente</dt></div>}
           </dl>
         </div>
       </div>
@@ -365,49 +357,276 @@ function Proposta({ q, i, sola, scelta, onChange, onDuplica, onElimina }: {
   )
 }
 
-// ─── Mail: anteprima e invio ──────────────────────────────────────────────────
+// ─── Camera: foto + descrizione accanto, tariffe giorno per giorno ───────────
+function Camera({ c, date, rimovibile, onChange, onRimuovi }: {
+  c: CameraProposta; date: string[]; rimovibile: boolean
+  onChange: (patch: Partial<CameraProposta>) => void; onRimuovi: () => void
+}) {
+  const file = useRef<HTMLInputElement>(null)
+  const num = (v: string, min = 0) => Math.max(min, Number(v) || 0)
+  const t = tipologia(c.tipologia)
+  const personalizzate = date.some((d) => c.tariffe[d] != null && c.tariffe[d] !== c.prezzoNotte)
+
+  const cambiaTipologia = (nome: string) => onChange({
+    tipologia: nome, prezzoNotte: tipologia(nome).prezzo, tariffe: {},
+    // la descrizione segue la tipologia, a meno che non sia stata scritta a mano
+    descrizione: !c.descrizione || c.descrizione === t.descrizione ? tipologia(nome).descrizione : c.descrizione,
+  })
+
+  const carica = async (f?: File) => {
+    if (!f) return
+    if (!f.type.startsWith('image/')) { toast.warning('Scegli un file immagine (JPG, PNG, WebP)'); return }
+    try { onChange({ immagine: await comprimiFoto(f) }) } catch { toast.error('Impossibile leggere la foto') }
+  }
+
+  return (
+    <div className="psog__room">
+      <div className="psog__room-media">
+        {c.immagine ? <img src={c.immagine} alt={c.tipologia} /> : <RoomIllustration tipo={t.tipo} fill />}
+        <div className="psog__room-media-acts">
+          <button type="button" className="psog__room-media-btn" onClick={() => file.current?.click()}>
+            <i className="fa-solid fa-camera" aria-hidden="true" /> {c.immagine ? 'Cambia foto' : 'Carica foto'}
+          </button>
+          {c.immagine && (
+            <Tooltip text="Rimuovi foto">
+              <button type="button" className="psog__room-media-btn psog__room-media-btn--ico" aria-label="Rimuovi foto" onClick={() => onChange({ immagine: null })}>
+                <i className="fa-solid fa-trash-can" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          )}
+        </div>
+        <input ref={file} type="file" accept="image/*" className="psog__file" onChange={(e) => { carica(e.target.files?.[0]); e.target.value = '' }} />
+      </div>
+
+      <div className="psog__room-info">
+        <div className="psog__room-fields">
+          <SelectField name={`tipo-${c.id}`} label="Tipologia di camera" value={c.tipologia} onChange={(e) => cambiaTipologia(e.target.value)}
+            options={TIPOLOGIE.map((x) => ({ value: x.nome, label: `${x.nome} · max ${x.capacita}` }))} />
+          <InputField name={`qta-${c.id}`} label="Camere" type="number" min={1} value={c.quantita} onChange={(e) => onChange({ quantita: num(e.target.value, 1) })} />
+          <InputField name={`prz-${c.id}`} label="Tariffa a notte" type="number" min={0} step={1} iconRight="fa-regular fa-euro-sign"
+            value={c.prezzoNotte} onChange={(e) => onChange({ prezzoNotte: num(e.target.value) })} />
+          <div className="psog__room-sub">
+            <span>Subtotale</span>
+            <strong>{eur(costoCamera(c, date) * c.quantita)}</strong>
+          </div>
+          {rimovibile && (
+            <Tooltip text="Rimuovi camera">
+              <button type="button" className="sib-btn sib-btn--icon psog__ico psog__room-del" aria-label="Rimuovi camera" onClick={onRimuovi}>
+                <i className="fa-solid fa-xmark" aria-hidden="true" />
+              </button>
+            </Tooltip>
+          )}
+        </div>
+        <TextareaField name={`desc-${c.id}`} label="Descrizione della camera" rows={2} value={c.descrizione}
+          onChange={(e) => onChange({ descrizione: e.target.value })} placeholder="Cosa rende speciale questa camera" />
+
+        {date.length > 1 && (
+          <div className="psog__days">
+            <div className="psog__days-head">
+              <span>Tariffe giorno per giorno <small>{c.quantita > 1 ? `per camera, × ${c.quantita}` : 'per camera'}</small></span>
+              {personalizzate && (
+                <button type="button" className="sib-btn sib-btn--ghost psog__days-reset" onClick={() => onChange({ tariffe: {} })}>
+                  <i className="fa-regular fa-rotate-left" aria-hidden="true" /> Riporta tutte a {eur(c.prezzoNotte)}
+                </button>
+              )}
+            </div>
+            <div className="psog__days-grid">
+              {date.map((d) => {
+                const v = tariffa(c, d)
+                const dow = new Date(d + 'T00:00:00').getDay()
+                return (
+                  <div key={d} className={'psog__day' + (v !== c.prezzoNotte ? ' is-custom' : '') + (dow === 5 || dow === 6 ? ' is-we' : '')}>
+                    <span className="psog__day-label">{giornoBreve(d)}</span>
+                    <InputField name={`t-${c.id}-${d}`} ariaLabel={`Tariffa ${giornoBreve(d)}`} dense type="number" min={0} step={1}
+                      iconRight="fa-regular fa-euro-sign" value={v}
+                      onChange={(e) => onChange({ tariffe: { ...c.tariffe, [d]: num(e.target.value) } })} />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Servizi aggiuntivi a pagamento ───────────────────────────────────────────
+function Extra({ q, onChange }: { q: PropostaSoggiorno; onChange: (extra: ServizioExtra[]) => void }) {
+  const set = (id: string, patch: Partial<ServizioExtra>) => onChange(q.extra.map((e) => (e.id === id ? { ...e, ...patch } : e)))
+  const disponibili = EXTRA_CATALOGO.filter((x) => !q.extra.some((e) => e.nome === x.nome))
+
+  return (
+    <div className="psog__block psog__extra">
+      <div className="psog__block-title">
+        Servizi aggiuntivi a pagamento
+        <span className="psog__block-hint">facoltativi: il cliente li aggiunge uno per uno quando accetta</span>
+      </div>
+      {q.extra.length > 0 && (
+        <ul className="psog__extra-list">
+          {q.extra.map((e) => (
+            <li key={e.id} className="psog__extra-row">
+              <InputField name={`xn-${e.id}`} ariaLabel="Servizio" dense value={e.nome} onChange={(ev) => set(e.id, { nome: ev.target.value })} placeholder="Nome del servizio" />
+              <InputField name={`xp-${e.id}`} ariaLabel="Prezzo" dense type="number" min={0} iconRight="fa-regular fa-euro-sign"
+                value={e.prezzo} onChange={(ev) => set(e.id, { prezzo: Math.max(0, Number(ev.target.value) || 0) })} />
+              <SelectField name={`xu-${e.id}`} ariaLabel="Unità" value={e.unita} onChange={(ev) => set(e.id, { unita: ev.target.value as UnitaExtra })}
+                options={(Object.keys(UNITA) as UnitaExtra[]).map((u) => ({ value: u, label: UNITA[u] }))} />
+              <span className="psog__extra-tot">{eur(costoExtra(e, q))}</span>
+              <Tooltip text="Rimuovi servizio">
+                <button type="button" className="sib-btn sib-btn--icon psog__ico" aria-label="Rimuovi servizio" onClick={() => onChange(q.extra.filter((x) => x.id !== e.id))}>
+                  <i className="fa-solid fa-xmark" aria-hidden="true" />
+                </button>
+              </Tooltip>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="psog__extra-add">
+        <SelectField name={`xcat-${q.id}`} ariaLabel="Aggiungi dal catalogo" value="" placeholder="Aggiungi dal catalogo…"
+          onChange={(ev) => {
+            const x = disponibili.find((d) => d.nome === ev.target.value)
+            if (x) onChange([...q.extra, { ...x, id: uid() }])
+          }}
+          options={disponibili.map((x) => ({ value: x.nome, label: `${x.nome} · ${eur(x.prezzo)} ${UNITA[x.unita]}` }))} />
+        <button type="button" className="sib-btn sib-btn--ghost" onClick={() => onChange([...q.extra, { id: uid(), nome: '', prezzo: 0, unita: 'soggiorno' }])}>
+          <i className="fa-regular fa-plus" aria-hidden="true" /> Servizio personalizzato
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Mail: anteprima e invio; pagina di conferma del cliente ─────────────────
 function MailModal({ pr, invio, onClose, onInvia, onAccetta }: {
-  pr: PreventivoSoggiorno; invio: boolean; onClose: () => void; onInvia: () => void; onAccetta: (id: string) => void
+  pr: PreventivoSoggiorno; invio: boolean; onClose: () => void; onInvia: () => void
+  onAccetta: (propostaId: string, extraScelti: string[]) => void
 }) {
   const [oggetto, setOggetto] = useState(`Il tuo preventivo di soggiorno · ${pr.struttura}`)
+  // Proposta su cui il cliente ha cliccato "Accetta": apre la pagina di conferma.
+  const [conferma, setConferma] = useState<string | null>(null)
   const html = useMemo(() => mailHtml(pr), [pr])
   const frame = useRef<HTMLIFrameElement>(null)
-  const accettaRef = useRef(onAccetta)
-  accettaRef.current = onAccetta
+  const clickRef = useRef<(id: string) => void>(() => undefined)
+  clickRef.current = (id) => {
+    if (pr.stato === 'Bozza') { toast.info('I pulsanti si attivano quando il preventivo è inviato al cliente'); return }
+    setConferma(id)
+  }
 
   // I pulsanti "Accetta" della mail: nell'anteprima simulano il click del cliente.
   const aggancia = () => {
-    const doc = frame.current?.contentDocument
-    doc?.addEventListener('click', (e) => {
+    frame.current?.contentDocument?.addEventListener('click', (e) => {
       const a = (e.target as HTMLElement).closest('a')
       if (!a) return
       e.preventDefault()
       const id = a.getAttribute('data-accetta')
-      if (id) accettaRef.current(id)
+      if (id) clickRef.current(id)
     })
   }
+
+  const proposta = pr.proposte.find((q) => q.id === conferma)
+  const titolo = proposta ? 'Conferma della proposta (pagina del cliente)' : invio ? 'Invia preventivo via mail' : 'Anteprima della mail'
+
   return (
-    <Modal open onClose={onClose} size="xl" title={invio ? 'Invia preventivo via mail' : 'Anteprima della mail'} className="psog-mail">
-      <div className="psog-mail__body">
-        {invio && (
-          <div className="psog-mail__fields">
-            <InputField name="mail-a" label="A" value={pr.email} readOnly iconLeft="fa-regular fa-envelope" />
-            <InputField name="mail-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
+    <Modal open onClose={onClose} size="xl" title={titolo} className="psog-mail">
+      {proposta ? (
+        <ConfermaCliente pr={pr} q={proposta} onIndietro={() => setConferma(null)}
+          onConferma={(extra) => { onAccetta(proposta.id, extra); setConferma(null) }} />
+      ) : (
+        <>
+          <div className="psog-mail__body">
+            {invio && (
+              <div className="psog-mail__fields">
+                <InputField name="mail-a" label="A" value={pr.email} readOnly iconLeft="fa-regular fa-envelope" />
+                <InputField name="mail-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
+              </div>
+            )}
+            {!invio && pr.stato === 'Inviato' && (
+              <p className="psog-mail__hint"><i className="fa-regular fa-hand-pointer" aria-hidden="true" /> Così la vede il cliente: con "Accetta" sceglie la proposta e aggiunge i servizi extra che desidera.</p>
+            )}
+            <iframe ref={frame} className="psog-mail__frame" title="Anteprima mail" srcDoc={html} onLoad={aggancia} />
           </div>
-        )}
-        {!invio && pr.stato !== 'Bozza' && (
-          <p className="psog-mail__hint"><i className="fa-regular fa-hand-pointer" aria-hidden="true" /> Così la vede il cliente: i pulsanti "Accetta" registrano la sua scelta.</p>
-        )}
-        <iframe ref={frame} className="psog-mail__frame" title="Anteprima mail" srcDoc={html} onLoad={aggancia} />
+          <div className="psog-mail__foot">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>{invio ? 'Annulla' : 'Chiudi'}</button>
+            {invio && (
+              <button type="button" className="sib-btn sib-btn--primary" onClick={onInvia}>
+                <i className="fa-solid fa-paper-plane" aria-hidden="true" /> Invia a {pr.email}
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </Modal>
+  )
+}
+
+function ConfermaCliente({ pr, q, onIndietro, onConferma }: {
+  pr: PreventivoSoggiorno; q: PropostaSoggiorno; onIndietro: () => void; onConferma: (extra: string[]) => void
+}) {
+  const [presi, setPresi] = useState<string[]>([])
+  const k = conto(q, presi)
+  const i = pr.proposte.findIndex((x) => x.id === q.id)
+  const toggle = (id: string) => setPresi((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
+
+  return (
+    <>
+      <div className="psog-conf">
+        <div className="psog-conf__hero">
+          <span className="psog-conf__brand">{pr.struttura}</span>
+          <h3>Ottima scelta, {pr.cliente}!</h3>
+          <p>Stai accettando la proposta {LETTERE[i]}{q.titolo ? ` · ${q.titolo}` : ''}. Vuoi aggiungere qualcosa al tuo soggiorno?</p>
+        </div>
+
+        <div className="psog-conf__grid">
+          <div className="psog-conf__recap">
+            <div className="psog-conf__rooms">
+              {q.camere.map((c) => (
+                <div key={c.id} className="psog-conf__room">
+                  {c.immagine ? <img src={c.immagine} alt={c.tipologia} /> : <RoomIllustration tipo={tipologia(c.tipologia).tipo} fill />}
+                  <span>{c.quantita} × {c.tipologia}</span>
+                </div>
+              ))}
+            </div>
+            <p className="psog-conf__meta"><i className="fa-regular fa-calendar" aria-hidden="true" /> {periodo(q)} · {k.notti} {k.notti === 1 ? 'notte' : 'notti'} · {ospitiLabel(q)}</p>
+            <p className="psog-conf__meta"><i className="fa-regular fa-utensils" aria-hidden="true" /> {q.trattamento}</p>
+          </div>
+
+          <div className="psog-conf__extra">
+            <h4>Servizi aggiuntivi</h4>
+            {q.extra.length === 0 && <p className="psog-conf__none">Questa proposta non prevede servizi aggiuntivi.</p>}
+            <ul>
+              {q.extra.map((e) => {
+                const on = presi.includes(e.id)
+                return (
+                  <li key={e.id}>
+                    <button type="button" aria-pressed={on} className={'psog-conf__opt' + (on ? ' is-on' : '')} onClick={() => toggle(e.id)}>
+                      <i className={on ? 'fa-solid fa-square-check' : 'fa-regular fa-square'} aria-hidden="true" />
+                      <span className="psog-conf__opt-txt">
+                        <strong>{e.nome}</strong>
+                        <small>{eur(e.prezzo)} {UNITA[e.unita]}</small>
+                      </span>
+                      <span className="psog-conf__opt-tot">{on ? '+ ' : ''}{eur(costoExtra(e, q))}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+
+            <dl className="psog-conf__tot">
+              <div><dt>Soggiorno (tassa inclusa)</dt><dd>{eur(k.totale)}</dd></div>
+              {k.extra > 0 && <div><dt>Servizi aggiuntivi</dt><dd>{eur(k.extra)}</dd></div>}
+              <div className="is-tot"><dt>Totale</dt><dd>{eur(k.totaleConExtra)}</dd></div>
+            </dl>
+          </div>
+        </div>
       </div>
       <div className="psog-mail__foot">
-        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>{invio ? 'Annulla' : 'Chiudi'}</button>
-        {invio && (
-          <button type="button" className="sib-btn sib-btn--primary" onClick={onInvia}>
-            <i className="fa-solid fa-paper-plane" aria-hidden="true" /> Invia a {pr.email}
-          </button>
-        )}
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onIndietro}>
+          <i className="fa-regular fa-arrow-left" aria-hidden="true" /> Torna alla mail
+        </button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={() => onConferma(presi)}>
+          <i className="fa-solid fa-circle-check" aria-hidden="true" /> Conferma la proposta {LETTERE[i]}
+        </button>
       </div>
-    </Modal>
+    </>
   )
 }

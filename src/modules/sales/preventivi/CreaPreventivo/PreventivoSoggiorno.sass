@@ -190,28 +190,186 @@
     font-weight: 600
     color: $primary
 
-  &__camere
-    table-layout: fixed
-    width: 100%
+  &__block-hint
+    margin-left: 8px
+    font-family: inherit
+    font-weight: 400
+    color: $text-inactive
 
-  &__w-tipo
-    width: 44%
+  // ── Camera: foto + descrizione + tariffe giorno per giorno ─────────────────
+  &__room
+    display: grid
+    grid-template-columns: 220px minmax(0, 1fr)
+    gap: 16px
+    padding: 12px
+    border: 1px solid $border
+    border-radius: 12px
+    background: var(--color-surface)
 
-  &__w-qta
-    width: 14%
+  &__room-media
+    position: relative
+    min-height: 150px
+    border-radius: 10px
+    overflow: hidden
+    border: 1px solid $border
 
-  &__w-prezzo
-    width: 18%
+    > img, > .room-ill
+      position: absolute
+      inset: 0
+      width: 100%
+      height: 100%
+      object-fit: cover
 
-  &__w-tot
-    width: 17%
+  &__room-media-acts
+    position: absolute
+    left: 8px
+    right: 8px
+    bottom: 8px
+    display: flex
+    gap: 6px
 
-  &__w-del
-    width: 7%
+  &__room-media-btn
+    flex: 1
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    height: 30px
+    padding: 0 10px
+    border: none
+    border-radius: 8px
+    background: rgba(255, 255, 255, 0.94)
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18)
+    font-family: inherit
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+    cursor: pointer
 
-  &__num-cell
+    &--ico
+      flex: 0 0 30px
+      padding: 0
+
+  &__file
+    display: none
+
+  &__room-info
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-width: 0
+
+  &__room-fields
+    display: grid
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, .8fr) minmax(0, 1.1fr) minmax(0, 1fr) auto
+    gap: 12px
+    align-items: end
+
+  &__room-sub
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding-bottom: 7px
     text-align: right
+
+    span
+      font-size: 12px
+      color: $text-inactive
+
+    strong
+      font-family: $font-heading
+      color: $text-active
+      white-space: nowrap
+
+  &__room-del
+    margin-bottom: 3px
+
+  &__days
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 10px 12px
+    border-radius: 10px
+    background: $bg
+
+  &__days-head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    min-height: 28px
+    font-family: $font-heading
+    font-size: 12px
+    font-weight: 600
+    color: $primary
+
+    small
+      margin-left: 6px
+      font-family: inherit
+      font-weight: 400
+      color: $text-inactive
+
+  &__days-reset
+    font-size: 12px
+
+  &__days-grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr))
+    gap: 8px
+
+  &__day
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+    &.is-we .psog__day-label
+      color: $primary
+      font-weight: 600
+
+    &.is-custom input
+      border-color: $primary
+      font-weight: 600
+
+  &__day-label
+    font-size: 11.5px
+    color: $text-inactive
+    text-transform: capitalize
+
+  // ── Servizi aggiuntivi a pagamento ─────────────────────────────────────────
+  &__extra
+    padding: 12px
+    border: 1px dashed $border
+    border-radius: 12px
+
+  &__extra-list
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  &__extra-row
+    display: grid
+    grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, .9fr) auto
+    gap: 10px
+    align-items: center
+
+  &__extra-tot
+    text-align: right
+    font-weight: 600
+    color: $text-active
     white-space: nowrap
+
+  &__extra-add
+    display: flex
+    align-items: center
+    gap: 10px
+    flex-wrap: wrap
+
+    > :first-child
+      width: 340px
+      max-width: 100%
 
   &__camere-foot
     display: flex
@@ -305,6 +463,10 @@
 
     .is-sconto dd
       color: $success
+
+    .is-nota dt
+      font-size: 11.5px
+      font-style: italic
 
     .is-tot
       margin-top: 4px
@@ -458,6 +620,16 @@
     &__grid
       grid-template-columns: repeat(3, minmax(0, 1fr))
 
+  @container (max-width: 900px)
+    &__room
+      grid-template-columns: 1fr
+
+    &__room-media
+      min-height: 180px
+
+    &__room-fields, &__extra-row
+      grid-template-columns: repeat(2, minmax(0, 1fr))
+
   @container (max-width: 760px)
     &__grid, &__grid--soggiorno, &__bottom
       grid-template-columns: 1fr
@@ -506,3 +678,188 @@
     gap: 8px
     padding: 12px 20px 16px
     border-top: 1px solid $border
+
+// ── Pagina di conferma del cliente ────────────────────────────────────────────
+.psog-conf
+  padding: 16px 20px
+  display: flex
+  flex-direction: column
+  gap: 16px
+  max-height: 68vh
+  overflow-y: auto
+
+  &__hero
+    padding: 18px 20px
+    border-radius: 14px
+    background: $primary
+    color: #fff
+
+    h3
+      margin: 4px 0 2px
+      font-family: $font-heading
+      font-size: 20px
+      color: #fff
+
+    p
+      margin: 0
+      opacity: .9
+
+  &__brand
+    font-size: 12px
+    letter-spacing: .06em
+    text-transform: uppercase
+    opacity: .8
+
+  &__grid
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr)
+    gap: 18px
+    align-items: start
+
+  &__rooms
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+    gap: 10px
+
+  &__room
+    position: relative
+    aspect-ratio: 4 / 3
+    border-radius: 10px
+    overflow: hidden
+    border: 1px solid $border
+
+    > img, > .room-ill
+      position: absolute
+      inset: 0
+      width: 100%
+      height: 100%
+      object-fit: cover
+
+    > span
+      position: absolute
+      left: 8px
+      bottom: 8px
+      padding: 3px 9px
+      border-radius: 999px
+      background: rgba(255, 255, 255, 0.94)
+      font-size: 11.5px
+      font-weight: 600
+      color: $text-active
+
+  &__meta
+    margin: 10px 0 0
+    color: $text-active
+
+    i
+      width: 18px
+      color: $primary
+
+  &__extra
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+    h4
+      margin: 0
+      font-family: $font-heading
+      font-size: 15px
+      color: $primary
+
+    ul
+      list-style: none
+      margin: 0
+      padding: 0
+      display: flex
+      flex-direction: column
+      gap: 8px
+
+  &__none
+    margin: 0
+    color: $text-inactive
+
+  &__opt
+    width: 100%
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 10px 12px
+    border: 1px solid $border
+    border-radius: 10px
+    background: var(--color-surface)
+    font-family: inherit
+    text-align: left
+    cursor: pointer
+    transition: border-color .12s, background .12s
+
+    > i
+      font-size: 18px
+      color: $text-inactive
+
+    &:hover
+      border-color: $primary
+
+    &.is-on
+      border-color: $success
+      background: $success-light
+
+      > i
+        color: $success
+
+  &__opt-txt
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+    strong
+      color: $text-active
+
+    small
+      font-size: 12px
+      color: $text-inactive
+
+  &__opt-tot
+    font-weight: 700
+    color: $text-active
+    white-space: nowrap
+
+    .is-on &
+      color: $success
+
+  &__tot
+    margin: 4px 0 0
+    padding: 12px 14px
+    border-radius: 10px
+    background: $bg
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    > div
+      display: flex
+      justify-content: space-between
+
+    dt
+      color: $text-inactive
+
+    dd
+      margin: 0
+      color: $text-active
+
+    .is-tot
+      padding-top: 8px
+      border-top: 1px solid $border
+
+      dt
+        font-weight: 700
+        color: $text-active
+
+      dd
+        font-family: $font-heading
+        font-size: 18px
+        font-weight: 700
+        color: $primary
+
+  @media (max-width: 760px)
+    &__grid
+      grid-template-columns: 1fr

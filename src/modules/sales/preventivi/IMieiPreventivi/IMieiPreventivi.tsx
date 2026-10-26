@@ -93,7 +93,7 @@ function daSoggiorno(p: PreventivoSoggiorno, i: number): Preventivo {
     cliente: p.cliente, email: p.email,
     camere: q?.camere.reduce((s, c) => s + c.quantita, 0),
     checkin: q ? isoIt(q.checkin) : '', checkout: q ? isoIt(q.checkout) : '',
-    prezzo: q ? Math.round(conto(q).totale * 100) / 100 : 0,
+    prezzo: q ? Math.round(conto(q, p.extraScelti).totaleConExtra * 100) / 100 : 0,
   }
 }
 
@@ -364,17 +364,18 @@ export default function IMieiPreventivi({ navigate }: { navigate: (p: string) =>
                       {p.soggiorno && (
                         <ul className="gest-prev__proposte">
                           {p.soggiorno.proposte.map((q, i) => {
-                            const k = conto(q)
                             const scelta = p.soggiorno!.accettata === q.id
+                            const k = conto(q, scelta ? p.soggiorno!.extraScelti : [])
+                            const extra = scelta ? q.extra.filter((e) => p.soggiorno!.extraScelti?.includes(e.id)) : []
                             return (
                               <li key={q.id} className={scelta ? 'is-scelta' : ''}>
                                 <span className="gest-prev__lettera">{LETTERE[i]}</span>
                                 <span className="gest-prev__prop-txt">
                                   <strong>{q.titolo || q.camere.map((c) => `${c.quantita}× ${c.tipologia}`).join(', ')}</strong>
-                                  <small>{isoIt(q.checkin)} → {isoIt(q.checkout)} · {k.notti} notti · {q.trattamento}</small>
+                                  <small>{isoIt(q.checkin)} → {isoIt(q.checkout)} · {k.notti} notti · {q.trattamento}{extra.length > 0 && ` · extra: ${extra.map((e) => e.nome).join(', ')}`}</small>
                                 </span>
                                 {scelta && <span className="gest-prev__scelta"><i className="fa-solid fa-circle-check" aria-hidden="true" /> Scelta dal cliente</span>}
-                                <span className="gest-prev__prop-tot">{eur(k.totale)}</span>
+                                <span className="gest-prev__prop-tot">{eur(k.totaleConExtra)}</span>
                               </li>
                             )
                           })}
