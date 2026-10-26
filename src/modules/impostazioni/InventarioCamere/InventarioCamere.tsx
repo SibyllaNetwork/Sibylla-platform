@@ -371,14 +371,14 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
               <span className="invc__cap"><i className="fa-solid fa-layer-group" /> Piani {t.piani.map(pianoBreve).join(' · ')}</span>
             </Tooltip>
           )}
-          {t.descrizione && !aperta && <span className="invc__desc">{t.descrizione}</span>}
-          <button type="button" className="invc__link" aria-expanded={aperta} onClick={onToggleDettagli}>
-            <i className={`fa-light ${aperta ? 'fa-chevron-up' : 'fa-eye'}`} />
-            {aperta ? 'Chiudi dettagli' : 'Dettagli camera'}
+          {t.descrizione && <span className="invc__desc">{t.descrizione}</span>}
+          <button type="button" className={'invc__toggle-det' + (aperta ? ' is-open' : '')} aria-expanded={aperta}
+            aria-controls={`invc-det-${t.id}`} onClick={onToggleDettagli}>
+            Dettagli camera <i className="fa-solid fa-chevron-down" />
           </button>
         </div>
 
-        {aperta && <DettagliCamera t={t} disabled={disabled} onModifica={onScheda} />}
+        {aperta && <DettagliCamera t={t} disabled={disabled} onModifica={onScheda} onClose={onToggleDettagli} />}
       </div>
 
     </li>
@@ -397,11 +397,19 @@ function Letti({ tipo, capacita, extra }: { tipo: string; capacita: number; extr
 }
 
 // Riepilogo in sola lettura di quanto inserito nella scheda camera.
-function DettagliCamera({ t, disabled, onModifica }: { t: TipologiaCamera; disabled: boolean; onModifica: () => void }) {
+function DettagliCamera({ t, disabled, onModifica, onClose }: { t: TipologiaCamera; disabled: boolean; onModifica: () => void; onClose: () => void }) {
   const immagini = [t.immagine, ...t.gallery].filter((x): x is string => !!x)
   const vuoto = <span className="invc__dd-empty">Non indicato</span>
   return (
-    <div className="invc__details">
+    <div className="invc__details" id={`invc-det-${t.id}`}>
+      <div className="invc__details-head">
+        <span className="invc__details-title"><i className="fa-light fa-circle-info" /> Dettagli camera</span>
+        <Tooltip text="Chiudi dettagli">
+          <button type="button" className="invc__details-close" aria-label="Chiudi dettagli" onClick={onClose}>
+            <i className="fa-solid fa-xmark" />
+          </button>
+        </Tooltip>
+      </div>
       <dl className="invc__dl">
         <div><dt>Nome sui canali online</dt><dd>{t.nomeOnline || vuoto}</dd></div>
         <div><dt>Tipo</dt><dd>{t.tipo}</dd></div>
