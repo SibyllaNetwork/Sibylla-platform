@@ -456,7 +456,8 @@ function SchedaTipologia({ tipologia, nuova, pianiDisponibili, onBack, onApply }
 
   return (
     <div className="invc-form">
-      <PageHead title={nuova ? 'Allestisci tipologia' : t.nome || 'Tipologia'} subtitle="Dati della tipologia, presentazione, caratteristiche e immagini" onBack={onBack} />
+      <PageHead title="Configurazione camera" onBack={onBack}
+        subtitle={`${t.nome || (nuova ? 'Nuova tipologia' : 'Tipologia')} · dati, presentazione, caratteristiche e immagini`} />
 
       <section className="invc-form__card invc-form__intro">
         <RoomIllustration tipo={t.tipo} lettiExtra={t.lettiExtra} className="invc-form__ill" />
