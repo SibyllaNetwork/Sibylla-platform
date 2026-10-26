@@ -1,0 +1,37 @@
+@use '../../../styles/tokens' as *
+
+// ─── Market demand compatto (segnale a 3 barre) ───────────────────────────────
+.md-signal
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 11px
+  font-weight: 700
+
+  &--basso
+    color: $success
+  &--medio
+    color: $warning
+  &--alto
+    color: $error
+
+.md-signal__bars
+  display: inline-flex
+  align-items: flex-end
+  gap: 2px
+  height: 12px
+
+.md-signal__bar
+  width: 4px
+  border-radius: 1px
+  background: $border
+
+  &:nth-child(1)
+    height: 5px
+  &:nth-child(2)
+    height: 8px
+  &:nth-child(3)
+    height: 12px
+
+  &.is-on
+    background: currentColor

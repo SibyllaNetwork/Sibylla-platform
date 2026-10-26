@@ -1,12 +1,13 @@
-import React, { useMemo, useState, useRef } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip } from 'recharts'
-import GaugeArc from '../../../core/components/GaugeArc'
 import PageHead from '../../../core/components/PageHead'
 import Pagination from '../../../core/components/Pagination'
 import Tooltip from '../../../core/components/Tooltip'
+import { useColFilters } from '../../../core/components/ColFilters'
 import { SelectField } from '../../../core/components/form'
 import SuggerimentiModal from './SuggerimentiModal'
+import MarketDemand, { MARKET_LABEL, MARKET_LIV } from './MarketDemand'
 import './AnalisiDistribuzioneTO.sass'
 
 // ─── ANALISI DELLA DISTRIBUZIONE — variante Tour Operator ────────────────────────
@@ -213,8 +214,32 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
     })
   }, [destinazione, citta, vistaCompleta])
 
-  const totalPages = Math.ceil(rows.length / PAGE_SIZE)
-  const paged = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  // Filtri e ordinamento di colonna: campi derivati per date (ISO) ed etichette.
+  // Con la vista semplificata le colonne Eventi/Meteo/Market demand sono nascoste
+  // e i loro filtri non si applicano.
+  const cf = useColFilters()
+  const righe = useMemo(() => rows.map((r) => ({
+    ...r,
+    dateKey: r.date.split('/').reverse().join('-'),
+    evLabel: (EVENTI[r.evType] ?? EVENTI.festival).label,
+    meteoLabel: (METEO[r.meteo] ?? METEO.sereno).label,
+    marketLabel: MARKET_LABEL[r.market],
+    marketN: MARKET_LIV[r.market],
+  })), [rows])
+  const filtrate = useMemo(() => cf.sortRows(righe.filter((r) =>
+    cf.matchText(r.date, 'dateKey') &&
+    cf.matchMulti(r.stag, 'stag') &&
+    (!vistaCompleta || (cf.matchMulti(r.evLabel, 'evLabel') && cf.matchMulti(r.meteoLabel, 'meteoLabel') && cf.matchMulti(r.marketLabel, 'marketN')))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  )), [righe, vistaCompleta, cf.text, cf.multi, cf.sort])
+  useEffect(() => { setPage(1) }, [cf.text, cf.multi, cf.sort])
+  const uniq = (xs: string[]) => Array.from(new Set(xs))
+  const head = (label: React.ReactNode, key: string, nome: string, cfg: Parameters<typeof cf.th>[2]) => (
+    <span className="sib-colf-head">{label}{cf.th(key, nome, cfg)}</span>
+  )
+
+  const totalPages = Math.max(1, Math.ceil(filtrate.length / PAGE_SIZE))
+  const paged = filtrate.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const cittaLabel = vistaCompleta ? destinazione : citta
 
   return (
@@ -255,31 +280,34 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
           <thead>
             <tr>
               <th className="adto__c-center">LY</th>
-              <th>Data</th>
-              {vistaCompleta && <th className="adto__c-center">Eventi</th>}
-              {vistaCompleta && <th className="adto__c-center">Meteo</th>}
-              {vistaCompleta && <th>Market demand</th>}
-              <th>Stagionalità</th>
+              <th>{head('Data', 'dateKey', 'data', { search: true, sort: true })}</th>
+              {vistaCompleta && <th className="adto__c-center">{head('Eventi', 'evLabel', 'evento', { options: uniq(righe.map((r) => r.evLabel)) })}</th>}
+              {vistaCompleta && <th className="adto__c-center">{head('Meteo', 'meteoLabel', 'meteo', { options: uniq(righe.map((r) => r.meteoLabel)) })}</th>}
+              {vistaCompleta && <th>{head('Market demand', 'marketN', 'market demand', { options: ['Basso', 'Medio', 'Alto'] })}</th>}
+              <th>{head('Stagionalità', 'stag', 'stagionalità', { options: uniq(righe.map((r) => r.stag)) })}</th>
               <th className="adto__c-num">
-                <Tooltip text="Numero di ospiti presenti nella struttura"><span>Ospiti presenti</span></Tooltip>
+                {head(<Tooltip text="Numero di ospiti presenti nella struttura"><span>Ospiti presenti</span></Tooltip>, 'ospiti', 'ospiti presenti', { sort: true })}
               </th>
-              <th className="adto__c-num">Camere vendute</th>
+              <th className="adto__c-num">{head('Camere vendute', 'vendute', 'camere vendute', { sort: true })}</th>
               <th className="adto__c-num">
-                <Tooltip text="Disponibilità residua da giacenza a contratto"><span>Disponibilità</span></Tooltip>
+                {head(<Tooltip text="Disponibilità residua da giacenza a contratto"><span>Disponibilità</span></Tooltip>, 'residua', 'disponibilità', { sort: true })}
               </th>
-              <th className="adto__c-num">
-                <Tooltip text="Suggerimenti data-driven accolti"><span>Sugg. accolti</span></Tooltip>
+              <th className="adto__c-center">
+                {head(<Tooltip text="Suggerimenti data-driven accolti"><span>Sugg. accolti</span></Tooltip>, 'sugg', 'suggerimenti accolti', { sort: true })}
               </th>
             </tr>
           </thead>
           <tbody>
+            {paged.length === 0 && (
+              <tr><td colSpan={10} className="adto__empty">Nessun giorno corrisponde ai filtri. <button type="button" className="adto__sugg-link" onClick={cf.reset}>Azzera filtri</button></td></tr>
+            )}
             {paged.map((r) => (
               <tr key={r.date}>
                 <td className="adto__c-center"><ConfrontaLY ospiti={r.ospiti} vendute={r.vendute} date={r.date} /></td>
                 <td className="adto__nowrap">{r.date}</td>
                 {vistaCompleta && <td className="adto__c-center"><EventHover evType={r.evType} date={r.date} citta={cittaLabel} /></td>}
                 {vistaCompleta && <td className="adto__c-center"><MeteoHover cond={r.meteo} temp={r.temp} date={r.date} citta={cittaLabel} /></td>}
-                {vistaCompleta && <td><GaugeArc level={r.market} /></td>}
+                {vistaCompleta && <td><MarketDemand level={r.market} /></td>}
                 <td>
                   <Tooltip content={
                     <span className="adto__stag-tip">
@@ -300,10 +328,17 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
                     </span>
                   </Tooltip>
                 </td>
-                <td className="adto__c-num">
-                  <button type="button" className="adto__sugg-link" onClick={() => setSuggOpen(true)} title="Apri dettaglio suggerimenti accolti">
-                    {r.sugg}
-                  </button>
+                <td className="adto__c-center">
+                  <span className="adto__sugg-cell">
+                    <Tooltip text="Apri il dettaglio dei suggerimenti accolti">
+                      <button type="button" className="adto__sugg-link" onClick={() => setSuggOpen(true)}>{r.sugg}</button>
+                    </Tooltip>
+                    <Tooltip text="Vedi suggerimenti accolti">
+                      <button type="button" className="adto__sugg-ico" aria-label="Vedi suggerimenti accolti" onClick={() => setSuggOpen(true)}>
+                        <i className="fa-solid fa-list-check" aria-hidden="true" />
+                      </button>
+                    </Tooltip>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -311,6 +346,12 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
         </table>
       </div>
 
+      {cf.hasActive && (
+        <div className="adto__filters-info">
+          {filtrate.length} di {righe.length} giorni
+          <button type="button" className="adto__sugg-link" onClick={cf.reset}><i className="fa-light fa-filter-circle-xmark" /> Azzera filtri</button>
+        </div>
+      )}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} className="adto__pagination" />
 
       <SuggerimentiModal open={suggOpen} onClose={() => setSuggOpen(false)} />
