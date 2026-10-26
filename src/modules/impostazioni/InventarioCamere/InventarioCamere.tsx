@@ -124,12 +124,35 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     return PIANI_NOMI.filter((x) => usati.has(x)).concat(Array.from(usati).filter((x) => !PIANI_NOMI.includes(x)))
   }, [draft])
   const visibili = draft.filter((t) => (!piano || (t.piani ?? []).includes(piano)) && (!tipoFiltro || t.tipo === tipoFiltro))
+  // Scelta dal catalogo → la tipologia entra in bozza e si apre subito la pagina
+  // di allestimento; Annulla la scarta, Applica torna all'elenco sulla riga nuova.
+  const [nuovaId, setNuovaId] = useState<string | null>(null)
+  const [vaiA, setVaiA] = useState<string | null>(null)
   const aggiungi = (base: string) => {
     const t = nuovaTipologia(base)
     setDraft((d) => [...d, t])
-    setAperta(t.id)
     setPicker(false)
+    setPiano('')
+    setTipoFiltro('')
+    setNuovaId(t.id)
+    setSchedaId(t.id)
   }
+  const chiudiScheda = (id: string) => {
+    if (id === nuovaId) setDraft((d) => d.filter((t) => t.id !== id))
+    setNuovaId(null)
+    setSchedaId(null)
+  }
+  const applicaScheda = (upd: TipologiaCamera) => {
+    update(upd.id, upd)
+    setNuovaId(null)
+    setSchedaId(null)
+    setVaiA(upd.id)
+  }
+  useEffect(() => {
+    if (!vaiA || scheda_) return
+    document.getElementById(`invc-row-${vaiA}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setVaiA(null)
+  }, [vaiA, scheda_])
   const duplica = (id: string) => setDraft((d) => {
     const i = d.findIndex((t) => t.id === id)
     const copia = { ...d[i], id: nuovoId(), nome: `${d[i].nome} (copia)` }
@@ -164,7 +187,11 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
 
   const inScheda = draft.find((t) => t.id === scheda_)
   if (inScheda) {
-    return <SchedaTipologia tipologia={inScheda} onBack={() => setSchedaId(null)} onApply={(upd) => { update(upd.id, upd); setSchedaId(null) }} />
+    return (
+      <SchedaTipologia tipologia={inScheda} nuova={inScheda.id === nuovaId}
+        pianiDisponibili={pianiUsati.length ? pianiUsati : PIANI_NOMI.slice(0, 3)}
+        onBack={() => chiudiScheda(inScheda.id)} onApply={applicaScheda} />
+    )
   }
 
   const camere = draft.reduce((s, t) => s + (t.attiva ? t.numero : 0), 0)
@@ -279,6 +306,7 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
 
   return (
     <li
+      id={`invc-row-${t.id}`}
       className={'invc__row' + (evidenziata ? ' invc__row--draft' : '') + (dragging ? ' invc__row--dragging' : '') + (over ? ' invc__row--over' : '') + (t.attiva ? '' : ' invc__row--off')}
       draggable={armata && !disabled}
       onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart() }}
@@ -400,30 +428,70 @@ function RowMenu({ disabled, onDuplica, onElimina }: { disabled: boolean; onDupl
 
 // ─── Scheda completa della tipologia ──────────────────────────────────────────
 
-function SchedaTipologia({ tipologia, onBack, onApply }: { tipologia: TipologiaCamera; onBack: () => void; onApply: (t: TipologiaCamera) => void }) {
-  const [nomeOnline, setNomeOnline] = useState(tipologia.nomeOnline)
-  const [amenities, setAmenities] = useState<string[]>(tipologia.amenities)
-  const [descrizione, setDescrizione] = useState(tipologia.descrizione)
-  const [main, setMain] = useState<string | null>(tipologia.immagine)
-  const [gallery, setGallery] = useState<string[]>(tipologia.gallery)
+function SchedaTipologia({ tipologia, nuova, pianiDisponibili, onBack, onApply }: {
+  tipologia: TipologiaCamera; nuova: boolean; pianiDisponibili: string[]; onBack: () => void; onApply: (t: TipologiaCamera) => void
+}) {
+  const [t, setT] = useState<TipologiaCamera>(tipologia)
+  const [errNome, setErrNome] = useState(false)
+  const set = (patch: Partial<TipologiaCamera>) => setT((x) => ({ ...x, ...patch }))
+  const amenities = t.amenities
+  const main = t.immagine
+  const gallery = t.gallery
 
-  const toggleAmenity = (a: string) => setAmenities((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]))
-  const pickMain = (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) setMain(URL.createObjectURL(f)); e.target.value = '' }
+  const toggleAmenity = (a: string) => set({ amenities: amenities.includes(a) ? amenities.filter((x) => x !== a) : [...amenities, a] })
+  const togglePiano = (pn: string) => {
+    const cur = t.piani ?? []
+    set({ piani: pianiDisponibili.filter((x) => (x === pn ? !cur.includes(x) : cur.includes(x))) })
+  }
+  const pickMain = (e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) set({ immagine: URL.createObjectURL(f) }); e.target.value = '' }
   const addGallery = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
-    if (files.length) setGallery((p) => [...p, ...files.map((f) => URL.createObjectURL(f))].slice(0, MAX_GALLERY))
+    if (files.length) set({ gallery: [...gallery, ...files.map((f) => URL.createObjectURL(f))].slice(0, MAX_GALLERY) })
     e.target.value = ''
+  }
+  const applica = () => {
+    if (!t.nome.trim()) { setErrNome(true); toast.error('Dai un nome alla tipologia.'); return }
+    onApply(t)
   }
 
   return (
     <div className="invc-form">
-      <PageHead title={tipologia.nome || 'Nuova tipologia'} subtitle="Caratteristiche, descrizione e immagini della tipologia" onBack={onBack} />
+      <PageHead title={nuova ? 'Allestisci tipologia' : t.nome || 'Tipologia'} subtitle="Dati della tipologia, presentazione, caratteristiche e immagini" onBack={onBack} />
+
+      <section className="invc-form__card invc-form__intro">
+        <RoomIllustration tipo={t.tipo} lettiExtra={t.lettiExtra} className="invc-form__ill" />
+        <div className="invc-form__intro-fields">
+          <div className="invc-form__grid-3">
+            <InputField name="nome" label="Nome tipologia" required value={t.nome} error={errNome ? 'Obbligatorio' : undefined}
+              onChange={(e) => { set({ nome: e.target.value }); if (e.target.value.trim()) setErrNome(false) }} />
+            <SelectField name="tipo" label="Tipo" value={t.tipo} options={TIPI.map((x) => ({ value: x, label: x }))} onChange={(e) => set({ tipo: e.target.value })} />
+            <InputField name="numero" label="N. camere" type="number" min={0} value={t.numero} onChange={(e) => set({ numero: Math.max(0, Number(e.target.value) || 0) })} />
+            <SelectField name="capacita" label="Capacità" value={t.capacita}
+              options={Array.from({ length: MAX_CAPACITA }, (_, i) => ({ value: i + 1, label: ospiti(i + 1) }))} onChange={(e) => set({ capacita: Number(e.target.value) })} />
+            <SelectField name="lettiExtra" label="Letti extra" value={t.lettiExtra}
+              options={Array.from({ length: MAX_LETTI_EXTRA + 1 }, (_, i) => ({ value: i, label: i === 0 ? 'Nessuno' : String(i) }))} onChange={(e) => set({ lettiExtra: Number(e.target.value) })} />
+          </div>
+          <div>
+            <div className="invc-form__media-label">Piani</div>
+            <div className="invc-form__piani">
+              {pianiDisponibili.map((pn) => {
+                const on = (t.piani ?? []).includes(pn)
+                return (
+                  <button key={pn} type="button" className={'invc-form__piano' + (on ? ' is-on' : '')} onClick={() => togglePiano(pn)}>
+                    <i className={`fa-${on ? 'solid fa-circle-check' : 'light fa-circle'}`} /> {pn}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="invc-form__card">
         <div className="invc-form__card-head"><span><i className="fa-light fa-bed" /> Presentazione</span></div>
         <div className="invc-form__grid-2">
-          <InputField name="nomeOnline" label="Nome sui canali online" placeholder="Nome visibile ai clienti online" value={nomeOnline} onChange={(e) => setNomeOnline(e.target.value)} />
-          <TextareaField name="descrizione" label="Descrizione" rows={3} placeholder="Comfort, vista, dotazioni…" value={descrizione} onChange={(e) => setDescrizione(e.target.value)} />
+          <InputField name="nomeOnline" label="Nome sui canali online" placeholder="Nome visibile ai clienti online" value={t.nomeOnline} onChange={(e) => set({ nomeOnline: e.target.value })} />
+          <TextareaField name="descrizione" label="Descrizione" rows={3} placeholder="Comfort, vista, dotazioni…" value={t.descrizione} onChange={(e) => set({ descrizione: e.target.value })} />
         </div>
       </section>
 
@@ -450,20 +518,19 @@ function SchedaTipologia({ tipologia, onBack, onApply }: { tipologia: TipologiaC
         <div className="invc-form__media">
           <div>
             <div className="invc-form__media-label">Immagine principale</div>
-            <ImageDropzone value={main} onPick={pickMain} onClear={() => setMain(null)} />
+            <ImageDropzone value={main} onPick={pickMain} onClear={() => set({ immagine: null })} />
           </div>
           <div>
             <div className="invc-form__media-label">Altre immagini <span className="invc-form__muted">(max {MAX_GALLERY})</span></div>
-            <GalleryGrid images={gallery} max={MAX_GALLERY} onAdd={addGallery} onRemove={(i) => setGallery((p) => p.filter((_, idx) => idx !== i))} />
+            <GalleryGrid images={gallery} max={MAX_GALLERY} onAdd={addGallery} onRemove={(i) => set({ gallery: gallery.filter((_, idx) => idx !== i) })} />
           </div>
         </div>
       </section>
 
       <div className="invc-form__actions">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onBack}>Annulla</button>
-        <button type="button" className="sib-btn sib-btn--primary"
-          onClick={() => onApply({ ...tipologia, nomeOnline, amenities, descrizione, immagine: main, gallery })}>
-          <i className="fa-light fa-check" /> Applica
+        <button type="button" className="sib-btn sib-btn--primary" onClick={applica}>
+          <i className="fa-light fa-check" /> {nuova ? 'Aggiungi all\'elenco' : 'Applica'}
         </button>
       </div>
     </div>
