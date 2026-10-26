@@ -299,7 +299,7 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
           </thead>
           <tbody>
             {paged.length === 0 && (
-              <tr><td colSpan={10} className="adto__empty">Nessun giorno corrisponde ai filtri. <button type="button" className="adto__sugg-link" onClick={cf.reset}>Azzera filtri</button></td></tr>
+              <tr><td colSpan={10} className="adto__empty">Nessun giorno corrisponde ai filtri.</td></tr>
             )}
             {paged.map((r) => (
               <tr key={r.date}>
@@ -346,12 +346,6 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
         </table>
       </div>
 
-      {cf.hasActive && (
-        <div className="adto__filters-info">
-          {filtrate.length} di {righe.length} giorni
-          <button type="button" className="adto__sugg-link" onClick={cf.reset}><i className="fa-light fa-filter-circle-xmark" /> Azzera filtri</button>
-        </div>
-      )}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} className="adto__pagination" />
 
       <SuggerimentiModal open={suggOpen} onClose={() => setSuggOpen(false)} />
