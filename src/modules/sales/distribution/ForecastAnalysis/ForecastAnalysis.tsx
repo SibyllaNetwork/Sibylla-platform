@@ -84,7 +84,7 @@ export default function ForecastAnalysis({ navigate }: { navigate: (p: string) =
 
   return (
     <BiPage
-      title="Forecast analysis"
+      title="Grand total"
       subtitle={`Previsione dei prossimi ${data.orizzonte} giorni di soggiorno: garantito, opzionato e ancora da acquisire`}
       glossary={['forecastGarantito', 'forecastOpzionato', 'OTB', 'pickup', 'budget', 'ADR', 'occupazione', 'TY', 'LY', 'delta', 'ranking']}
       dataAt={data.aggiornatoAl}
