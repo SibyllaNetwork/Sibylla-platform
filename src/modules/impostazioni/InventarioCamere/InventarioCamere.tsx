@@ -7,10 +7,11 @@ import { toast } from '../../../core/components/Toast/useToast'
 import { InputField, SelectField, TextareaField } from '../../../core/components/form'
 import { useConfirmStore } from '../../../store/useConfirmStore'
 import { useTipologieCamereStore, type TipologiaCamera } from '../../../store/useTipologieCamereStore'
+import RoomIllustration from './RoomIllustration'
 import './InventarioCamere.sass'
 import { useStruttureCliente, useStrutturaPagina } from '../../../hooks/useStrutturaCorrente'
 
-const TIPI = ['Singola', 'Doppia', 'Matrimoniale', 'Tripla', 'Quadrupla', 'Suite', 'DUS']
+const TIPI = ['Singola', 'Doppia', 'Twin', 'Matrimoniale', 'Tripla', 'Quadrupla', 'Family', 'Suite', 'Accessibile', 'DUS']
 const MAX_CAPACITA = 8
 const MAX_LETTI_EXTRA = 3
 const MAX_GALLERY = 6
@@ -24,32 +25,38 @@ const AMENITIES = [
 const ospiti = (n: number) => `${n} ${n === 1 ? 'ospite' : 'ospiti'}`
 
 // ─── MOCK ─────────────────────────────────────────────────────────────────────
-// Tipologie della struttura dalle schede demo: stesso giro di tipologie e stessa
-// numerazione del front office, raggruppate con il numero di camere per tipo.
-const TIP_GIRO = ['Doppia Classic', 'Matrimoniale Deluxe', 'Singola Classic', 'Doppia Classic', 'Tripla Classic', 'Matrimoniale Deluxe', 'DUS', 'Quadrupla']
+// Tipologie della struttura dalle schede demo: tutte le tipologie del catalogo,
+// col numero di camere ripartito sul totale della struttura (stesso giro di
+// tipologie del front office per quelle già presenti, almeno 1 per le altre).
+const TIP_GIRO = ['Doppia Classic', 'Matrimoniale Deluxe', 'Singola Classic', 'Twin Classic', 'Tripla Classic', 'Matrimoniale Deluxe', 'DUS', 'Quadrupla']
 const BASE: Record<string, { tipo: string; capacita: number; lettiExtra: number; descrizione: string }> = {
   'Singola Classic':     { tipo: 'Singola',      capacita: 1, lettiExtra: 0, descrizione: 'Letto singolo, scrivania e bagno privato con doccia.' },
-  'Doppia Classic':      { tipo: 'Doppia',       capacita: 2, lettiExtra: 1, descrizione: 'Due letti singoli affiancabili, ideale per amici o colleghi.' },
+  'Doppia Classic':      { tipo: 'Doppia',       capacita: 2, lettiExtra: 0, descrizione: 'Letto matrimoniale, spaziosa e accogliente: perfetta per le coppie.' },
+  'Twin Classic':        { tipo: 'Twin',         capacita: 2, lettiExtra: 0, descrizione: 'Due letti singoli separati, ideale per amici o colleghi.' },
   'Matrimoniale Deluxe': { tipo: 'Matrimoniale', capacita: 2, lettiExtra: 1, descrizione: 'Letto king size, area relax e set di cortesia premium.' },
-  'Tripla Classic':      { tipo: 'Tripla',       capacita: 3, lettiExtra: 1, descrizione: '' },
-  'Quadrupla':           { tipo: 'Quadrupla',    capacita: 4, lettiExtra: 1, descrizione: '' },
+  'Tripla Classic':      { tipo: 'Tripla',       capacita: 3, lettiExtra: 0, descrizione: 'Letto matrimoniale più un singolo, ideale per tre ospiti.' },
+  'Tripla con letto aggiunto': { tipo: 'Tripla', capacita: 3, lettiExtra: 1, descrizione: 'Tre posti letto più una brandina: per gruppi e famiglie numerose.' },
+  'Quadrupla':           { tipo: 'Quadrupla',    capacita: 4, lettiExtra: 0, descrizione: 'Due letti matrimoniali, fino a quattro ospiti.' },
+  'Family':              { tipo: 'Family',       capacita: 4, lettiExtra: 1, descrizione: 'Matrimoniale e letto a castello: spaziosa e versatile per le famiglie.' },
   'Suite':               { tipo: 'Suite',        capacita: 2, lettiExtra: 2, descrizione: 'Camera da letto e soggiorno separati, vista panoramica.' },
-  'DUS':                 { tipo: 'DUS',          capacita: 1, lettiExtra: 0, descrizione: '' },
+  'Camera accessibile':  { tipo: 'Accessibile',  capacita: 2, lettiExtra: 0, descrizione: 'Spazi di manovra, maniglioni di sostegno e bagno senza barriere.' },
+  'DUS':                 { tipo: 'DUS',          capacita: 1, lettiExtra: 0, descrizione: 'Doppia a uso singola.' },
 }
 
 function tipologieDemo(scheda: { camere: number; seme: number; categoria: string }): TipologiaCamera[] {
-  const conta = new Map<string, number>()
+  const nomi = Object.keys(BASE)
+  const conta = new Map<string, number>(nomi.map((t) => [t, 1]))
   const n = scheda.camere
   const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
-  for (let i = 0; i < n; i++) {
-    const piano = n <= 8 ? 1 : 1 + Math.floor(i / perPiano)
+  for (let i = nomi.length; i < n; i++) {
+    const piano = 1 + Math.floor(i / perPiano)
     const ultimo = piano === Math.ceil(n / perPiano)
-    const tip = scheda.categoria === 'studentato' ? (i % 4 === 0 ? 'Doppia Classic' : 'Singola Classic')
-      : n > 8 && ultimo && i % perPiano >= perPiano - 2 ? 'Suite' : TIP_GIRO[(scheda.seme + i * 7) % TIP_GIRO.length]
+    const tip = scheda.categoria === 'studentato' ? (i % 4 === 0 ? 'Twin Classic' : 'Singola Classic')
+      : ultimo && i % perPiano >= perPiano - 2 ? 'Suite' : TIP_GIRO[(scheda.seme + i * 7) % TIP_GIRO.length]
     conta.set(tip, (conta.get(tip) ?? 0) + 1)
   }
-  return Object.keys(BASE).filter((t) => conta.has(t)).map((nome) => ({
-    id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: conta.get(nome) ?? 0,
+  return nomi.map((nome) => ({
+    id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: conta.get(nome) ?? 1,
     nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
   }))
 }
@@ -238,7 +245,7 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
         </span>
       </Tooltip>
 
-      <Letti capacita={t.capacita} extra={t.lettiExtra} />
+      <Letti tipo={t.tipo} capacita={t.capacita} extra={t.lettiExtra} />
 
       <div className="invc__main">
         <div className="invc__fields">
@@ -297,16 +304,11 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
   )
 }
 
-// Letti in pianta: un'icona per posto (max 4) + quelli extra dopo il "+".
-function Letti({ capacita, extra }: { capacita: number; extra: number }) {
-  const base = Math.min(capacita, 4)
+// Illustrazione della tipologia (con brandina se ci sono letti extra).
+function Letti({ tipo, capacita, extra }: { tipo: string; capacita: number; extra: number }) {
   return (
-    <Tooltip text={`${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
-      <span className="invc__beds" aria-hidden="true">
-        {Array.from({ length: base }, (_, i) => <i key={i} className="fa-light fa-bed" />)}
-        {capacita > 4 && <span className="invc__beds-more">+{capacita - 4}</span>}
-        {extra > 0 && <><span className="invc__beds-plus">+</span><i className="fa-light fa-bed invc__beds-extra" /></>}
-      </span>
+    <Tooltip text={`${tipo} · ${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
+      <span className="invc__beds"><RoomIllustration tipo={tipo} lettiExtra={extra} /></span>
     </Tooltip>
   )
 }
