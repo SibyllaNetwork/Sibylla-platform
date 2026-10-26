@@ -48,17 +48,22 @@ function Box({ x0, x1, y0, y1, z0, z1, fill = PAPER, top }: { x0: number; x1: nu
 
 const Line = ({ a, b, w }: { a: Pt; b: Pt; w?: number }) => <line {...stroke} strokeWidth={w ?? 1.1} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} />
 
+// Le pareti proseguono oltre il bordo alto (TOP < 0): se il riquadro è più alto
+// della scena (riga con dettagli aperti) si vede più parete, senza ingrandire.
+const TOP = -400
 function Room({ bg, tint }: { bg: string; tint: string }) {
+  const [lx, ly] = p(0, 0, 1)
+  const [rx, ry] = p(200, 0, 1)
   return (
     <g>
-      <rect width={200} height={H} fill={bg} />
+      <rect y={TOP} width={200} height={H - TOP} fill={bg} />
       <polygon points={pts(p(0, 0, 0), p(200, 0, 0), p(200, 0, 1), p(0, 0, 1))} fill={tint} opacity={0.45} />
-      <polygon points={pts(p(0, 0, 0), p(0, 0, 1), p(0, H, 1), p(0, H, 0))} fill={PAPER} opacity={0.35} />
-      <polygon points={pts(p(200, 0, 0), p(200, 0, 1), p(200, H, 1), p(200, H, 0))} fill={PAPER} opacity={0.35} />
+      <polygon points={pts(p(0, 0, 0), [lx, ly], [lx, TOP], [0, TOP])} fill={PAPER} opacity={0.35} />
+      <polygon points={pts(p(200, 0, 0), [rx, ry], [rx, TOP], [200, TOP])} fill={PAPER} opacity={0.35} />
       <g stroke={INK} strokeWidth={0.8} opacity={0.3} fill="none">
-        <polyline points={pts(p(0, 0, 0), p(0, 0, 1), p(200, 0, 1), p(200, 0, 0))} />
-        <line x1={p(0, 0, 1)[0]} y1={p(0, 0, 1)[1]} x2={p(0, H, 1)[0]} y2={p(0, H, 1)[1]} />
-        <line x1={p(200, 0, 1)[0]} y1={p(200, 0, 1)[1]} x2={p(200, H, 1)[0]} y2={p(200, H, 1)[1]} />
+        <polyline points={pts(p(0, 0, 0), [lx, ly], [rx, ry], p(200, 0, 0))} />
+        <line x1={lx} y1={ly} x2={lx} y2={TOP} />
+        <line x1={rx} y1={ry} x2={rx} y2={TOP} />
       </g>
     </g>
   )
@@ -246,7 +251,7 @@ function Scena({ tipo, tint }: { tipo: string; tint: string }) {
     case 'Suite':
       return <><Picture cx={78} tint={tint} /><Door x0={150} /><FloorLamp x={136} z={0.85} tint={tint} /><Sofa x0={24} x1={132} tint={tint} /><CoffeeTable cx={78} z={0.28} /></>
     case 'Accessibile':
-      return <><GrabBar x0={26} x1={70} y={52} /><GrabBar x0={110} x1={134} y={42} /><Bed x0={30} x1={96} pillows={1} tint={tint} /><Wheelchair x={128} z={0.32} tint={tint} /></>
+      return <><Picture cx={63} tint={tint} y={68} /><GrabBar x0={26} x1={70} y={52} /><GrabBar x0={110} x1={134} y={42} /><Bed x0={30} x1={96} pillows={1} tint={tint} /><Wheelchair x={128} z={0.32} tint={tint} /></>
     case 'Matrimoniale':
       return <><Picture cx={100} tint={tint} w={40} /><Nightstand x0={28} tint={tint} /><Nightstand x0={154} tint={tint} /><Bed x0={52} x1={148} pillows={2} tint={tint} /><Bench x0={64} x1={136} z={0.24} /></>
     default: // Doppia, DUS
@@ -254,12 +259,12 @@ function Scena({ tipo, tint }: { tipo: string; tint: string }) {
   }
 }
 
-// `fill`: riempie il contenitore (altezza e larghezza), ritagliando i lati della stanza.
+// `fill`: riempie il contenitore; la scena resta in scala, ancorata al pavimento.
 export default function RoomIllustration({ tipo, lettiExtra = 0, fill, className }: { tipo: string; lettiExtra?: number; fill?: boolean; className?: string }) {
   const [bg, tint] = PALETTE[tipo] ?? PALETTE.Doppia
   return (
     <svg className={'room-ill' + (fill ? ' room-ill--fill' : '') + (className ? ` ${className}` : '')} viewBox={`0 0 200 ${H}`}
-      preserveAspectRatio={fill ? 'xMidYMid slice' : undefined} role="img" aria-label={`Camera ${tipo}`}>
+      preserveAspectRatio={fill ? 'xMidYMax meet' : undefined} role="img" aria-label={`Camera ${tipo}`}>
       <Room bg={bg} tint={tint} />
       <Scena tipo={tipo} tint={tint} />
       {lettiExtra > 0 && <Rollaway tint={tint} />}
