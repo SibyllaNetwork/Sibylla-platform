@@ -44,20 +44,33 @@ const BASE: Record<string, { tipo: string; capacita: number; lettiExtra: number;
   'DUS':                 { tipo: 'DUS',          capacita: 1, lettiExtra: 0, descrizione: 'Doppia a uso singola.' },
 }
 
+const PIANI_NOMI = ['Piano terra', 'Primo piano', 'Secondo piano', 'Terzo piano', 'Quarto piano', 'Quinto piano', 'Sesto piano', 'Settimo piano', 'Ottavo piano', 'Nono piano', 'Decimo piano']
+const nomePiano = (n: number) => PIANI_NOMI[n] ?? `Piano ${n}`
+const pianoBreve = (nome: string) => {
+  const i = PIANI_NOMI.indexOf(nome)
+  return i === 0 ? 'PT' : i > 0 ? `${i}°` : nome
+}
+
 function tipologieDemo(scheda: { camere: number; seme: number; categoria: string }): TipologiaCamera[] {
   const nomi = Object.keys(BASE)
-  const conta = new Map<string, number>(nomi.map((t) => [t, 1]))
-  const n = scheda.camere
+  const conta = new Map<string, number>()
+  const piani = new Map<string, Set<number>>()
+  const n = Math.max(scheda.camere, nomi.length)
   const perPiano = n <= 8 ? n : n <= 40 ? 10 : n <= 100 ? 16 : 25
-  for (let i = nomi.length; i < n; i++) {
-    const piano = 1 + Math.floor(i / perPiano)
-    const ultimo = piano === Math.ceil(n / perPiano)
-    const tip = scheda.categoria === 'studentato' ? (i % 4 === 0 ? 'Twin Classic' : 'Singola Classic')
+  const totPiani = Math.ceil(n / perPiano)
+  for (let i = 0; i < n; i++) {
+    // Le camere "una per tipologia" sono sparse sui piani, le altre seguono la numerazione.
+    const piano = i < nomi.length ? 1 + (i % totPiani) : 1 + Math.floor(i / perPiano)
+    const ultimo = piano === totPiani
+    const tip = i < nomi.length ? nomi[(i * 5 + scheda.seme) % nomi.length]
+      : scheda.categoria === 'studentato' ? (i % 4 === 0 ? 'Twin Classic' : 'Singola Classic')
       : ultimo && i % perPiano >= perPiano - 2 ? 'Suite' : TIP_GIRO[(scheda.seme + i * 7) % TIP_GIRO.length]
     conta.set(tip, (conta.get(tip) ?? 0) + 1)
+    piani.set(tip, (piani.get(tip) ?? new Set()).add(piano))
   }
   return nomi.map((nome) => ({
     id: `tip-${scheda.seme}-${nome}`, nome, ...BASE[nome], numero: conta.get(nome) ?? 1,
+    piani: Array.from(piani.get(nome) ?? []).sort((x, y) => x - y).map(nomePiano),
     nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
   }))
 }
@@ -103,6 +116,14 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     if (patch.nome?.trim()) setErrori((e) => { const n = new Set(e); n.delete(id); return n })
   }
   const [picker, setPicker] = useState(false)
+  const [piano, setPiano] = useState('')
+  const [tipoFiltro, setTipoFiltro] = useState('')
+  useEffect(() => { setPiano(''); setTipoFiltro('') }, [strutturaNome])
+  const pianiUsati = useMemo(() => {
+    const usati = new Set(draft.flatMap((t) => t.piani ?? []))
+    return PIANI_NOMI.filter((x) => usati.has(x)).concat(Array.from(usati).filter((x) => !PIANI_NOMI.includes(x)))
+  }, [draft])
+  const visibili = draft.filter((t) => (!piano || (t.piani ?? []).includes(piano)) && (!tipoFiltro || t.tipo === tipoFiltro))
   const aggiungi = (base: string) => {
     const t = nuovaTipologia(base)
     setDraft((d) => [...d, t])
@@ -154,8 +175,14 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
       <PageHead title="Inventario camere" subtitle="Tipologie di camera della struttura: numero, capacità e letti extra" />
 
       <div className="invc__bar">
-        <SelectField name="struttura" label="Struttura" className="invc__select" value={strutturaNome} onChange={(e) => setStrutturaNome(e.target.value)}
+        <div className="invc__filters">
+          <SelectField name="struttura" label="Struttura" className="invc__select" value={strutturaNome} onChange={(e) => setStrutturaNome(e.target.value)}
           options={strutture.map((s) => ({ value: s.nome, label: s.nome }))} />
+          <SelectField name="piano" label="Piano" className="invc__select invc__select--sm" value={piano} onChange={(e) => setPiano(e.target.value)}
+            options={[{ value: '', label: 'Tutti' }, ...pianiUsati.map((x) => ({ value: x, label: x }))]} />
+          <SelectField name="tipologia" label="Tipologia camera" className="invc__select invc__select--sm" value={tipoFiltro} onChange={(e) => setTipoFiltro(e.target.value)}
+            options={[{ value: '', label: 'Tutte' }, ...TIPI.map((x) => ({ value: x, label: x }))]} />
+        </div>
         <Tooltip text={pmsEsterno ? 'Non disponibile con PMS esterno per questa struttura' : 'Allestisci una nuova tipologia di camera'}>
           <button type="button" className="sib-btn sib-btn--primary" disabled={pmsEsterno} onClick={() => setPicker(true)}>
             <i className="fa-light fa-wand-magic-sparkles" /> Allestisci
@@ -169,15 +196,15 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
 
       <section className="invc__panel">
         <header className="invc__panel-head">
-          <h3 className="invc__panel-title">Tipologie inserite <span className="invc__panel-count">{draft.length}</span></h3>
+          <h3 className="invc__panel-title">Tipologie inserite <span className="invc__panel-count">{piano || tipoFiltro ? `${visibili.length} di ${draft.length}` : draft.length}</span></h3>
           <span className={'invc__state' + (dirty ? ' invc__state--draft' : '')}>{dirty ? 'In bozza' : 'Salvato'}</span>
         </header>
 
-        {draft.length === 0 ? (
-          <div className="sib-empty">Nessuna tipologia: aggiungine una per iniziare.</div>
+        {visibili.length === 0 ? (
+          <div className="sib-empty">{draft.length === 0 ? 'Nessuna tipologia: allestiscine una per iniziare.' : 'Nessuna tipologia per i filtri selezionati.'}</div>
         ) : (
           <ul className="invc__list">
-            {draft.map((t) => (
+            {visibili.map((t) => (
               <TipologiaRow key={t.id} t={t} disabled={pmsEsterno}
                 aperta={aperta === t.id} evidenziata={modificata(t)} errore={errori.has(t.id)}
                 dragging={dragId === t.id} over={overId === t.id && dragId !== t.id}
@@ -301,6 +328,11 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
           <span className="invc__cap">
             <i className="fa-solid fa-user-group" /> Fino a <strong>{ospiti(totale)}</strong>{t.lettiExtra > 0 && ` (${t.capacita}+${t.lettiExtra})`}
           </span>
+          {!!t.piani?.length && (
+            <Tooltip text={t.piani.join(', ')}>
+              <span className="invc__cap"><i className="fa-solid fa-layer-group" /> Piani {t.piani.map(pianoBreve).join(' · ')}</span>
+            </Tooltip>
+          )}
           {t.descrizione && !aperta && <span className="invc__desc">{t.descrizione}</span>}
           {!disabled && (
             <button type="button" className="invc__link" onClick={onToggleDettagli}>

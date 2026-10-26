@@ -15,6 +15,8 @@ export interface TipologiaCamera {
   numero: number
   capacita: number
   lettiExtra: number
+  /** Piani su cui ci sono camere della tipologia (per il filtro Piano). */
+  piani?: string[]
   descrizione: string
   nomeOnline: string
   amenities: string[]
