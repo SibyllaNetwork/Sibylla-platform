@@ -261,6 +261,20 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
           <SelectField name={`extra-${t.id}`} label="Letti extra" className="invc__f-extra" value={t.lettiExtra} disabled={disabled}
             options={Array.from({ length: MAX_LETTI_EXTRA + 1 }, (_, i) => ({ value: i, label: i === 0 ? 'Nessuno' : String(i) }))}
             onChange={(e) => onChange({ lettiExtra: Number(e.target.value) })} />
+          <div className="invc__acts">
+            <Tooltip text={disabled ? 'Non modificabile con PMS esterno' : 'Scheda completa: caratteristiche e immagini'}>
+              <button type="button" className="invc__edit" aria-label="Modifica scheda" disabled={disabled} onClick={onScheda}>
+                <i className="fa-solid fa-pen" />
+              </button>
+            </Tooltip>
+            <Tooltip text={t.attiva ? 'Disattiva tipologia' : 'Attiva tipologia'}>
+              <label className="invc__active">
+                <span>{t.attiva ? 'Attiva' : 'Inattiva'}</span>
+                <ToggleSwitch checked={t.attiva} disabled={disabled} onChange={(v) => onChange({ attiva: v })} />
+              </label>
+            </Tooltip>
+            <RowMenu disabled={disabled} onDuplica={onDuplica} onElimina={onElimina} />
+          </div>
         </div>
 
         <div className="invc__meta">
@@ -286,20 +300,6 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
         )}
       </div>
 
-      <div className="invc__acts">
-        <Tooltip text={disabled ? 'Non modificabile con PMS esterno' : 'Scheda completa: caratteristiche e immagini'}>
-          <button type="button" className="invc__edit" aria-label="Modifica scheda" disabled={disabled} onClick={onScheda}>
-            <i className="fa-solid fa-pen" />
-          </button>
-        </Tooltip>
-        <Tooltip text={t.attiva ? 'Disattiva tipologia' : 'Attiva tipologia'}>
-          <label className="invc__active">
-            <span>{t.attiva ? 'Attiva' : 'Inattiva'}</span>
-            <ToggleSwitch checked={t.attiva} disabled={disabled} onChange={(v) => onChange({ attiva: v })} />
-          </label>
-        </Tooltip>
-        <RowMenu disabled={disabled} onDuplica={onDuplica} onElimina={onElimina} />
-      </div>
     </li>
   )
 }
