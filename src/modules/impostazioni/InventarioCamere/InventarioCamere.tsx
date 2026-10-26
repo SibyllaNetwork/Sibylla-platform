@@ -99,7 +99,13 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
 
   const iniziali = useMemo(() => salvate ?? (scheda ? tipologieDemo(scheda) : []), [salvate, scheda])
   const [draft, setDraft] = useState<TipologiaCamera[]>(iniziali)
-  useEffect(() => { setDraft(iniziali) }, [iniziali])
+  // Il salvataggio dalla scheda camera aggiorna lo store: in quel caso la bozza
+  // dell'elenco (eventuali altre modifiche non salvate) non va riallineata.
+  const tieniBozza = useRef(false)
+  useEffect(() => {
+    if (tieniBozza.current) { tieniBozza.current = false; return }
+    setDraft(iniziali)
+  }, [iniziali])
 
   const [aperta, setAperta] = useState<string | null>(null)
   const [scheda_, setSchedaId] = useState<string | null>(null)
@@ -126,25 +132,29 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
   const visibili = draft.filter((t) => (!piano || (t.piani ?? []).includes(piano)) && (!tipoFiltro || t.tipo === tipoFiltro))
   // Scelta dal catalogo → la tipologia entra in bozza e si apre subito la pagina
   // di allestimento; Annulla la scarta, Applica torna all'elenco sulla riga nuova.
-  const [nuovaId, setNuovaId] = useState<string | null>(null)
+  // Allestisci → la camera nuova vive solo nella scheda finché non viene salvata;
+  // Salva (nuova o modifica) la registra subito e la porta nell'elenco.
+  const [nuova, setNuova] = useState<TipologiaCamera | null>(null)
   const [vaiA, setVaiA] = useState<string | null>(null)
   const aggiungi = (base: string) => {
     const t = nuovaTipologia(base)
-    setDraft((d) => [...d, t])
     setPicker(false)
     setPiano('')
     setTipoFiltro('')
-    setNuovaId(t.id)
+    setNuova(t)
     setSchedaId(t.id)
   }
-  const chiudiScheda = (id: string) => {
-    if (id === nuovaId) setDraft((d) => d.filter((t) => t.id !== id))
-    setNuovaId(null)
+  const chiudiScheda = () => {
+    setNuova(null)
     setSchedaId(null)
   }
-  const applicaScheda = (upd: TipologiaCamera) => {
-    update(upd.id, upd)
-    setNuovaId(null)
+  const salvaScheda = (upd: TipologiaCamera) => {
+    const upsert = (list: TipologiaCamera[]) => (list.some((t) => t.id === upd.id) ? list.map((t) => (t.id === upd.id ? upd : t)) : [...list, upd])
+    tieniBozza.current = true
+    salva(strutturaNome, upsert(iniziali))
+    setDraft(upsert)
+    toast.success(nuova?.id === upd.id ? `Camera "${upd.nome}" aggiunta all'inventario.` : `Camera "${upd.nome}" salvata.`)
+    setNuova(null)
     setSchedaId(null)
     setVaiA(upd.id)
   }
@@ -185,12 +195,12 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     toast.success(`Tipologie di ${strutturaNome} salvate.`)
   }
 
-  const inScheda = draft.find((t) => t.id === scheda_)
+  const inScheda = nuova?.id === scheda_ ? nuova : draft.find((t) => t.id === scheda_)
   if (inScheda) {
     return (
-      <SchedaTipologia tipologia={inScheda} nuova={inScheda.id === nuovaId}
+      <SchedaTipologia key={inScheda.id} tipologia={inScheda} nuova={inScheda === nuova}
         pianiDisponibili={pianiUsati.length ? pianiUsati : PIANI_NOMI.slice(0, 3)}
-        onBack={() => chiudiScheda(inScheda.id)} onApply={applicaScheda} />
+        onBack={chiudiScheda} onApply={salvaScheda} />
     )
   }
 
@@ -337,8 +347,8 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
             options={Array.from({ length: MAX_LETTI_EXTRA + 1 }, (_, i) => ({ value: i, label: i === 0 ? 'Nessuno' : String(i) }))}
             onChange={(e) => onChange({ lettiExtra: Number(e.target.value) })} />
           <div className="invc__acts">
-            <Tooltip text={disabled ? 'Non modificabile con PMS esterno' : 'Scheda completa: caratteristiche e immagini'}>
-              <button type="button" className="invc__edit" aria-label="Modifica scheda" disabled={disabled} onClick={onScheda}>
+            <Tooltip text={disabled ? 'Non modificabile con PMS esterno' : 'Modifica camera'}>
+              <button type="button" className="invc__edit" aria-label="Modifica camera" disabled={disabled} onClick={onScheda}>
                 <i className="fa-solid fa-pen" />
               </button>
             </Tooltip>
@@ -362,22 +372,13 @@ function TipologiaRow({ t, disabled, aperta, evidenziata, errore, dragging, over
             </Tooltip>
           )}
           {t.descrizione && !aperta && <span className="invc__desc">{t.descrizione}</span>}
-          {!disabled && (
-            <button type="button" className="invc__link" onClick={onToggleDettagli}>
-              <i className={`fa-light ${aperta ? 'fa-chevron-up' : t.descrizione ? 'fa-pen-line' : 'fa-plus'}`} />
-              {aperta ? 'Chiudi dettagli' : t.descrizione ? 'Modifica dettagli' : 'Aggiungi dettagli'}
-            </button>
-          )}
+          <button type="button" className="invc__link" aria-expanded={aperta} onClick={onToggleDettagli}>
+            <i className={`fa-light ${aperta ? 'fa-chevron-up' : 'fa-eye'}`} />
+            {aperta ? 'Chiudi dettagli' : 'Dettagli camera'}
+          </button>
         </div>
 
-        {aperta && (
-          <div className="invc__details">
-            <InputField name={`online-${t.id}`} label="Nome sui canali online" placeholder="Nome visibile ai clienti online"
-              value={t.nomeOnline} onChange={(e) => onChange({ nomeOnline: e.target.value })} />
-            <TextareaField name={`desc-${t.id}`} label="Descrizione" rows={2} placeholder="Comfort, vista, dotazioni…"
-              value={t.descrizione} onChange={(e) => onChange({ descrizione: e.target.value })} />
-          </div>
-        )}
+        {aperta && <DettagliCamera t={t} disabled={disabled} onModifica={onScheda} />}
       </div>
 
     </li>
@@ -391,6 +392,47 @@ function Letti({ tipo, capacita, extra }: { tipo: string; capacita: number; extr
       <Tooltip text={`${tipo} · ${ospiti(capacita)}${extra ? ` + ${extra} ${extra === 1 ? 'letto extra' : 'letti extra'}` : ''}`}>
         <RoomIllustration tipo={tipo} lettiExtra={extra} fill />
       </Tooltip>
+    </div>
+  )
+}
+
+// Riepilogo in sola lettura di quanto inserito nella scheda camera.
+function DettagliCamera({ t, disabled, onModifica }: { t: TipologiaCamera; disabled: boolean; onModifica: () => void }) {
+  const immagini = [t.immagine, ...t.gallery].filter((x): x is string => !!x)
+  const vuoto = <span className="invc__dd-empty">Non indicato</span>
+  return (
+    <div className="invc__details">
+      <dl className="invc__dl">
+        <div><dt>Nome sui canali online</dt><dd>{t.nomeOnline || vuoto}</dd></div>
+        <div><dt>Tipo</dt><dd>{t.tipo}</dd></div>
+        <div><dt>N. camere</dt><dd>{t.numero}</dd></div>
+        <div><dt>Ospiti</dt><dd>{ospiti(t.capacita)}{t.lettiExtra > 0 && ` + ${t.lettiExtra} ${t.lettiExtra === 1 ? 'letto extra' : 'letti extra'}`}</dd></div>
+        <div className="invc__dl-wide"><dt>Piani</dt><dd>{t.piani?.length ? t.piani.join(', ') : vuoto}</dd></div>
+        <div className="invc__dl-full"><dt>Descrizione</dt><dd>{t.descrizione || vuoto}</dd></div>
+        <div className="invc__dl-full">
+          <dt>Caratteristiche{t.amenities.length > 0 && ` (${t.amenities.length})`}</dt>
+          <dd>
+            {t.amenities.length ? (
+              <span className="invc__chips">{t.amenities.map((a) => <span key={a} className="invc__chip"><i className="fa-solid fa-check" /> {a}</span>)}</span>
+            ) : <span className="invc__dd-empty">Nessuna caratteristica selezionata</span>}
+          </dd>
+        </div>
+        <div className="invc__dl-full">
+          <dt>Immagini</dt>
+          <dd>
+            {immagini.length ? (
+              <span className="invc__thumbs">
+                {immagini.map((src, i) => <img key={i} src={src} alt={i === 0 && t.immagine ? 'Immagine principale' : `Immagine ${i + 1}`} className={i === 0 && t.immagine ? 'is-main' : ''} />)}
+              </span>
+            ) : <span className="invc__dd-empty">Nessuna immagine caricata</span>}
+          </dd>
+        </div>
+      </dl>
+      {!disabled && (
+        <button type="button" className="invc__link invc__details-edit" onClick={onModifica}>
+          <i className="fa-light fa-pen" /> Modifica camera
+        </button>
+      )}
     </div>
   )
 }
@@ -456,8 +498,8 @@ function SchedaTipologia({ tipologia, nuova, pianiDisponibili, onBack, onApply }
 
   return (
     <div className="invc-form">
-      <PageHead title="Configurazione camera" onBack={onBack}
-        subtitle={`${t.nome || (nuova ? 'Nuova tipologia' : 'Tipologia')} · dati, presentazione, caratteristiche e immagini`} />
+      <PageHead title={nuova ? 'Configurazione camera' : 'Modifica camera'} onBack={onBack}
+        subtitle={nuova ? 'Inserisci i dati della nuova camera: al salvataggio entra nell\'inventario' : `${tipologia.nome} · dati, presentazione, caratteristiche e immagini`} />
 
       <section className="invc-form__card invc-form__intro">
         <RoomIllustration tipo={t.tipo} lettiExtra={t.lettiExtra} className="invc-form__ill" />
@@ -531,7 +573,7 @@ function SchedaTipologia({ tipologia, nuova, pianiDisponibili, onBack, onApply }
       <div className="invc-form__actions">
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onBack}>Annulla</button>
         <button type="button" className="sib-btn sib-btn--primary" onClick={applica}>
-          <i className="fa-light fa-check" /> {nuova ? 'Aggiungi all\'elenco' : 'Applica'}
+          <i className="fa-light fa-floppy-disk" /> Salva
         </button>
       </div>
     </div>
