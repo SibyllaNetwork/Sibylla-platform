@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PageHead from '../../../core/components/PageHead'
+import Modal from '../../../core/components/Modal'
 import Tooltip from '../../../core/components/Tooltip'
 import ToggleSwitch from '../../../core/components/ToggleSwitch'
 import AlertBanner from '../../../core/components/AlertBanner'
@@ -63,9 +64,10 @@ function tipologieDemo(scheda: { camere: number; seme: number; categoria: string
 
 let _seq = 0
 const nuovoId = () => `tip-new-${Date.now()}-${++_seq}`
-const nuovaTipologia = (): TipologiaCamera => ({
-  id: nuovoId(), nome: '', tipo: 'Doppia', numero: 1, capacita: 2, lettiExtra: 0,
-  descrizione: '', nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
+// Nuova tipologia dal catalogo (nome base → tipo, capacità, letti extra, descrizione).
+const nuovaTipologia = (base: string): TipologiaCamera => ({
+  id: nuovoId(), nome: base, ...BASE[base], numero: 1,
+  nomeOnline: '', amenities: [], immagine: null, gallery: [], attiva: true,
 })
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -100,10 +102,12 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
     setDraft((d) => d.map((t) => (t.id === id ? { ...t, ...patch } : t)))
     if (patch.nome?.trim()) setErrori((e) => { const n = new Set(e); n.delete(id); return n })
   }
-  const aggiungi = () => {
-    const t = nuovaTipologia()
+  const [picker, setPicker] = useState(false)
+  const aggiungi = (base: string) => {
+    const t = nuovaTipologia(base)
     setDraft((d) => [...d, t])
     setAperta(t.id)
+    setPicker(false)
   }
   const duplica = (id: string) => setDraft((d) => {
     const i = d.findIndex((t) => t.id === id)
@@ -147,18 +151,16 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
 
   return (
     <div className="invc">
-      <PageHead title="Inventario camere" subtitle="Tipologie di camera della struttura: numero, capacità e letti extra"
-        actions={
-          <Tooltip text={pmsEsterno ? 'Non disponibile con PMS esterno per questa struttura' : 'Aggiungi una nuova tipologia di camera'}>
-            <button type="button" className="sib-btn sib-btn--primary" disabled={pmsEsterno} onClick={aggiungi}>
-              <i className="fa-light fa-plus" /> Aggiungi tipologia
-            </button>
-          </Tooltip>
-        } />
+      <PageHead title="Inventario camere" subtitle="Tipologie di camera della struttura: numero, capacità e letti extra" />
 
       <div className="invc__bar">
         <SelectField name="struttura" label="Struttura" className="invc__select" value={strutturaNome} onChange={(e) => setStrutturaNome(e.target.value)}
           options={strutture.map((s) => ({ value: s.nome, label: s.nome }))} />
+        <Tooltip text={pmsEsterno ? 'Non disponibile con PMS esterno per questa struttura' : 'Allestisci una nuova tipologia di camera'}>
+          <button type="button" className="sib-btn sib-btn--primary" disabled={pmsEsterno} onClick={() => setPicker(true)}>
+            <i className="fa-light fa-wand-magic-sparkles" /> Allestisci
+          </button>
+        </Tooltip>
       </div>
 
       {pmsEsterno && (
@@ -201,6 +203,24 @@ export default function InventarioCamere(_props: { navigate?: (p: string) => voi
           </span>
         </footer>
       </section>
+
+      <Modal open={picker} onClose={() => setPicker(false)} title="Allestisci tipologia" size="xl">
+        <p className="invc-pick__hint">Scegli la tipologia di partenza: capacità, letti extra e descrizione si possono modificare dopo.</p>
+        <div className="invc-pick">
+          {Object.entries(BASE).map(([nome, b]) => (
+            <button key={nome} type="button" className="invc-pick__card" onClick={() => aggiungi(nome)}>
+              <RoomIllustration tipo={b.tipo} lettiExtra={b.lettiExtra} className="invc-pick__ill" />
+              <span className="invc-pick__body">
+                <span className="invc-pick__title">{nome}</span>
+                <span className="invc-pick__desc">{b.descrizione}</span>
+                <span className="invc-pick__cap">
+                  <i className="fa-solid fa-user-group" /> {ospiti(b.capacita)}{b.lettiExtra > 0 && ` + ${b.lettiExtra} ${b.lettiExtra === 1 ? 'letto extra' : 'letti extra'}`}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </Modal>
     </div>
   )
 }
