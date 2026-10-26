@@ -1,130 +1,995 @@
-@use "sass:color"
 @use '../../../styles/tokens' as *
+@use '../../../styles/mixins' as *
 
-$ink: #111827
-$muted: #4b5563
-$bg-zebra: #f3f8fb
+// ─── Log di sistema ─────────────────────────────────────────────────────────
+// Livelli: Info = primary, Avviso = warning, Errore = error.
 
-.log-sistema
+.logs
   display: flex
   flex-direction: column
   gap: 14px
+  container-type: inline-size
+  container-name: logs
 
-  > .sib-btn--back
-    align-self: flex-start
+  // ── Diretta / export (azioni dell'header) ──────────────────────────────
+  &__live
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 14px
+    border: 1px solid var(--color-border)
+    border-radius: 999px
+    background: var(--color-surface)
+    color: var(--color-text-inactive)
+    font-size: 13px
+    font-weight: 600
+    cursor: pointer
+    transition: border-color .2s, color .2s, background .2s
+
+    i
+      font-size: 11px
+
+    &.is-on
+      border-color: var(--color-success)
+      background: var(--color-success-light)
+      color: var(--color-success)
+
+  &__live-dot
+    width: 8px
+    height: 8px
+    border-radius: 50%
+    background: var(--color-text-inactive)
+
+    .is-on &
+      background: var(--color-success)
+      animation: logs-pulse 1.6s ease-out infinite
+
+  &__xls i
+    color: var(--color-primary)
+    font-size: 16px
+
+  // ── Barra comandi ──────────────────────────────────────────────────────
+  &__bar
+    display: flex
+    align-items: center
+    gap: 12px
+    flex-wrap: wrap
+
+  &__seg
+    display: inline-flex
+    padding: 3px
+    gap: 2px
+    border-radius: 10px
+    background: var(--color-primary-50)
+
+    button
+      display: inline-flex
+      align-items: center
+      gap: 7px
+      height: 30px
+      padding: 0 14px
+      border: 0
+      border-radius: 8px
+      background: transparent
+      color: var(--color-primary)
+      font-size: 13px
+      font-weight: 600
+      cursor: pointer
+      white-space: nowrap
+      transition: background .15s, color .15s, box-shadow .15s
+
+      &:hover:not(.is-on)
+        background: var(--color-primary-100)
+
+      &.is-on
+        background: var(--color-primary)
+        color: #fff
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .15)
+
+    &--light button.is-on
+      background: var(--color-surface)
+      color: var(--color-primary)
 
   &__search
-    width: min(360px, 100%)
+    flex: 1 1 260px
+    max-width: 380px
+    margin-left: auto
+
+  // ── Grafico attività ───────────────────────────────────────────────────
+  &__chart
+    padding: 16px 18px 10px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+
+  &__chart-head
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+    flex-wrap: wrap
+    margin-bottom: 10px
+
+    h2
+      margin: 0
+      font-family: $font-heading
+      font-size: 15px
+      font-weight: 600
+      color: var(--color-text-active)
+
+    p
+      margin: 2px 0 0
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+      strong
+        color: var(--color-primary)
+
+  &__legend
+    display: flex
+    gap: 6px
+    flex-wrap: wrap
+
+  &__leg
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 28px
+    padding: 0 10px
+    border: 1px solid var(--color-border)
+    border-radius: 999px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    font-size: 12px
+    cursor: pointer
+    transition: opacity .15s, border-color .15s, background .15s
+
+    strong
+      font-weight: 700
+
+    &--info i
+      color: var(--color-primary)
+    &--avviso i
+      color: var(--color-warning)
+    &--errore i
+      color: var(--color-error)
+
+    &.is-on.logs__leg--info
+      border-color: var(--color-primary)
+      background: var(--color-primary-50)
+    &.is-on.logs__leg--avviso
+      border-color: var(--color-warning)
+      background: var(--color-warning-light)
+    &.is-on.logs__leg--errore
+      border-color: var(--color-error)
+      background: var(--color-error-light)
+
+    &.is-off
+      opacity: .45
+
+  &__bars
+    display: flex
+    align-items: stretch
+    gap: 3px
+    height: 120px
+
+    // Il wrapper del Tooltip è uno span: lo allarghiamo come colonna del grafico
+    > span
+      flex: 1 1 0
+      min-width: 0
+      display: flex
+
+  &__col
+    flex: 1
+    min-width: 0
     display: flex
     flex-direction: column
     gap: 4px
+    padding: 0
+    border: 0
+    background: transparent
+    cursor: pointer
 
-  &__search-label
+    svg
+      flex: 1
+      width: 100%
+      border-radius: 4px 4px 0 0
+      background: var(--color-bg)
+      transition: background .15s, opacity .15s
+
+    &:hover svg
+      background: var(--color-primary-50)
+
+    &.is-future
+      cursor: default
+      opacity: .4
+
+    .has-sel &:not(.is-sel) svg
+      opacity: .35
+
+    &.is-sel svg
+      background: var(--color-primary-100)
+      outline: 2px solid var(--color-primary)
+      outline-offset: 1px
+
+  &__seg-info
+    fill: var(--color-primary)
+  &__seg-avviso
+    fill: var(--color-warning)
+  &__seg-errore
+    fill: var(--color-error)
+
+  &__axis
+    height: 14px
+    font-size: 10.5px
+    line-height: 14px
+    color: var(--color-text-inactive)
+    text-align: center
+    white-space: nowrap
+    overflow: visible
+
+    &.is-hidden
+      visibility: hidden
+
+  &__tip
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 12px
+
+  // ── Chip dei filtri ────────────────────────────────────────────────────
+  &__chips
+    display: flex
+    align-items: center
+    gap: 6px
+    flex-wrap: wrap
+
+  &__chips-lbl
     font-size: 12px
     font-weight: 600
-    color: $text-inactive
-    line-height: 1.2
+    color: var(--color-primary)
+    margin-right: 2px
 
-  // ── Tabella ──────────────────────────────────────────────────────
-  &__table
-    .log-sistema__th-toggle
-      width: 40px
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    max-width: 320px
+    height: 26px
+    padding: 0 10px
+    border: 1px solid var(--color-primary-200)
+    border-radius: 999px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 12px
+    cursor: pointer
+    animation: logs-in .2s ease-out
+
+    > span
+      min-width: 0
+
+    i
+      font-size: 11px
+      opacity: .7
+
+    &:hover
+      border-color: var(--color-primary)
+
+      i
+        opacity: 1
+
+  &__reset
+    border: 0
+    background: none
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 600
+    text-decoration: underline
+    cursor: pointer
+
+  &__nuovi
+    align-self: center
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 30px
+    padding: 0 16px
+    border: 0
+    border-radius: 999px
+    background: var(--color-primary)
+    color: #fff
+    font-size: 12.5px
+    font-weight: 600
+    cursor: pointer
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .18)
+    animation: logs-in .25s ease-out
+
+  // ── Tabelle ────────────────────────────────────────────────────────────
+  &__wrap
+    overflow-x: hidden
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
 
   &__row
     cursor: pointer
-    transition: background 0.15s
+    transition: background .15s
 
-    &:hover
-      background: $bg
+    &:hover, &:focus-visible
+      background: var(--color-bg)
+      outline: none
 
-    &--open
-      background: $bg
+      .logs__chev
+        color: var(--color-primary)
+        transform: translateX(2px)
 
-      td
-        border-bottom-color: transparent
+    &.is-open
+      background: var(--color-primary-50)
 
-  &__td-toggle
-    width: 40px
-    color: $primary
-    text-align: center
+    // Errori segnati da una barretta rossa a sinistra della riga
+    &--errore td:first-child
+      box-shadow: inset 3px 0 0 var(--color-error)
+    &--avviso td:first-child
+      box-shadow: inset 3px 0 0 var(--color-warning)
 
-    i
-      font-size: 16px
+    &.is-new
+      animation: logs-new 2.6s ease-out
 
-  &__user
+  &__day td
+    padding: 14px 10px 6px !important
+    background: var(--color-surface)
+    border-bottom: 1px solid var(--color-border)
+
+    span
+      font-family: $font-heading
+      font-size: 13px
+      font-weight: 600
+      color: var(--color-primary)
+
+    small
+      margin-left: 8px
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+  &__liv
     display: inline-flex
     align-items: center
-    gap: 10px
-
-  &__avatar
-    width: 32px
-    height: 32px
+    gap: 5px
+    max-width: 100%
+    padding: 2px 8px 2px 6px
     border-radius: 999px
-    background: $bg-zebra
-    color: $primary
+    font-size: 11.5px
+    font-weight: 600
+
+    i
+      font-size: 12px
+
+    &--info
+      background: var(--color-primary-50)
+      color: var(--color-primary)
+    &--avviso
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+    &--errore
+      background: var(--color-error-light)
+      color: var(--color-error)
+
+  &__quando
+    display: inline-flex
+    align-items: baseline
+    gap: 6px
+    max-width: 100%
+    overflow: hidden
+
+    strong
+      color: var(--color-text-active)
+
+    small
+      overflow: hidden
+      text-overflow: ellipsis
+      font-size: 11px
+      color: var(--color-text-inactive)
+
+  &__user, &__cat
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    max-width: 100%
+    min-width: 0
+
+  &__cat i
+    flex-shrink: 0
+    color: var(--color-primary)
+    font-size: 16px
+
+  &__av
+    flex-shrink: 0
+    border-radius: 50%
+    background: var(--color-primary-50)
+    object-fit: cover
+
+    &--sm
+      width: 26px
+      height: 26px
+
+    &--lg
+      width: 44px
+      height: 44px
+
+    &--sys
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      color: var(--color-primary)
+      font-size: 12px
+
+      &.logs__av--lg
+        font-size: 18px
+
+  &__evento
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__muted
+    color: var(--color-text-inactive)
+
+  &__chev
+    text-align: center
+    color: var(--color-text-inactive)
+
+    i
+      font-size: 13px
+      transition: transform .15s
+
+  &__vuoto
+    padding: 36px 12px !important
+    text-align: center
+
+    > *
+      display: block
+      margin: 0 auto 4px
+
+    i
+      font-size: 22px
+      color: var(--color-primary-300)
+      margin-bottom: 8px
+
+    strong
+      color: var(--color-text-active)
+
+    span
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+    .logs__reset
+      margin-top: 8px
+
+  &__pager
+    justify-content: center
+
+  // ── Vista utenti ───────────────────────────────────────────────────────
+  &__num
+    text-align: right
+
+  &__stato
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    white-space: nowrap
+
+    span
+      width: 8px
+      height: 8px
+      border-radius: 50%
+      background: var(--color-text-disabled)
+
+    &--online
+      color: var(--color-success)
+      font-weight: 600
+
+      span
+        background: var(--color-success)
+        animation: logs-pulse 1.6s ease-out infinite
+
+    &--integrazione span
+      background: var(--color-primary)
+
+    &--disattivato
+      color: var(--color-text-inactive)
+
+  &__anom
+    display: inline-block
+    min-width: 22px
+    padding: 1px 7px
+    border-radius: 999px
+    background: var(--color-warning-light)
+    color: var(--color-warning)
+    font-weight: 700
+    text-align: center
+
+  &__spark
+    display: block
+    width: 100%
+    height: 28px
+
+  &__spark-area
+    fill: var(--color-primary-50)
+    stroke: none
+
+  &__spark-line
+    fill: none
+    stroke: var(--color-primary)
+    stroke-width: 1.6
+    vector-effect: non-scaling-stroke
+
+  &__az
+    text-align: right
+    white-space: nowrap
+
+    .sib-btn--icon i
+      color: var(--color-primary)
+      font-size: 16px
+
+  &__exp
+    margin-left: 6px
+    color: var(--color-text-inactive)
+    font-size: 12px
+    transition: transform .15s
+
+    &.is-open
+      transform: rotate(180deg)
+
+  &__detail-row td
+    padding: 12px 16px 16px !important
+    background: var(--color-bg)
+
+  // ── Timeline (sessione nel dettaglio, ultime attività utente) ──────────
+  &__tl
+    list-style: none
+    margin: 0
+    padding: 0
+
+    &--h
+      display: grid
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr))
+      gap: 8px
+
+      .logs__tl-item
+        padding: 8px 10px 8px 14px
+        border: 1px solid var(--color-border)
+        border-radius: 8px
+        background: var(--color-surface)
+
+        &::before
+          left: 0
+          top: 8px
+          bottom: 8px
+          width: 3px
+          height: auto
+          border: 0
+          border-radius: 0 3px 3px 0
+
+      .logs__tl-ora
+        display: block
+        font-size: 11px
+
+  &__tl-item
+    position: relative
+    min-width: 0
+
+    &::before
+      content: ''
+      position: absolute
+      left: 4px
+      top: 12px
+      width: 9px
+      height: 9px
+      border-radius: 50%
+      border: 2px solid var(--color-surface)
+      background: var(--color-primary)
+      z-index: 1
+
+    &--avviso::before
+      background: var(--color-warning)
+    &--errore::before
+      background: var(--color-error)
+
+    > button
+      display: flex
+      gap: 10px
+      width: 100%
+      padding: 7px 8px 7px 24px
+      border: 0
+      border-radius: 8px
+      background: none
+      text-align: left
+      cursor: pointer
+
+      &:hover:not(:disabled)
+        background: var(--color-bg)
+
+      &:disabled
+        cursor: default
+
+    &.is-cur > button
+      background: var(--color-primary-50)
+
+  &__tl:not(.logs__tl--h)
+    position: relative
+
+    &::before
+      content: ''
+      position: absolute
+      left: 8px
+      top: 14px
+      bottom: 14px
+      width: 1px
+      background: var(--color-border)
+
+  &__tl-ora
+    flex-shrink: 0
+    width: 40px
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  &__tl-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+    strong
+      font-size: 12.5px
+      color: var(--color-text-active)
+
+    small
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+  // ── Pannello di dettaglio ──────────────────────────────────────────────
+  &__scrim
+    position: fixed
+    inset: 0
+    z-index: 900
+    background: rgba(15, 23, 42, .28)
+    animation: logs-fade .2s ease-out
+
+  &__drawer
+    --logs-accent: var(--color-primary)
+    --logs-accent-bg: var(--color-primary-50)
+    position: fixed
+    top: 0
+    right: 0
+    bottom: 0
+    z-index: 901
+    width: min(460px, 100vw)
+    display: flex
+    flex-direction: column
+    background: var(--color-surface)
+    box-shadow: -12px 0 40px rgba(0, 0, 0, .18)
+    animation: logs-slide .25s cubic-bezier(.2, .8, .2, 1)
+
+    &--avviso
+      --logs-accent: var(--color-warning)
+      --logs-accent-bg: var(--color-warning-light)
+
+    &--errore
+      --logs-accent: var(--color-error)
+      --logs-accent-bg: var(--color-error-light)
+
+  &__dr-head
+    padding: 14px 20px 18px
+    border-top: 4px solid var(--logs-accent)
+    background: var(--logs-accent-bg)
+
+  &__dr-nav
+    display: flex
+    align-items: center
+    gap: 4px
+    margin-bottom: 12px
+
+    .logs__dr-pos
+      margin-right: auto
+      font-size: 12px
+      color: var(--color-text-inactive)
+
+    button
+      width: 30px
+      display: inline-flex
+      align-items: center
+      justify-content: center
+      height: 30px
+      border: 0
+      border-radius: 8px
+      background: transparent
+      color: var(--color-primary)
+      font-size: 14px
+      cursor: pointer
+
+      &:hover:not(:disabled)
+        background: var(--color-surface)
+
+      &:focus-visible
+        outline: 2px solid var(--color-primary)
+        outline-offset: 1px
+
+      &:focus:not(:focus-visible)
+        outline: none
+
+      &:disabled
+        opacity: .35
+        cursor: default
+
+  &__dr-title
+    display: flex
+    gap: 14px
+
+    h3
+      margin: 6px 0 4px
+      font-family: $font-heading
+      font-size: 18px
+      font-weight: 600
+      color: var(--color-text-active)
+
+    p
+      margin: 0
+      font-size: 13px
+      line-height: 1.45
+      color: var(--color-text-active)
+
+  &__dr-ico
+    flex-shrink: 0
+    width: 44px
+    height: 44px
     display: inline-flex
     align-items: center
     justify-content: center
-    font-size: 14px
-    flex-shrink: 0
-
-  // ── Riga di dettaglio ────────────────────────────────────────────
-  &__detail-row
-    background: $bg
-
-    > td
-      padding: 8px 12px 16px
-
-  &__events
-    width: 100%
-    border-collapse: collapse
-    font-size: 12px
+    border-radius: 12px
     background: var(--color-surface)
-    border: 1px solid $border
-    border-radius: 8px
+    color: var(--logs-accent)
+    font-size: 20px
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .08)
+
+  &__dr-body
+    flex: 1
+    overflow-y: auto
+    padding: 18px 20px
+    display: flex
+    flex-direction: column
+    gap: 20px
+
+  &__dr-who
+    display: flex
+    align-items: center
+    gap: 12px
+
+    > div
+      flex: 1
+      min-width: 0
+      display: flex
+      flex-direction: column
+
+      strong
+        font-size: 14px
+        color: var(--color-text-active)
+
+      span
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+        font-size: 12px
+        color: var(--color-text-inactive)
+
+  &__link
+    flex-shrink: 0
+    border: 0
+    background: none
+    color: var(--color-primary)
+    font-size: 12px
+    font-weight: 600
+    text-decoration: underline
+    cursor: pointer
+
+  &__dr-meta
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 12px 16px
+    margin: 0
+    padding: 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+
+    div
+      min-width: 0
+
+    dt
+      font-size: 11.5px
+      font-weight: 600
+      color: var(--color-primary)
+
+    dd
+      margin: 2px 0 0
+      font-size: 13px
+      color: var(--color-text-active)
+      overflow-wrap: anywhere
+
+      small
+        display: block
+        font-size: 11.5px
+        color: var(--color-text-inactive)
+
+  &__mono
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace
+    font-size: 12px
+
+  &__dr-sec h4
+    margin: 0 0 8px
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-primary)
+
+    small
+      margin-left: 6px
+      font-family: inherit
+      font-weight: 400
+      color: var(--color-text-inactive)
+
+  &__diff
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    li
+      display: grid
+      grid-template-columns: minmax(90px, auto) 1fr auto 1fr
+      align-items: center
+      gap: 8px
+      padding: 8px 10px
+      border-radius: 8px
+      background: var(--color-bg)
+      font-size: 12.5px
+
+      i
+        font-size: 11px
+        color: var(--color-text-inactive)
+
+  &__diff-campo
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__diff-prima
+    padding: 2px 8px
+    border-radius: 6px
+    background: var(--color-error-light)
+    color: var(--color-error)
+    text-decoration: line-through
+
+  &__diff-dopo
+    padding: 2px 8px
+    border-radius: 6px
+    background: var(--color-success-light)
+    color: var(--color-success)
+    font-weight: 600
+
+  &__dr-foot
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 12px 20px
+    border-top: 1px solid var(--color-border)
+
+    .logs__mono
+      color: var(--color-text-inactive)
+
+// ─── Tabelle senza scroll orizzontale ────────────────────────────────────────
+// Due classi: .sib-table vincerebbe a pari specificità.
+.logs__wrap .logs__table
+  +table-fit
+  font-size: 12.5px
+
+  th, td
+    padding: 8px 8px
+    white-space: nowrap
     overflow: hidden
 
-    thead th
-      background: $bg-zebra
-      padding: 8px 12px
-      text-align: left
-      font-size: 11px
-      font-weight: 700
-      color: $muted
-      text-transform: uppercase
-      letter-spacing: 0.04em
-      border-bottom: 1px solid $border
+  th.logs__num .sib-colf-head
+    justify-content: flex-end
+    width: 100%
 
-    tbody td
-      padding: 8px 12px
-      color: $ink
-      border-bottom: 1px solid $border
+  tbody tr:last-child td
+    border-bottom: 0
 
-    tbody tr:last-child td
-      border-bottom: none
++th-labels
 
-    tbody tr:nth-child(even)
-      background: $bg
+.logs__w-liv
+  width: 9%
+.logs__w-quando
+  width: 11%
+.logs__w-utente
+  width: 14%
+.logs__w-cat
+  width: 12%
+.logs__w-evento
+  width: 15%
+.logs__w-desc
+  width: 18%
+.logs__w-mod
+  width: 9%
+.logs__w-orig
+  width: 9%
+.logs__w-chev
+  width: 3%
 
-  &__empty-events
-    margin: 0
-    padding: 12px
-    background: var(--color-surface)
-    border: 1px dashed $border
-    border-radius: 8px
-    color: $muted
+.logs__wu-nome
+  width: 20%
+.logs__wu-ruolo
+  width: 14%
+.logs__wu-stato
+  width: 13%
+.logs__wu-ultima
+  width: 13%
+.logs__wu-num
+  width: 10%
+.logs__wu-trend
+  width: 12%
+.logs__wu-az
+  width: 8%
+
+@container logs (max-width: 1180px)
+  .logs__wrap .logs__table
     font-size: 12px
-    text-align: center
 
-  // ── Pagination ────────────────────────────────────────────────────
-  &__pagination
-    display: flex
-    justify-content: space-between
-    align-items: center
-    flex-wrap: wrap
-    gap: 12px
-    margin-top: 4px
+    th, td
+      padding-left: 5px
+      padding-right: 5px
 
-  &__pagination-info
-    font-size: 12px
-    color: $muted
+  .logs__quando small
+    display: none
+
+  .logs__wrap
+    +th-compact
+
+@container logs (max-width: 900px)
+  .logs__search
+    max-width: none
+    margin-left: 0
+
+  .logs__chart-head
+    flex-direction: column
+
+// ─── Animazioni ──────────────────────────────────────────────────────────────
+@keyframes logs-pulse
+  0%
+    box-shadow: 0 0 0 0 var(--color-success-mid)
+  100%
+    box-shadow: 0 0 0 7px transparent
+
+@keyframes logs-new
+  0%
+    background: var(--color-success-light)
+  70%
+    background: var(--color-success-light)
+  100%
+    background: transparent
+
+@keyframes logs-in
+  from
+    opacity: 0
+    transform: translateY(-4px)
+
+@keyframes logs-fade
+  from
+    opacity: 0
+
+@keyframes logs-slide
+  from
+    transform: translateX(100%)

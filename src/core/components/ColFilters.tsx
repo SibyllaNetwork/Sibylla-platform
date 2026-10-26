@@ -225,7 +225,13 @@ export function useColFilters() {
   /** Azzera tutti i filtri di colonna e l'ordinamento (es. pulsante "Azzera filtri"). */
   const reset = () => { setText({}); setMulti({}); setSort(null); setOpen(null) }
 
-  return { text, multi, sort, matchText, matchMulti, sortRows, th, hasActive, reset }
+  /** Imposta da fuori le scelte di una colonna (es. click su un grafico o su un chip). */
+  const setMultiFor = (k: string, vals: string[]) => setMulti(p => ({ ...p, [k]: vals }))
+
+  return {
+    text, multi, sort, matchText, matchMulti, sortRows, th, hasActive, reset,
+    setText: onText, toggleMulti: onToggleMulti, setMultiFor,
+  }
 }
 
 export default ColFilters
