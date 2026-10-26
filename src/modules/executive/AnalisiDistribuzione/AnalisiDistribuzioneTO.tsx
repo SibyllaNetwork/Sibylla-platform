@@ -119,19 +119,19 @@ interface RowBase {
 }
 const ROWS_BASE: RowBase[] = [
   { date: '09/06/2026', evType: 'concerto', meteo: 'sereno',   temp: '28°', market: 'medio', stag: 'Alta Stagione', ospiti: 112, vendute: 46, giacenza: 60, sugg: 3 },
-  { date: '10/06/2026', evType: 'sport',    meteo: 'parziale', temp: '27°', market: 'alto',  stag: 'Alta Stagione', ospiti: 128, vendute: 52, giacenza: 60, sugg: 2 },
+  { date: '10/06/2026', evType: 'sport',    meteo: 'parziale', temp: '27°', market: 'alto',  stag: 'Media Stagione', ospiti: 128, vendute: 52, giacenza: 60, sugg: 2 },
   { date: '11/06/2026', evType: 'cultura',  meteo: 'nuvoloso', temp: '24°', market: 'alto',  stag: 'Alta Stagione', ospiti: 141, vendute: 55, giacenza: 60, sugg: 4 },
-  { date: '12/06/2026', evType: 'sagra',    meteo: 'pioggia',  temp: '21°', market: 'basso', stag: 'Alta Stagione', ospiti: 98,  vendute: 40, giacenza: 60, sugg: 1 },
+  { date: '12/06/2026', evType: 'sagra',    meteo: 'pioggia',  temp: '21°', market: 'basso', stag: 'Bassa Stagione', ospiti: 98,  vendute: 40, giacenza: 60, sugg: 1 },
   { date: '13/06/2026', evType: 'festival', meteo: 'sereno',   temp: '29°', market: 'alto',  stag: 'Alta Stagione', ospiti: 133, vendute: 51, giacenza: 60, sugg: 3 },
-  { date: '14/06/2026', evType: 'fiera',    meteo: 'parziale', temp: '26°', market: 'medio', stag: 'Alta Stagione', ospiti: 104, vendute: 43, giacenza: 60, sugg: 2 },
-  { date: '15/06/2026', evType: 'mostra',   meteo: 'nuvoloso', temp: '23°', market: 'basso', stag: 'Alta Stagione', ospiti: 88,  vendute: 38, giacenza: 60, sugg: 0 },
+  { date: '14/06/2026', evType: 'fiera',    meteo: 'parziale', temp: '26°', market: 'medio', stag: 'Media Stagione', ospiti: 104, vendute: 43, giacenza: 60, sugg: 2 },
+  { date: '15/06/2026', evType: 'mostra',   meteo: 'nuvoloso', temp: '23°', market: 'basso', stag: 'Bassa Stagione', ospiti: 88,  vendute: 38, giacenza: 60, sugg: 0 },
   { date: '16/06/2026', evType: 'concerto', meteo: 'sereno',   temp: '30°', market: 'medio', stag: 'Alta Stagione', ospiti: 119, vendute: 47, giacenza: 60, sugg: 2 },
-  { date: '17/06/2026', evType: 'sport',    meteo: 'sereno',   temp: '31°', market: 'alto',  stag: 'Alta Stagione', ospiti: 137, vendute: 54, giacenza: 60, sugg: 3 },
+  { date: '17/06/2026', evType: 'sport',    meteo: 'sereno',   temp: '31°', market: 'alto',  stag: 'Media Stagione', ospiti: 137, vendute: 54, giacenza: 60, sugg: 3 },
   { date: '18/06/2026', evType: 'cultura',  meteo: 'parziale', temp: '28°', market: 'alto',  stag: 'Alta Stagione', ospiti: 145, vendute: 57, giacenza: 60, sugg: 5 },
-  { date: '19/06/2026', evType: 'sagra',    meteo: 'pioggia',  temp: '22°', market: 'basso', stag: 'Alta Stagione', ospiti: 91,  vendute: 39, giacenza: 60, sugg: 1 },
+  { date: '19/06/2026', evType: 'sagra',    meteo: 'pioggia',  temp: '22°', market: 'basso', stag: 'Bassa Stagione', ospiti: 91,  vendute: 39, giacenza: 60, sugg: 1 },
   { date: '20/06/2026', evType: 'festival', meteo: 'nuvoloso', temp: '25°', market: 'medio', stag: 'Alta Stagione', ospiti: 121, vendute: 48, giacenza: 60, sugg: 2 },
   { date: '21/06/2026', evType: 'mostra',   meteo: 'sereno',   temp: '29°', market: 'alto',  stag: 'Alta Stagione', ospiti: 130, vendute: 50, giacenza: 60, sugg: 3 },
-  { date: '22/06/2026', evType: 'fiera',    meteo: 'parziale', temp: '27°', market: 'medio', stag: 'Alta Stagione', ospiti: 108, vendute: 44, giacenza: 60, sugg: 2 },
+  { date: '22/06/2026', evType: 'fiera',    meteo: 'parziale', temp: '27°', market: 'medio', stag: 'Media Stagione', ospiti: 108, vendute: 44, giacenza: 60, sugg: 2 },
   { date: '23/06/2026', evType: 'concerto', meteo: 'sereno',   temp: '32°', market: 'alto',  stag: 'Alta Stagione', ospiti: 139, vendute: 53, giacenza: 60, sugg: 4 },
 ]
 
@@ -145,8 +145,10 @@ const ROWS: RowBase[] = ROWS_BASE.map((r) => {
   return { ...r, date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}` }
 })
 
+const STAGIONI = ['Bassa Stagione', 'Media Stagione', 'Alta Stagione']
 const STAGIONI_PERIODI: Record<string, string[]> = {
   'Alta Stagione': ['Dal 01/01/2026 al 29/05/2026', 'Dal 03/06/2026 al 03/08/2026', 'Dal 01/09/2026 al 31/10/2026'],
+  'Media Stagione': ['Dal 01/04/2026 al 31/05/2026', 'Dal 01/09/2026 al 15/10/2026'],
   'Bassa Stagione': ['Dal 30/05/2026 al 02/06/2026', 'Dal 04/08/2026 al 31/08/2026'],
 }
 
@@ -279,12 +281,12 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
         <table className="sib-table adto__table">
           <thead>
             <tr>
-              <th className="adto__c-center">LY</th>
+              <th className="adto__c-center"><Tooltip text="Anno precedente (Last Year)"><span className="adto__abbr">LY</span></Tooltip></th>
               <th>{head('Data', 'dateKey', 'data', { search: true, sort: true })}</th>
               {vistaCompleta && <th className="adto__c-center">{head('Eventi', 'evLabel', 'evento', { options: uniq(righe.map((r) => r.evLabel)) })}</th>}
               {vistaCompleta && <th className="adto__c-center">{head('Meteo', 'meteoLabel', 'meteo', { options: uniq(righe.map((r) => r.meteoLabel)) })}</th>}
               {vistaCompleta && <th>{head('Market demand', 'marketN', 'market demand', { options: ['Basso', 'Medio', 'Alto'] })}</th>}
-              <th>{head('Stagionalità', 'stag', 'stagionalità', { options: uniq(righe.map((r) => r.stag)) })}</th>
+              <th>{head('Stagionalità', 'stag', 'stagionalità', { options: STAGIONI })}</th>
               <th className="adto__c-num">
                 {head(<Tooltip text="Numero di ospiti presenti nella struttura"><span>Ospiti presenti</span></Tooltip>, 'ospiti', 'ospiti presenti', { sort: true })}
               </th>
@@ -293,7 +295,7 @@ export default function AnalisiDistribuzioneTO({ navigate: _navigate }: { naviga
                 {head(<Tooltip text="Disponibilità residua da giacenza a contratto"><span>Disponibilità</span></Tooltip>, 'residua', 'disponibilità', { sort: true })}
               </th>
               <th className="adto__c-center">
-                {head(<Tooltip text="Suggerimenti data-driven accolti"><span>Sugg. accolti</span></Tooltip>, 'sugg', 'suggerimenti accolti', { sort: true })}
+                {head(<Tooltip text="Suggerimenti accolti"><span className="adto__abbr">Sugg. accolti</span></Tooltip>, 'sugg', 'suggerimenti accolti', { sort: true })}
               </th>
             </tr>
           </thead>
