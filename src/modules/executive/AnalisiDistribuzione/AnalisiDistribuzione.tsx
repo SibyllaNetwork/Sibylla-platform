@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip } from 'recharts';
-import GaugeArc from '../../../core/components/GaugeArc';
 import PageHead from '../../../core/components/PageHead';
 import Pagination from '../../../core/components/Pagination';
 import Tooltip from '../../../core/components/Tooltip';
+import { useColFilters } from '../../../core/components/ColFilters';
 import { SelectField, DateRangeField } from '../../../core/components/form'
 import SuggerimentiModal from './SuggerimentiModal';
 import AnalisiDistribuzioneTO from './AnalisiDistribuzioneTO';
@@ -171,6 +171,49 @@ const PKL = [1, 7, 30, 60, 90];
 // Prenotazioni totali per finestra pickup (giorni → totale)
 const PKL_TOTALI: Record<number, number> = { 1: 31, 7: 50, 30: 679, 60: 1393, 90: 509 };
 
+// ── Filtri e ordinamento di colonna ────────────────────────────────────────────
+// I valori della tabella sono stringhe formattate ("13.565,89", "17,61 %",
+// "09/06/2026"): per ordinare si ricavano campi numerici / data ISO a parte.
+const num = (s: string) => parseFloat(s.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')) || 0
+const isoDate = (d: string) => d.split('/').reverse().join('-')
+const MARKET_LABEL: Record<string, string> = { basso: 'Basso', medio: 'Medio', alto: 'Alto' }
+const MARKET_LIV: Record<string, number> = { basso: 1, medio: 2, alto: 3 }
+
+function arricchisci(row: Row, i: number) {
+  return {
+    ...row,
+    idx: i,
+    dateKey: isoDate(row.date),
+    evLabel: (EVENTI[row.evType] ?? EVENTI.festival).label,
+    marketLabel: MARKET_LABEL[row.market] ?? 'Medio',
+    marketN: MARKET_LIV[row.market] ?? 2,
+    meteoLabel: (METEO[row.meteo] ?? METEO.sereno).label,
+    anLabel: ANALISI[row.analisi].text,
+    pctN: num(row.pct),
+    revN: num(row.rev),
+    adrN: num(row.adr),
+    cameraN: num(row.camera),
+    pk0: row.pickup[0], pk1: row.pickup[1], pk2: row.pickup[2], pk3: row.pickup[3], pk4: row.pickup[4],
+  }
+}
+const uniq = (xs: string[]) => Array.from(new Set(xs))
+
+// Market demand compatto: segnale a 3 barre (1 = basso … 3 = alto) + etichetta.
+function MarketDemand({ level }: { level: string }) {
+  const lv = MARKET_LIV[level] ? level : 'medio'
+  const n = MARKET_LIV[lv]
+  return (
+    <Tooltip text={`Market demand: ${MARKET_LABEL[lv]}`}>
+      <span className={`analisi__md analisi__md--${lv}`}>
+        <span className="analisi__md-bars" aria-hidden="true">
+          {[1, 2, 3].map(b => <span key={b} className={'analisi__md-bar' + (b <= n ? ' is-on' : '')} />)}
+        </span>
+        {MARKET_LABEL[lv]}
+      </span>
+    </Tooltip>
+  )
+}
+
 // Periodi associati a ciascuna stagionalità (mostrati nel tooltip)
 const STAGIONI_PERIODI: Record<string, string[]> = {
   'Alta Stagione': [
@@ -294,8 +337,24 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
   const [suggOpen, setSuggOpen]         = useState(false);
   const [page, setPage]                 = useState(1);
   const PAGE_SIZE = 8;
-  const totalPages = Math.ceil(ROWS.length / PAGE_SIZE);
-  const paged = ROWS.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const cf = useColFilters();
+  const righe = useMemo(() => ROWS.map(arricchisci), []);
+  const filtrate = useMemo(() => cf.sortRows(righe.filter(r =>
+    cf.matchText(r.date, 'dateKey') &&
+    cf.matchMulti(r.evLabel, 'evLabel') &&
+    cf.matchMulti(r.marketLabel, 'marketN') &&
+    cf.matchMulti(r.meteoLabel, 'meteoLabel') &&
+    cf.matchMulti(r.stag, 'stag') &&
+    cf.matchMulti(r.anLabel, 'anLabel')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  )), [righe, cf.text, cf.multi, cf.sort]);
+  useEffect(() => { setPage(1) }, [cf.text, cf.multi, cf.sort]);
+  const totalPages = Math.max(1, Math.ceil(filtrate.length / PAGE_SIZE));
+  const paged = filtrate.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Intestazione con filtri: etichetta + cluster di icone (imbuto / lente / ordinamento).
+  const head = (label: React.ReactNode, key: string, nome: string, cfg: Parameters<typeof cf.th>[2]) => (
+    <span className="sib-colf-head">{label}{cf.th(key, nome, cfg)}</span>
+  );
 
   // ── Pie hover (Revenue / ADR / Occupancy) ────────────────────────────────────
   type Seg = { label: string; val: number; color: string };
@@ -432,16 +491,16 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
             <thead>
               <tr>
                 <TH ch="Confronta LY" />
-                <TH ch="Data" />
-                <TH ch="Evento" />
-                <TH ch="Market demand" />
-                <TH ch="Meteo" />
-                <TH ch="Stagionalità" />
-                <TH ch="%" />
-                <TH ch="Revenue" />
-                <TH ch="A.D.R." />
-                {PKL.map(l => (
-                  <TH key={l} className="analisi__th--center" ch={
+                <TH ch={head('Data', 'dateKey', 'data', { search: true, sort: true })} />
+                <TH ch={head('Evento', 'evLabel', 'evento', { options: uniq(righe.map(r => r.evLabel)) })} />
+                <TH ch={head(<Tooltip text="Market demand"><span className="analisi__abbr">M. demand</span></Tooltip>, 'marketN', 'market demand', { options: ['Basso', 'Medio', 'Alto'], sort: true })} />
+                <TH ch={head('Meteo', 'meteoLabel', 'meteo', { options: uniq(righe.map(r => r.meteoLabel)) })} />
+                <TH ch={head('Stagionalità', 'stag', 'stagionalità', { options: uniq(righe.map(r => r.stag)) })} />
+                <TH ch={head('%', 'pctN', 'occupazione', { sort: true })} />
+                <TH ch={head('Revenue', 'revN', 'revenue', { sort: true })} />
+                <TH ch={head('A.D.R.', 'adrN', 'A.D.R.', { sort: true })} />
+                {PKL.map((l, k) => (
+                  <TH key={l} className="analisi__th--center" ch={head(
                     <Tooltip content={
                       <span className="analisi__pk-tip">
                         Prenotazioni degli ultimi:<br />{l} {l === 1 ? 'giorno' : 'giorni'}<br />Totale: ({PKL_TOTALI[l]})
@@ -451,27 +510,31 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
                         <i className="fa-duotone fa-calendar" aria-hidden="true" />
                         <span className="analisi__pk-head-n">{l}</span>
                       </span>
-                    </Tooltip>
+                    </Tooltip>, `pk${k}`, `pickup ${l} ${l === 1 ? 'giorno' : 'giorni'}`, { sort: true })
                   } />
                 ))}
-                <TH className="analisi__th--center" ch={
-                  <Tooltip text="Elasticità della domanda"><span className="analisi__eps">ε</span></Tooltip>
+                <TH className="analisi__th--center" ch={head(
+                  <Tooltip text="Elasticità della domanda"><span className="analisi__eps">ε</span></Tooltip>,
+                  'anLabel', 'elasticità', { options: Object.values(ANALISI).map(a => a.text) })
                 } />
-                <TH ch="Camera di riferimento" />
-                <TH ch="Disponibilità" />
-                <TH ch="Suggerimenti accolti" last />
+                <TH ch={head('Camera di riferimento', 'cameraN', 'camera di riferimento', { sort: true })} />
+                <TH ch={head('Disponibilità', 'disp', 'disponibilità', { sort: true })} />
+                <TH className="analisi__th--center" ch={head('Suggerimenti accolti', 'sugg', 'suggerimenti accolti', { sort: true })} last />
               </tr>
             </thead>
             <tbody>
-              {paged.map((row, j) => {
-                const i = (page - 1) * PAGE_SIZE + j;
+              {paged.length === 0 && (
+                <tr><td colSpan={18} className="analisi__td analisi__td--empty">Nessun giorno corrisponde ai filtri. <button type="button" className="analisi__sugg-link" onClick={cf.reset}>Azzera filtri</button></td></tr>
+              )}
+              {paged.map((row) => {
+                const i = row.idx;
                 const an = ANALISI[row.analisi];
                 return (
                   <tr key={i} className="analisi__row">
                       <TD className="analisi__td--center" ch={<ConfrontaLY row={row} />} />
                       <TD ch={<span className="analisi__date-cell">{row.date}</span>} />
                       <TD className="analisi__td--center" ch={<EventHover evType={row.evType} date={row.date} />} />
-                      <TD ch={<GaugeArc level={row.market} />} />
+                      <TD ch={<MarketDemand level={row.market} />} />
                       <TD className="analisi__td--center" ch={<MeteoHover cond={row.meteo} temp={row.temp} date={row.date} />} />
                       <TD ch={
                         <Tooltip content={
@@ -518,10 +581,17 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
                           <i className="fa-duotone fa-bed analisi__disp-bed" aria-hidden="true" />
                         </span>
                       } />
-                      <TD last ch={
-                        <button type="button" className="analisi__sugg-link" onClick={() => setSuggOpen(true)} title="Apri dettaglio suggerimenti accolti">
-                          {row.sugg}
-                        </button>
+                      <TD last className="analisi__td--center" ch={
+                        <span className="analisi__sugg-cell">
+                          <Tooltip text="Apri il dettaglio dei suggerimenti accolti">
+                            <button type="button" className="analisi__sugg-link" onClick={() => setSuggOpen(true)}>{row.sugg}</button>
+                          </Tooltip>
+                          <Tooltip text="Vedi suggerimenti accolti">
+                            <button type="button" className="analisi__sugg-ico" aria-label="Vedi suggerimenti accolti" onClick={() => setSuggOpen(true)}>
+                              <i className="fa-solid fa-list-check" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
+                        </span>
                       } />
                   </tr>
                 );
@@ -531,6 +601,12 @@ function AnalisiDistribuzioneHotel({ navigate }: { navigate: (p: string) => void
         </div>
       </div>
 
+      {cf.hasActive && (
+        <div className="analisi__filters-info">
+          {filtrate.length} di {righe.length} giorni
+          <button type="button" className="analisi__sugg-link" onClick={cf.reset}><i className="fa-light fa-filter-circle-xmark" /> Azzera filtri</button>
+        </div>
+      )}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} className="analisi__pagination" />
 
       <SuggerimentiModal open={suggOpen} onClose={() => setSuggOpen(false)} />

@@ -134,6 +134,9 @@
   &--center
     text-align: center
 
+    .sib-colf-head
+      justify-content: center
+
 .analisi__td
   padding: 10px 8px
   font-size: 13px
@@ -745,3 +748,76 @@
 
 .analisi__hc-pad
   padding: 12px 14px
+
+
+// ─── Filtri di colonna ────────────────────────────────────────────────────────
+.analisi__abbr
+  border-bottom: 1px dotted currentColor
+
+.analisi__td--empty
+  text-align: center
+  padding: 24px 8px
+  color: $text-inactive
+
+.analisi__filters-info
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 12px
+  font-size: 12px
+  color: $text-inactive
+
+// ─── Market demand compatto (segnale a 3 barre) ───────────────────────────────
+.analisi__md
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  font-size: 11px
+  font-weight: 700
+
+  &--basso
+    color: $success
+  &--medio
+    color: $warning
+  &--alto
+    color: $error
+
+.analisi__md-bars
+  display: inline-flex
+  align-items: flex-end
+  gap: 2px
+  height: 12px
+
+.analisi__md-bar
+  width: 4px
+  border-radius: 1px
+  background: $border
+
+  &:nth-child(1)
+    height: 5px
+  &:nth-child(2)
+    height: 8px
+  &:nth-child(3)
+    height: 12px
+
+  &.is-on
+    background: currentColor
+
+// ─── Suggerimenti accolti: numero + icona per aprire la modale ───────────────
+.analisi__sugg-cell
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  gap: 8px
+
+.analisi__sugg-ico
+  display: inline-flex
+  padding: 0
+  border: none
+  background: none
+  color: $primary
+  font-size: 16px
+  cursor: pointer
+
+  &:hover
+    opacity: .75
