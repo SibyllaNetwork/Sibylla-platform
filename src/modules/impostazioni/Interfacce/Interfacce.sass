@@ -1,223 +1,682 @@
-@use "sass:color"
+// ─── Interfacce ─────────────────────────────────────────────────────────────
+// Base (diretta, chip, tabella, pannello di dettaglio) in LogDiSistema.sass:
+// qui mappa delle integrazioni, feed, flussi e colonne.
 @use '../../../styles/tokens' as *
 
-$ink: #111827
-$muted: #4b5563
-$bg-zebra: #f3f8fb
-$status-ok: #10b981
-$status-warn: #f59e0b
-$danger: #dc2626
+.ifc
+  &__sync-all
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
 
-.interfacce
-  display: flex
-  flex-direction: column
-  gap: 14px
+  &__top
+    display: grid
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr)
+    gap: 14px
+    align-items: stretch
 
-  > .sib-btn--back
-    align-self: flex-start
+  &__h2, &__todo h2, &__feed h2
+    margin: 0
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 600
+    color: var(--color-text-active)
 
-  // ── Tabella ──────────────────────────────────────────────────────
-  &__table
-    .interfacce__th-toggle
-      width: 40px
+    small
+      margin-left: 4px
+      font-size: 12px
+      color: var(--color-error)
 
-    .interfacce__th-name
-      width: 320px
-      text-align: center
+  &__leg--operativo i
+    color: var(--color-success)
+  &__leg--avviso i
+    color: var(--color-warning)
+  &__leg--errore i
+    color: var(--color-error)
+  &__leg--sospeso i
+    color: var(--color-text-inactive)
 
-    .interfacce__th-status
-      width: 140px
-      text-align: center
+  .logs__leg.is-on.ifc__leg--operativo
+    border-color: var(--color-success)
+    background: var(--color-success-light)
+  .logs__leg.is-on.ifc__leg--avviso
+    border-color: var(--color-warning)
+    background: var(--color-warning-light)
+  .logs__leg.is-on.ifc__leg--errore
+    border-color: var(--color-error)
+    background: var(--color-error-light)
+  .logs__leg.is-on.ifc__leg--sospeso
+    border-color: var(--color-text-inactive)
+    background: var(--color-bg)
 
-  &__row
+  .logs__leg:disabled
+    opacity: .4
+    cursor: default
+
+  // ── Mappa ──────────────────────────────────────────────────────────────
+  &__map
+    display: block
+    width: 100%
+    height: auto
+    max-height: 360px
+    overflow: visible
+
+  &__link
+    transition: opacity .2s
+
+    > path
+      fill: none
+      stroke-width: 1.5
+      stroke: var(--color-primary-300)
+      stroke-dasharray: 3 5
+      animation: ifc-flow 1.4s linear infinite
+
+    &--avviso > path
+      stroke: var(--color-warning)
+    &--errore > path
+      stroke: var(--color-error)
+      stroke-dasharray: 2 6
+      animation: none
+    &--sospeso > path
+      stroke: var(--color-text-disabled)
+      animation: none
+    &--sync > path
+      stroke: var(--color-primary)
+      stroke-width: 2.5
+      animation-duration: .5s
+
+    &.is-hover > path
+      stroke-width: 3
+      stroke-dasharray: none
+
+    &.is-dim
+      opacity: .15
+
+  &__dot
+    fill: var(--color-primary)
+
+    .ifc__link--avviso &
+      fill: var(--color-warning)
+
+  &__break
+    circle
+      fill: var(--color-surface)
+      stroke: var(--color-error)
+      stroke-width: 1.5
+
+    path
+      stroke: var(--color-error)
+      stroke-width: 1.6
+      stroke-linecap: round
+
+  &__hub
+    circle
+      fill: var(--color-primary)
+
+    text
+      fill: #fff
+      font-family: $font-heading
+      font-size: 13px
+      font-weight: 600
+
+  &__hub-ring
+    fill: var(--color-primary-100) !important
+    transform-origin: 320px 170px
+    animation: ifc-breathe 3s ease-in-out infinite
+
+  &__node
     cursor: pointer
-    transition: background 0.15s
+    outline: none
+    transition: opacity .2s
+
+    &.is-dim
+      opacity: .25
+
+  &__node-halo
+    fill: transparent
+    transition: fill .2s
+
+  &__node:hover &__node-halo, &__node:focus-visible &__node-halo, &__node.is-hover &__node-halo
+    fill: var(--color-primary-50)
+
+  &__node-c
+    fill: var(--color-surface)
+    stroke-width: 2.5
+    stroke: var(--color-success)
+    transition: stroke-width .2s
+
+  &__node--avviso &__node-c
+    stroke: var(--color-warning)
+  &__node--errore &__node-c
+    stroke: var(--color-error)
+    fill: var(--color-error-light)
+  &__node--sospeso &__node-c
+    stroke: var(--color-text-disabled)
+    stroke-dasharray: 3 3
+  &__node--sync &__node-c
+    stroke: var(--color-primary)
+    stroke-dasharray: 10 6
+    transform-box: fill-box
+    transform-origin: center
+    animation: ifc-spin 1s linear infinite
+
+  &__node--errore &__node-halo
+    fill: var(--color-error-light)
+    transform-box: fill-box
+    transform-origin: center
+    animation: ifc-alarm 1.8s ease-out infinite
+
+  &__node.is-ping &__node-halo
+    fill: var(--color-success-light)
+    transform-box: fill-box
+    transform-origin: center
+    animation: ifc-ping 1.1s ease-out
+
+  &__node-sigla
+    fill: var(--color-text-active)
+    font-size: 12px
+    font-weight: 700
+
+  &__node-nome
+    fill: var(--color-text-inactive)
+    font-size: 11px
+
+  &__node.is-hover &__node-nome, &__node:hover &__node-nome
+    fill: var(--color-text-active)
+    font-weight: 600
+
+  // ── Colonna destra: da sistemare + feed ────────────────────────────────
+  // La colonna destra prende l'altezza della mappa e scorre al suo interno
+  &__side
+    position: relative
+    min-width: 0
+    min-height: 360px
+
+  &__side-in
+    position: absolute
+    inset: 16px 18px
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 16px
+
+  &__todo ul, &__feed ol
+    list-style: none
+    margin: 8px 0 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  &__todo-item button
+    display: flex
+    align-items: center
+    gap: 10px
+    width: 100%
+    padding: 6px 10px
+    border: 1px solid var(--color-border)
+    border-left-width: 3px
+    border-radius: 8px
+    background: var(--color-surface)
+    text-align: left
+    cursor: pointer
+    transition: background .15s
 
     &:hover
-      background: $bg
+      background: var(--color-bg)
 
-    &--open
-      background: $bg
+      .ifc__todo-go
+        transform: translateX(2px)
 
-      td
-        border-bottom-color: transparent
+    // Una riga sola: nome e causa affiancati
+    > span
+      flex: 1
+      min-width: 0
+      display: flex
+      align-items: baseline
+      gap: 8px
 
-  &__td-toggle
-    color: $primary
-    text-align: center
+      strong
+        flex-shrink: 0
+        font-size: 12.5px
+        color: var(--color-text-active)
 
-    i
-      font-size: 16px
+      > span
+        min-width: 0
+        font-size: 11.5px
+        color: var(--color-text-inactive)
 
-  &__td-name
-    text-align: center
+  &__todo-item--errore button
+    border-left-color: var(--color-error)
 
-  // ── Logo immagine (Clearbit) ────────────────────────────────────
-  &__logo-img-wrap
+    > i:first-child
+      color: var(--color-error)
+
+  &__todo-item--avviso button
+    border-left-color: var(--color-warning)
+
+    > i:first-child
+      color: var(--color-warning)
+
+  &__todo-go
+    color: var(--color-text-inactive)
+    font-size: 11px
+    transition: transform .15s
+
+  &__feed
+    min-height: 0
+
+  &__feed-live
+    margin-left: 6px
+    font-family: inherit
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-success)
+
+    &::before
+      content: ''
+      display: inline-block
+      width: 7px
+      height: 7px
+      margin-right: 5px
+      border-radius: 50%
+      background: var(--color-success)
+      vertical-align: 1px
+      animation: logs-pulse 1.6s ease-out infinite
+
+  &__feed-item
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 6px 4px
+    border-bottom: 1px dashed var(--color-border)
+    animation: ifc-feed .45s ease-out
+
+    &:last-child
+      border-bottom: 0
+
+    &.is-ko
+      .ifc__feed-txt small
+        color: var(--color-error)
+
+  &__feed-txt
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+    strong, small
+      overflow: hidden
+      text-overflow: ellipsis
+      white-space: nowrap
+
+    strong
+      font-size: 12px
+      color: var(--color-text-active)
+
+    small
+      font-size: 11px
+      color: var(--color-text-inactive)
+
+      i
+        margin-right: 4px
+        color: var(--color-primary)
+
+  &__feed-ts
+    flex-shrink: 0
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  // ── Sigla del sistema ──────────────────────────────────────────────────
+  &__sigla
+    flex-shrink: 0
     display: inline-flex
     align-items: center
     justify-content: center
-    height: 36px
-    max-width: 200px
-
-  &__logo-img
-    max-height: 36px
-    max-width: 200px
-    width: auto
-    object-fit: contain
-    display: block
-
-  // ── Logo testuale (fallback dei brand) ──────────────────────────
-  &__logo
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    font-family: 'Poppins', sans-serif
-    font-weight: 700
-    font-size: 14px
-    letter-spacing: 0.04em
-    color: $primary
-
-    &--verticalbooking
-      color: $primary
-      font-weight: 800
-
-    &--hqrevenue
-      color: #1e40af
-      font-style: italic
-
-    &--syselicat
-      color: #b91c1c
-      font-weight: 800
-
-    &--gamma
-      color: $ink
-      font-weight: 700
-      font-style: italic
-
-    &--sojern
-      color: #f97316
-      font-weight: 800
-      letter-spacing: 0.06em
-
-    &--travco
-      color: #be123c
-      font-weight: 800
-
-    &--g2travel
-      color: #0ea5e9
-
-    &--italcamel
-      color: #1e3a8a
-      font-style: italic
-
-    &--avoris
-      color: #1e40af
-      font-weight: 700
-
-    &--agoda
-      color: #6366f1
-      letter-spacing: 0.18em
-
-    &--ratehawk
-      color: #f59e0b
-      font-weight: 700
-      font-style: italic
-
-  // ── Semaforo ─────────────────────────────────────────────────────
-  &__lights
-    display: inline-flex
-    gap: 6px
-    align-items: center
-    justify-content: center
-
-  &__light
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    width: 22px
-    height: 22px
-    font-size: 18px
-    color: $border
-    opacity: 0.4
-
-    &--active
-      opacity: 1
-
-    &--ok
-      &.interfacce__light--active
-        color: $status-ok
-
-    &--warn
-      &.interfacce__light--active
-        color: $status-warn
-
-    &--err
-      &.interfacce__light--active
-        color: $danger
-
-  // ── Riga dettaglio ───────────────────────────────────────────────
-  &__detail-row
-    background: $bg
-
-    > td
-      padding: 8px 12px 16px
-
-  &__sub-table
-    width: 100%
-    border-collapse: collapse
-    background: var(--color-surface)
-    border: 1px solid $border
     border-radius: 8px
+    background: var(--color-primary)
+    color: #fff
+    font-weight: 700
+
+    &--sm
+      width: 28px
+      height: 28px
+      font-size: 11px
+
+    &--lg
+      width: 44px
+      height: 44px
+      font-size: 15px
+      border-radius: 12px
+
+  // ── Tabella ────────────────────────────────────────────────────────────
+  &__nome
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    max-width: 100%
+    min-width: 0
+    font-weight: 600
+    color: var(--color-text-active)
+
+  &__flussi
+    display: inline-flex
+    align-items: center
+    gap: 4px
+
+    small
+      margin-left: 6px
+      overflow: hidden
+      text-overflow: ellipsis
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+  &__flusso
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 24px
+    height: 24px
+    border-radius: 6px
+    font-size: 11px
+    background: var(--color-success-light)
+    color: var(--color-success)
+
+    &--avviso
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+    &--errore
+      background: var(--color-error-light)
+      color: var(--color-error)
+    &--sospeso
+      background: var(--color-bg)
+      color: var(--color-text-inactive)
+
+  &__progress
+    display: block
+    width: 100%
+    max-width: 120px
+    height: 6px
+    border-radius: 3px
+    background: var(--color-primary-50)
     overflow: hidden
 
-    tr
-      border-bottom: 1px solid $border
+    span
+      display: block
+      height: 100%
+      border-radius: 3px
+      background: var(--color-primary)
+      animation: ifc-progress 2.6s ease-in-out forwards
 
-      &:last-child
-        border-bottom: none
+  &__storico
+    display: flex
+    gap: 2px
+    height: 18px
+    align-items: stretch
 
-    td
-      padding: 10px 14px
-      font-size: 13px
+    span
+      flex: 1
+      min-width: 2px
+      border-radius: 2px
+      background: var(--color-bg)
 
-  &__sub-section
-    font-weight: 700
-    color: $primary
-    width: 30%
-    background: $bg-zebra
+      &.is-ok
+        background: var(--color-success-mid)
+      &.is-ko
+        background: var(--color-error)
 
-  &__sub-detail
-    color: $ink
+    &--lg
+      height: 28px
+      gap: 3px
 
-  &__sub-pill
+  &__storico-asse
+    display: flex
+    justify-content: space-between
+    margin-top: 4px
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__stato
     display: inline-flex
     align-items: center
-    padding: 3px 10px
+    gap: 5px
+    max-width: 100%
+    padding: 2px 8px 2px 6px
     border-radius: 999px
-    font-size: 11px
-    font-weight: 700
-    color: $muted
-    background: $bg-zebra
+    font-size: 11.5px
+    font-weight: 600
+    white-space: nowrap
 
-    &--ok
-      background: #d1fae5
-      color: #065f46
+    i
+      font-size: 12px
 
-    &--warning
+    &--operativo
+      background: var(--color-success-light)
+      color: var(--color-success)
+    &--avviso
       background: var(--color-warning-light)
-      color: #92400e
-
-    &--error
+      color: var(--color-warning)
+    &--errore
       background: var(--color-error-light)
-      color: #991b1b
+      color: var(--color-error)
+    &--sospeso
+      background: var(--color-bg)
+      color: var(--color-text-inactive)
+    &--sync
+      background: var(--color-primary-50)
+      color: var(--color-primary)
 
-  &__no-details
-    margin: 0
-    padding: 12px
-    color: $muted
-    font-size: 12px
-    text-align: center
-    background: var(--color-surface)
-    border: 1px dashed $border
+  &__row--errore td:first-child
+    box-shadow: inset 3px 0 0 var(--color-error)
+  &__row--avviso td:first-child
+    box-shadow: inset 3px 0 0 var(--color-warning)
+
+  .logs__row.is-hover
+    background: var(--color-bg)
+
+  .logs__row.is-ping
+    animation: logs-new 1.4s ease-out
+
+  // ── Dettaglio ──────────────────────────────────────────────────────────
+  &__err
+    padding: 12px 14px
+    border-radius: 10px
+    background: var(--color-error-light)
+    font-size: 12.5px
+
+    strong
+      color: var(--color-error)
+
+    p
+      margin: 6px 0 0
+      color: var(--color-text-active)
+
+  &__err-fix
+    padding: 8px 10px
     border-radius: 8px
+    background: var(--color-surface)
+
+    i
+      margin-right: 4px
+      color: var(--color-warning)
+
+  &__actions
+    display: flex
+    align-items: center
+    gap: 8px
+    flex-wrap: wrap
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 8px
+
+  &__toggle
+    margin-left: auto
+
+  &__test
+    list-style: none
+    margin: 0
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    display: flex
+    flex-direction: column
+    gap: 6px
+    font-size: 12.5px
+    animation: logs-in .2s ease-out
+
+    li
+      display: flex
+      align-items: center
+      gap: 8px
+      color: var(--color-text-inactive)
+
+    .is-ok
+      color: var(--color-text-active)
+
+      i
+        color: var(--color-success)
+
+    .is-ko
+      color: var(--color-error)
+      font-weight: 600
+
+    .is-run i
+      color: var(--color-primary)
+
+    .is-wait i
+      font-size: 6px
+      width: 12px
+      text-align: center
+
+  &__test-res
+    margin-top: 4px
+    padding-top: 8px
+    border-top: 1px solid var(--color-border)
+    color: var(--color-success) !important
+    font-weight: 600
+
+    &.is-ko
+      color: var(--color-error) !important
+
+  &__dr-flussi
+    list-style: none
+    margin: 0
+    padding: 0
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+    li
+      display: flex
+      align-items: flex-start
+      gap: 10px
+      padding: 8px 10px
+      border: 1px solid var(--color-border)
+      border-radius: 8px
+
+  &__dr-flusso-txt
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+
+    strong
+      font-size: 12.5px
+      color: var(--color-text-active)
+
+    small
+      font-size: 11.5px
+      color: var(--color-text-inactive)
+
+  &__nota
+    color: var(--color-warning) !important
+
+  &__dr-flusso-ult
+    flex-shrink: 0
+    display: flex
+    flex-direction: column
+    align-items: flex-end
+    font-size: 12px
+    color: var(--color-text-active)
+
+    small
+      font-size: 11px
+      color: var(--color-text-inactive)
+
+  &__span2
+    grid-column: 1 / -1
+
+// Pannello: tono verde per i sistemi operativi
+.logs__drawer--ok
+  --logs-accent: var(--color-success)
+  --logs-accent-bg: var(--color-success-light)
+
+// ─── Colonne (somma 100%) ────────────────────────────────────────────────────
+.ifc__w-nome
+  width: 21%
+.ifc__w-tipo
+  width: 18%
+.ifc__w-flussi
+  width: 16%
+.ifc__w-ultimo
+  width: 13%
+.ifc__w-storico
+  width: 14%
+.ifc__w-stato
+  width: 11%
+.ifc__w-az
+  width: 7%
+
+@container logs (max-width: 1100px)
+  .ifc__top
+    grid-template-columns: 1fr
+
+  .ifc__side
+    min-height: 0
+
+  .ifc__side-in
+    position: static
+    max-height: 460px
+
+@keyframes ifc-flow
+  to
+    stroke-dashoffset: -16
+
+@keyframes ifc-breathe
+  50%
+    transform: scale(1.08)
+
+@keyframes ifc-spin
+  to
+    transform: rotate(360deg)
+
+@keyframes ifc-alarm
+  0%
+    transform: scale(.8)
+    opacity: 1
+  100%
+    transform: scale(1.35)
+    opacity: 0
+
+@keyframes ifc-ping
+  0%
+    transform: scale(.8)
+    opacity: 1
+  100%
+    transform: scale(1.5)
+    opacity: 0
+
+@keyframes ifc-feed
+  from
+    opacity: 0
+    transform: translateY(-8px)
+    background: var(--color-success-light)
+
+@keyframes ifc-progress
+  from
+    width: 4%
+  to
+    width: 100%
