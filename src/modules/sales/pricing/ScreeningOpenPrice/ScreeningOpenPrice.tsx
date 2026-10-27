@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as RTooltip, ReferenceLine,
@@ -110,6 +110,17 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
   const [data, setData] = useState<Row[]>(() => genData(struttura, isoFra(0), isoFra(30)))
   const [loading, setLoading] = useState(false)
   const [fase, setFase] = useState(0)
+  // Spazio per affiancare copertura e tabella (misurato sul contenitore,
+  // sotto soglia le card si impilano e la mappa torna orizzontale)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [affianca, setAffianca] = useState(false)
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setAffianca(e.contentRect.width >= 1040))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   const [pg, setPg] = useState(1)
   const [lente, setLente] = useState<'tutte' | Esito>('tutte')
   const [tipologia, setTipologia] = useState('')
@@ -199,8 +210,42 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
   const cur = chart[modalOff]
   const anim = !reducedMotion()
 
+  // Cella della mappa di copertura (comune alle due disposizioni)
+  const cella = (year: number, month: number, dim: number, i: number) => {
+    const key = `${year}-${month}-${i}`
+    if (i >= dim) return <span key={key} className="sop__cell is-none" />
+    const d = new Date(year, month, i + 1, 12)
+    const k = iso(d)
+    const we = d.getDay() === 0 || d.getDay() === 6 ? 'is-we' : ''
+    const n = perGiorno.get(k)
+    if (n === undefined) return <span key={key} className={`sop__cell is-out ${we}`} />
+    const lvl = n === 0 ? 0 : Math.min(4, Math.ceil((n / ROOMS.length) * 4))
+    return (
+      <Tooltip key={key} text={`${dataLunga(k)} · ${n} di ${ROOMS.length} tipologie con prezzo aperto`}>
+        <button type="button" className={`sop__cell sop__day--l${lvl} ${we} ${giorno === k ? 'is-sel' : ''}`}
+          onClick={() => { setGiorno((g) => (g === k ? null : k)); setPg(1) }}
+          aria-pressed={giorno === k} aria-label={`${dataLunga(k)}, ${n} tipologie aperte`} />
+      </Tooltip>
+    )
+  }
+
+  const periodi = (
+    <div className="sop__seg sop__seg--sm" role="radiogroup" aria-label="Periodo rapido">
+      {PERIODI.map((pp) => {
+        const to = isoFra(pp.n)
+        const on = activeFrom === isoFra(0) && activeTo === to
+        return (
+          <button key={pp.n} type="button" role="radio" aria-checked={on} className={on ? 'is-on' : ''}
+            onClick={() => { const f = isoFra(0); setInputFrom(f); setInputTo(to); triggerLoad(f, to) }}>
+            {pp.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
-    <div className="sop">
+    <div className="sop" ref={rootRef}>
       {loading && (
         <div className="sop__loading" role="status" aria-live="polite">
           <div className="sop__loading-card">
@@ -259,23 +304,11 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
         </div>
       </div>
 
-      <div className="sop__layout">
+      <div className={`sop__layout ${affianca ? 'sop__layout--side' : ''}`}>
 
         {/* ── Copertura del periodo ── */}
-        <Card title="Copertura del periodo" className="sop__card" headerRight={
-          <div className="sop__seg sop__seg--sm" role="radiogroup" aria-label="Periodo rapido">
-            {PERIODI.map((pp) => {
-              const to = isoFra(pp.n)
-              const on = activeFrom === isoFra(0) && activeTo === to
-              return (
-                <button key={pp.n} type="button" role="radio" aria-checked={on} className={on ? 'is-on' : ''}
-                  onClick={() => { const f = isoFra(0); setInputFrom(f); setInputTo(to); triggerLoad(f, to) }}>
-                  {pp.label}
-                </button>
-              )
-            })}
-          </div>
-        }>
+        <Card title="Copertura del periodo" className="sop__card sop__card--cov" headerRight={affianca ? undefined : periodi}>
+          {affianca && periodi}
           <div className="sop__cov-info">
             <span>Copertura media <strong>{coperturaMedia}%</strong> · {giorniConBuchi} giorn{giorniConBuchi === 1 ? 'o' : 'i'} su {aperti.length} con tipologie chiuse</span>
             <span className="sop__scale">
@@ -287,36 +320,38 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
             </span>
           </div>
 
-          {/* Mappa annuale: una riga per mese, colonne 1-31 (fino a 12 mesi) */}
-          <div className="sop__year" role="grid" aria-label="Copertura per giorno">
-            <span className="sop__year-corner" />
-            {Array.from({ length: 31 }, (_, i) => <span key={`h${i}`} className="sop__year-h">{i + 1}</span>)}
-            {mesi.map(({ year, month, dim }) => (
-              <React.Fragment key={`${year}-${month}`}>
-                <span className="sop__year-m">{MESI[month].slice(0, 3)} {year}</span>
-                {Array.from({ length: 31 }, (_, i) => {
-                  if (i >= dim) return <span key={i} className="sop__cell is-none" />
-                  const d = new Date(year, month, i + 1, 12)
-                  const k = iso(d)
-                  const we = d.getDay() === 0 || d.getDay() === 6 ? 'is-we' : ''
-                  const n = perGiorno.get(k)
-                  if (n === undefined) return <span key={i} className={`sop__cell is-out ${we}`} />
-                  const lvl = n === 0 ? 0 : Math.min(4, Math.ceil((n / ROOMS.length) * 4))
-                  return (
-                    <Tooltip key={i} text={`${dataLunga(k)} · ${n} di ${ROOMS.length} tipologie con prezzo aperto`}>
-                      <button type="button" className={`sop__cell sop__day--l${lvl} ${we} ${giorno === k ? 'is-sel' : ''}`}
-                        onClick={() => { setGiorno((g) => (g === k ? null : k)); setPg(1) }}
-                        aria-pressed={giorno === k} aria-label={`${dataLunga(k)}, ${n} tipologie aperte`} />
-                    </Tooltip>
-                  )
-                })}
-              </React.Fragment>
-            ))}
-          </div>
+          {affianca ? (
+            // Affiancata alla tabella: colonne = mesi, righe = giorni 1-31,
+            // così un anno intero resta alto quanto la tabella
+            <div className={`sop__year sop__year--v sop__year--c${mesi.length}`} role="grid" aria-label="Copertura per giorno">
+              <span className="sop__year-corner" />
+              {mesi.map(({ year, month }) => (
+                <span key={`m${year}-${month}`} className="sop__year-mv">{MESI[month].slice(0, 3)}<small>{String(year).slice(2)}</small></span>
+              ))}
+              {Array.from({ length: 31 }, (_, i) => (
+                <React.Fragment key={`d${i}`}>
+                  <span className="sop__year-d">{i + 1}</span>
+                  {mesi.map(({ year, month, dim }) => cella(year, month, dim, i))}
+                </React.Fragment>
+              ))}
+            </div>
+          ) : (
+            // A tutta larghezza: una riga per mese, colonne 1-31
+            <div className="sop__year" role="grid" aria-label="Copertura per giorno">
+              <span className="sop__year-corner" />
+              {Array.from({ length: 31 }, (_, i) => <span key={`h${i}`} className="sop__year-h">{i + 1}</span>)}
+              {mesi.map(({ year, month, dim }) => (
+                <React.Fragment key={`${year}-${month}`}>
+                  <span className="sop__year-m">{MESI[month].slice(0, 3)} {year}</span>
+                  {Array.from({ length: 31 }, (_, i) => cella(year, month, dim, i))}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* ── Suggerimenti ── */}
-        <Card title="Tariffe suggerite" noPadding className="sop__card" headerRight={
+        <Card title="Tariffe suggerite" noPadding className="sop__card sop__card--tbl" headerRight={
           <div className="sop__tbl-info">
             <span><strong>{base.length}</strong> combinazioni · <span className="sib-cell--success">{conteggi.alza} da alzare</span> · <span className="sib-cell--warning">{conteggi.abbassa} da abbassare</span> · {conteggi.apri} da aprire</span>
             {giorno && (
