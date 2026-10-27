@@ -8,6 +8,8 @@ import {
   TextareaField,
 } from '../../../../core/components/form'
 import { getEditingContract, clearEditingContract } from './_state'
+import TargetAggregazioni from './TargetAggregazioni'
+import { useIsTourOperator } from '../../../home/HomeToLinks/useProfiloTO'
 import './InserisciContrattoVendita.sass'
 
 const SPECIFICHE_OPTIONS = [
@@ -109,6 +111,8 @@ export default function InserisciContrattoVendita({
     : [])
 
   const fileRef = React.useRef<HTMLInputElement>(null)
+  // Versione Tour Operator: nella sezione Camere compare «Target e aggregazioni»
+  const isTO = useIsTourOperator()
   const sectionsLocked = !editing
 
   useEffect(() => {
@@ -297,6 +301,8 @@ export default function InserisciContrattoVendita({
                 <i className="fa-light fa-circle-plus" /> Aggiungi camera
               </button>
             </div>
+
+            {isTO && <TargetAggregazioni tipologieCamere={TIPO_CAMERA_OPTIONS.map(o => o.label)} />}
           </div>
         )}
       </section>
