@@ -1,7 +1,7 @@
 // ─── Screening open price ───────────────────────────────────────────────────
-// Copertura del periodo (calendari a mappa di calore) + tariffe suggerite.
-// Linguaggio visivo condiviso con Suggerimenti data driven (lenti, testate
-// con accento, schede), tabella secondo lo standard .sib-table.
+// Standard piattaforma: Card condivisa, .sib-table, classi sib-cell--*, icone
+// in tabella fa-solid blu Platform 16px senza riquadro, palette primary.
+// Qui solo layout, mappa annuale di copertura, barra di variazione e overlay.
 @use '../../../../styles/tokens' as *
 
 .sop
@@ -38,272 +38,92 @@
     color: var(--color-primary)
     font-size: 16px
 
-  // ── Lenti ─────────────────────────────────────────────────────────────────
-  &__lenses
+  // ── Selettore segmentato (stesso disegno di Log di sistema) ───────────────
+  &__seg
     display: inline-flex
     flex-wrap: wrap
-    gap: 4px
-    padding: 4px
-    border: 1px solid var(--color-border)
-    border-radius: 999px
-    background: var(--color-bg)
+    gap: 2px
+    padding: 3px
+    border-radius: 10px
+    background: var(--color-primary-50)
 
-  &__lens
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    height: 34px
-    padding: 0 8px 0 14px
-    border: none
-    border-radius: 999px
-    background: none
-    font-family: $font-heading
-    font-size: 13px
-    font-weight: 600
-    color: var(--color-text-inactive)
-    cursor: pointer
-    transition: background .15s ease, color .15s ease, box-shadow .15s ease
+    button
+      display: inline-flex
+      align-items: center
+      gap: 7px
+      height: 30px
+      padding: 0 12px
+      border: 0
+      border-radius: 8px
+      background: none
+      font-size: 13px
+      font-weight: 600
+      color: var(--color-text-inactive)
+      cursor: pointer
+      white-space: nowrap
+      transition: background .12s ease, color .12s ease
 
-    i
+      i
+        font-size: 12px
+
+      &:hover
+        color: var(--color-primary)
+
+      &.is-on
+        background: var(--color-surface)
+        color: var(--color-primary)
+        box-shadow: 0 1px 2px rgba(15, 30, 50, .12)
+
+        .sop__seg-n
+          background: var(--color-primary)
+          color: #fff
+
+    &--sm button
+      height: 26px
+      padding: 0 10px
       font-size: 12px
 
-    &:hover
-      color: var(--color-text-active)
-
-    &.is-active
-      background: var(--color-surface)
-      color: var(--sop-acc)
-      box-shadow: 0 1px 4px rgba(15, 30, 50, .14)
-
-      .sop__lens-n
-        background: var(--sop-acc)
-        color: #fff
-
-    &--tutte
-      --sop-acc: var(--color-primary)
-
-    &--alza
-      --sop-acc: var(--chart-good)
-
-    &--abbassa
-      --sop-acc: var(--color-warning)
-
-    &--apri
-      --sop-acc: var(--chart-4)
-
-  &__lens-n
+  &__seg-n
     min-width: 22px
-    height: 20px
+    height: 18px
     padding: 0 6px
     display: inline-flex
     align-items: center
     justify-content: center
     border-radius: 999px
-    background: var(--color-border)
+    background: var(--color-primary-100)
     font-size: 11px
     font-weight: 700
-    color: var(--color-text-inactive)
-    transition: background .15s ease, color .15s ease
+    color: var(--color-primary)
 
   // ── Impianto ──────────────────────────────────────────────────────────────
   &__layout
-    display: grid
-    grid-template-columns: minmax(0, 1fr)
-    gap: 18px
-
-  &__panel
-    position: relative
     display: flex
     flex-direction: column
+    gap: 16px
+
+  &__card
     min-width: 0
-    border: 1px solid var(--color-border)
-    border-radius: 12px
-    background: var(--color-surface)
-    overflow: hidden
-    animation: sop-in .3s ease-out both
 
-    &::before
-      content: ''
-      position: absolute
-      inset: 0 0 auto
-      height: 3px
-      background: var(--sop-acc)
-
-    &--cov
-      --sop-acc: var(--chart-5)
-
-      .sop__head-sum
-        white-space: normal
-
-    &--tbl
-      --sop-acc: var(--chart-1)
-      animation-delay: 80ms
-
-  &__head
+  // ── Copertura: mappa annuale ──────────────────────────────────────────────
+  &__cov-info
     display: flex
     align-items: center
-    gap: 10px
-    padding: 11px 14px 10px
-    border-bottom: 1px solid var(--color-border)
-    background: linear-gradient(180deg, color-mix(in srgb, var(--sop-acc) 7%, transparent), transparent)
-
-  &__head-ico
-    flex-shrink: 0
-    width: 32px
-    height: 32px
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    border-radius: 10px
-    background: color-mix(in srgb, var(--sop-acc) 14%, transparent)
-    color: var(--sop-acc)
-    font-size: 15px
-
-  &__head-titles
-    flex: 1
-    min-width: 0
-    display: flex
-    flex-direction: column
-    gap: 1px
-
-  &__head-title
-    margin: 0
-    font-family: $font-heading
-    font-size: 16px
-    font-weight: 600
-    color: var(--color-primary)
-
-  &__head-sum
+    justify-content: space-between
+    flex-wrap: wrap
+    gap: 8px 16px
+    margin-bottom: 12px
     font-size: 12px
     color: var(--color-text-inactive)
-    white-space: nowrap
-    overflow: hidden
-    text-overflow: ellipsis
 
     strong
       color: var(--color-text-active)
 
-  &__up
-    color: var(--chart-good)
-    font-weight: 600
-
-  &__dn
-    color: var(--color-warning)
-    font-weight: 600
-
-  &__chip
-    flex-shrink: 0
-    display: inline-flex
-    align-items: center
-    gap: 6px
-    height: 26px
-    padding: 0 10px
-    border: 1px solid var(--sop-acc)
-    border-radius: 999px
-    background: color-mix(in srgb, var(--sop-acc) 10%, transparent)
-    font-size: 12px
-    font-weight: 600
-    color: var(--color-text-active)
-    cursor: pointer
-    animation: sop-pop .25s ease-out
-
-    i
-      color: var(--sop-acc)
-
-    .fa-xmark
-      margin-left: 2px
-      color: var(--color-text-inactive)
-
-  // ── Copertura: calendari a mappa di calore ────────────────────────────────
-  &__months
-    display: grid
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr))
-    gap: 16px
-    padding: 14px
-
-  &__month-name
-    margin-bottom: 8px
-    font-family: $font-heading
-    font-size: 13px
-    font-weight: 600
-    color: var(--color-text-active)
-
-    span
-      font-weight: 400
-      color: var(--color-text-inactive)
-
-  &__cal
-    display: grid
-    grid-template-columns: repeat(7, minmax(0, 1fr))
-    gap: 3px
-
-  &__cal-h
-    text-align: center
-    font-size: 10px
-    font-weight: 600
-    color: var(--color-text-disabled)
-
-  &__day
-    height: 28px
-    width: 100%
-    display: inline-flex
-    align-items: center
-    justify-content: center
-    padding: 0
-    border: none
-    border-radius: 6px
-    font-size: 11px
-    font-weight: 600
-    color: var(--color-text-active)
-    cursor: pointer
-    transition: transform .12s ease, box-shadow .12s ease
-
-    &:hover
-      transform: scale(1.12)
-      box-shadow: 0 3px 10px rgba(15, 30, 50, .18)
-      z-index: 1
-
-    &.is-out
-      background: none
-      color: var(--color-text-disabled)
-      cursor: default
-      opacity: .5
-
-      &:hover
-        transform: none
-        box-shadow: none
-
-    &.is-sel
-      box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
-
-  // Livelli: 0 = nessun prezzo aperto (tratteggio), 1-4 = scala sequenziale
-  &__day--l0
-    background: repeating-linear-gradient(135deg, var(--color-bg) 0 4px, color-mix(in srgb, var(--color-warning) 22%, var(--color-bg)) 4px 6px)
-    color: var(--color-warning)
-
-  &__day--l1
-    background: color-mix(in srgb, var(--chart-seq-to) 18%, var(--color-surface))
-
-  &__day--l2
-    background: color-mix(in srgb, var(--chart-seq-to) 38%, var(--color-surface))
-
-  &__day--l3
-    background: color-mix(in srgb, var(--chart-seq-to) 65%, var(--color-surface))
-    color: #fff
-
-  &__day--l4
-    background: var(--chart-seq-to)
-    color: #fff
-
   &__scale
-    display: flex
+    display: inline-flex
     align-items: center
     gap: 8px
-    margin-top: auto
-    padding: 10px 14px
-    border-top: 1px solid var(--color-border)
     font-size: 11px
-    color: var(--color-text-inactive)
 
   &__scale-bar
     display: inline-flex
@@ -314,23 +134,109 @@
       height: 12px
       border-radius: 3px
 
-  // ── Tabella ───────────────────────────────────────────────────────────────
-  &__tbl-wrap
+  // Una riga per mese (fino a 12), colonne 1-31: un anno resta compatto
+  &__year
+    display: grid
+    grid-template-columns: 64px repeat(31, minmax(0, 1fr))
+    gap: 3px
+
+    // Il Tooltip avvolge la cella: deve riempire la colonna della griglia
+    > *
+      display: flex
+      min-width: 0
+
+  &__year-h
+    justify-content: center
+    font-size: 10px
+    font-weight: 600
+    color: var(--color-text-inactive)
+
+  &__year-m
+    align-items: center
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-active)
+    white-space: nowrap
+
+  &__cell
     flex: 1
-    min-height: 0
+    height: 20px
+    min-width: 0
+    padding: 0
+    border: none
+    border-radius: 4px
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .12s ease
+
+    &:is(button):hover
+      transform: scale(1.18)
+      box-shadow: 0 2px 8px rgba(15, 30, 50, .2)
+      position: relative
+      z-index: 1
+
+    // Weekend: filo in basso per leggere le settimane
+    &.is-we
+      box-shadow: inset 0 -3px 0 rgba(15, 30, 50, .18)
+
+    &.is-out
+      background: var(--color-bg)
+      cursor: default
+
+    &.is-none
+      background: none
+      cursor: default
+
+    &.is-sel
+      box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
+      position: relative
+      z-index: 1
+
+  // Livelli: 0 = nessun prezzo aperto (tratteggio), 1-4 = scala del blu Platform
+  &__day--l0
+    background: repeating-linear-gradient(135deg, var(--color-bg) 0 3px, var(--color-border) 3px 5px)
+
+  // (miscela col fondo: la scala resta leggibile anche in tema scuro)
+  &__day--l1
+    background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface))
+
+  &__day--l2
+    background: color-mix(in srgb, var(--color-primary) 40%, var(--color-surface))
+
+  &__day--l3
+    background: color-mix(in srgb, var(--color-primary) 68%, var(--color-surface))
+
+  &__day--l4
+    background: var(--color-primary)
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__tbl-info
+    display: inline-flex
+    align-items: center
+    gap: 12px
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+    strong
+      color: var(--color-text-active)
+
+  &__day-filter
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+    i
+      color: var(--color-primary)
 
   &__tbl
     width: 100%
     table-layout: fixed
+    margin: 0
 
     th, td
       white-space: nowrap
 
-    tbody tr
-      transition: background .12s ease
-
     tbody tr.is-sel
-      background: color-mix(in srgb, var(--chart-1) 7%, transparent)
+      background: var(--color-primary-50)
 
     tbody tr.is-done td
       color: var(--color-text-inactive)
@@ -360,42 +266,44 @@
     display: block
     max-width: 100%
 
-  &__closed
-    font-size: 12px
-    font-style: italic
-    color: var(--color-text-disabled)
-
+  // Icone in tabella: fa-solid, blu Platform, 16px, senza riquadro
   &__ok
-    color: var(--color-success)
+    color: var(--color-primary)
     font-size: 16px
-    animation: sop-pop .3s ease-out
 
-  // Suggerita AI: pillola cliccabile che apre l'analisi
   &__ai
     display: inline-flex
     align-items: center
-    gap: 6px
-    height: 26px
-    padding: 0 10px
-    border: 1px solid color-mix(in srgb, var(--chart-1) 35%, var(--color-border))
-    border-radius: 999px
-    background: color-mix(in srgb, var(--chart-1) 8%, var(--color-surface))
-    font-size: 12.5px
+    gap: 8px
+    padding: 0
+    border: none
+    background: none
+    font-size: 13px
     font-weight: 700
     color: var(--color-primary)
     cursor: pointer
     white-space: nowrap
-    transition: background .12s ease, transform .12s ease
 
     i
-      font-size: 11px
-      color: var(--chart-1)
+      color: var(--color-primary)
+      font-size: 16px
 
     &:hover
-      background: color-mix(in srgb, var(--chart-1) 16%, var(--color-surface))
-      transform: translateY(-1px)
+      text-decoration: underline
 
-  // Variazione: barra divergente + valore + %
+  &__state
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12.5px
+    font-weight: 600
+    color: var(--color-text-active)
+
+    i
+      color: var(--color-primary)
+      font-size: 16px
+
+  // Variazione: barra divergente (centro = prezzo attuale) + valore + %
   &__delta
     display: inline-flex
     align-items: center
@@ -409,7 +317,6 @@
     border-radius: 4px
     background: var(--color-bg)
 
-    // Linea dello zero (prezzo attuale)
     &::after
       content: ''
       position: absolute
@@ -422,7 +329,7 @@
     &.is-up .sop__dbar-fill
       left: 50%
       border-radius: 0 4px 4px 0
-      background: var(--chart-good)
+      background: var(--color-success)
 
     &.is-down .sop__dbar-fill
       right: 50%
@@ -433,7 +340,6 @@
     position: absolute
     top: 0
     bottom: 0
-    animation: sop-grow .5s ease-out both
 
     @for $i from 1 through 6
       &--#{$i}
@@ -443,49 +349,16 @@
     min-width: 76px
     text-align: right
     font-size: 12.5px
-    font-weight: 700
-
-    &.is-up
-      color: var(--chart-good)
-
-    &.is-down
-      color: var(--color-warning)
 
   &__delta-p
     font-size: 11.5px
     color: var(--color-text-inactive)
 
-  &__state
-    display: inline-flex
-    align-items: center
-    gap: 5px
-    height: 22px
-    padding: 0 9px
-    border-radius: 999px
-    font-size: 11.5px
-    font-weight: 700
-
-    &.is-open
-      background: color-mix(in srgb, var(--chart-4) 16%, transparent)
-      color: var(--chart-4)
-
-    &.is-done
-      background: var(--color-success-light)
-      color: var(--color-success)
-
   &__empty
-    display: flex
-    flex-direction: column
-    align-items: center
-    gap: 10px
     padding: 40px 24px
-    font-size: 14px
-    font-weight: 600
-    color: var(--color-text-disabled)
-
-    i
-      font-size: 28px
-      color: color-mix(in srgb, var(--chart-1) 45%, transparent)
+    text-align: center
+    font-size: 13px
+    color: var(--color-text-inactive)
 
   &__foot
     display: grid
@@ -498,7 +371,7 @@
   &__foot-sel
     font-size: 12px
     font-weight: 600
-    color: var(--chart-1)
+    color: var(--color-primary)
 
   &__pag
     justify-content: center
@@ -521,7 +394,6 @@
     padding-top: 160px
     background: color-mix(in srgb, var(--color-surface) 70%, transparent)
     backdrop-filter: blur(3px)
-    animation: sop-fade .2s ease-out
 
   &__loading-card
     width: 380px
@@ -530,31 +402,30 @@
     flex-direction: column
     align-items: center
     gap: 6px
-    padding: 26px 26px 20px
+    padding: 24px 24px 18px
     border: 1px solid var(--color-border)
-    border-radius: 16px
+    border-radius: 15px
     background: var(--color-surface)
     box-shadow: 0 18px 48px rgba(15, 30, 50, .18)
     text-align: center
-    animation: sop-pop .3s ease-out
 
   &__radar
     position: relative
-    width: 72px
-    height: 72px
+    width: 64px
+    height: 64px
     margin-bottom: 8px
     display: inline-flex
     align-items: center
     justify-content: center
     border-radius: 50%
-    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
-    color: var(--chart-1)
-    font-size: 26px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 24px
 
     span
       position: absolute
       inset: 0
-      border: 2px solid var(--chart-1)
+      border: 2px solid var(--color-primary)
       border-radius: 50%
       opacity: 0
       animation: sop-ring 2.4s ease-out infinite
@@ -567,7 +438,7 @@
 
   &__loading-title
     font-family: $font-heading
-    font-size: 16px
+    font-size: 14px
     color: var(--color-primary)
 
   &__loading-sub
@@ -591,35 +462,31 @@
       gap: 10px
       font-size: 12.5px
       color: var(--color-text-disabled)
-      transition: color .2s ease
 
       i
-        width: 14px
-        font-size: 12px
+        width: 16px
+        font-size: 14px
+
+      &.is-run, &.is-done
+        color: var(--color-text-active)
+
+        i
+          color: var(--color-primary)
 
       &.is-run
-        color: var(--color-text-active)
         font-weight: 600
 
         i
-          color: var(--chart-1)
           animation: sop-spin .8s linear infinite
 
-      &.is-done
-        color: var(--color-text-active)
+// Spazio ridotto: numeri dei giorni a passo alterno
+@container (max-width: 900px)
+  .sop__year-h:nth-child(odd)
+    visibility: hidden
+  .sop__year
+    grid-template-columns: 56px repeat(31, minmax(0, 1fr))
+    gap: 2px
 
-        i
-          color: var(--color-success)
-
-// Schermi larghi: copertura a sinistra, tabella a destra
-@container (min-width: 1000px)
-  .sop__layout
-    grid-template-columns: 300px minmax(0, 1fr)
-    align-items: start
-  .sop__months
-    grid-template-columns: minmax(0, 1fr)
-
-// Spazio ridotto: barre e % lasciano posto ai valori
 @container (max-width: 760px)
   .sop__delta-p
     display: none
@@ -630,37 +497,6 @@
     grid-row: 2
   .sop__apply
     grid-column: 2
-
-// In dark la scala sequenziale va dallo scuro al chiaro: testo scuro sui livelli alti
-[data-theme="dark"] .sop__day--l3,
-[data-theme="dark"] .sop__day--l4
-  color: var(--color-content-bg)
-
-@keyframes sop-in
-  from
-    opacity: 0
-    transform: translateY(6px)
-  to
-    opacity: 1
-    transform: none
-
-@keyframes sop-pop
-  0%
-    opacity: 0
-    transform: scale(.6)
-  70%
-    transform: scale(1.06)
-  100%
-    opacity: 1
-    transform: scale(1)
-
-@keyframes sop-fade
-  from
-    opacity: 0
-
-@keyframes sop-grow
-  from
-    transform: scaleX(0)
 
 @keyframes sop-ring
   0%
@@ -675,7 +511,7 @@
     transform: rotate(360deg)
 
 @media (prefers-reduced-motion: reduce)
-  .sop__panel, .sop__chip, .sop__ok, .sop__dbar-fill, .sop__radar span, .sop__loading-card, .sop__steps li.is-run i
+  .sop__radar span, .sop__steps li.is-run i
     animation: none
 
 // ─── Modale "Analisi suggerimento AI" ────────────────────────────────────────
@@ -694,33 +530,16 @@
     flex-wrap: wrap
     gap: 8px
     padding: 8px 10px
-    border-radius: 10px
-    background: var(--color-bg)
-
-  &__nav
-    width: 30px
-    height: 30px
-    display: inline-flex
-    align-items: center
-    justify-content: center
     border: 1px solid var(--color-border)
-    border-radius: 8px
-    background: var(--color-surface)
-    color: var(--color-primary)
-    font-size: 12px
-    cursor: pointer
-
-    &:disabled
-      opacity: .4
-      cursor: default
+    border-radius: 6px
 
   &__day
     min-width: 92px
     text-align: center
     font-family: $font-heading
-    font-size: 14px
+    font-size: 13px
     font-weight: 600
-    color: var(--color-text-active)
+    color: var(--color-primary)
 
   &__legend
     margin-left: auto
@@ -736,3 +555,4 @@
 
     i
       margin-right: 4px
+      color: var(--color-primary)

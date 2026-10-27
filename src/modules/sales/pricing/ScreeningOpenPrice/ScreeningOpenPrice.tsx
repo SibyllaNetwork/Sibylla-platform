@@ -7,6 +7,7 @@ import Modal from '../../../../core/components/Modal'
 import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
 import Tooltip from '../../../../core/components/Tooltip'
+import Card from '../../../../core/components/Card'
 import TruncatedText from '../../../../core/components/TruncatedText'
 import { toast } from '../../../../core/components/Toast/useToast'
 import { SelectField, DateRangeField, CheckboxField } from '../../../../core/components/form'
@@ -40,7 +41,6 @@ const ROOMS = [
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 const GIORNI_BREVI = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
-const INIZIALI = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 
 // Date demo relative a oggi.
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -78,6 +78,14 @@ const LENTI: { k: 'tutte' | Esito; label: string; icon: string }[] = [
   { k: 'alza',    label: 'Da alzare',    icon: 'fa-arrow-trend-up' },
   { k: 'abbassa', label: 'Da abbassare', icon: 'fa-arrow-trend-down' },
   { k: 'apri',    label: 'Da aprire',    icon: 'fa-lock-open' },
+]
+
+// Periodi rapidi, da oggi: il calendario regge fino a un anno
+const PERIODI = [
+  { label: '30 giorni', n: 30 },
+  { label: '3 mesi', n: 91 },
+  { label: '6 mesi', n: 182 },
+  { label: '12 mesi', n: 364 },
 ]
 
 const FASI = ['Raccolta tariffe dei competitor', 'Lettura della domanda e del pick-up', 'Calcolo dei suggerimenti per tipologia']
@@ -141,11 +149,11 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
   const giorniConBuchi = aperti.filter((n) => n < ROOMS.length).length
 
   const mesi = useMemo(() => {
-    const out: { year: number; month: number; lead: number; dim: number }[] = []
+    const out: { year: number; month: number; dim: number }[] = []
     const s = new Date(activeFrom + 'T12:00:00'), e = new Date(activeTo + 'T12:00:00')
     let c = new Date(s.getFullYear(), s.getMonth(), 1, 12)
     while (c <= e && out.length < 13) {
-      out.push({ year: c.getFullYear(), month: c.getMonth(), lead: (c.getDay() + 6) % 7, dim: new Date(c.getFullYear(), c.getMonth() + 1, 0).getDate() })
+      out.push({ year: c.getFullYear(), month: c.getMonth(), dim: new Date(c.getFullYear(), c.getMonth() + 1, 0).getDate() })
       c = new Date(c.getFullYear(), c.getMonth() + 1, 1, 12)
     }
     return out
@@ -231,14 +239,14 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
         </div>
 
         <div className="sop__right">
-        <div className="sop__lenses" role="group" aria-label="Suggerimenti da mostrare">
+        <div className="sop__seg" role="radiogroup" aria-label="Suggerimenti da mostrare">
           {LENTI.map((l) => (
-            <button key={l.k} type="button" aria-pressed={lente === l.k}
-              className={`sop__lens sop__lens--${l.k} ${lente === l.k ? 'is-active' : ''}`}
+            <button key={l.k} type="button" role="radio" aria-checked={lente === l.k}
+              className={lente === l.k ? 'is-on' : ''}
               onClick={() => { setLente(l.k); setPg(1) }}>
               <i className={`fa-solid ${l.icon}`} aria-hidden="true" />
               {l.label}
-              <span className="sop__lens-n">{conteggi[l.k]}</span>
+              <span className="sop__seg-n">{conteggi[l.k]}</span>
             </button>
           ))}
         </div>
@@ -254,69 +262,71 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
       <div className="sop__layout">
 
         {/* ── Copertura del periodo ── */}
-        <section className="sop__panel sop__panel--cov">
-          <header className="sop__head">
-            <span className="sop__head-ico"><i className="fa-solid fa-calendar-check" aria-hidden="true" /></span>
-            <div className="sop__head-titles">
-              <h2 className="sop__head-title">Copertura del periodo</h2>
-              <div className="sop__head-sum">copertura media <strong>{coperturaMedia}%</strong> · {giorniConBuchi} giorn{giorniConBuchi === 1 ? 'o' : 'i'} su {aperti.length} con tipologie chiuse</div>
-            </div>
-          </header>
-
-          <div className="sop__months">
-            {mesi.map(({ year, month, lead, dim }) => (
-              <div key={`${year}-${month}`} className="sop__month">
-                <div className="sop__month-name">{MESI[month]} <span>{year}</span></div>
-                <div className="sop__cal">
-                  {INIZIALI.map((g, i) => <span key={`h${i}`} className="sop__cal-h">{g}</span>)}
-                  {Array.from({ length: lead }, (_, i) => <span key={`l${i}`} />)}
-                  {Array.from({ length: dim }, (_, i) => {
-                    const k = iso(new Date(year, month, i + 1, 12))
-                    const n = perGiorno.get(k)
-                    if (n === undefined) return <span key={k} className="sop__day is-out">{i + 1}</span>
-                    const lvl = n === 0 ? 0 : Math.min(4, Math.ceil((n / ROOMS.length) * 4))
-                    return (
-                      <Tooltip key={k} text={`${dataLunga(k)} · ${n} di ${ROOMS.length} tipologie con prezzo aperto`}>
-                        <button type="button" className={`sop__day sop__day--l${lvl} ${giorno === k ? 'is-sel' : ''}`}
-                          onClick={() => { setGiorno((g) => (g === k ? null : k)); setPg(1) }}
-                          aria-pressed={giorno === k} aria-label={`${dataLunga(k)}, ${n} tipologie aperte`}>
-                          {i + 1}
-                        </button>
-                      </Tooltip>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+        <Card title="Copertura del periodo" className="sop__card" headerRight={
+          <div className="sop__seg sop__seg--sm" role="radiogroup" aria-label="Periodo rapido">
+            {PERIODI.map((pp) => {
+              const to = isoFra(pp.n)
+              const on = activeFrom === isoFra(0) && activeTo === to
+              return (
+                <button key={pp.n} type="button" role="radio" aria-checked={on} className={on ? 'is-on' : ''}
+                  onClick={() => { const f = isoFra(0); setInputFrom(f); setInputTo(to); triggerLoad(f, to) }}>
+                  {pp.label}
+                </button>
+              )
+            })}
+          </div>
+        }>
+          <div className="sop__cov-info">
+            <span>Copertura media <strong>{coperturaMedia}%</strong> · {giorniConBuchi} giorn{giorniConBuchi === 1 ? 'o' : 'i'} su {aperti.length} con tipologie chiuse</span>
+            <span className="sop__scale">
+              Tipologie con prezzo aperto
+              <span className="sop__scale-bar" aria-hidden="true">
+                {[0, 1, 2, 3, 4].map((l) => <span key={l} className={`sop__day--l${l}`} />)}
+              </span>
+              0 → {ROOMS.length}
+            </span>
           </div>
 
-          <footer className="sop__scale">
-            <span>Tipologie aperte</span>
-            <span className="sop__scale-bar" aria-hidden="true">
-              {[0, 1, 2, 3, 4].map((l) => <span key={l} className={`sop__day--l${l}`} />)}
-            </span>
-            <span>0 → {ROOMS.length}</span>
-          </footer>
-        </section>
+          {/* Mappa annuale: una riga per mese, colonne 1-31 (fino a 12 mesi) */}
+          <div className="sop__year" role="grid" aria-label="Copertura per giorno">
+            <span className="sop__year-corner" />
+            {Array.from({ length: 31 }, (_, i) => <span key={`h${i}`} className="sop__year-h">{i + 1}</span>)}
+            {mesi.map(({ year, month, dim }) => (
+              <React.Fragment key={`${year}-${month}`}>
+                <span className="sop__year-m">{MESI[month].slice(0, 3)} {year}</span>
+                {Array.from({ length: 31 }, (_, i) => {
+                  if (i >= dim) return <span key={i} className="sop__cell is-none" />
+                  const d = new Date(year, month, i + 1, 12)
+                  const k = iso(d)
+                  const we = d.getDay() === 0 || d.getDay() === 6 ? 'is-we' : ''
+                  const n = perGiorno.get(k)
+                  if (n === undefined) return <span key={i} className={`sop__cell is-out ${we}`} />
+                  const lvl = n === 0 ? 0 : Math.min(4, Math.ceil((n / ROOMS.length) * 4))
+                  return (
+                    <Tooltip key={i} text={`${dataLunga(k)} · ${n} di ${ROOMS.length} tipologie con prezzo aperto`}>
+                      <button type="button" className={`sop__cell sop__day--l${lvl} ${we} ${giorno === k ? 'is-sel' : ''}`}
+                        onClick={() => { setGiorno((g) => (g === k ? null : k)); setPg(1) }}
+                        aria-pressed={giorno === k} aria-label={`${dataLunga(k)}, ${n} tipologie aperte`} />
+                    </Tooltip>
+                  )
+                })}
+              </React.Fragment>
+            ))}
+          </div>
+        </Card>
 
         {/* ── Suggerimenti ── */}
-        <section className="sop__panel sop__panel--tbl">
-          <header className="sop__head">
-            <span className="sop__head-ico"><i className="fa-solid fa-microchip-ai" aria-hidden="true" /></span>
-            <div className="sop__head-titles">
-              <h2 className="sop__head-title">Tariffe suggerite</h2>
-              <div className="sop__head-sum">
-                <strong>{base.length}</strong> combinazioni · <span className="sop__up">{conteggi.alza} da alzare</span> · <span className="sop__dn">{conteggi.abbassa} da abbassare</span> · {conteggi.apri} da aprire
-              </div>
-            </div>
+        <Card title="Tariffe suggerite" noPadding className="sop__card" headerRight={
+          <div className="sop__tbl-info">
+            <span><strong>{base.length}</strong> combinazioni · <span className="sib-cell--success">{conteggi.alza} da alzare</span> · <span className="sib-cell--warning">{conteggi.abbassa} da abbassare</span> · {conteggi.apri} da aprire</span>
             {giorno && (
-              <button type="button" className="sop__chip" onClick={() => { setGiorno(null); setPg(1) }}>
+              <button type="button" className="sib-btn sib-btn--toolbar sib-btn--sm sop__day-filter" onClick={() => { setGiorno(null); setPg(1) }}>
                 <i className="fa-solid fa-calendar-day" aria-hidden="true" /> {dataLunga(giorno)}
                 <i className="fa-solid fa-xmark" aria-label="Rimuovi filtro giorno" />
               </button>
             )}
-          </header>
-
+          </div>
+        }>
           <div className="sop__tbl-wrap">
             <table className="sib-table sop__tbl">
               <colgroup>
@@ -347,30 +357,30 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
                       <td className="sop__nw">{dataLunga(r.iso)}</td>
                       <td><TruncatedText text={r.tipologia} className="sop__tipo" /></td>
                       <td className="sop__r sop__nw">
-                        {r.hasP ? fmtEur(done ? r.ai : r.att) : <span className="sop__closed">Non aperto</span>}
+                        {r.hasP ? fmtEur(done ? r.ai : r.att) : <span className="sib-cell--muted">Non aperto</span>}
                       </td>
                       <td className="sop__r">
                         <Tooltip text="Analisi del suggerimento">
                           <button type="button" className="sop__ai" onClick={() => { setModalRow(r); setModalOff(7) }}>
-                            <i className="fa-solid fa-sparkles" aria-hidden="true" />
                             {fmtEur(r.ai)}
+                            <i className="fa-solid fa-chart-line" aria-hidden="true" />
                           </button>
                         </Tooltip>
                       </td>
                       <td>
                         {done
-                          ? <span className="sop__state is-done">Applicata</span>
+                          ? <span className="sib-cell--success">Applicata</span>
                           : r.hasP
                             ? (
                               <span className="sop__delta">
                                 <DeltaBar pct={r.pct} />
-                                <span className={`sop__delta-v ${r.del >= 0 ? 'is-up' : 'is-down'}`}>
+                                <span className={`sop__delta-v ${r.del >= 0 ? 'sib-cell--success' : 'sib-cell--warning'}`}>
                                   {r.del >= 0 ? '+' : '−'}{fmtEur(Math.abs(r.del))}
                                 </span>
                                 <span className="sop__delta-p">{r.pct >= 0 ? '+' : '−'}{Math.abs(r.pct).toLocaleString('it-IT', { maximumFractionDigits: 1 })}%</span>
                               </span>
                             )
-                            : <span className="sop__state is-open"><i className="fa-solid fa-lock-open" aria-hidden="true" /> Da aprire</span>}
+                            : <span className="sop__state"><i className="fa-solid fa-lock-open" aria-hidden="true" /> Da aprire</span>}
                       </td>
                     </tr>
                   )
@@ -378,10 +388,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
               </tbody>
             </table>
             {rows.length === 0 && (
-              <div className="sop__empty">
-                <i className="fa-solid fa-magnifying-glass-chart" aria-hidden="true" />
-                Nessun suggerimento per i filtri selezionati.
-              </div>
+              <div className="sop__empty">Nessun suggerimento per i filtri selezionati.</div>
             )}
           </div>
 
@@ -392,7 +399,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
               <i className="fa-solid fa-check-double" aria-hidden="true" /> Applica
             </button>
           </footer>
-        </section>
+        </Card>
       </div>
 
       {/* ── Analisi del suggerimento ── */}
@@ -404,11 +411,11 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
             </div>
 
             <div className="sop-modal__bar">
-              <button type="button" className="sop-modal__nav" onClick={() => setModalOff((o) => Math.max(0, o - 1))} disabled={modalOff === 0} aria-label="Giorno precedente">
+              <button type="button" className="sib-btn sib-btn--icon" onClick={() => setModalOff((o) => Math.max(0, o - 1))} disabled={modalOff === 0} aria-label="Giorno precedente">
                 <i className="fa-solid fa-chevron-left" aria-hidden="true" />
               </button>
               <span className="sop-modal__day">{dataLunga(cur.iso)}</span>
-              <button type="button" className="sop-modal__nav" onClick={() => setModalOff((o) => Math.min(chart.length - 1, o + 1))} disabled={modalOff === chart.length - 1} aria-label="Giorno successivo">
+              <button type="button" className="sib-btn sib-btn--icon" onClick={() => setModalOff((o) => Math.min(chart.length - 1, o + 1))} disabled={modalOff === chart.length - 1} aria-label="Giorno successivo">
                 <i className="fa-solid fa-chevron-right" aria-hidden="true" />
               </button>
               <BiLegend className="sop-modal__legend" items={[
