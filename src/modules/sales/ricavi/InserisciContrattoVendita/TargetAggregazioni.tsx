@@ -1,26 +1,14 @@
 import React, { useState } from 'react'
-import Modal from '../../../../core/components/Modal'
-import Tooltip from '../../../../core/components/Tooltip'
-import { SelectField, CheckboxField, InputField, RadioGroup } from '../../../../core/components/form'
-import TruncatedText from '../../../../core/components/TruncatedText'
+import { CheckboxField } from '../../../../core/components/form'
 import { CfgMultiSelect } from '../../../../core/cfg'
 import { toast } from '../../../../core/components/Toast/useToast'
-import { useConfirmStore } from '../../../../store/useConfirmStore'
-import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
-import { hashNome } from '../../../../core/demo/struttureDemo'
 import './TargetAggregazioni.sass'
 
 // ─── TARGET E AGGREGAZIONI (solo Tour Operator) ───────────────────────────────
 //  Nella sezione Camere del contratto di vendita: per ogni categoria di target
 //  (Adulti, Studenti) si sceglie se applicare l'aggregazione e, una volta
-//  selezionata, accanto compare la multiselect delle AGGREGAZIONI create (se
-//  non ce ne sono, l'invito a usare «Crea aggregazione»), con Salva per riga.
-//  «Crea aggregazione», fuori dalle righe, apre una modale: Nome, aggregazione
-//  per Struttura OPPURE per Categoria (si sceglie quale e compare la relativa
-//  select) e Segmento; scelti questi compaiono le TIPOLOGIE disponibili per
-//  quella combinazione, da spuntare. «Aggiungi» la mostra in una tabellina
-//  sotto, con Modifica ed Elimina, e la rende selezionabile in Adulti e
-//  Studenti. Demo: due aggregazioni già presenti e salvate su Adulti.
+//  selezionata, accanto compare la multiselect delle AGGREGAZIONI disponibili,
+//  con Salva per riga. Demo: aggregazioni già presenti e salvate su Adulti.
 
 type TargetKey = 'adulti' | 'studenti'
 const TARGETS: { key: TargetKey; label: string }[] = [
@@ -28,62 +16,22 @@ const TARGETS: { key: TargetKey; label: string }[] = [
   { key: 'studenti', label: 'Studenti' },
 ]
 
-const CATEGORIE = ['Classic', 'Superior', 'Economy', 'Family', 'Suite']
-const SEGMENTI = ['Gruppi', 'B2B']
-
-type Base = 'struttura' | 'categoria'
-const BASI: { value: Base; label: string }[] = [
-  { value: 'struttura', label: 'Struttura' },
-  { value: 'categoria', label: 'Categoria' },
-]
-
-interface Aggregazione { id: number; nome: string; base: Base; valore: string; segmento: string; tipologie: string[] }
-
-// Tipologie camera con categoria e segmenti in cui sono vendibili (demo)
-const TIPOLOGIE: { nome: string; categoria: string; segmenti: string[] }[] = [
-  { nome: 'Doppia Classic',    categoria: 'Classic',  segmenti: ['Gruppi', 'B2B'] },
-  { nome: 'Twin Classic',      categoria: 'Classic',  segmenti: ['Gruppi'] },
-  { nome: 'Singola Economy',   categoria: 'Economy',  segmenti: ['B2B'] },
-  { nome: 'Doppia Economy',    categoria: 'Economy',  segmenti: ['Gruppi', 'B2B'] },
-  { nome: 'Doppia Superior',   categoria: 'Superior', segmenti: ['Gruppi', 'B2B'] },
-  { nome: 'Deluxe vista mare', categoria: 'Superior', segmenti: ['B2B'] },
-  { nome: 'Tripla Family',     categoria: 'Family',   segmenti: ['Gruppi'] },
-  { nome: 'Quadrupla Family',  categoria: 'Family',   segmenti: ['Gruppi', 'B2B'] },
-  { nome: 'Junior suite',      categoria: 'Suite',    segmenti: ['B2B'] },
-  { nome: 'Suite panoramica',  categoria: 'Suite',    segmenti: ['Gruppi', 'B2B'] },
-]
-
-/** Tipologie disponibili per la combinazione scelta. Per struttura: ognuna ne
- *  ha solo una parte (variazione deterministica sul nome, demo). */
-function tipologieDisponibili(base: Base, valore: string, segmento: string): string[] {
-  if (!valore || !segmento) return []
-  const h = hashNome(valore)
-  return TIPOLOGIE
-    .filter((t, i) => t.segmenti.includes(segmento) && (base === 'categoria' ? t.categoria === valore : (h + i) % 4 !== 0))
-    .map(t => t.nome)
-}
-
-// Demo: aggregazioni già presenti, scelte e salvate sulla riga Adulti
-const SEED: Aggregazione[] = [
-  { id: 1, nome: 'Comitive culturali', base: 'categoria', valore: 'Classic', segmento: 'Gruppi', tipologie: ['Doppia Classic', 'Twin Classic'] },
-  { id: 2, nome: 'Famiglie estate',    base: 'categoria', valore: 'Family',  segmento: 'Gruppi', tipologie: ['Tripla Family', 'Quadrupla Family'] },
-]
-const SEED_ADULTI = SEED.map(a => a.nome)
+// Demo: aggregazioni disponibili, scelte e salvate sulla riga Adulti
+const AGGREGAZIONI = ['Comitive culturali', 'Famiglie estate']
 
 interface TargetState { attivo: boolean; aggregazioni: string[] }
 
 export default function TargetAggregazioni() {
-  const confirm = useConfirmStore(s => s.confirm)
-  const strutture = useStruttureCliente().filter(s => s.camere > 0).map(s => s.nome)
-
   const [targets, setTargets] = useState<Record<TargetKey, TargetState>>({
-    adulti:   { attivo: true,  aggregazioni: SEED_ADULTI },
+    adulti:   { attivo: true,  aggregazioni: AGGREGAZIONI },
     studenti: { attivo: false, aggregazioni: [] },
   })
-  const [aggregazioni, setAggregazioni] = useState<Aggregazione[]>(SEED)
   // Aggregazioni salvate per target: «Salva» si attiva solo con modifiche da salvare
-  const [salvate, setSalvate] = useState<Record<TargetKey, string[]>>({ adulti: SEED_ADULTI, studenti: [] })
+  const [salvate, setSalvate] = useState<Record<TargetKey, string[]>>({ adulti: AGGREGAZIONI, studenti: [] })
   const stessa = (a: string[], b: string[]) => a.length === b.length && a.every(x => b.includes(x))
+
+  const update = (k: TargetKey, patch: Partial<TargetState>) =>
+    setTargets(t => ({ ...t, [k]: { ...t[k], ...patch } }))
 
   const salva = (k: TargetKey, label: string) => {
     const scelte = targets[k].aggregazioni
@@ -91,86 +39,13 @@ export default function TargetAggregazioni() {
     toast.success(`${label}: ${scelte.length} ${scelte.length === 1 ? 'aggregazione salvata' : 'aggregazioni salvate'}`)
   }
 
-  // Form della modale
-  const [modalOpen, setModalOpen] = useState(false)
-  const [nome, setNome] = useState('')
-  const [base, setBase] = useState<Base>('struttura')
-  const [valore, setValore] = useState('')
-  const [segmento, setSegmento] = useState('')
-  const [tipScelte, setTipScelte] = useState<string[]>([])
-  // Aggregazione in modifica nella modale (null = nuova)
-  const [editId, setEditId] = useState<number | null>(null)
-
-  const opzioni = aggregazioni.map(a => a.nome)
-  const update = (k: TargetKey, patch: Partial<TargetState>) =>
-    setTargets(t => ({ ...t, [k]: { ...t[k], ...patch } }))
-
-  const resetForm = () => { setNome(''); setBase('struttura'); setValore(''); setSegmento(''); setTipScelte([]); setEditId(null) }
-  const disponibili = tipologieDisponibili(base, valore, segmento)
-  // Cambiando la combinazione restano spuntate solo le tipologie ancora disponibili
-  const cambiaCombo = (b: Base, v: string, sg: string) => {
-    setBase(b); setValore(v); setSegmento(sg)
-    const ok = tipologieDisponibili(b, v, sg)
-    setTipScelte(t => t.filter(x => ok.includes(x)))
-  }
-  const apriModale = () => { resetForm(); setModalOpen(true) }
-
-  const nomeUsato = aggregazioni.some(a => a.id !== editId && a.nome.trim().toLowerCase() === nome.trim().toLowerCase())
-  const valida = nome.trim() !== '' && !nomeUsato && !!valore && !!segmento && tipScelte.length > 0
-
-  // Rinomina (o toglie, con null) un'aggregazione nelle selezioni dei target
-  const rinomina = (da: string, a: string | null) => {
-    const sost = (list: string[]) => a ? list.map(x => (x === da ? a : x)) : list.filter(x => x !== da)
-    setTargets(t => ({
-      adulti:   { ...t.adulti,   aggregazioni: sost(t.adulti.aggregazioni) },
-      studenti: { ...t.studenti, aggregazioni: sost(t.studenti.aggregazioni) },
-    }))
-    setSalvate(s => ({ adulti: sost(s.adulti), studenti: sost(s.studenti) }))
-  }
-
-  const aggiungi = () => {
-    if (!valida) return
-    const dati = { nome: nome.trim(), base, valore, segmento, tipologie: tipScelte }
-    if (editId != null) {
-      const vecchia = aggregazioni.find(a => a.id === editId)!
-      setAggregazioni(list => list.map(a => (a.id === editId ? { ...a, ...dati } : a)))
-      if (vecchia.nome !== dati.nome) rinomina(vecchia.nome, dati.nome)
-      toast.success(`Aggregazione «${dati.nome}» aggiornata`)
-    } else {
-      setAggregazioni(list => [...list, { id: Date.now(), ...dati }])
-      toast.success(`Aggregazione «${dati.nome}» creata`)
-    }
-    resetForm()
-  }
-
-  const modifica = (a: Aggregazione) => {
-    setEditId(a.id); setNome(a.nome); setBase(a.base); setValore(a.valore); setSegmento(a.segmento); setTipScelte(a.tipologie)
-  }
-
-  const elimina = async (a: Aggregazione) => {
-    const ok = await confirm({
-      title: 'Elimina aggregazione',
-      message: `Eliminare l'aggregazione «${a.nome}»? Verrà tolta anche da Adulti e Studenti.`,
-      confirmLabel: 'Elimina',
-      cancelLabel: 'Annulla',
-      danger: true,
-    })
-    if (!ok) return
-    setAggregazioni(list => list.filter(x => x.id !== a.id))
-    rinomina(a.nome, null)
-    if (editId === a.id) resetForm()
-  }
-
   return (
     <div className="target-agg">
       <div className="target-agg__head">
         <div>
           <h4 className="target-agg__title">Target e aggregazioni</h4>
-          <p className="target-agg__desc">Scegli a quali categorie applicare le aggregazioni create.</p>
+          <p className="target-agg__desc">Scegli a quali categorie applicare le aggregazioni.</p>
         </div>
-        <button type="button" className="target-agg__link" onClick={apriModale}>
-          <i className="fa-solid fa-layer-plus" aria-hidden="true" /> Crea aggregazione
-        </button>
       </div>
 
       {TARGETS.map(({ key, label }) => {
@@ -184,17 +59,12 @@ export default function TargetAggregazioni() {
               onChange={(e) => update(key, { attivo: e.target.checked })}
               className="target-agg__check"
             />
-            {t.attivo && opzioni.length === 0 && (
-              <span className="target-agg__hint">
-                <i className="fa-solid fa-circle-info" aria-hidden="true" /> Clicca sul pulsante «Crea aggregazione»
-              </span>
-            )}
-            {t.attivo && opzioni.length > 0 && (
+            {t.attivo && (
               <CfgMultiSelect
                 label="Aggregazioni"
                 placeholder="Seleziona aggregazioni"
                 nomePlurale="aggregazioni"
-                options={opzioni}
+                options={AGGREGAZIONI}
                 value={t.aggregazioni}
                 onChange={(next) => update(key, { aggregazioni: next })}
                 className="target-agg__multi"
@@ -212,104 +82,6 @@ export default function TargetAggregazioni() {
           </div>
         )
       })}
-
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Crea aggregazione"
-        size="xl"
-        className="target-agg-modal"
-      >
-        <p className="target-agg-modal__lead">
-          Dai un nome all'aggregazione e scegli se aggregare per struttura o per categoria: sarà selezionabile nelle righe Adulti e Studenti.
-        </p>
-
-        <div className="target-agg-modal__form">
-          <InputField name="agg-nome" label="Nome" placeholder="Es. Gruppi scuole primavera" required
-            value={nome} onChange={(e) => setNome(e.target.value)}
-            error={nomeUsato ? 'Nome già usato' : undefined}
-            className="target-agg-modal__nome" />
-          <RadioGroup name="agg-base" label="Aggrega per" value={base}
-            onChange={(v) => cambiaCombo(v as Base, '', segmento)}
-            options={BASI} />
-          {base === 'struttura' ? (
-            <SelectField name="agg-struttura" label="Struttura" value={valore} placeholder="Seleziona struttura"
-              onChange={(e) => cambiaCombo(base, e.target.value, segmento)}
-              options={strutture.map(x => ({ value: x, label: x }))} />
-          ) : (
-            <SelectField name="agg-categoria" label="Categoria" value={valore} placeholder="Seleziona categoria"
-              onChange={(e) => cambiaCombo(base, e.target.value, segmento)}
-              options={CATEGORIE.map(c => ({ value: c, label: c }))} />
-          )}
-          <SelectField name="agg-segmento" label="Segmento" value={segmento} placeholder="Seleziona segmento"
-            onChange={(e) => cambiaCombo(base, valore, e.target.value)}
-            options={SEGMENTI.map(x => ({ value: x, label: x }))} />
-
-          {/* Tipologie disponibili per la combinazione scelta */}
-          {valore && segmento && (
-            <fieldset className="target-agg-modal__tip">
-              <legend>Tipologie disponibili <span>{tipScelte.length} di {disponibili.length} selezionate</span></legend>
-              {disponibili.length === 0
-                ? <p className="target-agg-modal__tip-empty">Nessuna tipologia disponibile per questa combinazione.</p>
-                : (
-                  <div className="target-agg-modal__tip-list">
-                    {disponibili.map(t => (
-                      <CheckboxField key={t} name={`agg-tip-${t}`} label={t}
-                        checked={tipScelte.includes(t)}
-                        onChange={() => setTipScelte(s => s.includes(t) ? s.filter(x => x !== t) : [...s, t])} />
-                    ))}
-                  </div>
-                )}
-            </fieldset>
-          )}
-
-          <div className="target-agg-modal__btns">
-            {editId != null && (
-              <button type="button" className="sib-btn sib-btn--secondary" onClick={resetForm}>Annulla modifica</button>
-            )}
-            <button type="button" className="sib-btn sib-btn--primary target-agg-modal__add" disabled={!valida} onClick={aggiungi}>
-              <i className={`fa-solid ${editId != null ? 'fa-check' : 'fa-plus'}`} aria-hidden="true" /> {editId != null ? 'Aggiorna' : 'Aggiungi'}
-            </button>
-          </div>
-        </div>
-
-        <table className="sib-table target-agg-modal__tbl">
-          <colgroup>
-            <col className="target-agg-modal__c-nome" /><col className="target-agg-modal__c-per" /><col className="target-agg-modal__c-seg" /><col /><col className="target-agg-modal__c-act" />
-          </colgroup>
-          <thead>
-            <tr><th>Nome</th><th>Aggregata per</th><th>Segmento</th><th>Tipologie</th><th className="target-agg-modal__center">Azioni</th></tr>
-          </thead>
-          <tbody>
-            {aggregazioni.length === 0 ? (
-              <tr><td colSpan={5} className="target-agg-modal__empty">Nessuna aggregazione creata.</td></tr>
-            ) : aggregazioni.map(a => (
-              <tr key={a.id} className={editId === a.id ? 'is-edit' : ''}>
-                <td><TruncatedText text={a.nome} className="target-agg-modal__cell" /></td>
-                <td><TruncatedText text={`${a.base === 'struttura' ? 'Struttura' : 'Categoria'}: ${a.valore}`} className="target-agg-modal__cell" /></td>
-                <td>{a.segmento}</td>
-                <td><TruncatedText text={a.tipologie.join(', ')} className="target-agg-modal__cell" /></td>
-                <td className="target-agg-modal__center">
-                  <Tooltip text="Modifica">
-                    <button type="button" className="sib-btn sib-btn--icon target-agg-modal__act" onClick={() => modifica(a)} aria-label={`Modifica ${a.nome}`}>
-                      <i className="fa-solid fa-pen" aria-hidden="true" />
-                    </button>
-                  </Tooltip>
-                  <Tooltip text="Elimina">
-                    <button type="button" className="sib-btn sib-btn--icon target-agg-modal__act" onClick={() => elimina(a)} aria-label={`Elimina ${a.nome}`}>
-                      <i className="fa-solid fa-trash" aria-hidden="true" />
-                    </button>
-                  </Tooltip>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="target-agg-modal__actions">
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setModalOpen(false)}>Chiudi</button>
-        </div>
-      </Modal>
     </div>
   )
 }
