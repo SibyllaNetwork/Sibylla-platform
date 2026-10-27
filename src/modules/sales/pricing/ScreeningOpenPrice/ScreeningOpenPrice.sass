@@ -1,752 +1,738 @@
-// ─── PRICING ──────────────────────────────────────────────────────────────────
+// ─── Screening open price ───────────────────────────────────────────────────
+// Copertura del periodo (calendari a mappa di calore) + tariffe suggerite.
+// Linguaggio visivo condiviso con Suggerimenti data driven (lenti, testate
+// con accento, schede), tabella secondo lo standard .sib-table.
 @use '../../../../styles/tokens' as *
 
-// ═══ SCREENING OPEN PRICE ════════════════════════════════════════════════════
-.screening
+.sop
+  position: relative
+  container-type: inline-size
 
-  &__layout
-    display: flex
-    gap: 16px
-    align-items: flex-start
-
-  // ── Filter bar ───────────────────────────────────────────────────────────────
-  &__filters
-    margin-bottom: 14px
+  // ── Toolbar ───────────────────────────────────────────────────────────────
+  &__toolbar
     display: flex
     align-items: flex-end
-    gap: 12px
     flex-wrap: wrap
+    gap: 16px
+    margin-bottom: 20px
 
-  // ── Loading overlay ───────────────────────────────────────────────────────────
-  &__loading
-    position: fixed
-    inset: 0
-    z-index: 200
-    background: alpha($primary, 0.55)
+  &__filters
+    display: flex
+    align-items: flex-end
+    flex-wrap: wrap
+    gap: 12px
+    margin-right: auto
+
+  &__struttura
+    width: 200px
+
+  &__tipologia
+    width: 220px
+
+  &__right
+    display: flex
+    align-items: center
+    gap: 10px
+
+  &__link i
+    color: var(--color-primary)
+    font-size: 16px
+
+  // ── Lenti ─────────────────────────────────────────────────────────────────
+  &__lenses
+    display: inline-flex
+    flex-wrap: wrap
+    gap: 4px
+    padding: 4px
+    border: 1px solid var(--color-border)
+    border-radius: 999px
+    background: var(--color-bg)
+
+  &__lens
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 8px 0 14px
+    border: none
+    border-radius: 999px
+    background: none
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    cursor: pointer
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease
+
+    i
+      font-size: 12px
+
+    &:hover
+      color: var(--color-text-active)
+
+    &.is-active
+      background: var(--color-surface)
+      color: var(--sop-acc)
+      box-shadow: 0 1px 4px rgba(15, 30, 50, .14)
+
+      .sop__lens-n
+        background: var(--sop-acc)
+        color: #fff
+
+    &--tutte
+      --sop-acc: var(--color-primary)
+
+    &--alza
+      --sop-acc: var(--chart-good)
+
+    &--abbassa
+      --sop-acc: var(--color-warning)
+
+    &--apri
+      --sop-acc: var(--chart-4)
+
+  &__lens-n
+    min-width: 22px
+    height: 20px
+    padding: 0 6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 999px
+    background: var(--color-border)
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-text-inactive)
+    transition: background .15s ease, color .15s ease
+
+  // ── Impianto ──────────────────────────────────────────────────────────────
+  &__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr)
+    gap: 18px
+
+  &__panel
+    position: relative
+    display: flex
+    flex-direction: column
+    min-width: 0
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    overflow: hidden
+    animation: sop-in .3s ease-out both
+
+    &::before
+      content: ''
+      position: absolute
+      inset: 0 0 auto
+      height: 3px
+      background: var(--sop-acc)
+
+    &--cov
+      --sop-acc: var(--chart-5)
+
+      .sop__head-sum
+        white-space: normal
+
+    &--tbl
+      --sop-acc: var(--chart-1)
+      animation-delay: 80ms
+
+  &__head
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 11px 14px 10px
+    border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sop-acc) 7%, transparent), transparent)
+
+  &__head-ico
+    flex-shrink: 0
+    width: 32px
+    height: 32px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 10px
+    background: color-mix(in srgb, var(--sop-acc) 14%, transparent)
+    color: var(--sop-acc)
+    font-size: 15px
+
+  &__head-titles
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__head-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__head-sum
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+    strong
+      color: var(--color-text-active)
+
+  &__up
+    color: var(--chart-good)
+    font-weight: 600
+
+  &__dn
+    color: var(--color-warning)
+    font-weight: 600
+
+  &__chip
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 26px
+    padding: 0 10px
+    border: 1px solid var(--sop-acc)
+    border-radius: 999px
+    background: color-mix(in srgb, var(--sop-acc) 10%, transparent)
+    font-size: 12px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+    animation: sop-pop .25s ease-out
+
+    i
+      color: var(--sop-acc)
+
+    .fa-xmark
+      margin-left: 2px
+      color: var(--color-text-inactive)
+
+  // ── Copertura: calendari a mappa di calore ────────────────────────────────
+  &__months
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr))
+    gap: 16px
+    padding: 14px
+
+  &__month-name
+    margin-bottom: 8px
+    font-family: $font-heading
+    font-size: 13px
+    font-weight: 600
+    color: var(--color-text-active)
+
+    span
+      font-weight: 400
+      color: var(--color-text-inactive)
+
+  &__cal
+    display: grid
+    grid-template-columns: repeat(7, minmax(0, 1fr))
+    gap: 3px
+
+  &__cal-h
+    text-align: center
+    font-size: 10px
+    font-weight: 600
+    color: var(--color-text-disabled)
+
+  &__day
+    height: 28px
+    width: 100%
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    padding: 0
+    border: none
+    border-radius: 6px
+    font-size: 11px
+    font-weight: 600
+    color: var(--color-text-active)
+    cursor: pointer
+    transition: transform .12s ease, box-shadow .12s ease
+
+    &:hover
+      transform: scale(1.12)
+      box-shadow: 0 3px 10px rgba(15, 30, 50, .18)
+      z-index: 1
+
+    &.is-out
+      background: none
+      color: var(--color-text-disabled)
+      cursor: default
+      opacity: .5
+
+      &:hover
+        transform: none
+        box-shadow: none
+
+    &.is-sel
+      box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-primary)
+
+  // Livelli: 0 = nessun prezzo aperto (tratteggio), 1-4 = scala sequenziale
+  &__day--l0
+    background: repeating-linear-gradient(135deg, var(--color-bg) 0 4px, color-mix(in srgb, var(--color-warning) 22%, var(--color-bg)) 4px 6px)
+    color: var(--color-warning)
+
+  &__day--l1
+    background: color-mix(in srgb, var(--chart-seq-to) 18%, var(--color-surface))
+
+  &__day--l2
+    background: color-mix(in srgb, var(--chart-seq-to) 38%, var(--color-surface))
+
+  &__day--l3
+    background: color-mix(in srgb, var(--chart-seq-to) 65%, var(--color-surface))
+    color: #fff
+
+  &__day--l4
+    background: var(--chart-seq-to)
+    color: #fff
+
+  &__scale
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-top: auto
+    padding: 10px 14px
+    border-top: 1px solid var(--color-border)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__scale-bar
+    display: inline-flex
+    gap: 3px
+
+    span
+      width: 16px
+      height: 12px
+      border-radius: 3px
+
+  // ── Tabella ───────────────────────────────────────────────────────────────
+  &__tbl-wrap
+    flex: 1
+    min-height: 0
+
+  &__tbl
+    width: 100%
+    table-layout: fixed
+
+    th, td
+      white-space: nowrap
+
+    tbody tr
+      transition: background .12s ease
+
+    tbody tr.is-sel
+      background: color-mix(in srgb, var(--chart-1) 7%, transparent)
+
+    tbody tr.is-done td
+      color: var(--color-text-inactive)
+
+  &__c-chk
+    width: 44px
+
+  &__c-day
+    width: 104px
+
+  &__c-num
+    width: 110px
+
+  &__c-ai
+    width: 130px
+
+  &__c-delta
+    width: 30%
+
+  &__r
+    text-align: right
+
+  &__nw
+    white-space: nowrap
+
+  &__tipo
+    display: block
+    max-width: 100%
+
+  &__closed
+    font-size: 12px
+    font-style: italic
+    color: var(--color-text-disabled)
+
+  &__ok
+    color: var(--color-success)
+    font-size: 16px
+    animation: sop-pop .3s ease-out
+
+  // Suggerita AI: pillola cliccabile che apre l'analisi
+  &__ai
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    height: 26px
+    padding: 0 10px
+    border: 1px solid color-mix(in srgb, var(--chart-1) 35%, var(--color-border))
+    border-radius: 999px
+    background: color-mix(in srgb, var(--chart-1) 8%, var(--color-surface))
+    font-size: 12.5px
+    font-weight: 700
+    color: var(--color-primary)
+    cursor: pointer
+    white-space: nowrap
+    transition: background .12s ease, transform .12s ease
+
+    i
+      font-size: 11px
+      color: var(--chart-1)
+
+    &:hover
+      background: color-mix(in srgb, var(--chart-1) 16%, var(--color-surface))
+      transform: translateY(-1px)
+
+  // Variazione: barra divergente + valore + %
+  &__delta
+    display: inline-flex
+    align-items: center
+    gap: 10px
+
+  &__dbar
+    position: relative
+    flex-shrink: 0
+    width: 64px
+    height: 8px
+    border-radius: 4px
+    background: var(--color-bg)
+
+    // Linea dello zero (prezzo attuale)
+    &::after
+      content: ''
+      position: absolute
+      left: 50%
+      top: -3px
+      bottom: -3px
+      width: 1.5px
+      background: var(--color-text-disabled)
+
+    &.is-up .sop__dbar-fill
+      left: 50%
+      border-radius: 0 4px 4px 0
+      background: var(--chart-good)
+
+    &.is-down .sop__dbar-fill
+      right: 50%
+      border-radius: 4px 0 0 4px
+      background: var(--color-warning)
+
+  &__dbar-fill
+    position: absolute
+    top: 0
+    bottom: 0
+    animation: sop-grow .5s ease-out both
+
+    @for $i from 1 through 6
+      &--#{$i}
+        width: #{$i * 32 / 6}px
+
+  &__delta-v
+    min-width: 76px
+    text-align: right
+    font-size: 12.5px
+    font-weight: 700
+
+    &.is-up
+      color: var(--chart-good)
+
+    &.is-down
+      color: var(--color-warning)
+
+  &__delta-p
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  &__state
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 22px
+    padding: 0 9px
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 700
+
+    &.is-open
+      background: color-mix(in srgb, var(--chart-4) 16%, transparent)
+      color: var(--chart-4)
+
+    &.is-done
+      background: var(--color-success-light)
+      color: var(--color-success)
+
+  &__empty
     display: flex
     flex-direction: column
     align-items: center
-    justify-content: center
-    gap: 16px
-    backdrop-filter: blur(4px)
-
-  &__loading-spinner
-    width: 44px
-    height: 44px
-    border: 4px solid alpha($white, 0.25)
-    border-top-color: $white
-    border-radius: 50%
-    animation: spin 0.75s linear infinite
-
-  &__loading-text
-    color: $white
+    gap: 10px
+    padding: 40px 24px
     font-size: 14px
     font-weight: 600
-    font-family: $font-heading
+    color: var(--color-text-disabled)
 
-  // ── Mini calendar ─────────────────────────────────────────────────────────────
-  &__cal-wrap
-    width: 340px
-    flex-shrink: 0
-    background: $white
-    border-radius: 12px
-    border: 1px solid $border
-    overflow: hidden
+    i
+      font-size: 28px
+      color: color-mix(in srgb, var(--chart-1) 45%, transparent)
 
-  &__cal-header
-    display: flex
+  &__foot
+    display: grid
+    grid-template-columns: 1fr auto 1fr
     align-items: center
-    justify-content: space-between
-    padding: 12px 14px
-    border-bottom: 1px solid $border
-    background: var(--color-bg)
-
-  &__cal-title
-    font-family: $font-heading
-    font-size: 13px
-    font-weight: 700
-    color: $primary
-
-  &__cal-scroll
-    overflow-x: auto
-
-  &__cal-table
-    border-collapse: collapse
-    min-width: 500px
-    width: 100%
-
-  &__cal-th-month
-    padding: 6px 10px
-    font-size: 12px
-    font-weight: 700
-    color: $primary
-    background: var(--color-bg)
-    border-right: 1px solid $border
-    white-space: nowrap
-
-  &__cal-th-day
-    padding: 6px 0
-    font-size: 10px
-    font-weight: 700
-    color: $text-disabled
-    text-align: center
-    background: var(--color-bg)
-    border-bottom: 1px solid $border
-    border-right: 1px solid var(--color-border)
-
-  &__cal-td-empty
-    border-right: 1px solid var(--color-border)
-    background: repeating-linear-gradient(-45deg, var(--color-bg), var(--color-bg) 3px, #EBEBEB 3px, #EBEBEB 4px)
-
-  &__cal-dot-cell
-    padding: 4px 1px
-    text-align: center
-    border-right: 1px solid var(--color-border)
-
-  &__cal-dot
-    width: 15px
-    height: 15px
-    border-radius: 50%
-    margin: 0 auto
-    transition: transform 0.1s
-
-    &:hover
-      transform: scale(1.3)
-
-    &--active
-      background: #E74C3C
-      box-shadow: 0 1px 4px rgba(#E74C3C, 0.33)
-
-    &--inactive
-      background: #D1D5DB
-
-  // ── Main table ───────────────────────────────────────────────────────────────
-  &__table-wrap
-    flex: 1
-    background: $white
-    border-radius: 12px
-    border: 1px solid $border
-    overflow: hidden
-    min-width: 0
-
-  &__table
-    border-collapse: collapse
-    width: 100%
-    min-width: 500px
-
-  &__thead
-    background: var(--color-bg)
-    border-bottom: 1px solid $border
-
-  &__th
-    padding: 9px 10px
-    font-size: 11px
-    font-weight: 700
-    color: $text-disabled
-    text-align: left
-    white-space: nowrap
-    letter-spacing: 0.2px
-
-  &__th--right
-    text-align: right
-
-  &__row
-    border-bottom: 1px solid $border
-    transition: background 0.1s
-
-    &:hover
-      background: var(--color-bg)
-
-    &:last-child
-      border-bottom: none
-
-  &__td
-    padding: 8px 10px
-    font-size: 12px
-    color: $text-active
-    vertical-align: middle
-
-  &__td--nowrap
-    white-space: nowrap
-
-  &__td--right
-    text-align: right
-
-  &__ai-btn
-    display: flex
-    align-items: center
-    gap: 5px
-    background: none
-    border: none
-    cursor: pointer
-    padding: 0
-    margin-left: auto
-    transition: opacity 0.15s
-
-    &:hover
-      opacity: 0.7
-
-  &__ai-value
-    font-size: 12px
-    font-weight: 700
-    color: #E74C3C
-    white-space: nowrap
-
-  // ── Pagination ───────────────────────────────────────────────────────────────
-  &__pagination
-    display: flex
-    align-items: center
-    justify-content: center
-    gap: 4px
-    padding: 10px 14px
-    border-top: 1px solid $border
-
-// ═══ PRICING BENCHMARK ═══════════════════════════════════════════════════════
-.benchmark
-
-  &__layout
-    display: flex
-    gap: 16px
-    align-items: flex-start
-
-  // ── Filter bar ───────────────────────────────────────────────────────────────
-  &__filters
-    margin-bottom: 14px
-    display: flex
-    align-items: flex-end
     gap: 12px
-    flex-wrap: wrap
+    padding: 8px 12px
+    border-top: 1px solid var(--color-border)
 
-  // ── View selector ────────────────────────────────────────────────────────────
-  &__view-btns
-    display: flex
-    gap: 8px
-    margin-bottom: 14px
-
-  &__view-btn
-    display: flex
-    align-items: center
-    gap: 6px
-    padding: 7px 14px
-    border-radius: 8px
-    cursor: pointer
+  &__foot-sel
     font-size: 12px
     font-weight: 600
-    color: $text-active
-    border: 1px solid $border
-    background: $white
-    transition: $transition-fast
+    color: var(--chart-1)
 
-    &--active
-      border-color: $primary
-      background: $primary-100
-      color: $primary
-
-  // ── Map / search panel ───────────────────────────────────────────────────────
-  &__search-panel
-    width: 280px
-    flex-shrink: 0
-    background: $white
-    border-radius: 12px
-    border: 1px solid $border
-    overflow: hidden
-
-  &__search-header
-    padding: 12px 14px
-    border-bottom: 1px solid $border
-    background: var(--color-bg)
-
-  &__search-title
-    font-family: $font-heading
-    font-size: 13px
-    font-weight: 700
-    color: $primary
-    margin-bottom: 8px
-
-  &__map-placeholder
-    background: $primary-50
-    border-radius: 8px
-    height: 140px
-    display: flex
-    align-items: center
+  &__pag
     justify-content: center
-    margin-bottom: 10px
-    position: relative
-    overflow: hidden
 
-  &__hotel-list
-    max-height: 220px
-    overflow-y: auto
-
-  &__hotel-item
-    padding: 10px 14px
-    border-bottom: 1px solid $border
-    transition: background 0.1s
-
-    &:hover
-      background: var(--color-bg)
-
-    &:last-child
-      border-bottom: none
-
-  &__hotel-add-btn
-    width: 26px
-    height: 26px
-    border-radius: 5px
-    border: 1px solid $primary
-    background: transparent
-    cursor: pointer
-    display: flex
+  &__apply
+    grid-column: 3
+    justify-self: end
+    display: inline-flex
     align-items: center
+    gap: 8px
+
+  // ── Overlay di caricamento ────────────────────────────────────────────────
+  &__loading
+    position: absolute
+    inset: 0
+    z-index: 30
+    display: flex
+    align-items: flex-start
     justify-content: center
-    flex-shrink: 0
-    transition: $transition-fast
+    padding-top: 160px
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent)
+    backdrop-filter: blur(3px)
+    animation: sop-fade .2s ease-out
 
-    &:hover:not(:disabled)
-      background: $primary-100
-
-    &:disabled
-      border-color: $border
-      opacity: 0.35
-      cursor: default
-
-  // ── Monitoring panel ─────────────────────────────────────────────────────────
-  &__monitor-panel
-    flex: 1
-    background: $white
-    border-radius: 12px
-    border: 1px solid $border
-    overflow: hidden
-    min-width: 0
-
-  &__monitor-header
-    padding: 12px 16px
-    border-bottom: 1px solid $border
-
-  &__monitor-title
-    font-family: $font-heading
-    font-size: 14px
-    font-weight: 700
-    color: $primary
-    margin-bottom: 10px
-
-  &__monitor-your-hotel
+  &__loading-card
+    width: 380px
+    max-width: calc(100% - 32px)
     display: flex
-    align-items: center
-    justify-content: space-between
-    padding: 6px 0
-    border-bottom: 1px solid $border
-
-  &__monitor-list
-    max-height: 210px
-    overflow-y: auto
-
-  &__monitor-item
-    display: flex
-    align-items: center
-    justify-content: space-between
-    padding: 8px 16px
-    border-bottom: 1px solid $border
-    transition: background 0.1s
-
-    &:hover
-      background: var(--color-bg)
-
-    &:last-child
-      border-bottom: none
-
-  &__monitor-delete
-    background: none
-    border: none
-    cursor: pointer
-    padding: 3px
-    border-radius: 5px
-    display: flex
-    transition: background 0.1s
-
-    &:hover
-      background: $error-light
-
-  &__monitor-link-btn
-    padding: 4px 9px
-    border: 1px solid var(--color-border)
-    border-radius: 6px
-    background: transparent
-    cursor: pointer
-    display: flex
-    align-items: center
-    gap: 4px
-    transition: background 0.1s
-
-    &:hover
-      background: var(--color-error-light)
-
-  // ── Chart controls ────────────────────────────────────────────────────────────
-  &__chart-controls
-    padding: 10px 14px
-    border-top: 1px solid $border
-    display: flex
+    flex-direction: column
     align-items: center
     gap: 6px
-    flex-wrap: wrap
+    padding: 26px 26px 20px
+    border: 1px solid var(--color-border)
+    border-radius: 16px
+    background: var(--color-surface)
+    box-shadow: 0 18px 48px rgba(15, 30, 50, .18)
+    text-align: center
+    animation: sop-pop .3s ease-out
 
-  &__period-btn
-    display: flex
+  &__radar
+    position: relative
+    width: 72px
+    height: 72px
+    margin-bottom: 8px
+    display: inline-flex
     align-items: center
-    gap: 3px
-    min-width: 32px
-    height: 26px
-    padding: 0 4px
-    border-radius: 5px
-    cursor: pointer
-    font-size: 10px
-    font-weight: 700
     justify-content: center
-    transition: $transition-fast
-
-    &--active
-      border-color: $primary
-      background: $primary-100
-      color: $primary
-
-    &:not(.benchmark__period-btn--active)
-      border: 1px solid $border
-      background: transparent
-      color: $text-active
-      border-color: $border
-
-  &__info-btn
-    margin-left: auto
-    border: none
-    cursor: pointer
-    padding: 0
-    display: flex
     border-radius: 50%
-    width: 22px
-    height: 22px
-    align-items: center
-    justify-content: center
+    background: color-mix(in srgb, var(--chart-1) 12%, transparent)
+    color: var(--chart-1)
+    font-size: 26px
 
-  // ── Legend ───────────────────────────────────────────────────────────────────
-  &__legend
+    span
+      position: absolute
+      inset: 0
+      border: 2px solid var(--chart-1)
+      border-radius: 50%
+      opacity: 0
+      animation: sop-ring 2.4s ease-out infinite
+
+      &:nth-child(2)
+        animation-delay: .8s
+
+      &:nth-child(3)
+        animation-delay: 1.6s
+
+  &__loading-title
+    font-family: $font-heading
+    font-size: 16px
+    color: var(--color-primary)
+
+  &__loading-sub
+    font-size: 12.5px
+    color: var(--color-text-inactive)
+
+  &__steps
+    align-self: stretch
+    margin: 14px 0 0
+    padding: 12px 0 0
+    border-top: 1px solid var(--color-border)
+    list-style: none
     display: flex
-    flex-wrap: wrap
-    gap: 5px 12px
-    margin-top: 6px
-    padding-left: 44px
+    flex-direction: column
+    gap: 8px
+    text-align: left
 
-  &__legend-item
-    display: flex
-    align-items: center
-    gap: 4px
+    li
+      display: flex
+      align-items: center
+      gap: 10px
+      font-size: 12.5px
+      color: var(--color-text-disabled)
+      transition: color .2s ease
 
-  &__legend-line
-    width: 16px
-    height: 2.5px
-    border-radius: 1px
+      i
+        width: 14px
+        font-size: 12px
 
-  &__legend-label
-    font-size: 9px
-    color: $text-disabled
+      &.is-run
+        color: var(--color-text-active)
+        font-weight: 600
 
-  // ─── Root ─────────────────────────────────────────────────────────────────────
-.screening__root
-  position: relative
+        i
+          color: var(--chart-1)
+          animation: sop-spin .8s linear infinite
 
-// ─── Loading overlay ──────────────────────────────────────────────────────────
-.screening__loading-overlay
-  position: fixed
-  inset: 0
-  z-index: 90
-  background: rgba(236,238,242,0.92)
-  display: flex
-  flex-direction: column
-  align-items: center
-  justify-content: center
-  gap: 20px
+      &.is-done
+        color: var(--color-text-active)
 
-.screening__loading-gear
-  position: absolute
-  opacity: 0.12
-  animation: spin linear infinite
-  top: var(--gear-top)
-  bottom: var(--gear-bottom)
-  left: var(--gear-left)
-  right: var(--gear-right)
-  animation-duration: var(--gear-dur)
-  animation-direction: var(--gear-dir)
+        i
+          color: var(--color-success)
 
-@keyframes spin
+// Schermi larghi: copertura a sinistra, tabella a destra
+@container (min-width: 1000px)
+  .sop__layout
+    grid-template-columns: 300px minmax(0, 1fr)
+    align-items: start
+  .sop__months
+    grid-template-columns: minmax(0, 1fr)
+
+// Spazio ridotto: barre e % lasciano posto ai valori
+@container (max-width: 760px)
+  .sop__delta-p
+    display: none
+  .sop__foot
+    grid-template-columns: 1fr auto
+  .sop__pag
+    grid-column: 1 / -1
+    grid-row: 2
+  .sop__apply
+    grid-column: 2
+
+// In dark la scala sequenziale va dallo scuro al chiaro: testo scuro sui livelli alti
+[data-theme="dark"] .sop__day--l3,
+[data-theme="dark"] .sop__day--l4
+  color: var(--color-content-bg)
+
+@keyframes sop-in
   from
-    transform: rotate(0deg)
+    opacity: 0
+    transform: translateY(6px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes sop-pop
+  0%
+    opacity: 0
+    transform: scale(.6)
+  70%
+    transform: scale(1.06)
+  100%
+    opacity: 1
+    transform: scale(1)
+
+@keyframes sop-fade
+  from
+    opacity: 0
+
+@keyframes sop-grow
+  from
+    transform: scaleX(0)
+
+@keyframes sop-ring
+  0%
+    opacity: .7
+    transform: scale(.6)
+  100%
+    opacity: 0
+    transform: scale(1.5)
+
+@keyframes sop-spin
   to
     transform: rotate(360deg)
 
-@keyframes bounce
-  0%, 80%, 100%
-    transform: translateY(0)
-  40%
-    transform: translateY(-6px)
+@media (prefers-reduced-motion: reduce)
+  .sop__panel, .sop__chip, .sop__ok, .sop__dbar-fill, .sop__radar span, .sop__loading-card, .sop__steps li.is-run i
+    animation: none
 
-.screening__loading-card
-  background: var(--color-surface)
-  border-radius: 20px
-  padding: 32px 40px
-  max-width: 460px
-  text-align: center
-  box-shadow: 0 20px 60px rgba(32,71,105,0.15)
-  display: flex
-  flex-direction: column
-  align-items: center
-  gap: 16px
+// ─── Modale "Analisi suggerimento AI" ────────────────────────────────────────
+.sop-modal
+  &__sub
+    margin: -4px 0 14px
+    font-size: 13px
+    color: var(--color-text-inactive)
 
-.screening__loading-dots
-  display: flex
-  gap: 6px
-  align-items: center
+    strong
+      color: var(--color-text-active)
 
-.screening__loading-dot
-  width: 8px
-  height: 8px
-  border-radius: 50%
-  background: $primary
-  animation: bounce 1.2s ease-in-out infinite
-  animation-delay: var(--dot-delay)
+  &__bar
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 8px
+    padding: 8px 10px
+    border-radius: 10px
+    background: var(--color-bg)
 
-.screening__loading-text
-  font-size: 13px
-  color: $text-inactive
-  margin: 0
-  line-height: 1.7
-  font-style: italic
+  &__nav
+    width: 30px
+    height: 30px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    background: var(--color-surface)
+    color: var(--color-primary)
+    font-size: 12px
+    cursor: pointer
 
-// ─── Filters ──────────────────────────────────────────────────────────────────
-.screening__filters-row
-  display: flex
-  align-items: flex-end
-  justify-content: space-between
-  margin-bottom: 16px
-  gap: 12px
-  flex-wrap: wrap
+    &:disabled
+      opacity: .4
+      cursor: default
 
-.screening__filters-left
-  display: flex
-  gap: 16px
-  align-items: flex-end
-  flex-wrap: wrap
+  &__day
+    min-width: 92px
+    text-align: center
+    font-family: $font-heading
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-text-active)
 
-.screening__select--struttura
-  width: 138px
+  &__legend
+    margin-left: auto
 
-.screening__date-input
-  width: 148px
+  &__chart
+    height: 280px
+    margin-top: 14px
 
-// ─── Main layout ──────────────────────────────────────────────────────────────
-.screening__layout
-  display: flex
-  gap: 14px
-  align-items: flex-start
+  &__hint
+    margin: 8px 0 0
+    font-size: 11.5px
+    color: var(--color-text-inactive)
 
-// ─── Calendar ─────────────────────────────────────────────────────────────────
-.screening__cal-wrap
-  flex: 0 0 57%
-  background: $white
-  border-radius: 12px
-  border: 1px solid $border
-  overflow: hidden
-  min-width: 0
-
-.screening__cal-scroll
-  overflow-x: auto
-
-.screening__cal-table
-  border-collapse: collapse
-  min-width: 520px
-
-.screening__cal-th-giorni
-  padding: 8px 10px
-  font-size: 11px
-  font-weight: 700
-  color: $text-active
-  background: var(--color-bg)
-  border-bottom: 1px solid $border
-  border-right: 1px solid $border
-  min-width: 72px
-  text-align: left
-  white-space: nowrap
-
-.screening__cal-th-day
-  padding: 7px 0
-  font-size: 11px
-  font-weight: 600
-  color: $text-active
-  text-align: center
-  background: var(--color-bg)
-  border-bottom: 1px solid $border
-  width: 22px
-
-  &--border
-    border-right: 1px solid var(--color-border)
-
-.screening__cal-row--border
-  border-bottom: 1px solid $border
-
-.screening__cal-td-month
-  padding: 6px 10px
-  font-size: 12px
-  font-weight: 700
-  color: $primary
-  background: var(--color-bg)
-  border-right: 1px solid $border
-  white-space: nowrap
-
-.screening__cal-td-empty
-  background: repeating-linear-gradient(-45deg,var(--color-bg),var(--color-bg) 3px,#EBEBEB 3px,#EBEBEB 4px)
-
-  &--border
-    border-right: 1px solid var(--color-border)
-
-// ─── Table ────────────────────────────────────────────────────────────────────
-.screening__table-scroll
-  overflow-x: auto
-
-.screening__th-with-filter
-  display: flex
-  align-items: center
-  gap: 3px
-
-.screening__filter-ico
-  font-size: 9px
-  color: $text-disabled
-
-.screening__th--ai
-  color: #E74C3C
-
-.screening__th--checkbox
-  width: 28px
-
-.screening__checkbox
-  accent-color: $primary
-  width: 12px
-  height: 12px
-  cursor: pointer
-
-.screening__td--center
-  text-align: center
-
-.screening__td--delta
-  color: var(--delta-color)
-  font-weight: 600
-
-// ─── AI button ────────────────────────────────────────────────────────────────
-.screening__ai-ico
-  font-size: 14px
-  color: #E74C3C
-
-// ─── Pagination ───────────────────────────────────────────────────────────────
-.screening__page-nums
-  display: flex
-  gap: 4px
-  align-items: center
-
-.screening__page-ellipsis
-  padding: 0 4px
-  color: $text-disabled
-  font-size: 13px
-
-.screening__page-btn
-  width: 32px
-  height: 32px
-  border-radius: 6px
-  border: 1px solid $border
-  background: transparent
-  color: $text-active
-  font-size: 13px
-  font-weight: 400
-  cursor: pointer
-  transition: all 0.13s
-
-  &--active
-    border-color: $primary
-    background: $primary
-    color: $white
-    font-weight: 700
-
-// ─── Modal ────────────────────────────────────────────────────────────────────
-.screening__modal-title
-  font-family: Poppins, sans-serif
-  font-size: 17px
-  font-weight: 700
-  color: $primary
-  margin: 0 0 4px
-
-.screening__modal-subtitle
-  font-size: 12px
-  color: $text-inactive
-  margin: 0 0 10px
-
-.screening__modal-nav
-  display: flex
-  align-items: center
-  justify-content: flex-end
-  gap: 6px
-  margin-bottom: 10px
-
-.screening__modal-nav-label
-  font-size: 12px
-  font-weight: 600
-  color: $primary
-
-.screening__modal-legend
-  display: flex
-  align-items: center
-  gap: 14px
-  margin-bottom: 10px
-  justify-content: center
-
-.screening__legend-item
-  display: flex
-  align-items: center
-  gap: 5px
-
-.screening__legend-dot
-  width: 22px
-  height: 12px
-  border-radius: 3px
-  border: 2px solid transparent
-  background: var(--legend-dot-bg)
-  border-color: var(--legend-dot-border)
-
-.screening__legend-label
-  font-size: 11px
-  color: $text-active
-
-.screening__modal-bar
-  margin-top: 10px
-  padding: 8px 14px
-  background: $blue-light
-  border-radius: 8px
-  display: flex
-  align-items: center
-  gap: 16px
-  flex-wrap: wrap
-
-.screening__modal-bar-date
-  font-size: 11px
-  color: $text-disabled
-
-.screening__modal-bar-date-val
-  font-weight: 600
-  color: $primary
-
-.screening__modal-bar-str
-  font-size: 11px
-  color: $link
-
-.screening__modal-bar-ai
-  font-size: 11px
-  color: #E91E63
-
-.screening__modal-bar-ly
-  font-size: 11px
-  color: #CE93D8
+    i
+      margin-right: 4px

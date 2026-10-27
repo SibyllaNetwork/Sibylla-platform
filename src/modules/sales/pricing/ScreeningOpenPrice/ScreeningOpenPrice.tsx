@@ -1,294 +1,456 @@
-import React, { useEffect, useState } from 'react'
-import T from '../../../../core/tokens'
-import Ico from '../../../../core/icons/Ico'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip as RTooltip, ReferenceLine,
+} from 'recharts'
 import Modal from '../../../../core/components/Modal'
 import PageHead from '../../../../core/components/PageHead'
 import Pagination from '../../../../core/components/Pagination'
-import './ScreeningOpenPrice.sass'
-import { SelectField, DateRangeField } from '../../../../core/components/form'
-import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+import Tooltip from '../../../../core/components/Tooltip'
 import TruncatedText from '../../../../core/components/TruncatedText'
+import { toast } from '../../../../core/components/Toast/useToast'
+import { SelectField, DateRangeField, CheckboxField } from '../../../../core/components/form'
+import {
+  ChartTooltip, BiLegend, series, CHART, ANIM, reducedMotion,
+  gridProps, xAxisProps, yAxisProps, cursorProps, fmtEur,
+} from '../../../../core/bi'
+import { useStrutturaPagina } from '../../../../hooks/useStrutturaCorrente'
+import './ScreeningOpenPrice.sass'
+
+/**
+ * Screening open price — tariffa suggerita dall'AI per ogni tipologia camera e
+ * giorno, confrontata con il prezzo aperto attuale. A sinistra la copertura del
+ * periodo (calendari a mappa di calore: quante tipologie hanno un prezzo aperto
+ * per giorno, cliccabili per filtrare), a destra il dettaglio con lenti
+ * Da alzare / Da abbassare / Da aprire, selezione e Applica. Il suggerimento
+ * apre l'analisi giorno per giorno (Strategie · AI · LY).
+ */
 
 const ROOMS = [
-  {label:'Singola Classic',  base:153.68},{label:'Doppia Classic',   base:186.24},
-  {label:'Doppia Economy',   base:140.00},{label:'Tripla Classic',   base:195.00},
-  {label:'Matrimoniale Cls', base:172.00},{label:'Matrimoniale DLX', base:233.83},
-  {label:'Matrimoniale Ste', base:220.00},{label:'Doppia Conv Std',  base:247.98},
-  {label:'Doppia Conv DLX',  base:220.30},
+  { label: 'Singola Classic',                  base: 153.68 },
+  { label: 'Doppia Classic',                   base: 186.24 },
+  { label: 'Doppia Economy',                   base: 140.00 },
+  { label: 'Tripla Classic',                   base: 195.00 },
+  { label: 'Matrimoniale Classic',             base: 172.00 },
+  { label: 'Matrimoniale Deluxe',              base: 233.83 },
+  { label: 'Matrimoniale Superior',            base: 220.00 },
+  { label: 'Doppia convertibile Standard',     base: 247.98 },
+  { label: 'Doppia convertibile Deluxe',       base: 220.30 },
 ]
-const MFULL = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
-
-const AreaChart = ({cd}:{cd:any[]}) => {
-  const W=540, H=220, pL=50, pR=16, pT=16, pB=48
-  const cW=W-pL-pR, cH=H-pT-pB, maxV=200
-  const tx = (i:number) => +(pL+i/(cd.length-1)*cW).toFixed(1)
-  const ty = (v:number) => +(pT+cH-Math.min(v,maxV)/maxV*cH).toFixed(1)
-  const line = (k:string) => cd.map((d,i) => `${i===0?'M':'L'}${tx(i)},${ty(d[k])}`).join(' ')
-  const area = (k:string) => `${line(k)} L${tx(cd.length-1)},${pT+cH} L${pL},${pT+cH} Z`
-  return (
-    <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#5C9CD4" stopOpacity=".65"/><stop offset="100%" stopColor="#5C9CD4" stopOpacity=".05"/></linearGradient>
-        <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#E91E63" stopOpacity=".55"/><stop offset="100%" stopColor="#E91E63" stopOpacity=".05"/></linearGradient>
-        <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#CE93D8" stopOpacity=".5"/><stop offset="100%" stopColor="#CE93D8" stopOpacity=".05"/></linearGradient>
-      </defs>
-      {[0,20,40,60,80,100,120,140,160,180,200].map(v => { const y=ty(v); return <g key={v}><line x1={pL} y1={y} x2={W-pR} y2={y} stroke="#F0F0F0" strokeWidth=".5"/><text x={pL-4} y={y+3} fontSize={8} fill="#9CA3AF" textAnchor="end">{v} €</text></g> })}
-      <path d={area('str')} fill="url(#sg)"/><path d={area('ai')} fill="url(#ag)"/><path d={area('ly')} fill="url(#lg)"/>
-      <path d={line('str')} fill="none" stroke="#5C9CD4" strokeWidth={2}/><path d={line('ai')} fill="none" stroke="#E91E63" strokeWidth={2}/><path d={line('ly')} fill="none" stroke="#CE93D8" strokeWidth={1.5}/>
-      {cd.map((d,i) => <g key={i}><circle cx={tx(i)} cy={ty(d.str)} r={3} fill="#5C9CD4"/><circle cx={tx(i)} cy={ty(d.ai)} r={3} fill="#E91E63"/>{i%3===0&&<text x={tx(i)} y={H-8} fontSize={7} fill="#9CA3AF" textAnchor="end" transform={`rotate(-40,${tx(i)},${H-8})`}>{d.lbl}</text>}</g>)}
-    </svg>
-  )
-}
+const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+const MESI_BREVI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
+const GIORNI_BREVI = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+const INIZIALI = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 
 // Date demo relative a oggi.
-const isoDa = (base: string, n: number) => { const d = new Date(base + 'T12:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
-const isoFra = (n: number) => { const d = new Date(); return isoDa(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`, n) }
+const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const isoDa = (base: string, n: number) => { const d = new Date(base + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d) }
+const isoFra = (n: number) => isoDa(iso(new Date()), n)
+const dataBreve = (s: string) => { const d = new Date(s + 'T12:00:00'); return `${d.getDate()} ${MESI_BREVI[d.getMonth()]}` }
+const dataLunga = (s: string) => { const d = new Date(s + 'T12:00:00'); return `${GIORNI_BREVI[d.getDay()]} ${d.getDate()} ${MESI_BREVI[d.getMonth()]}` }
 
-const genData = (struttura:string, from:string, to:string) => {
-  const arr:any[] = []
-  const s = new Date(from+'T00:00:00'), e = new Date(to+'T00:00:00')
-  let c = new Date(s), id = 0
+type Esito = 'alza' | 'abbassa' | 'apri'
+interface Row { id: number; iso: string; struttura: string; tipologia: string; att: number; ai: number; del: number; pct: number; hasP: boolean; esito: Esito }
+
+const genData = (struttura: string, from: string, to: string): Row[] => {
+  const arr: Row[] = []
+  let c = new Date(from + 'T12:00:00')
+  const e = new Date(to + 'T12:00:00')
+  let id = 0
   while (c <= e) {
-    const dd=c.getDate(), mm=c.getMonth(), yy=c.getFullYear()
-    const ds = `${String(dd).padStart(2,'0')}/${String(mm+1).padStart(2,'0')}/${yy}`
-    ROOMS.forEach((rm,ri) => {
-      const seed=(dd*17+ri*29+(mm+1)*11)%100, hasP=seed>30
-      const att=hasP?Math.round((rm.base+(seed%30)-15)*100)/100:0
-      const ai=Math.round(rm.base*(0.52+(seed%40)/100)*100)/100
-      const del=Math.round((ai-att)*100)/100
-      arr.push({ id:id++, day:dd, month:mm, year:yy, date:ds, struttura, tipologia:rm.label, att, ai, del, hasP,
-        attS:att>0?`${att.toFixed(2).replace('.',',')} €`:'0,00 €', aiS:`${ai.toFixed(2).replace('.',',')} €`, delS:`${del.toFixed(2).replace('.',',')} €` })
+    const dd = c.getDate(), mm = c.getMonth()
+    ROOMS.forEach((rm, ri) => {
+      const seed = (dd * 17 + ri * 29 + (mm + 1) * 11) % 100
+      const hasP = seed > 30
+      const att = hasP ? Math.round((rm.base + (seed % 30) - 15) * 100) / 100 : 0
+      const ai = Math.round(rm.base * (0.82 + (seed % 40) / 100) * 100) / 100
+      const del = Math.round((ai - att) * 100) / 100
+      const esito: Esito = !hasP ? 'apri' : del >= 0 ? 'alza' : 'abbassa'
+      arr.push({ id: id++, iso: iso(c), struttura, tipologia: rm.label, att, ai, del, pct: hasP ? (del / att) * 100 : 0, hasP, esito })
     })
-    c = new Date(c.getFullYear(), c.getMonth(), c.getDate()+1)
+    c = new Date(c.getFullYear(), c.getMonth(), c.getDate() + 1, 12)
   }
   return arr
 }
 
-export default function ScreeningOpenPrice({ navigate }: { navigate: (p:string)=>void }) {
+const LENTI: { k: 'tutte' | Esito; label: string; icon: string }[] = [
+  { k: 'tutte',   label: 'Tutte',        icon: 'fa-layer-group' },
+  { k: 'alza',    label: 'Da alzare',    icon: 'fa-arrow-trend-up' },
+  { k: 'abbassa', label: 'Da abbassare', icon: 'fa-arrow-trend-down' },
+  { k: 'apri',    label: 'Da aprire',    icon: 'fa-lock-open' },
+]
+
+const FASI = ['Raccolta tariffe dei competitor', 'Lettura della domanda e del pick-up', 'Calcolo dei suggerimenti per tipologia']
+
+/** Barra di variazione divergente (centro = prezzo attuale), scala ±30%. */
+function DeltaBar({ pct }: { pct: number }) {
+  const lvl = Math.min(6, Math.max(1, Math.round(Math.abs(pct) / 5)))
+  return (
+    <span className={`sop__dbar ${pct >= 0 ? 'is-up' : 'is-down'}`} aria-hidden="true">
+      <span className={`sop__dbar-fill sop__dbar-fill--${lvl}`} />
+    </span>
+  )
+}
+
+export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string) => void }) {
   const [struttura, setStruttura, opzioniStrutture] = useStrutturaPagina()
   // Prossimo mese a partire da oggi.
-  const [inputFrom,  setInputFrom]  = useState(() => isoFra(0))
-  const [inputTo,    setInputTo]    = useState(() => isoFra(30))
-  const [loading,    setLoading]    = useState(false)
-  const [pg,         setPg]         = useState(1)
-  const [showModal,  setShowModal]  = useState(false)
-  const [modalRow,   setModalRow]   = useState<any>(null)
-  const [modalOff,   setModalOff]   = useState(0)
-  const [selected,   setSelected]   = useState<Set<number>>(new Set())
-  const [selectAll,  setSelectAll]  = useState(false)
-  const [data,       setData]       = useState<any[]>(() => genData(struttura, isoFra(0), isoFra(30)))
+  const [inputFrom, setInputFrom] = useState(() => isoFra(0))
+  const [inputTo, setInputTo] = useState(() => isoFra(30))
   const [activeFrom, setActiveFrom] = useState(() => isoFra(0))
-  const [activeTo,   setActiveTo]   = useState(() => isoFra(30))
+  const [activeTo, setActiveTo] = useState(() => isoFra(30))
+  const [data, setData] = useState<Row[]>(() => genData(struttura, isoFra(0), isoFra(30)))
+  const [loading, setLoading] = useState(false)
+  const [fase, setFase] = useState(0)
+  const [pg, setPg] = useState(1)
+  const [lente, setLente] = useState<'tutte' | Esito>('tutte')
+  const [tipologia, setTipologia] = useState('')
+  const [giorno, setGiorno] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [applied, setApplied] = useState<Set<number>>(new Set())
+  const [modalRow, setModalRow] = useState<Row | null>(null)
+  const [modalOff, setModalOff] = useState(0)
+
   // Cambiata la struttura selezionata: si riscreena il periodo attivo.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setData(genData(struttura, activeFrom, activeTo)) }, [struttura])
+  useEffect(() => { setData(genData(struttura, activeFrom, activeTo)); setApplied(new Set()); setSelected(new Set()) }, [struttura])
 
-  const getDIM = (y:number,m:number) => new Date(y,m+1,0).getDate()
-  const calMonths:Array<{year:number;month:number}> = []
-  { const s=new Date(activeFrom+'T00:00:00'), e=new Date(activeTo+'T00:00:00'); let c=new Date(s.getFullYear(),s.getMonth(),1); while(c<=e&&calMonths.length<13){calMonths.push({year:c.getFullYear(),month:c.getMonth()});c=new Date(c.getFullYear(),c.getMonth()+1,1);} }
-  const dayHasP = (y:number,m:number,d:number) => data.some(r=>r.year===y&&r.month===m&&r.day===d&&r.hasP)
+  // Avanzamento delle fasi dello screening mentre carica.
+  useEffect(() => {
+    if (!loading) return
+    setFase(0)
+    const t1 = window.setTimeout(() => setFase(1), 900)
+    const t2 = window.setTimeout(() => setFase(2), 1800)
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2) }
+  }, [loading])
 
-  const triggerLoad = () => {
-    if (!inputFrom||!inputTo||inputFrom>inputTo) return
-    setLoading(true); setPg(1); setSelected(new Set()); setSelectAll(false)
-    setTimeout(() => { setData(genData(struttura,inputFrom,inputTo)); setActiveFrom(inputFrom); setActiveTo(inputTo); setLoading(false) }, 2800)
+  const triggerLoad = (from: string, to: string) => {
+    if (!from || !to || from > to) return
+    setLoading(true); setPg(1); setSelected(new Set()); setApplied(new Set()); setGiorno(null)
+    window.setTimeout(() => { setData(genData(struttura, from, to)); setActiveFrom(from); setActiveTo(to); setLoading(false) }, 2800)
   }
 
-  const PER=10, total=Math.ceil(data.length/PER), pageData=data.slice((pg-1)*PER,pg*PER)
-  const getChart = (row:any) => Array.from({length:15},(_,i)=>{ const s=(row.id*7+i*13)%100; return{lbl:isoDa(activeFrom, i),str:Math.max(0,20+(s%160)),ai:Math.max(0,40+(s%50)),ly:Math.max(0,s%15)} })
+  // ── Copertura per giorno (quante tipologie hanno un prezzo aperto) ───────────
+  const perGiorno = useMemo(() => {
+    const m = new Map<string, number>()
+    data.forEach((r) => m.set(r.iso, (m.get(r.iso) ?? 0) + (r.hasP ? 1 : 0)))
+    return m
+  }, [data])
+  const aperti = Array.from(perGiorno.values())
+  const coperturaMedia = aperti.length ? Math.round((aperti.reduce((a, n) => a + n, 0) / (aperti.length * ROOMS.length)) * 100) : 0
+  const giorniConBuchi = aperti.filter((n) => n < ROOMS.length).length
+
+  const mesi = useMemo(() => {
+    const out: { year: number; month: number; lead: number; dim: number }[] = []
+    const s = new Date(activeFrom + 'T12:00:00'), e = new Date(activeTo + 'T12:00:00')
+    let c = new Date(s.getFullYear(), s.getMonth(), 1, 12)
+    while (c <= e && out.length < 13) {
+      out.push({ year: c.getFullYear(), month: c.getMonth(), lead: (c.getDay() + 6) % 7, dim: new Date(c.getFullYear(), c.getMonth() + 1, 0).getDate() })
+      c = new Date(c.getFullYear(), c.getMonth() + 1, 1, 12)
+    }
+    return out
+  }, [activeFrom, activeTo])
+
+  // ── Filtri ───────────────────────────────────────────────────────────────────
+  const base = data.filter((r) => (!giorno || r.iso === giorno) && (!tipologia || r.tipologia === tipologia))
+  const conteggi = { tutte: base.length, alza: 0, abbassa: 0, apri: 0 } as Record<'tutte' | Esito, number>
+  base.forEach((r) => { conteggi[r.esito]++ })
+  const rows = lente === 'tutte' ? base : base.filter((r) => r.esito === lente)
+
+  const PER = 10
+  const total = Math.max(1, Math.ceil(rows.length / PER))
+  const page = Math.min(pg, total)
+  const pageData = rows.slice((page - 1) * PER, page * PER)
+  const selezionabili = pageData.filter((r) => !applied.has(r.id))
+  const allPage = selezionabili.length > 0 && selezionabili.every((r) => selected.has(r.id))
+  const nSel = Array.from(selected).filter((id) => !applied.has(id)).length
+
+  const applica = () => {
+    if (!nSel) return
+    setApplied((a) => new Set([...Array.from(a), ...Array.from(selected)]))
+    setSelected(new Set())
+    toast.success(`Tariffe aggiornate su ${nSel} combinazion${nSel === 1 ? 'e' : 'i'} giorno/tipologia`, 'Suggerimenti applicati')
+  }
+
+  const toggle = (id: number) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n })
+
+  // ── Analisi del suggerimento (modale) ────────────────────────────────────────
+  const chart = useMemo(() => {
+    if (!modalRow) return []
+    return Array.from({ length: 15 }, (_, i) => {
+      const s = (modalRow.id * 7 + i * 13) % 100
+      const ai = Math.round(modalRow.ai * (0.88 + (s % 25) / 100))
+      return {
+        iso: isoDa(modalRow.iso, i - 7),
+        str: Math.round(modalRow.ai * (0.78 + (s % 45) / 100)),
+        ai,
+        ly: Math.round(modalRow.ai * (0.7 + ((s * 3) % 20) / 100)),
+      }
+    })
+  }, [modalRow])
+  const cur = chart[modalOff]
+  const anim = !reducedMotion()
 
   return (
-    <div className="screening__root">
+    <div className="sop">
       {loading && (
-        <div className="screening__loading-overlay">
-          {([{top:30,left:30,size:80,dur:8,rev:false},{top:50,right:50,size:60,dur:12,rev:true},{bottom:40,left:80,size:70,dur:10,rev:false},{bottom:50,right:30,size:90,dur:7,rev:true}] as any[]).map((g,i)=>(
-            <div key={i} className="screening__loading-gear" style={{
-              '--gear-top':    g.top    != null ? `${g.top}px`    : 'auto',
-              '--gear-bottom': g.bottom != null ? `${g.bottom}px` : 'auto',
-              '--gear-left':   g.left   != null ? `${g.left}px`   : 'auto',
-              '--gear-right':  g.right  != null ? `${g.right}px`  : 'auto',
-              '--gear-dur':    `${g.dur}s`,
-              '--gear-dir':    g.rev ? 'reverse' : 'normal',
-            } as React.CSSProperties}>
-              <Ico n="gear" s={g.size} c="#5C9CD4"/>
-            </div>
-          ))}
-          <div className="screening__loading-card">
-            <div className="screening__loading-dots">
-              {[0,1,2].map(i=>(
-                <div key={i} className="screening__loading-dot" style={{ '--dot-delay': `${i*0.2}s` } as React.CSSProperties}/>
+        <div className="sop__loading" role="status" aria-live="polite">
+          <div className="sop__loading-card">
+            <span className="sop__radar" aria-hidden="true">
+              <span /><span /><span />
+              <i className="fa-solid fa-satellite-dish" />
+            </span>
+            <strong className="sop__loading-title">Screening in corso</strong>
+            <span className="sop__loading-sub">Sincronizziamo e analizziamo i dati provenienti da fonti esterne</span>
+            <ul className="sop__steps">
+              {FASI.map((f, i) => (
+                <li key={f} className={i < fase ? 'is-done' : i === fase ? 'is-run' : ''}>
+                  <i className={`fa-solid ${i < fase ? 'fa-circle-check' : i === fase ? 'fa-spinner-third' : 'fa-circle'}`} aria-hidden="true" />
+                  {f}
+                </li>
               ))}
-            </div>
-            <p className="screening__loading-text">
-              Stiamo sincronizzando e analizzando<br/>dati provenienti da fonti dati esterne
-            </p>
+            </ul>
           </div>
         </div>
       )}
 
-      <PageHead title="Screening open price" subtitle="Aumenta l'accuratezza dei suggerimenti attraverso uno screening dedicato per ogni tipologia di camera assegnata a ciascun canale di vendita"/>
+      <PageHead title="Screening open price" subtitle="Aumenta l'accuratezza dei suggerimenti attraverso uno screening dedicato per ogni tipologia di camera assegnata a ciascun canale di vendita" />
 
-      {/* ── Filters ─────────────────────────────────────────────────────── */}
-      <div className="screening__filters-row">
-        <div className="screening__filters-left">
-          <SelectField
-            name="struttura"
-            label="Struttura"
-            value={struttura}
+      {/* ── Toolbar ── */}
+      <div className="sop__toolbar">
+        <div className="sop__filters">
+          <SelectField name="struttura" label="Struttura" value={struttura}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStruttura(e.target.value)}
-            options={opzioniStrutture}
-            className="screening__select--struttura"
-          />
-          <DateRangeField
-            label="Date"
-            nameFrom="inputFrom"
-            nameTo="inputTo"
-            valueFrom={inputFrom}
-            valueTo={inputTo}
-            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => { setInputFrom(e.target.value); }}
-            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => { setInputTo(e.target.value); triggerLoad() }}
-            className="screening__date-range"
-          />
+            options={opzioniStrutture} className="sop__struttura" />
+          <DateRangeField label="Date" nameFrom="inputFrom" nameTo="inputTo" valueFrom={inputFrom} valueTo={inputTo}
+            onChangeFrom={(e: React.ChangeEvent<HTMLInputElement>) => setInputFrom(e.target.value)}
+            onChangeTo={(e: React.ChangeEvent<HTMLInputElement>) => { setInputTo(e.target.value); triggerLoad(inputFrom, e.target.value) }} />
+          <SelectField name="tipologia" label="Tipologia" value={tipologia} placeholder="Tutte"
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setTipologia(e.target.value); setPg(1) }}
+            options={[{ value: '', label: 'Tutte' }, ...ROOMS.map((r) => ({ value: r.label, label: r.label }))]} className="sop__tipologia" />
         </div>
-        <button className="sib-btn sib-btn--toolbar">Salva</button>
+
+        <div className="sop__right">
+        <div className="sop__lenses" role="group" aria-label="Suggerimenti da mostrare">
+          {LENTI.map((l) => (
+            <button key={l.k} type="button" aria-pressed={lente === l.k}
+              className={`sop__lens sop__lens--${l.k} ${lente === l.k ? 'is-active' : ''}`}
+              onClick={() => { setLente(l.k); setPg(1) }}>
+              <i className={`fa-solid ${l.icon}`} aria-hidden="true" />
+              {l.label}
+              <span className="sop__lens-n">{conteggi[l.k]}</span>
+            </button>
+          ))}
+        </div>
+
+        <Tooltip text="Suggerimenti data driven">
+          <button type="button" className="sib-btn sib-btn--icon sop__link" onClick={() => navigate('sugg-data-driven')} aria-label="Suggerimenti data driven">
+            <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
+          </button>
+        </Tooltip>
+        </div>
       </div>
 
-      {/* ── Main layout ─────────────────────────────────────────────────── */}
-      <div className="screening__layout">
+      <div className="sop__layout">
 
-        {/* Calendar */}
-        <div className="screening__cal-wrap">
-          <div className="screening__cal-scroll">
-            <table className="screening__cal-table">
+        {/* ── Copertura del periodo ── */}
+        <section className="sop__panel sop__panel--cov">
+          <header className="sop__head">
+            <span className="sop__head-ico"><i className="fa-solid fa-calendar-check" aria-hidden="true" /></span>
+            <div className="sop__head-titles">
+              <h2 className="sop__head-title">Copertura del periodo</h2>
+              <div className="sop__head-sum">copertura media <strong>{coperturaMedia}%</strong> · {giorniConBuchi} giorn{giorniConBuchi === 1 ? 'o' : 'i'} su {aperti.length} con tipologie chiuse</div>
+            </div>
+          </header>
+
+          <div className="sop__months">
+            {mesi.map(({ year, month, lead, dim }) => (
+              <div key={`${year}-${month}`} className="sop__month">
+                <div className="sop__month-name">{MESI[month]} <span>{year}</span></div>
+                <div className="sop__cal">
+                  {INIZIALI.map((g, i) => <span key={`h${i}`} className="sop__cal-h">{g}</span>)}
+                  {Array.from({ length: lead }, (_, i) => <span key={`l${i}`} />)}
+                  {Array.from({ length: dim }, (_, i) => {
+                    const k = iso(new Date(year, month, i + 1, 12))
+                    const n = perGiorno.get(k)
+                    if (n === undefined) return <span key={k} className="sop__day is-out">{i + 1}</span>
+                    const lvl = n === 0 ? 0 : Math.min(4, Math.ceil((n / ROOMS.length) * 4))
+                    return (
+                      <Tooltip key={k} text={`${dataLunga(k)} · ${n} di ${ROOMS.length} tipologie con prezzo aperto`}>
+                        <button type="button" className={`sop__day sop__day--l${lvl} ${giorno === k ? 'is-sel' : ''}`}
+                          onClick={() => { setGiorno((g) => (g === k ? null : k)); setPg(1) }}
+                          aria-pressed={giorno === k} aria-label={`${dataLunga(k)}, ${n} tipologie aperte`}>
+                          {i + 1}
+                        </button>
+                      </Tooltip>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <footer className="sop__scale">
+            <span>Tipologie aperte</span>
+            <span className="sop__scale-bar" aria-hidden="true">
+              {[0, 1, 2, 3, 4].map((l) => <span key={l} className={`sop__day--l${l}`} />)}
+            </span>
+            <span>0 → {ROOMS.length}</span>
+          </footer>
+        </section>
+
+        {/* ── Suggerimenti ── */}
+        <section className="sop__panel sop__panel--tbl">
+          <header className="sop__head">
+            <span className="sop__head-ico"><i className="fa-solid fa-microchip-ai" aria-hidden="true" /></span>
+            <div className="sop__head-titles">
+              <h2 className="sop__head-title">Tariffe suggerite</h2>
+              <div className="sop__head-sum">
+                <strong>{base.length}</strong> combinazioni · <span className="sop__up">{conteggi.alza} da alzare</span> · <span className="sop__dn">{conteggi.abbassa} da abbassare</span> · {conteggi.apri} da aprire
+              </div>
+            </div>
+            {giorno && (
+              <button type="button" className="sop__chip" onClick={() => { setGiorno(null); setPg(1) }}>
+                <i className="fa-solid fa-calendar-day" aria-hidden="true" /> {dataLunga(giorno)}
+                <i className="fa-solid fa-xmark" aria-label="Rimuovi filtro giorno" />
+              </button>
+            )}
+          </header>
+
+          <div className="sop__tbl-wrap">
+            <table className="sib-table sop__tbl">
+              <colgroup>
+                <col className="sop__c-chk" /><col className="sop__c-day" /><col /><col className="sop__c-num" />
+                <col className="sop__c-ai" /><col className="sop__c-delta" />
+              </colgroup>
               <thead>
                 <tr>
-                  <th className="screening__cal-th-giorni">Giorni</th>
-                  {Array.from({length:31},(_,i)=>(
-                    <th key={i} className={`screening__cal-th-day ${i<30?'screening__cal-th-day--border':''}`}>{i+1}</th>
-                  ))}
+                  <th><CheckboxField name="all" checked={allPage} disabled={!selezionabili.length}
+                    onChange={() => setSelected((s) => { const n = new Set(s); selezionabili.forEach((r) => (allPage ? n.delete(r.id) : n.add(r.id))); return n })} /></th>
+                  <th>Giorno</th>
+                  <th>Tipologia</th>
+                  <th className="sop__r">Attuale</th>
+                  <th className="sop__r">Suggerita AI</th>
+                  <th>Variazione</th>
                 </tr>
               </thead>
               <tbody>
-                {calMonths.map(({year,month},mi) => {
-                  const dim = getDIM(year,month)
+                {pageData.map((r) => {
+                  const done = applied.has(r.id)
                   return (
-                    <tr key={`${year}-${month}`} className={mi<calMonths.length-1?'screening__cal-row--border':''}>
-                      <td className="screening__cal-td-month">{MFULL[month]}</td>
-                      {Array.from({length:31},(_,di)=>{
-                        const day=di+1
-                        if(day>dim) return <td key={di} className={`screening__cal-td-empty ${di<30?'screening__cal-td-empty--border':''}`}/>
-                        const hp = dayHasP(year,month,day)
-                        return (
-                          <td key={di} className="screening__cal-dot-cell">
-                            <div className={`screening__cal-dot ${hp?'screening__cal-dot--active':'screening__cal-dot--inactive'}`}/>
-                          </td>
-                        )
-                      })}
+                    <tr key={r.id} className={`${selected.has(r.id) && !done ? 'is-sel' : ''} ${done ? 'is-done' : ''}`}>
+                      <td>
+                        {done
+                          ? <Tooltip text="Suggerimento applicato"><i className="fa-solid fa-circle-check sop__ok" aria-hidden="true" /></Tooltip>
+                          : <CheckboxField name={`r-${r.id}`} checked={selected.has(r.id)} onChange={() => toggle(r.id)} />}
+                      </td>
+                      <td className="sop__nw">{dataLunga(r.iso)}</td>
+                      <td><TruncatedText text={r.tipologia} className="sop__tipo" /></td>
+                      <td className="sop__r sop__nw">
+                        {r.hasP ? fmtEur(done ? r.ai : r.att) : <span className="sop__closed">Non aperto</span>}
+                      </td>
+                      <td className="sop__r">
+                        <Tooltip text="Analisi del suggerimento">
+                          <button type="button" className="sop__ai" onClick={() => { setModalRow(r); setModalOff(7) }}>
+                            <i className="fa-solid fa-sparkles" aria-hidden="true" />
+                            {fmtEur(r.ai)}
+                          </button>
+                        </Tooltip>
+                      </td>
+                      <td>
+                        {done
+                          ? <span className="sop__state is-done">Applicata</span>
+                          : r.hasP
+                            ? (
+                              <span className="sop__delta">
+                                <DeltaBar pct={r.pct} />
+                                <span className={`sop__delta-v ${r.del >= 0 ? 'is-up' : 'is-down'}`}>
+                                  {r.del >= 0 ? '+' : '−'}{fmtEur(Math.abs(r.del))}
+                                </span>
+                                <span className="sop__delta-p">{r.pct >= 0 ? '+' : '−'}{Math.abs(r.pct).toLocaleString('it-IT', { maximumFractionDigits: 1 })}%</span>
+                              </span>
+                            )
+                            : <span className="sop__state is-open"><i className="fa-solid fa-lock-open" aria-hidden="true" /> Da aprire</span>}
+                      </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
+            {rows.length === 0 && (
+              <div className="sop__empty">
+                <i className="fa-solid fa-magnifying-glass-chart" aria-hidden="true" />
+                Nessun suggerimento per i filtri selezionati.
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="screening__table-wrap">
-          <div className="screening__table-scroll">
-            <table className="screening__table">
-              <thead className="screening__thead">
-                <tr>
-                  <th className="screening__th">Data</th>
-                  <th className="screening__th">
-                    <div className="screening__th-with-filter">
-                      Struttura
-                      <i className="fa-duotone fa-filter screening__filter-ico" aria-hidden="true"/>
-                    </div>
-                  </th>
-                  <th className="screening__th">
-                    <div className="screening__th-with-filter">
-                      Tipologia
-                      <i className="fa-duotone fa-filter screening__filter-ico" aria-hidden="true"/>
-                    </div>
-                  </th>
-                  <th className="screening__th screening__th--right">Attuale</th>
-                  <th className="screening__th screening__th--right screening__th--ai">Suggerita Ai</th>
-                  <th className="screening__th">
-                    <div className="screening__th-with-filter">
-                      Delta
-                      <i className="fa-duotone fa-filter screening__filter-ico" aria-hidden="true"/>
-                    </div>
-                  </th>
-                  <th className="screening__th screening__th--checkbox">
-                    <input type="checkbox" checked={selectAll} onChange={e=>{setSelectAll(e.target.checked);setSelected(e.target.checked?new Set(pageData.map(r=>r.id)):new Set())}} className="sib-checkbox sib-checkbox--sm"/>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageData.map((row) => (
-                  <tr key={row.id} className="screening__row">
-                    <td className="screening__td screening__td--nowrap">{row.date}</td>
-                    <td className="screening__td screening__td--nowrap"><TruncatedText text={row.struttura} /></td>
-                    <td className="screening__td screening__td--nowrap">{row.tipologia.length>13?row.tipologia.slice(0,12)+'...':row.tipologia}</td>
-                    <td className="screening__td screening__td--right screening__td--nowrap">{row.attS}</td>
-                    <td className="screening__td screening__td--right">
-                      <button className="screening__ai-btn" onClick={()=>{setModalRow(row);setModalOff(0);setShowModal(true)}}>
-                        <i className="fa-duotone fa-robot screening__ai-ico" aria-hidden="true"/>
-                        <span className="screening__ai-value">{row.aiS}</span>
-                      </button>
-                    </td>
-                    <td className="screening__td screening__td--nowrap screening__td--delta" style={{ '--delta-color': row.del<0?T.error:T.success } as React.CSSProperties}>{row.delS}</td>
-                    <td className="screening__td screening__td--center">
-                      <input type="checkbox" checked={selected.has(row.id)} onChange={e=>{const s=new Set(selected);e.target.checked?s.add(row.id):s.delete(row.id);setSelected(s)}} className="sib-checkbox sib-checkbox--sm"/>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="screening__pagination">
-            <Pagination page={pg} totalPages={total} onPageChange={setPg} />
-          </div>
-        </div>
+          <footer className="sop__foot">
+            <span className="sop__foot-sel">{nSel > 0 ? `${nSel} selezionat${nSel === 1 ? 'a' : 'e'}` : ''}</span>
+            <Pagination page={page} totalPages={total} onPageChange={setPg} className="sop__pag" />
+            <button type="button" className="sib-btn sib-btn--primary sop__apply" disabled={!nSel} onClick={applica}>
+              <i className="fa-solid fa-check-double" aria-hidden="true" /> Applica
+            </button>
+          </footer>
+        </section>
       </div>
 
-      {/* ── Modal ───────────────────────────────────────────────────────── */}
-      <Modal open={showModal} onClose={()=>setShowModal(false)} size="lg">
-        {modalRow&&(()=>{
-          const cd=getChart(modalRow), cur=cd[Math.max(0,Math.min(cd.length-1,modalOff))]
-          return (
-            <div>
-              <h2 className="screening__modal-title">Analisi suggerimenti AI</h2>
-              <p className="screening__modal-subtitle">Ottimizza la precisione con uno screening specifico per ogni combinazione di camera</p>
-              <div className="screening__modal-nav">
-                <button className="sib-btn sib-btn--icon" onClick={()=>setModalOff(o=>Math.max(0,o-1))} disabled={modalOff===0}>
-                  <Ico n="back" s={13} c={T.primary}/>
-                </button>
-                <span className="screening__modal-nav-label">Scorri Giorno</span>
-                <button className="sib-btn sib-btn--icon" onClick={()=>setModalOff(o=>Math.min(cd.length-1,o+1))} disabled={modalOff===cd.length-1}>
-                  <Ico n="chevr" s={13} c={T.primary}/>
-                </button>
-              </div>
-              <div className="screening__modal-legend">
-                {[{c:'#5C9CD4',bg:'#5C9CD422',l:'Strategie Pricing'},{c:'#E91E63',bg:'#E91E6322',l:'AI'},{c:'#CE93D8',bg:'#CE93D822',l:'LY'}].map(leg=>(
-                  <div key={leg.l} className="screening__legend-item">
-                    <div className="screening__legend-dot" style={{ '--legend-dot-bg': leg.bg, '--legend-dot-border': leg.c } as React.CSSProperties}/>
-                    <span className="screening__legend-label">{leg.l}</span>
-                  </div>
-                ))}
-              </div>
-              <AreaChart cd={cd}/>
-              <div className="screening__modal-bar">
-                <span className="screening__modal-bar-date">
-                  <Ico n="calendar" s={11} c={T.textDisabled}/> <span className="screening__modal-bar-date-val">{cur?.lbl}</span>
-                </span>
-                <span className="screening__modal-bar-str">Strategie: <strong>{cur?.str.toFixed(0)} €</strong></span>
-                <span className="screening__modal-bar-ai">AI: <strong>{cur?.ai.toFixed(0)} €</strong></span>
-                <span className="screening__modal-bar-ly">LY: <strong>{cur?.ly.toFixed(0)} €</strong></span>
-              </div>
+      {/* ── Analisi del suggerimento ── */}
+      <Modal open={!!modalRow} onClose={() => setModalRow(null)} title="Analisi suggerimento AI" size="lg" className="sop-modal">
+        {modalRow && cur && (
+          <>
+            <div className="sop-modal__sub">
+              <strong>{modalRow.tipologia}</strong> · {modalRow.struttura} · 7 giorni prima e dopo il {dataBreve(modalRow.iso)}
             </div>
-          )
-        })()}
+
+            <div className="sop-modal__bar">
+              <button type="button" className="sop-modal__nav" onClick={() => setModalOff((o) => Math.max(0, o - 1))} disabled={modalOff === 0} aria-label="Giorno precedente">
+                <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+              </button>
+              <span className="sop-modal__day">{dataLunga(cur.iso)}</span>
+              <button type="button" className="sop-modal__nav" onClick={() => setModalOff((o) => Math.min(chart.length - 1, o + 1))} disabled={modalOff === chart.length - 1} aria-label="Giorno successivo">
+                <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+              </button>
+              <BiLegend className="sop-modal__legend" items={[
+                { key: 'str', name: 'Strategie pricing', color: series(0), value: fmtEur(cur.str, 0) },
+                { key: 'ai', name: 'AI', color: series(1), value: fmtEur(cur.ai, 0) },
+                { key: 'ly', name: 'Anno precedente', color: CHART.ly, value: fmtEur(cur.ly, 0), dashed: true },
+              ]} />
+            </div>
+
+            <div className="sop-modal__chart">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chart} margin={{ top: 10, right: 12, bottom: 0, left: 0 }}
+                  onClick={(s: any) => { if (s && typeof s.activeTooltipIndex === 'number') setModalOff(s.activeTooltipIndex) }}>
+                  <defs>
+                    <linearGradient id="sop-g-str" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={series(0)} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={series(0)} stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="sop-g-ai" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={series(1)} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={series(1)} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="iso" {...xAxisProps} tickFormatter={dataBreve} />
+                  <YAxis {...yAxisProps} tickFormatter={(v: number) => `${v} €`} />
+                  <RTooltip cursor={cursorProps}
+                    content={(p: any) => <ChartTooltip {...p} title={p.label ? dataLunga(String(p.label)) : undefined}
+                      names={{ str: 'Strategie pricing', ai: 'AI', ly: 'Anno precedente' }} format={(v) => fmtEur(v, 0)} />} />
+                  <ReferenceLine x={cur.iso} stroke={CHART.ink} strokeDasharray="4 3" />
+                  <Area type="monotone" dataKey="str" stroke={series(0)} strokeWidth={2} fill="url(#sop-g-str)"
+                    isAnimationActive={anim} animationDuration={ANIM.duration} animationBegin={ANIM.begin(0)} dot={false} activeDot={{ r: 4 }} />
+                  <Area type="monotone" dataKey="ai" stroke={series(1)} strokeWidth={2} fill="url(#sop-g-ai)"
+                    isAnimationActive={anim} animationDuration={ANIM.duration} animationBegin={ANIM.begin(1)} dot={false} activeDot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="ly" stroke={CHART.ly} strokeWidth={1.5} strokeDasharray="5 4"
+                    isAnimationActive={anim} animationDuration={ANIM.duration} animationBegin={ANIM.begin(2)} dot={false} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="sop-modal__hint"><i className="fa-solid fa-hand-pointer" aria-hidden="true" /> Clicca sul grafico o usa le frecce per cambiare giorno</p>
+          </>
+        )}
       </Modal>
     </div>
   )
