@@ -62,7 +62,7 @@ const RICH_SUPPLIERS: Record<string, SupplierDetail> = {
       { id: '1', name: 'Chianti Classico DOCG Riserva 2019', category: 'Vini Rossi', price: 24.9, image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400' },
       { id: '2', name: 'Vernaccia di San Gimignano DOCG', category: 'Vini Bianchi', price: 16.5, image: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400' },
       { id: '3', name: 'Super Tuscan IGT', category: 'Vini Rossi', price: 32.0, image: 'https://images.unsplash.com/photo-1574285013029-29296a71930e?w=400' },
-      { id: '4', name: 'Vin Santo del Chianti DOC', category: 'Vini Dessert', price: 28.9, image: 'https://images.unsplash.com/photo-1586370434639-0fe43b2d32d6?w=400' },
+      { id: '4', name: 'Vin Santo del Chianti DOC', category: 'Vini Dessert', price: 28.9, image: 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=400' },
     ],
   },
   'caseificio-alpino': {
@@ -92,7 +92,7 @@ const RICH_SUPPLIERS: Record<string, SupplierDetail> = {
       { id: '5', name: 'Raschera DOP Stagionato 6 mesi', category: 'Formaggi', price: 18.5, image: 'https://images.unsplash.com/photo-1452195100486-9cc805987862?w=400' },
       { id: '6', name: "Castelmagno DOP d'Alpeggio", category: 'Formaggi', price: 32.0, image: 'https://images.unsplash.com/photo-1618164436241-4473940d1f5c?w=400' },
       { id: '7', name: 'Ricotta Fresca di Montagna', category: 'Formaggi Freschi', price: 8.9, image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400' },
-      { id: '8', name: 'Burro di Centrifuga Artigianale', category: 'Latticini', price: 12.5, image: 'https://images.unsplash.com/photo-1589881133595-c7f8c1801e81?w=400' },
+      { id: '8', name: 'Burro di Centrifuga Artigianale', category: 'Latticini', price: 12.5, image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400' },
     ],
   },
   'pastificio-artigiano': {
@@ -120,9 +120,9 @@ const RICH_SUPPLIERS: Record<string, SupplierDetail> = {
     image: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=1200',
     products: [
       { id: '9', name: 'Paccheri IGP Gragnano', category: 'Pasta Secca', price: 4.9, image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400' },
-      { id: '10', name: 'Linguine al Bronzo', category: 'Pasta Secca', price: 4.5, image: 'https://images.unsplash.com/photo-1611171711912-e03647bd4e4d?w=400' },
+      { id: '10', name: 'Linguine al Bronzo', category: 'Pasta Secca', price: 4.5, image: 'https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=400' },
       { id: '11', name: 'Fusilloni Integrali Bio', category: 'Pasta Integrale', price: 5.2, image: 'https://images.unsplash.com/photo-1598866594230-a7c12756260f?w=400' },
-      { id: '12', name: 'Ravioli Ricotta e Spinaci Freschi', category: 'Pasta Fresca', price: 7.9, image: 'https://images.unsplash.com/photo-1587740908075-9ea5b2d8f9b0?w=400' },
+      { id: '12', name: 'Ravioli Ricotta e Spinaci Freschi', category: 'Pasta Fresca', price: 7.9, image: 'https://images.unsplash.com/photo-1611270629569-8b357cb88da9?w=400' },
     ],
   },
 };

@@ -53,13 +53,16 @@ export const getDaysRemaining = (endDate: string) => {
   return Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 
+// Foto non più disponibili su Unsplash (sostituite nel seed, vedi migrate v3)
+const IMMAGINI_RIMOSSE = ['1542843289-3b0e1c9ea8f0', '1587049352846-4a222e784088']
+
 const SEED_GROUP_PURCHASES: GroupPurchase[] = [
   { id: '1', productName: 'Olio Extravergine di Oliva DOP Puglia', description: 'Olio biologico certificato, spremitura a freddo, produzione 2025', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800', supplier: 'Oleificio Pugliese Bio', category: 'Alimentari', regularPrice: 18.5, groupPrice: 13.9, minQuantity: 50, currentParticipants: 38, maxParticipants: 100, endDate: '2026-04-15', unit: 'bottiglia da 750ml', quantityPerPerson: 6, discount: 25, status: 'active', baseStatus: 'active' },
   { id: '2', productName: 'Parmigiano Reggiano DOP 24 mesi', description: 'Forma intera stagionata 24 mesi, prodotto di montagna', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=800', supplier: 'Caseificio Alpino Tradizionale', category: 'Formaggi', regularPrice: 32, groupPrice: 24, minQuantity: 30, currentParticipants: 28, maxParticipants: 50, endDate: '2026-04-10', unit: 'kg', quantityPerPerson: 2, discount: 25, status: 'closing-soon', baseStatus: 'closing-soon' },
   { id: '3', productName: 'Pasta di Gragnano IGP - Box Misto', description: 'Selezione di 12 formati di pasta artigianale trafilata al bronzo', image: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=800', supplier: 'Pastificio Artigiano Napoletano', category: 'Pasta', regularPrice: 45, groupPrice: 35, minQuantity: 40, currentParticipants: 42, maxParticipants: 80, endDate: '2026-04-20', unit: 'box da 12 pacchi', quantityPerPerson: 1, discount: 22, status: 'active', baseStatus: 'active' },
   { id: '4', productName: 'Vino Chianti Classico DOCG - Cassa 6 Bottiglie', description: "Annata 2023, medaglia d'oro al concorso enologico internazionale", image: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800', supplier: 'Cantina Toscana Del Chianti', category: 'Vini', regularPrice: 78, groupPrice: 59.9, minQuantity: 25, currentParticipants: 19, maxParticipants: 50, endDate: '2026-04-18', unit: 'cassa da 6 bottiglie', quantityPerPerson: 1, discount: 23, status: 'active', baseStatus: 'active' },
-  { id: '5', productName: 'Prosciutto Crudo di Parma DOP 18 mesi', description: 'Intero disossato, peso medio 7-8 kg, taglio sottovuoto gratuito', image: 'https://images.unsplash.com/photo-1542843289-3b0e1c9ea8f0?w=800', supplier: 'Salumificio Emiliano D.O.P.', category: 'Salumi', regularPrice: 26, groupPrice: 19.5, minQuantity: 35, currentParticipants: 31, maxParticipants: 60, endDate: '2026-04-12', unit: 'kg', quantityPerPerson: 3, discount: 25, status: 'closing-soon', baseStatus: 'closing-soon' },
-  { id: '6', productName: 'Miele Biologico Multiflora - Set 12 Vasetti', description: 'Miele italiano biologico certificato, produzione delle nostre api', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784088?w=800', supplier: 'Azienda Agricola Bio del Garda', category: 'Prodotti Tipici', regularPrice: 48, groupPrice: 38.4, minQuantity: 20, currentParticipants: 15, maxParticipants: 40, endDate: '2026-04-25', unit: 'set da 12 vasetti 250g', quantityPerPerson: 1, discount: 20, status: 'active', baseStatus: 'active' },
+  { id: '5', productName: 'Prosciutto Crudo di Parma DOP 18 mesi', description: 'Intero disossato, peso medio 7-8 kg, taglio sottovuoto gratuito', image: 'https://images.unsplash.com/photo-1541529086526-db283c563270?w=800', supplier: 'Salumificio Emiliano D.O.P.', category: 'Salumi', regularPrice: 26, groupPrice: 19.5, minQuantity: 35, currentParticipants: 31, maxParticipants: 60, endDate: '2026-04-12', unit: 'kg', quantityPerPerson: 3, discount: 25, status: 'closing-soon', baseStatus: 'closing-soon' },
+  { id: '6', productName: 'Miele Biologico Multiflora - Set 12 Vasetti', description: 'Miele italiano biologico certificato, produzione delle nostre api', image: 'https://images.unsplash.com/photo-1587049352851-8d4e89133924?w=800', supplier: 'Azienda Agricola Bio del Garda', category: 'Prodotti Tipici', regularPrice: 48, groupPrice: 38.4, minQuantity: 20, currentParticipants: 15, maxParticipants: 40, endDate: '2026-04-25', unit: 'set da 12 vasetti 250g', quantityPerPerson: 1, discount: 20, status: 'active', baseStatus: 'active' },
 ]
 
 type NewPurchaseData = Omit<GroupPurchase, 'id' | 'currentParticipants' | 'status' | 'baseStatus' | 'discount'>
@@ -122,10 +125,20 @@ export const useGroupPurchasesStore = create<GroupPurchasesState>()(
     }),
     {
       name: 'agora-group-purchases',
-      version: 2,
-      // Lo schema è cambiato (baseStatus + joinedIds): scarta lo stato persistito
-      // precedente e riparte dal seed, così ogni gruppo ha una fase di base valida.
-      migrate: () => ({ purchases: SEED_GROUP_PURCHASES, joinedIds: [] }),
+      version: 3,
+      migrate: (persisted, version) => {
+        // v<2: schema cambiato (baseStatus + joinedIds) → si riparte dal seed,
+        // così ogni gruppo ha una fase di base valida.
+        if (version < 2) return { purchases: SEED_GROUP_PURCHASES, joinedIds: [] }
+        // v2 → v3: due foto del seed rimosse da Unsplash (404). Si aggiornano le
+        // immagini dei gruppi salvati, senza toccare gruppi creati e adesioni.
+        const state = persisted as Pick<GroupPurchasesState, 'purchases' | 'joinedIds'>
+        const seed = new Map(SEED_GROUP_PURCHASES.map((gp) => [gp.id, gp.image]))
+        return {
+          ...state,
+          purchases: state.purchases.map((gp) => (IMMAGINI_RIMOSSE.some((id) => gp.image.includes(id)) && seed.has(gp.id) ? { ...gp, image: seed.get(gp.id)! } : gp)),
+        }
+      },
     },
   ),
 )

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from './Layout';
-import { PageHeader } from './PageHeader';
+import PageHead from '../../../../core/components/PageHead';
 import { Icon } from '../ds/icon';
 import { Button } from '../ds/button';
 import { PageToolbar, type ViewMode } from './PageToolbar';
@@ -109,7 +109,7 @@ export function ActiveGroupsPage() {
   return (
     <Layout>
       <div className="active-groups-page">
-        <PageHeader
+        <PageHead
           title="Gruppi attivi"
           subtitle="Gruppi d'acquisto già avviati: sottoscrivi per aggiungerti alla lista dei partecipanti"
           backLabel="Acquisti condivisi"

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../../../core/components/Modal';
 import { Layout } from './Layout';
-import { PageHeader } from './PageHeader';
+import PageHead from '../../../../core/components/PageHead';
 import './GroupPurchasesPage.css';
 import { Icon } from '../ds/icon';
 import { Button } from '../ds/button';
@@ -124,7 +124,7 @@ export function GroupPurchasesPage() {
   return (
     <Layout>
       <div className="group-purchases-page">
-      <PageHeader
+      <PageHead
         title="Acquisti condivisi"
         subtitle="Unisciti ai gruppi di acquisto e risparmia acquistando insieme ad altri"
         actions={

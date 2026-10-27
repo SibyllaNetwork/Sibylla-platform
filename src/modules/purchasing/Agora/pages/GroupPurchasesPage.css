@@ -227,6 +227,14 @@
   margin: 0 0 0.25rem;
 }
 
+/* Nome prodotto sulla foto: bianco (gli h3 globali sono blu Platform e sulla
+   foto scura risultavano illeggibili) + ombra per le foto chiare */
+.gp-card__image-caption .gp-card__product,
+.gp-card__image-caption .gp-card__supplier {
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
 .gp-card__supplier {
   font-family: 'Open Sans', sans-serif;
   font-size: 0.75rem;
