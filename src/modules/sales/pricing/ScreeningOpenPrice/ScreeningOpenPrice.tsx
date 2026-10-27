@@ -117,7 +117,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
   useEffect(() => {
     const el = rootRef.current
     if (!el) return
-    const ro = new ResizeObserver(([e]) => setAffianca(e.contentRect.width >= 1040))
+    const ro = new ResizeObserver(([e]) => setAffianca(e.contentRect.width >= 1080))
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -307,8 +307,7 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
       <div className={`sop__layout ${affianca ? 'sop__layout--side' : ''}`}>
 
         {/* ── Copertura del periodo ── */}
-        <Card title="Copertura del periodo" className="sop__card sop__card--cov" headerRight={affianca ? undefined : periodi}>
-          {affianca && periodi}
+        <Card title="Copertura del periodo" className="sop__card sop__card--cov" headerRight={periodi}>
           <div className="sop__cov-info">
             <span>Copertura media <strong>{coperturaMedia}%</strong> · {giorniConBuchi} giorn{giorniConBuchi === 1 ? 'o' : 'i'} su {aperti.length} con tipologie chiuse</span>
             <span className="sop__scale">
@@ -320,40 +319,23 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
             </span>
           </div>
 
-          {affianca ? (
-            // Affiancata alla tabella: colonne = mesi, righe = giorni 1-31,
-            // così un anno intero resta alto quanto la tabella
-            <div className={`sop__year sop__year--v sop__year--c${mesi.length}`} role="grid" aria-label="Copertura per giorno">
-              <span className="sop__year-corner" />
-              {mesi.map(({ year, month }) => (
-                <span key={`m${year}-${month}`} className="sop__year-mv">{MESI[month].slice(0, 3)}<small>{String(year).slice(2)}</small></span>
-              ))}
-              {Array.from({ length: 31 }, (_, i) => (
-                <React.Fragment key={`d${i}`}>
-                  <span className="sop__year-d">{i + 1}</span>
-                  {mesi.map(({ year, month, dim }) => cella(year, month, dim, i))}
-                </React.Fragment>
-              ))}
-            </div>
-          ) : (
-            // A tutta larghezza: una riga per mese, colonne 1-31
-            <div className="sop__year" role="grid" aria-label="Copertura per giorno">
-              <span className="sop__year-corner" />
-              {Array.from({ length: 31 }, (_, i) => <span key={`h${i}`} className="sop__year-h">{i + 1}</span>)}
-              {mesi.map(({ year, month, dim }) => (
-                <React.Fragment key={`${year}-${month}`}>
-                  <span className="sop__year-m">{MESI[month].slice(0, 3)} {year}</span>
-                  {Array.from({ length: 31 }, (_, i) => cella(year, month, dim, i))}
-                </React.Fragment>
-              ))}
-            </div>
-          )}
+          {/* Una riga per mese, colonne 1-31: un anno resta compatto */}
+          <div className="sop__year" role="grid" aria-label="Copertura per giorno">
+            <span className="sop__year-corner" />
+            {Array.from({ length: 31 }, (_, i) => <span key={`h${i}`} className="sop__year-h">{i + 1}</span>)}
+            {mesi.map(({ year, month, dim }) => (
+              <React.Fragment key={`${year}-${month}`}>
+                <span className="sop__year-m">{MESI[month].slice(0, 3)} {String(year).slice(2)}</span>
+                {Array.from({ length: 31 }, (_, i) => cella(year, month, dim, i))}
+              </React.Fragment>
+            ))}
+          </div>
         </Card>
 
         {/* ── Suggerimenti ── */}
         <Card title="Tariffe suggerite" noPadding className="sop__card sop__card--tbl" headerRight={
           <div className="sop__tbl-info">
-            <span><strong>{base.length}</strong> combinazioni · <span className="sib-cell--success">{conteggi.alza} da alzare</span> · <span className="sib-cell--warning">{conteggi.abbassa} da abbassare</span> · {conteggi.apri} da aprire</span>
+            <span className="sop__tbl-count"><strong>{base.length}</strong> combinazioni · <span className="sib-cell--success">{conteggi.alza} da alzare</span> · <span className="sib-cell--warning">{conteggi.abbassa} da abbassare</span> · {conteggi.apri} da aprire</span>
             {giorno && (
               <button type="button" className="sib-btn sib-btn--toolbar sib-btn--sm sop__day-filter" onClick={() => { setGiorno(null); setPg(1) }}>
                 <i className="fa-solid fa-calendar-day" aria-hidden="true" /> {dataLunga(giorno)}
@@ -430,9 +412,11 @@ export default function ScreeningOpenPrice({ navigate }: { navigate: (p: string)
           <footer className="sop__foot">
             <span className="sop__foot-sel">{nSel > 0 ? `${nSel} selezionat${nSel === 1 ? 'a' : 'e'}` : ''}</span>
             <Pagination page={page} totalPages={total} onPageChange={setPg} className="sop__pag" />
-            <button type="button" className="sib-btn sib-btn--primary sop__apply" disabled={!nSel} onClick={applica}>
-              <i className="fa-solid fa-check-double" aria-hidden="true" /> Applica
-            </button>
+            <span className="sop__foot-end">
+              <button type="button" className="sib-btn sib-btn--primary sop__apply" disabled={!nSel} onClick={applica}>
+                <i className="fa-solid fa-check-double" aria-hidden="true" /> Applica
+              </button>
+            </span>
           </footer>
         </Card>
       </div>
