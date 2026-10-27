@@ -51,6 +51,18 @@
     flex: 0 1 420px
     min-width: 0
 
+  // Nessuna aggregazione ancora creata: invito a usare il pulsante
+  &__hint
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 13px
+    color: var(--color-text-inactive)
+
+    i
+      color: var(--color-primary)
+      font-size: 14px
+
   // «Salva» allineato al campo (sotto la sua label)
   &__save
     align-self: flex-end
@@ -97,15 +109,18 @@
     strong
       color: var(--color-text-active)
 
-  // Tre select a tutta larghezza, pulsanti sulla riga sotto a destra
+  // Riga 1: Nome (2 colonne) + Aggrega per · Riga 2: Struttura/Categoria +
+  // Segmento + pulsanti
   &__form
     display: grid
     grid-template-columns: repeat(3, minmax(0, 1fr))
     align-items: end
     gap: 12px
 
+  &__nome
+    grid-column: span 2
+
   &__btns
-    grid-column: 1 / -1
     justify-self: end
     display: flex
     gap: 8px
@@ -114,11 +129,6 @@
     display: inline-flex
     align-items: center
     gap: 6px
-
-  &__warn
-    margin: 6px 0 0
-    font-size: 12px
-    color: var(--color-warning)
 
   &__tbl
     width: 100%
@@ -130,8 +140,12 @@
       overflow: hidden
       text-overflow: ellipsis
 
-  &__c-cat
-    width: 22%
+  &__c-nome
+    width: 30%
+
+  &__cell
+    display: block
+    max-width: 100%
 
   &__c-seg
     width: 20%
@@ -166,3 +180,6 @@
 @media (max-width: 640px)
   .target-agg-modal__form
     grid-template-columns: 1fr
+
+  .target-agg-modal__nome
+    grid-column: auto

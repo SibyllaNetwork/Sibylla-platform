@@ -302,7 +302,7 @@ export default function InserisciContrattoVendita({
               </button>
             </div>
 
-            {isTO && <TargetAggregazioni tipologieCamere={TIPO_CAMERA_OPTIONS.map(o => o.label)} />}
+            {isTO && <TargetAggregazioni />}
           </div>
         )}
       </section>
