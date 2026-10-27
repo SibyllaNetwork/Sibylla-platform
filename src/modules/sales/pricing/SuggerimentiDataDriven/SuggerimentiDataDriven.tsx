@@ -3,54 +3,59 @@ import Modal from '../../../../core/components/Modal'
 import PageHead from '../../../../core/components/PageHead'
 import SelectField from '../../../../core/components/form/SelectField'
 import DateRangeField from '../../../../core/components/form/DateRangeField'
+import CheckboxField from '../../../../core/components/form/CheckboxField'
 import Tooltip from '../../../../core/components/Tooltip'
+import { withAcronimi } from '../../../../core/components/Acronimo'
+import TruncatedText from '../../../../core/components/TruncatedText'
 import Tabs from '../../../../core/components/Tabs'
 import ToggleSwitch from '../../../../core/components/ToggleSwitch'
+import { toast } from '../../../../core/components/Toast/useToast'
 import './SuggerimentiDataDriven.sass'
 import { useStruttureCliente } from '../../../../hooks/useStrutturaCorrente'
 
 /**
  * Suggerimenti data driven — indicazioni strategiche data-driven su tariffe,
  * disponibilità (numero di camere da mettere a disposizione) e richieste extra
- * per gruppi. Tre pannelli affiancati (Pricing · Disponibilità · Richieste per
- * gruppi), filtrabili dalla toolbar e attivabili dai toggle Tariffe/Disp./Gruppi.
+ * per gruppi. Tre corsie di schede (Pricing · Disponibilità · Richieste per
+ * gruppi), filtrabili dalla toolbar e attivabili dalle lenti Tariffe/Disp./Gruppi.
+ * Ogni scheda si seleziona e si invia; le inviate restano marcate "Inviato".
  */
 
-interface PricingRow { id: number; struttura: string; giorno: string; attuale: string; suggerito: string }
-interface DispRow { id: number; struttura: string; giorno: string; tipo: string; edist: number; reale: number; suggerito: number; trend?: 'up' | 'down'; overbooking?: boolean; locked?: boolean; totem?: boolean; occupancy: number; bookingWindow: number; ovp: number; ovl: number }
-interface GruppoRow { id: number; giorno: string; codice: string; label: string; periodo: string; camere: number; persone: number; tot: string }
+interface PricingRow { id: number; struttura: string; dn: number; barAtt: number; att: number; barSug: number; sug: number; affidabilita: number; motivo: string }
+interface DispRow { id: number; struttura: string; dn: number; tipo: string; edist: number; reale: number; suggerito: number; overbooking?: boolean; locked?: boolean; totem?: boolean; occupancy: number; bookingWindow: number; ovp: number; ovl: number }
+interface GruppoRow { id: number; dn: number; notti: number; codice: string; label: string; camere: number; persone: number; tot: number }
 
 // ── Dati demo ──────────────────────────────────────────────────────────────────
 //  Suggerimenti sulle strutture del cliente corrente, a partire da oggi.
 const MESI_BREVI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
+const GIORNI_BREVI = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 const traGiorni = (n: number) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return d }
-const giornoLabel = (n: number) => { const d = traGiorni(n); return `${String(d.getDate()).padStart(2, '0')} ${MESI_BREVI[d.getMonth()]} ${d.getFullYear()}` }
 const ddmm = (n: number) => { const d = traGiorni(n); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}` }
 const isoFra = (n: number) => { const d = traGiorni(n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const quando = (n: number) => (n === 0 ? 'Oggi' : n === 1 ? 'Domani' : `Tra ${n} giorni`)
 
 function datiDemo(h: string[]) {
   const H = (i: number) => h[i % Math.max(1, h.length)] ?? ''
   const PRICING: PricingRow[] = [
-    { id: 1, struttura: H(0), giorno: giornoLabel(4),  attuale: 'BAR(102) - 135,10 €', suggerito: 'BAR(101) - 136,79 €' },
-    { id: 2, struttura: H(1), giorno: giornoLabel(5),  attuale: 'BAR(102) - 135,10 €', suggerito: 'BAR(101) - 136,79 €' },
-    { id: 3, struttura: H(2), giorno: giornoLabel(5),  attuale: 'BAR(101) - 136,79 €', suggerito: 'BAR(99) - 140,23 €' },
-    { id: 4, struttura: H(0), giorno: giornoLabel(19), attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(120) - 108,03 €' },
-    { id: 5, struttura: H(1), giorno: giornoLabel(20), attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(107) - 126,97 €' },
-    { id: 6, struttura: H(1), giorno: giornoLabel(21), attuale: 'BAR(115) - 114,96 €', suggerito: 'BAR(107) - 126,97 €' },
+    { id: 1, struttura: H(0), dn: 4,  barAtt: 102, att: 135.10, barSug: 101, sug: 136.79, affidabilita: 4, motivo: 'Pick-up sopra il ritmo atteso' },
+    { id: 2, struttura: H(1), dn: 5,  barAtt: 102, att: 135.10, barSug: 101, sug: 136.79, affidabilita: 3, motivo: 'Compset in rialzo nel weekend' },
+    { id: 3, struttura: H(2), dn: 5,  barAtt: 101, att: 136.79, barSug: 99,  sug: 140.23, affidabilita: 5, motivo: 'Occupazione all\'88% a 5 giorni' },
+    { id: 4, struttura: H(0), dn: 19, barAtt: 115, att: 114.96, barSug: 120, sug: 108.03, affidabilita: 3, motivo: 'Domanda sotto la media del periodo' },
+    { id: 5, struttura: H(1), dn: 20, barAtt: 115, att: 114.96, barSug: 107, sug: 126.97, affidabilita: 4, motivo: 'Evento in città: ricerche +32%' },
+    { id: 6, struttura: H(1), dn: 21, barAtt: 115, att: 114.96, barSug: 107, sug: 126.97, affidabilita: 4, motivo: 'Evento in città: ricerche +32%' },
   ]
-  const g0 = giornoLabel(0)
   const DISP: DispRow[] = [
-    { id: 1, struttura: H(2), giorno: g0, tipo: 'Singola Classic',      edist: 3, reale: 2, suggerito: 1, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-    { id: 2, struttura: H(1), giorno: g0, tipo: 'Doppia Classic',       edist: 3, reale: 2, suggerito: 5, trend: 'up', overbooking: false, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-    { id: 3, struttura: H(2), giorno: g0, tipo: 'Doppia Classic',       edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-    { id: 4, struttura: H(1), giorno: g0, tipo: 'Doppia Economy',       edist: 3, reale: 2, suggerito: 1, trend: 'up', overbooking: false, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-    { id: 5, struttura: H(2), giorno: g0, tipo: 'Doppia Economy',       edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
-    { id: 6, struttura: H(1), giorno: g0, tipo: 'Matrimoniale Economy', edist: 3, reale: 2, suggerito: 4, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 1, struttura: H(2), dn: 0, tipo: 'Singola Classic',      edist: 3, reale: 2, suggerito: 1, totem: true, occupancy: 76, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 2, struttura: H(1), dn: 0, tipo: 'Doppia Classic',       edist: 3, reale: 2, suggerito: 5, overbooking: false, occupancy: 82, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 3, struttura: H(2), dn: 0, tipo: 'Doppia Classic',       edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 91, bookingWindow: 0, ovp: 6, ovl: 4 },
+    { id: 4, struttura: H(1), dn: 1, tipo: 'Doppia Economy',       edist: 3, reale: 2, suggerito: 4, overbooking: false, occupancy: 68, bookingWindow: 1, ovp: 6, ovl: 4 },
+    { id: 5, struttura: H(2), dn: 1, tipo: 'Doppia Economy',       edist: 3, reale: 2, suggerito: 0, locked: true, occupancy: 94, bookingWindow: 1, ovp: 6, ovl: 4 },
+    { id: 6, struttura: H(1), dn: 2, tipo: 'Matrimoniale Economy', edist: 3, reale: 2, suggerito: 4, totem: true, occupancy: 57, bookingWindow: 2, ovp: 6, ovl: 4 },
   ]
   const anno = traGiorni(0).getFullYear()
   const GRUPPI: GruppoRow[] = [
-    { id: 1, giorno: giornoLabel(16), codice: `${anno}/016420`, label: '[Stop in Italy]', periodo: `${ddmm(16)}-${ddmm(18)}`, camere: 16, persone: 30, tot: '4.350,00€' },
-    { id: 2, giorno: giornoLabel(27), codice: `${anno}/016424`, label: '[Stop in Italy]', periodo: `${ddmm(27)}-${ddmm(30)}`, camere: 11, persone: 21, tot: '3.213,00€' },
+    { id: 1, dn: 16, notti: 2, codice: `${anno}/016420`, label: 'Stop in Italy', camere: 16, persone: 30, tot: 4350 },
+    { id: 2, dn: 27, notti: 3, codice: `${anno}/016424`, label: 'Stop in Italy', camere: 11, persone: 21, tot: 3213 },
   ]
   return { PRICING, DISP, GRUPPI }
 }
@@ -58,7 +63,7 @@ function datiDemo(h: string[]) {
 const CATEGORIE = ['1', '2', '3', '4', '5']
 
 // Azioni della toolbar: su viste strette (laptop con sidenav) diventano
-// pulsanti-icona con tooltip esplicativa (vedi useElementNarrow).
+// pulsanti-icona con tooltip esplicativa.
 const LINKS = [
   { icon: 'fa-calendar-days', label: 'Calendario master', page: 'calendario-master' },
   { icon: 'fa-table-list', label: 'Tariffe & disponibilità', page: 'tariffe-disp' },
@@ -100,14 +105,8 @@ const RATE_NR: RoomPrice[] = [
   { tipo: 'DUS',                                att: [81.34, 81.34, 13.80, 0],   sug: [71.15, 71.15, 13.80, 0] },
 ]
 
-const eur = (n: number) => `${n.toLocaleString('it-IT', { minimumFractionDigits: 2 })} €`
-
-// Abbreviazioni tipo camera per stare su una riga; il nome completo resta nel tooltip.
-const TIPO_ABBR: Record<string, string> = {
-  'Doppia Economy': 'Doppia Eco.',
-  'Matrimoniale Economy': 'Matr. Econ.',
-}
-const shortTipo = (t: string) => TIPO_ABBR[t] ?? t
+const eur = (n: number) => `${n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
+const pct = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toLocaleString('it-IT', { maximumFractionDigits: 1 })}%`
 
 /** Tabella Attuale vs Suggerita per un piano tariffario. */
 function PriceTable({ rows }: { rows: RoomPrice[] }) {
@@ -157,12 +156,6 @@ function toggleIn(set: Set<number>, id: number): Set<number> {
 
 type SortDir = 'tutti' | 'asc' | 'desc'
 
-/** Estrae il valore in euro da una stringa tipo "BAR(101) - 136,79 €". */
-const parsePrice = (s: string): number => {
-  const m = s.match(/([\d.]+),(\d{2})\s*€\s*$/)
-  return m ? Number(`${m[1].replace(/\./g, '')}.${m[2]}`) : 0
-}
-
 function applySort<T>(rows: T[], dir: SortDir, key: (r: T) => number): T[] {
   if (dir === 'tutti') return rows
   return [...rows].sort((a, b) => (dir === 'asc' ? key(a) - key(b) : key(b) - key(a)))
@@ -179,40 +172,40 @@ function useClickOutside(onOutside: () => void) {
   return ref
 }
 
-/** Funnel di ordinamento (Tutti / ↑ $ / ↓ $) — colonna "Suggerito". */
+/** Funnel di ordinamento (Tutti / ↑ $ / ↓ $) sulla tariffa suggerita. */
 function SortMenu({ value, onChange }: { value: SortDir; onChange: (d: SortDir) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useClickOutside(() => setOpen(false))
   return (
     <span className="sdd__pop" ref={ref}>
-      <Tooltip text="Ordina">
-        <button type="button" className={`sdd__filter-btn ${value !== 'tutti' ? 'is-on' : ''}`} onClick={() => setOpen((o) => !o)} aria-label="Ordina">
-          <i className="fa-duotone fa-filter" aria-hidden="true" />
+      <Tooltip text="Ordina per tariffa suggerita">
+        <button type="button" className={`sdd__icobtn ${value !== 'tutti' ? 'is-on' : ''}`} onClick={() => setOpen((o) => !o)} aria-label="Ordina">
+          <i className="fa-solid fa-arrow-down-wide-short" aria-hidden="true" />
         </button>
       </Tooltip>
       {open && (
         <div className="sdd__menu">
-          <button type="button" className={`sdd__menu-item sdd__menu-item--head ${value === 'tutti' ? 'is-active' : ''}`} onClick={() => { onChange('tutti'); setOpen(false) }}>Tutti</button>
+          <button type="button" className={`sdd__menu-item sdd__menu-item--head ${value === 'tutti' ? 'is-active' : ''}`} onClick={() => { onChange('tutti'); setOpen(false) }}>Per data</button>
           <div className="sdd__menu-sep" />
-          <div className="sdd__menu-label"><i className="fa-light fa-arrow-up-arrow-down" aria-hidden="true" /> Ordina</div>
-          <button type="button" className={`sdd__menu-item ${value === 'asc' ? 'is-active' : ''}`} onClick={() => { onChange('asc'); setOpen(false) }}><i className="fa-light fa-arrow-up" aria-hidden="true" /> $</button>
-          <button type="button" className={`sdd__menu-item ${value === 'desc' ? 'is-active' : ''}`} onClick={() => { onChange('desc'); setOpen(false) }}><i className="fa-light fa-arrow-down" aria-hidden="true" /> $</button>
+          <div className="sdd__menu-label"><i className="fa-light fa-arrow-up-arrow-down" aria-hidden="true" /> Tariffa suggerita</div>
+          <button type="button" className={`sdd__menu-item ${value === 'asc' ? 'is-active' : ''}`} onClick={() => { onChange('asc'); setOpen(false) }}><i className="fa-light fa-arrow-up" aria-hidden="true" /> Crescente</button>
+          <button type="button" className={`sdd__menu-item ${value === 'desc' ? 'is-active' : ''}`} onClick={() => { onChange('desc'); setOpen(false) }}><i className="fa-light fa-arrow-down" aria-hidden="true" /> Decrescente</button>
         </div>
       )}
     </span>
   )
 }
 
-/** Funnel "Tipo camera" — popover "Lista camere" con toggle "Solo totem". */
+/** Filtro "Lista camere" con toggle "Solo totem". */
 function TipoCameraFilter({ soloTotem, onApply }: { soloTotem: boolean; onApply: (v: boolean) => void }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(soloTotem)
   const ref = useClickOutside(() => setOpen(false))
   return (
     <span className="sdd__pop" ref={ref}>
-      <Tooltip text="Tipo camera">
-        <button type="button" className={`sdd__filter-btn ${soloTotem ? 'is-on' : ''}`} onClick={() => { if (!open) setDraft(soloTotem); setOpen((o) => !o) }} aria-label="Tipo camera">
-          <i className="fa-duotone fa-filter" aria-hidden="true" />
+      <Tooltip text="Filtra tipologie camera">
+        <button type="button" className={`sdd__icobtn ${soloTotem ? 'is-on' : ''}`} onClick={() => { if (!open) setDraft(soloTotem); setOpen((o) => !o) }} aria-label="Tipo camera">
+          <i className="fa-solid fa-filter" aria-hidden="true" />
         </button>
       </Tooltip>
       {open && (
@@ -232,6 +225,105 @@ function TipoCameraFilter({ soloTotem, onApply }: { soloTotem: boolean; onApply:
   )
 }
 
+/** Tessera data (giorno della settimana · numero · mese). */
+function DateTile({ dn }: { dn: number }) {
+  const d = traGiorni(dn)
+  return (
+    <Tooltip text={quando(dn)}>
+      <span className={`sdd__date ${dn <= 1 ? 'is-soon' : ''}`}>
+        <span className="sdd__date-wd">{GIORNI_BREVI[d.getDay()]}</span>
+        <span className="sdd__date-d">{d.getDate()}</span>
+        <span className="sdd__date-m">{MESI_BREVI[d.getMonth()]}</span>
+      </span>
+    </Tooltip>
+  )
+}
+
+/** Affidabilità del suggerimento su 5 tacche. */
+function Confidence({ value }: { value: number }) {
+  const label = ['molto bassa', 'bassa', 'media', 'alta', 'molto alta'][value - 1]
+  return (
+    <Tooltip text={`Affidabilità del modello: ${label}`}>
+      <span className="sdd__conf" aria-label={`Affidabilità ${label}`}>
+        {[1, 2, 3, 4, 5].map((i) => <span key={i} className={i <= value ? 'is-on' : ''} />)}
+      </span>
+    </Tooltip>
+  )
+}
+
+/** Pallini camera: base comune, camere aggiunte (verde) o da togliere (tratteggio). */
+function RoomPips({ from, to }: { from: number; to: number }) {
+  const n = Math.max(from, to)
+  return (
+    <span className="sdd__pips" aria-hidden="true">
+      {Array.from({ length: n }, (_, i) => {
+        const k = i < Math.min(from, to) ? 'base' : to > from ? 'add' : 'cut'
+        return <span key={i} className={`sdd__pip sdd__pip--${k}`} />
+      })}
+    </span>
+  )
+}
+
+interface LaneProps {
+  kind: 'pricing' | 'disp' | 'gruppi'
+  icon: string
+  title: string
+  summary: React.ReactNode
+  tools: React.ReactNode
+  onRefresh: () => void
+  refreshing: boolean
+  selectable: number
+  selected: number
+  onToggleAll: () => void
+  onSend: () => void
+  empty: string
+  children: React.ReactNode
+  count: number
+}
+
+/** Corsia: intestazione con accento colore, schede, barra di invio. */
+function Lane({ kind, icon, title, summary, tools, onRefresh, refreshing, selectable, selected, onToggleAll, onSend, empty, children, count }: LaneProps) {
+  const all = selectable > 0 && selected === selectable
+  return (
+    <section className={`sdd__lane sdd__lane--${kind}`}>
+      <header className="sdd__lane-head">
+        <span className="sdd__lane-ico"><i className={`fa-solid ${icon}`} aria-hidden="true" /></span>
+        <div className="sdd__lane-titles">
+          <h2 className="sdd__lane-title">{title}</h2>
+          <div className="sdd__lane-sum">{summary}</div>
+        </div>
+        <div className="sdd__lane-tools">
+          {tools}
+          <Tooltip text="Aggiorna suggerimenti">
+            <button type="button" className={`sdd__icobtn ${refreshing ? 'is-spinning' : ''}`} onClick={onRefresh} aria-label="Aggiorna">
+              <i className="fa-solid fa-arrows-rotate" aria-hidden="true" />
+            </button>
+          </Tooltip>
+        </div>
+      </header>
+
+      <div className={`sdd__cards ${refreshing ? 'is-refreshing' : ''}`}>
+        {count > 0 ? children : (
+          <div className="sdd__empty">
+            <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true" />
+            <span>{empty}</span>
+          </div>
+        )}
+      </div>
+
+      {count > 0 && (
+        <footer className="sdd__lane-foot">
+          <CheckboxField name={`all-${kind}`} label="Seleziona tutti" checked={all} disabled={selectable === 0} onChange={onToggleAll} />
+          <span className="sdd__lane-count">{selected > 0 ? `${selected} selezionat${selected === 1 ? 'o' : 'i'}` : ''}</span>
+          <button type="button" className="sib-btn sib-btn--primary sdd__send" disabled={selected === 0} onClick={onSend}>
+            <i className="fa-solid fa-paper-plane-top" aria-hidden="true" /> Invia
+          </button>
+        </footer>
+      )}
+    </section>
+  )
+}
+
 export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: string) => void }) {
   // Prossimo mese, sulle strutture (con camere) del cliente corrente.
   const [from, setFrom] = useState(() => isoFra(0))
@@ -246,48 +338,67 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
   const [selP, setSelP] = useState<Set<number>>(new Set())
   const [selD, setSelD] = useState<Set<number>>(new Set())
   const [selG, setSelG] = useState<Set<number>>(new Set())
+  const [sentP, setSentP] = useState<Set<number>>(new Set())
+  const [sentD, setSentD] = useState<Set<number>>(new Set())
+  const [sentG, setSentG] = useState<Set<number>>(new Set())
   const [ob, setOb] = useState<Record<number, boolean>>({})
   const [pricingModal, setPricingModal] = useState(false)
   const [ratePlan, setRatePlan] = useState<'flessibile' | 'nonRimborsabile'>('flessibile')
   const [sortSugg, setSortSugg] = useState<SortDir>('tutti')
   const [soloTotem, setSoloTotem] = useState(false)
   const [guidaOpen, setGuidaOpen] = useState(false)
+  const [refreshing, setRefreshing] = useState<string | null>(null)
 
-  // Larghezza reale disponibile alla pagina: sotto soglia (laptop con sidenav
-  // aperta) le azioni toolbar si comprimono in icone. Misuriamo l'elemento
-  // (non il viewport) per essere robusti alla presenza della sidenav.
+  // Larghezza reale disponibile alla pagina (non il viewport, per essere robusti
+  // alla sidenav): sotto soglia le azioni toolbar si comprimono in icone.
   const rootRef = useRef<HTMLDivElement>(null)
   const [narrow, setNarrow] = useState(false)
-  // stacked = pannelli incolonnati a piena larghezza (sotto la soglia della
-  // riga unica, 1500px, sincronizzata con la container query nel .sass): in
-  // questa condizione la Disponibilita ha spazio, quindi mostra intestazioni e
-  // tipo camera per esteso; in riga usa le abbreviazioni per stare stretta.
-  const [stacked, setStacked] = useState(false)
   useEffect(() => {
     const el = rootRef.current
     if (!el) return
-    const ro = new ResizeObserver(([e]) => {
-      const w = e.contentRect.width
-      // sotto 1520 (laptop, anche col menu chiuso) la toolbar non ha spazio per
-      // i pulsanti testuali: diventano icone cosi stanno su un'unica riga
-      setNarrow(w < 1520)
-      setStacked(w < 1520)
-    })
+    const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 1520))
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
 
-  // I filtri Struttura/Categoria restringono le righe di ogni pannello; le
+  // I filtri Struttura/Categoria restringono le schede di ogni corsia; le
   // richieste per gruppi non sono legate a una struttura specifica, quindi una
   // struttura selezionata le azzera.
-  const fP = applySort(PRICING.filter((r) => !struttura || r.struttura === struttura), sortSugg, (r) => parsePrice(r.suggerito))
+  const fP = applySort(PRICING.filter((r) => !struttura || r.struttura === struttura), sortSugg, (r) => r.sug)
   const fD = DISP.filter((r) => (!struttura || r.struttura === struttura) && (!soloTotem || r.totem))
   const fG = GRUPPI.filter(() => !struttura)
 
-  const allP = fP.length > 0 && fP.every((r) => selP.has(r.id))
-  const allG = fG.length > 0 && fG.every((r) => selG.has(r.id))
-  const selectableD = fD.filter((r) => !r.locked)
-  const allD = selectableD.length > 0 && selectableD.every((r) => selD.has(r.id))
+  const okP = fP.filter((r) => !sentP.has(r.id))
+  const okD = fD.filter((r) => !r.locked && !sentD.has(r.id))
+  const okG = fG.filter((r) => !sentG.has(r.id))
+  const nSel = (sel: Set<number>, ok: { id: number }[]) => ok.filter((r) => sel.has(r.id)).length
+
+  const rialzi = fP.filter((r) => r.sug > r.att).length
+  const deltaCamere = fD.filter((r) => !r.locked).reduce((s, r) => s + (r.suggerito - r.edist), 0)
+  const camereGruppi = fG.reduce((s, r) => s + r.camere, 0)
+  const valoreGruppi = fG.reduce((s, r) => s + r.tot, 0)
+
+  const refresh = (k: string) => {
+    setRefreshing(k)
+    window.setTimeout(() => setRefreshing(null), 900)
+  }
+
+  const send = (
+    ok: { id: number }[], sel: Set<number>,
+    setSel: (s: Set<number>) => void, setSent: React.Dispatch<React.SetStateAction<Set<number>>>, cosa: string,
+  ) => {
+    const ids = ok.filter((r) => sel.has(r.id)).map((r) => r.id)
+    if (!ids.length) return
+    setSent((s) => new Set([...Array.from(s), ...ids]))
+    setSel(new Set())
+    toast.success(`Invio ai canali completato: ${ids.length} ${cosa}`, 'Suggerimenti applicati')
+  }
+
+  const LENTI = [
+    { k: 'tariffe' as const, label: 'Tariffe', icon: 'fa-tags', n: fP.length },
+    { k: 'disp' as const, label: 'Disponibilità', icon: 'fa-bed-front', n: fD.length },
+    { k: 'gruppi' as const, label: 'Gruppi', icon: 'fa-people-group', n: fG.length },
+  ]
 
   return (
     <div className="sdd" ref={rootRef}>
@@ -309,10 +420,16 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
             options={[{ value: '', label: '----' }, ...CATEGORIE.map((c) => ({ value: c, label: c }))]} className="sdd__cat" />
         </div>
 
-        <div className="sdd__segmented">
-          <button type="button" className={`sdd__seg ${show.tariffe ? 'is-active' : ''}`} onClick={() => setShow((s) => ({ ...s, tariffe: !s.tariffe }))}>Tariffe</button>
-          <button type="button" className={`sdd__seg ${show.disp ? 'is-active' : ''}`} onClick={() => setShow((s) => ({ ...s, disp: !s.disp }))}>Disponibilità</button>
-          <button type="button" className={`sdd__seg ${show.gruppi ? 'is-active' : ''}`} onClick={() => setShow((s) => ({ ...s, gruppi: !s.gruppi }))}>Gruppi</button>
+        <div className="sdd__lenses" role="group" aria-label="Suggerimenti da mostrare">
+          {LENTI.map((l) => (
+            <button key={l.k} type="button" aria-pressed={show[l.k]}
+              className={`sdd__lens sdd__lens--${l.k} ${show[l.k] ? 'is-active' : ''}`}
+              onClick={() => setShow((s) => ({ ...s, [l.k]: !s[l.k] }))}>
+              <i className={`fa-solid ${l.icon}`} aria-hidden="true" />
+              {l.label}
+              <span className="sdd__lens-n">{l.n}</span>
+            </button>
+          ))}
         </div>
 
         <div className="sdd__links">
@@ -335,175 +452,214 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
         </div>
       </div>
 
-      {/* ── Pannelli ── */}
-      <div className="sdd__panels">
+      {/* ── Corsie ── */}
+      <div className="sdd__lanes">
 
         {show.tariffe && (
-          <section className="sdd__panel">
-            <header className="sdd__panel-head">
-              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
-              <h2 className="sdd__panel-title">Pricing</h2>
-              <div className="sdd__panel-tools">
-                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-regular fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
-              </div>
-            </header>
-            <div className="sdd__scroll">
-              <table className="sdd__tbl">
-                <thead>
-                  <tr>
-                    <th className="sdd__col-check"><input type="checkbox" checked={allP} onChange={() => setSelP(allP ? new Set() : new Set(fP.map((r) => r.id)))} aria-label="Seleziona tutti" /></th>
-                    <th>Struttura</th>
-                    <th>Giorno</th>
-                    <th>Attuale</th>
-                    <th className="sdd__th-filter"><Tooltip text="Suggerito"><span>Sugg.</span></Tooltip> <SortMenu value={sortSugg} onChange={setSortSugg} /></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fP.map((r) => (
-                    <tr key={r.id}>
-                      <td className="sdd__col-check"><input type="checkbox" checked={selP.has(r.id)} onChange={() => setSelP((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.struttura}`} /></td>
-                      <td className="sdd__nc">{r.struttura}</td>
-                      <td className="sdd__nc">{r.giorno}</td>
-                      <td className="sdd__hl sdd__hl--l">{r.attuale}</td>
-                      <td className="sdd__hl sdd__hl--r">
-                        <Tooltip text="Variazioni di pricing">
-                          <button type="button" className="sdd__hl-ico" onClick={() => { setRatePlan('flessibile'); setPricingModal(true) }} aria-label="Variazioni di pricing">
-                            <i className="fa-duotone fa-code-compare" aria-hidden="true" />
-                          </button>
-                        </Tooltip>
-                        <strong>{r.suggerito}</strong>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {fP.length === 0 && <div className="sdd__empty">Nessuna prenotazione disponibile per il periodo selezionato.</div>}
-            </div>
-            {fP.length > 0 && (
-              <footer className="sdd__panel-foot">
-                <button className="sib-btn sib-btn--primary sdd__send">Invia</button>
-              </footer>
-            )}
-          </section>
+          <Lane kind="pricing" icon="fa-tags" title="Pricing" count={fP.length}
+            summary={fP.length > 0
+              ? <><strong>{fP.length}</strong> suggeriment{fP.length === 1 ? 'o' : 'i'} · <span className="sdd__up">{rialzi} rialz{rialzi === 1 ? 'o' : 'i'}</span> · <span className="sdd__dn">{fP.length - rialzi} ribass{fP.length - rialzi === 1 ? 'o' : 'i'}</span></>
+              : 'Nessun suggerimento'}
+            tools={<>
+              <SortMenu value={sortSugg} onChange={setSortSugg} />
+              <Tooltip text="Modifica strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica strategie"><i className="fa-solid fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
+            </>}
+            onRefresh={() => refresh('p')} refreshing={refreshing === 'p'}
+            selectable={okP.length} selected={nSel(selP, okP)}
+            onToggleAll={() => setSelP(nSel(selP, okP) === okP.length ? new Set() : new Set(okP.map((r) => r.id)))}
+            onSend={() => send(okP, selP, setSelP, setSentP, 'tariff' + (nSel(selP, okP) === 1 ? 'a' : 'e'))}
+            empty="Nessun suggerimento di prezzo per il periodo selezionato.">
+            {fP.map((r) => {
+              const delta = ((r.sug - r.att) / r.att) * 100
+              const up = delta > 0
+              const sent = sentP.has(r.id)
+              const sel = selP.has(r.id)
+              return (
+                <article key={r.id}
+                  className={`sdd__card ${sel ? 'is-selected' : ''} ${sent ? 'is-sent' : ''}`}>
+                  <div className="sdd__card-top">
+                    {sent
+                      ? <span className="sdd__sent"><i className="fa-solid fa-check" aria-hidden="true" /> Inviato</span>
+                      : <CheckboxField name={`p-${r.id}`} checked={sel} onChange={() => setSelP((s) => toggleIn(s, r.id))} />}
+                    <DateTile dn={r.dn} />
+                    <div className="sdd__card-id">
+                      <TruncatedText text={r.struttura} className="sdd__card-name" />
+                      <span className="sdd__card-sub">{quando(r.dn)}</span>
+                    </div>
+                    <span className={`sdd__delta ${up ? 'is-up' : 'is-down'}`}>
+                      <i className={`fa-solid ${up ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}`} aria-hidden="true" />
+                      {pct(delta)}
+                    </span>
+                  </div>
+
+                  <div className="sdd__price">
+                    <div className="sdd__price-col">
+                      <span className="sdd__price-lbl">{withAcronimi(`Attuale · BAR ${r.barAtt}`)}</span>
+                      <span className="sdd__price-old">{eur(r.att)}</span>
+                    </div>
+                    <i className="fa-solid fa-arrow-right-long sdd__price-arrow" aria-hidden="true" />
+                    <div className="sdd__price-col">
+                      <span className="sdd__price-lbl">{withAcronimi(`Suggerito · BAR ${r.barSug}`)}</span>
+                      <span className={`sdd__price-new ${up ? 'is-up' : 'is-down'}`}>{eur(r.sug)}</span>
+                    </div>
+                  </div>
+
+                  <div className="sdd__card-foot">
+                    <span className="sdd__why"><i className="fa-solid fa-lightbulb" aria-hidden="true" /><TruncatedText text={r.motivo} className="sdd__why-txt" /></span>
+                    <Confidence value={r.affidabilita} />
+                    <Tooltip text="Variazioni di pricing per tipologia">
+                      <button type="button" className="sdd__cmp" onClick={() => { setRatePlan('flessibile'); setPricingModal(true) }} aria-label="Variazioni di pricing">
+                        <i className="fa-solid fa-code-compare" aria-hidden="true" />
+                      </button>
+                    </Tooltip>
+                  </div>
+                </article>
+              )
+            })}
+          </Lane>
         )}
 
         {show.disp && (
-          <section className="sdd__panel">
-            <header className="sdd__panel-head">
-              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
-              <h2 className="sdd__panel-title">Disponibilità</h2>
-              <div className="sdd__panel-tools">
-                <Tooltip text="Guida disponibilità"><button type="button" className="sdd__icobtn" onClick={() => setGuidaOpen(true)} aria-label="Guida disponibilità"><i className="fa-regular fa-circle-info" aria-hidden="true" /></button></Tooltip>
-                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-regular fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
-              </div>
-            </header>
-            <div className="sdd__scroll">
-              <table className="sdd__tbl">
-                <thead>
-                  <tr>
-                    <th className="sdd__col-check"><input type="checkbox" checked={allD} disabled={selectableD.length === 0} onChange={() => setSelD(allD ? new Set() : new Set(selectableD.map((r) => r.id)))} aria-label="Seleziona tutti" /></th>
-                    <th>Struttura</th>
-                    <th>Giorno</th>
-                    <th className="sdd__th-filter">Tipo camera <TipoCameraFilter soloTotem={soloTotem} onApply={setSoloTotem} /></th>
-                    <th className="sdd__col-num">{stacked ? 'E-distribution' : <Tooltip text="E-distribution"><span>E-distrib.</span></Tooltip>}</th>
-                    <th className="sdd__col-num">{stacked ? 'Suggerito' : <Tooltip text="Suggerito"><span>Sugg.</span></Tooltip>}</th>
-                    <th className="sdd__col-num">{stacked ? 'Overbooking limit' : <Tooltip text="Overbooking limit"><span>Over. limit</span></Tooltip>}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fD.map((r) => (
-                    <tr key={r.id}>
-                      <td className="sdd__col-check">
-                        {r.locked
-                          ? <i className="fa-solid fa-hourglass-half sdd__hourglass" title="In elaborazione" aria-hidden="true" />
-                          : <input type="checkbox" checked={selD.has(r.id)} onChange={() => setSelD((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.tipo}`} />}
-                      </td>
-                      <td className="sdd__nc">{r.struttura}</td>
-                      <td className="sdd__nc">{r.giorno}</td>
-                      <td className="sdd__nc">
-                        {!stacked && shortTipo(r.tipo) !== r.tipo
-                          ? <Tooltip text={r.tipo}><span>{shortTipo(r.tipo)}</span></Tooltip>
-                          : r.tipo}
-                      </td>
-                      <td className="sdd__col-num">
-                        <span className="sdd__val">{r.edist}<Tooltip text={`Disponibilità reale: ${r.reale} Cam.`}><i className="fa-solid fa-circle-info sdd__info" aria-hidden="true" /></Tooltip></span>
-                      </td>
-                      <td className="sdd__col-num">
-                        <span className="sdd__val">
-                          {r.suggerito}
-                          {r.trend === 'up' && <i className="fa-light fa-arrow-up sdd__trend-up" aria-hidden="true" />}
-                          {r.trend === 'down' && <i className="fa-light fa-arrow-down sdd__trend-down" aria-hidden="true" />}
-                          <Tooltip content={<span className="sdd__tip">Occupancy: {r.occupancy}%<br />BookingWindow: {r.bookingWindow} giorni<br />OVP: {r.ovp}% OVL: {r.ovl}%</span>}><i className="fa-solid fa-circle-info sdd__info" aria-hidden="true" /></Tooltip>
-                        </span>
-                      </td>
-                      <td className="sdd__col-num">
-                        {r.overbooking !== undefined && (
-                          <ToggleSwitch checked={ob[r.id] ?? r.overbooking} onChange={(v) => setOb((o) => ({ ...o, [r.id]: v }))} />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {fD.length === 0 && <div className="sdd__empty">Nessuna prenotazione disponibile per il periodo selezionato.</div>}
-            </div>
-            {fD.length > 0 && (
-              <footer className="sdd__panel-foot">
-                <button className="sib-btn sib-btn--primary sdd__send">Invia</button>
-              </footer>
-            )}
-          </section>
+          <Lane kind="disp" icon="fa-bed-front" title="Disponibilità" count={fD.length}
+            summary={fD.length > 0
+              ? <><strong>{fD.length}</strong> tipologi{fD.length === 1 ? 'a' : 'e'} · saldo <span className={deltaCamere >= 0 ? 'sdd__up' : 'sdd__dn'}>{deltaCamere > 0 ? '+' : ''}{deltaCamere} camer{Math.abs(deltaCamere) === 1 ? 'a' : 'e'}</span></>
+              : 'Nessun suggerimento'}
+            tools={<>
+              <TipoCameraFilter soloTotem={soloTotem} onApply={setSoloTotem} />
+              <Tooltip text="Guida disponibilità"><button type="button" className="sdd__icobtn" onClick={() => setGuidaOpen(true)} aria-label="Guida disponibilità"><i className="fa-solid fa-circle-info" aria-hidden="true" /></button></Tooltip>
+              <Tooltip text="Modifica strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica strategie"><i className="fa-solid fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
+            </>}
+            onRefresh={() => refresh('d')} refreshing={refreshing === 'd'}
+            selectable={okD.length} selected={nSel(selD, okD)}
+            onToggleAll={() => setSelD(nSel(selD, okD) === okD.length ? new Set() : new Set(okD.map((r) => r.id)))}
+            onSend={() => send(okD, selD, setSelD, setSentD, 'disponibilità')}
+            empty="Nessun suggerimento di disponibilità per il periodo selezionato.">
+            {fD.map((r) => {
+              const diff = r.suggerito - r.edist
+              const sent = sentD.has(r.id)
+              const sel = selD.has(r.id)
+              return (
+                <article key={r.id}
+                  className={`sdd__card ${sel ? 'is-selected' : ''} ${sent ? 'is-sent' : ''} ${r.locked ? 'is-locked' : ''}`}>
+                  <div className="sdd__card-top">
+                    {r.locked
+                      ? <Tooltip text="Suggerimento in elaborazione"><span className="sdd__hourglass"><i className="fa-solid fa-hourglass-half" aria-hidden="true" /></span></Tooltip>
+                      : sent
+                        ? <span className="sdd__sent"><i className="fa-solid fa-check" aria-hidden="true" /> Inviato</span>
+                        : <CheckboxField name={`d-${r.id}`} checked={sel} onChange={() => setSelD((s) => toggleIn(s, r.id))} />}
+                    <DateTile dn={r.dn} />
+                    <div className="sdd__card-id">
+                      <span className="sdd__card-name-row">
+                        <TruncatedText text={r.tipo} className="sdd__card-name" />
+                        {r.totem && <Tooltip text="Camera totem"><span className="sdd__totem"><i className="fa-solid fa-star" aria-hidden="true" /></span></Tooltip>}
+                      </span>
+                      <TruncatedText text={r.struttura} className="sdd__card-sub" />
+                    </div>
+                    {r.locked
+                      ? <span className="sdd__delta is-wait">In elaborazione</span>
+                      : <span className={`sdd__delta ${diff > 0 ? 'is-up' : diff < 0 ? 'is-down' : ''}`}>{diff > 0 ? '+' : diff < 0 ? '−' : ''}{Math.abs(diff)} cam.</span>}
+                  </div>
+
+                  <div className="sdd__units">
+                    <div className="sdd__units-col">
+                      <span className="sdd__price-lbl">E-distribution</span>
+                      <span className="sdd__units-n">
+                        {r.edist}
+                        <Tooltip text={`Disponibilità reale: ${r.reale} cam.`}><i className="fa-solid fa-circle-info sdd__info" aria-hidden="true" /></Tooltip>
+                      </span>
+                    </div>
+                    <i className="fa-solid fa-arrow-right-long sdd__price-arrow" aria-hidden="true" />
+                    <div className="sdd__units-col">
+                      <span className="sdd__price-lbl">Suggerito</span>
+                      <span className={`sdd__units-n is-sug ${diff > 0 ? 'is-up' : diff < 0 ? 'is-down' : ''}`}>{r.suggerito}</span>
+                    </div>
+                    <RoomPips from={r.edist} to={r.suggerito} />
+                  </div>
+
+                  <div className="sdd__drivers">
+                    <Tooltip text="Occupancy della tipologia nella giornata">
+                      <span className="sdd__chip sdd__chip--occ">
+                        <span className="sdd__occ" aria-hidden="true">{Array.from({ length: 10 }, (_, k) => <span key={k} className={k < Math.round(r.occupancy / 10) ? 'is-on' : ''} />)}</span>
+                        Occ. {r.occupancy}%
+                      </span>
+                    </Tooltip>
+                    <Tooltip text="Booking window"><span className="sdd__chip"><i className="fa-solid fa-hourglass-start" aria-hidden="true" />{r.bookingWindow} gg</span></Tooltip>
+                    <Tooltip text="Overbooking protection"><span className="sdd__chip">OVP {r.ovp}%</span></Tooltip>
+                    <Tooltip text="Overbooking limit"><span className="sdd__chip">OVL {r.ovl}%</span></Tooltip>
+                    {r.overbooking !== undefined && (
+                      <span className="sdd__ob">
+                        <span>Overbooking</span>
+                        <ToggleSwitch checked={ob[r.id] ?? r.overbooking} onChange={(v) => setOb((o) => ({ ...o, [r.id]: v }))} disabled={sent} />
+                      </span>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+          </Lane>
         )}
 
         {show.gruppi && (
-          <section className="sdd__panel">
-            <header className="sdd__panel-head">
-              <Tooltip text="Aggiorna"><button type="button" className="sdd__icobtn" aria-label="Aggiorna"><i className="fa-regular fa-arrows-rotate" aria-hidden="true" /></button></Tooltip>
-              <h2 className="sdd__panel-title">Richieste per gruppi</h2>
-              <div className="sdd__panel-tools">
-                <Tooltip text="Modifica Strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica Strategie"><i className="fa-regular fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
-              </div>
-            </header>
-            <div className="sdd__scroll">
-              <table className="sdd__tbl">
-                <thead>
-                  <tr>
-                    <th className="sdd__col-check"><input type="checkbox" checked={allG} disabled={fG.length === 0} onChange={() => setSelG(allG ? new Set() : new Set(fG.map((r) => r.id)))} aria-label="Seleziona tutti" /></th>
-                    <th>Struttura</th>
-                    <th>Giorno</th>
-                    <th><Tooltip text="Suggerito"><span>Sugg.</span></Tooltip></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fG.map((r) => (
-                    <tr key={r.id}>
-                      <td className="sdd__col-check"><input type="checkbox" checked={selG.has(r.id)} onChange={() => setSelG((s) => toggleIn(s, r.id))} aria-label={`Seleziona ${r.codice}`} /></td>
-                      <td />
-                      <td className="sdd__nc">{r.giorno}</td>
-                      <td>
-                        <div className="sdd__gruppo">
-                          <span className="sdd__gruppo-info">
-                            {r.codice} - {r.label} - {r.periodo} - <i className="fa-solid fa-bed" aria-hidden="true" />{r.camere} <i className="fa-solid fa-user" aria-hidden="true" />{r.persone} - Tot {r.tot}
-                          </span>
-                          <button type="button" className="sdd__gruppo-link">Conferma senza importo extra.</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {fG.length === 0 && <div className="sdd__empty">Nessun suggerimento trovato per la struttura/categoria selezionati</div>}
-            </div>
-            {fG.length > 0 && (
-              <footer className="sdd__panel-foot">
-                <button className="sib-btn sib-btn--primary sdd__send">Invia</button>
-              </footer>
-            )}
-          </section>
+          <Lane kind="gruppi" icon="fa-people-group" title="Richieste per gruppi" count={fG.length}
+            summary={fG.length > 0
+              ? <><strong>{fG.length}</strong> richiest{fG.length === 1 ? 'a' : 'e'} · {camereGruppi} camere · {eur(valoreGruppi)}</>
+              : 'Nessuna richiesta'}
+            tools={
+              <Tooltip text="Modifica strategie"><button type="button" className="sdd__icobtn" onClick={() => navigate('calendario-strategie')} aria-label="Modifica strategie"><i className="fa-solid fa-calendar-pen" aria-hidden="true" /></button></Tooltip>
+            }
+            onRefresh={() => refresh('g')} refreshing={refreshing === 'g'}
+            selectable={okG.length} selected={nSel(selG, okG)}
+            onToggleAll={() => setSelG(nSel(selG, okG) === okG.length ? new Set() : new Set(okG.map((r) => r.id)))}
+            onSend={() => send(okG, selG, setSelG, setSentG, nSel(selG, okG) === 1 ? 'richiesta' : 'richieste')}
+            empty="Nessun suggerimento trovato per la struttura/categoria selezionati.">
+            {fG.map((r) => {
+              const sent = sentG.has(r.id)
+              const sel = selG.has(r.id)
+              return (
+                <article key={r.id}
+                  className={`sdd__card ${sel ? 'is-selected' : ''} ${sent ? 'is-sent' : ''}`}>
+                  <div className="sdd__card-top">
+                    {sent
+                      ? <span className="sdd__sent"><i className="fa-solid fa-check" aria-hidden="true" /> Inviato</span>
+                      : <CheckboxField name={`g-${r.id}`} checked={sel} onChange={() => setSelG((s) => toggleIn(s, r.id))} />}
+                    <DateTile dn={r.dn} />
+                    <div className="sdd__card-id">
+                      <TruncatedText text={r.label} className="sdd__card-name" />
+                      <span className="sdd__card-sub">Pratica {r.codice}</span>
+                    </div>
+                    <span className="sdd__amount">{eur(r.tot)}</span>
+                  </div>
+
+                  <div className="sdd__stay">
+                    <span className="sdd__stay-range">
+                      {ddmm(r.dn)}
+                      <span className="sdd__stay-line"><span>{r.notti} nott{r.notti === 1 ? 'e' : 'i'}</span></span>
+                      {ddmm(r.dn + r.notti)}
+                    </span>
+                  </div>
+
+                  <div className="sdd__drivers">
+                    <span className="sdd__chip"><i className="fa-solid fa-bed" aria-hidden="true" />{r.camere} camere</span>
+                    <span className="sdd__chip"><i className="fa-solid fa-user" aria-hidden="true" />{r.persone} persone</span>
+                    <span className="sdd__chip">{eur(r.tot / r.camere / r.notti)} / cam. notte</span>
+                    {!sent && (
+                      <button type="button" className="sdd__link"
+                        onClick={() => { setSentG((s) => new Set([...Array.from(s), r.id])); toast.success(`Pratica ${r.codice} confermata senza importo extra`) }}>
+                        Conferma senza importo extra <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+          </Lane>
         )}
 
         {!show.tariffe && !show.disp && !show.gruppi && (
-          <div className="sdd__none">Seleziona una delle opzioni per visualizzare la strategia.</div>
+          <div className="sdd__none">
+            <i className="fa-solid fa-chart-network" aria-hidden="true" />
+            <span>Attiva una delle lenti — Tariffe, Disponibilità o Gruppi — per vedere i suggerimenti.</span>
+          </div>
         )}
 
       </div>

@@ -1,10 +1,10 @@
 // ─── Suggerimenti data driven ───────────────────────────────────────────────
-// Dashboard a tre pannelli (Pricing · Disponibilità · Richieste per gruppi)
+// Tre corsie di schede (Pricing · Disponibilità · Richieste per gruppi).
+// Ogni corsia ha un accento (--sdd-acc) preso dalla palette grafici.
 @use '../../../../styles/tokens' as *
 
 .sdd
-  // Titolo/sottotitolo: standard PageHeader (allineati a sinistra, nessun override)
-  // Contenitore per le container query (layout pannelli in base allo spazio reale)
+  // Contenitore per le container query (layout corsie in base allo spazio reale)
   container-type: inline-size
 
   // ── Toolbar ───────────────────────────────────────────────────────────────
@@ -25,27 +25,59 @@
   &__cat
     width: 84px
 
-  // ── Toggle segmentato Tariffe / Disponibilità / Gruppi ─────────────────────
-  &__segmented
+  // ── Lenti Tariffe / Disponibilità / Gruppi ─────────────────────────────────
+  &__lenses
     display: inline-flex
-    gap: 8px
-
-  &__seg
-    height: 40px
-    padding: 0 22px
+    gap: 4px
+    padding: 4px
     border: 1px solid var(--color-border)
-    border-radius: 6px
-    background: var(--color-surface)
-    font-size: 14px
+    border-radius: 999px
+    background: var(--color-bg)
+
+  &__lens
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    height: 34px
+    padding: 0 8px 0 14px
+    border: none
+    border-radius: 999px
+    background: none
+    font-family: $font-heading
+    font-size: 13px
     font-weight: 600
     color: var(--color-text-inactive)
     cursor: pointer
-    transition: background 0.12s ease, color 0.12s ease
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease
+
+    i
+      font-size: 13px
+
+    &:hover
+      color: var(--color-text-active)
 
     &.is-active
-      background: var(--color-primary-100)
-      border-color: var(--color-primary-100)
-      color: var(--color-primary)
+      background: var(--color-surface)
+      color: var(--sdd-acc)
+      box-shadow: 0 1px 4px rgba(15, 30, 50, .14)
+
+      .sdd__lens-n
+        background: var(--sdd-acc)
+        color: #fff
+
+  &__lens-n
+    min-width: 22px
+    height: 20px
+    padding: 0 6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 999px
+    background: var(--color-border)
+    font-size: 11px
+    font-weight: 700
+    color: var(--color-text-inactive)
+    transition: background .15s ease, color .15s ease
 
   // ── Link/azioni a destra ──────────────────────────────────────────────────
   &__links
@@ -59,296 +91,638 @@
       color: var(--color-primary)
       font-size: 16px
 
-  // ── Pannelli ───────────────────────────────────────────────────────────────
-  // Default (laptop / larghezza ridotta): pannelli incolonnati a piena larghezza.
-  // Le tre tabelle vanno su una sola riga SOLO quando c'e spazio per tutte e tre
-  // senza taglio (vedi container query in fondo al file). Nessuno stato a 2
-  // colonne intermedio.
-  &__panels
+  // ── Accenti per corsia ─────────────────────────────────────────────────────
+  &__lens--tariffe, &__lane--pricing
+    --sdd-acc: var(--chart-1)
+
+  &__lens--disp, &__lane--disp
+    --sdd-acc: var(--chart-5)
+
+  &__lens--gruppi, &__lane--gruppi
+    --sdd-acc: var(--chart-3)
+
+  // ── Corsie ─────────────────────────────────────────────────────────────────
+  // Default (laptop): corsie incolonnate a piena larghezza, schede in griglia.
+  // Sopra 1520px le tre corsie stanno affiancate (container query in fondo).
+  &__lanes
     display: flex
     flex-direction: column
     align-items: stretch
     gap: 18px
 
-  &__panel
+  &__lane
+    position: relative
     display: flex
     flex-direction: column
+    min-width: 0
     border: 1px solid var(--color-border)
-    border-radius: 8px
+    border-radius: 12px
     background: var(--color-surface)
     overflow: hidden
+    animation: sdd-in .3s ease-out both
 
-  &__panel-head
+    // Filo d'accento in testa alla corsia
+    &::before
+      content: ''
+      position: absolute
+      inset: 0 0 auto
+      height: 3px
+      background: var(--sdd-acc)
+
+  &__lane-head
     display: flex
     align-items: center
-    gap: 8px
-    padding: 12px 14px
+    gap: 12px
+    padding: 16px 14px 14px 16px
     border-bottom: 1px solid var(--color-border)
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sdd-acc) 7%, transparent), transparent)
 
-  &__panel-title
-    flex: 1
-    text-align: center
-    font-family: $font-heading
-    font-size: 19px
-    font-weight: 600
-    color: var(--color-primary)
-    margin: 0
-
-  &__panel-tools
+  &__lane-ico
+    flex-shrink: 0
+    width: 38px
+    height: 38px
     display: inline-flex
     align-items: center
-    gap: 10px
+    justify-content: center
+    border-radius: 10px
+    background: color-mix(in srgb, var(--sdd-acc) 14%, transparent)
+    color: var(--sdd-acc)
+    font-size: 16px
+
+  &__lane-titles
+    flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 2px
+
+  &__lane-title
+    margin: 0
+    font-family: $font-heading
+    font-size: 17px
+    font-weight: 600
+    color: var(--color-primary)
+
+  &__lane-sum
+    font-size: 12px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+    strong
+      color: var(--color-text-active)
+
+  &__up
+    color: var(--chart-good)
+    font-weight: 600
+
+  &__dn
+    color: var(--color-warning)
+    font-weight: 600
+
+  &__lane-tools
+    display: inline-flex
+    align-items: center
+    gap: 2px
 
   &__icobtn
     display: inline-flex
     align-items: center
     justify-content: center
-    width: 30px
-    height: 30px
+    width: 32px
+    height: 32px
     border: none
+    border-radius: 8px
     background: none
     color: var(--color-primary)
     font-size: 16px
     cursor: pointer
+    transition: background .12s ease
 
     &:hover
-      color: var(--color-text-active)
+      background: var(--color-primary-50)
 
-  &__head-info
-    color: var(--color-text-inactive)
-    font-size: 15px
+    &.is-on
+      background: var(--color-primary-100)
 
-  // Nessuno scroll orizzontale (specifica di progetto): la tabella rientra
-  // sempre nella larghezza del pannello grazie al wrapping di header e celle.
-  &__scroll
+    &.is-spinning i
+      animation: sdd-spin .9s linear
+
+  // ── Schede ─────────────────────────────────────────────────────────────────
+  &__cards
     flex: 1
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+    align-content: start
+    gap: 10px
+    padding: 12px
+    min-height: 240px
+    background: var(--color-bg)
+    transition: opacity .2s ease
+
+    &.is-refreshing
+      opacity: .45
+
+  &__card
     display: flex
     flex-direction: column
-    min-height: 360px
+    gap: 12px
+    min-width: 0
+    padding: 12px 14px
+    border: 1px solid var(--color-border)
+    border-radius: 10px
+    background: var(--color-surface)
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease
+    animation: sdd-in .35s ease-out both
 
-  // ── Stato vuoto pannello ───────────────────────────────────────────────────
-  &__empty
-    flex: 1
+    @for $i from 1 through 8
+      &:nth-child(#{$i})
+        animation-delay: #{$i * 45}ms
+
+    &:hover
+      border-color: color-mix(in srgb, var(--sdd-acc) 45%, var(--color-border))
+      box-shadow: 0 6px 18px rgba(15, 30, 50, .08)
+      transform: translateY(-1px)
+
+    &.is-selected
+      border-color: var(--sdd-acc)
+      box-shadow: 0 0 0 1px var(--sdd-acc), 0 6px 18px color-mix(in srgb, var(--sdd-acc) 18%, transparent)
+
+    &.is-sent
+      background: color-mix(in srgb, var(--color-success-light) 45%, var(--color-surface))
+
+      .sdd__price, .sdd__units, .sdd__drivers, .sdd__stay
+        opacity: .6
+
+    &.is-locked
+      border-style: dashed
+
+      .sdd__units, .sdd__drivers
+        opacity: .55
+
+  &__card-top
     display: flex
     align-items: center
-    justify-content: center
-    padding: 24px
-    text-align: center
-    font-size: 18px
-    font-weight: 600
-    color: var(--color-text-disabled)
+    gap: 10px
+    min-width: 0
 
-  // ── Stato "nessuna opzione selezionata" (full width) ───────────────────────
-  &__none
+  &__card-id
     flex: 1
+    min-width: 0
+    display: flex
+    flex-direction: column
+    gap: 1px
+
+  &__card-name-row
     display: flex
     align-items: center
-    justify-content: center
-    min-height: 360px
-    padding: 24px
-    text-align: center
-    font-size: 22px
-    font-weight: 600
-    color: var(--color-text-disabled)
+    gap: 6px
+    min-width: 0
 
-  // ── Tabella interna pannello (stile standard piattaforma) ──────────────────
-  &__tbl
-    width: 100%
-    border-collapse: collapse
+  &__card-name
+    max-width: 100%
+    font-size: 13.5px
+    font-weight: 700
+    color: var(--color-text-active)
 
-    th
-      padding: 8px 12px
-      text-align: left
-      font-size: 12px
-      font-weight: 600
-      color: var(--color-text-inactive)
-      // intestazioni SEMPRE su una riga (abbreviate + tooltip se lunghe)
-      white-space: nowrap
-      border-bottom: 1px solid var(--color-border)
-
-    td
-      padding: 8px 12px
-      font-size: 12.5px
-      color: var(--color-text-active)
-      vertical-align: middle
-      border-bottom: 1px solid #eef0f3
-
-    tr:last-child td
-      border-bottom: none
-
-    // intestazioni delle colonne numeriche allineate a destra come i valori
-    th.sdd__col-num
-      text-align: right
-
-  &__th-filter i
-    margin-left: 4px
-    font-size: 10px
+  &__card-sub
+    max-width: 100%
+    font-size: 11.5px
     color: var(--color-text-inactive)
 
-  &__col-check
-    width: 34px
-    text-align: center
-
-    input
-      accent-color: var(--color-primary)
-      cursor: pointer
-
-  &__col-num
-    text-align: right
-
-  // Celle Struttura/Giorno: sempre su una riga
-  &__nc
-    white-space: nowrap
-
-  // ── Blocco evidenziato Pricing (Attuale → Suggerito) ───────────────────────
-  &__hl
-    background: var(--color-success-mid)
-    color: var(--color-primary)
-    font-weight: 600
-    // il valore puo andare a capo: cosi la colonna non forza lo scroll-x
-    white-space: normal
-
-    &--l
-      border-radius: 6px 0 0 6px
-
-    &--r
-      border-radius: 0 6px 6px 0
-
-  // Icona "Variazioni di pricing": chip scuro + glifo bianco pieno per risaltare sul verde
-  &__hl-ico
+  &__totem
+    flex-shrink: 0
     display: inline-flex
     align-items: center
     justify-content: center
-    width: 26px
-    height: 26px
-    margin: 0 9px 0 0
-    padding: 0
+    width: 18px
+    height: 18px
+    border-radius: 50%
+    background: color-mix(in srgb, var(--chart-4) 18%, transparent)
+    color: var(--chart-4)
+    font-size: 9px
+
+  // ── Tessera data ───────────────────────────────────────────────────────────
+  &__date
+    flex-shrink: 0
+    width: 44px
+    display: inline-flex
+    flex-direction: column
+    align-items: center
+    overflow: hidden
+    border: 1px solid var(--color-border)
+    border-radius: 8px
+    background: var(--color-surface)
+    line-height: 1.05
+
+    &.is-soon .sdd__date-wd
+      background: var(--color-warning)
+
+  &__date-wd
+    align-self: stretch
+    padding: 2px 0
+    text-align: center
+    background: var(--sdd-acc)
+    font-size: 9.5px
+    font-weight: 700
+    letter-spacing: .02em
+    color: #fff
+
+  &__date-d
+    padding-top: 3px
+    font-family: $font-heading
+    font-size: 17px
+    font-weight: 700
+    color: var(--color-text-active)
+
+  &__date-m
+    padding-bottom: 3px
+    font-size: 10px
+    color: var(--color-text-inactive)
+
+  // ── Pillola delta ──────────────────────────────────────────────────────────
+  &__delta
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 24px
+    padding: 0 9px
+    border-radius: 999px
+    background: var(--color-bg)
+    font-size: 12px
+    font-weight: 700
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    &.is-up
+      background: color-mix(in srgb, var(--chart-good) 12%, transparent)
+      color: var(--chart-good)
+
+    &.is-down
+      background: var(--color-warning-light)
+      color: var(--color-warning)
+
+    &.is-wait
+      font-weight: 600
+      font-size: 11px
+
+  &__amount
+    flex-shrink: 0
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
+    color: var(--color-primary)
+    white-space: nowrap
+
+  &__sent
+    flex-shrink: 0
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    height: 22px
+    padding: 0 8px
+    border-radius: 999px
+    background: var(--color-success)
+    font-size: 11px
+    font-weight: 700
+    color: #fff
+    animation: sdd-pop .3s ease-out
+
+  &__hourglass
+    flex-shrink: 0
+    width: 18px
+    display: inline-flex
+    justify-content: center
+    color: var(--color-primary)
+    font-size: 15px
+
+    i
+      animation: sdd-turn 2.4s ease-in-out infinite
+
+  // ── Attuale → Suggerito (pricing) ──────────────────────────────────────────
+  &__price, &__units
+    display: flex
+    align-items: center
+    gap: 14px
+    padding: 10px 12px
+    border-radius: 8px
+    background: var(--color-bg)
+
+  &__price-col, &__units-col
+    display: flex
+    flex-direction: column
+    gap: 2px
+    min-width: 0
+
+  &__price-lbl
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+  &__price-old
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+  &__price-new
+    font-family: $font-heading
+    font-size: 19px
+    font-weight: 700
+    color: var(--color-primary)
+    white-space: nowrap
+
+    &.is-up
+      color: var(--chart-good)
+
+    &.is-down
+      color: var(--color-warning)
+
+  &__price-arrow
+    color: var(--sdd-acc)
+    font-size: 16px
+
+  &__card-foot
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+
+  &__why
+    flex: 1
+    min-width: 0
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+    color: var(--color-text-active)
+
+    i
+      flex-shrink: 0
+      color: var(--chart-4)
+
+  &__why-txt
+    max-width: 100%
+
+  &__conf
+    flex-shrink: 0
+    display: inline-flex
+    gap: 2px
+
+    span
+      width: 5px
+      height: 12px
+      border-radius: 2px
+      background: var(--color-border)
+
+      &.is-on
+        background: var(--sdd-acc)
+
+  &__cmp
+    flex-shrink: 0
+    width: 30px
+    height: 30px
+    display: inline-flex
+    align-items: center
+    justify-content: center
     border: none
     border-radius: 50%
     background: var(--color-primary)
     color: #fff
-    font-size: 14px
+    font-size: 13px
     cursor: pointer
-    vertical-align: middle
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25)
-    transition: transform 0.12s ease
-
-    .fa-duotone
-      --fa-primary-color: #fff
-      --fa-secondary-color: #fff
-      --fa-secondary-opacity: 1
+    transition: transform .12s ease
 
     &:hover
       transform: scale(1.08)
 
-  // ── Celle con valore + info ────────────────────────────────────────────────
-  &__val
+  // ── E-distribution → Suggerito (disponibilità) ────────────────────────────
+  &__units-n
     display: inline-flex
     align-items: center
     gap: 6px
-    justify-content: flex-end
+    font-family: $font-heading
+    font-size: 17px
+    font-weight: 700
+    color: var(--color-text-inactive)
+
+    &.is-sug
+      font-size: 19px
+      color: var(--color-primary)
+
+    &.is-up
+      color: var(--chart-good)
+
+    &.is-down
+      color: var(--color-warning)
 
   &__info
     color: var(--color-primary)
-    font-size: 16px
+    font-size: 14px
     cursor: help
 
-  &__trend-up
-    color: var(--color-success-mid)
-    font-size: 12px
-
-  &__trend-down
-    color: var(--color-error)
-    font-size: 12px
-
-  &__hourglass
-    color: var(--color-primary)
-    font-size: 16px
-
-  &__tip
-    display: inline-block
-    text-align: left
-    line-height: 1.5
-
-  // ── Cella richieste per gruppi ─────────────────────────────────────────────
-  &__gruppo
-    display: flex
-    flex-direction: column
+  &__pips
+    margin-left: auto
+    display: inline-flex
+    flex-wrap: wrap
+    justify-content: flex-end
     gap: 4px
-    white-space: normal
+
+  &__pip
+    width: 14px
+    height: 14px
+    border-radius: 4px
+
+    &--base
+      background: var(--color-primary)
+
+    &--add
+      background: var(--chart-good)
+      animation: sdd-pop .35s ease-out both
+
+    &--cut
+      border: 1.5px dashed var(--color-warning)
+      background: var(--color-warning-light)
+
+  // ── Driver / chip ──────────────────────────────────────────────────────────
+  &__drivers
+    display: flex
+    align-items: center
+    flex-wrap: wrap
+    gap: 6px
+
+  &__chip
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    height: 24px
+    padding: 0 9px
+    border: 1px solid var(--color-border)
+    border-radius: 999px
+    font-size: 11.5px
+    font-weight: 600
+    color: var(--color-text-active)
+    white-space: nowrap
 
     i
-      margin: 0 2px 0 4px
       color: var(--color-primary)
-      font-size: 16px
+      font-size: 11px
 
-  &__gruppo-info
-    font-size: 12.5px
+  &__occ
+    display: inline-flex
+    gap: 1px
+
+    span
+      width: 3px
+      height: 10px
+      border-radius: 1px
+      background: var(--color-border)
+
+      &.is-on
+        background: var(--sdd-acc)
+
+  &__ob
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    font-size: 11.5px
+    color: var(--color-text-inactive)
+
+  // ── Soggiorno gruppo ───────────────────────────────────────────────────────
+  &__stay
+    padding: 10px 12px
+    border-radius: 8px
+    background: var(--color-bg)
+
+  &__stay-range
+    display: flex
+    align-items: center
+    gap: 10px
+    font-family: $font-heading
+    font-size: 15px
+    font-weight: 700
     color: var(--color-text-active)
-    line-height: 1.45
 
-  &__gruppo-link
-    align-self: flex-start
-    background: none
-    border: none
+  // Linea del soggiorno: due tratti ai lati, notti al centro
+  &__stay-line
+    flex: 1
+    display: flex
+    align-items: center
+    gap: 8px
+
+    &::before, &::after
+      content: ''
+      flex: 1
+      height: 2px
+      border-radius: 2px
+      background: var(--sdd-acc)
+
+    span
+      font-family: $font-body
+      font-size: 11px
+      font-weight: 600
+      color: var(--sdd-acc)
+      white-space: nowrap
+
+  &__link
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 6px
     padding: 0
-    font-size: 12.5px
+    border: none
+    background: none
+    font-size: 12px
     font-weight: 700
     color: var(--color-primary)
     cursor: pointer
-    text-align: left
+    white-space: nowrap
 
-    &:hover
-      text-decoration: underline
+    i
+      font-size: 11px
+      transition: transform .15s ease
 
-  // ── Footer pannello ────────────────────────────────────────────────────────
-  &__panel-foot
-    padding: 14px
+    &:hover i
+      transform: translateX(3px)
+
+  // ── Stato vuoto corsia ─────────────────────────────────────────────────────
+  &__empty
+    grid-column: 1 / -1
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 10px
+    padding: 32px 24px
+    text-align: center
+    font-size: 14px
+    font-weight: 600
+    color: var(--color-text-disabled)
+
+    i
+      font-size: 28px
+      color: color-mix(in srgb, var(--sdd-acc) 50%, transparent)
+
+  // ── Stato "nessuna lente attiva" ───────────────────────────────────────────
+  &__none
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: 14px
+    min-height: 360px
+    padding: 24px
+    border: 1px dashed var(--color-border)
+    border-radius: 12px
+    text-align: center
+    font-size: 16px
+    font-weight: 600
+    color: var(--color-text-disabled)
+
+    i
+      font-size: 40px
+      color: var(--color-primary-200)
+
+  // ── Barra di invio corsia ──────────────────────────────────────────────────
+  &__lane-foot
+    display: flex
+    align-items: center
+    gap: 12px
+    padding: 12px 14px
     border-top: 1px solid var(--color-border)
 
-  &__send
-    width: 100%
+  &__lane-count
+    flex: 1
+    font-size: 12px
+    font-weight: 600
+    color: var(--sdd-acc)
 
-  // ── Funnel filtri/ordina nelle intestazioni ────────────────────────────────
-  // vertical-align middle: allinea il testo del titolo (es. "Tipo camera") con
-  // gli altri titoli, altrimenti il funnel inline-flex lo abbassa
+  &__send
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-width: 120px
+    justify-content: center
+
+  // ── Popover ordina/filtra ──────────────────────────────────────────────────
   &__pop
     position: relative
     display: inline-flex
-    vertical-align: middle
-
-  &__filter-btn
-    margin-left: 6px
-    padding: 0
-    border: none
-    background: none
-    color: var(--color-primary)
-    font-size: 14px
-    cursor: pointer
-    vertical-align: middle
-
-    .fa-duotone
-      --fa-primary-color: var(--color-primary)
-      --fa-secondary-color: var(--color-primary)
-      --fa-secondary-opacity: 0.35
-
-    &:hover .fa-duotone
-      --fa-secondary-opacity: 0.6
-
-    &.is-on .fa-duotone
-      --fa-secondary-opacity: 0.85
 
   &__menu
     position: absolute
     top: calc(100% + 6px)
-    left: 0
+    right: 0
     z-index: 40
-    min-width: 150px
+    min-width: 170px
     padding: 6px
     background: var(--color-surface)
     border: 1px solid var(--color-border)
-    border-radius: 6px
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12)
+    border-radius: 8px
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12)
     display: flex
     flex-direction: column
     gap: 2px
@@ -422,20 +796,49 @@
     display: flex
     gap: 8px
 
-// Risoluzioni superiori: le tre tabelle DEVONO stare su un'unica riga.
-// Sotto soglia (laptop) restano incolonnati (default). In modalita riga le
-// tabelle vengono compattate (padding ridotto) per stare affiancate senza taglio.
+// Risoluzioni superiori: le tre corsie stanno affiancate, le schede in colonna.
 @container (min-width: 1520px)
-  .sdd__panels
+  .sdd__lanes
     flex-direction: row
-  .sdd__panel
+    align-items: stretch
+  .sdd__lane
     flex: 1 1 0
-    min-width: 0
-  .sdd__tbl th,
-  .sdd__tbl td
-    padding: 8px 4px
-  .sdd__col-check
-    width: 24px
+  .sdd__cards
+    grid-template-columns: minmax(0, 1fr)
+
+@keyframes sdd-in
+  from
+    opacity: 0
+    transform: translateY(6px)
+  to
+    opacity: 1
+    transform: none
+
+@keyframes sdd-pop
+  0%
+    transform: scale(.4)
+    opacity: 0
+  70%
+    transform: scale(1.15)
+  100%
+    transform: scale(1)
+    opacity: 1
+
+@keyframes sdd-spin
+  to
+    transform: rotate(360deg)
+
+@keyframes sdd-turn
+  0%, 40%
+    transform: rotate(0)
+  50%, 90%
+    transform: rotate(180deg)
+  100%
+    transform: rotate(360deg)
+
+@media (prefers-reduced-motion: reduce)
+  .sdd__lane, .sdd__card, .sdd__sent, .sdd__pip--add, .sdd__hourglass i
+    animation: none
 
 // ─── Modale "Suggerimenti proposti" ──────────────────────────────────────────
 // Tab e tabelle usano gli standard di piattaforma (componente Tabs + .sib-table);
