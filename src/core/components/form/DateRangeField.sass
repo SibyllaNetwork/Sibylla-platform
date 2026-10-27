@@ -4,7 +4,8 @@
 
 // Rimappa la palette "primary" di RSuite sul blu Platform. Vale solo per il
 // DateRangePicker (unico componente rsuite in uso). Le tinte chiare/scure
-// derivano dai token piattaforma con fallback espliciti.
+// derivano dai token piattaforma con fallback espliciti. In dark resta la
+// palette scura nativa di RSuite (classe .rs-theme-dark sul body).
 :root
   --rs-primary-50:  var(--color-primary-50, #f2f5f7)
   --rs-primary-100: var(--color-primary-100, #dfe7ee)
@@ -27,7 +28,7 @@
     width: 204px
     border: 1px solid var(--color-border)
     border-radius: var(--radius-field, 6px)
-    background: #fff
+    background: var(--color-surface)
 
     // nessun effetto hover: il bordo resta invariato
     &:hover
@@ -41,11 +42,20 @@
     padding-top: 0
     padding-bottom: 0
     font-size: 13px
+    color: var(--color-text-active)
     background: transparent
 
   // Icona calendario a destra: quella nativa di rsuite (caret), colore muted.
   .rs-picker-caret-icon
     color: var(--color-text-inactive)
+
+// Tema scuro: popup del calendario sulle superfici della piattaforma
+.rs-theme-dark .rs-picker-popup
+  --rs-bg-overlay: var(--color-surface)
+  --rs-text-primary: var(--color-text-active)
+  --rs-text-secondary: var(--color-text-inactive)
+  --rs-border-primary: var(--color-border)
+  border: 1px solid var(--color-border)
 
 // Il calendario si apre in un popup agganciato al body (z-index 7 di RSuite):
 // dentro una modale (overlay z-index 100) finiva sotto e non era cliccabile.

@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import clsx from 'clsx'
 import { DateRangePicker, CustomProvider } from 'rsuite'
 import itIT from 'rsuite/locales/it_IT'
 import { format, parseISO, isValid } from 'date-fns'
 import 'rsuite/dist/rsuite-no-reset.min.css'
 import './DateRangeField.sass'
+import { useThemeStore } from '../../../store/useThemeStore'
 
 export interface DateRangeFieldProps {
   label?:        string
@@ -51,6 +52,10 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
   disabled = false, required = false,
   min, max, isDateDisabled, onChangeFrom, onChangeTo, onChange, className,
 }) => {
+  // In dark il calendario usa il tema scuro di RSuite (popup agganciato al body)
+  const theme = useThemeStore((st) => st.theme)
+  // RSuite non toglie la classe scura dal body quando il tema torna chiaro
+  useLayoutEffect(() => { if (theme !== 'dark') document.body.classList.remove('rs-theme-dark') }, [theme])
   const from = safeParseISO(valueFrom ?? defaultFrom)
   const to   = safeParseISO(valueTo ?? defaultTo)
   const value: [Date, Date] | null = from && to ? [from, to] : null
@@ -82,7 +87,7 @@ const DateRangeField: React.FC<DateRangeFieldProps> = ({
           {label}{required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
-      <CustomProvider locale={itIT}>
+      <CustomProvider locale={itIT} theme={theme === 'dark' ? 'dark' : undefined}>
         <DateRangePicker
           value={value}
           onChange={handleChange as (v: [Date, Date] | null) => void}
