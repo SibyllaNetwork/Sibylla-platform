@@ -1,6 +1,7 @@
 // ─── LOTTI MAPPING ────────────────────────────────────────────────────────────
-// Due aree (Gruppi / B2B) + recap laterale. Campanella di consulenza con
-// animazione blu in movimento SOLO senza prefers-reduced-motion.
+// Una pagina, tre sezioni (come i tre passi di produzione): 1. Lotti Gruppi/B2B,
+// 2. Aggregazioni e tipologie, 3. Riepilogo laterale. Campanella di consulenza
+// con animazione blu in movimento SOLO senza prefers-reduced-motion.
 @use '../../../../../styles/tokens' as *
 
 .lotti-mapping
@@ -18,7 +19,7 @@
   // ── Layout: aree + recap ─────────────────────────────────────────────────────
   &__layout
     display: grid
-    grid-template-columns: minmax(0, 1fr) 260px
+    grid-template-columns: minmax(0, 1fr) 280px
     gap: 18px
     align-items: start
 
@@ -57,8 +58,107 @@
     font-size: 12px
     color: $text-inactive
 
-  &__b2b-select
-    max-width: 320px
+  // Numero di sezione (1 · 2 · 3)
+  &__step
+    width: 20px
+    height: 20px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 50%
+    background: $primary
+    font-size: 11px
+    font-weight: 700
+    color: #fff
+
+  // Sottotitolo di tabella (Gruppi, B2B, Aggregazioni…)
+  &__sub
+    margin-bottom: 6px
+    font-size: 13px
+    font-weight: 600
+    color: $text-active
+
+  // ── 1. Lotti: Gruppi e B2B affiancati ───────────────────────────────────────
+  &__lotti
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 18px
+    align-items: start
+
+  &__lotti-col
+    min-width: 0
+
+  &__num
+    font-variant-numeric: tabular-nums
+
+  // ── 2. Aggregazioni e tipologie ─────────────────────────────────────────────
+  &__scope
+    display: flex
+    align-items: flex-end
+    flex-wrap: wrap
+    gap: 12px 24px
+
+  &__field-sm
+    width: 160px
+
+  &__agg
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+    gap: 18px
+    align-items: start
+
+  &__agg-form, &__agg-list
+    display: flex
+    flex-direction: column
+    gap: 10px
+    min-width: 0
+
+  &__agg-list .lotti-mapping__sub
+    margin: 4px 0 -4px
+
+  &__form-row
+    display: flex
+    align-items: flex-start
+    gap: 12px
+
+  &__grow
+    flex: 1
+    min-width: 0
+
+  &__molt
+    width: 120px
+
+  &__add
+    margin-top: 20px
+    display: inline-flex
+    align-items: center
+    gap: 6px
+
+  &__form-actions
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+
+    .sib-btn
+      display: inline-flex
+      align-items: center
+      gap: 6px
+
+  // Azioni in tabella: icone fa-solid blu Platform 16px senza riquadro
+  &__act
+    border: none
+    background: none
+
+    i
+      color: $primary
+      font-size: 16px
+
+  &__row--sel td
+    background: var(--color-primary-50)
+
+  &__muted
+    font-size: 11.5px
+    color: $text-inactive
 
   // ── Celle ────────────────────────────────────────────────────────────────────
   &__row--off td
@@ -74,14 +174,10 @@
   &__td-center
     text-align: center
 
-  &__nome-input
-    max-width: 220px
-
-  &__tipologia-select
-    max-width: 260px
-
+  // Campo camere: mai più largo della sua colonna
   &__num-input
-    width: 88px
+    width: 100%
+    max-width: 88px
     margin-left: auto
 
     input
@@ -167,6 +263,26 @@
     i
       font-size: 13px
 
+  &__recap-scope
+    margin-top: -8px
+    font-size: 11.5px
+    color: $text-inactive
+
+  &__recap-list
+    display: flex
+    flex-direction: column
+    gap: 2px
+    font-size: 12px
+    color: $text-active
+
+    > span
+      font-size: 11px
+      color: $text-inactive
+
+    em
+      font-style: normal
+      color: $text-disabled
+
   &__recap-section
     display: flex
     flex-direction: column
@@ -219,6 +335,11 @@
   &__savebar
     margin: auto -22px -18px
 
+// Aggregazioni: form e liste incolonnati quando il pane si stringe
+@container (max-width: 1180px)
+  .lotti-mapping__agg
+    grid-template-columns: 1fr
+
 // Il recap scende sotto le aree quando il pane si stringe
 @container (max-width: 900px)
   .lotti-mapping__layout
@@ -226,6 +347,10 @@
 
   .lotti-mapping__recap
     position: static
+
+@container (max-width: 640px)
+  .lotti-mapping__lotti
+    grid-template-columns: 1fr
 
 @keyframes lotti-bell-ring
   0%, 55%, 100%
