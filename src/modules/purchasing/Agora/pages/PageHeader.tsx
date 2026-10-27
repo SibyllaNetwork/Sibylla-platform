@@ -1,8 +1,7 @@
 import { ReactNode } from 'react';
 import { useNavigate, useNavigationType } from 'react-router-dom';
 import { useNavBack } from '../../../../store/useNavBack';
-import { H1, P3 } from '../ds/typography';
-import './PageHeader.css';
+import PageHead from '../../../../core/components/PageHead';
 
 interface PageHeaderProps {
   title: string;
@@ -13,6 +12,9 @@ interface PageHeaderProps {
   hideBack?: boolean;
 }
 
+// Intestazione delle pagine Agorà: poggia sull'header STANDARD della piattaforma
+// (PageHead: Indietro · titolo centrato · azioni). Qui resta solo la logica del
+// tasto Indietro propria del MemoryRouter Agorà.
 export function PageHeader({
   title,
   subtitle,
@@ -33,25 +35,13 @@ export function PageHeader({
   });
 
   return (
-    <header className="page-header">
-      {!hideBack && (
-        <button
-          type="button"
-          className="sib-btn sib-btn--back page-header__back-btn"
-          onClick={handleBack}
-        >
-          <i className="fa-duotone fa-arrow-left text-[12px]" aria-hidden="true" />
-          {backLabel}
-        </button>
-      )}
-
-      <div className="page-header__row">
-        <div className="page-header__titles">
-          <H1>{title}</H1>
-          {subtitle && <P3 className="page-header__subtitle">{subtitle}</P3>}
-        </div>
-        {actions && <div className="page-header__actions">{actions}</div>}
-      </div>
-    </header>
+    <PageHead
+      title={title}
+      subtitle={subtitle}
+      actions={actions}
+      back={!hideBack}
+      backLabel={backLabel}
+      onBack={handleBack}
+    />
   );
 }

@@ -1,12 +1,12 @@
 /*
  * AdminPageHeader — intestazione condivisa delle pagine admin.
- * Differente dal `PageHeader` lato utente: niente "back" automatico e niente
- * dipendenza da react-router (le pagine sono già montate sotto AdminLayout
- * che ha proprie breadcrumb in topbar).
+ * Differente dal `PageHeader` lato utente: niente "back" (le pagine sono già
+ * montate sotto AdminLayout che ha proprie breadcrumb in topbar). Il disegno è
+ * quello STANDARD della piattaforma (PageHead: titolo centrato, azioni a destra).
  */
 
 import type { ReactNode } from 'react';
-import './AdminPageHeader.css';
+import PageHead from '../../../../core/components/PageHead';
 
 interface AdminPageHeaderProps {
   title: string;
@@ -15,13 +15,5 @@ interface AdminPageHeaderProps {
 }
 
 export function AdminPageHeader({ title, subtitle, actions }: AdminPageHeaderProps) {
-  return (
-    <header className="admin-page-header">
-      <div className="admin-page-header__text">
-        <h1>{title}</h1>
-        {subtitle && <p>{subtitle}</p>}
-      </div>
-      {actions && <div className="admin-page-header__actions">{actions}</div>}
-    </header>
-  );
+  return <PageHead title={title} subtitle={subtitle} actions={actions} back={false} />;
 }

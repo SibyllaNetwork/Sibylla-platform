@@ -1,21 +1,3 @@
-/* Header di pagina allineato allo standard Platform (rif. componente PageHead:
-   titolo Poppins 24px w600 primary, sottotitolo 13px text-inactive). */
-.group-purchases-page .page-header__titles h1 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 24px;
-  line-height: 1.2;
-  font-weight: 600;
-  color: var(--color-primary);
-  margin: 0 0 4px;
-}
-
-.group-purchases-page .page-header__subtitle {
-  font-family: 'Open Sans', sans-serif;
-  font-size: 13px;
-  color: var(--color-text-inactive);
-  margin: 0;
-}
-
 .group-purchases__stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
