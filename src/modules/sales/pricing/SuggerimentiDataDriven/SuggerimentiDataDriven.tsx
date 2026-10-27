@@ -484,7 +484,7 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <DateTile dn={r.dn} />
                     <div className="sdd__card-id">
                       <TruncatedText text={r.struttura} className="sdd__card-name" />
-                      <span className="sdd__card-sub">{quando(r.dn)}</span>
+                      <span className="sdd__why"><i className="fa-solid fa-lightbulb" aria-hidden="true" /><TruncatedText text={r.motivo} className="sdd__card-sub" /></span>
                     </div>
                     <span className={`sdd__delta ${up ? 'is-up' : 'is-down'}`}>
                       <i className={`fa-solid ${up ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}`} aria-hidden="true" />
@@ -502,16 +502,14 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                       <span className="sdd__price-lbl">{withAcronimi(`Suggerito · BAR ${r.barSug}`)}</span>
                       <span className={`sdd__price-new ${up ? 'is-up' : 'is-down'}`}>{eur(r.sug)}</span>
                     </div>
-                  </div>
-
-                  <div className="sdd__card-foot">
-                    <span className="sdd__why"><i className="fa-solid fa-lightbulb" aria-hidden="true" /><TruncatedText text={r.motivo} className="sdd__why-txt" /></span>
-                    <Confidence value={r.affidabilita} />
+                    <span className="sdd__price-side">
+                      <Confidence value={r.affidabilita} />
                     <Tooltip text="Variazioni di pricing per tipologia">
                       <button type="button" className="sdd__cmp" onClick={() => { setRatePlan('flessibile'); setPricingModal(true) }} aria-label="Variazioni di pricing">
                         <i className="fa-solid fa-code-compare" aria-hidden="true" />
                       </button>
                     </Tooltip>
+                    </span>
                   </div>
                 </article>
               )
@@ -573,6 +571,12 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                       <span className="sdd__price-lbl">Suggerito</span>
                       <span className={`sdd__units-n is-sug ${diff > 0 ? 'is-up' : diff < 0 ? 'is-down' : ''}`}>{r.suggerito}</span>
                     </div>
+                    {r.overbooking !== undefined && (
+                      <span className="sdd__ob">
+                        <span>Overbooking</span>
+                        <ToggleSwitch checked={ob[r.id] ?? r.overbooking} onChange={(v) => setOb((o) => ({ ...o, [r.id]: v }))} disabled={sent} />
+                      </span>
+                    )}
                     <RoomPips from={r.edist} to={r.suggerito} />
                   </div>
 
@@ -586,12 +590,6 @@ export default function SuggerimentiDataDriven({ navigate }: { navigate: (p: str
                     <Tooltip text="Booking window"><span className="sdd__chip"><i className="fa-solid fa-hourglass-start" aria-hidden="true" />{r.bookingWindow} gg</span></Tooltip>
                     <Tooltip text="Overbooking protection"><span className="sdd__chip">OVP {r.ovp}%</span></Tooltip>
                     <Tooltip text="Overbooking limit"><span className="sdd__chip">OVL {r.ovl}%</span></Tooltip>
-                    {r.overbooking !== undefined && (
-                      <span className="sdd__ob">
-                        <span>Overbooking</span>
-                        <ToggleSwitch checked={ob[r.id] ?? r.overbooking} onChange={(v) => setOb((o) => ({ ...o, [r.id]: v }))} disabled={sent} />
-                      </span>
-                    )}
                   </div>
                 </article>
               )

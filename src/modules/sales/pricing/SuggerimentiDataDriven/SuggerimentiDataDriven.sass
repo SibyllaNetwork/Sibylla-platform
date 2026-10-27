@@ -132,15 +132,15 @@
   &__lane-head
     display: flex
     align-items: center
-    gap: 12px
-    padding: 16px 14px 14px 16px
+    gap: 10px
+    padding: 11px 12px 10px 14px
     border-bottom: 1px solid var(--color-border)
     background: linear-gradient(180deg, color-mix(in srgb, var(--sdd-acc) 7%, transparent), transparent)
 
   &__lane-ico
     flex-shrink: 0
-    width: 38px
-    height: 38px
+    width: 32px
+    height: 32px
     display: inline-flex
     align-items: center
     justify-content: center
@@ -159,7 +159,7 @@
   &__lane-title
     margin: 0
     font-family: $font-heading
-    font-size: 17px
+    font-size: 16px
     font-weight: 600
     color: var(--color-primary)
 
@@ -215,9 +215,9 @@
     display: grid
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
     align-content: start
-    gap: 10px
-    padding: 12px
-    min-height: 240px
+    gap: 8px
+    padding: 8px
+    min-height: 180px
     background: var(--color-bg)
     transition: opacity .2s ease
 
@@ -227,9 +227,9 @@
   &__card
     display: flex
     flex-direction: column
-    gap: 12px
+    gap: 7px
     min-width: 0
-    padding: 12px 14px
+    padding: 8px 10px
     border: 1px solid var(--color-border)
     border-radius: 10px
     background: var(--color-surface)
@@ -264,7 +264,7 @@
   &__card-top
     display: flex
     align-items: center
-    gap: 10px
+    gap: 8px
     min-width: 0
 
   &__card-id
@@ -282,7 +282,7 @@
 
   &__card-name
     max-width: 100%
-    font-size: 13.5px
+    font-size: 13px
     font-weight: 700
     color: var(--color-text-active)
 
@@ -306,7 +306,7 @@
   // ── Tessera data ───────────────────────────────────────────────────────────
   &__date
     flex-shrink: 0
-    width: 44px
+    width: 36px
     display: inline-flex
     flex-direction: column
     align-items: center
@@ -321,24 +321,24 @@
 
   &__date-wd
     align-self: stretch
-    padding: 2px 0
+    padding: 1px 0
     text-align: center
     background: var(--sdd-acc)
-    font-size: 9.5px
+    font-size: 8.5px
     font-weight: 700
     letter-spacing: .02em
     color: #fff
 
   &__date-d
-    padding-top: 3px
+    padding-top: 1px
     font-family: $font-heading
-    font-size: 17px
+    font-size: 14px
     font-weight: 700
     color: var(--color-text-active)
 
   &__date-m
-    padding-bottom: 3px
-    font-size: 10px
+    padding-bottom: 1px
+    font-size: 9px
     color: var(--color-text-inactive)
 
   // ── Pillola delta ──────────────────────────────────────────────────────────
@@ -347,8 +347,8 @@
     display: inline-flex
     align-items: center
     gap: 5px
-    height: 24px
-    padding: 0 9px
+    height: 22px
+    padding: 0 8px
     border-radius: 999px
     background: var(--color-bg)
     font-size: 12px
@@ -405,15 +405,15 @@
   &__price, &__units
     display: flex
     align-items: center
-    gap: 14px
-    padding: 10px 12px
+    gap: 12px
+    padding: 5px 10px
     border-radius: 8px
     background: var(--color-bg)
 
   &__price-col, &__units-col
     display: flex
     flex-direction: column
-    gap: 2px
+    gap: 0
     min-width: 0
 
   &__price-lbl
@@ -429,7 +429,7 @@
 
   &__price-new
     font-family: $font-heading
-    font-size: 19px
+    font-size: 17px
     font-weight: 700
     color: var(--color-primary)
     white-space: nowrap
@@ -444,27 +444,24 @@
     color: var(--sdd-acc)
     font-size: 16px
 
-  &__card-foot
-    display: flex
-    align-items: center
-    gap: 10px
-    min-width: 0
-
+  // Motivo del suggerimento, sotto il nome della struttura
   &__why
-    flex: 1
     min-width: 0
     display: inline-flex
     align-items: center
-    gap: 6px
-    font-size: 12px
-    color: var(--color-text-active)
+    gap: 5px
 
     i
       flex-shrink: 0
+      font-size: 10px
       color: var(--chart-4)
 
-  &__why-txt
-    max-width: 100%
+  // Affidabilità + confronto tariffe, a destra nel riquadro prezzi
+  &__price-side
+    margin-left: auto
+    display: inline-flex
+    align-items: center
+    gap: 10px
 
   &__conf
     flex-shrink: 0
@@ -482,8 +479,8 @@
 
   &__cmp
     flex-shrink: 0
-    width: 30px
-    height: 30px
+    width: 26px
+    height: 26px
     display: inline-flex
     align-items: center
     justify-content: center
@@ -504,12 +501,12 @@
     align-items: center
     gap: 6px
     font-family: $font-heading
-    font-size: 17px
+    font-size: 15px
     font-weight: 700
     color: var(--color-text-inactive)
 
     &.is-sug
-      font-size: 19px
+      font-size: 17px
       color: var(--color-primary)
 
     &.is-up
@@ -526,14 +523,14 @@
   &__pips
     margin-left: auto
     display: inline-flex
-    flex-wrap: wrap
+    flex-shrink: 0
     justify-content: flex-end
-    gap: 4px
+    gap: 3px
 
   &__pip
-    width: 14px
-    height: 14px
-    border-radius: 4px
+    width: 12px
+    height: 12px
+    border-radius: 3px
 
     &--base
       background: var(--color-primary)
@@ -557,11 +554,11 @@
     display: inline-flex
     align-items: center
     gap: 5px
-    height: 24px
-    padding: 0 9px
+    height: 21px
+    padding: 0 8px
     border: 1px solid var(--color-border)
     border-radius: 999px
-    font-size: 11.5px
+    font-size: 11px
     font-weight: 600
     color: var(--color-text-active)
     white-space: nowrap
@@ -583,17 +580,22 @@
       &.is-on
         background: var(--sdd-acc)
 
+  // Overbooking nel riquadro camere, prima dei pallini
   &__ob
     margin-left: auto
     display: inline-flex
+    flex-direction: column
     align-items: center
-    gap: 8px
-    font-size: 11.5px
+    gap: 3px
+    font-size: 10.5px
     color: var(--color-text-inactive)
+
+    + .sdd__pips
+      margin-left: 6px
 
   // ── Soggiorno gruppo ───────────────────────────────────────────────────────
   &__stay
-    padding: 10px 12px
+    padding: 4px 10px
     border-radius: 8px
     background: var(--color-bg)
 
@@ -602,7 +604,7 @@
     align-items: center
     gap: 10px
     font-family: $font-heading
-    font-size: 15px
+    font-size: 14px
     font-weight: 700
     color: var(--color-text-active)
 
@@ -691,7 +693,7 @@
     display: flex
     align-items: center
     gap: 12px
-    padding: 12px 14px
+    padding: 8px 12px
     border-top: 1px solid var(--color-border)
 
   &__lane-count
