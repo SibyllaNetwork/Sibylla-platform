@@ -179,6 +179,8 @@ import CreaAnagrafica              from '../modules/hr/CreaAnagrafica/CreaAnagra
 import AssegnaObiettivo            from '../modules/hr/AssegnaObiettivo/AssegnaObiettivo';
 import MonitoraggioPerformance     from '../modules/hr/MonitoraggioPerformance/MonitoraggioPerformance';
 import HrOverview                  from '../modules/hr/HrOverview/HrOverview';
+import SibyllaHr                   from '../modules/hr/SibyllaHr/SibyllaHr';
+import type { SibyllaHrView }      from '../modules/hr/SibyllaHr/SibyllaHr';
 import CabinaControllo             from '../modules/finance/CabinaControllo/CabinaControllo';
 import BudgetComplessivo           from '../modules/finance/BudgetComplessivo/BudgetComplessivo';
 import BudgetCosti                 from '../modules/finance/BudgetCosti/BudgetCosti';
@@ -220,6 +222,31 @@ import TurniPersonale              from '../modules/operation/TurniPersonale/Tur
 import AgoraShell                  from '../modules/purchasing/Agora/AgoraShell';
 import { renderPortedPage }        from '../modules/_scaffold/portedPages';
 import GenericPage                 from '../modules/GenericPage';
+
+const SIBYLLA_HR_PAGES: Record<string, SibyllaHrView> = {
+  'hr-sibylla-home': 'home',
+  'hr-sib-assenze': 'assenze',
+  'hr-sib-calendario': 'calendario',
+  'hr-sib-piano-ferie': 'piano-ferie',
+  'hr-sib-presenze': 'presenze',
+  'hr-sib-note-spese': 'note-spese',
+  'hr-sib-documenti': 'documenti',
+  'hr-sib-news': 'news',
+  'hr-sib-chat': 'chat',
+  'hr-sib-comunicazioni': 'comunicazioni',
+  'hr-sib-rubrica': 'rubrica',
+  'hr-sib-approvazioni': 'approvazioni',
+  'hr-sib-richieste': 'richieste',
+  'hr-sib-presenze-oggi': 'presenze-oggi',
+  'hr-sib-presenze-hr': 'presenze-hr',
+  'hr-sib-saldi': 'saldi',
+  'hr-sib-cedolini': 'cedolini',
+  'hr-sib-documenti-aziendali': 'documenti-aziendali',
+  'hr-sib-comunicazioni-hr': 'comunicazioni-hr',
+  'hr-dipendenti': 'dipendenti',
+  'hr-reparti': 'reparti',
+  'hr-importa': 'importa',
+};
 
 // ── Mappatura pageId Sibylla → percorso interno AgoraShell (MemoryRouter) ──
 const AGORA_PAGEID_TO_PATH: Record<string, string> = {
@@ -453,6 +480,8 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'assegna-obiettivo')     return <AssegnaObiettivo navigate={navigate}/>;
   if (page === 'monitoraggio-perf')     return <MonitoraggioPerformance navigate={navigate}/>;
   if (page === 'hr-overview')           return <HrOverview navigate={navigate}/>;
+  // Sibylla HR: una vista del modulo per pagina (la key azzera lo stato passando da una all'altra)
+  if (SIBYLLA_HR_PAGES[page])           return <SibyllaHr view={SIBYLLA_HR_PAGES[page]} key={page}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
   if (page === 'cabina-controllo')      return <CabinaControllo navigate={navigate}/>;
   if (page === 'budget-cabina')         return <CabinaControllo navigate={navigate}/>;

@@ -9,6 +9,8 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
     "./node_modules/flowbite-react/lib/**/*.js",
+    // Pagine del modulo Sibylla HR (pacchetto compilato dal repo HR-Manager)
+    "./node_modules/@sibylla-hr/hr-pages/dist/**/*.js",
   ],
   theme: {
     extend: {
