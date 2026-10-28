@@ -237,6 +237,7 @@ const MENU:any[]=[
         {id:"hr-sib-approvazioni",label:"Approvazioni",page:"hr-sib-approvazioni"},
         {id:"hr-sib-richieste",label:"Richieste del team",page:"hr-sib-richieste"},
         {id:"hr-sib-presenze-oggi",label:"Presenze oggi",page:"hr-sib-presenze-oggi"},
+        {id:"hr-sib-report",label:"Report",page:"hr-sib-report"},
         {id:"hr-sib-presenze-hr",label:"Registro presenze",page:"hr-sib-presenze-hr"},
         {id:"hr-sib-saldi",label:"Saldi",page:"hr-sib-saldi"},
         {id:"hr-sib-cedolini",label:"Cedolini",page:"hr-sib-cedolini"},

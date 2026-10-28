@@ -238,6 +238,7 @@ const SIBYLLA_HR_PAGES: Record<string, SibyllaHrView> = {
   'hr-sib-approvazioni': 'approvazioni',
   'hr-sib-richieste': 'richieste',
   'hr-sib-presenze-oggi': 'presenze-oggi',
+  'hr-sib-report': 'report',
   'hr-sib-presenze-hr': 'presenze-hr',
   'hr-sib-saldi': 'saldi',
   'hr-sib-cedolini': 'cedolini',

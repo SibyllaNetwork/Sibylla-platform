@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
   ApprovalsPage, AttendanceHrPage, BalancesPage, ChatPage, CommunicationsHrPage, CompanyDocumentsPage, createHrApi, DepartmentsPage,
   DirectoryPage, EmployeesPage, errorMessage, ExpensesPage, HomePage, HrApiError, HrApiProvider, ImportEmployeesPage, Me,
-  MyAttendancePage, MyCommunicationsPage, MyDocumentsPage, MyLeavePage, NewsPage, PayslipsHrPage, TeamCalendarPage, TeamLeavePage,
+  MyAttendancePage, MyCommunicationsPage, MyDocumentsPage, MyLeavePage, NewsPage, PayslipsHrPage, ReportsPage, TeamCalendarPage, TeamLeavePage,
   TenantModules, TenantSettings, TodayPage, VacationPlanPage, VacationPlansPage,
 } from '@sibylla-hr/hr-pages'
 import { getToken } from '../../../services/auth.service'
@@ -14,7 +14,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5289'
 export type SibyllaHrView =
   | 'home' | 'assenze' | 'calendario' | 'piano-ferie' | 'presenze' | 'note-spese' | 'documenti'
   | 'news' | 'chat' | 'comunicazioni' | 'rubrica'
-  | 'approvazioni' | 'richieste' | 'presenze-oggi'
+  | 'approvazioni' | 'richieste' | 'presenze-oggi' | 'report'
   | 'presenze-hr' | 'saldi' | 'cedolini' | 'documenti-aziendali' | 'comunicazioni-hr' | 'dipendenti' | 'reparti' | 'importa'
 
 type Access = { module?: keyof TenantModules; role?: 'manager' | 'hr' }
@@ -35,6 +35,7 @@ const ACCESS: Record<SibyllaHrView, Access> = {
   approvazioni: { module: 'leave', role: 'manager' },
   richieste: { module: 'leave', role: 'manager' },
   'presenze-oggi': { module: 'attendance', role: 'manager' },
+  report: { role: 'manager' },
   'presenze-hr': { module: 'attendance', role: 'hr' },
   saldi: { module: 'leave', role: 'hr' },
   cedolini: { module: 'payslips', role: 'hr' },
@@ -97,6 +98,7 @@ export default function SibyllaHr({ view, navigate }: { view: SibyllaHrView; nav
       {view === 'approvazioni' && <ApprovalsPage />}
       {view === 'richieste' && <TeamLeavePage isHr={isHr} />}
       {view === 'presenze-oggi' && <TodayPage isHr={isHr} />}
+      {view === 'report' && <ReportsPage isHr={isHr} />}
       {view === 'presenze-hr' && <AttendanceHrPage />}
       {view === 'saldi' && <BalancesPage />}
       {view === 'cedolini' && <PayslipsHrPage />}
