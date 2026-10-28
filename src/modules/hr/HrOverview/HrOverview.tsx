@@ -1,12 +1,27 @@
-import React, { useState } from 'react'
-import PageHead from '../../../core/components/PageHead'
+import React, { useMemo, useState } from 'react'
+import {
+  Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Line, Pie, PieChart,
+  ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
+} from 'recharts'
 import { SelectField } from '../../../core/components/form'
-import { Donut, DonutLegend, type DonutSlice } from '../../sales/distribution/_charts/Donut'
-import { AreaTrend, type SeriesPoint } from '../../sales/distribution/_charts/AreaTrend'
-import { HBars, type HBar } from '../../sales/distribution/_charts/HBars'
+import Tooltip from '../../../core/components/Tooltip'
+import {
+  ANIM, BiPage, BiVerticalTabs, ChartCard, ChartTooltip, KpiTile, barEndLabel,
+  CHART, cursorProps, fmtInt, fmtPct, gridProps, reducedMotion, series, xAxisProps, yAxisProps,
+} from '../../../core/bi'
 import { useStrutturaPagina, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
 import type { SchedaDemo } from '../../../core/demo/struttureDemo'
 import './HrOverview.sass'
+
+// ─── HR OVERVIEW ────────────────────────────────────────────────────────────────
+//  Il personale dell'impresa in una schermata, col kit BI:
+//    • fascia indicatori: organico, assunzioni, cessazioni, turnover, assenteismo,
+//      costo del personale
+//    • andamento dell'organico mese per mese contro anno precedente
+//    • composizione (contratti / genere) dietro i tab verticali
+//    • organico per reparto e assenze per tipologia
+//    • obiettivi di performance e stato della documentazione, con il rimando alle
+//      pagine operative (Monitoraggio performance, Archivio personale)
 
 const TUTTE = 'Tutte le strutture'
 /** Organico di riferimento dei dati base qui sotto: si scala sulla selezione. */
@@ -21,193 +36,359 @@ const organicoDi = (s: SchedaDemo) =>
 const ANNI = [2026, 2025, 2024]
 const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
 
-const fmtNum = (n: number) => new Intl.NumberFormat('it-IT').format(n)
+// ─── DATI BASE (organico di 142) ──────────────────────────────────────────────
+const ORGANICO_TY = [120, 122, 125, 128, 130, 133, 136, 138, 139, 140, 141, 142]
+const ORGANICO_LY = [112, 113, 116, 118, 119, 121, 124, 126, 127, 128, 129, 130]
+const ASSUNZIONI = 18, ASSUNZIONI_LY = 14
+const CESSAZIONI = 9, CESSAZIONI_LY = 11
+const TURNOVER = 6.3, TURNOVER_LY = 7.1
+const ASSENTEISMO = 4.1, ASSENTEISMO_LY = 3.8
+const ASSENTEISMO_MESI = [4.6, 4.9, 4.2, 3.8, 3.6, 3.9, 4.4, 4.8, 4.0, 3.7, 3.9, 4.1]
+const COSTO_MESI = [92, 93, 96, 99, 103, 108, 112, 114, 108, 102, 98, 101]
 
-// ─── KPI ──────────────────────────────────────────────────────────────────────
-interface Kpi { icon: string; label: string; value: string; delta?: string; deltaUp?: boolean }
-const KPIS: Kpi[] = [
-  { icon: 'fa-users',          label: 'Organico totale',     value: '142' },
-  { icon: 'fa-user-plus',      label: 'Nuove assunzioni',    value: '18', delta: '+4 vs 2025', deltaUp: true },
-  { icon: 'fa-user-minus',     label: 'Cessazioni',          value: '9',  delta: '-2 vs 2025', deltaUp: true },
-  { icon: 'fa-arrows-rotate',  label: 'Turnover',            value: '6,3%', delta: '-0,8 pt', deltaUp: true },
-  { icon: 'fa-calendar-xmark', label: 'Tasso assenteismo',   value: '4,1%', delta: '+0,3 pt', deltaUp: false },
-  { icon: 'fa-euro-sign',      label: 'Costo del personale', value: '1,24 M€' },
+interface Parte { label: string; value: number }
+const CONTRATTI: Parte[] = [
+  { label: 'Indeterminato', value: 96 },
+  { label: 'Determinato',   value: 28 },
+  { label: 'Stagionale',    value: 18 },
 ]
-
-// ─── DATI GRAFICI ─────────────────────────────────────────────────────────────
-const ORGANICO_2026 = [120, 122, 125, 128, 130, 133, 136, 138, 139, 140, 141, 142]
-const ORGANICO_2025 = [112, 113, 116, 118, 119, 121, 124, 126, 127, 128, 129, 130]
-const trend2026: SeriesPoint[] = MESI.map((m, i) => ({ x: m, y: ORGANICO_2026[i] }))
-const trend2025: SeriesPoint[] = MESI.map((m, i) => ({ x: m, y: ORGANICO_2025[i] }))
-
-const CONTRATTI: DonutSlice[] = [
-  { label: 'Indeterminato', value: 96, color: '#204769' },
-  { label: 'Determinato',   value: 28, color: '#5C9CD4' },
-  { label: 'Stagionale',    value: 18, color: '#E0922A' },
+const GENERE: Parte[] = [
+  { label: 'Donne',  value: 78 },
+  { label: 'Uomini', value: 64 },
 ]
-const GENERE: DonutSlice[] = [
-  { label: 'Donne', value: 78, color: '#2BB0A6' },
-  { label: 'Uomini', value: 64, color: '#204769' },
+const REPARTI: Parte[] = [
+  { label: 'Housekeeping',    value: 34 },
+  { label: 'F&B',             value: 30 },
+  { label: 'Front office',    value: 28 },
+  { label: 'Cucina',          value: 16 },
+  { label: 'Manutenzione',    value: 14 },
+  { label: 'Amministrazione', value: 10 },
+  { label: 'Marketing',       value: 6 },
+  { label: 'Direzione',       value: 4 },
 ]
-const REPARTI_BARS: HBar[] = [
-  { label: 'Housekeeping',    value: 34, color: '#204769', format: (v) => `${v}` },
-  { label: 'F&B',             value: 30, color: '#5C9CD4', format: (v) => `${v}` },
-  { label: 'Front office',    value: 28, color: '#2BB0A6', format: (v) => `${v}` },
-  { label: 'Cucina',          value: 16, color: '#E0922A', format: (v) => `${v}` },
-  { label: 'Manutenzione',    value: 14, color: '#9B6DD6', format: (v) => `${v}` },
-  { label: 'Amministrazione', value: 10, color: '#E2574C', format: (v) => `${v}` },
-  { label: 'Marketing',       value: 6,  color: '#3BA99C', format: (v) => `${v}` },
-  { label: 'Direzione',       value: 4,  color: '#6E7175', format: (v) => `${v}` },
+const ASSENZE: Parte[] = [
+  { label: 'Ferie',    value: 52 },
+  { label: 'Malattia', value: 31 },
+  { label: 'Permessi', value: 24 },
+  { label: 'Congedi',  value: 12 },
 ]
-const PERFORMANCE: DonutSlice[] = [
-  { label: 'Raggiunti', value: 38, color: '#1F9D55' },
-  { label: 'In linea',  value: 64, color: '#5C9CD4' },
-  { label: 'A rischio', value: 21, color: '#E0922A' },
+const PERFORMANCE: Parte[] = [
+  { label: 'Raggiunti', value: 38 },
+  { label: 'In linea',  value: 64 },
+  { label: 'A rischio', value: 21 },
 ]
-const DOCUMENTAZIONE: DonutSlice[] = [
-  { label: 'Completa',   value: 118, color: '#1F9D55' },
-  { label: 'Incompleta', value: 24,  color: '#E2574C' },
-]
-const ASSENZE_BARS: HBar[] = [
-  { label: 'Ferie',      value: 52, color: '#5C9CD4', format: (v) => `${v} gg` },
-  { label: 'Malattia',   value: 31, color: '#E2574C', format: (v) => `${v} gg` },
-  { label: 'Permessi',   value: 24, color: '#E0922A', format: (v) => `${v} gg` },
-  { label: 'Congedi',    value: 12, color: '#2BB0A6', format: (v) => `${v} gg` },
+const DOCUMENTAZIONE: Parte[] = [
+  { label: 'Completa',   value: 118 },
+  { label: 'Incompleta', value: 24 },
 ]
 
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
+const pct = (a: number, b: number) => (b ? ((a - b) / b) * 100 : 0)
+const somma = (xs: Parte[]) => xs.reduce((s, x) => s + x.value, 0)
+
+type Composizione = 'contratti' | 'genere'
+type Stato = 'obiettivi' | 'documenti'
 
 export default function HrOverview({ navigate }: { navigate?: (p: string) => void } = {}) {
   // Struttura selezionata in alto (o tutte quelle del cliente): i numeri si
   // scalano sull'organico stimato della selezione.
   const [struttura, setStruttura, , elenco] = useStrutturaPagina()
   const schede = useStruttureCliente()
-  const STRUTTURE = [TUTTE, ...elenco]
-  const selezione = struttura === TUTTE ? schede : schede.filter((x) => x.nome === struttura)
-  const organico = Math.max(1, selezione.reduce((a, x) => a + organicoDi(x), 0))
-  const f = organico / ORGANICO_BASE
-  const sc = (n: number) => Math.max(0, Math.round(n * f))
-  const scSlices = (xs: DonutSlice[]) => xs.map((x) => ({ ...x, value: sc(x.value) }))
-  const scBars = (xs: HBar[]) => xs.map((x) => ({ ...x, value: sc(x.value) }))
-  const costo = 1.24 * f
-  const kpis: Kpi[] = KPIS.map((k) =>
-    k.label === 'Organico totale' ? { ...k, value: String(organico) }
-      : k.label === 'Nuove assunzioni' ? { ...k, value: String(sc(18)) }
-      : k.label === 'Cessazioni' ? { ...k, value: String(sc(9)) }
-      : k.label === 'Costo del personale' ? { ...k, value: costo >= 1 ? `${costo.toLocaleString('it-IT', { maximumFractionDigits: 2 })} M€` : `${Math.round(costo * 1000)} k€` }
-      : k)
-  const t26 = trend2026.map((p) => ({ ...p, y: sc(p.y) }))
-  const t25 = trend2025.map((p) => ({ ...p, y: sc(p.y) }))
-  const contratti = scSlices(CONTRATTI)
-  const genere = scSlices(GENERE)
-  const reparti = scBars(REPARTI_BARS)
-  const performance = scSlices(PERFORMANCE)
-  const documentazione = scSlices(DOCUMENTAZIONE)
-  const assenze = scBars(ASSENZE_BARS)
-  // Le parti di un intero tornano sempre all'organico (niente scarti di arrotondamento).
-  const chiudi = (xs: DonutSlice[]) => { if (xs.length) xs[xs.length - 1].value = Math.max(0, organico - xs.slice(0, -1).reduce((a, x) => a + x.value, 0)) }
-  chiudi(contratti); chiudi(genere); chiudi(documentazione)
-  const docOk = documentazione[0]?.value ?? 0
   const [anno, setAnno] = useState(2026)
+  const [composizione, setComposizione] = useState<Composizione>('contratti')
+  const [stato, setStato] = useState<Stato>('obiettivi')
+  const [dataAt, setDataAt] = useState(() => new Date())
   const go = (p: string) => navigate?.(p)
+  const still = reducedMotion()
+
+  const d = useMemo(() => {
+    const selezione = struttura === TUTTE ? schede : schede.filter((x) => x.nome === struttura)
+    const organico = Math.max(1, selezione.reduce((a, x) => a + organicoDi(x), 0))
+    const f = organico / ORGANICO_BASE
+    const sc = (n: number) => Math.max(0, Math.round(n * f))
+    const scParti = (xs: Parte[]) => xs.map((x) => ({ ...x, value: sc(x.value) }))
+    // Le parti di un intero tornano sempre all'organico (niente scarti di arrotondamento).
+    const chiudi = (xs: Parte[]) => {
+      if (xs.length) xs[xs.length - 1].value = Math.max(0, organico - xs.slice(0, -1).reduce((a, x) => a + x.value, 0))
+      return xs
+    }
+    return {
+      organico,
+      assunzioni: sc(ASSUNZIONI), assunzioniLY: sc(ASSUNZIONI_LY),
+      cessazioni: sc(CESSAZIONI), cessazioniLY: sc(CESSAZIONI_LY),
+      // Costo annuo in €: la serie mensile è in migliaia
+      costoMesi: COSTO_MESI.map((v) => v * 1000 * f),
+      trend: MESI.map((m, i) => ({ mese: m, ty: sc(ORGANICO_TY[i]), ly: sc(ORGANICO_LY[i]) })),
+      contratti: chiudi(scParti(CONTRATTI)),
+      genere: chiudi(scParti(GENERE)),
+      reparti: scParti(REPARTI),
+      assenze: scParti(ASSENZE),
+      performance: scParti(PERFORMANCE),
+      documentazione: chiudi(scParti(DOCUMENTAZIONE)),
+    }
+  }, [struttura, schede])
+
+  const costo = d.costoMesi.reduce((s, v) => s + v, 0)
+  const fmtCosto = (n: number) => (n >= 1e6
+    ? `${(n / 1e6).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} M€`
+    : `${fmtInt(n / 1000)} k€`)
+
+  const parti = composizione === 'contratti' ? d.contratti : d.genere
+  const partiStato = stato === 'obiettivi' ? d.performance : d.documentazione
+  // Lo stato ha un significato: verde = a posto, rosso = da sistemare, il resto neutro
+  const coloreStato = (label: string, i: number) =>
+    label === 'Raggiunti' || label === 'Completa' ? CHART.good
+      : label === 'A rischio' || label === 'Incompleta' ? CHART.bad
+      : series(i === 1 ? 0 : i)
+  const docIncompleta = d.documentazione[1]?.value ?? 0
+  const aRischio = d.performance[2]?.value ?? 0
+  const avanzamento = Math.round(((d.performance[0].value + d.performance[1].value * 0.6) / Math.max(1, somma(d.performance))) * 100)
 
   return (
-    <div className="hr-ov">
-      <PageHead title="HR Overview" subtitle="Panoramica completa del personale, delle performance e dei trend HR" />
-
-      {/* ─── Filtri ─────────────────────────────────────────────────────────── */}
-      <div className="hr-ov__filters">
-        <div className="hr-ov__field">
-          <SelectField name="struttura" label="Struttura" className="hr-ov__select" value={struttura} onChange={(e) => setStruttura(e.target.value)}
-            options={STRUTTURE.map((s) => ({ value: s, label: s }))} />
-        </div>
-        <div className="hr-ov__field">
-          <SelectField name="anno" label="Anno" className="hr-ov__select-sm" value={String(anno)} onChange={(e) => setAnno(Number(e.target.value))}
-            options={ANNI.map((a) => ({ value: String(a), label: String(a) }))} />
-        </div>
-      </div>
-
-      {/* ─── KPI ────────────────────────────────────────────────────────────── */}
+    <BiPage
+      title="HR Overview"
+      subtitle="Panoramica completa del personale, delle performance e dei trend HR"
+      glossary={['organico', 'turnover', 'assenteismo', 'incidenzaPersonale', 'TY', 'LY', 'delta']}
+      dataAt={dataAt}
+      onRefresh={() => setDataAt(new Date())}
+      gridClassName="hr-ov__grid"
+      toolbar={(
+        <>
+          <SelectField
+            name="struttura" label="Struttura" className="hr-ov__filter hr-ov__filter--wide"
+            value={struttura} onChange={(e) => setStruttura(e.target.value)}
+            options={[TUTTE, ...elenco].map((s) => ({ value: s, label: s }))}
+          />
+          <SelectField
+            name="anno" label="Anno" className="hr-ov__filter"
+            value={String(anno)} onChange={(e) => setAnno(Number(e.target.value))}
+            options={ANNI.map((a) => ({ value: String(a), label: String(a) }))}
+          />
+        </>
+      )}
+    >
+      {/* ── Indicatori del periodo ────────────────────────────────────────── */}
       <div className="hr-ov__kpis">
-        {kpis.map((k) => (
-          <div className="hr-ov__kpi" key={k.label}>
-            <div className="hr-ov__kpi-ico"><i className={`fa-light ${k.icon}`} /></div>
-            <div className="hr-ov__kpi-body">
-              <div className="hr-ov__kpi-value">{k.value}</div>
-              <div className="hr-ov__kpi-label">{k.label}</div>
-              {k.delta && <div className={'hr-ov__kpi-delta' + (k.deltaUp ? ' is-up' : ' is-down')}><i className={`fa-solid ${k.deltaUp ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}`} /> {k.delta}</div>}
-            </div>
-          </div>
-        ))}
+        <KpiTile
+          label="Organico totale" icon="fa-users" slot={0} index={0}
+          value={d.organico} format={fmtInt}
+          delta={pct(d.trend[11].ty, d.trend[11].ly)} spark={d.trend.map((t) => t.ty)}
+          info="Dipendenti in forza a fine periodo, confrontati con lo stesso mese dell'anno precedente."
+        />
+        <KpiTile
+          label="Nuove assunzioni" icon="fa-user-plus" slot={1} index={1}
+          value={d.assunzioni} format={fmtInt}
+          delta={d.assunzioni - d.assunzioniLY} deltaLabel={`${d.assunzioni - d.assunzioniLY >= 0 ? '+' : '−'}${Math.abs(d.assunzioni - d.assunzioniLY)} vs LY`}
+          info="Contratti avviati nel periodo, confrontati con lo stesso periodo dell'anno precedente."
+        />
+        <KpiTile
+          label="Cessazioni" icon="fa-user-minus" slot={2} index={2}
+          value={d.cessazioni} format={fmtInt}
+          delta={d.cessazioni - d.cessazioniLY} invertDelta
+          deltaLabel={`${d.cessazioni - d.cessazioniLY >= 0 ? '+' : '−'}${Math.abs(d.cessazioni - d.cessazioniLY)} vs LY`}
+          info="Rapporti di lavoro chiusi nel periodo (dimissioni, fine contratto, licenziamenti)."
+        />
+        <KpiTile
+          label="Turnover" icon="fa-arrows-rotate" slot={3} index={3}
+          value={TURNOVER} format={(n) => fmtPct(n)}
+          delta={TURNOVER - TURNOVER_LY} invertDelta
+          deltaLabel={`${TURNOVER - TURNOVER_LY >= 0 ? '+' : '−'}${Math.abs(TURNOVER - TURNOVER_LY).toLocaleString('it-IT', { maximumFractionDigits: 1 })} pt`}
+          info="Cessazioni del periodo sull'organico medio."
+        />
+        <KpiTile
+          label="Assenteismo" icon="fa-calendar-xmark" slot={4} index={4}
+          value={ASSENTEISMO} format={(n) => fmtPct(n)}
+          delta={ASSENTEISMO - ASSENTEISMO_LY} invertDelta spark={ASSENTEISMO_MESI}
+          deltaLabel={`${ASSENTEISMO - ASSENTEISMO_LY >= 0 ? '+' : '−'}${Math.abs(ASSENTEISMO - ASSENTEISMO_LY).toLocaleString('it-IT', { maximumFractionDigits: 1 })} pt`}
+          info="Ore di assenza non programmata (malattia, permessi non pianificati) sulle ore lavorabili."
+        />
+        <KpiTile
+          label="Costo personale" icon="fa-euro-sign" slot={5} index={5}
+          value={costo} format={fmtCosto} spark={d.costoMesi}
+          info="Retribuzioni lorde, contributi e accantonamenti del periodo."
+        />
       </div>
 
-      {/* ─── Alert operativi ─────────────────────────────────────────────────── */}
-      <div className="hr-ov__alerts">
-        <button type="button" className="hr-ov__alert hr-ov__alert--warn" onClick={() => go('archivio-personale')}>
-          <i className="fa-solid fa-triangle-exclamation" />
-          <span><strong>24</strong> dipendenti con documentazione incompleta</span>
-          <i className="fa-light fa-arrow-right hr-ov__alert-go" />
-        </button>
-        <button type="button" className="hr-ov__alert hr-ov__alert--info" onClick={() => go('monitoraggio-perf')}>
-          <i className="fa-solid fa-flag" />
-          <span><strong>21</strong> obiettivi performance a rischio</span>
-          <i className="fa-light fa-arrow-right hr-ov__alert-go" />
-        </button>
-      </div>
+      {/* ── Andamento dell'organico ───────────────────────────────────────── */}
+      <ChartCard
+        className="hr-ov__main"
+        index={0}
+        title={`Andamento organico · ${anno}`}
+        subtitle="Dipendenti in forza a fine mese, contro anno precedente"
+        badge={fmtInt(d.organico)}
+        legend={[
+          { key: 'ty', name: String(anno), color: series(0) },
+          { key: 'ly', name: String(anno - 1), color: CHART.ly },
+        ]}
+      >
+        <div className="hr-ov__chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={d.trend} margin={{ top: 6, right: 8, left: -12, bottom: 0 }}>
+              <defs>
+                <linearGradient id="hr-ov-area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={series(0)} stopOpacity={0.22} />
+                  <stop offset="100%" stopColor={series(0)} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="mese" {...xAxisProps} interval={0} />
+              <YAxis {...yAxisProps} tickFormatter={fmtInt} domain={['dataMin - 10', 'dataMax + 5']} allowDecimals={false} />
+              <RTooltip
+                cursor={cursorProps}
+                content={<ChartTooltip names={{ ty: String(anno), ly: String(anno - 1) }} format={(v) => `${fmtInt(v)} dipendenti`} />}
+              />
+              <Line
+                type="monotone" dataKey="ly" stroke={CHART.ly} strokeWidth={1.8} dot={false}
+                isAnimationActive={!still} animationBegin={ANIM.begin(1)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+              <Area
+                type="monotone" dataKey="ty" stroke={series(0)} strokeWidth={2.4} fill="url(#hr-ov-area)"
+                isAnimationActive={!still} animationBegin={ANIM.begin(0)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
 
-      {/* ─── Riga 1: andamento organico + composizione ──────────────────────── */}
-      <div className="hr-ov__grid hr-ov__grid--2-1">
-        <div className="hr-ov__card">
-          <h3 className="hr-ov__card-title">Andamento organico</h3>
-          <AreaTrend primary={t26} secondary={t25} primaryLabel={`${anno}`} secondaryLabel={`${anno - 1}`} height={240} />
-          <div className="hr-ov__legend">
-            <span><span className="hr-ov__dot" style={{ background: '#5C9CD4' }} /> {anno}</span>
-            <span><span className="hr-ov__dot" style={{ background: '#204769' }} /> {anno - 1}</span>
+      {/* ── Composizione: contratti / genere ──────────────────────────────── */}
+      <ChartCard
+        className="hr-ov__comp"
+        index={1}
+        title={composizione === 'contratti' ? 'Contratti' : 'Genere'}
+        subtitle="Dipendenti in forza"
+        legend={parti.map((p, i) => ({ key: p.label, name: `${p.label} ${fmtInt(p.value)}`, color: series(i) }))}
+        rail={(
+          <BiVerticalTabs
+            tabs={[{ id: 'contratti', label: 'Contratti' }, { id: 'genere', label: 'Genere' }]}
+            active={composizione}
+            onChange={(id) => setComposizione(id as Composizione)}
+          />
+        )}
+      >
+        <div className="hr-ov__donut">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={parti} dataKey="value" nameKey="label"
+                innerRadius="62%" outerRadius="86%" paddingAngle={2}
+                stroke={CHART.surface} strokeWidth={2}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {parti.map((p, i) => <Cell key={p.label} fill={series(i)} />)}
+              </Pie>
+              <RTooltip content={<ChartTooltip format={(v) => `${fmtInt(v)} dipendenti`} />} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="hr-ov__donut-center">
+            <span className="hr-ov__donut-val">{fmtInt(somma(parti))}</span>
+            <span className="hr-ov__donut-lbl">dipendenti</span>
           </div>
         </div>
-        <div className="hr-ov__card hr-ov__card--center">
-          <h3 className="hr-ov__card-title">Composizione contratti</h3>
-          <Donut slices={contratti} centerValue={fmtNum(contratti.reduce((s, c) => s + c.value, 0))} centerSubLabel="dipendenti" size={190} thickness={32} />
-          <DonutLegend slices={contratti} total={contratti.reduce((s, c) => s + c.value, 0)} />
-        </div>
-      </div>
+      </ChartCard>
 
-      {/* ─── Riga 2: reparti + performance ──────────────────────────────────── */}
-      <div className="hr-ov__grid hr-ov__grid--2-1">
-        <div className="hr-ov__card">
-          <h3 className="hr-ov__card-title">Organico per reparto</h3>
-          <HBars bars={reparti} showAxis ticks={4} labelWidth={120} />
+      {/* ── Organico per reparto ──────────────────────────────────────────── */}
+      <ChartCard
+        className="hr-ov__rep"
+        index={2}
+        title="Organico per reparto"
+        subtitle="Dipendenti in forza per reparto"
+      >
+        <div className="hr-ov__bars">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={d.reparti} layout="vertical" margin={{ top: 2, right: 40, left: 0, bottom: 0 }} barCategoryGap="22%">
+              <CartesianGrid {...gridProps} horizontal={false} vertical />
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="label" {...yAxisProps} width={116} interval={0} tick={{ fontSize: 11, fill: CHART.ink }} />
+              <RTooltip cursor={{ fill: 'transparent' }} content={<ChartTooltip names={{ value: 'Dipendenti' }} format={(v) => fmtInt(v)} />} />
+              <Bar
+                dataKey="value" fill={series(0)} radius={[0, 4, 4, 0]} maxBarSize={14}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                <LabelList dataKey="value" content={barEndLabel(fmtInt)} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-        <div className="hr-ov__card hr-ov__card--center">
-          <div className="hr-ov__card-head">
-            <h3 className="hr-ov__card-title">Performance obiettivi</h3>
-            <button type="button" className="hr-ov__link" onClick={() => go('monitoraggio-perf')}>Monitoraggio <i className="fa-light fa-arrow-right" /></button>
-          </div>
-          <Donut slices={performance} centerValue="71%" centerSubLabel="avanz. medio" size={190} thickness={32} />
-          <DonutLegend slices={performance} total={performance.reduce((s, c) => s + c.value, 0)} />
-        </div>
-      </div>
+      </ChartCard>
 
-      {/* ─── Riga 3: documentazione + assenze + genere ──────────────────────── */}
-      <div className="hr-ov__grid hr-ov__grid--3">
-        <div className="hr-ov__card hr-ov__card--center">
-          <div className="hr-ov__card-head">
-            <h3 className="hr-ov__card-title">Stato documentazione</h3>
-            <button type="button" className="hr-ov__link" onClick={() => go('archivio-personale')}>Archivio <i className="fa-light fa-arrow-right" /></button>
+      {/* ── Assenze per tipologia ─────────────────────────────────────────── */}
+      <ChartCard
+        className="hr-ov__ass"
+        index={3}
+        title="Assenze per tipologia"
+        subtitle="Giorni di assenza dell'anno"
+        badge={`${fmtInt(somma(d.assenze))} gg`}
+      >
+        <div className="hr-ov__bars">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={d.assenze} layout="vertical" margin={{ top: 2, right: 48, left: 0, bottom: 0 }} barCategoryGap="26%">
+              <CartesianGrid {...gridProps} horizontal={false} vertical />
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="label" {...yAxisProps} width={70} interval={0} tick={{ fontSize: 11, fill: CHART.ink }} />
+              <RTooltip cursor={{ fill: 'transparent' }} content={<ChartTooltip names={{ value: 'Giorni' }} format={(v) => `${fmtInt(v)} gg`} />} />
+              <Bar
+                dataKey="value" fill={series(1)} radius={[0, 4, 4, 0]} maxBarSize={14}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                <LabelList dataKey="value" content={barEndLabel((v) => `${fmtInt(v)} gg`)} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+      {/* ── Obiettivi di performance / documentazione ─────────────────────── */}
+      <ChartCard
+        className="hr-ov__stato"
+        index={4}
+        title={stato === 'obiettivi' ? 'Obiettivi' : 'Documenti'}
+        subtitle={stato === 'obiettivi' ? `${fmtInt(aRischio)} a rischio` : `${fmtInt(docIncompleta)} incompleti`}
+        legend={partiStato.map((p, i) => ({ key: p.label, name: `${p.label} ${fmtInt(p.value)}`, color: coloreStato(p.label, i) }))}
+        rail={(
+          <BiVerticalTabs
+            tabs={[{ id: 'obiettivi', label: 'Obiettivi' }, { id: 'documenti', label: 'Documenti' }]}
+            active={stato}
+            onChange={(id) => setStato(id as Stato)}
+          />
+        )}
+        actions={(
+          <Tooltip text={stato === 'obiettivi' ? 'Monitoraggio performance' : 'Archivio personale'}>
+            <button
+              type="button"
+              className="sib-btn sib-btn--icon hr-ov__link"
+              onClick={() => go(stato === 'obiettivi' ? 'monitoraggio-perf' : 'archivio-personale')}
+              aria-label={stato === 'obiettivi' ? 'Monitoraggio performance' : 'Archivio personale'}
+            >
+              <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+            </button>
+          </Tooltip>
+        )}
+      >
+        <div className="hr-ov__donut">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={partiStato} dataKey="value" nameKey="label"
+                innerRadius="62%" outerRadius="86%" paddingAngle={2}
+                stroke={CHART.surface} strokeWidth={2}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {partiStato.map((p, i) => <Cell key={p.label} fill={coloreStato(p.label, i)} />)}
+              </Pie>
+              <RTooltip content={<ChartTooltip format={(v) => fmtInt(v)} />} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="hr-ov__donut-center">
+            <span className="hr-ov__donut-val">
+              {stato === 'obiettivi'
+                ? `${avanzamento}%`
+                : fmtPct((d.documentazione[0].value / Math.max(1, d.organico)) * 100, 0)}
+            </span>
+            <span className="hr-ov__donut-lbl">{stato === 'obiettivi' ? 'avanz. medio' : 'completa'}</span>
           </div>
-          <Donut slices={documentazione} centerValue={`${Math.round((docOk / organico) * 100)}%`} centerSubLabel="completa" size={170} thickness={28} />
-          <DonutLegend slices={documentazione} total={organico} />
         </div>
-        <div className="hr-ov__card">
-          <h3 className="hr-ov__card-title">Assenze per tipologia</h3>
-          <HBars bars={assenze} showAxis ticks={4} labelWidth={90} />
-        </div>
-        <div className="hr-ov__card hr-ov__card--center">
-          <h3 className="hr-ov__card-title">Composizione di genere</h3>
-          <Donut slices={genere} centerValue={String(organico)} centerSubLabel="dipendenti" size={170} thickness={28} />
-          <DonutLegend slices={genere} total={organico} />
-        </div>
-      </div>
-    </div>
+      </ChartCard>
+    </BiPage>
   )
 }

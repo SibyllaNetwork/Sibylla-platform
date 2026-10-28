@@ -220,6 +220,23 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     formula: 'Voci ordinate per ricavo decrescente nel periodo selezionato',
   },
 
+  // ── Human Resources ──
+  organico: {
+    term: 'Organico',
+    description: 'Dipendenti in forza',
+    formula: 'Rapporti di lavoro attivi a fine periodo, qualunque sia il contratto (indeterminato, determinato, stagionale)',
+  },
+  turnover: {
+    term: 'Turnover',
+    description: 'Ricambio del personale',
+    formula: 'Cessazioni del periodo diviso l’organico medio del periodo',
+  },
+  assenteismo: {
+    term: 'Assenteismo',
+    description: 'Peso delle assenze non programmate',
+    formula: 'Ore di assenza non programmata (malattia, permessi non pianificati) diviso le ore lavorabili',
+  },
+
   // ── Food & Beverage ──
   RevPASH: {
     term: 'RevPASH',
