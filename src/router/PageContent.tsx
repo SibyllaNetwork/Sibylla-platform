@@ -247,6 +247,7 @@ const SIBYLLA_HR_PAGES: Record<string, SibyllaHrView> = {
   'hr-dipendenti': 'dipendenti',
   'hr-reparti': 'reparti',
   'hr-importa': 'importa',
+  'hr-sib-registro': 'registro',
 };
 
 // ── Mappatura pageId Sibylla → percorso interno AgoraShell (MemoryRouter) ──

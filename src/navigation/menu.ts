@@ -246,6 +246,7 @@ const MENU:any[]=[
         {id:"hr-dipendenti",label:"Dipendenti",page:"hr-dipendenti"},
         {id:"hr-reparti",label:"Reparti",page:"hr-reparti"},
         {id:"hr-importa",label:"Importa dipendenti",page:"hr-importa"},
+        {id:"hr-sib-registro",label:"Registro attività",page:"hr-sib-registro"},
       ]},
     ]},
     {id:"finance",label:"Finance",color:"#5C9CD4",children:[

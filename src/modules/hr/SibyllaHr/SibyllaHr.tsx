@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-  ApprovalsPage, AttendanceHrPage, BalancesPage, ChatPage, CommunicationsHrPage, CompanyDocumentsPage, createHrApi, DepartmentsPage,
+  ApprovalsPage, AttendanceHrPage, AuditPage, BalancesPage, ChatPage, CommunicationsHrPage, CompanyDocumentsPage, createHrApi, DepartmentsPage,
   DirectoryPage, EmployeesPage, errorMessage, ExpensesPage, HomePage, HrApiError, HrApiProvider, ImportEmployeesPage, Me,
   MyAttendancePage, MyCommunicationsPage, MyDocumentsPage, MyLeavePage, NewsPage, PayslipsHrPage, ReportsPage, TeamCalendarPage, TeamLeavePage,
   TenantModules, TenantSettings, TodayPage, VacationPlanPage, VacationPlansPage,
@@ -15,7 +15,7 @@ export type SibyllaHrView =
   | 'home' | 'assenze' | 'calendario' | 'piano-ferie' | 'presenze' | 'note-spese' | 'documenti'
   | 'news' | 'chat' | 'comunicazioni' | 'rubrica'
   | 'approvazioni' | 'richieste' | 'presenze-oggi' | 'report'
-  | 'presenze-hr' | 'saldi' | 'cedolini' | 'documenti-aziendali' | 'comunicazioni-hr' | 'dipendenti' | 'reparti' | 'importa'
+  | 'presenze-hr' | 'saldi' | 'cedolini' | 'documenti-aziendali' | 'comunicazioni-hr' | 'dipendenti' | 'reparti' | 'importa' | 'registro'
 
 type Access = { module?: keyof TenantModules; role?: 'manager' | 'hr' }
 
@@ -44,6 +44,7 @@ const ACCESS: Record<SibyllaHrView, Access> = {
   dipendenti: { role: 'hr' },
   reparti: { role: 'hr' },
   importa: { role: 'hr' },
+  registro: { role: 'hr' },
 }
 
 // Percorsi delle pagine HR (come nell'app stand-alone) → pagine della platform, per i link della dashboard
@@ -107,6 +108,7 @@ export default function SibyllaHr({ view, navigate }: { view: SibyllaHrView; nav
       {view === 'dipendenti' && <EmployeesPage integrated />}
       {view === 'reparti' && <DepartmentsPage />}
       {view === 'importa' && <ImportEmployeesPage />}
+      {view === 'registro' && <AuditPage />}
     </HrApiProvider>
   )
 }
