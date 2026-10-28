@@ -481,7 +481,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'monitoraggio-perf')     return <MonitoraggioPerformance navigate={navigate}/>;
   if (page === 'hr-overview')           return <HrOverview navigate={navigate}/>;
   // Sibylla HR: una vista del modulo per pagina (la key azzera lo stato passando da una all'altra)
-  if (SIBYLLA_HR_PAGES[page])           return <SibyllaHr view={SIBYLLA_HR_PAGES[page]} key={page}/>;
+  if (SIBYLLA_HR_PAGES[page])           return <SibyllaHr view={SIBYLLA_HR_PAGES[page]} navigate={navigate} key={page}/>;
   if (page === 'budget-costi')          return <BudgetCosti navigate={navigate}/>;
   if (page === 'cabina-controllo')      return <CabinaControllo navigate={navigate}/>;
   if (page === 'budget-cabina')         return <CabinaControllo navigate={navigate}/>;

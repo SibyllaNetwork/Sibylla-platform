@@ -45,7 +45,13 @@ const ACCESS: Record<SibyllaHrView, Access> = {
   importa: { role: 'hr' },
 }
 
-export default function SibyllaHr({ view }: { view: SibyllaHrView }) {
+// Percorsi delle pagine HR (come nell'app stand-alone) → pagine della platform, per i link della dashboard
+const PLATFORM_PAGES: Record<string, string> = {
+  '/assenze': 'hr-sib-assenze', '/approvazioni': 'hr-sib-approvazioni', '/documenti': 'hr-sib-documenti', '/comunicazioni': 'hr-sib-comunicazioni',
+  '/chat': 'hr-sib-chat', '/news': 'hr-sib-news', '/piano-ferie': 'hr-sib-piano-ferie', '/presenze-hr': 'hr-sib-presenze-hr', '/oggi': 'hr-sib-presenze-oggi',
+}
+
+export default function SibyllaHr({ view, navigate }: { view: SibyllaHrView; navigate?: (page: string) => void }) {
   // Un 401 del servizio HR non vuol dire token scaduto (lo gestisce già la platform): di solito l'utente non è
   // collegato a un cliente HR. Quindi niente logout, solo un messaggio.
   const api = useMemo(() => createHrApi({ baseUrl: `${BASE_URL}/Hr`, getToken }), [])
@@ -74,7 +80,8 @@ export default function SibyllaHr({ view }: { view: SibyllaHrView }) {
 
   return (
     <HrApiProvider api={api}>
-      {view === 'home' && <HomePage me={me} modules={settings?.modules} />}
+      {view === 'home' && <HomePage me={me} modules={settings?.modules}
+        onNavigate={navigate ? to => PLATFORM_PAGES[to] && navigate(PLATFORM_PAGES[to]) : undefined} />}
       {view === 'assenze' && <MyLeavePage />}
       {view === 'calendario' && <TeamCalendarPage isHr={isHr} />}
       {view === 'piano-ferie' && (plan
