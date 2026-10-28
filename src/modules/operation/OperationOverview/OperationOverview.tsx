@@ -1,11 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import PageHead from '../../../core/components/PageHead'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, LabelList, Line, Pie, PieChart,
+  ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis,
+} from 'recharts'
 import { apiFetchSibylla } from '../../../services/api'
-import { Donut } from '../../sales/distribution/_charts/Donut'
-import { SelectField } from '../../../core/components/form'
+import { DateRangeField, SelectField } from '../../../core/components/form'
+import Tooltip from '../../../core/components/Tooltip'
+import {
+  ANIM, BiPage, ChartCard, ChartTooltip, KpiTile, barEndLabel,
+  CHART, cursorProps, fmtInt, fmtPct, gridProps, reducedMotion, series, xAxisProps, yAxisProps,
+} from '../../../core/bi'
 import { useStrutturaIdRevenue, useStruttureCliente } from '../../../hooks/useStrutturaCorrente'
 import { idStruttura, type SchedaDemo } from '../../../core/demo/struttureDemo'
 import './OperationOverview.sass'
+
+// ─── OPERATION OVERVIEW ─────────────────────────────────────────────────────────
+//  Lo stato delle camere e della manutenzione in una schermata, col kit BI:
+//    • fascia indicatori: camere in manutenzione, indisponibilità, camere fuori
+//      servizio oggi, segnalazioni aperte e risolte
+//    • camere indisponibili e in manutenzione giorno per giorno, con la previsione
+//    • quota indisponibile sul totale delle camere
+//    • segnalazioni per struttura (aperte / risolte), col rimando alla gestione
 
 interface ChartPoint {
   date: string
@@ -42,6 +57,8 @@ interface Data {
 //  Strutture del cliente corrente; 90 giorni fino a oggi più 30 di previsione.
 //  Valori deterministici: stessa struttura, stessi numeri.
 const isoDi = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+/** "dd.mm.yyyy" (formato del servizio) → "yyyy-mm-dd" */
+const isoDaPunti = (s: string) => { const [d, m, y] = s.split('.'); return `${y}-${m}-${d}` }
 
 function genFallback(schede: SchedaDemo[], strutturaId: number | null): Data {
   const hotel = schede.filter((x) => x.camere > 0)
@@ -92,200 +109,245 @@ export default function OperationOverview({ navigate }: { navigate: (p: string) 
   const schede = useStruttureCliente()
   const [strutturaId, setStrutturaId] = useStrutturaIdRevenue()
   const [data, setData] = useState<Data>(() => genFallback(schede, strutturaId))
+  const [loading, setLoading] = useState(false)
+  const [dataAt, setDataAt] = useState(() => new Date())
   useEffect(() => { setData(genFallback(schede, strutturaId)) }, [schede, strutturaId])
 
   useEffect(() => {
     let cancelled = false
+    setLoading(true)
     apiFetchSibylla<Data>('operation/GetOverview', {
       method: 'POST',
       body: { strutturaId: data.StrutturaId, da: data.dataDa, a: data.dataA },
     })
-      .then((d) => { if (!cancelled) setData(d) })
+      .then((d) => { if (!cancelled && d) { setData(d); setDataAt(new Date()) } })
       .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fmtPct = (v: number) => `${v.toFixed(2).replace('.', ',')} %`
+  const still = reducedMotion()
+
+  // Giorni dell'intervallo scelto; la previsione resta visibile dopo la data finale
+  const giorni = useMemo(() => data.trend
+    .map((t) => ({ ...t, iso: isoDaPunti(t.date), label: t.date.slice(0, 5) }))
+    .filter((t) => t.iso >= data.dataDa && (t.iso <= data.dataA || t.occupateForecast !== null)),
+  [data.trend, data.dataDa, data.dataA])
+  const consuntivo = giorni.filter((t) => t.iso <= data.dataA)
+  const capienza = data.trend[0]?.capienza ?? 0
+  const oggi = consuntivo[consuntivo.length - 1]
+  const quotaGiorno = (t: ChartPoint, k: 'occupate' | 'inManutenzione') => (t.capienza ? (t[k] / t.capienza) * 100 : 0)
+
+  const apertTot = data.segnalazioniHotel.reduce((s, h) => s + h.open, 0)
+  const totaleSeg = data.segnalazioniHotel.reduce((s, h) => s + h.total, 0)
+  const segnalazioni = data.segnalazioniHotel.map((h) => ({ nome: h.nome, aperte: h.open, risolte: Math.max(0, h.total - h.open), totale: h.total }))
+  const quota = [
+    { label: 'Indisponibili', value: data.indisponibili },
+    { label: 'Disponibili', value: Math.max(0, data.totale - data.indisponibili) },
+  ]
 
   return (
-    <div className="op-overview">
-      <PageHead
-        title="Operation overview"
-        subtitle="Monitoraggio e confronto delle performance operative"
-      />
-
-      <div className="op-overview__filters">
-        <SelectField
-          className="op-overview__field op-overview__select"
-          label="Struttura"
-          name="struttura"
-          value={data.StrutturaId ?? ''}
-          options={[
-            { value: '', label: 'Tutte le strutture' },
-            ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
-          ]}
-          onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
-        />
-        <div className="op-overview__field-raw">
-          <label>Scegli intervallo</label>
-          <div className="op-overview__date-range">
-            <input type="date" className="sib-input" value={data.dataDa} onChange={(e) => setData({ ...data, dataDa: e.target.value })} />
-            <span>-</span>
-            <input type="date" className="sib-input" value={data.dataA} onChange={(e) => setData({ ...data, dataA: e.target.value })} />
-          </div>
-        </div>
-        <button type="button" className="sib-btn sib-btn--primary op-overview__visualizza">
-          <i className="fa-light fa-chart-line" /> Visualizza
-        </button>
-        <button type="button" className="sib-btn sib-btn--icon op-overview__info" title="Info" aria-label="Info">
-          <i className="fa-regular fa-circle-info" />
-        </button>
-      </div>
-
-      {/* Stats row */}
-      <div className="op-overview__stats">
-        <div className="op-overview__manut">
-          <div className="op-overview__manut-tile">{fmtPct(data.pctManutenzione)}</div>
-          <div className="op-overview__manut-text">
-            <div className="op-overview__manut-label">In manutenzione</div>
-            <div className="op-overview__manut-foot">LY: {fmtPct(data.pctManutenzioneLY)}</div>
-          </div>
-        </div>
-        <div className="op-overview__indispon">
-          <span>Tasso di indisponibilità</span>
-          <strong>{fmtPct(data.tassoIndisponibilita)}</strong>
-        </div>
-      </div>
-
-      {/* Trend + donut */}
-      <div className="op-overview__trend-row">
-        <div className="op-overview__trend-card">
-          <h3 className="op-overview__card-title">Occupate vs in manutenzione</h3>
-          <TrendChart points={data.trend} />
-          <div className="op-overview__legend">
-            <span><span className="op-overview__dot op-overview__dot--capienza" /> Capienza</span>
-            <span><span className="op-overview__dot op-overview__dot--occupate" /> Occupate</span>
-            <span><span className="op-overview__dot op-overview__dot--forecast" /> Occupate Forecast</span>
-            <span><span className="op-overview__dot op-overview__dot--manut" /> In Manutenzione</span>
-          </div>
-        </div>
-
-        <div className="op-overview__side-tag">MAINTENANCE OVERVIEW</div>
-
-        <div className="op-overview__donut-card">
-          <h3 className="op-overview__card-title">Indisponibili vs Totale</h3>
-          <p className="op-overview__hint">Tocca per dettaglio</p>
-          <Donut
-            slices={[
-              { label: 'Indisponibili', value: data.indisponibili, color: '#F59E0B' },
-              { label: 'Disponibili',   value: data.totale - data.indisponibili, color: '#1F4E5F' },
-            ]}
-            centerLabel=""
-            centerValue={`${data.indisponibili.toFixed(1).replace('.', ',')}%`}
-            centerSubLabel="Indisp."
-            size={210}
-            thickness={36}
-          />
-        </div>
-      </div>
-
-      {/* Bottom split: Rooms + Segnalazioni */}
-      <div className="op-overview__bottom">
-        <div className="op-overview__side-tag op-overview__side-tag--alt">OSPITI SOGGIORNO</div>
-
-        <div className="op-overview__rooms">
-          <SelectField
-            className="op-overview__rooms-select"
-            name="rooms"
-            value={data.roomsSelected}
-            options={data.rooms.map((r) => ({ value: r.nome, label: r.nome }))}
-            onChange={(e) => setData({ ...data, roomsSelected: e.target.value })}
-          />
-          <h3 className="op-overview__card-title op-overview__rooms-title">Rooms</h3>
-          <p className="op-overview__rooms-empty">Non sono presenti segnalazioni aperte per la giornata odierna</p>
-        </div>
-
-        <div className="op-overview__segnalazioni">
-          <h3 className="op-overview__card-title">Segnalazioni</h3>
-          {data.segnalazioniHotel.map((h) => (
-            <div className="op-overview__seg-row" key={h.id}>
-              <div className="op-overview__seg-head">
-                <i className="fa-light fa-building" />
-                <span className="op-overview__seg-name">{h.nome}</span>
-                <span className="op-overview__seg-count">{h.open}</span>
-              </div>
-              <div className="op-overview__seg-bar">
-                <div className="op-overview__seg-fill" style={{ '--fill-w': `${(h.open / Math.max(1, h.total)) * 100}%` } as React.CSSProperties} />
-              </div>
-              <div className="op-overview__seg-axis">
-                <span>0</span>
-                <span>{h.total}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="op-overview__side-tag op-overview__side-tag--alt">STATO AVANZAMENTO</div>
-      </div>
-    </div>
-  )
-}
-
-// ─── TREND CHART (multi-line + dashed forecast) ──────────────────────────────
-function TrendChart({ points }: { points: ChartPoint[] }) {
-  const W = 1100
-  const H = 280
-  const PAD_L = 48
-  const PAD_R = 16
-  const PAD_T = 16
-  const PAD_B = 30
-  const innerW = W - PAD_L - PAD_R
-  const innerH = H - PAD_T - PAD_B
-
-  const ticks = 5
-  const allY = points.flatMap((p) => [p.capienza, p.occupate, p.occupateForecast ?? 0, p.inManutenzione])
-  const maxY = Math.max(...allY, 1)
-  const yPos = (v: number) => PAD_T + innerH - (v / maxY) * innerH
-  const xPos = (i: number) => PAD_L + (points.length <= 1 ? innerW / 2 : (i / (points.length - 1)) * innerW)
-
-  const xLabelStep = Math.max(1, Math.floor(points.length / 12))
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="op-overview__svg op-overview__svg--h280">
-      {Array.from({ length: ticks + 1 }, (_, i) => {
-        const v = (maxY / ticks) * i
-        const y = yPos(v)
-        return (
-          <g key={i}>
-            <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#E0E7EE" strokeWidth={1} />
-          </g>
-        )
-      })}
-
-      {/* Capienza dots */}
-      {points.map((p, i) => <circle key={`c-${i}`} cx={xPos(i)} cy={yPos(p.capienza)} r={2} fill="#A0A4AA" opacity={0.6} />)}
-
-      {/* Occupate dots */}
-      {points.map((p, i) => <circle key={`o-${i}`} cx={xPos(i)} cy={yPos(p.occupate)} r={2.5} fill="#1F4E5F" />)}
-
-      {/* In Manutenzione dots */}
-      {points.map((p, i) => <circle key={`m-${i}`} cx={xPos(i)} cy={yPos(p.inManutenzione)} r={2.2} fill="#3FA8E0" opacity={0.7} />)}
-
-      {/* Forecast dots (orange) */}
-      {points.map((p, i) =>
-        p.occupateForecast !== null
-          ? <circle key={`f-${i}`} cx={xPos(i)} cy={yPos(p.occupateForecast!)} r={2.5} fill="#F59E0B" />
-          : null,
+    <BiPage
+      title="Operation overview"
+      subtitle="Monitoraggio e confronto delle performance operative"
+      glossary={['OOO', 'LY', 'delta', 'manutenzione', 'indisponibilita']}
+      dataAt={dataAt}
+      loading={loading}
+      onRefresh={() => setDataAt(new Date())}
+      gridClassName="op-ov__grid"
+      actions={(
+        <Tooltip text="Segnalazioni">
+          <button
+            type="button"
+            className="sib-btn sib-btn--icon op-ov__link"
+            onClick={() => navigate('segnalazioni')}
+            aria-label="Segnalazioni"
+          >
+            <i className="fa-regular fa-screwdriver-wrench" aria-hidden="true" />
+          </button>
+        </Tooltip>
       )}
+      toolbar={(
+        <>
+          <SelectField
+            className="op-ov__filter"
+            label="Struttura"
+            name="struttura"
+            value={data.StrutturaId ?? ''}
+            options={[
+              { value: '', label: 'Tutte le strutture' },
+              ...data.Strutture.map((s) => ({ value: s.Id, label: s.nome })),
+            ]}
+            onChange={(e) => setStrutturaId(e.target.value ? Number(e.target.value) : null)}
+          />
+          <DateRangeField
+            className="op-ov__range"
+            label="Intervallo"
+            nameFrom="da" nameTo="a"
+            valueFrom={data.dataDa} valueTo={data.dataA}
+            onChange={(from, to) => setData((d) => ({
+              ...d,
+              dataDa: from ? isoDi(from) : d.dataDa,
+              dataA: to ? isoDi(to) : d.dataA,
+            }))}
+          />
+        </>
+      )}
+    >
+      {/* ── Indicatori del periodo ────────────────────────────────────────── */}
+      <div className="op-ov__kpis">
+        <KpiTile
+          label="In manutenzione" icon="fa-screwdriver-wrench" slot={1} index={0}
+          value={data.pctManutenzione} format={(n) => fmtPct(n, 2)}
+          delta={data.pctManutenzioneLY ? ((data.pctManutenzione - data.pctManutenzioneLY) / data.pctManutenzioneLY) * 100 : 0}
+          invertDelta spark={consuntivo.map((t) => quotaGiorno(t, 'inManutenzione'))}
+          info={`Camere in manutenzione sul totale, in media giornaliera nel periodo. Anno precedente: ${fmtPct(data.pctManutenzioneLY, 2)}.`}
+        />
+        <KpiTile
+          label="Tasso di indisponibilità" icon="fa-door-closed" slot={0} index={1}
+          value={data.tassoIndisponibilita} format={(n) => fmtPct(n, 2)}
+          spark={consuntivo.map((t) => quotaGiorno(t, 'occupate'))}
+          info="Camere non vendibili (fuori servizio o in manutenzione) sul totale, in media giornaliera nel periodo."
+        />
+        <KpiTile
+          label="Camere fuori servizio oggi" icon="fa-bed" slot={2} index={2}
+          value={oggi?.occupate ?? 0} format={fmtInt}
+          info={`Camere non vendibili nell'ultimo giorno dell'intervallo, su ${fmtInt(capienza)} camere.`}
+        />
+        <KpiTile
+          label="Segnalazioni aperte" icon="fa-triangle-exclamation" slot={4} index={3}
+          value={apertTot} format={fmtInt}
+          info="Segnalazioni ancora da chiudere, su tutte le strutture selezionate."
+        />
+        <KpiTile
+          label="Segnalazioni risolte" icon="fa-circle-check" slot={3} index={4}
+          value={totaleSeg ? ((totaleSeg - apertTot) / totaleSeg) * 100 : 0} format={(n) => fmtPct(n, 0)}
+          info={`Segnalazioni chiuse sul totale ricevuto (${fmtInt(totaleSeg)}).`}
+        />
+      </div>
 
-      {/* X labels */}
-      {points.map((p, i) => {
-        if (i % xLabelStep !== 0) return null
-        return (
-          <text key={i} x={xPos(i)} y={H - 10} textAnchor="middle" fontSize="10" fill="#888">{p.date.slice(0, 5)}</text>
-        )
-      })}
-    </svg>
+      {/* ── Camere indisponibili giorno per giorno ────────────────────────── */}
+      <ChartCard
+        className="op-ov__main"
+        index={0}
+        title="Camere indisponibili e in manutenzione"
+        subtitle={`Giorno per giorno su ${fmtInt(capienza)} camere, con la previsione dei prossimi giorni`}
+        legend={[
+          { key: 'ind', name: 'Indisponibili', color: series(0) },
+          { key: 'man', name: 'In manutenzione', color: series(1) },
+          { key: 'fc', name: 'Previsione', color: CHART.forecast, dashed: true },
+        ]}
+      >
+        <div className="op-ov__chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={giorni} margin={{ top: 6, right: 8, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="op-ov-area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={series(0)} stopOpacity={0.2} />
+                  <stop offset="100%" stopColor={series(0)} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="label" {...xAxisProps} minTickGap={24} />
+              <YAxis {...yAxisProps} tickFormatter={fmtInt} allowDecimals={false} />
+              <RTooltip
+                cursor={cursorProps}
+                content={(
+                  <ChartTooltip
+                    names={{ occupate: 'Indisponibili', inManutenzione: 'In manutenzione', occupateForecast: 'Previsione' }}
+                    format={(v) => `${fmtInt(v)} camere`}
+                  />
+                )}
+              />
+              <Area
+                type="linear" dataKey="occupate" stroke={series(0)} strokeWidth={2.2} fill="url(#op-ov-area)" dot={false}
+                isAnimationActive={!still} animationBegin={ANIM.begin(0)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+              <Line
+                type="linear" dataKey="inManutenzione" stroke={series(1)} strokeWidth={1.8} dot={false}
+                isAnimationActive={!still} animationBegin={ANIM.begin(1)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+              <Line
+                type="linear" dataKey="occupateForecast" stroke={CHART.forecast} strokeWidth={1.8}
+                strokeDasharray="5 3" dot={false} connectNulls
+                isAnimationActive={!still} animationBegin={ANIM.begin(2)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+      {/* ── Quota indisponibile sul totale ──────────────────────────────────────── */}
+      <ChartCard
+        className="op-ov__quota"
+        index={1}
+        title="Indisponibili"
+        subtitle="Media giornaliera del periodo"
+        legend={quota.map((q, i) => ({ key: q.label, name: q.label, color: i === 0 ? series(0) : CHART.ly }))}
+      >
+        <div className="op-ov__donut">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={quota} dataKey="value" nameKey="label"
+                innerRadius="62%" outerRadius="86%" paddingAngle={2}
+                stroke={CHART.surface} strokeWidth={2}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {quota.map((q, i) => <Cell key={q.label} fill={i === 0 ? series(0) : CHART.ly} />)}
+              </Pie>
+              <RTooltip content={<ChartTooltip format={(v) => fmtPct(v, 1)} />} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="op-ov__donut-center">
+            <span className="op-ov__donut-val">{fmtPct(data.indisponibili, 1)}</span>
+            <span className="op-ov__donut-lbl">indisponibili</span>
+          </div>
+        </div>
+      </ChartCard>
+
+      {/* ── Segnalazioni per struttura ────────────────────────────────────── */}
+      <ChartCard
+        className="op-ov__seg"
+        index={2}
+        title="Segnalazioni"
+        subtitle="Aperte e risolte per struttura"
+        badge={`${fmtInt(apertTot)} aperte`}
+        legend={[
+          { key: 'aperte', name: 'Aperte', color: series(4) },
+          { key: 'risolte', name: 'Risolte', color: CHART.ly },
+        ]}
+      >
+        <div className="op-ov__bars">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={segnalazioni} layout="vertical" margin={{ top: 2, right: 36, left: 0, bottom: 0 }} barCategoryGap="26%">
+              <CartesianGrid {...gridProps} horizontal={false} vertical />
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="nome" {...yAxisProps} width={120} interval={0} tick={{ fontSize: 11, fill: CHART.ink }} />
+              <RTooltip
+                cursor={{ fill: 'transparent' }}
+                content={<ChartTooltip names={{ aperte: 'Aperte', risolte: 'Risolte' }} format={(v) => fmtInt(v)} />}
+              />
+              <Bar
+                dataKey="aperte" stackId="s" fill={series(4)} maxBarSize={14}
+                isAnimationActive={!still} animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              />
+              <Bar
+                dataKey="risolte" stackId="s" fill={CHART.ly} radius={[0, 4, 4, 0]} maxBarSize={14}
+                isAnimationActive={!still} animationBegin={ANIM.begin(1)}
+                animationDuration={ANIM.duration} animationEasing={ANIM.easing}
+              >
+                {/* In testa alla barra il totale ricevuto */}
+                <LabelList dataKey="totale" content={barEndLabel(fmtInt)} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+    </BiPage>
   )
 }

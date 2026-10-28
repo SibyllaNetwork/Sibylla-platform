@@ -184,6 +184,16 @@ export const BI_GLOSSARY: Record<string, BiGlossaryEntry> = {
     description: 'Out Of Order — camere fuori servizio, non vendibili',
     formula: 'Camere non disponibili alla vendita per guasto o lavori, in media giornaliera',
   },
+  manutenzione: {
+    term: 'In manutenzione',
+    description: 'Camere ferme per interventi programmati o guasti in lavorazione',
+    formula: 'Camere in manutenzione diviso le camere totali, in media giornaliera nel periodo',
+  },
+  indisponibilita: {
+    term: 'Tasso di indisponibilità',
+    description: 'Quota di camere non vendibili',
+    formula: 'Camere fuori servizio o in manutenzione diviso le camere totali, in media giornaliera nel periodo',
+  },
   SLA: {
     term: 'SLA',
     description: 'Service Level Agreement — tempo massimo di intervento concordato',

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@sibylla-hr/hr-pages": "file:../HR-Manager/frontend/dist-platform/sibylla-hr-hr-pages-0.1.0.tgz",
+    "@sibylla-hr/hr-pages": "file:vendor/sibylla-hr-hr-pages-0.1.0.tgz",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
