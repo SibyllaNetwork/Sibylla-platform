@@ -129,10 +129,14 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
       placeholder={impostata && !valore ? '•••••••• inserita in precedenza: reinseriscila per il server' : ''} hint={hint}
       onChange={(e) => onChange(e.target.value)} />
   )
-  const sezioneOk = (s: string) => !lista.some((x) => x.sezione === s && !x.ok)
-  const Num = ({ n, s }: { n: number; s?: string }) => (
-    <span className={'cfgsrv__num' + (s && sezioneOk(s) ? ' is-ok' : '')}>{s && sezioneOk(s) ? <i className="fa-solid fa-check" aria-hidden="true" /> : n}</span>
-  )
+  // Completa solo se la sezione ha dati richiesti e sono tutti a posto.
+  const sezioneOk = (s: string) => lista.some((x) => x.sezione === s) && !lista.some((x) => x.sezione === s && !x.ok)
+  // Icona di sezione allo standard piattaforma (fa-solid, blu, 16px, senza riquadro);
+  // a sezione completa la spunta verde accanto al titolo.
+  const Ico = ({ ico }: { ico: string }) => <i className={`fa-solid ${ico} cfgsrv__sec-ico`} aria-hidden="true" />
+  const Ok = ({ s }: { s: string }) => (sezioneOk(s)
+    ? <Tooltip text="Sezione completa"><i className="fa-solid fa-circle-check cfgsrv__sec-ok" aria-label="Sezione completa" /></Tooltip>
+    : null)
 
   return (
     <div className="cfgsrv">
@@ -160,7 +164,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
         <div className="cfgsrv__main">
           {/* 1. Metodo */}
           <section className="cfgsrv__card">
-            <header className="cfgsrv__head"><Num n={1} /><div><h3>Metodo di invio</h3><span>Da dove partono le mail ai clienti</span></div></header>
+            <header className="cfgsrv__head"><Ico ico="fa-paper-plane" /><div><h3>Metodo di invio</h3><span>Da dove partono le mail ai clienti</span></div></header>
             <div className="cfgsrv__body">
               <div className="cfgsrv__metodi" role="radiogroup" aria-label="Metodo di invio">
                 {([
@@ -168,7 +172,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
                   ['provider', 'fa-paper-plane', 'Servizio di invio', 'Brevo, SendGrid, Amazon SES, Postmark o Mailgun: alta consegnabilità, statistiche di apertura, nessun limite di casella.'],
                 ] as const).map(([v, ico, t, d]) => (
                   <button key={v} type="button" role="radio" aria-checked={c.metodo === v} className={'cfgsrv__metodo' + (c.metodo === v ? ' is-on' : '')} onClick={() => set({ metodo: v })}>
-                    <i className={`fa-regular ${ico}`} aria-hidden="true" />
+                    <i className={`fa-solid ${ico}`} aria-hidden="true" />
                     <strong>{t}</strong>
                     <small>{d}</small>
                   </button>
@@ -179,7 +183,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
 
           {/* 2. Credenziali */}
           <section className="cfgsrv__card">
-            <header className="cfgsrv__head"><Num n={2} s="credenziali" /><div><h3>{c.metodo === 'smtp' ? 'Casella SMTP' : `Credenziali ${PROVIDER[c.provider].label}`}</h3><span>Per autenticarsi al servizio</span></div>
+            <header className="cfgsrv__head"><Ico ico="fa-key" /><div><h3>{c.metodo === 'smtp' ? 'Casella SMTP' : `Credenziali ${PROVIDER[c.provider].label}`} <Ok s="credenziali" /></h3><span>Per autenticarsi al servizio</span></div>
             </header>
             <div className="cfgsrv__body">
               {c.metodo === 'smtp' ? (
@@ -210,7 +214,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
 
           {/* 3. Mittente */}
           <section className="cfgsrv__card">
-            <header className="cfgsrv__head"><Num n={3} s="mittente" /><div><h3>Mittente</h3><span>Come appare la mail al cliente</span></div></header>
+            <header className="cfgsrv__head"><Ico ico="fa-id-card" /><div><h3>Mittente <Ok s="mittente" /></h3><span>Come appare la mail al cliente</span></div></header>
             <div className="cfgsrv__body">
               <div className="cfgsrv__grid">
                 <InputField name="from-nome" label="Nome del mittente" required value={c.nomeMittente} placeholder={struttura} onChange={(e) => set({ nomeMittente: e.target.value })} />
@@ -226,7 +230,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
 
           {/* 4. Dominio */}
           <section className="cfgsrv__card">
-            <header className="cfgsrv__head"><Num n={4} s="dominio" /><div><h3>Dominio e consegna</h3><span>I record DNS che evitano lo spam</span></div></header>
+            <header className="cfgsrv__head"><Ico ico="fa-globe" /><div><h3>Dominio e consegna <Ok s="dominio" /></h3><span>I record DNS che evitano lo spam</span></div></header>
             <div className="cfgsrv__body">
               <InputField name="dominio" label="Dominio di invio" required={c.metodo === 'provider'} value={c.dominio} placeholder="miohotel.it"
                 onChange={(e) => set({ dominio: e.target.value.trim().toLowerCase() })} error={c.dominio && !dominioOk(c.dominio) ? 'Dominio non valido' : undefined}
@@ -260,7 +264,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
 
           {/* 5. Link */}
           <section className="cfgsrv__card">
-            <header className="cfgsrv__head"><Num n={5} s="link" /><div><h3>Link nelle mail</h3><span>La pagina che si apre dai pulsanti Accetta, Paga e Riprova</span></div></header>
+            <header className="cfgsrv__head"><Ico ico="fa-link" /><div><h3>Link nelle mail <Ok s="link" /></h3><span>La pagina che si apre dai pulsanti Accetta, Paga e Riprova</span></div></header>
             <div className="cfgsrv__body">
               <div className="cfgsrv__grid">
                 <InputField name="url" label="Indirizzo della pagina pubblica" required value={c.urlPubblico} placeholder="https://preventivi.miohotel.it"
@@ -274,7 +278,7 @@ export default function ConfiguraServizio({ navigate }: { navigate: (p: string) 
 
           {/* 6. Nexi */}
           <section className="cfgsrv__card">
-            <header className="cfgsrv__head"><Num n={6} s="nexi" /><div><h3>Pagamenti con carta · Nexi XPay</h3><span>Caparra o saldo dopo l'accettazione della proposta</span></div>
+            <header className="cfgsrv__head"><Ico ico="fa-credit-card" /><div><h3>Pagamenti con carta · Nexi XPay {c.nexiAttivo && <Ok s="nexi" />}</h3><span>Caparra o saldo dopo l'accettazione della proposta</span></div>
               <ToggleSwitch label="Attivi" checked={c.nexiAttivo} onChange={(v) => set({ nexiAttivo: v })} className="cfgsrv__show" />
             </header>
             {c.nexiAttivo && (
