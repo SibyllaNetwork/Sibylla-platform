@@ -84,6 +84,7 @@ import NuovoContoPassante          from '../modules/operation/NuovoContoPassante
 import Segnalazioni                from '../modules/operation/Segnalazioni/Segnalazioni';
 import AssegnazioniIncarichi       from '../modules/operation/AssegnazioniIncarichi/AssegnazioniIncarichi';
 import MaintenanceAnalysis         from '../modules/operation/MaintenanceAnalysis/MaintenanceAnalysis';
+import BiOp                        from '../modules/appop/BiOp/BiOp';
 import OrdineServizio              from '../modules/operation/OrdineServizio/OrdineServizio';
 import RichiesteOperative          from '../modules/operation/RichiesteOperative/RichiesteOperative';
 import CreaPratica                 from '../modules/operation/CreaPratica/CreaPratica';
@@ -418,6 +419,7 @@ export default function PageContent({ page, navigate }: Props) {
   if (page === 'segnalazioni')          return <Segnalazioni navigate={navigate}/>;
   if (page === 'assegnazioni-incarichi') return <AssegnazioniIncarichi navigate={navigate}/>;
   if (page === 'maintenance-analysis')  return <MaintenanceAnalysis navigate={navigate}/>;
+  if (page === 'bi-op')                 return <BiOp navigate={navigate}/>;
   if (page === 'ordine-servizio')       return <OrdineServizio navigate={navigate}/>;
   if (page === 'richieste-operative')   return <RichiesteOperative navigate={navigate}/>;
   if (page.startsWith('planimetria-editor:')) {

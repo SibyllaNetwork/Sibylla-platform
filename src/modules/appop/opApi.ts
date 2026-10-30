@@ -171,6 +171,63 @@ export const opCollegataApi = {
   invito: (idDip: number, s?: StrutturaOp | null) => opFetch<InvitoOp>(`${C}/dipendenti/${idDip}/invito${q(s)}`, 'POST'),
 }
 
+// Business Intelligence di Op! per reparto dell'azienda collegata alla struttura:
+// i calcoli stanno in Op.Api (gli stessi dati dell'app), la pagina li disegna.
+export type UnitaBi = 'n' | 'pct' | 'eur' | 'ore' | 'min'
+
+export interface PuntoBi {
+  etichetta: string
+  valore: number
+}
+
+export interface KpiBi {
+  chiave: string
+  etichetta: string
+  valore: number
+  unita: UnitaBi
+  /** Stesso indicatore sul periodo di pari durata subito prima (null se non calcolabile). */
+  precedente: number | null
+}
+
+export interface SerieBi {
+  chiave: string
+  titolo: string
+  unita: UnitaBi
+  /** Un punto per giorno del periodo (etichetta yyyy-MM-dd). */
+  punti: PuntoBi[]
+}
+
+export interface RipartizioneBi {
+  chiave: string
+  titolo: string
+  unita: UnitaBi
+  voci: PuntoBi[]
+}
+
+export interface RepartoBi {
+  key: RepartoOp
+  nome: string
+  kpi: KpiBi[]
+  serie: SerieBi[]
+  ripartizioni: RipartizioneBi[]
+}
+
+export interface BiAzienda {
+  azienda: string
+  dal: string
+  al: string
+  aggiornatoIl: string
+  reparti: RepartoBi[]
+}
+
+export const opBiApi = {
+  reparti: (s: StrutturaOp | null, dal: string, al: string) => {
+    const p = new URLSearchParams({ dal, al })
+    if (s) { p.set('struttura', String(s.id)); p.set('nome', s.nome) }
+    return opFetch<BiAzienda>(`${C}/bi?${p}`)
+  },
+}
+
 export const formatoData = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 

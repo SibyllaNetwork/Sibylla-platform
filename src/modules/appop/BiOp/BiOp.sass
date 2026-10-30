@@ -1,0 +1,318 @@
+// ─── BUSINESS INTELLIGENCE OP! ──────────────────────────────────────────────────
+// Griglia a schermo fisso: tab dei reparti, indicatori, andamento (2 colonne) +
+// ripartizione ad anello, seconda serie (2 colonne) + lettura del reparto.
+@use '../../../styles/tokens' as *
+
+.biop
+  &__grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    grid-template-rows: auto auto minmax(0, 1.3fr) minmax(0, 1fr)
+    grid-template-areas: 'tabs tabs tabs' 'kpi kpi kpi' 'main main rip' 'sec sec read'
+
+    &--vuota
+      grid-template-columns: minmax(0, 1fr)
+      grid-template-rows: minmax(0, 1fr)
+      grid-template-areas: 'vuoto'
+
+  &__vuoto
+    grid-area: vuoto
+    display: flex
+    align-items: center
+    justify-content: center
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+
+  &__main
+    grid-area: main
+
+  &__rip
+    grid-area: rip
+
+  &__sec
+    grid-area: sec
+
+  &__read
+    grid-area: read
+
+  // ── Toolbar ──────────────────────────────────────────────────────────────────
+  &__filter
+    width: 170px
+
+    &--wide
+      width: 230px
+
+  &__note
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    margin-left: auto
+    padding-bottom: 8px
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+    white-space: nowrap
+
+    i
+      color: var(--color-primary)
+      font-size: 12px
+
+  // ── Tab dei reparti ──────────────────────────────────────────────────────────
+  // Una riga sola: i tab si dividono la larghezza, i testi si troncano col tooltip.
+  &__tabs
+    grid-area: tabs
+    display: grid
+    grid-auto-flow: column
+    grid-auto-columns: minmax(0, 1fr)
+    gap: 8px
+
+  &__tab
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+    padding: 8px 12px
+    border: 1px solid var(--color-border)
+    border-radius: 12px
+    background: var(--color-surface)
+    color: var(--color-text-active)
+    text-align: left
+    cursor: pointer
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease
+
+    &:hover
+      border-color: var(--color-primary-300)
+      transform: translateY(-1px)
+
+    &:focus-visible
+      outline: none
+      box-shadow: 0 0 0 3px var(--color-focus-ring)
+
+    &--on
+      border-color: var(--color-primary)
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%)
+      color: var(--color-surface)
+      box-shadow: 0 6px 18px -8px var(--color-primary)
+
+      .biop__tab-ico
+        background: rgba(255, 255, 255, .16)
+        color: var(--color-surface)
+
+      .biop__tab-meta
+        color: var(--color-surface)
+        opacity: .85
+
+  &__tab-ico
+    flex: none
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 32px
+    height: 32px
+    border-radius: 9px
+    background: var(--color-primary-50)
+    color: var(--color-primary)
+    font-size: 15px
+    transition: background .18s ease, color .18s ease
+
+  &__tab-txt
+    display: flex
+    flex-direction: column
+    min-width: 0
+
+  &__tab-nome
+    font-family: var(--font-heading)
+    font-size: 13px
+    font-weight: 600
+    line-height: 1.25
+
+  &__tab-meta
+    font-family: var(--font-body)
+    font-size: 11px
+    line-height: 1.3
+    color: var(--color-text-inactive)
+
+  // ── Indicatori ───────────────────────────────────────────────────────────────
+  &__kpis
+    grid-area: kpi
+    display: grid
+    grid-auto-flow: column
+    grid-auto-columns: minmax(0, 1fr)
+    gap: 10px
+    min-width: 0
+
+  // ── Aree grafico ─────────────────────────────────────────────────────────────
+  &__chart
+    flex: 1
+    min-height: 0
+    min-width: 0
+
+  &__nessuno
+    margin: auto
+    font-family: var(--font-body)
+    font-size: 12px
+    color: var(--color-text-inactive)
+
+  // ── Anello con legenda ───────────────────────────────────────────────────────
+  &__donut
+    flex: 1
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+    align-items: center
+    gap: 12px
+    min-height: 0
+
+  &__donut-chart
+    position: relative
+    height: 100%
+    min-height: 0
+
+  &__donut-center
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    pointer-events: none
+
+  &__donut-val
+    font-family: var(--font-heading)
+    font-size: 18px
+    font-weight: 700
+    color: var(--color-text-active)
+
+  &__donut-lbl
+    font-family: var(--font-body)
+    font-size: 11px
+    color: var(--color-text-inactive)
+
+  &__legenda
+    display: flex
+    flex-direction: column
+    gap: 6px
+    min-width: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__legenda-voce
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    font-family: var(--font-body)
+    font-size: 12px
+
+  &__legenda-dot
+    flex: none
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    background: var(--c)
+
+  &__legenda-nome
+    flex: 1
+    min-width: 0
+    color: var(--color-text-active)
+
+  &__legenda-pct
+    flex: none
+    font-weight: 600
+    color: var(--color-text-active)
+
+  // ── Confronto indicatore per indicatore ──────────────────────────────────────
+  &__confronto
+    display: flex
+    flex-direction: column
+    justify-content: space-around
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+
+  &__confronto-riga
+    display: grid
+    grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr) auto
+    align-items: center
+    gap: 10px
+    padding: 4px 0
+    border-bottom: 1px solid var(--color-border)
+    font-family: var(--font-body)
+    font-size: 12px
+
+    &:last-child
+      border-bottom: 0
+
+  &__confronto-nome
+    min-width: 0
+    color: var(--color-text-active)
+
+  &__confronto-val
+    font-weight: 700
+    color: var(--color-text-active)
+    white-space: nowrap
+
+  &__confronto-prec
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+    color: var(--color-text-inactive)
+    font-size: 11px
+
+  // ── Lettura del reparto ──────────────────────────────────────────────────────
+  &__frasi
+    display: flex
+    flex-direction: column
+    gap: 8px
+    flex: 1
+    min-height: 0
+    margin: 0
+    padding: 0
+    list-style: none
+    overflow: hidden
+
+  &__frase
+    display: flex
+    align-items: flex-start
+    gap: 10px
+    padding: 8px 10px
+    border-radius: 10px
+    background: var(--color-primary-50)
+    font-family: var(--font-body)
+    font-size: 12px
+    line-height: 1.45
+    color: var(--color-text-active)
+
+    i
+      flex: none
+      margin-top: 2px
+      color: var(--color-primary)
+      font-size: 13px
+
+// ── Compattazioni: solo dimensioni ────────────────────────────────────────────
+@container bi-page (max-width: 1180px)
+  .biop
+    &__tab
+      gap: 8px
+      padding: 6px 8px
+
+    &__tab-ico
+      width: 26px
+      height: 26px
+      font-size: 13px
+
+    &__frase
+      padding: 6px 8px
+      font-size: 11px
+
+@media (max-height: 820px)
+  .biop
+    &__tab
+      padding-top: 5px
+      padding-bottom: 5px
+
+    &__tab-meta
+      display: none

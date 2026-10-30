@@ -81,6 +81,7 @@ export const PAGE_SUBTITLES: Record<string, string> = {
   "live-display": "La tua area operativa per gestire e ottimizzare il business",
   "log-sistema": "Monitoraggio attività, operazioni utenti e storico eventi di sistema",
   "maggiorazioni": "Aumenta la tua marginalità applicando maggiorazioni e promozioni verso ciascun operatore",
+  "bi-op": "L'attività dei reparti nell'app Op!, reparto per reparto",
   "maintenance-analysis": "Analisi delle attività di manutenzione per ottimizzare tempi e costi",
   "market-lens": "Analisi comparativa dei prezzi di mercato in tempo reale",
   "miei-contratti-a": "Gestisci e consulta tutti i contratti di acquisto in un unico spazio",

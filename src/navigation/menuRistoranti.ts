@@ -178,6 +178,7 @@ const MENU_RISTORANTI:any[]=[
         {id:"segnalazioni",label:"Segnalazioni",page:"segnalazioni"},
         {id:"assegnazioni-incarichi",label:"Assegnazioni incarichi",page:"assegnazioni-incarichi"},
         {id:"maintenance-analysis",label:"Maintenance Analysis",page:"maintenance-analysis"},
+        {id:"bi-op",label:"Business Intelligence",page:"bi-op"},
       ]},
       {id:"ordine-servizio",label:"Ordine di servizio",page:"ordine-servizio"},
     ]},

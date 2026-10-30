@@ -217,6 +217,7 @@ const MENU_MAP: Record<string, string> = {
   'segnalazioni':               'fa-bell-on',
   'assegnazioni-incarichi':     'fa-clipboard-list',
   'maintenance-analysis':       'fa-wrench',
+  'bi-op':                      'fa-chart-pie',
 
   // Purchasing — Gestione centro acquisti
   'forniture':                  'fa-boxes-stacked',
