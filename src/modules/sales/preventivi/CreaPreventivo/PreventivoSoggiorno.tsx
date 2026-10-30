@@ -842,6 +842,9 @@ function MailModal({ pr, template, modo, onClose, onInvia, onAccetta, onRifiuto 
                 <InputField name="mail-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
               </div>
             )}
+            {invio && vista.k === 'mail' && (
+              <p className="psog-mail__hint"><FlagCircle code={LINGUE[lingua].bandiera} size={16} /> Mail in {LINGUE[lingua].label.toLowerCase()}: testo e oggetto seguono la lingua scelta nel preventivo.</p>
+            )}
             {(invio || vista.k !== 'mail') && (
               <p className="psog-mail__hint"><i className="fa-regular fa-circle-info" aria-hidden="true" /> La piattaforma non è ancora collegata a un servizio di invio: la mail si scarica (.eml) e si apre come bozza nel programma di posta, già impaginata e con destinatario e oggetto, pronta da spedire.</p>
             )}

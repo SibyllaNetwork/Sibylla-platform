@@ -18,7 +18,7 @@ import {
   type BloccoId, type CampoTesto, type ColoriTemplate, type DatiFooter, type FontKey, type TemplateSoggiorno,
 } from './templateSoggiorno'
 import { LETTERE, comprimiFoto, mailHtml, scaricaEml } from './soggiorno'
-import { ELENCO_LINGUE, LINGUE, type Lingua } from './lingue'
+import { ELENCO_LINGUE, LINGUE, tr, type Lingua } from './lingue'
 import { motivoIn } from './PagamentoNexi'
 import FlagCircle from '../../../../core/components/FlagCircle'
 import { preventivoEsempio, conCamereAssegnate } from './esempio'
@@ -251,7 +251,7 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
   const inviato = (dest: { cliente: string; email: string; oggetto: string; prova: boolean }) => {
     setInvio(false)
     // Nessun servizio di posta collegato: la mail si scarica come .eml (bozza pronta da spedire).
-    scaricaEml(html, dest.email, dest.oggetto, `${dest.prova ? 'Prova' : 'Preventivo'} ${tpl.nome}`)
+    scaricaEml(html, dest.email, dest.oggetto, `${dest.prova ? 'Prova' : 'Preventivo'} ${tpl.nome} ${lingua.toUpperCase()}`)
     if (dest.prova) { toast.info(`Mail scaricata: aprila nel programma di posta, è già indirizzata a ${dest.email}`, 'Mail di prova'); return }
     salvaTemplate(tpl); setModificato(false)
     const ora = new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -681,7 +681,7 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
         </div>
       )}
 
-      {invio && <InviaModal html={html} pr={pr} onClose={() => setInvio(false)} onInvia={inviato} />}
+      {invio && <InviaModal html={html} pr={pr} lingua={lingua} onClose={() => setInvio(false)} onInvia={inviato} />}
       {terminiEdit && (
         <TerminiModal doc={terminiEdit === 'nuovo' ? null : terminiEdit} onClose={() => setTerminiEdit(null)}
           onSalvato={(id) => { set('termini', { id }); setTerminiEdit(null) }} />
@@ -816,14 +816,15 @@ function Segnaposto() {
 }
 
 // ─── Invio: mail di prova o preventivo vero al cliente ───────────────────────
-function InviaModal({ html, pr, onClose, onInvia }: {
-  html: string; pr: PreventivoSoggiorno; onClose: () => void
+function InviaModal({ html, pr, lingua, onClose, onInvia }: {
+  html: string; pr: PreventivoSoggiorno; lingua: Lingua; onClose: () => void
   onInvia: (d: { cliente: string; email: string; oggetto: string; prova: boolean }) => void
 }) {
   const [prova, setProva] = useState(!pr.email)
   const [cliente, setCliente] = useState(pr.cliente)
   const [email, setEmail] = useState(pr.email)
-  const [oggetto, setOggetto] = useState(`Il tuo preventivo di soggiorno · ${pr.struttura}`)
+  // La mail parte nella lingua scelta: anche l'oggetto.
+  const [oggetto, setOggetto] = useState(`${tr(lingua, 'Preventivo di soggiorno')} · ${pr.struttura}`)
   const [tentato, setTentato] = useState(false)
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
   const ok = emailOk && (prova || !!cliente.trim())
@@ -843,6 +844,7 @@ function InviaModal({ html, pr, onClose, onInvia }: {
             onChange={(e) => setEmail(e.target.value)} iconLeft="fa-regular fa-envelope" placeholder="nome@dominio.it"
             error={tentato && !emailOk ? 'Indica un\'email valida' : undefined} />
           <InputField name="send-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
+          <p className="tpled__send-lang"><FlagCircle code={LINGUE[lingua].bandiera} size={16} /> Mail in {LINGUE[lingua].label.toLowerCase()}: testo e oggetto nella lingua scelta.</p>
           <AlertBanner type="info">
             La piattaforma non è ancora collegata a un servizio di invio: la mail si scarica come file .eml, che si apre come bozza
             nel programma di posta (Outlook, Apple Mail, Thunderbird) già impaginata, con destinatario e oggetto. Premi Invia da lì.
