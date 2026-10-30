@@ -7,15 +7,19 @@
 //  I colori sono hex perché finiscono negli stili in linea della mail: i client
 //  di posta non leggono le variabili CSS della piattaforma.
 
-export type BloccoId = 'intestazione' | 'copertina' | 'lettera' | 'proposte' | 'condizioni' | 'firma'
+import { CLIENTS_INIT, INTESTATARI_INIT } from '../../../../admin/SibyllaAdminPanel/constants'
+
+export type BloccoId = 'intestazione' | 'copertina' | 'lettera' | 'proposte' | 'condizioni' | 'termini' | 'firma' | 'footer'
 
 export const BLOCCHI: Record<BloccoId, { label: string; icona: string; desc: string }> = {
   intestazione: { label: 'Intestazione', icona: 'fa-heading', desc: 'Logo, codice, titolo e sottotitolo' },
   copertina:    { label: 'Immagine di copertina', icona: 'fa-image', desc: 'Foto a tutta larghezza' },
   lettera:      { label: 'Lettera', icona: 'fa-envelope-open-text', desc: 'Saluto e messaggio al cliente' },
   proposte:     { label: 'Proposte', icona: 'fa-bed', desc: 'Le soluzioni di soggiorno con i prezzi' },
-  condizioni:   { label: 'Condizioni', icona: 'fa-file-contract', desc: 'Validità, tassa di soggiorno, note' },
+  condizioni:   { label: 'Note sull\'offerta', icona: 'fa-circle-info', desc: 'Validità, tassa di soggiorno, note' },
+  termini:      { label: 'Termini e condizioni', icona: 'fa-file-contract', desc: 'Il documento scelto dalla libreria' },
   firma:        { label: 'Firma e contatti', icona: 'fa-signature', desc: 'Chiusura, firma e recapiti' },
+  footer:       { label: 'Footer istituzionale', icona: 'fa-building-columns', desc: 'Dati societari e contatti dell\'azienda' },
 }
 
 export type FontKey = 'poppins' | 'montserrat' | 'opensans' | 'raleway' | 'playfair' | 'lora' | 'cormorant' | 'georgia' | 'helvetica' | 'courier'
@@ -50,6 +54,59 @@ export interface ColoriTemplate {
   testoPulsante: string
   /** Testo sopra l'intestazione piena. */
   testoIntestazione: string
+  sfondoFooter: string
+  testoFooter: string
+}
+
+/** Dati istituzionali del footer: i campi vuoti si prendono dalla scheda della struttura. */
+export interface DatiFooter {
+  ragioneSociale: string
+  indirizzo: string
+  cap: string
+  citta: string
+  provincia: string
+  piva: string
+  codiceFiscale: string
+  rea: string
+  capitaleSociale: string
+  telefono: string
+  email: string
+  pec: string
+  sito: string
+  facebook: string
+  instagram: string
+  linkedin: string
+  notaLegale: string
+  mostraLogo: boolean
+  allineamento: 'left' | 'center' | 'right'
+}
+
+export const FOOTER_VUOTO: DatiFooter = {
+  ragioneSociale: '', indirizzo: '', cap: '', citta: '', provincia: '', piva: '', codiceFiscale: '', rea: '', capitaleSociale: '',
+  telefono: '', email: '', pec: '', sito: '', facebook: '', instagram: '', linkedin: '',
+  notaLegale: 'Hai ricevuto questa mail perché hai chiesto un preventivo a {struttura}. I tuoi dati sono trattati secondo l\'informativa privacy (Reg. UE 2016/679).',
+  mostraLogo: false, allineamento: 'center',
+}
+
+/** Dati della struttura dalla sua scheda (Admin): nome, città, contatti, intestatario. */
+export function datiStruttura(nome: string): Partial<DatiFooter> {
+  const c = CLIENTS_INIT.find((x) => x.nome === nome)
+  if (!c) return { ragioneSociale: nome }
+  const int = INTESTATARI_INIT.find((i) => i.struttureIds.includes(c.id))
+  const [citta, prov] = [c.citta.replace(/\s*\(.*\)$/, ''), (c.citta.match(/\(([A-Z]{2})\)/) ?? [])[1] ?? '']
+  return {
+    ragioneSociale: int ? `${int.nome} · ${c.nome}` : c.nome,
+    citta, provincia: prov, telefono: c.tel, email: c.email,
+    sito: c.email.includes('@') ? `www.${c.email.split('@')[1]}` : '',
+  }
+}
+
+/** Footer effettivo: quello del template, completato coi dati della struttura. */
+export function footerEffettivo(f: DatiFooter, struttura: string): DatiFooter {
+  const d = datiStruttura(struttura)
+  const out = { ...f }
+  ;(Object.keys(d) as (keyof DatiFooter)[]).forEach((k) => { if (!out[k]) (out as any)[k] = d[k] })
+  return out
 }
 
 export interface TemplateSoggiorno {
@@ -67,6 +124,14 @@ export interface TemplateSoggiorno {
     mostraCodice: boolean
   }
   copertina: { immagine: string | null; altezza: number }
+  /** Termini e condizioni dalla libreria (useTerminiStore). */
+  termini: {
+    id: string | null
+    presentazione: 'completo' | 'sintesi'
+    /** Il cliente deve accettarli per confermare la proposta. */
+    obbligatorio: boolean
+  }
+  footer: DatiFooter
   proposte: {
     disposizione: 'colonna' | 'griglia'
     fotoCamera: 'sinistra' | 'destra' | 'sopra' | 'nascosta'
@@ -123,7 +188,8 @@ export const SEGNAPOSTO: [string, string][] = [
 
 const IMG = (id: string, w = 1200) => `https://images.unsplash.com/${id}?w=${w}&q=70&auto=format&fit=crop`
 
-const ORDINE: BloccoId[] = ['intestazione', 'copertina', 'lettera', 'proposte', 'condizioni', 'firma']
+const ORDINE: BloccoId[] = ['intestazione', 'copertina', 'lettera', 'proposte', 'condizioni', 'termini', 'firma', 'footer']
+const TERMINI: TemplateSoggiorno['termini'] = { id: 'tc-generali', presentazione: 'sintesi', obbligatorio: true }
 const blocchi = (nascosti: BloccoId[] = [], ordine = ORDINE) => ordine.map((id) => ({ id, visibile: !nascosti.includes(id) }))
 
 const TESTI: TemplateSoggiorno['testi'] = {
@@ -146,21 +212,25 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     blocchi: blocchi(['copertina']),
     intestazione: { stile: 'pieno', allineamento: 'left', logo: null, mostraCodice: true },
     copertina: { immagine: IMG('photo-1566073771259-6a8506099945'), altezza: 220 },
+    termini: TERMINI,
+    footer: FOOTER_VUOTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'sinistra', dettaglioGiorni: true, mostraServizi: true, prezzi: 'completo', mostraNumeriCamera: false },
     testi: TESTI,
     font: { titoli: 'poppins', testo: 'poppins', dimTitolo: 24, dimSottotitolo: 14, dimTesto: 13, pesoTitoli: 700, etichetteMaiuscole: true, interlinea: 1.6 },
-    colori: { sfondo: '#F1F5F9', superficie: '#FFFFFF', primario: '#204769', accento: '#9A6B12', testo: '#1E293B', tenue: '#64748B', bordo: '#E2E8F0', pulsante: '#204769', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF' },
+    colori: { sfondo: '#F1F5F9', superficie: '#FFFFFF', primario: '#204769', accento: '#9A6B12', testo: '#1E293B', tenue: '#64748B', bordo: '#E2E8F0', pulsante: '#204769', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF', sfondoFooter: '#16324A', testoFooter: '#CBD5E1' },
     forme: { larghezza: 640, spaziatura: 28, raggioContenitore: 16, raggioCard: 14, raggioPulsante: 10, raggioFoto: 10, bordo: 1, stileBordo: 'solid', ombra: false },
   },
   {
     id: 'tpl-elegante', pronto: true, nome: 'Elegante', descrizione: 'Copertina fotografica, titoli serif e dettagli oro: per hotel di charme',
-    blocchi: blocchi([], ['copertina', 'intestazione', 'lettera', 'proposte', 'condizioni', 'firma']),
+    blocchi: blocchi([], ['copertina', 'intestazione', 'lettera', 'proposte', 'condizioni', 'termini', 'firma', 'footer']),
     intestazione: { stile: 'chiaro', allineamento: 'center', logo: null, mostraCodice: true },
     copertina: { immagine: IMG('photo-1542314831-068cd1dbfeeb'), altezza: 260 },
+    termini: TERMINI,
+    footer: FOOTER_VUOTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'sopra', dettaglioGiorni: false, mostraServizi: true, prezzi: 'completo', mostraNumeriCamera: false },
     testi: { ...TESTI, sottotitolo: 'Un soggiorno pensato per te', firma: 'Con i migliori saluti,\nla Direzione di {struttura}' },
     font: { titoli: 'playfair', testo: 'lora', dimTitolo: 30, dimSottotitolo: 15, dimTesto: 14, pesoTitoli: 600, etichetteMaiuscole: true, interlinea: 1.7 },
-    colori: { sfondo: '#F4EFE6', superficie: '#FFFDF8', primario: '#3B2F2A', accento: '#A67C2E', testo: '#2E2622', tenue: '#7A6C62', bordo: '#E6DCCB', pulsante: '#A67C2E', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF' },
+    colori: { sfondo: '#F4EFE6', superficie: '#FFFDF8', primario: '#3B2F2A', accento: '#A67C2E', testo: '#2E2622', tenue: '#7A6C62', bordo: '#E6DCCB', pulsante: '#A67C2E', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF', sfondoFooter: '#3B2F2A', testoFooter: '#E6DCCB' },
     forme: { larghezza: 640, spaziatura: 32, raggioContenitore: 4, raggioCard: 4, raggioPulsante: 2, raggioFoto: 2, bordo: 1, stileBordo: 'solid', ombra: false },
   },
   {
@@ -168,10 +238,12 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     blocchi: blocchi(),
     intestazione: { stile: 'pieno', allineamento: 'center', logo: null, mostraCodice: false },
     copertina: { immagine: IMG('photo-1507525428034-b723cf961d3e'), altezza: 200 },
+    termini: TERMINI,
+    footer: FOOTER_VUOTO,
     proposte: { disposizione: 'griglia', fotoCamera: 'sopra', dettaglioGiorni: false, mostraServizi: true, prezzi: 'totale', mostraNumeriCamera: false },
     testi: { ...TESTI, sottotitolo: 'Le tue vacanze al mare iniziano qui', lettera: 'che bello sentirti! Ecco le proposte che abbiamo preparato per le tue vacanze: scegli quella che ti piace di più e pensiamo noi al resto.' },
     font: { titoli: 'montserrat', testo: 'opensans', dimTitolo: 26, dimSottotitolo: 14, dimTesto: 13, pesoTitoli: 800, etichetteMaiuscole: true, interlinea: 1.6 },
-    colori: { sfondo: '#E6F3F7', superficie: '#FFFFFF', primario: '#0B6E8A', accento: '#D9622B', testo: '#16323C', tenue: '#5B7782', bordo: '#CFE5EC', pulsante: '#D9622B', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF' },
+    colori: { sfondo: '#E6F3F7', superficie: '#FFFFFF', primario: '#0B6E8A', accento: '#D9622B', testo: '#16323C', tenue: '#5B7782', bordo: '#CFE5EC', pulsante: '#D9622B', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF', sfondoFooter: '#0B6E8A', testoFooter: '#E6F3F7' },
     forme: { larghezza: 680, spaziatura: 24, raggioContenitore: 24, raggioCard: 20, raggioPulsante: 24, raggioFoto: 16, bordo: 0, stileBordo: 'solid', ombra: true },
   },
   {
@@ -179,10 +251,12 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     blocchi: blocchi(['copertina']),
     intestazione: { stile: 'linea', allineamento: 'left', logo: null, mostraCodice: true },
     copertina: { immagine: IMG('photo-1505691938895-1758d7feb511'), altezza: 200 },
+    termini: TERMINI,
+    footer: FOOTER_VUOTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'destra', dettaglioGiorni: true, mostraServizi: false, prezzi: 'completo', mostraNumeriCamera: false },
     testi: { ...TESTI, sottotitolo: 'Preventivo di soggiorno' },
     font: { titoli: 'helvetica', testo: 'helvetica', dimTitolo: 22, dimSottotitolo: 13, dimTesto: 13, pesoTitoli: 700, etichetteMaiuscole: true, interlinea: 1.55 },
-    colori: { sfondo: '#FFFFFF', superficie: '#FFFFFF', primario: '#111111', accento: '#111111', testo: '#111111', tenue: '#6B6B6B', bordo: '#DDDDDD', pulsante: '#111111', testoPulsante: '#FFFFFF', testoIntestazione: '#111111' },
+    colori: { sfondo: '#FFFFFF', superficie: '#FFFFFF', primario: '#111111', accento: '#111111', testo: '#111111', tenue: '#6B6B6B', bordo: '#DDDDDD', pulsante: '#111111', testoPulsante: '#FFFFFF', testoIntestazione: '#111111', sfondoFooter: '#F5F5F5', testoFooter: '#6B6B6B' },
     forme: { larghezza: 600, spaziatura: 24, raggioContenitore: 0, raggioCard: 0, raggioPulsante: 0, raggioFoto: 0, bordo: 1, stileBordo: 'solid', ombra: false },
   },
   {
@@ -190,10 +264,12 @@ export const TEMPLATE_PRONTI: TemplateSoggiorno[] = [
     blocchi: blocchi(['copertina']),
     intestazione: { stile: 'pieno', allineamento: 'left', logo: null, mostraCodice: true },
     copertina: { immagine: IMG('photo-1564501049412-61c2a3083791'), altezza: 180 },
+    termini: TERMINI,
+    footer: FOOTER_VUOTO,
     proposte: { disposizione: 'colonna', fotoCamera: 'nascosta', dettaglioGiorni: true, mostraServizi: true, prezzi: 'completo', mostraNumeriCamera: true },
     testi: { ...TESTI, saluto: 'Spett.le {cliente},', lettera: 'facendo seguito alla Vostra richiesta, siamo lieti di sottoporVi le seguenti soluzioni di soggiorno. Per confermare è sufficiente il pulsante "Accetta" della proposta scelta.', sottotitolo: 'Offerta commerciale · {soluzioni}' },
     font: { titoli: 'opensans', testo: 'opensans', dimTitolo: 20, dimSottotitolo: 13, dimTesto: 12, pesoTitoli: 700, etichetteMaiuscole: false, interlinea: 1.5 },
-    colori: { sfondo: '#EEF0F3', superficie: '#FFFFFF', primario: '#2B3A4A', accento: '#2F6FB2', testo: '#1F2933', tenue: '#616E7C', bordo: '#D9DEE4', pulsante: '#2F6FB2', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF' },
+    colori: { sfondo: '#EEF0F3', superficie: '#FFFFFF', primario: '#2B3A4A', accento: '#2F6FB2', testo: '#1F2933', tenue: '#616E7C', bordo: '#D9DEE4', pulsante: '#2F6FB2', testoPulsante: '#FFFFFF', testoIntestazione: '#FFFFFF', sfondoFooter: '#2B3A4A', testoFooter: '#D9DEE4' },
     forme: { larghezza: 680, spaziatura: 22, raggioContenitore: 6, raggioCard: 6, raggioPulsante: 4, raggioFoto: 4, bordo: 1, stileBordo: 'solid', ombra: false },
   },
 ]
@@ -209,6 +285,8 @@ export function normalizza(t: Partial<TemplateSoggiorno> & { id: string }): Temp
     blocchi: [...presenti, ...d.blocchi.filter((b) => !presenti.some((x) => x.id === b.id)).map((b) => ({ ...b, visibile: false }))],
     intestazione: { ...d.intestazione, ...t.intestazione },
     copertina: { ...d.copertina, ...t.copertina },
+    termini: { ...d.termini, ...t.termini },
+    footer: { ...d.footer, ...t.footer },
     proposte: { ...d.proposte, ...t.proposte },
     testi: { ...d.testi, ...t.testi },
     font: { ...d.font, ...t.font },

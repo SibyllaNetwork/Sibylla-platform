@@ -77,6 +77,8 @@ export interface PreventivoSoggiorno {
   rispostaIl?: string
   /** Servizi aggiuntivi scelti dal cliente (id di ServizioExtra). */
   extraScelti?: string[]
+  /** Termini e condizioni accettati con la proposta (titolo e versione). */
+  terminiAccettati?: string
   proposte: PropostaSoggiorno[]
 }
 

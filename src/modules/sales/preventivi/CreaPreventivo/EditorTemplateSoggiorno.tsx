@@ -3,6 +3,7 @@ import { HexColorInput, HexColorPicker } from 'react-colorful'
 import PageHead from '../../../../core/components/PageHead'
 import Tooltip from '../../../../core/components/Tooltip'
 import AlertBanner from '../../../../core/components/AlertBanner'
+import Modal from '../../../../core/components/Modal'
 import {
   InputField, RadioGroup, RangeField, SelectField, TextareaField, ToggleSwitch,
 } from '../../../../core/components/form'
@@ -10,9 +11,10 @@ import { toast } from '../../../../core/components/Toast/useToast'
 import { useConfirmStore } from '../../../../store/useConfirmStore'
 import { usePreventiviSoggiornoStore, type PreventivoSoggiorno, type PropostaSoggiorno } from '../../../../store/usePreventiviSoggiornoStore'
 import { useTemplatePreventivoStore } from '../../../../store/useTemplatePreventivoStore'
+import { terminiDi, useTerminiStore, type Termini } from '../../../../store/useTerminiStore'
 import {
-  BLOCCHI, FONT, FOTO_COPERTINA, PALETTE, SEGNAPOSTO, TEMPLATE_DEFAULT, TEMPLATE_PRONTI, normalizza,
-  type BloccoId, type ColoriTemplate, type FontKey, type TemplateSoggiorno,
+  BLOCCHI, FONT, FOOTER_VUOTO, FOTO_COPERTINA, datiStruttura, PALETTE, SEGNAPOSTO, TEMPLATE_DEFAULT, TEMPLATE_PRONTI, normalizza,
+  type BloccoId, type ColoriTemplate, type DatiFooter, type FontKey, type TemplateSoggiorno,
 } from './templateSoggiorno'
 import { LETTERE, comprimiFoto, mailHtml } from './soggiorno'
 import { preventivoEsempio, conCamereAssegnate } from './esempio'
@@ -34,7 +36,7 @@ import './EditorTemplateSoggiorno.sass'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
-type Sezione = 'generale' | 'impaginazione' | 'intestazione' | 'copertina' | 'proposte' | 'testi' | 'tipografia' | 'colori' | 'forme'
+type Sezione = 'generale' | 'impaginazione' | 'intestazione' | 'copertina' | 'proposte' | 'testi' | 'termini' | 'footer' | 'tipografia' | 'colori' | 'forme'
 
 const SEZIONI: { id: Sezione; label: string; icona: string; desc: string }[] = [
   { id: 'generale', label: 'Generale', icona: 'fa-sliders', desc: 'Nome e punto di partenza' },
@@ -42,7 +44,9 @@ const SEZIONI: { id: Sezione; label: string; icona: string; desc: string }[] = [
   { id: 'intestazione', label: 'Intestazione e titoli', icona: 'fa-heading', desc: 'Logo, stile, titolo e sottotitolo' },
   { id: 'copertina', label: 'Immagine di copertina', icona: 'fa-image', desc: 'Foto, altezza' },
   { id: 'proposte', label: 'Proposte e foto camere', icona: 'fa-bed', desc: 'Disposizione, posizione foto, prezzi' },
-  { id: 'testi', label: 'Lettera e testi', icona: 'fa-envelope-open-text', desc: 'Saluto, lettera, firma, condizioni' },
+  { id: 'testi', label: 'Lettera e testi', icona: 'fa-envelope-open-text', desc: 'Saluto, lettera, firma, note sull\'offerta' },
+  { id: 'termini', label: 'Termini e condizioni', icona: 'fa-file-contract', desc: 'Crea o scegli il documento da inserire' },
+  { id: 'footer', label: 'Footer istituzionale', icona: 'fa-building-columns', desc: 'Dati societari e contatti dell\'azienda' },
   { id: 'tipografia', label: 'Tipografia', icona: 'fa-font', desc: 'Font, dimensioni, peso, interlinea' },
   { id: 'colori', label: 'Colori', icona: 'fa-palette', desc: 'Palette e singoli colori' },
   { id: 'forme', label: 'Bordi e angoli', icona: 'fa-vector-square', desc: 'Spessore, stile, arrotondamenti, ombra' },
@@ -54,6 +58,7 @@ const COLORI: { k: keyof ColoriTemplate; label: string }[] = [
   { k: 'testo', label: 'Testo' }, { k: 'tenue', label: 'Testo secondario' }, { k: 'bordo', label: 'Bordi e separatori' },
   { k: 'pulsante', label: 'Pulsante' }, { k: 'testoPulsante', label: 'Testo del pulsante' },
   { k: 'testoIntestazione', label: 'Testo sull\'intestazione piena' },
+  { k: 'sfondoFooter', label: 'Fondo del footer' }, { k: 'testoFooter', label: 'Testo del footer' },
 ]
 
 const PESI = [400, 500, 600, 700, 800].map((p) => ({ value: String(p), label: { 400: 'Normale', 500: 'Medio', 600: 'Semi-grassetto', 700: 'Grassetto', 800: 'Extra-grassetto' }[p]! }))
@@ -75,7 +80,10 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
   const [tplId, prevId] = param.split(':')
   const personali = useTemplatePreventivoStore((s) => s.personali)
   const salvaTemplate = useTemplatePreventivoStore((s) => s.salva)
+  const eliminaTemplate = useTemplatePreventivoStore((s) => s.elimina)
   const salvaPreventivo = usePreventiviSoggiornoStore((s) => s.salva)
+  const documenti = useTerminiStore((s) => s.documenti)
+  const eliminaTermini = useTerminiStore((s) => s.elimina)
   const confirm = useConfirmStore((s) => s.confirm)
   const strutture = useStruttureSoggiorno()
 
@@ -90,6 +98,9 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
   const [modificato, setModificato] = useState(false)
   const [errore, setErrore] = useState<string | null>(null)
+  const [invio, setInvio] = useState(false)
+  // Documento di termini aperto nell'editor (null = chiuso, 'nuovo' = da creare).
+  const [terminiEdit, setTerminiEdit] = useState<Termini | 'nuovo' | null>(null)
 
   const set = <K extends keyof TemplateSoggiorno>(k: K, patch: Partial<TemplateSoggiorno[K]>) => {
     setTpl((t) => ({ ...t, [k]: typeof patch === 'object' && !Array.isArray(patch) ? { ...(t[k] as object), ...patch } : patch }))
@@ -99,7 +110,8 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
 
   // Il messaggio della bozza d'esempio segue la lettera del template.
   const prAnteprima = useMemo(() => (prevId ? pr : { ...pr, messaggio: tpl.testi.lettera }), [pr, prevId, tpl.testi.lettera])
-  const html = useMemo(() => mailHtml(prAnteprima, { template: tpl }), [prAnteprima, tpl])
+  const termini = terminiDi(tpl.termini.id, documenti)
+  const html = useMemo(() => mailHtml(prAnteprima, { template: tpl, termini }), [prAnteprima, tpl, termini])
 
   // ── Punto di partenza: applica l'aspetto di un template pronto ─────────────
   const partiDa = async (id: string) => {
@@ -173,6 +185,55 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
     salvaPreventivo(prev)
     navigate(`crea-preventivo:${prev.id}`)
   }
+  // ── Lista dei template salvati: apri, nuovo, elimina ───────────────────────
+  const conPreventivo = (s: string) => (prevId ? `${s}:${prevId}` : s)
+  const apri = async (id: string) => {
+    if (id === tpl.id) return
+    const ok = !modificato || await confirm({
+      title: 'Modifiche non salvate', message: `Aprire un altro template senza salvare "${tpl.nome}"?`, confirmLabel: 'Apri senza salvare', danger: true,
+    })
+    if (ok) navigate(`editor-template-soggiorno:${conPreventivo(id === '__nuovo' ? '' : id)}`)
+  }
+  const elimina = async () => {
+    const ok = await confirm({
+      title: 'Elimina template',
+      message: `Eliminare il template "${tpl.nome}"? I preventivi in bozza che lo usano passeranno al template Classico.`,
+      confirmLabel: 'Elimina', danger: true,
+    })
+    if (!ok) return
+    eliminaTemplate(tpl.id)
+    toast.success(`Template "${tpl.nome}" eliminato`)
+    navigate(`editor-template-soggiorno:${conPreventivo('')}`)
+  }
+  const apriInvio = () => { if (valida()) setInvio(true) }
+  const inviato = (dest: { cliente: string; email: string; oggetto: string; prova: boolean }) => {
+    setInvio(false)
+    if (dest.prova) { toast.success(`Mail di prova inviata a ${dest.email}`); return }
+    salvaTemplate(tpl); setModificato(false)
+    const ora = new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    const prev: PreventivoSoggiorno = {
+      ...pr, ...(prevId ? {} : { codice: usePreventiviSoggiornoStore.getState().prossimoCodice(), messaggio: tpl.testi.lettera }),
+      cliente: dest.cliente, email: dest.email, templateId: tpl.id, stato: pr.stato === 'Accettato' ? pr.stato : 'Inviato', inviatoIl: ora,
+    }
+    salvaPreventivo(prev)
+    toast.success(`Preventivo ${prev.codice} inviato a ${dest.email}`)
+    navigate(`crea-preventivo:${prev.id}`)
+  }
+
+  // ── Termini e condizioni ───────────────────────────────────────────────────
+  const rimuoviTermini = async () => {
+    if (!termini) return
+    const ok = await confirm({
+      title: 'Elimina termini e condizioni',
+      message: `Eliminare "${termini.titolo}" dalla libreria? Gli altri template che lo usano non lo mostreranno più.`,
+      confirmLabel: 'Elimina', danger: true,
+    })
+    if (!ok) return
+    eliminaTermini(termini.id)
+    set('termini', { id: null })
+    toast.success(`"${termini.titolo}" eliminato`)
+  }
+
   const esci = async () => {
     const ok = !modificato || await confirm({
       title: 'Modifiche non salvate', message: 'Uscire dall\'editor senza salvare il template?', confirmLabel: 'Esci senza salvare', danger: true,
@@ -296,6 +357,98 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
         <Segnaposto />
       </>
     ),
+    termini: () => (
+      <>
+        {!blocchi.find((b) => b.id === 'termini')?.visibile && (
+          <AlertBanner type="info">
+            Il blocco Termini e condizioni è nascosto.{' '}
+            <button type="button" className="tpled__link" onClick={() => visibile('termini', true)}>Mostralo</button>
+          </AlertBanner>
+        )}
+        <SelectField name="tc-doc" label="Documento da inserire" value={tpl.termini.id ?? ''} placeholder="Nessun documento"
+          onChange={(e) => set('termini', { id: e.target.value || null })}
+          options={documenti.map((d) => ({ value: d.id, label: d.titolo }))} />
+        {termini && <p className="tpled__hint">{termini.sezioni.length} sezioni · aggiornato il {termini.aggiornato}</p>}
+        <div className="tpled__row-acts">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setTerminiEdit('nuovo')}>
+            <i className="fa-regular fa-plus" aria-hidden="true" /> Crea nuovi
+          </button>
+          {termini && (
+            <>
+              <button type="button" className="sib-btn sib-btn--secondary" onClick={() => setTerminiEdit(termini)}>
+                <i className="fa-regular fa-pen" aria-hidden="true" /> Modifica
+              </button>
+              <Tooltip text="Elimina dalla libreria">
+                <button type="button" className="sib-btn sib-btn--icon tpled__ico" aria-label="Elimina termini e condizioni" onClick={rimuoviTermini}>
+                  <i className="fa-solid fa-trash-can" aria-hidden="true" />
+                </button>
+              </Tooltip>
+            </>
+          )}
+        </div>
+        <RadioGroup name="tc-pres" label="Nella mail" value={tpl.termini.presentazione} onChange={(v) => set('termini', { presentazione: v as 'completo' | 'sintesi' })}
+          options={[{ value: 'sintesi', label: 'In sintesi' }, { value: 'completo', label: 'Testo completo' }]} />
+        <ToggleSwitch label="Accettazione obbligatoria" description="Per confermare la proposta il cliente deve spuntare di averli letti e accettati"
+          checked={tpl.termini.obbligatorio} onChange={(v) => set('termini', { obbligatorio: v })} />
+      </>
+    ),
+    footer: () => {
+      const D = tpl.footer
+      const base = datiStruttura(pr.struttura)
+      const campo = (k: keyof DatiFooter, label: string, ph = '') => (
+        <InputField name={`ft-${k}`} label={label} value={D[k] as string} placeholder={(base[k] as string) || ph}
+          onChange={(e) => set('footer', { [k]: e.target.value } as Partial<DatiFooter>)} />
+      )
+      return (
+        <>
+          {!blocchi.find((b) => b.id === 'footer')?.visibile && (
+            <AlertBanner type="info">
+              Il footer è nascosto.{' '}
+              <button type="button" className="tpled__link" onClick={() => visibile('footer', true)}>Mostralo</button>
+            </AlertBanner>
+          )}
+          <p className="tpled__hint">I campi vuoti si completano con i dati della struttura del preventivo (in grigio).</p>
+          <div className="tpled__row-acts">
+            <button type="button" className="sib-btn sib-btn--secondary" onClick={() => set('footer', base)}>
+              <i className="fa-regular fa-building" aria-hidden="true" /> Compila dai dati di {pr.struttura}
+            </button>
+            <button type="button" className="sib-btn sib-btn--ghost" onClick={() => set('footer', { ...FOOTER_VUOTO, notaLegale: D.notaLegale })}>
+              <i className="fa-regular fa-eraser" aria-hidden="true" /> Svuota
+            </button>
+          </div>
+          <span className="tpled__group">Dati societari</span>
+          {campo('ragioneSociale', 'Ragione sociale')}
+          {campo('indirizzo', 'Indirizzo', 'Via, numero civico')}
+          <div className="tpled__grid3">
+            {campo('cap', 'CAP')}
+            {campo('citta', 'Città')}
+            {campo('provincia', 'Prov.')}
+          </div>
+          <div className="tpled__grid2">
+            {campo('piva', 'Partita IVA', 'IT01234567890')}
+            {campo('codiceFiscale', 'Codice fiscale')}
+            {campo('rea', 'REA', 'SR-123456')}
+            {campo('capitaleSociale', 'Capitale sociale', '10.000 € i.v.')}
+          </div>
+          <span className="tpled__group">Contatti</span>
+          <div className="tpled__grid2">
+            {campo('telefono', 'Telefono')}
+            {campo('email', 'Email')}
+            {campo('pec', 'PEC', 'azienda@pec.it')}
+            {campo('sito', 'Sito web')}
+          </div>
+          <span className="tpled__group">Social</span>
+          {campo('facebook', 'Facebook', 'facebook.com/…')}
+          {campo('instagram', 'Instagram', 'instagram.com/…')}
+          {campo('linkedin', 'LinkedIn', 'linkedin.com/company/…')}
+          <TextareaField name="ft-nota" label="Nota legale" rows={3} value={D.notaLegale} onChange={(e) => set('footer', { notaLegale: e.target.value })} />
+          <RadioGroup name="ft-align" label="Allineamento" value={D.allineamento} onChange={(v) => set('footer', { allineamento: v as DatiFooter['allineamento'] })}
+            options={[{ value: 'left', label: 'Sinistra' }, { value: 'center', label: 'Centro' }, { value: 'right', label: 'Destra' }]} />
+          <ToggleSwitch label="Logo nel footer" description={H.logo ? 'Lo stesso dell\'intestazione' : 'Carica prima il logo in Intestazione e titoli'}
+            checked={D.mostraLogo} disabled={!H.logo} onChange={(v) => set('footer', { mostraLogo: v })} />
+        </>
+      )
+    },
     tipografia: () => (
       <>
         <SelectField name="f-titoli" label="Font dei titoli" value={F.titoli} onChange={(e) => set('font', { titoli: e.target.value as FontKey })}
@@ -354,6 +507,35 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
         onBack={esci}
       />
 
+      <div className="tpled__lib">
+        <SelectField name="tpl-lista" label="I miei template" value={esistente ? tpl.id : '__nuovo'} onChange={(e) => apri(e.target.value)}
+          options={[
+            { value: '__nuovo', label: esistente ? '+ Crea un nuovo template' : `${tpl.nome || 'Nuovo template'} (non salvato)` },
+            ...personali.map((t) => ({ value: t.id, label: t.nome })),
+          ]} />
+        <span className="tpled__lib-info">
+          {esistente
+            ? <><i className="fa-regular fa-circle-check" aria-hidden="true" /> Salvato{personali.find((t) => t.id === tpl.id)?.aggiornato ? ` il ${personali.find((t) => t.id === tpl.id)!.aggiornato}` : ''} · {personali.length} {personali.length === 1 ? 'template salvato' : 'template salvati'}</>
+            : <><i className="fa-regular fa-circle-dashed" aria-hidden="true" /> Nuovo template: salvalo per ritrovarlo nella lista</>}
+        </span>
+        <div className="tpled__lib-acts">
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={salva}>
+            <i className="fa-regular fa-floppy-disk" aria-hidden="true" /> Salva
+          </button>
+          <button type="button" className="sib-btn sib-btn--secondary" onClick={apriInvio}>
+            <i className="fa-regular fa-paper-plane" aria-hidden="true" /> Invia
+          </button>
+          {esistente && (
+            <button type="button" className="sib-btn sib-btn--secondary tpled__danger" onClick={elimina}>
+              <i className="fa-regular fa-trash-can" aria-hidden="true" /> Elimina
+            </button>
+          )}
+          <button type="button" className="sib-btn sib-btn--primary" onClick={salvaECrea}>
+            <i className="fa-solid fa-file-signature" aria-hidden="true" /> {prevId ? 'Salva e torna al preventivo' : 'Salva e crea preventivo'}
+          </button>
+        </div>
+      </div>
+
       {errore && <AlertBanner type="error">{errore}</AlertBanner>}
 
       <div className="tpled__tabs" role="tablist" aria-label="Sezioni dell'editor">
@@ -363,14 +545,6 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
           </button>
         ))}
         {modificato && <span className="tpled__dirty"><i className="fa-solid fa-circle" aria-hidden="true" /> Modifiche non salvate</span>}
-        <div className="tpled__top-acts">
-          <button type="button" className="sib-btn sib-btn--secondary" onClick={salva}>
-            <i className="fa-regular fa-floppy-disk" aria-hidden="true" /> Salva template
-          </button>
-          <button type="button" className="sib-btn sib-btn--primary" onClick={salvaECrea}>
-            <i className="fa-solid fa-file-signature" aria-hidden="true" /> {prevId ? 'Salva e torna al preventivo' : 'Salva e crea preventivo'}
-          </button>
-        </div>
       </div>
 
       {tab === 'design' ? (
@@ -412,6 +586,12 @@ export default function EditorTemplateSoggiorno({ navigate, param = '' }: { navi
             <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi una soluzione
           </button>
         </div>
+      )}
+
+      {invio && <InviaModal html={html} pr={pr} onClose={() => setInvio(false)} onInvia={inviato} />}
+      {terminiEdit && (
+        <TerminiModal doc={terminiEdit === 'nuovo' ? null : terminiEdit} onClose={() => setTerminiEdit(null)}
+          onSalvato={(id) => { set('termini', { id }); setTerminiEdit(null) }} />
       )}
     </div>
   )
@@ -531,5 +711,131 @@ function Segnaposto() {
         ))}
       </div>
     </div>
+  )
+}
+
+// ─── Invio: mail di prova o preventivo vero al cliente ───────────────────────
+function InviaModal({ html, pr, onClose, onInvia }: {
+  html: string; pr: PreventivoSoggiorno; onClose: () => void
+  onInvia: (d: { cliente: string; email: string; oggetto: string; prova: boolean }) => void
+}) {
+  const [prova, setProva] = useState(!pr.email)
+  const [cliente, setCliente] = useState(pr.cliente)
+  const [email, setEmail] = useState(pr.email)
+  const [oggetto, setOggetto] = useState(`Il tuo preventivo di soggiorno · ${pr.struttura}`)
+  const [tentato, setTentato] = useState(false)
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+  const ok = emailOk && (prova || !!cliente.trim())
+  const invia = () => { setTentato(true); if (ok) onInvia({ cliente: cliente.trim(), email: email.trim(), oggetto, prova }) }
+
+  return (
+    <Modal open onClose={onClose} size="xl" title="Invia la mail" className="tpled-send">
+      <div className="tpled-send__body">
+        <div className="tpled-send__fields">
+          <RadioGroup name="send-tipo" label="Cosa inviare" value={prova ? 'prova' : 'cliente'} onChange={(v) => setProva(v === 'prova')}
+            options={[{ value: 'prova', label: 'Una mail di prova' }, { value: 'cliente', label: 'Il preventivo al cliente' }]} />
+          {!prova && (
+            <InputField name="send-cliente" label="Cliente" required value={cliente} onChange={(e) => setCliente(e.target.value)}
+              placeholder="Nome e cognome o azienda" error={tentato && !cliente.trim() ? 'Indica il cliente' : undefined} />
+          )}
+          <InputField name="send-email" label={prova ? 'Invia la prova a' : 'Email del cliente'} type="email" required value={email}
+            onChange={(e) => setEmail(e.target.value)} iconLeft="fa-regular fa-envelope" placeholder="nome@dominio.it"
+            error={tentato && !emailOk ? 'Indica un\'email valida' : undefined} />
+          <InputField name="send-oggetto" label="Oggetto" value={oggetto} onChange={(e) => setOggetto(e.target.value)} />
+          <p className="tpled__hint">
+            {prova
+              ? 'La prova arriva con le proposte di esempio e i pulsanti disattivi: serve a vedere la mail nel tuo programma di posta.'
+              : 'Il template viene salvato e il preventivo, con queste proposte, passa in "Inviato": lo ritrovi in I miei preventivi.'}
+          </p>
+        </div>
+        <iframe className="tpled-send__frame" title="Mail da inviare" srcDoc={html} />
+      </div>
+      <div className="tpled-send__foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={invia}>
+          <i className="fa-solid fa-paper-plane" aria-hidden="true" /> {prova ? 'Invia la prova' : 'Invia al cliente'}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// ─── Termini e condizioni: crea o modifica un documento della libreria ───────
+function TerminiModal({ doc, onClose, onSalvato }: { doc: Termini | null; onClose: () => void; onSalvato: (id: string) => void }) {
+  const salva = useTerminiStore((s) => s.salva)
+  const confirm = useConfirmStore((s) => s.confirm)
+  const [titolo, setTitolo] = useState(doc?.titolo ?? '')
+  const [sezioni, setSezioni] = useState(doc?.sezioni.map((x) => ({ ...x })) ?? [{ id: uid(), titolo: '', testo: '' }])
+  const [errore, setErrore] = useState<string | null>(null)
+
+  const setSez = (id: string, patch: Partial<{ titolo: string; testo: string }>) => setSezioni((xs) => xs.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+  const sposta = (i: number, d: number) => setSezioni((xs) => {
+    const j = i + d
+    if (j < 0 || j >= xs.length) return xs
+    const out = [...xs]; [out[i], out[j]] = [out[j], out[i]]; return out
+  })
+  const togli = async (i: number) => {
+    const x = sezioni[i]
+    const ok = (!x.titolo && !x.testo) || await confirm({
+      title: 'Elimina sezione', message: `Eliminare la sezione "${x.titolo || `n. ${i + 1}`}"?`, confirmLabel: 'Elimina', danger: true,
+    })
+    if (ok) setSezioni((xs) => xs.filter((y) => y.id !== x.id))
+  }
+  const conferma = () => {
+    const piene = sezioni.filter((x) => x.titolo.trim() || x.testo.trim())
+    if (!titolo.trim()) { setErrore('Dai un titolo al documento'); return }
+    if (!piene.length) { setErrore('Scrivi almeno una sezione'); return }
+    if (piene.some((x) => !x.titolo.trim() || !x.testo.trim())) { setErrore('Ogni sezione ha bisogno di un titolo e di un testo'); return }
+    const id = doc?.id ?? `tc-${Date.now().toString(36)}`
+    salva({ id, titolo: titolo.trim(), aggiornato: '', sezioni: piene.map((x) => ({ ...x, titolo: x.titolo.trim(), testo: x.testo.trim() })) })
+    toast.success(`"${titolo.trim()}" salvato nella libreria`)
+    onSalvato(id)
+  }
+
+  return (
+    <Modal open onClose={onClose} size="lg" title={doc ? 'Modifica termini e condizioni' : 'Nuovi termini e condizioni'} className="tpled-tc">
+      <div className="tpled-tc__body">
+        {errore && <AlertBanner type="error">{errore}</AlertBanner>}
+        <InputField name="tc-titolo" label="Titolo del documento" required value={titolo} onChange={(e) => setTitolo(e.target.value)}
+          placeholder="Es. Condizioni generali di soggiorno" />
+        <ol className="tpled-tc__list">
+          {sezioni.map((x, i) => (
+            <li key={x.id} className="tpled-tc__sec">
+              <div className="tpled-tc__sec-head">
+                <span className="tpled-tc__num">{i + 1}</span>
+                <InputField name={`tc-s-${x.id}`} ariaLabel={`Titolo sezione ${i + 1}`} value={x.titolo} onChange={(e) => setSez(x.id, { titolo: e.target.value })}
+                  placeholder="Titolo della sezione (es. Cancellazione)" className="tpled-tc__sec-title" />
+                <Tooltip text="Sposta su">
+                  <button type="button" className="sib-btn sib-btn--icon tpled__ico" aria-label="Sposta su" disabled={i === 0} onClick={() => sposta(i, -1)}>
+                    <i className="fa-solid fa-arrow-up" aria-hidden="true" />
+                  </button>
+                </Tooltip>
+                <Tooltip text="Sposta giù">
+                  <button type="button" className="sib-btn sib-btn--icon tpled__ico" aria-label="Sposta giù" disabled={i === sezioni.length - 1} onClick={() => sposta(i, 1)}>
+                    <i className="fa-solid fa-arrow-down" aria-hidden="true" />
+                  </button>
+                </Tooltip>
+                <Tooltip text="Elimina sezione">
+                  <button type="button" className="sib-btn sib-btn--icon tpled__ico" aria-label="Elimina sezione" onClick={() => togli(i)}>
+                    <i className="fa-solid fa-trash-can" aria-hidden="true" />
+                  </button>
+                </Tooltip>
+              </div>
+              <TextareaField name={`tc-t-${x.id}`} label="Testo" rows={3} value={x.testo}
+                onChange={(e) => setSez(x.id, { testo: e.target.value })} placeholder="Testo della clausola" />
+            </li>
+          ))}
+        </ol>
+        <button type="button" className="tpled__add" onClick={() => setSezioni((xs) => [...xs, { id: uid(), titolo: '', testo: '' }])}>
+          <i className="fa-regular fa-plus" aria-hidden="true" /> Aggiungi una sezione
+        </button>
+      </div>
+      <div className="tpled-tc__foot">
+        <button type="button" className="sib-btn sib-btn--secondary" onClick={onClose}>Annulla</button>
+        <button type="button" className="sib-btn sib-btn--primary" onClick={conferma}>
+          <i className="fa-regular fa-floppy-disk" aria-hidden="true" /> Salva e inserisci nel template
+        </button>
+      </div>
+    </Modal>
   )
 }

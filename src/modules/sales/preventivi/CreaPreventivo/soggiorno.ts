@@ -5,7 +5,8 @@ import RoomIllustration from '../../../impostazioni/InventarioCamere/RoomIllustr
 import type {
   CameraProposta, PreventivoSoggiorno, PropostaSoggiorno, ServizioExtra, UnitaExtra,
 } from '../../../../store/usePreventiviSoggiornoStore'
-import { FONT, TEMPLATE_DEFAULT, type BloccoId, type TemplateSoggiorno } from './templateSoggiorno'
+import { FONT, TEMPLATE_DEFAULT, footerEffettivo, type BloccoId, type TemplateSoggiorno } from './templateSoggiorno'
+import { terminiDi, type Termini } from '../../../../store/useTerminiStore'
 
 export const TIPOLOGIE: { nome: string; tipo: string; capacita: number; prezzo: number; descrizione: string }[] = [
   { nome: 'Singola Classic', tipo: 'Singola', capacita: 1, prezzo: 89, descrizione: 'Letto singolo, scrivania e bagno privato con doccia: essenziale e silenziosa.' },
@@ -176,8 +177,11 @@ export function testoTemplate(s: string, pr: PreventivoSoggiorno, extra: Record<
  * `stampa`: senza pulsanti di accettazione. Ogni pulsante porta
  * `data-accetta` con l'id della proposta: l'anteprima intercetta il click.
  */
-export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; template?: TemplateSoggiorno } = {}) {
+export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; template?: TemplateSoggiorno; termini?: Termini | null } = {}) {
   const T = opts.template ?? TEMPLATE_DEFAULT
+  // Termini e condizioni: visibili solo se il blocco è nell'impaginazione.
+  const tc = T.blocchi.some((b) => b.id === 'termini' && b.visibile)
+    ? (opts.termini !== undefined ? opts.termini : terminiDi(T.termini.id)) : null
   const { colori: C, font: F, forme: S, proposte: L } = T
   const OK = '#1F8A5B'
   const OK_SOFT = '#E8F5EE'
@@ -291,6 +295,7 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
             <tr><td style="font-weight:700;color:${C.testo};font-size:${tx + 2}px">Totale con i servizi aggiuntivi</td>
                 <td style="text-align:right;font-weight:800;color:${OK};font-size:${tx + 4}px">${eur(k.totaleConExtra)}</td></tr></table>` : ''}
           ${cta}
+          ${cta && tc && T.termini.obbligatorio ? `<div style="margin-top:8px;font-size:${tx - 2}px;color:${C.tenue};text-align:center">Accettando la proposta confermi di aver letto i ${esc(tc.titolo.toLowerCase())}</div>` : ''}
         </td></tr>
       </table>`
   }
@@ -330,6 +335,39 @@ export function mailHtml(pr: PreventivoSoggiorno, opts: { stampa?: boolean; temp
     proposte: () => `<tr><td style="padding:16px ${pad}px 4px">${grazie}${elencoProposte}</td></tr>`,
     condizioni: () => (T.testi.condizioni
       ? `<tr><td style="padding:12px ${pad}px;color:${C.tenue};font-size:${tx - 1}px;line-height:${F.interlinea};border-top:1px solid ${C.bordo}">${t(T.testi.condizioni)}</td></tr>` : ''),
+    termini: () => {
+      if (!tc) return ''
+      const sezioni = T.termini.presentazione === 'completo'
+        ? tc.sezioni.map((x, i) => `<div style="margin-top:${i ? 10 : 8}px"><div style="font-weight:700;color:${C.testo};font-size:${tx - 1}px">${i + 1}. ${esc(x.titolo)}</div><div style="margin-top:2px">${esc(x.testo).replace(/\n/g, '<br>')}</div></div>`).join('')
+        : `<ul style="margin:8px 0 0;padding-left:18px">${tc.sezioni.map((x) => `<li style="margin:3px 0"><strong style="color:${C.testo}">${esc(x.titolo)}</strong> · ${esc(x.testo.split(/(?<=\.)\s/)[0])}</li>`).join('')}</ul>`
+      return `<tr><td style="padding:12px ${pad}px">
+        <div style="padding:14px 16px;border:1px solid ${C.bordo};border-radius:${Math.min(S.raggioCard, 12)}px;color:${C.tenue};font-size:${tx - 1}px;line-height:${F.interlinea}">
+          <div style="${titoloCss}font-size:${tx + 1}px;color:${C.primario}">${esc(tc.titolo)}</div>
+          <div style="font-size:${tx - 2}px;margin-top:2px">Aggiornati al ${esc(tc.aggiornato)}${T.termini.presentazione === 'sintesi' ? ' · in sintesi: il testo completo è nella pagina di conferma' : ''}</div>
+          ${sezioni}
+        </div>
+      </td></tr>`
+    },
+    footer: () => {
+      const f = footerEffettivo(T.footer, pr.struttura)
+      const col = C.testoFooter
+      const link = (href: string, txt: string) => `<a href="${esc(href)}" style="color:${col};text-decoration:underline">${esc(txt)}</a>`
+      const riga = (xs: string[]) => xs.filter(Boolean).join(' &nbsp;·&nbsp; ')
+      const web = (u: string) => (/^https?:/i.test(u) ? u : `https://${u}`)
+      const sede = riga([esc(f.indirizzo), esc([f.cap, f.citta].filter(Boolean).join(' ') + (f.provincia ? ` (${f.provincia})` : ''))])
+      const fiscali = riga([f.piva && `P.IVA ${esc(f.piva)}`, f.codiceFiscale && `C.F. ${esc(f.codiceFiscale)}`, f.rea && `REA ${esc(f.rea)}`, f.capitaleSociale && `Cap. soc. ${esc(f.capitaleSociale)}`])
+      const contatti = riga([f.telefono && link(`tel:${f.telefono.replace(/\s/g, '')}`, f.telefono), f.email && link(`mailto:${f.email}`, f.email), f.pec && `PEC ${link(`mailto:${f.pec}`, f.pec)}`, f.sito && link(web(f.sito), f.sito)])
+      const social = riga([f.facebook && link(web(f.facebook), 'Facebook'), f.instagram && link(web(f.instagram), 'Instagram'), f.linkedin && link(web(f.linkedin), 'LinkedIn')])
+      return `<tr><td style="padding:${pad - 4}px ${pad}px;background:${C.sfondoFooter};color:${col};text-align:${f.allineamento};font-size:${tx - 1}px;line-height:1.7">
+        ${f.mostraLogo && H.logo ? `<img src="${H.logo}" alt="${esc(pr.struttura)}" height="36" style="display:inline-block;height:36px;max-width:180px;object-fit:contain;margin-bottom:8px;border:0"><br>` : ''}
+        ${f.ragioneSociale ? `<div style="${titoloCss}font-size:${tx}px;color:${col}">${esc(f.ragioneSociale)}</div>` : ''}
+        ${sede ? `<div>${sede}</div>` : ''}
+        ${fiscali ? `<div>${fiscali}</div>` : ''}
+        ${contatti ? `<div>${contatti}</div>` : ''}
+        ${social ? `<div style="margin-top:4px">${social}</div>` : ''}
+        ${f.notaLegale ? `<div style="margin-top:10px;font-size:${tx - 3}px;opacity:.8">${t(f.notaLegale)}</div>` : ''}
+      </td></tr>`
+    },
     firma: () => `<tr><td style="padding:14px ${pad}px ${pad}px;color:${C.testo};font-size:${tx}px;line-height:${F.interlinea}">
       ${T.testi.chiusura ? `<div>${t(T.testi.chiusura)}</div>` : ''}
       ${T.testi.firma ? `<div style="${titoloCss}margin-top:8px;color:${C.primario}">${t(T.testi.firma)}</div>` : ''}

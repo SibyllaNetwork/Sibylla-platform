@@ -10,6 +10,7 @@ import { useServiziStore } from '../../../../store/useServiziStore'
 import { useStrutturaCorrente } from '../../../../hooks/useStrutturaCorrente'
 import { useTemplate, useTemplatePreventivoStore, templateDi } from '../../../../store/useTemplatePreventivoStore'
 import { TEMPLATE_PRONTI, type TemplateSoggiorno } from './templateSoggiorno'
+import { terminiDi, useTerminiStore, type Termini } from '../../../../store/useTerminiStore'
 import {
   assegnaAutomatico, bastano, camereDaNumeri, camereLibere, camereStruttura, primaDataUtile, numeriScelti, perTipologia, serviziProponibili, totaleCamere,
 } from './disponibilita'
@@ -123,9 +124,9 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
   }
 
   // Il cliente accetta una proposta (dall'anteprima della mail) con gli extra scelti.
-  const accetta = (propostaId: string, extraScelti: string[]) => {
+  const accetta = (propostaId: string, extraScelti: string[], terminiAccettati?: string) => {
     const i = pr.proposte.findIndex((q) => q.id === propostaId)
-    const accettato: PreventivoSoggiorno = { ...pr, stato: 'Accettato', accettata: propostaId, extraScelti, rispostaIl: ora() }
+    const accettato: PreventivoSoggiorno = { ...pr, stato: 'Accettato', accettata: propostaId, extraScelti, terminiAccettati, rispostaIl: ora() }
     setPr(accettato); salva(accettato)
     const extra = extraScelti.length ? ` con ${extraScelti.length} ${extraScelti.length === 1 ? 'servizio aggiuntivo' : 'servizi aggiuntivi'}` : ''
     toast.success(`${pr.cliente} ha accettato la proposta ${LETTERE[i]}${extra}`, 'Preventivo accettato')
@@ -179,6 +180,7 @@ export default function PreventivoSoggiorno({ navigate, preventivoId, templateId
           <span><strong>{pr.cliente}</strong> ha accettato la proposta {LETTERE[scelta]}{pr.proposte[scelta]?.titolo ? ` "${pr.proposte[scelta].titolo}"` : ''} il {pr.rispostaIl}
             {extraPresi.length > 0 && <>, aggiungendo {extraPresi.map((e) => e.nome).join(', ')}</>}.
             {' '}Totale <strong>{eur(conto(pr.proposte[scelta], pr.extraScelti).totaleConExtra)}</strong>.
+            {pr.terminiAccettati && <> Ha accettato i {pr.terminiAccettati}.</>}
           </span>
         </div>
       )}
@@ -691,12 +693,16 @@ function Extra({ q, onChange }: { q: PropostaSoggiorno; onChange: (extra: Serviz
 // ─── Mail: anteprima e invio; pagina di conferma del cliente ─────────────────
 function MailModal({ pr, template, invio, onClose, onInvia, onAccetta }: {
   pr: PreventivoSoggiorno; template: TemplateSoggiorno; invio: boolean; onClose: () => void; onInvia: () => void
-  onAccetta: (propostaId: string, extraScelti: string[]) => void
+  onAccetta: (propostaId: string, extraScelti: string[], terminiAccettati?: string) => void
 }) {
   const [oggetto, setOggetto] = useState(`Il tuo preventivo di soggiorno · ${pr.struttura}`)
   // Proposta su cui il cliente ha cliccato "Accetta": apre la pagina di conferma.
   const [conferma, setConferma] = useState<string | null>(null)
-  const html = useMemo(() => mailHtml(pr, { template }), [pr, template])
+  const documenti = useTerminiStore((s) => s.documenti)
+  const termini = terminiDi(template.termini.id, documenti)
+  const html = useMemo(() => mailHtml(pr, { template, termini }), [pr, template, termini])
+  // Termini da accettare nella pagina di conferma (se il blocco è nella mail).
+  const daAccettare = termini && template.termini.obbligatorio && template.blocchi.some((b) => b.id === 'termini' && b.visibile) ? termini : null
   const frame = useRef<HTMLIFrameElement>(null)
   const clickRef = useRef<(id: string) => void>(() => undefined)
   clickRef.current = (id) => {
@@ -721,8 +727,11 @@ function MailModal({ pr, template, invio, onClose, onInvia, onAccetta }: {
   return (
     <Modal open onClose={onClose} size="xl" title={titolo} className="psog-mail">
       {proposta ? (
-        <ConfermaCliente pr={pr} q={proposta} onIndietro={() => setConferma(null)}
-          onConferma={(extra) => { onAccetta(proposta.id, extra); setConferma(null) }} />
+        <ConfermaCliente pr={pr} q={proposta} termini={daAccettare} onIndietro={() => setConferma(null)}
+          onConferma={(extra) => {
+            onAccetta(proposta.id, extra, daAccettare ? `${daAccettare.titolo} (agg. ${daAccettare.aggiornato})` : undefined)
+            setConferma(null)
+          }} />
       ) : (
         <>
           <div className="psog-mail__body">
@@ -751,10 +760,11 @@ function MailModal({ pr, template, invio, onClose, onInvia, onAccetta }: {
   )
 }
 
-function ConfermaCliente({ pr, q, onIndietro, onConferma }: {
-  pr: PreventivoSoggiorno; q: PropostaSoggiorno; onIndietro: () => void; onConferma: (extra: string[]) => void
+function ConfermaCliente({ pr, q, termini, onIndietro, onConferma }: {
+  pr: PreventivoSoggiorno; q: PropostaSoggiorno; termini: Termini | null; onIndietro: () => void; onConferma: (extra: string[]) => void
 }) {
   const [presi, setPresi] = useState<string[]>([])
+  const [letti, setLetti] = useState(false)
   const k = conto(q, presi)
   const i = pr.proposte.findIndex((x) => x.id === q.id)
   const toggle = (id: string) => setPresi((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
@@ -803,6 +813,17 @@ function ConfermaCliente({ pr, q, onIndietro, onConferma }: {
               })}
             </ul>
 
+            {termini && (
+              <div className="psog-conf__tc">
+                <details>
+                  <summary>Leggi i {termini.titolo.toLowerCase()}</summary>
+                  <ol>{termini.sezioni.map((x) => <li key={x.id}><strong>{x.titolo}</strong> {x.testo}</li>)}</ol>
+                </details>
+                <CheckboxField name="tc-accetto" label={`Ho letto e accetto i ${termini.titolo.toLowerCase()}`} checked={letti}
+                  onChange={(e) => setLetti(e.target.checked)} />
+              </div>
+            )}
+
             <dl className="psog-conf__tot">
               <div><dt>Soggiorno (tassa inclusa)</dt><dd>{eur(k.totale)}</dd></div>
               {k.extra > 0 && <div><dt>Servizi aggiuntivi</dt><dd>{eur(k.extra)}</dd></div>}
@@ -815,7 +836,7 @@ function ConfermaCliente({ pr, q, onIndietro, onConferma }: {
         <button type="button" className="sib-btn sib-btn--secondary" onClick={onIndietro}>
           <i className="fa-regular fa-arrow-left" aria-hidden="true" /> Torna alla mail
         </button>
-        <button type="button" className="sib-btn sib-btn--primary" onClick={() => onConferma(presi)}>
+        <button type="button" className="sib-btn sib-btn--primary" disabled={!!termini && !letti} onClick={() => onConferma(presi)}>
           <i className="fa-solid fa-circle-check" aria-hidden="true" /> Conferma la proposta {LETTERE[i]}
         </button>
       </div>
